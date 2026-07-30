@@ -37,6 +37,31 @@
 | **Interface Segregation** | `OneSbQuotePort`, `OneSbProposalPort`, `OneSbPaymentPort`, `OneSbStatusPort` are separate interfaces even though they share an HTTP client. Callers depend only on the port they need. |
 | **Dependency Inversion** | Application layer (use-cases) depends on port interfaces, not Spring beans or HTTP clients. Infrastructure wires the concrete implementations. Enables test doubles and future adapter swaps. |
 
+### DRY (Don't Repeat Yourself) — as applied to this service
+
+| Rule | Concrete application |
+|------|----------------------|
+| **One workflow, many LOBs** | Quote/proposal/payment/status orchestration lives once in `*Service`. LOB differences live only in handlers/mappers — never copy-paste poll loops or job creation per LOB. |
+| **One HTTP + auth stack** | All 1SB calls go through `OneSbHttpClient` (Basic Auth, timeouts, metrics, audit hook). Handlers must not open their own WebClient. |
+| **One error model** | Map every failure through shared normalisation → `bank-common-error`. Do not invent per-endpoint ad-hoc error JSON. |
+| **One job/poll abstraction** | `JobStore` + `AsyncPoller` are reused for quote and proposal (and any future async 1SB op). |
+| **Shared cross-cutting JARs** | Error, security, audit, idempotency, observability are libraries — not reimplemented inside this service or the next bank service. |
+| **Masters once** | Enum/lookup fetch + cache is central (`MasterDataService`). Controllers/handlers do not call `/v1/master/lookup` ad hoc. |
+| **What DRY is not** | Do **not** force Term/Health/Motor into one mega DTO or one mapper “to avoid duplication”. Different payloads = different handlers. Duplicating *structure* of a handler is OK; duplicating *infrastructure* is not. |
+
+### KISS (Keep It Simple, Stupid) — as applied to this service
+
+| Rule | Concrete application |
+|------|----------------------|
+| **Integration service only** | Do not build CIF, RM UI, suitability, or journey state machine here. If it is not required to talk to 1SB safely, it is out of scope. |
+| **Case 2 is enough** | `Service.create() → LobHandler` — no complex event-sourcing or saga framework for MVP. |
+| **Sync API, async inside** | Callers use simple REST + `jobId` poll. Hide 1SB poll complexity inside the service. |
+| **Config over frameworks** | LOB feature flags = env vars for MVP. Do not introduce a full feature-flag platform until toggle frequency demands it. |
+| **Dynamic forms stay data** | Pass schema through; do not build a generic rules engine to interpret every insurer field in this service. |
+| **Start Term only** | Prove one LOB end-to-end before Health/Motor. Simplest path to a working pipeline. |
+| **Boring tech** | Prefer Spring Boot + PostgreSQL + Redis + Vault patterns the bank already runs. Avoid novel stacks unless forced. |
+| **What KISS is not** | Simple does **not** mean skip audit, masking, idempotency, or ArchUnit boundaries — those are small, mandatory controls, not complexity for its own sake. |
+
 ### Domain rules for this service
 
 1. **Bank-canonical first.** Every public API contract uses bank-owned field names. 1SB shapes never appear in controller DTOs, response bodies, or error messages visible to bank callers.

@@ -30,8 +30,9 @@ This package turns the scattered 1SB OpenAPI pages into:
 | 1 | **[service-ssot/README.md](./service-ssot/README.md)** | **Entry point — single source of truth index** |
 | 2 | [service-ssot/00-po-architect-design-session.md](./service-ssot/00-po-architect-design-session.md) | PO ↔ Architect decisions & defaults |
 | 3 | [service-ssot/PRODUCT-BACKLOG.md](./service-ssot/PRODUCT-BACKLOG.md) | Epics, stories, priorities, AC, DoD |
-| 4 | [service-ssot/FUNCTIONAL-NFR-COMPLIANCE-MAP.md](./service-ssot/FUNCTIONAL-NFR-COMPLIANCE-MAP.md) | Functional vs NFR vs compliance vs shared JARs |
-| 5 | [architecture/1sb-integration-service-architecture.md](./architecture/1sb-integration-service-architecture.md) | Full technical architecture |
+| 4 | [service-ssot/ACTION-PLAN.md](./service-ssot/ACTION-PLAN.md) | Phased action plan to progress delivery |
+| 5 | [service-ssot/FUNCTIONAL-NFR-COMPLIANCE-MAP.md](./service-ssot/FUNCTIONAL-NFR-COMPLIANCE-MAP.md) | Functional vs NFR vs compliance vs shared JARs |
+| 6 | [architecture/1sb-integration-service-architecture.md](./architecture/1sb-integration-service-architecture.md) | Full technical architecture (SOLID + DRY + KISS) |
 
 ### Background / 1SB research
 

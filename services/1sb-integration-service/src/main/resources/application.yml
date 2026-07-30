@@ -23,12 +23,15 @@ management:
     readinessstate:
       enabled: true
 
-# Secrets source + persistence HTTP client
+# Secrets source
 insurance:
   secrets:
     source: ${INSURANCE_SECRETS_SOURCE:PROPERTIES}
+
+# Platform common persistence HTTP client (bank-persistence-service)
+bank:
   persistence:
-    base-url: ${INSURANCE_PERSISTENCE_BASE_URL:http://localhost:8081}
+    base-url: ${BANK_PERSISTENCE_BASE_URL:http://localhost:8081}
 
 # 1SB outbound client configuration
 onesb:

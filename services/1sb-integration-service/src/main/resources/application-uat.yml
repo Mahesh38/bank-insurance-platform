@@ -5,8 +5,10 @@
 insurance:
   secrets:
     source: ${INSURANCE_SECRETS_SOURCE:ENV}
+
+bank:
   persistence:
-    base-url: ${INSURANCE_PERSISTENCE_BASE_URL}
+    base-url: ${BANK_PERSISTENCE_BASE_URL}
 
 logging:
   level:

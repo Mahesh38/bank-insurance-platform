@@ -4,8 +4,10 @@
 insurance:
   secrets:
     source: AWS_SECRETS_MANAGER
+
+bank:
   persistence:
-    base-url: ${INSURANCE_PERSISTENCE_BASE_URL}
+    base-url: ${BANK_PERSISTENCE_BASE_URL}
 
 management:
   endpoint:

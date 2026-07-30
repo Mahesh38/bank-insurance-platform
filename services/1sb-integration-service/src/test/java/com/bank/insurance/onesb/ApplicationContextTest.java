@@ -17,7 +17,7 @@ import org.springframework.test.context.TestPropertySource;
         "onesb.api-secret=test-api-secret",
         "onesb.distributor-id=TEST_DIST",
         "insurance.secrets.source=PROPERTIES",
-        "insurance.persistence.base-url=http://localhost:8081"
+        "bank.persistence.base-url=http://localhost:8081"
 })
 class ApplicationContextTest {
 

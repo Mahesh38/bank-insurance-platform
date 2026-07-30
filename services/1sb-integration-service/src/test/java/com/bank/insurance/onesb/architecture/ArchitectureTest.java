@@ -177,7 +177,7 @@ class ArchitectureTest {
 
     /**
      * After TD-003/011 split, integration service must not use JPA.
-     * Persistence lives in 1sb-persistence-service; this service uses HTTP only.
+     * Persistence lives in bank-persistence-service; this service uses HTTP only.
      */
     @Test
     void mustNotImportJakartaPersistence() {

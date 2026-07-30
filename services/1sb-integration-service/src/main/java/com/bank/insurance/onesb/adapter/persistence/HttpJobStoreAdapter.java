@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * HTTP adapter implementing {@link JobStorePort} against 1sb-persistence-service.
+ * HTTP adapter implementing {@link JobStorePort} against bank-persistence-service.
  */
 @Component
 public class HttpJobStoreAdapter implements JobStorePort {

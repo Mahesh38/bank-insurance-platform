@@ -1,6 +1,8 @@
 insurance:
   secrets:
     source: PROPERTIES
+
+bank:
   persistence:
     base-url: http://localhost:8081
 

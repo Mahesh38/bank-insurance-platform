@@ -3,7 +3,7 @@ package com.bank.insurance.onesb.adapter.persistence.dto;
 import java.time.Instant;
 import java.util.List;
 
-/** Request/response shapes matching 1sb-persistence-service /internal/v1 contract. */
+/** Request/response shapes matching bank-persistence-service /internal/v1 contract. */
 public final class PersistenceApiDtos {
 
     private PersistenceApiDtos() {}

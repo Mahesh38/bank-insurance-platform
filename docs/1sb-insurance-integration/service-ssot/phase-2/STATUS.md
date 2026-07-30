@@ -5,12 +5,12 @@
 
 | Task | Owner | Status | Commit |
 |------|-------|--------|--------|
-| P2-A1 COMP-002 PII masking | Dev A | Pending | |
+| P2-A1 COMP-002 PII masking | Dev A | Done | `7451483` |
 | P2-A2 TECH-004 OneSbHttpClient | Dev A | Pending | |
 | P2-A3 TECH-005 Error normalisation | Dev A | Pending | |
 | P2-A4 COMP-001 Outbound audit | Dev A | Pending | |
-| P2-B1 NFR-001 Idempotency filter | Dev B | Pending | |
-| P2-B2 TECH-006 Job store | Dev B | Pending | |
+| P2-B1 NFR-001 Idempotency filter | Dev B | Done | `596a3e0` |
+| P2-B2 TECH-006 Job store | Dev B | In progress | |
 | P2-B3 TECH-007 Async poller | Dev B | Pending | |
 
 ## TL reviews
@@ -18,3 +18,8 @@
 | Iteration | Date | Outcome |
 |-----------|------|---------|
 | — | — | Kickoff published; awaiting Dev delivery |
+
+## Dev B notes
+
+- **P2-B1:** `IdempotencyPort` + in-memory store; filter on POST/PUT/PATCH `/v1/**`; `MISSING_IDEMPOTENCY_KEY` added to `ErrorCodes`. Redis swap deferred (TD-010).
+- **JobStatus rename (P2-B2):** Aligning enum to backlog `PENDING|RUNNING|COMPLETED|PARTIAL|FAILED|TIMEOUT` (was `POLLING`/`COMPLETE`).

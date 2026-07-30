@@ -187,3 +187,21 @@ Authority: [TECH-LEAD-REVIEW-COMMON-PERSISTENCE](./TECH-LEAD-REVIEW-COMMON-PERSI
 - Historical docs (prior TL review / confirmation) still mention old module name — intentional audit trail.
 - WireMock E2E / poll-attempt HTTP unchanged → **TD-014**, **TD-015**.
 - Full audit-consumer Boot app not scaffolded (doc-only per TD-021) — intentional.
+
+---
+
+## Agent 3 — confirmation pass (common persistence)
+
+Confirmation circle #2 — senior comment **PASS** in code. Hygiene only; Agent 2 banner/SSOT edits retained.
+
+| Check | Result | Notes |
+|-------|--------|-------|
+| No `1sb-persistence-service` / `insurance.persistence` in `services/`, `libs/`, `settings.gradle.kts`, `AGENTS.md`, active service READMEs | ✅ | Historical phase-1 TL docs retained as audit trail |
+| Persistence README **Consumers** | ✅ | `1sb-integration-service` (jobs/payments); future `audit-consumer-service` (audit-events only); both HTTP; no Flyway in consumers |
+| Module / package / client key | ✅ | `bank-persistence-service`, `com.bank.persistence`, `bank.persistence.base-url` |
+
+### Verify (confirmation — common persistence)
+
+```bash
+./gradlew :services:bank-persistence-service:test :services:1sb-integration-service:test
+```

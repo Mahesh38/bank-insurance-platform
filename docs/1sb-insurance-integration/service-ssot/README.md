@@ -33,6 +33,7 @@ This folder is the **authoritative starting point** for building the service. If
 |----------|---------|
 | [TECH-DEBT.md](./TECH-DEBT.md) | Tech debt log (senior review + TL findings) |
 | [ROLE-GUIDELINES-AND-DOD.md](./ROLE-GUIDELINES-AND-DOD.md) | Team Lead / Dev / QA / QA Lead responsibilities & Definition of Done |
+| [WORK-SEQUENCE.md](./WORK-SEQUENCE.md) | Ordered steps from TL assignment → Done (with FUNC example) |
 | [QA-LEAD-TESTING-STRATEGY.md](./QA-LEAD-TESTING-STRATEGY.md) | QA Lead testing pyramid, ownership, coverage |
 | [TESTING-RULES.md](./TESTING-RULES.md) | Enforceable test rules / DoD |
 | [TEST-BACKLOG.md](./TEST-BACKLOG.md) | QA test backlog (JaCoCo, IT, Phase 3 gates) |

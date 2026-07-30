@@ -3,7 +3,7 @@
 **Audience:** Team Lead (Tech Lead), Developers, QA Engineers, QA Lead  
 **Status:** Binding for work on this platform  
 **Branch:** `cursor/phase1-foundations-c259` onward  
-**Related:** [TESTING-RULES.md](./TESTING-RULES.md) · [QA-LEAD-TESTING-STRATEGY.md](./QA-LEAD-TESTING-STRATEGY.md) · [PRODUCT-BACKLOG.md](./PRODUCT-BACKLOG.md) · [ACTION-PLAN.md](./ACTION-PLAN.md) · [TECH-DEBT.md](./TECH-DEBT.md)
+**Related:** [TESTING-RULES.md](./TESTING-RULES.md) · [QA-LEAD-TESTING-STRATEGY.md](./QA-LEAD-TESTING-STRATEGY.md) · [PRODUCT-BACKLOG.md](./PRODUCT-BACKLOG.md) · [ACTION-PLAN.md](./ACTION-PLAN.md) · [TECH-DEBT.md](./TECH-DEBT.md) · [WORK-SEQUENCE.md](./WORK-SEQUENCE.md)
 
 ---
 

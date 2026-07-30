@@ -18,12 +18,13 @@
 | Iteration | Date | Outcome |
 |-----------|------|---------|
 | 1 | 2026-07-30 | **APPROVED** — all P2-A1..A4 / P2-B1..B3; no P0. See [TL-REVIEW-ITER1.md](./TL-REVIEW-ITER1.md). Optional P1 hygiene only for iter-2. |
-| 2 | 2026-07-30 | Dev A P1 hygiene: WireMock 5xx FAILURE audit + `hash(masked) ≠ hash(plaintext)` in `OneSbHttpClientTest` (commit message `test(p2-a4): 5xx audit and masked requestHash inequality`). |
+| 2 | 2026-07-30 | Dev A P1: 5xx FAILURE audit + masked≠plaintext requestHash. Dev B P1: `@Qualifier("persistenceRestClient")` on `HttpJobStoreAdapter` (`fd7ad1b`); `JobPollAttemptApiTest` poll-attempt save + 404 (`0d9d04e`). |
 
 ## Dev B notes
 
 - **P2-B1:** `IdempotencyPort` + in-memory store; filter on POST/PUT/PATCH `/v1/**`; `MISSING_IDEMPOTENCY_KEY` added to `ErrorCodes`. Redis swap deferred (TD-010).
 - **P2-B2:** `JobStatus` → `PENDING|RUNNING|COMPLETED|PARTIAL|FAILED|TIMEOUT`; `failJob(POLL_TIMEOUT)` → `TIMEOUT`; poll-attempt HTTP on persistence (TD-015 partial).
+- **P2-B2 iter-2 (P1):** `HttpJobStoreAdapter` → `@Qualifier("persistenceRestClient")` (`fd7ad1b`); persistence `JobPollAttemptApiTest` for POST save + missing-job 404 (`0d9d04e`).
 - **P2-B3:** `AsyncJobPoller` + `onesb.poll.*` backoff (arch §7.4); `OneSbPollPort` via `OneSbHttpClientPollAdapter`; WireMock pending→complete and max-attempts→`TIMEOUT`; `schedulePoll` is non-blocking.
 
 ## Dev A notes

@@ -23,12 +23,12 @@ Severity: **P0** = blocks Phase 2 / multi-service reuse · **P1** = fix this spr
 | TD-007 | P3 | ArchUnit rules use `allowEmptyShould(true)` — tighten when packages fill | Phase 1 review | Deferred | Phase 2+ |
 | TD-008 | P3 | Docs drift: AGENTS.md “placeholder”; libs README Boot 3.3.5 vs 3.3.4 | Phase 1 review | **Closed** | Agent 2 |
 | TD-009 | P2 | Missing domain ports vs arch (Proposal/Status/Master/Audit/Idempotency) | Phase 1 review | Deferred Phase 2 | Backlog |
-| TD-010 | P2 | No Redis / idempotency / cache adapter yet | Arch gap | Deferred Phase 2 | Backlog |
+| TD-010 | P2 | No Redis idempotency / cache adapter yet (in-memory OK Phase 2) | Arch gap | Partial — in-memory done P2-B1 | Backlog |
 | TD-011 | P1 | Integration service must not own Flyway or JPA after split | Senior #3–4 | **Closed** | Agent 3 |
 | TD-012 | P2 | Convention for future JPA entities / API DTOs (Lombok vs records) | Senior #1 + TL | **Closed** | Agent 2 |
 | TD-013 | P3 | Stale integration README / STATUS after persistence split | Confirmation | **Closed** | Agent 2 |
 | TD-014 | P2 | WireMock / full E2E for integration ↔ persistence HTTP | Confirmation | Deferred Phase 2 | Backlog |
-| TD-015 | P2 | Poll-attempt / raw-payload HTTP ports on persistence | Confirmation | Deferred Phase 2 | Backlog |
+| TD-015 | P2 | Poll-attempt / raw-payload HTTP ports on persistence | Confirmation | Partial — poll-attempt done P2-B2 | Backlog |
 | TD-016 | P0 | Rename `1sb-persistence-service` → `bank-persistence-service` | Senior (common persistence) | **Closed** | Agent 3 |
 | TD-017 | P0 | Docs/ownership: persistence is platform-common, not 1SB-owned | Senior (common persistence) | **Closed** | Agent 2 |
 | TD-018 | P1 | Package `com.bank.persistence` (+ flatten entity/repo) | Senior + TL | **Closed** | Agent 3 |

@@ -73,4 +73,24 @@ public final class PersistenceApiDtos {
             String rawOfferBlobId,
             Instant createdAt
     ) {}
+
+    public record CreatePollAttemptRequest(
+            short attemptNumber,
+            Instant attemptedAt,
+            Short httpStatus,
+            Boolean isComplete,
+            Integer durationMs,
+            String errorMessage
+    ) {}
+
+    public record PollAttemptResponse(
+            Long attemptId,
+            String jobId,
+            short attemptNumber,
+            Instant attemptedAt,
+            Short httpStatus,
+            Boolean isComplete,
+            Integer durationMs,
+            String errorMessage
+    ) {}
 }

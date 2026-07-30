@@ -2,13 +2,17 @@ package com.bank.persistence.api.internal.v1;
 
 import com.bank.persistence.api.internal.v1.dto.CreateJobRequest;
 import com.bank.persistence.api.internal.v1.dto.CreateOfferRequest;
+import com.bank.persistence.api.internal.v1.dto.CreatePollAttemptRequest;
 import com.bank.persistence.api.internal.v1.dto.JobResponse;
 import com.bank.persistence.api.internal.v1.dto.OfferResponse;
 import com.bank.persistence.api.internal.v1.dto.PatchJobStatusRequest;
+import com.bank.persistence.api.internal.v1.dto.PollAttemptResponse;
 import com.bank.persistence.entity.IntegrationJobEntity;
 import com.bank.persistence.entity.IntegrationJobOfferEntity;
+import com.bank.persistence.entity.JobPollAttemptEntity;
 import com.bank.persistence.repo.IntegrationJobOfferRepository;
 import com.bank.persistence.repo.IntegrationJobRepository;
+import com.bank.persistence.repo.JobPollAttemptRepository;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,11 +34,14 @@ public class JobController {
 
     private final IntegrationJobRepository jobRepository;
     private final IntegrationJobOfferRepository offerRepository;
+    private final JobPollAttemptRepository pollAttemptRepository;
 
     public JobController(IntegrationJobRepository jobRepository,
-                         IntegrationJobOfferRepository offerRepository) {
+                         IntegrationJobOfferRepository offerRepository,
+                         JobPollAttemptRepository pollAttemptRepository) {
         this.jobRepository = jobRepository;
         this.offerRepository = offerRepository;
+        this.pollAttemptRepository = pollAttemptRepository;
     }
 
     @PostMapping
@@ -122,6 +129,37 @@ public class JobController {
         return ResponseEntity.status(HttpStatus.CREATED).body(toOfferResponse(saved));
     }
 
+    @PostMapping("/{jobId}/poll-attempts")
+    public ResponseEntity<PollAttemptResponse> addPollAttempt(
+            @PathVariable String jobId,
+            @Valid @RequestBody CreatePollAttemptRequest request) {
+        if (!jobRepository.existsById(jobId)) {
+            throw NotFound.of("Job", jobId);
+        }
+
+        JobPollAttemptEntity entity = new JobPollAttemptEntity();
+        entity.setJobId(jobId);
+        entity.setAttemptNumber(request.attemptNumber());
+        entity.setAttemptedAt(request.attemptedAt() != null ? request.attemptedAt() : Instant.now());
+        entity.setHttpStatus(request.httpStatus());
+        entity.setIsComplete(request.isComplete());
+        entity.setDurationMs(request.durationMs());
+        entity.setErrorMessage(request.errorMessage());
+
+        JobPollAttemptEntity saved = pollAttemptRepository.save(entity);
+        return ResponseEntity.status(HttpStatus.CREATED).body(toPollAttemptResponse(saved));
+    }
+
+    @GetMapping("/{jobId}/poll-attempts")
+    public List<PollAttemptResponse> listPollAttempts(@PathVariable String jobId) {
+        if (!jobRepository.existsById(jobId)) {
+            throw NotFound.of("Job", jobId);
+        }
+        return pollAttemptRepository.findByJobIdOrderByAttemptNumberAsc(jobId).stream()
+                .map(JobController::toPollAttemptResponse)
+                .toList();
+    }
+
     static JobResponse toResponse(IntegrationJobEntity e) {
         return new JobResponse(
                 e.getJobId(),
@@ -160,6 +198,19 @@ public class JobController {
                 e.getErrorSummary(),
                 e.getRawOfferBlobId(),
                 e.getCreatedAt()
+        );
+    }
+
+    static PollAttemptResponse toPollAttemptResponse(JobPollAttemptEntity e) {
+        return new PollAttemptResponse(
+                e.getAttemptId(),
+                e.getJobId(),
+                e.getAttemptNumber(),
+                e.getAttemptedAt(),
+                e.getHttpStatus(),
+                e.getIsComplete(),
+                e.getDurationMs(),
+                e.getErrorMessage()
         );
     }
 }

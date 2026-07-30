@@ -5,7 +5,7 @@
 
 | Task | Owner | Status | Commit |
 |------|-------|--------|--------|
-| P2-A1 COMP-002 PII masking | Dev A | Done | `7451483` |
+| P2-A1 COMP-002 PII masking | Dev A | Done | `6f0b7ed` |
 | P2-A2 TECH-004 OneSbHttpClient | Dev A | Pending | |
 | P2-A3 TECH-005 Error normalisation | Dev A | Pending | |
 | P2-A4 COMP-001 Outbound audit | Dev A | Pending | |

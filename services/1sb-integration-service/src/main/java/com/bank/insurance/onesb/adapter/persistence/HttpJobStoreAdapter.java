@@ -2,6 +2,7 @@ package com.bank.insurance.onesb.adapter.persistence;
 
 import com.bank.insurance.onesb.adapter.persistence.dto.PersistenceApiDtos.CreateJobRequest;
 import com.bank.insurance.onesb.adapter.persistence.dto.PersistenceApiDtos.CreateOfferRequest;
+import com.bank.insurance.onesb.adapter.persistence.dto.PersistenceApiDtos.CreatePollAttemptRequest;
 import com.bank.insurance.onesb.adapter.persistence.dto.PersistenceApiDtos.JobResponse;
 import com.bank.insurance.onesb.adapter.persistence.dto.PersistenceApiDtos.OfferResponse;
 import com.bank.insurance.onesb.adapter.persistence.dto.PersistenceApiDtos.PatchJobStatusRequest;
@@ -25,6 +26,8 @@ import java.util.Optional;
  */
 @Component
 public class HttpJobStoreAdapter implements JobStorePort {
+
+    static final String POLL_TIMEOUT_REASON = "POLL_TIMEOUT";
 
     private final RestClient persistenceRestClient;
 
@@ -53,13 +56,13 @@ public class HttpJobStoreAdapter implements JobStorePort {
 
     @Override
     public void updateJobPolling(String jobId, String externalReqId) {
-        patchStatus(jobId, new PatchJobStatusRequest(JobStatus.POLLING.name(), null, externalReqId, null));
+        patchStatus(jobId, new PatchJobStatusRequest(JobStatus.RUNNING.name(), null, externalReqId, null));
     }
 
     @Override
     public void completeJob(String jobId, List<QuoteOffer> offers) {
         Instant completedAt = Instant.now();
-        patchStatus(jobId, new PatchJobStatusRequest(JobStatus.COMPLETE.name(), null, null, completedAt));
+        patchStatus(jobId, new PatchJobStatusRequest(JobStatus.COMPLETED.name(), null, null, completedAt));
         if (offers != null) {
             for (QuoteOffer offer : offers) {
                 persistenceRestClient.post()
@@ -86,12 +89,31 @@ public class HttpJobStoreAdapter implements JobStorePort {
 
     @Override
     public void failJob(String jobId, String failureReason) {
+        JobStatus status = POLL_TIMEOUT_REASON.equals(failureReason) ? JobStatus.TIMEOUT : JobStatus.FAILED;
         patchStatus(jobId, new PatchJobStatusRequest(
-                JobStatus.FAILED.name(),
+                status.name(),
                 failureReason,
                 null,
                 Instant.now()
         ));
+    }
+
+    @Override
+    public void recordPollAttempt(String jobId, int attemptNumber, int httpStatus,
+                                  boolean complete, int durationMs, String errorMessage) {
+        persistenceRestClient.post()
+                .uri("/internal/v1/jobs/{jobId}/poll-attempts", jobId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(new CreatePollAttemptRequest(
+                        (short) attemptNumber,
+                        Instant.now(),
+                        (short) httpStatus,
+                        complete,
+                        durationMs,
+                        errorMessage
+                ))
+                .retrieve()
+                .toBodilessEntity();
     }
 
     @Override

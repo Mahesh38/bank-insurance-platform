@@ -1,0 +1,184 @@
+# Customer Info | 1SB Developer Portal
+
+Headings: ['Customer Info\u200b']
+
+## Fields (82)
+- `customerHashId` (string) **REQUIRED**
+  - Unique customer identifier. Mandatory field used to fetch complete customer information and pre-populate the customer journey.
+- `loan_type` (string)
+  - Possible: <= 5 characters, [HL, TW, CL]
+  - Loan type associated with the customer. Optional field used for journey and product mapping. Example values include HL (Home Loan), PL (Personal Loan), GL (Gold Loan).
+- `customerPAN` (string)
+  - Possible: <= 10 characters
+  - Permanent Account Number (PAN) of the customer. Optional field; can be passed if available.
+- `firstName` (string)
+  - Possible: <= 50 characters
+  - First name of the customer. Optional identifier for customer lookup.
+- `lastName` (string)
+  - Possible: <= 50 characters
+  - Last name of the customer. Optional identifier for customer lookup.
+- `dateOfBirth` (date)
+  - Date of birth of the customer in YYYY-MM-DD format. Optional field.
+- `reqId` (string)
+  - Unique request identifier for tracking the API call
+- `errors` (object[])
+  - List of errors occurred during request processing
+- `data` (integer)
+  - Wrapper object holding customer data | unique identifier for customer information
+- `customer_id` (string)
+  - External or business customer identifier
+- `customer_info` (string)
+  - Complete customer profile information | Personal details of the customer | Salutation of the customer
+- `firstName` (string)
+  - First name of the customer
+- `middleName` (string)
+  - Middle name of the customer
+- `lastName` (string)
+  - Last name of the customer
+- `gender` (string)
+  - Gender of the customer
+- `dateOfBirth` (date)
+  - Date of birth of the customer
+- `maritalStatus` (string)
+  - Marital status of the customer
+- `email` (string)
+  - Email address of the customer
+- `mobileNumber` (string)
+  - Primary mobile number of the customer
+- `otherMobileNumber` (string)
+  - Alternate mobile number of the customer
+- `emergencyMobileNumber` (string)
+  - Emergency contact mobile number
+- `telephoneNumber` (string)
+  - Landline or telephone number
+- `nationality` (string)
+  - Nationality of the customer
+- `professionalDetails` (string)
+  - Professional and employment-related details of the customer | Highest educational qualification
+- `occupation` (string)
+  - Occupation type of the customer
+- `designation` (string)
+  - Job designation of the customer
+- `organisation` (string)
+  - Name of the employing organization
+- `annualIncome` (string)
+  - Annual income of the customer
+- `kycDetails` (string)
+  - Know Your Customer (KYC) related details | PAN number of the customer
+- `ckycNumber` (string)
+  - Central KYC number
+- `eiaNumber` (string)
+  - Electronic Insurance Account number
+- `aadharNumber` (string)
+  - Aadhaar number of the customer
+- `communicationAddress` (string)
+  - Communication address of the customer | Address line 1
+- `addressLine2` (string)
+  - Address line 2
+- `addressLine3` (string)
+  - Address line 3
+- `landmark` (string)
+  - Nearest landmark
+- `zipCode` (string)
+  - Postal or ZIP code
+- `city` (string)
+  - City name
+- `state` (string)
+  - State name
+- `country` (string)
+  - Country name
+- `permanentAddress` (string)
+  - Permanent residential address of the customer | Address line 1
+- `addressLine2` (string)
+  - Address line 2
+- `addressLine3` (string)
+  - Address line 3
+- `landmark` (string)
+  - Nearest landmark
+- `zipCode` (string)
+  - Postal or ZIP code
+- `city` (string)
+  - City name
+- `state` (string)
+  - State name
+- `country` (string)
+  - Country name
+- `healthQuestionnaire` (string)
+  - Possible: [NO, YES]
+  - Health-related declarations of the customer | Indicates whether the customer consumes tobacco
+- `nomineeDetails` (string)
+  - Nominee details provided by the customer | Nominee first name
+- `middleName` (string)
+  - Nominee middle name
+- `lastName` (string)
+  - Nominee last name
+- `dateOfBirth` (date)
+  - Nominee date of birth
+- `gender` (string)
+  - Nominee gender
+- `relationship` (string)
+  - Relationship of nominee with customer
+- `productDetails` (string)
+  - Insurance product-related details | Policy cover amount
+- `sumInsured` (string)
+  - Sum insured amount
+- `monthlyAmount` (string)
+  - Monthly premium amount
+- `dependantDetails` (string)
+  - Details of dependent family member | Dependent first name
+- `middleName` (string)
+  - Dependent middle name
+- `lastName` (string)
+  - Dependent last name
+- `dateOfBirth` (date)
+  - Dependent date of birth
+- `gender` (string)
+  - Dependent gender
+- `relationship` (string)
+  - Relationship of dependent with customer
+- `bankDetails` (string)
+  - Bank account details for payment and refunds | Name of the bank account holder
+- `IFSCcode` (string)
+  - IFSC code of the bank branch
+- `accountType` (string)
+  - Type of bank account
+- `accountNumber` (string)
+  - Bank account number
+- `data` (object)
+  - Section to carry quote responses
+- `errors` (string)
+  - Possible: <= 50 characters
+  - This array contains error messages in case of an error | In case error occurs, the error code will be stored here
+- `errorDisplayMessage` (string)
+  - Possible: <= 100 characters
+  - In case error occurs, the error display message will be stored here
+- `errorIdentifier` (string)
+  - Possible: <= 20 characters
+  - In case error occurs, the error identifier will be stored here
+- `errorMessage` (string)
+  - Possible: <= 100 characters
+  - In case error occurs, the error message will be stored here
+- `errorType` (string)
+  - Possible: <= 10 characters
+  - In case error occurs, the error type will be stored here
+- `reqId` (string) **REQUIRED**
+  - Request Id for the quote assigned by 1SB
+- `data` (object)
+  - Section to carry quote responses
+- `errors` (string)
+  - Possible: <= 50 characters
+  - This array contains error messages in case of an error | In case error occurs, the error code will be stored here
+- `errorDisplayMessage` (string)
+  - Possible: <= 100 characters
+  - In case error occurs, the error display message will be stored here
+- `errorIdentifier` (string)
+  - Possible: <= 20 characters
+  - In case error occurs, the error identifier will be stored here
+- `errorMessage` (string)
+  - Possible: <= 100 characters
+  - In case error occurs, the error message will be stored here
+- `errorType` (string)
+  - Possible: <= 10 characters
+  - In case error occurs, the error type will be stored here
+- `reqId` (string) **REQUIRED**
+  - Request Id for the quote assigned by 1SB

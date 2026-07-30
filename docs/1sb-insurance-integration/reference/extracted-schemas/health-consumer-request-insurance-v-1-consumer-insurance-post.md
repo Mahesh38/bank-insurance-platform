@@ -1,0 +1,480 @@
+# Get quote | 1SB Developer Portal
+
+Headings: ['Get quote\u200b']
+
+## Fields (162)
+- `typeOfQuote` (string) **REQUIRED**
+  - Possible: <= 20 characters, [Single Quote, Multi-Quote]
+  - This will take values as 'Single Quote' or 'Multi-quote' and will help to identify the number of quote requests to be generated
+- `quoteCategory` (string) **REQUIRED**
+  - Possible: <= 20 characters, [Sum Insured]
+  - Quote Amount will be Sum Insured only.
+- `alternateFreqRequired` (string)
+  - Possible: <= 10 characters, [Yes, No, null]
+  - If the consumer wants frequency related multi-quote, this field should carry the values as Yes or No. Example for frequency related multi-quote. If customer inputs premiumPaymentFrequency as Monthly, Quaterly, or Half-Yearly, then 1SB will provide premium for given as well as Yearly frequency. If customer inputs premiumPaymentFrequency as Yearly, 1SB will provide premium for Yearly as well as Mont
+- `outOfBoundConfig` (string)
+  - Possible: <= 10 characters, [Yes, No, null]
+  - If the distributor wants quotes for Out of Bound cases, this field should carry the values Yes or No. Example for Out of Bound case: For eg. if the consumer asks for PED waiting of upto 2 years and this limits the number of quotes, then we can show the products with 3 year waitng period as well with a distinction stating that this product is not having a 2 year waiting period but a 3 year waiting 
+- `additionalSetup` (string)
+  - Possible: <= 5 characters, [AUD, NZD, USD, EUR, GBP, JPY, ZAR, CAD, CNY, ARS, BSD, BDT, BGN, BRL, CLP, KWD, COP, HRK, CZK, DKK, EGP, HKD, HUF, ISK, INR, IDR, ILS, KZT, KRW, CHF, MYR, MUR, MXN, NOK, PHP, PLN, QAR, RON, RUB, SAR, RSD, SGD, SEK, TWD, THB, TRY, UAH, VND, AED, MAD, PEN, UYU, OMR, BHD]
+  - This section will contain additional information regarding user and policy | Currency in which policy will be purchased
+- `userGeoLocation` (string)
+  - Possible: <= 100 characters
+  - Return a JSON object with latitude and longitude properties | latitude
+- `longitude` (string)
+  - longitude
+- `userCountry` (string)
+  - Possible: <= 5 characters, [AF, AX, AL, DZ, AS, AD, AO, AI, AQ, AG, AR, AM, AW, AU, AT, AZ, BS, BH, BD, BB, BY, BE, BZ, BJ, BM, BT, BO, BQ, BA, BW, BV, BR, IO, BN, BG, BF, BI, CV, KH, CM, CA, KY, CF, TD, CL, CN, CX, CC, CO, KM, CG, CD, CK, CR, CI, HR, CU, CW, CY, CZ, DK, DJ, DM, DO, EC, EG, SV, GQ, ER, EE, SZ, ET, FK, FO, FJ, FI, FR, GF, PF, TF, GA, GM, GE, DE, GH, GI, GO, GR, GL, GD, GP, GU, GT, GG, GN, GW, GY, HT, HM, VA, HN, HK, HU, IS, IN, ID, IR, IQ, IE, IM, IL, IT, JM, JP, JE, JO, KZ, KE, KI, XK, KW, KG, LA, LV, LB, LS, LR, LY, LI, LT, LU, MO, MG, MW, MY, MV, ML, MT, MH, MQ, MR, MU, YT, MX, FM, MD, MC, MN, ME, MS, MA, MZ, MM, NA, NR, NP, NL, NC, NZ, NI, NE, NG, NU, NF, KP, MK, MP, NO, OM, PK, PW, PS, PA, PG, PY, PE, PH, PN, PL, PT, PR, QA, RE, RO, RU, RW, BL, SH, KN, LC, MF, PM, VC, WS, SM, ST, SA, SN, RS, SC, SL, SG, SX, SK, SI, SB, SO, ZA, GS, KR, SS, ES, LK, SD, SR, SJ, SE, CH, SY, TW, TJ, TZ, TH, TL, TG, TK, TO, TT, TN, TR, TM, TC, TV, UG, UA, AE, GB, UM, US, UY, UZ, VU, VE, VN, VG, VI, WF, EH, YE, ZM, ZW]
+  - Country of the user
+- `userRegion` (string)
+  - Possible: <= 30 characters
+  - Region (State or Province) of the user
+- `userLanguage` (string)
+  - Possible: <= 20 characters
+  - Language set by user on the consumer app
+- `userIP` (string)
+  - Possible: <= 20 characters
+  - User IP address
+- `userAgent` (string)
+  - Possible: <= 50 characters
+  - User's browser details
+- `distributor` (string) **REQUIRED**
+  - Possible: <= 20 characters
+  - This section will give details of intermediary (Broker, corporate Agent or Bank acting as intermediary) | static for a given Distributor. Ask your Account Manager
+- `salesChannel` (string)
+  - Possible: <= 20 characters, [Online, Others]
+  - This is used by insurance companies to identify sales channel
+- `agentID` (string) **REQUIRED**
+  - Possible: <= 20 characters
+  - Agent code. Eg. PoSP code or SP code provided by insurance company
+- `channelType` (string) **REQUIRED**
+  - Possible: <= 20 characters, [B2B, B2C]
+  - This is used by insurance companies to identify channel type. Eg. B2B or B2C
+- `varFields` (string)
+  - Possible: <= 50 characters
+  - Additional fields for distributor section.
+- `fieldValue` (string)
+  - Possible: <= 50 characters
+  - Value of additional fields
+- `personalInformation` (string) **REQUIRED**
+  - Possible: <= 30 characters, [Insured, Proposer]
+  - Section to capture personal details of all the insureds. | This array will hold personal details of all insured members. | Indicates that the information is being captured for the insured member only or of a proposer (who is non an insured member). Only insureds data are taken for the calculation of quotes.
+- `memberSequenceNumber` (integer) **REQUIRED**
+  - This is the sequence number to assigned to each member of personalInformation Array.
+- `insuredRelWithProposer` (string) **REQUIRED**
+  - Possible: <= 30 characters, [Daughter, Father, Father-in-law, Mother, Mother-in-law, Self, Son, Spouse]
+  - Relationship of life assured with Proposer. Example- Self, Spouse. This field is mandatory for typeOfQuote= Single Quote.
+- `title` (string)
+  - Possible: <= 30 characters, [Mr, Mrs, Ms]
+  - Title of the member.
+- `firstName` (string)
+  - Possible: <= 50 characters
+  - First name of the member.
+- `middleName` (string)
+  - Possible: <= 50 characters
+  - Middle name of the member.
+- `lastName` (string)
+  - Possible: <= 50 characters
+  - Last name of the member.
+- `gender` (string) **REQUIRED**
+  - Possible: <= 15 characters, [Male, Female, Transgender, Others]
+  - Gender of the member.
+- `dateOfBirth` (string) **REQUIRED**
+  - Possible: <= 10 characters
+  - Date of birth of the member. Date is formatted string as per ISO 8601 standard. Format - YYYY-MM-DD
+- `age` (integer) **REQUIRED**
+  - Possible: <= 3 characters
+  - Age of the member.
+- `maritalStatus` (string)
+  - Possible: <= 30 characters, [Married, Single]
+  - Marital status of the member.
+- `qualification` (string)
+  - Possible: <= 50 characters, [Post Graduate, Graduate, 12th, 10th, Diploma, Below 10th]
+  - Educational qualification of the member.
+- `occupation` (string)
+  - Possible: <= 50 characters, [Salaried, Self-Employed, Non-working]
+  - Professional occupation of the member.
+- `annualIncome` (number)
+  - Possible: <= 15 characters
+  - Annual income of the member.
+- `email` (string)
+  - Possible: <= 100 characters
+  - Email ID of the member.
+- `mobileNumber` (number)
+  - Possible: <= 10 characters
+  - Mobile number of the member.
+- `zipCode` (string) **REQUIRED**
+  - Possible: <= 10 characters
+  - Pincode of the member
+- `state` (string)
+  - Possible: <= 30 characters, [ANDAMAN AND NICOBAR, ANDHRA PRADESH, ARUNACHAL PRADESH, ASSAM, BIHAR, CHANDIGARH, DADRA AND NAGAR, DAMAN AND DIU, DELHI, GOA, GUJARAT, HIMACHAL PRADESH, JAMMU AND KASHMIR, KERALA, LAKSHADWEEP, MAHARASHTRA, MANIPUR, MEGHALAYA, NAGALAND, ORISSA, PUNJAB, RAJASTHAN, SIKKIM, TRIPURA, UTTAR PRADESH, JHARKHAND, UTTARAKHAND, TELANGANA, NOST, HARAYANA, KARNATAKA, MADHYA PRADESH, MIZORAM, PONDICHERRY, TAMIL NADU, WEST BENGAL, CHHATTISGARH]
+  - State of the member.
+- `city` (string)
+  - Possible: <= 50 characters
+  - City of the member.
+- `residentStatus` (string)
+  - Possible: <= 20 characters, [Resident Indian, NRI, OCI, PIO, Foreign National]
+  - Resident status of the member such as NRI, PIO.
+- `quoteAmount` (integer)
+  - Possible: <= 15 characters
+  - Amount based on Quote Category which is Sum Insured for the insured(s). This field is mandatory for typeOfQuote = 'Single quote' and 'memberType = 'Insured'. For multi - quote, in case of family floater the same sum insured needs to be sent for all members.
+- `varFields` (string)
+  - Possible: <= 50 characters
+  - Additional fields for individualDetails array
+- `fieldValue` (string)
+  - Possible: <= 50 characters
+  - Value of additional fields
+- `product` (string) **REQUIRED**
+  - Possible: <= 30 characters, [grphlth, GrpTerm, health, LifeSave, LifeTerm]
+  - This gives Line of Business or similar products put in one group. Distributor can provide generic LOB and 1SB can pick in relevant products while creating request for the  manufacturer
+- `healthProductType` (string) **REQUIRED**
+  - Possible: <= 30 characters, [Family Floater, Affinity]
+  - This will list the type of health product.
+- `insuranceAndProducts` (string)
+  - Possible: <= 15 characters, [ABHI, ABSLIFEI, AEGON, BAJAJ, BALIC, CHIL, ETLI, HDFC, HDFCERGO, ICICI, ICICIPRU, IFLI, IL, MAXLIFE, MMFSL, NBHI, PNB, SHRIRAM, SUDLIFE, TATA]
+  - Array to capture multiple insurance company codes and their specific product codes. This also allows the consumer to ask for quotes for a specific product of a specific company(s). | This is to provide quotes from selected companies. This field is mandatory for typeOfQuote= Single Quote
+- `productCode` (string)
+  - Possible: <= 15 characters, [2825, 2828, 4226, 6212, CARSUP, HAP, Reassure]
+  - Option for distributor to ask for quotes for specific products only of the selected insurance company. This field is mandatory for typeOfQuote= Single Quote
+- `policyTerm` (integer)
+  - Possible: [1, 2, 3]
+  - Policy term is the period within which a policy remains active and offers protection/benefits. This field is mandatory for typeOfQuote= Single Quote
+- `policyTermUnit` (string)
+  - Possible: <= 15 characters, [Years, Months, Days]
+  - This is a futuristic field to allow policy term to be in days or months.
+- `premiumPaymentOption` (string)
+  - Possible: <= 20 characters, [1, 2, 3]
+  - This field indicates whethere the payment is going to done via 1. Single 2. Regular 3. Limited payment. This tag is currently not sent in the request but is kept here to ensure if in health insurance when we have limited or regular payments, then we can use this tag.
+- `premiumPaymentTerm` (integer)
+  - Possible: <= 150 characters, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+  - Premium paying term is the total period (number of years or months) for which a policyholder has to pay premium.Since all payments are one time in health ,this field will be used when premiumPaymentOption is introduced in future.
+- `premiumPaymentFrequency` (string)
+  - Possible: <= 15 characters, [M, Q, HY, Y, S]
+  - This is defined as the number of times during the policy year that you need to pay premiums. Frequency options are typically annual, semi-annual, quarterly and monthly. This filed is required when premuim payment option is selected as Regular Pay. Since Regular pay is not present in health insurance, this field also becomes futuristic
+- `planOption` (string)
+  - Possible: <= 50 characters
+  - The details of the plan are captured in this block. | ID of the Plan Option selected. This field is mandatory for typeOfQuote = 'Single Quote' if a plan exists for the productId selected.
+- `varFields` (string)
+  - Possible: <= 100 characters
+  - Other fields to be captured for plan option selected | Additional fields for planOption section
+- `fieldValue` (string)
+  - Possible: <= 100 characters
+  - Value of additional fields
+- `healthCovers` (string)
+  - Possible: <= 150 characters, [accHos, acuteCar, advTech, ART, ayush, bariatrc, Booster+, canHos, ciCov, clmProt, convlsns, copay, copWaiv, ctrctCov, dayCare, deduc, dental, disMgmt, domAirAm, domicTrt, eConsult, emerAmb, eOpin, hcb, hlthChk, homeCar, icuCov, instCov, intCovr, intEmerg, livHlthy, matExp, medPrac, menHlth, ncb, newBorn, obesity, opdExp, orgDon, PACover, pAndCCov, postHosp, ppnDisc, preHosp, premWaiv, recvBen, reload, roomExp, roomType, RRM, safGrdP, safGuard, secBen, shrAcCas, siProt, supNCB, ulReload, vaccine, vaxCover, wpMod]
+  - These are all the covers those will be available in the plan. | From the list of all the options, one will be selected for each element of the array.
+- `optionValue` (string)
+  - Possible: <= 15 characters
+  - For the option selected, relevant value will be required. Eg SI will ask for Amount where as Copayment will ask for percentage
+- `varFields` (string)
+  - Possible: <= 100 characters
+  - Other fields to be captured for plan option selected | Additional fields for planOption section
+- `fieldValue` (string)
+  - Possible: <= 100 characters
+  - Value of additional fields
+- `varFields` (string)
+  - Possible: <= 100 characters
+  - Additional fields for product section
+- `fieldValue` (string)
+  - Possible: <= 100 characters
+  - Value of additional fields
+- `other` ()
+  - Possible: <= 30 characters
+  - Key Feature Document is a document which captures the details of the Insurance Product in simple language as required by the regulator and is usually 'shared with the customer along with Business Illustration. This field captures the language in which this document should be.
+- `varFields` (string)
+  - Possible: <= 100 characters
+  - Additional fields for other section
+- `fieldValue` (string)
+  - Possible: <= 100 characters
+  - Value of additional fields
+- `data` (object)
+  - Section to carry quote responses | Entire request object to be replicated here.
+- `quote` (string)
+  - Possible: <= 30 characters
+  - The array will contain details related to a product like premiums, health covers, supporting data etc. | This array will hold personal details of all the insured members | Indicates that the information being captured is of the insured member or the proposer.
+- `memberSequenceNumber` (integer)
+  - Possible: <= 2 characters
+  - Unique sequence number of member as by provided in request.
+- `insuredRelWithProposer` (string)
+  - Possible: <= 30 characters
+  - Relationship of the insured member with the proposer. example: Self, Spouse, mother, father etc.
+- `gender` (string)
+  - Possible: <= 15 characters
+  - Gender of the insured member.
+- `occupation` (string)
+  - Possible: <= 50 characters
+  - Occupation of the insured member.
+- `annualIncome` (integer)
+  - Possible: <= 15 characters
+  - Annual Income of the insured member.
+- `dateOfBirth` (string)
+  - Possible: <= 10 characters
+  - Date of birth of the member. Date is formatted string as per ISO 8601 standard. Format - YYYY-MM-DD
+- `age` (integer)
+  - Possible: <= 3 characters
+  - Age of the insured member
+- `sumInsured` (number)
+  - Possible: <= 10 characters
+  - This is the sum insured asked for the policy in the request
+- `varFields` (string)
+  - Possible: <= 100 characters
+  - Other fields to be captured for individualDetails array | Additional fields for individualDetails array
+- `fieldValue` (string)
+  - Possible: <= 100 characters
+  - Value of additional fields
+- `insuranceAndProducts` (string) **REQUIRED**
+  - Possible: <= 30 characters
+  - Section to hold details of the insurance company and the product for which the following details are provided | This gives Line of Business or similar products put in one group. Distributor can provide generic LOB, based on this 1SB can pick out relevant products and create requests for Manufacturer
+- `healthProductType` (string) **REQUIRED**
+  - Possible: <= 30 characters
+  - This field will capture the type of health insurance product ie. Family Floater, Individual, Top Up, Super Top Up, Illness Specific, Senior Citizen.
+- `insuranceCompanyCode` (string) **REQUIRED**
+  - Possible: <= 15 characters
+  - This field carries the company code for whose product quote is generated.
+- `productCode` (string) **REQUIRED**
+  - Possible: <= 15 characters
+  - Distributor can ask for quote for a specific product by sharing the product code value
+- `productName` (string) **REQUIRED**
+  - Possible: <= 50 characters
+  - This gives the name of the product selected
+- `productDetails` (number) **REQUIRED**
+  - Possible: <= 100 characters
+  - Section to hold details regarding product parameters | Premium paying term is the total period (number of years or months) for which a policyholder has to pay premium, for a life policy.
+- `policyTermUnit` (number)
+  - Possible: <= 1500 characters
+  - Policy term is the period within which a policy remains active and offers protection/benefits
+- `premiumPaymentOption` (string) **REQUIRED**
+  - Possible: <= 15 characters
+  - This is a futuristic field to allow policy term to be in days or months.
+- `premiumPaymentFrequency` (string) **REQUIRED**
+  - Possible: <= 15 characters
+  - This is defined as the number of times during the policy year that you need to pay premiums. Frequency options are typically annual, semi-annual, quarterly and monthly.
+- `planOption` (string)
+  - Possible: <= 50 characters
+  - Plan option selected and its details | Plan id assigned to the selected plan
+- `planName` (string)
+  - Possible: <= 50 characters
+  - Name of the plan selected
+- `planDesc` (string)
+  - Possible: <= 5000 characters
+  - This field will provide description / information about the plan
+- `varFields` (string)
+  - Possible: <= 100 characters
+  - Other fields to be captured for plan option selected | Additional fields for planOption section
+- `fieldValue` (string)
+  - Possible: <= 100 characters
+  - Value of additional fields
+- `healthCovers` (string)
+  - Possible: <= 50 characters
+  - This section captures the details of all the health covers included in the plan | ID of the Addon selected
+- `optionName` (string)
+  - Possible: <= 50 characters
+  - Name of the Addon selected
+- `optionDesc` (string)
+  - Possible: <= 5000 characters
+  - Description of the Addon selected
+- `optionValue` (number)
+  - Possible: <= 15 characters
+  - Attributes such as Sum Insured etc corresponding to selected Option
+- `premiumIncludedFlag` (boolean)
+  - Value of "Yes" in this flag indicates that the optional cover premium is included in the total premium and the below premium fields will not be populated and premiums fields will not be present. If "No" then the optional covers premium is provided in below premium fields
+- `mandatoryInProduct` (boolean)
+  - It specifies whether this selected option is mandatorily to be taken in the plan
+- `inbuiltInPlan` (boolean)
+  - This flag will indicate if the addon is inbuilt in the plan selected or if it is an optional addon. If this is an optional addon then additional premium will be added to the base premium
+- `premiumForEachPolicyTerm` (number)
+  - Possible: <= 15 characters
+  - This is an array which captures the  premium details for different modes. This array will hold values only premium split between addons is available | This tag shows the policy term. This will be an array and have values as 1/2/3 years
+- `premiumForEachPPO` (string)
+  - Possible: <= 1 characters
+  - This array will show the premium payment option for which the premium is being shown. | The PPO for which the premium is being shown. In case of health insurance all premiums are to be paid in single payment and hence this is always 1
+- `premiumForEachPPF` (string)
+  - Possible: <= 15 characters
+  - This will captures premium amount for each premium payment frequency. In case of health insurance we can have options single/ monthly/ yearly payments but mostly single premium payment frequency is in vogue | Mode is the premium payment frequency.
+- `premiumValue` (number)
+  - Possible: <= 15 characters
+  - The premium value excluding taxes.
+- `tax` (string)
+  - Possible: <= 30 characters
+  - Tax array will help to capture multiple taxes applicable for each premium | Tax code will help to identify the type of tax.
+- `taxDescription` (string)
+  - Possible: <= 50 characters
+  - Description of the tax
+- `taxValue` (number)
+  - Possible: <= 15 characters
+  - Tax amount as per tax code
+- `taxPercentage` (number)
+  - Possible: <= 15 characters
+  - Tax percentage applied in this tax code
+- `totalTax` (number)
+  - Possible: <= 15 characters
+  - This field gives the sum of all applicable taxes.
+- `totalPremiumValue` (number)
+  - Possible: <= 15 characters
+  - The premium value including taxes.
+- `varFields` (string)
+  - Possible: <= 100 characters
+  - Other fields to be captured for AddOnSelected array | Additional fields for AddOnSelected array
+- `fieldValue` (string)
+  - Possible: <= 100 characters
+  - Value of additional fields
+- `supportingData` (string) **REQUIRED**
+  - Possible: <= 500 characters
+  - This section will capture the additional supporting data for the product that consumer app can use for managing product related information on consumer UI. | Section for holding valid Sum insured values for each plan or product as per selection
+- `insCompanyLogo` (string) **REQUIRED**
+  - Possible: <= 500 characters
+  - This fields will contain the logo of insurance company
+- `productLogo` (string) **REQUIRED**
+  - Possible: <= 500 characters
+  - This fields will contain the logo of insurance product if available
+- `invalidFeatureCombinations` (string)
+  - Possible: <= 50 characters
+  - This will capture all the combinations of options are not allowed together for all plans within the product. | plan id of the plan for which there are invalid feature combinations applicable
+- `optionSelected` (string)
+  - Possible: <= 50 characters
+  - Array of values of health cover options selected
+- `outOfRangeDetails` (string)
+  - Possible: <= 100 characters
+  - If the customer provides an out of range input, 1SB will still provide quote by changing the parameter. This sections will provides regarding this. | This will indicate if the field belongs to individual or product sections. Valid values are individualDetails, productDetails
+- `memberSequenceNumber` (string)
+  - Possible: <= 100 characters
+  - This will indicate if the field belongs to individual or product sections. Valid values are individualDetails, productDetails
+- `insuredRelWithProposer` (string)
+  - Possible: <= 30 characters
+  - Relationship of insured member with Proposer. example- Self, Spouse, mother, father etc. Sequence number of member. This will carry value when fieldLevel is individualDetails
+- `memberType` (string)
+  - Possible: <= 30 characters
+  - Indicates if the information is being captured for insured member or proposer. Sequence number of member. This will carry value when fieldLevel is 'individualDetails'
+- `fieldType` (string)
+  - Possible: <= 100 characters
+  - This will indicate if the field is an option or a rider
+- `fieldCode` (string)
+  - Possible: <= 100 characters
+  - If fieldType is option then this field will carry optionID, if fieldType is rider then this field will carry value of rider product code.
+- `OutOfRangeFieldName` (string)
+  - Possible: <= 100 characters
+  - The name of the json field which was out of range will be captured here. Example - product allows policy term only till 75 but customer has selected policy Term as 80. 1SB will default the policy term to 75 and send a quote. The name of the changed out of range parameter, policyTerm in this case will be present in this field
+- `Messages` (number)
+  - Possible: <= 86 characters
+  - All product related messages will be captured in this section | Name of the variable field. This array will hold multiple values.
+- `ClaimSettlementTAT` (string)
+  - Possible: <= 100 characters
+  - Claim settlement TAT of the insurance company
+- `productFeatures` (string)
+  - Possible: <= 5000 characters
+  - All product features will be shared via this field
+- `brochureLink` (string)
+  - Possible: <= 200 characters
+  - The URL for the product brochure link will be shared in this field.
+- `PolicyIssuanceTime` (string)
+  - Possible: <= 500 characters
+  - Average time required by the manufacturer to issue a policy (in number of days)
+- `policyPortabilityFAQ` (string)
+  - Possible: <= 500 characters
+  - Policy portability information link
+- `waitingTime` (string)
+  - Possible: <= 500 characters
+  - waiting times applicable in the policy
+- `linkForHospitalLocator` (string)
+  - Possible: <= 500 characters
+  - Link for the locations of all the hospitals associated with the insurance company
+- `HospitalLocator` (string)
+  - Possible: <= 100 characters
+  - Each company will have a list of hospitals tied up with them. This will show that list city wise. | Each company will have a list of hospitals tied up with them. This will show that list city wise or the count of those hospitals.
+- `MarketingMessages` (string)
+  - Possible: <= 500 characters
+  - This array will contain all other product and company related marketing messages. | Marketing messages will be captured here.
+- `varFields` (string)
+  - Possible: <= 50 characters
+  - Variable array to hold any other parameters in supporting data section. | Name of the variable field. This array will hold multiple values.
+- `fieldType` (string)
+  - Possible: <= 50 characters
+  - This will specify if the parameter will have a single value or multiple values (array).
+- `fieldValue` (string)
+  - Possible: <= 150 characters
+  - Array for capturing values | Value of additional parameter
+- `other` (string)
+  - Possible: <= 100 characters
+  - All other details not related to product or personal information will be captured here. | URL for the Benefit illustration
+- `biNo` (string)
+  - Possible: <= 500 characters
+  - Benefit illustration Number
+- `keyFeatureDocumentLanguage` (string)
+  - Possible: <= 30 characters
+  - Key Feature document language is stored here
+- `varFields` (string)
+  - Possible: <= 100 characters
+  - Array to capture additional fields of the other section | Additional fields for variable section
+- `fieldValue` (string)
+  - Possible: <= 100 characters
+  - Value of additional fields
+- `trackInfo` (string)
+  - Possible: <= 100 characters
+  - This section will contain all quote tracking information | Quote Request Id generated by manufacturer. This will be shared with consumer only in case of Single Quote
+- `varFields` (string)
+  - Possible: <= 100 characters
+  - Array to capture additional fields of the trackinfo section | Additional fields for variable section
+- `fieldValue` (string)
+  - Possible: <= 100 characters
+  - Value of additional fields
+- `varFields` (string)
+  - Possible: <= 100 characters
+  - Array to capture additional fields of the quote array | Additional fields for variable section
+- `fieldValue` (string)
+  - Possible: <= 100 characters
+  - Value of additional fields
+- `errors` (string)
+  - Possible: <= 50 characters
+  - This array contains error messages in case of an error | In case error occurs, the error code will be stored here
+- `errorDisplayMessage` (string)
+  - Possible: <= 100 characters
+  - In case error occurs, the error message will be stored here
+- `errorIdentifier` (string)
+  - Possible: <= 20 characters
+  - In case error occurs, the error message will be stored here
+- `errorMessage` (string)
+  - Possible: <= 100 characters
+  - In case error occurs, the error message will be stored here
+- `errorType` (string)
+  - Possible: <= 10 characters
+  - In case error occurs, the error message will be stored here
+- `reqId` (string) **REQUIRED**
+  - Request Id for the quote assigned by 1SB
+- `data` (object)
+  - Section to carry quote responses
+- `errors` (string)
+  - Possible: <= 50 characters
+  - This array contains error messages in case of an error | In case error occurs, the error code will be stored here
+- `errorDisplayMessage` (string)
+  - Possible: <= 100 characters
+  - In case error occurs, the error display message will be stored here
+- `errorIdentifier` (string)
+  - Possible: <= 20 characters
+  - In case error occurs, the error identifier will be stored here
+- `errorMessage` (string)
+  - Possible: <= 100 characters
+  - In case error occurs, the error message will be stored here
+- `errorType` (string)
+  - Possible: <= 10 characters
+  - In case error occurs, the error type will be stored here
+- `reqId` (string) **REQUIRED**
+  - Request Id for the quote assigned by 1SB
+- `data` (object)
+  - Section to carry quote responses
+- `errors` (string)
+  - Possible: <= 50 characters
+  - This array contains error messages in case of an error | In case error occurs, the error code will be stored here
+- `errorDisplayMessage` (string)
+  - Possible: <= 100 characters
+  - In case error occurs, the error display message will be stored here
+- `errorIdentifier` (string)
+  - Possible: <= 20 characters
+  - In case error occurs, the error identifier will be stored here
+- `errorMessage` (string)
+  - Possible: <= 100 characters
+  - In case error occurs, the error message will be stored here
+- `errorType` (string)
+  - Possible: <= 10 characters
+  - In case error occurs, the error type will be stored here
+- `reqId` (string) **REQUIRED**
+  - Request Id for the quote assigned by 1SB

@@ -1,0 +1,86 @@
+# Get Master Details | 1SB Developer Portal
+
+Headings: ['Get Master Details\u200b']
+
+## Fields (34)
+- `lookUpCategory` (string) **REQUIRED**
+  - Possible: <= 15 characters, [quote, proposal]
+  - Defines the lookup context. For quote journey, value should be quote or proposal.
+- `manufacturerId` (string)
+  - Possible: [ICICI, TATA, ABSLI, IL, HDFC]
+  - Manufacturer ID of which need to find the enum value for proposal.
+- `entityIds` (string[]) **REQUIRED**
+  - List of master entities for which lookup data is required
+- `reqId` (string)
+- `errors` (string)
+  - Possible: <= 50 characters
+  - This array will capture error code and error message | In case error occurs, the error code will be stored here
+- `error` (string)
+  - Possible: <= 100 characters
+  - In case error occurs, the error message will be stored here
+- `data` (string[])
+  - Education master API that returns all valid education codes supported by the system as a flat array of strings.
+- `CHANNEL` (string[])
+  - Returns the list of supported sales and distribution channels through which policies are sourced.
+- `GENDER` (string[])
+  - Returns the list of supported gender categories.
+- `MARITAL` (string[])
+  - Returns the list of supported marital status values.
+- `MEMTYPE` (string[])
+  - Returns the list of supported member types in a policy.
+- `OCC` (string[])
+  - Returns the list of supported occupation categories.
+- `PPF` (string[])
+  - Returns the list of supported policy proposal frequencies.
+- `PPO` (string[])
+  - Returns the list of supported policy payment options.
+- `QUOTECAT` (string[])
+  - Returns the list of supported quote categories.
+- `QUOTETYP` (string[])
+  - Returns the list of supported quote types.
+- `RELWTHLA` (string[])
+  - Returns the list of supported relationships with the life assured.
+- `STATE` (string[])
+  - Returns the list of supported Indian state and union territory codes.
+- `TITLE` (string[])
+  - Returns the list of supported customer titles.
+- `TOBACCO` (string[])
+  - Returns the list of supported tobacco consumption indicators.
+- `data` (object)
+  - Section to carry quote responses
+- `errors` (string)
+  - Possible: <= 50 characters
+  - This array contains error messages in case of an error | In case error occurs, the error code will be stored here
+- `errorDisplayMessage` (string)
+  - Possible: <= 100 characters
+  - In case error occurs, the error display message will be stored here
+- `errorIdentifier` (string)
+  - Possible: <= 20 characters
+  - In case error occurs, the error identifier will be stored here
+- `errorMessage` (string)
+  - Possible: <= 100 characters
+  - In case error occurs, the error message will be stored here
+- `errorType` (string)
+  - Possible: <= 10 characters
+  - In case error occurs, the error type will be stored here
+- `reqId` (string) **REQUIRED**
+  - Request Id for the quote assigned by 1SB
+- `data` (object)
+  - Section to carry quote responses
+- `errors` (string)
+  - Possible: <= 50 characters
+  - This array contains error messages in case of an error | In case error occurs, the error code will be stored here
+- `errorDisplayMessage` (string)
+  - Possible: <= 100 characters
+  - In case error occurs, the error display message will be stored here
+- `errorIdentifier` (string)
+  - Possible: <= 20 characters
+  - In case error occurs, the error identifier will be stored here
+- `errorMessage` (string)
+  - Possible: <= 100 characters
+  - In case error occurs, the error message will be stored here
+- `errorType` (string)
+  - Possible: <= 10 characters
+  - In case error occurs, the error type will be stored here
+- `reqId` (string) **REQUIRED**
+  - Request Id for the quote assigned by 1SB

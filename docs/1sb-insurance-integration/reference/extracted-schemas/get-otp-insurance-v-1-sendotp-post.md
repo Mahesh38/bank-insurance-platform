@@ -1,0 +1,82 @@
+# Get Otp | 1SB Developer Portal
+
+Headings: ['Get Otp\u200b']
+
+## Fields (29)
+- `AdditionalSetup` (string)
+  - Possible: <= 5 characters
+  - This section will contains additional information. | Currency in which policy will be purchased.
+- `userCountry` (string)
+  - Possible: <= 5 characters
+  - Country of the user.
+- `userRegion` (string)
+  - Region (State or Province) of the user.
+- `userLanguage` (string)
+  - Language set by user on the consumer app
+- `userIP` (string)
+  - User IP address.
+- `userAgent` (string)
+  - User's browser details.
+- `userGeoLocation` (string)
+  - Return a JSON object with latitude and longitude properties to point to location of user. | Latitude in Decimal degrees.
+- `longitude` (string)
+  - Longitude in Decimal degrees.
+- `distributor` (string) **REQUIRED**
+  - Possible: <= 20 characters
+  - This section will give details of intermediary (Broker, corporate Agent or Bank acting as intermediary) | Distributor ID assign to each consumer by 1SB
+- `agentID` (string) **REQUIRED**
+  - Possible: <= 30 characters
+  - Agent code. Eg. PoSP code or SP code provided by insurance company.
+- `salesChannel` (string)
+  - Possible: <= 20 characters, [Online, Others]
+  - This is used by insurance companies to identify sales channel.
+- `channelType` (string) **REQUIRED**
+  - Possible: <= 20 characters, [B2B, B2C]
+  - Indicates if the transaction is B2B or B2C.
+- `agentType` (string)
+  - Possible: <= 20 characters, [POSP, SP, BQP]
+  - Indicates if the agent type is POSP ,SP or BQP.
+- `varFields` (string)
+  - Possible: <= 50 characters
+  - Additional fields for distributor section
+- `fieldValue` (string)
+  - Possible: <= 50 characters
+  - Value of additional fields
+- `insuranceCompanyCode` (string) **REQUIRED**
+  - Possible: <= 15 characters
+  - The code to identify for which insurance company this proposal belongs to.
+- `applicationNo` (string)
+  - Possible: <= 100 characters
+  - Proposal Applcation No.
+- `policyNo` (string)
+  - Possible: <= 100 characters
+  - Policy number.
+- `quoteId` (string)
+  - Possible: <= 100 characters
+  - Quotation Number.
+- `UITrackingRefNo` (string)
+  - UI tracking Reference Number .
+- `OTPDetails` (integer)
+  - Possible: <= 10 characters
+  - Mobile number of Proposer.
+- `email` (string)
+  - Possible: <= 100 characters
+  - Email ID of Proposer.
+- `varFields` (string)
+  - Possible: <= 20 characters
+  - varField array hold any additional data related to OTP Details | Name of additional fields
+- `fieldValue` (string)
+  - Possible: <= 20 characters
+  - Value of additional fields
+- `ExpiryTime` (string) **REQUIRED**
+  - Standard Date and Time.
+- `OTPTransactionId` (string) **REQUIRED**
+  - OTP Transaction ID from manufacturer or If 1SB is generating OTP then a transaction Id should be generated. This will be used for tracking and validating OTP.
+- `UITrackingRefNo` (string) **REQUIRED**
+  - UI tracking Reference Number .
+- `varFields` (string)
+  - Possible: <= 20 characters
+  - varField array hold any additional data related to Distributor | Name of additional fields
+- `fieldValue` (string)
+  - Possible: <= 20 characters
+  - Value of additional fields

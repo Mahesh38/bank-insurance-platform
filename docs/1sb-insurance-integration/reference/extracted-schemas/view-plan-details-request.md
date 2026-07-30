@@ -1,0 +1,71 @@
+# View Plan Details Request | 1SB Developer Portal
+
+Headings: ['View Plan Details Request\u200b']
+
+## Fields (39)
+- `reqId` (string) **REQUIRED**
+  - This field will contain the request id
+- `errors` (array) **REQUIRED**
+  - This array will contain the list of errors occured while geting a response
+- `data` (string)
+  - This object will contain all the information related to the plan | This array will show the
+- `section` (string)
+- `icon` (string)
+- `info` (string)
+- `icon` (string)
+- `shortData` (string)
+- `name` (string)
+- `header` (string)
+- `description` (string)
+- `sectionName` (string)
+- `sectionName` (string)
+- `brochure` (string) **REQUIRED**
+- `planCode` (string) **REQUIRED**
+- `planName` (string) **REQUIRED**
+- `networkList` (string) **REQUIRED**
+- `productCode` (string) **REQUIRED**
+- `productLogo` (string) **REQUIRED**
+- `productName` (string) **REQUIRED**
+- `policyWording` (string) **REQUIRED**
+- `insCompanyLogo` (string) **REQUIRED**
+- `aboutDescription` (string) **REQUIRED**
+- `insuranceCompanyCode` (string) **REQUIRED**
+- `insuranceCompanyName` (string) **REQUIRED**
+- `data` (object)
+  - Section to carry quote responses
+- `errors` (string)
+  - Possible: <= 50 characters
+  - This array contains error messages in case of an error | In case error occurs, the error code will be stored here
+- `errorDisplayMessage` (string)
+  - Possible: <= 100 characters
+  - In case error occurs, the error display message will be stored here
+- `errorIdentifier` (string)
+  - Possible: <= 20 characters
+  - In case error occurs, the error identifier will be stored here
+- `errorMessage` (string)
+  - Possible: <= 100 characters
+  - In case error occurs, the error message will be stored here
+- `errorType` (string)
+  - Possible: <= 10 characters
+  - In case error occurs, the error type will be stored here
+- `reqId` (string) **REQUIRED**
+  - Request Id for the quote assigned by 1SB
+- `data` (object)
+  - Section to carry quote responses
+- `errors` (string)
+  - Possible: <= 50 characters
+  - This array contains error messages in case of an error | In case error occurs, the error code will be stored here
+- `errorDisplayMessage` (string)
+  - Possible: <= 100 characters
+  - In case error occurs, the error display message will be stored here
+- `errorIdentifier` (string)
+  - Possible: <= 20 characters
+  - In case error occurs, the error identifier will be stored here
+- `errorMessage` (string)
+  - Possible: <= 100 characters
+  - In case error occurs, the error message will be stored here
+- `errorType` (string)
+  - Possible: <= 10 characters
+  - In case error occurs, the error type will be stored here
+- `reqId` (string) **REQUIRED**
+  - Request Id for the quote assigned by 1SB

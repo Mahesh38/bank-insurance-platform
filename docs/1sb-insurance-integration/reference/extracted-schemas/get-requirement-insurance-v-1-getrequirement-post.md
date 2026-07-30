@@ -1,0 +1,93 @@
+# Get Requirement API | 1SB Developer Portal
+
+Headings: ['Get Requirement API\u200b']
+
+## Fields (30)
+- `distributorID` (string) **REQUIRED**
+  - Possible: <= 20 characters
+  - Distributor ID assigned to each consumer by 1SB.
+- `insuranceCompanyCode` (string) **REQUIRED**
+  - Possible: <= 15 characters
+  - The code to identify for which insurance company this proposal belongs to.
+- `applicationNo` (string)
+  - Possible: <= 100 characters
+  - Reference number generated on submitting the proposal.
+- `policyNo` (string)
+  - Possible: <= 100 characters
+  - Policy reference number.
+- `quoteId` (string)
+  - Possible: <= 100 characters
+  - Reference number generated on submitting the proposal.
+- `memberDetails` (string)
+  - Is the document for proposer or lifeassured.
+- `dateOfBirth` (string)
+  - Date of Birth of Member. Date is formatted string as per ISO 8601 standard. Format - YYYY-MM-DD.
+- `mobileNumber` (integer)
+  - Possible: <= 10 characters
+  - Mobile number.
+- `varFields` (string)
+  - Possible: <= 20 characters
+  - varField array hold any additional data | Name of additional fields
+- `fieldValue` (string)
+  - Possible: <= 20 characters
+  - Value of additional fields
+- `applicationNo` (string)
+  - Possible: <= 100 characters
+  - Reference number generated on submitting the proposal.
+- `manufacturer` (string)
+  - Possible: <= 15 characters
+  - Array to capture status of multiple manufacturers/insurance companies | The code to identify for which insurance company this proposal belongs to.
+- `product` (string)
+  - Possible: <= 20 characters
+  - Insurance Product code.
+- `policyNo` (string)
+  - Possible: <= 20 characters
+  - Policy reference number.
+- `requirements` (string)
+  - Possible: <= 20 characters
+  - Pending/ Submitted-pending review / Cancelled/ Accepted/ Reordered/waivedOff
+- `manufacturerStatus` (string)
+  - Possible: <= 20 characters
+  - Additional status if provided by the manufacturer.
+- `category` (string)
+  - Possible: <= 30 characters
+  - Category of the pending requirement
+- `name` (string)
+  - Possible: <= 30 characters
+  - requirement name
+- `description` (string)
+  - Possible: <= 200 characters
+  - Decription of document or medical test, if any provided by the manufacturer.
+- `requestDate` (string)
+  - Possible: <= 10 characters
+  - This field will carry the date when the requirement was triggered by insurance company.
+- `examDate` (string)
+  - Possible: <= 10 characters
+  - This field can carry the date of medical examination
+- `receivedDate` (string)
+  - Possible: <= 10 characters
+  - This field can carry date when document or medical reports were submitted to insurance company (branch or website).
+- `clientId` (string)
+  - Possible: <= 30 characters
+  - This field is for Client ID
+- `firstName` (string)
+  - Possible: <= 50 characters
+  - First name of Proposer.
+- `lastName` (string)
+  - Possible: <= 50 characters
+  - Last name of Proposer.
+- `manuRequirementNo` (string)
+  - Possible: <= 50 characters
+  - Requirement code number.
+- `varFields` (string)
+  - Possible: <= 100 characters
+  - varField array hold any additional data related to Requirement. | Name of additional fields
+- `fieldValue` (string)
+  - Possible: <= 100 characters
+  - Value of additional fields
+- `varFields` (string)
+  - Possible: <= 100 characters
+  - varField array hold any additional data | Name of additional fields
+- `fieldValue` (string)
+  - Possible: <= 100 characters
+  - Value of additional fields

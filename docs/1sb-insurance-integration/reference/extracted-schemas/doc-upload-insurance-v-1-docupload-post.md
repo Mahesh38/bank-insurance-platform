@@ -1,0 +1,96 @@
+# Document upload API | 1SB Developer Portal
+
+Headings: ['Document upload API\u200b']
+
+## Fields (37)
+- `Distributor` (string) **REQUIRED**
+  - Possible: <= 20 characters
+  - Return a JSON object with latitude and longitude properties to point to location of user. | Distributor ID assigned to each consumer by 1SB.
+- `agentID` (string) **REQUIRED**
+  - Possible: <= 20 characters
+  - PoSP code or SP code or Brokder Qualified Person.
+- `salesChannel` (string) **REQUIRED**
+  - Possible: <= 20 characters
+  - This is used by insurance companies to identify sales channel.
+- `varFields` (string)
+  - Possible: <= 20 characters
+  - varField array hold any additional data related to Distributor | Name of additional fields
+- `fieldValue` (string)
+  - Possible: <= 20 characters
+  - Value of additional fields
+- `insuranceCompanyCode` (string) **REQUIRED**
+  - Possible: <= 15 characters
+  - The code to identify for which insurance company this proposal belongs to.
+- `applicationNo` (string)
+  - Possible: <= 100 characters
+  - Reference number generated on submitting the proposal.
+- `policyNo` (string)
+  - Possible: <= 100 characters
+  - Policy reference number.
+- `quoteId` (string)
+  - Possible: <= 100 characters
+  - Reference number generated on submitting the proposal.
+- `individualDetails` (string) **REQUIRED**
+  - Is the document for proposer or lifeassured.
+- `clientId` (string)
+  - Client ID.
+- `relationWithFirstLifeAssured` (string)
+  - Relationship of member with first or primary life assured.
+- `memberSequenceNumber` (string)
+  - This is Sequence number to be assigned by consumer app to each member.
+- `fileDetails` (string)
+  - For what is this document upload?
+- `SBDocId` (string)
+  - 1SB document ID.
+- `documentId` (string)
+  - Id as mentioned on the document.
+- `documentExpiryDate` (string)
+  - Expiry date of the document shared.
+- `byteArray` (string)
+  - file contents in base64 form.
+- `docFormat` (string)
+  - In which format is the document.
+- `manuRequirementNo` (string)
+  - Manufacturer Reference Number.
+- `varFields` (string)
+  - Possible: <= 20 characters
+  - varField array hold any additional data related to File. | Name of additional fields
+- `fieldValue` (string)
+  - Possible: <= 20 characters
+  - Value of additional fields
+- `varFields` (string)
+  - Possible: <= 20 characters
+  - varField array hold any additional data | Name of additional fields
+- `fieldValue` (string)
+  - Possible: <= 20 characters
+  - Value of additional fields
+- `individualDetails` (string)
+  - Is the document for proposer or lifeassured.
+- `relationWithFirstLifeAssured` (string)
+  - Relationship of member with first or primary life assured.
+- `memberSequenceNumber` (string)
+  - This is Sequence number to be assigned by consumer app to each member.
+- `fileDetails` (string)
+  - For what is this document upload?
+- `SBDocId` (string)
+  - 1SB document ID.
+- `manuRequirementNo` (string)
+  - Manufacturer Reference Number.
+- `fileUploadStatus` (string)
+  - status code.
+- `fileUploadStatusDesc` (string)
+  - status description.
+- `docReviewURL` (string)
+  - URL for customer to check the document uploaded by them.
+- `varFields` (string)
+  - Possible: <= 20 characters
+  - varField array hold any additional data related to File. | Name of additional fields
+- `fieldValue` (string)
+  - Possible: <= 20 characters
+  - Value of additional fields
+- `varFields` (string)
+  - Possible: <= 20 characters
+  - varField array hold any additional data | Name of additional fields
+- `fieldValue` (string)
+  - Possible: <= 20 characters
+  - Value of additional fields

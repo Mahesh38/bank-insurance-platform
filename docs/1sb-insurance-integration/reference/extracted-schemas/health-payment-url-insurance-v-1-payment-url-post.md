@@ -1,0 +1,132 @@
+# Health Payment URL API | 1SB Developer Portal
+
+Headings: ['Health Payment URL API\u200b']
+
+## Fields (49)
+- `additionalSetup` (string) **REQUIRED**
+  - Possible: <= 5 characters
+  - This section will contain additional information. | Currency in which policy will be purchased.
+- `userCountry` (string)
+  - Possible: <= 5 characters
+  - Country of the user.
+- `userRegion` (string)
+  - Region (State or Province) of the user.
+- `userLanguage` (string)
+  - Language set by user on the consumer app
+- `userIP` (string)
+  - User IP address.
+- `userAgent` (string)
+  - User's browser details.
+- `userGeoLocation` (string)
+  - Return a JSON object with latitude and longitude properties to point to location of user. | Latitude in Decimal degrees.
+- `longitude` (string)
+  - Longitude in Decimal degrees.
+- `distributor` (string) **REQUIRED**
+  - Possible: <= 20 characters
+  - Return a JSON object with latitude and longitude properties to point to location of user. | Distributor ID assigned to each consumer by 1SB.
+- `agentID` (string)
+  - Possible: <= 20 characters
+  - PoSP code or SP code or Brokder Qualified Person.
+- `salesChannel` (string)
+  - Possible: <= 20 characters
+  - This is used by insurance companies to identify sales channel.
+- `channelType` (string)
+  - channel type as per distributer
+- `varFields` (string)
+  - Possible: <= 20 characters
+  - varField array hold any additional data related to Distributor | Name of additional fields
+- `fieldValue` (string)
+  - Possible: <= 20 characters
+  - Value of additional fields
+- `insuranceCompanyCode` (string) **REQUIRED**
+  - Possible: <= 15 characters
+  - The code to identify for which insurance company this proposal belongs to.
+- `productGroupId` (string)
+  - Line of business ID
+- `productCode` (string) **REQUIRED**
+  - Possible: <= 15 characters
+  - Product code.
+- `applicationNo` (string)
+  - Possible: <= 100 characters
+  - Reference number generated on submitting the proposal.
+- `policyNo` (string)
+  - Possible: <= 100 characters
+  - Policy reference number.
+- `quoteId` (string)
+  - Possible: <= 100 characters
+  - Reference number generated on submitting the proposal.
+- `redirectUrl` (string) **REQUIRED**
+  - This is the Redirect call back url sent by UI , where we need to redirect after payment .
+- `UITrackingRefNo` (string)
+  - UI tracking Reference Number .
+- `memberDetails` (string) **REQUIRED**
+  - Possible: <= 50 characters
+  - First name of Proposer.
+- `lastName` (string) **REQUIRED**
+  - Possible: <= 50 characters
+  - Last name of Proposer.
+- `mobileNumber` (string) **REQUIRED**
+  - Possible: <= 10 characters
+  - Mobile number.
+- `email` (string) **REQUIRED**
+  - Possible: <= 100 characters
+  - Email ID Proposer.
+- `varFields` (string)
+  - Possible: <= 20 characters
+  - varField array hold any additional data related to MemberDetails | Name of additional fields
+- `fieldValue` (string)
+  - Possible: <= 20 characters
+  - Value of additional fields
+- `paymentDetails` (string) **REQUIRED**
+  - Frequency of Premium
+- `amountToBePaid` (string) **REQUIRED**
+  - Amount which proposer need to pay.
+- `method` (string)
+  - Type of Payment Method
+- `bankAccount` (string)
+  - Account holder name in bank's record.
+- `accountNumber` (string)
+  - Account number
+- `ifsc` (string)
+  - IFSC Code
+- `accountType` (string)
+  - Saving/ current
+- `varFields` (string)
+  - Possible: <= 20 characters
+  - varField array hold any additional data related to PaymentDetails | Name of additional fields
+- `fieldValue` (string)
+  - Possible: <= 20 characters
+  - Value of additional fields
+- `varFields` (string)
+  - Possible: <= 20 characters
+  - varField array hold any additional data | Name of additional fields
+- `fieldValue` (string)
+  - Possible: <= 20 characters
+  - Value of additional fields
+- `applicationNo` (string)
+  - Possible: <= 100 characters
+  - Reference number generated on submitting the proposal.
+- `policyNo` (string)
+  - Possible: <= 100 characters
+  - Policy reference number.
+- `quoteId` (string)
+  - Possible: <= 100 characters
+  - Reference number generated on submitting the proposal.
+- `redirectUrl` (string)
+  - This is the Redirect call back url sent by UI , where we need to redirect after payment .
+- `UITrackingRefNo` (string)
+  - UI tracking Reference Number .
+- `PaymentDetails` (string)
+  - Payment URL received from Payment gateway .
+- `varFields` (string)
+  - Possible: <= 20 characters
+  - varField array hold any additional data related to PaymentDetails | Name of additional fields
+- `fieldValue` (string)
+  - Possible: <= 20 characters
+  - Value of additional fields
+- `varFields` (string)
+  - Possible: <= 20 characters
+  - varField array hold any additional data | Name of additional fields
+- `fieldValue` (string)
+  - Possible: <= 20 characters
+  - Value of additional fields

@@ -1,0 +1,61 @@
+# Get Gate criteria Form | 1SB Developer Portal
+
+Headings: ['Get Gate criteria Form\u200b']
+
+## Fields (21)
+- `data` (string) **REQUIRED**
+  - Possible: <= 20 characters
+  - Section to carry responses | This section will carry the eligibility criteria of the product. | This section will carry multiple sub field groups and fields. Each field will carry attributes which give additional information. example: name, description, type, pattern, order, visibility, validation, mandatory, etc | This section will give details of intermediary (Broker, corporate Agent or Bank act
+- `agentCode` (string) **REQUIRED**
+  - Possible: <= 30 characters
+  - agent code. Eg. PoSP code or SP code provided by insurance company.
+- `channelType` (string) **REQUIRED**
+  - Possible: <= 20 characters, [B2B, B2C]
+  - Indicates if the transaction is B2B or B2C.
+- `personalInformation` (string) **REQUIRED**
+  - Possible: <= 50 characters
+  - Section to capture personal details of the life assured | This section will carry attributes which give additional information. example: name, description, type, pattern, order, visibility, validation, mandatory, etc | First Name as per official ID (PAN)
+- `lastName` (string) **REQUIRED**
+  - Possible: <= 50 characters
+  - Last Name as per official ID (PAN)
+- `errors` (object[])
+  - This array contains error messages in case of an error
+- `reqId` (string) **REQUIRED**
+  - Request Id for the quote assigned by 1SB
+- `data` (object)
+- `errors` (string)
+  - Possible: <= 50 characters
+  - This array contains error messages in case of an error | In case error occurs, the error code will be stored here
+- `errorDisplayMessage` (string)
+  - Possible: <= 100 characters
+  - In case error occurs, the error display message will be stored here
+- `errorIdentifier` (string)
+  - Possible: <= 20 characters
+  - In case error occurs, the error identifier will be stored here
+- `errorMessage` (string)
+  - Possible: <= 100 characters
+  - In case error occurs, the error message will be stored here
+- `errorType` (string)
+  - Possible: <= 10 characters
+  - In case error occurs, the error type will be stored here
+- `reqId` (string) **REQUIRED**
+  - Request Id for the quote assigned by 1SB
+- `data` (object)
+  - Section to carry quote responses
+- `errors` (string)
+  - Possible: <= 50 characters
+  - This array contains error messages in case of an error | In case error occurs, the error code will be stored here
+- `errorDisplayMessage` (string)
+  - Possible: <= 100 characters
+  - In case error occurs, the error display message will be stored here
+- `errorIdentifier` (string)
+  - Possible: <= 20 characters
+  - In case error occurs, the error identifier will be stored here
+- `errorMessage` (string)
+  - Possible: <= 100 characters
+  - In case error occurs, the error message will be stored here
+- `errorType` (string)
+  - Possible: <= 10 characters
+  - In case error occurs, the error type will be stored here
+- `reqId` (string) **REQUIRED**
+  - Request Id for the quote assigned by 1SB

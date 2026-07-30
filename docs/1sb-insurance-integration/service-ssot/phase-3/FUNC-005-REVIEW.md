@@ -5,8 +5,11 @@
 | Assign | TL | FUNC-005-ASSIGNMENT.md |
 | Implement | Dev | `2a64388` |
 | Review #1 | TL + QA Lead | **CHANGES_REQUESTED** (R6 missing Idempotency-Key) |
+| Fix | Dev | `56242ca` — R6 IT: `r6_missingIdempotencyKey_returns400` |
+| Review #2 | TL + QA Lead | **APPROVE** |
+| Close | TL | Done → PR |
 
-**AC acceptance:** AC-1…AC-5 **accepted** (behaviour + proof present).
+**AC acceptance:** AC-1…AC-5 **accepted** (behaviour + proof present). R6 gate closed.
 
 | AC | Verdict | Proof |
 |----|---------|-------|
@@ -15,12 +18,13 @@
 | AC-3 Success → 201 + job id + status | Pass | `ProposalSubmitIT.ac3_*` — `COMPLETED` when `applicationNumber`; PENDING+poll when `reqId` only |
 | AC-4 Same Idempotency-Key → original result, no dup 1SB | Pass | `ProposalSubmitIT.ac4_*` — replay 201, WireMock `exactly(1)` |
 | AC-5 1SB business reject → 422 `PROPOSAL_REJECTED` + audit | Pass | Adapter remap + IT `ac5_*` + service audit `REJECTED` |
+| R6 Missing Idempotency-Key → 400 `MISSING_IDEMPOTENCY_KEY`, no 1SB | Pass | `ProposalSubmitIT.r6_missingIdempotencyKey_returns400` — WireMock `verify(0)` |
 
-## CHANGES_REQUESTED
+## Review #1 — CHANGES_REQUESTED (resolved)
 
-| # | Gap | Required fix |
-|---|-----|--------------|
-| 1 | **R6** incomplete for new mutating `POST /v1/proposals` | Add MockMvc `r6_missingIdempotencyKey_returns400` (assert `MISSING_IDEMPOTENCY_KEY`, WireMock `verify(0)`) — mirror `QuoteCreateIT` |
+| # | Gap | Fix |
+|---|-----|-----|
+| 1 | **R6** incomplete for new mutating `POST /v1/proposals` | Added `r6_missingIdempotencyKey_returns400` (assert `MISSING_IDEMPOTENCY_KEY`, WireMock `verify(0)`) — mirrors `QuoteCreateIT` |
 
 ## Soft notes (non-blocking)
 

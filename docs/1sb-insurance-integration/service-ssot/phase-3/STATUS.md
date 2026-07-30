@@ -10,11 +10,11 @@
 | FUNC-002 Term quote create | Dev A | **Done** | `af33e65` (fixes) / `66bfa4c` (feature) |
 | FUNC-003 Get quote job result | Dev A | **Done** | `e25d7ff` |
 | FUNC-004 Get proposal schema | Dev A | **Done** | `52cd397` |
-| FUNC-005 Submit Term proposal | Dev A | **CHANGES_REQUESTED** | `2a64388` — R6 missing Idempotency-Key IT |
+| FUNC-005 Submit Term proposal | Dev A | **Done** | `56242ca` (R6 IT) / `2a64388` (feature) |
 
 ## Notes
 
 - FUNC-002: TL+QA Lead APPROVE (Case 2, WireMock AC proof, QUOTE_COMPLETED, PARTIAL, R6).
 - FUNC-003: TL+QA Lead APPROVE — status + offers; TIMEOUT → 200; 404 RESOURCE_NOT_FOUND.
 - FUNC-004: TL+QA Lead APPROVE — schema pass-through + cache; 410 QUOTE_EXPIRED; upstream 5xx → UPSTREAM_UNAVAILABLE retryable.
-- FUNC-005: TL+QA Lead **CHANGES_REQUESTED** — AC-1…AC-5 pass; add `r6_missingIdempotencyKey_returns400` on `ProposalSubmitIT` (mirror QuoteCreateIT).
+- FUNC-005: TL+QA Lead APPROVE — AC-1…AC-5 + R6 `r6_missingIdempotencyKey_returns400` on `ProposalSubmitIT`.

@@ -147,4 +147,33 @@ class ArchitectureTest {
 
         rule.check(importedClasses);
     }
+
+    /**
+     * After TD-003/011 split, integration service must not use JPA.
+     * Persistence lives in 1sb-persistence-service; this service uses HTTP only.
+     */
+    @Test
+    void mustNotImportJakartaPersistence() {
+        ArchRule rule = noClasses()
+                .that().resideInAPackage(BASE_PACKAGE + "..")
+                .should().dependOnClassesThat()
+                .resideInAPackage("jakarta.persistence..")
+                .as("Integration service must not import jakarta.persistence (use HTTP persistence adapter)");
+
+        rule.check(importedClasses);
+    }
+
+    /**
+     * Flyway migrations and API must not appear in the integration service.
+     */
+    @Test
+    void mustNotImportFlyway() {
+        ArchRule rule = noClasses()
+                .that().resideInAPackage(BASE_PACKAGE + "..")
+                .should().dependOnClassesThat()
+                .resideInAPackage("org.flywaydb..")
+                .as("Integration service must not import Flyway (owned by persistence service)");
+
+        rule.check(importedClasses);
+    }
 }

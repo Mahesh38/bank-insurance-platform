@@ -1,21 +1,11 @@
 # Production profile
 # All credentials MUST come from AWS_SECRETS_MANAGER
 # No fallback to PROPERTIES or ENV in prod
-spring:
-  datasource:
-    url: ${DATASOURCE_URL}
-    driver-class-name: org.postgresql.Driver
-    username: ${DATASOURCE_USERNAME}
-    password: ${DATASOURCE_PASSWORD}
-
-  jpa:
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-
 insurance:
   secrets:
     source: AWS_SECRETS_MANAGER
+  persistence:
+    base-url: ${INSURANCE_PERSISTENCE_BASE_URL}
 
 management:
   endpoint:

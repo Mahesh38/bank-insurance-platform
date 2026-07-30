@@ -6,8 +6,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
 /**
- * Smoke test: verifies the Spring application context loads with H2 in-memory DB
- * and test credentials. Uses the 'test' profile to skip secrets validation.
+ * Smoke test: verifies the Spring application context loads with test credentials.
+ * Uses the 'test' profile to skip secrets validation. Persistence HTTP calls are
+ * lazy (RestClient bean only); no WireMock required for context load.
  */
 @SpringBootTest
 @ActiveProfiles("test")
@@ -15,11 +16,8 @@ import org.springframework.test.context.TestPropertySource;
         "onesb.api-key=test-api-key",
         "onesb.api-secret=test-api-secret",
         "onesb.distributor-id=TEST_DIST",
-        "spring.datasource.url=jdbc:h2:mem:onesb_smoke;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;NON_KEYWORDS=VALUE",
-        "spring.datasource.driver-class-name=org.h2.Driver",
-        "spring.datasource.username=sa",
-        "spring.datasource.password=",
-        "insurance.secrets.source=PROPERTIES"
+        "insurance.secrets.source=PROPERTIES",
+        "insurance.persistence.base-url=http://localhost:8081"
 })
 class ApplicationContextTest {
 

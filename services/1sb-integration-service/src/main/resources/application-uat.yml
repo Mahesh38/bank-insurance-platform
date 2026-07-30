@@ -2,21 +2,11 @@
 # Secrets sourced from ENV variables:
 #   ONESB_API_KEY, ONESB_API_SECRET, ONESB_DISTRIBUTOR_ID
 # Set INSURANCE_SECRETS_SOURCE=ENV or AWS_SECRETS_MANAGER
-spring:
-  datasource:
-    url: ${DATASOURCE_URL}
-    driver-class-name: org.postgresql.Driver
-    username: ${DATASOURCE_USERNAME}
-    password: ${DATASOURCE_PASSWORD}
-
-  jpa:
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-
 insurance:
   secrets:
     source: ${INSURANCE_SECRETS_SOURCE:ENV}
+  persistence:
+    base-url: ${INSURANCE_PERSISTENCE_BASE_URL}
 
 logging:
   level:

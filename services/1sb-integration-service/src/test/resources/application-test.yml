@@ -1,22 +1,8 @@
-spring:
-  datasource:
-    url: jdbc:h2:mem:onesb_test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;NON_KEYWORDS=VALUE
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
-
-  jpa:
-    hibernate:
-      ddl-auto: validate
-    show-sql: false
-
-  flyway:
-    enabled: true
-    locations: classpath:db/migration
-
 insurance:
   secrets:
     source: PROPERTIES
+  persistence:
+    base-url: http://localhost:8081
 
 # Stub credentials for tests — NOT real secrets
 onesb:
@@ -27,4 +13,3 @@ onesb:
 logging:
   level:
     com.bank.insurance: WARN
-    org.flywaydb: WARN

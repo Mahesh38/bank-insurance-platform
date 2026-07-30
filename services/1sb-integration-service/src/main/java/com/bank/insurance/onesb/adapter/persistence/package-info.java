@@ -1,4 +1,5 @@
 /**
- * Persistence adapter — implements domain ports using Spring Data JPA and PostgreSQL.
+ * Persistence HTTP adapter — implements domain ports by calling 1sb-persistence-service.
+ * No JPA / Flyway in this package; DB ownership lives in the persistence service.
  */
 package com.bank.insurance.onesb.adapter.persistence;

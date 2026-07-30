@@ -9,7 +9,7 @@ import java.util.Optional;
 
 /**
  * Port for persisting and retrieving integration jobs.
- * Implemented by adapter.persistence.JobRepositoryAdapter.
+ * Implemented by {@code adapter.persistence.HttpJobStoreAdapter} (HTTP → persistence service).
  */
 public interface JobStorePort {
 

@@ -25,7 +25,15 @@ This folder is the **authoritative starting point** for building the service. If
 
 ## One-line product definition
 
-> A single bank-internal microservice that exposes LOB-routed insurance integration APIs (quote, proposal, payment, status, masters) and translates them to 1SB — with audit, security, and replaceable adapters — so bank apps never call 1SB directly.
+> Bank apps call **1sb-integration-service**, which exposes LOB-routed insurance APIs and translates them to 1SB; durable state is owned by **1sb-persistence-service** over internal HTTP — so bank apps never call 1SB or the DB directly.
+
+## Living engineering docs
+
+| Document | Purpose |
+|----------|---------|
+| [TECH-DEBT.md](./TECH-DEBT.md) | Tech debt log (senior review + TL findings) |
+| [phase-1/TECH-LEAD-REVIEW.md](./phase-1/TECH-LEAD-REVIEW.md) | Phase 1 + senior comment disposition |
+| [phase-1/REFACTOR-TASK-SPLIT.md](./phase-1/REFACTOR-TASK-SPLIT.md) | Agent ownership for remediations |
 
 ## Accepted architecture pattern (do not reopen)
 

@@ -18,6 +18,7 @@
 | Iteration | Date | Outcome |
 |-----------|------|---------|
 | 1 | 2026-07-30 | **APPROVED** — all P2-A1..A4 / P2-B1..B3; no P0. See [TL-REVIEW-ITER1.md](./TL-REVIEW-ITER1.md). Optional P1 hygiene only for iter-2. |
+| 2 | 2026-07-30 | Dev A P1 hygiene: WireMock 5xx FAILURE audit + `hash(masked) ≠ hash(plaintext)` in `OneSbHttpClientTest` (commit message `test(p2-a4): 5xx audit and masked requestHash inequality`). |
 
 ## Dev B notes
 
@@ -31,3 +32,4 @@
 - **P2-A2:** `OneSbHttpClient` + `adapter.onesb.config` (Basic Auth, timeouts, `get`/`post`/`exchange`); WireMock 200/401; HTTP/1.1 for WireMock compatibility.
 - **P2-A3:** `OneSbErrorNormaliser` maps 401 / business 4xx (`errors[]`) / 5xx → bank `ServiceException`; wired into client.
 - **P2-A4:** Outbound audit hook on `OneSbHttpClient` via `LoggingAuditEventPublisher`; requestHash = SHA-256 of PiiMasker-masked body.
+- **Iter-2 (P1):** `OneSbHttpClientTest` — WireMock 503 emits FAILURE audit; requestHash asserts `hash(masked) ≠ hash(plaintext)`.

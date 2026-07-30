@@ -10,6 +10,7 @@ import com.bank.common.secrets.SecretProvider;
 import com.bank.insurance.onesb.adapter.onesb.config.OneSbClientProperties;
 import com.bank.insurance.onesb.adapter.onesb.error.OneSbErrorNormaliser;
 import com.bank.insurance.onesb.observability.PiiMasker;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import org.junit.jupiter.api.BeforeEach;
@@ -151,7 +152,25 @@ class OneSbHttpClientTest {
     }
 
     @Test
-    void requestHash_isHashOfMaskedBody_notPlaintextPan() {
+    void serverError_5xx_emitsFailureAudit() {
+        stubFor(get(urlEqualTo("/v1/unstable"))
+                .willReturn(aResponse().withStatus(503).withBody("unavailable")));
+        assertThatThrownBy(() -> client.get("/v1/unstable", Map.class))
+                .isInstanceOf(ServiceException.class)
+                .satisfies(ex -> {
+                    ServiceException se = (ServiceException) ex;
+                    assertThat(se.getErrorResponse().getCode()).isEqualTo(ErrorCodes.UPSTREAM_UNAVAILABLE);
+                });
+        assertThat(publisher.events).hasSize(1);
+        AuditEvent event = publisher.events.getFirst();
+        assertThat(event.getAction()).isEqualTo(AuditActions.ONESB_OUTBOUND_CALL);
+        assertThat(event.getOutcome()).isEqualTo(AuditOutcomes.FAILURE);
+        assertThat(event.getMetadata().get("upstreamHttpStatus")).isEqualTo("503");
+        verify(exactly(1), getRequestedFor(urlEqualTo("/v1/unstable")));
+    }
+
+    @Test
+    void requestHash_isHashOfMaskedBody_notPlaintextPan() throws Exception {
         stubFor(post(urlEqualTo("/v1/quote"))
                 .willReturn(aResponse().withStatus(200)
                         .withHeader("Content-Type", "application/json")
@@ -159,9 +178,18 @@ class OneSbHttpClientTest {
         Map<String, String> payload = Map.of("pan", PAN, "name", "Priya Sharma");
         client.post("/v1/quote", payload, Map.class);
         String requestHash = publisher.events.getFirst().getMetadata().get("requestHash");
+        String plaintextJson = new ObjectMapper().writeValueAsString(payload);
+        String plaintextHash = sha256Hex(plaintextJson);
         assertThat(requestHash).isNotBlank().doesNotContain(PAN);
         assertThat(requestHash).isEqualTo(client.hashMaskedBody(payload));
+        assertThat(requestHash).isNotEqualTo(plaintextHash);
         assertThat(PiiMasker.maskJson("{\"pan\":\"" + PAN + "\"}")).doesNotContain(PAN);
+    }
+
+    private static String sha256Hex(String value) throws Exception {
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        byte[] hash = digest.digest(value.getBytes(StandardCharsets.UTF_8));
+        return HexFormat.of().formatHex(hash);
     }
 
     private static final class RecordingPublisher implements AuditEventPublisher {

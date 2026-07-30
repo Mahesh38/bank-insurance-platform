@@ -17,7 +17,7 @@
 
 | Iteration | Date | Outcome |
 |-----------|------|---------|
-| — | — | Kickoff published; awaiting Dev delivery |
+| 1 | 2026-07-30 | **APPROVED** — all P2-A1..A4 / P2-B1..B3; no P0. See [TL-REVIEW-ITER1.md](./TL-REVIEW-ITER1.md). Optional P1 hygiene only for iter-2. |
 
 ## Dev B notes
 

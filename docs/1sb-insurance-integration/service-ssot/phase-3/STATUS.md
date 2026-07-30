@@ -1,13 +1,15 @@
 # Phase 3 — Status
 
 **Branch:** `cursor/func-002-term-quote-create-c259`  
-**Assignment:** [FUNC-002-ASSIGNMENT.md](./FUNC-002-ASSIGNMENT.md)
+**Assignment:** [FUNC-002-ASSIGNMENT.md](./FUNC-002-ASSIGNMENT.md)  
+**Review:** [FUNC-002-REVIEW.md](./FUNC-002-REVIEW.md)
 
 | Task | Owner | Status | Commit |
 |------|-------|--------|--------|
-| FUNC-002 Term quote create | Dev A | In review | `66bfa4c` |
+| FUNC-002 Term quote create | Dev A | **Done** | `af33e65` (fixes) / `66bfa4c` (feature) |
 
-## Dev A notes
+## Notes
 
-- **FUNC-002:** `QuoteService` + `TermQuoteHandler` + `LobQuoteHandlerRegistry` + `OneSbQuoteAdapter`; `POST /v1/quotes` → 202 `{jobId, status}`; `AsyncJobPoller.scheduleQuotePoll` completes with offers / `POLL_TIMEOUT`; `getQuoteResult` maps `TIMEOUT` → `QUOTE_TIMEOUT` retryable; ErrorCodes `QUOTE_TIMEOUT` / `UNSUPPORTED_LOB`.
-- Tests tagged `@Tag("FUNC-002")`: QuoteServiceTest, QuoteControllerTest, TermQuoteHandlerTest, OneSbQuoteAdapterTest, AsyncJobPollerQuoteTest.
+- TL+QA Lead APPROVE after review loop (Case 2, WireMock AC proof, QUOTE_COMPLETED, PARTIAL, R6).
+- AC-1…AC-7 accepted.
+- Thin `GET /v1/quotes/{jobId}` included for timeout mapping; FUNC-003 will harden GET AC.

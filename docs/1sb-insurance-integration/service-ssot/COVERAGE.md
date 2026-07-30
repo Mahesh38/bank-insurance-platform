@@ -10,6 +10,8 @@
 
 `check` also depends on `jacocoTestCoverageVerification`.
 
+**CI contract:** `./gradlew test` alone generates reports but does **not** fail on thresholds. CI must run `jacocoTestCoverageVerification` (or `check` / `build`). PR XML annotation remains **QA-005**.
+
 ## Report paths (per module)
 
 | Artefact | Path |

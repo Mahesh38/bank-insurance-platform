@@ -52,6 +52,8 @@ Severity: **P0** = blocks Phase 2 / multi-service reuse · **P1** = fix this spr
 
 **Residual (interim):** Services gated at **line ≥ 35%** only (no branch gate). Package-specific adapter/api floors from strategy §7 land with **QA-002** (persistence API) and **QA-003** (IT template). Mark **Closed** when service package rules match strategy or interim is explicitly retired by QA Lead.
 
+**Expiry (R7):** Revisit / retire interim service floor by **2026-08-30** or when QA-002+QA-003 close — whichever first. TL + QA Lead co-approved wiring **2026-07-30**.
+
 **Status:** **Partial**
 
 ---

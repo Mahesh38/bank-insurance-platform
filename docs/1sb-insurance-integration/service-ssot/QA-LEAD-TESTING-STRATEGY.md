@@ -14,7 +14,7 @@
 |--------|---------|
 | Production `.java` files | ~99 |
 | `*Test.java` classes | ~18 |
-| JaCoCo / coverage gate in CI | **None** — coverage is unmeasured (“zero reported coverage”) |
+| JaCoCo / coverage gate in CI | **Partial (QA-001)** — libs gated 80%/70%; services interim 35% line; see [COVERAGE.md](./COVERAGE.md). Supersedes earlier “None / unmeasured” baseline. |
 | Pure single-class unit tests | Sparse — strongest on libs + `PiiMasker` / `OneSbErrorNormaliser` |
 | Adapter tests with WireMock / MockRest | Present for HttpClient, poller, JobStore |
 | True multi-service integration (Testcontainers) | **Absent** |

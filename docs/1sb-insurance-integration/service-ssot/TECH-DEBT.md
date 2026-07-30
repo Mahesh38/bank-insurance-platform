@@ -25,6 +25,9 @@ Severity: **P0** = blocks Phase 2 / multi-service reuse · **P1** = fix this spr
 | TD-010 | P2 | No Redis / idempotency / cache adapter yet | Arch gap | Deferred Phase 2 | Backlog |
 | TD-011 | P1 | Integration service must not own Flyway or JPA after split | Senior #3–4 | **Closed** | Agent 3 |
 | TD-012 | P2 | Convention for future JPA entities / API DTOs (Lombok vs records) | Senior #1 + TL | **Closed** | Agent 2 |
+| TD-013 | P3 | Stale integration README / STATUS after persistence split | Confirmation | **Closed** | Agent 2 |
+| TD-014 | P2 | WireMock / full E2E for integration ↔ persistence HTTP | Confirmation | Deferred Phase 2 | Backlog |
+| TD-015 | P2 | Poll-attempt / raw-payload HTTP ports on persistence | Confirmation | Deferred Phase 2 | Backlog |
 
 ---
 
@@ -121,6 +124,34 @@ Track only; do not block this refactor PR. TD-006 remains Phase 2 (real AWS SM).
 
 ---
 
+## TD-013 — Stale integration README / STATUS after split
+
+**Problem:** After TD-003/004/011, `services/1sb-integration-service/README.md` and parts of `phase-1/STATUS.md` still describe Flyway/H2 ownership, `adapter/secret`, and pre-split test stacks.
+
+**Owner:** Agent 2 (docs rewrite). Agent 3 confirmation pass does **not** own the integration README rewrite.
+
+**Status:** **Closed** — Agent 2 rewrote integration README + STATUS banner/skeleton/exit gate (commit on this branch). Residual service gaps tracked as TD-014 / TD-015 (payment/audit HTTP on integration remains TD-009).
+
+---
+
+## TD-014 — WireMock / full E2E (Deferred Phase 2)
+
+**Problem:** End-to-end contract test with WireMock (or Testcontainers dual-service) for integration → persistence HTTP is not yet in CI.
+
+**Mitigation (Phase 1):** `HttpJobStoreAdapterTest` uses `MockRestServiceServer` for createJob + findQuoteJob. Full WireMock E2E deferred to Phase 2.
+
+---
+
+## TD-015 — Poll-attempt / raw-payload HTTP (Deferred Phase 2)
+
+**Problem:** Flyway + JPA cover `job_poll_attempt` and `raw_payload`, but persistence does not yet expose `/internal/v1` CRUD for them.
+
+**Status:** Deferred Phase 2. Jobs/offers/payment-sessions/audit-events HTTP is sufficient for Phase 1 JobStorePort wiring.
+
+**Related:** Payment/audit **ports on integration** (not just persistence HTTP) remain **TD-009**.
+
+---
+
 ## Closed items
 
 | ID | Closed | Notes |
@@ -133,6 +164,7 @@ Track only; do not block this refactor PR. TD-006 remains Phase 2 (real AWS SM).
 | TD-008 | 2026-07-30 | AGENTS.md rewritten for real platform; libs README Boot version → 3.3.4 |
 | TD-011 | 2026-07-30 | Integration stripped of data-jpa / Flyway / drivers / `db/migration`; ArchUnit forbids JPA+Flyway imports |
 | TD-012 | 2026-07-30 | Convention documented in `libs/README.md` and this log |
+| TD-013 | 2026-07-30 | Agent 2 aligned integration README + STATUS with post-split reality |
 
 ---
 
@@ -143,3 +175,4 @@ Track only; do not block this refactor PR. TD-006 remains Phase 2 (real AWS SM).
 | 2026-07-30 | Initial log from senior review + Phase 1 TL review |
 | 2026-07-30 | Agent 2 closed TD-001, TD-002, TD-005, TD-008, TD-012 |
 | 2026-07-30 | Agent 3 closed TD-003, TD-004, TD-011 (persistence service + HTTP split) |
+| 2026-07-30 | Agent 3 confirmation: TD-013 Closed (Agent 2 docs); TD-014/015 Deferred Phase 2; MockRestServiceServer JobStore test |

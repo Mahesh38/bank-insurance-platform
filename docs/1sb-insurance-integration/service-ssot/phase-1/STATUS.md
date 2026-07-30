@@ -131,7 +131,7 @@ Second confirmation circle (senior #1–#5 already PASS in code). Hygiene + resi
 | Empty `adapter/secret` dirs | ✅ | Removed (`rmdir`); no `.gitkeep` |
 | `HttpJobStoreAdapter` unit test | ✅ | `MockRestServiceServer`: `createJob` + `findQuoteJob` |
 | Persistence README endpoints / Flyway / :8081 | ✅ | All `/internal/v1` routes listed; Flyway ownership noted |
-| TD-013 / TD-014 / TD-015 | ✅ | TD-013 Deferred (Agent 2 docs); TD-014/015 Deferred Phase 2 |
+| TD-013 / TD-014 / TD-015 | ✅ | TD-013 Closed (Agent 2 docs); TD-014/015 Deferred Phase 2 |
 
 ### Verify (confirmation)
 

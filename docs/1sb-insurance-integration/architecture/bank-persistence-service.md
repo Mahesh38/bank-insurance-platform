@@ -70,6 +70,7 @@ Auth expectation (Phase 1): **internal network only** (cluster/VPC). Stronger mT
 | **Jobs** | `/internal/v1/jobs`, `/jobs/{jobId}`, `/jobs/{jobId}/status`, `/jobs/{jobId}/offers` | `1sb-integration-service` |
 | **Audit events** | `/internal/v1/audit-events` | `audit-consumer-service` (required); integration may also append |
 | **Payments** | `/internal/v1/payment-sessions`, `/payment-sessions/{sessionId}` | `1sb-integration-service` |
+| **Raw payloads** | `/internal/v1/raw-payloads`, `/raw-payloads/{payloadId}` | `1sb-integration-service` (encrypted at rest) |
 
 ### 4.2 Endpoint list
 
@@ -84,8 +85,12 @@ Auth expectation (Phase 1): **internal network only** (cluster/VPC). Stronger mT
 | `GET` | `/internal/v1/payment-sessions/{sessionId}` | Get payment session |
 | `POST` | `/internal/v1/audit-events` | Append audit event |
 | `GET` | `/internal/v1/audit-events?resourceId=` | List audit events by resource id |
+| `POST` | `/internal/v1/raw-payloads` | Store REQ/RES body (AES-256-GCM at rest; response is metadata only) |
+| `GET` | `/internal/v1/raw-payloads/{payloadId}` | Metadata only; `?decrypt=true` returns plaintext Base64 (compliance/tests) |
 
-Not yet HTTP-exposed (schema/entities only; TD-015): poll-attempt, raw-payload.
+Raw payloads: `payload_enc` is AES-256-GCM ciphertext (`iv || ciphertext+tag`); `encryption_key_id` and `retain_until` (default created date + 7 years) are persisted. Key via `bank.persistence.payload-encryption.*` (Vault stand-in).
+
+Poll-attempt endpoints remain nested under `/internal/v1/jobs/{jobId}/poll-attempts`.
 
 Not-found → RFC 7807 problem JSON (`RESOURCE_NOT_FOUND`, HTTP 404) via `bank-common-error`.
 

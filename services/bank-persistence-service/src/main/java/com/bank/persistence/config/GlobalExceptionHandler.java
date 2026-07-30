@@ -35,4 +35,15 @@ public class GlobalExceptionHandler {
                 .contentType(MediaType.APPLICATION_PROBLEM_JSON)
                 .body(body);
     }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ServiceErrorResponse> handleIllegalArgument(IllegalArgumentException ex) {
+        ServiceErrorResponse body = ServiceErrorResponse.validation(
+                ex.getMessage() != null ? ex.getMessage() : "Invalid request",
+                java.util.List.of()
+        );
+        return ResponseEntity.status(body.getStatus())
+                .contentType(MediaType.APPLICATION_PROBLEM_JSON)
+                .body(body);
+    }
 }

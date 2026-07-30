@@ -1,0 +1,52 @@
+# Get SP Data | 1SB Developer Portal
+
+Headings: ['Get SP Data\u200b']
+
+## Fields (18)
+- `data` (object)
+  - Section to carry responses | This field is used to capture the RM code associated.
+- `spCode` (object)
+  - This field is used to capture the SP code associated.
+- `attributes` (string)
+  - Possible: <= 50 characters
+  - This section will carry the eligibility criteria of the product. | Channel type
+- `manufacturerId` (string)
+  - manufacturer Id the quote assigned by 1SB
+- `data` (object)
+  - Section to carry quote responses
+- `errors` (string)
+  - Possible: <= 50 characters
+  - This array contains error messages in case of an error | In case error occurs, the error code will be stored here
+- `errorDisplayMessage` (string)
+  - Possible: <= 100 characters
+  - In case error occurs, the error display message will be stored here
+- `errorIdentifier` (string)
+  - Possible: <= 20 characters
+  - In case error occurs, the error identifier will be stored here
+- `errorMessage` (string)
+  - Possible: <= 100 characters
+  - In case error occurs, the error message will be stored here
+- `errorType` (string)
+  - Possible: <= 10 characters
+  - In case error occurs, the error type will be stored here
+- `reqId` (string) **REQUIRED**
+  - Request Id for the quote assigned by 1SB
+- `data` (object)
+  - Section to carry quote responses
+- `errors` (string)
+  - Possible: <= 50 characters
+  - This array contains error messages in case of an error | In case error occurs, the error code will be stored here
+- `errorDisplayMessage` (string)
+  - Possible: <= 100 characters
+  - In case error occurs, the error display message will be stored here
+- `errorIdentifier` (string)
+  - Possible: <= 20 characters
+  - In case error occurs, the error identifier will be stored here
+- `errorMessage` (string)
+  - Possible: <= 100 characters
+  - In case error occurs, the error message will be stored here
+- `errorType` (string)
+  - Possible: <= 10 characters
+  - In case error occurs, the error type will be stored here
+- `reqId` (string) **REQUIRED**
+  - Request Id for the quote assigned by 1SB

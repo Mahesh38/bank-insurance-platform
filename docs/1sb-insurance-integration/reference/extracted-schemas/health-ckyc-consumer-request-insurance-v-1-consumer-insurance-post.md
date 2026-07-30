@@ -1,0 +1,170 @@
+# Get Ckyc Details | 1SB Developer Portal
+
+Headings: ['Get Ckyc Details\u200b']
+
+## Fields (72)
+- `personalInformation` (string)
+  - Possible: <= 15 characters
+  - Proposer date of birth
+- `email` (string)
+  - Possible: <= 100 characters
+  - Email address of customer
+- `mobileNumber` (string)
+  - Possible: <= 10 characters
+  - Customer mobile number
+- `zipCode` (string)
+  - Possible: <= 10 characters
+  - Customer pincode
+- `pan` (string)
+  - Possible: <= 15 characters
+  - Customer pan number which is mandatory
+- `product` (string) **REQUIRED**
+  - Possible: <= 15 characters, [ABHI, NBHI, TATAAIG, IL, HDFCERGO, MPLCIGNA, STARHLT, CHIL]
+- `productId` (string) **REQUIRED**
+  - Possible: [2825  //HDFC Ergo My Health Suraksha Family Floater, 2828  //HDFC Ergo My Health Suraksha Individual, 4226  //ABHI Active Assur, 6212  //ABHI Activ Health, CARSUP //Care Supreme, HAP //ICICI Lombard Health AdvantEdge, Reassure //Niva Bupa Reassure, PROHEALTH //Manipal Cigna Pro Health]
+  - Product under considerations
+- `trackInfo` (string)
+  - Possible: <= 100 characters
+  - This is application no, available in quote
+- `manuApplicationNo` (string)
+  - Possible: <= 100 characters
+  - This is application no, available in quote
+- `KYCRequestID` (string)
+  - Unique guid for tracking
+- `distributor` (string)
+  - Possible: <= 15 characters
+  - Static for a given Distributor. Ask your Account Manager
+- `agentID` (string)
+  - Agentid of the distributor
+- `salesChannel` (string)
+  - Possible: <= 100 characters, [online, others]
+  - Sales channel
+- `channelType` (string)
+  - Possible: <= 15 characters, [B2B, B2C]
+  - should always be either B2B or B2C
+- `kycInfo` (string)
+  - Possible: <= 1024 characters
+  - Return url of the page, incase redirected to insurer portal
+- `reqId` (string)
+- `errors` (string)
+  - Possible: <= 50 characters
+  - This array will capture error code and error message | In case error occurs, the error code will be stored here
+- `error` (string)
+  - Possible: <= 100 characters
+  - In case error occurs, the error message will be stored here
+- `data` (string)
+  - Customer firstname
+- `middleName` (string)
+  - Customer middle name
+- `lastName` (string)
+  - Customer lastname
+- `dateOfBirth` (string)
+  - Customer date of birth
+- `email` (nullable)
+  - Customer email
+- `mobileNumber` (nullable)
+  - Customer mobile
+- `zipCode` (string)
+  - Customer pincode
+- `pan` (string)
+  - Customer pan
+- `communicationAddressDetails` (string)
+  - Customer complete Communication address
+- `address1` (string)
+  - Customer address 1
+- `address2` (string)
+  - Customer address 2
+- `address3` (string)
+  - Customer address 1
+- `state` (string)
+  - Customer state
+- `citydistrict` (string)
+  - Customer city
+- `zipcode` (string)
+  - Customer zipcode
+- `permanentAddressDetails` (string)
+  - Customer complete Permanent address
+- `address1` (string)
+  - Customer address 1
+- `address2` (string)
+  - Customer address 2
+- `address3` (string)
+  - Customer address 1
+- `state` (string)
+  - Customer state
+- `citydistrict` (string)
+  - Customer city
+- `zipcode` (string)
+  - Customer zipcode
+- `product` (string)
+  - Same as what was passed in ckyc request
+- `productId` (string)
+  - Same as what was passed in ckyc request
+- `trackInfo` (string)
+  - Same as what was passed in ckyc request
+- `manuApplicationNo` (string)
+  - Same as what was passed in ckyc request
+- `1SBKYCRequestID` (string)
+- `distributor` (string)
+  - Same as what was passed in ckyc request
+- `agentID` (string)
+  - Same as what was passed in ckyc request
+- `salesChannel` (string)
+  - Same as what was passed in ckyc request
+- `channelType` (string)
+  - Same as what was passed in ckyc request
+- `kycInfo` (string)
+  - Same as what was passed in ckyc request
+- `Status` (string)
+  - Possible: [approved, incomplete, rejected]
+  - Based on the status, decision to be made whether to continue with proposal. Resume journey only when status is Approved.
+- `RejectedReason` (nullable)
+  - Reason why kyc was reject
+- `Manufacturer_KYC_Id` (string)
+  - Same as what was passed in ckyc request
+- `KYC_Number` (string)
+  - Same as what was passed in ckyc request
+- `RedirectURL` (nullable)
+  - Same as what was passed in ckyc request
+- `ResponseParam` (string)
+  - Same as what was passed in ckyc request
+- `varFields` (string)
+- `fieldValue` (nullable)
+- `data` (object)
+  - Section to carry quote responses
+- `errors` (string)
+  - Possible: <= 50 characters
+  - This array contains error messages in case of an error | In case error occurs, the error code will be stored here
+- `errorDisplayMessage` (string)
+  - Possible: <= 100 characters
+  - In case error occurs, the error display message will be stored here
+- `errorIdentifier` (string)
+  - Possible: <= 20 characters
+  - In case error occurs, the error identifier will be stored here
+- `errorMessage` (string)
+  - Possible: <= 100 characters
+  - In case error occurs, the error message will be stored here
+- `errorType` (string)
+  - Possible: <= 10 characters
+  - In case error occurs, the error type will be stored here
+- `reqId` (string) **REQUIRED**
+  - Request Id for the quote assigned by 1SB
+- `data` (object)
+  - Section to carry quote responses
+- `errors` (string)
+  - Possible: <= 50 characters
+  - This array contains error messages in case of an error | In case error occurs, the error code will be stored here
+- `errorDisplayMessage` (string)
+  - Possible: <= 100 characters
+  - In case error occurs, the error display message will be stored here
+- `errorIdentifier` (string)
+  - Possible: <= 20 characters
+  - In case error occurs, the error identifier will be stored here
+- `errorMessage` (string)
+  - Possible: <= 100 characters
+  - In case error occurs, the error message will be stored here
+- `errorType` (string)
+  - Possible: <= 10 characters
+  - In case error occurs, the error type will be stored here
+- `reqId` (string) **REQUIRED**
+  - Request Id for the quote assigned by 1SB

@@ -1,0 +1,102 @@
+# Penny Drop | 1SB Developer Portal
+
+Headings: ['Penny Drop\u200b']
+
+## Fields (43)
+- `productCode` (string) **REQUIRED**
+  - Product code
+- `insuranceCompanyCode` (string) **REQUIRED**
+  - The code to identify for which insurance company this proposal belongs to
+- `customer` (string) **REQUIRED**
+  - Customer bank and contact details | Account holder name
+- `email` (string) **REQUIRED**
+  - Proposer email ID
+- `mobileNumber` (string) **REQUIRED**
+  - Proposer mobile number
+- `accountNumber` (string) **REQUIRED**
+  - Bank account number
+- `ifscCode` (string) **REQUIRED**
+  - Account IFSC code
+- `trackInfo` (string) **REQUIRED**
+  - Proposal and quote tracking details | Could be Quote ID or Proposal number
+- `manufacturerQuoteID` (string) **REQUIRED**
+  - Manufacturer quote ID
+- `proposalNo` (string)
+  - Proposal number (conditional)
+- `policyNumber` (string)
+  - Policy number (conditional)
+- `distributor` (string) **REQUIRED**
+  - Distributor and channel information | Distributor ID (e.g., BCIBL)
+- `agentID` (string)
+  - Agent ID of the distributor
+- `salesChannel` (string)
+  - Sales channel (Online, etc.)
+- `channelType` (string) **REQUIRED**
+  - Possible: [B2B, B2C]
+  - Business channel type
+- `reqId` (string)
+  - Unique request identifier
+- `errors` (string)
+  - List of errors if request fails | Error code
+- `errorMessage` (string)
+  - Error message
+- `errorType` (string)
+  - Error type
+- `errorDisplayMessage` (string)
+  - User-friendly error message
+- `data` (string)
+  - Penny drop validation response | Response status
+- `message` (string)
+  - Response message
+- `accountHolderName` (string)
+  - Account holder name returned from bank
+- `trackInfo` (string)
+  - Proposal and quote tracking details | Could be Quote ID or Proposal number
+- `manufacturerQuoteID` (string)
+  - Manufacturer quote ID
+- `proposalNo` (string)
+  - Proposal number (conditional)
+- `policyNumber` (string)
+  - Policy number (conditional)
+- `varFields` (string)
+  - Additional response attributes | Dynamic field name
+- `fieldValue` (string)
+  - Dynamic field value
+- `data` (object)
+  - Section to carry quote responses
+- `errors` (string)
+  - Possible: <= 50 characters
+  - This array contains error messages in case of an error | In case error occurs, the error code will be stored here
+- `errorDisplayMessage` (string)
+  - Possible: <= 100 characters
+  - In case error occurs, the error display message will be stored here
+- `errorIdentifier` (string)
+  - Possible: <= 20 characters
+  - In case error occurs, the error identifier will be stored here
+- `errorMessage` (string)
+  - Possible: <= 100 characters
+  - In case error occurs, the error message will be stored here
+- `errorType` (string)
+  - Possible: <= 10 characters
+  - In case error occurs, the error type will be stored here
+- `reqId` (string) **REQUIRED**
+  - Request Id for the quote assigned by 1SB
+- `data` (object)
+  - Section to carry quote responses
+- `errors` (string)
+  - Possible: <= 50 characters
+  - This array contains error messages in case of an error | In case error occurs, the error code will be stored here
+- `errorDisplayMessage` (string)
+  - Possible: <= 100 characters
+  - In case error occurs, the error display message will be stored here
+- `errorIdentifier` (string)
+  - Possible: <= 20 characters
+  - In case error occurs, the error identifier will be stored here
+- `errorMessage` (string)
+  - Possible: <= 100 characters
+  - In case error occurs, the error message will be stored here
+- `errorType` (string)
+  - Possible: <= 10 characters
+  - In case error occurs, the error type will be stored here
+- `reqId` (string) **REQUIRED**
+  - Request Id for the quote assigned by 1SB

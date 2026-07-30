@@ -1,0 +1,388 @@
+# Get quote | 1SB Developer Portal
+
+Headings: ['Get quote\u200b']
+
+## Fields (130)
+- `typeOfQuote` (string) **REQUIRED**
+  - Possible: <= 20 characters, [Single Quote, Multi-Quote]
+  - This will take values as Single Quote or Multi-quote and will help to identify the number of quote requests to be generated.Single Quote is defined as when you want quote from a particular insurer. Multi-Quote provides quote from multiple insurers.
+- `quoteCategory` (string) **REQUIRED**
+  - Possible: <= 20 characters, [New, Roll-Over]
+  - Defines the business type - New , Roll-Over
+- `alternateFreqRequired` (string)
+  - Possible: <= 10 characters, [Yes, No]
+  - If the consumer wants frequency related multi-quote, this field should carry the values as Yes or No. Example for frequency related multi-quote. If customer inputs premiumPaymentFrequency as Monthly, Quaterly, or Half-Yearly, then 1SB will provide premium for given as well as Yearly frequency. If customer inputs premiumPaymentFrequency as Yearly, 1SB will provide premium for Yearly as well as Mont
+- `outOfBoundConfig` (string)
+  - Possible: <= 10 characters, [Yes, No]
+  - If the distributor wants quotes for Out of Bound cases, this field should carry the values Yes or No. Example for Out of Bound. From Motor Insurance perspective, it is a futuristic field.
+- `additionalSetup` (string)
+  - Possible: <= 5 characters, [AUD, NZD, USD, EUR, GBP, JPY, ZAR, CAD, CNY, ARS, BSD, BDT, BGN, BRL, CLP, KWD, COP, HRK, CZK, DKK, EGP, HKD, HUF, ISK, INR, IDR, ILS, KZT, KRW, CHF, MYR, MUR, MXN, NOK, PHP, PLN, QAR, RON, RUB, SAR, RSD, SGD, SEK, TWD, THB, TRY, UAH, VND, AED, MAD, PEN, UYU, OMR, BHD]
+  - This section will contain additional information regarding user and policy | Currency in which policy will be purchased
+- `userGeoLocation` (string)
+  - Possible: <= 100 characters
+  - Return a JSON object with latitude and longitude properties | latitude
+- `longitude` (string)
+  - longitude
+- `userCountry` (string)
+  - Possible: <= 5 characters, [AF, AX, AL, DZ, AS, AD, AO, AI, AQ, AG, AR, AM, AW, AU, AT, AZ, BS, BH, BD, BB, BY, BE, BZ, BJ, BM, BT, BO, BQ, BA, BW, BV, BR, IO, BN, BG, BF, BI, CV, KH, CM, CA, KY, CF, TD, CL, CN, CX, CC, CO, KM, CG, CD, CK, CR, CI, HR, CU, CW, CY, CZ, DK, DJ, DM, DO, EC, EG, SV, GQ, ER, EE, SZ, ET, FK, FO, FJ, FI, FR, GF, PF, TF, GA, GM, GE, DE, GH, GI, GO, GR, GL, GD, GP, GU, GT, GG, GN, GW, GY, HT, HM, VA, HN, HK, HU, IS, IN, ID, IR, IQ, IE, IM, IL, IT, JM, JP, JE, JO, KZ, KE, KI, XK, KW, KG, LA, LV, LB, LS, LR, LY, LI, LT, LU, MO, MG, MW, MY, MV, ML, MT, MH, MQ, MR, MU, YT, MX, FM, MD, MC, MN, ME, MS, MA, MZ, MM, NA, NR, NP, NL, NC, NZ, NI, NE, NG, NU, NF, KP, MK, MP, NO, OM, PK, PW, PS, PA, PG, PY, PE, PH, PN, PL, PT, PR, QA, RE, RO, RU, RW, BL, SH, KN, LC, MF, PM, VC, WS, SM, ST, SA, SN, RS, SC, SL, SG, SX, SK, SI, SB, SO, ZA, GS, KR, SS, ES, LK, SD, SR, SJ, SE, CH, SY, TW, TJ, TZ, TH, TL, TG, TK, TO, TT, TN, TR, TM, TC, TV, UG, UA, AE, GB, UM, US, UY, UZ, VU, VE, VN, VG, VI, WF, EH, YE, ZM, ZW]
+  - Country of the user
+- `userRegion` (string)
+  - Possible: <= 30 characters
+  - Region (State or Province) of the user
+- `userLanguage` (string)
+  - Possible: <= 20 characters
+  - Language set by user on the consumer app
+- `userIP` (string)
+  - Possible: <= 20 characters
+  - User IP address
+- `userAgent` (string)
+  - Possible: <= 50 characters
+  - Users browser details
+- `distributor` (string) **REQUIRED**
+  - Possible: <= 20 characters
+  - This section will give details of intermediary (Broker, corporate Agent or Bank acting as intermediary) | Static for a given Distributor. Ask your Account Manager
+- `agentID` (string) **REQUIRED**
+  - Possible: <= 20 characters
+  - Agent code. Eg. PoSP code or SP code provided by insurance company
+- `channelType` (string) **REQUIRED**
+  - Possible: <= 20 characters, [B2B, B2C]
+  - This is used by insurance companies to identify channel type. Eg. B2B or B2C
+- `varFields` (string)
+  - Possible: <= 50 characters
+  - Additional fields for distributor section.
+- `fieldValue` (string)
+  - Possible: <= 50 characters
+  - Value of additional fields
+- `personalInformation` (string)
+  - Possible: <= 30 characters, [Proposer, Owner-Proposer, Nominee, Driver, NamedPassenger]
+  - Section to capture personal details of proposer,Owner-Proposer, Driver and Nominee. | This array will hold personal details of proposer or Owner-Proposer or Driver or Nominee. At time of retrieving quote, this is not required. However in proposal request , it will be mandatory | To capture the type of member - Proposer, Owner-Proposer,Nominee or Driver
+- `memberSequenceNumber` (integer)
+  - This is the sequence number to assigned to each member of personalInformation Array. For example - Proposer is being referred as 1.
+- `nomineeRelWithInsured` (string)
+  - Possible: <= 30 characters, [Daughter, Father, Father-in-law, Mother, Mother-in-law, Self, Son, Spouse]
+  - To capture relationship of Nominee with Owner
+- `title` (string)
+  - Possible: <= 30 characters, [Mr, Mrs, Ms]
+  - Title of the member.
+- `firstName` (string)
+  - Possible: <= 50 characters
+  - First name of the member.
+- `middleName` (string)
+  - Possible: <= 50 characters
+  - Middle name of the member.
+- `lastName` (string)
+  - Possible: <= 50 characters
+  - Last name of the member.
+- `gender` (string)
+  - Possible: <= 15 characters, [Male, Female, Transgender, Others]
+  - Gender of the member.
+- `dateOfBirth` (string)
+  - Possible: <= 10 characters
+  - Date of birth of the member. Date is formatted string as per ISO 8601 standard. Format - YYYY-MM-DD
+- `age` (integer)
+  - Possible: <= 3 characters
+  - Age of the member.
+- `maritalStatus` (string)
+  - Possible: <= 30 characters, [Married, Single]
+  - Marital status of the member.
+- `qualification` (string)
+  - Possible: <= 50 characters, [Post Graduate, Graduate, 12th, 10th, Diploma, Below 10th]
+  - Educational qualification of the member.
+- `occupation` (string)
+  - Possible: <= 50 characters, [Salaried, Self-Employed, Non-working]
+  - Professional occupation of the member.
+- `annualIncome` (number)
+  - Possible: <= 15 characters
+  - Annual income of the member.
+- `email` (string)
+  - Possible: <= 100 characters
+  - Email ID of the member.
+- `mobileNumber` (number)
+  - Possible: <= 15 characters
+  - Mobile number of the member.
+- `zipCode` (string)
+  - Possible: <= 10 characters
+  - Pincode of the member
+- `state` (string)
+  - Possible: <= 30 characters, [ANDAMAN AND NICOBAR, ANDHRA PRADESH, ARUNACHAL PRADESH, ASSAM, BIHAR, CHANDIGARH, DADRA AND NAGAR, DAMAN AND DIU, DELHI, GOA, GUJARAT, HIMACHAL PRADESH, JAMMU AND KASHMIR, KERALA, LAKSHADWEEP, MAHARASHTRA, MANIPUR, MEGHALAYA, NAGALAND, ORISSA, PUNJAB, RAJASTHAN, SIKKIM, TRIPURA, UTTAR PRADESH, JHARKHAND, UTTARAKHAND, TELANGANA, NOST, HARAYANA, KARNATAKA, MADHYA PRADESH, MIZORAM, PONDICHERRY, TAMIL NADU, WEST BENGAL, CHHATTISGARH]
+  - State of the member.
+- `city` (string)
+  - Possible: <= 50 characters
+  - City of the member.
+- `address1` (string)
+  - Possible: <= 50 characters
+  - Address of the member.
+- `address2` (string)
+  - Possible: <= 50 characters
+  - Address of the member.
+- `address3` (string)
+  - Possible: <= 50 characters
+  - Address of the member.
+- `residentStatus` (string)
+  - Possible: <= 20 characters, [Resident Indian, NRI, OCI, PIO, Foreign National]
+  - Resident status of the member such as NRI, PIO.
+- `ownerBelongsToOrganizationFlag` (boolean)
+  - Possible: <= 15 characters, [true, false]
+  - This is required to capture if the owner is a customer or a business. Required only in case of memberType = Owner
+- `memberGST` (string)
+  - Possible: <= 30 characters
+  - This is required to capture GST information of Proposer
+- `drivingLicenseNumber` (string)
+  - Possible: <= 30 characters
+  - To capture driving license of driver. This is a futuristic field. Required only when memberType is Driver.
+- `drivingExperienceYears` (string)
+  - Possible: <= 30 characters
+  - To capture drivers driving experience.
+- `varFields` (string)
+  - Possible: <= 50 characters
+  - Additional fields for individualDetails array
+- `fieldValue` (string)
+  - Possible: <= 50 characters
+  - Value of additional fields
+- `isOwnerTransfer` (boolean)
+  - Possible: [true, false]
+  - Indicates if the vehicle ownership is being transferred to a new owner Yes, for most of the cases, NCB becomes 0. But it is not entirely true. If someone have NCB transfer letter, then he can opt for NCB. Also, all transfter cases - policy is issued in "New" Policy type category.
+- `product` (string) **REQUIRED**
+  - Possible: <= 10 characters, [motor]
+  - LOB for which quote is requested. With respect to Motor Insurance , always pass motor
+- `motorProductType` (string) **REQUIRED**
+  - Possible: <= 30 characters, [2W-Pvt, 4W-Pvt]
+  - Motor Product Type for which quote is requested.
+- `insuranceAndProducts` (string)
+  - Possible: <= 30 characters, [IL, GODIGIT, RSGI, TAGIC, BAGIC, RGI, ZURKOTAK]
+  - Array to capture multiple insurance company codes and their specific product codes. This allows the consumer to request quotes for specific products of selected insurance companies. | Insurance company code for which quote is required. Mandatory when typeOfQuote = Single Quote.
+- `policyType` (string)
+  - Possible: <= 30 characters, [Package(1+1), StandaloneOD, StandaloneTP(1), StandaloneTP(3), StandaloneTP(5), Bundled(1+3), Bundled(1+5), Package(2+2), Package(3+3)]
+  - Specifies the policy type for which quote is required. Mandatory when typeOfQuote = Single Quote.
+- `productCode` (string[])
+  - Possible: <= 30 characters
+  - Insurer-specific product identifier mapped to the selected insurerCode. For example, when insurerCode is 'TAGIC', the productCode 'TG4WCI' represents the Tata AIG Four Wheeler Comprehensive Insurance product. This value is mandatory for premium calculation, quote generation, and policy issuance APIs in Single Quote (SQ) flow. This field is required only in SQ and is not applicable for Multi Quote 
+- `policyTerm` (integer)
+  - Possible: <= 3 characters, [1, 2, 3]
+  - Policy term is the period within which a policy remains active and offers protection/benefits.
+- `policyTermUnit` (string)
+  - Possible: <= 15 characters, [Years, Months, Days]
+  - This is a futuristic field to allow policy term to be in days or months.
+- `premiumPaymentOption` (string)
+  - Possible: <= 20 characters, [1, 2, 3]
+  - This field indicates whethere the payment is going to done via 1. Single 2. Regular 3. Limited payment. This tag is currently not sent in the request but is kept here to ensure if in motor insurance when we have limited or regular payments, then we can use this tag.
+- `premiumPaymentTerm` (integer)
+  - Possible: <= 150 characters, [1, 2]
+  - Premium paying term is the total period (number of years or months) for which a policyholder has to pay premium.Since all payments are one time in motor ,this field will be used when premiumPaymentOption is introduced in future.
+- `premiumPaymentFrequency` (string)
+  - Possible: <= 15 characters, [M, Q, HY, Y, S]
+  - This is defined as the number of times during the policy year that you need to pay premiums. Frequency options are typically annual, semi-annual, quarterly and monthly. This filed is required when premuim payment option is selected as Regular Pay. Since Regular pay is not present in motor insurance, this field also becomes futuristic
+- `planOption` (string) **REQUIRED**
+  - Possible: <= 50 characters
+  - To capture Vehicle Registration Information | Plan ID for a particualar productID
+- `registrationDetails` (string) **REQUIRED**
+  - Possible: <= 50 characters
+  - To capture Vehicle Registration Information | Registration Number of the vehicle. It is required when business type is Roll-Over. For Business Type New, you can pass this as blank. Also, it is required in both case - Single Quote and Multi-Quote
+- `registrationDate` (YYYY-MM-DD) **REQUIRED**
+  - Possible: <= 50 characters
+  - Registration Date of the vehicle.Date is formatted string as per ISO 8601 standard. Format - YYYY-MM-DD. This is required in both case - Single Quote and Multi-Quote
+- `registrationYear` (YYYY)
+  - Possible: <= 5 characters
+  - Registration year of the vehicle.Date is formatted string as per ISO 8601 standard. Format - YYYY This is required in both case - Single Quote and Multi-Quote. If registrationDate is provided , then do not provide year.
+- `registrationMonth` (string)
+  - Possible: <= 50 characters
+  - Registration Month of the vehicle.Date is formatted string as per ISO 8601 standard. Format -MM. This is required in both case - Single Quote and Multi-Quote. If registrationDate is provided , then do not provide month.
+- `registrationDay` (string)
+  - Possible: <= 3 characters
+  - Registration Day of the vehicle.Date is formatted string as per ISO 8601 standard. Format -DD. This is required in both case - Single Quote and Multi-Quote. If registrationDate is provided , then do not provide day.
+- `manufacturingMonth` (string)
+  - Possible: <= 3 characters
+  - Manufacturing Month of the vehicle.Date is formatted string as per ISO 8601 standard. Format -MM.
+- `manufacturingYear` (string)
+  - Possible: <= 5 characters
+  - Manufacturing Year of the vehicle.Date is formatted string as per ISO 8601 standard. Format -YYYY.
+- `dateOfPurchase` (string)
+  - Possible: <= 5 characters
+  - Purchase Date of the vehicle.Date is formatted string as per ISO 8601 standard. Format YYYY-MM-DD.
+- `autoMembershipFlag` (boolean)
+  - Possible: <= 5 characters, [true, false]
+  - To capture if the vehicle is a member of the automobile association
+- `autoMembershipNumber` (string)
+  - Possible: <= 30 characters
+  - To capture auto membership number. Required only when autoMembershipFlag is TRUE
+- `pucDeclaration` (string)
+  - Possible: <= 30 characters
+  - Pollution Under Control declaration
+- `pucNumber` (string)
+  - Possible: <= 30 characters
+  - PUC Certificate number
+- `pucExpiryDate` (string)
+  - Possible: <= 30 characters
+  - PUC Expiry Date. Normally PUC is valid for 6 months. Required input in Date format - YYYY-MM-DD
+- `rtoLocationCode` (string) **REQUIRED**
+  - Possible: <= 10 characters
+  - RTO Location is where vehicle is registered at. It is required in two scenarios-1.When Business Type is New. 2-When Registration Number is of BH series. Required for both - Single Quote and Multi-Quote
+- `vehicleDetails` (string)
+  - Possible: <= 30 characters
+  - To capture Vehicle Make, Model, Variant and other details | Unique Vehicle Code maintained at 1SB end to identify vehicle
+- `vehicleMakeCode` (string) **REQUIRED**
+  - Possible: <= 30 characters
+  - Manufacturer Code of the Vehicle as per Vehicle Master. Required in both case - New Business and Roll Over. Also, required for Single Quote and Multi-Quote
+- `vehicleModelCode` (string) **REQUIRED**
+  - Possible: <= 30 characters
+  - Model Code of the vehicle as per vehicle master.Y-MM-DD. Required in both case - New Business and Roll Over. Also, required for Single Quote and Multi-Quote
+- `vehicleVariantCode` (string) **REQUIRED**
+  - Possible: <= 30 characters
+  - Variant code of the vehicle as per vehicle master.Required in both case - New Business and Roll Over. Also, required for Single Quote and Multi-Quote
+- `vehicleFuelType` (string) **REQUIRED**
+  - Possible: <= 20 characters, [Petrol, Diesel, CNG, LPG, Electric]
+  - Fuel Type applicable to the vehicle make,model and variant as per vehicle master. Required in both case - New Business and Roll Over. Also, required for Single Quote and Multi-Quote
+- `vehicleSeatingCapacity` (number)
+  - Possible: <= 3 characters
+  - Seating capacity of the vehicle. THis is required only in case , when same variant has different seating capacity
+- `vehicleCubicCapacity` (number)
+  - Possible: <= 5 characters
+  - Cubic Capacity of the vehicle as per vehicle master. This is required in case of certain Commercial vehicles. For 4W and 2W ,cubic capacity is not required.
+- `vehicleColor` (string)
+  - Possible: <= 30 characters
+  - Color of the vehicle as per vehicle master
+- `vehicleEngineNumber` (string)
+  - Possible: <= 30 characters
+  - Engine number of the vehicle
+- `vehicleChassisNumber` (string)
+  - Possible: <= 30 characters
+  - Chassis number of the vehicle
+- `vehicleEnergyType` (string)
+  - Possible: <= 30 characters
+  - Energy Type of vehicle as per vehicle master.This is a futuristic field
+- `vehicleWheelsChairAccess` (boolean)
+  - Possible: <= 5 characters, [true, false]
+  - Vehicle has wheel chair access
+- `vehicleEmissionStandard` (string)
+  - Possible: <= 30 characters
+  - Vehicle Emission Standard. This is a futuristic field
+- `vehicleWheelsCount` (number)
+  - Possible: <= 4 characters
+  - Number wheels of the vehicle as per vehicle master
+- `vehicleCargoVolume` (number)
+  - Possible: <= 30 characters
+  - Weight of the cargo in tonns
+- `idvDetails` (number) **REQUIRED**
+  - Possible: <= 30 characters
+  - Insured Declared Value of the vehicle. | Sum Insured of the vehicle. This is a required field for single quote and multi-quote for business type - Roll Over. For the initial quote call , send 0 in this to retrive the idv range.
+- `sideCarInsuredDeclaredValue` (number)
+  - Possible: <= 30 characters
+  - Sum Insured of the side car. Side car is a 1-wheeled device attached to motor-cycle.
+- `ncbDetails` (boolean) **REQUIRED**
+  - Possible: <= 5 characters, [true, false]
+  - Insured Declared Value of the vehicle. This is akin to Sum Insured of the vehicle. | This is required to provide NCB discount in quote. Pass TRUE , if claim has been taken in previous policy, Else pass FALSE.
+- `numberOfClaims` (number)
+  - Possible: <= 30 characters, [0, 1]
+  - Required only when claimLastYearFlag = TRUE
+- `ncbPercentageLastYear` (number) **REQUIRED**
+  - Possible: <= 5 characters, [0, 20, 25, 35, 45, 50]
+  - NCB Percentage present in the previous policy.Required only when claimLastYearFlag = FALSE.
+- `previousPolicyDetails` (string) **REQUIRED**
+  - Possible: <= 20 characters, [Package(1+1), StandaloneTP(1), StandaloneTP(3), StandaloneTP(5), Bundled(1+3), Bundled(1+5), Package(2+2), Package(3+3)]
+  - Capture Previous Policy Details. This is required only when business type is Roll-Over. | Plan type of previous policy
+- `IsPreviousPolicyExpired` (boolean)
+  - Possible: <= 5 characters
+  - Pass TRUE, if policy has been expired, Else pass FALSE
+- `previousPolicyEndDate` (string) **REQUIRED**
+  - Possible: <= 15 characters
+  - Previous Policy End Date. Date format - YYYY-MM-DD
+- `previousPolicyStartDate` (string)
+  - Possible: <= 15 characters
+  - Previous Policy Start Date. Date format - YYYY-MM-DD.
+- `previousPolicyInsurer` (string)
+  - Possible: <= 50 characters, [ICICILOMBARD, RELIANCEGENERAL, BAGIC, ACKO, SBIGI, TAGIC, UNIVERSALSOMPO, HDFCERGO, CHOLAMANDALAM, FUTUREGENERALI, GODIGIT, IFFCOTOKIO, KOTAKMAHINDRA, LIBERTYGENERAL, MAGMAHDI, NATIONALINSURANCE, NAVIGENERALINSURANCE, RAHEJAQBE, ROYALSUNDARAM, SHRIRAMGENERALINSURANCE, NEWINDIAASSURANCE, ORIENTALINSURANCE, UNITEDINDIAINSURANCE, ZUNOGENERALINSURANCE]
+  - Insurer of the previous policy
+- `previousPolicyNumber` (string)
+  - Possible: <= 50 characters
+  - Policy Number
+- `previousPolicyOdStartDate` (string)
+  - Possible: <= 15 characters
+  - Require only when previousCoverageType is Bundled. Capture OD only start date
+- `previousPolicyOdExpiryDate` (string) **REQUIRED**
+  - Possible: <= 15 characters
+  - Require only when previousCoverageType is Bundled. Capture OD only expiry date
+- `previousPolicyOdInsurer` (string)
+  - Possible: <= 50 characters, [ICICILOMBARD, RELIANCEGENERAL, BAGIC, ACKO, SBIGI, TAGIC, UNIVERSALSOMPO, HDFCERGO, CHOLAMANDALAM, FUTUREGENERALI, GODIGIT, IFFCOTOKIO, KOTAKMAHINDRA, LIBERTYGENERAL, MAGMAHDI, NATIONALINSURANCE, NAVIGENERALINSURANCE, RAHEJAQBE, ROYALSUNDARAM, SHRIRAMGENERALINSURANCE, NEWINDIAASSURANCE, ORIENTALINSURANCE, UNITEDINDIAINSURANCE, ZUNOGENERALINSURANCE]
+  - Require only when previousCoverageType is Bundled
+- `previousPolicyOdNumber` (string)
+  - Possible: <= 50 characters
+  - Required only when claimLastYearFlag = TRUE
+- `previousPolicyTpStartDate` (string)
+  - Possible: <= 15 characters
+  - Require only when previousCoverageType is Bundled. Capture TP only expiry date. Date format - YYYY-MM-DD
+- `previousPolicyTpExpiryDate` (string) **REQUIRED**
+  - Possible: <= 15 characters
+  - Require only when previousCoverageType is Bundled. Capture TP only expiry date. Date format - YYYY-MM-DD
+- `previousPolicyTpInsurer` (string)
+  - Possible: <= 50 characters, [ICICILOMBARD, RELIANCEGENERAL, BAGIC, ACKO, SBIGI, TAGIC, UNIVERSALSOMPO, HDFCERGO, CHOLAMANDALAM, FUTUREGENERALI, GODIGIT, IFFCOTOKIO, KOTAKMAHINDRA, LIBERTYGENERAL, MAGMAHDI, NATIONALINSURANCE, NAVIGENERALINSURANCE, RAHEJAQBE, ROYALSUNDARAM, SHRIRAMGENERALINSURANCE, NEWINDIAASSURANCE, ORIENTALINSURANCE, UNITEDINDIAINSURANCE, ZUNOGENERALINSURANCE]
+  - Require only when previousCoverageType is Bundled
+- `previousPolicyTpNumber` (string)
+  - Possible: <= 50 characters
+  - Require only when previousCoverageType is Bundled. TP Policy number
+- `motorCovers` (string)
+  - Possible: <= 150 characters, [lossOfPersonalBelongings, depreciationShield, tyreSecure, roadSideAssitance, consumableExpenses, engineProtect, ncbProtection, returnToInvoice, keysLocksCover, geograhicalExtenstion, towingCover, voluntaryDeductibles, electricalAccessories, nonElectricalAccessories, cngCover, emergencyMedicalExpenses, paPaidDriverCover, paPassengerCover, legalLiabilityDriver, legalLiabilityEmployees, paOwnerDriverCover, consumableExpenses]
+  - These are add ons that provide additional coverage | From the list of all the options, one will be selected for each element of the array.
+- `optionValue` (string)
+  - Possible: <= 150 characters
+  - For the add on selected, relevant value will be required. Eg conveyanceBenefit will ask for no of days and amount limit | Additional fields for add on selected
+- `optionValueInput` (string)
+  - Possible: <= 150 characters
+  - Value of additional fields
+- `varFields` (string)
+  - Possible: <= 100 characters
+  - Other fields to be captured for plan option selected | Additional fields for planOption section
+- `fieldValue` (string)
+  - Possible: <= 100 characters
+  - Value of additional fields
+- `reqId` (string) **REQUIRED**
+  - Possible: <= 50 characters
+  - Unique request identifier for the quote transaction.
+- `data` (object) **REQUIRED**
+  - Section to carry quote responses | Quote response. Null when quote is not available / not generated.
+- `journey_id` (string) **REQUIRED**
+  - Possible: <= 50 characters
+  - Unique journey identifier for tracking the quote flow.
+- `errors` (string) **REQUIRED**
+  - Possible: <= 50 characters
+  - This array contains error messages in case of an error | In case error occurs, the error code will be stored here
+- `errorMessage` (string) **REQUIRED**
+  - Possible: <= 150 characters
+  - Error Message which to be display
+- `data` (object)
+  - Section to carry quote responses
+- `errors` (string)
+  - Possible: <= 50 characters
+  - This array contains error messages in case of an error | In case error occurs, the error code will be stored here
+- `errorDisplayMessage` (string)
+  - Possible: <= 100 characters
+  - In case error occurs, the error display message will be stored here
+- `errorIdentifier` (string)
+  - Possible: <= 20 characters
+  - In case error occurs, the error identifier will be stored here
+- `errorMessage` (string)
+  - Possible: <= 100 characters
+  - In case error occurs, the error message will be stored here
+- `errorType` (string)
+  - Possible: <= 10 characters
+  - In case error occurs, the error type will be stored here
+- `reqId` (string) **REQUIRED**
+  - Request Id for the quote assigned by 1SB
+- `data` (object)
+  - Section to carry quote responses
+- `errors` (string)
+  - Possible: <= 50 characters
+  - This array contains error messages in case of an error | In case error occurs, the error code will be stored here
+- `errorDisplayMessage` (string)
+  - Possible: <= 100 characters
+  - In case error occurs, the error display message will be stored here
+- `errorIdentifier` (string)
+  - Possible: <= 20 characters
+  - In case error occurs, the error identifier will be stored here
+- `errorMessage` (string)
+  - Possible: <= 100 characters
+  - In case error occurs, the error message will be stored here
+- `errorType` (string)
+  - Possible: <= 10 characters
+  - In case error occurs, the error type will be stored here
+- `reqId` (string) **REQUIRED**
+  - Request Id for the quote assigned by 1SB

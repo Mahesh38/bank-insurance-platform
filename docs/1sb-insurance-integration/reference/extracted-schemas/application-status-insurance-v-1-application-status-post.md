@@ -1,0 +1,108 @@
+# Application Status | 1SB Developer Portal
+
+Headings: ['Application Status\u200b']
+
+## Fields (44)
+- `distributorID` (string)
+  - Possible: <= 20 characters
+  - Distributor ID assigned to each consumer by 1SB
+- `insuranceCompanyCode` (string) **REQUIRED**
+  - Possible: <= 15 characters
+  - The code to identify for which insurance company this proposal belongs to.
+- `applicationNo` (string)
+  - Possible: <= 100 characters
+  - Reference number generated on submitting the proposal.
+- `policyNo` (string)
+  - Possible: <= 100 characters
+  - Policy reference number.
+- `quoteId` (string)
+  - Possible: <= 100 characters
+  - Reference number generated on submitting the proposal.
+- `memberDetails` (string)
+  - Possible: <= 30 characters
+  - Section to capture details of member
+- `dateOfBirth` (string)
+  - Possible: <= 15 characters
+- `mobileNumber` (integer)
+  - Possible: <= 10 characters
+- `varFields` (string)
+  - Possible: <= 20 characters
+  - varField array hold any additional data related to policy details status | Name of additional fields
+- `fieldValue` (string)
+  - Possible: <= 20 characters
+  - Value of additional fields
+- `applicationNo` (string)
+  - Reference number generated on submission of application
+- `manufacturer` (string)
+  - Array to capture status of multiple manufacturers/insurance companies | Code identifying insurance company
+- `product` (string)
+  - Code of Life Insurance Product
+- `applicationStatus` (string)
+  - Possible: [PROPOSAL_APPLICATION_PENDING, REQUIREMENTS_PENDING, SCRUTINY, UNDERWRITING, ACCEPTED, COUNTER_OFFER, REJECTED, POLICY_ISSUED, PROPOSAL_SUBMITTED, PROPOSAL_MODIFICATION_REQUESTED, AWAITING_CLIENT_APPROVAL, PROPOSAL_ERROR, PAYMENT_SUCCESS, PAYMENT_FAILURE, REQUIREMENT_VERIFICATION, PRE_CONVERSION, CANCELLED, OTP_VERIFIED, DOCUMENT_UPLOAD_PENDING, QUOTE_CREATED, QUOTE_SELECTED, PAYMENT_INITIATED, PROPOSAL_SUBMISSION_INITIATED, DOCUMENT_UPLOAD_INITIATED, QUOTE_UPDATED, PAYMENT_INTIMATION_FAILED, DOCUMENTS_UPLOADED, KYC_SUCCESS, KYC_FAILED, INSPECTION_PENDING, INSPECTION_APPROVED]
+  - 1SB standard status for application or proposal
+- `applicationStatusDesc` (string)
+  - Description to provide additional information about 1SB status.
+- `manufacturerAppStatus` (string)
+  - sub status as provided by the insurance company
+- `manufacturerAppStatusDesc` (string)
+  - Description to provide additional information about manufacturer status.
+- `varFields` (string)
+  - Possible: <= 20 characters
+  - varField array hold any additional data related to application status | Name of additional fields
+- `fieldValue` (string)
+  - Possible: <= 20 characters
+  - Value of additional fields
+- `policyDetails` (string)
+  - policy number
+- `policyStatus` (string)
+  - 1SB standard status for the policy
+- `policyStatusDesc` (string)
+  - Description to provide additional information about 1SB status.
+- `manufacturerPolicyStatus` (string)
+  - Sub status as provided by the insurance company
+- `manufacturerPolicyStatusDesc` (string)
+  - Description to provide additional information about manufacturer status.
+- `policyIssueDate` (string)
+  - Date on which the policy was issued
+- `policyEffectiveDate` (string)
+  - Date from which the policy is effective
+- `policyEndDate` (string)
+  - Date on which the policy coverage ends
+- `policyRenewalDueDate` (string)
+  - the due date to renew the policy by customer
+- `wlcKitDispatchDate` (string)
+  - Date on which insurance company has dispatched the welcome kit for the policy.
+- `varFields` (string)
+  - varField array hold any additional data related to policy details status | Name of additional fields
+- `fieldValue` (string)
+  - Value of additional fields
+- `premiumStatus` (string)
+  - 1SB standard status for the premium
+- `premiumDesc` (string)
+  - Description to provide additional information about 1SB status.
+- `ManufacturerPremiumStatus` (string)
+  - sub status as provided by the insurance company
+- `ManufacturerPremiumStatusDesc` (string)
+  - Description to provide additional information about manufacturer status, if any, sent in by the manufacturer.
+- `totalPremiumPaid` (string)
+  - Total premium paid for the policy till date.
+- `renewalAmountDue` (string)
+  - Renewal amount due
+- `lastInsalmentPaymentDate` (string)
+  - The date when the last installment was paid
+- `paymentSource` (string)
+  - the payment method used to fund a transaction.
+- `autoPayment` (string)
+  - Has the customer opted for auto premium payment standing instruction
+- `varFields` (string)
+  - Possible: <= 20 characters
+  - varField array hold any additional data related to application status | Name of additional fields
+- `fieldValue` (string)
+  - Possible: <= 20 characters
+  - Value of additional fields
+- `varFields` (string)
+  - Possible: <= 20 characters
+  - varField array hold any additional data | Name of additional fields
+- `fieldValue` (string)
+  - Possible: <= 20 characters
+  - Value of additional fields

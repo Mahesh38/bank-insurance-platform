@@ -22,7 +22,8 @@
 | A2 | URL reachable from bank egress (curl/telnet port 443 succeeds) | ⬜ Pending | | |
 | A3 | URL recorded in `config/onesb/provider-config.yml` sandbox profile | ⬜ Pending | | |
 
-Expected URL pattern (placeholder until confirmed): `https://sandbox.1silverbullet.tech`
+Expected URL pattern (placeholder until confirmed): `https://demo.api.1silverbullet.tech`  
+_(Public docs demo host — your tenant sandbox URL may differ; treat as configurable via `ONESB_BASE_URL`.)_
 
 ---
 

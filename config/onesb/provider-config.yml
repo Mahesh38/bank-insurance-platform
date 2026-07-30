@@ -26,7 +26,9 @@ provider:
   # ── Base URL (profile-specific — see overlay sections below) ──────────────
   # Resolved in order: env var > profile overlay > this default.
   # Env var: ONESB_BASE_URL
-  baseUrl: ${ONESB_BASE_URL:https://sandbox.1silverbullet.tech}
+  # Default is the public demo host from 1SB docs — CONFIRM with 1SB RM (may differ for your tenant).
+  # See phase-0/CONFIRM-01-onesb-access.md
+  baseUrl: ${ONESB_BASE_URL:https://demo.api.1silverbullet.tech}
 
   # ── Authentication ─────────────────────────────────────────────────────────
   # Supported auth types: BASIC | BEARER | MTLS | NONE
@@ -132,7 +134,8 @@ spring:
       on-profile: sandbox
 
 provider:
-  baseUrl: ${ONESB_BASE_URL:https://sandbox.1silverbullet.tech}
+  # Confirm actual sandbox/demo host with 1SB RM (CONFIRM-01). Docs demo host used as default placeholder.
+  baseUrl: ${ONESB_BASE_URL:https://demo.api.1silverbullet.tech}
   auth:
     apiKey:
       vaultPath: secret/onesb/sandbox/api-key

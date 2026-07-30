@@ -175,4 +175,5 @@ Track only; do not block this refactor PR. TD-006 remains Phase 2 (real AWS SM).
 | 2026-07-30 | Initial log from senior review + Phase 1 TL review |
 | 2026-07-30 | Agent 2 closed TD-001, TD-002, TD-005, TD-008, TD-012 |
 | 2026-07-30 | Agent 3 closed TD-003, TD-004, TD-011 (persistence service + HTTP split) |
+| 2026-07-30 | Confirmation circle #2: docs/ArchUnit hygiene; HttpJobStoreAdapterTest; TL pass closed vs senior #1–#5 |
 | 2026-07-30 | Agent 3 confirmation: TD-013 Closed (Agent 2 docs); TD-014/015 Deferred Phase 2; MockRestServiceServer JobStore test |

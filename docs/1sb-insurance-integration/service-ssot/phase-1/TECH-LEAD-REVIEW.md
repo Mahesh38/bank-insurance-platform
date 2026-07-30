@@ -95,14 +95,14 @@ See [REFACTOR-TASK-SPLIT.md](./phase-1/REFACTOR-TASK-SPLIT.md) for Agent 2 / Age
 
 ## 6. Exit criteria for this remediation loop
 
-- [ ] `./gradlew build` green (all modules including new ones)
-- [ ] Lombok on shared builders; convention documented
-- [ ] Secrets only in `bank-common-secrets` (+ service wiring)
-- [ ] Flyway only under `1sb-persistence-service`
-- [ ] Integration service has no `data-jpa` / Flyway / `db/migration`
-- [ ] HTTP API stubs on persistence + client adapter skeleton on integration
-- [ ] TECH-DEBT.md updated (TD-001…004, TD-011 closed or in-progress with clear residual)
-- [ ] Second TL pass finds no gaps vs senior comments
+- [x] `./gradlew build` green (all modules including new ones)
+- [x] Lombok on shared builders; convention documented
+- [x] Secrets only in `bank-common-secrets` (+ service wiring)
+- [x] Flyway only under `1sb-persistence-service`
+- [x] Integration service has no `data-jpa` / Flyway / `db/migration`
+- [x] HTTP API stubs on persistence + client adapter skeleton on integration
+- [x] TECH-DEBT.md updated (TD-001…004, TD-011 closed or in-progress with clear residual)
+- [x] Second TL pass finds no gaps vs senior comments — see [TECH-LEAD-CONFIRMATION-PASS.md](./TECH-LEAD-CONFIRMATION-PASS.md)
 
 ---
 

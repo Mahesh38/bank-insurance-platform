@@ -34,6 +34,7 @@ This folder is the **authoritative starting point** for building the service. If
 | [TECH-DEBT.md](./TECH-DEBT.md) | Tech debt log (senior review + TL findings) |
 | [phase-1/TECH-LEAD-REVIEW.md](./phase-1/TECH-LEAD-REVIEW.md) | Phase 1 + senior comment disposition |
 | [phase-1/REFACTOR-TASK-SPLIT.md](./phase-1/REFACTOR-TASK-SPLIT.md) | Agent ownership for remediations |
+| [phase-1/TECH-LEAD-CONFIRMATION-PASS.md](./phase-1/TECH-LEAD-CONFIRMATION-PASS.md) | Second TL pass — senior comments closed |
 
 ## Accepted architecture pattern (do not reopen)
 

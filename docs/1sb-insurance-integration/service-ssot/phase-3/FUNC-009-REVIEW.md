@@ -5,7 +5,7 @@
 | Assign | TL | FUNC-009-ASSIGNMENT.md |
 | Implement | Dev | `98e1a3f` |
 | Review | TL + QA Lead | **APPROVE** |
-| Close | TL | Pending → PR / Done |
+| Close | TL | **Done** → PR |
 
 **Verdict:** **APPROVE**
 

@@ -155,7 +155,7 @@ Authority: [TECH-LEAD-REVIEW-COMMON-PERSISTENCE](./TECH-LEAD-REVIEW-COMMON-PERSI
 | B2-6 Audit-consumer stub | TD-021 | ✅ Done | `architecture/audit-consumer-service.md` — HTTP only; no second audit DB |
 | B2-7 STATUS + TECH-DEBT | — | ✅ Done | TD-017, TD-020, TD-021 **Closed**; living-docs links in SSOT README |
 
-Physical module rename / packages / client keys → **Agent 3** (TD-016, TD-018, TD-019).
+Physical module rename / packages / client keys → **Agent 3** (TD-016, TD-018, TD-019) — **done** (see Agent 3 B3 section below).
 
 ---
 

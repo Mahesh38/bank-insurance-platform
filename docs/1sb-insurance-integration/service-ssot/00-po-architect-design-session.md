@@ -71,6 +71,12 @@ CIF, RM UI, suitability engine, full journey UX, payment money movement, claims/
 
 ### Design principles (binding)
 See architecture doc §1. Short form:
+
+**SOLID + DRY + KISS**
+- **DRY:** one orchestrator/poller/HTTP client/error model; LOB-only code in handlers — do not duplicate infrastructure per LOB; do not merge different LOB payloads into one mega-DTO
+- **KISS:** integration service only; Case 2 is enough; Term first; hide 1SB poll behind simple REST+jobId; no journey/CIF/UI here
+
+**Domain rules**
 1. Bank-canonical first  
 2. Orchestration ≠ LOB mapping  
 3. Open for new LOB via handler registration  

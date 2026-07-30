@@ -82,6 +82,10 @@ Decision matrix detail: Architecture §4.
 
 ## 5. Design principles checklist (PR review)
 
+- [ ] **DRY:** no duplicated poll/HTTP/auth/error logic per LOB (reuse services + shared JARs)  
+- [ ] **DRY:** LOB payload differences stay in separate handlers (no forced mega-DTO)  
+- [ ] **KISS:** change stays inside integration scope (no CIF/UI/journey creep)  
+- [ ] **KISS:** simplest working path (Term proven before parallel LOB complexity)  
 - [ ] Case 2: Service orchestrates → handler maps  
 - [ ] No 1SB types outside `adapter.onesb.*`  
 - [ ] Public DTO uses bank names  

@@ -5,7 +5,7 @@
 
 | Task | Owner | Status | Commit |
 |------|-------|--------|--------|
-| FUNC-002 Term quote create | Dev A | In review | `1d0ba96` |
+| FUNC-002 Term quote create | Dev A | In review | `66bfa4c` |
 
 ## Dev A notes
 

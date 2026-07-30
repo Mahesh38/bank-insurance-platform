@@ -78,6 +78,44 @@ class BankPrincipalExtractorTest {
         assertThat(principal.hasRole(Role.RM)).isTrue();
         assertThat(principal.hasRole(Role.AUDITOR)).isFalse();
         assertThat(principal.hasAnyRole(Role.AUDITOR, Role.OPS)).isTrue();
+        assertThat(principal.hasAnyRole(Role.AUDITOR, Role.BRANCH_MANAGER)).isFalse();
+    }
+
+    @Test
+    void emptyRolesList_yieldsEmptyRoleSet() {
+        var claims = Map.<String, Object>of(
+            JwtClaims.ACTOR_ID,    "EMP006",
+            JwtClaims.EMPLOYEE_ID, "EMP006",
+            JwtClaims.ROLES,       List.of()
+        );
+
+        BankPrincipal principal = BankPrincipalExtractor.fromClaims(claims);
+
+        assertThat(principal.getRoles()).isEmpty();
+        assertThat(principal.hasAnyRole(Role.RM)).isFalse();
+    }
+
+    @Test
+    void nonIterableRolesClaim_isIgnored() {
+        var claims = Map.<String, Object>of(
+            JwtClaims.ACTOR_ID,    "EMP007",
+            JwtClaims.EMPLOYEE_ID, "EMP007",
+            JwtClaims.ROLES,       "RM"
+        );
+
+        BankPrincipal principal = BankPrincipalExtractor.fromClaims(claims);
+
+        assertThat(principal.getRoles()).isEmpty();
+    }
+
+    @Test
+    void builder_acceptsEmptyRoles() {
+        var principal = BankPrincipal.builder()
+            .actorId("E2").employeeId("E2")
+            .roles(Set.of())
+            .build();
+
+        assertThat(principal.getRoles()).isEmpty();
     }
 
     @Test

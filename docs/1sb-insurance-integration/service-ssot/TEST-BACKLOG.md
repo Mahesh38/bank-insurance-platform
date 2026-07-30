@@ -12,8 +12,8 @@ Priority: **P0** before Phase 3 functional exit · **P1** hardening · **P2** ni
 
 | ID | Sev | Item | Owner | Notes |
 |----|-----|------|-------|-------|
-| QA-001 | P0 | Introduce JaCoCo + CI coverage verification | Dev | Thresholds per strategy §7; exclude Boot mains/config |
-| QA-002 | P0 | Persistence API tests: jobs, offers, status patch, payments, audit, `GlobalExceptionHandler` | Dev | Expand beyond poll-attempt |
+| QA-001 | P0 | Introduce JaCoCo + CI coverage verification | Dev | **Done** — `c960ac7031abe9a99b9c8b8a6a302d69757ac44f`; libs 80%/70%; services interim 35% line ([COVERAGE.md](./COVERAGE.md)) |
+| QA-002 | P0 | Persistence API tests: jobs, offers, status patch, payments, audit, `GlobalExceptionHandler` | Dev | Expand beyond poll-attempt; raises persistence gate toward strategy §7 |
 | QA-003 | P0 | Integration IT template: service + WireMock 1SB + WireMock/stub persistence | Dev + QA | `*IT` with `@Tag("integration")` |
 | QA-004 | P0 | Phase 3 quote path: unit (handler/mapper) + `@WebMvcTest` + IT-I | Dev | Gate FUNC-002 DoD |
 | QA-005 | P1 | PR coverage report (Jacoco XML → CI annotation) | DevOps/Dev | |

@@ -35,6 +35,24 @@ Severity: **P0** = blocks Phase 2 / multi-service reuse · **P1** = fix this spr
 | TD-019 | P1 | Client config `bank.persistence.base-url` / `BANK_PERSISTENCE_BASE_URL` | Senior + TL | **Closed** | Agent 3 |
 | TD-020 | P1 | Multi-consumer contract (integration + audit-consumer + …) | Senior (audit consumer) | **Closed** | Agent 2 |
 | TD-021 | P2 | Document audit-consumer → persistence audit API (stub; no full service) | Senior (audit consumer) | **Closed** | Agent 2 |
+| QA-001 | P0 | JaCoCo coverage reports + verification gates | QA Lead / TEST-BACKLOG | **Partial** | Dev |
+
+---
+
+## QA-001 — JaCoCo coverage (Partial)
+
+**Problem:** No measured coverage; CI could not enforce strategy §7 floors.
+
+**Done (2026-07-30):**
+- JaCoCo on all Java subprojects; `test` → `jacocoTestReport` (HTML + XML); `jacocoTestCoverageVerification` on `check`.
+- **Libs:** line ≥ 80%, branch ≥ 70% (strategy §7).
+- Excludes: `*Application`, `package-info`, `*Config` / `*Configuration` / `*Properties`.
+- Minimal unit tests added for `EnvSecretProvider` and other lib gaps to meet the gate.
+- Docs: [COVERAGE.md](./COVERAGE.md), AGENTS.md run command.
+
+**Residual (interim):** Services gated at **line ≥ 35%** only (no branch gate). Package-specific adapter/api floors from strategy §7 land with **QA-002** (persistence API) and **QA-003** (IT template). Mark **Closed** when service package rules match strategy or interim is explicitly retired by QA Lead.
+
+**Status:** **Partial**
 
 ---
 
@@ -258,3 +276,4 @@ Track only; do not block this refactor PR. TD-006 remains Phase 2 (real AWS SM).
 | 2026-07-30 | Agent 2 closed TD-017, TD-020, TD-021 (platform contract + audit-consumer stub + framing) |
 | 2026-07-30 | Agent 3 closed TD-016, TD-018, TD-019 (module rename + packages + client config) |
 | 2026-07-30 | Confirmation circle #2 closed docs hygiene for common-persistence (STATUS banner + TL §7 exit criteria) |
+| 2026-07-30 | QA-001 Partial: JaCoCo reports + libs 80%/70% gates; services interim 35% line (see COVERAGE.md) |

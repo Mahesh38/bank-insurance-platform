@@ -4,6 +4,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -82,6 +83,23 @@ class MdcContextTest {
     void put_doesNothing_whenValueIsNull() {
         MdcContext.put(MdcKeys.LOB, null);
         assertThat(MDC.get(MdcKeys.LOB)).isNull();
+    }
+
+    @Test
+    void put_setsValue_whenNonNull() {
+        MdcContext.put(MdcKeys.LOB, "HEALTH");
+        assertThat(MDC.get(MdcKeys.LOB)).isEqualTo("HEALTH");
+    }
+
+    @Test
+    void with_nullContextValue_removesKeyForDuration() {
+        MDC.put(MdcKeys.JOB_ID, "pre-existing");
+        Map<String, String> context = new HashMap<>();
+        context.put(MdcKeys.JOB_ID, null);
+
+        MdcContext.with(context, () -> assertThat(MDC.get(MdcKeys.JOB_ID)).isNull());
+
+        assertThat(MDC.get(MdcKeys.JOB_ID)).isEqualTo("pre-existing");
     }
 
     @Test

@@ -36,6 +36,11 @@ Docker is not required for unit tests.
 ```bash
 ./gradlew test
 
+# Coverage (QA-001 / R7) — reports + gates
+./gradlew test jacocoTestReport jacocoTestCoverageVerification
+# HTML/XML under <module>/build/reports/jacoco/test/ — see
+# docs/1sb-insurance-integration/service-ssot/COVERAGE.md
+
 # Local: start persistence first (8081), then integration (8080)
 ./gradlew :services:bank-persistence-service:bootRun --args='--spring.profiles.active=local'
 ./gradlew :services:1sb-integration-service:bootRun --args='--spring.profiles.active=local'
@@ -45,7 +50,8 @@ Docker is not required for unit tests.
 
 **Testing (QA Lead):** follow `docs/1sb-insurance-integration/service-ssot/TESTING-RULES.md`  
 Strategy & ownership: `docs/1sb-insurance-integration/service-ssot/QA-LEAD-TESTING-STRATEGY.md`  
-Backlog: `docs/1sb-insurance-integration/service-ssot/TEST-BACKLOG.md` (QA-001 JaCoCo first)
+Backlog: `docs/1sb-insurance-integration/service-ssot/TEST-BACKLOG.md`  
+Coverage gates: `docs/1sb-insurance-integration/service-ssot/COVERAGE.md` (libs 80%/70%; services interim 35% line)
 
 Targeted shared-lib verification:
 

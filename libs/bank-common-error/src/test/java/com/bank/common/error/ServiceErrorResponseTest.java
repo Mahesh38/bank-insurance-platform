@@ -2,6 +2,7 @@ package com.bank.common.error;
 
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
@@ -68,5 +69,37 @@ class ServiceErrorResponseTest {
         var response = ServiceErrorResponse.validation("fail", List.of());
         assertThatThrownBy(() -> response.getErrors().add(ServiceError.of("CODE", "msg")))
             .isInstanceOf(UnsupportedOperationException.class);
+    }
+
+    @Test
+    void builder_usesExplicitTimestamp_andAddError() {
+        Instant fixed = Instant.parse("2026-07-30T12:00:00Z");
+        var response = ServiceErrorResponse.builder()
+            .title("Conflict")
+            .status(409)
+            .detail("duplicate")
+            .code(ErrorCodes.CONFLICT)
+            .timestamp(fixed)
+            .addError(ServiceError.of(ErrorCodes.CONFLICT, "already exists"))
+            .build();
+
+        assertThat(response.getTimestamp()).isEqualTo(fixed);
+        assertThat(response.getErrors()).hasSize(1);
+        assertThat(response.getErrors().getFirst().code()).isEqualTo(ErrorCodes.CONFLICT);
+    }
+
+    @Test
+    void builder_rejectsNullTitleOrCode() {
+        assertThatNullPointerException()
+            .isThrownBy(() -> ServiceErrorResponse.builder()
+                .code(ErrorCodes.INTERNAL_ERROR)
+                .build())
+            .withMessageContaining("title");
+
+        assertThatNullPointerException()
+            .isThrownBy(() -> ServiceErrorResponse.builder()
+                .title("x")
+                .build())
+            .withMessageContaining("code");
     }
 }

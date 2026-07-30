@@ -14,11 +14,11 @@ Priority: **P0** before Phase 3 functional exit · **P1** hardening · **P2** ni
 | ID | Sev | Item | Owner | Notes |
 |----|-----|------|-------|-------|
 | QA-001 | P0 | Introduce JaCoCo + CI coverage verification | Dev | **Done (wiring)** — `008ec04`; residual **Partial** (services interim 50% line after QA-002 → package floors QA-003). TL+QA Lead **APPROVED** 2026-07-30. |
-| QA-002 | P0 | Persistence API tests: jobs, offers, status patch, payments, audit, `GlobalExceptionHandler` | Dev | **Done** — Job/Payment/Audit API tests + poll-attempt extend; services gate 35%→50%; persistence ~96% line |
-| QA-003 | P0 | Integration IT template: service + WireMock 1SB + WireMock/stub persistence | Dev + QA | **Done** — `OneSbConnectivityIT` (IT-I): dual WireMock + `@DynamicPropertySource`; run `./gradlew :services:1sb-integration-service:test --tests '*IT'` |
+| QA-002 | P0 | Persistence API tests: jobs, offers, status patch, payments, audit, `GlobalExceptionHandler` | Dev | **Done** — TL+QA **APPROVED** (incl. validation 400 re-review) |
+| QA-003 | P0 | Integration IT template: service + WireMock 1SB + WireMock/stub persistence | Dev + QA | **Done** — `OneSbConnectivityIT`; TL+QA **APPROVED** |
 | QA-004 | P0 | Phase 3 quote path: unit (handler/mapper) + `@WebMvcTest` + IT-I | Dev | Gate FUNC-002 DoD |
 | QA-005 | P1 | PR coverage report (Jacoco XML → CI annotation) | DevOps/Dev | |
-| QA-006 | P1 | Unit tests: `InMemoryIdempotencyStore`, `OneSbHttpClientPollAdapter`, `SecretsStartupValidator` | Dev | **Done** — `InMemoryIdempotencyStoreTest`, `OneSbHttpClientPollAdapterTest`, `SecretsStartupValidatorTest`; run `./gradlew :services:1sb-integration-service:test` |
+| QA-006 | P1 | Unit tests: `InMemoryIdempotencyStore`, `OneSbHttpClientPollAdapter`, `SecretsStartupValidator` | Dev | **Done** — TL+QA **APPROVED** (`177620e`) |
 | QA-007 | P1 | Lib gaps: `EnvSecretProvider`, `ErrorCodes` usage smoke, security `Role`/`RequiresRole` | Dev | |
 | QA-008 | P1 | Dual-service IT-D (optional docker-compose) | QA + Dev | After QA-003 stable |
 | QA-009 | P1 | Sandbox E2E charter + automated smoke (nightly) | QA | Secrets-gated |
@@ -50,4 +50,5 @@ Priority: **P0** before Phase 3 functional exit · **P1** hardening · **P2** ni
 
 ## Sign-off
 
-QA Lead: strategy and rules published. Engineering must treat R2 (same-PR tests) as blocking review criterion starting now.
+QA Lead: strategy and rules published. Baseline QA-001, QA-002, QA-003, QA-006 **dual-approved** (TL + QA Lead) — see [QA-REVIEW-LOG.md](./QA-REVIEW-LOG.md).  
+Engineering must treat R2 (same-PR tests) as blocking review criterion. Next gate: **QA-004** with Phase 3 FUNC-002.

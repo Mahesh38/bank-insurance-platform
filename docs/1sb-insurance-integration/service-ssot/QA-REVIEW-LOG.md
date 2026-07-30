@@ -9,4 +9,4 @@
 | QA-001 | `008ec04` JaCoCo + gates | **APPROVE** | **APPROVE** | Approved 2026-07-30 (non-blocking doc polish applied) |
 | QA-002 | Persistence API tests + services gate 50% + validation 400 fix | **APPROVE** | **APPROVE** | Approved 2026-07-30. TL re-review: `GlobalExceptionHandler` → 400/`VALIDATION_ERROR`/`MISSING_REQUIRED_FIELD`; `JobApiTest.createJob_missingRequiredField_returns400_withValidationError` green. |
 | QA-003 | `OneSbConnectivityIT` (IT-I dual WireMock) `5d9ee76` | **APPROVE** | **APPROVE** | Approved 2026-07-30. TL: hex OK (prod unchanged; `JobStorePort` + connectivity via client); no real network (dual dynamic WireMock + `@DynamicPropertySource`); ArchUnit green; Phase 3 template ready (extend via API/ports for FUNC-002). |
-| QA-006 | Delivered — unit tests for idempotency store, poll adapter, secrets validator | Pending | Pending | — |
+| QA-006 | Delivered — unit tests for idempotency store, poll adapter, secrets validator | **APPROVE** | Pending | TL 2026-07-30: unit discipline (R1), real APIs, no sleeps, meaningful asserts; gradle green. QA Lead pending. |

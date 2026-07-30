@@ -1,28 +1,27 @@
 # CONFIRM-03 — Inbound Authentication
 
 **Phase:** 0.3  
-**Status:** `PENDING` — awaiting Security team sign-off  
+**Status:** `DECISION PENDING — dual adapters required`  
 **Owner:** Security Team + Architect  
-**SSOT link:** [ACTION-PLAN.md row 0.3](../ACTION-PLAN.md) · [00-po-architect-design-session.md D6/D7](../00-po-architect-design-session.md)
+**Config example:** [`config/onesb/inbound-auth.example.yaml`](../../../../config/onesb/inbound-auth.example.yaml)  
+**Ack:** [PO-DEV-ENV-REQUIREMENTS.md](./PO-DEV-ENV-REQUIREMENTS.md)
 
 ---
 
 ## Purpose
 
-The integration service must accept calls from bank-internal consumers (BFFs, bank apps) through an authentication mechanism agreed by the Security team.  
-This document defines the **replaceable auth config** so the mechanism can switch (JWT ↔ mTLS) via config, not code rewrites.
+Bank→service auth is **not finally decided**. All callers live in the **same K8s cluster**.  
+Engineering will implement **both JWT and mTLS** and select via config (`JWT` | `MTLS` | `JWT_AND_MTLS`).
 
 ---
 
-## SSOT decisions that are binding (from design session)
+## SSOT decisions that are binding
 
 | Decision | Statement |
 |----------|-----------|
-| D6 | `agentId` **mandatory** on proposal submit — enforced in service, not delegated to caller |
-| D7 | `distributorId` comes from secrets/config **only** — never accepted from the calling party |
-| Auth default | JWT via bank API gateway (`actorId` claim); mTLS if bank security standard requires it |
-
-These decisions are **not subject to change** without a new design-session entry.
+| D6 | `agentId` **mandatory** on proposal submit |
+| D7 | `distributorId` from config/secrets **only** — never from caller |
+| Dual-ready | Both JWT + mTLS adapters shipped; mode is config-only |
 
 ---
 

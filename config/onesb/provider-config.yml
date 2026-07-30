@@ -105,16 +105,18 @@ provider:
   # remove the handler code; it prevents the adapter bean from registering for
   # that LOB so the port falls through to the next configured provider (NOOP).
   lob:
-    term:
-      # No LifeTerm product confirmed yet for BCIBL — enable when Term SKU arrives
-      enabled: false
+    # Life Insurance parent — Term & Saving are subtypes (handlers may still
+    # map to lifeterm / lifesave 1SB path prefixes).
+    life:
+      enabled: true
+      term:
+        enabled: false   # enable when Term products listed for BCIBL
+      saving:
+        enabled: true    # E38 LifeSave confirmed
     health:
       enabled: false
     motor:
       enabled: false
-    savings:
-      # First confirmed product: ICICI E38 GIFT Select (LifeSave)
-      enabled: true
 
   # ── API Version Pins ───────────────────────────────────────────────────────
   # Locks the 1SB API version used per endpoint group.

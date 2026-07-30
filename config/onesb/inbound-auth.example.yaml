@@ -1,0 +1,38 @@
+# =============================================================================
+# Inbound auth — dual-ready (JWT + mTLS)
+#
+# Decision pending; services run in same K8s cluster.
+# Engineering prepares BOTH adapters; activate via config without rewrite.
+# =============================================================================
+
+insurance:
+  inbound-auth:
+    # NONE (local only) | JWT | MTLS | JWT_AND_MTLS
+    # JWT_AND_MTLS = accept either (typical: gateway JWT OR mesh mTLS)
+    mode: ${INBOUND_AUTH_MODE:JWT_AND_MTLS}
+
+    jwt:
+      enabled: true
+      issuer: ${JWT_ISSUER:}
+      audience: ${JWT_AUDIENCE:1sb-integration-service}
+      jwks-uri: ${JWT_JWKS_URI:}
+      # Claim used as actorId for audit
+      actor-claim: ${JWT_ACTOR_CLAIM:sub}
+      # Optional: claim that may carry bank RM id — NEVER treat as distributorId
+      agent-claim: ${JWT_AGENT_CLAIM:}
+
+    mtls:
+      enabled: true
+      # Truststore for client certs (K8s secret mount path)
+      trust-store-path: ${MTLS_TRUSTSTORE_PATH:/var/run/ssl/truststore.p12}
+      trust-store-password-env: MTLS_TRUSTSTORE_PASSWORD
+      # Map client cert CN/SAN → service identity for audit
+      principal-from: CN
+
+    guards:
+      # Fail startup if mode=NONE and profile is uat/prod
+      disallow-none-outside-local: true
+      # distributorId must never come from caller token/body override
+      distributor-id-from-config-only: true
+      # agentId required on proposal (from token claim or request — bank rules)
+      require-agent-id-on-proposal: true

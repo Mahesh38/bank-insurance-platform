@@ -10,7 +10,7 @@
 ## Purpose
 
 A single kickoff session to walk the team through the SSOT (decisions, backlog order, DRY/KISS principles) and remove open design blockers before implementation begins.  
-**Exit criterion:** Team agrees Case 2 + Term-first; no open design blockers remain.
+**Exit criterion:** Team agrees Case 2 + **Life-first** (Saving + Term subtypes); Saving E38 as first vertical unless Term products arrive first; no open design blockers remain.
 
 ---
 

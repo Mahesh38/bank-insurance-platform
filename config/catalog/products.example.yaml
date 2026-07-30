@@ -19,10 +19,16 @@
 
 insurance:
   catalog:
-    # Global kill-switches per LOB (also mirrored under provider lob.* flags)
+    # Life Insurance is the parent LOB; Term + Saving are subtypes for Phase 1.
+    life:
+      enabled: true
+      subtypes:
+        term:
+          enabled: false   # enable when 1SB lists LifeTerm products for BCIBL
+        saving:
+          enabled: true    # E38 GIFT Select confirmed
+    # Other top-level LOBs (later)
     lob-enabled:
-      term: false          # flip true when a LifeTerm product is confirmed
-      saving: true         # first confirmed product is LifeSave (E38)
       health: false
       motor: false
       annuity: false
@@ -32,51 +38,43 @@ insurance:
     products:
 
       # ------------------------------------------------------------------
-      # Confirmed demo product (Phase 0 data from bank / 1SB)
+      # Confirmed demo product (Phase 0)
       # ------------------------------------------------------------------
       - manufacturer-id: "ICICI"
         insurer-code: "ICICI"
         insurer-name: "ICICI Prudential Life"
         product-code: "E38"
         product-name: "GIFT Select"
-        # 1SB product family / path hint
-        product-type: "LifeSave"           # maps to lifesave APIs — NOT lifeterm
+        product-type: "LifeSave"
         savings-product-type: "nonParticipating"
-        lob: "SAVING"                      # bank canonical LOB enum
+        lob: "LIFE"
+        life-subtype: "SAVING"           # TERM | SAVING
         enabled: true
         sandbox-only: true
         notes: >
-          Confirmed 2026-07-30 from Phase 0 onboarding data.
-          Verify quote in demo before treating as production-ready.
+          Confirmed 2026-07-30. First vertical slice candidate under Life/Saving.
 
       # ------------------------------------------------------------------
-      # Template — add more insurers / products below (copy block)
+      # Template — more insurers / products (Term or Saving)
       # ------------------------------------------------------------------
-      # - manufacturer-id: "HDFC"            # example second insurer
-      #   insurer-code: "HDFC"
-      #   insurer-name: "HDFC Life"
-      #   product-code: "REPLACE_ME"
-      #   product-name: "Replace Me Term / Save Plan"
-      #   product-type: "LifeTerm"           # or LifeSave | health | motor | ...
-      #   savings-product-type: null
-      #   lob: "TERM"                        # TERM | SAVING | HEALTH | MOTOR | ...
-      #   enabled: false
-      #   sandbox-only: true
-      #   notes: "Pending 1SB enablement for distributor BCIBL"
-
       # - manufacturer-id: "ICICI"
       #   insurer-code: "ICICI"
       #   insurer-name: "ICICI Prudential Life"
-      #   product-code: "ANOTHER_CODE"
-      #   product-name: "Another ICICI product"
+      #   product-code: "REPLACE_ME"
+      #   product-name: "Life Term plan"
       #   product-type: "LifeTerm"
-      #   lob: "TERM"
+      #   savings-product-type: null
+      #   lob: "LIFE"
+      #   life-subtype: "TERM"
       #   enabled: false
       #   sandbox-only: true
-      #   notes: "Same insurer, different product — add when confirmed"
+      #   notes: "Add when 1SB enables Term for BCIBL"
+
+      # - manufacturer-id: "HDFC"
+      #   ...
 
     validation:
       require-at-least-one-enabled: true
       enforce-sandbox-only-in-prod: true
-      # Allowed lob values for entries
-      allowed-lobs: [TERM, SAVING, HEALTH, MOTOR, ANNUITY, PENSION, ULIP]
+      allowed-lobs: [LIFE, HEALTH, MOTOR]
+      allowed-life-subtypes: [TERM, SAVING]

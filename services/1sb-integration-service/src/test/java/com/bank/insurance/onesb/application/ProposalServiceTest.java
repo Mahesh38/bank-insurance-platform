@@ -97,8 +97,7 @@ class ProposalServiceTest {
     void getSchema_timeoutJob_throwsQuoteExpired() {
         when(jobStore.findQuoteJob("t")).thenReturn(Optional.of(new QuoteJob(
                 "t", JobStatus.TIMEOUT, "POLL_TIMEOUT", Lob.TERM, null,
-                List.of(), List.of(), Instant.now(), Instant.now()
-        )));
+                List.of(), List.of(), Instant.now(), Instant.now(), null)));
 
         assertThatThrownBy(() -> proposalService.getSchema(Lob.TERM, null, null, null, "t"))
                 .isInstanceOf(ServiceException.class)
@@ -166,8 +165,35 @@ class ProposalServiceTest {
         ProposalSubmitResult result = proposalService.submit(baseCommand("109337", null, "c-1"));
 
         assertThat(result.status()).isEqualTo(JobStatus.COMPLETED);
-        verify(jobStore).completeJob("job-done", List.of());
+        verify(jobStore).completeJob("job-done", List.of(), "APP-99");
         verify(pollScheduler, never()).schedulePoll(any(), any());
+    }
+
+    @Test
+    @Tag("FUNC-006")
+    void getProposalResult_unknown_throwsResourceNotFound() {
+        when(jobStore.findQuoteJob("missing")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> proposalService.getProposalResult("missing"))
+                .isInstanceOf(ServiceException.class)
+                .satisfies(ex -> {
+                    ServiceException se = (ServiceException) ex;
+                    assertThat(se.getHttpStatus()).isEqualTo(404);
+                    assertThat(se.getErrorResponse().getCode()).isEqualTo(ErrorCodes.RESOURCE_NOT_FOUND);
+                });
+    }
+
+    @Test
+    @Tag("FUNC-006")
+    void getProposalResult_completed_returnsStoredJob() {
+        QuoteJob job = new QuoteJob(
+                "job-ok", JobStatus.COMPLETED, null, Lob.TERM, "j-1",
+                List.of(), List.of(), Instant.parse("2026-07-30T12:00:00Z"),
+                Instant.parse("2026-07-30T12:01:00Z"), "APP-OK"
+        );
+        when(jobStore.findQuoteJob("job-ok")).thenReturn(Optional.of(job));
+
+        assertThat(proposalService.getProposalResult("job-ok")).isEqualTo(job);
     }
 
     @Test

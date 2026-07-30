@@ -179,7 +179,7 @@ public class AsyncJobPoller implements JobPollSchedulerPort {
 
             if (result.complete()) {
                 List<QuoteOffer> offers = result.offers() != null ? result.offers() : List.of();
-                jobStore.completeJob(jobId, offers);
+                jobStore.completeJob(jobId, offers, result.applicationNumber());
                 return new PollOutcome(JobStatus.COMPLETED, attempts.get());
             }
         }

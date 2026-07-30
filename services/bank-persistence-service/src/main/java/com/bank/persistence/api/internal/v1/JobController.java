@@ -87,6 +87,9 @@ public class JobController {
         if (request.completedAt() != null) {
             entity.setCompletedAt(request.completedAt());
         }
+        if (request.applicationNumber() != null) {
+            entity.setApplicationNumber(request.applicationNumber());
+        }
         entity.setUpdatedAt(Instant.now());
 
         return toResponse(jobRepository.save(entity));

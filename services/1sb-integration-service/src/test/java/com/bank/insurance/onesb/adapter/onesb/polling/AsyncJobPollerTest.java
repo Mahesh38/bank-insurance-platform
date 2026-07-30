@@ -82,7 +82,7 @@ class AsyncJobPollerTest {
         assertThat(outcome.pollAttempts()).isGreaterThanOrEqualTo(2);
         verify(jobStore, times(2)).recordPollAttempt(
                 eq("job-1"), anyInt(), eq(200), anyBoolean(), anyInt(), any());
-        verify(jobStore).completeJob(eq("job-1"), any());
+        verify(jobStore).completeJob(eq("job-1"), any(), any());
     }
 
     @Test
@@ -128,6 +128,6 @@ class AsyncJobPollerTest {
 
         assertThat(elapsedMs).isLessThan(500L);
         assertThat(done.await(5, TimeUnit.SECONDS)).isTrue();
-        verify(jobStore).completeJob(eq("job-async"), any());
+        verify(jobStore).completeJob(eq("job-async"), any(), any());
     }
 }

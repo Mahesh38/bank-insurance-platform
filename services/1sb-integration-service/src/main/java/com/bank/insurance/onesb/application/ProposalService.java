@@ -137,7 +137,7 @@ public class ProposalService implements ProposalUseCase {
 
         JobStatus status;
         if (upstream.complete()) {
-            jobStore.completeJob(jobId, List.of());
+            jobStore.completeJob(jobId, List.of(), upstream.applicationNumber());
             status = JobStatus.COMPLETED;
         } else {
             String reqId = upstream.externalReqId();
@@ -149,6 +149,22 @@ public class ProposalService implements ProposalUseCase {
         publishProposalSubmitted(command, jobId, actorId, agentId, distributorId,
                 upstream.applicationNumber(), status);
         return new ProposalSubmitResult(jobId, status);
+    }
+
+    /**
+     * Load proposal job for GET. Unknown id → 404 {@link ErrorCodes#RESOURCE_NOT_FOUND}.
+     * Does not fabricate {@code applicationNumber} — returns whatever is stored on the job.
+     */
+    @Override
+    public QuoteJob getProposalResult(String jobId) {
+        return jobStore.findQuoteJob(jobId)
+                .orElseThrow(() -> new ServiceException(ServiceErrorResponse.builder()
+                        .title("Not Found")
+                        .status(404)
+                        .detail("Proposal job not found: " + jobId)
+                        .code(ErrorCodes.RESOURCE_NOT_FOUND)
+                        .retryable(false)
+                        .build()));
     }
 
     private void assertQuoteUsable(String quoteJobId) {

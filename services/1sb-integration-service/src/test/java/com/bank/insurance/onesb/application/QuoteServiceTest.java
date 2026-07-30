@@ -131,8 +131,7 @@ class QuoteServiceTest {
         QuoteJob timedOut = new QuoteJob(
                 "job-to", JobStatus.TIMEOUT, "POLL_TIMEOUT", Lob.TERM, "j-1",
                 List.of(), List.of(), Instant.parse("2026-07-30T12:00:00Z"),
-                Instant.parse("2026-07-30T12:05:00Z")
-        );
+                Instant.parse("2026-07-30T12:05:00Z"), null);
         when(jobStore.findQuoteJob("job-to")).thenReturn(Optional.of(timedOut));
 
         QuoteJob result = quoteService.getQuoteResult("job-to");
@@ -159,8 +158,7 @@ class QuoteServiceTest {
         QuoteJob job = new QuoteJob(
                 "job-ok", JobStatus.COMPLETED, null, Lob.TERM, "j-1",
                 List.of(), List.of(), Instant.parse("2026-07-30T12:00:00Z"),
-                Instant.parse("2026-07-30T12:01:00Z")
-        );
+                Instant.parse("2026-07-30T12:01:00Z"), null);
         when(jobStore.findQuoteJob("job-ok")).thenReturn(Optional.of(job));
 
         assertThat(quoteService.getQuoteResult("job-ok")).isEqualTo(job);

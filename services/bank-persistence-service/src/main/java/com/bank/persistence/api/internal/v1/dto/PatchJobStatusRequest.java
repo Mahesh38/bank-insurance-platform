@@ -8,5 +8,6 @@ public record PatchJobStatusRequest(
         @NotBlank String status,
         String failureReason,
         String externalReqId,
-        Instant completedAt
+        Instant completedAt,
+        String applicationNumber
 ) {}

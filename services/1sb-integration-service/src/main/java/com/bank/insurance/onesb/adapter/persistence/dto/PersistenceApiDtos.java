@@ -41,7 +41,8 @@ public final class PersistenceApiDtos {
             String status,
             String failureReason,
             String externalReqId,
-            Instant completedAt
+            Instant completedAt,
+            String applicationNumber
     ) {}
 
     public record CreateOfferRequest(

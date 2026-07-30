@@ -28,6 +28,12 @@ public interface JobStorePort {
     void completeJob(String jobId, List<QuoteOffer> offers);
 
     /**
+     * Completes the job and optionally persists insurer {@code applicationNumber}
+     * (proposal jobs). Blank / null applicationNumber leaves the column unchanged.
+     */
+    void completeJob(String jobId, List<QuoteOffer> offers, String applicationNumber);
+
+    /**
      * Fails the job. When {@code failureReason} is {@code POLL_TIMEOUT}, status is
      * {@link JobStatus#TIMEOUT}; otherwise {@link JobStatus#FAILED}.
      */

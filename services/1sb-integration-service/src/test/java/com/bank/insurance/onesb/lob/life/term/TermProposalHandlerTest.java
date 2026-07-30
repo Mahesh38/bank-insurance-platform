@@ -62,6 +62,7 @@ class TermProposalHandlerTest {
 
     @Test
     @Tag("FUNC-005")
+    @Tag("COMP-004")
     @SuppressWarnings("unchecked")
     void buildSubmitPayload_injectsDistributorFromSecrets_ignoresClientDistributorId() {
         when(secretProvider.getDistributorId()).thenReturn("BCIBL");

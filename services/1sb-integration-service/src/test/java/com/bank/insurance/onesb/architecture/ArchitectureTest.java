@@ -6,9 +6,11 @@ import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noFields;
 
 /**
  * ArchUnit architecture fitness tests enforcing the hexagonal architecture boundaries
@@ -127,6 +129,23 @@ class ArchitectureTest {
                 .allowEmptyShould(true)
                 .as("LOB handlers interact via domain ports only; "
                         + "they must not directly import the persistence HTTP adapter");
+
+        rule.check(importedClasses);
+    }
+
+    /**
+     * COMP-004 / C-008 / D7: {@code distributorId} must not appear as a Java field outside
+     * {@code adapter.onesb} (never on public bank API DTOs or application/domain models).
+     */
+    @Test
+    @Tag("COMP-004")
+    void noDistributorIdFieldOutsideOneSbAdapter() {
+        ArchRule rule = noFields()
+                .that().haveName("distributorId")
+                .should().beDeclaredInClassesThat().resideOutsideOfPackage("..adapter.onesb..")
+                .allowEmptyShould(true)
+                .as("No field named distributorId outside adapter.onesb "
+                        + "(distributor comes from SecretProvider only)");
 
         rule.check(importedClasses);
     }

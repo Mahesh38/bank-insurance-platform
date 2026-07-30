@@ -67,6 +67,7 @@ class PaymentServiceTest {
     }
 
     @Test
+    @Tag("COMP-004")
     void createPayment_happyPath_returnsHttpsUrl_audits_andLogsRefOnly() {
         String paymentUrl = "https://payments.test/pay?token=SECRET-TOKEN-XYZ";
         PaymentSession upstream = session("pay-ref-1", null, paymentUrl);
@@ -88,6 +89,7 @@ class PaymentServiceTest {
         assertThat(audit.getAction()).isEqualTo(AuditActions.PAYMENT_URL_RETRIEVED);
         assertThat(audit.getOutcome()).isEqualTo(AuditOutcomes.SUCCESS);
         assertThat(audit.getResourceId()).isEqualTo("pay-ref-1");
+        assertThat(audit.getDistributorId()).isEqualTo("TEST_DIST");
         assertThat(audit.getMetadata()).containsEntry("paymentRef", "pay-ref-1");
         assertThat(audit.getMetadata().values().stream().map(Object::toString))
                 .noneMatch(v -> v.contains(paymentUrl) || v.contains("SECRET-TOKEN"));

@@ -69,6 +69,25 @@ class JobApiTest {
     }
 
     @Test
+    void createJob_missingRequiredField_returns400_withValidationError() throws Exception {
+        mockMvc.perform(post("/internal/v1/jobs")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "lob": "",
+                                  "jobType": "QUOTE",
+                                  "createdByActor": "qa-002-test"
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith("application/problem+json"))
+                .andExpect(jsonPath("$.code", is(ErrorCodes.VALIDATION_ERROR)))
+                .andExpect(jsonPath("$.status", is(400)))
+                .andExpect(jsonPath("$.errors[0].code", is(ErrorCodes.MISSING_REQUIRED_FIELD)))
+                .andExpect(jsonPath("$.errors[0].field", is("lob")));
+    }
+
+    @Test
     void getJob_byId_returnsJob() throws Exception {
         String jobId = createJob("idem-job-get-" + UUID.randomUUID());
 

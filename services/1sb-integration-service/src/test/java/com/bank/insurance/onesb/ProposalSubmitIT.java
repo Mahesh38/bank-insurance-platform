@@ -198,6 +198,17 @@ class ProposalSubmitIT {
     }
 
     @Test
+    void r6_missingIdempotencyKey_returns400() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.post("/v1/proposals")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(validBody()))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code", is(ErrorCodes.MISSING_IDEMPOTENCY_KEY)));
+
+        ONESB.verify(0, postRequestedFor(urlEqualTo(TERM_PROPOSAL_PATH)));
+    }
+
+    @Test
     void ac5_businessReject_returns422_proposalRejected_andAudits() throws Exception {
         String jobId = "job-rej-" + UUID.randomUUID();
         stubPersistenceHappyPath(jobId);

@@ -12,7 +12,7 @@
 | FUNC-005 Submit Term proposal | Dev A | **Done** | `56242ca` / `2a64388` |
 | FUNC-006 Get proposal job result | Dev A | **Done** | `42dd011` |
 | FUNC-007 Create payment session / URL | Dev A | **Done** | `968aeab` |
-| FUNC-009 Application status | Dev A | **In progress** | (this branch) |
+| FUNC-009 Application status | Dev A | **In progress** | `98e1a3f` |
 | COMP-003 Raw payload encryption | — | Not started | — |
 | COMP-004 Agent & distributor attribution | — | Not started | — |
 

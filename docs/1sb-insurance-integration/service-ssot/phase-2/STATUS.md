@@ -11,7 +11,7 @@
 | P2-A4 COMP-001 Outbound audit | Dev A | Pending | |
 | P2-B1 NFR-001 Idempotency filter | Dev B | Done | `596a3e0` |
 | P2-B2 TECH-006 Job store | Dev B | Done | `aa73b6f` |
-| P2-B3 TECH-007 Async poller | Dev B | Done | `58324dd` |
+| P2-B3 TECH-007 Async poller | Dev B | Done | `6b1c294` |
 
 ## TL reviews
 

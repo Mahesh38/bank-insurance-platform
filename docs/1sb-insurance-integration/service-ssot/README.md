@@ -38,6 +38,10 @@ This folder is the **authoritative starting point** for building the service. If
 | [phase-1/TECH-LEAD-REVIEW-COMMON-PERSISTENCE.md](./phase-1/TECH-LEAD-REVIEW-COMMON-PERSISTENCE.md) | Persistence is platform-common (not 1SB-owned) |
 | [phase-1/REFACTOR-COMMON-PERSISTENCE.md](./phase-1/REFACTOR-COMMON-PERSISTENCE.md) | Agent split for common-persistence rename |
 | [phase-1/TECH-LEAD-CONFIRMATION-COMMON-PERSISTENCE.md](./phase-1/TECH-LEAD-CONFIRMATION-COMMON-PERSISTENCE.md) | TL pass — common persistence senior comment closed |
+| [phase-2/TL-KICKOFF.md](./phase-2/TL-KICKOFF.md) | Phase 2 task breakdown + AC |
+| [phase-2/TASK-SPLIT.md](./phase-2/TASK-SPLIT.md) | Dev A / Dev B ownership |
+| [phase-2/STATUS.md](./phase-2/STATUS.md) | Phase 2 delivery status |
+| [phase-2/TL-REVIEW.md](./phase-2/TL-REVIEW.md) | Phase 2 final TL approval |
 | [phase-1/REFACTOR-TASK-SPLIT.md](./phase-1/REFACTOR-TASK-SPLIT.md) | Agent ownership for prior remediations |
 | [phase-1/TECH-LEAD-CONFIRMATION-PASS.md](./phase-1/TECH-LEAD-CONFIRMATION-PASS.md) | Prior TL pass — senior #1–#5 closed |
 

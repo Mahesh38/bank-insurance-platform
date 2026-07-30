@@ -225,7 +225,7 @@ Max **2** review→fix iterations after initial delivery.
 
 ## 7. Phase 2 exit checklist
 
-- [ ] All P2-A* and P2-B* tasks merged on branch
-- [ ] `./gradlew build` green
-- [ ] ACTION-PLAN Phase 2 exit criteria satisfied (WireMock)
-- [ ] TL final approval recorded in `phase-2/TL-REVIEW.md`
+- [x] All P2-A* and P2-B* tasks merged on branch
+- [x] `./gradlew build` green
+- [x] ACTION-PLAN Phase 2 exit criteria satisfied (WireMock)
+- [x] TL final approval recorded in `phase-2/TL-REVIEW.md`

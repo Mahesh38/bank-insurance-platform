@@ -19,6 +19,7 @@
 |-----------|------|---------|
 | 1 | 2026-07-30 | **APPROVED** — all P2-A1..A4 / P2-B1..B3; no P0. See [TL-REVIEW-ITER1.md](./TL-REVIEW-ITER1.md). Optional P1 hygiene only for iter-2. |
 | 2 | 2026-07-30 | Dev A P1: 5xx FAILURE audit + masked≠plaintext requestHash. Dev B P1: `@Qualifier("persistenceRestClient")` on `HttpJobStoreAdapter` (`fd7ad1b`); `JobPollAttemptApiTest` poll-attempt save + 404 (`0d9d04e`). |
+| Final | 2026-07-30 | **APPROVED — Phase 2 complete.** See [TL-REVIEW.md](./TL-REVIEW.md). |
 
 ## Dev B notes
 

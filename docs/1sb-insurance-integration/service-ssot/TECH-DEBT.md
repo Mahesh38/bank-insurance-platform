@@ -253,6 +253,7 @@ Track only; do not block this refactor PR. TD-006 remains Phase 2 (real AWS SM).
 | 2026-07-30 | Confirmation circle #2: docs/ArchUnit hygiene; HttpJobStoreAdapterTest; TL pass closed vs senior #1–#5 |
 | 2026-07-30 | Agent 3 confirmation: TD-013 Closed (Agent 2 docs); TD-014/015 Deferred Phase 2; MockRestServiceServer JobStore test |
 | 2026-07-30 | Senior: persistence is platform-common (not 1SB-owned); audit-consumer shares it — opened TD-016…021 |
+| 2026-07-30 | Phase 2 complete (TECH-004..007, COMP-001..002, NFR-001); TD-015 poll-attempt done, raw-payload HTTP still open |
 | 2026-07-30 | Agent 2 closed TD-017, TD-020, TD-021 (platform contract + audit-consumer stub + framing) |
 | 2026-07-30 | Agent 3 closed TD-016, TD-018, TD-019 (module rename + packages + client config) |
 | 2026-07-30 | Confirmation circle #2 closed docs hygiene for common-persistence (STATUS banner + TL §7 exit criteria) |

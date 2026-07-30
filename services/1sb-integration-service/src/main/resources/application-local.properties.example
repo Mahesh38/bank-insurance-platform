@@ -1,0 +1,13 @@
+# Example local properties file — COPY to application-local.properties (gitignored)
+# Real values are never committed to source control.
+#
+# application-local.properties is gitignored.
+# Populate it with your sandbox/test credentials from the 1SB partner portal.
+#
+# Usage:
+#   cp application-local.properties.example src/main/resources/application-local.properties
+#   # Edit the copy and fill in real values
+
+onesb.api-key=REPLACE_WITH_SANDBOX_API_KEY
+onesb.api-secret=REPLACE_WITH_SANDBOX_API_SECRET
+onesb.distributor-id=REPLACE_WITH_DISTRIBUTOR_ID

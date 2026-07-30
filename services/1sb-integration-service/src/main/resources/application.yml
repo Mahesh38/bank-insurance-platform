@@ -1,0 +1,60 @@
+spring:
+  application:
+    name: 1sb-integration-service
+
+  # JPA / datasource defaults (overridden per profile)
+  datasource:
+    url: ${DATASOURCE_URL:jdbc:h2:mem:onesb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;NON_KEYWORDS=VALUE}
+    driver-class-name: ${DATASOURCE_DRIVER:org.h2.Driver}
+    username: ${DATASOURCE_USERNAME:sa}
+    password: ${DATASOURCE_PASSWORD:}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    open-in-view: false
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: false
+    validate-on-migrate: true
+
+  # Enable virtual threads (Project Loom, Spring Boot 3.2+)
+  threads:
+    virtual:
+      enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+
+# Secrets source configuration
+insurance:
+  secrets:
+    source: ${INSURANCE_SECRETS_SOURCE:PROPERTIES}
+
+# 1SB outbound client configuration
+onesb:
+  client:
+    base-url: ${ONESB_BASE_URL:https://demo.api.1silverbullet.tech}
+    connect-timeout-ms: ${ONESB_CONNECT_TIMEOUT_MS:3000}
+    read-timeout-ms: ${ONESB_READ_TIMEOUT_MS:30000}
+
+logging:
+  level:
+    com.bank.insurance: INFO
+    org.springframework.security: WARN

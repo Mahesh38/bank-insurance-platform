@@ -100,15 +100,15 @@ Aligns with existing `bank-common-*` library naming.
 
 ## 7. Exit criteria
 
-- [ ] Module path `services/bank-persistence-service` in settings + builds
-- [ ] No remaining `1sb-persistence-service` references in code/build (docs may note rename history once)
-- [ ] Packages under `com.bank.persistence`
-- [ ] Client uses `bank.persistence.base-url` / `BANK_PERSISTENCE_BASE_URL`
-- [ ] Platform persistence contract doc lists consumers: integration + audit-consumer (future)
-- [ ] Flyway still only on bank-persistence-service
-- [ ] `./gradlew build` green
-- [ ] TECH-DEBT TD-016…020 closed (021 deferred or doc-only closed)
-- [ ] Second confirmation circle finds no gaps vs senior comment
+- [x] Module path `services/bank-persistence-service` in settings + builds
+- [x] No remaining `1sb-persistence-service` references in code/build (docs may note rename history once)
+- [x] Packages under `com.bank.persistence`
+- [x] Client uses `bank.persistence.base-url` / `BANK_PERSISTENCE_BASE_URL`
+- [x] Platform persistence contract doc lists consumers: integration + audit-consumer (future)
+- [x] Flyway still only on bank-persistence-service
+- [x] `./gradlew build` green
+- [x] TECH-DEBT TD-016…020 closed (021 deferred or doc-only closed)
+- [x] Second confirmation circle finds no gaps vs senior comment
 
 ---
 

@@ -1,6 +1,6 @@
 # Phase 1 — Status
 
-> **Phase 1 foundations delivered.** Remediations applied per [TECH-LEAD-REVIEW](./TECH-LEAD-REVIEW.md): Lombok on shared builders, secrets extracted to `:libs:bank-common-secrets`, persistence split into `1sb-persistence-service` (Flyway/JPA/H2) with HTTP `JobStorePort` on the integration service. Historical Dev A/B sections below are retained for audit trail; **TECH-002** and **TECH-003** outcomes are **superseded** by the remediation (secrets → lib; Flyway → persistence service).
+> **Phase 1 foundations delivered.** Remediations applied per [TECH-LEAD-REVIEW](./TECH-LEAD-REVIEW.md): Lombok on shared builders, secrets extracted to `:libs:bank-common-secrets`, persistence split into `bank-persistence-service` (platform-common Flyway/JPA/H2; not 1SB-owned) with HTTP `JobStorePort` on the integration service. Historical Dev A/B sections below are retained for audit trail; **TECH-002** and **TECH-003** outcomes are **superseded** by the remediation (secrets → lib; Flyway → persistence service).
 
 ---
 
@@ -94,6 +94,8 @@ Secrets providers (SecretProvider, Properties/Env/Aws implementations):
 ---
 
 ## Agent 3 — Phase 1 remediation (persistence split)
+
+> **Rename note:** Module later renamed to `bank-persistence-service` (platform-common); historical A3 names below retained as audit trail.
 
 | Task | TD | Status | Notes |
 |------|----|--------|-------|

@@ -14,7 +14,7 @@ Priority: **P0** before Phase 3 functional exit · **P1** hardening · **P2** ni
 |----|-----|------|-------|-------|
 | QA-001 | P0 | Introduce JaCoCo + CI coverage verification | Dev | **Done (wiring)** — `008ec04`; residual **Partial** (services interim 50% line after QA-002 → package floors QA-003). TL+QA Lead **APPROVED** 2026-07-30. |
 | QA-002 | P0 | Persistence API tests: jobs, offers, status patch, payments, audit, `GlobalExceptionHandler` | Dev | **Done** — Job/Payment/Audit API tests + poll-attempt extend; services gate 35%→50%; persistence ~96% line |
-| QA-003 | P0 | Integration IT template: service + WireMock 1SB + WireMock/stub persistence | Dev + QA | `*IT` with `@Tag("integration")` |
+| QA-003 | P0 | Integration IT template: service + WireMock 1SB + WireMock/stub persistence | Dev + QA | **Done** — `OneSbConnectivityIT` (IT-I): dual WireMock + `@DynamicPropertySource`; run `./gradlew :services:1sb-integration-service:test --tests '*IT'` |
 | QA-004 | P0 | Phase 3 quote path: unit (handler/mapper) + `@WebMvcTest` + IT-I | Dev | Gate FUNC-002 DoD |
 | QA-005 | P1 | PR coverage report (Jacoco XML → CI annotation) | DevOps/Dev | |
 | QA-006 | P1 | Unit tests: `InMemoryIdempotencyStore`, `OneSbHttpClientPollAdapter`, `SecretsStartupValidator` | Dev | Single-class gaps |

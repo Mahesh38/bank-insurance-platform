@@ -44,6 +44,10 @@ Per strategy §7 (not yet enforced as package-level rules):
 
 **QA-002 note (2026-07-30):** `bank-persistence-service` measured **~96% line / ~75% branch** after jobs/offers/payments/audit API tests; `api.internal.v1` package at **100% line**. Monorepo services interim floor raised **35% → 50%** (both services measured ≥55%). Package-level rules remain deferred to QA-003 / strategy §7.
 
+### IT-I template (QA-003)
+
+**Done (2026-07-30):** `OneSbConnectivityIT` in `1sb-integration-service` — `@SpringBootTest` + `@Tag("integration")` with two dynamic-port WireMocks (1SB + bank-persistence), properties bound via `@DynamicPropertySource`. Happy path: `OneSbHttpClient.get(/v1/probe)` → 200; `JobStorePort.createJob` → 201 stub. Run: `./gradlew :services:1sb-integration-service:test --tests '*IT'`.
+
 ## Exclusions (always)
 
 Applied to report + verification class sets:
@@ -56,7 +60,8 @@ Applied to report + verification class sets:
 
 | ID | Status | Note |
 |----|--------|------|
-| QA-001 | **Partial** | Libs at strategy thresholds; services interim raised **35% → 50%** line after QA-002 (persistence ~96%); package floors still pending QA-003 |
-| QA-002 | **Done** | Persistence API tests landed; services floor → 50%; package-level `com.bank.persistence.api.*` gate still not enforced (QA-003 / strategy §7) |
+| QA-001 | **Partial** | Libs at strategy thresholds; services interim raised **35% → 50%** line after QA-002 (persistence ~96%); package floors still not enforced |
+| QA-002 | **Done** | Persistence API tests landed; services floor → 50%; package-level `com.bank.persistence.api.*` gate still not enforced (strategy §7) |
+| QA-003 | **Done** | IT-I template `OneSbConnectivityIT` (WireMock 1SB + persistence); package-level JaCoCo floors remain separate follow-up |
 
 Do not lower lib gates without TL + QA Lead co-approval and a TECH-DEBT id + expiry.

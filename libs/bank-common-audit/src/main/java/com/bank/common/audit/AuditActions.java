@@ -33,6 +33,9 @@ public final class AuditActions {
     // --- Document ---
     public static final String DOCUMENT_UPLOADED         = "DOCUMENT_UPLOADED";
 
+    // --- Upstream transport ---
+    public static final String ONESB_OUTBOUND_CALL       = "ONESB_OUTBOUND_CALL";
+
     // --- Data retention ---
     public static final String PAYLOAD_RETENTION_DELETED = "PAYLOAD_RETENTION_DELETED";
 }

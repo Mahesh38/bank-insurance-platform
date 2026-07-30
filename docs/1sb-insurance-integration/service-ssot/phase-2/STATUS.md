@@ -7,8 +7,8 @@
 |------|-------|--------|--------|
 | P2-A1 COMP-002 PII masking | Dev A | Done | `6f0b7ed` |
 | P2-A2 TECH-004 OneSbHttpClient | Dev A | Done | `7e971ff` |
-| P2-A3 TECH-005 Error normalisation | Dev A | Done | `3c934f7` |
-| P2-A4 COMP-001 Outbound audit | Dev A | Pending | |
+| P2-A3 TECH-005 Error normalisation | Dev A | Done | `0cd9ed3` |
+| P2-A4 COMP-001 Outbound audit | Dev A | Done | `863a399` |
 | P2-B1 NFR-001 Idempotency filter | Dev B | Done | `596a3e0` |
 | P2-B2 TECH-006 Job store | Dev B | Done | `aa73b6f` |
 | P2-B3 TECH-007 Async poller | Dev B | Done | `6b1c294` |
@@ -30,3 +30,4 @@
 - **P2-A1:** `PiiMasker` utility landed (`6f0b7ed`).
 - **P2-A2:** `OneSbHttpClient` + `adapter.onesb.config` (Basic Auth, timeouts, `get`/`post`/`exchange`); WireMock 200/401; HTTP/1.1 for WireMock compatibility.
 - **P2-A3:** `OneSbErrorNormaliser` maps 401 / business 4xx (`errors[]`) / 5xx → bank `ServiceException`; wired into client.
+- **P2-A4:** Outbound audit hook on `OneSbHttpClient` via `LoggingAuditEventPublisher`; requestHash = SHA-256 of PiiMasker-masked body.

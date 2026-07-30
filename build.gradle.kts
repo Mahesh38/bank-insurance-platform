@@ -31,6 +31,15 @@ subprojects {
         mavenCentral()
     }
 
+    dependencies {
+        // Lombok — version from Spring Boot BOM (TD-001)
+        val lombok = "org.projectlombok:lombok"
+        add("compileOnly", lombok)
+        add("annotationProcessor", lombok)
+        add("testCompileOnly", lombok)
+        add("testAnnotationProcessor", lombok)
+    }
+
     tasks.withType<Test> {
         useJUnitPlatform()
     }

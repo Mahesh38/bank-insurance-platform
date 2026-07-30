@@ -1,5 +1,10 @@
 package com.bank.common.error;
 
+import lombok.Builder;
+import lombok.NonNull;
+import lombok.ToString;
+import lombok.Value;
+
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -13,46 +18,25 @@ import java.util.Objects;
  * <p>Intended to be serialised as the HTTP response body for all error responses.
  * Controllers must not return raw upstream error JSON.
  */
-public final class ServiceErrorResponse {
+@Value
+@Builder
+@ToString(of = {"status", "code", "detail"})
+public class ServiceErrorResponse {
 
-    private final String    type;
-    private final String    title;
-    private final int       status;
-    private final String    detail;
-    private final String    code;
-    private final boolean   retryable;
-    private final String    upstreamCode;
-    private final Instant   timestamp;
-    private final List<ServiceError> errors;
-
-    private ServiceErrorResponse(Builder b) {
-        this.type         = b.type;
-        this.title        = Objects.requireNonNull(b.title,  "title must not be null");
-        this.status       = b.status;
-        this.detail       = b.detail;
-        this.code         = Objects.requireNonNull(b.code,   "code must not be null");
-        this.retryable    = b.retryable;
-        this.upstreamCode = b.upstreamCode;
-        this.timestamp    = b.timestamp != null ? b.timestamp : Instant.now();
-        this.errors       = Collections.unmodifiableList(new ArrayList<>(b.errors));
-    }
-
-    // --- Accessors ---
-
-    public String  getType()         { return type; }
-    public String  getTitle()        { return title; }
-    public int     getStatus()       { return status; }
-    public String  getDetail()       { return detail; }
-    public String  getCode()         { return code; }
-    public boolean isRetryable()     { return retryable; }
-    public String  getUpstreamCode() { return upstreamCode; }
-    public Instant getTimestamp()    { return timestamp; }
-    public List<ServiceError> getErrors() { return errors; }
+    String    type;
+    @NonNull String title;
+    int       status;
+    String    detail;
+    @NonNull String code;
+    boolean   retryable;
+    String    upstreamCode;
+    Instant   timestamp;
+    List<ServiceError> errors;
 
     // --- Factory shortcuts ---
 
     public static ServiceErrorResponse validation(String detail, List<ServiceError> fieldErrors) {
-        return new Builder()
+        return builder()
             .type("about:blank")
             .title("Validation Failed")
             .status(400)
@@ -64,7 +48,7 @@ public final class ServiceErrorResponse {
     }
 
     public static ServiceErrorResponse upstreamBusiness(String detail, String upstreamCode) {
-        return new Builder()
+        return builder()
             .type("about:blank")
             .title("Upstream Business Error")
             .status(422)
@@ -76,7 +60,7 @@ public final class ServiceErrorResponse {
     }
 
     public static ServiceErrorResponse upstreamUnavailable(String detail) {
-        return new Builder()
+        return builder()
             .type("about:blank")
             .title("Upstream Unavailable")
             .status(503)
@@ -87,7 +71,7 @@ public final class ServiceErrorResponse {
     }
 
     public static ServiceErrorResponse unauthorized() {
-        return new Builder()
+        return builder()
             .type("about:blank")
             .title("Unauthorized")
             .status(401)
@@ -98,7 +82,7 @@ public final class ServiceErrorResponse {
     }
 
     public static ServiceErrorResponse forbidden() {
-        return new Builder()
+        return builder()
             .type("about:blank")
             .title("Forbidden")
             .status(403)
@@ -109,7 +93,7 @@ public final class ServiceErrorResponse {
     }
 
     public static ServiceErrorResponse internalError(String detail) {
-        return new Builder()
+        return builder()
             .type("about:blank")
             .title("Internal Server Error")
             .status(500)
@@ -119,39 +103,30 @@ public final class ServiceErrorResponse {
             .build();
     }
 
-    // --- Builder ---
-
-    public static Builder builder() { return new Builder(); }
-
-    public static final class Builder {
+    public static class ServiceErrorResponseBuilder {
         private String type = "about:blank";
-        private String title;
-        private int    status;
-        private String detail;
-        private String code;
         private boolean retryable = false;
-        private String upstreamCode;
-        private Instant timestamp;
-        private final List<ServiceError> errors = new ArrayList<>();
+        private List<ServiceError> errors = new ArrayList<>();
 
-        private Builder() {}
+        public ServiceErrorResponseBuilder errors(List<ServiceError> errs) {
+            this.errors.addAll(errs);
+            return this;
+        }
 
-        public Builder type(String type)               { this.type = type;               return this; }
-        public Builder title(String title)             { this.title = title;             return this; }
-        public Builder status(int status)              { this.status = status;           return this; }
-        public Builder detail(String detail)           { this.detail = detail;           return this; }
-        public Builder code(String code)               { this.code = code;               return this; }
-        public Builder retryable(boolean retryable)    { this.retryable = retryable;     return this; }
-        public Builder upstreamCode(String upstream)   { this.upstreamCode = upstream;   return this; }
-        public Builder timestamp(Instant ts)           { this.timestamp = ts;            return this; }
-        public Builder errors(List<ServiceError> errs) { this.errors.addAll(errs);       return this; }
-        public Builder addError(ServiceError e)        { this.errors.add(e);             return this; }
+        public ServiceErrorResponseBuilder addError(ServiceError e) {
+            this.errors.add(e);
+            return this;
+        }
 
-        public ServiceErrorResponse build() { return new ServiceErrorResponse(this); }
-    }
-
-    @Override
-    public String toString() {
-        return "ServiceErrorResponse{status=" + status + ", code='" + code + "', detail='" + detail + "'}";
+        public ServiceErrorResponse build() {
+            Objects.requireNonNull(title, "title must not be null");
+            Objects.requireNonNull(code, "code must not be null");
+            Instant resolvedTimestamp = timestamp != null ? timestamp : Instant.now();
+            List<ServiceError> resolvedErrors =
+                Collections.unmodifiableList(new ArrayList<>(errors != null ? errors : List.of()));
+            return new ServiceErrorResponse(
+                type, title, status, detail, code, retryable, upstreamCode,
+                resolvedTimestamp, resolvedErrors);
+        }
     }
 }

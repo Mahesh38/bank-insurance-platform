@@ -29,10 +29,10 @@ Each phase has: **owner focus**, **exit criteria**, **parallelizable work**, and
 | # | Action | Owner | Exit criteria |
 |---|--------|-------|---------------|
 | 0.1 | Confirm 1SB sandbox URL, API key/secret, `distributorId`, IP whitelist — see **[phase-0/CONFIRM-01-onesb-access.md](./phase-0/CONFIRM-01-onesb-access.md)** | Platform / 1SB RM | Credentials in vault path; sandbox curl works from bank egress |
-| 0.2 | Confirm Term products/insurers enabled for distributor | Product + 1SB | At least one Term product quotable in sandbox |
-| 0.3 | Align bank→service auth (JWT claims / mTLS) | Security + Architect | Auth approach written in runbook; sample token available |
-| 0.4 | Kickoff: walk SSOT (decisions, backlog order, DRY/KISS) | Tech lead | Team agrees Case 2 + Term-first; no open design blockers |
-| 0.5 | Create tracking board from [PRODUCT-BACKLOG.md](./PRODUCT-BACKLOG.md) P0 stories | PO / Scrum master | Jira/Linear tickets linked 1:1 to story IDs |
+| 0.2 | Confirm Term products/insurers enabled for distributor — see **[phase-0/CONFIRM-02-term-products.md](./phase-0/CONFIRM-02-term-products.md)** · config template: [config/catalog/term-products.example.yaml](../../../config/catalog/term-products.example.yaml) | Product + 1SB | At least one Term product quotable in sandbox; `term-products.yaml` populated |
+| 0.3 | Align bank→service auth (JWT claims / mTLS) — see **[phase-0/CONFIRM-03-inbound-auth.md](./phase-0/CONFIRM-03-inbound-auth.md)** · design rules: [phase-0/COUPLING-AND-REPLACEABILITY.md §2.2](./phase-0/COUPLING-AND-REPLACEABILITY.md) | Security + Architect | Auth mode config complete; sample token available; `agentId`/`distributorId` rules confirmed |
+| 0.4 | Kickoff: walk SSOT (decisions, backlog order, DRY/KISS) — see **[phase-0/CONFIRM-04-ssot-kickoff.md](./phase-0/CONFIRM-04-ssot-kickoff.md)** | Tech lead | Team sign-off on Case 2 + Term-first; no open design blockers |
+| 0.5 | Create tracking board from [PRODUCT-BACKLOG.md](./PRODUCT-BACKLOG.md) P0 stories — see **[phase-0/CONFIRM-05-tracking-board.md](./phase-0/CONFIRM-05-tracking-board.md)** · seed: [phase-0/p0-story-board.md](./phase-0/p0-story-board.md) | PO / Scrum master | Jira/Linear tickets linked 1:1 to story IDs |
 
 **Exit:** Team can call 1SB sandbox; board ready; no credential blockers.
 

@@ -11,6 +11,8 @@ import com.bank.insurance.onesb.domain.model.Lob;
 import com.bank.insurance.onesb.domain.model.QuoteJob;
 import com.bank.insurance.onesb.domain.model.QuoteOffer;
 import com.bank.insurance.onesb.domain.port.outbound.JobStorePort;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -31,7 +33,8 @@ public class HttpJobStoreAdapter implements JobStorePort {
 
     private final RestClient persistenceRestClient;
 
-    public HttpJobStoreAdapter(RestClient persistenceRestClient) {
+    @Autowired
+    public HttpJobStoreAdapter(@Qualifier("persistenceRestClient") RestClient persistenceRestClient) {
         this.persistenceRestClient = persistenceRestClient;
     }
 

@@ -10,6 +10,7 @@ import java.util.List;
 public record QuoteJob(
         String jobId,
         JobStatus status,
+        String failureReason,
         Lob lob,
         String journeyId,
         List<QuoteOffer> offers,

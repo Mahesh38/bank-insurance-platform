@@ -9,7 +9,6 @@ import com.bank.common.error.ServiceError;
 import com.bank.common.error.ServiceErrorResponse;
 import com.bank.common.error.ServiceException;
 import com.bank.insurance.onesb.domain.command.CreateQuoteCommand;
-import com.bank.insurance.onesb.domain.model.JobStatus;
 import com.bank.insurance.onesb.domain.model.Lob;
 import com.bank.insurance.onesb.domain.model.QuoteJob;
 import com.bank.insurance.onesb.domain.port.inbound.QuoteUseCase;
@@ -71,9 +70,14 @@ public class QuoteService implements QuoteUseCase {
         return jobId;
     }
 
+    /**
+     * Load quote job for GET. Always returns the stored {@link QuoteJob} (including
+     * {@link JobStatus#TIMEOUT}) so the bank can poll status; unknown id → 404
+     * {@link ErrorCodes#RESOURCE_NOT_FOUND}. Does not throw {@link ErrorCodes#QUOTE_TIMEOUT}.
+     */
     @Override
     public QuoteJob getQuoteResult(String jobId) {
-        QuoteJob job = jobStore.findQuoteJob(jobId)
+        return jobStore.findQuoteJob(jobId)
                 .orElseThrow(() -> new ServiceException(ServiceErrorResponse.builder()
                         .title("Not Found")
                         .status(404)
@@ -81,17 +85,6 @@ public class QuoteService implements QuoteUseCase {
                         .code(ErrorCodes.RESOURCE_NOT_FOUND)
                         .retryable(false)
                         .build()));
-
-        if (job.status() == JobStatus.TIMEOUT) {
-            throw new ServiceException(ServiceErrorResponse.builder()
-                    .title("Quote Timeout")
-                    .status(504)
-                    .detail("Quote poll timed out for jobId=" + jobId)
-                    .code(ErrorCodes.QUOTE_TIMEOUT)
-                    .retryable(true)
-                    .build());
-        }
-        return job;
     }
 
     private void validate(CreateQuoteCommand command) {

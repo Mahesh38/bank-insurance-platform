@@ -6,6 +6,7 @@ import com.bank.insurance.onesb.api.dto.QuoteJobResponse;
 import com.bank.insurance.onesb.domain.command.CreateQuoteCommand;
 import com.bank.insurance.onesb.domain.model.JobStatus;
 import com.bank.insurance.onesb.domain.model.QuoteJob;
+import com.bank.insurance.onesb.domain.model.QuoteOffer;
 import com.bank.insurance.onesb.domain.port.inbound.QuoteUseCase;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -22,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 /**
- * Bank quote API — {@code POST /v1/quotes} (FUNC-002) and thin {@code GET} for poll demos.
+ * Bank quote API — {@code POST /v1/quotes} (FUNC-002) and {@code GET /v1/quotes/{jobId}} (FUNC-003).
  */
 @RestController
 @RequestMapping("/v1/quotes")
@@ -95,16 +96,21 @@ public class QuoteController {
         );
     }
 
-    private static QuoteJobResponse toResponse(QuoteJob job) {
-        return new QuoteJobResponse(
-                job.jobId(),
-                job.status(),
-                job.lob(),
-                job.journeyId(),
-                job.offers(),
-                job.partialErrors(),
-                job.createdAt(),
-                job.completedAt()
-        );
+    /**
+     * Map domain job → response. PENDING/RUNNING/TIMEOUT/FAILED never fabricate offers;
+     * COMPLETED/PARTIAL return stored offers (empty list if none).
+     */
+    static QuoteJobResponse toResponse(QuoteJob job) {
+        List<QuoteOffer> offers = offersForStatus(job);
+        return new QuoteJobResponse(job.jobId(), job.status(), job.failureReason(), offers);
+    }
+
+    private static List<QuoteOffer> offersForStatus(QuoteJob job) {
+        JobStatus status = job.status();
+        if (status == JobStatus.COMPLETED || status == JobStatus.PARTIAL) {
+            return job.offers() != null ? List.copyOf(job.offers()) : List.of();
+        }
+        // PENDING, RUNNING, TIMEOUT, FAILED — never invent offers
+        return List.of();
     }
 }

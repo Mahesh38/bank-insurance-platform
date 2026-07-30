@@ -1,0 +1,24 @@
+# Gradle
+.gradle/
+**/build/
+!**/src/**/build/
+
+# Gradle wrapper (we DO commit gradlew and wrapper jar)
+# gradle/wrapper/gradle-wrapper.jar  <- keep this
+
+# IDE
+.idea/
+*.iws
+*.iml
+*.ipr
+.vscode/
+*.class
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local config (never commit real secrets)
+**/application-local.properties
+**/application-local.yml
+**/secrets.properties

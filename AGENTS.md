@@ -4,9 +4,11 @@ Guidance for cloud agents working in this repository.
 
 ## Repository status
 
-This repository currently contains only a placeholder `README.md` (`# one-silver-bullet`). There is no application source code, dependency manifests, Docker configuration, or CI workflows yet.
+Multi-module Gradle (Kotlin DSL) monorepo for the **1SB insurance platform**:
 
-When product code is added, update this file with service-specific startup, lint, test, and build commands.
+- **Java 21** / **Spring Boot 3.3.4**
+- Shared libs under `libs/`
+- Services under `services/` (`1sb-integration-service`; persistence service added in Phase 1 remediation)
 
 ## Cursor Cloud specific instructions
 
@@ -14,30 +16,31 @@ When product code is added, update this file with service-specific startup, lint
 
 | Service | Required? | Notes |
 |---------|-----------|-------|
-| *(none)* | — | No runnable services exist in the repo today. |
+| `1sb-integration-service` | Yes (Phase 1+) | Boot app; profile `local` / `test` / `uat` / `prod` |
+| PostgreSQL / H2 | Profile-dependent | Local/test use H2; uat+prod use PostgreSQL (persistence ownership evolving — see TECH-DEBT) |
 
 ### System tooling (VM)
 
-The cloud VM includes common development runtimes that are ready for future project scaffolding:
+- **JDK 21** (required for build)
+- **Git** 2.43+
+- Node.js / Python / Go may also be present but are not required for this Java platform
 
-- **Node.js** v22.x with **npm** and **pnpm**
-- **Python** 3.12
-- **Go** 1.22
-- **Git** 2.43
-
-Docker is not installed in this environment.
+Docker is not required for unit tests.
 
 ### Lint / test / run
 
-There are no project-specific lint, test, or run scripts until dependency manifests (for example `package.json`, `pyproject.toml`, or `Makefile`) are added.
+```bash
+./gradlew test
+./gradlew :services:1sb-integration-service:bootRun --args='--spring.profiles.active=local'
+```
 
-To sanity-check the VM after setup, run:
+Targeted shared-lib verification:
 
 ```bash
-git status
-node -v && python3 --version && go version
+./gradlew :libs:bank-common-error:test :libs:bank-common-security:test \
+  :libs:bank-common-audit:test :libs:bank-common-secrets:test
 ```
 
 ### Update script
 
-The VM update script is a no-op because the repository has no dependencies to install. After adding a package manager lockfile or install script, update the update script accordingly (for example `npm install` or `pnpm install`).
+After cloning, no separate install step beyond a Gradle build (wrapper downloads the toolchain/deps).

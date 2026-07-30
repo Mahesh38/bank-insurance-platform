@@ -63,3 +63,51 @@ com.bank.insurance.onesb/
 | Flyway migrations for §9 tables | ✅ |
 | Shared libs have unit tests | ✅ |
 | Phase 1 status doc updated | ✅ |
+
+---
+
+## Agent 2 — Phase 1 remediation (platform)
+
+| Task | TD | Status | Notes |
+|------|----|--------|-------|
+| A2-1 Lombok on root subprojects | TD-001 | ✅ Done | `compileOnly` + `annotationProcessor` (+ test) via Spring Boot BOM |
+| A2-2 Refactor shared builders | TD-001 | ✅ Done | `AuditEvent`, `ServiceErrorResponse`, `BankPrincipal` → `@Value` + `@Builder`; behaviour/tests preserved |
+| A2-3 Remove duplicate `ErrorCode` | TD-005 | ✅ Done | Deleted unused `ErrorCode.java`; kept `ErrorCodes` |
+| A2-4 Create `bank-common-secrets` | TD-002 | ✅ Done | Module `:libs:bank-common-secrets`, package `com.bank.common.secrets`, unit tests moved |
+| A2-5 Retarget integration secrets | TD-002 | ✅ Done | Service depends on lib; config imports from lib; `adapter/secret` deleted |
+| A2-6 Document Lombok vs records | TD-012 | ✅ Done | Convention in `libs/README.md` (+ TECH-DEBT TD-012) |
+| A2-7 Fix AGENTS.md / Boot version drift | TD-008 | ✅ Done | AGENTS.md rewritten; libs README Boot **3.3.4** |
+
+### Verify (Agent 2)
+
+```bash
+./gradlew :libs:bank-common-error:test :libs:bank-common-security:test \
+  :libs:bank-common-audit:test :libs:bank-common-secrets:test
+```
+
+---
+
+## Agent 3 — Phase 1 remediation (persistence split)
+
+| Task | TD | Status | Notes |
+|------|----|--------|-------|
+| A3-1 Scaffold `1sb-persistence-service` | TD-003 | ✅ Done | Boot 3.3.4, port 8081, profiles local/uat/prod/test, actuator |
+| A3-2 Move Flyway V1 | TD-011 | ✅ Done | `V1__init_schema.sql` moved; deleted from integration |
+| A3-3 JPA entities + repos | TD-003 | ✅ Done | 6 tables; Lombok `@Getter`/`@Setter`/`@NoArgsConstructor` |
+| A3-4 Internal REST + README | TD-004 | ✅ Done | `/internal/v1` jobs/offers/payment-sessions/audit-events; 404 problem JSON |
+| A3-5 RestClient JobStorePort adapter | TD-004 | ✅ Done | `HttpJobStoreAdapter` + `insurance.persistence.base-url` |
+| A3-6 Strip DB from integration | TD-011 | ✅ Done | No data-jpa/Flyway/drivers; empty entity/jpa packages removed |
+| A3-7 ArchUnit JPA/Flyway forbid | TD-004 | ✅ Done | `mustNotImportJakartaPersistence`, `mustNotImportFlyway` |
+| A3-8 Docs | TD-003/004/011 | ✅ Done | TECH-DEBT closed; this STATUS section |
+
+### Verify (Agent 3)
+
+```bash
+./gradlew :services:1sb-persistence-service:test :services:1sb-integration-service:test
+```
+
+### Residual gaps
+
+- No WireMock contract test for `HttpJobStoreAdapter` yet (context load + ArchUnit only).
+- Poll-attempt / raw-payload HTTP endpoints not exposed (entities/repos only).
+- Payment/audit ports on integration not wired (JobStorePort only).

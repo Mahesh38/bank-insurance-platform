@@ -13,18 +13,18 @@ Severity: **P0** = blocks Phase 2 / multi-service reuse · **P1** = fix this spr
 
 | ID | Sev | Title | Origin | Status | Owner |
 |----|-----|-------|--------|--------|-------|
-| TD-001 | P1 | Adopt Lombok; remove hand-rolled builders in shared libs | Senior #1 | Open → assigned | Agent 2 |
-| TD-002 | P0 | Extract secrets SPI to `bank-common-secrets` reusable lib | Senior #2 | Open → assigned | Agent 2 |
-| TD-003 | P0 | Split DB ownership into `1sb-persistence-service` | Senior #3–4 | Open → assigned | Agent 3 |
-| TD-004 | P0 | Integration ↔ persistence communicate via HTTP only | Senior #5 | Open → assigned | Agent 3 (after TD-003) |
-| TD-005 | P2 | Duplicate `ErrorCode` vs `ErrorCodes` in bank-common-error | Phase 1 review | Open | Agent 2 (with TD-001) |
+| TD-001 | P1 | Adopt Lombok; remove hand-rolled builders in shared libs | Senior #1 | **Closed** | Agent 2 |
+| TD-002 | P0 | Extract secrets SPI to `bank-common-secrets` reusable lib | Senior #2 | **Closed** | Agent 2 |
+| TD-003 | P0 | Split DB ownership into `1sb-persistence-service` | Senior #3–4 | **Closed** | Agent 3 |
+| TD-004 | P0 | Integration ↔ persistence communicate via HTTP only | Senior #5 | **Closed** | Agent 3 |
+| TD-005 | P2 | Duplicate `ErrorCode` vs `ErrorCodes` in bank-common-error | Phase 1 review | **Closed** | Agent 2 |
 | TD-006 | P2 | AWS Secrets Manager provider is stub; prod profile will fail-fast | Phase 1 review | Deferred Phase 2 | Backlog |
 | TD-007 | P3 | ArchUnit rules use `allowEmptyShould(true)` — tighten when packages fill | Phase 1 review | Deferred | Phase 2+ |
-| TD-008 | P3 | Docs drift: AGENTS.md “placeholder”; libs README Boot 3.3.5 vs 3.3.4 | Phase 1 review | Open | Agent 2 |
+| TD-008 | P3 | Docs drift: AGENTS.md “placeholder”; libs README Boot 3.3.5 vs 3.3.4 | Phase 1 review | **Closed** | Agent 2 |
 | TD-009 | P2 | Missing domain ports vs arch (Proposal/Status/Master/Audit/Idempotency) | Phase 1 review | Deferred Phase 2 | Backlog |
 | TD-010 | P2 | No Redis / idempotency / cache adapter yet | Arch gap | Deferred Phase 2 | Backlog |
-| TD-011 | P1 | Integration service must not own Flyway or JPA after split | Senior #3–4 | Open → assigned | Agent 3 |
-| TD-012 | P2 | Convention for future JPA entities / API DTOs (Lombok vs records) | Senior #1 + TL | Open → assigned | Tech Lead (doc) + Agent 2 |
+| TD-011 | P1 | Integration service must not own Flyway or JPA after split | Senior #3–4 | **Closed** | Agent 3 |
+| TD-012 | P2 | Convention for future JPA entities / API DTOs (Lombok vs records) | Senior #1 + TL | **Closed** | Agent 2 |
 
 ---
 
@@ -123,7 +123,16 @@ Track only; do not block this refactor PR. TD-006 remains Phase 2 (real AWS SM).
 
 ## Closed items
 
-_None yet — update after Agent 2 / Agent 3 land fixes._
+| ID | Closed | Notes |
+|----|--------|-------|
+| TD-001 | 2026-07-30 | Lombok on root subprojects; `AuditEvent`, `ServiceErrorResponse`, `BankPrincipal` → `@Value` + `@Builder` |
+| TD-002 | 2026-07-30 | `:libs:bank-common-secrets`; integration service wires SPI from lib; old `adapter/secret` deleted |
+| TD-003 | 2026-07-30 | `:services:1sb-persistence-service` owns Flyway V1 + JPA entities/repos; internal REST stubs |
+| TD-004 | 2026-07-30 | Persistence `/internal/v1` API; integration `HttpJobStoreAdapter` via RestClient + `insurance.persistence.base-url` |
+| TD-005 | 2026-07-30 | Removed unused duplicate `ErrorCode`; kept `ErrorCodes` |
+| TD-008 | 2026-07-30 | AGENTS.md rewritten for real platform; libs README Boot version → 3.3.4 |
+| TD-011 | 2026-07-30 | Integration stripped of data-jpa / Flyway / drivers / `db/migration`; ArchUnit forbids JPA+Flyway imports |
+| TD-012 | 2026-07-30 | Convention documented in `libs/README.md` and this log |
 
 ---
 
@@ -132,3 +141,5 @@ _None yet — update after Agent 2 / Agent 3 land fixes._
 | Date | Change |
 |------|--------|
 | 2026-07-30 | Initial log from senior review + Phase 1 TL review |
+| 2026-07-30 | Agent 2 closed TD-001, TD-002, TD-005, TD-008, TD-012 |
+| 2026-07-30 | Agent 3 closed TD-003, TD-004, TD-011 (persistence service + HTTP split) |

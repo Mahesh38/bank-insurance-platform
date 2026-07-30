@@ -1,36 +1,42 @@
 plugins {
-    java
+    id("java")
+    id("org.springframework.boot") version "3.3.4" apply false
+    id("io.spring.dependency-management") version "1.1.6" apply false
 }
 
 allprojects {
     group = "com.bank.insurance"
-    version = "0.0.1-SNAPSHOT"
-
-    repositories {
-        mavenCentral()
-    }
+    version = "0.1.0-SNAPSHOT"
 }
 
 subprojects {
     apply(plugin = "java")
+    apply(plugin = "io.spring.dependency-management")
 
-    java {
-        toolchain {
-            languageVersion.set(JavaLanguageVersion.of(21))
+    // Import the Spring Boot BOM for all subprojects (libs + service).
+    // This lets lib modules declare compileOnly("org.slf4j:slf4j-api") etc.
+    // without pinning versions — versions come from the BOM.
+    configure<io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension> {
+        imports {
+            mavenBom("org.springframework.boot:spring-boot-dependencies:3.3.4")
         }
     }
 
-    dependencies {
-        // Make Spring Boot BOM available for version resolution in every subproject.
-        // Individual libs add only what they need via compileOnly/implementation.
-        add("implementation", platform("org.springframework.boot:spring-boot-dependencies:3.3.5"))
+    java {
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
+    }
 
-        testImplementation("org.junit.jupiter:junit-jupiter")
-        testImplementation("org.assertj:assertj-core")
-        testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    repositories {
+        mavenCentral()
     }
 
     tasks.withType<Test> {
         useJUnitPlatform()
+    }
+
+    tasks.withType<JavaCompile> {
+        options.encoding = "UTF-8"
+        options.compilerArgs.add("-parameters")
     }
 }

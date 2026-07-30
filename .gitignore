@@ -18,6 +18,11 @@
 .DS_Store
 Thumbs.db
 
+# Local secrets (never commit real credentials)
+**/application-local.properties
+**/.env.local
+**/.env
+
 # Local config (never commit real secrets)
 **/application-local.properties
 **/application-local.yml

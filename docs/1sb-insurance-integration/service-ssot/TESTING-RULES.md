@@ -2,6 +2,7 @@
 
 **Authority:** QA Lead · [QA-LEAD-TESTING-STRATEGY.md](./QA-LEAD-TESTING-STRATEGY.md)  
 **Audience:** All developers, AI coding agents, reviewers  
+**See also:** Role DoD — [ROLE-GUIDELINES-AND-DOD.md](./ROLE-GUIDELINES-AND-DOD.md)  
 **Branch policy:** Applies from next commit on `cursor/phase1-foundations-c259` onward
 
 ---

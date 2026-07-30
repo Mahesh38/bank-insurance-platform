@@ -50,8 +50,9 @@ Docker is not required for unit tests.
 
 **Testing (QA Lead):** follow `docs/1sb-insurance-integration/service-ssot/TESTING-RULES.md`  
 Strategy & ownership: `docs/1sb-insurance-integration/service-ssot/QA-LEAD-TESTING-STRATEGY.md`  
+**Roles & Definition of Done:** `docs/1sb-insurance-integration/service-ssot/ROLE-GUIDELINES-AND-DOD.md`  
 Backlog: `docs/1sb-insurance-integration/service-ssot/TEST-BACKLOG.md`  
-Coverage gates: `docs/1sb-insurance-integration/service-ssot/COVERAGE.md` (libs 80%/70%; services interim 35% line)
+Coverage gates: `docs/1sb-insurance-integration/service-ssot/COVERAGE.md` (libs 80%/70%; services interim line floor)
 
 Targeted shared-lib verification:
 

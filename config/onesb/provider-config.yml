@@ -106,15 +106,15 @@ provider:
   # that LOB so the port falls through to the next configured provider (NOOP).
   lob:
     term:
-      enabled: true
+      # No LifeTerm product confirmed yet for BCIBL — enable when Term SKU arrives
+      enabled: false
     health:
-      # Set to true after Phase 3 exit criteria are met (Term sandbox verified).
       enabled: false
     motor:
-      # Set to true after Phase 5.
       enabled: false
     savings:
-      enabled: false
+      # First confirmed product: ICICI E38 GIFT Select (LifeSave)
+      enabled: true
 
   # ── API Version Pins ───────────────────────────────────────────────────────
   # Locks the 1SB API version used per endpoint group.

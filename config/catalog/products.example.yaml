@@ -1,0 +1,82 @@
+# =============================================================================
+# Product catalog — MULTI insurer / MULTI product (all LOBs)
+#
+# Copy to products.yaml for an environment (prefer config store / not git for
+# prod). This EXAMPLE includes the first confirmed demo row and empty slots
+# showing how to add more insurers/products without code changes.
+#
+# Loading (planned):
+#   @ConfigurationProperties(prefix = "insurance.catalog")
+#   List<ProductEntry> products — validated at startup
+#
+# Rules:
+#   - One entry per manufacturerId + productCode (+ lob)
+#   - enabled=false → ignored by routing / allow-list
+#   - Multi-quote: either omit product pin (LOB-level) or pass selected
+#     entries as insuranceAndProducts[] from this allow-list
+#   - Never hardcode manufacturerId/productCode inside Java handlers
+# =============================================================================
+
+insurance:
+  catalog:
+    # Global kill-switches per LOB (also mirrored under provider lob.* flags)
+    lob-enabled:
+      term: false          # flip true when a LifeTerm product is confirmed
+      saving: true         # first confirmed product is LifeSave (E38)
+      health: false
+      motor: false
+      annuity: false
+      pension: false
+      ulip: false
+
+    products:
+
+      # ------------------------------------------------------------------
+      # Confirmed demo product (Phase 0 data from bank / 1SB)
+      # ------------------------------------------------------------------
+      - manufacturer-id: "ICICI"
+        insurer-code: "ICICI"
+        insurer-name: "ICICI Prudential Life"
+        product-code: "E38"
+        product-name: "GIFT Select"
+        # 1SB product family / path hint
+        product-type: "LifeSave"           # maps to lifesave APIs — NOT lifeterm
+        savings-product-type: "nonParticipating"
+        lob: "SAVING"                      # bank canonical LOB enum
+        enabled: true
+        sandbox-only: true
+        notes: >
+          Confirmed 2026-07-30 from Phase 0 onboarding data.
+          Verify quote in demo before treating as production-ready.
+
+      # ------------------------------------------------------------------
+      # Template — add more insurers / products below (copy block)
+      # ------------------------------------------------------------------
+      # - manufacturer-id: "HDFC"            # example second insurer
+      #   insurer-code: "HDFC"
+      #   insurer-name: "HDFC Life"
+      #   product-code: "REPLACE_ME"
+      #   product-name: "Replace Me Term / Save Plan"
+      #   product-type: "LifeTerm"           # or LifeSave | health | motor | ...
+      #   savings-product-type: null
+      #   lob: "TERM"                        # TERM | SAVING | HEALTH | MOTOR | ...
+      #   enabled: false
+      #   sandbox-only: true
+      #   notes: "Pending 1SB enablement for distributor BCIBL"
+
+      # - manufacturer-id: "ICICI"
+      #   insurer-code: "ICICI"
+      #   insurer-name: "ICICI Prudential Life"
+      #   product-code: "ANOTHER_CODE"
+      #   product-name: "Another ICICI product"
+      #   product-type: "LifeTerm"
+      #   lob: "TERM"
+      #   enabled: false
+      #   sandbox-only: true
+      #   notes: "Same insurer, different product — add when confirmed"
+
+    validation:
+      require-at-least-one-enabled: true
+      enforce-sandbox-only-in-prod: true
+      # Allowed lob values for entries
+      allowed-lobs: [TERM, SAVING, HEALTH, MOTOR, ANNUITY, PENSION, ULIP]

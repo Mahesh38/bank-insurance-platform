@@ -19,16 +19,17 @@
 
 | Doc / artefact | Purpose |
 |----------------|---------|
+| **[PHASE-0-DATA-AND-GAPS.md](./PHASE-0-DATA-AND-GAPS.md)** | **What we have vs what is still required** |
 | [TODO-TRACKER.md](./TODO-TRACKER.md) | Master open/blocked list — **do not miss items** |
 | [CONFIRM-01-onesb-access.md](./CONFIRM-01-onesb-access.md) | Confirm URL, keys, distributorId, IP whitelist |
-| [CONFIRM-02-term-products.md](./CONFIRM-02-term-products.md) | Confirm Term products/insurers |
+| [CONFIRM-02-term-products.md](./CONFIRM-02-term-products.md) | Confirm insurers/products (multi-entry catalog) |
 | [CONFIRM-03-inbound-auth.md](./CONFIRM-03-inbound-auth.md) | Confirm JWT vs mTLS (replaceable `auth.mode`) |
-| [CONFIRM-04-ssot-kickoff.md](./CONFIRM-04-ssot-kickoff.md) | Team kickoff sign-off |
+| [CONFIRM-04-ssot-kickoff.md](./CONFIRM-04-ssot-kickoff.md) | Team kickoff sign-off (+ first LOB decision) |
 | [CONFIRM-05-tracking-board.md](./CONFIRM-05-tracking-board.md) | Create Jira/Linear tickets |
 | [p0-story-board.md](./p0-story-board.md) | Importable P0 story checklist |
 | [COUPLING-AND-REPLACEABILITY.md](./COUPLING-AND-REPLACEABILITY.md) | What must stay configurable |
-| [`config/onesb/`](../../../../config/onesb/) | Provider config + env example |
-| [`config/catalog/term-products.example.yaml`](../../../../config/catalog/term-products.example.yaml) | Product allow-list template |
+| [`config/onesb/`](../../../../config/onesb/) | Provider + distribution defaults |
+| [`config/catalog/products.example.yaml`](../../../../config/catalog/products.example.yaml) | Multi insurer/product catalog |
 
 ---
 

@@ -237,3 +237,19 @@ _Last updated by: Agent A · 2026-07-30_
 - Design rules binding both agents are in [COUPLING-AND-REPLACEABILITY.md](./COUPLING-AND-REPLACEABILITY.md) §4 ("what must never be hardcoded").
 
 _Last updated by: Agent B · 2026-07-30_
+
+---
+
+## Update — 2026-07-30 (bank-provided Phase 0 data)
+
+See **[PHASE-0-DATA-AND-GAPS.md](./PHASE-0-DATA-AND-GAPS.md)** for full scorecard.
+
+**Received:** demo URL, distributor `BCIBL`, distribution defaults, ICICI / E38 LifeSave product.  
+**Still open:** API key/secret, IP whitelist, curl proof, inbound auth, kickoff LOB decision (Saving vs Term), board tickets, additional insurers/products for multi-quote.
+
+- [x] Persist received data into config templates (distribution.defaults.yaml, products.example.yaml)
+- [ ] R1–R2 Obtain API key/secret → vault
+- [ ] R4–R5 IP whitelist + curl proof
+- [ ] R6 Inbound auth mode
+- [ ] R13 Decide first LOB (LifeSave E38 available; Term not yet)
+- [ ] Add more catalog rows as insurers/products are enabled

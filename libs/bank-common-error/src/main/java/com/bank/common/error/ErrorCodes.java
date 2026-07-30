@@ -12,6 +12,7 @@ public final class ErrorCodes {
     public static final String VALIDATION_ERROR       = "VALIDATION_ERROR";
     public static final String INVALID_REQUEST        = "INVALID_REQUEST";
     public static final String MISSING_REQUIRED_FIELD = "MISSING_REQUIRED_FIELD";
+    public static final String MISSING_IDEMPOTENCY_KEY = "MISSING_IDEMPOTENCY_KEY";
 
     // --- Upstream / downstream partner errors ---
     public static final String UPSTREAM_BUSINESS_ERROR  = "UPSTREAM_BUSINESS_ERROR";

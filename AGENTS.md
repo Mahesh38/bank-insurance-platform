@@ -43,6 +43,10 @@ Docker is not required for unit tests.
 # (override with BANK_PERSISTENCE_BASE_URL / bank.persistence.base-url)
 ```
 
+**Testing (QA Lead):** follow `docs/1sb-insurance-integration/service-ssot/TESTING-RULES.md`  
+Strategy & ownership: `docs/1sb-insurance-integration/service-ssot/QA-LEAD-TESTING-STRATEGY.md`  
+Backlog: `docs/1sb-insurance-integration/service-ssot/TEST-BACKLOG.md` (QA-001 JaCoCo first)
+
 Targeted shared-lib verification:
 
 ```bash

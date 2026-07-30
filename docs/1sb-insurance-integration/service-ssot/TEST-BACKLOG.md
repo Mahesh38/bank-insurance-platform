@@ -17,7 +17,7 @@ Priority: **P0** before Phase 3 functional exit · **P1** hardening · **P2** ni
 | QA-003 | P0 | Integration IT template: service + WireMock 1SB + WireMock/stub persistence | Dev + QA | **Done** — `OneSbConnectivityIT` (IT-I): dual WireMock + `@DynamicPropertySource`; run `./gradlew :services:1sb-integration-service:test --tests '*IT'` |
 | QA-004 | P0 | Phase 3 quote path: unit (handler/mapper) + `@WebMvcTest` + IT-I | Dev | Gate FUNC-002 DoD |
 | QA-005 | P1 | PR coverage report (Jacoco XML → CI annotation) | DevOps/Dev | |
-| QA-006 | P1 | Unit tests: `InMemoryIdempotencyStore`, `OneSbHttpClientPollAdapter`, `SecretsStartupValidator` | Dev | Single-class gaps |
+| QA-006 | P1 | Unit tests: `InMemoryIdempotencyStore`, `OneSbHttpClientPollAdapter`, `SecretsStartupValidator` | Dev | **Done** — `InMemoryIdempotencyStoreTest`, `OneSbHttpClientPollAdapterTest`, `SecretsStartupValidatorTest`; run `./gradlew :services:1sb-integration-service:test` |
 | QA-007 | P1 | Lib gaps: `EnvSecretProvider`, `ErrorCodes` usage smoke, security `Role`/`RequiresRole` | Dev | |
 | QA-008 | P1 | Dual-service IT-D (optional docker-compose) | QA + Dev | After QA-003 stable |
 | QA-009 | P1 | Sandbox E2E charter + automated smoke (nightly) | QA | Secrets-gated |

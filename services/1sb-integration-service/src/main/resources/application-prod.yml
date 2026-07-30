@@ -1,0 +1,19 @@
+# Production profile
+# All credentials MUST come from AWS_SECRETS_MANAGER
+# No fallback to PROPERTIES or ENV in prod
+insurance:
+  secrets:
+    source: AWS_SECRETS_MANAGER
+
+bank:
+  persistence:
+    base-url: ${BANK_PERSISTENCE_BASE_URL}
+
+management:
+  endpoint:
+    health:
+      show-details: never
+
+logging:
+  level:
+    com.bank.insurance: INFO

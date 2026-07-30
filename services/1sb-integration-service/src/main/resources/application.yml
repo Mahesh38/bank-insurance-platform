@@ -1,0 +1,51 @@
+spring:
+  application:
+    name: 1sb-integration-service
+
+  # Enable virtual threads (Project Loom, Spring Boot 3.2+)
+  threads:
+    virtual:
+      enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+
+# Secrets source
+insurance:
+  secrets:
+    source: ${INSURANCE_SECRETS_SOURCE:PROPERTIES}
+
+# Platform common persistence HTTP client (bank-persistence-service)
+bank:
+  persistence:
+    base-url: ${BANK_PERSISTENCE_BASE_URL:http://localhost:8081}
+
+# 1SB outbound client configuration
+onesb:
+  client:
+    base-url: ${ONESB_BASE_URL:https://demo.api.1silverbullet.tech}
+    connect-timeout-ms: ${ONESB_CONNECT_TIMEOUT_MS:3000}
+    read-timeout-ms: ${ONESB_READ_TIMEOUT_MS:30000}
+  poll:
+    base-delay-ms: ${ONESB_POLL_BASE_DELAY_MS:1000}
+    multiplier: ${ONESB_POLL_MULTIPLIER:2.0}
+    max-delay-ms: ${ONESB_POLL_MAX_DELAY_MS:30000}
+    max-attempts: ${ONESB_POLL_MAX_ATTEMPTS:20}
+
+logging:
+  level:
+    com.bank.insurance: INFO
+    org.springframework.security: WARN

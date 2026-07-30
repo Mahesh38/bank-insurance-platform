@@ -1,0 +1,15 @@
+# UAT profile
+# Secrets sourced from ENV variables:
+#   ONESB_API_KEY, ONESB_API_SECRET, ONESB_DISTRIBUTOR_ID
+# Set INSURANCE_SECRETS_SOURCE=ENV or AWS_SECRETS_MANAGER
+insurance:
+  secrets:
+    source: ${INSURANCE_SECRETS_SOURCE:ENV}
+
+bank:
+  persistence:
+    base-url: ${BANK_PERSISTENCE_BASE_URL}
+
+logging:
+  level:
+    com.bank.insurance: INFO

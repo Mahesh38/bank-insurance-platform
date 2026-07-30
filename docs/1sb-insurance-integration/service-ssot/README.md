@@ -25,7 +25,30 @@ This folder is the **authoritative starting point** for building the service. If
 
 ## One-line product definition
 
-> A single bank-internal microservice that exposes LOB-routed insurance integration APIs (quote, proposal, payment, status, masters) and translates them to 1SB — with audit, security, and replaceable adapters — so bank apps never call 1SB directly.
+> Bank apps call **1sb-integration-service**, which exposes LOB-routed insurance APIs and translates them to 1SB. Durable state is owned by the platform **bank-persistence-service** (common DB service over internal HTTP — also used by audit-consumer and other microservices). Bank apps never call 1SB or the DB directly.
+
+## Living engineering docs
+
+| Document | Purpose |
+|----------|---------|
+| [TECH-DEBT.md](./TECH-DEBT.md) | Tech debt log (senior review + TL findings) |
+| [QA-LEAD-TESTING-STRATEGY.md](./QA-LEAD-TESTING-STRATEGY.md) | QA Lead testing pyramid, ownership, coverage |
+| [TESTING-RULES.md](./TESTING-RULES.md) | Enforceable test rules / DoD |
+| [TEST-BACKLOG.md](./TEST-BACKLOG.md) | QA test backlog (JaCoCo, IT, Phase 3 gates) |
+| [QA-REVIEW-LOG.md](./QA-REVIEW-LOG.md) | Dual TL+QA Lead approvals for baseline QA items |
+| [COVERAGE.md](./COVERAGE.md) | JaCoCo how-to-run, thresholds, exclusions, interim service floor |
+| [../architecture/bank-persistence-service.md](../architecture/bank-persistence-service.md) | Platform common persistence contract (multi-consumer, Flyway, `/internal/v1`) |
+| [../architecture/audit-consumer-service.md](../architecture/audit-consumer-service.md) | Audit-consumer stub — persists via bank-persistence HTTP only |
+| [phase-1/TECH-LEAD-REVIEW.md](./phase-1/TECH-LEAD-REVIEW.md) | Phase 1 + senior comment disposition |
+| [phase-1/TECH-LEAD-REVIEW-COMMON-PERSISTENCE.md](./phase-1/TECH-LEAD-REVIEW-COMMON-PERSISTENCE.md) | Persistence is platform-common (not 1SB-owned) |
+| [phase-1/REFACTOR-COMMON-PERSISTENCE.md](./phase-1/REFACTOR-COMMON-PERSISTENCE.md) | Agent split for common-persistence rename |
+| [phase-1/TECH-LEAD-CONFIRMATION-COMMON-PERSISTENCE.md](./phase-1/TECH-LEAD-CONFIRMATION-COMMON-PERSISTENCE.md) | TL pass — common persistence senior comment closed |
+| [phase-2/TL-KICKOFF.md](./phase-2/TL-KICKOFF.md) | Phase 2 task breakdown + AC |
+| [phase-2/TASK-SPLIT.md](./phase-2/TASK-SPLIT.md) | Dev A / Dev B ownership |
+| [phase-2/STATUS.md](./phase-2/STATUS.md) | Phase 2 delivery status |
+| [phase-2/TL-REVIEW.md](./phase-2/TL-REVIEW.md) | Phase 2 final TL approval |
+| [phase-1/REFACTOR-TASK-SPLIT.md](./phase-1/REFACTOR-TASK-SPLIT.md) | Agent ownership for prior remediations |
+| [phase-1/TECH-LEAD-CONFIRMATION-PASS.md](./phase-1/TECH-LEAD-CONFIRMATION-PASS.md) | Prior TL pass — senior #1–#5 closed |
 
 ## Accepted architecture pattern (do not reopen)
 

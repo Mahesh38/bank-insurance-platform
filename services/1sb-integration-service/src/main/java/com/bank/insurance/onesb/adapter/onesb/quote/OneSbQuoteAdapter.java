@@ -1,7 +1,6 @@
 package com.bank.insurance.onesb.adapter.onesb.quote;
 
 import com.bank.insurance.onesb.adapter.onesb.client.OneSbHttpClient;
-import com.bank.insurance.onesb.domain.command.CreateQuoteCommand;
 import com.bank.insurance.onesb.domain.model.Lob;
 import com.bank.insurance.onesb.domain.model.QuoteOffer;
 import com.bank.insurance.onesb.domain.port.outbound.OneSbQuotePort;
@@ -19,6 +18,7 @@ import java.util.Map;
 /**
  * 1SB quote adapter — submit + poll with offer normalisation.
  * All 1SB JSON parsing stays inside this adapter.
+ * Submit does not resolve LOB handlers — the application service supplies path + payload (Case 2).
  */
 @Component
 public class OneSbQuoteAdapter implements OneSbQuotePort {
@@ -36,11 +36,9 @@ public class OneSbQuoteAdapter implements OneSbQuotePort {
     }
 
     @Override
-    public String submitQuote(String jobId, CreateQuoteCommand command) {
-        LobQuoteHandler handler = handlerRegistry.get(command.lob());
-        Object payload = handler.buildSubmitPayload(command);
+    public String submitQuote(String jobId, String path, Object payload) {
         @SuppressWarnings("unchecked")
-        Map<String, Object> response = httpClient.post(handler.submitPath(), payload, Map.class);
+        Map<String, Object> response = httpClient.post(path, payload, Map.class);
         return extractReqId(response);
     }
 

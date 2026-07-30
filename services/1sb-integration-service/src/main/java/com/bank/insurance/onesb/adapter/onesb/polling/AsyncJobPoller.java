@@ -1,5 +1,9 @@
 package com.bank.insurance.onesb.adapter.onesb.polling;
 
+import com.bank.common.audit.AuditActions;
+import com.bank.common.audit.AuditEvent;
+import com.bank.common.audit.AuditEventPublisher;
+import com.bank.common.audit.AuditOutcomes;
 import com.bank.insurance.onesb.domain.model.JobStatus;
 import com.bank.insurance.onesb.domain.model.QuoteOffer;
 import com.bank.insurance.onesb.domain.port.outbound.JobPollSchedulerPort;
@@ -38,14 +42,16 @@ public class AsyncJobPoller implements JobPollSchedulerPort {
     private final PollingProperties properties;
     private final Executor pollingExecutor;
     private final Sleeper sleeper;
+    private final AuditEventPublisher auditEventPublisher;
 
     @Autowired
     public AsyncJobPoller(OneSbPollPort pollPort,
                           OneSbQuotePort quotePort,
                           JobStorePort jobStore,
                           PollingProperties properties,
-                          @Qualifier("pollingExecutor") Executor pollingExecutor) {
-        this(pollPort, quotePort, jobStore, properties, pollingExecutor, Thread::sleep);
+                          @Qualifier("pollingExecutor") Executor pollingExecutor,
+                          AuditEventPublisher auditEventPublisher) {
+        this(pollPort, quotePort, jobStore, properties, pollingExecutor, Thread::sleep, auditEventPublisher);
     }
 
     AsyncJobPoller(OneSbPollPort pollPort,
@@ -53,13 +59,15 @@ public class AsyncJobPoller implements JobPollSchedulerPort {
                    JobStorePort jobStore,
                    PollingProperties properties,
                    Executor pollingExecutor,
-                   Sleeper sleeper) {
+                   Sleeper sleeper,
+                   AuditEventPublisher auditEventPublisher) {
         this.pollPort = pollPort;
         this.quotePort = quotePort;
         this.jobStore = jobStore;
         this.properties = properties;
         this.pollingExecutor = pollingExecutor;
         this.sleeper = sleeper;
+        this.auditEventPublisher = auditEventPublisher;
     }
 
     /**
@@ -70,13 +78,27 @@ public class AsyncJobPoller implements JobPollSchedulerPort {
                    PollingProperties properties,
                    Executor pollingExecutor,
                    Sleeper sleeper) {
-        this(pollPort, unusedQuotePort(), jobStore, properties, pollingExecutor, sleeper);
+        this(pollPort, unusedQuotePort(), jobStore, properties, pollingExecutor, sleeper, unusedAudit());
+    }
+
+    /** Test helper when audit verification is not needed. */
+    AsyncJobPoller(OneSbPollPort pollPort,
+                   OneSbQuotePort quotePort,
+                   JobStorePort jobStore,
+                   PollingProperties properties,
+                   Executor pollingExecutor,
+                   Sleeper sleeper) {
+        this(pollPort, quotePort, jobStore, properties, pollingExecutor, sleeper, unusedAudit());
+    }
+
+    private static AuditEventPublisher unusedAudit() {
+        return event -> { };
     }
 
     private static OneSbQuotePort unusedQuotePort() {
         return new OneSbQuotePort() {
             @Override
-            public String submitQuote(String jobId, com.bank.insurance.onesb.domain.command.CreateQuoteCommand command) {
+            public String submitQuote(String jobId, String path, Object payload) {
                 throw new UnsupportedOperationException();
             }
 
@@ -205,8 +227,10 @@ public class AsyncJobPoller implements JobPollSchedulerPort {
             );
 
             if (complete) {
-                jobStore.completeJob(jobId, offers != null ? offers : List.of());
-                JobStatus status = resolveCompleteStatus(offers);
+                List<QuoteOffer> finalOffers = offers != null ? offers : List.of();
+                jobStore.completeJob(jobId, finalOffers);
+                JobStatus status = resolveCompleteStatus(finalOffers);
+                publishQuoteCompleted(jobId, lob, status, finalOffers);
                 return new PollOutcome(status, attempts.get());
             }
         }
@@ -224,6 +248,34 @@ public class AsyncJobPoller implements JobPollSchedulerPort {
         boolean hasSuccess = offers.stream()
                 .anyMatch(o -> o.errorSummary() == null || o.errorSummary().isBlank());
         return hasError && hasSuccess ? JobStatus.PARTIAL : JobStatus.COMPLETED;
+    }
+
+    private void publishQuoteCompleted(String jobId, String lob, JobStatus status, List<QuoteOffer> offers) {
+        if (status != JobStatus.COMPLETED && status != JobStatus.PARTIAL) {
+            return;
+        }
+        try {
+            long offerCount = offers != null ? offers.size() : 0;
+            long partialErrorCount = offers == null ? 0 : offers.stream()
+                    .filter(o -> o.errorSummary() != null && !o.errorSummary().isBlank())
+                    .count();
+            AuditEvent event = AuditEvent.builder()
+                    .actorId("system")
+                    .actorType("SYSTEM")
+                    .action(AuditActions.QUOTE_COMPLETED)
+                    .resourceType("QUOTE_JOB")
+                    .resourceId(jobId)
+                    .outcome(AuditOutcomes.SUCCESS)
+                    .lob(lob)
+                    .metadata("jobId", jobId)
+                    .metadata("offerCount", String.valueOf(offerCount))
+                    .metadata("partialErrorCount", String.valueOf(partialErrorCount))
+                    .metadata("status", status.name())
+                    .build();
+            auditEventPublisher.publish(event);
+        } catch (Exception e) {
+            log.warn("Failed to publish QUOTE_COMPLETED for jobId={}: {}", jobId, e.toString());
+        }
     }
 
     private void sleepQuietly(long delayMs) {

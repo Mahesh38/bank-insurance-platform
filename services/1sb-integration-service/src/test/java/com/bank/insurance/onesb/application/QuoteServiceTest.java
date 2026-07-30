@@ -25,6 +25,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -55,16 +56,21 @@ class QuoteServiceTest {
     }
 
     @Test
-    void createQuote_validTerm_createsJobSubmitsSchedulesAndAudits() {
+    void createQuote_validTerm_buildsPayloadViaHandler_submitsPathAndAudits() {
         CreateQuoteCommand command = validCommand();
+        Map<String, Object> payload = Map.of("typeOfQuote", "Multi-Quote");
+        when(termHandler.buildSubmitPayload(command)).thenReturn(payload);
+        when(termHandler.submitPath()).thenReturn("/insurance/lifeterm/v1/quote");
         when(jobStore.createJob("TERM", "QUOTE", "j-1", "idem-1", "actor-1")).thenReturn("job-1");
-        when(quotePort.submitQuote("job-1", command)).thenReturn("REQ-99");
+        when(quotePort.submitQuote("job-1", "/insurance/lifeterm/v1/quote", payload)).thenReturn("REQ-99");
 
         String jobId = quoteService.createQuote(command);
 
         assertThat(jobId).isEqualTo("job-1");
+        verify(termHandler).buildSubmitPayload(command);
+        verify(termHandler).submitPath();
         verify(jobStore).createJob("TERM", "QUOTE", "j-1", "idem-1", "actor-1");
-        verify(quotePort).submitQuote("job-1", command);
+        verify(quotePort).submitQuote("job-1", "/insurance/lifeterm/v1/quote", payload);
         verify(jobStore).updateJobPolling("job-1", "REQ-99");
         verify(pollScheduler).scheduleQuotePoll("job-1", "TERM", "REQ-99");
 
@@ -90,7 +96,8 @@ class QuoteServiceTest {
                 });
 
         verify(jobStore, never()).createJob(any(), any(), any(), any(), any());
-        verify(quotePort, never()).submitQuote(any(), any());
+        verify(quotePort, never()).submitQuote(any(), any(), any());
+        verify(termHandler, never()).buildSubmitPayload(any());
     }
 
     @Test
@@ -110,7 +117,8 @@ class QuoteServiceTest {
                     assertThat(se.getErrorResponse().getCode()).isEqualTo(ErrorCodes.UNSUPPORTED_LOB);
                 });
 
-        verify(quotePort, never()).submitQuote(any(), any());
+        verify(quotePort, never()).submitQuote(any(), any(), any());
+        verify(termHandler, never()).buildSubmitPayload(any());
     }
 
     @Test

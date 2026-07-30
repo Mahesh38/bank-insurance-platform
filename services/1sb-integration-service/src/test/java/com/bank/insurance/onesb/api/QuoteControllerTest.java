@@ -1,5 +1,6 @@
 package com.bank.insurance.onesb.api;
 
+import com.bank.common.error.ErrorCodes;
 import com.bank.insurance.onesb.domain.port.inbound.QuoteUseCase;
 import com.bank.insurance.onesb.domain.port.outbound.IdempotencyPort;
 import com.bank.insurance.onesb.domain.port.outbound.OneSbQuotePort;
@@ -61,11 +62,11 @@ class QuoteControllerTest {
                 .andExpect(jsonPath("$.reqId").doesNotExist());
 
         verify(quoteUseCase).createQuote(any());
-        verify(oneSbQuotePort, never()).submitQuote(any(), any());
+        verify(oneSbQuotePort, never()).submitQuote(any(), any(), any());
     }
 
     @Test
-    void createQuote_missingMembers_returns422_noUseCaseOrUpstream() throws Exception {
+    void createQuote_missingMembers_returns422_validationError_noUseCaseOrUpstream() throws Exception {
         mockMvc.perform(post("/v1/quotes")
                         .header("Idempotency-Key", "idem-2")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -77,14 +78,14 @@ class QuoteControllerTest {
                                 }
                                 """))
                 .andExpect(status().isUnprocessableEntity())
-                .andExpect(jsonPath("$.code").exists());
+                .andExpect(jsonPath("$.code", is(ErrorCodes.VALIDATION_ERROR)));
 
         verify(quoteUseCase, never()).createQuote(any());
-        verify(oneSbQuotePort, never()).submitQuote(any(), any());
+        verify(oneSbQuotePort, never()).submitQuote(any(), any(), any());
     }
 
     @Test
-    void createQuote_missingSumAssured_returns422_noUpstream() throws Exception {
+    void createQuote_missingSumAssured_returns422_validationError_noUpstream() throws Exception {
         mockMvc.perform(post("/v1/quotes")
                         .header("Idempotency-Key", "idem-3")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -94,9 +95,10 @@ class QuoteControllerTest {
                                   "members": [{ "dob": "1990-01-15", "gender": "M" }]
                                 }
                                 """))
-                .andExpect(status().isUnprocessableEntity());
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code", is(ErrorCodes.VALIDATION_ERROR)));
 
         verify(quoteUseCase, never()).createQuote(any());
-        verify(oneSbQuotePort, never()).submitQuote(any(), any());
+        verify(oneSbQuotePort, never()).submitQuote(any(), any(), any());
     }
 }

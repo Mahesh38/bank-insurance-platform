@@ -68,7 +68,7 @@ class OneSbQuoteAdapterTest {
     }
 
     @Test
-    void submitQuote_postsTermPathAndExtractsReqId() {
+    void submitQuote_postsGivenPathAndPayload_extractsReqId() {
         wireMock.stubFor(post(urlEqualTo("/insurance/lifeterm/v1/quote"))
                 .willReturn(aResponse()
                         .withStatus(200)
@@ -83,8 +83,11 @@ class OneSbQuoteAdapterTest {
                 new CreateQuoteCommand.DistributionContext(null, "109337", "B2B"),
                 "j-1", null, "idem", "actor"
         );
+        SecretProvider secrets = mock(SecretProvider.class);
+        when(secrets.getDistributorId()).thenReturn("TEST_DIST");
+        Object payload = new TermQuoteHandler(secrets).buildSubmitPayload(command);
 
-        String reqId = adapter.submitQuote("job-1", command);
+        String reqId = adapter.submitQuote("job-1", "/insurance/lifeterm/v1/quote", payload);
 
         assertThat(reqId).isEqualTo("REQ-42");
         wireMock.verify(postRequestedFor(urlEqualTo("/insurance/lifeterm/v1/quote")));

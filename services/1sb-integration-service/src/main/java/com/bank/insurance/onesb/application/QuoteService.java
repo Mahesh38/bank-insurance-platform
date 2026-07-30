@@ -16,6 +16,7 @@ import com.bank.insurance.onesb.domain.port.inbound.QuoteUseCase;
 import com.bank.insurance.onesb.domain.port.outbound.JobPollSchedulerPort;
 import com.bank.insurance.onesb.domain.port.outbound.JobStorePort;
 import com.bank.insurance.onesb.domain.port.outbound.OneSbQuotePort;
+import com.bank.insurance.onesb.lob.LobQuoteHandler;
 import com.bank.insurance.onesb.lob.LobQuoteHandlerRegistry;
 import org.springframework.stereotype.Service;
 
@@ -23,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Quote orchestration (Case 2): validate → create job → LOB handler → 1SB submit → schedule poll.
+ * Quote orchestration (Case 2): validate → create job → LOB handler builds payload → 1SB submit → schedule poll.
  */
 @Service
 public class QuoteService implements QuoteUseCase {
@@ -49,8 +50,7 @@ public class QuoteService implements QuoteUseCase {
     @Override
     public String createQuote(CreateQuoteCommand command) {
         validate(command);
-        // Ensures LOB is supported before any job/1SB side effects (422 UNSUPPORTED_LOB)
-        handlerRegistry.get(command.lob());
+        LobQuoteHandler handler = handlerRegistry.get(command.lob());
 
         String actorId = command.actorId() != null && !command.actorId().isBlank()
                 ? command.actorId() : "system";
@@ -62,7 +62,8 @@ public class QuoteService implements QuoteUseCase {
                 actorId
         );
 
-        String externalReqId = quotePort.submitQuote(jobId, command);
+        Object payload = handler.buildSubmitPayload(command);
+        String externalReqId = quotePort.submitQuote(jobId, handler.submitPath(), payload);
         jobStore.updateJobPolling(jobId, externalReqId);
         pollScheduler.scheduleQuotePoll(jobId, command.lob().name(), externalReqId);
 

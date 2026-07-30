@@ -11,7 +11,7 @@
 | P2-A4 COMP-001 Outbound audit | Dev A | Pending | |
 | P2-B1 NFR-001 Idempotency filter | Dev B | Done | `596a3e0` |
 | P2-B2 TECH-006 Job store | Dev B | Done | `aa73b6f` |
-| P2-B3 TECH-007 Async poller | Dev B | In progress | |
+| P2-B3 TECH-007 Async poller | Dev B | Done | `58324dd` |
 
 ## TL reviews
 
@@ -23,7 +23,7 @@
 
 - **P2-B1:** `IdempotencyPort` + in-memory store; filter on POST/PUT/PATCH `/v1/**`; `MISSING_IDEMPOTENCY_KEY` added to `ErrorCodes`. Redis swap deferred (TD-010).
 - **P2-B2:** `JobStatus` → `PENDING|RUNNING|COMPLETED|PARTIAL|FAILED|TIMEOUT`; `failJob(POLL_TIMEOUT)` → `TIMEOUT`; poll-attempt HTTP on persistence (TD-015 partial).
-- **P2-B3:** Using `OneSbPollPort` + temporary RestClient adapter until Dev A ships `OneSbHttpClient`.
+- **P2-B3:** `AsyncJobPoller` + `onesb.poll.*` backoff (arch §7.4); `OneSbPollPort` via `OneSbHttpClientPollAdapter`; WireMock pending→complete and max-attempts→`TIMEOUT`; `schedulePoll` is non-blocking.
 
 ## Dev A notes
 

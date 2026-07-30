@@ -39,6 +39,11 @@ onesb:
     base-url: ${ONESB_BASE_URL:https://demo.api.1silverbullet.tech}
     connect-timeout-ms: ${ONESB_CONNECT_TIMEOUT_MS:3000}
     read-timeout-ms: ${ONESB_READ_TIMEOUT_MS:30000}
+  poll:
+    base-delay-ms: ${ONESB_POLL_BASE_DELAY_MS:1000}
+    multiplier: ${ONESB_POLL_MULTIPLIER:2.0}
+    max-delay-ms: ${ONESB_POLL_MAX_DELAY_MS:30000}
+    max-attempts: ${ONESB_POLL_MAX_ATTEMPTS:20}
 
 logging:
   level:

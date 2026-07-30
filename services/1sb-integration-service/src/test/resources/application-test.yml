@@ -11,6 +11,10 @@ onesb:
   api-key: test-api-key
   api-secret: test-api-secret
   distributor-id: TEST_DIST
+  client:
+    base-url: http://localhost:9
+    connect-timeout-ms: 3000
+    read-timeout-ms: 30000
 
 logging:
   level:

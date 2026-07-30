@@ -144,8 +144,8 @@ _Last updated by: Agent A · 2026-07-30_
 - [ ] **C-007** Obtain sample non-prod token for integration testing (C3-5).  
   _Owner:_ Security · _Due:_ TBD · _Blocked by:_ C-003..C-005
 
-- [ ] **C-008** (Phase 1) Add ArchUnit test: no public DTO field named `distributorId` outside `adapter.onesb.*`.  
-  _Owner:_ Eng · _Due:_ Phase 1
+- [x] **C-008** (Phase 1) Add ArchUnit test: no public DTO field named `distributorId` outside `adapter.onesb.*`.  
+  _Owner:_ Eng · _Due:_ Phase 1 · _Done via:_ COMP-004 (`ArchitectureTest.noDistributorIdFieldOutsideOneSbAdapter`, `211ba80`)
 
 ---
 

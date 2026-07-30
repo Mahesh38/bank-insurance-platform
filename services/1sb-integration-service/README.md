@@ -1,6 +1,8 @@
 # 1SB Integration Service
 
-Spring Boot 3.3.x microservice that acts as the bank's integration adapter for the 1SilverBullet (1SB) insurance platform. Bank systems call this service; this service calls 1SB. Durable job/offer/payment/audit state is **not** stored here — it is owned by `1sb-persistence-service` over internal HTTP.
+Spring Boot 3.3.x microservice that acts as the bank's integration adapter for the 1SilverBullet (1SB) insurance platform. Bank systems call this service; this service calls 1SB.
+
+Durable job/offer/payment/audit state is **not** stored here. It is owned by the platform **bank-persistence-service** (common DB service) over internal HTTP. The same persistence service is also used by future **audit-consumer-service** and other microservices — it is not private to this integration service.
 
 ---
 
@@ -10,7 +12,7 @@ Spring Boot 3.3.x microservice that acts as the bank's integration adapter for t
 
 - Java 21 (JDK)
 - Gradle (uses wrapper — no install needed)
-- **`1sb-persistence-service` running on port 8081** when exercising job-store / persistence HTTP calls
+- **`bank-persistence-service` running on port 8081** when exercising job-store / persistence HTTP calls
 
 ### 1. Copy and fill local secrets
 
@@ -29,7 +31,7 @@ cp src/main/resources/application-local.properties.example \
 
 ```bash
 # From workspace root — separate terminal
-./gradlew :services:1sb-persistence-service:bootRun --args='--spring.profiles.active=local'
+./gradlew :services:bank-persistence-service:bootRun --args='--spring.profiles.active=local'
 # Listens on http://localhost:8081
 ```
 
@@ -46,7 +48,7 @@ Or with the local profile automatically detected:
 SPRING_PROFILES_ACTIVE=local ./gradlew :services:1sb-integration-service:bootRun
 ```
 
-The service starts on port **8080** by default. Persistence base URL defaults to `http://localhost:8081` (`insurance.persistence.base-url` / `INSURANCE_PERSISTENCE_BASE_URL`).
+The service starts on port **8080** by default. Persistence base URL defaults to `http://localhost:8081` (`bank.persistence.base-url` / `BANK_PERSISTENCE_BASE_URL`).
 
 ### 4. Check health
 
@@ -108,7 +110,7 @@ The service **fails at startup** if any required credential is missing (except i
 
 | Property | Default | Description |
 |----------|---------|-------------|
-| `insurance.persistence.base-url` / `INSURANCE_PERSISTENCE_BASE_URL` | `http://localhost:8081` | Base URL of `1sb-persistence-service` |
+| `bank.persistence.base-url` / `BANK_PERSISTENCE_BASE_URL` | `http://localhost:8081` | Base URL of **bank-persistence-service** |
 
 `HttpJobStoreAdapter` implements `JobStorePort` and calls the persistence service's `/internal/v1` API.
 
@@ -117,7 +119,7 @@ The service **fails at startup** if any required credential is missing (except i
 | Property | Default | Description |
 |----------|---------|-------------|
 | `INSURANCE_SECRETS_SOURCE` | `PROPERTIES` | Secrets backend to use |
-| `INSURANCE_PERSISTENCE_BASE_URL` | `http://localhost:8081` | Persistence service base URL |
+| `BANK_PERSISTENCE_BASE_URL` | `http://localhost:8081` | Persistence service base URL |
 | `ONESB_BASE_URL` | `https://demo.api.1silverbullet.tech` | 1SB API base URL |
 | `ONESB_CONNECT_TIMEOUT_MS` | `3000` | 1SB HTTP connect timeout |
 | `ONESB_READ_TIMEOUT_MS` | `30000` | 1SB HTTP read timeout |
@@ -130,7 +132,7 @@ The service **fails at startup** if any required credential is missing (except i
 | `uat` | `ENV` or `AWS_SECRETS_MANAGER` | HTTP → configured base URL |
 | `prod` | `AWS_SECRETS_MANAGER` (required) | HTTP → configured base URL |
 
-This service has **no local datasource**, Flyway, or H2. Schema ownership is entirely on `1sb-persistence-service`.
+This service has **no local datasource**, Flyway, or H2. Schema ownership is entirely on **bank-persistence-service**.
 
 ---
 
@@ -140,7 +142,7 @@ The service follows hexagonal architecture (ports & adapters):
 
 ```
 api/v1 ──► application ──► domain/port/outbound ──► adapter/onesb (1SB HTTP)
-                       ──► domain/port/outbound ──► adapter/persistence (HTTP → 1sb-persistence-service)
+                       ──► domain/port/outbound ──► adapter/persistence (HTTP → bank-persistence-service)
                        ──► config wires SecretProvider from :libs:bank-common-secrets
 ```
 
@@ -152,13 +154,14 @@ Key boundaries enforced by ArchUnit:
 - No JPA (`jakarta.persistence`) or Flyway in this service
 - No class in this service may implement `com.bank.common.secrets.SecretProvider` (providers live in the lib only)
 
-See [architecture doc](../../docs/1sb-insurance-integration/architecture/1sb-integration-service-architecture.md) for full design.
+See [architecture doc](../../docs/1sb-insurance-integration/architecture/1sb-integration-service-architecture.md) for full design.  
+Platform persistence contract: [bank-persistence-service.md](../../docs/1sb-insurance-integration/architecture/bank-persistence-service.md).
 
 ---
 
 ## Database / Flyway
 
-**Not in this service.** Flyway migrations and the PostgreSQL/H2 schema live in [`1sb-persistence-service`](../1sb-persistence-service/README.md) (`src/main/resources/db/migration/`).
+**Not in this service.** Flyway migrations and the PostgreSQL/H2 schema live in [`bank-persistence-service`](../bank-persistence-service/README.md) (`src/main/resources/db/migration/`).
 
 ---
 

@@ -139,3 +139,49 @@ Second confirmation circle (senior #1–#5 already PASS in code). Hygiene + resi
 ./gradlew :services:1sb-persistence-service:test :services:1sb-integration-service:test
 # Prefer: ./gradlew build
 ```
+
+---
+
+## Agent 2 — Common persistence docs/contract (B2)
+
+Authority: [TECH-LEAD-REVIEW-COMMON-PERSISTENCE](./TECH-LEAD-REVIEW-COMMON-PERSISTENCE.md) · [REFACTOR-COMMON-PERSISTENCE](./REFACTOR-COMMON-PERSISTENCE.md)
+
+| Task | TD | Status | Notes |
+|------|----|--------|-------|
+| B2-2 Platform contract doc | TD-017, TD-020 | ✅ Done | `architecture/bank-persistence-service.md` — multi-consumer, Flyway-only, resource groups, audit-events binding |
+| B2-3 Persistence README rewrite | TD-017 | ✅ Done | Title **Bank Persistence Service**; jobs / payments / audit-events sections |
+| B2-4 SSOT / AGENTS / integration README | TD-017 | ✅ Done | Common-service language; `bank.persistence.base-url`; audit-consumer as future consumer |
+| B2-5 Flyway V1 header | TD-017 | ✅ Done | Platform/common schema owned by bank-persistence-service |
+| B2-6 Audit-consumer stub | TD-021 | ✅ Done | `architecture/audit-consumer-service.md` — HTTP only; no second audit DB |
+| B2-7 STATUS + TECH-DEBT | — | ✅ Done | TD-017, TD-020, TD-021 **Closed**; living-docs links in SSOT README |
+
+Physical module rename / packages / client keys → **Agent 3** (TD-016, TD-018, TD-019).
+
+---
+
+## Agent 3 — Common persistence rename (B3)
+
+Authority: [TECH-LEAD-REVIEW-COMMON-PERSISTENCE](./TECH-LEAD-REVIEW-COMMON-PERSISTENCE.md) · [REFACTOR-COMMON-PERSISTENCE](./REFACTOR-COMMON-PERSISTENCE.md)
+
+| Task | TD | Status | Notes |
+|------|----|--------|-------|
+| B3-1 Module rename | TD-016 | ✅ Done | `services/bank-persistence-service`; JAR + `spring.application.name` |
+| B3-2 Package move + flatten | TD-018 | ✅ Done | `com.bank.persistence` + `entity` / `repo`; `@EntityScan` / `@EnableJpaRepositories` |
+| B3-3 Client config | TD-019 | ✅ Done | `bank.persistence.base-url` / `BANK_PERSISTENCE_BASE_URL`; YAML + tests |
+| B3-4 Grep cleanup | TD-016/019 | ✅ Done | No code/build refs to `1sb-persistence-service` or `insurance.persistence.base-url` |
+| B3-5 `./gradlew build` | — | ✅ Done | BUILD SUCCESSFUL; ArchUnit still forbids JPA/Flyway in integration |
+| B3-6 TECH-DEBT + STATUS | — | ✅ Done | TD-016, TD-018, TD-019 **Closed** |
+
+### Verify (Agent 3 B3)
+
+```bash
+./gradlew build
+# or targeted:
+./gradlew :services:bank-persistence-service:test :services:1sb-integration-service:test
+```
+
+### Residual gaps
+
+- Historical docs (prior TL review / confirmation) still mention old module name — intentional audit trail.
+- WireMock E2E / poll-attempt HTTP unchanged → **TD-014**, **TD-015**.
+- Full audit-consumer Boot app not scaffolded (doc-only per TD-021) — intentional.

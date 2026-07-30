@@ -29,12 +29,12 @@ Severity: **P0** = blocks Phase 2 / multi-service reuse · **P1** = fix this spr
 | TD-013 | P3 | Stale integration README / STATUS after persistence split | Confirmation | **Closed** | Agent 2 |
 | TD-014 | P2 | WireMock / full E2E for integration ↔ persistence HTTP | Confirmation | Deferred Phase 2 | Backlog |
 | TD-015 | P2 | Poll-attempt / raw-payload HTTP ports on persistence | Confirmation | Deferred Phase 2 | Backlog |
-| TD-016 | P0 | Rename `1sb-persistence-service` → `bank-persistence-service` | Senior (common persistence) | Open → Agent 3 | Agent 3 |
-| TD-017 | P0 | Docs/ownership: persistence is platform-common, not 1SB-owned | Senior (common persistence) | Open → Agent 2 | Agent 2 |
-| TD-018 | P1 | Package `com.bank.persistence` (+ flatten entity/repo) | Senior + TL | Open → Agent 3 | Agent 3 |
-| TD-019 | P1 | Client config `bank.persistence.base-url` / `BANK_PERSISTENCE_BASE_URL` | Senior + TL | Open → Agent 3 | Agent 3 |
-| TD-020 | P1 | Multi-consumer contract (integration + audit-consumer + …) | Senior (audit consumer) | Open → Agent 2 | Agent 2 |
-| TD-021 | P2 | Document audit-consumer → persistence audit API (stub; no full service) | Senior (audit consumer) | Open → Agent 2 | Agent 2 |
+| TD-016 | P0 | Rename `1sb-persistence-service` → `bank-persistence-service` | Senior (common persistence) | **Closed** | Agent 3 |
+| TD-017 | P0 | Docs/ownership: persistence is platform-common, not 1SB-owned | Senior (common persistence) | **Closed** | Agent 2 |
+| TD-018 | P1 | Package `com.bank.persistence` (+ flatten entity/repo) | Senior + TL | **Closed** | Agent 3 |
+| TD-019 | P1 | Client config `bank.persistence.base-url` / `BANK_PERSISTENCE_BASE_URL` | Senior + TL | **Closed** | Agent 3 |
+| TD-020 | P1 | Multi-consumer contract (integration + audit-consumer + …) | Senior (audit consumer) | **Closed** | Agent 2 |
+| TD-021 | P2 | Document audit-consumer → persistence audit API (stub; no full service) | Senior (audit consumer) | **Closed** | Agent 2 |
 
 ---
 
@@ -46,6 +46,8 @@ Severity: **P0** = blocks Phase 2 / multi-service reuse · **P1** = fix this spr
 
 **DoD:** `settings.gradle.kts` includes `:services:bank-persistence-service`; `./gradlew :services:bank-persistence-service:build` works; no code/build refs to old module path.
 
+**Status:** **Closed** (2026-07-30) — Agent 3: folder/JAR/`spring.application.name` → `bank-persistence-service`.
+
 ---
 
 ## TD-017 — Platform-common ownership framing
@@ -53,6 +55,8 @@ Severity: **P0** = blocks Phase 2 / multi-service reuse · **P1** = fix this spr
 **Problem:** Docs describe persistence as the durable store *of* 1SB integration rather than a shared bank DB service.
 
 **Fix:** Rewrite SSOT/AGENTS/READMEs; Flyway header comments; state explicitly that Flyway stays only here and multiple microservices call it over HTTP.
+
+**Status:** **Closed** (2026-07-30) — Agent 2: platform contract doc, README rewrite, AGENTS/SSOT/integration framing, Flyway header.
 
 ---
 
@@ -62,6 +66,8 @@ Severity: **P0** = blocks Phase 2 / multi-service reuse · **P1** = fix this spr
 
 **Fix:** `com.bank.persistence` with `entity` / `repo` / `api.internal.v1` / `config`.
 
+**Status:** **Closed** (2026-07-30) — Agent 3: packages moved; entity/repo flattened; `@EntityScan` / `@EnableJpaRepositories` updated.
+
 ---
 
 ## TD-019 — Client config rename
@@ -69,6 +75,8 @@ Severity: **P0** = blocks Phase 2 / multi-service reuse · **P1** = fix this spr
 **Problem:** `insurance.persistence.base-url` is domain-tied; audit-consumer and other MS should use a platform key.
 
 **Fix:** `bank.persistence.base-url` + `BANK_PERSISTENCE_BASE_URL`. Update integration YAML, properties record, tests.
+
+**Status:** **Closed** (2026-07-30) — Agent 3: `PersistenceClientProperties` prefix `bank.persistence`; YAML/env/tests updated; HTTP paths unchanged.
 
 ---
 
@@ -78,6 +86,8 @@ Severity: **P0** = blocks Phase 2 / multi-service reuse · **P1** = fix this spr
 
 **Fix:** Architecture/contract doc listing consumers, auth expectations (internal network), and resource groups (jobs vs audit-events).
 
+**Status:** **Closed** (2026-07-30) — Agent 2: `architecture/bank-persistence-service.md` multi-consumer contract.
+
 ---
 
 ## TD-021 — Audit-consumer usage (doc)
@@ -85,6 +95,8 @@ Severity: **P0** = blocks Phase 2 / multi-service reuse · **P1** = fix this spr
 **Problem:** Senior requires audit-consumer to store audit via the same persistence service; no guidance doc yet.
 
 **Fix:** Short design note: audit-consumer calls `POST/GET /internal/v1/audit-events`; does **not** own Flyway or a second `audit_event` store. Full consumer service scaffold is Phase 2+ / separate story.
+
+**Status:** **Closed** (2026-07-30) — Agent 2: `architecture/audit-consumer-service.md` stub (doc-only; no Boot app).
 
 ---
 
@@ -222,6 +234,12 @@ Track only; do not block this refactor PR. TD-006 remains Phase 2 (real AWS SM).
 | TD-011 | 2026-07-30 | Integration stripped of data-jpa / Flyway / drivers / `db/migration`; ArchUnit forbids JPA+Flyway imports |
 | TD-012 | 2026-07-30 | Convention documented in `libs/README.md` and this log |
 | TD-013 | 2026-07-30 | Agent 2 aligned integration README + STATUS with post-split reality |
+| TD-017 | 2026-07-30 | Platform-common framing: contract doc, READMEs, AGENTS, Flyway header |
+| TD-016 | 2026-07-30 | Module/JAR/app name → `bank-persistence-service` |
+| TD-018 | 2026-07-30 | Packages → `com.bank.persistence`; entity/repo flattened |
+| TD-019 | 2026-07-30 | Client config → `bank.persistence.base-url` / `BANK_PERSISTENCE_BASE_URL` |
+| TD-020 | 2026-07-30 | Multi-consumer contract in `architecture/bank-persistence-service.md` |
+| TD-021 | 2026-07-30 | Audit-consumer stub doc; persists via `/internal/v1/audit-events` only |
 
 ---
 
@@ -235,3 +253,5 @@ Track only; do not block this refactor PR. TD-006 remains Phase 2 (real AWS SM).
 | 2026-07-30 | Confirmation circle #2: docs/ArchUnit hygiene; HttpJobStoreAdapterTest; TL pass closed vs senior #1–#5 |
 | 2026-07-30 | Agent 3 confirmation: TD-013 Closed (Agent 2 docs); TD-014/015 Deferred Phase 2; MockRestServiceServer JobStore test |
 | 2026-07-30 | Senior: persistence is platform-common (not 1SB-owned); audit-consumer shares it — opened TD-016…021 |
+| 2026-07-30 | Agent 2 closed TD-017, TD-020, TD-021 (platform contract + audit-consumer stub + framing) |
+| 2026-07-30 | Agent 3 closed TD-016, TD-018, TD-019 (module rename + packages + client config) |

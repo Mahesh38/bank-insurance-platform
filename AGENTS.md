@@ -10,7 +10,7 @@ Multi-module Gradle (Kotlin DSL) monorepo for the **1SB insurance platform**:
 - Shared libs under `libs/`
 - Services under `services/`:
   - `1sb-integration-service` (port **8080**) — bank-facing 1SB adapter; no local DB
-  - `1sb-persistence-service` (port **8081**) — owns Flyway schema + JPA; internal HTTP only
+  - `bank-persistence-service` (port **8081**) — **platform common** persistence (Flyway + JPA + `/internal/v1`); consumers include integration and future audit-consumer
 
 ## Cursor Cloud specific instructions
 
@@ -18,9 +18,10 @@ Multi-module Gradle (Kotlin DSL) monorepo for the **1SB insurance platform**:
 
 | Service | Required? | Notes |
 |---------|-----------|-------|
-| `1sb-integration-service` | Yes (Phase 1+) | Boot app; profiles `local` / `test` / `uat` / `prod`. No datasource — job store via HTTP to persistence. |
-| `1sb-persistence-service` | Yes (for local job-store calls) | Boot app on **8081**; owns DB. Local/test use **H2** (`MODE=PostgreSQL`); uat/prod use PostgreSQL. |
-| PostgreSQL / H2 | Persistence service only | Integration service never embeds a DB. |
+| `1sb-integration-service` | Yes (Phase 1+) | Boot app; profiles `local` / `test` / `uat` / `prod`. No datasource — job store via HTTP to bank-persistence. |
+| `bank-persistence-service` | Yes (for local job-store / audit HTTP) | Boot app on **8081**; owns DB for all consumers. Local/test use **H2** (`MODE=PostgreSQL`); uat/prod use PostgreSQL. |
+| `audit-consumer-service` | Future | Doc stub only; will call `POST`/`GET` `/internal/v1/audit-events` on bank-persistence — no second audit DB. |
+| PostgreSQL / H2 | Persistence service only | Consumers never embed a DB for these tables. |
 
 ### System tooling (VM)
 
@@ -36,10 +37,10 @@ Docker is not required for unit tests.
 ./gradlew test
 
 # Local: start persistence first (8081), then integration (8080)
-./gradlew :services:1sb-persistence-service:bootRun --args='--spring.profiles.active=local'
+./gradlew :services:bank-persistence-service:bootRun --args='--spring.profiles.active=local'
 ./gradlew :services:1sb-integration-service:bootRun --args='--spring.profiles.active=local'
 # Integration job-store calls need persistence on http://localhost:8081
-# (override with INSURANCE_PERSISTENCE_BASE_URL / insurance.persistence.base-url)
+# (override with BANK_PERSISTENCE_BASE_URL / bank.persistence.base-url)
 ```
 
 Targeted shared-lib verification:

@@ -1,8 +1,9 @@
 # Test Backlog — QA Lead
 
-**Status:** Open  
+**Status:** Baseline **closed** (QA-001…003, QA-006 dual-approved). Remaining: QA-004+  
 **Strategy:** [QA-LEAD-TESTING-STRATEGY.md](./QA-LEAD-TESTING-STRATEGY.md)  
-**Rules:** [TESTING-RULES.md](./TESTING-RULES.md)
+**Rules:** [TESTING-RULES.md](./TESTING-RULES.md)  
+**Review log:** [QA-REVIEW-LOG.md](./QA-REVIEW-LOG.md)
 
 Priority: **P0** before Phase 3 functional exit · **P1** hardening · **P2** nice-to-have
 

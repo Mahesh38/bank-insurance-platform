@@ -8,7 +8,9 @@ Multi-module Gradle (Kotlin DSL) monorepo for the **1SB insurance platform**:
 
 - **Java 21** / **Spring Boot 3.3.4**
 - Shared libs under `libs/`
-- Services under `services/` (`1sb-integration-service`; persistence service added in Phase 1 remediation)
+- Services under `services/`:
+  - `1sb-integration-service` (port **8080**) — bank-facing 1SB adapter; no local DB
+  - `1sb-persistence-service` (port **8081**) — owns Flyway schema + JPA; internal HTTP only
 
 ## Cursor Cloud specific instructions
 
@@ -16,8 +18,9 @@ Multi-module Gradle (Kotlin DSL) monorepo for the **1SB insurance platform**:
 
 | Service | Required? | Notes |
 |---------|-----------|-------|
-| `1sb-integration-service` | Yes (Phase 1+) | Boot app; profile `local` / `test` / `uat` / `prod` |
-| PostgreSQL / H2 | Profile-dependent | Local/test use H2; uat+prod use PostgreSQL (persistence ownership evolving — see TECH-DEBT) |
+| `1sb-integration-service` | Yes (Phase 1+) | Boot app; profiles `local` / `test` / `uat` / `prod`. No datasource — job store via HTTP to persistence. |
+| `1sb-persistence-service` | Yes (for local job-store calls) | Boot app on **8081**; owns DB. Local/test use **H2** (`MODE=PostgreSQL`); uat/prod use PostgreSQL. |
+| PostgreSQL / H2 | Persistence service only | Integration service never embeds a DB. |
 
 ### System tooling (VM)
 
@@ -31,7 +34,12 @@ Docker is not required for unit tests.
 
 ```bash
 ./gradlew test
+
+# Local: start persistence first (8081), then integration (8080)
+./gradlew :services:1sb-persistence-service:bootRun --args='--spring.profiles.active=local'
 ./gradlew :services:1sb-integration-service:bootRun --args='--spring.profiles.active=local'
+# Integration job-store calls need persistence on http://localhost:8081
+# (override with INSURANCE_PERSISTENCE_BASE_URL / insurance.persistence.base-url)
 ```
 
 Targeted shared-lib verification:

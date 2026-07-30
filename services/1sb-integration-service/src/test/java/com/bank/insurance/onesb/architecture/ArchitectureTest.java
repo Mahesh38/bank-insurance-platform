@@ -1,5 +1,6 @@
 package com.bank.insurance.onesb.architecture;
 
+import com.bank.common.secrets.SecretProvider;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
@@ -114,7 +115,8 @@ class ArchitectureTest {
     }
 
     /**
-     * LOB handlers may only import from domain and adapter.onesb.client — not from other adapters.
+     * LOB handlers must not import the persistence HTTP adapter.
+     * They interact via domain ports only (JobStorePort, etc.).
      */
     @Test
     void lobHandlersMustNotImportPersistenceOrSecretAdapters() {
@@ -122,11 +124,36 @@ class ArchitectureTest {
                 .that().resideInAPackage("..lob..")
                 .should().dependOnClassesThat()
                 .resideInAPackage("..adapter.persistence..")
-                .orShould().dependOnClassesThat()
-                .resideInAPackage("..adapter.secret..")
                 .allowEmptyShould(true)
                 .as("LOB handlers interact via domain ports only; "
-                        + "they must not directly import persistence or secret adapters");
+                        + "they must not directly import the persistence HTTP adapter");
+
+        rule.check(importedClasses);
+    }
+
+    /**
+     * SecretProvider implementations live only in :libs:bank-common-secrets.
+     * The integration service may inject/wire SecretProvider but must not implement it.
+     */
+    @Test
+    void mustNotImplementSecretProvider() {
+        ArchRule rule = noClasses()
+                .that().resideInAPackage(BASE_PACKAGE + "..")
+                .should().implement(SecretProvider.class)
+                .as("SecretProvider implementations belong in bank-common-secrets, not the integration service");
+
+        rule.check(importedClasses);
+    }
+
+    /**
+     * adapter.secret package was removed (TD-002); providers live in the shared lib.
+     */
+    @Test
+    void mustNotResideInAdapterSecretPackage() {
+        ArchRule rule = noClasses()
+                .that().resideInAPackage(BASE_PACKAGE + "..")
+                .should().resideInAPackage("..adapter.secret..")
+                .as("No classes may reside in adapter.secret; use com.bank.common.secrets");
 
         rule.check(importedClasses);
     }

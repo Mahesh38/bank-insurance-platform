@@ -1,5 +1,9 @@
 # Phase 1 — Status
 
+> **Phase 1 foundations delivered.** Remediations applied per [TECH-LEAD-REVIEW](./TECH-LEAD-REVIEW.md): Lombok on shared builders, secrets extracted to `:libs:bank-common-secrets`, persistence split into `1sb-persistence-service` (Flyway/JPA/H2) with HTTP `JobStorePort` on the integration service. Historical Dev A/B sections below are retained for audit trail; **TECH-002** and **TECH-003** outcomes are **superseded** by the remediation (secrets → lib; Flyway → persistence service).
+
+---
+
 ## Dev A (Shared Libraries)
 
 | Task | Status | Notes |
@@ -16,16 +20,16 @@
 | Task | Status | Notes |
 |------|--------|-------|
 | TECH-001 Service scaffold | ✅ Done | Spring Boot 3.3.4, Java 21, Gradle Kotlin DSL multi-project. Full package skeleton per architecture §3. `./gradlew build` passes. |
-| TECH-001 ArchUnit | ✅ Done | 7 rules enforcing hex-arch boundaries. Empty-package-tolerant (`allowEmptyShould(true)`) for Phase 1 scaffold. |
-| TECH-001 `/actuator/health` | ✅ Done | Actuator enabled; `liveness` + `readiness` probes configured. |
-| TECH-001 Profile stubs | ✅ Done | `application.yml` + `application-local.yml` (H2) + `application-uat.yml` + `application-prod.yml`. |
-| TECH-002 `SecretProvider` | ✅ Done | Interface + `PropertiesSecretProvider` + `EnvSecretProvider` + `AwsSecretsManagerSecretProvider` (stub). Factory config reading `insurance.secrets.source`. |
+| TECH-001 ArchUnit | ✅ Done | Hex-arch boundary rules (+ post-remediation JPA/Flyway forbid, no local `SecretProvider` impl). Empty-package-tolerant (`allowEmptyShould(true)`) where scaffold packages are empty. |
+| TECH-001 `/actuator/health` | ✅ Done | Actuator enabled; `liveness` + `readiness` probes configured. No embedded `db` health (no datasource on integration). |
+| TECH-001 Profile stubs | ✅ Done | `application.yml` + `application-local.yml` + `application-uat.yml` + `application-prod.yml` (no H2/datasource on integration after remediation). |
+| TECH-002 `SecretProvider` | ✅ Done — **superseded** | Originally in `adapter/secret`. **Superseded:** providers live in `:libs:bank-common-secrets`; integration only wires via `config/*`. |
 | TECH-002 Fail-fast validator | ✅ Done | `SecretsStartupValidator` (`ApplicationRunner`, order 1) checks api-key/secret/distributor-id at startup. Skips in `test` profile. |
 | TECH-002 Example configs | ✅ Done | `application-local.properties.example` with placeholder keys. Mapped to `config/onesb/secrets-source.example.yaml` patterns. |
-| TECH-003 Flyway migrations | ✅ Done | `V1__init_schema.sql` creates all 6 tables: `integration_job`, `integration_job_offer`, `job_poll_attempt`, `raw_payload`, `audit_event`, `payment_session`. |
-| TECH-003 H2 test compatibility | ✅ Done | Uses `TIMESTAMP WITH TIME ZONE` (not `TIMESTAMPTZ`), H2 `MODE=PostgreSQL`. Documented. |
+| TECH-003 Flyway migrations | ✅ Done — **superseded** | Originally on integration. **Superseded:** `V1__init_schema.sql` and schema ownership moved to `1sb-persistence-service`. |
+| TECH-003 H2 test compatibility | ✅ Done — **superseded** | H2 `MODE=PostgreSQL` now applies on the **persistence** service only. |
 
-### Package skeleton delivered
+### Package skeleton delivered (post-remediation)
 
 ```
 com.bank.insurance.onesb/
@@ -39,18 +43,20 @@ com.bank.insurance.onesb/
 ├── lob/life/saving/       package-info (Phase 2)
 ├── lob/life/term/         package-info (Phase 2)
 ├── adapter/onesb/client,polling,error,config   package-infos
-├── adapter/persistence/   package-info
-├── adapter/secret/        SecretProvider, PropertiesSecretProvider, EnvSecretProvider,
-│                          AwsSecretsManagerSecretProvider, SecretUnavailableException
-├── config/                SecretsProperties, SecretProviderConfig, SecretsStartupValidator
+├── adapter/persistence/   HttpJobStoreAdapter (+ DTOs) — HTTP client to 1sb-persistence-service
+├── config/                SecretsProperties, SecretProviderConfig, SecretsStartupValidator,
+│                          PersistenceClientProperties (wires lib SecretProvider + persistence URL)
 └── observability/         package-info
+
+Secrets providers (SecretProvider, Properties/Env/Aws implementations):
+  → :libs:bank-common-secrets (com.bank.common.secrets) — not under adapter/secret
 ```
 
 ### Build output
 
 - `./gradlew build` — **PASS** (all modules)
 - `./gradlew :services:1sb-integration-service:build` — **PASS**
-- 16 tests executed: 6 ArchUnit + 4 SecretProvider unit + 1 context load + 5 observability MDC
+- ArchUnit + context load on integration; secrets unit tests on `:libs:bank-common-secrets`; persistence service has its own tests
 
 ---
 
@@ -59,9 +65,9 @@ com.bank.insurance.onesb/
 | Criterion | Status |
 |-----------|--------|
 | `./gradlew build` succeeds | ✅ |
-| Service boots; `/actuator/health` UP (H2) | ✅ (context load test verified) |
-| Flyway migrations for §9 tables | ✅ |
-| Shared libs have unit tests | ✅ |
+| Service boots; `/actuator/health` UP | ✅ (context load test verified; no embedded `db` on integration) |
+| Flyway migrations for §9 tables | ✅ (owned by `1sb-persistence-service`; met via persistence split) |
+| Shared libs have unit tests | ✅ (includes `bank-common-secrets`) |
 | Phase 1 status doc updated | ✅ |
 
 ---
@@ -108,6 +114,28 @@ com.bank.insurance.onesb/
 
 ### Residual gaps
 
-- No WireMock contract test for `HttpJobStoreAdapter` yet (context load + ArchUnit only).
-- Poll-attempt / raw-payload HTTP endpoints not exposed (entities/repos only).
-- Payment/audit ports on integration not wired (JobStorePort only).
+- WireMock / full E2E deferred → **TD-014** (MockRestServiceServer covers create + find).
+- Poll-attempt / raw-payload HTTP → **TD-015**.
+- Payment/audit ports on integration not wired (JobStorePort only) → **TD-009**.
+
+---
+
+## Agent 3 — confirmation pass
+
+Second confirmation circle (senior #1–#5 already PASS in code). Hygiene + residual tracking only.
+
+| Check | Result | Notes |
+|-------|--------|-------|
+| No `db/migration` under integration | ✅ | Flyway only under `1sb-persistence-service` |
+| No empty `adapter/persistence/entity` or `jpa` | ✅ | HTTP adapter + `dto` only |
+| Empty `adapter/secret` dirs | ✅ | Removed (`rmdir`); no `.gitkeep` |
+| `HttpJobStoreAdapter` unit test | ✅ | `MockRestServiceServer`: `createJob` + `findQuoteJob` |
+| Persistence README endpoints / Flyway / :8081 | ✅ | All `/internal/v1` routes listed; Flyway ownership noted |
+| TD-013 / TD-014 / TD-015 | ✅ | TD-013 Deferred (Agent 2 docs); TD-014/015 Deferred Phase 2 |
+
+### Verify (confirmation)
+
+```bash
+./gradlew :services:1sb-persistence-service:test :services:1sb-integration-service:test
+# Prefer: ./gradlew build
+```

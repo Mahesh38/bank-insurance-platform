@@ -28,7 +28,7 @@ Each phase has: **owner focus**, **exit criteria**, **parallelizable work**, and
 
 | # | Action | Owner | Exit criteria |
 |---|--------|-------|---------------|
-| 0.1 | Confirm 1SB sandbox URL, API key/secret, `distributorId`, IP whitelist | Platform / 1SB RM | Credentials in vault path; sandbox curl works from bank egress |
+| 0.1 | Confirm 1SB sandbox URL, API key/secret, `distributorId`, IP whitelist — see **[phase-0/CONFIRM-01-onesb-access.md](./phase-0/CONFIRM-01-onesb-access.md)** | Platform / 1SB RM | Credentials in vault path; sandbox curl works from bank egress |
 | 0.2 | Confirm Term products/insurers enabled for distributor | Product + 1SB | At least one Term product quotable in sandbox |
 | 0.3 | Align bank→service auth (JWT claims / mTLS) | Security + Architect | Auth approach written in runbook; sample token available |
 | 0.4 | Kickoff: walk SSOT (decisions, backlog order, DRY/KISS) | Tech lead | Team agrees Case 2 + Term-first; no open design blockers |
@@ -178,8 +178,8 @@ Happy-path **Term** journey works against **1SB sandbox** with audit events for 
 
 ## Immediate next 10 actions (start tomorrow)
 
-1. Obtain sandbox credentials + whitelist confirmation  
-2. Create vault entries + local `.env.example` without secrets  
+1. Obtain sandbox credentials + whitelist confirmation — work through [phase-0/CONFIRM-01-onesb-access.md](./phase-0/CONFIRM-01-onesb-access.md)  
+2. Create vault entries + local `.env.example` without secrets — template at [`config/onesb/.env.example`](../../../config/onesb/.env.example) ✅  
 3. Stand up repo module structure (service + common libs)  
 4. SHARED-001 error model + TECH-001 scaffold  
 5. TECH-002 secrets + TECH-003 Flyway  

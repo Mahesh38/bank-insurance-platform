@@ -70,7 +70,7 @@ class OneSbHttpClientTest {
                 .defaultHeaders(h -> h.setBasicAuth(secrets.getApiKey(), secrets.getApiSecret()))
                 .build();
 
-        client = new OneSbHttpClient(restClient);
+        client = new OneSbHttpClient(restClient, new com.bank.insurance.onesb.adapter.onesb.error.OneSbErrorNormaliser());
     }
 
     @Test

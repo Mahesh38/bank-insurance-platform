@@ -1,8 +1,7 @@
 package com.bank.insurance.onesb.adapter.onesb.client;
 
-import com.bank.common.error.ErrorCodes;
-import com.bank.common.error.ServiceErrorResponse;
 import com.bank.common.error.ServiceException;
+import com.bank.insurance.onesb.adapter.onesb.error.OneSbErrorNormaliser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -25,9 +24,19 @@ public class OneSbHttpClient {
     private static final Logger log = LoggerFactory.getLogger(OneSbHttpClient.class);
 
     private final RestClient restClient;
+    private final OneSbErrorNormaliser errorNormaliser;
 
-    public OneSbHttpClient(@Qualifier("oneSbRestClient") RestClient oneSbRestClient) {
+    @org.springframework.beans.factory.annotation.Autowired
+    public OneSbHttpClient(
+            @Qualifier("oneSbRestClient") RestClient oneSbRestClient,
+            OneSbErrorNormaliser errorNormaliser) {
         this.restClient = oneSbRestClient;
+        this.errorNormaliser = errorNormaliser;
+    }
+
+    /** Convenience for tests / temporary poll adapters. */
+    public OneSbHttpClient(RestClient oneSbRestClient) {
+        this(oneSbRestClient, new OneSbErrorNormaliser());
     }
 
     public <T> T get(String path, Class<T> responseType) {
@@ -48,47 +57,23 @@ public class OneSbHttpClient {
             return spec.retrieve()
                     .onStatus(status -> status.value() == 401, (request, response) -> {
                         // Explicit: never retry 401
-                        throw ServiceException.upstreamAuth("1SB returned 401 Unauthorized");
+                        throw errorNormaliser.normalise(401, readBody(response));
                     })
                     .onStatus(status -> status.isError(), (request, response) -> {
-                        throw mapHttpError(response.getStatusCode().value(), readBody(response));
+                        throw errorNormaliser.normalise(
+                                response.getStatusCode().value(), readBody(response));
                     })
                     .body(responseType);
         } catch (ServiceException ex) {
             throw ex;
         } catch (RestClientResponseException ex) {
-            if (ex.getStatusCode().value() == 401) {
-                throw ServiceException.upstreamAuth("1SB returned 401 Unauthorized");
-            }
-            throw mapHttpError(ex.getStatusCode().value(), ex.getResponseBodyAsString());
+            throw errorNormaliser.normalise(ex.getStatusCode().value(), ex.getResponseBodyAsString());
         } catch (Exception ex) {
             if (ex.getCause() instanceof ServiceException se) {
                 throw se;
             }
             throw ServiceException.upstreamUnavailable("1SB call failed: " + method + " " + path, ex);
         }
-    }
-
-    private static ServiceException mapHttpError(int status, String responseBody) {
-        if (status == 401) {
-            return ServiceException.upstreamAuth("1SB returned 401 Unauthorized");
-        }
-        if (status >= 500) {
-            return ServiceException.upstreamUnavailable(
-                    "1SB returned " + status, null);
-        }
-        if (status >= 400) {
-            return ServiceException.upstreamBusiness(
-                    "1SB returned " + status,
-                    null);
-        }
-        return new ServiceException(ServiceErrorResponse.builder()
-                .title("Upstream Bad Response")
-                .status(502)
-                .detail("Unexpected 1SB status " + status)
-                .code(ErrorCodes.UPSTREAM_BAD_RESPONSE)
-                .retryable(false)
-                .build());
     }
 
     private static String readBody(org.springframework.http.client.ClientHttpResponse response) {

@@ -1,6 +1,8 @@
 package com.bank.insurance.onesb.adapter.onesb.config;
 
 import com.bank.common.secrets.SecretProvider;
+import com.bank.insurance.onesb.adapter.onesb.error.OneSbErrorNormaliser;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,6 +18,11 @@ import java.time.Duration;
 @Configuration
 @EnableConfigurationProperties(OneSbClientProperties.class)
 public class OneSbClientConfig {
+
+    @Bean
+    OneSbErrorNormaliser oneSbErrorNormaliser(ObjectMapper objectMapper) {
+        return new OneSbErrorNormaliser(objectMapper);
+    }
 
     @Bean
     RestClient oneSbRestClient(OneSbClientProperties properties, SecretProvider secretProvider) {

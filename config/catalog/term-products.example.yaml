@@ -1,0 +1,90 @@
+# ============================================================
+# Term Life Product Catalog — EXAMPLE / PLACEHOLDER
+# ============================================================
+# Copy to term-products.yaml (gitignored for real values).
+# This file drives the allow-list of Term products the service
+# will route to 1SB.  No code change required to add/remove a
+# product — only a config reload (restart or live-refresh if
+# Spring Cloud Config / Consul is wired).
+#
+# Loading:
+#   Spring Boot binds this via @ConfigurationProperties
+#   prefix="insurance.catalog.term"
+#   Class: TermProductCatalogProperties
+#   Validated at startup — service refuses to start if
+#   enabled=true and either manufacturerId or productCode is blank.
+#
+# Replaceability note:
+#   If the upstream provider changes from 1SB, update the
+#   provider-specific fields (manufacturerId, productCode) here
+#   without touching application logic.  The catalog is the
+#   ONLY place these IDs live.
+# ============================================================
+
+insurance:
+  catalog:
+    term:
+      # -------------------------------------------------------
+      # Global distributor context
+      # distributor-id is loaded from SECRETS, not here.
+      # Do NOT put a real distributorId in this file.
+      # -------------------------------------------------------
+
+      # LOB kill-switch.  Set false to disable all Term routing
+      # without removing entries below.
+      enabled: true
+
+      products:
+
+        # -------------------------------------------------------
+        # Entry format
+        # -------------------------------------------------------
+        # - manufacturer-id:  <string>   Insurer code from 1SB master
+        #   product-code:     <string>   Product code from 1SB master
+        #   product-name:     <string>   Human-readable label (for logs/UI)
+        #   enabled:          true|false Per-product kill-switch
+        #   lob:              TERM        Must be TERM for this catalog
+        #   sandbox-only:     true|false  true = never route in production
+        #   notes:            <string>   Confirm status, owner, caveats
+        # -------------------------------------------------------
+
+        - manufacturer-id: "INSURER_A_ID"          # PLACEHOLDER — confirm with 1SB RM
+          product-code:    "TERM_PRODUCT_CODE_1"    # PLACEHOLDER — confirm with 1SB RM
+          product-name:    "Term Plan Alpha"        # PLACEHOLDER — confirm with Product
+          enabled:         false                    # PENDING CONFIRMATION — flip to true once sandbox-verified
+          lob:             TERM
+          sandbox-only:    true
+          notes: >
+            Pending: Product team to confirm manufacturerId and productCode with 1SB RM.
+            Owner: @product-owner.  Target: Sprint 1.
+
+        - manufacturer-id: "INSURER_B_ID"          # PLACEHOLDER
+          product-code:    "TERM_PRODUCT_CODE_2"   # PLACEHOLDER
+          product-name:    "Term Plan Beta"         # PLACEHOLDER
+          enabled:         false                    # PENDING CONFIRMATION
+          lob:             TERM
+          sandbox-only:    true
+          notes: >
+            Pending: Same as above.  Second insurer; confirm if distributor agreement covers this product.
+
+        # -------------------------------------------------------
+        # Template for additional products — copy/paste block
+        # -------------------------------------------------------
+        # - manufacturer-id: "REPLACE_ME"
+        #   product-code:    "REPLACE_ME"
+        #   product-name:    "Descriptive Name"
+        #   enabled:         false
+        #   lob:             TERM
+        #   sandbox-only:    true
+        #   notes: "Pending confirmation"
+        # -------------------------------------------------------
+
+      # -------------------------------------------------------
+      # Validation rules (applied by TermProductCatalogValidator)
+      # -------------------------------------------------------
+      validation:
+        # Reject startup if no enabled product exists when lob is enabled
+        require-at-least-one-enabled: true
+        # Reject startup if sandbox-only=false product in non-prod profile
+        # (safety: prevents accidental prod routing of sandbox products)
+        enforce-sandbox-only-in-prod: true

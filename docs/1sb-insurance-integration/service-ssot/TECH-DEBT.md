@@ -50,11 +50,24 @@ Severity: **P0** = blocks Phase 2 / multi-service reuse · **P1** = fix this spr
 - Minimal unit tests added for `EnvSecretProvider` and other lib gaps to meet the gate.
 - Docs: [COVERAGE.md](./COVERAGE.md), AGENTS.md run command.
 
-**Residual (interim):** Services gated at **line ≥ 35%** only (no branch gate). Package-specific adapter/api floors from strategy §7 land with **QA-002** (persistence API) and **QA-003** (IT template). Mark **Closed** when service package rules match strategy or interim is explicitly retired by QA Lead.
+**Residual (interim):** Services gated at **line ≥ 50%** only (no branch gate) — raised from 35% in **QA-002** after persistence API coverage (~96% line). Package-specific adapter/api floors from strategy §7 land with **QA-003** (IT template) / remaining package rules. Mark **Closed** when service package rules match strategy or interim is explicitly retired by QA Lead.
 
-**Expiry (R7):** Revisit / retire interim service floor by **2026-08-30** or when QA-002+QA-003 close — whichever first. TL + QA Lead co-approved wiring **2026-07-30**.
+**Expiry (R7):** Revisit / retire interim service floor by **2026-08-30** or when QA-003 closes — whichever first. TL + QA Lead co-approved wiring **2026-07-30**.
 
 **Status:** **Partial**
+
+---
+
+## QA-002 — Persistence API tests (Done)
+
+**Problem:** Persistence module had only poll-attempt API coverage; jobs/offers/payments/audit/`GlobalExceptionHandler` untested.
+
+**Done (2026-07-30):**
+- `JobApiTest`, `PaymentSessionApiTest`, `AuditEventApiTest` (+ extended `JobPollAttemptApiTest`) via `@SpringBootTest` + MockMvc.
+- Assert `ErrorCodes.RESOURCE_NOT_FOUND` on NotFound paths (R5).
+- Measured persistence **~96% line**; monorepo services interim floor **35% → 50%** (see [COVERAGE.md](./COVERAGE.md)).
+
+**Status:** **Done**
 
 ---
 
@@ -279,3 +292,4 @@ Track only; do not block this refactor PR. TD-006 remains Phase 2 (real AWS SM).
 | 2026-07-30 | Agent 3 closed TD-016, TD-018, TD-019 (module rename + packages + client config) |
 | 2026-07-30 | Confirmation circle #2 closed docs hygiene for common-persistence (STATUS banner + TL §7 exit criteria) |
 | 2026-07-30 | QA-001 Partial: JaCoCo reports + libs 80%/70% gates; services interim 35% line (see COVERAGE.md) |
+| 2026-07-30 | QA-002 Done: persistence API tests (jobs/offers/payments/audit); services interim 35%→50% line |

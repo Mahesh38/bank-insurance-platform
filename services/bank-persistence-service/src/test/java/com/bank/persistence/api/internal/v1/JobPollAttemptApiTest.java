@@ -4,6 +4,7 @@ import com.bank.common.error.ErrorCodes;
 import com.bank.persistence.repo.JobPollAttemptRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -14,12 +15,14 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.time.Instant;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -29,6 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@Tag("integration")
 class JobPollAttemptApiTest {
 
     @Autowired
@@ -99,6 +103,14 @@ class JobPollAttemptApiTest {
                                 }
                                 """))
                 .andExpect(status().isNotFound())
+                .andExpect(content().contentTypeCompatibleWith("application/problem+json"))
+                .andExpect(jsonPath("$.code", is(ErrorCodes.RESOURCE_NOT_FOUND)));
+    }
+
+    @Test
+    void listPollAttempts_missingJob_returns404() throws Exception {
+        mockMvc.perform(get("/internal/v1/jobs/{jobId}/poll-attempts", "missing-job-list"))
+                .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code", is(ErrorCodes.RESOURCE_NOT_FOUND)));
     }
 
@@ -110,10 +122,10 @@ class JobPollAttemptApiTest {
                                   "lob": "TERM",
                                   "jobType": "QUOTE",
                                   "journeyId": "journey-1",
-                                  "idempotencyKey": "idem-poll-1",
+                                  "idempotencyKey": "idem-poll-%s",
                                   "createdByActor": "test"
                                 }
-                                """))
+                                """.formatted(UUID.randomUUID())))
                 .andExpect(status().isCreated())
                 .andReturn();
         return objectMapper.readTree(result.getResponse().getContentAsString()).get("jobId").asText();

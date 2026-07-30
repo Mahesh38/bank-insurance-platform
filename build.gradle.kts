@@ -85,13 +85,13 @@ subprojects {
 
         val isLib = project.path.startsWith(":libs:")
         // Libs: strategy §7 (80% line / 70% branch).
-        // Services: interim floor only (QA-001) — package gates tighten in QA-002/003.
+        // Services: raised interim floor (QA-002) — package gates still pending QA-003.
         violationRules {
             rule {
                 limit {
                     counter = "LINE"
                     value = "COVEREDRATIO"
-                    minimum = if (isLib) "0.80".toBigDecimal() else "0.35".toBigDecimal()
+                    minimum = if (isLib) "0.80".toBigDecimal() else "0.50".toBigDecimal()
                 }
                 if (isLib) {
                     limit {

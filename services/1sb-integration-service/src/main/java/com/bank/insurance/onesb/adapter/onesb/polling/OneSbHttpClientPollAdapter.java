@@ -7,8 +7,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 /**
  * {@link OneSbPollPort} backed by Dev A's {@link OneSbHttpClient}.
+ * Generic path poll — offers list is always empty (quote offers via {@code OneSbQuotePort}).
  */
 @Component
 public class OneSbHttpClientPollAdapter implements OneSbPollPort {
@@ -25,9 +28,9 @@ public class OneSbHttpClientPollAdapter implements OneSbPollPort {
     public PollResult poll(String path) {
         try {
             String body = httpClient.get(path, String.class);
-            return PollResult.of(parseComplete(body), 200);
+            return PollResult.of(parseComplete(body), 200, List.of());
         } catch (ServiceException ex) {
-            return new PollResult(false, ex.getHttpStatus(), ex.getMessage());
+            return new PollResult(false, ex.getHttpStatus(), ex.getMessage(), List.of());
         } catch (Exception ex) {
             return PollResult.transportError(ex.getMessage());
         }

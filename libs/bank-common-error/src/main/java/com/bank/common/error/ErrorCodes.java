@@ -13,6 +13,7 @@ public final class ErrorCodes {
     public static final String INVALID_REQUEST        = "INVALID_REQUEST";
     public static final String MISSING_REQUIRED_FIELD = "MISSING_REQUIRED_FIELD";
     public static final String MISSING_IDEMPOTENCY_KEY = "MISSING_IDEMPOTENCY_KEY";
+    public static final String UNSUPPORTED_LOB        = "UNSUPPORTED_LOB";
 
     // --- Upstream / downstream partner errors ---
     public static final String UPSTREAM_BUSINESS_ERROR  = "UPSTREAM_BUSINESS_ERROR";
@@ -20,6 +21,9 @@ public final class ErrorCodes {
     public static final String UPSTREAM_UNAVAILABLE     = "UPSTREAM_UNAVAILABLE";
     public static final String UPSTREAM_TIMEOUT         = "UPSTREAM_TIMEOUT";
     public static final String UPSTREAM_BAD_RESPONSE    = "UPSTREAM_BAD_RESPONSE";
+
+    // --- Quote / job lifecycle ---
+    public static final String QUOTE_TIMEOUT         = "QUOTE_TIMEOUT";
 
     // --- Resource / entity ---
     public static final String RESOURCE_NOT_FOUND    = "RESOURCE_NOT_FOUND";

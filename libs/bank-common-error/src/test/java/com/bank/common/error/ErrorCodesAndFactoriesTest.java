@@ -13,6 +13,8 @@ class ErrorCodesAndFactoriesTest {
     void errorCodes_areStableContractValues() {
         assertThat(ErrorCodes.VALIDATION_ERROR).isEqualTo("VALIDATION_ERROR");
         assertThat(ErrorCodes.MISSING_IDEMPOTENCY_KEY).isEqualTo("MISSING_IDEMPOTENCY_KEY");
+        assertThat(ErrorCodes.UNSUPPORTED_LOB).isEqualTo("UNSUPPORTED_LOB");
+        assertThat(ErrorCodes.QUOTE_TIMEOUT).isEqualTo("QUOTE_TIMEOUT");
         assertThat(ErrorCodes.UPSTREAM_TIMEOUT).isEqualTo("UPSTREAM_TIMEOUT");
         assertThat(ErrorCodes.IDEMPOTENCY_CONFLICT).isEqualTo("IDEMPOTENCY_CONFLICT");
         assertThat(ErrorCodes.INTERNAL_ERROR).isEqualTo("INTERNAL_ERROR");

@@ -2,8 +2,9 @@
 
 **Owner:** Tech Lead  
 **Branch:** `cursor/phase1-foundations-c259`  
-**Last reviewed:** 2026-07-30  
-**Source:** Senior engineer review + Phase 1 code review
+**Last reviewed:** 2026-07-30 (common-persistence ownership pass)  
+**Source:** Senior engineer review + Phase 1 code review  
+**Related:** [phase-1/TECH-LEAD-REVIEW-COMMON-PERSISTENCE.md](./phase-1/TECH-LEAD-REVIEW-COMMON-PERSISTENCE.md)
 
 Severity: **P0** = blocks Phase 2 / multi-service reuse · **P1** = fix this sprint · **P2** = track before prod · **P3** = hygiene
 
@@ -28,6 +29,62 @@ Severity: **P0** = blocks Phase 2 / multi-service reuse · **P1** = fix this spr
 | TD-013 | P3 | Stale integration README / STATUS after persistence split | Confirmation | **Closed** | Agent 2 |
 | TD-014 | P2 | WireMock / full E2E for integration ↔ persistence HTTP | Confirmation | Deferred Phase 2 | Backlog |
 | TD-015 | P2 | Poll-attempt / raw-payload HTTP ports on persistence | Confirmation | Deferred Phase 2 | Backlog |
+| TD-016 | P0 | Rename `1sb-persistence-service` → `bank-persistence-service` | Senior (common persistence) | Open → Agent 3 | Agent 3 |
+| TD-017 | P0 | Docs/ownership: persistence is platform-common, not 1SB-owned | Senior (common persistence) | Open → Agent 2 | Agent 2 |
+| TD-018 | P1 | Package `com.bank.persistence` (+ flatten entity/repo) | Senior + TL | Open → Agent 3 | Agent 3 |
+| TD-019 | P1 | Client config `bank.persistence.base-url` / `BANK_PERSISTENCE_BASE_URL` | Senior + TL | Open → Agent 3 | Agent 3 |
+| TD-020 | P1 | Multi-consumer contract (integration + audit-consumer + …) | Senior (audit consumer) | Open → Agent 2 | Agent 2 |
+| TD-021 | P2 | Document audit-consumer → persistence audit API (stub; no full service) | Senior (audit consumer) | Open → Agent 2 | Agent 2 |
+
+---
+
+## TD-016 — Rename to `bank-persistence-service`
+
+**Problem:** Module/folder/JAR/`spring.application.name` still say `1sb-persistence-*`, implying ownership by the 1SB integration estate.
+
+**Fix:** Rename to `bank-persistence-service` everywhere in build + runtime identity. Aligns with `bank-common-*`.
+
+**DoD:** `settings.gradle.kts` includes `:services:bank-persistence-service`; `./gradlew :services:bank-persistence-service:build` works; no code/build refs to old module path.
+
+---
+
+## TD-017 — Platform-common ownership framing
+
+**Problem:** Docs describe persistence as the durable store *of* 1SB integration rather than a shared bank DB service.
+
+**Fix:** Rewrite SSOT/AGENTS/READMEs; Flyway header comments; state explicitly that Flyway stays only here and multiple microservices call it over HTTP.
+
+---
+
+## TD-018 — Package rename
+
+**Problem:** `com.bank.insurance.persistence` + nested `persistence.persistence.entity` couples naming to insurance and is awkward.
+
+**Fix:** `com.bank.persistence` with `entity` / `repo` / `api.internal.v1` / `config`.
+
+---
+
+## TD-019 — Client config rename
+
+**Problem:** `insurance.persistence.base-url` is domain-tied; audit-consumer and other MS should use a platform key.
+
+**Fix:** `bank.persistence.base-url` + `BANK_PERSISTENCE_BASE_URL`. Update integration YAML, properties record, tests.
+
+---
+
+## TD-020 — Multi-consumer contract
+
+**Problem:** No written contract that non-1SB services (esp. audit-consumer) share this persistence API.
+
+**Fix:** Architecture/contract doc listing consumers, auth expectations (internal network), and resource groups (jobs vs audit-events).
+
+---
+
+## TD-021 — Audit-consumer usage (doc)
+
+**Problem:** Senior requires audit-consumer to store audit via the same persistence service; no guidance doc yet.
+
+**Fix:** Short design note: audit-consumer calls `POST/GET /internal/v1/audit-events`; does **not** own Flyway or a second `audit_event` store. Full consumer service scaffold is Phase 2+ / separate story.
 
 ---
 
@@ -177,3 +234,4 @@ Track only; do not block this refactor PR. TD-006 remains Phase 2 (real AWS SM).
 | 2026-07-30 | Agent 3 closed TD-003, TD-004, TD-011 (persistence service + HTTP split) |
 | 2026-07-30 | Confirmation circle #2: docs/ArchUnit hygiene; HttpJobStoreAdapterTest; TL pass closed vs senior #1–#5 |
 | 2026-07-30 | Agent 3 confirmation: TD-013 Closed (Agent 2 docs); TD-014/015 Deferred Phase 2; MockRestServiceServer JobStore test |
+| 2026-07-30 | Senior: persistence is platform-common (not 1SB-owned); audit-consumer shares it — opened TD-016…021 |

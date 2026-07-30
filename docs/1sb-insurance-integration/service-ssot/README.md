@@ -25,7 +25,7 @@ This folder is the **authoritative starting point** for building the service. If
 
 ## One-line product definition
 
-> Bank apps call **1sb-integration-service**, which exposes LOB-routed insurance APIs and translates them to 1SB; durable state is owned by **1sb-persistence-service** over internal HTTP — so bank apps never call 1SB or the DB directly.
+> Bank apps call **1sb-integration-service**, which exposes LOB-routed insurance APIs and translates them to 1SB. Durable state is owned by the platform **bank-persistence-service** (common DB service over internal HTTP — also used by audit-consumer and other microservices). Bank apps never call 1SB or the DB directly.
 
 ## Living engineering docs
 
@@ -33,8 +33,10 @@ This folder is the **authoritative starting point** for building the service. If
 |----------|---------|
 | [TECH-DEBT.md](./TECH-DEBT.md) | Tech debt log (senior review + TL findings) |
 | [phase-1/TECH-LEAD-REVIEW.md](./phase-1/TECH-LEAD-REVIEW.md) | Phase 1 + senior comment disposition |
-| [phase-1/REFACTOR-TASK-SPLIT.md](./phase-1/REFACTOR-TASK-SPLIT.md) | Agent ownership for remediations |
-| [phase-1/TECH-LEAD-CONFIRMATION-PASS.md](./phase-1/TECH-LEAD-CONFIRMATION-PASS.md) | Second TL pass — senior comments closed |
+| [phase-1/TECH-LEAD-REVIEW-COMMON-PERSISTENCE.md](./phase-1/TECH-LEAD-REVIEW-COMMON-PERSISTENCE.md) | Persistence is platform-common (not 1SB-owned) |
+| [phase-1/REFACTOR-COMMON-PERSISTENCE.md](./phase-1/REFACTOR-COMMON-PERSISTENCE.md) | Agent split for common-persistence rename |
+| [phase-1/REFACTOR-TASK-SPLIT.md](./phase-1/REFACTOR-TASK-SPLIT.md) | Agent ownership for prior remediations |
+| [phase-1/TECH-LEAD-CONFIRMATION-PASS.md](./phase-1/TECH-LEAD-CONFIRMATION-PASS.md) | Prior TL pass — senior #1–#5 closed |
 
 ## Accepted architecture pattern (do not reopen)
 

@@ -1,4 +1,4 @@
-package com.bank.insurance.onesb.adapter.secret;
+package com.bank.common.secrets;
 
 /**
  * Thrown when a required secret cannot be resolved from the configured source.

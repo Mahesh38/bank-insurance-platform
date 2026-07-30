@@ -1,4 +1,4 @@
-package com.bank.insurance.onesb.adapter.secret;
+package com.bank.common.secrets;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.env.MockEnvironment;

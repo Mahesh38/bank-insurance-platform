@@ -1,7 +1,7 @@
 package com.bank.insurance.onesb.config;
 
-import com.bank.insurance.onesb.adapter.secret.SecretProvider;
-import com.bank.insurance.onesb.adapter.secret.SecretUnavailableException;
+import com.bank.common.secrets.SecretProvider;
+import com.bank.common.secrets.SecretUnavailableException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;

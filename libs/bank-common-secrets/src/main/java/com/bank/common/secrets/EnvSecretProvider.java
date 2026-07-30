@@ -1,7 +1,7 @@
-package com.bank.insurance.onesb.adapter.secret;
+package com.bank.common.secrets;
 
 /**
- * Resolves 1SB credentials from OS environment variables.
+ * Resolves credentials from OS environment variables.
  * Used for {@code uat} profile and as a fallback for lightweight deployments.
  * <p>
  * Expected variables:

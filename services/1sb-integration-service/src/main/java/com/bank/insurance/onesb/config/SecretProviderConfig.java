@@ -1,9 +1,9 @@
 package com.bank.insurance.onesb.config;
 
-import com.bank.insurance.onesb.adapter.secret.AwsSecretsManagerSecretProvider;
-import com.bank.insurance.onesb.adapter.secret.EnvSecretProvider;
-import com.bank.insurance.onesb.adapter.secret.PropertiesSecretProvider;
-import com.bank.insurance.onesb.adapter.secret.SecretProvider;
+import com.bank.common.secrets.AwsSecretsManagerSecretProvider;
+import com.bank.common.secrets.EnvSecretProvider;
+import com.bank.common.secrets.PropertiesSecretProvider;
+import com.bank.common.secrets.SecretProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;

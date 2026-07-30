@@ -1,13 +1,12 @@
-package com.bank.insurance.onesb.adapter.secret;
+package com.bank.common.secrets;
 
 import org.springframework.core.env.Environment;
 
 /**
- * Resolves 1SB credentials from Spring {@link Environment} properties.
+ * Resolves credentials from Spring {@link Environment} properties.
  * Used for {@code local} and {@code test} profiles only.
  * <p>
- * Keys are configured in {@code application-local.properties} (gitignored).
- * See {@code application-local.properties.example} for the required property names.
+ * Default keys: {@code onesb.api-key}, {@code onesb.api-secret}, {@code onesb.distributor-id}.
  */
 public class PropertiesSecretProvider implements SecretProvider {
 

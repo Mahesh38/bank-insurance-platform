@@ -1,14 +1,13 @@
-package com.bank.insurance.onesb.adapter.secret;
+package com.bank.common.secrets;
 
 /**
  * Stub AWS Secrets Manager provider.
  * <p>
  * Phase 1 placeholder — real AWS SDK integration is deferred to Phase 2.
- * Configuring {@code insurance.secrets.source=AWS_SECRETS_MANAGER} in
- * {@code prod} profile without completing the Phase 2 wiring will cause
- * startup to fail with a clear message.
+ * Configuring {@code insurance.secrets.source=AWS_SECRETS_MANAGER} without
+ * completing Phase 2 wiring will cause startup to fail with a clear message.
  * <p>
- * <strong>Do not use in production until TECH-002 Phase 2 is implemented.</strong>
+ * <strong>Do not use in production until AWS SM integration is implemented.</strong>
  */
 public class AwsSecretsManagerSecretProvider implements SecretProvider {
 

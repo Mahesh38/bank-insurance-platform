@@ -23,17 +23,28 @@ This package turns the scattered 1SB OpenAPI pages into:
 
 ## How to read this (recommended order)
 
+### Implementing the integration service (developer SSOT)
+
+| Order | Doc | Purpose |
+|------:|-----|---------|
+| 1 | **[service-ssot/README.md](./service-ssot/README.md)** | **Entry point — single source of truth index** |
+| 2 | [service-ssot/00-po-architect-design-session.md](./service-ssot/00-po-architect-design-session.md) | PO ↔ Architect decisions & defaults |
+| 3 | [service-ssot/PRODUCT-BACKLOG.md](./service-ssot/PRODUCT-BACKLOG.md) | Epics, stories, priorities, AC, DoD |
+| 4 | [service-ssot/FUNCTIONAL-NFR-COMPLIANCE-MAP.md](./service-ssot/FUNCTIONAL-NFR-COMPLIANCE-MAP.md) | Functional vs NFR vs compliance vs shared JARs |
+| 5 | [architecture/1sb-integration-service-architecture.md](./architecture/1sb-integration-service-architecture.md) | Full technical architecture |
+
+### Background / 1SB research
+
 | Order | Doc | Purpose |
 |------:|-----|---------|
 | 1 | [01-executive-overview.md](./01-executive-overview.md) | What 1SB is, platform layers, bank goal fit |
 | 2 | [architecture/replaceable-middleware.md](./architecture/replaceable-middleware.md) | How to integrate without locking into 1SB |
-| **3** | **[architecture/1sb-integration-service-architecture.md](./architecture/1sb-integration-service-architecture.md)** | **Full system architecture for the 1SB Integration Service — single source of truth (design principles, component diagram, module layout, API, sequences, NFRs, compliance, data model, backlog)** |
-| 4 | [canonical-model/contexts.md](./canonical-model/contexts.md) | Domain contexts and bounded contexts |
-| 5 | [journeys/universal-lob-journey.md](./journeys/universal-lob-journey.md) | Universal journey + LOB deltas |
-| 6 | [api-catalog/README.md](./api-catalog/README.md) | Endpoint catalog by LOB and building blocks |
-| 7 | [field-guides/README.md](./field-guides/README.md) | Mandatory fields, when, why |
-| 8 | [02-rm-assisted-bank-checklist.md](./02-rm-assisted-bank-checklist.md) | Practical build checklist |
-| 9 | [reference/](./reference/) | Extracted schemas & source links |
+| 3 | [canonical-model/contexts.md](./canonical-model/contexts.md) | Domain contexts and bounded contexts |
+| 4 | [journeys/universal-lob-journey.md](./journeys/universal-lob-journey.md) | Universal journey + LOB deltas |
+| 5 | [api-catalog/README.md](./api-catalog/README.md) | Endpoint catalog by LOB and building blocks |
+| 6 | [field-guides/README.md](./field-guides/README.md) | Mandatory fields, when, why |
+| 7 | [02-rm-assisted-bank-checklist.md](./02-rm-assisted-bank-checklist.md) | Practical build checklist |
+| 8 | [reference/](./reference/) | Extracted schemas & source links |
 
 ---
 

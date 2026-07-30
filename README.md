@@ -4,17 +4,20 @@ Integration knowledge base for building a bank insurance platform on **1Silverbu
 
 ## Start here
 
-**[docs/1sb-insurance-integration/README.md](./docs/1sb-insurance-integration/README.md)**
+**Building the 1SB integration service?**  
+→ **[docs/1sb-insurance-integration/service-ssot/README.md](./docs/1sb-insurance-integration/service-ssot/README.md)**  
+(PO + Architect decisions, product backlog, NFR/compliance map, link to full architecture)
+
+**Full research pack:**  
+→ [docs/1sb-insurance-integration/README.md](./docs/1sb-insurance-integration/README.md)
 
 Includes:
 
-- Executive overview of 1SB for bancassurance / RM-assisted journeys
-- Replaceable middleware architecture (ports & adapters)
-- Canonical domain contexts and simplified request/response model
-- Universal LOB journey + Term / Health / Motor deltas
-- API catalog with confirmed demo endpoints
-- Field guides (mandatory / when / why)
-- RM-assisted implementation checklist
-- Extracted schema reference from the public 1SB developer portal
+- PO ↔ Architect design session & accepted decisions
+- Product backlog with priorities and acceptance criteria
+- Functional / NFR / compliance / shared-JAR map
+- Full technical architecture (modules, APIs, data model, tests)
+- 1SB API catalog and field guides
+- Replaceable middleware rationale (Case 2: Service → LOB handler)
 
 Upstream docs: https://docs.1silverbullet.tech/docs/insurance/retail/apiDocs/insurance-gateway-api

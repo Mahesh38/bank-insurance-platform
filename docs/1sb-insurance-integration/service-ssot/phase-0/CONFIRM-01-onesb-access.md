@@ -1,144 +1,120 @@
 # CONFIRM-01 — 1SB Sandbox Access Confirmation
 
 **Phase:** 0.1  
-**Status:** `PENDING`  
-**Owner:** _assign below_  
-**Due:** _fill in_  
-**Last updated:** 2026-07-30
+**Status:** `PARTIAL` — URL + distributor confirmed; credentials & IP whitelist still open  
+**Owner:** Platform / 1SB RM  
+**Last updated:** 2026-07-30  
+**Data log:** [PHASE-0-DATA-AND-GAPS.md](./PHASE-0-DATA-AND-GAPS.md)
 
-> This checklist must be fully ticked ✅ before Phase 1 (foundations + HTTP client) can begin.  
-> Blockers in the final section explain exactly what breaks if each item is missing.  
+> Critical path (B, D, E) must be done before trusting demo connectivity.  
 > Link: [ACTION-PLAN.md → Phase 0](../ACTION-PLAN.md#phase-0--access--alignment-before-code)
 
 ---
 
 ## Checklist
 
-### A — Sandbox Endpoint
+### A — Sandbox / Demo Endpoint
 
 | # | Item | Status | Owner | Due |
 |---|------|--------|-------|-----|
-| A1 | Sandbox base URL obtained from 1SB RM | ⬜ Pending | | |
-| A2 | URL reachable from bank egress (curl/telnet port 443 succeeds) | ⬜ Pending | | |
-| A3 | URL recorded in `config/onesb/provider-config.yml` sandbox profile | ⬜ Pending | | |
+| A1 | Base URL obtained | ✅ `https://demo.api.1silverbullet.tech` | Product | 2026-07-30 |
+| A2 | URL reachable from bank egress | ⬜ Pending | Platform | |
+| A3 | URL in `config/onesb/provider-config.yml` | ✅ Done | Eng | 2026-07-30 |
 
-Expected URL pattern (placeholder until confirmed): `https://demo.api.1silverbullet.tech`  
-_(Public docs demo host — your tenant sandbox URL may differ; treat as configurable via `ONESB_BASE_URL`.)_
+Override via env: `ONESB_BASE_URL`.
 
 ---
 
-### B — API Credentials
+### B — API Credentials — **STILL REQUIRED**
 
 | # | Item | Status | Owner | Due |
 |---|------|--------|-------|-----|
-| B1 | `ONESB_API_KEY` received from 1SB | ⬜ Pending | | |
-| B2 | `ONESB_API_SECRET` received from 1SB | ⬜ Pending | | |
-| B3 | Credentials stored in vault (path below) — NOT in git | ⬜ Pending | | |
-| B4 | Vault path confirmed with Platform team | ⬜ Pending | | |
-| B5 | Service can read credentials at boot (vault test or env-var smoke test) | ⬜ Pending | | |
+| B1 | `ONESB_API_KEY` from 1SB | ⬜ Pending | 1SB RM | |
+| B2 | `ONESB_API_SECRET` from 1SB | ⬜ Pending | 1SB RM | |
+| B3 | Stored in vault — NOT in git/chat | ⬜ Pending | Platform | |
+| B4 | Vault path confirmed | ⬜ Pending | Platform | |
+| B5 | Boot-time read verified | ⬜ Pending | Eng | |
 
-**Vault path placeholders** (confirm with Platform):
+**Vault path placeholders:**
 
 ```
-Sandbox:
+Demo/Sandbox:
   secret/onesb/sandbox/api-key
   secret/onesb/sandbox/api-secret
-
-Prod (for reference, Phase 6):
-  secret/onesb/prod/api-key
-  secret/onesb/prod/api-secret
 ```
 
-**Vault path owner:** _TBD — Platform / DevSecOps team_
-
 ---
 
-### C — Distributor ID
+### C — Distributor
 
 | # | Item | Status | Owner | Due |
 |---|------|--------|-------|-----|
-| C1 | `distributorId` assigned by 1SB for sandbox | ⬜ Pending | | |
-| C2 | `distributorId` stored in vault: `secret/onesb/sandbox/distributor-id` | ⬜ Pending | | |
-| C3 | Value injected via `ONESB_DISTRIBUTOR_ID` env var and verified at boot | ⬜ Pending | | |
+| C1 | `distributorId` | ✅ `BCIBL` | Product | 2026-07-30 |
+| C2 | Vault/env for shared envs | ⬜ Pending | Platform | |
+| C3 | Defaults file updated | ✅ `distribution.defaults.yaml` | Eng | 2026-07-30 |
+
+Also confirmed (defaults, overridable per journey):
+
+| Field | Value |
+|-------|-------|
+| Sales Channel | Online |
+| Channel Type | B2B |
+| Agent ID | 109337 |
+| Alternate Agent ID | 8925 |
+| Type of sale | assisted / nonassisted |
 
 ---
 
-### D — IP Whitelist / Egress
+### D — IP Whitelist / Egress — **STILL REQUIRED**
 
 | # | Item | Status | Owner | Due |
 |---|------|--------|-------|-----|
-| D1 | Bank outbound IP range (CIDR) identified for sandbox environment | ⬜ Pending | | |
-| D2 | Outbound IP range submitted to 1SB RM for whitelisting | ⬜ Pending | | |
-| D3 | 1SB confirms whitelist is live for sandbox | ⬜ Pending | | |
-| D4 | Bank prod CIDR identified (for Phase 6 — document now) | ⬜ Pending | | |
-
-**Infra/Network team contact for CIDR:** _TBD_  
-**1SB RM contact for whitelist requests:** _TBD_
+| D1 | Bank outbound CIDR identified | ⬜ Pending | Infra | |
+| D2 | Submitted to 1SB RM | ⬜ Pending | Infra / PO | |
+| D3 | 1SB confirms whitelist live | ⬜ Pending | 1SB RM | |
+| D4 | Prod CIDR noted for later | ⬜ Pending | Infra | |
 
 ---
 
-### E — Curl Proof
-
-> Run this command once items A–D are complete. Replace placeholders before running.  
-> This proves end-to-end connectivity before any code is written.
+### E — Curl Proof — **STILL REQUIRED**
 
 ```bash
-# Template — fill in real values; do NOT commit output to git
 curl -v \
   --user "${ONESB_API_KEY}:${ONESB_API_SECRET}" \
   -H "Content-Type: application/json" \
-  -d '{"distributorId":"${ONESB_DISTRIBUTOR_ID}","masterType":"INSURER"}' \
-  https://sandbox.1silverbullet.tech/insurance/v1/master/lookup
-
-# Expected: HTTP 200 with JSON array of insurers
-# If 401: credentials incorrect or not yet active
-# If connection refused / timeout: IP not whitelisted or URL wrong
+  -d '{"lookUpCategory":"quote","entityIds":["CHANNEL","GENDER"]}' \
+  https://demo.api.1silverbullet.tech/v1/master/lookup
 ```
 
 | # | Item | Status | Owner | Due |
 |---|------|--------|-------|-----|
-| E1 | Curl proof command executed successfully (HTTP 200) | ⬜ Pending | | |
-| E2 | Response saved as `docs/.../phase-0/sandbox-curl-proof.json` (sanitise keys before committing) | ⬜ Pending | | |
+| E1 | HTTP 200 from bank network | ⬜ Pending | Eng / Platform | |
+| E2 | Sanitised proof stored (optional artefact) | ⬜ Pending | Eng | |
 
 ---
 
-### F — Term Product Enablement (Phase 0.2 dependency)
+### F — Product enablement (see CONFIRM-02)
 
-| # | Item | Status | Owner | Due |
-|---|------|--------|-------|-----|
-| F1 | At least one Term product confirmed quotable in sandbox for this distributor | ⬜ Pending | | |
-| F2 | Product ID and manufacturer ID noted for fixture data | ⬜ Pending | | |
-
-_This item is owned by [Action 0.2](../ACTION-PLAN.md#phase-0--access--alignment-before-code) but recorded here for single-checklist convenience._
+| # | Item | Status |
+|---|------|--------|
+| F1 | ≥1 product for distributor | ✅ ICICI / E38 GIFT Select (`LifeSave`) |
+| F2 | First LOB decision (Saving vs obtain Term) | ⬜ Pending — CONFIRM-04 |
 
 ---
 
 ## Blockers If Missing
 
-| Missing item | What it blocks |
-|---|---|
-| Sandbox URL (A) | Cannot wire `provider-config.yml`; cannot run connectivity smoke test |
-| API key/secret (B) | HTTP client cannot authenticate; all 1SB calls return 401 |
-| Vault path / access (B4, B5) | Service won't boot in any environment (fail-fast on missing secrets — by design) |
-| Distributor ID (C) | All API requests will be rejected by 1SB (distributorId is mandatory on every call) |
-| IP whitelist (D) | All outbound calls time-out or are refused; no amount of correct credentials helps |
-| Curl proof (E) | No sandbox evidence → Phase 1 HTTP client work proceeds without validation |
-| Term product enabled (F) | Cannot run Phase 3 Term vertical-slice integration tests |
+| Missing | Blocks |
+|---------|--------|
+| API key/secret (B) | All 1SB calls → 401 |
+| IP whitelist (D) | Timeouts / connection refused |
+| Curl proof (E) | No evidence connectivity works |
+| LOB decision (F2) | Wrong handler built first |
 
 ---
 
 ## Sign-off
 
-When all items are ✅, update this file header:
+When B+D+E are ✅, set header to `Status: CONFIRMED` with name/date.
 
-```
-Status: CONFIRMED
-Confirmed by: <name>
-Date confirmed: <YYYY-MM-DD>
-```
-
-and link to the vault path + curl proof artefact in the row notes above.
-
----
-
-_Related: [TODO-TRACKER.md](./TODO-TRACKER.md) · [ACTION-PLAN.md](../ACTION-PLAN.md) · [config/onesb/provider-config.yml](../../../../config/onesb/provider-config.yml)_
+_Related: [PHASE-0-DATA-AND-GAPS.md](./PHASE-0-DATA-AND-GAPS.md) · [TODO-TRACKER.md](./TODO-TRACKER.md) · [config/onesb/](../../../../config/onesb/)_

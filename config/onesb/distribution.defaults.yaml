@@ -1,0 +1,34 @@
+# =============================================================================
+# Distribution defaults (demo / bank defaults)
+#
+# REPLACEABLE & CONFIGURABLE:
+# - These are defaults for demo/sandbox journeys.
+# - Bank caller SHOULD send agentId / typeOfSale / channel overrides per journey
+#   (RM-assisted vs self-serve). Defaults fill gaps only.
+# - distributorId can live here for demo; prefer env ONESB_DISTRIBUTOR_ID /
+#   vault in shared/higher environments so it is not copied into every profile.
+# - NEVER put API key/secret here.
+# =============================================================================
+
+insurance:
+  distribution:
+    defaults:
+      distributor-id: "BCIBL"              # confirmed Phase 0
+      sales-channel: "Online"              # enum: Online | Others (confirm masters)
+      channel-type: "B2B"                  # B2B for RM-assisted; B2C for self-serve
+      agent-id: "109337"                   # default demo agent — override per RM/journey
+      alternate-agent-id: "8925"           # when to use: CONFIRM with 1SB / ops
+      # Journey supplies one of these; both allowed values documented for config validation
+      type-of-sale-allowed:
+        - "assisted"
+        - "nonassisted"
+      default-type-of-sale: "assisted"     # RM-assisted bank journey default
+
+    # Optional: map bank employee / RM codes → insurer agent codes (fill over time)
+    # Keep this as data — never hardcode in handlers.
+    agent-mappings: []
+    # Example:
+    # - bank-rm-id: "E12345"
+    #   insurer-agent-id: "109337"
+    #   manufacturer-id: "ICICI"
+    #   enabled: true

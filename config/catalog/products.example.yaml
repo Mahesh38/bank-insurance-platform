@@ -1,0 +1,80 @@
+# =============================================================================
+# Product catalog — MULTI insurer / MULTI product (all LOBs)
+#
+# Copy to products.yaml for an environment (prefer config store / not git for
+# prod). This EXAMPLE includes the first confirmed demo row and empty slots
+# showing how to add more insurers/products without code changes.
+#
+# Loading (planned):
+#   @ConfigurationProperties(prefix = "insurance.catalog")
+#   List<ProductEntry> products — validated at startup
+#
+# Rules:
+#   - One entry per manufacturerId + productCode (+ lob)
+#   - enabled=false → ignored by routing / allow-list
+#   - Multi-quote: either omit product pin (LOB-level) or pass selected
+#     entries as insuranceAndProducts[] from this allow-list
+#   - Never hardcode manufacturerId/productCode inside Java handlers
+# =============================================================================
+
+insurance:
+  catalog:
+    # Life Insurance is the parent LOB; Term + Saving are subtypes for Phase 1.
+    life:
+      enabled: true
+      subtypes:
+        term:
+          enabled: false   # enable when 1SB lists LifeTerm products for BCIBL
+        saving:
+          enabled: true    # E38 GIFT Select confirmed
+    # Other top-level LOBs (later)
+    lob-enabled:
+      health: false
+      motor: false
+      annuity: false
+      pension: false
+      ulip: false
+
+    products:
+
+      # ------------------------------------------------------------------
+      # Confirmed demo product (Phase 0)
+      # ------------------------------------------------------------------
+      - manufacturer-id: "ICICI"
+        insurer-code: "ICICI"
+        insurer-name: "ICICI Prudential Life"
+        product-code: "E38"
+        product-name: "GIFT Select"
+        product-type: "LifeSave"
+        savings-product-type: "nonParticipating"
+        lob: "LIFE"
+        life-subtype: "SAVING"           # TERM | SAVING
+        enabled: true
+        sandbox-only: true
+        notes: >
+          Confirmed 2026-07-30. First vertical slice candidate under Life/Saving.
+
+      # ------------------------------------------------------------------
+      # Template — more insurers / products (Term or Saving)
+      # ------------------------------------------------------------------
+      # - manufacturer-id: "ICICI"
+      #   insurer-code: "ICICI"
+      #   insurer-name: "ICICI Prudential Life"
+      #   product-code: "REPLACE_ME"
+      #   product-name: "Life Term plan"
+      #   product-type: "LifeTerm"
+      #   savings-product-type: null
+      #   lob: "LIFE"
+      #   life-subtype: "TERM"
+      #   enabled: false
+      #   sandbox-only: true
+      #   notes: "Add when 1SB enables Term for BCIBL"
+
+      # - manufacturer-id: "HDFC"
+      #   ...
+
+    validation:
+      require-at-least-one-enabled: true
+      enforce-sandbox-only-in-prod: true
+      allowed-lobs: [LIFE, HEALTH, MOTOR]
+      allowed-life-subtypes: [TERM, SAVING]

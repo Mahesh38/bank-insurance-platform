@@ -1,86 +1,55 @@
-# CONFIRM-02 — Term Products & Insurer Allow-List
+# CONFIRM-02 — Insurer & Product Allow-List (multi-entry)
 
 **Phase:** 0.2  
-**Status:** `PENDING` — awaiting Product + 1SB RM confirmation  
+**Status:** `PARTIAL` — one Savings product confirmed; Term not yet; multi-insurer list incomplete  
 **Owner:** Product Owner + 1SB Relationship Manager  
-**SSOT link:** [ACTION-PLAN.md row 0.2](../ACTION-PLAN.md) · [PRODUCT-BACKLOG.md COMP-004](../PRODUCT-BACKLOG.md)
+**Data log:** [PHASE-0-DATA-AND-GAPS.md](./PHASE-0-DATA-AND-GAPS.md)
 
 ---
 
 ## Purpose
 
-Before any code is written the team needs at least one confirmed, sandbox-quotable Term product to develop and test against.  
-This document records what must be confirmed, who confirms it, and how the catalog is loaded so products can change without a code deployment.
+Record **all** insurers/products enabled for distributor `BCIBL`. Catalog is a **list** (many insurers × many products). Code must not assume a single product.
+
+Config template: [`config/catalog/products.example.yaml`](../../../../config/catalog/products.example.yaml)
 
 ---
 
-## What must be confirmed
+## Confirmed entries
 
-| # | Item | Owner | Status |
-|---|------|-------|--------|
-| C2-1 | `manufacturerId` for at least one Term insurer enabled in sandbox | Product + 1SB RM | **PENDING** |
-| C2-2 | `productCode` for that insurer's Term product enabled for this distributor | Product + 1SB RM | **PENDING** |
-| C2-3 | Distributor agreement covers the product (no extra enablement step) | Product + 1SB RM | **PENDING** |
-| C2-4 | Quote endpoint returns non-empty `offers[]` for a synthetic test customer | Eng (after C2-1/2) | **PENDING** — verify in sandbox |
-| C2-5 | Second insurer (optional but preferred for multi-quote test) | Product + 1SB RM | **PENDING** |
-| C2-6 | Populate `config/catalog/term-products.yaml` with confirmed values | Eng | **PENDING** — blocked on C2-1/2 |
+| manufacturerId | insurer | productCode | productName | productType | lob | enabled | status |
+|----------------|---------|-------------|-------------|-------------|-----|---------|--------|
+| ICICI | ICICI Prudential Life | E38 | GIFT Select | LifeSave | SAVING | true | ✅ Confirmed 2026-07-30 |
 
-**Exit criterion (0.2):** At least one `enabled: true` entry in `term-products.yaml` that produces a non-empty quote response in sandbox.
+Add rows below as 1SB enables more products (same or other insurers).
 
----
-
-## Configurable product catalog
-
-### Config file
-
-```
-config/catalog/term-products.example.yaml   ← committed template with placeholders
-config/catalog/term-products.yaml           ← gitignored; populated with real values
-```
-
-The example file at [`config/catalog/term-products.example.yaml`](../../../../config/catalog/term-products.example.yaml) is the canonical template.
-
-### How it is loaded (Spring Boot)
-
-```java
-@ConfigurationProperties(prefix = "insurance.catalog.term")
-@Validated
-public class TermProductCatalogProperties {
-    private boolean enabled;
-    private List<ProductEntry> products;
-    // ... validated at context refresh
-}
-```
-
-Spring loads `config/catalog/term-products.yaml` (or via `spring.config.import`) at startup.  
-If `require-at-least-one-enabled: true` and no product is enabled, the service **refuses to start** — fast-fail avoids silent misconfiguration.
-
-### Adding or disabling a product — zero code change
-
-1. Edit `config/catalog/term-products.yaml`: set `enabled: true/false` or add a new block.
-2. Restart the service (or trigger a live-refresh if Spring Cloud Config is in use).
-3. No Java compilation, no PR touching business logic needed.
-
-### Replaceability guarantee
-
-`manufacturerId` and `productCode` exist **only** in this catalog file. Business logic references `ProductEntry` objects from `TermProductCatalogProperties`; it never contains literal insurer codes. When 1SB updates product codes, only this file changes.
+| manufacturerId | insurer | productCode | productName | productType | lob | enabled | status |
+|----------------|---------|-------------|-------------|-------------|-----|---------|--------|
+| | | | | | | false | ⬜ Pending |
 
 ---
 
-## Checklist (sign-off required before Phase 1)
+## Checklist
 
-- [ ] C2-1: `manufacturerId` confirmed and documented in `term-products.yaml`
-- [ ] C2-2: `productCode` confirmed and documented
-- [ ] C2-3: Distributor agreement coverage confirmed
-- [ ] C2-4: Sandbox quote returns non-empty `offers[]`
-- [ ] C2-5: (Optional) Second insurer added for multi-quote coverage
-- [ ] C2-6: `term-products.yaml` committed to environment secret/config store (not git)
-- [ ] Eng: Startup validation test added (reject boot if catalog empty)
+| # | Item | Status |
+|---|------|--------|
+| C2-1 | ≥1 manufacturerId + productCode confirmed | ✅ ICICI / E38 |
+| C2-2 | LOB / productType confirmed | ✅ LifeSave → SAVING (**not Term**) |
+| C2-3 | Decision: first build LOB = Saving **or** obtain Term product | ⬜ Pending kickoff |
+| C2-4 | Second product/insurer for multi-quote (recommended) | ⬜ Pending |
+| C2-5 | Sandbox/demo quote returns offers for E38 | ⬜ Pending (needs API key + IP whitelist) |
+| C2-6 | `products.yaml` deployed to env config (not only example file) | ⬜ Pending |
+| C2-7 | Distributor agreement covers each enabled product | ⬜ Confirm with 1SB RM |
+
+**Exit criterion:** At least one `enabled: true` product for the **chosen first LOB**, quoteable in demo, plus LOB decision signed in CONFIRM-04.
 
 ---
 
-## Notes
+## How multiple insurers/products work
 
-- Do **not** hardcode `manufacturerId` / `productCode` in Java source as string constants.
-- The `sandbox-only: true` flag must be set until prod routing is confirmed — the validator blocks accidental prod routing.
-- If 1SB RM provides a product list spreadsheet, map it to the YAML format in this catalog; do not embed it as free-form notes.
+1. Append another block under `insurance.catalog.products` — no code change.  
+2. Set `lob-enabled.saving` / `term` / etc. independently.  
+3. Multi-quote: call with LOB only, or pin selected catalog entries.  
+4. Handlers read catalog via port — never hardcode `E38` / `ICICI` in Java.
+
+Legacy Term-only template kept for reference: [`term-products.example.yaml`](../../../../config/catalog/term-products.example.yaml) — prefer **products.example.yaml** going forward.

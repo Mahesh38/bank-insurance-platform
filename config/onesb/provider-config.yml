@@ -105,15 +105,17 @@ provider:
   # remove the handler code; it prevents the adapter bean from registering for
   # that LOB so the port falls through to the next configured provider (NOOP).
   lob:
-    term:
+    # Life Insurance parent — Term & Saving are subtypes (handlers may still
+    # map to lifeterm / lifesave 1SB path prefixes).
+    life:
       enabled: true
+      term:
+        enabled: false   # enable when Term products listed for BCIBL
+      saving:
+        enabled: true    # E38 LifeSave confirmed
     health:
-      # Set to true after Phase 3 exit criteria are met (Term sandbox verified).
       enabled: false
     motor:
-      # Set to true after Phase 5.
-      enabled: false
-    savings:
       enabled: false
 
   # ── API Version Pins ───────────────────────────────────────────────────────

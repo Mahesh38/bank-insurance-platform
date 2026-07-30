@@ -32,6 +32,9 @@ This folder is the **authoritative starting point** for building the service. If
 | Document | Purpose |
 |----------|---------|
 | [TECH-DEBT.md](./TECH-DEBT.md) | Tech debt log (senior review + TL findings) |
+| [QA-LEAD-TESTING-STRATEGY.md](./QA-LEAD-TESTING-STRATEGY.md) | QA Lead testing pyramid, ownership, coverage |
+| [TESTING-RULES.md](./TESTING-RULES.md) | Enforceable test rules / DoD |
+| [TEST-BACKLOG.md](./TEST-BACKLOG.md) | QA test backlog (JaCoCo, IT, Phase 3 gates) |
 | [../architecture/bank-persistence-service.md](../architecture/bank-persistence-service.md) | Platform common persistence contract (multi-consumer, Flyway, `/internal/v1`) |
 | [../architecture/audit-consumer-service.md](../architecture/audit-consumer-service.md) | Audit-consumer stub — persists via bank-persistence HTTP only |
 | [phase-1/TECH-LEAD-REVIEW.md](./phase-1/TECH-LEAD-REVIEW.md) | Phase 1 + senior comment disposition |

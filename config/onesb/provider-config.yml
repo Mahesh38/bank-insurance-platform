@@ -1,0 +1,180 @@
+# =============================================================================
+# Provider Configuration — 1SB (ONE_SB)
+#
+# DESIGN NOTES
+# ------------
+# • provider.id is the routing key for the RoutingPolicy in the adapter layer.
+#   Switching to BANK_MW or DIRECT is a single-line change here (+ swap bean).
+# • Credentials are NEVER stored here.  Values come exclusively from environment
+#   variables or a secrets vault (see .env.example for env var names and
+#   docs/1sb-insurance-integration/service-ssot/phase-0/CONFIRM-01-onesb-access.md
+#   for vault path conventions).
+# • Profile overlays (sandbox / prod) keep a single schema; only base-url and
+#   timeout tuning differ between environments.
+# • All timeout and poll values are soft limits — they can be overridden at
+#   deploy time without a code change.
+# =============================================================================
+
+provider:
+  # ── Identity ──────────────────────────────────────────────────────────────
+  # Routing key consumed by RoutingPolicy and adapter factory.
+  # Allowed values (future): ONE_SB | BANK_MW | DIRECT | <insurer-code>
+  id: ONE_SB
+
+  displayName: "1Silverbullet Insurance Gateway"
+
+  # ── Base URL (profile-specific — see overlay sections below) ──────────────
+  # Resolved in order: env var > profile overlay > this default.
+  # Env var: ONESB_BASE_URL
+  # Default is the public demo host from 1SB docs — CONFIRM with 1SB RM (may differ for your tenant).
+  # See phase-0/CONFIRM-01-onesb-access.md
+  baseUrl: ${ONESB_BASE_URL:https://demo.api.1silverbullet.tech}
+
+  # ── Authentication ─────────────────────────────────────────────────────────
+  # Supported auth types: BASIC | BEARER | MTLS | NONE
+  # Changing this to BEARER or MTLS requires an adapter change but NO domain change.
+  auth:
+    type: BASIC
+
+    # Credential references — NEVER put real values here.
+    # Populate via environment variables (see .env.example) or vault injection.
+    apiKey:
+      envVar: ONESB_API_KEY
+      vaultPath: secret/onesb/sandbox/api-key   # placeholder — confirm with Platform
+    apiSecret:
+      envVar: ONESB_API_SECRET
+      vaultPath: secret/onesb/sandbox/api-secret
+
+  # ── Distributor Identity ───────────────────────────────────────────────────
+  # Provided by 1SB during onboarding. Required on every request.
+  # Env var: ONESB_DISTRIBUTOR_ID
+  # Vault path: secret/onesb/sandbox/distributor-id   (placeholder — confirm)
+  distributorId: ${ONESB_DISTRIBUTOR_ID}
+
+  # ── Network / Egress ──────────────────────────────────────────────────────
+  # The outbound IP range that 1SB must whitelist is a platform/infra concern.
+  # Document the CIDR block(s) here as comments; never in code.
+  #
+  # egress.cidr.sandbox: <PENDING — obtain from Infra/Network team>
+  # egress.cidr.prod:    <PENDING — obtain from Infra/Network team>
+  #
+  # 1SB contact for IP whitelist requests: <PENDING — confirm via RM>
+  #
+  # These values are informational only; they do not affect runtime behaviour.
+
+  # ── HTTP Client Tuning ────────────────────────────────────────────────────
+  http:
+    # Milliseconds to establish a TCP connection to 1SB endpoint.
+    connectTimeoutMs: 5000
+
+    # Milliseconds to wait for the first byte of a response.
+    # Covers quote-create and other synchronous calls.
+    readTimeoutMs: 30000
+
+    # Maximum total response size accepted from 1SB (bytes).
+    maxResponseBodyBytes: 5242880  # 5 MB
+
+    # Whether to follow HTTP 3xx redirects automatically.
+    followRedirects: false
+
+    # Connection pool (tune per deployment profile if needed).
+    pool:
+      maxConnections: 50
+      keepAliveDurationMs: 30000
+
+  # ── Async Poll Configuration ──────────────────────────────────────────────
+  # Used by AsyncPoller for quote-poll and proposal-poll.
+  # Back-off is fixed-delay (simple) for Phase 0; switch to exponential later.
+  poll:
+    # Milliseconds between each poll attempt.
+    intervalMs: 3000
+
+    # Maximum number of poll attempts before the job is marked FAILED/TIMEOUT.
+    maxAttempts: 20
+
+    # Back-off strategy: FIXED | EXPONENTIAL | LINEAR
+    backoffStrategy: FIXED
+
+    # Only applies when backoffStrategy = EXPONENTIAL.
+    backoffMultiplier: 2.0
+    backoffMaxIntervalMs: 30000
+
+  # ── Feature Flags ─────────────────────────────────────────────────────────
+  # Controls which LOBs are exposed by this provider configuration.
+  # These flags gate the adapter at the port level — disabling one here does NOT
+  # remove the handler code; it prevents the adapter bean from registering for
+  # that LOB so the port falls through to the next configured provider (NOOP).
+  lob:
+    term:
+      enabled: true
+    health:
+      # Set to true after Phase 3 exit criteria are met (Term sandbox verified).
+      enabled: false
+    motor:
+      # Set to true after Phase 5.
+      enabled: false
+    savings:
+      enabled: false
+
+  # ── API Version Pins ───────────────────────────────────────────────────────
+  # Locks the 1SB API version used per endpoint group.
+  # Change here and in the HTTP client builder only — no scattered version strings.
+  apiVersions:
+    insurance: v1    # /insurance/v1/...
+
+---
+# =============================================================================
+# Profile: sandbox
+# Apply with Spring profile: --spring.profiles.active=sandbox
+# (or SPRING_PROFILES_ACTIVE=sandbox environment variable)
+# =============================================================================
+spring:
+  config:
+    activate:
+      on-profile: sandbox
+
+provider:
+  # Confirm actual sandbox/demo host with 1SB RM (CONFIRM-01). Docs demo host used as default placeholder.
+  baseUrl: ${ONESB_BASE_URL:https://demo.api.1silverbullet.tech}
+  auth:
+    apiKey:
+      vaultPath: secret/onesb/sandbox/api-key
+    apiSecret:
+      vaultPath: secret/onesb/sandbox/api-secret
+  distributorId: ${ONESB_DISTRIBUTOR_ID}
+  http:
+    connectTimeoutMs: 5000
+    readTimeoutMs: 30000
+  poll:
+    intervalMs: 3000
+    maxAttempts: 20
+
+---
+# =============================================================================
+# Profile: prod
+# Apply with Spring profile: --spring.profiles.active=prod
+# IMPORTANT: All values below are PLACEHOLDERS.
+# Real URLs and vault paths must be confirmed with 1SB RM before go-live.
+# See ACTION-PLAN.md Phase 6.1.
+# =============================================================================
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+provider:
+  # Production base URL — PENDING confirmation from 1SB RM.
+  baseUrl: ${ONESB_BASE_URL:https://api.1silverbullet.tech}
+  auth:
+    apiKey:
+      vaultPath: secret/onesb/prod/api-key
+    apiSecret:
+      vaultPath: secret/onesb/prod/api-secret
+  distributorId: ${ONESB_DISTRIBUTOR_ID}
+  http:
+    # Production timeouts may differ; tune after sandbox load-test evidence.
+    connectTimeoutMs: 5000
+    readTimeoutMs: 45000
+  poll:
+    intervalMs: 5000
+    maxAttempts: 30

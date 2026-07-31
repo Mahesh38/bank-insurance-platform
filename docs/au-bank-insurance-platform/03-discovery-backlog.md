@@ -11,7 +11,7 @@ Status values: `Open` · `In discussion` · `Answered` · `Deferred`
 
 | ID | Question | Why it matters | Owner | Status | Answer |
 |----|----------|----------------|-------|--------|--------|
-| Q-P0-01 | What is the **first LOB** for AU Bank MVP? | Everything sequences from this | Bancassurance | Open | |
+| Q-P0-01 | What is the **first LOB** for AU Bank MVP? | Everything sequences from this | Bancassurance | Closed | Life Insurance and all its sub type (Term, ULIP, etc) |
 | Q-P0-02 | Is MVP **RM-assisted only**, customer self-serve, or hybrid? | UX, auth, journey ownership | Digital + PO | In discussion | Docs: both assisted + self-service are goals; JRN-001 is RM-assisted — freeze R0 channel |
 | Q-P0-03 | Which customer segment? (existing retail only / HNI / staff / …) | Eligibility & prefill | Product | In discussion | Docs list Existing / New / Prospective — R0 cut not frozen |
 | Q-P0-04 | What is the official **definition of sold** for pilot success? | Metrics & engineering DoD | PO | Open | Value stream ends at Policy Issuance; confirm R0 bar |

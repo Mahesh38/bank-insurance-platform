@@ -23,10 +23,12 @@ management:
     readinessstate:
       enabled: true
 
-# Secrets source
+# Secrets source + master-data cache (in-process; Redis later TD-010)
 insurance:
   secrets:
     source: ${INSURANCE_SECRETS_SOURCE:PROPERTIES}
+  masters:
+    cache-ttl-seconds: ${INSURANCE_MASTERS_CACHE_TTL_SECONDS:14400}
 
 # Platform common persistence HTTP client (bank-persistence-service)
 bank:

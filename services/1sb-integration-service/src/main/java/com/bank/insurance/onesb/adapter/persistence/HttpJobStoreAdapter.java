@@ -65,7 +65,8 @@ public class HttpJobStoreAdapter implements JobStorePort {
     @Override
     public void completeJob(String jobId, List<QuoteOffer> offers) {
         Instant completedAt = Instant.now();
-        patchStatus(jobId, new PatchJobStatusRequest(JobStatus.COMPLETED.name(), null, null, completedAt));
+        JobStatus status = resolveCompleteStatus(offers);
+        patchStatus(jobId, new PatchJobStatusRequest(status.name(), null, null, completedAt));
         if (offers != null) {
             for (QuoteOffer offer : offers) {
                 persistenceRestClient.post()
@@ -146,6 +147,18 @@ public class HttpJobStoreAdapter implements JobStorePort {
                 .body(request)
                 .retrieve()
                 .toBodilessEntity();
+    }
+
+    /** PARTIAL when some offers succeeded and some carry {@code errorSummary}. */
+    static JobStatus resolveCompleteStatus(List<QuoteOffer> offers) {
+        if (offers == null || offers.isEmpty()) {
+            return JobStatus.COMPLETED;
+        }
+        boolean hasError = offers.stream()
+                .anyMatch(o -> o.errorSummary() != null && !o.errorSummary().isBlank());
+        boolean hasSuccess = offers.stream()
+                .anyMatch(o -> o.errorSummary() == null || o.errorSummary().isBlank());
+        return hasError && hasSuccess ? JobStatus.PARTIAL : JobStatus.COMPLETED;
     }
 
     private static QuoteJob toQuoteJob(JobResponse job, List<OfferResponse> offers) {

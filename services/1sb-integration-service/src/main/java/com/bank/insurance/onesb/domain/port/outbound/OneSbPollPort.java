@@ -1,5 +1,9 @@
 package com.bank.insurance.onesb.domain.port.outbound;
 
+import com.bank.insurance.onesb.domain.model.QuoteOffer;
+
+import java.util.List;
+
 /**
  * Minimal outbound port for polling 1SB async job status.
  * Implemented by {@code adapter.onesb.polling.OneSbHttpClientPollAdapter} via {@code OneSbHttpClient}.
@@ -15,17 +19,28 @@ public interface OneSbPollPort {
     PollResult poll(String path);
 
     /**
-     * @param complete    true when upstream reports poll complete ({@code isPollComplete})
-     * @param httpStatus  HTTP status from upstream (0 if transport failure)
+     * @param complete     true when upstream reports poll complete ({@code isPollComplete})
+     * @param httpStatus   HTTP status from upstream (0 if transport failure)
      * @param errorMessage optional error detail
+     * @param offers       normalised offers when complete (empty for generic poll adapters)
      */
-    record PollResult(boolean complete, int httpStatus, String errorMessage) {
+    record PollResult(boolean complete, int httpStatus, String errorMessage, List<QuoteOffer> offers) {
+
+        public PollResult(boolean complete, int httpStatus, String errorMessage) {
+            this(complete, httpStatus, errorMessage, List.of());
+        }
+
         public static PollResult of(boolean complete, int httpStatus) {
-            return new PollResult(complete, httpStatus, null);
+            return new PollResult(complete, httpStatus, null, List.of());
+        }
+
+        public static PollResult of(boolean complete, int httpStatus, List<QuoteOffer> offers) {
+            return new PollResult(complete, httpStatus, null,
+                    offers != null ? List.copyOf(offers) : List.of());
         }
 
         public static PollResult transportError(String message) {
-            return new PollResult(false, 0, message);
+            return new PollResult(false, 0, message, List.of());
         }
     }
 }

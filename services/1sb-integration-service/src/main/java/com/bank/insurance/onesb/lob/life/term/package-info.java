@@ -1,5 +1,4 @@
 /**
- * Scaffold package for Life Term LOB handlers.
- * TermQuoteHandler and TermProposalHandler are implemented in Phase 1 Tier 1.
+ * Life Term LOB handlers — {@link TermQuoteHandler} for FUNC-002 quote create.
  */
 package com.bank.insurance.onesb.lob.life.term;

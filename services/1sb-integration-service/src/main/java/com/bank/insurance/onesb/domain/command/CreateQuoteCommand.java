@@ -36,6 +36,7 @@ public record CreateQuoteCommand(
 
     public record DistributionContext(
             String rmEmployeeId,
+            String agentId,
             String channelType
     ) {}
 }

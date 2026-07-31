@@ -6,6 +6,7 @@ import com.bank.insurance.onesb.domain.model.QuoteJob;
 import com.bank.insurance.onesb.domain.model.QuoteOffer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -108,6 +109,46 @@ class HttpJobStoreAdapterTest {
                 false, "AVAILABLE", null
         );
         adapter.completeJob("job-123", List.of(offer));
+    }
+
+    @Test
+    @Tag("FUNC-002")
+    void completeJob_mixedOffers_patchesPartial() {
+        server.expect(requestTo(BASE + "/internal/v1/jobs/job-partial/status"))
+                .andExpect(method(HttpMethod.PATCH))
+                .andExpect(jsonPath("$.status").value("PARTIAL"))
+                .andRespond(withSuccess("""
+                        {"jobId":"job-partial","status":"PARTIAL"}
+                        """, MediaType.APPLICATION_JSON));
+
+        server.expect(requestTo(BASE + "/internal/v1/jobs/job-partial/offers"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(jsonPath("$.offerId").value("ok-1"))
+                .andRespond(withStatus(HttpStatus.CREATED).body("""
+                        {"offerId":"ok-1","jobId":"job-partial"}
+                        """).contentType(MediaType.APPLICATION_JSON));
+
+        server.expect(requestTo(BASE + "/internal/v1/jobs/job-partial/offers"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(jsonPath("$.offerId").value("bad-1"))
+                .andExpect(jsonPath("$.errorSummary").value("UW decline"))
+                .andRespond(withStatus(HttpStatus.CREATED).body("""
+                        {"offerId":"bad-1","jobId":"job-partial"}
+                        """).contentType(MediaType.APPLICATION_JSON));
+
+        List<QuoteOffer> mixed = List.of(
+                new QuoteOffer(
+                        "ok-1", "INS1", null, "P1", "Ok",
+                        new BigDecimal("100.00"), "YEARLY", new BigDecimal("500000"),
+                        false, "AVAILABLE", null
+                ),
+                new QuoteOffer(
+                        "bad-1", "INS2", null, "P2", "Bad",
+                        null, null, null,
+                        false, "ERROR", "UW decline"
+                )
+        );
+        adapter.completeJob("job-partial", mixed);
     }
 
     @Test

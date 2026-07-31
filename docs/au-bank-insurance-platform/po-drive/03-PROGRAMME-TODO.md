@@ -30,10 +30,12 @@
 - [ ] Mark concept-only Figma screens as Out for R0
 
 ### Requirements depth
-- [ ] Review & approve [PRD-R0](../requirements/PRD-R0-DISTRIBUTION-PLATFORM.md)
-- [ ] Expand [BRD-P0](../requirements/BRD-P0-CAPABILITIES.md) AC with Compliance
-- [ ] Consent rule pack v1 (GAP-006)
-- [ ] Suitability rule pack v1 (GAP-007)
+- [x] Capture PO-approved [BRD overview headings](../requirements/BRD-OVERVIEW.md)
+- [ ] Write detailed BR chapters under BRD overview (start §1–4, §6–8, §10–11)
+- [ ] Review & approve [PRD-R0](../requirements/PRD-R0-DISTRIBUTION-PLATFORM.md) against BRD overview
+- [ ] Align [BRD-P0](../requirements/BRD-P0-CAPABILITIES.md) to BRD overview sections
+- [ ] Consent rule pack v1 (GAP-006) → BRD §6.4 / §8.3
+- [ ] Suitability rule pack v1 (GAP-007) → BRD §6
 - [ ] Quote/compare rule pack v1 (GAP-012)
 - [ ] Product Matrix v0 dimensions for first LOB (GAP-013)
 - [ ] Attribute sheets: Lead, Consent, Suitability, Quote, Proposal, Payment, Policy (GAP-016)

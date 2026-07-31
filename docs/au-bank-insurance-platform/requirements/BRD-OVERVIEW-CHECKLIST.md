@@ -1,0 +1,83 @@
+# BRD Overview — Flat checklist (PO source headings)
+
+**Purpose:** Preserve the Product Owner’s original heading list as an authoritative checklist.  
+**Canonical structured TOC:** [BRD-OVERVIEW.md](./BRD-OVERVIEW.md)
+
+Use this list when reviewing scope completeness. Do not drop items without PO approval.
+
+---
+
+- [ ] **Login**
+  - [ ] AD Integration
+  - [ ] Forgot Password
+  - [ ] Account Lock / Unlock
+  - [ ] SSO redirection
+- [ ] **User Management Module**
+  - [ ] Role Rights
+  - [ ] User Access & Permission
+  - [ ] User Hierarchy Management (Both AU Bank & Partner)
+  - [ ] User Create / Update & Terminate Module
+- [ ] **Lead Management**
+  - [ ] Lead Create
+  - [ ] Lead Update
+  - [ ] Lead follow-up & Reminder (Meeting)
+  - [ ] Lead Bulk upload
+  - [ ] Lead Assignment & Reassignment (Individual & bulk)
+  - [ ] Campaign & Drive Lead module
+  - [ ] Lead duplicate flagging, Lead Expiry & Lead Deletion
+- [ ] **Customer Data Fetch**
+  - [ ] CBS Integration (Fetch data using Cust ID, Mobile No, PAN etc.)
+- [ ] **Lead / Application Rules and workflow**
+  - [ ] Lead Rules
+  - [ ] New Rule creation and updating existing rules
+  - [ ] Workflow management
+  - [ ] Approval management and records
+- [ ] **Suitability Check Module**
+  - [ ] Suitability Check
+  - [ ] List product based on suitability for each partner
+  - [ ] Suitability PDF creation
+  - [ ] Suitability Consent Capture and storing records
+- [ ] **Quote list & Compare**
+  - [ ] Quote listing logic
+  - [ ] Sorting and Filter options
+  - [ ] View more and product details
+  - [ ] Downloads (Brochure, Policy wording etc)
+  - [ ] Compare Quote
+  - [ ] Share Quote
+  - [ ] Modify Quote (Change SA, PT, PPT, Paymode etc.)
+  - [ ] Add-on covers (Addition & Deletion)
+  - [ ] Discounting (Credit Score, Existing customer discount, DIY Discount etc.)
+  - [ ] eBI sharing and acceptance
+- [ ] **Proposal journey**
+  - [ ] Data prefill & Masking
+  - [ ] Document waiver (Fetching & passing KYC, Credit score, Income proof etc.)
+  - [ ] Proposal acceptance & Consent on eBI, CIS, Proposal form, Suitability etc.
+  - [ ] ACR Process
+- [ ] **Insurance Risk and fraud detection module**
+  - [ ] PTL API & RAG API
+  - [ ] Pre-issuance verification process
+  - [ ] Customer journey
+  - [ ] SP journey
+  - [ ] Both in a single call
+  - [ ] Storing Video, PDF & sharing it with Insurance partners
+  - [ ] Updating FR in Insurance system
+- [ ] **Payment**
+  - [ ] Dual Payment Mandate
+  - [ ] Payment Process
+    - [ ] i. Internal Fund Transfer
+    - [ ] ii. Online Payment options (Payment Gateway)
+    - [ ] iii. Cheque Payment Process
+  - [ ] Payment & Mandate communication to customers
+- [ ] **Proposal Submission**
+  - [ ] Status update
+  - [ ] Policy Issuance confirmation
+  - [ ] Policy PDF & communication to customers
+- [ ] **Welcome Calling process**
+  - [ ] Calling customer
+  - [ ] Follow-up
+  - [ ] Cancellation & Update to customer
+  - [ ] Query resolution and update
+- [ ] **Post issuance policy status check**
+- [ ] **Data Storage & Push to DWH**
+- [ ] **Commission calculation**
+- [ ] **Report, MIS & Dashboard**

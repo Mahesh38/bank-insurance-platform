@@ -29,6 +29,8 @@ public final class ErrorCodes {
     // --- Proposal / attribution ---
     public static final String AGENT_ATTRIBUTION_MISSING = "AGENT_ATTRIBUTION_MISSING";
     public static final String PROPOSAL_REJECTED         = "PROPOSAL_REJECTED";
+    /** Proposal/application is not in a payable state for payment URL creation. */
+    public static final String PROPOSAL_NOT_PAYABLE      = "PROPOSAL_NOT_PAYABLE";
 
     // --- Resource / entity ---
     public static final String RESOURCE_NOT_FOUND    = "RESOURCE_NOT_FOUND";

@@ -94,4 +94,32 @@ public final class PersistenceApiDtos {
             Integer durationMs,
             String errorMessage
     ) {}
+
+    public record CreatePaymentSessionRequest(
+            String sessionId,
+            String jobId,
+            String applicationNumber,
+            String lob,
+            String paymentUrl,
+            String redirectUrl,
+            String status,
+            String externalTxnId,
+            Instant expiresAt,
+            String createdByActor
+    ) {}
+
+    public record PaymentSessionResponse(
+            String sessionId,
+            String jobId,
+            String applicationNumber,
+            String lob,
+            String paymentUrl,
+            String redirectUrl,
+            String status,
+            String externalTxnId,
+            Instant createdAt,
+            Instant expiresAt,
+            Instant updatedAt,
+            String createdByActor
+    ) {}
 }

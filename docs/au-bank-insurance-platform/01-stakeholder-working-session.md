@@ -83,16 +83,19 @@
 
 ## Decision log
 
+Working decisions recorded in [DECISION-LOG.md](./DECISION-LOG.md) and [07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md](./07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md).
+
 | ID | Decision question | Options | Decision | Owner | Date | Notes |
 |----|-------------------|---------|----------|-------|------|-------|
-| D-001 | First LOB for AU Bank MVP | Term / Health / Motor / Other | *TBD* | Bancassurance + PO | | |
-| D-002 | Primary user of MVP UI | RM-assisted only / Customer self / Hybrid | *TBD* | Digital + PO | | |
-| D-003 | Aggregator for go-live | 1SB / Other / Dual | *TBD* | Bancassurance + PO | | |
-| D-004 | Replaceability required at MVP? | Yes hard / Yes soft / No | *TBD* | PO + Architect | | |
-| D-005 | Suitability engine location | Bank only / Aggregator / Hybrid | *TBD* | Compliance + PO | | |
-| D-006 | Payment experience | Aggregator URL redirect / Bank PG / Hybrid | *TBD* | Payments + PO | | |
-| D-007 | “Done” for first release | Quote only / Through payment / Through policy | *TBD* | PO | | |
-| D-008 | Agent attribution source | RM login map / Manual entry / Both | *TBD* | Compliance + Ops | | |
+| D-001 | First LOB for AU Bank MVP | Term / Health / Motor / Other | **Life** (Term, ULIP, Savings/Investment) | Bancassurance + PO | 2026-07-31 | Working draft |
+| D-002 | Primary channels of MVP UI | RM-assisted only / Customer self / Hybrid | **All three Day 1** | Digital + PO | 2026-07-31 | Working draft |
+| D-003 | Aggregator for go-live | 1SB / Other / Dual | **1SB** (single; extensible later) | Bancassurance + PO | 2026-07-31 | Working draft |
+| D-004 | Replaceability required at MVP? | Yes hard / Yes soft / No | **Yes hard** (no tight coupling) | PO + Architect | 2026-07-31 | Working draft |
+| D-005 | Suitability before quote | Bank only / Aggregator / Hybrid | **Mandatory bank-owned** need analysis + suitability | Compliance + PO | 2026-07-31 | Working draft |
+| D-006 | Payment experience | Aggregator URL / Bank PG / Hybrid | **AU Bank PG**; customer device; no RM-device pay | Payments + PO | 2026-07-31 | Working draft |
+| D-007 | “Done” / Sold for first release | Quote / Payment / Policy | **Policy issued** + confirm + recon + ops | PO | 2026-07-31 | Working draft |
+| D-008 | Agent attribution source | RM login map / Manual / Both | *Pending IRDAI validation* | Compliance + Ops | | WD §10 |
+| D-009 | Customer segment | ETB / NTB / Both | **ETB only** (any bank relationship) | Product | 2026-07-31 | Working draft |
 
 *Add rows freely. Do not delete contested decisions — mark superseded.*
 

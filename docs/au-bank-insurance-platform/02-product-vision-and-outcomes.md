@@ -1,14 +1,14 @@
 # Product vision & outcomes — AU Bank Insurance Platform
 
 **Owner:** Platform Product Owner  
-**Status:** Draft — lock after Session 1–3  
+**Status:** Draft — aligned to [Working Decisions v1](./07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md); lock after formal sponsor validation  
 **Audience:** All stakeholders
 
 ---
 
 ## Vision (draft)
 
-> AU Bank’s Relationship Managers sell the right insurance to the right existing customer, in a guided, compliant journey that feels like **AU Bank** — while the bank stays free to change the insurance connectivity behind the scenes.
+> AU Bank’s RMs and existing customers buy the right **Life** insurance through **assisted, self-service, or hybrid** journeys that feel like **AU Bank** — with mandatory suitability and consent — while the bank stays free to change insurance connectivity behind the scenes.
 
 ---
 
@@ -16,9 +16,9 @@
 
 | Pillar | Meaning for AU Bank |
 |--------|---------------------|
-| **Bank-owned journey** | Stages, suitability, disclosures, and UX copy are bank product decisions |
-| **RM-assisted bancassurance** | Default operating model is assisted sale; customer self-serve is additive |
-| **Multi-insurer choice** | Customer/RM can compare offers where product strategy allows |
+| **Bank-owned journey** | Stages, suitability, disclosures, catalogue, and UX copy are bank product decisions |
+| **Three journeys Day 1** | RM-assisted, customer self-service, and hybrid with seamless mode switching |
+| **Multi-insurer choice** | Group A in-platform quotes; Group B catalogue + redirect |
 | **Compliance by design** | Consent, agent/distributor attribution, and audit are release gates |
 | **Replaceable connectivity** | Apps talk to AU Bank insurance APIs — not aggregator wire formats |
 

@@ -2,8 +2,9 @@
 
 **Product:** AU Bank Insurance Distribution Platform  
 **Release:** R0  
-**Version:** 0.1 (PO/BA working draft)  
-**Note:** Replaces template BR shells for P0 only. P1/P2 capabilities listed as stubs.
+**Version:** 0.2 (align to Working Decisions Draft v1 — Life; three journeys; ETB)  
+**Note:** Replaces template BR shells for P0 only. P1/P2 capabilities listed as stubs.  
+**SSOT:** [../07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md](../07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md) · Chapter map: [BRD-OVERVIEW.md](./BRD-OVERVIEW.md)
 
 ---
 

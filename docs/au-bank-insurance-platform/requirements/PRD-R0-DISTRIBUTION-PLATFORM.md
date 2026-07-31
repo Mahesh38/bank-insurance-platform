@@ -3,60 +3,64 @@
 **Product:** AU Bank Insurance Distribution Platform  
 **Release:** R0 Pilot  
 **Owner:** Platform Product Owner  
-**Version:** 0.1  
-**Related:** [R0-SCOPE.md](./R0-SCOPE.md) · [BRD-P0-CAPABILITIES.md](./BRD-P0-CAPABILITIES.md) · KB journeys
+**Version:** 0.2  
+**Related:** [Working Decisions](../07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md) · [R0-SCOPE.md](./R0-SCOPE.md) · [BRD-OVERVIEW.md](./BRD-OVERVIEW.md) · [BRD-P0-CAPABILITIES.md](./BRD-P0-CAPABILITIES.md) · KB journeys  
+**Alignment:** MVP = Life ETB; journeys = RM + Self + Hybrid; Sold = issuance; Group A/B insurer model
 
 ---
 
 ## 1. Problem
 
-Insurance sales at the bank are fragmented across external tools. RMs lack a single compliant workspace; the bank lacks end-to-end visibility; aggregator dependence risks lock-in.
+Insurance sales at the bank are fragmented across external tools. RMs and customers lack a single compliant workspace; the bank lacks end-to-end visibility to **policy issuance**; aggregator dependence risks lock-in.
 
 ## 2. Goals
 
 | Goal | BG | R0 contribution |
 |------|----|-----------------|
-| Single platform journey | BG-001 | JRN-001 on bank UI |
-| RM productivity | BG-002 | One workspace for lead→policy |
-| Conversion | BG-003 | Instrument funnel |
+| Single platform journey | BG-001 | Assisted, self-service, and hybrid Life paths |
+| RM productivity | BG-002 | One workspace for lead→issuance (+ share links) |
+| Conversion | BG-003 | Instrument funnel; KPI = **Sold** (issued) |
 | Integration independence | BG-004 | Hub + 1SB adapter only at edge |
-| Visibility | BG-005 | Journey state + pilot dashboard |
-| Compliance | BG-006 | Consent, suitability, audit, attribution |
+| Visibility | BG-005 | Journey state + issuance confirmation |
+| Compliance | BG-006 | Need analysis, suitability, consent, audit, attribution |
 
 ## 3. Personas (R0)
 
 | Persona | Needs |
 |---------|-------|
-| **RM** | Find customer, run journey, explain quotes, complete proposal, chase payment/UW |
-| **Existing customer** | Consent, answer suitability, complete OTP/payment/docs as prompted |
-| **Ops (lite)** | See stuck journeys; escalate insurer issues |
+| **RM** | Find ETB customer, run/assist journey, share payment/insurer links, never take payment on RM device |
+| **Customer (ETB)** | Self-serve or hybrid: suitability, consent, proposal steps, payment on personal device |
+| **Ops (lite)** | See stuck journeys; escalate insurer issues; track lifecycle post-issuance |
 | **Compliance** | Reconstruct who did what with evidence |
-| **Platform admin (lite)** | Seed products/rules/config (may be backoffice, not full UI) |
+| **Platform admin (lite)** | Seed catalogue/rules/config (may be backoffice) |
 
 ## 4. User stories (epic-level)
 
-### 4.1 RM happy path
+### 4.1 RM-assisted happy path
 
 1. As an RM, I authenticate so my actions are attributable.  
-2. As an RM, I search an existing customer and start/resume a lead.  
+2. As an RM, I search an ETB customer and start/resume a lead.  
 3. As an RM, I capture customer consent before advice/sale steps.  
-4. As an RM, I complete suitability and see eligible products.  
-5. As an RM, I request multi/single quotes and compare offers.  
-6. As an RM, I select an offer and complete the proposal form.  
+4. As an RM, I complete need analysis / suitability and see eligible catalogue products.  
+5. As an RM, for Group A I request quotes and compare offers; for Group B I recommend and share insurer redirect.  
+6. As an RM, I select an offer and complete or hand off the proposal form.  
 7. As an RM, I track underwriting/requirements status.  
-8. As an RM, I initiate payment and see payment/policy outcome.  
+8. As an RM, I share a payment link; customer pays on their device; I see payment/policy outcome.  
 9. As an RM, I see my pipeline of open journeys and next actions.
 
-### 4.2 Customer-assisted steps
+### 4.2 Self-service & hybrid
 
-10. As a customer, I provide consent (and OTP if required).  
-11. As a customer, I complete payment on the payment URL and return to bank landing.  
+10. As a customer, I start a Life journey on bank digital channels.  
+11. As a customer, I complete need analysis / suitability before any quote.  
+12. As a customer or RM, I can hand off mid-journey (quote↔proposal↔payment) without restarting.  
+13. As a customer, I complete payment on my personal device (never on RM device).  
 
 ### 4.3 Compliance / platform
 
-12. As Compliance, I can retrieve audit events for a journey including agent and distributor.  
-13. As the platform, I never trust caller-supplied distributor identity.  
-14. As the platform, I hide aggregator wire formats from channel apps.
+14. As Compliance, I can retrieve audit events for a journey including agent and distributor.  
+15. As the platform, I never trust caller-supplied distributor identity.  
+16. As the platform, I hide aggregator wire formats from channel apps.  
+17. As Ops, I only count **Sold** when policy is issued, confirmed, reconcilable, and trackable.
 
 ## 5. Functional requirements (summary)
 

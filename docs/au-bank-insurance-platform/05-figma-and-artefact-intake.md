@@ -13,6 +13,7 @@
 | Prototype URL | https://www.figma.com/proto/JyLGAaO88ELjnyVF2FQ3Bx/For-Client-Review?node-id=208-9666&page-id=208%3A2982 |
 | Access from automation | **Blocked** (login wall) |
 | Inventory status | **Not started** — map to CJ/RMJ/JRN after walkthrough |
+| Working rule | Figma is **reference only** (MVP + concept + future mixed). Not SoT — see Working Decisions §15 |
 
 ### BA checklist
 

@@ -1,49 +1,45 @@
 # Process & journey canvas — AU Bank Insurance Platform
 
 **Owner:** Business Analysis  
-**Status:** Aligned to KB value stream (Vol 05/06, Phase 3) — **still validate against Figma + SMEs**  
+**Status:** Aligned to Working Decisions — **Life LOB; RM + Self + Hybrid**; validate detail against Figma (reference only) + SMEs  
 **Canonical detail:** [knowledge-base/04-value-stream-and-journeys.md](./knowledge-base/04-value-stream-and-journeys.md)  
+**SSOT decisions:** [07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md](./07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md)  
 **Rule:** AU Bank process language. Aggregator steps are “external capability”, not the product.
 
 ---
 
 ## 1. Universal sale journey (working model)
 
-Use this as the discussion spine until Figma proves otherwise.
+Spine applies to **RM-assisted, self-service, and hybrid** (mode may switch mid-journey).
 
 ```text
-[A] RM login & context
+[A] Actor context (RM session and/or Customer self-service)
         │
         ▼
-[B] Customer find (CIF) + consent / disclosures
+[B] Customer find (ETB / CIF) + consent / disclosures
         │
         ▼
-[C] Need analysis / suitability (bank-owned)
+[C] Need analysis / suitability (bank-owned) — MANDATORY before quote
         │
         ▼
-[D] Product / LOB selection
+[D] Product recommendation (Catalogue: Group A and/or Group B)
+        │
+        ├─ Group A (1SB) ──────────────────────────────┐
+        │                                              │
+        ▼                                              ▼
+[E] Quote → offers → compare/select          [E'] Redirect to insurer
+        │                                              │
+        ▼                                              ▼
+[F] Proposal → submit → UW/requirements      [F'] Customer completes on insurer site
+        │                                              │
+        ▼                                              ▼
+[G] Payment on **customer device** (AU Bank PG / insurer path)
         │
         ▼
-[E] Quote request → wait → offers
-        │
-        ▼
-[F] Compare & select offer (+ literature / BI if any)
-        │
-        ▼
-[G] Proposal form (dynamic) → submit → wait
-        │
-        ▼
-[H] Underwriting / requirements (docs, OTP, KYC…)  ⟵ often multi-visit
-        │
-        ▼
-[I] Customer decision / counter-offer (if any)
-        │
-        ▼
-[J] Payment handoff → confirmation
-        │
-        ▼
-[K] Policy issued → fulfilment / vault
+[H] Policy issued → bank confirmation → Sold (reconcilable + ops-trackable)
 ```
+
+**Hybrid examples:** Customer quotes → RM proposes; RM starts lead → customer completes proposal; RM shares payment link → customer pays on personal device. **No payment on RM device.**
 
 ---
 
@@ -107,7 +103,9 @@ For each stage A–K:
 2. Dynamic proposal forms that Figma treated as static screens.  
 3. Payment redirect leaving bank session — resume & reconciliation.  
 4. Multi-visit requirements without task inbox.  
-5. Over-scoping Health/Motor patterns into Term MVP.
+5. Over-scoping Health/Motor patterns into **Life** MVP.  
+6. Hybrid mode-switch without losing journey state / audit continuity.  
+7. Group B redirect without clear bank-side recommendation audit.
 
 ---
 

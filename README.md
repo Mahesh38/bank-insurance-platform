@@ -4,6 +4,10 @@ Integration knowledge base for building a bank insurance platform on **1Silverbu
 
 ## Start here
 
+**Full-platform architecture review (AWS/Kubernetes microservices target state)?**
+→ **[docs/architecture-review/README.md](./docs/architecture-review/README.md)**
+(Service decomposition, sync/async communication, AWS/EKS infrastructure, data architecture, security/NFRs, delivery estimate)
+
 **Building the 1SB integration service?**  
 → **[docs/1sb-insurance-integration/service-ssot/README.md](./docs/1sb-insurance-integration/service-ssot/README.md)**  
 (PO + Architect decisions, product backlog, NFR/compliance map, link to full architecture)

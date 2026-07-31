@@ -1,15 +1,15 @@
 # Project charter — AU Bank Insurance Platform
 
 **Document owner:** Platform Product Owner  
-**Status:** Draft aligned to baseline Volumes/Phases; **BRD overview headings PO-approved** ([requirements/BRD-OVERVIEW.md](./requirements/BRD-OVERVIEW.md))  
+**Status:** Draft aligned to [Working Decisions v1](./07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md); **BRD overview headings PO-approved** ([requirements/BRD-OVERVIEW.md](./requirements/BRD-OVERVIEW.md))  
 **Bank:** AU Bank  
-**Version:** 0.3 (BRD overview locked)
+**Version:** 0.4 (Working Decisions Draft v1 + BRD overview)
 
 ---
 
 ## 1. One-sentence intent
 
-AU Bank will build a **bank-owned, insurer-agnostic Insurance Distribution Platform** that owns the journey from **lead → consent → suitability → quote → proposal → payment → policy**, with **RM-assisted** (and later self-service) channels, using **1SilverBullet first** and evolving to direct insurer integrations — without rewriting the bank business model.
+AU Bank will build a **bank-owned, insurer-agnostic Insurance Distribution Platform** that owns the journey from **lead → need analysis → consent → suitability → quote → proposal → payment → policy issuance**, supporting **RM-assisted, customer self-service, and hybrid** journeys from Day 1 for **ETB Life** customers, using **1SilverBullet as the current integration layer** (Group A) while remaining replaceable — without rewriting the bank business model.
 
 ---
 
@@ -29,33 +29,42 @@ AU Bank will build a **bank-owned, insurer-agnostic Insurance Distribution Platf
 
 ## 3. Who we serve (personas — draft)
 
-| Persona | Primary need | Channel (hypothesis) |
-|---------|--------------|----------------------|
-| **RM / Branch staff** | Originate quote → proposal → track status for a customer sitting with them | RM app / assisted web (Figma) |
-| **Customer (existing)** | Understand offers, complete OTP/payment/docs, receive policy | Customer app / assisted + self steps |
+| Persona | Primary need | Channel |
+|---------|--------------|---------|
+| **RM / Branch staff** | Assist / complete Life sale; share links; never take payment on RM device | RM app / assisted web |
+| **Customer (ETB)** | Self-serve or hybrid purchase; complete payment on personal device; receive policy | Bank digital channels + assisted steps |
 | **Bancassurance ops** | Product catalog, insurer enablement, exception handling | Ops console (later?) |
 | **Compliance / Audit** | Reconstruct who did what, with which agent/distributor | Reports / audit store |
 | **Platform / Integration** | Stable bank APIs; hide aggregator protocol | Internal services |
 
 ---
 
-## 4. In scope / out of scope (discovery defaults — not frozen)
+## 4. In scope / out of scope
 
-### Proposed **in scope** for first release discussion
+**SSOT:** [07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md](./07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md) (working draft pending formal validation).
 
-- RM-assisted journey for **at least one LOB** (candidate: Term Life — not locked)
-- Customer identification via bank CIF (read/prefill)
-- Quote → select → proposal → payment handoff → status visibility
-- Suitability / disclosures as **bank-owned** steps (content TBD)
-- Audit + agent attribution for regulated sale
+### **In scope** — MVP (working freeze)
 
-### Proposed **out of scope** until explicitly pulled in
+- **LOB:** Life only — Term, ULIP, Savings / Investment (+ future life as required)
+- **Journeys:** RM-assisted + Self-service + Hybrid (seamless mode switch) from Day 1
+- **Segment:** ETB only (any AU Bank relationship)
+- Bank-owned Product Catalogue (Group A + Group B)
+- Group A: in-platform quote → proposal → payment → issuance via 1SB
+- Group B: recommendation → redirect to insurer (no 1SB quote)
+- Mandatory need analysis + suitability before quote; mandatory consent (sequencing TBD)
+- SSO, bank notifications, AU Bank PG only; Lead module in-platform (→ Sampath later)
+- Sold = policy issued + confirmation + reconcilable + ops-trackable
 
+### **Out of scope** — MVP
+
+- Health, Motor, Travel, other non-life LOBs
+- NTB customers
+- Embedded / loan-disbursement insurance offers
+- Multi-aggregator routing; bank-owned aggregation layer
+- Branch kiosk (pending business decision)
 - Claims, renewals, servicing as full product suites
-- Building AU Bank’s own multi-carrier connectivity fabric on day 1
 - Replacing bank CRM / CIF / core banking
-- Non-bank customer (walk-in / open market) acquisition (unless product asks for it)
-- Full insurer panel for every LOB at once
+- Third-party payment gateway; payment on RM device
 
 ---
 
@@ -75,10 +84,11 @@ AU Bank will build a **bank-owned, insurer-agnostic Insurance Distribution Platf
 
 Until metrics are approved, success means:
 
-1. An RM can complete a **happy-path Term (or chosen LOB) sale** for an existing customer in the bank UI.
-2. Compliance can answer: **which agent, which distributor, which consent, which steps**.
-3. Engineering can change aggregator behind a bank API **without rewriting RM/customer apps**.
-4. Product can add the next LOB **without a new “platform”**.
+1. An RM or ETB customer can complete a **happy-path Life sale** (assisted, self, or hybrid) through **policy issuance**.
+2. Compliance can answer: **which agent, which distributor, which consent, which suitability steps**.
+3. Engineering can change aggregator behind a bank API **without rewriting** channel apps.
+4. Product can extend Life variants / Group B redirect **without a new “platform”**.
+5. Quotes, proposals, and payments alone are **not** counted as Sold.
 
 ---
 
@@ -87,8 +97,9 @@ Until metrics are approved, success means:
 | Artefact | Treatment in this reset |
 |----------|-------------------------|
 | `docs/1sb-insurance-integration/**` | Prior research + engineering spike — **reference only** |
-| Figma “For Client Review” | Primary UX/process hypothesis — **to be inventoried** |
-| Uploaded baseline docs (pending) | Source material for BA synthesis |
+| Figma “For Client Review” | UX reference only — **not SoT** (Working Decisions §15) |
+| Working Decisions Draft v1 | **Working SSOT** for MVP scope until formally validated |
+| Uploaded baseline docs | Source material for BA synthesis (KB) |
 
 ---
 

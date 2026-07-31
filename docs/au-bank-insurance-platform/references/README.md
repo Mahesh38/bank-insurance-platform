@@ -1,7 +1,7 @@
 # References (non-binding)
 
 This folder points at materials that inform the AU Bank product reset.  
-**Nothing here is approved scope** until listed as Adopted in the [decision log](../01-stakeholder-working-session.md).
+**Nothing here is approved scope** until listed as Working/Accepted in the [Decision Log](../DECISION-LOG.md) or [Working Decisions](../07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md).
 
 ## In-repo research (engineering / 1SB package)
 
@@ -17,7 +17,7 @@ This folder points at materials that inform the AU Bank product reset.
 
 | Link | Notes |
 |------|-------|
-| [Figma — For Client Review](https://www.figma.com/proto/JyLGAaO88ELjnyVF2FQ3Bx/For-Client-Review?node-id=208-9666&page-id=208%3A2982) | Primary UX hypothesis |
+| [Figma — For Client Review](https://www.figma.com/proto/JyLGAaO88ELjnyVF2FQ3Bx/For-Client-Review?node-id=208-9666&page-id=208%3A2982) | UX **reference only** (D-012) — not SoT |
 | [1SB Insurance Gateway API](https://docs.1silverbullet.tech/docs/insurance/retail/apiDocs/insurance-gateway-api) | Vendor capability reference |
 
 ## Local artefact dirs

@@ -9,42 +9,48 @@
 ## Wave 0 — Discover & freeze (NOW)
 
 ### Governance
-- [ ] Name Business Sponsor + Programme Sponsor (GAP-010)
+- [ ] Name Business Sponsor (role = Head of Insurance Business / Platform — GAP-010)
 - [ ] Confirm Steering cadence (bi-weekly)
-- [ ] Publish RACI for D-001…D-009
+- [ ] Publish RACI for remaining Open Validation Items
 - [ ] Align org: Distribution Platform backlog owns L1–L3; 1SB eng is L3 epic (GAP-018)
 
-### Scope decisions (Session 1)
-- [ ] D-001 First LOB
-- [ ] D-002 R0 channel (recommend: RM-assisted only)
-- [ ] D-007 R0 done definition (recommend: payment + policy visibility)
-- [ ] D-009 Existing-customer-only for R0? (recommend: Yes)
-- [ ] D-003/ D-016 1SB commercial confirmation path
-- [ ] D-005 Suitability mandatory before quote? (recommend: Yes)
-- [ ] D-006 Payment experience decision
-- [ ] Sign [R0-SCOPE.md](../requirements/R0-SCOPE.md)
+### Scope decisions (Working Decisions Draft v1 — **Working**, not sponsor-signed)
+
+> Checkmarks mean *working decision captured*, not *Steering approved*. Formal sign-off remains open.
+
+- [x] D-001 First LOB → **Life** (Term, ULIP, Savings/Investment) — Working
+- [x] D-002 Channels → **RM + Self-service + Hybrid** Day 1 — Working
+- [x] D-007 Sold → **policy issued** + confirm + recon + ops — Working
+- [x] D-009 Segment → **ETB only** — Working
+- [x] D-003 Aggregator → **1SB** (single aggregator MVP; extensible) — Working
+- [x] D-005 Suitability / need analysis **mandatory** before quote — Working
+- [x] D-006 Payment → customer device; **AU Bank PG**; no RM-device payment — Working
+- [ ] Sponsor **sign-off** on [Working Decisions](../07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md) + [R0-SCOPE.md](../requirements/R0-SCOPE.md)
+- [ ] Management readiness discussion ([04-MANAGEMENT-READINESS](./04-MANAGEMENT-READINESS.md))
 
 ### Artefacts & UX
-- [ ] Figma walkthrough recorded
+- [ ] Figma walkthrough recorded (Figma = **reference only** — WD §15)
 - [ ] Screen inventory table (screen → CJ/RMJ/JRN → MVP Y/N) (GAP-009)
-- [ ] Mark concept-only Figma screens as Out for R0
+- [ ] Mark concept-only Figma screens as Out for MVP
+- [ ] Detail self-service + hybrid mode-switch UX (GAP-023)
 
 ### Requirements depth
 - [x] Capture PO-approved [BRD overview headings](../requirements/BRD-OVERVIEW.md)
 - [ ] Write detailed BR chapters under BRD overview (start §1–4, §6–8, §10–11)
-- [ ] Review & approve [PRD-R0](../requirements/PRD-R0-DISTRIBUTION-PLATFORM.md) against BRD overview
+- [ ] Review & approve [PRD-R0](../requirements/PRD-R0-DISTRIBUTION-PLATFORM.md) against Working Decisions + BRD overview (three journeys)
 - [ ] Align [BRD-P0](../requirements/BRD-P0-CAPABILITIES.md) to BRD overview sections
-- [ ] Consent rule pack v1 (GAP-006) → BRD §6.4 / §8.3
+- [ ] Consent rule pack v1 (GAP-006) — sequencing R&D → BRD §6.4 / §8.3
 - [ ] Suitability rule pack v1 (GAP-007) → BRD §6
-- [ ] Quote/compare rule pack v1 (GAP-012)
-- [ ] Product Matrix v0 dimensions for first LOB (GAP-013)
+- [ ] Quote/compare rule pack v1 for Group A (GAP-012)
+- [ ] Product Catalogue / Matrix v0 for Life + Group A/B flags (GAP-013)
 - [ ] Attribute sheets: Lead, Consent, Suitability, Quote, Proposal, Payment, Policy (GAP-016)
-- [ ] NFR sheet draft (GAP-017)
+- [ ] NFR sheet draft incl. retention/residency placeholders (GAP-017)
+- [ ] Group B redirect journey AC
 
 ### Wave 0 exit
-- [ ] Sponsor sign-off on R0 scope
-- [ ] Compliance provisional OK on consent/suitability approach
-- [ ] Architecture options workshop scheduled (not before scope freeze)
+- [ ] Sponsor sign-off on Working Decisions + R0 scope
+- [ ] Compliance provisional OK on consent/suitability approach (configurable until validated)
+- [ ] Architecture options workshop scheduled (journey engine hybrid modes; aggregator-agnostic core)
 
 ---
 

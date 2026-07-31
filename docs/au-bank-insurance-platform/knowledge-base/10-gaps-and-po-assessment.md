@@ -1,7 +1,9 @@
 # 10 — Gaps & Platform PO assessment
 
-**Date:** Discovery restart after baseline PDF intake  
-**Verdict:** Strong **framework**; weak **specificity**. Usable as programme skeleton — **not** yet build-ready requirements.
+**Date:** Discovery restart after baseline PDF intake; **updated 2026-07-31** after Working Decisions Draft v1  
+**Verdict:** Strong **framework**; weak **specificity**. Usable as programme skeleton — **not** yet build-ready requirements.  
+**Operational gap tracker:** [../po-drive/02-GAP-REGISTER.md](../po-drive/02-GAP-REGISTER.md) (prefer this for status).  
+**Scope SSOT:** [../07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md](../07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md)
 
 ---
 
@@ -18,7 +20,8 @@
 | Detailed BR + AC | **Low** | Vol 03 / Phase 2 largely repeated templates |
 | Concrete business rules | **Low** | Categories only; few executable statements |
 | Information model depth | **Low** | Object list without attributes/SoR IDs |
-| LOB / product / insurer scope | **Missing** | Not specified for AU Bank pilot |
+| LOB / product / insurer scope | **Working (WD)** | Life LOB; Group A/B — was Missing at PDF intake |
+| Channel / segment / Sold | **Working (WD)** | Three journeys; ETB; Sold=issuance |
 | UX (Figma) linkage | **Missing** | Prototype not inventoried into CJ/RMJ |
 | Non-functional targets | **Low** | Principles only (no SLOs/numbers) |
 
@@ -26,31 +29,33 @@
 
 ## What we can treat as adopted (working)
 
-1. Platform owns journey end-to-end (lead → policy), not just connectivity.  
-2. RM workspace + assisted sale is central; self-service is also a goal.  
-3. Consent + suitability are first-class compliance capabilities.  
-4. Product Matrix drives eligibility before quote.  
-5. 1SB first, then hybrid/direct via Integration Hub.  
+1. Platform owns journey end-to-end (lead → **issuance**), not just connectivity.  
+2. **RM + self-service + hybrid** from Day 1 (D-002).  
+3. Consent + suitability are first-class; need analysis/suitability mandatory before quote (D-005, D-011).  
+4. Product Catalogue / Matrix drives eligibility; Group A quotes vs Group B redirect (D-010).  
+5. 1SB current layer, then replaceable via Integration Hub (D-003, D-004).  
 6. Canonical model + configuration + audit are non-negotiable.  
 7. Claims admin and insurer cores are out of platform scope (for now).  
-8. Primary named sale journey to elaborate first: **JRN-001 RM Assisted New Policy Purchase**.
+8. Journeys to elaborate: assisted, self-service, and hybrid Life paths for ETB.
 
 ---
 
-## Critical gaps blocking build freeze
+## Critical gaps still blocking formal build freeze
 
-| Gap | Why it blocks | Owner |
-|-----|---------------|-------|
-| First LOB + product set | Cannot prioritise quote/proposal fields or insurers | Bancassurance |
-| Pilot customer segment | Existing vs new/prospective changes CIF/onboarding | Product + Compliance |
-| Suitability content & override rules | Regulatory + UX | Compliance + BA |
-| Consent wording, TTL, withdrawal | Legal gate | Compliance |
-| Quote validity / compare rules | Sales behaviour | Product |
-| Payment experience | Redirect vs bank PG; failure/retry UX | Payments + Digital |
-| Definition of R0 “done” | Quote-only vs policy issued | Sponsor + PO |
-| Figma → journey mapping | Avoid building demo screens | Digital + BA |
-| Replace BR templates with real AC | Eng cannot estimate or test | BA |
-| Attribute-level information model | Data & API design | BA + Architect |
+| Gap | Why it blocks | Owner | Gap register |
+|-----|---------------|-------|--------------|
+| Suitability **content** & override rules | Regulatory + UX | Compliance + BA | GAP-007 |
+| Consent sequencing, wording, TTL | Legal gate | Compliance | GAP-006 |
+| Quote validity / compare rules (Group A) | Sales behaviour | Product | GAP-012 |
+| Payment failure/retry AC | Ops pain | Payments + Digital | GAP-011 (partial) |
+| Sponsor **name** + formal WD sign-off | Governance | Sponsor + PO | GAP-010 |
+| Figma → journey mapping | Avoid building demo screens | Digital + BA | GAP-009 |
+| Replace BR templates with real AC under BRD Overview | Eng cannot estimate or test | BA | GAP-008 |
+| Attribute-level information model | Data & API design | BA + Architect | GAP-016 |
+| Agent identity model | Attribution | Ops + Compliance | GAP-014 |
+| NFR numbers (retention, residency) | Infosec | Compliance + Infosec | GAP-017 |
+
+**Closed at Working Decisions (do not re-open as “missing scope”):** LOB (Life), channel (three journeys), ETB, Sold=issuance, Group A/B, AU Bank PG / customer-device payment, 1SB replaceability stance.
 
 ---
 

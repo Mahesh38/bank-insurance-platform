@@ -48,36 +48,38 @@ L3  INTEGRATION HUB
 
 | Horizon | Outcome |
 |---------|---------|
-| **R0 Pilot** | Controlled RM cohort completes **JRN-001** for **one LOB** through payment + policy visibility, with consent/suitability/audit intact |
-| **R1 Scale** | More RMs/branches; ops dashboards; hardening; exception handling |
-| **R2 Expand** | Next LOB + richer UW/docs; Product Matrix maturity |
-| **Strategic** | Direct insurer adapters can be added **without** rewriting RM/customer apps |
+| **MVP / R0** | ETB customer completes Life sale (RM / self / hybrid) to **policy issued** (Sold definition); Group A in-platform via 1SB; Group B redirect; consent/suitability/audit intact |
+| **R1 Scale** | More RMs/branches; ops dashboards; hardening; exception handling; MIS depth |
+| **R2 Expand** | NTB (if sponsored); richer UW/docs; Product Catalogue maturity |
+| **Strategic** | Aggregator replaceable (other external or bank-owned layer) **without** rewriting channel apps |
 
 Trace every epic to **BG-001…BG-008** (see knowledge-base/02).
 
 ---
 
-## 4. What is already decided (I will defend these)
+## 4. What is already decided (Working Decisions Draft v1)
+
+SSOT: [../07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md](../07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md)
 
 1. Bank owns journey state, consent, suitability, catalogue, reporting.  
-2. Integrations are replaceable (1SB ≠ product).  
+2. Integrations are replaceable (1SB = current layer, not temporary hack, not the product).  
 3. Canonical bank language in UX and public APIs.  
-4. Configuration + audit are release gates, not polish.  
+4. Configuration + audit are release gates; compliance items use **configurable policies** until validated.  
 5. Claims administration and insurer cores are out of scope.  
-6. First journey to elaborate: **JRN-001 RM Assisted New Policy Purchase**.
+6. MVP LOB = **Life**; channels = **RM + Self + Hybrid**; segment = **ETB**; Sold = **issuance**.  
+7. Group A (1SB) vs Group B (catalogue + redirect); payment on **customer device** only.
 
 ---
 
-## 5. What I will force a decision on (next 2 workshops)
+## 5. What still blocks formal freeze / hard-coding
 
-| # | Decision | Why I will not proceed without it |
-|---|----------|-----------------------------------|
-| D-001 | First LOB | Field models, insurers, UW intensity all change |
-| D-007 | R0 definition of done | Without this, eng builds forever |
-| D-002 | Channel for R0 (RM-only vs hybrid) | Auth, UX, staffing |
-| D-009 | Existing customer only? | CIF vs full onboarding |
-| D-006 | Payment experience | Redirect UX + reconciliation |
-| D-005 | Suitability mandatory before quote? | Compliance path |
+| # | Decision | Why I will not hard-code without it |
+|---|----------|-------------------------------------|
+| Consent sequencing | IRDAI / RBI / Corporate Agency R&D | Illegal UX if wrong |
+| Agent identity model | IRDAI + insurer onboarding | Attribution fail |
+| PII / audit retention & residency | Compliance pack | NFR wrong |
+| Sponsor name | Governance | Slow decisions |
+| Suitability / consent **content** packs | Compliance + BA | Gate locked; content open |
 
 Until these are signed, delivery work is **discovery / spike**, not committed roadmap.
 

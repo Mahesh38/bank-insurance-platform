@@ -18,6 +18,8 @@
 
 **Rule:** This KB is the product interpretation of the baseline docs. Where source PDFs are template-thin, the gap is called out in [10](./10-gaps-and-po-assessment.md) — do not invent false precision.
 
+> **Scope supersession:** For MVP LOB, journeys, ETB, Sold definition, insurer groups, payment, and 1SB positioning, prefer [Working Decisions Draft v1](../07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md) over older “not decided” language in this KB.
+
 ---
 
 ## Document map

@@ -1,83 +1,82 @@
 # Platform PO opening position — restarting from zero
 
 **Voice:** Platform Product Owner (with BA facilitation)  
-**Date:** Discovery restart  
-**Bank:** AU Bank
+**Date:** Discovery restart (historical kickoff stance)  
+**Bank:** AU Bank  
+**Supersession:** Scope hypotheses below are **superseded** by [Working Decisions Draft v1](./07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md) and [DECISION-LOG.md](./DECISION-LOG.md). Keep this file as kickoff context only.
 
 ---
 
-## What I am asking the room to agree
+## What I asked the room to agree (kickoff)
 
 We are **not** continuing the previous engineering narrative as the product truth.  
-We are building an **AU Bank Insurance Platform** for bancassurance — starting with shared understanding of customers, journeys, and release outcomes.
+We are building an **AU Bank Insurance Distribution Platform** for bancassurance — starting with shared understanding of customers, journeys, and release outcomes.
 
 Prior 1SB research and code spikes are valuable. They answer “can we connect?”  
 They do **not** yet answer “what must AU Bank ship for RMs and customers?”
 
 ---
 
-## Stakeholder positions I want on the table
+## Stakeholder positions (still valid for validation sessions)
 
 ### Bancassurance / Product
 
-- Which insurance LOBs does AU Bank actually want to push in the next 6–12 months?  
-- Which insurers are commercially real for the pilot?  
+- Confirm Working Decisions on Life LOB + Group A/B insurers.  
 - Is the first win “more policies” or “controlled compliant pilot”?
 
 ### Digital / Channel / UX (Figma owners)
 
-- Walk us through the Figma as the intended RM (and customer) experience.  
-- Call out which screens are aspirational.  
-- Tell us where the journey breaks today (data, ops, compliance).
+- Walk Figma as **reference** (MVP vs concept).  
+- Detail self-service + hybrid mode-switch UX.
 
 ### Compliance / Risk / Infosec
 
-- Non-negotiables before any customer sees a quote: consent, suitability, attribution, logging.  
-- What evidence must exist after a sale for audit.
+- Non-negotiables: consent, suitability, attribution, logging.  
+- Close Open Validation Items (sequencing, retention, residency).
 
 ### Branch / RM ops
 
-- Who starts the journey? Who finishes payment? Who chases documents?  
-- What would make RMs refuse to use the tool?
+- Who starts / finishes / chases docs; payment only on customer device.
 
-### Architecture / Engineering (advisory only for now)
+### Architecture / Engineering (advisory)
 
-- Listen first. Offer options after Sessions 1–2.  
-- Do not defend prior service boundaries until product scope is frozen.
+- Options after Working Decisions formal validation — journey engine hybrid modes; aggregator-agnostic core.
 
 ---
 
-## Working hypotheses (challenge these)
+## Working hypotheses — status after Working Decisions
 
-1. **AU Bank brand** owns the UX; aggregator is invisible to end users.  
-2. **RM-assisted** is the default operating model for MVP.  
-3. **Existing customers** only for R0.  
-4. **One LOB first** (Term Life is a common candidate — not approved).  
-5. **1SB** is the current connectivity choice — bank APIs must survive its replacement.  
-6. **Payment + status visibility** are likely in the first “real” release; full UW/docs inbox may be phased.
-
----
-
-## What “done” looks like for this discovery phase
-
-Not code. Not backlog tickets.
-
-1. Charter approved for AU Bank.  
-2. Figma + uploads reconciled into one journey canvas.  
-3. P0 discovery questions answered or deferred with dates.  
-4. Release 0 scope written in product language.  
-5. Architecture invited to an options workshop with **clear constraints**.
+| # | Original hypothesis | Status |
+|---|---------------------|--------|
+| 1 | AU Bank brand owns UX; aggregator invisible | **Working — keep** (D-004) |
+| 2 | RM-assisted is the default / only MVP channel | **Superseded** — RM + Self-service + Hybrid Day 1 (D-002) |
+| 3 | Existing customers only for R0 | **Working — keep** ETB only (D-009) |
+| 4 | One LOB first (Term candidate not approved) | **Superseded** — Life LOB: Term, ULIP, Savings/Investment (D-001) |
+| 5 | 1SB current connectivity; bank APIs survive replacement | **Working — keep** (D-003, D-004) |
+| 6 | Payment + status in first release; Sold unclear | **Superseded** — Sold = issuance (D-007); payment on customer device (D-006) |
 
 ---
 
-## Immediate next steps
+## Discovery phase “done” — current honesty
+
+| Criterion | Status |
+|-----------|--------|
+| Charter drafted / aligned to WD | Done as draft |
+| Figma reconciled into journey canvas | **Open** (inventory pending) |
+| P0 discovery questions answered or deferred | **Mostly done** (Working); Open Validation remains |
+| R0 scope in product language | Done as draft ([R0-SCOPE](./requirements/R0-SCOPE.md)) |
+| Architecture options workshop with constraints | **Not yet** — after sponsor validation |
+
+---
+
+## Immediate next steps (post Working Decisions)
 
 | # | Action | Who |
 |---|--------|-----|
-| 1 | Upload earlier basic docs into `artefacts/uploads/` and log them | You / PO |
-| 2 | Figma walkthrough or frame exports | Digital + PO + BA |
-| 3 | Schedule Session 1 ([01](./01-stakeholder-working-session.md)) | PO |
-| 4 | Start filling decision log D-001…D-008 | All |
+| 1 | Management validation of Working Decisions ([04-MANAGEMENT-READINESS](./po-drive/04-MANAGEMENT-READINESS.md)) | Sponsor + PO |
+| 2 | Figma walkthrough / inventory (reference only) | Digital + BA |
+| 3 | Consent / suitability content + Open Validation R&D | Compliance + BA |
+| 4 | Use [DECISION-LOG.md](./DECISION-LOG.md) as only `D-xxx` source | All |
 
-Until then, this folder is the **only** product SSOT for the reset.  
-Engineering SSOT under `docs/1sb-insurance-integration/` stays parked as research.
+**Working product SSOT:** [07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md](./07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md).  
+Engineering under `docs/1sb-insurance-integration/` stays parked as research / Integration Hub candidate.

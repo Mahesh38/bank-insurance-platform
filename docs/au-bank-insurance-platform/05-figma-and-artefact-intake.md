@@ -13,6 +13,7 @@
 | Prototype URL | https://www.figma.com/proto/JyLGAaO88ELjnyVF2FQ3Bx/For-Client-Review?node-id=208-9666&page-id=208%3A2982 |
 | Access from automation | **Blocked** (login wall) |
 | Inventory status | **Not started** — map to CJ/RMJ/JRN after walkthrough |
+| Working rule | Figma is **reference only** (MVP + concept + future mixed). Not SoT — see Working Decisions §15 |
 
 ### BA checklist
 
@@ -58,6 +59,6 @@
 
 ## 4. Immediate ask
 
-1. Figma walkthrough or frame exports → map to CJ/RMJ.  
-2. Session 1 to freeze LOB + R0 definition of done ([10](./knowledge-base/10-gaps-and-po-assessment.md)).  
-3. BA pack: Consent/Suitability rules + JRN-001 deep dive.
+1. Figma walkthrough or frame exports → map to CJ/RMJ (Figma = **reference only**, D-012).  
+2. **Management validation** of Working Decisions + R0-SCOPE ([04-MANAGEMENT-READINESS](./po-drive/04-MANAGEMENT-READINESS.md)) — LOB/Sold already working-decided.  
+3. BA pack: Consent/Suitability **content** rules + hybrid journey deep dive.

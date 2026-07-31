@@ -1,95 +1,106 @@
-# R0 Scope One-Pager — AU Bank Insurance Distribution Platform
+# R0 / MVP Scope One-Pager — AU Bank Insurance Distribution Platform
 
-**Version:** 0.1 (PO draft)  
-**Journey focus:** JRN-001 RM Assisted New Policy Purchase  
-**Status:** ASSUMPTIONS pending Session 1 sign-off
-
----
-
-## 1. Goal of R0
-
-Prove that an AU Bank RM can take an **existing customer** through a **compliant, auditable** insurance sale on the bank platform — from lead to **payment completion and policy issuance visibility** — for **one LOB**, via **Integration Hub → 1SB**, without the RM using a third-party insurer portal as the primary workspace.
-
-**Maps to:** BG-001, BG-002, BG-005, BG-006 (primary); BG-003 measured.
+**Version:** 0.2  
+**Status:** Aligned to [Business Clarifications & Working Decisions v1](../07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md)  
+**Journey focus:** RM-assisted + Self-service + Hybrid (all Day 1)  
+**Sold =** Policy issued + confirmation + reconcilable + ops-trackable
 
 ---
 
-## 2. Working assumptions (confirm or replace)
+## 1. Goal of MVP
 
-| ID | Assumption | Confirm with |
-|----|------------|--------------|
-| A1 | First LOB = **Term Life** (or nearest bancassurance priority) | Bancassurance |
-| A2 | Channel = **RM-assisted only** (customer may do OTP/payment steps) | Digital |
-| A3 | Customers = **existing bank customers** (CIF lookup) | Product + Compliance |
-| A4 | Connectivity = **1SB Phase A** only | Partners |
-| A5 | Done = **Payment success + Policy issued/visible** (not quote-only) | Sponsor |
-| A6 | Suitability **mandatory** before quote | Compliance |
-| A7 | UW/docs = **status tracking lite** (not full document DMS in R0) | Ops + PO |
-| A8 | Self-service full journey = **Out** of R0 | Digital |
-| A9 | Renewals / claims / multi-LOB = **Out** of R0 | PO |
+Deliver AU Bank’s Life Insurance distribution platform for **ETB customers**, supporting **RM-assisted, self-service, and hybrid** journeys, with:
+
+- Mandatory need analysis & suitability before quote  
+- Group A insurers fully inside the platform via **1SB**  
+- Group B insurers via catalogue + **redirect** (no quote via 1SB)  
+- Payment on **customer device** via **AU Bank PG** (and IFT where applicable)  
+- Success measured as **policy sold** (issuance), not quote/proposal/payment alone  
+
+**Maps to:** BG-001…BG-006.
 
 ---
 
-## 3. In scope (R0)
+## 2. Working decisions (locked unless overturned)
+
+| ID | Decision |
+|----|----------|
+| A1 | LOB = **Life only** (Term, ULIP, Savings/Investment, future life) |
+| A2 | Channels = **RM + Self-service + Hybrid** from Day 1 |
+| A3 | Customers = **ETB only** (any AU Bank relationship) |
+| A4 | Group A connectivity = **1SB** (ICICI Pri, HDFC Life, Bajaj… as applicable) |
+| A5 | Group B = Product Catalogue + **redirect** to insurer |
+| A6 | Sold = **policy issued** + confirmation + recon + ops track |
+| A7 | Suitability + Need Analysis **mandatory** before quote |
+| A8 | Consent **mandatory**; sequencing pending compliance R&D |
+| A9 | Payment on **customer device**; **no RM-device payment**; AU Bank PG only |
+| A10 | Lead module **in Insurance Platform** (future migrate to Sampath) |
+| A11 | Figma = **reference only** |
+| A12 | 1SB = current integration layer (not a temporary hack); no tight coupling |
+
+---
+
+## 3. In scope (MVP)
 
 | Area | In |
 |------|-----|
-| Identity | RM authentication + basic roles |
-| Customer | Search/retrieve existing customer; prefill |
-| Lead | Create, assign to RM, resume, status |
-| Consent | Capture, version, gate journey, audit evidence |
-| Suitability | Capture assessment; record recommendation; block if fail (per rules) |
-| Product | Read-only catalogue + eligibility matrix for first LOB |
-| Quote | Request, poll/async, compare, select |
-| Proposal | Dynamic form render, save/resume, submit, status |
-| UW | Show insurer/application status & pending requirements (read) |
-| Payment | Payment URL/session, HTTPS redirect, status, retry |
-| Policy | Show policy number/status/docs link when issued |
-| RM workspace | My leads / in-progress journeys / tasks (minimum) |
-| Audit | Actor, action, journey id, agent/distributor attribution |
-| Integration Hub | 1SB adapter for quote/proposal/payment/status (+ masters as needed) |
-| Reporting | Funnel counts for pilot (lead→quote→proposal→pay→policy) |
+| Identity | Bank SSO / AD path per BRD §1–2 |
+| User management | Roles, access, hierarchy (bank; partner depth as needed) |
+| Lead | In-platform Lead module (create/update/follow-up/assign; bulk/campaign may phase) |
+| Customer | CBS fetch (Cust ID / Mobile / PAN etc.) for ETB |
+| Rules / workflow | Core lead/application gates; configurable where possible |
+| Suitability | Check, partner product list, PDF, consent records |
+| Catalogue | Bank-owned; includes Group A + Group B |
+| Quote (Group A) | List/compare/modify/share/eBI via platform + 1SB |
+| Redirect (Group B) | Recommendation → insurer platform |
+| Proposal (Group A) | Prefill/masking, consents, submission, status |
+| Risk / fraud | PTL/RAG and related flows as partner-ready (configurable) |
+| Payment | Dual mandate (as decided), IFT, AU Bank PG; cheque may phase |
+| Issuance | Status, confirmation, policy PDF & customer communication |
+| Reporting | Funnel + sold definition; full MIS may phase |
+| Integration | 1SB UAT → prod; credentials model per Working Decisions §12 |
 
 ---
 
-## 4. Out of scope (R0)
+## 4. Out of scope (MVP)
 
-- Full customer self-serve purchase journey  
-- New-to-bank customer acquisition onboarding (unless A3 overturned)  
-- Health / Motor / other LOBs  
-- Direct insurer adapters (Phase B/C)  
-- Claims  
-- Full renewals suite  
-- Rich ops MIS / executive BI suite  
-- Admin UI for arbitrary rule authoring (seed config OK)  
-- Multi-aggregator routing  
-- Perfect offline / branch-kiosk modes  
+- Health / Motor / Travel and other non-life LOBs  
+- New-to-Bank (NTB) onboarding  
+- Third-party payment gateways  
+- Payment on RM device  
+- Multi-aggregator routing (extensibility only)  
+- Bank-owned aggregation layer  
+- Embedded / loan-disbursement insurance offers  
+- Branch kiosk (pending)  
+- Treating Figma as SoT  
+- Treating quote/proposal/payment as “sold”  
 
 ---
 
-## 5. Success metrics (pilot)
+## 5. Success metrics (MVP)
 
-| Metric | Target (draft) |
-|--------|----------------|
-| JRN-001 happy path completable in UAT | 100% critical path scripts green |
-| RM processing time vs baseline | Measure baseline first; improve directionally |
-| Quote → proposal conversion (pilot) | Instrument; target TBD after 2 weeks data |
-| Consent + suitability evidence completeness | 100% of submitted proposals |
-| Sev-1 production defects in pilot month | 0 unresolved > 48h |
-| PII in app logs | 0 confirmed incidents |
+| Metric | Target |
+|--------|--------|
+| Policy **Sold** count (issuance definition) | Primary commercial KPI |
+| ETB Life journeys completable (RM / self / hybrid) | Critical path UAT green for Group A |
+| Suitability never bypassed before quote | 100% of quote attempts gated |
+| Payment never on RM device | Design + test proof |
+| Group B redirect path usable | Recommendation → insurer link |
+| Consent & suitability evidence | 100% on submitted Group A proposals |
 
 ---
 
 ## 6. Dependencies
 
-| Dependency | Needed by |
-|------------|-----------|
-| 1SB sandbox credentials + distributorId + IP allowlist | Wave 1 |
-| Bank SSO / RM identity | Wave 1 |
-| CIF/customer API access | Wave 1 |
-| Payment landing URL hosting | Wave 1 |
-| Compliance approval of consent/suitability text | Wave 0 |
-| Named pilot branches / RM cohort | Wave 2 |
+| Dependency | Needed |
+|------------|--------|
+| 1SB UAT + Distributor ID | Integration start |
+| Bank SSO | Login |
+| CBS | ETB fetch |
+| AU Bank Payment Gateway | Online payment |
+| Bank notifications | Customer/RM communications |
+| Compliance R&D for consent sequencing | Before hard-coding consent UX |
+| Agent identity validation | Attribution model freeze |
 
 ---
 
@@ -97,8 +108,7 @@ Prove that an AU Bank RM can take an **existing customer** through a **compliant
 
 | Role | Name | Decision | Date |
 |------|------|----------|------|
-| Business Sponsor | | Approve / Revise | |
-| Insurance Business Head | | Approve / Revise | |
-| Compliance | | Approve / Revise | |
+| Head of Insurance Business / Platform (Sponsor) | *TBC* | | |
 | Platform PO | | Approve / Revise | |
+| Compliance | | Approve / Revise (esp. §8–9, §16) | |
 | Architecture (noted) | | Noted | |

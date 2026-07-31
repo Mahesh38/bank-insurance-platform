@@ -5,7 +5,7 @@
 **Owner:** Platform Product Owner  
 **Status:** Heading structure **approved by PO** — detailed requirements to be written under each section  
 **Version:** 1.0  
-**Related:** [R0-SCOPE.md](./R0-SCOPE.md) · [knowledge-base/](../knowledge-base/README.md) · [po-drive/](../po-drive/README.md)
+**Related:** [Working Decisions](../07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md) · [R0-SCOPE.md](./R0-SCOPE.md) · [knowledge-base/](../knowledge-base/README.md) · [po-drive/](../po-drive/README.md)
 
 ---
 
@@ -14,11 +14,12 @@
 1. This overview is the **binding chapter map** for the BRD.  
 2. Do **not** invent parallel top-level modules without PO approval.  
 3. Each numbered section below becomes a BRD chapter with: business objective, actors, functional requirements, rules, exceptions, AC, data, integrations, reports.  
-4. Priority tags (R0 / R1 / R2+) are **PO sequencing guidance** for delivery — not a change to the heading list.
+4. Priority tags (R0 / R1 / R2+) are **PO sequencing guidance** for delivery — not a change to the heading list.  
+5. Scope constraints from Working Decisions apply across chapters: **Life LOB**, **ETB**, **three journeys Day 1**, **Group A/B insurers**, **Sold = issuance**.
 
 | Tag | Meaning |
 |-----|---------|
-| **R0** | Needed for first controlled pilot (RM-assisted core sale path) |
+| **R0** | Needed for MVP / first controlled pilot (Life; RM + self + hybrid) |
 | **R1** | Scale / hardening soon after pilot |
 | **R2+** | Roadmap after core journey is stable |
 

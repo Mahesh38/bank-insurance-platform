@@ -114,6 +114,17 @@ class IdempotencyFilterTest {
                 .andExpect(content().string("pong"));
     }
 
+    @Test
+    @org.junit.jupiter.api.Tag("FUNC-001")
+    void masterDataPost_withoutIdempotencyKey_isNotBlocked() throws Exception {
+        mockMvc.perform(post("/v1/master-data/_idempotency_probe")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"n\":7}"))
+                .andExpect(status().isOk())
+                .andExpect(content().json("{\"ok\":true,\"n\":7}"));
+        assertThat(probeInvocationCount.get()).isEqualTo(1);
+    }
+
     @TestConfiguration
     static class IdempotencyProbeConfig {
 
@@ -139,6 +150,12 @@ class IdempotencyFilterTest {
 
         @PostMapping("/v1/_idempotency_probe")
         ProbeResponse post(@RequestBody ProbeRequest request) {
+            invocations.incrementAndGet();
+            return new ProbeResponse(true, request.n());
+        }
+
+        @PostMapping("/v1/master-data/_idempotency_probe")
+        ProbeResponse masterDataPost(@RequestBody ProbeRequest request) {
             invocations.incrementAndGet();
             return new ProbeResponse(true, request.n());
         }

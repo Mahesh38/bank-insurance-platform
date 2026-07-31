@@ -23,10 +23,12 @@ management:
     readinessstate:
       enabled: true
 
-# Secrets source + proposal schema cache
+# Secrets source + master-data cache + proposal schema cache
 insurance:
   secrets:
     source: ${INSURANCE_SECRETS_SOURCE:PROPERTIES}
+  masters:
+    cache-ttl-seconds: ${INSURANCE_MASTERS_CACHE_TTL_SECONDS:14400}
   proposals:
     schema-cache-ttl-seconds: ${INSURANCE_PROPOSALS_SCHEMA_CACHE_TTL_SECONDS:3600}
 

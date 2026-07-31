@@ -51,6 +51,10 @@ public class IdempotencyFilter extends OncePerRequestFilter {
         if (path == null || !path.startsWith("/v1/")) {
             return true;
         }
+        // Read-like POST: master lookup is cacheable GET-equivalent — no Idempotency-Key.
+        if (path.startsWith("/v1/master-data")) {
+            return true;
+        }
         return !MUTATING.contains(request.getMethod().toUpperCase(Locale.ROOT));
     }
 

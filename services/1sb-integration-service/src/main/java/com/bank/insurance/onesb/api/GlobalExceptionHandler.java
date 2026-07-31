@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 /**
- * Maps domain {@link ServiceException} and bean-validation failures to RFC7807-style bodies.
- * Quote validation uses HTTP 422 per FUNC-002.
+ * Maps domain {@link ServiceException} and bean-validation failures to problem+json.
+ * Validation failures use HTTP 422 (FUNC-001 master-data, FUNC-002 quotes).
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -29,6 +29,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ServiceErrorResponse> handleValidation(MethodArgumentNotValidException ex) {
         ServiceErrorResponse body = ServiceErrorResponse.builder()
+                .type("about:blank")
                 .title("Validation Failed")
                 .status(422)
                 .detail("Request validation failed")
@@ -49,6 +50,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ServiceErrorResponse> handleUnreadable(HttpMessageNotReadableException ex) {
         ServiceErrorResponse body = ServiceErrorResponse.builder()
+                .type("about:blank")
                 .title("Validation Failed")
                 .status(422)
                 .detail("Malformed or incomplete request body")

@@ -24,6 +24,7 @@ public final class ErrorCodes {
 
     // --- Quote / job lifecycle ---
     public static final String QUOTE_TIMEOUT         = "QUOTE_TIMEOUT";
+    public static final String QUOTE_EXPIRED         = "QUOTE_EXPIRED";
 
     // --- Resource / entity ---
     public static final String RESOURCE_NOT_FOUND    = "RESOURCE_NOT_FOUND";

@@ -23,10 +23,12 @@ management:
     readinessstate:
       enabled: true
 
-# Secrets source
+# Secrets source + proposal schema cache
 insurance:
   secrets:
     source: ${INSURANCE_SECRETS_SOURCE:PROPERTIES}
+  proposals:
+    schema-cache-ttl-seconds: ${INSURANCE_PROPOSALS_SCHEMA_CACHE_TTL_SECONDS:3600}
 
 # Platform common persistence HTTP client (bank-persistence-service)
 bank:

@@ -16,5 +16,9 @@ public interface QuoteUseCase {
      */
     String createQuote(CreateQuoteCommand command);
 
+    /**
+     * Returns the quote job for bank polling (any status including TIMEOUT).
+     * Unknown jobId → {@code RESOURCE_NOT_FOUND} (404).
+     */
     QuoteJob getQuoteResult(String jobId);
 }

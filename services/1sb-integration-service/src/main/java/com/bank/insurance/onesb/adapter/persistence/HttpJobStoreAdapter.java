@@ -180,6 +180,7 @@ public class HttpJobStoreAdapter implements JobStorePort {
         return new QuoteJob(
                 job.jobId(),
                 JobStatus.valueOf(job.status()),
+                job.failureReason(),
                 Lob.valueOf(job.lob()),
                 job.journeyId(),
                 quoteOffers,

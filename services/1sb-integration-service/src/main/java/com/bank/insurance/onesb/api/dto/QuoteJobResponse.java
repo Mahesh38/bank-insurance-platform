@@ -1,20 +1,19 @@
 package com.bank.insurance.onesb.api.dto;
 
 import com.bank.insurance.onesb.domain.model.JobStatus;
-import com.bank.insurance.onesb.domain.model.Lob;
 import com.bank.insurance.onesb.domain.model.QuoteOffer;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
-import java.time.Instant;
 import java.util.List;
 
-/** Thin GET result for AC readiness (FUNC-003 will harden). */
+/**
+ * GET {@code /v1/quotes/{jobId}} response (FUNC-003).
+ * {@code offers} is never null — empty while in-progress or terminal without results.
+ */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public record QuoteJobResponse(
         String jobId,
         JobStatus status,
-        Lob lob,
-        String journeyId,
-        List<QuoteOffer> offers,
-        List<String> partialErrors,
-        Instant createdAt,
-        Instant completedAt
+        String failureReason,
+        List<QuoteOffer> offers
 ) {}

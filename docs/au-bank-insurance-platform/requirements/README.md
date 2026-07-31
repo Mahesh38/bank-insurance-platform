@@ -6,9 +6,11 @@
 
 | Doc | Purpose |
 |-----|---------|
+| **[BRD-OVERVIEW.md](./BRD-OVERVIEW.md)** | **PO-approved BRD chapter map (binding TOC)** |
+| [BRD-OVERVIEW-CHECKLIST.md](./BRD-OVERVIEW-CHECKLIST.md) | Flat checklist of PO source headings |
 | [R0-SCOPE.md](./R0-SCOPE.md) | Release 0 scope one-pager (assumptions marked) |
 | [PRD-R0-DISTRIBUTION-PLATFORM.md](./PRD-R0-DISTRIBUTION-PLATFORM.md) | Product requirements for R0 |
-| [BRD-P0-CAPABILITIES.md](./BRD-P0-CAPABILITIES.md) | P0 capability requirements with acceptance criteria |
+| [BRD-P0-CAPABILITIES.md](./BRD-P0-CAPABILITIES.md) | P0 capability requirements with acceptance criteria (integration-era; align to BRD overview) |
 
 ### Traceability
 

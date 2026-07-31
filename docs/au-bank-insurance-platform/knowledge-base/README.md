@@ -46,3 +46,10 @@ Uploaded under `../artefacts/uploads/`:
 - Phases 1–5 (Capability Map → Architecture Blueprint)
 
 Figma client-review prototype remains a **UX hypothesis** (not yet inventoried into this KB).
+
+## PO steering & requirements (next layer)
+
+| Pack | Link |
+|------|------|
+| Project view · SWOT · Gaps · TODO | [../po-drive/](../po-drive/README.md) |
+| R0 scope · PRD · BRD | [../requirements/](../requirements/README.md) |

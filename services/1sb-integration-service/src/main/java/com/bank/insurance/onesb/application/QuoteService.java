@@ -8,6 +8,7 @@ import com.bank.common.error.ErrorCodes;
 import com.bank.common.error.ServiceError;
 import com.bank.common.error.ServiceErrorResponse;
 import com.bank.common.error.ServiceException;
+import com.bank.common.secrets.SecretProvider;
 import com.bank.insurance.onesb.domain.command.CreateQuoteCommand;
 import com.bank.insurance.onesb.domain.model.Lob;
 import com.bank.insurance.onesb.domain.model.QuoteJob;
@@ -33,17 +34,20 @@ public class QuoteService implements QuoteUseCase {
     private final OneSbQuotePort quotePort;
     private final JobPollSchedulerPort pollScheduler;
     private final AuditEventPublisher auditEventPublisher;
+    private final SecretProvider secretProvider;
 
     public QuoteService(JobStorePort jobStore,
                         LobQuoteHandlerRegistry handlerRegistry,
                         OneSbQuotePort quotePort,
                         JobPollSchedulerPort pollScheduler,
-                        AuditEventPublisher auditEventPublisher) {
+                        AuditEventPublisher auditEventPublisher,
+                        SecretProvider secretProvider) {
         this.jobStore = jobStore;
         this.handlerRegistry = handlerRegistry;
         this.quotePort = quotePort;
         this.pollScheduler = pollScheduler;
         this.auditEventPublisher = auditEventPublisher;
+        this.secretProvider = secretProvider;
     }
 
     @Override
@@ -149,6 +153,7 @@ public class QuoteService implements QuoteUseCase {
                     .outcome(AuditOutcomes.PENDING)
                     .lob(command.lob() != null ? command.lob().name() : null)
                     .journeyId(command.journeyId())
+                    .distributorId(secretProvider.getDistributorId())
                     .agentId(agentId)
                     .metadata("jobId", jobId)
                     .build();

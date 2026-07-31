@@ -107,6 +107,7 @@ class ProposalServiceTest {
 
     @Test
     @Tag("FUNC-005")
+    @Tag("COMP-004")
     void submit_missingAgentId_throwsWithoutCallingOneSb() {
         SubmitProposalCommand command = baseCommand(null, null, "consent-1");
 
@@ -153,6 +154,7 @@ class ProposalServiceTest {
 
     @Test
     @Tag("FUNC-005")
+    @Tag("COMP-004")
     void submit_immediateApplicationNumber_completesJob() {
         when(secretProvider.getDistributorId()).thenReturn("BCIBL");
         when(handlerRegistry.get(Lob.TERM)).thenReturn(handler);
@@ -167,6 +169,13 @@ class ProposalServiceTest {
         assertThat(result.status()).isEqualTo(JobStatus.COMPLETED);
         verify(jobStore).completeJob("job-done", List.of(), "APP-99");
         verify(pollScheduler, never()).schedulePoll(any(), any());
+
+        ArgumentCaptor<AuditEvent> captor = ArgumentCaptor.forClass(AuditEvent.class);
+        verify(auditEventPublisher).publish(captor.capture());
+        AuditEvent audit = captor.getValue();
+        assertThat(audit.getAction()).isEqualTo(AuditActions.PROPOSAL_SUBMITTED);
+        assertThat(audit.getAgentId()).isEqualTo("109337");
+        assertThat(audit.getDistributorId()).isEqualTo("BCIBL");
     }
 
     @Test

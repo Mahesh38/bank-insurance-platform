@@ -5,6 +5,7 @@ import com.bank.common.audit.AuditEvent;
 import com.bank.common.audit.AuditEventPublisher;
 import com.bank.common.error.ErrorCodes;
 import com.bank.common.error.ServiceException;
+import com.bank.common.secrets.SecretProvider;
 import com.bank.insurance.onesb.domain.command.CreateQuoteCommand;
 import com.bank.insurance.onesb.domain.model.JobStatus;
 import com.bank.insurance.onesb.domain.model.Lob;
@@ -44,6 +45,7 @@ class QuoteServiceTest {
     @Mock OneSbQuotePort quotePort;
     @Mock JobPollSchedulerPort pollScheduler;
     @Mock AuditEventPublisher auditEventPublisher;
+    @Mock SecretProvider secretProvider;
     @Mock LobQuoteHandler termHandler;
 
     private QuoteService quoteService;
@@ -52,10 +54,12 @@ class QuoteServiceTest {
     void setUp() {
         when(termHandler.supportedLob()).thenReturn(Lob.TERM);
         LobQuoteHandlerRegistry registry = new LobQuoteHandlerRegistry(List.of(termHandler));
-        quoteService = new QuoteService(jobStore, registry, quotePort, pollScheduler, auditEventPublisher);
+        quoteService = new QuoteService(
+                jobStore, registry, quotePort, pollScheduler, auditEventPublisher, secretProvider);
     }
 
     @Test
+    @Tag("COMP-004")
     void createQuote_validTerm_buildsPayloadViaHandler_submitsPathAndAudits() {
         CreateQuoteCommand command = validCommand();
         Map<String, Object> payload = Map.of("typeOfQuote", "Multi-Quote");
@@ -63,6 +67,7 @@ class QuoteServiceTest {
         when(termHandler.submitPath()).thenReturn("/insurance/lifeterm/v1/quote");
         when(jobStore.createJob("TERM", "QUOTE", "j-1", "idem-1", "actor-1")).thenReturn("job-1");
         when(quotePort.submitQuote("job-1", "/insurance/lifeterm/v1/quote", payload)).thenReturn("REQ-99");
+        when(secretProvider.getDistributorId()).thenReturn("BCIBL");
 
         String jobId = quoteService.createQuote(command);
 
@@ -76,8 +81,11 @@ class QuoteServiceTest {
 
         ArgumentCaptor<AuditEvent> captor = ArgumentCaptor.forClass(AuditEvent.class);
         verify(auditEventPublisher).publish(captor.capture());
-        assertThat(captor.getValue().getAction()).isEqualTo(AuditActions.QUOTE_CREATED);
-        assertThat(captor.getValue().getResourceId()).isEqualTo("job-1");
+        AuditEvent audit = captor.getValue();
+        assertThat(audit.getAction()).isEqualTo(AuditActions.QUOTE_CREATED);
+        assertThat(audit.getResourceId()).isEqualTo("job-1");
+        assertThat(audit.getDistributorId()).isEqualTo("BCIBL");
+        assertThat(audit.getAgentId()).isEqualTo("109337");
     }
 
     @Test

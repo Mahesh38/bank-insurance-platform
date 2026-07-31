@@ -47,6 +47,7 @@ class StatusServiceTest {
     }
 
     @Test
+    @Tag("COMP-004")
     void getStatus_happyPath_normalisesAndAudits() {
         Instant updated = Instant.parse("2026-07-30T12:00:00Z");
         when(statusPort.fetchStatus("APP-1", "TERM", "XYZ", null))

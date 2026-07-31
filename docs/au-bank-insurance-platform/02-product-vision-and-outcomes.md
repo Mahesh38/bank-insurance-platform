@@ -61,15 +61,15 @@
 
 ---
 
-## Release intent (hypothesis — not roadmap)
+## Release intent (working — pending sponsor validation)
 
-| Release | Intent | “Done” means (hypothesis) |
-|---------|--------|---------------------------|
-| **R0 — Pilot** | One LOB, limited insurers, controlled RM cohort | Happy path to payment or policy (per D-007) |
-| **R1 — Scale** | More RMs, hardening, ops visibility | Stable SLAs + compliance pack |
-| **R2 — Expand** | Next LOB + richer requirements/docs | Repeatable LOB playbook |
+| Release | Intent | “Done” means |
+|---------|--------|--------------|
+| **R0 — MVP Pilot** | Life LOB; ETB; Group A (+ Group B redirect); RM + self + hybrid | Happy path to **Sold** = policy issued + confirmation + reconcilable + ops-trackable (D-007) |
+| **R1 — Scale** | More RMs/branches, hardening, ops/MIS depth | Stable SLAs + compliance pack progress |
+| **R2 — Expand** | NTB (if sponsored), richer UW/docs, optional next LOB | Repeatable playbook |
 
-*Lock D-001 and D-007 before publishing any external roadmap.*
+*Formal sponsor lock of Working Decisions required before publishing any external roadmap.*
 
 ---
 

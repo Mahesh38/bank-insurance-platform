@@ -38,6 +38,21 @@ This folder is the **clean restart**:
 
 **Rule:** Closed discovery answers live in [Working Decisions](./07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md). Remaining Open Validation Items and open rows in [03-discovery-backlog.md](./03-discovery-backlog.md) still block formal freeze / hard-coded compliance.
 
+### Document win-order (when docs disagree)
+
+```text
+1. Working Decisions (07) — business MVP SSOT (Working → then Sponsor-Approved)
+2. Decision Log — canonical D-xxx / DOC-xxx only
+3. R0-SCOPE + BRD-OVERVIEW — delivery one-pager + BRD TOC
+4. PRD + BRD-P0 — must not contradict 1–3
+5. Discovery backlog + Gap register — status trackers
+6. Charter / Vision / Journey canvas — narrative
+7. Knowledge base — baseline corpus; superseded by WD where conflicted
+8. Figma / prior 1SB eng / references — non-binding
+```
+
+Management pack: [po-drive/04-MANAGEMENT-READINESS.md](./po-drive/04-MANAGEMENT-READINESS.md).
+
 ---
 
 ## Document map (start here)
@@ -45,7 +60,8 @@ This folder is the **clean restart**:
 | # | Doc | Purpose |
 |---|-----|---------|
 | **7** | **[07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md](./07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md)** | **Working SSOT — MVP LOB, journeys, ETB, sale, insurers, 1SB, open validation** |
-| — | [DECISION-LOG.md](./DECISION-LOG.md) | Decision IDs mapped from Working Decisions |
+| — | [DECISION-LOG.md](./DECISION-LOG.md) | Canonical `D-xxx` / `DOC-xxx` IDs |
+| — | [Management readiness](./po-drive/04-MANAGEMENT-READINESS.md) | PO review + Steering ask |
 | 0 | [00-project-charter.md](./00-project-charter.md) | Why AU Bank, problem, intent, boundaries |
 | 1 | [01-stakeholder-working-session.md](./01-stakeholder-working-session.md) | Kickoff agenda, roles, decision log template |
 | 2 | [02-product-vision-and-outcomes.md](./02-product-vision-and-outcomes.md) | Vision, outcomes, non-goals (draft → lock) |

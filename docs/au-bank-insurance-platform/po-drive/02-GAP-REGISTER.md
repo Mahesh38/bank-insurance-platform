@@ -28,7 +28,7 @@
 
 | ID | Gap | Area | Owner | Exit criteria | Status |
 |----|-----|------|-------|---------------|--------|
-| GAP-011 | Payment experience undecided | Payments | Payments + Digital | Customer device; AU Bank PG; no RM-device pay | **Closed** (WD §§6,14) — failure/retry AC still Open |
+| GAP-011 | Payment failure/retry AC incomplete | Payments | Payments + Digital | Customer-device + AU Bank PG locked (D-006); failure/retry AC still needed | **Partial** |
 | GAP-012 | Quote validity / compare rules missing | Sales | Product + BA | Quote rule pack v1 (Group A) | Open |
 | GAP-013 | Product Matrix dimensions undefined | Products | Product | Matrix v0 for Life catalogue | Open |
 | GAP-014 | AgentId / RM mapping model incomplete | Attribution | Ops + Compliance | Mapping source + fail behaviour | Open (WD §10) |

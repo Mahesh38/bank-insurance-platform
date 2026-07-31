@@ -87,7 +87,7 @@
 
 ### BR-CONSENT-010 — Capture
 **AC:**
-1. Journey cannot enter Suitability/Quote without valid consent (if D-005/A6 hold).  
+1. Journey cannot enter Suitability/Quote without valid consent (D-011; sequencing configurable until Compliance validates).  
 2. Consent stores: version/text id, timestamp, channel, actor, customer acknowledgement method.  
 3. Evidence retrievable by journey id.
 
@@ -276,15 +276,20 @@
 
 ---
 
-## Explicit Won’t (R0)
+## Explicit Won’t (R0 / MVP)
 
 | Capability | Reason |
 |------------|--------|
 | BR-SERV Renewals full suite | R2+ |
 | Claims | Out of platform scope |
-| Direct insurer adapters | Phase B/C |
-| Full self-serve journey | After RM pilot |
-| Unlimited LOBs | One LOB only |
+| Direct insurer adapters / bank-owned agg layer | Post-MVP (D-004 extensibility only) |
+| NTB onboarding | Out of MVP (D-009) |
+| Health / Motor / Travel LOBs | Out of MVP (D-001) |
+| Multi-aggregator routing | Extensibility only (D-003) |
+| Payment on RM device | Forbidden (D-006) |
+| Unlimited LOBs beyond Life variants | Life only |
+
+**Day 1 Must (do not list as Won’t):** RM-assisted, customer self-service, and hybrid journeys (D-002).
 
 ---
 
@@ -303,6 +308,6 @@
 
 | Rev | Trigger |
 |-----|---------|
-| 0.2 | After Session 1 (LOB, done definition) |
+| 0.2 | Working Decisions Draft v1 alignment (Life; three journeys; Sold) |
 | 0.3 | After Consent/Suitability rule packs |
 | 1.0 | Design freeze sign-off |

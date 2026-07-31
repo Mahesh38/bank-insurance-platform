@@ -85,7 +85,9 @@ Detailed AC in BRD. Summary:
 | PRD-F-15 | Pilot funnel metrics export/dashboard | P1 (minimum P0 counts) |
 | PRD-F-16 | Notifications (SMS/email) on key stages | P1 |
 | PRD-F-17 | Full admin rule authoring UI | P2 |
-| PRD-F-18 | Customer self-serve full journey | P2 |
+| PRD-F-18 | Customer self-service journey (Life ETB) | **P0** (D-002 Day 1) |
+| PRD-F-19 | Hybrid mode-switch without journey restart | **P0** (D-002) |
+| PRD-F-20 | Group B recommendation + insurer redirect | **P0** (D-010) |
 
 ## 6. Non-functional requirements (draft targets)
 

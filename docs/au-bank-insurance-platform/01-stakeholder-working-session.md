@@ -22,24 +22,27 @@
 
 ## Session 1 — Problem, personas, boundaries (90–120 min)
 
+**Current use (post Working Decisions):** Run as a **validation** session — confirm or revise Working Decisions — not a greenfield freeze.
+
 **Attendees (minimum):** Platform PO, Bancassurance, Digital/UX, Compliance (or delegate), BA  
-**Optional:** Architecture, Ops, Infosec
+**Optional:** Architecture, Ops, Infosec · **Sponsor** for formal sign-off if ready
 
 ### Agenda
 
-1. **Charter read-through** ([00](./00-project-charter.md)) — 15 min  
-2. **Problem validation** — keep / rewrite / drop P1–P5 — 20 min  
-3. **Persona & channel** — RM-only vs RM+customer app; who completes payment/OTP — 20 min  
-4. **LOB strategy** — first LOB, second LOB, explicit deferrals — 15 min  
-5. **Aggregator stance** — 1SB now / replaceability requirement — 15 min  
-6. **Decision log** (below) — 15 min  
-7. **Parking lot** for tech debates — 5 min  
+1. **Working Decisions read-through** ([07](./07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md)) — 20 min  
+2. **Confirm D-001…D-007, D-009, D-010** (LOB, journeys, ETB, Sold, insurers, payment, suitability gate) — 25 min  
+3. **Open Validation Items** — consent sequencing, agent identity, retention; configurable-controls approach — 20 min  
+4. **Figma = reference**; inventory ask — 10 min  
+5. **Decision Log** ([DECISION-LOG](./DECISION-LOG.md)) — confirm IDs / mark revisions — 10 min  
+6. **Management ask** ([04-MANAGEMENT-READINESS](./po-drive/04-MANAGEMENT-READINESS.md)) — 10 min  
 
 ### Exit criteria
 
-- Charter sections 2–5 have named owners and provisional decisions  
-- First-release LOB candidate agreed or explicitly “TBD by date X”  
-- Open questions moved into [03](./03-discovery-backlog.md) with owners  
+- Working Decisions marked **Validated** or revised with new version  
+- Sponsor name confirmed or dated follow-up  
+- Open Validation owners assigned  
+- Remaining open questions updated in [03](./03-discovery-backlog.md)  
+- Parking lot for tech debates only  
 
 ---
 

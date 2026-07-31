@@ -62,16 +62,18 @@ For each stage A–K:
 
 ---
 
-## 3. MVP cut hypothesis (reopen in Session 2)
+## 3. MVP cut (aligned to Working Decisions / D-007)
 
-| Stage | Hypothesis for R0 | Rationale (draft) |
-|-------|-------------------|-------------------|
-| A–C | **Yes** | Bank DNA of the sale |
-| D–G | **Yes** | Core commercial path |
-| H | **Partial / Later** | Often heavy; may soft-launch with status-only |
-| I | **Later** unless product requires | Complexity |
-| J | **Yes** if D-007 includes payment | Common pilot bar |
-| K | **Yes** visibility; vault depth Later | Proof of completion |
+| Stage | MVP? | Rationale |
+|-------|------|-----------|
+| A–C | **Yes** | Identity, consent, mandatory need analysis / suitability |
+| D | **Yes** | Catalogue recommendation (Group A and/or B) |
+| E–G (Group A) | **Yes** | Quote → proposal → payment on customer device |
+| E'–F' (Group B) | **Yes** | Redirect path with bank-side recommendation audit |
+| H | **Yes** | Policy issued + bank confirmation = **Sold**; vault depth may phase |
+| Hybrid mode-switch | **Yes** | Day 1 requirement (D-002); UX detail = GAP-023 |
+
+*Older canvas drafts referenced stages I/J/K (counter-offer / payment / vault). Those are folded into G–H above.*
 
 ---
 
@@ -91,7 +93,7 @@ For each stage A–K:
 | Suitability content | Yes | No (unless used as helper) | No |
 | Quote calculation | Orchestrates | Yes | Yes (via gateway) |
 | Proposal schema | Renders bank UX | Supplies dynamic schema | Yes |
-| Payment money movement | Landing / reconciliation UX | Payment URL / intimation | Often yes |
+| Payment money movement | Landing / reconciliation UX; **AU Bank PG** | May supply insurer payment URL for Group A | Often yes (Group B on insurer site) |
 | Policy issuance truth | Stores bank copy / refs | Status / docs APIs | Yes |
 | Agent licence / mapping | Yes | May validate SP data | May require codes |
 

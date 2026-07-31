@@ -43,7 +43,7 @@ These are strong enough to treat as working product doctrine until a sponsor ove
 1. **Business before technology** — capabilities drive system boundaries.  
 2. **Canonical bank model** — stable IDs and journey language independent of insurer/1SB payloads.  
 3. **Configuration over code** — rules versioned and auditable.  
-4. **Replaceable integrations** — 1SB is Phase-1 connectivity, not the product.  
+4. **Replaceable integrations** — 1SB is the **current** integration layer / accelerator, not the product (see Working Decisions §18).  
 5. **Security & audit by design** — every material action auditable; IRDAI/bank governance called out.  
 6. **Assisted + self-service** — both journey modes are in goals (RM workspace is central).  
 7. **Exclusions for now:** insurer core systems; claims administration as a platform scope (servicing/renewals appear as later capabilities).
@@ -52,17 +52,21 @@ These are strong enough to treat as working product doctrine until a sponsor ove
 
 ## What is *not* decided yet (critical)
 
-Source packs do **not** lock:
+> **Supersession (2026-07-31):** MVP scope items below that are listed in [Working Decisions](../07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md) are **working-decided**. This KB section originally reflected baseline PDF silence only.
 
-- First LOB / product for AU Bank pilot (Term vs Health vs Motor…)  
-- Exact insurer panel for go-live  
-- Whether R0 is existing-customer-only or also new/prospective (both personas are listed)  
-- Suitability questionnaire content and override policy  
-- Payment rail (gateway vs aggregator URL)  
-- Definition of pilot success (quote vs payment vs policy)  
-- Detailed acceptance criteria per BR-* (Volume 03 / Phase 2 are structural templates)
+| Topic | KB intake status | Current status |
+|-------|------------------|----------------|
+| First LOB | Was open in PDFs | **Working:** Life only (D-001) |
+| Insurer panel | Was open | **Working:** Group A (ICICI Pri, HDFC Life, Bajaj…) + Group B redirect (D-010) |
+| Customer segment | Was open | **Working:** ETB only (D-009) |
+| Payment rail | Was open | **Working:** AU Bank PG; customer device (D-006) |
+| Pilot success / Sold | Was open | **Working:** Policy issued + confirm + recon + ops (D-007) |
+| Suitability **content** & override | Still open | Gate mandatory (D-005); content pack TBD |
+| Consent **sequencing** / wording / TTL | Still open | Consent mandatory (D-011); R&D pending |
+| Detailed AC per BR-* | Still open | BRD overview TOC approved; chapters TBD |
+| Geography / branch cohort | Still open | Not in WD |
 
-See [10-gaps-and-po-assessment.md](./10-gaps-and-po-assessment.md).
+See [10-gaps-and-po-assessment.md](./10-gaps-and-po-assessment.md) and [po-drive/02-GAP-REGISTER.md](../po-drive/02-GAP-REGISTER.md).
 
 ---
 

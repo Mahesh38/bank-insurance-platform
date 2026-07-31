@@ -14,15 +14,19 @@
 - [ ] Publish RACI for remaining Open Validation Items
 - [ ] Align org: Distribution Platform backlog owns L1–L3; 1SB eng is L3 epic (GAP-018)
 
-### Scope decisions (Working Decisions Draft v1 — pending formal sign-off)
-- [x] D-001 First LOB → **Life** (Term, ULIP, Savings/Investment)
-- [x] D-002 Channels → **RM + Self-service + Hybrid** Day 1
-- [x] D-007 R0 done / Sold → **policy issued** + confirm + recon + ops
-- [x] D-009 Segment → **ETB only**
-- [x] D-003 Aggregator → **1SB** (single aggregator MVP; extensible)
-- [x] D-005 Suitability / need analysis **mandatory** before quote
-- [x] D-006 Payment → customer device; **AU Bank PG**; no RM-device payment
+### Scope decisions (Working Decisions Draft v1 — **Working**, not sponsor-signed)
+
+> Checkmarks mean *working decision captured*, not *Steering approved*. Formal sign-off remains open.
+
+- [x] D-001 First LOB → **Life** (Term, ULIP, Savings/Investment) — Working
+- [x] D-002 Channels → **RM + Self-service + Hybrid** Day 1 — Working
+- [x] D-007 Sold → **policy issued** + confirm + recon + ops — Working
+- [x] D-009 Segment → **ETB only** — Working
+- [x] D-003 Aggregator → **1SB** (single aggregator MVP; extensible) — Working
+- [x] D-005 Suitability / need analysis **mandatory** before quote — Working
+- [x] D-006 Payment → customer device; **AU Bank PG**; no RM-device payment — Working
 - [ ] Sponsor **sign-off** on [Working Decisions](../07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md) + [R0-SCOPE.md](../requirements/R0-SCOPE.md)
+- [ ] Management readiness discussion ([04-MANAGEMENT-READINESS](./04-MANAGEMENT-READINESS.md))
 
 ### Artefacts & UX
 - [ ] Figma walkthrough recorded (Figma = **reference only** — WD §15)

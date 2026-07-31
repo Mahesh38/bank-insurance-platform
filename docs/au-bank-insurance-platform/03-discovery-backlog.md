@@ -29,7 +29,8 @@ Status values: `Open` · `In discussion` · `Answered` · `Deferred`
 
 | ID | Question | Why it matters | Owner | Status | Answer |
 |----|----------|----------------|-------|--------|--------|
-| Q-P0-11 | Screen inventory of Figma prototype complete? | Single process truth | Digital + BA | Open | Figma = **reference only** (MVP + concept + future). Not SoT. |
+| Q-P0-11a | Is Figma the source of truth? | Scope discipline | PO | **Answered** | **No** — reference only (D-012 / WD §15). |
+| Q-P0-11b | Screen inventory of Figma prototype complete? | Single process truth | Digital + BA | **Open** | Map to CJ/RMJ/JRN after walkthrough |
 | Q-P0-12 | Which Figma flows are MVP vs concept/future? | Avoid building demos | PO + Digital | Open | Use BRD + working decisions as SoT; Figma supports UX only |
 | Q-P0-13 | Where does journey **pause** for async quote/UW? Who is notified? | Ops + UX | Digital + Ops | Open | |
 | Q-P0-14 | Requirements / document upload in MVP or later? | Scope cut | PO | Open | |
@@ -45,7 +46,7 @@ Status values: `Open` · `In discussion` · `Answered` · `Deferred`
 | Q-P0-17 | Hard requirement: bank apps never call aggregator shapes? | Architecture binding | PO | **Answered** | **Yes.** 1SB = current integration layer / accelerator; no tight coupling; replaceable by other aggregator or bank-owned layer. |
 | Q-P0-18 | Which bank systems are **mandatory** for MVP? | Dependency map | Architecture + PO | **Answered** | SSO (bank identity), bank notifications, **AU Bank PG**, CBS for ETB fetch, Lead module in Insurance Platform (future → Sampath). |
 | Q-P0-19 | Data residency / logging / retention for insurance PII? | Compliance build | Compliance + Infosec | **In discussion** | Listed under Open Validation Items — use configurable policies until validated. |
-| Q-P0-20 | Who is executive sponsor? | Decision velocity | PO | **Answered (role)** | Head of Insurance Business / Insurance Platform at AU Bank. **Name pending.** |
+| Q-P0-20 | Who is executive sponsor? | Decision velocity | PO | **Partial** | Role = Head of Insurance Business / Platform. **Name pending** (GAP-010). |
 
 ---
 

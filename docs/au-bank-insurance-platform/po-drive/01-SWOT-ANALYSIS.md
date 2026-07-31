@@ -37,13 +37,13 @@
 | W1 | BR catalogues are template-thin (no real AC) | Vol 03, Phase 2 | BA deep-dive pack before sprint commit |
 | W2 | Business rules are categories, not executable rules | Phase 4 | Rule pack workshops (consent/suitability/quote) |
 | W3 | Information model has objects, not attributes/SoR | Phase 4 | Domain attribute workshops post R0 freeze |
-| W4 | No frozen LOB / insurer / geography for pilot | All sources silent | Session 1 decision D-001 / panel |
-| W5 | Figma not mapped to journeys | Intake | Screen inventory workshop |
+| W4 | Geography / branch cohort for pilot not frozen | WD closed LOB/insurer groups; geography silent | Freeze pilot geography after sponsor validation |
+| W5 | Figma not mapped to journeys | Intake | Screen inventory workshop (Figma = reference only) |
 | W6 | Dual narrative risk: “integration done” vs “platform” | Eng vs Vol 01 | PO communication; layered backlog |
 | W7 | NFRs lack numbers (SLA, availability, retention days) | Phase 5 principles only | NFR workshop with Infosec/Ops |
-| W8 | Self-service + assisted both in goals — R0 channel unclear | Vol 02 vs JRN-001 | Freeze D-002 |
+| W8 | ~~R0 channel unclear~~ → **Resolved working (D-002)**; residual = self/hybrid UX detail thin | WD §2 vs GAP-023 | Design hybrid mode-switch; do not re-open channel debate |
 | W9 | Renewals/servicing listed while claims excluded — boundary fuzzy | Phase 1 vs Vol 01 | Explicit R0/R1/R2 out-list |
-| W10 | Programme sponsorship names not filled | Stakeholder templates | Q-P0-20 |
+| W10 | Programme sponsorship **name** not filled (role known) | Stakeholder templates | GAP-010 |
 
 ---
 
@@ -90,8 +90,9 @@
 
 ### Priority responses (next 30 days)
 
-1. Close D-001, D-002, D-007, D-009 (scope).  
-2. Inventory Figma → CJ/RMJ.  
-3. Write executable Consent + Suitability rules.  
-4. Publish R0 PRD + P0 BRD (this pack).  
-5. Align L3 eng spike as Integration Hub epic under platform programme — not a parallel product.
+1. **Sponsor formal validation** of Working Decisions + R0-SCOPE (D-001…D-007, D-009 already working).  
+2. Inventory Figma → CJ/RMJ (reference only).  
+3. Write executable Consent + Suitability **content** packs (gates already locked).  
+4. Align PRD / BRD-P0 chapters to BRD Overview + three journeys.  
+5. Align L3 eng spike as Integration Hub epic under platform programme — not a parallel product.  
+6. Name Sponsor; publish RACI for Open Validation Items.

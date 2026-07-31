@@ -359,22 +359,25 @@ Maintain in backlog; exclude from current delivery planning:
 
 ---
 
-## Decision log mapping (closed by this draft)
+## Decision log mapping (closed by this draft as Working)
 
-| Prior discovery ID | Decision from this draft |
-|--------------------|--------------------------|
-| D-001 / Q-P0-01 First LOB | Life only (Term, ULIP, Savings/Investment, future life) |
-| D-002 / Q-P0-02 Channel | RM + Self-service + Hybrid from Day 1 |
-| D-009 / Q-P0-03 Segment | ETB only; any banking relationship |
-| D-007 / Q-P0-04 Sold | Policy issued + confirmation + reconcilable + ops trackable |
-| Q-P0-05 Insurers | Group A via 1SB (ICICI Pri, HDFC Life, Bajaj…); Group B catalogue + redirect |
-| Q-P0-06 Payment | Customer device; AU Bank PG; no payment on RM device |
-| Q-P0-07 Suitability | Mandatory need analysis + suitability before quote |
-| Q-P0-09 Distributor | AU Bank Distributor ID in 1SB; credentials per insurer under it |
-| Q-P0-11 Figma | Reference only |
-| Q-P0-16 1SB commercial | Agreement signed; UAT provisioning; Distributor ID soon |
-| Q-P0-17 Replaceability | Required — no tight coupling to 1SB |
-| Q-P0-20 Sponsor | Role confirmed; name pending |
+Canonical IDs: [DECISION-LOG.md](./DECISION-LOG.md).
+
+| ID | Decision from this draft |
+|----|--------------------------|
+| D-001 / Q-P0-01 | Life only (Term, ULIP, Savings/Investment, future life) |
+| D-002 / Q-P0-02 | RM + Self-service + Hybrid from Day 1 |
+| D-009 / Q-P0-03 | ETB only; any banking relationship |
+| D-007 / Q-P0-04 | Policy issued + confirmation + reconcilable + ops trackable |
+| D-010 / Q-P0-05 | Group A via 1SB; Group B catalogue + redirect |
+| D-006 / Q-P0-06 | Customer device; AU Bank PG; no payment on RM device |
+| D-005 / Q-P0-07 | Mandatory need analysis + suitability before quote |
+| D-003 / Q-P0-09,16 | AU Bank Distributor ID in 1SB; UAT provisioning |
+| D-004 / Q-P0-17 | Replaceability required — no tight coupling to 1SB |
+| D-012 / Q-P0-11a | Figma = reference only |
+| D-011 / Q-P0-10 | Consent mandatory; sequencing pending |
+| D-008 / Q-P0-08 | Agent identity pending validation |
+| — / Q-P0-20 | Sponsor role confirmed; name pending |
 
 ---
 
@@ -383,3 +386,4 @@ Maintain in backlog; exclude from current delivery planning:
 | Version | Date | Change | Owner |
 |---------|------|--------|-------|
 | 1.0 | 2026-07-31 | Initial working draft from discovery clarifications | Platform PO |
+| 1.1 | 2026-07-31 | PO document review: align Decision Log IDs; clarify Working vs Approved | Platform PO |

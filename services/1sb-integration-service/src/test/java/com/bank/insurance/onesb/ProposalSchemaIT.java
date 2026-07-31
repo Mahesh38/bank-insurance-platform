@@ -140,8 +140,7 @@ class ProposalSchemaIT {
     void ac2_quoteExpired_timeout_returns410() throws Exception {
         when(jobStorePort.findQuoteJob("job-timeout")).thenReturn(Optional.of(new QuoteJob(
                 "job-timeout", JobStatus.TIMEOUT, "POLL_TIMEOUT", Lob.TERM, "j-1",
-                List.of(), List.of(), Instant.now(), Instant.now()
-        )));
+                List.of(), List.of(), Instant.now(), Instant.now(), null)));
 
         mockMvc.perform(MockMvcRequestBuilders.get("/v1/proposals/schema")
                         .param("lob", "TERM")
@@ -172,8 +171,7 @@ class ProposalSchemaIT {
     void ac2_quoteExpired_failed_returns410() throws Exception {
         when(jobStorePort.findQuoteJob("job-failed")).thenReturn(Optional.of(new QuoteJob(
                 "job-failed", JobStatus.FAILED, "upstream", Lob.TERM, "j-1",
-                List.of(), List.of(), Instant.now(), Instant.now()
-        )));
+                List.of(), List.of(), Instant.now(), Instant.now(), null)));
 
         mockMvc.perform(MockMvcRequestBuilders.get("/v1/proposals/schema")
                         .param("lob", "TERM")
@@ -208,8 +206,7 @@ class ProposalSchemaIT {
         );
         when(jobStorePort.findQuoteJob("job-ok")).thenReturn(Optional.of(new QuoteJob(
                 "job-ok", JobStatus.COMPLETED, null, Lob.TERM, "j-1",
-                List.of(offer), List.of(), Instant.now(), Instant.now()
-        )));
+                List.of(offer), List.of(), Instant.now(), Instant.now(), null)));
         ONESB.stubFor(get(urlPathEqualTo(TERM_SCHEMA_PATH))
                 .willReturn(aResponse()
                         .withStatus(200)

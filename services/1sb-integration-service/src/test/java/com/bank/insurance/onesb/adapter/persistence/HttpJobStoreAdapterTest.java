@@ -193,6 +193,55 @@ class HttpJobStoreAdapterTest {
     }
 
     @Test
+    @Tag("FUNC-006")
+    void completeJob_withApplicationNumber_patchesCompletedAndAppNo() {
+        server.expect(requestTo(BASE + "/internal/v1/jobs/job-prop/status"))
+                .andExpect(method(HttpMethod.PATCH))
+                .andExpect(jsonPath("$.status").value("COMPLETED"))
+                .andExpect(jsonPath("$.applicationNumber").value("APP-42"))
+                .andRespond(withSuccess("""
+                        {"jobId":"job-prop","status":"COMPLETED","applicationNumber":"APP-42"}
+                        """, MediaType.APPLICATION_JSON));
+
+        adapter.completeJob("job-prop", List.of(), "APP-42");
+    }
+
+    @Test
+    @Tag("FUNC-006")
+    void findQuoteJob_mapsApplicationNumber() {
+        String jobId = "job-prop";
+
+        server.expect(requestTo(BASE + "/internal/v1/jobs/" + jobId))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess("""
+                        {
+                          "jobId": "job-prop",
+                          "jobType": "PROPOSAL",
+                          "lob": "TERM",
+                          "status": "COMPLETED",
+                          "journeyId": "j-1",
+                          "applicationNumber": "APP-99",
+                          "idempotencyKey": "idem-1",
+                          "createdAt": "2026-07-30T12:00:00Z",
+                          "updatedAt": "2026-07-30T12:01:00Z",
+                          "completedAt": "2026-07-30T12:01:00Z",
+                          "version": 1,
+                          "createdByActor": "actor-1"
+                        }
+                        """, MediaType.APPLICATION_JSON));
+
+        server.expect(requestTo(BASE + "/internal/v1/jobs/" + jobId + "/offers"))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess("[]", MediaType.APPLICATION_JSON));
+
+        Optional<QuoteJob> result = adapter.findQuoteJob(jobId);
+
+        assertThat(result).isPresent();
+        assertThat(result.get().applicationNumber()).isEqualTo("APP-99");
+        assertThat(result.get().status()).isEqualTo(JobStatus.COMPLETED);
+    }
+
+    @Test
     void findQuoteJob_getsJobAndOffers_completedWithOffers() {
         String jobId = "job-123";
 

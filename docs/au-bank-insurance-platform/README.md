@@ -52,6 +52,8 @@ This folder is the **clean restart**:
 | 5 | [05-figma-and-artefact-intake.md](./05-figma-and-artefact-intake.md) | Figma link + intake log for uploaded docs |
 | 6 | [06-po-opening-position.md](./06-po-opening-position.md) | PO kickoff stance for the stakeholder room |
 | **KB** | **[knowledge-base/](./knowledge-base/README.md)** | **Application knowledge base (synthesized from uploaded Volumes/Phases)** |
+| **PO drive** | **[po-drive/](./po-drive/00-PO-PROJECT-VIEW.md)** | **Project view · SWOT · Gap register · Programme TODO** |
+| **Requirements** | **[requirements/](./requirements/README.md)** | **R0 scope · PRD · P0 BRD with AC** |
 | — | [references/](./references/README.md) | Pointers to prior research (non-binding) |
 
 ---

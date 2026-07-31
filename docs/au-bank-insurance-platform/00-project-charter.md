@@ -1,15 +1,15 @@
 # Project charter — AU Bank Insurance Platform
 
 **Document owner:** Platform Product Owner  
-**Status:** Draft for stakeholder alignment  
+**Status:** Draft aligned to baseline Volumes/Phases (see knowledge-base)  
 **Bank:** AU Bank  
-**Version:** 0.1 (discovery restart)
+**Version:** 0.2 (post document intake)
 
 ---
 
 ## 1. One-sentence intent
 
-AU Bank will enable **Relationship Managers (and/or digital channels)** to originate and progress **insurance products for existing bank customers**, through a **bank-owned experience**, using an insurance gateway/aggregator (today: **1Silverbullet**) without locking the bank’s customer journey and data model to that vendor forever.
+AU Bank will build a **bank-owned, insurer-agnostic Insurance Distribution Platform** that owns the journey from **lead → consent → suitability → quote → proposal → payment → policy**, with **RM-assisted** (and later self-service) channels, using **1SilverBullet first** and evolving to direct insurer integrations — without rewriting the bank business model.
 
 ---
 

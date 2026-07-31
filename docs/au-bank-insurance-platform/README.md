@@ -50,6 +50,8 @@ This folder is the **clean restart**:
 | 3 | [03-discovery-backlog.md](./03-discovery-backlog.md) | Must-answer questions before build lock |
 | 4 | [04-process-and-journey-canvas.md](./04-process-and-journey-canvas.md) | End-to-end process canvas (to validate with Figma) |
 | 5 | [05-figma-and-artefact-intake.md](./05-figma-and-artefact-intake.md) | Figma link + intake log for uploaded docs |
+| 6 | [06-po-opening-position.md](./06-po-opening-position.md) | PO kickoff stance for the stakeholder room |
+| **KB** | **[knowledge-base/](./knowledge-base/README.md)** | **Application knowledge base (synthesized from uploaded Volumes/Phases)** |
 | — | [references/](./references/README.md) | Pointers to prior research (non-binding) |
 
 ---
@@ -59,7 +61,7 @@ This folder is the **clean restart**:
 | Input | Status |
 |-------|--------|
 | Figma prototype (client review) | Linked — see [05](./05-figma-and-artefact-intake.md); **screen inventory pending** (login-gated; needs walkthrough / exports) |
-| Baseline docs from earlier work | **Awaiting upload** from Product |
+| Baseline docs (Volumes 01–06, Phases 1–5) | **Ingested** → [knowledge-base/](./knowledge-base/README.md) |
 | Prior repo research (`docs/1sb-insurance-integration/`) | Available as optional reference only |
 
 ---

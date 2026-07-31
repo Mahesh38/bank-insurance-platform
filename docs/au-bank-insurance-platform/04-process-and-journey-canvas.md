@@ -1,8 +1,9 @@
 # Process & journey canvas — AU Bank Insurance Platform
 
 **Owner:** Business Analysis  
-**Status:** Draft skeleton — **must be validated against Figma + bank SMEs**  
-**Rule:** This is AU Bank process language. Aggregator steps are “external capability”, not the product.
+**Status:** Aligned to KB value stream (Vol 05/06, Phase 3) — **still validate against Figma + SMEs**  
+**Canonical detail:** [knowledge-base/04-value-stream-and-journeys.md](./knowledge-base/04-value-stream-and-journeys.md)  
+**Rule:** AU Bank process language. Aggregator steps are “external capability”, not the product.
 
 ---
 

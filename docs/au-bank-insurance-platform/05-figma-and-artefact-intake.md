@@ -10,73 +10,54 @@
 | Field | Value |
 |-------|-------|
 | File name | For Client Review |
-| Prototype URL | https://www.figma.com/proto/JyLGAaO88ELjnyVF2FQ3Bx/For-Client-Review?node-id=208-9666&viewport=20644%2C20677%2C0.17&t=VN5kR25s6psZI6Js-1&scaling=scale-down&content-scaling=fixed&page-id=208%3A2982 |
-| File key | `JyLGAaO88ELjnyVF2FQ3Bx` |
-| Page id | `208:2982` |
-| Start node | `208:9666` |
-| Access from automation | **Blocked** (login wall) — needs human walkthrough or exported frames |
-| Inventory status | **Not started** |
+| Prototype URL | https://www.figma.com/proto/JyLGAaO88ELjnyVF2FQ3Bx/For-Client-Review?node-id=208-9666&page-id=208%3A2982 |
+| Access from automation | **Blocked** (login wall) |
+| Inventory status | **Not started** — map to CJ/RMJ/JRN after walkthrough |
 
-### What we need from Figma (BA checklist)
+### BA checklist
 
-- [ ] Full screen list (name + purpose)  
+- [ ] Full screen list  
 - [ ] Happy-path click path (RM)  
-- [ ] Customer-only steps (if any)  
-- [ ] Error / empty / pending states shown  
-- [ ] LOB(s) depicted (Term / Health / Motor / …)  
-- [ ] Explicit compliance screens (suitability, consent, disclosures)  
-- [ ] Mark concept-only screens vs MVP candidates  
-
-### Preferred handoff formats (any one)
-
-1. Live walkthrough with PO + BA (recorded notes into §4 mapping in [04](./04-process-and-journey-canvas.md))  
-2. PDF / PNG export per frame into `docs/au-bank-insurance-platform/artefacts/figma/`  
-3. Figma access for a service account (if later available)
+- [ ] Customer-only steps  
+- [ ] Error / empty / pending states  
+- [ ] LOB(s) depicted  
+- [ ] Compliance screens (suitability, consent)  
+- [ ] MVP vs concept flags  
 
 ---
 
-## 2. Baseline docs — awaiting upload
+## 2. Baseline docs — ingested
 
-> You said you will upload the earlier basic docs. Log each file below when it arrives.
+| # | Artefact | Date | Summary | Adopt / Reopen / Reject | Linked |
+|---|----------|------|---------|-------------------------|--------|
+| 1 | `Volume_01_Vision_and_Strategy_v1.0_*.pdf` | 2026-07-31 | Bank-owned insurer-agnostic platform; 1SB→direct roadmap; capability layers | **Adopt** (vision/principles) | KB 01, 02, 03, 08 |
+| 2 | `Volume_02_Business_Goals_v1.0_*.pdf` | 2026-07-31 | BG-001…008 + CX/RM/growth/compliance goals | **Adopt** | KB 02 |
+| 3 | `Volume_03_Business_Requirements_v1.0_*.pdf` | 2026-07-31 | BR-* capability shells (template depth) | **Reopen** for detailed AC | KB 03, 10 |
+| 4 | `Volume_04_Stakeholder_Catalogue_v1.0_*.pdf` | 2026-07-31 | Full stakeholder inventory by group | **Adopt** (roles); reopen RACI detail | KB 06 |
+| 5 | `Volume_05_Business_Processes_v1.0_*.pdf` | 2026-07-31 | BP-001…018 + value stream | **Adopt** (catalogue) | KB 05, 04 |
+| 6 | `Volume_06_Customer_and_RM_Journeys_v1.0_*.pdf` | 2026-07-31 | CJ-01…13, RMJ-01…13, exceptions, state model | **Adopt** | KB 04 |
+| 7 | `Phase_1_Business_Discovery_Capability_Map_v0.1_*.pdf` | 2026-07-31 | Capability map + principles | **Adopt** | KB 03 |
+| 8 | `Phase_2_Business_Requirement_Catalogue_v0.1_*.pdf` | 2026-07-31 | BR catalogue incl. Quote Comparison / Servicing | **Reopen** for AC depth | KB 03, 10 |
+| 9 | `Phase_3_Business_Processes_and_Customer_Journeys_v0.1_*.pdf` | 2026-07-31 | JRN-001… (RM assisted sale etc.) | **Adopt** spine; reopen detail | KB 04 |
+| 10 | `Phase_4_Business_Rules_Information_Model_and_Governance_v0.1_*.pdf` | 2026-07-31 | Rule categories, canonical objects, governance | **Adopt** structure | KB 07 |
+| 11 | `Phase_5_Solution_Architecture_Blueprint_v0.1_*.pdf` | 2026-07-31 | Domains, integration phases A–C, flow | **Adopt** as advisory blueprint | KB 08 |
 
-| # | Artefact name / path | Source | Date received | Summary (1–2 lines) | Adopt / Reopen / Reject | Linked discovery Q |
-|---|----------------------|--------|---------------|----------------------|-------------------------|--------------------|
-| 1 | *pending upload* | | | | | |
+**Location:** `docs/au-bank-insurance-platform/artefacts/uploads/`
 
-**Drop location (recommended):**  
-`docs/au-bank-insurance-platform/artefacts/uploads/`  
-(keep original filenames; add a short note in this table)
-
----
-
-## 3. Prior repository research (already in git — non-binding)
-
-These are **not** product SSOT until adopted via decision log.
-
-| Path | What it is | Suggested treatment |
-|------|------------|---------------------|
-| `docs/1sb-insurance-integration/01-executive-overview.md` | 1SB + bank fit narrative | Reopen under AU Bank branding |
-| `docs/1sb-insurance-integration/02-rm-assisted-bank-checklist.md` | Practical build checklist | Mine for discovery questions |
-| `docs/1sb-insurance-integration/journeys/universal-lob-journey.md` | Universal stages | Align to canvas after Figma |
-| `docs/1sb-insurance-integration/service-ssot/**` | Eng backlog & phase delivery | Engineering history — do not auto-adopt scope |
-| `docs/1sb-insurance-integration/architecture/**` | Technical architecture | Options after Session 3 |
-
-See also [references/README.md](./references/README.md).
+**PO synthesis:** [knowledge-base/](./knowledge-base/README.md)
 
 ---
 
-## 4. Intake protocol
+## 3. Prior repository research (non-binding)
 
-1. New file arrives → add row in §2.  
-2. BA skims → 5 bullets max into Summary.  
-3. PO marks **Adopt / Reopen / Reject**.  
-4. If Adopt: update charter / vision / journey / discovery answers in the same PR when possible.  
-5. If Reopen: create or link a discovery question in [03](./03-discovery-backlog.md).
+| Path | Treatment |
+|------|-----------|
+| `docs/1sb-insurance-integration/**` | Candidate Integration Hub / Phase A adapter research — not full Distribution Platform |
 
 ---
 
-## 5. Immediate ask to stakeholders
+## 4. Immediate ask
 
-1. **Upload** all earlier basic docs (product / process / any decks).  
-2. **Walk Figma** with PO + BA, or export frames.  
-3. Confirm executive sponsor name for Q-P0-20.
+1. Figma walkthrough or frame exports → map to CJ/RMJ.  
+2. Session 1 to freeze LOB + R0 definition of done ([10](./knowledge-base/10-gaps-and-po-assessment.md)).  
+3. BA pack: Consent/Suitability rules + JRN-001 deep dive.

@@ -12,9 +12,9 @@ Status values: `Open` · `In discussion` · `Answered` · `Deferred`
 | ID | Question | Why it matters | Owner | Status | Answer |
 |----|----------|----------------|-------|--------|--------|
 | Q-P0-01 | What is the **first LOB** for AU Bank MVP? | Everything sequences from this | Bancassurance | Open | |
-| Q-P0-02 | Is MVP **RM-assisted only**, customer self-serve, or hybrid? | UX, auth, journey ownership | Digital + PO | Open | |
-| Q-P0-03 | Which customer segment? (existing retail only / HNI / staff / …) | Eligibility & prefill | Product | Open | |
-| Q-P0-04 | What is the official **definition of sold** for pilot success? | Metrics & engineering DoD | PO | Open | |
+| Q-P0-02 | Is MVP **RM-assisted only**, customer self-serve, or hybrid? | UX, auth, journey ownership | Digital + PO | In discussion | Docs: both assisted + self-service are goals; JRN-001 is RM-assisted — freeze R0 channel |
+| Q-P0-03 | Which customer segment? (existing retail only / HNI / staff / …) | Eligibility & prefill | Product | In discussion | Docs list Existing / New / Prospective — R0 cut not frozen |
+| Q-P0-04 | What is the official **definition of sold** for pilot success? | Metrics & engineering DoD | PO | Open | Value stream ends at Policy Issuance; confirm R0 bar |
 | Q-P0-05 | Which insurer(s) must be live for pilot? | Aggregator panel + testing | Bancassurance | Open | |
 | Q-P0-06 | Who completes **payment** — customer on device, RM link share, branch kiosk? | Payment UX & liability | Digital + Payments | Open | |
 | Q-P0-07 | Is **suitability / need analysis** mandatory before quote? Content owner? | Compliance gate | Compliance + Product | Open | |
@@ -40,8 +40,8 @@ Status values: `Open` · `In discussion` · `Answered` · `Deferred`
 
 | ID | Question | Why it matters | Owner | Status | Answer |
 |----|----------|----------------|-------|--------|--------|
-| Q-P0-16 | Is **1SB** confirmed commercial + sandbox for AU Bank? | Go-live dependency | Bancassurance | Open | |
-| Q-P0-17 | Hard requirement: bank apps never call aggregator shapes? | Architecture binding | PO | Open | |
+| Q-P0-16 | Is **1SB** confirmed commercial + sandbox for AU Bank? | Go-live dependency | Bancassurance | In discussion | Docs assume Phase A = 1SB; commercial confirmation still needed |
+| Q-P0-17 | Hard requirement: bank apps never call aggregator shapes? | Architecture binding | PO | Answered | **Yes (working)** — canonical model + Integration Hub; replaceable adapters (Vol 01 / Phase 5) |
 | Q-P0-18 | Which bank systems are **mandatory integrations** for R0? (CIF, SSO, notifications, DMS…) | Dependency map | Architecture + PO | Open | |
 | Q-P0-19 | Data residency / logging / retention policy for insurance PII? | Compliance build | Compliance + Infosec | Open | |
 | Q-P0-20 | Who is executive sponsor for this platform? | Decision velocity | PO | Open | |

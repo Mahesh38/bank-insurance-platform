@@ -121,32 +121,53 @@ class QuoteServiceTest {
         verify(termHandler, never()).buildSubmitPayload(any());
     }
 
+    /**
+     * FUNC-003: GET returns the job for all terminal statuses (including TIMEOUT) so the bank
+     * can poll. QUOTE_TIMEOUT is not thrown on the GET path — controller maps to 200 + status.
+     */
     @Test
-    void getQuoteResult_timeout_throwsQuoteTimeoutRetryable() {
-        when(jobStore.findQuoteJob("job-to")).thenReturn(Optional.of(new QuoteJob(
-                "job-to", JobStatus.TIMEOUT, Lob.TERM, "j-1",
-                List.of(), List.of(), Instant.parse("2026-07-30T12:00:00Z"), null
-        )));
+    @Tag("FUNC-003")
+    void getQuoteResult_timeout_returnsJobWithTimeoutStatus() {
+        QuoteJob timedOut = new QuoteJob(
+                "job-to", JobStatus.TIMEOUT, "POLL_TIMEOUT", Lob.TERM, "j-1",
+                List.of(), List.of(), Instant.parse("2026-07-30T12:00:00Z"),
+                Instant.parse("2026-07-30T12:05:00Z"), null);
+        when(jobStore.findQuoteJob("job-to")).thenReturn(Optional.of(timedOut));
 
-        assertThatThrownBy(() -> quoteService.getQuoteResult("job-to"))
+        QuoteJob result = quoteService.getQuoteResult("job-to");
+        assertThat(result).isEqualTo(timedOut);
+        assertQuoteTerminal(result, JobStatus.TIMEOUT, "POLL_TIMEOUT");
+    }
+
+    @Test
+    @Tag("FUNC-003")
+    void getQuoteResult_unknown_throwsResourceNotFound() {
+        when(jobStore.findQuoteJob("missing")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> quoteService.getQuoteResult("missing"))
                 .isInstanceOf(ServiceException.class)
                 .satisfies(ex -> {
                     ServiceException se = (ServiceException) ex;
-                    assertThat(se.getErrorResponse().getCode()).isEqualTo(ErrorCodes.QUOTE_TIMEOUT);
-                    assertThat(se.isRetryable()).isTrue();
+                    assertThat(se.getHttpStatus()).isEqualTo(404);
+                    assertThat(se.getErrorResponse().getCode()).isEqualTo(ErrorCodes.RESOURCE_NOT_FOUND);
                 });
     }
 
     @Test
     void getQuoteResult_completed_returnsJob() {
         QuoteJob job = new QuoteJob(
-                "job-ok", JobStatus.COMPLETED, Lob.TERM, "j-1",
+                "job-ok", JobStatus.COMPLETED, null, Lob.TERM, "j-1",
                 List.of(), List.of(), Instant.parse("2026-07-30T12:00:00Z"),
-                Instant.parse("2026-07-30T12:01:00Z")
-        );
+                Instant.parse("2026-07-30T12:01:00Z"), null);
         when(jobStore.findQuoteJob("job-ok")).thenReturn(Optional.of(job));
 
         assertThat(quoteService.getQuoteResult("job-ok")).isEqualTo(job);
+    }
+
+    /** Optional helper: assert terminal job status (+ optional failureReason) without throwing. */
+    private static void assertQuoteTerminal(QuoteJob job, JobStatus expected, String failureReason) {
+        assertThat(job.status()).isEqualTo(expected);
+        assertThat(job.failureReason()).isEqualTo(failureReason);
     }
 
     private static CreateQuoteCommand validCommand() {

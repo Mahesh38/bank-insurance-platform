@@ -21,6 +21,8 @@ public final class AuditActions {
     // --- Proposal lifecycle ---
     public static final String PROPOSAL_SUBMITTED        = "PROPOSAL_SUBMITTED";
     public static final String PROPOSAL_STATUS_UPDATED   = "PROPOSAL_STATUS_UPDATED";
+    /** P0 soft gate — consentRef absent on proposal submit (still allowed). */
+    public static final String CONSENT_REF_MISSING       = "CONSENT_REF_MISSING";
 
     // --- Payment ---
     public static final String PAYMENT_URL_RETRIEVED     = "PAYMENT_URL_RETRIEVED";

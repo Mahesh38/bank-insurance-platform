@@ -54,19 +54,25 @@ public class HttpJobStoreAdapter implements JobStorePort {
 
     @Override
     public void updateJobStatus(String jobId, JobStatus status) {
-        patchStatus(jobId, new PatchJobStatusRequest(status.name(), null, null, null));
+        patchStatus(jobId, new PatchJobStatusRequest(status.name(), null, null, null, null));
     }
 
     @Override
     public void updateJobPolling(String jobId, String externalReqId) {
-        patchStatus(jobId, new PatchJobStatusRequest(JobStatus.RUNNING.name(), null, externalReqId, null));
+        patchStatus(jobId, new PatchJobStatusRequest(JobStatus.RUNNING.name(), null, externalReqId, null, null));
     }
 
     @Override
     public void completeJob(String jobId, List<QuoteOffer> offers) {
+        completeJob(jobId, offers, null);
+    }
+
+    @Override
+    public void completeJob(String jobId, List<QuoteOffer> offers, String applicationNumber) {
         Instant completedAt = Instant.now();
         JobStatus status = resolveCompleteStatus(offers);
-        patchStatus(jobId, new PatchJobStatusRequest(status.name(), null, null, completedAt));
+        String appNo = applicationNumber != null && !applicationNumber.isBlank() ? applicationNumber : null;
+        patchStatus(jobId, new PatchJobStatusRequest(status.name(), null, null, completedAt, appNo));
         if (offers != null) {
             for (QuoteOffer offer : offers) {
                 persistenceRestClient.post()
@@ -98,7 +104,8 @@ public class HttpJobStoreAdapter implements JobStorePort {
                 status.name(),
                 failureReason,
                 null,
-                Instant.now()
+                Instant.now(),
+                null
         ));
     }
 
@@ -180,12 +187,14 @@ public class HttpJobStoreAdapter implements JobStorePort {
         return new QuoteJob(
                 job.jobId(),
                 JobStatus.valueOf(job.status()),
+                job.failureReason(),
                 Lob.valueOf(job.lob()),
                 job.journeyId(),
                 quoteOffers,
                 List.of(),
                 job.createdAt(),
-                job.completedAt()
+                job.completedAt(),
+                job.applicationNumber()
         );
     }
 }

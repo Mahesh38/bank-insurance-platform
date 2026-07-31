@@ -75,6 +75,19 @@ class OneSbHttpClientPollAdapterTest {
     }
 
     @Test
+    @Tag("FUNC-006")
+    void poll_extractsApplicationNumber_whenComplete() {
+        when(httpClient.get(PATH, String.class))
+                .thenReturn("{\"data\":{\"isPollComplete\":true,\"applicationNumber\":\"APP-POLL\"}}");
+
+        PollResult result = adapter.poll(PATH);
+
+        assertThat(result.complete()).isTrue();
+        assertThat(result.applicationNumber()).isEqualTo("APP-POLL");
+        assertThat(result.offers()).isEmpty();
+    }
+
+    @Test
     void poll_serviceException_mapsHttpStatusAndMessage() {
         when(httpClient.get(PATH, String.class))
                 .thenThrow(ServiceException.upstreamAuth("1SB returned 401"));

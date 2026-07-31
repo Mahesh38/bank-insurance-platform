@@ -24,6 +24,11 @@ public final class ErrorCodes {
 
     // --- Quote / job lifecycle ---
     public static final String QUOTE_TIMEOUT         = "QUOTE_TIMEOUT";
+    public static final String QUOTE_EXPIRED         = "QUOTE_EXPIRED";
+
+    // --- Proposal / attribution ---
+    public static final String AGENT_ATTRIBUTION_MISSING = "AGENT_ATTRIBUTION_MISSING";
+    public static final String PROPOSAL_REJECTED         = "PROPOSAL_REJECTED";
 
     // --- Resource / entity ---
     public static final String RESOURCE_NOT_FOUND    = "RESOURCE_NOT_FOUND";

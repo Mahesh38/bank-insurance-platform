@@ -7,13 +7,14 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;
 
 /**
- * GET {@code /v1/quotes/{jobId}} response (FUNC-003).
- * {@code offers} is never null — empty while in-progress or terminal without results.
+ * GET {@code /v1/proposals/{jobId}} response (FUNC-006).
+ * {@code applicationNumber} omitted while in-progress; {@code offers} is never null (empty for proposals).
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public record QuoteJobResponse(
+public record ProposalJobResponse(
         String jobId,
         JobStatus status,
+        String applicationNumber,
         String failureReason,
         List<QuoteOffer> offers
 ) {}

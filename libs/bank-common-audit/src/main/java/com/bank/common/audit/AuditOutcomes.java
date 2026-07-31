@@ -21,4 +21,7 @@ public final class AuditOutcomes {
 
     /** Result is pending — async operation has not completed yet. */
     public static final String PENDING = "PENDING";
+
+    /** Soft warning — operation continues but a compliance signal was raised. */
+    public static final String WARN = "WARN";
 }

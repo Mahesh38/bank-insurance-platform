@@ -129,12 +129,14 @@ class JobApiTest {
                         .content("""
                                 {
                                   "status": "COMPLETED",
-                                  "completedAt": "2026-07-30T12:30:00Z"
+                                  "completedAt": "2026-07-30T12:30:00Z",
+                                  "applicationNumber": "APP-PATCH-1"
                                 }
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status", is("COMPLETED")))
-                .andExpect(jsonPath("$.completedAt", notNullValue()));
+                .andExpect(jsonPath("$.completedAt", notNullValue()))
+                .andExpect(jsonPath("$.applicationNumber", is("APP-PATCH-1")));
 
         String timeoutJobId = createJob("idem-job-timeout-" + UUID.randomUUID());
         mockMvc.perform(patch("/internal/v1/jobs/{jobId}/status", timeoutJobId)

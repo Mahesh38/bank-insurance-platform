@@ -19,28 +19,40 @@ public interface OneSbPollPort {
     PollResult poll(String path);
 
     /**
-     * @param complete     true when upstream reports poll complete ({@code isPollComplete})
-     * @param httpStatus   HTTP status from upstream (0 if transport failure)
-     * @param errorMessage optional error detail
-     * @param offers       normalised offers when complete (empty for generic poll adapters)
+     * @param complete            true when upstream reports poll complete ({@code isPollComplete})
+     * @param httpStatus          HTTP status from upstream (0 if transport failure)
+     * @param errorMessage        optional error detail
+     * @param offers              normalised offers when complete (empty for generic poll adapters)
+     * @param applicationNumber   insurer application number when present (proposal polls)
      */
-    record PollResult(boolean complete, int httpStatus, String errorMessage, List<QuoteOffer> offers) {
+    record PollResult(boolean complete, int httpStatus, String errorMessage,
+                      List<QuoteOffer> offers, String applicationNumber) {
 
         public PollResult(boolean complete, int httpStatus, String errorMessage) {
-            this(complete, httpStatus, errorMessage, List.of());
+            this(complete, httpStatus, errorMessage, List.of(), null);
+        }
+
+        public PollResult(boolean complete, int httpStatus, String errorMessage, List<QuoteOffer> offers) {
+            this(complete, httpStatus, errorMessage, offers, null);
         }
 
         public static PollResult of(boolean complete, int httpStatus) {
-            return new PollResult(complete, httpStatus, null, List.of());
+            return new PollResult(complete, httpStatus, null, List.of(), null);
         }
 
         public static PollResult of(boolean complete, int httpStatus, List<QuoteOffer> offers) {
             return new PollResult(complete, httpStatus, null,
-                    offers != null ? List.copyOf(offers) : List.of());
+                    offers != null ? List.copyOf(offers) : List.of(), null);
+        }
+
+        public static PollResult of(boolean complete, int httpStatus, List<QuoteOffer> offers,
+                                    String applicationNumber) {
+            return new PollResult(complete, httpStatus, null,
+                    offers != null ? List.copyOf(offers) : List.of(), applicationNumber);
         }
 
         public static PollResult transportError(String message) {
-            return new PollResult(false, 0, message, List.of());
+            return new PollResult(false, 0, message, List.of(), null);
         }
     }
 }

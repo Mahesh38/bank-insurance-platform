@@ -1,10 +1,12 @@
 package com.bank.insurance.onesb.domain.port.inbound;
 
+import com.bank.insurance.onesb.domain.command.SubmitProposalCommand;
 import com.bank.insurance.onesb.domain.model.Lob;
 import com.bank.insurance.onesb.domain.model.ProposalSchema;
+import com.bank.insurance.onesb.domain.model.ProposalSubmitResult;
 
 /**
- * Inbound use-case for proposal schema retrieval (FUNC-004).
+ * Inbound use-case for proposal schema retrieval (FUNC-004) and submit (FUNC-005).
  */
 public interface ProposalUseCase {
 
@@ -15,4 +17,9 @@ public interface ProposalUseCase {
      */
     ProposalSchema getSchema(Lob lob, String productCode, String manufacturerId,
                              String version, String quoteJobId);
+
+    /**
+     * Submits a Term (or LOB) proposal: agent attribution → job → 1SB submit.
+     */
+    ProposalSubmitResult submit(SubmitProposalCommand command);
 }

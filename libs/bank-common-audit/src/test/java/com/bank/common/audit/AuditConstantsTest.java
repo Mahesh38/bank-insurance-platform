@@ -11,6 +11,8 @@ class AuditConstantsTest {
         assertThat(AuditActions.QUOTE_JOB_CREATED).isEqualTo("QUOTE_JOB_CREATED");
         assertThat(AuditActions.ONESB_OUTBOUND_CALL).isEqualTo("ONESB_OUTBOUND_CALL");
         assertThat(AuditActions.PAYLOAD_RETENTION_DELETED).isEqualTo("PAYLOAD_RETENTION_DELETED");
+        assertThat(AuditActions.CONSENT_REF_MISSING).isEqualTo("CONSENT_REF_MISSING");
+        assertThat(AuditActions.PROPOSAL_SUBMITTED).isEqualTo("PROPOSAL_SUBMITTED");
     }
 
     @Test
@@ -26,5 +28,6 @@ class AuditConstantsTest {
         assertThat(AuditOutcomes.REJECTED).isEqualTo("REJECTED");
         assertThat(AuditOutcomes.TIMEOUT).isEqualTo("TIMEOUT");
         assertThat(AuditOutcomes.PENDING).isEqualTo("PENDING");
+        assertThat(AuditOutcomes.WARN).isEqualTo("WARN");
     }
 }

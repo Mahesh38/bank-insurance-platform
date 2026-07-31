@@ -1,0 +1,28 @@
+# 08 — Architecture Decision Log (this review)
+
+**ID scheme:** `ARCH-xxx` — deliberately distinct from the business/scope `D-xxx` and process `DOC-xxx` IDs in `docs/au-bank-insurance-platform/DECISION-LOG.md`, so this technology-layer log never collides with that business-layer one. Cite `D-xxx`/`DOC-xxx` for business scope; cite `ARCH-xxx` for platform architecture/technology choices.
+
+**Status legend:** `Proposed` = this review's recommendation, not yet ratified by an architecture review board / PO · `Confirms` = restates an already-accepted decision from prior docs, unchanged.
+
+| ID | Decision | Status | Rationale | Supersedes / relates to |
+|----|----------|--------|-----------|--------------------------|
+| ARCH-001 | Target cloud is **AWS only**; no multi-cloud abstraction | Proposed | Explicit constraint for this review | — |
+| ARCH-002 | Compute substrate is **Amazon EKS** for every microservice; elasticity via Karpenter + HPA + KEDA | Proposed | Explicit constraint for this review | — |
+| ARCH-003 | Target-state platform = **~16 domain-aligned microservices** + 2 edge BFFs + 1 routing layer, sequenced across 4 delivery phases (P0–P3), not built simultaneously | Proposed | Capability map defines domains, not service count (`knowledge-base/03-capability-map.md` PO note); this review makes that call | See [02](./02-target-microservices-architecture.md) |
+| ARCH-004 | **Database-per-service** for every business-domain service; the existing `bank-persistence-service` shared-HTTP-store pattern is scoped **only** to the integration job/correlation store and audit ingestion — not extended to Customer/Lead/Consent/Suitability/Catalogue/Payment/Policy/etc. | Proposed (amends prior pattern) | A platform-wide shared persistence service becomes a single coupling/failure point once 10+ business domains exist; the pattern was designed for two closely-related consumers, not the whole platform | Amends `docs/1sb-insurance-integration/architecture/bank-persistence-service.md` scope, does not delete it |
+| ARCH-005 | **Journey Orchestration** is a first-class microservice owning the cross-domain journey state machine | Proposed (new service, not previously named) | Someone must own `Journey { stage, externalRefs, partySnapshot }` (`canonical-model/contexts.md` §8) across domains or every BFF reimplements it, breaking replaceability | New; builds on the Journey aggregate already defined in the 1SB research pack |
+| ARCH-006 | **1SB Adapter** (existing `1sb-integration-service`) is retained as-is and placed behind a new **Integration Hub** routing layer; no rewrite | Confirms + extends | The service is already well-designed (hexagonal, SOLID/DRY/KISS, Case-2 pattern) and explicitly scoped as a Phase-A adapter slice in `knowledge-base/08-integration-strategy.md` | Confirms `docs/1sb-insurance-integration/architecture/replaceable-middleware.md` and `08-integration-strategy.md` |
+| ARCH-007 | Sync at every point a human is waiting in-session; async (Kafka/SQS/SNS) for every cross-domain side effect (audit, notification, reporting) | Proposed | Generalizes the already-accepted "sync API, async inside" rule from the 1SB adapter (Domain rule 3) to the whole platform | Confirms and extends `1sb-integration-service-architecture.md` §1 |
+| ARCH-008 | Shared cross-cutting libraries (`bank-common-error`, `-security`, `-audit`, `-idempotency`, `-observability`) remain the reuse mechanism for cross-cutting concerns; business logic is never extracted into a shared library | Confirms | Already-accepted decision (D13 in `service-ssot/00-po-architect-design-session.md`); this review extends the same libraries platform-wide rather than introducing a second convention | Confirms existing decision |
+| ARCH-009 | Primary AWS region `ap-south-1` (Mumbai), DR in `ap-south-2` (Hyderabad) | Proposed, **pending compliance confirmation** | Data residency is an explicitly open item in `DECISION-LOG.md`; this is this review's working assumption, not a substitute for that sign-off | Flags open item from `docs/au-bank-insurance-platform/DECISION-LOG.md` |
+| ARCH-010 | All compliance-sensitive behavior (consent rules, retention periods, masking policy) is configuration-driven via Administration & Config, never hardcoded per service | Proposed | Multiple compliance questions (D-008, D-011, and the PII/retention/residency items) are explicitly still pending; config-first absorbs the eventual answer without a re-architecture | Directly implements D-014's "configurable policy-driven controls" principle at the technology layer |
+
+## What this review deliberately did **not** decide
+
+- Exact consent sequencing/wording (compliance R&D dependency, D-011 — pending).
+- Exact IRDAI/RBI regulatory control mapping (pending; Audit & Compliance is built to capture a superset of evidence so it can absorb the answer).
+- Insurance advisor/agent identity model specifics (D-008 — pending; kept behind an interface so the model can change independently).
+- Final PII/audit retention periods and data residency confirmation (pending; see [06](./06-security-compliance-and-nfrs.md)).
+- Branch kiosk journey (explicitly deferred pending a business decision per `DECISION-LOG.md`).
+
+These stay open on purpose — an architecture review shouldn't quietly resolve business/compliance decisions that the business SSOT has flagged as pending sponsor/compliance sign-off.

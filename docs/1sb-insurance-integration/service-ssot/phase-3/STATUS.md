@@ -1,9 +1,8 @@
 # Phase 3 — Status
 
-**Branch:** `cursor/func-009-application-status-c259`  
-**Assignment:** [FUNC-009-ASSIGNMENT.md](./FUNC-009-ASSIGNMENT.md)  
-**Review:** [FUNC-009-REVIEW.md](./FUNC-009-REVIEW.md)  
-**Prior:** [FUNC-007-ASSIGNMENT.md](./FUNC-007-ASSIGNMENT.md) · [FUNC-007-REVIEW.md](./FUNC-007-REVIEW.md)
+**Branch:** `cursor/comp-003-raw-payload-encryption-c259`  
+**Assignment:** [COMP-003-ASSIGNMENT.md](./COMP-003-ASSIGNMENT.md) · [COMP-003-REVIEW.md](./COMP-003-REVIEW.md)  
+**Prior:** [FUNC-009-ASSIGNMENT.md](./FUNC-009-ASSIGNMENT.md) · [FUNC-009-REVIEW.md](./FUNC-009-REVIEW.md)
 
 | Task | Owner | Status | Commit |
 |------|-------|--------|--------|
@@ -14,10 +13,10 @@
 | FUNC-006 Get proposal job result | Dev A | **Done** | `42dd011` |
 | FUNC-007 Create payment session / URL | Dev A | **Done** | `968aeab` |
 | FUNC-009 Application status | Dev A | **Done** | `98e1a3f` |
-| COMP-003 Raw payload encryption | — | Not started | — |
+| COMP-003 Raw payload encryption | Dev A | **Done** | `6ed3ad2` |
 | COMP-004 Agent & distributor attribution | — | Not started | — |
 
 ## Notes
 
-- FUNC-007: TL+QA Lead APPROVE — HTTPS paymentUrl + ref/expiry; no URL in logs; 409 PROPOSAL_NOT_PAYABLE; PAYMENT_URL_RETRIEVED; R6.
-- FUNC-009: TL+QA Lead APPROVE — BankStage mapping; manufacturer substatus; 404 RESOURCE_NOT_FOUND; APPLICATION_STATUS_CHECKED; onesbStatus not in API.
+- FUNC-009: TL+QA Lead APPROVE — BankStage mapping; manufacturer substatus; 404; APPLICATION_STATUS_CHECKED.
+- COMP-003: TL+QA Lead APPROVE — AES-256-GCM at rest; key id + retain_until (7y); store + `/internal/v1/raw-payloads`; port/adapter/`OneSbCallContext` ready (HTTP client auto-capture deferred, non-blocking).

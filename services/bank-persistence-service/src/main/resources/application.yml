@@ -43,6 +43,15 @@ management:
     readinessstate:
       enabled: true
 
+# Local/default stand-in for Vault AES-256 key (override in uat/prod via env)
+bank:
+  persistence:
+    payload-encryption:
+      key-id: ${PAYLOAD_ENCRYPTION_KEY_ID:local-v1}
+      # 32 zero bytes, Base64 — replace in real environments
+      key-base64: ${PAYLOAD_ENCRYPTION_KEY_BASE64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=}
+      retain-years: ${PAYLOAD_ENCRYPTION_RETAIN_YEARS:7}
+
 logging:
   level:
     com.bank.persistence: INFO

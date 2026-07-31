@@ -122,4 +122,27 @@ public final class PersistenceApiDtos {
             Instant updatedAt,
             String createdByActor
     ) {}
+
+    public record CreateRawPayloadRequest(
+            String jobId,
+            String direction,
+            String operation,
+            String lob,
+            String payloadBase64,
+            Short httpStatus
+    ) {}
+
+    public record RawPayloadResponse(
+            String payloadId,
+            String jobId,
+            String direction,
+            String operation,
+            String lob,
+            String encryptionKeyId,
+            Short httpStatus,
+            Instant createdAt,
+            java.time.LocalDate retainUntil,
+            String payloadBase64
+    ) {}
 }
+

@@ -55,7 +55,7 @@ This folder is the **clean restart**:
 | 6 | [06-po-opening-position.md](./06-po-opening-position.md) | PO kickoff stance for the stakeholder room |
 | **KB** | **[knowledge-base/](./knowledge-base/README.md)** | **Application knowledge base (synthesized from uploaded Volumes/Phases)** |
 | **PO drive** | **[po-drive/](./po-drive/00-PO-PROJECT-VIEW.md)** | **Project view · SWOT · Gap register · Programme TODO** |
-| **Requirements** | **[requirements/](./requirements/README.md)** | **R0 scope · BRD overview · PRD · P0 BRD with AC** |
+| **Requirements** | **[requirements/](./requirements/README.md)** | **Working Decisions · BRD overview (PO) · R0 scope · PRD · P0 BRD** |
 | — | [references/](./references/README.md) | Pointers to prior research (non-binding) |
 
 ---

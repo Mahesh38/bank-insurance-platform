@@ -31,10 +31,12 @@
 - [ ] Detail self-service + hybrid mode-switch UX (GAP-023)
 
 ### Requirements depth
-- [ ] Review & approve [PRD-R0](../requirements/PRD-R0-DISTRIBUTION-PLATFORM.md) (align to three journeys)
-- [ ] Expand chapters under [BRD-OVERVIEW](../requirements/BRD-OVERVIEW.md) + [BRD-P0](../requirements/BRD-P0-CAPABILITIES.md)
-- [ ] Consent rule pack v1 (GAP-006) — sequencing R&D
-- [ ] Suitability rule pack v1 (GAP-007)
+- [x] Capture PO-approved [BRD overview headings](../requirements/BRD-OVERVIEW.md)
+- [ ] Write detailed BR chapters under BRD overview (start §1–4, §6–8, §10–11)
+- [ ] Review & approve [PRD-R0](../requirements/PRD-R0-DISTRIBUTION-PLATFORM.md) against Working Decisions + BRD overview (three journeys)
+- [ ] Align [BRD-P0](../requirements/BRD-P0-CAPABILITIES.md) to BRD overview sections
+- [ ] Consent rule pack v1 (GAP-006) — sequencing R&D → BRD §6.4 / §8.3
+- [ ] Suitability rule pack v1 (GAP-007) → BRD §6
 - [ ] Quote/compare rule pack v1 for Group A (GAP-012)
 - [ ] Product Catalogue / Matrix v0 for Life + Group A/B flags (GAP-013)
 - [ ] Attribute sheets: Lead, Consent, Suitability, Quote, Proposal, Payment, Policy (GAP-016)

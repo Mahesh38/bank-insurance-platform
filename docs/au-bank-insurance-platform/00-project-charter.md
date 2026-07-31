@@ -1,9 +1,9 @@
 # Project charter — AU Bank Insurance Platform
 
 **Document owner:** Platform Product Owner  
-**Status:** Draft aligned to [Working Decisions v1](./07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md)  
+**Status:** Draft aligned to [Working Decisions v1](./07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md); **BRD overview headings PO-approved** ([requirements/BRD-OVERVIEW.md](./requirements/BRD-OVERVIEW.md))  
 **Bank:** AU Bank  
-**Version:** 0.3 (Working Decisions Draft v1)
+**Version:** 0.4 (Working Decisions Draft v1 + BRD overview)
 
 ---
 

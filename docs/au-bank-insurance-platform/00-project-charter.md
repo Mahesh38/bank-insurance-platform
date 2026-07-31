@@ -1,9 +1,9 @@
 # Project charter — AU Bank Insurance Platform
 
 **Document owner:** Platform Product Owner  
-**Status:** Draft aligned to baseline Volumes/Phases (see knowledge-base)  
+**Status:** Draft aligned to baseline Volumes/Phases; **BRD overview headings PO-approved** ([requirements/BRD-OVERVIEW.md](./requirements/BRD-OVERVIEW.md))  
 **Bank:** AU Bank  
-**Version:** 0.2 (post document intake)
+**Version:** 0.3 (BRD overview locked)
 
 ---
 

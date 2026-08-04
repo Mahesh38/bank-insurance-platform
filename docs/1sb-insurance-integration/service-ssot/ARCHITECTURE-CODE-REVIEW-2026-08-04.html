@@ -1,0 +1,1156 @@
+<title>1SB Integration Platform — Architecture &amp; Code Review</title>
+<style>
+  :root {
+    --paper: #f5f4f0;
+    --paper-raised: #ffffff;
+    --ink: #1b2028;
+    --ink-soft: #4a505c;
+    --ink-faint: #7a808c;
+    --rule: #dcd9d1;
+    --rule-strong: #c7c3b8;
+    --accent: #2f5d8a;
+    --accent-soft: #e7eef5;
+
+    --sev-critical: #b3261e;
+    --sev-critical-bg: #fbeae9;
+    --sev-critical-bd: #e7c1bd;
+    --sev-high: #a15a0a;
+    --sev-high-bg: #fbeee1;
+    --sev-high-bd: #e8cca6;
+    --sev-medium: #8a6d00;
+    --sev-medium-bg: #f8f1dc;
+    --sev-medium-bd: #e3d3a0;
+    --sev-low: #55606e;
+    --sev-low-bg: #eceef0;
+    --sev-low-bd: #d3d8dd;
+
+    --pos: #2f6f4e;
+    --pos-bg: #e7f2ec;
+
+    color-scheme: light;
+  }
+
+  :root[data-theme="dark"] {
+    --paper: #14171d;
+    --paper-raised: #1b1f27;
+    --ink: #e8e8e3;
+    --ink-soft: #a8adb8;
+    --ink-faint: #767c88;
+    --rule: #2b303a;
+    --rule-strong: #3a4049;
+    --accent: #86adcf;
+    --accent-soft: #1e2c3a;
+
+    --sev-critical: #ff8179;
+    --sev-critical-bg: #3a1a18;
+    --sev-critical-bd: #5c2a26;
+    --sev-high: #f0a15c;
+    --sev-high-bg: #3a2712;
+    --sev-high-bd: #5c3f1c;
+    --sev-medium: #e5c465;
+    --sev-medium-bg: #362d10;
+    --sev-medium-bd: #574718;
+    --sev-low: #a7aeb9;
+    --sev-low-bg: #262b33;
+    --sev-low-bd: #363c46;
+
+    --pos: #7fc9a0;
+    --pos-bg: #17281f;
+
+    color-scheme: dark;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #14171d;
+      --paper-raised: #1b1f27;
+      --ink: #e8e8e3;
+      --ink-soft: #a8adb8;
+      --ink-faint: #767c88;
+      --rule: #2b303a;
+      --rule-strong: #3a4049;
+      --accent: #86adcf;
+      --accent-soft: #1e2c3a;
+
+      --sev-critical: #ff8179;
+      --sev-critical-bg: #3a1a18;
+      --sev-critical-bd: #5c2a26;
+      --sev-high: #f0a15c;
+      --sev-high-bg: #3a2712;
+      --sev-high-bd: #5c3f1c;
+      --sev-medium: #e5c465;
+      --sev-medium-bg: #362d10;
+      --sev-medium-bd: #574718;
+      --sev-low: #a7aeb9;
+      --sev-low-bg: #262b33;
+      --sev-low-bd: #363c46;
+
+      --pos: #7fc9a0;
+      --pos-bg: #17281f;
+
+      color-scheme: dark;
+    }
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: ui-sans-serif, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3 {
+    font-family: ui-serif, Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+    font-weight: 600;
+    text-wrap: balance;
+    color: var(--ink);
+  }
+
+  .mono, code, .tag-id {
+    font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+
+  a { color: var(--accent); }
+
+  /* ---------- Masthead ---------- */
+  .masthead {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 3.2rem 1.5rem 2rem;
+    border-bottom: 2px solid var(--ink);
+  }
+  .masthead .eyebrow {
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin: 0 0 0.9rem;
+  }
+  .masthead h1 {
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    margin: 0 0 0.6rem;
+    line-height: 1.15;
+  }
+  .masthead .dek {
+    font-size: 1.05rem;
+    color: var(--ink-soft);
+    max-width: 62ch;
+    margin: 0 0 1.4rem;
+  }
+  .masthead .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.6rem;
+    font-size: 0.85rem;
+    color: var(--ink-faint);
+  }
+  .masthead .meta strong { color: var(--ink-soft); font-weight: 600; }
+
+  /* ---------- Nav ---------- */
+  .jumpnav {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: color-mix(in srgb, var(--paper) 92%, transparent);
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--rule);
+  }
+  .jumpnav-inner {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 0.7rem 1.5rem;
+    display: flex;
+    gap: 1.4rem;
+    overflow-x: auto;
+    font-size: 0.82rem;
+  }
+  .jumpnav a {
+    color: var(--ink-soft);
+    text-decoration: none;
+    white-space: nowrap;
+    padding-bottom: 2px;
+    border-bottom: 1px solid transparent;
+  }
+  .jumpnav a:hover { color: var(--accent); border-color: var(--accent); }
+
+  main {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 0 1.5rem 6rem;
+  }
+
+  section { padding-top: 3rem; }
+  section > h2 {
+    font-size: 1.5rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    margin: 0 0 0.3rem;
+  }
+  section > h2 .num {
+    color: var(--accent);
+    font-family: ui-monospace, monospace;
+    font-size: 1rem;
+  }
+  section > .section-dek {
+    color: var(--ink-soft);
+    font-size: 0.95rem;
+    margin: 0 0 1.6rem;
+    max-width: 68ch;
+  }
+
+  h3 {
+    font-size: 1.08rem;
+    margin: 2rem 0 0.7rem;
+  }
+
+  p { margin: 0 0 1rem; max-width: 70ch; }
+
+  /* ---------- Callout / verdict block ---------- */
+  .verdict {
+    border-left: 3px solid var(--accent);
+    background: var(--accent-soft);
+    padding: 1rem 1.2rem;
+    border-radius: 2px;
+    margin: 1.4rem 0;
+    font-size: 0.95rem;
+  }
+  .verdict strong { color: var(--ink); }
+
+  /* ---------- Top risk list ---------- */
+  .risklist { list-style: none; margin: 1.4rem 0; padding: 0; display: flex; flex-direction: column; gap: 0.6rem; }
+  .risklist li {
+    display: grid;
+    grid-template-columns: 1.6rem 1fr;
+    gap: 0.7rem;
+    padding: 0.7rem 0.9rem;
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--sev-critical);
+    border-radius: 3px;
+    font-size: 0.92rem;
+  }
+  .risklist li .rn { font-family: ui-monospace, monospace; color: var(--sev-critical); font-weight: 700; }
+  .risklist li b { color: var(--ink); }
+
+  /* ---------- Pattern / findings table ---------- */
+  .tbl-wrap { overflow-x: auto; margin: 1.2rem 0 2rem; border: 1px solid var(--rule); border-radius: 4px; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.88rem; min-width: 560px; }
+  thead th {
+    text-align: left;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    padding: 0.6rem 0.8rem;
+    border-bottom: 1px solid var(--rule-strong);
+    background: var(--paper-raised);
+    position: sticky; top: 0;
+  }
+  tbody td {
+    padding: 0.65rem 0.8rem;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+    color: var(--ink-soft);
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--accent-soft); }
+  td.assess-good { color: var(--pos); font-weight: 600; }
+  td.assess-warn { color: var(--sev-high); font-weight: 600; }
+
+  /* ---------- Principle grid ---------- */
+  .principle {
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 1rem 1.1rem;
+    margin-bottom: 1rem;
+    background: var(--paper-raised);
+  }
+  .principle > .phead {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.5rem;
+  }
+  .principle > .phead .letter {
+    font-family: ui-serif, Georgia, serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--accent);
+    width: 1.6rem;
+  }
+  .principle > .phead h4 { margin: 0; font-size: 1rem; font-family: inherit; }
+  .principle ul { margin: 0; padding-left: 1.2rem; font-size: 0.9rem; }
+  .principle li { margin-bottom: 0.45rem; }
+  .principle li .loc { color: var(--ink-faint); }
+
+  /* ---------- Severity / type pills ---------- */
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    padding: 0.16rem 0.5rem;
+    border-radius: 20px;
+    line-height: 1.5;
+    white-space: nowrap;
+  }
+  .pill-critical { background: var(--sev-critical-bg); color: var(--sev-critical); border: 1px solid var(--sev-critical-bd); }
+  .pill-high     { background: var(--sev-high-bg); color: var(--sev-high); border: 1px solid var(--sev-high-bd); }
+  .pill-medium   { background: var(--sev-medium-bg); color: var(--sev-medium); border: 1px solid var(--sev-medium-bd); }
+  .pill-low      { background: var(--sev-low-bg); color: var(--sev-low); border: 1px solid var(--sev-low-bd); }
+
+  .pill-type {
+    background: transparent;
+    border: 1px solid var(--ink-faint);
+    color: var(--ink-soft);
+  }
+  .pill-type.type-bug { border-color: var(--sev-critical); color: var(--sev-critical); }
+  .pill-type.type-debt { border-color: var(--ink-faint); color: var(--ink-soft); }
+  .pill-type.type-enh { border-color: var(--accent); color: var(--accent); }
+  .pill-type.type-story { border-color: var(--pos); color: var(--pos); }
+
+  /* ---------- NFR score strip ---------- */
+  .nfr-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.8rem;
+    margin: 1.4rem 0 2rem;
+  }
+  .nfr-card {
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 0.9rem 1rem;
+    background: var(--paper-raised);
+  }
+  .nfr-card .nfr-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; }
+  .nfr-card h5 { margin: 0; font-size: 0.88rem; font-family: inherit; color: var(--ink); }
+  .nfr-card p { margin: 0; font-size: 0.82rem; color: var(--ink-soft); }
+  .status-dot { width: 0.55rem; height: 0.55rem; border-radius: 50%; flex-shrink: 0; }
+  .dot-critical { background: var(--sev-critical); }
+  .dot-high { background: var(--sev-high); }
+  .dot-medium { background: var(--sev-medium); }
+  .dot-ok { background: var(--pos); }
+
+  /* ---------- Backlog ---------- */
+  .backlog-tier { margin-bottom: 2.6rem; }
+  .backlog-tier > .tier-head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.7rem;
+    border-bottom: 1px solid var(--rule-strong);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.1rem;
+  }
+  .backlog-tier > .tier-head h3 { margin: 0; }
+  .backlog-tier > .tier-head .count { color: var(--ink-faint); font-size: 0.85rem; }
+
+  .card {
+    border: 1px solid var(--rule);
+    border-left-width: 3px;
+    border-radius: 4px;
+    padding: 0.9rem 1.1rem 1rem;
+    margin-bottom: 0.8rem;
+    background: var(--paper-raised);
+  }
+  .card.sev-critical { border-left-color: var(--sev-critical); }
+  .card.sev-high { border-left-color: var(--sev-high); }
+  .card.sev-medium { border-left-color: var(--sev-medium); }
+  .card.sev-low { border-left-color: var(--sev-low); }
+
+  .card-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.4rem;
+  }
+  .card-head .tag-id { font-size: 0.78rem; color: var(--ink-faint); }
+  .card-title { font-weight: 600; font-size: 0.98rem; color: var(--ink); margin: 0.15rem 0 0.35rem; }
+  .card-problem { font-size: 0.88rem; color: var(--ink-soft); margin-bottom: 0.55rem; }
+  .card-problem .src { color: var(--ink-faint); font-size: 0.78rem; }
+  .card details { font-size: 0.85rem; }
+  .card summary {
+    cursor: pointer;
+    color: var(--accent);
+    font-size: 0.8rem;
+    font-weight: 600;
+    list-style: none;
+  }
+  .card summary::-webkit-details-marker { display: none; }
+  .card summary::before { content: "Acceptance criteria "; }
+  .card summary::after { content: "▸"; margin-left: 0.3rem; }
+  .card details[open] summary::after { content: "▾"; }
+  .card ul.ac { margin: 0.6rem 0 0.2rem; padding-left: 1.1rem; }
+  .card ul.ac li { margin-bottom: 0.35rem; color: var(--ink-soft); }
+  .card .xref { font-size: 0.76rem; color: var(--ink-faint); margin-top: 0.5rem; }
+  .card .xref code { font-size: 0.76rem; }
+
+  /* ---------- Footer ---------- */
+  footer {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+    color: var(--ink-faint);
+    font-size: 0.82rem;
+    border-top: 1px solid var(--rule);
+  }
+
+  @media (max-width: 600px) {
+    .masthead { padding: 2.2rem 1.2rem 1.6rem; }
+    main { padding: 0 1.2rem 4rem; }
+  }
+</style>
+
+<div class="masthead">
+  <p class="eyebrow">Architecture &amp; Code Review — Confidential Engineering Report</p>
+  <h1>1SB Integration Platform: End-to-End Review</h1>
+  <p class="dek">A full-stack review of <code class="mono">1sb-integration-service</code> and its dependent
+  <code class="mono">bank-persistence-service</code>, covering functional workflow, design patterns, SOLID/DRY/KISS
+  adherence, and non-functional posture (auth, logging, audit, masking, resilience, encryption).</p>
+  <div class="meta">
+    <span><strong>Scope:</strong> 2 services, 5 shared libs</span>
+    <span><strong>Method:</strong> full-source read, 4 parallel deep-dive passes</span>
+    <span><strong>Date:</strong> 2026-08-04</span>
+  </div>
+</div>
+
+<nav class="jumpnav">
+  <div class="jumpnav-inner">
+    <a href="#summary">Summary</a>
+    <a href="#workflow">Workflow</a>
+    <a href="#patterns">Patterns</a>
+    <a href="#principles">SOLID / DRY / KISS</a>
+    <a href="#nfr">NFRs</a>
+    <a href="#backlog">Backlog</a>
+  </div>
+</nav>
+
+<main>
+
+<section id="summary">
+  <h2><span class="num">01</span> Executive Summary</h2>
+  <p class="section-dek">The hexagonal skeleton is genuinely well built — this is not a rewrite candidate. But three
+  defects, found independently by three different review passes, would make this unsafe to expose in its current
+  state.</p>
+
+  <div class="verdict">
+    <strong>Verdict:</strong> Architecture and craft are above average for this stage — ArchUnit mechanically
+    enforces the hexagonal boundaries, domain types are immutable records, the error/audit vocabulary is shared and
+    mostly consistent, and the new AES-256-GCM raw-payload encryption is cryptographically sound. The gap is entirely
+    in what sits <em>around</em> the good core: nothing authenticates a caller anywhere in either service, an
+    encrypted-at-rest endpoint I built last session hands back plaintext PII to anyone who can reach it, and the
+    async job poller has no recovery path when things go wrong mid-flight. None of these are architectural
+    rewrites — they're bounded, well-understood fixes.
+  </div>
+
+  <h3>Top 5 risks, in order</h3>
+  <ol class="risklist">
+    <li><span class="rn">1</span><span><b>No authentication anywhere.</b> All five bank-facing controllers on
+      <code class="mono">1sb-integration-service</code> are reachable with zero credentials — the JWT/principal
+      library exists but is never wired into a filter chain. <span class="mono" style="color:var(--ink-faint)">→ STORY-001</span></span></li>
+    <li><span class="rn">2</span><span><b>Decrypted PII on an unauthenticated endpoint.</b>
+      <code class="mono">RawPayloadController.get</code> — code from last session's COMP-003 work — decrypts and
+      returns raw 1SB payloads to any network-reachable caller, no check at all. <span class="mono" style="color:var(--ink-faint)">→ BUG-001</span></span></li>
+    <li><span class="rn">3</span><span><b>Jobs vanish permanently under load.</b> Poller executor saturation,
+      a transient persistence-service blip, or a pod redeploy mid-poll all leave a job stuck <code class="mono">RUNNING</code>
+      forever with no reconciliation sweep to ever notice. <span class="mono" style="color:var(--ink-faint)">→ BUG-003, STORY-002</span></span></li>
+    <li><span class="rn">4</span><span><b>Idempotency doesn't actually prevent duplicates.</b> Check-then-act race
+      in <code class="mono">IdempotencyFilter</code> lets two concurrent identical requests both execute a mutating
+      call (e.g. double payment session). <span class="mono" style="color:var(--ink-faint)">→ BUG-002</span></span></li>
+    <li><span class="rn">5</span><span><b>Rate-limit responses are treated as permanent failures.</b> 1SB's 429 is
+      mapped to a non-retryable generic business error, so legitimate throttled requests die instead of retrying.
+      <span class="mono" style="color:var(--ink-faint)">→ BUG-004</span></span></li>
+  </ol>
+</section>
+
+<section id="workflow">
+  <h2><span class="num">02</span> Functional Workflow</h2>
+  <p class="section-dek">What the service actually does today, end to end, and where the seams are.</p>
+
+  <p>The bank-facing flow is <strong>master-data lookup → quote → proposal → payment → status</strong>, each a thin
+  REST controller delegating to an application service, which calls a domain <em>outbound port</em> implemented by
+  either a 1SB HTTP adapter (<code class="mono">adapter.onesb.*</code>) or an HTTP adapter into
+  <code class="mono">bank-persistence-service</code> (<code class="mono">adapter.persistence.*</code>). Quote and
+  proposal submission are asynchronous — submit returns a job id immediately, and <code class="mono">AsyncJobPoller</code>
+  polls 1SB in the background with exponential backoff until the job completes or times out.</p>
+
+  <p>Only the <strong>Term life</strong> line of business is implemented end to end (P0 scope). Health and Motor are
+  Strategy-pattern stubs waiting on a handler class each — the registry mechanism is ready, but as detailed in
+  §3/§4, two services currently bypass that registry with hardcoded Term-only checks, which will need to come out
+  first. Payment intimation (write-back of the bank's payment-gateway receipt to 1SB), the requirements-list
+  endpoint, and the document upload/download proxy are all unbuilt (tracked upstream as FUNC-008/010/011).</p>
+
+  <p>Durable state (jobs, offers, payment sessions, audit events, encrypted raw payloads) lives entirely in
+  <code class="mono">bank-persistence-service</code>, reached only over internal HTTP — <code class="mono">1sb-integration-service</code>
+  itself is stateless aside from an in-process idempotency cache and in-flight poller state, both of which (see §5)
+  don't yet survive a restart or a second instance.</p>
+</section>
+
+<section id="patterns">
+  <h2><span class="num">03</span> Design Patterns</h2>
+  <p class="section-dek">What's actually in play, assessed on correctness of application — not just presence.</p>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr><th style="width:20%">Pattern</th><th style="width:28%">Where</th><th style="width:14%">Assessment</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Hexagonal / Ports &amp; Adapters</td>
+          <td class="mono">domain.port.*, adapter.*</td>
+          <td class="assess-good">Strong</td>
+          <td>Mechanically enforced by <code class="mono">ArchitectureTest</code> (ArchUnit) — boundary violations fail the build, not just a review. Genuinely rare to see this actually enforced rather than aspirational.</td>
+        </tr>
+        <tr>
+          <td>Strategy</td>
+          <td class="mono">lob.LobQuoteHandler / LobProposalHandler + registries</td>
+          <td class="assess-warn">Good idea, leaking</td>
+          <td>Clean OCP-friendly design for LOB extension, but <code class="mono">QuoteService</code> and <code class="mono">ProposalService</code> each punch a hole through it with a hardcoded Term-only check or a static call — see BUG-007/008.</td>
+        </tr>
+        <tr>
+          <td>Repository</td>
+          <td class="mono">bank-persistence-service/repo/*</td>
+          <td class="assess-good">Correct</td>
+          <td>Thin, idiomatic Spring Data JPA, correctly scoped per aggregate.</td>
+        </tr>
+        <tr>
+          <td>Builder (Lombok)</td>
+          <td class="mono">ServiceErrorResponse, AuditEvent</td>
+          <td class="assess-good">Correct</td>
+          <td>Custom builder subclasses enforce real invariants (non-null title/code, default timestamp) rather than being boilerplate for its own sake.</td>
+        </tr>
+        <tr>
+          <td>SPI / Strategy</td>
+          <td class="mono">SecretProvider, AuditEventPublisher</td>
+          <td class="assess-good">Correct</td>
+          <td>Clean DIP — three interchangeable secret backends, pluggable audit sink.</td>
+        </tr>
+        <tr>
+          <td>Cache-aside</td>
+          <td class="mono">application.MasterDataService</td>
+          <td class="assess-warn">Needs work</td>
+          <td>Hand-rolled <code class="mono">ConcurrentHashMap</code>, no atomicity on the miss path (stampede risk) and no eviction (unbounded growth) — see DEBT-004.</td>
+        </tr>
+        <tr>
+          <td>Factory-method shortcuts</td>
+          <td class="mono">ServiceException.validation()/upstreamAuth()/…</td>
+          <td class="assess-warn">Inconsistently adopted</td>
+          <td>Good factories exist but several call sites hand-roll <code class="mono">ServiceErrorResponse.builder()</code> instead, and disagree with the factory's own HTTP status choice — see ENH-001.</td>
+        </tr>
+        <tr>
+          <td>Anemic domain model</td>
+          <td class="mono">domain.model.*, domain.command.*</td>
+          <td class="assess-warn">Worth naming</td>
+          <td>All domain types are behavior-free records; classification logic (e.g. status normalisation) lives on application services instead. Not wrong for this size of service, but worth being deliberate about as it grows.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="principles">
+  <h2><span class="num">04</span> SOLID · DRY · KISS</h2>
+  <p class="section-dek">Representative violations per principle — the full list, with every instance, is in the
+  backlog below.</p>
+
+  <div class="principle">
+    <div class="phead"><span class="letter">S</span><h4>Single Responsibility</h4></div>
+    <ul>
+      <li><span class="loc mono">StatusService.normalise()</span> — pure classification logic sitting on the application service rather than the domain; a natural fit for <code class="mono">BankApplicationStatus.fromRaw(...)</code> instead.</li>
+      <li><span class="loc mono">MasterDataController</span> — the only one of five controllers with no inbound-port interface, coupling directly to a concrete service class.</li>
+    </ul>
+  </div>
+
+  <div class="principle">
+    <div class="phead"><span class="letter">O</span><h4>Open/Closed</h4></div>
+    <ul>
+      <li><span class="loc mono">QuoteService.validate()</span> hardcodes <code class="mono">lob != Lob.TERM</code> → reject, ahead of and duplicating the registry's own <code class="mono">UNSUPPORTED_LOB</code> guard. Adding Health means editing this service, not just registering a new handler.</li>
+      <li><span class="loc mono">ProposalService.submit()</span> calls <code class="mono">TermProposalHandler.resolveAgentId(...)</code> as a static method instead of through the <code class="mono">LobProposalHandler</code> interface it otherwise correctly uses — same problem, different shape.</li>
+      <li><span class="loc mono">CreateQuoteCommand</span> already bakes Term/life-specific fields (<code class="mono">sumAssured</code>, <code class="mono">tobacco</code>, <code class="mono">annualIncome</code>) into the "LOB-agnostic" canonical command — Health/Motor won't purely extend this, they'll need to modify it.</li>
+    </ul>
+  </div>
+
+  <div class="principle">
+    <div class="phead"><span class="letter">L</span><h4>Liskov Substitution</h4></div>
+    <ul>
+      <li>No violations found — the one-implementation-per-port shape of this codebase (each outbound port has exactly one adapter today) means LSP hasn't really been tested yet. Worth re-checking once a second LOB adapter exists per port.</li>
+    </ul>
+  </div>
+
+  <div class="principle">
+    <div class="phead"><span class="letter">I</span><h4>Interface Segregation</h4></div>
+    <ul>
+      <li><span class="loc mono">OneSbPaymentPort.sendPaymentIntimation(...)</span> is documented to always throw <code class="mono">UnsupportedOperationException</code> until FUNC-008 ships — every implementer carries a stub for an unbuilt feature. Split it into its own port, or omit it until it's real.</li>
+    </ul>
+  </div>
+
+  <div class="principle">
+    <div class="phead"><span class="letter">D</span><h4>Dependency Inversion</h4></div>
+    <ul>
+      <li><span class="loc mono">MasterDataController → MasterDataService</span> (concrete class, no use-case interface) — the one break in an otherwise consistent controller→port pattern.</li>
+      <li>Otherwise strong: application services depend on outbound ports throughout, and ArchUnit backstops it.</li>
+    </ul>
+  </div>
+
+  <div class="principle">
+    <div class="phead" style="gap:0.5rem"><span class="letter" style="width:auto">DRY</span><h4>Don't Repeat Yourself</h4></div>
+    <ul>
+      <li>Six near-identical <code class="mono">catch (Exception e) { /* audit must not break … */ }</code> blocks across four application services — no logging in any of them.</li>
+      <li>The exact same "try N field-name aliases" JSON parsing helper is hand-rolled three separate times: <code class="mono">OneSbHttpClientPollAdapter.firstText()</code>, <code class="mono">OneSbQuoteAdapter.text()/decimal()</code>, <code class="mono">OneSbMasterDataAdapter.firstNonNull()</code>.</li>
+      <li><code class="mono">isPollComplete</code> extraction logic duplicated verbatim between <code class="mono">OneSbHttpClientPollAdapter</code> and <code class="mono">OneSbQuoteAdapter</code>.</li>
+      <li>Two dead duplicate constant classes shipping alongside the real ones: <code class="mono">AuditAction</code> (vs. the actually-used <code class="mono">AuditActions</code>) and <code class="mono">BankMetricNames</code> (vs. <code class="mono">MetricNames</code>) — a future call site could easily pick the wrong/dead one.</li>
+    </ul>
+  </div>
+
+  <div class="principle">
+    <div class="phead" style="gap:0.5rem"><span class="letter" style="width:auto">KISS</span><h4>Keep It Simple</h4></div>
+    <ul>
+      <li><span class="loc mono">OneSbQuoteAdapter.parseOffers()</span> — the "insurer already has a success offer" if/else branch executes the identical <code class="mono">offers.add(new QuoteOffer(...))</code> in both arms; the conditional is a no-op and can be deleted.</li>
+      <li><span class="loc mono">AsyncJobPoller</span> carries four overloaded constructors purely to support layered test scaffolding — a test-only builder would remove the sprawl.</li>
+      <li>A dead <code class="mono">logging.level.org.springframework.security: WARN</code> line sits in <code class="mono">application.yml</code> despite Spring Security not being a dependency anywhere — harmless, but a landmine for the next person who assumes it's real.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="nfr">
+  <h2><span class="num">05</span> Non-Functional Requirements</h2>
+  <p class="section-dek">Logging, auditing, masking, security, resilience, and encryption — status at a glance, then
+  the specifics.</p>
+
+  <div class="nfr-grid">
+    <div class="nfr-card"><div class="nfr-top"><h5>Authentication</h5><span class="status-dot dot-critical"></span></div><p>Not implemented on either service.</p></div>
+    <div class="nfr-card"><div class="nfr-top"><h5>Idempotency</h5><span class="status-dot dot-critical"></span></div><p>Present but racy; single-JVM only.</p></div>
+    <div class="nfr-card"><div class="nfr-top"><h5>Encryption at rest</h5><span class="status-dot dot-ok"></span></div><p>AES-256-GCM correct; no key rotation yet.</p></div>
+    <div class="nfr-card"><div class="nfr-top"><h5>Audit trail</h5><span class="status-dot dot-medium"></span></div><p>Good schema; silent-swallow gaps; no read-of-plaintext auditing.</p></div>
+    <div class="nfr-card"><div class="nfr-top"><h5>PII masking</h5><span class="status-dot dot-medium"></span></div><p>Exists but narrow (India-only) and barely invoked.</p></div>
+    <div class="nfr-card"><div class="nfr-top"><h5>Resilience (retry/CB)</h5><span class="status-dot dot-high"></span></div><p>No circuit breaker; 429 mis-mapped; no jitter.</p></div>
+    <div class="nfr-card"><div class="nfr-top"><h5>Timeout coverage</h5><span class="status-dot dot-ok"></span></div><p>Every outbound path shares one bounded client.</p></div>
+    <div class="nfr-card"><div class="nfr-top"><h5>Observability / logging</h5><span class="status-dot dot-medium"></span></div><p>Structured, but audit-failure and parse-failure paths log nothing.</p></div>
+    <div class="nfr-card"><div class="nfr-top"><h5>Error-response contract</h5><span class="status-dot dot-high"></span></div><p>No fallback handler in either service's exception advice.</p></div>
+    <div class="nfr-card"><div class="nfr-top"><h5>Job durability</h5><span class="status-dot dot-critical"></span></div><p>No reconciliation for orphaned RUNNING jobs.</p></div>
+    <div class="nfr-card"><div class="nfr-top"><h5>Data integrity</h5><span class="status-dot dot-medium"></span></div><p>Missing FK + validation on a couple of write paths.</p></div>
+    <div class="nfr-card"><div class="nfr-top"><h5>Coverage gate</h5><span class="status-dot dot-ok"></span></div><p>1sb-integration-service now enforces ≥90% line.</p></div>
+  </div>
+
+  <h3>Security &amp; authentication</h3>
+  <p>This is the headline finding, confirmed independently by two separate passes over two separate services.
+  <code class="mono">1sb-integration-service</code> has no <code class="mono">spring-boot-starter-security</code>
+  dependency, no <code class="mono">SecurityFilterChain</code>, and zero call sites of the
+  <code class="mono">BankPrincipalExtractor</code> the shared security library provides — the only registered
+  servlet filter is <code class="mono">IdempotencyFilter</code>. All five bank-facing endpoints are reachable by
+  anyone who can route to port 8080. Separately, <code class="mono">bank-persistence-service</code> — including
+  the new <code class="mono">RawPayloadController.get</code>, which decrypts and returns raw 1SB request/response
+  bodies (names, PAN, DOB, premiums) — has no dependency on the security library at all, and its own test suite
+  demonstrates the unauthenticated GET succeeding. The "internal network only" trust boundary this rests on is a
+  deployment-time assumption with zero code-level enforcement, and it's now also reachable through an unauthenticated
+  Swagger "Try it out" button, since OpenAPI docs were added in the same session without an auth layer to gate them.</p>
+
+  <h3>Idempotency</h3>
+  <p><code class="mono">IdempotencyFilter</code> reads the store, lets the request proceed, then writes the store —
+  a textbook check-then-act race. Two concurrent identical requests (a common retry pattern on a flaky mobile
+  network, which this is explicitly designed for) can both execute a mutating call before either write lands. The
+  backing store is an unbounded, TTL-less <code class="mono">ConcurrentHashMap</code>, which also means it's
+  useless the moment this service runs on more than one instance — a second pod won't see the first pod's keys at
+  all. This is the concrete, load-bearing reason NFR-005 (Redis-backed idempotency) isn't just a nice-to-have.</p>
+
+  <h3>Auditing</h3>
+  <p>The audit event schema itself (who / what / when / outcome / journey / trace) is solid, and outbound 1SB calls
+  are audited centrally through <code class="mono">OneSbHttpClient</code> with a masked-body hash rather than raw
+  content — a good pattern. The gap is operational: six copy-pasted <code class="mono">catch(Exception){}</code>
+  blocks around audit-publish calls log absolutely nothing on failure, so if the audit sink degrades, there is zero
+  signal. And the new raw-payload decrypt endpoint (§ Security above) emits no audit event at all when someone reads
+  plaintext back out — for data whose entire justification is "dispute/audit evidence," the read path is the one
+  place an audit trail matters most, and it's the one place missing one.</p>
+
+  <h3>PII masking</h3>
+  <p><code class="mono">PiiMasker</code>'s phone regex is India-specific (10 digits, 6–9 leading digit) and its DOB
+  matcher is ISO-8601-only — other formats pass through <code class="mono">maskText()</code> untouched. More
+  importantly, across the entire codebase it's invoked from exactly one call site — feeding a SHA-256 hash inside
+  <code class="mono">OneSbHttpClient</code> that's never displayed to a human. None of the four application services
+  that hold PII-bearing commands call it before logging; they simply don't happen to log raw fields today, which is
+  a habit, not a guarantee.</p>
+
+  <h3>Resilience</h3>
+  <p>Timeout coverage is a genuine strength — every outbound 1SB call (submit, poll, master lookup) funnels through
+  one <code class="mono">RestClient</code> bean with configured connect/read timeouts, so nothing can hang forever.
+  Everything downstream of "the call returns" is thinner: there is no circuit breaker or bulkhead anywhere in the
+  repo (confirmed by grep, zero Resilience4j usage), HTTP 429 from 1SB is folded into a generic non-retryable
+  business error instead of a distinct retryable rate-limit code, backoff has no jitter (so a shared 1SB degradation
+  event produces synchronized retry storms from every affected job), and — the most serious — a saturated poller
+  thread pool throws synchronously <em>after</em> the 1SB submission already succeeded, orphaning the job while the
+  bank-facing caller sees a 500 for a request that actually worked upstream. There is no scheduled reconciliation
+  process anywhere to ever notice or recover a job stuck at <code class="mono">RUNNING</code>.</p>
+
+  <h3>Encryption at rest</h3>
+  <p>The raw-payload encryption added last session is mechanically correct: AES-256-GCM, a fresh random 96-bit IV
+  per call via <code class="mono">SecureRandom</code>, a 128-bit tag, IV-prefixed ciphertext, and the key never
+  appears in a log line, exception message, or <code class="mono">toString()</code>. What's missing is everything
+  around it: no key-rotation path despite the schema's <code class="mono">encryption_key_id</code> column existing
+  specifically for that (rotating today would permanently brick every previously-encrypted row), and — as covered
+  under Security — no access control on the endpoint that decrypts it back to plaintext.</p>
+</section>
+
+<section id="backlog">
+  <h2><span class="num">06</span> Backlog</h2>
+  <p class="section-dek">44 items, grouped by priority tier. Each is labeled Bug / Tech Debt / Enhancement / Story,
+  with acceptance criteria. Items that sharpen or corroborate an already-tracked backlog entry
+  (<code class="mono">TD-xxx</code>, <code class="mono">NFR-xxx</code>, <code class="mono">COMP-xxx</code> in the
+  project's own SSOT docs) are cross-referenced rather than duplicated.</p>
+
+  <!-- P0 -->
+  <div class="backlog-tier">
+    <div class="tier-head"><h3>P0 — Release Blockers</h3><span class="count">6 items · fix before any real exposure</span></div>
+
+    <div class="card sev-critical">
+      <div class="card-head"><span class="tag-id mono">STORY-001</span><span class="pill pill-type type-story">Story</span><span class="pill pill-critical">Critical</span><span class="pill pill-low">P0</span></div>
+      <div class="card-title">Implement authentication &amp; authorization on 1sb-integration-service</div>
+      <div class="card-problem">Zero authN/authZ on all five bank-facing controllers. <code class="mono">BankPrincipalExtractor</code> and <code class="mono">@RequiresRole</code> exist in the shared security lib but are never wired in. <span class="src">— API layer review</span></div>
+      <details><summary></summary><ul class="ac">
+        <li>Given a request with no/invalid JWT, when it hits any <code class="mono">/v1/*</code> endpoint, then it is rejected 401 before reaching application logic.</li>
+        <li>Given a valid JWT, when the request is authenticated, then <code class="mono">BankPrincipal</code> is populated and available to controllers and audit events.</li>
+        <li>Given an endpoint annotated <code class="mono">@RequiresRole</code>, when the principal lacks that role, then 403 is returned.</li>
+        <li><code class="mono">spring-boot-starter-security</code> added; filter chain ordered correctly relative to the existing <code class="mono">IdempotencyFilter</code>.</li>
+        <li>Integration test proves all five controllers reject unauthenticated requests.</li>
+      </ul></details>
+    </div>
+
+    <div class="card sev-critical">
+      <div class="card-head"><span class="tag-id mono">BUG-001</span><span class="pill pill-type type-bug">Bug</span><span class="pill pill-critical">Critical</span><span class="pill pill-low">P0</span></div>
+      <div class="card-title">RawPayloadController.get returns decrypted PII with no access control</div>
+      <div class="card-problem">Any network-reachable caller can decrypt and read raw 1SB payloads by ID; the service has no security dependency at all, and this is reachable via an unauthenticated Swagger "Try it out". <span class="src">— Persistence &amp; libs review</span></div>
+      <details><summary></summary><ul class="ac">
+        <li>Given a request to <code class="mono">GET /internal/v1/raw-payloads/{id}</code> without a valid service-to-service credential, when received, then 401/403 is returned before decryption is attempted.</li>
+        <li>Given a successful decrypt-and-return, when it completes, then an audit event records who read the plaintext and when.</li>
+        <li>Swagger UI for this endpoint requires the same credential — no unauthenticated "Try it out".</li>
+        <li>Regression test proves an unauthenticated GET fails and no decryption occurs.</li>
+      </ul></details>
+    </div>
+
+    <div class="card sev-critical">
+      <div class="card-head"><span class="tag-id mono">BUG-002</span><span class="pill pill-type type-bug">Bug</span><span class="pill pill-critical">Critical</span><span class="pill pill-low">P0</span></div>
+      <div class="card-title">IdempotencyFilter has a check-then-act race</div>
+      <div class="card-problem">Store is read, request proceeds, store is written — two concurrent identical requests both execute the mutating call. <span class="src">— API layer review</span></div>
+      <details><summary></summary><ul class="ac">
+        <li>Given two concurrent requests with the same <code class="mono">Idempotency-Key</code> hit a mutating endpoint, when processed, then only one executes business logic; the other receives the first's result or a 409/425 if still in-flight.</li>
+        <li>Store reservation is atomic (e.g. <code class="mono">putIfAbsent</code> of a PENDING marker) before business logic runs.</li>
+        <li>Test simulates concurrent identical requests and asserts single execution.</li>
+      </ul>
+      <div class="xref">Related: <code class="mono">BUG-006</code> (store durability/scaling)</div></details>
+    </div>
+
+    <div class="card sev-critical">
+      <div class="card-head"><span class="tag-id mono">BUG-003</span><span class="pill pill-type type-bug">Bug</span><span class="pill pill-critical">Critical</span><span class="pill pill-low">P0</span></div>
+      <div class="card-title">Poller executor rejection silently orphans jobs</div>
+      <div class="card-problem"><code class="mono">pollingExecutor.execute()</code> throws synchronously once the pool+queue are saturated — <em>after</em> the 1SB submission already succeeded. The job is left <code class="mono">RUNNING</code> forever while the caller sees a 500 for a request that actually worked. <span class="src">— 1SB adapter review</span></div>
+      <details><summary></summary><ul class="ac">
+        <li>Given the polling executor rejects a task, when that happens, then the rejection is caught and the job is marked <code class="mono">FAILED</code> with a clear reason (or retried), never left silently <code class="mono">RUNNING</code>.</li>
+        <li>An ERROR-level log/alert fires on rejection.</li>
+        <li>Test forces executor saturation and asserts the job does not end up permanently orphaned.</li>
+      </ul></details>
+    </div>
+
+    <div class="card sev-critical">
+      <div class="card-head"><span class="tag-id mono">BUG-004</span><span class="pill pill-type type-bug">Bug</span><span class="pill pill-critical">Critical</span><span class="pill pill-low">P0</span></div>
+      <div class="card-title">1SB HTTP 429 mapped to a non-retryable generic error</div>
+      <div class="card-problem"><code class="mono">OneSbErrorNormaliser</code> has no branch for 429; it falls into the generic 4xx path and comes out <code class="mono">retryable(false)</code>, so legitimate throttled requests fail permanently instead of retrying. <span class="src">— 1SB adapter review</span></div>
+      <details><summary></summary><ul class="ac">
+        <li>Given 1SB responds 429, when normalised, then the resulting error uses a distinct <code class="mono">RATE_LIMITED</code> code with <code class="mono">retryable=true</code>.</li>
+        <li><code class="mono">Retry-After</code>, if present, is surfaced or used to inform retry/poll timing.</li>
+        <li>Unit test covers the 429 branch explicitly.</li>
+      </ul></details>
+    </div>
+
+    <div class="card sev-critical">
+      <div class="card-head"><span class="tag-id mono">STORY-002</span><span class="pill pill-type type-story">Story</span><span class="pill pill-critical">Critical</span><span class="pill pill-low">P0</span></div>
+      <div class="card-title">Job reconciliation sweep for orphaned RUNNING jobs</div>
+      <div class="card-problem">No scheduled process re-adopts or fails jobs stuck at <code class="mono">RUNNING</code> — a pod death or redeploy mid-poll loses the job permanently with zero automated recovery. Root cause behind BUG-003; the real mitigation for the deferred NFR-005. <span class="src">— 1SB adapter review</span></div>
+      <details><summary></summary><ul class="ac">
+        <li>A scheduled task periodically finds jobs <code class="mono">RUNNING</code> past an SLA window.</li>
+        <li>Stale jobs are either safely re-adopted (requires ownership/lease semantics safe for multiple instances) or explicitly failed with a diagnosable reason.</li>
+        <li>A metric/alert fires whenever a stale job is reconciled.</li>
+      </ul>
+      <div class="xref">Cross-ref: project backlog <code class="mono">NFR-005</code> (Redis idempotency / job ownership, deferred)</div></details>
+    </div>
+  </div>
+
+  <!-- P1 -->
+  <div class="backlog-tier">
+    <div class="tier-head"><h3>P1 — Fix This Sprint</h3><span class="count">16 items</span></div>
+
+    <div class="card sev-high">
+      <div class="card-head"><span class="tag-id mono">BUG-005</span><span class="pill pill-type type-bug">Bug</span><span class="pill pill-high">High</span><span class="pill pill-low">P1</span></div>
+      <div class="card-title">recordPollAttempt failure aborts the whole poll loop</div>
+      <div class="card-problem">Unguarded persistence call inside the per-attempt loop; a transient blip propagates out and can strand the job, inconsistent with the best-effort pattern used for audit publishing elsewhere in the same class. <span class="src">— 1SB adapter review</span></div>
+      <details><summary></summary><ul class="ac">
+        <li>Given <code class="mono">recordPollAttempt</code> throws, when it happens, then the poll loop logs and continues rather than aborting.</li>
+        <li>Test simulates a persistence-call failure mid-loop and asserts polling continues to completion/timeout as normal.</li>
+      </ul></details>
+    </div>
+
+    <div class="card sev-high">
+      <div class="card-head"><span class="tag-id mono">DEBT-001</span><span class="pill pill-type type-debt">Tech Debt</span><span class="pill pill-high">High</span><span class="pill pill-low">P1</span></div>
+      <div class="card-title">Upstream 4xx codes collapsed into one generic error</div>
+      <div class="card-problem">400/403/404/405/406/409/422 all become the same <code class="mono">UPSTREAM_BUSINESS_ERROR</code>/422 — masks operational vs. business failures, slows incident triage. <span class="src">— 1SB adapter review</span></div>
+      <details><summary></summary><ul class="ac">
+        <li>403 and 404 map to distinct bank-facing codes from a generic 400/422 business rejection.</li>
+        <li>Original upstream status is preserved in the audit trail even when the bank-facing code is normalised.</li>
+      </ul></details>
+    </div>
+
+    <div class="card sev-high">
+      <div class="card-head"><span class="tag-id mono">BUG-006</span><span class="pill pill-type type-bug">Bug</span><span class="pill pill-high">High</span><span class="pill pill-low">P1</span></div>
+      <div class="card-title">In-memory idempotency store has no TTL and is single-JVM only</div>
+      <div class="card-problem">Unbounded <code class="mono">ConcurrentHashMap</code>; breaks the moment this service runs on more than one instance, and grows without eviction. <span class="src">— API layer review</span></div>
+      <details><summary></summary><ul class="ac">
+        <li>Idempotency records expire after a configurable TTL.</li>
+        <li>Store is externalized (Redis or equivalent shared store) before horizontal scaling is enabled.</li>
+      </ul>
+      <div class="xref">Cross-ref: project backlog <code class="mono">NFR-005</code></div></details>
+    </div>
+
+    <div class="card sev-high">
+      <div class="card-head"><span class="tag-id mono">DEBT-002</span><span class="pill pill-type type-debt">Tech Debt</span><span class="pill pill-high">High</span><span class="pill pill-low">P1</span></div>
+      <div class="card-title">No catch-all in 1sb-integration-service's GlobalExceptionHandler</div>
+      <div class="card-problem">Only <code class="mono">ServiceException</code>, <code class="mono">MethodArgumentNotValidException</code>, <code class="mono">HttpMessageNotReadableException</code> are handled — an unmapped exception (e.g. bad enum via <code class="mono">MethodArgumentTypeMismatchException</code>) falls through to Spring's default error page, breaking the problem+json contract. Zero test coverage of this path. <span class="src">— API layer review</span></div>
+      <details><summary></summary><ul class="ac">
+        <li>A generic <code class="mono">Exception</code> fallback returns a <code class="mono">ServiceErrorResponse</code>-shaped 500 with no internal detail leaked.</li>
+        <li><code class="mono">MethodArgumentTypeMismatchException</code> returns a clean 400, not a stack trace.</li>
+        <li>Test suite covers both paths.</li>
+      </ul></details>
+    </div>
+
+    <div class="card sev-high">
+      <div class="card-head"><span class="tag-id mono">DEBT-003</span><span class="pill pill-type type-debt">Tech Debt</span><span class="pill pill-high">High</span><span class="pill pill-low">P1</span></div>
+      <div class="card-title">No catch-all in bank-persistence-service's GlobalExceptionHandler</div>
+      <div class="card-problem">No handling for <code class="mono">OptimisticLockingFailureException</code> or <code class="mono">DataIntegrityViolationException</code> — concurrency and FK failures leak as raw 500s instead of the platform's error envelope. <span class="src">— Persistence &amp; libs review</span></div>
+      <details><summary></summary><ul class="ac">
+        <li>Both exception types map to a <code class="mono">ServiceErrorResponse</code> with an appropriate status (409/400) and code.</li>
+        <li>Test triggers a duplicate-key insert and an optimistic-lock conflict, asserts clean error envelopes for both.</li>
+      </ul></details>
+    </div>
+
+    <div class="card sev-high">
+      <div class="card-head"><span class="tag-id mono">BUG-007</span><span class="pill pill-type type-bug">Bug</span><span class="pill pill-high">High</span><span class="pill pill-low">P1</span></div>
+      <div class="card-title">ProposalService bypasses its own Strategy abstraction</div>
+      <div class="card-problem"><code class="mono">ProposalService.submit()</code> calls <code class="mono">TermProposalHandler.resolveAgentId(...)</code> statically instead of through <code class="mono">LobProposalHandler</code>. Breaks OCP for the next LOB. <span class="src">— Application layer review</span></div>
+      <details><summary></summary><ul class="ac">
+        <li><code class="mono">resolveAgentId</code> is added to the <code class="mono">LobProposalHandler</code> interface and called via the registry.</li>
+        <li>No reference to a concrete <code class="mono">Term*Handler</code> class remains in <code class="mono">ProposalService</code>.</li>
+      </ul></details>
+    </div>
+
+    <div class="card sev-high">
+      <div class="card-head"><span class="tag-id mono">BUG-008</span><span class="pill pill-type type-bug">Bug</span><span class="pill pill-high">High</span><span class="pill pill-low">P1</span></div>
+      <div class="card-title">QuoteService hardcodes a Term-only check ahead of the LOB registry</div>
+      <div class="card-problem">Duplicates and short-circuits <code class="mono">LobQuoteHandlerRegistry</code>'s own <code class="mono">UNSUPPORTED_LOB</code> guard. <span class="src">— Application layer review</span></div>
+      <details><summary></summary><ul class="ac">
+        <li>The manual <code class="mono">lob != Lob.TERM</code> check is removed; <code class="mono">handlerRegistry.get(lob)</code> is the single source of truth for LOB support.</li>
+        <li>Test confirms an unsupported LOB still returns the correct 422 via the registry path alone.</li>
+      </ul></details>
+    </div>
+
+    <div class="card sev-high">
+      <div class="card-head"><span class="tag-id mono">DEBT-004</span><span class="pill pill-type type-debt">Tech Debt</span><span class="pill pill-high">High</span><span class="pill pill-low">P1</span></div>
+      <div class="card-title">MasterDataService cache has a stampede risk and no eviction</div>
+      <div class="card-problem">Hand-rolled <code class="mono">ConcurrentHashMap</code>; concurrent misses on the same key each independently call upstream, and unused keys are never purged. <span class="src">— Application layer review</span></div>
+      <details><summary></summary><ul class="ac">
+        <li>Concurrent requests for the same expired/missing key result in a single upstream call (single-flight).</li>
+        <li>Cache is bounded and/or TTL-evicting (e.g. Caffeine).</li>
+      </ul></details>
+    </div>
+
+    <div class="card sev-high">
+      <div class="card-head"><span class="tag-id mono">BUG-009</span><span class="pill pill-type type-bug">Bug</span><span class="pill pill-high">High</span><span class="pill pill-low">P1</span></div>
+      <div class="card-title">CreateOfferRequest has zero validation</div>
+      <div class="card-problem">Only DTO of its kind with no <code class="mono">@NotBlank</code>/<code class="mono">@NotNull</code> at all — null/blank fields silently persist. <span class="src">— Persistence &amp; libs review</span></div>
+      <details><summary></summary><ul class="ac">
+        <li>Required fields (<code class="mono">offerStatus</code>, etc.) are annotated and enforced consistently with sibling DTOs.</li>
+        <li><code class="mono">@Valid</code> is applied on the controller endpoint (currently missing).</li>
+      </ul></details>
+    </div>
+
+    <div class="card sev-high">
+      <div class="card-head"><span class="tag-id mono">DEBT-005</span><span class="pill pill-type type-debt">Tech Debt</span><span class="pill pill-high">High</span><span class="pill pill-low">P1</span></div>
+      <div class="card-title">Duplicate dead constant classes in shared libs</div>
+      <div class="card-problem"><code class="mono">AuditAction</code> duplicates the actually-used <code class="mono">AuditActions</code>; <code class="mono">BankMetricNames</code> duplicates <code class="mono">MetricNames</code>. Both dead classes are referenced only by their own tests. <span class="src">— Persistence &amp; libs review</span></div>
+      <details><summary></summary><ul class="ac">
+        <li>Both dead classes (and their tests) are deleted.</li>
+        <li>A grep for the old class names returns no production references.</li>
+      </ul></details>
+    </div>
+
+    <div class="card sev-high">
+      <div class="card-head"><span class="tag-id mono">DEBT-006</span><span class="pill pill-type type-debt">Tech Debt</span><span class="pill pill-high">High</span><span class="pill pill-low">P1</span></div>
+      <div class="card-title">Six silent audit-publish-failure swallows with no logging</div>
+      <div class="card-problem">Every application service independently hand-rolls <code class="mono">catch(Exception){}</code> around audit publishing — zero operational signal if the audit sink degrades on a compliance-sensitive path. <span class="src">— Application layer review</span></div>
+      <details><summary></summary><ul class="ac">
+        <li>A single shared <code class="mono">publishSafely(event)</code> helper replaces all six call sites.</li>
+        <li>Helper logs at WARN (minimum) on failure, including the event type and resource id.</li>
+      </ul></details>
+    </div>
+
+    <div class="card sev-high">
+      <div class="card-head"><span class="tag-id mono">BUG-010</span><span class="pill pill-type type-bug">Bug</span><span class="pill pill-high">High</span><span class="pill pill-low">P1</span></div>
+      <div class="card-title">SubmitProposalRequest under-validates legally significant fields</div>
+      <div class="card-problem">Only <code class="mono">lob</code> is <code class="mono">@NotNull</code>; <code class="mono">consentRef</code>, <code class="mono">agentId</code>, <code class="mono">productCode</code>, <code class="mono">manufacturerId</code>, <code class="mono">offerId</code>, <code class="mono">schemaId</code> are all unvalidated at the DTO. <span class="src">— API layer review</span></div>
+      <details><summary></summary><ul class="ac">
+        <li><code class="mono">consentRef</code> becomes mandatory at the DTO (currently a WARN-audit-only soft check downstream).</li>
+        <li>Remaining fields get appropriate <code class="mono">@NotBlank</code>/<code class="mono">@NotNull</code> constraints matching their actual required-ness.</li>
+      </ul>
+      <div class="xref">Cross-ref: project backlog <code class="mono">COMP-005</code> (consentRef mandatory)</div></details>
+    </div>
+
+    <div class="card sev-high">
+      <div class="card-head"><span class="tag-id mono">DEBT-007</span><span class="pill pill-type type-debt">Tech Debt</span><span class="pill pill-high">High</span><span class="pill pill-low">P1</span></div>
+      <div class="card-title">Raw payload encryption has no real key-rotation support</div>
+      <div class="card-problem"><code class="mono">KEY_ID</code> is a hardcoded literal; one <code class="mono">SecretKeySpec</code> is bound at startup; <code class="mono">decrypt()</code> never looks up by the stored <code class="mono">encryption_key_id</code>. Rotating the key today permanently bricks every previously-encrypted row, despite the schema column existing specifically to prevent that. <span class="src">— Persistence &amp; libs review</span></div>
+      <details><summary></summary><ul class="ac">
+        <li>Multiple key versions can be resolved by <code class="mono">encryption_key_id</code> at decrypt time.</li>
+        <li>New writes use the current key version; old rows remain decryptable after rotation.</li>
+      </ul></details>
+    </div>
+
+    <div class="card sev-high">
+      <div class="card-head"><span class="tag-id mono">BUG-011</span><span class="pill pill-type type-bug">Bug</span><span class="pill pill-high">High</span><span class="pill pill-low">P1</span></div>
+      <div class="card-title">raw_payload.job_id has no FK and is never existence-checked</div>
+      <div class="card-problem">Unlike its sibling tables, <code class="mono">raw_payload.job_id</code> has no <code class="mono">REFERENCES</code> constraint, and <code class="mono">RawPayloadController.create</code> never calls <code class="mono">jobRepository.existsById</code> the way the jobs/offers endpoints do. Orphaned or typo'd job ids are silently accepted. <span class="src">— Persistence &amp; libs review</span></div>
+      <details><summary></summary><ul class="ac">
+        <li>Schema adds an FK from <code class="mono">raw_payload.job_id</code> to <code class="mono">integration_job.job_id</code> (new Flyway migration).</li>
+        <li>Controller validates job existence before insert, consistent with <code class="mono">JobController</code>'s pattern, and returns 404 on a bad id rather than a raw FK-violation 500.</li>
+      </ul></details>
+    </div>
+
+    <div class="card sev-high">
+      <div class="card-head"><span class="tag-id mono">DEBT-008</span><span class="pill pill-type type-debt">Tech Debt</span><span class="pill pill-high">High</span><span class="pill pill-low">P1</span></div>
+      <div class="card-title">JobController.patchStatus has no optimistic-lock-conflict handling</div>
+      <div class="card-problem">Concurrent poll-attempt status updates have no retry/backoff on a version conflict; untested — pairs with DEBT-003's missing exception mapping. <span class="src">— Persistence &amp; libs review</span></div>
+      <details><summary></summary><ul class="ac">
+        <li>A version conflict on <code class="mono">patchStatus</code> either retries once with fresh state or returns a clear, mapped 409.</li>
+        <li>Test simulates two concurrent status patches on the same job and asserts a deterministic, non-corrupting outcome.</li>
+      </ul></details>
+    </div>
+
+    <div class="card sev-high">
+      <div class="card-head"><span class="tag-id mono">ENH-001</span><span class="pill pill-type type-enh">Enhancement</span><span class="pill pill-high">High</span><span class="pill pill-low">P1</span></div>
+      <div class="card-title">Centralize the validation-error HTTP status convention</div>
+      <div class="card-problem">The shared <code class="mono">ServiceException.validation()</code> factory hardcodes HTTP 400, but every application service that hand-rolls its own validation error independently chose 422 instead — the documented convention and actual behavior have diverged. <span class="src">— Application layer review</span></div>
+      <details><summary></summary><ul class="ac">
+        <li>One status code is chosen for validation errors platform-wide and documented.</li>
+        <li>All five application services and the shared factory agree; no call site hand-rolls a different status for the same error class.</li>
+      </ul></details>
+    </div>
+  </div>
+
+  <!-- P2 -->
+  <div class="backlog-tier">
+    <div class="tier-head"><h3>P2 — Track Before Prod</h3><span class="count">12 items</span></div>
+
+    <div class="card sev-medium">
+      <div class="card-head"><span class="tag-id mono">DEBT-009</span><span class="pill pill-type type-debt">Tech Debt</span><span class="pill pill-medium">Medium</span><span class="pill pill-low">P2</span></div>
+      <div class="card-title">PiiMasker is narrow and barely invoked</div>
+      <div class="card-problem">Phone regex is India-only, DOB matcher is ISO-only, and it's called from exactly one place in the whole codebase (an audit hash that's never displayed). <span class="src">— API layer review</span></div>
+      <details><summary></summary><ul class="ac">
+        <li>Masking patterns cover the phone/DOB formats actually accepted by the platform's own input validation.</li>
+        <li>Application services call <code class="mono">PiiMasker</code> before any log statement that could include a PII-bearing command/DTO — enforced by a lint rule or a wrapping logger utility, not convention alone.</li>
+      </ul></details>
+    </div>
+
+    <div class="card sev-medium">
+      <div class="card-head"><span class="tag-id mono">ENH-002</span><span class="pill pill-type type-enh">Enhancement</span><span class="pill pill-medium">Medium</span><span class="pill pill-low">P2</span></div>
+      <div class="card-title">Add a circuit breaker / bulkhead around 1SB calls</div>
+      <div class="card-problem">No Resilience4j or equivalent anywhere in the repo — confirmed by grep. Now evidenced concretely by the poller-orphan chain (BUG-003/STORY-002) rather than being a purely theoretical gap. <span class="src">— 1SB adapter review</span></div>
+      <details><summary></summary><ul class="ac">
+        <li>Consecutive 1SB failures open a circuit; callers receive a fast 503 (retryable) instead of queueing behind a dying dependency.</li>
+        <li>Term quote/proposal/payment/status calls are isolated (a Health/Motor breaker tripping later must not affect Term).</li>
+      </ul>
+      <div class="xref">Cross-ref: project backlog <code class="mono">NFR-004</code></div></details>
+    </div>
+
+    <div class="card sev-medium">
+      <div class="card-head"><span class="tag-id mono">ENH-003</span><span class="pill pill-type type-enh">Enhancement</span><span class="pill pill-medium">Medium</span><span class="pill pill-low">P2</span></div>
+      <div class="card-title">Add jitter to poll backoff</div>
+      <div class="card-problem">Exponential backoff has no randomization — jobs submitted around the same time retry on an identical schedule, producing synchronized retry storms during a shared 1SB degradation event. <span class="src">— 1SB adapter review</span></div>
+      <details><summary></summary><ul class="ac">
+        <li>Each retry delay is randomized by roughly ±20–30% around the computed exponential value.</li>
+      </ul></details>
+    </div>
+
+    <div class="card sev-medium">
+      <div class="card-head"><span class="tag-id mono">DEBT-010</span><span class="pill pill-type type-debt">Tech Debt</span><span class="pill pill-medium">Medium</span><span class="pill pill-low">P2</span></div>
+      <div class="card-title">JSON field-alias parsing duplicated across three adapters</div>
+      <div class="card-problem"><code class="mono">OneSbHttpClientPollAdapter.firstText()</code>, <code class="mono">OneSbQuoteAdapter.text()/decimal()</code>, and <code class="mono">OneSbMasterDataAdapter.firstNonNull()</code> each hand-roll the same "try N field names" logic. <span class="src">— 1SB adapter review</span></div>
+      <details><summary></summary><ul class="ac">
+        <li>A single shared <code class="mono">JsonAliasReader</code>-style utility replaces all three implementations with no behavior change (existing tests stay green).</li>
+      </ul></details>
+    </div>
+
+    <div class="card sev-medium">
+      <div class="card-head"><span class="tag-id mono">DEBT-011</span><span class="pill pill-type type-debt">Tech Debt</span><span class="pill pill-medium">Medium</span><span class="pill pill-low">P2</span></div>
+      <div class="card-title">isPollComplete parsing duplicated across two adapters</div>
+      <div class="card-problem">Identical "check data.isPollComplete, fall back to root, handle boolean-or-string" logic in <code class="mono">OneSbHttpClientPollAdapter</code> and <code class="mono">OneSbQuoteAdapter</code>. <span class="src">— 1SB adapter review</span></div>
+      <details><summary></summary><ul class="ac">
+        <li>Extracted into one shared helper used by both adapters.</li>
+      </ul></details>
+    </div>
+
+    <div class="card sev-medium">
+      <div class="card-head"><span class="tag-id mono">DEBT-012</span><span class="pill pill-type type-debt">Tech Debt</span><span class="pill pill-medium">Medium</span><span class="pill pill-low">P2</span></div>
+      <div class="card-title">MasterDataController has no inbound-port interface</div>
+      <div class="card-problem">The only one of five controllers coupled directly to a concrete service class instead of a use-case port, inconsistent with the hexagonal pattern everywhere else. <span class="src">— Application layer review</span></div>
+      <details><summary></summary><ul class="ac">
+        <li>A <code class="mono">MasterDataUseCase</code> inbound port is added; the controller depends on it, not the concrete service.</li>
+      </ul></details>
+    </div>
+
+    <div class="card sev-medium">
+      <div class="card-head"><span class="tag-id mono">DEBT-013</span><span class="pill pill-type type-debt">Tech Debt</span><span class="pill pill-medium">Medium</span><span class="pill pill-low">P2</span></div>
+      <div class="card-title">Domain commands lack invariant validation in their constructors</div>
+      <div class="card-problem"><code class="mono">CreateQuoteCommand</code>, <code class="mono">SubmitProposalCommand</code>, <code class="mono">CreatePaymentCommand</code> have no compact-constructor guards, unlike <code class="mono">ProposalSchema</code> — a caller that bypasses the service layer can construct an invalid command that flows deeper before failing. <span class="src">— Application layer review</span></div>
+      <details><summary></summary><ul class="ac">
+        <li>Each command's compact constructor null-guards its required fields, matching <code class="mono">ProposalSchema</code>'s existing convention.</li>
+      </ul></details>
+    </div>
+
+    <div class="card sev-medium">
+      <div class="card-head"><span class="tag-id mono">DEBT-014</span><span class="pill pill-type type-debt">Tech Debt</span><span class="pill pill-medium">Medium</span><span class="pill pill-low">P2</span></div>
+      <div class="card-title">CreateQuoteCommand bakes Term-specific fields into the canonical shape</div>
+      <div class="card-problem">Fields like <code class="mono">sumAssured</code> and <code class="mono">MemberDetail.tobacco</code>/<code class="mono">annualIncome</code> don't naturally map onto Health/Motor — the "generic" command will likely need modification, not pure extension, once FUNC-012/013 start. <span class="src">— 1SB adapter review</span></div>
+      <details><summary></summary><ul class="ac">
+        <li>A design decision is made and documented before Health/Motor work starts: either a <code class="mono">Map&lt;String,Object&gt; lobAttributes</code> escape hatch, or per-LOB command subtypes.</li>
+      </ul></details>
+    </div>
+
+    <div class="card sev-medium">
+      <div class="card-head"><span class="tag-id mono">BUG-012</span><span class="pill pill-type type-bug">Bug</span><span class="pill pill-medium">Medium</span><span class="pill pill-low">P2</span></div>
+      <div class="card-title">Actuator /metrics and /prometheus exposed with no auth in every profile</div>
+      <div class="card-problem"><code class="mono">application.yml</code> exposes health/info/metrics/prometheus globally; combined with STORY-001, these are unauthenticated in prod too — internal topology/metrics disclosure. <span class="src">— API layer review</span></div>
+      <details><summary></summary><ul class="ac">
+        <li><code class="mono">/actuator/metrics</code> and <code class="mono">/actuator/prometheus</code> require authentication (or network-policy scoping) in uat/prod profiles.</li>
+      </ul></details>
+    </div>
+
+    <div class="card sev-medium">
+      <div class="card-head"><span class="tag-id mono">ENH-004</span><span class="pill pill-type type-enh">Enhancement</span><span class="pill pill-medium">Medium</span><span class="pill pill-low">P2</span></div>
+      <div class="card-title">Add rate limiting and request-size limits</div>
+      <div class="card-problem">No Bucket4j/Resilience4j rate limiter and no Tomcat body-size override found anywhere — compounds STORY-001 while it's unresolved. <span class="src">— API layer review</span></div>
+      <details><summary></summary><ul class="ac">
+        <li>Per-caller rate limiting is configurable and enforced on mutating endpoints.</li>
+        <li>A maximum request body size is enforced with a clean 413 response.</li>
+      </ul></details>
+    </div>
+
+    <div class="card sev-medium">
+      <div class="card-head"><span class="tag-id mono">DEBT-015</span><span class="pill pill-type type-debt">Tech Debt</span><span class="pill pill-medium">Medium</span><span class="pill pill-low">P2</span></div>
+      <div class="card-title">PaymentSessionEntity / IntegrationJobOfferEntity lack @Version</div>
+      <div class="card-problem">Both imply future mutation (status + updated_at columns) but aren't equipped for safe concurrent updates — better to add now than after an update endpoint is bolted on under time pressure. <span class="src">— Persistence &amp; libs review</span></div>
+      <details><summary></summary><ul class="ac">
+        <li>Both entities gain a <code class="mono">@Version</code> column via migration before any update/PATCH endpoint is added for them.</li>
+      </ul></details>
+    </div>
+
+    <div class="card sev-medium">
+      <div class="card-head"><span class="tag-id mono">ENH-005</span><span class="pill pill-type type-enh">Enhancement</span><span class="pill pill-medium">Medium</span><span class="pill pill-low">P2</span></div>
+      <div class="card-title">Add a short-TTL cache for master-data lookups at the adapter layer</div>
+      <div class="card-problem">Every quote/proposal triggers a live synchronous HTTP round-trip to 1SB for near-static reference data (gender codes, occupation lists), coupling core availability to master-data endpoint uptime with no fallback. <span class="src">— 1SB adapter review</span></div>
+      <details><summary></summary><ul class="ac">
+        <li>Reference-data lookups are cached with a 15–60 minute TTL keyed by (lob, category, manufacturerId, entityIds).</li>
+      </ul></details>
+    </div>
+  </div>
+
+  <!-- P3 -->
+  <div class="backlog-tier">
+    <div class="tier-head"><h3>P3 — Hygiene</h3><span class="count">10 items</span></div>
+
+    <div class="card sev-low">
+      <div class="card-head"><span class="tag-id mono">DEBT-016</span><span class="pill pill-type type-debt">Tech Debt</span><span class="pill pill-low">Low</span><span class="pill pill-low">P3</span></div>
+      <div class="card-title">Dead security logging config</div>
+      <div class="card-problem"><code class="mono">logging.level.org.springframework.security: WARN</code> sits in <code class="mono">application.yml</code> despite no security dependency existing — a landmine for the next reader. <span class="src">— API layer review</span></div>
+      <details><summary></summary><ul class="ac"><li>Line removed, or kept and dated once STORY-001 lands.</li></ul></details>
+    </div>
+
+    <div class="card sev-low">
+      <div class="card-head"><span class="tag-id mono">DEBT-017</span><span class="pill pill-type type-debt">Tech Debt</span><span class="pill pill-low">Low</span><span class="pill pill-low">P3</span></div>
+      <div class="card-title">AsyncJobPoller has four test-only constructor overloads</div>
+      <div class="card-problem">Maintenance smell; a test builder or <code class="mono">@TestConfiguration</code> factory would reduce the sprawl. <span class="src">— 1SB adapter review</span></div>
+      <details><summary></summary><ul class="ac"><li>Constructors consolidated to one production constructor plus a test builder.</li></ul></details>
+    </div>
+
+    <div class="card sev-low">
+      <div class="card-head"><span class="tag-id mono">DEBT-018</span><span class="pill pill-type type-debt">Tech Debt</span><span class="pill pill-low">Low</span><span class="pill pill-low">P3</span></div>
+      <div class="card-title">Duplicated controller-layer mapping boilerplate</div>
+      <div class="card-problem"><code class="mono">toCommand</code>/<code class="mono">toResponse</code> static mappers repeat the same actorId-fallback and distribution-context null-check pattern across three controllers. <span class="src">— API layer review</span></div>
+      <details><summary></summary><ul class="ac"><li>Common fallback logic extracted to one shared mapper helper.</li></ul></details>
+    </div>
+
+    <div class="card sev-low">
+      <div class="card-head"><span class="tag-id mono">BUG-013</span><span class="pill pill-type type-bug">Bug</span><span class="pill pill-low">Low</span><span class="pill pill-low">P3</span></div>
+      <div class="card-title">StatusController's insurerCode isn't validated non-blank</div>
+      <div class="card-problem">An explicit empty-string value satisfies the "required" check and reaches the use case unvalidated. <span class="src">— API layer review</span></div>
+      <details><summary></summary><ul class="ac"><li><code class="mono">@NotBlank</code> added; empty string returns 400.</li></ul></details>
+    </div>
+
+    <div class="card sev-low">
+      <div class="card-head"><span class="tag-id mono">ENH-006</span><span class="pill pill-type type-enh">Enhancement</span><span class="pill pill-low">Low</span><span class="pill pill-low">P3</span></div>
+      <div class="card-title">Document the CORS policy decision</div>
+      <div class="card-problem">No CORS config exists; likely correct for a server-to-server bank API, but undocumented as an intentional choice. <span class="src">— API layer review</span></div>
+      <details><summary></summary><ul class="ac"><li>A one-line note in the architecture doc states the CORS decision and why.</li></ul></details>
+    </div>
+
+    <div class="card sev-low">
+      <div class="card-head"><span class="tag-id mono">DEBT-019</span><span class="pill pill-type type-debt">Tech Debt</span><span class="pill pill-low">Low</span><span class="pill pill-low">P3</span></div>
+      <div class="card-title">Unnecessary AtomicInteger in a single-threaded loop</div>
+      <div class="card-problem"><code class="mono">AsyncJobPoller</code>'s attempt counter doesn't need atomicity where it's used. <span class="src">— 1SB adapter review</span></div>
+      <details><summary></summary><ul class="ac"><li>Replaced with a plain <code class="mono">int</code>.</li></ul></details>
+    </div>
+
+    <div class="card sev-low">
+      <div class="card-head"><span class="tag-id mono">DEBT-020</span><span class="pill pill-type type-debt">Tech Debt</span><span class="pill pill-low">Low</span><span class="pill pill-low">P3</span></div>
+      <div class="card-title">Dead if/else branch in OneSbQuoteAdapter.parseOffers</div>
+      <div class="card-problem">Both arms of the "insurer already has a success offer" conditional execute identical code — the branch is a no-op. <span class="src">— Application layer review</span></div>
+      <details><summary></summary><ul class="ac"><li>Collapsed to a single unconditional <code class="mono">offers.add(...)</code>.</li></ul></details>
+    </div>
+
+    <div class="card sev-low">
+      <div class="card-head"><span class="tag-id mono">DEBT-021</span><span class="pill pill-type type-debt">Tech Debt</span><span class="pill pill-low">Low</span><span class="pill pill-low">P3</span></div>
+      <div class="card-title">Swallowed parse exceptions log nothing</div>
+      <div class="card-problem">Malformed 1SB responses in the poll path are silently treated as "still pending," running the clock out to TIMEOUT with zero diagnostic signal. <span class="src">— 1SB adapter review</span></div>
+      <details><summary></summary><ul class="ac"><li>A WARN log is emitted whenever JSON parsing fails in a poll response.</li></ul></details>
+    </div>
+
+    <div class="card sev-low">
+      <div class="card-head"><span class="tag-id mono">DEBT-022</span><span class="pill pill-type type-debt">Tech Debt</span><span class="pill pill-low">Low</span><span class="pill pill-low">P3</span></div>
+      <div class="card-title">RawPayloadEncryptionService.keyId exposed two ways</div>
+      <div class="card-problem"><code class="mono">KEY_ID</code> is both a public static field and an instance method; <code class="mono">RawPayloadController</code> also re-fetches it per request instead of caching. <span class="src">— Persistence &amp; libs review</span></div>
+      <details><summary></summary><ul class="ac"><li>One access pattern is kept; the other removed.</li></ul></details>
+    </div>
+
+    <div class="card sev-low">
+      <div class="card-head"><span class="tag-id mono">ENH-007</span><span class="pill pill-type type-enh">Enhancement</span><span class="pill pill-low">Low</span><span class="pill pill-low">P3</span></div>
+      <div class="card-title">Add structured before/after state to AuditEvent</div>
+      <div class="card-problem">Current schema captures who/what/when/outcome well but relies on an unenforced free-form <code class="mono">metadata</code> convention for state deltas — thin for anything beyond simple status changes. <span class="src">— Persistence &amp; libs review</span></div>
+      <details><summary></summary><ul class="ac"><li>A structured before/after field (or documented, validated metadata schema) is added for state-changing events.</li></ul></details>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  Reviewed by four independent full-source passes across <code class="mono">1sb-integration-service</code>,
+  <code class="mono">bank-persistence-service</code>, and the shared <code class="mono">bank-common-*</code> libraries.
+  Findings cross-referenced against the project's own <code class="mono">PRODUCT-BACKLOG.md</code> and
+  <code class="mono">TECH-DEBT.md</code> where an item was already tracked. All file:line citations were verified
+  against source at review time.
+</footer>

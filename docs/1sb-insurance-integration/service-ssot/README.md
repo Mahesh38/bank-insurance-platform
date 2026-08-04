@@ -32,6 +32,7 @@ This folder is the **authoritative starting point** for building the service. If
 | Document | Purpose |
 |----------|---------|
 | [TECH-DEBT.md](./TECH-DEBT.md) | Tech debt log (senior review + TL findings) |
+| [ARCHITECTURE-CODE-REVIEW-2026-08-04.html](./ARCHITECTURE-CODE-REVIEW-2026-08-04.html) | End-to-end architecture/code review — functional workflow, design patterns, SOLID/DRY/KISS, NFRs (auth, audit, masking, resilience, encryption), 44-item prioritized backlog (open in a browser) |
 | [ROLE-GUIDELINES-AND-DOD.md](./ROLE-GUIDELINES-AND-DOD.md) | Team Lead / Dev / QA / QA Lead responsibilities & Definition of Done |
 | [WORK-SEQUENCE.md](./WORK-SEQUENCE.md) | Ordered steps from TL assignment → Done (with FUNC example) |
 | [QA-LEAD-TESTING-STRATEGY.md](./QA-LEAD-TESTING-STRATEGY.md) | QA Lead testing pyramid, ownership, coverage |

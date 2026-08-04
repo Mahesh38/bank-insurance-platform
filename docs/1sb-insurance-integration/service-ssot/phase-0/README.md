@@ -21,6 +21,7 @@
 | [CONFIRM-04-ssot-kickoff.md](./CONFIRM-04-ssot-kickoff.md) | Kickoff (Life-first) |
 | [CONFIRM-05-tracking-board.md](./CONFIRM-05-tracking-board.md) | Board tickets |
 | [CONFIRM-06-1sb-pune-visit-agenda.md](./CONFIRM-06-1sb-pune-visit-agenda.md) | 1SB Pune office visit — agenda, attendees, close-out checklist |
+| [EMAIL-DRAFT-1SB-PUNE-VISIT-AGENDA.md](./EMAIL-DRAFT-1SB-PUNE-VISIT-AGENDA.md) | Short mail to 1SB proposing the visit agenda |
 | [COUPLING-AND-REPLACEABILITY.md](./COUPLING-AND-REPLACEABILITY.md) | Configurable / replaceable rules |
 | [`secrets-source.example.yaml`](../../../../config/onesb/secrets-source.example.yaml) | PROPERTIES vs AWS SM |
 | [`inbound-auth.example.yaml`](../../../../config/onesb/inbound-auth.example.yaml) | Dual auth |

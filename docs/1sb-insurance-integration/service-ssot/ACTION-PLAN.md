@@ -33,6 +33,7 @@ Each phase has: **owner focus**, **exit criteria**, **parallelizable work**, and
 | 0.3 | Align bank→service auth (JWT claims / mTLS) — see **[phase-0/CONFIRM-03-inbound-auth.md](./phase-0/CONFIRM-03-inbound-auth.md)** · design rules: [phase-0/COUPLING-AND-REPLACEABILITY.md §2.2](./phase-0/COUPLING-AND-REPLACEABILITY.md) | Security + Architect | Auth mode config complete; sample token available; `agentId`/`distributorId` rules confirmed |
 | 0.4 | Kickoff: walk SSOT (decisions, backlog order, DRY/KISS) — see **[phase-0/CONFIRM-04-ssot-kickoff.md](./phase-0/CONFIRM-04-ssot-kickoff.md)** | Tech lead | Team sign-off on Case 2 + Term-first; no open design blockers |
 | 0.5 | Create tracking board from [PRODUCT-BACKLOG.md](./PRODUCT-BACKLOG.md) P0 stories — see **[phase-0/CONFIRM-05-tracking-board.md](./phase-0/CONFIRM-05-tracking-board.md)** · seed: [phase-0/p0-story-board.md](./phase-0/p0-story-board.md) | PO / Scrum master | Jira/Linear tickets linked 1:1 to story IDs |
+| 0.6 | 1SB Pune office visit — close credential/catalog/payment/console gaps face-to-face — see **[phase-0/CONFIRM-06-1sb-pune-visit-agenda.md](./phase-0/CONFIRM-06-1sb-pune-visit-agenda.md)** | PO + Architect | CONFIRM-01/02 flip to CONFIRMED (or every remaining gap has a named 1SB owner + date) |
 
 **Exit:** Team can call 1SB sandbox; board ready; no credential blockers.
 

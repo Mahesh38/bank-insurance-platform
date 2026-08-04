@@ -2,6 +2,8 @@
 
 Headings: ['Proposal Poll\u200b']
 
+**API Reference:** `get-proposal-response-insurance-v-1-product-id-product-id-manufacturer-id-manufacturer-id-product-group-id-product-group-id-request-id-request-id-get`
+
 ## Fields (40)
 - `status` (number)
   - Possible: <= 50 characters

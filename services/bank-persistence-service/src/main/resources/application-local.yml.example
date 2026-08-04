@@ -13,6 +13,11 @@ spring:
   jpa:
     show-sql: true
 
+# Dev-only AES-256 key — never reuse in uat/prod. Generate your own with: openssl rand -base64 32
+raw-payload:
+  encryption:
+    key: lo9brrfnf6z7mhenhZfaKMXychPqEjzRtm2zCZKDUos=
+
 logging:
   level:
     com.bank.persistence: DEBUG

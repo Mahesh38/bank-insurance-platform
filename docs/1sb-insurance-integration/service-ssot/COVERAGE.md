@@ -29,7 +29,8 @@ Examples:
 | Module group | Line | Branch | Notes |
 |--------------|------|--------|-------|
 | `libs/*` | **≥ 80%** | **≥ 70%** | Strategy §7 — enforced immediately |
-| `services/*` | **≥ 50%** (interim) | *not gated* | Raised in QA-002 after persistence API coverage (~96% line measured); package floors still pending QA-003 |
+| `services:1sb-integration-service` | **≥ 90%** | **≥ 70%** | Raised 2026-08-04 — measured ~90.7% line / ~71.4% branch after closing gaps in `OneSbQuoteAdapter`, `LobQuoteHandlerRegistry`, `LobProposalHandlerRegistry`, plus new raw-payload capture tests |
+| `services/*` (other) | **≥ 50%** (interim) | *not gated* | Raised in QA-002 after persistence API coverage (~96% line measured); package floors still pending QA-003 |
 
 ### Planned service package gates (QA-002 / QA-003)
 

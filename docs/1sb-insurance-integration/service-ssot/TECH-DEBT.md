@@ -2,7 +2,7 @@
 
 **Owner:** Tech Lead  
 **Branch:** `cursor/phase1-foundations-c259`  
-**Last reviewed:** 2026-07-30 (QA Lead testing strategy pass)  
+**Last reviewed:** 2026-08-04 (COMP-003 raw payload encryption + coverage/Docker/OpenAPI pass)  
 **Source:** Senior engineer review + Phase 1 code review + QA Lead  
 **Related:** [phase-1/TECH-LEAD-REVIEW-COMMON-PERSISTENCE.md](./phase-1/TECH-LEAD-REVIEW-COMMON-PERSISTENCE.md) · [QA-LEAD-TESTING-STRATEGY.md](./QA-LEAD-TESTING-STRATEGY.md)
 
@@ -36,6 +36,7 @@ Severity: **P0** = blocks Phase 2 / multi-service reuse · **P1** = fix this spr
 | TD-020 | P1 | Multi-consumer contract (integration + audit-consumer + …) | Senior (audit consumer) | **Closed** | Agent 2 |
 | TD-021 | P2 | Document audit-consumer → persistence audit API (stub; no full service) | Senior (audit consumer) | **Closed** | Agent 2 |
 | TD-022 | P1 | Payment intimation (FUNC-008) not implemented | Phase 4 (FUNC-007) | Deferred P1 | Backlog |
+| TD-023 | P2 | Raw payload capture (COMP-003) not wired for status/master-data calls | COMP-003 impl | Deferred | Backlog |
 | QA-001 | P0 | JaCoCo coverage reports + verification gates | QA Lead / TEST-BACKLOG | **Partial** | Dev |
 
 ---
@@ -129,6 +130,24 @@ PG receipt fields, wire a `PaymentController` endpoint, and replace the current
 `UnsupportedOperationException` stub.
 
 **Status:** Deferred P1 (per `PRODUCT-BACKLOG.md` FUNC-008 priority). Not a P0 blocker.
+
+---
+
+## TD-023 — Raw payload capture gap (status / master-data)
+
+**Problem:** `RawPayloadStorePort` is wired into `OneSbQuoteAdapter` (submit + poll),
+`OneSbProposalAdapter` (submit), and `OneSbPaymentAdapter` (payment-url) — all three already carry
+a `jobId` in their port signature. `OneSbStatusAdapter.getStatus` and `OneSbMasterDataAdapter` do
+not: status is looked up by `applicationNumber` only (no job), and master-data lookups never
+create a job. `raw_payload.job_id` is `NOT NULL`, so neither can call the store today without a
+schema/port change.
+
+**Fix (when picked up):** either make `job_id` nullable on `raw_payload` (and treat status/master
+captures as job-less evidence), or thread a synthetic/job-less capture key through those two
+adapters. Low urgency — status/master-data responses are non-mutating and already audit-hashed via
+`OneSbHttpClient`'s existing `ONESB_OUTBOUND_CALL` audit event.
+
+**Status:** Deferred, not a P0/P1 blocker.
 
 ---
 
@@ -313,3 +332,4 @@ Track only; do not block this refactor PR. TD-006 remains Phase 2 (real AWS SM).
 | 2026-07-30 | QA-001 Partial: JaCoCo reports + libs 80%/70% gates; services interim 35% line (see COVERAGE.md) |
 | 2026-07-30 | QA-002 Done: persistence API tests (jobs/offers/payments/audit); services interim 35%→50% line |
 | 2026-08-04 | Phase 4: FUNC-007 (payment) + FUNC-009 (status) implemented; TD-022 opened (FUNC-008 intimation deferred P1) |
+| 2026-08-04 | COMP-003 (raw payload encryption at rest) implemented: `RawPayloadEncryptionService` (AES-256-GCM) + `/internal/v1/raw-payloads` on `bank-persistence-service`; `RawPayloadStorePort` + `HttpRawPayloadStoreAdapter` wired into quote/proposal/payment submit+response capture on `1sb-integration-service` (best-effort, never fails the caller). Status/master-data capture not wired (no `jobId` in those port signatures) — tracked as **TD-023**. `1sb-integration-service` JaCoCo floor raised **50% → 90% line / 70% branch** (measured ~90.7%/~71.4%) — see COVERAGE.md. Dockerfiles added for both services + root `docker-compose.yml`; springdoc-openapi (`/swagger-ui.html`, `/v3/api-docs`) added to both — both services already run on embedded Tomcat independently (`spring-boot-starter-web`, no exclusions), no change needed there. |

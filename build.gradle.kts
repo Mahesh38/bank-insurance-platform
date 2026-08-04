@@ -84,6 +84,20 @@ subprojects {
         )
 
         val isLib = project.path.startsWith(":libs:")
+        // 1sb-integration-service raised to 90% line / 70% branch (measured ~90.7%/~71% —
+        // see COVERAGE.md). Other services keep the QA-002 interim 50% line floor pending QA-003
+        // package-level gates.
+        val isOneSbIntegration = project.path == ":services:1sb-integration-service"
+        val lineFloor = when {
+            isLib -> "0.80"
+            isOneSbIntegration -> "0.90"
+            else -> "0.50"
+        }.toBigDecimal()
+        val branchFloor = when {
+            isLib -> "0.70"
+            isOneSbIntegration -> "0.70"
+            else -> null
+        }?.toBigDecimal()
         // Libs: strategy §7 (80% line / 70% branch).
         // Services: raised interim floor (QA-002) — package gates still pending QA-003.
         violationRules {
@@ -91,13 +105,13 @@ subprojects {
                 limit {
                     counter = "LINE"
                     value = "COVEREDRATIO"
-                    minimum = if (isLib) "0.80".toBigDecimal() else "0.50".toBigDecimal()
+                    minimum = lineFloor
                 }
-                if (isLib) {
+                if (branchFloor != null) {
                     limit {
                         counter = "BRANCH"
                         value = "COVEREDRATIO"
-                        minimum = "0.70".toBigDecimal()
+                        minimum = branchFloor
                     }
                 }
             }

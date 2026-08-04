@@ -3,11 +3,14 @@ package com.bank.insurance.onesb.adapter.onesb.quote;
 import com.bank.insurance.onesb.adapter.onesb.client.OneSbHttpClient;
 import com.bank.insurance.onesb.domain.model.Lob;
 import com.bank.insurance.onesb.domain.model.QuoteOffer;
+import com.bank.insurance.onesb.domain.model.RawPayloadDirection;
 import com.bank.insurance.onesb.domain.port.outbound.OneSbQuotePort;
+import com.bank.insurance.onesb.domain.port.outbound.RawPayloadStorePort;
 import com.bank.insurance.onesb.lob.LobQuoteHandler;
 import com.bank.insurance.onesb.lob.LobQuoteHandlerRegistry;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -19,6 +22,9 @@ import java.util.Map;
  * 1SB quote adapter — submit + poll with offer normalisation.
  * All 1SB JSON parsing stays inside this adapter.
  * Submit does not resolve LOB handlers — the application service supplies path + payload (Case 2).
+ * <p>
+ * Submit request/response and the completed poll response are captured as raw payload evidence
+ * (COMP-003) — best-effort, never fails the quote flow.
  */
 @Component
 public class OneSbQuoteAdapter implements OneSbQuotePort {
@@ -26,25 +32,40 @@ public class OneSbQuoteAdapter implements OneSbQuotePort {
     private final OneSbHttpClient httpClient;
     private final LobQuoteHandlerRegistry handlerRegistry;
     private final ObjectMapper objectMapper;
+    private final RawPayloadStorePort rawPayloadStorePort;
 
+    @Autowired
     public OneSbQuoteAdapter(OneSbHttpClient httpClient,
                              LobQuoteHandlerRegistry handlerRegistry,
-                             ObjectMapper objectMapper) {
+                             ObjectMapper objectMapper,
+                             RawPayloadStorePort rawPayloadStorePort) {
         this.httpClient = httpClient;
         this.handlerRegistry = handlerRegistry;
         this.objectMapper = objectMapper;
+        this.rawPayloadStorePort = rawPayloadStorePort;
+    }
+
+    /** Test / manual wiring without raw payload capture. */
+    public OneSbQuoteAdapter(OneSbHttpClient httpClient,
+                             LobQuoteHandlerRegistry handlerRegistry,
+                             ObjectMapper objectMapper) {
+        this(httpClient, handlerRegistry, objectMapper, (jobId, direction, operation, lob, payload, httpStatus) -> { });
     }
 
     @Override
     public String submitQuote(String jobId, String path, Object payload) {
+        captureRaw(jobId, RawPayloadDirection.REQ, path, payload);
         @SuppressWarnings("unchecked")
         Map<String, Object> response = httpClient.post(path, payload, Map.class);
+        captureRaw(jobId, RawPayloadDirection.RES, path, response);
         return extractReqId(response);
     }
 
     @Override
     public List<QuoteOffer> pollQuoteResult(String jobId, String externalReqId, String lob) {
-        String body = httpClient.get(pollPath(lob, externalReqId), String.class);
+        String path = pollPath(lob, externalReqId);
+        String body = httpClient.get(path, String.class);
+        captureRaw(jobId, RawPayloadDirection.RES, path, body);
         return parseOffers(body);
     }
 
@@ -57,6 +78,18 @@ public class OneSbQuoteAdapter implements OneSbQuotePort {
     private String pollPath(String lob, String externalReqId) {
         LobQuoteHandler handler = handlerRegistry.get(Lob.valueOf(lob));
         return handler.pollPath(externalReqId);
+    }
+
+    private void captureRaw(String jobId, RawPayloadDirection direction, String operation, Object body) {
+        if (jobId == null || body == null) {
+            return;
+        }
+        try {
+            String json = body instanceof String s ? s : objectMapper.writeValueAsString(body);
+            rawPayloadStorePort.store(jobId, direction, operation, null, json, null);
+        } catch (Exception ignored) {
+            // best-effort — never block the quote flow on capture failure
+        }
     }
 
     private String extractReqId(Map<String, Object> response) {

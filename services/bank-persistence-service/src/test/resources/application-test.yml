@@ -14,6 +14,11 @@ spring:
     enabled: true
     locations: classpath:db/migration
 
+# Fixed test-only AES-256 key — never reuse outside tests.
+raw-payload:
+  encryption:
+    key: p7MSmdyOLeyBue5/ZJpPP3TE/ZQrLr4WSPjrhS0d0F8=
+
 logging:
   level:
     com.bank.persistence: WARN

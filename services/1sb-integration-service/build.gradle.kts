@@ -20,6 +20,9 @@ dependencies {
     // JSON
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
 
+    // OpenAPI / Swagger UI for the bank-facing API
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
+
     // Test
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("com.tngtech.archunit:archunit-junit5:1.3.0")

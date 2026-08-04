@@ -20,6 +20,7 @@ import java.math.BigDecimal;
 import java.net.http.HttpClient;
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -161,5 +162,196 @@ class OneSbQuoteAdapterTest {
         assertThat(offers).hasSize(2);
         assertThat(offers.stream().filter(o -> o.errorSummary() == null)).hasSize(1);
         assertThat(offers.stream().filter(o -> "UW decline".equals(o.errorSummary()))).hasSize(1);
+    }
+
+    @Test
+    void submitQuote_missingBody_throws() {
+        wireMock.stubFor(post(urlEqualTo("/insurance/lifeterm/v1/quote"))
+                .willReturn(aResponse().withStatus(204)));
+
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalStateException.class,
+                () -> adapter.submitQuote("job-1", "/insurance/lifeterm/v1/quote", Map.of()));
+    }
+
+    @Test
+    void submitQuote_reqIdNestedUnderData_isExtracted() {
+        wireMock.stubFor(post(urlEqualTo("/insurance/lifeterm/v1/quote"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("{\"data\":{\"reqId\":\"REQ-NESTED\"}}")));
+
+        String reqId = adapter.submitQuote("job-1", "/insurance/lifeterm/v1/quote", Map.of());
+
+        assertThat(reqId).isEqualTo("REQ-NESTED");
+    }
+
+    @Test
+    void submitQuote_missingReqId_throws() {
+        wireMock.stubFor(post(urlEqualTo("/insurance/lifeterm/v1/quote"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("{\"data\":{}}")));
+
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalStateException.class,
+                () -> adapter.submitQuote("job-1", "/insurance/lifeterm/v1/quote", Map.of()));
+    }
+
+    @Test
+    void isPollComplete_flagAtRoot_textualTrue() {
+        wireMock.stubFor(get(urlEqualTo("/insurance/lifeterm/v1/quote/poll/REQ-3"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("{\"isPollComplete\":\"true\",\"data\":{}}")));
+
+        assertThat(adapter.isPollComplete("job-1", "REQ-3", "TERM")).isTrue();
+    }
+
+    @Test
+    void isPollComplete_malformedBody_returnsFalse() {
+        wireMock.stubFor(get(urlEqualTo("/insurance/lifeterm/v1/quote/poll/REQ-4"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("not-json")));
+
+        assertThat(adapter.isPollComplete("job-1", "REQ-4", "TERM")).isFalse();
+    }
+
+    @Test
+    void isPollComplete_noFlagNoOffers_returnsFalse() {
+        wireMock.stubFor(get(urlEqualTo("/insurance/lifeterm/v1/quote/poll/REQ-5"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("{\"data\":{}}")));
+
+        assertThat(adapter.isPollComplete("job-1", "REQ-5", "TERM")).isFalse();
+    }
+
+    @Test
+    void parseOffers_nullOrBlankBody_returnsEmpty() {
+        assertThat(adapter.parseOffers(null)).isEmpty();
+        assertThat(adapter.parseOffers("  ")).isEmpty();
+    }
+
+    @Test
+    void parseOffers_malformedJson_returnsEmpty() {
+        assertThat(adapter.parseOffers("{not-json")).isEmpty();
+    }
+
+    @Test
+    void parseOffers_productsArray_mapped() {
+        List<QuoteOffer> offers = adapter.parseOffers("""
+                {
+                  "data": {
+                    "products": [{
+                      "productId": "P9",
+                      "manufacturerCode": "SBI",
+                      "premium": {"amount": 4500},
+                      "outOfBound": "Yes",
+                      "status": "QUOTED"
+                    }]
+                  }
+                }
+                """);
+
+        assertThat(offers).hasSize(1);
+        QuoteOffer offer = offers.getFirst();
+        assertThat(offer.productCode()).isEqualTo("P9");
+        assertThat(offer.insurerCode()).isEqualTo("SBI");
+        assertThat(offer.premiumAmount()).isEqualByComparingTo("4500");
+        assertThat(offer.outOfBound()).isTrue();
+        assertThat(offer.offerStatus()).isEqualTo("QUOTED");
+    }
+
+    @Test
+    void parseOffers_errorWithBlankMessage_skipped() {
+        List<QuoteOffer> offers = adapter.parseOffers("""
+                {
+                  "data": {
+                    "errors": [{"manufacturerId": "HDFC", "message": "   "}]
+                  }
+                }
+                """);
+
+        assertThat(offers).isEmpty();
+    }
+
+    @Test
+    void parseOffers_errorForInsurerWithNoSuccessOffer_addsErrorRow() {
+        List<QuoteOffer> offers = adapter.parseOffers("""
+                {
+                  "data": {
+                    "errors": [{"manufacturerId": "HDFC", "manufacturerName": "HDFC Life", "message": "Rejected"}]
+                  }
+                }
+                """);
+
+        assertThat(offers).hasSize(1);
+        assertThat(offers.getFirst().errorSummary()).isEqualTo("Rejected");
+        assertThat(offers.getFirst().offerStatus()).isEqualTo("ERROR");
+    }
+
+    @Test
+    void parseOffers_errorForInsurerWithExistingSuccessOffer_addsSeparateErrorRow() {
+        List<QuoteOffer> offers = adapter.parseOffers("""
+                {
+                  "data": {
+                    "quote": [{"offerId": "off-1", "insurerCode": "HDFC", "premiumAmount": 100}],
+                    "errors": [{"manufacturerId": "HDFC", "message": "Partial reject"}]
+                  }
+                }
+                """);
+
+        assertThat(offers).hasSize(2);
+        assertThat(offers.stream().filter(o -> "Partial reject".equals(o.errorSummary()))).hasSize(1);
+    }
+
+    @Test
+    void parseOffers_topLevelErrorsFallback_mapped() {
+        List<QuoteOffer> offers = adapter.parseOffers("""
+                {
+                  "data": {},
+                  "errors": [{"code": "MOTOR", "errorMessage": "top-level reject"}]
+                }
+                """);
+
+        assertThat(offers).hasSize(1);
+        assertThat(offers.getFirst().errorSummary()).isEqualTo("top-level reject");
+    }
+
+    @Test
+    void parseOffers_errorSummaryFromNestedErrorsArrayOnOffer() {
+        List<QuoteOffer> offers = adapter.parseOffers("""
+                {
+                  "data": {
+                    "quote": [{
+                      "offerId": "off-x",
+                      "insurerCode": "ICICI",
+                      "errors": [{"message": "nested reject"}]
+                    }]
+                  }
+                }
+                """);
+
+        assertThat(offers).hasSize(1);
+        assertThat(offers.getFirst().errorSummary()).isEqualTo("nested reject");
+    }
+
+    @Test
+    void parseOffers_unparseableTextualPremium_fallsBackToNull() {
+        List<QuoteOffer> offers = adapter.parseOffers("""
+                {
+                  "data": {
+                    "quote": [{"offerId": "off-y", "insurerCode": "ICICI", "premiumAmount": "not-a-number"}]
+                  }
+                }
+                """);
+
+        assertThat(offers).hasSize(1);
+        assertThat(offers.getFirst().premiumAmount()).isNull();
     }
 }

@@ -1,0 +1,67 @@
+name: bank-insurance-platform
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: bank_persistence
+      POSTGRES_USER: bank_persistence
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme_local_only}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bank_persistence -d bank_persistence"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  bank-persistence-service:
+    build:
+      context: .
+      dockerfile: services/bank-persistence-service/Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: uat
+      DATASOURCE_URL: jdbc:postgresql://postgres:5432/bank_persistence
+      DATASOURCE_USERNAME: bank_persistence
+      DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-changeme_local_only}
+      RAW_PAYLOAD_ENCRYPTION_KEY: ${RAW_PAYLOAD_ENCRYPTION_KEY:?set a base64 32-byte AES-256 key}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8081/actuator/health/liveness"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  1sb-integration-service:
+    build:
+      context: .
+      dockerfile: services/1sb-integration-service/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: uat
+      INSURANCE_SECRETS_SOURCE: ENV
+      ONESB_API_KEY: ${ONESB_API_KEY:?set your 1SB sandbox API key}
+      ONESB_API_SECRET: ${ONESB_API_SECRET:?set your 1SB sandbox API secret}
+      ONESB_DISTRIBUTOR_ID: ${ONESB_DISTRIBUTOR_ID:?set your 1SB distributor id}
+      ONESB_BASE_URL: ${ONESB_BASE_URL:-https://demo.api.1silverbullet.tech}
+      BANK_PERSISTENCE_BASE_URL: http://bank-persistence-service:8081
+    depends_on:
+      bank-persistence-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/actuator/health/liveness"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+volumes:
+  postgres-data:

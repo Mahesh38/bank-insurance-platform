@@ -112,6 +112,15 @@ public final class PersistenceApiDtos {
             String errorMessage
     ) {}
 
+    public record CreateRawPayloadRequest(
+            String jobId,
+            String direction,
+            String operation,
+            String lob,
+            String payload,
+            Short httpStatus
+    ) {}
+
     public record PollAttemptResponse(
             Long attemptId,
             String jobId,

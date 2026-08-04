@@ -18,6 +18,7 @@ class ErrorCodesAndFactoriesTest {
         assertThat(ErrorCodes.QUOTE_EXPIRED).isEqualTo("QUOTE_EXPIRED");
         assertThat(ErrorCodes.AGENT_ATTRIBUTION_MISSING).isEqualTo("AGENT_ATTRIBUTION_MISSING");
         assertThat(ErrorCodes.PROPOSAL_REJECTED).isEqualTo("PROPOSAL_REJECTED");
+        assertThat(ErrorCodes.PROPOSAL_NOT_PAYABLE).isEqualTo("PROPOSAL_NOT_PAYABLE");
         assertThat(ErrorCodes.UPSTREAM_TIMEOUT).isEqualTo("UPSTREAM_TIMEOUT");
         assertThat(ErrorCodes.IDEMPOTENCY_CONFLICT).isEqualTo("IDEMPOTENCY_CONFLICT");
         assertThat(ErrorCodes.INTERNAL_ERROR).isEqualTo("INTERNAL_ERROR");

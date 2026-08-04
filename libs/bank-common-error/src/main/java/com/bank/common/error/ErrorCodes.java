@@ -30,6 +30,9 @@ public final class ErrorCodes {
     public static final String AGENT_ATTRIBUTION_MISSING = "AGENT_ATTRIBUTION_MISSING";
     public static final String PROPOSAL_REJECTED         = "PROPOSAL_REJECTED";
 
+    // --- Payment ---
+    public static final String PROPOSAL_NOT_PAYABLE      = "PROPOSAL_NOT_PAYABLE";
+
     // --- Resource / entity ---
     public static final String RESOURCE_NOT_FOUND    = "RESOURCE_NOT_FOUND";
     public static final String CONFLICT              = "CONFLICT";

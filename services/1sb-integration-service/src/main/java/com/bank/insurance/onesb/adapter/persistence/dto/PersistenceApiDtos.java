@@ -75,6 +75,34 @@ public final class PersistenceApiDtos {
             Instant createdAt
     ) {}
 
+    public record CreatePaymentSessionRequest(
+            String sessionId,
+            String jobId,
+            String applicationNumber,
+            String lob,
+            String paymentUrl,
+            String redirectUrl,
+            String status,
+            String externalTxnId,
+            Instant expiresAt,
+            String createdByActor
+    ) {}
+
+    public record PaymentSessionResponse(
+            String sessionId,
+            String jobId,
+            String applicationNumber,
+            String lob,
+            String paymentUrl,
+            String redirectUrl,
+            String status,
+            String externalTxnId,
+            Instant createdAt,
+            Instant expiresAt,
+            Instant updatedAt,
+            String createdByActor
+    ) {}
+
     public record CreatePollAttemptRequest(
             short attemptNumber,
             Instant attemptedAt,

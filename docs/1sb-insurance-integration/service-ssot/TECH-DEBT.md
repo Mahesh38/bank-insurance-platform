@@ -35,6 +35,7 @@ Severity: **P0** = blocks Phase 2 / multi-service reuse · **P1** = fix this spr
 | TD-019 | P1 | Client config `bank.persistence.base-url` / `BANK_PERSISTENCE_BASE_URL` | Senior + TL | **Closed** | Agent 3 |
 | TD-020 | P1 | Multi-consumer contract (integration + audit-consumer + …) | Senior (audit consumer) | **Closed** | Agent 2 |
 | TD-021 | P2 | Document audit-consumer → persistence audit API (stub; no full service) | Senior (audit consumer) | **Closed** | Agent 2 |
+| TD-022 | P1 | Payment intimation (FUNC-008) not implemented | Phase 4 (FUNC-007) | Deferred P1 | Backlog |
 | QA-001 | P0 | JaCoCo coverage reports + verification gates | QA Lead / TEST-BACKLOG | **Partial** | Dev |
 
 ---
@@ -110,6 +111,24 @@ Severity: **P0** = blocks Phase 2 / multi-service reuse · **P1** = fix this spr
 **Fix:** `bank.persistence.base-url` + `BANK_PERSISTENCE_BASE_URL`. Update integration YAML, properties record, tests.
 
 **Status:** **Closed** (2026-07-30) — Agent 3: `PersistenceClientProperties` prefix `bank.persistence`; YAML/env/tests updated; HTTP paths unchanged.
+
+---
+
+## TD-022 — Payment intimation (FUNC-008) not implemented
+
+**Problem:** `POST /v1/payments/{id}/intimation` (FUNC-008, P1) is not built. `OneSbPaymentPort`
+gained `sendPaymentIntimation(String sessionId)` as part of FUNC-007's port shape (matching
+architecture §5.3), but implementing it fully requires the 1SB payment-intimation payload
+(`trackInfo`, `manufacturerQuoteID`, `personalInformation`, `paymentDetails.status`, `paymentMode`,
+`txnAmount`/`txnDate` — see `field-guides/payment.md`), none of which the FUNC-007 payment-url flow
+collects or persists today.
+
+**Fix (when FUNC-008 is picked up):** implement `OneSbPaymentAdapter.sendPaymentIntimation`
+against `POST /v1/payment/url` intimation variant, add a `PaymentIntimationCommand` carrying the
+PG receipt fields, wire a `PaymentController` endpoint, and replace the current
+`UnsupportedOperationException` stub.
+
+**Status:** Deferred P1 (per `PRODUCT-BACKLOG.md` FUNC-008 priority). Not a P0 blocker.
 
 ---
 
@@ -293,3 +312,4 @@ Track only; do not block this refactor PR. TD-006 remains Phase 2 (real AWS SM).
 | 2026-07-30 | Confirmation circle #2 closed docs hygiene for common-persistence (STATUS banner + TL §7 exit criteria) |
 | 2026-07-30 | QA-001 Partial: JaCoCo reports + libs 80%/70% gates; services interim 35% line (see COVERAGE.md) |
 | 2026-07-30 | QA-002 Done: persistence API tests (jobs/offers/payments/audit); services interim 35%→50% line |
+| 2026-08-04 | Phase 4: FUNC-007 (payment) + FUNC-009 (status) implemented; TD-022 opened (FUNC-008 intimation deferred P1) |

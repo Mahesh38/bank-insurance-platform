@@ -43,6 +43,15 @@ management:
     readinessstate:
       enabled: true
 
+# COMP-003 — raw_payload encrypted at rest (AES-256-GCM). No default: missing/invalid key fails
+# startup (RawPayloadEncryptionService). Set via RAW_PAYLOAD_ENCRYPTION_KEY in uat/prod;
+# application-local.yml.example / application-test.yml carry dev-only keys.
+raw-payload:
+  encryption:
+    key: ${RAW_PAYLOAD_ENCRYPTION_KEY:}
+  retention:
+    years: ${RAW_PAYLOAD_RETENTION_YEARS:7}
+
 logging:
   level:
     com.bank.persistence: INFO

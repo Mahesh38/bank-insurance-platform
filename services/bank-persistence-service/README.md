@@ -54,11 +54,26 @@ Used by **audit-consumer** (required) and optionally by integration. **No second
 | `POST` | `/internal/v1/audit-events` | Append audit event |
 | `GET` | `/internal/v1/audit-events?resourceId=` | List audit events by resource id |
 
-Not yet HTTP-exposed (entities/repos + Flyway tables only; see TD-015): poll-attempt, raw-payload.
+### Raw payloads (COMP-003 — encrypted at rest)
+
+| Method | Path | Description |
+|--------|------|--------------|
+| `POST` | `/internal/v1/raw-payloads` | Encrypt (AES-256-GCM) + store a raw 1SB request/response body; returns metadata only |
+| `GET` | `/internal/v1/raw-payloads/{payloadId}` | Decrypt + return one payload (dispute/audit use) |
+| `GET` | `/internal/v1/raw-payloads?jobId=` | List a job's captured payloads — metadata only, never plaintext |
+
+Encryption key: `raw-payload.encryption.key` / `RAW_PAYLOAD_ENCRYPTION_KEY` (base64, 32 bytes).
+No default in uat/prod — missing/invalid key fails service startup
+(`RawPayloadEncryptionService`). Default retention `raw-payload.retention.years` /
+`RAW_PAYLOAD_RETENTION_YEARS` (default 7).
+
+Not yet HTTP-exposed (entity/repo + Flyway table only; see TD-015): poll-attempt.
 
 Not-found responses use RFC 7807 problem JSON via `bank-common-error` (`RESOURCE_NOT_FOUND`, HTTP 404).
 
 Health: `/actuator/health` (liveness/readiness probes enabled) on port **8081**.
+
+API docs (Swagger / OpenAPI): `http://localhost:8081/swagger-ui.html`, `http://localhost:8081/v3/api-docs`.
 
 ## Schema ownership (Flyway)
 
@@ -74,6 +89,25 @@ Consumers (`1sb-integration-service`, future `audit-consumer-service`, …) must
 | Key | Env | Local default |
 |-----|-----|---------------|
 | `bank.persistence.base-url` | `BANK_PERSISTENCE_BASE_URL` | `http://localhost:8081` |
+
+## Docker
+
+```bash
+# From the repo root — Dockerfile expects the multi-module build context
+docker build -f services/bank-persistence-service/Dockerfile -t bank-persistence-service .
+docker run -p 8081:8081 \
+  -e SPRING_PROFILES_ACTIVE=uat \
+  -e DATASOURCE_URL=jdbc:postgresql://host:5432/bank_persistence \
+  -e DATASOURCE_USERNAME=... -e DATASOURCE_PASSWORD=... \
+  -e RAW_PAYLOAD_ENCRYPTION_KEY=$(openssl rand -base64 32) \
+  bank-persistence-service
+```
+
+Or `docker compose up --build` from the repo root to run this service + Postgres +
+`1sb-integration-service` together (see root `docker-compose.yml` / `.env.example`).
+
+Runs on embedded Tomcat (`spring-boot-starter-web`, no exclusions) — no external servlet
+container needed either way.
 
 ## Further reading
 

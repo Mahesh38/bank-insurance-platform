@@ -1,0 +1,9 @@
+**/build/
+**/.gradle/
+**/out/
+.git/
+.idea/
+*.iml
+docs/
+**/application-local.properties
+**/application-local.yml

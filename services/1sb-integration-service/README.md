@@ -60,6 +60,39 @@ curl http://localhost:8080/actuator/health
 
 Additional actuator endpoints: `/actuator/health/liveness`, `/actuator/health/readiness`, `/actuator/metrics`, `/actuator/prometheus`.
 
+### 5. API docs (Swagger / OpenAPI)
+
+```
+http://localhost:8080/swagger-ui.html
+http://localhost:8080/v3/api-docs
+```
+
+---
+
+## Docker
+
+```bash
+# From the repo root — Dockerfile expects the multi-module build context
+docker build -f services/1sb-integration-service/Dockerfile -t 1sb-integration-service .
+docker run -p 8080:8080 \
+  -e SPRING_PROFILES_ACTIVE=uat \
+  -e INSURANCE_SECRETS_SOURCE=ENV \
+  -e ONESB_API_KEY=... -e ONESB_API_SECRET=... -e ONESB_DISTRIBUTOR_ID=... \
+  -e BANK_PERSISTENCE_BASE_URL=http://host.docker.internal:8081 \
+  1sb-integration-service
+```
+
+Or bring up both services + Postgres together (see repo-root `docker-compose.yml` /
+`.env.example`):
+
+```bash
+cp .env.example .env   # fill in ONESB_* and RAW_PAYLOAD_ENCRYPTION_KEY
+docker compose up --build
+```
+
+Runs on embedded Tomcat (`spring-boot-starter-web`, no exclusions) — no external servlet
+container needed either way.
+
 ---
 
 ## Running Tests

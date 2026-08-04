@@ -4,8 +4,12 @@ import com.bank.common.secrets.SecretProvider;
 import com.bank.insurance.onesb.adapter.onesb.client.OneSbHttpClient;
 import com.bank.insurance.onesb.config.PaymentProperties;
 import com.bank.insurance.onesb.domain.command.CreatePaymentCommand;
+import com.bank.insurance.onesb.domain.model.Lob;
 import com.bank.insurance.onesb.domain.model.OneSbPaymentUrlResult;
+import com.bank.insurance.onesb.domain.model.RawPayloadDirection;
 import com.bank.insurance.onesb.domain.port.outbound.OneSbPaymentPort;
+import com.bank.insurance.onesb.domain.port.outbound.RawPayloadStorePort;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -33,28 +37,56 @@ public class OneSbPaymentAdapter implements OneSbPaymentPort {
     private final SecretProvider secretProvider;
     private final Clock clock;
     private final long sessionTtlSeconds;
+    private final ObjectMapper objectMapper;
+    private final RawPayloadStorePort rawPayloadStorePort;
 
     @Autowired
     public OneSbPaymentAdapter(OneSbHttpClient httpClient, SecretProvider secretProvider, Clock clock,
-                               PaymentProperties paymentProperties) {
-        this(httpClient, secretProvider, clock, paymentProperties.sessionTtlSeconds());
+                               PaymentProperties paymentProperties, ObjectMapper objectMapper,
+                               RawPayloadStorePort rawPayloadStorePort) {
+        this(httpClient, secretProvider, clock, paymentProperties.sessionTtlSeconds(),
+                objectMapper, rawPayloadStorePort);
     }
 
-    /** Test / manual wiring without Spring properties. */
+    /** Test / manual wiring without Spring properties or raw payload capture. */
     public OneSbPaymentAdapter(OneSbHttpClient httpClient, SecretProvider secretProvider, Clock clock,
                                long sessionTtlSeconds) {
+        this(httpClient, secretProvider, clock, sessionTtlSeconds, new ObjectMapper(),
+                (jobId, direction, operation, lob, payload, httpStatus) -> { });
+    }
+
+    public OneSbPaymentAdapter(OneSbHttpClient httpClient, SecretProvider secretProvider, Clock clock,
+                               long sessionTtlSeconds, ObjectMapper objectMapper,
+                               RawPayloadStorePort rawPayloadStorePort) {
         this.httpClient = httpClient;
         this.secretProvider = secretProvider;
         this.clock = clock;
         this.sessionTtlSeconds = sessionTtlSeconds > 0 ? sessionTtlSeconds : 3600L;
+        this.objectMapper = objectMapper;
+        this.rawPayloadStorePort = rawPayloadStorePort;
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public OneSbPaymentUrlResult createPaymentUrl(CreatePaymentCommand command) {
         Map<String, Object> payload = buildPayload(command);
+        captureRaw(command.jobId(), RawPayloadDirection.REQ, PAYMENT_URL_PATH, command.lob(), payload);
         Map<String, Object> response = httpClient.post(PAYMENT_URL_PATH, payload, Map.class);
+        captureRaw(command.jobId(), RawPayloadDirection.RES, PAYMENT_URL_PATH, command.lob(), response);
         return parseResult(response, clock.instant().plusSeconds(sessionTtlSeconds));
+    }
+
+    private void captureRaw(String jobId, RawPayloadDirection direction, String operation,
+                            Lob lob, Object body) {
+        if (jobId == null || body == null) {
+            return;
+        }
+        try {
+            String json = body instanceof String s ? s : objectMapper.writeValueAsString(body);
+            rawPayloadStorePort.store(jobId, direction, operation, lob, json, null);
+        } catch (Exception ignored) {
+            // best-effort — never block the payment flow on capture failure
+        }
     }
 
     @Override

@@ -1,0 +1,30 @@
+# Render Blueprint for the combined image (root Dockerfile).
+# In the Render dashboard: New -> Blueprint -> select this repo/branch -> Apply.
+# Render's GitHub App must already be connected to this repo (it is, per the account).
+#
+# Only port 8080 (1sb-integration-service / Swagger UI) is published. The
+# bank-persistence-service on :8081 is internal-only, reached over localhost inside
+# the same container by 1sb-integration-service — it does not need a public route.
+#
+# Secrets below are marked `sync: false`: Render will prompt for them once in the
+# dashboard and will not read/store their values in this file or in git.
+services:
+  - type: web
+    name: bank-insurance-combined
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    # "starter" plan RAM is likely too small for two JVMs — see docker-entrypoint.sh's
+    # PERSISTENCE_JAVA_OPTS / ONESB_JAVA_OPTS heap caps. Bump the plan here (or those
+    # heap caps) if the service OOMs on boot.
+    plan: starter
+    healthCheckPath: /actuator/health/liveness
+    envVars:
+      - key: RAW_PAYLOAD_ENCRYPTION_KEY
+        sync: false
+      - key: ONESB_API_KEY
+        sync: false
+      - key: ONESB_API_SECRET
+        sync: false
+      - key: ONESB_DISTRIBUTOR_ID
+        sync: false

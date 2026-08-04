@@ -11,12 +11,18 @@ set -euo pipefail
 PERSISTENCE_JAR=/app/bank-persistence-service.jar
 INTEGRATION_JAR=/app/1sb-integration-service.jar
 
-persistence_opts=()
+# Two JVMs share whatever RAM the host/plan gives the container. Cap heaps explicitly
+# so both processes fit predictably instead of one OOM-killing the other on smaller
+# cloud instance sizes; override via env if you deploy on a bigger plan.
+PERSISTENCE_JAVA_OPTS="${PERSISTENCE_JAVA_OPTS:--Xmx384m}"
+ONESB_JAVA_OPTS="${ONESB_JAVA_OPTS:--Xmx384m}"
+
+persistence_opts=($PERSISTENCE_JAVA_OPTS)
 if [ -n "${PERSISTENCE_SPRING_PROFILES_ACTIVE:-}" ]; then
   persistence_opts+=("-Dspring.profiles.active=${PERSISTENCE_SPRING_PROFILES_ACTIVE}")
 fi
 
-integration_opts=()
+integration_opts=($ONESB_JAVA_OPTS)
 if [ -n "${ONESB_SPRING_PROFILES_ACTIVE:-}" ]; then
   integration_opts+=("-Dspring.profiles.active=${ONESB_SPRING_PROFILES_ACTIVE}")
 fi

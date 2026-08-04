@@ -11,8 +11,9 @@
 #   docker build -t bank-insurance-combined .
 #
 # Run (bank-persistence-service uses in-memory H2 by default — no external DB needed
-# for this combined image; override DATASOURCE_* to point at a real Postgres instead):
-#   docker run -p 8080:8080 -p 8081:8081 \
+# for this combined image; override DATASOURCE_* to point at a real Postgres instead).
+# Only 8080 needs to be published — 8081 is internal-only (see EXPOSE note below):
+#   docker run -p 8080:8080 \
 #     -e RAW_PAYLOAD_ENCRYPTION_KEY=$(openssl rand -base64 32) \
 #     -e ONESB_API_KEY=your_sandbox_key \
 #     -e ONESB_API_SECRET=your_sandbox_secret \
@@ -20,8 +21,7 @@
 #     bank-insurance-combined
 #
 # Swagger UI (after the container is healthy):
-#   1SB integration API : http://<host>:8080/swagger-ui.html
-#   Persistence API      : http://<host>:8081/swagger-ui.html   (internal-only in real deployments)
+#   http://<host>:8080/swagger-ui.html
 FROM eclipse-temurin:21-jdk-jammy AS build
 WORKDIR /workspace
 
@@ -50,7 +50,11 @@ RUN chmod +x /app/docker-entrypoint.sh && chown -R appuser:appuser /app
 
 USER appuser
 
-EXPOSE 8081 8080
+EXPOSE 8080
+# bank-persistence-service (:8081) is intentionally NOT exposed here: in this combined
+# image it is only ever called over localhost by the 1sb-integration-service in the same
+# container, never from outside it. This also keeps single-port PaaS platforms (e.g.
+# Render) unambiguous about which port to route public traffic to.
 
 # bank-persistence-service: no active Spring profile by default => falls back to the
 # in-memory H2 datasource baked into application.yml. Set PERSISTENCE_SPRING_PROFILES_ACTIVE

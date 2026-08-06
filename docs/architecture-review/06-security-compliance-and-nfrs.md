@@ -20,8 +20,8 @@ The business SSOT is explicit that several compliance questions are **not yet an
 | Layer | Control |
 |-------|---------|
 | Edge | AWS WAF (OWASP managed rule sets) + AWS Shield in front of CloudFront/API Gateway |
-| Authentication | Amazon Cognito federated to bank AD/SSO (SAML/OIDC); MFA enforced for RM and admin roles |
-| Authorization | Role-based, `@RequiresRole`-style method guards (already the `bank-common-security` pattern) + fine-grained entitlement checks in Identity & Access for customer-vs-RM-vs-admin boundaries |
+| Authentication | Provider-neutral adapter with private Keycloak initially, federated to bank AD/SSO (OIDC/SAML/LDAP); token-hiding BFF; MFA for all production workforce users |
+| Authorization | Default-deny RBAC + ABAC + relationship policies in Identity & Access; BFF and owning domain service both enforce sensitive decisions |
 | Service-to-service | mTLS via service mesh (Istio/App Mesh) + IRSA (no static credentials in pods) |
 | Secrets | AWS Secrets Manager, automatic rotation, zero secrets in source/config files (CI-enforced via secret scanning, e.g. `gitleaks` — already a stated control in the 1SB adapter, kept platform-wide) |
 | Data at rest | AWS KMS envelope encryption, per-sensitivity-tier CMKs |

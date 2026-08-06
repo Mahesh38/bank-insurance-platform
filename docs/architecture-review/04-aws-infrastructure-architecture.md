@@ -71,7 +71,7 @@ graph TB
 | Point-to-point async / fan-out | **Amazon SQS + Amazon SNS** | Task queues, notification fan-out |
 | Secrets | **AWS Secrets Manager** | 1SB/insurer API keys, DB credentials, rotated without redeploy — same non-negotiable already in `1sb-integration-service-architecture.md` §8.4, now platform-wide |
 | Encryption | **AWS KMS** | Envelope encryption for PII at rest across Aurora, DynamoDB, S3 |
-| Identity (customer/RM auth) | **Amazon Cognito**, federated to bank AD/SSO via SAML/OIDC | Backs the Identity & Access service |
+| Workforce identity | **Provider-neutral identity adapter; private Keycloak initially**, federated to bank AD/SSO via SAML/OIDC/LDAP | Cognito remains a replaceable future adapter; see `docs/authentication-authorization/README.md` |
 | Service-to-service auth | **IAM Roles for Service Accounts (IRSA)** on EKS | No long-lived credentials inside pods |
 | Observability — metrics | **Amazon Managed Service for Prometheus + Amazon Managed Grafana** | Feeds HPA custom metrics and dashboards |
 | Observability — tracing | **AWS X-Ray** or self-hosted OpenTelemetry Collector | Distributed traces across sync + async hops |

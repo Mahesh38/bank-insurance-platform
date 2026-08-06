@@ -1,0 +1,134 @@
+name: bank-insurance-identity
+
+services:
+  keycloak-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: ${KEYCLOAK_DB_PASSWORD:-keycloak_local_only}
+    ports:
+      - "5433:5432"
+    volumes:
+      - keycloak-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keycloak -d keycloak"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+
+  authorization-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: identity_authorization
+      POSTGRES_USER: identity_authorization
+      POSTGRES_PASSWORD: ${AUTHZ_DB_PASSWORD:-authz_local_only}
+    ports:
+      - "5434:5432"
+    volumes:
+      - authorization-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U identity_authorization -d identity_authorization"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+
+  redis:
+    image: redis:7.4-alpine
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD:-redis_local_only}"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - workforce-session-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-redis_local_only}", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.7.0
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:-keycloak_local_only}
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin_local_only}
+      KC_HEALTH_ENABLED: "true"
+      KC_METRICS_ENABLED: "true"
+      KC_HOSTNAME: http://localhost:8085
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
+    ports:
+      - "8085:8080"
+      - "9000:9000"
+    volumes:
+      - ./config/keycloak/bank-insurance-realm.json:/opt/keycloak/data/import/bank-insurance-realm.json:ro
+    depends_on:
+      keycloak-db:
+        condition: service_healthy
+
+  identity-provider-adapter-service:
+    build:
+      context: .
+      dockerfile: services/identity-provider-adapter-service/Dockerfile
+    ports:
+      - "8082:8082"
+    environment:
+      KEYCLOAK_PUBLIC_BASE_URL: http://localhost:8085
+      KEYCLOAK_BACKCHANNEL_BASE_URL: http://keycloak:8080
+      KEYCLOAK_REALM: bank-insurance
+      KEYCLOAK_BFF_CLIENT_ID: workforce-bff
+      KEYCLOAK_BFF_CLIENT_SECRET: ${KEYCLOAK_BFF_CLIENT_SECRET:-local-workforce-bff-secret}
+      KEYCLOAK_ADMIN_CLIENT_ID: identity-provider-adapter
+      KEYCLOAK_ADMIN_CLIENT_SECRET: ${KEYCLOAK_PROVIDER_ADAPTER_SECRET:-local-provider-adapter-secret}
+      WORKFORCE_LOGIN_CALLBACK: http://localhost:8084/api/v1/auth/callback
+    depends_on:
+      - keycloak
+
+  identity-authorization-service:
+    build:
+      context: .
+      dockerfile: services/identity-authorization-service/Dockerfile
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_PROFILES_ACTIVE: uat
+      AUTHZ_DATASOURCE_URL: jdbc:postgresql://authorization-db:5432/identity_authorization
+      AUTHZ_DATASOURCE_USERNAME: identity_authorization
+      AUTHZ_DATASOURCE_PASSWORD: ${AUTHZ_DB_PASSWORD:-authz_local_only}
+      IDENTITY_PROVIDER_ADAPTER_BASE_URL: http://identity-provider-adapter-service:8082
+      IDENTITY_PROVISIONING_ENABLED: "true"
+    depends_on:
+      authorization-db:
+        condition: service_healthy
+
+  workforce-access-bff:
+    build:
+      context: .
+      dockerfile: services/workforce-access-bff/Dockerfile
+    ports:
+      - "8084:8084"
+    environment:
+      WORKFORCE_SESSION_STORE: redis
+      WORKFORCE_SESSION_ENCRYPTION_KEY: ${WORKFORCE_SESSION_ENCRYPTION_KEY:-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=}
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD:-redis_local_only}
+      IDENTITY_PROVIDER_ADAPTER_BASE_URL: http://identity-provider-adapter-service:8082
+      IDENTITY_AUTHORIZATION_BASE_URL: http://identity-authorization-service:8083
+      WORKFORCE_WEB_RETURN_URI: http://localhost:3000/auth/complete
+      WORKFORCE_NATIVE_RETURN_URI: bankinsurance://auth-complete
+    depends_on:
+      redis:
+        condition: service_healthy
+      identity-provider-adapter-service:
+        condition: service_started
+      identity-authorization-service:
+        condition: service_started
+
+volumes:
+  keycloak-db-data:
+  authorization-db-data:
+  workforce-session-data:

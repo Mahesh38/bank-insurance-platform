@@ -7,6 +7,9 @@ include(
     "libs:bank-common-observability",
     "services:1sb-integration-service",
     "libs:bank-common-secrets",
-    "services:bank-persistence-service"
+    "services:bank-persistence-service",
+    "services:identity-provider-adapter-service",
+    "services:identity-authorization-service",
+    "services:workforce-access-bff"
 )
 

@@ -1,0 +1,43 @@
+server:
+  port: 8084
+
+spring:
+  application:
+    name: workforce-access-bff
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+  threads:
+    virtual:
+      enabled: true
+
+workforce:
+  downstream:
+    provider-adapter-base-url: ${IDENTITY_PROVIDER_ADAPTER_BASE_URL:http://localhost:8082}
+    authorization-service-base-url: ${IDENTITY_AUTHORIZATION_BASE_URL:http://localhost:8083}
+  session:
+    store: ${WORKFORCE_SESSION_STORE:memory}
+    cookie-name: WORKFORCE_SESSION
+    # Development-only default: 32 zero bytes. Production must inject a KMS-managed random key.
+    encryption-key: ${WORKFORCE_SESSION_ENCRYPTION_KEY:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=}
+    pending-login-ttl: 5m
+    completion-code-ttl: 1m
+    session-ttl: 8h
+    allowed-return-uris:
+      - ${WORKFORCE_WEB_RETURN_URI:http://localhost:3000/auth/complete}
+      - ${WORKFORCE_NATIVE_RETURN_URI:bankinsurance://auth-complete}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+logging:
+  level:
+    com.bank.workforce.bff: INFO

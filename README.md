@@ -4,6 +4,16 @@ Integration knowledge base for building a bank insurance platform on **1Silverbu
 
 ## Start here
 
+**Building workforce authentication and authorization?**
+-> **[docs/authentication-authorization/README.md](./docs/authentication-authorization/README.md)**
+(Phase 1 employee/insurer identity, token-hiding BFF, provider abstraction, Keycloak, RBAC + ABAC + relationship policies)
+
+Local identity stack:
+
+```bash
+docker compose --env-file .env.identity -f docker-compose.identity.yml up --build
+```
+
 **Full-platform architecture review (AWS/Kubernetes microservices target state)?**
 → **[docs/architecture-review/README.md](./docs/architecture-review/README.md)**
 (Service decomposition, sync/async communication, AWS/EKS infrastructure, data architecture, security/NFRs, delivery estimate)

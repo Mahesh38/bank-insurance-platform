@@ -1,0 +1,36 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: identity-provider-adapter-service
+  threads:
+    virtual:
+      enabled: true
+
+identity:
+  provider:
+    keycloak:
+      public-base-url: ${KEYCLOAK_PUBLIC_BASE_URL:http://localhost:8085}
+      backchannel-base-url: ${KEYCLOAK_BACKCHANNEL_BASE_URL:http://localhost:8085}
+      realm: ${KEYCLOAK_REALM:bank-insurance}
+      client-id: ${KEYCLOAK_BFF_CLIENT_ID:workforce-bff}
+      client-secret: ${KEYCLOAK_BFF_CLIENT_SECRET:local-workforce-bff-secret}
+      redirect-uri: ${WORKFORCE_LOGIN_CALLBACK:http://localhost:8084/api/v1/auth/callback}
+      admin-client-id: ${KEYCLOAK_ADMIN_CLIENT_ID:identity-provider-adapter}
+      admin-client-secret: ${KEYCLOAK_ADMIN_CLIENT_SECRET:local-provider-adapter-secret}
+      bank-identity-provider-hint: ${KEYCLOAK_BANK_IDP_HINT:}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+logging:
+  level:
+    com.bank.identity.provider: INFO

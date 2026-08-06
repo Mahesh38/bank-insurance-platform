@@ -1,0 +1,94 @@
+{
+  "realm": "bank-insurance",
+  "displayName": "Bank Insurance Workforce",
+  "enabled": true,
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "registrationEmailAsUsername": false,
+  "rememberMe": false,
+  "verifyEmail": true,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": true,
+  "permanentLockout": false,
+  "maxFailureWaitSeconds": 900,
+  "minimumQuickLoginWaitSeconds": 60,
+  "waitIncrementSeconds": 60,
+  "quickLoginCheckMilliSeconds": 1000,
+  "maxDeltaTimeSeconds": 43200,
+  "failureFactor": 5,
+  "accessTokenLifespan": 300,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 28800,
+  "revokeRefreshToken": true,
+  "refreshTokenMaxReuse": 0,
+  "passwordPolicy": "length(14) and digits(1) and lowerCase(1) and upperCase(1) and specialChars(1) and notUsername(undefined) and passwordHistory(5)",
+  "roles": {
+    "realm": [
+      { "name": "workforce-user" },
+      { "name": "workforce-admin" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "workforce-bff",
+      "name": "Workforce token-hiding BFF",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "local-workforce-bff-secret",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "publicClient": false,
+      "redirectUris": ["http://localhost:8084/api/v1/auth/callback"],
+      "webOrigins": ["http://localhost:3000"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:3000/*"
+      },
+      "defaultClientScopes": ["web-origins", "acr", "profile", "roles", "email"]
+    },
+    {
+      "clientId": "identity-provider-adapter",
+      "name": "Identity provider administration adapter",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "local-provider-adapter-secret",
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "publicClient": false
+    }
+  ],
+  "users": [
+    {
+      "username": "service-account-identity-provider-adapter",
+      "enabled": true,
+      "serviceAccountClientId": "identity-provider-adapter",
+      "clientRoles": {
+        "realm-management": ["manage-users", "view-users", "query-users"]
+      }
+    },
+    {
+      "username": "rm.demo",
+      "email": "rm.demo@example.test",
+      "firstName": "Demo",
+      "lastName": "Relationship Manager",
+      "enabled": true,
+      "emailVerified": true,
+      "attributes": {
+        "emp_id": ["RM-DEMO-001"]
+      },
+      "realmRoles": ["workforce-user"],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "ChangeMe!12345",
+          "temporary": true
+        }
+      ]
+    }
+  ]
+}

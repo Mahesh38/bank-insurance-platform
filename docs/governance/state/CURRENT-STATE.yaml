@@ -1,0 +1,248 @@
+# AIGEM — Machine-readable current state
+#
+# This is the FIRST file every AI agent reads. Pipeline step 1 (Context Resolution)
+# depends entirely on it. See 01-CURRENT_STATE.md for the narrative form.
+#
+# Rule CS-1: if this file is missing, malformed, or past review_due, agents HALT
+# triage and report the gap rather than guessing.
+# Rule (04 §5): agents MUST NOT edit current_phase / stage_status. Human only.
+
+schema_version: "1.0"
+governance_version: "AIGEM 1.0"
+
+project:
+  name: "Bank Insurance Platform"
+  repository: "mahesh38/bank-insurance-platform"
+
+state_as_of: "2026-08-07" # quoted so the file validates directly against current-state.schema.json
+review_due: "2026-09-07"
+ratified_by: null # ⚠️ PENDING — reconstructed from repository evidence, not yet ratified by PO + Architect
+provisional: true # while true, see 01-CURRENT_STATE.md §7 for restricted agent actions
+
+# ---------------------------------------------------------------------------
+# Workstreams — stage fit is ALWAYS evaluated against the input's own
+# workstream, never against the repository as a whole (Rule LC-1).
+# ---------------------------------------------------------------------------
+workstreams:
+
+  - id: WS-1
+    name: "1SB Insurance Integration"
+    authority:
+      - "docs/1sb-insurance-integration/service-ssot/ACTION-PLAN.md"
+      - "docs/1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md"
+      - "docs/1sb-insurance-integration/service-ssot/README.md"
+
+    lifecycle:
+      canonical_stage: "L7 — Hardening"
+      current_phase: "Phase 4 — Hardening & consumer enablement"
+      stage_status: IN_PROGRESS
+      next_stage: "Phase 5 — Expand LOBs (Health → Motor)"
+
+    current_objective:
+      id: P4-UAT-SIGNOFF
+      description: "Term path signed off for UAT use by at least one bank caller"
+
+    current_deliverable:
+      description: >
+        Hardened Term vertical slice: sandbox E2E evidence in CI, published OpenAPI and
+        consumer collection, compliance-reviewed audit schema, operations runbook,
+        performance smoke measurement.
+
+    current_scope:
+      in_scope:
+        - "Sandbox E2E suite for the Term path"
+        - "OpenAPI publication + consumer collection"
+        - "Bank consumer UAT enablement"
+        - "Compliance review of audit schema and log samples"
+        - "Operations runbook (secrets rotation, IP whitelist, 1SB 401/5xx)"
+        - "Performance smoke (p95 quote under nominal concurrency)"
+        - "Coverage gate closure (QA-001)"
+        - "Defect fixes on the delivered Term path"
+
+      out_of_scope:
+        - item: "Kafka / event backbone"
+          revisit_at: "Integration architecture stage"
+        - item: "Health and Motor LOB handlers"
+          revisit_at: "Phase 5"
+        - item: "Redis idempotency / multi-instance job ownership"
+          revisit_at: "Phase 5.4"
+        - item: "FUNC-008 payment intimation"
+          revisit_at: "Phase 5.3"
+        - item: "Circuit breaker, mandatory consentRef"
+          revisit_at: "Phase 5.5"
+        - item: "Dashboards, alerting, SLOs"
+          revisit_at: "Phase 6"
+        - item: "Autoscaling, DR testing, retention jobs, backup/restore"
+          revisit_at: "Phase 6"
+        - item: "Saving / Annuity / Pension LOBs"
+          revisit_at: "Phase 6+"
+        - item: "Provider routing flag / fake adapter (E13)"
+          revisit_at: "Phase 6+"
+        - item: "Persistence performance optimisation"
+          revisit_at: "evidence-driven only"
+        - item: "Reactive rewrite / SDK framework"
+          revisit_at: "never, absent evidence"
+
+      never:
+        - "Bank apps calling 1SB or the database directly"
+        - "Flyway or JPA inside 1sb-integration-service"
+        - "A second audit database"
+        - "1SB types outside adapter.onesb.*"
+
+    current_gate:
+      id: GATE-P4
+      state: OPEN
+      exit_criteria:
+        - id: "4.1"
+          criterion: "Sandbox E2E suite for the Term path runs in CI (or gated nightly)"
+          state: OPEN
+        - id: "4.2"
+          criterion: "OpenAPI published to internal portal; consumer collection available"
+          state: PARTIAL
+        - id: "4.3"
+          criterion: "At least one bank caller exercises quote + proposal against UAT"
+          state: OPEN
+        - id: "4.4"
+          criterion: "Compliance review of audit schema and log samples"
+          state: OPEN
+        - id: "4.5"
+          criterion: "Runbook: secrets rotation, IP whitelist, 1SB 401/5xx incident"
+          state: OPEN
+        - id: "4.6"
+          criterion: "Performance smoke: p95 quote under nominal concurrency"
+          state: OPEN
+        - id: "4.7"
+          criterion: "Coverage gates green; QA-001 closed or waived with expiry"
+          state: PARTIAL
+      approvers: ["Architect", "PO", "QA Lead", "Compliance (4.4)", "Ops (4.5)"]
+
+    completed_stages:
+      - "Phase 0 — Access & alignment"
+      - "Phase 1 — Foundations (shared libs + scaffold)"
+      - "Phase 2 — Connectivity + async infra"
+      - "Phase 3 — Term vertical slice (FUNC-001…007, FUNC-009)"
+
+  - id: WS-2
+    name: "Workforce Authentication & Authorization"
+    authority:
+      - "docs/authentication-authorization/README.md"
+
+    lifecycle:
+      canonical_stage: "L4/L6 — Foundation into first vertical slice"
+      current_phase: "Phase 1 — Foundation implementation"
+      stage_status: IN_PROGRESS
+      next_stage: "Phase 2 — Bank AD federation + production IdP decision"
+
+    current_objective:
+      id: IAM-P1
+      description: >
+        Provider-neutral workforce identity: token-hiding BFF session, Keycloak behind an
+        adapter, business authorization service as the PDP.
+
+    current_deliverable:
+      description: >
+        workforce-access-bff, identity-provider-adapter-service and
+        identity-authorization-service meeting the SSOT's accepted decisions.
+
+    current_scope:
+      in_scope:
+        - "Workforce identity for bank employees and insurer representatives"
+        - "Token-hiding BFF session pattern"
+        - "Provider-neutral adapter (Keycloak first)"
+        - "RBAC + ABAC authorization, default deny"
+        - "Insurer/branch scope, hierarchy, certification metadata"
+        - "Maker-checker for bulk and privileged changes"
+        - "Auth and administrative event retention (configurable)"
+        - "Provisioning outbox reliability"
+
+      out_of_scope:
+        - item: "Retail-customer authentication"
+          revisit_at: "later bounded context"
+        - item: "Production IdP selection (Cognito vs Keycloak vs other)"
+          revisit_at: "Phase 2 — deliberately deferred behind the adapter"
+        - item: "Bank AD federation specifics (OIDC vs SAML vs LDAP)"
+          revisit_at: "Phase 2 — technology unconfirmed"
+
+      never:
+        - "Exposing Keycloak, Cognito, or AD directly to Flutter"
+        - "Sending OAuth access or refresh tokens to Flutter"
+        - "Treating the IdP as the source of truth for business authorization"
+
+    current_gate:
+      id: GATE-IAM-P1
+      state: OPEN
+      exit_criteria:
+        - id: "A.1"
+          criterion: "BFF token-hiding proven: Flutter never receives OAuth tokens"
+          state: OPEN
+        - id: "A.2"
+          criterion: "Keycloak isolated behind identity-provider-adapter-service"
+          state: OPEN
+        - id: "A.3"
+          criterion: "identity-authorization-service is the PDP; default-deny verified"
+          state: OPEN
+        - id: "A.4"
+          criterion: "Maker-checker enforced for bulk and privileged changes"
+          state: OPEN
+        - id: "A.5"
+          criterion: "Auth and admin events retained per policy; retention configurable"
+          state: OPEN
+        - id: "A.6"
+          criterion: "Provisioning outbox delivers reliably (retry, idempotency)"
+          state: OPEN
+      approvers: ["Architect", "Security Architect (mandatory)", "Compliance (A.5)", "QA Lead"]
+
+# ---------------------------------------------------------------------------
+# Standing constraints — violating one of these is SF4/REJECT (01 §5)
+# ---------------------------------------------------------------------------
+standing_constraints:
+  - "Bank apps never call 1SB or a database directly"
+  - "1SB specifics live only in adapter.onesb.* (ArchUnit enforced)"
+  - "1sb-integration-service owns no Flyway migrations and no JPA"
+  - "Persistence is platform-common, not 1SB-owned"
+  - "Flutter never receives OAuth tokens; the BFF holds them"
+  - "Keycloak is not the source of truth for business authorization"
+  - "No PII in logs"
+  - "Coverage gates: libs line >= 80% / branch >= 70%; services on interim floor"
+
+# ---------------------------------------------------------------------------
+# Routing — where ADMITTED work goes (08 §3)
+# ---------------------------------------------------------------------------
+routing:
+  FUNC: "docs/1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md"
+  NFR: "docs/1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md"
+  COMP: "docs/1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md"
+  TECH: "docs/1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md"
+  SHARED: "docs/1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md"
+  BUG: "docs/1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md"
+  DEBT: "docs/1sb-insurance-integration/service-ssot/TECH-DEBT.md"
+  REFACTOR: "docs/1sb-insurance-integration/service-ssot/TECH-DEBT.md"
+  QA: "docs/1sb-insurance-integration/service-ssot/TEST-BACKLOG.md"
+  ARCH: "docs/architecture-review/08-architecture-decision-log.md"
+  SEC: "docs/governance/registers/RISK-REGISTER.md"
+  OPS: "docs/1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md"
+  SPIKE: "docs/1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md"
+  IDEA: "docs/governance/registers/PARKED-BACKLOG.md"
+  GOV: "docs/governance/"
+
+# ---------------------------------------------------------------------------
+# Known debt — do not re-report (01 §6, Rule CS-2)
+# ---------------------------------------------------------------------------
+known_open_debt: [TD-006, TD-007, TD-009, TD-010, TD-014, TD-022, TD-023, QA-001]
+
+registers:
+  suggestions: "docs/governance/registers/SUGGESTION-REGISTER.md"
+  parked: "docs/governance/registers/PARKED-BACKLOG.md"
+  decisions: "docs/governance/registers/DECISION-REGISTER.md"
+  dependencies: "docs/governance/registers/DEPENDENCY-REGISTER.md"
+  risks: "docs/governance/registers/RISK-REGISTER.md"
+  assumptions: "docs/governance/registers/ASSUMPTION-REGISTER.md"
+
+next_ids:
+  SUG: 1
+  CR: 1
+  DEP: 1
+  RISK: 1
+  ASM: 1
+  EPIC: 1
+  SPIKE: 1

@@ -1,0 +1,150 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bank-insurance-platform/governance/schemas/work-item.schema.json",
+  "title": "AIGEM Work Item",
+  "description": "An admitted input with an ID, a type, a priority and a home. Covers stories, tasks, bugs, spikes and epics.",
+  "type": "object",
+  "required": ["id", "title", "type", "breakdown", "workstream", "state"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "type": "string" },
+    "origin": { "type": ["string", "array", "null"], "description": "SUG-#### the item came from" },
+    "title": { "type": "string", "minLength": 1 },
+    "type": { "enum": ["FUNC", "BUG", "NFR", "ARCH", "SEC", "COMP", "INFRA", "DEBT", "REFACTOR", "QA", "OPS", "SPIKE", "DOC", "MIGRATION", "GOV", "IDEA"] },
+    "also": { "type": "array", "items": { "type": "string" } },
+    "breakdown": { "enum": ["EPIC", "STORY", "TASK", "SPIKE", "BUG"] },
+    "epic": { "type": ["string", "null"] },
+    "workstream": { "type": "string" },
+    "owner": { "type": ["string", "null"], "description": "Exactly one owner. 09 §3." },
+    "risk_tier": { "enum": ["T1", "T2", "T3", "T4"] },
+
+    "serves": { "type": "array", "items": { "type": "string" } },
+    "problem": { "type": "string" },
+    "description": { "type": "string" },
+
+    "acceptance_criteria": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "oneOf": [
+          { "type": "string" },
+          {
+            "type": "object",
+            "required": ["id", "then"],
+            "additionalProperties": false,
+            "properties": {
+              "id": { "type": "string" },
+              "given": { "type": "string" },
+              "when": { "type": "string" },
+              "then": { "type": "string" }
+            }
+          }
+        ]
+      }
+    },
+
+    "out_of_scope": { "type": "array", "items": { "type": "string" } },
+
+    "state": { "enum": ["TRIAGED", "READY", "BLOCKED", "IN-FLIGHT", "IN-REVIEW", "DONE", "PARKED", "PARKED-DEPENDENT", "REJECTED", "DUPLICATE", "SUPERSEDED", "LAPSED", "WONT-DO"] },
+    "priority_now": { "enum": ["P1", "P2", "P3", "P4", "P5"] },
+    "priority_at_target": { "enum": ["P1", "P2", "P3", "P4", "P5", null] },
+    "target_stage": { "type": ["string", "null"] },
+    "unpark_trigger": { "type": ["string", "null"] },
+    "parked_because": { "type": ["string", "null"] },
+    "blocker": { "type": ["string", "null"] },
+
+    "dependencies": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "blocked_by": { "type": "array", "items": { "type": "string" } },
+        "requires": { "type": "array", "items": { "type": "string" } },
+        "enables": { "type": "array", "items": { "type": "string" } },
+        "related_to": { "type": "array", "items": { "type": "string" } },
+        "external": { "type": "array", "items": { "type": "string" } },
+        "decision_dependency": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+
+    "plan": { "type": ["string", "null"] },
+    "estimate": { "enum": ["XS", "S", "M", "L", "XL", null] },
+    "assumptions": { "type": "array", "items": { "type": "string" } },
+    "risks": { "type": "array", "items": { "type": "string" } },
+    "evidence": { "type": "array", "items": { "type": "string" } },
+    "variance_log": { "type": "array", "items": { "type": "object" } },
+
+    "violates": { "type": "string", "description": "BUG only: the specification the behaviour violates (Rule WC-1)" },
+    "reproduction": { "type": "string" },
+    "root_cause": { "type": "string" },
+    "regression_test": { "type": "string" },
+    "fails_before_fix": { "type": "boolean" },
+    "same_class_elsewhere": { "type": "string" },
+
+    "question": { "type": "string", "description": "SPIKE only" },
+    "timebox": { "type": "string", "description": "SPIKE only" },
+    "deliverable": { "type": "string", "description": "SPIKE only" },
+    "decision_it_unblocks": { "type": "string" },
+    "exit": { "type": "string" },
+    "ships_production_code": { "const": false },
+
+    "outcome": { "type": "string" },
+    "completion_definition": { "type": "string", "description": "EPIC only — mandatory" },
+    "not_included": { "type": "array", "items": { "type": "string" }, "description": "EPIC only — mandatory" },
+    "stories": { "type": "array", "items": { "type": ["string", "object"] } },
+    "story_order": { "type": "array", "items": { "type": "string" } },
+    "epic_triggers_met": { "type": "array", "items": { "type": "string" }, "minItems": 2 },
+    "progress": { "type": "object" },
+
+    "expiry": { "type": "string", "description": "DEBT only — mandatory (Rule TD-1)" },
+    "severity": { "enum": ["P0", "P1", "P2", "P3"], "description": "DEBT only" },
+    "why_taken": { "type": "string" },
+    "cost_if_unpaid": { "type": "string" },
+    "remediation": { "type": "string" }
+  },
+
+  "allOf": [
+    {
+      "if": { "properties": { "type": { "const": "BUG" } }, "required": ["type"] },
+      "then": {
+        "required": ["violates", "regression_test", "fails_before_fix"],
+        "description": "Rule WC-1: a bug must name the specification it violates and ship a test that fails before the fix."
+      }
+    },
+    {
+      "if": { "properties": { "type": { "const": "DEBT" } }, "required": ["type"] },
+      "then": {
+        "required": ["severity", "expiry", "owner", "why_taken", "cost_if_unpaid", "remediation"],
+        "description": "Rule TD-1: no expiry, no debt entry."
+      }
+    },
+    {
+      "if": { "properties": { "breakdown": { "const": "EPIC" } }, "required": ["breakdown"] },
+      "then": {
+        "required": ["completion_definition", "not_included", "epic_triggers_met"],
+        "description": "06 §5: an epic without an explicit boundary is a scope-creep container."
+      }
+    },
+    {
+      "if": { "properties": { "breakdown": { "const": "SPIKE" } }, "required": ["breakdown"] },
+      "then": { "required": ["question", "timebox", "deliverable"] }
+    },
+    {
+      "if": { "properties": { "state": { "enum": ["PARKED", "PARKED-DEPENDENT"] } }, "required": ["state"] },
+      "then": {
+        "required": ["target_stage", "unpark_trigger"],
+        "description": "Parked is not deleted: every deferral carries a target stage and an observable trigger."
+      }
+    },
+    {
+      "if": { "properties": { "state": { "const": "READY" } }, "required": ["state"] },
+      "then": {
+        "required": ["owner", "priority_now", "acceptance_criteria"],
+        "description": "12-DEFINITION_OF_READY R7, R14."
+      }
+    },
+    {
+      "if": { "properties": { "state": { "const": "BLOCKED" } }, "required": ["state"] },
+      "then": { "required": ["blocker"] }
+    }
+  ]
+}

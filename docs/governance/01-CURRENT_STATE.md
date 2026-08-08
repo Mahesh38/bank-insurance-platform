@@ -168,6 +168,11 @@ Until a human ratifies §3–§4:
 
 ## 8. Maintenance
 
+**Owner, cadence, and staleness limits:**
+[RUNBOOK §4](./RUNBOOK.md#4-maintenance--staleness-matrix). This file and
+`state/CURRENT-STATE.yaml` are the highest-decay artefacts in the repository — past 30 days they
+do not merely age, they actively mislead, because agents trust them.
+
 | Trigger | Action |
 |---------|--------|
 | Stage gate passed | Advance `current_phase`, reset `stage_status`, re-run [08 §5](./08-BACKLOG_RULES.md#5-unparking) unpark sweep |

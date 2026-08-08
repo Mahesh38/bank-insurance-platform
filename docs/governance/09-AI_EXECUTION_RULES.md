@@ -202,6 +202,10 @@ is too heavy for the work, and the process should change — not be quietly igno
 At the beginning of any working session:
 
 ```text
+[ ] Run scripts/governance/freshness-check.py — act on the exit code
+    (2 = do not admit new work; park and reject only, and say the state is stale)
+[ ] Read RUNBOOK.md §8 — the ten facts you must be able to state, and §8.3 for the
+    posture your current lifecycle stage requires
 [ ] Read state/CURRENT-STATE.yaml — stage, objective, scope, gate
 [ ] Read registers/PARKED-BACKLOG.md — do not re-propose parked items
 [ ] Read TECH-DEBT.md open items — do not re-report known debt

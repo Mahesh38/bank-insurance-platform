@@ -4,10 +4,16 @@ Integration knowledge base for building a bank insurance platform on **1Silverbu
 
 ## Start here
 
-**Working with an AI agent on this repo, or triaging a new requirement/suggestion?**
-→ **[docs/governance/README.md](./docs/governance/README.md)** — AIGEM governance model
+**On the team, or working with an AI agent on this repo?**
+→ **[docs/governance/RUNBOOK.md](./docs/governance/RUNBOOK.md)** — the AIGEM operating manual.
+Find your [role card](./docs/governance/RUNBOOK.md#6-role-cards) (one screen: what you do, how
+often, what you own). Agents start at
+[§8](./docs/governance/RUNBOOK.md#8-what-the-ai-agent-must-know-about-this-project).
+
+**Triaging a new requirement, bug, or AI suggestion?**
+→ **[docs/governance/README.md](./docs/governance/README.md)** — the governance model itself
 (stage-fit and scope-fit triage, P1–P5 priority, dependency ordering, seven-board review gate,
-drift control). Agents: read [docs/governance/09-AI_EXECUTION_RULES.md](./docs/governance/09-AI_EXECUTION_RULES.md) first.
+drift control).
 
 **Building workforce authentication and authorization?**
 -> **[docs/authentication-authorization/README.md](./docs/authentication-authorization/README.md)**

@@ -13,6 +13,19 @@ Binding agent contract: [`09-AI_EXECUTION_RULES.md`](../../../docs/governance/09
 **A suggestion is never implemented in the turn it is raised.** Triage it, record it, schedule
 it, then return to the work item you were on. Only the P1 override classes interrupt.
 
+## Before anything: know where you are
+
+Operating manual: [`RUNBOOK.md`](../../../docs/governance/RUNBOOK.md).
+**[§8](../../../docs/governance/RUNBOOK.md#8-what-the-ai-agent-must-know-about-this-project)
+is your role card** — the ten facts you must be able to state before acting, and **§8.3, how
+your posture must change at the current lifecycle stage**. Read §8.3's row for your workstream
+before every triage: the same suggestion is right at L6 and wrong at L7.
+
+```bash
+python3 scripts/governance/freshness-check.py
+# exit 0 fresh · 1 warn (disclose it) · 2 do NOT admit new work — park/reject only
+```
+
 ## Run this
 
 ```text

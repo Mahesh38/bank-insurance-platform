@@ -59,6 +59,12 @@ resolve L3 first.** See [01-CURRENT_STATE.md](./01-CURRENT_STATE.md).
 
 ## 4. File index
 
+### Start here
+
+| File | Purpose |
+|------|---------|
+| **[RUNBOOK.md](./RUNBOOK.md)** | **The operating manual — who does what, how often, and what breaks if they don't.** Role cards, cadences, the staleness matrix, and the AI agent's knowledge contract. Most people need only their role card. |
+
 ### Decision pipeline (read in this order)
 
 | # | File | Pipeline step |
@@ -83,6 +89,8 @@ resolve L3 first.** See [01-CURRENT_STATE.md](./01-CURRENT_STATE.md).
 | 17 | [17-DRIFT_CONTROL.md](./17-DRIFT_CONTROL.md) | Detecting deviation and getting back on task |
 | 18 | [18-GOVERNANCE_METRICS.md](./18-GOVERNANCE_METRICS.md) | Is the model working? Measures and targets |
 | 19 | [19-PORTING_GUIDE.md](./19-PORTING_GUIDE.md) | Installing AIGEM into another repository |
+| — | [ORG-STANDARDS.md](./ORG-STANDARDS.md) | Layer 2 — organization-wide architecture, security, compliance and quality baselines |
+| — | [RUNBOOK.md](./RUNBOOK.md) | Operating manual: roles, cadences, maintenance, ceremonies |
 
 ### Live project data (L3)
 

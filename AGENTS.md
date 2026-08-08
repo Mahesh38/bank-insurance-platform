@@ -8,13 +8,21 @@ This repository runs the **AIGEM** governance model
 (**[docs/governance/](./docs/governance/README.md)**). Before acting on any requirement, bug,
 suggestion, or finding:
 
-1. Read **[docs/governance/state/CURRENT-STATE.yaml](./docs/governance/state/CURRENT-STATE.yaml)** —
+1. Run the freshness check and act on its exit code
+   (`python3 scripts/governance/freshness-check.py` — `2` means do not admit new work).
+2. Read **[docs/governance/state/CURRENT-STATE.yaml](./docs/governance/state/CURRENT-STATE.yaml)** —
    which workstream, which lifecycle stage, what is in and out of scope, which gate is open.
-2. Follow **[09-AI_EXECUTION_RULES.md](./docs/governance/09-AI_EXECUTION_RULES.md)** — the binding
+3. Read **[RUNBOOK.md §8](./docs/governance/RUNBOOK.md#8-what-the-ai-agent-must-know-about-this-project)** —
+   the ten facts you must be able to state before acting, and **how your thinking must change at
+   this stage of the project** (§8.3). This is the section that makes you useful here.
+4. Follow **[09-AI_EXECUTION_RULES.md](./docs/governance/09-AI_EXECUTION_RULES.md)** — the binding
    agent contract.
-3. Triage every input through the pipeline in
+5. Triage every input through the pipeline in
    [governance/README.md §5](./docs/governance/README.md) **before** writing code. Most inputs
    terminate in three steps with a one-screen record.
+
+Humans: your role card is in **[RUNBOOK.md §6](./docs/governance/RUNBOOK.md#6-role-cards)** —
+one screen, exact actions, exact cadence. That is all you need to read.
 
 Core rules:
 

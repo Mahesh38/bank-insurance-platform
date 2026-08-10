@@ -1,13 +1,13 @@
 # AU SFB Insurance Distribution Platform — Agentic AI Maturity Transformation Roadmap
 
 **Document Version:** 1.0
-**Target Directory:** `docs/contextRoles/agentic_ai_transformation_roadmap.md`
+**Target Directory:** `docs/context/roadmaps/agentic-ai-transformation-roadmap.md`
 **Consolidated Persona Panel (Next Maturity Level):**
-- 📋 **Rajal** — Product Owner → `rajal_product_owner_agentic_ai_evolution.md`
-- 🏛️ **Mahesh** — Solution Architect → `mahesh_solution_architect_agentic_ai_evolution.md`
-- ⚙️ **Amit** — Technical Head → `amit_technical_head_agentic_ai_evolution.md`
+- 📋 **Rajal** — Product Owner → `../roles/rajal-product-owner-agentic-ai-evolution.md`
+- 🏛️ **Mahesh** — Solution Architect → `../roles/mahesh-solution-architect-agentic-ai-evolution.md`
+- ⚙️ **Amit** — Technical Head → `../roles/amit-technical-head-agentic-ai-evolution.md`
 
-**Baseline Documents:** `business_problem_statement_rag.md`, `brainstorming_roadmap_action_plan.md`
+**Baseline Documents:** `../business-problem-statement.md`, `brainstorming-roadmap-action-plan.md`
 **Regulatory License:** IRDAI Composite Corporate Agent License (**Registration No. CA0515**) — unchanged
 **Purpose:** Train each persona to the *next maturity level* — thinking and designing in the era of **agentic AI** — while solving the exact same AU SFB business problem statement, without diluting any existing compliance guarantee.
 
@@ -15,7 +15,7 @@
 
 ## 1. Why This Document Exists
 
-`brainstorming_roadmap_action_plan.md` captured the panel's alignment on a **deterministic, bank-owned microservices platform** (Maturity Level 1/2). This document captures the panel's **next collaborative leap**: how the same three personas think differently — architecturally, technically, and as a product owner — once **agentic AI** (LLM-driven, tool-using, multi-step autonomous agents) becomes available as a building block.
+`brainstorming-roadmap-action-plan.md` captured the panel's alignment on a **deterministic, bank-owned microservices platform** (Maturity Level 1/2). This document captures the panel's **next collaborative leap**: how the same three personas think differently — architecturally, technically, and as a product owner — once **agentic AI** (LLM-driven, tool-using, multi-step autonomous agents) becomes available as a building block.
 
 The problem statement does not change. The regulatory constraints do not change. What changes is the *toolkit* each persona reaches for, and the *new failure modes* (hallucination, prompt injection, ungrounded claims, runaway cost) each persona must now design against.
 
@@ -28,7 +28,7 @@ All three personas are trained against one shared ladder so their upgraded think
 ```
 L0  Manual Redirect         "AU Beema Portal" — zero post-redirect visibility. (Historical as-is.)
 L1  Deterministic Digital   Bank-owned platform, hard-coded rules, saga orchestration.
-                            (= the panel's CURRENT target, per brainstorming_roadmap_action_plan.md)
+                            (= the panel's CURRENT target, per brainstorming-roadmap-action-plan.md)
 L2  AI-Assisted             LLM suggests text/summaries; no tool access, no autonomous action.
 L3  Agentic (NEW TARGET)    Bounded, tool-using agents execute multi-step reasoning tasks inside a
                             deterministic guardrail cage. Every agent action is attributed, audited,
@@ -55,7 +55,7 @@ L4  Autonomous Mesh         Cross-boundary agent-to-agent negotiation with insur
 
 ## 4. Target Agentic Architecture Overlay
 
-This overlays — does not replace — the existing 19-bounded-context topology from `business_problem_statement_rag.md` §6 and the microservices blueprint in `brainstorming_roadmap_action_plan.md` §2.
+This overlays — does not replace — the existing 19-bounded-context topology from `../business-problem-statement.md` §6 and the microservices blueprint in `brainstorming-roadmap-action-plan.md` §2.
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
@@ -121,13 +121,13 @@ This overlays — does not replace — the existing 19-bounded-context topology 
 └────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-Full Gherkin acceptance criteria for EP-09 are worked out in `rajal_product_owner_agentic_ai_evolution.md` §4 as the reference pattern for all agentic epics.
+Full Gherkin acceptance criteria for EP-09 are worked out in `../roles/rajal-product-owner-agentic-ai-evolution.md` §4 as the reference pattern for all agentic epics.
 
 ---
 
 ## 7. Phased Rollout — Phase 4: Agentic Uplift (Additive, Not a Rewrite)
 
-This extends the existing 4-phase roadmap (`business_problem_statement_rag.md` §8 / `brainstorming_roadmap_action_plan.md` §5) with a new phase that starts only after Phase 1's deterministic core is live, and never displaces Phase 1–3 commitments.
+This extends the existing 4-phase roadmap (`../business-problem-statement.md` §8 / `brainstorming-roadmap-action-plan.md` §5) with a new phase that starts only after Phase 1's deterministic core is live, and never displaces Phase 1–3 commitments.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────────────┐
@@ -179,7 +179,7 @@ Every persona's agentic-era training reiterates the same four pillars from the o
 ## 10. RAG System Context & Usage Directives (Agentic Addendum)
 
 ### Instructions for AI Agents / RAG Systems Consuming This Document
-1. Treat this document as the **agentic-maturity overlay** on top of `business_problem_statement_rag.md` — never as a replacement. All Phase 0–3 facts, regulatory rules, and architecture decisions from the base document remain authoritative.
-2. When asked "how would [Mahesh/Amit/Rajal] solve this with agentic AI," retrieve the corresponding `*_agentic_ai_evolution.md` file for that persona's full reasoning, tone, and principles.
+1. Treat this document as the **agentic-maturity overlay** on top of `../business-problem-statement.md` — never as a replacement. All Phase 0–3 facts, regulatory rules, and architecture decisions from the base document remain authoritative.
+2. When asked "how would [Mahesh/Amit/Rajal] solve this with agentic AI," retrieve the corresponding `*-agentic-ai-evolution.md` file for that persona's full reasoning, tone, and principles.
 3. Never present an agentic capability as bypassing a compliance hard-gate — if a proposed design would let an agent act without deterministic backstop, flag it as a violation of ARCH-012, not as an innovative shortcut.
 4. Any answer describing "Phase 4/5 agentic" work must make clear it is **additive scope**, layered on the already-scoped Phase 0–3 deterministic platform, per the panel's shared maturity ladder in §2.

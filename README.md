@@ -4,8 +4,14 @@ Integration knowledge base for building a bank insurance platform on **1Silverbu
 
 ## Start here
 
+📖 **[Full documentation index → `docs/README.md`](./docs/README.md)** — the map of every
+document, how the four folders are segregated, where decisions live, and which document wins
+on conflict. Start there if you don't know where to look.
+
+Common jump-offs:
+
 **Building workforce authentication and authorization?**
--> **[docs/authentication-authorization/README.md](./docs/authentication-authorization/README.md)**
+-> **[docs/platform/authentication-authorization/README.md](./docs/platform/authentication-authorization/README.md)**
 (Phase 1 employee/insurer identity, token-hiding BFF, provider abstraction, Keycloak, RBAC + ABAC + relationship policies)
 
 Local identity stack:
@@ -15,7 +21,7 @@ docker compose --env-file .env.identity -f docker-compose.identity.yml up --buil
 ```
 
 **Full-platform architecture review (AWS/Kubernetes microservices target state)?**
-→ **[docs/architecture-review/README.md](./docs/architecture-review/README.md)**
+→ **[docs/platform/architecture-review/README.md](./docs/platform/architecture-review/README.md)**
 (Service decomposition, sync/async communication, AWS/EKS infrastructure, data architecture, security/NFRs, delivery estimate)
 
 **Building the 1SB integration service?**  

@@ -5,6 +5,14 @@ Auth: HTTP Basic (API key / secret)
 
 Official portal entry: [Insurance Gateway API](https://docs.1silverbullet.tech/docs/insurance/retail/apiDocs/insurance-gateway-api)
 
+**Local schema copies:** the **Schema** column in each table below links to the extracted
+request/response schema in [`../reference/extracted-schemas/`](../reference/extracted-schemas/).
+Operations marked *not extracted* exist on the 1SB portal but have no local copy yet — read
+them from the portal and add an extraction if you need one.
+
+**Related:** [field-guides/](../field-guides/README.md) (which fields, when, why) ·
+[SOURCE-LINKS.md](../reference/SOURCE-LINKS.md) (portal URLs)
+
 ---
 
 ## How 1SB docs are organized
@@ -38,16 +46,16 @@ Retail LOBs each repeat a similar operation set tagged by LOB.
 
 Portal category: Term
 
-| Operation | Method | Path | Doc slug |
-|-----------|--------|------|----------|
-| Get quote | POST | `/insurance/lifeterm/v1/quote` | `consumer-request-insurance-v-1-consumer-insurance-post` |
-| Quote poll | GET | `/insurance/lifeterm/v1/quote/poll/:requestId` | `get-consumer-response-insurance-v-1-request-id-get` |
-| Get gate criteria | GET | `/insurance/lifeterm/v1/quote/gateCriteria` | `get-gaecriteria-form-...` |
-| Submit gate criteria | POST | (gateCriteria submit) | `post-gatecriteria-form-...` |
-| Product UI data | GET | `/insurance/lifeterm/v1/master/getproductuidata` | `get-product-ui-data-...` |
-| Get proposal form | GET | `/insurance/lifeterm/v1/proposal` | `get-proposal-form-...` |
-| Submit proposal | POST | `/insurance/lifeterm/v1/proposal` | `submit-proposal-form` |
-| Proposal poll | GET | proposal response path | `get-proposal-response-...` |
+| Operation | Method | Path | Schema |
+|-----------|--------|------|--------|
+| Get quote | POST | `/insurance/lifeterm/v1/quote` | [consumer-request](../reference/extracted-schemas/consumer-request-insurance-v-1-consumer-insurance-post.md) |
+| Quote poll | GET | `/insurance/lifeterm/v1/quote/poll/:requestId` | [get-consumer-response](../reference/extracted-schemas/get-consumer-response-insurance-v-1-request-id-get.md) |
+| Get gate criteria | GET | `/insurance/lifeterm/v1/quote/gateCriteria` | [get-gatecriteria-form](../reference/extracted-schemas/get-gaecriteria-form-insurance-v-1-product-id-product-id-manufacturer-id-manufacturer-id-get.md) |
+| Submit gate criteria | POST | (gateCriteria submit) | [post-gatecriteria-form](../reference/extracted-schemas/post-gatecriteria-form-insurance-v-1-product-id-product-id-manufacturer-id-manufacturer-id-pos.md) |
+| Product UI data | GET | `/insurance/lifeterm/v1/master/getproductuidata` | [get-product-ui-data](../reference/extracted-schemas/get-product-ui-data-insurance-v-1-product-id-product-id-manufacturer-id-manufacturer-id-get.md) |
+| Get proposal form | GET | `/insurance/lifeterm/v1/proposal` | [get-proposal-form](../reference/extracted-schemas/get-proposal-form-insurance-v-1-product-id-product-id-manufacturer-id-manufacturer-id-version-version-get.md) |
+| Submit proposal | POST | `/insurance/lifeterm/v1/proposal` | [submit-proposal-form](../reference/extracted-schemas/submit-proposal-form.md) |
+| Proposal poll | GET | proposal response path | [get-insurance-proposal](../reference/extracted-schemas/get-insurance-proposal.md) |
 
 Query params commonly required: `productId`, `manufacturerId`, and for proposal form `version`.
 
@@ -55,32 +63,33 @@ Query params commonly required: `productId`, `manufacturerId`, and for proposal 
 
 ## 2. Retail — Health (`lifehealth`)
 
-| Operation | Method | Path / notes | Doc slug |
-|-----------|--------|--------------|----------|
-| Get quote | POST | `/insurance/lifehealth/v1/quote` | `health-consumer-request-...` |
-| Quote poll | GET | health poll by requestId | `get-health-consumer-response-...` |
-| Get proposal form | GET | health proposal form | `get-health-proposal-form-...` |
-| Submit proposal | POST | health submit | `submit-health-proposal-form-...` |
-| Proposal poll | GET | health proposal poll | `get-health-proposal-response-...` |
-| View plan details | POST/GET (see portal) | plan literature/network | `view-plan-details-request` |
-| Health configuration | GET | distributor health config | `get-health-configuration-get` |
-| Health payment URL | POST | LOB payment | `health-payment-url-...` |
+| Operation | Method | Path / notes | Schema |
+|-----------|--------|--------------|--------|
+| Get quote | POST | `/insurance/lifehealth/v1/quote` | [health-consumer-request](../reference/extracted-schemas/health-consumer-request-insurance-v-1-consumer-insurance-post.md) |
+| Quote poll | GET | health poll by requestId | *not extracted* — portal `get-health-consumer-response-…` |
+| Get proposal form | GET | health proposal form | *not extracted* — portal `get-health-proposal-form-…` |
+| Submit proposal | POST | health submit | *not extracted* — portal `submit-health-proposal-form-…` |
+| Proposal poll | GET | health proposal poll | *not extracted* — portal `get-health-proposal-response-…` |
+| View plan details | POST/GET (see portal) | plan literature/network | [view-plan-details-request](../reference/extracted-schemas/view-plan-details-request.md) |
+| Health configuration | GET | distributor health config | *not extracted* — portal `get-health-configuration-get` |
+| Health payment URL | POST | LOB payment | [health-payment-url](../reference/extracted-schemas/health-payment-url-insurance-v-1-payment-url-post.md) |
+| CKYC consumer request | POST | health CKYC pull | [health-ckyc-consumer-request](../reference/extracted-schemas/health-ckyc-consumer-request-insurance-v-1-consumer-insurance-post.md) |
 
 ---
 
 ## 3. Retail — Motor (`motor`)
 
-| Operation | Method | Path / notes | Doc slug |
-|-----------|--------|--------------|----------|
-| Get quote | POST | `/insurance/motor/v1/quote` | `motor-consumer-request-...` |
-| Quote poll | GET | motor poll | `get-motor-consumer-response-...` |
-| Status poll | GET | motor status poll | `get-motor-consumer-response-status-poll-...` |
-| Proposal form / submit / poll | GET/POST/GET | motor proposal* | `get-motor-proposal-form-...`, `submit-motor-...`, `get-motor-proposal-response-...` |
-| Payment URL | POST | motor payment | `motor-payment-url-...` |
-| Proposal status | POST/GET | motor proposal status | `motor-proposal-status` |
-| Download policy | POST/GET | policy PDF | `motor-download-policy-proposal` |
-| Vehicle masters | GET chain | type → make → model → fuel → variant | `get-motor-looker-api-*` |
-| RTO / Financier | GET | lookers | `...-rtocode`, `...-financier` |
+| Operation | Method | Path / notes | Schema |
+|-----------|--------|--------------|--------|
+| Get quote | POST | `/insurance/motor/v1/quote` | [motor-consumer-request](../reference/extracted-schemas/motor-consumer-request-insurance-v-1-consumer-insurance-post.md) |
+| Quote poll | GET | motor poll | *not extracted* — portal `get-motor-consumer-response-…` |
+| Status poll | GET | motor status poll | *not extracted* — portal `get-motor-consumer-response-status-poll-…` |
+| Proposal form / submit / poll | GET/POST/GET | motor proposal* | *not extracted* — portal `get-motor-proposal-form-…`, `submit-motor-…`, `get-motor-proposal-response-…` |
+| Payment URL | POST | motor payment | [motor-payment-url](../reference/extracted-schemas/motor-payment-url-insurance-v-1-payment-url-post.md) |
+| Proposal status | POST/GET | motor proposal status | [motor-proposal-status](../reference/extracted-schemas/motor-proposal-status.md) |
+| Download policy | POST/GET | policy PDF | [motor-download-policy-proposal](../reference/extracted-schemas/motor-download-policy-proposal.md) |
+| Vehicle masters | GET chain | type → make → model → fuel → variant | *not extracted* — portal `get-motor-looker-api-*` |
+| RTO / Financier | GET | lookers | *not extracted* — portal `…-rtocode`, `…-financier` |
 
 ---
 
@@ -99,21 +108,21 @@ Each has: quote, poll, gate criteria get/post, product UI data, proposal get/sub
 
 ## 5. Building blocks (cross-LOB)
 
-| Operation | Method | Path | When to use |
-|-----------|--------|------|-------------|
-| Master lookup | POST | `/v1/master/lookup` | Enums for quote/proposal |
-| Payment URL | POST | `/v1/payment/url` | Initiate insurer/gateway payment |
-| Payment intimation | POST | (payment intimation API) | Notify insurer of successful pay when required |
-| Application status | POST | `/LifeTerm/prostat/` (life; confirm LOB variants) | Post-submit tracking |
-| Get requirements | POST | `/insurance/:apiId/getReq` | Pending docs/medicals |
-| Doc upload | POST | docupload | Fulfil requirements |
-| Doc download | POST | docdownload | Retrieve docs |
-| Send OTP | POST | sendotp | Consent / verification |
-| Validate OTP | POST | otp-verify | Complete OTP |
-| Customer info | — | customer-info | Fetch/validate customer info |
-| Penny drop | — | penny-drop | Bank account verification |
-| CKYC | POST | health-ckyc consumer request | CKYC pull |
-| Get SP data | — | get-sp-data | Validate agent/SP |
+| Operation | Method | Path | When to use | Schema |
+|-----------|--------|------|-------------|--------|
+| Master lookup | POST | `/v1/master/lookup` | Enums for quote/proposal | [master-consumer-request](../reference/extracted-schemas/master-consumer-request-insurance-v-1-consumer-insurance-post.md) |
+| Payment URL | POST | `/v1/payment/url` | Initiate insurer/gateway payment | [payment-url](../reference/extracted-schemas/payment-url-insurance-v-1-payment-url-post.md) |
+| Payment intimation | POST | (payment intimation API) | Notify insurer of successful pay when required | [payment-intimation](../reference/extracted-schemas/payment-intimation-insurance-v-1-payment-url-post.md) |
+| Application status | POST | `/LifeTerm/prostat/` (life; confirm LOB variants) | Post-submit tracking | [application-status](../reference/extracted-schemas/application-status-insurance-v-1-application-status-post.md) |
+| Get requirements | POST | `/insurance/:apiId/getReq` | Pending docs/medicals | [get-requirement](../reference/extracted-schemas/get-requirement-insurance-v-1-getrequirement-post.md) |
+| Doc upload | POST | docupload | Fulfil requirements | [doc-upload](../reference/extracted-schemas/doc-upload-insurance-v-1-docupload-post.md) |
+| Doc download | POST | docdownload | Retrieve docs | [doc-document](../reference/extracted-schemas/doc-document-insurance-v-1-docdownload-post.md) |
+| Send OTP | POST | sendotp | Consent / verification | [get-otp](../reference/extracted-schemas/get-otp-insurance-v-1-sendotp-post.md) |
+| Validate OTP | POST | otp-verify | Complete OTP | [validate-otp](../reference/extracted-schemas/validate-otp-insurance-v-1-otp-verify-post.md) |
+| Customer info | — | customer-info | Fetch/validate customer info | [customer-info](../reference/extracted-schemas/customer-info-insurance-v-1.md) |
+| Penny drop | — | penny-drop | Bank account verification | [penny-drop](../reference/extracted-schemas/penny-drop-insurance-v-1.md) |
+| CKYC | POST | health-ckyc consumer request | CKYC pull | [health-ckyc-consumer-request](../reference/extracted-schemas/health-ckyc-consumer-request-insurance-v-1-consumer-insurance-post.md) |
+| Get SP data | — | get-sp-data | Validate agent/SP | [get-sp-data](../reference/extracted-schemas/get-sp-data-fff.md) |
 
 Portal index: [Building blocks](https://docs.1silverbullet.tech/docs/insurance/building-blocks/apiDocs/insurance-gateway-api).
 

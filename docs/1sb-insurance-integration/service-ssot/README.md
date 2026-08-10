@@ -1,9 +1,19 @@
 # 1SB Integration Service — Single Source of Truth (SSOT)
 
 **Audience:** Developers, tech leads, QA, compliance reviewers  
-**Scope:** `1sb-integration-service` only (not the full bank insurance platform)
+**Scope:** `1sb-integration-service` only (not the full bank insurance platform)  
+**Up:** [docs index](../../README.md) → [1SB integration](../README.md) → **service SSOT**
 
 This folder is the **authoritative starting point** for building the service. If something here conflicts with earlier research notes, **this SSOT wins**.
+
+**Two things this SSOT does *not* own** — check these before assuming a gap:
+
+| Concern | Owned by |
+|---------|----------|
+| Workforce authentication & authorization (BFF token-hiding, RBAC/ABAC, identity providers) | [`docs/platform/authentication-authorization/`](../../platform/authentication-authorization/README.md) |
+| Target-state platform architecture (all ~16 services, AWS/EKS) | [`docs/platform/architecture-review/`](../../platform/architecture-review/README.md) |
+
+Inbound auth *for this service specifically* (JWT + mTLS dual-ready) is still local: [phase-0/CONFIRM-03-inbound-auth.md](./phase-0/CONFIRM-03-inbound-auth.md).
 
 ---
 
@@ -51,6 +61,22 @@ This folder is the **authoritative starting point** for building the service. If
 | [phase-2/TL-REVIEW.md](./phase-2/TL-REVIEW.md) | Phase 2 final TL approval |
 | [phase-1/REFACTOR-TASK-SPLIT.md](./phase-1/REFACTOR-TASK-SPLIT.md) | Agent ownership for prior remediations |
 | [phase-1/TECH-LEAD-CONFIRMATION-PASS.md](./phase-1/TECH-LEAD-CONFIRMATION-PASS.md) | Prior TL pass — senior #1–#5 closed |
+
+## Delivery phases
+
+Each phase folder has a README that orients you before you read its assignment/review pairs.
+
+| Phase | Entry point | Delivered | Status |
+|-------|------------|-----------|--------|
+| **0** | [phase-0/README.md](./phase-0/README.md) | Access, config & confirmation pack | Exit gate partly open (prod TODOs) |
+| **1** | [phase-1/STATUS.md](./phase-1/STATUS.md) | Foundations + common-persistence split | Done |
+| **2** | [phase-2/TL-KICKOFF.md](./phase-2/TL-KICKOFF.md) | Ports/adapters, error model, idempotency | Done — [TL-REVIEW](./phase-2/TL-REVIEW.md) |
+| **3** | [phase-3/README.md](./phase-3/README.md) | FUNC-001…006 — master data → quote → proposal | Done — all dual-approved |
+| **4** | [phase-4/README.md](./phase-4/README.md) | FUNC-007 payment, FUNC-009 status | Done — ⚠️ 2 recorded variances |
+
+⚠️ The Phase 4 folder does **not** match [ACTION-PLAN.md](./ACTION-PLAN.md)'s "Phase 4 —
+hardening" scope; that hardening work is still open. See
+[phase-4/README.md](./phase-4/README.md).
 
 ## Accepted architecture pattern (do not reopen)
 

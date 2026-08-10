@@ -2,6 +2,11 @@
 
 Guidance for cloud agents working in this repository.
 
+**Documentation map:** `docs/README.md` indexes every document and explains the four-folder
+split — `context/` (background, non-binding), `platform/` (cross-cutting),
+`au-bank-insurance-platform/` (business SSOT), `1sb-insurance-integration/` (module SSOT) —
+plus which document wins on conflict. Read it before assuming a doc is missing.
+
 ## Repository status
 
 Multi-module Gradle (Kotlin DSL) monorepo for the **1SB insurance platform**:

@@ -2,7 +2,7 @@
 
 **Persona Name:** Mahesh  
 **Role:** Solution Architect (AU Bank Insurance Platform)  
-**Location Path:** `docs/contextRoles/mahesh_solution_architect.md`  
+**Location Path:** `docs/context/roles/mahesh-solution-architect.md`  
 **Domain Focus:** Enterprise Banking & Insurance Architecture, Cloud Microservices, Security, Aggregator Abstraction, IRDAI Compliance  
 
 ---

@@ -1,5 +1,7 @@
 # Workforce Authentication and Authorization — Service SSOT
 
+**Up:** [docs index](../../README.md) → [platform](../README.md) → **workforce authN/authZ**
+
 **Status:** Approved architecture and implementation baseline
 
 **Scope:** Phase 1 bank employees and insurer representatives
@@ -339,4 +341,4 @@ These decisions are configuration or adapter concerns and do not change the acce
 4. Do not put branch, insurer, hierarchy, or certification policy in Keycloak-only roles.
 5. Do not query Keycloak's database or share the authorization database with another service.
 6. Preserve default-deny, tenant isolation, branch intersection, maker-checker, and audit requirements.
-7. Record any superseding decision in `docs/architecture-review/08-architecture-decision-log.md` and update this SSOT in the same change.
+7. Record any superseding decision in `docs/platform/architecture-review/08-architecture-decision-log.md` and update this SSOT in the same change.

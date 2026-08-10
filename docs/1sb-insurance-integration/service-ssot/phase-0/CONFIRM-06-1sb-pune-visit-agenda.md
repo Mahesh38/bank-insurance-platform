@@ -80,12 +80,12 @@ Recommended (remote, if available): a Security/Infra representative dialed in fo
 
 **Goal:** validate the bank's mental model of the journey state machine against 1SB's actual behavior, and surface anything the docs got wrong or left vague.
 
-Working from [01-executive-overview.md](../01-executive-overview.md) mental model: Assess → Quote → Select → Proposal → Underwriting/Requirements → Payment → Policy Issued.
+Working from [01-executive-overview.md](../../01-executive-overview.md) mental model: Assess → Quote → Select → Proposal → Underwriting/Requirements → Payment → Policy Issued.
 
 Questions to close:
 - [ ] Walk the full Term + Saving journey live against demo/sandbox — does the sequence and the async poll pattern (quote poll, proposal poll) match our documented model exactly?
 - [ ] What is the actual SLA on quote poll and proposal poll — typical and worst-case latency, and recommended poll interval/backoff? (Feeds `provider-config.yml` `poll.*`.)
-- [ ] Full list of `applicationStatus` values and manufacturer sub-statuses per LOB — is [application-status.md](../field-guides/application-status.md) complete and current?
+- [ ] Full list of `applicationStatus` values and manufacturer sub-statuses per LOB — is [application-status.md](../../field-guides/application-status.md) complete and current?
 - [ ] Webhook/callback support as an alternative to polling, for any step — does it exist, and is it on their roadmap?
 - [ ] Error/retry semantics: what's retryable vs terminal, idempotency keys, rate limits per distributor.
 - [ ] API versioning and change-management policy — how much notice before a breaking change to proposal schema or status enums?
@@ -132,7 +132,7 @@ Questions to close:
 
 ## Block 4 — Payment flow & reconciliation (30 min)
 
-**Goal:** the bank will **not** use 1SB's payment gateway (payment happens on the customer's own device via AU Bank PG only, per [D-006](../../../au-bank-insurance-platform/DECISION-LOG.md)) — but the bank still needs to fully understand how 1SB's payment/reconciliation model works, because the bank's own reconciliation ledger has to reach the same end state 1SB expects (`Payment URL` → `Payment Intimation` → insurer confirmation → policy issuance). See [payment.md](../field-guides/payment.md).
+**Goal:** the bank will **not** use 1SB's payment gateway (payment happens on the customer's own device via AU Bank PG only, per [D-006](../../../au-bank-insurance-platform/DECISION-LOG.md)) — but the bank still needs to fully understand how 1SB's payment/reconciliation model works, because the bank's own reconciliation ledger has to reach the same end state 1SB expects (`Payment URL` → `Payment Intimation` → insurer confirmation → policy issuance). See [payment.md](../../field-guides/payment.md).
 
 Questions to close:
 - [ ] Since the bank supplies its own payment URL/redirect flow and skips 1SB's hosted payment page, confirm exactly what 1SB needs back: is **Payment Intimation** mandatory for every insurer, or only some? What's the SLA to call it after a successful bank-PG transaction?

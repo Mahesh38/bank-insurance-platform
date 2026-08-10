@@ -1,5 +1,6 @@
 # 1Silverbullet (1SB) Insurance Integration Guide
 
+**Up:** [docs index](../README.md) → **1SB integration** (module-specific engineering docs)  
 **Audience:** Bank insurance platform engineering, architecture, RM journey product, and QA  
 **Source docs:** [1SB Insurance Gateway API](https://docs.1silverbullet.tech/docs/insurance/retail/apiDocs/insurance-gateway-api) (v1.0.0)  
 **Demo base URL:** `https://demo.api.1silverbullet.tech`  

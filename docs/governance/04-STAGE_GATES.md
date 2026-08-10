@@ -96,7 +96,14 @@ edit `current_phase`.
 | 4.4 | Compliance review of audit schema + log samples | Signed review note in `service-ssot/` | ❌ Open |
 | 4.5 | Runbook: secrets rotation, IP whitelist, 1SB 401/5xx incident | Runbook document | ❌ Open |
 | 4.6 | Performance smoke: p95 quote under nominal concurrency | Measurement report + threshold | ❌ Open |
-| 4.7 | Coverage gates green; QA-001 closed or explicitly waived with expiry | JaCoCo report + TECH-DEBT entry | 🟡 Partial — libs at 80/70; service on interim floor |
+| ~~4.7~~ | ~~Coverage gates green; QA-001 closed or waived with expiry~~ | — | ⚠️ **PROPOSED — not ratified. Does not gate.** See below |
+
+> ⚠️ **Criterion 4.7 is proposed, not binding.** `ACTION-PLAN.md` Phase 4 defines criteria
+> 4.1–4.6 only; 4.7 was added while authoring this framework, which is precisely the scope
+> creep [14-CHANGE_CONTROL.md §1](./14-CHANGE_CONTROL.md#1-what-needs-a-change-request) forbids —
+> changing a stage's exit criteria requires a CR approved by the Architect and PO. It is
+> tracked as **[CR-001](./registers/DECISION-REGISTER.md#3-change-requests)** and **must not be
+> treated as blocking** until that CR is approved. Agents must not claim SF0 against it.
 
 **Approvers:** Architect · PO · QA Lead · Compliance (4.4) · Ops (4.5)
 

@@ -45,7 +45,26 @@ without a search.
 
 | ID | Date | Type | Summary | Decision | Approvers |
 |----|------|------|---------|----------|-----------|
-| — | — | — | *none raised* | — | — |
+| CR-001 | 2026-08-10 | STAGE | Add exit criterion **4.7** (coverage gates green; QA-001 closed or waived with expiry) to the WS-1 Phase 4 gate | **PENDING** | Architect + PO + QA Lead |
+
+### CR-001 — add Phase 4 exit criterion 4.7
+
+```text
+current_position:  ACTION-PLAN.md Phase 4 defines exit criteria 4.1-4.6. Coverage is not
+                   among them. QA-001 is tracked as P0 tech debt with "Partial" status.
+proposed_change:   Add 4.7 to 04-STAGE_GATES.md as a binding criterion.
+driver:            QA-001 is P0 debt; 15-TECH_DEBT_POLICY forbids a P0 debt item crossing a
+                   gate. Either 4.7 is a criterion, or QA-001 is not P0. Today the two
+                   documents disagree.
+raised_because:    The criterion was added during framework authoring WITHOUT a CR - a
+                   governance violation caught in review. It is demoted to PROPOSED until
+                   ratified, rather than quietly kept.
+impact:            If approved, Phase 4 cannot pass with the service coverage floor still
+                   "interim". If rejected, QA-001 must be re-severitised below P0.
+alternatives:      (a) approve as written  (b) reject and downgrade QA-001 to P1
+                   (c) approve with a dated waiver for the interim service floor
+decision:          PENDING
+```
 
 ## 4. Stage transitions
 

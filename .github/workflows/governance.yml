@@ -1,0 +1,77 @@
+name: Governance (AIGEM)
+
+# Makes the governance model enforceable rather than honour-system.
+#
+# Two tiers, deliberately:
+#   * freshness  — runs on the documented baseline (JDK 21 + Git), no dependencies.
+#                  This is the same check agents run at session start.
+#   * ci-checks  — schema and link validation. Needs Python tooling, so it is CI-only
+#                  and is never on an agent's or a developer's critical path.
+#
+# See docs/governance/RUNBOOK.md section 4.
+
+on:
+  pull_request:
+    paths:
+      - "docs/governance/**"
+      - "scripts/governance/**"
+      - ".github/workflows/governance.yml"
+      - "AGENTS.md"
+  push:
+    branches: [main]
+    paths:
+      - "docs/governance/**"
+      - "scripts/governance/**"
+  schedule:
+    # Weekly, so staleness surfaces even when nobody touches the governance files —
+    # a stale state file is exactly the failure that produces no diff.
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  freshness:
+    name: State freshness (JDK baseline)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # artefact ages come from git history
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Fixture tests for the checker
+        run: bash scripts/governance/test-freshness-check.sh
+
+      - name: Freshness check
+        run: |
+          set +e
+          java scripts/governance/FreshnessCheck.java --no-color
+          code=$?
+          set -e
+          echo "exit=$code"
+          # 1 = warnings (reported, not fatal). 2 = halt-class staleness.
+          if [ "$code" -ge 2 ]; then
+            echo "::error::Governance state is stale — agents must not admit new work. See docs/governance/RUNBOOK.md section 4."
+            exit 1
+          fi
+
+  ci-checks:
+    name: Schemas, records and links
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install --quiet pyyaml jsonschema
+
+      - name: Governance CI checks
+        run: python3 scripts/governance/ci-checks.py

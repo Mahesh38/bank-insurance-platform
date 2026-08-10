@@ -49,8 +49,8 @@ Risks knowingly carried, with the acceptance recorded so they are not re-raised 
 
 | ID | Risk | Accepted by | Until | Why acceptable |
 |----|------|-------------|-------|----------------|
-| RISK-004 | In-memory idempotency | Tech Lead | Phase 5.4 | Single instance in UAT; scale-out is gated |
-| RISK-010 | Forward-only governance adoption | Delivery Lead | — | Backfilling costs days and changes no shipped code |
+| → [RISK-004](#2-open-risks) | In-memory idempotency | Tech Lead | Phase 5.4 | Single instance in UAT; scale-out is gated |
+| → [RISK-010](#2-open-risks) | Forward-only governance adoption | Delivery Lead | — | Backfilling costs days and changes no shipped code |
 
 ## 4. Closed risks
 

@@ -210,21 +210,46 @@ actively misleading, because agents will trust it.
 ### 4.5 The staleness alarm
 
 ```bash
-python3 scripts/governance/freshness-check.py
+java scripts/governance/FreshnessCheck.java     # JDK 21 + Git only; no build, no deps
+./gradlew governanceFreshness                  # equivalent, via the wrapper
 ```
 
 Run it: weekly (Delivery Lead), at every gate, and **automatically by any agent at session
-start**. Exit codes: `0` fresh · `1` warnings · `2` a hard-halt artefact is stale.
+start**. Exit codes: `0` fresh · `1` warnings · `2` halt-class staleness.
+
+It **fails closed**: anything it cannot fully parse or resolve is a halt, never a silent pass.
+That is deliberate — a checker that shrugs at a malformed state file is worse than none, because
+it manufactures confidence. Its own behaviour is covered by fixtures:
+
+```bash
+bash scripts/governance/test-freshness-check.sh   # 24 cases, incl. every CS-1 halt
+```
 
 **Agent behaviour on staleness** — this is the rule that protects every downstream decision:
 
 | Condition | Agent must |
 |-----------|-----------|
-| `CURRENT-STATE.yaml` missing or malformed | **HALT triage.** Report. Do not guess (Rule CS-1) |
-| `state_as_of` older than `review_due` | **HALT ADMIT decisions.** May still PARK and REJECT. Say the state is stale in every reply |
+| `CURRENT-STATE.yaml` missing, malformed, or using YAML the reader does not implement | **HALT triage.** Report. Do not guess (Rule CS-1) |
+| `state_as_of` older than `review_due`, or either missing | **HALT ADMIT decisions.** May still PARK and REJECT. Say the state is stale in every reply |
+| A required structure is absent — no workstreams, no lifecycle, no gate criteria | **HALT.** Context cannot be resolved, so no verdict is sound |
 | `provisional: true` (unratified) | May PARK/REJECT freely; ADMIT only what an authority document already lists; else ESCALATE ([01 §7](./01-CURRENT_STATE.md#7-provisional-state-and-how-to-close-it)) |
+| A sequential ID counter is behind its register | **HALT.** The next mint would collide and corrupt backlinks |
+| A register ID is defined twice | **HALT.** Two items share an identity — usually a merge of parallel branches |
 | A gate criterion has no state | Treat as OPEN; do not claim SF0 against it |
 | Suggestion register untouched > 7 days | Warn once; check for unregistered work in recent commits |
+
+### 4.6 What runs where
+
+| Check | Runtime | Who runs it | When |
+|-------|---------|-------------|------|
+| `FreshnessCheck.java` | **JDK 21 + Git** — the documented baseline | Agents, Delivery Lead, CI, Gradle | Session start · weekly · every gate · every PR |
+| `test-freshness-check.sh` | Bash + JDK | CI | Every PR touching governance |
+| `ci-checks.py` — schemas, tagged records, links, calibration | Python + PyYAML + jsonschema | **CI only** | Every PR touching governance; weekly |
+
+The split is the point: the **mandatory** check has no dependencies beyond what this repository
+already requires, so "run the freshness check first" is an instruction an agent can always
+follow. Schema validation is richer but optional tooling, so it lives in CI and never blocks
+someone whose machine lacks Python.
 
 ---
 
@@ -629,7 +654,7 @@ the verdict; fact 10 determines whether the project gets finished.
 ### 8.2 Session start — every session, no exceptions
 
 ```text
-[ ] python3 scripts/governance/freshness-check.py    → act on exit code
+[ ] java scripts/governance/FreshnessCheck.java      → act on exit code
 [ ] Read docs/governance/state/CURRENT-STATE.yaml     → facts 1–9
 [ ] Read registers/PARKED-BACKLOG.md                  → do not re-propose parked items
 [ ] Read 01-CURRENT_STATE.md §6                       → do not re-report known debt

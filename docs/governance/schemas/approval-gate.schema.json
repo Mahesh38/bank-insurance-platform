@@ -1,0 +1,222 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bank-insurance-platform/governance/schemas/approval-gate.schema.json",
+  "title": "AIGEM Approval Gate",
+  "description": "The aggregated verdict of the review board for one implementation plan. Encodes 11-REVIEW_GATES sections 3, 12 and 13: mandatory boards per risk tier, binding Security / Risk-and-Compliance vetoes, human sign-off at T4, and the two-round rework cap. A gate with no verdicts can no longer claim APPROVED.",
+  "type": "object",
+  "required": ["plan", "risk_tier", "round", "verdicts", "result"],
+  "additionalProperties": false,
+
+  "properties": {
+    "plan": { "type": "string", "pattern": "^PLAN-[0-9]{3}$" },
+    "work_item": { "type": "string" },
+    "risk_tier": { "enum": ["T1", "T2", "T3", "T4"] },
+    "round": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 2,
+      "description": "11 section 13: a third round is not permitted — the result becomes ESCALATED instead."
+    },
+    "verdicts": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ARCHITECTURE": { "$ref": "#/$defs/boardVerdict" },
+        "TECHNICAL": { "$ref": "#/$defs/boardVerdict" },
+        "PRODUCT": { "$ref": "#/$defs/boardVerdict" },
+        "SECURITY": { "$ref": "#/$defs/boardVerdict" },
+        "QA": { "$ref": "#/$defs/boardVerdict" },
+        "RISK_COMPLIANCE": { "$ref": "#/$defs/boardVerdict" },
+        "OPERATIONS": { "$ref": "#/$defs/boardVerdict" }
+      }
+    },
+    "result": { "enum": ["APPROVED", "REWORK", "REJECTED", "ESCALATED"] },
+    "conditions_folded_into_ac": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+    "should_fix_registered_as": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^SUG-([0-9]{8}-[0-9a-z]{3}|[0-9]{4})$" }
+    },
+    "vetoes": {
+      "oneOf": [
+        { "const": "none" },
+        { "type": "array", "items": { "enum": ["SECURITY", "RISK_COMPLIANCE", "ARCHITECTURE"] } }
+      ]
+    },
+    "human_signoffs": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+    "approved_on": { "type": "string", "format": "date" },
+    "expires": {
+      "type": "string",
+      "minLength": 1,
+      "description": "11 section 14: an approval expires at the next stage boundary."
+    }
+  },
+
+  "allOf": [
+    {
+      "$comment": "Mandatory boards by risk tier (11 section 3). A board with no interest records NOT_APPLICABLE with a reason — silence is never assent.",
+      "if": { "properties": { "risk_tier": { "const": "T1" } }, "required": ["risk_tier"] },
+      "then": { "properties": { "verdicts": { "required": ["TECHNICAL"] } } }
+    },
+    {
+      "if": { "properties": { "risk_tier": { "const": "T2" } }, "required": ["risk_tier"] },
+      "then": { "properties": { "verdicts": { "required": ["TECHNICAL", "PRODUCT", "QA"] } } }
+    },
+    {
+      "if": { "properties": { "risk_tier": { "enum": ["T3", "T4"] } }, "required": ["risk_tier"] },
+      "then": {
+        "properties": {
+          "verdicts": {
+            "required": ["ARCHITECTURE", "TECHNICAL", "PRODUCT", "SECURITY", "QA", "RISK_COMPLIANCE", "OPERATIONS"]
+          }
+        }
+      }
+    },
+
+    {
+      "$comment": "11 section 12: APPROVED requires that no board returned REWORK or REJECTED. Constraining every named board closes the veto path — a Security REWORK can no longer be out-voted.",
+      "if": { "properties": { "result": { "const": "APPROVED" } }, "required": ["result"] },
+      "then": {
+        "properties": {
+          "verdicts": {
+            "properties": {
+              "ARCHITECTURE": { "$ref": "#/$defs/nonBlockingVerdict" },
+              "TECHNICAL": { "$ref": "#/$defs/nonBlockingVerdict" },
+              "PRODUCT": { "$ref": "#/$defs/nonBlockingVerdict" },
+              "SECURITY": { "$ref": "#/$defs/nonBlockingVerdict" },
+              "QA": { "$ref": "#/$defs/nonBlockingVerdict" },
+              "RISK_COMPLIANCE": { "$ref": "#/$defs/nonBlockingVerdict" },
+              "OPERATIONS": { "$ref": "#/$defs/nonBlockingVerdict" }
+            }
+          }
+        },
+        "required": ["approved_on", "expires"]
+      }
+    },
+
+    {
+      "$comment": "11 section 2: T4 Security and Risk-and-Compliance verdicts must be human, and the gate must record at least one human sign-off. No agent substitute, no aggregate override.",
+      "if": {
+        "properties": { "risk_tier": { "const": "T4" }, "result": { "const": "APPROVED" } },
+        "required": ["risk_tier", "result"]
+      },
+      "then": {
+        "properties": {
+          "verdicts": {
+            "properties": {
+              "SECURITY": { "$ref": "#/$defs/humanVerdict" },
+              "RISK_COMPLIANCE": { "$ref": "#/$defs/humanVerdict" }
+            }
+          },
+          "human_signoffs": { "minItems": 1 }
+        },
+        "required": ["human_signoffs"]
+      }
+    },
+
+    {
+      "$comment": "11 section 2: a T3 plan reviewed only by agents needs at least one human board.",
+      "if": {
+        "properties": { "risk_tier": { "const": "T3" }, "result": { "const": "APPROVED" } },
+        "required": ["risk_tier", "result"]
+      },
+      "then": {
+        "properties": {
+          "verdicts": {
+            "anyOf": [
+              { "properties": { "ARCHITECTURE": { "$ref": "#/$defs/humanVerdict" } }, "required": ["ARCHITECTURE"] },
+              { "properties": { "TECHNICAL": { "$ref": "#/$defs/humanVerdict" } }, "required": ["TECHNICAL"] },
+              { "properties": { "PRODUCT": { "$ref": "#/$defs/humanVerdict" } }, "required": ["PRODUCT"] },
+              { "properties": { "SECURITY": { "$ref": "#/$defs/humanVerdict" } }, "required": ["SECURITY"] },
+              { "properties": { "QA": { "$ref": "#/$defs/humanVerdict" } }, "required": ["QA"] },
+              { "properties": { "RISK_COMPLIANCE": { "$ref": "#/$defs/humanVerdict" } }, "required": ["RISK_COMPLIANCE"] },
+              { "properties": { "OPERATIONS": { "$ref": "#/$defs/humanVerdict" } }, "required": ["OPERATIONS"] }
+            ]
+          }
+        }
+      }
+    },
+
+    {
+      "$comment": "Conditions attached by any board must be carried forward as acceptance criteria before the gate may close as APPROVED.",
+      "if": {
+        "allOf": [
+          { "properties": { "result": { "const": "APPROVED" } }, "required": ["result"] },
+          {
+            "properties": {
+              "verdicts": {
+                "anyOf": [
+                  { "properties": { "ARCHITECTURE": { "$ref": "#/$defs/hasConditions" } }, "required": ["ARCHITECTURE"] },
+                  { "properties": { "TECHNICAL": { "$ref": "#/$defs/hasConditions" } }, "required": ["TECHNICAL"] },
+                  { "properties": { "PRODUCT": { "$ref": "#/$defs/hasConditions" } }, "required": ["PRODUCT"] },
+                  { "properties": { "SECURITY": { "$ref": "#/$defs/hasConditions" } }, "required": ["SECURITY"] },
+                  { "properties": { "QA": { "$ref": "#/$defs/hasConditions" } }, "required": ["QA"] },
+                  { "properties": { "RISK_COMPLIANCE": { "$ref": "#/$defs/hasConditions" } }, "required": ["RISK_COMPLIANCE"] },
+                  { "properties": { "OPERATIONS": { "$ref": "#/$defs/hasConditions" } }, "required": ["OPERATIONS"] }
+                ]
+              }
+            },
+            "required": ["verdicts"]
+          }
+        ]
+      },
+      "then": {
+        "required": ["conditions_folded_into_ac"],
+        "properties": { "conditions_folded_into_ac": { "minItems": 1 } }
+      }
+    }
+  ],
+
+  "$defs": {
+    "boardVerdict": {
+      "type": "object",
+      "required": ["decision", "reviewer_type"],
+      "additionalProperties": false,
+      "properties": {
+        "decision": { "enum": ["APPROVED", "APPROVED_WITH_CONDITIONS", "REWORK", "REJECTED", "NOT_APPLICABLE"] },
+        "reviewer": { "type": "string", "minLength": 1 },
+        "reviewer_type": { "enum": ["HUMAN", "AGENT"] },
+        "self_review": { "type": "boolean" },
+        "reason": { "type": "string", "minLength": 1 },
+        "must_fix": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "conditions": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "evidence": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+      },
+      "allOf": [
+        {
+          "$comment": "Rule RG-3: no evidence, no verdict.",
+          "if": { "properties": { "decision": { "enum": ["APPROVED", "APPROVED_WITH_CONDITIONS"] } }, "required": ["decision"] },
+          "then": { "required": ["evidence"], "properties": { "evidence": { "minItems": 1 } } }
+        },
+        {
+          "if": { "properties": { "decision": { "const": "APPROVED_WITH_CONDITIONS" } }, "required": ["decision"] },
+          "then": { "required": ["conditions"], "properties": { "conditions": { "minItems": 1 } } }
+        },
+        {
+          "if": { "properties": { "decision": { "const": "REWORK" } }, "required": ["decision"] },
+          "then": { "required": ["must_fix"], "properties": { "must_fix": { "minItems": 1 } } }
+        },
+        {
+          "if": { "properties": { "decision": { "const": "NOT_APPLICABLE" } }, "required": ["decision"] },
+          "then": { "required": ["reason"] }
+        }
+      ]
+    },
+
+    "nonBlockingVerdict": {
+      "$comment": "A verdict compatible with an APPROVED gate.",
+      "properties": {
+        "decision": { "enum": ["APPROVED", "APPROVED_WITH_CONDITIONS", "NOT_APPLICABLE"] }
+      }
+    },
+
+    "humanVerdict": {
+      "properties": { "reviewer_type": { "const": "HUMAN" } },
+      "required": ["reviewer_type"]
+    },
+
+    "hasConditions": {
+      "properties": { "conditions": { "type": "array", "minItems": 1 } },
+      "required": ["conditions"]
+    }
+  }
+}

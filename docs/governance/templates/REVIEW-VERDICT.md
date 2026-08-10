@@ -9,35 +9,35 @@ One record per board, per plan. Boards, checklists, and aggregation rules:
 ---
 
 ```yaml
-review:
-  board: SECURITY                 # ARCHITECTURE | TECHNICAL | PRODUCT | SECURITY | QA | RISK_COMPLIANCE | OPERATIONS
-  plan: PLAN-011
-  work_item: NFR-011
-  reviewer: "Security Architect"
-  reviewer_type: HUMAN            # HUMAN | AGENT
-  self_review: false              # true if the reviewer also authored the plan
-  date: 2026-08-12
+# schema: review-verdict
+board: SECURITY                 # ARCHITECTURE | TECHNICAL | PRODUCT | SECURITY | QA | RISK_COMPLIANCE | OPERATIONS
+plan: PLAN-011
+work_item: NFR-011
+reviewer: "Security Architect"
+reviewer_type: HUMAN            # HUMAN | AGENT
+self_review: false              # true if the reviewer also authored the plan
+date: "2026-08-12"
 
-  decision: APPROVED_WITH_CONDITIONS
-  # APPROVED | APPROVED_WITH_CONDITIONS | REWORK | REJECTED | NOT_APPLICABLE
+decision: APPROVED_WITH_CONDITIONS
+# APPROVED | APPROVED_WITH_CONDITIONS | REWORK | REJECTED | NOT_APPLICABLE
 
-  must_fix: []                    # blocking — required for REWORK
-  conditions:                     # become acceptance criteria on approval
-    - "Redis keys must be hashed; no application number or PAN in key names — assert in test"
-  should_fix:                     # non-blocking; each triaged as a fresh SUG-####
-    - "Consider TLS to Redis in UAT ahead of production"
+must_fix: []                    # blocking — required for REWORK
+conditions:                     # become acceptance criteria on approval
+  - "Redis keys must be hashed; no application number or PAN in key names — assert in test"
+should_fix:                     # non-blocking; each triaged as a fresh SUG-####
+  - "Consider TLS to Redis in UAT ahead of production"
 
-  evidence:                       # which checks were actually performed
-    - "S1: no authorization change — filter runs pre-authorization, unchanged"
-    - "S2: reviewed key construction in plan §files_expected; AC-3 covers PII"
-    - "S3: Redis credentials via secrets SPI per plan §operational_impact"
-    - "S5: no new external input path"
-    - "S6: attack surface grows by one outbound connection to a private Redis"
-    - "S10: fail-closed confirmed in plan §proposed_solution and AC-2"
+evidence:                       # which checks were actually performed
+  - "S1: no authorization change — filter runs pre-authorization, unchanged"
+  - "S2: reviewed key construction in plan §files_expected; AC-3 covers PII"
+  - "S3: Redis credentials via secrets SPI per plan §operational_impact"
+  - "S5: no new external input path"
+  - "S6: attack surface grows by one outbound connection to a private Redis"
+  - "S10: fail-closed confirmed in plan §proposed_solution and AC-2"
 
-  notes: >
-    Fail-closed is the right default here. Flagging TLS as a should-fix rather than a
-    condition because UAT Redis is private-subnet only.
+notes: >
+  Fail-closed is the right default here. Flagging TLS as a should-fix rather than a
+  condition because UAT Redis is private-subnet only.
 ```
 
 ---
@@ -89,27 +89,52 @@ O5_rollback:  O6_capacity_cost:  O7_runbook:  O8_rolling_deploy:
 ## Aggregated gate record
 
 ```yaml
-approval_gate:
-  plan: PLAN-011
-  risk_tier: T3
-  round: 1
-  verdicts:
-    ARCHITECTURE:    { decision: APPROVED,                 reviewer_type: AGENT }
-    TECHNICAL:       { decision: APPROVED,                 reviewer_type: AGENT }
-    PRODUCT:         { decision: APPROVED,                 reviewer_type: AGENT }
-    SECURITY:        { decision: APPROVED_WITH_CONDITIONS, reviewer_type: HUMAN }
-    QA:              { decision: APPROVED_WITH_CONDITIONS, reviewer_type: AGENT }
-    RISK_COMPLIANCE: { decision: NOT_APPLICABLE,           reviewer_type: AGENT,
-                       reason: "no regulated data, consent, or retention impact" }
-    OPERATIONS:      { decision: APPROVED,                 reviewer_type: AGENT }
+# schema: approval-gate
+plan: PLAN-011
+risk_tier: T3
+round: 1
+verdicts:                        # every approving verdict carries evidence (Rule RG-3)
+  ARCHITECTURE:
+    decision: APPROVED
+    reviewer_type: HUMAN         # T3 needs at least one human board (11 §2)
+    reviewer: "Solution Architect"
+    evidence: ["A1-A10 checked against plan §affected_components; no boundary moved"]
+  TECHNICAL:
+    decision: APPROVED
+    reviewer_type: AGENT
+    evidence: ["T1-T8 checked; fail-closed path reviewed in §proposed_solution"]
+  PRODUCT:
+    decision: APPROVED
+    reviewer_type: AGENT
+    evidence: ["P1-P7 checked; no user-visible behaviour change"]
+  SECURITY:
+    decision: APPROVED_WITH_CONDITIONS
+    reviewer_type: HUMAN
+    reviewer: "Security Architect"
+    conditions: ["Redis keys hashed; no PII in key names — assert in test"]
+    evidence: ["S1-S10 checked; attack surface grows by one private-subnet connection"]
+  QA:
+    decision: APPROVED_WITH_CONDITIONS
+    reviewer_type: AGENT
+    conditions: ["Negative test for Redis unavailability"]
+    evidence: ["Q1-Q8 checked; AC-2 covers the outage path"]
+  RISK_COMPLIANCE:
+    decision: NOT_APPLICABLE
+    reviewer_type: AGENT
+    reason: "no regulated data, consent, or retention impact"
+    evidence: ["R1-R8 screened; no regulated data in scope"]
+  OPERATIONS:
+    decision: APPROVED
+    reviewer_type: AGENT
+    evidence: ["O1-O8 checked; runbook update listed in §operational_impact"]
 
-  result: APPROVED
-  conditions_folded_into_ac:
-    - "Redis keys hashed; no PII in key names (SECURITY)"
-    - "Negative test for Redis unavailability (QA)"
-  should_fix_registered_as: [SUG-0053, SUG-0054]
-  vetoes: none
-  human_signoffs: ["Security Architect"]
-  approved_on: 2026-08-12
-  expires: "Phase 4 gate"        # approvals expire at the next stage boundary (11 §14)
+result: APPROVED
+conditions_folded_into_ac:
+  - "Redis keys hashed; no PII in key names (SECURITY)"
+  - "Negative test for Redis unavailability (QA)"
+should_fix_registered_as: [SUG-0053, SUG-0054]
+vetoes: none
+human_signoffs: ["Security Architect"]
+approved_on: "2026-08-12"
+expires: "Phase 4 gate"        # approvals expire at the next stage boundary (11 §14)
 ```

@@ -9,7 +9,9 @@ This repository runs the **AIGEM** governance model
 suggestion, or finding:
 
 1. Run the freshness check and act on its exit code
-   (`python3 scripts/governance/freshness-check.py` — `2` means do not admit new work).
+   (`java scripts/governance/FreshnessCheck.java` — exit `2` means do not admit new work).
+   Runs on the documented JDK 21 + Git baseline; no build step, no dependencies.
+   `./gradlew governanceFreshness` is equivalent.
 2. Read **[docs/governance/state/CURRENT-STATE.yaml](./docs/governance/state/CURRENT-STATE.yaml)** —
    which workstream, which lifecycle stage, what is in and out of scope, which gate is open.
 3. Read **[RUNBOOK.md §8](./docs/governance/RUNBOOK.md#8-what-the-ai-agent-must-know-about-this-project)** —

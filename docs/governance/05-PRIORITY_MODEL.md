@@ -94,16 +94,37 @@ SCORE = 2N + 2S + 2B + 2R + D − E          range: −3 … 30
 Effort is subtracted, not divided: this is a cost-of-delay model with a cost penalty, so a
 cheap item never outranks a critical one, but two equally necessary items are ordered by cost.
 
+### Factor coupling (Rule PRI-8)
+
+Stage fit is not independent of blocking factor: the SF codes are *defined* in terms of what
+an item blocks ([03 §3](./03-LIFECYCLE.md#3-stage-fit-codes-sf)). Leaving `B` at 0 for an SF0
+item contradicts the classification that produced the SF0 in the first place.
+
+| If stage fit is… | Then B is at least… | Because |
+|---|---|---|
+| **SF0** prerequisite | **2** | By definition it blocks a gate criterion or the current deliverable. `B = 3` if it blocks the gate itself |
+| **SF1** on-stage **and** necessity MUST | **1** | A MUST on the current stage's deliverable blocks that deliverable |
+| SF1 otherwise, SF2, SF3 | 0 | No implied blocking |
+
+Set `B` from the dependency analysis when it is higher. The floor exists so the two routes to a
+priority cannot silently disagree — before this rule, `SF0 + MUST` with `B = 0` scored **P3**
+against a matrix default of **P1**, and the consistency check below fired on perfectly
+classified work.
+
 ### Consistency check (Rule PRI-4)
 
-The action matrix in [00 §6](./00-GOVERNANCE.md#6-the-action-matrix) already implies a default
-band. The score may adjust that default by **at most one band**.
+The action matrix in [00 §6](./00-GOVERNANCE.md#6-the-action-matrix) implies a default band.
+Where the matrix gives a range (`P1–P2`), the **lower-urgency end** is the default for this
+comparison. The score may adjust that default by **at most one band**.
 
 > If the score lands more than one band away from the matrix default, **the classification is
-> probably wrong, not the score.** Re-check necessity and stage fit before accepting the number.
+> probably wrong, not the score.** Re-check necessity, stage fit, and the PRI-8 floors before
+> accepting the number.
 
 This is the model's self-check: two independent routes to the same answer, and a required
-reconciliation when they disagree.
+reconciliation when they disagree. With PRI-8 applied, every cell of the matrix agrees with the
+formula to within one band — verified in [18 §5](./18-GOVERNANCE_METRICS.md#5-minimum-viable-measurement)'s
+calibration and re-checked by CI whenever the weights change.
 
 ### Ordering inside a band
 

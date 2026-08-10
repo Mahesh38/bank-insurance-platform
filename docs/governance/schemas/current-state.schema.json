@@ -4,128 +4,316 @@
   "title": "AIGEM Current State",
   "description": "The first file every agent reads. Pipeline step 1 (Context Resolution) depends entirely on it. Rule CS-1: missing, malformed, or past review_due halts triage.",
   "type": "object",
-  "required": ["schema_version", "project", "state_as_of", "workstreams"],
+  "required": [
+    "schema_version",
+    "project",
+    "state_as_of",
+    "workstreams"
+  ],
   "additionalProperties": false,
   "properties": {
-    "schema_version": { "type": "string" },
-    "governance_version": { "type": "string" },
-
+    "schema_version": {
+      "type": "string"
+    },
+    "governance_version": {
+      "type": "string"
+    },
     "project": {
       "type": "object",
-      "required": ["name"],
+      "required": [
+        "name"
+      ],
       "additionalProperties": false,
       "properties": {
-        "name": { "type": "string" },
-        "repository": { "type": "string" }
+        "name": {
+          "type": "string"
+        },
+        "repository": {
+          "type": "string"
+        }
       }
     },
-
-    "state_as_of": { "type": "string", "format": "date" },
-    "review_due": { "type": "string", "format": "date" },
-    "ratified_by": { "type": ["string", "array", "null"] },
-    "provisional": { "type": "boolean", "description": "While true, agents run restricted per 01 §7." },
-
+    "state_as_of": {
+      "type": "string",
+      "format": "date"
+    },
+    "review_due": {
+      "type": "string",
+      "format": "date"
+    },
+    "ratified_by": {
+      "type": [
+        "string",
+        "array",
+        "null"
+      ]
+    },
+    "provisional": {
+      "type": "boolean",
+      "description": "While true, agents run restricted per 01 \u00a77."
+    },
     "workstreams": {
       "type": "array",
       "minItems": 1,
       "items": {
         "type": "object",
-        "required": ["id", "name", "lifecycle", "current_objective", "current_scope"],
+        "required": [
+          "id",
+          "name",
+          "lifecycle",
+          "current_objective",
+          "current_scope"
+        ],
         "additionalProperties": false,
         "properties": {
-          "id": { "type": "string" },
-          "name": { "type": "string" },
-          "authority": { "type": "array", "items": { "type": "string" } },
-
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "authority": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "lifecycle": {
             "type": "object",
-            "required": ["current_phase", "stage_status"],
+            "required": [
+              "current_phase",
+              "stage_status"
+            ],
             "additionalProperties": false,
             "properties": {
-              "canonical_stage": { "type": "string", "description": "L0..L10 per 03 §2" },
-              "current_phase": { "type": "string" },
-              "stage_status": { "enum": ["NOT_STARTED", "IN_PROGRESS", "CANDIDATE", "BLOCKED", "DONE"] },
-              "next_stage": { "type": "string" }
+              "canonical_stage": {
+                "type": "string",
+                "description": "L0..L10 per 03 \u00a72"
+              },
+              "current_phase": {
+                "type": "string"
+              },
+              "stage_status": {
+                "enum": [
+                  "NOT_STARTED",
+                  "IN_PROGRESS",
+                  "CANDIDATE",
+                  "BLOCKED",
+                  "DONE"
+                ]
+              },
+              "next_stage": {
+                "type": "string"
+              }
             }
           },
-
           "current_objective": {
             "type": "object",
-            "required": ["description"],
+            "required": [
+              "description"
+            ],
             "additionalProperties": false,
             "properties": {
-              "id": { "type": "string" },
-              "description": { "type": "string" }
+              "id": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              }
             }
           },
-
           "current_deliverable": {
             "type": "object",
             "additionalProperties": false,
-            "properties": { "description": { "type": "string" } }
+            "properties": {
+              "description": {
+                "type": "string"
+              }
+            }
           },
-
           "current_scope": {
             "type": "object",
-            "required": ["in_scope", "out_of_scope"],
+            "required": [
+              "in_scope",
+              "out_of_scope"
+            ],
             "additionalProperties": false,
             "properties": {
-              "in_scope": { "type": "array", "items": { "type": "string" } },
+              "in_scope": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
               "out_of_scope": {
                 "type": "array",
                 "items": {
                   "oneOf": [
-                    { "type": "string" },
+                    {
+                      "type": "string"
+                    },
                     {
                       "type": "object",
-                      "required": ["item"],
+                      "required": [
+                        "item"
+                      ],
                       "additionalProperties": false,
                       "properties": {
-                        "item": { "type": "string" },
-                        "revisit_at": { "type": "string" }
+                        "item": {
+                          "type": "string"
+                        },
+                        "revisit_at": {
+                          "type": "string"
+                        }
                       }
                     }
                   ]
                 }
               },
-              "never": { "type": "array", "items": { "type": "string" }, "description": "Violations are SF4/REJECT on sight." }
+              "never": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Violations are SF4/REJECT on sight."
+              }
             }
           },
-
           "current_gate": {
             "type": "object",
-            "required": ["state", "exit_criteria"],
+            "required": [
+              "state",
+              "exit_criteria"
+            ],
             "additionalProperties": false,
             "properties": {
-              "id": { "type": "string" },
-              "state": { "enum": ["OPEN", "CANDIDATE", "PASSED", "BLOCKED"] },
+              "id": {
+                "type": "string"
+              },
+              "state": {
+                "enum": [
+                  "OPEN",
+                  "CANDIDATE",
+                  "PASSED",
+                  "BLOCKED"
+                ]
+              },
               "exit_criteria": {
                 "type": "array",
                 "items": {
                   "type": "object",
-                  "required": ["criterion", "state"],
+                  "required": [
+                    "criterion",
+                    "state"
+                  ],
                   "additionalProperties": false,
                   "properties": {
-                    "id": { "type": "string" },
-                    "criterion": { "type": "string" },
-                    "state": { "enum": ["OPEN", "PARTIAL", "MET", "WAIVED"] },
-                    "evidence": { "type": "string" }
+                    "id": {
+                      "type": "string"
+                    },
+                    "criterion": {
+                      "type": "string"
+                    },
+                    "state": {
+                      "enum": [
+                        "OPEN",
+                        "PARTIAL",
+                        "MET",
+                        "WAIVED"
+                      ]
+                    },
+                    "evidence": {
+                      "type": "string"
+                    }
                   }
                 }
               },
-              "approvers": { "type": "array", "items": { "type": "string" } }
+              "approvers": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
             }
           },
-
-          "completed_stages": { "type": "array", "items": { "type": "string" } }
+          "completed_stages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
         }
       }
     },
-
-    "standing_constraints": { "type": "array", "items": { "type": "string" } },
-    "routing": { "type": "object", "additionalProperties": { "type": "string" } },
-    "known_open_debt": { "type": "array", "items": { "type": "string" } },
-    "registers": { "type": "object", "additionalProperties": { "type": "string" } },
-    "next_ids": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 1 } }
+    "standing_constraints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "routing": {
+      "type": "object",
+      "minProperties": 16,
+      "additionalProperties": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "description": "Keyed by the 16 canonical work types; ci-checks.py asserts closure over the enum. Values are lists because ARCH, SEC, COMP and MIGRATION have two homes."
+    },
+    "known_open_debt": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "registers": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "id_prefixes": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "description": "Legacy backlog ID namespaces. NOT work types."
+    },
+    "id_allocation": {
+      "type": "object",
+      "required": [
+        "collision_resistant",
+        "pattern",
+        "sequential"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "collision_resistant": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "pattern": {
+          "type": "string"
+        },
+        "legacy_pattern": {
+          "type": "string"
+        },
+        "sequential": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      },
+      "description": "Agent-minted IDs are collision-resistant; human-owned registers stay sequential."
+    }
   }
 }

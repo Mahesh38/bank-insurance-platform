@@ -2,82 +2,199 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://bank-insurance-platform/governance/schemas/review-verdict.schema.json",
   "title": "AIGEM Review Verdict",
-  "description": "One board's verdict on one implementation plan. Rule RG-3: APPROVED with an empty evidence[] is recorded as NOT_RUN.",
+  "description": "One board's verdict on one implementation plan. Rule RG-3: APPROVED with an empty evidence[] is recorded as NOT_RUN. The aggregated gate is a separate root schema \u2014 approval-gate.schema.json \u2014 which enforces mandatory boards per risk tier, binding vetoes and T4 human sign-off.",
   "type": "object",
-  "required": ["board", "plan", "reviewer", "reviewer_type", "decision", "evidence"],
+  "required": [
+    "board",
+    "plan",
+    "reviewer",
+    "reviewer_type",
+    "decision",
+    "evidence"
+  ],
   "additionalProperties": false,
   "properties": {
-    "board": { "enum": ["ARCHITECTURE", "TECHNICAL", "PRODUCT", "SECURITY", "QA", "RISK_COMPLIANCE", "OPERATIONS"] },
-    "plan": { "type": "string", "pattern": "^PLAN-[0-9]{3}$" },
-    "work_item": { "type": "string" },
-    "reviewer": { "type": "string" },
-    "reviewer_type": { "enum": ["HUMAN", "AGENT"] },
-    "self_review": { "type": "boolean", "default": false },
-    "round": { "type": "integer", "minimum": 1, "maximum": 2, "description": "11 §13: a third round escalates to a human instead." },
-    "date": { "type": "string", "format": "date" },
-
-    "decision": { "enum": ["APPROVED", "APPROVED_WITH_CONDITIONS", "REWORK", "REJECTED", "NOT_APPLICABLE"] },
-
-    "must_fix": { "type": "array", "items": { "type": "string" }, "description": "Blocking. Required when decision is REWORK." },
-    "conditions": { "type": "array", "items": { "type": "string" }, "description": "Become acceptance criteria on approval." },
-    "should_fix": { "type": "array", "items": { "type": "string" }, "description": "Non-blocking; each triaged as a fresh SUG-####." },
-
+    "board": {
+      "enum": [
+        "ARCHITECTURE",
+        "TECHNICAL",
+        "PRODUCT",
+        "SECURITY",
+        "QA",
+        "RISK_COMPLIANCE",
+        "OPERATIONS"
+      ]
+    },
+    "plan": {
+      "type": "string",
+      "pattern": "^PLAN-[0-9]{3}$"
+    },
+    "work_item": {
+      "type": "string"
+    },
+    "reviewer": {
+      "type": "string"
+    },
+    "reviewer_type": {
+      "enum": [
+        "HUMAN",
+        "AGENT"
+      ]
+    },
+    "self_review": {
+      "type": "boolean",
+      "default": false
+    },
+    "round": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 2,
+      "description": "11 \u00a713: a third round escalates to a human instead."
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "decision": {
+      "enum": [
+        "APPROVED",
+        "APPROVED_WITH_CONDITIONS",
+        "REWORK",
+        "REJECTED",
+        "NOT_APPLICABLE"
+      ]
+    },
+    "must_fix": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Blocking. Required when decision is REWORK."
+    },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Become acceptance criteria on approval."
+    },
+    "should_fix": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Non-blocking; each triaged as a fresh SUG-####."
+    },
     "evidence": {
       "type": "array",
-      "items": { "type": "string" },
+      "items": {
+        "type": "string"
+      },
       "description": "Which numbered checks were actually performed, and what was found."
     },
-
     "checklist": {
       "type": "object",
-      "additionalProperties": { "type": ["string", "boolean", "null"] },
+      "additionalProperties": {
+        "type": [
+          "string",
+          "boolean",
+          "null"
+        ]
+      },
       "description": "Per-board numbered checks, e.g. A1..A10, S1..S10."
     },
-
-    "notes": { "type": "string" },
-    "reason": { "type": "string", "description": "Required for NOT_APPLICABLE." }
+    "notes": {
+      "type": "string"
+    },
+    "reason": {
+      "type": "string",
+      "description": "Required for NOT_APPLICABLE."
+    }
   },
-
   "allOf": [
     {
-      "if": { "properties": { "decision": { "enum": ["APPROVED", "APPROVED_WITH_CONDITIONS"] } }, "required": ["decision"] },
+      "if": {
+        "properties": {
+          "decision": {
+            "enum": [
+              "APPROVED",
+              "APPROVED_WITH_CONDITIONS"
+            ]
+          }
+        },
+        "required": [
+          "decision"
+        ]
+      },
       "then": {
-        "properties": { "evidence": { "minItems": 1 } },
-        "description": "Rule RG-3 — no evidence, no verdict."
+        "properties": {
+          "evidence": {
+            "minItems": 1
+          }
+        },
+        "description": "Rule RG-3 \u2014 no evidence, no verdict."
       }
     },
     {
-      "if": { "properties": { "decision": { "const": "APPROVED_WITH_CONDITIONS" } }, "required": ["decision"] },
-      "then": { "properties": { "conditions": { "minItems": 1 } }, "required": ["conditions"] }
+      "if": {
+        "properties": {
+          "decision": {
+            "const": "APPROVED_WITH_CONDITIONS"
+          }
+        },
+        "required": [
+          "decision"
+        ]
+      },
+      "then": {
+        "properties": {
+          "conditions": {
+            "minItems": 1
+          }
+        },
+        "required": [
+          "conditions"
+        ]
+      }
     },
     {
-      "if": { "properties": { "decision": { "const": "REWORK" } }, "required": ["decision"] },
-      "then": { "properties": { "must_fix": { "minItems": 1 } }, "required": ["must_fix"] }
+      "if": {
+        "properties": {
+          "decision": {
+            "const": "REWORK"
+          }
+        },
+        "required": [
+          "decision"
+        ]
+      },
+      "then": {
+        "properties": {
+          "must_fix": {
+            "minItems": 1
+          }
+        },
+        "required": [
+          "must_fix"
+        ]
+      }
     },
     {
-      "if": { "properties": { "decision": { "const": "NOT_APPLICABLE" } }, "required": ["decision"] },
-      "then": { "required": ["reason"] }
-    }
-  ],
-
-  "$defs": {
-    "approvalGate": {
-      "title": "Aggregated approval gate",
-      "type": "object",
-      "required": ["plan", "risk_tier", "verdicts", "result"],
-      "properties": {
-        "plan": { "type": "string" },
-        "risk_tier": { "enum": ["T1", "T2", "T3", "T4"] },
-        "round": { "type": "integer", "minimum": 1 },
-        "verdicts": { "type": "object" },
-        "result": { "enum": ["APPROVED", "REWORK", "REJECTED", "ESCALATED"] },
-        "conditions_folded_into_ac": { "type": "array", "items": { "type": "string" } },
-        "should_fix_registered_as": { "type": "array", "items": { "type": "string", "pattern": "^SUG-[0-9]{4}$" } },
-        "vetoes": { "type": ["string", "array"] },
-        "human_signoffs": { "type": "array", "items": { "type": "string" } },
-        "approved_on": { "type": "string", "format": "date" },
-        "expires": { "type": "string", "description": "11 §14: approvals expire at the next stage boundary." }
+      "if": {
+        "properties": {
+          "decision": {
+            "const": "NOT_APPLICABLE"
+          }
+        },
+        "required": [
+          "decision"
+        ]
+      },
+      "then": {
+        "required": [
+          "reason"
+        ]
       }
     }
-  }
+  ]
 }

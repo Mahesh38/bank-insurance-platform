@@ -4,14 +4,16 @@
 Nothing is dropped. Nothing is deleted.
 
 **Owner:** whichever agent or person triaged the input
-**Next ID:** see `next_ids.SUG` in [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml)
+**ID format:** `SUG-<YYYYMMDD>-<3 chars from 0-9a-z>` — collision-resistant, no shared counter.
+Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation`
 **Rules:** [08-BACKLOG_RULES.md](../08-BACKLOG_RULES.md) · [09-AI_EXECUTION_RULES.md](../09-AI_EXECUTION_RULES.md)
 
 ---
 
 ## How to add a row
 
-1. Claim the next `SUG-####` and increment `next_ids.SUG`.
+1. Mint an ID: `SUG-<today>-<3 random chars>`, e.g. `SUG-20260812-a1b`. No counter to
+   increment and no merge conflict when two branches triage at once.
 2. Run pipeline steps 2–5 ([09 §2](../09-AI_EXECUTION_RULES.md#2-the-mandatory-sequence)).
 3. Add the summary row below.
 4. For anything beyond a trivial reject, add a detail block in §3 using
@@ -69,3 +71,16 @@ They keep their `TD-###` IDs; no `SUG-####` was minted retrospectively.
 
 **Do not re-triage or re-report these** — they are known
 ([01 §6](../01-CURRENT_STATE.md#6-known-open-debt-affecting-triage)).
+
+---
+
+## 5. Register row convention (machine-enforced)
+
+> **A table row whose first cell is a bare ID is that ID's DEFINITION.** Exactly one definition
+> may exist per ID, across every register. `FreshnessCheck` enforces this and halts on a
+> duplicate — that is how a cross-branch ID collision is caught after a merge.
+>
+> Cross-reference rows — the same item shown again in another view, such as an external
+> dependency also listed under its edge, or an open risk repeated under accepted risks — must
+> **point at** the definition rather than restate the bare ID — for example a leading cell
+> of `→ [DEP-002](./DEPENDENCY-REGISTER.md#1-edges)` instead of a bare `DEP-002`.

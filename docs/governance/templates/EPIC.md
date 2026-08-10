@@ -11,67 +11,71 @@ boundary is a scope-creep container.
 ---
 
 ```yaml
-epic:
-  id: EPIC-005
-  title: "Health LOB enablement"
-  workstream: WS-1
-  origin: ["PRODUCT-BACKLOG E09", "SUG-0052"]
-  owner: "Tech Lead"
-  stage: "Phase 5 — Expand LOBs"
+# schema: work-item
+id: EPIC-005
+title: "Health LOB enablement"
+type: FUNC                        # the epic's dominant work type
+breakdown: EPIC
+workstream: WS-1
+origin: ["PRODUCT-BACKLOG E09", "SUG-0052"]
+owner: "Tech Lead"
+state: PARKED
+target_stage: "Phase 5 — Expand LOBs"
+unpark_trigger: "Phase 4 gate PASSED"
 
-  outcome: >
-    Bank apps can run the full quote → proposal → payment → status journey for
-    lob=HEALTH using the same public API contracts as Term.
+outcome: >
+  Bank apps can run the full quote → proposal → payment → status journey for
+  lob=HEALTH using the same public API contracts as Term.
 
-  epic_triggers_met:
-    - multiple_stories
-    - multiple_acceptance_outcomes
-    - multiple_dependencies
+epic_triggers_met:
+  - multiple_stories
+  - multiple_acceptance_outcomes
+  - multiple_dependencies
 
-  completion_definition: >
-    Health sandbox path green end to end AND Term regression suite still green AND
-    no change to QuoteService orchestration AND Health field-guide mappings verified
-    against the sandbox.
+completion_definition: >
+  Health sandbox path green end to end AND Term regression suite still green AND
+  no change to QuoteService orchestration AND Health field-guide mappings verified
+  against the sandbox.
 
-  not_included:                       # the anti-creep boundary — be specific
-    - "Motor LOB (EPIC-006)"
-    - "Health-specific pricing or underwriting rules"
-    - "Redis idempotency (NFR-011)"
-    - "Health-specific UI or BFF work"
+not_included:                       # the anti-creep boundary — be specific
+  - "Motor LOB (EPIC-006)"
+  - "Health-specific pricing or underwriting rules"
+  - "Redis idempotency (NFR-011)"
+  - "Health-specific UI or BFF work"
 
-  stories:
-    - id: FUNC-012
-      title: "Health quote handler"
-      state: PARKED
-      priority_at_target: P2
-    - id: FUNC-016
-      title: "Health proposal schema handling"
-      state: PARKED
-      priority_at_target: P2
-    - id: FUNC-017
-      title: "Health payment + status mapping"
-      state: PARKED
-      priority_at_target: P3
-    - id: QA-011
-      title: "Health sandbox regression suite"
-      state: PARKED
-      priority_at_target: P2
+stories:
+  - id: FUNC-012
+    title: "Health quote handler"
+    state: PARKED
+    priority_at_target: P2
+  - id: FUNC-016
+    title: "Health proposal schema handling"
+    state: PARKED
+    priority_at_target: P2
+  - id: FUNC-017
+    title: "Health payment + status mapping"
+    state: PARKED
+    priority_at_target: P3
+  - id: QA-011
+    title: "Health sandbox regression suite"
+    state: PARKED
+    priority_at_target: P2
 
-  story_order: [FUNC-012, FUNC-016, FUNC-017, QA-011]   # from 07 §5, not preference
+story_order: [FUNC-012, FUNC-016, FUNC-017, QA-011]   # from 07 §5, not preference
 
-  dependencies:
-    blocked_by: ["Phase 4 gate"]
-    requires: [TECH-006, TECH-007]     # job + poller infra, already Done
-    enables: []
-    decision_dependency: []
+dependencies:
+  blocked_by: ["Phase 4 gate"]
+  requires: [TECH-006, TECH-007]     # job + poller infra, already Done
+  enables: []
+  decision_dependency: []
 
-  risks: [RISK-004]
-  assumptions: [ASM-007]
+risks: [RISK-004]
+assumptions: [ASM-007]
 
-  progress:
-    stories_total: 4
-    stories_done: 0
-    completion_definition_met: false
+progress:
+  stories_total: 4
+  stories_done: 0
+  completion_definition_met: false
 ```
 
 ---

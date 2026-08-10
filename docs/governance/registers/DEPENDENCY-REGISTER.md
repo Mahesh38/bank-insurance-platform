@@ -31,8 +31,8 @@ for (Rule DEP-3).
 
 | ID | Dependency | Owner | Follow-up | State | Impact if late |
 |----|------------|-------|-----------|-------|----------------|
-| DEP-002 | Bank app team UAT integration slot | ⚠️ **unassigned** | ⚠️ **unset** | OPEN | Phase 4 gate criterion 4.3 cannot close |
-| DEP-010 | Bank AD technology confirmation | ⚠️ **unassigned** | ⚠️ **unset** | OPEN | WS-2 Phase 2 design cannot start |
+| → [DEP-002](#1-edges) | Bank app team UAT integration slot | ⚠️ **unassigned** | ⚠️ **unset** | OPEN | Phase 4 gate criterion 4.3 cannot close |
+| → [DEP-010](#1-edges) | Bank AD technology confirmation | ⚠️ **unassigned** | ⚠️ **unset** | OPEN | WS-2 Phase 2 design cannot start |
 
 > Both rows need an owner and a date at the next gate review. Per DEP-3, the **chase** for each
 > is its own work item and is *not* itself blocked.
@@ -56,7 +56,7 @@ completion; do not reuse a stale queue.
 | 1 | Gate 4.4 — compliance review of audit schema | P1 | 2 | M | READY |
 | 2 | Gate 4.1 — sandbox E2E suite in CI (absorbs TD-014) | P1 | 3 | L | READY |
 | 3 | Gate 4.2 — publish OpenAPI + consumer collection | P2 | 1 | S | READY |
-| 4 | Gate 4.7 — close or waive QA-001 coverage gate | P2 | 0 | M | READY |
+| — | ~~Gate 4.7 — coverage gate~~ | — | — | — | **not in the queue — criterion 4.7 is unratified (CR-001)** |
 | 5 | Gate 4.5 — operations runbook | P3 | 0 | S | READY |
 | 6 | Gate 4.6 — performance smoke | P2 | 0 | M | BLOCKED by DEP-003 (soft) |
 | 7 | Gate 4.3 — bank consumer UAT | P2 | 0 | M | BLOCKED by DEP-001, DEP-002 |

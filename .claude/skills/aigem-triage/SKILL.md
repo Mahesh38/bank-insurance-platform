@@ -22,7 +22,7 @@ your posture must change at the current lifecycle stage**. Read §8.3's row for 
 before every triage: the same suggestion is right at L6 and wrong at L7.
 
 ```bash
-python3 scripts/governance/freshness-check.py
+java scripts/governance/FreshnessCheck.java
 # exit 0 fresh · 1 warn (disclose it) · 2 do NOT admit new work — park/reject only
 ```
 
@@ -33,7 +33,7 @@ STEP 0  Read docs/governance/state/CURRENT-STATE.yaml
         → workstream, current phase, objective, in/out of scope, open gate.
         Missing, malformed, or past review_due → STOP and report (Rule CS-1).
 
-STEP 1  Claim SUG-#### (next_ids.SUG in the state file; increment it).
+STEP 1  Mint SUG-<YYYYMMDD>-<3 chars>, e.g. SUG-20260812-a1b (no shared counter).
         Check registers/SUGGESTION-REGISTER.md and TECH-DEBT.md first —
         a repeat is a link plus recurrence_count, not a new row.
 
@@ -78,7 +78,7 @@ STEP 14 Done only with evidence → 13-DEFINITION_OF_DONE.md, then close the reg
 ## Reply shape
 
 ```text
-SUG-0043 · "Use Redis for idempotency"
+SUG-20260812-a1b · "Use Redis for idempotency"
 
 Stage:      Phase 4 (Hardening) — this belongs to Phase 5.4
 Scope:      In scope (SC0), not in this increment

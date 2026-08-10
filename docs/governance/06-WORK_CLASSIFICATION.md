@@ -85,9 +85,20 @@ Does approved, delivered behaviour differ from its acceptance criteria or approv
 
 Existing repository IDs are preserved. Governance adds its own namespace.
 
+> **Rule ID-1 — agent-minted IDs must be collision-resistant.** `SUG` and `DEP` IDs use
+> `<PREFIX>-<YYYYMMDD>-<3 chars from 0-9a-z>` — e.g. `SUG-20260812-a1b`. Two agents on two
+> branches reading a shared counter would mint the same ID, and resolving the resulting YAML
+> merge conflict does **not** repair the register rows and backlinks that already point at it.
+> Human-owned, low-frequency registers (`CR`, `RISK`, `ASM`, `ADR`, `EPIC`, `SPIKE`) stay
+> sequential — one owner, one counter, no race. Allocation rules live in
+> [state/CURRENT-STATE.yaml](./state/CURRENT-STATE.yaml) `id_allocation`; uniqueness across the
+> repository is asserted by `FreshnessCheck`.
+>
+> Four-digit `SUG-0043` forms in these documents are **legacy examples** and remain valid.
+
 | Prefix | Used for | Assigned by |
 |--------|----------|-------------|
-| `SUG-####` | Triage record — **every** input gets one | Agent, on receipt |
+| `SUG-<date>-<xxx>` | Triage record — **every** input gets one | Agent, on receipt |
 | `FUNC-###`, `NFR-###`, `COMP-###`, `TECH-###`, `SHARED-###` | Existing product backlog IDs | PO / TL |
 | `TD-###` | Tech debt ledger | TL |
 | `QA-###` | Test backlog | QA Lead |

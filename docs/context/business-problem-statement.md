@@ -1,7 +1,6 @@
 # AU Small Finance Bank (AU SFB) Insurance Distribution Platform — Comprehensive Business & Problem Statement RAG Context
 
 **Document Status:** Comprehensive Business & Architecture RAG Context (V2.0)  
-**Target File Location:** `docs/context/business-problem-statement.md`  
 **Consolidated Knowledge Base:** Synthesized from `docs/au-bank-insurance-platform/*` and `docs/platform/architecture-review/*`  
 **License & Entity:** AU Small Finance Bank (IRDAI Composite Corporate Agent License Reg. No. CA0515)  
 **Target Infrastructure:** AWS (EKS, Aurora PostgreSQL, MSK, DynamoDB), Java 21 / Spring Boot 3.3.4, Flutter, Active Directory, 1SilverBullet Aggregator Abstraction  

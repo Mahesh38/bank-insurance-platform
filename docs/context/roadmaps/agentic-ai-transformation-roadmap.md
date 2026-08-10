@@ -1,7 +1,6 @@
 # AU SFB Insurance Distribution Platform — Agentic AI Maturity Transformation Roadmap
 
 **Document Version:** 1.0
-**Target Directory:** `docs/context/roadmaps/agentic-ai-transformation-roadmap.md`
 **Consolidated Persona Panel (Next Maturity Level):**
 - 📋 **Rajal** — Product Owner → `../roles/rajal-product-owner-agentic-ai-evolution.md`
 - 🏛️ **Mahesh** — Solution Architect → `../roles/mahesh-solution-architect-agentic-ai-evolution.md`

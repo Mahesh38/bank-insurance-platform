@@ -128,3 +128,30 @@ subprojects {
         options.compilerArgs.add("-parameters")
     }
 }
+
+// ---------------------------------------------------------------------------
+// Governance (AIGEM) — docs/governance/RUNBOOK.md
+//
+// The freshness check is a single-file Java 21 program so it runs on the
+// documented baseline (JDK + Git) with no build step and no dependencies.
+// This task is a convenience wrapper; `java scripts/governance/FreshnessCheck.java`
+// works identically and is what agents invoke.
+// ---------------------------------------------------------------------------
+tasks.register<Exec>("governanceFreshness") {
+    group = "verification"
+    description = "Check that the AIGEM governance state is fresh enough for agents to trust."
+    workingDir = rootDir
+    val java = "${System.getProperty("java.home")}/bin/java"
+    commandLine(java, "scripts/governance/FreshnessCheck.java")
+    isIgnoreExitValue = true
+    doLast {
+        val code = executionResult.get().exitValue
+        // 1 = warnings: reported, not fatal. 2 = halt-class staleness: fail the build.
+        if (code >= 2) {
+            throw GradleException(
+                "Governance state is stale (exit $code). Agents must not admit new work; " +
+                "see docs/governance/RUNBOOK.md section 4."
+            )
+        }
+    }
+}

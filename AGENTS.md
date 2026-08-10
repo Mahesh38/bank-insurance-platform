@@ -2,10 +2,64 @@
 
 Guidance for cloud agents working in this repository.
 
-**Documentation map:** `docs/README.md` indexes every document and explains the four-folder
-split — `context/` (background, non-binding), `platform/` (cross-cutting),
-`au-bank-insurance-platform/` (business SSOT), `1sb-insurance-integration/` (module SSOT) —
-plus which document wins on conflict. Read it before assuming a doc is missing.
+## Governance — read before suggesting or implementing anything
+
+This repository runs the **AIGEM** governance model
+(**[docs/governance/](./docs/governance/README.md)**). Before acting on any requirement, bug,
+suggestion, or finding:
+
+1. Run the freshness check and act on its exit code
+   (`java scripts/governance/FreshnessCheck.java` — exit `2` means do not admit new work).
+   Runs on the documented JDK 21 + Git baseline; no build step, no dependencies.
+   `./gradlew governanceFreshness` is equivalent.
+2. Read **[docs/governance/state/CURRENT-STATE.yaml](./docs/governance/state/CURRENT-STATE.yaml)** —
+   which workstream, which lifecycle stage, what is in and out of scope, which gate is open.
+3. Read **[RUNBOOK.md §8](./docs/governance/RUNBOOK.md#8-what-the-ai-agent-must-know-about-this-project)** —
+   the ten facts you must be able to state before acting, and **how your thinking must change at
+   this stage of the project** (§8.3). This is the section that makes you useful here.
+4. Follow **[09-AI_EXECUTION_RULES.md](./docs/governance/09-AI_EXECUTION_RULES.md)** — the binding
+   agent contract.
+5. Triage every input through the pipeline in
+   [governance/README.md §5](./docs/governance/README.md) **before** writing code. Most inputs
+   terminate in three steps with a one-screen record.
+
+Humans: your role card is in **[RUNBOOK.md §6](./docs/governance/RUNBOOK.md#6-role-cards)** —
+one screen, exact actions, exact cadence. That is all you need to read.
+
+Core rules:
+
+- **A suggestion is never implemented in the turn it is raised.** Triage it, record it, schedule
+  it — then go back to the work item you were on.
+- **Exactly one work item in flight.** Only the P1 override classes may interrupt it
+  ([05 §3](./docs/governance/05-PRIORITY_MODEL.md#3-hard-p1-overrides): build failure, exploitable
+  vulnerability, incorrect domain model, missing mandatory API, regulatory violation, data
+  corruption, blocking dependency, AC failure).
+- **Parked is not deleted.** Every deferral records a target stage and an unpark trigger in
+  [registers/PARKED-BACKLOG.md](./docs/governance/registers/PARKED-BACKLOG.md).
+- **Priority is stage-relative.** The same item is P4 during hardening and P1 at production
+  readiness. Record both `priority_now` and `priority_at_target`.
+- **Do not re-report known debt** — check
+  [01 §6](./docs/governance/01-CURRENT_STATE.md#6-known-open-debt-affecting-triage) first.
+- Every `TODO` carries a work item ID. Nothing is marked Done without evidence.
+- Agents never edit stage state, never approve change requests, and never self-approve a board
+  that requires a human.
+
+Quick triage answer shape:
+
+```text
+SUG-00NN · "<the suggestion>"
+Stage: <phase> — <fits / belongs to X>     Scope: <SC code>
+Necessity: <MUST|SHOULD|COULD|NOT-NOW>     Verdict: <ADMIT|PARK|REJECT|ESCALATE>
+Priority: P<n> now · P<n> at target        Recorded: <register file>
+Continuing with <current work item>.
+```
+
+**Documentation map:** once governance tells you *whether* to act, `docs/README.md` tells you
+*where things live* — it indexes every document and explains the folder split: `governance/`
+(how work is admitted and gated), `context/` (background, non-binding), `platform/`
+(cross-cutting specs), `au-bank-insurance-platform/` (business SSOT), and
+`1sb-insurance-integration/` (module SSOT), plus which document wins on conflict. Read it
+before assuming a doc is missing.
 
 ## Repository status
 

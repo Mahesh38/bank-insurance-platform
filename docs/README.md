@@ -11,16 +11,18 @@ lives, start here.
 ## How this folder is organised
 
 Documents are separated by **what kind of authority they carry**, not by who wrote them.
-There are four buckets, and each answers a different question:
+There are five buckets, and each answers a different question:
 
 | Bucket | Question it answers | Scope | Binding? |
 |--------|--------------------|-------|----------|
+| **[`governance/`](./governance/README.md)** | *Should this work be done at all, and when?* | How every input is triaged, prioritised, and gated — process, not content | ✅ **Binding process** |
 | **[`context/`](./context/README.md)** | *Who are we and what problem are we solving?* | Programme-wide background, personas, forward-looking roadmaps | ❌ Non-binding context |
 | **[`platform/`](./platform/README.md)** | *How should the whole platform be built?* | Cross-cutting, applies to **every** service | ⚠️ Recommendation / approved spec (see each doc) |
 | **[`au-bank-insurance-platform/`](./au-bank-insurance-platform/README.md)** | *What are we building and why?* | Business & product SSOT for the programme | ✅ Business SSOT |
 | **[`1sb-insurance-integration/`](./1sb-insurance-integration/README.md)** | *How is the 1SB adapter built?* | One module — the 1SB integration service | ✅ Engineering SSOT (module) |
 
-The dividing line to keep in mind:
+`governance/` sits across the other four: it governs **how work enters and leaves** them,
+while they hold **what is true**. The remaining four split like this:
 
 ```text
 GENERIC / CROSS-CUTTING                    PROJECT- & MODULE-SPECIFIC
@@ -29,6 +31,11 @@ context/    — background, personas         au-bank-insurance-platform/ — the
 platform/   — all-service architecture     1sb-insurance-integration/  — one module
 ```
 
+> ⚠️ **Before you act on anything you find here**, read
+> [`governance/RUNBOOK.md §8`](./governance/RUNBOOK.md#8-what-the-ai-agent-must-know-about-this-project)
+> (agents) or your [role card in §6](./governance/RUNBOOK.md#6-role-cards) (humans). A
+> suggestion is never implemented in the turn it is raised — it is triaged and recorded.
+
 ---
 
 ## Full map
@@ -36,6 +43,14 @@ platform/   — all-service architecture     1sb-insurance-integration/  — one
 ```text
 docs/
 ├── README.md                          ← you are here
+│
+├── governance/                        PROCESS — how work is admitted, gated & recorded
+│   ├── RUNBOOK.md                         Operating manual — role cards, cadences
+│   ├── 00–19 …                            Decision pipeline, priority, review gates
+│   ├── registers/                         Suggestions, risks, decisions, parked backlog
+│   ├── state/                             CURRENT-STATE.yaml — live lifecycle state
+│   ├── schemas/  templates/               Machine-checked record formats
+│   └── ORG-STANDARDS.md                   Company-level standards (L2)
 │
 ├── context/                           GENERIC — background & AI/RAG context
 │   ├── business-problem-statement.md      Consolidated problem statement
@@ -70,6 +85,8 @@ docs/
 
 | If you are… | Read this first |
 |-------------|-----------------|
+| **About to act on a requirement, bug, or suggestion** | [`governance/RUNBOOK.md`](./governance/RUNBOOK.md) — find your role card; triage before you build |
+| **An AI agent starting a session** | [`governance/RUNBOOK.md §8`](./governance/RUNBOOK.md#8-what-the-ai-agent-must-know-about-this-project) + [`09-AI_EXECUTION_RULES.md`](./governance/09-AI_EXECUTION_RULES.md) |
 | **New to the programme** | [`context/business-problem-statement.md`](./context/business-problem-statement.md) → [`au-bank-insurance-platform/README.md`](./au-bank-insurance-platform/README.md) |
 | **Product Owner / BA** | [`au-bank-insurance-platform/07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md`](./au-bank-insurance-platform/07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md) — the business MVP SSOT |
 | **Solution Architect** | [`platform/architecture-review/README.md`](./platform/architecture-review/README.md) — target-state platform architecture |
@@ -86,6 +103,9 @@ Each register owns a distinct ID range so IDs never collide across folders.
 
 | ID range | Register | Covers |
 |----------|----------|--------|
+| `GOV-xxx` | [`governance/registers/DECISION-REGISTER.md`](./governance/registers/DECISION-REGISTER.md) | Governance decisions (this register also indexes the two logs below) |
+| `SUG-xxxx` | [`governance/registers/SUGGESTION-REGISTER.md`](./governance/registers/SUGGESTION-REGISTER.md) | Triaged suggestions — admitted, parked, or rejected |
+| `RISK-xxx` · `ASM-xxx` · `DEP-xxx` | [`governance/registers/`](./governance/README.md) | Risks · assumptions · dependencies |
 | `D-xxx`, `DOC-xxx` | [`au-bank-insurance-platform/DECISION-LOG.md`](./au-bank-insurance-platform/DECISION-LOG.md) | Business & product decisions |
 | `ARCH-xxx` | [`platform/architecture-review/08-architecture-decision-log.md`](./platform/architecture-review/08-architecture-decision-log.md) | Target platform architecture decisions |
 | `TD-xxx` | [`1sb-insurance-integration/service-ssot/TECH-DEBT.md`](./1sb-insurance-integration/service-ssot/TECH-DEBT.md) | Engineering tech debt |
@@ -97,7 +117,10 @@ Each register owns a distinct ID range so IDs never collide across folders.
 
 ## Which document wins?
 
-When two documents disagree, resolve in this order:
+**Process questions** — may this work start, what priority, which gate — are settled by
+`governance/` and its registers; see
+[`00-GOVERNANCE.md`](./governance/00-GOVERNANCE.md) for its own precedence rules. Everything
+below is about **content**: when two documents disagree on a fact, resolve in this order:
 
 ```text
 1. au-bank-insurance-platform/07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md   business MVP SSOT

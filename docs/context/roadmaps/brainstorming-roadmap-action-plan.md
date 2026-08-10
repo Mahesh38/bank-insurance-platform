@@ -1,7 +1,6 @@
 # AU Small Finance Bank (AU SFB) Insurance Distribution Platform — Strategic Brainstorming, Roadmap & Action Plan
 
 **Document Version:** 1.0  
-**Target Directory:** `docs/context/roadmaps/brainstorming-roadmap-action-plan.md`  
 **Consolidated Persona Panel:**  
 - 📋 **Rajal** — Product Owner (Business Requirements, IRDAI Compliance & Customer Journeys)  
 - 🏛️ **Mahesh** — Solution Architect (System Topology, 19 Bounded Contexts & ADRs)  

@@ -3,8 +3,8 @@
 **Persona Name:** Amit
 **Current Role:** Technical Head (AU Bank Insurance Platform)
 **Training Objective:** Advance Amit from a CI/CD & infra-reliability leader (see `amit-technical-head.md`) to the **next maturity level**: an engineering leader who builds and governs the **agent platform** — treating LLM agents as production workloads with the same rigor he already applies to Kubernetes pods and 1SB SLAs.
-**Source Problem Statement:** `docs/context/business-problem-statement.md`
-**Baseline Persona:** `docs/context/roles/amit-technical-head.md`
+**Source Problem Statement:** [business-problem-statement.md](../business-problem-statement.md)
+**Baseline Persona:** [amit-technical-head.md](./amit-technical-head.md)
 
 ---
 

@@ -3,8 +3,8 @@
 **Persona Name:** Rajal
 **Current Role:** Product Owner (AU Bank Insurance Platform)
 **Training Objective:** Advance Rajal from a traditional backlog/BRD-driven Product Owner (see `rajal-product-owner.md`) to the **next maturity level**: a Product Owner who designs **agent-native customer and RM journeys**, writes acceptance criteria for probabilistic systems, and treats "agent" as a governed actor in the business process — never a compliance loophole.
-**Source Problem Statement:** `docs/context/business-problem-statement.md`
-**Baseline Persona:** `docs/context/roles/rajal-product-owner.md`
+**Source Problem Statement:** [business-problem-statement.md](../business-problem-statement.md)
+**Baseline Persona:** [rajal-product-owner.md](./rajal-product-owner.md)
 
 ---
 

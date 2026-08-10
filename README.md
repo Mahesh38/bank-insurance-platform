@@ -4,9 +4,21 @@ Integration knowledge base for building a bank insurance platform on **1Silverbu
 
 ## Start here
 
-📖 **[Full documentation index → `docs/README.md`](./docs/README.md)** — the map of every
-document, how the four folders are segregated, where decisions live, and which document wins
-on conflict. Start there if you don't know where to look.
+**On the team, or working with an AI agent on this repo?**
+→ **[docs/governance/RUNBOOK.md](./docs/governance/RUNBOOK.md)** — the AIGEM operating manual.
+Find your [role card](./docs/governance/RUNBOOK.md#6-role-cards) (one screen: what you do, how
+often, what you own). Agents start at
+[§8](./docs/governance/RUNBOOK.md#8-what-the-ai-agent-must-know-about-this-project).
+
+**Triaging a new requirement, bug, or AI suggestion?**
+→ **[docs/governance/README.md](./docs/governance/README.md)** — the governance model itself
+(stage-fit and scope-fit triage, P1–P5 priority, dependency ordering, seven-board review gate,
+drift control).
+
+**Looking for a document and don't know where it lives?**
+📖 **[docs/README.md](./docs/README.md)** — the full documentation index: the map of every
+folder, how they are segregated by authority level, where decisions live, and which document
+wins on conflict.
 
 Common jump-offs:
 

@@ -54,7 +54,9 @@ as `LAPSED` after three gates (AS-3).
 
 | ID | Idea | Raised | Why not now | Revisit if |
 |----|------|--------|-------------|------------|
-| — | *empty* | — | — | — |
+| → [SUG-20260810-k2m](./SUGGESTION-REGISTER.md#3-detail-records) | **"Role-contract v1"** — replace prose personas with a compact structured contract (purpose, owns / does not own, decision authority, required sources, outputs, verification, handoff triggers, escalation) | 2026-08-10 | SC2: no named beneficiary. The four board personas admitted as [SUG-20260810-b4d](./SUGGESTION-REGISTER.md#3-detail-records) can be written in the existing format, so the format overhaul is separable — and a format's cost only bites at scale. SF3 at L7: restructuring non-binding context is not hardening work | A **sixth** persona is proposed, or two reviewers disagree on where a role's authority ends |
+| → [SUG-20260810-p9q](./SUGGESTION-REGISTER.md#3-detail-records) | **Persona evals** — 8–15 scored prompts per persona (correct response, refusal/escalation, cross-role handoff, stale-context detection, ambiguous authorization, adversarial instruction) | 2026-08-10 | SC2: an eval harness for non-binding documents, proposed during hardening. This is precisely the instinct [RUNBOOK §8.3](../RUNBOOK.md#83-how-the-agents-thinking-must-change-at-each-stage) names for L7 — "while hardening, let me also add…". X9 fails: no verdict-quality problem has been observed, only hypothesised | A board verdict is measurably wrong or inconsistent (E3), or agentic-roadmap Phase 4 opens and personas start driving automated decisions |
+| → [SUG-20260810-z8n](./SUGGESTION-REGISTER.md#3-detail-records) | **Personas for Team Lead, Java Developer, Agent/ML Engineer** | 2026-08-10 | SC2: these three of the assessment's seven titles map to **no review board** ([11 §1](../11-REVIEW_GATES.md#1-the-board)), so they have no named consumer — X1 fails. The four that do map to a board were admitted separately | Team Lead / Java Developer: a second human joins delivery and role handoffs become real. Agent/ML Engineer: agentic-roadmap Phase 4 becomes active |
 
 ## 4. Sweep log
 

@@ -14,10 +14,10 @@ project:
   name: "Bank Insurance Platform"
   repository: "mahesh38/bank-insurance-platform"
 
-state_as_of: "2026-08-07" # quoted so the file validates directly against current-state.schema.json
-review_due: "2026-09-07"
-ratified_by: null # ⚠️ PENDING — reconstructed from repository evidence, not yet ratified by PO + Architect
-provisional: true # while true, see 01-CURRENT_STATE.md §7 for restricted agent actions
+state_as_of: "2026-08-10" # quoted so the file validates directly against current-state.schema.json
+review_due: "2026-09-09"
+ratified_by: "Mahesh (Solution Architect), 2026-08-10 — PO counter-signature outstanding"
+provisional: false # ratified 2026-08-10; agents run the full pipeline
 
 # ---------------------------------------------------------------------------
 # Workstreams — stage fit is ALWAYS evaluated against the input's own
@@ -111,8 +111,9 @@ workstreams:
         - id: "4.6"
           criterion: "Performance smoke: p95 quote under nominal concurrency"
           state: OPEN
-        # 4.7 is PROPOSED, not ratified — tracked as CR-001. It is deliberately
-        # absent from exit_criteria so agents cannot claim SF0 against it.
+        - id: "4.7"
+          criterion: "Coverage gates green; QA-001 closed or explicitly waived with expiry"
+          state: PARTIAL
       approvers: ["Architect", "PO", "QA Lead", "Compliance (4.4)", "Ops (4.5)"]
 
     completed_stages:

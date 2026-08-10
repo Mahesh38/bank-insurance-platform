@@ -56,12 +56,11 @@ completion; do not reuse a stale queue.
 | 1 | Gate 4.4 — compliance review of audit schema | P1 | 2 | M | READY |
 | 2 | Gate 4.1 — sandbox E2E suite in CI (absorbs TD-014) | P1 | 3 | L | READY |
 | 3 | Gate 4.2 — publish OpenAPI + consumer collection | P2 | 1 | S | READY |
-| — | ~~Gate 4.7 — coverage gate~~ | — | — | — | **not in the queue — criterion 4.7 is unratified (CR-001)** |
+| 4 | Gate 4.7 — close or waive QA-001 coverage gate | P2 | 0 | M | READY (criterion ratified by CR-001) |
 | 5 | Gate 4.5 — operations runbook | P3 | 0 | S | READY |
 | 6 | Gate 4.6 — performance smoke | P2 | 0 | M | BLOCKED by DEP-003 (soft) |
 | 7 | Gate 4.3 — bank consumer UAT | P2 | 0 | M | BLOCKED by DEP-001, DEP-002 |
 
-> This ordering is **derived, provisional, and not a commitment.** It follows from the gate
-> criteria in [04](../04-STAGE_GATES.md) and the state file, both of which are themselves
-> pending ratification ([01 §7](../01-CURRENT_STATE.md#7-provisional-state-and-how-to-close-it)).
-> The PO and Tech Lead own the actual sequence.
+> This ordering is **derived, not a commitment.** It follows from the ratified gate criteria in
+> [04](../04-STAGE_GATES.md) and the state file. The PO and Tech Lead own the actual sequence
+> and re-order it at the weekly Governance Sync.

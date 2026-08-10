@@ -43,15 +43,16 @@ the agent believed at decision time — a decision that was correct against a st
 | Field | Value |
 |-------|-------|
 | Project | Bank Insurance Platform (`mahesh38/bank-insurance-platform`) |
-| State as of | 2026-08-07 |
-| Ratified by | ⚠️ **PENDING** — derived from repository evidence, awaiting PO + Architect ratification |
+| State as of | 2026-08-10 |
+| Ratified by | **Mahesh (Solution Architect), 2026-08-10** (GOV-004) — PO counter-signature outstanding |
 | Active workstreams | 2 (see §4) |
 | Governance version | AIGEM 1.0 |
 
-> ⚠️ **This snapshot was reconstructed from repository artefacts** (`ACTION-PLAN.md`, phase
-> `STATUS.md` files, `TECH-DEBT.md`, git history), not dictated by the PO. Until a human
-> ratifies it, agents must treat `stage` values as **provisional**: they may PARK and REJECT on
-> them, but an ADMIT that contradicts them requires confirmation. See §7.
+> This snapshot was reconstructed from repository artefacts (`ACTION-PLAN.md`, phase
+> `STATUS.md` files, `TECH-DEBT.md`, git history) and **ratified by the Solution Architect on
+> 2026-08-10** ([GOV-004](./registers/DECISION-REGISTER.md#2-governance-decisions)). Agents run
+> the full pipeline against it. The PO counter-signature is a recorded formality, not a
+> restriction — see §7.
 
 ---
 
@@ -81,6 +82,7 @@ Keycloak session handling is on-stage for WS-2 and premature for WS-1.
 - [ ] Compliance sign-off on audit schema and log samples
 - [ ] Runbook (secrets rotation, IP whitelist, 1SB 401/5xx incident) exists
 - [ ] p95 quote latency measured under nominal concurrency
+- [ ] Coverage gates green; QA-001 closed or waived with expiry (added by CR-001)
 
 ### WS-2 · Workforce Authentication & Authorization
 
@@ -149,20 +151,25 @@ Agents should recognise these so they do not re-report them as new findings. Ful
 
 ---
 
-## 7. Provisional state and how to close it
+## 7. Ratification status
 
-Until a human ratifies §3–§4:
+**Ratified 2026-08-10** by the Solution Architect. `provisional` is `false`; agents run the
+full pipeline, including ADMIT, against this state.
 
-| Agent action | Allowed on provisional state? |
-|--------------|-------------------------------|
+| Agent action | Allowed |
+|--------------|---------|
 | PARK an input with a target stage | ✅ Yes |
 | REJECT an input that violates a standing constraint (§5) | ✅ Yes |
-| ADMIT work that the workstream's *authority document* already lists for this phase | ✅ Yes |
-| ADMIT work not listed in the authority document | ❌ No — ESCALATE |
+| ADMIT work for the current phase | ✅ Yes |
 | Declare a stage transition | ❌ No — human only ([04 §5](./04-STAGE_GATES.md#5-who-may-declare-a-transition)) |
+| Edit `current_phase` / `stage_status` | ❌ No — human only |
 
-**To ratify:** PO + Architect confirm §3/§4, set `ratified_by` and `state_as_of` in
-[state/CURRENT-STATE.yaml](./state/CURRENT-STATE.yaml), and remove the ⚠️ markers.
+**Outstanding:** PO counter-signature on GOV-004 and CR-001, recorded at the next gate review.
+If the PO disagrees with any stage or scope value, that is a `CR` against this file — not a
+reversion to provisional.
+
+**Re-ratification** is required whenever a stage transitions, and at every `review_due`
+(currently 2026-09-09).
 
 ---
 

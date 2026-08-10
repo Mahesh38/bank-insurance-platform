@@ -3,7 +3,7 @@
 **This is the only governance file most people need to read.**
 Everything else is reference. If you read one page, read your role card in §6.
 
-**Version:** 1.0 · **Owner:** Delivery Lead · **Ratified by:** ⚠️ pending (see §10)
+**Version:** 1.0 · **Owner:** Delivery Lead · **Ratified:** 2026-08-10, Mahesh (Solution Architect)
 **Framework:** [docs/governance/](./README.md) · **Live state:** [state/CURRENT-STATE.yaml](./state/CURRENT-STATE.yaml)
 
 ---
@@ -232,7 +232,7 @@ bash scripts/governance/test-freshness-check.sh   # 24 cases, incl. every CS-1 h
 | `CURRENT-STATE.yaml` missing, malformed, or using YAML the reader does not implement | **HALT triage.** Report. Do not guess (Rule CS-1) |
 | `state_as_of` older than `review_due`, or either missing | **HALT ADMIT decisions.** May still PARK and REJECT. Say the state is stale in every reply |
 | A required structure is absent — no workstreams, no lifecycle, no gate criteria | **HALT.** Context cannot be resolved, so no verdict is sound |
-| `provisional: true` (unratified) | May PARK/REJECT freely; ADMIT only what an authority document already lists; else ESCALATE ([01 §7](./01-CURRENT_STATE.md#7-provisional-state-and-how-to-close-it)) |
+| `provisional: true` (unratified) | May PARK/REJECT freely; ADMIT only what an authority document already lists; else ESCALATE ([01 §7](./01-CURRENT_STATE.md#7-ratification-status)) |
 | A sequential ID counter is behind its register | **HALT.** The next mint would collide and corrupt backlinks |
 | A register ID is defined twice | **HALT.** Two items share an identity — usually a merge of parallel branches |
 | A gate criterion has no state | Treat as OPEN; do not claim SF0 against it |
@@ -740,7 +740,7 @@ Everything else in the framework supports these:
 | Day | Action | Owner | Done when |
 |-----|--------|-------|-----------|
 | 1 | **Assign the Delivery Lead (R12).** Nothing else works without it | Tech Head | A name is in §2 |
-| 1 | Ratify [01 §3–§4](./01-CURRENT_STATE.md#3-snapshot) and set `ratified_by`; clear `provisional` | PO + Architect | `provisional: false` |
+| 1 | ~~Ratify [01 §3–§4](./01-CURRENT_STATE.md#3-snapshot); clear `provisional`~~ | Architect | ✅ **Done 2026-08-10** (GOV-004). PO counter-signature outstanding |
 | 2 | Fill the unassigned owners in §2 and §4 | Delivery Lead | No "unassigned" left |
 | 2 | Name owners + dates for the two open `EXTERNAL` dependencies (DEP-002, DEP-010) | PO | Register updated |
 | 3 | Each role reads its card in §6 — nothing else | Everyone | 10 minutes each |
@@ -749,6 +749,7 @@ Everything else in the framework supports these:
 | 5 | First Governance Sync (§7.1) | Delivery Lead | Held, 30 min |
 | 5–14 | **Triage new inputs only. Do not backfill.** | Everyone | Suggestion register is filling |
 | 10 | Sweep TD-014 — its unpark trigger has already fired | TL | Promoted or re-parked with a reason |
+| 10 | Close or waive QA-001 — criterion 4.7 is now binding (CR-001) | QA Lead + TL | Closed, or waived with a dated expiry |
 | 14 | First scorecard → baseline metrics | Delivery Lead | [18 §3](./18-GOVERNANCE_METRICS.md#3-gate-scorecard) filled |
 
 **Success at day 14 looks like:** the state file is ratified and fresh, every role has run their

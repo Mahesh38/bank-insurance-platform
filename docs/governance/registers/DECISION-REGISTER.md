@@ -40,12 +40,13 @@ without a search.
 | GOV-001 | 2026-08-07 | Adopt AIGEM 1.0 as the governance model for this repository | Prevent AI scope drift; schedule suggestions rather than implementing or losing them | Pending ratification |
 | GOV-002 | 2026-08-07 | Route admitted work to existing backlogs; AIGEM keeps no parallel backlog | Two sources of truth both rot | Pending ratification |
 | GOV-003 | 2026-08-07 | Seed the parked backlog from deferred `TECH-DEBT.md` rows; no retrospective triage | Backfilling costs days and teaches nothing ([19 §5](../19-PORTING_GUIDE.md#5-bootstrapping-into-an-existing-project-mid-flight)) | Pending ratification |
+| GOV-004 | 2026-08-10 | **Ratify the current-state snapshot**: WS-1 at Phase 4 (Hardening), WS-2 at IAM Phase 1, with the scope and standing constraints as recorded | Reconstructed from `ACTION-PLAN.md`, phase `STATUS.md` files, `TECH-DEBT.md` and git history; reviewed and accepted | **Mahesh (Solution Architect), 2026-08-10** — PO counter-signature outstanding |
 
 ## 3. Change requests
 
 | ID | Date | Type | Summary | Decision | Approvers |
 |----|------|------|---------|----------|-----------|
-| CR-001 | 2026-08-10 | STAGE | Add exit criterion **4.7** (coverage gates green; QA-001 closed or waived with expiry) to the WS-1 Phase 4 gate | **PENDING** | Architect + PO + QA Lead |
+| CR-001 | 2026-08-10 | STAGE | Add exit criterion **4.7** (coverage gates green; QA-001 closed or waived with expiry) to the WS-1 Phase 4 gate | **APPROVED** 2026-08-10 | Mahesh (Solution Architect) — PO + QA Lead counter-signature outstanding |
 
 ### CR-001 — add Phase 4 exit criterion 4.7
 
@@ -63,7 +64,13 @@ impact:            If approved, Phase 4 cannot pass with the service coverage fl
                    "interim". If rejected, QA-001 must be re-severitised below P0.
 alternatives:      (a) approve as written  (b) reject and downgrade QA-001 to P1
                    (c) approve with a dated waiver for the interim service floor
-decision:          PENDING
+decision:          APPROVED (2026-08-10, Mahesh / Solution Architect)
+chosen_option:     (a) approve as written
+consequence:       Phase 4 cannot pass with the service coverage floor still "interim".
+                   QA-001 must close, or carry a dated waiver co-approved by TL + QA Lead
+                   per 15-TECH_DEBT_POLICY section 4.
+outstanding:       PO and QA Lead counter-signature. The criterion is binding now; the
+                   counter-signature is recorded when they next review the gate.
 ```
 
 ## 4. Stage transitions
@@ -71,6 +78,7 @@ decision:          PENDING
 | Date | Workstream | From | To | Criteria met | Waivers | Approvers |
 |------|------------|------|----|--------------|---------|-----------|
 | — | WS-1 | Phase 3 | Phase 4 | Term vertical slice delivered (FUNC-001…007, FUNC-009) | — | Recorded retrospectively from `phase-4/STATUS.md`; not gate-reviewed under AIGEM |
+| 2026-08-10 | Both | *(provisional)* | *(ratified)* | State snapshot accepted as the governing context — see GOV-004 | — | Mahesh (Solution Architect) |
 
 ## 5. Board escalations
 

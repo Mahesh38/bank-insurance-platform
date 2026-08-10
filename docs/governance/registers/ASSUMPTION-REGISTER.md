@@ -13,7 +13,6 @@ false**, so invalidation triggers a known action instead of a debate.
 
 | ID | Assumption | Used by | Validation | Expiry | Status | If invalidated |
 |----|------------|---------|------------|--------|--------|----------------|
-| ASM-001 | WS-1 is in Phase 4 (Hardening); Phases 0–3 are complete | All WS-1 triage | PO + Architect ratify [01](../01-CURRENT_STATE.md) §3/§4 | Phase 4 gate | OPEN | Every stage-fit verdict since adoption is re-run; parked targets re-based |
 | ASM-002 | The service runs single-instance through Phase 4 | TD-010, RISK-004 | Confirm with Ops at the gate review | Phase 4 gate | OPEN | TD-010 becomes P1, not P4; Redis work pulls into Phase 4 via CR |
 | ASM-003 | 1SB sandbox is stable enough for CI-gated E2E | Gate 4.1 | First E2E run over one week | Gate 4.1 delivery | OPEN | Fall back to gated nightly (already sanctioned by ACTION-PLAN 4.1) |
 | ASM-004 | At least one bank app team is available for UAT integration this stage | Gate 4.3, DEP-002 | PO confirms a named team and slot | Phase 4 gate | OPEN | 4.3 becomes externally blocked; gate needs a waiver or the criterion moves to Phase 5 |
@@ -26,7 +25,7 @@ false**, so invalidation triggers a known action instead of a debate.
 
 | ID | Assumption | Validated | Evidence |
 |----|------------|-----------|----------|
-| — | — | — | — |
+| ASM-001 | WS-1 is in Phase 4 (Hardening); Phases 0–3 are complete | 2026-08-10 | Ratified by the Solution Architect — GOV-004 in the [decision register](./DECISION-REGISTER.md#2-governance-decisions) |
 
 ## 3. Invalidated
 

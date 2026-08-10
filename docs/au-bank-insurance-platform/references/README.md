@@ -1,7 +1,11 @@
 # References (non-binding)
 
+**Up:** [docs index](../../README.md) → [AU Bank platform](../README.md) → **references**
+
 This folder points at materials that inform the AU Bank product reset.  
 **Nothing here is approved scope** until listed as Working/Accepted in the [Decision Log](../DECISION-LOG.md) or [Working Decisions](../07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md).
+
+**Where each input was logged:** [05-figma-and-artefact-intake.md](../05-figma-and-artefact-intake.md) is the intake record for everything listed below — Figma walkthrough status and the uploaded baseline documents.
 
 ## In-repo research (engineering / 1SB package)
 
@@ -24,5 +28,12 @@ This folder points at materials that inform the AU Bank product reset.
 
 | Path | Purpose |
 |------|---------|
-| [`../artefacts/uploads/`](../artefacts/uploads/README.md) | Drop zone for baseline docs you upload |
-| [`../artefacts/figma/`](../artefacts/figma/README.md) | Optional Figma exports |
+| [`../artefacts/uploads/`](../artefacts/uploads/README.md) | Drop zone for baseline docs you upload — **11 PDFs ingested** into [knowledge-base/](../knowledge-base/README.md) |
+| [`../artefacts/figma/`](../artefacts/figma/README.md) | Optional Figma exports — 🔴 **empty**, prototype is login-gated (D-012) |
+
+## Cross-cutting architecture (outside this folder)
+
+| Link | Use in discovery |
+|------|------------------|
+| [`../../platform/architecture-review/README.md`](../../platform/architecture-review/README.md) | Target AWS/EKS platform architecture — **recommendation**, tracked as `ARCH-xxx` |
+| [`../../platform/authentication-authorization/README.md`](../../platform/authentication-authorization/README.md) | Approved workforce identity/authorization baseline |

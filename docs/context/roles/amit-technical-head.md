@@ -2,7 +2,6 @@
 
 **Persona Name:** Amit  
 **Role:** Technical Head (AU Bank Insurance Platform)  
-**Location Path:** `docs/contextRoles/amit_technical_head.md`  
 **Domain Focus:** Engineering Leadership, Cloud Infrastructure (AWS EKS), DevOps & CI/CD Pipelines, Code Quality Gates, System Reliability, SLA Management  
 
 ---

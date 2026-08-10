@@ -110,6 +110,14 @@ Happy-path **Term** journey works against **1SB sandbox** with audit events for 
 
 ## Phase 4 — Hardening & consumer enablement
 
+> ⚠️ **Delivery variance — read before using this section as status.**
+> The work actually delivered in [`phase-4/`](./phase-4/README.md) was **not** this hardening
+> scope. It was the remaining functional P0 stories — **FUNC-007** (payment session) and
+> **FUNC-009** (application status) — which this plan had not allocated to a phase.
+>
+> Everything listed in the table below (4.1–4.6) is therefore **still open**. See
+> [phase-4/README.md](./phase-4/README.md) for what was built and the two recorded variances.
+
 | # | Action | Owner |
 |---|--------|-------|
 | 4.1 | Sandbox E2E suite in CI (or gated nightly if sandbox flaky) | QA + Eng |

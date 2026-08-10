@@ -2,7 +2,7 @@
 
 Index new ADRs in [../registers/DECISION-REGISTER.md](../registers/DECISION-REGISTER.md) and,
 for this repository, in
-[architecture-review/08-architecture-decision-log.md](../../architecture-review/08-architecture-decision-log.md).
+[architecture-review/08-architecture-decision-log.md](../../platform/architecture-review/08-architecture-decision-log.md).
 
 An ADR is required when: a boundary, contract, or topology changes · a runtime component is
 added · a standing constraint changes · a debt item becomes permanent

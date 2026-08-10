@@ -1,8 +1,7 @@
 # AU Small Finance Bank (AU SFB) Insurance Distribution Platform — Comprehensive Business & Problem Statement RAG Context
 
 **Document Status:** Comprehensive Business & Architecture RAG Context (V2.0)  
-**Target File Location:** `docs/contextRoles/business_problem_statement_rag.md`  
-**Consolidated Knowledge Base:** Synthesized from `docs/au-bank-insurance-platform/*` and `docs/architecture-review/*`  
+**Consolidated Knowledge Base:** Synthesized from `docs/au-bank-insurance-platform/*` and `docs/platform/architecture-review/*`  
 **License & Entity:** AU Small Finance Bank (IRDAI Composite Corporate Agent License Reg. No. CA0515)  
 **Target Infrastructure:** AWS (EKS, Aurora PostgreSQL, MSK, DynamoDB), Java 21 / Spring Boot 3.3.4, Flutter, Active Directory, 1SilverBullet Aggregator Abstraction  
 
@@ -195,7 +194,7 @@ A policy is **NOT** counted as Sold at quote, proposal, or payment stage. A poli
 ### 5.3 Centralized AuthN & AuthZ Service
 * **Multi-Tenant SSO:** Federates with Bank AD for bank staff, Customer Digital Banking SSO for ETB customers, and DB/JWT credentials for IP representatives.
 * **RBAC & ABAC Engine:** Manages fine-grained permissions controlling lead allocation, quote override, proposal verification, compliance audit log access, and MIS report visibility based on user role and branch mapping.
-* **Workforce SSOT:** Phase 1 employee and insurer-representative identity, session, provider abstraction, and authorization decisions are defined in [`docs/authentication-authorization/README.md`](../authentication-authorization/README.md). That SSOT supersedes provider-specific workforce assumptions in earlier review material.
+* **Workforce SSOT:** Phase 1 employee and insurer-representative identity, session, provider abstraction, and authorization decisions are defined in [`docs/platform/authentication-authorization/README.md`](../platform/authentication-authorization/README.md). That SSOT supersedes provider-specific workforce assumptions in earlier review material.
 
 ---
 

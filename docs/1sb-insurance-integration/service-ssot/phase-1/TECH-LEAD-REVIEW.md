@@ -5,6 +5,13 @@
 **Date:** 2026-07-30  
 **Audience:** Dev team (Agent 2 / Agent 3) executing remediations
 
+> 📌 **Historical record.** This review is preserved as written on 2026-07-30. It refers to
+> the persistence service as `1sb-persistence-service`; that module was later renamed to
+> **`bank-persistence-service`** (TD-016) to reflect that it is platform-common, not
+> 1SB-owned. The old name is left intact below as an audit trail — for the current contract
+> see [bank-persistence-service.md](../../architecture/bank-persistence-service.md) and
+> [TECH-LEAD-REVIEW-COMMON-PERSISTENCE.md](./TECH-LEAD-REVIEW-COMMON-PERSISTENCE.md).
+
 ---
 
 ## 1. Verdict on Phase 1 delivery
@@ -80,7 +87,7 @@ services/
 
 ## 5. Fix plan for the team
 
-See [REFACTOR-TASK-SPLIT.md](./phase-1/REFACTOR-TASK-SPLIT.md) for Agent 2 / Agent 3 ownership and ordering.
+See [REFACTOR-TASK-SPLIT.md](./REFACTOR-TASK-SPLIT.md) for Agent 2 / Agent 3 ownership and ordering.
 
 **Principles for implementers:**
 - Prefer smallest change that closes the debt ID.
@@ -88,8 +95,8 @@ See [REFACTOR-TASK-SPLIT.md](./phase-1/REFACTOR-TASK-SPLIT.md) for Agent 2 / Age
 - Keep H2 local profile working on **persistence** service.
 - Integration local profile points `insurance.persistence.base-url` at persistence.
 - Preserve existing shared-lib public method names where tests depend on them.
-- Update [TECH-DEBT.md](./TECH-DEBT.md) status when closing items.
-- Update [phase-1/STATUS.md](./phase-1/STATUS.md) with refactor notes.
+- Update [TECH-DEBT.md](../TECH-DEBT.md) status when closing items.
+- Update [phase-1/STATUS.md](./STATUS.md) with refactor notes.
 
 ---
 

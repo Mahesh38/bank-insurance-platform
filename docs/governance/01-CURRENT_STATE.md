@@ -94,14 +94,14 @@ Keycloak session handling is on-stage for WS-2 and premature for WS-1.
 | **Deliverable** | `workforce-access-bff`, `identity-provider-adapter-service`, `identity-authorization-service` meeting the accepted decisions in the SSOT |
 | **Completed** | Architecture baseline approved; foundation services scaffolded with PDP, provisioning outbox, Keycloak realm config (commit `cd40460`) |
 | **Next stage** | Phase 2 — Federation with bank AD + production provider decision |
-| **Authority** | [authentication-authorization/README.md](../authentication-authorization/README.md) |
+| **Authority** | [authentication-authorization/README.md](../platform/authentication-authorization/README.md) |
 | **Explicitly out of scope, Phase 1** | Retail-customer authentication; production IdP selection (deferred behind the adapter) |
 
 ### Cross-cutting
 
 | Field | Value |
 |-------|-------|
-| Platform architecture baseline | [architecture-review/](../architecture-review/) — target microservices, comms patterns, AWS infra, data, security/NFR, ADR log |
+| Platform architecture baseline | [architecture-review/](../platform/architecture-review/README.md) — target microservices, comms patterns, AWS infra, data, security/NFR, ADR log |
 | Business requirement baseline | [au-bank-insurance-platform/requirements/](../au-bank-insurance-platform/requirements/) — R0 scope, BRD/PRD |
 | Shared libraries | `libs/bank-common-{error,security,audit,observability,secrets}` — changes here affect both workstreams and always require an Architecture verdict |
 

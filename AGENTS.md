@@ -54,6 +54,13 @@ Priority: P<n> now · P<n> at target        Recorded: <register file>
 Continuing with <current work item>.
 ```
 
+**Documentation map:** once governance tells you *whether* to act, `docs/README.md` tells you
+*where things live* — it indexes every document and explains the folder split: `governance/`
+(how work is admitted and gated), `context/` (background, non-binding), `platform/`
+(cross-cutting specs), `au-bank-insurance-platform/` (business SSOT), and
+`1sb-insurance-integration/` (module SSOT), plus which document wins on conflict. Read it
+before assuming a doc is missing.
+
 ## Repository status
 
 Multi-module Gradle (Kotlin DSL) monorepo for the **1SB insurance platform**:

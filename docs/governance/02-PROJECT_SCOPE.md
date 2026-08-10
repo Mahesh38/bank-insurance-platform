@@ -24,7 +24,7 @@ Four scopes are checked independently. An input is out of scope if it fails **an
 |-------|----------|-----------|
 | **Business scope** | Does this serve an approved business capability or requirement? | [requirements/R0-SCOPE.md](../au-bank-insurance-platform/requirements/R0-SCOPE.md), BRD/PRD |
 | **Product scope** | Is it in the approved product increment for this workstream? | [PRODUCT-BACKLOG.md](../1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md), WS-2 SSOT |
-| **Technical scope** | Is it inside the approved architecture and service boundaries? | [architecture-review/](../architecture-review/), service architecture docs |
+| **Technical scope** | Is it inside the approved architecture and service boundaries? | [architecture-review/](../platform/architecture-review/README.md), service architecture docs |
 | **Operational scope** | Do we own and run the thing being changed? | [01 §5](./01-CURRENT_STATE.md#5-standing-constraints-apply-to-every-triage-in-this-repo) |
 
 Worked example — *"add a Kafka topic for quote events"*:

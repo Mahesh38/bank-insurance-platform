@@ -2,7 +2,7 @@
 
 Private Spring Boot adapter that keeps Keycloak/Cognito/provider-specific APIs out of the BFF and business authorization service. Keycloak is the first implementation.
 
-See [`docs/authentication-authorization/README.md`](../../docs/authentication-authorization/README.md) for the accepted architecture and security invariants.
+See [`docs/platform/authentication-authorization/README.md`](../../docs/platform/authentication-authorization/README.md) for the accepted architecture and security invariants.
 
 ```bash
 ./gradlew :services:identity-provider-adapter-service:test

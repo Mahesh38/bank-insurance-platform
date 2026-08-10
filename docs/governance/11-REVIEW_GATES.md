@@ -309,5 +309,5 @@ For each mandatory board:
 ```
 
 Where the repository already has role personas
-([docs/contextRoles/](../contextRoles/)), an agent should adopt the matching persona for that
+([docs/context/roles/](../context/roles/README.md)), an agent should adopt the matching persona for that
 board: it produces sharper, more consistent verdicts than a generic reviewer voice.

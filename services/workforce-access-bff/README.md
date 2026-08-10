@@ -2,7 +2,7 @@
 
 Token-hiding BFF for the Phase 1 Flutter workforce application. Browser clients receive an HttpOnly session cookie; native clients exchange a one-time completion code for an opaque session handle. Provider tokens remain encrypted in the server-side session vault.
 
-See [`docs/authentication-authorization/README.md`](../../docs/authentication-authorization/README.md).
+See [`docs/platform/authentication-authorization/README.md`](../../docs/platform/authentication-authorization/README.md).
 
 ```bash
 ./gradlew :services:workforce-access-bff:test

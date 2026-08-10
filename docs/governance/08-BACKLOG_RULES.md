@@ -38,7 +38,7 @@ backlog.
 
 | Type | Destination |
 |------|-------------|
-| `FUNC`, `NFR`, `COMP`, `TECH`, `SHARED` | [service-ssot/PRODUCT-BACKLOG.md](../1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md) (WS-1) · [authentication-authorization/README.md](../authentication-authorization/README.md) backlog (WS-2) |
+| `FUNC`, `NFR`, `COMP`, `TECH`, `SHARED` | [service-ssot/PRODUCT-BACKLOG.md](../1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md) (WS-1) · [authentication-authorization/README.md](../platform/authentication-authorization/README.md) backlog (WS-2) |
 | `BUG` | Product backlog, defects section, with the violated AC |
 | `DEBT`, `REFACTOR` | [service-ssot/TECH-DEBT.md](../1sb-insurance-integration/service-ssot/TECH-DEBT.md) |
 | `QA` | [service-ssot/TEST-BACKLOG.md](../1sb-insurance-integration/service-ssot/TEST-BACKLOG.md) |

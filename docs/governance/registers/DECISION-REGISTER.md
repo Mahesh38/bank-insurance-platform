@@ -5,7 +5,7 @@ board escalations. **A decision recorded here may not be re-litigated without ne
 ([14 §6](../14-CHANGE_CONTROL.md#6-reversing-a-rejection)).
 
 **Owner:** Architect
-**Upstream logs:** [architecture-review/08-architecture-decision-log.md](../../architecture-review/08-architecture-decision-log.md) ·
+**Upstream logs:** [architecture-review/08-architecture-decision-log.md](../../platform/architecture-review/08-architecture-decision-log.md) ·
 [au-bank-insurance-platform/DECISION-LOG.md](../../au-bank-insurance-platform/DECISION-LOG.md)
 
 ---

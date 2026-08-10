@@ -94,7 +94,7 @@ Aligns with existing `bank-common-*` library naming.
 
 ## 6. Fix plan — see task split
 
-[REFACTOR-COMMON-PERSISTENCE.md](./phase-1/REFACTOR-COMMON-PERSISTENCE.md)
+[REFACTOR-COMMON-PERSISTENCE.md](./REFACTOR-COMMON-PERSISTENCE.md)
 
 ---
 

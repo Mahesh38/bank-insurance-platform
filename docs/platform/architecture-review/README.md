@@ -1,5 +1,6 @@
 # Architecture Review — AU Bank Insurance Distribution Platform
 
+**Up:** [docs index](../../README.md) → [platform](../README.md) → **architecture review**
 **Role:** Solution Architect independent review
 **Input:** All existing documentation in `docs/au-bank-insurance-platform/` (business/product SSOT) and `docs/1sb-insurance-integration/` (prior engineering spike — one adapter microservice)
 **Mandate for this review (explicit constraints given by the requester):**

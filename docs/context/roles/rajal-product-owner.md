@@ -2,7 +2,6 @@
 
 **Persona Name:** Rajal  
 **Role:** Product Owner (AU Bank Insurance Platform)  
-**Location Path:** `docs/contextRoles/rajal_product_owner.md`  
 **Domain Focus:** Bancassurance Business Vision, IRDAI CA0515 Regulations, User Story & BRD Engineering, Customer & RM Journeys, Definition of "Policy Sold"  
 
 ---

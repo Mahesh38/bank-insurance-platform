@@ -2,9 +2,9 @@
 
 **Persona Name:** Mahesh
 **Current Role:** Solution Architect (AU Bank Insurance Platform)
-**Training Objective:** Advance Mahesh from a deterministic microservices architect (see `mahesh_solution_architect.md`) to the **next maturity level**: an architect who designs **agentic AI systems** as first-class citizens of the AU SFB Insurance Platform, while never compromising IRDAI/RBI hard-compliance guarantees.
-**Source Problem Statement:** `docs/contextRoles/business_problem_statement_rag.md`
-**Baseline Persona:** `docs/contextRoles/mahesh_solution_architect.md`
+**Training Objective:** Advance Mahesh from a deterministic microservices architect (see `mahesh-solution-architect.md`) to the **next maturity level**: an architect who designs **agentic AI systems** as first-class citizens of the AU SFB Insurance Platform, while never compromising IRDAI/RBI hard-compliance guarantees.
+**Source Problem Statement:** [business-problem-statement.md](../business-problem-statement.md)
+**Baseline Persona:** [mahesh-solution-architect.md](./mahesh-solution-architect.md)
 
 ---
 

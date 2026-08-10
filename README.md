@@ -15,8 +15,15 @@ often, what you own). Agents start at
 (stage-fit and scope-fit triage, P1–P5 priority, dependency ordering, seven-board review gate,
 drift control).
 
+**Looking for a document and don't know where it lives?**
+📖 **[docs/README.md](./docs/README.md)** — the full documentation index: the map of every
+folder, how they are segregated by authority level, where decisions live, and which document
+wins on conflict.
+
+Common jump-offs:
+
 **Building workforce authentication and authorization?**
--> **[docs/authentication-authorization/README.md](./docs/authentication-authorization/README.md)**
+-> **[docs/platform/authentication-authorization/README.md](./docs/platform/authentication-authorization/README.md)**
 (Phase 1 employee/insurer identity, token-hiding BFF, provider abstraction, Keycloak, RBAC + ABAC + relationship policies)
 
 Local identity stack:
@@ -26,7 +33,7 @@ docker compose --env-file .env.identity -f docker-compose.identity.yml up --buil
 ```
 
 **Full-platform architecture review (AWS/Kubernetes microservices target state)?**
-→ **[docs/architecture-review/README.md](./docs/architecture-review/README.md)**
+→ **[docs/platform/architecture-review/README.md](./docs/platform/architecture-review/README.md)**
 (Service decomposition, sync/async communication, AWS/EKS infrastructure, data architecture, security/NFRs, delivery estimate)
 
 **Building the 1SB integration service?**  

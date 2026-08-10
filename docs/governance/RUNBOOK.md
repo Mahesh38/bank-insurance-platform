@@ -46,7 +46,7 @@ stage gate. If it costs more than that, the process is wrong — say so
 
 ## 2. Stakeholder roster — who owns what
 
-Personas: [docs/contextRoles/](../contextRoles/)
+Personas: [docs/context/roles/](../context/roles/README.md)
 
 | # | Role | Named | Owns in AIGEM | Board seat ([11](./11-REVIEW_GATES.md)) | Can veto | Can approve a gate |
 |---|------|-------|---------------|------------------------------------------|:--------:|:------------------:|

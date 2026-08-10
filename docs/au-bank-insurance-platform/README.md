@@ -1,5 +1,6 @@
 # AU Bank — Insurance Platform (Product Reset)
 
+**Up:** [docs index](../README.md) → **AU Bank platform** (business & product SSOT)  
 **Bank:** AU Small Finance Bank (AU Bank)  
 **Working name:** AU Bank Insurance Platform  
 **Folder purpose:** Product Owner + Business Analysis + stakeholder alignment — **from scratch**  

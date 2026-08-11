@@ -59,7 +59,8 @@ docs/
 │
 ├── platform/                          CROSS-CUTTING — applies to all services
 │   ├── architecture-review/               Target AWS/EKS microservices architecture
-│   └── authentication-authorization/      Workforce authN/authZ SSOT
+│   ├── authentication-authorization/      Workforce authN/authZ SSOT
+│   └── repository-topology/               Monorepo → multi-repo migration (CR-002, pending)
 │
 ├── au-bank-insurance-platform/        BUSINESS SSOT — the programme
 │   ├── 00-07 …                            Charter → vision → discovery → decisions

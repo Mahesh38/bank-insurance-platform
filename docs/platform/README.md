@@ -25,6 +25,7 @@ module belongs with that module instead.
 |--------|-----------|--------|
 | **[architecture-review/](./architecture-review/README.md)** | Independent Solution Architect review — target-state **AWS/EKS microservices** architecture: ~16 services, sync/async patterns, data architecture, security/NFRs, delivery estimate | ⚠️ **Recommendation** — not yet approved by PO/Compliance/Sponsor |
 | **[authentication-authorization/](./authentication-authorization/README.md)** | **Workforce authentication & authorization SSOT** — token-hiding BFF, provider abstraction (Keycloak → Cognito/AD), RBAC + ABAC + relationship policies | ✅ **Approved** architecture and implementation baseline |
+| **[uat-environment-plan/](./uat-environment-plan/README.md)** | **Phased UAT infrastructure request** — three phases over ~24 weeks, component/sizing matrix, AWS cost model, shutdown schedule and cost-optimisation levers | ⚠️ Phase 1 **actionable now** (gate-blocking); Phases 2–3 costed but **not authorised** |
 
 **These two carry different weight.** The auth SSOT is binding on implementations today.
 The architecture review is a proposal whose technology choices are tracked as `ARCH-xxx`

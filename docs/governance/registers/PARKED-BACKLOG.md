@@ -25,6 +25,7 @@ Real work, wrong stage. Each returns to **full re-triage** at its trigger — ne
 | TD-007 | ArchUnit `allowEmptyShould(true)` | WS-1 | Phase 1 | Phase 5 | Packages populated by LOB expansion | SHOULD | P5 / P3 | Rules cannot tighten against empty packages |
 | E12 | Saving / Annuity / Pension LOBs | WS-1 | Backlog | Phase 6+ | Term + Health + Motor stable in production | SHOULD | P5 / P3 | P2 backlog by PO decision |
 | E13 | Replaceability proof (fake adapter / routing flag) | WS-1 | Backlog | Phase 6+ | Post-GA | COULD | P5 / P4 | Architecture is proven by ArchUnit today |
+| → [SUG-20260811-u2p](./SUGGESTION-REGISTER.md#3-detail-records) | UAT environment Phase 2–3 scale-out (execution) | WS-1 · WS-2 | Phase 4 | Architecture-review approval | Architecture review approved by PO + Compliance + Sponsor | MUST | P4 / P1 | Components specified and costed ([plan](../../platform/uat-environment-plan/README.md)), but provisioning commits ~$1,400/mo against an unapproved architecture. Phase 1 has ~2 weeks of headroom |
 
 > ⚠️ **TD-014's trigger has fired.** It is listed here for the record; the next gate sweep
 > should promote it into the Phase 4 backlog alongside criterion 4.1, or re-park it with a

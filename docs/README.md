@@ -59,7 +59,8 @@ docs/
 │
 ├── platform/                          CROSS-CUTTING — applies to all services
 │   ├── architecture-review/               Target AWS/EKS microservices architecture
-│   └── authentication-authorization/      Workforce authN/authZ SSOT
+│   ├── authentication-authorization/      Workforce authN/authZ SSOT
+│   └── uat-environment-plan/              Phased UAT infra request, sizing & cost model
 │
 ├── au-bank-insurance-platform/        BUSINESS SSOT — the programme
 │   ├── 00-07 …                            Charter → vision → discovery → decisions
@@ -90,6 +91,7 @@ docs/
 | **New to the programme** | [`context/business-problem-statement.md`](./context/business-problem-statement.md) → [`au-bank-insurance-platform/README.md`](./au-bank-insurance-platform/README.md) |
 | **Product Owner / BA** | [`au-bank-insurance-platform/07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md`](./au-bank-insurance-platform/07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md) — the business MVP SSOT |
 | **Solution Architect** | [`platform/architecture-review/README.md`](./platform/architecture-review/README.md) — target-state platform architecture |
+| **Platform / Cloud Engineering** | [`platform/uat-environment-plan/README.md`](./platform/uat-environment-plan/README.md) — phased UAT infrastructure request, sizing, cost & shutdown schedule |
 | **Building the 1SB adapter** | [`1sb-insurance-integration/service-ssot/README.md`](./1sb-insurance-integration/service-ssot/README.md) |
 | **Building auth / identity services** | [`platform/authentication-authorization/README.md`](./platform/authentication-authorization/README.md) |
 | **QA / test engineer** | [`1sb-insurance-integration/service-ssot/QA-LEAD-TESTING-STRATEGY.md`](./1sb-insurance-integration/service-ssot/QA-LEAD-TESTING-STRATEGY.md) + [`TESTING-RULES.md`](./1sb-insurance-integration/service-ssot/TESTING-RULES.md) |

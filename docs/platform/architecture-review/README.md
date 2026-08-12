@@ -38,6 +38,10 @@ No document in the repository yet says: how many services the *whole platform* s
 | 7 | [07-delivery-roadmap-and-estimate.md](./07-delivery-roadmap-and-estimate.md) | Phased plan, team shape, timeline estimate and its assumptions |
 | 8 | [08-architecture-decision-log.md](./08-architecture-decision-log.md) | `ARCH-xxx` decisions this review commits to, and why |
 | 9 | [09-stakeholder-lld-approval-baseline.md](./09-stakeholder-lld-approval-baseline.md) | Stakeholder entry point: master and layer LLD diagrams, implemented-versus-proposed status, responsibilities, data/cache/comms, and approval/evolution control |
+| 10 | [10-cto-approval-workflows.md](./10-cto-approval-workflows.md) | CTO presentation workflow source: full target lifecycle, quote-to-policy, identity, payment/issuance, and controlled evolution |
+
+The presentation generated from documents 09 and 10 is
+[`presentations/bank-insurance-platform-cto-architecture-approval.pptx`](./presentations/bank-insurance-platform-cto-architecture-approval.pptx).
 
 ## One-paragraph summary
 

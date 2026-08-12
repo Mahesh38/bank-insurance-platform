@@ -45,6 +45,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
 | SUG-20260812-lld | 2026-08-12 | human:Solution Architect | Stakeholder LLD baseline with platform and layer diagrams | SF1 | SC0 | SHOULD | DOC (+ ARCH) | P3 / P3 | CLOSED-DELIVERED | [detail](#sug-20260812-lld--stakeholder-lld-architecture-baseline) |
 | SUG-20260812-bps | 2026-08-12 | agent:codex | Persistence architecture contract says poll-attempt/raw-payload APIs are not exposed, but both are implemented | SF1 | SC1 | SHOULD | DOC | P3 / P3 | ADMITTED (QUEUED) | [detail](#sug-20260812-bps--persistence-contract-api-drift) |
+| SUG-20260812-cto | 2026-08-12 | human:Solution Architect | CTO approval presentation and target-system workflow diagrams derived from DOC-005 | SF1 | SC0 | SHOULD | DOC (+ ARCH) | P3 / P3 | CLOSED-DELIVERED | [detail](#sug-20260812-cto--cto-architecture-approval-deck) |
 
 <!--
 Row format:
@@ -234,6 +235,131 @@ Delivery evidence:
 - `java scripts/governance/FreshnessCheck.java` returns `VERDICT: FRESH` with unique register IDs.
 - Full `ci-checks.py` was not runnable locally because no Python interpreter is installed; its
   link concern was covered by the read-only PowerShell link check above.
+
+### SUG-20260812-cto · CTO architecture approval deck
+
+```yaml
+id: SUG-20260812-cto
+raised_at: "2026-08-12"
+raised_by: "human:Solution Architect"
+input: >
+  Coordinate Product Owner and Solution Architect perspectives on DOC-005 and create a clean,
+  CTO-ready PowerPoint with complete target-system workflows expressed in Mermaid and in the deck.
+context:
+  workstream: "Cross-cutting platform architecture baseline"
+  current_phase: "Architecture recommendation awaiting PO/Compliance/Sponsor approval"
+  canonical_stage: "L3 — Technical design / approval baseline"
+  current_objective: "Obtain an informed executive decision on the target architecture baseline"
+  state_as_of: "2026-08-10"
+  state_provisional: false
+  active_work_item: null
+stage_fit:
+  code: SF1
+  rationale: "The presentation is an approval aid for the existing DOC-005 design baseline."
+scope:
+  code: SC0
+  business_scope: "Cross-cutting platform architecture documentation and stakeholder approval"
+  serves: []
+  failure_without_it: "The CTO lacks a concise decision narrative and reviewable workflow view."
+  minimal: true
+necessity:
+  now: SHOULD
+  future_necessity: SHOULD
+  target_stage: "L3 — Technical design / approval baseline"
+  evidence_tier: E2
+  confidence: C4
+action: ADMIT
+action_rationale: >
+  Documentation-only repackaging of the governed baseline; it introduces no runtime, contract,
+  topology, data, or technology decision.
+classification:
+  type: DOC
+  also: [ARCH]
+  breakdown: STORY
+  risk_tier: T2
+  destination: "docs/platform/architecture-review/presentations/bank-insurance-platform-cto-architecture-approval.pptx"
+priority:
+  now: P3
+  at_target: P3
+  rationale: "Directly supports the pending architecture approval, without overriding delivery gates."
+dependencies:
+  edges: ["DOC-005"]
+  state: READY
+  cycles: none
+breakdown:
+  completion_definition: >
+    A rendered and visually verified executive deck explains the business case, current-to-target
+    architecture, service count, end-to-end workflows, data/cache/comms, risks, phased evolution,
+    and explicit approval decisions; editable Mermaid source is included.
+  not_included:
+    - "Human PO, Architect, CTO, Security, Compliance, QA, or Ops approval"
+    - "Changing DOC-005 decision states"
+    - "Application, infrastructure, API, event, schema, or runtime implementation"
+outcome:
+  registered_in: "docs/governance/registers/SUGGESTION-REGISTER.md"
+  work_item_id: DOC-007
+  plan_id: PLAN-DOC-007
+  status: CLOSED_DELIVERED
+```
+
+#### PLAN-DOC-007 · Short implementation plan (T2)
+
+```yaml
+objective: "Turn DOC-005 into a concise, evidence-based CTO approval narrative"
+solution: >
+  Use the repository's PO and Solution Architect role contracts for two independent agent-simulated
+  reviews, then create a PowerPoint and Mermaid workflow source that preserve all status qualifiers.
+files_expected:
+  - "docs/platform/architecture-review/10-cto-approval-workflows.md"
+  - "docs/platform/architecture-review/presentations/bank-insurance-platform-cto-architecture-approval.pptx"
+  - "docs/platform/architecture-review/README.md"
+  - "docs/governance/registers/SUGGESTION-REGISTER.md"
+testing:
+  - "FreshnessCheck passes"
+  - "Mermaid blocks have valid declarations and balanced fences"
+  - "PowerPoint renders completely with no overflow or unintended overlap"
+  - "every slide has source notes and proposal status is never presented as approval"
+rollback: "Revert DOC-007 documentation assets; no application or data rollback is required"
+reviews:
+  - board: Product
+    reviewer_type: AGENT_SIMULATION
+    verdict: APPROVED_WITH_CONDITIONS
+    evidence:
+      - "Deck anchors the decision in the Life/ETB, RM/self/hybrid, mandatory suitability, customer-device payment and sold-definition business rules"
+      - "Implemented capability is kept separate from the complete target-state view"
+    conditions:
+      - "PO must still confirm the business working decisions and sponsor-validation path"
+      - "Conditional direction approval must not be presented as authorization to build every proposed component"
+  - board: Architecture
+    reviewer_type: AGENT_SIMULATION
+    verdict: APPROVED_WITH_CONDITIONS
+    evidence:
+      - "Service/data/provider boundaries and status markers reconcile to DOC-005"
+      - "Workflow diagrams preserve synchronous, asynchronous, external and mandatory-gate semantics"
+    conditions:
+      - "Q-01 through Q-10 remain open until named human approvers record decisions"
+      - "DOC-005 remains authoritative over any presentation simplification"
+  - board: Technical
+    reviewer_type: AGENT
+    verdict: APPROVED_WITH_CONDITIONS
+    conditions:
+      - "Render and inspect every slide before delivery"
+      - "Keep the detailed DOC-005 baseline authoritative over presentation simplification"
+```
+
+Delivery evidence:
+
+- The CTO deck contains 15 slides covering the decision ask, business outcome, five implemented
+  services, five-layer target architecture, 21–22 deployable range, three system workflows,
+  data/cache/communications, trust boundaries, phased evolution, Q-01…Q-10 and approval options.
+- Every slide was rendered and inspected at full resolution; connector direction, one-line titles,
+  footer fit and content density were corrected before delivery.
+- The PPTX package contains 15 slide parts and 15 speaker-note parts; every note contains a
+  `[Sources]` block pointing to repository authority.
+- [`DOC-007` Mermaid source](../../platform/architecture-review/10-cto-approval-workflows.md)
+  contains five balanced Mermaid blocks with recognized declarations.
+- Product and Architecture verdicts above are explicitly agent-simulated preparation reviews,
+  not human PO, Solution Architect or CTO approval.
 
 ### SUG-20260812-bps · Persistence contract API drift
 

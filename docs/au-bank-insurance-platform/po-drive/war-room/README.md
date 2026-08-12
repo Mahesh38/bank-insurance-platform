@@ -30,6 +30,7 @@ that **parks nothing and restarts nothing**, and asks each stakeholder for a rec
 | 3 | [03-DELIVERY-MODEL-AND-FLOW-PLAN.md](./03-DELIVERY-MODEL-AND-FLOW-PLAN.md) | The corrected phase model, flow-by-flow chunking, sprint and demo cadence, team split | 15 min |
 | 4 | [04-WAR-ROOM-RUNSHEET.md](./04-WAR-ROOM-RUNSHEET.md) | Agenda, timeboxes, and the 9 decisions the room must take | 5 min |
 | 5 | [05-STAKEHOLDER-REVIEW-SHEET.md](./05-STAKEHOLDER-REVIEW-SHEET.md) | Your role's review questions and your sign-off block | 5 min |
+| 6 | [06-NEXT-ACTIONS.md](./06-NEXT-ACTIONS.md) | 🔵 **Suggestions** — what each person can pick up now, what waits for the room | 5 min |
 
 **Minimum pre-read before the war room:** document 1 (all), document 2 §§1–4, and your own row
 in document 5. If you read nothing else, read [01 §2](./01-PROCESS-GAP-ANALYSIS.md#2-what-the-repository-history-actually-shows).

@@ -19,7 +19,7 @@
 | Tech Lead | | **Mandatory** | Owns Track B execution and the debt ledger |
 | QA Lead | | **Mandatory** | AC testability; gate 4.7 / QA-001; counter-signature outstanding on CR-001 |
 | Security Architect | | **Mandatory** | WS-2 gate A.1–A.3; **cannot be waived** for T4 items ([14 §1](../../../governance/14-CHANGE_CONTROL.md#1-what-needs-a-change-request)) |
-| Compliance | | **Mandatory** | Consent (`GAP-006`), suitability (`GAP-007`), audit schema (gate 4.4), IRDAI CA0515 evidence |
+| Compliance | **Vaishnavi** — CA0515 licence holder ([persona](../../../context/roles/vaishnavi-compliance-officer.md)) | **Mandatory** | Consent (`GAP-006`), suitability (`GAP-007`), audit schema (gate 4.4), IRDAI CA0515 evidence. **Her verdict on a regulated item is not waivable** |
 | Business Analyst | | **Mandatory** | Owns requirements, AC and the RTM — the critical path of Track A |
 | Ops / DevOps | | Recommended | Environments (PZ.3), runbook (gate 4.5) |
 | UX / Digital | | Recommended | Figma-to-journey reconciliation (`GAP-009`) |

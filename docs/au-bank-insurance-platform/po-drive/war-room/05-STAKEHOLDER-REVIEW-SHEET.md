@@ -149,10 +149,12 @@ S-4 · the canonical-model-first principle (P5)
 
 ---
 
-## 7. Compliance
+## 7. Compliance — Vaishnavi (CA0515 licence holder)
 
 **You approve:** regulatory adequacy of the plan · consent and suitability sequencing · audit evidence model
 **Your veto domain:** IRDAI CA0515, RBI, consent, suitability, PII, retention — **never waivable**
+**Your review scope, with file paths and the eight known gaps:**
+[`context/roles/vaishnavi-compliance-officer.md` §5](../../../context/roles/vaishnavi-compliance-officer.md#5-her-review-scope-in-this-repository)
 
 | # | Question you must answer | Your answer |
 |:-:|--------------------------|-------------|

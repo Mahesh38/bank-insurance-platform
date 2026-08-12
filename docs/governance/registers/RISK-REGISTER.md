@@ -41,6 +41,8 @@ with a probability**. Risks feed the `R` factor in priority scoring
 | RISK-008 | No QA Engineer / QA Lead cycle ran for Phase 4 stories (single-agent branch) | WS-1 | 2 | 2 | 4 | QA Lead | Recorded variance in `phase-4/STATUS.md`; QA pass before UAT sign-off | UAT exposure without a QA cycle |
 | RISK-009 | 1SB sandbox instability could stall E2E in CI (gate 4.1) | WS-1 | 2 | 2 | 4 | Eng | Gated nightly fallback already sanctioned by ACTION-PLAN 4.1 | E2E flakiness blocks the pipeline |
 | RISK-010 | Governance adopted mid-flight; historical work never passed AIGEM gates | Both | 3 | 1 | 3 | Delivery Lead | Deliberate ([19 §5](../19-PORTING_GUIDE.md#5-bootstrapping-into-an-existing-project-mid-flight)) — forward-only adoption | An incident traces to un-triaged historical work |
+| RISK-012 | No delivered behaviour traces to a signed business requirement, so IRDAI CA0515 evidence (requirement → AC → test) cannot be produced and UAT/compliance sign-off has nothing to accept against | Both | 3 | 3 | **9** | PO | Requirements Traceability Matrix + retro-fit of the five built services ([CR-002](./DECISION-REGISTER.md#cr-002--process-realignment-dual-track-recovery)) | **Already at 9 — escalated to PO and Architect via the war room.** Escalate further if CR-002 is rejected or deferred past the next sprint |
+| RISK-013 | The platform product has no governance workstream, so corrective requirement work is forced to SC2/PARK ([02 §3](../02-PROJECT_SCOPE.md#3-scope-fit-codes-l1-generic)) and the build keeps outrunning the signed scope | Both | 3 | 2 | 6 | Delivery Lead | Add WS-0 to `CURRENT-STATE.yaml` (CR-002 item 1) — human-only edit | A second flow is built with no requirement ID after CR-002 is decided |
 
 ## 3. Accepted risks
 

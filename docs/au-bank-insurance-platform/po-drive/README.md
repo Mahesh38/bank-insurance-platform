@@ -10,6 +10,7 @@
 | [02-GAP-REGISTER.md](./02-GAP-REGISTER.md) | GAP register (aligned to Working Decisions) |
 | [03-PROGRAMME-TODO.md](./03-PROGRAMME-TODO.md) | Master TODO Waves 0–5 |
 | [04-MANAGEMENT-READINESS.md](./04-MANAGEMENT-READINESS.md) | PO review verdict + Steering ask |
+| [war-room/](./war-room/README.md) | 🟠 **Process realignment proposal** — gap analysis, dual-track recovery, war-room run sheet, stakeholder sign-off (`CR-002`, pending) |
 
 Working SSOT: [`../07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md`](../07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md).  
 Requirements live in [`../requirements/`](../requirements/README.md).  

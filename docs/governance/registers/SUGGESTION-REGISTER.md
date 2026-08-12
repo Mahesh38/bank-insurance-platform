@@ -43,7 +43,8 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
-| — | — | — | *No suggestions triaged yet. AIGEM adopted 2026-08-07; triage begins with the next input.* | — | — | — | — | — | — | — |
+| SUG-20260812-lld | 2026-08-12 | human:Solution Architect | Stakeholder LLD baseline with platform and layer diagrams | SF1 | SC0 | SHOULD | DOC (+ ARCH) | P3 / P3 | CLOSED-DELIVERED | [detail](#sug-20260812-lld--stakeholder-lld-architecture-baseline) |
+| SUG-20260812-bps | 2026-08-12 | agent:codex | Persistence architecture contract says poll-attempt/raw-payload APIs are not exposed, but both are implemented | SF1 | SC1 | SHOULD | DOC | P3 / P3 | ADMITTED (QUEUED) | [detail](#sug-20260812-bps--persistence-contract-api-drift) |
 
 <!--
 Row format:
@@ -58,6 +59,196 @@ Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
 
 <!-- ### SUG-0001 · <title>  ... full triage record ... -->
+
+### SUG-20260812-lld · Stakeholder LLD architecture baseline
+
+```yaml
+id: SUG-20260812-lld
+raised_at: "2026-08-12"
+raised_by: "human:Solution Architect"
+input: >
+  Create a stakeholder-facing LLD baseline containing one complete platform diagram,
+  layer-level drill-down diagrams, service/component responsibilities, backend and cache
+  choices, communication media, and a controlled approval/evolution process before further
+  application development.
+context:
+  workstream: "Cross-cutting platform architecture baseline"
+  current_phase: "Architecture recommendation awaiting PO/Compliance/Sponsor approval"
+  canonical_stage: "L3 — Technical design / approval baseline"
+  current_objective: "Make the recorded target architecture reviewable and governable"
+  state_as_of: "2026-08-10"
+  state_provisional: false
+  active_work_item: null
+stage_fit:
+  code: SF1
+  rationale: >
+    The cross-cutting architecture review is already the recorded platform baseline and is
+    explicitly awaiting stakeholder approval; a consolidated LLD approval pack directly serves
+    that existing design-stage outcome.
+scope:
+  code: SC0
+  business_scope: "Explicit cross-cutting platform architecture documentation"
+  serves: []
+  failure_without_it: >
+    Stakeholders lack one reviewable baseline that distinguishes implemented, approved, proposed,
+    and future components before authorising broader platform development.
+  minimal: true
+  authority: "docs/governance/01-CURRENT_STATE.md §4 Cross-cutting; docs/platform/architecture-review/README.md"
+necessity:
+  now: SHOULD
+  future_necessity: SHOULD
+  target_stage: "L3 — Technical design / approval baseline"
+  binds_when: "before target-platform architecture approval or broader application development"
+  evidence_tier: E2
+  evidence:
+    - "Requester explicitly requires an approval baseline before application development"
+    - "Architecture review status is recommendation pending PO/Compliance/Sponsor approval"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+action: ADMIT
+action_rationale: >
+  Documentation-only consolidation of recorded architecture is on-stage and introduces no runtime
+  dependency, contract, or implementation change.
+duplicate_of: null
+conflicts: []
+classification:
+  type: DOC
+  also: [ARCH]
+  breakdown: STORY
+  epic: null
+  risk_tier: T2
+  destination: "docs/platform/architecture-review/09-stakeholder-lld-approval-baseline.md"
+priority:
+  now: P3
+  at_target: P3
+  factors: {N: 2, S: 3, B: 1, R: 1, D: 1, E: 2}
+  score: 13
+  matrix_default: P3
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "On-stage approval aid; important but not a current P1/P2 delivery-gate override"
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 1
+  earliest_start: "2026-08-12"
+  cycles: none
+breakdown:
+  children: []
+  completion_definition: >
+    A versioned draft contains one end-to-end diagram, five layer diagrams, current-service
+    component LLDs, responsibility/data/cache/communication matrices, and approval/change-control
+    instructions with proposal-versus-implementation status labels.
+  not_included:
+    - "Approving any proposed ARCH decision"
+    - "Changing application code, deployment topology, runtime dependencies, APIs, or schemas"
+    - "Implementing Kafka, Redis, EKS, new services, or future LOBs"
+outcome:
+  registered_in: "docs/governance/registers/SUGGESTION-REGISTER.md"
+  work_item_id: DOC-005
+  plan_id: PLAN-DOC-005
+  status: CLOSED-DELIVERED
+  closed_reason: "DOC-005 version 0.1 created and indexed; stakeholder approval remains Pending"
+resumed: DOC-005
+```
+
+#### PLAN-DOC-005 · Short implementation plan (T2)
+
+```yaml
+objective: "Create a stakeholder-reviewable LLD baseline without changing architecture decisions"
+solution: >
+  Consolidate authoritative business, platform, identity, and 1SB module documentation plus the
+  implemented repository structure into one versioned Markdown approval pack with Mermaid diagrams.
+files_expected:
+  - "docs/platform/architecture-review/09-stakeholder-lld-approval-baseline.md"
+  - "docs/platform/architecture-review/README.md"
+  - "docs/platform/README.md"
+  - "docs/README.md"
+  - "docs/au-bank-insurance-platform/DECISION-LOG.md"
+  - "docs/governance/registers/SUGGESTION-REGISTER.md"
+testing:
+  - "FreshnessCheck passes"
+  - "all relative Markdown links resolve"
+  - "Mermaid blocks have balanced fences and unique diagram identifiers"
+  - "service counts and status labels reconcile with the architecture review and repository"
+rollback: "Revert DOC-005 documentation changes; no application or data rollback is required"
+out_of_scope:
+  - "architecture approval"
+  - "application development"
+  - "new technology decisions"
+acceptance_criteria:
+  - "one large platform diagram"
+  - "one drill-down diagram for each of the five architecture layers"
+  - "implemented services have internal component diagrams"
+  - "every service has responsibility, datastore/cache, and communication details"
+  - "approval roles, decision states, version history, and evolution workflow are explicit"
+reviews:
+  - board: Architecture
+    reviewer_type: AGENT
+    self_review: true
+    verdict: APPROVED_WITH_CONDITIONS
+    evidence:
+      - "A1/A2: plan only consolidates boundaries already recorded in architecture-review/02 and module SSOTs"
+      - "A4: standing constraints are explicit acceptance criteria"
+      - "A5/A6: no decision or infrastructure is introduced; proposed choices remain proposed"
+    conditions:
+      - "Every diagram and table must distinguish implemented/approved from proposed/future"
+  - board: Technical
+    reviewer_type: AGENT
+    self_review: true
+    verdict: APPROVED
+    evidence:
+      - "Repository source and configuration will be used for implemented-component detail"
+      - "No code, schema, API, or dependency change is in scope"
+  - board: Product
+    reviewer_type: AGENT
+    self_review: true
+    verdict: APPROVED_WITH_CONDITIONS
+    evidence:
+      - "Business SSOT remains higher precedence than the architecture recommendation"
+    conditions:
+      - "Document must not present pending business or architecture decisions as approved"
+  - board: QA
+    reviewer_type: AGENT
+    self_review: true
+    verdict: APPROVED
+    evidence:
+      - "Acceptance criteria are observable through link, count, fence, and governance checks"
+```
+
+Delivery evidence:
+
+- [`DOC-005` version 0.1](../../platform/architecture-review/09-stakeholder-lld-approval-baseline.md)
+  contains 12 Mermaid diagrams, including one end-to-end platform diagram and all five layer
+  drill-downs.
+- Repository inventory confirms 5 implemented service directories; the source target catalogue
+  contains 19 rows; the reconciled 21–22 target range is explicitly approval-dependent.
+- All relative Markdown targets in changed files resolve; Mermaid fences/declarations and
+  subgraph identifiers pass structural checks; `git diff --check` passes.
+- `java scripts/governance/FreshnessCheck.java` returns `VERDICT: FRESH` with unique register IDs.
+- Full `ci-checks.py` was not runnable locally because no Python interpreter is installed; its
+  link concern was covered by the read-only PowerShell link check above.
+
+### SUG-20260812-bps · Persistence contract API drift
+
+```yaml
+SUG-20260812-bps: >
+  docs/1sb-insurance-integration/architecture/bank-persistence-service.md still says poll-attempt
+  and raw-payload resources are not HTTP-exposed, while JobController and RawPayloadController
+  implement those APIs and the service README documents them.
+context: "WS-1 · Phase 4 hardening · active item DOC-005"
+stage/scope: "SF1 / SC1; serves accurate implemented API evidence and consumer documentation"
+necessity: "SHOULD · E1 source-code evidence · confidence C5"
+action: "ADMIT as DOC-006, P3 now / P3 target; READY but queued behind DOC-005"
+not_included: "No contract, controller, schema, or runtime change"
+resumed: DOC-005
+```
 
 ---
 

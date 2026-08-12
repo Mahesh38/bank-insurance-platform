@@ -37,6 +37,7 @@
 | DOC-002 | 2026-07-31 | Prefer bank-owned capabilities with pluggable integrations (opening stance) | Accepted | [PO opening](./06-po-opening-position.md) |
 | DOC-003 | 2026-07-31 | BRD overview headings (Login → Commission/MIS) are PO-approved chapter map | Accepted | [BRD Overview](./requirements/BRD-OVERVIEW.md) |
 | DOC-004 | 2026-07-31 | Working Decisions Draft v1 adopted as **working** SSOT for MVP scope (pending formal sponsor validation) | Working | [Working Decisions](./07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md) |
+| DOC-005 | 2026-08-12 | Stakeholder LLD and architecture approval baseline created; it remains non-binding until its approval record is signed | Pending | [LLD baseline](../platform/architecture-review/09-stakeholder-lld-approval-baseline.md) |
 
 ---
 

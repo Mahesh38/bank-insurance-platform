@@ -37,6 +37,7 @@ No document in the repository yet says: how many services the *whole platform* s
 | 6 | [06-security-compliance-and-nfrs.md](./06-security-compliance-and-nfrs.md) | Security controls, IRDAI/RBI posture, availability/latency/DR targets |
 | 7 | [07-delivery-roadmap-and-estimate.md](./07-delivery-roadmap-and-estimate.md) | Phased plan, team shape, timeline estimate and its assumptions |
 | 8 | [08-architecture-decision-log.md](./08-architecture-decision-log.md) | `ARCH-xxx` decisions this review commits to, and why |
+| 9 | [09-stakeholder-lld-approval-baseline.md](./09-stakeholder-lld-approval-baseline.md) | Stakeholder entry point: master and layer LLD diagrams, implemented-versus-proposed status, responsibilities, data/cache/comms, and approval/evolution control |
 
 ## One-paragraph summary
 

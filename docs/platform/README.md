@@ -26,6 +26,12 @@ module belongs with that module instead.
 | **[architecture-review/](./architecture-review/README.md)** | Independent Solution Architect review — target-state **AWS/EKS microservices** architecture: ~16 services, sync/async patterns, data architecture, security/NFRs, delivery estimate | ⚠️ **Recommendation** — not yet approved by PO/Compliance/Sponsor |
 | **[authentication-authorization/](./authentication-authorization/README.md)** | **Workforce authentication & authorization SSOT** — token-hiding BFF, provider abstraction (Keycloak → Cognito/AD), RBAC + ABAC + relationship policies | ✅ **Approved** architecture and implementation baseline |
 
+**Stakeholder review starts here:**
+[Stakeholder LLD and Architecture Approval Baseline](./architecture-review/09-stakeholder-lld-approval-baseline.md).
+It contains the complete platform diagram, five layer drill-downs, implemented component LLDs,
+service/data/cache/communication matrices, open approval decisions, and the controlled evolution
+workflow. Its current status is **Draft**, so proposed target components are not build authority.
+
 **These two carry different weight.** The auth SSOT is binding on implementations today.
 The architecture review is a proposal whose technology choices are tracked as `ARCH-xxx`
 decisions in

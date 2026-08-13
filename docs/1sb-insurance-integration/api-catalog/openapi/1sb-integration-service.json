@@ -1,0 +1,763 @@
+{
+  "openapi" : "3.0.1",
+  "info" : {
+    "title" : "1SB Integration Service",
+    "description" : "Bank-facing API adapter for the 1SilverBullet (1SB) insurance platform â master data, quote, proposal, payment, and status endpoints.",
+    "version" : "v1"
+  },
+  "paths" : {
+    "/v1/quotes" : {
+      "post" : {
+        "tags" : [ "quote-controller" ],
+        "operationId" : "createQuote",
+        "parameters" : [ {
+          "name" : "Idempotency-Key",
+          "in" : "header",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "X-Actor-Id",
+          "in" : "header",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateQuoteRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CreateQuoteResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/proposals" : {
+      "post" : {
+        "tags" : [ "proposal-controller" ],
+        "operationId" : "submit",
+        "parameters" : [ {
+          "name" : "Idempotency-Key",
+          "in" : "header",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "X-Actor-Id",
+          "in" : "header",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SubmitProposalRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SubmitProposalResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/payments" : {
+      "post" : {
+        "tags" : [ "payment-controller" ],
+        "operationId" : "createPaymentSession",
+        "parameters" : [ {
+          "name" : "Idempotency-Key",
+          "in" : "header",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "X-Actor-Id",
+          "in" : "header",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreatePaymentRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CreatePaymentResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/master-data/lookup" : {
+      "post" : {
+        "tags" : [ "master-data-controller" ],
+        "operationId" : "lookup",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/MasterLookupRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MasterLookupResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/status/{applicationNumber}" : {
+      "get" : {
+        "tags" : [ "status-controller" ],
+        "operationId" : "getStatus",
+        "parameters" : [ {
+          "name" : "applicationNumber",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "lob",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "TERM", "HEALTH", "MOTOR", "SAVING", "ULIP", "ANNUITY", "PENSION" ]
+          }
+        }, {
+          "name" : "insurerCode",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "productCode",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "X-Actor-Id",
+          "in" : "header",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApplicationStatusResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/quotes/{jobId}" : {
+      "get" : {
+        "tags" : [ "quote-controller" ],
+        "operationId" : "getQuote",
+        "parameters" : [ {
+          "name" : "jobId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/QuoteJobResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/proposals/{jobId}" : {
+      "get" : {
+        "tags" : [ "proposal-controller" ],
+        "operationId" : "getProposal",
+        "parameters" : [ {
+          "name" : "jobId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProposalJobResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/proposals/schema" : {
+      "get" : {
+        "tags" : [ "proposal-controller" ],
+        "operationId" : "getSchema",
+        "parameters" : [ {
+          "name" : "lob",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "TERM", "HEALTH", "MOTOR", "SAVING", "ULIP", "ANNUITY", "PENSION" ]
+          }
+        }, {
+          "name" : "productCode",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "manufacturerId",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "version",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "quoteJobId",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProposalSchema"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components" : {
+    "schemas" : {
+      "CreateQuoteRequest" : {
+        "required" : [ "lob", "members", "sumAssured" ],
+        "type" : "object",
+        "properties" : {
+          "lob" : {
+            "type" : "string",
+            "enum" : [ "TERM", "HEALTH", "MOTOR", "SAVING", "ULIP", "ANNUITY", "PENSION" ]
+          },
+          "mode" : {
+            "type" : "string"
+          },
+          "category" : {
+            "type" : "string"
+          },
+          "sumAssured" : {
+            "type" : "number"
+          },
+          "premiumAmount" : {
+            "type" : "number"
+          },
+          "members" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/MemberRequest"
+            }
+          },
+          "preferences" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "object"
+            }
+          },
+          "distribution" : {
+            "$ref" : "#/components/schemas/DistributionRequest"
+          },
+          "journeyId" : {
+            "type" : "string"
+          },
+          "sessionId" : {
+            "type" : "string"
+          }
+        }
+      },
+      "DistributionRequest" : {
+        "type" : "object",
+        "properties" : {
+          "rmEmployeeId" : {
+            "type" : "string"
+          },
+          "agentId" : {
+            "type" : "string"
+          },
+          "channelType" : {
+            "type" : "string"
+          }
+        }
+      },
+      "MemberRequest" : {
+        "required" : [ "dob", "gender" ],
+        "type" : "object",
+        "properties" : {
+          "role" : {
+            "type" : "string"
+          },
+          "sequenceNumber" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "dob" : {
+            "type" : "string"
+          },
+          "gender" : {
+            "type" : "string"
+          },
+          "tobacco" : {
+            "type" : "boolean"
+          },
+          "annualIncome" : {
+            "type" : "number"
+          },
+          "pincode" : {
+            "type" : "string"
+          }
+        }
+      },
+      "CreateQuoteResponse" : {
+        "type" : "object",
+        "properties" : {
+          "jobId" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "PENDING", "RUNNING", "PARTIAL", "COMPLETED", "FAILED", "TIMEOUT" ]
+          }
+        }
+      },
+      "SubmitProposalRequest" : {
+        "required" : [ "lob" ],
+        "type" : "object",
+        "properties" : {
+          "lob" : {
+            "type" : "string",
+            "enum" : [ "TERM", "HEALTH", "MOTOR", "SAVING", "ULIP", "ANNUITY", "PENSION" ]
+          },
+          "schemaId" : {
+            "type" : "string"
+          },
+          "offerId" : {
+            "type" : "string"
+          },
+          "productCode" : {
+            "type" : "string"
+          },
+          "manufacturerId" : {
+            "type" : "string"
+          },
+          "version" : {
+            "type" : "string"
+          },
+          "values" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "object"
+            }
+          },
+          "consentRef" : {
+            "type" : "string"
+          },
+          "agentId" : {
+            "type" : "string"
+          },
+          "distribution" : {
+            "$ref" : "#/components/schemas/DistributionRequest"
+          },
+          "journeyId" : {
+            "type" : "string"
+          },
+          "sessionId" : {
+            "type" : "string"
+          }
+        }
+      },
+      "SubmitProposalResponse" : {
+        "type" : "object",
+        "properties" : {
+          "proposalJobId" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "PENDING", "RUNNING", "PARTIAL", "COMPLETED", "FAILED", "TIMEOUT" ]
+          },
+          "jobId" : {
+            "type" : "string"
+          }
+        }
+      },
+      "CreatePaymentRequest" : {
+        "required" : [ "amountToBePaid", "applicationNumber", "insurerCode", "lob", "payer", "premiumFrequency", "productCode", "redirectUrl" ],
+        "type" : "object",
+        "properties" : {
+          "lob" : {
+            "type" : "string",
+            "enum" : [ "TERM", "HEALTH", "MOTOR", "SAVING", "ULIP", "ANNUITY", "PENSION" ]
+          },
+          "applicationNumber" : {
+            "type" : "string"
+          },
+          "jobId" : {
+            "type" : "string"
+          },
+          "insurerCode" : {
+            "type" : "string"
+          },
+          "productCode" : {
+            "type" : "string"
+          },
+          "redirectUrl" : {
+            "type" : "string"
+          },
+          "journeyId" : {
+            "type" : "string"
+          },
+          "currency" : {
+            "type" : "string"
+          },
+          "payer" : {
+            "$ref" : "#/components/schemas/Payer"
+          },
+          "amountToBePaid" : {
+            "type" : "number"
+          },
+          "premiumFrequency" : {
+            "type" : "string"
+          },
+          "distribution" : {
+            "$ref" : "#/components/schemas/DistributionRequest"
+          }
+        }
+      },
+      "Payer" : {
+        "required" : [ "email", "firstName", "lastName", "mobileNumber" ],
+        "type" : "object",
+        "properties" : {
+          "firstName" : {
+            "type" : "string"
+          },
+          "lastName" : {
+            "type" : "string"
+          },
+          "mobileNumber" : {
+            "type" : "string"
+          },
+          "email" : {
+            "type" : "string"
+          }
+        }
+      },
+      "CreatePaymentResponse" : {
+        "type" : "object",
+        "properties" : {
+          "paymentSessionId" : {
+            "type" : "string"
+          },
+          "paymentUrl" : {
+            "type" : "string"
+          },
+          "expiresAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "AWAITING_PAYMENT", "INTIMATION_SENT", "PAYMENT_SUCCESS", "PAYMENT_FAILURE" ]
+          }
+        }
+      },
+      "MasterLookupRequest" : {
+        "required" : [ "entityIds", "lob" ],
+        "type" : "object",
+        "properties" : {
+          "lob" : {
+            "type" : "string"
+          },
+          "lookUpCategory" : {
+            "type" : "string"
+          },
+          "entityIds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "manufacturerId" : {
+            "type" : "string"
+          }
+        }
+      },
+      "CacheInfo" : {
+        "type" : "object",
+        "properties" : {
+          "hit" : {
+            "type" : "boolean"
+          },
+          "stale" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "CodeLabel" : {
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "string"
+          },
+          "label" : {
+            "type" : "string"
+          }
+        }
+      },
+      "MasterLookupResponse" : {
+        "type" : "object",
+        "properties" : {
+          "lob" : {
+            "type" : "string"
+          },
+          "lookups" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "array",
+              "items" : {
+                "$ref" : "#/components/schemas/CodeLabel"
+              }
+            }
+          },
+          "cache" : {
+            "$ref" : "#/components/schemas/CacheInfo"
+          }
+        }
+      },
+      "ApplicationStatusResponse" : {
+        "type" : "object",
+        "properties" : {
+          "applicationNumber" : {
+            "type" : "string"
+          },
+          "bankStatus" : {
+            "type" : "string",
+            "enum" : [ "QUOTING", "PROPOSAL", "UW_REQUIREMENTS", "UW_IN_PROGRESS", "CUSTOMER_DECISION", "PAYMENT", "ISSUED", "CLOSED", "UNKNOWN" ]
+          },
+          "manufacturerSubStatus" : {
+            "type" : "string"
+          },
+          "policyNumber" : {
+            "type" : "string"
+          },
+          "lastUpdated" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
+      },
+      "QuoteJobResponse" : {
+        "type" : "object",
+        "properties" : {
+          "jobId" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "PENDING", "RUNNING", "PARTIAL", "COMPLETED", "FAILED", "TIMEOUT" ]
+          },
+          "failureReason" : {
+            "type" : "string"
+          },
+          "offers" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/QuoteOffer"
+            }
+          }
+        }
+      },
+      "QuoteOffer" : {
+        "type" : "object",
+        "properties" : {
+          "offerId" : {
+            "type" : "string"
+          },
+          "insurerCode" : {
+            "type" : "string"
+          },
+          "insurerName" : {
+            "type" : "string"
+          },
+          "productCode" : {
+            "type" : "string"
+          },
+          "productName" : {
+            "type" : "string"
+          },
+          "premiumAmount" : {
+            "type" : "number"
+          },
+          "premiumFrequency" : {
+            "type" : "string"
+          },
+          "sumAssured" : {
+            "type" : "number"
+          },
+          "outOfBound" : {
+            "type" : "boolean"
+          },
+          "offerStatus" : {
+            "type" : "string"
+          },
+          "errorSummary" : {
+            "type" : "string"
+          }
+        }
+      },
+      "ProposalJobResponse" : {
+        "type" : "object",
+        "properties" : {
+          "jobId" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "PENDING", "RUNNING", "PARTIAL", "COMPLETED", "FAILED", "TIMEOUT" ]
+          },
+          "applicationNumber" : {
+            "type" : "string"
+          },
+          "failureReason" : {
+            "type" : "string"
+          },
+          "offers" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/QuoteOffer"
+            }
+          }
+        }
+      },
+      "ProposalSchema" : {
+        "type" : "object",
+        "properties" : {
+          "lob" : {
+            "type" : "string",
+            "enum" : [ "TERM", "HEALTH", "MOTOR", "SAVING", "ULIP", "ANNUITY", "PENSION" ]
+          },
+          "productCode" : {
+            "type" : "string"
+          },
+          "manufacturerId" : {
+            "type" : "string"
+          },
+          "version" : {
+            "type" : "string"
+          },
+          "fields" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "object"
+            }
+          }
+        }
+      }
+    }
+  }
+}

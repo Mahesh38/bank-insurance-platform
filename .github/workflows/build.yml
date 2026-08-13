@@ -65,3 +65,17 @@ jobs:
           path: |
             **/build/reports/jacoco/test/**
           retention-days: 14
+
+      # Criterion 4.2 — the published API contract and the consumer collection, downloadable
+      # from any build without cloning. OpenApiContractTest has already verified that the
+      # committed document matches the running API, so these artefacts are current by
+      # construction. Publication to the bank's internal portal is still outstanding — see
+      # docs/1sb-insurance-integration/api-catalog/PUBLISHED-API.md section 4.
+      - name: Upload API contract and consumer collection
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-contract
+          path: |
+            docs/1sb-insurance-integration/api-catalog/openapi/*.json
+            docs/1sb-insurance-integration/api-catalog/collections/*.json
+          retention-days: 90

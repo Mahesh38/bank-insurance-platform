@@ -32,3 +32,10 @@ dependencies {
 tasks.bootJar {
     archiveFileName.set("1sb-integration-service.jar")
 }
+
+// Forward -DupdateOpenApi=true from the Gradle JVM to the test JVM so OpenApiContractTest can
+// regenerate the published spec. Without this the flag is silently ignored and the test just
+// reports drift, which looks like the regeneration failed.
+tasks.withType<Test> {
+    System.getProperty("updateOpenApi")?.let { systemProperty("updateOpenApi", it) }
+}

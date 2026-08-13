@@ -1,0 +1,319 @@
+{
+  "info": {
+    "name": "1SB Integration — Term journey (bank consumer)",
+    "description": "WS-1 Phase 4 criterion 4.2 — consumer collection for the Term path.\n\nRuns the same journey as TermJourneyE2EIT: master data -> quote -> poll -> proposal schema -> proposal submit -> poll -> payment -> status. Each request captures the identifier the next one needs, so the whole folder can be run end to end with Postman's Collection Runner.\n\nSet `baseUrl` in an environment before running. Every mutating request sends its own `Idempotency-Key`; re-running a request with the same key returns the original job rather than creating a second one — that is intended behaviour, not a cache.\n\nThis collection talks to the BANK integration service, never to 1SB directly. Bank apps calling 1SB or the database directly is a standing architectural constraint violation.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "description": "UAT host for the 1sb-integration-service. No trailing slash."
+    },
+    {
+      "key": "actorId",
+      "value": "rm-demo-1",
+      "description": "Sent as X-Actor-Id. Appears in the audit trail — use a real operator id in UAT."
+    },
+    { "key": "journeyId", "value": "postman-journey-1" },
+    { "key": "jobId", "value": "", "description": "captured from step 2" },
+    { "key": "offerId", "value": "", "description": "captured from step 3" },
+    { "key": "productCode", "value": "", "description": "captured from step 3" },
+    { "key": "insurerCode", "value": "", "description": "captured from step 3" },
+    { "key": "proposalJobId", "value": "", "description": "captured from step 5" },
+    { "key": "applicationNumber", "value": "", "description": "captured from step 6" }
+  ],
+  "item": [
+    {
+      "name": "1. Master data — gender enum",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/v1/master-data/lookup", "host": ["{{baseUrl}}"], "path": ["v1", "master-data", "lookup"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"lob\": \"TERM\",\n  \"lookUpCategory\": \"PROPOSAL\",\n  \"entityIds\": [\"gender\"]\n}"
+        },
+        "description": "Enum values for the quote form. Cached server-side; X-Master-Cache tells you whether this response was a cache hit. No Idempotency-Key — this is a read."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "pm.test('returns code/label pairs', () => {",
+              "  const gender = pm.response.json().lookups.gender;",
+              "  pm.expect(gender).to.be.an('array').that.is.not.empty;",
+              "  pm.expect(gender[0]).to.have.property('code');",
+              "  pm.expect(gender[0]).to.have.property('label');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Create quote",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Idempotency-Key", "value": "{{$guid}}", "description": "REQUIRED on every mutating /v1 request. Omitting it returns 400 MISSING_IDEMPOTENCY_KEY." },
+          { "key": "X-Actor-Id", "value": "{{actorId}}" }
+        ],
+        "url": { "raw": "{{baseUrl}}/v1/quotes", "host": ["{{baseUrl}}"], "path": ["v1", "quotes"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"lob\": \"TERM\",\n  \"journeyId\": \"{{journeyId}}\",\n  \"sumAssured\": 5000000,\n  \"members\": [\n    { \"dob\": \"1990-01-15\", \"gender\": \"M\", \"tobacco\": false }\n  ],\n  \"distribution\": { \"agentId\": \"109337\" }\n}"
+        },
+        "description": "Returns 202 with a jobId. Quoting is asynchronous — the offers are NOT in this response. Poll step 3 until the status is terminal."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('202 Accepted', () => pm.response.to.have.status(202));",
+              "const body = pm.response.json();",
+              "pm.test('returns a jobId', () => pm.expect(body.jobId).to.be.a('string').and.not.empty);",
+              "pm.test('does not leak the upstream correlation id', () => pm.expect(body.reqId).to.be.undefined);",
+              "pm.collectionVariables.set('jobId', body.jobId);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Poll quote result",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/v1/quotes/{{jobId}}", "host": ["{{baseUrl}}"], "path": ["v1", "quotes", "{{jobId}}"] },
+        "description": "Poll until status is COMPLETED, PARTIAL, TIMEOUT or FAILED.\n\nPENDING/RUNNING never carry offers — an empty offers array while in progress is correct, not an error. PARTIAL means some insurers answered and some errored; the offers that arrived are usable.\n\nTIMEOUT means the upstream did not answer within the poll budget. Resubmit step 2 with a NEW Idempotency-Key; reusing the old one returns the same timed-out job."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "const terminal = ['COMPLETED', 'PARTIAL', 'TIMEOUT', 'FAILED'];",
+              "",
+              "if (!terminal.includes(body.status)) {",
+              "  // Still working — wait and poll this same request again.",
+              "  setTimeout(() => {}, 2000);",
+              "  postman.setNextRequest('3. Poll quote result');",
+              "  return;",
+              "}",
+              "",
+              "pm.test('quote completed with at least one offer', () => {",
+              "  pm.expect(body.status).to.be.oneOf(['COMPLETED', 'PARTIAL']);",
+              "  pm.expect(body.offers).to.be.an('array').that.is.not.empty;",
+              "});",
+              "",
+              "const offer = body.offers[0];",
+              "pm.collectionVariables.set('offerId', offer.offerId);",
+              "pm.collectionVariables.set('productCode', offer.productCode);",
+              "pm.collectionVariables.set('insurerCode', offer.insurerCode);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Proposal schema (dynamic form)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/v1/proposals/schema?lob=TERM&productCode={{productCode}}&manufacturerId={{insurerCode}}&version=v1",
+          "host": ["{{baseUrl}}"],
+          "path": ["v1", "proposals", "schema"],
+          "query": [
+            { "key": "lob", "value": "TERM" },
+            { "key": "productCode", "value": "{{productCode}}" },
+            { "key": "manufacturerId", "value": "{{insurerCode}}" },
+            { "key": "version", "value": "v1" }
+          ]
+        },
+        "description": "The proposal form differs per insurer and product, so it is fetched rather than hard-coded. Render this, then send the collected answers as `values` in step 5. Server-side cached."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "pm.test('schema is for the quoted product', () => {",
+              "  pm.expect(pm.response.json().productCode).to.eql(pm.collectionVariables.get('productCode'));",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Submit proposal",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Idempotency-Key", "value": "{{$guid}}" },
+          { "key": "X-Actor-Id", "value": "{{actorId}}" }
+        ],
+        "url": { "raw": "{{baseUrl}}/v1/proposals", "host": ["{{baseUrl}}"], "path": ["v1", "proposals"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"lob\": \"TERM\",\n  \"offerId\": \"{{offerId}}\",\n  \"productCode\": \"{{productCode}}\",\n  \"manufacturerId\": \"{{insurerCode}}\",\n  \"version\": \"v1\",\n  \"journeyId\": \"{{journeyId}}\",\n  \"consentRef\": \"consent-demo-1\",\n  \"agentId\": \"109337\",\n  \"values\": {\n    \"nomineeName\": \"A Nominee\"\n  }\n}"
+        },
+        "description": "`values` must match the schema from step 4.\n\nThere is deliberately no distributorId field — the distributor is injected server-side from secrets and a client-supplied one would be ignored (COMP-004).\n\n`consentRef` is a soft gate today: its absence is recorded as an audit event, not rejected. Send it anyway.\n\nA business rejection comes back as 422 PROPOSAL_REJECTED with field-level errors, and is NOT retryable — fix the values and submit with a new Idempotency-Key."
+        },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('201 Created', () => pm.response.to.have.status(201));",
+              "const body = pm.response.json();",
+              "pm.test('returns a proposal job id', () => pm.expect(body.proposalJobId).to.be.a('string').and.not.empty);",
+              "pm.collectionVariables.set('proposalJobId', body.proposalJobId);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Poll proposal result",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/v1/proposals/{{proposalJobId}}", "host": ["{{baseUrl}}"], "path": ["v1", "proposals", "{{proposalJobId}}"] },
+        "description": "Poll until terminal. The applicationNumber is never populated while PENDING or RUNNING — the service will not invent one. Once COMPLETED, that number is the key for payment and status."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "const terminal = ['COMPLETED', 'PARTIAL', 'TIMEOUT', 'FAILED'];",
+              "",
+              "if (!terminal.includes(body.status)) {",
+              "  setTimeout(() => {}, 2000);",
+              "  postman.setNextRequest('6. Poll proposal result');",
+              "  return;",
+              "}",
+              "",
+              "pm.test('proposal accepted with an application number', () => {",
+              "  pm.expect(body.status).to.be.oneOf(['COMPLETED', 'PARTIAL']);",
+              "  pm.expect(body.applicationNumber).to.be.a('string').and.not.empty;",
+              "});",
+              "",
+              "pm.collectionVariables.set('applicationNumber', body.applicationNumber);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Create payment session",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Idempotency-Key", "value": "{{$guid}}" },
+          { "key": "X-Actor-Id", "value": "{{actorId}}" }
+        ],
+        "url": { "raw": "{{baseUrl}}/v1/payments", "host": ["{{baseUrl}}"], "path": ["v1", "payments"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"lob\": \"TERM\",\n  \"applicationNumber\": \"{{applicationNumber}}\",\n  \"jobId\": \"{{proposalJobId}}\",\n  \"insurerCode\": \"{{insurerCode}}\",\n  \"productCode\": \"{{productCode}}\",\n  \"redirectUrl\": \"https://bank.example.com/insurance/return\",\n  \"journeyId\": \"{{journeyId}}\",\n  \"payer\": {\n    \"firstName\": \"Asha\",\n    \"lastName\": \"Rao\",\n    \"mobileNumber\": \"9876543210\",\n    \"email\": \"asha@example.com\"\n  },\n  \"amountToBePaid\": 4200,\n  \"premiumFrequency\": \"ANNUAL\",\n  \"distribution\": { \"agentId\": \"109337\" }\n}"
+        },
+        "description": "Returns a hosted payment URL to redirect the customer to. `redirectUrl` is where the insurer sends them back afterwards.\n\n409 PROPOSAL_NOT_PAYABLE means the proposal job is not in a payable state yet — finish step 6 first."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('201 Created', () => pm.response.to.have.status(201));",
+              "const body = pm.response.json();",
+              "pm.test('payment url is https', () => pm.expect(body.paymentUrl).to.match(/^https:\\/\\//));",
+              "pm.test('session is awaiting payment', () => pm.expect(body.status).to.eql('AWAITING_PAYMENT'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Application status",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "X-Actor-Id", "value": "{{actorId}}" }],
+        "url": {
+          "raw": "{{baseUrl}}/v1/status/{{applicationNumber}}?lob=TERM&insurerCode={{insurerCode}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["v1", "status", "{{applicationNumber}}"],
+          "query": [
+            { "key": "lob", "value": "TERM" },
+            { "key": "insurerCode", "value": "{{insurerCode}}" }
+          ]
+        },
+        "description": "Live call to the insurer every time — not cached, so do not poll this in a tight loop.\n\n`bankStatus` is the normalised bank vocabulary you should branch on. `manufacturerSubStatus` is the insurer's own wording, for display only. The raw upstream status is deliberately not exposed."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.test('status is normalised to bank vocabulary', () => {",
+              "  pm.expect(body.bankStatus).to.be.a('string').and.not.empty;",
+              "  pm.expect(body.rawStatus).to.be.undefined;",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Negative — missing Idempotency-Key returns 400",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/v1/quotes", "host": ["{{baseUrl}}"], "path": ["v1", "quotes"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"lob\": \"TERM\",\n  \"sumAssured\": 5000000,\n  \"members\": [{ \"dob\": \"1990-01-15\", \"gender\": \"M\" }]\n}"
+        },
+        "description": "Worth running once during integration so the failure mode is familiar before it happens in production."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('400 Bad Request', () => pm.response.to.have.status(400));",
+              "pm.test('code is MISSING_IDEMPOTENCY_KEY', () => {",
+              "  pm.expect(pm.response.json().code).to.eql('MISSING_IDEMPOTENCY_KEY');",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

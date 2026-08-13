@@ -43,7 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
-| — | — | — | *No suggestions triaged yet. AIGEM adopted 2026-08-07; triage begins with the next input.* | — | — | — | — | — | — | — |
+| SUG-20260813-a1c | 2026-08-13 | agent:claude (while preparing the gate 4.4 compliance pack) | Persist audit events to `audit_event` via the existing `POST /internal/v1/audit-events`, instead of emitting them to the application log only | SF0 | SC0 | MUST | COMP | P1 / P1 | ADMITTED | [detail](#sug-20260813-a1c--persist-audit-events) · [RISK-012](./RISK-REGISTER.md#2-open-risks) |
 
 <!--
 Row format:
@@ -58,6 +58,147 @@ Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
 
 <!-- ### SUG-0001 · <title>  ... full triage record ... -->
+
+### SUG-20260813-a1c · Persist audit events
+
+```yaml
+# schema: triage-record
+id: SUG-20260813-a1c
+raised_at: "2026-08-13"
+raised_by: "agent:claude"
+source: "assembling the compliance review pack for gate criterion 4.4"
+input: >
+  The audit trail is documented as an immutable, 7-year, queryable compliance log backed by the
+  audit_event table. In fact the only AuditEventPublisher wired into 1sb-integration-service is
+  LoggingAuditEventPublisher, which writes to the application log. Nothing writes to the table.
+  The persistence endpoint POST /internal/v1/audit-events exists and works; no adapter calls it.
+  TD-021 documented that endpoint for an audit-consumer service that was scoped as "Phase 2+ /
+  separate story" and does not exist.
+
+# ---- STEP 1: CONTEXT RESOLUTION (01) ----
+context:
+  workstream: WS-1
+  current_phase: "Phase 4 — Hardening & consumer enablement"
+  canonical_stage: "L7 — Hardening"
+  current_objective: "Term path signed off for UAT use by at least one bank caller"
+  state_as_of: "2026-08-10"
+  state_provisional: false
+  active_work_item: "gate-4.4 compliance review pack"
+
+# ---- STEP 2: LIFECYCLE VALIDATION (03) ----
+stage_fit:
+  code: SF0
+  rationale: >
+    Criterion 4.4 requires a compliance review of the audit schema and log samples. The schema is
+    sound but unpopulated, so the criterion cannot honestly pass against the implementation as it
+    stands. Blocking a gate criterion is the definition of SF0.
+  target_stage: null
+  unpark_trigger: null
+  absorption_test:
+    small: null
+    no_new_dependency: null
+    no_new_decision: null
+    gate_neutral: null
+
+# ---- STEP 3: SCOPE VALIDATION (02) ----
+scope:
+  code: SC0
+  business_scope: "in scope — 'Compliance review of audit schema and log samples' is a Phase 4 in_scope item"
+  serves: []
+  failure_without_it: >
+    No durable, immutable record of who did what to which application. A dispute, a regulator
+    request, or an incident investigation would have only rotating application logs to draw on.
+  minimal: true
+  authority: "CURRENT-STATE.yaml current_scope.in_scope; ACTION-PLAN.md 4.4"
+
+# ---- STEP 4: NECESSITY (16) ----
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "Phase 4 — Hardening & consumer enablement"
+  binds_when: "first UAT exposure to real customer journeys"
+  failure_without_it: >
+    Criterion 4.4 would pass against a documented control that does not exist. A dispute, a
+    regulator request, or an incident investigation would have only rotating application logs
+    where an immutable 7-year trail was promised.
+  evidence_tier: E1
+  evidence:
+    - "grep 'implements AuditEventPublisher' over services/ and libs/ returns only LoggingAuditEventPublisher and a test double"
+    - "No HTTP adapter for /internal/v1/audit-events exists in 1sb-integration-service"
+    - "TD-021 closed as doc-only; the audit-consumer service it described was never built"
+  confidence: C5
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+# ---- STEP 5: ACTION MATRIX (00 §6) ----
+action: ADMIT
+action_rationale: "SF0 + MUST -> ADMIT at P1. A prerequisite cannot be parked."
+duplicate_of: null
+conflicts:
+  - "architecture and V1__init_schema.sql describe audit_event as the compliance log; the wiring does not exist. Resolved in favour of the code as the statement of fact, and the gap is raised rather than the documents trusted."
+
+# ---- STEP 6: CLASSIFICATION (06) ----
+classification:
+  type: COMP
+  also: [INFRA]
+  breakdown: STORY
+  epic: null
+  risk_tier: T4
+  destination: "PRODUCT-BACKLOG.md + RISK-REGISTER.md (RISK-012)"
+
+# ---- STEP 7: PRIORITY (05) ----
+priority:
+  now: P1
+  at_target: P1
+  factors: { N: 3, S: 3, B: 2, R: 3, D: 0, E: 1 }
+  score: 12
+  matrix_default: P1
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: >
+    A compliance control that is documented but absent is worse than one known to be missing,
+    because it invites reliance. T4 because it is a control a regulator can ask about.
+
+# ---- STEP 8: DEPENDENCIES (07) ----
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 1
+  earliest_start: "immediately — the persistence endpoint and schema already exist"
+  cycles: none
+
+# ---- STEP 9: BREAKDOWN (06 §5) ----
+breakdown:
+  children: []
+  completion_definition: >
+    Audit events emitted by 1sb-integration-service are persisted to audit_event and readable
+    through the persistence API, with capture failure degrading like raw-payload capture rather
+    than failing the customer's transaction.
+  not_included:
+    - "Database-enforced insert-only grants (RISK-013 — separate control)"
+    - "Audit event retention job (no retention period defined yet — see the 4.4 review pack)"
+
+# ---- Outcome ----
+outcome:
+  registered_in: "registers/RISK-REGISTER.md (RISK-012); compliance pack Finding 1"
+  work_item_id: null
+  plan_id: null
+  status: ADMITTED
+  closed_reason: null
+
+# ---- Return to task ----
+resumed: "gate-4.4 compliance review pack"
+```
+
+> **Deliberately not implemented in the same change as the pack.** An HTTP audit adapter is new
+> production code on a compliance path at risk tier T4: it needs its own work item, plan, and
+> Security + Risk & Compliance verdicts. Slipping it into a documentation change is the
+> unreviewed scope growth [00 §1](../00-GOVERNANCE.md#1-problem-this-solves) exists to prevent.
 
 ---
 

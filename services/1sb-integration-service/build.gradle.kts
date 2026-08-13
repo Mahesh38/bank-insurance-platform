@@ -38,6 +38,7 @@ tasks.bootJar {
 // reports drift, which looks like the regeneration failed.
 tasks.withType<Test> {
     System.getProperty("updateOpenApi")?.let { systemProperty("updateOpenApi", it) }
+    System.getProperty("updateAuditSamples")?.let { systemProperty("updateAuditSamples", it) }
     // QuoteLatencySmokeIT opt-in switch and its tunables (criterion 4.6).
     listOf(
         "perf.enabled", "perf.concurrency", "perf.requests",

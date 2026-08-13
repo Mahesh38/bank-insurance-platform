@@ -1,0 +1,81 @@
+name: Sandbox smoke (nightly)
+
+# WS-1 Phase 4 exit criterion 4.1 — the "gated nightly" half, sanctioned by ACTION-PLAN 4.1
+# ("or gated nightly if sandbox flaky") and by RISK-009.
+#
+# This job calls the REAL 1SB sandbox. It is deliberately not a pull-request gate: 1SB
+# instability would otherwise block merges on work unrelated to the integration.
+#
+# It is also read-only — see OneSbSandboxSmokeIT. No quote, proposal, or payment is submitted.
+#
+# Secrets required (repository or environment secrets):
+#   ONESB_API_KEY, ONESB_API_SECRET, ONESB_DISTRIBUTOR_ID
+# Optional variable:
+#   ONESB_BASE_URL (defaults to the 1SB demo host)
+#
+# Until those secrets exist the job SKIPS with a notice rather than reporting a false green —
+# a smoke test that silently passes without credentials is worse than no smoke test.
+
+on:
+  schedule:
+    # 01:30 UTC daily — outside Indian business hours, when sandbox load is lowest.
+    - cron: "30 1 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    name: 1SB sandbox reachability & contract
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Check credentials are configured
+        id: creds
+        env:
+          ONESB_API_KEY: ${{ secrets.ONESB_API_KEY }}
+        run: |
+          if [ -z "$ONESB_API_KEY" ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::1SB sandbox credentials are not configured — smoke skipped. \
+            Add ONESB_API_KEY / ONESB_API_SECRET / ONESB_DISTRIBUTOR_ID to enable it."
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Record egress IP
+        if: steps.creds.outputs.configured == 'true'
+        run: |
+          # 1SB whitelists by source IP. When the smoke fails on connectivity, this line is the
+          # first thing to compare against the registered address (OPERATIONS-RUNBOOK section 3).
+          echo "::notice::Runner egress IP: $(curl -fsS --max-time 10 https://api.ipify.org || echo unknown)"
+
+      - name: Sandbox smoke
+        if: steps.creds.outputs.configured == 'true'
+        env:
+          ONESB_SMOKE_ENABLED: "true"
+          ONESB_BASE_URL: ${{ vars.ONESB_BASE_URL || 'https://demo.api.1silverbullet.tech' }}
+          ONESB_API_KEY: ${{ secrets.ONESB_API_KEY }}
+          ONESB_API_SECRET: ${{ secrets.ONESB_API_SECRET }}
+          ONESB_DISTRIBUTOR_ID: ${{ secrets.ONESB_DISTRIBUTOR_ID }}
+          INSURANCE_SECRETS_SOURCE: ENV
+        run: |
+          ./gradlew :services:1sb-integration-service:test \
+            --tests '*OneSbSandboxSmokeIT' --console=plain
+
+      - name: Upload smoke reports
+        if: always() && steps.creds.outputs.configured == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: sandbox-smoke-reports
+          path: services/1sb-integration-service/build/reports/tests/test/**
+          retention-days: 30

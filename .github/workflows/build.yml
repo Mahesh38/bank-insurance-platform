@@ -1,0 +1,67 @@
+name: Build & test
+
+# WS-1 Phase 4 exit criterion 4.1 — "Sandbox E2E suite for the Term path runs in CI".
+#
+# Before this workflow the repository had no build pipeline at all: governance.yml validated
+# the governance documents and nothing compiled the code or ran a test. Coverage gates
+# (criterion 4.7) were enforceable locally but never actually enforced on a change.
+#
+# The real-sandbox smoke is deliberately NOT here — see sandbox-nightly.yml. A third party's
+# uptime must not decide whether our pull requests can merge (ACTION-PLAN 4.1).
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Compile, test, coverage gates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      # `check` runs test -> jacocoTestReport -> packageFloorGuard ->
+      # jacocoTestCoverageVerification, so the strategy section 7 package floors closed under
+      # QA-001 are enforced on every change rather than on request.
+      - name: Build, test and verify coverage
+        run: ./gradlew build --console=plain
+
+      - name: Term journey E2E (simulated sandbox)
+        run: |
+          ./gradlew :services:1sb-integration-service:test \
+            --tests '*TermJourneyE2EIT' --console=plain
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: |
+            **/build/reports/tests/test/**
+            **/build/test-results/test/**
+          retention-days: 14
+
+      - name: Upload coverage reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-reports
+          path: |
+            **/build/reports/jacoco/test/**
+          retention-days: 14

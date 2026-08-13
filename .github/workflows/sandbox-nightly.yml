@@ -1,4 +1,4 @@
-name: Sandbox smoke (nightly)
+name: Nightly (sandbox smoke & performance)
 
 # WS-1 Phase 4 exit criterion 4.1 — the "gated nightly" half, sanctioned by ACTION-PLAN 4.1
 # ("or gated nightly if sandbox flaky") and by RISK-009.
@@ -79,3 +79,39 @@ jobs:
           name: sandbox-smoke-reports
           path: services/1sb-integration-service/build/reports/tests/test/**
           retention-days: 30
+
+  performance:
+    name: Quote latency smoke
+    runs-on: ubuntu-latest
+    # Criterion 4.6. Needs no credentials — 1SB is stubbed — but is kept off pull requests
+    # because it holds the runner for a couple of minutes and its value is as a trend, not as
+    # a per-commit gate. Its two assertions are hardware-tolerant by construction; see
+    # docs/1sb-insurance-integration/service-ssot/PERFORMANCE-SMOKE.md section 3.
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Quote latency smoke
+        run: |
+          ./gradlew :services:1sb-integration-service:test \
+            --tests '*QuoteLatencySmokeIT' -Dperf.enabled=true --console=plain
+
+      - name: Summarise
+        if: always()
+        run: |
+          report=services/1sb-integration-service/build/reports/perf/quote-latency.md
+          if [ -f "$report" ]; then cat "$report" >> "$GITHUB_STEP_SUMMARY"; fi
+
+      - name: Upload latency report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: perf-report
+          path: services/1sb-integration-service/build/reports/perf/**
+          retention-days: 90

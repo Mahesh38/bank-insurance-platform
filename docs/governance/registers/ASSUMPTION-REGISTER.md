@@ -20,6 +20,7 @@ false**, so invalidation triggers a known action instead of a debate.
 | ASM-006 | No AWS deployment target before Phase 6 | TD-006, RISK-005 | Platform roadmap confirmation | Phase 5 gate | OPEN | TD-006 jumps to P1; secrets provider work pulls forward |
 | ASM-007 | Health and Motor reuse `QuoteService` orchestration unchanged | Phase 5 planning, TD-009 | First Health handler spike | Phase 5 entry | OPEN | TD-009 (domain ports) becomes a prerequisite, not a deferral; Phase 5 sizing grows |
 | ASM-008 | Compliance will accept audit coverage limited to quote/proposal/payment paths | TD-023, gate 4.4 | Compliance review (gate 4.4) | Gate 4.4 | OPEN | TD-023 becomes P1 COMP work in Phase 4, not a Phase 5 deferral |
+| ASM-009 | "Nominal concurrency" for quote submit is ~25 concurrent requests — bounded by advisers mid-conversation in an RM-assisted branch journey, not by site traffic | Gate 4.6, `QuoteLatencySmokeIT` | PO states the expected concurrent quote volume | Phase 4 gate | OPEN | The perf smoke is re-run at the PO's figure; if it is materially higher, the concurrency-gain floor and possibly the async design need revisiting before 4.6 can pass |
 
 ## 2. Validated
 

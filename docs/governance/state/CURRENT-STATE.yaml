@@ -291,7 +291,7 @@ id_allocation:
   sequential:
     CR: 2        # CR-001 in use
     RISK: 12      # RISK-001..011 in use
-    ASM: 9        # ASM-001..008 in use
+    ASM: 10       # ASM-001..009 in use
     EPIC: 1
     SPIKE: 1
     ADR: 1

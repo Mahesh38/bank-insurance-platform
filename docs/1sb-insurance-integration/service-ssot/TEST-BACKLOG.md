@@ -13,7 +13,7 @@ Priority: **P0** before Phase 3 functional exit · **P1** hardening · **P2** ni
 
 | ID | Sev | Item | Owner | Notes |
 |----|-----|------|-------|-------|
-| QA-001 | P0 | Introduce JaCoCo + CI coverage verification | Dev | **Done (wiring)** — `008ec04`; residual **Partial** (services interim 50% line after QA-002 → package floors QA-003). TL+QA Lead **APPROVED** 2026-07-30. |
+| QA-001 | P0 | Introduce JaCoCo + CI coverage verification | Dev | **Closed** 2026-08-13 — wiring `008ec04` (TL+QA **APPROVED** 2026-07-30); residual retired by enforcing strategy §7 package floors + `packageFloorGuard`. Closes gate criterion 4.7. TL + QA Lead counter-signature outstanding. |
 | QA-002 | P0 | Persistence API tests: jobs, offers, status patch, payments, audit, `GlobalExceptionHandler` | Dev | **Done** — TL+QA **APPROVED** (incl. validation 400 re-review) |
 | QA-003 | P0 | Integration IT template: service + WireMock 1SB + WireMock/stub persistence | Dev + QA | **Done** — `OneSbConnectivityIT`; TL+QA **APPROVED** |
 | QA-004 | P0 | Phase 3 quote path: unit (handler/mapper) + `@WebMvcTest` + IT-I | Dev | Gate FUNC-002 DoD |

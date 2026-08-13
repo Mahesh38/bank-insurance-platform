@@ -29,19 +29,27 @@ Examples:
 | Module group | Line | Branch | Notes |
 |--------------|------|--------|-------|
 | `libs/*` | **≥ 80%** | **≥ 70%** | Strategy §7 — enforced immediately |
-| `services:1sb-integration-service` | **≥ 90%** | **≥ 70%** | Raised 2026-08-04 — measured ~90.7% line / ~71.4% branch after closing gaps in `OneSbQuoteAdapter`, `LobQuoteHandlerRegistry`, `LobProposalHandlerRegistry`, plus new raw-payload capture tests |
-| `services/*` (other) | **≥ 50%** (interim) | *not gated* | Raised in QA-002 after persistence API coverage (~96% line measured); package floors still pending QA-003 |
+| `services:1sb-integration-service` | **≥ 90%** | **≥ 70%** | Raised 2026-08-04 — measured ~91.9% line / ~76.5% branch |
+| `services:bank-persistence-service` | **≥ 90%** | **≥ 70%** | Raised 2026-08-13 on QA-001 closure — measured ~99.0% line / ~81.0% branch |
+| WS-2 services | **≥ 50%** (interim) | *not gated* | `identity-*`, `workforce-access-bff`. Different workstream at IAM Phase 1; strategy §7 defines no package floors for them. Raising this belongs to the WS-2 gate, not QA-001 |
 
-### Planned service package gates (QA-002 / QA-003)
+### Service package gates — **enforced** since QA-001 closure (2026-08-13)
 
-Per strategy §7 (not yet enforced as package-level rules):
+Strategy §7 package floors, live as JaCoCo `PACKAGE` rules in `build.gradle.kts`. A module-wide
+average can hide a thin adapter, which is precisely what these catch:
 
-| Package | Line | Branch |
-|---------|------|--------|
-| `…onesb.application.*` / `…lob.*` | 80% | 70% |
-| `…adapter.onesb.*` | 70% | 60% |
-| `…adapter.idempotency.*` | 80% | 70% |
-| `com.bank.persistence.api.*` | 70% | 60% |
+| Package | Line | Branch | Measured at closure |
+|---------|------|--------|---------------------|
+| `…onesb.application` | 80% | 70% | 92.9 / 75.7 |
+| `…onesb.lob` | 80% | 70% | 100 / 100 |
+| `…onesb.lob.life.term` | 80% | 70% | 94.9 / 74.4 |
+| `…onesb.adapter.onesb.*` | 70% | 60% | lowest package 88.4 / 71.4 |
+| `…onesb.adapter.idempotency` | 80% | 70% | 95.9 / 80.8 |
+| `com.bank.persistence.api.internal.v1` | 70% | 60% | 99.6 / 80.0 |
+
+**`packageFloorGuard`** runs before verification and fails the build if any glob above stops
+matching a real package — otherwise renaming a package would silently remove its gate rather
+than fail. Add a package to the table in `build.gradle.kts` and to strategy §7 together.
 
 **QA-002 note (2026-07-30):** `bank-persistence-service` measured **~96% line / ~75% branch** after jobs/offers/payments/audit API tests; `api.internal.v1` package at **100% line**. Monorepo services interim floor raised **35% → 50%** (both services measured ≥55%). Package-level rules remain deferred to QA-003 / strategy §7.
 
@@ -61,8 +69,8 @@ Applied to report + verification class sets:
 
 | ID | Status | Note |
 |----|--------|------|
-| QA-001 | **Partial** | Libs at strategy thresholds; services interim raised **35% → 50%** line after QA-002 (persistence ~96%); package floors still not enforced |
-| QA-002 | **Done** | Persistence API tests landed; services floor → 50%; package-level `com.bank.persistence.api.*` gate still not enforced (strategy §7) |
-| QA-003 | **Done** | IT-I template `OneSbConnectivityIT` (WireMock 1SB + persistence); package-level JaCoCo floors remain separate follow-up |
+| QA-001 | **Closed** (2026-08-13) | Package floors enforced; interim service floor retired ahead of its 2026-08-30 expiry. Closes WS-1 gate criterion 4.7. Pending TL + QA Lead counter-signature |
+| QA-002 | **Done** | Persistence API tests landed; `com.bank.persistence.api.internal.v1` package gate now enforced under QA-001 closure |
+| QA-003 | **Done** | IT-I template `OneSbConnectivityIT` (WireMock 1SB + persistence); package-level JaCoCo floors landed with QA-001 closure |
 
 Do not lower lib gates without TL + QA Lead co-approval and a TECH-DEBT id + expiry.

@@ -37,11 +37,11 @@ Severity: **P0** = blocks Phase 2 / multi-service reuse · **P1** = fix this spr
 | TD-021 | P2 | Document audit-consumer → persistence audit API (stub; no full service) | Senior (audit consumer) | **Closed** | Agent 2 |
 | TD-022 | P1 | Payment intimation (FUNC-008) not implemented | Phase 4 (FUNC-007) | Deferred P1 | Backlog |
 | TD-023 | P2 | Raw payload capture (COMP-003) not wired for status/master-data calls | COMP-003 impl | Deferred | Backlog |
-| QA-001 | P0 | JaCoCo coverage reports + verification gates | QA Lead / TEST-BACKLOG | **Partial** | Dev |
+| QA-001 | P0 | JaCoCo coverage reports + verification gates | QA Lead / TEST-BACKLOG | **Closed** | Dev |
 
 ---
 
-## QA-001 — JaCoCo coverage (Partial)
+## QA-001 — JaCoCo coverage (Closed)
 
 **Problem:** No measured coverage; CI could not enforce strategy §7 floors.
 
@@ -52,11 +52,43 @@ Severity: **P0** = blocks Phase 2 / multi-service reuse · **P1** = fix this spr
 - Minimal unit tests added for `EnvSecretProvider` and other lib gaps to meet the gate.
 - Docs: [COVERAGE.md](./COVERAGE.md), AGENTS.md run command.
 
-**Residual (interim):** Services gated at **line ≥ 50%** only (no branch gate) — raised from 35% in **QA-002** after persistence API coverage (~96% line). Package-specific adapter/api floors from strategy §7 land with **QA-003** (IT template) / remaining package rules. Mark **Closed** when service package rules match strategy or interim is explicitly retired by QA Lead.
+**Closed (2026-08-13):** the residual — services on an interim module-wide floor with no
+package rules — is retired. `build.gradle.kts` now enforces every strategy §7 package floor as a
+JaCoCo `PACKAGE` rule on `check`:
 
-**Expiry (R7):** Revisit / retire interim service floor by **2026-08-30** or when QA-003 closes — whichever first. TL + QA Lead co-approved wiring **2026-07-30**.
+| Package | Line | Branch | Measured at closure |
+|---------|------|--------|---------------------|
+| `…onesb.application` | 80% | 70% | 92.9 / 75.7 |
+| `…onesb.lob`, `…onesb.lob.life.term` | 80% | 70% | 100 / 100 · 94.9 / 74.4 |
+| `…onesb.adapter.onesb.*` (7 packages) | 70% | 60% | lowest 88.4 / 71.4 |
+| `…onesb.adapter.idempotency` | 80% | 70% | 95.9 / 80.8 |
+| `com.bank.persistence.api.internal.v1` | 70% | 60% | 99.6 / 80.0 |
 
-**Status:** **Partial**
+Module floors raised alongside: `bank-persistence-service` 50% line / no branch gate →
+**90% line / 70% branch** (measured 99.0 / 81.0). `1sb-integration-service` stays at 90/70.
+
+Four packages were below their branch floor before this change
+(`adapter.onesb.client` 50.0%, `adapter.onesb.payment` 56.2%, `adapter.onesb.proposal` 56.0%,
+`adapter.idempotency` 65.4%). They were raised by adding tests, not by lowering the floor —
+see `OneSbMasterDataAdapterNormaliseTest`, `OneSbHttpClientHashMaskedBodyTest`,
+`CachedBodyHttpServletRequestTest`, `OneSbPaymentAdapterPayloadTest`,
+`OneSbProposalAdapterResultTest`.
+
+A `packageFloorGuard` task fails the build if a package glob stops matching any package, so a
+rename cannot silently delete a gate. Both failure modes were verified by temporarily breaking
+them (floor raised to 0.99 → rule violation; glob renamed → guard failure).
+
+**Scope note:** WS-2 services (`identity-provider-adapter-service`,
+`identity-authorization-service`, `workforce-access-bff`) remain on the 50% interim line floor.
+They are a different workstream at IAM Phase 1; strategy §7 defines no package floors for them,
+and their coverage is not what QA-001 or WS-1 gate criterion 4.7 governs. Raising them belongs
+to the WS-2 gate, not here.
+
+**Expiry (R7):** discharged — the interim floor was retired before the **2026-08-30** deadline
+rather than re-waived. No expiry now applies.
+
+**Status:** **Closed** — pending TL + QA Lead counter-signature per
+[15-TECH_DEBT_POLICY §4](../../governance/15-TECH_DEBT_POLICY.md).
 
 ---
 
@@ -332,4 +364,5 @@ Track only; do not block this refactor PR. TD-006 remains Phase 2 (real AWS SM).
 | 2026-07-30 | QA-001 Partial: JaCoCo reports + libs 80%/70% gates; services interim 35% line (see COVERAGE.md) |
 | 2026-07-30 | QA-002 Done: persistence API tests (jobs/offers/payments/audit); services interim 35%→50% line |
 | 2026-08-04 | Phase 4: FUNC-007 (payment) + FUNC-009 (status) implemented; TD-022 opened (FUNC-008 intimation deferred P1) |
+| 2026-08-13 | **QA-001 Closed** — strategy §7 package floors enforced as JaCoCo `PACKAGE` rules (`…onesb.application`, `…onesb.lob*` 80/70; `…adapter.onesb.*` 70/60; `…adapter.idempotency` 80/70; `com.bank.persistence.api.internal.v1` 70/60), plus `packageFloorGuard` so a renamed package fails the build instead of silently dropping its gate. Four packages were below their branch floor and were raised with tests, not by lowering the floor. `bank-persistence-service` module floor 50% line/no branch → 90/70. WS-2 services stay on the 50% interim floor (different workstream, IAM Phase 1). Interim floor retired ahead of its 2026-08-30 expiry; closes WS-1 gate criterion **4.7**. |
 | 2026-08-04 | COMP-003 (raw payload encryption at rest) implemented: `RawPayloadEncryptionService` (AES-256-GCM) + `/internal/v1/raw-payloads` on `bank-persistence-service`; `RawPayloadStorePort` + `HttpRawPayloadStoreAdapter` wired into quote/proposal/payment submit+response capture on `1sb-integration-service` (best-effort, never fails the caller). Status/master-data capture not wired (no `jobId` in those port signatures) — tracked as **TD-023**. `1sb-integration-service` JaCoCo floor raised **50% → 90% line / 70% branch** (measured ~90.7%/~71.4%) — see COVERAGE.md. Dockerfiles added for both services + root `docker-compose.yml`; springdoc-openapi (`/swagger-ui.html`, `/v3/api-docs`) added to both — both services already run on embedded Tomcat independently (`spring-boot-starter-web`, no exclusions), no change needed there. |

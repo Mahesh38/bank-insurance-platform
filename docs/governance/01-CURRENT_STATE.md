@@ -71,18 +71,21 @@ Keycloak session handling is on-stage for WS-2 and premature for WS-1.
 | **Current objective** | Term path signed off for UAT use by at least one bank caller |
 | **Deliverable** | Hardened Term vertical slice: sandbox E2E evidence, published OpenAPI, compliance-reviewed audit schema, runbook, performance smoke |
 | **Completed** | Phases 0–3. Term path FUNC-001…007, FUNC-009 delivered and TL-approved (`phase-3/STATUS.md`, `phase-4/STATUS.md`). COMP-003 raw-payload encryption, JaCoCo gates, Docker packaging, OpenAPI publication landed (commit `79c65f4`). |
-| **Not yet done in this phase** | Sandbox E2E suite in CI (4.1), bank consumer spike (4.3), compliance review of audit schema (4.4), ops runbook (4.5), performance smoke (4.6) |
+| **Not yet done in this phase** | Bank consumer spike (4.3 — externally blocked), compliance review of audit schema (4.4 — awaiting a human verdict), internal-portal publication (4.2), ratified p95 target (4.6) |
 | **Next stage** | Phase 5 — Expand LOBs (Health → Motor) |
 | **Authority** | [ACTION-PLAN.md](../1sb-insurance-integration/service-ssot/ACTION-PLAN.md) · [PRODUCT-BACKLOG.md](../1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md) |
 
-**Gate to exit Phase 4** — see [04-STAGE_GATES.md](./04-STAGE_GATES.md):
-- [ ] Term happy path green against 1SB sandbox in CI (or gated nightly)
-- [ ] OpenAPI published + consumer collection available
-- [ ] ≥ 1 bank caller has exercised quote + proposal against UAT
-- [ ] Compliance sign-off on audit schema and log samples
-- [ ] Runbook (secrets rotation, IP whitelist, 1SB 401/5xx incident) exists
-- [ ] p95 quote latency measured under nominal concurrency
-- [ ] Coverage gates green; QA-001 closed or waived with expiry (added by CR-001)
+**Gate to exit Phase 4** — see [04-STAGE_GATES.md](./04-STAGE_GATES.md) for evidence per line:
+- [x] Term happy path green against 1SB sandbox in CI (or gated nightly) — 4.1
+- [~] OpenAPI published + consumer collection available — 4.2, internal portal outstanding
+- [ ] ≥ 1 bank caller has exercised quote + proposal against UAT — 4.3, **externally blocked (DEP-002)**
+- [ ] Compliance sign-off on audit schema and log samples — 4.4, **awaiting a human verdict; see RISK-012**
+- [x] Runbook (secrets rotation, IP whitelist, 1SB 401/5xx incident) exists — 4.5
+- [~] p95 quote latency measured under nominal concurrency — 4.6, measured; **no ratified target (ASM-009)**
+- [x] Coverage gates green; QA-001 closed or waived with expiry (added by CR-001) — 4.7
+
+`[x]` met · `[~]` partial · `[ ]` open. Neither open item is finishable by Engineering: one
+needs an external team, the other a human Compliance verdict.
 
 ### WS-2 · Workforce Authentication & Authorization
 

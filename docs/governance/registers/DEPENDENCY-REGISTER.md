@@ -53,13 +53,14 @@ completion; do not reuse a stale queue.
 
 | # | Item | P | Enables | Effort | State |
 |---|------|---|---------|--------|-------|
-| 1 | Gate 4.4 — compliance review of audit schema | P1 | 2 | M | READY |
-| 2 | Gate 4.1 — sandbox E2E suite in CI (absorbs TD-014) | P1 | 3 | L | READY |
-| 3 | Gate 4.2 — publish OpenAPI + consumer collection | P2 | 1 | S | READY |
-| 4 | Gate 4.7 — close or waive QA-001 coverage gate | P2 | 0 | M | READY (criterion ratified by CR-001) |
-| 5 | Gate 4.5 — operations runbook | P3 | 0 | S | READY |
-| 6 | Gate 4.6 — performance smoke | P2 | 0 | M | BLOCKED by DEP-003 (soft) |
-| 7 | Gate 4.3 — bank consumer UAT | P2 | 0 | M | BLOCKED by DEP-001, DEP-002 |
+| 1 | **SUG-20260813-a1c — persist audit events (RISK-012)** | **P1** | 1 | M | **READY** — surfaced by the 4.4 pack; may block 4.4 |
+| 2 | Gate 4.4 — compliance review of audit schema | P1 | 2 | S | READY — pack assembled; needs a **human Compliance verdict** |
+| 3 | Gate 4.3 — bank consumer UAT | P2 | 0 | M | **BLOCKED by DEP-002** (no named team). Enablement pack done; DEP-001 now partial |
+| 4 | Gate 4.2 — publish OpenAPI to the internal portal | P2 | 1 | S | BLOCKED — needs a portal URL + credentials |
+| 5 | Gate 4.6 — ratify a p95 target and re-measure on UAT | P2 | 0 | S | BLOCKED on a PO decision (ASM-009) |
+| — | ~~Gate 4.1 — sandbox E2E suite in CI~~ | — | — | — | ✅ **Done** 2026-08-13 (absorbed TD-014) |
+| — | ~~Gate 4.5 — operations runbook~~ | — | — | — | ✅ **Done** 2026-08-13 |
+| — | ~~Gate 4.7 — close or waive QA-001~~ | — | — | — | ✅ **Done** 2026-08-13 — closed, not waived |
 
 > This ordering is **derived, not a commitment.** It follows from the ratified gate criteria in
 > [04](../04-STAGE_GATES.md) and the state file. The PO and Tech Lead own the actual sequence

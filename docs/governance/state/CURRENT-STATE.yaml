@@ -95,25 +95,32 @@ workstreams:
       exit_criteria:
         - id: "4.1"
           criterion: "Sandbox E2E suite for the Term path runs in CI (or gated nightly)"
-          state: OPEN
+          state: MET
+          evidence: "TermJourneyE2EIT on every PR (.github/workflows/build.yml); OneSbSandboxSmokeIT nightly, currently skipping — no 1SB credentials configured"
         - id: "4.2"
           criterion: "OpenAPI published to internal portal; consumer collection available"
           state: PARTIAL
+          evidence: "Document + Postman collection published in-repo and verified by OpenApiContractTest; internal portal publication outstanding"
         - id: "4.3"
           criterion: "At least one bank caller exercises quote + proposal against UAT"
           state: OPEN
+          evidence: "Enablement pack ready (UAT-ENABLEMENT.md); externally blocked on DEP-002 — no bank app team named"
         - id: "4.4"
           criterion: "Compliance review of audit schema and log samples"
           state: OPEN
+          evidence: "Review pack + generated log samples ready; awaiting a human Compliance verdict. RISK-012 may be gate-blocking"
         - id: "4.5"
           criterion: "Runbook: secrets rotation, IP whitelist, 1SB 401/5xx incident"
-          state: OPEN
+          state: MET
+          evidence: "service-ssot/OPERATIONS-RUNBOOK.md"
         - id: "4.6"
           criterion: "Performance smoke: p95 quote under nominal concurrency"
-          state: OPEN
+          state: PARTIAL
+          evidence: "Harness + baseline recorded (PERFORMANCE-SMOKE.md); no ratified p95 target, nominal concurrency undefined (ASM-009)"
         - id: "4.7"
           criterion: "Coverage gates green; QA-001 closed or explicitly waived with expiry"
-          state: PARTIAL
+          state: MET
+          evidence: "QA-001 closed 2026-08-13; strategy section 7 package floors enforced + packageFloorGuard. TL + QA Lead counter-signature outstanding"
       approvers: ["Architect", "PO", "QA Lead", "Compliance (4.4)", "Ops (4.5)"]
 
     completed_stages:

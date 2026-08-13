@@ -258,6 +258,86 @@ def check_priority_calibration(quiet: bool) -> None:
         ok(f"all {len(matrix)} matrix cells within one band (worst gap {worst})", quiet)
 
 
+# --- 8. gate criteria agree between the state file and 04-STAGE_GATES ------------
+#
+# The exit criteria are written out in full in two places an agent reads as authority:
+# state/CURRENT-STATE.yaml (machine-readable, pipeline step 1) and 04-STAGE_GATES.md
+# (the human-readable gate table). Nothing previously compared them, so editing the
+# criterion text or its state in one file and forgetting the other left CI green while
+# agents read the stale copy — the exact drift 17-DRIFT_CONTROL is about, unguarded in
+# the framework's own files.
+# Criterion ids are "4.1" for WS-1 and "A.1" for WS-2 — both are compared.
+GATE_TABLE_ROW = re.compile(r"^\|\s*([A-Za-z0-9]+\.[A-Za-z0-9]+)\s*\|\s*(.+?)\s*\|(.+)\|\s*$", re.M)
+
+# 04's status cells are prose ("Met — TermJourneyE2EIT ..."), so compare the state word
+# rather than the sentence. These are the words that map onto the YAML enum.
+STATE_WORDS = {
+    "MET": "MET",
+    "PARTIAL": "PARTIAL",
+    "OPEN": "OPEN",
+    "WAIVED": "WAIVED",
+}
+
+
+def _declared_state(status_cell: str) -> str | None:
+    """First recognised state word in a 04 status cell, ignoring markdown emphasis."""
+    for word in re.findall(r"[A-Za-z]+", status_cell.upper()):
+        if word in STATE_WORDS:
+            return STATE_WORDS[word]
+    return None
+
+
+def check_gate_criteria_agree(quiet: bool) -> None:
+    print("\n[8] Gate criteria agree between CURRENT-STATE.yaml and 04-STAGE_GATES.md")
+
+    state_path = os.path.join(GOV, "state", "CURRENT-STATE.yaml")
+    gates_path = os.path.join(GOV, "04-STAGE_GATES.md")
+    state = yaml.safe_load(open(state_path, encoding="utf-8"))
+    gates_md = open(gates_path, encoding="utf-8").read()
+
+    table_rows = {}
+    for cid, criterion, rest in GATE_TABLE_ROW.findall(gates_md):
+        # rest is "evidence | status"; the status is the final cell.
+        cells = [c.strip() for c in rest.split("|")]
+        table_rows[cid] = (criterion, cells[-1] if cells else "")
+
+    compared = 0
+    for ws in state.get("workstreams", []):
+        gate = (ws.get("current_gate") or {})
+        for entry in gate.get("exit_criteria", []) or []:
+            cid = str(entry.get("id", "")).strip()
+            if cid not in table_rows:
+                fail(f"{rel(state_path)}: criterion {cid} has no row in {rel(gates_path)}")
+                continue
+            compared += 1
+            _, status_cell = table_rows[cid]
+            declared = _declared_state(status_cell)
+            if declared is None:
+                fail(f"{rel(gates_path)}: criterion {cid} status cell names no state "
+                     f"(expected one of {sorted(STATE_WORDS)}): {status_cell[:60]!r}")
+            elif declared != entry.get("state"):
+                fail(f"criterion {cid}: state file says {entry.get('state')}, "
+                     f"04-STAGE_GATES.md says {declared} — the two authorities disagree")
+
+    # The reverse direction: a criterion in the gate table that the state file never lists
+    # would be invisible to every agent, since the pipeline reads the YAML.
+    state_ids = {
+        str(e.get("id", "")).strip()
+        for ws in state.get("workstreams", [])
+        for e in (ws.get("current_gate") or {}).get("exit_criteria", []) or []
+    }
+    current_phase_ids = {cid for cid in table_rows if cid.split(".")[0] in
+                         {sid.split(".")[0] for sid in state_ids}}
+    for cid in sorted(current_phase_ids - state_ids):
+        fail(f"{rel(gates_path)}: criterion {cid} is missing from CURRENT-STATE.yaml — "
+             f"agents read the YAML, so this criterion would not be enforced")
+
+    if compared == 0:
+        fail("no gate criteria compared — the check is not doing anything")
+    elif not failures:
+        ok(f"{compared} criteria agree across both authorities", quiet)
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--quiet", action="store_true", help="print only failures")
@@ -271,6 +351,7 @@ def main() -> int:
     check_routing(args.quiet)
     check_links(args.quiet)
     check_priority_calibration(args.quiet)
+    check_gate_criteria_agree(args.quiet)
 
     print()
     if failures:

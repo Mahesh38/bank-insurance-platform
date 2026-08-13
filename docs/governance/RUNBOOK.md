@@ -749,7 +749,7 @@ Everything else in the framework supports these:
 | 5 | First Governance Sync (§7.1) | Delivery Lead | Held, 30 min |
 | 5–14 | **Triage new inputs only. Do not backfill.** | Everyone | Suggestion register is filling |
 | 10 | Sweep TD-014 — its unpark trigger has already fired | TL | Promoted or re-parked with a reason |
-| 10 | Close or waive QA-001 — criterion 4.7 is now binding (CR-001) | QA Lead + TL | Closed, or waived with a dated expiry |
+| 10 | ~~Close or waive QA-001~~ — **closed 2026-08-13**; counter-signature outstanding | QA Lead + TL | ✅ Closed, not waived |
 | 14 | First scorecard → baseline metrics | Delivery Lead | [18 §3](./18-GOVERNANCE_METRICS.md#3-gate-scorecard) filled |
 
 **Success at day 14 looks like:** the state file is ratified and fresh, every role has run their

@@ -1,26 +1,26 @@
 # 18 — Governance Metrics & Health
 
-**Layer:** L1 — generic
-**Owner:** Delivery Lead
-**Cadence:** snapshot at every stage gate; reviewed with the PO and Architect
+**Layer:** L1 — generic  
+**Owner:** Delivery Lead  
+**Quality metric steward:** Swapnali — QA Lead  
+**Cadence:** snapshot at every stage gate; reviewed with the PO and Architect; quality subset reviewed at release/quality exit
 
 ---
 
 ## 1. Why measure the process
 
-A governance framework that is not measured becomes ceremony. These metrics answer three
-questions:
+A governance framework that is not measured becomes ceremony. These metrics answer four questions:
 
 1. **Is the model being used?** (adoption)
 2. **Is it making good decisions?** (calibration)
 3. **Is it worth its cost?** (efficiency)
+4. **Do we have current objective evidence that approved work is safe/correct enough to release?** (quality confidence)
 
-Every metric below is computable from the registers and git history — no separate tooling and
-no manual bookkeeping beyond what the pipeline already produces.
+Governance metrics remain computable from registers and git history. Quality metrics should prefer CI/test evidence, release evidence, defect/incident records and the existing QA SSOT. Do not maintain duplicate manual scorebooks when an authoritative source already exists.
 
 ---
 
-## 2. The metrics
+## 2. Governance metrics
 
 ### Adoption
 
@@ -32,9 +32,7 @@ no manual bookkeeping beyond what the pipeline already produces.
 | Unreferenced TODOs | TODOs without a work item ID | 0 | `grep` (see [17 §5](./17-DRIFT_CONTROL.md#5-pre-pr-drift-check)) |
 | Register freshness | Days since the last register update | < 7 | Git |
 
-A **rising bypass rate is a process signal, not a discipline problem**: it means the ceremony
-exceeds the value for that class of work. Fix the process (usually by lowering the tier), do
-not exhort people.
+A **rising bypass rate is a process signal, not a discipline problem**: it means the ceremony exceeds the value for that class of work. Fix the process (usually by lowering the tier), do not exhort people.
 
 ### Decision quality (calibration)
 
@@ -83,9 +81,34 @@ not exhort people.
 
 ---
 
-## 3. Gate scorecard
+## 3. Merged quality-health metrics
 
-Produced at every stage gate and kept with the gate record:
+These metrics are semantically stewarded by **Swapnali** and are recorded in the same gate/release health view rather than in a competing QA scorebook.
+
+**Coverage SSOT rule:** JaCoCo line/branch thresholds and current measured values remain authoritative in [`../1sb-insurance-integration/service-ssot/COVERAGE.md`](../1sb-insurance-integration/service-ssot/COVERAGE.md). This file measures whether those canonical gates pass; it does not copy the threshold values.
+
+| Metric | Definition | Target | Source |
+|---|---|---:|---|
+| Critical-journey evidence coverage | In-scope critical journeys with current passing evidence ÷ in-scope critical journeys | **100% for Q0/T4-critical paths** | QA evidence / `TEST-BACKLOG.md` |
+| Acceptance traceability | Material AC mapped to current executed evidence ÷ material AC | **100% for Q0/Q1; ≥95% overall** | Story/plan ↔ tests/evidence |
+| Coverage-gate pass | Modules subject to canonical coverage gates currently passing | **100%** | CI + `COVERAGE.md` |
+| Open Q0 defects/evidence gaps at release | Count | **0** | Defect/QA assessment |
+| Critical production escapes | Q0/critical production escapes per release | **0** | Incident/defect record |
+| Defect escape ratio | Production defects ÷ all defects for released scope | <5% trend target | Defect record |
+| Flaky-test rate | Quarantined/retried flaky tests ÷ active automated tests | <2%; falling | CI/test inventory |
+| Expired QA waivers | Waivers past expiry without closure/re-approval | **0** | Waiver/debt record |
+| Critical-test bypass count | Non-approved omission of protected-gate testing | **0** | QA verdicts |
+| Release evidence freshness | Mandatory evidence tied to the release candidate/current commit | **100%** | CI/release record |
+| Regression effectiveness | Production regressions that should have been in a known regression set | 0 critical; falling overall | Incident review |
+| Critical idempotency/reconciliation evidence | Applicable critical mutation paths with current retry/reconciliation evidence | **100% where applicable** | QA evidence |
+
+**Interpretation rule:** coverage is a floor, not an outcome. High code coverage with critical journey escapes is poor quality.
+
+---
+
+## 4. Gate / release scorecard
+
+Produced at every stage gate and kept with the gate record. The quality block is also refreshed for a release candidate when a quality exit is required.
 
 ```yaml
 gate_scorecard:
@@ -121,15 +144,26 @@ gate_scorecard:
     plan_accuracy: 0.00
     drift_incidents: 0
 
+  quality:
+    critical_journey_evidence_coverage: 0.00
+    acceptance_traceability: 0.00
+    coverage_gate_pass: false
+    open_q0: 0
+    critical_production_escapes: 0
+    flaky_test_rate: 0.00
+    expired_qa_waivers: 0
+    critical_test_bypass_count: 0
+    release_evidence_fresh: false
+
   verdict: "HEALTHY | WATCH | INTERVENE"
   actions: []
 ```
 
-Baseline is established at the first gate after adoption; targets apply from the second.
+Baseline is established at the first gate after adoption; existing governance targets continue unchanged. Quality targets apply when the metric is applicable to the release/stage.
 
 ---
 
-## 4. Reading the numbers
+## 5. Reading the numbers
 
 Patterns matter more than single values.
 
@@ -143,16 +177,21 @@ Patterns matter more than single values.
 | Zero suggestions during implementation | Agents acting on impulses instead of registering them, or not looking | Check diffs against plans |
 | P1 rate > 20% of admissions | Override inflation | Enforce evidence on overrides (§2, false-P1) |
 | Incident traceable to a parked item | Calibration failure | Mandatory review of the parking decision — not blame |
+| High coverage + critical escapes | Tests measure execution, not business risk | Rebuild critical scenario/regression strategy |
+| Rising flakes + green builds | Retry/quarantine is hiding signal | Treat test reliability as quality debt; fix root cause |
+| Repeated expired QA waivers | Temporary risk has become permanent | Escalate owner; close or explicitly re-approve with evidence |
+| Critical-journey evidence <100% on protected path | Release lacks current proof | Board 5 `REWORK` / QA NO-GO unless a genuinely permitted governed exception exists |
+| Incident traceable to missing known regression | Quality control failure | Add regression and review why the control was absent |
 
 ---
 
-## 5. Minimum viable measurement
+## 6. Minimum viable measurement
 
-If only three numbers are ever tracked, track these:
+If only four numbers are ever tracked, track these:
 
-1. **Admission rate** — is the gate filtering at all?
+1. **Admission rate** — is the governance gate filtering at all?
 2. **Plan accuracy** — is what we build what we said we'd build?
-3. **Parked items aging beyond two gates** — is "parked" a real state, or a bin?
+3. **Parked items aging beyond two gates** — is “parked” a real state, or a bin?
+4. **Critical-journey evidence coverage** — can we prove the important behaviour works?
 
-Those three catch the three failure modes that matter: a gate that does not gate, execution
-that does not follow the plan, and parking that is really deletion.
+Those four catch the dominant failure modes: a gate that does not gate, execution that does not follow the plan, parking that is really deletion, and a release that lacks evidence for critical behaviour.

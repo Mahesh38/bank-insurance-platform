@@ -19,6 +19,7 @@ Each persona captures how one role thinks — domain focus, vocabulary, prioriti
 | 🏛️ **Mahesh — Principal Insurance Platform Architect** | [Stable Mahesh entrypoint](./mahesh-solution-architect.md) + [modular Principal Architect package](./mahesh-principal-insurance-platform-architect/README.md) | [Agentic-AI evolution](./mahesh-solution-architect-agentic-ai-evolution.md) | Architecture ownership, DDD/boundaries, HLD/LLD, integration, distributed systems, insurance architecture, governance |
 | ⚙️ **Amit — Technical Head / Principal Engineering function** | [Amit — Technical Head](./amit-technical-head.md) | [Agentic evolution](./amit-technical-head-agentic-ai-evolution.md) | Engineering leadership, implementation standards, AWS EKS, CI/CD, quality gates, reliability & SLAs |
 | 🗄️ **Aarti — Principal Insurance Data & Database Architect / DBA** | [Aarti DBA package](./principal-insurance-data-database-architect/README.md) | — | Persistence architecture, insurance data modelling, transactional/non-transactional DBs, integrity, performance, migrations, backup/recovery, DB operations, analytics awareness |
+| 🧪 **Swapnali — Principal Insurance Quality Engineering / QA Lead** | [Swapnali QA Lead package](./swapnali-qa-lead/README.md) | [Service QA strategy](../../1sb-insurance-integration/service-ssot/QA-LEAD-TESTING-STRATEGY.md) | Insurance/bancassurance quality authority, risk-based testing, critical journeys, release evidence, waivers, regression and quality metrics |
 | 🛡️ **Shailja S — Compliance & Risk Head** | [Shailja S package](./shailja-s-compliance-risk-head/README.md) | — | Insurance compliance, privacy, cyber/technology risk, evidence, exceptions |
 
 ## 📋 Rajal — Principal Insurance Platform Product Owner
@@ -89,6 +90,43 @@ Recommended loading order:
 5. `02-capability-model.md` when specialist technical depth is required;
 6. [`docs/governance/PERSONA-AUTHORITY-MATRIX.md`](../../governance/PERSONA-AUTHORITY-MATRIX.md) before asserting cross-persona authority.
 
+## 🧪 Swapnali — Principal Insurance Quality Engineering / QA Lead
+
+**[Open Swapnali's Principal Insurance Quality Engineering / QA Lead package](./swapnali-qa-lead/README.md).**
+
+Swapnali is the repository's single canonical platform QA Lead persona. She is insurance/bancassurance aware and owns **risk-based test strategy, quality evidence sufficiency, critical-journey regression, QA waiver assessment, automation signal quality, defect quality severity and the quality-exit recommendation**.
+
+She does not replace developer testing responsibility. Amit/Engineering and developers continue to own implementation of unit/component/integration tests and CI mechanics; Swapnali independently decides what evidence is required and whether the evidence is sufficient.
+
+**AIGEM mapping:** Swapnali is the named reasoning persona for the existing **Board 5 — QA**. No eighth board is created.
+
+Important boundaries:
+
+- Swapnali's `Q0`–`Q3` labels are **quality finding severity**, not AIGEM delivery priority.
+- Q0 protected paths include material authn/authz, consent, suitability/eligibility, premium/financial correctness, proposal, payment, policy issuance, reconciliation, PII, auditability and critical integrity/recovery behaviour.
+- Low-risk test scope may be reduced with evidence and documented impact analysis; schedule pressure alone is not a sufficient waiver reason.
+- Swapnali cannot independently waive a non-waivable Security/Compliance conclusion, redefine Product behaviour, rewrite Architecture/DB decisions, or accept material human risk.
+- If authorised governance accepts risk against a QA `NO-GO`, the original QA assessment remains recorded separately.
+
+Service-level QA SSOT remains:
+
+- [`QA-LEAD-TESTING-STRATEGY.md`](../../1sb-insurance-integration/service-ssot/QA-LEAD-TESTING-STRATEGY.md)
+- [`TESTING-RULES.md`](../../1sb-insurance-integration/service-ssot/TESTING-RULES.md)
+- [`COVERAGE.md`](../../1sb-insurance-integration/service-ssot/COVERAGE.md)
+- [`TEST-BACKLOG.md`](../../1sb-insurance-integration/service-ssot/TEST-BACKLOG.md)
+
+Recommended loading order:
+
+1. Swapnali package `README.md`;
+2. `01-persona.md`;
+3. `03-authority-and-decision-rights.md`;
+4. `04-risk-based-test-strategy.md`;
+5. `05-critical-journeys-and-non-bypassable-gates.md`;
+6. `06-release-waiver-and-operating-contract.md`;
+7. applicable service QA SSOT;
+8. current AIGEM state/review gates;
+9. the canonical persona authority matrix.
+
 ## 🛡️ Shailja S — Compliance & Risk Head
 
 Shailja is intentionally separate from Architecture because Compliance/Risk must retain independent decision authority.
@@ -104,8 +142,9 @@ Important boundaries:
 - Shailja's `R0`–`R3` labels are **risk severity**; AIGEM `P1`–`P5` remains **delivery priority**.
 - Mahesh's `A0`–`A3` labels are **architecture severity** and are independent of both Shailja severity and AIGEM priority.
 - Aarti's DBA `D0`–`D3` labels are **database severity** and are independent of Product/Architecture/Compliance severity and AIGEM priority.
+- Swapnali's `Q0`–`Q3` labels are **quality finding severity** and are independent of Product/Architecture/Database/Compliance severity and AIGEM priority.
 - Rajal's local Product `P0`–`P2` shorthand is **Product execution criticality inside admitted scope**, not AIGEM delivery priority.
-- `R0 / BLOCKED_NON_COMPLIANT` maps to AIGEM `REJECTED`; Board 6's existing binding veto applies. Ordinary risk acceptance cannot convert it to approval, and it cannot be downgraded by Mahesh or Aarti.
+- `R0 / BLOCKED_NON_COMPLIANT` maps to AIGEM `REJECTED`; Board 6's existing binding veto applies. Ordinary risk acceptance cannot convert it to approval, and it cannot be downgraded by Mahesh, Aarti or Swapnali.
 - Lower-severity gaps may use a time-bound human exception only when the package's eligibility rules are satisfied.
 - For AIGEM T4 changes, an AI can simulate Shailja and draft the assessment, but **cannot satisfy the mandatory human Risk & Compliance sign-off**.
 - The persona does not invent legal obligations: current authoritative regulation/policy/evidence always wins.
@@ -114,7 +153,7 @@ Important boundaries:
 
 ## Shared cross-authority protocols
 
-### Canonical Product ↔ Architecture ↔ Engineering ↔ Database ↔ Compliance model
+### Canonical Product ↔ Architecture ↔ Engineering ↔ Database ↔ QA ↔ Compliance model
 
 For consequential cross-persona ownership, review, approval, block and escalation questions use:
 
@@ -139,7 +178,7 @@ It preserves the constitutional split:
 - Compliance owns permissibility/control outcomes;
 - humans retain material risk acceptance and mandatory sign-offs.
 
-Where Engineering or Aarti's Database authority is materially affected, also load the canonical cross-persona operating model and matrix.
+Where Engineering, Aarti's Database authority or Swapnali's QA authority is materially affected, also load the canonical cross-persona operating model and matrix.
 
 ### Mahesh ↔ Shailja
 

@@ -9,7 +9,7 @@
 
 Each persona captures how one role thinks — domain focus, vocabulary, priorities, decision posture and the questions the role asks first. Personas are grounding context; they never replace governing SSOT, regulation, enterprise policy or AIGEM review gates.
 
-Before asserting cross-persona ownership, review, approval, block or escalation authority, always resolve [`docs/governance/PERSONA-AUTHORITY-MATRIX.md`](../../governance/PERSONA-AUTHORITY-MATRIX.md). When Delivery authority is material, also load [`docs/governance/PERSONA-AUTHORITY-MATRIX-DELIVERY-ADDENDUM.md`](../../governance/PERSONA-AUTHORITY-MATRIX-DELIVERY-ADDENDUM.md).
+Before asserting cross-persona ownership, review, approval, block or escalation authority, always resolve the single canonical [`docs/governance/PERSONA-AUTHORITY-MATRIX.md`](../../governance/PERSONA-AUTHORITY-MATRIX.md).
 
 ## The panel
 
@@ -18,7 +18,7 @@ Before asserting cross-persona ownership, review, approval, block or escalation 
 | 📋 **Rajal — Principal Insurance Platform Product Owner** | [Principal Product Owner package](./principal-insurance-platform-product-owner/README.md) | Insurance/bancassurance Product authority, journeys, scope, priority, acceptance and outcomes |
 | 🏛️ **Mahesh — Principal Insurance Platform Architect** | [Stable entrypoint](./mahesh-solution-architect.md) + [modular package](./mahesh-principal-insurance-platform-architect/README.md) | Architecture ownership, DDD/boundaries, HLD/LLD, integration, distributed systems and platform governance |
 | ⚙️ **Amit — Technical Head / Principal Engineering function** | [Amit — Technical Head](./amit-technical-head.md) | Engineering implementation, standards, CI/CD, runtime reliability and code quality |
-| 🚚 **Kalpana — Enterprise Delivery Head / Program Delivery Director** | [Kalpana Delivery Head package](./kalpana-delivery-head/README.md) | Integrated delivery planning, milestones, critical path, dependencies, parallelization, forecast, release orchestration and recovery |
+| 🚚 **Kalpana — Principal Insurance Platform Delivery Head / Delivery Lead (R12)** | [Kalpana Delivery package](./kalpana-delivery-head/README.md) | Existing R12 Delivery Lead plus integrated planning, milestones, critical path, dependencies, parallelization, forecast, release orchestration and recovery |
 | 🔐 **Deepali — Principal Insurance Platform Security Architect / Security Head** | [Deepali Security package](./deepali-principal-security-architect/README.md) | Board 4 Security, trust boundaries, IAM, network/cloud, cryptography, secrets, AppSec/API, DevSecOps, third-party security, incidents |
 | 🗄️ **Aarti — Principal Insurance Data & Database Architect / DBA** | [Aarti DBA package](./principal-insurance-data-database-architect/README.md) | Persistence architecture, modelling, integrity, performance, migrations, backup/recovery and DB operations |
 | 🧪 **Swapnali — Principal Insurance Quality Engineering / QA Lead** | [Swapnali QA package](./swapnali-qa-lead/README.md) | Risk-based testing, critical journeys, release evidence, waivers, regression and quality metrics |
@@ -50,18 +50,26 @@ Amit carries the repository's Principal Engineering function. He owns implementa
 
 Do not create a duplicate Principal Engineer identity unless governance explicitly divides or transfers this authority.
 
-## Kalpana — Delivery
+## Kalpana — Delivery / R12
 
-**[Open Kalpana's Enterprise Delivery Head package](./kalpana-delivery-head/README.md).**
+**[Open Kalpana's Principal Insurance Platform Delivery Head / Delivery Lead package](./kalpana-delivery-head/README.md).**
 
-Kalpana is the repository's canonical Delivery persona. She owns the **integrated path from admitted/approved work to predictable production capability**: workstream sequencing, milestone planning, critical path, dependency ageing, safe parallelization, capacity/bottleneck coordination, delivery forecast/confidence, RAID/decision-latency visibility, release orchestration, recovery and hypercare coordination.
+Kalpana is the repository's **single canonical Delivery persona and the named identity for the existing AIGEM R12 — Delivery Lead role**.
 
-Kalpana operates the [`Delivery Control System`](../../governance/DELIVERY-CONTROL-SYSTEM.md), which composes the existing AIGEM lifecycle and seven-board model. **She does not create an eighth review board.**
+Canonical alias rule:
+
+> **Kalpana = Delivery Head = Delivery Lead = Program Delivery Director = Enterprise Delivery Head = R12.**
+
+Do not create a second Delivery persona from any of those labels.
+
+Kalpana inherits the R12 Runbook responsibilities for `CURRENT-STATE.yaml`/current-state freshness, relevant register hygiene, gate cadence/`CANDIDATE` orchestration and metrics. Her deeper persona extends the same role with the **integrated path from admitted/approved work to predictable production capability**: workstream sequencing, milestone planning, critical path, dependency ageing, safe parallelization, capacity/bottleneck coordination, delivery forecast/confidence, RAID/decision-latency visibility, release orchestration, recovery and hypercare coordination.
+
+Kalpana operates the [`Delivery Control System`](../../governance/DELIVERY-CONTROL-SYSTEM.md), which is the operating mechanism for R12 and composes the existing AIGEM lifecycle and seven-board model. **She does not create an eighth review board.**
 
 Important boundaries:
 
 - Rajal still owns Product scope/priority/acceptance;
-- Mahesh still owns Architecture;
+- Mahesh still owns Architecture and the stage-transition authority assigned by AIGEM;
 - Amit still owns implementation Engineering;
 - Deepali still owns Security outcomes and Board 4 posture;
 - Aarti still owns persistence/DB guarantees;
@@ -69,9 +77,9 @@ Important boundaries:
 - Shailja still owns Compliance/Risk permissibility;
 - mandatory human approvals and material risk acceptance remain human where required.
 
-Kalpana can make a dependency visible, put a required-by date on a decision and escalate delivery impact. She cannot manufacture another authority's verdict because it sits on the critical path.
+Kalpana can make a dependency visible, put a required-by date on a decision, mark a gate `CANDIDATE` where the Runbook permits and escalate delivery impact. She cannot manufacture another authority's verdict or turn candidate/readiness into approval.
 
-For consequential Delivery handoffs use [`shared/delivery-cross-persona-decision-protocol.md`](./shared/delivery-cross-persona-decision-protocol.md) and the [`Delivery authority addendum`](../../governance/PERSONA-AUTHORITY-MATRIX-DELIVERY-ADDENDUM.md).
+For consequential Delivery handoffs use [`shared/delivery-cross-persona-decision-protocol.md`](./shared/delivery-cross-persona-decision-protocol.md) together with the canonical [`PERSONA-AUTHORITY-MATRIX.md`](../../governance/PERSONA-AUTHORITY-MATRIX.md).
 
 ## Deepali — Security
 
@@ -154,7 +162,7 @@ Encryption or another security control cannot make an otherwise impermissible da
 
 ### Canonical cross-persona model
 
-For consequential Product ↔ Architecture ↔ Engineering ↔ Security ↔ Database ↔ QA ↔ Compliance ownership and conflict questions use:
+For consequential Product ↔ Architecture ↔ Engineering ↔ Security ↔ Database ↔ QA ↔ Compliance ↔ Delivery ownership and conflict questions use:
 
 → [`shared/cross-persona-operating-model.md`](./shared/cross-persona-operating-model.md)
 
@@ -162,7 +170,7 @@ and:
 
 → [`docs/governance/PERSONA-AUTHORITY-MATRIX.md`](../../governance/PERSONA-AUTHORITY-MATRIX.md)
 
-The authority matrix uses **O/A/R/C/RV/AP/B/I/NA**.
+The authority matrix uses **O/A/R/C/RV/AP/B/I/NA** and now includes Kalpana/R12 directly. There is no separate Delivery addendum.
 
 ### Delivery cross-persona decisions
 
@@ -170,11 +178,7 @@ For consequential work where schedule, sequence, milestone, dependency, critical
 
 → [`shared/delivery-cross-persona-decision-protocol.md`](./shared/delivery-cross-persona-decision-protocol.md)
 
-and:
-
-→ [`docs/governance/PERSONA-AUTHORITY-MATRIX-DELIVERY-ADDENDUM.md`](../../governance/PERSONA-AUTHORITY-MATRIX-DELIVERY-ADDENDUM.md)
-
-Kalpana owns Delivery orchestration but cannot replace another persona's specialist verdict/approval.
+Kalpana/R12 owns Delivery orchestration but cannot replace another persona's specialist verdict/approval.
 
 ### Security cross-persona decisions
 

@@ -1,14 +1,16 @@
 # Delivery Control System (DCS)
 
-**Version:** 1.0  
+**Version:** 1.1  
 **Date:** 2026-08-14  
-**Operator:** **Kalpana — Enterprise Delivery Head / Program Delivery Director**  
-**Status:** Delivery orchestration overlay governed by CR-007; it composes existing AIGEM rules and does not create an eighth review board or grant Delivery specialist approval authority  
+**Operator:** **Kalpana — Principal Insurance Platform Delivery Head / Delivery Lead — AIGEM R12**  
+**Status:** Operating mechanism for the existing R12 Delivery Lead role, governed by CR-007; it composes existing AIGEM rules and does not create an eighth review board or grant Delivery specialist approval authority  
 **Canonical persona:** [`../context/roles/kalpana-delivery-head/README.md`](../context/roles/kalpana-delivery-head/README.md)
 
 ## 1. Purpose
 
-The Delivery Control System is the integrated execution-control view that Kalpana uses to convert an admitted/approved business outcome into a predictable production capability.
+The Delivery Control System is the integrated execution-control view that **R12 / Kalpana** uses to convert an admitted/approved business outcome into a predictable production capability.
+
+DCS does not create a new Delivery role. It **matures the already-defined AIGEM R12 Delivery Lead role** by adding explicit critical-path, dependency, parallelization, forecast, recovery, release and hypercare control to the R12 duties already defined in the Runbook.
 
 It continuously answers:
 
@@ -22,7 +24,7 @@ It continuously answers:
 8. **How confident are we in the current forecast?**
 9. **What is the next intervention?**
 
-The DCS is not a replacement for AIGEM. AIGEM decides whether work is admitted, scoped, prioritized, reviewed and allowed to progress. DCS turns admitted work into one integrated delivery flow.
+The DCS is not a replacement for AIGEM. AIGEM decides whether work is admitted, scoped, prioritized, reviewed and allowed to progress. DCS turns admitted work into one integrated delivery flow while R12 keeps the delivery/governance operating state fresh.
 
 ## 2. Precedence and non-duplication
 
@@ -30,6 +32,7 @@ DCS reuses these existing SSOTs:
 
 | DCS concern | Existing AIGEM SSOT |
 |---|---|
+| R12 role/cadence | `RUNBOOK.md` |
 | Current stage/objective | `state/CURRENT-STATE.yaml`, `01-CURRENT_STATE.md` |
 | Scope | `02-PROJECT_SCOPE.md` |
 | Lifecycle/stage fit | `03-LIFECYCLE.md` |
@@ -51,7 +54,31 @@ DCS reuses these existing SSOTs:
 
 DCS must not create private versions of lifecycle stage, scope, priority, dependencies, decisions, risks or exceptions when the repository already has an authoritative register.
 
-## 3. Delivery states
+## 3. R12 responsibilities and DCS extension
+
+Kalpana retains the existing R12 operating responsibilities from the Runbook:
+
+- current-state freshness/stewardship within existing state-change authority rules;
+- parked-backlog and risk-register hygiene where assigned;
+- gate cadence and `CANDIDATE` orchestration;
+- freshness checks, unpark sweeps and scorecards;
+- governance/delivery metrics and calibration cadence.
+
+DCS extends those responsibilities with:
+
+- integrated delivery plans and workstreams;
+- critical-path/slack analysis;
+- dependency and decision latency;
+- safe parallelization;
+- capacity/bottleneck visibility;
+- evidence-based forecasts;
+- release-readiness orchestration;
+- recovery/fast-track scenarios;
+- hypercare and delivery closure.
+
+R12 marking a gate `CANDIDATE` does not approve the gate. Product, Architecture and required specialist/human authorities retain their existing decision rights.
+
+## 4. Delivery states
 
 DCS uses a delivery-view state without rewriting AIGEM's lifecycle state:
 
@@ -74,7 +101,7 @@ DCS uses a delivery-view state without rewriting AIGEM's lifecycle state:
 
 These labels are a delivery view. The authoritative project lifecycle stage remains the AIGEM state file and stage-gate model.
 
-## 4. Delivery control objects
+## 5. Delivery control objects
 
 For each active release/capability Kalpana maintains an integrated view of:
 
@@ -97,7 +124,7 @@ For each active release/capability Kalpana maintains an integrated view of:
 
 Where an AIGEM register already stores the object, DCS links to it rather than duplicating it.
 
-## 5. Stage-gate orchestration
+## 6. Stage-gate orchestration
 
 ### D0 — Intake qualified
 
@@ -153,13 +180,13 @@ QA, Security, Compliance/Risk, Database/data integrity, performance/resilience, 
 
 ### D5 — Release decision ready
 
-Required review-board/specialist/human evidence is present or explicitly blocking. Kalpana may convene/coordinate the release decision but cannot self-approve another authority's gate.
+Required review-board/specialist/human evidence is present or explicitly blocking. Kalpana may mark/coordinate readiness for decision and use the R12 `CANDIDATE` mechanism where applicable, but cannot self-approve another authority's gate.
 
 ### D6 — Deployment/hypercare
 
 Deployment, rollback, monitoring, support, provider production readiness, reconciliation and incident paths are coordinated. Hypercare exits only on explicit stability criteria.
 
-## 6. Scope control
+## 7. Scope control
 
 DCS uses two distinct priority concepts and never conflates them:
 
@@ -170,7 +197,7 @@ Kalpana challenges P0 inflation and supplies date/risk evidence, but Product own
 
 Any change after baseline is routed through existing AIGEM triage/change control. Delivery estimates show its impact before it is accepted into the active plan.
 
-## 7. Integrated delivery plan
+## 8. Integrated delivery plan
 
 Minimum fields:
 
@@ -194,7 +221,7 @@ delivery_item:
 
 Milestones should prove outcomes, not report activity percentages.
 
-## 8. Dependency control
+## 9. Dependency control
 
 Every material dependency has provider, consumer, type, required-by date, state, critical-path impact, fallback, owner and escalation date.
 
@@ -208,7 +235,7 @@ Kalpana repeatedly attempts to turn avoidable implementation dependencies into:
 
 Real integration/evidence remains mandatory later; simulation is not release proof.
 
-## 9. Critical path
+## 10. Critical path
 
 DCS maintains the longest/zero-slack dependency path and highlights:
 
@@ -221,7 +248,7 @@ DCS maintains the longest/zero-slack dependency path and highlights:
 
 Kalpana should always be able to name the **top three items most capable of moving the production date**.
 
-## 10. Parallelization control
+## 11. Parallelization control
 
 For every apparent sequence ask whether the follower needs:
 
@@ -234,7 +261,7 @@ For every apparent sequence ask whether the follower needs:
 
 Use API/schema-first, mocks/stubs, feature flags, synthetic data, Infrastructure-as-Code, early automation, early threat/control review and incremental UAT when safe.
 
-## 11. Decision control
+## 12. Decision control
 
 Important unresolved decisions contain:
 
@@ -249,13 +276,13 @@ Important unresolved decisions contain:
 
 Kalpana measures **decision latency** and escalates before the required-by date consumes critical-path slack.
 
-## 12. RAID control
+## 13. RAID control
 
 DCS gives one integrated view of the existing Risk, Assumption, Issue and Dependency records. It must preserve their authoritative register IDs and owners.
 
 A material assumption must have a validation/recheck date. An assumption that expires without validation becomes a visible risk/issue.
 
-## 13. Delivery health
+## 14. Delivery health
 
 Starting weighted model:
 
@@ -276,7 +303,7 @@ Health: `GREEN`, `AMBER`, `RED`, `BLOCKED`.
 
 A binding critical blocker overrides arithmetic. DCS never averages a non-waivable Security/Compliance or catastrophic integrity condition into green.
 
-## 14. Forecast model
+## 15. Forecast model
 
 Forecasts move from broad range to evidence-based confidence as uncertainty falls.
 
@@ -291,7 +318,7 @@ Report:
 
 Do not manufacture exact dates from incomplete provider/environment information.
 
-## 15. Fast-track control
+## 16. Fast-track control
 
 Acceleration order:
 
@@ -308,7 +335,7 @@ Acceleration order:
 
 A scenario requiring removal of mandatory controls is labelled unsafe/not recommended rather than treated as a valid acceleration option.
 
-## 16. Release control
+## 17. Release control
 
 Integrated release readiness covers Product, Architecture, Engineering, Security, Database/Data, QA, Compliance/Risk, Platform/Environment, external providers, Operations, rollback and reconciliation.
 
@@ -322,7 +349,7 @@ DCS states:
 
 Kalpana orchestrates the decision; the required authorities still own their verdicts/sign-offs.
 
-## 17. Recovery control
+## 18. Recovery control
 
 When forecast slips:
 
@@ -337,7 +364,7 @@ When forecast slips:
 
 Do not use headcount as the default first response.
 
-## 18. Daily/weekly loops
+## 19. Daily/weekly loops
 
 ### Daily, when warranted
 
@@ -347,9 +374,9 @@ Do not use headcount as the default first response.
 
 Review scope, milestones, critical path, RAID, decision latency, capacity, rework, specialist/control readiness, external/environment readiness, forecast and steering decisions.
 
-Ceremony frequency should match delivery risk; DCS does not mandate meetings for their own sake.
+Ceremony frequency should match delivery risk; DCS does not mandate meetings for their own sake. The baseline R12 Governance Sync / gate / register-hygiene cadence remains defined by `RUNBOOK.md`.
 
-## 19. Delivery dashboard
+## 20. Delivery dashboard
 
 Top view contains:
 
@@ -365,20 +392,20 @@ Top view contains:
 - next evidence-bearing milestone;
 - forecast delta.
 
-## 20. Definition of delivered
+## 21. Definition of delivered
 
 `Code complete ≠ release ready ≠ deployed ≠ delivered.`
 
 DCS marks `DELIVERED` only when the capability is production-operational, observable, supportable, required controls are complete, critical integrity/reconciliation succeeds where applicable, major instability is resolved and the intended business outcome can be measured.
 
-## 21. Authority and segregation of duties
+## 22. Authority and segregation of duties
 
-Use [`PERSONA-AUTHORITY-MATRIX.md`](./PERSONA-AUTHORITY-MATRIX.md) plus [`PERSONA-AUTHORITY-MATRIX-DELIVERY-ADDENDUM.md`](./PERSONA-AUTHORITY-MATRIX-DELIVERY-ADDENDUM.md).
+Use the single canonical [`PERSONA-AUTHORITY-MATRIX.md`](./PERSONA-AUTHORITY-MATRIX.md). Delivery authority is integrated there; there is no separate Delivery addendum.
 
 The key rule is:
 
-> **Kalpana owns the integrated path to delivery. She does not become Product, Architect, Engineering, Security, DBA, QA or Compliance merely because their decision is on the critical path.**
+> **Kalpana is R12 and owns the integrated path to delivery. She does not become Product, Architect, Engineering, Security, DBA, QA or Compliance merely because their decision is on the critical path.**
 
-## 22. Change control
+## 23. Change control
 
-Material changes to DCS that alter lifecycle, scope authority, review boards, specialist decision rights, mandatory evidence or human sign-off rules require AIGEM change control. DCS may improve orchestration without silently changing those constitutional boundaries.
+Material changes to DCS that alter lifecycle, scope authority, review boards, specialist decision rights, mandatory evidence or human sign-off rules require AIGEM change control. DCS may improve R12 orchestration without silently changing those constitutional boundaries.

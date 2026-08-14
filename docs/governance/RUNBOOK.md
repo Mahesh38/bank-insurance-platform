@@ -3,8 +3,8 @@
 **This is the only governance file most people need to read.**
 Everything else is reference. If you read one page, read your role card in §6.
 
-**Version:** 1.0 · **Owner:** Delivery Lead · **Ratified:** 2026-08-10, Mahesh (Solution Architect)
-**Framework:** [docs/governance/](./README.md) · **Live state:** [state/CURRENT-STATE.yaml](./state/CURRENT-STATE.yaml)
+**Version:** 1.1 · **Owner:** **Kalpana — Delivery Head / Delivery Lead (R12)** · **Original ratification:** 2026-08-10, Mahesh (Solution Architect) · **R12 assignment:** CR-007  
+**Framework:** [docs/governance/](./README.md) · **Live state:** [state/CURRENT-STATE.yaml](./state/CURRENT-STATE.yaml) · **Delivery control:** [DELIVERY-CONTROL-SYSTEM.md](./DELIVERY-CONTROL-SYSTEM.md)
 
 ---
 
@@ -61,16 +61,13 @@ Personas: [docs/context/roles/](../context/roles/README.md)
 | R9 | **Risk & Compliance** | — | Regulatory verdicts, consent, retention, audit | Risk & Compliance | ✅ **binding** | ✅ for regulated items |
 | R10 | **DevOps / SRE** | — | Deployability, observability, runbooks, rollback | Operations | — | — |
 | R11 | **Business Analyst** | — | Requirement clarity, acceptance criteria quality | Product (delegate) | — | — |
-| R12 | **Delivery Lead** | ⚠️ **unassigned** | **This runbook, CURRENT-STATE.yaml, register hygiene, gate cadence, metrics** | — | — | marks gate CANDIDATE |
+| R12 | **Delivery Head / Delivery Lead** | **Kalpana** | **This runbook, CURRENT-STATE.yaml, register hygiene, gate cadence, metrics + integrated delivery orchestration** | — | — | marks gate `CANDIDATE` only |
 | R13 | **AI Agent** | Claude / Cursor / Copilot | Running the pipeline, producing records, executing approved plans | Simulates boards ([11 §2](./11-REVIEW_GATES.md#2-who-may-sit-on-a-board)) | — | ❌ **never** |
 
-> ⚠️ **R12 Delivery Lead is unassigned and is the single highest-risk gap in this model.**
-> That role owns `CURRENT-STATE.yaml`. If nobody owns it, it goes stale, and a stale state file
-> silently poisons every AI decision downstream (§4). Assign it before anything else — it can
-> be a hat worn by the Tech Lead or PO, but it needs a name.
+> **Canonical Delivery identity:** **Kalpana is R12.** `Delivery Head`, `Delivery Lead`, `Program Delivery Director`, `Enterprise Delivery Head` and `R12` are aliases for this one persona. Do not create a second Delivery agent. R12 is an orchestration role across the existing seven boards; marking a gate `CANDIDATE` is preparation for the authorised decision-makers, **not gate approval**.
 
 **Small team?** Roles collapse, ownership does not. Minimum viable assignment:
-PO → R1+R11+R12 · Architect → R2+R8 · Tech Head → R3+R4+R10 · QA Lead → R6+R7 ·
+PO → R1+R11 · **Kalpana → R12** · Architect → R2+R8 · Tech Head → R3+R4+R10 · QA Lead → R6+R7 ·
 Compliance → R9 (part-time, gate-only).
 
 ---
@@ -93,7 +90,9 @@ Everything anyone does, in one table. Find your role in the last column.
 | Work item finished | DoD evidence table, register closure | **Dev / agent → TL** | 10 min | Evidence + closed `SUG` |
 | Debt taken | Ledger entry with owner + expiry | **TL** | 5 min | `TD-###` |
 | Assumption invalidated | Re-validate every item citing it | **Owner** | 15 min | Updated items |
-| Incident | Search registers for items that would have prevented it | **Delivery Lead** | 30 min | Calibration note |
+| Incident | Search registers for items that would have prevented it | **Kalpana / R12** | 30 min | Calibration note |
+| Material release/initiative admitted | Establish milestones, dependencies, critical path, forecast assumptions | **Kalpana / R12** + owners | varies | DCS delivery view |
+| Delivery decision approaches required-by date | Escalate decision owner with options, impact and consequence of delay | **Kalpana / R12** | 10–20 min | Decision/escalation record |
 
 ### Daily — 5 minutes
 
@@ -102,17 +101,19 @@ Everything anyone does, in one table. Find your role in the last column.
 | Confirm the item you are working on is still head of the ordered READY queue | Dev, TL, agent | — |
 | Register any suggestion raised yesterday that is not yet written down | everyone | `SUG-####` rows |
 | Check nothing is `IN-FLIGHT` and untouched for > 2 days | TL | Unblock or re-park |
+| For material delivery periods: review critical path, new blockers and decisions consuming slack | **Kalpana / R12** | Intervention/escalation only if needed |
 
 ### Weekly — 30 minutes (the **Governance Sync**, §7.1)
 
 | Action | Who | Output |
 |--------|-----|--------|
-| Refresh gate criteria states in [04](./04-STAGE_GATES.md) + the state file | **Delivery Lead** | Updated `CURRENT-STATE.yaml` |
-| Run the freshness check (§4.3) | **Delivery Lead** | Stale-artefact list |
+| Refresh gate criteria states in [04](./04-STAGE_GATES.md) + the state file | **Kalpana / R12** | Updated `CURRENT-STATE.yaml` |
+| Run the freshness check (§4.3) | **Kalpana / R12** | Stale-artefact list |
 | Review new `SUG` rows; confirm or correct verdicts | **PO + Architect** | Corrected rows |
 | Review BLOCKED items; chase external dependencies | **TL + PO** | Owner + date per `EXTERNAL` edge |
 | Re-order the READY queue | **TL** | Ordered queue |
 | Confirm one-active-item discipline held | **TL** | — |
+| Review critical path, ageing dependencies/decisions, milestone evidence and forecast confidence | **Kalpana / R12** + relevant owners | Updated DCS delivery view |
 
 ### Per work item
 
@@ -128,28 +129,31 @@ Everything anyone does, in one table. Find your role in the last column.
 | Action | Who | Output |
 |--------|-----|--------|
 | Attach evidence to every exit criterion | **Criterion owners** | Evidence table |
-| Mark gate `CANDIDATE`; freeze non-P1 admissions | **Delivery Lead** | Gate state |
+| Mark gate `CANDIDATE`; freeze non-P1 admissions | **Kalpana / R12** | Gate candidate state |
 | Approve or reject the transition | **Architect + PO** (+ QA Lead, Compliance, Ops as listed) | Signed transition |
-| **Unpark sweep** — re-triage every item whose trigger fired | **Delivery Lead + TL** | Promoted / re-parked / closed |
+| **Unpark sweep** — re-triage every item whose trigger fired | **Kalpana / R12 + TL** | Promoted / re-parked / closed |
 | **Recompute priorities** for all READY and PARKED items | **PO + TL** | Updated priorities |
 | Debt expiry enforcement | **TL** | Repaid / waived / converted to ADR |
 | Assumption validation pass | **Owners** | Validated / invalidated |
-| Gate scorecard | **Delivery Lead** | [18 §3](./18-GOVERNANCE_METRICS.md#3-gate-scorecard) |
+| Gate scorecard | **Kalpana / R12** | [18 §3](./18-GOVERNANCE_METRICS.md#3-gate-scorecard) |
 | Update `CURRENT-STATE.yaml` to the new stage | **Architect + PO** | New state |
 
+> **`CANDIDATE` is not approval.** Kalpana/R12 prepares and orchestrates the decision; the listed Product, Architecture and specialist/human authorities retain the actual transition/sign-off rights.
+
 > **Priority recomputation at every stage change is not optional.** Priority is stage-relative
-> ([05 §1](./05-PRIORITY_MODEL.md#1-the-governing-insight)); a stage change silently invalidates
-> every stored `priority_now` in the repository.
+([05 §1](./05-PRIORITY_MODEL.md#1-the-governing-insight)); a stage change silently invalidates
+every stored `priority_now` in the repository.
 
 ### Monthly — 45 minutes (**Register Hygiene**, §7.3)
 
 | Action | Who |
 |--------|-----|
-| Merge duplicate suggestions; update `recurrence_count` | Delivery Lead |
-| Age the parked backlog (AS-2 / AS-3) | Delivery Lead |
+| Merge duplicate suggestions; update `recurrence_count` | Kalpana / R12 |
+| Age the parked backlog (AS-2 / AS-3) | Kalpana / R12 |
 | Reconcile parked backlog against the debt ledger — nothing in both | TL |
-| Review metric trends, not values | Delivery Lead + Tech Head |
+| Review metric trends, not values | Kalpana / R12 + Tech Head |
 | Confirm every `EXTERNAL` dependency still has a live owner and date | PO |
+| Review delivery forecast accuracy, blocked-time and decision/dependency ageing | Kalpana / R12 | DCS calibration |
 
 ### Quarterly — 60 minutes
 
@@ -158,7 +162,8 @@ Everything anyone does, in one table. Find your role in the last column.
 | Review [ORG-STANDARDS.md](./ORG-STANDARDS.md) against actual org policy | Architect + Security + Compliance |
 | Close ratification-backlog items | Architect |
 | Review whether the framework itself needs a `GOV` change request | Architect + PO |
-| Calibration: were our parks and rejections right? | PO + Architect + Delivery Lead |
+| Calibration: were our parks and rejections right? | PO + Architect + Kalpana / R12 |
+| Calibration: were delivery forecasts, fast-track choices and dependency escalations accurate? | Kalpana / R12 + Tech Head | DCS improvements |
 
 ---
 
@@ -172,8 +177,8 @@ actively misleading, because agents will trust it.
 
 | Artefact | Owner | Update trigger | Cadence | Max staleness | What breaks when stale |
 |----------|-------|----------------|---------|---------------|------------------------|
-| **[state/CURRENT-STATE.yaml](./state/CURRENT-STATE.yaml)** | **Delivery Lead** | Stage change · scope change · gate criterion state change | Reviewed **weekly**, updated on every trigger | **30 days** | 🔴 **Everything.** Agents triage against the wrong stage. Rule CS-1 halts triage past `review_due` |
-| [01-CURRENT_STATE.md](./01-CURRENT_STATE.md) | Delivery Lead | With the YAML | Weekly | 30 days | Standing constraints and known-debt lists go wrong; agents re-report known debt |
+| **[state/CURRENT-STATE.yaml](./state/CURRENT-STATE.yaml)** | **Kalpana / R12** | Stage change · scope change · gate criterion state change | Reviewed **weekly**, updated on every trigger | **30 days** | 🔴 **Everything.** Agents triage against the wrong stage. Rule CS-1 halts triage past `review_due` |
+| [01-CURRENT_STATE.md](./01-CURRENT_STATE.md) | Kalpana / R12 | With the YAML | Weekly | 30 days | Standing constraints and known-debt lists go wrong; agents re-report known debt |
 | [02-PROJECT_SCOPE.md](./02-PROJECT_SCOPE.md) | **PO (Rajal)** | Approved `CR-###` only | Per CR + confirmed per gate | 1 stage | 🔴 Scope verdicts (SC0–SC4) become unreliable — the main creep defence |
 | [04-STAGE_GATES.md](./04-STAGE_GATES.md) | **Architect (Mahesh)** | Criterion state change | Weekly | 14 days | SF0 claims cannot be verified; "this is blocking" becomes unfalsifiable |
 | [03-LIFECYCLE.md](./03-LIFECYCLE.md) §6 stage map | Architect | New phase or workstream | Per stage | 1 stage | Stage-fit maps to the wrong canonical stage |
@@ -183,11 +188,13 @@ actively misleading, because agents will trust it.
 | Register | Owner | Update trigger | Cadence | Max staleness | What breaks |
 |----------|-------|----------------|---------|---------------|-------------|
 | [SUGGESTION-REGISTER](./registers/SUGGESTION-REGISTER.md) | Whoever triages | **Every input** | Continuous | 7 days | Duplicate work; ideas lost; the model's memory fails |
-| [PARKED-BACKLOG](./registers/PARKED-BACKLOG.md) | Delivery Lead | Every park + every gate sweep | Per park, swept per gate | 2 gates | 🔴 Parking becomes deletion — the promise this model makes |
+| [PARKED-BACKLOG](./registers/PARKED-BACKLOG.md) | Kalpana / R12 | Every park + every gate sweep | Per park, swept per gate | 2 gates | 🔴 Parking becomes deletion — the promise this model makes |
 | [DEPENDENCY-REGISTER](./registers/DEPENDENCY-REGISTER.md) | **TL** | Every triage with edges | Weekly | 14 days | Work starts out of order; rework |
-| [RISK-REGISTER](./registers/RISK-REGISTER.md) | Delivery Lead | New risk · gate review | Per gate | 1 stage | Risk factor `R` in scoring is wrong |
+| [RISK-REGISTER](./registers/RISK-REGISTER.md) | Kalpana / R12 | New risk · gate review | Per gate | 1 stage | Risk factor `R` in scoring is wrong |
 | [ASSUMPTION-REGISTER](./registers/ASSUMPTION-REGISTER.md) | Assumption author | Validation · expiry date | Per gate | Its own `expiry` | MUST claims resting on dead assumptions (EV-1) |
 | [DECISION-REGISTER](./registers/DECISION-REGISTER.md) | **Architect** | Every ADR · CR · stage transition | Per event | — | Closed decisions get re-litigated |
+
+The DCS may present integrated views over these registers, but it must not create private duplicate sources of truth.
 
 ### 4.3 Existing repository artefacts (unchanged owners)
 
@@ -205,7 +212,8 @@ actively misleading, because agents will trust it.
 |----------|-------|---------|---------|
 | `00`, `03`, `05`–`19` (L1) | Architect | `GOV` change request only | As needed |
 | [ORG-STANDARDS.md](./ORG-STANDARDS.md) (L2) | Architect + Security + Compliance | Org policy change | Quarterly review |
-| This runbook | Delivery Lead | Role or cadence change | Quarterly review |
+| This runbook | Kalpana / R12 | Role or cadence change | Quarterly review |
+| [DELIVERY-CONTROL-SYSTEM.md](./DELIVERY-CONTROL-SYSTEM.md) | Kalpana / R12 | Delivery-orchestration change; constitutional changes require `GOV` CR | Quarterly review |
 
 ### 4.5 The staleness alarm
 
@@ -214,7 +222,7 @@ java scripts/governance/FreshnessCheck.java     # JDK 21 + Git only; no build, n
 ./gradlew governanceFreshness                  # equivalent, via the wrapper
 ```
 
-Run it: weekly (Delivery Lead), at every gate, and **automatically by any agent at session
+Run it: weekly (Kalpana / R12), at every gate, and **automatically by any agent at session
 start**. Exit codes: `0` fresh · `1` warnings · `2` halt-class staleness.
 
 It **fails closed**: anything it cannot fully parse or resolve is a halt, never a silent pass.
@@ -242,7 +250,7 @@ bash scripts/governance/test-freshness-check.sh   # 24 cases, incl. every CS-1 h
 
 | Check | Runtime | Who runs it | When |
 |-------|---------|-------------|------|
-| `FreshnessCheck.java` | **JDK 21 + Git** — the documented baseline | Agents, Delivery Lead, CI, Gradle | Session start · weekly · every gate · every PR |
+| `FreshnessCheck.java` | **JDK 21 + Git** — the documented baseline | Agents, Kalpana / R12, CI, Gradle | Session start · weekly · every gate · every PR |
 | `test-freshness-check.sh` | Bash + JDK | CI | Every PR touching governance |
 | `ci-checks.py` — schemas, tagged records, links, calibration | Python + PyYAML + jsonschema | **CI only** | Every PR touching governance; weekly |
 
@@ -363,7 +371,7 @@ assertion into evidence.
 | Weekly | Confirm CI gates are green and are actually enforcing | 10 min |
 | Per gate | Technical exit sign-off; confirm no open P0/P1 debt | 30 min |
 | Per gate | Enforce debt expiry with the TL | 20 min |
-| Monthly | Review metric **trends** with the Delivery Lead | 30 min |
+| Monthly | Review metric **trends** with Kalpana / R12 | 30 min |
 | Quarterly | Confirm coverage floors are still rising, not "interim" forever | 20 min |
 
 **Only you can:** change CI gate thresholds · accept an infrastructure dependency · set the
@@ -392,7 +400,7 @@ who marks things Done.
 | Daily | Check nothing is in flight and untouched > 2 days | 3 min |
 | Weekly | Re-order the READY queue; update dependency edges | 15 min |
 | Per debt taken | Ledger entry with owner, severity, expiry | 5 min |
-| Per gate | Debt expiry pass; unpark sweep with the Delivery Lead | 30 min |
+| Per gate | Debt expiry pass; unpark sweep with Kalpana / R12 | 30 min |
 
 **Only you can:** move an item to Done · assign ownership · open and close debt entries.
 
@@ -544,30 +552,36 @@ we answer from the system?*
 
 ---
 
-### R12 · Delivery Lead ⚠️ *unassigned — assign this first*
+### R12 · Delivery Head / Delivery Lead — Kalpana
 
-**Your one job:** keep the state file and the registers true. **You are the reason the AI knows
-where it is.**
+**Your one job:** keep the state/registers true **and** keep the integrated path from admitted work to production executable, predictable and honest. **You are the reason the AI knows where it is and the reason leadership can see what actually controls delivery.**
 
-**You own:** [state/CURRENT-STATE.yaml](./state/CURRENT-STATE.yaml) · [01-CURRENT_STATE.md](./01-CURRENT_STATE.md) · [PARKED-BACKLOG](./registers/PARKED-BACKLOG.md) · [RISK-REGISTER](./registers/RISK-REGISTER.md) · this runbook · gate cadence · metrics
+**Canonical identity:** `Kalpana = Delivery Head = Delivery Lead = Program Delivery Director = Enterprise Delivery Head = R12`. Never create a second Delivery persona.
+
+**You own:** [state/CURRENT-STATE.yaml](./state/CURRENT-STATE.yaml) · [01-CURRENT_STATE.md](./01-CURRENT_STATE.md) · [PARKED-BACKLOG](./registers/PARKED-BACKLOG.md) · [RISK-REGISTER](./registers/RISK-REGISTER.md) · this runbook · [DELIVERY-CONTROL-SYSTEM.md](./DELIVERY-CONTROL-SYSTEM.md) · gate cadence · delivery/governance metrics · integrated milestones · critical path · dependency/decision ageing · forecast confidence · release orchestration
 
 | When | Do | Time |
 |------|----|------|
 | **Weekly** | Run the freshness check; fix what it flags | 10 min |
 | **Weekly** | Update gate criterion states + `state_as_of` | 10 min |
 | Weekly | Chair the Governance Sync (§7.1) | 30 min |
+| Weekly | Review critical path, blockers, ageing dependencies/decisions and forecast confidence | 20–30 min |
+| Per material initiative/release | Establish outcome milestones, workstreams, dependency graph, critical path and forecast assumptions | proportional |
+| Per delivery decision dependency | Make authority owner, required-by date, options and consequence of delay explicit | 10–20 min |
 | Per gate | Mark `CANDIDATE`; run the unpark sweep; produce the scorecard | 60 min |
-| Monthly | Register hygiene (§7.3) | 45 min |
+| Per release | Integrate Product/Architecture/Engineering/Security/DB/QA/Compliance/Ops readiness and coordinate the **approved** deployment | proportional |
+| Hypercare | Track stability, incidents, reconciliation/supportability and exit criteria | proportional |
+| Monthly | Register hygiene (§7.3) + forecast/dependency calibration | 45 min |
 | Per incident | Search registers for items that would have prevented it | 30 min |
-| Quarterly | Calibration review: were our parks and rejections right? | 60 min |
+| Quarterly | Calibration review: were our parks, rejections, forecasts and accelerations right? | 60 min |
 
-**Only you can:** mark a gate `CANDIDATE` · declare an artefact stale · run the unpark sweep.
+**Only you can (within R12 jurisdiction):** mark a gate `CANDIDATE` · declare an artefact stale under governance rules · run the unpark sweep · own the integrated delivery forecast/critical-path view and orchestration cadence.
 
-**Never:** let `state_as_of` pass `review_due` silently · sweep a parked item straight into
-ADMIT without re-triage · delete a register row.
+**You cannot:** approve the stage transition because you marked it `CANDIDATE` · redefine Product scope/priority · override Architecture · downgrade Security/Compliance findings · weaken DB integrity/recovery · declare QA evidence passed · fabricate a human sign-off or accept material risk outside delegated authority.
 
-**Your 60-second check:** *If an agent read the state file right now, would it be working on the
-right thing?*
+**Never:** let `state_as_of` pass `review_due` silently · sweep a parked item straight into ADMIT without re-triage · delete a register row · keep a forecast green because stakeholders prefer it · use schedule pressure to erase another persona's authority · create a parallel “Delivery Head” persona alongside R12.
+
+**Your 60-second check:** *If an agent read the state file right now, would it work on the right thing — and can I name the three items most capable of moving the production date?*
 
 ---
 
@@ -581,11 +595,11 @@ right thing?*
 
 ## 7. Ceremonies
 
-Three recurring sessions. Nothing else is required.
+Three recurring sessions. Nothing else is required. DCS may add focused delivery intervention only when risk warrants it; it does not create meetings for their own sake.
 
 ### 7.1 Governance Sync — weekly, 30 min
 
-**Chair:** Delivery Lead · **Attend:** PO, Architect, TL (+ Tech Head monthly)
+**Chair:** **Kalpana / R12** · **Attend:** PO, Architect, TL (+ Tech Head monthly)
 
 ```text
 00:00  Freshness check output — what is stale, who fixes it        (5 min)
@@ -598,9 +612,11 @@ Three recurring sessions. Nothing else is required.
 **Outputs:** updated `CURRENT-STATE.yaml` · corrected verdicts · ordered queue.
 **If it runs long, the problem is the backlog, not the meeting.**
 
+The DCS delivery view (critical path, due decisions, forecast change) may be attached as a concise readout; it must not turn the Governance Sync into a status meeting.
+
 ### 7.2 Gate Review — per stage transition, 90 min
 
-**Chair:** Delivery Lead · **Decide:** Architect + PO (+ QA Lead, Security, Compliance, Ops as
+**Chair:** **Kalpana / R12** · **Decide:** Architect + PO (+ QA Lead, Security, Compliance, Ops as
 the gate lists)
 
 ```text
@@ -615,9 +631,11 @@ the gate lists)
 **This is the most important meeting in the model.** It is where parking proves it is not
 deletion, and where the AI's next stage of thinking is set.
 
+**Chairing/preparing the gate does not make Kalpana an approver.** R12 may mark `CANDIDATE`; the listed decision authorities approve/reject the transition.
+
 ### 7.3 Register Hygiene — monthly, 45 min
 
-**Owner:** Delivery Lead, alone or with the TL. Not a meeting unless something is wrong.
+**Owner:** **Kalpana / R12**, alone or with the TL. Not a meeting unless something is wrong.
 
 ```text
 Duplicates merged · parked items aged (AS-2/AS-3) · debt ledger reconciled ·
@@ -701,7 +719,7 @@ Everything else in the framework supports these:
 | User suggests something adjacent | "Valid change — triaging as `SUG-00NN`. It's SF2 for this stage, so I'd finish `FUNC-011` first unless you want to switch." |
 | Genuine P1 | "Interrupting `FUNC-011` for a P1 (O2: reachable vulnerability in the payment path). Snapshot recorded; returning after." |
 | Drifted | "I drifted: changed `bank-common-error` while fixing the status mapper. Reverting, registering as `SUG-00NN`, finishing the mapper." |
-| State is stale | "`CURRENT-STATE.yaml` is 41 days old (`review_due` 2026-09-07). I can park and reject against it, but not admit new work. Delivery Lead needs to refresh it." |
+| State is stale | "`CURRENT-STATE.yaml` is 41 days old (`review_due` 2026-09-07). I can park and reject against it, but not admit new work. **Kalpana / R12** needs to refresh it." |
 | Asked to skip the process | "Understood — doing it directly. Recording the bypass and its one risk: no Security board on an auth-path change." |
 | Item bigger than planned | "Larger than the plan — needs a second component. Stopping to re-review rather than expanding scope." |
 
@@ -727,11 +745,14 @@ Everything else in the framework supports these:
 | Boards conflict (e.g. Security vs Product) | **Architect + PO** → recorded as an ADR | 2 days |
 | Plan reaches rework round 3 | **Architect + PO** — the problem is the item, not the plan | Immediately |
 | SC4 external mandate identified | **PO + Compliance + Architect** | Same day |
-| State file stale > 30 days | **Delivery Lead**, then **Tech Head** if unfixed | Same day |
+| State file stale > 30 days | **Kalpana / R12**, then **Tech Head** if unfixed | Same day |
 | A gate criterion cannot be met | **Architect + PO** — waiver or move the criterion | Before CANDIDATE |
 | Security or Compliance veto disputed | **Nowhere.** The veto is binding | — |
-| An incident traces to a parked or rejected item | **Delivery Lead** → calibration review | 1 week |
+| An incident traces to a parked or rejected item | **Kalpana / R12** → calibration review | 1 week |
+| A decision/dependency will exhaust critical-path slack | **Kalpana / R12 → owning authority**, then accountable humans if unresolved | Before required-by date |
 | Nobody owns an artefact in §4 | **Tech Head (Amit)** | Immediately |
+
+Delivery escalation makes the consequence/time boundary explicit; it does not transfer the underlying authority to R12.
 
 ---
 
@@ -739,18 +760,18 @@ Everything else in the framework supports these:
 
 | Day | Action | Owner | Done when |
 |-----|--------|-------|-----------|
-| 1 | **Assign the Delivery Lead (R12).** Nothing else works without it | Tech Head | A name is in §2 |
+| 1 | **Assign the existing Delivery Lead role (R12) to Kalpana; all Delivery aliases resolve to her.** | Governance / Tech Head | ✅ Included in CR-007 / PR #44; binding effect follows required ratification/merge |
 | 1 | ~~Ratify [01 §3–§4](./01-CURRENT_STATE.md#3-snapshot); clear `provisional`~~ | Architect | ✅ **Done 2026-08-10** (GOV-004). PO counter-signature outstanding |
-| 2 | Fill the unassigned owners in §2 and §4 | Delivery Lead | No "unassigned" left |
+| 2 | Fill any remaining unassigned owners in §2 and §4 | Kalpana / R12 + relevant authority | No required owner is unassigned |
 | 2 | Name owners + dates for the two open `EXTERNAL` dependencies (DEP-002, DEP-010) | PO | Register updated |
 | 3 | Each role reads its card in §6 — nothing else | Everyone | 10 minutes each |
-| 3 | Run the freshness check; fix everything it reports | Delivery Lead | Exit code 0 |
+| 3 | Run the freshness check; fix everything it reports | Kalpana / R12 | Exit code 0 |
 | 4 | Run the adoption smoke test ([19 §6](./19-PORTING_GUIDE.md#6-adoption-smoke-test)) with an agent | Architect | 5/5 expected verdicts |
-| 5 | First Governance Sync (§7.1) | Delivery Lead | Held, 30 min |
+| 5 | First Governance Sync (§7.1) | Kalpana / R12 | Held, 30 min |
 | 5–14 | **Triage new inputs only. Do not backfill.** | Everyone | Suggestion register is filling |
 | 10 | Sweep TD-014 — its unpark trigger has already fired | TL | Promoted or re-parked with a reason |
 | 10 | Close or waive QA-001 — criterion 4.7 is now binding (CR-001) | QA Lead + TL | Closed, or waived with a dated expiry |
-| 14 | First scorecard → baseline metrics | Delivery Lead | [18 §3](./18-GOVERNANCE_METRICS.md#3-gate-scorecard) filled |
+| 14 | First scorecard → baseline metrics | Kalpana / R12 | [18 §3](./18-GOVERNANCE_METRICS.md#3-gate-scorecard) filled |
 
 **Success at day 14 looks like:** the state file is ratified and fresh, every role has run their
 cadence once, the suggestion register has real rows, and at least one suggestion has been parked
@@ -762,6 +783,6 @@ with a target stage instead of being built or forgotten.
 
 It will be, in places. The cadences are estimates and the roles may not match your team.
 
-Fix it: raise a `GOV` change request ([14](./14-CHANGE_CONTROL.md)), or tell the Delivery Lead.
+Fix it: raise a `GOV` change request ([14](./14-CHANGE_CONTROL.md)), or tell **Kalpana / R12**.
 A runbook people work around is worse than no runbook — the whole point is that it describes
 what actually happens.

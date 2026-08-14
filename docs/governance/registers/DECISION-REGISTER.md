@@ -41,14 +41,14 @@ without a search.
 | GOV-002 | 2026-08-07 | Route admitted work to existing backlogs; AIGEM keeps no parallel backlog | Two sources of truth both rot | Pending ratification |
 | GOV-003 | 2026-08-07 | Seed the parked backlog from deferred `TECH-DEBT.md` rows; no retrospective triage | Backfilling costs days and teaches nothing ([19 §5](../19-PORTING_GUIDE.md#5-bootstrapping-into-an-existing-project-mid-flight)) | Pending ratification |
 | GOV-004 | 2026-08-10 | **Ratify the current-state snapshot**: WS-1 at Phase 4 (Hardening), WS-2 at IAM Phase 1, with the scope and standing constraints as recorded | Reconstructed from `ACTION-PLAN.md`, phase `STATUS.md` files, `TECH-DEBT.md` and git history; reviewed and accepted | **Mahesh (Solution Architect), 2026-08-10** — PO counter-signature outstanding |
-| GOV-005 | 2026-08-14 | Introduce Principal Insurance Platform Architect as Mahesh's Board 1 operating persona and a reciprocal Architect↔Shailja decision protocol | Make Architecture authority, evidence, compliance collaboration and human escalation deterministic without weakening existing board ownership/veto rules | **Proposed by Mahesh (Solution Architect)** via CR-002 — Product counter-signature outstanding |
+| GOV-005 | 2026-08-14 | Consolidate the architecture role into **Mahesh — Principal Insurance Platform Architect** as the single Board 1 persona, with modular authority/review files and a reciprocal Mahesh↔Shailja protocol | Avoid two overlapping architect identities while retaining deep architecture reasoning, evidence, compliance collaboration and human escalation | **Proposed by Mahesh** via CR-002 — Product counter-signature outstanding |
 
 ## 3. Change requests
 
 | ID | Date | Type | Summary | Decision | Approvers |
 |----|------|------|---------|----------|-----------|
 | CR-001 | 2026-08-10 | STAGE | Add exit criterion **4.7** (coverage gates green; QA-001 closed or waived with expiry) to the WS-1 Phase 4 gate | **APPROVED** 2026-08-10 | Mahesh (Solution Architect) — PO + QA Lead counter-signature outstanding |
-| CR-002 | 2026-08-14 | GOV | Add Principal Insurance Platform Architect persona, attach it to Mahesh, add reciprocal Shailja protocol, and map AIGEM Board 1 to the persona | **PENDING RATIFICATION** | Mahesh (Solution Architect) approved for review branch — Product Owner pending |
+| CR-002 | 2026-08-14 | GOV | Make Mahesh the single Principal Insurance Platform Architect persona; modularize his authority/review model; retain Shailja as independent Board 6; keep legacy architect path as compatibility-only | **PENDING RATIFICATION** | Mahesh approved preparation on review branch — Product Owner pending |
 
 ### CR-001 — add Phase 4 exit criterion 4.7
 
@@ -75,17 +75,18 @@ outstanding:       PO and QA Lead counter-signature. The criterion is binding no
                    counter-signature is recorded when they next review the gate.
 ```
 
-### CR-002 — Principal Insurance Platform Architect persona integration
+### CR-002 — Mahesh Principal Insurance Platform Architect consolidation
 
 Full request: [`../change-requests/CR-002-principal-architect-persona-integration.md`](../change-requests/CR-002-principal-architect-persona-integration.md)
 
 ```text
-current_position:  AIGEM has Board 1 Architecture and Mahesh is Solution Architect, but Board 1
-                   has no dedicated authority/decision persona equivalent in depth to Shailja S.
-proposed_change:   Add Principal Insurance Platform Architect package attached to Mahesh; add a
-                   shared Architect↔Compliance protocol; update Shailja, Board 1 and AGENTS.md.
-driver:            Deterministic architecture authority, evidence, compliance collaboration and
-                   human escalation while preserving separation of duties.
+current_position:  Mahesh is the existing architecture owner; the first CR-002 draft introduced
+                   a second Principal Architect persona attached to Mahesh.
+proposed_change:   Make Mahesh the single Principal Insurance Platform Architect; move the deep
+                   authority/decision/review model into Mahesh-named supporting files; preserve the
+                   old generic path only as a compatibility redirect; keep Shailja independent.
+driver:            One Architecture Board should have one architecture identity and one authority
+                   model. Modular knowledge is useful; duplicate ownership is not.
 impact:            Governance/persona grounding only; no runtime product behavior changes.
 safeguards:        T4 human sign-offs remain mandatory; Security and Risk/Compliance vetoes remain
                    binding; Shailja R0 cannot be downgraded by Architecture.

@@ -244,7 +244,7 @@ This model is deliberately built to score against the blueprint's 9/10 maturity 
 | Decision confidence | [16 §5](./16-DECISION_MODEL.md#5-confidence-levels) |
 | Evidence & assumptions | [16 §4](./16-DECISION_MODEL.md#4-evidence-standard), [registers/ASSUMPTION-REGISTER.md](./registers/ASSUMPTION-REGISTER.md) |
 | Traceability matrix | [08 §6](./08-BACKLOG_RULES.md#6-traceability) |
-| Architecture principles engine | [11 §4](./11-REVIEW_GATES.md#4-board-1--architecture) + [Principal Insurance Platform Architect](../context/roles/principal-insurance-platform-architect/README.md) |
+| Architecture principles engine | [11 §4](./11-REVIEW_GATES.md#4-board-1--architecture) + [Mahesh — Principal Insurance Platform Architect](../context/roles/mahesh-principal-insurance-platform-architect/README.md) |
 | Decision log | [registers/DECISION-REGISTER.md](./registers/DECISION-REGISTER.md) |
 | Cost vs value analysis | [05 §4](./05-PRIORITY_MODEL.md#4-the-scoring-model) |
 | Project health dashboard | [18](./18-GOVERNANCE_METRICS.md) |

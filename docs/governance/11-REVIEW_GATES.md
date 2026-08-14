@@ -85,9 +85,9 @@ For this repository, Board 1 uses **[Mahesh — Principal Insurance Platform Arc
 
 When an AI agent simulates Board 1 it should load Mahesh and the relevant modules from that package, apply his authority/decision framework, and translate the result into the canonical AIGEM verdict below. The AI simulation **does not** grant itself Mahesh's mandatory human signature; the T4 rule in §2 remains binding.
 
-Architecture findings may use `A0`–`A3` severity internally. These labels must not be confused with AIGEM `P1`–`P5` delivery priority or Shailja S `R0`–`R3` risk severity.
+Architecture findings may use `A0`–`A3` severity internally. These labels must not be confused with AIGEM `P1`–`P5` delivery priority, Rajal's local Product `P0`–`P2` execution criticality, or Shailja S `R0`–`R3` risk severity.
 
-For architecture decisions with compliance impact, Board 1 and Board 6 use the shared **[Mahesh ↔ Shailja Architecture/Compliance Decision Protocol](../context/roles/shared/architect-compliance-decision-protocol.md)**. Mahesh owns architecture design/implementation; Board 6/Shailja owns compliance permissibility/control outcomes; neither persona overrides the other's binding domain decision.
+For consequential Product ↔ Architecture ↔ Compliance decisions, Boards 1, 3 and 6 use the shared **[Product ↔ Architecture ↔ Compliance Decision Protocol](../context/roles/shared/product-architecture-compliance-decision-protocol.md)**. For detailed architecture-control resolution, Boards 1 and 6 additionally use the **[Mahesh ↔ Shailja Architecture/Compliance Decision Protocol](../context/roles/shared/architect-compliance-decision-protocol.md)**. Mahesh owns architecture design/implementation; Board 6/Shailja owns compliance permissibility/control outcomes; neither persona overrides the other's binding domain decision.
 
 | # | Check |
 |---|-------|
@@ -138,17 +138,34 @@ maintainability · complexity.
 
 **Question:** *Is this the thing we asked for — and only that?*
 
+### Named persona and Product authority
+
+For this repository, Board 3 uses **[Rajal — Principal Insurance Platform Product Owner](../context/roles/principal-insurance-platform-product-owner/README.md)** as its named Product reasoning persona.
+
+Rajal owns **WHAT / WHY / FOR WHOM / Product behaviour / scope / priority / acceptance / outcome**. She does not own technical architecture, regulatory permissibility, Security exceptions or material human risk acceptance.
+
+When an AI agent simulates Board 3 it should load Rajal's canonical package in the order defined by its README, apply the Product authority and decision framework, and then translate the result into the canonical AIGEM verdict below. The persona does not grant itself authority that AIGEM or organisational policy reserves for humans.
+
+Rajal's local `P0`–`P2` labels are Product execution criticality **within admitted scope**. They must not replace AIGEM `P1`–`P5` delivery priority.
+
+For Product decisions with material Architecture or Compliance impact, Board 3 uses the shared **[Product ↔ Architecture ↔ Compliance Decision Protocol](../context/roles/shared/product-architecture-compliance-decision-protocol.md)**. Product may challenge another board's assumptions, but cannot silently override its binding domain decision.
+
 | # | Check |
 |---|-------|
-| P1 | Does it satisfy the requirement? |
-| P2 | Does the behaviour match product expectation? |
+| P1 | Does it satisfy the requirement and approved business objective? |
+| P2 | Does the behaviour match the approved Product/journey expectation? |
 | P3 | **Are we adding unrequested behaviour?** |
-| P4 | Are the acceptance criteria correct and complete? |
-| P5 | Does it change the customer or RM experience — and is that intended? |
-| P6 | **Does it introduce scope creep?** |
+| P4 | Are the acceptance criteria correct, observable and complete? |
+| P5 | Does it change the customer, RM, operations or channel experience — and is that intended? |
+| P6 | **Does it introduce scope creep or import later-stage functionality?** |
 | P7 | Is `out_of_scope` honest, or does it omit what the plan quietly includes? |
+| P8 | Are actor, LoB/product, journey/capability and business state explicit where material? |
+| P9 | Does the plan preserve canonical bank Product behaviour rather than leaking provider/aggregator API shape into the Product model without justification? |
+| P10 | Is this the smallest Product change that delivers the approved outcome, with P1/P2 improvements parked rather than silently bundled? |
+| P11 | Are material failure, abandonment, resume and exception outcomes defined from the Product perspective? |
+| P12 | Is the intended outcome measurable through an agreed KPI/evidence path? |
 
-P3 and P6 are the board's real job. Product is the primary defence against gold-plating.
+P3, P6, P9 and P10 are central defences against gold-plating, provider-driven Product distortion and uncontrolled scope expansion.
 
 ## 7. Board 4 — Security
 
@@ -276,11 +293,12 @@ APPROVED  ⇔  every mandatory board for the tier returned APPROVED or
 | Any mandatory board `REWORK` | **REWORK** — plan returns with the union of all `must_fix[]` |
 | Any board `REJECTED` | **REJECTED** — back to pipeline step 2 (stage/scope/necessity were probably wrong) |
 | Security or Risk & Compliance `REWORK`/`REJECTED` | **Binding veto.** No aggregate or majority override |
-| Architecture `REWORK` | Overridable only by a recorded ADR signed by a human architect |
+| Architecture `REWORK` | Overridable only by a recorded ADR signed by a human architect where AIGEM permits; never overrides a separate binding Security/Compliance conclusion |
+| Product `REWORK` | Product behaviour/scope/acceptance must be corrected or consciously changed by the authorised Product owner; Engineering/Architecture cannot silently override it |
 | A mandatory board did not respond | Gate is **not** approved. Silence is never assent |
-| Boards conflict (e.g. Security wants X, Product wants not-X) | Escalate to Architect + PO; the resolution is recorded as an ADR |
+| Boards conflict | Use the relevant shared protocol; identify each domain owner, resolve outcome-vs-implementation separately, and persist the final decision. No majority voting |
 
-For a material Mahesh/Architecture ↔ Shailja/Risk & Compliance conflict, first use the shared Architecture/Compliance protocol to separate control outcome from implementation and test alternative designs. If conflict remains after one substantive redesign cycle, escalate to accountable humans; an AI agent does not arbitrate residual risk.
+For material Product ↔ Architecture ↔ Risk/Compliance conflict, use the shared Product ↔ Architecture ↔ Compliance protocol. For a material Mahesh/Architecture ↔ Shailja/Risk & Compliance conflict, use the bilateral Mahesh ↔ Shailja protocol to separate control outcome from implementation and test alternative designs. If conflict remains after one substantive alternatives/redesign cycle, escalate to accountable humans; an AI agent does not arbitrate residual risk or mandatory sign-off.
 
 ---
 
@@ -289,7 +307,7 @@ For a material Mahesh/Architecture ↔ Shailja/Risk & Compliance conflict, first
 ```text
 Round 1  REWORK → author revises → re-review by the objecting boards only
 Round 2  REWORK → author revises → re-review
-Round 3  ── not permitted ──► ESCALATE to a human (Architect + PO)
+Round 3  ── not permitted ──► ESCALATE to accountable humans (Product + Architecture + other binding domain owner as applicable)
 ```
 
 Two rounds is the limit. A third is a signal that the *problem*, not the plan, is misunderstood:
@@ -318,6 +336,7 @@ pass — the value is in the different questions, and blending them loses exactl
 For each mandatory board:
   1. Load only that board's checklist and its named persona when one is defined.
      - Architecture → Mahesh — Principal Insurance Platform Architect
+     - Product → Rajal / Principal Insurance Platform Product Owner
      - Risk & Compliance → Shailja S
   2. Answer each numbered check against the plan — cite the plan section or file.
   3. Emit the verdict with evidence[] listing the checks actually performed.

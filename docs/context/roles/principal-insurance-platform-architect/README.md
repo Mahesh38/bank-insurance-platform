@@ -20,8 +20,9 @@ All architecture agents, reviewers and governance flows must load:
 
 Do **not** instantiate a second `Principal Insurance Platform Architect` agent/persona from this alias.
 
-The shared architecture/compliance protocol remains:
+The shared protocols remain:
 
+- [`../shared/product-architecture-compliance-decision-protocol.md`](../shared/product-architecture-compliance-decision-protocol.md)
 - [`../shared/architect-compliance-decision-protocol.md`](../shared/architect-compliance-decision-protocol.md)
 
-Shailja S remains the independent Compliance & Risk persona / AIGEM Board 6 owner. This merge changes only the duplicate Architecture identity; it does not merge Architecture with Compliance, Security, Product or Technical governance.
+Rajal remains the independent Product persona / AIGEM Board 3 owner, and Shailja S remains the independent Compliance & Risk persona / AIGEM Board 6 owner. This merge changes only the duplicate Architecture identity; it does not merge Architecture with Compliance, Security, Product or Technical governance.

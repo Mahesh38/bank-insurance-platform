@@ -71,13 +71,13 @@ Keycloak session handling is on-stage for WS-2 and premature for WS-1.
 | **Current objective** | Term path signed off for UAT use by at least one bank caller |
 | **Deliverable** | Hardened Term vertical slice: sandbox E2E evidence, published OpenAPI, compliance-reviewed audit schema, runbook, performance smoke |
 | **Completed** | Phases 0–3. Term path FUNC-001…007, FUNC-009 delivered and TL-approved (`phase-3/STATUS.md`, `phase-4/STATUS.md`). COMP-003 raw-payload encryption, JaCoCo gates, Docker packaging, OpenAPI publication landed (commit `79c65f4`). |
-| **Not yet done in this phase** | Bank consumer spike (4.3 — externally blocked), compliance review of audit schema (4.4 — awaiting a human verdict), internal-portal publication (4.2), ratified p95 target (4.6) |
+| **Not yet done in this phase** | Bank consumer spike (4.3 — externally blocked), compliance review of audit schema (4.4 — awaiting a human verdict), ratified p95 target (4.6) |
 | **Next stage** | Phase 5 — Expand LOBs (Health → Motor) |
 | **Authority** | [ACTION-PLAN.md](../1sb-insurance-integration/service-ssot/ACTION-PLAN.md) · [PRODUCT-BACKLOG.md](../1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md) |
 
 **Gate to exit Phase 4** — see [04-STAGE_GATES.md](./04-STAGE_GATES.md) for evidence per line:
 - [x] Term happy path green against 1SB sandbox in CI (or gated nightly) — 4.1
-- [~] OpenAPI published + consumer collection available — 4.2, internal portal outstanding
+- [x] OpenAPI spec (local/dev) + consumer collection available — 4.2, **amended by CR-002**
 - [ ] ≥ 1 bank caller has exercised quote + proposal against UAT — 4.3, **externally blocked (DEP-002)**
 - [ ] Compliance sign-off on audit schema and log samples — 4.4, **awaiting a human verdict; see RISK-012**
 - [x] Runbook (secrets rotation, IP whitelist, 1SB 401/5xx incident) exists — 4.5
@@ -123,8 +123,15 @@ These are stable facts an agent must not re-derive or re-litigate:
 5. **Flutter never receives OAuth tokens;** the BFF holds them (WS-2 decision 2).
 6. **Keycloak is not the source of truth for business authorization** (WS-2 decision 5).
 7. **No PII in logs.** Masking is a compliance gate, not a preference.
-8. **Coverage gates:** libs line ≥ 80% / branch ≥ 70%; services on the interim floor
-   ([COVERAGE.md](../1sb-insurance-integration/service-ssot/COVERAGE.md)).
+8. **Coverage gates:** libs line ≥ 80% / branch ≥ 70%; WS-1 services at 90/70 plus the
+   strategy §7 package floors, enforced since QA-001 closed. WS-2 services remain on the
+   interim 50% line floor ([COVERAGE.md](../1sb-insurance-integration/service-ssot/COVERAGE.md)).
+9. **OpenAPI is a local/dev testing artefact, never a served surface**
+   ([CR-002](./registers/DECISION-REGISTER.md#3-change-requests)). Every service may carry a
+   specification so a developer can exercise its API without hand-building a request
+   collection; **no** service serves `/v3/api-docs` or Swagger UI on UAT or production. These
+   platform services are reachable inside the VPC only, so there is no portal, no published
+   URL, and no external audience for a contract. Enforced by `OpenApiNotExposedTest`.
 
 A suggestion that violates a standing constraint is **SF4 / REJECT** unless it arrives as a
 formal change request under [14](./14-CHANGE_CONTROL.md).

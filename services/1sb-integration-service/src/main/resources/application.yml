@@ -51,6 +51,22 @@ onesb:
     max-delay-ms: ${ONESB_POLL_MAX_DELAY_MS:30000}
     max-attempts: ${ONESB_POLL_MAX_ATTEMPTS:20}
 
+# OpenAPI / Swagger UI — DISABLED BY DEFAULT.
+#
+# The specification is a local and dev testing aid: it exists so a developer can exercise the
+# API without hand-building a request collection. It is not a published product surface. This
+# service is reachable inside the VPC only, and the spec endpoints are never served on UAT or
+# production (ADR / CR-002 — see docs/governance/registers/DECISION-REGISTER.md).
+#
+# Default-off rather than default-on so that a new environment is safe before anyone remembers
+# to configure it. Turn it on deliberately for local work with SPRINGDOC_ENABLED=true; the uat
+# and prod profiles pin it off so that variable cannot re-enable it there.
+springdoc:
+  api-docs:
+    enabled: ${SPRINGDOC_ENABLED:false}
+  swagger-ui:
+    enabled: ${SPRINGDOC_ENABLED:false}
+
 logging:
   level:
     com.bank.insurance: INFO

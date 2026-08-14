@@ -1,7 +1,7 @@
 # Combined image: bank-persistence-service (:8081) + 1sb-integration-service (:8080)
-# in a single container, for standalone cloud validation environments where you want
-# to hit the 1SB integration Swagger UI end-to-end without provisioning two separate
-# containers/services. For production, prefer deploying each service from its own
+# in a single container, for standalone validation environments where you want to exercise
+# the 1SB integration end-to-end without provisioning two separate containers/services.
+# For production, prefer deploying each service from its own
 # Dockerfile (services/bank-persistence-service/Dockerfile,
 # services/1sb-integration-service/Dockerfile) as independently scaled containers,
 # and point 1sb-integration-service at a real bank-persistence-service + Postgres
@@ -20,8 +20,13 @@
 #     -e ONESB_DISTRIBUTOR_ID=your_distributor_id \
 #     bank-insurance-combined
 #
-# Swagger UI (after the container is healthy):
-#   http://<host>:8080/swagger-ui.html
+# Swagger UI / /v3/api-docs are DISABLED by default and pinned off in the uat and prod
+# profiles (CR-002 — the OpenAPI spec is a local/dev testing artefact, never a served
+# surface). For local exploration only, add -e SPRINGDOC_ENABLED=true and no profile
+# override; then http://<host>:8080/swagger-ui.html. Never do this on a deployed host.
+#
+# Health (after the container is healthy):
+#   http://<host>:8080/actuator/health/readiness
 FROM eclipse-temurin:21-jdk-jammy AS build
 WORKDIR /workspace
 

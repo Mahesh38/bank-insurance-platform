@@ -13,3 +13,11 @@ bank:
 logging:
   level:
     com.bank.insurance: INFO
+
+# OpenAPI is a local/dev testing aid only — never served here (CR-002).
+# Pinned rather than inherited so SPRINGDOC_ENABLED cannot re-enable it in this environment.
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

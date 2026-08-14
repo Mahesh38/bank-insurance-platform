@@ -51,7 +51,7 @@ workstreams:
     current_scope:
       in_scope:
         - "Sandbox E2E suite for the Term path"
-        - "OpenAPI publication + consumer collection"
+        - "OpenAPI specification (local/dev testing aid) + consumer collection"
         - "Bank consumer UAT enablement"
         - "Compliance review of audit schema and log samples"
         - "Operations runbook (secrets rotation, IP whitelist, 1SB 401/5xx)"
@@ -88,6 +88,7 @@ workstreams:
         - "Flyway or JPA inside 1sb-integration-service"
         - "A second audit database"
         - "1SB types outside adapter.onesb.*"
+        - "OpenAPI or Swagger UI served on UAT or production (CR-002)"
 
     current_gate:
       id: GATE-P4
@@ -98,9 +99,9 @@ workstreams:
           state: MET
           evidence: "TermJourneyE2EIT on every PR (.github/workflows/build.yml); OneSbSandboxSmokeIT nightly, currently skipping — no 1SB credentials configured"
         - id: "4.2"
-          criterion: "OpenAPI published to internal portal; consumer collection available"
-          state: PARTIAL
-          evidence: "Document + Postman collection published in-repo and verified by OpenApiContractTest; internal portal publication outstanding"
+          criterion: "OpenAPI specification available for local/dev testing; consumer collection available (amended by CR-002 — no portal publication)"
+          state: MET
+          evidence: "Document + Postman collection committed and verified by OpenApiContractTest; spec endpoints disabled by default and pinned off in uat/prod, enforced by OpenApiNotExposedTest"
         - id: "4.3"
           criterion: "At least one bank caller exercises quote + proposal against UAT"
           state: OPEN
@@ -210,6 +211,7 @@ standing_constraints:
   - "Flutter never receives OAuth tokens; the BFF holds them"
   - "Keycloak is not the source of truth for business authorization"
   - "No PII in logs"
+  - "OpenAPI specs are local/dev only — never served on UAT or production (CR-002)"
   - "Coverage gates: libs line >= 80% / branch >= 70%; services on interim floor"
 
 # ---------------------------------------------------------------------------
@@ -296,7 +298,7 @@ id_allocation:
   pattern: "^(SUG|DEP)-[0-9]{8}-[0-9a-z]{3}$"
   legacy_pattern: "^(SUG|DEP)-[0-9]{4}$"
   sequential:
-    CR: 2        # CR-001 in use
+    CR: 3        # CR-001..002 in use
     RISK: 14      # RISK-001..013 in use
     ASM: 10       # ASM-001..009 in use
     EPIC: 1

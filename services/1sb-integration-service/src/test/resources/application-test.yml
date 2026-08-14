@@ -19,3 +19,11 @@ onesb:
 logging:
   level:
     com.bank.insurance: WARN
+
+# Enabled for tests only: OpenApiContractTest reads /v3/api-docs to verify the committed
+# specification still matches the code. Production defaults stay off (CR-002).
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: false

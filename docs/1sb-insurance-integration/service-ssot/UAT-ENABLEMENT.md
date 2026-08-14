@@ -42,7 +42,7 @@ this document. It is not a project.
 | API contract | [OpenAPI document](../api-catalog/openapi/1sb-integration-service.json) | ✅ Verified against the running code on every build |
 | Runnable request collection | [Postman collection](../api-catalog/collections/1sb-integration-term-journey.postman_collection.json) | ✅ Chains the whole journey |
 | Integration guide | [PUBLISHED-API.md](../api-catalog/PUBLISHED-API.md) | ✅ Includes the mistakes integrators usually make |
-| Interactive browsing | `/swagger-ui.html` on the UAT host | ✅ |
+| Interactive browsing | **Not available on UAT** — Swagger UI is local/dev only (CR-002). Use the collection, or run the service locally with `SPRINGDOC_ENABLED=true` | ℹ️ By design |
 | What to do when it breaks | [OPERATIONS-RUNBOOK.md](./OPERATIONS-RUNBOOK.md) | ✅ |
 | Sign-off template | §7 below | ✅ |
 | **A named bank app team and a slot** | — | ❌ **DEP-002 — PO action** |
@@ -188,7 +188,7 @@ Send it to Engineering; it is filed in `service-ssot/` as the gate evidence for 
 
 | Blocker | Type | State | Owner |
 |---|---|---|---|
-| DEP-001 — OpenAPI published | HARD | ⚠️ **Partial** — document published and verified in-repo; internal portal publication outstanding ([PUBLISHED-API §4](../api-catalog/PUBLISHED-API.md)) | Eng + Platform |
+| DEP-001 — OpenAPI available | HARD | ✅ **Satisfied** — document and collection committed and verified; portal publication removed by [CR-002](../../governance/registers/DECISION-REGISTER.md#3-change-requests) | Eng |
 | DEP-002 — bank app team UAT slot | EXTERNAL | ❌ **Unassigned, no date** | **PO** |
 | UAT environment prerequisites (§3) | — | ❓ Unverified in this repository | Ops |
 

@@ -12,7 +12,7 @@ recorded once and reused by every later ordering computation.
 
 | ID | From | Relation | To | Type | State | Notes |
 |----|------|----------|----|------|-------|-------|
-| DEP-001 | Gate 4.3 (bank consumer UAT) | `blocked_by` | Gate 4.2 (OpenAPI published) | HARD | OPEN | A consumer cannot integrate against an unpublished contract |
+| DEP-001 | Gate 4.3 (bank consumer UAT) | `blocked_by` | Gate 4.2 (OpenAPI available) | HARD | **CLOSED** 2026-08-14 | A consumer cannot integrate without a contract. Satisfied by the committed spec + collection; CR-002 removed the portal requirement |
 | DEP-002 | Gate 4.3 | `external` | Bank app team UAT slot | EXTERNAL | OPEN | ⚠️ Needs a named owner and a follow-up date (Rule DEP-3) |
 | DEP-003 | Gate 4.6 (performance smoke) | `blocked_by` | Gate 4.1 (sandbox E2E in CI) | SOFT | OPEN | Smoke reuses the E2E harness; could be built standalone at higher cost |
 | DEP-004 | TD-014 (integration ↔ persistence E2E) | `enables` | Gate 4.1 | TECHNICAL | OPEN | Parked item whose trigger has fired |
@@ -55,10 +55,10 @@ completion; do not reuse a stale queue.
 |---|------|---|---------|--------|-------|
 | 1 | **SUG-20260813-a1c — persist audit events (RISK-012)** | **P1** | 1 | M | **READY** — surfaced by the 4.4 pack; may block 4.4 |
 | 2 | Gate 4.4 — compliance review of audit schema | P1 | 2 | S | READY — pack assembled; needs a **human Compliance verdict** |
-| 3 | Gate 4.3 — bank consumer UAT | P2 | 0 | M | **BLOCKED by DEP-002** (no named team). Enablement pack done; DEP-001 now partial |
-| 4 | Gate 4.2 — publish OpenAPI to the internal portal | P2 | 1 | S | BLOCKED — needs a portal URL + credentials |
-| 5 | Gate 4.6 — ratify a p95 target and re-measure on UAT | P2 | 0 | S | BLOCKED on a PO decision (ASM-009) |
+| 3 | Gate 4.3 — bank consumer UAT | P2 | 0 | M | **BLOCKED by DEP-002** (no named team). Enablement pack done; DEP-001 now satisfied |
+| 4 | Gate 4.6 — ratify a p95 target and re-measure on UAT | P2 | 0 | S | BLOCKED on a PO decision (ASM-009) |
 | — | ~~Gate 4.1 — sandbox E2E suite in CI~~ | — | — | — | ✅ **Done** 2026-08-13 (absorbed TD-014) |
+| — | ~~Gate 4.2 — OpenAPI + consumer collection~~ | — | — | — | ✅ **Done** 2026-08-14 — portal requirement removed by CR-002 |
 | — | ~~Gate 4.5 — operations runbook~~ | — | — | — | ✅ **Done** 2026-08-13 |
 | — | ~~Gate 4.7 — close or waive QA-001~~ | — | — | — | ✅ **Done** 2026-08-13 — closed, not waived |
 

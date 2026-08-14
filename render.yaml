@@ -2,7 +2,8 @@
 # In the Render dashboard: New -> Blueprint -> select this repo/branch -> Apply.
 # Render's GitHub App must already be connected to this repo (it is, per the account).
 #
-# Only port 8080 (1sb-integration-service / Swagger UI) is published. The
+# Only port 8080 (1sb-integration-service API) is published. Swagger UI and /v3/api-docs are
+# NOT served here — CR-002 makes the OpenAPI spec a local/dev artefact only. The
 # bank-persistence-service on :8081 is internal-only, reached over localhost inside
 # the same container by 1sb-integration-service — it does not need a public route.
 #

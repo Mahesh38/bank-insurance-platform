@@ -91,7 +91,7 @@ edit `current_phase`.
 | # | Exit criterion | Evidence required | State |
 |---|----------------|-------------------|-------|
 | 4.1 | Sandbox E2E suite for the Term path runs in CI (or gated nightly) | Green CI job link + suite location | ✅ **Met** — `TermJourneyE2EIT` (10 steps, whole journey) runs on every PR via `.github/workflows/build.yml`; credential-gated real-sandbox smoke `OneSbSandboxSmokeIT` runs nightly. **Caveat:** the nightly has never executed green — no 1SB credentials are configured, so it currently skips |
-| 4.2 | OpenAPI published to the internal portal; consumer collection available | Portal URL + collection file | 🟡 **Partial** — document generated, committed and verified against the running API on every build (`OpenApiContractTest`); Postman consumer collection published and verified against it. **Internal portal publication outstanding** — needs a portal URL and credentials that do not exist in this repo ([PUBLISHED-API §4](../1sb-insurance-integration/api-catalog/PUBLISHED-API.md)) |
+| 4.2 | OpenAPI specification available for local/dev testing; consumer collection available **(amended by [CR-002](./registers/DECISION-REGISTER.md#3-change-requests) — no portal publication)** | Committed spec + collection file; proof the endpoints are not served outside local/dev | ✅ **Met** — document generated, committed and verified against the running API every build (`OpenApiContractTest`); Postman collection verified against it; spec endpoints disabled by default and pinned off in `uat`/`prod`, enforced by `OpenApiNotExposedTest` |
 | 4.3 | ≥ 1 bank caller exercises quote + proposal against UAT | Consumer confirmation + UAT trace/correlation IDs | ❌ **Open — externally blocked.** Enablement pack complete ([UAT-ENABLEMENT.md](../1sb-insurance-integration/service-ssot/UAT-ENABLEMENT.md)); no bank app team named (DEP-002, RISK-002, ASM-004). Not closable by Engineering |
 | 4.4 | Compliance review of audit schema + log samples | Signed review note in `service-ssot/` | ❌ **Open — awaiting a human verdict.** Review pack and generated log samples ready ([COMPLIANCE-REVIEW-PACK.md](../1sb-insurance-integration/service-ssot/compliance/COMPLIANCE-REVIEW-PACK.md)). **Finding 1 (RISK-012) may be gate-blocking:** audit events are not persisted — they reach the application log only |
 | 4.5 | Runbook: secrets rotation, IP whitelist, 1SB 401/5xx incident | Runbook document | ✅ **Met** — [OPERATIONS-RUNBOOK.md](../1sb-insurance-integration/service-ssot/OPERATIONS-RUNBOOK.md). Production topology and IP-whitelist *verification* remain Phase 6.1, as parked |
@@ -106,7 +106,7 @@ edit `current_phase`.
 > and **approved on 2026-08-10**. Consequence: Phase 4 cannot pass while the service coverage
 > floor is still "interim" — QA-001 must close or carry a dated waiver.
 
-**Gate state: `OPEN`.** Three criteria met (4.1, 4.5, 4.7), two partial (4.2, 4.6), two open
+**Gate state: `OPEN`.** Four criteria met (4.1, 4.2, 4.5, 4.7), one partial (4.6), two open
 (4.3, 4.4). The gate is **not** a CANDIDATE: 4.3 needs an external party and 4.4 needs a human
 Compliance verdict, and neither is a matter of finishing engineering work.
 An agent may mark a gate CANDIDATE but never PASSED (§5).

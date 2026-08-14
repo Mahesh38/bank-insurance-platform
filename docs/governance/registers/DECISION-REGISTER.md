@@ -47,6 +47,7 @@ without a search.
 | ID | Date | Type | Summary | Decision | Approvers |
 |----|------|------|---------|----------|-----------|
 | CR-001 | 2026-08-10 | STAGE | Add exit criterion **4.7** (coverage gates green; QA-001 closed or waived with expiry) to the WS-1 Phase 4 gate | **APPROVED** 2026-08-10 | Mahesh (Solution Architect) — PO + QA Lead counter-signature outstanding |
+| CR-002 | 2026-08-14 | STAGE + ARCH | Amend criterion **4.2**: OpenAPI is a **local/dev testing artefact**, not a published surface. No internal portal, no URL, and the spec endpoints are never served on UAT or production. Applies to **all** platform services from now on | **APPROVED** 2026-08-14 | Mahesh (Solution Architect) — PO + Security Architect counter-signature outstanding |
 
 ### CR-001 — add Phase 4 exit criterion 4.7
 
@@ -71,6 +72,48 @@ consequence:       Phase 4 cannot pass with the service coverage floor still "in
                    per 15-TECH_DEBT_POLICY section 4.
 outstanding:       PO and QA Lead counter-signature. The criterion is binding now; the
                    counter-signature is recorded when they next review the gate.
+```
+
+### CR-002 — OpenAPI is a local/dev artefact, not a published surface
+
+```text
+current_position:  Criterion 4.2 reads "OpenAPI published to the internal portal; consumer
+                   collection available". Engineering had generated and verified the document
+                   but recorded the portal publication as outstanding, holding 4.2 at PARTIAL.
+proposed_change:   Amend 4.2. There is no internal portal and there will not be one. The
+                   OpenAPI specification is a local and dev testing aid: it exists so that
+                   someone wanting to exercise the API does not have to hand-build a Postman
+                   collection. It is not a product surface.
+driver:            1sb-integration-service is reachable from inside the VPC only. It is not on
+                   a public cloud and has no public consumer, so "publishing a contract" has no
+                   audience. The original criterion assumed a distribution model this platform
+                   does not use.
+raised_because:    The Solution Architect stated the deployment model while reviewing the 4.2
+                   evidence. Amending a ratified gate criterion requires a CR (14 section 1) —
+                   the same rule that produced CR-001. Silently redefining 4.2 to match what
+                   had been built would be precisely the drift CR-001 was raised to punish.
+impact:            (a) 4.2's portal requirement is removed; the criterion is met by the
+                       generated, verified specification plus the consumer collection.
+                   (b) A platform-wide constraint follows: EVERY service may carry an OpenAPI
+                       specification, and NO service exposes it on UAT or production.
+                   (c) A live gap is closed. springdoc was enabled by default in every profile,
+                       so /v3/api-docs and /swagger-ui.html answered on any deployed host.
+                       render.yaml publishes port 8080, so on that deployment the API browser
+                       was publicly reachable.
+alternatives:      (a) amend as written
+                   (b) keep the portal requirement and hold 4.2 open indefinitely against a
+                       portal that will never exist
+                   (c) amend, but allow the spec on UAT for consumer convenience
+decision:          APPROVED (2026-08-14, Mahesh / Solution Architect)
+chosen_option:     (a) amend as written. (c) was not taken: UAT carries real journey data, and
+                   an API browser there is an attack surface bought for a convenience the
+                   committed specification already provides.
+consequence:       4.2 is MET. springdoc defaults to disabled everywhere; uat and prod pin it
+                   off so SPRINGDOC_ENABLED cannot re-enable it. Enforced by
+                   OpenApiNotExposedTest, which fails if any profile serves the endpoints.
+                   New services inherit the constraint — see 01 section 5.
+outstanding:       PO counter-signature, and a Security Architect verdict on the exposure that
+                   existed before this change (how long deployed hosts served Swagger UI).
 ```
 
 ## 4. Stage transitions

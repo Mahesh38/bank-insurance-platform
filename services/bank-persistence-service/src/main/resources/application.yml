@@ -52,6 +52,16 @@ raw-payload:
   retention:
     years: ${RAW_PAYLOAD_RETENTION_YEARS:7}
 
+# OpenAPI / Swagger UI — DISABLED BY DEFAULT. See the equivalent block in
+# 1sb-integration-service: the spec is a local/dev testing aid, never a served surface on UAT or
+# production (CR-002). This service is internal-only in every environment, so exposing an API
+# browser on it would be doubly wrong.
+springdoc:
+  api-docs:
+    enabled: ${SPRINGDOC_ENABLED:false}
+  swagger-ui:
+    enabled: ${SPRINGDOC_ENABLED:false}
+
 logging:
   level:
     com.bank.persistence: INFO

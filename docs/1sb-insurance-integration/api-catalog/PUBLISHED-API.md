@@ -1,56 +1,50 @@
-# Published bank-facing API — 1SB Integration Service
+# Bank-facing API — 1SB Integration Service
 
-**Satisfies (partly):** WS-1 Phase 4 exit criterion **4.2** — "OpenAPI published to the internal
-portal; consumer collection available"
+**Satisfies:** WS-1 Phase 4 exit criterion **4.2**, as amended by
+**[CR-002](../../governance/registers/DECISION-REGISTER.md#3-change-requests)**
 ([04-STAGE_GATES.md §6](../../governance/04-STAGE_GATES.md#6-project-gates-l3))
-**Owner:** Engineering · **Consumers:** bank app / BFF teams
+**Owner:** Engineering · **Consumers:** bank app / BFF teams, inside the VPC
 
-> **Status honesty.** Two of the three parts of 4.2 are done in this repository: the OpenAPI
-> document is generated, published here, and verified against the code on every build; the
-> consumer collection exists and is checked against that document. The third part — publication
-> to the **bank's internal developer portal** — cannot be done from this repository, because the
-> portal is not something this repo has or can reach. See §4 for exactly what remains and who
-> owns it.
+> **There is no portal and no published URL.** The OpenAPI specification is a **local and dev
+> testing artefact**: it exists so someone wanting to exercise the API does not have to
+> hand-build a request collection. It is **not** a product surface, and the spec endpoints are
+> **never served on UAT or production** — see §4. This is a standing constraint applying to every
+> service on the platform, not a property of this one.
 
 ---
 
 ## 1. Artefacts
 
-| Artefact | Path | Generated from |
-|---|---|---|
-| OpenAPI 3 document | [`openapi/1sb-integration-service.json`](./openapi/1sb-integration-service.json) | springdoc, at build time |
-| Consumer collection (Postman v2.1) | [`collections/1sb-integration-term-journey.postman_collection.json`](./collections/1sb-integration-term-journey.postman_collection.json) | hand-written, verified against the document |
-
-Both are also uploaded as build artefacts by the **Build & test** workflow, so any CI run has a
-downloadable copy without cloning.
-
-**Live endpoints on a running instance** (`springdoc-openapi`):
-
-| URL | Purpose |
+| Artefact | Path |
 |---|---|
-| `/v3/api-docs` | The document, as JSON |
-| `/swagger-ui.html` | Interactive browser UI |
+| OpenAPI 3 document | [`openapi/1sb-integration-service.json`](./openapi/1sb-integration-service.json) |
+| Consumer collection (Postman v2.1) | [`collections/1sb-integration-term-journey.postman_collection.json`](./collections/1sb-integration-term-journey.postman_collection.json) |
+
+Both are committed, and both are uploaded as build artefacts by the **Build & test** workflow so
+any CI run has a downloadable copy without cloning.
+
+**The committed file is the artefact.** There is nowhere else to get it — that is the point.
 
 ---
 
-## 2. Why the document is committed as well as generated
+## 2. Why the document is committed rather than served
 
-springdoc generates the specification at runtime. That is convenient and useless for a consumer
-who wants to generate a client before the service is deployed, review the surface in a pull
-request, or diff what changed between releases.
+springdoc generates the specification at runtime. If that were the only copy, you would need a
+running instance to read the contract, review a surface change in a pull request, or diff what
+changed between releases. Committing a snapshot solves all three.
 
-Committing a snapshot solves that and creates the obvious risk: the snapshot goes stale the
-first time somebody adds a field, and nobody notices until a consumer's generated client breaks.
+It also creates the obvious risk: the snapshot goes stale the first time somebody adds a field,
+and nobody notices until a generated client breaks.
 
-So the snapshot is **verified, not just stored**. `OpenApiContractTest` fails the build when:
+So the snapshot is **verified, not merely stored**. `OpenApiContractTest` fails the build when:
 
 1. the committed document no longer matches the running API;
 2. any bank-facing route is missing from it;
-3. an `/internal/**` route leaks into it (bank apps must never see the persistence API);
+3. an `/internal/**` route leaks into it — bank apps must never see the persistence API;
 4. the consumer collection calls a route the document does not expose.
 
-A diff in the committed document is therefore an **API change review item**. A breaking change
-to a public contract needs an Architecture verdict
+A diff in the committed document is therefore an **API change review item**. A breaking change to
+a public contract needs an Architecture verdict
 ([00-GOVERNANCE §8](../../governance/00-GOVERNANCE.md#8-non-negotiables), non-negotiable 3).
 
 ### Regenerating after an intentional API change
@@ -60,29 +54,83 @@ to a public contract needs an Architecture verdict
     --tests '*OpenApiContractTest' -DupdateOpenApi=true
 ```
 
-Then commit the regenerated file **in the same pull request as the code change** — a separate
-"update the spec" commit defeats the point of reviewing the two together.
+Commit the regenerated file **in the same pull request as the code change** — a separate "update
+the spec" commit defeats the point of reviewing the two together.
 
-The `servers` block is stripped during generation: springdoc derives it from the request host,
-so leaving it in would make the document differ between a local run and a deployed one. The base
-URL belongs in the consumer's own configuration.
+The `servers` block is stripped during generation: springdoc derives it from the request host, so
+leaving it in would make the document differ between a local run and a deployed one, and there is
+no canonical host to name anyway.
 
 ---
 
-## 3. Using the consumer collection
+## 3. Using the artefacts locally
 
-1. Import the collection into Postman (or Bruno, via its Postman importer).
-2. Create an environment with `baseUrl` set to the UAT host — no trailing slash.
-3. Set `actorId` to a real operator identifier. It is sent as `X-Actor-Id` and lands in the
-   audit trail; `rm-demo-1` in a real UAT run makes the audit log useless.
+### The collection
+
+1. Import into Postman (or Bruno, via its Postman importer).
+2. Create an environment with `baseUrl` pointing at your local or dev instance — no trailing
+   slash.
+3. Set `actorId` to a real operator identifier. It is sent as `X-Actor-Id` and lands in the audit
+   trail; leaving the placeholder makes that trail useless.
 4. Run the folder top to bottom with the Collection Runner. Each request captures the identifier
-   the next one needs, so the journey chains automatically.
+   the next one needs.
 
-**What the collection is for:** proving connectivity, showing the async job pattern, and making
-the failure modes familiar before they are encountered in production. It is not a load test and
-not a substitute for the UAT sign-off in criterion 4.3.
+### Swagger UI, when you want it
 
-### Things integrators get wrong, in order of frequency
+Disabled by default in every environment. For **local exploration only**:
+
+```bash
+SPRINGDOC_ENABLED=true ./gradlew :services:1sb-integration-service:bootRun
+# then http://localhost:8080/swagger-ui.html
+```
+
+The `uat` and `prod` profiles pin it off, so that variable has no effect there — deliberately
+(§4).
+
+### Generating a client
+
+The committed JSON is a normal OpenAPI 3 document; point any generator at the file path rather
+than at a URL:
+
+```bash
+openapi-generator-cli generate \
+  -i docs/1sb-insurance-integration/api-catalog/openapi/1sb-integration-service.json \
+  -g java -o ./generated-client
+```
+
+---
+
+## 4. Why nothing is exposed
+
+`1sb-integration-service` is reachable **inside the VPC only**. It is not on public cloud and has
+no external consumer, so "publishing a contract" has no audience — the callers who need it are
+colleagues who can read the repository.
+
+Serving `/v3/api-docs` and Swagger UI anyway would buy nothing and cost something: an API browser
+on a host carrying real journey data is attack surface, and an interactive request builder on UAT
+is a way to create records nobody intended.
+
+### How it is enforced
+
+| Layer | Control |
+|---|---|
+| Default | `springdoc.api-docs.enabled` / `swagger-ui.enabled` default to **false** in `application.yml`, so a new environment is safe before anyone configures it |
+| `uat`, `prod` | Pinned to `false` in the profile files, so `SPRINGDOC_ENABLED` cannot re-enable them |
+| Test | `OpenApiNotExposedTest` boots the `uat` and `prod` profiles **with `SPRINGDOC_ENABLED=true`** and asserts neither endpoint answers — it proves the pin, not just the default |
+| Governance | Standing constraint 9 in [01-CURRENT_STATE §5](../../governance/01-CURRENT_STATE.md#5-standing-constraints-apply-to-every-triage-in-this-repo); `never` list in `CURRENT-STATE.yaml` |
+
+> **This was a live gap, not a hypothetical.** Before CR-002 springdoc was enabled by default in
+> every profile, and `render.yaml` publishes port 8080 — so on that deployment the Swagger UI was
+> publicly reachable. CR-002's `outstanding` field asks the Security Architect to determine how
+> long that was the case.
+
+**Applies to every service from now on.** A new service may carry an OpenAPI specification; none
+may serve it outside local and dev. Adding a service that does is SF4 / REJECT unless it arrives
+as a change request.
+
+---
+
+## 5. Things integrators get wrong, in order of frequency
 
 | Symptom | Cause |
 |---|---|
@@ -94,35 +142,15 @@ not a substitute for the UAT sign-off in criterion 4.3.
 | `422 PROPOSAL_REJECTED` | A business rejection. Not retryable — fix the values, use a new key. |
 | `502 UPSTREAM_UNAVAILABLE` | The insurer is down or slow. Retryable; the service already backs off internally. |
 | `502 UPSTREAM_AUTH_FAILURE` | **Our** credentials to 1SB failed. Not retryable by you — see the [operations runbook §4](../service-ssot/OPERATIONS-RUNBOOK.md). |
+| `404` on `/swagger-ui.html` in a deployed environment | Intended — §4. |
 
 ---
 
-## 4. What is still outstanding for criterion 4.2
-
-| Part | State | Owner |
-|---|---|---|
-| OpenAPI document generated and published in-repo | ✅ Done | Eng |
-| Document verified against the code on every build | ✅ Done | Eng |
-| Consumer collection available and verified | ✅ Done | Eng |
-| **Publication to the bank's internal developer portal** | ❌ **Outstanding** | Eng + Platform |
-
-The portal step needs a target that does not exist in this repository: a portal URL, credentials
-or a publishing account, and a decision about whether publication happens on merge to `main` or
-on tagged release. None of those can be invented here — a fabricated portal URL in the gate
-evidence would be worse than an honest gap.
-
-**To close it:** add a publish step to `.github/workflows/build.yml` that pushes
-`openapi/1sb-integration-service.json` to the portal, then record the portal URL in the gate
-evidence for 4.2. The document itself is already in the right shape for that — this is a
-plumbing and credentials task, not an API task.
-
----
-
-## 5. Related
+## 6. Related
 
 | Document | Why |
 |---|---|
 | [api-catalog/README.md](./README.md) | The **upstream** 1SB API catalogue — what we consume, not what we expose |
-| [OPERATIONS-RUNBOOK.md](../service-ssot/OPERATIONS-RUNBOOK.md) | What to do when the upstream errors reach a consumer |
+| [OPERATIONS-RUNBOOK.md](../service-ssot/OPERATIONS-RUNBOOK.md) | What to do when upstream errors reach a consumer |
 | [UAT-ENABLEMENT.md](../service-ssot/UAT-ENABLEMENT.md) | Onboarding a bank caller onto UAT (criterion 4.3) |
 | `TermJourneyE2EIT` | The same journey as an automated test |

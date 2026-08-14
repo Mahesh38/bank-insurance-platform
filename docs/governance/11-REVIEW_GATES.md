@@ -81,13 +81,13 @@ topology · a breaking public contract · anything a regulator can ask about.
 
 ### Named persona and accountable owner
 
-For this repository, Board 1 uses the **[Principal Insurance Platform Architect](../context/roles/principal-insurance-platform-architect/README.md)** as its named architecture reasoning persona. That package is attached to **[Mahesh — Solution Architect](../context/roles/mahesh-solution-architect.md)**, who remains the accountable human Architecture Board owner.
+For this repository, Board 1 uses **[Mahesh — Principal Insurance Platform Architect](../context/roles/mahesh-solution-architect.md)** as its single named Architecture persona and accountable Architecture Board owner. Mahesh's deeper authority, decision, evidence and exception model is modularized in the **[Mahesh Principal Architect package](../context/roles/mahesh-principal-insurance-platform-architect/README.md)**. Those files are part of the same Mahesh persona, not a separate role.
 
-When an AI agent simulates Board 1 it should load the Principal Architect package in the order defined by its README, apply its authority/decision framework, and then translate the result into the canonical AIGEM verdict below. The persona **does not** grant itself a mandatory human signature; the T4 rule in §2 remains binding.
+When an AI agent simulates Board 1 it should load Mahesh and the relevant modules from that package, apply his authority/decision framework, and translate the result into the canonical AIGEM verdict below. The AI simulation **does not** grant itself Mahesh's mandatory human signature; the T4 rule in §2 remains binding.
 
 Architecture findings may use `A0`–`A3` severity internally. These labels must not be confused with AIGEM `P1`–`P5` delivery priority, Rajal's local Product `P0`–`P2` execution criticality, or Shailja S `R0`–`R3` risk severity.
 
-For consequential Product ↔ Architecture ↔ Compliance decisions, Boards 1, 3 and 6 use the shared **[Product ↔ Architecture ↔ Compliance Decision Protocol](../context/roles/shared/product-architecture-compliance-decision-protocol.md)**. For detailed architecture-control resolution, Boards 1 and 6 additionally use the **[Architect ↔ Compliance Decision Protocol](../context/roles/shared/architect-compliance-decision-protocol.md)**.
+For consequential Product ↔ Architecture ↔ Compliance decisions, Boards 1, 3 and 6 use the shared **[Product ↔ Architecture ↔ Compliance Decision Protocol](../context/roles/shared/product-architecture-compliance-decision-protocol.md)**. For detailed architecture-control resolution, Boards 1 and 6 additionally use the **[Mahesh ↔ Shailja Architecture/Compliance Decision Protocol](../context/roles/shared/architect-compliance-decision-protocol.md)**. Mahesh owns architecture design/implementation; Board 6/Shailja owns compliance permissibility/control outcomes; neither persona overrides the other's binding domain decision.
 
 | # | Check |
 |---|-------|
@@ -298,7 +298,7 @@ APPROVED  ⇔  every mandatory board for the tier returned APPROVED or
 | A mandatory board did not respond | Gate is **not** approved. Silence is never assent |
 | Boards conflict | Use the relevant shared protocol; identify each domain owner, resolve outcome-vs-implementation separately, and persist the final decision. No majority voting |
 
-For material Product ↔ Architecture ↔ Risk/Compliance conflict, use the shared Product ↔ Architecture ↔ Compliance protocol. For detailed Architecture ↔ Compliance control conflict, use the bilateral Architect ↔ Compliance protocol. If conflict remains after one substantive alternatives/redesign cycle, escalate to accountable humans; an AI agent does not arbitrate residual risk or mandatory sign-off.
+For material Product ↔ Architecture ↔ Risk/Compliance conflict, use the shared Product ↔ Architecture ↔ Compliance protocol. For a material Mahesh/Architecture ↔ Shailja/Risk & Compliance conflict, use the bilateral Mahesh ↔ Shailja protocol to separate control outcome from implementation and test alternative designs. If conflict remains after one substantive alternatives/redesign cycle, escalate to accountable humans; an AI agent does not arbitrate residual risk or mandatory sign-off.
 
 ---
 
@@ -335,7 +335,7 @@ pass — the value is in the different questions, and blending them loses exactl
 ```text
 For each mandatory board:
   1. Load only that board's checklist and its named persona when one is defined.
-     - Architecture → Principal Insurance Platform Architect (attached to Mahesh)
+     - Architecture → Mahesh — Principal Insurance Platform Architect
      - Product → Rajal / Principal Insurance Platform Product Owner
      - Risk & Compliance → Shailja S
   2. Answer each numbered check against the plan — cite the plan section or file.

@@ -1,99 +1,111 @@
-# CR-002 — Principal Insurance Platform Architect Persona Integration
+# CR-002 — Mahesh Principal Insurance Platform Architect Consolidation
 
 **Date:** 2026-08-14  
 **Type:** GOV  
-**Raised by:** Mahesh — Solution Architect  
+**Raised by:** Mahesh — Architecture owner  
 **Branch:** `agent/principal-insurance-platform-architect`  
 **Decision:** PENDING RATIFICATION
 
 ## 1. Current position
 
-AIGEM defines Board 1 — Architecture and identifies the Platform / Solution Architect as the framework custodian, but it does not currently identify a dedicated architecture reasoning persona with explicit architecture authority classes, decision framework, evidence contract, human-escalation rules or a bilateral protocol with Board 6 — Risk & Compliance.
+AIGEM defines Board 1 — Architecture and the repository already has **Mahesh** as its Solution Architect persona. The initial CR-002 draft also introduced a separate reusable **Principal Insurance Platform Architect** persona attached to Mahesh.
 
-Mahesh already exists as the accountable Solution Architect persona. Shailja S already exists as the named Board 6 Compliance & Risk persona.
+That split creates an avoidable governance ambiguity: two architect identities can appear to own overlapping architecture decisions even though only one Architecture Board owner is intended.
+
+Shailja S remains the independent Board 6 Compliance & Risk persona and is not part of this consolidation.
 
 ## 2. Proposed change
 
-1. Add a multi-file **Principal Insurance Platform Architect** persona package under `docs/context/roles/`.
-2. Attach that package to **Mahesh — Solution Architect** without replacing Mahesh's accountable human role.
-3. Add a shared **Architect ↔ Compliance Decision Protocol** used reciprocally by the Principal Architect and Shailja S.
-4. Update Shailja's README and interaction contract with reciprocal architecture ownership/protocol references.
-5. Update AIGEM `11-REVIEW_GATES.md` so Board 1 loads the Principal Architect persona and Board 6 continues to load Shailja S.
-6. Update `AGENTS.md` and the role index so AI agents can reliably locate and apply the correct persona.
-7. Preserve all AIGEM T4 human-sign-off, Security veto and Risk & Compliance veto rules.
+1. Establish **Mahesh — Principal Insurance Platform Architect** as the repository's **single canonical Architecture persona and Board 1 identity**.
+2. Preserve `docs/context/roles/mahesh-solution-architect.md` as a stable compatibility/entrypoint file, but change its canonical role to Principal Insurance Platform Architect.
+3. Store Mahesh's detailed architecture operating model under `docs/context/roles/mahesh-principal-insurance-platform-architect/`.
+4. Treat the legacy `docs/context/roles/principal-insurance-platform-architect/README.md` path as a compatibility alias only; it must not instantiate a second persona.
+5. Remove the old generic Principal Architect capability/authority/review modules so there is only one active architecture package.
+6. Keep the shared **Mahesh ↔ Shailja Architecture/Compliance Decision Protocol** with explicit separation of duties.
+7. Update Shailja's reciprocal references, the role index, `AGENTS.md` and AIGEM Board 1 guidance to resolve to Mahesh.
+8. Preserve all AIGEM T4 human-sign-off, Security veto and Risk & Compliance veto rules.
 
 ## 3. Driver
 
-The repository now uses a mature dedicated Compliance persona but Architecture Board reasoning remains comparatively generic. Architecture decisions also need an explicit, non-overlapping collaboration model with Compliance so that:
+The architecture operating model should be deep and modular without becoming a second role. Consolidation gives the repository:
 
-- Architecture does not accept regulatory risk;
-- Compliance does not unnecessarily dictate implementation topology/technology;
-- lower-severity debt remains backlog-capable where permitted;
-- non-bypassable compliance decisions remain non-bypassable;
-- conflicts have one deterministic human-escalation route;
-- Mahesh remains the accountable human architecture owner.
+- one Architecture identity;
+- one Architecture Board owner;
+- one authority model (`A1–A4`);
+- one architecture severity model (`A0–A3`);
+- one Architecture ↔ Compliance protocol;
+- clearer AI loading behavior;
+- no possibility that “Mahesh” and “Principal Architect” issue competing verdicts.
 
 ## 4. Evidence
 
-- Existing `docs/context/roles/mahesh-solution-architect.md` establishes Mahesh as Solution Architect.
-- Existing `docs/context/roles/shailja-s-compliance-risk-head/` establishes Shailja as a dedicated compliance/risk decision persona.
-- Existing `docs/governance/11-REVIEW_GATES.md` defines Architecture as Board 1, Risk & Compliance as Board 6, and requires human T4 sign-off.
-- Existing `docs/governance/14-CHANGE_CONTROL.md` requires a GOV change request and Architecture + Product approval for governance changes.
+- `docs/context/roles/mahesh-solution-architect.md` already establishes Mahesh as architecture owner.
+- AIGEM `11-REVIEW_GATES.md` has only one Board 1 — Architecture seat.
+- The separate Principal Architect package introduced by the first CR-002 draft duplicates identity/authority rather than creating a genuinely separate governance function.
+- Shailja S is legitimately separate because Board 6 requires independent compliance/risk judgement.
+- `docs/governance/14-CHANGE_CONTROL.md` requires GOV change review and Product counter-signature.
 
 ## 5. Impact
 
 ```yaml
 scope: "Governance/persona grounding only; no product runtime behavior changes"
 stage: "No lifecycle-stage change"
-dependencies: "AIGEM review gate, Mahesh persona, Shailja persona, AGENTS.md"
+dependencies:
+  - "AIGEM Board 1"
+  - "Mahesh persona"
+  - "Shailja persona"
+  - "AGENTS.md"
+  - "role index"
 parked_items: "None directly"
 effort: "M"
 risk_if_rejected: >
-  Architecture Board continues without a dedicated authority/decision persona and
-  architecture-compliance interactions remain less deterministic than Board 6 controls.
+  Repository keeps two architecture identities with overlapping authority,
+  making AI reviews and governance ownership ambiguous.
 ```
 
 ## 6. Alternatives considered
 
-### A — Keep generic Architecture Board only
+### A — Keep Mahesh and Principal Architect as separate personas
 
-Lower documentation cost, but loses explicit authority, decision/evidence and Architect↔Compliance separation-of-duties rules.
+Rejected. They own the same architecture concerns and Board 1 seat, so the distinction creates overlap without independent checks and balances.
 
-### B — Put all rules directly into `11-REVIEW_GATES.md`
+### B — Remove Mahesh and use only a generic Principal Architect
 
-Rejected as the preferred approach because it would make the generic gate file project/persona-heavy and duplicate detailed context better maintained in `docs/context/roles/`.
+Rejected. Mahesh carries project-specific accountability/context and is already established throughout the repository.
 
-### C — Merge architecture reasoning into Shailja S
+### C — Merge Principal Architect capabilities into Mahesh
 
-Rejected because it violates separation of duties: compliance permissibility and technical architecture should remain independent review concerns.
+**Recommended.** Keep Mahesh as the canonical identity and modularize his deeper Principal Architect skills/authority into supporting files.
 
-### D — Dedicated Principal Architect package attached to Mahesh
+### D — Merge Architecture with Shailja S
 
-**Recommended.** Preserves Mahesh's human accountability, gives Board 1 deeper reusable reasoning, and creates a clean bilateral protocol with Shailja.
+Rejected. Architecture and Compliance must remain independent governance concerns because their separation of duties is intentional and useful.
 
 ## 7. Authority and safeguards
 
-- Mahesh remains the accountable human Solution Architect / Board 1 owner.
-- Principal Architect AI simulations never satisfy mandatory T4 human sign-off.
-- Shailja remains the Board 6 persona and retains non-bypassable `R0 / BLOCKED_NON_COMPLIANT` behavior.
+- **Mahesh — Principal Insurance Platform Architect** is the single Architecture persona / Board 1 owner.
+- AI simulations of Mahesh never satisfy mandatory T4 human sign-off.
+- Shailja remains Board 6 and retains non-bypassable `R0 / BLOCKED_NON_COMPLIANT` behavior.
 - Security and Risk & Compliance binding vetoes remain unchanged.
 - Architecture severity `A0–A3`, Shailja risk severity `R0–R3`, and AIGEM delivery priority `P1–P5` remain separate.
+- The legacy generic Principal Architect path is compatibility-only and cannot create another architect agent.
 
 ## 8. Decision and approvers
 
 ```yaml
 decision: PENDING
-requested_by: "Mahesh — Solution Architect, 2026-08-14"
+requested_by: "Mahesh — Architecture owner, 2026-08-14"
 approvers:
   architecture:
     status: APPROVED_FOR_REVIEW_BRANCH
-    approver: "Mahesh — Solution Architect"
+    approver: "Mahesh — Principal Insurance Platform Architect"
   product:
     status: PENDING
     approver: "Product Owner"
 conditions:
   - "Do not treat governance changes as ratified/binding until required Product approval is recorded."
   - "Preserve existing AIGEM T4 human-sign-off and veto semantics."
+  - "Do not reintroduce a second generic Architecture persona without a new governed decision explaining a distinct authority boundary."
 ```
 
 ## 9. Post-approval actions
@@ -103,5 +115,6 @@ After Product counter-signature:
 1. mark CR-002 `APPROVED`;
 2. mark the corresponding Decision Register row ratified;
 3. merge the branch;
-4. treat the new Board 1 persona mapping as binding repository guidance;
-5. re-check reciprocal links whenever either persona package changes materially.
+4. treat Mahesh's unified Board 1 persona mapping as binding repository guidance;
+5. retain the legacy generic path only as a compatibility redirect until repository links no longer require it;
+6. re-check reciprocal links whenever Mahesh or Shailja's authority model changes materially.

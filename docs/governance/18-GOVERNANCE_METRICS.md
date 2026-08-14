@@ -1,7 +1,7 @@
 # 18 — Governance Metrics & Health
 
 **Layer:** L1 — generic  
-**Owner:** Delivery Lead  
+**Owner:** **Kalpana — Delivery Head / Delivery Lead (R12)**  
 **Quality metric steward:** Swapnali — QA Lead  
 **Cadence:** snapshot at every stage gate; reviewed with the PO and Architect; quality subset reviewed at release/quality exit
 
@@ -195,3 +195,25 @@ If only four numbers are ever tracked, track these:
 4. **Critical-journey evidence coverage** — can we prove the important behaviour works?
 
 Those four catch the dominant failure modes: a gate that does not gate, execution that does not follow the plan, parking that is really deletion, and a release that lacks evidence for critical behaviour.
+
+---
+
+## Legacy anchor compatibility
+
+The QA-metrics merge introduced clearer section names and inserted the quality-health section, which changed several historical internal anchors. The following headings deliberately preserve older AIGEM links while directing readers to the canonical sections above. They contain no independent rules.
+
+### 2. The metrics
+
+Canonical content: [§2 Governance metrics](#2-governance-metrics).
+
+### 3. Gate scorecard
+
+Canonical content: [§4 Gate / release scorecard](#4-gate--release-scorecard).
+
+### 4. Reading the numbers
+
+Canonical content: [§5 Reading the numbers](#5-reading-the-numbers).
+
+### 5. Minimum viable measurement
+
+Canonical content: [§6 Minimum viable measurement](#6-minimum-viable-measurement).

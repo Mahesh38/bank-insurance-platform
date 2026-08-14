@@ -258,6 +258,60 @@ def check_priority_calibration(quiet: bool) -> None:
         ok(f"all {len(matrix)} matrix cells within one band (worst gap {worst})", quiet)
 
 
+def check_governance_cost(quiet: bool) -> None:
+    """Report the documentation-to-code ratio (18 section 2, Cost of governance).
+
+    This is a REPORT, not a gate. It never fails the build: there is no correct
+    ratio, and a threshold that blocks a merge would just be routed around. What
+    it does is make the number impossible to not notice.
+
+    The framework it measures was, at CR-009, twice the size of the product it
+    governed, across 61 consecutive commits with no product code, while every
+    other check in this file passed. No mechanical check can decide whether that
+    is right — but no team should discover it from `git log` a month later."""
+    global checked
+    print("\n[8] Cost of governance — documentation vs product code")
+
+    def count(paths: list[str], exts: tuple[str, ...]) -> int:
+        total = 0
+        for base in paths:
+            root = os.path.join(ROOT, base)
+            for dirpath, dirnames, filenames in os.walk(root):
+                dirnames[:] = [d for d in dirnames if d not in {".git", "build", "node_modules", ".gradle"}]
+                for name in filenames:
+                    if name.endswith(exts):
+                        try:
+                            with open(os.path.join(dirpath, name), encoding="utf-8", errors="ignore") as fh:
+                                total += sum(1 for _ in fh)
+                        except OSError:
+                            pass
+        return total
+
+    docs = count(["docs"], (".md",))
+    code = count(["services", "libs"], (".java", ".kt", ".kts", ".dart", ".sql"))
+    if code == 0:
+        ok("no product code found — ratio not meaningful", quiet)
+        return
+
+    ratio = docs / code
+    governance = count(["docs/governance", "docs/context/roles"], (".md",))
+    gov_share = governance / docs if docs else 0.0
+
+    detail = (f"docs {docs:,} / code {code:,} = {ratio:.2f}  "
+              f"(governance+personas {governance:,} = {gov_share:.0%} of docs)")
+
+    if ratio > 1.5:
+        print(f"  WARN  {detail}")
+        print(f"        Documentation is {ratio:.1f}x the product code.")
+        print( "        Read with 'gate criteria closed per week' (18 section 2, Rule GM-1):")
+        print( "        a high ratio with a flat closure rate is the signature of a framework")
+        print( "        optimising itself instead of the delivery it exists to serve.")
+        # deliberately not a failure — see docstring
+        checked += 1
+    else:
+        ok(detail, quiet)
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--quiet", action="store_true", help="print only failures")
@@ -271,6 +325,7 @@ def main() -> int:
     check_routing(args.quiet)
     check_links(args.quiet)
     check_priority_calibration(args.quiet)
+    check_governance_cost(args.quiet)
 
     print()
     if failures:

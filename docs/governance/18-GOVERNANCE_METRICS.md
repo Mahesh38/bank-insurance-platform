@@ -50,6 +50,7 @@ A **rising bypass rate is a process signal, not a discipline problem**: it means
 
 | Metric | Definition | Target |
 |--------|------------|--------|
+| **Gate criteria closed per week** | Exit criteria moving to `CLOSED` ÷ weeks elapsed | **> 0, every week** |
 | Triage latency | Input received → verdict recorded | < 1 working day |
 | Gate cycle time | Plan submitted → approval gate closed | < 3 working days |
 | Rework rounds per plan | Average | < 0.5 |
@@ -57,6 +58,52 @@ A **rising bypass rate is a process signal, not a discipline problem**: it means
 | Blocked ratio | BLOCKED ÷ (READY + BLOCKED) | < 20% |
 | Dependency violations | Items started before a HARD dependency was Done | 0 |
 | Queue-order violations | Items started that were not head of the ordered READY set | < 10% |
+| Board `NO_RESPONSE` count | Boards missing their response window ([11 §12.1](./11-REVIEW_GATES.md#121-board-response-clock)) | 0; any repeat is a staffing signal |
+| Overdue decisions | Decisions past required-by, per [PA-1](./PERSONA-AUTHORITY-MATRIX.md#kalpana--r12-decision-forcing-authority) | 0 |
+
+### Throughput — the metric that outranks the others
+
+> **Rule GM-1 — Gate criteria closed per week is the framework's headline number.**
+> If it is **zero for two consecutive weeks**, the governance system raises `INTERVENE` **on
+> itself**, regardless of how healthy every other metric looks.
+
+Every metric above measures whether the process is being followed well. None of them measures
+whether anything is being **delivered**. A framework can score perfectly on adoption, calibration,
+plan accuracy and register freshness while closing nothing at all — and it will report itself
+healthy the entire time.
+
+This is not hypothetical. At the time of CR-009 this repository measured:
+
+| Signal | Value |
+|---|---|
+| GATE-P4 exit criteria closed | **0 of 7** (5 `OPEN`, 2 `PARTIAL`) |
+| GATE-IAM-P1 exit criteria closed | **0 of 6** |
+| Consecutive commits with no product code | **61** |
+| Documentation lines ÷ product code lines | **≈ 2.0** |
+| `FreshnessCheck` verdict throughout | **FRESH** |
+
+Every mechanical check passed. Every register was current. Nothing shipped. **A green process
+dashboard over a stalled delivery is the specific failure this metric exists to make impossible.**
+
+| Reading | Meaning | Response |
+|---|---|---|
+| > 0 each week | Governance is serving delivery | Continue |
+| 0 for one week | Normal variance — long criteria exist | Note it at the next cadence |
+| **0 for two weeks** | **`INTERVENE`** | R12 raises it to R1 + R2; the framework is a suspect, not an observer |
+| 0 for two weeks **while GOV commits rise** | The framework is consuming its own delivery capacity | Freeze `GOV` work until one criterion closes ([08 §3.1](./08-BACKLOG_RULES.md#31-governance-work-is-work)) |
+
+### Cost of governance
+
+| Metric | Definition | Target | Source |
+|--------|------------|--------|--------|
+| Docs-to-code ratio | Lines in `docs/**` ÷ lines in `services/**` + `libs/**` | < 1.0; **investigate > 1.5** | `ci-checks.py` |
+| Governance commit share | Commits touching only `docs/governance/**` + `docs/context/roles/**` ÷ all commits, trailing 30 days | < 30% | Git |
+| Personas added per quarter | Net change in the roster ([14 §1.1](./14-CHANGE_CONTROL.md#11-persona-roster-control)) | **0** once closed | Roster |
+| Ceremony cost per item | Board-verdicts produced ÷ work items completed | Falling | Verdicts vs backlog |
+
+A rising docs-to-code ratio with a flat gate-closure rate is the signature of a framework
+optimising itself instead of the delivery it exists to serve. Read these two together — neither
+number means much alone.
 
 ### Backlog health
 
@@ -130,9 +177,20 @@ gate_scorecard:
     false_p1_rate: 0.00
 
   flow:
+    gate_criteria_closed_this_week: 0      # GM-1 headline — zero for 2 weeks ⇒ INTERVENE
+    gate_criteria_closed_total: 0
+    gate_criteria_total: 0
+    weeks_at_zero_closure: 0
     avg_rework_rounds: 0.0
     rework_escalations: 0
     dependency_violations: 0
+    board_no_response_count: 0
+    overdue_decisions: 0
+
+  cost_of_governance:
+    docs_to_code_ratio: 0.00               # < 1.0 target; > 1.5 investigate
+    governance_commit_share_30d: 0.00      # < 0.30
+    personas_added_this_quarter: 0         # 0 — roster closed at CR-009
 
   backlog_health:
     parked_aging_gt_2_gates: 0
@@ -187,14 +245,21 @@ Patterns matter more than single values.
 
 ## 6. Minimum viable measurement
 
-If only four numbers are ever tracked, track these:
+If only five numbers are ever tracked, track these:
 
-1. **Admission rate** — is the governance gate filtering at all?
-2. **Plan accuracy** — is what we build what we said we'd build?
-3. **Parked items aging beyond two gates** — is “parked” a real state, or a bin?
-4. **Critical-journey evidence coverage** — can we prove the important behaviour works?
+1. **Gate criteria closed per week** — is anything actually shipping? (GM-1; if this is zero,
+   the other four are describing the quality of a stationary object)
+2. **Admission rate** — is the governance gate filtering at all?
+3. **Plan accuracy** — is what we build what we said we'd build?
+4. **Parked items aging beyond two gates** — is "parked" a real state, or a bin?
+5. **Critical-journey evidence coverage** — can we prove the important behaviour works?
 
-Those four catch the dominant failure modes: a gate that does not gate, execution that does not follow the plan, parking that is really deletion, and a release that lacks evidence for critical behaviour.
+Those five catch the dominant failure modes: **a process that has stopped delivering while
+reporting itself healthy**, a gate that does not gate, execution that does not follow the plan,
+parking that is really deletion, and a release that lacks evidence for critical behaviour.
+
+The first is listed first deliberately. It is the only one of the five that can fail while every
+other check in this framework passes.
 
 ---
 

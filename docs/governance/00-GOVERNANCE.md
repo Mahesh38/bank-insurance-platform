@@ -206,7 +206,15 @@ The framework itself is governed. Changes to any `docs/governance/**` file follo
 - work type `GOV`;
 - Architecture + Product boards mandatory;
 - a version bump in [README.md](./README.md) §1;
-- a note in [registers/DECISION-REGISTER.md](./registers/DECISION-REGISTER.md).
+- a note in [registers/DECISION-REGISTER.md](./registers/DECISION-REGISTER.md);
+- **a backlog entry and a place in the queue** ([08 §3.1](./08-BACKLOG_RULES.md#31-governance-work-is-work));
+- **a named cost**: which gate criterion or delivery outcome this governance work defers.
 
 An agent may **propose** framework changes. It may not apply them to L1 files without a human
 approval recorded in the change request.
+
+> **Rule GC-1 — The framework competes for capacity with the work it governs.**
+> Governance work is not free and is not exempt. It consumes the same single in-flight slot as
+> product work, and it is measured on the same board. A framework that grows while its gates stay
+> shut is not governing delivery — it has become the delivery, and it must be able to see that
+> about itself.

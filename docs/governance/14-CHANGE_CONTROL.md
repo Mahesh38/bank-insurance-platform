@@ -21,10 +21,78 @@ A `CR-###` is required to change any of the **fixed points** the pipeline depend
 | Change these governance files (`GOV`) | ✅ | Architect + PO |
 | Admit an SC4 externally-mandated item | ✅ | PO + Compliance + Architect |
 | Waive a review board for a tier that requires it | ✅ | Architect; **never** for T4 Security/Compliance |
+| **Add, merge or retire a persona** (§1.1) | ✅ | Architect + PO + the affected board's owner |
 
 **No CR needed** for: normal triage outcomes, priority recomputation at a stage change,
 re-parking with a new target, adding acceptance criteria that clarify rather than expand, or
 recording a variance inside `files_expected`.
+
+---
+
+## 1.1 Persona roster control
+
+The persona roster is **closed as of CR-009**. It currently stands at nine named personas, each
+mapped to an existing AIGEM role and, where applicable, an existing review board:
+
+| Board / role | Persona |
+|---|---|
+| R1 · Board 3 Product | Rajal |
+| R2 · Board 1 Architecture | Mahesh |
+| R3 · Engineering | Amit |
+| R7 · Board 5 QA | Swapnali |
+| R8 · Board 4 Security | Deepali |
+| R9 · Board 6 Risk & Compliance | Shailja S |
+| R10 · Board 7 Operations | Shivanshi |
+| R12 · Delivery | Kalpana |
+| Database / DBA | Aarti |
+
+### Why this is closed
+
+Between CR-002 and CR-008 — a seven-day window — the repository added six personas. Each was
+individually justified and correctly change-controlled. The aggregate cost was not visible from
+inside any single one of them:
+
+- persona documentation and governance now stand at roughly **twice the volume of the product code**;
+- **61 consecutive commits** were governance and persona documentation, with no product commit;
+- both delivery gates stayed at **zero exit criteria closed** throughout;
+- cross-persona protocol documents grow as **O(n²)** in the roster — nine personas admit 36 possible
+  pairs, and four such protocol documents already exist.
+
+Adding personas had become the repository's dominant activity, and the framework had no rule that
+could notice.
+
+### Admission tests — all four must hold
+
+A CR proposing a **new** persona must demonstrate:
+
+| # | Test | Fails when |
+|---|---|---|
+| PR-1 | **A real, identified human occupies this role today** | The persona is added for diagram completeness, symmetry, or a role nobody actually performs |
+| PR-2 | **No existing persona can hold this jurisdiction** | The work fits an existing persona's authority and the real motive is emphasis, not jurisdiction |
+| PR-3 | **It maps to an existing AIGEM role or board** | It would create an eighth board, a parallel authority, or a second identity for one role |
+| PR-4 | **A named persona or protocol document is merged or retired in the same CR** | The roster grows on net |
+
+> **Rule CC-2 — No net persona growth.** A CR that adds a persona must merge or retire one, or
+> demonstrate under PR-1 that a real human occupies a role currently unrepresented. "This role
+> exists in mature organisations" is not a driver — [§2](#2-change-request-format) requires a
+> driver, and completeness of the org chart is not one of them.
+
+> **Rule CC-3 — Personas are for accountability, not for coverage.** A persona is the name of a
+> human who answers for a domain. It is not a checklist section, a knowledge base, or a way to
+> make expertise visible. Expertise that no human owns belongs in a role's *package*, not in a new
+> persona at the top of the matrix.
+
+### Preferred alternatives, in order
+
+1. **Extend an existing persona's package** — this is how Shivanshi's SRE depth, Deepali's threat
+   modelling and Aarti's recovery model were correctly added.
+2. **Add a module to an existing package** rather than a top-level identity.
+3. **Add a bilateral protocol** only when two *existing* personas repeatedly deadlock in practice —
+   evidenced by register entries, not anticipated in advance.
+4. **Add a persona** — last resort, all four tests passed, something merged or retired.
+
+Merging or retiring a persona uses the same CR route and must state where every jurisdiction in
+the canonical matrix moves. No jurisdiction may become unowned.
 
 ---
 

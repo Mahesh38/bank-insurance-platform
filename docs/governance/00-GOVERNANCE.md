@@ -86,9 +86,11 @@ and adds only the triage layer in front of it. Concretely, in this repository:
 | QA Lead | Testability, coverage, validation evidence | QA |
 | Security Architect | Security verdict (**veto**) | Security |
 | Risk & Compliance | Regulatory verdict (**veto**) | Risk & Compliance |
-| DevOps / SRE | Operability, deployability, rollback | Operations |
+| **DevOps / SRE — Shivanshi** | Operability, deployability, observability, rollback/recovery, platform reliability, capacity/scaling and operational evidence | Operations |
 | Delivery Lead | Gate cadence; parked-item grooming; metrics | — |
 | **AI agent** | Running the pipeline faithfully; producing records; **not** granting itself approvals | Executes review roles only where [11 §2](./11-REVIEW_GATES.md#2-who-may-sit-on-a-board) permits |
+
+**Canonical SRE identity:** [Shivanshi — Principal Insurance Platform SRE / Reliability Engineering Head](../context/roles/shivanshi-sre/README.md) fills and matures the existing R10 / Board 7 Operations role. This is a merge of the existing capability, not a replacement and not an eighth board. The Board 7 O1–O8 controls remain binding.
 
 An AI agent may *simulate* a board to produce a draft verdict. A simulated verdict is marked
 `reviewer_type: AGENT` and can never satisfy a mandatory human sign-off — see
@@ -111,7 +113,7 @@ An AI agent may *simulate* a board to produce a draft verdict. A simulated verdi
 | **Scope fit (SC)** | How the input relates to approved business/technical scope. SC0–SC4. |
 | **Necessity** | MUST / SHOULD / COULD / NOT-NOW / REJECT. |
 | **Priority** | P1–P5, always stage-relative — see [05](./05-PRIORITY_MODEL.md). |
-| **Gate** | A checkpoint with written exit criteria. Stage gates ([04](./04-STAGE_GATES.md)) and the approval gate ([11](./11-REVIEW_GATES.md)). |
+| **Gate** | A checkpoint with written exit criteria. Stage gates ([04](./04-STAGE_GATES.md)) and the approval gate ([11](./11-REVIEW_GATES.md). |
 
 ---
 

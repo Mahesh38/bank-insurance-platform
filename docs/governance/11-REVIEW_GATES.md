@@ -85,9 +85,9 @@ For this repository, Board 1 uses **[Mahesh — Principal Insurance Platform Arc
 
 When an AI agent simulates Board 1 it should load Mahesh and the relevant modules from that package, apply his authority/decision framework, and translate the result into the canonical AIGEM verdict below. The AI simulation **does not** grant itself Mahesh's mandatory human signature; the T4 rule in §2 remains binding.
 
-Architecture findings may use `A0`–`A3` severity internally. These labels must not be confused with AIGEM `P1`–`P5` delivery priority, Rajal's local Product `P0`–`P2` execution criticality, Deepali's `S0`–`S3` security severity, or Shailja S `R0`–`R3` risk severity.
+Architecture findings may use `A0`–`A3` severity internally. These labels must not be confused with AIGEM `P1`–`P5` delivery priority, Rajal's local Product `P0`–`P2` execution criticality, Deepali's `S0`–`S3` security severity, Shivanshi's `O0`–`O3` operational severity, or Shailja S `R0`–`R3` risk severity.
 
-For consequential Product ↔ Architecture ↔ Compliance decisions, Boards 1, 3 and 6 use the shared **[Product ↔ Architecture ↔ Compliance Decision Protocol](../context/roles/shared/product-architecture-compliance-decision-protocol.md)**. For detailed architecture-control resolution, Boards 1 and 6 additionally use the **[Mahesh ↔ Shailja Architecture/Compliance Decision Protocol](../context/roles/shared/architect-compliance-decision-protocol.md)**. When trust boundaries, identity, public exposure, cryptography or another material security concern is affected, also involve **Deepali** through the **[Security Cross-Persona Decision Protocol](../context/roles/shared/security-cross-persona-decision-protocol.md)**. Mahesh owns architecture design/implementation; Deepali owns Security outcomes; Board 6/Shailja owns compliance permissibility/control outcomes.
+For consequential Product ↔ Architecture ↔ Compliance decisions, Boards 1, 3 and 6 use the shared **[Product ↔ Architecture ↔ Compliance Decision Protocol](../context/roles/shared/product-architecture-compliance-decision-protocol.md)**. For detailed architecture-control resolution, Boards 1 and 6 additionally use the **[Mahesh ↔ Shailja Architecture/Compliance Decision Protocol](../context/roles/shared/architect-compliance-decision-protocol.md)**. When trust boundaries, identity, public exposure, cryptography or another material security concern is affected, also involve **Deepali** through the **[Security Cross-Persona Decision Protocol](../context/roles/shared/security-cross-persona-decision-protocol.md)**. When operability, capacity, scaling, deployment, recovery or production topology is materially affected, involve **Shivanshi** through the **[SRE Cross-Persona Decision Protocol](../context/roles/shared/sre-cross-persona-decision-protocol.md)**. Mahesh owns architecture design/implementation; Deepali owns Security outcomes; Shivanshi owns Board 7/SRE operational posture; Board 6/Shailja owns compliance permissibility/control outcomes.
 
 | # | Check |
 |---|-------|
@@ -148,7 +148,7 @@ When an AI agent simulates Board 3 it should load Rajal's canonical package in t
 
 Rajal's local `P0`–`P2` labels are Product execution criticality **within admitted scope**. They must not replace AIGEM `P1`–`P5` delivery priority.
 
-For Product decisions with material Architecture or Compliance impact, Board 3 uses the shared **[Product ↔ Architecture ↔ Compliance Decision Protocol](../context/roles/shared/product-architecture-compliance-decision-protocol.md)**. Where Security is material, it also invokes Deepali through the Security Cross-Persona Decision Protocol. Product may challenge another board's assumptions, but cannot silently override its binding domain decision.
+For Product decisions with material Architecture or Compliance impact, Board 3 uses the shared **[Product ↔ Architecture ↔ Compliance Decision Protocol](../context/roles/shared/product-architecture-compliance-decision-protocol.md)**. Where Security is material, it also invokes Deepali through the Security Cross-Persona Decision Protocol. Where reliability/operability/capacity or degraded production behaviour is material, it involves Shivanshi through the SRE Cross-Persona Decision Protocol. Product may challenge another board's assumptions, but cannot silently override its binding domain decision.
 
 | # | Check |
 |---|-------|
@@ -181,7 +181,7 @@ Deepali uses local `S0`–`S3` **security severity**. It must not be confused wi
 
 When an AI agent simulates Board 4, it loads Deepali's package and emits the canonical Security verdict with evidence. At **T4**, that AI review cannot satisfy the mandatory human Security sign-off in §2.
 
-Deepali is not authorised to redefine Product behaviour, replace Mahesh's overall architecture authority, replace Engineering/DBA/QA execution authority, reinterpret regulation on Shailja's behalf or accept material organisational risk for an accountable human.
+Deepali is not authorised to redefine Product behaviour, replace Mahesh's overall architecture authority, replace Engineering/SRE/DBA/QA execution authority, reinterpret regulation on Shailja's behalf or accept material organisational risk for an accountable human.
 
 For cross-persona security decisions use **[Security Cross-Persona Decision Protocol](../context/roles/shared/security-cross-persona-decision-protocol.md)** and the canonical **[Persona Authority Matrix](./PERSONA-AUTHORITY-MATRIX.md)**.
 
@@ -226,7 +226,7 @@ operational risk · traceability.
 
 For this repository, Board 6 uses **[Shailja S — Compliance & Risk Head](../context/roles/shailja-s-compliance-risk-head/README.md)** as its named reasoning persona. Shailja's package supplements this checklist with obligation classification, evidence, risk severity and human-exception rules; it never replaces the T4 human sign-off rule.
 
-Where a control is materially security-specific, Board 6 should consult Deepali rather than treating Compliance as a substitute for technical Security authority. Deepali determines technical security posture; Shailja determines regulatory/compliance permissibility and mandatory control outcome.
+Where a control is materially security-specific, Board 6 should consult Deepali rather than treating Compliance as a substitute for technical Security authority. Where business continuity, recovery evidence, operational resilience or production incident control is material, Board 6 should consult Shivanshi rather than treating Compliance as a substitute for SRE/Operations evidence. Deepali determines technical security posture; Shivanshi determines Board 7 operational posture; Shailja determines regulatory/compliance permissibility and mandatory control outcome.
 
 | # | Check |
 |---|-------|
@@ -242,6 +242,18 @@ Where a control is materially security-specific, Board 6 should consult Deepali 
 ## 10. Board 7 — Operations
 
 **Question:** *Can we run, observe, and recover this?*
+
+### Named persona and SRE / Operations authority
+
+For this repository, Board 7 uses **[Shivanshi — Principal Insurance Platform SRE / Reliability Engineering Head](../context/roles/shivanshi-sre/README.md)** as its named Operations reasoning persona and canonical identity for existing **R10 — DevOps / SRE**.
+
+This is a **merge/maturity of the existing role**, not a replacement and not an eighth board. The canonical O1–O8 checklist below remains unchanged in meaning. Shivanshi's modular package adds insurance/banking/bancassurance business context, B2B/B2C/B2B2C workload reasoning, platform engineering, infrastructure/CI-CD, SLI/SLO/error budgets, incident/resilience/DR, business-aware capacity/scaling and developer-experience evidence around those controls.
+
+When an AI agent simulates Board 7 it should load Shivanshi in the order defined by her package, apply [`08-operations-review-release-and-exception-contract.md`](../context/roles/shivanshi-sre/08-operations-review-release-and-exception-contract.md), and translate the result into the canonical AIGEM verdict below. The persona does not grant the agent destructive production authority, material risk acceptance or any other persona's decision rights.
+
+Shivanshi may use local `O0`–`O3` **operational severity** internally. It must not be confused with AIGEM `P1`–`P5`, incident severity or other persona-local severity models.
+
+For consequential Operations/SRE decisions use the **[SRE Cross-Persona Decision Protocol](../context/roles/shared/sre-cross-persona-decision-protocol.md)** and the canonical **[Persona Authority Matrix](./PERSONA-AUTHORITY-MATRIX.md)**.
 
 | # | Check |
 |---|-------|
@@ -315,7 +327,7 @@ APPROVED  ⇔  every mandatory board for the tier returned APPROVED or
 | A mandatory board did not respond | Gate is **not** approved. Silence is never assent |
 | Boards conflict | Use the relevant shared protocol; identify each domain owner, resolve outcome-vs-implementation separately, and persist the final decision. No majority voting |
 
-For material Security conflict, use the Security Cross-Persona Decision Protocol. For material Product ↔ Architecture ↔ Risk/Compliance conflict, use the shared Product ↔ Architecture ↔ Compliance protocol. For a material Mahesh/Architecture ↔ Shailja/Risk & Compliance conflict, use the bilateral Mahesh ↔ Shailja protocol. If conflict remains after one substantive alternatives/redesign cycle, escalate to accountable humans; an AI agent does not arbitrate residual material risk or mandatory sign-off.
+For material Security conflict, use the Security Cross-Persona Decision Protocol. For material SRE/Operations conflict, use the SRE Cross-Persona Decision Protocol. For material Product ↔ Architecture ↔ Risk/Compliance conflict, use the shared Product ↔ Architecture ↔ Compliance protocol. For a material Mahesh/Architecture ↔ Shailja/Risk & Compliance conflict, use the bilateral Mahesh ↔ Shailja protocol. If conflict remains after one substantive alternatives/redesign cycle, escalate to accountable humans; an AI agent does not arbitrate residual material risk or mandatory sign-off.
 
 ---
 
@@ -357,6 +369,7 @@ For each mandatory board:
      - Security → Deepali — Principal Insurance Platform Security Architect / Security Head
      - QA → Swapnali — Principal Insurance Quality Engineering / QA Lead
      - Risk & Compliance → Shailja S
+     - Operations → Shivanshi — Principal Insurance Platform SRE / Reliability Engineering Head
   2. Answer each numbered check against the plan — cite the plan section or file.
   3. Emit the verdict with evidence[] listing the checks actually performed.
   4. Do not carry the previous board's conclusion into the next.

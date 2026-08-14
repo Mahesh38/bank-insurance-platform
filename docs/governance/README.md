@@ -1,11 +1,12 @@
 # AIGEM — AI Governance & Execution Model
 
-**Version:** 1.2  
+**Version:** 1.3  
 **Status:** Binding for all AI agents and human contributors working in this repository  
 **Custodian:** Platform / Solution Architect  
 **Source blueprint:** *AIGEM Executive Blueprint v0.1*  
 **Version 1.1 change:** CR-002 maps Board 1 to the Principal Insurance Platform Architect persona and adds the reciprocal Architect↔Compliance protocol. Ratification remains subject to the approvers recorded in CR-002.  
-**Version 1.2 change:** CR-003 adds the Principal Insurance Data & Database Architect / DBA specialist persona and the canonical cross-persona authority/accountability matrix without changing AIGEM's seven-board constitution.
+**Version 1.2 change:** CR-003 adds the Principal Insurance Data & Database Architect / DBA specialist persona and the canonical cross-persona authority/accountability matrix without changing AIGEM's seven-board constitution.  
+**Version 1.3 change:** CR-008 maps the existing R10 DevOps/SRE role and Board 7 Operations reasoning persona to **Shivanshi — Principal Insurance Platform SRE / Reliability Engineering Head**, preserving O1–O8 while adding insurance/bancassurance-aware platform, CI/CD, observability, incident/DR, capacity/scaling and developer-experience depth. No eighth board is created.
 
 ---
 
@@ -66,7 +67,7 @@ resolve L3 first.** See [01-CURRENT_STATE.md](./01-CURRENT_STATE.md).
 | File | Purpose |
 |------|---------|
 | **[RUNBOOK.md](./RUNBOOK.md)** | **The operating manual — who does what, how often, and what breaks if they don't.** Role cards, cadences, the staleness matrix, and the AI agent's knowledge contract. Most people need only their role card. |
-| **[PERSONA-AUTHORITY-MATRIX.md](./PERSONA-AUTHORITY-MATRIX.md)** | **Canonical cross-persona segregation of duties — ownership, accountability, responsibility, consultation, formal review, approval, blocking authority, informed and not-authorised boundaries across Product, Architecture, Engineering, Database and Compliance/Risk.** |
+| **[PERSONA-AUTHORITY-MATRIX.md](./PERSONA-AUTHORITY-MATRIX.md)** | **Canonical cross-persona segregation of duties** — Product, Architecture, Engineering, **SRE/Operations**, Delivery, Security, Database, QA and Compliance/Risk ownership, accountability, review/approval/blocking and Not-Authorised boundaries. |
 
 ### Decision pipeline (read in this order)
 
@@ -83,7 +84,7 @@ resolve L3 first.** See [01-CURRENT_STATE.md](./01-CURRENT_STATE.md).
 | 08 | [08-BACKLOG_RULES.md](./08-BACKLOG_RULES.md) | Where triaged work goes and how it moves |
 | 09 | [09-AI_EXECUTION_RULES.md](./09-AI_EXECUTION_RULES.md) | **The agent contract** — read this before acting |
 | 10 | [10-IMPLEMENTATION_PLAN_TEMPLATE.md](./10-IMPLEMENTATION_PLAN_TEMPLATE.md) | **Step 9** — Plan structure and required fields |
-| 11 | [11-REVIEW_GATES.md](./11-REVIEW_GATES.md) | **Step 10** — Seven review boards + approval gate; Board 1 uses the Principal Insurance Platform Architect persona and Board 6 uses Shailja S. Material database work invokes the Principal DBA as specialist evidence/reviewer through the applicable existing board rather than creating a new board. |
+| 11 | [11-REVIEW_GATES.md](./11-REVIEW_GATES.md) | **Step 10** — Seven review boards + approval gate. Board 1 uses Mahesh, Board 4 Deepali, Board 5 Swapnali, Board 6 Shailja and **Board 7 Operations uses Shivanshi/R10**. Material DB work invokes Aarti through the applicable existing board; no new board is added. |
 | 12 | [12-DEFINITION_OF_READY.md](./12-DEFINITION_OF_READY.md) | When work may be picked up |
 | 13 | [13-DEFINITION_OF_DONE.md](./13-DEFINITION_OF_DONE.md) | When work may be closed |
 | 14 | [14-CHANGE_CONTROL.md](./14-CHANGE_CONTROL.md) | Changing scope, stage, or an approved plan |
@@ -94,14 +95,17 @@ resolve L3 first.** See [01-CURRENT_STATE.md](./01-CURRENT_STATE.md).
 | 19 | [19-PORTING_GUIDE.md](./19-PORTING_GUIDE.md) | Installing AIGEM into another repository |
 | — | [ORG-STANDARDS.md](./ORG-STANDARDS.md) | Layer 2 — organization-wide architecture, security, compliance and quality baselines |
 | — | [RUNBOOK.md](./RUNBOOK.md) | Operating manual: roles, cadences, maintenance, ceremonies |
-| — | [change-requests/CR-002-principal-architect-persona-integration.md](./change-requests/CR-002-principal-architect-persona-integration.md) | GOV change request for the Board 1 persona / Architect↔Compliance protocol integration |
-| — | [change-requests/CR-003-principal-dba-and-persona-authority-matrix.md](./change-requests/CR-003-principal-dba-and-persona-authority-matrix.md) | GOV change request adding Principal DBA specialist authority and the canonical cross-persona authority matrix without adding a new AIGEM board |
+| — | [change-requests/CR-002-principal-architect-persona-integration.md](./change-requests/CR-002-principal-architect-persona-integration.md) | Board 1 persona / Architect↔Compliance protocol integration |
+| — | [change-requests/CR-003-principal-dba-and-persona-authority-matrix.md](./change-requests/CR-003-principal-dba-and-persona-authority-matrix.md) | Principal DBA specialist authority and canonical cross-persona authority matrix |
+| — | [change-requests/CR-008-add-shivanshi-sre-persona.md](./change-requests/CR-008-add-shivanshi-sre-persona.md) | Assign/mature existing R10 / Board 7 Operations as Shivanshi without adding a board |
 
 ### Persona operating model
 
 | File | Purpose |
 |---|---|
-| [../context/roles/shared/cross-persona-operating-model.md](../context/roles/shared/cross-persona-operating-model.md) | Product ↔ Architecture ↔ Engineering ↔ Database ↔ Compliance communication, handoff, conflict and escalation contract |
+| [../context/roles/shared/cross-persona-operating-model.md](../context/roles/shared/cross-persona-operating-model.md) | Product ↔ Architecture ↔ Engineering ↔ SRE/Operations ↔ Security ↔ Database ↔ QA ↔ Compliance ↔ Delivery communication, handoff, conflict and escalation contract |
+| [../context/roles/shivanshi-sre/README.md](../context/roles/shivanshi-sre/README.md) | Canonical Shivanshi Principal Insurance Platform SRE / R10 / Board 7 persona package |
+| [../context/roles/shared/sre-cross-persona-decision-protocol.md](../context/roles/shared/sre-cross-persona-decision-protocol.md) | SRE reliability/scaling/incident/recovery cross-persona handoff protocol |
 | [../context/roles/principal-insurance-data-database-architect/README.md](../context/roles/principal-insurance-data-database-architect/README.md) | Canonical Principal Insurance Data & Database Architect / DBA persona package |
 
 ### Live project data (L3)
@@ -178,7 +182,7 @@ resolve L3 first.** See [01-CURRENT_STATE.md](./01-CURRENT_STATE.md).
              QA ─ Risk/Compliance ─ Operations
                             │
              specialist evidence/review as needed
-                  (for example Principal DBA)
+               (for example Aarti / Principal DBA)
                             │
                             ▼
                      APPROVAL GATE
@@ -223,10 +227,11 @@ An agent handed *anything* runs this:
    If REJECT  → registers/SUGGESTION-REGISTER.md with reason. Stop.
    If ESCALATE→ 14-CHANGE_CONTROL.md. Stop and ask a human.
 7. Before asserting cross-persona authority, resolve PERSONA-AUTHORITY-MATRIX.md.
-8. Return to the work item you were on before this input arrived.
+8. For material Operations/SRE questions, load Shivanshi/R10 and the SRE cross-persona protocol.
+9. Return to the work item you were on before this input arrived.
 ```
 
-Step 8 is not optional. It is the whole point.
+The final return-to-task step is not optional. It is the whole point.
 
 ---
 
@@ -262,6 +267,7 @@ This model is deliberately built to score against the blueprint's 9/10 maturity 
 | Traceability matrix | [08 §6](./08-BACKLOG_RULES.md#6-traceability) |
 | Architecture principles engine | [11 §4](./11-REVIEW_GATES.md#4-board-1--architecture) + [Mahesh — Principal Insurance Platform Architect](../context/roles/mahesh-principal-insurance-platform-architect/README.md) |
 | Cross-persona authority segregation | [PERSONA-AUTHORITY-MATRIX.md](./PERSONA-AUTHORITY-MATRIX.md) + [cross-persona operating model](../context/roles/shared/cross-persona-operating-model.md) |
+| **Business-aware SRE / Operations authority** | [Shivanshi/R10 package](../context/roles/shivanshi-sre/README.md) + [Board 7](./11-REVIEW_GATES.md#10-board-7--operations) + [SRE protocol](../context/roles/shared/sre-cross-persona-decision-protocol.md) |
 | Database specialist authority | [Principal Insurance Data & Database Architect / DBA](../context/roles/principal-insurance-data-database-architect/README.md) |
 | Decision log | [registers/DECISION-REGISTER.md](./registers/DECISION-REGISTER.md) |
 | Cost vs value analysis | [05 §4](./05-PRIORITY_MODEL.md#4-the-scoring-model) |

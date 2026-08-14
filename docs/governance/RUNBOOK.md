@@ -3,8 +3,8 @@
 **This is the only governance file most people need to read.**
 Everything else is reference. If you read one page, read your role card in §6.
 
-**Version:** 1.1 · **Owner:** **Kalpana — Delivery Head / Delivery Lead (R12)** · **Original ratification:** 2026-08-10, Mahesh (Solution Architect) · **R12 assignment:** CR-007  
-**Framework:** [docs/governance/](./README.md) · **Live state:** [state/CURRENT-STATE.yaml](./state/CURRENT-STATE.yaml) · **Delivery control:** [DELIVERY-CONTROL-SYSTEM.md](./DELIVERY-CONTROL-SYSTEM.md)
+**Version:** 1.2 · **Owner:** **Kalpana — Delivery Head / Delivery Lead (R12)** · **Original ratification:** 2026-08-10, Mahesh (Solution Architect) · **R12 assignment:** CR-007 · **R10/Board 7 assignment:** CR-008 (pending required ratification)  
+**Framework:** [docs/governance/](./README.md) · **Live state:** [state/CURRENT-STATE.yaml](./state/CURRENT-STATE.yaml) · **Delivery control:** [DELIVERY-CONTROL-SYSTEM.md](./DELIVERY-CONTROL-SYSTEM.md) · **SRE persona:** [Shivanshi](../context/roles/shivanshi-sre/README.md)
 
 ---
 
@@ -52,23 +52,26 @@ Personas: [docs/context/roles/](../context/roles/README.md)
 |---|------|-------|---------------|------------------------------------------|:--------:|:------------------:|
 | R1 | **Product Owner** | **Rajal** | Scope, necessity disputes, priority ties, backlog | Product | — | ✅ (with Architect) |
 | R2 | **Solution Architect** | **Mahesh** | Framework custodian, stage transitions, ADRs, standing constraints | Architecture | ADR-overridable | ✅ (with PO) |
-| R3 | **Technical Head** | **Amit** | Engineering standards, CI gates, infra, debt ledger oversight, SLAs | Technical + Operations | — | ✅ for technical exit |
+| R3 | **Technical Head** | **Amit** | Application engineering standards, build/CI implementation, technical debt, service-level engineering | Technical | — | ✅ for technical exit |
 | R4 | **Team Lead / Tech Lead** | per workstream | Work breakdown, task assignment, technical verdicts, debt entries | Technical | — | ✅ marks items Done |
 | R5 | **Developer** | per task | One work item at a time, plan adherence, same-PR tests | — | — | — |
 | R6 | **QA Engineer** | per story | Scenario packs, defect clarity, retest | — | — | — |
-| R7 | **QA Lead** | — | Test strategy, coverage gates, quality sign-off | QA | — | ✅ for quality exit |
-| R8 | **Security Architect** | — | Security verdicts, secrets, PII, attack surface | Security | ✅ **binding** | ✅ for T4 |
-| R9 | **Risk & Compliance** | — | Regulatory verdicts, consent, retention, audit | Risk & Compliance | ✅ **binding** | ✅ for regulated items |
-| R10 | **DevOps / SRE** | — | Deployability, observability, runbooks, rollback | Operations | — | — |
+| R7 | **QA Lead** | **Swapnali** | Test strategy, coverage gates, quality sign-off | QA | — | ✅ for quality exit |
+| R8 | **Security Architect** | **Deepali** | Security verdicts, secrets, PII, attack surface | Security | ✅ **binding** | ✅ for T4 human sign-off where required |
+| R9 | **Risk & Compliance** | **Shailja S** | Regulatory verdicts, consent, retention, audit | Risk & Compliance | ✅ **binding** | ✅ for regulated items |
+| R10 | **DevOps / SRE** | **Shivanshi** | **SRE/platform operability, deployability, CI/CD platform, observability, incidents, runbooks, rollback/recovery, capacity/scaling, DR operational evidence and developer toil** | **Operations** | Within Board 7/governance jurisdiction | Operations readiness; not stage approval |
 | R11 | **Business Analyst** | — | Requirement clarity, acceptance criteria quality | Product (delegate) | — | — |
 | R12 | **Delivery Head / Delivery Lead** | **Kalpana** | **This runbook, CURRENT-STATE.yaml, register hygiene, gate cadence, metrics + integrated delivery orchestration** | — | — | marks gate `CANDIDATE` only |
 | R13 | **AI Agent** | Claude / Cursor / Copilot | Running the pipeline, producing records, executing approved plans | Simulates boards ([11 §2](./11-REVIEW_GATES.md#2-who-may-sit-on-a-board)) | — | ❌ **never** |
 
+> **Canonical SRE identity:** **Shivanshi is R10 and the named Board 7 Operations persona.** `DevOps / SRE`, `Principal Insurance Platform SRE`, `Reliability Engineering Head`, `R10` and the named Board 7 persona are aliases for one SRE authority. CR-008 **merges and matures** the existing role; it does not create a second SRE persona or an eighth board. Existing Board 7 O1–O8 controls remain binding.
+
 > **Canonical Delivery identity:** **Kalpana is R12.** `Delivery Head`, `Delivery Lead`, `Program Delivery Director`, `Enterprise Delivery Head` and `R12` are aliases for this one persona. Do not create a second Delivery agent. R12 is an orchestration role across the existing seven boards; marking a gate `CANDIDATE` is preparation for the authorised decision-makers, **not gate approval**.
 
-**Small team?** Roles collapse, ownership does not. Minimum viable assignment:
-PO → R1+R11 · **Kalpana → R12** · Architect → R2+R8 · Tech Head → R3+R4+R10 · QA Lead → R6+R7 ·
-Compliance → R9 (part-time, gate-only).
+**Small team?** Roles may collapse operationally, but canonical authority does not disappear. Minimum viable assignment:
+PO → R1+R11 · Architect → R2+R8 where separately authorised Security staffing is unavailable · Tech Head → R3+R4 · **Shivanshi → R10** · QA Lead → R6+R7 · **Kalpana → R12** · Compliance → R9 (part-time, gate-only).
+
+If one human wears several hats, each board verdict is still issued in the correct role; T4 mandatory human-role rules remain binding.
 
 ---
 
@@ -86,11 +89,15 @@ Everything anyone does, in one table. Find your role in the last column.
 | Verdict = ESCALATE | Raise `CR-###`, stop | Agent → **PO + Architect** | 20 min | Change request |
 | Work item picked up | Pre-flight check ([12 §6](./12-DEFINITION_OF_READY.md#6-agent-pre-flight)) | **Dev / agent** | 3 min | — |
 | Plan written (T2+) | Board review for the risk tier | **Boards** | 20–60 min | Verdicts |
+| Plan has material `operational_impact` | Run Board 7 O1–O8 with Shivanshi/R10 evidence | **Shivanshi / R10** | 15–30 min | Operations verdict |
+| New production component/provider | Establish operational contract: deployability, telemetry, runbook, limits, failure/recovery | **Shivanshi / R10** + owners | proportional | Operations evidence |
+| Material campaign/volume change | Reassess business load, transaction amplification, bottlenecks, provider/DB limits and scale policy | **Shivanshi / R10** + Product/DB/Engineering | proportional | Capacity assessment |
+| Incident | Detect/assess/contain/restore/validate; specialist leads own dimensions | **Shivanshi / R10** when assigned | varies | Incident record + recovery evidence |
 | Drift signal fires | Stop, classify, revert or log variance | **Dev / agent** | 5 min | Variance or `SUG-####` |
 | Work item finished | DoD evidence table, register closure | **Dev / agent → TL** | 10 min | Evidence + closed `SUG` |
 | Debt taken | Ledger entry with owner + expiry | **TL** | 5 min | `TD-###` |
 | Assumption invalidated | Re-validate every item citing it | **Owner** | 15 min | Updated items |
-| Incident | Search registers for items that would have prevented it | **Kalpana / R12** | 30 min | Calibration note |
+| Incident closes | Search registers for items that would have prevented it; calibrate delivery/governance | **Kalpana / R12 + Shivanshi / R10** | 30 min | Calibration/PIR links |
 | Material release/initiative admitted | Establish milestones, dependencies, critical path, forecast assumptions | **Kalpana / R12** + owners | varies | DCS delivery view |
 | Delivery decision approaches required-by date | Escalate decision owner with options, impact and consequence of delay | **Kalpana / R12** | 10–20 min | Decision/escalation record |
 
@@ -101,6 +108,7 @@ Everything anyone does, in one table. Find your role in the last column.
 | Confirm the item you are working on is still head of the ordered READY queue | Dev, TL, agent | — |
 | Register any suggestion raised yesterday that is not yet written down | everyone | `SUG-####` rows |
 | Check nothing is `IN-FLIGHT` and untouched for > 2 days | TL | Unblock or re-park |
+| For active production/hypercare: review SLO/alert anomalies, provider degradation and new capacity ceilings | **Shivanshi / R10** | Intervention only if needed |
 | For material delivery periods: review critical path, new blockers and decisions consuming slack | **Kalpana / R12** | Intervention/escalation only if needed |
 
 ### Weekly — 30 minutes (the **Governance Sync**, §7.1)
@@ -108,11 +116,12 @@ Everything anyone does, in one table. Find your role in the last column.
 | Action | Who | Output |
 |--------|-----|--------|
 | Refresh gate criteria states in [04](./04-STAGE_GATES.md) + the state file | **Kalpana / R12** | Updated `CURRENT-STATE.yaml` |
-| Run the freshness check (§4.3) | **Kalpana / R12** | Stale-artefact list |
+| Run the freshness check (§4.5) | **Kalpana / R12** | Stale-artefact list |
 | Review new `SUG` rows; confirm or correct verdicts | **PO + Architect** | Corrected rows |
 | Review BLOCKED items; chase external dependencies | **TL + PO** | Owner + date per `EXTERNAL` edge |
 | Re-order the READY queue | **TL** | Ordered queue |
 | Confirm one-active-item discipline held | **TL** | — |
+| Review material SLO/error-budget, alert-noise, provider-limit and capacity risks | **Shivanshi / R10** | SRE findings/remediation where needed |
 | Review critical path, ageing dependencies/decisions, milestone evidence and forecast confidence | **Kalpana / R12** + relevant owners | Updated DCS delivery view |
 
 ### Per work item
@@ -130,6 +139,7 @@ Everything anyone does, in one table. Find your role in the last column.
 |--------|-----|--------|
 | Attach evidence to every exit criterion | **Criterion owners** | Evidence table |
 | Mark gate `CANDIDATE`; freeze non-P1 admissions | **Kalpana / R12** | Gate candidate state |
+| Provide required Board 7 runbook/alert/rollback/capacity/recovery evidence | **Shivanshi / R10** where Operations is listed | Operations verdict/evidence |
 | Approve or reject the transition | **Architect + PO** (+ QA Lead, Compliance, Ops as listed) | Signed transition |
 | **Unpark sweep** — re-triage every item whose trigger fired | **Kalpana / R12 + TL** | Promoted / re-parked / closed |
 | **Recompute priorities** for all READY and PARKED items | **PO + TL** | Updated priorities |
@@ -153,7 +163,8 @@ every stored `priority_now` in the repository.
 | Reconcile parked backlog against the debt ledger — nothing in both | TL |
 | Review metric trends, not values | Kalpana / R12 + Tech Head |
 | Confirm every `EXTERNAL` dependency still has a live owner and date | PO |
-| Review delivery forecast accuracy, blocked-time and decision/dependency ageing | Kalpana / R12 | DCS calibration |
+| Review recurring operational toil/incidents, SLO burn and capacity forecast triggers | **Shivanshi / R10** |
+| Review delivery forecast accuracy, blocked-time and decision/dependency ageing | Kalpana / R12 |
 
 ### Quarterly — 60 minutes
 
@@ -163,7 +174,8 @@ every stored `priority_now` in the repository.
 | Close ratification-backlog items | Architect |
 | Review whether the framework itself needs a `GOV` change request | Architect + PO |
 | Calibration: were our parks and rejections right? | PO + Architect + Kalpana / R12 |
-| Calibration: were delivery forecasts, fast-track choices and dependency escalations accurate? | Kalpana / R12 + Tech Head | DCS improvements |
+| Calibration: were delivery forecasts, fast-track choices and dependency escalations accurate? | Kalpana / R12 + Tech Head |
+| Review SRE standards, alert quality, DR evidence, platform toil and capacity-model accuracy | **Shivanshi / R10 + Tech Head + relevant specialists** |
 
 ---
 
@@ -214,6 +226,7 @@ The DCS may present integrated views over these registers, but it must not creat
 | [ORG-STANDARDS.md](./ORG-STANDARDS.md) (L2) | Architect + Security + Compliance | Org policy change | Quarterly review |
 | This runbook | Kalpana / R12 | Role or cadence change | Quarterly review |
 | [DELIVERY-CONTROL-SYSTEM.md](./DELIVERY-CONTROL-SYSTEM.md) | Kalpana / R12 | Delivery-orchestration change; constitutional changes require `GOV` CR | Quarterly review |
+| [Shivanshi SRE persona](../context/roles/shivanshi-sre/README.md) | Shivanshi/R10 + governance custodian | R10/Board 7, platform/SRE operating model or authority change | Quarterly review / per GOV change |
 
 ### 4.5 The staleness alarm
 
@@ -230,7 +243,7 @@ That is deliberate — a checker that shrugs at a malformed state file is worse 
 it manufactures confidence. Its own behaviour is covered by fixtures:
 
 ```bash
-bash scripts/governance/test-freshness-check.sh   # 24 cases, incl. every CS-1 halt
+bash scripts/governance/test-freshness-check.sh   # coverage of CS-1 halt classes
 ```
 
 **Agent behaviour on staleness** — this is the rule that protects every downstream decision:
@@ -276,10 +289,10 @@ When this model moves to another repository, this table tells you exactly what t
 | The 11 dependency types and 6 relations | The actual edges |
 | The 16 work types and the classification tree | Which backlog file each type routes to |
 | Epic/story test; the 2-trigger epic rule | Your epics |
-| The 7 boards and their checklists | Who sits on each board |
+| The 7 boards and their checklists | Who/persona sits on each board |
 | Risk tiers T1–T4 and the proportionality matrix | Your T4 triggers if your regime differs |
-| DoR (R1–R15) and universal DoD (D1–D12) | Per-work-type DoD additions; your CI commands |
-| The 14 drift signals and the return protocol | Nothing |
+| DoR and universal DoD | Per-work-type additions; your CI commands |
+| Drift signals and return protocol | Nothing |
 | Templates and JSON schemas | Nothing |
 | Register **formats** | Register **contents** |
 | Role definitions and cadences (this runbook §3, §6) | Names against roles; meeting times |
@@ -347,7 +360,7 @@ moved stage", and the only one who can say "that violates a standing constraint"
 | On cycle detection | Resolve dependency cycles ([07 §6](./07-DEPENDENCY_MODEL.md#6-cycles)) | 30 min |
 
 **Only you can:** declare a stage transition (with PO) · change a standing constraint · override
-an Architecture REWORK (via a recorded ADR) · amend L1 framework files.
+an Architecture REWORK (via a recorded ADR where governance permits) · amend L1 framework files after required approval.
 
 **Never:** let an agent edit stage fields · approve a new runtime component without an ADR
 stating its operational cost · resolve a board conflict verbally.
@@ -359,28 +372,27 @@ are wrong, what does it cost to undo?*
 
 ### R3 · Technical Head — Amit
 
-**Your one job:** make the gates real. Coverage, CI, infra and SLAs are what turn "Done" from an
-assertion into evidence.
+**Your one job:** make application engineering and technical gates real. Code quality, build/CI correctness, implementation standards and debt controls turn "implemented" into evidence.
 
-**You own:** engineering standards · CI gates · infra · Technical + Operations boards · debt-ledger oversight · [18 metrics](./18-GOVERNANCE_METRICS.md) review
+**You own:** application engineering standards · build/CI implementation and engineering-quality gates · Technical board · service-level engineering patterns · debt-ledger oversight · [18 metrics](./18-GOVERNANCE_METRICS.md) review
+
+**You collaborate with Shivanshi/R10** on shared CI/CD platform mechanics, deployment/runtime standards, operability, observability, resilience, capacity/scaling and production evidence. Amit owns application engineering implementation; Shivanshi owns the shared SRE/platform-operability capability and Board 7 Operations posture.
 
 | When | Do | Time |
 |------|----|------|
 | Per T3/T4 plan | Technical board verdict (T1–T8) | 20 min |
-| Per plan with `operational_impact` | Operations board verdict (O1–O8) | 15 min |
-| Weekly | Confirm CI gates are green and are actually enforcing | 10 min |
+| Per plan with operational impact | Provide Engineering implementation evidence to Shivanshi/Board 7 | 10–20 min |
+| Weekly | Confirm engineering CI gates are green and are actually enforcing | 10 min |
 | Per gate | Technical exit sign-off; confirm no open P0/P1 debt | 30 min |
 | Per gate | Enforce debt expiry with the TL | 20 min |
-| Monthly | Review metric **trends** with Kalpana / R12 | 30 min |
+| Monthly | Review metric **trends** with Kalpana / R12 and SRE trends with Shivanshi where relevant | 30 min |
 | Quarterly | Confirm coverage floors are still rising, not "interim" forever | 20 min |
 
-**Only you can:** change CI gate thresholds · accept an infrastructure dependency · set the
-engineering standards the Technical board cites.
+**Only you can (Engineering jurisdiction):** set application engineering standards · own application build/CI implementation requirements · accept implementation patterns within approved architecture/security/SRE/DB/QA constraints.
 
-**Never:** allow "interim" to mean permanent without a dated schedule · approve a plan whose
-rollback is untested · let a P0 debt item cross a gate.
+**Never:** self-declare Board 7 operational readiness · allow "interim" to mean permanent without a dated schedule · let a P0 debt item cross a gate.
 
-**Your 60-second check:** *If this fails at 2am, can someone see it, and can someone undo it?*
+**Your 60-second check:** *Is the application implementation correct, maintainable and evidenced — and have I handed the operational facts to Shivanshi instead of assuming production readiness?*
 
 ---
 
@@ -458,7 +470,7 @@ without retest on the fix commit · use real PII in fixtures.
 
 ---
 
-### R7 · QA Lead
+### R7 · QA Lead — Swapnali
 
 **Your one job:** make quality gateable, and answer "what is still untested?" without anyone
 having to ask you.
@@ -480,59 +492,74 @@ waiver · raise a gate the team has no backlog path to meet.
 
 ---
 
-### R8 · Security Architect
+### R8 · Security Architect — Deepali
 
-**Your one job:** the binding veto. Nothing that changes who can do what, or what data is
-exposed, ships without you.
+**Your one job:** the binding Security authority. Nothing that changes who can do what, or what data is exposed, ships without the required Security review.
 
 | When | Do | Time |
 |------|----|------|
-| Per plan with `security_impact` ≠ none | Security board verdict (S1–S10) | 20 min |
+| Per plan with `security_impact` ≠ none | Security board verdict | 20 min |
 | **Every T4 plan** | Verdict — **must be human, no agent substitute** | 30 min |
 | Per security debt | Set an expiry no later than the next gate | 5 min |
 | Per gate | Confirm no expired security debt crosses | 15 min |
-| Per dependency finding | Reachability assessment → O2 override or not | 20 min |
+| Per dependency finding | Reachability assessment → override or not | 20 min |
 
-**Never:** approve without listing which of S1–S10 you actually checked · allow a security
-shortcut past one gate · let an agent's `AGENT` verdict stand in for yours at T4.
+**Never:** approve without listing what was actually checked · allow a security shortcut past one gate · let an agent's `AGENT` verdict stand in for required human sign-off.
 
 **Your 60-second check:** *What does this expose, and does it fail closed?*
 
 ---
 
-### R9 · Risk & Compliance
+### R9 · Risk & Compliance — Shailja S
 
 **Your one job:** the second binding veto. Can we defend this to a regulator?
 
 | When | Do | Time |
 |------|----|------|
-| Per plan with `compliance_impact` ≠ none | Board verdict (R1–R8) | 20 min |
+| Per plan with `compliance_impact` ≠ none | Board verdict | 20 min |
 | **Every T4 plan** | Verdict — **must be human** | 30 min |
 | Per SC4 escalation | Confirm the mandate is real and state the obligation | 20 min |
 | Per gate | Audit/consent/retention evidence review | 30 min |
 | Quarterly | Confirm retention regimes and reporting obligations | 30 min |
 
-**Never:** accept compliance debt — it is a violation with a delay ([15 §7](./15-TECH_DEBT_POLICY.md#7-debt-and-the-review-boards)).
+**Never:** accept compliance debt as an ordinary implementation shortcut — it is a violation with a delay where policy says non-waivable ([15 §7](./15-TECH_DEBT_POLICY.md#7-debt-and-the-review-boards)).
 
 **Your 60-second check:** *If a regulator asks who did this, when, and under what consent — can
 we answer from the system?*
 
 ---
 
-### R10 · DevOps / SRE
+### R10 · DevOps / SRE — Shivanshi
 
-**Your one job:** everything we ship must be deployable, observable, and reversible.
+**Your one job:** make approved platform capabilities **safely deployable, observable, scalable, containable and recoverable under real banking/insurance business load — while making the developer's path easier, not harder.**
+
+**Canonical identity:** `Shivanshi = Principal Insurance Platform SRE = Reliability Engineering Head = DevOps / SRE = R10 = named Board 7 Operations persona`.
+
+**You own:** the shared SRE/platform-operability capability · **Board 7 Operations O1–O8** · platform/runtime engineering · shared CI/CD/deployment mechanics · Infrastructure as Code operational implementation · SLI/SLO/error-budget operating model · observability/alerting/runbook standards · incident operating process · resilience/failure isolation · capacity/scaling analysis · operational DR implementation/exercises · developer self-service/toil reduction.
+
+**Business grounding:** you understand bank, bancassurance and insurance end to end; B2B, B2C and B2B2C; branch/RM/customer operating peaks; product/quote/proposal/payment/underwriting/issuance/reconciliation; insurer/1SB/payment/bank dependency limits; campaign/renewal/tax/month-end seasonality; transaction amplification. You do **not** make capacity decisions from CPU alone.
 
 | When | Do | Time |
 |------|----|------|
-| Per plan with `operational_impact` | Operations board verdict (O1–O8) | 15 min |
-| Per new component | Confirm the runbook exists before it ships | 20 min |
-| Per gate | Runbook, alert, and rollback evidence | 30 min |
-| Per alert added | Test it fires at least once | 15 min |
+| Per plan with `operational_impact` | Board 7 Operations verdict using O1–O8 + Shivanshi evidence contract | 15–30 min |
+| Per new production component | Confirm runtime/deployment, health, telemetry, alerts, ownership and runbook exist before it ships | 20–45 min |
+| Per new insurer/provider/dependency | Capture TPS/concurrency, latency, timeout/retry/idempotency, callback, credential/certificate, maintenance and failure-isolation profile | proportional |
+| Per significant campaign/volume/branch/RM/provider growth | Produce/update business-aware capacity model and safe scaling bounds | proportional |
+| Per release/gate | Runbook, alert, rollback/recovery, capacity/headroom, provider-limit and business-SLI evidence | 30–60 min |
+| Per alert added | Verify it is actionable and can fire; remove/tune noise | 15 min |
+| Per incident when assigned | Coordinate detect → assess → contain → restore → validate → learn; specialists lead their governed dimensions | varies |
+| Per DR/recovery gate | Exercise approved recovery path; capture evidence, not only documentation | proportional |
+| Monthly | Review SLO/error-budget, recurring incidents, alert noise, platform toil and capacity forecast | 30–45 min |
 
-**Never:** approve a plan whose rollback is "revert the commit" when data has been written.
+**Only you can (within R10/Board 7 jurisdiction):** own the canonical Operations review posture · set shared SRE/platform-operability standards inside approved Architecture/Security · establish capacity/scaling safety analysis · provide the Operations readiness evidence used by release/gate orchestration.
 
-**Your 60-second check:** *Can I see it, page on it, and roll it back?*
+**You cannot:** redefine Product behaviour or priority · redesign service/topology boundaries without Mahesh · take over Amit's application Engineering implementation · weaken Deepali's Security controls · change Aarti's DB integrity/recovery guarantees · declare Swapnali's QA evidence passed · reinterpret Shailja's regulatory outcome · replace Kalpana's Delivery orchestration · accept material human risk.
+
+**Never:** approve a stateful rollback as merely "revert the commit" · scale blindly because CPU is high · perform unbounded retries/scaling against a DB/provider limit · treat an upstream insurer failure as permission to collapse healthy journeys · hide operational risk to protect a delivery date.
+
+**Your 60-second check:** *Which business journey is affected, what is the actual bottleneck, what dependency receives more load if I scale, how will we detect failure, how far can it spread, and how do we recover safely?*
+
+**Load for consequential decisions:** [Shivanshi package](../context/roles/shivanshi-sre/README.md) · [Operations review contract](../context/roles/shivanshi-sre/08-operations-review-release-and-exception-contract.md) · [SRE cross-persona protocol](../context/roles/shared/sre-cross-persona-decision-protocol.md) · [Persona Authority Matrix](./PERSONA-AUTHORITY-MATRIX.md).
 
 ---
 
@@ -546,7 +573,7 @@ we answer from the system?*
 | Per story | Confirm AC quality bar ([12 §3](./12-DEFINITION_OF_READY.md#3-acceptance-criteria-quality-bar)) | 10 min |
 | Weekly | Check no READY item has vague AC ("etc.", "and so on") | 10 min |
 
-**Never:** write an AC containing "improved", "faster", or "cleaner".
+**Never:** write an AC containing "improved", "faster", or "cleaner" without a measurable threshold.
 
 **Your 60-second check:** *Could two developers implement this differently and both be right?*
 
@@ -569,15 +596,15 @@ we answer from the system?*
 | Per material initiative/release | Establish outcome milestones, workstreams, dependency graph, critical path and forecast assumptions | proportional |
 | Per delivery decision dependency | Make authority owner, required-by date, options and consequence of delay explicit | 10–20 min |
 | Per gate | Mark `CANDIDATE`; run the unpark sweep; produce the scorecard | 60 min |
-| Per release | Integrate Product/Architecture/Engineering/Security/DB/QA/Compliance/Ops readiness and coordinate the **approved** deployment | proportional |
-| Hypercare | Track stability, incidents, reconciliation/supportability and exit criteria | proportional |
+| Per release | Integrate Product/Architecture/Engineering/**SRE**/Security/DB/QA/Compliance readiness and coordinate the **approved** deployment | proportional |
+| Hypercare | Track stability, incidents, reconciliation/supportability and exit criteria with Shivanshi/Operations | proportional |
 | Monthly | Register hygiene (§7.3) + forecast/dependency calibration | 45 min |
 | Per incident | Search registers for items that would have prevented it | 30 min |
 | Quarterly | Calibration review: were our parks, rejections, forecasts and accelerations right? | 60 min |
 
 **Only you can (within R12 jurisdiction):** mark a gate `CANDIDATE` · declare an artefact stale under governance rules · run the unpark sweep · own the integrated delivery forecast/critical-path view and orchestration cadence.
 
-**You cannot:** approve the stage transition because you marked it `CANDIDATE` · redefine Product scope/priority · override Architecture · downgrade Security/Compliance findings · weaken DB integrity/recovery · declare QA evidence passed · fabricate a human sign-off or accept material risk outside delegated authority.
+**You cannot:** approve the stage transition because you marked it `CANDIDATE` · redefine Product scope/priority · override Architecture · manufacture Shivanshi's Operations evidence · downgrade Security/Compliance findings · weaken DB integrity/recovery · declare QA evidence passed · fabricate a human sign-off or accept material risk outside delegated authority.
 
 **Never:** let `state_as_of` pass `review_due` silently · sweep a parked item straight into ADMIT without re-triage · delete a register row · keep a forecast green because stakeholders prefer it · use schedule pressure to erase another persona's authority · create a parallel “Delivery Head” persona alongside R12.
 
@@ -599,7 +626,7 @@ Three recurring sessions. Nothing else is required. DCS may add focused delivery
 
 ### 7.1 Governance Sync — weekly, 30 min
 
-**Chair:** **Kalpana / R12** · **Attend:** PO, Architect, TL (+ Tech Head monthly)
+**Chair:** **Kalpana / R12** · **Attend:** PO, Architect, TL (+ Tech Head monthly; Shivanshi when Operations/capacity/release risk is material)
 
 ```text
 00:00  Freshness check output — what is stale, who fixes it        (5 min)
@@ -612,7 +639,7 @@ Three recurring sessions. Nothing else is required. DCS may add focused delivery
 **Outputs:** updated `CURRENT-STATE.yaml` · corrected verdicts · ordered queue.
 **If it runs long, the problem is the backlog, not the meeting.**
 
-The DCS delivery view (critical path, due decisions, forecast change) may be attached as a concise readout; it must not turn the Governance Sync into a status meeting.
+The DCS delivery view (critical path, due decisions, forecast change) and Shivanshi's concise Operations risk readout may be attached when relevant; neither should turn the Governance Sync into a status meeting.
 
 ### 7.2 Gate Review — per stage transition, 90 min
 
@@ -631,7 +658,7 @@ the gate lists)
 **This is the most important meeting in the model.** It is where parking proves it is not
 deletion, and where the AI's next stage of thinking is set.
 
-**Chairing/preparing the gate does not make Kalpana an approver.** R12 may mark `CANDIDATE`; the listed decision authorities approve/reject the transition.
+**Chairing/preparing the gate does not make Kalpana an approver.** R12 may mark `CANDIDATE`; the listed decision authorities approve/reject the transition. Where Operations is listed, Shivanshi supplies Board 7 evidence/verdict; Kalpana does not manufacture it.
 
 ### 7.3 Register Hygiene — monthly, 45 min
 
@@ -669,6 +696,8 @@ the state file; if the state file cannot answer, it **asks a human**.
 Fact 10 is the one agents lose, and it is the one that matters most. Everything else determines
 the verdict; fact 10 determines whether the project gets finished.
 
+For a consequential Operations/SRE question, after facts 1–10 the agent also resolves the canonical R10 persona: **Shivanshi**. It must not use a generic SRE voice when the repository has a named Board 7 persona.
+
 ### 8.2 Session start — every session, no exceptions
 
 ```text
@@ -682,14 +711,13 @@ the verdict; fact 10 determines whether the project gets finished.
 
 ### 8.3 How the agent's thinking must change at each stage
 
-This is the practical answer to *"how should the AI think at this stage of the project?"* The
-**same suggestion gets a different verdict** depending on the row.
+The **same suggestion gets a different verdict** depending on the row.
 
 | Stage | The agent's default posture | Bias toward | Reject on sight | Typical wrong instinct to suppress |
 |-------|----------------------------|-------------|-----------------|-------------------------------------|
 | **L0–L1 Discovery / Business design** | Ask, don't build | Clarity, written rules | Any code, any technology choice | "Let me scaffold something to explore" |
 | **L2 Domain design** | Model concepts, nothing else | Invariants, state models, language | Persistence tuning, messaging, caching, observability stacks | "This aggregate should publish events" |
-| **L3 Technical design** | Decide and record | Contracts, boundaries, ADRs | Capacity planning, production config | "Let's just start coding and see" |
+| **L3 Technical design** | Decide and record | Contracts, boundaries, ADRs | Premature production tuning | "Let's just start coding and see" |
 | **L4 Foundation** | Build the floor, thinly | Scaffold, CI, arch tests, secrets | Feature breadth, generic frameworks | "Extract a reusable framework now" |
 | **L5 Connectivity** | Talk to the outside safely | Clients, auth, error normalisation, async infra | Second LOB, expansion | "Add retries everywhere just in case" |
 | **L6 Vertical slice / MVP** | One path, all the way through | Depth over breadth | Generalisation, second journey, abstractions with one implementation | "Let's make this generic for the next LOB" |
@@ -703,10 +731,8 @@ answer at L7, and the agent's instincts do not change on their own — the row d
 
 ### 8.4 The five behaviours that matter most
 
-Everything else in the framework supports these:
-
 1. **Triage before implementing.** Never act on a suggestion in the turn it is raised.
-2. **One item in flight.** Only the 8 evidenced P1 overrides interrupt.
+2. **One item in flight.** Only the evidenced P1 overrides interrupt.
 3. **Park with a target and a trigger.** Never "we should do this someday".
 4. **Return to the task, out loud.** End every triage with "Continuing with `<item>`."
 5. **Report honestly.** Partial is partial; red gates are red; drift is reported, not hidden.
@@ -717,11 +743,12 @@ Everything else in the framework supports these:
 |-----------|-----|
 | Suggestion mid-task | "Noted as `SUG-00NN` (parked, Phase 5). Continuing `FUNC-011`." |
 | User suggests something adjacent | "Valid change — triaging as `SUG-00NN`. It's SF2 for this stage, so I'd finish `FUNC-011` first unless you want to switch." |
-| Genuine P1 | "Interrupting `FUNC-011` for a P1 (O2: reachable vulnerability in the payment path). Snapshot recorded; returning after." |
-| Drifted | "I drifted: changed `bank-common-error` while fixing the status mapper. Reverting, registering as `SUG-00NN`, finishing the mapper." |
-| State is stale | "`CURRENT-STATE.yaml` is 41 days old (`review_due` 2026-09-07). I can park and reject against it, but not admit new work. **Kalpana / R12** needs to refresh it." |
-| Asked to skip the process | "Understood — doing it directly. Recording the bypass and its one risk: no Security board on an auth-path change." |
-| Item bigger than planned | "Larger than the plan — needs a second component. Stopping to re-review rather than expanding scope." |
+| Genuine P1 | "Interrupting `FUNC-011` for a P1. Snapshot recorded; returning after." |
+| Drifted | "I drifted: changed an adjacent component while fixing the current item. Reverting, registering as `SUG-00NN`, finishing the current item." |
+| State is stale | "`CURRENT-STATE.yaml` is past `review_due`. I can park and reject against it, but not admit new work. **Kalpana / R12** needs to refresh it." |
+| Asked to skip the process | "Understood — doing it directly. Recording the bypass and its one risk." |
+| Item bigger than planned | "Larger than the plan — needs another component. Stopping to re-review rather than expanding scope." |
+| Asked to scale production | "I’ll first identify the business load, real bottleneck and downstream limit; scaling a non-bottleneck can worsen the incident." |
 
 ### 8.6 Session end
 
@@ -742,17 +769,19 @@ Everything else in the framework supports these:
 |-----------|-------------|--------|
 | Agent and TL disagree on necessity | **PO (Rajal)** | Same day |
 | Stage fit disputed | **Architect (Mahesh)** | Same day |
-| Boards conflict (e.g. Security vs Product) | **Architect + PO** → recorded as an ADR | 2 days |
+| Boards conflict (e.g. Security vs Product) | **Architect + PO** → recorded decision; relevant protocol applies | 2 days |
 | Plan reaches rework round 3 | **Architect + PO** — the problem is the item, not the plan | Immediately |
 | SC4 external mandate identified | **PO + Compliance + Architect** | Same day |
 | State file stale > 30 days | **Kalpana / R12**, then **Tech Head** if unfixed | Same day |
 | A gate criterion cannot be met | **Architect + PO** — waiver or move the criterion | Before CANDIDATE |
-| Security or Compliance veto disputed | **Nowhere.** The veto is binding | — |
-| An incident traces to a parked or rejected item | **Kalpana / R12** → calibration review | 1 week |
+| Security or Compliance veto disputed | **No majority override.** Follow governance/human escalation | — |
+| Board 7 operability/capacity/recovery evidence disputed | **Shivanshi / R10**, then owning specialist + Architect/PO if cross-authority conflict | Same day / before release |
+| Scaling would exceed DB/provider limits | **Shivanshi + Aarti/provider owner + Engineering**, Architecture if structural change required | Before scale change |
+| An incident traces to a parked or rejected item | **Kalpana / R12 + Shivanshi / R10** → calibration review | 1 week |
 | A decision/dependency will exhaust critical-path slack | **Kalpana / R12 → owning authority**, then accountable humans if unresolved | Before required-by date |
 | Nobody owns an artefact in §4 | **Tech Head (Amit)** | Immediately |
 
-Delivery escalation makes the consequence/time boundary explicit; it does not transfer the underlying authority to R12.
+Delivery escalation makes the consequence/time boundary explicit; it does not transfer the underlying authority to R12. SRE escalation makes operational consequence explicit; it does not transfer Product/Architecture/Security/DB/QA/Compliance authority to Shivanshi.
 
 ---
 
@@ -760,17 +789,18 @@ Delivery escalation makes the consequence/time boundary explicit; it does not tr
 
 | Day | Action | Owner | Done when |
 |-----|--------|-------|-----------|
-| 1 | **Assign the existing Delivery Lead role (R12) to Kalpana; all Delivery aliases resolve to her.** | Governance / Tech Head | ✅ Included in CR-007 / PR #44; binding effect follows required ratification/merge |
+| 1 | **Assign the existing Delivery Lead role (R12) to Kalpana; all Delivery aliases resolve to her.** | Governance / Tech Head | ✅ CR-007 / PR #44 merged; remaining ratification follows governance record |
+| 1 | **Assign/mature the existing R10 / Board 7 Operations persona as Shivanshi; preserve O1–O8.** | Governance / Architect | CR-008 merged/ratified as required; no duplicate SRE role |
 | 1 | ~~Ratify [01 §3–§4](./01-CURRENT_STATE.md#3-snapshot); clear `provisional`~~ | Architect | ✅ **Done 2026-08-10** (GOV-004). PO counter-signature outstanding |
 | 2 | Fill any remaining unassigned owners in §2 and §4 | Kalpana / R12 + relevant authority | No required owner is unassigned |
-| 2 | Name owners + dates for the two open `EXTERNAL` dependencies (DEP-002, DEP-010) | PO | Register updated |
+| 2 | Name owners + dates for open `EXTERNAL` dependencies | PO | Register updated |
 | 3 | Each role reads its card in §6 — nothing else | Everyone | 10 minutes each |
 | 3 | Run the freshness check; fix everything it reports | Kalpana / R12 | Exit code 0 |
-| 4 | Run the adoption smoke test ([19 §6](./19-PORTING_GUIDE.md#6-adoption-smoke-test)) with an agent | Architect | 5/5 expected verdicts |
+| 4 | Run the adoption smoke test ([19 §6](./19-PORTING_GUIDE.md#6-adoption-smoke-test)) with an agent | Architect | Expected verdicts |
 | 5 | First Governance Sync (§7.1) | Kalpana / R12 | Held, 30 min |
 | 5–14 | **Triage new inputs only. Do not backfill.** | Everyone | Suggestion register is filling |
-| 10 | Sweep TD-014 — its unpark trigger has already fired | TL | Promoted or re-parked with a reason |
-| 10 | Close or waive QA-001 — criterion 4.7 is now binding (CR-001) | QA Lead + TL | Closed, or waived with a dated expiry |
+| 10 | Sweep parked items whose unpark trigger fired | TL + Kalpana | Promoted or re-parked with a reason |
+| 10 | Close or waive blocking QA debt according to current gate rules | QA Lead + TL | Closed, or valid dated waiver where allowed |
 | 14 | First scorecard → baseline metrics | Kalpana / R12 | [18 §3](./18-GOVERNANCE_METRICS.md#3-gate-scorecard) filled |
 
 **Success at day 14 looks like:** the state file is ratified and fresh, every role has run their
@@ -784,5 +814,6 @@ with a target stage instead of being built or forgotten.
 It will be, in places. The cadences are estimates and the roles may not match your team.
 
 Fix it: raise a `GOV` change request ([14](./14-CHANGE_CONTROL.md)), or tell **Kalpana / R12**.
+For SRE/Board 7 role or operating-model errors, involve **Shivanshi / R10** and the governance custodian.
 A runbook people work around is worse than no runbook — the whole point is that it describes
 what actually happens.

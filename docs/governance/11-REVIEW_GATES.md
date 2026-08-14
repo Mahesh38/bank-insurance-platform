@@ -69,9 +69,46 @@ Rigour scales with risk. Running seven boards on a typo teaches everyone to rubb
 | Risk & Compliance | — | if compliance_impact ≠ none | ✅ | ✅ **human** |
 | Operations | — | if operational_impact ≠ none | ✅ | ✅ |
 
-**Automatic T4 triggers** (any one): PII handling · secrets or credentials · authn/authz ·
-cryptography · money movement · consent or retention · data migration or backfill · production
-topology · a breaking public contract · anything a regulator can ask about.
+### Automatic T4 triggers — the change test
+
+> **Rule RG-5 — T4 is about what the change *does*, not what it is *near*.**
+> A trigger fires when the change **alters the behaviour, strength, coverage or trust boundary**
+> of the listed control. Working *inside* a component that implements one of these controls,
+> without changing the control itself, does **not** fire it.
+
+A trigger fires when the change does any of the following:
+
+| # | Trigger — the change… |
+|---|---|
+| G1 | changes **who or what may access** a resource, or how that decision is reached (authn/authz logic, roles, scopes, policy, default-deny posture) |
+| G2 | changes which **PII, restricted, health or financial fields** are collected, stored, logged, exported or shared — or widens who can see them |
+| G3 | changes how **secrets, credentials, keys or certificates** are created, stored, transported, rotated or revoked |
+| G4 | changes a **cryptographic** algorithm, mode, key length, key ownership or trust anchor |
+| G5 | changes **money movement**, financial correctness, limits, reconciliation or maker-checker |
+| G6 | changes **consent capture, retention or deletion** behaviour |
+| G7 | performs or changes a **data migration or backfill** against real data |
+| G8 | changes **production topology**, public exposure or a network trust boundary |
+| G9 | **breaks a public contract** already consumed by a bank caller or partner |
+| G10 | creates, removes or changes a control a **regulator can ask us to evidence** |
+
+**Explicitly not T4** (assign the tier on the change's own merits — usually T1 or T2):
+
+- logging, comment, naming, formatting or error-message changes inside a security or payment component that leave the control logic unchanged;
+- adding a test, fixture or test-only helper for an existing control;
+- dependency bumps with no reachable change to a control (Board 4 still applies at T2 via `security_impact`);
+- documentation, runbook and observability changes that do not alter enforcement;
+- refactoring that is behaviour-preserving under existing tests and moves no trust boundary.
+
+> **Rule RG-6 — Tier down, then justify.** When a change is genuinely ambiguous against G1–G10,
+> tier it **T3**, record which trigger was considered and why it did not fire, and let the
+> Security or Compliance board escalate it to T4 if it disagrees. That escalation is one board's
+> single call — it needs no CR. Escalating up is cheap; running seven boards on every log-line
+> edit is not.
+>
+> Where a workstream's whole subject matter is a listed control — WS-2 is an authentication and
+> authorization platform — G1–G10 must be applied to the **delta**, not to the workstream.
+> Otherwise every change in that workstream is T4 by definition, the tier ladder collapses to a
+> single rung, and the proportionality this section exists to provide is lost.
 
 ---
 
@@ -324,8 +361,39 @@ APPROVED  ⇔  every mandatory board for the tier returned APPROVED or
 | Security or Risk & Compliance `REWORK`/`REJECTED` | **Binding veto.** No aggregate or majority override |
 | Architecture `REWORK` | Overridable only by a recorded ADR signed by a human architect where AIGEM permits; never overrides a separate binding Security/Compliance conclusion |
 | Product `REWORK` | Product behaviour/scope/acceptance must be corrected or consciously changed by the authorised Product owner; Engineering/Architecture cannot silently override it |
-| A mandatory board did not respond | Gate is **not** approved. Silence is never assent |
+| A mandatory board did not respond | Gate is **not** approved. Silence is never assent — see §12.1 for the response clock |
 | Boards conflict | Use the relevant shared protocol; identify each domain owner, resolve outcome-vs-implementation separately, and persist the final decision. No majority voting |
+
+### 12.1 Board response clock
+
+Silence must never approve a change. It must also never be able to stop one indefinitely without
+a named person owning that stop. Both are true at once, so the clock escalates — it never
+approves.
+
+| Tier | Board must respond within | On expiry |
+|------|---------------------------|-----------|
+| T1–T2 | 1 working day | Auto-escalate to the board's named persona |
+| T3 | 2 working days | Auto-escalate to the board's named persona, notify R12 |
+| T4 | 3 working days | Auto-escalate to the accountable human owner (R1/R2 + the binding domain owner), notify R12 |
+
+```text
+Board does not respond within its window
+   → R12 records NO_RESPONSE against the board on the gate record (this is not a verdict)
+   → the named persona for that board is asked directly, with the deadline restated
+   → still no response by the next window
+       → escalate to the accountable human(s) for that board
+       → the gate stays NOT APPROVED throughout
+```
+
+> **Rule RG-7 — A non-response is an unowned decision, not an approval.** `NO_RESPONSE` never
+> counts toward the gate, never substitutes for a verdict, and never satisfies a mandatory T4
+> human sign-off. What it does is put a name and a date against the stop, so an unstaffed board
+> becomes a visible, assignable problem instead of an invisible, permanent one.
+
+Repeated `NO_RESPONSE` against the same board is a **staffing signal**, not a discipline one: the
+board is either unstaffed, over-triggered by [§3](#3-proportionality--which-boards-are-mandatory),
+or reviewing work it has no genuine interest in. Fix the cause; do not shorten the window.
+`NO_RESPONSE` counts are reported under [18 §2](./18-GOVERNANCE_METRICS.md#2-governance-metrics) Flow.
 
 For material Security conflict, use the Security Cross-Persona Decision Protocol. For material SRE/Operations conflict, use the SRE Cross-Persona Decision Protocol. For material Product ↔ Architecture ↔ Risk/Compliance conflict, use the shared Product ↔ Architecture ↔ Compliance protocol. For a material Mahesh/Architecture ↔ Shailja/Risk & Compliance conflict, use the bilateral Mahesh ↔ Shailja protocol. If conflict remains after one substantive alternatives/redesign cycle, escalate to accountable humans; an AI agent does not arbitrate residual material risk or mandatory sign-off.
 
@@ -352,7 +420,22 @@ usually the item needs splitting, a spike, or re-triage. Rework counts feed
 | `APPROVED_WITH_CONDITIONS` conditions | Appended to the plan's `acceptance_criteria`; verified at DoD ([13](./13-DEFINITION_OF_DONE.md)) |
 | `should_fix` items | Triaged as fresh `SUG-####` — they are suggestions, and get the same treatment as any other |
 | Plan changes materially after approval | Re-review by the affected boards ([14 §4](./14-CHANGE_CONTROL.md#4-changing-an-approved-plan)) |
-| Approval age > one stage | Expired. Re-run the boards — the context that justified it has changed |
+| Approval age > 30 calendar days | Expired. Re-run the boards |
+| The plan's stage, scope or standing constraints changed under it | Expired immediately, regardless of age |
+
+> **Rule RG-8 — Approvals expire on changed context or elapsed time, not on stage arithmetic.**
+> An approval expires when it is **30 calendar days old**, or sooner if the context that justified
+> it actually changed: a stage transition, an approved CR touching the plan's scope, a change to a
+> standing constraint, or a material plan edit under [14 §4](./14-CHANGE_CONTROL.md#4-changing-an-approved-plan).
+>
+> Elapsed time inside a single long-running stage is **not**, by itself, expiry. The previous rule
+> ("age > one stage") expired approvals whenever a gate stayed open longer than the work took —
+> which meant boards re-reviewed plans that nobody had changed, in a stage nobody had left. That
+> is ceremony, and it consumed the review capacity the gate depends on.
+>
+> Re-review after expiry is scoped to the boards whose **inputs** changed, not automatically to all
+> seven. If nothing in a board's jurisdiction moved, it re-affirms with a one-line evidence entry
+> rather than a fresh full review.
 
 ---
 

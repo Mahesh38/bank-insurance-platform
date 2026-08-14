@@ -114,7 +114,9 @@ workstreams:
         - id: "4.7"
           criterion: "Coverage gates green; QA-001 closed or explicitly waived with expiry"
           state: PARTIAL
-      approvers: ["Architect", "PO", "QA Lead", "Compliance (4.4)", "Ops (4.5)"]
+      # 4.5 is owned by Shivanshi (R10 / Board 7), named by CR-008. Previously listed as
+      # "Ops" — an approver with no persona, which is why 4.5 could not close.
+      approvers: ["Architect", "PO", "QA Lead", "Compliance (4.4)", "Shivanshi / SRE (4.5)"]
 
     completed_stages:
       - "Phase 0 — Access & alignment"
@@ -239,7 +241,12 @@ routing:
   MIGRATION:
     - "docs/architecture-review/08-architecture-decision-log.md"
     - "docs/1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md"
-  GOV: ["docs/governance/"]
+  # GOV work routes to the framework itself AND to the owning workstream's backlog:
+  # change control asks "is this change correct?", the backlog asks "should we spend
+  # this week on it instead of the open gate?". Both questions must be asked (08 §3.1).
+  GOV:
+    - "docs/governance/"
+    - "docs/1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md"
   IDEA: ["docs/governance/registers/PARKED-BACKLOG.md"]
 
 # Legacy ID prefixes used by the existing product backlog. These are ID
@@ -289,7 +296,7 @@ id_allocation:
   pattern: "^(SUG|DEP)-[0-9]{8}-[0-9a-z]{3}$"
   legacy_pattern: "^(SUG|DEP)-[0-9]{4}$"
   sequential:
-    CR: 9         # CR-001..008 in use; next unused is CR-009
+    CR: 10        # CR-001..009 in use; next unused is CR-010
     RISK: 12      # RISK-001..011 in use
     ASM: 9        # ASM-001..008 in use
     EPIC: 1

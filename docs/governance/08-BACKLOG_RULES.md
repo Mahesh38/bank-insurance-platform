@@ -47,8 +47,44 @@ backlog.
 | `OPS`, `INFRA` | Backlog, ops section |
 | `SPIKE` | Backlog with a timebox |
 | `DOC` | Applied in place; recorded in the suggestion register |
-| `GOV` | `docs/governance/**` via change control |
+| `GOV` | `docs/governance/**` via change control — **and** a backlog entry (see §3.1) |
 | `IDEA` | Parked backlog → Ideas |
+
+### 3.1 Governance work is work
+
+> **Rule BR-4 — `GOV` items are triaged, queued and counted like any other work type.**
+> A change to the governance framework, a persona package, a register format or this file gets a
+> `SUG-####`, a stage-fit and necessity verdict, a priority, a backlog entry and a place in the
+> queue — exactly as a `FUNC` item does. It also consumes the **single in-flight slot**
+> ([00 §2](./00-GOVERNANCE.md#2-principles), [09](./09-AI_EXECUTION_RULES.md)).
+
+Governance work previously routed only to `docs/governance/**` through change control. Change
+control asks *"is this change correct?"* — it never asks *"should we be spending this week's
+capacity on governance instead of on the open gate?"*. Nothing compared governance work against
+product work, because governance work never entered the queue where that comparison happens.
+
+The measured consequence in this repository: **61 consecutive commits of governance and persona
+documentation, zero product commits, while GATE-P4 held at 0 of 7 exit criteria closed and
+GATE-IAM-P1 at 0 of 6.** Every one of those changes was individually well-formed and correctly
+change-controlled. None of them was ever weighed against the delivery it displaced.
+
+Concretely, a `GOV` item must now:
+
+1. carry a `SUG-####` and a triage verdict like any other input;
+2. appear as a work item in the owning workstream's backlog, not only as a CR;
+3. occupy the one in-flight slot while it is being written — **governance work in flight means
+   product work is paused, and that must be visible on the board, not discovered in `git log`**;
+4. state, in its CR `impact` block, which gate criterion or delivery outcome it defers;
+5. be reported in the gate scorecard under [18 §2](./18-GOVERNANCE_METRICS.md#2-governance-metrics).
+
+**Exempt from the queue** (hygiene, not change): correcting a broken link or typo, appending a
+row to a register during normal triage, recording a decision that has already been made, and the
+freshness acknowledgements in [17](./17-DRIFT_CONTROL.md). These are bookkeeping the framework
+already requires; they are not framework changes.
+
+> **The test:** if it adds a rule, a persona, a board, a document or a required artefact, it is
+> `GOV` work and it queues. If it only records something the framework already decided, it is
+> hygiene and it does not.
 
 ---
 

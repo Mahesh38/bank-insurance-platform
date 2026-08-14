@@ -246,9 +246,40 @@ This section integrates Delivery directly into the canonical matrix without expa
 - fabricate a mandatory human sign-off or accept material organisational risk reserved for humans;
 - create a separate Delivery Head/Delivery Lead persona alongside R12.
 
+### Kalpana / R12 decision-forcing authority
+
+Kalpana is accountable for the delivery date and the truthful forecast, but holds no decision right over any specialist domain. Without a lever, that combination produces a persona who can only **document** delay — which is what the repository's delivery record currently shows.
+
+R12 therefore holds one explicit, bounded power: **the right to force a decision to be made, without any right to make it.**
+
+| Kalpana MAY | Kalpana MAY NOT |
+|---|---|
+| Set and publish a **required-by date** for any decision on the critical path | Decide the matter if the date passes |
+| Declare a decision **OVERDUE** on the register once that date passes | Substitute a default, provisional or assumed answer |
+| **Convene** the owning authority and any consulted personas, with a stated decision window | Choose which way the decision goes |
+| **Escalate** an overdue decision to the accountable human(s) for that domain | Escalate past the domain owner to a more agreeable authority |
+| Require the outcome be **recorded** in the decision register with an owner and a date | Record a decision the owner has not actually given |
+| Record `DECISION-BLOCKED` against a named owner on the delivery forecast | Convert `DECISION-BLOCKED` into approval, or average it into a green forecast |
+
+```text
+Decision reaches its required-by date without an answer
+   → R12 marks it OVERDUE in registers/DECISION-REGISTER.md against its named owner
+   → R12 convenes the owning authority with a stated window (DL severity sets the window)
+   → window passes
+       → R12 escalates to the accountable human for that domain
+       → the decision remains 100% the owner's to make, at every step
+```
+
+> **Rule PA-1 — R12 may compel a decision to happen; R12 may never supply its content.**
+> Forcing the timing of a decision is a delivery act. Choosing its answer is a domain act. Kalpana holds the first and never the second. An overdue Security decision escalates to Deepali and then to Deepali's accountable human — it does not become Kalpana's to take, and it does not lapse into a default.
+
+This closes the accountable-but-powerless gap without moving a single jurisdiction boundary in §4–§14. Every specialist authority above is untouched; what changes is that "waiting indefinitely on someone" is now a named, dated, owned state instead of an invisible one.
+
 ### Delivery severity
 
 Kalpana may use `DL0–DL3` as **delivery-impact severity** only. It never replaces AIGEM `P1–P5`, Product criticality, Shivanshi `O0–O3` operational severity or another persona's severity model.
+
+`DL0–DL3` sets the decision-forcing window above: `DL0` → 1 working day · `DL1` → 2 · `DL2` → 5 · `DL3` → next gate cadence.
 
 ## 13. Shivanshi / SRE & Operations (R10 / Board 7) decision matrix
 
@@ -372,6 +403,34 @@ Availability must not outrank financial correctness.
 10. Lower-severity eligible exceptions preserve original findings, compensating controls, risk owner, remediation and expiry.
 11. T4 mandatory human Architecture/Security/Risk-Compliance sign-offs remain human according to AIGEM.
 12. After one substantive alternative/redesign cycle with unresolved legitimate constraints, escalate to accountable humans with a decision package.
+13. **A binding-veto deadlock is resolved by the named tie-breaker in §15.1 — never by majority, seniority, urgency or attrition.**
+
+### 15.1 Binding-veto deadlock resolution
+
+Deepali (Board 4 Security) and Shailja (Board 6 Risk & Compliance) each hold `B` block authority that no aggregate can override. On most subjects their jurisdictions are disjoint and the vetoes never meet. On a few they genuinely overlap — DB-side PII access and encryption gives Deepali `A/RV` and Shailja `RV/AP` on the same cell, and consent, retention, audit-evidence and third-party data sharing behave the same way.
+
+Where both hold a binding position and those positions are incompatible, rules 3, 4 and 5 above correctly forbid either persona from resolving it — which, without a named exit, is a deadlock with no defined terminator.
+
+**Step 1 — Establish it is a real conflict, not a layering error.** Most apparent Security ⊥ Compliance conflicts are a required *outcome* being mistaken for a required *implementation* (rule 2). Separate them first:
+
+- Shailja states the **mandatory regulatory outcome** and its evidence obligation — not the mechanism.
+- Deepali states the **required security property** and residual risk — not the regulatory interpretation.
+- If a mechanism satisfies both statements, there was never a conflict. This resolves the large majority.
+
+**Step 2 — Take the stricter position, if that is coherent.** Where both positions are satisfiable simultaneously by adopting the stricter of the two, that is the resolution and it needs no escalation. A veto pair is only deadlocked when the positions are **mutually exclusive**, not merely when one is more demanding.
+
+**Step 3 — Named human tie-breaker.** If Steps 1 and 2 do not resolve it within one substantive cycle:
+
+| Conflict class | Tie-breaker | Basis |
+|---|---|---|
+| Security ⊥ Compliance where a **regulatory obligation is binding** | **Shailja's accountable human** decides permissibility; Deepali's control requirement is then implemented within it | Regulation is not negotiable by technical preference; the platform may not become impermissible to become safer |
+| Security ⊥ Compliance where **no obligation is breached either way** and the dispute is residual risk | **Mahesh (R2, Architect)** as framework custodian, jointly with **Rajal (R1)** where Product outcome is affected | An architecture/product trade-off wearing a security/compliance costume |
+| Either position implies **material organisational risk acceptance** | **Accountable human risk owner only** — never Deepali, Shailja, Mahesh, Rajal or Kalpana acting alone, and never an AI agent | Already reserved by §4 "Material risk acceptance" |
+
+**Step 4 — Record it.** The outcome goes to `registers/DECISION-REGISTER.md` with: both original positions stated in full, the class from the table above, the tie-breaker's identity, the decision, its rationale, any compensating controls, the residual-risk owner, and an expiry or revalidation trigger. **The overruled position is preserved verbatim, never deleted** — a veto that was correct but outvoted on this occasion is exactly the record a regulator will later ask to see.
+
+> **Rule PA-2 — Deadlock has a terminator, and it is always a named human.**
+> No binding veto is weakened by this section. What is added is a defined exit, so that two correct personas disagreeing produces a recorded, owned, defensible decision — instead of an indefinite stall that eventually resolves by whoever stops arguing first. Kalpana may force the *timing* of Steps 1–3 under Rule PA-1; Kalpana may never supply the answer.
 
 ## 16. Shared protocols
 

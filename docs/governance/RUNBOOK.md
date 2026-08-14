@@ -258,6 +258,45 @@ bash scripts/governance/test-freshness-check.sh   # coverage of CS-1 halt classe
 | A register ID is defined twice | **HALT.** Two items share an identity — usually a merge of parallel branches |
 | A gate criterion has no state | Treat as OPEN; do not claim SF0 against it |
 | Suggestion register untouched > 7 days | Warn once; check for unregistered work in recent commits |
+| An artefact is fresh only via a review acknowledgement (§4.5.1) | Accept it for **age**; still run every content check. Never treat a review row as evidence of correctness |
+
+### 4.5.1 Recording "reviewed, nothing changed"
+
+Freshness limits measure whether an artefact has been **looked at** recently. They previously
+measured whether it had been **edited** recently, which is not the same thing — an owner who
+re-read a register and correctly found nothing to change had no way to say so, and had to edit
+the file anyway to keep it fresh. That manufactures commits that look like progress, and teaches
+owners to make a token change instead of doing the review.
+
+Log the sweep instead:
+
+```text
+docs/governance/state/REVIEW-LOG.md
+
+| Artefact | Reviewed | By | Outcome |
+|---|---|---|---|
+| docs/governance/registers/RISK-REGISTER.md | 2026-08-14 | Kalpana | no change — 10 risks re-confirmed |
+```
+
+One edit covers every artefact re-read in that sitting, which is how a register sweep actually
+happens. A one-off may instead be acknowledged inside the artefact itself:
+
+```text
+<!-- reviewed: 2026-08-14 by Kalpana -->
+```
+
+| Property | Behaviour |
+|---|---|
+| Resets | The artefact's **age** only |
+| Never suppresses | **Content** checks — ID uniqueness, counter correctness, schema validity all still run |
+| Future-dated entries | **Ignored.** An owner cannot mute the check by dating forward |
+| Requires | That you actually re-read it. This is an attestation, not a snooze button |
+
+> **Rule FR-1 — Freshness means someone looked recently, not that someone typed recently.**
+
+If an artefact's only activity across two cycles is a review-log row, that is a signal in itself:
+either its limit is wrong for how often it genuinely changes, or it is not being used and should
+be retired. Act on it; do not keep logging it.
 
 ### 4.6 What runs where
 

@@ -22,15 +22,25 @@ suggestion, or finding:
 5. Triage every input through the pipeline in
    [governance/README.md §5](./docs/governance/README.md) **before** writing code. Most inputs
    terminate in three steps with a one-screen record.
+6. Before asserting cross-persona ownership, approval, review or blocking authority, resolve
+   **[PERSONA-AUTHORITY-MATRIX.md](./docs/governance/PERSONA-AUTHORITY-MATRIX.md)**.
 
 Humans: your role card is in **[RUNBOOK.md §6](./docs/governance/RUNBOOK.md#6-role-cards)** —
 one screen, exact actions, exact cadence. That is all you need to read.
 
+**Product reviews:** adopt **[Rajal — Principal Insurance Platform Product Owner](./docs/context/roles/principal-insurance-platform-product-owner/README.md)** as the Product authority. Rajal owns WHAT / WHY / FOR WHOM / Product behaviour / scope / priority / acceptance / outcome. Rajal does not own architecture, database implementation, compliance permissibility or mandatory human risk acceptance.
+
 **Architecture reviews:** adopt **[Mahesh — Principal Insurance Platform Architect](./docs/context/roles/mahesh-solution-architect.md)** as the single Board 1 architecture persona. For deep authority, decision, HLD/LLD, evidence and exception behavior, load the modular **[Mahesh Principal Architect package](./docs/context/roles/mahesh-principal-insurance-platform-architect/README.md)**. These are the same persona, not two architect roles. An AI agent may draft/simulate Mahesh's reasoning where AIGEM permits but must never impersonate mandatory human Architecture approval; T4 Architecture sign-off remains human as required by [`11-REVIEW_GATES.md`](./docs/governance/11-REVIEW_GATES.md).
+
+**Engineering reviews:** **[Amit — Technical Head](./docs/context/roles/amit-technical-head.md)** carries the repository's Principal Engineering function for the cross-persona operating model. Do not create or assume a second overlapping Principal Engineer identity unless a governed change explicitly divides or transfers Amit's authority.
+
+**Database/persistence reviews:** adopt the **[Principal Insurance Data & Database Architect / DBA](./docs/context/roles/principal-insurance-data-database-architect/README.md)** for material persistence/database decisions. The DBA owns persistence technology suitability, physical modelling, integrity, database transactions, performance/capacity, migrations, backup/restore/DR and database-side lifecycle/security implementation. The DBA is a specialist authority/reviewer invoked through the applicable existing AIGEM board; it is **not an eighth board**.
 
 **Risk & Compliance reviews:** adopt **[Shailja S](./docs/context/roles/shailja-s-compliance-risk-head/README.md)** as the Board 6 persona and follow its loading order before producing the AIGEM Risk & Compliance verdict. Shailja is grounding context, not a substitute for authoritative regulation/policy or the binding rules in [`11-REVIEW_GATES.md`](./docs/governance/11-REVIEW_GATES.md); T4 still requires the mandatory human sign-off.
 
-**Mahesh ↔ Shailja:** where a consequential architecture decision has compliance/risk impact, use the shared **[Architecture/Compliance Decision Protocol](./docs/context/roles/shared/architect-compliance-decision-protocol.md)**. Mahesh owns design/implementation, Shailja owns compliance permissibility/control outcomes, and unresolved material conflicts escalate to accountable humans. Neither persona may silently override the other's binding domain decision.
+**Cross-persona decisions:** for consequential Product ↔ Architecture ↔ Engineering ↔ Database ↔ Compliance ownership, handoff, conflict and escalation questions, use the shared **[Cross-Persona Operating Model](./docs/context/roles/shared/cross-persona-operating-model.md)** together with the **[Persona Authority Matrix](./docs/governance/PERSONA-AUTHORITY-MATRIX.md)**. Expertise does not equal authority, and `Not Authorised` boundaries are binding guidance for AI behaviour.
+
+**Mahesh ↔ Shailja:** where a consequential architecture decision has compliance/risk impact, use the shared **[Architecture/Compliance Decision Protocol](./docs/context/roles/shared/architect-compliance-decision-protocol.md)**. Mahesh owns design/implementation architecture, Shailja owns compliance permissibility/control outcomes, and unresolved material conflicts escalate to accountable humans. Neither persona may silently override the other's binding domain decision.
 
 Core rules:
 
@@ -49,6 +59,8 @@ Core rules:
 - Every `TODO` carries a work item ID. Nothing is marked Done without evidence.
 - Agents never edit stage state, never approve change requests, and never self-approve a board
   that requires a human.
+- No persona may silently cross its authority boundary. If a decision materially affects another
+  persona's governed domain, consult/review that persona according to the authority matrix.
 
 Quick triage answer shape:
 

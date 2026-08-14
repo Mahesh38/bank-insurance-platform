@@ -36,8 +36,7 @@ with a probability**. Risks feed the `R` factor in priority scoring
 | RISK-003 | Bank AD technology unconfirmed (DEP-010) | WS-2 | 2 | 3 | 6 | PO + Architect | Adapter design must remain federation-agnostic; do not pre-commit | Phase 1 gate PASSED with no confirmation |
 | RISK-004 | In-memory idempotency is unsafe multi-instance (TD-010) | WS-1 | 2 | 3 | 6 | Tech Lead | Single-instance constraint documented; Redis scheduled Phase 5.4 | Any plan to run > 1 instance |
 | RISK-005 | AWS Secrets Manager provider is a stub; prod profile fails fast (TD-006) | WS-1 | 2 | 3 | 6 | Platform | Keep fail-fast; schedule at Phase 6 | AWS deployment target confirmed |
-| RISK-006 | Service coverage is on an interim floor (QA-001 partial) | WS-1 | 2 | 2 | 4 | QA Lead | Close or waive with expiry at gate 4.7 | Phase 4 gate CANDIDATE with 4.7 unresolved |
-| RISK-007 | Raw payload capture incomplete for status / master-data (TD-023) | WS-1 | 2 | 2 | 4 | Tech Lead | Scope decided by compliance review 4.4 | Compliance requires full capture |
+| RISK-007 | Audit + raw payload coverage incomplete (TD-023) — status/master-data payloads uncaptured; 5 of 13 declared audit actions never emitted | WS-1 | 3 | 2 | 6 | Tech Lead | **Scope decided 2026-08-14** — ASM-008 invalidated, coverage must widen. TD-023 raised P2 → P1. Proposed list in the [4.4 pack §3.1](../../1sb-insurance-integration/service-ssot/compliance/COMPLIANCE-REVIEW-PACK.md) awaiting Compliance confirmation | Phase 4 gate reaches CANDIDATE with TD-023 open |
 | RISK-008 | No QA Engineer / QA Lead cycle ran for Phase 4 stories (single-agent branch) | WS-1 | 2 | 2 | 4 | QA Lead | Recorded variance in `phase-4/STATUS.md`; QA pass before UAT sign-off | UAT exposure without a QA cycle |
 | RISK-009 | 1SB sandbox instability could stall E2E in CI (gate 4.1) | WS-1 | 2 | 2 | 4 | Eng | Gated nightly fallback already sanctioned by ACTION-PLAN 4.1 | E2E flakiness blocks the pipeline |
 | RISK-010 | Governance adopted mid-flight; historical work never passed AIGEM gates | Both | 3 | 1 | 3 | Delivery Lead | Deliberate ([19 §5](../19-PORTING_GUIDE.md#5-bootstrapping-into-an-existing-project-mid-flight)) — forward-only adoption | An incident traces to un-triaged historical work |
@@ -60,6 +59,8 @@ Risks knowingly carried, with the acceptance recorded so they are not re-raised 
 | ID | Risk | Closed | How |
 |----|------|--------|-----|
 | RISK-001 | Current-state file unratified; agents may triage against a wrong stage | 2026-08-10 | Ratified by the Solution Architect (GOV-004); `provisional: false`. `FreshnessCheck` now halts if the state goes stale, so the risk cannot silently return |
+| RISK-006 | Service coverage on an interim floor (QA-001 partial) | 2026-08-13 | QA-001 **closed**, not waived. Strategy §7 package floors enforced in `build.gradle.kts` with `packageFloorGuard`; four packages raised by adding tests rather than lowering floors |
+| RISK-011 | *(never issued — counter skipped)* | — | ID reserved by the template example in §5; no risk was raised under it |
 
 ---
 

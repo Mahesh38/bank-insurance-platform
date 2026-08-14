@@ -54,7 +54,7 @@ Prefer this log for sweeps — it is one edit rather than one per artefact.
 
 | Artefact | Reviewed | By | Outcome |
 |---|---|---|---|
-| docs/governance/registers/PARKED-BACKLOG.md | 2026-08-14 | Claude (agent), for CR-009 | Re-read during the governance review. Empty; no parked items to age. Recorded as reviewed rather than edited, as the first use of this mechanism. |
+| docs/governance/registers/PARKED-BACKLOG.md | 2026-08-14 | Claude (agent), for CR-009 | Re-read as the CR-009 unpark sweep ([14 §3](../14-CHANGE_CONTROL.md#3-procedure) step 5c). **7 parked items; no change made to the register.** One finding raised, not actioned here: **TD-014's unpark trigger has fired** — "now eligible", overlapping GATE-P4 criterion 4.1. Unparking is a triage decision for R1/R2, not for this CR. |
 
 ---
 

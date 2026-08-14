@@ -2,7 +2,7 @@
 
 **Change request:** CR-009
 **Date raised:** 2026-08-14
-**Status:** PENDING RATIFICATION
+**Status:** **APPROVED** 2026-08-14 — including A1 and B4
 **Change type:** `GOV` — framework recalibration
 **Runtime impact:** None. No application code, API contract or production configuration changes.
 **AIGEM board count:** Unchanged — remains seven
@@ -35,6 +35,7 @@ Measured at the time this CR was raised:
 | Personas added between CR-002 and CR-008 | **6, in 7 days** |
 | Items processed through the suggestion register | **1** |
 | ADRs / EPICs / SPIKEs minted | **0 / 0 / 0** |
+| Parked items | **7** — of which **1 (TD-014) has a fired unpark trigger awaiting sweep** |
 | `FreshnessCheck` verdict throughout | **FRESH** |
 
 Every mechanical check passed for the entire period in which nothing was delivered. That is the
@@ -132,7 +133,9 @@ measurement that would have surfaced it, which C1 now adds.
   commit 2026-08-10.
 - `CURRENT-STATE.yaml` — GATE-P4 at 0/7 closed; GATE-IAM-P1 at 0/6.
 - `ci-checks.py [8]` — docs 42,151 / code 20,070 = 2.10; governance+personas 53% of docs.
-- Registers — 1 suggestion, 0 parked, 0 ADR, 0 EPIC, 0 SPIKE.
+- Registers — 1 suggestion, 7 parked, 0 ADR, 0 EPIC, 0 SPIKE. The parked backlog is the one
+  register with real content, seeded from `TECH-DEBT.md` under GOV-003; it was not produced by
+  pipeline throughput.
 - CR-002 … CR-008 — six personas added in seven days.
 - `11 §3` as previously written, read against WS-2's subject matter: 100% T4.
 
@@ -160,26 +163,53 @@ measurement that would have surfaced it, which C1 now adds.
 
 ## 9. Ratification
 
-This CR is recorded as **PENDING RATIFICATION**. It was prepared by an AI agent on explicit user
-direction after a governance review. Per **Rule CC-1**, an agent may raise a CR and may never
-approve one — including this one, and including the parts of it the agent believes are obviously
-correct.
+**APPROVED 2026-08-14**, in full and including A1 and B4, by the repository owner acting in the
+**Mahesh / Architect (R2)** framework-custodian authority, who also authorised the Product (R1)
+and Delivery (R12) positions.
 
-Required approvers, per `14 §1` for a `GOV` change and `§1.1` for the roster clause:
+This CR was prepared by an AI agent on explicit user direction. Per **Rule CC-1** the agent raised
+it and did not approve it — including the parts the agent believed were obviously correct. The
+approval below is the human's.
 
 | Approver | For | Recorded |
 |---|---|---|
-| **Mahesh** — Architect (R2), framework custodian | All ten changes | ☐ |
-| **Rajal** — Product Owner (R1) | A2, A4, A5, B3, C1 | ☐ |
-| **Deepali** — Security (R8) | **A1** and **B4** — both touch Security's review surface and veto | ☐ |
-| **Shailja S** — Risk & Compliance (R9) | **A1** and **B4** — same | ☐ |
-| **Kalpana** — Delivery (R12) | A3, A5, C1, C3 | ☐ |
+| **Mahesh** — Architect (R2), framework custodian | All ten changes | ☑ 2026-08-14 |
+| **Rajal** — Product Owner (R1) | A2, A4, A5, B3, C1 | ☑ 2026-08-14, authorised by R2 |
+| **Kalpana** — Delivery (R12) | A3, A5, C1, C3 | ☑ 2026-08-14, authorised by R2 |
+| **Deepali** — Security (R8) | **A1**, **B4** | ☑ 2026-08-14, authorised by R2 — **see §9.1** |
+| **Shailja S** — Risk & Compliance (R9) | **A1**, **B4** | ☑ 2026-08-14, authorised by R2 — **see §9.1** |
 
-**A1 and B4 must not be merged without Deepali's and Shailja's explicit verdicts.** A1 changes
-when their boards are convened; B4 changes what happens when they disagree. Neither is an
-agent's call, and neither is the Architect's alone.
+### 9.1 Provenance of the A1 / B4 approvals — read this before relying on them
 
-**Decision:** PENDING
-**Approvers:** []
-**Decided on:**
-**Conditions:** []
+This CR was raised stating that A1 and B4 must not merge without Deepali's and Shailja's
+**explicit** verdicts, because A1 changes when their boards are convened and B4 changes what
+happens when they disagree.
+
+Those two approvals were given by the **same human** who holds the R2 Architecture authority,
+authorising them on behalf of R8 and R9. They are **not** independently recorded Board 4 and
+Board 6 verdicts, and this record does not represent them as such. Recording them as independent
+sign-offs would be exactly the fabrication the framework forbids
+([matrix §12](../PERSONA-AUTHORITY-MATRIX.md#kalpana--r12-is-not-authorised-to-independently)).
+
+This is a legitimate ratification: an accountable human with authority over the framework
+approved a framework change. It is recorded with its provenance visible so that a later reader —
+or a regulator — can see precisely who signed what.
+
+Two consequences follow, and neither is optional:
+
+1. **This approval covers the framework text only.** It does not pre-approve any future change
+   that A1 tiers down. Board 4 and Board 6 retain their full binding veto on every individual
+   change, unchanged by this CR.
+2. **If Deepali and Shailja review A1 and B4 independently**, their verdicts are appended here
+   and this section is updated to reflect them. If either objects, the objection is treated as a
+   verdict on a live rule — not as a re-litigation needing new evidence under
+   [§6](../14-CHANGE_CONTROL.md#6-reversing-a-rejection) — and A1 or B4 is amended or reverted
+   accordingly. **Their veto over these two clauses survives this approval.**
+
+**Decision:** APPROVED
+**Approvers:** ["Mahesh / Architect (R2), repository owner — including R1, R12, and R8/R9 per §9.1"]
+**Decided on:** 2026-08-14
+**Conditions:**
+- Deepali (R8) and Shailja (R9) may record independent verdicts on A1 and B4 at any time; their
+  veto over those two clauses is preserved (§9.1).
+- First `INTERVENE` check under GM-1 falls due two weeks from ratification: **2026-08-28**.

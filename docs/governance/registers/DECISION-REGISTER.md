@@ -43,7 +43,7 @@ without a search.
 | GOV-004 | 2026-08-10 | **Ratify the current-state snapshot**: WS-1 at Phase 4 (Hardening), WS-2 at IAM Phase 1, with the scope and standing constraints as recorded | Reconstructed from `ACTION-PLAN.md`, phase `STATUS.md` files, `TECH-DEBT.md` and git history; reviewed and accepted | **Mahesh (Solution Architect), 2026-08-10** — PO counter-signature outstanding |
 | GOV-005 | 2026-08-14 | Consolidate the architecture role into **Mahesh — Principal Insurance Platform Architect** as the single Board 1 persona, with modular authority/review files and a reciprocal Mahesh↔Shailja protocol | Avoid two overlapping architect identities while retaining deep architecture reasoning, evidence, compliance collaboration and human escalation | **Proposed by Mahesh** via CR-002 — Product counter-signature outstanding |
 | GOV-006 | 2026-08-14 | Propose assigning existing **AIGEM R10 / Board 7 Operations** to **Shivanshi — Principal Insurance Platform SRE / Reliability Engineering Head** and mature the existing SRE capability | Preserve the original Operations controls while adding insurance/bancassurance domain intelligence, platform/CI-CD, observability, incidents/DR, business-aware capacity/scaling and developer enablement without creating a second SRE role | **Proposed by Mahesh** via CR-008 — required governance ratification pending |
-| GOV-007 | 2026-08-14 | **Recalibrate the framework for flow**: T4 triggers become a change test (RG-5/RG-6); `GOV` work is queued and counted (BR-4/GC-1); board response clock (RG-7); approvals expire at 30 days or on changed context (RG-8); R12 may force a decision's timing but never its content (PA-1); binding-veto deadlock gets a named human tie-breaker (PA-2); persona roster closed at nine (CC-2/CC-3); gate criteria closed per week becomes the headline metric (GM-1); freshness accepts a reviewed-no-change acknowledgement (FR-1) | Measured: 0 of 7 and 0 of 6 gate exit criteria closed, 61 consecutive commits with no product code, docs-to-code ratio 2.10, one suggestion processed — while every mechanical check reported healthy. The framework was consuming the delivery capacity it exists to protect. No board, veto, jurisdiction or mandatory human sign-off is changed | **Raised by agent:claude** via CR-009 — ratification pending; **A1 and B4 require Deepali and Shailja explicitly** |
+| GOV-007 | 2026-08-14 | **Recalibrate the framework for flow**: T4 triggers become a change test (RG-5/RG-6); `GOV` work is queued and counted (BR-4/GC-1); board response clock (RG-7); approvals expire at 30 days or on changed context (RG-8); R12 may force a decision's timing but never its content (PA-1); binding-veto deadlock gets a named human tie-breaker (PA-2); persona roster closed at nine (CC-2/CC-3); gate criteria closed per week becomes the headline metric (GM-1); freshness accepts a reviewed-no-change acknowledgement (FR-1) | Measured: 0 of 7 and 0 of 6 gate exit criteria closed, 61 consecutive commits with no product code, docs-to-code ratio 2.10, one suggestion processed — while every mechanical check reported healthy. The framework was consuming the delivery capacity it exists to protect. No board, veto, jurisdiction or mandatory human sign-off is changed | **APPROVED 2026-08-14** — Mahesh / Architect (R2), repository owner, in full including A1 and B4. R1/R12 and the R8/R9 positions on A1/B4 authorised by R2; see CR-009 §9.1 — Deepali's and Shailja's independent verdicts are not separately recorded and their veto over A1/B4 survives |
 
 ## 3. Change requests
 
@@ -52,7 +52,7 @@ without a search.
 | CR-001 | 2026-08-10 | STAGE | Add exit criterion **4.7** (coverage gates green; QA-001 closed or waived with expiry) to the WS-1 Phase 4 gate | **APPROVED** 2026-08-10 | Mahesh (Solution Architect) — PO + QA Lead counter-signature outstanding |
 | CR-002 | 2026-08-14 | GOV | Make Mahesh the single Principal Insurance Platform Architect persona; modularize his authority/review model; retain Shailja as independent Board 6; keep legacy architect path as compatibility-only | **PENDING RATIFICATION** | Mahesh approved preparation on review branch — Product Owner pending |
 | CR-008 | 2026-08-14 | GOV | Name Shivanshi as existing R10 / Board 7 Operations persona and mature SRE with insurance-domain, platform, CI/CD, observability, incident/DR, capacity/scaling and developer-experience capability | **PENDING RATIFICATION** | Prepared on Mahesh/user direction — Architecture + Product and any other required governance ratification pending |
-| CR-009 | 2026-08-14 | GOV | Recalibrate the framework for flow: T4 change test, `GOV` work queued and counted, board response clock, 30-day approval expiry, R12 decision-forcing, veto-deadlock tie-breaker, persona roster closed at nine, gate-closure headline metric, reviewed-no-change freshness | **PENDING RATIFICATION** | Raised by `agent:claude`; Architecture + Product required, **Deepali and Shailja mandatory for A1 and B4** |
+| CR-009 | 2026-08-14 | GOV | Recalibrate the framework for flow: T4 change test, `GOV` work queued and counted, board response clock, 30-day approval expiry, R12 decision-forcing, veto-deadlock tie-breaker, persona roster closed at nine, gate-closure headline metric, reviewed-no-change freshness | **APPROVED** 2026-08-14 | Mahesh / Architect (R2), repository owner — in full, including A1 and B4. Provenance of the R8/R9 approvals recorded in CR-009 §9.1 |
 
 ### CR-001 — add Phase 4 exit criterion 4.7
 
@@ -153,11 +153,20 @@ safeguards:        Seven boards unchanged. Security and Compliance vetoes remain
                    cannot block. C3 resets age only and never suppresses a content check.
                    Ambiguous tiering goes to T3, not T1, and any single board may escalate to T4
                    with no CR.
-decision:          PENDING RATIFICATION
+decision:          APPROVED 2026-08-14 — in full, including A1 and B4
 authority:         Raised by an AI agent under Rule CC-1, which forbids that agent from approving
-                   it. A1 and B4 change when Security and Compliance are convened and what happens
-                   when they disagree; they must not merge without Deepali's and Shailja's
-                   explicit verdicts.
+                   it. Approved by the repository owner in the Mahesh / Architect (R2)
+                   framework-custodian authority, who also authorised the R1, R12 and — for A1
+                   and B4 — the R8 and R9 positions.
+provenance:        The A1/B4 approvals were given by the R2 authority on behalf of R8 and R9.
+                   They are NOT independently recorded Board 4 / Board 6 verdicts and are not
+                   represented as such. Deepali and Shailja may record independent verdicts at
+                   any time; their veto over A1 and B4 survives this approval, and an objection
+                   is treated as a verdict on a live rule rather than a re-litigation requiring
+                   new evidence. See CR-009 section 9.1.
+scope_of_approval: Framework text only. Every individual change that A1 tiers down remains fully
+                   subject to Board 4 and Board 6 binding veto, unchanged by this CR.
+next_check:        First GM-1 INTERVENE check falls due 2026-08-28 (two weeks from ratification).
 ```
 
 ## 4. Stage transitions

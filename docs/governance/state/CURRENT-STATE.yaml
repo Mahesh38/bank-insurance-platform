@@ -8,7 +8,7 @@
 # Rule (04 §5): agents MUST NOT edit current_phase / stage_status. Human only.
 
 schema_version: "1.0"
-governance_version: "AIGEM 1.0"
+governance_version: "AIGEM 1.4" # CR-009 ratified 2026-08-14; matches README.md section 1
 
 project:
   name: "Bank Insurance Platform"

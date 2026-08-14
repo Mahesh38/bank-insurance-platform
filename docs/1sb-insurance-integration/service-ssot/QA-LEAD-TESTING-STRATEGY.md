@@ -1,31 +1,31 @@
 # QA Lead — Testing Strategy
 
+**Canonical QA persona:** [Swapnali — Principal Insurance Quality Engineering / QA Lead](../../context/roles/swapnali-qa-lead/README.md)  
 **Role:** QA Lead  
-**Branch:** `cursor/phase1-foundations-c259`  
-**Date:** 2026-07-30  
+**Date:** 2026-08-14  
 **Applies to:** `1sb-integration-service`, `bank-persistence-service`, `libs/bank-common-*`  
-**SSOT companions:** [TESTING-RULES.md](./TESTING-RULES.md) · [TEST-BACKLOG.md](./TEST-BACKLOG.md) · architecture §13 (tests)
+**SSOT companions:** [TESTING-RULES.md](./TESTING-RULES.md) · [COVERAGE.md](./COVERAGE.md) · [TEST-BACKLOG.md](./TEST-BACKLOG.md)  
+**Repository-wide quality metrics:** [AIGEM Governance Metrics §3](../../governance/18-GOVERNANCE_METRICS.md#3-merged-quality-health-metrics)
 
 ---
 
-## 1. Honest baseline (as of Phase 2 close)
+## 1. Purpose and source-of-truth rule
 
-| Metric | Reality |
-|--------|---------|
-| Production `.java` files | ~99 |
-| `*Test.java` classes | ~18 |
-| JaCoCo / coverage gate in CI | **Partial (QA-001)** — libs gated 80%/70%; services interim 35% line; see [COVERAGE.md](./COVERAGE.md). Supersedes earlier “None / unmeasured” baseline. |
-| Pure single-class unit tests | Sparse — strongest on libs + `PiiMasker` / `OneSbErrorNormaliser` |
-| Adapter tests with WireMock / MockRest | Present for HttpClient, poller, JobStore |
-| True multi-service integration (Testcontainers) | **Absent** |
-| API contract / E2E / performance / security suites | **Absent** |
-| Persistence controller coverage | Thin (poll-attempt only) |
+This file is the **service execution strategy** for QA. Swapnali's persona package defines platform-wide behaviour, authority, insurance criticality and waiver rules.
 
-**QA verdict:** Phase 2 delivered *some* automated checks, but we do **not** meet a bank-grade quality bar. Unmeasured coverage ≈ unmanaged risk. Phase 3 (quote/proposal) must not land without the rules below.
+Do not duplicate metric values:
 
----
+- line/branch coverage thresholds and measured coverage → `COVERAGE.md`;
+- QA backlog/status → `TEST-BACKLOG.md`;
+- repository-wide quality-health metrics → `docs/governance/18-GOVERNANCE_METRICS.md`.
 
-## 2. Testing pyramid (mandatory shape)
+## 2. Current baseline
+
+The repository has meaningful unit/component coverage, WireMock-based integration templates and enforced coverage gates, but still requires progressive bank-grade contract, multi-service, resilience, performance and sandbox journey evidence as the product journey expands.
+
+Current numeric coverage is intentionally not copied here; read `COVERAGE.md`.
+
+## 3. Testing pyramid
 
 ```text
                  ┌─────────────┐
@@ -33,193 +33,103 @@
                  ├─────────────┤
                  │ Integration │  Service+DB / dual-service HTTP
                  ├─────────────┤
-                 │   Slice     │  @WebMvcTest, @DataJpaTest, WireMock
+                 │   Slice     │  MVC/JPA/WireMock/component
                  ├─────────────┤
-                 │    Unit     │  Majority — pure logic, mappers, policies
+                 │    Unit     │  Majority — business rules/mappers/policies
                  └─────────────┘
 ```
 
-| Layer | % of automated effort (target) | Speed | Flakiness budget |
-|-------|-------------------------------|-------|------------------|
-| Unit | 60–70% | &lt; 1s class | Zero tolerated |
-| Slice / component | 15–20% | Seconds | Low |
-| Integration | 10–15% | Tens of seconds | Low; quarantine if flaky |
-| E2E / sandbox | 5% | Minutes | Nightly / gated OK |
+| Layer | Target share of automated effort | Reliability posture |
+|---|---:|---|
+| Unit | 60–70% | Zero flake tolerance |
+| Slice/component | 15–20% | Low flake |
+| Integration | 10–15% | Stable; quarantine only with tracked debt |
+| E2E/sandbox | ~5% | Gated/nightly/manual promote acceptable |
 
-**Anti-pattern:** Replacing unit tests with only Spring context boots. Context tests prove wiring; they do **not** prove business rules.
+Coverage is a floor, not a goal.
 
----
+## 4. Required test types
 
-## 3. Test types we require
+### Unit — developer owned
 
-### 3.1 Unit tests (Developer-owned — **mandatory**)
+Business rules/state transitions, mappers/normalisers, validation, edge cases, utilities and shared libraries. Same-PR rule applies.
 
-**What:** Single class / pure function. No Spring context unless the class *is* a Spring bean with heavy DI — prefer constructor + mocks.
+### Slice/component — developer owned, QA reviewed
 
-**Must cover:**
-- Domain policies & state transitions (`JobStatus`, idempotency body-hash rules)
-- Mappers / normalisers (`OneSbErrorNormaliser`, future quote/proposal mappers)
-- Utilities (`PiiMasker`, hash helpers)
-- Shared libs (`ServiceErrorResponse`, `AuditEvent`, secret providers)
-- Edge cases: null, blank, boundary, invalid enum, conflict paths
+`@WebMvcTest`, repository/database slices, WireMock/MockRestServiceServer and architecture/static rules where appropriate.
 
-**Tools:** JUnit 5, AssertJ, Mockito. Lombok OK.
+### Integration — Engineering implements, Swapnali owns scenario sufficiency
 
-**Rule:** Every new non-trivial public method in `application`, `lob`, `adapter.*.error|mapper`, and libs gets a unit test **in the same PR**.
+- persistence service + DB/API;
+- integration service + realistic provider/persistence boundaries;
+- dual-service integration where risk justifies it.
 
----
+### Contract
 
-### 3.2 Slice / component tests (Developer-owned — **mandatory** for adapters & APIs)
+OpenAPI/internal API/event/provider schema compatibility. Introduce consumer-driven tooling only where multiple consumers and change risk justify the cost.
 
-| Slice | Use when |
-|-------|----------|
-| `@WebMvcTest` | Controllers + filters (idempotency, future `/v1/quotes`) |
-| `@DataJpaTest` or MockMvc+H2 Boot | Persistence repositories/controllers |
-| WireMock | Outbound 1SB HTTP (`OneSbHttpClient`, poller) |
-| `MockRestServiceServer` | Outbound persistence HTTP (`HttpJobStoreAdapter`) |
-| ArchUnit | Hex boundaries — already started; tighten as packages fill |
+### E2E/sandbox
 
----
+Few high-value journeys such as quote → proposal → payment → status/issuance, secrets-gated and not required on every PR.
 
-### 3.3 Integration tests (Developer-owned primary; QA designs cases)
+### Non-functional
 
-**Definition:** Multiple real components together **without** mocking the boundary under test.
+Performance, resilience/fault injection, security-quality evidence, observability/recovery, and accessibility where relevant.
 
-| Suite | Scope | Tech |
-|-------|-------|------|
-| **IT-P** Persistence | Flyway + H2/Testcontainers Postgres + HTTP API | `@SpringBootTest` + MockMvc or RestClient |
-| **IT-I** Integration service | App + WireMock(1SB) + WireMock/Testcontainers(persistence) | `@SpringBootTest` |
-| **IT-D** Dual-service | Real `bank-persistence` + `1sb-integration` processes | Testcontainers / docker-compose CI job |
+## 5. Insurance criticality overlay
 
-**Minimum before Phase 3 exit:** IT-P for job create→poll-attempt→complete+offers; IT-I for quote happy path with WireMock 1SB (when FUNC-002 lands).
+When changes affect authn/authz, consent, suitability/eligibility, premium/sum assured, proposal declarations, payment, issuance, reconciliation, PII, audit or idempotency, load Swapnali's protected-gate rules and require risk-proportionate evidence beyond raw coverage.
 
----
+Payment success must never be treated as equivalent to policy issuance.
 
-### 3.4 Contract tests (QA + Dev; Automation-friendly)
+## 6. Ownership
 
-- OpenAPI for bank `/v1/**` published; consumer-driven checks (Schemathesis / Dredd / Prism) optional later
-- Persistence internal API: markdown/OpenAPI kept in sync; smoke contract in CI
-- **Pact** only if multiple bank consumers demand it (Phase 4+)
+| Activity | Engineering/Developer | Swapnali QA | Other authority |
+|---|---|---|---|
+| Unit/component tests | **R/A implementation** | RV gaps | — |
+| Integration automation | R | **A scenario sufficiency** | Aarti/Security/Shailja consulted as applicable |
+| E2E/sandbox strategy | C/R | **O/A** | Product provides journey acceptance |
+| Coverage wiring in Gradle/CI | **R** | **A thresholds/waiver** | — |
+| Test data | C/R | **A quality** | Shailja/Security controls where sensitive |
+| Flake policy | R fixes | **A** | — |
+| Performance scripts | R | A scenarios | Architecture/Engineering NFR owners |
+| Exploratory/UAT quality evidence | C | **O/A** | Product participates in business acceptance |
+| DB migration/recovery evidence | R | RV/A quality | **Aarti owns DB guarantees** |
 
----
+## 7. Developer DoD
 
-### 3.5 End-to-end / sandbox (QA-owned design; Automation / AI execute)
+Follow [TESTING-RULES.md](./TESTING-RULES.md): same-PR tests, realistic boundary tests, no real secrets/PII, green local/CI evidence and canonical coverage gates.
 
-- Journey: masters → quote → proposal → payment → status against **1SB sandbox**
-- Gated: secrets required; nightly or manual promote — not every PR
-- Evidence: jobId, audit events present, no PII in collected logs
+## 8. AI/automation rules
 
----
+Agents may generate test scaffolds, edge cases, provider stubs, masked fixtures, regression summaries and performance scripts. They must not weaken assertions, fabricate execution, commit live credentials/PII, or approve their own evidence where human review is required.
 
-### 3.6 Non-functional & compliance (split ownership)
+## 9. Coverage
 
-| Type | Owner | Automation |
-|------|-------|------------|
-| PII / log masking regression | Dev (unit) + QA sample review | AI can generate payload corpora |
-| Performance smoke (p95 quote) | Eng + QA | k6/Gatling scripts; AI drafts scenarios |
-| Security (authn/z, no secret leak) | Security + QA | Semgrep/gitleaks in CI; AI assist review |
-| Chaos / upstream 5xx / timeout | QA designs | WireMock fault injection in IT-I |
-| Accessibility | N/A (API-only) | — |
+All numeric coverage targets and current measured values live in [COVERAGE.md](./COVERAGE.md). Do not copy them here.
 
----
+A coverage waiver requires the canonical QA waiver process plus the existing TECH-DEBT/expiry control required by `TESTING-RULES.md`.
 
-## 4. Ownership matrix
+## 10. Traceability
 
-| Activity | Developer | QA Lead / QA | Automation / AI agents |
-|----------|-----------|--------------|------------------------|
-| Unit tests for own code | **R/A** | C (reviews gaps) | Assist: generate cases from AC; **never** replace review |
-| Slice tests (MVC/JPA/WireMock) | **R/A** | C | Assist scaffolding |
-| Integration tests (IT-P/IT-I) | **R** | **A** for scenarios | Scaffold + maintain WireMock stubs |
-| Dual-service IT-D / sandbox E2E | C | **R/A** | **R** execute in CI/nightly |
-| Coverage gate / JaCoCo | **R** wire in Gradle | **A** thresholds | Report in PR |
-| Test data & PII corpora | C | **A** | **R** generate masked fixtures |
-| Flaky triage | **R** | **A** quarantine policy | Detect flakes across runs |
-| Exploratory / UAT sign-off | — | **R/A** | Suggest charters |
-| ArchUnit / static rules | **R** | C | Propose new rules from architecture |
+Material acceptance criteria map to test/evidence identifiers. Q0/Q1 and protected quality-gate paths require complete traceability before quality exit unless a genuinely permitted governed exception is recorded.
 
-R = Responsible · A = Accountable · C = Consulted
+## 11. Metrics
 
----
+Swapnali reads quality-health metrics from [`docs/governance/18-GOVERNANCE_METRICS.md`](../../governance/18-GOVERNANCE_METRICS.md), especially:
 
-## 5. What developers must do (DoD for every story)
+- critical-journey evidence coverage;
+- acceptance traceability;
+- canonical coverage-gate pass;
+- open Q0 findings;
+- critical production escapes;
+- flake rate;
+- expired QA waivers;
+- release evidence freshness;
+- critical idempotency/reconciliation evidence.
 
-See [TESTING-RULES.md](./TESTING-RULES.md). Summary:
+The service strategy adds no competing metric targets.
 
-1. **Unit first** for logic; PR blocked without tests for new `application`/`lob`/mapper code.
-2. **WireMock** for any new 1SB call path.
-3. **MockMvc** for any new bank-facing endpoint + idempotency behaviour.
-4. **No secrets** in test resources committed as real values — placeholders only.
-5. **Green** `./gradlew test` locally before push.
-6. After JaCoCo lands: meet module thresholds or justify waiver in TECH-DEBT.
+## 12. Immediate execution source
 
----
-
-## 6. What Automation / AI agents should do
-
-**Allowed / encouraged**
-- Generate unit test skeletons from public methods + backlog AC
-- Expand WireMock stub libraries from `api-catalog`
-- Propose edge cases (partial offers, 401, timeout, idempotency conflict)
-- Maintain fixtures under `src/test/resources/fixtures/` (already masked)
-- Run regression packs and summarize failures
-- Draft k6 scripts from NFR table
-- Flag missing tests via PR checklist bot
-
-**Forbidden**
-- Approving their own PRs without human QA/TL review
-- Weak tests that only call constructors / assertNotNull without behaviour
-- Hitting real 1SB sandbox from every PR (cost + flake + credential risk)
-- Committing production credentials or live PII
-
----
-
-## 7. Coverage targets (once JaCoCo enabled)
-
-| Module / package | Line | Branch | When enforced |
-|------------------|------|--------|---------------|
-| `libs/*` | 80% | 70% | Immediate after JaCoCo PR |
-| `…onesb.application.*` / `…lob.*` | 80% | 70% | From first Phase 3 story |
-| `…adapter.onesb.*` | 70% | 60% | Phase 2 follow-up |
-| `…adapter.idempotency.*` | 80% | 70% | Phase 2 follow-up |
-| `com.bank.persistence.api.*` | 70% | 60% | Before Phase 3 exit |
-| Config / Spring Boot main | Excluded | — | Always |
-
-**Principle:** Coverage is a **floor**, not a goal. Mutation testing (PIT) optional Phase 4 for mappers.
-
----
-
-## 8. Environments & data
-
-| Env | Tests allowed |
-|-----|----------------|
-| Local / CI | Unit, slice, IT with H2 or Testcontainers; WireMock |
-| UAT | E2E sandbox; exploratory |
-| Prod | Synthetic health probes only — **no** functional test suites |
-
-Test data: synthetic customers only; PAN/mobile must be obviously fake; masking tests use dedicated fixtures.
-
----
-
-## 9. Traceability
-
-Every P0 backlog AC (PRODUCT-BACKLOG) maps to ≥1 automated test id:
-
-```text
-FUNC-002 AC "missing fields → 422, no 1SB call"
-  → QuoteControllerSliceTest.missingFields_noUpstreamCall
-  → tagged @Tag("FUNC-002")
-```
-
-QA maintains the map in [TEST-BACKLOG.md](./TEST-BACKLOG.md) as stories close.
-
----
-
-## 10. Immediate QA directives (next engineering work)
-
-1. **QA-001** Wire JaCoCo + publish HTML/XML; fail build under thresholds (libs first).
-2. **QA-002** Fill persistence API tests (jobs, offers, payment, audit, exception handler).
-3. **QA-003** Add IT-I template: integration service + WireMock 1SB + WireMock persistence.
-4. **QA-004** Phase 3 definition of done includes unit+slice+IT for quote path.
-5. **QA-005** CI badge/report for coverage on PR.
-
-Owned as backlog items in [TEST-BACKLOG.md](./TEST-BACKLOG.md); tech-debt cross-links in TECH-DEBT.md.
+Current QA-001+ status and next work remain in [TEST-BACKLOG.md](./TEST-BACKLOG.md). Update the backlog rather than freezing dated “next actions” in this strategy.

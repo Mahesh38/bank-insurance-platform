@@ -43,7 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
-| — | — | — | *No suggestions triaged yet. AIGEM adopted 2026-08-07; triage begins with the next input.* | — | — | — | — | — | — | — |
+| SUG-20260814-k3p | 2026-08-14 | human:Mahesh | Close the open GATE-P4 criteria so WS-1's gate can be closed as approved | SF1 | SC0 | MUST | OPS | P2 / P2 | ESCALATED | [§3](#sug-20260814-k3p--close-gate-p4-so-ws-1-can-be-approved) · [GATE-P4-EVIDENCE](../../1sb-insurance-integration/service-ssot/phase-4/GATE-P4-EVIDENCE.md) |
 
 <!--
 Row format:
@@ -58,6 +58,100 @@ Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
 
 <!-- ### SUG-0001 · <title>  ... full triage record ... -->
+
+### SUG-20260814-k3p · Close GATE-P4 so WS-1 can be approved
+
+```yaml
+# schema: triage-record
+id: SUG-20260814-k3p
+raised_at: "2026-08-14"
+raised_by: "human:Mahesh"
+source: "direct request to the agent"
+input: >
+  "Pick up the ready task now. We need to close the criteria gate, which is open for
+  the work stream so that we can close it as app."
+
+context:
+  workstream: WS-1
+  current_phase: "Phase 4 — Hardening & consumer enablement"
+  canonical_stage: "L7 — Hardening"
+  current_objective: "Term path signed off for UAT use by at least one bank caller"
+  state_as_of: "2026-08-10"
+  state_provisional: false          # FreshnessCheck exit 0 — FRESH
+  active_work_item: null            # nothing in flight; branch was level with main
+
+stage_fit:
+  code: SF1
+  rationale: >
+    Closing GATE-P4's criteria IS the current stage. L7 posture is "prove it, don't
+    extend it" — runbooks, evidence and compliance review are exactly the bias.
+
+scope:
+  code: SC0
+  business_scope: "in scope — current_scope.in_scope lists the operations runbook explicitly"
+  authority: "CURRENT-STATE.yaml current_gate GATE-P4; ACTION-PLAN Phase 4"
+  minimal: true
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  binds_when: "Phase 4 cannot exit until every criterion carries evidence"
+  failure_without_it: >
+    Phase 4 never exits. WS-1 stays at L7 with the Term path unproven for UAT, and
+    every item parked on "Phase 4 gate PASSED" (TD-022, TD-010) stays parked.
+  evidence_tier: E1                 # the gate definition itself
+  confidence: C5
+
+action: ESCALATE
+action_rationale: >
+  The request splits in two, and the halves get different verdicts.
+
+  (a) "Close the gate / mark it approved" — ESCALATE. 04 §5 reserves PASSED to
+      Architect + PO jointly and states an AI agent may NEVER mark a gate PASSED.
+      Independently of authority, the evidence does not exist: 0 of 7 criteria are
+      closed. 4.3 needs an external bank caller, 4.4 and 4.5 need human board
+      verdicts, 4.1 and 4.6 need a working sandbox (CONFIRM-01 §D still open).
+      Per RUNBOOK §9, a criterion that cannot be met goes to Architect + PO for a
+      waiver or a moved criterion — BEFORE CANDIDATE.
+
+  (b) "Do the ready work that closes a criterion" — executed, not re-admitted.
+      Criterion 4.5's runbook is already in current_scope.in_scope and is already a
+      gate criterion, so it is admitted work, not a new suggestion. It was the only
+      OPEN criterion fully ownable without an external party or environment, and its
+      blocker (an approver named "Ops", with no persona) was cleared by CR-008.
+conflicts:
+  - >
+    04-STAGE_GATES.md §6 named 4.5's approver as "Ops"; CURRENT-STATE.yaml named
+    "Shivanshi / SRE (4.5)" under CR-008. Resolved in favour of the state file, which
+    is authoritative (Rule CS-1). 04-STAGE_GATES.md corrected in this change.
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: null
+  plan_id: null
+  status: ESCALATED
+  closed_reason: null
+
+resumed: "none — this was the session's only work item"
+```
+
+**Artefacts produced**
+
+| Artefact | Purpose |
+|---|---|
+| [`phase-4/OPERATIONS-RUNBOOK.md`](../../1sb-insurance-integration/service-ssot/phase-4/OPERATIONS-RUNBOOK.md) | Criterion 4.5 evidence — **DRAFT, unsigned** |
+| [`phase-4/GATE-P4-EVIDENCE.md`](../../1sb-insurance-integration/service-ssot/phase-4/GATE-P4-EVIDENCE.md) | Criterion-by-criterion evidence table for GATE-P4 |
+| [`04-STAGE_GATES.md`](../04-STAGE_GATES.md) | Approver drift corrected ("Ops" → Shivanshi); 4.5 → Partial |
+
+**Awaiting a human decision**
+
+- **Architect + PO** — waiver, move, or hold for 4.3 (external bank caller) and 4.7 (QA-001).
+- **Shivanshi / Board 7** — verdict on `OPERATIONS-RUNBOOK.md`; an `APPROVED` closes 4.5.
+
+**Raised but deliberately not actioned**
+
+- **TD-014's unpark trigger has fired** (overlaps criterion 4.1). Left for R1/R2 triage —
+  one work item in flight ([RUNBOOK §8.4](../RUNBOOK.md#84-the-five-behaviours-that-matter-most)).
 
 ---
 

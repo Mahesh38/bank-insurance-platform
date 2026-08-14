@@ -1,9 +1,10 @@
 # AIGEM — AI Governance & Execution Model
 
-**Version:** 1.0
-**Status:** Binding for all AI agents and human contributors working in this repository
-**Custodian:** Platform / Solution Architect
-**Source blueprint:** *AIGEM Executive Blueprint v0.1*
+**Version:** 1.1  
+**Status:** Binding for all AI agents and human contributors working in this repository  
+**Custodian:** Platform / Solution Architect  
+**Source blueprint:** *AIGEM Executive Blueprint v0.1*  
+**Version 1.1 change:** CR-002 maps Board 1 to the Principal Insurance Platform Architect persona and adds the reciprocal Architect↔Compliance protocol. Ratification remains subject to the approvers recorded in CR-002.
 
 ---
 
@@ -80,7 +81,7 @@ resolve L3 first.** See [01-CURRENT_STATE.md](./01-CURRENT_STATE.md).
 | 08 | [08-BACKLOG_RULES.md](./08-BACKLOG_RULES.md) | Where triaged work goes and how it moves |
 | 09 | [09-AI_EXECUTION_RULES.md](./09-AI_EXECUTION_RULES.md) | **The agent contract** — read this before acting |
 | 10 | [10-IMPLEMENTATION_PLAN_TEMPLATE.md](./10-IMPLEMENTATION_PLAN_TEMPLATE.md) | **Step 9** — Plan structure and required fields |
-| 11 | [11-REVIEW_GATES.md](./11-REVIEW_GATES.md) | **Step 10** — Seven review boards + approval gate |
+| 11 | [11-REVIEW_GATES.md](./11-REVIEW_GATES.md) | **Step 10** — Seven review boards + approval gate; Board 1 uses the Principal Insurance Platform Architect persona and Board 6 uses Shailja S |
 | 12 | [12-DEFINITION_OF_READY.md](./12-DEFINITION_OF_READY.md) | When work may be picked up |
 | 13 | [13-DEFINITION_OF_DONE.md](./13-DEFINITION_OF_DONE.md) | When work may be closed |
 | 14 | [14-CHANGE_CONTROL.md](./14-CHANGE_CONTROL.md) | Changing scope, stage, or an approved plan |
@@ -91,6 +92,7 @@ resolve L3 first.** See [01-CURRENT_STATE.md](./01-CURRENT_STATE.md).
 | 19 | [19-PORTING_GUIDE.md](./19-PORTING_GUIDE.md) | Installing AIGEM into another repository |
 | — | [ORG-STANDARDS.md](./ORG-STANDARDS.md) | Layer 2 — organization-wide architecture, security, compliance and quality baselines |
 | — | [RUNBOOK.md](./RUNBOOK.md) | Operating manual: roles, cadences, maintenance, ceremonies |
+| — | [change-requests/CR-002-principal-architect-persona-integration.md](./change-requests/CR-002-principal-architect-persona-integration.md) | GOV change request for the Board 1 persona / Architect↔Compliance protocol integration |
 
 ### Live project data (L3)
 
@@ -242,7 +244,7 @@ This model is deliberately built to score against the blueprint's 9/10 maturity 
 | Decision confidence | [16 §5](./16-DECISION_MODEL.md#5-confidence-levels) |
 | Evidence & assumptions | [16 §4](./16-DECISION_MODEL.md#4-evidence-standard), [registers/ASSUMPTION-REGISTER.md](./registers/ASSUMPTION-REGISTER.md) |
 | Traceability matrix | [08 §6](./08-BACKLOG_RULES.md#6-traceability) |
-| Architecture principles engine | [11 §4](./11-REVIEW_GATES.md#4-board-1--architecture) |
+| Architecture principles engine | [11 §4](./11-REVIEW_GATES.md#4-board-1--architecture) + [Principal Insurance Platform Architect](../context/roles/principal-insurance-platform-architect/README.md) |
 | Decision log | [registers/DECISION-REGISTER.md](./registers/DECISION-REGISTER.md) |
 | Cost vs value analysis | [05 §4](./05-PRIORITY_MODEL.md#4-the-scoring-model) |
 | Project health dashboard | [18](./18-GOVERNANCE_METRICS.md) |
@@ -250,6 +252,7 @@ This model is deliberately built to score against the blueprint's 9/10 maturity 
 | Memory categorization | [08 §2](./08-BACKLOG_RULES.md#2-the-six-buckets) |
 | Revalidation triggers | [16 §7](./16-DECISION_MODEL.md#7-revalidation-triggers) |
 | Success metrics | [18 §2](./18-GOVERNANCE_METRICS.md#2-the-metrics) |
+| Architect↔Compliance separation of duties | [shared protocol](../context/roles/shared/architect-compliance-decision-protocol.md) |
 
 ---
 

@@ -26,7 +26,11 @@ suggestion, or finding:
 Humans: your role card is in **[RUNBOOK.md §6](./docs/governance/RUNBOOK.md#6-role-cards)** —
 one screen, exact actions, exact cadence. That is all you need to read.
 
+**Architecture reviews:** adopt the **[Principal Insurance Platform Architect](./docs/context/roles/principal-insurance-platform-architect/README.md)** as the Board 1 reasoning persona. It is attached to **[Mahesh — Solution Architect](./docs/context/roles/mahesh-solution-architect.md)**, who remains the accountable human Architecture Board owner. Follow the package loading order and authority model before producing an AIGEM Architecture verdict. The persona is grounding/review context; it never self-grants mandatory human approval, and T4 Architecture sign-off remains human as required by [`11-REVIEW_GATES.md`](./docs/governance/11-REVIEW_GATES.md).
+
 **Risk & Compliance reviews:** adopt **[Shailja S](./docs/context/roles/shailja-s-compliance-risk-head/README.md)** as the Board 6 persona and follow its loading order before producing the AIGEM Risk & Compliance verdict. Shailja is grounding context, not a substitute for authoritative regulation/policy or the binding rules in [`11-REVIEW_GATES.md`](./docs/governance/11-REVIEW_GATES.md); T4 still requires the mandatory human sign-off.
+
+**Architecture ↔ Compliance:** where a consequential architecture decision has compliance/risk impact, use the shared **[Architect ↔ Compliance Decision Protocol](./docs/context/roles/shared/architect-compliance-decision-protocol.md)**. Architecture owns design/implementation, Shailja owns compliance permissibility/control outcomes, and unresolved material conflicts escalate to accountable humans. Neither AI persona may silently override the other.
 
 Core rules:
 

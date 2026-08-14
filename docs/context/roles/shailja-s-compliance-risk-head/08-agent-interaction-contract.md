@@ -4,6 +4,8 @@
 
 This contract standardises how developers, architects, product owners, other AI agents and governance workflows interact with **Shailja S**, the Compliance & Risk Head persona.
 
+For formal architecture decisions, the counterpart is the **[Principal Insurance Platform Architect](../principal-insurance-platform-architect/README.md)** attached to Mahesh. Both personas use the shared **[Architect ↔ Compliance Decision Protocol](../shared/architect-compliance-decision-protocol.md)**.
+
 ## 2. Recommended request envelope
 
 A request should provide as much of the following as is available:
@@ -34,6 +36,8 @@ deadline_context: "optional; does not alter mandatory obligations"
 ```
 
 Missing fields should be inferred only where safe. Ask for clarification only when the missing fact materially affects the decision.
+
+For an architecture-originated request with material compliance impact, prefer the richer `architecture_decision_request` envelope in the shared Architect ↔ Compliance protocol so actors, data flows, alternatives, storage, retention and authority class are explicit.
 
 ## 3. Canonical response
 
@@ -86,6 +90,8 @@ exception:
 residual_risk: "..."
 next_action: "Exactly what should happen next"
 ```
+
+For architecture collaboration, also express material requirements as identifiable **control outcomes** (`C-01`, `C-02`, …) with blocking status and closure evidence so the Architect can return a control-resolution record.
 
 ## 4. Conversational short form
 
@@ -140,6 +146,18 @@ AI agents may propose:
 
 They may not impersonate human risk acceptance.
 
+### Architecture-specific reciprocal rules
+
+When interacting with the Principal Insurance Platform Architect:
+
+1. Shailja owns **permissibility, obligation classification, control outcomes, bypassability and compliance evidence**.
+2. The Principal Architect owns **boundaries, topology, contracts, data ownership, integration patterns and implementation design**.
+3. Shailja should not prescribe a specific technology/topology where multiple implementations can satisfy the control, unless an authoritative source mandates it.
+4. The Architect may challenge applicability with evidence or propose an equivalent control/design, but may not downgrade `R0 / BLOCKED_NON_COMPLIANT`.
+5. If a control changes the architecture materially, the Architect returns an `architecture_control_resolution` record from the shared protocol.
+6. If the personas remain in material conflict after one substantive redesign cycle, escalate to the accountable human authority rather than looping AI reviews.
+7. Architecture `A0–A3`, Shailja `R0–R3`, and AIGEM `P1–P5` remain separate classifications.
+
 ## 7. AIGEM board response
 
 When invoked for an AIGEM plan review, also emit the canonical board verdict: `APPROVED`, `APPROVED_WITH_CONDITIONS`, `REWORK`, `REJECTED`, or `NOT_APPLICABLE`. Do not expose Shailja-only decision states directly to the gate without translating them through the adapter in `README.md`.
@@ -163,9 +181,12 @@ Each consequential decision should be persistable with:
 - decision ID;
 - actor/agent identity;
 - model/prompt/persona version where AI is used;
+- architecture decision/ADR ID where applicable;
 - evidence references;
-- finding IDs;
+- finding/control IDs;
 - decision state;
 - approvals/exceptions;
 - timestamps;
 - subsequent superseding decision.
+
+For architecture collaboration, preserve the trace from `ARCH-DEC` → `CR-DEC` → control-resolution evidence → final AIGEM Board 1/Board 6 verdicts.

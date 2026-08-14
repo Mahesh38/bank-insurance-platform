@@ -311,13 +311,39 @@ directory alongside the deployment. Fill them in there before UAT go-live.
 
 ---
 
+## 6.1 Audit sinks
+
+Audit events go to the sinks named by `insurance.audit.sinks` (`INSURANCE_AUDIT_SINKS`).
+Default: `LOG,PERSISTENCE`.
+
+| Value | Effect |
+|---|---|
+| `LOG` | Structured line to the application log. Operator-facing; **not** durable evidence |
+| `PERSISTENCE` | Appended to `audit_event` via `POST /internal/v1/audit-events`. The evidentiary trail |
+| `KAFKA` | Declared but **not implemented** — selecting it **fails startup** by design, rather than accepting events and discarding them |
+
+**Capture is best-effort.** If the persistence service is unavailable, the failure is logged and
+the customer's transaction proceeds — evidence is lost silently. Watch for
+`Failed to persist audit event` in the logs; a sustained run of those means the audit trail has
+a hole, and Compliance has asked to be told about gaps (RISK-012).
+
+```bash
+docker compose logs --since 1h 1sb-integration-service | grep -c 'Failed to persist audit event'
+```
+
+**Do not disable the PERSISTENCE sink to quiet an incident.** That converts a noisy problem into
+a silent compliance one. If persistence is down, fix persistence.
+
+---
+
 ## 7. Related
 
 | Document | Why |
 |---|---|
 | [COVERAGE.md](./COVERAGE.md) | Coverage gates (QA-001, criterion 4.7) |
 | [PERFORMANCE-SMOKE.md](./PERFORMANCE-SMOKE.md) | p95 quote baseline (criterion 4.6) |
-| [COMPLIANCE-REVIEW-PACK.md](./COMPLIANCE-REVIEW-PACK.md) | Audit schema + log samples (criterion 4.4) |
+| [compliance/COMPLIANCE-REVIEW-PACK.md](./compliance/COMPLIANCE-REVIEW-PACK.md) | Audit schema + log samples (criterion 4.4) |
+| [compliance/REGULATORY-RETENTION-FINDINGS.md](./compliance/REGULATORY-RETENTION-FINDINGS.md) | IRDAI / RBI / PMLA retention positions |
 | [UAT-ENABLEMENT.md](./UAT-ENABLEMENT.md) | Bank consumer onboarding (criterion 4.3) |
 | [architecture §7.6](../architecture/1sb-integration-service-architecture.md) | Security and egress design |
 | [TECH-DEBT.md](./TECH-DEBT.md) | TD-006 (AWS SM stub), TD-010 (single-instance idempotency) |

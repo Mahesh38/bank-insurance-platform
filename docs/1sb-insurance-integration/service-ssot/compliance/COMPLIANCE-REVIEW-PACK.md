@@ -20,12 +20,18 @@
 Engineering raises these rather than letting the review discover them. **Finding 1 is material
 and may be a reason to withhold sign-off.**
 
-### Finding 1 — the audit trail is not currently durable · **P1**
+### Finding 1 — the audit trail was not durable · **RESOLVED 2026-08-14**
+
+> **Status: fixed.** The Solution Architect directed on 2026-08-14 that audit events must be
+> persisted. They now are — see §1.1 for what was built and what it means for **Q1**.
+>
+> The original finding is kept below because Compliance is still asked to rule on the period
+> during which the trail was **not** durable, and on whether the current design is sufficient.
 
 The design says `audit_event` is an "immutable compliance audit log". The table exists, the
 persistence service exposes `POST /internal/v1/audit-events`, and the schema is sound.
 
-**Nothing writes to it.**
+**Nothing wrote to it.**
 
 The only `AuditEventPublisher` implementation wired into `1sb-integration-service` is
 `LoggingAuditEventPublisher`, which writes structured lines to the **application log**. The
@@ -49,9 +55,35 @@ real gap, it is not difficult to close (an HTTP adapter against the existing end
 `HttpRawPayloadStoreAdapter`), and it should be closed before UAT exposes real customer data.
 
 Recorded as **RISK-012** and **SUG-20260813-a1c** — see
-[registers](../../../governance/registers/RISK-REGISTER.md). It is deliberately **not** fixed in
-the same change as this pack: implementing audit persistence is new scope and needs its own
-triage, plan and review, not a quiet inclusion.
+[registers](../../../governance/registers/RISK-REGISTER.md).
+
+### 1.1 What was built, and what Compliance is now asked instead
+
+Audit events are appended to `audit_event` over HTTP, alongside the existing log line.
+
+| Aspect | Decision | Rationale |
+|---|---|---|
+| Transport now | **REST** to `POST /internal/v1/audit-events` | The endpoint and schema already existed; a synchronous in-VPC HTTP call adds ~1 hop and no new infrastructure |
+| Transport later | Deliberately **undecided** | Selected by `insurance.audit.sinks`, so a Kafka sink is an added class plus a config value — no service code changes |
+| Both sinks by default | `LOG,PERSISTENCE` | The log line is what an operator greps during an incident, and survives persistence being the broken thing. The persisted row is what an auditor reads two years later |
+| On failure | **Best-effort** — logged, never thrown | A customer's proposal must not fail because an audit sink is down. The cost is silent evidence loss, which is why the log sink is retained |
+| PII in metadata | **Masked on the way out** | The schema said metadata must not carry PII; that was a rule with no mechanism. Now `PiiMasker` runs on every value before transport |
+| Unimplemented sink | **Fails startup** | Selecting `KAFKA` refuses to boot rather than accepting events and discarding them, mirroring the AWS Secrets Manager fail-fast (TD-006) |
+
+Evidence: `AuditPersistenceIT` drives a real quote through the controller and asserts rows arrive
+at the persistence endpoint, that a persistence outage does not fail the quote, and that no
+plaintext date of birth reaches the trail.
+
+**Q1 is therefore no longer "can the gate pass without persistence".** What remains for
+Compliance:
+
+1. Is the **best-effort** trade-off acceptable for an evidentiary record, or must audit writes be
+   transactional with the business operation? Engineering's view: best-effort is right for
+   Phase 4 — a hard dependency would let a persistence outage stop customer journeys — but this
+   is a Compliance judgement, and the honest cost is that evidence can be lost silently.
+2. Does the period during which the trail was **not** durable need remediation, disclosure, or a
+   recorded acceptance? Engineering cannot determine how long any deployed instance ran in that
+   state.
 
 ### Finding 2 — table-level immutability is documented, not enforced · **P2**
 
@@ -62,15 +94,36 @@ account that can `UPDATE` and `DELETE` freely. The immutability is a convention.
 **What Compliance needs to decide:** whether database-enforced insert-only permissions are
 required before production, and whether that is a Phase 4 or Phase 6 control.
 
-### Finding 3 — raw payload capture is incomplete · **P2**
+### Finding 3 — audit coverage is incomplete · **P1** *(raised from P2 — ASM-008 invalidated)*
 
-Raw 1SB request/response bodies are captured for **quote, proposal and payment**. They are
-**not** captured for **status and master-data** calls, because those port signatures carry no
-`jobId` to attach evidence to. Tracked as **TD-023**.
+Two separate gaps, and the second was found only while implementing Finding 1.
 
-This is the subject of **ASM-008** — the standing assumption that Compliance will accept audit
-coverage limited to the quote/proposal/payment paths. **This review is where that assumption is
-validated or invalidated.** If invalidated, TD-023 becomes P1 COMP work inside Phase 4.
+**3a — raw payload capture.** Bodies are captured for **quote, proposal and payment**. They are
+**not** captured for **status and master-data**, because those port signatures carry no `jobId`
+to attach evidence to. Tracked as **TD-023**.
+
+**3b — five declared audit actions are never emitted.** `AuditActions` defines thirteen actions;
+the code emits eight. The compliance pack previously described the vocabulary as if all thirteen
+were live, which was wrong:
+
+| Action | Emitted? | Why it matters |
+|---|---|---|
+| `QUOTE_JOB_CREATED` | ❌ **never** | Overlaps `QUOTE_CREATED`; probably a redundant constant |
+| `PROPOSAL_STATUS_UPDATED` | ❌ **never** | A proposal reaching a terminal state leaves no audit record |
+| `PAYMENT_SESSION_CREATED` | ❌ **never** | The session **is** created and persisted — just not audited |
+| `DOCUMENT_UPLOADED` | ❌ never | No document feature yet — legitimately unemitted |
+| `PAYMENT_INTIMATION_SENT` | ❌ never | FUNC-008 not implemented (TD-022) — legitimately unemitted |
+
+The first three are genuine coverage gaps in delivered functionality. The last two are ahead of
+their features.
+
+> **ASM-008 is INVALIDATED.** The Solution Architect ruled on 2026-08-14 that coverage must
+> extend beyond quote/proposal/payment — *"there are many things right from the consent and
+> other stuff… from the evidence point of view, we need that."* TD-023 is raised **P2 → P1** and
+> pulled into Phase 4.
+>
+> **What remains for Compliance is not *whether* but *what*.** Engineering can enumerate what is
+> auditable; only Compliance can say which events are evidentiary. The proposed list is §3.1.
 
 ---
 
@@ -130,9 +183,30 @@ From `com.bank.common.audit.AuditActions`. Changing any value is a breaking cont
 **`CONSENT_REF_MISSING` is a soft gate.** A proposal without a `consentRef` is **allowed** and
 recorded, not rejected. Making consent mandatory is currently out of scope until Phase 5.5
 ([CURRENT-STATE.yaml](../../../governance/state/CURRENT-STATE.yaml) `out_of_scope`).
-**Compliance should confirm explicitly that recording-without-blocking is acceptable for UAT**,
-because the alternative — hard-failing the submission — is a Phase 5 change that would need to
-be pulled forward via change control.
+**Compliance should confirm explicitly that recording-without-blocking is acceptable for UAT**
+(Q4), because the alternative — hard-failing the submission — is a Phase 5 change that would
+need to be pulled forward via change control.
+
+### 3.1 Proposed coverage additions (ASM-008 invalidated — Q3)
+
+The Architect ruled that coverage must extend beyond quote/proposal/payment. Engineering's
+proposed list, for Compliance to confirm, add to, or trim. **Nothing here is implemented yet** —
+it is TD-023 scope.
+
+| Event | Today | Proposed | Evidentiary value |
+|---|---|---|---|
+| Proposal reaches a terminal state | ❌ not audited | Emit `PROPOSAL_STATUS_UPDATED` | Closes the loop on the contractual act |
+| Payment session created | ❌ not audited | Emit `PAYMENT_SESSION_CREATED` | The session record exists but leaves no trail |
+| Consent **captured** (not just missing) | only absence is recorded | New action — record consent *presence* and its reference | Proving consent was obtained is the point; recording only its absence is a strange asymmetry |
+| Status check raw payload | ❌ not captured | Extend TD-023 | Customer-data access evidence |
+| Master-data lookup raw payload | ❌ not captured | Extend TD-023 — or argue it is not evidentiary | Reference data, arguably not customer evidence |
+| Idempotent replay | ❌ not audited | New action | Distinguishes a genuine retry from a duplicate submission in a dispute |
+| Authorization denial | ❌ not audited | New action | "Who tried and was refused" is usually an audit requirement |
+| `QUOTE_JOB_CREATED` | declared, never emitted | **Remove** — duplicates `QUOTE_CREATED` | Reduces a vocabulary that overstates coverage |
+
+The last row matters beyond tidiness: a declared-but-unemitted action makes the audit vocabulary
+look more complete than it is, which is how this pack came to describe five actions that never
+fire.
 
 ---
 
@@ -230,16 +304,28 @@ an engineering default (7 years), not a compliance instruction.
 
 ## 7. What the reviewer is asked to decide
 
-| # | Question | Bears on |
+Status as of **2026-08-14**, after the Solution Architect's direction. Three of the eight are
+resolved or partly resolved; five still need a named human.
+
+| # | Question | Status | Who decides |
+|---|---|---|---|
+| 1 | Audit events in logs only, or persisted? | ✅ **Answered — persist.** Built (§1.1). Two sub-questions remain: is *best-effort* acceptable for an evidentiary record, and does the non-durable period need remediation or disclosure? | Architect (done) → **Compliance** for the two sub-questions |
+| 2 | Are database-enforced insert-only permissions required before production? | ⏳ **Referred to the DBA** — see [DBA-CONSULTATION.md](./DBA-CONSULTATION.md) | **DBA** → Compliance ratifies |
+| 3 | Is coverage limited to quote/proposal/payment acceptable? | ✅ **Answered — no.** ASM-008 invalidated; TD-023 → P1. **What to add is still open** — proposed list in §3.1 | Architect (done) → **Compliance** confirms the list |
+| 4 | Is recording (not rejecting) a missing `consentRef` acceptable for UAT? | ❌ **Open** | **Compliance** |
+| 5 | Is the masking rule set sufficient? | ❌ **Open.** No regulation prescribes an algorithm — this needs the bank's data-protection policy. Evidence in [REGULATORY-RETENTION-FINDINGS.md §4](./REGULATORY-RETENTION-FINDINGS.md); the **PAN rule is the one to scrutinise** | **Compliance** |
+| 6 | Is 7 years correct, and what retention applies elsewhere? | ⚠️ **Probably not.** IRDAI 2025 sets a **10-year** minimum on insurance records; PMLA sets 5; IRDAI cyber guidelines set a 180-day rolling window for *ICT logs*. **Which regime `audit_event` falls under is the open question** — see [findings §2](./REGULATORY-RETENTION-FINDINGS.md) | **Compliance** |
+| 7 | Is best-effort raw-payload capture the right trade-off? | 🟡 **Provisionally yes** (Architect, 2026-08-14: *"Yes. It looks like most of it is correct, but get it reviewed by the compliance head."*) | **Compliance** confirms |
+| 8 | Do `actor_id` / `agent_id` / `journey_id` constitute personal data? | ❌ **Open** — Architect explicitly referred this out | **Compliance** |
+
+### 7.1 Two questions Engineering added
+
+Both surfaced while implementing the above; neither was in the original eight.
+
+| # | Question | Why |
 |---|---|---|
-| 1 | Can Phase 4 pass with audit events in application logs only, or must they be persisted first? | **Finding 1 · gate-blocking** |
-| 2 | Are database-enforced insert-only permissions required before production? | Finding 2 |
-| 3 | Is audit coverage limited to quote/proposal/payment acceptable? | Finding 3 · **validates or invalidates ASM-008** |
-| 4 | Is recording a missing `consentRef` (rather than rejecting the proposal) acceptable for UAT? | §3 |
-| 5 | Is the masking rule set sufficient — particularly retaining the last 4 mobile digits and last 5 PAN characters? | §4 |
-| 6 | Is 7 years correct for raw payloads, and what retention applies to audit events and job records? | §6 |
-| 7 | Is best-effort raw-payload capture (customer transaction over evidence) the right trade-off? | §5 |
-| 8 | Does storing `actor_id` / `agent_id` / `journey_id` constitute personal data under the applicable regime? | §2 |
+| 9 | Should **business** audit events (proposal, payment, consent) and **transport** events (`ONESB_OUTBOUND_CALL`) carry different retention? | If yes, the schema needs a column to distinguish them — cheaper to settle before the table fills. [Findings §2](./REGULATORY-RETENTION-FINDINGS.md) |
+| 10 | Where is audit and payload data physically stored? | Both IRDAI instruments require **India residency**. `render.yaml` pins no region and the AWS note names none. Nobody currently owns this. [Findings §3.2](./REGULATORY-RETENTION-FINDINGS.md) |
 
 ---
 

@@ -515,6 +515,10 @@ class TermJourneyE2EIT {
                 .willReturn(aResponse().withStatus(201)
                         .withHeader("Content-Type", "application/json")
                         .withBody("{\"payloadId\":\"raw-1\"}")));
+        PERSISTENCE.stubFor(post(urlEqualTo("/internal/v1/audit-events"))
+                .willReturn(aResponse().withStatus(201)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("{\"eventId\":\"evt-1\"}")));
     }
 
     private static String jobBody(String jobId, String jobType, String status, String appNo) {

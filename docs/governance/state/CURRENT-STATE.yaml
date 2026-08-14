@@ -299,7 +299,7 @@ id_allocation:
   legacy_pattern: "^(SUG|DEP)-[0-9]{4}$"
   sequential:
     CR: 3        # CR-001..002 in use
-    RISK: 14      # RISK-001..013 in use
+    RISK: 16      # RISK-001..015 in use
     ASM: 10       # ASM-001..009 in use
     EPIC: 1
     SPIKE: 1

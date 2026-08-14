@@ -36,7 +36,7 @@ Severity: **P0** = blocks Phase 2 / multi-service reuse · **P1** = fix this spr
 | TD-020 | P1 | Multi-consumer contract (integration + audit-consumer + …) | Senior (audit consumer) | **Closed** | Agent 2 |
 | TD-021 | P2 | Document audit-consumer → persistence audit API (stub; no full service) | Senior (audit consumer) | **Closed** | Agent 2 |
 | TD-022 | P1 | Payment intimation (FUNC-008) not implemented | Phase 4 (FUNC-007) | Deferred P1 | Backlog |
-| TD-023 | P2 | Raw payload capture (COMP-003) not wired for status/master-data calls | COMP-003 impl | Deferred | Backlog |
+| TD-023 | **P1** | Audit + raw payload coverage incomplete — status/master-data payloads uncaptured, and 5 of 13 declared audit actions never emitted | COMP-003 impl / ASM-008 invalidated 2026-08-14 | **Open — pulled into Phase 4** | Backlog |
 | QA-001 | P0 | JaCoCo coverage reports + verification gates | QA Lead / TEST-BACKLOG | **Closed** | Dev |
 
 ---

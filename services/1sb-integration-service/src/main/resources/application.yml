@@ -33,6 +33,11 @@ insurance:
     schema-cache-ttl-seconds: ${INSURANCE_PROPOSALS_SCHEMA_CACHE_TTL_SECONDS:3600}
   payments:
     session-ttl-seconds: ${INSURANCE_PAYMENTS_SESSION_TTL_SECONDS:3600}
+  # Audit sinks (RISK-012). LOG is operator-facing and available even when persistence is the
+  # thing that is broken; PERSISTENCE is the durable evidence trail appended to audit_event.
+  # KAFKA is declared but unimplemented and fails startup if selected — see AuditSinkConfig.
+  audit:
+    sinks: ${INSURANCE_AUDIT_SINKS:LOG,PERSISTENCE}
 
 # Platform common persistence HTTP client (bank-persistence-service)
 bank:

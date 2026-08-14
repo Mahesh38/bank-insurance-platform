@@ -79,6 +79,16 @@ topology · a breaking public contract · anything a regulator can ask about.
 
 **Question:** *Does this belong here, shaped like this?*
 
+### Named persona and accountable owner
+
+For this repository, Board 1 uses the **[Principal Insurance Platform Architect](../context/roles/principal-insurance-platform-architect/README.md)** as its named architecture reasoning persona. That package is attached to **[Mahesh — Solution Architect](../context/roles/mahesh-solution-architect.md)**, who remains the accountable human Architecture Board owner.
+
+When an AI agent simulates Board 1 it should load the Principal Architect package in the order defined by its README, apply its authority/decision framework, and then translate the result into the canonical AIGEM verdict below. The persona **does not** grant itself a mandatory human signature; the T4 rule in §2 remains binding.
+
+Architecture findings may use `A0`–`A3` severity internally. These labels must not be confused with AIGEM `P1`–`P5` delivery priority or Shailja S `R0`–`R3` risk severity.
+
+For architecture decisions with compliance impact, Board 1 and Board 6 use the shared **[Architect ↔ Compliance Decision Protocol](../context/roles/shared/architect-compliance-decision-protocol.md)**. Architecture owns design/implementation; Board 6/Shailja owns compliance permissibility/control outcomes; neither AI persona overrides the other's binding domain decision.
+
 | # | Check |
 |---|-------|
 | A1 | Does it respect module, service, and bounded-context boundaries? |
@@ -182,6 +192,8 @@ OWASP · auditability · data exposure · dependency vulnerabilities.
 Regulatory requirements · consent · audit · data retention · legal · financial controls ·
 operational risk · traceability.
 
+For this repository, Board 6 uses **[Shailja S — Compliance & Risk Head](../context/roles/shailja-s-compliance-risk-head/README.md)** as its named reasoning persona. Shailja's package supplements this checklist with obligation classification, evidence, risk severity and human-exception rules; it never replaces the T4 human sign-off rule.
+
 | # | Check |
 |---|-------|
 | R1 | Does any regulatory obligation apply (IRDAI, banking, data protection)? |
@@ -268,6 +280,8 @@ APPROVED  ⇔  every mandatory board for the tier returned APPROVED or
 | A mandatory board did not respond | Gate is **not** approved. Silence is never assent |
 | Boards conflict (e.g. Security wants X, Product wants not-X) | Escalate to Architect + PO; the resolution is recorded as an ADR |
 
+For a material Architecture ↔ Risk/Compliance conflict, first use the shared Architect ↔ Compliance protocol to separate control outcome from implementation and test alternative designs. If the conflict remains after one substantive redesign cycle, escalate to the accountable humans; an AI agent does not arbitrate the residual risk.
+
 ---
 
 ## 13. Rework loop
@@ -302,7 +316,9 @@ pass — the value is in the different questions, and blending them loses exactl
 
 ```text
 For each mandatory board:
-  1. Load only that board's checklist.
+  1. Load only that board's checklist and its named persona when one is defined.
+     - Architecture → Principal Insurance Platform Architect (attached to Mahesh)
+     - Risk & Compliance → Shailja S
   2. Answer each numbered check against the plan — cite the plan section or file.
   3. Emit the verdict with evidence[] listing the checks actually performed.
   4. Do not carry the previous board's conclusion into the next.
@@ -310,4 +326,4 @@ For each mandatory board:
 
 Where the repository already has role personas
 ([docs/context/roles/](../context/roles/README.md)), an agent should adopt the matching persona for that
-board: it produces sharper, more consistent verdicts than a generic reviewer voice.
+board: it produces sharper, more consistent verdicts than a generic reviewer voice. Persona authority never expands the reviewer's AIGEM authority or removes mandatory human sign-offs.

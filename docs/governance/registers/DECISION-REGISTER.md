@@ -42,6 +42,7 @@ without a search.
 | GOV-003 | 2026-08-07 | Seed the parked backlog from deferred `TECH-DEBT.md` rows; no retrospective triage | Backfilling costs days and teaches nothing ([19 §5](../19-PORTING_GUIDE.md#5-bootstrapping-into-an-existing-project-mid-flight)) | Pending ratification |
 | GOV-004 | 2026-08-10 | **Ratify the current-state snapshot**: WS-1 at Phase 4 (Hardening), WS-2 at IAM Phase 1, with the scope and standing constraints as recorded | Reconstructed from `ACTION-PLAN.md`, phase `STATUS.md` files, `TECH-DEBT.md` and git history; reviewed and accepted | **Mahesh (Solution Architect), 2026-08-10** — PO counter-signature outstanding |
 | GOV-005 | 2026-08-14 | Consolidate the architecture role into **Mahesh — Principal Insurance Platform Architect** as the single Board 1 persona, with modular authority/review files and a reciprocal Mahesh↔Shailja protocol | Avoid two overlapping architect identities while retaining deep architecture reasoning, evidence, compliance collaboration and human escalation | **Proposed by Mahesh** via CR-002 — Product counter-signature outstanding |
+| GOV-006 | 2026-08-14 | Propose assigning existing **AIGEM R10 / Board 7 Operations** to **Shivanshi — Principal Insurance Platform SRE / Reliability Engineering Head** and mature the existing SRE capability | Preserve the original Operations controls while adding insurance/bancassurance domain intelligence, platform/CI-CD, observability, incidents/DR, business-aware capacity/scaling and developer enablement without creating a second SRE role | **Proposed by Mahesh** via CR-008 — required governance ratification pending |
 
 ## 3. Change requests
 
@@ -49,6 +50,7 @@ without a search.
 |----|------|------|---------|----------|-----------|
 | CR-001 | 2026-08-10 | STAGE | Add exit criterion **4.7** (coverage gates green; QA-001 closed or waived with expiry) to the WS-1 Phase 4 gate | **APPROVED** 2026-08-10 | Mahesh (Solution Architect) — PO + QA Lead counter-signature outstanding |
 | CR-002 | 2026-08-14 | GOV | Make Mahesh the single Principal Insurance Platform Architect persona; modularize his authority/review model; retain Shailja as independent Board 6; keep legacy architect path as compatibility-only | **PENDING RATIFICATION** | Mahesh approved preparation on review branch — Product Owner pending |
+| CR-008 | 2026-08-14 | GOV | Name Shivanshi as existing R10 / Board 7 Operations persona and mature SRE with insurance-domain, platform, CI/CD, observability, incident/DR, capacity/scaling and developer-experience capability | **PENDING RATIFICATION** | Prepared on Mahesh/user direction — Architecture + Product and any other required governance ratification pending |
 
 ### CR-001 — add Phase 4 exit criterion 4.7
 
@@ -95,6 +97,30 @@ authority:         Mahesh approved preparation on review branch; Product Owner c
                    required before governance changes are treated as ratified/binding.
 ```
 
+### CR-008 — Shivanshi Principal Insurance Platform SRE / R10 integration
+
+Full request: [`../change-requests/CR-008-add-shivanshi-sre-persona.md`](../change-requests/CR-008-add-shivanshi-sre-persona.md)
+
+```text
+current_position:  AIGEM already has an unnamed R10 DevOps/SRE role and Board 7 Operations with
+                   deployability, observability, alerting, failure-mode, rollback, capacity/cost,
+                   runbook and rolling-deploy controls.
+proposed_change:   Preserve those controls and assign/mature the same role as Shivanshi — a
+                   business-aware Principal Insurance Platform SRE with platform engineering,
+                   infrastructure, CI/CD, incidents, resilience, DR, business-aware scaling and
+                   developer self-service capability.
+driver:            The bank insurance platform needs an SRE that understands the business workload,
+                   not a second generic infrastructure persona or CPU-only scaling model.
+impact:            Governance/persona grounding only; no runtime application behavior or production
+                   configuration changes in this CR.
+safeguards:        No eighth board; O1-O8 preserved; no blind/unbounded scaling; Product,
+                   Architecture, Engineering, Security, DBA, QA, Compliance and Delivery authority
+                   remain separate; mandatory human authority remains human.
+decision:          PENDING RATIFICATION
+authority:         Prepared on explicit Mahesh/user direction. Required governance approvals remain
+                   to be recorded before treating the L1 change as ratified/binding.
+```
+
 ## 4. Stage transitions
 
 | Date | Workstream | From | To | Criteria met | Waivers | Approvers |
@@ -117,4 +143,4 @@ Rejected proposals worth remembering, so they are not re-argued from scratch.
 
 | ID | Proposal | Rejected because | Reopen if |
 |----|----------|------------------|-----------|
-| — | — | *none yet* | — |
+| — | — | *none yet* | — | — |

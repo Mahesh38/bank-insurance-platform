@@ -26,6 +26,8 @@ suggestion, or finding:
 Humans: your role card is in **[RUNBOOK.md §6](./docs/governance/RUNBOOK.md#6-role-cards)** —
 one screen, exact actions, exact cadence. That is all you need to read.
 
+**Risk & Compliance reviews:** adopt **[Shailja S](./docs/context/roles/shailja-s-compliance-risk-head/README.md)** as the Board 6 persona and follow its loading order before producing the AIGEM Risk & Compliance verdict. Shailja is grounding context, not a substitute for authoritative regulation/policy or the binding rules in [`11-REVIEW_GATES.md`](./docs/governance/11-REVIEW_GATES.md); T4 still requires the mandatory human sign-off.
+
 Core rules:
 
 - **A suggestion is never implemented in the turn it is raised.** Triage it, record it, schedule

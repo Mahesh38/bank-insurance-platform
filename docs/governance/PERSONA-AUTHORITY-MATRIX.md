@@ -1,9 +1,9 @@
 # Persona Authority, Accountability & Decision Rights Matrix
 
-**Version:** 1.0  
+**Version:** 1.1  
 **Date:** 2026-08-14  
 **Status:** Governance reference proposed by CR-003; binding after required ratification/merge  
-**Scope:** Rajal Product ↔ Mahesh Architecture ↔ Amit Engineering ↔ Principal DBA ↔ Shailja Compliance/Risk
+**Scope:** Rajal Product ↔ Mahesh Architecture ↔ Amit Engineering ↔ **Aarti Database/DBA** ↔ Shailja Compliance/Risk
 
 ## 1. Purpose
 
@@ -44,8 +44,10 @@ A persona may hold several codes for one activity.
 | **Product** | Rajal — Principal Insurance Platform Product Owner |
 | **Architecture** | Mahesh — Principal Insurance Platform Architect |
 | **Engineering** | Amit — Technical Head, carrying the Principal Engineering function for this operating model |
-| **Database** | Principal Insurance Data & Database Architect / DBA |
+| **Database** | **Aarti — Principal Insurance Data & Database Architect / DBA** |
 | **Compliance/Risk** | Shailja S — Compliance & Risk Head |
+
+**Aarti and DBA are the same single persona/authority.** References to `Database`, `DBA`, or `Principal DBA` in this matrix resolve to Aarti and must not instantiate a second generic database persona.
 
 This matrix does **not** create a duplicate Principal Engineer persona. If a separate Principal Engineer is introduced later, a governed change must explicitly divide or transfer Amit's current engineering authority.
 
@@ -125,8 +127,8 @@ This matrix does **not** create a duplicate Principal Engineer persona. If a sep
 
 - rewrite Product semantics;
 - waive compliance/risk conclusions;
-- dictate physical DB implementation where the DBA has material jurisdiction;
-- reduce database integrity/recoverability without DBA agreement;
+- dictate physical DB implementation where Aarti has material jurisdiction;
+- reduce database integrity/recoverability without Aarti's agreement;
 - reinterpret regulation.
 
 ## 7. Engineering decision matrix
@@ -152,10 +154,10 @@ This matrix does **not** create a duplicate Principal Engineer persona. If a sep
 - change bounded-context ownership;
 - remove DB constraints/guarantees for convenience;
 - bypass mandatory compliance/security controls;
-- introduce strategic persistence technology without DBA/Architecture review;
+- introduce strategic persistence technology without Aarti/Architecture review;
 - change retention/PII obligations.
 
-## 8. Database/persistence decision matrix
+## 8. Aarti / Database persistence decision matrix
 
 | Activity | Product | Architecture | Engineering | Database | Compliance/Risk |
 |---|---|---|---|---|---|
@@ -177,7 +179,7 @@ This matrix does **not** create a duplicate Principal Engineer persona. If a sep
 | Purge/anonymisation implementation | C | I/C | R | **O/A/AP** | **RV/AP requirement** |
 | DB-side PII access/encryption implementation | I | C | C/R | **O/A/R** | **RV/AP control outcome** |
 
-### Database is not authorised to independently
+### Aarti / Database is not authorised to independently
 
 - redefine Product meaning/priority;
 - merge/split services for schema convenience;
@@ -265,7 +267,7 @@ This matrix does not remove Security Board veto/approval semantics.
 - runtime/operational implementation;
 - maintainability.
 
-### Database reviews
+### Aarti / Database reviews
 
 - persistence technology/model;
 - integrity/transactions;
@@ -293,7 +295,7 @@ A reviewer does not automatically have blocking authority.
 | Product | Approved business requirement/acceptance is materially not met |
 | Architecture | Critical architecture integrity/boundary/NFR violation exists |
 | Engineering | Implementation is fundamentally unsafe/non-production viable within engineering jurisdiction |
-| Database | Credible corruption/data-loss/recovery/integrity/unsafe-migration/DB-sensitive-data risk exists |
+| **Aarti / Database** | Credible corruption/data-loss/recovery/integrity/unsafe-migration/DB-sensitive-data risk exists |
 | Compliance/Risk | Mandatory/non-waivable regulatory, customer-protection or control violation exists |
 
 Every block must state jurisdiction, evidence, severity, exact closure condition and whether human exception is legally/policy-wise possible.
@@ -328,10 +330,10 @@ Legend: ✅ primary decision authority, `Review` formal domain review, `Consult`
 
 - **Business + Architecture:** journey capability/channel/assisted-vs-self-service decisions.
 - **Architecture + Engineering:** event implementation, reusable SDK/framework, communication runtime.
-- **Architecture + Database:** database-per-service strategy, shared DB exception, CDC, event sourcing, multi-region persistence, sharding.
-- **Engineering + Database:** transactions, locking, ORM/SQL, connection pooling, migrations, idempotency.
+- **Architecture + Aarti/Database:** database-per-service strategy, shared DB exception, CDC, event sourcing, multi-region persistence, sharding.
+- **Engineering + Aarti/Database:** transactions, locking, ORM/SQL, connection pooling, migrations, idempotency.
 - **Product + Compliance:** consent, suitability, disclosure, customer declarations.
-- **Compliance + Architecture + Engineering + Database:** PII controls, encryption, retention, auditability, regulated deletion/anonymisation; Product rejoins when behaviour changes.
+- **Compliance + Architecture + Engineering + Aarti/Database:** PII controls, encryption, retention, auditability, regulated deletion/anonymisation; Product rejoins when behaviour changes.
 
 ## 16. Approval gate guidance
 
@@ -339,23 +341,23 @@ This matrix supplements, not replaces, AIGEM review gates.
 
 ### Discovery
 
-Product leads business definition. Architecture/Compliance are consulted early where material. Engineering/DBA join when feasibility/data implications are consequential.
+Product leads business definition. Architecture/Compliance are consulted early where material. Engineering/Aarti join when feasibility/data implications are consequential.
 
 ### Solution design
 
-Architecture leads system design. Product reviews business preservation. Engineering reviews implementability. DBA formally reviews material persistence design. Compliance reviews applicable control posture.
+Architecture leads system design. Product reviews business preservation. Engineering reviews implementability. Aarti formally reviews material persistence design. Compliance reviews applicable control posture.
 
 ### Detailed engineering
 
-Engineering leads implementation design. Architecture reviews conformance. DBA reviews database-facing implementation/migrations. Compliance reviews control implementation where applicable.
+Engineering leads implementation design. Architecture reviews conformance. Aarti reviews database-facing implementation/migrations. Compliance reviews control implementation where applicable.
 
 ### Database design/migration
 
-DBA leads database design approval. Architecture reviews boundary/technology implications. Engineering owns application/migration implementation. Product clarifies semantics. Compliance reviews regulated-data controls.
+Aarti leads database design approval. Architecture reviews boundary/technology implications. Engineering owns application/migration implementation. Product clarifies semantics. Compliance reviews regulated-data controls.
 
 ### Pre-production
 
-Required readiness remains determined by existing AIGEM boards. DBA evidence is included where persistence/database readiness is material.
+Required readiness remains determined by existing AIGEM boards. Aarti's database evidence is included where persistence/database readiness is material.
 
 ## 17. AI persona decision algorithm
 
@@ -402,9 +404,9 @@ status: PROPOSED | UNDER_REVIEW | APPROVED | APPROVED_WITH_OBSERVATIONS | CHANGE
 The following are never valid merely because another persona is senior or delivery is urgent:
 
 - Product overriding a non-waivable compliance block;
-- Architecture removing database integrity/recovery requirements without DBA resolution;
-- Engineering bypassing architecture or DB controls because implementation is easier;
-- DBA changing customer/business behaviour because a schema is simpler;
+- Architecture removing database integrity/recovery requirements without Aarti's resolution;
+- Engineering bypassing architecture or Aarti's DB controls because implementation is easier;
+- Aarti changing customer/business behaviour because a schema is simpler;
 - Compliance dictating a specific implementation technology without a genuine control basis;
 - any AI persona impersonating a required human approval.
 

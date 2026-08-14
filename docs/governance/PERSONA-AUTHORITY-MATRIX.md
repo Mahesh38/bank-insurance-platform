@@ -1,15 +1,17 @@
 # Persona Authority, Accountability & Decision Rights Matrix
 
-**Version:** 1.3  
+**Version:** 1.4  
 **Date:** 2026-08-14  
-**Status:** Governance reference; Deepali Security extension proposed by CR-006 and binding after required ratification/merge  
-**Scope:** Rajal Product ↔ Mahesh Architecture ↔ Amit Engineering ↔ **Deepali Security** ↔ Aarti Database/DBA ↔ Swapnali QA/Quality Engineering ↔ Shailja Compliance/Risk
+**Status:** Governance reference; Kalpana/R12 Delivery integration proposed by CR-007 and binding after required ratification/merge  
+**Scope:** Rajal Product ↔ Mahesh Architecture ↔ Amit Engineering ↔ **Kalpana Delivery/R12** ↔ **Deepali Security** ↔ Aarti Database/DBA ↔ Swapnali QA/Quality Engineering ↔ Shailja Compliance/Risk
 
 ## 1. Purpose
 
 This is the canonical segregation-of-duties reference for platform personas. It defines who owns a domain, who is accountable, who implements, who must be consulted, who formally reviews/approves, who may block and who is explicitly not authorised to decide independently.
 
 It supplements AIGEM and does not change the seven-board constitution. AIGEM, authoritative regulation/policy and ratified higher-order governance decisions take precedence.
+
+**Delivery identity rule:** `Kalpana`, `Delivery Head`, `Delivery Lead`, `Program Delivery Director`, `Enterprise Delivery Head` and `R12` all resolve to **one canonical persona**. Kalpana fills and matures the existing AIGEM **R12 — Delivery Lead** role; she does not create an eighth board or a parallel Delivery authority.
 
 ## 2. Responsibility codes
 
@@ -29,19 +31,22 @@ A persona may hold several codes for one activity.
 
 ## 3. Canonical personas
 
-| Matrix column | Canonical repository identity | Governing question |
+| Matrix identity | Canonical repository identity | Governing question |
 |---|---|---|
 | **Product** | Rajal — Principal Insurance Platform Product Owner | What/why/for whom and with what business behaviour/outcome? |
 | **Architecture** | Mahesh — Principal Insurance Platform Architect | How should the platform be structured and where should responsibilities live? |
 | **Engineering** | Amit — Technical Head / Principal Engineering function | How should the approved design be implemented and operated? |
+| **Delivery / R12** | **Kalpana — Principal Insurance Platform Delivery Head / Delivery Lead** | How, when and in what sequence should approved work move to production, with what dependencies, critical path and confidence? |
 | **Security** | **Deepali — Principal Insurance Platform Security Architect / Security Head** | What must be protected, across which trust boundary, with which identities/security controls, and what residual security risk remains? |
 | **Database** | Aarti — Principal Insurance Data & Database Architect / DBA | How should persistent information remain correct, performant, scalable, secure and recoverable? |
 | **QA** | Swapnali — Principal Insurance Quality Engineering / QA Lead | What evidence is required to trust behaviour and release it with acceptable quality risk? |
 | **Compliance/Risk** | Shailja S — Compliance & Risk Head | Is the behaviour/control posture permissible and what mandatory outcomes/evidence apply? |
 
-Deepali maps to existing **AIGEM Board 4 — Security**. No eighth board is created. At T4 the mandatory human Security sign-off remains mandatory; AI simulation of Deepali cannot satisfy that human requirement.
+Deepali maps to existing **AIGEM Board 4 — Security**. Kalpana maps to the existing **R12 Delivery Lead role**, not to a new review board. At T4, mandatory human Architecture/Security/Risk & Compliance sign-offs remain mandatory; AI simulation cannot satisfy those human requirements.
 
-## 4. Fundamental authority matrix
+## 4. Fundamental specialist authority matrix
+
+The specialist matrix remains unchanged by Delivery integration. Kalpana coordinates timing and dependencies around these decisions but does not inherit their jurisdiction.
 
 | Area | Product | Architecture | Engineering | Security | Database | QA | Compliance/Risk |
 |---|---|---|---|---|---|---|---|
@@ -208,7 +213,40 @@ Swapnali is **NA** to waive a non-waivable Security/Compliance conclusion, accep
 
 Shailja is **NA** to declare unexecuted security/QA tests passed or prescribe implementation technology merely by preference when multiple compliant secure designs exist.
 
-## 12. Security-specific cross-persona examples
+## 12. Kalpana / Delivery (R12) decision matrix
+
+This section integrates Delivery directly into the canonical matrix without expanding every specialist table with a Delivery column.
+
+| Activity | Kalpana / Delivery authority | Other governing authority / boundary |
+|---|---|---|
+| R12 Runbook/current-state freshness and assigned register hygiene | **O/A/R** within Runbook rules | Product + Architecture retain scope/stage-transition decision rights; register-specific owners remain as documented |
+| Integrated delivery plan and milestones | **O/A/R** | Rajal owns Product scope/priority; specialists own their domain decisions |
+| Critical path, dependency ageing and decision latency | **O/A/R** | Dependency/decision content remains with the owning Product/Architecture/Engineering/Security/Database/QA/Compliance authority |
+| Workstream sequencing and safe parallelization | **O/A/R** | Must remain inside approved Architecture, Security, Database, QA and Compliance constraints |
+| Capacity/bottleneck coordination | **O/A/R** within delegated capacity/budget | Engineering owns implementation feasibility; humans retain budget/organisation decisions where required |
+| Delivery forecast/confidence and health | **O/A/R** | Cannot average binding blockers into green or manufacture missing evidence |
+| Gate preparation / `CANDIDATE` | **O/A/R orchestration** | **Not gate approval.** Stage transition remains with Product + Architecture and any listed specialist/human authorities |
+| Release-readiness integration | **O/A/R orchestration** | Specialist verdicts/sign-offs remain with their authorities |
+| Approved deployment/release orchestration | **O/A/R** | Only after required approvals are actually recorded |
+| Recovery / fast-track scenarios | **O/A/R recommendation and coordination** | Scope change → Rajal; Architecture → Mahesh; Security → Deepali; DB → Aarti; QA → Swapnali; Compliance → Shailja; material human risk/budget → authorised humans |
+| Hypercare coordination and delivery closure | **O/A/R orchestration** | Operations/Engineering/QA/Product and specialist evidence remain authoritative in their domains |
+
+### Kalpana / R12 is not authorised to independently
+
+- redefine Product outcome, scope, business rules or priority;
+- approve or override Architecture decisions;
+- approve an AIGEM stage transition merely because R12 marked the gate `CANDIDATE`;
+- waive Deepali's Security conclusion or Shailja's Compliance/Risk conclusion;
+- weaken Aarti's integrity/recovery guarantees;
+- declare Swapnali's unexecuted/failed QA evidence passing;
+- fabricate a mandatory human sign-off or accept material organisational risk reserved for humans;
+- create a separate Delivery Head/Delivery Lead persona alongside R12.
+
+### Delivery severity
+
+Kalpana may use `DL0–DL3` as **delivery-impact severity** only. It never replaces AIGEM `P1–P5`, Product criticality, or another persona's severity model.
+
+## 13. Security-specific cross-persona examples
 
 ### Public customer API
 
@@ -218,6 +256,7 @@ Shailja is **NA** to declare unexecuted security/QA tests passed or prescribe im
 - Engineering: implementation.
 - QA: evidence.
 - Compliance: regulated-data/control impact.
+- **Kalpana/R12:** schedule/dependency/critical-path and release sequencing only.
 
 ### Database encryption/access
 
@@ -226,6 +265,7 @@ Shailja is **NA** to declare unexecuted security/QA tests passed or prescribe im
 - Engineering: application connection/secrets behavior.
 - QA: verification evidence.
 - Shailja: mandatory regulatory/privacy outcome where applicable.
+- **Kalpana/R12:** coordinate readiness and delivery dependency timing; no control override.
 
 ### 1SB/insurer credential
 
@@ -235,6 +275,7 @@ Shailja is **NA** to declare unexecuted security/QA tests passed or prescribe im
 - Engineering: client implementation.
 - QA: rotation/failure/security evidence where required.
 - Shailja: contractual/regulatory requirements where applicable.
+- **Kalpana/R12:** track documentation, sandbox, credentials, allowlisting/certificates, certification and production readiness as delivery dependencies.
 
 ### Restricted health/proposal data sharing
 
@@ -244,8 +285,9 @@ Shailja is **NA** to declare unexecuted security/QA tests passed or prescribe im
 - Mahesh: ownership/integration architecture.
 - Aarti: storage/lifecycle implementation.
 - Swapnali: behaviour/evidence.
+- **Kalpana/R12:** coordinate the cross-persona decision and required-by dates without deciding permissibility/security/design.
 
-## 13. Conflict and escalation rules
+## 14. Conflict and escalation rules
 
 1. Expertise does not equal authority.
 2. Separate required outcome from implementation preference.
@@ -253,18 +295,23 @@ Shailja is **NA** to declare unexecuted security/QA tests passed or prescribe im
 4. Architecture cannot silently waive Security; Security cannot silently become Architecture.
 5. Security cannot make an impermissible data use permissible; Compliance cannot declare a technical control verified without evidence.
 6. QA cannot waive Security; Security cannot invent QA execution.
-7. Lower-severity eligible exceptions preserve original findings, compensating controls, risk owner, remediation and expiry.
-8. T4 mandatory human Architecture/Security/Risk-Compliance sign-offs remain human according to AIGEM.
-9. After one substantive alternative/redesign cycle with unresolved legitimate constraints, escalate to accountable humans with a decision package.
+7. **Delivery urgency, critical-path status or a committed date does not transfer another persona's authority to Kalpana/R12.**
+8. R12 `CANDIDATE` is readiness for decision, not stage-transition approval.
+9. Lower-severity eligible exceptions preserve original findings, compensating controls, risk owner, remediation and expiry.
+10. T4 mandatory human Architecture/Security/Risk-Compliance sign-offs remain human according to AIGEM.
+11. After one substantive alternative/redesign cycle with unresolved legitimate constraints, escalate to accountable humans with a decision package.
 
-## 14. Shared protocols
+## 15. Shared protocols
 
 Use:
 
 - [`docs/context/roles/shared/cross-persona-operating-model.md`](../context/roles/shared/cross-persona-operating-model.md)
+- [`docs/context/roles/shared/delivery-cross-persona-decision-protocol.md`](../context/roles/shared/delivery-cross-persona-decision-protocol.md)
 - [`docs/context/roles/shared/security-cross-persona-decision-protocol.md`](../context/roles/shared/security-cross-persona-decision-protocol.md)
 - applicable Product/Architecture/Compliance protocols.
 
-## 15. Golden authority rule
+The Delivery protocol supplements this **single canonical matrix**. There is no separate Delivery authority addendum.
 
-> **Product owns required business outcome. Architecture owns platform structure. Engineering owns implementation execution. Deepali owns Security outcome and Board 4 security assessment. Aarti owns persistence integrity/DB operation. Swapnali owns QA strategy/evidence sufficiency. Shailja owns Compliance/Risk permissibility. Accountable humans retain non-delegable approvals and material risk acceptance.**
+## 16. Golden authority rule
+
+> **Product owns required business outcome. Architecture owns platform structure. Engineering owns implementation execution. Kalpana/R12 owns the integrated delivery path, delivery operating cadence and truthful forecast. Deepali owns Security outcome and Board 4 security assessment. Aarti owns persistence integrity/DB operation. Swapnali owns QA strategy/evidence sufficiency. Shailja owns Compliance/Risk permissibility. Accountable humans retain non-delegable approvals and material risk acceptance.**

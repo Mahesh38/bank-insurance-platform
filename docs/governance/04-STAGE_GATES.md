@@ -94,7 +94,7 @@ edit `current_phase`.
 | 4.2 | OpenAPI published to the internal portal; consumer collection available | Portal URL + collection file | 🟡 Partial — OpenAPI generated (`79c65f4`); publication + collection outstanding |
 | 4.3 | ≥ 1 bank caller exercises quote + proposal against UAT | Consumer confirmation + UAT trace/correlation IDs | ❌ Open |
 | 4.4 | Compliance review of audit schema + log samples | Signed review note in `service-ssot/` | ❌ Open |
-| 4.5 | Runbook: secrets rotation, IP whitelist, 1SB 401/5xx incident | Runbook document | ❌ Open |
+| 4.5 | Runbook: secrets rotation, IP whitelist, 1SB 401/5xx incident | Runbook document | 🟡 Partial — [OPERATIONS-RUNBOOK.md](../1sb-insurance-integration/service-ssot/phase-4/OPERATIONS-RUNBOOK.md) drafted; **unsigned**, awaiting Board 7 (Shivanshi) verdict |
 | 4.6 | Performance smoke: p95 quote under nominal concurrency | Measurement report + threshold | ❌ Open |
 | 4.7 | Coverage gates green; QA-001 closed or explicitly waived with expiry | JaCoCo report + TECH-DEBT entry | 🟡 Partial — libs at 80/70; service on interim floor |
 
@@ -106,7 +106,17 @@ edit `current_phase`.
 > and **approved on 2026-08-10**. Consequence: Phase 4 cannot pass while the service coverage
 > floor is still "interim" — QA-001 must close or carry a dated waiver.
 
-**Approvers:** Architect · PO · QA Lead · Compliance (4.4) · Ops (4.5)
+**Approvers:** Architect · PO · QA Lead · Compliance — Shailja / Board 6 (4.4) ·
+**Shivanshi / SRE — R10, Board 7 (4.5)**
+
+> Approver drift corrected 2026-08-14. This line previously read "Ops (4.5)" — an approver with
+> no persona, which is why 4.5 could not close.
+> [`state/CURRENT-STATE.yaml`](./state/CURRENT-STATE.yaml) had already been updated to name
+> Shivanshi under CR-008; the state file is authoritative and this document now matches it.
+
+**Evidence table:** [phase-4/GATE-P4-EVIDENCE.md](../1sb-insurance-integration/service-ssot/phase-4/GATE-P4-EVIDENCE.md)
+— criterion-by-criterion evidence as at 2026-08-14. **0 of 7 closed** (3 partial, 4 open); the
+gate is not ready for `CANDIDATE`.
 
 **Parked items released on PASS:** every entry in
 [registers/PARKED-BACKLOG.md](./registers/PARKED-BACKLOG.md) with

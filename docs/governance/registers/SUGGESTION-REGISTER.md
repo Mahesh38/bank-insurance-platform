@@ -44,6 +44,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
 | SUG-20260814-k3p | 2026-08-14 | human:Mahesh | Close the open GATE-P4 criteria so WS-1's gate can be closed as approved | SF1 | SC0 | MUST | OPS | P2 / P2 | ESCALATED | [§3](#sug-20260814-k3p--close-gate-p4-so-ws-1-can-be-approved) · [GATE-P4-EVIDENCE](../../1sb-insurance-integration/service-ssot/phase-4/GATE-P4-EVIDENCE.md) |
+| SUG-20260815-r7m | 2026-08-15 | human:Mahesh | Realign the programme: audit L0–L10 coverage, restructure phases/sub-phases, define epics, stories, priorities and sequence | SF0 | SC0 | MUST | GOV | P1 / P1 | ESCALATED | [§3](#sug-20260815-r7m--programme-realignment-l0l10-audit) · [CR-010](../change-requests/CR-010-programme-realignment.md) |
 
 <!--
 Row format:
@@ -152,6 +153,101 @@ resumed: "none — this was the session's only work item"
 
 - **TD-014's unpark trigger has fired** (overlaps criterion 4.1). Left for R1/R2 triage —
   one work item in flight ([RUNBOOK §8.4](../RUNBOOK.md#84-the-five-behaviours-that-matter-most)).
+
+---
+
+### SUG-20260815-r7m · Programme realignment (L0–L10 audit)
+
+```yaml
+# schema: triage-record
+id: SUG-20260815-r7m
+raised_at: "2026-08-15"
+raised_by: "human:Mahesh"
+source: "direct request to the agent, reasoning in the Rajal / R1 persona"
+input: >
+  "Act as Rajal, rethink on the phases and services the way project going right now.
+  Are we on right track? There are l0 to l10 stages are defined, what we started with
+  l0 or jumped directly to l4 or l5. In all stages there will be multiple smaller task
+  and sub phases will be there, have we covered all? Or have we skipped anything and we
+  need to rethink on it? I want to realign the project. Define the the phases, sub
+  phases, create epics and stories under that epics. Make sure he have we decide the
+  priorities and right sequence."
+
+context:
+  workstream: WS-1                  # the input's nominal home; the finding is that it needs WS-3
+  current_phase: "Phase 4 — Hardening & consumer enablement"
+  canonical_stage: "L7 — Hardening"
+  current_objective: "Term path signed off for UAT use by at least one bank caller"
+  state_as_of: "2026-08-10"
+  state_provisional: false
+  active_work_item: null
+
+stage_fit:
+  code: SF0
+  rationale: >
+    A programme whose scope of record covers 2 of 29 epics cannot exit any gate
+    meaningfully. GATE-P4 is currently unpassable by construction (criterion 4.3 needs a
+    journey, consent gate and suitability gate that no workstream owns). Correcting the
+    baseline is a prerequisite to closing the current stage, not adjacent to it.
+
+scope:
+  code: SC0
+  business_scope: "in scope — R0-SCOPE.md and PRD-R0 are approved programme authority"
+  authority: "R0-SCOPE.md; PRD-R0-DISTRIBUTION-PLATFORM.md; 03-PROGRAMME-TODO.md"
+  minimal: false                    # deliberately: a partial realignment reproduces the gap
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  binds_when: "immediately — three shipped/locked contradictions are already live (S4, S5, S6)"
+  failure_without_it: >
+    Programme L1/L2 work keeps being evaluated against WS-1's L7 posture and auto-parks as
+    premature. 27 epics stay ungoverned. The A7 suitability gate and A2 self-service channel
+    remain contradicted by delivered code and governed scope respectively.
+  evidence_tier: E1                 # direct contradiction between existing approved documents
+  confidence: C5
+
+action: ESCALATE
+action_rationale: >
+  Adding a workstream, re-scoping a stage gate and editing routing are all CR-triggering
+  changes under 14 section 1, approvable only by PO + Architect. An agent may not approve a
+  change request. The analysis and the proposal are delivered; ratification is human.
+
+  Two findings are additionally reserved to other authorities and are NOT pre-judged here:
+  S4 (customer identity trust boundary) is Deepali/R8, and S6 (is the shipped quote path
+  permissible without suitability and consent gates) is Shailja/R9 alone.
+conflicts:
+  - >
+    R0-SCOPE A2 (RM + Self-service + Hybrid Day 1) vs CURRENT-STATE.yaml WS-2 out_of_scope
+    (retail-customer authentication deferred). Unresolved — raised as decision D-C.
+  - >
+    R0-SCOPE A7 (suitability mandatory before quote) vs D11 (consentRef WARN-only in P0) and
+    a delivered quote path with no suitability gate. Unresolved — raised as decision D-D.
+  - >
+    CURRENT-STATE.yaml routing.ARCH points at a non-existent path. Factual error; correction
+    proposed in CR-010 section 5.
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: null
+  plan_id: null
+  status: ESCALATED
+  closed_reason: null
+
+resumed: "none — this was the session's work item"
+```
+
+**Artefacts produced**
+
+| Artefact | Purpose |
+|---|---|
+| [`po-drive/05-PROGRAMME-REALIGNMENT.md`](../../au-bank-insurance-platform/po-drive/05-PROGRAMME-REALIGNMENT.md) | L0–L10 audit, 8 findings, 6 phases, 20 sub-phases, 29 epics, scored stories, critical path |
+| [`CR-010`](../change-requests/CR-010-programme-realignment.md) | The governance vehicle — 4 separable changes, PENDING RATIFICATION |
+| `state/CURRENT-STATE.yaml` | CR counter advanced to 11 (ID hygiene only — **no stage field edited**) |
+
+**Awaiting a human decision** — 8 decisions listed in the proposal §9. The two urgent ones are
+**D-C** (S4, customer identity) and **D-D** (S6, quote-path compliance); both are contradictions
+between locked decisions and shipped work, and D-D carries O5 regulatory exposure.
 
 ---
 

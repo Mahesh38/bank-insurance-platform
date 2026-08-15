@@ -16,6 +16,7 @@ There are five buckets, and each answers a different question:
 | Bucket | Question it answers | Scope | Binding? |
 |--------|--------------------|-------|----------|
 | **[`governance/`](./governance/README.md)** | *Should this work be done at all, and when?* | How every input is triaged, prioritised, and gated — process, not content | ✅ **Binding process** |
+| **[`application-lifecycle-bible/`](./application-lifecycle-bible/README.md)** | *Which stage are we in, what must it produce, and when is it done?* | The 16-stage journey from business idea to mature platform: epics, stories, gates, evidence | ⏳ Proposed (CR-010) |
 | **[`context/`](./context/README.md)** | *Who are we and what problem are we solving?* | Programme-wide background, personas, forward-looking roadmaps | ❌ Non-binding context |
 | **[`platform/`](./platform/README.md)** | *How should the whole platform be built?* | Cross-cutting, applies to **every** service | ⚠️ Recommendation / approved spec (see each doc) |
 | **[`au-bank-insurance-platform/`](./au-bank-insurance-platform/README.md)** | *What are we building and why?* | Business & product SSOT for the programme | ✅ Business SSOT |
@@ -51,6 +52,13 @@ docs/
 │   ├── state/                             CURRENT-STATE.yaml — live lifecycle state
 │   ├── schemas/  templates/               Machine-checked record formats
 │   └── ORG-STANDARDS.md                   Company-level standards (L2)
+│
+├── application-lifecycle-bible/       LIFECYCLE — idea → mature platform, stage by stage
+│   ├── 00–09 …                            How to use, position assessment, stage model,
+│   │                                      realignment plan, gates, docs/QA/security/SRE canons
+│   ├── stages/                            S00–S15: epics, stories, AC, validation tests, gates
+│   ├── backlog/                           BACKLOG.yaml + Jira import CSV (generated)
+│   └── templates/                         Epic, story, validation test, gate sign-off, ORR
 │
 ├── context/                           GENERIC — background & AI/RAG context
 │   ├── business-problem-statement.md      Consolidated problem statement
@@ -88,6 +96,7 @@ docs/
 | **About to act on a requirement, bug, or suggestion** | [`governance/RUNBOOK.md`](./governance/RUNBOOK.md) — find your role card; triage before you build |
 | **An AI agent starting a session** | [`governance/RUNBOOK.md §8`](./governance/RUNBOOK.md#8-what-the-ai-agent-must-know-about-this-project) + [`09-AI_EXECUTION_RULES.md`](./governance/09-AI_EXECUTION_RULES.md) |
 | **New to the programme** | [`context/business-problem-statement.md`](./context/business-problem-statement.md) → [`au-bank-insurance-platform/README.md`](./au-bank-insurance-platform/README.md) |
+| **Asking "what stage are we in, and what does it require?"** | [`application-lifecycle-bible/README.md`](./application-lifecycle-bible/README.md) — position banner, then the current stage file |
 | **Product Owner / BA** | [`au-bank-insurance-platform/07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md`](./au-bank-insurance-platform/07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md) — the business MVP SSOT |
 | **Solution Architect** | [`platform/architecture-review/README.md`](./platform/architecture-review/README.md) — target-state platform architecture |
 | **Building the 1SB adapter** | [`1sb-insurance-integration/service-ssot/README.md`](./1sb-insurance-integration/service-ssot/README.md) |
@@ -132,8 +141,12 @@ below is about **content**: when two documents disagree on a fact, resolve in th
 7. context/                                                                     background & personas — never binding
 ```
 
-Two rules that are easy to get wrong:
+Three rules that are easy to get wrong:
 
+- **`application-lifecycle-bible/` is proposed, not binding.** It carries a Product-authored
+  position assessment and a 16-stage delivery model. Until **CR-010** is ratified by Boards 1–7
+  it is a planning instrument: plan against it, but cite `governance/` — not the bible — as
+  authority in a triage record. Where the two ever conflict, **AIGEM wins**.
 - **`platform/architecture-review/` is a recommendation, not an approval.** It proposes a
   ~16-service AWS/EKS target state. It does not overwrite the business SSOT, and its
   technology choices are tracked separately as `ARCH-xxx`.

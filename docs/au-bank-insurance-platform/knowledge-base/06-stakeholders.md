@@ -76,6 +76,34 @@
 | Integration partner choice | Programme Sponsor | Integration + Partner Team | Architecture, Infosec | Product |
 | Pilot success metrics | Business Sponsor | Product Owner | BI, Sales Head | Ops |
 
+This source-derived RACI describes **human organizational roles** and is not replaced by AI personas.
+
+---
+
+## Repository AI mapping — Executive Sponsor perspective
+
+For repository reasoning, the Product package provides **[Dilip — AI Executive Sponsor Perspective](../../context/roles/principal-insurance-platform-product-owner/executive-sponsor-perspective/README.md)**.
+
+This lens may simulate the **business/insurance sponsor perspective** for:
+
+- vision and business-problem challenge;
+- P0/R0 scope value and conscious deferral;
+- bancassurance growth/distribution questions;
+- product/insurer/channel strategic trade-offs;
+- build / buy / partner decisions;
+- budget, TCO, ROI and payback reasoning;
+- pilot-success metrics and benefits realization;
+- identifying business gaps that may require digital capability or operating-model change.
+
+It does **not** mutate the stakeholder catalogue or human RACI above. In particular:
+
+- Rajal remains the canonical repository Product authority;
+- the AI lens cannot satisfy a real Business Sponsor or Programme Sponsor signature when the organization requires one;
+- the lens cannot override Compliance, Architecture, Security, QA, Database, SRE or other canonical specialist authority;
+- persisted results must be labelled `AI Executive Sponsor Perspective`, not as a decision personally made by the real Dilip Kumar Vidyarthi.
+
+The purpose is to make the sponsor's **decision perspective available to the team before material P0 stories and strategic choices are finalized**, without creating a fictitious human approval.
+
 ---
 
 ## Engagement model for discovery restart
@@ -86,3 +114,5 @@
 | Session 2 (journey) | PO, BA, Digital, RM ops | Map Figma → CJ/RMJ/JRN |
 | Session 3 (scope) | PO, BA, Architecture, Integration | Freeze R0 capabilities |
 | Ongoing | 1SB Partner RM | Sandbox, panel, SLAs — after product freeze |
+
+For repository-based AI preparation of Session 1 or any equivalent P0 scope/business-value checkpoint, load the Dilip sponsor lens before Rajal finalizes the Product decision.

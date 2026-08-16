@@ -9,16 +9,26 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * ArchUnit architecture fitness tests enforcing the hexagonal architecture boundaries
- * defined in the 1SB Integration Service architecture document (section 3).
+ * defined in the 1SB Integration Service architecture document (section 3) and the
+ * WS-3 standing constraints in
+ * {@code docs/platform/ws3-platform/00-WS3-ARCHITECTURE-REGISTRATION.md} section 6.
  * <p>
- * These tests run on every PR and fail on any boundary violation.
+ * <b>TD-007 closed (S08-E02-S02).</b> {@code allowEmptyShould(true)} has been removed from
+ * every rule. It was added in Phase 1 so that empty scaffold packages would not fail the
+ * build; every package these rules select is now populated, and leaving the flag in place
+ * meant a rule whose selector silently stopped matching would report green forever. A rule
+ * that passes vacuously is worse than no rule, because it reports success.
  * <p>
- * Rules use {@code allowEmptyShould(true)} so that scaffold packages without
- * classes yet (Phase 1) don't cause spurious failures. Once classes are added,
- * any violation will be caught.
+ * {@link #everyRuleSelectorMatchesRealClasses()} is the guard that keeps that true: it
+ * asserts each selector still matches classes, so a future package rename turns into a
+ * failing test rather than a silently disabled rule.
+ * <p>
+ * That these rules actually reject violations — rather than merely being present — is
+ * proven separately by {@link ArchitectureRulesBiteTest} (validation test S08-VT-03).
  */
 class ArchitectureTest {
 
@@ -34,6 +44,28 @@ class ArchitectureTest {
     }
 
     /**
+     * Guard for TD-007. Without {@code allowEmptyShould(true)} a rule whose selector matches
+     * nothing fails loudly — which is the behaviour we want. This test states the expectation
+     * directly so the reason is visible rather than implied by an absent flag.
+     */
+    @Test
+    void everyRuleSelectorMatchesRealClasses() {
+        assertThat(importedClasses).isNotEmpty();
+        assertThat(countInPackage(".domain.")).as("domain layer").isPositive();
+        assertThat(countInPackage(".application.")).as("application layer").isPositive();
+        assertThat(countInPackage(".api.")).as("api layer").isPositive();
+        assertThat(countInPackage(".adapter.onesb.")).as("1SB adapter").isPositive();
+        assertThat(countInPackage(".lob.")).as("LOB handlers").isPositive();
+        assertThat(countInPackage(".config.")).as("config layer").isPositive();
+    }
+
+    private long countInPackage(String fragment) {
+        return importedClasses.stream()
+                .filter(c -> c.getPackageName().contains(fragment.substring(0, fragment.length() - 1)))
+                .count();
+    }
+
+    /**
      * The application layer must not import from any adapter.
      * Use-case orchestrators depend on port interfaces only.
      */
@@ -43,7 +75,6 @@ class ArchitectureTest {
                 .that().resideInAPackage("..application..")
                 .should().dependOnClassesThat()
                 .resideInAPackage("..adapter..")
-                .allowEmptyShould(true)
                 .as("Application layer must depend only on domain ports, not adapter implementations");
 
         rule.check(importedClasses);
@@ -59,7 +90,6 @@ class ArchitectureTest {
                 .that().resideInAPackage("..api..")
                 .should().dependOnClassesThat()
                 .resideInAPackage("..adapter..")
-                .allowEmptyShould(true)
                 .as("API controllers must delegate to application services, not adapters directly");
 
         rule.check(importedClasses);
@@ -75,26 +105,35 @@ class ArchitectureTest {
                 .that().resideInAPackage("..domain..")
                 .should().dependOnClassesThat()
                 .resideInAPackage("org.springframework..")
-                .allowEmptyShould(true)
                 .as("Domain layer must be pure Java with zero Spring dependencies");
 
         rule.check(importedClasses);
     }
 
     /**
-     * The adapter.onesb isolation rule:
-     * No class outside adapter.onesb may import classes from adapter.onesb.client.
-     * This enforces that 1SB HTTP client types are contained within the adapter boundary.
+     * <b>INV-ACL-01 — provider isolation, strengthened.</b>
+     * <p>
+     * Previously this rule guarded only {@code adapter.onesb.client}. The standing constraint
+     * is broader: no provider type — client, wire model, mapper or error shape — may appear
+     * outside its own adapter package. A canonical model is only provider-neutral if the
+     * provider's <em>models</em> are confined too, not merely its HTTP client.
+     * <p>
+     * {@code ..config..} is excluded because it is the composition root: Spring configuration
+     * must be able to instantiate adapter beans to wire them to ports. That is the one
+     * legitimate inbound reference and it carries no provider vocabulary into the domain.
+     * <p>
+     * Verified: no class outside {@code adapter.onesb} currently imports it, so this
+     * strengthening locks in a property the codebase already has.
      */
     @Test
-    void onlyOneSbAdapterMayImportOneSbClientPackage() {
+    void onlyOneSbAdapterMayImportOneSbAdapterPackage() {
         ArchRule rule = noClasses()
                 .that().resideOutsideOfPackage("..adapter.onesb..")
+                .and().resideOutsideOfPackage("..config..")
                 .should().dependOnClassesThat()
-                .resideInAPackage("..adapter.onesb.client..")
-                .allowEmptyShould(true)
-                .as("Only adapter.onesb.* is permitted to use the 1SB HTTP client; "
-                        + "all other packages must use domain ports");
+                .resideInAPackage("..adapter.onesb..")
+                .as("INV-ACL-01: 1SB provider types are confined to adapter.onesb.*; "
+                        + "all other packages use domain ports (config is the composition root)");
 
         rule.check(importedClasses);
     }
@@ -108,7 +147,6 @@ class ArchitectureTest {
                 .that().resideInAPackage("..domain..")
                 .should().dependOnClassesThat()
                 .resideInAPackage("..adapter..")
-                .allowEmptyShould(true)
                 .as("Domain is adapter-agnostic; adapters implement domain ports, not the reverse");
 
         rule.check(importedClasses);
@@ -124,9 +162,63 @@ class ArchitectureTest {
                 .that().resideInAPackage("..lob..")
                 .should().dependOnClassesThat()
                 .resideInAPackage("..adapter.persistence..")
-                .allowEmptyShould(true)
                 .as("LOB handlers interact via domain ports only; "
                         + "they must not directly import the persistence HTTP adapter");
+
+        rule.check(importedClasses);
+    }
+
+    /**
+     * <b>New — dependency direction.</b> Adapters implement ports; they must never reach back
+     * up into the HTTP API layer. An adapter that imports a controller DTO has quietly made
+     * the wire format of the bank-facing API part of the provider integration contract, which
+     * is the coupling the ports-and-adapters shape exists to prevent.
+     */
+    @Test
+    void adaptersMustNotDependOnTheApiLayer() {
+        ArchRule rule = noClasses()
+                .that().resideInAPackage("..adapter..")
+                .should().dependOnClassesThat()
+                .resideInAPackage("..api..")
+                .as("Adapters must not depend on the API layer; dependencies point inward to domain ports");
+
+        rule.check(importedClasses);
+    }
+
+    /**
+     * <b>New — domain purity beyond Spring.</b> The domain must not depend on the JSON
+     * serialization library or on Jakarta annotations either. Jackson annotations in a domain
+     * record are how a wire format starts dictating a business model, and it happens one
+     * convenient {@code @JsonProperty} at a time.
+     */
+    @Test
+    void domainMustNotDependOnSerializationOrJakarta() {
+        ArchRule rule = noClasses()
+                .that().resideInAPackage("..domain..")
+                .should().dependOnClassesThat()
+                .resideInAnyPackage("com.fasterxml.jackson..", "jakarta..")
+                .as("Domain must not depend on Jackson or Jakarta; "
+                        + "serialization and persistence concerns belong in adapters");
+
+        rule.check(importedClasses);
+    }
+
+    /**
+     * <b>New — supports control C5 / INV-LOG-01 (no PII in logs).</b>
+     * <p>
+     * PII masking is applied by the logging framework's converter. Anything written straight
+     * to {@code System.out} or {@code System.err} bypasses every appender, and therefore
+     * bypasses masking entirely. This rule is the static half of the control; the runtime
+     * half is the log-scan test for S08-G7.
+     */
+    @Test
+    void mustNotWriteToStandardStreams() {
+        ArchRule rule = noClasses()
+                .that().resideInAPackage(BASE_PACKAGE + "..")
+                .should().accessField(System.class, "out")
+                .orShould().accessField(System.class, "err")
+                .as("C5/INV-LOG-01: all output goes through the logging framework so the "
+                        + "PII masking converter applies; System.out/err bypasses masking");
 
         rule.check(importedClasses);
     }
@@ -169,7 +261,6 @@ class ArchitectureTest {
                 .or().resideInAPackage("..application..")
                 .should().dependOnClassesThat()
                 .resideInAPackage("..config..")
-                .allowEmptyShould(true)
                 .as("Domain and application layers must not depend on Spring configuration classes");
 
         rule.check(importedClasses);
@@ -178,6 +269,7 @@ class ArchitectureTest {
     /**
      * After TD-003/011 split, integration service must not use JPA.
      * Persistence lives in bank-persistence-service; this service uses HTTP only.
+     * Standing constraint: "1sb-integration-service owns no Flyway migrations and no JPA".
      */
     @Test
     void mustNotImportJakartaPersistence() {

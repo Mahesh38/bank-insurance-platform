@@ -1,0 +1,214 @@
+schema_version: "1.0"
+as_of: "2026-08-16"
+
+policy:
+  mode: proposal-only
+  human_pass_required: true
+  silence_approves: false
+  automatic_waivers: false
+
+workstreams:
+  - id: WS-1
+    gate_id: GATE-P4
+    current_stage: "Phase 4 — Hardening & consumer enablement"
+    next_stage: "Phase 5 — Expand LOBs"
+    bible_stage: S12
+    state: BLOCKED
+    required_approvers: [Architect, Product, QA, Compliance, Operations]
+    criteria:
+      - id: "4.1"
+        description: "Sandbox E2E suite for the Term path runs in CI or gated nightly."
+        state: BLOCKED
+        owner: "Amit / Engineering + Shivanshi / SRE"
+        execution_mode: AUTOMATABLE
+        priority: P1
+        effort: L
+        enables: 3
+        required_evidence_level: E4
+        verifier: ci
+        evidence: []
+        blockers:
+          - id: GATE-4.1-SANDBOX-E2E
+            type: ENVIRONMENT
+            owner: "Amit / Engineering"
+            follow_up: "2026-08-21"
+        last_verified_at: null
+      - id: "4.2"
+        description: "OpenAPI published to the internal portal; consumer collection available."
+        state: PARTIAL
+        owner: "Amit / Engineering"
+        execution_mode: AUTOMATABLE
+        priority: P2
+        effort: S
+        enables: 1
+        required_evidence_level: E3
+        verifier: document
+        evidence: ["OpenAPI generated in commit 79c65f4"]
+        blockers: []
+        last_verified_at: null
+      - id: "4.3"
+        description: "At least one bank caller exercises quote and proposal against UAT."
+        state: BLOCKED
+        owner: "Rajal / Product"
+        execution_mode: EXTERNAL_REQUIRED
+        priority: P2
+        effort: M
+        enables: 0
+        required_evidence_level: E3
+        verifier: external
+        evidence: []
+        blockers:
+          - id: DEP-001
+            type: HARD
+            owner: "Amit / Engineering"
+            follow_up: "2026-08-21"
+          - id: DEP-002
+            type: EXTERNAL
+            owner: "Rajal / Product"
+            follow_up: "2026-08-21"
+        last_verified_at: null
+      - id: "4.4"
+        description: "Compliance review of audit schema and log samples."
+        state: OPEN
+        owner: "Shailja / Compliance"
+        execution_mode: HUMAN_REQUIRED
+        priority: P1
+        effort: M
+        enables: 2
+        required_evidence_level: E2
+        verifier: human-review
+        evidence: []
+        blockers: []
+        last_verified_at: null
+      - id: "4.5"
+        description: "Operations runbook covers secrets rotation, allowlisting and 1SB incidents."
+        state: OPEN
+        owner: "R10 / Operations"
+        execution_mode: AUTOMATABLE
+        priority: P3
+        effort: S
+        enables: 0
+        required_evidence_level: E2
+        verifier: document
+        evidence: []
+        blockers: []
+        last_verified_at: null
+      - id: "4.6"
+        description: "Performance smoke measures p95 quote latency under nominal concurrency."
+        state: BLOCKED
+        owner: "Amit / Engineering + R10 / Operations"
+        execution_mode: AUTOMATABLE
+        priority: P2
+        effort: M
+        enables: 0
+        required_evidence_level: E4
+        verifier: ci
+        evidence: []
+        blockers:
+          - id: DEP-003
+            type: SOFT
+            owner: "Amit / Engineering"
+            follow_up: "2026-08-24"
+        last_verified_at: null
+      - id: "4.7"
+        description: "Coverage gates green; QA-001 closed or explicitly waived with expiry."
+        state: PARTIAL
+        owner: "Swapnali / QA"
+        execution_mode: AUTOMATABLE
+        priority: P2
+        effort: M
+        enables: 0
+        required_evidence_level: E4
+        verifier: ci
+        evidence: ["Shared-library coverage gates at 80% line / 70% branch"]
+        blockers: []
+        last_verified_at: null
+    approvals: []
+
+  - id: WS-2
+    gate_id: GATE-IAM-P1
+    current_stage: "Phase 1 — Foundation implementation"
+    next_stage: "Phase 2 — Bank AD federation + production IdP decision"
+    bible_stage: null
+    state: OPEN
+    required_approvers: [Architect, Security, Compliance, QA]
+    criteria:
+      - id: A.1
+        description: "BFF token-hiding proven; Flutter never receives OAuth tokens."
+        state: OPEN
+        owner: "Amit / Engineering"
+        execution_mode: AUTOMATABLE
+        priority: P1
+        effort: M
+        enables: 1
+        required_evidence_level: E4
+        verifier: ci
+        evidence: []
+        blockers: []
+        last_verified_at: null
+      - id: A.2
+        description: "Keycloak isolated behind the identity-provider adapter."
+        state: OPEN
+        owner: "Mahesh / Architecture"
+        execution_mode: AUTOMATABLE
+        priority: P1
+        effort: M
+        enables: 1
+        required_evidence_level: E4
+        verifier: ci
+        evidence: []
+        blockers: []
+        last_verified_at: null
+      - id: A.3
+        description: "Authorization service is the PDP and default-deny is verified."
+        state: OPEN
+        owner: "Amit / Engineering"
+        execution_mode: AUTOMATABLE
+        priority: P1
+        effort: M
+        enables: 1
+        required_evidence_level: E4
+        verifier: ci
+        evidence: []
+        blockers: []
+        last_verified_at: null
+      - id: A.4
+        description: "Maker-checker enforced for bulk and privileged changes."
+        state: OPEN
+        owner: "Deepali / Security"
+        execution_mode: AUTOMATABLE
+        priority: P1
+        effort: M
+        enables: 0
+        required_evidence_level: E4
+        verifier: ci
+        evidence: []
+        blockers: []
+        last_verified_at: null
+      - id: A.5
+        description: "Auth and admin events retained per policy; retention is configurable."
+        state: OPEN
+        owner: "Shailja / Compliance"
+        execution_mode: HUMAN_REQUIRED
+        priority: P1
+        effort: M
+        enables: 0
+        required_evidence_level: E3
+        verifier: human-review
+        evidence: []
+        blockers: []
+        last_verified_at: null
+      - id: A.6
+        description: "Provisioning outbox proves retry and idempotent delivery."
+        state: OPEN
+        owner: "Amit / Engineering"
+        execution_mode: AUTOMATABLE
+        priority: P1
+        effort: M
+        enables: 1
+        required_evidence_level: E4
+        verifier: ci
+        evidence: []
+        blockers: []
+        last_verified_at: null
+    approvals: []

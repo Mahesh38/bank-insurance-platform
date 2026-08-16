@@ -129,19 +129,19 @@ WS-1 Phase 4 is the active work and maps to this stage. Its state:
 
 | Criterion | Status | Real blocker |
 |---|---|---|
-| 4.1 Sandbox E2E suite in CI | ❌ Open | **No CI exists.** Should be `BLOCKED` on GATE-S08 |
+| 4.1 Sandbox E2E suite in CI | ⛔ Blocked | Application-CI foundation exists; sandbox E2E harness and green run evidence remain (`GATE-4.1-SANDBOX-E2E`) |
 | 4.2 OpenAPI published + consumer collection | 🟡 Partial | Generated; publication outstanding |
-| 4.3 ≥ 1 bank caller exercises UAT | ❌ Open | **No UAT environment exists.** Should be `BLOCKED` on GATE-S09 |
+| 4.3 ≥ 1 bank caller exercises UAT | ⛔ Blocked | Consumer publication and named bank UAT slot remain (`DEP-001`, `DEP-002`) |
 | 4.4 Compliance review of audit schema | ❌ Open | Achievable now — needs no CI |
 | 4.5 Runbook | ❌ Open | Achievable now — owner assigned to Shivanshi by CR-008 |
-| 4.6 Performance smoke, p95 | ❌ Open | **No threshold defined** (GAP-017) and no environment. `BLOCKED` on GATE-S07 and GATE-S09 |
-| 4.7 Coverage gates green; QA-001 | 🟡 Partial | **Nothing executes the gate.** `BLOCKED` on GATE-S08 |
+| 4.6 Performance smoke, p95 | ⛔ Blocked | E2E harness/environment dependency (`DEP-003`); threshold evidence remains |
+| 4.7 Coverage gates green; QA-001 | 🟡 Partial | Application workflow now executes coverage; a green CI run and final service threshold remain |
 
 **Two findings.**
 
-*First*, four of seven criteria are marked `OPEN` when they are `BLOCKED` on missing prerequisite
-stages. `OPEN` implies effort will close them; it will not. Re-stating them per Rule GS-3 makes
-the real dependency visible and schedulable, and is one of the Move 1 actions in the realignment.
+*First*, three criteria are now explicitly `BLOCKED` with named dependencies rather than appearing
+actionable. Criterion 4.7 remains `PARTIAL`: the execution mechanism exists, but evidence has not
+yet closed the quality exit. This makes safe non-blocked work selectable without hiding the gate.
 
 *Second, and more important*: **this stage is being applied to the wrong subject.** S12 hardens a
 vertical slice. What is being hardened is an integration adapter whose journey does not exist —

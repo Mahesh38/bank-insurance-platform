@@ -32,7 +32,6 @@ with a probability**. Risks feed the `R` factor in priority scoring
 
 | ID | Risk | WS | L | I | Exp | Owner | Response | Trigger to escalate |
 |----|------|----|---|---|-----|-------|----------|---------------------|
-| RISK-002 | External UAT dependency (DEP-002) has no owner or date | WS-1 | 3 | 2 | 6 | PO | Name an owner and a date; raise the chase as its own item | Phase 4 gate reaches CANDIDATE with 4.3 open |
 | RISK-003 | Bank AD technology unconfirmed (DEP-010) | WS-2 | 2 | 3 | 6 | PO + Architect | Adapter design must remain federation-agnostic; do not pre-commit | Phase 1 gate PASSED with no confirmation |
 | RISK-004 | In-memory idempotency is unsafe multi-instance (TD-010) | WS-1 | 2 | 3 | 6 | Tech Lead | Single-instance constraint documented; Redis scheduled Phase 5.4 | Any plan to run > 1 instance |
 | RISK-005 | AWS Secrets Manager provider is a stub; prod profile fails fast (TD-006) | WS-1 | 2 | 3 | 6 | Platform | Keep fail-fast; schedule at Phase 6 | AWS deployment target confirmed |
@@ -56,6 +55,7 @@ Risks knowingly carried, with the acceptance recorded so they are not re-raised 
 | ID | Risk | Closed | How |
 |----|------|--------|-----|
 | RISK-001 | Current-state file unratified; agents may triage against a wrong stage | 2026-08-10 | Ratified by the Solution Architect (GOV-004); `provisional: false`. `FreshnessCheck` now halts if the state goes stale, so the risk cannot silently return |
+| RISK-002 | External UAT dependency (DEP-002) had no owner or date | 2026-08-16 | Assigned to Rajal / Product with follow-up on 2026-08-21 in the dependency and gate-evidence registers |
 
 ---
 

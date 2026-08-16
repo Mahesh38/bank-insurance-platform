@@ -11,13 +11,13 @@ lives, start here.
 ## How this folder is organised
 
 Documents are separated by **what kind of authority they carry**, not by who wrote them.
-There are five buckets, and each answers a different question:
+There are six buckets, and each answers a different question:
 
 | Bucket | Question it answers | Scope | Binding? |
 |--------|--------------------|-------|----------|
 | **[`governance/`](./governance/README.md)** | *Should this work be done at all, and when?* | How every input is triaged, prioritised, and gated — process, not content | ✅ **Binding process** |
 | **[`application-lifecycle-bible/`](./application-lifecycle-bible/README.md)** | *Which stage are we in, what must it produce, and when is it done?* | The 16-stage journey from business idea to mature platform: epics, stories, gates, evidence | ⏳ Proposed (CR-010) |
-| **[`context/`](./context/README.md)** | *Who are we and what problem are we solving?* | Programme-wide background, personas, forward-looking roadmaps | ❌ Non-binding context |
+| **[`context/`](./context/README.md)** | *Who are we, what problem are we solving, and what context should be loaded?* | Portable framework + project manifest/overlay, personas and roadmaps | ❌ Non-binding context |
 | **[`platform/`](./platform/README.md)** | *How should the whole platform be built?* | Cross-cutting, applies to **every** service | ⚠️ Recommendation / approved spec (see each doc) |
 | **[`au-bank-insurance-platform/`](./au-bank-insurance-platform/README.md)** | *What are we building and why?* | Business & product SSOT for the programme | ✅ Business SSOT |
 | **[`1sb-insurance-integration/`](./1sb-insurance-integration/README.md)** | *How is the 1SB adapter built?* | One module — the 1SB integration service | ✅ Engineering SSOT (module) |
@@ -26,10 +26,11 @@ There are five buckets, and each answers a different question:
 while they hold **what is true**. The remaining four split like this:
 
 ```text
-GENERIC / CROSS-CUTTING                    PROJECT- & MODULE-SPECIFIC
-─────────────────────────                  ──────────────────────────
-context/    — background, personas         au-bank-insurance-platform/ — the programme
-platform/   — all-service architecture     1sb-insurance-integration/  — one module
+PORTABLE / CROSS-CUTTING                   PROJECT- & MODULE-SPECIFIC
+────────────────────────                   ──────────────────────────
+context/framework/ — reusable model       context manifest/overlay — this project
+platform/          — all-service specs     au-bank-insurance-platform/ — programme
+                                             1sb-insurance-integration/ — module
 ```
 
 > ⚠️ **Before you act on anything you find here**, read
@@ -49,7 +50,8 @@ docs/
 │   ├── RUNBOOK.md                         Operating manual — role cards, cadences
 │   ├── 00–19 …                            Decision pipeline, priority, review gates
 │   ├── registers/                         Suggestions, risks, decisions, parked backlog
-│   ├── state/                             CURRENT-STATE.yaml — live lifecycle state
+│   ├── state/                             CURRENT-STATE.yaml + GATE-EVIDENCE.yaml
+│   ├── autopilot/                         Safe selection/transition boundary
 │   ├── schemas/  templates/               Machine-checked record formats
 │   └── ORG-STANDARDS.md                   Company-level standards (L2)
 │
@@ -60,10 +62,13 @@ docs/
 │   ├── backlog/                           BACKLOG.yaml + Jira import CSV (generated)
 │   └── templates/                         Epic, story, validation test, gate sign-off, ORR
 │
-├── context/                           GENERIC — background & AI/RAG context
-│   ├── business-problem-statement.md      Consolidated problem statement
-│   ├── roles/                             Persona context (PO, SA, Tech Head)
-│   └── roadmaps/                          Forward-looking transformation plans
+├── context/                           PORTABLE MODEL + PROJECT OVERLAY
+│   ├── context-manifest.yaml              Machine-readable layers, roles, load profiles
+│   ├── framework/                         Reusable model, loading protocol, templates
+│   ├── schemas/                           Manifest validation contract
+│   ├── business-problem-statement.md      This project's problem statement
+│   ├── roles/                             This project's persona packages
+│   └── roadmaps/                          This project's forward-looking plans
 │
 ├── platform/                          CROSS-CUTTING — applies to all services
 │   ├── architecture-review/               Target AWS/EKS microservices architecture
@@ -95,6 +100,8 @@ docs/
 |-------------|-----------------|
 | **About to act on a requirement, bug, or suggestion** | [`governance/RUNBOOK.md`](./governance/RUNBOOK.md) — find your role card; triage before you build |
 | **An AI agent starting a session** | [`governance/RUNBOOK.md §8`](./governance/RUNBOOK.md#8-what-the-ai-agent-must-know-about-this-project) + [`09-AI_EXECUTION_RULES.md`](./governance/09-AI_EXECUTION_RULES.md) |
+| **Selecting safe non-blocked work** | [`governance/autopilot/README.md`](./governance/autopilot/README.md) + [`governance/state/GATE-EVIDENCE.yaml`](./governance/state/GATE-EVIDENCE.yaml) |
+| **Reusing context for another project/domain** | [`context/framework/README.md`](./context/framework/README.md) — scaffold, replace the project overlay, validate |
 | **New to the programme** | [`context/business-problem-statement.md`](./context/business-problem-statement.md) → [`au-bank-insurance-platform/README.md`](./au-bank-insurance-platform/README.md) |
 | **Asking "what stage are we in, and what does it require?"** | [`application-lifecycle-bible/README.md`](./application-lifecycle-bible/README.md) — position banner, then the current stage file |
 | **Product Owner / BA** | [`au-bank-insurance-platform/07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md`](./au-bank-insurance-platform/07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md) — the business MVP SSOT |

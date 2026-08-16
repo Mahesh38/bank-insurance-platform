@@ -38,17 +38,22 @@ backlog.
 
 | Type | Destination |
 |------|-------------|
-| `FUNC`, `NFR`, `COMP`, `TECH`, `SHARED` | [service-ssot/PRODUCT-BACKLOG.md](../1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md) (WS-1) · [authentication-authorization/README.md](../platform/authentication-authorization/README.md) backlog (WS-2) |
-| `BUG` | Product backlog, defects section, with the violated AC |
-| `DEBT`, `REFACTOR` | [service-ssot/TECH-DEBT.md](../1sb-insurance-integration/service-ssot/TECH-DEBT.md) |
-| `QA` | [service-ssot/TEST-BACKLOG.md](../1sb-insurance-integration/service-ssot/TEST-BACKLOG.md) |
-| `ARCH`, `MIGRATION` | ADR + backlog; ADR indexed in [registers/DECISION-REGISTER.md](./registers/DECISION-REGISTER.md) |
-| `SEC`, `COMP` (risk-bearing) | Backlog **and** [registers/RISK-REGISTER.md](./registers/RISK-REGISTER.md) |
-| `OPS`, `INFRA` | Backlog, ops section |
-| `SPIKE` | Backlog with a timebox |
-| `DOC` | Applied in place; recorded in the suggestion register |
-| `GOV` | `docs/governance/**` via change control — **and** a backlog entry (see §3.1) |
+The machine authority is `state/CURRENT-STATE.yaml routing[workstream][type]`. Every active
+workstream is closed over the same 16 canonical types and every destination must exist.
+
+| Type | Destination rule |
+|---|---|
+| `FUNC`, `BUG`, `NFR`, `INFRA`, `OPS`, `SPIKE` | Owning workstream backlog |
+| `DEBT`, `REFACTOR` | Owning workstream debt/backlog destination |
+| `QA` | Owning workstream quality backlog/destination |
+| `ARCH`, `MIGRATION` | Architecture decision log plus owning backlog |
+| `SEC`, risk-bearing `COMP` | Owning backlog plus risk register |
+| `DOC` | Applied in place and recorded in the suggestion register |
+| `GOV` | Governance change control plus owning backlog (see §3.1) |
 | `IDEA` | Parked backlog → Ideas |
+
+`TECH-*` and `SHARED-*` are legacy item-ID namespaces, not work types. Classify them as
+`INFRA`, `NFR` or `ARCH` before routing.
 
 ### 3.1 Governance work is work
 
@@ -72,8 +77,9 @@ Concretely, a `GOV` item must now:
 
 1. carry a `SUG-####` and a triage verdict like any other input;
 2. appear as a work item in the owning workstream's backlog, not only as a CR;
-3. occupy the one in-flight slot while it is being written — **governance work in flight means
-   product work is paused, and that must be visible on the board, not discovered in `git log`**;
+3. occupy its owner's one in-flight slot while it is being written — governance work pauses that
+   owner's product lane, but it is not a global repository mutex; independent, dependency-safe
+   owners may continue, and the displacement must be visible on the board;
 4. state, in its CR `impact` block, which gate criterion or delivery outcome it defers;
 5. be reported in the gate scorecard under [18 §2](./18-GOVERNANCE_METRICS.md#2-governance-metrics).
 
@@ -104,7 +110,7 @@ TRIAGED ──► READY ──► IN-FLIGHT ──► IN-REVIEW ──► DONE
 | `TRIAGED` | Has a `SUG-####` with stage fit, scope fit, necessity, type, priority |
 | `READY` | Meets [12-DoR](./12-DEFINITION_OF_READY.md); has an approved plan for tier T2+ |
 | `IN-FLIGHT` | Exactly one per agent/owner ([09 §3](./09-AI_EXECUTION_RULES.md#3-one-active-item)) |
-| `BLOCKED` | Names the blocker ID and its expected release |
+| `BLOCKED` | Names the blocker ID, owner and follow-up date; it does not consume an implementation WIP slot |
 | `IN-REVIEW` | Board verdicts pending or conditions outstanding |
 | `DONE` | Meets [13-DoD](./13-DEFINITION_OF_DONE.md) with evidence |
 | `PARKED` | Has `target_stage` **and** `unpark_trigger` |

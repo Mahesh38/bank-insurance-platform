@@ -305,7 +305,7 @@ Developers should take stories **top-down within P0**; do not start Health befor
 ### SUG-20260816-d8v · Dilip AI Executive Sponsor Perspective
 
 **Type:** GOV/DOC · **AIGEM priority:** P2 now / P2 before material AU-platform P0/R0 business decisions  
-**Status:** IN REVIEW on `agent/add-dilip-executive-sponsor`  
+**Status:** DONE — merged via PR #49
 **Origin:** [Suggestion Register](../../governance/registers/SUGGESTION-REGISTER.md#sug-20260816-d8v--dilip-ai-executive-sponsor-perspective)
 
 **Purpose:** provide a reusable executive sponsor business/value lens before material bancassurance scope, investment, build/buy/partner and pilot-success decisions, without creating a tenth canonical persona or impersonating a human sponsor.
@@ -320,6 +320,26 @@ Developers should take stories **top-down within P0**; do not start Health befor
 - [x] Rajal and all specialist/human authority boundaries remain unchanged.
 - [x] P0 BRD, R0 scope and stakeholder knowledge base reference the lens at material decision points.
 - [x] Human-identity guardrail prevents AI output being represented as the real Dilip Kumar Vidyarthi's approval.
-- [ ] Draft PR reviewed/merged; after merge, close this item in the suggestion register.
+- [x] Draft PR reviewed/merged; item closed in the suggestion register.
 
 **Delivery cost / displacement:** this documentation work consumes capacity that could otherwise advance the currently open WS-1 `GATE-P4` / `P4-UAT-SIGNOFF`, particularly consumer/UAT enablement. It changes no gate criterion and claims no runtime completion.
+
+### SUG-20260816-ba7 · Principal Business Analyst / R11
+
+**Type:** GOV/DOC · **AIGEM priority:** P2
+**Status:** DONE — merged via PR #51
+**Origin:** [Suggestion Register](../../governance/registers/SUGGESTION-REGISTER.md#sug-20260816-ba7--principal-insurance-platform-business-analyst--r11)
+
+The existing R11 role now has a modular end-to-end bancassurance Business Analyst reasoning
+package. It adds no board or Product authority and preserves specialist/human boundaries.
+
+### SUG-20260816-ap1 · Reusable Context Module and Safe Autopilot
+
+**Type:** GOV/DOC/INFRA/QA · **AIGEM priority:** P2
+**Status:** IN REVIEW — implementation complete on `codex/context-autopilot-foundation`; CR-010 human verdicts pending
+**Origin:** [Suggestion Register](../../governance/registers/SUGGESTION-REGISTER.md#sug-20260816-ap1--reusable-context-module-and-safe-autopilot)
+**Plan:** [PLAN-001](../../governance/plans/PLAN-001-context-module-and-safe-autopilot.md)
+
+**Acceptance:** portable context scaffolding and validation; workstream-aware routing; semantic
+governance checks; proposal-only stage automation; application CI; generated lifecycle drift
+checks; compact compatibility redirects; no automatic human approval or stage transition.

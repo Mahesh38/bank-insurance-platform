@@ -83,7 +83,7 @@ AIGEM triage — never inherited unexamined from this file.
 ## Before importing
 
 This framework is **proposed, not ratified**. Adoption requires CR-010 with verdicts from Boards
-1–7 ([`../README.md`](../README.md)). Importing 796 issues into a live Jira project before that
+1–7 ([`../README.md`](../README.md)). Importing 824 issues into a live Jira project before that
 ratification would create a parallel backlog competing with the existing one.
 
 Recommended order: ratify CR-010 → register WS-3 → import the stages in scope for the Foundation

@@ -91,17 +91,21 @@ workstreams:
 
     current_gate:
       id: GATE-P4
-      state: OPEN
+      state: BLOCKED
       exit_criteria:
         - id: "4.1"
           criterion: "Sandbox E2E suite for the Term path runs in CI (or gated nightly)"
-          state: OPEN
+          state: BLOCKED
+          owner: "Amit / Engineering + R10 / Operations"
+          blockers: ["GATE-4.1-SANDBOX-E2E"]
         - id: "4.2"
           criterion: "OpenAPI published to internal portal; consumer collection available"
           state: PARTIAL
         - id: "4.3"
           criterion: "At least one bank caller exercises quote + proposal against UAT"
-          state: OPEN
+          state: BLOCKED
+          owner: "Rajal / Product"
+          blockers: ["DEP-001", "DEP-002"]
         - id: "4.4"
           criterion: "Compliance review of audit schema and log samples"
           state: OPEN
@@ -110,7 +114,9 @@ workstreams:
           state: OPEN
         - id: "4.6"
           criterion: "Performance smoke: p95 quote under nominal concurrency"
-          state: OPEN
+          state: BLOCKED
+          owner: "Amit / Engineering + R10 / Operations"
+          blockers: ["DEP-003"]
         - id: "4.7"
           criterion: "Coverage gates green; QA-001 closed or explicitly waived with expiry"
           state: PARTIAL
@@ -127,7 +133,7 @@ workstreams:
   - id: WS-2
     name: "Workforce Authentication & Authorization"
     authority:
-      - "docs/authentication-authorization/README.md"
+      - "docs/platform/authentication-authorization/README.md"
 
     lifecycle:
       canonical_stage: "L4/L6 — Foundation into first vertical slice"
@@ -214,40 +220,62 @@ standing_constraints:
 # no more, no fewer. ci-checks.py asserts this closure, so a new work type
 # cannot be added to the model without also being given a home.
 #
-# Values are LISTS because several types have two homes: an ARCH item needs an
-# ADR *and* a backlog entry; a risk-bearing SEC or COMP item needs a backlog
-# entry *and* a risk register row.
+# The first key is the owning workstream. This prevents a valid WS-2 or
+# cross-cutting classification from being routed into the WS-1 supplier backlog.
+# Every workstream is closed over the same 16 canonical types.
 # ---------------------------------------------------------------------------
 routing:
-  FUNC: ["docs/1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md"]
-  BUG: ["docs/1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md"]
-  NFR: ["docs/1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md"]
-  ARCH:
-    - "docs/architecture-review/08-architecture-decision-log.md"
-    - "docs/1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md"
-  SEC:
-    - "docs/1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md"
-    - "docs/governance/registers/RISK-REGISTER.md"
-  COMP:
-    - "docs/1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md"
-    - "docs/governance/registers/RISK-REGISTER.md"
-  INFRA: ["docs/1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md"]
-  DEBT: ["docs/1sb-insurance-integration/service-ssot/TECH-DEBT.md"]
-  REFACTOR: ["docs/1sb-insurance-integration/service-ssot/TECH-DEBT.md"]
-  QA: ["docs/1sb-insurance-integration/service-ssot/TEST-BACKLOG.md"]
-  OPS: ["docs/1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md"]
-  SPIKE: ["docs/1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md"]
-  DOC: ["docs/governance/registers/SUGGESTION-REGISTER.md"]
-  MIGRATION:
-    - "docs/architecture-review/08-architecture-decision-log.md"
-    - "docs/1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md"
-  # GOV work routes to the framework itself AND to the owning workstream's backlog:
-  # change control asks "is this change correct?", the backlog asks "should we spend
-  # this week on it instead of the open gate?". Both questions must be asked (08 §3.1).
-  GOV:
-    - "docs/governance/"
-    - "docs/1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md"
-  IDEA: ["docs/governance/registers/PARKED-BACKLOG.md"]
+  WS-1:
+    FUNC: ["docs/1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md"]
+    BUG: ["docs/1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md"]
+    NFR: ["docs/1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md"]
+    ARCH: ["docs/platform/architecture-review/08-architecture-decision-log.md", "docs/1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md"]
+    SEC: ["docs/1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md", "docs/governance/registers/RISK-REGISTER.md"]
+    COMP: ["docs/1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md", "docs/governance/registers/RISK-REGISTER.md"]
+    INFRA: ["docs/1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md"]
+    DEBT: ["docs/1sb-insurance-integration/service-ssot/TECH-DEBT.md"]
+    REFACTOR: ["docs/1sb-insurance-integration/service-ssot/TECH-DEBT.md"]
+    QA: ["docs/1sb-insurance-integration/service-ssot/TEST-BACKLOG.md"]
+    OPS: ["docs/1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md"]
+    SPIKE: ["docs/1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md"]
+    DOC: ["docs/governance/registers/SUGGESTION-REGISTER.md"]
+    MIGRATION: ["docs/platform/architecture-review/08-architecture-decision-log.md", "docs/1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md"]
+    GOV: ["docs/governance/", "docs/1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md"]
+    IDEA: ["docs/governance/registers/PARKED-BACKLOG.md"]
+  WS-2:
+    FUNC: ["docs/platform/authentication-authorization/README.md"]
+    BUG: ["docs/platform/authentication-authorization/README.md"]
+    NFR: ["docs/platform/authentication-authorization/README.md"]
+    ARCH: ["docs/platform/architecture-review/08-architecture-decision-log.md", "docs/platform/authentication-authorization/README.md"]
+    SEC: ["docs/platform/authentication-authorization/README.md", "docs/governance/registers/RISK-REGISTER.md"]
+    COMP: ["docs/platform/authentication-authorization/README.md", "docs/governance/registers/RISK-REGISTER.md"]
+    INFRA: ["docs/platform/authentication-authorization/README.md"]
+    DEBT: ["docs/platform/authentication-authorization/README.md"]
+    REFACTOR: ["docs/platform/authentication-authorization/README.md"]
+    QA: ["docs/platform/authentication-authorization/README.md"]
+    OPS: ["docs/platform/authentication-authorization/README.md"]
+    SPIKE: ["docs/platform/authentication-authorization/README.md"]
+    DOC: ["docs/governance/registers/SUGGESTION-REGISTER.md"]
+    MIGRATION: ["docs/platform/architecture-review/08-architecture-decision-log.md", "docs/platform/authentication-authorization/README.md"]
+    GOV: ["docs/governance/", "docs/platform/authentication-authorization/README.md"]
+    IDEA: ["docs/governance/registers/PARKED-BACKLOG.md"]
+  CROSS-CUTTING:
+    FUNC: ["docs/au-bank-insurance-platform/po-drive/03-PROGRAMME-TODO.md"]
+    BUG: ["docs/au-bank-insurance-platform/po-drive/03-PROGRAMME-TODO.md"]
+    NFR: ["docs/au-bank-insurance-platform/po-drive/03-PROGRAMME-TODO.md"]
+    ARCH: ["docs/platform/architecture-review/08-architecture-decision-log.md", "docs/au-bank-insurance-platform/po-drive/03-PROGRAMME-TODO.md"]
+    SEC: ["docs/au-bank-insurance-platform/po-drive/03-PROGRAMME-TODO.md", "docs/governance/registers/RISK-REGISTER.md"]
+    COMP: ["docs/au-bank-insurance-platform/po-drive/03-PROGRAMME-TODO.md", "docs/governance/registers/RISK-REGISTER.md"]
+    INFRA: ["docs/au-bank-insurance-platform/po-drive/03-PROGRAMME-TODO.md"]
+    DEBT: ["docs/au-bank-insurance-platform/po-drive/03-PROGRAMME-TODO.md"]
+    REFACTOR: ["docs/au-bank-insurance-platform/po-drive/03-PROGRAMME-TODO.md"]
+    QA: ["docs/au-bank-insurance-platform/po-drive/03-PROGRAMME-TODO.md"]
+    OPS: ["docs/au-bank-insurance-platform/po-drive/03-PROGRAMME-TODO.md"]
+    SPIKE: ["docs/au-bank-insurance-platform/po-drive/03-PROGRAMME-TODO.md"]
+    DOC: ["docs/governance/registers/SUGGESTION-REGISTER.md"]
+    MIGRATION: ["docs/platform/architecture-review/08-architecture-decision-log.md", "docs/au-bank-insurance-platform/po-drive/03-PROGRAMME-TODO.md"]
+    GOV: ["docs/governance/", "docs/au-bank-insurance-platform/po-drive/03-PROGRAMME-TODO.md"]
+    IDEA: ["docs/governance/registers/PARKED-BACKLOG.md"]
 
 # Legacy ID prefixes used by the existing product backlog. These are ID
 # namespaces, NOT work types — TECH-004 is an INFRA or NFR item that happens to
@@ -296,7 +324,7 @@ id_allocation:
   pattern: "^(SUG|DEP)-[0-9]{8}-[0-9a-z]{3}$"
   legacy_pattern: "^(SUG|DEP)-[0-9]{4}$"
   sequential:
-    CR: 10        # CR-001..009 in use; next unused is CR-010
+    CR: 11        # CR-001..010 in use; next unused is CR-011
     RISK: 12      # RISK-001..011 in use
     ASM: 9        # ASM-001..008 in use
     EPIC: 1

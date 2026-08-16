@@ -24,6 +24,10 @@ suggestion, or finding:
    terminate in three steps with a one-screen record.
 6. Before asserting cross-persona ownership, approval, review or blocking authority, resolve
    the single canonical **[PERSONA-AUTHORITY-MATRIX.md](./docs/governance/PERSONA-AUTHORITY-MATRIX.md)**.
+7. When persona or project context is needed, load the smallest profile declared by
+   **[context-manifest.yaml](./docs/context/context-manifest.yaml)**. A role package is a canonical
+   context entry point; its `governance_status` and `decision_ref` determine whether its proposed
+   authority is ratified.
 
 Humans: your role card is in **[RUNBOOK.md §6](./docs/governance/RUNBOOK.md#6-role-cards)** —
 one screen, exact actions, exact cadence. That is all you need to read.
@@ -62,7 +66,9 @@ Core rules:
 
 - **A suggestion is never implemented in the turn it is raised.** Triage it, record it, schedule
   it — then go back to the work item you were on.
-- **Exactly one work item in flight.** Only the P1 override classes may interrupt it
+- **Exactly one work item in flight per agent/owner.** Independent, dependency-safe owners may
+  progress in parallel. A blocked item is recorded with its owner/date and releases that executor
+  lane. Only the P1 override classes may interrupt an active lane
   ([05 §3](./docs/governance/05-PRIORITY_MODEL.md#3-hard-p1-overrides): build failure, exploitable
   vulnerability, incorrect domain model, missing mandatory API, regulatory violation, data
   corruption, blocking dependency, AC failure).
@@ -80,6 +86,12 @@ Core rules:
 - **Do not scale blindly.** For material scaling, identify business workload, transaction amplification, actual bottleneck, next downstream capacity limit, safe bounds and post-scale validation. More pods are not a substitute for diagnosing an insurer, 1SB, DB, Kafka, cache or payment-system bottleneck.
 - Delivery urgency does not alter specialist authority. Kalpana/R12 may make a decision dependency
   time-bound and escalate it; she may not convert missing specialist/human evidence into approval.
+
+**Safe autopilot:** `python scripts/governance/autopilot.py status` reports the evidence ledger;
+`next` selects automation-eligible, non-blocked work (`--include-manual` exposes coordination
+work); `propose-transition` can only emit `CANDIDATE`. It never
+edits stage state, marks `PASSED`, treats silence as approval or creates a waiver. The machine
+contract is [GATE-EVIDENCE.yaml](./docs/governance/state/GATE-EVIDENCE.yaml).
 
 Quick triage answer shape:
 

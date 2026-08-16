@@ -113,9 +113,7 @@ That fifth row is why IDs are immutable and withdrawn items are never deleted.
 ## 6. Importing
 
 ```bash
-python3 scripts/lifecycle/backlog-to-jira-csv.py \
-    --backlog docs/application-lifecycle-bible/backlog/BACKLOG.yaml \
-    --out     docs/application-lifecycle-bible/backlog/jira-import.csv
+python3 scripts/lifecycle/generate-backlog.py
 ```
 
 Then in Jira: **Settings → System → External System Import → CSV**, map the columns, and import
@@ -123,11 +121,17 @@ Epics before Stories so `Epic Link` resolves.
 
 ### Round-tripping
 
-`BACKLOG.yaml` is the **source of truth for structure** (which epics and stories exist). Jira is
+The stage Markdown under `stages/` is the **source of truth for structure**. `BACKLOG.yaml` and
+`jira-import.csv` are generated views. Jira is
 the source of truth for **state** (what is in progress, who owns it, what is blocked). Do not try
 to sync state back into YAML — that fight is unwinnable and produces two wrong answers.
 
-When the structure changes: edit `BACKLOG.yaml`, regenerate, and import only the new rows.
+When the structure changes: edit the relevant stage Markdown, regenerate, review the diff, and
+import only the new rows. Never edit generated backlog files directly.
+
+Stage progression is separate from structure generation. The proposal-only controller reads
+`docs/governance/state/GATE-EVIDENCE.yaml`; it may prepare a `CANDIDATE` package but cannot mark a
+stage `PASSED` or sync Jira state into governance YAML.
 
 ---
 

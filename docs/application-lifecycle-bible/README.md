@@ -93,8 +93,9 @@ What we do about it: [`03-REALIGNMENT-PLAN.md`](./03-REALIGNMENT-PLAN.md).
 ## How this relates to AIGEM
 
 AIGEM ([`docs/governance/`](../governance/README.md)) remains **authoritative for triage**: what
-may be admitted, parked or rejected, and at what priority. This bible is authoritative for
-**completion**: what a stage must produce, who signs it, and what evidence closes it.
+may be admitted, parked or rejected, and at what priority. Until CR-010 is ratified, this bible
+is the **proposed completion model**: what a stage should produce, who should sign it, and what
+evidence should close it.
 
 > On any conflict, **AIGEM wins**, and the conflict is raised as a CR against this bible.
 
@@ -103,9 +104,9 @@ Practical division:
 | Question | Authority |
 |---|---|
 | "Should we do X now?" | AIGEM — [`03-LIFECYCLE`](../governance/03-LIFECYCLE.md), [`05-PRIORITY_MODEL`](../governance/05-PRIORITY_MODEL.md) |
-| "What must this stage produce?" | This bible — `stages/Sxx-*.md` |
+| "What must this stage produce?" | Binding AIGEM gate today; this bible after CR-010 ratification |
 | "Who approves it?" | Both — [`PERSONA-AUTHORITY-MATRIX`](../governance/PERSONA-AUTHORITY-MATRIX.md) is canonical for authority; this bible maps it per stage |
-| "Are we done?" | This bible's exit gate, evidenced per [`04-GATE-AND-SIGNOFF-MODEL`](./04-GATE-AND-SIGNOFF-MODEL.md) |
+| "Are we done?" | Current AIGEM gate; this bible is a completeness cross-check until ratified |
 | "Where are we?" | AIGEM's [`state/CURRENT-STATE.yaml`](../governance/state/CURRENT-STATE.yaml) is the machine truth; the banner above is its human rendering |
 
 ---

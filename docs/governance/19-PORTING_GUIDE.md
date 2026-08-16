@@ -92,8 +92,9 @@ bug, suggestion, or finding:
 
 Core rules:
 - A suggestion is never implemented in the turn it is raised. Triage, record, schedule.
-- Exactly one work item in flight. Only the P1 override classes may interrupt it
-  (`05-PRIORITY_MODEL.md` §3).
+- Exactly one work item in flight per agent/owner. Independent, dependency-safe owners may run in
+  parallel; blocked work is snapshotted and releases its executor lane. Only the P1 override
+  classes may interrupt an active lane (`05-PRIORITY_MODEL.md` §3).
 - Parked is not deleted: every deferral records a target stage and an unpark trigger.
 - Every TODO carries a work item ID.
 - Never mark work Done without evidence.

@@ -115,6 +115,7 @@ resolve L3 first.** See [01-CURRENT_STATE.md](./01-CURRENT_STATE.md).
 | File | Contents |
 |------|---------|
 | [state/CURRENT-STATE.yaml](./state/CURRENT-STATE.yaml) | Machine-readable current stage, objective, scope, gate |
+| [state/GATE-EVIDENCE.yaml](./state/GATE-EVIDENCE.yaml) | Owners, blockers, verification evidence and human approvals, kept separate from stage authority |
 | [state/REVIEW-LOG.md](./state/REVIEW-LOG.md) | "Reviewed, nothing changed" acknowledgements — freshness without a token edit (FR-1) |
 | [registers/SUGGESTION-REGISTER.md](./registers/SUGGESTION-REGISTER.md) | Every suggestion ever triaged, with verdict |
 | [registers/PARKED-BACKLOG.md](./registers/PARKED-BACKLOG.md) | Deferred work, with the stage that unparks it |
@@ -134,6 +135,7 @@ resolve L3 first.** See [01-CURRENT_STATE.md](./01-CURRENT_STATE.md).
 | [templates/REVIEW-VERDICT.md](./templates/REVIEW-VERDICT.md) | One reviewer's verdict |
 | [templates/ADR.md](./templates/ADR.md) | Architecture decision record |
 | [schemas/](./schemas/) | JSON Schema for each artefact — validate before accepting |
+| [autopilot/README.md](./autopilot/README.md) | Proposal-only selection and transition contract; blocked work is skipped, human gates remain human |
 
 ---
 

@@ -86,16 +86,17 @@ edit `current_phase`.
 
 ### WS-1 · Phase 4 → Phase 5 — Hardening & consumer enablement
 
-**Status:** `OPEN`
+**Status:** `BLOCKED` — evidence and owners are tracked in
+[`state/GATE-EVIDENCE.yaml`](./state/GATE-EVIDENCE.yaml).
 
 | # | Exit criterion | Evidence required | State |
 |---|----------------|-------------------|-------|
-| 4.1 | Sandbox E2E suite for the Term path runs in CI (or gated nightly) | Green CI job link + suite location | ❌ Open |
+| 4.1 | Sandbox E2E suite for the Term path runs in CI (or gated nightly) | Green CI job link + suite location | ⛔ Blocked — sandbox E2E harness/evidence (`GATE-4.1-SANDBOX-E2E`) |
 | 4.2 | OpenAPI published to the internal portal; consumer collection available | Portal URL + collection file | 🟡 Partial — OpenAPI generated (`79c65f4`); publication + collection outstanding |
-| 4.3 | ≥ 1 bank caller exercises quote + proposal against UAT | Consumer confirmation + UAT trace/correlation IDs | ❌ Open |
+| 4.3 | ≥ 1 bank caller exercises quote + proposal against UAT | Consumer confirmation + UAT trace/correlation IDs | ⛔ Blocked — unpublished consumer artefact + external UAT slot (`DEP-001`, `DEP-002`) |
 | 4.4 | Compliance review of audit schema + log samples | Signed review note in `service-ssot/` | ❌ Open |
 | 4.5 | Runbook: secrets rotation, IP whitelist, 1SB 401/5xx incident | Runbook document | ❌ Open |
-| 4.6 | Performance smoke: p95 quote under nominal concurrency | Measurement report + threshold | ❌ Open |
+| 4.6 | Performance smoke: p95 quote under nominal concurrency | Measurement report + threshold | ⛔ Blocked — E2E harness dependency (`DEP-003`) |
 | 4.7 | Coverage gates green; QA-001 closed or explicitly waived with expiry | JaCoCo report + TECH-DEBT entry | 🟡 Partial — libs at 80/70; service on interim floor |
 
 > **Criterion 4.7 was added by change request, not by drift.** It is absent from

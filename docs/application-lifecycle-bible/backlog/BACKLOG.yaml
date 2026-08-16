@@ -597,7 +597,7 @@ stages:
             acceptance_criteria: "R0 (pilot), R1, R2… each with a business outcome, not a component list"
           - id: S04-E01-S02
             title: "Define R0's business outcome"
-            acceptance_criteria: "One sentence a sponsor would recognise: e.g. \"an RM can sell one Term product to an ETB customer, end to end, with full audit\""
+            acceptance_criteria: "Assisted-first: an RM can sell one Term product to an ETB customer, end to end, with full audit; DIY and hybrid are later expansion waves"
           - id: S04-E01-S03
             title: "Define the pilot population"
             acceptance_criteria: "Which branches, how many RMs, which customers, over what period"
@@ -619,7 +619,7 @@ stages:
             acceptance_criteria: "Things that will never be in scope, so they stop being re-proposed"
           - id: S04-E02-S04
             title: "Lock the channel, segment and LOB decisions"
-            acceptance_criteria: "Assisted/DIY/hybrid; ETB/NTB; which LOB first — each recorded as a decision with rationale"
+            acceptance_criteria: "R0 = RM-assisted, ETB, Life/Term; DIY follows the proven assisted journey; hybrid follows stable assisted and DIY paths"
           - id: S04-E02-S05
             title: "Define the insurer panel for R0"
             acceptance_criteria: "Group A named for in-platform journeys; Group B handled by controlled redirect"
@@ -642,6 +642,9 @@ stages:
           - id: S04-E03-S05
             title: "Identify technical enablers"
             acceptance_criteria: "Foundation, integration and platform work made visible as backlog items, not assumed as overhead"
+          - id: S04-E03-S06
+            title: "Confirm actor-story coverage"
+            acceptance_criteria: "RM, customer, Admin, insurer representative, Operations, Compliance/Audit and management actors each map to named epics/stories or an explicit later-wave exclusion"
       - id: S04-E04
         title: "Definition of Ready and Done"
         owner: "Rajal + Swapnali + Amit"
@@ -2089,6 +2092,67 @@ stages:
           - id: S11-E07-S04
             title: "Build the journey dashboard"
             acceptance_criteria: "Business-visible: sales, drop-offs, failures by cause"
+      - id: S11-E08
+        title: "Minimum administration and configuration"
+        owner: "Rajal + Amit + Deepali"
+        stories:
+          - id: S11-E08-S01
+            title: "Maintain the R0 catalogue seed"
+            acceptance_criteria: "One approved Term product and insurer configuration; effective-dated; changes attributable and maker-checker controlled"
+          - id: S11-E08-S02
+            title: "Publish consent and disclosure versions"
+            acceptance_criteria: "Version, effective date and approval provenance retained; a published version is never silently overwritten"
+          - id: S11-E08-S03
+            title: "Administer workforce and partner scopes"
+            acceptance_criteria: "RM, Admin, insurer representative, Operations and management scopes are explicit; privileged changes require a different checker"
+          - id: S11-E08-S04
+            title: "Activate integration configuration safely"
+            acceptance_criteria: "Distributor and insurer configuration references approved secret storage; no secret is displayed or accepted from a channel caller"
+      - id: S11-E09
+        title: "Insurer representative distribution collaboration"
+        owner: "Rajal + Amit + Deepali"
+        stories:
+          - id: S11-E09-S01
+            title: "Access partner-visible cases"
+            acceptance_criteria: "Representative sees only explicitly shared cases for their own insurer and authorised branches; sharing and revocation are audited"
+          - id: S11-E09-S02
+            title: "Respond to underwriting requirements"
+            acceptance_criteria: "Representative may update approved requirement/status fields but cannot alter bank consent, suitability, recommendation or customer declarations"
+          - id: S11-E09-S03
+            title: "Collaborate with RM and Operations"
+            acceptance_criteria: "Case-bound notes and responses are attributable; representative cannot become bank owner, submit as RM, take payment or mark Sold"
+      - id: S11-E10
+        title: "Operations and lifecycle control"
+        owner: "Shivanshi + Amit"
+        stories:
+          - id: S11-E10-S01
+            title: "Operate the exception queue"
+            acceptance_criteria: "Stuck journeys show stage, age, reason, owner, retryability and next action; normal waiting is distinct from an exception"
+          - id: S11-E10-S02
+            title: "Resolve reconciliation mismatches"
+            acceptance_criteria: "Bank, gateway, aggregator and insurer references can be compared and resolved with source evidence; payment match alone never marks Sold"
+          - id: S11-E10-S03
+            title: "Escalate underwriting blockers"
+            acceptance_criteria: "Overdue or unclear requirements identify the accountable RM, insurer representative or Operations owner, due state and escalation history"
+          - id: S11-E10-S04
+            title: "Track post-issuance completion"
+            acceptance_criteria: "Issued, confirmed, reconciled, document-delivered and customer-notified states remain distinct; missing confirmation or documents create exceptions"
+      - id: S11-E11
+        title: "Management oversight and bounded authority"
+        owner: "Rajal + Deepali"
+        stories:
+          - id: S11-E11-S01
+            title: "Provide branch-level oversight"
+            acceptance_criteria: "Branch Manager sees authorised branch pipeline and may assign or escalate work; the role does not grant selling authority or bypass qualification"
+          - id: S11-E11-S02
+            title: "Provide regional and sales oversight"
+            acceptance_criteria: "Regional Manager and Sales Head receive aggregated performance and ageing; customer-level drill-down requires explicit purpose-based permission"
+          - id: S11-E11-S03
+            title: "Provide business-head oversight"
+            acceptance_criteria: "Insurance Business Head sees portfolio, insurer and lifecycle outcomes but cannot override consent, suitability, underwriting, reconciliation or audit evidence"
+          - id: S11-E11-S04
+            title: "Enforce management-role separation"
+            acceptance_criteria: "A management user can perform RM actions only when separately assigned the RM role, required branch scope and valid regulatory qualification"
     validation_tests:
       - id: S11-VT-01
         validates: "A policy can actually be sold"
@@ -2138,6 +2202,22 @@ stages:
         validates: "E2E suite runs in CI"
         method: "Nightly run of the full journey suite"
         pass_condition: "Green, repeatable"
+      - id: S11-VT-13
+        validates: "Admin authority is bounded"
+        method: "Attempt self-approval, direct secret entry and case-level selling as Admin"
+        pass_condition: "All denied; approved maker-checker changes remain attributable"
+      - id: S11-VT-14
+        validates: "Insurer isolation holds"
+        method: "Attempt cross-insurer and unshared-case access as an insurer representative"
+        pass_condition: "Denied in every case; revocation removes access immediately"
+      - id: S11-VT-15
+        validates: "Operations cannot rewrite regulated evidence"
+        method: "Resolve exceptions and reconciliation while attempting to alter consent, suitability and insurer evidence"
+        pass_condition: "Exceptions resolve through additive evidence; protected records remain unchanged"
+      - id: S11-VT-16
+        validates: "Management role does not imply selling authority"
+        method: "Attempt quote/proposal actions using each management role without a separate qualified RM assignment"
+        pass_condition: "Denied for every management-only identity"
     exit_gate:
       - id: S11-G1
         criterion: "Complete journey works end to end in UAT"
@@ -2175,6 +2255,10 @@ stages:
         criterion: "Business acceptance of the slice"
         evidence_level: "E2"
         evidence_artefact: "PO and business sign-off"
+      - id: S11-G10
+        criterion: "Supporting actor boundaries and lifecycle operations proven"
+        evidence_level: "E4"
+        evidence_artefact: "Admin, insurer-isolation, Operations and management negative-test results"
 
   - id: S12
     name: "Hardening & Certification"
@@ -2441,16 +2525,19 @@ stages:
         stories:
           - id: S13-E03-S01
             title: "Add the DIY self-service journey"
-            acceptance_criteria: "Customer authentication via digital banking SSO; self-consent per the S02 pack"
+            acceptance_criteria: "First channel expansion after the assisted S11 slice is stable; customer authentication via digital banking SSO; self-consent per the S02 pack"
           - id: S13-E03-S02
             title: "Add the hybrid journey"
-            acceptance_criteria: "RM-initiated, customer-completed, with attribution preserved across the hand-off"
+            acceptance_criteria: "Starts only after assisted and DIY paths are independently stable; attribution, ownership and state preserved across hand-off"
           - id: S13-E03-S03
             title: "Verify attribution across channels"
             acceptance_criteria: "Distributor and SP attribution correct in every channel variant"
           - id: S13-E03-S04
             title: "Verify compliance gates per channel"
             acceptance_criteria: "Suitability and consent enforced identically regardless of channel"
+          - id: S13-E03-S05
+            title: "Recover failed or expired hand-offs"
+            acceptance_criteria: "Journey returns to a safe resumable owner and state; no duplicate journey, proposal or payment action"
       - id: S13-E04
         title: "Insurer and catalogue expansion"
         owner: "Rajal + Amit"
@@ -2512,6 +2599,10 @@ stages:
         validates: "Expansion is genuinely cheap"
         method: "Measure effort for LOB 2 vs LOB 3"
         pass_condition: "Declining, and consistent with the pattern guide"
+      - id: S13-VT-08
+        validates: "Channel sequencing is safe"
+        method: "Complete assisted and DIY regression before enabling hybrid; inject expired and failed hand-offs"
+        pass_condition: "Both source paths green; hand-offs preserve state and audit or recover safely"
     exit_gate:
       - id: S13-G1
         criterion: "Each new LOB's journey green end to end"
@@ -2545,6 +2636,10 @@ stages:
         criterion: "Expansion pattern guide published and used"
         evidence_level: "E1"
         evidence_artefact: "Guide + evidence it was followed"
+      - id: S13-G9
+        criterion: "DIY proven before hybrid; actor boundaries preserved across channels"
+        evidence_level: "E4"
+        evidence_artefact: "Channel regression, hand-off and authorization test results"
 
   - id: S14
     name: "Production Readiness & Go-Live"

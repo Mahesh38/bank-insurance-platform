@@ -56,6 +56,7 @@ What we do about it: [`03-REALIGNMENT-PLAN.md`](./03-REALIGNMENT-PLAN.md).
 | [`07-SECURITY-COMPLIANCE-CANON.md`](./07-SECURITY-COMPLIANCE-CANON.md) | Security gates, threat modelling cadence, IRDAI/RBI control evidence |
 | [`08-SRE-READINESS-CANON.md`](./08-SRE-READINESS-CANON.md) | SLIs/SLOs, operational readiness review, incident and DR readiness |
 | [`09-JIRA-MODEL.md`](./09-JIRA-MODEL.md) | Hierarchy, workflow, fields, import guide |
+| [`10-ACTOR-EPIC-STORY-MAP.md`](./10-ACTOR-EPIC-STORY-MAP.md) | Application actors, delivery-wave boundaries and the epics/stories each actor requires |
 
 ## The stages
 

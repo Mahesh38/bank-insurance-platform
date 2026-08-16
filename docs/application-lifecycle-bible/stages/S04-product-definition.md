@@ -27,7 +27,7 @@ services" is not a release; nobody can sell a policy with it.
 | ID | Story | Acceptance criteria |
 |---|---|---|
 | S04-E01-S01 | Define the release ladder | R0 (pilot), R1, R2… each with a business outcome, not a component list |
-| S04-E01-S02 | Define R0's business outcome | One sentence a sponsor would recognise: e.g. "an RM can sell one Term product to an ETB customer, end to end, with full audit" |
+| S04-E01-S02 | Define R0's business outcome | Assisted-first: an RM can sell one Term product to an ETB customer, end to end, with full audit; DIY and hybrid are later expansion waves |
 | S04-E01-S03 | Define the pilot population | Which branches, how many RMs, which customers, over what period |
 | S04-E01-S04 | Define launch and rollback criteria | What makes R0 a success; what would cause it to be withdrawn |
 
@@ -38,7 +38,7 @@ services" is not a release; nobody can sell a policy with it.
 | S04-E02-S01 | Define R0 in-scope | Requirement IDs, explicitly enumerated — not described by theme |
 | S04-E02-S02 | **Define R0 out-of-scope with revisit triggers** | Every excluded item names the release or condition that revisits it |
 | S04-E02-S03 | Define permanent exclusions | Things that will never be in scope, so they stop being re-proposed |
-| S04-E02-S04 | Lock the channel, segment and LOB decisions | Assisted/DIY/hybrid; ETB/NTB; which LOB first — each recorded as a decision with rationale |
+| S04-E02-S04 | Lock the channel, segment and LOB decisions | R0 = RM-assisted, ETB, Life/Term; DIY follows the proven assisted journey; hybrid follows stable assisted and DIY paths |
 | S04-E02-S05 | Define the insurer panel for R0 | Group A named for in-platform journeys; Group B handled by controlled redirect |
 
 ### S04-E03 — Product backlog · *Rajal*
@@ -50,6 +50,7 @@ services" is not a release; nobody can sell a policy with it.
 | S04-E03-S03 | Identify dependencies between stories | Dependency register populated; the critical path visible |
 | S04-E03-S04 | Size the backlog | Anything XL is split or converted to a spike |
 | S04-E03-S05 | Identify technical enablers | Foundation, integration and platform work made visible as backlog items, not assumed as overhead |
+| S04-E03-S06 | Confirm actor-story coverage | RM, customer, Admin, insurer representative, Operations, Compliance/Audit and management actors each map to named epics/stories or an explicit later-wave exclusion |
 
 ### S04-E04 — Definition of Ready and Done · *Rajal + Swapnali + Amit*
 
@@ -101,9 +102,10 @@ Deepali (RV) · Shailja (RV) · Shivanshi (RV)
 ## 6. Current position in this repository — 🟡 Partial
 
 **Present and good:** `R0-SCOPE.md`, `PRD-R0-DISTRIBUTION-PLATFORM.md`, the working-decisions
-document that locked channel (RM + Self + Hybrid Day 1), segment (ETB only), LOB (Life first),
-and the "sold" definition. The scope structure — in / out with revisit-at / never — is exactly
-right and AIGEM consumes it correctly.
+document, segment (ETB only), LOB (Life first), and the "sold" definition. The earlier documents
+expected RM + Self + Hybrid on Day 1; the current Product direction is assisted-first, with DIY
+and then hybrid added as controlled expansion waves. The scope structure — in / out with
+revisit-at / never — remains exactly right.
 
 **Open:**
 
@@ -114,10 +116,10 @@ right and AIGEM consumes it correctly.
 | S04-E05 | KPI instrumentation not traced to stories; measurement mechanism unspecified |
 | **S04-VT-06** | **Fails.** The backlog contains no CI, IaC, environment, or observability enablers. Foundation was treated as overhead, and therefore never scheduled |
 
-**The R0 scope is also worth re-reading against reality.** R0 as written requires assisted, DIY
-*and* hybrid channels on Day 1. With no UI built and no foundation, a narrower R0 — one channel,
-one product, one insurer — would reach a demonstrable sale materially sooner and would make S11
-achievable. That is a Product decision and I am recommending it as part of the realignment.
+**The R0 delivery direction is now assisted-first.** One channel, one product and one insurer
+must reach a demonstrable sale before DIY is added. Hybrid follows only after both assisted and
+DIY paths have stable state, identity and hand-off contracts. This makes S11 achievable without
+removing DIY or hybrid from the intended product.
 
 ## 7. Premature at this stage
 

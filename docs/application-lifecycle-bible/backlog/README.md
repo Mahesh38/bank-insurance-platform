@@ -36,11 +36,11 @@ criterion, a new gate criterion — and commit the regenerated files alongside t
 | Item | Count |
 |---|---|
 | Stages | 16 |
-| Epics | 89 |
-| Stories | 430 |
-| Validation tests | 136 |
-| Gate criteria | 141 |
-| CSV rows | 796 |
+| Epics | 93 |
+| Stories | 447 |
+| Validation tests | 141 |
+| Gate criteria | 143 |
+| CSV rows | 824 |
 
 ## Importing into Jira
 

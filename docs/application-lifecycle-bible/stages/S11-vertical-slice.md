@@ -47,10 +47,9 @@ The slice is done when someone who is not on the programme can sell a policy wit
 comparison, NTB, ULIP and savings variants, Group B redirect, MIS and reporting, and the admin
 console. Each is deferred to S13 with a revisit trigger.
 
-> This is a **narrower R0 than the current `R0-SCOPE.md`**, which specifies assisted, DIY and
-> hybrid on Day 1. Narrowing it is a Product recommendation in the realignment: one channel proven
-> is worth more than three channels partially built, and it makes S11 achievable within the
-> recovery timeline.
+> This assisted-first slice is the current Product direction. DIY is the next channel wave; hybrid
+> follows only after both assisted and DIY lifecycle contracts are stable. One channel proven is
+> worth more than three channels partially built.
 
 ## 4. Epics and stories
 
@@ -126,6 +125,44 @@ The regulatory heart of the slice.
 | S11-E07-S03 | Instrument the journey KPIs | Conversion and drop-off per step, per the S04 KPI definitions |
 | S11-E07-S04 | Build the journey dashboard | Business-visible: sales, drop-offs, failures by cause |
 
+### S11-E08 — Minimum administration and configuration · *Rajal + Amit + Deepali*
+
+This epic provides the controlled administration required to operate the assisted slice. It does
+not introduce the broad multi-product administration console deferred to S13.
+
+| ID | Story | Acceptance criteria |
+|---|---|---|
+| S11-E08-S01 | Maintain the R0 catalogue seed | One approved Term product and insurer configuration; effective-dated; changes attributable and maker-checker controlled |
+| S11-E08-S02 | Publish consent and disclosure versions | Version, effective date and approval provenance retained; a published version is never silently overwritten |
+| S11-E08-S03 | Administer workforce and partner scopes | RM, Admin, insurer representative, Operations and management scopes are explicit; privileged changes require a different checker |
+| S11-E08-S04 | Activate integration configuration safely | Distributor and insurer configuration references approved secret storage; no secret is displayed or accepted from a channel caller |
+
+### S11-E09 — Insurer representative distribution collaboration · *Rajal + Amit + Deepali*
+
+| ID | Story | Acceptance criteria |
+|---|---|---|
+| S11-E09-S01 | Access partner-visible cases | Representative sees only explicitly shared cases for their own insurer and authorised branches; sharing and revocation are audited |
+| S11-E09-S02 | Respond to underwriting requirements | Representative may update approved requirement/status fields but cannot alter bank consent, suitability, recommendation or customer declarations |
+| S11-E09-S03 | Collaborate with RM and Operations | Case-bound notes and responses are attributable; representative cannot become bank owner, submit as RM, take payment or mark Sold |
+
+### S11-E10 — Operations and lifecycle control · *Shivanshi + Amit*
+
+| ID | Story | Acceptance criteria |
+|---|---|---|
+| S11-E10-S01 | Operate the exception queue | Stuck journeys show stage, age, reason, owner, retryability and next action; normal waiting is distinct from an exception |
+| S11-E10-S02 | Resolve reconciliation mismatches | Bank, gateway, aggregator and insurer references can be compared and resolved with source evidence; payment match alone never marks Sold |
+| S11-E10-S03 | Escalate underwriting blockers | Overdue or unclear requirements identify the accountable RM, insurer representative or Operations owner, due state and escalation history |
+| S11-E10-S04 | Track post-issuance completion | Issued, confirmed, reconciled, document-delivered and customer-notified states remain distinct; missing confirmation or documents create exceptions |
+
+### S11-E11 — Management oversight and bounded authority · *Rajal + Deepali*
+
+| ID | Story | Acceptance criteria |
+|---|---|---|
+| S11-E11-S01 | Provide branch-level oversight | Branch Manager sees authorised branch pipeline and may assign or escalate work; the role does not grant selling authority or bypass qualification |
+| S11-E11-S02 | Provide regional and sales oversight | Regional Manager and Sales Head receive aggregated performance and ageing; customer-level drill-down requires explicit purpose-based permission |
+| S11-E11-S03 | Provide business-head oversight | Insurance Business Head sees portfolio, insurer and lifecycle outcomes but cannot override consent, suitability, underwriting, reconciliation or audit evidence |
+| S11-E11-S04 | Enforce management-role separation | A management user can perform RM actions only when separately assigned the RM role, required branch scope and valid regulatory qualification |
+
 ## 5. Validation tests
 
 | ID | Validates | Method | Pass condition |
@@ -142,6 +179,10 @@ The regulatory heart of the slice.
 | S11-VT-10 | No PII leaks | Scan all logs and telemetry after a full journey run | Zero regulated fields |
 | S11-VT-11 | Real users can use it | 5+ RMs complete the journey unaided in UAT | ≥ 80% complete; time-on-task within the S05 target |
 | S11-VT-12 | E2E suite runs in CI | Nightly run of the full journey suite | Green, repeatable |
+| S11-VT-13 | Admin authority is bounded | Attempt self-approval, direct secret entry and case-level selling as Admin | All denied; approved maker-checker changes remain attributable |
+| S11-VT-14 | Insurer isolation holds | Attempt cross-insurer and unshared-case access as an insurer representative | Denied in every case; revocation removes access immediately |
+| S11-VT-15 | Operations cannot rewrite regulated evidence | Resolve exceptions and reconciliation while attempting to alter consent, suitability and insurer evidence | Exceptions resolve through additive evidence; protected records remain unchanged |
+| S11-VT-16 | Management role does not imply selling authority | Attempt quote/proposal actions using each management role without a separate qualified RM assignment | Denied for every management-only identity |
 
 **S11-VT-01 is the stage.** Everything else supports it. If a real RM cannot sell a policy, the
 slice is not done regardless of how many components pass their own tests.
@@ -159,6 +200,7 @@ slice is not done regardless of how many components pass their own tests.
 | S11-G7 | KPIs instrumented and visible | E4 | Dashboard |
 | S11-G8 | No PII in logs | E4 | Scan result |
 | S11-G9 | Business acceptance of the slice | E2 | PO and business sign-off |
+| S11-G10 | Supporting actor boundaries and lifecycle operations proven | E4 | Admin, insurer-isolation, Operations and management negative-test results |
 
 **Approvers:** Rajal (AP) · Mahesh (AP) · Amit (AP) · Swapnali (AP, B) · Deepali (AP, B) ·
 Shailja (AP, B, **human**) · Shivanshi (AP) · Kalpana (AP) · Aarti (RV)
@@ -181,6 +223,10 @@ tech-lead approved. That is real work and it becomes part of this slice.
 | **Payment execution + device isolation (C4)** | **Absent** — only a payment *session* against 1SB |
 | Policy issuance and reconciliation | Absent |
 | **RM application** | **Absent** — no Flutter project exists |
+| Minimum Admin workflow | Absent — catalogue/config seed exists only in documents; no attributable maker-checker operation |
+| Insurer Representative collaboration | Identity model exists; distribution-case stories are not implemented |
+| Operations lifecycle control | Partial concepts only — no unified exception, escalation or post-issuance workflow |
+| Management permission boundary | Modelled in this Bible; not implemented or proven |
 | Audit reconstruction | Unproven |
 | E2E suite | Absent |
 

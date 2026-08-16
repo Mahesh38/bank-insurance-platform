@@ -49,10 +49,11 @@ with one journey in production, rather than after five.
 
 | ID | Story | Acceptance criteria |
 |---|---|---|
-| S13-E03-S01 | Add the DIY self-service journey | Customer authentication via digital banking SSO; self-consent per the S02 pack |
-| S13-E03-S02 | Add the hybrid journey | RM-initiated, customer-completed, with attribution preserved across the hand-off |
+| S13-E03-S01 | Add the DIY self-service journey | First channel expansion after the assisted S11 slice is stable; customer authentication via digital banking SSO; self-consent per the S02 pack |
+| S13-E03-S02 | Add the hybrid journey | Starts only after assisted and DIY paths are independently stable; attribution, ownership and state preserved across hand-off |
 | S13-E03-S03 | Verify attribution across channels | Distributor and SP attribution correct in every channel variant |
 | S13-E03-S04 | Verify compliance gates per channel | Suitability and consent enforced identically regardless of channel |
+| S13-E03-S05 | Recover failed or expired hand-offs | Journey returns to a safe resumable owner and state; no duplicate journey, proposal or payment action |
 
 ### S13-E04 — Insurer and catalogue expansion · *Rajal + Amit*
 
@@ -83,6 +84,7 @@ with one journey in production, rather than after five.
 | S13-VT-05 | Performance holds at expanded scope | Load test | Within NFR; no degradation of the S12 baseline |
 | S13-VT-06 | Multi-instance operation is safe | Run with N instances; concurrent identical operations | No duplicate job, no double effect |
 | S13-VT-07 | Expansion is genuinely cheap | Measure effort for LOB 2 vs LOB 3 | Declining, and consistent with the pattern guide |
+| S13-VT-08 | Channel sequencing is safe | Complete assisted and DIY regression before enabling hybrid; inject expired and failed hand-offs | Both source paths green; hand-offs preserve state and audit or recover safely |
 
 ## 5. Exit gate — GATE-S13
 
@@ -96,6 +98,7 @@ with one journey in production, rather than after five.
 | S13-G6 | Performance within NFR at expanded scope | E3 | Load test report |
 | S13-G7 | Multi-instance safety proven; TD-010 closed | E4 | Concurrency test results |
 | S13-G8 | Expansion pattern guide published and used | E1 | Guide + evidence it was followed |
+| S13-G9 | DIY proven before hybrid; actor boundaries preserved across channels | E4 | Channel regression, hand-off and authorization test results |
 
 **Approvers:** Rajal (AP) · Mahesh (AP) · Amit (AP) · Swapnali (AP, B) · Deepali (AP, B) ·
 Shailja (AP) · Shivanshi (AP) · Kalpana (AP) · Aarti (RV)

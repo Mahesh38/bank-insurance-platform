@@ -8,6 +8,10 @@ I am entitled to issue ([PERSONA-AUTHORITY-MATRIX §5](../governance/PERSONA-AUT
 **Method:** repository evidence only — file counts, CI configuration, gate state, registers. No
 claim in this document rests on a document asserting itself.
 
+> **Snapshot note (2026-08-16):** This assessment records the pre-CR-010 baseline. CR-010 adds an
+> application-CI workflow and structured gate evidence. That removes the missing-CI mechanism,
+> but it does not supply a green run, sandbox E2E, UAT, performance or mandatory human evidence.
+
 ---
 
 ## 1. The finding in one paragraph
@@ -88,7 +92,7 @@ interface that does not exist.
 
 These are ordered by how much they invalidate work already done.
 
-### GAP-A — There is no CI pipeline for the application code · **CRITICAL**
+### GAP-A — There was no CI pipeline for the application code at assessment time · **CRITICAL**
 
 `.github/workflows/` contains exactly one file: `governance.yml`. It validates governance
 markdown, schemas, and document freshness. It runs `FreshnessCheck.java`.
@@ -196,11 +200,11 @@ Against the 16-stage model in [`02-STAGE-MODEL.md`](./02-STAGE-MODEL.md):
 | S05 Experience Design | 🔴 Missing | GAP-009 Figma unmapped; no design system; no UI code of any kind |
 | S06 Domain & Information Architecture | 🟡 Partial | 19 contexts named; no platform aggregate/state model; GAP-016 |
 | S07 Solution & Security Architecture | 🟢 Strong | 8-part architecture review, ADR log, security package; GAP-017 NFR numbers open |
-| **S08 Engineering Foundation** | 🔴 **Missing** | **No application CI. No SAST/SCA/secret scanning. QA-001 P0 open** |
+| **S08 Engineering Foundation** | 🔴 **Missing at 2026-08-15 baseline** | **No application CI at assessment time. No SAST/SCA/secret scanning. QA-001 P0 open** |
 | **S09 Platform & Environment Foundation** | 🔴 **Missing** | **No IaC, no EKS, no environments, no observability stack, no KMS** |
 | S10 Integration & Connectivity | 🟡 Partial | 1SB connectivity genuinely good; CBS, PG, AD, notification absent |
 | S11 Vertical Slice (MVP) | 🔴 Not started **at platform level** | Adapter slice done; no business journey runs end to end |
-| **S12 Hardening & Certification** | 🟠 **In progress** | **WS-1 Phase 4 — 5 of 7 criteria open** |
+| **S12 Hardening & Certification** | 🟠 **In progress at 2026-08-15 baseline** | **WS-1 Phase 4 then had 5 of 7 criteria open; see live gate evidence for current classification** |
 | S13 Expansion & Scale | ⚪ Not started | Queued as WS-1 Phase 5 |
 | S14 Production Readiness & Go-Live | ⚪ Not started | — |
 | S15 Operate & Evolve | ⚪ Not started | — |

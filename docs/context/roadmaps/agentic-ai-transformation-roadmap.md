@@ -2,7 +2,7 @@
 
 **Document Version:** 1.0
 **Consolidated Persona Panel (Next Maturity Level):**
-- 📋 **Rajal** — Product Owner → `../roles/rajal-product-owner-agentic-ai-evolution.md`
+- 📋 **Rajal** — Product Owner → `../roles/principal-insurance-platform-product-owner/08-agentic-ai-product-governance.md`
 - 🏛️ **Mahesh** — Solution Architect → `../roles/mahesh-solution-architect-agentic-ai-evolution.md`
 - ⚙️ **Amit** — Technical Head → `../roles/amit-technical-head-agentic-ai-evolution.md`
 
@@ -120,7 +120,7 @@ This overlays — does not replace — the existing 19-bounded-context topology 
 └────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-Full Gherkin acceptance criteria for EP-09 are worked out in `../roles/rajal-product-owner-agentic-ai-evolution.md` §4 as the reference pattern for all agentic epics.
+The maintained Product guardrail model for agentic epics is in `../roles/principal-insurance-platform-product-owner/08-agentic-ai-product-governance.md`.
 
 ---
 

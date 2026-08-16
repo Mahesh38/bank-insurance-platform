@@ -42,7 +42,7 @@ Not a stand-down. A **change of direction of effort**.
 | Action | Owner | Why |
 |---|---|---|
 | WS-1 Phase 5 (Health/Motor LOB expansion) does not start | Rajal + Kalpana | Adding LOBs to a quote path that lacks its lawful suitability gate multiplies a compliance defect across three lines of business |
-| WS-1 Phase 4 criteria 4.1 and 4.7 re-stated as `BLOCKED` on a named dependency | Mahesh + Swapnali | They are currently `OPEN`, which implies effort will close them. No amount of effort closes "runs in CI" when there is no CI. `BLOCKED` names the real blocker and makes it schedulable |
+| WS-1 Phase 4 criteria 4.1, 4.3 and 4.6 re-stated as `BLOCKED` on named dependencies; 4.7 remains `PARTIAL` | Mahesh + Swapnali | The application-CI foundation now exists, but sandbox E2E, UAT and performance evidence still depend on named environment/external work. Coverage is partial pending a green application-CI run and final service threshold |
 | Foundation Recovery Increment authorised | Sponsor + Kalpana | Gives the work a budget line and a name, so it is not competing as "overhead" |
 | No new feature merges into `services/` outside the recovery scope | Amit | Every new line added before S08 is another line entering the estate untested |
 
@@ -73,8 +73,9 @@ unblocks the most:
 
 **Weeks 1–3 — the pipeline that should have existed on day one**
 
-1. Application CI: build + unit + integration tests on every PR, for every module. This single
-   item unblocks Phase 4 criterion 4.1 and turns every future "green" claim into an artefact.
+1. Application CI: the workflow foundation is now present under CR-010; merge it and obtain a
+   green build + unit + integration + coverage run on every PR. Sandbox E2E remains separate
+   evidence for Phase 4 criterion 4.1.
 2. Quality gates in CI: JaCoCo thresholds enforced (not merely configured), ArchUnit executed,
    build fails on breach. Closes QA-001's mechanism.
 3. Secret scanning and dependency/SCA scanning, failing the build on critical findings.
@@ -185,7 +186,7 @@ on ratification:
 | GOV-00x | Foundation Recovery Increment authorised; feature freeze on `services/` outside its scope | Kalpana + Sponsor |
 | ADR-001 | IaC on Terraform targeting AWS ap-south-1; Render.com is dev-preview only, never a data path for PII | Mahesh + Shivanshi + Deepali |
 | RISK-01x | Suitability hard-gate absent from a delivered quote path — regulatory exposure until S11 | Shailja |
-| RISK-01x | No CI on application code — change-control evidence gap until S08 | Deepali + Swapnali |
+| RISK-01x | No green application-CI and sandbox-E2E evidence yet — change-control evidence gap until S08 | Deepali + Swapnali |
 
 ---
 

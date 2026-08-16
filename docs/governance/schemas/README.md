@@ -11,7 +11,8 @@ directly, which is what stops the model degrading into prose nobody checks.
 | [implementation-plan.schema.json](./implementation-plan.schema.json) | Plans submitted to the board | `files_expected` non-empty · `out_of_scope` non-empty · rollback, impact fields and AC mandatory · embedded `reviews[]` validated against the inlined verdict definition |
 | [review-verdict.schema.json](./review-verdict.schema.json) | One board's verdict | Approval requires non-empty `evidence[]` (Rule RG-3) · REWORK requires `must_fix[]` · NOT_APPLICABLE requires a reason · rounds capped at 2 |
 | [approval-gate.schema.json](./approval-gate.schema.json) | The **aggregated** board outcome | Mandatory boards per risk tier · APPROVED forbids any REWORK/REJECTED verdict, so a Security veto cannot be out-voted · T4 requires **human** Security and Risk & Compliance verdicts plus a recorded sign-off · T3 requires at least one human board · board conditions must be folded into acceptance criteria before the gate closes |
-| [current-state.schema.json](./current-state.schema.json) | `../state/CURRENT-STATE.yaml` | Workstreams need lifecycle, objective and scope; gates need criteria with states; routing must be a map of non-empty destination lists |
+| [current-state.schema.json](./current-state.schema.json) | `../state/CURRENT-STATE.yaml` | Workstreams need lifecycle, objective and scope; gates need criteria with states; routing is workstream-aware and maps every canonical type to non-empty destinations |
+| [gate-evidence.schema.json](./gate-evidence.schema.json) | `../state/GATE-EVIDENCE.yaml` | Criteria expose owner, execution mode, priority, effort, evidence, verifier and blockers; policy is proposal-only; silence and automatic waivers are forbidden; approvals remain separate from evidence |
 
 ---
 

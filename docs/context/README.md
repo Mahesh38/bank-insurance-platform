@@ -1,69 +1,57 @@
-# Context — programme background & AI/RAG source material
+# Context Module
 
-**Parent:** [`docs/README.md`](../README.md)
-**Status:** 🟡 **Non-binding.** Nothing in this folder overrides a decision made in the
-business SSOT or an engineering SSOT.
+**Status:** non-binding reasoning context
 
----
+**Manifest:** [`context-manifest.yaml`](./context-manifest.yaml)
 
-## What this folder is
+**Portable framework:** [`framework/`](./framework/README.md)
 
-These are **context documents**: background narrative, stakeholder personas, and
-forward-looking roadmaps. They exist to give a reader — human or AI assistant — enough
-grounding to reason about the programme without having to read every requirement document
-first.
+**Binding precedence:** [`docs/README.md`](../README.md#which-document-wins)
 
-They are deliberately kept **separate from the delivery documentation** because they serve a
-different purpose:
+This module gives humans, agents and retrieval systems enough grounded context to understand a
+project without confusing background with authority. Context explains and recommends; the
+governance, business, platform and engineering SSOTs decide.
 
-| | Context documents (this folder) | Delivery documentation |
-|---|---|---|
-| **Purpose** | Explain and orient | Specify and commit |
-| **Authority** | None — descriptive | Binding — prescriptive |
-| **Changes when** | Understanding improves | A decision is made |
-| **Lives in** | `docs/context/` | `docs/au-bank-insurance-platform/`, `docs/1sb-insurance-integration/`, `docs/platform/` |
-
-**Use them for:** onboarding, RAG/agent grounding, framing a discussion, understanding
-*why* a constraint exists.
-
-**Do not use them for:** scope, acceptance criteria, compliance obligations, or API
-contracts. Those live in the SSOTs — see [which document wins](../README.md#which-document-wins).
-
-A persona may define a review method or reasoning posture, but it does not make a statement legally binding merely by saying so. In particular, the Shailja S compliance persona points reviewers to authoritative regulatory and policy evidence; AIGEM's Risk & Compliance board supplies the formal repository gate.
-
----
-
-## Contents
-
-| Document | Purpose |
-|----------|---------|
-| **[business-problem-statement.md](./business-problem-statement.md)** | **Consolidated business + architecture problem statement.** The single richest orientation document — synthesized from the business SSOT and the architecture review. Start here. |
-| [roles/](./roles/README.md) | Canonical stakeholder/reasoning personas, including the [Principal Insurance Platform Business Analyst / R11](./roles/principal-insurance-platform-business-analyst/README.md), with explicit cross-persona authority boundaries |
-| [roadmaps/](./roadmaps/README.md) | Forward-looking transformation plans (current-state alignment + agentic-AI maturity overlay) |
-
----
-
-## How these relate to the binding documents
+## Structure
 
 ```text
-                      docs/context/  (this folder — descriptive)
-                             │
-              ┌──────────────┴───────────────┐
-              │  synthesized FROM            │  grounds reasoning ABOUT
-              ▼                              ▼
-  au-bank-insurance-platform/     platform/architecture-review/
-  (business SSOT — binding)       (architecture recommendation)
+context/
+├── context-manifest.yaml     active project, layers, roles and loading profiles
+├── schemas/                  portable manifest contract
+├── framework/                reusable, domain-neutral model and templates
+├── business-problem-statement.md
+├── roles/                    project/domain role instances
+└── roadmaps/                 non-binding forward-looking options
 ```
 
-The context documents are **downstream** of the SSOTs: they summarise and interpret them.
-When an SSOT changes, the context documents may lag. **On conflict, the SSOT is correct.**
+The reusable framework is deliberately free of bank, insurance, regulator and named-persona
+conclusions. This repository is one project instance of it.
 
----
+## Current project overlay
 
-## Related
+| Entry | Purpose |
+|---|---|
+| [Business problem statement](./business-problem-statement.md) | Project orientation and problem/outcome framing |
+| [Role index](./roles/README.md) | Canonical project role packages and cross-role protocols |
+| [Roadmaps](./roadmaps/README.md) | Exploratory transformation options, never delivery commitments |
 
-- [`roles/shailja-s-compliance-risk-head/README.md`](./roles/shailja-s-compliance-risk-head/README.md) — Shailja S compliance/risk persona package used to ground AIGEM Board 6 reviews
-- [`roles/principal-insurance-platform-business-analyst/README.md`](./roles/principal-insurance-platform-business-analyst/README.md) — end-to-end bancassurance Business Analyst reasoning package for existing R11 / Product delegate
-- [`../governance/11-REVIEW_GATES.md`](../governance/11-REVIEW_GATES.md) — binding multi-agent review gate; Board 6 is Risk & Compliance
-- [`../au-bank-insurance-platform/knowledge-base/06-stakeholders.md`](../au-bank-insurance-platform/knowledge-base/06-stakeholders.md) — the *authoritative* stakeholder catalogue (these personas are an interpretive layer on top of it)
-- [`../au-bank-insurance-platform/po-drive/03-PROGRAMME-TODO.md`](../au-bank-insurance-platform/po-drive/03-PROGRAMME-TODO.md) — the *authoritative* programme plan (the roadmaps here are exploratory, not a substitute)
+## Loading
+
+1. Read the manifest.
+2. Select the smallest loading profile that fits the decision.
+3. Read the problem statement.
+4. Resolve binding authority before asserting ownership or approval.
+5. Load only materially affected roles/protocols.
+6. Report assumptions, source status and conflicts.
+
+Use [`framework/LOADING-PROTOCOL.md`](./framework/LOADING-PROTOCOL.md) for the complete contract.
+
+## Validate or reuse
+
+```bash
+python scripts/context/validate-context.py
+python scripts/context/new-project-context.py --help
+```
+
+On conflict, context loses. It never supplies regulation, scope, acceptance criteria, API
+contracts, production authority, human sign-off or material risk acceptance.

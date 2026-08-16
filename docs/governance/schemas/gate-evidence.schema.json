@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bank-insurance-platform/governance/schemas/gate-evidence.schema.json",
+  "title": "AIGEM Gate Evidence Ledger",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "as_of", "policy", "workstreams"],
+  "properties": {
+    "schema_version": {"type": "string"},
+    "as_of": {"type": "string", "format": "date"},
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "human_pass_required", "silence_approves", "automatic_waivers"],
+      "properties": {
+        "mode": {"const": "proposal-only"},
+        "human_pass_required": {"const": true},
+        "silence_approves": {"const": false},
+        "automatic_waivers": {"const": false}
+      }
+    },
+    "workstreams": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "gate_id", "current_stage", "next_stage", "state", "required_approvers", "criteria", "approvals"],
+        "properties": {
+          "id": {"type": "string"},
+          "gate_id": {"type": "string"},
+          "current_stage": {"type": "string"},
+          "next_stage": {"type": "string"},
+          "bible_stage": {"type": ["string", "null"]},
+          "state": {"enum": ["OPEN", "CANDIDATE", "BLOCKED"]},
+          "required_approvers": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}},
+          "criteria": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["id", "description", "state", "owner", "execution_mode", "priority", "effort", "enables", "required_evidence_level", "verifier", "evidence", "blockers"],
+              "properties": {
+                "id": {"type": "string"},
+                "description": {"type": "string", "minLength": 1},
+                "state": {"enum": ["OPEN", "PARTIAL", "BLOCKED", "MET", "WAIVED"]},
+                "owner": {"type": "string", "minLength": 1},
+                "execution_mode": {"enum": ["AUTOMATABLE", "HUMAN_REQUIRED", "EXTERNAL_REQUIRED"]},
+                "priority": {"enum": ["P1", "P2", "P3", "P4", "P5"]},
+                "effort": {"enum": ["XS", "S", "M", "L", "XL"]},
+                "enables": {"type": "integer", "minimum": 0},
+                "required_evidence_level": {"enum": ["E0", "E1", "E2", "E3", "E4"]},
+                "verifier": {"enum": ["ci", "document", "external", "human-review"]},
+                "evidence": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+                "blockers": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["id", "type", "owner", "follow_up"],
+                    "properties": {
+                      "id": {"type": "string"},
+                      "type": {"enum": ["HARD", "SOFT", "EXTERNAL", "DECISION", "ENVIRONMENT"]},
+                      "owner": {"type": "string", "minLength": 1},
+                      "follow_up": {"type": "string", "format": "date"}
+                    }
+                  }
+                },
+                "waiver": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["risk_owner", "expiry", "compensating_control", "remediation_item", "approvals"],
+                  "properties": {
+                    "risk_owner": {"type": "string", "minLength": 1},
+                    "expiry": {"type": "string", "format": "date"},
+                    "compensating_control": {"type": "string", "minLength": 1},
+                    "remediation_item": {"type": "string", "minLength": 1},
+                    "approvals": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}
+                  }
+                },
+                "last_verified_at": {"type": ["string", "null"], "format": "date-time"}
+              },
+              "allOf": [
+                {
+                  "if": {"properties": {"state": {"const": "MET"}}, "required": ["state"]},
+                  "then": {"properties": {"evidence": {"minItems": 1}}}
+                },
+                {
+                  "if": {"properties": {"state": {"const": "BLOCKED"}}, "required": ["state"]},
+                  "then": {"properties": {"blockers": {"minItems": 1}}}
+                },
+                {
+                  "if": {"properties": {"state": {"const": "WAIVED"}}, "required": ["state"]},
+                  "then": {"required": ["waiver"]}
+                }
+              ]
+            }
+          },
+          "approvals": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["authority", "reviewer", "reviewer_type", "decision", "date", "evidence"],
+              "properties": {
+                "authority": {"type": "string"},
+                "reviewer": {"type": "string"},
+                "reviewer_type": {"enum": ["HUMAN", "AGENT"]},
+                "decision": {"enum": ["APPROVED", "APPROVED_WITH_CONDITIONS", "REWORK"]},
+                "date": {"type": "string", "format": "date"},
+                "evidence": {"type": "array", "minItems": 1, "items": {"type": "string"}}
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

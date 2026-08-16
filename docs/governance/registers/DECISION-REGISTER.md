@@ -54,6 +54,7 @@ without a search.
 | CR-002 | 2026-08-14 | GOV | Make Mahesh the single Principal Insurance Platform Architect persona; modularize his authority/review model; retain Shailja as independent Board 6; keep legacy architect path as compatibility-only | **PENDING RATIFICATION** | Mahesh approved preparation on review branch — Product Owner pending |
 | CR-008 | 2026-08-14 | GOV | Name Shivanshi as existing R10 / Board 7 Operations persona and mature SRE with insurance-domain, platform, CI/CD, observability, incident/DR, capacity/scaling and developer-experience capability | **PENDING RATIFICATION** | Prepared on Mahesh/user direction — Architecture + Product and any other required governance ratification pending |
 | CR-009 | 2026-08-14 | GOV | Recalibrate the framework for flow: T4 change test, `GOV` work queued and counted, board response clock, 30-day approval expiry, R12 decision-forcing, veto-deadlock tie-breaker, persona roster closed at nine, gate-closure headline metric, reviewed-no-change freshness | **APPROVED** 2026-08-14 | Mahesh / Architect (R2), repository owner — in full, including A1 and B4. Provenance of the R8/R9 approvals recorded in CR-009 §9.1 |
+| CR-010 | 2026-08-16 | GOV | Portable context module, workstream-aware routing, semantic validation, application CI and proposal-only evidence-driven autopilot | **CANDIDATE** | Implementation authorised by Mahesh/repository owner; formal Product and affected specialist verdicts pending |
 
 ### CR-001 — add Phase 4 exit criterion 4.7
 

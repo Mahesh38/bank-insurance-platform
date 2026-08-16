@@ -10,7 +10,7 @@
 
 1. Resolve current state before forming any opinion.
 2. Triage every input through the pipeline; emit a record; never implement on impulse.
-3. Hold exactly one active work item; queue everything else.
+3. Hold exactly one active work item per executor; queue that executor's other work.
 4. Interrupt only for the P1 override classes — and say so explicitly.
 5. Leave a written trail: record, plan, verdicts, evidence, register lines.
 
@@ -65,9 +65,14 @@ Steps 2–5 are cheap and must always run. Most inputs stop at step 5.
 
 > **Rule AE-2 — An agent holds exactly one `IN-FLIGHT` work item.**
 
+This is a per-agent/per-owner WIP limit, not a repository-wide mutex. Independent workstreams or
+owners may progress in parallel when their dependency edges do not conflict. When an item becomes
+`BLOCKED`, record its blocker, owner and follow-up date, move it out of `IN-FLIGHT`, and select the
+next eligible READY item. Chasing the blocker is a separate owned work item.
+
 While an item is in flight:
 
-- Do not start a second item, however small.
+- Do not start a second item in the same executor lane, however small.
 - Do not "quickly fix" something noticed in passing — write `SUG-####`, continue.
 - Do not extend the current item's scope beyond its plan's `files_expected` and
   `affected_components` without re-review ([14 §4](./14-CHANGE_CONTROL.md#4-changing-an-approved-plan)).

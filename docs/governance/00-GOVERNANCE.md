@@ -43,8 +43,9 @@ AIGEM makes scheduling explicit and mechanical:
    risk tier ([11 §3](./11-REVIEW_GATES.md#3-proportionality--which-boards-are-mandatory)).
 7. **Evidence over assertion.** "This is needed" without a named consumer, a failing test, a
    regulation, or a gate criterion is an opinion — score it as low confidence.
-8. **One active objective.** An agent has exactly one work item in flight. Everything else is
-   queued.
+8. **One active objective per executor.** Each agent or named owner has exactly one work item in
+   flight. Independent owners may operate bounded, dependency-safe lanes. A blocked item is
+   snapshotted with an owner/date and releases that executor's implementation lane.
 9. **Reversibility is a first-class input.** Cheap-to-change-later beats build-it-now.
 10. **The register is the memory.** Agents forget between sessions; the registers do not.
 

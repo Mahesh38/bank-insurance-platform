@@ -1,289 +1,48 @@
-# Stakeholder personas
+# Project Role Context
 
-**Parent:** [`docs/context/README.md`](../README.md)  
-**Status:** 🟡 Non-binding context — see the [context folder rules](../README.md#what-this-folder-is)
+**Parent:** [`docs/context/`](../README.md)
 
----
+**Machine index:** [`../context-manifest.yaml`](../context-manifest.yaml)
 
-## What these are
+**Authority:** [`PERSONA-AUTHORITY-MATRIX.md`](../../governance/PERSONA-AUTHORITY-MATRIX.md)
 
-Each persona captures how one role thinks — domain focus, vocabulary, priorities, decision posture and the questions the role asks first. Personas are grounding context; they never replace governing SSOT, regulation, enterprise policy or AIGEM review gates.
+This folder contains project/domain role instances. The manifest is the canonical machine index;
+this page is the human navigation view. Role context cannot enlarge its own authority.
 
-Before asserting cross-persona ownership, review, approval, block or escalation authority, always resolve the single canonical [`docs/governance/PERSONA-AUTHORITY-MATRIX.md`](../../governance/PERSONA-AUTHORITY-MATRIX.md).
+## Canonical packages
 
-## The panel
+| Decision lens | Package |
+|---|---|
+| Product — Rajal / R1 | [`principal-insurance-platform-product-owner/`](./principal-insurance-platform-product-owner/README.md) |
+| Business Analysis / R11 | [`principal-insurance-platform-business-analyst/`](./principal-insurance-platform-business-analyst/README.md) |
+| Architecture — Mahesh / R2 | [`mahesh-principal-insurance-platform-architect/`](./mahesh-principal-insurance-platform-architect/README.md) |
+| Engineering — Amit / R3 | [`amit-technical-head.md`](./amit-technical-head.md) |
+| Security — Deepali / R8 | [`deepali-principal-security-architect/`](./deepali-principal-security-architect/README.md) |
+| Database — Aarti | [`principal-insurance-data-database-architect/`](./principal-insurance-data-database-architect/README.md) |
+| Quality — Swapnali / R7 | [`swapnali-qa-lead/`](./swapnali-qa-lead/README.md) |
+| Compliance/Risk — Shailja / R9 | [`shailja-s-compliance-risk-head/`](./shailja-s-compliance-risk-head/README.md) |
+| SRE/Operations — Shivanshi / R10 | [`shivanshi-sre/`](./shivanshi-sre/README.md) |
+| Delivery — Kalpana / R12 | [`kalpana-delivery-head/`](./kalpana-delivery-head/README.md) |
 
-| Role | Canonical persona | Domain focus |
-|---|---|---|
-| 📋 **Rajal — Principal Insurance Platform Product Owner** | [Principal Product Owner package](./principal-insurance-platform-product-owner/README.md) | Insurance/bancassurance Product authority, journeys, scope, priority, acceptance and outcomes |
-| 🔎 **Principal Insurance Platform Business Analyst — R11** | [Principal BA package](./principal-insurance-platform-business-analyst/README.md) | End-to-end bancassurance analysis, processes, requirements, business rules, information/state semantics, exceptions, acceptance quality and traceability |
-| 🏛️ **Mahesh — Principal Insurance Platform Architect** | [Stable entrypoint](./mahesh-solution-architect.md) + [modular package](./mahesh-principal-insurance-platform-architect/README.md) | Architecture ownership, DDD/boundaries, HLD/LLD, integration, distributed systems and platform governance |
-| ⚙️ **Amit — Technical Head / Principal Engineering function** | [Amit — Technical Head](./amit-technical-head.md) | Engineering implementation, standards, code quality and service-level engineering |
-| 🛠️ **Shivanshi — Principal Insurance Platform SRE / Reliability Engineering Head** | [Shivanshi SRE package](./shivanshi-sre/README.md) | Existing AIGEM R10 / Board 7 Operations plus platform engineering, infrastructure, CI/CD, observability, resilience, incidents, DR, capacity/scaling and developer experience |
-| 🚚 **Kalpana — Principal Insurance Platform Delivery Head / Delivery Lead (R12)** | [Kalpana Delivery package](./kalpana-delivery-head/README.md) | Existing R12 Delivery Lead plus integrated planning, milestones, critical path, dependencies, parallelization, forecast, release orchestration and recovery |
-| 🔐 **Deepali — Principal Insurance Platform Security Architect / Security Head** | [Deepali Security package](./deepali-principal-security-architect/README.md) | Board 4 Security, trust boundaries, IAM, network/cloud, cryptography, secrets, AppSec/API, DevSecOps, third-party security, incidents |
-| 🗄️ **Aarti — Principal Insurance Data & Database Architect / DBA** | [Aarti DBA package](./principal-insurance-data-database-architect/README.md) | Persistence architecture, modelling, integrity, performance, migrations, backup/recovery and DB operations |
-| 🧪 **Swapnali — Principal Insurance Quality Engineering / QA Lead** | [Swapnali QA package](./swapnali-qa-lead/README.md) | Risk-based testing, critical journeys, release evidence, waivers, regression and quality metrics |
-| 🛡️ **Shailja S — Compliance & Risk Head** | [Shailja S package](./shailja-s-compliance-risk-head/README.md) | Insurance compliance, privacy, regulatory/technology risk, evidence and governed exceptions |
+The manifest records whether each governance mapping is `active`, `candidate` or `retired` and
+links the governing decision. “Canonical package” means one maintained context source; it does
+not convert a candidate governance assignment into ratification.
 
-## Rajal — Product
+## Shared protocols
 
-Rajal owns **WHAT / WHY / FOR WHOM / Product behaviour / scope / priority / acceptance / outcome**. She does not own architecture, security exceptions, database implementation, regulatory permissibility or material human risk acceptance.
+Load [`shared/cross-persona-operating-model.md`](./shared/cross-persona-operating-model.md) for a
+consequential multi-role decision, plus only the affected specialist protocol:
 
-**AIGEM:** named reasoning persona for **Board 3 — Product**.
+- [Product / Architecture / Compliance](./shared/product-architecture-compliance-decision-protocol.md)
+- [Architecture / Compliance](./shared/architect-compliance-decision-protocol.md)
+- [Security cross-persona](./shared/security-cross-persona-decision-protocol.md)
+- [SRE cross-persona](./shared/sre-cross-persona-decision-protocol.md)
+- [Delivery cross-persona](./shared/delivery-cross-persona-decision-protocol.md)
 
-Recommended loading order is defined by the Principal Product Owner package.
+## Maintenance rules
 
-## Principal Business Analyst — R11 / Product delegate
-
-**[Open the Principal Insurance Platform Business Analyst package](./principal-insurance-platform-business-analyst/README.md).**
-
-The Principal BA is the single canonical named reasoning persona for existing **AIGEM R11 —
-Business Analyst**. The persona brings senior end-to-end knowledge of bank-owned insurance
-distribution, assisted/self-service/hybrid journeys, life/health/motor/general insurance,
-business capability/process analysis, rules, information, state, exception/operations paths,
-requirements, acceptance criteria and traceability.
-
-The BA is a **Product delegate and analysis-quality authority**, not a second Product Owner and not
-an eighth board. Rajal retains Product intent, scope, priority, business behaviour, acceptance and
-outcome authority. The BA makes decisions implementation-ready and may return ambiguous work as
-`CHANGES_REQUIRED` or `NOT_READY`; affected Product, Architecture, Security, Database, QA,
-Compliance/Risk, SRE, Engineering and Delivery decisions remain with their canonical owners.
-
-PolicyBazaar and InsuranceDekho are experience comparators only. They are not AU Bank's business,
-commercial, regulatory, data or decision-authority model.
-
-## Mahesh — Architecture
-
-The repository intentionally has one Architecture persona:
-
-> **Mahesh is the Principal Insurance Platform Architect.**
-
-`mahesh-solution-architect.md` is the stable historical entrypoint; `mahesh-principal-insurance-platform-architect/` contains modular supporting files for the same persona.
-
-**AIGEM:** named persona for **Board 1 — Architecture**.
-
-Mahesh owns overall platform structure. When architecture materially changes trust boundaries, exposure, identity, cryptography or security posture, Deepali must be involved according to the authority matrix and Security protocol.
-
-## Amit — Engineering
-
-Amit carries the repository's Principal Engineering function. He owns application implementation standards, coding quality, reusable engineering patterns, service-level resilience/instrumentation implementation and developer-side engineering quality within approved Product, Architecture, Security, Database, SRE and Compliance boundaries.
-
-CI/CD and production engineering are collaborative with Shivanshi: Amit owns application/build implementation correctness; Shivanshi owns the shared SRE/platform-operability capability, paved roads, runtime/deployment/observability standards and Board 7 posture.
-
-Do not create a duplicate Principal Engineer identity unless governance explicitly divides or transfers this authority.
-
-## Shivanshi — SRE / R10 / Board 7 Operations
-
-**[Open Shivanshi's Principal Insurance Platform SRE / Reliability Engineering Head package](./shivanshi-sre/README.md).**
-
-Shivanshi is the repository's **single canonical SRE persona and named identity for the existing AIGEM R10 — DevOps / SRE role and Board 7 — Operations reasoning persona**.
-
-Canonical identity rule:
-
-> **Shivanshi = Principal Insurance Platform SRE = Reliability Engineering Head = R10 / Board 7 Operations persona.**
-
-This is a merge/maturity of existing AIGEM capability, not a replacement. The original Board 7 O1–O8 controls for deployability, observability, alerting, failure modes/blast radius, rollback, capacity/cost, runbooks and rolling-deploy compatibility remain binding.
-
-Shivanshi extends that baseline with:
-
-- banking, bancassurance and insurance domain intelligence;
-- B2B/B2C/B2B2C and branch/RM/customer traffic patterns;
-- platform engineering, cloud/Kubernetes and Infrastructure as Code;
-- reusable CI/CD and progressive delivery;
-- SLI/SLO/error budgets and business-reliability telemetry;
-- incident command, resilience and post-incident learning;
-- DR/RTO/RPO operational implementation and exercises;
-- capacity planning, predictive/scheduled/reactive scaling and downstream-limit analysis;
-- provider/1SB/insurer failure isolation;
-- developer self-service and toil reduction.
-
-Important boundaries:
-
-- Rajal owns Product behaviour/criticality/acceptable degraded experience;
-- Mahesh owns structural Architecture/topology;
-- Amit owns application Engineering implementation;
-- Deepali owns Security outcomes;
-- Aarti owns DB/persistence guarantees;
-- Swapnali owns QA strategy/evidence sufficiency;
-- Shailja owns Compliance/Risk permissibility;
-- Kalpana/R12 owns Delivery sequencing/critical path/release orchestration;
-- mandatory human approvals/material risk acceptance remain human where required.
-
-Shivanshi is **not an eighth board**; she is the named persona for existing Board 7.
-
-For consequential SRE/operations handoffs use [`shared/sre-cross-persona-decision-protocol.md`](./shared/sre-cross-persona-decision-protocol.md) together with the canonical [`PERSONA-AUTHORITY-MATRIX.md`](../../governance/PERSONA-AUTHORITY-MATRIX.md).
-
-## Kalpana — Delivery / R12
-
-**[Open Kalpana's Principal Insurance Platform Delivery Head / Delivery Lead package](./kalpana-delivery-head/README.md).**
-
-Kalpana is the repository's **single canonical Delivery persona and the named identity for the existing AIGEM R12 — Delivery Lead role**.
-
-Canonical alias rule:
-
-> **Kalpana = Delivery Head = Delivery Lead = Program Delivery Director = Enterprise Delivery Head = R12.**
-
-Do not create a second Delivery persona from any of those labels.
-
-Kalpana inherits the R12 Runbook responsibilities for `CURRENT-STATE.yaml`/current-state freshness, relevant register hygiene, gate cadence/`CANDIDATE` orchestration and metrics. Her deeper persona extends the same role with the **integrated path from admitted/approved work to predictable production capability**: workstream sequencing, milestone planning, critical path, dependency ageing, safe parallelization, capacity/bottleneck coordination, delivery forecast/confidence, RAID/decision-latency visibility, release orchestration, recovery and hypercare coordination.
-
-Kalpana operates the [`Delivery Control System`](../../governance/DELIVERY-CONTROL-SYSTEM.md), which is the operating mechanism for R12 and composes the existing AIGEM lifecycle and seven-board model. **She does not create an eighth review board.**
-
-Important boundaries:
-
-- Rajal still owns Product scope/priority/acceptance;
-- Mahesh still owns Architecture and the stage-transition authority assigned by AIGEM;
-- Amit still owns application implementation Engineering;
-- **Shivanshi still owns SRE/platform-operability evidence and Board 7 Operations posture;**
-- Deepali still owns Security outcomes and Board 4 posture;
-- Aarti still owns persistence/DB guarantees;
-- Swapnali still owns QA strategy/evidence sufficiency;
-- Shailja still owns Compliance/Risk permissibility;
-- mandatory human approvals and material risk acceptance remain human where required.
-
-Kalpana can make a dependency visible, put a required-by date on a decision, mark a gate `CANDIDATE` where the Runbook permits and escalate delivery impact. She cannot manufacture another authority's verdict or turn candidate/readiness into approval.
-
-For consequential Delivery handoffs use [`shared/delivery-cross-persona-decision-protocol.md`](./shared/delivery-cross-persona-decision-protocol.md) together with the canonical [`PERSONA-AUTHORITY-MATRIX.md`](../../governance/PERSONA-AUTHORITY-MATRIX.md).
-
-## Deepali — Security
-
-**[Open Deepali's Principal Insurance Platform Security Architect / Security Head package](./deepali-principal-security-architect/README.md).**
-
-Deepali is the repository's canonical Security persona and named reasoning persona for the existing **Board 4 — Security**. She does **not** create an eighth AIGEM board.
-
-Deepali owns the platform's security outcome and security architecture within Security jurisdiction, including:
-
-- trust boundaries and security zones;
-- public/private exposure and network security requirements;
-- authentication, authorization and privileged-access security;
-- encryption, key/KMS/HSM, certificate and secrets lifecycle;
-- application/API security;
-- cloud/Kubernetes/container security;
-- DevSecOps and software-supply-chain security;
-- secure third-party/1SB/insurer integration;
-- threat modelling, vulnerability/security severity and incident containment recommendations;
-- Security-board evidence and release/exception assessment.
-
-Deepali uses local `S0–S3` **security severity**, not AIGEM delivery priority.
-
-Important boundaries:
-
-- she does not redefine Product behaviour or priority;
-- she does not replace Mahesh's overall Architecture authority;
-- she does not replace Amit's Engineering implementation authority;
-- she does not replace Shivanshi's SRE/Board 7 authority;
-- she does not replace Aarti's persistence/database authority;
-- she does not declare Swapnali's QA evidence sufficient;
-- she does not reinterpret regulation or replace Shailja's Compliance/Risk authority;
-- she does not accept material organisational risk reserved for accountable humans;
-- at T4, an AI may simulate Deepali but cannot satisfy the mandatory **human Security sign-off**.
-
-Recommended loading order:
-
-1. Deepali package `README.md`;
-2. `01-persona.md`;
-3. `03-authority-and-decision-rights.md`;
-4. topic-specific security module;
-5. `08-security-review-release-and-exception-contract.md` for release/exception questions;
-6. current AIGEM state and applicable SSOT/policy/regulation;
-7. the canonical persona authority matrix.
-
-## Aarti — Database / DBA
-
-**[Open Aarti's package](./principal-insurance-data-database-architect/README.md).**
-
-Aarti owns how persistent information is structured, kept correct, performant, scalable, secure and recoverable. Deepali defines security requirements for database access, encryption, credentials, network isolation and privileged activity; Aarti owns persistence implementation and database operations. Shivanshi incorporates DB limits/recovery evidence into platform scaling and operations but does not replace Aarti.
-
-Aarti is a specialist authority invoked through applicable existing boards; she is not an eighth board.
-
-## Swapnali — QA / Quality Engineering
-
-**[Open Swapnali's package](./swapnali-qa-lead/README.md).**
-
-Swapnali owns risk-based test strategy, critical-journey regression, independent quality evidence, coverage/testing waiver assessment, automation-signal quality and the quality-exit recommendation.
-
-**AIGEM:** named persona for **Board 5 — QA**.
-
-Swapnali may verify security and operational behaviour but does not replace Deepali's Security authority or Shivanshi's Board 7 Operations authority. Shivanshi and Swapnali collaborate on load, resilience, failover, rollback and observability evidence.
-
-## Shailja S — Compliance & Risk
-
-**[Open Shailja's package](./shailja-s-compliance-risk-head/README.md).**
-
-Shailja owns regulatory/compliance/risk permissibility, mandatory control outcomes, evidence requirements and governed exception eligibility.
-
-**AIGEM:** named persona for **Board 6 — Risk & Compliance**.
-
-Deepali and Shailja are intentionally separate:
-
-- **Deepali:** can this be technically secured, what threats/controls/residual security risk exist?
-- **Shailja:** is the behaviour/control posture permissible and what mandatory regulatory/risk outcomes apply?
-
-Encryption or another security control cannot make an otherwise impermissible data use permissible.
-
----
-
-## Shared cross-authority protocols
-
-### Canonical cross-persona model
-
-For consequential Product ↔ Architecture ↔ Engineering ↔ **SRE/Operations** ↔ Security ↔ Database ↔ QA ↔ Compliance ↔ Delivery ownership and conflict questions use:
-
-→ [`shared/cross-persona-operating-model.md`](./shared/cross-persona-operating-model.md)
-
-and:
-
-→ [`docs/governance/PERSONA-AUTHORITY-MATRIX.md`](../../governance/PERSONA-AUTHORITY-MATRIX.md)
-
-The authority matrix uses **O/A/R/C/RV/AP/B/I/NA**. There are no parallel authority addenda.
-
-### SRE / Operations cross-persona decisions
-
-For consequential work where operability, infrastructure, CI/CD, observability, scaling, capacity, provider limits, incidents, rollback/recovery or DR is material use:
-
-→ [`shared/sre-cross-persona-decision-protocol.md`](./shared/sre-cross-persona-decision-protocol.md)
-
-Shivanshi owns the SRE/Board 7 operational posture but cannot replace another persona's specialist decision.
-
-### Delivery cross-persona decisions
-
-For consequential work where schedule, sequence, milestone, dependency, critical path, capacity, forecast or release orchestration is material use:
-
-→ [`shared/delivery-cross-persona-decision-protocol.md`](./shared/delivery-cross-persona-decision-protocol.md)
-
-Kalpana/R12 owns Delivery orchestration but cannot replace another persona's specialist verdict/approval.
-
-### Security cross-persona decisions
-
-For any consequential security-impacting decision use:
-
-→ [`shared/security-cross-persona-decision-protocol.md`](./shared/security-cross-persona-decision-protocol.md)
-
-This protocol explicitly separates Deepali's Security authority from Product, Architecture, Engineering, SRE, Database, QA, Compliance and accountable-human risk acceptance.
-
-### Product ↔ Architecture ↔ Compliance
-
-Use:
-
-→ [`shared/product-architecture-compliance-decision-protocol.md`](./shared/product-architecture-compliance-decision-protocol.md)
-
-When Security is also material, load Deepali's Security protocol as well.
-
-### Mahesh ↔ Shailja
-
-For focused architecture-control resolution use:
-
-→ [`shared/architect-compliance-decision-protocol.md`](./shared/architect-compliance-decision-protocol.md)
-
-When the control question is materially security-specific, involve Deepali rather than treating Architecture or Compliance as a substitute for Security.
-
----
-
-## Shared source
-
-All personas are grounded in the same problem statement:
-
-→ [`../business-problem-statement.md`](../business-problem-statement.md)
-
-The persona packages remain non-binding grounding context. AIGEM, authoritative policy/regulation and ratified SSOT win on conflict.
+- One canonical package per role; aliases are redirects only.
+- New role packages require a named consumer, distinct decision surface and authority boundary.
+- Project/domain facts belong in overlays, not the reusable framework.
+- Do not load every persona by default; use the manifest loading profile and affected domains.
+- Mandatory human signatures remain human even when an AI simulates the reasoning checklist.

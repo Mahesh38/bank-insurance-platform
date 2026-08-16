@@ -1,0 +1,140 @@
+schema_version: "1.0"
+module_version: "1.0.0"
+
+project:
+  id: bank-insurance-platform
+  name: "AU Bank Insurance Platform"
+  domain: "regulated banking and insurance distribution"
+  problem_statement: "docs/context/business-problem-statement.md"
+  repository_root: "."
+
+authority:
+  context_is_binding: false
+  canonical_authority: "docs/governance/PERSONA-AUTHORITY-MATRIX.md"
+  precedence:
+    - "docs/governance/"
+    - "docs/au-bank-insurance-platform/07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md"
+    - "docs/au-bank-insurance-platform/DECISION-LOG.md"
+    - "docs/platform/"
+    - "docs/1sb-insurance-integration/service-ssot/"
+    - "docs/context/"
+
+layers:
+  - id: framework
+    kind: framework
+    path: "docs/context/framework/"
+    portable: true
+    authority: none
+  - id: project
+    kind: project
+    path: "docs/context/business-problem-statement.md"
+    portable: false
+    authority: context
+  - id: roles
+    kind: role
+    path: "docs/context/roles/"
+    portable: false
+    authority: context
+  - id: protocols
+    kind: protocol
+    path: "docs/context/roles/shared/"
+    portable: false
+    authority: context
+  - id: roadmaps
+    kind: roadmap
+    path: "docs/context/roadmaps/"
+    portable: false
+    authority: context
+
+roles:
+  - id: product
+    name: "Rajal — Principal Insurance Platform Product Owner"
+    package: "docs/context/roles/principal-insurance-platform-product-owner/"
+    governance_role: R1
+    governance_status: active
+    decision_ref: "docs/governance/PERSONA-AUTHORITY-MATRIX.md"
+    aliases: [Rajal, Product Owner, Principal Product Owner]
+  - id: business-analysis
+    name: "Principal Insurance Platform Business Analyst"
+    package: "docs/context/roles/principal-insurance-platform-business-analyst/"
+    governance_role: R11
+    governance_status: active
+    decision_ref: "docs/governance/registers/DECISION-REGISTER.md"
+    aliases: [Business Analyst, Principal BA, R11]
+  - id: architecture
+    name: "Mahesh — Principal Insurance Platform Architect"
+    package: "docs/context/roles/mahesh-principal-insurance-platform-architect/"
+    governance_role: R2
+    governance_status: candidate
+    decision_ref: "docs/governance/change-requests/CR-002-principal-architect-persona-integration.md"
+    aliases: [Mahesh, Solution Architect, Principal Architect]
+  - id: engineering
+    name: "Amit — Technical Head"
+    package: "docs/context/roles/amit-technical-head.md"
+    governance_role: R3
+    governance_status: active
+    decision_ref: "docs/governance/PERSONA-AUTHORITY-MATRIX.md"
+    aliases: [Amit, Technical Head, Principal Engineering]
+  - id: security
+    name: "Deepali — Principal Insurance Platform Security Architect"
+    package: "docs/context/roles/deepali-principal-security-architect/"
+    governance_role: R8
+    governance_status: candidate
+    decision_ref: "docs/governance/change-requests/CR-006-add-deepali-security-architect.md"
+    aliases: [Deepali, Security Architect, Security Head]
+  - id: database
+    name: "Aarti — Principal Insurance Data & Database Architect"
+    package: "docs/context/roles/principal-insurance-data-database-architect/"
+    governance_role: specialist
+    governance_status: candidate
+    decision_ref: "docs/governance/change-requests/CR-004-name-dba-persona-aarti.md"
+    aliases: [Aarti, DBA, Database Architect]
+  - id: quality
+    name: "Swapnali — Principal Insurance Quality Engineering Lead"
+    package: "docs/context/roles/swapnali-qa-lead/"
+    governance_role: R7
+    governance_status: candidate
+    decision_ref: "docs/governance/change-requests/CR-005-swapnali-qa-lead-persona-and-quality-metrics.md"
+    aliases: [Swapnali, QA Lead, Quality Engineering]
+  - id: compliance-risk
+    name: "Shailja S — Compliance & Risk Head"
+    package: "docs/context/roles/shailja-s-compliance-risk-head/"
+    governance_role: R9
+    governance_status: active
+    decision_ref: "docs/governance/PERSONA-AUTHORITY-MATRIX.md"
+    aliases: [Shailja, Compliance, Risk and Compliance]
+  - id: sre-operations
+    name: "Shivanshi — Principal Insurance Platform SRE"
+    package: "docs/context/roles/shivanshi-sre/"
+    governance_role: R10
+    governance_status: candidate
+    decision_ref: "docs/governance/change-requests/CR-008-add-shivanshi-sre-persona.md"
+    aliases: [Shivanshi, SRE, Operations, R10]
+  - id: delivery
+    name: "Kalpana — Principal Insurance Platform Delivery Head"
+    package: "docs/context/roles/kalpana-delivery-head/"
+    governance_role: R12
+    governance_status: candidate
+    decision_ref: "docs/governance/change-requests/CR-007-add-kalpana-delivery-head-and-dcs.md"
+    aliases: [Kalpana, Delivery Head, Delivery Lead, R12]
+
+loading_profiles:
+  - id: orientation
+    purpose: "Understand the project without making a governed decision."
+    include: ["layer:project"]
+  - id: governed-change
+    purpose: "Prepare or review a repository change."
+    include: ["layer:project", "layer:roles", "layer:protocols"]
+  - id: portable-framework
+    purpose: "Create a context module for another project or domain."
+    include: ["layer:framework"]
+
+portability:
+  scaffold_template: "docs/context/framework/templates/project/"
+  scaffold_command: "python scripts/context/new-project-context.py"
+  validate_command: "python scripts/context/validate-context.py"
+  excluded_from_reuse:
+    - "project problem statement"
+    - "named personas and organisation-specific authority"
+    - "banking, insurance and regulatory conclusions"
+    - "active lifecycle state and delivery registers"

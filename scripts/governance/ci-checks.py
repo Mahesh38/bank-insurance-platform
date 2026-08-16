@@ -14,10 +14,11 @@ Checks:
      (this is what stops the templates drifting away from the schemas again)
   4. the reviewVerdict definition inlined in implementation-plan.schema.json is
      identical to review-verdict.schema.json
-  5. routing in CURRENT-STATE.yaml is closed over the canonical work-type enum
-  6. every internal markdown link and heading anchor resolves
+  5. workstream routing is closed over the canonical work-type enum and every path exists
+  6. every internal markdown link and heading anchor under docs/ resolves
   7. the priority formula and the action matrix agree to within one band in every
      cell (Rule PRI-4), given the PRI-8 blocking floors
+  8. semantic state references and narrative/machine versions agree
 
 Usage:  python3 scripts/governance/ci-checks.py [--quiet]
 Exit:   0 all checks pass · 1 one or more failures
@@ -101,6 +102,42 @@ def check_state(quiet: bool) -> None:
         ok(rel(path), quiet)
 
 
+def check_gate_evidence(quiet: bool) -> None:
+    print("\n[2b] GATE-EVIDENCE.yaml validates and matches current-state gate summaries")
+    evidence_path = os.path.join(GOV, "state", "GATE-EVIDENCE.yaml")
+    state_path = os.path.join(GOV, "state", "CURRENT-STATE.yaml")
+    evidence = yaml.safe_load(open(evidence_path, encoding="utf-8"))
+    state = yaml.safe_load(open(state_path, encoding="utf-8"))
+    errors = sorted(
+        jsonschema.Draft202012Validator(load_schema("gate-evidence")).iter_errors(evidence),
+        key=lambda error: list(error.path),
+    )
+    for error in errors[:20]:
+        fail(f"{rel(evidence_path)} {list(error.path)}: {error.message}")
+    if errors:
+        return
+
+    summaries = {item["id"]: item for item in state.get("workstreams", [])}
+    drift = 0
+    for ledger in evidence.get("workstreams", []):
+        summary = summaries.get(ledger["id"])
+        if not summary:
+            fail(f"gate evidence refers to unknown workstream {ledger['id']}")
+            drift += 1
+            continue
+        gate = summary.get("current_gate") or {}
+        if gate.get("id") != ledger.get("gate_id"):
+            fail(f"{ledger['id']} gate id drift: state={gate.get('id')} evidence={ledger.get('gate_id')}")
+            drift += 1
+        summary_criteria = {str(item.get("id")): item.get("state") for item in gate.get("exit_criteria", [])}
+        evidence_criteria = {str(item.get("id")): item.get("state") for item in ledger.get("criteria", [])}
+        if summary_criteria != evidence_criteria:
+            fail(f"{ledger['id']} criterion-state drift: state={summary_criteria} evidence={evidence_criteria}")
+            drift += 1
+    if not errors and drift == 0:
+        ok(f"{len(evidence.get('workstreams', []))} gate ledgers validate and match current state", quiet)
+
+
 # --- 3. tagged yaml blocks in markdown validate ---------------------------------
 BLOCK = re.compile(r"```yaml\n(#\s*schema:\s*([a-z-]+)\n.*?)```", re.S)
 
@@ -157,21 +194,39 @@ def check_inline_drift(quiet: bool) -> None:
 
 # --- 5. routing is closed over the work-type enum -------------------------------
 def check_routing(quiet: bool) -> None:
-    print("\n[5] Routing is closed over the canonical work-type enum")
+    print("\n[5] Workstream routing is closed and every destination exists")
     state = yaml.safe_load(open(os.path.join(GOV, "state", "CURRENT-STATE.yaml"), encoding="utf-8"))
     types = set(load_schema("work-item")["properties"]["type"]["enum"])
     routing = state.get("routing") or {}
-    unknown = sorted(set(routing) - types)
-    unrouted = sorted(types - set(routing))
-    if unknown:
-        fail(f"routing keys that are not work types: {unknown}")
-    if unrouted:
-        fail(f"work types with no route: {unrouted}")
-    for key, dest in routing.items():
-        if not isinstance(dest, list) or not dest:
-            fail(f"routing[{key}] must be a non-empty list of destinations")
-    if not unknown and not unrouted:
-        ok(f"all {len(types)} work types routed", quiet)
+    registered = {w.get("id") for w in state.get("workstreams", []) if isinstance(w, dict)}
+    missing_workstreams = sorted(registered - set(routing))
+    if missing_workstreams:
+        fail(f"active workstreams with no routing table: {missing_workstreams}")
+
+    valid_tables = 0
+    for workstream, table in sorted(routing.items()):
+        if not isinstance(table, dict):
+            fail(f"routing[{workstream}] must be a work-type map")
+            continue
+        unknown = sorted(set(table) - types)
+        unrouted = sorted(types - set(table))
+        if unknown:
+            fail(f"routing[{workstream}] keys that are not work types: {unknown}")
+        if unrouted:
+            fail(f"routing[{workstream}] work types with no route: {unrouted}")
+        for work_type, destinations in table.items():
+            if not isinstance(destinations, list) or not destinations:
+                fail(f"routing[{workstream}][{work_type}] must be a non-empty list")
+                continue
+            for destination in destinations:
+                target = os.path.normpath(os.path.join(ROOT, destination))
+                if not os.path.exists(target):
+                    fail(f"routing[{workstream}][{work_type}] -> {destination} (missing)")
+        if not unknown and not unrouted:
+            valid_tables += 1
+
+    if not missing_workstreams and valid_tables == len(routing):
+        ok(f"{len(routing)} routing tables × {len(types)} work types; all paths resolve", quiet)
 
 
 # --- 6. links and anchors -------------------------------------------------------
@@ -193,7 +248,7 @@ def anchors_of(path: str) -> set[str]:
 
 def check_links(quiet: bool) -> None:
     print("\n[6] Internal links and heading anchors resolve")
-    files = sorted(glob.glob(os.path.join(GOV, "**", "*.md"), recursive=True))
+    files = sorted(glob.glob(os.path.join(ROOT, "docs", "**", "*.md"), recursive=True))
     files += [os.path.join(ROOT, f) for f in ("AGENTS.md", "README.md")]
     bad = 0
     for path in files:
@@ -215,6 +270,38 @@ def check_links(quiet: bool) -> None:
                 bad += 1
     if bad == 0:
         ok(f"{len(files)} files, all links and anchors resolve", quiet)
+
+
+def check_semantic_state(quiet: bool) -> None:
+    print("\n[8] Semantic state references agree")
+    state_path = os.path.join(GOV, "state", "CURRENT-STATE.yaml")
+    state = yaml.safe_load(open(state_path, encoding="utf-8"))
+    bad = 0
+
+    for workstream in state.get("workstreams", []):
+        workstream_id = workstream.get("id", "?")
+        for authority in workstream.get("authority", []):
+            if not os.path.exists(os.path.join(ROOT, authority)):
+                fail(f"{workstream_id} authority path missing: {authority}")
+                bad += 1
+
+    for name, path in (state.get("registers") or {}).items():
+        if not os.path.exists(os.path.join(ROOT, path)):
+            fail(f"registers.{name} path missing: {path}")
+            bad += 1
+
+    narrative = open(os.path.join(GOV, "01-CURRENT_STATE.md"), encoding="utf-8").read()
+    match = re.search(r"\| Governance version \| (AIGEM [0-9.]+) \|", narrative)
+    machine_version = state.get("governance_version")
+    if not match:
+        fail("01-CURRENT_STATE.md has no machine-comparable governance version row")
+        bad += 1
+    elif match.group(1) != machine_version:
+        fail(f"governance version drift: narrative={match.group(1)} machine={machine_version}")
+        bad += 1
+
+    if bad == 0:
+        ok("authority/register paths exist and governance versions match", quiet)
 
 
 # --- 7. the priority model is self-consistent ------------------------------------
@@ -270,7 +357,7 @@ def check_governance_cost(quiet: bool) -> None:
     other check in this file passed. No mechanical check can decide whether that
     is right — but no team should discover it from `git log` a month later."""
     global checked
-    print("\n[8] Cost of governance — documentation vs product code")
+    print("\n[9] Cost of governance — documentation vs product code")
 
     def count(paths: list[str], exts: tuple[str, ...]) -> int:
         total = 0
@@ -320,11 +407,13 @@ def main() -> int:
     print("AIGEM CI checks")
     check_schemas(args.quiet)
     check_state(args.quiet)
+    check_gate_evidence(args.quiet)
     check_tagged_blocks(args.quiet)
     check_inline_drift(args.quiet)
     check_routing(args.quiet)
     check_links(args.quiet)
     check_priority_calibration(args.quiet)
+    check_semantic_state(args.quiet)
     check_governance_cost(args.quiet)
 
     print()

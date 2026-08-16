@@ -218,9 +218,17 @@
                       "enum": [
                         "OPEN",
                         "PARTIAL",
+                        "BLOCKED",
                         "MET",
                         "WAIVED"
                       ]
+                    },
+                    "owner": {
+                      "type": "string"
+                    },
+                    "blockers": {
+                      "type": "array",
+                      "items": {"type": "string"}
                     },
                     "evidence": {
                       "type": "string"
@@ -253,16 +261,23 @@
     },
     "routing": {
       "type": "object",
-      "minProperties": 16,
+      "minProperties": 2,
+      "propertyNames": {
+        "pattern": "^(WS-[0-9]+|CROSS-CUTTING)$"
+      },
       "additionalProperties": {
-        "type": "array",
-        "minItems": 1,
-        "items": {
-          "type": "string",
-          "minLength": 1
+        "type": "object",
+        "minProperties": 16,
+        "additionalProperties": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
         }
       },
-      "description": "Keyed by the 16 canonical work types; ci-checks.py asserts closure over the enum. Values are lists because ARCH, SEC, COMP and MIGRATION have two homes."
+      "description": "Keyed by owning workstream, then by the 16 canonical work types. ci-checks.py asserts closure and destination existence."
     },
     "known_open_debt": {
       "type": "array",

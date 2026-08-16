@@ -45,6 +45,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
 | SUG-20260816-d8v | 2026-08-16 | human:Mahesh | Add Dilip AI executive-sponsor perspective for bancassurance business/value decisions and wire it into P0/R0 | SF2 | SC1 | SHOULD | GOV | P2 / P2 | ADMIT-BYPASS | [1SB backlog governance/decision-quality enablers](../../1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md#governance--decision-quality-enablers) |
 | SUG-20260816-ba7 | 2026-08-16 | human:Mahesh | Add a senior end-to-end bancassurance BA AI persona for existing R11 and link it to current personas/context | SF2 | SC1 | SHOULD | GOV | P2 / P2 | ADMIT-BYPASS | [Principal BA package](../../context/roles/principal-insurance-platform-business-analyst/README.md) |
+| SUG-20260816-ap1 | 2026-08-16 | human:Mahesh | Build a reusable context module and safe evidence-driven autopilot; reconcile semantic governance drift and documentation structure | SF1 | SC1 | MUST | GOV | P2 / P2 | ADMITTED | [CR-010](../change-requests/CR-010-context-module-and-safe-autopilot.md) |
 
 <!--
 Row format:
@@ -167,7 +168,7 @@ outcome:
   registered_in: "registers/SUGGESTION-REGISTER.md + PRODUCT-BACKLOG.md"
   work_item_id: SUG-20260816-d8v
   plan_id: null
-  status: IN_REVIEW
+  status: CLOSED-DELIVERED
   closed_reason: null
 
 resumed: "WS-1 P4-UAT-SIGNOFF remains the governing delivery objective after this documentation PR"
@@ -248,7 +249,7 @@ outcome:
   decision: GOV-008
   destination: "docs/context/roles/principal-insurance-platform-business-analyst/"
   branch: "codex/principal-business-analyst-persona"
-  status: IN_REVIEW
+  status: CLOSED-DELIVERED
 
 resumed: "WS-1 P4-UAT-SIGNOFF remains the governing runtime delivery objective after this docs-only branch"
 ```
@@ -256,6 +257,101 @@ resumed: "WS-1 P4-UAT-SIGNOFF remains the governing runtime delivery objective a
 **Bypass risk:** this governed documentation work consumes capacity while `GATE-P4` remains open.
 The mitigation is bounded scope: one R11 package plus canonical links, with no application code,
 stage state, gate evidence or specialist authority changed.
+
+### SUG-20260816-ap1 · Reusable Context Module and Safe Autopilot
+
+```yaml
+id: SUG-20260816-ap1
+raised_at: "2026-08-16"
+raised_by: "human:Mahesh"
+source: "direct acceptance of the 2026-08-16 governance/context validation recommendations"
+input: >
+  Synchronise main, accept the review recommendations, create an autopilot operating mode,
+  remove proven documentation redundancy, improve folder abstraction, and make the context
+  module reusable for projects with different problem statements and domains.
+
+context:
+  workstream: "cross-cutting governance/context; supports WS-1 and WS-2 and prepares proposed WS-3"
+  current_phase: "WS-1 Phase 4 hardening; WS-2 Phase 1 foundation"
+  canonical_stage: "L7 for WS-1; L4/L6 for WS-2"
+  current_objective: "remove structural delivery blockers without auto-approving a stage or regulated decision"
+  state_as_of: "2026-08-10"
+  state_provisional: false
+  active_work_item: SUG-20260816-ap1
+
+stage_fit:
+  code: SF1
+  rationale: >
+    Application CI, correct routing, machine-verifiable evidence and non-blocking scheduling
+    support current gates; reusable context packaging is absorbed as the same bounded control-plane change.
+
+scope:
+  code: SC1
+  business_scope: "cross-cutting delivery-enablement and context portability"
+  serves: ["GATE-P4 4.1/4.7", "GATE-IAM-P1", "future WS-3 foundation recovery"]
+  failure_without_it: "semantic drift remains invisible and blocked work can stall the whole programme"
+  minimal: true
+  authority: "direct repository-owner instruction; specialist and stage-transition approvals remain separate"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "current governance hardening"
+  binds_when: "before unattended/autopilot execution is enabled"
+  evidence_tier: E1
+  evidence:
+    - "2026-08-16 validation: mechanical checks green while routing paths and semantic statements conflict"
+    - "GATE-P4 0/7 and GATE-IAM-P1 0/6 criteria closed"
+  confidence: C5
+  assumptions: []
+
+action: ADMIT
+action_rationale: "The recommendation was raised in the previous turn and explicitly accepted by the human in this turn."
+conflicts:
+  - "Automation may prepare CANDIDATE evidence but cannot supply PASSED or mandatory human approvals."
+
+classification:
+  type: GOV
+  also: [DOC, INFRA, QA]
+  breakdown: EPIC
+  epic: CR-010
+  risk_tier: T3
+  destination: "governance change request + existing workstream backlog"
+
+priority:
+  now: P2
+  at_target: P2
+  rationale: "High enablement value and current control-plane defects; no evidenced O1-O8 override."
+
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 5
+  earliest_start: "now"
+  cycles: none
+
+breakdown:
+  children:
+    - "context framework and project manifest"
+    - "semantic validation"
+    - "safe autopilot evidence controller"
+    - "application CI foundation"
+    - "documentation consolidation"
+  completion_definition: "PLAN-001 acceptance criteria pass with no automatic human approval or stage transition."
+  not_included:
+    - "marking a lifecycle stage PASSED"
+    - "importing the full proposed Bible backlog into Jira"
+    - "production deployment or risk acceptance"
+
+outcome:
+  registered_in: "SUGGESTION-REGISTER.md + CR-010 + PRODUCT-BACKLOG.md"
+  work_item_id: SUG-20260816-ap1
+  plan_id: PLAN-001
+  status: ADMITTED
+  closed_reason: null
+
+resumed: null
+```
 
 ---
 

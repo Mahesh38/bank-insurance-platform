@@ -745,7 +745,7 @@ the state file; if the state file cannot answer, it **asks a human**.
 | 5 | What is **explicitly out of scope** right now, and when each is revisited | `current_scope.out_of_scope` |
 | 6 | The **standing constraints** — what is never allowed | `standing_constraints` |
 | 7 | The **known debt** it must not re-report | `known_open_debt` |
-| 8 | Where an ADMIT of this type would be **routed** | `routing` |
+| 8 | Where an ADMIT of this type would be **routed** | `routing[workstream][type]` |
 | 9 | Whether state is **provisional or stale** | `provisional`, `state_as_of` |
 | 10 | **What it was doing before this input arrived** | Its own session |
 
@@ -761,7 +761,7 @@ For a consequential Operations/SRE question, after facts 1–10 the agent also r
 [ ] Read docs/governance/state/CURRENT-STATE.yaml     → facts 1–9
 [ ] Read registers/PARKED-BACKLOG.md                  → do not re-propose parked items
 [ ] Read 01-CURRENT_STATE.md §6                       → do not re-report known debt
-[ ] Name the one work item you are picking up
+[ ] Name the one work item for this executor lane; blocked work does not retain the lane
 [ ] Confirm it is head of the ordered READY queue; if not, say so and ask
 ```
 

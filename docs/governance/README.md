@@ -269,6 +269,7 @@ This model is deliberately built to score against the blueprint's 9/10 maturity 
 | Evidence & assumptions | [16 §4](./16-DECISION_MODEL.md#4-evidence-standard), [registers/ASSUMPTION-REGISTER.md](./registers/ASSUMPTION-REGISTER.md) |
 | Traceability matrix | [08 §6](./08-BACKLOG_RULES.md#6-traceability) |
 | Architecture principles engine | [11 §4](./11-REVIEW_GATES.md#4-board-1--architecture) + [Mahesh — Principal Insurance Platform Architect](../context/roles/mahesh-principal-insurance-platform-architect/README.md) |
+| End-to-end business analysis / R11 | [Principal Insurance Platform Business Analyst package](../context/roles/principal-insurance-platform-business-analyst/README.md) + [Runbook R11](./RUNBOOK.md#r11--business-analyst) |
 | Cross-persona authority segregation | [PERSONA-AUTHORITY-MATRIX.md](./PERSONA-AUTHORITY-MATRIX.md) + [cross-persona operating model](../context/roles/shared/cross-persona-operating-model.md) |
 | **Business-aware SRE / Operations authority** | [Shivanshi/R10 package](../context/roles/shivanshi-sre/README.md) + [Board 7](./11-REVIEW_GATES.md#10-board-7--operations) + [SRE protocol](../context/roles/shared/sre-cross-persona-decision-protocol.md) |
 | Database specialist authority | [Principal Insurance Data & Database Architect / DBA](../context/roles/principal-insurance-data-database-architect/README.md) |

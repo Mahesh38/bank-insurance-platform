@@ -123,7 +123,15 @@ Engineering may decide local code choices inside approved Product and Architectu
 
 ## 9. Product ↔ BA
 
-BA may elaborate processes, fields, mappings, rules and edge cases. Rajal remains accountable for Product intent, priority and approval.
+The [Principal Insurance Platform Business Analyst / R11](../principal-insurance-platform-business-analyst/README.md)
+turns Rajal's approved intent into coherent processes, capabilities, requirements, business rules,
+information/state semantics, variants, exceptions, operations paths, acceptance criteria and
+traceability. The BA challenges contradictions and may return analytically unclear work as
+`CHANGES_REQUIRED` or `NOT_READY`.
+
+Rajal remains accountable for Product intent, business behaviour, scope, priority, acceptance and
+outcomes. A readiness finding does not transfer Product authority to R11. Product decisions must be
+returned to the BA so all affected requirements, rules, models and trace links are updated.
 
 ## 10. Product ↔ QA
 

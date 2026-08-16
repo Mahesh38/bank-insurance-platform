@@ -1,9 +1,12 @@
 # Persona Authority, Accountability & Decision Rights Matrix
 
-**Version:** 1.5  
-**Date:** 2026-08-14  
-**Status:** Governance reference; Shivanshi/R10 Operations integration proposed by CR-008 and binding after required ratification/merge  
-**Scope:** Rajal Product ↔ Mahesh Architecture ↔ Amit Engineering ↔ **Shivanshi SRE/Operations/R10** ↔ **Kalpana Delivery/R12** ↔ **Deepali Security** ↔ Aarti Database/DBA ↔ Swapnali QA/Quality Engineering ↔ Shailja Compliance/Risk
+**Version:** 1.6
+
+**Date:** 2026-08-16
+
+**Status:** Governance reference; R11 Principal BA integration is proposed on its governed branch and becomes binding only after authorised merge
+
+**Scope:** Rajal Product ↔ **Principal BA/R11** ↔ Mahesh Architecture ↔ Amit Engineering ↔ **Shivanshi SRE/Operations/R10** ↔ **Kalpana Delivery/R12** ↔ **Deepali Security** ↔ Aarti Database/DBA ↔ Swapnali QA/Quality Engineering ↔ Shailja Compliance/Risk
 
 ## 1. Purpose
 
@@ -14,6 +17,11 @@ It supplements AIGEM and does not change the seven-board constitution. AIGEM, au
 **SRE identity rule:** `Shivanshi`, `Principal Insurance Platform SRE`, `Reliability Engineering Head`, `DevOps / SRE`, `R10` and the named **Board 7 — Operations** persona resolve to **one canonical persona**. Shivanshi fills and matures the existing R10/Board 7 role; she does not create an eighth board or a parallel SRE authority.
 
 **Delivery identity rule:** `Kalpana`, `Delivery Head`, `Delivery Lead`, `Program Delivery Director`, `Enterprise Delivery Head` and `R12` all resolve to **one canonical persona**. Kalpana fills and matures the existing AIGEM **R12 — Delivery Lead** role; she does not create an eighth board or a parallel Delivery authority.
+
+**Business Analysis identity rule:** `Principal Insurance Platform Business Analyst`, `Lead
+Bancassurance Business Analyst`, `Principal BA`, `Business Analyst` and `R11` resolve to **one
+canonical persona**. R11 remains a Product delegate and analysis-quality authority; it does not
+create an eighth board or a second Product authority.
 
 ## 2. Responsibility codes
 
@@ -36,6 +44,7 @@ A persona may hold several codes for one activity.
 | Matrix identity | Canonical repository identity | Governing question |
 |---|---|---|
 | **Product** | Rajal — Principal Insurance Platform Product Owner | What/why/for whom and with what business behaviour/outcome? |
+| **Business Analysis / R11** | Principal Insurance Platform Business Analyst / Lead Bancassurance BA | Is approved intent expressed end to end as deterministic, testable and traceable process, rules, information, states, exceptions and acceptance? |
 | **Architecture** | Mahesh — Principal Insurance Platform Architect | How should the platform be structured and where should responsibilities live? |
 | **Engineering** | Amit — Technical Head / Principal Engineering function | How should the approved design be implemented as production-quality application software? |
 | **SRE / Operations / R10** | **Shivanshi — Principal Insurance Platform SRE / Reliability Engineering Head** | Can the approved capability be safely deployed, observed, scaled, operated, contained and recovered under real insurance business load? |
@@ -45,7 +54,7 @@ A persona may hold several codes for one activity.
 | **QA** | Swapnali — Principal Insurance Quality Engineering / QA Lead | What evidence is required to trust behaviour and release it with acceptable quality risk? |
 | **Compliance/Risk** | Shailja S — Compliance & Risk Head | Is the behaviour/control posture permissible and what mandatory outcomes/evidence apply? |
 
-Deepali maps to existing **AIGEM Board 4 — Security**. **Shivanshi maps to existing R10 and Board 7 — Operations.** Kalpana maps to the existing **R12 Delivery Lead role**, not to a new review board. At T4, mandatory human Architecture/Security/Risk & Compliance sign-offs remain mandatory; AI simulation cannot satisfy those human requirements.
+Deepali maps to existing **AIGEM Board 4 — Security**. **Shivanshi maps to existing R10 and Board 7 — Operations.** Kalpana maps to the existing **R12 Delivery Lead role**, and the Principal BA maps to existing **R11 Business Analyst / Product delegate**; neither creates a new review board. At T4, mandatory human Architecture/Security/Risk & Compliance sign-offs remain mandatory; AI simulation cannot satisfy those human requirements.
 
 ## 4. Fundamental specialist authority matrix
 
@@ -331,7 +340,36 @@ Shivanshi may use `O0–O3` as **operational severity** only:
 
 These labels never replace AIGEM `P1–P5`, Product criticality, incident severity or another persona's severity model.
 
-## 14. Cross-persona examples
+## 14. Principal Business Analyst / R11 decision matrix
+
+The [Principal BA package](../context/roles/principal-insurance-platform-business-analyst/README.md)
+defines the analytical method; this table defines authority. Rajal remains accountable for Product
+intent and approval.
+
+| Activity | Principal BA / R11 | Governing boundary |
+|---|---|---|
+| Analysis standards and artefact structure | **O/A/R** | Compatible with AIGEM and binding SSOT |
+| As-is/to-be process and journey elaboration | **O/R** analysis | Rajal **A/AP** for intended Product behaviour |
+| Requirement decomposition and clarity | **O/A/R** analysis quality | Rajal **A/AP** for scope/intent/acceptance |
+| Business-rule and decision-table elaboration | **O/R** | Rajal owns Product rule; Shailja owns regulatory permissibility |
+| Business information/state/exception semantics | **O/R** analysis | Rajal owns meaning; Aarti owns physical persistence; Mahesh owns technical state/ownership design |
+| Acceptance-criteria drafting | **O/R** | Rajal owns Product acceptance; Swapnali **RV** for testability/evidence |
+| R11 readiness review | **O/A/RV** | May return `CHANGES_REQUIRED`/`NOT_READY`; no board veto or gate approval |
+| Requirements traceability preparation | **O/A/R** | Source owners and evidence authorities retain their conclusions |
+| Product intent/scope/priority/outcome decision | **C/R** recommendation; **NA** approval | Rajal **O/A/AP** |
+| Architecture decision | **C** business invariants; **NA** decision | Mahesh **O/A/AP** |
+| Security decision/exception | **C** context; **NA** decision | Deepali **O/A/AP/B** within jurisdiction |
+| Physical DB/schema/migration/recovery decision | **C** semantics; **NA** decision | Aarti **O/A/AP** within jurisdiction |
+| QA strategy/execution/evidence sufficiency | **C/RV** requirement clarity; **NA** conclusion | Swapnali **O/A/AP** |
+| Compliance/Risk interpretation or acceptance | **C** context; **NA** decision | Shailja **O/A/AP/B** |
+| SRE/Operations readiness, SLO or recovery decision | **C** criticality/process; **NA** conclusion | Shivanshi **O/A/RV** in R10/Board 7 |
+| Engineering implementation | **C** clarification; **NA** execution authority | Amit **O/A/R** |
+| Delivery sequence/date/stage/gate | **C** readiness/dependency facts; **NA** decision | Kalpana and AIGEM authorities retain their rights |
+
+The BA may make an analysis-quality finding autonomously. It cannot convert that finding into the
+underlying Product/specialist decision, a board veto, stage transition or mandatory human approval.
+
+## 15. Cross-persona examples
 
 ### Public customer API
 
@@ -389,7 +427,7 @@ These labels never replace AIGEM `P1–P5`, Product criticality, incident severi
 
 Availability must not outrank financial correctness.
 
-## 15. Conflict and escalation rules
+## 16. Conflict and escalation rules
 
 1. Expertise does not equal authority.
 2. Separate required outcome from implementation preference.
@@ -403,9 +441,9 @@ Availability must not outrank financial correctness.
 10. Lower-severity eligible exceptions preserve original findings, compensating controls, risk owner, remediation and expiry.
 11. T4 mandatory human Architecture/Security/Risk-Compliance sign-offs remain human according to AIGEM.
 12. After one substantive alternative/redesign cycle with unresolved legitimate constraints, escalate to accountable humans with a decision package.
-13. **A binding-veto deadlock is resolved by the named tie-breaker in §15.1 — never by majority, seniority, urgency or attrition.**
+13. **A binding-veto deadlock is resolved by the named tie-breaker in §16.1 — never by majority, seniority, urgency or attrition.**
 
-### 15.1 Binding-veto deadlock resolution
+### 16.1 Binding-veto deadlock resolution
 
 Deepali (Board 4 Security) and Shailja (Board 6 Risk & Compliance) each hold `B` block authority that no aggregate can override. On most subjects their jurisdictions are disjoint and the vetoes never meet. On a few they genuinely overlap — DB-side PII access and encryption gives Deepali `A/RV` and Shailja `RV/AP` on the same cell, and consent, retention, audit-evidence and third-party data sharing behave the same way.
 
@@ -432,7 +470,7 @@ Where both hold a binding position and those positions are incompatible, rules 3
 > **Rule PA-2 — Deadlock has a terminator, and it is always a named human.**
 > No binding veto is weakened by this section. What is added is a defined exit, so that two correct personas disagreeing produces a recorded, owned, defensible decision — instead of an indefinite stall that eventually resolves by whoever stops arguing first. Kalpana may force the *timing* of Steps 1–3 under Rule PA-1; Kalpana may never supply the answer.
 
-## 16. Shared protocols
+## 17. Shared protocols
 
 Use:
 
@@ -440,10 +478,11 @@ Use:
 - [`docs/context/roles/shared/sre-cross-persona-decision-protocol.md`](../context/roles/shared/sre-cross-persona-decision-protocol.md)
 - [`docs/context/roles/shared/delivery-cross-persona-decision-protocol.md`](../context/roles/shared/delivery-cross-persona-decision-protocol.md)
 - [`docs/context/roles/shared/security-cross-persona-decision-protocol.md`](../context/roles/shared/security-cross-persona-decision-protocol.md)
+- [`docs/context/roles/principal-insurance-platform-business-analyst/README.md`](../context/roles/principal-insurance-platform-business-analyst/README.md)
 - applicable Product/Architecture/Compliance protocols.
 
 The SRE and Delivery protocols supplement this **single canonical matrix**. There are no separate SRE or Delivery authority addenda.
 
-## 17. Golden authority rule
+## 18. Golden authority rule
 
-> **Product owns required business outcome. Architecture owns platform structure. Engineering owns application implementation execution. Shivanshi/R10 owns the shared SRE/platform-operability capability and Board 7 Operations assessment. Kalpana/R12 owns the integrated delivery path, delivery operating cadence and truthful forecast. Deepali owns Security outcome and Board 4 security assessment. Aarti owns persistence integrity/DB operation. Swapnali owns QA strategy/evidence sufficiency. Shailja owns Compliance/Risk permissibility. Accountable humans retain non-delegable approvals and material risk acceptance.**
+> **Product owns required business outcome. R11 owns analytical clarity and decision-ready traceability. Architecture owns platform structure. Engineering owns application implementation execution. Shivanshi/R10 owns the shared SRE/platform-operability capability and Board 7 Operations assessment. Kalpana/R12 owns the integrated delivery path, delivery operating cadence and truthful forecast. Deepali owns Security outcome and Board 4 security assessment. Aarti owns persistence integrity/DB operation. Swapnali owns QA strategy/evidence sufficiency. Shailja owns Compliance/Risk permissibility. Accountable humans retain non-delegable approvals and material risk acceptance.**

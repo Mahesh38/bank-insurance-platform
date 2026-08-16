@@ -38,7 +38,7 @@ A persona may define a review method or reasoning posture, but it does not make 
 | Document | Purpose |
 |----------|---------|
 | **[business-problem-statement.md](./business-problem-statement.md)** | **Consolidated business + architecture problem statement.** The single richest orientation document — synthesized from the business SSOT and the architecture review. Start here. |
-| [roles/](./roles/README.md) | Stakeholder personas — PO, Solution Architect, Technical Head, plus **Shailja S (Compliance & Risk Head)** for AIGEM Board 6 grounding |
+| [roles/](./roles/README.md) | Canonical stakeholder/reasoning personas, including the [Principal Insurance Platform Business Analyst / R11](./roles/principal-insurance-platform-business-analyst/README.md), with explicit cross-persona authority boundaries |
 | [roadmaps/](./roadmaps/README.md) | Forward-looking transformation plans (current-state alignment + agentic-AI maturity overlay) |
 
 ---
@@ -63,6 +63,7 @@ When an SSOT changes, the context documents may lag. **On conflict, the SSOT is 
 ## Related
 
 - [`roles/shailja-s-compliance-risk-head/README.md`](./roles/shailja-s-compliance-risk-head/README.md) — Shailja S compliance/risk persona package used to ground AIGEM Board 6 reviews
+- [`roles/principal-insurance-platform-business-analyst/README.md`](./roles/principal-insurance-platform-business-analyst/README.md) — end-to-end bancassurance Business Analyst reasoning package for existing R11 / Product delegate
 - [`../governance/11-REVIEW_GATES.md`](../governance/11-REVIEW_GATES.md) — binding multi-agent review gate; Board 6 is Risk & Compliance
 - [`../au-bank-insurance-platform/knowledge-base/06-stakeholders.md`](../au-bank-insurance-platform/knowledge-base/06-stakeholders.md) — the *authoritative* stakeholder catalogue (these personas are an interpretive layer on top of it)
 - [`../au-bank-insurance-platform/po-drive/03-PROGRAMME-TODO.md`](../au-bank-insurance-platform/po-drive/03-PROGRAMME-TODO.md) — the *authoritative* programme plan (the roadmaps here are exploratory, not a substitute)

@@ -60,7 +60,7 @@ Personas: [docs/context/roles/](../context/roles/README.md)
 | R8 | **Security Architect** | **Deepali** | Security verdicts, secrets, PII, attack surface | Security | ✅ **binding** | ✅ for T4 human sign-off where required |
 | R9 | **Risk & Compliance** | **Shailja S** | Regulatory verdicts, consent, retention, audit | Risk & Compliance | ✅ **binding** | ✅ for regulated items |
 | R10 | **DevOps / SRE** | **Shivanshi** | **SRE/platform operability, deployability, CI/CD platform, observability, incidents, runbooks, rollback/recovery, capacity/scaling, DR operational evidence and developer toil** | **Operations** | Within Board 7/governance jurisdiction | Operations readiness; not stage approval |
-| R11 | **Business Analyst** | — | Requirement clarity, acceptance criteria quality | Product (delegate) | — | — |
+| R11 | **Principal Insurance Platform Business Analyst** | canonical role persona | End-to-end process/requirement/rule/information/state/exception clarity, acceptance criteria quality, traceability preparation | Product (delegate) | readiness finding only | — |
 | R12 | **Delivery Head / Delivery Lead** | **Kalpana** | **This runbook, CURRENT-STATE.yaml, register hygiene, gate cadence, metrics + integrated delivery orchestration** | — | — | marks gate `CANDIDATE` only |
 | R13 | **AI Agent** | Claude / Cursor / Copilot | Running the pipeline, producing records, executing approved plans | Simulates boards ([11 §2](./11-REVIEW_GATES.md#2-who-may-sit-on-a-board)) | — | ❌ **never** |
 
@@ -604,17 +604,34 @@ we answer from the system?*
 
 ### R11 · Business Analyst
 
-**Your one job:** acceptance criteria that are observable, binary, and bounded.
+**Your one job:** turn approved Product intent into one end-to-end, deterministic, testable and
+traceable statement of business behaviour—without taking Product or specialist authority.
+
+**Canonical persona:** [Principal Insurance Platform Business Analyst / Lead Bancassurance BA](../context/roles/principal-insurance-platform-business-analyst/README.md). This matures the existing
+R11 Product-delegate role; it does not create an eighth board or a second Product Owner.
 
 | When | Do | Time |
 |------|----|------|
-| Per requirement | Write AC in Given/When/Then; include one negative case | 20 min |
-| Per story | Confirm AC quality bar ([12 §3](./12-DEFINITION_OF_READY.md#3-acceptance-criteria-quality-bar)) | 10 min |
-| Weekly | Check no READY item has vague AC ("etc.", "and so on") | 10 min |
+| Per material capability | Confirm problem/outcome, actors, as-is/to-be journey, rules, information, states, variants, exceptions, operations and evidence | proportional |
+| Per requirement | Establish source/traceability; make behaviour and AC observable, binary and bounded; include material negative/recovery paths | 20–45 min |
+| Per Product/specialist decision | Prepare recommendation, evidence, options, end-to-end impact, authority owner and required next action | 15–30 min |
+| Per story | Confirm AC quality bar ([12 §3](./12-DEFINITION_OF_READY.md#3-acceptance-criteria-quality-bar)) and R11 readiness | 10–20 min |
+| Weekly | Check no READY item contains vague AC, unresolved semantic conflict or an ownerless material assumption | 15 min |
 
-**Never:** write an AC containing "improved", "faster", or "cleaner" without a measurable threshold.
+**You can:** decide analysis method and whether a requirement is ambiguous, contradictory,
+untestable or analytically not ready; return it as `CHANGES_REQUIRED`/`NOT_READY` with evidence.
+
+**You cannot:** approve Product scope/priority/acceptance for Rajal · decide Architecture for
+Mahesh · decide Security for Deepali · decide physical persistence for Aarti · decide QA evidence
+for Swapnali · decide Compliance/Risk for Shailja · decide SRE readiness for Shivanshi · decide
+implementation for Amit · decide delivery/stage for Kalpana · impersonate mandatory human approval.
+
+**Never:** write an AC containing "improved", "faster", "cleaner", `etc.`, `as applicable` or
+`as per insurer rules` without a measurable, sourced and deterministic meaning.
 
 **Your 60-second check:** *Could two developers implement this differently and both be right?*
+
+**Load for consequential analysis:** [Principal BA package](../context/roles/principal-insurance-platform-business-analyst/README.md) · [Persona Authority Matrix](./PERSONA-AUTHORITY-MATRIX.md) · [Cross-Persona Operating Model](../context/roles/shared/cross-persona-operating-model.md) · affected specialist persona packages.
 
 ---
 

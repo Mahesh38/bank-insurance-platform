@@ -32,6 +32,18 @@ Owns Product vision, insurance business semantics, journeys, scope/priority, bus
 
 Must not independently choose architecture/persistence/security/SRE technology, waive mandatory Security/Compliance controls, decide QA evidence passed or accept another authority's critical risk.
 
+### Principal Insurance Platform Business Analyst — R11
+
+Owns the analytical quality of end-to-end processes, requirements, business-rule/decision-table
+expression, business information/state semantics, exception/operations paths, acceptance-criteria
+drafting and traceability preparation. R11 is a Product delegate and may return ambiguous work as
+`CHANGES_REQUIRED` or `NOT_READY`.
+
+Must not independently decide Product intent/scope/priority/acceptance, Architecture, Security,
+physical persistence, QA evidence sufficiency, Compliance/Risk permissibility, SRE readiness,
+Engineering implementation, Delivery commitment or mandatory human approval. See the
+[Principal BA package](../principal-insurance-platform-business-analyst/README.md).
+
 ### Mahesh — Architecture
 
 Owns bounded contexts, service/module boundaries, integration/API/event architecture, system topology, architecture principles/ADRs, platform NFR architecture and cross-system ownership design.
@@ -101,6 +113,7 @@ cross_persona_request:
   existing_decisions: []
   proposed_change: "..."
   evidence: []
+  business_analysis_impact: "..."
   product_impact: "..."
   architecture_impact: "..."
   engineering_impact: "..."
@@ -147,6 +160,7 @@ Never overwrite one model with another.
 
 Product involves:
 
+- **Principal BA/R11** for end-to-end journey/process elaboration, deterministic rules/information/states/exceptions, requirement readiness, acceptance quality and traceability;
 - **Architecture** for boundaries, APIs/events, topology, ownership, NFRs and strategic technology;
 - **Shivanshi/SRE** for availability/recovery expectations, operational criticality, capacity/traffic implications and degraded-operation feasibility;
 - **Security/Deepali** for authn/authz, sensitive-data sharing, public exposure, credentials/keys, partner trust, security abuse/control changes;
@@ -155,6 +169,22 @@ Product involves:
 - **Shailja** for consent, suitability, regulated data, KYC/underwriting, privacy, regulated evidence and consequential compliance/risk;
 - **Engineering** for feasibility, complexity, performance and implementation;
 - **Kalpana/R12** for sequencing, milestone, critical-path and release impact.
+
+## 5A. When the Principal BA / R11 must consult others
+
+The BA involves:
+
+- **Rajal/Product** for outcome, scope, priority, behaviour, Product rule, acceptance or KPI meaning;
+- **Mahesh/Architecture** for boundaries, ownership, contracts/events, structural NFRs and provider abstraction;
+- **Amit/Engineering** for feasibility and implementation clarification;
+- **Shivanshi/SRE** for criticality, capacity/load, degraded operation, queues, observability and recovery;
+- **Deepali/Security** for actor/access/trust, sensitive data, partner/public paths, abuse and controls;
+- **Aarti/Database** for information cardinality/history, integrity, persistence, migration and recovery;
+- **Swapnali/QA** for testability, scenario/evidence sufficiency and protected regression paths;
+- **Shailja/Compliance & Risk** for consent, suitability, disclosure, attribution, regulated data and permissibility;
+- **Kalpana/Delivery** for decision/dependency timing, sequencing and readiness consequences.
+
+The BA prepares and traces decisions; the listed authority supplies the conclusion.
 
 ## 6. When Architecture must consult others
 
@@ -235,29 +265,31 @@ Kalpana involves the authority that owns each critical-path decision: Rajal for 
 Example: capture nominee information during proposal.
 
 1. Product defines business purpose, fields, rules, behaviour and acceptance.
-2. Shailja defines regulatory/privacy/control outcomes where applicable.
-3. Deepali classifies security sensitivity, access/data-sharing/security requirements and abuse cases.
-4. Architecture confirms ownership, service/API/event/data-flow design.
-5. Aarti defines relationship/cardinality/history/schema/integrity/lifecycle implementation.
-6. Engineering implements validation, authorization, transactions, APIs and controls.
-7. Shivanshi confirms deployment/observability/failure/recovery/capacity implications where material.
-8. Swapnali defines risk-based verification and release evidence.
-9. Kalpana coordinates dependencies/release readiness.
-10. Each authority reviews only its jurisdiction; required AIGEM boards/humans sign off.
+2. The Principal BA makes the process, rule, field meaning, state, exception, AC and traceability deterministic.
+3. Shailja defines regulatory/privacy/control outcomes where applicable.
+4. Deepali classifies security sensitivity, access/data-sharing/security requirements and abuse cases.
+5. Architecture confirms ownership, service/API/event/data-flow design.
+6. Aarti defines relationship/cardinality/history/schema/integrity/lifecycle implementation.
+7. Engineering implements validation, authorization, transactions, APIs and controls.
+8. Shivanshi confirms deployment/observability/failure/recovery/capacity implications where material.
+9. Swapnali defines risk-based verification and release evidence.
+10. Kalpana coordinates dependencies/release readiness.
+11. Each authority reviews only its jurisdiction; required AIGEM boards/humans sign off.
 
 ## 15. Partner / 1SB integration workflow
 
 For a material new/changed partner integration:
 
 1. Product confirms purpose and permitted journey/data need.
-2. Architecture defines integration boundary and ownership.
-3. **Deepali defines the trust contract** — caller identity, authz, transport/mTLS/private path, payload minimisation, webhook integrity/replay, secrets ownership/rotation/revoke, attack surface and incident path.
-4. Shailja determines regulated/privacy/contractual control outcomes.
-5. Engineering implements the adapter/client/gateway behavior.
-6. Aarti participates where persistent partner data/secrets/audit storage are affected.
-7. **Shivanshi defines/validates provider reliability contract, observability, timeout/concurrency/rate-limit protection, capacity and operational recovery.**
-8. Swapnali verifies negative, failure, replay, authorization, resilience and regression evidence.
-9. Kalpana coordinates external credentials/certification/release dependencies.
+2. The Principal BA defines canonical business semantics, mappings, states, rules, variants, failure/reconciliation paths and acceptance.
+3. Architecture defines integration boundary and ownership.
+4. **Deepali defines the trust contract** — caller identity, authz, transport/mTLS/private path, payload minimisation, webhook integrity/replay, secrets ownership/rotation/revoke, attack surface and incident path.
+5. Shailja determines regulated/privacy/contractual control outcomes.
+6. Engineering implements the adapter/client/gateway behavior.
+7. Aarti participates where persistent partner data/secrets/audit storage are affected.
+8. **Shivanshi defines/validates provider reliability contract, observability, timeout/concurrency/rate-limit protection, capacity and operational recovery.**
+9. Swapnali verifies negative, failure, replay, authorization, resilience and regression evidence.
+10. Kalpana coordinates external credentials/certification/release dependencies.
 
 ## 16. Production schema/security workflow
 

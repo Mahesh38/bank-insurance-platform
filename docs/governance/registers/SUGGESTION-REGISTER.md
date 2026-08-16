@@ -44,6 +44,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
 | SUG-20260816-d8v | 2026-08-16 | human:Mahesh | Add Dilip AI executive-sponsor perspective for bancassurance business/value decisions and wire it into P0/R0 | SF2 | SC1 | SHOULD | GOV | P2 / P2 | ADMIT-BYPASS | [1SB backlog governance/decision-quality enablers](../../1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md#governance--decision-quality-enablers) |
+| SUG-20260816-ba7 | 2026-08-16 | human:Mahesh | Add a senior end-to-end bancassurance BA AI persona for existing R11 and link it to current personas/context | SF2 | SC1 | SHOULD | GOV | P2 / P2 | ADMIT-BYPASS | [Principal BA package](../../context/roles/principal-insurance-platform-business-analyst/README.md) |
 
 <!--
 Row format:
@@ -173,6 +174,88 @@ resumed: "WS-1 P4-UAT-SIGNOFF remains the governing delivery objective after thi
 ```
 
 **Bypass risk:** this user-directed documentation work consumes repository capacity that could otherwise advance the open WS-1 `GATE-P4`, especially consumer/UAT enablement work. It does **not** change, waive or mark any gate criterion complete.
+
+### SUG-20260816-ba7 · Principal Insurance Platform Business Analyst / R11
+
+```yaml
+id: SUG-20260816-ba7
+raised_at: "2026-08-16"
+raised_by: "human:Mahesh"
+source: >
+  Direct user instruction identifying the change as Mahesh's governance decision, explicitly
+  requesting immediate bypass, a fresh branch, reference to the Mahesh/Deepali/Aarti/Shivanshi
+  personas, and creation of an improved end-to-end bancassurance BA persona.
+not_an_ai_suggestion: true
+
+context:
+  workstream: "cross-cutting governance/persona context; runtime workstreams unchanged"
+  current_phase: "WS-1 Phase 4 hardening; WS-2 foundation"
+  active_work_item: "user-directed R11 Principal BA persona integration"
+
+stage_fit:
+  code: SF2
+  rationale: >
+    Documentation/governance-context change only. It introduces no runtime/API/schema/configuration
+    change and marks no delivery gate criterion complete.
+
+scope:
+  code: SC1
+  serves:
+    - "end-to-end bancassurance Product and requirement decision preparation"
+    - "R11 requirement readiness, AC quality and traceability"
+    - "business handoffs to Product, Architecture, Security, Database, SRE and other authorities"
+  minimal: true
+
+necessity:
+  now: SHOULD
+  target_stage: "before further material journey/requirement elaboration"
+  evidence_tier: E1
+  evidence:
+    - "direct Mahesh/repository-owner instruction"
+    - "existing AIGEM R11 role and Application Lifecycle business-analysis responsibilities"
+  confidence: C5
+
+action: ADMIT-BYPASS
+action_rationale: >
+  Mahesh explicitly instructed immediate governance creation and bypassed normal AI intake/queue
+  ordering. The register ID is retained only because 09-AI_EXECUTION_RULES §8 requires a bypass
+  record; it must not be represented as an AI-originated suggestion.
+process_skipped:
+  - "normal suggestion deferral and single-in-flight queue ordering"
+  - "separate CR preparation before documentation"
+authorised_by: "Mahesh / repository owner — direct instruction, 2026-08-16"
+
+classification:
+  type: GOV
+  also: [DOC]
+  risk_tier: T1
+
+authority_effect:
+  existing_role: "R11 — Business Analyst / Product delegate"
+  new_board: false
+  new_aigem_role: false
+  named_human_roster_growth: false
+  product_authority: "unchanged — Rajal"
+  specialist_authority: "unchanged — canonical matrix owners"
+  human_approval_impersonation: false
+
+priority:
+  now: P2
+  at_target: P2
+  rationale: "explicitly requested now; no P1 override or runtime gate closure"
+
+outcome:
+  decision: GOV-008
+  destination: "docs/context/roles/principal-insurance-platform-business-analyst/"
+  branch: "codex/principal-business-analyst-persona"
+  status: IN_REVIEW
+
+resumed: "WS-1 P4-UAT-SIGNOFF remains the governing runtime delivery objective after this docs-only branch"
+```
+
+**Bypass risk:** this governed documentation work consumes capacity while `GATE-P4` remains open.
+The mitigation is bounded scope: one R11 package plus canonical links, with no application code,
+stage state, gate evidence or specialist authority changed.
 
 ---
 

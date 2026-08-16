@@ -81,7 +81,7 @@ and adds only the triage layer in front of it. Concretely, in this repository:
 |------|-----------------|------------------------------------------|
 | Platform / Solution Architect | Custodian of this framework; stage transitions; architecture verdicts | Architecture |
 | Product Owner | Scope definition; necessity disputes; priority ties | Product |
-| Business Analyst | Requirement clarity; acceptance criteria quality | Product (delegate) |
+| Principal Insurance Platform Business Analyst (R11) | End-to-end process/requirement/rule/information/state/exception clarity; acceptance criteria quality; traceability preparation | Product (delegate) |
 | Engineering / Tech Lead | Technical verdicts; work breakdown; debt ledger | Technical |
 | QA Lead | Testability, coverage, validation evidence | QA |
 | Security Architect | Security verdict (**veto**) | Security |

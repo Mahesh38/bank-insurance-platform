@@ -46,6 +46,14 @@ mapped to an existing AIGEM role and, where applicable, an existing review board
 | R12 · Delivery | Kalpana |
 | Database / DBA | Aarti |
 
+**R11 functional-persona exception (GOV-008):** the Principal Insurance Platform Business Analyst
+package is an AI reasoning persona attached to the already-existing R11 Product-delegate role. It
+does not add a named human accountability owner, an AIGEM role, a board or an independent
+jurisdiction; Rajal remains accountable for Product decisions. The package was added by explicit
+Mahesh/repository-owner `ADMIT-BYPASS` direction. The closed roster above therefore remains nine
+**named human accountability personas**. Assigning a human name or independent authority to R11
+would be a separate persona-roster change and must not be inferred from the package.
+
 ### Why this is closed
 
 Between CR-002 and CR-008 — a seven-day window — the repository added six personas. Each was

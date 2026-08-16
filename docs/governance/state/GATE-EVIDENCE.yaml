@@ -112,7 +112,7 @@ workstreams:
         last_verified_at: null
       - id: "4.7"
         description: "Coverage gates green; QA-001 closed or explicitly waived with expiry."
-        state: PARTIAL
+        state: BLOCKED
         owner: "Swapnali / QA"
         execution_mode: AUTOMATABLE
         priority: P2
@@ -121,7 +121,11 @@ workstreams:
         required_evidence_level: E4
         verifier: ci
         evidence: ["Shared-library coverage gates at 80% line / 70% branch"]
-        blockers: []
+        blockers:
+          - id: S08-G3
+            type: HARD
+            owner: "Amit / Engineering"
+            follow_up: "2026-08-30"
         last_verified_at: null
     approvals: []
 
@@ -208,6 +212,152 @@ workstreams:
         enables: 1
         required_evidence_level: E4
         verifier: ci
+        evidence: []
+        blockers: []
+        last_verified_at: null
+    approvals: []
+
+  # WS-3 registered by CR-010. Evidence levels are exactly as S08-engineering-foundation.md
+  # states: E4 for G1-G7 and G9, E2 for G8, E3 for G10.
+  - id: WS-3
+    gate_id: GATE-S08
+    current_stage: "S08 — Engineering Foundation"
+    next_stage: "S09 — Platform & Environment Foundation"
+    bible_stage: S08
+    state: OPEN
+    required_approvers: [Engineering, QA, Architect, Security, Operations]
+    criteria:
+      - id: "S08-G1"
+        description: "CI builds and tests every module on every pull request."
+        state: OPEN
+        owner: "Amit / Engineering"
+        execution_mode: AUTOMATABLE
+        priority: P1
+        effort: M
+        enables: 6
+        required_evidence_level: E4
+        verifier: ci
+        evidence: []
+        blockers: []
+        last_verified_at: null
+      - id: "S08-G2"
+        description: "Merge to main is impossible without a green pipeline."
+        state: OPEN
+        owner: "Amit / Engineering"
+        execution_mode: HUMAN_REQUIRED
+        priority: P1
+        effort: S
+        enables: 2
+        required_evidence_level: E4
+        verifier: human-review
+        evidence: []
+        blockers: []
+        last_verified_at: null
+      - id: "S08-G3"
+        description: "Coverage thresholds enforced in CI; QA-001 closed."
+        state: OPEN
+        owner: "Swapnali / QA"
+        execution_mode: AUTOMATABLE
+        priority: P1
+        effort: M
+        enables: 1
+        required_evidence_level: E4
+        verifier: ci
+        evidence: []
+        blockers: []
+        last_verified_at: null
+      - id: "S08-G4"
+        description: "ArchUnit and static analysis enforced in CI; build fails on breach."
+        state: OPEN
+        owner: "Amit / Engineering"
+        execution_mode: AUTOMATABLE
+        priority: P1
+        effort: M
+        enables: 1
+        required_evidence_level: E4
+        verifier: ci
+        evidence: []
+        blockers: []
+        last_verified_at: null
+      - id: "S08-G5"
+        description: "Secret, SAST, SCA and container image scanning in the pipeline."
+        state: OPEN
+        owner: "Deepali / Security"
+        execution_mode: AUTOMATABLE
+        priority: P1
+        effort: L
+        enables: 2
+        required_evidence_level: E4
+        verifier: ci
+        evidence: []
+        blockers: []
+        last_verified_at: null
+      - id: "S08-G6"
+        description: "Test infrastructure operational at every level: Testcontainers, WireMock, contract and E2E."
+        state: OPEN
+        owner: "Swapnali / QA"
+        execution_mode: AUTOMATABLE
+        priority: P1
+        effort: L
+        enables: 3
+        required_evidence_level: E4
+        verifier: ci
+        evidence: []
+        blockers:
+          - id: TD-014
+            type: HARD
+            owner: "Amit / Engineering"
+            follow_up: "2026-08-30"
+        last_verified_at: null
+      - id: "S08-G7"
+        description: "No PII in logs, proven by an automated test that scans emitted logs."
+        state: OPEN
+        owner: "Deepali / Security"
+        execution_mode: AUTOMATABLE
+        priority: P1
+        effort: M
+        enables: 1
+        required_evidence_level: E4
+        verifier: ci
+        evidence: []
+        blockers: []
+        last_verified_at: null
+      - id: "S08-G8"
+        description: "Engineering and secure coding standards published and adopted."
+        state: OPEN
+        owner: "Amit / Engineering"
+        execution_mode: HUMAN_REQUIRED
+        priority: P3
+        effort: M
+        enables: 0
+        required_evidence_level: E2
+        verifier: document
+        evidence: []
+        blockers: []
+        last_verified_at: null
+      - id: "S08-G9"
+        description: "Pipeline feedback under 10 minutes at p95; flaky failure rate under 1%."
+        state: OPEN
+        owner: "Shivanshi / SRE"
+        execution_mode: AUTOMATABLE
+        priority: P2
+        effort: M
+        enables: 0
+        required_evidence_level: E4
+        verifier: ci
+        evidence: []
+        blockers: []
+        last_verified_at: null
+      - id: "S08-G10"
+        description: "A new engineer can build, test and ship a change in under a week."
+        state: OPEN
+        owner: "Amit / Engineering"
+        execution_mode: HUMAN_REQUIRED
+        priority: P3
+        effort: M
+        enables: 0
+        required_evidence_level: E3
+        verifier: human-review
         evidence: []
         blockers: []
         last_verified_at: null

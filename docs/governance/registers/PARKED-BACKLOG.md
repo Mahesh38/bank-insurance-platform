@@ -25,6 +25,7 @@ Real work, wrong stage. Each returns to **full re-triage** at its trigger — ne
 | TD-007 | ArchUnit `allowEmptyShould(true)` | WS-1 | Phase 1 | Phase 5 | Packages populated by LOB expansion | SHOULD | P5 / P3 | Rules cannot tighten against empty packages |
 | E12 | Saving / Annuity / Pension LOBs | WS-1 | Backlog | Phase 6+ | Term + Health + Motor stable in production | SHOULD | P5 / P3 | P2 backlog by PO decision |
 | E13 | Replaceability proof (fake adapter / routing flag) | WS-1 | Backlog | Phase 6+ | Post-GA | COULD | P5 / P4 | Architecture is proven by ArchUnit today |
+| → [SUG-20260816-w3s](./SUGGESTION-REGISTER.md#2-register) | Extend `current-state.schema.json` so workstream relationships (`depends_on`, `entry_conditions`, `parent_workstream`, `delivers_bounded_contexts`) are validated instead of held in comments | WS-3 | S08 | S09 | A third relationship type is needed, or a validator must reason over the WS-3↔WS-1↔WS-2 topology | SHOULD | P3 / P2 | CR-010 registered WS-3 against `additionalProperties: false`; comments plus the authority documents carry the relationships correctly today |
 
 > ⚠️ **TD-014's trigger has fired.** It is listed here for the record; the next gate sweep
 > should promote it into the Phase 4 backlog alongside criterion 4.1, or re-park it with a

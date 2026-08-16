@@ -40,7 +40,9 @@ env:
   # below; the older `detect --no-git` form is deprecated. Verified locally at
   # this exact version against this repository — see the S08-G5 evidence note.
   GITLEAKS_VERSION: "8.21.2"
-  TRIVY_VERSION: "0.53.0"
+  # Trivy is pinned at the action, not here: aquasecurity/trivy-action@0.28.0.
+  # A hand-built releases/download/... URL failed on this workflow's first run
+  # and took two jobs with it, so the tool's own action owns its installation.
 
 jobs:
   # ---------------------------------------------------------------------------
@@ -243,35 +245,32 @@ jobs:
           chmod +x gradlew
           ./gradlew --no-daemon assemble
 
-      - name: Install Trivy
-        run: |
-          set -euo pipefail
-          curl -sSfL -o trivy.tar.gz \
-            "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz"
-          tar -xzf trivy.tar.gz trivy
-          chmod +x trivy
-          ./trivy --version
-
+      # Installed via the maintained action rather than a hand-built release URL.
+      # The first run of this workflow failed here: a version-pinned
+      # releases/download/... path is an asset-naming convention that rots, and it
+      # took the SBOM job down with it. The action owns that detail.
       - name: Scan dependencies — CRITICAL and HIGH fail the build
-        run: |
-          set -euo pipefail
-          ./trivy fs . \
-            --scanners vuln \
-            --severity CRITICAL,HIGH \
-            --ignore-unfixed \
-            --format table \
-            --exit-code 1 \
-            --ignorefile .trivyignore
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          format: table
+          exit-code: "1"
+          trivyignores: .trivyignore
 
       - name: Full severity report (non-blocking, for the risk register)
         if: always()
-        run: |
-          set -euo pipefail
-          ./trivy fs . \
-            --scanners vuln \
-            --format json \
-            --output trivy-full.json \
-            --exit-code 0 || true
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln
+          format: json
+          output: trivy-full.json
+          exit-code: "0"
 
       - name: Upload SCA report
         if: always()
@@ -304,20 +303,17 @@ jobs:
           chmod +x gradlew
           ./gradlew --no-daemon assemble
 
-      - name: Install Trivy
-        run: |
-          set -euo pipefail
-          curl -sSfL -o trivy.tar.gz \
-            "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz"
-          tar -xzf trivy.tar.gz trivy
-          chmod +x trivy
-
       - name: Generate CycloneDX SBOM
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: cyclonedx
+          output: sbom-cyclonedx.json
+
+      - name: Report SBOM size
         run: |
           set -euo pipefail
-          ./trivy fs . \
-            --format cyclonedx \
-            --output sbom-cyclonedx.json
           echo "SBOM components:"
           jq '.components | length' sbom-cyclonedx.json
 

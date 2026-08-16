@@ -2,9 +2,10 @@
 
 **Product:** AU Bank Insurance Distribution Platform  
 **Release:** R0  
-**Version:** 0.2 (align to Working Decisions Draft v1 — Life; three journeys; ETB)  
+**Version:** 0.3 (adds AI Executive Sponsor perspective to material P0 business decisions)  
 **Note:** Replaces template BR shells for P0 only. P1/P2 capabilities listed as stubs.  
-**SSOT:** [../07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md](../07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md) · Chapter map: [BRD-OVERVIEW.md](./BRD-OVERVIEW.md)
+**SSOT:** [../07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md](../07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md) · Chapter map: [BRD-OVERVIEW.md](./BRD-OVERVIEW.md)  
+**Executive sponsor perspective:** [Dilip — AI Executive Sponsor Perspective](../../context/roles/principal-insurance-platform-product-owner/executive-sponsor-perspective/README.md)
 
 ---
 
@@ -13,9 +14,23 @@
 | Tag | Meaning |
 |-----|---------|
 | Must | R0 cannot go live without |
-| Should | Strongly desired in R0; may slip with sponsor OK |
+| Should | Strongly desired in R0; may slip only through an explicit Product decision, with Dilip sponsor-perspective review when the deferral has material business/customer/investment consequence |
 | Could | Nice in R0 |
 | Won’t | Explicitly not R0 |
+
+### Executive sponsor perspective for material P0 decisions
+
+Dilip is an **AI business-sponsor lens inside Rajal's Product package**, not a new AIGEM persona or a substitute for a real AU Bank sponsor. Use the [invocation and decision contract](../../context/roles/principal-insurance-platform-product-owner/executive-sponsor-perspective/03-invocation-and-decision-contract.md) when a P0/R0 decision materially affects business value, customer/distribution outcome, investment, partner strategy or pilot success.
+
+For a material P0 capability/story group, the business rationale should be able to answer:
+
+1. **Problem:** what customer/business problem exists and what evidence supports it?
+2. **Consequence:** what happens if this capability is absent from R0?
+3. **Minimum:** what is the smallest sufficient R0 capability?
+4. **Outcome:** how will pilot success/failure be measured?
+5. **Investment:** is the cost/dependency proportionate to the expected value?
+
+Dilip may return `ENDORSE`, `ENDORSE_WITH_CONDITIONS`, `CLARIFY`, `DEFER` or `DO_NOT_ENDORSE` as the **AI sponsor perspective**. Rajal remains the canonical Product authority for scope/priority/acceptance. Architecture, Security, Compliance/Risk, QA, Database, SRE and mandatory human approvals remain unchanged. The AI output must never be represented as the real Dilip Kumar Vidyarthi's personal approval.
 
 ---
 
@@ -264,6 +279,8 @@
 2. Export or simple dashboard for pilot ops.  
 3. Full BI suite = Won’t for R0.
 
+**Sponsor perspective:** the reporting minimum must be sufficient to determine whether the pilot produced the intended business outcome and where the funnel leaks. A dashboard itself is not the success metric.
+
 ---
 
 ## BR-COMM — Communications (Should)
@@ -302,6 +319,8 @@
 | BR-PROP-030 | BG-006 | CJ-09 / RMJ-08 | BP-008 |
 | BR-PAY-010 | BG-001/005 | CJ-11 / RMJ-10 | BP-010 |
 
+For material business decisions, also attach or link the AI sponsor-perspective result and the Product decision that followed it. The sponsor perspective does not replace the governing acceptance/sign-off evidence.
+
 ---
 
 ## Revision plan
@@ -309,5 +328,6 @@
 | Rev | Trigger |
 |-----|---------|
 | 0.2 | Working Decisions Draft v1 alignment (Life; three journeys; Sold) |
-| 0.3 | After Consent/Suitability rule packs |
+| 0.3 | AI Executive Sponsor perspective integrated for material P0 scope/value decisions |
+| 0.4 | After Consent/Suitability rule packs |
 | 1.0 | Design freeze sign-off |

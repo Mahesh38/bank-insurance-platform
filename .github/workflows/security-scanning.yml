@@ -247,6 +247,24 @@ jobs:
           chmod +x gradlew
           ./gradlew --no-daemon assemble
 
+      # Trivy's `fs` scan did NOT find the Java estate on run #5: its log reported
+      # `Number of language-specific files num=1`, and that one file was the Flutter
+      # pubspec.lock. A Gradle project publishes no lockfile Trivy can read, so the
+      # SCA and SBOM jobs were green while covering none of the ~20k lines of Java.
+      # Spring Boot fat jars carry their dependencies under BOOT-INF/lib, which Trivy
+      # DOES analyse, so the assembled bootJars are staged inside the scan root.
+      # `scan-input/` sits under `.`, so one `trivy fs .` still covers pubspec.lock too.
+      - name: Stage assembled jars into the scan root
+        run: |
+          set -euo pipefail
+          mkdir -p scan-input
+          find services libs -path "*/build/libs/*.jar" ! -name "*-plain.jar" \
+            -exec cp {} scan-input/ \;
+          echo "Jars staged for scanning:"
+          ls -1 scan-input/ | tee /dev/stderr | wc -l
+          # A silent empty stage would recreate the exact blind spot this fixes.
+          test "$(ls -1 scan-input/ | wc -l)" -gt 0
+
       # Trivy runs from its published container image rather than from a release
       # tarball or a marketplace action. Both of those were tried and both failed:
       # the hand-built releases/download/... URL is an asset-naming convention that
@@ -313,6 +331,24 @@ jobs:
           chmod +x gradlew
           ./gradlew --no-daemon assemble
 
+      # Trivy's `fs` scan did NOT find the Java estate on run #5: its log reported
+      # `Number of language-specific files num=1`, and that one file was the Flutter
+      # pubspec.lock. A Gradle project publishes no lockfile Trivy can read, so the
+      # SCA and SBOM jobs were green while covering none of the ~20k lines of Java.
+      # Spring Boot fat jars carry their dependencies under BOOT-INF/lib, which Trivy
+      # DOES analyse, so the assembled bootJars are staged inside the scan root.
+      # `scan-input/` sits under `.`, so one `trivy fs .` still covers pubspec.lock too.
+      - name: Stage assembled jars into the scan root
+        run: |
+          set -euo pipefail
+          mkdir -p scan-input
+          find services libs -path "*/build/libs/*.jar" ! -name "*-plain.jar" \
+            -exec cp {} scan-input/ \;
+          echo "Jars staged for scanning:"
+          ls -1 scan-input/ | tee /dev/stderr | wc -l
+          # A silent empty stage would recreate the exact blind spot this fixes.
+          test "$(ls -1 scan-input/ | wc -l)" -gt 0
+
       - name: Generate CycloneDX SBOM
         run: |
           set -euo pipefail
@@ -321,6 +357,7 @@ jobs:
             -v "${HOME}/.cache/trivy:/root/.cache/trivy" \
             -w /src \
             "aquasec/trivy:${TRIVY_VERSION}" fs . \
+            --scanners vuln \
             --format cyclonedx \
             --output sbom-cyclonedx.json
 

@@ -282,6 +282,35 @@ jobs:
             --output trivy-full.json \
             --exit-code 0 || true
 
+      # A failing SCA job whose output is a 1000-line table is a job people learn to
+      # skim. This prints exactly the findings that blocked the build - fixable
+      # CRITICAL and HIGH, deduplicated, with the version to upgrade to - into both
+      # the log and the run summary, so the next action is visible without opening
+      # an artefact.
+      - name: Summarise blocking findings
+        if: always()
+        run: |
+          set -euo pipefail
+          [ -f trivy-full.json ] || { echo "no report produced"; exit 0; }
+          jq -r '
+            [ .Results[]?.Vulnerabilities[]?
+              | select((.Severity == "CRITICAL" or .Severity == "HIGH") and (.FixedVersion // "") != "") ]
+            | unique_by(.VulnerabilityID + .PkgName)
+            | sort_by(.Severity, .PkgName)
+            | .[]
+            | "\(.Severity)\t\(.VulnerabilityID)\t\(.PkgName)\t\(.InstalledVersion)\t-> \(.FixedVersion)"
+          ' trivy-full.json > blocking.tsv || true
+          count=$(wc -l < blocking.tsv)
+          echo "Fixable CRITICAL/HIGH findings: ${count}"
+          {
+            echo "### SCA — fixable CRITICAL/HIGH: ${count}"
+            echo ""
+            echo "| Severity | CVE | Package | Installed | Fixed in |"
+            echo "|---|---|---|---|---|"
+            awk -F'\t' '{printf "| %s | %s | %s | %s | %s |\n", $1, $2, $3, $4, $5}' blocking.tsv
+          } >> "${GITHUB_STEP_SUMMARY}"
+          cat blocking.tsv
+
       - name: Upload SCA report
         if: always()
         uses: actions/upload-artifact@v4

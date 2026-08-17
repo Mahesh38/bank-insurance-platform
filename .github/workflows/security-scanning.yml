@@ -361,11 +361,29 @@ jobs:
             --format cyclonedx \
             --output sbom-cyclonedx.json
 
-      - name: Report SBOM size
+      # An SBOM that silently omits the Java estate is worse than no SBOM: it is an
+      # artefact an auditor can mistake for coverage. Run #5 produced exactly that -
+      # 28 components, every one of them a Dart package from the Flutter pubspec.lock,
+      # and zero of the ~20k lines of Spring Boot. This step converts that silent
+      # blind spot into a visible failure.
+      #
+      # KNOWN OPEN FINDING as of 2026-08-17 - this step currently FAILS:
+      #   Trivy's fs scan does not resolve the Gradle dependency graph, and staging
+      #   the assembled Spring Boot fat jars into the scan root did not change the
+      #   component count. Root cause not yet established.
+      #   Owner: Amit / Engineering with Deepali / Security.
+      #   Until Maven components appear, S08-G5 is NOT met for SCA and SBOM. The
+      #   gitleaks and CodeQL halves of S08-G5 are unaffected and pass.
+      - name: Report SBOM size and assert Java coverage
         run: |
           set -euo pipefail
-          echo "SBOM components:"
-          jq '.components | length' sbom-cyclonedx.json
+          total=$(jq '.components | length' sbom-cyclonedx.json)
+          maven=$(jq '[.components[]? | select((.purl // "") | startswith("pkg:maven/"))] | length' sbom-cyclonedx.json)
+          echo "SBOM components: ${total} (Maven/Java: ${maven})"
+          if [ "${maven}" -eq 0 ]; then
+            echo "::error::SBOM contains ZERO Maven components. The Java estate is NOT covered by this SBOM, so it must not be treated as evidence for S08-G5."
+            exit 1
+          fi
 
       - name: Upload SBOM
         uses: actions/upload-artifact@v4

@@ -60,9 +60,21 @@ EXPOSE 8080
 # in-memory H2 datasource baked into application.yml. Set PERSISTENCE_SPRING_PROFILES_ACTIVE
 # (e.g. uat/prod) plus DATASOURCE_URL/USERNAME/PASSWORD to use a real Postgres instead.
 ENV PERSISTENCE_SPRING_PROFILES_ACTIVE=""
-# Dev-only AES-256 key so the image boots out of the box — override for anything beyond
-# throwaway validation (generate your own with: openssl rand -base64 32).
-ENV RAW_PAYLOAD_ENCRYPTION_KEY="lo9brrfnf6z7mhenhZfaKMXychPqEjzRtm2zCZKDUos="
+# RAW_PAYLOAD_ENCRYPTION_KEY has NO default and MUST be supplied at run time.
+#
+# This previously carried a baked-in base64 AES-256 key so the image would boot
+# unattended. That key protects the raw_payload store, which holds PII and is
+# retained for 7 years — so a default key committed to the repository means any
+# deployment that forgets to override it encrypts regulated data with a key that
+# is public. It also contradicted this platform's own rule: "No secrets in
+# application.yml, Dockerfile, or source code"
+# (docs/1sb-insurance-integration/architecture/1sb-integration-service-architecture.md
+# section 8.4). Found by gitleaks under S08-E04-S01; removed rather than allowlisted.
+#
+# Empty is deliberate and fails CLOSED: RawPayloadEncryptionService refuses to
+# start without a valid 32-byte key and says so by name. Generate one with:
+#     openssl rand -base64 32
+ENV RAW_PAYLOAD_ENCRYPTION_KEY=""
 
 # 1sb-integration-service: talks to the persistence service over localhost in this image.
 ENV ONESB_SPRING_PROFILES_ACTIVE=uat

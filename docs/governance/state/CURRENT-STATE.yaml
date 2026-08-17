@@ -25,6 +25,171 @@ provisional: false # ratified 2026-08-10; agents run the full pipeline
 # ---------------------------------------------------------------------------
 workstreams:
 
+  # WS-3 is listed first because it is the PRIMARY workstream. Registered by CR-010 to close
+  # GAP-D: until the platform was a workstream, platform foundation work (CI, IaC, Consent,
+  # the Flutter application) belonged to no workstream and therefore triaged as out of scope.
+  #
+  # Transcribed from the two ratification inputs named in `authority` below:
+  #   Product-owned fields (current_objective / current_deliverable / current_scope):
+  #     docs/governance/workstreams/WS-3-PLATFORM-CHARTER.md §7   — Rajal
+  #   Architecture-owned fields (lifecycle / current_gate):
+  #     docs/platform/ws3-platform/00-WS3-ARCHITECTURE-REGISTRATION.md §7.1 — Mahesh
+  #
+  # Both proposals carried additive keys (`depends_on`, `entry_conditions`, `parent_workstream`,
+  # `delivers_bounded_contexts`). current-state.schema.json sets additionalProperties: false, so
+  # they are recorded as comments here and normatively in the authority documents, exactly as
+  # the charter's own §7 note directs. Schema extension is raised as SUG-20260816-w3s.
+  - id: WS-3
+    name: "AU Bank Insurance Distribution Platform"
+    authority:
+      - "docs/governance/workstreams/WS-3-PLATFORM-CHARTER.md"
+      - "docs/platform/ws3-platform/00-WS3-ARCHITECTURE-REGISTRATION.md"
+      - "docs/application-lifecycle-bible/01-POSITION-ASSESSMENT.md"
+      - "docs/application-lifecycle-bible/03-REALIGNMENT-PLAN.md"
+      - "docs/au-bank-insurance-platform/requirements/BRD-P0-CAPABILITIES.md"
+      - "docs/context/business-problem-statement.md"
+
+    lifecycle:
+      canonical_stage: "S08 — Engineering Foundation"
+      current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+      stage_status: IN_PROGRESS
+      next_stage: "S09 — Platform & Environment Foundation"
+      # Dependencies (schema has no key for these; normative in the authority documents):
+      #   WS-1 — SUPPLIER, delivers bounded contexts #14 Integration Hub and #15 1SB Adapter (IF-1)
+      #   WS-2 — ENABLER,  delivers bounded context #3 Identity & Access, workforce half (IF-2)
+      # Entry condition on S11 (Rule SM-4, non-waivable per Rajal condition C5):
+      #   No WS-3 stage enters S11 while GAP-006 (consent) or GAP-007 (suitability) is open.
+      #   Both close only on Shailja's signature against the two rule packs at evidence level E2.
+
+    current_objective:
+      id: R0-ASSISTED-TERM-SALE
+      description: >
+        One RM sells one Term Life policy to one ETB customer from one Group A insurer,
+        end to end, through a real interface, with consent and suitability evidence,
+        payment on the customer's own device, an issued and reconciled policy, and a
+        complete audit trail.
+
+    current_deliverable:
+      description: >
+        Foundation Recovery Increment: application CI with enforced quality, security and
+        architecture gates (S08); IaC, environments, secrets, observability and 7-year
+        write-once retention in ap-south-1 (S09). Product-side in parallel: consent and
+        suitability rule packs, R0 acceptance criteria and traceability, R0 product matrix
+        and quote rules, and the R0 service blueprint, screen inventory and design system.
+
+    current_scope:
+      in_scope:
+        - "Foundation Recovery Increment: S08 engineering foundation and S09 platform foundation"
+        - "Consent capture and evidence (context #6) per the consent rule pack"
+        - "Suitability and need analysis (context #7) including the quote hard-gate"
+        - "Lead service (context #5) — create, resume, status"
+        - "Customer service (context #4) — CBS/CIF lookup and prefill for ETB"
+        - "Product catalogue (context #8) — R0 matrix only: Life, Group A, Term"
+        - "Journey orchestration (context #9) — R0 state machine"
+        - "Quotation (context #10) via the existing 1SB path"
+        - "Proposal and UW tracking (context #11), thin"
+        - "Payment (context #12) — AU Bank PG, customer device only"
+        - "Policy and issuance (context #13) — visibility"
+        - "Audit and compliance (context #16) — append-only evidence store"
+        - "RM Workspace BFF (context #2) and the Flutter RM application for the R0 journey"
+        - "R0 experience design: service blueprint, screen inventory, states, design system"
+        - "Pilot funnel reporting sufficient to conclude on R0"
+
+      out_of_scope:
+        - item: "Customer self-service (DIY) journey"
+          revisit_at: "R1 — after the assisted journey completes a real sale in pilot"
+        - item: "Hybrid journey and assisted/DIY mode switching"
+          revisit_at: "R2 — after assisted and DIY both have stable state and hand-off contracts"
+        - item: "Group B insurers: catalogue entry and controlled redirect"
+          revisit_at: "R1"
+        - item: "ULIP and Savings/Endowment product classes"
+          revisit_at: "R1"
+        - item: "Customer BFF (context #1) and the customer-facing Flutter surface"
+          revisit_at: "R1, with DIY"
+        - item: "Notification service (context #17) beyond OTP and payment-link delivery"
+          revisit_at: "R1"
+        - item: "Reporting and MIS (context #18) beyond the pilot funnel"
+          revisit_at: "R1"
+        - item: "Administration and config (context #19) admin UI"
+          revisit_at: "R1"
+        - item: "Renewals and servicing"
+          revisit_at: "R2+"
+        - item: "Bounded contexts not listed in in_scope"
+          revisit_at: "S13 — justified by the working slice, not by the diagram"
+        - item: "Health, Motor, Travel and other non-life LOBs"
+          revisit_at: "R2+, and only after WS-1 Phase 5 is unfrozen"
+        - item: "New-to-Bank onboarding and V-KYC"
+          revisit_at: "R2+"
+        - item: "Multi-aggregator routing"
+          revisit_at: "evidence of a second aggregator commitment; extensibility only"
+        - item: "Branch kiosk journey"
+          revisit_at: "pending business decision (GAP-033)"
+        - item: "Vernacular / multi-language content"
+          revisit_at: "R1 — hi-IN first"
+        - item: "Consolidated executive control tower"
+          revisit_at: "R2, after the funnel produces real data"
+
+      never:
+        - "A quote generated without a valid suitability evaluation id"
+        - "Payment executed on an RM or bank-employee device"
+        - "distributorId sourced from a caller-supplied value"
+        - "Consent recorded without a verified customer-device OTP"
+        - "Mutable or deletable consent, suitability or audit evidence"
+        - "Regulated data, backups, logs or archives outside AWS India regions"
+        - "Policy Sold inferred from quote, proposal or payment alone"
+        - "Claims administration or insurer underwriting decisioning"
+        - "An insurer or aggregator API defining the bank's canonical journey"
+        - "Bank apps or the Flutter client calling 1SB or a database directly"
+        - "An agentic-AI action substituting for a deterministic hard gate"
+
+    current_gate:
+      id: GATE-S08
+      state: OPEN
+      exit_criteria:
+        - id: "S08-G1"
+          criterion: "CI builds and tests every module on every PR"
+          state: OPEN
+          owner: "Amit / Engineering"
+        - id: "S08-G2"
+          criterion: "Merge to main impossible without a green pipeline"
+          state: OPEN
+          owner: "Amit / Engineering"
+        - id: "S08-G3"
+          criterion: "Coverage thresholds enforced; QA-001 closed"
+          state: OPEN
+          owner: "Swapnali / QA"
+        - id: "S08-G4"
+          criterion: "ArchUnit and static analysis enforced"
+          state: OPEN
+          owner: "Amit / Engineering"
+        - id: "S08-G5"
+          criterion: "Secret, SAST, SCA and image scanning in the pipeline"
+          state: OPEN
+          owner: "Deepali / Security"
+        - id: "S08-G6"
+          criterion: "Test infrastructure operational at every pyramid level"
+          state: OPEN
+          owner: "Swapnali / QA"
+        - id: "S08-G7"
+          criterion: "No PII in logs, proven by automated test"
+          state: OPEN
+          owner: "Deepali / Security"
+        - id: "S08-G8"
+          criterion: "Engineering and secure coding standards published and adopted"
+          state: OPEN
+          owner: "Amit / Engineering"
+        - id: "S08-G9"
+          criterion: "Pipeline feedback under 10 minutes at p95; flake under 1%"
+          state: OPEN
+          owner: "Shivanshi / SRE"
+        - id: "S08-G10"
+          criterion: "A new engineer can build, test and ship in under a week"
+          state: OPEN
+          owner: "Amit / Engineering"
+      approvers: ["Amit / Engineering", "Swapnali / QA", "Mahesh / Architecture", "Deepali / Security", "Shivanshi / SRE"]
+
+    completed_stages: []
+
   - id: WS-1
     name: "1SB Insurance Integration"
     authority:
@@ -37,6 +202,13 @@ workstreams:
       current_phase: "Phase 4 — Hardening & consumer enablement"
       stage_status: IN_PROGRESS
       next_stage: "Phase 5 — Expand LOBs (Health → Motor)"
+      # CR-010: WS-1 is a SUPPLIER workstream to WS-3, delivering bounded contexts
+      # #14 Integration Hub and #15 1SB Adapter behind interface IF-1
+      # (docs/platform/ws3-platform/00-WS3-ARCHITECTURE-REGISTRATION.md §3).
+      # Re-parenting is a scope clarification, NOT a demotion: L7 remains correct for a
+      # component, and WS-1 keeps its own gate, backlog, authority and routing.
+      # Rajal condition C6: Phase 5 does not start until GATE-S08 and GATE-S11 are PASSED.
+      # `next_stage` is a destination, not an authorisation.
 
     current_objective:
       id: P4-UAT-SIGNOFF
@@ -119,7 +291,12 @@ workstreams:
           blockers: ["DEP-003"]
         - id: "4.7"
           criterion: "Coverage gates green; QA-001 closed or explicitly waived with expiry"
-          state: PARTIAL
+          state: BLOCKED
+          owner: "Swapnali / QA"
+          blockers: ["S08-G3"]
+          # CR-010 / Rule GS-3: JaCoCo is configured but has never executed on a pull request.
+          # Closure depends on the WS-3 S08 foundation (IF-3), not on WS-1 effort.
+          # Returns to PARTIAL on the first green application-CI run.
       # 4.5 is owned by Shivanshi (R10 / Board 7), named by CR-008. Previously listed as
       # "Ops" — an approver with no persona, which is why 4.5 could not close.
       approvers: ["Architect", "PO", "QA Lead", "Compliance (4.4)", "Shivanshi / SRE (4.5)"]
@@ -140,6 +317,11 @@ workstreams:
       current_phase: "Phase 1 — Foundation implementation"
       stage_status: IN_PROGRESS
       next_stage: "Phase 2 — Bank AD federation + production IdP decision"
+      # CR-010: WS-2 is an ENABLER workstream for WS-3, delivering the workforce half of
+      # bounded context #3 Identity & Access behind interface IF-2
+      # (docs/platform/ws3-platform/00-WS3-ARCHITECTURE-REGISTRATION.md §3).
+      # WS-2 does not deliver retail-customer identity; WS-3 R0 is assisted-first and does
+      # not require it. Customer identity is tracked as a condition on CR-010.
 
     current_objective:
       id: IAM-P1
@@ -212,6 +394,14 @@ standing_constraints:
   - "Keycloak is not the source of truth for business authorization"
   - "No PII in logs"
   - "Coverage gates: libs line >= 80% / branch >= 70%; services on interim floor"
+  # --- WS-3 platform constraints (CR-010) ---
+  - "No quote is produced without a valid, unexpired suitability assessment"
+  - "No proposal is submitted without an unexpired consent grant"
+  - "Premium payment executes only on the customer's device; no API path issues a payment link into an RM session"
+  - "A policy is never issued against a payment that is not RECONCILED"
+  - "No platform service calls a provider adapter directly; provider traffic routes through the Integration Hub"
+  - "Journey Orchestration holds stage and references only, never another context's business decision"
+  - "Render.com is dev-preview only and is never a data path for PII or production-like data"
 
 # ---------------------------------------------------------------------------
 # Routing — where ADMITTED work goes (08 §3)
@@ -225,6 +415,28 @@ standing_constraints:
 # Every workstream is closed over the same 16 canonical types.
 # ---------------------------------------------------------------------------
 routing:
+  # WS-3 routing closes GAP-D. Move 4 item 3 of the realignment plan asked for routing entries
+  # for "new work types the platform generates (UI/UX, IaC, pipeline)". There are no new work
+  # types: the sixteen are closed and correct. A Flutter screen is FUNC, a Terraform module is
+  # INFRA, a pipeline stage is INFRA or QA. What was missing was a WORKSTREAM for them to belong
+  # to. Adding work types would break the closure ci-checks.py enforces.
+  WS-3:
+    FUNC: ["docs/au-bank-insurance-platform/po-drive/03-PROGRAMME-TODO.md"]
+    BUG: ["docs/au-bank-insurance-platform/po-drive/03-PROGRAMME-TODO.md"]
+    NFR: ["docs/platform/ws3-platform/05-nfr-catalogue.md", "docs/au-bank-insurance-platform/po-drive/03-PROGRAMME-TODO.md"]
+    ARCH: ["docs/platform/architecture-review/08-architecture-decision-log.md", "docs/platform/ws3-platform/00-WS3-ARCHITECTURE-REGISTRATION.md"]
+    SEC: ["docs/platform/ws3-platform/04-security-architecture.md", "docs/governance/registers/RISK-REGISTER.md"]
+    COMP: ["docs/au-bank-insurance-platform/po-drive/03-PROGRAMME-TODO.md", "docs/governance/registers/RISK-REGISTER.md"]
+    INFRA: ["docs/au-bank-insurance-platform/po-drive/03-PROGRAMME-TODO.md"]
+    DEBT: ["docs/au-bank-insurance-platform/po-drive/03-PROGRAMME-TODO.md"]
+    REFACTOR: ["docs/au-bank-insurance-platform/po-drive/03-PROGRAMME-TODO.md"]
+    QA: ["docs/au-bank-insurance-platform/po-drive/03-PROGRAMME-TODO.md"]
+    OPS: ["docs/au-bank-insurance-platform/po-drive/03-PROGRAMME-TODO.md"]
+    SPIKE: ["docs/au-bank-insurance-platform/po-drive/03-PROGRAMME-TODO.md"]
+    DOC: ["docs/governance/registers/SUGGESTION-REGISTER.md"]
+    MIGRATION: ["docs/platform/architecture-review/08-architecture-decision-log.md", "docs/au-bank-insurance-platform/po-drive/03-PROGRAMME-TODO.md"]
+    GOV: ["docs/governance/", "docs/au-bank-insurance-platform/po-drive/03-PROGRAMME-TODO.md"]
+    IDEA: ["docs/governance/registers/PARKED-BACKLOG.md"]
   WS-1:
     FUNC: ["docs/1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md"]
     BUG: ["docs/1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md"]

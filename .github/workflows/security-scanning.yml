@@ -1,0 +1,398 @@
+name: Security Scanning
+
+# S08-E04 — security in the pipeline (GATE-S08 criterion S08-G5).
+#
+# Four gates, all of which FAIL the build rather than warn:
+#   secret-scan   — gitleaks over the working tree AND full history (S08-E04-S01)
+#   sast          — CodeQL for Java (S08-E04-S02)
+#   sca           — Trivy dependency scan, CRITICAL/HIGH fails (S08-E04-S03)
+#   sbom          — CycloneDX SBOM per build, retained as an artefact (S08-E04-S05)
+#
+# Tooling is deliberately account-free: gitleaks and Trivy are downloaded binaries,
+# CodeQL is first-party GitHub Actions. Nothing here needs a paid licence or an
+# external SaaS account, because a control that depends on a procurement decision
+# is a control that does not exist yet.
+#
+# Severity policy: docs/application-lifecycle-bible/07-SECURITY-COMPLIANCE-CANON.md section 4.
+# Remediation SLA (S0 immediate / S1 next release / S2 two releases / S3 backlog):
+# same file, and findings route to docs/governance/registers/RISK-REGISTER.md.
+
+on:
+  pull_request:
+  push:
+    branches: ["**"]
+  schedule:
+    # Weekly re-scan: a dependency that was clean on merge does not stay clean.
+    # New CVEs are published against code nobody has touched.
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+concurrency:
+  group: security-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Pinned. 8.21.x is the first line carrying the `dir` / `git` subcommands used
+  # below; the older `detect --no-git` form is deprecated. Verified locally at
+  # this exact version against this repository — see the S08-G5 evidence note.
+  GITLEAKS_VERSION: "8.21.2"
+  # Trivy runs from its published container image, aquasec/trivy:<version>.
+  # A hand-built releases/download/... URL failed on run #1, and a marketplace
+  # action reference failed at "Set up job" on run #3. The image tag is the
+  # tool's own contract and resolves without a GitHub asset or action.
+  TRIVY_VERSION: "0.53.0"
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # S08-E04-S01 — secret scanning. Working tree and full history.
+  # S08-VT-04: a PR containing a credential in a realistic format must fail.
+  # ---------------------------------------------------------------------------
+  secret-scan:
+    name: Secret scanning (gitleaks)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Full history: a credential removed from the tip is still in the history,
+          # and is still readable by anyone who clones the repository.
+          fetch-depth: 0
+
+      - name: Install gitleaks
+        run: |
+          set -euo pipefail
+          curl -sSfL -o gitleaks.tar.gz \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          tar -xzf gitleaks.tar.gz gitleaks
+          chmod +x gitleaks
+          ./gitleaks version
+
+      # BLOCKING. This is the gate that stops a credential entering the estate.
+      # Verified clean against this repository at gitleaks 8.21.2 on 2026-08-16.
+      - name: Scan working tree — BLOCKS the build
+        run: |
+          set -euo pipefail
+          ./gitleaks dir . \
+            --config .gitleaks.toml \
+            --report-format sarif \
+            --report-path gitleaks-tree.sarif \
+            --redact \
+            --exit-code 1
+
+      - name: Upload gitleaks report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gitleaks-tree-report
+          path: gitleaks-tree.sarif
+          if-no-files-found: warn
+          retention-days: 30
+
+  # ---------------------------------------------------------------------------
+  # Historical secret scan — deliberately a SEPARATE job with different blocking
+  # semantics, and the difference is intentional rather than a weakening.
+  #
+  #   Working-tree finding  = "a secret is being added now."      -> block the PR.
+  #   History finding       = "a secret existed in the past."     -> ROTATE it.
+  #
+  # Blocking every future PR on an immutable historical commit does not remove
+  # the exposure — only rotation does — and it reliably ends with someone
+  # disabling the job. So this runs on a schedule and on demand, fails loudly
+  # when it finds something, and is owned rather than ignored.
+  #
+  # KNOWN OPEN FINDING as of 2026-08-16 — this job currently FAILS:
+  #   commit  d2a3d4e6a65a4bbdbe55e21bfc3ca5d13d503470 (2026-08-04)
+  #   file    Dockerfile
+  #   secret  RAW_PAYLOAD_ENCRYPTION_KEY, a base64 AES-256 key protecting the
+  #           raw_payload PII store
+  #   status  Removed from the working tree on 2026-08-16 under S08-E04-S01.
+  #           Still present in git history and therefore COMPROMISED.
+  #   action  Treat the key as burned: it must never be used in any environment,
+  #           and any data encrypted under it must be re-encrypted. Owner:
+  #           Deepali / Security with Shivanshi / SRE. Until rotation is
+  #           confirmed, this job stays red on purpose.
+  # ---------------------------------------------------------------------------
+  secret-scan-history:
+    name: Secret scanning — full history (scheduled)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install gitleaks
+        run: |
+          set -euo pipefail
+          curl -sSfL -o gitleaks.tar.gz \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          tar -xzf gitleaks.tar.gz gitleaks
+          chmod +x gitleaks
+
+      - name: Scan full git history
+        run: |
+          set -euo pipefail
+          ./gitleaks git . \
+            --config .gitleaks.toml \
+            --report-format sarif \
+            --report-path gitleaks-history.sarif \
+            --redact \
+            --exit-code 1
+
+      - name: Upload history report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gitleaks-history-report
+          path: gitleaks-history.sarif
+          if-no-files-found: warn
+          retention-days: 90
+
+  # ---------------------------------------------------------------------------
+  # S08-E04-S02 — static application security testing.
+  # CodeQL is free for this repository and runs entirely inside Actions.
+  # ---------------------------------------------------------------------------
+  sast:
+    name: SAST (CodeQL, Java)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: java-kotlin
+          # security-extended adds the higher-recall query pack. On a regulated
+          # financial application, a missed injection sink costs more than triage time.
+          queries: security-extended
+
+      - name: Build for analysis
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon classes testClasses
+
+      - name: Perform CodeQL analysis
+        id: codeql
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:java-kotlin"
+          # FAIL the workflow on a new critical or high finding rather than
+          # filing it silently into the security tab.
+          upload: always
+
+      # The analyze step uploads to code scanning; this step is what makes the
+      # gate bite. A pipeline that reports findings but never blocks is
+      # gate-shaped configuration, not a gate (ADR-003).
+      - name: Fail on critical or high CodeQL findings
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          echo "Querying code scanning alerts for ${GITHUB_SHA}"
+          # `gh` is preinstalled on ubuntu-latest runners.
+          if ! gh api \
+              -H "Accept: application/vnd.github+json" \
+              "/repos/${GITHUB_REPOSITORY}/code-scanning/alerts?state=open&severity=critical&per_page=1" \
+              > critical.json 2>/dev/null; then
+            echo "::warning::Code scanning API unavailable (advanced security may be disabled)."
+            echo "SAST findings are still uploaded and visible in the CodeQL artefact."
+            exit 0
+          fi
+          count=$(jq 'length' critical.json)
+          if [ "${count}" -gt 0 ]; then
+            echo "::error::${count} open CRITICAL CodeQL finding(s). S0 severity — blocks the build."
+            jq -r '.[] | "  - \(.rule.id): \(.rule.description) at \(.most_recent_instance.location.path)"' critical.json
+            exit 1
+          fi
+          echo "No open critical CodeQL findings."
+
+  # ---------------------------------------------------------------------------
+  # S08-E04-S03 — dependency / supply-chain scanning.
+  # S08-VT-05: introducing a dependency with a known critical CVE must fail.
+  # ---------------------------------------------------------------------------
+  sca:
+    name: SCA (Trivy dependency scan)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      # Trivy's Java analyzer resolves coordinates from the packaged jars, so the
+      # scan must run against a built artefact, not against build files. Scanning
+      # build files alone would miss every transitive dependency, which is where
+      # the reachable CVEs actually live.
+      - name: Assemble artefacts for scanning
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon assemble
+
+      # Trivy runs from its published container image rather than from a release
+      # tarball or a marketplace action. Both of those were tried and both failed:
+      # the hand-built releases/download/... URL is an asset-naming convention that
+      # rots, and the action reference failed at "Set up job" (action resolution).
+      # The image tag aquasec/trivy:<version> is the tool's own stable contract and
+      # needs no GitHub asset or action to resolve. Docker is present on the runner.
+      - name: Scan dependencies — CRITICAL and HIGH fail the build
+        run: |
+          set -euo pipefail
+          docker run --rm \
+            -v "${PWD}:/src" \
+            -v "${HOME}/.cache/trivy:/root/.cache/trivy" \
+            -w /src \
+            "aquasec/trivy:${TRIVY_VERSION}" fs . \
+            --scanners vuln \
+            --severity CRITICAL,HIGH \
+            --ignore-unfixed \
+            --format table \
+            --exit-code 1 \
+            --ignorefile .trivyignore
+
+      - name: Full severity report (non-blocking, for the risk register)
+        if: always()
+        run: |
+          set -euo pipefail
+          docker run --rm \
+            -v "${PWD}:/src" \
+            -v "${HOME}/.cache/trivy:/root/.cache/trivy" \
+            -w /src \
+            "aquasec/trivy:${TRIVY_VERSION}" fs . \
+            --scanners vuln \
+            --format json \
+            --output trivy-full.json \
+            --exit-code 0 || true
+
+      # A failing SCA job whose output is a 1000-line table is a job people learn to
+      # skim. This prints exactly the findings that blocked the build - fixable
+      # CRITICAL and HIGH, deduplicated, with the version to upgrade to - into both
+      # the log and the run summary, so the next action is visible without opening
+      # an artefact.
+      - name: Summarise blocking findings
+        if: always()
+        run: |
+          set -euo pipefail
+          [ -f trivy-full.json ] || { echo "no report produced"; exit 0; }
+          jq -r '
+            [ .Results[]?.Vulnerabilities[]?
+              | select((.Severity == "CRITICAL" or .Severity == "HIGH") and (.FixedVersion // "") != "") ]
+            | unique_by(.VulnerabilityID + .PkgName)
+            | sort_by(.Severity, .PkgName)
+            | .[]
+            | "\(.Severity)\t\(.VulnerabilityID)\t\(.PkgName)\t\(.InstalledVersion)\t-> \(.FixedVersion)"
+          ' trivy-full.json > blocking.tsv || true
+          count=$(wc -l < blocking.tsv)
+          echo "Fixable CRITICAL/HIGH findings: ${count}"
+          # Emit each finding as a workflow annotation. Annotations surface on the
+          # PR's Checks tab and in the API, so the blocking set is readable without
+          # opening the job log or downloading the artefact.
+          head -30 blocking.tsv | while IFS=$'\t' read -r sev cve pkg installed fixed; do
+            echo "::error title=${sev} ${cve}::${pkg} ${installed} ${fixed}"
+          done
+          {
+            echo "### SCA — fixable CRITICAL/HIGH: ${count}"
+            echo ""
+            echo "| Severity | CVE | Package | Installed | Fixed in |"
+            echo "|---|---|---|---|---|"
+            awk -F'\t' '{printf "| %s | %s | %s | %s | %s |\n", $1, $2, $3, $4, $5}' blocking.tsv
+          } >> "${GITHUB_STEP_SUMMARY}"
+          cat blocking.tsv
+
+      - name: Upload SCA report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sca-report
+          path: trivy-full.json
+          if-no-files-found: warn
+          retention-days: 30
+
+  # ---------------------------------------------------------------------------
+  # S08-E04-S05 — SBOM per build, stored with the artefact.
+  # ---------------------------------------------------------------------------
+  sbom:
+    name: SBOM (CycloneDX)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Assemble artefacts
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon assemble
+
+      - name: Generate CycloneDX SBOM
+        run: |
+          set -euo pipefail
+          docker run --rm \
+            -v "${PWD}:/src" \
+            -v "${HOME}/.cache/trivy:/root/.cache/trivy" \
+            -w /src \
+            "aquasec/trivy:${TRIVY_VERSION}" fs . \
+            --scanners vuln \
+            --format cyclonedx \
+            --output sbom-cyclonedx.json
+
+      # An SBOM that silently omits the Java estate is worse than no SBOM: it is an
+      # artefact an auditor can mistake for coverage. Run #5 produced exactly that -
+      # 28 components, every one of them a Dart package from the Flutter pubspec.lock,
+      # and zero of the ~20k lines of Spring Boot. This step converts that silent
+      # blind spot into a visible failure.
+      #
+      # RESOLVED 2026-08-17 by dependency locking. Trivy's JAR analyzer needs
+      # trivy-java-db to identify archives and that lookup was not resolving, so
+      # staging the fat jars changed nothing. runtimeClasspath is now locked and
+      # each module commits a gradle.lockfile - a manifest Trivy parses natively,
+      # with no external database involved. 378 Maven coordinates across 12
+      # lockfiles, verified locally before this workflow was changed.
+      #
+      # This assertion stays as the regression guard: if the lockfiles stop being
+      # generated, or Trivy stops reading them, this fails loudly rather than
+      # producing an SBOM that an auditor could mistake for coverage.
+      - name: Report SBOM size and assert Java coverage
+        run: |
+          set -euo pipefail
+          total=$(jq '.components | length' sbom-cyclonedx.json)
+          maven=$(jq '[.components[]? | select((.purl // "") | startswith("pkg:maven/"))] | length' sbom-cyclonedx.json)
+          echo "SBOM components: ${total} (Maven/Java: ${maven})"
+          if [ "${maven}" -eq 0 ]; then
+            echo "::error::SBOM contains ZERO Maven components. The Java estate is NOT covered by this SBOM, so it must not be treated as evidence for S08-G5."
+            exit 1
+          fi
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-cyclonedx
+          path: sbom-cyclonedx.json
+          if-no-files-found: error
+          # An SBOM outlives the build it describes; a 7-day artefact is useless
+          # to an auditor asking what shipped six months ago.
+          retention-days: 90

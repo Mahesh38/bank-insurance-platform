@@ -1,0 +1,69 @@
+# gitleaks configuration — S08-E04-S01 (GATE-S08 criterion S08-G5)
+#
+# Policy: the default rule pack is used in full. Nothing is disabled.
+# Allowlisting is per-path and per-regex, never per-rule, because disabling a
+# rule silently stops detecting a whole credential class across the repository.
+#
+# Every allowlist entry below must state WHY the match is not a secret. An
+# unexplained allowlist entry is indistinguishable from a suppressed finding.
+
+title = "AU Bank Insurance Platform — secret scanning"
+
+[extend]
+# Inherit the upstream default rules (AWS keys, private keys, JWTs, generic
+# high-entropy assignments, provider tokens, and the rest).
+useDefault = true
+
+[allowlist]
+description = "Documented non-secrets. Each entry states its justification."
+
+paths = [
+  # Example/template environment files. These exist precisely so that real
+  # credentials never need to be committed; they contain placeholders only.
+  # If a real value ever lands in one of these, that is a control failure and
+  # the right fix is rotation, not a wider allowlist.
+  '''^\.env\.example$''',
+  '''^\.env\.identity\.example$''',
+  '''.*application-local\.yml\.example$''',
+
+  # Gradle wrapper binary and checksums — high entropy by construction.
+  '''^gradle/wrapper/gradle-wrapper\.(jar|properties)$''',
+
+  # Generated build output. This is SCOPING, not suppression: build/ is
+  # gitignored (see .gitignore "**/build/") and is never committed, so nothing
+  # here can reach the repository. It is excluded because a local `gitleaks dir`
+  # run after a Gradle build otherwise reports Spring Boot's per-run generated
+  # dev password out of test reports, which is noise that trains people to
+  # ignore the tool. The CI secret-scan job checks out without building, so it
+  # never sees these paths at all.
+  '''(^|/)build/''',
+
+  # Documentation that reproduces provider request/response shapes. These are
+  # extracted API schemas, not live credentials. They are still scanned by the
+  # regex allowlist below rather than being blanket-exempt.
+  '''^docs/1sb-insurance-integration/reference/extracted-schemas/.*\.md$''',
+]
+
+regexes = [
+  # Documentation placeholders. Deliberately narrow: only these literal
+  # placeholder shapes are exempt, not "anything in a markdown file".
+  '''(?i)(changeme|placeholder|your[-_]?(api[-_]?)?(key|secret|token)|xxx+|<[a-z_-]+>)''',
+  '''REDACTED(_IN_RESPONSE)?''',
+  '''\[MASKED\]''',
+  '''\*{3,}''',
+
+  # Example bearer/basic values that are obviously non-functional.
+  '''base64\(API_Key:API_Secret\)''',
+  '''Bearer <JWT>''',
+
+  # Test fixtures use these fixed, non-production values by convention.
+  '''ABCDE1234F''',              # canonical example PAN in the schema docs
+  '''test-secret-do-not-use''',
+]
+
+stopwords = [
+  "example",
+  "sample",
+  "dummy",
+  "fixture",
+]

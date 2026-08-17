@@ -1,0 +1,25 @@
+# Flutter / Dart build output — never committed.
+build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+# pubspec.lock IS committed. This is an application, not a package: the lockfile
+# is what makes a build reproducible from the same commit, which S08-E02-S04
+# requires ("no snapshot or floating dependencies"). Flutter's own guidance is to
+# commit it for apps and omit it only for published libraries.
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# OS
+.DS_Store
+
+# Coverage
+coverage/

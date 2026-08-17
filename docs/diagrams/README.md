@@ -33,21 +33,34 @@ and the legend earns its space.
 
 ## Contents
 
+Twelve diagrams, four generator scripts, one shared design system ([`src/svgkit.py`](./src/svgkit.py)).
+
 | Diagram | View | Source |
 |---|---|---|
-| [`../hdl.svg`](../hdl.svg) | **Static** — R0 target state: estate, waves, data, trust zones, the S08/S09 paved road | hand-authored |
-| [`r0-money-path.svg`](./r0-money-path.svg) | **Dynamic** — proposal → UW → payment → reconciliation → issuance → SOLD, twenty steps and the five failure branches | [`src/r0_money_path.py`](./src/r0_money_path.py) |
+| [`../hdl.svg`](../hdl.svg) | **Authoritative** R0 high-level design — estate, waves, data, zones, the S08/S09 paved road | hand-authored |
+| [`solution-vision.svg`](./solution-vision.svg) | problems → five commitments → outcomes with measures → R0/R1/R2 boundary | `build_structure.py` |
+| [`capability-map.svg`](./capability-map.svg) | every capability by group, owning context, wave and honest R0 position | `build_structure.py` |
+| [`domain-ownership.svg`](./domain-ownership.svg) | 19 bounded contexts — what each owns and what it must **never** own | `build_structure.py` |
+| [`system-context.svg`](./system-context.svg) | externals: what crosses each edge, under which contract, and how it fails | `build_structure.py` |
+| [`quote-path.svg`](./quote-path.svg) | lookup → suitability (C1) → consent (C2) → quote, and the five refusals | `build_flow.py` |
+| [`r0-money-path.svg`](./r0-money-path.svg) | proposal → payment → reconciliation → issuance → SOLD, and five failure branches | `r0_money_path.py` |
+| [`journey-state-machine.svg`](./journey-state-machine.svg) | 17 states, terminal states, 6 forbidden transitions, compensation per failure | `build_flow.py` |
+| [`trust-zones.svg`](./trust-zones.svg) | five zones and every boundary crossing with what proves the control | `build_flow.py` |
+| [`risk-register.svg`](./risk-register.svg) | L×I exposure grid on the repo's own scale, criticals, closed risks, assumptions | `build_governance.py` |
+| [`dependency-map.svg`](./dependency-map.svg) | dependencies with one named owner, a date and an escalation trigger | `build_governance.py` |
+| [`approval-model.svg`](./approval-model.svg) | the actual AIGEM seven-board model — replaces the v0.1 five-step CTO flow | `build_governance.py` |
+| [`gate-coverage.svg`](./gate-coverage.svg) | S06/S07 criterion by criterion: met, partial, open, unclosable by any AI | `build_governance.py` |
 
-### Planned — the rest of the set
+These are the visual half of the [architecture pre-approval pack v0.2](../au-bank-insurance-platform/architecture-pre-approval/README.md).
 
-| # | Diagram | Why it is needed | Answers |
-|---|---|---|---|
-| D3 | **Journey state machine** — every state, legal transition, terminal state, compensation | The pack describes the happy path in prose; nothing defines the states | S06-G2, S06-G3 |
-| D4 | **Quote path flow** — lookup → suitability C1 → consent C2 → quote via Hub, with the hard-gate rejections | The lawful-gate half of the journey, upstream of the money path | S06-G6 |
-| D5 | **Threat model per trust boundary** — data-flow decomposition, per-boundary threats, residual rating | **S07-G3 requires it**; a flat threat table cannot satisfy an E2 human signature | S07-G3 |
-| D6 | **Logical data model + ownership** — aggregate per context, golden source vs approved copy, retention class | Ownership tables are not a data architecture | S07-G5 |
-| D7 | **Deployment / environment topology** — VPC, subnets, AZs, DR pair, promotion path | Nine prose lines today | S07-G1 |
-| D8 | **Evidence & audit chain** — what is written, by whom, when, and how a journey is reconstructed | S06-G7 is an **E3** criterion: reconstruction must be demonstrated | S06-G7 |
+### Still to build
+
+| Diagram | Why | Gate |
+|---|---|---|
+| **Logical data model per context** | ownership tables are not a data model; blocks Aarti's sign-off | S06-G4, S07-G5 |
+| **Threat model per trust boundary** | `trust-zones.svg` gives the boundaries; the model itself is Deepali's | S07-G3 |
+| **Deployment / environment topology** | VPC, subnets, AZs, DR pair, promotion path | S07-G1 |
+| **Evidence & audit chain** | S06-G7 is **E3** — reconstruction must be demonstrated, not drawn | S06-G7 |
 
 ## Regenerating
 

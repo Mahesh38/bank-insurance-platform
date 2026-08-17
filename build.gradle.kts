@@ -1,7 +1,7 @@
 plugins {
     id("java")
     id("jacoco")
-    id("org.springframework.boot") version "3.3.13" apply false
+    id("org.springframework.boot") version "3.5.16" apply false
     id("io.spring.dependency-management") version "1.1.6" apply false
 }
 
@@ -18,9 +18,16 @@ subprojects {
     // Import the Spring Boot BOM for all subprojects (libs + service).
     // This lets lib modules declare compileOnly("org.slf4j:slf4j-api") etc.
     // without pinning versions — versions come from the BOM.
+    // Spring Boot 3.5.16 pins Netty 4.1.135.Final, which is still exposed to
+    // CVE-2026-59901 (fixed in 4.1.136.Final). Overriding the BOM property is a
+    // single patch bump inside the same minor line, and it is the only override
+    // here — every other flagged package is fixed by the BOM itself.
+    // Remove this once a Spring Boot release pins 4.1.136.Final or later.
+    extra["netty.version"] = "4.1.136.Final"
+
     configure<io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension> {
         imports {
-            mavenBom("org.springframework.boot:spring-boot-dependencies:3.3.13")
+            mavenBom("org.springframework.boot:spring-boot-dependencies:3.5.16")
         }
     }
 

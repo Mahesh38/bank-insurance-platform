@@ -302,6 +302,12 @@ jobs:
           ' trivy-full.json > blocking.tsv || true
           count=$(wc -l < blocking.tsv)
           echo "Fixable CRITICAL/HIGH findings: ${count}"
+          # Emit each finding as a workflow annotation. Annotations surface on the
+          # PR's Checks tab and in the API, so the blocking set is readable without
+          # opening the job log or downloading the artefact.
+          head -30 blocking.tsv | while IFS=$'\t' read -r sev cve pkg installed fixed; do
+            echo "::error title=${sev} ${cve}::${pkg} ${installed} ${fixed}"
+          done
           {
             echo "### SCA — fixable CRITICAL/HIGH: ${count}"
             echo ""

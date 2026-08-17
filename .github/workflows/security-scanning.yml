@@ -247,24 +247,6 @@ jobs:
           chmod +x gradlew
           ./gradlew --no-daemon assemble
 
-      # Trivy's `fs` scan did NOT find the Java estate on run #5: its log reported
-      # `Number of language-specific files num=1`, and that one file was the Flutter
-      # pubspec.lock. A Gradle project publishes no lockfile Trivy can read, so the
-      # SCA and SBOM jobs were green while covering none of the ~20k lines of Java.
-      # Spring Boot fat jars carry their dependencies under BOOT-INF/lib, which Trivy
-      # DOES analyse, so the assembled bootJars are staged inside the scan root.
-      # `scan-input/` sits under `.`, so one `trivy fs .` still covers pubspec.lock too.
-      - name: Stage assembled jars into the scan root
-        run: |
-          set -euo pipefail
-          mkdir -p scan-input
-          find services libs -path "*/build/libs/*.jar" ! -name "*-plain.jar" \
-            -exec cp {} scan-input/ \;
-          echo "Jars staged for scanning:"
-          ls -1 scan-input/ | tee /dev/stderr | wc -l
-          # A silent empty stage would recreate the exact blind spot this fixes.
-          test "$(ls -1 scan-input/ | wc -l)" -gt 0
-
       # Trivy runs from its published container image rather than from a release
       # tarball or a marketplace action. Both of those were tried and both failed:
       # the hand-built releases/download/... URL is an asset-naming convention that
@@ -331,24 +313,6 @@ jobs:
           chmod +x gradlew
           ./gradlew --no-daemon assemble
 
-      # Trivy's `fs` scan did NOT find the Java estate on run #5: its log reported
-      # `Number of language-specific files num=1`, and that one file was the Flutter
-      # pubspec.lock. A Gradle project publishes no lockfile Trivy can read, so the
-      # SCA and SBOM jobs were green while covering none of the ~20k lines of Java.
-      # Spring Boot fat jars carry their dependencies under BOOT-INF/lib, which Trivy
-      # DOES analyse, so the assembled bootJars are staged inside the scan root.
-      # `scan-input/` sits under `.`, so one `trivy fs .` still covers pubspec.lock too.
-      - name: Stage assembled jars into the scan root
-        run: |
-          set -euo pipefail
-          mkdir -p scan-input
-          find services libs -path "*/build/libs/*.jar" ! -name "*-plain.jar" \
-            -exec cp {} scan-input/ \;
-          echo "Jars staged for scanning:"
-          ls -1 scan-input/ | tee /dev/stderr | wc -l
-          # A silent empty stage would recreate the exact blind spot this fixes.
-          test "$(ls -1 scan-input/ | wc -l)" -gt 0
-
       - name: Generate CycloneDX SBOM
         run: |
           set -euo pipefail
@@ -367,13 +331,16 @@ jobs:
       # and zero of the ~20k lines of Spring Boot. This step converts that silent
       # blind spot into a visible failure.
       #
-      # KNOWN OPEN FINDING as of 2026-08-17 - this step currently FAILS:
-      #   Trivy's fs scan does not resolve the Gradle dependency graph, and staging
-      #   the assembled Spring Boot fat jars into the scan root did not change the
-      #   component count. Root cause not yet established.
-      #   Owner: Amit / Engineering with Deepali / Security.
-      #   Until Maven components appear, S08-G5 is NOT met for SCA and SBOM. The
-      #   gitleaks and CodeQL halves of S08-G5 are unaffected and pass.
+      # RESOLVED 2026-08-17 by dependency locking. Trivy's JAR analyzer needs
+      # trivy-java-db to identify archives and that lookup was not resolving, so
+      # staging the fat jars changed nothing. runtimeClasspath is now locked and
+      # each module commits a gradle.lockfile - a manifest Trivy parses natively,
+      # with no external database involved. 378 Maven coordinates across 12
+      # lockfiles, verified locally before this workflow was changed.
+      #
+      # This assertion stays as the regression guard: if the lockfiles stop being
+      # generated, or Trivy stops reading them, this fails loudly rather than
+      # producing an SBOM that an auditor could mistake for coverage.
       - name: Report SBOM size and assert Java coverage
         run: |
           set -euo pipefail

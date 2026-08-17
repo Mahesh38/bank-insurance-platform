@@ -33,6 +33,40 @@ subprojects {
         mavenCentral()
     }
 
+    // S08-E04-S03/S05 — dependency locking, so the SCA and SBOM tooling can read
+    // the resolved Java dependency graph from a file it parses natively.
+    //
+    // Trivy could not see the Java estate otherwise: its filesystem scan found only
+    // the Flutter pubspec.lock, and staging the Spring Boot fat jars into the scan
+    // root did not help, because Trivy's JAR analyzer needs trivy-java-db to
+    // identify archives and that lookup was not resolving. A gradle.lockfile is a
+    // plain manifest Trivy parses directly, with no external database involved.
+    //
+    // Only runtimeClasspath is locked. That is the configuration that describes what
+    // actually ships, which is exactly what an SBOM and a CVE scan should cover, and
+    // it keeps compile- and test-only churn out of the lockfiles.
+    dependencyLocking {
+        lockMode.set(LockMode.LENIENT)
+    }
+    configurations.matching { it.name == "runtimeClasspath" }.configureEach {
+        resolutionStrategy.activateDependencyLocking()
+    }
+
+    // Writes every lockfile in one invocation: ./gradlew resolveAndLockAll --write-locks
+    tasks.register("resolveAndLockAll") {
+        notCompatibleWithConfigurationCache("Resolves configurations at execution time")
+        doFirst {
+            require(gradle.startParameter.isWriteDependencyLocks) {
+                "Run with --write-locks"
+            }
+        }
+        doLast {
+            configurations
+                .matching { it.name == "runtimeClasspath" }
+                .forEach { it.resolve() }
+        }
+    }
+
     dependencies {
         // Lombok — version from Spring Boot BOM (TD-001)
         val lombok = "org.projectlombok:lombok"

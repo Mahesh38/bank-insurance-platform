@@ -40,9 +40,11 @@ env:
   # below; the older `detect --no-git` form is deprecated. Verified locally at
   # this exact version against this repository — see the S08-G5 evidence note.
   GITLEAKS_VERSION: "8.21.2"
-  # Trivy is pinned at the action, not here: aquasecurity/trivy-action@0.28.0.
-  # A hand-built releases/download/... URL failed on this workflow's first run
-  # and took two jobs with it, so the tool's own action owns its installation.
+  # Trivy runs from its published container image, aquasec/trivy:<version>.
+  # A hand-built releases/download/... URL failed on run #1, and a marketplace
+  # action reference failed at "Set up job" on run #3. The image tag is the
+  # tool's own contract and resolves without a GitHub asset or action.
+  TRIVY_VERSION: "0.53.0"
 
 jobs:
   # ---------------------------------------------------------------------------
@@ -245,32 +247,40 @@ jobs:
           chmod +x gradlew
           ./gradlew --no-daemon assemble
 
-      # Installed via the maintained action rather than a hand-built release URL.
-      # The first run of this workflow failed here: a version-pinned
-      # releases/download/... path is an asset-naming convention that rots, and it
-      # took the SBOM job down with it. The action owns that detail.
+      # Trivy runs from its published container image rather than from a release
+      # tarball or a marketplace action. Both of those were tried and both failed:
+      # the hand-built releases/download/... URL is an asset-naming convention that
+      # rots, and the action reference failed at "Set up job" (action resolution).
+      # The image tag aquasec/trivy:<version> is the tool's own stable contract and
+      # needs no GitHub asset or action to resolve. Docker is present on the runner.
       - name: Scan dependencies — CRITICAL and HIGH fail the build
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          scan-type: fs
-          scan-ref: .
-          scanners: vuln
-          severity: CRITICAL,HIGH
-          ignore-unfixed: true
-          format: table
-          exit-code: "1"
-          trivyignores: .trivyignore
+        run: |
+          set -euo pipefail
+          docker run --rm \
+            -v "${PWD}:/src" \
+            -v "${HOME}/.cache/trivy:/root/.cache/trivy" \
+            -w /src \
+            "aquasec/trivy:${TRIVY_VERSION}" fs . \
+            --scanners vuln \
+            --severity CRITICAL,HIGH \
+            --ignore-unfixed \
+            --format table \
+            --exit-code 1 \
+            --ignorefile .trivyignore
 
       - name: Full severity report (non-blocking, for the risk register)
         if: always()
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          scan-type: fs
-          scan-ref: .
-          scanners: vuln
-          format: json
-          output: trivy-full.json
-          exit-code: "0"
+        run: |
+          set -euo pipefail
+          docker run --rm \
+            -v "${PWD}:/src" \
+            -v "${HOME}/.cache/trivy:/root/.cache/trivy" \
+            -w /src \
+            "aquasec/trivy:${TRIVY_VERSION}" fs . \
+            --scanners vuln \
+            --format json \
+            --output trivy-full.json \
+            --exit-code 0 || true
 
       - name: Upload SCA report
         if: always()
@@ -304,12 +314,15 @@ jobs:
           ./gradlew --no-daemon assemble
 
       - name: Generate CycloneDX SBOM
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          scan-type: fs
-          scan-ref: .
-          format: cyclonedx
-          output: sbom-cyclonedx.json
+        run: |
+          set -euo pipefail
+          docker run --rm \
+            -v "${PWD}:/src" \
+            -v "${HOME}/.cache/trivy:/root/.cache/trivy" \
+            -w /src \
+            "aquasec/trivy:${TRIVY_VERSION}" fs . \
+            --format cyclonedx \
+            --output sbom-cyclonedx.json
 
       - name: Report SBOM size
         run: |

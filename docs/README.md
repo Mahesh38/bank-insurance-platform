@@ -17,6 +17,7 @@ There are six buckets, and each answers a different question:
 |--------|--------------------|-------|----------|
 | **[`governance/`](./governance/README.md)** | *Should this work be done at all, and when?* | How every input is triaged, prioritised, and gated — process, not content | ✅ **Binding process** |
 | **[`application-lifecycle-bible/`](./application-lifecycle-bible/README.md)** | *Which stage are we in, what must it produce, and when is it done?* | The 16-stage journey from business idea to mature platform: epics, stories, gates, evidence | ⏳ Proposed (CR-010) |
+| **[`delivery/`](./delivery/README.md)** | *When does each thing happen, in which sprint, and will we make the date?* | R0 sprint plan, critical path, parallelisation, dry run, go-live, forecast | ⏳ Proposed — needs a CR |
 | **[`context/`](./context/README.md)** | *Who are we, what problem are we solving, and what context should be loaded?* | Portable framework + project manifest/overlay, personas and roadmaps | ❌ Non-binding context |
 | **[`platform/`](./platform/README.md)** | *How should the whole platform be built?* | Cross-cutting, applies to **every** service | ⚠️ Recommendation / approved spec (see each doc) |
 | **[`au-bank-insurance-platform/`](./au-bank-insurance-platform/README.md)** | *What are we building and why?* | Business & product SSOT for the programme | ✅ Business SSOT |
@@ -62,6 +63,14 @@ docs/
 │   ├── backlog/                           BACKLOG.yaml + Jira import CSV (generated)
 │   └── templates/                         Epic, story, validation test, gate sign-off, ORR
 │
+├── delivery/                          SCHEDULE — R0 timeline to the 2027-01-01 go-live
+│   ├── 00-STAKEHOLDER-BRAINSTORMING-SESSION.md   Every stakeholder position + conflicts resolved
+│   ├── 01-DELIVERY-TIMELINE-AND-SPRINT-PLAN.md   8 sprints, squads, gates, cadence
+│   ├── 02-SPRINT-BACKLOG-ALLOCATION.md           249 stories placed, by sprint and squad
+│   ├── 03-DEPENDENCY-AND-PARALLELISATION-MAP.md  Critical path + what runs in parallel
+│   ├── 04-DRY-RUN-AND-GO-LIVE-PLAN.md            Cutover, the 15 days, go/no-go, hypercare
+│   └── 05-FORECAST-CONFIDENCE-AND-DESCOPE-LEVERS.md  Confidence, risks, levers
+│
 ├── context/                           PORTABLE MODEL + PROJECT OVERLAY
 │   ├── context-manifest.yaml              Machine-readable layers, roles, load profiles
 │   ├── framework/                         Reusable model, loading protocol, templates
@@ -104,6 +113,8 @@ docs/
 | **Reusing context for another project/domain** | [`context/framework/README.md`](./context/framework/README.md) — scaffold, replace the project overlay, validate |
 | **New to the programme** | [`context/business-problem-statement.md`](./context/business-problem-statement.md) → [`au-bank-insurance-platform/README.md`](./au-bank-insurance-platform/README.md) |
 | **Asking "what stage are we in, and what does it require?"** | [`application-lifecycle-bible/README.md`](./application-lifecycle-bible/README.md) — position banner, then the current stage file |
+| **Asking "when does this land, and will we make the date?"** | [`delivery/README.md`](./delivery/README.md) — sprint plan, critical path, forecast and descope levers |
+| **Delivery Lead / running the sprint** | [`delivery/01-DELIVERY-TIMELINE-AND-SPRINT-PLAN.md`](./delivery/01-DELIVERY-TIMELINE-AND-SPRINT-PLAN.md) + [`delivery/03-DEPENDENCY-AND-PARALLELISATION-MAP.md`](./delivery/03-DEPENDENCY-AND-PARALLELISATION-MAP.md) |
 | **Product Owner / BA** | [`au-bank-insurance-platform/07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md`](./au-bank-insurance-platform/07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md) — the business MVP SSOT |
 | **Solution Architect** | [`platform/architecture-review/README.md`](./platform/architecture-review/README.md) — target-state platform architecture |
 | **Building the 1SB adapter** | [`1sb-insurance-integration/service-ssot/README.md`](./1sb-insurance-integration/service-ssot/README.md) |

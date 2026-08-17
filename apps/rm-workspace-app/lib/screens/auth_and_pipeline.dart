@@ -196,7 +196,7 @@ class FunnelScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Control KPIs', style: AppType.headingS),
+                const Text('Control KPIs', style: AppType.headingS),
                 const SizedBox(height: AppSpace.x3),
                 const LabelledValue('KPI-03 suitability bypass rate', '0'),
                 const LabelledValue('KPI-04 payments on RM device', '0'),

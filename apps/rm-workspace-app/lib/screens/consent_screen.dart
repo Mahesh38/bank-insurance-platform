@@ -151,12 +151,12 @@ class _ConsentScreenState extends State<ConsentScreen> {
           ],
           if (granted) ...[
             const SizedBox(height: AppSpace.x5),
-            AppCard(
+            const AppCard(
               child: Row(
                 children: [
-                  const Icon(Icons.verified_outlined,
+                  Icon(Icons.verified_outlined,
                       color: AppColor.statusSuccess),
-                  const SizedBox(width: AppSpace.x3),
+                  SizedBox(width: AppSpace.x3),
                   Expanded(
                     child: Text(
                       'Consent captured on the customer\'s device, with a '

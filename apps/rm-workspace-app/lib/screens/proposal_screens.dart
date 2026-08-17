@@ -195,7 +195,7 @@ class ProposalSubmitScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Attribution and evidence', style: AppType.headingS),
+                const Text('Attribution and evidence', style: AppType.headingS),
                 const SizedBox(height: AppSpace.x3),
                 const LabelledValue('SP licence', 'SP-DEMO-778812', mono: true),
                 const LabelledValue('Distributor ID',

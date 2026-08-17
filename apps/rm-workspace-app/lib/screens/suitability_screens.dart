@@ -117,7 +117,7 @@ class _SuitabilityQuestionnaireScreenState
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('From the bank record', style: AppType.headingS),
+                const Text('From the bank record', style: AppType.headingS),
                 const SizedBox(height: AppSpace.x3),
                 LabelledValue(
                     'Age next birthday', '${cust.ageNextBirthday}'),
@@ -330,7 +330,7 @@ class SuitabilityOutcomeScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppSpace.x5),
-          Text('Outcome by product class', style: AppType.headingS),
+          const Text('Outcome by product class', style: AppType.headingS),
           const SizedBox(height: AppSpace.x3),
           for (final o in a.outcomes)
             Padding(

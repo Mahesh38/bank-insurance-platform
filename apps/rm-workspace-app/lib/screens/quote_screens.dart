@@ -214,7 +214,7 @@ class CompareScreen extends StatelessWidget {
           const SectionHeading('Offers'),
           Container(
             padding: const EdgeInsets.all(AppSpace.x3),
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: AppColor.surfaceMuted,
               borderRadius: AppRadius.smAll,
             ),

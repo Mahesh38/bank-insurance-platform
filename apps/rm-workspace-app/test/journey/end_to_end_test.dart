@@ -180,11 +180,25 @@ void main() {
         reason: 'the journey must not have advanced');
   });
 
-  test('an illegal stage transition is rejected — INV-JRN-01', () async {
-    final c = await withLead();
-    // needAnalysis -> quoting is not a drawn transition.
-    expect(isLegalTransition(JourneyStage.needAnalysis, JourneyStage.quoting),
-        isFalse);
+  test('INV-POL-01 — issuance is refused, and the saga does not advance, when '
+      'the payment is not reconciled', () async {
+    final c = await withSharingConsent();
+    await c.createProposal();
+    await c.submitProposal();
+    await c.refreshUnderwriting();
+    await c.refreshUnderwriting();
+    await c.issuePaymentLink();
+
+    // The customer has not paid.
+    expect(c.payment!.state, PaymentState.linkIssued);
+    expect(c.stage, JourneyStage.paymentPending);
+
+    await c.issuePolicy();
+
+    expect(c.policy, isNull);
+    expect(c.lastError, contains('PAYMENT_NOT_RECONCILED'));
+    expect(c.stage, JourneyStage.paymentPending,
+        reason: 'the saga must not advance past a precondition it failed');
   });
 }
 

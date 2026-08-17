@@ -148,7 +148,7 @@ class PaymentHandoffScreen extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Payment received and reconciled',
+                          const Text('Payment received and reconciled',
                               style: AppType.bodyStrong),
                           const SizedBox(height: AppSpace.x1),
                           Text(
@@ -191,10 +191,10 @@ class _HandoffCode extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          const Row(
             children: [
-              const Icon(Icons.qr_code_2, color: AppColor.textSecondary),
-              const SizedBox(width: AppSpace.x2),
+              Icon(Icons.qr_code_2, color: AppColor.textSecondary),
+              SizedBox(width: AppSpace.x2),
               Text('Customer payment link', style: AppType.headingS),
             ],
           ),

@@ -63,7 +63,7 @@ class PolicyConfirmationScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppSpace.x5),
-          Text('What "sold" requires', style: AppType.headingS),
+          const Text('What "sold" requires', style: AppType.headingS),
           const SizedBox(height: AppSpace.x2),
           Text(
             'All four must be true. Three of four is not a sale.',
@@ -81,7 +81,7 @@ class PolicyConfirmationScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Evidence trail', style: AppType.headingS),
+                const Text('Evidence trail', style: AppType.headingS),
                 const SizedBox(height: AppSpace.x3),
                 LabelledValue('Suitability evaluation', c.assessment!.id.value,
                     mono: true),

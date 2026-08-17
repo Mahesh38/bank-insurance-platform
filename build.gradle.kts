@@ -1,7 +1,7 @@
 plugins {
     id("java")
     id("jacoco")
-    id("org.springframework.boot") version "3.3.4" apply false
+    id("org.springframework.boot") version "3.3.13" apply false
     id("io.spring.dependency-management") version "1.1.6" apply false
 }
 
@@ -20,7 +20,7 @@ subprojects {
     // without pinning versions — versions come from the BOM.
     configure<io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension> {
         imports {
-            mavenBom("org.springframework.boot:spring-boot-dependencies:3.3.4")
+            mavenBom("org.springframework.boot:spring-boot-dependencies:3.3.13")
         }
     }
 

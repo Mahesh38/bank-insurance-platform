@@ -25,6 +25,10 @@ subprojects {
     // Remove this once a Spring Boot release pins 4.1.136.Final or later.
     extra["netty.version"] = "4.1.136.Final"
 
+    // Same pattern: 3.5.16 pins PostgreSQL 42.7.11, exposed to CVE-2026-54291
+    // (fixed in 42.7.12). Remove once a Spring Boot release pins 42.7.12 or later.
+    extra["postgresql.version"] = "42.7.12"
+
     configure<io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension> {
         imports {
             mavenBom("org.springframework.boot:spring-boot-dependencies:3.5.16")

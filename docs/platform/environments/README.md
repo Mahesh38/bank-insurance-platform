@@ -25,6 +25,7 @@ infrastructure code is laid out** — sized to the workload the NFR catalogue ac
 
 | Document | Answers |
 |---|---|
+| **[00 — Platform team requirements brief](./00-PLATFORM-TEAM-REQUIREMENTS-BRIEF.md)** | **The externally-shareable version.** A self-contained requirements document for a cloud/infrastructure team with no knowledge of this project or its vocabulary: what the system does, the workload numbers to size against, 60 numbered requirements each with its rationale, the optimisation mandate per environment, acceptance criteria, dependencies and a glossary. Contains no internal terminology, stage codes, gate IDs or persona names |
 | **[01 — UAT phased build plan](./01-uat-phased-build-plan.md)** | Six phases (U0–U5) with dates, what each builds, what each deliberately does not, the GATE-S09 evidence each produces, and the external dependencies that actually govern the January date |
 | **[02 — AWS component configuration](./02-aws-component-configuration.md)** | Every component with its exact dev/UAT/prod parameters: accounts, CIDR plan, EKS and node strategy, pod sizing for the 18 R0 services, Aurora/DynamoDB/S3, KMS hierarchy, IRSA, observability, deployment |
 | **[03 — Cost model and optimisation](./03-cost-model-and-optimisation.md)** | Line-by-line arithmetic for UAT (~$308/mo) and prod (~$1,450/mo), the fourteen optimisation levers ranked by rupees saved, the ~$4,700 naive comparator, cost guardrails, and where the estimate is most likely to be wrong |

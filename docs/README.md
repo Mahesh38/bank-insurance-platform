@@ -108,6 +108,7 @@ docs/
 | **Solution Architect** | [`platform/architecture-review/README.md`](./platform/architecture-review/README.md) — target-state platform architecture |
 | **Building the 1SB adapter** | [`1sb-insurance-integration/service-ssot/README.md`](./1sb-insurance-integration/service-ssot/README.md) |
 | **Building auth / identity services** | [`platform/authentication-authorization/README.md`](./platform/authentication-authorization/README.md) |
+| **SRE / platform — building AWS, UAT or environments** | [`platform/environments/README.md`](./platform/environments/README.md) — S09 phased build plan, component configuration, cost model, IaC layout |
 | **QA / test engineer** | [`1sb-insurance-integration/service-ssot/QA-LEAD-TESTING-STRATEGY.md`](./1sb-insurance-integration/service-ssot/QA-LEAD-TESTING-STRATEGY.md) + [`TESTING-RULES.md`](./1sb-insurance-integration/service-ssot/TESTING-RULES.md) |
 | **Looking for a decision** | See the decision registers below |
 

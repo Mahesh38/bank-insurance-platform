@@ -8,7 +8,11 @@ security sign-off (S07-G3/G4) and Aarti's data sign-off (S07-G5) are **mandatory
 
 **Companions:** [`04-security-architecture.md`](./04-security-architecture.md) ·
 [`05-nfr-catalogue.md`](./05-nfr-catalogue.md) ·
-[`01-domain-model-and-invariants.md`](./01-domain-model-and-invariants.md)
+[`01-domain-model-and-invariants.md`](./01-domain-model-and-invariants.md) ·
+[`06-architecture-justification-and-review-answers.md`](./06-architecture-justification-and-review-answers.md)
+(why these services / merge rejections / datastore & caching / direct-insurer future) ·
+[`diagrams/WS3-R0-HLD.svg`](./diagrams/WS3-R0-HLD.svg) ·
+[`diagrams/WS3-PLATFORM-HLD-RELEASE-MAP.svg`](./diagrams/WS3-PLATFORM-HLD-RELEASE-MAP.svg)
 
 ---
 

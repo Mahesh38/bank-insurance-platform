@@ -56,6 +56,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | SUG-20260820-ls1 | 2026-08-20 | human:Mahesh | Create an SVG rendering of the R0 LLD for the CTO and AWS platform team | SF1 | SC0 | SHOULD | ARCH | P2 / P1 | ADMIT-BYPASS | [r0-lld.svg](../../architecture/r0-lld.svg) |
 | SUG-20260820-pt9 | 2026-08-20 | human:Mahesh | Draw the AWS platform-team application view: what the application is, the service inventory, availability-zone placement, the DR bill of materials, the reverse-proxy and egress chain, and **when** each resource is needed — as a deployment topology in the style of a landing-zone request diagram | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMIT-BYPASS | [R0-LLD §2.1/§11.1/§12.1](../../architecture/R0-LLD.md) · rendering superseded by [SUG-20260820-ic3](#sug-20260820-ic3--icon-notation-generated-from-code) |
 | SUG-20260820-ic3 | 2026-08-20 | human:Mahesh | Redraw the platform-team views in AWS / Kubernetes icon notation instead of labelled rectangles, and generate them from code rather than hand-authoring SVG | SF1 | SC0 | SHOULD | DOC | P3 / P2 | ADMIT-BYPASS | [diagrams/](../../architecture/diagrams/README.md) |
+| SUG-20260820-lay4 | 2026-08-20 | human:Mahesh | Keep the icons, drop the layout engine: place every element on a chosen grid and route every connector orthogonally, so the views are aligned and the links are straight | SF1 | SC0 | SHOULD | DOC | P3 / P2 | ADMIT-BYPASS | [diagrams/](../../architecture/diagrams/README.md) |
 
 <!--
 Row format:
@@ -1279,6 +1280,86 @@ bypass:
   non_negotiable_touched: false
 notes:
   - "HA-10 added to the authoring protocol: notation follows the audience; generate rather than draw"
+```
+
+---
+
+### SUG-20260820-lay4 · Deterministic orthogonal layout
+
+```yaml
+id: SUG-20260820-lay4
+raised_at: "2026-08-20"
+raised_by: "human:Mahesh"
+source: "review of SUG-20260820-ic3's rendering"
+input: >
+  The designs look better now. The only problem is that they are not well aligned, not well
+  positioned, and not correctly linked. The links move randomly here and there, crossing and
+  curving. They should be straight lines, diverted at ninety degrees only, with the blocks and
+  logos well balanced on the image.
+context:
+  workstream: WS-3
+  canonical_stage: "S08 — Engineering Foundation"
+  active_work_item: SUG-20260820-ic3
+  freshness_check: "exit 0 — FRESH, 2026-08-20"
+stage_fit: {code: SF1, rationale: "Same S09 artefact. Presentation change, not a content change."}
+scope: {code: SC0, serves: ["SUG-20260820-ic3", "SUG-20260820-pt9"]}
+necessity:
+  now: SHOULD
+  future_necessity: MUST
+  target_stage: "S09 — Platform & Environment Foundation"
+  evidence_tier: E2
+  confidence: C4
+  rationale: >
+    A platform team reads placement in these views as a specification. Curved and crossing
+    connectors make the reader re-derive which line goes where, which is the same friction the
+    icon change was meant to remove.
+decision:
+  chosen: "hand-rolled svgcanvas.py — explicit coordinates, axis-aligned connector segments"
+  supersedes: "the mingrammer/diagrams + Graphviz layout choice recorded under SUG-20260820-ic3"
+  retained_from_ic3: >
+    The icon assets. The diagrams wheel is still the dependency, but only as the source of the
+    official AWS and Kubernetes art — none of its layout code is used.
+  rejected:
+    - what: "Graphviz splines=ortho"
+      why: >
+        TESTED, not assumed. It does emit 90-degree lines, but it detaches edge labels from their
+        edges and routes connectors straight through cluster borders, and node positions remain the
+        engine's choice rather than a deliberate grid.
+    - what: "tuning the Graphviz ranks further"
+      why: "a layered layout engine cannot be argued into a fixed grid; it re-ranks on every change"
+    - what: "draw.io / Lucid"
+      why: "already rejected under ic3 — no useful diff, and the picture drifts from its source"
+  output_format: >
+    SVG, with the icons embedded as base64 so the file is self-contained, plus a PNG companion for
+    tools that will not take an SVG. This reverses ic3's PNG-only decision, which existed only
+    because Graphviz's SVG referenced icons by absolute local path.
+action: ADMIT-BYPASS
+action_rationale: >
+  Direct human follow-up in the same executor lane. No architectural content changed: the same five
+  views render the same R0-LLD.md sections.
+continues: SUG-20260820-ic3
+classification: {type: DOC, also: [ARCH], risk_tier: T4}
+priority: {now: P3, at_target: P2}
+new_repository_dependency:
+  runtime: "pip diagrams==0.25.1 (icon assets only) + cairosvg==2.7.1 (optional PNG companion)"
+  removed: "graphviz — no longer needed, no layout engine is used"
+  scope: "documentation build only — not a service dependency, not in any container image"
+defects_found_and_fixed:
+  - what: "vertical connectors were drawn straight through their own node's caption"
+    cause: "a bottom port started at the icon edge, but the label hangs below the icon"
+    fix: "Node.port('B') clears the label block — fixed in the canvas, not per diagram"
+  - what: "edge labels rendered as white smears"
+    cause: "the white halo relied on the SVG paint-order property"
+    why_it_matters: >
+      cairosvg and older librsvg ignore paint-order, so the labels would have failed in exactly
+      the viewers a platform team is most likely to open the file in. Labels now sit on a real plate.
+bypass:
+  authorised_by: "human:Mahesh — direct instruction"
+  skipped: "seven-board review of the plan"
+  risk: "same as pt9 and ic3 — the views may be shown before Security, Database and SRE sign"
+  non_negotiable_touched: false
+notes:
+  - "HA-10 extended: generating a diagram does not mean handing its layout to an engine."
 ```
 
 ---

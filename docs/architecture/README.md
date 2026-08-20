@@ -9,11 +9,11 @@ Two diagrams, deliberately. They answer different questions and **neither replac
 | [`R0-HLD.md`](./R0-HLD.md) | *Walk the R0 picture in prose: domain, ten boundaries, communication, APIs, business logic, waves vs stages vs releases* | Stakeholder HLD. Compiled view of the authoritative `ws3-platform/` sources. AI-drafted, T4 outstanding |
 | [`R0-LLD.md`](./R0-LLD.md) | *What AWS resources, VPC, reverse proxies, PVCs, databases and caches does the platform team provision for R0?* | S09 requirements pack for the CTO and AWS platform team. AI-drafted; Security / Database / SRE reviews outstanding |
 | [`r0-lld.svg`](./r0-lld.svg) | *Where does each R0 service sit on AWS, and what must not be provisioned?* | Rendering of `R0-LLD.md`. Owns nothing (`HA-02`) |
-| [`r0-platform-topology.png`](./r0-platform-topology.png) | *What runs where — zones, subnets, namespaces, the two-hop proxy?* | Rendering of `R0-LLD.md`. **Generated** from [`diagrams/`](./diagrams/README.md). Owns nothing (`HA-02`) |
-| [`r0-platform-az.png`](./r0-platform-az.png) | *Which availability zone does each resource sit in?* | Rendering of `R0-LLD.md` §2.1 |
-| [`r0-platform-dr.png`](./r0-platform-dr.png) | *What exists in `ap-south-2`, and what deliberately does not?* | Rendering of `R0-LLD.md` §11.1 |
-| [`r0-platform-sequence.png`](./r0-platform-sequence.png) | *In what order does the platform team build it?* | Rendering of `R0-LLD.md` §12.1 |
-| [`r0-platform-payment.png`](./r0-platform-payment.png) | *Where does the money actually go?* | Rendering of `R0-LLD.md` §3 and §11 |
+| [`r0-platform-topology.svg`](./r0-platform-topology.svg) | *What runs where — zones, subnets, namespaces, the two-hop proxy?* | Rendering of `R0-LLD.md`. **Generated** from [`diagrams/`](./diagrams/README.md). Owns nothing (`HA-02`) |
+| [`r0-platform-az.svg`](./r0-platform-az.svg) | *Which availability zone does each resource sit in?* | Rendering of `R0-LLD.md` §2.1 |
+| [`r0-platform-dr.svg`](./r0-platform-dr.svg) | *What exists in `ap-south-2`, and what deliberately does not?* | Rendering of `R0-LLD.md` §11.1 |
+| [`r0-platform-sequence.svg`](./r0-platform-sequence.svg) | *In what order does the platform team build it?* | Rendering of `R0-LLD.md` §12.1 |
+| [`r0-platform-payment.svg`](./r0-platform-payment.svg) | *Where does the money actually go?* | Rendering of `R0-LLD.md` §3 and §11 |
 
 ## Why both
 
@@ -221,8 +221,8 @@ AWS diagrams all day, and a wall of labelled rectangles asks them to translate b
 review. The SVG was also authored by hand, which made it slow to change and impossible to diff
 usefully — the exact failure `HA-03` exists to prevent.
 
-**What replaced it:** [`diagrams/r0_platform_topology.py`](./diagrams/README.md), rendered through
-[`mingrammer/diagrams`](https://diagrams.mingrammer.com) and Graphviz. The icon sets ship inside
+**What replaced it:** a generated set built with [`mingrammer/diagrams`](https://diagrams.mingrammer.com)
+and Graphviz (itself superseded later the same day — see the next section). The icon sets ship inside
 the pip wheel, so no image is vendored here and nothing is fetched at render time.
 
 **Why five files and not one.** The first attempt drew everything on one canvas and was
@@ -236,3 +236,34 @@ it lives in `R0-LLD.md` §2.1, §11.1 and §12.1, which is where it belongs and 
 Aurora *writer* in all three availability zones. The zone test was `"A" in zone`, and `"A"` is in
 `"AVAILABILITY"`. A diagram that asserts a Multi-AZ topology it does not have is worse than no
 diagram, which is the whole of `HA-02` in one bug.
+
+## Revision — 2026-08-20 orthogonal-layout round
+
+`SUG-20260820-lay4` kept the icons and threw away the layout engine. The five views are the same
+five views; what changed is that nothing in them is positioned by an algorithm any more.
+
+The reason was a fair reading of the first attempt:
+
+> *"They are not well aligned, not well positioned, and not correctly linked. The links move
+> randomly here and there, crossing and curving. It should be straight lines, diverted at ninety
+> degrees only."*
+
+That is the standard failure mode of a layered layout engine, not a tuning problem. Graphviz's
+`splines=ortho` was tried first and rejected on evidence: it produces the 90-degree lines, but it
+detaches edge labels from their edges and routes connectors straight through cluster borders, and
+node positions are still the engine's choice rather than a deliberate grid.
+
+**What replaced it:** [`diagrams/svgcanvas.py`](./diagrams/README.md), a small canvas where every
+element sits at a coordinate the source file names and every connector is a run of axis-aligned
+segments the source file routes. Corridors are constants (`COL`, `LANE_EGRESS`), so two connectors
+sharing a lane is a recorded decision rather than an accident. Output is now **SVG** — self-contained,
+with the icons embedded as base64 — plus a PNG companion for tools that will not take an SVG.
+
+**Two defects this surfaced**, both of the kind that only a rendered look will catch:
+
+- Vertical connectors were being drawn straight **through their own node's caption**, because a
+  bottom port started at the icon's edge and the label hangs below it. Fixed in the canvas rather
+  than per diagram: `Node.port("B")` now clears the label block.
+- Edge labels relied on the SVG `paint-order` property for their white halo. cairosvg and older
+  librsvg ignore it, which renders the label as a white smear — in exactly the viewers a platform
+  team is most likely to use. Labels now sit on a real plate.

@@ -7,7 +7,7 @@
 **Date:** 2026-08-20
 **Origin:** `SUG-20260820-hl1`
 **Picture this document walks:** [`r0-lld.svg`](./r0-lld.svg)
-**Platform-team deployment views** (generated — see [`diagrams/`](./diagrams/README.md)): [`topology`](./r0-platform-topology.png) · [`availability zones`](./r0-platform-az.png) · [`DR`](./r0-platform-dr.png) · [`sequence`](./r0-platform-sequence.png) · [`payment path`](./r0-platform-payment.png)
+**Platform-team deployment views** (generated — see [`diagrams/`](./diagrams/README.md)): [`topology`](./r0-platform-topology.svg) · [`availability zones`](./r0-platform-az.svg) · [`DR`](./r0-platform-dr.svg) · [`sequence`](./r0-platform-sequence.svg) · [`payment path`](./r0-platform-payment.svg)
 **Companion HLD:** [`R0-HLD.md`](./R0-HLD.md) · [`r0-reference-architecture.svg`](./r0-reference-architecture.svg)
 
 ---

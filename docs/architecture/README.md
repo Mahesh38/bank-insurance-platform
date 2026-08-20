@@ -33,6 +33,42 @@ Nothing on the diagram may be cited as authority to start work. Each element sti
 triage, an owner, and — where consequential — an ADR and the applicable board reviews. See
 [`governance/09-AI_EXECUTION_RULES.md`](../governance/09-AI_EXECUTION_RULES.md).
 
+## The convention both diagrams follow
+
+They are one artefact in two cuts, and three rules keep them that way. All three live in
+[`16-hld-authoring-and-update-protocol.md §4.0`](../context/roles/mahesh-principal-insurance-platform-architect/16-hld-authoring-and-update-protocol.md).
+
+- **`NC-1` — the `#n` is the identity, the name is a label.** Every element carries its bounded
+  context number from [`business-problem-statement.md §6`](../context/business-problem-statement.md#6-business-capabilities--bounded-contexts)
+  *on the element*, with the canonical register name. Seven contexts are drawn under a different
+  name at target state — `#4`, `#7`, `#8`, `#9`, `#10`, `#11`, `#13` — and those are written
+  `#n Canonical Name → target name` so the evolution is visible rather than read as a different
+  service. `#5` stays the dual form `Opportunity (Lead)` until `OPEN-D10` is decided.
+- **`LY-1` — the ten boundaries are the layer model, not a drawing style.** Both files lay out in
+  the same bands, in the same order, so the two can be read side by side. A band that is thin in
+  R0 is still drawn and labelled — the R0 file shows one BFF and says the other three are R1/R2.
+- **`LB-R1` — line of business is rendered in three classes**, described below.
+
+The two files deliberately colour by different axes — the North Star by **release** (its question
+is *when*), the R0 view by **build wave** (its question is *in what order*) — and both legend it.
+The LOB encoding is the one thing identical in both, so it reads straight across.
+
+## Reading the line of business
+
+The question these diagrams get asked is *which of these boxes do I get a second copy of when
+Health arrives*. [`01-domain-model-and-invariants.md §2.5`](../platform/ws3-platform/01-domain-model-and-invariants.md)
+answers it in `LB-4` and `LB-5`, and the diagrams now show it:
+
+| Class | Marking | R0 members | What it means |
+|---|---|---|---|
+| **LOB-owned execution** | inside the rose cell | `#10` Quotation · `#11` Proposal & UW | Health and General each get their **own** instance. The boundary is frozen: a Life quote and a Health quote do not share a field shape |
+| **LOB-partitioned shared** | `LIFE` tag on the node | `#2` · `#3` (PDP grants) · `#6` · `#7` · `#8` · `#9` · `#14` · `#19` | One codebase, one deployment. Behaviour resolved from configuration keyed by `(lob, …)` per `CF-2` — never forked, never branched on an `lob` literal |
+| **LOB-agnostic shared** | no tag, outside every cell | `#4` · `#5` · `#12` · `#13` · `#16` · `#17` | One instance for every line of business, forever |
+
+> Partitioning the **rules** is what makes the Health cell possible; duplicating the **evidence**
+> is what makes it unauditable. That distinction is the whole of `LB-5`, and it is why the middle
+> row exists instead of a simple shared/not-shared split.
+
 ## Revision — 2026-08-20 HLD review round
 
 Both diagrams were reconciled in the same change as their sources (`HA-03`, `HA-06`) under
@@ -45,6 +81,36 @@ Both diagrams were reconciled in the same change as their sources (`HA-03`, `HA-
   certification is an attribute on the RM principal, and the freed slot now carries the IPR.
 
 Decisions: [`ADR-004` … `ADR-007`](../platform/architecture-review/08-architecture-decision-log.md).
+
+## Revision — 2026-08-20 diagram alignment round
+
+`SUG-20260820-al7` verified the two files against each other and against their sources, and closed
+the gaps the previous round left open:
+
+- the North Star had `#5 Opportunity` and `#19 Configuration` chipped **R1**. Both ship in R0 —
+  `03-solution-architecture-r0.md §3` places them in Wave 1 and Wave 0b — and the North Star's own
+  roadmap band already said so about `#5`. Corrected, and the R0/R1 split stated on `#19`: the
+  configuration **layer** is R0, its maker-checker governance and admin UI are R1;
+- the North Star asserted **15** fitness functions; the catalogue has been `FF-01…FF-21` since the
+  review round added `FF-16…FF-21`. Corrected;
+- seven contexts were drawn under two names with no mapping, four of them with no `#n` on the
+  element at all. `NC-1` above now governs, and both files comply;
+- the R0 view was laid out by build wave and journey flow while the North Star was laid out in ten
+  boundaries, so it could not be read as a release-zero cut of the target. **It has been redrawn on
+  the same ten bands**, with what arrives later drawn greyed and carrying its release;
+- nothing distinguished LOB-owned from shared. The three-class encoding above is now rendered in
+  both files, with the Life cell boxed and coloured.
+
+The root cause was recorded too: the authoring protocol still described `hdl.svg` as the R0 file
+and carried a canvas contract for one diagram, so there was no convention covering two. It now
+covers both, and its consistency checklist fails when the files disagree about a release chip or a
+context name.
+
+**One divergence is left open deliberately.** `OPEN-A1` — the R0 view asserts `ARCH-004`
+database-per-service; the North Star's boundary 8 says physical splitting is scale-driven and R0
+may start as schemas in one cluster. Both are drawn as written and flagged on the R0 file. Picking
+between a ratified decision and a target-state position, on a matter with cost, DR and DBA
+consequences, is Mahesh's and Aarti's call, not an agent's.
 
 ## Authority
 

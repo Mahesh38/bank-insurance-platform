@@ -32,7 +32,7 @@ architecture diagram will almost draw itself.*
 | [`docs/architecture/R0-HLD.md`](../../../architecture/R0-HLD.md) | **Compiled narrative** | Nothing new. Walks the R0 rendering for humans (domain, APIs, waves). If it disagrees with the rows above, those rows win (`HA-02`) |
 | [`docs/architecture/R0-LLD.md`](../../../architecture/R0-LLD.md) | **S09 platform pack** | Maps already-accepted R0 decisions onto AWS resources for the CTO / platform team. Must not invent a service the rows above do not name |
 | **`docs/architecture/r0-lld.svg`** | **Rendering** | Nothing. It *depicts* `R0-LLD.md`: VPC tiers, two-hop reverse proxy, EKS namespaces, data stores, PVC/cache/do-not-provision |
-| **`docs/architecture/r0-platform-topology.svg`** | **Rendering** | Nothing. It *depicts* `R0-LLD.md` §2.1 / §11.1 / §12.1 — the platform-team cut: per-resource availability-zone placement, the `ap-south-2` DR resource list, the reverse-proxy and egress chain, and the provisioning sequence |
+| **`docs/architecture/r0-platform-*.png`** (5 files) | **Rendering · generated** | Nothing. They *depict* `R0-LLD.md` §2.1 / §11.1 / §12.1 for the AWS platform team, in AWS and Kubernetes icon notation. **Build output** — the source is [`diagrams/r0_platform_topology.py`](../../../architecture/diagrams/README.md) and an edit to a PNG that is not an edit to that file is a defect |
 
 **Rule HA-02b — the two renderings are one artefact in two cuts.** `hdl.svg` answers *where is
 this going*; `r0-reference-architecture.svg` answers *what are we building now*. They must use the
@@ -57,7 +57,7 @@ diagram that leads its sources is how a programme starts believing in services n
 |---|---|---|
 | `docs/architecture/r0-reference-architecture.svg` | **H0 — R0 as designed** | R0 scope, service set, seams or controls change |
 | `docs/architecture/r0-lld.svg` | **H0 — R0 AWS deployment** | R0 AWS BOM, VPC, proxy, data topology or do-not-provision list change |
-| `docs/architecture/r0-platform-topology.svg` | **H0 — R0 AWS landing-zone request** | AZ placement, the DR resource list, the proxy/egress chain, the S09 provisioning sequence, or the wave-precondition map changes |
+| `docs/architecture/r0-platform-*.png` | **H0 — R0 AWS landing-zone request** | AZ placement, the DR resource list, the proxy/egress chain, the S09 provisioning sequence, or the wave-precondition map changes. Regenerate, never hand-edit |
 | `docs/hdl.svg` | **North Star — target state, release-coded `R0`…`RN`** | A target-state boundary, capability or release phasing changes |
 | `docs/hld-h1.svg`, `docs/hld-h2.svg`, … | Intermediate horizons | Created on demand, same canvas contract |
 
@@ -77,12 +77,22 @@ repository, and the reader has no way to know which is current.
 **Rule HA-09 — the three H0 renderings answer three different questions and must not merge.**
 `r0-reference-architecture.svg` answers *what are we building* (layout: `LY-1` bands, colour: build
 wave). `r0-lld.svg` answers *where does it sit on AWS* (layout: trust zone, colour: trust zone).
-`r0-platform-topology.svg` answers *what do we ask the AWS platform team to provision, and when*
-(layout: availability zone, colour: container = where, node = when). All three take their `#n`
+the `r0-platform-*.png` set answers *what do we ask the AWS platform team to provision, and when*
+(notation: official AWS and Kubernetes icons, one file per question). All three take their `#n`
 identities from `NC-1` and their service set from `03-solution-architecture-r0.md §3`; a service
 present in one and absent from another is a defect in whichever file disagrees with that source.
 The platform view is the only one that may state an AZ count, a DR resource or a sequence band,
 and it may state none of them that `R0-LLD.md` does not already say (`HA-02`, `HA-03`).
+
+**Rule HA-10 — notation follows the audience, and a generated diagram is preferred to a drawn one.**
+The two architecture renderings are hand-authored SVG because their audience is this programme and
+their vocabulary (`LY-1` bands, wave colours, `LB-R1` classes) is ours. The platform set is
+generated in AWS and Kubernetes icon notation because its audience reads AWS diagrams all day and
+should not have to translate a labelled rectangle before they can review it. Where a diagram can be
+generated from code, generate it: a reviewer of a hand-drawn canvas learns only that the picture
+changed, while a diff of the generating source tells them which sentence changed. A generated
+diagram is build output — hand-editing the output instead of the source is the same defect class as
+editing a compiled artefact.
 
 **Rule HA-07 — the North Star view is drawn in planes, not in boxes-and-arrows.** The five-plane
 model (`10 §4`) is the stakeholder artefact. Drawing the North Star as a component diagram

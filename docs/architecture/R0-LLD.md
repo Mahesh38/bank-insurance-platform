@@ -7,7 +7,7 @@
 **Date:** 2026-08-20
 **Origin:** `SUG-20260820-hl1`
 **Picture this document walks:** [`r0-lld.svg`](./r0-lld.svg)
-**Platform-team deployment view (AZ placement, DR estate, provisioning sequence):** [`r0-platform-topology.svg`](./r0-platform-topology.svg)
+**Platform-team deployment views** (generated — see [`diagrams/`](./diagrams/README.md)): [`topology`](./r0-platform-topology.png) · [`availability zones`](./r0-platform-az.png) · [`DR`](./r0-platform-dr.png) · [`sequence`](./r0-platform-sequence.png) · [`payment path`](./r0-platform-payment.png)
 **Companion HLD:** [`R0-HLD.md`](./R0-HLD.md) · [`r0-reference-architecture.svg`](./r0-reference-architecture.svg)
 
 ---
@@ -637,4 +637,4 @@ Until those signatures exist, platform engineers may **draft** Terraform modules
 **Signed:** Mahesh — Principal Insurance Platform Architect (Board 1), AI-drafted
 **signature_status:** `AI-DRAFTED — mandatory human T4 Architecture sign-off outstanding; Security, Database and SRE reviews outstanding`
 **Companion HLD:** [`R0-HLD.md`](./R0-HLD.md)
-**Diagrams:** [`r0-lld.svg`](./r0-lld.svg) · [`r0-platform-topology.svg`](./r0-platform-topology.svg) · [`r0-reference-architecture.svg`](./r0-reference-architecture.svg)
+**Diagrams:** [`r0-lld.svg`](./r0-lld.svg) · [`r0-platform-*.png`](./diagrams/README.md) · [`r0-reference-architecture.svg`](./r0-reference-architecture.svg)

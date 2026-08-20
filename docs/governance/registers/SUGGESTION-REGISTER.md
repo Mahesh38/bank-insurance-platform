@@ -54,7 +54,8 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | SUG-20260820-dc4 | 2026-08-20 | human:Mahesh | Resolve OPEN-A1 and OPEN-D10: physical database topology is an evidence-led decision, not a principle — R0 starts as one cluster with a schema per context and splits later along the LOB-cell / shared-platform seam; and context #5 is named Opportunity, because a lead is too thin to carry renewal, lapse and cross-sell demand | SF1 | SC1 | MUST | ARCH | P2 / P2 | ADMITTED | [ADR-008](../../platform/architecture-review/08-architecture-decision-log.md) |
 | SUG-20260820-hl1 | 2026-08-20 | human:Mahesh | Act as Mahesh: turn the R0 reference architecture SVG into a detailed HLD (domain, boundary, communication, API, business logic, phases/waves/what-to-do-when) and an LLD for the CTO and AWS platform team (e2e components, services, AWS, VPC, reverse proxy, PVC, DB, cache) | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMIT-BYPASS | [R0-HLD](../../architecture/R0-HLD.md) · [R0-LLD](../../architecture/R0-LLD.md) |
 | SUG-20260820-ls1 | 2026-08-20 | human:Mahesh | Create an SVG rendering of the R0 LLD for the CTO and AWS platform team | SF1 | SC0 | SHOULD | ARCH | P2 / P1 | ADMIT-BYPASS | [r0-lld.svg](../../architecture/r0-lld.svg) |
-| SUG-20260820-pt9 | 2026-08-20 | human:Mahesh | Draw the AWS platform-team application view: what the application is, the service inventory, availability-zone placement, the DR bill of materials, the reverse-proxy and egress chain, and **when** each resource is needed — as a deployment topology in the style of a landing-zone request diagram | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMIT-BYPASS | [r0-platform-topology.svg](../../architecture/r0-platform-topology.svg) · [R0-LLD §2.1/§11.1/§12.1](../../architecture/R0-LLD.md) |
+| SUG-20260820-pt9 | 2026-08-20 | human:Mahesh | Draw the AWS platform-team application view: what the application is, the service inventory, availability-zone placement, the DR bill of materials, the reverse-proxy and egress chain, and **when** each resource is needed — as a deployment topology in the style of a landing-zone request diagram | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMIT-BYPASS | [R0-LLD §2.1/§11.1/§12.1](../../architecture/R0-LLD.md) · rendering superseded by [SUG-20260820-ic3](#sug-20260820-ic3--icon-notation-generated-from-code) |
+| SUG-20260820-ic3 | 2026-08-20 | human:Mahesh | Redraw the platform-team views in AWS / Kubernetes icon notation instead of labelled rectangles, and generate them from code rather than hand-authoring SVG | SF1 | SC0 | SHOULD | DOC | P3 / P2 | ADMIT-BYPASS | [diagrams/](../../architecture/diagrams/README.md) |
 
 <!--
 Row format:
@@ -1197,6 +1198,87 @@ bypass:
 notes:
   - "Does not unpark SUG-20260820-r1t (the R0→R1→R2 transition map)"
   - "Does not alter GATE-S08; S08 remains the gate in flight"
+```
+
+---
+
+### SUG-20260820-ic3 · Icon notation, generated from code
+
+```yaml
+id: SUG-20260820-ic3
+raised_at: "2026-08-20"
+raised_by: "human:Mahesh"
+source: "review of SUG-20260820-pt9's rendering"
+input: >
+  I'm not looking for all those boxes. I'm looking for the actual images or the logos — when you
+  are using a Kubernetes cluster it should show that this is the Kubernetes cluster, there are
+  microservices communicating, there is CloudFront, there is an RDS service. Can you think of a
+  better approach than SVG, without importing a lot of external images?
+context:
+  workstream: WS-3
+  canonical_stage: "S08 — Engineering Foundation"
+  active_work_item: SUG-20260820-pt9
+  freshness_check: "exit 0 — FRESH, 2026-08-20"
+stage_fit:
+  code: SF1
+  rationale: "Same S09 artefact as pt9. Notation change, not a content change."
+scope:
+  code: SC0
+  serves: ["SUG-20260820-pt9"]
+necessity:
+  now: SHOULD
+  future_necessity: MUST
+  target_stage: "S09 — Platform & Environment Foundation"
+  evidence_tier: E2
+  confidence: C4
+  rationale: >
+    The audience reads AWS diagrams daily. Labelled rectangles make them translate before they can
+    review, which is friction on the artefact whose whole purpose is to be reviewed by that team.
+decision:
+  chosen: "mingrammer/diagrams — Python, rendered through Graphviz"
+  why: >
+    The official AWS, Kubernetes, Argo and Flutter icon sets ship inside the pip wheel, so no image
+    is vendored into this repository and nothing is fetched at render time. Being code, the picture
+    changes in the same commit as its source and a reviewer sees which sentence changed — which is
+    what HA-03 asks for and what a binary canvas file cannot give.
+  rejected:
+    - "draw.io / Lucid — right icons, but a binary-ish canvas: no useful diff, and the picture drifts from its source"
+    - "Mermaid architecture-beta — icon packs resolve over the network at render time"
+    - "D2 — icons are external URLs"
+    - "hand-authored SVG with embedded base64 icons — vendors the icon set and is slow to change"
+  output_format: >
+    PNG. Graphviz can emit SVG but references icons by absolute local path, so the SVG is not
+    portable. Recorded so nobody 'fixes' the format later.
+action: ADMIT-BYPASS
+action_rationale: >
+  Direct human follow-up in the same executor lane as pt9. No architectural content changes: the
+  five diagrams render R0-LLD.md §2.1 / §11.1 / §12.1, which pt9 already added and which remain the
+  source of truth (HA-02).
+duplicate_of: null
+continues: SUG-20260820-pt9
+supersedes_artefact: "docs/architecture/r0-platform-topology.svg (deleted — replaced, not kept alongside, to avoid two answers in the repository)"
+classification:
+  type: DOC
+  also: [ARCH]
+  risk_tier: T4
+priority:
+  now: P3
+  at_target: P2
+new_repository_dependency:
+  runtime: "python3 + graphviz (dot) + pip diagrams==0.25.1"
+  scope: "documentation build only — not a service dependency, not in any container image"
+  recorded_at: "docs/architecture/diagrams/requirements.txt"
+defect_found_and_fixed:
+  what: "the first render placed an Aurora WRITER in all three AZs"
+  cause: "zone test was `\"A\" in zone`, and \"A\" is a substring of \"AVAILABILITY\""
+  why_it_matters: "a diagram asserting a Multi-AZ topology the design does not have is worse than no diagram"
+bypass:
+  authorised_by: "human:Mahesh — direct instruction"
+  skipped: "seven-board review of the plan"
+  risk: "same as pt9 — the views may be shown to the AWS platform team before Security, Database and SRE sign"
+  non_negotiable_touched: false
+notes:
+  - "HA-10 added to the authoring protocol: notation follows the audience; generate rather than draw"
 ```
 
 ---

@@ -9,7 +9,11 @@ Two diagrams, deliberately. They answer different questions and **neither replac
 | [`R0-HLD.md`](./R0-HLD.md) | *Walk the R0 picture in prose: domain, ten boundaries, communication, APIs, business logic, waves vs stages vs releases* | Stakeholder HLD. Compiled view of the authoritative `ws3-platform/` sources. AI-drafted, T4 outstanding |
 | [`R0-LLD.md`](./R0-LLD.md) | *What AWS resources, VPC, reverse proxies, PVCs, databases and caches does the platform team provision for R0?* | S09 requirements pack for the CTO and AWS platform team. AI-drafted; Security / Database / SRE reviews outstanding |
 | [`r0-lld.svg`](./r0-lld.svg) | *Where does each R0 service sit on AWS, and what must not be provisioned?* | Rendering of `R0-LLD.md`. Owns nothing (`HA-02`) |
-| [`r0-platform-topology.svg`](./r0-platform-topology.svg) | *What do we ask the AWS platform team to provision — in which availability zone, with what DR estate, how many reverse proxies, and in what order?* | Rendering of `R0-LLD.md` §2.1 / §11.1 / §12.1. The landing-zone request cut. Owns nothing (`HA-02`) |
+| [`r0-platform-topology.png`](./r0-platform-topology.png) | *What runs where — zones, subnets, namespaces, the two-hop proxy?* | Rendering of `R0-LLD.md`. **Generated** from [`diagrams/`](./diagrams/README.md). Owns nothing (`HA-02`) |
+| [`r0-platform-az.png`](./r0-platform-az.png) | *Which availability zone does each resource sit in?* | Rendering of `R0-LLD.md` §2.1 |
+| [`r0-platform-dr.png`](./r0-platform-dr.png) | *What exists in `ap-south-2`, and what deliberately does not?* | Rendering of `R0-LLD.md` §11.1 |
+| [`r0-platform-sequence.png`](./r0-platform-sequence.png) | *In what order does the platform team build it?* | Rendering of `R0-LLD.md` §12.1 |
+| [`r0-platform-payment.png`](./r0-platform-payment.png) | *Where does the money actually go?* | Rendering of `R0-LLD.md` §3 and §11 |
 
 ## Why both
 
@@ -176,9 +180,9 @@ and it is Kalpana's (R12) input as much as Architecture's. Tracked as parked `SU
 
 ## Revision — 2026-08-20 platform-request round
 
-`SUG-20260820-pt9` added a third H0 rendering,
-[`r0-platform-topology.svg`](./r0-platform-topology.svg), for the AWS platform / landing-zone team.
-It exists because three of the six questions that team actually asks were not answered anywhere:
+`SUG-20260820-pt9` added a third H0 rendering for the AWS platform / landing-zone team — first
+as a hand-authored `r0-platform-topology.svg`, superseded the same day by the generated set below
+(`SUG-20260820-ic3`). It exists because three of the six questions that team actually asks were not answered anywhere:
 
 | Question | Where it was answered before | Where it is answered now |
 |---|---|---|
@@ -202,3 +206,33 @@ and Shailja (Compliance) reviews are outstanding, and the mandatory human T4 Arc
 is outstanding. Two decisions inside it belong to named humans and are tagged as such: Aurora
 Global versus backup-restore for DR (Aarti), and the CBS / Bank AD connectivity pattern (Shivanshi
 with the bank network team).
+
+## Revision — 2026-08-20 icon-notation round
+
+`SUG-20260820-ic3` replaced the hand-authored `r0-platform-topology.svg` with five **generated**
+diagrams that use the official AWS and Kubernetes icons. The content did not change; the notation
+did, and the change was requested for a reason worth recording:
+
+> *"I'm not looking for all those boxes. I'm looking for the actual images or the logos — when you
+> are using a Kubernetes cluster it should show that this is the Kubernetes cluster."*
+
+That is a fair reading of the audience. A landing-zone conversation happens with people who read
+AWS diagrams all day, and a wall of labelled rectangles asks them to translate before they can
+review. The SVG was also authored by hand, which made it slow to change and impossible to diff
+usefully — the exact failure `HA-03` exists to prevent.
+
+**What replaced it:** [`diagrams/r0_platform_topology.py`](./diagrams/README.md), rendered through
+[`mingrammer/diagrams`](https://diagrams.mingrammer.com) and Graphviz. The icon sets ship inside
+the pip wheel, so no image is vendored here and nothing is fetched at render time.
+
+**Why five files and not one.** The first attempt drew everything on one canvas and was
+unreadable: eleven services in one row made it 7,000 pixels wide, and the C4 payment path — which
+runs device → PG → callback → back into the VPC — looped backwards across the whole picture. Each
+file now answers exactly one of the questions the platform team asks. The tabular content that the
+old SVG carried (the AZ matrix, `D1…D12`, `P0…P8`) was never diagram content in the first place;
+it lives in `R0-LLD.md` §2.1, §11.1 and §12.1, which is where it belongs and where it already was.
+
+**One defect worth naming**, because it is the kind that survives review: the first render placed an
+Aurora *writer* in all three availability zones. The zone test was `"A" in zone`, and `"A"` is in
+`"AVAILABILITY"`. A diagram that asserts a Multi-AZ topology it does not have is worse than no
+diagram, which is the whole of `HA-02` in one bug.

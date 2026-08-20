@@ -47,6 +47,8 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | SUG-20260816-ba7 | 2026-08-16 | human:Mahesh | Add a senior end-to-end bancassurance BA AI persona for existing R11 and link it to current personas/context | SF2 | SC1 | SHOULD | GOV | P2 / P2 | ADMIT-BYPASS | [Principal BA package](../../context/roles/principal-insurance-platform-business-analyst/README.md) |
 | SUG-20260816-ap1 | 2026-08-16 | human:Mahesh | Build a reusable context module and safe evidence-driven autopilot; reconcile semantic governance drift and documentation structure | SF1 | SC1 | MUST | GOV | P2 / P2 | ADMITTED | [CR-010](../change-requests/CR-010-context-module-and-safe-autopilot.md) |
 | SUG-20260816-w3s | 2026-08-16 | agent:claude | Extend `current-state.schema.json` with `depends_on` / `entry_conditions` on a workstream and `parent_workstream` / `delivers_bounded_contexts` on `lifecycle`, so workstream relationships are validated rather than held in comments | SF2 | SC1 | SHOULD | GOV | P3 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md#1-parked--scheduled-work) |
+| SUG-20260820-n5t | 2026-08-20 | human:Mahesh | Redraw `docs/hdl.svg` as the release-coded North Star HLD — boundary descriptions, LOB segregation, aggregation/provider layer, mature-platform capabilities, R0→RN phasing — and preserve the R0 view alongside it | SF2 | SC1 | SHOULD | DOC | P3 / P3 | ADMIT-BYPASS | [architecture diagrams](../../architecture/README.md) |
+| SUG-20260820-r1t | 2026-08-20 | agent:claude | Produce the R0 → R1 → R2 transition and dependency map the North Star does not answer: the order in which target components must appear and which are prerequisites for which | SF3 | SC1 | SHOULD | ARCH | P4 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md#1-parked--scheduled-work) |
 
 <!--
 Row format:
@@ -349,6 +351,119 @@ outcome:
   work_item_id: SUG-20260816-ap1
   plan_id: PLAN-001
   status: ADMITTED
+  closed_reason: null
+
+resumed: null
+```
+
+### SUG-20260820-n5t · North Star HLD with release phasing
+
+```yaml
+id: SUG-20260820-n5t
+raised_at: "2026-08-20"
+raised_by: "human:Mahesh"
+source: "direct user instruction, acting as the Board 1 Architecture persona"
+input: >
+  Update docs/hdl.svg to the final vision for the insurance platform, with reference to the
+  recorded target-state design discussion. The SVG must carry a detailed description of each
+  boundary, LOB segregation, the aggregation/provider layer and the capabilities a mature
+  architecture must have, and must show the phase-wise release: what is in R0, R1, R2 and RN,
+  RN being the final targeted system for now.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: R0-ASSISTED-TERM-SALE
+  current_gate: "GATE-S08 (OPEN)"
+  state_as_of: "2026-08-10"
+  state_provisional: false
+  freshness_check: "exit 0 — FRESH"
+
+stage_fit:
+  code: SF2
+  rationale: >
+    A documentation artefact with no runtime change. Architecture intent at S08 is legitimate
+    and cheap: R0 is being built now, and the value of drawing the target now is precisely that
+    R0 leaves the right seams behind. It does not admit R1+ work, move a gate or create a
+    dependency.
+  absorption_test:
+    small: true
+    no_new_dependency: true
+    no_new_decision: true
+    gate_neutral: true
+
+scope:
+  code: SC1
+  business_scope: >
+    Architecture communication artefact for WS-3. Not a scope change: the diagram renders
+    CURRENT-STATE's own in_scope / out_of_scope split rather than proposing a different one.
+  serves:
+    - "R0 build decisions that are cheap now and expensive later — the seams"
+    - "stakeholder answer to 'why is R0 so small' and 'why build a registry for one product'"
+    - "Delivery (R12) sequencing input and the follow-on transition map"
+  failure_without_it: >
+    R0 gets built without its seams, and adding Health becomes a redesign rather than a cell.
+  minimal: true
+  authority: >
+    Board 1 Architecture owns the HLD. AI may draft and simulate Mahesh's reasoning; the
+    mandatory human T4 Architecture sign-off in 11-REVIEW_GATES.md is NOT satisfied by this.
+
+necessity:
+  verdict: SHOULD
+  evidence_tier: E5
+  confidence: C4
+  note: >
+    Target-state content is drawn from the recorded design discussion plus the repository's own
+    architecture registration and current state. Where the discussion and CURRENT-STATE disagree
+    on release numbering, CURRENT-STATE wins — non-Life LOBs are 'R2+' there, which the diagram
+    realises as R3 (Health) and R4 (General/Motor).
+
+action:
+  verdict: ADMIT-BYPASS
+  rationale: >
+    Implemented in the turn it was raised, which the one rule normally forbids. Recorded as
+    ADMIT-BYPASS rather than ADMITTED because it was a direct human instruction from the owning
+    authority for a documentation artefact, not an agent-originated suggestion.
+  priority_now: P3
+  priority_at_target: P3
+  type: DOC
+  risk_tier: T1
+
+decisions_taken:
+  - id: "keep both diagrams"
+    decision: >
+      docs/hdl.svg becomes the North Star; the previous R0 HLD is preserved unchanged at
+      docs/architecture/r0-reference-architecture.svg.
+    rationale: >
+      The two answer different questions. Publishing only the target invites 'why has the team
+      not built Health?'; publishing only R0 invites 'why are we building a Journey Registry for
+      one product?'. Overwriting the R0 view would have destroyed the executable architecture.
+  - id: "label the unadmitted"
+    decision: >
+      R1–R4 elements are stamped with their CURRENT-STATE out_of_scope revisit_at; RN elements
+      are marked as having no governance record; a separate dashed band marks integrations
+      (CKYC, V-KYC, e-sign, TPA, IRDAI/IIB reporting, channel vendors) as RN candidates that are
+      explicitly NOT admitted scope.
+    rationale: >
+      A target diagram is the easiest artefact in a programme to misread as a plan. Naming the
+      gaps is more useful than omitting them, but only if the diagram says they are gaps.
+
+not_included:
+  - "any change to CURRENT-STATE.yaml scope, stage or gate state"
+  - "T4 Architecture sign-off, which remains outstanding and human"
+  - "an ADR for any RN technology choice (event bus, direct insurer routes, analytics)"
+  - "the R0 -> R1 -> R2 transition and dependency map (SUG-20260820-r1t, parked)"
+
+outcome:
+  registered_in: "SUGGESTION-REGISTER.md"
+  work_item_id: SUG-20260820-n5t
+  status: ADMIT-BYPASS
+  evidence:
+    - "docs/hdl.svg — North Star, 11 described boundaries, release-coded R0..RN"
+    - "docs/architecture/r0-reference-architecture.svg — R0 view preserved"
+    - "docs/architecture/README.md — which diagram answers which question"
+    - "scripts/governance/ci-checks.py — PASSED, 24 checks"
   closed_reason: null
 
 resumed: null

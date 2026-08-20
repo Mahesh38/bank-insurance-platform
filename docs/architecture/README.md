@@ -2,10 +2,12 @@
 
 Two diagrams, deliberately. They answer different questions and **neither replaces the other**.
 
-| Diagram | Question it answers | Status |
+| Artefact | Question it answers | Status |
 |---------|--------------------|--------|
 | [`../hdl.svg`](../hdl.svg) | *Where is this platform going, and what arrives in which release?* | Target state (North Star). AI-drafted, **T4 Architecture sign-off outstanding** |
-| [`r0-reference-architecture.svg`](./r0-reference-architecture.svg) | *What are we building right now, and how does the R0 journey actually run?* | R0 executable architecture — the admitted scope |
+| [`r0-reference-architecture.svg`](./r0-reference-architecture.svg) | *What are we building right now, and how does the R0 journey actually run?* | R0 executable architecture — the admitted scope. **Rendering**; owns nothing |
+| [`R0-HLD.md`](./R0-HLD.md) | *Walk the R0 picture in prose: domain, ten boundaries, communication, APIs, business logic, waves vs stages vs releases* | Stakeholder HLD. Compiled view of the authoritative `ws3-platform/` sources. AI-drafted, T4 outstanding |
+| [`R0-LLD.md`](./R0-LLD.md) | *What AWS resources, VPC, reverse proxies, PVCs, databases and caches does the platform team provision for R0?* | S09 requirements pack for the CTO and AWS platform team. AI-drafted; Security / Database / SRE reviews outstanding |
 
 ## Why both
 
@@ -152,9 +154,17 @@ document wins:
   — the domain invariants the journey spine renders
 - [`governance/state/CURRENT-STATE.yaml`](../governance/state/CURRENT-STATE.yaml) — scope and stage
 
+## Revision — 2026-08-20 stakeholder HLD / LLD pack
+
+`SUG-20260820-hl1` added the two prose artefacts above. They do not replace
+[`03-solution-architecture-r0.md`](../platform/ws3-platform/03-solution-architecture-r0.md) or
+this folder's SVG: the HLD walks the SVG for humans (APIs, saga, *what to do when*); the LLD
+narrows the target-state AWS review to the R0 bill of materials — VPC, two-hop reverse proxy,
+no PVCs on business services, one Aurora cluster, no Kafka, no shared Redis.
+
 ## Still missing
 
 An **R0 → R1 → R2 transition and dependency map**. The North Star shows the destination and the
 roadmap band shows what lands when, but neither tells delivery the *order* in which components
 must appear, or which target components are prerequisites for others. That is the next diagram,
-and it is Kalpana's (R12) input as much as Architecture's.
+and it is Kalpana's (R12) input as much as Architecture's. Tracked as parked `SUG-20260820-r1t`.

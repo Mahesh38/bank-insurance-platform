@@ -29,6 +29,8 @@ architecture diagram will almost draw itself.*
 | Persona files [`09`](./09-target-state-architecture-doctrine.md)–[`15`](./15-actor-identity-and-authorization.md), [`17`](./17-provider-aggregation-and-connectivity.md) | **Grounding** | Horizons, invariants, capability model, segregation, orchestration and provider-aggregation doctrine |
 | **`docs/hdl.svg`** | **Rendering** | Nothing. It *depicts* the target state, release-coded `R0`…`RN` |
 | **`docs/architecture/r0-reference-architecture.svg`** | **Rendering** | Nothing. It *depicts* the R0 slice of the same picture |
+| [`docs/architecture/R0-HLD.md`](../../../architecture/R0-HLD.md) | **Compiled narrative** | Nothing new. Walks the R0 rendering for humans (domain, APIs, waves). If it disagrees with the rows above, those rows win (`HA-02`) |
+| [`docs/architecture/R0-LLD.md`](../../../architecture/R0-LLD.md) | **S09 platform pack** | Maps already-accepted R0 decisions onto AWS resources for the CTO / platform team. Must not invent a service the rows above do not name |
 
 **Rule HA-02b — the two renderings are one artefact in two cuts.** `hdl.svg` answers *where is
 this going*; `r0-reference-architecture.svg` answers *what are we building now*. They must use the

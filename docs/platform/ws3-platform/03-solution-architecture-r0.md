@@ -90,7 +90,7 @@ is the first thing built after that gate, because every wave beneath it reads fr
 |---|---|---|---|---|
 | **W0 — platform foundation** | *(no services — pipeline, IaC, environments)* | — | S08 + S09. See [`00-WS3-ARCHITECTURE-REGISTRATION.md`](./00-WS3-ARCHITECTURE-REGISTRATION.md) | — |
 | **W0b — configuration layer** | **Configuration (Administration & Config, backend only)** | #19 | Every wave below resolves rules, journey steps, validations, checklists, eligibility and permissions from it. Building it after the services that read it is how hardcoded branches get written and never removed (`CF-5`) | service |
-| W1 | **Opportunity (registered as Lead)** | #5 | **The single origination point (`AC-8`).** Nothing downstream may exist without one, so it cannot follow them. Un-deferred from S13 to reconcile with `CURRENT-STATE.yaml` `in_scope`, which already lists it (`AC-9`) | service |
+| W1 | **Opportunity** | #5 | **The single origination point (`AC-8`).** Nothing downstream may exist without one, so it cannot follow them. Un-deferred from S13 to reconcile with `CURRENT-STATE.yaml` `in_scope`, which already lists it (`AC-9`) | service |
 | W1 | Journey Orchestration | #9 | Everything else attaches to it; building it late forces journey state into the BFFs | service |
 | W1 | Integration Hub | #14 | Places the existing 1SB adapter behind a routing seam before four services depend on it directly | service |
 | W1 | Customer | #4 | ETB lookup is the entry to every journey | service |
@@ -222,7 +222,7 @@ graph TB
 | Compute | EKS, per ARCH-002. Every service stateless at pod level |
 | Exposure | Only the API Gateway is public. Every service and every datastore is in a private subnet |
 | Customer device | Reaches the **payment gateway only**, never a platform service. That is what makes C4 an architecture property rather than a UI convention |
-| Database | Database-per-service (ARCH-004). The existing shared `bank-persistence-service` stays scoped to the integration job/correlation store and audit ingestion — it is **not** extended to the R0 business contexts |
+| Database | **Ownership per context, one cluster at R0** (`ADR-008`, amending `ARCH-004`). Each context owns its own schema with its own credential and its own migration history, and no service reads another's tables — that half is invariant. The physical topology is not: R0 runs **one Aurora cluster with a schema per context**, and the first physical split follows the **LOB-cell / shared-platform seam**, not the service boundary. The existing shared `bank-persistence-service` stays scoped to the integration job/correlation store and audit ingestion — it is **not** extended to the R0 business contexts |
 | Render.com | Dev preview only. Never a PII data path. See ADR-001 in [`../architecture-review/08-architecture-decision-log.md`](../architecture-review/08-architecture-decision-log.md) |
 | **Partner (IPR) exposure** | The partner surface enters through the **same** API Gateway and the same BFF contract as the RM surface. There is no partner-specific service and no partner-specific journey path (`AC-3`); the difference is entirely the PDP decision and the query-layer scope (`AC-5`) |
 | **Actor scoping** | Every read on behalf of an `INSURER_PARTNER_REP` principal is constrained at the persistence layer by `insurer_id` **and** the `AC-4` visibility predicate. A repository method that can be called without them does not exist (`FF-17`) |

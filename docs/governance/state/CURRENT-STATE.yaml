@@ -543,8 +543,9 @@ id_allocation:
     SPIKE: 1
     # ADR-001..003 were written into architecture-review/08 under CR-010 while this counter still
     # read 1; that file carries a standing note asking for the advance. ADR-004..007 were added by
-    # the 2026-08-20 HLD review round (SUG-20260820-hr0) and are indexed in the decision register,
+    # the 2026-08-20 HLD review round (SUG-20260820-hr0); ADR-008 by the same day's decision round
+    # (SUG-20260820-dc4). All are indexed in the decision register,
     # which FreshnessCheck scans — so the counter had to move or every agent would halt on a
     # collision warning. This is an ID-allocation correction only. No stage, scope or gate field is
     # touched by it; those remain human-owned (04 section 5).
-    ADR: 8
+    ADR: 9

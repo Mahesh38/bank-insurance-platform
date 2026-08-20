@@ -102,9 +102,12 @@ The seven that currently differ, and are therefore always written in the arrow f
 | 11 | Proposal & UW-Tracking | *LOB* Proposal / Case Mgmt | Per-LOB from R1; the boundary is frozen |
 | 13 | Policy & Issuance | Policy Portfolio / Registry | Issuance coordination moves into the cell; the registry stays shared |
 
-Context **#5** is deliberately absent from that table. `Lead` vs `Opportunity` is an open product
-decision (`OPEN-D10`, Rajal), so both files write the dual form `#5 Opportunity (Lead)` until it
-lands. Nothing about that is an agent decision.
+Context **#5** was in that table until `OPEN-D10` closed on 2026-08-20. It is now named
+**Opportunity** in the register and at target state alike, so it has no arrow form and both files
+write `#5 Opportunity` plainly
+([`ADR-005` `naming_resolution`](../../../platform/architecture-review/08-architecture-decision-log.md)).
+Identifiers did not follow the name: `leadId`, `INV-LED-*` and `CAP-102` keep their tokens, because
+an ID is opaque and rewriting them breaks every citation to buy nothing.
 
 **Rule LY-1 — the ten boundaries are the layer vocabulary for every horizon.** The North Star's
 boundaries are not a drawing style; they are the layer model. Every horizon diagram lays its

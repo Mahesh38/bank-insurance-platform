@@ -9,7 +9,7 @@
 | ARCH-001 | Target cloud is **AWS only**; no multi-cloud abstraction | Proposed | Explicit constraint for this review | — |
 | ARCH-002 | Compute substrate is **Amazon EKS** for every microservice; elasticity via Karpenter + HPA + KEDA | Proposed | Explicit constraint for this review | — |
 | ARCH-003 | Target-state platform = **~16 domain-aligned microservices** + 2 edge BFFs + 1 routing layer, sequenced across 4 delivery phases (P0–P3), not built simultaneously | Proposed | Capability map defines domains, not service count (`knowledge-base/03-capability-map.md` PO note); this review makes that call | See [02](./02-target-microservices-architecture.md) |
-| ARCH-004 | **Database-per-service** for every business-domain service; the existing `bank-persistence-service` shared-HTTP-store pattern is scoped **only** to the integration job/correlation store and audit ingestion — not extended to Customer/Lead/Consent/Suitability/Catalogue/Payment/Policy/etc. | Proposed (amends prior pattern) | A platform-wide shared persistence service becomes a single coupling/failure point once 10+ business domains exist; the pattern was designed for two closely-related consumers, not the whole platform | Amends `docs/1sb-insurance-integration/architecture/bank-persistence-service.md` scope, does not delete it |
+| ARCH-004 | **Data ownership per service** — one owner per authoritative datum, no cross-service table access, separate credentials and schema ownership per service; the existing `bank-persistence-service` shared-HTTP-store pattern is scoped **only** to the integration job/correlation store and audit ingestion — not extended to Customer/Opportunity/Consent/Suitability/Catalogue/Payment/Policy/etc. **The physical-cluster-per-service half is withdrawn — see `ADR-008`.** | Proposed, qualified by `ADR-008` | A platform-wide shared persistence service becomes a single coupling/failure point once 10+ business domains exist. But ownership and physical topology are different claims, and only the first is a principle (`TI-05`, `VIN-001 §34`) | Amends `docs/1sb-insurance-integration/architecture/bank-persistence-service.md` scope, does not delete it · physical topology decided by `ADR-008` |
 | ARCH-005 | **Journey Orchestration** is a first-class microservice owning the cross-domain journey state machine | Proposed (new service, not previously named) | Someone must own `Journey { stage, externalRefs, partySnapshot }` (`canonical-model/contexts.md` §8) across domains or every BFF reimplements it, breaking replaceability | New; builds on the Journey aggregate already defined in the 1SB research pack |
 | ARCH-006 | **1SB Adapter** (existing `1sb-integration-service`) is retained as-is and placed behind a new **Integration Hub** routing layer; no rewrite | Confirms + extends | The service is already well-designed (hexagonal, SOLID/DRY/KISS, Case-2 pattern) and explicitly scoped as a Phase-A adapter slice in `knowledge-base/08-integration-strategy.md` | Confirms `docs/1sb-insurance-integration/architecture/replaceable-middleware.md` and `08-integration-strategy.md` |
 | ARCH-007 | Sync at every point a human is waiting in-session; async (Kafka/SQS/SNS) for every cross-domain side effect (audit, notification, reporting) | Proposed | Generalizes the already-accepted "sync API, async inside" rule from the 1SB adapter (Domain rule 3) to the whole platform | Confirms and extends `1sb-integration-service-architecture.md` §1 |
@@ -412,6 +412,25 @@ context_naming: >
   architecture documents keep the registered, Product-owned labels and state normatively that they
   denote the opportunity. Re-labelling is Rajal's, is behaviour-neutral, and is recorded as
   OPEN-D10. The identifier is not the point; the single-origination rule is.
+naming_resolution: >
+  OPEN-D10 CLOSED 2026-08-20 by Mahesh: the context is named Opportunity. The argument is domain
+  scope rather than preference. A lead records that someone might buy and ceases to mean anything
+  at conversion. An opportunity is the durable demand object behind a new sale, a renewal, a lapse
+  recovery, a cross-sell and an abandoned-journey recovery — which is precisely the R2 rule that a
+  renewal or a lapse creates a NEW opportunity and a NEW journey rather than reopening an old one.
+  Under the name Lead that rule reads as a contradiction; under the name Opportunity it reads as
+  the model. Carrying both names was also costing the diagrams a permanent parenthesis.
+
+  What changes: the context NAME, in the bounded-context register, the architecture documents and
+  both diagrams. What does not change: identifiers and register IDs. leadId, INV-LED-01..07 and
+  CAP-102 keep their tokens, because an ID is opaque and rewriting them breaks every existing
+  citation to buy nothing. The UI label is Product's and is not decided here.
+
+  Residual, and it is a real one: CURRENT-STATE.yaml current_scope.in_scope still reads "Lead
+  service (context #5) — create, resume, status", and WS-3-PLATFORM-CHARTER.md mirrors it. Those
+  are human-owned scope text. Until Kalpana transcribes them the register and the state file
+  disagree about the name — a smaller drift than the one ADR-005 closed, but the same kind, and it
+  should not be left standing.
 authority_class: A2_NOTIFY
 alternatives:
   - option: "Keep context #5 deferred and start journeys from a customer lookup"
@@ -447,7 +466,7 @@ revisit_trigger: >
   scope decision for Rajal, not an architecture preference.
 approvals:
   - "Mahesh / Architecture — AI-DRAFTED, human signature outstanding"
-  - "Rajal / Product — required (build-order change and the Lead/Opportunity label, OPEN-D10)"
+  - "Rajal / Product — required (build-order change). The Lead/Opportunity label, OPEN-D10, is DECIDED by Mahesh 2026-08-20 — see naming_resolution; Rajal's confirmation is still required for Product-owned and UI-facing artefacts, and for the CURRENT-STATE.yaml transcription"
   - "Kalpana / Delivery — notify (Wave 1 grows by one service)"
 ```
 
@@ -597,9 +616,108 @@ approvals:
 
 ---
 
-## Signature status for ADR-001 — ADR-007
+## ADR-008 — Data ownership is the invariant; physical cluster topology is an evidence-led decision
 
-All seven records are **`AI-DRAFTED — mandatory human signature outstanding`**. ADR-002 is
+```yaml
+id: ADR-008
+status: PROPOSED
+problem: >
+  ARCH-004 bundled three claims under one heading — "database-per-service" — and the repository has
+  been citing all three as though they were equally settled. Two of them are principles. The third
+  is a topology decision with cost, upgrade, backup, DR and DBA consequences, and it had never been
+  argued on its own terms. The bundling produced a live contradiction between two published
+  diagrams: the R0 reference architecture asserted a store per service, while the North Star's
+  boundary 8 asserted schema separation in a shared cluster with physical splitting deferred until
+  scale, security or RTO justify it. Two artefacts, two R0 data topologies, no way for a reader to
+  tell which was current. Raised as OPEN-A1 under SUG-20260820-al7.
+context_stage: >
+  WS-3 at S08. GATE-S08 open, GATE-S09 not started. No business service is implemented, no schema
+  exists and no migration has been written — so this costs a documentation change today and a
+  migration across every table in every context once R0 has run.
+decision: >
+  Split ARCH-004 into its parts and decide each on its own evidence.
+
+  INVARIANT, unchanged and enforced. One owner per authoritative datum. No service reads or writes
+  another service's tables, ever. Each service holds its own credential and owns its own schema.
+  This is what makes the ownership claim enforceable rather than aspirational, and it is verified
+  by ArchUnit and by IAM policy in the S09 IaC scan.
+
+  DECISION, evidence-led, and taken here. R0 runs ONE Aurora PostgreSQL cluster with a schema per
+  bounded context, per-context credentials and no cross-schema grants. A separate physical cluster
+  per service is NOT a principle and is not adopted. Physical separation is taken later, per
+  workload, when scale, blast radius, security isolation or RTO/RPO justify it — and the first
+  split follows the LOB-cell / shared-platform seam, not the service boundary: shared platform data
+  (party, opportunity, consent, journey registry, catalogue, payment, policy portfolio, audit index)
+  in one cluster, and each LOB cell (life_journey, life_quote, life_proposal, then health_*, then
+  general_*) able to become its own cluster with no application redesign.
+
+  The seam is chosen deliberately. LB-5 already says the LOB boundary is where behaviour, traffic
+  profile and change rate genuinely diverge, and the North Star's boundary 8 already draws the
+  target that way. Splitting along a seam the domain model already recognises is a data move.
+  Splitting per service is forty clusters across three environments plus DR, which is a cost,
+  upgrade, backup and on-call problem rather than an architecture.
+authority_class: A3_JOINT_REVIEW
+alternatives:
+  - option: "Keep ARCH-004 whole — a physical cluster per business service from R0"
+    rejected_because: >
+      It buys isolation nobody has evidence of needing and charges for it immediately, in cluster
+      cost, patching, backup verification, connection management, cross-cluster consistency and DBA
+      load, across dev, UAT, production and a DR region. VIN-001 section 34 names this directly:
+      "database per service doesn't necessarily mean 40 separate Aurora clusters". It also weakens
+      the thing that actually matters — teams that cannot afford forty clusters quietly share one
+      and lose the ownership rule with it.
+  - option: "Drop the ownership rule too and let R0 share tables inside one cluster"
+    rejected_because: >
+      This is the failure this ADR exists to prevent. Physical convenience must not erode the
+      ownership half. A shared table between two contexts is a finding, not a shortcut, and no cost
+      argument reaches it: cross-service table access is what makes a later split impossible.
+  - option: "Defer the decision until S09 when the IaC is written"
+    rejected_because: >
+      The contradiction is already published in two diagrams that delivery reads. Deferring keeps
+      both answers alive through the exact window in which the first schemas get written.
+consequences:
+  positive:
+    - "One R0 data topology, asserted identically by both diagrams and by every architecture document"
+    - "R0 runs on one cluster: one thing to patch, back up, restore-test and hold an on-call runbook for, at the stage where GATE-S09 must prove a timed restore"
+    - "The ownership invariant is now stated on its own and is harder to trade away, because it is no longer bundled with a cost argument"
+    - "The split axis is named in advance, so cell-owned schemas are laid out from day one to be extractable"
+  negative:
+    - "One cluster is one blast radius. A Life quote storm, a runaway migration or a cluster-level failure reaches shared platform data too"
+    - "Noisy-neighbour risk is real and must be watched, not assumed away — it is the primary evidence this decision waits on"
+    - "Per-schema credential discipline now carries the whole ownership guarantee, so a mis-scoped grant is a more serious defect than it would be with physical separation"
+mitigations:
+  - "Connection-pool caps per context so one context cannot exhaust the cluster on another's behalf"
+  - "Per-context credentials with no cross-schema grant, verified in the S09 IaC scan alongside FF-09"
+  - "Cell schemas named and laid out for extraction from day one (life_journey, life_quote, life_proposal), so the first split is a data move"
+  - "The revisit trigger below is measured, not remembered"
+compliance_impact: >
+  Neutral. Residency, retention, WORM audit storage and encryption are unchanged — those are
+  properties of the store and its region, not of how many clusters there are.
+security_impact: >
+  Material and must be reviewed, not assumed. Isolation that was going to be physical is now
+  logical, so per-context credentials and schema grants carry the whole of it. Deepali's review is
+  required on that basis. No trust boundary moves and nothing becomes internet-reachable.
+reversibility: HIGH
+revisit_trigger: >
+  Measured, not remembered. Any of: a context whose load, connection count or lock profile
+  demonstrably degrades another; an RTO/RPO requirement one cluster cannot meet; a security or
+  regulatory requirement for physical isolation of a data class; or the Health cell arriving at R3,
+  which is the first point at which the LOB seam has a second occupant to justify it.
+supersedes: >
+  ARCH-004, physical-topology half only. The ownership and credential/schema-ownership halves of
+  ARCH-004 are retained and restated above, not withdrawn.
+approvals:
+  - "Mahesh / Architecture — DECIDED 2026-08-20 in session; human signature outstanding"
+  - "Aarti / Database — REQUIRED and outstanding. CR-011 names her as the accountable approver for the ARCH-004 reconciliation; physical model, recovery and the restore-time evidence for GATE-S09 are hers"
+  - "Deepali / Security — REQUIRED and outstanding (isolation moves from physical to logical)"
+  - "Shivanshi / SRE — notify (blast radius, connection limits, restore drill)"
+```
+
+---
+
+## Signature status for ADR-001 — ADR-008
+
+All eight records are **`AI-DRAFTED — mandatory human signature outstanding`**. ADR-002 is
 `A4_HUMAN_REQUIRED`: it is a material scope and stage decision and an AI simulation of Mahesh must
 not finalise it. None of these ADRs is `ACCEPTED` until the approvals listed in each record are
 present, and none of them becomes binding merely because CR-010's checks pass or its branch is
@@ -610,6 +728,14 @@ Security review is not optional, and its assist-only threshold is Shailja's to s
 ADR-005 changes the R0 build order and a Product-owned scope label, so Rajal's decision is
 required. ADR-004 through ADR-007 were raised by the 2026-08-20 HLD review round and are recorded
 under `SUG-20260820-hr0`.
+
+ADR-008 is `A3_JOINT_REVIEW` and is the one record here whose decision half is **taken** while its
+approvals are not. Mahesh decided the topology in session on 2026-08-20, closing `OPEN-A1`; the
+record is written and the documents and diagrams follow it. But `CR-011` names **Aarti** as the
+accountable approver for any `ARCH-004` reconciliation, and this ADR moves service isolation from
+physical to logical, which makes **Deepali's** Security review non-optional. Neither approval
+exists. An architect's decision is not a DBA's sign-off and an agent does not supply either.
+ADR-008 is recorded under `SUG-20260820-dc4`, which also closes `OPEN-D10` inside ADR-005.
 
 **Signed:** Mahesh — Principal Insurance Platform Architect (Board 1 / R2) · 2026-08-16 ·
 **revised** 2026-08-20

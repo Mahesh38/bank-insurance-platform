@@ -1,9 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="2740" viewBox="0 0 1800 2740" font-family="Helvetica, Arial, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="2760" viewBox="0 0 1800 2760" font-family="Helvetica, Arial, sans-serif">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#334155"/></marker>
     <marker id="arrGray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/></marker>
   </defs>
-  <rect x="0" y="0" width="1800" height="2740" fill="#ffffff"/>
+  <rect x="0" y="0" width="1800" height="2760" fill="#ffffff"/>
   <text x="900" y="36" font-size="25" fill="#0f172a" text-anchor="middle" font-weight="bold">AU Bank Insurance Distribution Platform — R0 High-Level Design</text>
   <text x="900" y="58" font-size="12" fill="#475569" text-anchor="middle">Target state at end of R0 · one RM — the certified Specified Person — sells one Term Life policy to one ETB customer of one Group A insurer, end to end, evidenced, audited · an Insurance Partner Rep may assist, never sell · WS-3 (primary) + WS-1 (supplier) + WS-2 (enabler)</text>
   <text x="60" y="82" font-size="10" fill="#64748b" font-weight="bold" letter-spacing="1">R0 OUTCOME — THE JOURNEY THAT MUST RUN END TO END</text>
@@ -156,7 +156,7 @@
   <text x="400" y="828.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">W1</text>
   <circle cx="573" cy="824.5" r="9" fill="#0f172a"/>
   <text x="573" y="828" font-size="9.5" fill="#ffffff" text-anchor="middle" font-weight="bold">1</text>
-  <text x="485.0" y="852" font-size="11.8" fill="#0f172a" text-anchor="middle" font-weight="bold">#5  Opportunity (Lead)</text>
+  <text x="485.0" y="852" font-size="11.8" fill="#0f172a" text-anchor="middle" font-weight="bold">#5  Opportunity</text>
   <text x="485.0" y="868.0" font-size="8.6" fill="#475569" text-anchor="middle">SINGLE origination point ·</text>
   <text x="485.0" y="879.5" font-size="8.6" fill="#475569" text-anchor="middle">RM-only create (INV-LED-04) ·</text>
   <text x="485.0" y="891.0" font-size="8.6" fill="#475569" text-anchor="middle">carries lob + the accountable SP</text>
@@ -375,17 +375,17 @@
   <text x="1520.0" y="1654" font-size="11.8" fill="#0f172a" text-anchor="middle" font-weight="bold">1SilverBullet (Aggregator)</text>
   <text x="1520.0" y="1670.0" font-size="8.6" fill="#475569" text-anchor="middle">Group A insurers · Term only in R0.</text>
   <text x="1520.0" y="1681.5" font-size="8.6" fill="#475569" text-anchor="middle">Reached only through #14 → #15, never directly</text>
-  <rect x="40" y="1786" width="1720" height="152" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.3"/>
+  <rect x="40" y="1786" width="1720" height="172" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.3"/>
   <rect x="40" y="1786" width="1720" height="24" rx="10" fill="#0f172a"/>
   <rect x="40" y="1798" width="1720" height="12" fill="#0f172a"/>
   <text x="56" y="1802.5" font-size="9.5" fill="#ffffff" font-weight="bold" letter-spacing="1.4">BOUNDARY 8</text>
   <text x="166" y="1802.5" font-size="10.5" fill="#ffffff" font-weight="bold" letter-spacing="0.6">DATA &amp; PERSISTENCE</text>
-  <text x="1744" y="1802.5" font-size="9" fill="#cbd5e1" text-anchor="end" font-weight="bold">database-per-service (ARCH-004) · no cross-service DB access</text>
+  <text x="1744" y="1802.5" font-size="9" fill="#cbd5e1" text-anchor="end" font-weight="bold">ownership per context · ONE cluster at R0 (ADR-008)</text>
   <path d="M70,1834 a190.0,10 0 0,1 380,0 v46 a190.0,10 0 0,1 -380,0 z" fill="#ffffff" stroke="#475569" stroke-width="1.2"/>
   <ellipse cx="260.0" cy="1834" rx="190.0" ry="10" fill="#ffffff" stroke="#475569" stroke-width="1.2"/>
-  <text x="260.0" y="1856" font-size="11" fill="#0f172a" text-anchor="middle" font-weight="bold">Aurora PostgreSQL</text>
-  <text x="260.0" y="1870" font-size="8.6" fill="#475569" text-anchor="middle">one store per service · Multi-AZ · PITR</text>
-  <text x="260.0" y="1881" font-size="8.6" fill="#475569" text-anchor="middle">party · opportunity · consent · catalogue · payment · policy</text>
+  <text x="260.0" y="1856" font-size="11" fill="#0f172a" text-anchor="middle" font-weight="bold">Aurora PostgreSQL — ONE cluster</text>
+  <text x="260.0" y="1870" font-size="8.6" fill="#475569" text-anchor="middle">a SCHEMA per context · Multi-AZ · PITR</text>
+  <text x="260.0" y="1881" font-size="8.6" fill="#475569" text-anchor="middle">shared platform + life_* cell schemas, split-ready</text>
   <path d="M490,1834 a190.0,10 0 0,1 380,0 v46 a190.0,10 0 0,1 -380,0 z" fill="#ffffff" stroke="#475569" stroke-width="1.2"/>
   <ellipse cx="680.0" cy="1834" rx="190.0" ry="10" fill="#ffffff" stroke="#475569" stroke-width="1.2"/>
   <text x="680.0" y="1856" font-size="11" fill="#0f172a" text-anchor="middle" font-weight="bold">DynamoDB</text>
@@ -401,123 +401,125 @@
   <text x="1520.0" y="1856" font-size="11" fill="#0f172a" text-anchor="middle" font-weight="bold">Secrets Manager + KMS</text>
   <text x="1520.0" y="1870" font-size="8.6" fill="#475569" text-anchor="middle">per-service credentials · CMK hierarchy</text>
   <text x="1520.0" y="1881" font-size="8.6" fill="#475569" text-anchor="middle">India regions only, enforced by policy-as-code</text>
-  <text x="56" y="1924" font-size="9" fill="#475569">The existing bank-persistence-service stays scoped to the integration job store and audit ingestion — it is NOT extended to the R0 business contexts (ARCH-004).   OPEN-A1: whether R0 starts as one cluster with a schema per context or a cluster per service is Mahesh and Aarti's call; the North Star draws the first, this file draws ARCH-004 as ratified.</text>
-  <rect x="40" y="1972" width="1720" height="124" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.3"/>
-  <rect x="40" y="1972" width="1720" height="24" rx="10" fill="#0f172a"/>
-  <rect x="40" y="1984" width="1720" height="12" fill="#0f172a"/>
-  <text x="56" y="1988.5" font-size="9.5" fill="#ffffff" font-weight="bold" letter-spacing="1.4">BOUNDARY 9</text>
-  <text x="166" y="1988.5" font-size="10.5" fill="#ffffff" font-weight="bold" letter-spacing="0.6">EVENT &amp; MESSAGING BACKBONE</text>
-  <text x="1744" y="1988.5" font-size="9" fill="#cbd5e1" text-anchor="end" font-weight="bold">no broker in R0 — and that is a decision, not a gap</text>
-  <rect x="60" y="2006" width="830" height="76" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
-  <text x="475.0" y="2048" font-size="11.8" fill="#0f172a" text-anchor="middle" font-weight="bold">Transactional outbox — the only asynchronous mechanism in R0</text>
-  <text x="475.0" y="2064.0" font-size="8.6" fill="#475569" text-anchor="middle">service DB → outbox → worker, at-least-once (S-17). Audit consumes it; so does Notification (S-18). Already this</text>
-  <text x="475.0" y="2075.5" font-size="8.6" fill="#475569" text-anchor="middle">repository's pattern, and it stays the starting point. LOB-partitioned logical topics and a managed bus are R1/RN.</text>
-  <rect x="910" y="2006" width="810" height="76" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
-  <text x="1315.0" y="2048" font-size="11.8" fill="#0f172a" text-anchor="middle" font-weight="bold">Synchronous vs asynchronous — the rule R0 applies</text>
-  <text x="1315.0" y="2064.0" font-size="8.6" fill="#475569" text-anchor="middle">MUST be synchronous: authorization (S-02), configuration resolution (S-21), critical validation, payment session (S-13).</text>
-  <text x="1315.0" y="2075.5" font-size="8.6" fill="#475569" text-anchor="middle">MAY be asynchronous: audit ingestion, notification, quote and proposal polling. A notification or audit outage never fails a sale.</text>
-  <rect x="40" y="2130" width="1720" height="148" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.3"/>
-  <rect x="40" y="2130" width="1720" height="24" rx="10" fill="#0f172a"/>
-  <rect x="40" y="2142" width="1720" height="12" fill="#0f172a"/>
-  <text x="56" y="2146.5" font-size="9.5" fill="#ffffff" font-weight="bold" letter-spacing="1.4">BOUNDARY 10</text>
-  <text x="166" y="2146.5" font-size="10.5" fill="#ffffff" font-weight="bold" letter-spacing="0.6">PLATFORM ENGINEERING &amp; GOVERNANCE PLANE — IF-3, THE PAVED ROAD</text>
-  <text x="1744" y="2146.5" font-size="9" fill="#cbd5e1" text-anchor="end" font-weight="bold">built once in WS-3; consumed by WS-1, WS-2 and WS-3</text>
-  <text x="56" y="2170" font-size="9.2" fill="#92400e">Waves W0b–W4 above start only after GATE-S08 passes and the S09 critical path lands. This is where the platform actually is today.</text>
-  <rect x="60" y="2180" width="830" height="82" rx="6" fill="#fffbeb" stroke="#b45309" stroke-width="1.3"/>
-  <text x="76" y="2200" font-size="11.5" fill="#0f172a" font-weight="bold">S08 — Engineering Foundation · GATE-S08 OPEN</text>
-  <text x="76" y="2216" font-size="8.8" fill="#475569">CI builds + tests every module on every PR · merge impossible without green · coverage floors (libs 80 / 70) · ArchUnit + 21 fitness functions (FF-01…FF-21)</text>
-  <text x="76" y="2229" font-size="8.8" fill="#475569">secret / SAST / SCA / image scanning · no PII in logs, proven by automated test · p95 pipeline feedback &lt; 10 min · engineering standards published</text>
-  <text x="76" y="2246" font-size="8.8" fill="#475569">Approvers: Amit (Eng) · Swapnali (QA) · Mahesh (Arch) · Deepali (Sec) · Shivanshi (SRE)</text>
-  <rect x="910" y="2180" width="810" height="82" rx="6" fill="#fffbeb" stroke="#b45309" stroke-width="1.3"/>
-  <text x="926" y="2200" font-size="11.5" fill="#0f172a" font-weight="bold">S09 — Platform &amp; Environment Foundation (overlapped with S08)</text>
-  <text x="926" y="2216" font-size="8.8" fill="#475569">IaC + environments (dev → UAT → prod) · secrets &amp; KMS hierarchy · observability substrate · 7-year write-once retention in ap-south-1</text>
-  <text x="926" y="2229" font-size="8.8" fill="#475569">restore executed and timed (S09-G7) — "a backup that has never been restored is a hypothesis" · DR warm standby in ap-south-2</text>
-  <text x="926" y="2246" font-size="8.8" fill="#475569">IaC policy-as-code: India regions only (FF-08) · no public / unencrypted store, no wildcard prod IAM (FF-09) · audit store immutability (FF-10)</text>
-  <rect x="60" y="2312" width="520" height="336" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
-  <text x="76" y="2334" font-size="11" fill="#334155" font-weight="bold" letter-spacing="1">LEGEND</text>
-  <rect x="76" y="2346" width="14" height="14" rx="3" fill="#e0f2fe" stroke="#0284c7"/>
-  <text x="98" y="2357" font-size="9.2" fill="#334155">Wave 0b — configuration layer (before W1)</text>
-  <rect x="76" y="2365" width="14" height="14" rx="3" fill="#dbeafe" stroke="#2563eb"/>
-  <text x="98" y="2376" font-size="9.2" fill="#334155">Wave 1 — journey spine (build first)</text>
-  <rect x="76" y="2384" width="14" height="14" rx="3" fill="#fef3c7" stroke="#d97706"/>
-  <text x="98" y="2395" font-size="9.2" fill="#334155">Wave 2 — consent · suitability · quote</text>
-  <rect x="76" y="2403" width="14" height="14" rx="3" fill="#dcfce7" stroke="#16a34a"/>
-  <text x="98" y="2414" font-size="9.2" fill="#334155">Wave 3 — money · policy · audit</text>
-  <rect x="76" y="2422" width="14" height="14" rx="3" fill="#f3e8ff" stroke="#9333ea"/>
-  <text x="98" y="2433" font-size="9.2" fill="#334155">Wave 4 — BFF · Flutter · notification</text>
-  <rect x="76" y="2441" width="14" height="14" rx="3" fill="#e2e8f0" stroke="#475569"/>
-  <text x="98" y="2452" font-size="9.2" fill="#334155">WS-1 supplier — exists today</text>
-  <rect x="76" y="2460" width="14" height="14" rx="3" fill="#ecfdf5" stroke="#059669"/>
-  <text x="98" y="2471" font-size="9.2" fill="#334155">WS-2 enabler — workforce identity</text>
-  <rect x="76" y="2479" width="14" height="14" rx="3" fill="#ffffff" stroke="#64748b" stroke-dasharray="3 2"/>
-  <text x="98" y="2490" font-size="9.2" fill="#334155">External system</text>
-  <rect x="76" y="2498" width="14" height="14" rx="3" fill="#ffffff" stroke="#cbd5e1" stroke-dasharray="5 4"/>
-  <text x="98" y="2509" font-size="9.2" fill="#334155">not in R0 — greyed, carrying the release it arrives in</text>
-  <line x1="76" y1="2526" x2="118" y2="2526" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
-  <text x="128" y="2529" font-size="9.2" fill="#334155">synchronous call</text>
-  <line x1="76" y1="2546" x2="118" y2="2546" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrGray)"/>
-  <text x="128" y="2549" font-size="9.2" fill="#334155">async — outbox event / poll / callback</text>
-  <rect x="76" y="2557" width="24" height="15" rx="7" fill="#dc2626"/>
-  <text x="88" y="2568.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">C1</text>
-  <text x="108" y="2568.5" font-size="9.2" fill="#334155">non-waivable control — a ROUNDED pill (C1 · C2 · C4)</text>
-  <rect x="76" y="2577" width="30" height="15" rx="2" fill="#e11d48"/>
-  <text x="91" y="2588.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">LIFE</text>
-  <text x="114" y="2588.5" font-size="9.2" fill="#334155">LOB partition tag — a SQUARE tag. Different thing.</text>
-  <circle cx="84" cy="2604" r="8" fill="#0f172a"/>
-  <text x="84" y="2607.5" font-size="9.2" fill="#ffffff" text-anchor="middle" font-weight="bold">4</text>
-  <text x="100" y="2607.5" font-size="9.2" fill="#334155">journey step (the ribbon at the top)</text>
-  <text x="76" y="2640" font-size="9.2" fill="#334155">#n — bounded context, business-problem-statement §6</text>
-  <rect x="610" y="2312" width="560" height="336" rx="8" fill="#fff1f2" stroke="#e11d48" stroke-width="2"/>
-  <text x="626" y="2334" font-size="11" fill="#9f1239" font-weight="bold" letter-spacing="0.6">LINE OF BUSINESS — WHICH BOXES GET A SECOND COPY</text>
-  <text x="626" y="2350" font-size="9" fill="#9f1239">The question this diagram exists to answer once Health is on the table. LB-4 and LB-5 decide it.</text>
-  <rect x="626" y="2362" width="4" height="52" fill="#e11d48"/>
-  <text x="638" y="2372" font-size="9.4" fill="#9f1239" font-weight="bold">1 · LOB-OWNED EXECUTION — inside the rose cell</text>
-  <text x="638" y="2384.0" font-size="8.5" fill="#881337">#10 Quotation · #11 Proposal &amp; UW</text>
-  <text x="638" y="2394.5" font-size="8.5" fill="#881337">Health and General each get their OWN instance.</text>
-  <text x="638" y="2405.0" font-size="8.5" fill="#881337">The boundary is FROZEN: a Life quote and a Health quote</text>
-  <text x="638" y="2415.5" font-size="8.5" fill="#881337">do not share a field shape.</text>
-  <rect x="626" y="2418" width="4" height="52" fill="#e11d48"/>
-  <text x="638" y="2428" font-size="9.4" fill="#9f1239" font-weight="bold">2 · LOB-PARTITIONED SHARED — carries the LIFE tag</text>
-  <text x="638" y="2440.0" font-size="8.5" fill="#881337">#2 · #3 (PDP grants) · #6 · #7 · #8 · #9 · #14 · #19</text>
-  <text x="638" y="2450.5" font-size="8.5" fill="#881337">ONE codebase, ONE deployment. Behaviour is resolved from</text>
-  <text x="638" y="2461.0" font-size="8.5" fill="#881337">configuration keyed by (lob, …) per CF-2 — never forked,</text>
-  <text x="638" y="2471.5" font-size="8.5" fill="#881337">never branched on an lob literal (CF-1, FF-18).</text>
-  <rect x="626" y="2474" width="4" height="52" fill="#64748b"/>
-  <text x="638" y="2484" font-size="9.4" fill="#9f1239" font-weight="bold">3 · LOB-AGNOSTIC SHARED — no tag, outside every cell</text>
-  <text x="638" y="2496.0" font-size="8.5" fill="#881337">#4 · #5 · #12 · #13 · #16 · #17</text>
-  <text x="638" y="2506.5" font-size="8.5" fill="#881337">One instance for every line of business, forever.</text>
-  <text x="638" y="2517.0" font-size="8.5" fill="#881337">Partitioning the RULES is what makes the Health cell</text>
-  <text x="638" y="2527.5" font-size="8.5" fill="#881337">possible; duplicating the EVIDENCE makes it unauditable.</text>
-  <rect x="1200" y="2312" width="520" height="336" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
-  <text x="1216" y="2334" font-size="11" fill="#334155" font-weight="bold" letter-spacing="0.6">WHAT R0 DOES NOT CONTAIN, AND WHEN IT ARRIVES</text>
-  <text x="1216" y="2349" font-size="8.8" fill="#64748b">Greyed on the diagram above. Each is an out_of_scope entry in CURRENT-STATE.yaml</text>
-  <rect x="1216" y="2364" width="30" height="14" rx="3" fill="#e2e8f0"/>
-  <text x="1231" y="2374.5" font-size="8.2" fill="#475569" text-anchor="middle" font-weight="bold">S13</text>
-  <text x="1254" y="2374.5" font-size="8.5" fill="#475569">#1 Customer BFF · #18 Reporting &amp; MIS — not on the critical path to one proven journey</text>
-  <rect x="1216" y="2382" width="30" height="14" rx="3" fill="#e2e8f0"/>
-  <text x="1231" y="2392.5" font-size="8.2" fill="#475569" text-anchor="middle" font-weight="bold">R1</text>
-  <text x="1254" y="2392.5" font-size="8.5" fill="#475569">#19 Administration &amp; Config USER INTERFACE — the LAYER itself is W0b and ships in R0 (CF-5)</text>
-  <rect x="1216" y="2400" width="30" height="14" rx="3" fill="#e2e8f0"/>
-  <text x="1231" y="2410.5" font-size="8.2" fill="#475569" text-anchor="middle" font-weight="bold">R1</text>
-  <text x="1254" y="2410.5" font-size="8.5" fill="#475569">Campaign and bulk lead management on top of #5 — origination itself is W1 (AC-9)</text>
-  <rect x="1216" y="2418" width="30" height="14" rx="3" fill="#e2e8f0"/>
-  <text x="1231" y="2428.5" font-size="8.2" fill="#475569" text-anchor="middle" font-weight="bold">R1</text>
-  <text x="1254" y="2428.5" font-size="8.5" fill="#475569">Customer DIY journey · Group B insurers · ULIP and Savings · document platform · hi-IN</text>
-  <rect x="1216" y="2436" width="30" height="14" rx="3" fill="#e2e8f0"/>
-  <text x="1231" y="2446.5" font-size="8.2" fill="#475569" text-anchor="middle" font-weight="bold">R1</text>
-  <text x="1254" y="2446.5" font-size="8.5" fill="#475569">Journey Registry / LOB Router split · provider router · callback gateway · config maker-checker</text>
-  <rect x="1216" y="2454" width="30" height="14" rx="3" fill="#e2e8f0"/>
-  <text x="1231" y="2464.5" font-size="8.2" fill="#475569" text-anchor="middle" font-weight="bold">R2</text>
-  <text x="1254" y="2464.5" font-size="8.5" fill="#475569">Hybrid assisted ⇄ DIY · call centre · work management · renewal and lapse · NTB + V-KYC</text>
-  <rect x="1216" y="2472" width="30" height="14" rx="3" fill="#e2e8f0"/>
-  <text x="1231" y="2482.5" font-size="8.2" fill="#475569" text-anchor="middle" font-weight="bold">R3</text>
-  <text x="1254" y="2482.5" font-size="8.5" fill="#475569">HEALTH cell — gated on WS-1 Phase 5 being unfrozen</text>
-  <rect x="1216" y="2490" width="30" height="14" rx="3" fill="#e2e8f0"/>
-  <text x="1231" y="2500.5" font-size="8.2" fill="#475569" text-anchor="middle" font-weight="bold">R4</text>
-  <text x="1254" y="2500.5" font-size="8.5" fill="#475569">GENERAL / MOTOR cell — productLine inside lob = GENERAL</text>
-  <rect x="1216" y="2508" width="30" height="14" rx="3" fill="#e2e8f0"/>
-  <text x="1231" y="2518.5" font-size="8.2" fill="#475569" text-anchor="middle" font-weight="bold">—</text>
-  <text x="1254" y="2518.5" font-size="8.5" fill="#475569">No Kafka, no event bus, no Redis idempotency, no circuit breaker in R0 — each a recorded decision</text>
+  <text x="56" y="1916" font-size="9" fill="#475569">INVARIANT · one owner per authoritative datum · no service reads another's tables · per-context credential with NO cross-schema grant — ArchUnit + IAM, verified in the S09 IaC scan.   DECISION (ADR-008, amending ARCH-004) · a physical cluster per service is NOT a principle.</text>
+  <text x="56" y="1928" font-size="9" fill="#475569">R0 runs ONE Aurora cluster with a schema per context. The first physical split follows the LOB-CELL / SHARED-PLATFORM seam, not the service boundary — life_* becomes its own cluster when load justifies it, with no application redesign. One cluster is one blast radius: that is the trade, and it is</text>
+  <text x="56" y="1940" font-size="9" fill="#475569">why isolation now rests entirely on credentials and grants. Aarti (Database) and Deepali (Security) approvals outstanding.   The existing bank-persistence-service stays scoped to the integration job store and audit ingestion — it is NOT extended to the R0 business contexts.</text>
+  <rect x="40" y="1992" width="1720" height="124" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.3"/>
+  <rect x="40" y="1992" width="1720" height="24" rx="10" fill="#0f172a"/>
+  <rect x="40" y="2004" width="1720" height="12" fill="#0f172a"/>
+  <text x="56" y="2008.5" font-size="9.5" fill="#ffffff" font-weight="bold" letter-spacing="1.4">BOUNDARY 9</text>
+  <text x="166" y="2008.5" font-size="10.5" fill="#ffffff" font-weight="bold" letter-spacing="0.6">EVENT &amp; MESSAGING BACKBONE</text>
+  <text x="1744" y="2008.5" font-size="9" fill="#cbd5e1" text-anchor="end" font-weight="bold">no broker in R0 — and that is a decision, not a gap</text>
+  <rect x="60" y="2026" width="830" height="76" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="475.0" y="2068" font-size="11.8" fill="#0f172a" text-anchor="middle" font-weight="bold">Transactional outbox — the only asynchronous mechanism in R0</text>
+  <text x="475.0" y="2084.0" font-size="8.6" fill="#475569" text-anchor="middle">service DB → outbox → worker, at-least-once (S-17). Audit consumes it; so does Notification (S-18). Already this</text>
+  <text x="475.0" y="2095.5" font-size="8.6" fill="#475569" text-anchor="middle">repository's pattern, and it stays the starting point. LOB-partitioned logical topics and a managed bus are R1/RN.</text>
+  <rect x="910" y="2026" width="810" height="76" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="1315.0" y="2068" font-size="11.8" fill="#0f172a" text-anchor="middle" font-weight="bold">Synchronous vs asynchronous — the rule R0 applies</text>
+  <text x="1315.0" y="2084.0" font-size="8.6" fill="#475569" text-anchor="middle">MUST be synchronous: authorization (S-02), configuration resolution (S-21), critical validation, payment session (S-13).</text>
+  <text x="1315.0" y="2095.5" font-size="8.6" fill="#475569" text-anchor="middle">MAY be asynchronous: audit ingestion, notification, quote and proposal polling. A notification or audit outage never fails a sale.</text>
+  <rect x="40" y="2150" width="1720" height="148" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.3"/>
+  <rect x="40" y="2150" width="1720" height="24" rx="10" fill="#0f172a"/>
+  <rect x="40" y="2162" width="1720" height="12" fill="#0f172a"/>
+  <text x="56" y="2166.5" font-size="9.5" fill="#ffffff" font-weight="bold" letter-spacing="1.4">BOUNDARY 10</text>
+  <text x="166" y="2166.5" font-size="10.5" fill="#ffffff" font-weight="bold" letter-spacing="0.6">PLATFORM ENGINEERING &amp; GOVERNANCE PLANE — IF-3, THE PAVED ROAD</text>
+  <text x="1744" y="2166.5" font-size="9" fill="#cbd5e1" text-anchor="end" font-weight="bold">built once in WS-3; consumed by WS-1, WS-2 and WS-3</text>
+  <text x="56" y="2190" font-size="9.2" fill="#92400e">Waves W0b–W4 above start only after GATE-S08 passes and the S09 critical path lands. This is where the platform actually is today.</text>
+  <rect x="60" y="2200" width="830" height="82" rx="6" fill="#fffbeb" stroke="#b45309" stroke-width="1.3"/>
+  <text x="76" y="2220" font-size="11.5" fill="#0f172a" font-weight="bold">S08 — Engineering Foundation · GATE-S08 OPEN</text>
+  <text x="76" y="2236" font-size="8.8" fill="#475569">CI builds + tests every module on every PR · merge impossible without green · coverage floors (libs 80 / 70) · ArchUnit + 21 fitness functions (FF-01…FF-21)</text>
+  <text x="76" y="2249" font-size="8.8" fill="#475569">secret / SAST / SCA / image scanning · no PII in logs, proven by automated test · p95 pipeline feedback &lt; 10 min · engineering standards published</text>
+  <text x="76" y="2266" font-size="8.8" fill="#475569">Approvers: Amit (Eng) · Swapnali (QA) · Mahesh (Arch) · Deepali (Sec) · Shivanshi (SRE)</text>
+  <rect x="910" y="2200" width="810" height="82" rx="6" fill="#fffbeb" stroke="#b45309" stroke-width="1.3"/>
+  <text x="926" y="2220" font-size="11.5" fill="#0f172a" font-weight="bold">S09 — Platform &amp; Environment Foundation (overlapped with S08)</text>
+  <text x="926" y="2236" font-size="8.8" fill="#475569">IaC + environments (dev → UAT → prod) · secrets &amp; KMS hierarchy · observability substrate · 7-year write-once retention in ap-south-1</text>
+  <text x="926" y="2249" font-size="8.8" fill="#475569">restore executed and timed (S09-G7) — "a backup that has never been restored is a hypothesis" · DR warm standby in ap-south-2</text>
+  <text x="926" y="2266" font-size="8.8" fill="#475569">IaC policy-as-code: India regions only (FF-08) · no public / unencrypted store, no wildcard prod IAM (FF-09) · audit store immutability (FF-10)</text>
+  <rect x="60" y="2332" width="520" height="336" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+  <text x="76" y="2354" font-size="11" fill="#334155" font-weight="bold" letter-spacing="1">LEGEND</text>
+  <rect x="76" y="2366" width="14" height="14" rx="3" fill="#e0f2fe" stroke="#0284c7"/>
+  <text x="98" y="2377" font-size="9.2" fill="#334155">Wave 0b — configuration layer (before W1)</text>
+  <rect x="76" y="2385" width="14" height="14" rx="3" fill="#dbeafe" stroke="#2563eb"/>
+  <text x="98" y="2396" font-size="9.2" fill="#334155">Wave 1 — journey spine (build first)</text>
+  <rect x="76" y="2404" width="14" height="14" rx="3" fill="#fef3c7" stroke="#d97706"/>
+  <text x="98" y="2415" font-size="9.2" fill="#334155">Wave 2 — consent · suitability · quote</text>
+  <rect x="76" y="2423" width="14" height="14" rx="3" fill="#dcfce7" stroke="#16a34a"/>
+  <text x="98" y="2434" font-size="9.2" fill="#334155">Wave 3 — money · policy · audit</text>
+  <rect x="76" y="2442" width="14" height="14" rx="3" fill="#f3e8ff" stroke="#9333ea"/>
+  <text x="98" y="2453" font-size="9.2" fill="#334155">Wave 4 — BFF · Flutter · notification</text>
+  <rect x="76" y="2461" width="14" height="14" rx="3" fill="#e2e8f0" stroke="#475569"/>
+  <text x="98" y="2472" font-size="9.2" fill="#334155">WS-1 supplier — exists today</text>
+  <rect x="76" y="2480" width="14" height="14" rx="3" fill="#ecfdf5" stroke="#059669"/>
+  <text x="98" y="2491" font-size="9.2" fill="#334155">WS-2 enabler — workforce identity</text>
+  <rect x="76" y="2499" width="14" height="14" rx="3" fill="#ffffff" stroke="#64748b" stroke-dasharray="3 2"/>
+  <text x="98" y="2510" font-size="9.2" fill="#334155">External system</text>
+  <rect x="76" y="2518" width="14" height="14" rx="3" fill="#ffffff" stroke="#cbd5e1" stroke-dasharray="5 4"/>
+  <text x="98" y="2529" font-size="9.2" fill="#334155">not in R0 — greyed, carrying the release it arrives in</text>
+  <line x1="76" y1="2546" x2="118" y2="2546" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
+  <text x="128" y="2549" font-size="9.2" fill="#334155">synchronous call</text>
+  <line x1="76" y1="2566" x2="118" y2="2566" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrGray)"/>
+  <text x="128" y="2569" font-size="9.2" fill="#334155">async — outbox event / poll / callback</text>
+  <rect x="76" y="2577" width="24" height="15" rx="7" fill="#dc2626"/>
+  <text x="88" y="2588.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">C1</text>
+  <text x="108" y="2588.5" font-size="9.2" fill="#334155">non-waivable control — a ROUNDED pill (C1 · C2 · C4)</text>
+  <rect x="76" y="2597" width="30" height="15" rx="2" fill="#e11d48"/>
+  <text x="91" y="2608.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">LIFE</text>
+  <text x="114" y="2608.5" font-size="9.2" fill="#334155">LOB partition tag — a SQUARE tag. Different thing.</text>
+  <circle cx="84" cy="2624" r="8" fill="#0f172a"/>
+  <text x="84" y="2627.5" font-size="9.2" fill="#ffffff" text-anchor="middle" font-weight="bold">4</text>
+  <text x="100" y="2627.5" font-size="9.2" fill="#334155">journey step (the ribbon at the top)</text>
+  <text x="76" y="2660" font-size="9.2" fill="#334155">#n — bounded context, business-problem-statement §6</text>
+  <rect x="610" y="2332" width="560" height="336" rx="8" fill="#fff1f2" stroke="#e11d48" stroke-width="2"/>
+  <text x="626" y="2354" font-size="11" fill="#9f1239" font-weight="bold" letter-spacing="0.6">LINE OF BUSINESS — WHICH BOXES GET A SECOND COPY</text>
+  <text x="626" y="2370" font-size="9" fill="#9f1239">The question this diagram exists to answer once Health is on the table. LB-4 and LB-5 decide it.</text>
+  <rect x="626" y="2382" width="4" height="52" fill="#e11d48"/>
+  <text x="638" y="2392" font-size="9.4" fill="#9f1239" font-weight="bold">1 · LOB-OWNED EXECUTION — inside the rose cell</text>
+  <text x="638" y="2404.0" font-size="8.5" fill="#881337">#10 Quotation · #11 Proposal &amp; UW</text>
+  <text x="638" y="2414.5" font-size="8.5" fill="#881337">Health and General each get their OWN instance.</text>
+  <text x="638" y="2425.0" font-size="8.5" fill="#881337">The boundary is FROZEN: a Life quote and a Health quote</text>
+  <text x="638" y="2435.5" font-size="8.5" fill="#881337">do not share a field shape.</text>
+  <rect x="626" y="2438" width="4" height="52" fill="#e11d48"/>
+  <text x="638" y="2448" font-size="9.4" fill="#9f1239" font-weight="bold">2 · LOB-PARTITIONED SHARED — carries the LIFE tag</text>
+  <text x="638" y="2460.0" font-size="8.5" fill="#881337">#2 · #3 (PDP grants) · #6 · #7 · #8 · #9 · #14 · #19</text>
+  <text x="638" y="2470.5" font-size="8.5" fill="#881337">ONE codebase, ONE deployment. Behaviour is resolved from</text>
+  <text x="638" y="2481.0" font-size="8.5" fill="#881337">configuration keyed by (lob, …) per CF-2 — never forked,</text>
+  <text x="638" y="2491.5" font-size="8.5" fill="#881337">never branched on an lob literal (CF-1, FF-18).</text>
+  <rect x="626" y="2494" width="4" height="52" fill="#64748b"/>
+  <text x="638" y="2504" font-size="9.4" fill="#9f1239" font-weight="bold">3 · LOB-AGNOSTIC SHARED — no tag, outside every cell</text>
+  <text x="638" y="2516.0" font-size="8.5" fill="#881337">#4 · #5 · #12 · #13 · #16 · #17</text>
+  <text x="638" y="2526.5" font-size="8.5" fill="#881337">One instance for every line of business, forever.</text>
+  <text x="638" y="2537.0" font-size="8.5" fill="#881337">Partitioning the RULES is what makes the Health cell</text>
+  <text x="638" y="2547.5" font-size="8.5" fill="#881337">possible; duplicating the EVIDENCE makes it unauditable.</text>
+  <rect x="1200" y="2332" width="520" height="336" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+  <text x="1216" y="2354" font-size="11" fill="#334155" font-weight="bold" letter-spacing="0.6">WHAT R0 DOES NOT CONTAIN, AND WHEN IT ARRIVES</text>
+  <text x="1216" y="2369" font-size="8.8" fill="#64748b">Greyed on the diagram above. Each is an out_of_scope entry in CURRENT-STATE.yaml</text>
+  <rect x="1216" y="2384" width="30" height="14" rx="3" fill="#e2e8f0"/>
+  <text x="1231" y="2394.5" font-size="8.2" fill="#475569" text-anchor="middle" font-weight="bold">S13</text>
+  <text x="1254" y="2394.5" font-size="8.5" fill="#475569">#1 Customer BFF · #18 Reporting &amp; MIS — not on the critical path to one proven journey</text>
+  <rect x="1216" y="2402" width="30" height="14" rx="3" fill="#e2e8f0"/>
+  <text x="1231" y="2412.5" font-size="8.2" fill="#475569" text-anchor="middle" font-weight="bold">R1</text>
+  <text x="1254" y="2412.5" font-size="8.5" fill="#475569">#19 Administration &amp; Config USER INTERFACE — the LAYER itself is W0b and ships in R0 (CF-5)</text>
+  <rect x="1216" y="2420" width="30" height="14" rx="3" fill="#e2e8f0"/>
+  <text x="1231" y="2430.5" font-size="8.2" fill="#475569" text-anchor="middle" font-weight="bold">R1</text>
+  <text x="1254" y="2430.5" font-size="8.5" fill="#475569">Campaign and bulk demand management on top of #5 — origination itself is W1 (AC-9)</text>
+  <rect x="1216" y="2438" width="30" height="14" rx="3" fill="#e2e8f0"/>
+  <text x="1231" y="2448.5" font-size="8.2" fill="#475569" text-anchor="middle" font-weight="bold">R1</text>
+  <text x="1254" y="2448.5" font-size="8.5" fill="#475569">Customer DIY journey · Group B insurers · ULIP and Savings · document platform · hi-IN</text>
+  <rect x="1216" y="2456" width="30" height="14" rx="3" fill="#e2e8f0"/>
+  <text x="1231" y="2466.5" font-size="8.2" fill="#475569" text-anchor="middle" font-weight="bold">R1</text>
+  <text x="1254" y="2466.5" font-size="8.5" fill="#475569">Journey Registry / LOB Router split · provider router · callback gateway · config maker-checker</text>
+  <rect x="1216" y="2474" width="30" height="14" rx="3" fill="#e2e8f0"/>
+  <text x="1231" y="2484.5" font-size="8.2" fill="#475569" text-anchor="middle" font-weight="bold">R2</text>
+  <text x="1254" y="2484.5" font-size="8.5" fill="#475569">Hybrid assisted ⇄ DIY · call centre · work management · renewal and lapse · NTB + V-KYC</text>
+  <rect x="1216" y="2492" width="30" height="14" rx="3" fill="#e2e8f0"/>
+  <text x="1231" y="2502.5" font-size="8.2" fill="#475569" text-anchor="middle" font-weight="bold">R3</text>
+  <text x="1254" y="2502.5" font-size="8.5" fill="#475569">HEALTH cell — gated on WS-1 Phase 5 being unfrozen</text>
+  <rect x="1216" y="2510" width="30" height="14" rx="3" fill="#e2e8f0"/>
+  <text x="1231" y="2520.5" font-size="8.2" fill="#475569" text-anchor="middle" font-weight="bold">R4</text>
+  <text x="1254" y="2520.5" font-size="8.5" fill="#475569">GENERAL / MOTOR cell — productLine inside lob = GENERAL</text>
+  <rect x="1216" y="2528" width="30" height="14" rx="3" fill="#e2e8f0"/>
+  <text x="1231" y="2538.5" font-size="8.2" fill="#475569" text-anchor="middle" font-weight="bold">—</text>
+  <text x="1254" y="2538.5" font-size="8.5" fill="#475569">No Kafka, no event bus, no Redis idempotency, no circuit breaker in R0 — each a recorded decision</text>
   <path d="M210,318 L210,350" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
   <text x="219" y="337.5" font-size="9" fill="#475569" text-anchor="start">HTTPS · opaque session (S-01)</text>
   <path d="M560,318 L560,344 L340,344 L340,350" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
@@ -565,7 +567,7 @@
   <text x="1597" y="1730.5" font-size="8.2" fill="#475569" text-anchor="middle" font-weight="bold">S-18 (async)</text>
   <text x="1640" y="1730.5" font-size="8.6" fill="#0f172a" font-weight="bold">#17 → customer device</text>
   <text x="1640" y="1744" font-size="8.4" fill="#64748b">payment link + OTP</text>
-  <text x="60" y="2690" font-size="9.2" fill="#94a3b8">AI-DRAFTED in the Architecture lane (Mahesh — Board 1); mandatory human T4 Architecture sign-off outstanding · Derived from 03-solution-architecture-r0.md §2–§5 and §7, 01-domain-model-and-invariants.md §2.4–§2.6 (LB-1…LB-5, CF-1…CF-5),</text>
-  <text x="60" y="2703" font-size="9.2" fill="#94a3b8">00-WS3-ARCHITECTURE-REGISTRATION.md §3 and §6 (SC-W3-8…12), ADR-004…ADR-007 and CURRENT-STATE.yaml (R0 scope) · Layer bands, naming and the LOB encoding follow the canvas contract in mahesh/16-hld-authoring-and-update-protocol.md §4 (NC-1, LY-1, LB-R1).</text>
-  <text x="60" y="2716" font-size="9.2" fill="#94a3b8">Render.com is dev-preview only, never a PII path (ADR-001) · revised 2026-08-20 — HLD review round (actors, LOB, configuration; SUG-20260820-hr0), then redrawn on the North Star's boundary bands with the Life cell separated (SUG-20260820-al7).</text>
+  <text x="60" y="2710" font-size="9.2" fill="#94a3b8">AI-DRAFTED in the Architecture lane (Mahesh — Board 1); mandatory human T4 Architecture sign-off outstanding · Derived from 03-solution-architecture-r0.md §2–§5 and §7, 01-domain-model-and-invariants.md §2.4–§2.6 (LB-1…LB-5, CF-1…CF-5),</text>
+  <text x="60" y="2723" font-size="9.2" fill="#94a3b8">00-WS3-ARCHITECTURE-REGISTRATION.md §3 and §6 (SC-W3-8…12), ADR-004…ADR-007 and CURRENT-STATE.yaml (R0 scope) · Layer bands, naming and the LOB encoding follow the canvas contract in mahesh/16-hld-authoring-and-update-protocol.md §4 (NC-1, LY-1, LB-R1).</text>
+  <text x="60" y="2736" font-size="9.2" fill="#94a3b8">Render.com is dev-preview only, never a PII path (ADR-001) · revised 2026-08-20 — HLD review round (SUG-20260820-hr0), redrawn on the North Star's boundary bands with the Life cell separated (SUG-20260820-al7), then ADR-008 data topology and the #5 Opportunity rename (SUG-20260820-dc4).</text>
 </svg>

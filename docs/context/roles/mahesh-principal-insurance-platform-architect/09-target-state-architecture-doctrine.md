@@ -195,6 +195,16 @@ it still requires the ADR to be updated with the split above, jointly with **Aar
 technology, physical model, recovery) under `README §9`. Mahesh does not relax it unilaterally, and
 he does not let "one cluster is cheaper" erode the ownership half.
 
+> **APPLIED 2026-08-20 — [`ADR-008`](../../../platform/architecture-review/08-architecture-decision-log.md).**
+> Mahesh took the decision in session (`SUG-20260820-dc4`, closing `OPEN-A1`). R0 runs **one Aurora
+> cluster with a schema per bounded context**, per-context credentials, no cross-schema grants; the
+> first physical split follows the **LOB-cell / shared-platform seam**, not the service boundary —
+> which is the seam `LB-5` already recognises and the North Star's boundary 8 already draws.
+> The ownership half is retained verbatim and restated in the ADR, exactly as the paragraph above
+> insists. **Aarti's Database approval and Deepali's Security review are required and outstanding**
+> — the second because this moves service isolation from physical to logical, so the per-context
+> credential and grant model now carries all of it.
+
 ---
 
 ## 6. Best-practice posture for target-state work

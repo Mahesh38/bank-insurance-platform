@@ -51,6 +51,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | SUG-20260820-hr0 | 2026-08-20 | human:Mahesh | HLD review round: correct the R0 actor model to two actors with SP as a certification attribute, gate and insurer-scope the Insurance Partner Representative, make the opportunity the single RM-only origination point, make LOB first-class from release 1 and make the configuration layer ship in R0 independently of any admin UI | SF0 | SC0 | MUST | ARCH | P1 / P1 | ADMIT-BYPASS | [ADR-004…007](../../platform/architecture-review/08-architecture-decision-log.md) |
 | SUG-20260820-r1t | 2026-08-20 | agent:claude | Produce the R0 → R1 → R2 transition and dependency map the North Star does not answer: the order in which target components must appear and which are prerequisites for which | SF3 | SC1 | SHOULD | ARCH | P4 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md#1-parked--scheduled-work) |
 | SUG-20260820-al7 | 2026-08-20 | human:Mahesh | Reconcile the North Star and R0 diagrams: one naming and layer convention across both files, the R0 view redrawn on the North Star's boundary bands so it reads as a release-zero cut of the same picture, and the Life LOB cell visually separated from the shared platform | SF1 | SC1 | MUST | ARCH | P2 / P2 | ADMITTED | [detail](#sug-20260820-al7--hld-and-r0-diagram-alignment) |
+| SUG-20260820-dc4 | 2026-08-20 | human:Mahesh | Resolve OPEN-A1 and OPEN-D10: physical database topology is an evidence-led decision, not a principle — R0 starts as one cluster with a schema per context and splits later along the LOB-cell / shared-platform seam; and context #5 is named Opportunity, because a lead is too thin to carry renewal, lapse and cross-sell demand | SF1 | SC1 | MUST | ARCH | P2 / P2 | ADMITTED | [ADR-008](../../platform/architecture-review/08-architecture-decision-log.md) |
 
 <!--
 Row format:
@@ -842,6 +843,122 @@ outcome:
     - "docs/architecture/r0-reference-architecture.svg — redrawn on boundary bands; AL-5, AL-6 resolved"
     - "docs/architecture/README.md — the convention and the LOB reading rule stated for readers"
     - "java scripts/governance/FreshnessCheck.java — FRESH"
+  closed_reason: null
+
+resumed: null
+```
+
+---
+
+### SUG-20260820-dc4 · Data topology and the name of context #5
+
+```yaml
+id: SUG-20260820-dc4
+raised_at: "2026-08-20"
+raised_by: "human:Mahesh"
+source: "direct user instruction, acting as the Board 1 Architecture persona"
+input: >
+  There is no database per service. As per the North Star's boundary, splitting is scale-driven,
+  and R0 may start as a schema in one cluster; afterwards, based on the requirement, we can split
+  the clusters for the line of business and the shared resources. Also lead or opportunity — I
+  would go with opportunity, because a lead is too thin to identify, whereas an opportunity is
+  something which can be converted for a new sale, for a renewal and for a lapse. It has a larger
+  scope.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: R0-ASSISTED-TERM-SALE
+  current_gate: "GATE-S08 (OPEN)"
+  state_as_of: "2026-08-10"
+  freshness_check: "exit 0 — FRESH"
+
+stage_fit:
+  code: SF1
+  rationale: >
+    These resolve two open decisions raised against the current stage's own design artefacts —
+    OPEN-A1 from SUG-20260820-al7 and OPEN-D10 from SUG-20260820-hr0 — on a design that is not yet
+    signed and against which no service, migration or seed exists. Deciding the physical topology
+    now is also the cheap moment: it is a documentation change today and a data migration across
+    every table once R0 has run.
+
+scope:
+  code: SC1
+  serves: [SUG-20260820-al7, SUG-20260820-hr0]
+  rationale: >
+    No capability, service or scope is added. Both items remove a contradiction inside deliverables
+    already in scope: two diagrams asserting two different R0 data topologies, and one bounded
+    context carrying two names.
+
+necessity:
+  verdict: MUST
+  evidence_tier: E1
+  confidence: C5
+  rationale: >
+    E1 — a decision by the accountable architect, and the one the repository was already waiting
+    for. The topology half was drafted five days ago in 09-target-state-architecture-doctrine.md
+    section 5.2 and listed as open item 1 in 10-north-star-capability-model.md; it needed a
+    decision, not analysis. The naming half is the open question ADR-005 records as OPEN-D10.
+
+action: ADMIT
+priority: {now: P2, at_target: P2}
+work_type: ARCH
+risk_tier: T3
+
+decisions:
+  - id: OPEN-A1
+    resolution: >
+      ARCH-004 bundled three claims and only two of them are principles. One owner per
+      authoritative datum with no cross-service table access, and separate credentials and schema
+      ownership per service, remain INVARIANT and enforced. A separate physical cluster per service
+      is a DECISION, evidence-led on scale, blast radius, security isolation, RTO/RPO and cost. R0
+      starts with one Aurora cluster and a schema per context. The first split, when evidence
+      justifies it, follows the LOB-cell / shared-platform seam — not the service boundary.
+    recorded_as: ADR-008
+    supersedes: "ARCH-004 (physical-topology half only; the ownership half is retained and restated)"
+    note: >
+      This is the reconciliation Mahesh had already written into
+      09-target-state-architecture-doctrine.md section 5.2 and had deliberately not applied
+      unilaterally. What the instruction adds beyond that draft is the split AXIS: LOB cell versus
+      shared platform, which is what the North Star's boundary 8 already draws and what LB-5 makes
+      the natural seam.
+  - id: OPEN-D10
+    resolution: >
+      Context #5 is named Opportunity. The rationale is domain scope, not preference: a lead
+      records that someone might buy, and dies at conversion. An opportunity is the durable demand
+      object behind a new sale, a renewal, a lapse recovery, a cross-sell and an
+      abandoned-journey recovery — which is exactly the R2 rule that a renewal or lapse creates a
+      NEW opportunity and a NEW journey rather than reopening an old one. Naming the context Lead
+      makes that rule read as a contradiction; naming it Opportunity makes it read as the model.
+    recorded_as: "ADR-005, naming_resolution block"
+
+not_included:
+  - >
+    CURRENT-STATE.yaml current_scope.in_scope line 85 still reads "Lead service (context #5) —
+    create, resume, status", and WS-3-PLATFORM-CHARTER.md line 301 mirrors it. Both are
+    human-owned scope text and an agent does not edit them (04 section 5). Flagged for Kalpana /
+    R12 to transcribe, with Rajal's Product confirmation of the label
+  - >
+    identifier and register-ID renames. leadId, INV-LED-01..07 and CAP-102 keep their tokens: an ID
+    is opaque, and rewriting seven invariant IDs across the corpus is churn that breaks every
+    existing citation for no gain. The NAME changes; the IDs do not
+  - "Aarti's Database approval of ADR-008 and Rajal's Product confirmation of the #5 label — required, and outstanding"
+  - "T4 Architecture sign-off. Signature status on both ADRs and both diagrams is unchanged (HA-10)"
+  - "any physical schema, migration or seed artefact — this is design; implementation is S09 work"
+
+outcome:
+  registered_in: "SUGGESTION-REGISTER.md"
+  work_item_id: SUG-20260820-dc4
+  status: ADMITTED
+  evidence:
+    - "docs/platform/architecture-review/08-architecture-decision-log.md — ADR-008 added; ARCH-004 qualified; ADR-005 naming_resolution; signature block extended"
+    - "docs/platform/architecture-review/05-data-architecture.md — governing rule restated as ownership plus an evidence-led topology decision"
+    - "docs/platform/ws3-platform/03-solution-architecture-r0.md — database row and build-order row updated"
+    - "docs/platform/ws3-platform/04-security-architecture.md — threat I control restated without asserting physical separation"
+    - "docs/context/roles/mahesh-principal-insurance-platform-architect/09-target-state-architecture-doctrine.md section 5.2 — reconciliation marked applied"
+    - "docs/hdl.svg and docs/architecture/r0-reference-architecture.svg — boundary 8 reconciled; OPEN-A1 note removed; #5 renamed"
+    - "scripts/governance/ci-checks.py — PASSED · java scripts/governance/FreshnessCheck.java — FRESH"
   closed_reason: null
 
 resumed: null

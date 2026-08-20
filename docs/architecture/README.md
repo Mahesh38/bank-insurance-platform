@@ -43,7 +43,8 @@ They are one artefact in two cuts, and three rules keep them that way. All three
   *on the element*, with the canonical register name. Seven contexts are drawn under a different
   name at target state — `#4`, `#7`, `#8`, `#9`, `#10`, `#11`, `#13` — and those are written
   `#n Canonical Name → target name` so the evolution is visible rather than read as a different
-  service. `#5` stays the dual form `Opportunity (Lead)` until `OPEN-D10` is decided.
+  service. `#5` was the dual form until `OPEN-D10` closed on 2026-08-20; it is now `Opportunity` in
+  both files and in the register.
 - **`LY-1` — the ten boundaries are the layer model, not a drawing style.** Both files lay out in
   the same bands, in the same order, so the two can be read side by side. A band that is thin in
   R0 is still drawn and labelled — the R0 file shows one BFF and says the other three are R1/R2.
@@ -106,11 +107,37 @@ and carried a canvas contract for one diagram, so there was no convention coveri
 covers both, and its consistency checklist fails when the files disagree about a release chip or a
 context name.
 
-**One divergence is left open deliberately.** `OPEN-A1` — the R0 view asserts `ARCH-004`
-database-per-service; the North Star's boundary 8 says physical splitting is scale-driven and R0
-may start as schemas in one cluster. Both are drawn as written and flagged on the R0 file. Picking
-between a ratified decision and a target-state position, on a matter with cost, DR and DBA
-consequences, is Mahesh's and Aarti's call, not an agent's.
+**One divergence was left open, and has since been decided.** `OPEN-A1` asked whether R0 starts
+with a cluster per service or schemas in one cluster. See the round below.
+
+## Revision — 2026-08-20 decision round
+
+Two open questions closed by Mahesh, recorded as `SUG-20260820-dc4`:
+
+**`OPEN-A1` — data topology.** `ARCH-004` bundled three claims and only two are principles.
+Ownership of an authoritative datum, and per-service credentials and schema ownership, stay
+**invariant**. A physical cluster per service is a **decision**, and it is not adopted: R0 runs one
+Aurora cluster with a schema per bounded context, and the first physical split follows the
+**LOB-cell / shared-platform seam** rather than the service boundary. Recorded as
+[`ADR-008`](../platform/architecture-review/08-architecture-decision-log.md); both diagrams now say
+the same thing, and the R0 file's `OPEN-A1` note is gone.
+
+This is a real trade, not a tidy-up. One cluster is one blast radius, and isolation that was going
+to be physical is now carried entirely by per-context credentials and grants — which is why
+**Aarti's Database approval and Deepali's Security review are required and outstanding**. An
+architect's decision is not a DBA's sign-off.
+
+**`OPEN-D10` — the name of context #5.** It is **Opportunity**. A lead records that someone might
+buy and stops meaning anything at conversion; an opportunity is the durable demand object behind a
+new sale, a renewal, a lapse recovery, a cross-sell and an abandoned-journey recovery. That is
+exactly the R2 rule both diagrams draw — a renewal or lapse creates a NEW opportunity and a NEW
+journey, never reopening an old one — which reads as a contradiction under the name *Lead* and as
+the model under the name *Opportunity*. Identifiers did not follow: `leadId`, `INV-LED-*` and
+`CAP-102` keep their tokens.
+
+> `CURRENT-STATE.yaml` `current_scope.in_scope` and `WS-3-PLATFORM-CHARTER.md` still read *"Lead
+> service (context #5)"*. Those are human-owned scope text and were not edited. Kalpana / R12 to
+> transcribe, with Rajal's Product confirmation of the label.
 
 ## Authority
 

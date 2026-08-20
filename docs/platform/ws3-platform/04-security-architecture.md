@@ -201,7 +201,7 @@ This is the artefact S07-G3 requires; a **human Security signature is required f
 | STRIDE | Threat | Mitigation | State |
 |---|---|---|---|
 | T | **Audit record altered or deleted** | INSERT-only service role; Object Lock on the archive; deletion-refusal test (FF-10) | Intent stated in the migration; **not enforced or tested** |
-| I | Cross-service data reach | Database-per-service; per-service credential; ArchUnit + IAM; verified in the IaC scan (FF-09) | Designed |
+| I | Cross-service data reach | Schema ownership per context; per-context credential with **no cross-schema grant**; ArchUnit + IAM; verified in the IaC scan (FF-09). At R0 these schemas share one cluster (`ADR-008`), so the credential and grant model carries the whole of this control — physical separation does not back it up | Designed; **Deepali's review required** — `ADR-008` moves this isolation from physical to logical |
 | I | PII in a queryable column or an index | INV-PRP-05; restricted attributes only in the encrypted payload store (`02-information-model.md` PII-01) | Designed; `raw_payload.payload_enc` exists today |
 | I | PII in backups or logs | Backups encrypted with the store CMK; log-scan test (FF-05) | Converter exists, **unproven** (C5 🟡) |
 | E | Over-broad database role | Least-privilege roles; wildcard IAM blocked pre-apply (FF-09) | Designed, S09 |

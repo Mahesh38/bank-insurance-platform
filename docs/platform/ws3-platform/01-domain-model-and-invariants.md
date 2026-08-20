@@ -301,7 +301,7 @@ MVP: no BFF-created journey, no quote without an opportunity, no proposal assemb
 
 **Rule AC-9 — origination is un-deferred.** [`03-solution-architecture-r0.md §3`](./03-solution-architecture-r0.md)
 previously deferred context #5 to S13 while `CURRENT-STATE.yaml` `current_scope.in_scope` lists
-*"Lead service (context #5) — create, resume, status"* as R0 scope. That was drift between an
+*"Lead service (context #5) — create, resume, status"* (the context is named **Opportunity** since `ADR-005`; the state file still carries the old label) as R0 scope. That was drift between an
 architecture document and the ratified state file, and the state file wins. Context #5 is Wave 1.
 
 ### 2.5 Line of business is a first-class dimension from release 1

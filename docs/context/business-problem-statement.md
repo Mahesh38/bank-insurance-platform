@@ -202,13 +202,21 @@ A policy is **NOT** counted as Sold at quote, proposal, or payment stage. A poli
 
 Synthesized from `knowledge-base/03-capability-map.md` and `07-information-model-and-rules.md`, the platform is divided into **19 Bounded Contexts / Services**:
 
+> **Context #5 was renamed from *Lead Service* to *Opportunity Service* on 2026-08-20**
+> ([`ADR-005` `naming_resolution`](../platform/architecture-review/08-architecture-decision-log.md), closing `OPEN-D10`).
+> A lead records that someone might buy and stops meaning anything at conversion; an opportunity is
+> the durable demand object that a renewal, a lapse or a cross-sell also produces. Identifiers and
+> register IDs are unchanged — `leadId`, `INV-LED-*` and `CAP-102` keep their tokens. The UI label
+> is Product's to set. `CURRENT-STATE.yaml` still carries the old name in `current_scope.in_scope`
+> and needs a human transcription.
+
 | # | Bounded Context / Microservice | Domain Ownership & Core Responsibility | Datastore Engine |
 |---|--------------------------------|-----------------------------------------|------------------|
 | 1 | **Customer BFF** | Edge API facade for customer mobile/web apps | Stateless |
 | 2 | **RM Workspace BFF** | Edge API facade for RM mobile app / web portal | Stateless |
 | 3 | **Identity & Access** | Authentication, SSO federation, AD mapping, RBAC | DynamoDB (sessions) + Aurora (roles) |
 | 4 | **Customer Service** | Customer profile snapshot, CBS lookup | Aurora PostgreSQL |
-| 5 | **Lead Service** | Lead capture, assignment, follow-ups | Aurora PostgreSQL |
+| 5 | **Opportunity Service** | Origination: the durable demand object behind a new sale, renewal, lapse recovery, cross-sell or abandoned-journey recovery. RM-only create in R0 | Aurora PostgreSQL |
 | 6 | **Consent Service** | Digital consent evidence capture & versioning | Aurora PostgreSQL (Append-Only) |
 | 7 | **Suitability & Recommendation** | Financial need analysis & suitability evaluation | Aurora PostgreSQL |
 | 8 | **Product Catalogue** | Insurer product rules, eligibility matrix | Aurora PostgreSQL + Redis Cache |
@@ -256,7 +264,7 @@ Synthesized from `knowledge-base/03-capability-map.md` and `07-information-model
 | :--- | :--- | :--- |
 | **Backend Core** | **Java 21 / Spring Boot 3.3.4** | Multi-module Gradle monorepo (`libs/` for shared security, errors, audit; `services/` for business domains). |
 | **Frontend UI** | **Flutter (Dart)** | Unified cross-platform app for Android, iOS, and Web for RMs and customers. |
-| **Relational Data** | **Amazon Aurora PostgreSQL (Multi-AZ)**| Database-per-service architecture; Flyway migrations per service. |
+| **Relational Data** | **Amazon Aurora PostgreSQL (Multi-AZ)**| Schema and migration ownership per service, with per-context credentials and no cross-schema grants. R0 runs one cluster; physical splitting is evidence-led and follows the LOB seam (`ADR-008`). |
 | **Key-Value / State**| **Amazon DynamoDB** | Journey state machine, session storage, quotation job tracking, audit logs. |
 | **Compute / Infra** | **AWS EKS (Kubernetes)** | Elastic container orchestration using Karpenter (node scaling), HPA (pod scaling), and KEDA (Kafka lag scaling). |
 | **Adapter Middleware**| **1SilverBullet (1SB)** | Integration abstraction layer converting bank canonical JSON requests into insurer API formats. |

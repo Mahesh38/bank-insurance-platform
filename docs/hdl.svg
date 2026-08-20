@@ -62,6 +62,13 @@
   <text x="2114.3333333333335" y="228.5" font-size="8.3" fill="#475569">1SB simultaneously), event backbone, BI/</text>
   <text x="2114.3333333333335" y="239.0" font-size="8.3" fill="#475569">analytics, optional Motor cell extraction.</text>
   <text x="2502" y="178" font-size="9.5" fill="#334155" text-anchor="end" font-weight="bold">The chip on every element below is the release in which that element FIRST EXISTS.</text>
+  <text x="58" y="266.5" font-size="9" fill="#334155" font-weight="bold" letter-spacing="0.6">LINE OF BUSINESS (LB-4 / LB-5) — which boxes get a second copy when Health arrives:</text>
+  <rect x="506" y="256" width="30" height="14" rx="2" fill="#e11d48"/>
+  <text x="521" y="266.5" text-anchor="middle" font-size="8.5" font-weight="bold" fill="#ffffff">LOB</text>
+  <text x="544" y="266.5" font-size="9" fill="#475569">shared code, ONE deployment — behaviour resolved from configuration keyed by (lob, …), never forked   ·</text>
+  <rect x="1030" y="256" width="30" height="14" rx="3" fill="#fff1f2" stroke="#e11d48" stroke-width="2"/>
+  <text x="1068" y="266.5" font-size="9" fill="#475569">inside a rose LOB cell — Health and General each get their OWN instance; Quote and Proposal are frozen here   ·</text>
+  <text x="1668" y="266.5" font-size="9" fill="#475569">untagged and outside every cell — one instance for every line of business, forever (party, opportunity, consent, payment, policy, audit).</text>
   <rect x="40" y="272" width="2480" height="210" rx="10" fill="#ffffff" stroke="#0f172a" stroke-width="2"/>
   <rect x="40" y="272" width="2480" height="30" rx="10" fill="#0f172a"/>
   <rect x="40" y="292" width="2480" height="10" fill="#0f172a"/>
@@ -72,7 +79,7 @@
   <text x="166.58333333333331" y="350" font-size="8.2" fill="#cbd5e1" text-anchor="middle">Prospect</text>
   <polygon points="267.16666666666663,318 453.33333333333326,318 464.33333333333326,339 453.33333333333326,360 267.16666666666663,360 278.16666666666663,339" fill="#1e293b"/>
   <text x="369.74999999999994" y="336" font-size="10.5" fill="#ffffff" text-anchor="middle" font-weight="bold">Opportunity</text>
-  <text x="369.74999999999994" y="350" font-size="8.2" fill="#cbd5e1" text-anchor="middle">("Lead" in the UI)</text>
+  <text x="369.74999999999994" y="350" font-size="8.2" fill="#cbd5e1" text-anchor="middle">new · renewal · lapse · cross-sell</text>
   <polygon points="470.3333333333333,318 656.5,318 667.5,339 656.5,360 470.3333333333333,360 481.3333333333333,339" fill="#1e293b"/>
   <text x="572.9166666666666" y="336" font-size="10.5" fill="#ffffff" text-anchor="middle" font-weight="bold">Journey</text>
   <text x="572.9166666666666" y="350" font-size="8.2" fill="#cbd5e1" text-anchor="middle">one per intent</text>
@@ -238,6 +245,8 @@
   <text x="56" y="925.5" font-size="9.5" fill="#475569">OWNS · Channel-shaped aggregation, session and token custody, screen-oriented composition.</text>
   <text x="56" y="940.5" font-size="9.5" fill="#b91c1c">DOES NOT OWN · Domain rules, journey state or provider vocabulary. One BFF per channel — never one BFF per channel × LOB. There is no RM-Life-Quote-Service: RM, customer and call centre all call the same Life Quote.</text>
   <rect x="64.0" y="954.5" width="473.6" height="77.5" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="461.6" y="961.5" width="30" height="15" rx="2" fill="#e11d48"/>
+  <text x="476.6" y="973.0" text-anchor="middle" font-size="8.5" font-weight="bold" fill="#ffffff">LOB</text>
   <rect x="499.6" y="961.5" width="30" height="15" rx="4" fill="#1d4ed8"/>
   <text x="514.6" y="973.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
   <text x="74.0" y="978.5" font-size="11.5" fill="#0f172a" font-weight="bold">#2  RM Workspace BFF</text>
@@ -291,6 +300,8 @@
   <text x="74.0" y="1225.5" font-size="8.8" fill="#475569">and SP identities at R2. Two identity domains,</text>
   <text x="74.0" y="1238.0" font-size="8.8" fill="#475569">one platform. Never expose the IdP to Flutter.</text>
   <rect x="676.0" y="1148.0" width="596.0" height="102.5" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="1196.0" y="1155.0" width="30" height="15" rx="2" fill="#e11d48"/>
+  <text x="1211.0" y="1166.5" text-anchor="middle" font-size="8.5" font-weight="bold" fill="#ffffff">LOB</text>
   <rect x="1234.0" y="1155.0" width="30" height="15" rx="4" fill="#1d4ed8"/>
   <text x="1249.0" y="1166.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
   <text x="686.0" y="1172.0" font-size="11.5" fill="#0f172a" font-weight="bold">Authorization PDP + Actor Capability</text>
@@ -300,6 +311,8 @@
   <text x="686.0" y="1225.5" font-size="8.8" fill="#475569">not on a role name. IdP claims are never</text>
   <text x="686.0" y="1238.0" font-size="8.8" fill="#475569">business authorization. Horizontally scalable.</text>
   <rect x="1288.0" y="1148.0" width="596.0" height="102.5" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="1808.0" y="1155.0" width="30" height="15" rx="2" fill="#e11d48"/>
+  <text x="1823.0" y="1166.5" text-anchor="middle" font-size="8.5" font-weight="bold" fill="#ffffff">LOB</text>
   <rect x="1846.0" y="1155.0" width="30" height="15" rx="4" fill="#1d4ed8"/>
   <text x="1861.0" y="1166.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
   <text x="1298.0" y="1172.0" font-size="11.5" fill="#0f172a" font-weight="bold">#6  Consent</text>
@@ -311,21 +324,21 @@
   <rect x="1900.0" y="1148.0" width="596.0" height="102.5" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
   <rect x="2458.0" y="1155.0" width="30" height="15" rx="4" fill="#1d4ed8"/>
   <text x="2473.0" y="1166.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
-  <text x="1910.0" y="1172.0" font-size="11.5" fill="#0f172a" font-weight="bold">#4  Party / Customer</text>
+  <text x="1910.0" y="1172.0" font-size="11.5" fill="#0f172a" font-weight="bold">#4  Customer → Party / Customer</text>
   <text x="1910.0" y="1188.0" font-size="8.8" fill="#475569">partyId is not bankCustomerId and never a</text>
   <text x="1910.0" y="1200.5" font-size="8.8" fill="#475569">leadId. ETB lookup and prefill from CBS by</text>
   <text x="1910.0" y="1213.0" font-size="8.8" fill="#475569">mobile / email / KYC id; unmatched becomes a</text>
   <text x="1910.0" y="1225.5" font-size="8.8" fill="#475569">Prospect that can be linked to a CIF later.</text>
   <text x="1910.0" y="1238.0" font-size="8.8" fill="#475569">NTB onboarding and V-KYC land at R2.</text>
-  <rect x="64.0" y="1264.5" width="596.0" height="102.5" rx="6" fill="#ccfbf1" stroke="#0f766e" stroke-width="1.5"/>
-  <rect x="622.0" y="1271.5" width="30" height="15" rx="4" fill="#0f766e"/>
-  <text x="637.0" y="1283.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R1</text>
-  <text x="74.0" y="1288.5" font-size="11.5" fill="#0f172a" font-weight="bold">#5  Lead → Opportunity</text>
-  <text x="74.0" y="1304.5" font-size="8.8" fill="#475569">One durable demand object, not a thin lead:</text>
-  <text x="74.0" y="1317.0" font-size="8.8" fill="#475569">NEW_SALE, CROSS_SELL, UP_SELL, RENEWAL,</text>
-  <text x="74.0" y="1329.5" font-size="8.8" fill="#475569">LAPSE_RECOVERY, ABANDONED_JOURNEY_</text>
-  <text x="74.0" y="1342.0" font-size="8.8" fill="#475569">RECOVERY, CALLBACK, CAMPAIGN. UI may still</text>
-  <text x="74.0" y="1354.5" font-size="8.8" fill="#475569">say 'Lead'. Opportunity 1:N Journey.</text>
+  <rect x="64.0" y="1264.5" width="596.0" height="102.5" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="622.0" y="1271.5" width="30" height="15" rx="4" fill="#1d4ed8"/>
+  <text x="637.0" y="1283.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
+  <text x="74.0" y="1288.5" font-size="11.5" fill="#0f172a" font-weight="bold">#5  Opportunity</text>
+  <text x="74.0" y="1304.5" font-size="8.8" fill="#475569">R0 ships the single RM-only origination point — nothing</text>
+  <text x="74.0" y="1317.0" font-size="8.8" fill="#475569">downstream exists without one (INV-LED-04, AC-8/AC-9).</text>
+  <text x="74.0" y="1329.5" font-size="8.8" fill="#475569">R1 widens it to a durable demand object: CROSS_SELL,</text>
+  <text x="74.0" y="1342.0" font-size="8.8" fill="#475569">UP_SELL, RENEWAL, LAPSE_RECOVERY, CAMPAIGN, plus</text>
+  <text x="74.0" y="1354.5" font-size="8.8" fill="#475569">bulk upload and allocation. Opportunity 1:N Journey.</text>
   <rect x="676.0" y="1264.5" width="596.0" height="102.5" rx="6" fill="#fef3c7" stroke="#b45309" stroke-width="1.5"/>
   <rect x="1234.0" y="1271.5" width="30" height="15" rx="4" fill="#b45309"/>
   <text x="1249.0" y="1283.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R2</text>
@@ -336,9 +349,11 @@
   <text x="686.0" y="1342.0" font-size="8.8" fill="#475569">premium + inactivity → queue + priority) live</text>
   <text x="686.0" y="1354.5" font-size="8.8" fill="#475569">here, never inside Quote.</text>
   <rect x="1288.0" y="1264.5" width="596.0" height="115.0" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="1808.0" y="1271.5" width="30" height="15" rx="2" fill="#e11d48"/>
+  <text x="1823.0" y="1283.0" text-anchor="middle" font-size="8.5" font-weight="bold" fill="#ffffff">LOB</text>
   <rect x="1846.0" y="1271.5" width="30" height="15" rx="4" fill="#1d4ed8"/>
   <text x="1861.0" y="1283.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
-  <text x="1298.0" y="1288.5" font-size="11.5" fill="#0f172a" font-weight="bold">#9  Journey Registry</text>
+  <text x="1298.0" y="1288.5" font-size="11.5" fill="#0f172a" font-weight="bold">#9  Journey Orchestration → Journey Registry + LOB Router</text>
   <text x="1298.0" y="1304.5" font-size="8.8" fill="#475569">journeyId, opportunityId, partyId, LOB, type,</text>
   <text x="1298.0" y="1317.0" font-size="8.8" fill="#475569">version, status, stage, created/current channel,</text>
   <text x="1298.0" y="1329.5" font-size="8.8" fill="#475569">current owner. Enables discovery, hand-off,</text>
@@ -355,9 +370,11 @@
   <text x="1910.0" y="1342.0" font-size="8.8" fill="#475569">24 h → call-centre task. Emits RecoveryTask</text>
   <text x="1910.0" y="1354.5" font-size="8.8" fill="#475569">into Work Management.</text>
   <rect x="64.0" y="1393.5" width="596.0" height="115.0" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="584.0" y="1400.5" width="30" height="15" rx="2" fill="#e11d48"/>
+  <text x="599.0" y="1412.0" text-anchor="middle" font-size="8.5" font-weight="bold" fill="#ffffff">LOB</text>
   <rect x="622.0" y="1400.5" width="30" height="15" rx="4" fill="#1d4ed8"/>
   <text x="637.0" y="1412.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
-  <text x="74.0" y="1417.5" font-size="11.5" fill="#0f172a" font-weight="bold">#8  Product Governance &amp; Catalogue</text>
+  <text x="74.0" y="1417.5" font-size="11.5" fill="#0f172a" font-weight="bold">#8  Product Catalogue → Product Governance &amp; Catalogue</text>
   <text x="74.0" y="1433.5" font-size="8.8" fill="#475569">Insurer ≠ InsurerProduct ≠ DistributionAgreement</text>
   <text x="74.0" y="1446.0" font-size="8.8" fill="#475569">≠ BankProductOffering. Governs which insurer,</text>
   <text x="74.0" y="1458.5" font-size="8.8" fill="#475569">which product, which channel, ETB/NTB, effective</text>
@@ -365,9 +382,11 @@
   <text x="74.0" y="1483.5" font-size="8.8" fill="#475569">operation. IRDAI per-class insurer limits are</text>
   <text x="74.0" y="1496.0" font-size="8.8" fill="#475569">compliance configuration, never code.</text>
   <rect x="676.0" y="1393.5" width="596.0" height="102.5" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="1196.0" y="1400.5" width="30" height="15" rx="2" fill="#e11d48"/>
+  <text x="1211.0" y="1412.0" text-anchor="middle" font-size="8.5" font-weight="bold" fill="#ffffff">LOB</text>
   <rect x="1234.0" y="1400.5" width="30" height="15" rx="4" fill="#1d4ed8"/>
   <text x="1249.0" y="1412.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
-  <text x="686.0" y="1417.5" font-size="11.5" fill="#0f172a" font-weight="bold">Suitability framework (shared)</text>
+  <text x="686.0" y="1417.5" font-size="11.5" fill="#0f172a" font-weight="bold">#7  Suitability &amp; Recommendation → framework + LOB rules</text>
   <text x="686.0" y="1433.5" font-size="8.8" fill="#475569">Questionnaire engine, versioning, evidence and</text>
   <text x="686.0" y="1446.0" font-size="8.8" fill="#475569">reproducibility are shared; the questions and</text>
   <text x="686.0" y="1458.5" font-size="8.8" fill="#475569">rules belong to the LOB cell. Produces the</text>
@@ -386,7 +405,7 @@
   <rect x="1900.0" y="1393.5" width="596.0" height="115.0" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
   <rect x="2458.0" y="1400.5" width="30" height="15" rx="4" fill="#1d4ed8"/>
   <text x="2473.0" y="1412.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
-  <text x="1910.0" y="1417.5" font-size="11.5" fill="#0f172a" font-weight="bold">#13  Policy Portfolio / Registry</text>
+  <text x="1910.0" y="1417.5" font-size="11.5" fill="#0f172a" font-weight="bold">#13  Policy &amp; Issuance → Policy Portfolio / Registry</text>
   <text x="1910.0" y="1433.5" font-size="8.8" fill="#475569">What an issued policy means to the bank: canonical</text>
   <text x="1910.0" y="1446.0" font-size="8.8" fill="#475569">policy, provider policy number, coverage, dates,</text>
   <text x="1910.0" y="1458.5" font-size="8.8" fill="#475569">document ref, status, previous/renewed links,</text>
@@ -472,23 +491,23 @@
   <text x="180" y="1873.5" font-size="14" fill="#ffffff" font-weight="bold" letter-spacing="0.5">LOB EXECUTION CELL PLANE — WHERE THE INSURANCE BUSINESS ACTUALLY DIFFERS</text>
   <text x="56" y="1899.5" font-size="9.5" fill="#475569">OWNS · A cell is an independently deployable, scalable, observable, configurable, versionable, releasable and failure-isolated execution boundary — not one service and not one container. Quote and Proposal are per-LOB and that boundary is frozen: a Life quote, a Health quote and a Motor quote do not share a field shape, so sharing a service produces exactly the if (lob == …) sprawl this design exists to prevent.</text>
   <text x="56" y="1914.5" font-size="9.5" fill="#b91c1c">DOES NOT OWN · Customer, consent, product governance, payment, policy registry, documents, notification or audit — those are shared above. Nor the underwriting decision: that is the insurer's. A failed Life release must never make Health or Motor unavailable, and an insurer timeout storm in Life must never consume Health's capacity.</text>
-  <rect x="64.0" y="1948.5" width="596.0" height="309.5" rx="8" fill="#dbeafe" stroke="#1d4ed8" stroke-width="2"/>
+  <rect x="64.0" y="1948.5" width="596.0" height="309.5" rx="8" fill="#dbeafe" stroke="#e11d48" stroke-width="2.5"/>
   <text x="76.0" y="1970.5" font-size="13" fill="#0f172a" font-weight="bold">LIFE CELL</text>
   <text x="76.0" y="1986.5" font-size="9" fill="#1d4ed8" font-weight="bold" letter-spacing="0.6">release R0 → R1 → R2</text>
   <rect x="76.0" y="1998.5" width="572.0" height="26" rx="5" fill="#ffffff" stroke="#1d4ed8" stroke-width="1"/>
-  <text x="84.0" y="2010.5" font-size="9.8" fill="#0f172a" font-weight="bold">Life Journey Execution</text>
+  <text x="84.0" y="2010.5" font-size="9.8" fill="#0f172a" font-weight="bold">#9 · Life Journey Execution</text>
   <text x="84.0" y="2020.5" font-size="8.1" fill="#475569">Detailed Life state machine, compensation, LOB sequence rules.</text>
   <rect x="76.0" y="2028.5" width="572.0" height="26" rx="5" fill="#ffffff" stroke="#1d4ed8" stroke-width="1"/>
-  <text x="84.0" y="2040.5" font-size="9.8" fill="#0f172a" font-weight="bold">Life Suitability rules</text>
+  <text x="84.0" y="2040.5" font-size="9.8" fill="#0f172a" font-weight="bold">#7 · Life Suitability rules</text>
   <text x="84.0" y="2050.5" font-size="8.1" fill="#475569">Income, dependents, cover amount, tenure, objective, risk profile.</text>
   <rect x="76.0" y="2058.5" width="572.0" height="26" rx="5" fill="#ffffff" stroke="#1d4ed8" stroke-width="1"/>
-  <text x="84.0" y="2070.5" font-size="9.8" fill="#0f172a" font-weight="bold">Life Quote</text>
+  <text x="84.0" y="2070.5" font-size="9.8" fill="#0f172a" font-weight="bold">#10 · Life Quote</text>
   <text x="84.0" y="2080.5" font-size="8.1" fill="#475569">age · sum assured · term · premium frequency · smoker · riders.</text>
   <rect x="76.0" y="2088.5" width="572.0" height="26" rx="5" fill="#ffffff" stroke="#1d4ed8" stroke-width="1"/>
-  <text x="84.0" y="2100.5" font-size="9.8" fill="#0f172a" font-weight="bold">Life Proposal / Case Mgmt</text>
+  <text x="84.0" y="2100.5" font-size="9.8" fill="#0f172a" font-weight="bold">#11 · Life Proposal / Case Mgmt</text>
   <text x="84.0" y="2110.5" font-size="8.1" fill="#475569">Questionnaire, nominee, declarations + UW requirement tracking, medical, counter-offer.</text>
   <rect x="76.0" y="2118.5" width="572.0" height="26" rx="5" fill="#ffffff" stroke="#1d4ed8" stroke-width="1"/>
-  <text x="84.0" y="2130.5" font-size="9.8" fill="#0f172a" font-weight="bold">Life Issuance coordination</text>
+  <text x="84.0" y="2130.5" font-size="9.8" fill="#0f172a" font-weight="bold">#13 · Life Issuance coordination</text>
   <text x="84.0" y="2140.5" font-size="8.1" fill="#475569">Drives the insurer's issuance interaction; emits PolicyIssued.</text>
   <rect x="76.0" y="2148.5" width="572.0" height="26" rx="5" fill="#ffffff" stroke="#1d4ed8" stroke-width="1"/>
   <text x="84.0" y="2160.5" font-size="9.8" fill="#0f172a" font-weight="bold">Life Aggregation Runtime</text>
@@ -496,23 +515,23 @@
   <text x="76.0" y="2184.5" font-size="8.4" fill="#1d4ed8">Heaviest LOB — plan for it: quote traffic runs 8–10× proposal traffic.</text>
   <text x="76.0" y="2197.0" font-size="8.4" fill="#1d4ed8">Own DB · own cache namespace · own topics · own bulkheads · own SLOs.</text>
   <text x="76.0" y="2209.5" font-size="8.4" fill="#1d4ed8">Illustrative shape: Life 5,000 TPS vs Health 600 vs General 300.</text>
-  <rect x="676.0" y="1948.5" width="596.0" height="309.5" rx="8" fill="#f3e8ff" stroke="#7e22ce" stroke-width="2"/>
+  <rect x="676.0" y="1948.5" width="596.0" height="309.5" rx="8" fill="#f3e8ff" stroke="#e11d48" stroke-width="2.5"/>
   <text x="688.0" y="1970.5" font-size="13" fill="#0f172a" font-weight="bold">HEALTH CELL</text>
   <text x="688.0" y="1986.5" font-size="9" fill="#7e22ce" font-weight="bold" letter-spacing="0.6">release R3</text>
   <rect x="688.0" y="1998.5" width="572.0" height="26" rx="5" fill="#ffffff" stroke="#7e22ce" stroke-width="1"/>
-  <text x="696.0" y="2010.5" font-size="9.8" fill="#0f172a" font-weight="bold">Health Journey Execution</text>
+  <text x="696.0" y="2010.5" font-size="9.8" fill="#0f172a" font-weight="bold">#9 · Health Journey Execution</text>
   <text x="696.0" y="2020.5" font-size="8.1" fill="#475569">Health state machine — different sequence, not an if-branch.</text>
   <rect x="688.0" y="2028.5" width="572.0" height="26" rx="5" fill="#ffffff" stroke="#7e22ce" stroke-width="1"/>
-  <text x="696.0" y="2040.5" font-size="9.8" fill="#0f172a" font-weight="bold">Health Suitability rules</text>
+  <text x="696.0" y="2040.5" font-size="9.8" fill="#0f172a" font-weight="bold">#7 · Health Suitability rules</text>
   <text x="696.0" y="2050.5" font-size="8.1" fill="#475569">Members, family structure, PED, geography, room eligibility, co-pay.</text>
   <rect x="688.0" y="2058.5" width="572.0" height="26" rx="5" fill="#ffffff" stroke="#7e22ce" stroke-width="1"/>
-  <text x="696.0" y="2070.5" font-size="9.8" fill="#0f172a" font-weight="bold">Health Quote</text>
+  <text x="696.0" y="2070.5" font-size="9.8" fill="#0f172a" font-weight="bold">#10 · Health Quote</text>
   <text x="696.0" y="2080.5" font-size="8.1" fill="#475569">members · age each · family structure · PED · sum insured · co-pay.</text>
   <rect x="688.0" y="2088.5" width="572.0" height="26" rx="5" fill="#ffffff" stroke="#7e22ce" stroke-width="1"/>
-  <text x="696.0" y="2100.5" font-size="9.8" fill="#0f172a" font-weight="bold">Health Proposal / Case Mgmt</text>
+  <text x="696.0" y="2100.5" font-size="9.8" fill="#0f172a" font-weight="bold">#11 · Health Proposal / Case Mgmt</text>
   <text x="696.0" y="2110.5" font-size="8.1" fill="#475569">Insured members, declarations + UW requirement and medical tracking.</text>
   <rect x="688.0" y="2118.5" width="572.0" height="26" rx="5" fill="#ffffff" stroke="#7e22ce" stroke-width="1"/>
-  <text x="696.0" y="2130.5" font-size="9.8" fill="#0f172a" font-weight="bold">Health Issuance coordination</text>
+  <text x="696.0" y="2130.5" font-size="9.8" fill="#0f172a" font-weight="bold">#13 · Health Issuance coordination</text>
   <text x="696.0" y="2140.5" font-size="8.1" fill="#475569">Health insurer issuance interaction; emits PolicyIssued.</text>
   <rect x="688.0" y="2148.5" width="572.0" height="26" rx="5" fill="#ffffff" stroke="#7e22ce" stroke-width="1"/>
   <text x="696.0" y="2160.5" font-size="9.8" fill="#0f172a" font-weight="bold">Health Aggregation Runtime</text>
@@ -520,23 +539,23 @@
   <text x="688.0" y="2184.5" font-size="8.4" fill="#7e22ce">Entry condition: WS-1 Phase 5 unfrozen (CURRENT-STATE lists non-Life LOBs as R2+).</text>
   <text x="688.0" y="2197.0" font-size="8.4" fill="#7e22ce">First deployment can be 4 deployables, not 6 — logical boundary ≠ container count.</text>
   <text x="688.0" y="2209.5" font-size="8.4" fill="#7e22ce">Reuses 100% of the shared platform. No health-customer-service, ever.</text>
-  <rect x="1288.0" y="1948.5" width="596.0" height="309.5" rx="8" fill="#ffe4e6" stroke="#be123c" stroke-width="2"/>
+  <rect x="1288.0" y="1948.5" width="596.0" height="309.5" rx="8" fill="#ffe4e6" stroke="#e11d48" stroke-width="2.5"/>
   <text x="1300.0" y="1970.5" font-size="13" fill="#0f172a" font-weight="bold">GENERAL CELL</text>
   <text x="1300.0" y="1986.5" font-size="9" fill="#be123c" font-weight="bold" letter-spacing="0.6">release R4</text>
   <rect x="1300.0" y="1998.5" width="572.0" height="26" rx="5" fill="#ffffff" stroke="#be123c" stroke-width="1"/>
-  <text x="1308.0" y="2010.5" font-size="9.8" fill="#0f172a" font-weight="bold">General Journey Execution</text>
+  <text x="1308.0" y="2010.5" font-size="9.8" fill="#0f172a" font-weight="bold">#9 · General Journey Execution</text>
   <text x="1308.0" y="2020.5" font-size="8.1" fill="#475569">GI state machine; productLine drives the variant.</text>
   <rect x="1300.0" y="2028.5" width="572.0" height="26" rx="5" fill="#ffffff" stroke="#be123c" stroke-width="1"/>
-  <text x="1308.0" y="2040.5" font-size="9.8" fill="#0f172a" font-weight="bold">General Eligibility rules</text>
+  <text x="1308.0" y="2040.5" font-size="9.8" fill="#0f172a" font-weight="bold">#7 · General Eligibility rules</text>
   <text x="1308.0" y="2050.5" font-size="8.1" fill="#475569">Vehicle / asset eligibility rather than Life-style suitability.</text>
   <rect x="1300.0" y="2058.5" width="572.0" height="26" rx="5" fill="#ffffff" stroke="#be123c" stroke-width="1"/>
-  <text x="1308.0" y="2070.5" font-size="9.8" fill="#0f172a" font-weight="bold">General Quote</text>
+  <text x="1308.0" y="2070.5" font-size="9.8" fill="#0f172a" font-weight="bold">#10 · General Quote</text>
   <text x="1308.0" y="2080.5" font-size="8.1" fill="#475569">vehicle · registration · make/model · IDV · NCB · previous policy · add-ons.</text>
   <rect x="1300.0" y="2088.5" width="572.0" height="26" rx="5" fill="#ffffff" stroke="#be123c" stroke-width="1"/>
-  <text x="1308.0" y="2100.5" font-size="9.8" fill="#0f172a" font-weight="bold">General Proposal / Case Mgmt</text>
+  <text x="1308.0" y="2100.5" font-size="9.8" fill="#0f172a" font-weight="bold">#11 · General Proposal / Case Mgmt</text>
   <text x="1308.0" y="2110.5" font-size="8.1" fill="#475569">Inspection rather than medical; GI declarations.</text>
   <rect x="1300.0" y="2118.5" width="572.0" height="26" rx="5" fill="#ffffff" stroke="#be123c" stroke-width="1"/>
-  <text x="1308.0" y="2130.5" font-size="9.8" fill="#0f172a" font-weight="bold">General Issuance coordination</text>
+  <text x="1308.0" y="2130.5" font-size="9.8" fill="#0f172a" font-weight="bold">#13 · General Issuance coordination</text>
   <text x="1308.0" y="2140.5" font-size="8.1" fill="#475569">GI insurer issuance interaction; emits PolicyIssued.</text>
   <rect x="1300.0" y="2148.5" width="572.0" height="26" rx="5" fill="#ffffff" stroke="#be123c" stroke-width="1"/>
   <text x="1308.0" y="2160.5" font-size="9.8" fill="#0f172a" font-weight="bold">General Aggregation Runtime</text>
@@ -544,7 +563,7 @@
   <text x="1300.0" y="2184.5" font-size="8.4" fill="#be123c">productLine = MOTOR | TRAVEL | HOME | PERSONAL_ACCIDENT inside LOB = GENERAL.</text>
   <text x="1300.0" y="2197.0" font-size="8.4" fill="#be123c">Motor is deliberately NOT its own LOB — it is a product line under General.</text>
   <text x="1300.0" y="2209.5" font-size="8.4" fill="#be123c">Written so the extraction below needs no change to the global model.</text>
-  <rect x="1900.0" y="1948.5" width="596.0" height="309.5" rx="8" fill="#e0e7ff" stroke="#4338ca" stroke-width="2" stroke-dasharray="6 4"/>
+  <rect x="1900.0" y="1948.5" width="596.0" height="309.5" rx="8" fill="#e0e7ff" stroke="#e11d48" stroke-width="2.5" stroke-dasharray="6 4"/>
   <text x="1912.0" y="1970.5" font-size="13" fill="#0f172a" font-weight="bold">MOTOR CELL (optional extraction)</text>
   <text x="1912.0" y="1986.5" font-size="9" fill="#4338ca" font-weight="bold" letter-spacing="0.6">release RN</text>
   <rect x="1912.0" y="1998.5" width="572.0" height="26" rx="5" fill="#ffffff" stroke="#4338ca" stroke-width="1"/>
@@ -649,6 +668,8 @@
   <text x="1910.0" y="2609.0" font-size="8.8" fill="#475569">canonical caller never encodes a provider's</text>
   <text x="1910.0" y="2621.5" font-size="8.8" fill="#475569">interaction style into the journey.</text>
   <rect x="64.0" y="2660.5" width="596.0" height="115.0" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="584.0" y="2667.5" width="30" height="15" rx="2" fill="#e11d48"/>
+  <text x="599.0" y="2679.0" text-anchor="middle" font-size="8.5" font-weight="bold" fill="#ffffff">LOB</text>
   <rect x="622.0" y="2667.5" width="30" height="15" rx="4" fill="#1d4ed8"/>
   <text x="637.0" y="2679.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
   <text x="74.0" y="2684.5" font-size="11.5" fill="#0f172a" font-weight="bold">#14  Integration Hub (R0 form)</text>
@@ -773,12 +794,12 @@
   <text x="56" y="3161.5" font-size="9.5" fill="#ffffff" font-weight="bold" letter-spacing="1.4">BOUNDARY 8</text>
   <text x="180" y="3161.5" font-size="14" fill="#ffffff" font-weight="bold" letter-spacing="0.5">DATA &amp; PERSISTENCE</text>
   <text x="56" y="3187.5" font-size="9.5" fill="#475569">OWNS · Durable state, evidence and documents. Database ownership per bounded context is mandatory and cross-service database access is forbidden (ArchUnit + IAM). Physical separation is workload-driven, not dogmatic.</text>
-  <text x="56" y="3202.5" font-size="9.5" fill="#b91c1c">DOES NOT OWN · Shared mutable tables. 'Database per service' does not mean forty Aurora clusters across three environments plus DR — that is a cost, upgrade, backup and DBA problem, not an architecture. Start with schema separation in a shared cluster and split when scale, security or RTO justifies it.</text>
+  <text x="56" y="3202.5" font-size="9.5" fill="#b91c1c">DOES NOT OWN · Shared mutable tables. 'Database per service' does not mean forty Aurora clusters across three environments plus DR — that is a cost, upgrade, backup and DBA problem, not an architecture. DECIDED (ADR-008): start with schema separation in ONE cluster; split when scale, blast radius, security or RTO justify it, and split along the LOB-cell / shared-platform seam rather than the service boundary.</text>
   <rect x="64.0" y="3216.5" width="290.0" height="90.0" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
   <rect x="316.0" y="3223.5" width="30" height="15" rx="4" fill="#1d4ed8"/>
   <text x="331.0" y="3235.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
   <text x="74.0" y="3240.5" font-size="11.5" fill="#0f172a" font-weight="bold">Aurora PostgreSQL — shared platform</text>
-  <text x="74.0" y="3256.5" font-size="8.8" fill="#475569">party · opportunity · consent · journey registry ·</text>
+  <text x="74.0" y="3256.5" font-size="8.8" fill="#475569">ADR-008 · party · opportunity · consent · journey registry ·</text>
   <text x="74.0" y="3269.0" font-size="8.8" fill="#475569">product governance · payment · policy portfolio ·</text>
   <text x="74.0" y="3281.5" font-size="8.8" fill="#475569">audit index. Multi-AZ, PITR, one schema per</text>
   <text x="74.0" y="3294.0" font-size="8.8" fill="#475569">context, no cross-context access.</text>
@@ -920,23 +941,25 @@
   <text x="1298.0" y="3690.0" font-size="8.8" fill="#475569">no PII in logs, secret/SAST/SCA/image scanning in</text>
   <text x="1298.0" y="3702.5" font-size="8.8" fill="#475569">the pipeline, DevSecOps supply chain.</text>
   <text x="1298.0" y="3715.0" font-size="8.8" fill="#475569">Board 4 owns the conclusion; T4 sign-off is human.</text>
-  <rect x="1900.0" y="3625.0" width="596.0" height="115.0" rx="6" fill="#ccfbf1" stroke="#0f766e" stroke-width="1.5"/>
-  <rect x="2458.0" y="3632.0" width="30" height="15" rx="4" fill="#0f766e"/>
-  <text x="2473.0" y="3643.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R1</text>
-  <text x="1910.0" y="3649.0" font-size="11.5" fill="#0f172a" font-weight="bold">Configuration plane</text>
+  <rect x="1900.0" y="3625.0" width="596.0" height="115.0" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="2458.0" y="3632.0" width="30" height="15" rx="4" fill="#1d4ed8"/>
+  <text x="2473.0" y="3643.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
+  <rect x="2422.0" y="3632.0" width="30" height="15" rx="2" fill="#e11d48"/>
+  <text x="2437.0" y="3643.5" text-anchor="middle" font-size="8.5" font-weight="bold" fill="#ffffff">LOB</text>
+  <text x="1910.0" y="3649.0" font-size="11.5" fill="#0f172a" font-weight="bold">#19  Administration &amp; Config → Configuration plane</text>
   <text x="1910.0" y="3665.0" font-size="8.8" fill="#475569">Insurance platforms are configuration-heavy: insurer,</text>
   <text x="1910.0" y="3677.5" font-size="8.8" fill="#475569">product, channel, branch, segment, route, version,</text>
-  <text x="1910.0" y="3690.0" font-size="8.8" fill="#475569">commission, feature activation. Versioned, maker-</text>
-  <text x="1910.0" y="3702.5" font-size="8.8" fill="#475569">checker, approval, effective dates, audit, rollback.</text>
-  <text x="1910.0" y="3715.0" font-size="8.8" fill="#475569">Hard-coded product or provider behaviour is the</text>
-  <text x="1910.0" y="3727.5" font-size="8.8" fill="#475569">bottleneck that shows up two years late.</text>
+  <text x="1910.0" y="3690.0" font-size="8.8" fill="#475569">commission, feature activation — every domain keyed by</text>
+  <text x="1910.0" y="3702.5" font-size="8.8" fill="#475569">lob (CF-2). R0 ships the LAYER as Wave 0b: versioned,</text>
+  <text x="1910.0" y="3715.0" font-size="8.8" fill="#475569">append-only, effective-dated, seeded, NO ADMIN UI.</text>
+  <text x="1910.0" y="3727.5" font-size="8.8" fill="#475569">R1 adds maker-checker governance and the admin UI.</text>
   <rect x="64.0" y="3754.0" width="596.0" height="90.0" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
   <rect x="622.0" y="3761.0" width="30" height="15" rx="4" fill="#1d4ed8"/>
   <text x="637.0" y="3772.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
   <text x="74.0" y="3778.0" font-size="11.5" fill="#0f172a" font-weight="bold">CI/CD + architecture fitness</text>
   <text x="74.0" y="3794.0" font-size="8.8" fill="#475569">Every module built and tested on every PR; merge</text>
   <text x="74.0" y="3806.5" font-size="8.8" fill="#475569">impossible without green; coverage floors; ArchUnit</text>
-  <text x="74.0" y="3819.0" font-size="8.8" fill="#475569">and 15 fitness functions; p95 feedback under 10 min.</text>
+  <text x="74.0" y="3819.0" font-size="8.8" fill="#475569">and 21 fitness functions (FF-01…FF-21); p95 under 10 min.</text>
   <text x="74.0" y="3831.5" font-size="8.8" fill="#475569">GATE-S08 — where the platform actually is today.</text>
   <rect x="676.0" y="3754.0" width="596.0" height="102.5" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
   <rect x="1234.0" y="3761.0" width="30" height="15" rx="4" fill="#1d4ed8"/>
@@ -1145,7 +1168,7 @@
   <circle cx="73.0" cy="4485.0" r="9" fill="#0f172a"/>
   <text x="73.0" y="4488.5" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">13</text>
   <text x="90.0" y="4485.0" font-size="10.2" fill="#0f172a" font-weight="bold">Own the data, be pragmatic about the cluster</text>
-  <text x="90.0" y="4497.0" font-size="8.5" fill="#475569">Database ownership per bounded context is mandatory and cross-service DB access is forbidden. Physical splitting is driven by scale, security and RTO.</text>
+  <text x="90.0" y="4497.0" font-size="8.5" fill="#475569">Database ownership per bounded context is mandatory and cross-service DB access is forbidden. Physical splitting is driven by scale, security and RTO, and follows the LOB seam (ADR-008).</text>
   <circle cx="1299.0" cy="4485.0" r="9" fill="#0f172a"/>
   <text x="1299.0" y="4488.5" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">14</text>
   <text x="1316.0" y="4485.0" font-size="10.2" fill="#0f172a" font-weight="bold">Motor must stay extractable</text>
@@ -1153,5 +1176,5 @@
   <text x="40" y="4552.0" font-size="9.6" fill="#334155" font-weight="bold">AI-DRAFTED in the Architecture lane (Mahesh — Board 1, Principal Insurance Platform Architect). Mandatory human T4 Architecture sign-off is OUTSTANDING; this diagram approves nothing and admits nothing.</text>
   <text x="40" y="4567.0" font-size="9.2" fill="#64748b">Sources · docs/governance/state/CURRENT-STATE.yaml (WS-3 objective, scope, out_of_scope revisit_at, standing constraints) · docs/platform/ws3-platform/00-WS3-ARCHITECTURE-REGISTRATION.md §3 (IF-1/IF-2/IF-3, SC-W3-1…12) · 03-solution-architecture-r0.md §2–§5 (R0 actors, bounded contexts #1–#19, seams S-01…S-22) · 01-domain-model-and-invariants.md §2.4–§2.6 (actors, LOB, configuration) · ADR-004…ADR-007 · 04-security-architecture.md · 05-nfr-catalogue.md · consent and suitability rule packs · target-state design discussion of 2026-08-18/19.</text>
   <text x="40" y="4581.0" font-size="9.2" fill="#64748b">Reading rule · The R0 band is the executable architecture and the only admitted scope. R1–R4 elements correspond to CURRENT-STATE out_of_scope entries and carry that entry's revisit_at. RN elements have no governance record at all. Nothing on this diagram may be cited as authority to start work: each element still requires AIGEM triage, an owner, and where consequential an ADR and the applicable board reviews.</text>
-  <text x="40" y="4595.0" font-size="9.2" fill="#64748b">Companion artefacts · docs/architecture/r0-reference-architecture.svg is the preserved R0 executable HLD (previously docs/hdl.svg) — the two diagrams answer different questions and neither replaces the other. Next artefact needed: an R0 → R1 → R2 transition and dependency map, so delivery knows the order in which these components must appear. · Revised 2026-08-20 by the HLD review round (SUG-20260820-hr0): the actor band now carries two R0 actors — the RM as the certified Specified Person and the assist-only Insurance Partner Rep — and no longer draws a certification as an actor.</text>
+  <text x="40" y="4595.0" font-size="9.2" fill="#64748b">Companion artefacts · docs/architecture/r0-reference-architecture.svg is the preserved R0 executable HLD (previously docs/hdl.svg) — the two diagrams answer different questions and neither replaces the other. Next artefact needed: an R0 → R1 → R2 transition and dependency map, so delivery knows the order in which these components must appear. · Revised 2026-08-20 by the HLD review round (SUG-20260820-hr0): the actor band now carries two R0 actors — the RM as the certified Specified Person and the assist-only Insurance Partner Rep — and no longer draws a certification as an actor. · Revised again 2026-08-20 by the diagram alignment round (SUG-20260820-al7): #5 Opportunity and #19 Configuration corrected from R1 to R0 to match 03-solution-architecture-r0.md §3 (Wave 1 and Wave 0b); fitness functions corrected from 15 to 21; every bounded context now carries its #n with its canonical register name and the → target-state name where they differ (NC-1); the LOB dimension is now rendered — a LOB tag marks shared services partitioned by (lob, …) per CF-2, and the rose cell stroke marks LOB-owned execution that a second LOB duplicates (LB-4 / LB-5). · Revised a third time the same day by the decision round (SUG-20260820-dc4): ADR-008 makes data ownership the invariant and physical cluster topology an evidence-led decision — R0 is one cluster with a schema per context, and the first split follows the LOB seam — and OPEN-D10 closes with context #5 named Opportunity.</text>
 </svg>

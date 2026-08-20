@@ -231,12 +231,12 @@ capability_contract:
 > that H1 must then break. **That is a live H0 design constraint, and it is the cheapest thing in
 > this document to get wrong.**
 
-### 6.2 `CAP-102` — Opportunity (Lead)
+### 6.2 `CAP-102` — Opportunity
 
 ```yaml
 capability_contract:
   id: CAP-102
-  name: "Opportunity (Lead)"
+  name: "Opportunity"
   plane: 1
   exists_because: >
     A Lead is a sales/business opportunity, not an insurance transaction. The platform needs a
@@ -376,7 +376,7 @@ written when a capability comes into scope (`NS-02`), in the order of §2.2.
 | ID | Capability | Owns | Does **not** own | Sharing | Horizon | R0 |
 |---|---|---|---|---|---|---|
 | `CAP-101` | Party & Customer | Party; bank-customer link; snapshot freshness | CBS master; sales context; journey state | SHARED | H0 | #4 |
-| `CAP-102` | Opportunity (Lead) | Opportunity, source, campaign, disposition | Quote/proposal/payment logic; assignment | SHARED | H1 | #5 (deferred) |
+| `CAP-102` | Opportunity | Opportunity, source, campaign, disposition | Quote/proposal/payment logic; assignment | SHARED | H1 | #5 (deferred) |
 | `CAP-103` | Work Management & Assignment | Queues, assignment, SLA, escalation, callbacks | Opportunity; journey state; engagement decision | SHARED | H1 | none |
 | `CAP-104` | Consent | Consent **evidence**: who, what data, which purpose, which parties, text version, capture method, revocation, expiry | Whether a business action is lawful (Shailja); journey gating logic | SHARED | H0 | #6 |
 | `CAP-105` | Product Governance | Insurer master; insurer product; **bank-approved offering**; effective dates; enabled channels; ETB/NTB availability; **`quoteRoute` / `proposalRoute` / `issuanceRoute`**; eligibility metadata; status | Pricing; insurer underwriting rules; LOB quote construction; how a route is executed (`CAP-403`) | SHARED | H0 | #8 |
@@ -557,7 +557,7 @@ isolated per-cell **data plane**.
 
 | # | Item | Owner | Type |
 |---|---|---|---|
-| 1 | `ARCH-004` update: separate ownership invariant from physical topology decision | Mahesh + **Aarti** | ADR update |
+| 1 | ~~`ARCH-004` update: separate ownership invariant from physical topology decision~~ **DONE — [`ADR-008`](../../../platform/architecture-review/08-architecture-decision-log.md), 2026-08-20.** R0 = one cluster, schema per context; first split on the LOB-cell / shared seam. **Aarti's approval and Deepali's Security review outstanding** | Mahesh + **Aarti** | ADR update |
 | 2 | `SC-W3-5` wording: *"the Integration Hub"* → *"an integration boundary"*, with the split trigger | Mahesh + Deepali + Shivanshi | ADR, before any per-LOB runtime |
 | 3 | H0 constraint: no contract may assume `customerId == cifId`, or Party at H1 becomes a breaking change | Mahesh | Design constraint, verify at S11 |
 | 4 | Coarse shared stage vocabulary must be provably LOB-agnostic before Health | Mahesh + Rajal | H2 entry condition |

@@ -50,6 +50,8 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | SUG-20260820-n5t | 2026-08-20 | human:Mahesh | Redraw `docs/hdl.svg` as the release-coded North Star HLD — boundary descriptions, LOB segregation, aggregation/provider layer, mature-platform capabilities, R0→RN phasing — and preserve the R0 view alongside it | SF2 | SC1 | SHOULD | DOC | P3 / P3 | ADMIT-BYPASS | [architecture diagrams](../../architecture/README.md) |
 | SUG-20260820-hr0 | 2026-08-20 | human:Mahesh | HLD review round: correct the R0 actor model to two actors with SP as a certification attribute, gate and insurer-scope the Insurance Partner Representative, make the opportunity the single RM-only origination point, make LOB first-class from release 1 and make the configuration layer ship in R0 independently of any admin UI | SF0 | SC0 | MUST | ARCH | P1 / P1 | ADMIT-BYPASS | [ADR-004…007](../../platform/architecture-review/08-architecture-decision-log.md) |
 | SUG-20260820-r1t | 2026-08-20 | agent:claude | Produce the R0 → R1 → R2 transition and dependency map the North Star does not answer: the order in which target components must appear and which are prerequisites for which | SF3 | SC1 | SHOULD | ARCH | P4 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md#1-parked--scheduled-work) |
+| SUG-20260820-al7 | 2026-08-20 | human:Mahesh | Reconcile the North Star and R0 diagrams: one naming and layer convention across both files, the R0 view redrawn on the North Star's boundary bands so it reads as a release-zero cut of the same picture, and the Life LOB cell visually separated from the shared platform | SF1 | SC1 | MUST | ARCH | P2 / P2 | ADMITTED | [detail](#sug-20260820-al7--hld-and-r0-diagram-alignment) |
+| SUG-20260820-dc4 | 2026-08-20 | human:Mahesh | Resolve OPEN-A1 and OPEN-D10: physical database topology is an evidence-led decision, not a principle — R0 starts as one cluster with a schema per context and splits later along the LOB-cell / shared-platform seam; and context #5 is named Opportunity, because a lead is too thin to carry renewal, lapse and cross-sell demand | SF1 | SC1 | MUST | ARCH | P2 / P2 | ADMITTED | [ADR-008](../../platform/architecture-review/08-architecture-decision-log.md) |
 
 <!--
 Row format:
@@ -655,6 +657,308 @@ outcome:
     - "docs/architecture/r0-reference-architecture.svg — R0 view reconciled (HA-03, HA-06)"
     - "scripts/governance/ci-checks.py — PASSED"
     - "java scripts/governance/FreshnessCheck.java — FRESH"
+  closed_reason: null
+
+resumed: null
+```
+
+---
+
+### SUG-20260820-al7 · HLD and R0 diagram alignment
+
+```yaml
+id: SUG-20260820-al7
+raised_at: "2026-08-20"
+raised_by: "human:Mahesh"
+source: "direct user instruction, acting as the Board 1 Architecture persona"
+input: >
+  Verify that the HLD and the R0 diagram are in line — naming convention, nomenclature and the
+  layer model already decided in the HLD. The R0 view should be a mirror image of the HLD that
+  simply shows what release zero covers, and nothing more. Additionally, because delivery starts
+  with the Life module only, the Life-specific modules must be grouped into a distinct colour or
+  box so that it is visible which modules belong to a line of business and which are generic or
+  shared.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: R0-ASSISTED-TERM-SALE
+  current_gate: "GATE-S08 (OPEN)"
+  state_as_of: "2026-08-10"
+  state_provisional: false
+  freshness_check: "exit 0 — FRESH"
+
+stage_fit:
+  code: SF1
+  rationale: >
+    Not new architecture. The two diagrams and the authoring protocol that governs them were
+    revised four days ago under SUG-20260820-n5t and SUG-20260820-hr0, and the verification
+    finds defects introduced by those same two changes: the North Star carries release chips
+    that contradict the ratified R0 scope, and the authoring protocol still documents a canvas
+    contract for a file whose contents moved. HA-06 requires the R0 view to be reconciled in
+    the same change as the target-state view; that reconciliation was partial. Correcting a
+    defect in the current stage's own design artefact is on-stage work, not a new increment.
+
+scope:
+  code: SC1
+  serves: [SUG-20260820-n5t, SUG-20260820-hr0]
+  rationale: >
+    The R0 reference architecture is an in-scope deliverable and it is unusable in its current
+    form for the purpose it exists for. Two diagrams that disagree about which release a
+    bounded context belongs to give the reader two answers with no way to tell which is
+    current — the exact failure HA-02 and HA-06 exist to prevent. No new capability, service or
+    scope is added by this item.
+
+necessity:
+  verdict: MUST
+  evidence_tier: E2
+  confidence: C5
+  rationale: >
+    The defects are objectively checkable against ratified sources, not matters of taste:
+    03-solution-architecture-r0.md section 3 places #5 Opportunity in Wave 1 and #19
+    Configuration in Wave 0b of R0, and section 7 defines FF-01..FF-21. The North Star
+    contradicts all three.
+
+action: ADMIT
+priority:
+  now: P2
+  at_target: P2
+  rationale: >
+    Not a P1 override — nothing is broken at runtime and no gate criterion is blocked. P2
+    because delivery reads these diagrams when sequencing S08/S09 work, and a wrong release
+    chip on #5 and #19 is read as permission to defer two components that R0 depends on.
+
+work_type: ARCH
+risk_tier: T2
+
+findings:
+  - id: AL-1
+    severity: HIGH
+    where: "docs/hdl.svg — Boundary 4"
+    finding: >
+      #5 Lead -> Opportunity carries an R1 release chip. 03-solution-architecture-r0.md section 3
+      un-deferred it into Wave 1 of R0 (AC-8, AC-9) because CURRENT-STATE in_scope already lists
+      it, and the North Star's own R0 roadmap band lists "Lead (#5)". The diagram contradicts
+      both its source and itself.
+    resolution: "chip corrected to R0; the R1 text now names only the parts that are R1 — bulk upload, allocation, campaign management"
+  - id: AL-2
+    severity: HIGH
+    where: "docs/hdl.svg — Boundary 10"
+    finding: >
+      The configuration plane carries an R1 chip and no context number. CF-5 and
+      03-solution-architecture-r0.md section 3 ship context #19 as a Wave 0b service in R0 —
+      only its admin UI is deferred. Drawn as R1, the layer every other R0 wave resolves its
+      rules from appears to be next-release work.
+    resolution: "chip corrected to R0, numbered #19, and the R0/R1 split stated on the element: layer in R0, maker-checker governance and admin UI at R1"
+  - id: AL-3
+    severity: MEDIUM
+    where: "docs/hdl.svg — Boundary 10, CI/CD element"
+    finding: "asserts 15 fitness functions; the catalogue is FF-01..FF-21 since SUG-20260820-hr0 added FF-16..FF-21"
+    resolution: "corrected to 21"
+  - id: AL-4
+    severity: MEDIUM
+    where: "both diagrams"
+    finding: >
+      Seven contexts are drawn under two different names with no mapping between them:
+      #4 Customer / Party-Customer, #7 Suitability / Suitability framework, #8 Product Catalogue /
+      Product Governance & Catalogue, #9 Journey Orchestration / Journey Registry, #10 Quotation /
+      Life Quote, #11 Proposal & UW / Life Proposal & Case Mgmt, #13 Policy & Issuance / Policy
+      Portfolio & Registry. Four of them carry no #n at all on the North Star element, so a reader
+      cannot match the box to the register. The target-state names are deliberate — several
+      contexts split or widen by RN — but an undeclared rename reads as a different service.
+    resolution: >
+      Naming rule NC-1 added to the authoring protocol: the #n is the identity and is mandatory on
+      every element in both files; the canonical register name is always shown; where the target
+      state renames or splits the context, it is rendered as "#n Canonical -> target name" so the
+      evolution is explicit. Applied to both diagrams.
+  - id: AL-5
+    severity: HIGH
+    where: "docs/architecture/r0-reference-architecture.svg — whole layout"
+    finding: >
+      The R0 view is organised by build wave and journey flow; the North Star is organised into
+      ten described boundaries. They share a colour vocabulary and a context register but not a
+      structure, so the R0 view cannot be read as a release-zero cut of the target picture — which
+      is the one job the pair exists to do. Concretely: #10 and #11 sit in a flat row beside #6,
+      #12 and #16, giving no hint that the North Star holds Quote and Proposal to be per-LOB and
+      that boundary frozen.
+    resolution: "R0 view redrawn on the North Star's boundary bands 1-10, each band carrying what R0 contains and an explicit note where a band is thin or empty in R0"
+  - id: AL-6
+    severity: HIGH
+    where: "docs/architecture/r0-reference-architecture.svg"
+    finding: >
+      Nothing distinguishes LOB-owned execution from shared platform. LB-4 and LB-5 draw the line
+      precisely — the rules are partitioned, the evidence is not — and the diagram renders every
+      R0 service in wave colour, so a reader planning Health cannot see which boxes get a second
+      instance and which never do.
+    resolution: >
+      Three-class LOB classification rendered: LIFE CELL (LOB-owned execution, #10 and #11, the
+      frozen per-LOB boundary), LOB-partitioned shared services (shared code, configuration keyed
+      by lob, per CF-2), and LOB-agnostic shared mechanics (single-instance for every LOB, per
+      LB-5). New colour token added to the legend in the same edit (HA-08).
+  - id: AL-7
+    severity: MEDIUM
+    where: "docs/context/roles/mahesh-principal-insurance-platform-architect/16-hld-authoring-and-update-protocol.md"
+    finding: >
+      Root cause of AL-1..AL-6. The authoring protocol still says docs/hdl.svg is horizon H0 —
+      R0 as designed — and its canvas contract in section 4 documents the R0 geometry. Since
+      SUG-20260820-n5t, hdl.svg holds the North Star and the R0 view lives at
+      docs/architecture/r0-reference-architecture.svg. There has been no convention covering two
+      files, which is why two files drifted. Its checklist also still ranges seams to S-19 and
+      fitness functions to FF-15.
+    resolution: >
+      Protocol extended to a two-file family with a shared naming rule (NC-1), a shared layer
+      model (LY-1: the ten boundaries are the layer vocabulary for every horizon), the LOB
+      classification rule (LB-R1), corrected ranges, and a reconciliation checklist that fails
+      when the two files disagree about a release chip or a context name.
+
+not_included:
+  - "the name of context #5 in Product-owned artefacts — Lead vs Opportunity is OPEN-D10 and Rajal's call. Both diagrams keep the dual form '#5 Opportunity (Lead)' until that decision lands"
+  - >
+    the contradiction between ARCH-004 database-per-service, which the R0 view asserts, and the
+    North Star's Boundary 8 position that physical splitting is scale-driven and R0 may start as
+    separate schemas in a shared cluster. Both are drawn as written and the divergence is flagged
+    for Mahesh and Aarti; an agent does not pick between a ratified decision and a target-state
+    position on a matter with cost, DR and DBA consequences. Raised as OPEN-A1 below
+  - "T4 Architecture sign-off. The signature status on both diagrams is unchanged (HA-10)"
+  - "any change to CURRENT-STATE.yaml, to scope, stage or gate state"
+  - "any code, migration or seed artefact"
+
+open_decisions:
+  - id: OPEN-A1
+    owner: "Mahesh (Architecture) with Aarti (Database)"
+    question: >
+      Does R0 start with one Aurora cluster holding a schema per context, or a cluster per
+      service? ARCH-004 is Proposed and the R0 view asserts it as decided; the North Star
+      asserts the opposite starting point. Until this is settled the two diagrams describe two
+      different R0 data topologies.
+
+outcome:
+  registered_in: "SUGGESTION-REGISTER.md"
+  work_item_id: SUG-20260820-al7
+  status: ADMITTED
+  evidence:
+    - "docs/context/roles/mahesh-principal-insurance-platform-architect/16-hld-authoring-and-update-protocol.md — two-file artefact family, NC-1, LY-1, LB-R1, corrected ranges, reconciliation checklist"
+    - "docs/hdl.svg — AL-1, AL-2, AL-3, AL-4 corrected"
+    - "docs/architecture/r0-reference-architecture.svg — redrawn on boundary bands; AL-5, AL-6 resolved"
+    - "docs/architecture/README.md — the convention and the LOB reading rule stated for readers"
+    - "java scripts/governance/FreshnessCheck.java — FRESH"
+  closed_reason: null
+
+resumed: null
+```
+
+---
+
+### SUG-20260820-dc4 · Data topology and the name of context #5
+
+```yaml
+id: SUG-20260820-dc4
+raised_at: "2026-08-20"
+raised_by: "human:Mahesh"
+source: "direct user instruction, acting as the Board 1 Architecture persona"
+input: >
+  There is no database per service. As per the North Star's boundary, splitting is scale-driven,
+  and R0 may start as a schema in one cluster; afterwards, based on the requirement, we can split
+  the clusters for the line of business and the shared resources. Also lead or opportunity — I
+  would go with opportunity, because a lead is too thin to identify, whereas an opportunity is
+  something which can be converted for a new sale, for a renewal and for a lapse. It has a larger
+  scope.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: R0-ASSISTED-TERM-SALE
+  current_gate: "GATE-S08 (OPEN)"
+  state_as_of: "2026-08-10"
+  freshness_check: "exit 0 — FRESH"
+
+stage_fit:
+  code: SF1
+  rationale: >
+    These resolve two open decisions raised against the current stage's own design artefacts —
+    OPEN-A1 from SUG-20260820-al7 and OPEN-D10 from SUG-20260820-hr0 — on a design that is not yet
+    signed and against which no service, migration or seed exists. Deciding the physical topology
+    now is also the cheap moment: it is a documentation change today and a data migration across
+    every table once R0 has run.
+
+scope:
+  code: SC1
+  serves: [SUG-20260820-al7, SUG-20260820-hr0]
+  rationale: >
+    No capability, service or scope is added. Both items remove a contradiction inside deliverables
+    already in scope: two diagrams asserting two different R0 data topologies, and one bounded
+    context carrying two names.
+
+necessity:
+  verdict: MUST
+  evidence_tier: E1
+  confidence: C5
+  rationale: >
+    E1 — a decision by the accountable architect, and the one the repository was already waiting
+    for. The topology half was drafted five days ago in 09-target-state-architecture-doctrine.md
+    section 5.2 and listed as open item 1 in 10-north-star-capability-model.md; it needed a
+    decision, not analysis. The naming half is the open question ADR-005 records as OPEN-D10.
+
+action: ADMIT
+priority: {now: P2, at_target: P2}
+work_type: ARCH
+risk_tier: T3
+
+decisions:
+  - id: OPEN-A1
+    resolution: >
+      ARCH-004 bundled three claims and only two of them are principles. One owner per
+      authoritative datum with no cross-service table access, and separate credentials and schema
+      ownership per service, remain INVARIANT and enforced. A separate physical cluster per service
+      is a DECISION, evidence-led on scale, blast radius, security isolation, RTO/RPO and cost. R0
+      starts with one Aurora cluster and a schema per context. The first split, when evidence
+      justifies it, follows the LOB-cell / shared-platform seam — not the service boundary.
+    recorded_as: ADR-008
+    supersedes: "ARCH-004 (physical-topology half only; the ownership half is retained and restated)"
+    note: >
+      This is the reconciliation Mahesh had already written into
+      09-target-state-architecture-doctrine.md section 5.2 and had deliberately not applied
+      unilaterally. What the instruction adds beyond that draft is the split AXIS: LOB cell versus
+      shared platform, which is what the North Star's boundary 8 already draws and what LB-5 makes
+      the natural seam.
+  - id: OPEN-D10
+    resolution: >
+      Context #5 is named Opportunity. The rationale is domain scope, not preference: a lead
+      records that someone might buy, and dies at conversion. An opportunity is the durable demand
+      object behind a new sale, a renewal, a lapse recovery, a cross-sell and an
+      abandoned-journey recovery — which is exactly the R2 rule that a renewal or lapse creates a
+      NEW opportunity and a NEW journey rather than reopening an old one. Naming the context Lead
+      makes that rule read as a contradiction; naming it Opportunity makes it read as the model.
+    recorded_as: "ADR-005, naming_resolution block"
+
+not_included:
+  - >
+    CURRENT-STATE.yaml current_scope.in_scope line 85 still reads "Lead service (context #5) —
+    create, resume, status", and WS-3-PLATFORM-CHARTER.md line 301 mirrors it. Both are
+    human-owned scope text and an agent does not edit them (04 section 5). Flagged for Kalpana /
+    R12 to transcribe, with Rajal's Product confirmation of the label
+  - >
+    identifier and register-ID renames. leadId, INV-LED-01..07 and CAP-102 keep their tokens: an ID
+    is opaque, and rewriting seven invariant IDs across the corpus is churn that breaks every
+    existing citation for no gain. The NAME changes; the IDs do not
+  - "Aarti's Database approval of ADR-008 and Rajal's Product confirmation of the #5 label — required, and outstanding"
+  - "T4 Architecture sign-off. Signature status on both ADRs and both diagrams is unchanged (HA-10)"
+  - "any physical schema, migration or seed artefact — this is design; implementation is S09 work"
+
+outcome:
+  registered_in: "SUGGESTION-REGISTER.md"
+  work_item_id: SUG-20260820-dc4
+  status: ADMITTED
+  evidence:
+    - "docs/platform/architecture-review/08-architecture-decision-log.md — ADR-008 added; ARCH-004 qualified; ADR-005 naming_resolution; signature block extended"
+    - "docs/platform/architecture-review/05-data-architecture.md — governing rule restated as ownership plus an evidence-led topology decision"
+    - "docs/platform/ws3-platform/03-solution-architecture-r0.md — database row and build-order row updated"
+    - "docs/platform/ws3-platform/04-security-architecture.md — threat I control restated without asserting physical separation"
+    - "docs/context/roles/mahesh-principal-insurance-platform-architect/09-target-state-architecture-doctrine.md section 5.2 — reconciliation marked applied"
+    - "docs/hdl.svg and docs/architecture/r0-reference-architecture.svg — boundary 8 reconciled; OPEN-A1 note removed; #5 renamed"
+    - "scripts/governance/ci-checks.py — PASSED · java scripts/governance/FreshnessCheck.java — FRESH"
   closed_reason: null
 
 resumed: null

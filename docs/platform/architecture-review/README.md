@@ -33,7 +33,7 @@ No document in the repository yet says: how many services the *whole platform* s
 | 2 | [02-target-microservices-architecture.md](./02-target-microservices-architecture.md) | How many services, what each owns, MVP vs. target-state sequencing |
 | 3 | [03-communication-patterns.md](./03-communication-patterns.md) | Sync vs. async per interaction, event catalog, API Gateway / mesh design |
 | 4 | [04-aws-infrastructure-architecture.md](./04-aws-infrastructure-architecture.md) | EKS layout, elasticity/autoscaling, full AWS service mapping |
-| 5 | [05-data-architecture.md](./05-data-architecture.md) | Database-per-service design, what engine per service, retention |
+| 5 | [05-data-architecture.md](./05-data-architecture.md) | Data ownership per service, what engine per service, retention. Physical cluster topology is `ADR-008`, not this file |
 | 6 | [06-security-compliance-and-nfrs.md](./06-security-compliance-and-nfrs.md) | Security controls, IRDAI/RBI posture, availability/latency/DR targets |
 | 7 | [07-delivery-roadmap-and-estimate.md](./07-delivery-roadmap-and-estimate.md) | Phased plan, team shape, timeline estimate and its assumptions |
 | 8 | [08-architecture-decision-log.md](./08-architecture-decision-log.md) | `ARCH-xxx` decisions this review commits to, and why |

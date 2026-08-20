@@ -19,6 +19,9 @@ Checks:
   7. the priority formula and the action matrix agree to within one band in every
      cell (Rule PRI-4), given the PRI-8 blocking floors
   8. semantic state references and narrative/machine versions agree
+  9. cost of governance is reported (never a gate)
+ 10. the agent context index resolves: paths, anchors, budgets, manifest agreement
+ 11. docs/context/BOOT.md has not drifted from CURRENT-STATE.yaml
 
 Usage:  python3 scripts/governance/ci-checks.py [--quiet]
 Exit:   0 all checks pass · 1 one or more failures
@@ -31,6 +34,7 @@ import glob
 import json
 import os
 import re
+import subprocess
 import sys
 
 try:
@@ -345,6 +349,52 @@ def check_priority_calibration(quiet: bool) -> None:
         ok(f"all {len(matrix)} matrix cells within one band (worst gap {worst})", quiet)
 
 
+# --- 10. the agent context layer routes to real, budgeted context -------------
+def check_context_index(quiet: bool) -> None:
+    """The context index is only useful while every path, anchor and budget is true.
+
+    A routing table that points at a moved file costs more than no routing table:
+    the agent trusts it, fails, and then explores anyway. The budgets matter for the
+    same reason — a capsule that quietly grows to 200 KB has stopped being a capsule."""
+    print("\n[10] Agent context index resolves and stays inside its budgets")
+    result = subprocess.run(
+        [sys.executable, os.path.join(ROOT, "scripts", "context", "context-load.py"), "validate"],
+        capture_output=True, text=True,
+    )
+    if result.returncode != 0:
+        reported = 0
+        for line in (result.stdout + result.stderr).splitlines():
+            line = line.strip()
+            if line.startswith("- "):
+                fail(f"context index: {line[2:]}")
+                reported += 1
+            elif line and not line.startswith("CONTEXT INDEX"):
+                fail(f"context index: {line}")
+                reported += 1
+        if reported == 0:
+            fail(f"context index validation exited {result.returncode} with no parsable output")
+    else:
+        ok(result.stdout.strip().replace("CONTEXT INDEX VALID — ", ""), quiet)
+
+
+# --- 11. the tier-0 capsule has not drifted from the state file ----------------
+def check_boot_capsule(quiet: bool) -> None:
+    """BOOT.md is the first and often the only file an agent reads.
+
+    Its state block is generated from CURRENT-STATE.yaml. A stale block would send
+    every agent in the repository into the wrong lifecycle posture, which is exactly
+    the failure the state file exists to prevent."""
+    print("\n[11] BOOT.md tier-0 capsule matches CURRENT-STATE.yaml")
+    result = subprocess.run(
+        [sys.executable, os.path.join(ROOT, "scripts", "context", "build-boot-capsule.py"), "--check"],
+        capture_output=True, text=True,
+    )
+    if result.returncode != 0:
+        fail("docs/context/BOOT.md is stale — run: python3 scripts/context/build-boot-capsule.py")
+    else:
+        ok("generated block is current", quiet)
+
+
 def check_governance_cost(quiet: bool) -> None:
     """Report the documentation-to-code ratio (18 section 2, Cost of governance).
 
@@ -381,7 +431,7 @@ def check_governance_cost(quiet: bool) -> None:
         return
 
     ratio = docs / code
-    governance = count(["docs/governance", "docs/context/roles"], (".md",))
+    governance = count(["docs/governance", "docs/context/roles", "docs/context/personas"], (".md",))
     gov_share = governance / docs if docs else 0.0
 
     detail = (f"docs {docs:,} / code {code:,} = {ratio:.2f}  "
@@ -415,6 +465,8 @@ def main() -> int:
     check_priority_calibration(args.quiet)
     check_semantic_state(args.quiet)
     check_governance_cost(args.quiet)
+    check_context_index(args.quiet)
+    check_boot_capsule(args.quiet)
 
     print()
     if failures:

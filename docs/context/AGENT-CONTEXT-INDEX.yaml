@@ -1,0 +1,564 @@
+# =============================================================================
+# AGENT CONTEXT INDEX — deterministic task-to-context routing
+#
+# The problem this solves: docs/ holds ~4.3 MB across 427 files. An agent that
+# explores it burns its context window before it does any work, and an agent
+# that guesses reads the wrong file. This index removes the guess: every task
+# type resolves to a NAMED capsule with an EXACT, ORDERED, BUDGETED read list.
+#
+#   python3 scripts/context/context-load.py list
+#   python3 scripts/context/context-load.py show architecture-review
+#   python3 scripts/context/context-load.py resolve "is the payment callback safe"
+#
+# Budgets are ENFORCED: scripts/governance/ci-checks.py recomputes the real byte
+# cost of every load list and fails when a capsule outgrows its budget. A capsule
+# that gets fat is a bug, not a fact of life.
+#
+# Authority: this file is ROUTING ONLY. It never overrides docs/governance/.
+# =============================================================================
+
+schema_version: "1.0"
+index_version: "1.0.0"
+project_id: bank-insurance-platform
+canonical_authority: "docs/governance/PERSONA-AUTHORITY-MATRIX.md"
+
+# Precedence when two loaded documents disagree. Mirrors context-manifest.yaml.
+precedence:
+  - "docs/governance/"
+  - "docs/au-bank-insurance-platform/07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md"
+  - "docs/au-bank-insurance-platform/DECISION-LOG.md"
+  - "docs/platform/"
+  - "docs/1sb-insurance-integration/service-ssot/"
+  - "docs/context/"
+
+# ---------------------------------------------------------------------------
+# Tier 0 — the only thing loaded before the task is known.
+# ---------------------------------------------------------------------------
+tier_0:
+  load:
+    - path: "docs/context/BOOT.md"
+      why: "Ten-fact knowledge contract, stage posture, standing constraints, open gates, known debt."
+  budget_bytes: 20000
+  replaces:
+    note: >-
+      BOOT.md answers, from generated state, what previously required reading
+      CURRENT-STATE.yaml + RUNBOOK section 8 + 01-CURRENT_STATE + the core rules
+      out of AGENTS.md — roughly 120 KB of source.
+
+# ---------------------------------------------------------------------------
+# Reading discipline. These are the rules that actually save the context window.
+# ---------------------------------------------------------------------------
+rules:
+  - id: CTX-1
+    rule: "Load the capsule, not the folder. Never read a directory to find out what is in it — this index already says."
+  - id: CTX-2
+    rule: "Never load a persona package when a persona card answers the question. Cards are 3–6 KB; packages reach 244 KB."
+  - id: CTX-3
+    rule: "Anchored entries mean READ THAT SECTION ONLY. RUNBOOK.md is 60 KB; section 8 is 6 KB."
+  - id: CTX-4
+    rule: "`then_only_if` entries are conditional. Load one only when its condition is true for the input in front of you."
+  - id: CTX-5
+    rule: "Registers are grep targets, not reads. Search for the ID; do not load a 34 KB register to append one row."
+  - id: CTX-6
+    rule: "Cite what you actually read, by path and anchor. An uncited conclusion is an assumption."
+  - id: CTX-7
+    rule: "If the capsule was not enough, say which question it failed to answer and open ONE more file — then propose the index fix as a suggestion (it is triaged, not applied in that turn)."
+  - id: CTX-8
+    rule: "Generated files (BOOT.md's state block, backlog/jira-import.csv) are never hand-edited. Regenerate them."
+  - id: CTX-9
+    rule: "Two capsules maximum per turn. Needing three means the task is not decomposed — say so."
+
+# ---------------------------------------------------------------------------
+# Personas — card first, package only on a named condition.
+# ---------------------------------------------------------------------------
+personas:
+  - id: product
+    manifest_role: product
+    card: "docs/context/personas/rajal-product.card.md"
+    package: "docs/context/roles/principal-insurance-platform-product-owner/"
+  - id: business-analysis
+    manifest_role: business-analysis
+    card: "docs/context/personas/ba-r11-business-analysis.card.md"
+    package: "docs/context/roles/principal-insurance-platform-business-analyst/"
+  - id: architecture
+    manifest_role: architecture
+    card: "docs/context/personas/mahesh-architecture.card.md"
+    package: "docs/context/roles/mahesh-principal-insurance-platform-architect/"
+  - id: engineering
+    manifest_role: engineering
+    card: "docs/context/personas/amit-engineering.card.md"
+    package: "docs/context/roles/amit-technical-head.md"
+  - id: security
+    manifest_role: security
+    card: "docs/context/personas/deepali-security.card.md"
+    package: "docs/context/roles/deepali-principal-security-architect/"
+  - id: database
+    manifest_role: database
+    card: "docs/context/personas/aarti-database.card.md"
+    package: "docs/context/roles/principal-insurance-data-database-architect/"
+  - id: quality
+    manifest_role: quality
+    card: "docs/context/personas/swapnali-qa.card.md"
+    package: "docs/context/roles/swapnali-qa-lead/"
+  - id: compliance-risk
+    manifest_role: compliance-risk
+    card: "docs/context/personas/shailja-compliance.card.md"
+    package: "docs/context/roles/shailja-s-compliance-risk-head/"
+  - id: sre-operations
+    manifest_role: sre-operations
+    card: "docs/context/personas/shivanshi-sre.card.md"
+    package: "docs/context/roles/shivanshi-sre/"
+  - id: delivery
+    manifest_role: delivery
+    card: "docs/context/personas/kalpana-delivery.card.md"
+    package: "docs/context/roles/kalpana-delivery-head/"
+
+# ---------------------------------------------------------------------------
+# Capsules — one per task intent.
+# ---------------------------------------------------------------------------
+capsules:
+
+  - id: orient
+    intent: "Understand the programme without making a governed decision."
+    triggers: ["what is this project", "onboard", "explain the platform", "what are we building"]
+    budget_bytes: 55000
+    load:
+      - path: "docs/context/business-problem-statement.md"
+        why: "The problem, the outcome and why the platform exists."
+      - path: "docs/README.md"
+        why: "Where every document lives and which bucket wins on conflict."
+    then_only_if:
+      - condition: "the picture matters more than the prose"
+        path: "docs/architecture/README.md"
+      - condition: "the question is about stages, not architecture"
+        path: "docs/application-lifecycle-bible/README.md"
+    output: "Plain summary. No verdict, no priority, no commitment."
+    never: ["Treat orientation as admission — nothing is admitted from this capsule."]
+
+  - id: triage
+    intent: "Decide whether an input is admitted, parked, rejected or escalated. Run this BEFORE any code."
+    triggers: ["should we", "suggestion", "idea", "bug report", "scan finding", "review comment", "is now the right time", "can you add"]
+    persona: null
+    budget_bytes: 45000
+    load:
+      - path: ".claude/skills/aigem-triage/SKILL.md"
+        why: "The 14-step pipeline, compressed. Most inputs terminate by step 5."
+      - path: "docs/governance/03-LIFECYCLE.md"
+        anchor: "3-stage-fit-codes-sf"
+        why: "SF0–SF4 stage fit — the step that changes the verdict most often."
+      - path: "docs/governance/02-PROJECT_SCOPE.md"
+        anchor: "3-scope-fit-codes-l1--generic"
+        why: "SC0–SC4 scope fit."
+      - path: "docs/governance/00-GOVERNANCE.md"
+        anchor: "6-the-action-matrix"
+        why: "Stage fit + scope fit + necessity -> ADMIT | PARK | REJECT | ESCALATE."
+    then_only_if:
+      - condition: "the verdict is ADMIT and the item needs a priority"
+        path: "docs/governance/05-PRIORITY_MODEL.md"
+      - condition: "necessity is genuinely contested, or the item adds structure"
+        path: "docs/governance/16-DECISION_MODEL.md"
+        anchor: "6-anti-over-engineering-tests"
+      - condition: "the item is blocked by or blocks other work"
+        path: "docs/governance/07-DEPENDENCY_MODEL.md"
+    output: "The six-line triage answer shape in BOOT.md section 8, ending with `Continuing with <item>.`"
+    never:
+      - "Implement in the turn the suggestion is raised."
+      - "Park without a target stage and an unpark trigger."
+      - "Re-report known debt or re-propose a parked item — check BOOT.md section 5 first."
+
+  - id: plan-work
+    intent: "Turn an ADMITTED item into an implementation plan and get it to READY."
+    triggers: ["implementation plan", "break this down", "how do we build", "definition of ready"]
+    budget_bytes: 45000
+    load:
+      - path: "docs/governance/10-IMPLEMENTATION_PLAN_TEMPLATE.md"
+        why: "`files_expected` and `out_of_scope` are the drift contract."
+      - path: "docs/governance/06-WORK_CLASSIFICATION.md"
+        anchor: "5-work-breakdown--epic--story--task--spike"
+        why: "One owner + one acceptance outcome = story. Two epic triggers = epic."
+      - path: "docs/governance/12-DEFINITION_OF_READY.md"
+        why: "The gate the plan has to pass."
+    then_only_if:
+      - condition: "the item is T2 or higher and needs boards"
+        capsule: "board-review"
+      - condition: "execution order or parallelism is in question"
+        path: "docs/governance/07-DEPENDENCY_MODEL.md"
+        anchor: "5-execution-ordering"
+    output: "A plan against the template, with files_expected, out_of_scope and the READY checklist."
+    never: ["Expand scope inside the plan. A bigger item is a new triage."]
+
+  - id: architecture-review
+    intent: "Board 1 — decide whether a design is correctly shaped, or produce an HLD/LLD/ADR."
+    triggers: ["architecture review", "board 1", "service boundary", "bounded context", "should this be a service", "api design", "sync or async", "adr"]
+    persona: architecture
+    budget_bytes: 45000
+    load:
+      - path: "docs/context/personas/mahesh-architecture.card.md"
+        why: "Adopt Mahesh. Owns / never / severity / escalation."
+      - path: "docs/governance/11-REVIEW_GATES.md"
+        anchor: "4-board-1--architecture"
+        why: "The Board 1 contract and the named accountable owner."
+      - path: "docs/governance/11-REVIEW_GATES.md"
+        anchor: "11-verdicts"
+        why: "APPROVED / APPROVED_WITH_CONDITIONS / REWORK / REJECTED and their evidence."
+    then_only_if:
+      - condition: "the decision is target-state, vision or North Star"
+        capsule: "target-state-vision"
+      - condition: "persistence, schema, migration or recovery is materially affected"
+        capsule: "database-review"
+      - condition: "the R0 platform design is the subject"
+        path: "docs/platform/ws3-platform/03-solution-architecture-r0.md"
+      - condition: "an ADR is being written"
+        path: "docs/governance/templates/ADR.md"
+    output: "Verdict + severity `A0`–`A3` + evidence paths + named unresolved owner/date."
+    never:
+      - "Impersonate the mandatory human T4 Architecture sign-off — draft only."
+      - "Waive a Security or Compliance conclusion with an architecture severity."
+
+  - id: target-state-vision
+    intent: "Answer a target-state, North Star, horizon or capability-model question."
+    triggers: ["target state", "north star", "vision", "future architecture", "capability model", "horizon", "where are we heading"]
+    persona: architecture
+    budget_bytes: 90000
+    load:
+      - path: "docs/context/personas/mahesh-architecture.card.md"
+        why: "Rule 8: capability before service, ownership before deployment, diagram last."
+      - path: "docs/context/roles/mahesh-principal-insurance-platform-architect/09-target-state-architecture-doctrine.md"
+        why: "Horizons H0–H3, invariants TI-01–TI-23, variation axes. Always first."
+    then_only_if:
+      - condition: "the answer needs capabilities defined, not just named"
+        path: "docs/context/roles/mahesh-principal-insurance-platform-architect/10-north-star-capability-model.md"
+      - condition: "the axis is line of business"
+        path: "docs/context/roles/mahesh-principal-insurance-platform-architect/11-line-of-business-segregation.md"
+      - condition: "the axis is journey, channel or actor"
+        path: "docs/context/roles/mahesh-principal-insurance-platform-architect/12-journey-segregation.md"
+      - condition: "the axis is orchestration and coordination ownership"
+        path: "docs/context/roles/mahesh-principal-insurance-platform-architect/13-orchestration-doctrine.md"
+      - condition: "the axis is whether a capability is shared"
+        path: "docs/context/roles/mahesh-principal-insurance-platform-architect/14-shared-capability-doctrine.md"
+      - condition: "the axis is identity or authorization planes"
+        path: "docs/context/roles/mahesh-principal-insurance-platform-architect/15-actor-identity-and-authorization.md"
+      - condition: "1SB, insurers, adapters, routing or provider contracts are involved"
+        path: "docs/context/roles/mahesh-principal-insurance-platform-architect/17-provider-aggregation-and-connectivity.md"
+      - condition: "docs/hdl.svg is actually being produced or changed"
+        path: "docs/context/roles/mahesh-principal-insurance-platform-architect/16-hld-authoring-and-update-protocol.md"
+    output: "Named horizon + capability model + invariants preserved or at risk + delta from today. Diagram last."
+    never:
+      - "Answer a target-state question with a bigger picture instead of a capability model."
+      - "Move workforce identity off Bank AD at any horizon (TI-01)."
+      - "Treat 1SB as a domain dependency — it is a provider route."
+
+  - id: product-decision
+    intent: "Board 3 — decide WHAT / WHY / FOR WHOM, journey behaviour, scope, priority or acceptance."
+    triggers: ["product decision", "board 3", "should the journey", "mvp scope", "acceptance criteria", "business rule", "prioritise"]
+    persona: product
+    budget_bytes: 40000
+    load:
+      - path: "docs/context/personas/rajal-product.card.md"
+        why: "Adopt Rajal. Owns / never / escalation."
+      - path: "docs/au-bank-insurance-platform/07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md"
+        why: "The business MVP SSOT — the working decisions that are already made."
+      - path: "docs/governance/11-REVIEW_GATES.md"
+        anchor: "6-board-3--product"
+        why: "The Board 3 contract."
+    then_only_if:
+      - condition: "the requirement is unclear, untestable or lacks exceptions"
+        capsule: "business-analysis"
+      - condition: "an earlier product decision may already cover it"
+        path: "docs/au-bank-insurance-platform/DECISION-LOG.md"
+    output: "Product verdict stated as behaviour and outcome, never as a design."
+    never: ["Choose technology, waive a control, or declare QA evidence passed."]
+
+  - id: business-analysis
+    intent: "R11 — make approved intent deterministic, testable and traceable."
+    triggers: ["business analysis", "r11", "requirement clarity", "process flow", "decision table", "exception handling", "acceptance criteria quality"]
+    persona: business-analysis
+    budget_bytes: 60000
+    load:
+      - path: "docs/context/personas/ba-r11-business-analysis.card.md"
+        why: "Analysis authority and its hard NA boundary."
+      - path: "docs/context/roles/principal-insurance-platform-business-analyst/05-journey-rules-data-and-exception-model.md"
+        why: "How journeys, rules, data, state and exceptions must be expressed here."
+    then_only_if:
+      - condition: "the artefact will be handed to QA or a board"
+        path: "docs/context/roles/principal-insurance-platform-business-analyst/06-review-evidence-and-handoff-contract.md"
+      - condition: "a specialist domain is materially affected"
+        path: "docs/context/personas/AUTHORITY-QUICK-CARD.md"
+    output: "`READY` / `CHANGES_REQUIRED` / `NOT_READY` on analysis quality only — never a Product or specialist decision."
+    never: ["Invent business intent to close a gap. Raise it to Rajal."]
+
+  - id: security-review
+    intent: "Board 4 — trust boundaries, exposure, authn/authz, crypto, secrets, API security, threat model."
+    triggers: ["security review", "board 4", "is this secure", "threat model", "authentication", "authorization", "secrets", "credential", "password", "api key", "certificate", "encryption", "vulnerability", "cve", "public endpoint", "webhook", "oauth", "jwt"]
+    persona: security
+    budget_bytes: 45000
+    load:
+      - path: "docs/context/personas/deepali-security.card.md"
+        why: "Adopt Deepali. Block authority, severity S0–S3, and the NA list."
+      - path: "docs/governance/11-REVIEW_GATES.md"
+        anchor: "7-board-4--security"
+        why: "The Board 4 contract and the mandatory human sign-off."
+    then_only_if:
+      - condition: "the question is exposure, zoning or topology"
+        path: "docs/context/roles/deepali-principal-security-architect/04-network-and-trust-boundary-policy.md"
+      - condition: "the question is keys, crypto or secrets"
+        path: "docs/context/roles/deepali-principal-security-architect/05-cryptography-key-and-secrets-management.md"
+      - condition: "the question is AppSec, API security, DevSecOps or supply chain"
+        path: "docs/context/roles/deepali-principal-security-architect/06-application-api-and-devsecops-security.md"
+      - condition: "a security exception is being requested"
+        path: "docs/context/roles/deepali-principal-security-architect/08-security-review-release-and-exception-contract.md"
+      - condition: "another persona's domain is materially affected"
+        path: "docs/context/roles/shared/security-cross-persona-decision-protocol.md"
+    output: "Security conclusion + severity `S0`–`S3` + required controls + residual risk + evidence."
+    never:
+      - "Satisfy the T4 human Security signature by simulation."
+      - "Prescribe implementation technology when several designs meet the security outcome."
+
+  - id: database-review
+    intent: "Persistence, schema, integrity, migration, capacity, backup and recovery decisions."
+    triggers: ["database", "schema", "migration", "flyway", "index", "partition", "persistence", "backup", "restore", "data model", "jpa"]
+    persona: database
+    budget_bytes: 40000
+    load:
+      - path: "docs/context/personas/aarti-database.card.md"
+        why: "Adopt Aarti. Owns / never / the mandatory joint review list with Mahesh."
+      - path: "docs/context/roles/principal-insurance-data-database-architect/04-operating-and-review-contract.md"
+        why: "How a DB review is requested, run and evidenced."
+    then_only_if:
+      - condition: "service boundaries or data ownership are affected"
+        capsule: "architecture-review"
+      - condition: "DB-side PII, encryption or credentials are affected"
+        capsule: "security-review"
+    output: "DB verdict + severity `D0`–`D3` + integrity/recovery guarantees the platform may rely on."
+    never:
+      - "Let application scaling override a DB limit."
+      - "Change service boundaries or Product behaviour for schema convenience."
+
+  - id: qa-review
+    intent: "Board 5 — test strategy, testability, regression scope, evidence sufficiency, quality exit."
+    triggers: ["qa review", "board 5", "test strategy", "coverage", "is this tested", "quality gate", "regression", "test evidence"]
+    persona: quality
+    budget_bytes: 35000
+    load:
+      - path: "docs/context/personas/swapnali-qa.card.md"
+        why: "Adopt Swapnali. Evidence sufficiency is hers; the security and operational conclusions are not."
+      - path: "docs/1sb-insurance-integration/service-ssot/TESTING-RULES.md"
+        why: "How tests are actually written in this repository."
+      - path: "docs/1sb-insurance-integration/service-ssot/COVERAGE.md"
+        why: "The enforced gates: libs 80/70; services on the interim floor."
+    then_only_if:
+      - condition: "the strategy itself is in question, not one test"
+        path: "docs/1sb-insurance-integration/service-ssot/QA-LEAD-TESTING-STRATEGY.md"
+      - condition: "a critical journey or a non-bypassable gate is involved"
+        path: "docs/context/roles/swapnali-qa-lead/05-critical-journeys-and-non-bypassable-gates.md"
+    output: "Quality verdict + evidence sufficiency + named gaps. Unexecuted is never passed."
+    never: ["Assume a result. Waive a non-waivable Security or Compliance conclusion."]
+
+  - id: compliance-review
+    intent: "Board 6 — regulatory permissibility, PII, consent, retention, mandatory control outcomes."
+    triggers: ["compliance", "board 6", "regulatory", "irdai", "rbi", "pii", "consent", "retention", "data residency", "is this allowed"]
+    persona: compliance-risk
+    budget_bytes: 60000
+    load:
+      - path: "docs/context/personas/shailja-compliance.card.md"
+        why: "Adopt Shailja. Grounding context — not authoritative regulation."
+      - path: "docs/context/roles/shailja-s-compliance-risk-head/05-decision-policy.md"
+        why: "How the verdict is reached."
+      - path: "docs/governance/11-REVIEW_GATES.md"
+        anchor: "9-board-6--risk--compliance"
+        why: "The Board 6 contract and the mandatory human sign-off."
+    then_only_if:
+      - condition: "which regulation applies is the actual question"
+        path: "docs/context/roles/shailja-s-compliance-risk-head/02-regulatory-registry.md"
+      - condition: "a specific mandatory control is in question"
+        path: "docs/context/roles/shailja-s-compliance-risk-head/03-control-catalogue.md"
+      - condition: "an exception or human risk acceptance is requested"
+        path: "docs/context/roles/shailja-s-compliance-risk-head/07-human-exception-and-risk-acceptance.md"
+      - condition: "consent or suitability rules are the subject"
+        path: "docs/au-bank-insurance-platform/rule-packs/consent-rule-pack.md"
+    output: "Permissibility + severity `R0`–`R3` + mandatory controls + evidence + named human owner where required."
+    never:
+      - "Declare unexecuted Security, QA or SRE evidence passed."
+      - "Let an architecture or delivery severity downgrade an `R0`."
+
+  - id: sre-operations
+    intent: "Board 7 — deployability, observability, SLOs, resilience, incidents, DR, CI/CD platform, toil."
+    triggers: ["sre", "board 7", "operations", "slo", "observability", "alerting", "runbook", "deployment", "ci/cd platform", "incident", "disaster recovery", "resilience"]
+    persona: sre-operations
+    budget_bytes: 45000
+    load:
+      - path: "docs/context/personas/shivanshi-sre.card.md"
+        why: "Adopt Shivanshi. Board 7 authority and the hard NA list."
+      - path: "docs/governance/11-REVIEW_GATES.md"
+        anchor: "10-board-7--operations"
+        why: "The O1–O8 operational checks."
+    then_only_if:
+      - condition: "the question is scaling, capacity or an incident under load"
+        capsule: "scaling-incident"
+      - condition: "the question is observability, incidents, resilience or DR"
+        path: "docs/context/roles/shivanshi-sre/05-observability-incidents-resilience-and-dr.md"
+      - condition: "the question is platform, infrastructure or CI/CD mechanics"
+        path: "docs/context/roles/shivanshi-sre/04-platform-infrastructure-and-cicd.md"
+      - condition: "another persona's domain is materially affected"
+        path: "docs/context/roles/shared/sre-cross-persona-decision-protocol.md"
+    output: "Operational conclusion + severity `O0`–`O3` + evidence + recovery behaviour."
+    never:
+      - "Change production data as an incident workaround without the applicable authority."
+      - "Perform unbounded scaling or retries against a downstream provider."
+
+  - id: scaling-incident
+    intent: "Answer a scaling, capacity or under-load incident question without the CPU/memory reflex."
+    triggers: ["scale", "scaling", "autoscale", "add pods", "slow", "latency spike", "timeout", "capacity", "load test", "throughput", "under load"]
+    persona: sre-operations
+    budget_bytes: 55000
+    load:
+      - path: "docs/context/personas/shivanshi-sre.card.md"
+        why: "The six-step scaling answer. Never scale from CPU/memory alone."
+      - path: "docs/context/roles/shivanshi-sre/06-business-aware-capacity-and-scaling.md"
+        why: "Business load, transaction amplification, bottleneck and safe range."
+    then_only_if:
+      - condition: "a database limit is or may be the bottleneck"
+        path: "docs/context/personas/aarti-database.card.md"
+      - condition: "the bottleneck is an insurer, 1SB or payment provider"
+        path: "docs/context/roles/mahesh-principal-insurance-platform-architect/17-provider-aggregation-and-connectivity.md"
+    output: >-
+      Business load · transaction amplification · the actual bottleneck · the next downstream limit ·
+      the safe scale range · recovery behaviour and post-scale validation.
+    never:
+      - "Recommend scaling from CPU or memory alone."
+      - "Let application scaling override an Aarti DB limit."
+      - "Retry unboundedly against an insurer, 1SB or the payment system."
+
+  - id: delivery-planning
+    intent: "R12 — critical path, sequencing, dependency ageing, forecast, release orchestration, recovery."
+    triggers: ["delivery", "r12", "critical path", "milestone", "when will", "forecast", "release plan", "dependency ageing", "blocked decision", "parallelise"]
+    persona: delivery
+    budget_bytes: 60000
+    load:
+      - path: "docs/context/personas/kalpana-delivery.card.md"
+        why: "Rule PA-1: she may compel a decision to happen, never supply its content."
+      - path: "docs/governance/DELIVERY-CONTROL-SYSTEM.md"
+        why: "The instrument she operates."
+    then_only_if:
+      - condition: "a decision is overdue and must be forced"
+        path: "docs/context/roles/kalpana-delivery-head/05-dependency-risk-decision-and-escalation-control.md"
+      - condition: "a release or recovery is being orchestrated"
+        path: "docs/context/roles/kalpana-delivery-head/06-release-recovery-and-fast-track-control.md"
+    output: "Delivery impact + `DL0`–`DL3` + required-by date + the NAMED owning authority. Never the decision itself."
+    never:
+      - "Convert `CANDIDATE`, `DECISION-BLOCKED` or a missing evidence item into approval."
+      - "Escalate past the domain owner to a more agreeable authority."
+
+  - id: code-change
+    intent: "Write or change Java/Spring code in this repository."
+    triggers: ["implement", "fix the bug", "write the code", "refactor", "add the endpoint", "failing test", "build failure", "compile error", "archunit"]
+    persona: engineering
+    budget_bytes: 45000
+    load:
+      - path: "docs/context/personas/amit-engineering.card.md"
+        why: "Adopt Amit. The ArchUnit-enforced boundaries and the coverage gates."
+      - path: "docs/1sb-insurance-integration/service-ssot/ROLE-GUIDELINES-AND-DOD.md"
+        why: "What Done means here, and who owns which layer."
+      - path: "docs/1sb-insurance-integration/service-ssot/TESTING-RULES.md"
+        why: "Tests are part of the change, not a follow-up."
+    then_only_if:
+      - condition: "the change touches the 1SB adapter or a provider contract"
+        capsule: "1sb-integration-change"
+      - condition: "the change touches persistence, entities or migrations"
+        capsule: "database-review"
+      - condition: "the change touches authn, authz, secrets or an exposed endpoint"
+        capsule: "security-review"
+      - condition: "you are about to report a defect that may already be known"
+        path: "docs/1sb-insurance-integration/service-ssot/TECH-DEBT.md"
+    output: "Change + tests + evidence + the work item ID on every TODO."
+    never:
+      - "Start without an admitted work item — triage first."
+      - "Put 1SB specifics outside `adapter.onesb.*`, or PII in logs."
+      - "Add Flyway or JPA to `1sb-integration-service`."
+
+  - id: 1sb-integration-change
+    intent: "Change the 1SB adapter, a provider contract, a field mapping or a journey call."
+    triggers: ["1sb", "onesb", "adapter", "provider contract", "field mapping", "quote api", "proposal api", "insurer call"]
+    persona: engineering
+    budget_bytes: 60000
+    load:
+      - path: "docs/1sb-insurance-integration/service-ssot/README.md"
+        why: "The module's authoritative build docs and their order."
+      - path: "docs/context/personas/amit-engineering.card.md"
+        why: "The boundaries ArchUnit enforces."
+    then_only_if:
+      - condition: "a field's mandatory/when/why is in question"
+        path: "docs/1sb-insurance-integration/field-guides/"
+      - condition: "the canonical bank-owned model is affected"
+        path: "docs/1sb-insurance-integration/canonical-model/"
+      - condition: "the service design itself is the subject"
+        path: "docs/1sb-insurance-integration/architecture/1sb-integration-service-architecture.md"
+      - condition: "the change implies 1SB shapes the bank's journey"
+        capsule: "architecture-review"
+    output: "Change + the anti-corruption boundary it respects + tests + evidence."
+    never:
+      - "Let a 1SB or insurer schema define the bank's canonical journey."
+      - "Call 1SB or a database directly from a bank app."
+
+  - id: board-review
+    intent: "Run the seven-board review gate for an item, in role, one board at a time."
+    triggers: ["board review", "review gate", "seven boards", "t4", "sign-off", "gate review"]
+    budget_bytes: 60000
+    load:
+      - path: "docs/governance/11-REVIEW_GATES.md"
+        anchor: "3-proportionality--which-boards-are-mandatory"
+        why: "Only the mandatory boards for this risk tier run."
+      - path: "docs/governance/11-REVIEW_GATES.md"
+        anchor: "15-running-the-board-as-a-single-agent"
+        why: "How one agent runs several boards without collapsing them into one voice."
+      - path: "docs/context/personas/AUTHORITY-QUICK-CARD.md"
+        why: "Which persona owns which verdict, and what none of them may do."
+    then_only_if:
+      - condition: "a board is running — load THAT board's capsule, one at a time"
+        capsule: "architecture-review"
+      - condition: "boards disagree"
+        path: "docs/context/roles/shared/cross-persona-operating-model.md"
+    output: "One verdict per mandatory board, each in role, each with evidence, then the aggregation."
+    never:
+      - "Self-approve a board that requires a human, or aggregate silence into approval."
+      - "Run all boards in one undifferentiated voice."
+
+  - id: docs-navigation
+    intent: "Find where something lives, or decide where a new document belongs."
+    triggers: ["where is", "which document", "where should this go", "is there a doc for"]
+    budget_bytes: 20000
+    load:
+      - path: "docs/README.md"
+        why: "The master index, the six buckets, and which bucket wins on conflict."
+    then_only_if:
+      - condition: "the target is a persona"
+        path: "docs/context/personas/README.md"
+      - condition: "the target is governance process"
+        path: "docs/governance/README.md"
+    output: "The path, and the bucket that gives it its authority."
+    never: ["Conclude a document is missing without checking docs/README.md."]
+
+  - id: context-reuse
+    intent: "Reuse this context module for another project or domain."
+    triggers: ["reuse the context", "another project", "portable", "scaffold context", "new project context"]
+    budget_bytes: 25000
+    load:
+      - path: "docs/context/framework/README.md"
+        why: "What is portable and what is project-specific."
+      - path: "docs/context/framework/LOADING-PROTOCOL.md"
+        why: "The order humans, agents and retrieval systems must follow."
+    then_only_if:
+      - condition: "you are actually scaffolding"
+        path: "docs/context/framework/templates/project/README.md"
+    output: "A scaffolded manifest + problem statement, validated by scripts/context/validate-context.py."
+    never: ["Carry named personas, banking conclusions or live lifecycle state into another project."]
+
+# ---------------------------------------------------------------------------
+# Fallback — when nothing above matches.
+# ---------------------------------------------------------------------------
+fallback:
+  capsule: triage
+  note: >-
+    An unmatched input is still an input. Triage it. If triage shows the work is real
+    and recurring, propose a new capsule as a suggestion — it is triaged, not added
+    in the turn it is raised (Rule CTX-7).

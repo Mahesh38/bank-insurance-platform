@@ -6,23 +6,30 @@
 
 **Authority:** [`PERSONA-AUTHORITY-MATRIX.md`](../../governance/PERSONA-AUTHORITY-MATRIX.md)
 
-This folder contains project/domain role instances. The manifest is the canonical machine index;
-this page is the human navigation view. Role context cannot enlarge its own authority.
+This folder contains project/domain role instances — **tier 2**. These are the full packages,
+28 KB to 244 KB each.
+
+> **Do not load a package to adopt a persona.** Read its
+> [decision card](../personas/README.md) (3–6 KB) and open one package file only when a card's
+> *Load deeper* row matches the question in front of you.
+
+The manifest is the canonical machine index; this page is the human navigation view. Role context
+cannot enlarge its own authority.
 
 ## Canonical packages
 
-| Decision lens | Package |
-|---|---|
-| Product — Rajal / R1 | [`principal-insurance-platform-product-owner/`](./principal-insurance-platform-product-owner/README.md) |
-| Business Analysis / R11 | [`principal-insurance-platform-business-analyst/`](./principal-insurance-platform-business-analyst/README.md) |
-| Architecture — Mahesh / R2 | [`mahesh-principal-insurance-platform-architect/`](./mahesh-principal-insurance-platform-architect/README.md) |
-| Engineering — Amit / R3 | [`amit-technical-head.md`](./amit-technical-head.md) |
-| Security — Deepali / R8 | [`deepali-principal-security-architect/`](./deepali-principal-security-architect/README.md) |
-| Database — Aarti | [`principal-insurance-data-database-architect/`](./principal-insurance-data-database-architect/README.md) |
-| Quality — Swapnali / R7 | [`swapnali-qa-lead/`](./swapnali-qa-lead/README.md) |
-| Compliance/Risk — Shailja / R9 | [`shailja-s-compliance-risk-head/`](./shailja-s-compliance-risk-head/README.md) |
-| SRE/Operations — Shivanshi / R10 | [`shivanshi-sre/`](./shivanshi-sre/README.md) |
-| Delivery — Kalpana / R12 | [`kalpana-delivery-head/`](./kalpana-delivery-head/README.md) |
+| Decision lens | Card (tier 1) | Package (tier 2) |
+|---|---|---|
+| Product — Rajal / R1 | [card](../personas/rajal-product.card.md) | [`principal-insurance-platform-product-owner/`](./principal-insurance-platform-product-owner/README.md) |
+| Business Analysis / R11 | [card](../personas/ba-r11-business-analysis.card.md) | [`principal-insurance-platform-business-analyst/`](./principal-insurance-platform-business-analyst/README.md) |
+| Architecture — Mahesh / R2 | [card](../personas/mahesh-architecture.card.md) | [`mahesh-principal-insurance-platform-architect/`](./mahesh-principal-insurance-platform-architect/README.md) |
+| Engineering — Amit / R3 | [card](../personas/amit-engineering.card.md) | [`amit-technical-head.md`](./amit-technical-head.md) |
+| Security — Deepali / R8 | [card](../personas/deepali-security.card.md) | [`deepali-principal-security-architect/`](./deepali-principal-security-architect/README.md) |
+| Database — Aarti | [card](../personas/aarti-database.card.md) | [`principal-insurance-data-database-architect/`](./principal-insurance-data-database-architect/README.md) |
+| Quality — Swapnali / R7 | [card](../personas/swapnali-qa.card.md) | [`swapnali-qa-lead/`](./swapnali-qa-lead/README.md) |
+| Compliance/Risk — Shailja / R9 | [card](../personas/shailja-compliance.card.md) | [`shailja-s-compliance-risk-head/`](./shailja-s-compliance-risk-head/README.md) |
+| SRE/Operations — Shivanshi / R10 | [card](../personas/shivanshi-sre.card.md) | [`shivanshi-sre/`](./shivanshi-sre/README.md) |
+| Delivery — Kalpana / R12 | [card](../personas/kalpana-delivery.card.md) | [`kalpana-delivery-head/`](./kalpana-delivery-head/README.md) |
 
 The manifest records whether each governance mapping is `active`, `candidate` or `retired` and
 links the governing decision. “Canonical package” means one maintained context source; it does

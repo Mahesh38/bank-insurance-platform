@@ -20,6 +20,21 @@ authority:
     - "docs/context/"
 
 layers:
+  - id: routing
+    kind: routing
+    path: "docs/context/AGENT-CONTEXT-INDEX.yaml"
+    portable: true
+    authority: none
+  - id: boot
+    kind: boot
+    path: "docs/context/BOOT.md"
+    portable: false
+    authority: none
+  - id: persona-cards
+    kind: role
+    path: "docs/context/personas/"
+    portable: false
+    authority: context
   - id: framework
     kind: framework
     path: "docs/context/framework/"
@@ -118,16 +133,26 @@ roles:
     decision_ref: "docs/governance/change-requests/CR-007-add-kalpana-delivery-head-and-dcs.md"
     aliases: [Kalpana, Delivery Head, Delivery Lead, R12]
 
+# Profiles are ordered smallest first. `session-boot` is the default for every agent
+# session; `capsule` is what an agent should normally use for real work. The older
+# profiles remain for humans and retrieval systems that load by layer rather than by task.
 loading_profiles:
+  - id: session-boot
+    purpose: "Know where the project is before deciding anything. Tier 0, every session."
+    include: ["layer:boot"]
+  - id: capsule
+    purpose: "Resolve one task to its exact, budgeted read list. The default working profile."
+    include: ["layer:boot", "layer:routing", "layer:persona-cards"]
+    resolver: "python3 scripts/context/context-load.py resolve \"<the request>\""
   - id: orientation
     purpose: "Understand the project without making a governed decision."
     include: ["layer:project"]
   - id: governed-change
     purpose: "Prepare or review a repository change."
-    include: ["layer:project", "layer:roles", "layer:protocols"]
+    include: ["layer:boot", "layer:routing", "layer:persona-cards", "layer:project", "layer:roles", "layer:protocols"]
   - id: portable-framework
     purpose: "Create a context module for another project or domain."
-    include: ["layer:framework"]
+    include: ["layer:framework", "layer:routing"]
 
 portability:
   scaffold_template: "docs/context/framework/templates/project/"

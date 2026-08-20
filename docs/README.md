@@ -33,10 +33,12 @@ platform/          — all-service specs     au-bank-insurance-platform/ — pro
                                              1sb-insurance-integration/ — module
 ```
 
-> ⚠️ **Before you act on anything you find here**, read
-> [`governance/RUNBOOK.md §8`](./governance/RUNBOOK.md#8-what-the-ai-agent-must-know-about-this-project)
-> (agents) or your [role card in §6](./governance/RUNBOOK.md#6-role-cards) (humans). A
-> suggestion is never implemented in the turn it is raised — it is triaged and recorded.
+> ⚠️ **Before you act on anything you find here:**
+> **agents** read [`context/BOOT.md`](./context/BOOT.md) — the tier-0 capsule that answers the
+> ten-fact knowledge contract from generated state — then resolve the task to its capsule with
+> `python3 scripts/context/context-load.py resolve "<the request>"` and read only what it lists.
+> **Humans** read your [role card in `RUNBOOK.md §6`](./governance/RUNBOOK.md#6-role-cards).
+> A suggestion is never implemented in the turn it is raised — it is triaged and recorded.
 
 ---
 
@@ -67,7 +69,10 @@ docs/
 │   ├── backlog/                           BACKLOG.yaml + Jira import CSV (generated)
 │   └── templates/                         Epic, story, validation test, gate sign-off, ORR
 │
-├── context/                           PORTABLE MODEL + PROJECT OVERLAY
+├── context/                           PORTABLE MODEL + PROJECT OVERLAY + AGENT ROUTING
+│   ├── BOOT.md                            TIER 0 — the only file an agent reads by default
+│   ├── AGENT-CONTEXT-INDEX.yaml           TIER 1 — task -> exact, budgeted read list
+│   ├── personas/                          TIER 1 — persona decision cards (3-6 KB each)
 │   ├── context-manifest.yaml              Machine-readable layers, roles, load profiles
 │   ├── framework/                         Reusable model, loading protocol, templates
 │   ├── schemas/                           Manifest validation contract
@@ -104,7 +109,8 @@ docs/
 | If you are… | Read this first |
 |-------------|-----------------|
 | **About to act on a requirement, bug, or suggestion** | [`governance/RUNBOOK.md`](./governance/RUNBOOK.md) — find your role card; triage before you build |
-| **An AI agent starting a session** | [`governance/RUNBOOK.md §8`](./governance/RUNBOOK.md#8-what-the-ai-agent-must-know-about-this-project) + [`09-AI_EXECUTION_RULES.md`](./governance/09-AI_EXECUTION_RULES.md) |
+| **An AI agent starting a session** | [`context/BOOT.md`](./context/BOOT.md), then `context-load.py resolve` — the binding contract behind them is [`09-AI_EXECUTION_RULES.md`](./governance/09-AI_EXECUTION_RULES.md) |
+| **Acting as a persona (any board)** | [`context/personas/`](./context/personas/README.md) — a card, not a package |
 | **Selecting safe non-blocked work** | [`governance/autopilot/README.md`](./governance/autopilot/README.md) + [`governance/state/GATE-EVIDENCE.yaml`](./governance/state/GATE-EVIDENCE.yaml) |
 | **Reusing context for another project/domain** | [`context/framework/README.md`](./context/framework/README.md) — scaffold, replace the project overlay, validate |
 | **New to the programme** | [`context/business-problem-statement.md`](./context/business-problem-statement.md) → [`au-bank-insurance-platform/README.md`](./au-bank-insurance-platform/README.md) |

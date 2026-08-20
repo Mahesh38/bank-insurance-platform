@@ -16,6 +16,12 @@ into a new Wave 0b, withdrawing the earlier rule-pack-by-deployment trade; §4 r
 [`05-nfr-catalogue.md`](./05-nfr-catalogue.md) ·
 [`01-domain-model-and-invariants.md`](./01-domain-model-and-invariants.md)
 
+**Stakeholder pack** (compiled views of *this* file and its companions, not a second source of
+truth): [`../../architecture/R0-HLD.md`](../../architecture/R0-HLD.md) walks the R0 picture for
+humans; [`../../architecture/R0-LLD.md`](../../architecture/R0-LLD.md) is the S09 AWS bill of
+materials for the CTO and platform team. Rule `HA-02` still applies: if those files and this
+document disagree, **this document wins**.
+
 ---
 
 ## 1. What this document adds to the existing architecture review

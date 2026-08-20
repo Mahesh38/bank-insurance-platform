@@ -29,6 +29,9 @@ architecture diagram will almost draw itself.*
 | Persona files [`09`](./09-target-state-architecture-doctrine.md)–[`15`](./15-actor-identity-and-authorization.md), [`17`](./17-provider-aggregation-and-connectivity.md) | **Grounding** | Horizons, invariants, capability model, segregation, orchestration and provider-aggregation doctrine |
 | **`docs/hdl.svg`** | **Rendering** | Nothing. It *depicts* the target state, release-coded `R0`…`RN` |
 | **`docs/architecture/r0-reference-architecture.svg`** | **Rendering** | Nothing. It *depicts* the R0 slice of the same picture |
+| [`docs/architecture/R0-HLD.md`](../../../architecture/R0-HLD.md) | **Compiled narrative** | Nothing new. Walks the R0 rendering for humans (domain, APIs, waves). If it disagrees with the rows above, those rows win (`HA-02`) |
+| [`docs/architecture/R0-LLD.md`](../../../architecture/R0-LLD.md) | **S09 platform pack** | Maps already-accepted R0 decisions onto AWS resources for the CTO / platform team. Must not invent a service the rows above do not name |
+| **`docs/architecture/r0-lld.svg`** | **Rendering** | Nothing. It *depicts* `R0-LLD.md`: VPC tiers, two-hop reverse proxy, EKS namespaces, data stores, PVC/cache/do-not-provision |
 
 **Rule HA-02b — the two renderings are one artefact in two cuts.** `hdl.svg` answers *where is
 this going*; `r0-reference-architecture.svg` answers *what are we building now*. They must use the
@@ -52,6 +55,7 @@ diagram that leads its sources is how a programme starts believing in services n
 | File | Horizon | Edited when |
 |---|---|---|
 | `docs/architecture/r0-reference-architecture.svg` | **H0 — R0 as designed** | R0 scope, service set, seams or controls change |
+| `docs/architecture/r0-lld.svg` | **H0 — R0 AWS deployment** | R0 AWS BOM, VPC, proxy, data topology or do-not-provision list change |
 | `docs/hdl.svg` | **North Star — target state, release-coded `R0`…`RN`** | A target-state boundary, capability or release phasing changes |
 | `docs/hld-h1.svg`, `docs/hld-h2.svg`, … | Intermediate horizons | Created on demand, same canvas contract |
 

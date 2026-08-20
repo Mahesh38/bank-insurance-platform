@@ -2,6 +2,13 @@
 
 **Constraint honored throughout:** AWS-only, Kubernetes (Amazon EKS) as the compute substrate, elastic by design.
 
+> **R0 cut.** This file is the **target-state** AWS estate. It still names MSK, ElastiCache,
+> Istio and a cluster-per-service reading of data topology. Those are **not** R0. The
+> provisioning contract for the current slice is
+> [`../../architecture/R0-LLD.md`](../../architecture/R0-LLD.md), which derives from
+> [`../ws3-platform/03-solution-architecture-r0.md`](../ws3-platform/03-solution-architecture-r0.md)
+> and `ADR-001` / `ADR-008`. Do not raise a landing-zone request from this file alone.
+
 ## Landing zone shape
 
 - **AWS Organizations** with separate accounts per environment: `dev`, `uat`, `prod`, plus a `shared-services` account (CI/CD, container registry, central logging) and a `security` account (GuardDuty, Security Hub, Config aggregator). This is standard enterprise multi-account isolation — a compliance-mandated audit trail is much cleaner when prod is a hard account boundary, not a namespace convention.

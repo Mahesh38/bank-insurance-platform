@@ -52,6 +52,8 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | SUG-20260820-r1t | 2026-08-20 | agent:claude | Produce the R0 → R1 → R2 transition and dependency map the North Star does not answer: the order in which target components must appear and which are prerequisites for which | SF3 | SC1 | SHOULD | ARCH | P4 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md#1-parked--scheduled-work) |
 | SUG-20260820-al7 | 2026-08-20 | human:Mahesh | Reconcile the North Star and R0 diagrams: one naming and layer convention across both files, the R0 view redrawn on the North Star's boundary bands so it reads as a release-zero cut of the same picture, and the Life LOB cell visually separated from the shared platform | SF1 | SC1 | MUST | ARCH | P2 / P2 | ADMITTED | [detail](#sug-20260820-al7--hld-and-r0-diagram-alignment) |
 | SUG-20260820-dc4 | 2026-08-20 | human:Mahesh | Resolve OPEN-A1 and OPEN-D10: physical database topology is an evidence-led decision, not a principle — R0 starts as one cluster with a schema per context and splits later along the LOB-cell / shared-platform seam; and context #5 is named Opportunity, because a lead is too thin to carry renewal, lapse and cross-sell demand | SF1 | SC1 | MUST | ARCH | P2 / P2 | ADMITTED | [ADR-008](../../platform/architecture-review/08-architecture-decision-log.md) |
+| SUG-20260820-hl1 | 2026-08-20 | human:Mahesh | Act as Mahesh: turn the R0 reference architecture SVG into a detailed HLD (domain, boundary, communication, API, business logic, phases/waves/what-to-do-when) and an LLD for the CTO and AWS platform team (e2e components, services, AWS, VPC, reverse proxy, PVC, DB, cache) | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMIT-BYPASS | [R0-HLD](../../architecture/R0-HLD.md) · [R0-LLD](../../architecture/R0-LLD.md) |
+| SUG-20260820-ls1 | 2026-08-20 | human:Mahesh | Create an SVG rendering of the R0 LLD for the CTO and AWS platform team | SF1 | SC0 | SHOULD | ARCH | P2 / P1 | ADMIT-BYPASS | [r0-lld.svg](../../architecture/r0-lld.svg) |
 
 <!--
 Row format:
@@ -962,6 +964,151 @@ outcome:
   closed_reason: null
 
 resumed: null
+```
+
+### SUG-20260820-hl1 · R0 stakeholder HLD and AWS LLD pack
+
+```yaml
+id: SUG-20260820-hl1
+raised_at: "2026-08-20"
+raised_by: "human:Mahesh"
+source: "direct user instruction — Act as Mahesh; use r0-reference-architecture.svg as the HLD reference; produce a detailed HLD and an LLD for the CTO and AWS platform team"
+input: >
+  Act as mahesh, use the R0 reference architecture SVG as HLD for R0, and create an HLD
+  design document which will have detailed domain, boundary, communication, API details,
+  business logic and understanding of the complete R0 and its phases, waves, what to do
+  when. Use the HLD for R0 and create the LLD which will have e2e component, services,
+  aws component, pvc, external proxy or reverse proxy, db, caching, designed so it is
+  easy to give the CTO and AWS platform team the requirement for aws platform and
+  services needed.
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-TERM-SALE"
+  state_as_of: "2026-08-10"
+  state_provisional: false
+  active_work_item: null
+stage_fit:
+  code: SF1
+  rationale: >
+    On-stage for WS-3. GATE-S08 is open and S09 is overlapped; the current deliverable
+    includes IaC, environments, secrets and observability. A stakeholder HLD that walks
+    the already-ratified R0 picture, and an LLD that is the S09 AWS bill of materials,
+    are the artefacts that make that deliverable executable. Not SF3: this is not the
+    parked R0→R1→R2 dependency map (SUG-20260820-r1t).
+scope:
+  code: SC0
+  business_scope: "in scope — R0 architecture of the admitted WS-3 slice"
+  serves: []
+  failure_without_it: >
+    S09 cannot be requested from the AWS platform team without a narrowed BOM; the SVG
+    alone is not a provisioning contract, and architecture-review/04 still names Kafka,
+    ElastiCache and per-service clusters that R0 has explicitly declined.
+  minimal: true
+  authority: "CURRENT-STATE.yaml WS-3 current_scope; 03-solution-architecture-r0.md; ADR-001; ADR-008"
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S09 — Platform & Environment Foundation"
+  binds_when: "first Terraform apply against a non-dev account"
+  evidence_tier: E2
+  evidence:
+    - "S09-E01 network, compute and data foundation stories"
+    - "ADR-001 Terraform / ap-south-1 / Render.com boundary"
+    - "ADR-008 one Aurora cluster, schema per context"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true   # CTO + AWS platform team + Shivanshi S09
+    X3_cheap_later: false     # provisioning the target-state estate now is the expensive mistake
+    X5_stage_necessity: true
+    X9_problem_observed: true # 04-aws-infrastructure-architecture.md still reads as the R0 BOM
+action: ADMIT-BYPASS
+action_rationale: >
+  Direct instruction from the Board 1 Architecture authority to produce the artefacts in
+  this turn. Bypass records that seven-board review of the *plan* was skipped; the
+  documents themselves carry AI-DRAFTED status and name the outstanding human T4
+  Architecture, Security, Database and SRE signatures. Risk of the bypass: an AWS LLD
+  that will drive S09 provisioning has not yet had Deepali / Aarti / Shivanshi boards.
+  No new architectural decision is asserted; Kafka, Redis-for-idempotency, per-service
+  clusters and Istio remain out of R0 as already recorded.
+duplicate_of: null
+conflicts:
+  - "architecture-review/04 names MSK, ElastiCache, Istio, per-service RDS — R0-LLD §1.3 lists them DO NOT PROVISION, citing 03 §5.1 and ADR-008"
+classification:
+  type: ARCH
+  also: [DOC, INFRA]
+  risk_tier: T4
+  security_impact: trust-boundary-realisation   # LLD restates TB-1..TB-6; does not change them
+  compliance_impact: residency-and-WORM-restated
+  operational_impact: S09-provisioning-input
+priority:
+  now: P2
+  at_target: P1
+  factors: "S09 overlapped; GATE-S08 still the in-flight engineering gate"
+  caps: []
+dependencies:
+  - "Authoritative sources already in ws3-platform/ 00–05 and ADR-001…008"
+  - "Does not unpark SUG-20260820-r1t"
+plan_files:
+  - "docs/architecture/R0-HLD.md"
+  - "docs/architecture/R0-LLD.md"
+bypass:
+  authorised_by: "human:Mahesh — direct instruction to act as Board 1 and produce the HLD and LLD"
+  skipped: "implementation-plan template; seven-board review of the plan before drafting"
+  risk: "AWS LLD may be cited as S09 input before Security, Database and SRE have signed"
+  non_negotiable_touched: false   # no secrets, no public contract change, no data-integrity change — presentation of accepted decisions
+```
+
+### SUG-20260820-ls1 · R0 LLD SVG rendering
+
+```yaml
+id: SUG-20260820-ls1
+raised_at: "2026-08-20"
+raised_by: "human:Mahesh"
+source: "follow-up on SUG-20260820-hl1 — create SVG for the LLD"
+input: >
+  can you create svg for LLD ?
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-TERM-SALE"
+  state_as_of: "2026-08-10"
+  state_provisional: false
+  active_work_item: SUG-20260820-hl1
+stage_fit:
+  code: SF1
+  rationale: "Same on-stage S09 input as hl1. The LLD prose exists; this is its rendering (HA-03 source first, diagram second)."
+scope:
+  code: SC0
+  business_scope: "in scope — R0 AWS deployment picture"
+  serves: ["SUG-20260820-hl1"]
+necessity:
+  now: SHOULD
+  future_necessity: MUST
+  target_stage: "S09 — Platform & Environment Foundation"
+  evidence_tier: E2
+  confidence: C4
+action: ADMIT-BYPASS
+action_rationale: >
+  Direct follow-up to produce the LLD picture in this turn, same executor lane as hl1.
+  No new AWS service is named. Dashed nodes are the existing DO NOT PROVISION list.
+duplicate_of: null
+continues: SUG-20260820-hl1
+classification:
+  type: ARCH
+  also: [DOC]
+  risk_tier: T4
+priority:
+  now: P2
+  at_target: P1
+bypass:
+  authorised_by: "human:Mahesh — follow-up instruction"
+  skipped: "seven-board review of the plan"
+  risk: "same as hl1 — SVG may be shown to AWS platform team before Security/Database/SRE sign"
+  non_negotiable_touched: false
 ```
 
 ---

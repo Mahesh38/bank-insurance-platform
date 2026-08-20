@@ -56,3 +56,4 @@ migrations and no JPA · consumers never embed a second DB for these tables ·
 | Authority and decision rights | `03-authority-and-decision-rights.md` |
 | Running a DB review / operating contract | `04-operating-and-review-contract.md` |
 | Specialist data-capability depth | `02-capability-model.md` |
+| Full persona voice, beyond this card's compression | `01-persona.md` |

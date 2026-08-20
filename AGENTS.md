@@ -12,6 +12,7 @@ Entry point for any AI agent working in this repository.
 java scripts/governance/FreshnessCheck.java          # 0 fresh · 1 warn, disclose · 2 do NOT admit new work
 cat docs/context/BOOT.md                             # ten facts, stage posture, open gates, standing constraints, known debt
 python3 scripts/context/context-load.py resolve "<the request>"   # -> the exact files to read
+python3 scripts/context/context-load.py find "<a specific fact>"  # -> the one document holding it
 # then read exactly what it lists, and nothing else
 ```
 
@@ -98,6 +99,7 @@ or silently resolved.
 |---|---|
 | The facts before acting | [`docs/context/BOOT.md`](./docs/context/BOOT.md) — tier 0, the only default read |
 | The exact files for this task | [`AGENT-CONTEXT-INDEX.yaml`](./docs/context/AGENT-CONTEXT-INDEX.yaml) — 19 capsules, budgeted and CI-checked |
+| The one document holding a specific fact | [`DOC-MAP.yaml`](./docs/context/DOC-MAP.yaml) — every document under `docs/`, routed. Query it with `find`, never grep |
 | To triage an input | [`aigem-triage` skill](./.claude/skills/aigem-triage/SKILL.md) |
 | To act as a persona | [`docs/context/personas/`](./docs/context/personas/README.md) |
 | Where a document lives | [`docs/README.md`](./docs/README.md) — the six buckets and which wins on conflict |
@@ -164,6 +166,7 @@ no install step beyond a Gradle build — the wrapper downloads the toolchain an
 ```bash
 python3 scripts/context/context-load.py validate   # paths, anchors, budgets, manifest agreement
 python3 scripts/context/build-boot-capsule.py      # regenerate BOOT.md after a state change
+python3 scripts/context/build-doc-map.py           # regenerate DOC-MAP.yaml after adding a document
 python3 scripts/context/validate-context.py        # the portable context manifest
 python3 scripts/governance/ci-checks.py            # all of the above, in CI
 ```

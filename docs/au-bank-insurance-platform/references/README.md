@@ -35,8 +35,8 @@ This folder points at materials that inform the AU Bank product reset.
 
 | Path | Purpose |
 |------|---------|
-| [`../artefacts/uploads/`](../artefacts/uploads/README.md) | Drop zone for baseline docs you upload — **11 PDFs ingested** into [knowledge-base/](../knowledge-base/README.md) |
-| [`../artefacts/figma/`](../artefacts/figma/README.md) | Optional Figma exports — 🔴 **empty**, prototype is login-gated (D-012) |
+| [`../artefacts/` — Uploads](../artefacts/README.md#uploads) | Drop zone for baseline docs you upload — **11 PDFs ingested** into [knowledge-base/](../knowledge-base/README.md) |
+| [`../artefacts/` — Figma](../artefacts/README.md#figma) | Optional Figma exports — 🔴 **empty**, prototype is login-gated (D-012) |
 
 ## Cross-cutting architecture (outside this folder)
 

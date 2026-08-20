@@ -63,3 +63,5 @@ More pods are not a diagnosis. Application scaling never overrides an Aarti DB l
 | Board 7 review, release, exception | `08-operations-review-release-and-exception-contract.md` |
 | Banking/bancassurance load shapes | `02-insurance-banking-and-bancassurance-domain.md` |
 | Consequential cross-persona SRE decision | [`shared/sre-cross-persona-decision-protocol.md`](../roles/shared/sre-cross-persona-decision-protocol.md) |
+| Full persona voice, beyond this card's compression | `01-persona.md` |
+| How an agent should interact with, or maintain, this persona | `09-agent-interaction-and-maintenance.md` |

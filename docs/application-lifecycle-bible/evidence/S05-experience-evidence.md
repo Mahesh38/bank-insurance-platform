@@ -44,7 +44,7 @@ is blunt about it: *"This is the emptiest stage in the programme, and it is not 
 
 | Artefact | Path | State |
 |---|---|---|
-| Figma prototype, as **reference material only** | [`artefacts/figma/`](../../au-bank-insurance-platform/artefacts/figma/README.md) · [`05-figma-and-artefact-intake.md`](../../au-bank-insurance-platform/05-figma-and-artefact-intake.md) | 🟡 Exists; contains MVP screens, concept screens and incomplete journeys mixed together, **unmapped to CJ/RMJ/JRN** — this is GAP-009 |
+| Figma prototype, as **reference material only** | [`artefacts/` — Figma status](../../au-bank-insurance-platform/artefacts/README.md#figma) · [`05-figma-and-artefact-intake.md`](../../au-bank-insurance-platform/05-figma-and-artefact-intake.md) | 🟡 Exists; contains MVP screens, concept screens and incomplete journeys mixed together, **unmapped to CJ/RMJ/JRN** — this is GAP-009 |
 | Figma status decision: reference only, not SoT | [WD §15](../../au-bank-insurance-platform/07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md#15-figma-prototype) · [D-012](../../au-bank-insurance-platform/DECISION-LOG.md) | 🟢 The right decision, made early |
 | Journey canvas with CJ / RMJ / JRN identifiers | [`04-process-and-journey-canvas.md`](../../au-bank-insurance-platform/04-process-and-journey-canvas.md) | 🟢 The map GAP-009 needs to map *to* |
 | Screen inventory | — | 🔴 Absent; on the [programme TODO](../../au-bank-insurance-platform/po-drive/03-PROGRAMME-TODO.md) as an open item |

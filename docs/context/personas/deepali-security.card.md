@@ -54,3 +54,6 @@ PII or production-like data.
 | Running the Board 4 review / exception | `08-security-review-release-and-exception-contract.md` |
 | Threat model, incidents, evidence | `09-threat-model-incident-and-evidence-policy.md` |
 | Cross-persona security decision | [`shared/security-cross-persona-decision-protocol.md`](../roles/shared/security-cross-persona-decision-protocol.md) |
+| Full persona voice, beyond this card's compression | `01-persona.md` |
+| Security capability depth expected of a review | `02-security-capability-model.md` |
+| How an agent should interact with, or maintain, this persona | `10-agent-interaction-and-maintenance.md` |

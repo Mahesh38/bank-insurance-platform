@@ -24,6 +24,22 @@ python3 scripts/context/context-load.py list              # all 19 capsules with
 python3 scripts/context/context-load.py show <capsule>    # one capsule's read plan
 ```
 
+## When the capsule is right but you still need one specific fact
+
+`resolve` answers *"what does this kind of task always need"*. It deliberately does not carry the
+long tail — one field guide, one extracted schema, one stage's evidence pack. For that, query the
+document map instead of grepping or walking README hubs:
+
+```bash
+python3 scripts/context/context-load.py find "premium field mapping"
+python3 scripts/context/context-load.py find "consent otp" --capsule security-review
+```
+
+Each hit comes back with the path, what the document answers, its byte cost, the capsule that
+legitimately opens it, and the authority it carries. Open the one row you need — not the folder
+it sits in. Every document under `docs/` has a row (`docs/context/DOC-MAP.yaml`, generated), and
+CI fails if one does not, so "I could not find it" means "it does not exist".
+
 ## The three tiers
 
 | Tier | What | Cost | When |
@@ -50,6 +66,7 @@ constraints and the known debt. Do not read `CURRENT-STATE.yaml`, `RUNBOOK.md` o
 | `CTX-7` | If the capsule was insufficient, say which question it failed, open **one** more file, and propose the index fix as a suggestion — triaged, not applied in that turn. |
 | `CTX-8` | Generated files are regenerated, never hand-edited. |
 | `CTX-9` | Two capsules maximum per turn. Needing three means the task is not decomposed — say so. |
+| `CTX-10` | Looking for one specific fact? `find` it in the doc map. Never grep `docs/`, never walk README hubs. |
 
 ## Adopting a persona
 
@@ -65,6 +82,7 @@ sign-off — T4 Architecture, Security and Risk & Compliance approvals stay huma
 ```bash
 python3 scripts/context/context-load.py validate    # paths, anchors, budgets, persona agreement
 python3 scripts/context/build-boot-capsule.py       # regenerate BOOT.md after a state change
+python3 scripts/context/build-doc-map.py            # regenerate DOC-MAP.yaml after adding a document
 ```
 
 Both run in `scripts/governance/ci-checks.py`. A stale route costs more than no route: the agent
@@ -73,7 +91,7 @@ trusts it, fails, and explores anyway. If you move or rename a document, fix
 
 ## Never
 
-- Explore `docs/` before running `resolve`.
+- Explore `docs/` before running `resolve`, or grep it before running `find`.
 - Load a persona package to adopt a persona.
 - Read a whole file when the index gave you an anchor.
 - Add a capsule in the turn the need for it is discovered — that is a suggestion, and suggestions

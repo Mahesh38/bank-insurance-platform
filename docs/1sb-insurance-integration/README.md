@@ -47,6 +47,8 @@ This package turns the scattered 1SB OpenAPI pages into:
 | 6 | [field-guides/README.md](./field-guides/README.md) | Mandatory fields, when, why |
 | 7 | [02-rm-assisted-bank-checklist.md](./02-rm-assisted-bank-checklist.md) | Practical build checklist |
 | 8 | [reference/](./reference/) | Extracted schemas & source links |
+| 9 | [architecture/README.md](./architecture/README.md) | Module architecture index — **and the one rule: bank apps never call 1SB or the database directly** |
+| 10 | [journeys/README.md](./journeys/README.md) | The universal LOB stage shape every journey is built once against |
 
 ---
 

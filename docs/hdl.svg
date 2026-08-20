@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1400" viewBox="0 0 1800 1400" font-family="Helvetica, Arial, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" width="2560" height="4619" viewBox="0 0 2560 4619" font-family="Helvetica, Arial, sans-serif">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M0,0 L10,5 L0,10 z" fill="#334155"/>
@@ -6,329 +6,1152 @@
     <marker id="arrGray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/>
     </marker>
+    <marker id="arrAmber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#b45309"/>
+    </marker>
   </defs>
-  <rect x="0" y="0" width="1800" height="1400" fill="#ffffff"/>
-  
-  <text x="900" y="36" text-anchor="middle" font-size="25" font-weight="bold" fill="#0f172a">AU Bank Insurance Distribution Platform — R0 High-Level Design</text>
-  <text x="900" y="60" text-anchor="middle" font-size="12.5" fill="#475569">Target state at end of R0 · one RM sells one Term Life policy to one ETB customer of one Group A insurer — end to end, evidenced, audited · WS-3 (primary) + WS-1 (supplier) + WS-2 (enabler)</text>
-   <text x="60" y="80" font-size="10" font-weight="bold" fill="#64748b" letter-spacing="1">R0 OUTCOME — THE JOURNEY THAT MUST RUN END TO END</text>
-  <g font-size="10.5" fill="#ffffff">
-    <polygon points="60,86 223,86 235,105 223,124 60,124 72,105" fill="#1f2937"/>
-    <text x="150" y="109" text-anchor="middle">1 · ETB lookup (CBS)</text>
-    <polygon points="248,86 411,86 423,105 411,124 248,124 260,105" fill="#1f2937"/>
-    <text x="338" y="109" text-anchor="middle">2 · Need &amp; suitability — C1</text>
-    <polygon points="436,86 599,86 611,105 599,124 436,124 448,105" fill="#1f2937"/>
-    <text x="526" y="109" text-anchor="middle">3 · Consent + OTP — C2</text>
-    <polygon points="624,86 787,86 799,105 787,124 624,124 636,105" fill="#1f2937"/>
-    <text x="714" y="109" text-anchor="middle">4 · Quote via 1SB (Term)</text>
-    <polygon points="812,86 975,86 987,105 975,124 812,124 824,105" fill="#1f2937"/>
-    <text x="902" y="109" text-anchor="middle">5 · Proposal &amp; UW</text>
-    <polygon points="1000,86 1163,86 1175,105 1163,124 1000,124 1012,105" fill="#1f2937"/>
-    <text x="1090" y="109" text-anchor="middle">6 · Payment link → customer</text>
-    <polygon points="1188,86 1351,86 1363,105 1351,124 1188,124 1200,105" fill="#1f2937"/>
-    <text x="1278" y="109" text-anchor="middle">7 · Pay + reconcile — C4</text>
-    <polygon points="1376,86 1539,86 1551,105 1539,124 1376,124 1388,105" fill="#1f2937"/>
-    <text x="1466" y="109" text-anchor="middle">8 · Policy issued</text>
-    <polygon points="1564,86 1738,86 1750,105 1738,124 1564,124 1576,105" fill="#1f2937"/>
-    <text x="1660" y="109" text-anchor="middle">9 · Audit evidence complete</text>
-  </g>
-  <!-- ======================= CHANNELS + LEFT/RIGHT EXTERNALS (TOP ROW) ======================= -->
-  <!-- Bank AD / SSO -->
-  <rect x="60" y="150" width="240" height="85" rx="6" fill="#ffffff" stroke="#64748b" stroke-width="1.5" stroke-dasharray="4 3"/>
-  <text x="180" y="172" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#0f172a">Bank AD / SSO</text>
-  <text x="180" y="188" text-anchor="middle" font-size="9" fill="#94a3b8" letter-spacing="1">EXTERNAL</text>
-  <text x="180" y="206" text-anchor="middle" font-size="9.5" fill="#475569">workforce federation</text>
-  <text x="180" y="218" text-anchor="middle" font-size="9.5" fill="#475569">(WS-2 Phase 2)</text>
-  <!-- Flutter RM app -->
-  <rect x="360" y="150" width="340" height="85" rx="6" fill="#eef2ff" stroke="#4f46e5" stroke-width="1.5"/>
-  <rect x="368" y="158" width="26" height="16" rx="4" fill="#9333ea"/>
-  <text x="381" y="170" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">W4</text>
-  <text x="530" y="176" text-anchor="middle" font-size="13" font-weight="bold" fill="#0f172a">Flutter RM Application (RM device)</text>
-  <text x="530" y="198" text-anchor="middle" font-size="9.5" fill="#475569">assisted R0 journey · token-hiding session —</text>
-  <text x="530" y="211" text-anchor="middle" font-size="9.5" fill="#475569">OAuth tokens never reach the device</text>
-  <!-- Customer device -->
-  <rect x="1480" y="150" width="270" height="85" rx="6" fill="#eef2ff" stroke="#4f46e5" stroke-width="1.5"/>
-  <rect x="1712" y="158" width="26" height="16" rx="8" fill="#dc2626"/>
-  <text x="1725" y="170" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">C4</text>
-  <text x="1608" y="176" text-anchor="middle" font-size="13" font-weight="bold" fill="#0f172a">Customer Device</text>
-  <text x="1608" y="194" text-anchor="middle" font-size="9.5" fill="#475569">browser / SMS link · consent OTP and</text>
-  <text x="1608" y="207" text-anchor="middle" font-size="9.5" fill="#475569">premium payment happen HERE —</text>
-  <text x="1608" y="220" text-anchor="middle" font-size="9.5" fill="#475569">never on an RM or bank device</text>
-  <!-- ======================= EDGE ROW ======================= -->
-  <rect x="360" y="270" width="340" height="70" rx="6" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5"/>
-  <text x="530" y="294" text-anchor="middle" font-size="13" font-weight="bold" fill="#0f172a">Edge — WAF · CDN · API Gateway / ALB</text>
-  <text x="530" y="314" text-anchor="middle" font-size="9.5" fill="#475569">the only public entry point;</text>
-  <text x="530" y="327" text-anchor="middle" font-size="9.5" fill="#475569">all services and data in private subnets</text>
-  <!-- AU Bank Payment Gateway -->
-  <rect x="1480" y="270" width="270" height="70" rx="6" fill="#ffffff" stroke="#64748b" stroke-width="1.5" stroke-dasharray="4 3"/>
-  <text x="1615" y="294" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#0f172a">AU Bank Payment Gateway</text>
-  <text x="1615" y="309" text-anchor="middle" font-size="9" fill="#94a3b8" letter-spacing="1">EXTERNAL</text>
-  <text x="1615" y="326" text-anchor="middle" font-size="9.5" fill="#475569">3-D secure · settlement file</text>
-  <text x="1615" y="368" text-anchor="middle" font-size="9.5" fill="#475569">↑ create payment session (S-13, sync)</text>
-  <text x="1615" y="382" text-anchor="middle" font-size="9.5" fill="#475569">↓ callback + settlement recon (S-14 / S-15)</text>
-  <!-- ======================= AWS BOUNDARY ======================= -->
-  <rect x="40" y="375" width="1360" height="830" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="7 5"/>
-  <text x="60" y="398" font-size="11" font-weight="bold" fill="#475569">AWS ap-south-1 — EKS, private subnets · every service stateless at pod level · ≥ 2 pods across ≥ 2 AZs · DR: warm standby in ap-south-2</text>
-  
-  <rect x="70" y="420" width="260" height="240" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.5"/>
-  <text x="200" y="441" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#065f46">WS-2 — Workforce Identity (enabler · IF-2)</text>
-  <rect x="90" y="470" width="220" height="60" rx="6" fill="#ffffff" stroke="#059669" stroke-width="1.2"/>
-  <text x="200" y="490" text-anchor="middle" font-size="12" font-weight="bold" fill="#0f172a">identity-provider-adapter</text>
-  <text x="200" y="507" text-anchor="middle" font-size="9.5" fill="#475569">Keycloak first · provider-neutral</text>
-  <text x="200" y="519" text-anchor="middle" font-size="9.5" fill="#475569">#3 Identity &amp; Access (workforce half)</text>
-  <rect x="90" y="565" width="220" height="60" rx="6" fill="#ffffff" stroke="#059669" stroke-width="1.2"/>
-  <text x="200" y="585" text-anchor="middle" font-size="12" font-weight="bold" fill="#0f172a">identity-authorization (PDP)</text>
-  <text x="200" y="602" text-anchor="middle" font-size="9.5" fill="#475569">RBAC + ABAC · default deny</text>
-  <text x="200" y="614" text-anchor="middle" font-size="9.5" fill="#475569">300 ms · no retry · FAIL CLOSED (S-02)</text>
-  <text x="200" y="644" text-anchor="middle" font-size="9" fill="#065f46">every WS-3 service asks the PDP —</text>
-  <text x="200" y="655" text-anchor="middle" font-size="9" fill="#065f46">IdP claims are never business authorization</text>
-  <rect x="420" y="420" width="240" height="70" rx="6" fill="#f3e8ff" stroke="#9333ea" stroke-width="1.5"/>
-  <rect x="428" y="428" width="26" height="16" rx="4" fill="#9333ea"/>
-  <text x="441" y="440" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">W4</text>
-  <text x="540" y="443" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#0f172a">#2  RM Workspace BFF</text>
-  <text x="540" y="462" text-anchor="middle" font-size="9.5" fill="#475569">stateless session facade —</text>
-  <text x="540" y="475" text-anchor="middle" font-size="9.5" fill="#475569">holds tokens; Flutter never sees them</text>
-  <rect x="730" y="420" width="140" height="70" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
-  <rect x="736" y="426" width="24" height="15" rx="4" fill="#d97706"/>
-  <text x="748" y="437.5" text-anchor="middle" font-size="9" font-weight="bold" fill="#ffffff">W2</text>
-  <circle cx="856" cy="434" r="9" fill="#0f172a"/>
-  <text x="856" y="437.5" text-anchor="middle" font-size="10" font-weight="bold" fill="#ffffff">3</text>
-  <rect x="820" y="426" width="24" height="15" rx="7" fill="#dc2626"/>
-  <text x="832" y="437.5" text-anchor="middle" font-size="9" font-weight="bold" fill="#ffffff">C2</text>
-  <text x="800" y="455" text-anchor="middle" font-size="12" font-weight="bold" fill="#0f172a">#6  Consent</text>
-  <text x="800" y="470" text-anchor="middle" font-size="9" fill="#475569">append-only grants ·</text>
-  <text x="800" y="481" text-anchor="middle" font-size="9" fill="#475569">customer-device OTP required</text>
-  <!-- Suitability -->
-  <rect x="885" y="420" width="140" height="70" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
-  <rect x="891" y="426" width="24" height="15" rx="4" fill="#d97706"/>
-  <text x="903" y="437.5" text-anchor="middle" font-size="9" font-weight="bold" fill="#ffffff">W2</text>
-  <circle cx="1011" cy="434" r="9" fill="#0f172a"/>
-  <text x="1011" y="437.5" text-anchor="middle" font-size="10" font-weight="bold" fill="#ffffff">2</text>
-  <rect x="975" y="426" width="24" height="15" rx="7" fill="#dc2626"/>
-  <text x="987" y="437.5" text-anchor="middle" font-size="9" font-weight="bold" fill="#ffffff">C1</text>
-  <text x="955" y="455" text-anchor="middle" font-size="12" font-weight="bold" fill="#0f172a">#7  Suitability</text>
-  <text x="955" y="470" text-anchor="middle" font-size="9" fill="#475569">hard gate: no quote without</text>
-  <text x="955" y="481" text-anchor="middle" font-size="9" fill="#475569">a valid, unexpired assessment</text>
-  <!-- Product Catalogue -->
-  <rect x="1040" y="420" width="140" height="70" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
-  <rect x="1046" y="426" width="24" height="15" rx="4" fill="#2563eb"/>
-  <text x="1058" y="437.5" text-anchor="middle" font-size="9" font-weight="bold" fill="#ffffff">W1</text>
-  <text x="1110" y="455" text-anchor="middle" font-size="12" font-weight="bold" fill="#0f172a">#8  Product Catalogue</text>
-  <text x="1110" y="470" text-anchor="middle" font-size="9" fill="#475569">R0 matrix: Life · Group A · Term</text>
-  <text x="1110" y="481" text-anchor="middle" font-size="9" fill="#475569">read by Suitability &amp; Quotation</text>
-  <!-- Customer -->
-  <rect x="1195" y="420" width="140" height="70" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
-  <rect x="1201" y="426" width="24" height="15" rx="4" fill="#2563eb"/>
-  <text x="1213" y="437.5" text-anchor="middle" font-size="9" font-weight="bold" fill="#ffffff">W1</text>
-  <circle cx="1321" cy="434" r="9" fill="#0f172a"/>
-  <text x="1321" y="437.5" text-anchor="middle" font-size="10" font-weight="bold" fill="#ffffff">1</text>
-  <text x="1265" y="455" text-anchor="middle" font-size="12" font-weight="bold" fill="#0f172a">#4  Customer</text>
-  <text x="1265" y="470" text-anchor="middle" font-size="9" fill="#475569">ETB lookup + prefill</text>
-  <text x="1265" y="481" text-anchor="middle" font-size="9" fill="#475569">from CBS (S-04 / S-05)</text>
-  <rect x="420" y="565" width="915" height="70" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
-  <rect x="428" y="573" width="26" height="16" rx="4" fill="#2563eb"/>
-  <text x="441" y="585" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">W1</text>
-  <text x="877" y="592" text-anchor="middle" font-size="13.5" font-weight="bold" fill="#0f172a">#9  Journey Orchestration — R0 state machine</text>
-  <text x="877" y="612" text-anchor="middle" font-size="9.5" fill="#475569">holds stage + references ONLY — never another context's business decision (SC-W3-6) · durable compensation tasks (S-19) · blocked from SOLD until audit confirms (INV-JRN-05)</text>
-  <rect x="730" y="680" width="140" height="70" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
-  <rect x="736" y="686" width="24" height="15" rx="4" fill="#d97706"/>
-  <text x="748" y="697.5" text-anchor="middle" font-size="9" font-weight="bold" fill="#ffffff">W2</text>
-  <circle cx="856" cy="694" r="9" fill="#0f172a"/>
-  <text x="856" y="697.5" text-anchor="middle" font-size="10" font-weight="bold" fill="#ffffff">4</text>
-  <rect x="820" y="686" width="24" height="15" rx="7" fill="#dc2626"/>
-  <text x="832" y="697.5" text-anchor="middle" font-size="9" font-weight="bold" fill="#ffffff">C1</text>
-  <text x="800" y="715" text-anchor="middle" font-size="12" font-weight="bold" fill="#0f172a">#10  Quotation</text>
-  <text x="800" y="730" text-anchor="middle" font-size="9" fill="#475569">refuses without suitability id (403) ·</text>
-  <text x="800" y="741" text-anchor="middle" font-size="9" fill="#475569">async-poll via Hub (S-09 / S-11)</text>
-  <!-- Proposal -->
-  <rect x="885" y="680" width="140" height="70" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
-  <rect x="891" y="686" width="24" height="15" rx="4" fill="#16a34a"/>
-  <text x="903" y="697.5" text-anchor="middle" font-size="9" font-weight="bold" fill="#ffffff">W3</text>
-  <circle cx="1011" cy="694" r="9" fill="#0f172a"/>
-  <text x="1011" y="697.5" text-anchor="middle" font-size="10" font-weight="bold" fill="#ffffff">5</text>
-  <text x="955" y="715" text-anchor="middle" font-size="12" font-weight="bold" fill="#0f172a">#11  Proposal &amp; UW</text>
-  <text x="955" y="730" text-anchor="middle" font-size="9" fill="#475569">thin · no auto-retry on submit;</text>
-  <text x="955" y="741" text-anchor="middle" font-size="9" fill="#475569">poll to recover (S-12)</text>
-  <!-- Policy -->
-  <rect x="1040" y="680" width="140" height="70" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
-  <rect x="1046" y="686" width="24" height="15" rx="4" fill="#16a34a"/>
-  <text x="1058" y="697.5" text-anchor="middle" font-size="9" font-weight="bold" fill="#ffffff">W3</text>
-  <circle cx="1166" cy="694" r="9" fill="#0f172a"/>
-  <text x="1166" y="697.5" text-anchor="middle" font-size="10" font-weight="bold" fill="#ffffff">8</text>
-  <text x="1110" y="715" text-anchor="middle" font-size="12" font-weight="bold" fill="#0f172a">#13  Policy &amp; Issuance</text>
-  <text x="1110" y="730" text-anchor="middle" font-size="9" fill="#475569">issues ONLY against a</text>
-  <text x="1110" y="741" text-anchor="middle" font-size="9" fill="#475569">RECONCILED payment (SC-W3-4)</text>
-  <!-- Payment -->
-  <rect x="1195" y="680" width="140" height="70" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
-  <rect x="1201" y="686" width="24" height="15" rx="4" fill="#16a34a"/>
-  <text x="1213" y="697.5" text-anchor="middle" font-size="9" font-weight="bold" fill="#ffffff">W3</text>
-  <circle cx="1321" cy="694" r="9" fill="#0f172a"/>
-  <text x="1321" y="697.5" text-anchor="middle" font-size="10" font-weight="bold" fill="#ffffff">7</text>
-  <rect x="1285" y="686" width="24" height="15" rx="7" fill="#dc2626"/>
-  <text x="1297" y="697.5" text-anchor="middle" font-size="9" font-weight="bold" fill="#ffffff">C4</text>
-  <text x="1265" y="715" text-anchor="middle" font-size="12" font-weight="bold" fill="#0f172a">#12  Payment</text>
-  <text x="1265" y="730" text-anchor="middle" font-size="9" fill="#475569">link to customer device only ·</text>
-  <text x="1265" y="741" text-anchor="middle" font-size="9" fill="#475569">reconciliation resolves UNCERTAIN</text>
-  <rect x="730" y="820" width="450" height="70" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
-  <rect x="736" y="826" width="24" height="15" rx="4" fill="#2563eb"/>
-  <text x="748" y="837.5" text-anchor="middle" font-size="9" font-weight="bold" fill="#ffffff">W1</text>
-  <text x="955" y="845" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#0f172a">#14  Integration Hub</text>
-  <text x="955" y="862" text-anchor="middle" font-size="9.5" fill="#475569">ALL provider traffic routes here (SC-W3-5) · IF-1 canonical contract · async-poll ·</text>
-  <text x="955" y="874" text-anchor="middle" font-size="9.5" fill="#475569">per-provider bulkheads · distributorId injected server-side, caller value rejected</text>
-  <rect x="1230" y="820" width="160" height="70" rx="6" fill="#e2e8f0" stroke="#475569" stroke-width="1.5"/>
-  <text x="1310" y="840" text-anchor="middle" font-size="9" fill="#64748b" letter-spacing="1">WS-1 · EXISTS TODAY</text>
-  <text x="1310" y="857" text-anchor="middle" font-size="12" font-weight="bold" fill="#0f172a">#15  1SB Adapter</text>
-  <text x="1310" y="872" text-anchor="middle" font-size="9" fill="#475569">adapter.onesb.* only (INV-ACL-01)</text>
-  <text x="1310" y="883" text-anchor="middle" font-size="9" fill="#475569">24 h idempotency contract</text>
-  <rect x="420" y="935" width="450" height="70" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
-  <rect x="428" y="941" width="24" height="15" rx="4" fill="#16a34a"/>
-  <text x="440" y="952.5" text-anchor="middle" font-size="9" font-weight="bold" fill="#ffffff">W3</text>
-  <circle cx="852" cy="949" r="9" fill="#0f172a"/>
-  <text x="852" y="952.5" text-anchor="middle" font-size="10" font-weight="bold" fill="#ffffff">9</text>
-  <text x="645" y="957" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#0f172a">#16  Audit &amp; Compliance</text>
-  <text x="645" y="975" text-anchor="middle" font-size="9.5" fill="#475569">append-only evidence store · UPDATE / DELETE rejected (FF-10) · 7-year WORM ·</text>
-  <text x="645" y="987" text-anchor="middle" font-size="9.5" fill="#475569">consumes outbox events from Journey, Quotation, Proposal, Payment, Policy (S-17)</text>
-  <rect x="900" y="935" width="400" height="70" rx="6" fill="#f3e8ff" stroke="#9333ea" stroke-width="1.5"/>
-  <rect x="906" y="941" width="24" height="15" rx="4" fill="#9333ea"/>
-  <text x="918" y="952.5" text-anchor="middle" font-size="9" font-weight="bold" fill="#ffffff">W4</text>
-  <circle cx="1282" cy="949" r="9" fill="#0f172a"/>
-  <text x="1282" y="952.5" text-anchor="middle" font-size="10" font-weight="bold" fill="#ffffff">6</text>
-  <text x="1100" y="957" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#0f172a">#17  Notification (transactional minimum)</text>
-  <text x="1100" y="975" text-anchor="middle" font-size="9.5" fill="#475569">OTP + payment-link delivery to the customer device (SMS / email) ·</text>
-  <text x="1100" y="987" text-anchor="middle" font-size="9.5" fill="#475569">a notification failure never blocks the journey (S-18)</text>
-  <rect x="70" y="1040" width="1275" height="140" rx="8" fill="#f1f5f9" stroke="#64748b" stroke-width="1.2"/>
-  <text x="90" y="1062" font-size="11.5" font-weight="bold" fill="#334155">Data — private, encrypted, database-per-service (ARCH-004) · no cross-service DB access (ArchUnit + IAM, verified in the S09 IaC scan)</text>
-  <g>
-    <path d="M100,1090 a95,10 0 0,1 190,0 v50 a95,10 0 0,1 -190,0 z" fill="#ffffff" stroke="#475569" stroke-width="1.2"/>
-    <ellipse cx="195" cy="1090" rx="95" ry="10" fill="#ffffff" stroke="#475569" stroke-width="1.2"/>
-    <text x="195" y="1116" text-anchor="middle" font-size="11" font-weight="bold" fill="#0f172a">Aurora PostgreSQL</text>
-    <text x="195" y="1131" text-anchor="middle" font-size="9" fill="#475569">one store per service · Multi-AZ · PITR</text>
-  </g>
-  <g>
-    <path d="M420,1090 a95,10 0 0,1 190,0 v50 a95,10 0 0,1 -190,0 z" fill="#ffffff" stroke="#475569" stroke-width="1.2"/>
-    <ellipse cx="515" cy="1090" rx="95" ry="10" fill="#ffffff" stroke="#475569" stroke-width="1.2"/>
-    <text x="515" y="1116" text-anchor="middle" font-size="11" font-weight="bold" fill="#0f172a">DynamoDB</text>
-    <text x="515" y="1131" text-anchor="middle" font-size="9" fill="#475569">journey state · quote jobs · PITR</text>
-  </g>
-  <g>
-    <path d="M740,1090 a95,10 0 0,1 190,0 v50 a95,10 0 0,1 -190,0 z" fill="#ffffff" stroke="#475569" stroke-width="1.2"/>
-    <ellipse cx="835" cy="1090" rx="95" ry="10" fill="#ffffff" stroke="#475569" stroke-width="1.2"/>
-    <text x="835" y="1113" text-anchor="middle" font-size="11" font-weight="bold" fill="#0f172a">S3 + Object Lock</text>
-    <text x="835" y="1127" text-anchor="middle" font-size="9" fill="#475569">raw payloads · policy docs · 7-yr WORM</text>
-    <text x="835" y="1139" text-anchor="middle" font-size="9" fill="#475569">cross-region replication → ap-south-2</text>
-  </g>
-  <g>
-    <path d="M1060,1090 a95,10 0 0,1 190,0 v50 a95,10 0 0,1 -190,0 z" fill="#ffffff" stroke="#475569" stroke-width="1.2"/>
-    <ellipse cx="1155" cy="1090" rx="95" ry="10" fill="#ffffff" stroke="#475569" stroke-width="1.2"/>
-    <text x="1155" y="1116" text-anchor="middle" font-size="11" font-weight="bold" fill="#0f172a">Secrets Manager + KMS</text>
-    <text x="1155" y="1131" text-anchor="middle" font-size="9" fill="#475569">per-service credentials · CMK hierarchy</text>
-  </g>
-  <text x="90" y="1172" font-size="9.5" fill="#64748b">Existing bank-persistence-service stays scoped to the integration job store + audit ingestion — it is NOT extended to the R0 business contexts.</text>
-  <!-- ======================= RIGHT-COLUMN EXTERNALS ======================= -->
-  <rect x="1480" y="420" width="270" height="70" rx="6" fill="#ffffff" stroke="#64748b" stroke-width="1.5" stroke-dasharray="4 3"/>
-  <text x="1615" y="444" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#0f172a">Core Banking System (CBS)</text>
-  <text x="1615" y="459" text-anchor="middle" font-size="9" fill="#94a3b8" letter-spacing="1">EXTERNAL</text>
-  <text x="1615" y="476" text-anchor="middle" font-size="9.5" fill="#475569">CIF · ETB customer lookup</text>
-  <rect x="1480" y="820" width="270" height="70" rx="6" fill="#ffffff" stroke="#64748b" stroke-width="1.5" stroke-dasharray="4 3"/>
-  <text x="1615" y="844" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#0f172a">1SilverBullet (Aggregator)</text>
-  <text x="1615" y="859" text-anchor="middle" font-size="9" fill="#94a3b8" letter-spacing="1">EXTERNAL</text>
-  <text x="1615" y="876" text-anchor="middle" font-size="9.5" fill="#475569">Group A insurers · Term only in R0</text>
-  <!-- ======================= LEGEND ======================= -->
-  <rect x="70" y="700" width="260" height="305" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
-  <text x="86" y="722" font-size="11" font-weight="bold" fill="#334155" letter-spacing="1">LEGEND</text>
-  <rect x="86" y="734" width="14" height="14" rx="3" fill="#dbeafe" stroke="#2563eb"/>
-  <text x="108" y="745" font-size="9.5" fill="#334155">Wave 1 — journey spine (build first)</text>
-  <rect x="86" y="756" width="14" height="14" rx="3" fill="#fef3c7" stroke="#d97706"/>
-  <text x="108" y="767" font-size="9.5" fill="#334155">Wave 2 — consent · suitability · quote</text>
-  <rect x="86" y="778" width="14" height="14" rx="3" fill="#dcfce7" stroke="#16a34a"/>
-  <text x="108" y="789" font-size="9.5" fill="#334155">Wave 3 — money · policy · audit</text>
-  <rect x="86" y="800" width="14" height="14" rx="3" fill="#f3e8ff" stroke="#9333ea"/>
-  <text x="108" y="811" font-size="9.5" fill="#334155">Wave 4 — BFF · Flutter · notification</text>
-  <rect x="86" y="822" width="14" height="14" rx="3" fill="#e2e8f0" stroke="#475569"/>
-  <text x="108" y="833" font-size="9.5" fill="#334155">WS-1 supplier — exists today</text>
-  <rect x="86" y="844" width="14" height="14" rx="3" fill="#ecfdf5" stroke="#059669"/>
-  <text x="108" y="855" font-size="9.5" fill="#334155">WS-2 enabler</text>
-  <rect x="86" y="866" width="14" height="14" rx="3" fill="#ffffff" stroke="#64748b" stroke-dasharray="3 2"/>
-  <text x="108" y="877" font-size="9.5" fill="#334155">External system</text>
-  <line x1="86" y1="897" x2="128" y2="897" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
-  <text x="140" y="900" font-size="9.5" fill="#334155">synchronous call</text>
-  <line x1="86" y1="919" x2="128" y2="919" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrGray)"/>
-  <text x="140" y="922" font-size="9.5" fill="#334155">async — outbox event / poll / callback</text>
-  <rect x="86" y="936" width="24" height="15" rx="7" fill="#dc2626"/>
-  <text x="98" y="947.5" text-anchor="middle" font-size="9" font-weight="bold" fill="#ffffff">C1</text>
-  <text x="118" y="947" font-size="9.5" fill="#334155">non-waivable control (C1 · C2 · C4)</text>
-  <circle cx="94" cy="967" r="8" fill="#0f172a"/>
-  <text x="94" y="970.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">4</text>
-  <text x="110" y="970" font-size="9.5" fill="#334155">journey step (ribbon at top)</text>
-  <text x="86" y="992" font-size="9.5" fill="#334155">#n — bounded context (problem stmt §6)</text>
-  <!-- ======================= FLOWS ======================= -->
-  <!-- Flutter -> Edge -> BFF -->
-  <path d="M530,235 L530,270" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
-  <path d="M530,340 L530,420" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
-  <text x="540" y="384" font-size="9.5" fill="#64748b">HTTPS · opaque session (S-01)</text>
-  <!-- idp-adapter -> Bank AD -->
-  <path d="M200,470 L200,235" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
-  <text x="208" y="330" font-size="9.5" fill="#64748b">federation</text>
-  <!-- BFF -> idp-adapter / PDP -->
-  <path d="M420,445 L365,445 L365,500 L310,500" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
-  <text x="372" y="438" font-size="9.5" fill="#64748b">session</text>
-  <path d="M420,472 L345,472 L345,595 L310,595" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
-  <text x="352" y="560" font-size="9.5" fill="#64748b">authz —</text>
-  <text x="352" y="572" font-size="9.5" fill="#64748b">fail closed</text>
-  <!-- BFF -> Journey -->
-  <path d="M540,490 L540,565" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
-  <text x="548" y="532" font-size="9.5" fill="#64748b">S-03</text>
-  <!-- Journey -> Row A -->
-  <path d="M800,565 L800,490" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
-  <path d="M955,565 L955,490" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
-  <path d="M1265,565 L1265,490" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
-  <!-- Suitability -> Catalogue -->
-  <path d="M1025,455 L1040,455" fill="none" stroke="#334155" stroke-width="1.6" marker-end="url(#arr)"/>
-  <!-- Journey -> Row B -->
-  <path d="M800,635 L800,680" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
-  <path d="M955,635 L955,680" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
-  <path d="M1110,635 L1110,680" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
-  <path d="M1265,635 L1265,680" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
-  <!-- Row B -> Hub -->
-  <path d="M800,750 L800,820" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
-  <path d="M955,750 L955,820" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
-  <path d="M1110,750 L1110,820" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
-  <path d="M1265,750 L1265,785 L1150,785 L1150,820" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
-  <!-- Hub -> 1SB Adapter -> 1SilverBullet -->
-  <path d="M1180,855 L1230,855" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
-  <path d="M1390,855 L1480,855" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
-  <text x="1435" y="848" text-anchor="middle" font-size="9" fill="#64748b">mTLS</text>
-  <!-- Customer -> CBS -->
-  <path d="M1335,455 L1480,455" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
-  <text x="1407" y="447" text-anchor="middle" font-size="9" fill="#64748b">CIF / ETB</text>
-  <!-- Payment -> PG (session) and PG -> Payment (callback) -->
-  <path d="M1335,700 L1420,700 L1420,305 L1480,305" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
-  <path d="M1480,328 L1448,328 L1448,724 L1335,724" fill="none" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrGray)"/>
-  <!-- Customer device -> PG -->
-  <path d="M1615,235 L1615,270" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
-  <text x="1624" y="257" font-size="9.5" fill="#64748b">pays (3-DS)</text>
-  <!-- Outbox events -> Audit -->
-  <path d="M600,635 L600,935" fill="none" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrGray)"/>
-  <text x="610" y="790" font-size="9.5" fill="#64748b">domain events — transactional outbox (S-17, at-least-once, no Kafka in R0)</text>
-  <!-- Payment/Policy events -> Notification -->
-  <path d="M1210,750 L1210,935" fill="none" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrGray)"/>
-  <text x="1218" y="805" font-size="9.5" fill="#64748b">events (S-18)</text>
-  <!-- Notification -> Customer device -->
-  <path d="M1300,955 L1464,955 L1464,192 L1480,192" fill="none" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrGray)"/>
-  <text x="1457" y="620" font-size="9.5" fill="#64748b" transform="rotate(-90 1457 620)">payment link + OTP (SMS / email)</text>
-  <!-- ======================= FOUNDATION STRIP (IF-3) ======================= -->
-  <rect x="40" y="1235" width="1710" height="120" rx="10" fill="#fffbeb" stroke="#b45309" stroke-width="1.5"/>
-  <text x="60" y="1257" font-size="11.5" font-weight="bold" fill="#92400e">IF-3 — THE PAVED ROAD: built once in WS-3, consumed by WS-1, WS-2 and WS-3 · Waves W1–W4 above start only after GATE-S08 passes and the S09 critical path lands</text>
-  <rect x="70" y="1268" width="820" height="75" rx="6" fill="#ffffff" stroke="#b45309" stroke-width="1.2"/>
-  <text x="86" y="1288" font-size="11.5" font-weight="bold" fill="#0f172a">S08 — Engineering Foundation · GATE-S08 OPEN (where the platform is right now)</text>
-  <text x="86" y="1306" font-size="9.5" fill="#475569">CI builds + tests every module on every PR · merge impossible without green · coverage floors (libs 80 / 70) · ArchUnit + 15 fitness functions (FF-01…FF-15)</text>
-  <text x="86" y="1320" font-size="9.5" fill="#475569">secret / SAST / SCA / image scanning · no PII in logs, proven by automated test · p95 pipeline feedback &lt; 10 min · engineering standards published</text>
-  <text x="86" y="1336" font-size="9.5" fill="#475569">Approvers: Amit (Eng) · Swapnali (QA) · Mahesh (Arch) · Deepali (Sec) · Shivanshi (SRE)</text>
-  <rect x="920" y="1268" width="810" height="75" rx="6" fill="#ffffff" stroke="#b45309" stroke-width="1.2"/>
-  <text x="936" y="1288" font-size="11.5" font-weight="bold" fill="#0f172a">S09 — Platform &amp; Environment Foundation (overlapped with S08)</text>
-  <text x="936" y="1306" font-size="9.5" fill="#475569">IaC + environments (dev → UAT → prod) · secrets &amp; KMS hierarchy · observability substrate · 7-year write-once retention in ap-south-1</text>
-  <text x="936" y="1320" font-size="9.5" fill="#475569">restore executed and timed (S09-G7) — "a backup that has never been restored is a hypothesis" · DR warm standby in ap-south-2</text>
-  <text x="936" y="1336" font-size="9.5" fill="#475569">IaC policy-as-code: India regions only (FF-08) · no public / unencrypted store, no wildcard prod IAM (FF-09) · audit store immutability (FF-10)</text>
-  <!-- ======================= FOOTER ======================= -->
-  <text x="60" y="1382" font-size="9.5" fill="#94a3b8">AI-DRAFTED in the Architecture lane (Mahesh — Board 1); mandatory human T4 Architecture sign-off outstanding · Derived from 03-solution-architecture-r0.md §3–§5, 00-WS3-ARCHITECTURE-REGISTRATION.md §3 and CURRENT-STATE.yaml (R0 scope) · Deferred to S13: Lead (#5), Customer BFF (#1), Reporting &amp; MIS (#18), Admin UI (#19) · Render.com is dev-preview only, never a PII path (ADR-001) · 2026-08-17</text>
+  <rect x="0" y="0" width="2560" height="4619" fill="#ffffff"/>
+  <text x="1280.0" y="40" font-size="27" fill="#0f172a" text-anchor="middle" font-weight="bold">AU Bank Insurance Distribution Platform — North Star High-Level Design</text>
+  <text x="1280.0" y="64" font-size="12.5" fill="#475569" text-anchor="middle">Bank as IRDAI Corporate Agent / Composite Corporate Agent · Life · Health · General/Motor · assisted, DIY, hybrid, call-centre and certified-SP journeys · AWS ap-south-1</text>
+  <text x="1280.0" y="84" font-size="12" fill="#64748b" text-anchor="middle" font-style="italic">Target state and the release path to it. The seams exist from R0; the capabilities arrive by release.</text>
+  <rect x="40" y="100" width="2480" height="46" rx="8" fill="#fef2f2" stroke="#b91c1c" stroke-width="2"/>
+  <text x="58" y="121" font-size="12" fill="#7f1d1d" font-weight="bold" letter-spacing="0.4">READ THIS FIRST — THIS IS A TARGET-STATE DIAGRAM, NOT ADMITTED SCOPE</text>
+  <text x="58" y="137" font-size="9.5" fill="#7f1d1d">Only the R0 band is inside WS-3 current_scope in docs/governance/state/CURRENT-STATE.yaml. Every R1–RN element is either an out_of_scope item with a revisit_at, or not yet triaged at all. This diagram is an architecture intent artefact: it exists so that R0 is built with the right seams — it is not a licence to build R1+ now.</text>
+  <rect x="40" y="158" width="2480" height="96" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+  <text x="58" y="178" font-size="11" fill="#334155" font-weight="bold" letter-spacing="1.2">RELEASE COLOUR MODEL — LIFE FIRST, THEN HEALTH, THEN GENERAL/MOTOR</text>
+  <rect x="58.0" y="186" width="395.6666666666667" height="56" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="66.0" y="192" width="30" height="15" rx="4" fill="#1d4ed8"/>
+  <text x="81.0" y="203.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
+  <text x="102.0" y="203" font-size="10.5" fill="#0f172a" font-weight="bold">Life Foundation</text>
+  <text x="66.0" y="218" font-size="8.3" fill="#475569">One RM sells one Term Life policy to one</text>
+  <text x="66.0" y="228.5" font-size="8.3" fill="#475569">ETB customer of one Group A insurer via 1SB —</text>
+  <text x="66.0" y="239.0" font-size="8.3" fill="#475569">consent, suitability, payment, issuance, audit.</text>
+  <rect x="467.6666666666667" y="186" width="395.6666666666667" height="56" rx="6" fill="#ccfbf1" stroke="#0f766e" stroke-width="1.5"/>
+  <rect x="475.6666666666667" y="192" width="30" height="15" rx="4" fill="#0f766e"/>
+  <text x="490.6666666666667" y="203.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R1</text>
+  <text x="511.6666666666667" y="203" font-size="10.5" fill="#0f172a" font-weight="bold">Life Scale &amp; Digital</text>
+  <text x="475.6666666666667" y="218" font-size="8.3" fill="#475569">Customer DIY journey + Customer BFF, Lead/</text>
+  <text x="475.6666666666667" y="228.5" font-size="8.3" fill="#475569">Opportunity, Group B insurers, ULIP &amp; Savings,</text>
+  <text x="475.6666666666667" y="239.0" font-size="8.3" fill="#475569">documents, config governance, MIS, admin.</text>
+  <rect x="877.3333333333334" y="186" width="395.6666666666667" height="56" rx="6" fill="#fef3c7" stroke="#b45309" stroke-width="1.5"/>
+  <rect x="885.3333333333334" y="192" width="30" height="15" rx="4" fill="#b45309"/>
+  <text x="900.3333333333334" y="203.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R2</text>
+  <text x="921.3333333333334" y="203" font-size="10.5" fill="#0f172a" font-weight="bold">Life Lifecycle &amp; Omnichannel</text>
+  <text x="885.3333333333334" y="218" font-size="8.3" fill="#475569">Hybrid/mode-switch, call centre, certified SP,</text>
+  <text x="885.3333333333334" y="228.5" font-size="8.3" fill="#475569">abandonment recovery, engagement engine,</text>
+  <text x="885.3333333333334" y="239.0" font-size="8.3" fill="#475569">policy portfolio, renewal &amp; lapse, NTB+V-KYC.</text>
+  <rect x="1287.0" y="186" width="395.6666666666667" height="56" rx="6" fill="#f3e8ff" stroke="#7e22ce" stroke-width="1.5"/>
+  <rect x="1295.0" y="192" width="30" height="15" rx="4" fill="#7e22ce"/>
+  <text x="1310.0" y="203.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R3</text>
+  <text x="1331.0" y="203" font-size="10.5" fill="#0f172a" font-weight="bold">Health</text>
+  <text x="1295.0" y="218" font-size="8.3" fill="#475569">Health becomes its own independently</text>
+  <text x="1295.0" y="228.5" font-size="8.3" fill="#475569">deployable cell reusing the shared platform.</text>
+  <text x="1295.0" y="239.0" font-size="8.3" fill="#475569">Gated on WS-1 Phase 5 being unfrozen.</text>
+  <rect x="1696.6666666666667" y="186" width="395.6666666666667" height="56" rx="6" fill="#ffe4e6" stroke="#be123c" stroke-width="1.5"/>
+  <rect x="1704.6666666666667" y="192" width="30" height="15" rx="4" fill="#be123c"/>
+  <text x="1719.6666666666667" y="203.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R4</text>
+  <text x="1740.6666666666667" y="203" font-size="10.5" fill="#0f172a" font-weight="bold">General / Motor</text>
+  <text x="1704.6666666666667" y="218" font-size="8.3" fill="#475569">General cell added. Motor stays a productLine</text>
+  <text x="1704.6666666666667" y="228.5" font-size="8.3" fill="#475569">inside General — modelled so it can be</text>
+  <text x="1704.6666666666667" y="239.0" font-size="8.3" fill="#475569">extracted later without a platform rewrite.</text>
+  <rect x="2106.3333333333335" y="186" width="395.6666666666667" height="56" rx="6" fill="#e0e7ff" stroke="#4338ca" stroke-width="1.5"/>
+  <rect x="2114.3333333333335" y="192" width="30" height="15" rx="4" fill="#4338ca"/>
+  <text x="2129.3333333333335" y="203.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">RN</text>
+  <text x="2150.3333333333335" y="203" font-size="10.5" fill="#0f172a" font-weight="bold">Steady-state North Star</text>
+  <text x="2114.3333333333335" y="218" font-size="8.3" fill="#475569">Bank's own aggregation platform (direct +</text>
+  <text x="2114.3333333333335" y="228.5" font-size="8.3" fill="#475569">1SB simultaneously), event backbone, BI/</text>
+  <text x="2114.3333333333335" y="239.0" font-size="8.3" fill="#475569">analytics, optional Motor cell extraction.</text>
+  <text x="2502" y="178" font-size="9.5" fill="#334155" text-anchor="end" font-weight="bold">The chip on every element below is the release in which that element FIRST EXISTS.</text>
+  <rect x="40" y="272" width="2480" height="210" rx="10" fill="#ffffff" stroke="#0f172a" stroke-width="2"/>
+  <rect x="40" y="272" width="2480" height="30" rx="10" fill="#0f172a"/>
+  <rect x="40" y="292" width="2480" height="10" fill="#0f172a"/>
+  <text x="56" y="293" font-size="9.5" fill="#ffffff" font-weight="bold" letter-spacing="1.4">CANONICAL DOMAIN MODEL</text>
+  <text x="300" y="293" font-size="14" fill="#ffffff" font-weight="bold" letter-spacing="0.5">THE JOURNEY SPINE — the object model every boundary below is organised around</text>
+  <polygon points="64.0,318 250.16666666666663,318 261.16666666666663,339 250.16666666666663,360 64.0,360 75.0,339" fill="#1e293b"/>
+  <text x="166.58333333333331" y="336" font-size="10.5" fill="#ffffff" text-anchor="middle" font-weight="bold">Party /</text>
+  <text x="166.58333333333331" y="350" font-size="8.2" fill="#cbd5e1" text-anchor="middle">Prospect</text>
+  <polygon points="267.16666666666663,318 453.33333333333326,318 464.33333333333326,339 453.33333333333326,360 267.16666666666663,360 278.16666666666663,339" fill="#1e293b"/>
+  <text x="369.74999999999994" y="336" font-size="10.5" fill="#ffffff" text-anchor="middle" font-weight="bold">Opportunity</text>
+  <text x="369.74999999999994" y="350" font-size="8.2" fill="#cbd5e1" text-anchor="middle">("Lead" in the UI)</text>
+  <polygon points="470.3333333333333,318 656.5,318 667.5,339 656.5,360 470.3333333333333,360 481.3333333333333,339" fill="#1e293b"/>
+  <text x="572.9166666666666" y="336" font-size="10.5" fill="#ffffff" text-anchor="middle" font-weight="bold">Journey</text>
+  <text x="572.9166666666666" y="350" font-size="8.2" fill="#cbd5e1" text-anchor="middle">one per intent</text>
+  <polygon points="673.5,318 859.6666666666666,318 870.6666666666666,339 859.6666666666666,360 673.5,360 684.5,339" fill="#1e293b"/>
+  <text x="776.0833333333334" y="336" font-size="10.5" fill="#ffffff" text-anchor="middle" font-weight="bold">Need &amp;</text>
+  <text x="776.0833333333334" y="350" font-size="8.2" fill="#cbd5e1" text-anchor="middle">Suitability</text>
+  <polygon points="876.6666666666666,318 1062.8333333333333,318 1073.8333333333333,339 1062.8333333333333,360 876.6666666666666,360 887.6666666666666,339" fill="#1e293b"/>
+  <text x="979.25" y="336" font-size="10.5" fill="#ffffff" text-anchor="middle" font-weight="bold">Consent</text>
+  <text x="979.25" y="350" font-size="8.2" fill="#cbd5e1" text-anchor="middle">evidence</text>
+  <polygon points="1079.8333333333333,318 1266.0,318 1277.0,339 1266.0,360 1079.8333333333333,360 1090.8333333333333,339" fill="#1e293b"/>
+  <text x="1182.4166666666665" y="336" font-size="10.5" fill="#ffffff" text-anchor="middle" font-weight="bold">Eligible</text>
+  <text x="1182.4166666666665" y="350" font-size="8.2" fill="#cbd5e1" text-anchor="middle">products</text>
+  <polygon points="1283.0,318 1469.1666666666667,318 1480.1666666666667,339 1469.1666666666667,360 1283.0,360 1294.0,339" fill="#1e293b"/>
+  <text x="1385.5833333333333" y="336" font-size="10.5" fill="#ffffff" text-anchor="middle" font-weight="bold">Quote</text>
+  <text x="1385.5833333333333" y="350" font-size="8.2" fill="#cbd5e1" text-anchor="middle">+ comparison</text>
+  <polygon points="1486.1666666666665,318 1672.3333333333333,318 1683.3333333333333,339 1672.3333333333333,360 1486.1666666666665,360 1497.1666666666665,339" fill="#1e293b"/>
+  <text x="1588.7499999999998" y="336" font-size="10.5" fill="#ffffff" text-anchor="middle" font-weight="bold">Proposal</text>
+  <text x="1588.7499999999998" y="350" font-size="8.2" fill="#cbd5e1" text-anchor="middle">+ documents</text>
+  <polygon points="1689.3333333333333,318 1875.5,318 1886.5,339 1875.5,360 1689.3333333333333,360 1700.3333333333333,339" fill="#1e293b"/>
+  <text x="1791.9166666666665" y="336" font-size="10.5" fill="#ffffff" text-anchor="middle" font-weight="bold">UW</text>
+  <text x="1791.9166666666665" y="350" font-size="8.2" fill="#cbd5e1" text-anchor="middle">requirement tracking</text>
+  <polygon points="1892.5,318 2078.6666666666665,318 2089.6666666666665,339 2078.6666666666665,360 1892.5,360 1903.5,339" fill="#1e293b"/>
+  <text x="1995.0833333333333" y="336" font-size="10.5" fill="#ffffff" text-anchor="middle" font-weight="bold">Payment</text>
+  <text x="1995.0833333333333" y="350" font-size="8.2" fill="#cbd5e1" text-anchor="middle">customer device</text>
+  <polygon points="2095.6666666666665,318 2281.833333333333,318 2292.833333333333,339 2281.833333333333,360 2095.6666666666665,360 2106.6666666666665,339" fill="#1e293b"/>
+  <text x="2198.25" y="336" font-size="10.5" fill="#ffffff" text-anchor="middle" font-weight="bold">Issuance</text>
+  <text x="2198.25" y="350" font-size="8.2" fill="#cbd5e1" text-anchor="middle">insurer-driven</text>
+  <polygon points="2298.833333333333,318 2484.9999999999995,318 2495.9999999999995,339 2484.9999999999995,360 2298.833333333333,360 2309.833333333333,339" fill="#1e293b"/>
+  <text x="2401.4166666666665" y="336" font-size="10.5" fill="#ffffff" text-anchor="middle" font-weight="bold">Policy</text>
+  <text x="2401.4166666666665" y="350" font-size="8.2" fill="#cbd5e1" text-anchor="middle">+ portfolio</text>
+  <path d="M2397.4166666666665,360 L2397.4166666666665,378 L365.74999999999994,378 L365.74999999999994,362" fill="none" stroke="#b45309" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrAmber)"/>
+  <rect x="1099.4833333333333" y="369" width="564.1999999999999" height="14" rx="2" fill="#ffffff" stroke="#ffffff" stroke-width="0"/>
+  <text x="1381.5833333333333" y="379" font-size="9.2" fill="#b45309" text-anchor="middle" font-weight="bold">R2 · Policy renewal due, expiry or lapse creates a NEW Opportunity and a NEW Journey — an existing journey is never reopened</text>
+  <text x="64.0" y="398" font-size="10.2" fill="#0f172a" font-weight="bold">Cardinality — get this wrong and everything else bends around it</text>
+  <text x="64.0" y="412" font-size="8.4" fill="#475569">Party 1:N Opportunity  ·  Opportunity 1:N Journey  ·  Journey 1:1 Policy on success  ·  Policy 1:N follow-on Opportunity.</text>
+  <text x="64.0" y="424" font-size="8.4" fill="#475569">partyId ≠ bankCustomerId ≠ leadId ≠ journeyId. A prospect exists with no CIF and is linked to one later without disturbing the journey.</text>
+  <text x="64.0" y="436" font-size="8.4" fill="#475569">Enforced rule instead of a hard 1:1: only one ACTIVE journey per Party + LOB + product context.</text>
+  <text x="881.3333333333334" y="398" font-size="10.2" fill="#0f172a" font-weight="bold">Who owns which half</text>
+  <text x="881.3333333333334" y="412" font-size="8.4" fill="#475569">BANK owns: party, opportunity, suitability, consent, product selection, proposal capture, payment, policy record, servicing intent.</text>
+  <text x="881.3333333333334" y="424" font-size="8.4" fill="#475569">INSURER owns: risk and medical assessment, underwriting decision, loading, exclusion, counter-offer, decline, and the policy contract.</text>
+  <text x="881.3333333333334" y="436" font-size="8.4" fill="#475569">We track insurer status, requirements and next action. We never compute a risk decision.</text>
+  <text x="1698.6666666666667" y="398" font-size="10.2" fill="#0f172a" font-weight="bold">Channel and actor</text>
+  <text x="1698.6666666666667" y="412" font-size="8.4" fill="#475569">Actors are JourneyParticipants, not owners: customer, RM, branch, call-centre agent, certified SP and operations act on the SAME journey.</text>
+  <text x="1698.6666666666667" y="424" font-size="8.4" fill="#475569">Every action carries an InteractionContext (actor, type, channel, device, session, branch, correlationId) — that is what makes the timeline and audit answerable.</text>
+  <text x="1698.6666666666667" y="436" font-size="8.4" fill="#475569">What an actor may do is decided by the PDP from role + certification + branch + LOB + stage, never by hiding a button.</text>
+  <path d="M1280,482 L1280,504" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
+  <text x="1294" y="498" font-size="9.2" fill="#64748b" font-style="italic">who does the work, and where</text>
+  <rect x="40" y="504" width="2480" height="171.5" rx="10" fill="#f5f3ff" stroke="#4f46e5" stroke-width="1.8"/>
+  <rect x="40" y="504" width="2480" height="30" rx="10" fill="#4f46e5"/>
+  <rect x="40" y="524" width="2480" height="10" fill="#4f46e5"/>
+  <text x="56" y="525" font-size="9.5" fill="#ffffff" font-weight="bold" letter-spacing="1.4">BOUNDARY 1</text>
+  <text x="180" y="525" font-size="14" fill="#ffffff" font-weight="bold" letter-spacing="0.5">CHANNELS &amp; ACTORS</text>
+  <text x="56" y="551" font-size="9.5" fill="#475569">OWNS · Every human and system that starts or continues a journey.</text>
+  <text x="56" y="566" font-size="9.5" fill="#b91c1c">DOES NOT OWN · Journey state, business rules or LOB knowledge. A journey is never owned by a channel — actors are participants on one journey (JourneyParticipant), so a customer can start on the web, be helped by the call centre and be closed by an RM without a second journey being created.</text>
+  <rect x="64.0" y="580" width="290.0" height="77.5" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="316.0" y="587" width="30" height="15" rx="4" fill="#1d4ed8"/>
+  <text x="331.0" y="598.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
+  <text x="74.0" y="604" font-size="11.5" fill="#0f172a" font-weight="bold">RM — Flutter app (mobile + web)</text>
+  <text x="74.0" y="620" font-size="8.8" fill="#475569">Assisted journey. Token-hiding session:</text>
+  <text x="74.0" y="632.5" font-size="8.8" fill="#475569">OAuth tokens never reach the device.</text>
+  <text x="74.0" y="645.0" font-size="8.8" fill="#475569">Store-distributed binary; APIs live in AWS.</text>
+  <rect x="370.0" y="580" width="290.0" height="77.5" rx="6" fill="#ccfbf1" stroke="#0f766e" stroke-width="1.5"/>
+  <rect x="622.0" y="587" width="30" height="15" rx="4" fill="#0f766e"/>
+  <text x="637.0" y="598.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R1</text>
+  <text x="380.0" y="604" font-size="11.5" fill="#0f172a" font-weight="bold">Customer — DIY web + mobile</text>
+  <text x="380.0" y="620" font-size="8.8" fill="#475569">Self-service. NTB prospect allowed with no</text>
+  <text x="380.0" y="632.5" font-size="8.8" fill="#475569">CIF; links to a bank customer later.</text>
+  <text x="380.0" y="645.0" font-size="8.8" fill="#475569">SPA on S3+CloudFront, not a public Nginx EC2.</text>
+  <rect x="676.0" y="580" width="290.0" height="77.5" rx="6" fill="#ccfbf1" stroke="#0f766e" stroke-width="1.5"/>
+  <rect x="928.0" y="587" width="30" height="15" rx="4" fill="#0f766e"/>
+  <text x="943.0" y="598.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R1</text>
+  <text x="686.0" y="604" font-size="11.5" fill="#0f172a" font-weight="bold">Branch user / Branch Manager</text>
+  <text x="686.0" y="620" font-size="8.8" fill="#475569">Single and bulk lead creation (CSV/XLSX →</text>
+  <text x="686.0" y="632.5" font-size="8.8" fill="#475569">S3 → validated → queue → worker).</text>
+  <text x="686.0" y="645.0" font-size="8.8" fill="#475569">Allocation of leads to RMs.</text>
+  <rect x="982.0" y="580" width="290.0" height="77.5" rx="6" fill="#fef3c7" stroke="#b45309" stroke-width="1.5"/>
+  <rect x="1234.0" y="587" width="30" height="15" rx="4" fill="#b45309"/>
+  <text x="1249.0" y="598.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R2</text>
+  <text x="992.0" y="604" font-size="11.5" fill="#0f172a" font-weight="bold">Hybrid — assisted ⇄ DIY switch</text>
+  <text x="992.0" y="620" font-size="8.8" fill="#475569">Same journeyId continues across the switch.</text>
+  <text x="992.0" y="632.5" font-size="8.8" fill="#475569">Resume link to the customer device.</text>
+  <text x="992.0" y="645.0" font-size="8.8" fill="#475569">Hand-off contract, not a new journey.</text>
+  <rect x="1288.0" y="580" width="290.0" height="77.5" rx="6" fill="#fef3c7" stroke="#b45309" stroke-width="1.5"/>
+  <rect x="1540.0" y="587" width="30" height="15" rx="4" fill="#b45309"/>
+  <text x="1555.0" y="598.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R2</text>
+  <text x="1298.0" y="604" font-size="11.5" fill="#0f172a" font-weight="bold">Call-centre agent (non-certified)</text>
+  <text x="1298.0" y="620" font-size="8.8" fill="#475569">May view, contact, explain navigation,</text>
+  <text x="1298.0" y="632.5" font-size="8.8" fill="#475569">schedule callback, send resume link.</text>
+  <text x="1298.0" y="645.0" font-size="8.8" fill="#475569">May NOT recommend or do regulated steps.</text>
+  <rect x="1594.0" y="580" width="290.0" height="77.5" rx="6" fill="#fef3c7" stroke="#b45309" stroke-width="1.5"/>
+  <rect x="1846.0" y="587" width="30" height="15" rx="4" fill="#b45309"/>
+  <text x="1861.0" y="598.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R2</text>
+  <text x="1604.0" y="604" font-size="11.5" fill="#0f172a" font-weight="bold">Certified Specified Person (SP)</text>
+  <text x="1604.0" y="620" font-size="8.8" fill="#475569">May advise and perform the regulated sales</text>
+  <text x="1604.0" y="632.5" font-size="8.8" fill="#475569">steps the approved compliance model allows.</text>
+  <text x="1604.0" y="645.0" font-size="8.8" fill="#475569">Capability is a backend control, not a UI flag.</text>
+  <rect x="1900.0" y="580" width="290.0" height="77.5" rx="6" fill="#ccfbf1" stroke="#0f766e" stroke-width="1.5"/>
+  <rect x="2152.0" y="587" width="30" height="15" rx="4" fill="#0f766e"/>
+  <text x="2167.0" y="598.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R1</text>
+  <text x="1910.0" y="604" font-size="11.5" fill="#0f172a" font-weight="bold">Operations / Admin / Config</text>
+  <text x="1910.0" y="620" font-size="8.8" fill="#475569">Product, insurer, route and rule config under</text>
+  <text x="1910.0" y="632.5" font-size="8.8" fill="#475569">maker-checker. Work-queue supervision.</text>
+  <text x="1910.0" y="645.0" font-size="8.8" fill="#475569">Never a data-fix backdoor.</text>
+  <rect x="2206.0" y="580" width="290.0" height="77.5" rx="6" fill="#e0e7ff" stroke="#4338ca" stroke-width="1.5"/>
+  <rect x="2458.0" y="587" width="30" height="15" rx="4" fill="#4338ca"/>
+  <text x="2473.0" y="598.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">RN</text>
+  <text x="2216.0" y="604" font-size="11.5" fill="#0f172a" font-weight="bold">Campaign · QR · WhatsApp · Partner API</text>
+  <text x="2216.0" y="620" font-size="8.8" fill="#475569">Additional origination surfaces that create an</text>
+  <text x="2216.0" y="632.5" font-size="8.8" fill="#475569">Opportunity and reuse the same journey.</text>
+  <text x="2216.0" y="645.0" font-size="8.8" fill="#475569">No new business architecture per channel.</text>
+  <path d="M1280,675.5 L1280,697.5" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
+  <text x="1294" y="691.5" font-size="9.2" fill="#64748b" font-style="italic">HTTPS · opaque session</text>
+  <rect x="40" y="697.5" width="2480" height="159.0" rx="10" fill="#fff7ed" stroke="#ea580c" stroke-width="1.8"/>
+  <rect x="40" y="697.5" width="2480" height="30" rx="10" fill="#ea580c"/>
+  <rect x="40" y="717.5" width="2480" height="10" fill="#ea580c"/>
+  <text x="56" y="718.5" font-size="9.5" fill="#ffffff" font-weight="bold" letter-spacing="1.4">BOUNDARY 2</text>
+  <text x="180" y="718.5" font-size="14" fill="#ffffff" font-weight="bold" letter-spacing="0.5">EDGE — THE ONLY PUBLIC ENTRY POINT</text>
+  <text x="56" y="744.5" font-size="9.5" fill="#475569">OWNS · Public exposure, TLS termination, WAF, CDN, rate limiting and north-south routing.</text>
+  <text x="56" y="759.5" font-size="9.5" fill="#b91c1c">DOES NOT OWN · Business logic or authorization decisions. Every service and every data store sits in a private subnet; if Nginx is used at all it is private behind the internal ALB — never an EC2 with a public IP.</text>
+  <rect x="64.0" y="773.5" width="392.0" height="65.0" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="418.0" y="780.5" width="30" height="15" rx="4" fill="#1d4ed8"/>
+  <text x="433.0" y="792.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
+  <text x="74.0" y="797.5" font-size="11.5" fill="#0f172a" font-weight="bold">Route 53</text>
+  <text x="74.0" y="813.5" font-size="8.8" fill="#475569">Public DNS for the bank's insurance</text>
+  <text x="74.0" y="826.0" font-size="8.8" fill="#475569">domains, health-checked.</text>
+  <rect x="472.0" y="773.5" width="392.0" height="65.0" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="826.0" y="780.5" width="30" height="15" rx="4" fill="#1d4ed8"/>
+  <text x="841.0" y="792.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
+  <text x="482.0" y="797.5" font-size="11.5" fill="#0f172a" font-weight="bold">CloudFront (CDN)</text>
+  <text x="482.0" y="813.5" font-size="8.8" fill="#475569">Static SPA delivery from S3; VPC origin</text>
+  <text x="482.0" y="826.0" font-size="8.8" fill="#475569">to the internal ALB for APIs.</text>
+  <rect x="880.0" y="773.5" width="392.0" height="65.0" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="1234.0" y="780.5" width="30" height="15" rx="4" fill="#1d4ed8"/>
+  <text x="1249.0" y="792.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
+  <text x="890.0" y="797.5" font-size="11.5" fill="#0f172a" font-weight="bold">AWS WAF</text>
+  <text x="890.0" y="813.5" font-size="8.8" fill="#475569">Managed + custom rules, bot control,</text>
+  <text x="890.0" y="826.0" font-size="8.8" fill="#475569">rate-based rules at the edge.</text>
+  <rect x="1288.0" y="773.5" width="392.0" height="65.0" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="1642.0" y="780.5" width="30" height="15" rx="4" fill="#1d4ed8"/>
+  <text x="1657.0" y="792.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
+  <text x="1298.0" y="797.5" font-size="11.5" fill="#0f172a" font-weight="bold">API Gateway</text>
+  <text x="1298.0" y="813.5" font-size="8.8" fill="#475569">North-south contract, throttling,</text>
+  <text x="1298.0" y="826.0" font-size="8.8" fill="#475569">request validation, no business logic.</text>
+  <rect x="1696.0" y="773.5" width="392.0" height="65.0" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="2050.0" y="780.5" width="30" height="15" rx="4" fill="#1d4ed8"/>
+  <text x="2065.0" y="792.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
+  <text x="1706.0" y="797.5" font-size="11.5" fill="#0f172a" font-weight="bold">Internal ALB → private subnets</text>
+  <text x="1706.0" y="813.5" font-size="8.8" fill="#475569">Applications hold private IPs only.</text>
+  <text x="1706.0" y="826.0" font-size="8.8" fill="#475569">No workload is internet-reachable.</text>
+  <rect x="2104.0" y="773.5" width="392.0" height="65.0" rx="6" fill="#ccfbf1" stroke="#0f766e" stroke-width="1.5"/>
+  <rect x="2458.0" y="780.5" width="30" height="15" rx="4" fill="#0f766e"/>
+  <text x="2473.0" y="792.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R1</text>
+  <text x="2114.0" y="797.5" font-size="11.5" fill="#0f172a" font-weight="bold">Insurer callback ingress</text>
+  <text x="2114.0" y="813.5" font-size="8.8" fill="#475569">Inbound provider webhooks: mTLS +</text>
+  <text x="2114.0" y="826.0" font-size="8.8" fill="#475569">signature check before anything else.</text>
+  <path d="M1280,856.5 L1280,878.5" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
+  <text x="1294" y="872.5" font-size="9.2" fill="#64748b" font-style="italic">authenticated, authorized, channel-shaped</text>
+  <rect x="40" y="878.5" width="2480" height="171.5" rx="10" fill="#faf5ff" stroke="#9333ea" stroke-width="1.8"/>
+  <rect x="40" y="878.5" width="2480" height="30" rx="10" fill="#9333ea"/>
+  <rect x="40" y="898.5" width="2480" height="10" fill="#9333ea"/>
+  <text x="56" y="899.5" font-size="9.5" fill="#ffffff" font-weight="bold" letter-spacing="1.4">BOUNDARY 3</text>
+  <text x="180" y="899.5" font-size="14" fill="#ffffff" font-weight="bold" letter-spacing="0.5">EXPERIENCE / BFF PLANE</text>
+  <text x="56" y="925.5" font-size="9.5" fill="#475569">OWNS · Channel-shaped aggregation, session and token custody, screen-oriented composition.</text>
+  <text x="56" y="940.5" font-size="9.5" fill="#b91c1c">DOES NOT OWN · Domain rules, journey state or provider vocabulary. One BFF per channel — never one BFF per channel × LOB. There is no RM-Life-Quote-Service: RM, customer and call centre all call the same Life Quote.</text>
+  <rect x="64.0" y="954.5" width="473.6" height="77.5" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="499.6" y="961.5" width="30" height="15" rx="4" fill="#1d4ed8"/>
+  <text x="514.6" y="973.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
+  <text x="74.0" y="978.5" font-size="11.5" fill="#0f172a" font-weight="bold">#2  RM Workspace BFF</text>
+  <text x="74.0" y="994.5" font-size="8.8" fill="#475569">Stateless session facade. Holds OAuth tokens;</text>
+  <text x="74.0" y="1007.0" font-size="8.8" fill="#475569">Flutter only ever sees an opaque session.</text>
+  <text x="74.0" y="1019.5" font-size="8.8" fill="#475569">Composes the assisted R0 screens.</text>
+  <rect x="553.6" y="954.5" width="473.6" height="77.5" rx="6" fill="#ccfbf1" stroke="#0f766e" stroke-width="1.5"/>
+  <rect x="989.2" y="961.5" width="30" height="15" rx="4" fill="#0f766e"/>
+  <text x="1004.2" y="973.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R1</text>
+  <text x="563.6" y="978.5" font-size="11.5" fill="#0f172a" font-weight="bold">#1  Customer BFF</text>
+  <text x="563.6" y="994.5" font-size="8.8" fill="#475569">DIY surface. Customer identity, resume-link</text>
+  <text x="563.6" y="1007.0" font-size="8.8" fill="#475569">redemption, quote comparison view,</text>
+  <text x="563.6" y="1019.5" font-size="8.8" fill="#475569">payment hand-off to the customer device.</text>
+  <rect x="1043.2" y="954.5" width="473.6" height="77.5" rx="6" fill="#fef3c7" stroke="#b45309" stroke-width="1.5"/>
+  <rect x="1478.8000000000002" y="961.5" width="30" height="15" rx="4" fill="#b45309"/>
+  <text x="1493.8000000000002" y="973.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R2</text>
+  <text x="1053.2" y="978.5" font-size="11.5" fill="#0f172a" font-weight="bold">Operations / Call-centre BFF</text>
+  <text x="1053.2" y="994.5" font-size="8.8" fill="#475569">Work queues, journey search, interaction</text>
+  <text x="1053.2" y="1007.0" font-size="8.8" fill="#475569">timeline, disposition capture.</text>
+  <text x="1053.2" y="1019.5" font-size="8.8" fill="#475569">Actor capability enforced server-side.</text>
+  <rect x="1532.8000000000002" y="954.5" width="473.6" height="77.5" rx="6" fill="#ccfbf1" stroke="#0f766e" stroke-width="1.5"/>
+  <rect x="1968.4" y="961.5" width="30" height="15" rx="4" fill="#0f766e"/>
+  <text x="1983.4" y="973.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R1</text>
+  <text x="1542.8000000000002" y="978.5" font-size="11.5" fill="#0f172a" font-weight="bold">Admin &amp; Configuration BFF</text>
+  <text x="1542.8000000000002" y="994.5" font-size="8.8" fill="#475569">Product governance, provider routes, rule</text>
+  <text x="1542.8000000000002" y="1007.0" font-size="8.8" fill="#475569">packs, feature activation — all versioned</text>
+  <text x="1542.8000000000002" y="1019.5" font-size="8.8" fill="#475569">with maker-checker and effective dates.</text>
+  <rect x="2022.4" y="954.5" width="473.6" height="77.5" rx="6" fill="#e0e7ff" stroke="#4338ca" stroke-width="1.5"/>
+  <rect x="2458.0" y="961.5" width="30" height="15" rx="4" fill="#4338ca"/>
+  <text x="2473.0" y="973.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">RN</text>
+  <text x="2032.4" y="978.5" font-size="11.5" fill="#0f172a" font-weight="bold">Partner / Open API facade</text>
+  <text x="2032.4" y="994.5" font-size="8.8" fill="#475569">Bank-canonical outward API for group</text>
+  <text x="2032.4" y="1007.0" font-size="8.8" fill="#475569">entities and embedded distribution.</text>
+  <text x="2032.4" y="1019.5" font-size="8.8" fill="#475569">Same domain, different exposure.</text>
+  <path d="M1280,1050.0 L1280,1072.0" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
+  <text x="1294" y="1066.0" font-size="9.2" fill="#64748b" font-style="italic">one journey, whichever channel</text>
+  <rect x="40" y="1072.0" width="2480" height="682.5" rx="10" fill="#f8fafc" stroke="#1d4ed8" stroke-width="1.8"/>
+  <rect x="40" y="1072.0" width="2480" height="30" rx="10" fill="#1d4ed8"/>
+  <rect x="40" y="1092.0" width="2480" height="10" fill="#1d4ed8"/>
+  <text x="56" y="1093.0" font-size="9.5" fill="#ffffff" font-weight="bold" letter-spacing="1.4">BOUNDARY 4</text>
+  <text x="180" y="1093.0" font-size="14" fill="#ffffff" font-weight="bold" letter-spacing="0.5">SHARED PLATFORM PLANE — BUILT ONCE FOR EVERY LOB</text>
+  <text x="56" y="1119.0" font-size="9.5" fill="#475569">OWNS · Concepts that mean the same thing whichever line of business is being sold: who the customer is, why we are contacting them, what we are permitted to do, where they are, what they paid and what they hold.</text>
+  <text x="56" y="1134.0" font-size="9.5" fill="#b91c1c">DOES NOT OWN · How a specific insurance product is quoted, proposed or underwritten. There is no life-customer-service / health-customer-service / general-consent-service — duplicating these per LOB is the failure mode this plane exists to prevent.</text>
+  <rect x="64.0" y="1148.0" width="596.0" height="102.5" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="622.0" y="1155.0" width="30" height="15" rx="4" fill="#1d4ed8"/>
+  <text x="637.0" y="1166.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
+  <text x="74.0" y="1172.0" font-size="11.5" fill="#0f172a" font-weight="bold">#3  Identity &amp; Access</text>
+  <text x="74.0" y="1188.0" font-size="8.8" fill="#475569">Workforce federation via Bank AD/SSO (WS-2,</text>
+  <text x="74.0" y="1200.5" font-size="8.8" fill="#475569">IF-2). Customer identity — mobile+OTP, optional</text>
+  <text x="74.0" y="1213.0" font-size="8.8" fill="#475569">CIF linkage — arrives with DIY at R1; call-centre</text>
+  <text x="74.0" y="1225.5" font-size="8.8" fill="#475569">and SP identities at R2. Two identity domains,</text>
+  <text x="74.0" y="1238.0" font-size="8.8" fill="#475569">one platform. Never expose the IdP to Flutter.</text>
+  <rect x="676.0" y="1148.0" width="596.0" height="102.5" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="1234.0" y="1155.0" width="30" height="15" rx="4" fill="#1d4ed8"/>
+  <text x="1249.0" y="1166.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
+  <text x="686.0" y="1172.0" font-size="11.5" fill="#0f172a" font-weight="bold">Authorization PDP + Actor Capability</text>
+  <text x="686.0" y="1188.0" font-size="8.8" fill="#475569">RBAC + ABAC, default deny, fail closed, 300 ms,</text>
+  <text x="686.0" y="1200.5" font-size="8.8" fill="#475569">no retry. Decides on actor + role + certification</text>
+  <text x="686.0" y="1213.0" font-size="8.8" fill="#475569">+ branch + LOB + journey + stage + action —</text>
+  <text x="686.0" y="1225.5" font-size="8.8" fill="#475569">not on a role name. IdP claims are never</text>
+  <text x="686.0" y="1238.0" font-size="8.8" fill="#475569">business authorization. Horizontally scalable.</text>
+  <rect x="1288.0" y="1148.0" width="596.0" height="102.5" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="1846.0" y="1155.0" width="30" height="15" rx="4" fill="#1d4ed8"/>
+  <text x="1861.0" y="1166.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
+  <text x="1298.0" y="1172.0" font-size="11.5" fill="#0f172a" font-weight="bold">#6  Consent</text>
+  <text x="1298.0" y="1188.0" font-size="8.8" fill="#475569">Consent is evidence, not a boolean: purpose,</text>
+  <text x="1298.0" y="1200.5" font-size="8.8" fill="#475569">data categories, permitted recipients, text</text>
+  <text x="1298.0" y="1213.0" font-size="8.8" fill="#475569">version, method, captured/expiry/revoked,</text>
+  <text x="1298.0" y="1225.5" font-size="8.8" fill="#475569">evidence ref. Append-only. Customer-device</text>
+  <text x="1298.0" y="1238.0" font-size="8.8" fill="#475569">OTP required. Hard gate before any insurer call.</text>
+  <rect x="1900.0" y="1148.0" width="596.0" height="102.5" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="2458.0" y="1155.0" width="30" height="15" rx="4" fill="#1d4ed8"/>
+  <text x="2473.0" y="1166.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
+  <text x="1910.0" y="1172.0" font-size="11.5" fill="#0f172a" font-weight="bold">#4  Party / Customer</text>
+  <text x="1910.0" y="1188.0" font-size="8.8" fill="#475569">partyId is not bankCustomerId and never a</text>
+  <text x="1910.0" y="1200.5" font-size="8.8" fill="#475569">leadId. ETB lookup and prefill from CBS by</text>
+  <text x="1910.0" y="1213.0" font-size="8.8" fill="#475569">mobile / email / KYC id; unmatched becomes a</text>
+  <text x="1910.0" y="1225.5" font-size="8.8" fill="#475569">Prospect that can be linked to a CIF later.</text>
+  <text x="1910.0" y="1238.0" font-size="8.8" fill="#475569">NTB onboarding and V-KYC land at R2.</text>
+  <rect x="64.0" y="1264.5" width="596.0" height="102.5" rx="6" fill="#ccfbf1" stroke="#0f766e" stroke-width="1.5"/>
+  <rect x="622.0" y="1271.5" width="30" height="15" rx="4" fill="#0f766e"/>
+  <text x="637.0" y="1283.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R1</text>
+  <text x="74.0" y="1288.5" font-size="11.5" fill="#0f172a" font-weight="bold">#5  Lead → Opportunity</text>
+  <text x="74.0" y="1304.5" font-size="8.8" fill="#475569">One durable demand object, not a thin lead:</text>
+  <text x="74.0" y="1317.0" font-size="8.8" fill="#475569">NEW_SALE, CROSS_SELL, UP_SELL, RENEWAL,</text>
+  <text x="74.0" y="1329.5" font-size="8.8" fill="#475569">LAPSE_RECOVERY, ABANDONED_JOURNEY_</text>
+  <text x="74.0" y="1342.0" font-size="8.8" fill="#475569">RECOVERY, CALLBACK, CAMPAIGN. UI may still</text>
+  <text x="74.0" y="1354.5" font-size="8.8" fill="#475569">say 'Lead'. Opportunity 1:N Journey.</text>
+  <rect x="676.0" y="1264.5" width="596.0" height="102.5" rx="6" fill="#fef3c7" stroke="#b45309" stroke-width="1.5"/>
+  <rect x="1234.0" y="1271.5" width="30" height="15" rx="4" fill="#b45309"/>
+  <text x="1249.0" y="1283.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R2</text>
+  <text x="686.0" y="1288.5" font-size="11.5" fill="#0f172a" font-weight="bold">Work Management / Assignment</text>
+  <text x="686.0" y="1304.5" font-size="8.8" fill="#475569">Queue, assignment, priority, SLA, escalation,</text>
+  <text x="686.0" y="1317.0" font-size="8.8" fill="#475569">callback, follow-up, ownership, capacity,</text>
+  <text x="686.0" y="1329.5" font-size="8.8" fill="#475569">disposition. Routing rules (LOB + stage +</text>
+  <text x="686.0" y="1342.0" font-size="8.8" fill="#475569">premium + inactivity → queue + priority) live</text>
+  <text x="686.0" y="1354.5" font-size="8.8" fill="#475569">here, never inside Quote.</text>
+  <rect x="1288.0" y="1264.5" width="596.0" height="115.0" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="1846.0" y="1271.5" width="30" height="15" rx="4" fill="#1d4ed8"/>
+  <text x="1861.0" y="1283.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
+  <text x="1298.0" y="1288.5" font-size="11.5" fill="#0f172a" font-weight="bold">#9  Journey Registry</text>
+  <text x="1298.0" y="1304.5" font-size="8.8" fill="#475569">journeyId, opportunityId, partyId, LOB, type,</text>
+  <text x="1298.0" y="1317.0" font-size="8.8" fill="#475569">version, status, stage, created/current channel,</text>
+  <text x="1298.0" y="1329.5" font-size="8.8" fill="#475569">current owner. Enables discovery, hand-off,</text>
+  <text x="1298.0" y="1342.0" font-size="8.8" fill="#475569">resume and omnichannel continuity. Holds stage</text>
+  <text x="1298.0" y="1354.5" font-size="8.8" fill="#475569">and references only — never another context's</text>
+  <text x="1298.0" y="1367.0" font-size="8.8" fill="#475569">decision. LOB execution splits out at R1.</text>
+  <rect x="1900.0" y="1264.5" width="596.0" height="102.5" rx="6" fill="#fef3c7" stroke="#b45309" stroke-width="1.5"/>
+  <rect x="2458.0" y="1271.5" width="30" height="15" rx="4" fill="#b45309"/>
+  <text x="2473.0" y="1283.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R2</text>
+  <text x="1910.0" y="1288.5" font-size="11.5" fill="#0f172a" font-weight="bold">Engagement / Recovery Engine</text>
+  <text x="1910.0" y="1304.5" font-size="8.8" fill="#475569">Decides whether and when to engage — distinct</text>
+  <text x="1910.0" y="1317.0" font-size="8.8" fill="#475569">from Notification, which only sends. Rules on</text>
+  <text x="1910.0" y="1329.5" font-size="8.8" fill="#475569">journey events: 30 min → push, 6 h → WhatsApp,</text>
+  <text x="1910.0" y="1342.0" font-size="8.8" fill="#475569">24 h → call-centre task. Emits RecoveryTask</text>
+  <text x="1910.0" y="1354.5" font-size="8.8" fill="#475569">into Work Management.</text>
+  <rect x="64.0" y="1393.5" width="596.0" height="115.0" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="622.0" y="1400.5" width="30" height="15" rx="4" fill="#1d4ed8"/>
+  <text x="637.0" y="1412.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
+  <text x="74.0" y="1417.5" font-size="11.5" fill="#0f172a" font-weight="bold">#8  Product Governance &amp; Catalogue</text>
+  <text x="74.0" y="1433.5" font-size="8.8" fill="#475569">Insurer ≠ InsurerProduct ≠ DistributionAgreement</text>
+  <text x="74.0" y="1446.0" font-size="8.8" fill="#475569">≠ BankProductOffering. Governs which insurer,</text>
+  <text x="74.0" y="1458.5" font-size="8.8" fill="#475569">which product, which channel, ETB/NTB, effective</text>
+  <text x="74.0" y="1471.0" font-size="8.8" fill="#475569">dates, eligibility and the provider route per</text>
+  <text x="74.0" y="1483.5" font-size="8.8" fill="#475569">operation. IRDAI per-class insurer limits are</text>
+  <text x="74.0" y="1496.0" font-size="8.8" fill="#475569">compliance configuration, never code.</text>
+  <rect x="676.0" y="1393.5" width="596.0" height="102.5" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="1234.0" y="1400.5" width="30" height="15" rx="4" fill="#1d4ed8"/>
+  <text x="1249.0" y="1412.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
+  <text x="686.0" y="1417.5" font-size="11.5" fill="#0f172a" font-weight="bold">Suitability framework (shared)</text>
+  <text x="686.0" y="1433.5" font-size="8.8" fill="#475569">Questionnaire engine, versioning, evidence and</text>
+  <text x="686.0" y="1446.0" font-size="8.8" fill="#475569">reproducibility are shared; the questions and</text>
+  <text x="686.0" y="1458.5" font-size="8.8" fill="#475569">rules belong to the LOB cell. Produces the</text>
+  <text x="686.0" y="1471.0" font-size="8.8" fill="#475569">assessment id that Quotation hard-gates on —</text>
+  <text x="686.0" y="1483.5" font-size="8.8" fill="#475569">no quote without a valid, unexpired assessment.</text>
+  <rect x="1288.0" y="1393.5" width="596.0" height="115.0" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="1846.0" y="1400.5" width="30" height="15" rx="4" fill="#1d4ed8"/>
+  <text x="1861.0" y="1412.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
+  <text x="1298.0" y="1417.5" font-size="11.5" fill="#0f172a" font-weight="bold">#12  Payment — Tier-0 shared</text>
+  <text x="1298.0" y="1433.5" font-size="8.8" fill="#475569">One payment platform for every LOB. Session/link,</text>
+  <text x="1298.0" y="1446.0" font-size="8.8" fill="#475569">gateway callback, verification, settlement</text>
+  <text x="1298.0" y="1458.5" font-size="8.8" fill="#475569">reconciliation, UNCERTAIN resolution, refund refs,</text>
+  <text x="1298.0" y="1471.0" font-size="8.8" fill="#475569">idempotency, DLQ. Executes only on the customer's</text>
+  <text x="1298.0" y="1483.5" font-size="8.8" fill="#475569">device. Multi-AZ, zero-downtime, strong SLO —</text>
+  <text x="1298.0" y="1496.0" font-size="8.8" fill="#475569">shared means Tier-0, not convenient.</text>
+  <rect x="1900.0" y="1393.5" width="596.0" height="115.0" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="2458.0" y="1400.5" width="30" height="15" rx="4" fill="#1d4ed8"/>
+  <text x="2473.0" y="1412.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
+  <text x="1910.0" y="1417.5" font-size="11.5" fill="#0f172a" font-weight="bold">#13  Policy Portfolio / Registry</text>
+  <text x="1910.0" y="1433.5" font-size="8.8" fill="#475569">What an issued policy means to the bank: canonical</text>
+  <text x="1910.0" y="1446.0" font-size="8.8" fill="#475569">policy, provider policy number, coverage, dates,</text>
+  <text x="1910.0" y="1458.5" font-size="8.8" fill="#475569">document ref, status, previous/renewed links,</text>
+  <text x="1910.0" y="1471.0" font-size="8.8" fill="#475569">customer 360 portfolio. Issued only against a</text>
+  <text x="1910.0" y="1483.5" font-size="8.8" fill="#475569">RECONCILED payment. Fed by PolicyIssued events —</text>
+  <text x="1910.0" y="1496.0" font-size="8.8" fill="#475569">it never calls an insurer itself.</text>
+  <rect x="64.0" y="1522.5" width="596.0" height="90.0" rx="6" fill="#ccfbf1" stroke="#0f766e" stroke-width="1.5"/>
+  <rect x="622.0" y="1529.5" width="30" height="15" rx="4" fill="#0f766e"/>
+  <text x="637.0" y="1541.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R1</text>
+  <text x="74.0" y="1546.5" font-size="11.5" fill="#0f172a" font-weight="bold">Document Platform</text>
+  <text x="74.0" y="1562.5" font-size="8.8" fill="#475569">Storage, metadata, access control, scanning,</text>
+  <text x="74.0" y="1575.0" font-size="8.8" fill="#475569">versioning, retention. The LOB decides WHICH</text>
+  <text x="74.0" y="1587.5" font-size="8.8" fill="#475569">document is required; this decides HOW it is</text>
+  <text x="74.0" y="1600.0" font-size="8.8" fill="#475569">stored and served.</text>
+  <rect x="676.0" y="1522.5" width="596.0" height="90.0" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="1234.0" y="1529.5" width="30" height="15" rx="4" fill="#1d4ed8"/>
+  <text x="1249.0" y="1541.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
+  <text x="686.0" y="1546.5" font-size="11.5" fill="#0f172a" font-weight="bold">#17  Notification</text>
+  <text x="686.0" y="1562.5" font-size="8.8" fill="#475569">SMS, email, push, WhatsApp from a domain intent</text>
+  <text x="686.0" y="1575.0" font-size="8.8" fill="#475569">(PaymentLinkReady, MedicalRequired, PolicyIssued).</text>
+  <text x="686.0" y="1587.5" font-size="8.8" fill="#475569">R0 minimum is OTP + payment link. A notification</text>
+  <text x="686.0" y="1600.0" font-size="8.8" fill="#475569">failure never blocks or corrupts a journey.</text>
+  <rect x="1288.0" y="1522.5" width="596.0" height="90.0" rx="6" fill="#fef3c7" stroke="#b45309" stroke-width="1.5"/>
+  <rect x="1846.0" y="1529.5" width="30" height="15" rx="4" fill="#b45309"/>
+  <text x="1861.0" y="1541.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R2</text>
+  <text x="1298.0" y="1546.5" font-size="11.5" fill="#0f172a" font-weight="bold">Communication / Interaction Timeline</text>
+  <text x="1298.0" y="1562.5" font-size="8.8" fill="#475569">One chronological record per journey across every</text>
+  <text x="1298.0" y="1575.0" font-size="8.8" fill="#475569">channel and actor: who touched it, when, on what</text>
+  <text x="1298.0" y="1587.5" font-size="8.8" fill="#475569">device, what was said. Answers 'who recommended</text>
+  <text x="1298.0" y="1600.0" font-size="8.8" fill="#475569">this?' — a compliance question, not a UI feature.</text>
+  <rect x="1900.0" y="1522.5" width="596.0" height="90.0" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="2458.0" y="1529.5" width="30" height="15" rx="4" fill="#1d4ed8"/>
+  <text x="2473.0" y="1541.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
+  <text x="1910.0" y="1546.5" font-size="11.5" fill="#0f172a" font-weight="bold">#16  Audit &amp; Compliance</text>
+  <text x="1910.0" y="1562.5" font-size="8.8" fill="#475569">Audit is not logging: who did which business action,</text>
+  <text x="1910.0" y="1575.0" font-size="8.8" fill="#475569">when, under what context, with what evidence.</text>
+  <text x="1910.0" y="1587.5" font-size="8.8" fill="#475569">Append-only, UPDATE/DELETE rejected, 7-year WORM.</text>
+  <text x="1910.0" y="1600.0" font-size="8.8" fill="#475569">Consumes outbox events from every context.</text>
+  <rect x="64.0" y="1626.5" width="596.0" height="90.0" rx="6" fill="#ccfbf1" stroke="#0f766e" stroke-width="1.5"/>
+  <rect x="622.0" y="1633.5" width="30" height="15" rx="4" fill="#0f766e"/>
+  <text x="637.0" y="1645.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R1</text>
+  <text x="74.0" y="1650.5" font-size="11.5" fill="#0f172a" font-weight="bold">#18  Reporting &amp; MIS</text>
+  <text x="74.0" y="1666.5" font-size="8.8" fill="#475569">Funnel, conversion, RM/branch performance,</text>
+  <text x="74.0" y="1679.0" font-size="8.8" fill="#475569">persistency, regulatory returns. Reads the</text>
+  <text x="74.0" y="1691.5" font-size="8.8" fill="#475569">reporting event stream, never another</text>
+  <text x="74.0" y="1704.0" font-size="8.8" fill="#475569">service's database.</text>
+  <rect x="676.0" y="1626.5" width="596.0" height="90.0" rx="6" fill="#fef3c7" stroke="#b45309" stroke-width="1.5"/>
+  <rect x="1234.0" y="1633.5" width="30" height="15" rx="4" fill="#b45309"/>
+  <text x="1249.0" y="1645.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R2</text>
+  <text x="686.0" y="1650.5" font-size="11.5" fill="#0f172a" font-weight="bold">Renewal &amp; Lapse Opportunity Generation</text>
+  <text x="686.0" y="1666.5" font-size="8.8" fill="#475569">Policy expiry and lapse events create NEW</text>
+  <text x="686.0" y="1679.0" font-size="8.8" fill="#475569">Opportunities and NEW Journeys — an old journey</text>
+  <text x="686.0" y="1691.5" font-size="8.8" fill="#475569">is never reopened. Renewal execution itself is</text>
+  <text x="686.0" y="1704.0" font-size="8.8" fill="#475569">LOB-specific and lives in the cell.</text>
+  <rect x="1288.0" y="1626.5" width="596.0" height="77.5" rx="6" fill="#fef3c7" stroke="#b45309" stroke-width="1.5"/>
+  <rect x="1846.0" y="1633.5" width="30" height="15" rx="4" fill="#b45309"/>
+  <text x="1861.0" y="1645.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R2</text>
+  <text x="1298.0" y="1650.5" font-size="11.5" fill="#0f172a" font-weight="bold">Customer 360 / Portfolio view</text>
+  <text x="1298.0" y="1666.5" font-size="8.8" fill="#475569">My Insurance: Life, Health and Motor policies in</text>
+  <text x="1298.0" y="1679.0" font-size="8.8" fill="#475569">one place, sourced from Policy Portfolio.</text>
+  <text x="1298.0" y="1691.5" font-size="8.8" fill="#475569">Cross-sell and up-sell signals feed Opportunity.</text>
+  <rect x="1900.0" y="1626.5" width="596.0" height="90.0" rx="6" fill="#e0e7ff" stroke="#4338ca" stroke-width="1.5"/>
+  <rect x="2458.0" y="1633.5" width="30" height="15" rx="4" fill="#4338ca"/>
+  <text x="2473.0" y="1645.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">RN</text>
+  <text x="1910.0" y="1650.5" font-size="11.5" fill="#0f172a" font-weight="bold">Commission, finance &amp; incentive</text>
+  <text x="1910.0" y="1666.5" font-size="8.8" fill="#475569">Distributor commission computation, insurer</text>
+  <text x="1910.0" y="1679.0" font-size="8.8" fill="#475569">reconciliation, RM incentive. Consumes</text>
+  <text x="1910.0" y="1691.5" font-size="8.8" fill="#475569">PolicyIssued; owns no journey state.</text>
+  <text x="1910.0" y="1704.0" font-size="8.8" fill="#475569">Not yet triaged — placeholder for completeness.</text>
+  <text x="64" y="1732.5" font-size="9.2" fill="#1d4ed8" font-weight="bold">RULE — a capability belongs here only if the business concept is fundamentally the same for Life, Health and Motor. If the behaviour, traffic profile or change rate genuinely differs by LOB, it belongs in a cell below.</text>
+  <rect x="40" y="1768.5" width="2480" height="62" rx="8" fill="#eef2ff" stroke="#1d4ed8" stroke-width="2"/>
+  <text x="60" y="1792.5" font-size="14" fill="#0f172a" font-weight="bold">LOB ROUTER  ·  journeyId → LOB → cell</text>
+  <text x="60" y="1811.5" font-size="9.5" fill="#475569">Journey Registry resolves the LOB and routes to the owning cell. Public routes stay resource-shaped — /journeys/{id}/quotes, /journeys/{id}/proposal — never /life/quote. The router is the only place that knows the LOB→cell map, so adding Health at R3 and General at R4 is a configuration and deployment change, not a redesign.</text>
+  <rect x="2320" y="1782.5" width="40" height="16" rx="4" fill="#1d4ed8"/>
+  <text x="2340.0" y="1795.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
+  <text x="2368" y="1794.5" font-size="8.6" fill="#475569">single-LOB pass-through at R0 → real router at R1</text>
+  <path d="M1280,1830.5 L1280,1852.5" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
+  <text x="1294" y="1846.5" font-size="9.2" fill="#64748b" font-style="italic">routed by LOB</text>
+  <rect x="40" y="1852.5" width="2480" height="439.5" rx="10" fill="#f8fafc" stroke="#334155" stroke-width="1.8"/>
+  <rect x="40" y="1852.5" width="2480" height="30" rx="10" fill="#334155"/>
+  <rect x="40" y="1872.5" width="2480" height="10" fill="#334155"/>
+  <text x="56" y="1873.5" font-size="9.5" fill="#ffffff" font-weight="bold" letter-spacing="1.4">BOUNDARY 5</text>
+  <text x="180" y="1873.5" font-size="14" fill="#ffffff" font-weight="bold" letter-spacing="0.5">LOB EXECUTION CELL PLANE — WHERE THE INSURANCE BUSINESS ACTUALLY DIFFERS</text>
+  <text x="56" y="1899.5" font-size="9.5" fill="#475569">OWNS · A cell is an independently deployable, scalable, observable, configurable, versionable, releasable and failure-isolated execution boundary — not one service and not one container. Quote and Proposal are per-LOB and that boundary is frozen: a Life quote, a Health quote and a Motor quote do not share a field shape, so sharing a service produces exactly the if (lob == …) sprawl this design exists to prevent.</text>
+  <text x="56" y="1914.5" font-size="9.5" fill="#b91c1c">DOES NOT OWN · Customer, consent, product governance, payment, policy registry, documents, notification or audit — those are shared above. Nor the underwriting decision: that is the insurer's. A failed Life release must never make Health or Motor unavailable, and an insurer timeout storm in Life must never consume Health's capacity.</text>
+  <rect x="64.0" y="1948.5" width="596.0" height="309.5" rx="8" fill="#dbeafe" stroke="#1d4ed8" stroke-width="2"/>
+  <text x="76.0" y="1970.5" font-size="13" fill="#0f172a" font-weight="bold">LIFE CELL</text>
+  <text x="76.0" y="1986.5" font-size="9" fill="#1d4ed8" font-weight="bold" letter-spacing="0.6">release R0 → R1 → R2</text>
+  <rect x="76.0" y="1998.5" width="572.0" height="26" rx="5" fill="#ffffff" stroke="#1d4ed8" stroke-width="1"/>
+  <text x="84.0" y="2010.5" font-size="9.8" fill="#0f172a" font-weight="bold">Life Journey Execution</text>
+  <text x="84.0" y="2020.5" font-size="8.1" fill="#475569">Detailed Life state machine, compensation, LOB sequence rules.</text>
+  <rect x="76.0" y="2028.5" width="572.0" height="26" rx="5" fill="#ffffff" stroke="#1d4ed8" stroke-width="1"/>
+  <text x="84.0" y="2040.5" font-size="9.8" fill="#0f172a" font-weight="bold">Life Suitability rules</text>
+  <text x="84.0" y="2050.5" font-size="8.1" fill="#475569">Income, dependents, cover amount, tenure, objective, risk profile.</text>
+  <rect x="76.0" y="2058.5" width="572.0" height="26" rx="5" fill="#ffffff" stroke="#1d4ed8" stroke-width="1"/>
+  <text x="84.0" y="2070.5" font-size="9.8" fill="#0f172a" font-weight="bold">Life Quote</text>
+  <text x="84.0" y="2080.5" font-size="8.1" fill="#475569">age · sum assured · term · premium frequency · smoker · riders.</text>
+  <rect x="76.0" y="2088.5" width="572.0" height="26" rx="5" fill="#ffffff" stroke="#1d4ed8" stroke-width="1"/>
+  <text x="84.0" y="2100.5" font-size="9.8" fill="#0f172a" font-weight="bold">Life Proposal / Case Mgmt</text>
+  <text x="84.0" y="2110.5" font-size="8.1" fill="#475569">Questionnaire, nominee, declarations + UW requirement tracking, medical, counter-offer.</text>
+  <rect x="76.0" y="2118.5" width="572.0" height="26" rx="5" fill="#ffffff" stroke="#1d4ed8" stroke-width="1"/>
+  <text x="84.0" y="2130.5" font-size="9.8" fill="#0f172a" font-weight="bold">Life Issuance coordination</text>
+  <text x="84.0" y="2140.5" font-size="8.1" fill="#475569">Drives the insurer's issuance interaction; emits PolicyIssued.</text>
+  <rect x="76.0" y="2148.5" width="572.0" height="26" rx="5" fill="#ffffff" stroke="#1d4ed8" stroke-width="1"/>
+  <text x="84.0" y="2160.5" font-size="9.8" fill="#0f172a" font-weight="bold">Life Aggregation Runtime</text>
+  <text x="84.0" y="2170.5" font-size="8.1" fill="#475569">Own adapters, own pools, own circuit breakers.</text>
+  <text x="76.0" y="2184.5" font-size="8.4" fill="#1d4ed8">Heaviest LOB — plan for it: quote traffic runs 8–10× proposal traffic.</text>
+  <text x="76.0" y="2197.0" font-size="8.4" fill="#1d4ed8">Own DB · own cache namespace · own topics · own bulkheads · own SLOs.</text>
+  <text x="76.0" y="2209.5" font-size="8.4" fill="#1d4ed8">Illustrative shape: Life 5,000 TPS vs Health 600 vs General 300.</text>
+  <rect x="676.0" y="1948.5" width="596.0" height="309.5" rx="8" fill="#f3e8ff" stroke="#7e22ce" stroke-width="2"/>
+  <text x="688.0" y="1970.5" font-size="13" fill="#0f172a" font-weight="bold">HEALTH CELL</text>
+  <text x="688.0" y="1986.5" font-size="9" fill="#7e22ce" font-weight="bold" letter-spacing="0.6">release R3</text>
+  <rect x="688.0" y="1998.5" width="572.0" height="26" rx="5" fill="#ffffff" stroke="#7e22ce" stroke-width="1"/>
+  <text x="696.0" y="2010.5" font-size="9.8" fill="#0f172a" font-weight="bold">Health Journey Execution</text>
+  <text x="696.0" y="2020.5" font-size="8.1" fill="#475569">Health state machine — different sequence, not an if-branch.</text>
+  <rect x="688.0" y="2028.5" width="572.0" height="26" rx="5" fill="#ffffff" stroke="#7e22ce" stroke-width="1"/>
+  <text x="696.0" y="2040.5" font-size="9.8" fill="#0f172a" font-weight="bold">Health Suitability rules</text>
+  <text x="696.0" y="2050.5" font-size="8.1" fill="#475569">Members, family structure, PED, geography, room eligibility, co-pay.</text>
+  <rect x="688.0" y="2058.5" width="572.0" height="26" rx="5" fill="#ffffff" stroke="#7e22ce" stroke-width="1"/>
+  <text x="696.0" y="2070.5" font-size="9.8" fill="#0f172a" font-weight="bold">Health Quote</text>
+  <text x="696.0" y="2080.5" font-size="8.1" fill="#475569">members · age each · family structure · PED · sum insured · co-pay.</text>
+  <rect x="688.0" y="2088.5" width="572.0" height="26" rx="5" fill="#ffffff" stroke="#7e22ce" stroke-width="1"/>
+  <text x="696.0" y="2100.5" font-size="9.8" fill="#0f172a" font-weight="bold">Health Proposal / Case Mgmt</text>
+  <text x="696.0" y="2110.5" font-size="8.1" fill="#475569">Insured members, declarations + UW requirement and medical tracking.</text>
+  <rect x="688.0" y="2118.5" width="572.0" height="26" rx="5" fill="#ffffff" stroke="#7e22ce" stroke-width="1"/>
+  <text x="696.0" y="2130.5" font-size="9.8" fill="#0f172a" font-weight="bold">Health Issuance coordination</text>
+  <text x="696.0" y="2140.5" font-size="8.1" fill="#475569">Health insurer issuance interaction; emits PolicyIssued.</text>
+  <rect x="688.0" y="2148.5" width="572.0" height="26" rx="5" fill="#ffffff" stroke="#7e22ce" stroke-width="1"/>
+  <text x="696.0" y="2160.5" font-size="9.8" fill="#0f172a" font-weight="bold">Health Aggregation Runtime</text>
+  <text x="696.0" y="2170.5" font-size="8.1" fill="#475569">Health providers only — isolated from Life pools.</text>
+  <text x="688.0" y="2184.5" font-size="8.4" fill="#7e22ce">Entry condition: WS-1 Phase 5 unfrozen (CURRENT-STATE lists non-Life LOBs as R2+).</text>
+  <text x="688.0" y="2197.0" font-size="8.4" fill="#7e22ce">First deployment can be 4 deployables, not 6 — logical boundary ≠ container count.</text>
+  <text x="688.0" y="2209.5" font-size="8.4" fill="#7e22ce">Reuses 100% of the shared platform. No health-customer-service, ever.</text>
+  <rect x="1288.0" y="1948.5" width="596.0" height="309.5" rx="8" fill="#ffe4e6" stroke="#be123c" stroke-width="2"/>
+  <text x="1300.0" y="1970.5" font-size="13" fill="#0f172a" font-weight="bold">GENERAL CELL</text>
+  <text x="1300.0" y="1986.5" font-size="9" fill="#be123c" font-weight="bold" letter-spacing="0.6">release R4</text>
+  <rect x="1300.0" y="1998.5" width="572.0" height="26" rx="5" fill="#ffffff" stroke="#be123c" stroke-width="1"/>
+  <text x="1308.0" y="2010.5" font-size="9.8" fill="#0f172a" font-weight="bold">General Journey Execution</text>
+  <text x="1308.0" y="2020.5" font-size="8.1" fill="#475569">GI state machine; productLine drives the variant.</text>
+  <rect x="1300.0" y="2028.5" width="572.0" height="26" rx="5" fill="#ffffff" stroke="#be123c" stroke-width="1"/>
+  <text x="1308.0" y="2040.5" font-size="9.8" fill="#0f172a" font-weight="bold">General Eligibility rules</text>
+  <text x="1308.0" y="2050.5" font-size="8.1" fill="#475569">Vehicle / asset eligibility rather than Life-style suitability.</text>
+  <rect x="1300.0" y="2058.5" width="572.0" height="26" rx="5" fill="#ffffff" stroke="#be123c" stroke-width="1"/>
+  <text x="1308.0" y="2070.5" font-size="9.8" fill="#0f172a" font-weight="bold">General Quote</text>
+  <text x="1308.0" y="2080.5" font-size="8.1" fill="#475569">vehicle · registration · make/model · IDV · NCB · previous policy · add-ons.</text>
+  <rect x="1300.0" y="2088.5" width="572.0" height="26" rx="5" fill="#ffffff" stroke="#be123c" stroke-width="1"/>
+  <text x="1308.0" y="2100.5" font-size="9.8" fill="#0f172a" font-weight="bold">General Proposal / Case Mgmt</text>
+  <text x="1308.0" y="2110.5" font-size="8.1" fill="#475569">Inspection rather than medical; GI declarations.</text>
+  <rect x="1300.0" y="2118.5" width="572.0" height="26" rx="5" fill="#ffffff" stroke="#be123c" stroke-width="1"/>
+  <text x="1308.0" y="2130.5" font-size="9.8" fill="#0f172a" font-weight="bold">General Issuance coordination</text>
+  <text x="1308.0" y="2140.5" font-size="8.1" fill="#475569">GI insurer issuance interaction; emits PolicyIssued.</text>
+  <rect x="1300.0" y="2148.5" width="572.0" height="26" rx="5" fill="#ffffff" stroke="#be123c" stroke-width="1"/>
+  <text x="1308.0" y="2160.5" font-size="9.8" fill="#0f172a" font-weight="bold">General Aggregation Runtime</text>
+  <text x="1308.0" y="2170.5" font-size="8.1" fill="#475569">Motor and other GI providers, isolated.</text>
+  <text x="1300.0" y="2184.5" font-size="8.4" fill="#be123c">productLine = MOTOR | TRAVEL | HOME | PERSONAL_ACCIDENT inside LOB = GENERAL.</text>
+  <text x="1300.0" y="2197.0" font-size="8.4" fill="#be123c">Motor is deliberately NOT its own LOB — it is a product line under General.</text>
+  <text x="1300.0" y="2209.5" font-size="8.4" fill="#be123c">Written so the extraction below needs no change to the global model.</text>
+  <rect x="1900.0" y="1948.5" width="596.0" height="309.5" rx="8" fill="#e0e7ff" stroke="#4338ca" stroke-width="2" stroke-dasharray="6 4"/>
+  <text x="1912.0" y="1970.5" font-size="13" fill="#0f172a" font-weight="bold">MOTOR CELL (optional extraction)</text>
+  <text x="1912.0" y="1986.5" font-size="9" fill="#4338ca" font-weight="bold" letter-spacing="0.6">release RN</text>
+  <rect x="1912.0" y="1998.5" width="572.0" height="26" rx="5" fill="#ffffff" stroke="#4338ca" stroke-width="1"/>
+  <text x="1920.0" y="2010.5" font-size="9.8" fill="#0f172a" font-weight="bold">Motor Journey / Quote / Proposal</text>
+  <text x="1920.0" y="2020.5" font-size="8.1" fill="#475569">Lifted out of General unchanged.</text>
+  <rect x="1912.0" y="2028.5" width="572.0" height="26" rx="5" fill="#ffffff" stroke="#4338ca" stroke-width="1"/>
+  <text x="1920.0" y="2040.5" font-size="9.8" fill="#0f172a" font-weight="bold">Motor Aggregation Runtime</text>
+  <text x="1920.0" y="2050.5" font-size="8.1" fill="#475569">Motor providers, own pools.</text>
+  <text x="1912.0" y="2064.5" font-size="8.4" fill="#4338ca">Only if Motor's scale or change rate genuinely justifies its own boundary.</text>
+  <text x="1912.0" y="2077.0" font-size="8.4" fill="#4338ca">Trigger, not a plan: GENERAL CELL → MOTOR becomes MOTOR CELL with no change</text>
+  <text x="1912.0" y="2089.5" font-size="8.4" fill="#4338ca">to Party, Opportunity, Journey Registry, Payment, Policy or the router contract.</text>
+  <text x="1912.0" y="2102.0" font-size="8.4" fill="#4338ca">Deciding this early would be premature; making it impossible would be the real error.</text>
+  <rect x="64" y="2266.0" width="2432" height="22" rx="5" fill="#ffffff" stroke="#334155" stroke-width="1.2" stroke-dasharray="4 3"/>
+  <text x="76" y="2281.0" font-size="9" fill="#334155" font-weight="bold">SHARE THE FRAMEWORK, NOT THE RUNTIME  ·  canonical contracts · Quote/Proposal SDK · adapter framework · observability library · error model · idempotency helpers · security libraries — all shared as versioned libraries and standards, while the deployables, databases, caches, queues and connection pools stay isolated per cell.</text>
+  <path d="M1280,2292.0 L1280,2314.0" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
+  <text x="1294" y="2308.0" font-size="9.2" fill="#64748b" font-style="italic">bank-canonical request — the cell never speaks provider</text>
+  <rect x="40" y="2314.0" width="2480" height="499.5" rx="10" fill="#f0fdfa" stroke="#0f766e" stroke-width="1.8"/>
+  <rect x="40" y="2314.0" width="2480" height="30" rx="10" fill="#0f766e"/>
+  <rect x="40" y="2334.0" width="2480" height="10" fill="#0f766e"/>
+  <text x="56" y="2335.0" font-size="9.5" fill="#ffffff" font-weight="bold" letter-spacing="1.4">BOUNDARY 6</text>
+  <text x="180" y="2335.0" font-size="14" fill="#ffffff" font-weight="bold" letter-spacing="0.5">INSURANCE AGGREGATION &amp; PROVIDER CONNECTIVITY</text>
+  <text x="56" y="2361.0" font-size="9.5" fill="#475569">OWNS · Receive a bank-canonical insurance request, decide where it must go, fan out where necessary, translate to provider formats, manage provider communication and return a canonical bank response. Routing, adapters, transformation, provider auth, resilience, callbacks, provider reference mapping, idempotency, error normalization, provider observability.</text>
+  <text x="56" y="2376.0" font-size="9.5" fill="#b91c1c">DOES NOT OWN · Journey state, suitability, which product should be recommended, consent, or the insurer's underwriting decision. Two orchestrations must never merge: business journey orchestration answers 'what happens next for this customer', provider orchestration answers 'which provider gets this call and how'.</text>
+  <rect x="64.0" y="2390.0" width="596.0" height="127.5" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="622.0" y="2397.0" width="30" height="15" rx="4" fill="#1d4ed8"/>
+  <text x="637.0" y="2408.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
+  <text x="74.0" y="2414.0" font-size="11.5" fill="#0f172a" font-weight="bold">Canonical provider contracts</text>
+  <text x="74.0" y="2430.0" font-size="8.8" fill="#475569">One stable bank-owned contract per operation ×</text>
+  <text x="74.0" y="2442.5" font-size="8.8" fill="#475569">LOB: LifeQuoteRequest/Response, LifeProposal…,</text>
+  <text x="74.0" y="2455.0" font-size="8.8" fill="#475569">HealthQuote…, MotorQuote… — sharing only</text>
+  <text x="74.0" y="2467.5" font-size="8.8" fill="#475569">primitives (Party, Address, Nominee, Money,</text>
+  <text x="74.0" y="2480.0" font-size="8.8" fill="#475569">Coverage, DocumentReference, ProviderReference).</text>
+  <text x="74.0" y="2492.5" font-size="8.8" fill="#475569">NOT one giant InsuranceRequest holding every</text>
+  <text x="74.0" y="2505.0" font-size="8.8" fill="#475569">field of every product in India.</text>
+  <rect x="676.0" y="2390.0" width="596.0" height="115.0" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="1234.0" y="2397.0" width="30" height="15" rx="4" fill="#1d4ed8"/>
+  <text x="1249.0" y="2408.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
+  <text x="686.0" y="2414.0" font-size="11.5" fill="#0f172a" font-weight="bold">Provider &amp; capability registry</text>
+  <text x="686.0" y="2430.0" font-size="8.8" fill="#475569">Who exists, what they support: quote, proposal,</text>
+  <text x="686.0" y="2442.5" font-size="8.8" fill="#475569">webhook vs polling, medical tracking, policy</text>
+  <text x="686.0" y="2455.0" font-size="8.8" fill="#475569">download — declared as configuration, so</text>
+  <text x="686.0" y="2467.5" font-size="8.8" fill="#475569">capability differences never become scattered</text>
+  <text x="686.0" y="2480.0" font-size="8.8" fill="#475569">if-statements in business code.</text>
+  <text x="686.0" y="2492.5" font-size="8.8" fill="#475569">Effective-dated and versioned.</text>
+  <rect x="1288.0" y="2390.0" width="596.0" height="115.0" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="1846.0" y="2397.0" width="30" height="15" rx="4" fill="#1d4ed8"/>
+  <text x="1861.0" y="2408.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
+  <text x="1298.0" y="2414.0" font-size="11.5" fill="#0f172a" font-weight="bold">Credential, token &amp; certificate framework</text>
+  <text x="1298.0" y="2430.0" font-size="8.8" fill="#475569">Per-provider, per-environment credentials in</text>
+  <text x="1298.0" y="2442.5" font-size="8.8" fill="#475569">Secrets Manager under KMS with rotation; mTLS</text>
+  <text x="1298.0" y="2455.0" font-size="8.8" fill="#475569">certificates managed centrally. Each provider</text>
+  <text x="1298.0" y="2467.5" font-size="8.8" fill="#475569">authenticates differently — OAuth, mTLS + API</text>
+  <text x="1298.0" y="2480.0" font-size="8.8" fill="#475569">key, token exchange — and none of that is</text>
+  <text x="1298.0" y="2492.5" font-size="8.8" fill="#475569">visible to Quote or Proposal.</text>
+  <rect x="1900.0" y="2390.0" width="596.0" height="115.0" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="2458.0" y="2397.0" width="30" height="15" rx="4" fill="#1d4ed8"/>
+  <text x="2473.0" y="2408.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
+  <text x="1910.0" y="2414.0" font-size="11.5" fill="#0f172a" font-weight="bold">Resilience standards</text>
+  <text x="1910.0" y="2430.0" font-size="8.8" fill="#475569">Per-provider timeout, retry policy, circuit</text>
+  <text x="1910.0" y="2442.5" font-size="8.8" fill="#475569">breaker, concurrency bulkhead and rate limit,</text>
+  <text x="1910.0" y="2455.0" font-size="8.8" fill="#475569">on top of a per-LOB bulkhead. An ICICI breaker</text>
+  <text x="1910.0" y="2467.5" font-size="8.8" fill="#475569">opening degrades ICICI Life quotes only —</text>
+  <text x="1910.0" y="2480.0" font-size="8.8" fill="#475569">Health, Motor, leads, consent and login stay</text>
+  <text x="1910.0" y="2492.5" font-size="8.8" fill="#475569">healthy and the incident says so.</text>
+  <rect x="64.0" y="2531.5" width="596.0" height="115.0" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="622.0" y="2538.5" width="30" height="15" rx="4" fill="#1d4ed8"/>
+  <text x="637.0" y="2550.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
+  <text x="74.0" y="2555.5" font-size="11.5" fill="#0f172a" font-weight="bold">Idempotency &amp; provider reference mapping</text>
+  <text x="74.0" y="2571.5" font-size="8.8" fill="#475569">bankJourneyId / bankQuoteId / bankProposalId are</text>
+  <text x="74.0" y="2584.0" font-size="8.8" fill="#475569">ours; providerQuoteRef / providerProposalRef /</text>
+  <text x="74.0" y="2596.5" font-size="8.8" fill="#475569">providerPolicyRef are theirs, stored beside ours.</text>
+  <text x="74.0" y="2609.0" font-size="8.8" fill="#475569">A provider id is never a bank primary key and a</text>
+  <text x="74.0" y="2621.5" font-size="8.8" fill="#475569">1SB jobId is never a caller handle — otherwise</text>
+  <text x="74.0" y="2634.0" font-size="8.8" fill="#475569">removing 1SB later becomes a migration.</text>
+  <rect x="676.0" y="2531.5" width="596.0" height="115.0" rx="6" fill="#ccfbf1" stroke="#0f766e" stroke-width="1.5"/>
+  <rect x="1234.0" y="2538.5" width="30" height="15" rx="4" fill="#0f766e"/>
+  <text x="1249.0" y="2550.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R1</text>
+  <text x="686.0" y="2555.5" font-size="11.5" fill="#0f172a" font-weight="bold">Provider Router</text>
+  <text x="686.0" y="2571.5" font-size="8.8" fill="#475569">Routes on LOB × product × insurer × operation ×</text>
+  <text x="686.0" y="2584.0" font-size="8.8" fill="#475569">channel × effective configuration — never</text>
+  <text x="686.0" y="2596.5" font-size="8.8" fill="#475569">'insurer == HDFC → direct'. Quote and Proposal</text>
+  <text x="686.0" y="2609.0" font-size="8.8" fill="#475569">for the same product may take different routes,</text>
+  <text x="686.0" y="2621.5" font-size="8.8" fill="#475569">so migration can proceed operation by operation</text>
+  <text x="686.0" y="2634.0" font-size="8.8" fill="#475569">with no caller change.</text>
+  <rect x="1288.0" y="2531.5" width="596.0" height="115.0" rx="6" fill="#ccfbf1" stroke="#0f766e" stroke-width="1.5"/>
+  <rect x="1846.0" y="2538.5" width="30" height="15" rx="4" fill="#0f766e"/>
+  <text x="1861.0" y="2550.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R1</text>
+  <text x="1298.0" y="2555.5" font-size="11.5" fill="#0f172a" font-weight="bold">Provider Callback Gateway</text>
+  <text x="1298.0" y="2571.5" font-size="8.8" fill="#475569">Insurer webhooks terminate here: mTLS and</text>
+  <text x="1298.0" y="2584.0" font-size="8.8" fill="#475569">signature validation → provider adapter →</text>
+  <text x="1298.0" y="2596.5" font-size="8.8" fill="#475569">canonical provider event → LOB service.</text>
+  <text x="1298.0" y="2609.0" font-size="8.8" fill="#475569">No /life/hdfc/callback is ever exposed into a</text>
+  <text x="1298.0" y="2621.5" font-size="8.8" fill="#475569">business service, and no business service ever</text>
+  <text x="1298.0" y="2634.0" font-size="8.8" fill="#475569">parses a raw insurer payload.</text>
+  <rect x="1900.0" y="2531.5" width="596.0" height="102.5" rx="6" fill="#ccfbf1" stroke="#0f766e" stroke-width="1.5"/>
+  <rect x="2458.0" y="2538.5" width="30" height="15" rx="4" fill="#0f766e"/>
+  <text x="2473.0" y="2550.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R1</text>
+  <text x="1910.0" y="2555.5" font-size="11.5" fill="#0f172a" font-weight="bold">Execution-model normalizer</text>
+  <text x="1910.0" y="2571.5" font-size="8.8" fill="#475569">Providers differ: synchronous quote, submit-then-</text>
+  <text x="1910.0" y="2584.0" font-size="8.8" fill="#475569">poll a jobId, or accept-then-callback. The</text>
+  <text x="1910.0" y="2596.5" font-size="8.8" fill="#475569">aggregation layer normalizes all three so the</text>
+  <text x="1910.0" y="2609.0" font-size="8.8" fill="#475569">canonical caller never encodes a provider's</text>
+  <text x="1910.0" y="2621.5" font-size="8.8" fill="#475569">interaction style into the journey.</text>
+  <rect x="64.0" y="2660.5" width="596.0" height="115.0" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="622.0" y="2667.5" width="30" height="15" rx="4" fill="#1d4ed8"/>
+  <text x="637.0" y="2679.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
+  <text x="74.0" y="2684.5" font-size="11.5" fill="#0f172a" font-weight="bold">#14  Integration Hub (R0 form)</text>
+  <text x="74.0" y="2700.5" font-size="8.8" fill="#475569">All provider traffic routes here (SC-W3-5) — no</text>
+  <text x="74.0" y="2713.0" font-size="8.8" fill="#475569">WS-3 service calls an adapter directly. Async-poll</text>
+  <text x="74.0" y="2725.5" font-size="8.8" fill="#475569">for quote and proposal, sync for payment session.</text>
+  <text x="74.0" y="2738.0" font-size="8.8" fill="#475569">distributorId injected server-side; a caller-</text>
+  <text x="74.0" y="2750.5" font-size="8.8" fill="#475569">supplied value is rejected. One shared runtime at</text>
+  <text x="74.0" y="2763.0" font-size="8.8" fill="#475569">R0; partitioned per LOB from R3.</text>
+  <rect x="676.0" y="2660.5" width="596.0" height="102.5" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="1234.0" y="2667.5" width="30" height="15" rx="4" fill="#1d4ed8"/>
+  <text x="1249.0" y="2679.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
+  <text x="686.0" y="2684.5" font-size="11.5" fill="#0f172a" font-weight="bold">#15  1SB Adapter</text>
+  <text x="686.0" y="2700.5" font-size="8.8" fill="#475569">The only provider route in R0. 1SB vocabulary is</text>
+  <text x="686.0" y="2713.0" font-size="8.8" fill="#475569">confined to adapter.onesb.* and enforced by</text>
+  <text x="686.0" y="2725.5" font-size="8.8" fill="#475569">ArchUnit (INV-ACL-01); 24-hour idempotency</text>
+  <text x="686.0" y="2738.0" font-size="8.8" fill="#475569">contract. 1SB is a provider route, not a domain</text>
+  <text x="686.0" y="2750.5" font-size="8.8" fill="#475569">dependency — Life Quote does not know 1SB exists.</text>
+  <rect x="1288.0" y="2660.5" width="596.0" height="102.5" rx="6" fill="#e0e7ff" stroke="#4338ca" stroke-width="1.5"/>
+  <rect x="1846.0" y="2667.5" width="30" height="15" rx="4" fill="#4338ca"/>
+  <text x="1861.0" y="2679.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">RN</text>
+  <text x="1298.0" y="2684.5" font-size="11.5" fill="#0f172a" font-weight="bold">Direct insurer adapters</text>
+  <text x="1298.0" y="2700.5" font-size="8.8" fill="#475569">HDFC · ICICI · Bajaj · Star · next insurer, each a</text>
+  <text x="1298.0" y="2713.0" font-size="8.8" fill="#475569">plugin behind QuoteProvider / ProposalProvider /</text>
+  <text x="1298.0" y="2725.5" font-size="8.8" fill="#475569">PolicyProvider. Direct and 1SB run at the same</text>
+  <text x="1298.0" y="2738.0" font-size="8.8" fill="#475569">time — Term via direct, ULIP via 1SB — with no</text>
+  <text x="1298.0" y="2750.5" font-size="8.8" fill="#475569">big-bang migration and no Quote rewrite.</text>
+  <rect x="1900.0" y="2660.5" width="596.0" height="102.5" rx="6" fill="#e0e7ff" stroke="#4338ca" stroke-width="1.5"/>
+  <rect x="2458.0" y="2667.5" width="30" height="15" rx="4" fill="#4338ca"/>
+  <text x="2473.0" y="2679.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">RN</text>
+  <text x="1910.0" y="2684.5" font-size="11.5" fill="#0f172a" font-weight="bold">Multi-provider fan-out &amp; comparison</text>
+  <text x="1910.0" y="2700.5" font-size="8.8" fill="#475569">The bank becomes the aggregator: fan out to</text>
+  <text x="1910.0" y="2713.0" font-size="8.8" fill="#475569">several insurers, normalize each response, return</text>
+  <text x="1910.0" y="2725.5" font-size="8.8" fill="#475569">a comparison. Partial failure is a business rule</text>
+  <text x="1910.0" y="2738.0" font-size="8.8" fill="#475569">— HDFC 700 ms ✓, ICICI 1.1 s ✓, Bajaj timeout →</text>
+  <text x="1910.0" y="2750.5" font-size="8.8" fill="#475569">return two quotes, not one failed request.</text>
+  <text x="64" y="2791.5" font-size="9.2" fill="#0f766e" font-weight="bold">EVOLUTION — R0: one shared Integration Hub, 1SB only.  R1–R2: control plane (standards, registry, credentials, resilience) separated from runtime.  R3–R4: runtime partitioned per LOB so no LOB queues behind another.  RN: the bank's own aggregation platform, direct and aggregator routes side by side, switchable per product and per operation by configuration.</text>
+  <path d="M1280,2813.5 L1280,2835.5" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
+  <text x="1294" y="2829.5" font-size="9.2" fill="#64748b" font-style="italic">provider-specific, outside the bank's domain</text>
+  <rect x="40" y="2835.5" width="2480" height="291.0" rx="10" fill="#f8fafc" stroke="#64748b" stroke-width="1.8"/>
+  <rect x="40" y="2835.5" width="2480" height="30" rx="10" fill="#64748b"/>
+  <rect x="40" y="2855.5" width="2480" height="10" fill="#64748b"/>
+  <text x="56" y="2856.5" font-size="9.5" fill="#ffffff" font-weight="bold" letter-spacing="1.4">BOUNDARY 7</text>
+  <text x="180" y="2856.5" font-size="14" fill="#ffffff" font-weight="bold" letter-spacing="0.5">EXTERNAL BOUNDARIES — BANK SYSTEMS vs INSURANCE PROVIDERS</text>
+  <text x="56" y="2882.5" font-size="9.5" fill="#475569">OWNS · Two separate integration boundaries, deliberately. Bank-system integration (CBS, CRM, PG, AD) is isolated from insurance-provider integration so a core-banking change never leaks into Life Quote, and an insurer change never touches customer lookup.</text>
+  <text x="56" y="2897.5" font-size="9.5" fill="#b91c1c">DOES NOT OWN · Anything canonical. Provider and bank vocabulary terminates inside its adapter package. Outbound provider traffic leaves through controlled egress — NAT gateway with a stable Elastic IP the insurer can allowlist, or VPN / Direct Connect / private connectivity with mTLS.</text>
+  <rect x="64.0" y="2911.5" width="392.0" height="77.5" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="418.0" y="2918.5" width="30" height="15" rx="4" fill="#1d4ed8"/>
+  <text x="433.0" y="2930.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
+  <text x="74.0" y="2935.5" font-size="11.5" fill="#0f172a" font-weight="bold">Bank Integration Layer</text>
+  <text x="74.0" y="2951.5" font-size="8.8" fill="#475569">One boundary for CBS/CIF customer lookup, account</text>
+  <text x="74.0" y="2964.0" font-size="8.8" fill="#475569">verification, RM/branch/hierarchy context and CRM.</text>
+  <text x="74.0" y="2976.5" font-size="8.8" fill="#475569">Insurance services call this, not CBS.</text>
+  <rect x="472.0" y="2911.5" width="392.0" height="77.5" rx="6" fill="#ffffff" stroke="#64748b" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="482.0" y="2928.5" font-size="8" fill="#94a3b8" font-weight="bold" letter-spacing="0.8">EXTERNAL</text>
+  <text x="482.0" y="2941.5" font-size="11.5" fill="#0f172a" font-weight="bold">Core Banking System (CBS)</text>
+  <text x="482.0" y="2955.5" font-size="8.8" fill="#475569">CIF, ETB customer lookup and prefill.</text>
+  <text x="482.0" y="2968.0" font-size="8.8" fill="#475569">Authoritative customer data stays there —</text>
+  <text x="482.0" y="2980.5" font-size="8.8" fill="#475569">we hold a reference, not a permanent copy.</text>
+  <rect x="880.0" y="2911.5" width="392.0" height="77.5" rx="6" fill="#ffffff" stroke="#64748b" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="890.0" y="2928.5" font-size="8" fill="#94a3b8" font-weight="bold" letter-spacing="0.8">EXTERNAL</text>
+  <text x="890.0" y="2941.5" font-size="11.5" fill="#0f172a" font-weight="bold">Bank AD / SSO</text>
+  <text x="890.0" y="2955.5" font-size="8.8" fill="#475569">Workforce federation (OIDC/SAML) for RM,</text>
+  <text x="890.0" y="2968.0" font-size="8.8" fill="#475569">branch, operations, call centre and SP.</text>
+  <text x="890.0" y="2980.5" font-size="8.8" fill="#475569">WS-2 delivers this behind IF-2.</text>
+  <rect x="1288.0" y="2911.5" width="392.0" height="77.5" rx="6" fill="#ffffff" stroke="#64748b" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="1298.0" y="2928.5" font-size="8" fill="#94a3b8" font-weight="bold" letter-spacing="0.8">EXTERNAL</text>
+  <text x="1298.0" y="2941.5" font-size="11.5" fill="#0f172a" font-weight="bold">AU Bank Payment Gateway</text>
+  <text x="1298.0" y="2955.5" font-size="8.8" fill="#475569">3-D Secure premium collection on the</text>
+  <text x="1298.0" y="2968.0" font-size="8.8" fill="#475569">customer's device; settlement file drives</text>
+  <text x="1298.0" y="2980.5" font-size="8.8" fill="#475569">reconciliation before any policy is issued.</text>
+  <rect x="1696.0" y="2911.5" width="392.0" height="77.5" rx="6" fill="#ffffff" stroke="#64748b" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="1706.0" y="2928.5" font-size="8" fill="#94a3b8" font-weight="bold" letter-spacing="0.8">EXTERNAL</text>
+  <text x="1706.0" y="2941.5" font-size="11.5" fill="#0f172a" font-weight="bold">1SilverBullet (1SB) aggregator</text>
+  <text x="1706.0" y="2955.5" font-size="8.8" fill="#475569">Today's single provider route. Group A</text>
+  <text x="1706.0" y="2968.0" font-size="8.8" fill="#475569">insurers, Term only in R0.</text>
+  <text x="1706.0" y="2980.5" font-size="8.8" fill="#475569">Replaceable by design, not by rewrite.</text>
+  <rect x="2104.0" y="2911.5" width="392.0" height="77.5" rx="6" fill="#ffffff" stroke="#64748b" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="2114.0" y="2928.5" font-size="8" fill="#94a3b8" font-weight="bold" letter-spacing="0.8">EXTERNAL</text>
+  <text x="2114.0" y="2941.5" font-size="11.5" fill="#0f172a" font-weight="bold">Insurers — direct</text>
+  <text x="2114.0" y="2955.5" font-size="8.8" fill="#475569">HDFC Life · ICICI Prudential · Bajaj · Star</text>
+  <text x="2114.0" y="2968.0" font-size="8.8" fill="#475569">and successors. Each owns risk assessment,</text>
+  <text x="2114.0" y="2980.5" font-size="8.8" fill="#475569">underwriting and the policy contract.</text>
+  <rect x="64.0" y="3007.0" width="392.0" height="77.5" rx="6" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="74.0" y="3024.0" font-size="8" fill="#94a3b8" font-weight="bold" letter-spacing="0.8">RN CANDIDATE · NOT ADMITTED</text>
+  <text x="74.0" y="3037.0" font-size="11.5" fill="#0f172a" font-weight="bold">CKYC · PAN · Aadhaar · bureau</text>
+  <text x="74.0" y="3051.0" font-size="8.8" fill="#475569">Named for completeness. Not in the current</text>
+  <text x="74.0" y="3063.5" font-size="8.8" fill="#475569">governance record — needs triage before</text>
+  <text x="74.0" y="3076.0" font-size="8.8" fill="#475569">it appears in any implementation plan.</text>
+  <rect x="472.0" y="3007.0" width="392.0" height="65.0" rx="6" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="482.0" y="3024.0" font-size="8" fill="#94a3b8" font-weight="bold" letter-spacing="0.8">RN CANDIDATE · NOT ADMITTED</text>
+  <text x="482.0" y="3037.0" font-size="11.5" fill="#0f172a" font-weight="bold">V-KYC / video KYC</text>
+  <text x="482.0" y="3051.0" font-size="8.8" fill="#475569">Required by NTB onboarding (R2 item).</text>
+  <text x="482.0" y="3063.5" font-size="8.8" fill="#475569">Vendor and flow not yet decided.</text>
+  <rect x="880.0" y="3007.0" width="392.0" height="65.0" rx="6" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="890.0" y="3024.0" font-size="8" fill="#94a3b8" font-weight="bold" letter-spacing="0.8">RN CANDIDATE · NOT ADMITTED</text>
+  <text x="890.0" y="3037.0" font-size="11.5" fill="#0f172a" font-weight="bold">e-Sign / e-NACH / e-mandate</text>
+  <text x="890.0" y="3051.0" font-size="8.8" fill="#475569">Proposal signature and renewal mandates.</text>
+  <text x="890.0" y="3063.5" font-size="8.8" fill="#475569">No provider chosen; no ADR exists.</text>
+  <rect x="1288.0" y="3007.0" width="392.0" height="77.5" rx="6" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="1298.0" y="3024.0" font-size="8" fill="#94a3b8" font-weight="bold" letter-spacing="0.8">RN CANDIDATE · NOT ADMITTED</text>
+  <text x="1298.0" y="3037.0" font-size="11.5" fill="#0f172a" font-weight="bold">TPA / diagnostic network</text>
+  <text x="1298.0" y="3051.0" font-size="8.8" fill="#475569">Medical fulfilment for Life and Health.</text>
+  <text x="1298.0" y="3063.5" font-size="8.8" fill="#475569">Today the platform only tracks the insurer's</text>
+  <text x="1298.0" y="3076.0" font-size="8.8" fill="#475569">medical requirement — it books nothing.</text>
+  <rect x="1696.0" y="3007.0" width="392.0" height="77.5" rx="6" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="1706.0" y="3024.0" font-size="8" fill="#94a3b8" font-weight="bold" letter-spacing="0.8">RN CANDIDATE · NOT ADMITTED</text>
+  <text x="1706.0" y="3037.0" font-size="11.5" fill="#0f172a" font-weight="bold">IRDAI / IIB regulatory reporting</text>
+  <text x="1706.0" y="3051.0" font-size="8.8" fill="#475569">Statutory returns and industry data</text>
+  <text x="1706.0" y="3063.5" font-size="8.8" fill="#475569">submission. Treated as a reporting</text>
+  <text x="1706.0" y="3076.0" font-size="8.8" fill="#475569">consumer, not a journey participant.</text>
+  <rect x="2104.0" y="3007.0" width="392.0" height="77.5" rx="6" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="2114.0" y="3024.0" font-size="8" fill="#94a3b8" font-weight="bold" letter-spacing="0.8">RN CANDIDATE · NOT ADMITTED</text>
+  <text x="2114.0" y="3037.0" font-size="11.5" fill="#0f172a" font-weight="bold">WhatsApp / SMS / email providers</text>
+  <text x="2114.0" y="3051.0" font-size="8.8" fill="#475569">Channel vendors behind Notification.</text>
+  <text x="2114.0" y="3063.5" font-size="8.8" fill="#475569">Channels are designed; vendors are not</text>
+  <text x="2114.0" y="3076.0" font-size="8.8" fill="#475569">selected.</text>
+  <text x="64" y="3104.5" font-size="9.2" fill="#64748b" font-weight="bold">THE DASHED GREY BAND IS NOT SCOPE. These are integrations a mature platform will eventually need, drawn so the gap is visible rather than forgotten. None has a triage record, an ADR or an owner today; each must go through the AIGEM pipeline before it becomes work.</text>
+  <rect x="40" y="3140.5" width="2480" height="184.0" rx="10" fill="#f1f5f9" stroke="#334155" stroke-width="1.8"/>
+  <rect x="40" y="3140.5" width="2480" height="30" rx="10" fill="#334155"/>
+  <rect x="40" y="3160.5" width="2480" height="10" fill="#334155"/>
+  <text x="56" y="3161.5" font-size="9.5" fill="#ffffff" font-weight="bold" letter-spacing="1.4">BOUNDARY 8</text>
+  <text x="180" y="3161.5" font-size="14" fill="#ffffff" font-weight="bold" letter-spacing="0.5">DATA &amp; PERSISTENCE</text>
+  <text x="56" y="3187.5" font-size="9.5" fill="#475569">OWNS · Durable state, evidence and documents. Database ownership per bounded context is mandatory and cross-service database access is forbidden (ArchUnit + IAM). Physical separation is workload-driven, not dogmatic.</text>
+  <text x="56" y="3202.5" font-size="9.5" fill="#b91c1c">DOES NOT OWN · Shared mutable tables. 'Database per service' does not mean forty Aurora clusters across three environments plus DR — that is a cost, upgrade, backup and DBA problem, not an architecture. Start with schema separation in a shared cluster and split when scale, security or RTO justifies it.</text>
+  <rect x="64.0" y="3216.5" width="290.0" height="90.0" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="316.0" y="3223.5" width="30" height="15" rx="4" fill="#1d4ed8"/>
+  <text x="331.0" y="3235.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
+  <text x="74.0" y="3240.5" font-size="11.5" fill="#0f172a" font-weight="bold">Aurora PostgreSQL — shared platform</text>
+  <text x="74.0" y="3256.5" font-size="8.8" fill="#475569">party · opportunity · consent · journey registry ·</text>
+  <text x="74.0" y="3269.0" font-size="8.8" fill="#475569">product governance · payment · policy portfolio ·</text>
+  <text x="74.0" y="3281.5" font-size="8.8" fill="#475569">audit index. Multi-AZ, PITR, one schema per</text>
+  <text x="74.0" y="3294.0" font-size="8.8" fill="#475569">context, no cross-context access.</text>
+  <rect x="370.0" y="3216.5" width="290.0" height="90.0" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="622.0" y="3223.5" width="30" height="15" rx="4" fill="#1d4ed8"/>
+  <text x="637.0" y="3235.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
+  <text x="380.0" y="3240.5" font-size="11.5" fill="#0f172a" font-weight="bold">Aurora — Life cell</text>
+  <text x="380.0" y="3256.5" font-size="8.8" fill="#475569">life_journey · life_quote · life_proposal.</text>
+  <text x="380.0" y="3269.0" font-size="8.8" fill="#475569">Starts as separate schemas in the shared cluster;</text>
+  <text x="380.0" y="3281.5" font-size="8.8" fill="#475569">becomes its own cluster when Life's load justifies</text>
+  <text x="380.0" y="3294.0" font-size="8.8" fill="#475569">it — with no application redesign.</text>
+  <rect x="676.0" y="3216.5" width="290.0" height="77.5" rx="6" fill="#f3e8ff" stroke="#7e22ce" stroke-width="1.5"/>
+  <rect x="928.0" y="3223.5" width="30" height="15" rx="4" fill="#7e22ce"/>
+  <text x="943.0" y="3235.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R3</text>
+  <text x="686.0" y="3240.5" font-size="11.5" fill="#0f172a" font-weight="bold">Aurora — Health cell</text>
+  <text x="686.0" y="3256.5" font-size="8.8" fill="#475569">health_journey · health_quote · health_proposal.</text>
+  <text x="686.0" y="3269.0" font-size="8.8" fill="#475569">Separate ownership from day one so a Health</text>
+  <text x="686.0" y="3281.5" font-size="8.8" fill="#475569">migration can never lock a Life table.</text>
+  <rect x="982.0" y="3216.5" width="290.0" height="77.5" rx="6" fill="#ffe4e6" stroke="#be123c" stroke-width="1.5"/>
+  <rect x="1234.0" y="3223.5" width="30" height="15" rx="4" fill="#be123c"/>
+  <text x="1249.0" y="3235.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R4</text>
+  <text x="992.0" y="3240.5" font-size="11.5" fill="#0f172a" font-weight="bold">Aurora — General cell</text>
+  <text x="992.0" y="3256.5" font-size="8.8" fill="#475569">general_journey · general_quote · general_proposal,</text>
+  <text x="992.0" y="3269.0" font-size="8.8" fill="#475569">partitioned by productLine so a Motor extraction</text>
+  <text x="992.0" y="3281.5" font-size="8.8" fill="#475569">is a data move, not a redesign.</text>
+  <rect x="1288.0" y="3216.5" width="290.0" height="90.0" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="1540.0" y="3223.5" width="30" height="15" rx="4" fill="#1d4ed8"/>
+  <text x="1555.0" y="3235.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
+  <text x="1298.0" y="3240.5" font-size="11.5" fill="#0f172a" font-weight="bold">DynamoDB</text>
+  <text x="1298.0" y="3256.5" font-size="8.8" fill="#475569">Journey state and quote jobs, PITR enabled.</text>
+  <text x="1298.0" y="3269.0" font-size="8.8" fill="#475569">Justify every store you add: why Aurora, why</text>
+  <text x="1298.0" y="3281.5" font-size="8.8" fill="#475569">DynamoDB, why Redis, why S3 — polyglot</text>
+  <text x="1298.0" y="3294.0" font-size="8.8" fill="#475569">persistence because AWS offers it is not a reason.</text>
+  <rect x="1594.0" y="3216.5" width="290.0" height="90.0" rx="6" fill="#ccfbf1" stroke="#0f766e" stroke-width="1.5"/>
+  <rect x="1846.0" y="3223.5" width="30" height="15" rx="4" fill="#0f766e"/>
+  <text x="1861.0" y="3235.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R1</text>
+  <text x="1604.0" y="3240.5" font-size="11.5" fill="#0f172a" font-weight="bold">ElastiCache Redis</text>
+  <text x="1604.0" y="3256.5" font-size="8.8" fill="#475569">Namespaced life:* / health:* / general:* so a Life</text>
+  <text x="1604.0" y="3269.0" font-size="8.8" fill="#475569">quote storm cannot evict Health state. Separate</text>
+  <text x="1604.0" y="3281.5" font-size="8.8" fill="#475569">clusters per LOB only when the numbers say so.</text>
+  <text x="1604.0" y="3294.0" font-size="8.8" fill="#475569">Product catalogue and session caching.</text>
+  <rect x="1900.0" y="3216.5" width="290.0" height="90.0" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="2152.0" y="3223.5" width="30" height="15" rx="4" fill="#1d4ed8"/>
+  <text x="2167.0" y="3235.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
+  <text x="1910.0" y="3240.5" font-size="11.5" fill="#0f172a" font-weight="bold">S3 + Object Lock</text>
+  <text x="1910.0" y="3256.5" font-size="8.8" fill="#475569">Raw provider payloads, policy documents, bulk</text>
+  <text x="1910.0" y="3269.0" font-size="8.8" fill="#475569">uploads, consent and suitability evidence.</text>
+  <text x="1910.0" y="3281.5" font-size="8.8" fill="#475569">7-year WORM, UPDATE/DELETE rejected,</text>
+  <text x="1910.0" y="3294.0" font-size="8.8" fill="#475569">cross-region replication to ap-south-2.</text>
+  <rect x="2206.0" y="3216.5" width="290.0" height="90.0" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="2458.0" y="3223.5" width="30" height="15" rx="4" fill="#1d4ed8"/>
+  <text x="2473.0" y="3235.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
+  <text x="2216.0" y="3240.5" font-size="11.5" fill="#0f172a" font-weight="bold">Secrets Manager + KMS</text>
+  <text x="2216.0" y="3256.5" font-size="8.8" fill="#475569">Per-service and per-provider credentials, CMK</text>
+  <text x="2216.0" y="3269.0" font-size="8.8" fill="#475569">hierarchy, rotation. No credential in source,</text>
+  <text x="2216.0" y="3281.5" font-size="8.8" fill="#475569">image or container config. India regions only —</text>
+  <text x="2216.0" y="3294.0" font-size="8.8" fill="#475569">enforced by policy-as-code, not by review.</text>
+  <rect x="40" y="3338.5" width="2480" height="196.5" rx="10" fill="#faf5ff" stroke="#7e22ce" stroke-width="1.8"/>
+  <rect x="40" y="3338.5" width="2480" height="30" rx="10" fill="#7e22ce"/>
+  <rect x="40" y="3358.5" width="2480" height="10" fill="#7e22ce"/>
+  <text x="56" y="3359.5" font-size="9.5" fill="#ffffff" font-weight="bold" letter-spacing="1.4">BOUNDARY 9</text>
+  <text x="180" y="3359.5" font-size="14" fill="#ffffff" font-weight="bold" letter-spacing="0.5">EVENT &amp; MESSAGING BACKBONE</text>
+  <text x="56" y="3385.5" font-size="9.5" fill="#475569">OWNS · Reliable asynchronous propagation of domain facts: LeadCreated, ConsentCaptured, QuoteRequested, ProposalSubmitted, UnderwritingApproved, PaymentCompleted, PolicyIssued, JourneyAbandoned, PolicyRenewalDue, PolicyLapsed.</text>
+  <text x="56" y="3400.5" font-size="9.5" fill="#b91c1c">DOES NOT OWN · Business decisions. And it does not arrive as Kafka on day one: an event-driven target diagram is not a reason to run a broker before the load justifies it.</text>
+  <rect x="64.0" y="3414.5" width="473.6" height="90.0" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="499.6" y="3421.5" width="30" height="15" rx="4" fill="#1d4ed8"/>
+  <text x="514.6" y="3433.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
+  <text x="74.0" y="3438.5" font-size="11.5" fill="#0f172a" font-weight="bold">Transactional outbox</text>
+  <text x="74.0" y="3454.5" font-size="8.8" fill="#475569">Service DB → outbox → worker, at-least-once, no</text>
+  <text x="74.0" y="3467.0" font-size="8.8" fill="#475569">broker in R0. Audit consumes the outbox. This is</text>
+  <text x="74.0" y="3479.5" font-size="8.8" fill="#475569">already the repository's pattern and it stays the</text>
+  <text x="74.0" y="3492.0" font-size="8.8" fill="#475569">starting point.</text>
+  <rect x="553.6" y="3414.5" width="473.6" height="90.0" rx="6" fill="#ccfbf1" stroke="#0f766e" stroke-width="1.5"/>
+  <rect x="989.2" y="3421.5" width="30" height="15" rx="4" fill="#0f766e"/>
+  <text x="1004.2" y="3433.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R1</text>
+  <text x="563.6" y="3438.5" font-size="11.5" fill="#0f172a" font-weight="bold">LOB-partitioned logical topics</text>
+  <text x="563.6" y="3454.5" font-size="8.8" fill="#475569">life.* · health.* · general.* · policy.* · payment.* ·</text>
+  <text x="563.6" y="3467.0" font-size="8.8" fill="#475569">engagement.* · audit.* — never one insurance-events</text>
+  <text x="563.6" y="3479.5" font-size="8.8" fill="#475569">topic where every LOB competes. One LOB must not</text>
+  <text x="563.6" y="3492.0" font-size="8.8" fill="#475569">consume another's capacity.</text>
+  <rect x="1043.2" y="3414.5" width="473.6" height="90.0" rx="6" fill="#e0e7ff" stroke="#4338ca" stroke-width="1.5"/>
+  <rect x="1478.8000000000002" y="3421.5" width="30" height="15" rx="4" fill="#4338ca"/>
+  <text x="1493.8000000000002" y="3433.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">RN</text>
+  <text x="1053.2" y="3438.5" font-size="11.5" fill="#0f172a" font-weight="bold">Managed event bus (MSK / EventBridge)</text>
+  <text x="1053.2" y="3454.5" font-size="8.8" fill="#475569">Introduced when fan-out, replay or consumer count</text>
+  <text x="1053.2" y="3467.0" font-size="8.8" fill="#475569">justifies it — outbox → bus → consumers, an</text>
+  <text x="1053.2" y="3479.5" font-size="8.8" fill="#475569">evolution rather than a rewrite. Technology choice</text>
+  <text x="1053.2" y="3492.0" font-size="8.8" fill="#475569">deliberately still open.</text>
+  <rect x="1532.8000000000002" y="3414.5" width="473.6" height="90.0" rx="6" fill="#ccfbf1" stroke="#0f766e" stroke-width="1.5"/>
+  <rect x="1968.4" y="3421.5" width="30" height="15" rx="4" fill="#0f766e"/>
+  <text x="1983.4" y="3433.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R1</text>
+  <text x="1542.8000000000002" y="3438.5" font-size="11.5" fill="#0f172a" font-weight="bold">Schema &amp; contract governance</text>
+  <text x="1542.8000000000002" y="3454.5" font-size="8.8" fill="#475569">Event and API versioning, backward compatibility,</text>
+  <text x="1542.8000000000002" y="3467.0" font-size="8.8" fill="#475569">consumer-driven contract tests, deprecation policy.</text>
+  <text x="1542.8000000000002" y="3479.5" font-size="8.8" fill="#475569">Life Quote v5 must keep working with Life Proposal</text>
+  <text x="1542.8000000000002" y="3492.0" font-size="8.8" fill="#475569">v3 or independent deployment exists only on paper.</text>
+  <rect x="2022.4" y="3414.5" width="473.6" height="102.5" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="2458.0" y="3421.5" width="30" height="15" rx="4" fill="#1d4ed8"/>
+  <text x="2473.0" y="3433.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
+  <text x="2032.4" y="3438.5" font-size="11.5" fill="#0f172a" font-weight="bold">Synchronous vs asynchronous rule</text>
+  <text x="2032.4" y="3454.5" font-size="8.8" fill="#475569">MUST be synchronous: authorization, critical business</text>
+  <text x="2032.4" y="3467.0" font-size="8.8" fill="#475569">validation, payment session creation.</text>
+  <text x="2032.4" y="3479.5" font-size="8.8" fill="#475569">MAY be asynchronous: audit ingestion, notification,</text>
+  <text x="2032.4" y="3492.0" font-size="8.8" fill="#475569">policy projection, analytics, engagement, reporting.</text>
+  <text x="2032.4" y="3504.5" font-size="8.8" fill="#475569">A notification or audit outage never fails a sale.</text>
+  <rect x="40" y="3549.0" width="2480" height="325.5" rx="10" fill="#fffbeb" stroke="#b45309" stroke-width="1.8"/>
+  <rect x="40" y="3549.0" width="2480" height="30" rx="10" fill="#b45309"/>
+  <rect x="40" y="3569.0" width="2480" height="10" fill="#b45309"/>
+  <text x="56" y="3570.0" font-size="9.5" fill="#ffffff" font-weight="bold" letter-spacing="1.4">BOUNDARY 10</text>
+  <text x="180" y="3570.0" font-size="14" fill="#ffffff" font-weight="bold" letter-spacing="0.5">PLATFORM ENGINEERING &amp; GOVERNANCE PLANE</text>
+  <text x="56" y="3596.0" font-size="9.5" fill="#475569">OWNS · The horizontal that makes everything above operable: how the platform is built, shipped, configured, secured, observed, measured and recovered. Built once in the foundation stages (S08/S09) and consumed by every plane above and by WS-1 and WS-2.</text>
+  <text x="56" y="3611.0" font-size="9.5" fill="#b91c1c">DOES NOT OWN · Business behaviour. It is also not optional or 'later': the reason this repository's R0 is credible is that this plane exists already — the target architecture must extend it, never replace it with a second framework.</text>
+  <rect x="64.0" y="3625.0" width="596.0" height="115.0" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="622.0" y="3632.0" width="30" height="15" rx="4" fill="#1d4ed8"/>
+  <text x="637.0" y="3643.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
+  <text x="74.0" y="3649.0" font-size="11.5" fill="#0f172a" font-weight="bold">Observability</text>
+  <text x="74.0" y="3665.0" font-size="8.8" fill="#475569">Traces, metrics and logs correlated end to end:</text>
+  <text x="74.0" y="3677.5" font-size="8.8" fill="#475569">channel → BFF → gateway → domain → persistence →</text>
+  <text x="74.0" y="3690.0" font-size="8.8" fill="#475569">adapter → 1SB/insurer/bank/PG. Tagged with lob,</text>
+  <text x="74.0" y="3702.5" font-size="8.8" fill="#475569">productLine, providerId, channel, actorType,</text>
+  <text x="74.0" y="3715.0" font-size="8.8" fill="#475569">journeyId, traceId, outcome, failureClass — and no</text>
+  <text x="74.0" y="3727.5" font-size="8.8" fill="#475569">PII, proven by automated test.</text>
+  <rect x="676.0" y="3625.0" width="596.0" height="115.0" rx="6" fill="#ccfbf1" stroke="#0f766e" stroke-width="1.5"/>
+  <rect x="1234.0" y="3632.0" width="30" height="15" rx="4" fill="#0f766e"/>
+  <text x="1249.0" y="3643.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R1</text>
+  <text x="686.0" y="3649.0" font-size="11.5" fill="#0f172a" font-weight="bold">Cell &amp; provider SLOs + error budgets</text>
+  <text x="686.0" y="3665.0" font-size="8.8" fill="#475569">Not one 99.9% platform number. Life Quote</text>
+  <text x="686.0" y="3677.5" font-size="8.8" fill="#475569">availability, Health Quote availability, Life</text>
+  <text x="686.0" y="3690.0" font-size="8.8" fill="#475569">proposal success, payment confirmation freshness,</text>
+  <text x="686.0" y="3702.5" font-size="8.8" fill="#475569">policy registration lag, per-provider quote success,</text>
+  <text x="686.0" y="3715.0" font-size="8.8" fill="#475569">work-queue age. So an incident can say 'Life/HDFC</text>
+  <text x="686.0" y="3727.5" font-size="8.8" fill="#475569">degraded, everything else healthy'.</text>
+  <rect x="1288.0" y="3625.0" width="596.0" height="102.5" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="1846.0" y="3632.0" width="30" height="15" rx="4" fill="#1d4ed8"/>
+  <text x="1861.0" y="3643.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
+  <text x="1298.0" y="3649.0" font-size="11.5" fill="#0f172a" font-weight="bold">Security &amp; threat model</text>
+  <text x="1298.0" y="3665.0" font-size="8.8" fill="#475569">Trust boundaries, mTLS, least privilege, PII masking,</text>
+  <text x="1298.0" y="3677.5" font-size="8.8" fill="#475569">minimum-necessary data sharing to each provider,</text>
+  <text x="1298.0" y="3690.0" font-size="8.8" fill="#475569">no PII in logs, secret/SAST/SCA/image scanning in</text>
+  <text x="1298.0" y="3702.5" font-size="8.8" fill="#475569">the pipeline, DevSecOps supply chain.</text>
+  <text x="1298.0" y="3715.0" font-size="8.8" fill="#475569">Board 4 owns the conclusion; T4 sign-off is human.</text>
+  <rect x="1900.0" y="3625.0" width="596.0" height="115.0" rx="6" fill="#ccfbf1" stroke="#0f766e" stroke-width="1.5"/>
+  <rect x="2458.0" y="3632.0" width="30" height="15" rx="4" fill="#0f766e"/>
+  <text x="2473.0" y="3643.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R1</text>
+  <text x="1910.0" y="3649.0" font-size="11.5" fill="#0f172a" font-weight="bold">Configuration plane</text>
+  <text x="1910.0" y="3665.0" font-size="8.8" fill="#475569">Insurance platforms are configuration-heavy: insurer,</text>
+  <text x="1910.0" y="3677.5" font-size="8.8" fill="#475569">product, channel, branch, segment, route, version,</text>
+  <text x="1910.0" y="3690.0" font-size="8.8" fill="#475569">commission, feature activation. Versioned, maker-</text>
+  <text x="1910.0" y="3702.5" font-size="8.8" fill="#475569">checker, approval, effective dates, audit, rollback.</text>
+  <text x="1910.0" y="3715.0" font-size="8.8" fill="#475569">Hard-coded product or provider behaviour is the</text>
+  <text x="1910.0" y="3727.5" font-size="8.8" fill="#475569">bottleneck that shows up two years late.</text>
+  <rect x="64.0" y="3754.0" width="596.0" height="90.0" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="622.0" y="3761.0" width="30" height="15" rx="4" fill="#1d4ed8"/>
+  <text x="637.0" y="3772.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
+  <text x="74.0" y="3778.0" font-size="11.5" fill="#0f172a" font-weight="bold">CI/CD + architecture fitness</text>
+  <text x="74.0" y="3794.0" font-size="8.8" fill="#475569">Every module built and tested on every PR; merge</text>
+  <text x="74.0" y="3806.5" font-size="8.8" fill="#475569">impossible without green; coverage floors; ArchUnit</text>
+  <text x="74.0" y="3819.0" font-size="8.8" fill="#475569">and 15 fitness functions; p95 feedback under 10 min.</text>
+  <text x="74.0" y="3831.5" font-size="8.8" fill="#475569">GATE-S08 — where the platform actually is today.</text>
+  <rect x="676.0" y="3754.0" width="596.0" height="102.5" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="1234.0" y="3761.0" width="30" height="15" rx="4" fill="#1d4ed8"/>
+  <text x="1249.0" y="3772.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
+  <text x="686.0" y="3778.0" font-size="11.5" fill="#0f172a" font-weight="bold">IaC, environments &amp; residency</text>
+  <text x="686.0" y="3794.0" font-size="8.8" fill="#475569">Terraform-defined dev → UAT → prod, secrets and KMS</text>
+  <text x="686.0" y="3806.5" font-size="8.8" fill="#475569">hierarchy, observability substrate, 7-year write-once</text>
+  <text x="686.0" y="3819.0" font-size="8.8" fill="#475569">retention. Policy-as-code: India regions only, no</text>
+  <text x="686.0" y="3831.5" font-size="8.8" fill="#475569">public or unencrypted store, no wildcard prod IAM.</text>
+  <text x="686.0" y="3844.0" font-size="8.8" fill="#475569">GATE-S09.</text>
+  <rect x="1288.0" y="3754.0" width="596.0" height="102.5" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="1846.0" y="3761.0" width="30" height="15" rx="4" fill="#1d4ed8"/>
+  <text x="1861.0" y="3772.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
+  <text x="1298.0" y="3778.0" font-size="11.5" fill="#0f172a" font-weight="bold">SRE, incident &amp; DR</text>
+  <text x="1298.0" y="3794.0" font-size="8.8" fill="#475569">Runbooks, on-call, incident process, capacity and</text>
+  <text x="1298.0" y="3806.5" font-size="8.8" fill="#475569">scaling analysis driven by business load and the real</text>
+  <text x="1298.0" y="3819.0" font-size="8.8" fill="#475569">bottleneck — never CPU alone. Warm standby in</text>
+  <text x="1298.0" y="3831.5" font-size="8.8" fill="#475569">ap-south-2; restore executed and timed, because a</text>
+  <text x="1298.0" y="3844.0" font-size="8.8" fill="#475569">backup never restored is a hypothesis.</text>
+  <rect x="1900.0" y="3754.0" width="596.0" height="102.5" rx="6" fill="#ccfbf1" stroke="#0f766e" stroke-width="1.5"/>
+  <rect x="2458.0" y="3761.0" width="30" height="15" rx="4" fill="#0f766e"/>
+  <text x="2473.0" y="3772.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R1</text>
+  <text x="1910.0" y="3778.0" font-size="11.5" fill="#0f172a" font-weight="bold">Ownership &amp; team boundaries</text>
+  <text x="1910.0" y="3794.0" font-size="8.8" fill="#475569">Platform team owns identity, authorization,</text>
+  <text x="1910.0" y="3806.5" font-size="8.8" fill="#475569">opportunity, customer, journey registry, payment,</text>
+  <text x="1910.0" y="3819.0" font-size="8.8" fill="#475569">policy, audit and the shared libraries; Life, Health</text>
+  <text x="1910.0" y="3831.5" font-size="8.8" fill="#475569">and General teams own their cells. Written down</text>
+  <text x="1910.0" y="3844.0" font-size="8.8" fill="#475569">before anyone has to ask 'who changes Quote?'.</text>
+  <rect x="40" y="3892.5" width="2480" height="333.5" rx="10" fill="#ffffff" stroke="#0f172a" stroke-width="2"/>
+  <rect x="40" y="3892.5" width="2480" height="30" rx="10" fill="#0f172a"/>
+  <rect x="40" y="3912.5" width="2480" height="10" fill="#0f172a"/>
+  <text x="56" y="3913.5" font-size="9.5" fill="#ffffff" font-weight="bold" letter-spacing="1.4">RELEASE ROADMAP</text>
+  <text x="240" y="3913.5" font-size="14" fill="#ffffff" font-weight="bold" letter-spacing="0.5">WHAT LANDS WHEN — release strategy follows business maturity, not architecture completeness</text>
+  <text x="56" y="3940.5" font-size="9.8" fill="#475569">We are not building Life, Health and Motor now. R0 proves Life; R1 and R2 mature Life; R3 introduces Health; R4 introduces General/Motor. The architectural seams exist from R0 so that adding Health later does not require redesigning Life — that is the entire point of drawing the target now.</text>
+  <rect x="64.0" y="3954.5" width="393.6666666666667" height="253.5" rx="8" fill="#dbeafe" stroke="#1d4ed8" stroke-width="2"/>
+  <rect x="74.0" y="3962.5" width="38" height="17" rx="4" fill="#1d4ed8"/>
+  <text x="93.0" y="3976.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
+  <text x="120.0" y="3975.5" font-size="12" fill="#0f172a" font-weight="bold">Life Foundation</text>
+  <text x="74.0" y="3992.5" font-size="8.6" fill="#1d4ed8" font-weight="bold" letter-spacing="0.5">IN PROGRESS · admitted scope</text>
+  <text x="74.0" y="4008.5" font-size="8.4" fill="#475569">ONE OUTCOME: one RM sells one Term Life policy to</text>
+  <text x="74.0" y="4021.0" font-size="8.4" fill="#475569">one ETB customer of one Group A insurer, end to end.</text>
+  <text x="74.0" y="4033.5" font-size="8.4" fill="#475569"></text>
+  <text x="74.0" y="4046.0" font-size="8.4" fill="#475569">Consent (#6) · Suitability (#7) · Product catalogue (#8,</text>
+  <text x="74.0" y="4058.5" font-size="8.4" fill="#475569">Life/Group A/Term only) · Journey orchestration (#9) ·</text>
+  <text x="74.0" y="4071.0" font-size="8.4" fill="#475569">Quotation (#10) via 1SB · Proposal &amp; UW tracking (#11,</text>
+  <text x="74.0" y="4083.5" font-size="8.4" fill="#475569">thin) · Payment (#12, customer device) · Policy (#13,</text>
+  <text x="74.0" y="4096.0" font-size="8.4" fill="#475569">visibility) · Audit (#16) · Notification (#17, OTP +</text>
+  <text x="74.0" y="4108.5" font-size="8.4" fill="#475569">payment link) · Customer (#4) · Lead (#5) · RM BFF (#2)</text>
+  <text x="74.0" y="4121.0" font-size="8.4" fill="#475569">+ Flutter RM app · Integration Hub (#14) + 1SB</text>
+  <text x="74.0" y="4133.5" font-size="8.4" fill="#475569">adapter (#15) · workforce identity + PDP.</text>
+  <text x="74.0" y="4146.0" font-size="8.4" fill="#475569"></text>
+  <text x="74.0" y="4158.5" font-size="8.4" fill="#475569">Gates: GATE-S08 (engineering foundation) then S09</text>
+  <text x="74.0" y="4171.0" font-size="8.4" fill="#475569">(platform foundation). Neither is passed yet.</text>
+  <path d="M458.6666666666667,4081.25 L469.6666666666667,4081.25" fill="none" stroke="#334155" stroke-width="1.6" marker-end="url(#arr)"/>
+  <rect x="471.6666666666667" y="3954.5" width="393.6666666666667" height="253.5" rx="8" fill="#ccfbf1" stroke="#0f766e" stroke-width="2"/>
+  <rect x="481.6666666666667" y="3962.5" width="38" height="17" rx="4" fill="#0f766e"/>
+  <text x="500.6666666666667" y="3976.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R1</text>
+  <text x="527.6666666666667" y="3975.5" font-size="12" fill="#0f172a" font-weight="bold">Life Scale &amp; Digital</text>
+  <text x="481.6666666666667" y="3992.5" font-size="8.6" fill="#0f766e" font-weight="bold" letter-spacing="0.5">out_of_scope · revisit_at R1</text>
+  <text x="481.6666666666667" y="4008.5" font-size="8.4" fill="#475569">Customer DIY journey + Customer BFF (#1).</text>
+  <text x="481.6666666666667" y="4021.0" font-size="8.4" fill="#475569">Lead → Opportunity model, bulk upload, allocation.</text>
+  <text x="481.6666666666667" y="4033.5" font-size="8.4" fill="#475569">Group B insurers (catalogue + controlled redirect).</text>
+  <text x="481.6666666666667" y="4046.0" font-size="8.4" fill="#475569">ULIP and Savings/Endowment product classes.</text>
+  <text x="481.6666666666667" y="4058.5" font-size="8.4" fill="#475569">Journey Registry / LOB Router split from execution.</text>
+  <text x="481.6666666666667" y="4071.0" font-size="8.4" fill="#475569">Document platform · full Notification (#17).</text>
+  <text x="481.6666666666667" y="4083.5" font-size="8.4" fill="#475569">Reporting &amp; MIS (#18) · Admin &amp; config UI (#19).</text>
+  <text x="481.6666666666667" y="4096.0" font-size="8.4" fill="#475569">Configuration plane with maker-checker.</text>
+  <text x="481.6666666666667" y="4108.5" font-size="8.4" fill="#475569">Contract &amp; schema governance, CDC tests.</text>
+  <text x="481.6666666666667" y="4121.0" font-size="8.4" fill="#475569">Integration control plane separated from runtime.</text>
+  <text x="481.6666666666667" y="4133.5" font-size="8.4" fill="#475569">Provider Router + callback gateway.</text>
+  <text x="481.6666666666667" y="4146.0" font-size="8.4" fill="#475569">Cell and provider SLOs. hi-IN vernacular.</text>
+  <text x="481.6666666666667" y="4158.5" font-size="8.4" fill="#475569"></text>
+  <text x="481.6666666666667" y="4171.0" font-size="8.4" fill="#475569">Unpark trigger: the assisted journey completes a</text>
+  <text x="481.6666666666667" y="4183.5" font-size="8.4" fill="#475569">real sale in pilot.</text>
+  <path d="M866.3333333333334,4081.25 L877.3333333333334,4081.25" fill="none" stroke="#334155" stroke-width="1.6" marker-end="url(#arr)"/>
+  <rect x="879.3333333333334" y="3954.5" width="393.6666666666667" height="253.5" rx="8" fill="#fef3c7" stroke="#b45309" stroke-width="2"/>
+  <rect x="889.3333333333334" y="3962.5" width="38" height="17" rx="4" fill="#b45309"/>
+  <text x="908.3333333333334" y="3976.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R2</text>
+  <text x="935.3333333333334" y="3975.5" font-size="12" fill="#0f172a" font-weight="bold">Life Lifecycle &amp; Omnichannel</text>
+  <text x="889.3333333333334" y="3992.5" font-size="8.6" fill="#b45309" font-weight="bold" letter-spacing="0.5">out_of_scope · revisit_at R2</text>
+  <text x="889.3333333333334" y="4008.5" font-size="8.4" fill="#475569">Hybrid journey and assisted ⇄ DIY mode switching.</text>
+  <text x="889.3333333333334" y="4021.0" font-size="8.4" fill="#475569">Call centre as an actor · certified SP capability.</text>
+  <text x="889.3333333333334" y="4033.5" font-size="8.4" fill="#475569">Actor capability / certification entitlement engine.</text>
+  <text x="889.3333333333334" y="4046.0" font-size="8.4" fill="#475569">Work Management: queues, SLA, escalation, callback.</text>
+  <text x="889.3333333333334" y="4058.5" font-size="8.4" fill="#475569">Engagement / Recovery engine + abandoned-journey</text>
+  <text x="889.3333333333334" y="4071.0" font-size="8.4" fill="#475569">recovery.</text>
+  <text x="889.3333333333334" y="4083.5" font-size="8.4" fill="#475569">Communication / interaction timeline.</text>
+  <text x="889.3333333333334" y="4096.0" font-size="8.4" fill="#475569">Shared Policy Portfolio + customer 360.</text>
+  <text x="889.3333333333334" y="4108.5" font-size="8.4" fill="#475569">Renewal and lapse opportunity generation.</text>
+  <text x="889.3333333333334" y="4121.0" font-size="8.4" fill="#475569">NTB onboarding and V-KYC.</text>
+  <text x="889.3333333333334" y="4133.5" font-size="8.4" fill="#475569">Consolidated executive control tower.</text>
+  <text x="889.3333333333334" y="4146.0" font-size="8.4" fill="#475569"></text>
+  <text x="889.3333333333334" y="4158.5" font-size="8.4" fill="#475569">Unpark trigger: assisted and DIY both have stable</text>
+  <text x="889.3333333333334" y="4171.0" font-size="8.4" fill="#475569">state and an agreed hand-off contract.</text>
+  <path d="M1274.0,4081.25 L1285.0,4081.25" fill="none" stroke="#334155" stroke-width="1.6" marker-end="url(#arr)"/>
+  <rect x="1287.0" y="3954.5" width="393.6666666666667" height="253.5" rx="8" fill="#f3e8ff" stroke="#7e22ce" stroke-width="2"/>
+  <rect x="1297.0" y="3962.5" width="38" height="17" rx="4" fill="#7e22ce"/>
+  <text x="1316.0" y="3976.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R3</text>
+  <text x="1343.0" y="3975.5" font-size="12" fill="#0f172a" font-weight="bold">Health</text>
+  <text x="1297.0" y="3992.5" font-size="8.6" fill="#7e22ce" font-weight="bold" letter-spacing="0.5">out_of_scope · revisit_at R2+</text>
+  <text x="1297.0" y="4008.5" font-size="8.4" fill="#475569">Health becomes its own independently deployable cell:</text>
+  <text x="1297.0" y="4021.0" font-size="8.4" fill="#475569">journey execution, suitability rules, quote, proposal /</text>
+  <text x="1297.0" y="4033.5" font-size="8.4" fill="#475569">case management, issuance coordination and its own</text>
+  <text x="1297.0" y="4046.0" font-size="8.4" fill="#475569">aggregation runtime, database, cache and topics.</text>
+  <text x="1297.0" y="4058.5" font-size="8.4" fill="#475569"></text>
+  <text x="1297.0" y="4071.0" font-size="8.4" fill="#475569">Reuses the shared platform unchanged — no</text>
+  <text x="1297.0" y="4083.5" font-size="8.4" fill="#475569">health-customer, health-consent or health-payment</text>
+  <text x="1297.0" y="4096.0" font-size="8.4" fill="#475569">service is created.</text>
+  <text x="1297.0" y="4108.5" font-size="8.4" fill="#475569"></text>
+  <text x="1297.0" y="4121.0" font-size="8.4" fill="#475569">Health providers onboarded behind the same adapter</text>
+  <text x="1297.0" y="4133.5" font-size="8.4" fill="#475569">framework.</text>
+  <text x="1297.0" y="4146.0" font-size="8.4" fill="#475569"></text>
+  <text x="1297.0" y="4158.5" font-size="8.4" fill="#475569">Entry condition: WS-1 Phase 5 unfrozen, and R0–R2</text>
+  <text x="1297.0" y="4171.0" font-size="8.4" fill="#475569">have proven the shared platform with real volume.</text>
+  <path d="M1681.6666666666667,4081.25 L1692.6666666666667,4081.25" fill="none" stroke="#334155" stroke-width="1.6" marker-end="url(#arr)"/>
+  <rect x="1694.6666666666667" y="3954.5" width="393.6666666666667" height="253.5" rx="8" fill="#ffe4e6" stroke="#be123c" stroke-width="2"/>
+  <rect x="1704.6666666666667" y="3962.5" width="38" height="17" rx="4" fill="#be123c"/>
+  <text x="1723.6666666666667" y="3976.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R4</text>
+  <text x="1750.6666666666667" y="3975.5" font-size="12" fill="#0f172a" font-weight="bold">General / Motor</text>
+  <text x="1704.6666666666667" y="3992.5" font-size="8.6" fill="#be123c" font-weight="bold" letter-spacing="0.5">out_of_scope · revisit_at R2+</text>
+  <text x="1704.6666666666667" y="4008.5" font-size="8.4" fill="#475569">General cell added on the same pattern, with</text>
+  <text x="1704.6666666666667" y="4021.0" font-size="8.4" fill="#475569">productLine = MOTOR | TRAVEL | HOME | PA.</text>
+  <text x="1704.6666666666667" y="4033.5" font-size="8.4" fill="#475569"></text>
+  <text x="1704.6666666666667" y="4046.0" font-size="8.4" fill="#475569">Inspection replaces medical in the case-management</text>
+  <text x="1704.6666666666667" y="4058.5" font-size="8.4" fill="#475569">flow; GI quote shape (IDV, NCB, add-ons) is native,</text>
+  <text x="1704.6666666666667" y="4071.0" font-size="8.4" fill="#475569">not an if-branch in a shared Quote service.</text>
+  <text x="1704.6666666666667" y="4083.5" font-size="8.4" fill="#475569"></text>
+  <text x="1704.6666666666667" y="4096.0" font-size="8.4" fill="#475569">Third proof that adding an LOB is a cell plus</text>
+  <text x="1704.6666666666667" y="4108.5" font-size="8.4" fill="#475569">configuration, not a platform change.</text>
+  <text x="1704.6666666666667" y="4121.0" font-size="8.4" fill="#475569"></text>
+  <text x="1704.6666666666667" y="4133.5" font-size="8.4" fill="#475569">Motor deliberately stays inside General until its own</text>
+  <text x="1704.6666666666667" y="4146.0" font-size="8.4" fill="#475569">scale or change rate justifies extraction.</text>
+  <path d="M2089.3333333333335,4081.25 L2100.3333333333335,4081.25" fill="none" stroke="#334155" stroke-width="1.6" marker-end="url(#arr)"/>
+  <rect x="2102.3333333333335" y="3954.5" width="393.6666666666667" height="253.5" rx="8" fill="#e0e7ff" stroke="#4338ca" stroke-width="2" stroke-dasharray="6 4"/>
+  <rect x="2112.3333333333335" y="3962.5" width="38" height="17" rx="4" fill="#4338ca"/>
+  <text x="2131.3333333333335" y="3976.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">RN</text>
+  <text x="2158.3333333333335" y="3975.5" font-size="12" fill="#0f172a" font-weight="bold">Steady-state North Star</text>
+  <text x="2112.3333333333335" y="3992.5" font-size="8.6" fill="#4338ca" font-weight="bold" letter-spacing="0.5">not yet triaged</text>
+  <text x="2112.3333333333335" y="4008.5" font-size="8.4" fill="#475569">The bank's own aggregation platform: direct insurer</text>
+  <text x="2112.3333333333335" y="4021.0" font-size="8.4" fill="#475569">adapters running alongside 1SB, switchable per</text>
+  <text x="2112.3333333333335" y="4033.5" font-size="8.4" fill="#475569">product and per operation, with multi-provider</text>
+  <text x="2112.3333333333335" y="4046.0" font-size="8.4" fill="#475569">fan-out and true quote comparison.</text>
+  <text x="2112.3333333333335" y="4058.5" font-size="8.4" fill="#475569"></text>
+  <text x="2112.3333333333335" y="4071.0" font-size="8.4" fill="#475569">Managed event bus and schema registry where the</text>
+  <text x="2112.3333333333335" y="4083.5" font-size="8.4" fill="#475569">load justifies it. Analytics / BI platform. Commission</text>
+  <text x="2112.3333333333335" y="4096.0" font-size="8.4" fill="#475569">and finance. Partner / open API distribution.</text>
+  <text x="2112.3333333333335" y="4108.5" font-size="8.4" fill="#475569">Optional Motor cell extraction. Per-LOB Redis and</text>
+  <text x="2112.3333333333335" y="4121.0" font-size="8.4" fill="#475569">Aurora clusters where the numbers demand them.</text>
+  <text x="2112.3333333333335" y="4133.5" font-size="8.4" fill="#475569"></text>
+  <text x="2112.3333333333335" y="4146.0" font-size="8.4" fill="#475569">This is a direction of travel, not a plan. Every item</text>
+  <text x="2112.3333333333335" y="4158.5" font-size="8.4" fill="#475569">here needs its own triage, ADR and business case</text>
+  <text x="2112.3333333333335" y="4171.0" font-size="8.4" fill="#475569">before it becomes work.</text>
+  <rect x="40" y="4244.0" width="2480" height="288" rx="10" fill="#f8fafc" stroke="#0f172a" stroke-width="2"/>
+  <rect x="40" y="4244.0" width="2480" height="30" rx="10" fill="#0f172a"/>
+  <rect x="40" y="4264.0" width="2480" height="10" fill="#0f172a"/>
+  <text x="56" y="4265.0" font-size="9.5" fill="#ffffff" font-weight="bold" letter-spacing="1.4">ARCHITECTURE INVARIANTS</text>
+  <text x="300" y="4265.0" font-size="14" fill="#ffffff" font-weight="bold" letter-spacing="0.5">PERMANENT — TRUE IN R0 AND STILL TRUE IN RN. Breaking one of these is a redesign, not a change.</text>
+  <circle cx="73.0" cy="4305.0" r="9" fill="#0f172a"/>
+  <text x="73.0" y="4308.5" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">1</text>
+  <text x="90.0" y="4305.0" font-size="10.2" fill="#0f172a" font-weight="bold">Lead / Opportunity ≠ Journey ≠ Policy</text>
+  <text x="90.0" y="4317.0" font-size="8.5" fill="#475569">One Opportunity may have many Journeys. Renewal and lapse create a NEW Opportunity and a NEW Journey — an old journey is never reopened.</text>
+  <circle cx="1299.0" cy="4305.0" r="9" fill="#0f172a"/>
+  <text x="1299.0" y="4308.5" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">2</text>
+  <text x="1316.0" y="4305.0" font-size="10.2" fill="#0f172a" font-weight="bold">A journey is never owned by a channel</text>
+  <text x="1316.0" y="4317.0" font-size="8.5" fill="#475569">RM, customer, call centre and certified SP are participants on one journey. No RM-Life-Quote-Service and no per-channel journey type.</text>
+  <circle cx="73.0" cy="4335.0" r="9" fill="#0f172a"/>
+  <text x="73.0" y="4338.5" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">3</text>
+  <text x="90.0" y="4335.0" font-size="10.2" fill="#0f172a" font-weight="bold">LOB is an isolation boundary</text>
+  <text x="90.0" y="4347.0" font-size="8.5" fill="#475569">No cross-LOB failure propagation by design. A failed Life release, or an insurer timeout storm in Life, must not affect Health or Motor.</text>
+  <circle cx="1299.0" cy="4335.0" r="9" fill="#0f172a"/>
+  <text x="1299.0" y="4338.5" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">4</text>
+  <text x="1316.0" y="4335.0" font-size="10.2" fill="#0f172a" font-weight="bold">Quote and Proposal are per-LOB — frozen</text>
+  <text x="1316.0" y="4347.0" font-size="8.5" fill="#475569">Life, Health and Motor quote and proposal field shapes are genuinely different. Sharing the service produces the if (lob == …) sprawl we are avoiding.</text>
+  <circle cx="73.0" cy="4365.0" r="9" fill="#0f172a"/>
+  <text x="73.0" y="4368.5" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">5</text>
+  <text x="90.0" y="4365.0" font-size="10.2" fill="#0f172a" font-weight="bold">The insurer owns underwriting</text>
+  <text x="90.0" y="4377.0" font-size="8.5" fill="#475569">The bank owns suitability, product selection and the distribution journey. We track insurer status, requirements and next action; we never decide risk.</text>
+  <circle cx="1299.0" cy="4365.0" r="9" fill="#0f172a"/>
+  <text x="1299.0" y="4368.5" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">6</text>
+  <text x="1316.0" y="4365.0" font-size="10.2" fill="#0f172a" font-weight="bold">1SB is a provider route, not a domain dependency</text>
+  <text x="1316.0" y="4377.0" font-size="8.5" fill="#475569">Provider vocabulary terminates in adapter.&lt;provider&gt;.*. No bank service calls an adapter directly; provider traffic goes through the aggregation layer.</text>
+  <circle cx="73.0" cy="4395.0" r="9" fill="#0f172a"/>
+  <text x="73.0" y="4398.5" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">7</text>
+  <text x="90.0" y="4395.0" font-size="10.2" fill="#0f172a" font-weight="bold">Canonical means per operation × LOB</text>
+  <text x="90.0" y="4407.0" font-size="8.5" fill="#475569">Never one giant InsuranceRequest. A provider identifier is never a bank primary key; a 1SB jobId is never a caller handle.</text>
+  <circle cx="1299.0" cy="4395.0" r="9" fill="#0f172a"/>
+  <text x="1299.0" y="4398.5" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">8</text>
+  <text x="1316.0" y="4395.0" font-size="10.2" fill="#0f172a" font-weight="bold">Consent is evidence, not a boolean</text>
+  <text x="1316.0" y="4407.0" font-size="8.5" fill="#475569">No quote without a valid, unexpired suitability assessment. No proposal without an unexpired consent grant. Both are append-only and immutable.</text>
+  <circle cx="73.0" cy="4425.0" r="9" fill="#0f172a"/>
+  <text x="73.0" y="4428.5" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">9</text>
+  <text x="90.0" y="4425.0" font-size="10.2" fill="#0f172a" font-weight="bold">Money and issuance are guarded</text>
+  <text x="90.0" y="4437.0" font-size="8.5" fill="#475569">Premium payment executes only on the customer's own device. A policy is never issued against a payment that is not RECONCILED.</text>
+  <circle cx="1299.0" cy="4425.0" r="9" fill="#0f172a"/>
+  <text x="1299.0" y="4428.5" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">10</text>
+  <text x="1316.0" y="4425.0" font-size="10.2" fill="#0f172a" font-weight="bold">Regulatory limits are configuration</text>
+  <text x="1316.0" y="4437.0" font-size="8.5" fill="#475569">Insurer-per-class limits, product matrices, channel enablement, ETB/NTB and provider routes are versioned config under maker-checker — never code.</text>
+  <circle cx="73.0" cy="4455.0" r="9" fill="#0f172a"/>
+  <text x="73.0" y="4458.5" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">11</text>
+  <text x="90.0" y="4455.0" font-size="10.2" fill="#0f172a" font-weight="bold">Everything important is auditable</text>
+  <text x="90.0" y="4467.0" font-size="8.5" fill="#475569">Every significant business action emits an event; audit is append-only WORM for 7 years in India regions. Audit is not logging.</text>
+  <circle cx="1299.0" cy="4455.0" r="9" fill="#0f172a"/>
+  <text x="1299.0" y="4458.5" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">12</text>
+  <text x="1316.0" y="4455.0" font-size="10.2" fill="#0f172a" font-weight="bold">Workloads stay private</text>
+  <text x="1316.0" y="4467.0" font-size="8.5" fill="#475569">One public entry point at the edge. No application, database or cache is internet-reachable; provider egress is controlled and allowlistable.</text>
+  <circle cx="73.0" cy="4485.0" r="9" fill="#0f172a"/>
+  <text x="73.0" y="4488.5" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">13</text>
+  <text x="90.0" y="4485.0" font-size="10.2" fill="#0f172a" font-weight="bold">Own the data, be pragmatic about the cluster</text>
+  <text x="90.0" y="4497.0" font-size="8.5" fill="#475569">Database ownership per bounded context is mandatory and cross-service DB access is forbidden. Physical splitting is driven by scale, security and RTO.</text>
+  <circle cx="1299.0" cy="4485.0" r="9" fill="#0f172a"/>
+  <text x="1299.0" y="4488.5" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">14</text>
+  <text x="1316.0" y="4485.0" font-size="10.2" fill="#0f172a" font-weight="bold">Motor must stay extractable</text>
+  <text x="1316.0" y="4497.0" font-size="8.5" fill="#475569">General/Motor is modelled so Motor can become its own cell later without rewriting the platform. Build the seam; defer the split.</text>
+  <text x="40" y="4552.0" font-size="9.6" fill="#334155" font-weight="bold">AI-DRAFTED in the Architecture lane (Mahesh — Board 1, Principal Insurance Platform Architect). Mandatory human T4 Architecture sign-off is OUTSTANDING; this diagram approves nothing and admits nothing.</text>
+  <text x="40" y="4567.0" font-size="9.2" fill="#64748b">Sources · docs/governance/state/CURRENT-STATE.yaml (WS-3 objective, scope, out_of_scope revisit_at, standing constraints) · docs/platform/ws3-platform/00-WS3-ARCHITECTURE-REGISTRATION.md §3 (IF-1/IF-2/IF-3, SC-W3-1…7) · 03-solution-architecture-r0.md §3–§5 (R0 bounded contexts #1–#19, seams S-01…S-19) · 04-security-architecture.md · 05-nfr-catalogue.md · consent and suitability rule packs · target-state design discussion of 2026-08-18/19.</text>
+  <text x="40" y="4581.0" font-size="9.2" fill="#64748b">Reading rule · The R0 band is the executable architecture and the only admitted scope. R1–R4 elements correspond to CURRENT-STATE out_of_scope entries and carry that entry's revisit_at. RN elements have no governance record at all. Nothing on this diagram may be cited as authority to start work: each element still requires AIGEM triage, an owner, and where consequential an ADR and the applicable board reviews.</text>
+  <text x="40" y="4595.0" font-size="9.2" fill="#64748b">Companion artefacts · docs/architecture/r0-reference-architecture.svg is the preserved R0 executable HLD (previously docs/hdl.svg) — the two diagrams answer different questions and neither replaces the other. Next artefact needed: an R0 → R1 → R2 transition and dependency map, so delivery knows the order in which these components must appear.</text>
 </svg>

@@ -46,6 +46,11 @@ platform/          — all-service specs     au-bank-insurance-platform/ — pro
 docs/
 ├── README.md                          ← you are here
 │
+├── hdl.svg                            NORTH STAR — target-state platform HLD, release-coded R0→RN
+├── architecture/                      RENDERED VIEWS — read README.md first
+│   ├── README.md                          Why there are two diagrams and which is binding
+│   └── r0-reference-architecture.svg      R0 executable architecture (the admitted scope)
+│
 ├── governance/                        PROCESS — how work is admitted, gated & recorded
 │   ├── RUNBOOK.md                         Operating manual — role cards, cadences
 │   ├── 00–19 …                            Decision pipeline, priority, review gates
@@ -106,6 +111,7 @@ docs/
 | **Asking "what stage are we in, and what does it require?"** | [`application-lifecycle-bible/README.md`](./application-lifecycle-bible/README.md) — position banner, then the current stage file |
 | **Product Owner / BA** | [`au-bank-insurance-platform/07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md`](./au-bank-insurance-platform/07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md) — the business MVP SSOT |
 | **Solution Architect** | [`platform/architecture-review/README.md`](./platform/architecture-review/README.md) — target-state platform architecture |
+| **Wanting the picture, not the prose** | [`architecture/README.md`](./architecture/README.md) — the North Star HLD ([`hdl.svg`](./hdl.svg)) and the R0 architecture, and why they are two diagrams |
 | **Building the 1SB adapter** | [`1sb-insurance-integration/service-ssot/README.md`](./1sb-insurance-integration/service-ssot/README.md) |
 | **Building auth / identity services** | [`platform/authentication-authorization/README.md`](./platform/authentication-authorization/README.md) |
 | **QA / test engineer** | [`1sb-insurance-integration/service-ssot/QA-LEAD-TESTING-STRATEGY.md`](./1sb-insurance-integration/service-ssot/QA-LEAD-TESTING-STRATEGY.md) + [`TESTING-RULES.md`](./1sb-insurance-integration/service-ssot/TESTING-RULES.md) |
@@ -160,6 +166,10 @@ Three rules that are easy to get wrong:
 - **`1sb-insurance-integration/` is one module, not the platform.** It is a thin adapter for
   a single aggregator. Where it and `platform/architecture-review/` appear to conflict, the
   review places the adapter inside the bigger picture — it does not discard it.
+- **Diagrams are rendered views, never sources of truth.** [`hdl.svg`](./hdl.svg) and
+  [`architecture/`](./architecture/README.md) render the documents above; where a diagram and a
+  document disagree, the document wins. `hdl.svg` in particular is *target state*: only its R0
+  band is admitted scope, and nothing on it authorises work.
 
 ---
 

@@ -21,6 +21,14 @@ The detailed operating model is modularized here:
 
 Those files are supporting modules of this same persona, not another architect persona.
 
+**For target-state, vision, segregation or HLD questions**, the package carries a separate doctrine
+set (modules `09`–`16`, package v1.2) built on the North Star capability method: *capability before
+service, ownership before deployment, diagram last*. Start at
+[`09-target-state-architecture-doctrine.md`](./mahesh-principal-insurance-platform-architect/09-target-state-architecture-doctrine.md)
+for horizons and invariants, then
+[`10-north-star-capability-model.md`](./mahesh-principal-insurance-platform-architect/10-north-star-capability-model.md)
+before any diagram is drawn or updated.
+
 ---
 
 ## 2. Project-specific platform context

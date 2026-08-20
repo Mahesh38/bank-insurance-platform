@@ -17,6 +17,12 @@ This folder points at materials that inform the AU Bank product reset.
 | [../../1sb-insurance-integration/02-rm-assisted-bank-checklist.md](../../1sb-insurance-integration/02-rm-assisted-bank-checklist.md) | Checklist → discovery questions |
 | [../../1sb-insurance-integration/service-ssot/00-po-architect-design-session.md](../../1sb-insurance-integration/service-ssot/00-po-architect-design-session.md) | Prior PO↔Architect decisions — **reopen for AU Bank** |
 
+## Stakeholder architecture input (transcribed, non-binding)
+
+| Link | Notes |
+|------|-------|
+| [2026-08-20-north-star-architecture-brainstorming-notes.md](./2026-08-20-north-star-architecture-brainstorming-notes.md) | `VIN-001` — North Star capability model, LOB/journey segregation, orchestration and shared-capability notes. **Reference only.** Reconciled against accepted decisions in [`10-north-star-capability-model.md §9`](../../context/roles/mahesh-principal-insurance-platform-architect/10-north-star-capability-model.md) |
+
 ## External
 
 | Link | Notes |

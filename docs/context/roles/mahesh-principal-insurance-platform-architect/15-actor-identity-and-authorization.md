@@ -79,7 +79,7 @@ never merged into one directory.**
 |---|---|---|---|---|
 | **Workforce** | Bank employees: RM, branch, ops, admin, call centre (bank-employed) | **Bank AD**, brokered | H0 | Never mastered in the platform |
 | **Customer** | Retail customers on DIY and hybrid journeys | Platform customer identity, linked to `CAP-101` Party | H1 | **Never in AD.** Putting customers in the corporate directory is a security and lifecycle failure with no upside |
-| **Partner** | Insurer representatives, certified sales partners, outsourced call-centre agents | Platform `identity-authorization-service`, provisioned to the IdP after **maker-checker**; separate realm/broker | H0 (insurer reps) / H1 (SP) | Never federated into bank AD |
+| **Partner** | Insurance Partner Representatives (insurer employees), externally certified sales partners, outsourced call-centre agents | Platform `identity-authorization-service`, provisioned to the IdP after **maker-checker**; separate realm/broker | H0 (IPR) / H1 (external certified partners) | Never federated into bank AD; never granted a regulated action without the certification the action requires |
 | **Service** | Workloads authenticating to each other | Workload identity + mTLS, secrets/KMS | H0 | Never a human account, never a shared credential |
 
 `ARCH-022` already records the partner pattern: partner identities are created in Identity & Access
@@ -113,7 +113,7 @@ inventing a second one:
 authorization_request:
   subject:
     subjectId: "..."
-    actorType: BANK_EMPLOYEE | CUSTOMER | INSURER_REP | CERTIFIED_SP | CALL_CENTRE_AGENT | SERVICE
+    actorType: BANK_RM | BANK_EMPLOYEE | CUSTOMER | INSURER_PARTNER_REP | CALL_CENTRE_AGENT | SERVICE
     roles: []
     certifications: []          # type, issuer, validity window — see §5
     branchCodes: []
@@ -127,11 +127,28 @@ authorization_request:
     assignedUserIds: []
     branchCode: "..."
   context:
-    channel: RM_WORKSPACE | CUSTOMER_DIY | CALL_CENTRE | CERTIFIED_SP | BRANCH
+    channel: RM_WORKSPACE | PARTNER_WORKSPACE | CUSTOMER_DIY | CALL_CENTRE | BRANCH
     journeyStage: "..."          # some actions are only lawful at some stages
     assistanceMode: "..."
     correlationId: "..."
 ```
+
+**Rule ID-15a — a certification is never an actor type and never a channel.** `CERTIFIED_SP` was
+listed in both enumerations above until 2026-08-20 and is removed from both. The bank RM **is** the
+certified Specified Person; SP is certification state on that principal — certificate number,
+issuing authority, LOB scope, validity window, status — carried in `subject.certifications` and
+evaluated per action (`ID-20`). A certification modelled as an actor produces two principals for one
+human and two attribution trails for one sale, and it makes "may assist but may not sell"
+inexpressible. An externally certified *sales partner* at a later horizon is a partner-plane actor
+type that also holds a certification; that is a different thing from the RM's SP status, and it
+does not license reinstating `CERTIFIED_SP` as a synonym for either.
+
+**Rule ID-15b — `INSURER_PARTNER_REP` is assist-only and insurer-scoped.** The insurer's employee
+assists an RM or a customer; they are not a Specified Person, hold no regulated-sales action, and
+see only their own insurer's records, only once the RM has completed need analysis and suitability.
+The accountable SP on a record is the originating RM and is immutable. Normative statement:
+[`ws3-platform/01 §2.4`](../../../platform/ws3-platform/01-domain-model-and-invariants.md); decision
+`ADR-004`.
 
 **Rule ID-16 — precedence is fixed and non-negotiable:**
 
@@ -185,7 +202,7 @@ inherit the RM's.
 | Horizon | What changes | What must not change |
 |---|---|---|
 | **H0** | Workforce via AD federation; insurer reps as partner identities; PDP live and fail-closed | `ID-01`–`ID-11` |
-| **H1** | Customer identity context for DIY; certified SP and call-centre actor types; certification enforcement | AD stays authoritative for workforce; customers never enter AD; one PDP |
+| **H1** | Customer identity context for DIY; call-centre actor type; externally certified sales-partner actor type in the partner plane; certification enforcement widens | AD stays authoritative for workforce; customers never enter AD; one PDP; a certification never becomes an actor type (`ID-15a`) |
 | **H2** | LOB scope becomes a real authorization dimension as Health arrives; hybrid handover authorization | Precedence order; default deny; server-side attribution |
 | **H3** | Additional partner channels; broader delegated administration | Four planes stay separate; no shared credentials; no second PDP |
 
@@ -210,6 +227,8 @@ detail — and Mahesh says so before the work is scheduled.
 | Caller-supplied `distributorId`/`agentId` | Attribution forgeable; `C3` defeated | `ID-19`, `FF-13` |
 | A service per actor type | Divergent rules per channel | `ID-22` |
 | Certification checked at login only | An expiry mid-journey goes unnoticed | `ID-20` — check at the action |
+| A certification modelled as an actor type or a channel | Two principals and two attribution trails for one human; assist-but-not-sell becomes inexpressible | `ID-15a` — certification is an attribute on the principal |
+| A partner principal scoped in the service or presentation tier | One forgotten predicate is a silent cross-insurer disclosure | `ID-15b`, `AC-5` — scope where the query is built |
 | Shared service credentials | No attribution, no revocation, no blast-radius control | `ID-12` service plane |
 
 ---

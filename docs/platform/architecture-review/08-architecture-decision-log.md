@@ -21,12 +21,18 @@
 | ARCH-020 | Authorization uses **default-deny RBAC + ABAC + relationship rules** with suspension and explicit denial taking precedence over grants | Accepted | Roles alone cannot safely express insurer tenancy, multi-branch scope, hierarchy, assignment, sharing, or certification gates | See `docs/platform/authentication-authorization/README.md` |
 | ARCH-021 | Phase 1 workforce identity comprises three custom services: `workforce-access-bff`, `identity-provider-adapter-service`, and `identity-authorization-service`; Keycloak is a separate infrastructure workload | Accepted | Separates public session handling, provider-specific integration, and business authorization/data ownership | See `docs/platform/authentication-authorization/README.md` |
 | ARCH-022 | Partner identities are created in Identity & Access and provisioned to the IdP after maker-checker approval; RM certification is sourced from AD, while insurer-representative certification is optional and admin-uploaded in Phase 1 | Accepted | Preserves a provider-independent business source of truth and supports later mandatory partner qualification without redesign | See `docs/platform/authentication-authorization/README.md` |
+| ARCH-023 | R0 has **two** on-platform actors — Bank RM and Insurance Partner Representative. **Specified Person is a certification attribute on the RM principal**, not an actor type and not a channel; the R0 actor-type vocabulary is closed at `BANK_RM`, `INSURER_PARTNER_REP`, `SERVICE` | Proposed | A certification modelled as an actor produces two principals and two audit trails for one human, and makes "may assist but may not sell" inexpressible | Promoted to **ADR-004**; supersedes the `CERTIFIED_SP` actor type in `15 §4` |
+| ARCH-024 | The **opportunity is the single origination point**, creatable only by a `BANK_RM`; every downstream module consumes it. Context #5 moves from deferred-to-S13 into R0 Wave 1 | Proposed | Reconciles the architecture document with `CURRENT-STATE.yaml` `in_scope`, and removes the second funnel entry a customer-lookup start would have created | Promoted to **ADR-005**; amends the build order in `ws3-platform/03 §3` |
+| ARCH-025 | Partner visibility is **gated and insurer-scoped at the persistence layer** — invisible until the RM completes need analysis and suitability, never across `insurer_id`, absent from result sets rather than refused by identifier | Proposed | A control in the service or presentation tier is one direct call away from absent; a `403` on a named id is itself a disclosure | Promoted to **ADR-004**; extends ARCH-020 |
+| ARCH-026 | **`lob` is a first-class dimension from release 1** — mandatory and non-null on every business entity, configuration record, audit event and authorization request; vocabulary frozen at `LIFE` / `HEALTH` / `GENERAL`; `lob` and `productClass` are separate | Proposed | Health and General follow R0 on the same template. The dimension is free to carry now and is a migration across every table on the sale path later | Promoted to **ADR-006**; corrects `ws3-platform/02 §4.2`, which recorded `lob = TERM` |
+| ARCH-027 | **The configuration layer ships in R0 without an administration UI** — one LOB-partitioned, append-only, effective-dated store with source-controlled seeds and a resolution contract; no business branch on an insurer, product, LOB or channel literal; no compiled-in fallback | Proposed | Extends ARCH-010 from compliance-sensitive behaviour to the whole R0 behaviour surface, and withdraws the earlier trade under which a rule-pack change required a deployment | Promoted to **ADR-007**; supersedes the R0 configuration trade in `ws3-platform/03 §3` |
 
 ## What this review deliberately did **not** decide
 
 - Exact consent sequencing/wording (compliance R&D dependency, D-011 — pending).
 - Exact IRDAI/RBI regulatory control mapping (pending; Audit & Compliance is built to capture a superset of evidence so it can absorb the answer).
-- Insurance advisor/agent identity model specifics (D-008 — pending; kept behind an interface so the model can change independently).
+- Insurance advisor/agent identity model specifics (D-008 — pending; kept behind an interface so the model can change independently). *ARCH-023 fixes the R0 actor set and the certification model; it does not resolve D-008's wider advisor/agent question.*
+- Where assistance ends and solicitation begins for a non-SP partner employee. ARCH-023 and ARCH-025 build the gate and ship it default-deny; the threshold is Shailja's determination (OPEN-D9).
 - Final PII/audit retention periods and data residency confirmation (pending; see [06](./06-security-compliance-and-nfrs.md)).
 - Branch kiosk journey (explicitly deferred pending a business decision per `DECISION-LOG.md`).
 
@@ -290,12 +296,320 @@ approval conditions AR-S08-1…5 are in
 
 ---
 
-## Signature status for ADR-001 — ADR-003
+## ADR-004 — Two R0 actors; Specified Person is a certification, not an actor; the partner is assist-only, gated and insurer-scoped
 
-All three records are **`AI-DRAFTED — mandatory human signature outstanding`**. ADR-002 is
+```yaml
+id: ADR-004
+status: PROPOSED
+problem: >
+  The R0 design read as a single-actor model with "Certified SP" appearing alongside the RM as
+  though it were a separate actor and, in the persona doctrine's authorization contract, a separate
+  actorType and channel value. It is neither: the RM *is* the certified Specified Person, and SP is
+  an eligibility attribute on that principal. Modelling it as an actor produces two principals for
+  one human and two attribution trails for one sale. Separately, the Insurance Partner
+  Representative — an insurer's employee who assists the RM or the customer on the platform — had
+  no distinct model at all, which left three questions unanswered: what may a non-certified partner
+  employee do, what may they see, and how is their activity distinguished from the accountable SP's
+  in the record IRDAI reads.
+context_stage: "WS-3 at S08; R0 design artefacts unsigned, nothing implemented"
+decision: >
+  R0 has exactly two on-platform human actors. BANK_RM is the certified Specified Person and the
+  accountable party on every record; SP certification is modelled as certification state on the RM
+  profile — certificate number, issuing authority, LOB scope, validity window, status — sourced
+  from Identity and Access and evaluated at the instant of each regulated action rather than at
+  login. INSURER_PARTNER_REP is an insurer's employee, provisioned as a partner-plane principal
+  after maker-checker, and is assist-only: no regulated-sales grant at any journey stage, no
+  origination right, own-insurer product view and selection, and gated read. The accountable SP on
+  a record is written once at origination and is immutable for the record's life; no partner
+  action, assignment or handover moves it. Partner reads are gated on the RM having created the
+  opportunity and completed need analysis and suitability, and scoped to the partner's own
+  insurer_id, both applied as mandatory predicates at the persistence layer rather than in a
+  service filter or the UI. Out-of-scope records are absent from result sets, never refused by
+  identifier. Every partner action is audited with acting_capacity ASSIST_ONLY, actor_insurer_id
+  and assisted_actor_id. The R0 actor-type vocabulary is closed at BANK_RM, INSURER_PARTNER_REP and
+  SERVICE; CERTIFIED_SP is removed as an actor type and as a channel value.
+authority_class: A3_JOINT_REVIEW
+alternatives:
+  - option: "Keep CERTIFIED_SP as an actor type for forward compatibility with H1 sales partners"
+    rejected_because: >
+      It conflates the certification with the principal that holds it. A genuine external certified
+      sales partner at H1 is a new actor type in the partner plane that also carries a
+      certification; it is not the same thing as the bank RM's SP status. Carrying the wrong
+      abstraction now to serve a horizon that has not arrived is how the RM ends up with two
+      identities.
+  - option: "Enforce partner scoping in the BFF or the service layer"
+    rejected_because: >
+      Every service re-check is one forgotten predicate away from a cross-insurer disclosure, and
+      the failure is silent. Applying it where the query is built means an unscoped read cannot be
+      written, which is the difference between a control and a convention (TI-15, ID-17).
+  - option: "Return 403 for records outside the partner's scope"
+    rejected_because: >
+      A refusal that names an identifier confirms that identifier exists. Enumeration of another
+      insurer's pipeline is exactly the disclosure the scoping rule exists to prevent.
+  - option: "Give the IPR a limited sales grant under RM supervision"
+    rejected_because: >
+      The IPR is not a Specified Person. A supervised sales grant is still solicitation performed
+      by an uncertified party, and no audit design makes that lawful. Assistance and sale must be
+      distinguishable in the record, not blended in it.
+consequences:
+  positive:
+    - "One human, one principal, one attribution trail — the solicitation record is single-threaded to one accountable SP"
+    - "'May assist but may not sell' becomes expressible, which a URL-shaped or role-only permission model cannot express"
+    - "Cross-insurer disclosure becomes structurally hard rather than review-dependent"
+    - "Adding the customer, the call centre or an external certified partner later is an authorization change, not an architecture change (JS-08)"
+  negative:
+    - "The persistence layer gains a mandatory-predicate mechanism that every repository must go through — real engineering cost in W0/W1"
+    - "Certification is evaluated per action, not per session; the certification lookup becomes a fail-closed dependency on every regulated path"
+    - "The partner surface needs its own product-selection and assistance UX even though it shares every service"
+compliance_impact: >
+  Material and intended. IRDAI corporate-agency distribution requires attribution to the certified
+  Specified Person. This decision makes the accountable SP immutable, makes uncertified assistance
+  separately attributable, and denies the uncertified actor every regulated action by default.
+  Which assistance actions remain lawful for a non-SP is Shailja's determination, not Architecture's
+  — recorded as OPEN-D9 and shipped default-deny until she sets it.
+security_impact: >
+  Adds a fourth principal class (Partner) with its own realm and grant set, and a non-enumeration
+  requirement on the partner read path. Requires Deepali's review.
+reversibility: LOW
+revisit_trigger: >
+  A business decision to admit an externally certified sales partner as an on-platform actor; or a
+  compliance determination that widens or narrows the assist-only action set.
+approvals:
+  - "Mahesh / Architecture — AI-DRAFTED, human signature outstanding"
+  - "Deepali / Security — required (new principal class, trust boundary, non-enumeration)"
+  - "Shailja / Compliance — required (the assist-only threshold, OPEN-D9)"
+  - "Rajal / Product — required (whether the bank supports the IPR actor at all, 15 section 8)"
+```
+
+---
+
+## ADR-005 — The opportunity is the single origination point, and only the RM may create it
+
+```yaml
+id: ADR-005
+status: PROPOSED
+problem: >
+  Two things were wrong at once. The build order in ws3-platform/03 deferred context #5 to S13 and
+  started journeys from a customer lookup, while CURRENT-STATE.yaml current_scope.in_scope lists
+  "Lead service (context #5) — create, resume, status" as R0 scope — an architecture document
+  disagreeing with the ratified state file. And starting a journey from a lookup creates a second
+  entry into the funnel: a journey with no origination record has no accountable SP, no lob and
+  nothing for a conversion metric or an audit reconstruction to hang from.
+context_stage: "WS-3 at S08; R0 build order unsigned; no service implemented"
+decision: >
+  Context #5 is the single origination point for R0 and moves into Wave 1. Its aggregate is the
+  opportunity: the record answering why we are contacting this person. Only a BANK_RM principal may
+  create one, for a customer inside their own ETB book, carrying a non-null lob covered by the
+  creator's SP certification. An INSURER_PARTNER_REP has no create right on any path. Every
+  downstream aggregate — journey, suitability assessment, consent grant, quote, proposal, payment,
+  policy — carries the originating reference and cannot be created without it. There is no parallel
+  origination path in MVP: no BFF-created journey, no quote outside an opportunity, no proposal
+  assembled independently. What remains deferred to S13 is sales-management breadth on top of
+  origination — campaigns, bulk import, ageing policy — which adds no journey capability.
+context_naming: >
+  The North Star capability model calls this record the Opportunity (CAP-102). CURRENT-STATE.yaml,
+  the BRD and the S03 acceptance criteria call the context Lead and its identifier leadId. The
+  architecture documents keep the registered, Product-owned labels and state normatively that they
+  denote the opportunity. Re-labelling is Rajal's, is behaviour-neutral, and is recorded as
+  OPEN-D10. The identifier is not the point; the single-origination rule is.
+authority_class: A2_NOTIFY
+alternatives:
+  - option: "Keep context #5 deferred and start journeys from a customer lookup"
+    rejected_because: >
+      It contradicts the ratified state file, and it produces journeys with no origination record.
+      Every question a pilot must answer — conversion rate, who owned the sale, what the RM was
+      certified for at the time — is asked of the opportunity, not the journey.
+  - option: "Let the BFF mint an opportunity implicitly on first journey action"
+    rejected_because: >
+      An implicit origination is an origination whose actor, certification check and lob were never
+      validated. It also puts business creation logic in the edge, which ARCH-005 exists to prevent.
+  - option: "Allow the IPR to create an opportunity that the RM then adopts"
+    rejected_because: >
+      Origination by an uncertified insurer employee is solicitation regardless of who adopts it
+      afterwards, and the adoption step would rewrite the accountable SP that ADR-004 makes
+      immutable.
+consequences:
+  positive:
+    - "One entry to the funnel; every downstream module has an origination record to consume"
+    - "Architecture document and ratified scope agree again — a live drift is closed"
+    - "Conversion measurement, SP attribution and audit reconstruction all have a root object"
+  negative:
+    - "One more service in Wave 1, against a build order deliberately kept minimal"
+    - "Every downstream aggregate gains a mandatory reference, which is a schema constraint on seven aggregates"
+compliance_impact: >
+  Positive. Attribution to the accountable Specified Person begins at origination rather than being
+  reconstructed later.
+security_impact: >
+  Adds an origination authorization check; no new trust boundary.
+reversibility: MEDIUM
+revisit_trigger: >
+  Admission of a non-RM origination channel — campaign, self-service or partner — which is an R1+
+  scope decision for Rajal, not an architecture preference.
+approvals:
+  - "Mahesh / Architecture — AI-DRAFTED, human signature outstanding"
+  - "Rajal / Product — required (build-order change and the Lead/Opportunity label, OPEN-D10)"
+  - "Kalpana / Delivery — notify (Wave 1 grows by one service)"
+```
+
+---
+
+## ADR-006 — Line of business is a first-class dimension from release 1
+
+```yaml
+id: ADR-006
+status: PROPOSED
+problem: >
+  R0 sells one Term Life product, and the R0 model treats the line of business accordingly: the
+  information model recorded lob = TERM on the opportunity, conflating the line with the product
+  class, and no document required lob on configuration, audit or authorization records. Health and
+  General follow R0 on the same template. A dimension that is absent from the schema when the second
+  line arrives is not a design change; it is a backfill across every table on the sale path, with an
+  audit history that cannot be backfilled at all because nobody recorded which line those events
+  belonged to.
+context_stage: "WS-3 at S08; no migration written, no service implemented"
+decision: >
+  lob is mandatory and non-null on every business entity, every configuration record, every audit
+  event and every authorization request, from the first migration. The vocabulary is frozen at
+  LIFE, HEALTH and GENERAL; R0 populates LIFE only and the other two exist unpopulated in the
+  enumeration, the configuration partitioning and the authorization model. lob and productClass are
+  distinct attributes — lob = LIFE, productClass = TERM — which corrects the information model.
+  Everything that varies by line is partitioned on lob from release 1: product and eligibility,
+  journey step definitions, business rules, field validations, document checklists, commission and
+  routing policy. Partitioning is not forking: party, opportunity, consent evidence, journey
+  identity, payment mechanics, document storage, policy portfolio and audit stay shared and
+  single-instance.
+authority_class: A1_AUTONOMOUS
+alternatives:
+  - option: "Add lob when Health is admitted"
+    rejected_because: >
+      It is a migration across every table on the sale path plus an audit history that cannot be
+      corrected, because the line each historical event belonged to was never recorded. This is the
+      textbook case of a dimension that is free now and unaffordable later.
+  - option: "Leave lob nullable and default it to LIFE"
+    rejected_because: >
+      A nullable dimension with a default is a dimension that is silently wrong for every row
+      written before anyone noticed. A missing lob must be a rejection, not an inference.
+  - option: "Fork a Life service now and clone it for Health"
+    rejected_because: >
+      LS-02: the default is shared, and splitting carries the evidence burden. Three
+      implementations of consent, suitability and audit is the failure mode the LOB cell model
+      exists to prevent — LOB is an isolation boundary, not three platforms with one logo.
+consequences:
+  positive:
+    - "Adding Health becomes a cell plus configuration rather than a schema migration"
+    - "Per-LOB isolation, scaling and release independence stay reachable at H2 without redesign"
+    - "The frozen vocabulary makes the LOB-onboarding acceptance test answerable at H0, before a second line exists to reveal the problem"
+  negative:
+    - "Every migration, every entity and every event schema carries a column R0 never varies"
+    - "Configuration seeds must be authored per LOB even where only one is populated"
+    - "Physical partitioning strategy becomes a real decision for the DBA rather than a deferred one"
+compliance_impact: >
+  Positive. Regulatory attribution and evidence reconstruction are per line of business; audit
+  records without lob cannot be segmented for a line-specific regulatory question.
+security_impact: >
+  lob becomes an authorization dimension — SP certification is scoped to the lines it covers, and
+  an out-of-scope line is a refusal (INV-ACT-01).
+reversibility: LOW
+revisit_trigger: >
+  A vocabulary change — a fourth top-level line the LIFE/HEALTH/GENERAL split cannot express.
+approvals:
+  - "Mahesh / Architecture — AI-DRAFTED, human signature outstanding"
+  - "Aarti / Database — required (physical partitioning strategy, OPEN-I6)"
+```
+
+---
+
+## ADR-007 — The configuration layer ships in R0, and it is independent of any front end
+
+```yaml
+id: ADR-007
+status: PROPOSED
+problem: >
+  ARCH-010 already required compliance-sensitive behaviour to be configuration-driven, but the R0
+  build order delivered Administration and Config as versioned artefacts consumed at startup, and
+  accepted that a rule-pack change would require a deployment until S13. Two things follow from
+  that trade and neither is acceptable. The deployment pipeline becomes the rule-change mechanism,
+  which is the coupling the configuration-first principle exists to remove. And a service written
+  before the configuration layer exists is a service that branches on product and insurer literals
+  in code — and those branches are never removed afterwards, because by then something depends on
+  each of them.
+context_stage: "WS-3 at S08; no business service implemented"
+decision: >
+  The configuration layer ships in R0 as a Wave 0b component, built first after the S08/S09
+  foundation gate: one store, LOB-partitioned,
+  append-only and versioned, with effective-dated activation windows, source-controlled idempotent
+  seeds, and a resolution contract that every service consumes through a port. The configuration
+  domains are enumerated as a closed list — product and plan definitions, product eligibility,
+  journey step definitions and transitions, business rule packs, field validation rules, document
+  checklists, role-to-permission grants including the partner gate, commission (namespace reserved,
+  no consumer until R1), provider routing policy and attribution values. No business path branches
+  on an insurer, product, LOB or channel literal; code that differs per provider lives only in that
+  provider's adapter package. There is no compiled-in fallback: a service that cannot resolve its
+  rules refuses the action. Every business record stores the configuration version that governed
+  it. This decision is explicitly independent of front-end availability — there is no admin UI in
+  R0, there may be none in R1, and administrators may have no interface at all. The UI is a later
+  consumer of a layer that already exists.
+authority_class: A1_AUTONOMOUS
+alternatives:
+  - option: "Keep the startup-artefact trade and build the config service at S13"
+    rejected_because: >
+      It makes a deployment the mechanism for a compliance rule change, and it guarantees that the
+      services built in W1 to W4 contain the hardcoded branches the principle forbids. The debt
+      would be discovered the first time Compliance changed a consent statement.
+  - option: "Build the config service together with its admin UI, or not at all"
+    rejected_because: >
+      This is the coupling the review comment specifically rejects. The UI is a convenience for
+      administrators; the layer is a structural property of the platform. Tying the second to the
+      first means the rules live in code until someone funds a screen.
+  - option: "Feature flags for the varying behaviour"
+    rejected_because: >
+      Flags are boolean and unversioned. They cannot express an effective-dated eligibility matrix,
+      a versioned consent statement pack or an LOB-partitioned document checklist, and they leave no
+      record of which rule governed a seven-year-old decision.
+consequences:
+  positive:
+    - "A rule change is a seeded version plus an activation, not a release"
+    - "Services are written against a resolution port from their first line, so the hardcoded branch never appears"
+    - "A business record remains explicable under the rules in force when it was created — which is what a seven-year evidence obligation actually requires"
+    - "The admin UI, whenever it is funded, is a consumer of an existing contract rather than a re-platforming"
+  negative:
+    - "One more service (Wave 0b) before any business capability is delivered"
+    - "Every service gains a fail-closed dependency on configuration resolution"
+    - "Seed authoring becomes a real engineering discipline, including per-LOB seeds for lines that are unpopulated"
+compliance_impact: >
+  Positive and material. Consent statement packs, suitability questionnaires and retention policy
+  become versioned, effective-dated and independently evidenced, and the version that governed any
+  business record is recoverable for the full retention horizon.
+security_impact: >
+  Role-to-permission grants become configuration, so the configuration store becomes an
+  authorization-relevant asset: write access, seed provenance and change attribution require
+  Deepali's review.
+reversibility: MEDIUM
+revisit_trigger: >
+  Evidence that the resolution path cannot meet its latency budget under real load, which would
+  reopen the caching and materialisation design — not the configuration-first principle.
+approvals:
+  - "Mahesh / Architecture — AI-DRAFTED, human signature outstanding"
+  - "Deepali / Security — required (configuration as an authorization-relevant asset)"
+  - "Shailja / Compliance — required (rule-pack versioning and evidence)"
+  - "Kalpana / Delivery — notify (a new Wave 0b lands before Wave 1)"
+```
+
+---
+
+## Signature status for ADR-001 — ADR-007
+
+All seven records are **`AI-DRAFTED — mandatory human signature outstanding`**. ADR-002 is
 `A4_HUMAN_REQUIRED`: it is a material scope and stage decision and an AI simulation of Mahesh must
 not finalise it. None of these ADRs is `ACCEPTED` until the approvals listed in each record are
 present, and none of them becomes binding merely because CR-010's checks pass or its branch is
 mergeable.
 
-**Signed:** Mahesh — Principal Insurance Platform Architect (Board 1 / R2) · 2026-08-16
+ADR-004 is `A3_JOINT_REVIEW`: it creates a principal class and a trust boundary, so Deepali's
+Security review is not optional, and its assist-only threshold is Shailja's to set (OPEN-D9).
+ADR-005 changes the R0 build order and a Product-owned scope label, so Rajal's decision is
+required. ADR-004 through ADR-007 were raised by the 2026-08-20 HLD review round and are recorded
+under `SUG-20260820-hr0`.
+
+**Signed:** Mahesh — Principal Insurance Platform Architect (Board 1 / R2) · 2026-08-16 ·
+**revised** 2026-08-20

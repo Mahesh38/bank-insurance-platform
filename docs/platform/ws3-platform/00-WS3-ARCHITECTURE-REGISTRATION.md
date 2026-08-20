@@ -8,6 +8,9 @@
 `CURRENT-STATE.yaml`; I do not edit that file** ([`04-GATE-AND-SIGNOFF-MODEL.md §4`](../../application-lifecycle-bible/04-GATE-AND-SIGNOFF-MODEL.md):
 only Mahesh + Rajal jointly, as humans, may edit it).
 
+**Revision 2026-08-20 — HLD review round R0-actors/LOB/configuration** (`SUG-20260820-hr0`):
+§6 adds standing constraints SC-W3-8…SC-W3-12; §7.5 carries the matching lines for transcription.
+
 ---
 
 ## 1. What is being registered, and why it is an architecture matter
@@ -213,8 +216,9 @@ to record; her verdict is authored separately by Rajal's lane.
 
 ## 6. Standing constraints WS-3 adds
 
-Existing standing constraints are unchanged and remain binding. WS-3 adds seven. Each is
-SF4/REJECT-class: violating one is not a design debate.
+Existing standing constraints are unchanged and remain binding. WS-3 adds twelve — seven at
+registration and five added by the 2026-08-20 HLD review round. Each is SF4/REJECT-class: violating
+one is not a design debate.
 
 | # | Constraint | Enforced by |
 |---|---|---|
@@ -225,10 +229,27 @@ SF4/REJECT-class: violating one is not a design debate.
 | SC-W3-5 | **No WS-3 service calls a provider adapter directly; all provider traffic routes through the Integration Hub** | ArchUnit + network policy |
 | SC-W3-6 | **Journey Orchestration holds stage and references only — never another context's business decision** | INV-JRN-02 · FF-04 |
 | SC-W3-7 | **Render.com is dev-preview only and is never a data path for PII, production or production-like data** | ADR-001 · control C6 |
+| SC-W3-8 | **Only a `BANK_RM` principal may originate an opportunity, and every downstream record consumes that one opportunity** — no BFF, service or partner path creates a second way into the funnel | INV-LED-04 · INV-LED-06 · FF-16 · ADR-005 |
+| SC-W3-9 | **An `INSURER_PARTNER_REP` holds no regulated-sales grant at any journey stage, and the accountable Specified Person on a record is the originating RM and is immutable** | INV-ACT-02 · INV-ACT-03 · ADR-004 |
+| SC-W3-10 | **Partner reads are gated and insurer-scoped at the persistence layer** — a record is invisible until the RM has completed need analysis and suitability, and never crosses `insurer_id` | INV-LED-07 · FF-17 · ADR-004 |
+| SC-W3-11 | **`lob` is mandatory and non-null on every business entity, configuration record, audit event and authorization request, and never carries a product class** | INV-LOB-01 · INV-LOB-02 · FF-19 · ADR-006 |
+| SC-W3-12 | **No business code path branches on an insurer, product, LOB or channel literal; behaviour that varies is resolved from versioned configuration, and there is no compiled-in fallback** | INV-CFG-01 · INV-CFG-02 · FF-18 · FF-20 · ADR-007 |
 
 SC-W3-1 through SC-W3-4 are restatements of non-waivable regulatory controls at the architecture
 layer. They are listed as standing constraints so that AIGEM triage rejects a violating item in
 three steps rather than discovering it at a review board.
+
+SC-W3-8 through SC-W3-12 come from the 2026-08-20 HLD review round. SC-W3-9 and SC-W3-10 carry a
+regulatory obligation — an assist-only, non-SP partner employee must not become a solicitation path
+— and are therefore in the same non-waivable class. SC-W3-11 and SC-W3-12 are structural: both are
+free to hold now and become a migration across every table on the sale path once a second line of
+business or a second insurer exists. Listing them here is what stops "we will add LOB later" and
+"we will make it configurable later" from being triaged as reasonable.
+
+**Note for `CURRENT-STATE.yaml`.** The five new constraints belong in the `standing_constraints`
+block alongside the seven already transcribed there. That file's stage-adjacent fields are
+orchestrator-owned; §7.5 below carries the exact lines to append. This is the request, not the
+edit.
 
 ---
 
@@ -377,6 +398,12 @@ orchestrator-owned this increment; I propose the content and do not write it.
   - "No platform service calls a provider adapter directly; provider traffic routes through the Integration Hub"
   - "Journey Orchestration holds stage and references only, never another context's business decision"
   - "Render.com is dev-preview only and is never a data path for PII or production-like data"
+  # --- added by the 2026-08-20 HLD review round (SUG-20260820-hr0) ---
+  - "Only a BANK_RM principal may originate an opportunity; every downstream record consumes that one opportunity"
+  - "An INSURER_PARTNER_REP holds no regulated-sales grant, and the accountable Specified Person on a record is the originating RM and is immutable"
+  - "Partner reads are gated on completed need analysis and suitability and scoped to the partner's own insurer_id at the persistence layer"
+  - "lob is mandatory and non-null on every business entity, configuration record, audit event and authorization request, and never carries a product class"
+  - "No business code path branches on an insurer, product, LOB or channel literal; behaviour that varies is resolved from versioned configuration"
 ```
 
 ### 7.6 Routing table for WS-3 — insert **before** the `WS-1:` key under `routing:`
@@ -441,4 +468,4 @@ G10). Owners are as in §7.1. Content is proposed here; the file is orchestrator
 
 **Signed:** Mahesh — Principal Insurance Platform Architect (Board 1 / R2)
 **signature_status:** `AI-DRAFTED — mandatory human signature outstanding`
-**Date:** 2026-08-16
+**Date:** 2026-08-16 · **revised** 2026-08-20 (HLD review round — actors, LOB, configuration)

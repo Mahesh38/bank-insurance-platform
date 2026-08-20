@@ -33,6 +33,19 @@ Nothing on the diagram may be cited as authority to start work. Each element sti
 triage, an owner, and — where consequential — an ADR and the applicable board reviews. See
 [`governance/09-AI_EXECUTION_RULES.md`](../governance/09-AI_EXECUTION_RULES.md).
 
+## Revision — 2026-08-20 HLD review round
+
+Both diagrams were reconciled in the same change as their sources (`HA-03`, `HA-06`) under
+`SUG-20260820-hr0`:
+
+- the R0 view gains the **two-actor model** (Bank RM as the certified Specified Person; the
+  assist-only Insurance Partner Representative), the **Opportunity (#5)** origination point and the
+  **Configuration (#19)** layer that ships in R0 without an admin UI;
+- the North Star's channels-and-actors band no longer draws *Certified SP* as an actor — a
+  certification is an attribute on the RM principal, and the freed slot now carries the IPR.
+
+Decisions: [`ADR-004` … `ADR-007`](../platform/architecture-review/08-architecture-decision-log.md).
+
 ## Authority
 
 These are **rendered views**, not sources of truth. Where a diagram and a document disagree, the

@@ -29,6 +29,13 @@ without a search.
 | — | Authorization is default-deny, RBAC + ABAC + resource relationships | Accepted | Policy design |
 | — | Maker-checker for bulk and privileged identity changes | Accepted | Admin flows |
 | — | Production IdP decision deferred behind the adapter | Accepted (deferral) | Do not re-open before WS-2 Phase 2 |
+| ADR-001 | IaC on Terraform targeting AWS `ap-south-1`; Render.com is dev-preview only and never a PII path | Proposed | Any proposal to run regulated data outside AWS India, or to treat Render as an environment |
+| ADR-002 | Workstream topology: WS-3 is the platform, WS-1 a supplier, WS-2 an enabler | Proposed (`A4_HUMAN_REQUIRED`) | Any proposal to grow WS-1 into the platform or register a fourth workstream for the client |
+| ADR-003 | No stage passes S08 until the application carries the same enforcement the governance documents already have | Proposed | Any request to close GATE-S08 on partial enforcement |
+| ADR-004 | Two R0 actors: the Bank RM is the certified Specified Person and SP is a certification attribute on that principal, not an actor or a channel; the Insurance Partner Representative is assist-only, gated on completed need analysis and suitability, and insurer-scoped at the persistence layer | Proposed (`A3_JOINT_REVIEW`) | Any proposal to add an actor type, to grant a partner a regulated action, to move the accountable SP, or to scope partner reads above the query layer |
+| ADR-005 | The opportunity is the single origination point and only a `BANK_RM` may create one; context #5 moves into R0 Wave 1 | Proposed | Any second origination path — BFF-implicit, campaign, self-service or partner — before R1 |
+| ADR-006 | `lob` is a first-class, non-null dimension on every entity, configuration record, audit event and authorization request from release 1; vocabulary frozen at `LIFE` / `HEALTH` / `GENERAL`; `lob` and `productClass` are separate | Proposed | Any nullable or defaulted `lob`, any product class in a `lob` column, and any proposal to fork a per-LOB platform |
+| ADR-007 | The configuration layer ships in R0 — LOB-partitioned, append-only, versioned, effective-dated, seeded — independently of any admin UI; no business branch on an insurer, product, LOB or channel literal and no compiled-in fallback | Proposed | Any hardcoded product/insurer behaviour, any rule change delivered as a deployment, and any proposal to defer the layer until its UI is funded |
 
 > ADR IDs are assigned by the architecture decision log. New architectural decisions arising
 > from AIGEM triage are raised there and indexed here.

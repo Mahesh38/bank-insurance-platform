@@ -121,6 +121,12 @@ insurer.
 > Don't build a `call-center-quote-service`. The **same** Life Quote capability serves Customer, RM,
 > Call centre and Certified SP. What differs is authorization and certification.
 
+> **Reading note (2026-08-20).** `VIN-001`'s wording is preserved verbatim above. "Certified SP"
+> there names *the certified seller*, and in the bank's model that is the RM: Specified Person is a
+> certification attribute on the RM principal, not a fifth actor and not a channel (`ID-15a`,
+> `AC-1`, `ADR-004`). The R0 actor set is two — Bank RM and Insurance Partner Representative — and
+> the IPR is assist-only (`ID-15b`).
+
 **Rule JS-08 — a new actor type is an authorization change, not an architecture change.** Adding the
 call centre adds: an actor type, authorization rules, queues (`CAP-103`), and possibly engagement
 cadence (`CAP-306`). It adds **no** business service.

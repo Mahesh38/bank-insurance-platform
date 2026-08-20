@@ -22,6 +22,7 @@ This folder points at materials that inform the AU Bank product reset.
 | Link | Notes |
 |------|-------|
 | [2026-08-20-north-star-architecture-brainstorming-notes.md](./2026-08-20-north-star-architecture-brainstorming-notes.md) | `VIN-001` — North Star capability model, LOB/journey segregation, orchestration and shared-capability notes. **Reference only.** Reconciled against accepted decisions in [`10-north-star-capability-model.md §9`](../../context/roles/mahesh-principal-insurance-platform-architect/10-north-star-capability-model.md) |
+| [2026-08-20-insurance-aggregation-and-provider-connectivity-notes.md](./2026-08-20-insurance-aggregation-and-provider-connectivity-notes.md) | `VIN-002` — bank insurance aggregation layer, provider routing, canonical contract scoping, fan-out isolation, callback ingress. **Reference only.** Reconciled in [`17-provider-aggregation-and-connectivity.md §17`](../../context/roles/mahesh-principal-insurance-platform-architect/17-provider-aggregation-and-connectivity.md) |
 
 ## External
 

@@ -87,6 +87,11 @@ target state looks. Each cites its source, so Mahesh can defend it without appea
 | **TI-16** | **Business behaviour is stable across connectivity phases.** Moving an insurer from 1SB to direct changes an adapter — never a journey, a contract or a customer outcome | `BG-004` · [`replaceable-middleware.md`](../../../1sb-insurance-integration/architecture/replaceable-middleware.md) |
 | **TI-17** | **The bank's distributable offering is configuration, not code.** Which insurers, which products, which channels, which dates, which routes — versioned, effective-dated, auditable, reversible | `ARCH-010` · `VIN-001 §11, §33` |
 | **TI-18** | **Failure isolation is demonstrable, not decorative.** LOB-level and provider-level independence must be provable operationally, not asserted by drawing separate boxes | `VIN-001 §32` · [`03-solution-architecture-r0.md §5.3`](../../../platform/ws3-platform/03-solution-architecture-r0.md) |
+| **TI-19** | **1SB is a provider route, not a domain dependency.** The bank's aggregation layer can absorb the aggregation responsibility entirely without forcing Quote, Proposal, Journey, Customer, Lead, Payment or Policy to change | `VIN-002` (the permanent principle) · `INV-ACL-01` · `ARCH-006` · `S07-VT-08` |
+| **TI-20** | **Business journey orchestration and provider aggregation orchestration never merge.** One asks what happens next in the customer's journey; the other asks which provider gets this request and how | `VIN-002 §3` · `SC-W3-6` · `FF-04` |
+| **TI-21** | **Canonical contracts are operation-scoped and LOB-scoped.** There is no universal insurance object; canonical means one stable bank-owned contract per business capability, over genuinely shared primitives | `VIN-002 §5` |
+| **TI-22** | **A provider identifier never becomes a platform primary identifier.** Provider references are mapped, stored and opaque — never parsed, keyed on, or propagated as the platform's own identity | `VIN-002 §12` |
+| **TI-23** | **All provider callbacks enter through one controlled provider ingress** — authenticated, signature-validated, replay-protected — and reach business services only as canonical bank events | `VIN-002 §14` · extends `S-14` |
 
 ### 3.1 How to use the invariants
 
@@ -160,6 +165,14 @@ test** (`04 §4`), not a principle.
   **shared and versioned** (`IF-1`), never forked per LOB.
 - **Trigger:** the split requires an ADR amending `SC-W3-5` from *"the Integration Hub"* to *"an
   integration boundary"*, with Deepali on credential isolation and Shivanshi on isolation evidence.
+
+**Resolved by `VIN-002 §17`.** The second session supplies the shape that satisfies both positions:
+a **shared integration control plane** (canonical standards, provider registry, credential
+framework, security, observability, error standards, routing policy) with an **isolated per-cell
+data plane** (the runtime that actually executes provider calls). The control preserved by
+`SC-W3-5` lives in the control plane; the bottleneck `VIN-002` objects to lives in the data plane.
+Full doctrine: [`17 §14`](./17-provider-aggregation-and-connectivity.md). The ADR trigger above is
+unchanged — the split is still evidence-gated, and `SC-W3-5` governs until it is taken.
 
 ### 5.2 Database-per-service versus pragmatic physical separation
 
@@ -270,6 +283,7 @@ absolute picture forces the reader to diff it; a target state expressed as a del
 | A BPM engine because journeys are long-running | Long-running is not the requirement that justifies a process engine | Apply the test in file `13` §7 |
 | "Cloud-native target state" | Names a hosting posture, decides nothing | Ask which capability requirement is unmet |
 | Reinstating deferred scope silently | Overrides an accepted Product decision | Return the trade to Rajal (`TP-09`) |
+| Designing the platform around the current aggregator | The vendor becomes the domain model, and removing it becomes a rewrite | `TI-19`; see file `17` |
 | Presenting AI-drafted vision as ratified | Every architecture artefact here is `AI-DRAFTED` until a human signs | Carry signature status forward verbatim |
 
 ---
@@ -310,6 +324,7 @@ reasoning is attributable to him.
 | ID | Source | Covers | Status |
 |---|---|---|---|
 | `VIN-001` | [`2026-08-20-north-star-architecture-brainstorming-notes.md`](../../../au-bank-insurance-platform/references/2026-08-20-north-star-architecture-brainstorming-notes.md) — stakeholder North Star session, supplied by the repository owner 2026-08-20 | North Star capability method · five-plane model · Party/Customer · Opportunity and Work Management · Journey registry vs execution · LOB cells · Product Governance · Proposal/Case Management · shared transaction capabilities · bank vs provider integration boundaries · actor authorization · events · observability · configuration · data ownership · release strategy | **INGESTED 2026-08-20.** Reconciliation: [`10 §9`](./10-north-star-capability-model.md) · conflicts: §5.1, §5.2 above |
+| `VIN-002` | [`2026-08-20-insurance-aggregation-and-provider-connectivity-notes.md`](../../../au-bank-insurance-platform/references/2026-08-20-insurance-aggregation-and-provider-connectivity-notes.md) — stakeholder aggregation session, supplied by the repository owner 2026-08-20; continuation of `VIN-001` | **1SB as a provider route, not a domain dependency** · bank aggregation layer · the two-orchestration separation · canonical contract scoping · provider router and routing key · Product Governance routing ownership · multi-provider fan-out and isolation · provider execution-model normalisation · provider reference mapping · provider authentication · callback ingress · adapter plugins and capability registry · control plane versus data plane · R0 restraint | **INGESTED 2026-08-20.** Doctrine: [`17`](./17-provider-aggregation-and-connectivity.md) · reconciliation: [`17 §17`](./17-provider-aggregation-and-connectivity.md) · resolves the §5.1 tension above |
 
 ### 10.1 Ingestion procedure
 
@@ -334,6 +349,7 @@ reasoning is attributable to him.
 | Orchestration, routing, events, work management, engagement | [`13-orchestration-doctrine.md`](./13-orchestration-doctrine.md) |
 | Shared capabilities, integration boundaries, configuration, data ownership | [`14-shared-capability-doctrine.md`](./14-shared-capability-doctrine.md) |
 | Bank AD, identity planes, certification-aware authorization | [`15-actor-identity-and-authorization.md`](./15-actor-identity-and-authorization.md) |
+| Provider aggregation, routing, adapters and the 1SB-as-a-route principle | [`17-provider-aggregation-and-connectivity.md`](./17-provider-aggregation-and-connectivity.md) |
 | Producing and updating the HLD artefacts | [`16-hld-authoring-and-update-protocol.md`](./16-hld-authoring-and-update-protocol.md) |
 
 **Precedence unchanged:** this doctrine is grounding context. Where it conflicts with an

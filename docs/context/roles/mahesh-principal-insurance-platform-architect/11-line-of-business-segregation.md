@@ -57,7 +57,7 @@ operated as an isolation unit.
 | `CAP-202` Suitability / Eligibility | Life asks income, dependents, cover, tenure, objectives · Health asks members, conditions, sum insured, geography · Motor asks vehicle eligibility, not Life-style suitability at all |
 | `CAP-203` Quotation | Life, Health and Motor quotes have radically different data and pricing constructs — `quoteCategory` alone means Premium/SA/Income in Term, Sum Insured in Health, New/Roll-Over in Motor |
 | `CAP-204` Proposal / Case Management | Application data, insured persons, declarations and insurer questionnaires vary enormously by line |
-| `CAP-205` Provider Integration runtime | Provider paths and payloads are LOB-scoped (`/insurance/lifeterm/v1`, `/insurance/lifehealth/v1`, `/insurance/motor/v1`) |
+| `CAP-205` Provider Integration runtime | Provider paths and payloads are LOB-scoped (`/insurance/lifeterm/v1`, `/insurance/lifehealth/v1`, `/insurance/motor/v1`), and Life quote volume must not consume the capacity Health integration depends on (`PR-36`) |
 
 ### 2.2 What must never be inside a cell
 
@@ -74,10 +74,14 @@ operated as an isolation unit.
 | Notification delivery | `CAP-304` | Channel delivery is not an insurance concern |
 | Audit evidence store | `CAP-305` | Evidence must be reconstructable across lines in one place |
 | Identity, authorization, config, observability, events | Plane 5 | Forking these forks the platform's controls |
-| Canonical provider contracts, credential handling, resilience policy, error model | `CAP-402` | Share the framework; isolate only the runtime (`09 §5.1`) |
+| Canonical provider contracts, provider registry, credential framework, resilience policy, error model, routing policy | `CAP-402` / `CAP-403` control plane | Share the **control plane**; isolate only the **data plane** (`PR-36`, [`17 §14`](./17-provider-aggregation-and-connectivity.md)) |
 
 **Rule LS-01.** A cell contains *execution*. It never contains *identity, evidence, governance or
 money mechanics*.
+
+**Rule LS-01a — a cell contains a provider *runtime*, never a provider *dependency*.** The Life cell
+executes provider calls; it does not know which provider answered, and no cell capability may name
+1SB, an insurer or a protocol outside its adapter package (`TI-19`, `PR-07`, `INV-ACL-01`).
 
 ---
 
@@ -218,6 +222,7 @@ cheap now and expensive later:
 | Per-LOB Consent, Payment or Audit | Three evidence trails, three reconciliation models, one regulator | `LS-01` |
 | A shared journey state machine with LOB branches | Every LOB change risks every LOB | Registry + cellular execution |
 | ULIP or Annuity as its own cell | Confuses product with line | `VA-2`, not `VA-1` |
+| A cell service that knows it is calling 1SB | The aggregator becomes a per-cell domain dependency; removing it is three rewrites | `TI-19`, `LS-01a` |
 | Copying the Life cell to create the Health cell | Duplicates Life's assumptions and its defects into a line that does not share them | Instantiate the *pattern*; derive Health's rules from Health's requirements |
 | Per-LOB insurer master | Three answers to "what do we distribute?" | `CAP-105` is shared |
 | Adding a LOB by adding fields to shared contracts | Silent violation of `LS-06` row 11 | Report as `A1` before ship |

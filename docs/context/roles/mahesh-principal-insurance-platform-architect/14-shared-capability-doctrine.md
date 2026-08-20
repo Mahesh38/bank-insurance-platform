@@ -126,20 +126,27 @@ means a CBS upgrade lands inside Life Quote code.
 implement CBS, mobile-banking or CRM protocols anywhere. `TI-02` and `TI-04` are the same rule
 pointed at the two directions.
 
-**Rule SC-12 — share the framework, isolate the runtime.** Per `VIN-001 §17` and the reconciliation
-at [`09 §5.1`](./09-target-state-architecture-doctrine.md):
+**Rule SC-12 — share the control plane, isolate the data plane.** Per `VIN-001 §17`, sharpened by
+`VIN-002 §17` and reconciled at [`09 §5.1`](./09-target-state-architecture-doctrine.md):
 
-| Shared and versioned (`CAP-402`) | May become per-cell runtime (`CAP-205`) |
+| Shared **control plane** (`CAP-402`) | Isolated **data plane** per cell (`CAP-205`) |
 |---|---|
 | Canonical contracts (`IF-1`) | Provider protocol implementation |
+| Provider capability registry | Which providers this cell actually calls |
 | Authentication framework, credential handling, certificates | Provider credentials in use |
-| Timeout, retry, breaker and bulkhead **policy** | Bulkhead **budgets** per provider |
+| Timeout, retry, breaker and bulkhead **policy** | Bulkhead **budgets** and connection pools |
 | Error model and taxonomy | Provider error mapping |
 | Idempotency contract | Provider idempotency keys |
 | Observability contract | Provider-specific metrics |
+| Routing policy model | Route execution |
 
 **H0–H1: one Integration Hub, `SC-W3-5` unchanged.** A per-cell split requires an ADR and evidence
 (`09 §5.1`).
+
+**Rule SC-12a — this is the doctrine's worked example.** `CAP-403` is shared *as a control plane* and
+isolated *as a runtime* per cell. Three runtimes on one versioned framework is isolation; three
+frameworks is three platforms (`SC-05`, `PR-37`). Full doctrine:
+[`17 §14`](./17-provider-aggregation-and-connectivity.md).
 
 **`CAP-401` does not exist yet.** CBS access sits inside `#4 Customer`. That is acceptable at H0 with
 one consumer; **the revisit trigger is the second capability that needs bank data**, and it is
@@ -232,6 +239,7 @@ customer-facing journey.
 | A shared service with one consumer | Ceremony without reuse | `SC-03` |
 | Shared capability that knows its consumers | LOB logic in a platform capability | `SC-07` |
 | Notification that decides when to engage | Cadence rules where nobody looks for them | `NS-08`, `JS-17` |
+| A business service that knows which provider answered | The provider becomes a domain dependency; replaceability is lost silently | `TI-19`, [`17`](./17-provider-aggregation-and-connectivity.md) |
 | A shared Policy service implementing insurer issuance protocols | Provider coupling in the most sensitive place | `VIN-001 §19`; issuance stays in the cell |
 | Cell isolation without raising shared-capability availability | Risk relocated, not reduced | `SC-08` |
 | Failing a control open to preserve availability | The control is absent exactly when it matters | `SC-09` |

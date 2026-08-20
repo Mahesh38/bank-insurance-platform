@@ -136,7 +136,9 @@ nobody can restate is an architecture nobody will defend.
 │  Interaction Timeline · Audit & Evidence                                      │
 └──────────────────────────────────────────────────────────────────────────────┘
 ┌─ PLANE 4 — External Integration Boundaries ──────────────────────────────────┐
-│  Bank Integration → CBS / bank systems    │   Provider Integration → 1SB / insurers │
+│  CAP-401 Bank Integration      → CBS / bank systems                          │
+│  CAP-402 Integration control plane · CAP-403 Aggregation & Provider          │
+│          Connectivity          → Provider Router → 1SB · HDFC · ICICI · …    │
 └──────────────────────────────────────────────────────────────────────────────┘
 ┌─ PLANE 5 — Platform Engineering & Governance ────────────────────────────────┐
 │  Identity · Authorization · Observability · Events · Configuration           │
@@ -377,13 +379,18 @@ written when a capability comes into scope (`NS-02`), in the order of §2.2.
 | `CAP-102` | Opportunity (Lead) | Opportunity, source, campaign, disposition | Quote/proposal/payment logic; assignment | SHARED | H1 | #5 (deferred) |
 | `CAP-103` | Work Management & Assignment | Queues, assignment, SLA, escalation, callbacks | Opportunity; journey state; engagement decision | SHARED | H1 | none |
 | `CAP-104` | Consent | Consent **evidence**: who, what data, which purpose, which parties, text version, capture method, revocation, expiry | Whether a business action is lawful (Shailja); journey gating logic | SHARED | H0 | #6 |
-| `CAP-105` | Product Governance | Insurer master; insurer product; **bank-approved offering**; effective dates; enabled channels; ETB/NTB availability; integration route; eligibility metadata; status | Pricing; insurer underwriting rules; LOB quote construction | SHARED | H0 | #8 |
+| `CAP-105` | Product Governance | Insurer master; insurer product; **bank-approved offering**; effective dates; enabled channels; ETB/NTB availability; **`quoteRoute` / `proposalRoute` / `issuanceRoute`**; eligibility metadata; status | Pricing; insurer underwriting rules; LOB quote construction; how a route is executed (`CAP-403`) | SHARED | H0 | #8 |
 | `CAP-106` | Journey Registry | Journey identity, ownership, routing, lifecycle | LOB stage detail; other contexts' decisions | SHARED | H0 | #9 (combined) |
 
 > **`CAP-104` — why consent is a capability, not a flag.** Consent is *evidence, not a Boolean*
 > (`VIN-001 §15`). A field named `consentGiven=true` cannot answer which text version, which
 > purpose, which parties, captured how, revoked when — and those are exactly the questions asked
 > when something goes wrong.
+
+> **`CAP-105` owns the routes, not the routing** (`VIN-002 §7`). Which provider route a bank product
+> offering uses for each *operation* is a governed, effective-dated property of the offering;
+> executing that route is `CAP-403`'s job. This is what makes provider migration incremental —
+> operation by operation, product by product, as configuration rather than release (`PR-14`, `PR-16`).
 
 > **`CAP-105` — the distinction that makes it shared.** *Insurer catalogue ≠ bank catalogue.* An
 > insurer may have 100 products; the bank may approve 8 (`VIN-001 §11`). The bank-approved offering
@@ -398,7 +405,7 @@ written when a capability comes into scope (`NS-02`), in the order of §2.2.
 | `CAP-202` | Suitability & Eligibility (LOB) | LOB need-analysis model, questionnaire, rules, assessment validity | Insurer underwriting; product approval (`CAP-105`); the *framework* for questionnaires (shared) | LOB_SPECIFIC rules on a SHARED framework | #7 |
 | `CAP-203` | Quotation (LOB) | Quote request; eligible product selection; multi-quote orchestration; **canonical** quote representation; expiry; status and comparison | Raw insurer payloads and transformation (`CAP-402`); product approval (`CAP-105`) | LOB_SPECIFIC | #10 |
 | `CAP-204` | Proposal / Case Management (LOB) | Application data, nominees, insured persons, declarations, insurer questionnaires, submission, insurer references, **outstanding insurer requirements** | The risk decision and everything in `TI-03`; document storage mechanics (`CAP-302`) | LOB_SPECIFIC | #11 |
-| `CAP-205` | Provider Integration (LOB runtime) | Provider protocol, payload transformation, provider credentials, provider-specific issuance interaction | Business decisions; canonical contracts (shared, `CAP-402`) | SHARED_FRAMEWORK_ISOLATED_RUNTIME | #14/#15 |
+| `CAP-205` | Provider Integration **runtime** (per cell) | Executing provider calls for this cell: protocol, payload transformation, provider credentials in use, provider-specific issuance interaction | Business decisions; canonical contracts, registry and standards (control plane, `CAP-402`) | SHARED control plane, isolated runtime | #14/#15 |
 
 > **Why Suitability is LOB-sensitive (`VIN-001 §10`).** Life asks about income, dependents, cover
 > amount, tenure, objectives. Health asks about members, conditions, sum insured, geography. Motor
@@ -440,7 +447,14 @@ written when a capability comes into scope (`NS-02`), in the order of §2.2.
 | ID | Capability | Owns | Does **not** own | Sharing | Horizon | R0 |
 |---|---|---|---|---|---|---|
 | `CAP-401` | Bank Integration | CBS/customer lookup, account verification, RM/branch context, other bank-system protocols and credentials | Any insurance business decision; provider protocols | SHARED | H0 | inside #4 today |
-| `CAP-402` | Provider Integration Framework | Canonical provider contracts (`IF-1`), authentication framework, credential handling, timeout/retry/breaker policy, error model, idempotency, certificate handling, observability contract | Provider-specific payloads at runtime — that is `CAP-205` per cell | SHARED framework | H0 | #14 Hub + #15 adapter |
+| `CAP-402` | Provider Integration **Control Plane** | Canonical provider contracts (`IF-1`), authentication framework, credential handling, timeout/retry/breaker policy, error model, idempotency, certificate handling, observability contract, provider capability registry | Provider-specific payloads at runtime — that is `CAP-205` per cell | SHARED control plane | H0 | #14 Hub |
+| `CAP-403` | **Insurance Aggregation & Provider Connectivity** | Provider routing, multi-provider fan-out, adapters, protocol transformation, provider authentication, per-provider resilience and rate limiting, callbacks, **provider reference mapping**, idempotency toward providers, error normalisation, provider-specific observability | Journey state · suitability · bank product selection · consent · which product to recommend · insurer underwriting decisions | SHARED control plane, **isolated per-cell runtime** | H0 as a seam; H2+ as a multi-route aggregator | #14 + #15 |
+
+> **`CAP-403` carries the permanent principle: 1SB is a provider route, not a domain dependency**
+> (`TI-19`). Its `does_not_own` list is the load-bearing half — every item on it is something an
+> integration layer gets offered under delivery pressure. Full doctrine, including the provider
+> router, canonical contract scoping, fan-out isolation, callback ingress and the control-plane /
+> data-plane split: [`17-provider-aggregation-and-connectivity.md`](./17-provider-aggregation-and-connectivity.md).
 
 > **Why the two are separate (`VIN-001 §16`).** `Insurance Platform → Bank Integration → CBS` and
 > `LOB Cell → Provider Integration → 1SB/Insurer` are different problems with different change
@@ -530,6 +544,15 @@ Recorded per `09 §10` rules `VI-01`/`VI-02`. **Agrees** = already repository po
 | §35 | Operational plane is part of target architecture | S08/S09, `GATE-S08` | **Agrees** |
 | §36 | Release follows business maturity; Health only after the shared platform is proven | `DEC-20260816-05` freeze on two gates | **Agrees** — same conclusion, independently reached |
 
+### 9.0 `VIN-002`
+
+The second stakeholder session (`VIN-002` — insurance aggregation and provider connectivity) is
+reconciled in [`17 §17`](./17-provider-aggregation-and-connectivity.md), which covers 19 claims and
+adds `CAP-403`, `TI-19`–`TI-23` and open items 8–14. Its most consequential outcome for this model
+is that `VIN-002 §17` **resolves** the `SC-W3-5` topology tension recorded at
+[`09 §5.1`](./09-target-state-architecture-doctrine.md): shared integration **control plane**,
+isolated per-cell **data plane**.
+
 ### 9.1 Open items this reconciliation creates
 
 | # | Item | Owner | Type |
@@ -541,6 +564,12 @@ Recorded per `09 §10` rules `VI-01`/`VI-02`. **Agrees** = already repository po
 | 5 | Call centre and certified SP as supported actor types | **Rajal** (Product scope) + Shailja (regulated activity) | Product decision — not Mahesh's |
 | 6 | Certification-gated regulated sales activity: which actions require which certification | **Shailja** | Compliance obligation |
 | 7 | Party de-duplication/merge policy across DIY and ETB | Rajal + Shailja | H1 entry condition |
+
+Open items **8–14**, arising from `VIN-002`, are listed at
+[`17 §17.1`](./17-provider-aggregation-and-connectivity.md): the routing key gaining Operation and
+Channel · route fields on the bank product offering · provider callback ingress security · per-provider
+credential isolation and rotation · three proposed fitness functions · whether a partial fan-out
+result is presentable · confirming the platform's async-poll contract is a platform choice.
 
 **None of these is decided by this document.** They are named so they cannot be assumed closed.
 

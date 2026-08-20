@@ -22,12 +22,13 @@ Four distinct coordination responsibilities, deliberately separated:
 
 | Responsibility | Owner | Question |
 |---|---|---|
-| **Routing** | `CAP-106` Journey Registry | Which LOB cell executes this journey? |
+| **Journey routing** | `CAP-106` Journey Registry | Which LOB cell executes this journey? |
 | **Process orchestration** | `CAP-201` Journey Execution (per cell) | What is the next step in *this* line of business? |
 | **Work orchestration** | `CAP-103` Work Management | Which human or queue should act, by when? |
 | **Engagement orchestration** | `CAP-306` Engagement | Should we reach out, when, and through which cadence? |
+| **Provider orchestration** | `CAP-403` Aggregation & Provider Connectivity | Which provider receives this request, and how do we communicate with it? |
 
-**Rule OR-02 — these four never merge.** Each merge has a known failure:
+**Rule OR-02 — these five never merge.** Each merge has a known failure:
 
 | Merge | Failure |
 |---|---|
@@ -35,6 +36,7 @@ Four distinct coordination responsibilities, deliberately separated:
 | Execution + work management | The journey cannot be resumed by a different actor without inheriting queue state (`JS-18`) |
 | Work management + engagement | Every SLA timer becomes a customer message |
 | Engagement + notification | Business cadence rules live inside a delivery service (`NS-08`, `JS-17`) |
+| **Journey + provider orchestration** | One service holds customer journey state **and** provider routing **and** retry policy **and** canonical transformation **and** insurer credentials — the platform's single point of coupling, holding its highest-value secrets (`TI-20`, [`17 §4`](./17-provider-aggregation-and-connectivity.md)) |
 
 ---
 
@@ -200,6 +202,10 @@ a failure; four out of five is a result.
 **Rule OR-24 — bulkheads per provider, and at H2 per LOB (`TI-18`).** One failing insurer must not
 consume the connection budget that makes every other insurer look down. This is an architecture
 property, not a tuning knob.
+
+**Rule OR-24a — provider orchestration is invisible to the journey.** The LOB service knows it asked
+for a quote. Nothing in its contract, data model or error handling tells it whether the answer came
+from 1SB or from a direct insurer (`TI-19`, `PR-07`, `PR-15`).
 
 **Rule OR-25 — the aggregator's asynchrony is not the platform's asynchrony.** 1SB's poll model is a
 provider protocol detail confined to `CAP-205`. The platform's own journey semantics must not be

@@ -26,7 +26,7 @@ architecture diagram will almost draw itself.*
 | [`01-domain-model-and-invariants.md`](../../../platform/ws3-platform/01-domain-model-and-invariants.md) | **Authoritative** | `INV-*` invariants, aggregates |
 | [`04-security-architecture.md`](../../../platform/ws3-platform/04-security-architecture.md) · [`05-nfr-catalogue.md`](../../../platform/ws3-platform/05-nfr-catalogue.md) | **Authoritative** | Trust boundaries, threat model, NFR numbers |
 | [`architecture-review/`](../../../platform/architecture-review/README.md) 01–08 | **Authoritative** | Target service catalogue, communication patterns, data architecture, `ARCH-*` decision log |
-| Persona files [`09`](./09-target-state-architecture-doctrine.md)–[`15`](./15-actor-identity-and-authorization.md) | **Grounding** | Horizons, invariants, capability model, segregation and orchestration doctrine |
+| Persona files [`09`](./09-target-state-architecture-doctrine.md)–[`15`](./15-actor-identity-and-authorization.md), [`17`](./17-provider-aggregation-and-connectivity.md) | **Grounding** | Horizons, invariants, capability model, segregation, orchestration and provider-aggregation doctrine |
 | **`docs/hdl.svg`** | **Rendering** | Nothing. It *depicts* the R0 design |
 
 **Rule HA-02 — the diagram is never the source of truth.** It may not assert anything the
@@ -216,6 +216,7 @@ Run before committing any HLD change. Each row has bitten a real architecture do
 | A provider schema or vendor product name inside a business service box | `TI-02` |
 | An RM or bank device on the payment path | `TI-11` — the single most consequential control to depict correctly |
 | A journey box that owns another context's decision | `SC-W3-6` |
+| A business service box drawn with a line to a named insurer or aggregator | `TI-19` — providers are reached through the aggregation layer, never directly |
 | An upgraded signature status | `HA-10` |
 | An unlegended colour or badge | `HA-08` |
 

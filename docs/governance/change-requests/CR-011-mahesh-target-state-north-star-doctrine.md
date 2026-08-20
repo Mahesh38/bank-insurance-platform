@@ -24,11 +24,11 @@ Consequences observed:
 
 ## 2. Proposed change
 
-1. Transcribe the stakeholder North Star session (`VIN-001`) into
-   `docs/au-bank-insurance-platform/references/2026-08-20-north-star-architecture-brainstorming-notes.md`
-   as an attributed, **non-binding** reference.
-2. Add eight target-state modules to the Mahesh package (`09`–`16`), raising it to **v1.2**:
-   - `09` — horizons `H0`–`H3`, target-state invariants `TI-01`–`TI-18`, variation axes `VA-1`–`VA-6`,
+1. Transcribe two stakeholder sessions as attributed, **non-binding** references:
+   `VIN-001` (North Star capability model) and `VIN-002` (insurance aggregation and provider
+   connectivity), both under `docs/au-bank-insurance-platform/references/`.
+2. Add nine target-state modules to the Mahesh package (`09`–`17`), raising it to **v1.2**:
+   - `09` — horizons `H0`–`H3`, target-state invariants `TI-01`–`TI-23`, variation axes `VA-1`–`VA-6`,
      vision answer format, vision intake register and rules `VI-01`–`VI-03`;
    - `10` — the North Star capability model: the six-question capability definition contract,
      capability ≠ microservice (`NS-03`/`NS-04`), the five planes, the capability catalogue, and the
@@ -43,9 +43,14 @@ Consequences observed:
      integration boundaries, configuration, data ownership;
    - `15` — actor identity and authorization, carrying the **Bank Active Directory invariant**
      forward unchanged;
-   - `16` — HLD authoring and update protocol, including the canvas contract for `docs/hdl.svg`.
-3. Record two reconciliations against existing decisions rather than absorbing them silently
-   (`09 §5.1`, `§5.2`), each with the ADR it will require.
+   - `16` — HLD authoring and update protocol, including the canvas contract for `docs/hdl.svg`;
+   - `17` — provider aggregation and connectivity, carrying the permanent principle **1SB is a
+     provider route, not a domain dependency** (`TI-19`), the two-orchestration separation
+     (`TI-20`), canonical contract scoping (`TI-21`), provider reference mapping (`TI-22`) and the
+     controlled provider callback ingress (`TI-23`).
+3. Record the reconciliations against existing decisions rather than absorbing them silently — and
+   record that `VIN-002 §17`'s control-plane/data-plane split **resolves** the `SC-W3-5` tension
+   raised at `09 §5.1`, without taking the ADR that a runtime split would still require.
 4. Update the package README (contents, loading order, operating rules 14–17, version and date).
 
 ## 3. Driver
@@ -72,6 +77,8 @@ microservice; ownership boundaries first, deployable boundaries later.
   base.
 - `DECISION-REGISTER` rows `DEC-20260816-03`, `-04`, `-05` — assistance-mode and LOB sequencing.
 - `docs/hdl.svg` — the R0 rendering whose canvas contract file `16` documents.
+- `INV-ACL-01`, `FF-01`, `ARCH-006`, `replaceable-middleware.md` and `S07-VT-08` — the existing
+  provider-replaceability position that `TI-19` states as a permanent principle.
 
 ## 5. Impact
 
@@ -83,6 +90,8 @@ dependencies:
   - "Mahesh persona package"
   - "docs/hdl.svg and the WS-3 architecture documents it renders"
   - "ARCH-004 (Aarti) and SC-W3-5 (Deepali, Shivanshi) — reconciliations named, not applied"
+  - "#14 Integration Hub RoutingPolicy definition — routing key gains Operation and Channel"
+  - "Provider callback ingress and per-provider credential isolation — Deepali, before any direct integration"
 parked_items: "None"
 effort: "M"
 risk_if_rejected: >
@@ -131,13 +140,15 @@ every architecture decision to its accountable owner.
 
 - All eight modules are **grounding context**, subordinate to the precedence order in `08 §5`.
 - No invariant, control (`C1`–`C10`), structural constraint (`SC-W3-*`) or fitness function is
-  weakened; `TI-01`–`TI-18` restate existing obligations with citations.
+  weakened; `TI-01`–`TI-23` restate existing obligations with citations.
 - Bank Active Directory remains the authoritative workforce identity source at every horizon
   (`TI-01`); the accepted `ARCH-018`–`ARCH-022` baseline is carried forward unchanged.
 - Two reconciliations are **named, not applied**: `ARCH-004` (with Aarti) and `SC-W3-5` (with
   Deepali and Shivanshi). Neither is treated as decided by this CR.
-- Seven open items are recorded in `10 §9.1`; five belong to Rajal, Shailja, Aarti or Deepali and
-  are explicitly not Mahesh's to close.
+- Fourteen open items are recorded in `10 §9.1` and `17 §17.1`; the majority belong to Rajal,
+  Shailja, Aarti, Deepali, Shivanshi or Swapnali and are explicitly not Mahesh's to close.
+- No direct-insurer integration is proposed, designed or scheduled by this CR. `TI-19` constrains
+  how one would be added; it does not authorise adding one.
 - AIGEM T4 human Architecture sign-off, the Security veto and the Risk & Compliance veto are
   unchanged.
 - `A0–A3`, `D0–D3`, `R0–R3` and `P1–P5` remain separate vocabularies.

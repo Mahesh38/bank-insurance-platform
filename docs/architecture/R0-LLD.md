@@ -6,8 +6,8 @@
 **Status:** `AI-DRAFTED`. This file is the S09 *requirements pack*. It is **not** an approval to apply Terraform. Mandatory reviews before first `apply` to a non-dev account: Architecture (human T4), Security (human), Database, SRE, Compliance (residency and WORM).
 **Date:** 2026-08-20
 **Origin:** `SUG-20260820-hl1`
-**Picture this document walks:** [`r0-lld.svg`](./r0-lld.svg)
-**Companion HLD:** [`R0-HLD.md`](./R0-HLD.md) · [`r0-reference-architecture.svg`](./r0-reference-architecture.svg)
+**Picture this document walks:** [`r0-lld.svg`](./r0-lld.svg) — **runtime LLD**, not another HLD. Five figures, top to bottom: (1) one RM request, numbered hops; (2) who may call whom; (3) the sale — what is written, where, when; (4) C4 payment / quote poll / outbox; (5) compact AWS placement. The HLD picture remains [`r0-reference-architecture.svg`](./r0-reference-architecture.svg).
+**Companion HLD:** [`R0-HLD.md`](./R0-HLD.md)
 
 ---
 
@@ -24,6 +24,8 @@ Hand this file to the AWS platform team as the R0 **bill of materials**. Every r
 | **DECIDE WITH** | Architecture has set the constraint; the named persona owns the sizing / SKU / parameter |
 
 This LLD **narrows** [`architecture-review/04-aws-infrastructure-architecture.md`](../platform/architecture-review/04-aws-infrastructure-architecture.md). That review is the North-Star AWS estate (Kafka, ElastiCache-for-everything, per-service clusters, Istio, analytics). R0 does not build that estate. Where the two disagree, **this file and ADR-001 / ADR-008 win**.
+
+**How to read [`r0-lld.svg`](./r0-lld.svg):** it is LLD of *runtime*, not of *placement*. Figure 1 is every RM/IPR click (hops 1–5 store nothing about the sale; hop 6 is PDP ALLOW/DENY; hop 8 is the first domain write). Figure 2 is the allow-list of east-west calls — if an arrow is missing, the call is forbidden. Figure 3 is the persistence LLD: one row per write, with store and sync/async. Figure 4 is the three paths that skip the happy path. Figure 5 is the AWS strip so the hops have a home; colour there is trust zone, not build wave.
 
 Capacity context, so nobody sizes for a problem we do not have: R0 pilot demand is on the order of **~100 journey starts per hour BAU, ~7 per minute at Q4 peak** ([`05-nfr-catalogue.md`](../platform/ws3-platform/05-nfr-catalogue.md) CAP-A*). The platform is correctness-, evidence- and recovery-constrained, not throughput-constrained. Do not scale from CPU.
 
@@ -492,4 +494,5 @@ Until those signatures exist, platform engineers may **draft** Terraform modules
 **Signed:** Mahesh — Principal Insurance Platform Architect (Board 1), AI-drafted
 **signature_status:** `AI-DRAFTED — mandatory human T4 Architecture sign-off outstanding; Security, Database and SRE reviews outstanding`
 **Companion HLD:** [`R0-HLD.md`](./R0-HLD.md)
-**Diagram:** [`r0-reference-architecture.svg`](./r0-reference-architecture.svg)
+**Diagram (runtime LLD):** [`r0-lld.svg`](./r0-lld.svg)
+**HLD picture:** [`r0-reference-architecture.svg`](./r0-reference-architecture.svg)

@@ -54,6 +54,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | SUG-20260820-dc4 | 2026-08-20 | human:Mahesh | Resolve OPEN-A1 and OPEN-D10: physical database topology is an evidence-led decision, not a principle — R0 starts as one cluster with a schema per context and splits later along the LOB-cell / shared-platform seam; and context #5 is named Opportunity, because a lead is too thin to carry renewal, lapse and cross-sell demand | SF1 | SC1 | MUST | ARCH | P2 / P2 | ADMITTED | [ADR-008](../../platform/architecture-review/08-architecture-decision-log.md) |
 | SUG-20260820-hl1 | 2026-08-20 | human:Mahesh | Act as Mahesh: turn the R0 reference architecture SVG into a detailed HLD (domain, boundary, communication, API, business logic, phases/waves/what-to-do-when) and an LLD for the CTO and AWS platform team (e2e components, services, AWS, VPC, reverse proxy, PVC, DB, cache) | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMIT-BYPASS | [R0-HLD](../../architecture/R0-HLD.md) · [R0-LLD](../../architecture/R0-LLD.md) |
 | SUG-20260820-ls1 | 2026-08-20 | human:Mahesh | Create an SVG rendering of the R0 LLD for the CTO and AWS platform team | SF1 | SC0 | SHOULD | ARCH | P2 / P1 | ADMIT-BYPASS | [r0-lld.svg](../../architecture/r0-lld.svg) |
+| SUG-20260820-lf2 | 2026-08-20 | human:Mahesh | Rebuild the R0 LLD SVG as runtime flow: how services communicate, how/when data is stored, not another HLD placement picture | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMIT-BYPASS | [r0-lld.svg](../../architecture/r0-lld.svg) |
 
 <!--
 Row format:
@@ -1097,6 +1098,63 @@ action_rationale: >
   No new AWS service is named. Dashed nodes are the existing DO NOT PROVISION list.
 duplicate_of: null
 continues: SUG-20260820-hl1
+classification:
+  type: ARCH
+  also: [DOC]
+  risk_tier: T4
+priority:
+  now: P2
+  at_target: P1
+bypass:
+  authorised_by: "human:Mahesh — follow-up instruction"
+  skipped: "seven-board review of the plan"
+  risk: "same as hl1 — SVG may be shown to AWS platform team before Security/Database/SRE sign"
+  non_negotiable_touched: false
+```
+
+### SUG-20260820-lf2 · Rebuild R0 LLD SVG as runtime flow
+
+```yaml
+id: SUG-20260820-lf2
+raised_at: "2026-08-20"
+raised_by: "human:Mahesh"
+source: "follow-up on SUG-20260820-ls1 / SUG-20260820-hl1 — LLD SVG readability"
+input: >
+  lld is good from design perspective from view and readability is not that great,
+  not able to understand how services are cummunicating, how, when data is getting
+  stored. how the flow off design. this is not hld right this need more details
+  in visual understanding
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-TERM-SALE"
+  state_as_of: "2026-08-10"
+  state_provisional: false
+  active_work_item: SUG-20260820-hl1
+stage_fit:
+  code: SF1
+  rationale: >
+    Same on-stage S09 architecture pack as hl1/ls1. The first LLD SVG answered
+    placement; the human asked for runtime LLD (communication, write timing, flow).
+    That is still the same artefact, not a new workstream.
+scope:
+  code: SC0
+  business_scope: "in scope — R0 LLD rendering of already-accepted seams and stores"
+  serves: ["SUG-20260820-hl1"]
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S09 — Platform & Environment Foundation"
+  evidence_tier: E2
+  confidence: C4
+action: ADMIT-BYPASS
+action_rationale: >
+  Direct follow-up in the same executor lane as hl1/ls1. No new AWS service is named.
+  The previous SVG is replaced, not a third mystery file. Continues hl1; does not
+  unpark SUG-20260820-r1t.
+duplicate_of: null
+continues: SUG-20260820-ls1
 classification:
   type: ARCH
   also: [DOC]

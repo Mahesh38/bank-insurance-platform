@@ -54,7 +54,7 @@ docs/
 │   ├── r0-reference-architecture.svg      R0 executable architecture (the admitted scope)
 │   ├── R0-HLD.md                          Stakeholder HLD — domain, boundaries, APIs, waves
 │   ├── R0-LLD.md                          S09 AWS pack — VPC, proxy, PVC, DB, cache BOM
-│   └── r0-lld.svg                         R0 LLD rendering (trust zones, EKS, data, do-not-provision)
+│   └── r0-lld.svg                         R0 LLD — hops, writes, stores, then compact AWS placement
 │
 ├── governance/                        PROCESS — how work is admitted, gated & recorded
 │   ├── RUNBOOK.md                         Operating manual — role cards, cadences
@@ -121,7 +121,7 @@ docs/
 | **Product Owner / BA** | [`au-bank-insurance-platform/07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md`](./au-bank-insurance-platform/07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md) — the business MVP SSOT |
 | **Solution Architect** | [`platform/architecture-review/README.md`](./platform/architecture-review/README.md) — target-state platform architecture |
 | **Wanting the picture, not the prose** | [`architecture/README.md`](./architecture/README.md) — the North Star HLD ([`hdl.svg`](./hdl.svg)) and the R0 architecture, and why they are two diagrams |
-| **Wanting the R0 HLD in prose, or the AWS bill of materials** | [`architecture/R0-HLD.md`](./architecture/R0-HLD.md) · [`architecture/R0-LLD.md`](./architecture/R0-LLD.md) · picture: [`architecture/r0-lld.svg`](./architecture/r0-lld.svg) |
+| **Wanting the R0 HLD in prose, or the AWS bill of materials** | [`architecture/R0-HLD.md`](./architecture/R0-HLD.md) · [`architecture/R0-LLD.md`](./architecture/R0-LLD.md) · LLD picture (runtime hops + writes): [`architecture/r0-lld.svg`](./architecture/r0-lld.svg) |
 | **Building the 1SB adapter** | [`1sb-insurance-integration/service-ssot/README.md`](./1sb-insurance-integration/service-ssot/README.md) |
 | **Building auth / identity services** | [`platform/authentication-authorization/README.md`](./platform/authentication-authorization/README.md) |
 | **QA / test engineer** | [`1sb-insurance-integration/service-ssot/QA-LEAD-TESTING-STRATEGY.md`](./1sb-insurance-integration/service-ssot/QA-LEAD-TESTING-STRATEGY.md) + [`TESTING-RULES.md`](./1sb-insurance-integration/service-ssot/TESTING-RULES.md) |

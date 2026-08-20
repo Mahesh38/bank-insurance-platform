@@ -1,195 +1,634 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="2760" viewBox="0 0 1800 2760" font-family="Helvetica, Arial, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" width="2280" height="3400" viewBox="0 0 2280 3400" font-family="Helvetica, Arial, sans-serif">
   <defs>
-    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#334155"/></marker>
-    <marker id="arrGray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/></marker>
-    <marker id="arrRed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0f172a"/></marker>
+    <marker id="arrBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1d4ed8"/></marker>
+    <marker id="arrOrange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#c2410c"/></marker>
+    <marker id="arrRed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker>
+    <marker id="arrGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#047857"/></marker>
+    <marker id="arrGray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker>
   </defs>
-  <rect x="0" y="0" width="1800" height="2760" fill="#ffffff"/>
-<text x="900" y="36" font-size="25" fill="#0f172a" text-anchor="middle" font-weight="bold">AU Bank Insurance Distribution Platform — R0 Low-Level Design</text><text x="900" y="58" font-size="12" fill="#475569" text-anchor="middle">AWS deployment as designed for S09 · ap-south-1 · one VPC per environment · the picture the CTO and AWS platform team provision from</text><text x="900" y="74" font-size="10.5" fill="#64748b" text-anchor="middle">Rendering of docs/architecture/R0-LLD.md  ·  owns nothing (HA-02)  ·  Kafka, shared Redis, Istio, per-service RDS and extra reverse proxies are drawn grey on purpose</text><rect x="40" y="88" width="1720" height="48" rx="6" fill="#fffbeb" stroke="#b45309" stroke-width="1.2"/><text x="56" y="106" font-size="9.5" fill="#92400e" text-anchor="start" font-weight="bold" letter-spacing="1">HOW TO READ THIS</text><text x="200" y="106" font-size="9.3" fill="#92400e" text-anchor="start">Same services as the R0 HLD, now placed on AWS. Colour here is TRUST ZONE / SUBNET, not build wave. Solid = PROVISION in R0. Dashed grey = DO NOT PROVISION.</text><text x="200" y="122" font-size="9.3" fill="#92400e" text-anchor="start">The only public reverse proxy is API Gateway behind CloudFront+WAF. Internal ALB is the only in-VPC reverse proxy. Business pods have no PVC. Customer payment never enters this VPC (C4).</text><rect x="40" y="148" width="1720" height="52" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/><text x="56" y="168" font-size="10" fill="#334155" text-anchor="start" font-weight="bold" letter-spacing="0.8">ACCOUNTS  ·  AWS Organizations</text><rect x="360" y="156" width="266" height="36" rx="5" fill="#ffffff" stroke="#94a3b8" stroke-width="1.1"/><text x="493" y="171" font-size="11" fill="#0f172a" text-anchor="middle" font-weight="bold">shared-services</text><text x="493" y="185" font-size="8.2" fill="#64748b" text-anchor="middle">ECR · Terraform state · Argo</text><rect x="638" y="156" width="266" height="36" rx="5" fill="#ffffff" stroke="#94a3b8" stroke-width="1.1"/><text x="771" y="171" font-size="11" fill="#0f172a" text-anchor="middle" font-weight="bold">security</text><text x="771" y="185" font-size="8.2" fill="#64748b" text-anchor="middle">CloudTrail · Config · GuardDuty · Hub</text><rect x="916" y="156" width="266" height="36" rx="5" fill="#ffffff" stroke="#94a3b8" stroke-width="1.1"/><text x="1049" y="171" font-size="11" fill="#0f172a" text-anchor="middle" font-weight="bold">dev</text><text x="1049" y="185" font-size="8.2" fill="#64748b" text-anchor="middle">synthetic data only</text><rect x="1194" y="156" width="266" height="36" rx="5" fill="#ffffff" stroke="#94a3b8" stroke-width="1.1"/><text x="1327" y="171" font-size="11" fill="#0f172a" text-anchor="middle" font-weight="bold">uat</text><text x="1327" y="185" font-size="8.2" fill="#64748b" text-anchor="middle">no production CIF dumps</text><rect x="1472" y="156" width="266" height="36" rx="5" fill="#ffffff" stroke="#94a3b8" stroke-width="1.1"/><text x="1605" y="171" font-size="11" fill="#0f172a" text-anchor="middle" font-weight="bold">prod</text><text x="1605" y="185" font-size="8.2" fill="#64748b" text-anchor="middle">pilot branches · one VPC</text><rect x="40" y="214" width="1720" height="118" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.3"/>
-<rect x="40" y="214" width="1720" height="24" rx="10" fill="#0f172a" stroke="#0f172a" stroke-width="0"/>
-<rect x="40" y="226" width="1720" height="12" fill="#0f172a"/>
-<text x="56" y="230.5" font-size="9.5" fill="#ffffff" text-anchor="start" font-weight="bold" letter-spacing="1.4">ZONE 0</text>
-<text x="166" y="230.5" font-size="10.5" fill="#ffffff" text-anchor="start" font-weight="bold" letter-spacing="0.6">DEVICES — OUTSIDE THE VPC</text>
-<text x="1744" y="230.5" font-size="9" fill="#cbd5e1" text-anchor="end" font-weight="bold">customer payment never enters Z1</text><rect x="60" y="248" width="340" height="72" rx="6" fill="#f3e8ff" stroke="#9333ea" stroke-width="1.5"/>
-<text x="230.0" y="276" font-size="11.4" fill="#0f172a" text-anchor="middle" font-weight="bold">Flutter RM Application</text>
-<text x="230.0" y="292" font-size="8.4" fill="#475569" text-anchor="middle">RM device · certified SP</text>
-<text x="230.0" y="304" font-size="8.4" fill="#475569" text-anchor="middle">opaque session — no OAuth tokens</text><rect x="420" y="248" width="340" height="72" rx="6" fill="#f3e8ff" stroke="#9333ea" stroke-width="1.5"/>
-<text x="590.0" y="276" font-size="11.4" fill="#0f172a" text-anchor="middle" font-weight="bold">Insurance Partner Rep</text>
-<text x="590.0" y="292" font-size="8.4" fill="#475569" text-anchor="middle">same hostname, same BFF (S-22)</text>
-<text x="590.0" y="304" font-size="8.4" fill="#475569" text-anchor="middle">assist only · own insurer_id</text><rect x="780" y="248" width="340" height="72" rx="6" fill="#f3e8ff" stroke="#9333ea" stroke-width="1.5"/>
-<rect x="1088" y="255" width="24" height="15" rx="7" fill="#dc2626" stroke="#dc2626" stroke-width="0"/><text x="1100.0" y="266.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">C4</text>
-<text x="950.0" y="280" font-size="11.4" fill="#0f172a" text-anchor="middle" font-weight="bold">Customer Device</text>
-<text x="950.0" y="296" font-size="8.4" fill="#475569" text-anchor="middle">OTP + 3-D Secure payment HERE</text>
-<text x="950.0" y="308" font-size="8.4" fill="#475569" text-anchor="middle">no platform session in R0</text><rect x="1140" y="248" width="300" height="72" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="5 4"/>
-<rect x="1147" y="255" width="26" height="15" rx="4" fill="#94a3b8" stroke="#94a3b8" stroke-width="0"/><text x="1160.0" y="266.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">R1</text>
-<text x="1290.0" y="280" font-size="11.4" fill="#0f172a" text-anchor="middle" font-weight="bold">Customer DIY</text>
-<text x="1290.0" y="296" font-size="8.4" fill="#475569" text-anchor="middle">R1 — do not provision a</text>
-<text x="1290.0" y="308" font-size="8.4" fill="#475569" text-anchor="middle">second CloudFront for DIY</text><rect x="1460" y="248" width="280" height="72" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="5 4"/>
-<rect x="1467" y="255" width="26" height="15" rx="4" fill="#94a3b8" stroke="#94a3b8" stroke-width="0"/><text x="1480.0" y="266.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">R2</text>
-<text x="1600.0" y="280" font-size="11.4" fill="#0f172a" text-anchor="middle" font-weight="bold">Call centre / branch</text>
-<text x="1600.0" y="296" font-size="8.4" fill="#475569" text-anchor="middle">R2 actors on the SAME journey</text><path d="M230,320 L230,348" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/><text x="240" y="338" font-size="9" fill="#475569" text-anchor="start">HTTPS TLS 1.3  (S-01)</text><path d="M590,320 L590,340 L400,340 L400,348" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/><text x="600" y="334" font-size="9" fill="#475569" text-anchor="start">same gateway</text><path d="M950,320 L950,348" fill="none" stroke="#dc2626" stroke-width="1.8" marker-end="url(#arrRed)"/><text x="960" y="338" font-size="9" fill="#dc2626" text-anchor="start">C4 — payment skips this edge → AU Bank PG</text><rect x="40" y="366" width="1720" height="150" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.3"/>
-<rect x="40" y="366" width="1720" height="24" rx="10" fill="#0f172a" stroke="#0f172a" stroke-width="0"/>
-<rect x="40" y="378" width="1720" height="12" fill="#0f172a"/>
-<text x="56" y="382.5" font-size="9.5" fill="#ffffff" text-anchor="start" font-weight="bold" letter-spacing="1.4">ZONE 1</text>
-<text x="166" y="382.5" font-size="10.5" fill="#ffffff" text-anchor="start" font-weight="bold" letter-spacing="0.6">PUBLIC AWS EDGE — THE ONLY INTERNET ENTRY  (not in the VPC)</text>
-<text x="1744" y="382.5" font-size="9" fill="#cbd5e1" text-anchor="end" font-weight="bold">no workload is internet-reachable</text><rect x="60" y="404" width="250" height="96" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
-<rect x="67" y="411" width="32" height="15" rx="4" fill="#d97706" stroke="#d97706" stroke-width="0"/><text x="83.0" y="422.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">DNS</text>
-<text x="185.0" y="436" font-size="11.4" fill="#0f172a" text-anchor="middle" font-weight="bold">Route 53</text>
-<text x="185.0" y="452" font-size="8.4" fill="#475569" text-anchor="middle">public + private hosted zones</text>
-<text x="185.0" y="464" font-size="8.4" fill="#475569" text-anchor="middle">no latency-based DR routing in R0</text><rect x="330" y="404" width="280" height="96" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
-<rect x="337" y="411" width="32" height="15" rx="4" fill="#d97706" stroke="#d97706" stroke-width="0"/><text x="353.0" y="422.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">CDN</text>
-<text x="470.0" y="436" font-size="11.4" fill="#0f172a" text-anchor="middle" font-weight="bold">CloudFront</text>
-<text x="470.0" y="452" font-size="8.4" fill="#475569" text-anchor="middle">TLS 1.3 · ACM cert</text>
-<text x="470.0" y="464" font-size="8.4" fill="#475569" text-anchor="middle">origin = API Gateway</text>
-<text x="470.0" y="476" font-size="8.4" fill="#475569" text-anchor="middle">logs stay in ap-south-1</text><rect x="630" y="404" width="300" height="96" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
-<rect x="637" y="411" width="32" height="15" rx="4" fill="#d97706" stroke="#d97706" stroke-width="0"/><text x="653.0" y="422.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">WAF</text>
-<text x="780.0" y="436" font-size="11.4" fill="#0f172a" text-anchor="middle" font-weight="bold">AWS WAF + Shield Standard</text>
-<text x="780.0" y="452" font-size="8.4" fill="#475569" text-anchor="middle">OWASP managed rules + rate limit</text>
-<text x="780.0" y="464" font-size="8.4" fill="#475569" text-anchor="middle">no business logic, no authZ</text>
-<text x="780.0" y="476" font-size="8.4" fill="#475569" text-anchor="middle">Shield Advanced = Shivanshi cost call</text><rect x="950" y="404" width="380" height="96" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
-<rect x="957" y="411" width="32" height="15" rx="4" fill="#d97706" stroke="#d97706" stroke-width="0"/><text x="973.0" y="422.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">PROXY</text>
-<text x="1140.0" y="436" font-size="11.4" fill="#0f172a" text-anchor="middle" font-weight="bold">API Gateway  =  EXTERNAL REVERSE PROXY</text>
-<text x="1140.0" y="452" font-size="8.4" fill="#475569" text-anchor="middle">throttling · request validation · VPC link</text>
-<text x="1140.0" y="464" font-size="8.4" fill="#475569" text-anchor="middle">NOT Kong / Nginx Plus / F5</text>
-<text x="1140.0" y="476" font-size="8.4" fill="#475569" text-anchor="middle">no authorisation decision here</text><rect x="1350" y="404" width="390" height="96" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
-<rect x="1357" y="411" width="26" height="15" rx="4" fill="#d97706" stroke="#d97706" stroke-width="0"/><text x="1370.0" y="422.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">CB</text>
-<rect x="1708" y="411" width="24" height="15" rx="7" fill="#dc2626" stroke="#dc2626" stroke-width="0"/><text x="1720.0" y="422.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">C4</text>
-<text x="1545.0" y="436" font-size="11.4" fill="#0f172a" text-anchor="middle" font-weight="bold">PG-callback API Gateway route</text>
-<text x="1545.0" y="452" font-size="8.4" fill="#475569" text-anchor="middle">SEPARATE from the RM path (TB-6)</text>
-<text x="1545.0" y="464" font-size="8.4" fill="#475569" text-anchor="middle">IP-allowlisted to AU Bank PG</text>
-<text x="1545.0" y="476" font-size="8.4" fill="#475569" text-anchor="middle">signature verified in #12 Payment</text><path d="M185,500 L185,528" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/><path d="M1140,500 L1140,528" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/><text x="195" y="518" font-size="9" fill="#475569" text-anchor="start">north-south only — private integration / VPC link into the INTERNAL ALB</text><rect x="40" y="546" width="1720" height="1238" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.3"/>
-<rect x="40" y="546" width="1720" height="24" rx="10" fill="#0f172a" stroke="#0f172a" stroke-width="0"/>
-<rect x="40" y="558" width="1720" height="12" fill="#0f172a"/>
-<text x="56" y="562.5" font-size="9.5" fill="#ffffff" text-anchor="start" font-weight="bold" letter-spacing="1.4">ZONE 2–4</text>
-<text x="166" y="562.5" font-size="10.5" fill="#ffffff" text-anchor="start" font-weight="bold" letter-spacing="0.6">VPC  ·  one per environment  ·  10.{env}.0.0/16  ·  ap-south-1  ·  3 AZs</text>
-<text x="1744" y="562.5" font-size="9" fill="#cbd5e1" text-anchor="end" font-weight="bold">prod does not share a VPC with uat</text><rect x="60" y="584" width="1680" height="96" rx="8" fill="#fff7ed" stroke="#ea580c" stroke-width="1.4"/><text x="76" y="604" font-size="11" fill="#9a3412" text-anchor="start" font-weight="bold">PUBLIC SUBNETS  /24 × 3 AZs</text><text x="320" y="604" font-size="9.2" fill="#9a3412" text-anchor="start">No application workloads. No public ALB onto EKS. No public RDS.</text><rect x="76" y="616" width="420" height="54" rx="6" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5"/><text x="286" y="638" font-size="12" fill="#0f172a" text-anchor="middle" font-weight="bold">NAT Gateway + Elastic IP</text><text x="286" y="656" font-size="8.6" fill="#475569" text-anchor="middle">1SB and PG allowlist THIS EIP  ·  prod: per AZ</text><rect x="516" y="616" width="380" height="54" rx="6" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5"/><text x="706" y="638" font-size="12" fill="#0f172a" text-anchor="middle" font-weight="bold">Internet Gateway</text><text x="706" y="656" font-size="8.6" fill="#475569" text-anchor="middle">for NAT egress only — no workloads</text><rect x="916" y="616" width="790" height="54" rx="6" fill="#ffffff" stroke="#ea580c" stroke-width="1.5"/><text x="1311" y="638" font-size="12" fill="#0f172a" text-anchor="middle" font-weight="bold">Nothing else lives here</text><text x="1311" y="656" font-size="8.6" fill="#9a3412" text-anchor="middle">A public NLB/ALB onto a service is a standing-constraint violation</text><rect x="60" y="688" width="1680" height="760" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.4"/><text x="76" y="708" font-size="11" fill="#1e40af" text-anchor="start" font-weight="bold">PRIVATE-APP SUBNETS  /20 × 3 AZs   ·   EKS nodes + Internal ALB</text><text x="620" y="708" font-size="9.2" fill="#1e40af" text-anchor="start">EKS API private in prod  ·  NetworkPolicy default-deny  ·  IRSA  ·  min 2 pods, ≥2 AZs, PDB</text><rect x="76" y="722" width="1648" height="56" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
-<text x="900.0" y="750" font-size="11.4" fill="#0f172a" text-anchor="middle" font-weight="bold">Internal ALB  =  IN-VPC REVERSE PROXY   (AWS Load Balancer Controller · one ALB, host/path rules, not an ALB per service)</text>
-<text x="900.0" y="766" font-size="8.4" fill="#475569" text-anchor="middle">Public ALB is not used for services. TLS re-terminated. No authN/authZ. Targets ns:edge only.</text><rect x="76" y="792" width="1648" height="640" rx="8" fill="#ffffff" stroke="#1e3a8a" stroke-width="1.6"/><text x="92" y="812" font-size="11.5" fill="#1e3a8a" text-anchor="start" font-weight="bold">Amazon EKS  ·  one cluster per environment  ·  stateless pods  ·  NO PersistentVolumeClaim on business services</text><rect x="1288" y="798" width="70" height="16" rx="4" fill="#0f172a" stroke="#0f172a" stroke-width="0"/><text x="1323.0" y="809.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">NO PVC</text><rect x="1366" y="798" width="74" height="16" rx="4" fill="#0f172a" stroke="#0f172a" stroke-width="0"/><text x="1403.0" y="809.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">NO MESH</text><rect x="1448" y="798" width="80" height="16" rx="4" fill="#0f172a" stroke="#0f172a" stroke-width="0"/><text x="1488.0" y="809.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">HPA min 2</text><rect x="1536" y="798" width="100" height="16" rx="4" fill="#0f172a" stroke="#0f172a" stroke-width="0"/><text x="1586.0" y="809.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">Karpenter thin</text><text x="92" y="828" font-size="8.6" fill="#475569" text-anchor="start">Namespaces follow HLD boundaries, not 1:1 with services. Sale-path on-demand nodes. Spot is not enabled on the sale path in R0.</text><rect x="92" y="842" width="118" height="70" rx="4" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1"/><text x="151" y="881.0" font-size="8.6" fill="#334155" text-anchor="middle" font-weight="bold">ns:edge</text><rect x="222" y="842" width="1488" height="70" rx="6" fill="#f3e8ff" stroke="#9333ea" stroke-width="1.5"/>
-<rect x="229" y="849" width="26" height="15" rx="4" fill="#9333ea" stroke="#9333ea" stroke-width="0"/><text x="242.0" y="860.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">W4</text>
-<text x="966.0" y="874" font-size="11.4" fill="#0f172a" text-anchor="middle" font-weight="bold">#2  RM Workspace BFF   (+ workforce-access-bff if separate — Amit packaging, same hostname)</text>
-<text x="966.0" y="890" font-size="8.4" fill="#475569" text-anchor="middle">stateless session facade · holds OAuth tokens · Flutter never sees them (S-01) · every call re-authorized by PDP (S-02) · LIFE-partitioned field rules (CF-2)</text><rect x="92" y="922" width="118" height="78" rx="4" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1"/><text x="151" y="965.0" font-size="8.6" fill="#334155" text-anchor="middle" font-weight="bold">ns:identity</text><rect x="222" y="922" width="490" height="78" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="1.5"/>
-<rect x="229" y="929" width="32" height="15" rx="4" fill="#059669" stroke="#059669" stroke-width="0"/><text x="245.0" y="940.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">WS-2</text>
-<text x="467.0" y="954" font-size="11.4" fill="#0f172a" text-anchor="middle" font-weight="bold">identity-provider-adapter</text>
-<text x="467.0" y="970" font-size="8.4" fill="#475569" text-anchor="middle">Keycloak first · provider-neutral</text>
-<text x="467.0" y="982" font-size="8.4" fill="#475569" text-anchor="middle">Bank AD federation is Phase 2</text><rect x="722" y="922" width="490" height="78" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="1.5"/>
-<rect x="729" y="929" width="32" height="15" rx="4" fill="#059669" stroke="#059669" stroke-width="0"/><text x="745.0" y="940.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">WS-2</text>
-<text x="967.0" y="954" font-size="11.4" fill="#0f172a" text-anchor="middle" font-weight="bold">identity-authorization (PDP)</text>
-<text x="967.0" y="970" font-size="8.4" fill="#475569" text-anchor="middle">RBAC+ABAC · default deny · 300 ms</text>
-<text x="967.0" y="982" font-size="8.4" fill="#475569" text-anchor="middle">FAIL CLOSED · no retry (S-02)</text><rect x="1222" y="922" width="488" height="78" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="1.5"/>
-<rect x="1229" y="929" width="32" height="15" rx="4" fill="#059669" stroke="#059669" stroke-width="0"/><text x="1245.0" y="940.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">WS-2</text>
-<text x="1466.0" y="954" font-size="11.4" fill="#0f172a" text-anchor="middle" font-weight="bold">Keycloak  (private IdP)</text>
-<text x="1466.0" y="970" font-size="8.4" fill="#475569" text-anchor="middle">NOT exposed to Flutter</text>
-<text x="1466.0" y="982" font-size="8.4" fill="#475569" text-anchor="middle">JDBC → Aurora schema keycloak  ·  NO PVC</text><rect x="92" y="1010" width="118" height="168" rx="4" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1"/><text x="151" y="1098.0" font-size="8.6" fill="#334155" text-anchor="middle" font-weight="bold">ns:shared-platform</text><rect x="222" y="1010" width="238" height="76" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
-<rect x="229" y="1017" width="26" height="15" rx="4" fill="#2563eb" stroke="#2563eb" stroke-width="0"/><text x="242.0" y="1028.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">W1</text>
-<text x="341.0" y="1042" font-size="11.4" fill="#0f172a" text-anchor="middle" font-weight="bold">#5 Opportunity</text>
-<text x="341.0" y="1058" font-size="8.4" fill="#475569" text-anchor="middle">single origination · RM-only</text><rect x="470" y="1010" width="238" height="76" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
-<rect x="477" y="1017" width="26" height="15" rx="4" fill="#2563eb" stroke="#2563eb" stroke-width="0"/><text x="490.0" y="1028.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">W1</text>
-<text x="589.0" y="1042" font-size="11.4" fill="#0f172a" text-anchor="middle" font-weight="bold">#4 Customer</text>
-<text x="589.0" y="1058" font-size="8.4" fill="#475569" text-anchor="middle">ETB snapshot · CBS egress</text><rect x="718" y="1010" width="238" height="76" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
-<rect x="725" y="1017" width="26" height="15" rx="4" fill="#2563eb" stroke="#2563eb" stroke-width="0"/><text x="738.0" y="1028.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">W1</text>
-<text x="837.0" y="1042" font-size="11.4" fill="#0f172a" text-anchor="middle" font-weight="bold">#9 Journey</text>
-<text x="837.0" y="1058" font-size="8.4" fill="#475569" text-anchor="middle">state machine · no decisions</text><rect x="966" y="1010" width="238" height="76" rx="6" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5"/>
-<rect x="973" y="1017" width="32" height="15" rx="4" fill="#0284c7" stroke="#0284c7" stroke-width="0"/><text x="989.0" y="1028.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">W0b</text>
-<text x="1085.0" y="1042" font-size="11.4" fill="#0f172a" text-anchor="middle" font-weight="bold">#19 Configuration</text>
-<text x="1085.0" y="1058" font-size="8.4" fill="#475569" text-anchor="middle">seeded · fail closed S-21</text><rect x="1214" y="1010" width="238" height="76" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
-<rect x="1221" y="1017" width="26" height="15" rx="4" fill="#2563eb" stroke="#2563eb" stroke-width="0"/><text x="1234.0" y="1028.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">W1</text>
-<text x="1333.0" y="1042" font-size="11.4" fill="#0f172a" text-anchor="middle" font-weight="bold">#8 Catalogue</text>
-<text x="1333.0" y="1058" font-size="8.4" fill="#475569" text-anchor="middle">in-process TTL cache</text><rect x="1462" y="1010" width="238" height="76" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
-<rect x="1469" y="1017" width="26" height="15" rx="4" fill="#d97706" stroke="#d97706" stroke-width="0"/><text x="1482.0" y="1028.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">W2</text>
-<text x="1581.0" y="1042" font-size="11.4" fill="#0f172a" text-anchor="middle" font-weight="bold">#6 Consent</text>
-<text x="1581.0" y="1058" font-size="8.4" fill="#475569" text-anchor="middle">append-only · C2</text><rect x="222" y="1094" width="238" height="76" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
-<rect x="229" y="1101" width="26" height="15" rx="4" fill="#d97706" stroke="#d97706" stroke-width="0"/><text x="242.0" y="1112.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">W2</text>
-<text x="341.0" y="1126" font-size="11.4" fill="#0f172a" text-anchor="middle" font-weight="bold">#7 Suitability</text>
-<text x="341.0" y="1142" font-size="8.4" fill="#475569" text-anchor="middle">hard gate C1 · LOB rules</text><rect x="470" y="1094" width="238" height="76" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
-<rect x="477" y="1101" width="26" height="15" rx="4" fill="#16a34a" stroke="#16a34a" stroke-width="0"/><text x="490.0" y="1112.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">W3</text>
-<text x="589.0" y="1126" font-size="11.4" fill="#0f172a" text-anchor="middle" font-weight="bold">#12 Payment</text>
-<text x="589.0" y="1142" font-size="8.4" fill="#475569" text-anchor="middle">link to customer device</text><rect x="718" y="1094" width="238" height="76" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
-<rect x="725" y="1101" width="26" height="15" rx="4" fill="#16a34a" stroke="#16a34a" stroke-width="0"/><text x="738.0" y="1112.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">W3</text>
-<text x="837.0" y="1126" font-size="11.4" fill="#0f172a" text-anchor="middle" font-weight="bold">#13 Policy</text>
-<text x="837.0" y="1142" font-size="8.4" fill="#475569" text-anchor="middle">issue iff RECONCILED</text><rect x="966" y="1094" width="238" height="76" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
-<rect x="973" y="1101" width="26" height="15" rx="4" fill="#16a34a" stroke="#16a34a" stroke-width="0"/><text x="986.0" y="1112.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">W3</text>
-<text x="1085.0" y="1126" font-size="11.4" fill="#0f172a" text-anchor="middle" font-weight="bold">#16 Audit</text>
-<text x="1085.0" y="1142" font-size="8.4" fill="#475569" text-anchor="middle">INSERT-only IAM · 7y WORM</text><rect x="1214" y="1094" width="238" height="76" rx="6" fill="#f3e8ff" stroke="#9333ea" stroke-width="1.5"/>
-<rect x="1221" y="1101" width="26" height="15" rx="4" fill="#9333ea" stroke="#9333ea" stroke-width="0"/><text x="1234.0" y="1112.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">W4</text>
-<text x="1333.0" y="1126" font-size="11.4" fill="#0f172a" text-anchor="middle" font-weight="bold">#17 Notification</text>
-<text x="1333.0" y="1142" font-size="8.4" fill="#475569" text-anchor="middle">OTP + pay-link · never blocks</text><rect x="1462" y="1094" width="238" height="76" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
-<rect x="1469" y="1101" width="26" height="15" rx="4" fill="#16a34a" stroke="#16a34a" stroke-width="0"/><text x="1482.0" y="1112.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">W3</text>
-<text x="1581.0" y="1126" font-size="11.4" fill="#0f172a" text-anchor="middle" font-weight="bold">outbox in each svc</text>
-<text x="1581.0" y="1142" font-size="8.4" fill="#475569" text-anchor="middle">no Kafka — table + worker</text><rect x="92" y="1190" width="118" height="88" rx="4" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1"/><text x="151" y="1238.0" font-size="8.6" fill="#334155" text-anchor="middle" font-weight="bold">ns:life-cell</text><rect x="222" y="1190" width="1488" height="88" rx="8" fill="#fff1f2" stroke="#e11d48" stroke-width="2.2"/><rect x="238" y="1198" width="40" height="15" rx="2" fill="#e11d48" stroke="#e11d48" stroke-width="0"/><text x="258.0" y="1209.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">LIFE</text><text x="286" y="1210" font-size="9" fill="#9f1239" text-anchor="start">LOB-OWNED EXECUTION — first physical split seam (ADR-008). Health gets its OWN #10/#11 later, never if (lob==…)</text><rect x="238" y="1220" width="700" height="50" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
-<rect x="245" y="1227" width="26" height="15" rx="4" fill="#d97706" stroke="#d97706" stroke-width="0"/><text x="258.0" y="1238.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">W2</text>
-<text x="588.0" y="1252" font-size="11.4" fill="#0f172a" text-anchor="middle" font-weight="bold">#10  Quotation (Life)</text>
-<text x="588.0" y="1268" font-size="8.4" fill="#475569" text-anchor="middle">async-poll via Hub S-09/S-11 · refuses without suitability id</text><rect x="958" y="1220" width="736" height="50" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
-<rect x="965" y="1227" width="26" height="15" rx="4" fill="#16a34a" stroke="#16a34a" stroke-width="0"/><text x="978.0" y="1238.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">W3</text>
-<text x="1326.0" y="1252" font-size="11.4" fill="#0f172a" text-anchor="middle" font-weight="bold">#11  Proposal &amp; UW (Life)</text>
-<text x="1326.0" y="1268" font-size="8.4" fill="#475569" text-anchor="middle">no auto-retry on submit · poll to recover S-12</text><rect x="92" y="1288" width="118" height="70" rx="4" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1"/><text x="151" y="1327.0" font-size="8.6" fill="#334155" text-anchor="middle" font-weight="bold">ns:integration</text><rect x="222" y="1288" width="520" height="70" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
-<rect x="229" y="1295" width="26" height="15" rx="4" fill="#2563eb" stroke="#2563eb" stroke-width="0"/><text x="242.0" y="1306.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">W1</text>
-<text x="482.0" y="1320" font-size="11.4" fill="#0f172a" text-anchor="middle" font-weight="bold">#14  Integration Hub</text>
-<text x="482.0" y="1336" font-size="8.4" fill="#475569" text-anchor="middle">ALL provider traffic (SC-W3-5)</text>
-<text x="482.0" y="1348" font-size="8.4" fill="#475569" text-anchor="middle">distributorId injected server-side</text><rect x="752" y="1288" width="480" height="70" rx="6" fill="#e2e8f0" stroke="#475569" stroke-width="1.5"/>
-<rect x="759" y="1295" width="32" height="15" rx="4" fill="#475569" stroke="#475569" stroke-width="0"/><text x="775.0" y="1306.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">WS-1</text>
-<text x="992.0" y="1320" font-size="11.4" fill="#0f172a" text-anchor="middle" font-weight="bold">#15  1SB Adapter</text>
-<text x="992.0" y="1336" font-size="8.4" fill="#475569" text-anchor="middle">exists today · adapter.onesb.*</text>
-<text x="992.0" y="1348" font-size="8.4" fill="#475569" text-anchor="middle">egress via NAT EIP, mTLS</text><rect x="1242" y="1288" width="468" height="70" rx="6" fill="#e2e8f0" stroke="#475569" stroke-width="1.5"/>
-<rect x="1249" y="1295" width="32" height="15" rx="4" fill="#475569" stroke="#475569" stroke-width="0"/><text x="1265.0" y="1306.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">WS-1</text>
-<text x="1476.0" y="1320" font-size="11.4" fill="#0f172a" text-anchor="middle" font-weight="bold">bank-persistence-service</text>
-<text x="1476.0" y="1336" font-size="8.4" fill="#475569" text-anchor="middle">job store + audit ingest ONLY</text>
-<text x="1476.0" y="1348" font-size="8.4" fill="#475569" text-anchor="middle">not extended to business contexts</text><rect x="92" y="1368" width="118" height="52" rx="4" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1"/><text x="151" y="1398.0" font-size="8.6" fill="#334155" text-anchor="middle" font-weight="bold">ns:jobs</text><rect x="222" y="1368" width="740" height="52" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
-<text x="592.0" y="1396" font-size="11.4" fill="#0f172a" text-anchor="middle" font-weight="bold">outbox-publisher</text>
-<text x="592.0" y="1412" font-size="8.4" fill="#475569" text-anchor="middle">polls each service outbox → #16 / #17  ·  Deployment ×2, not KEDA</text><rect x="972" y="1368" width="738" height="52" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
-<text x="1341.0" y="1396" font-size="11.4" fill="#0f172a" text-anchor="middle" font-weight="bold">payment-reconcile CronJob + issuance-recheck</text>
-<text x="1341.0" y="1412" font-size="8.4" fill="#475569" text-anchor="middle">S-15 settlement file  ·  S-16 confirmation  ·  never auto-resolves money</text><rect x="60" y="1464" width="1680" height="150" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.4"/><text x="76" y="1484" font-size="11" fill="#334155" text-anchor="start" font-weight="bold">PRIVATE-DATA SUBNETS  /24 × 3 AZs   ·   no 0.0.0.0/0 route   ·   Aurora cannot initiate internet</text><path d="M130,1504 a190,10 0 0,1 380,0 v52 a190,10 0 0,1 -380,0 z" fill="#ffffff" stroke="#475569" stroke-width="1.2"/><ellipse cx="320" cy="1504" rx="190" ry="10" fill="#f8fafc" stroke="#475569" stroke-width="1.2"/>
-<text x="320" y="1532" font-size="11" fill="#0f172a" text-anchor="middle" font-weight="bold">Aurora PostgreSQL — ONE cluster</text>
-<text x="320" y="1546" font-size="8.4" fill="#475569" text-anchor="middle">schema per context · Multi-AZ · PITR</text>
-<text x="320" y="1558" font-size="8.4" fill="#475569" text-anchor="middle">ADR-008  ·  no cross-schema GRANT</text><rect x="560" y="1500" width="360" height="96" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="5 4"/>
-<rect x="567" y="1507" width="26" height="15" rx="4" fill="#94a3b8" stroke="#94a3b8" stroke-width="0"/><text x="580.0" y="1518.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">NO</text>
-<text x="740.0" y="1532" font-size="11.4" fill="#0f172a" text-anchor="middle" font-weight="bold">ElastiCache Redis</text>
-<text x="740.0" y="1548" font-size="8.4" fill="#475569" text-anchor="middle">DO NOT for catalogue / idempotency</text>
-<text x="740.0" y="1560" font-size="8.4" fill="#475569" text-anchor="middle">Optional: WS-2 session ONLY</text>
-<text x="740.0" y="1572" font-size="8.4" fill="#475569" text-anchor="middle">prefer DynamoDB sessions</text><rect x="940" y="1500" width="380" height="96" rx="6" fill="#ffffff" stroke="#64748b" stroke-width="1.5"/>
-<text x="1130.0" y="1528" font-size="11.4" fill="#0f172a" text-anchor="middle" font-weight="bold">No public RDS · no second cluster</text>
-<text x="1130.0" y="1544" font-size="8.4" fill="#475569" text-anchor="middle">First physical split = life-cell schemas</text>
-<text x="1130.0" y="1556" font-size="8.4" fill="#475569" text-anchor="middle">when load evidence says so — not now</text><rect x="1340" y="1500" width="380" height="96" rx="6" fill="#ffffff" stroke="#64748b" stroke-width="1.5"/>
-<text x="1530.0" y="1528" font-size="11.4" fill="#0f172a" text-anchor="middle" font-weight="bold">Flow logs → CloudWatch</text>
-<text x="1530.0" y="1544" font-size="8.4" fill="#475569" text-anchor="middle">RET-OPERATIONAL · PII-scrubbed</text><rect x="60" y="1630" width="1680" height="56" rx="8" fill="#ecfeff" stroke="#0e7490" stroke-width="1.2"/><text x="76" y="1652" font-size="11" fill="#155e75" text-anchor="start" font-weight="bold">VPC ENDPOINTS (private)  ·  S3  ·  DynamoDB  ·  Secrets Manager  ·  ECR  ·  STS  ·  CloudWatch Logs     — stop secrets and images pulling via NAT</text><text x="76" y="1672" font-size="9" fill="#155e75" text-anchor="start">Egress that DOES use NAT: 1SB (mTLS) · AU Bank PG session · CBS (once Direct Connect / VPN exists) · SMS/email gateway</text><text x="76" y="1760" font-size="9" fill="#1e40af" text-anchor="start">IRSA on every deployable  ·  Secrets Manager → Secrets Store CSI → tmpfs  ·  readOnlyRootFilesystem  ·  non-root  ·  no privileged  ·  Kyverno/Gatekeeper from shared-services</text><rect x="40" y="1800" width="1720" height="150" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.3"/>
-<rect x="40" y="1800" width="1720" height="24" rx="10" fill="#0f172a" stroke="#0f172a" stroke-width="0"/>
-<rect x="40" y="1812" width="1720" height="12" fill="#0f172a"/>
-<text x="56" y="1816.5" font-size="9.5" fill="#ffffff" text-anchor="start" font-weight="bold" letter-spacing="1.4">ZONE 4b</text>
-<text x="166" y="1816.5" font-size="10.5" fill="#ffffff" text-anchor="start" font-weight="bold" letter-spacing="0.6">AWS MANAGED — REGIONAL  (reached via endpoints, not a subnet)</text>
-<text x="1744" y="1816.5" font-size="9" fill="#cbd5e1" text-anchor="end" font-weight="bold">India regions only · FF-08</text><path d="M70,1844 a150,9 0 0,1 300,0 v52 a150,9 0 0,1 -300,0 z" fill="#ffffff" stroke="#475569" stroke-width="1.2"/><ellipse cx="220" cy="1844" rx="150" ry="9" fill="#f8fafc" stroke="#475569" stroke-width="1.2"/>
-<text x="220" y="1872" font-size="11" fill="#0f172a" text-anchor="middle" font-weight="bold">DynamoDB + PITR</text>
-<text x="220" y="1886" font-size="8.4" fill="#475569" text-anchor="middle">journey-state · jobs</text>
-<text x="220" y="1898" font-size="8.4" fill="#475569" text-anchor="middle">sessions · audit-events</text><path d="M410,1844 a150,9 0 0,1 300,0 v52 a150,9 0 0,1 -300,0 z" fill="#ffffff" stroke="#475569" stroke-width="1.2"/><ellipse cx="560" cy="1844" rx="150" ry="9" fill="#f8fafc" stroke="#475569" stroke-width="1.2"/>
-<text x="560" y="1872" font-size="11" fill="#0f172a" text-anchor="middle" font-weight="bold">S3 + Object Lock 7y</text>
-<text x="560" y="1886" font-size="8.4" fill="#475569" text-anchor="middle">raw · docs · audit-archive</text>
-<text x="560" y="1898" font-size="8.4" fill="#475569" text-anchor="middle">CRR → ap-south-2</text><path d="M750,1844 a150,9 0 0,1 300,0 v52 a150,9 0 0,1 -300,0 z" fill="#ffffff" stroke="#475569" stroke-width="1.2"/><ellipse cx="900" cy="1844" rx="150" ry="9" fill="#f8fafc" stroke="#475569" stroke-width="1.2"/>
-<text x="900" y="1872" font-size="11" fill="#0f172a" text-anchor="middle" font-weight="bold">KMS CMK hierarchy</text>
-<text x="900" y="1886" font-size="8.4" fill="#475569" text-anchor="middle">data · logs · secrets · WORM</text>
-<text x="900" y="1898" font-size="8.4" fill="#475569" text-anchor="middle">ap-south-1 keys</text><path d="M1090,1844 a150,9 0 0,1 300,0 v52 a150,9 0 0,1 -300,0 z" fill="#ffffff" stroke="#475569" stroke-width="1.2"/><ellipse cx="1240" cy="1844" rx="150" ry="9" fill="#f8fafc" stroke="#475569" stroke-width="1.2"/>
-<text x="1240" y="1872" font-size="11" fill="#0f172a" text-anchor="middle" font-weight="bold">Secrets Manager</text>
-<text x="1240" y="1886" font-size="8.4" fill="#475569" text-anchor="middle">DB · 1SB · PG · IdP</text>
-<text x="1240" y="1898" font-size="8.4" fill="#475569" text-anchor="middle">rotation exercised once</text><rect x="1470" y="1836" width="270" height="100" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
-<text x="1605.0" y="1864" font-size="11.4" fill="#0f172a" text-anchor="middle" font-weight="bold">Observability</text>
-<text x="1605.0" y="1880" font-size="8.4" fill="#475569" text-anchor="middle">AMP + AMG · X-Ray or ADOT</text>
-<text x="1605.0" y="1892" font-size="8.4" fill="#475569" text-anchor="middle">CloudWatch logs 90d</text>
-<text x="1605.0" y="1904" font-size="8.4" fill="#475569" text-anchor="middle">NOT self-hosted Prometheus</text><rect x="40" y="1966" width="1720" height="124" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.3"/>
-<rect x="40" y="1966" width="1720" height="24" rx="10" fill="#0f172a" stroke="#0f172a" stroke-width="0"/>
-<rect x="40" y="1978" width="1720" height="12" fill="#0f172a"/>
-<text x="56" y="1982.5" font-size="9.5" fill="#ffffff" text-anchor="start" font-weight="bold" letter-spacing="1.4">ZONE 5</text>
-<text x="166" y="1982.5" font-size="10.5" fill="#ffffff" text-anchor="start" font-weight="bold" letter-spacing="0.6">EXTERNAL — BANK SYSTEMS vs INSURANCE PROVIDERS  (two boundaries)</text>
-<text x="1744" y="1982.5" font-size="9" fill="#cbd5e1" text-anchor="end" font-weight="bold">connectivity pattern is Shivanshi + bank network</text><rect x="60" y="2004" width="400" height="72" rx="6" fill="#ffffff" stroke="#64748b" stroke-width="1.5"/>
-<rect x="67" y="2011" width="32" height="15" rx="4" fill="#64748b" stroke="#64748b" stroke-width="0"/><text x="83.0" y="2022.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">EXT</text>
-<text x="260.0" y="2036" font-size="11.4" fill="#0f172a" text-anchor="middle" font-weight="bold">Bank AD / SSO</text>
-<text x="260.0" y="2052" font-size="8.4" fill="#475569" text-anchor="middle">WS-2 Phase 2 · do not block R0</text>
-<text x="260.0" y="2064" font-size="8.4" fill="#475569" text-anchor="middle">adapter exists first</text><rect x="480" y="2004" width="400" height="72" rx="6" fill="#ffffff" stroke="#64748b" stroke-width="1.5"/>
-<rect x="487" y="2011" width="32" height="15" rx="4" fill="#64748b" stroke="#64748b" stroke-width="0"/><text x="503.0" y="2022.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">EXT</text>
-<text x="680.0" y="2036" font-size="11.4" fill="#0f172a" text-anchor="middle" font-weight="bold">Core Banking (CBS)</text>
-<text x="680.0" y="2052" font-size="8.4" fill="#475569" text-anchor="middle">CIF · ETB prefill  S-04/S-05</text>
-<text x="680.0" y="2064" font-size="8.4" fill="#475569" text-anchor="middle">Direct Connect / VPN / bank proxy</text><rect x="900" y="2004" width="400" height="72" rx="6" fill="#ffffff" stroke="#64748b" stroke-width="1.5"/>
-<rect x="907" y="2011" width="32" height="15" rx="4" fill="#64748b" stroke="#64748b" stroke-width="0"/><text x="923.0" y="2022.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">EXT</text>
-<text x="1100.0" y="2036" font-size="11.4" fill="#0f172a" text-anchor="middle" font-weight="bold">AU Bank Payment Gateway</text>
-<text x="1100.0" y="2052" font-size="8.4" fill="#475569" text-anchor="middle">customer device → PG (C4)</text>
-<text x="1100.0" y="2064" font-size="8.4" fill="#475569" text-anchor="middle">callback + settlement → #12</text><rect x="1320" y="2004" width="420" height="72" rx="6" fill="#ffffff" stroke="#64748b" stroke-width="1.5"/>
-<rect x="1327" y="2011" width="32" height="15" rx="4" fill="#64748b" stroke="#64748b" stroke-width="0"/><text x="1343.0" y="2022.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">EXT</text>
-<text x="1530.0" y="2036" font-size="11.4" fill="#0f172a" text-anchor="middle" font-weight="bold">1SilverBullet</text>
-<text x="1530.0" y="2052" font-size="8.4" fill="#475569" text-anchor="middle">#14 → #15 only · NAT EIP allowlisted</text>
-<text x="1530.0" y="2064" font-size="8.4" fill="#475569" text-anchor="middle">R0 polls — no inbound webhook</text><rect x="40" y="2106" width="1720" height="44" rx="6" fill="#fef2f2" stroke="#dc2626" stroke-width="1.2"/><text x="56" y="2124" font-size="9.5" fill="#9f1239" text-anchor="start" font-weight="bold" letter-spacing="0.6">C4 PAYMENT PATH (drawn here because it is the hop people get wrong)</text><text x="56" y="2138" font-size="9" fill="#9f1239" text-anchor="start">Customer device  →  AU Bank PG hosted page (3-D Secure).  PG callback  →  separate API Gateway route, IP-allowlisted.  RM session never receives a payment URL (FF-14).  Reconciliation, not DB restore, recovers money state.</text><rect x="40" y="2166" width="560" height="380" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/><text x="56" y="2188" font-size="11" fill="#334155" text-anchor="start" font-weight="bold" letter-spacing="0.6">PVC  ·  PERSISTENT VOLUME CLAIMS</text><text x="56" y="2208" font-size="9.2" fill="#475569" text-anchor="start">Business services: none. State is Aurora / DynamoDB / S3.</text><rect x="56" y="2224" width="528" height="32" rx="4" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/><text x="68" y="2244" font-size="9.2" fill="#334155" text-anchor="start">WS-3 services, BFF, Hub, workers</text><text x="568" y="2244" font-size="9.2" fill="#0f172a" text-anchor="end" font-weight="bold">NO PVC</text><rect x="56" y="2260" width="528" height="32" rx="4" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/><text x="68" y="2280" font-size="9.2" fill="#334155" text-anchor="start">1sb-integration-service</text><text x="568" y="2280" font-size="9.2" fill="#0f172a" text-anchor="end" font-weight="bold">NO PVC</text><rect x="56" y="2296" width="528" height="32" rx="4" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/><text x="68" y="2316" font-size="9.2" fill="#334155" text-anchor="start">Keycloak</text><text x="568" y="2316" font-size="9.2" fill="#0f172a" text-anchor="end" font-weight="bold">NO PVC — JDBC to Aurora</text><rect x="56" y="2332" width="528" height="32" rx="4" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/><text x="68" y="2352" font-size="9.2" fill="#334155" text-anchor="start">LB controller / ADOT / Fluent Bit</text><text x="568" y="2352" font-size="9.2" fill="#0f172a" text-anchor="end" font-weight="bold">chart default, not app state</text><rect x="56" y="2368" width="528" height="32" rx="4" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/><text x="68" y="2388" font-size="9.2" fill="#334155" text-anchor="start">Self-hosted Prometheus</text><text x="568" y="2388" font-size="9.2" fill="#0f172a" text-anchor="end" font-weight="bold">DO NOT INSTALL — use AMP</text><rect x="56" y="2404" width="528" height="32" rx="4" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/><text x="68" y="2424" font-size="9.2" fill="#334155" text-anchor="start">EBS CSI driver</text><text x="568" y="2424" font-size="9.2" fill="#0f172a" text-anchor="end" font-weight="bold">installed, unused by apps</text><text x="56" y="2528" font-size="8.8" fill="#64748b" text-anchor="start">A PVC on Keycloak would be an unreplicated identity SoR.</text><rect x="620" y="2166" width="560" height="380" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/><text x="636" y="2188" font-size="11" fill="#334155" text-anchor="start" font-weight="bold" letter-spacing="0.6">CACHING  ·  WHAT R0 ACTUALLY NEEDS</text><rect x="636" y="2208" width="528" height="36" rx="4" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1"/><text x="648" y="2230" font-size="9.4" fill="#166534" text-anchor="start" font-weight="bold">Configuration S-21</text><text x="1148" y="2230" font-size="8.8" fill="#166534" text-anchor="end">in-process TTL · fail closed</text><rect x="636" y="2250" width="528" height="36" rx="4" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1"/><text x="648" y="2272" font-size="9.4" fill="#166534" text-anchor="start" font-weight="bold">Product catalogue</text><text x="1148" y="2272" font-size="8.8" fill="#166534" text-anchor="end">in-process TTL in #8</text><rect x="636" y="2292" width="528" height="36" rx="4" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1"/><text x="648" y="2314" font-size="9.4" fill="#166534" text-anchor="start" font-weight="bold">CBS snapshot</text><text x="1148" y="2314" font-size="8.8" fill="#166534" text-anchor="end">freshness window · no unbounded stale</text><rect x="636" y="2334" width="528" height="36" rx="4" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1"/><text x="648" y="2356" font-size="9.4" fill="#166534" text-anchor="start" font-weight="bold">PDP decision</text><text x="1148" y="2356" font-size="8.8" fill="#166534" text-anchor="end">NOT cached across pods</text><rect x="636" y="2376" width="528" height="36" rx="4" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1"/><text x="648" y="2398" font-size="9.4" fill="#166534" text-anchor="start" font-weight="bold">Idempotency 24h</text><text x="1148" y="2398" font-size="8.8" fill="#166534" text-anchor="end">owning service store, not Redis</text><rect x="636" y="2418" width="528" height="36" rx="4" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1"/><text x="648" y="2440" font-size="9.4" fill="#166534" text-anchor="start" font-weight="bold">Flutter / CDN</text><text x="1148" y="2440" font-size="8.8" fill="#166534" text-anchor="end">CloudFront; no auth JSON cache</text><rect x="636" y="2460" width="528" height="36" rx="4" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1"/><text x="648" y="2482" font-size="9.4" fill="#166534" text-anchor="start" font-weight="bold">ElastiCache</text><text x="1148" y="2482" font-size="8.8" fill="#166534" text-anchor="end">out — unless WS-2 sessions force it</text><rect x="1200" y="2166" width="560" height="380" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/><text x="1216" y="2188" font-size="11" fill="#334155" text-anchor="start" font-weight="bold" letter-spacing="0.6">DO NOT PROVISION IN R0</text><text x="1216" y="2206" font-size="8.8" fill="#64748b" text-anchor="start">In the target-state review. Out of this slice.</text><text x="1216" y="2232" font-size="8.8" fill="#334155" text-anchor="start" font-weight="bold">▸  Amazon MSK / Kafka</text><text x="1744" y="2232" font-size="8.4" fill="#64748b" text-anchor="end">transactional outbox instead</text><text x="1216" y="2260" font-size="8.8" fill="#334155" text-anchor="start" font-weight="bold">▸  ElastiCache for idempotency</text><text x="1744" y="2260" font-size="8.4" fill="#64748b" text-anchor="end">owning-service store</text><text x="1216" y="2288" font-size="8.8" fill="#334155" text-anchor="start" font-weight="bold">▸  Per-service Aurora clusters</text><text x="1744" y="2288" font-size="8.4" fill="#64748b" text-anchor="end">ADR-008 — one cluster</text><text x="1216" y="2316" font-size="8.8" fill="#334155" text-anchor="start" font-weight="bold">▸  Public ALB / public RDS / public EKS</text><text x="1744" y="2316" font-size="8.4" fill="#64748b" text-anchor="end">only API Gateway is public</text><text x="1216" y="2344" font-size="8.8" fill="#334155" text-anchor="start" font-weight="bold">▸  Istio / AWS App Mesh</text><text x="1744" y="2344" font-size="8.4" fill="#64748b" text-anchor="end">NetworkPolicy + IRSA + in-app</text><text x="1216" y="2372" font-size="8.8" fill="#334155" text-anchor="start" font-weight="bold">▸  Glue / Athena / Redshift / QS</text><text x="1744" y="2372" font-size="8.4" fill="#64748b" text-anchor="end">#18 is S13 / R1</text><text x="1216" y="2400" font-size="8.8" fill="#334155" text-anchor="start" font-weight="bold">▸  Insurer webhook ingress</text><text x="1744" y="2400" font-size="8.4" fill="#64748b" text-anchor="end">R0 polls (S-11)</text><text x="1216" y="2428" font-size="8.8" fill="#334155" text-anchor="start" font-weight="bold">▸  Cognito as the R0 IdP</text><text x="1744" y="2428" font-size="8.4" fill="#64748b" text-anchor="end">Keycloak first, ARCH-018</text><text x="1216" y="2456" font-size="8.8" fill="#334155" text-anchor="start" font-weight="bold">▸  Kong / Nginx Plus / F5</text><text x="1744" y="2456" font-size="8.4" fill="#64748b" text-anchor="end">Gateway + internal ALB is enough</text><text x="1216" y="2484" font-size="8.8" fill="#334155" text-anchor="start" font-weight="bold">▸  Render.com as a data path</text><text x="1744" y="2484" font-size="8.4" fill="#64748b" text-anchor="end">ADR-001 — preview only</text><text x="1216" y="2512" font-size="8.8" fill="#334155" text-anchor="start" font-weight="bold">▸  Any region outside India</text><text x="1744" y="2512" font-size="8.4" fill="#64748b" text-anchor="end">except DR replicas ap-south-2</text><rect x="40" y="2562" width="1720" height="88" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/><text x="56" y="2584" font-size="11" fill="#334155" text-anchor="start" font-weight="bold" letter-spacing="1">LEGEND</text><rect x="56" y="2596" width="14" height="14" rx="3" fill="#fef3c7" stroke="#d97706" stroke-width="1.2"/><text x="76" y="2608" font-size="9" fill="#334155" text-anchor="start">Public AWS edge</text><rect x="250" y="2596" width="14" height="14" rx="3" fill="#fff7ed" stroke="#ea580c" stroke-width="1.2"/><text x="270" y="2608" font-size="9" fill="#334155" text-anchor="start">VPC public subnet (NAT only)</text><rect x="500" y="2596" width="14" height="14" rx="3" fill="#eff6ff" stroke="#2563eb" stroke-width="1.2"/><text x="520" y="2608" font-size="9" fill="#334155" text-anchor="start">VPC private-app / EKS</text><rect x="760" y="2596" width="14" height="14" rx="3" fill="#f8fafc" stroke="#475569" stroke-width="1.2"/><text x="780" y="2608" font-size="9" fill="#334155" text-anchor="start">VPC private-data</text><rect x="980" y="2596" width="14" height="14" rx="3" fill="#ecfdf5" stroke="#059669" stroke-width="1.2"/><text x="1000" y="2608" font-size="9" fill="#334155" text-anchor="start">WS-2 identity</text><rect x="1180" y="2596" width="14" height="14" rx="3" fill="#fff1f2" stroke="#e11d48" stroke-width="1.2"/><text x="1200" y="2608" font-size="9" fill="#334155" text-anchor="start">Life cell (LOB-owned)</text><rect x="1400" y="2596" width="14" height="14" rx="3" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="5 4"/><text x="1420" y="2608" font-size="9" fill="#334155" text-anchor="start">Do not provision (dashed)</text><rect x="1640" y="2596" width="14" height="14" rx="3" fill="#f3e8ff" stroke="#9333ea" stroke-width="1.2"/><text x="1660" y="2608" font-size="9" fill="#334155" text-anchor="start">Device / BFF</text><line x1="56" y1="2632" x2="98" y2="2632" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/><text x="108" y="2636" font-size="9" fill="#334155" text-anchor="start">sync / north-south hop</text><line x1="280" y1="2632" x2="322" y2="2632" stroke="#dc2626" stroke-width="1.8" marker-end="url(#arrRed)"/><text x="332" y="2636" font-size="9" fill="#334155" text-anchor="start">C4 payment — skips the platform edge</text><rect x="640" y="2622" width="24" height="15" rx="7" fill="#dc2626" stroke="#dc2626" stroke-width="0"/><text x="652.0" y="2633.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">C4</text><text x="670" y="2636" font-size="9" fill="#334155" text-anchor="start">non-waivable control</text><text x="860" y="2636" font-size="9" fill="#334155" text-anchor="start">DR: warm standby ap-south-2  ·  RTO ≤ 1h measured  ·  S3 WORM RPO 0  ·  money recovered by reconciliation, not restore</text><text x="60" y="2688" font-size="9.2" fill="#94a3b8" text-anchor="start">AI-DRAFTED in the Architecture lane (Mahesh — Board 1); mandatory human T4 Architecture sign-off outstanding · Security (Deepali), Database (Aarti) and SRE (Shivanshi) reviews outstanding before S09 apply.</text><text x="60" y="2704" font-size="9.2" fill="#94a3b8" text-anchor="start">Derived from R0-LLD.md, 03-solution-architecture-r0.md §4–§5, ADR-001, ADR-008, 04-security-architecture.md TB-1…TB-6. Same #n names as r0-reference-architecture.svg (NC-1). Colour is trust-zone, not build-wave.</text><text x="60" y="2720" font-size="9.2" fill="#94a3b8" text-anchor="start">Do not raise a landing-zone request from architecture-review/04 alone — that file is target state (MSK, ElastiCache, Istio). This rendering is the R0 cut.  ·  SUG-20260820-ls1  ·  2026-08-20</text></svg>
+  <rect x="0" y="0" width="2280" height="3400" fill="#ffffff"/>
+<text x="1140.0" y="38" font-size="24" fill="#0f172a" text-anchor="middle" font-weight="bold">R0 Low-Level Design — how services talk, and when data is stored</text>
+<text x="1140.0" y="62" font-size="13" fill="#334155" text-anchor="middle">Not the HLD. The HLD (r0-reference-architecture.svg) is the ten-boundary picture. This file is the runtime LLD: numbered hops, writes, stores.</text>
+<text x="1140.0" y="82" font-size="11.5" fill="#64748b" text-anchor="middle">Rendering of docs/architecture/R0-LLD.md  ·  owns nothing (HA-02)  ·  SUG-20260820-lf2  ·  AI-DRAFTED — T4 Architecture / Security / Database / SRE outstanding</text>
+<rect x="40" y="96" width="2200" height="88" rx="8" fill="#fff7ed" stroke="#c2410c" stroke-width="1.6"/>
+<text x="58" y="122" font-size="12" fill="#9a3412" text-anchor="start" font-weight="bold">READ TOP TO BOTTOM</text>
+<text x="58" y="144" font-size="12.5" fill="#9a3412" text-anchor="start">1  One RM click — the north-south hops, and what is stored at the BFF.     2  Who is allowed to call whom (east-west).     3  The sale, step by step — actor, seam, WRITE, store, sync/async.</text>
+<text x="58" y="166" font-size="12.5" fill="#9a3412" text-anchor="start">4  Special paths that skip the happy path (C4 payment, quote poll, outbox).     5  Compact AWS placement — where those hops sit. Colour in fig 5 is trust zone, not build wave.</text>
+<rect x="40" y="200" width="2200" height="44" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+<rect x="60" y="214" width="16" height="16" rx="3" fill="#0f172a" stroke="#0f172a" stroke-width="0"/>
+<text x="82" y="227" font-size="11.5" fill="#334155" text-anchor="start">solid navy = sync HTTP</text>
+<rect x="320" y="214" width="16" height="16" rx="3" fill="#c2410c" stroke="#c2410c" stroke-width="0"/>
+<text x="342" y="227" font-size="11.5" fill="#334155" text-anchor="start">dashed orange = async / poll / outbox</text>
+<rect x="680" y="214" width="16" height="16" rx="3" fill="#dc2626" stroke="#dc2626" stroke-width="0"/>
+<text x="702" y="227" font-size="11.5" fill="#334155" text-anchor="start">red = skips our VPC (C4)</text>
+<rect x="1000" y="214" width="16" height="16" rx="3" fill="#047857" stroke="#047857" stroke-width="0"/>
+<text x="1022" y="227" font-size="11.5" fill="#334155" text-anchor="start">green WRITE = a row is persisted now</text>
+<rect x="1380" y="214" width="16" height="16" rx="3" fill="#64748b" stroke="#64748b" stroke-width="0"/>
+<text x="1402" y="227" font-size="11.5" fill="#334155" text-anchor="start">grey = nothing stored</text>
+<rect x="1660" y="214" width="16" height="16" rx="3" fill="#1d4ed8" stroke="#1d4ed8" stroke-width="0"/>
+<text x="1682" y="227" font-size="11.5" fill="#334155" text-anchor="start">blue store = Aurora</text>
+<rect x="1920" y="214" width="16" height="16" rx="3" fill="#0f766e" stroke="#0f766e" stroke-width="0"/>
+<text x="1942" y="227" font-size="11.5" fill="#334155" text-anchor="start">teal = DynamoDB / S3</text>
+<rect x="40" y="260" width="2200" height="430" rx="12" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="40" y="260" width="56" height="430" rx="12" fill="#0f172a" stroke="#0f172a" stroke-width="0"/>
+<rect x="68" y="260" width="28" height="430" rx="0" fill="#0f172a" stroke="#0f172a" stroke-width="0"/>
+<text x="68" y="296" font-size="18" fill="#ffffff" text-anchor="middle" font-weight="bold">1</text>
+<text x="112" y="288" font-size="16" fill="#0f172a" text-anchor="start" font-weight="bold">One RM / IPR request — numbered hops. Domain writes (hop 8) wait for PDP ALLOW (hop 6).</text>
+<text x="112" y="308" font-size="12" fill="#475569" text-anchor="start">Every click: Flutter → CloudFront → WAF → API Gateway (external reverse proxy) → internal ALB → #2 BFF → PDP, then a domain service. Flutter never receives OAuth tokens.</text>
+<rect x="70" y="340" width="310" height="92" rx="8" fill="#f3e8ff" stroke="#7e22ce" stroke-width="1.7"/>
+<text x="225.0" y="368" font-size="13.5" fill="#0f172a" text-anchor="middle" font-weight="bold">RM Flutter</text>
+<text x="225.0" y="386" font-size="11" fill="#475569" text-anchor="middle">
+<tspan x="225.0" dy="0">HTTPS cookie only</tspan>
+<tspan x="225.0" dy="15">no OAuth tokens</tspan>
+</text>
+<rect x="430" y="340" width="310" height="92" rx="8" fill="#fef3c7" stroke="#d97706" stroke-width="1.7"/>
+<text x="585.0" y="368" font-size="13.5" fill="#0f172a" text-anchor="middle" font-weight="bold">CloudFront</text>
+<text x="585.0" y="386" font-size="11" fill="#475569" text-anchor="middle">
+<tspan x="585.0" dy="0">TLS 1.3 · ACM</tspan>
+<tspan x="585.0" dy="15">CDN, no authZ</tspan>
+</text>
+<rect x="790" y="340" width="310" height="92" rx="8" fill="#fef3c7" stroke="#d97706" stroke-width="1.7"/>
+<text x="945.0" y="368" font-size="13.5" fill="#0f172a" text-anchor="middle" font-weight="bold">AWS WAF</text>
+<text x="945.0" y="386" font-size="11" fill="#475569" text-anchor="middle">
+<tspan x="945.0" dy="0">OWASP + rate limit</tspan>
+<tspan x="945.0" dy="15">no business logic</tspan>
+</text>
+<rect x="1150" y="340" width="310" height="92" rx="8" fill="#fef3c7" stroke="#d97706" stroke-width="1.7"/>
+<text x="1305.0" y="368" font-size="13.5" fill="#0f172a" text-anchor="middle" font-weight="bold">API Gateway</text>
+<text x="1305.0" y="386" font-size="11" fill="#475569" text-anchor="middle">
+<tspan x="1305.0" dy="0">EXTERNAL reverse proxy</tspan>
+<tspan x="1305.0" dy="15">throttle · validate</tspan>
+</text>
+<rect x="1510" y="340" width="310" height="92" rx="8" fill="#dbeafe" stroke="#2563eb" stroke-width="1.7"/>
+<text x="1665.0" y="368" font-size="13.5" fill="#0f172a" text-anchor="middle" font-weight="bold">Internal ALB</text>
+<text x="1665.0" y="386" font-size="11" fill="#475569" text-anchor="middle">
+<tspan x="1665.0" dy="0">INTERNAL reverse proxy</tspan>
+<tspan x="1665.0" dy="15">path → ns:edge</tspan>
+</text>
+<rect x="1870" y="340" width="310" height="92" rx="8" fill="#f3e8ff" stroke="#7e22ce" stroke-width="1.7"/>
+<text x="2025.0" y="368" font-size="13.5" fill="#0f172a" text-anchor="middle" font-weight="bold">#2  RM BFF</text>
+<text x="2025.0" y="386" font-size="11" fill="#475569" text-anchor="middle">
+<tspan x="2025.0" dy="0">session facade</tspan>
+<tspan x="2025.0" dy="15">holds tokens</tspan>
+</text>
+<path d="M380,386.0 L430,386.0" fill="none" stroke="#0f172a" stroke-width="2.4" marker-end="url(#arr)"/>
+<circle cx="405.0" cy="364.0" r="13" fill="#0f172a"/>
+<text x="405.0" y="368.5" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="bold">1</text>
+<path d="M740,386.0 L790,386.0" fill="none" stroke="#0f172a" stroke-width="2.4" marker-end="url(#arr)"/>
+<circle cx="765.0" cy="364.0" r="13" fill="#0f172a"/>
+<text x="765.0" y="368.5" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="bold">2</text>
+<path d="M1100,386.0 L1150,386.0" fill="none" stroke="#0f172a" stroke-width="2.4" marker-end="url(#arr)"/>
+<circle cx="1125.0" cy="364.0" r="13" fill="#0f172a"/>
+<text x="1125.0" y="368.5" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="bold">3</text>
+<path d="M1460,386.0 L1510,386.0" fill="none" stroke="#0f172a" stroke-width="2.4" marker-end="url(#arr)"/>
+<circle cx="1485.0" cy="364.0" r="13" fill="#0f172a"/>
+<text x="1485.0" y="368.5" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="bold">4</text>
+<path d="M1820,386.0 L1870,386.0" fill="none" stroke="#0f172a" stroke-width="2.4" marker-end="url(#arr)"/>
+<circle cx="1845.0" cy="364.0" r="13" fill="#0f172a"/>
+<text x="1845.0" y="368.5" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="bold">5</text>
+<text x="405.0" y="332" font-size="11" fill="#475569" text-anchor="middle">S-01  TLS 1.3</text>
+<text x="1485.0" y="332" font-size="11" fill="#475569" text-anchor="middle">VPC link / private integration</text>
+<path d="M2025.0,432 L2025.0,458" fill="none" stroke="#0f172a" stroke-width="2.2"/>
+<path d="M225,458 L1945,458" fill="none" stroke="#94a3b8" stroke-width="1.6"/>
+<path d="M2025.0,458 L225,458" fill="none" stroke="#94a3b8" stroke-width="1.4"/>
+<rect x="70" y="468" width="310" height="118" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.7"/>
+<text x="225.0" y="496" font-size="13.5" fill="#0f172a" text-anchor="middle" font-weight="bold">#3 PDP  (S-02)</text>
+<text x="225.0" y="514" font-size="11" fill="#475569" text-anchor="middle">
+<tspan x="225.0" dy="0">300 ms · no retry</tspan>
+<tspan x="225.0" dy="15">FAIL CLOSED → deny</tspan>
+<tspan x="225.0" dy="15">NOTHING STORED</tspan>
+</text>
+<circle cx="225" cy="466" r="13" fill="#059669"/>
+<text x="225" y="470.5" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="bold">6</text>
+<path d="M2025.0,458 L655,458" fill="none" stroke="#94a3b8" stroke-width="1.4"/>
+<rect x="500" y="468" width="310" height="118" rx="8" fill="#ccfbf1" stroke="#0f766e" stroke-width="1.7"/>
+<text x="655.0" y="496" font-size="13.5" fill="#0f172a" text-anchor="middle" font-weight="bold">DynamoDB  sessions</text>
+<text x="655.0" y="514" font-size="11" fill="#475569" text-anchor="middle">
+<tspan x="655.0" dy="0">read/write cookie vault</tspan>
+<tspan x="655.0" dy="15">tokens never leave BFF</tspan>
+<tspan x="655.0" dy="15">TTL = session</tspan>
+</text>
+<circle cx="655" cy="466" r="13" fill="#0f766e"/>
+<text x="655" y="470.5" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="bold">7</text>
+<path d="M2025.0,458 L1085,458" fill="none" stroke="#94a3b8" stroke-width="1.4"/>
+<rect x="930" y="468" width="310" height="118" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.7"/>
+<text x="1085.0" y="496" font-size="13.5" fill="#0f172a" text-anchor="middle" font-weight="bold">Domain service</text>
+<text x="1085.0" y="514" font-size="11" fill="#475569" text-anchor="middle">
+<tspan x="1085.0" dy="0">only if PDP = ALLOW</tspan>
+<tspan x="1085.0" dy="15">see figure 3 for writes</tspan>
+<tspan x="1085.0" dy="15">never via public GW</tspan>
+</text>
+<circle cx="1085" cy="466" r="13" fill="#1d4ed8"/>
+<text x="1085" y="470.5" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="bold">8</text>
+<path d="M2025.0,458 L1515,458" fill="none" stroke="#94a3b8" stroke-width="1.4"/>
+<rect x="1360" y="468" width="310" height="118" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="1.7"/>
+<text x="1515.0" y="496" font-size="13.5" fill="#0f172a" text-anchor="middle" font-weight="bold">#19 Configuration  (S-21)</text>
+<text x="1515.0" y="514" font-size="11" fill="#475569" text-anchor="middle">
+<tspan x="1515.0" dy="0">READ only in R0</tspan>
+<tspan x="1515.0" dy="15">in-process TTL cache</tspan>
+<tspan x="1515.0" dy="15">fail closed — no default</tspan>
+</text>
+<circle cx="1515" cy="466" r="13" fill="#64748b"/>
+<text x="1515" y="470.5" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="bold">9</text>
+<path d="M2025.0,458 L1945,458" fill="none" stroke="#94a3b8" stroke-width="1.4"/>
+<rect x="1790" y="468" width="310" height="118" rx="8" fill="#fef2f2" stroke="#dc2626" stroke-width="1.7"/>
+<text x="1945.0" y="496" font-size="13.5" fill="#0f172a" text-anchor="middle" font-weight="bold">PDP DENY</text>
+<text x="1945.0" y="514" font-size="11" fill="#475569" text-anchor="middle">
+<tspan x="1945.0" dy="0">HTTP 403</tspan>
+<tspan x="1945.0" dy="15">journey stage unchanged</tspan>
+<tspan x="1945.0" dy="15">NOTHING STORED</tspan>
+</text>
+<circle cx="1945" cy="466" r="13" fill="#dc2626"/>
+<text x="1945" y="470.5" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="bold">✗</text>
+<text x="1140.0" y="610" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="bold">Hops 1–5 store nothing about the sale. Hop 6 is authorization, not persistence. The first business write is hop 8, and only after ALLOW.</text>
+<rect x="40" y="710" width="2200" height="680" rx="12" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="40" y="710" width="56" height="680" rx="12" fill="#0f172a" stroke="#0f172a" stroke-width="0"/>
+<rect x="68" y="710" width="28" height="680" rx="0" fill="#0f172a" stroke="#0f172a" stroke-width="0"/>
+<text x="68" y="746" font-size="18" fill="#ffffff" text-anchor="middle" font-weight="bold">2</text>
+<text x="112" y="738" font-size="16" fill="#0f172a" text-anchor="start" font-weight="bold">Who may call whom — east-west. If an arrow is not drawn, the call is forbidden.</text>
+<text x="112" y="758" font-size="12" fill="#475569" text-anchor="start">Flutter talks only to #2. #2 never talks to Hub or 1SB. Life cell (#10/#11) reaches 1SB only through Hub → Adapter. Customer never calls the platform.</text>
+<text x="70" y="798" font-size="12" fill="#64748b" text-anchor="start" font-weight="bold">CHANNEL  (outside cluster)</text>
+<rect x="70" y="808" width="280" height="86" rx="8" fill="#f3e8ff" stroke="#7e22ce" stroke-width="1.7"/>
+<text x="210.0" y="836" font-size="13.5" fill="#0f172a" text-anchor="middle" font-weight="bold">RM / IPR device</text>
+<text x="210.0" y="854" font-size="11" fill="#475569" text-anchor="middle">
+<tspan x="210.0" dy="0">one hostname</tspan>
+<tspan x="210.0" dy="15">opaque session cookie</tspan>
+</text>
+<rect x="400" y="808" width="280" height="86" rx="8" fill="#f3e8ff" stroke="#7e22ce" stroke-width="1.7"/>
+<text x="540.0" y="836" font-size="13.5" fill="#0f172a" text-anchor="middle" font-weight="bold">Customer device</text>
+<text x="540.0" y="854" font-size="11" fill="#475569" text-anchor="middle">
+<tspan x="540.0" dy="0">OTP SMS + PG page</tspan>
+<tspan x="540.0" dy="15">NO platform session</tspan>
+</text>
+<rect x="408" y="816" width="36" height="18" rx="9.0" fill="#dc2626" stroke="#dc2626" stroke-width="0"/>
+<text x="426.0" y="829.0" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">C4</text>
+<path d="M350,851 L400,851" fill="none" stroke="#94a3b8" stroke-width="1.5"/>
+<text x="820" y="834" font-size="12.5" fill="#dc2626" text-anchor="start" font-weight="bold">Customer never enters hop 1–8.</text>
+<text x="820" y="854" font-size="12.5" fill="#334155" text-anchor="start">Payment URL is sent to the customer. It is never returned into the RM session (FF-14 / C4).</text>
+<text x="70" y="926" font-size="12" fill="#64748b" text-anchor="start" font-weight="bold">EDGE  ns:edge — the only public target</text>
+<rect x="70" y="936" width="360" height="96" rx="8" fill="#f3e8ff" stroke="#7e22ce" stroke-width="1.7"/>
+<text x="250.0" y="964" font-size="13.5" fill="#0f172a" text-anchor="middle" font-weight="bold">#2  RM Workspace BFF</text>
+<text x="250.0" y="982" font-size="11" fill="#475569" text-anchor="middle">
+<tspan x="250.0" dy="0">aggregates the journey</tspan>
+<tspan x="250.0" dy="15">re-authorizes every call (S-02)</tspan>
+<tspan x="250.0" dy="15">Flutter never sees tokens</tspan>
+</text>
+<rect x="470" y="936" width="300" height="96" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.7"/>
+<text x="620.0" y="964" font-size="13.5" fill="#0f172a" text-anchor="middle" font-weight="bold">#3  PDP</text>
+<text x="620.0" y="982" font-size="11" fill="#475569" text-anchor="middle">
+<tspan x="620.0" dy="0">RBAC+ABAC default deny</tspan>
+<tspan x="620.0" dy="15">not cached across pods</tspan>
+</text>
+<rect x="810" y="936" width="300" height="96" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.7"/>
+<text x="960.0" y="964" font-size="13.5" fill="#0f172a" text-anchor="middle" font-weight="bold">IdP adapter + Keycloak</text>
+<text x="960.0" y="982" font-size="11" fill="#475569" text-anchor="middle">
+<tspan x="960.0" dy="0">WS-2 · private</tspan>
+<tspan x="960.0" dy="15">Bank AD is Phase 2</tspan>
+</text>
+<path d="M430,984 L470,984" fill="none" stroke="#0f172a" stroke-width="2.2" marker-end="url(#arr)"/>
+<rect x="426.0" y="953" width="48" height="22" rx="11.0" fill="#059669" stroke="#059669" stroke-width="0"/>
+<text x="450.0" y="968.0" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="bold">S-02</text>
+<path d="M430,1000 L810,1000" fill="none" stroke="#0f172a" stroke-width="2.0" stroke-dasharray="6 4" marker-end="url(#arrGray)"/>
+<text x="620" y="930" font-size="11" fill="#64748b" text-anchor="middle">login only</text>
+<text x="70" y="1066" font-size="12" fill="#64748b" text-anchor="start" font-weight="bold">DOMAIN  — BFF may call these. They are cluster-private. They are not on API Gateway.</text>
+<rect x="70" y="1076" width="220" height="72" rx="7" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+<text x="180" y="1100" font-size="12.5" fill="#0f172a" text-anchor="middle" font-weight="bold">#5 Opportunity</text>
+<text x="180" y="1118" font-size="10.5" fill="#475569" text-anchor="middle">S-20  ·  Aurora opportunity</text>
+<rect x="307" y="1076" width="220" height="72" rx="7" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+<text x="417" y="1100" font-size="12.5" fill="#0f172a" text-anchor="middle" font-weight="bold">#9 Journey</text>
+<text x="417" y="1118" font-size="10.5" fill="#475569" text-anchor="middle">S-03  ·  DDB journey-state</text>
+<rect x="544" y="1076" width="220" height="72" rx="7" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+<text x="654" y="1100" font-size="12.5" fill="#0f172a" text-anchor="middle" font-weight="bold">#4 Customer</text>
+<text x="654" y="1118" font-size="10.5" fill="#475569" text-anchor="middle">via #9  ·  Aurora customer</text>
+<rect x="781" y="1076" width="220" height="72" rx="7" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+<text x="891" y="1100" font-size="12.5" fill="#0f172a" text-anchor="middle" font-weight="bold">#6 Consent</text>
+<text x="891" y="1118" font-size="10.5" fill="#475569" text-anchor="middle">via #9  ·  Aurora consent</text>
+<rect x="1018" y="1076" width="220" height="72" rx="7" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+<text x="1128" y="1100" font-size="12.5" fill="#0f172a" text-anchor="middle" font-weight="bold">#7 Suitability</text>
+<text x="1128" y="1118" font-size="10.5" fill="#475569" text-anchor="middle">via #9  ·  Aurora suitability</text>
+<rect x="1255" y="1076" width="220" height="72" rx="7" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+<text x="1365" y="1100" font-size="12.5" fill="#0f172a" text-anchor="middle" font-weight="bold">#8 Catalogue</text>
+<text x="1365" y="1118" font-size="10.5" fill="#475569" text-anchor="middle">read  ·  Aurora catalogue</text>
+<rect x="1492" y="1076" width="220" height="72" rx="7" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+<text x="1602" y="1100" font-size="12.5" fill="#0f172a" text-anchor="middle" font-weight="bold">#19 Config</text>
+<text x="1602" y="1118" font-size="10.5" fill="#475569" text-anchor="middle">S-21  ·  Aurora cfg · cache</text>
+<rect x="1729" y="1076" width="220" height="72" rx="7" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+<text x="1839" y="1100" font-size="12.5" fill="#0f172a" text-anchor="middle" font-weight="bold">#12 Payment</text>
+<text x="1839" y="1118" font-size="10.5" fill="#475569" text-anchor="middle">via #9  ·  Aurora payment</text>
+<rect x="1966" y="1076" width="220" height="72" rx="7" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+<text x="2076" y="1100" font-size="12.5" fill="#0f172a" text-anchor="middle" font-weight="bold">#13 Policy</text>
+<text x="2076" y="1118" font-size="10.5" fill="#475569" text-anchor="middle">via #9  ·  Aurora policy · S3</text>
+<path d="M250,1032 L250,1062 L180,1076" fill="none" stroke="#1d4ed8" stroke-width="2.0" marker-end="url(#arrBlue)"/>
+<path d="M250,1032 L250,1062 L417,1076" fill="none" stroke="#1d4ed8" stroke-width="2.0" marker-end="url(#arrBlue)"/>
+<text x="300" y="1060" font-size="12" fill="#1d4ed8" text-anchor="start">BFF → #5 and #9 directly. Other domains: #9 orchestrates (stage + refs only, SC-W3-6).</text>
+<text x="70" y="1178" font-size="12" fill="#64748b" text-anchor="start" font-weight="bold">LIFE CELL  ns:life-cell     then     INTEGRATION  ns:integration     then     OUTSIDE</text>
+<rect x="70" y="1188" width="520" height="88" rx="8" fill="#ffe4e6" stroke="#be123c" stroke-width="1.6"/>
+<text x="80" y="1208" font-size="11" fill="#9f1239" text-anchor="start">LOB-owned execution — first physical split seam (not now)</text>
+<rect x="90" y="1216" width="230" height="50" rx="6" fill="#fff1f2" stroke="#be123c" stroke-width="1.3"/>
+<text x="205" y="1236" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="bold">#10 Quotation</text>
+<text x="205" y="1254" font-size="10.5" fill="#475569" text-anchor="middle">Aurora quotation + DDB jobs</text>
+<rect x="340" y="1216" width="230" height="50" rx="6" fill="#fff1f2" stroke="#be123c" stroke-width="1.3"/>
+<text x="455" y="1236" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="bold">#11 Proposal &amp; UW</text>
+<text x="455" y="1254" font-size="10.5" fill="#475569" text-anchor="middle">Aurora proposal + DDB jobs</text>
+<rect x="620" y="1188" width="520" height="88" rx="8" fill="#e0f2fe" stroke="#0369a1" stroke-width="1.6"/>
+<rect x="640" y="1204" width="230" height="56" rx="6" fill="#f0f9ff" stroke="#0369a1" stroke-width="1.3"/>
+<text x="755" y="1226" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="bold">#14 Integration Hub</text>
+<text x="755" y="1244" font-size="10.5" fill="#475569" text-anchor="middle">canonical IF-1 · Aurora hub</text>
+<rect x="890" y="1204" width="230" height="56" rx="6" fill="#f0f9ff" stroke="#0369a1" stroke-width="1.3"/>
+<text x="1005" y="1226" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="bold">#15 1SB Adapter</text>
+<text x="1005" y="1244" font-size="10.5" fill="#475569" text-anchor="middle">jobs via bank-persistence</text>
+<rect x="1170" y="1188" width="280" height="88" rx="8" fill="#fef3c7" stroke="#d97706" stroke-width="1.6"/>
+<text x="1310" y="1222" font-size="14" fill="#0f172a" text-anchor="middle" font-weight="bold">1SilverBullet</text>
+<text x="1310" y="1242" font-size="11.5" fill="#475569" text-anchor="middle">egress via NAT EIP  ·  we poll</text>
+<rect x="1470" y="1188" width="280" height="88" rx="8" fill="#fef3c7" stroke="#d97706" stroke-width="1.6"/>
+<text x="1610" y="1222" font-size="14" fill="#0f172a" text-anchor="middle" font-weight="bold">CBS  (bank core)</text>
+<text x="1610" y="1242" font-size="11.5" fill="#475569" text-anchor="middle">#4 lookup only · no CBS write</text>
+<rect x="1770" y="1188" width="270" height="88" rx="8" fill="#fee2e2" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="1780" y="1196" width="36" height="18" rx="9.0" fill="#dc2626" stroke="#dc2626" stroke-width="0"/>
+<text x="1798.0" y="1209.0" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">C4</text>
+<text x="1905" y="1226" font-size="14" fill="#0f172a" text-anchor="middle" font-weight="bold">AU Bank PG</text>
+<text x="1905" y="1244" font-size="11.5" fill="#475569" text-anchor="middle">customer pays HERE</text>
+<path d="M590,1232 L620,1232" fill="none" stroke="#0f172a" stroke-width="2.2" marker-end="url(#arr)"/>
+<rect x="581.0" y="1201" width="48" height="22" rx="11.0" fill="#0f172a" stroke="#0f172a" stroke-width="0"/>
+<text x="605.0" y="1216.0" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="bold">S-09</text>
+<path d="M1140,1232 L1170,1232" fill="none" stroke="#c2410c" stroke-width="2.2" stroke-dasharray="7 4" marker-end="url(#arrOrange)"/>
+<rect x="1131.0" y="1201" width="48" height="22" rx="11.0" fill="#c2410c" stroke="#c2410c" stroke-width="0"/>
+<text x="1155.0" y="1216.0" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="bold">S-10</text>
+<path d="M417,1148 L417,1172 L205,1188" fill="none" stroke="#be123c" stroke-width="2.0" marker-end="url(#arr)"/>
+<path d="M417,1172 L455,1188" fill="none" stroke="#be123c" stroke-width="2.0" marker-end="url(#arr)"/>
+<text x="500" y="1182" font-size="11" fill="#9f1239" text-anchor="start">#9 → #10 / #11</text>
+<path d="M1839,1148 L1839,1172 L1905,1188" fill="none" stroke="#dc2626" stroke-width="2.0" marker-end="url(#arrRed)"/>
+<text x="1980" y="1180" font-size="11" fill="#dc2626" text-anchor="start">S-13 session</text>
+<path d="M654,1148 L654,1162" fill="none" stroke="#1d4ed8" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#arrBlue)"/>
+<text x="710" y="1166" font-size="11" fill="#1d4ed8" text-anchor="start">#9 → #4 → CBS  S-04/S-05</text>
+<rect x="70" y="1288" width="2168" height="36" rx="6" fill="#fef2f2" stroke="#dc2626" stroke-width="1.2"/>
+<text x="1140.0" y="1311" font-size="12.5" fill="#991b1b" text-anchor="middle" font-weight="bold">FORBIDDEN   Flutter → domain service    ·    BFF → Hub / 1SB    ·    1SB inbound webhook    ·    RM session ← payment URL    ·    cross-schema SQL    ·    Kafka / shared Redis</text>
+<rect x="40" y="1410" width="2200" height="884" rx="12" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="40" y="1410" width="56" height="884" rx="12" fill="#0f172a" stroke="#0f172a" stroke-width="0"/>
+<rect x="68" y="1410" width="28" height="884" rx="0" fill="#0f172a" stroke="#0f172a" stroke-width="0"/>
+<text x="68" y="1446" font-size="18" fill="#ffffff" text-anchor="middle" font-weight="bold">3</text>
+<text x="112" y="1438" font-size="16" fill="#0f172a" text-anchor="start" font-weight="bold">The sale — who talks, what is written, where it lands, when. This is the persistence LLD.</text>
+<text x="112" y="1458" font-size="12" fill="#475569" text-anchor="start">#9 holds stage and references only (SC-W3-6). Each WRITE is in the owning context’s store. No service reads another’s tables. No Kafka.</text>
+<rect x="70" y="1480" width="2138" height="42" rx="6" fill="#0f172a" stroke="#0f172a" stroke-width="0"/>
+<text x="78" y="1506" font-size="12" fill="#ffffff" text-anchor="start" font-weight="bold">#</text>
+<text x="138" y="1506" font-size="12" fill="#ffffff" text-anchor="start" font-weight="bold">When (sale step)</text>
+<text x="438" y="1506" font-size="12" fill="#ffffff" text-anchor="start" font-weight="bold">Who talks</text>
+<text x="868" y="1506" font-size="12" fill="#ffffff" text-anchor="start" font-weight="bold">Seam</text>
+<text x="1048" y="1506" font-size="12" fill="#ffffff" text-anchor="start" font-weight="bold">What is written</text>
+<text x="1528" y="1506" font-size="12" fill="#ffffff" text-anchor="start" font-weight="bold">Where it lands</text>
+<text x="1908" y="1506" font-size="12" fill="#ffffff" text-anchor="start" font-weight="bold">How / when</text>
+<rect x="70" y="1522" width="2138" height="42" rx="0" fill="#ffffff" stroke="#e2e8f0" stroke-width="0.8"/>
+<rect x="78" y="1532" width="44" height="22" rx="11.0" fill="#0f172a" stroke="#0f172a" stroke-width="0"/>
+<text x="100.0" y="1547.0" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="bold">0</text>
+<text x="138" y="1548" font-size="12" fill="#0f172a" text-anchor="start" font-weight="bold">Login</text>
+<text x="438" y="1548" font-size="11.5" fill="#334155" text-anchor="start">Flutter → BFF → IdP → Keycloak</text>
+<text x="868" y="1548" font-size="11.5" fill="#1e3a8a" text-anchor="start" font-weight="bold">S-01</text>
+<text x="1048" y="1548" font-size="11.5" fill="#334155" text-anchor="start">Opaque session. OAuth tokens stay in BFF.</text>
+<text x="1528" y="1548" font-size="11.5" fill="#0f766e" text-anchor="start" font-weight="bold">DynamoDB  sessions</text>
+<text x="1908" y="1548" font-size="11.5" fill="#334155" text-anchor="start">Sync. Nothing about the sale.</text>
+<rect x="70" y="1564" width="2138" height="42" rx="0" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="0.8"/>
+<rect x="78" y="1574" width="44" height="22" rx="11.0" fill="#0f172a" stroke="#0f172a" stroke-width="0"/>
+<text x="100.0" y="1589.0" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="bold">1</text>
+<text x="138" y="1590" font-size="12" fill="#0f172a" text-anchor="start" font-weight="bold">Opportunity created</text>
+<text x="438" y="1590" font-size="11.5" fill="#334155" text-anchor="start">BFF → #5 Opportunity</text>
+<text x="868" y="1590" font-size="11.5" fill="#1e3a8a" text-anchor="start" font-weight="bold">S-20</text>
+<text x="1048" y="1590" font-size="11.5" fill="#334155" text-anchor="start">Opportunity + accountable SP + lob. RM only.</text>
+<text x="1528" y="1590" font-size="11.5" fill="#1d4ed8" text-anchor="start" font-weight="bold">Aurora schema  opportunity</text>
+<text x="1908" y="1590" font-size="11.5" fill="#334155" text-anchor="start">Sync. 403 ORIGINATION_RM_ONLY else.</text>
+<rect x="70" y="1606" width="2138" height="42" rx="0" fill="#ffffff" stroke="#e2e8f0" stroke-width="0.8"/>
+<rect x="78" y="1616" width="44" height="22" rx="11.0" fill="#0f172a" stroke="#0f172a" stroke-width="0"/>
+<text x="100.0" y="1631.0" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="bold">1b</text>
+<text x="138" y="1632" font-size="12" fill="#0f172a" text-anchor="start" font-weight="bold">ETB customer lookup</text>
+<text x="438" y="1632" font-size="11.5" fill="#334155" text-anchor="start">#9 → #4 Customer → CBS</text>
+<text x="868" y="1632" font-size="11.5" fill="#1e3a8a" text-anchor="start" font-weight="bold">S-04 / S-05</text>
+<text x="1048" y="1632" font-size="11.5" fill="#334155" text-anchor="start">Customer snapshot. CBS is not written.</text>
+<text x="1528" y="1632" font-size="11.5" fill="#1d4ed8" text-anchor="start" font-weight="bold">Aurora schema  customer</text>
+<text x="1908" y="1632" font-size="11.5" fill="#334155" text-anchor="start">Sync. Hold INITIATED if CBS fails.</text>
+<rect x="70" y="1648" width="2138" height="42" rx="0" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="0.8"/>
+<rect x="78" y="1658" width="44" height="22" rx="11.0" fill="#0f172a" stroke="#0f172a" stroke-width="0"/>
+<text x="100.0" y="1673.0" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="bold">1c</text>
+<text x="138" y="1674" font-size="12" fill="#0f172a" text-anchor="start" font-weight="bold">Journey started</text>
+<text x="438" y="1674" font-size="11.5" fill="#334155" text-anchor="start">BFF → #9 Journey</text>
+<text x="868" y="1674" font-size="11.5" fill="#1e3a8a" text-anchor="start" font-weight="bold">S-03</text>
+<text x="1048" y="1674" font-size="11.5" fill="#334155" text-anchor="start">Stage + external refs only. No copied decisions.</text>
+<text x="1528" y="1674" font-size="11.5" fill="#0f766e" text-anchor="start" font-weight="bold">DynamoDB  journey-state</text>
+<text x="1908" y="1674" font-size="11.5" fill="#334155" text-anchor="start">Sync. No partial stage advance.</text>
+<rect x="70" y="1690" width="2138" height="42" rx="0" fill="#ffffff" stroke="#e2e8f0" stroke-width="0.8"/>
+<rect x="78" y="1700" width="44" height="22" rx="11.0" fill="#0f172a" stroke="#0f172a" stroke-width="0"/>
+<text x="100.0" y="1715.0" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="bold">2</text>
+<text x="138" y="1716" font-size="12" fill="#0f172a" text-anchor="start" font-weight="bold">Need analysis + suitability</text>
+<text x="438" y="1716" font-size="11.5" fill="#334155" text-anchor="start">#9 → #7 Suitability</text>
+<text x="868" y="1716" font-size="11.5" fill="#1e3a8a" text-anchor="start" font-weight="bold">S-07</text>
+<text x="1048" y="1716" font-size="11.5" fill="#334155" text-anchor="start">Assessment (C1). Quote is illegal without it.</text>
+<text x="1528" y="1716" font-size="11.5" fill="#1d4ed8" text-anchor="start" font-weight="bold">Aurora schema  suitability</text>
+<text x="1908" y="1716" font-size="11.5" fill="#334155" text-anchor="start">Sync. Fail closed 403 SUITABILITY_REQUIRED.</text>
+<rect x="70" y="1732" width="2138" height="42" rx="0" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="0.8"/>
+<rect x="78" y="1742" width="44" height="22" rx="11.0" fill="#0f172a" stroke="#0f172a" stroke-width="0"/>
+<text x="100.0" y="1757.0" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="bold">3</text>
+<text x="138" y="1758" font-size="12" fill="#0f172a" text-anchor="start" font-weight="bold">Consent grant</text>
+<text x="438" y="1758" font-size="11.5" fill="#334155" text-anchor="start">#9 → #6 Consent</text>
+<text x="868" y="1758" font-size="11.5" fill="#1e3a8a" text-anchor="start" font-weight="bold">S-06</text>
+<text x="1048" y="1758" font-size="11.5" fill="#334155" text-anchor="start">Grant + evidence. Append-only.</text>
+<text x="1528" y="1758" font-size="11.5" fill="#1d4ed8" text-anchor="start" font-weight="bold">Aurora schema  consent</text>
+<text x="1908" y="1758" font-size="11.5" fill="#334155" text-anchor="start">Sync grant. Cannot advance without it (C2).</text>
+<rect x="70" y="1774" width="2138" height="42" rx="0" fill="#ffffff" stroke="#e2e8f0" stroke-width="0.8"/>
+<rect x="78" y="1784" width="44" height="22" rx="11.0" fill="#c2410c" stroke="#c2410c" stroke-width="0"/>
+<text x="100.0" y="1799.0" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="bold">3b</text>
+<text x="138" y="1800" font-size="12" fill="#0f172a" text-anchor="start" font-weight="bold">OTP to customer</text>
+<text x="438" y="1800" font-size="11.5" fill="#334155" text-anchor="start">#6 / #9 → #17 Notification</text>
+<text x="868" y="1800" font-size="11.5" fill="#1e3a8a" text-anchor="start" font-weight="bold">S-18</text>
+<text x="1048" y="1800" font-size="11.5" fill="#334155" text-anchor="start">Notification outbox row (OTP send).</text>
+<text x="1528" y="1800" font-size="11.5" fill="#1d4ed8" text-anchor="start" font-weight="bold">Aurora schema  notif  + SMS gateway</text>
+<text x="1908" y="1800" font-size="11.5" fill="#334155" text-anchor="start">Async. Never blocks the journey.</text>
+<rect x="70" y="1816" width="2138" height="42" rx="0" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="0.8"/>
+<rect x="78" y="1826" width="44" height="22" rx="11.0" fill="#64748b" stroke="#64748b" stroke-width="0"/>
+<text x="100.0" y="1841.0" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="bold">—</text>
+<text x="138" y="1842" font-size="12" fill="#0f172a" text-anchor="start" font-weight="bold">Config on every form</text>
+<text x="438" y="1842" font-size="11.5" fill="#334155" text-anchor="start">any → #19 Configuration</text>
+<text x="868" y="1842" font-size="11.5" fill="#1e3a8a" text-anchor="start" font-weight="bold">S-21</text>
+<text x="1048" y="1842" font-size="11.5" fill="#334155" text-anchor="start">Nothing. Read of versioned rules.</text>
+<text x="1528" y="1842" font-size="11.5" fill="#1d4ed8" text-anchor="start" font-weight="bold">Aurora schema  cfg  · in-process TTL</text>
+<text x="1908" y="1842" font-size="11.5" fill="#334155" text-anchor="start">Sync. Fail closed. No compiled default.</text>
+<rect x="70" y="1858" width="2138" height="42" rx="0" fill="#ffffff" stroke="#e2e8f0" stroke-width="0.8"/>
+<rect x="78" y="1868" width="44" height="22" rx="11.0" fill="#c2410c" stroke="#c2410c" stroke-width="0"/>
+<text x="100.0" y="1883.0" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="bold">4a</text>
+<text x="138" y="1884" font-size="12" fill="#0f172a" text-anchor="start" font-weight="bold">Quote submit</text>
+<text x="438" y="1884" font-size="11.5" fill="#334155" text-anchor="start">#10 → #14 Hub → #15 → 1SB</text>
+<text x="868" y="1884" font-size="11.5" fill="#1e3a8a" text-anchor="start" font-weight="bold">S-08 then S-09/S-10</text>
+<text x="1048" y="1884" font-size="11.5" fill="#334155" text-anchor="start">Quote row + job. Raw provider payload.</text>
+<text x="1528" y="1884" font-size="11.5" fill="#1d4ed8" text-anchor="start" font-weight="bold">Aurora quotation  ·  DDB jobs  ·  S3 raw</text>
+<text x="1908" y="1884" font-size="11.5" fill="#334155" text-anchor="start">Async-poll. NO automatic retry on submit.</text>
+<rect x="70" y="1900" width="2138" height="42" rx="0" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="0.8"/>
+<rect x="78" y="1910" width="44" height="22" rx="11.0" fill="#c2410c" stroke="#c2410c" stroke-width="0"/>
+<text x="100.0" y="1925.0" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="bold">4b</text>
+<text x="138" y="1926" font-size="12" fill="#0f172a" text-anchor="start" font-weight="bold">Quote poll</text>
+<text x="438" y="1926" font-size="11.5" fill="#334155" text-anchor="start">#10 polls Hub / adapter</text>
+<text x="868" y="1926" font-size="11.5" fill="#1e3a8a" text-anchor="start" font-weight="bold">S-11</text>
+<text x="1048" y="1926" font-size="11.5" fill="#334155" text-anchor="start">Quote status. PARTIAL is success.</text>
+<text x="1528" y="1926" font-size="11.5" fill="#0f172a" text-anchor="start" font-weight="bold">same stores as 4a</text>
+<text x="1908" y="1926" font-size="11.5" fill="#334155" text-anchor="start">Poll until QUOTED / TIMED_OUT.</text>
+<rect x="70" y="1942" width="2138" height="42" rx="0" fill="#ffffff" stroke="#e2e8f0" stroke-width="0.8"/>
+<rect x="78" y="1952" width="44" height="22" rx="11.0" fill="#c2410c" stroke="#c2410c" stroke-width="0"/>
+<text x="100.0" y="1967.0" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="bold">5</text>
+<text x="138" y="1968" font-size="12" fill="#0f172a" text-anchor="start" font-weight="bold">Proposal submit</text>
+<text x="438" y="1968" font-size="11.5" fill="#334155" text-anchor="start">#11 → Hub → 1SB</text>
+<text x="868" y="1968" font-size="11.5" fill="#1e3a8a" text-anchor="start" font-weight="bold">S-12</text>
+<text x="1048" y="1968" font-size="11.5" fill="#334155" text-anchor="start">Proposal / underwriting state.</text>
+<text x="1528" y="1968" font-size="11.5" fill="#1d4ed8" text-anchor="start" font-weight="bold">Aurora schema  proposal  ·  DDB jobs</text>
+<text x="1908" y="1968" font-size="11.5" fill="#334155" text-anchor="start">Async-poll. No retry on submit.</text>
+<rect x="70" y="1984" width="2138" height="42" rx="0" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="0.8"/>
+<rect x="78" y="1994" width="44" height="22" rx="11.0" fill="#0f172a" stroke="#0f172a" stroke-width="0"/>
+<text x="100.0" y="2009.0" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="bold">6</text>
+<text x="138" y="2010" font-size="12" fill="#0f172a" text-anchor="start" font-weight="bold">Payment session</text>
+<text x="438" y="2010" font-size="11.5" fill="#334155" text-anchor="start">BFF → #12 Payment</text>
+<text x="868" y="2010" font-size="11.5" fill="#1e3a8a" text-anchor="start" font-weight="bold">S-13</text>
+<text x="1048" y="2010" font-size="11.5" fill="#334155" text-anchor="start">Payment session. Link goes to customer, not RM.</text>
+<text x="1528" y="2010" font-size="11.5" fill="#1d4ed8" text-anchor="start" font-weight="bold">Aurora schema  payment</text>
+<text x="1908" y="2010" font-size="11.5" fill="#334155" text-anchor="start">Sync session. C4 / FF-14.</text>
+<rect x="70" y="2026" width="2138" height="42" rx="0" fill="#ffffff" stroke="#e2e8f0" stroke-width="0.8"/>
+<rect x="78" y="2036" width="44" height="22" rx="11.0" fill="#dc2626" stroke="#dc2626" stroke-width="0"/>
+<text x="100.0" y="2051.0" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="bold">7a</text>
+<text x="138" y="2052" font-size="12" fill="#0f172a" text-anchor="start" font-weight="bold">Customer pays</text>
+<text x="438" y="2052" font-size="11.5" fill="#334155" text-anchor="start">Customer device → AU Bank PG</text>
+<text x="868" y="2052" font-size="11.5" fill="#1e3a8a" text-anchor="start" font-weight="bold">C4</text>
+<text x="1048" y="2052" font-size="11.5" fill="#334155" text-anchor="start">Nothing in our VPC. 3-D Secure on PG page.</text>
+<text x="1528" y="2052" font-size="11.5" fill="#dc2626" text-anchor="start" font-weight="bold">AU Bank PG  (outside)</text>
+<text x="1908" y="2052" font-size="11.5" fill="#334155" text-anchor="start">Skips CloudFront, WAF, VPC.</text>
+<rect x="70" y="2068" width="2138" height="42" rx="0" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="0.8"/>
+<rect x="78" y="2078" width="44" height="22" rx="11.0" fill="#0f172a" stroke="#0f172a" stroke-width="0"/>
+<text x="100.0" y="2093.0" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="bold">7b</text>
+<text x="138" y="2094" font-size="12" fill="#0f172a" text-anchor="start" font-weight="bold">PG callback</text>
+<text x="438" y="2094" font-size="11.5" fill="#334155" text-anchor="start">PG → callback API GW → #12</text>
+<text x="868" y="2094" font-size="11.5" fill="#1e3a8a" text-anchor="start" font-weight="bold">S-14</text>
+<text x="1048" y="2094" font-size="11.5" fill="#334155" text-anchor="start">AUTHORISED or UNCERTAIN. Never guessed.</text>
+<text x="1528" y="2094" font-size="11.5" fill="#1d4ed8" text-anchor="start" font-weight="bold">Aurora schema  payment</text>
+<text x="1908" y="2094" font-size="11.5" fill="#334155" text-anchor="start">Separate Gateway route, IP-allowlisted.</text>
+<rect x="70" y="2110" width="2138" height="42" rx="0" fill="#ffffff" stroke="#e2e8f0" stroke-width="0.8"/>
+<rect x="78" y="2120" width="44" height="22" rx="11.0" fill="#0f172a" stroke="#0f172a" stroke-width="0"/>
+<text x="100.0" y="2135.0" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="bold">7c</text>
+<text x="138" y="2136" font-size="12" fill="#0f172a" text-anchor="start" font-weight="bold">Settlement / recon</text>
+<text x="438" y="2136" font-size="11.5" fill="#334155" text-anchor="start">PG file → #12 (jobs)</text>
+<text x="868" y="2136" font-size="11.5" fill="#1e3a8a" text-anchor="start" font-weight="bold">S-15</text>
+<text x="1048" y="2136" font-size="11.5" fill="#334155" text-anchor="start">RECONCILED or RECONCILIATION_BREAK.</text>
+<text x="1528" y="2136" font-size="11.5" fill="#1d4ed8" text-anchor="start" font-weight="bold">Aurora schema  payment</text>
+<text x="1908" y="2136" font-size="11.5" fill="#334155" text-anchor="start">Batch. Money path recovers by recon, not DB restore.</text>
+<rect x="70" y="2152" width="2138" height="42" rx="0" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="0.8"/>
+<rect x="78" y="2162" width="44" height="22" rx="11.0" fill="#0f172a" stroke="#0f172a" stroke-width="0"/>
+<text x="100.0" y="2177.0" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="bold">8</text>
+<text x="138" y="2178" font-size="12" fill="#0f172a" text-anchor="start" font-weight="bold">Policy issue</text>
+<text x="438" y="2178" font-size="11.5" fill="#334155" text-anchor="start">#13 Policy → Hub  (only if RECONCILED)</text>
+<text x="868" y="2178" font-size="11.5" fill="#1e3a8a" text-anchor="start" font-weight="bold">S-16</text>
+<text x="1048" y="2178" font-size="11.5" fill="#334155" text-anchor="start">Policy + document refs.</text>
+<text x="1528" y="2178" font-size="11.5" fill="#1d4ed8" text-anchor="start" font-weight="bold">Aurora schema  policy  ·  S3 docs</text>
+<text x="1908" y="2178" font-size="11.5" fill="#334155" text-anchor="start">Sync + re-check. SC-W3-4.</text>
+<rect x="70" y="2194" width="2138" height="42" rx="0" fill="#ffffff" stroke="#e2e8f0" stroke-width="0.8"/>
+<rect x="78" y="2204" width="44" height="22" rx="11.0" fill="#c2410c" stroke="#c2410c" stroke-width="0"/>
+<text x="100.0" y="2219.0" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="bold">9</text>
+<text x="138" y="2220" font-size="12" fill="#0f172a" text-anchor="start" font-weight="bold">Audit evidence</text>
+<text x="438" y="2220" font-size="11.5" fill="#334155" text-anchor="start">owning service outbox → #16 Audit</text>
+<text x="868" y="2220" font-size="11.5" fill="#1e3a8a" text-anchor="start" font-weight="bold">S-17</text>
+<text x="1048" y="2220" font-size="11.5" fill="#334155" text-anchor="start">AuditEvent (INSERT only).</text>
+<text x="1528" y="2220" font-size="11.5" fill="#0f766e" text-anchor="start" font-weight="bold">DynamoDB  audit-events  ·  S3 WORM</text>
+<text x="1908" y="2220" font-size="11.5" fill="#334155" text-anchor="start">Async. SOLD blocked until ack (INV-JRN-05).</text>
+<rect x="70" y="2236" width="2138" height="42" rx="0" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="0.8"/>
+<rect x="78" y="2246" width="44" height="22" rx="11.0" fill="#334155" stroke="#334155" stroke-width="0"/>
+<text x="100.0" y="2261.0" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="bold">*</text>
+<text x="138" y="2262" font-size="12" fill="#0f172a" text-anchor="start" font-weight="bold">Every mutation</text>
+<text x="438" y="2262" font-size="11.5" fill="#334155" text-anchor="start">caller → owning service</text>
+<text x="868" y="2262" font-size="11.5" fill="#1e3a8a" text-anchor="start" font-weight="bold">INV-IDM-01</text>
+<text x="1048" y="2262" font-size="11.5" fill="#334155" text-anchor="start">Idempotency-Key → response snapshot.</text>
+<text x="1528" y="2262" font-size="11.5" fill="#0f172a" text-anchor="start" font-weight="bold">Owning service store (not Redis)</text>
+<text x="1908" y="2262" font-size="11.5" fill="#334155" text-anchor="start">24 hours. 409 on body conflict.</text>
+<rect x="40" y="2316" width="2200" height="430" rx="12" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="40" y="2316" width="56" height="430" rx="12" fill="#0f172a" stroke="#0f172a" stroke-width="0"/>
+<rect x="68" y="2316" width="28" height="430" rx="0" fill="#0f172a" stroke="#0f172a" stroke-width="0"/>
+<text x="68" y="2352" font-size="18" fill="#ffffff" text-anchor="middle" font-weight="bold">4</text>
+<text x="112" y="2344" font-size="16" fill="#0f172a" text-anchor="start" font-weight="bold">Three paths that are not the hop-1–8 happy path — payment C4, quote async-poll, outbox.</text>
+<text x="112" y="2364" font-size="12" fill="#475569" text-anchor="start">If you only remember three LLD rules: customer pays outside our VPC; quote submit is not retried; audit is async but SOLD waits for it.</text>
+<rect x="70" y="2386" width="700" height="340" rx="10" fill="#fff1f2" stroke="#dc2626" stroke-width="1.6"/>
+<rect x="86" y="2400" width="40" height="20" rx="10.0" fill="#dc2626" stroke="#dc2626" stroke-width="0"/>
+<text x="106.0" y="2414.0" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="bold">C4</text>
+<text x="136" y="2416" font-size="15" fill="#0f172a" text-anchor="start" font-weight="bold">Payment never enters this VPC</text>
+<text x="86" y="2442" font-size="11.5" fill="#334155" text-anchor="start">RM session creates a payment. The URL is sent to the customer. RM never sees it.</text>
+<rect x="90" y="2460" width="200" height="70" rx="6" fill="#ffffff" stroke="#dc2626" stroke-width="1.4"/>
+<text x="190" y="2488" font-size="12.5" fill="#0f172a" text-anchor="middle" font-weight="bold">#12 Payment</text>
+<text x="190" y="2506" font-size="11" fill="#475569" text-anchor="middle">
+<tspan x="190" dy="0">writes session</tspan>
+<tspan x="190" dy="14">Aurora payment</tspan>
+</text>
+<rect x="320" y="2460" width="200" height="70" rx="6" fill="#ffffff" stroke="#dc2626" stroke-width="1.4"/>
+<text x="420" y="2488" font-size="12.5" fill="#0f172a" text-anchor="middle" font-weight="bold">#17 Notification</text>
+<text x="420" y="2506" font-size="11" fill="#475569" text-anchor="middle">
+<tspan x="420" dy="0">outbox SMS/link</tspan>
+<tspan x="420" dy="14">async S-18</tspan>
+</text>
+<rect x="550" y="2460" width="200" height="70" rx="6" fill="#ffffff" stroke="#dc2626" stroke-width="1.4"/>
+<text x="650" y="2488" font-size="12.5" fill="#0f172a" text-anchor="middle" font-weight="bold">Customer device</text>
+<text x="650" y="2506" font-size="11" fill="#475569" text-anchor="middle">
+<tspan x="650" dy="0">opens PG page</tspan>
+<tspan x="650" dy="14">3-D Secure</tspan>
+</text>
+<path d="M290,2495 L320,2495" fill="none" stroke="#c2410c" stroke-width="2.0" stroke-dasharray="6 4" marker-end="url(#arrOrange)"/>
+<path d="M520,2495 L550,2495" fill="none" stroke="#dc2626" stroke-width="2.2" marker-end="url(#arrRed)"/>
+<rect x="90" y="2546" width="200" height="70" rx="6" fill="#fee2e2" stroke="#dc2626" stroke-width="1.4"/>
+<text x="190" y="2574" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="bold">AU Bank PG</text>
+<text x="190" y="2594" font-size="11" fill="#475569" text-anchor="middle">hosted page — outside VPC</text>
+<path d="M650,2530 L650,2561" fill="none" stroke="#dc2626" stroke-width="2.2"/>
+<path d="M650,2561 L190,2561 L190,2546" fill="none" stroke="#dc2626" stroke-width="2.2" marker-end="url(#arrRed)"/>
+<rect x="320" y="2546" width="430" height="70" rx="6" fill="#ffffff" stroke="#dc2626" stroke-width="1.4"/>
+<text x="535" y="2574" font-size="12.5" fill="#0f172a" text-anchor="middle" font-weight="bold">Callback S-14  ·  separate API Gateway route</text>
+<text x="535" y="2594" font-size="11" fill="#475569" text-anchor="middle">IP-allowlisted to PG  ·  signature verified in #12  ·  not on the RM cookie path</text>
+<path d="M190,2616 L190,2634 L535,2634 L535,2616" fill="none" stroke="#dc2626" stroke-width="2.0" stroke-dasharray="6 4" marker-end="url(#arrRed)"/>
+<text x="86" y="2654" font-size="11.5" fill="#7f1d1d" text-anchor="start">Settlement S-15 is a file/batch, not the callback. UNCERTAIN is a real state — never guessed to PAID.</text>
+<text x="86" y="2676" font-size="11.5" fill="#7f1d1d" text-anchor="start">#13 Policy will not issue unless payment is RECONCILED (SC-W3-4).</text>
+<text x="86" y="2698" font-size="11.5" fill="#334155" text-anchor="start">Policy issuance is hop 8 in figure 3. It is a re-check, not a side effect of the callback.</text>
+<rect x="794" y="2386" width="700" height="340" rx="10" fill="#fff7ed" stroke="#c2410c" stroke-width="1.6"/>
+<rect x="810" y="2400" width="88" height="20" rx="10.0" fill="#c2410c" stroke="#c2410c" stroke-width="0"/>
+<text x="854.0" y="2414.0" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="bold">ASYNC-POLL</text>
+<text x="908" y="2416" font-size="14.5" fill="#0f172a" text-anchor="start" font-weight="bold">Quote / proposal submit is not a request-reply</text>
+<text x="810" y="2442" font-size="11.5" fill="#334155" text-anchor="start">Human is waiting, but 1SB is slow. We return 202 and poll. We do not retry submit.</text>
+<rect x="814" y="2460" width="155" height="78" rx="6" fill="#ffffff" stroke="#c2410c" stroke-width="1.3"/>
+<text x="891.5" y="2484" font-size="12" fill="#0f172a" text-anchor="middle" font-weight="bold">BFF 202</text>
+<text x="891.5" y="2502" font-size="10.5" fill="#475569" text-anchor="middle">
+<tspan x="891.5" dy="0">quoteId returned</tspan>
+<tspan x="891.5" dy="14">journey stays PUT</tspan>
+</text>
+<rect x="984" y="2460" width="155" height="78" rx="6" fill="#ffffff" stroke="#c2410c" stroke-width="1.3"/>
+<text x="1061.5" y="2484" font-size="12" fill="#0f172a" text-anchor="middle" font-weight="bold">#10 writes</text>
+<text x="1061.5" y="2502" font-size="10.5" fill="#475569" text-anchor="middle">
+<tspan x="1061.5" dy="0">Aurora quotation</tspan>
+<tspan x="1061.5" dy="14">DDB integration-jobs</tspan>
+</text>
+<rect x="1154" y="2460" width="155" height="78" rx="6" fill="#ffffff" stroke="#c2410c" stroke-width="1.3"/>
+<text x="1231.5" y="2484" font-size="12" fill="#0f172a" text-anchor="middle" font-weight="bold">Hub → #15</text>
+<text x="1231.5" y="2502" font-size="10.5" fill="#475569" text-anchor="middle">
+<tspan x="1231.5" dy="0">canonical IF-1</tspan>
+<tspan x="1231.5" dy="14">raw body → S3 raw</tspan>
+</text>
+<rect x="1324" y="2460" width="155" height="78" rx="6" fill="#ffffff" stroke="#c2410c" stroke-width="1.3"/>
+<text x="1401.5" y="2484" font-size="12" fill="#0f172a" text-anchor="middle" font-weight="bold">1SB</text>
+<text x="1401.5" y="2502" font-size="10.5" fill="#475569" text-anchor="middle">
+<tspan x="1401.5" dy="0">mTLS via NAT EIP</tspan>
+<tspan x="1401.5" dy="14">we do not accept webhooks</tspan>
+</text>
+<path d="M969,2499 L984,2499" fill="none" stroke="#c2410c" stroke-width="2.0" stroke-dasharray="6 4" marker-end="url(#arrOrange)"/>
+<path d="M1139,2499 L1154,2499" fill="none" stroke="#c2410c" stroke-width="2.0" stroke-dasharray="6 4" marker-end="url(#arrOrange)"/>
+<path d="M1309,2499 L1324,2499" fill="none" stroke="#c2410c" stroke-width="2.0" stroke-dasharray="6 4" marker-end="url(#arrOrange)"/>
+<rect x="814" y="2560" width="660" height="70" rx="6" fill="#ffedd5" stroke="#c2410c" stroke-width="1.3"/>
+<text x="1144" y="2588" font-size="12.5" fill="#0f172a" text-anchor="middle" font-weight="bold">Poll loop  S-11   GET until QUOTED / PARTIALLY_QUOTED / FAILED / TIMED_OUT</text>
+<text x="1144" y="2608" font-size="11" fill="#9a3412" text-anchor="middle">PARTIAL is success. Budget exhausted → TIMED_OUT. Recover by polling the external ref — never by re-POSTing submit.</text>
+<text x="810" y="2650" font-size="11.5" fill="#334155" text-anchor="start">Same pattern for proposal S-12. Same job table. Same no-retry-on-submit rule.</text>
+<text x="810" y="2672" font-size="11.5" fill="#9a3412" text-anchor="start">R0 has no insurer callback API Gateway. Building one now is a public surface with no consumer.</text>
+<text x="810" y="2694" font-size="11.5" fill="#334155" text-anchor="start">bank-persistence-service stays the job store for #15. Do not route Opportunity / Consent / Payment through it.</text>
+<rect x="1518" y="2386" width="700" height="340" rx="10" fill="#f0fdf4" stroke="#047857" stroke-width="1.6"/>
+<rect x="1534" y="2400" width="72" height="20" rx="10.0" fill="#047857" stroke="#047857" stroke-width="0"/>
+<text x="1570.0" y="2414.0" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="bold">OUTBOX</text>
+<text x="1616" y="2416" font-size="15" fill="#0f172a" text-anchor="start" font-weight="bold">No Kafka. Per-service transactional outbox.</text>
+<text x="1534" y="2442" font-size="11.5" fill="#334155" text-anchor="start">A human-waiting step commits locally. Side effects go to ns:jobs workers.</text>
+<rect x="1538" y="2460" width="200" height="86" rx="6" fill="#ffffff" stroke="#047857" stroke-width="1.4"/>
+<text x="1638" y="2492" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="bold">Owning service</text>
+<text x="1638" y="2512" font-size="11" fill="#475569" text-anchor="middle">business row + outbox row</text>
+<text x="1638" y="2530" font-size="11" fill="#475569" text-anchor="middle">same local transaction</text>
+<rect x="1768" y="2460" width="200" height="86" rx="6" fill="#ffffff" stroke="#047857" stroke-width="1.4"/>
+<text x="1868" y="2492" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="bold">ns:jobs worker</text>
+<text x="1868" y="2512" font-size="11" fill="#475569" text-anchor="middle">poll / SQS wake (thin)</text>
+<text x="1868" y="2530" font-size="11" fill="#475569" text-anchor="middle">at-least-once</text>
+<rect x="1998" y="2460" width="200" height="86" rx="6" fill="#ccfbf1" stroke="#0f766e" stroke-width="1.4"/>
+<text x="2098" y="2488" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="bold">#16 Audit</text>
+<text x="2098" y="2506" font-size="11" fill="#475569" text-anchor="middle">DDB audit-events</text>
+<text x="2098" y="2524" font-size="11" fill="#475569" text-anchor="middle">S3 WORM 7y</text>
+<path d="M1738,2503 L1768,2503" fill="none" stroke="#047857" stroke-width="2.2" stroke-dasharray="6 4" marker-end="url(#arrGreen)"/>
+<path d="M1968,2503 L1998,2503" fill="none" stroke="#047857" stroke-width="2.2" stroke-dasharray="6 4" marker-end="url(#arrGreen)"/>
+<rect x="1998" y="2560" width="200" height="70" rx="6" fill="#ffffff" stroke="#047857" stroke-width="1.4"/>
+<text x="2098" y="2588" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="bold">#17 Notification</text>
+<text x="2098" y="2608" font-size="11" fill="#475569" text-anchor="middle">SMS / email gateway</text>
+<path d="M1868,2546 L1868,2595 L1998,2595" fill="none" stroke="#047857" stroke-width="2.0" stroke-dasharray="6 4" marker-end="url(#arrGreen)"/>
+<text x="1534" y="2650" font-size="11.5" fill="#065f46" text-anchor="start">S-17 audit: business commits; journey cannot reach SOLD until the four required events are acked.</text>
+<text x="1534" y="2672" font-size="11.5" fill="#334155" text-anchor="start">S-18 notification: never blocks the journey. Lost SMS is an ops retry, not a stage rollback.</text>
+<text x="1534" y="2694" font-size="11.5" fill="#334155" text-anchor="start">Revisit Kafka only when a third consumer class appears, outbox lags NFR-DAT-05, or #18 MIS enters at S13.</text>
+<rect x="40" y="2770" width="2200" height="520" rx="12" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.6"/>
+<rect x="40" y="2770" width="56" height="520" rx="12" fill="#0f172a" stroke="#0f172a" stroke-width="0"/>
+<rect x="68" y="2770" width="28" height="520" rx="0" fill="#0f172a" stroke="#0f172a" stroke-width="0"/>
+<text x="68" y="2806" font-size="18" fill="#ffffff" text-anchor="middle" font-weight="bold">5</text>
+<text x="112" y="2798" font-size="16" fill="#0f172a" text-anchor="start" font-weight="bold">Where those hops sit on AWS — compact placement. Solid = PROVISION. Dashed grey = DO NOT PROVISION.</text>
+<text x="112" y="2818" font-size="12" fill="#475569" text-anchor="start">One VPC per environment, ap-south-1. No PVC on business pods. One Aurora cluster, schema per context (ADR-008). Kafka / shared Redis / Istio / extra proxies are out.</text>
+<rect x="70" y="2840" width="2138" height="70" rx="8" fill="#faf5ff" stroke="#7e22ce" stroke-width="1.3"/>
+<text x="86" y="2860" font-size="13" fill="#6b21a8" text-anchor="start" font-weight="bold">Z0  DEVICES  (outside AWS)</text>
+<rect x="400" y="2848" width="280" height="50" rx="6" fill="#f3e8ff" stroke="#7e22ce" stroke-width="1.2"/>
+<text x="540" y="2878" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="bold">RM / IPR Flutter</text>
+<rect x="700" y="2848" width="280" height="50" rx="6" fill="#f3e8ff" stroke="#7e22ce" stroke-width="1.2"/>
+<text x="840" y="2868" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="bold">Customer device</text>
+<text x="840" y="2886" font-size="11" fill="#475569" text-anchor="middle">OTP + pay — not our VPC</text>
+<rect x="1000" y="2848" width="280" height="50" rx="6" fill="#ffffff" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="5 4"/>
+<text x="1140" y="2868" font-size="13" fill="#64748b" text-anchor="middle" font-weight="bold">Customer DIY  R1</text>
+<text x="1140" y="2886" font-size="11" fill="#64748b" text-anchor="middle">do not provision 2nd CloudFront</text>
+<rect x="1300" y="2848" width="400" height="50" rx="6" fill="#ffffff" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="5 4"/>
+<text x="1500" y="2878" font-size="12.5" fill="#64748b" text-anchor="middle">Call centre / branch  R2 — same journey, later actor</text>
+<rect x="70" y="2920" width="2138" height="70" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.3"/>
+<text x="86" y="2948" font-size="13" fill="#92400e" text-anchor="start" font-weight="bold">Z1  PUBLIC EDGE  (not in the VPC)  = hops 1–4</text>
+<rect x="520" y="2932" width="310" height="46" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.2"/>
+<text x="675" y="2952" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="bold">Route 53</text>
+<text x="675" y="2968" font-size="11" fill="#475569" text-anchor="middle">DNS</text>
+<rect x="850" y="2932" width="310" height="46" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.2"/>
+<text x="1005" y="2952" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="bold">CloudFront</text>
+<text x="1005" y="2968" font-size="11" fill="#475569" text-anchor="middle">fig 1 hop 1–2</text>
+<rect x="1180" y="2932" width="310" height="46" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.2"/>
+<text x="1335" y="2952" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="bold">WAF + Shield Std</text>
+<text x="1335" y="2968" font-size="11" fill="#475569" text-anchor="middle">fig 1 hop 2</text>
+<rect x="1510" y="2932" width="310" height="46" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.2"/>
+<text x="1665" y="2952" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="bold">API Gateway</text>
+<text x="1665" y="2968" font-size="11" fill="#475569" text-anchor="middle">fig 1 hop 3 · external RP</text>
+<rect x="1840" y="2932" width="310" height="46" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.2"/>
+<text x="1995" y="2952" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="bold">PG-callback GW</text>
+<text x="1995" y="2968" font-size="11" fill="#475569" text-anchor="middle">S-14 · IP allowlist</text>
+<rect x="70" y="3000" width="2138" height="240" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.4"/>
+<text x="86" y="3024" font-size="13" fill="#1e3a8a" text-anchor="start" font-weight="bold">VPC  10.{env}.0.0/16  ·  3 AZs  ·  hops 5–9 live here  ·  prod does not share with uat</text>
+<rect x="86" y="3036" width="520" height="56" rx="6" fill="#fff7ed" stroke="#ea580c" stroke-width="1.2"/>
+<text x="346" y="3058" font-size="12.5" fill="#9a3412" text-anchor="middle" font-weight="bold">Public subnets — NAT + EIP only. No workloads.</text>
+<text x="346" y="3076" font-size="11" fill="#9a3412" text-anchor="middle">1SB and PG allowlist THIS EIP. Prod: NAT per AZ.</text>
+<rect x="620" y="3036" width="780" height="56" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.2"/>
+<text x="1010" y="3058" font-size="13" fill="#1e3a8a" text-anchor="middle" font-weight="bold">Private-app /20  ·  EKS + Internal ALB (hop 5)</text>
+<text x="1010" y="3076" font-size="11.5" fill="#334155" text-anchor="middle">Namespaces: edge · identity · shared-platform · life-cell · integration · jobs</text>
+<rect x="1414" y="3036" width="780" height="56" rx="6" fill="#ecfdf5" stroke="#047857" stroke-width="1.2"/>
+<text x="1804" y="3058" font-size="13" fill="#065f46" text-anchor="middle" font-weight="bold">Private-data /24  ·  no 0.0.0.0/0 route</text>
+<text x="1804" y="3076" font-size="11.5" fill="#334155" text-anchor="middle">Aurora · (ElastiCache only if WS-2 forces sessions)</text>
+<rect x="86" y="3104" width="338" height="58" rx="6" fill="#f3e8ff" stroke="#7e22ce" stroke-width="1.3"/>
+<text x="255" y="3128" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="bold">ns:edge</text>
+<text x="255" y="3148" font-size="11" fill="#475569" text-anchor="middle">#2 BFF  hop 6–8</text>
+<rect x="436" y="3104" width="338" height="58" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="1.3"/>
+<text x="605" y="3128" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="bold">ns:identity</text>
+<text x="605" y="3148" font-size="11" fill="#475569" text-anchor="middle">adapter · PDP · Keycloak</text>
+<rect x="786" y="3104" width="338" height="58" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.3"/>
+<text x="955" y="3128" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="bold">ns:shared</text>
+<text x="955" y="3148" font-size="11" fill="#475569" text-anchor="middle">#4 #5 #6 #7 #8 #9 #12 #13 #16 #17 #19</text>
+<rect x="1136" y="3104" width="338" height="58" rx="6" fill="#ffe4e6" stroke="#be123c" stroke-width="1.3"/>
+<text x="1305" y="3128" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="bold">ns:life-cell</text>
+<text x="1305" y="3148" font-size="11" fill="#475569" text-anchor="middle">#10 Quotation  #11 Proposal</text>
+<rect x="1486" y="3104" width="338" height="58" rx="6" fill="#e0f2fe" stroke="#0369a1" stroke-width="1.3"/>
+<text x="1655" y="3128" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="bold">ns:integration</text>
+<text x="1655" y="3148" font-size="11" fill="#475569" text-anchor="middle">#14 Hub  #15 Adapter  persistence</text>
+<rect x="1836" y="3104" width="338" height="58" rx="6" fill="#f0fdf4" stroke="#047857" stroke-width="1.3"/>
+<text x="2005" y="3128" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="bold">ns:jobs</text>
+<text x="2005" y="3148" font-size="11" fill="#475569" text-anchor="middle">outbox · recon CronJob</text>
+<rect x="86" y="3172" width="1040" height="54" rx="6" fill="#ffffff" stroke="#1e3a8a" stroke-width="1.2"/>
+<text x="606" y="3194" font-size="12.5" fill="#0f172a" text-anchor="middle" font-weight="bold">NO PVC on business services   ·   NO mesh (Istio/App Mesh)   ·   HPA min 2   ·   Keycloak JDBC → Aurora keycloak</text>
+<rect x="1140" y="3172" width="1054" height="54" rx="6" fill="#ffffff" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="5 4"/>
+<text x="1667" y="3194" font-size="12.5" fill="#64748b" text-anchor="middle" font-weight="bold">DO NOT PROVISION: MSK/Kafka · shared Redis · per-service RDS · public ALB · Kong/Nginx/F5 · insurer webhook GW</text>
+<rect x="70" y="3250" width="2138" height="88" rx="8" fill="#ecfdf5" stroke="#047857" stroke-width="1.3"/>
+<text x="86" y="3274" font-size="13" fill="#065f46" text-anchor="start" font-weight="bold">STORES  (managed)  — figure 3 writes land here</text>
+<rect x="86" y="3282" width="510" height="46" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.2"/>
+<text x="341" y="3300" font-size="12.5" fill="#0f172a" text-anchor="middle" font-weight="bold">Aurora PostgreSQL  ONE cluster</text>
+<text x="341" y="3318" font-size="10" fill="#475569" text-anchor="middle">schemas: cfg opportunity customer consent suitability catalogue quotation proposal payment policy hub onesb identity keycloak notif</text>
+<rect x="611" y="3282" width="510" height="46" rx="6" fill="#ccfbf1" stroke="#0f766e" stroke-width="1.2"/>
+<text x="866" y="3300" font-size="12.5" fill="#0f172a" text-anchor="middle" font-weight="bold">DynamoDB</text>
+<text x="866" y="3318" font-size="10" fill="#475569" text-anchor="middle">sessions · journey-state · integration-jobs · audit-events · (optional idempotency)</text>
+<rect x="1136" y="3282" width="510" height="46" rx="6" fill="#ffedd5" stroke="#b45309" stroke-width="1.2"/>
+<text x="1391" y="3300" font-size="12.5" fill="#0f172a" text-anchor="middle" font-weight="bold">S3 Object Lock  7y</text>
+<text x="1391" y="3318" font-size="10" fill="#475569" text-anchor="middle">raw · docs · audit-archive  ·  CRR ap-south-2</text>
+<rect x="1661" y="3282" width="510" height="46" rx="6" fill="#f1f5f9" stroke="#475569" stroke-width="1.2"/>
+<text x="1916" y="3300" font-size="12.5" fill="#0f172a" text-anchor="middle" font-weight="bold">In-process cache</text>
+<text x="1916" y="3318" font-size="10" fill="#475569" text-anchor="middle">S-21 config TTL · catalogue  ·  NOT ElastiCache</text>
+<text x="1140.0" y="3360" font-size="12" fill="#64748b" text-anchor="middle">Authoritative if this picture disagrees: 03-solution-architecture-r0.md  ·  ADR-001  ·  ADR-008  ·  R0-LLD.md.  This SVG owns nothing.</text>
+<text x="1140.0" y="3380" font-size="12" fill="#64748b" text-anchor="middle">HLD companion: docs/architecture/r0-reference-architecture.svg and R0-HLD.md.  Do not provision from architecture-review/04 (target-state Kafka/Redis/Istio).</text>
+</svg>

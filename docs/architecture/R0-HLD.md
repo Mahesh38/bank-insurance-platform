@@ -8,7 +8,7 @@
 **Date:** 2026-08-20
 **Origin:** `SUG-20260820-hl1`
 
-**Picture this document walks:** [`r0-reference-architecture.svg`](./r0-reference-architecture.svg)
+**Picture this document walks:** [`r0-reference-architecture.svg`](./r0-reference-architecture.svg) — the ten-boundary HLD. For numbered hops, who-calls-whom, and *when data is stored*, use the LLD picture [`r0-lld.svg`](./r0-lld.svg).
 
 ---
 

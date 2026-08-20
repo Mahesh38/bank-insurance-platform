@@ -9,6 +9,7 @@ Two diagrams, deliberately. They answer different questions and **neither replac
 | [`R0-HLD.md`](./R0-HLD.md) | *Walk the R0 picture in prose: domain, ten boundaries, communication, APIs, business logic, waves vs stages vs releases* | Stakeholder HLD. Compiled view of the authoritative `ws3-platform/` sources. AI-drafted, T4 outstanding |
 | [`R0-LLD.md`](./R0-LLD.md) | *What AWS resources, VPC, reverse proxies, PVCs, databases and caches does the platform team provision for R0?* | S09 requirements pack for the CTO and AWS platform team. AI-drafted; Security / Database / SRE reviews outstanding |
 | [`r0-lld.svg`](./r0-lld.svg) | *Where does each R0 service sit on AWS, and what must not be provisioned?* | Rendering of `R0-LLD.md`. Owns nothing (`HA-02`) |
+| [`r0-platform-topology.svg`](./r0-platform-topology.svg) | *What do we ask the AWS platform team to provision — in which availability zone, with what DR estate, how many reverse proxies, and in what order?* | Rendering of `R0-LLD.md` §2.1 / §11.1 / §12.1. The landing-zone request cut. Owns nothing (`HA-02`) |
 
 ## Why both
 
@@ -172,3 +173,32 @@ An **R0 → R1 → R2 transition and dependency map**. The North Star shows the 
 roadmap band shows what lands when, but neither tells delivery the *order* in which components
 must appear, or which target components are prerequisites for others. That is the next diagram,
 and it is Kalpana's (R12) input as much as Architecture's. Tracked as parked `SUG-20260820-r1t`.
+
+## Revision — 2026-08-20 platform-request round
+
+`SUG-20260820-pt9` added a third H0 rendering,
+[`r0-platform-topology.svg`](./r0-platform-topology.svg), for the AWS platform / landing-zone team.
+It exists because three of the six questions that team actually asks were not answered anywhere:
+
+| Question | Where it was answered before | Where it is answered now |
+|---|---|---|
+| What kind of application is this? | `R0-HLD.md` §1–§3 | unchanged — restated on the picture |
+| What services do we need? | `R0-LLD.md` §12 · `03-solution-architecture-r0.md` §3 | unchanged |
+| How many reverse proxies, and where? | `R0-LLD.md` §3 | unchanged — drawn as a per-hop responsibility table |
+| **Which availability zone does each resource sit in?** | nowhere — the sources said "3 AZs" and "min 2 AZ" and stopped | **`R0-LLD.md` §2.1**, rendered as the AZ placement matrix |
+| **What DR services do we provision, and are they running?** | nowhere as a resource list — §11 gave the posture only | **`R0-LLD.md` §11.1**, rendered as `D1`…`D12` |
+| **When is each resource needed?** | nowhere — no map from an AWS resource to an S09 story or a build wave | **`R0-LLD.md` §12.1**, rendered as bands `P0`…`P8` plus the wave-precondition table |
+
+`HA-03` was followed: all three gaps were closed in `R0-LLD.md` first, and the SVG renders them.
+No AWS service appears that `R0-LLD.md` §1.1/§1.2 did not already name, and the DO NOT PROVISION
+list is carried through unchanged — the point of the file is to make the R0 boundary *easier* to
+hold under a landing-zone conversation, not to widen it.
+
+`HA-09` in [`16-hld-authoring-and-update-protocol.md §3`](../context/roles/mahesh-principal-insurance-platform-architect/16-hld-authoring-and-update-protocol.md#3-horizon-rendering)
+now states why three H0 renderings coexist and what each may assert.
+
+**Still unsigned.** The pack is `AI-DRAFTED`. Deepali (Security), Aarti (Database), Shivanshi (SRE)
+and Shailja (Compliance) reviews are outstanding, and the mandatory human T4 Architecture sign-off
+is outstanding. Two decisions inside it belong to named humans and are tagged as such: Aurora
+Global versus backup-restore for DR (Aarti), and the CBS / Bank AD connectivity pattern (Shivanshi
+with the bank network team).

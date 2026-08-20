@@ -54,6 +54,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | SUG-20260820-dc4 | 2026-08-20 | human:Mahesh | Resolve OPEN-A1 and OPEN-D10: physical database topology is an evidence-led decision, not a principle — R0 starts as one cluster with a schema per context and splits later along the LOB-cell / shared-platform seam; and context #5 is named Opportunity, because a lead is too thin to carry renewal, lapse and cross-sell demand | SF1 | SC1 | MUST | ARCH | P2 / P2 | ADMITTED | [ADR-008](../../platform/architecture-review/08-architecture-decision-log.md) |
 | SUG-20260820-hl1 | 2026-08-20 | human:Mahesh | Act as Mahesh: turn the R0 reference architecture SVG into a detailed HLD (domain, boundary, communication, API, business logic, phases/waves/what-to-do-when) and an LLD for the CTO and AWS platform team (e2e components, services, AWS, VPC, reverse proxy, PVC, DB, cache) | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMIT-BYPASS | [R0-HLD](../../architecture/R0-HLD.md) · [R0-LLD](../../architecture/R0-LLD.md) |
 | SUG-20260820-ls1 | 2026-08-20 | human:Mahesh | Create an SVG rendering of the R0 LLD for the CTO and AWS platform team | SF1 | SC0 | SHOULD | ARCH | P2 / P1 | ADMIT-BYPASS | [r0-lld.svg](../../architecture/r0-lld.svg) |
+| SUG-20260820-pt9 | 2026-08-20 | human:Mahesh | Draw the AWS platform-team application view: what the application is, the service inventory, availability-zone placement, the DR bill of materials, the reverse-proxy and egress chain, and **when** each resource is needed — as a deployment topology in the style of a landing-zone request diagram | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMIT-BYPASS | [r0-platform-topology.svg](../../architecture/r0-platform-topology.svg) · [R0-LLD §2.1/§11.1/§12.1](../../architecture/R0-LLD.md) |
 
 <!--
 Row format:
@@ -1109,6 +1110,93 @@ bypass:
   skipped: "seven-board review of the plan"
   risk: "same as hl1 — SVG may be shown to AWS platform team before Security/Database/SRE sign"
   non_negotiable_touched: false
+```
+
+---
+
+### SUG-20260820-pt9 · AWS platform-team application view — AZ, DR and sequence
+
+```yaml
+id: SUG-20260820-pt9
+raised_at: "2026-08-20"
+raised_by: "human:Mahesh"
+source: "follow-up on SUG-20260820-hl1 / SUG-20260820-ls1, with a reference deployment diagram attached"
+input: >
+  Use the architecture diagram, HDLD, LDLD diagram we have for our application, and create a
+  similar kind of application diagram for the platform team, so that the AWS platform team can
+  know what kind of application we are building, what all services we need, in which availability
+  zone we want, what DR services we want, how proxy services are required, and when.
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-TERM-SALE"
+  state_as_of: "2026-08-10"
+  state_provisional: false
+  freshness_check: "exit 0 — FRESH, 2026-08-20"
+  active_work_item: SUG-20260820-ls1
+stage_fit:
+  code: SF1
+  rationale: >
+    S09 — Platform & Environment Foundation is the next stage and is already overlapped into the
+    current phase. S09-E01-S03 (network foundation across AZs), S09-E01-S05 (data foundation) and
+    S09-E06-S03/S04 (backup and proven restore) are exactly the questions this asks. The request
+    is the S09 entry artefact, not new scope.
+scope:
+  code: SC0
+  business_scope: "in scope — R0 AWS deployment picture for the platform team"
+  serves: ["SUG-20260820-hl1", "SUG-20260820-ls1"]
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S09 — Platform & Environment Foundation"
+  evidence_tier: E2
+  confidence: C4
+  rationale: >
+    S09 entry criterion "cloud account structure and budget approved" cannot be met without a
+    request the platform team can price and provision from. R0-LLD.md answers what and how much,
+    but three of the six questions asked here are not answered anywhere: per-resource
+    availability-zone placement, the DR bill of materials as a resource list, and the order in
+    which each resource is needed.
+gap_analysis:
+  already_answered:
+    - "what the application is — R0-HLD.md §1-§3"
+    - "service inventory — R0-LLD.md §12, 03-solution-architecture-r0.md §3"
+    - "reverse proxy chain — R0-LLD.md §3 (two-hop: API Gateway then internal ALB)"
+  not_answered_before_this_item:
+    - "availability-zone placement per resource — sources say '3 AZs' and 'min 2 AZ', never which resource sits where"
+    - "DR as a bill of materials — R0-LLD.md §11 states the posture, not the ap-south-2 resource list"
+    - "when — no mapping from an AWS resource to the S09 story that builds it and the wave that first consumes it"
+action: ADMIT-BYPASS
+action_rationale: >
+  Direct human follow-up in the same executor lane as hl1/ls1. HA-03 is honoured: the three gaps
+  are closed in R0-LLD.md first (§2.1, §11.1, §12.1) and only then rendered. No AWS service is
+  introduced that §1.1/§1.2 does not already name, and the DO NOT PROVISION list is carried
+  through unchanged, so this cannot become scope drift.
+duplicate_of: null
+continues: SUG-20260820-ls1
+classification:
+  type: ARCH
+  also: [DOC]
+  risk_tier: T4
+priority:
+  now: P2
+  at_target: P1
+dependencies:
+  blocks: ["S09-E01-S03 network foundation", "S09-E01-S05 data foundation", "S09 entry — cloud account structure approved"]
+  blocked_by: ["Direct Connect / VPN / bank-proxy decision for CBS and Bank AD — Shivanshi + bank network (R0-LLD §14)"]
+bypass:
+  authorised_by: "human:Mahesh — direct instruction"
+  skipped: "seven-board review of the plan"
+  risk: >
+    Same as hl1 and ls1 — the view may be handed to the AWS platform team before Deepali
+    (Security), Aarti (Database) and Shivanshi (SRE) have signed. The AZ placement and DR resource
+    list are architecture constraints, not sizing decisions; every SKU, instance class and
+    Aurora-Global-versus-restore choice stays tagged DECIDE WITH.
+  non_negotiable_touched: false
+notes:
+  - "Does not unpark SUG-20260820-r1t (the R0→R1→R2 transition map)"
+  - "Does not alter GATE-S08; S08 remains the gate in flight"
 ```
 
 ---

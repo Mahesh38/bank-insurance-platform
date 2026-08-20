@@ -7,6 +7,7 @@
 **Date:** 2026-08-20
 **Origin:** `SUG-20260820-hl1`
 **Picture this document walks:** [`r0-lld.svg`](./r0-lld.svg)
+**Platform-team deployment view (AZ placement, DR estate, provisioning sequence):** [`r0-platform-topology.svg`](./r0-platform-topology.svg)
 **Companion HLD:** [`R0-HLD.md`](./R0-HLD.md) · [`r0-reference-architecture.svg`](./r0-reference-architecture.svg)
 
 ---
@@ -109,6 +110,46 @@ VPC (e.g. 10.{env}.0.0/16)                Region ap-south-1
 | Flow logs | VPC flow logs to CloudWatch, `RET-OPERATIONAL` |
 
 **CBS and Bank AD** are bank-internal. They will require either (a) AWS Direct Connect / VPN into a bank transit gateway, or (b) a bank-hosted reverse proxy that the platform calls. **Architecture does not invent the bank network.** S09 entry criterion includes "cloud account structure approved"; the connectivity pattern is a joint Shivanshi + bank network decision. Until it exists, Customer `#4` and WS-2 Phase 2 federation cannot be proven against real CBS/AD — stubs are acceptable in `dev` only.
+
+### 2.1 Availability-zone placement — which resource sits where
+
+The sources say *"3 AZs"* and *"min 2 AZ"* and stop there, which is not enough to provision from.
+This table is the placement contract. It states **architecture's constraint**, not the SKU: how
+many AZs a resource must span and why the number is what it is. Instance classes, node counts
+beyond the minimum and Aurora Global-versus-restore stay with Shivanshi and Aarti (§14).
+
+**AZ names are logical.** `AZ-A / AZ-B / AZ-C` here mean *three distinct AZ IDs in `ap-south-1`*.
+Do not pin `ap-south-1a` in IaC: an AZ **name** maps to a different physical **AZ ID** in each
+account, so a name pinned across five accounts silently co-locates resources that were meant to be
+separated. Pin AZ **IDs** (`aps1-az1…`), or let the module take the first three from
+`aws_availability_zones` and record the resulting ID map per account.
+
+| Resource | AZ-A | AZ-B | AZ-C | Placement rule | Why this number |
+|---|---|---|---|---|---|
+| Public subnet | ✅ | ✅ | ✅ | One /24 per AZ | An ALB or NAT cannot exist in an AZ with no subnet. Cheap to create, expensive to retrofit |
+| Private-app subnet | ✅ | ✅ | ✅ | One /20 per AZ | EKS nodes; the /20 is for pod IPs (VPC CNI), not node count |
+| Private-data subnet | ✅ | ✅ | ✅ | One /24 per AZ | Aurora needs a subnet group spanning ≥ 2; the third keeps failover choice open |
+| **NAT Gateway + EIP** | ✅ | ✅ **prod/uat** | ⬜ *(prod only, cost call)* | **prod: per AZ. dev: one, single AZ** | A single NAT is an AZ-wide egress SPOF, and egress is the 1SB path. Every added NAT adds an EIP that 1SB and the PG must allowlist — **decide the count before publishing the EIP list** (§8) |
+| Internet Gateway | — regional — | | | One per VPC | Not AZ-bound |
+| **Internal ALB** | ✅ | ✅ | ✅ | Subnets in all three; ALB places a node per enabled AZ | The only in-VPC reverse proxy (§3). Losing it loses every RM session |
+| **EKS control plane** | — AWS-managed, multi-AZ — | | | Private endpoint, `publicAccess = false` in prod | AWS spreads it; we do not choose |
+| **EKS managed node group** (sale path) | ✅ | ✅ | ⬜ *(prod: yes)* | **UAT: ≥ 3 nodes across ≥ 2 AZs. prod: across 3** | §4.2. Two AZs is the floor at which a `PodDisruptionBudget` of `minAvailable: 1` can still drain a node. Three removes the "lose an AZ, lose half the capacity" arithmetic |
+| Sale-path pods | ✅ | ✅ | ⬜ | `minReplicas: 2`, `topologySpreadConstraints` across `topology.kubernetes.io/zone`, `PDB minAvailable: 1` | Two pods on one node in one AZ satisfies `min 2` and survives nothing. The spread constraint is the control, not the replica count |
+| Keycloak | ✅ | ✅ | ⬜ | ≥ 2 replicas, ≥ 2 AZs, no PVC (§4.1) | Identity down is a total outage — the PDP fails closed by design (`S-02`) |
+| **Aurora writer** | ✅ | ⬜ | ⬜ | One AZ at a time, by definition | A writer is single-AZ; Multi-AZ means the *failover target* is elsewhere |
+| **Aurora reader** | ⬜ | ✅ | ⬜ | **Different AZ from the writer** — assert it in IaC | A reader in the writer's AZ is a read-scaling replica, not an availability one. This is the single most common Multi-AZ misconfiguration |
+| DynamoDB · S3 · KMS · Secrets Manager · ECR | — regional, AWS multi-AZ — | | | Nothing to place | Do not build AZ logic around them |
+| Interface VPC endpoints (Secrets Manager, ECR, STS, Logs) | ✅ | ✅ | ✅ | One ENI per AZ | An endpoint present in two of three AZs makes the third AZ's pods fail to pull images while looking healthy |
+| Gateway VPC endpoints (S3, DynamoDB) | — route-table, not AZ — | | | Attach to every private route table | Missing on one table sends that AZ's S3 traffic through NAT, quietly |
+| ElastiCache *(only if WS-2 forces it — §1.2)* | ✅ | ✅ | ⬜ | Replication group, 2 AZs, automatic failover **on** | A single-node session store makes an AZ loss a mass logout |
+
+**Two AZs or three?** Three for subnets, endpoints and the internal ALB — they cost nothing per AZ
+and cannot be added later without renumbering. Two is acceptable for *paid* capacity (nodes, NAT,
+Aurora reader) in `uat`, three in `prod`. `dev` is single-AZ deliberately: it is synthetic data and
+an AZ failure there is not an incident.
+
+**What AZ placement does not buy.** An AZ is not a region. Losing `ap-south-1` entirely is §11, and
+no amount of AZ spreading answers it.
 
 ---
 
@@ -370,6 +411,40 @@ A journey cannot reach `SOLD` until the regulatory pipe has acknowledged the fou
 
 Active-active is **not** R0.
 
+### 11.1 DR bill of materials — what actually exists in `ap-south-2`
+
+§11 states the posture. This is the resource list, because "warm standby" is not something a
+platform team can provision from. **Everything below is `ap-south-2`. Nothing else is.**
+
+| # | DR resource | Running in R0? | Shape | Meets |
+|---|---|---|---|---|
+| D1 | **VPC + 3 subnet tiers + route tables** | **Yes — empty** | Same Terraform module, DR parameter set. No NAT until failover (nothing egresses from an idle region) | Precondition for D6/D7 |
+| D2 | **ECR replication rule** | **Yes** | `ap-south-1 → ap-south-2`, all repositories. Already in BOM #10 | Without images, RTO is a build, not a restore |
+| D3 | **S3 replica buckets** — `raw`, `docs`, `audit-archive` | **Yes** | CRR from the primaries, Object Lock Compliance 7 y **on the replica too**, replication metrics + a replication-lag alarm | `NFR-DR-03` **RPO 0** — non-negotiable, this is regulatory evidence |
+| D4 | **Aurora DR** | **Yes — shape is Aarti's call** | **(a)** Aurora Global Database secondary (seconds of lag, runs and costs continuously) **or** **(b)** AWS Backup cross-region copy + restore (cheap, restore time is the risk). Architecture's constraint is not the option — it is that `NFR-DR-01` RTO ≤ 1 h is **measured**, not asserted | `NFR-DR-01/02` |
+| D5 | **DynamoDB** | **PITR yes; global tables optional** | PITR is **mandatory** and is not a DR feature — it is same-region. Cross-region for `journey-state` / `audit-events` needs global tables, and that is a cost decision (§14) | `NFR-DR-02` |
+| D6 | **KMS replica keys** | **Yes** | Replica CMK per class. Encrypted data replicated without its key is not recoverable — this is the most common silent DR failure | Precondition for D3/D4 |
+| D7 | **Secrets Manager replica secrets** | **Yes** | Replica of DB, 1SB, PG and IdP secrets. A restored Aurora with no credential is not a restored service | Precondition for D8 |
+| D8 | **EKS cluster** | **No — created at failover, or scaled from zero** | Node groups at desired-count `0` if the cluster exists. This is what "warm" means: images and data are ready, compute is not paid for | `NFR-DR-01` RTO ≤ 1 h |
+| D9 | **Route 53 failover** | **No — manual in R0** | BOM #4: no latency-based or health-check DR routing. Failover is a deliberate, recorded human action, not an automatic flip | R0 posture |
+| D10 | **API Gateway + CloudFront origin re-point** | **No — part of the runbook** | The edge is re-pointed at the DR internal ALB during failover. Document it as a step, not as automation | R0 posture |
+| D11 | **DR runbook + measured exercise** | **Yes — the artefact is the deliverable** | Declaration → restore → verify → serve, wall-clock timed. `S09-G7` accepts the *record*, not the design | `NFR-DR-04`, `S09-G7` |
+| D12 | **Rollback drill in UAT** | **Yes** | Not cross-region, but the same family of proof: a deliberately broken release rolled back, data intact, timed | `NFR-DR-05`, `S09-G4` |
+
+**Explicitly NOT DR in R0:** a second running EKS cluster · active-active traffic · cross-region
+read routing · MSK MirrorMaker (there is no MSK) · a DR ElastiCache · any resource outside India
+(`FF-08`, control `C6`).
+
+**The money path is not restored, it is reconciled.** Restoring the `payment` schema tells you what
+the platform believed; only reconciliation against the AU Bank PG tells you what actually happened
+(§11 row 8, HLD `F-07`/`F-08`). A DR exercise that "passes" without running reconciliation has not
+tested the payment path.
+
+**Sequencing note.** D1, D2, D3, D6 and D7 are provisioned in the *same* S09 change as their
+`ap-south-1` primaries — replication configured after the fact means the window before it was
+configured has no evidence copy, and for `audit-archive` that window is a compliance gap, not a
+backlog item.
+
 ---
 
 ## 12. Per-service AWS resource matrix
@@ -402,6 +477,41 @@ Use this as the Terraform `for_each` checklist. Min pods = 2 in UAT/prod.
 
 IAM: one IRSA role per deployable. No wildcard production policies (`FF-09`).
 
+### 12.1 When — the provisioning sequence
+
+The BOM says *what*. This says *in what order, who owns it, and what breaks if it is late*. Each
+band is gated on the one above it; within a band, order is free. Bands **P0–P3** are the S09
+critical path and no business service starts before them
+([`03-solution-architecture-r0.md §3`](../platform/ws3-platform/03-solution-architecture-r0.md#3-r0-build-order--closing-s07-e01-s05): W0 is
+"no services — pipeline, IaC, environments").
+
+| Band | Provision | S09 story | Owner | First consumer | If it is late |
+|---|---|---|---|---|---|
+| **P0** Guardrails | Organizations + 5 accounts · SCP region-pin to India · Terraform remote state + locking · `security` account (CloudTrail, Config, GuardDuty, Security Hub) · **KMS CMK hierarchy** · policy-as-code in the pipeline | `E01-S01/S02/S06/S07` · `E04-S03` | Shivanshi + Deepali | Everything | Every resource built before the region SCP has to be re-verified by hand for `S09-G9` residency attestation |
+| **P1** Network | VPC × 3 envs · public / private-app / private-data × 3 AZs (§2.1) · **NAT Gateway + Elastic IPs** · security groups · **VPC endpoints** · Route 53 private zone · ACM certs · flow logs | `E01-S03` | Shivanshi | P2 | **Longest external lead time on the programme.** The NAT EIP list must reach 1SB and AU Bank PG for allowlisting *before* UAT (§8). Publishing it late blocks W2 quotes and W3 payments regardless of code readiness |
+| **P2** Compute | EKS × 3 envs, private endpoint · managed node groups (§2.1) · add-ons (VPC CNI, CoreDNS, kube-proxy, EBS CSI, AWS LB Controller, ExternalDNS, Secrets Store CSI) · **Kyverno/Gatekeeper admission** · NetworkPolicy default-deny · Karpenter (thin, uat/prod) | `E01-S04` · `E07-S01/S03` | Shivanshi + Deepali | P4, P5 | Admission policy retro-fitted onto running workloads is a migration, not a control |
+| **P3** Data | **One** Aurora cluster + schemas + per-schema roles · DynamoDB tables + PITR · S3 buckets + **Object Lock** + Block Public Access · AWS Backup plans · **`ap-south-2` replication (D1–D3, D6, D7)** | `E01-S05` · `E06-S01/S03/S05` | Aarti + Shivanshi | W0b | Object Lock **cannot be applied retroactively** to objects already written. Any evidence written before the bucket is locked is outside the 7-year WORM claim |
+| **P4** Edge & proxy | **Internal ALB** (the in-VPC reverse proxy) · **API Gateway** (the only public one) · CloudFront + WAF + Shield Standard · Route 53 public zone · **separate PG-callback route, IP-allowlisted** | `E07-S05` | Shivanshi + Deepali | W3 (callback) then W4 (RM traffic) | The PG-callback route is needed at **W3**, earlier than the RM edge at W4. Treating "the edge" as one deliverable delays the money path by a wave |
+| **P5** Identity (WS-2) | Keycloak on EKS + Aurora `keycloak`/`identity` schemas · Secrets Manager + rotation · **IRSA role per deployable** · Secrets Store CSI → tmpfs | `E04-S01/S04/S06` | Deepali + WS-2 | W0b | The PDP fails closed by design (`S-02`). No identity means no service can authorise anything — this is not a "later" item |
+| **P6** Observability | CloudWatch Logs/Metrics with PII masking · AMP + AMG · X-Ray *or* ADOT · **audit pipe separated from the operational pipe** · baseline dashboards + alert routing | `E05-S01…S06` | Shivanshi | W1 | Debugging the first end-to-end journey without correlated traces is where schedules are actually lost |
+| **P7** Delivery | ECR + immutable tags + scan-on-push · GitHub Actions → ECR · **Argo CD** (or chosen GitOps) · promote-by-digest · migration job in the deploy path | `E02-S01…S06` · `E03-S01…S06` | Shivanshi + Amit | W0b | Rebuilding per environment breaks `S09-E02-S02` and makes every UAT result unattributable |
+| **P8** Proof | **Restore executed and timed** · **rollback drill in UAT** · secret rotation exercised once · deletion-refusal test on a locked object · residency enumeration | `E06-S04` · `E03-S03` · `E04-S04` | Shivanshi + Aarti + Shailja | `GATE-S09` | `S09-G4`, `S09-G7`, `S09-G8`, `S09-G9` accept **records**, not designs. Nothing here can be produced in the week the gate is reviewed |
+
+**What each build wave needs to already exist**, so the platform request can be sequenced against
+the service backlog rather than delivered as one lump:
+
+| Wave | Services | Platform preconditions |
+|---|---|---|
+| **W0b** | `#19` Configuration | P0 · P1 · P2 · P3 · P5 · P7 |
+| **W1** | `#5` `#9` `#14` `#4` `#8` | + egress path to **CBS** decided (Direct Connect / VPN / bank proxy — §14) · P6 |
+| **W2** | `#6` `#7` `#10` | + **NAT EIPs allowlisted by 1SB** · S3 `raw` bucket locked |
+| **W3** | `#11` `#12` `#13` `#16` | + **PG-callback API Gateway route** · PG settlement drop path · S3 `docs` + `audit-archive` locked · DR replication live (D3) |
+| **W4** | `#2` BFF · Flutter · `#17` | + CloudFront + WAF + public API Gateway · internal ALB · SMS/email gateway egress |
+
+**The two items with an external lead time are P1's EIP publication and the CBS connectivity
+decision.** Both depend on parties outside this programme. Start them first; they are the only
+things on this list that cannot be accelerated by working harder.
+
 ---
 
 ## 13. Copy-paste requirement statement for the AWS platform team
@@ -418,6 +528,13 @@ NETWORK
 - NAT Gateway with Elastic IPs (prod: per AZ). EIP list to be published for 1SB + PG allowlists
 - VPC endpoints: S3, DynamoDB, Secrets Manager, ECR, STS, CloudWatch Logs
 - No public load balancer onto compute. No public database.
+
+AVAILABILITY ZONES  (full table: LLD §2.1)
+- Subnets, interface VPC endpoints and the internal ALB: all 3 AZs, every environment
+- Paid capacity (EKS nodes, NAT, Aurora reader): >= 2 AZs in uat, 3 in prod, 1 in dev
+- Aurora reader MUST be in a different AZ from the writer - assert this in IaC
+- Sale-path pods: minReplicas 2 + topologySpreadConstraints over topology.kubernetes.io/zone + PDB minAvailable 1
+- Pin AZ IDs (aps1-azN), NOT AZ names - a name maps to a different physical AZ per account
 
 EDGE (external reverse proxy)
 - Route 53 + CloudFront + AWS WAF (OWASP + rate limit) + API Gateway
@@ -451,6 +568,34 @@ OPS
 - AWS Backup; a restore MUST be executed and timed in UAT before prod
 - Terraform, remote encrypted state, no console-created prod resources
 - Policy-as-code: fail any resource outside India regions; fail public/unencrypted stores; fail wildcard prod IAM
+
+DISASTER RECOVERY - ap-south-2, warm standby  (full table: LLD §11.1)
+- Provision NOW, in the same change as the ap-south-1 primaries:
+  empty VPC + subnets, ECR replication, S3 replica buckets with Object Lock 7y,
+  KMS replica keys, Secrets Manager replica secrets
+- Aurora DR: Aurora Global secondary OR AWS Backup cross-region copy - Aarti chooses.
+  The constraint is that RTO <= 1h is MEASURED, not asserted
+- DynamoDB PITR mandatory; cross-region global tables are a cost decision
+- EKS in DR: NOT running. Created at failover or node groups at desired-count 0
+- Route 53 failover and edge origin re-point are MANUAL runbook steps in R0
+- Deliverable is the timed DR exercise record (S09-G7), not the design
+- Do NOT provision: second running cluster, active-active, cross-region read routing,
+  DR ElastiCache, any resource outside India
+
+WHEN - provisioning sequence  (full table: LLD §12.1)
+P0 guardrails (accounts, region SCP, TF state, security account, KMS hierarchy)
+P1 network (VPC, 3 AZs, NAT + EIPs, endpoints, ACM)   <-- START FIRST, external lead time
+P2 compute (EKS, node groups, add-ons, admission policy, NetworkPolicy)
+P3 data (Aurora, DynamoDB, S3 + Object Lock, AWS Backup, ap-south-2 replication)
+P4 edge (internal ALB, API Gateway, CloudFront, WAF; PG-callback route needed at W3, before W4)
+P5 identity (Keycloak, Secrets Manager, IRSA, Secrets Store CSI)
+P6 observability (CloudWatch, AMP/AMG, tracing, separated audit pipe)
+P7 delivery (ECR, GitOps, promote-by-digest, migration job)
+P8 proof (restore timed, rollback drill, rotation exercised, Object Lock deletion refused, residency enumerated)
+
+Two items have an external lead time and cannot be accelerated internally:
+  1. publishing the NAT Elastic IP list to 1SB and AU Bank PG for allowlisting
+  2. the CBS / Bank AD connectivity decision (Direct Connect vs VPN vs bank-hosted proxy)
 
 OUT OF SCOPE FOR THIS REQUEST
 Customer DIY stack, insurer webhook ingress, service mesh, Kafka, shared Redis
@@ -492,4 +637,4 @@ Until those signatures exist, platform engineers may **draft** Terraform modules
 **Signed:** Mahesh — Principal Insurance Platform Architect (Board 1), AI-drafted
 **signature_status:** `AI-DRAFTED — mandatory human T4 Architecture sign-off outstanding; Security, Database and SRE reviews outstanding`
 **Companion HLD:** [`R0-HLD.md`](./R0-HLD.md)
-**Diagram:** [`r0-reference-architecture.svg`](./r0-reference-architecture.svg)
+**Diagrams:** [`r0-lld.svg`](./r0-lld.svg) · [`r0-platform-topology.svg`](./r0-platform-topology.svg) · [`r0-reference-architecture.svg`](./r0-reference-architecture.svg)

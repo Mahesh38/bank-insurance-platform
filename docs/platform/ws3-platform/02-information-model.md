@@ -12,6 +12,14 @@ aggregates, state machines and invariants that this model must be able to repres
 
 ---
 
+**Revision 2026-08-20 — HLD review round R0-actors/LOB/configuration** (`SUG-20260820-hr0`):
+`lob` corrected from `TERM` to `LIFE` with `productClass` separated (`LB-3`); the opportunity sheet
+gains origination, accountable-SP, need-analysis and partner-visibility attributes; §4.11 adds the
+versioned configuration record; the audit model gains acting capacity, partner insurer, assisted
+actor and configuration version.
+
+---
+
 ## 1. Scope and honest limits
 
 This is the **logical** information model for the R0 slice: entities, attributes, types,
@@ -82,7 +90,8 @@ S06-E04-S02 / S06-VT-06: *exactly one context may write each field.*
 | Consent grant and evidence | Consent | Suitability, Quotation, Proposal, Audit | API (reference only) |
 | Suitability assessment and outcome | Suitability | Quotation, Journey, Audit | API |
 | Product, insurer and eligibility matrix | Product Catalogue | Suitability, Quotation, Admin | API + cache |
-| Workforce identity, roles, SP certification | **Identity & Access (WS-2)** | every context | PDP decision + principal claims |
+| Workforce identity, roles, **RM SP certification state** | **Identity & Access (WS-2)** | every context | PDP decision + principal claims |
+| Partner (IPR) identity, `insurerId` scope, assist-only grants | **Identity & Access (WS-2)** | every context | PDP decision + principal claims |
 | Quote, offers, selection | Quotation | Journey, Proposal, Reporting | API + events |
 | Proposal, UW case, requirements | Proposal & UW | Journey, Policy, Reporting | API + events |
 | Payment attempts and reconciliation | Payment | Journey, Policy, Finance reporting | API + events |
@@ -91,7 +100,7 @@ S06-E04-S02 / S06-VT-06: *exactly one context may write each field.*
 | Routing policy per LOB/product | Integration Hub | — | Config |
 | Provider job/correlation, raw payloads | **1SB Adapter (WS-1)** | Audit (read), Operations | Internal |
 | Audit events | Audit & Compliance | Compliance, Reporting | Query API, read-only |
-| Configuration, feature flags, rule packs | Administration & Config | every context | Config pull |
+| Configuration, feature flags, rule packs, **all LOB-partitioned versioned config domains (`CF-2`)** | Administration & Config #19 | every context | Config resolution contract, effective-dated |
 
 **Ambiguities resolved explicitly**
 
@@ -101,6 +110,9 @@ S06-E04-S02 / S06-VT-06: *exactly one context may write each field.*
 | Who owns the customer's mobile number? | CBS is SoR. The Consent evidence record keeps an **immutable copy at capture time**, because consent evidence must reflect the contact used, not today's value |
 | Who owns `applicationNumber`? | The insurer mints it; **Proposal** is the platform SoR for it; Journey and the adapter hold it as an external reference |
 | Who owns premium amount? | Quotation owns the quoted amount; **Payment owns the amount actually charged**. INV-PAY-03 asserts they match |
+| Who owns the accountable SP on a record? | The **Lead (opportunity)** context. Written once at origination from the creating RM principal and immutable thereafter (INV-ACT-03). Identity & Access remains SoR for the certification itself; the opportunity records *which* SP was accountable |
+| Who owns `insurerId` on a partner principal? | **Identity & Access (WS-2)**. No business context may accept it from a request; the scoping predicate reads it from the authenticated principal (`AC-5`) |
+| Who owns `lob`? | The originating **Lead (opportunity)**. Every downstream aggregate inherits it and none may change it (ID-05) |
 | Who owns policy documents? | Policy & Issuance owns the reference; object storage owns the bytes; the 1SB adapter's raw archive is a separate, provider-scoped record and is not the policy document |
 
 ---
@@ -129,15 +141,25 @@ Notation: `Cls` = classification · `Ret` = retention class · `Req` = mandatory
 | `snapshotTakenAt` | timestamptz | ✅ | INTERNAL | RET-POLICY+7Y | Snapshot semantics: the profile used by a journey is frozen at journey start |
 | `sourceSystem` | enum | ✅ | INTERNAL | RET-POLICY+7Y | `CBS` for R0 (ETB only) |
 
-### 4.2 Lead — SoR: Lead context
+### 4.2 Lead — the opportunity · SoR: Lead context
+
+The single origination record (`AC-8`). Created only by a `BANK_RM` principal (INV-LED-04).
 
 | Attribute | Type | Req | Cls | Ret | Notes |
 |---|---|---|---|---|---|
-| `leadId` | ULID | ✅ | INTERNAL | RET-7Y | |
-| `customerId` | ref | ✅ | INTERNAL | RET-7Y | ETB only in R0 |
+| `leadId` | ULID | ✅ | INTERNAL | RET-7Y | The opportunity identifier. Carried by every downstream aggregate (INV-LED-06) |
+| `customerId` | ref | ✅ | INTERNAL | RET-7Y | ETB only in R0; must be inside the creating RM's book (INV-LED-05) |
 | `state` | enum | ✅ | INTERNAL | RET-7Y | §4.1 of the domain model |
-| `lob` | enum | ✅ | INTERNAL | RET-7Y | `TERM` for R0 |
-| `source` | enum | ✅ | INTERNAL | RET-7Y | RM, campaign, self-service |
+| `lob` | enum | ✅ | INTERNAL | RET-7Y | **`LIFE` for R0.** One of `LIFE` \| `HEALTH` \| `GENERAL`, non-null, immutable (`LB-1`, `LB-2`) |
+| `productClass` | enum | ⭘ | INTERNAL | RET-7Y | **`TERM` for R0.** A distinct dimension from `lob` (`LB-3`) — this row corrects the earlier sheet, which recorded `lob = TERM` |
+| `createdByActorType` | enum | ✅ | INTERNAL | RET-7Y | Always `BANK_RM`; no other value is writable (INV-LED-04) |
+| `accountableSpId` | ref | ✅ | INTERNAL | RET-7Y | The originating RM principal. Written once, immutable for the life of the record (INV-ACT-03) |
+| `accountableSpCertRef` | structured | ✅ | INTERNAL | RET-7Y | `{certificateNumber, lobScope, validFrom, validTo}` snapshotted at origination — the certification *as it stood* when the sale began, which is what a regulator asks for |
+| `needAnalysisState` | enum | ✅ | INTERNAL | RET-7Y | `NOT_STARTED` \| `IN_PROGRESS` \| `COMPLETED`. Half of the IPR visibility predicate (`AC-4`) |
+| `insurerId` | ref | ⭘ | INTERNAL | RET-7Y | Set when an insurer is selected; the IPR scoping key (`AC-5`). Null means visible to no IPR |
+| `partnerVisibleFrom` | timestamptz | ⭘ | INTERNAL | RET-7Y | Set when `AC-4` first holds; null while the record is invisible to every IPR |
+| `configVersions` | map | ✅ | INTERNAL | RET-7Y | Configuration versions in force at origination (INV-CFG-03) |
+| `source` | enum | ✅ | INTERNAL | RET-7Y | `RM` only in R0. Campaign and self-service origination are R1+ and are not writable now (`AC-8`) |
 | `assignedRmId` | ref | ⭘ | INTERNAL | RET-7Y | WS-2 principal |
 | `assignmentHistory[]` | entity list | ✅ | INTERNAL | RET-7Y | `{rmId, assignedAt, assignedBy, reason}` — append-only |
 | `followUps[]` | entity list | ⭘ | CONFIDENTIAL [P] | RET-7Y | Free-text notes may contain personal detail |
@@ -264,7 +286,11 @@ trust boundary.
 | `journeyId` | ULID | ✅ | INTERNAL | RET-7Y | Already threaded through `integration_job.journey_id` today |
 | `stage` | enum | ✅ | INTERNAL | RET-7Y | §5 of the domain model |
 | `channel` | enum | ✅ | INTERNAL | RET-7Y | RM-assisted / self-service / hybrid |
-| `customerId`, `rmId`, `leadId`, `lob` | ref / enum | ✅ | INTERNAL | RET-7Y | |
+| `customerId`, `rmId`, `leadId` | ref | ✅ | INTERNAL | RET-7Y | `leadId` is the originating opportunity; a journey cannot exist without it (INV-LED-06) |
+| `lob` | enum | ✅ | INTERNAL | RET-7Y | Inherited from the opportunity, non-null, immutable (`LB-1`, ID-05) |
+| `accountableSpId` | ref | ✅ | INTERNAL | RET-7Y | The RM. Immutable; unaffected by any partner assistance (INV-ACT-03) |
+| `currentAssistingActorId`, `currentAssistingActorType` | ref / enum | ⭘ | INTERNAL | RET-7Y | Who is assisting *now* (`JS-06`). Never the accountable SP |
+| `partnerVisibility` | structured | ⭘ | INTERNAL | RET-7Y | `{insurerId, visibleFrom, gatedOn}` — materialises the `AC-4` predicate for the query layer |
 | `refs` | map | ✅ | INTERNAL | RET-7Y | `{suitabilityId, consentId, quoteId, offerId, proposalId, paymentId, policyId}` |
 | `externalRefs` | map | ✅ | INTERNAL | RET-7Y | `{provider, applicationNumber, policyNumber}` |
 | `partySnapshotRef` | ref | ✅ | INTERNAL | RET-7Y | Reference to the frozen customer snapshot — **not a copy** |
@@ -283,14 +309,46 @@ for.
 | Product and plan catalogue | Product Catalogue | ✅ | Yes |
 | Eligibility matrix (age, sum-assured, occupation bands) | Product Catalogue | ✅ | Yes |
 | Branch and hierarchy | Identity & Access (WS-2) | ✅ | Yes |
-| RM / SP certification | Identity & Access (WS-2) | ✅ — certification expiry is a business event, not a static attribute | Short TTL only |
+| **RM SP certification** — certificate number, LOB scope, validity window, status | Identity & Access (WS-2) | ✅ — certification expiry is a business event, not a static attribute (`AC-1`) | Short TTL only |
+| **Partner (IPR) principal** — `insurerId` scope, assist-only role grants | Identity & Access (WS-2) | ✅ | Short TTL only |
 | LOB, channel, occupation, relationship enumerations | Administration & Config, seeded from provider master lookup | ✅ | Yes |
+| Journey step definitions and transitions | Administration & Config | ✅ versioned, `(lob, journeyType, version)` | Yes |
+| Field validation rules | Administration & Config | ✅ versioned, `(lob, formId, fieldId, version)` | Yes |
+| Document checklists / requirements | Administration & Config | ✅ versioned, `(lob, insurerId, productCode, version)` | Yes |
+| Product eligibility rules | Administration & Config → Product Catalogue | ✅ versioned, `(lob, insurerId, productCode, version)` | Yes |
+| Role → permission grants, including the IPR gate | Administration & Config → Identity & Access | ✅ versioned, `(lob, actorType, roleId, version)` | Short TTL only |
+| Commission structures | Administration & Config | ✅ versioned, `(lob, insurerId, productCode, version)` — **namespace reserved in R0; no consumer until R1** | n/a |
 | Consent statement pack | Administration & Config | ✅ versioned | Yes |
 | Suitability questionnaire pack | Administration & Config | ✅ versioned | Yes |
 
 > Enumerations are sourced from the provider master-lookup rather than hard-coded — the rule already
 > stated in [`canonical-model/contexts.md`](../../1sb-insurance-integration/canonical-model/contexts.md)
 > §2 ("use Master Lookup rather than hardcoding enums"), preserved platform-wide.
+
+### 4.11 ConfigurationRecord — SoR: Administration & Config · **append-only, versioned**
+
+The configuration layer ships in R0 with no administrative user interface (`CF-5`). This sheet is
+the reason that is safe: the store, its versioning and its resolution contract exist from release 1,
+so the UI that arrives later is a consumer, not a re-platforming.
+
+| Attribute | Type | Req | Cls | Ret | Notes |
+|---|---|---|---|---|---|
+| `configId` | ULID | ✅ | INTERNAL | RET-7Y | |
+| `domain` | enum | ✅ | INTERNAL | RET-7Y | One of the closed list in `CF-2` |
+| `lob` | enum | ✅ | INTERNAL | RET-7Y | Non-null on **every** configuration record (`LB-1`, `LB-4`). Cross-LOB values are seeded per LOB, never as a null |
+| `insurerId` | ref | ⭘ | INTERNAL | RET-7Y | Present where the domain is insurer-scoped |
+| `productCode`, `journeyType`, `formId`, `fieldId`, `roleId`, `actorType` | string / enum | ⭘ | INTERNAL | RET-7Y | The rest of the domain's partition key (`CF-2`) |
+| `version` | integer | ✅ | INTERNAL | RET-7Y | Monotonic per partition key. A change mints a new version; it never edits an active row (`CF-3`, INV-CFG-02) |
+| `payload` | JSONB | ✅ | INTERNAL | RET-7Y | The rule, checklist, validation set or grant. Schema-validated per `domain` |
+| `effectiveFrom`, `effectiveTo` | timestamptz | ✅ / ⭘ | INTERNAL | RET-7Y | Activation window. Resolution is effective-dated, so a March record remains explicable under March's rules |
+| `status` | enum | ✅ | INTERNAL | RET-7Y | `DRAFT` \| `ACTIVE` \| `SUPERSEDED` \| `WITHDRAWN` |
+| `checksum` | string(64) | ✅ | INTERNAL | RET-7Y | Of `payload`. Lets a seed run prove idempotence rather than assume it (`CF-4`) |
+| `seedRef` | string | ⭘ | INTERNAL | RET-7Y | The source-controlled seed artefact this version came from (`CF-4`) |
+| `createdBy`, `createdAt` | ref / timestamptz | ✅ | INTERNAL | RET-7Y | `createdBy` is a seed job identity in R0; a human administrator once a UI exists |
+
+**Seeding contract.** Seeds live in the repository, are applied by the same mechanism in every
+environment, and are idempotent on `(domain, partition key, version, checksum)`. A re-run is a
+no-op; a changed payload at the same version is an error, not an overwrite.
 
 ---
 
@@ -313,6 +371,10 @@ reconstruction.
 | **`consent_ref` / `suitability_ref`** | ❌ | **✅ new** | The two references a regulator will ask for on any quote or proposal event. Deriving them by join at audit time assumes the transactional record still exists |
 | **`event_schema_version`** | ❌ | **✅ new** | Audit records outlive the code that wrote them by seven years |
 | **`sequence_no` per `journey_id`** | ❌ | **✅ new** | Gap detection. Without it, a *missing* audit event is undetectable, and undetectable evidence loss is the worst kind |
+| **`acting_capacity`** | ❌ | **✅ new** | `SP_ACCOUNTABLE` or `ASSIST_ONLY`. `actor_type` alone says *who*; only capacity says *in what right*. Without it an IPR's assistance and an RM's regulated act are indistinguishable in the record IRDAI reads (INV-ACT-04) |
+| **`actor_insurer_id`** | ❌ | **✅ new** | The partner principal's insurer. Present on every `INSURER_PARTNER_REP` event; null for bank actors |
+| **`assisted_actor_id`** | ❌ | **✅ new** | The accountable RM an assist action was performed alongside. Makes the solicitation trail single-threaded to one SP |
+| **`config_version_ref`** | ❌ | **✅ new** | The configuration version in force for the action (`CF-3`, INV-CFG-03). A seven-year-old evidence record is unreadable without the rule it was produced under |
 
 **Immutability implementation** (control C7, invariant INV-AUD-01): the service account holds
 `INSERT` only — already the stated intent in the migration's comments — and the archive tier uses
@@ -320,10 +382,12 @@ object-lock. Immutability is proven by an automated deletion-refusal test, not b
 delete code.
 
 **Reconstruction test (S06-G7).** Take a `journeyId`; select audit events ordered by `sequence_no`;
-assert the sequence is gapless and that it yields, in order: lead qualification, consent grant with
+assert the sequence is gapless and that it yields, in order: opportunity creation with its
+accountable SP, need analysis completion, consent grant with
 statement version, suitability outcome, quote request with the suitability reference, offer
 selection with premium, proposal submission with application number, UW decision, payment link
-issuance with device channel, capture, reconciliation, issuance, confirmation. If any of those
+issuance with device channel, capture, reconciliation, issuance, confirmation — **and, at every
+step, the acting capacity of the actor who performed it (INV-ACT-04)**. If any of those
 cannot be produced from audit alone, the model has failed, not the test. **This test cannot be run
 today because no journey runs end to end** — recorded as OPEN-D8.
 
@@ -339,6 +403,7 @@ today because no journey runs end to end** — recorded as OPEN-D8.
 | PII-04 | Personal data is never copied between contexts; contexts hold references. The two deliberate exceptions are the consent `contactUsed` and the customer snapshot, both of which are evidence and are frozen by design | §3 |
 | PII-05 | Analytical read models carry no ⚑ attribute; Reporting consumes events, and events carry no PII (§7 of the domain model) | Event payload rule |
 | PII-06 | Disposal at the retention horizon writes an audit record of the disposal | S09-E06-S06 |
+| PII-07 | A read executed for an `INSURER_PARTNER_REP` principal is constrained at the query layer by `insurer_id` **and** the `AC-4` visibility predicate. A record outside that scope is absent from the result set, never redacted in it — a redacted row still confirms the record exists | `AC-5`, INV-LED-07, `FF-17` |
 
 ---
 
@@ -351,9 +416,11 @@ today because no journey runs end to end** — recorded as OPEN-D8.
 | OPEN-I2 | Tokenisation service for `aadhaarRef` — the model assumes tokenisation; no tokenisation capability exists in the repository | Deepali + Aarti | Before S11 entry |
 | OPEN-I3 | Four new audit fields (§5) require a migration on `audit_event`; migration is S08/S09 work and must not be applied by this phase | Aarti + Amit | Foundation Recovery Increment |
 | OPEN-I4 | Retention horizon values for `RET-7Y` classes confirmed against the final IRDAI/DPDP position (D-011 open) | Shailja | Before S11 entry |
+| OPEN-I5 | Four further audit fields (`acting_capacity`, `actor_insurer_id`, `assisted_actor_id`, `config_version_ref`) join OPEN-I3's `audit_event` migration. Same migration, same S08/S09 window — not applied by this phase | Aarti + Amit | Foundation Recovery Increment |
+| OPEN-I6 | Physical partitioning strategy for the LOB dimension: whether `lob` is a partition key, an index prefix or both, per store. `LB-1` fixes the *logical* dimension; the physical choice is Aarti's | Aarti | S07 exit for design; S09 for implementation |
 
 ---
 
 **Drafted by:** Mahesh — Principal Insurance Platform Architect, for Aarti's ratification
 **signature_status:** `AI-DRAFTED — mandatory human signature outstanding (Aarti AP, Mahesh AP)`
-**Date:** 2026-08-16
+**Date:** 2026-08-16 · **revised** 2026-08-20 (HLD review round — actors, LOB, configuration)

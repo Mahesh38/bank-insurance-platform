@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1400" viewBox="0 0 1800 1400" font-family="Helvetica, Arial, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1480" viewBox="0 0 1800 1480" font-family="Helvetica, Arial, sans-serif">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M0,0 L10,5 L0,10 z" fill="#334155"/>
@@ -7,14 +7,14 @@
       <path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/>
     </marker>
   </defs>
-  <rect x="0" y="0" width="1800" height="1400" fill="#ffffff"/>
+  <rect x="0" y="0" width="1800" height="1480" fill="#ffffff"/>
   
   <text x="900" y="36" text-anchor="middle" font-size="25" font-weight="bold" fill="#0f172a">AU Bank Insurance Distribution Platform — R0 High-Level Design</text>
-  <text x="900" y="60" text-anchor="middle" font-size="12.5" fill="#475569">Target state at end of R0 · one RM sells one Term Life policy to one ETB customer of one Group A insurer — end to end, evidenced, audited · WS-3 (primary) + WS-1 (supplier) + WS-2 (enabler)</text>
+  <text x="900" y="60" text-anchor="middle" font-size="12.5" fill="#475569">Target state at end of R0 · one RM — the certified Specified Person — sells one Term Life policy to one ETB customer of one Group A insurer, end to end, evidenced, audited · an Insurance Partner Rep may assist, never sell · WS-3 (primary) + WS-1 (supplier) + WS-2 (enabler)</text>
    <text x="60" y="80" font-size="10" font-weight="bold" fill="#64748b" letter-spacing="1">R0 OUTCOME — THE JOURNEY THAT MUST RUN END TO END</text>
   <g font-size="10.5" fill="#ffffff">
     <polygon points="60,86 223,86 235,105 223,124 60,124 72,105" fill="#1f2937"/>
-    <text x="150" y="109" text-anchor="middle">1 · ETB lookup (CBS)</text>
+    <text x="150" y="109" text-anchor="middle">1 · Opportunity + ETB lookup</text>
     <polygon points="248,86 411,86 423,105 411,124 248,124 260,105" fill="#1f2937"/>
     <text x="338" y="109" text-anchor="middle">2 · Need &amp; suitability — C1</text>
     <polygon points="436,86 599,86 611,105 599,124 436,124 448,105" fill="#1f2937"/>
@@ -46,6 +46,14 @@
   <text x="530" y="176" text-anchor="middle" font-size="13" font-weight="bold" fill="#0f172a">Flutter RM Application (RM device)</text>
   <text x="530" y="198" text-anchor="middle" font-size="9.5" fill="#475569">assisted R0 journey · token-hiding session —</text>
   <text x="530" y="211" text-anchor="middle" font-size="9.5" fill="#475569">OAuth tokens never reach the device</text>
+  <!-- Insurance Partner Representative surface -->
+  <rect x="760" y="150" width="340" height="85" rx="6" fill="#eef2ff" stroke="#4f46e5" stroke-width="1.5" stroke-dasharray="6 3"/>
+  <rect x="768" y="158" width="26" height="16" rx="4" fill="#9333ea"/>
+  <text x="781" y="170" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">W4</text>
+  <text x="930" y="176" text-anchor="middle" font-size="13" font-weight="bold" fill="#0f172a">Insurance Partner Rep (IPR) surface</text>
+  <text x="930" y="194" text-anchor="middle" font-size="9.5" fill="#475569">insurer employee · ASSIST ONLY — not a Specified Person ·</text>
+  <text x="930" y="207" text-anchor="middle" font-size="9.5" fill="#475569">no origination, no regulated action (INV-ACT-02) ·</text>
+  <text x="930" y="220" text-anchor="middle" font-size="9.5" fill="#475569">gated post-suitability, own insurer_id only (S-22)</text>
   <!-- Customer device -->
   <rect x="1480" y="150" width="270" height="85" rx="6" fill="#eef2ff" stroke="#4f46e5" stroke-width="1.5"/>
   <rect x="1712" y="158" width="26" height="16" rx="8" fill="#dc2626"/>
@@ -67,7 +75,7 @@
   <text x="1615" y="368" text-anchor="middle" font-size="9.5" fill="#475569">↑ create payment session (S-13, sync)</text>
   <text x="1615" y="382" text-anchor="middle" font-size="9.5" fill="#475569">↓ callback + settlement recon (S-14 / S-15)</text>
   <!-- ======================= AWS BOUNDARY ======================= -->
-  <rect x="40" y="375" width="1360" height="830" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="7 5"/>
+  <rect x="40" y="375" width="1360" height="910" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="7 5"/>
   <text x="60" y="398" font-size="11" font-weight="bold" fill="#475569">AWS ap-south-1 — EKS, private subnets · every service stateless at pod level · ≥ 2 pods across ≥ 2 AZs · DR: warm standby in ap-south-2</text>
   
   <rect x="70" y="420" width="260" height="240" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.5"/>
@@ -196,34 +204,34 @@
   <text x="1100" y="957" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#0f172a">#17  Notification (transactional minimum)</text>
   <text x="1100" y="975" text-anchor="middle" font-size="9.5" fill="#475569">OTP + payment-link delivery to the customer device (SMS / email) ·</text>
   <text x="1100" y="987" text-anchor="middle" font-size="9.5" fill="#475569">a notification failure never blocks the journey (S-18)</text>
-  <rect x="70" y="1040" width="1275" height="140" rx="8" fill="#f1f5f9" stroke="#64748b" stroke-width="1.2"/>
-  <text x="90" y="1062" font-size="11.5" font-weight="bold" fill="#334155">Data — private, encrypted, database-per-service (ARCH-004) · no cross-service DB access (ArchUnit + IAM, verified in the S09 IaC scan)</text>
+  <rect x="70" y="1120" width="1275" height="140" rx="8" fill="#f1f5f9" stroke="#64748b" stroke-width="1.2"/>
+  <text x="90" y="1142" font-size="11.5" font-weight="bold" fill="#334155">Data — private, encrypted, database-per-service (ARCH-004) · no cross-service DB access (ArchUnit + IAM, verified in the S09 IaC scan)</text>
   <g>
-    <path d="M100,1090 a95,10 0 0,1 190,0 v50 a95,10 0 0,1 -190,0 z" fill="#ffffff" stroke="#475569" stroke-width="1.2"/>
-    <ellipse cx="195" cy="1090" rx="95" ry="10" fill="#ffffff" stroke="#475569" stroke-width="1.2"/>
-    <text x="195" y="1116" text-anchor="middle" font-size="11" font-weight="bold" fill="#0f172a">Aurora PostgreSQL</text>
-    <text x="195" y="1131" text-anchor="middle" font-size="9" fill="#475569">one store per service · Multi-AZ · PITR</text>
+    <path d="M100,1170 a95,10 0 0,1 190,0 v50 a95,10 0 0,1 -190,0 z" fill="#ffffff" stroke="#475569" stroke-width="1.2"/>
+    <ellipse cx="195" cy="1170" rx="95" ry="10" fill="#ffffff" stroke="#475569" stroke-width="1.2"/>
+    <text x="195" y="1196" text-anchor="middle" font-size="11" font-weight="bold" fill="#0f172a">Aurora PostgreSQL</text>
+    <text x="195" y="1211" text-anchor="middle" font-size="9" fill="#475569">one store per service · Multi-AZ · PITR</text>
   </g>
   <g>
-    <path d="M420,1090 a95,10 0 0,1 190,0 v50 a95,10 0 0,1 -190,0 z" fill="#ffffff" stroke="#475569" stroke-width="1.2"/>
-    <ellipse cx="515" cy="1090" rx="95" ry="10" fill="#ffffff" stroke="#475569" stroke-width="1.2"/>
-    <text x="515" y="1116" text-anchor="middle" font-size="11" font-weight="bold" fill="#0f172a">DynamoDB</text>
-    <text x="515" y="1131" text-anchor="middle" font-size="9" fill="#475569">journey state · quote jobs · PITR</text>
+    <path d="M420,1170 a95,10 0 0,1 190,0 v50 a95,10 0 0,1 -190,0 z" fill="#ffffff" stroke="#475569" stroke-width="1.2"/>
+    <ellipse cx="515" cy="1170" rx="95" ry="10" fill="#ffffff" stroke="#475569" stroke-width="1.2"/>
+    <text x="515" y="1196" text-anchor="middle" font-size="11" font-weight="bold" fill="#0f172a">DynamoDB</text>
+    <text x="515" y="1211" text-anchor="middle" font-size="9" fill="#475569">journey state · quote jobs · PITR</text>
   </g>
   <g>
-    <path d="M740,1090 a95,10 0 0,1 190,0 v50 a95,10 0 0,1 -190,0 z" fill="#ffffff" stroke="#475569" stroke-width="1.2"/>
-    <ellipse cx="835" cy="1090" rx="95" ry="10" fill="#ffffff" stroke="#475569" stroke-width="1.2"/>
-    <text x="835" y="1113" text-anchor="middle" font-size="11" font-weight="bold" fill="#0f172a">S3 + Object Lock</text>
-    <text x="835" y="1127" text-anchor="middle" font-size="9" fill="#475569">raw payloads · policy docs · 7-yr WORM</text>
-    <text x="835" y="1139" text-anchor="middle" font-size="9" fill="#475569">cross-region replication → ap-south-2</text>
+    <path d="M740,1170 a95,10 0 0,1 190,0 v50 a95,10 0 0,1 -190,0 z" fill="#ffffff" stroke="#475569" stroke-width="1.2"/>
+    <ellipse cx="835" cy="1170" rx="95" ry="10" fill="#ffffff" stroke="#475569" stroke-width="1.2"/>
+    <text x="835" y="1193" text-anchor="middle" font-size="11" font-weight="bold" fill="#0f172a">S3 + Object Lock</text>
+    <text x="835" y="1207" text-anchor="middle" font-size="9" fill="#475569">raw payloads · policy docs · 7-yr WORM</text>
+    <text x="835" y="1219" text-anchor="middle" font-size="9" fill="#475569">cross-region replication → ap-south-2</text>
   </g>
   <g>
-    <path d="M1060,1090 a95,10 0 0,1 190,0 v50 a95,10 0 0,1 -190,0 z" fill="#ffffff" stroke="#475569" stroke-width="1.2"/>
-    <ellipse cx="1155" cy="1090" rx="95" ry="10" fill="#ffffff" stroke="#475569" stroke-width="1.2"/>
-    <text x="1155" y="1116" text-anchor="middle" font-size="11" font-weight="bold" fill="#0f172a">Secrets Manager + KMS</text>
-    <text x="1155" y="1131" text-anchor="middle" font-size="9" fill="#475569">per-service credentials · CMK hierarchy</text>
+    <path d="M1060,1170 a95,10 0 0,1 190,0 v50 a95,10 0 0,1 -190,0 z" fill="#ffffff" stroke="#475569" stroke-width="1.2"/>
+    <ellipse cx="1155" cy="1170" rx="95" ry="10" fill="#ffffff" stroke="#475569" stroke-width="1.2"/>
+    <text x="1155" y="1196" text-anchor="middle" font-size="11" font-weight="bold" fill="#0f172a">Secrets Manager + KMS</text>
+    <text x="1155" y="1211" text-anchor="middle" font-size="9" fill="#475569">per-service credentials · CMK hierarchy</text>
   </g>
-  <text x="90" y="1172" font-size="9.5" fill="#64748b">Existing bank-persistence-service stays scoped to the integration job store + audit ingestion — it is NOT extended to the R0 business contexts.</text>
+  <text x="90" y="1252" font-size="9.5" fill="#64748b">Existing bank-persistence-service stays scoped to the integration job store + audit ingestion — it is NOT extended to the R0 business contexts.</text>
   <!-- ======================= RIGHT-COLUMN EXTERNALS ======================= -->
   <rect x="1480" y="420" width="270" height="70" rx="6" fill="#ffffff" stroke="#64748b" stroke-width="1.5" stroke-dasharray="4 3"/>
   <text x="1615" y="444" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#0f172a">Core Banking System (CBS)</text>
@@ -233,39 +241,64 @@
   <text x="1615" y="844" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#0f172a">1SilverBullet (Aggregator)</text>
   <text x="1615" y="859" text-anchor="middle" font-size="9" fill="#94a3b8" letter-spacing="1">EXTERNAL</text>
   <text x="1615" y="876" text-anchor="middle" font-size="9.5" fill="#475569">Group A insurers · Term only in R0</text>
+  <!-- Opportunity (#5) — the single origination point -->
+  <rect x="420" y="760" width="170" height="70" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+  <rect x="426" y="766" width="24" height="15" rx="4" fill="#2563eb"/>
+  <text x="438" y="777.5" text-anchor="middle" font-size="9" font-weight="bold" fill="#ffffff">W1</text>
+  <circle cx="576" cy="774" r="9" fill="#0f172a"/>
+  <text x="576" y="777.5" text-anchor="middle" font-size="10" font-weight="bold" fill="#ffffff">1</text>
+  <text x="505" y="795" text-anchor="middle" font-size="12" font-weight="bold" fill="#0f172a">#5  Opportunity (Lead)</text>
+  <text x="505" y="810" text-anchor="middle" font-size="9" fill="#475569">SINGLE origination point · RM-only</text>
+  <text x="505" y="821" text-anchor="middle" font-size="9" fill="#475569">create (INV-LED-04) · carries lob + SP</text>
+
+  <!-- Configuration (#19) — the layer that ships in R0 without a UI -->
+  <rect x="420" y="1025" width="915" height="70" rx="6" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
+  <rect x="428" y="1033" width="26" height="16" rx="4" fill="#0284c7"/>
+  <text x="441" y="1045" text-anchor="middle" font-size="9" font-weight="bold" fill="#ffffff">W0b</text>
+  <text x="877" y="1052" text-anchor="middle" font-size="13.5" font-weight="bold" fill="#0f172a">#19  Configuration — versioned · effective-dated · seeded · LOB-partitioned · NO ADMIN UI IN R0</text>
+  <text x="877" y="1071" text-anchor="middle" font-size="9.5" fill="#475569">journey steps · rule packs · field validations · document checklists · product eligibility · role→permission grants · routing · attribution — every one keyed by lob</text>
+  <text x="877" y="1085" text-anchor="middle" font-size="9.5" fill="#475569">no business branch on an insurer, product, LOB or channel literal (SC-W3-12) · no compiled-in fallback: an unresolvable rule is a refusal, not a default (S-21)</text>
+
   <!-- ======================= LEGEND ======================= -->
-  <rect x="70" y="700" width="260" height="305" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+  <rect x="70" y="700" width="260" height="327" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
   <text x="86" y="722" font-size="11" font-weight="bold" fill="#334155" letter-spacing="1">LEGEND</text>
-  <rect x="86" y="734" width="14" height="14" rx="3" fill="#dbeafe" stroke="#2563eb"/>
-  <text x="108" y="745" font-size="9.5" fill="#334155">Wave 1 — journey spine (build first)</text>
-  <rect x="86" y="756" width="14" height="14" rx="3" fill="#fef3c7" stroke="#d97706"/>
-  <text x="108" y="767" font-size="9.5" fill="#334155">Wave 2 — consent · suitability · quote</text>
-  <rect x="86" y="778" width="14" height="14" rx="3" fill="#dcfce7" stroke="#16a34a"/>
-  <text x="108" y="789" font-size="9.5" fill="#334155">Wave 3 — money · policy · audit</text>
-  <rect x="86" y="800" width="14" height="14" rx="3" fill="#f3e8ff" stroke="#9333ea"/>
-  <text x="108" y="811" font-size="9.5" fill="#334155">Wave 4 — BFF · Flutter · notification</text>
-  <rect x="86" y="822" width="14" height="14" rx="3" fill="#e2e8f0" stroke="#475569"/>
-  <text x="108" y="833" font-size="9.5" fill="#334155">WS-1 supplier — exists today</text>
-  <rect x="86" y="844" width="14" height="14" rx="3" fill="#ecfdf5" stroke="#059669"/>
-  <text x="108" y="855" font-size="9.5" fill="#334155">WS-2 enabler</text>
-  <rect x="86" y="866" width="14" height="14" rx="3" fill="#ffffff" stroke="#64748b" stroke-dasharray="3 2"/>
-  <text x="108" y="877" font-size="9.5" fill="#334155">External system</text>
-  <line x1="86" y1="897" x2="128" y2="897" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
-  <text x="140" y="900" font-size="9.5" fill="#334155">synchronous call</text>
-  <line x1="86" y1="919" x2="128" y2="919" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrGray)"/>
-  <text x="140" y="922" font-size="9.5" fill="#334155">async — outbox event / poll / callback</text>
-  <rect x="86" y="936" width="24" height="15" rx="7" fill="#dc2626"/>
-  <text x="98" y="947.5" text-anchor="middle" font-size="9" font-weight="bold" fill="#ffffff">C1</text>
-  <text x="118" y="947" font-size="9.5" fill="#334155">non-waivable control (C1 · C2 · C4)</text>
-  <circle cx="94" cy="967" r="8" fill="#0f172a"/>
-  <text x="94" y="970.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">4</text>
-  <text x="110" y="970" font-size="9.5" fill="#334155">journey step (ribbon at top)</text>
-  <text x="86" y="992" font-size="9.5" fill="#334155">#n — bounded context (problem stmt §6)</text>
+  <rect x="86" y="734" width="14" height="14" rx="3" fill="#e0f2fe" stroke="#0284c7"/>
+  <text x="108" y="745" font-size="9.5" fill="#334155">Wave 0b — configuration layer (before W1)</text>
+  <rect x="86" y="756" width="14" height="14" rx="3" fill="#dbeafe" stroke="#2563eb"/>
+  <text x="108" y="767" font-size="9.5" fill="#334155">Wave 1 — journey spine (build first)</text>
+  <rect x="86" y="778" width="14" height="14" rx="3" fill="#fef3c7" stroke="#d97706"/>
+  <text x="108" y="789" font-size="9.5" fill="#334155">Wave 2 — consent · suitability · quote</text>
+  <rect x="86" y="800" width="14" height="14" rx="3" fill="#dcfce7" stroke="#16a34a"/>
+  <text x="108" y="811" font-size="9.5" fill="#334155">Wave 3 — money · policy · audit</text>
+  <rect x="86" y="822" width="14" height="14" rx="3" fill="#f3e8ff" stroke="#9333ea"/>
+  <text x="108" y="833" font-size="9.5" fill="#334155">Wave 4 — BFF · Flutter · notification</text>
+  <rect x="86" y="844" width="14" height="14" rx="3" fill="#e2e8f0" stroke="#475569"/>
+  <text x="108" y="855" font-size="9.5" fill="#334155">WS-1 supplier — exists today</text>
+  <rect x="86" y="866" width="14" height="14" rx="3" fill="#ecfdf5" stroke="#059669"/>
+  <text x="108" y="877" font-size="9.5" fill="#334155">WS-2 enabler</text>
+  <rect x="86" y="888" width="14" height="14" rx="3" fill="#ffffff" stroke="#64748b" stroke-dasharray="3 2"/>
+  <text x="108" y="899" font-size="9.5" fill="#334155">External system</text>
+  <line x1="86" y1="919" x2="128" y2="919" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
+  <text x="140" y="922" font-size="9.5" fill="#334155">synchronous call</text>
+  <line x1="86" y1="941" x2="128" y2="941" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrGray)"/>
+  <text x="140" y="944" font-size="9.5" fill="#334155">async — outbox event / poll / callback</text>
+  <rect x="86" y="958" width="24" height="15" rx="7" fill="#dc2626"/>
+  <text x="98" y="969.5" text-anchor="middle" font-size="9" font-weight="bold" fill="#ffffff">C1</text>
+  <text x="118" y="969" font-size="9.5" fill="#334155">non-waivable control (C1 · C2 · C4)</text>
+  <circle cx="94" cy="989" r="8" fill="#0f172a"/>
+  <text x="94" y="992.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">4</text>
+  <text x="110" y="992" font-size="9.5" fill="#334155">journey step (ribbon at top)</text>
+  <text x="86" y="1014" font-size="9.5" fill="#334155">#n — bounded context (problem stmt §6)</text>
   <!-- ======================= FLOWS ======================= -->
   <!-- Flutter -> Edge -> BFF -->
   <path d="M530,235 L530,270" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
   <path d="M530,340 L530,420" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
   <text x="540" y="384" font-size="9.5" fill="#64748b">HTTPS · opaque session (S-01)</text>
+  <!-- IPR surface -> Edge (same gateway, same BFF contract) -->
+  <path d="M930,235 L930,254 L620,254 L620,270" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
+  <text x="1110" y="180" font-size="9.5" fill="#64748b">same gateway, same BFF —</text>
+  <text x="1110" y="192" font-size="9.5" fill="#64748b">the difference is the PDP</text>
+  <text x="1110" y="204" font-size="9.5" fill="#64748b">decision and the query scope</text>
   <!-- idp-adapter -> Bank AD -->
   <path d="M200,470 L200,235" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
   <text x="208" y="330" font-size="9.5" fill="#64748b">federation</text>
@@ -278,6 +311,15 @@
   <!-- BFF -> Journey -->
   <path d="M540,490 L540,565" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
   <text x="548" y="532" font-size="9.5" fill="#64748b">S-03</text>
+  <!-- BFF -> Opportunity, Opportunity -> Journey -->
+  <path d="M450,490 L450,512 L400,512 L400,795 L420,795" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
+  <text x="408" y="690" font-size="9.5" fill="#64748b" transform="rotate(-90 408 690)">S-20 · RM-only create</text>
+  <path d="M505,760 L505,635" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
+  <text x="513" y="700" font-size="9.5" fill="#64748b">opportunity ref — every</text>
+  <text x="513" y="712" font-size="9.5" fill="#64748b">downstream record carries it</text>
+  <!-- Configuration -> the whole estate -->
+  <path d="M420,1060 L390,1060 L390,600 L420,600" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
+  <text x="384" y="920" font-size="9.5" fill="#64748b" transform="rotate(-90 384 920)">S-21 · config resolution, fail closed</text>
   <!-- Journey -> Row A -->
   <path d="M800,565 L800,490" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
   <path d="M955,565 L955,490" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
@@ -317,18 +359,18 @@
   <path d="M1300,955 L1464,955 L1464,192 L1480,192" fill="none" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrGray)"/>
   <text x="1457" y="620" font-size="9.5" fill="#64748b" transform="rotate(-90 1457 620)">payment link + OTP (SMS / email)</text>
   <!-- ======================= FOUNDATION STRIP (IF-3) ======================= -->
-  <rect x="40" y="1235" width="1710" height="120" rx="10" fill="#fffbeb" stroke="#b45309" stroke-width="1.5"/>
-  <text x="60" y="1257" font-size="11.5" font-weight="bold" fill="#92400e">IF-3 — THE PAVED ROAD: built once in WS-3, consumed by WS-1, WS-2 and WS-3 · Waves W1–W4 above start only after GATE-S08 passes and the S09 critical path lands</text>
-  <rect x="70" y="1268" width="820" height="75" rx="6" fill="#ffffff" stroke="#b45309" stroke-width="1.2"/>
-  <text x="86" y="1288" font-size="11.5" font-weight="bold" fill="#0f172a">S08 — Engineering Foundation · GATE-S08 OPEN (where the platform is right now)</text>
-  <text x="86" y="1306" font-size="9.5" fill="#475569">CI builds + tests every module on every PR · merge impossible without green · coverage floors (libs 80 / 70) · ArchUnit + 15 fitness functions (FF-01…FF-15)</text>
-  <text x="86" y="1320" font-size="9.5" fill="#475569">secret / SAST / SCA / image scanning · no PII in logs, proven by automated test · p95 pipeline feedback &lt; 10 min · engineering standards published</text>
-  <text x="86" y="1336" font-size="9.5" fill="#475569">Approvers: Amit (Eng) · Swapnali (QA) · Mahesh (Arch) · Deepali (Sec) · Shivanshi (SRE)</text>
-  <rect x="920" y="1268" width="810" height="75" rx="6" fill="#ffffff" stroke="#b45309" stroke-width="1.2"/>
-  <text x="936" y="1288" font-size="11.5" font-weight="bold" fill="#0f172a">S09 — Platform &amp; Environment Foundation (overlapped with S08)</text>
-  <text x="936" y="1306" font-size="9.5" fill="#475569">IaC + environments (dev → UAT → prod) · secrets &amp; KMS hierarchy · observability substrate · 7-year write-once retention in ap-south-1</text>
-  <text x="936" y="1320" font-size="9.5" fill="#475569">restore executed and timed (S09-G7) — "a backup that has never been restored is a hypothesis" · DR warm standby in ap-south-2</text>
-  <text x="936" y="1336" font-size="9.5" fill="#475569">IaC policy-as-code: India regions only (FF-08) · no public / unencrypted store, no wildcard prod IAM (FF-09) · audit store immutability (FF-10)</text>
+  <rect x="40" y="1315" width="1710" height="120" rx="10" fill="#fffbeb" stroke="#b45309" stroke-width="1.5"/>
+  <text x="60" y="1337" font-size="11.5" font-weight="bold" fill="#92400e">IF-3 — THE PAVED ROAD: built once in WS-3, consumed by WS-1, WS-2 and WS-3 · Waves W1–W4 above start only after GATE-S08 passes and the S09 critical path lands</text>
+  <rect x="70" y="1348" width="820" height="75" rx="6" fill="#ffffff" stroke="#b45309" stroke-width="1.2"/>
+  <text x="86" y="1368" font-size="11.5" font-weight="bold" fill="#0f172a">S08 — Engineering Foundation · GATE-S08 OPEN (where the platform is right now)</text>
+  <text x="86" y="1386" font-size="9.5" fill="#475569">CI builds + tests every module on every PR · merge impossible without green · coverage floors (libs 80 / 70) · ArchUnit + 21 fitness functions (FF-01…FF-21)</text>
+  <text x="86" y="1400" font-size="9.5" fill="#475569">secret / SAST / SCA / image scanning · no PII in logs, proven by automated test · p95 pipeline feedback &lt; 10 min · engineering standards published</text>
+  <text x="86" y="1416" font-size="9.5" fill="#475569">Approvers: Amit (Eng) · Swapnali (QA) · Mahesh (Arch) · Deepali (Sec) · Shivanshi (SRE)</text>
+  <rect x="920" y="1348" width="810" height="75" rx="6" fill="#ffffff" stroke="#b45309" stroke-width="1.2"/>
+  <text x="936" y="1368" font-size="11.5" font-weight="bold" fill="#0f172a">S09 — Platform &amp; Environment Foundation (overlapped with S08)</text>
+  <text x="936" y="1386" font-size="9.5" fill="#475569">IaC + environments (dev → UAT → prod) · secrets &amp; KMS hierarchy · observability substrate · 7-year write-once retention in ap-south-1</text>
+  <text x="936" y="1400" font-size="9.5" fill="#475569">restore executed and timed (S09-G7) — "a backup that has never been restored is a hypothesis" · DR warm standby in ap-south-2</text>
+  <text x="936" y="1416" font-size="9.5" fill="#475569">IaC policy-as-code: India regions only (FF-08) · no public / unencrypted store, no wildcard prod IAM (FF-09) · audit store immutability (FF-10)</text>
   <!-- ======================= FOOTER ======================= -->
-  <text x="60" y="1382" font-size="9.5" fill="#94a3b8">AI-DRAFTED in the Architecture lane (Mahesh — Board 1); mandatory human T4 Architecture sign-off outstanding · Derived from 03-solution-architecture-r0.md §3–§5, 00-WS3-ARCHITECTURE-REGISTRATION.md §3 and CURRENT-STATE.yaml (R0 scope) · Deferred to S13: Lead (#5), Customer BFF (#1), Reporting &amp; MIS (#18), Admin UI (#19) · Render.com is dev-preview only, never a PII path (ADR-001) · 2026-08-17</text>
+  <text x="60" y="1462" font-size="9.5" fill="#94a3b8">AI-DRAFTED in the Architecture lane (Mahesh — Board 1); mandatory human T4 Architecture sign-off outstanding · Derived from 03-solution-architecture-r0.md §2–§5 and §7, 01-domain-model-and-invariants.md §2.4–§2.6, 00-WS3-ARCHITECTURE-REGISTRATION.md §3 and §6 (SC-W3-8…12), ADR-004…ADR-007 and CURRENT-STATE.yaml (R0 scope) · Deferred to S13/R1: Customer BFF (#1), Reporting &amp; MIS (#18), the Administration &amp; Config USER INTERFACE (the layer itself is W0), campaign/bulk lead management · Render.com is dev-preview only, never a PII path (ADR-001) · revised 2026-08-20 (HLD review round — actors, LOB, configuration; SUG-20260820-hr0)</text>
 </svg>

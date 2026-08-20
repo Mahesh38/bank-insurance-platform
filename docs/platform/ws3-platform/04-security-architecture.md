@@ -15,6 +15,12 @@ Deepali is `AP/B/H` at S07). Nothing in this document satisfies that requirement
 
 ---
 
+**Revision 2026-08-20 — HLD review round R0-actors/LOB/configuration** (`SUG-20260820-hr0`):
+§3 separates the Partner principal class from Workforce, states Specified Person as an RM
+certification attribute, and adds the gated, insurer-scoped, assist-only IPR controls.
+
+---
+
 ## 1. Position
 
 The security *standards* in this repository are strong —
@@ -25,7 +31,7 @@ covers edge, identity, secrets, encryption, network and attribution, and the WS-
 What [`stages/S07-solution-architecture.md §6`](../../application-lifecycle-bible/stages/S07-solution-architecture.md)
 records as missing is a **per-trust-boundary threat model**. A standards list says what controls
 exist; a boundary model says what an attacker reaches when one fails. This document supplies the
-boundary model, the identity architecture across three principal classes, and the four
+boundary model, the identity architecture across four principal classes, and the four
 platform-specific security properties that carry regulatory weight: PII handling, key and secret
 management, payment device isolation, and audit immutability.
 
@@ -102,16 +108,26 @@ the VPC is not an authorisation.
 
 ---
 
-## 3. Identity architecture — three principal classes
+## 3. Identity architecture — four principal classes
 
-S07-E03-S03. The three classes are genuinely different and conflating them is a common source of
-authorisation defects.
+S07-E03-S03. The four classes are genuinely different and conflating them is a common source of
+authorisation defects. **Partner was separated from Workforce in the 2026-08-20 revision:** an
+insurer's employee is not a bank employee, is not in bank AD, and does not hold a bank RM's grant
+set (`ID-12`, `AC-6`).
 
 | Class | Who | Authentication | Session | Authorisation |
 |---|---|---|---|---|
-| **Workforce** | RM, branch manager, ops, insurer representative | Bank AD/SSO federated through the provider-neutral IdP adapter (ARCH-018) | **Token-hiding BFF session.** Flutter receives an opaque session cookie; the BFF holds provider tokens (ARCH-019, standing constraint) | PDP decision: default-deny RBAC + ABAC + relationship rules (ARCH-020) |
+| **Workforce** | RM (the certified **Specified Person**), branch manager, ops — **bank employees only** | Bank AD/SSO federated through the provider-neutral IdP adapter (ARCH-018) | **Token-hiding BFF session.** Flutter receives an opaque session cookie; the BFF holds provider tokens (ARCH-019, standing constraint) | PDP decision: default-deny RBAC + ABAC + relationship rules (ARCH-020), plus SP certification evaluated at the action (INV-ACT-01) |
+| **Partner** | **Insurance Partner Representative (IPR)** — an insurer's employee. Separate plane, separate realm; **never federated into bank AD** (`ID-12`) | Identity & Access provisions the principal to the IdP after maker-checker (ARCH-022) | Same token-hiding BFF session pattern; no partner-specific session mechanism | Default-deny, **assist-only** grant set (INV-ACT-02) plus a mandatory `insurer_id` query-layer predicate (`AC-5`, INV-LED-07) |
 | **Customer** | ETB retail customer | **Out of WS-2 Phase 1 scope.** For R0, the customer is authenticated only by the payment gateway on their own device, plus an OTP challenge at consent capture | No platform session in R0 | n/a in R0 |
 | **Workload** | Service-to-service | Workload identity (IRSA), mutual TLS in-mesh; no static credential in any pod | n/a | Per-service least-privilege IAM plus explicit service-to-service allow lists |
+
+> **Compliance point, carried in the security architecture as well as the domain model.** The IPR
+> is **not** a Specified Person. Their presence on a journey must never constitute solicitation or
+> advice. Three architectural properties carry that obligation — no regulated grant, an immutable
+> accountable SP, and separately attributed audit — and none of them is a UI behaviour. **Which
+> assistance actions remain lawful for a non-SP is Shailja's determination** (`ID-21`, `JS-09`),
+> recorded as OPEN-D9; the platform ships default-deny until she sets it.
 
 ### 3.1 The customer-identity gap, stated plainly
 
@@ -134,7 +150,13 @@ Security design consequence (Deepali) — not an architecture preference.
 | Precedence | Explicit deny and suspension beat any grant |
 | PDP placement | `identity-authorization-service`. The IdP is never the source of truth for business authorisation (standing constraint) |
 | Double enforcement | The BFF enforces coarse-grained access; the **owning domain service re-enforces** object-level authorisation. A BFF-only check is a broken-object-level-authorisation defect waiting for a direct-call path |
-| Certification gate | An RM without a valid SP certification cannot be assigned a lead (INV-LED-03) or submit a proposal. Certification expiry is an event, not a cached attribute |
+| Certification gate | Specified Person is a **certification attribute on the RM principal**, not an actor type or a channel (`AC-1`). An RM whose certification is expired, suspended or outside the resource's LOB scope cannot originate an opportunity (INV-LED-04), be assigned one (INV-LED-03) or perform any regulated action (INV-ACT-01). Evaluated **at the action**, not at login; expiry is an event, not a cached attribute |
+| Actor-type vocabulary | Closed at `BANK_RM`, `INSURER_PARTNER_REP`, `SERVICE` for R0 (`AC-2`). `CERTIFIED_SP` is not an actor type — modelling a certification as an actor produces two principals and two audit trails for one human |
+| Assist-only enforcement | An `INSURER_PARTNER_REP` holds no regulated-sales grant at any journey stage (INV-ACT-02), and the accountable SP on a record is immutable and always the originating RM (INV-ACT-03). The permitted set — gated read, own-insurer product view/select, assistance annotation — is itself configuration (`CF-2`), not code |
+| Partner visibility | Gated **and** scoped: a record is returned to a partner principal only once the RM has created the opportunity and completed need analysis and suitability, and only for the partner's own `insurer_id` (`AC-4`). Applied as a mandatory predicate at the persistence layer (`AC-5`), so an unscoped query cannot be written rather than being caught in review (`FF-17`) |
+| Non-enumeration | An out-of-scope record is **absent from the result set**, never a `403` on a named identifier — a refusal that names an id confirms the id exists (seam S-22) |
+| Attribution of assistance | Every partner action is audited with `acting_capacity = ASSIST_ONLY`, `actor_insurer_id` and `assisted_actor_id` (INV-ACT-04), so the solicitation trail presented to IRDAI is single-threaded to one accountable SP |
+| Configuration-sourced permissions | Role-to-permission grants, including the partner gate, are versioned configuration (`CF-2`, `CF-3`). A permission change is a seeded version with an activation window, and the version that governed a decision is recoverable seven years later |
 | Caching | PDP decisions may be cached only for the duration of a single request. A longer cache converts a revocation into a delay |
 | Failure | **Fail closed** (seam S-02) |
 
@@ -323,4 +345,4 @@ outstanding mandatory human signature — is recorded separately in
 
 **Drafted by:** Mahesh — Principal Insurance Platform Architect, for Deepali's ratification
 **signature_status:** `AI-DRAFTED — mandatory human Security signature outstanding (S07-G3, S07-G4)`
-**Date:** 2026-08-16
+**Date:** 2026-08-16 · **revised** 2026-08-20 (HLD review round — actors, LOB, configuration)

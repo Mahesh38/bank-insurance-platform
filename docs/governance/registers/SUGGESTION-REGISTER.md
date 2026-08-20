@@ -48,6 +48,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | SUG-20260816-ap1 | 2026-08-16 | human:Mahesh | Build a reusable context module and safe evidence-driven autopilot; reconcile semantic governance drift and documentation structure | SF1 | SC1 | MUST | GOV | P2 / P2 | ADMITTED | [CR-010](../change-requests/CR-010-context-module-and-safe-autopilot.md) |
 | SUG-20260816-w3s | 2026-08-16 | agent:claude | Extend `current-state.schema.json` with `depends_on` / `entry_conditions` on a workstream and `parent_workstream` / `delivers_bounded_contexts` on `lifecycle`, so workstream relationships are validated rather than held in comments | SF2 | SC1 | SHOULD | GOV | P3 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md#1-parked--scheduled-work) |
 | SUG-20260820-n5t | 2026-08-20 | human:Mahesh | Redraw `docs/hdl.svg` as the release-coded North Star HLD — boundary descriptions, LOB segregation, aggregation/provider layer, mature-platform capabilities, R0→RN phasing — and preserve the R0 view alongside it | SF2 | SC1 | SHOULD | DOC | P3 / P3 | ADMIT-BYPASS | [architecture diagrams](../../architecture/README.md) |
+| SUG-20260820-hr0 | 2026-08-20 | human:Mahesh | HLD review round: correct the R0 actor model to two actors with SP as a certification attribute, gate and insurer-scope the Insurance Partner Representative, make the opportunity the single RM-only origination point, make LOB first-class from release 1 and make the configuration layer ship in R0 independently of any admin UI | SF0 | SC0 | MUST | ARCH | P1 / P1 | ADMIT-BYPASS | [ADR-004…007](../../platform/architecture-review/08-architecture-decision-log.md) |
 | SUG-20260820-r1t | 2026-08-20 | agent:claude | Produce the R0 → R1 → R2 transition and dependency map the North Star does not answer: the order in which target components must appear and which are prerequisites for which | SF3 | SC1 | SHOULD | ARCH | P4 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md#1-parked--scheduled-work) |
 
 <!--
@@ -464,6 +465,196 @@ outcome:
     - "docs/architecture/r0-reference-architecture.svg — R0 view preserved"
     - "docs/architecture/README.md — which diagram answers which question"
     - "scripts/governance/ci-checks.py — PASSED, 24 checks"
+  closed_reason: null
+
+resumed: null
+```
+
+---
+
+### SUG-20260820-hr0 · HLD review round — R0 actors, LOB boundary, configuration
+
+```yaml
+id: SUG-20260820-hr0
+raised_at: "2026-08-20"
+raised_by: "human:Mahesh"
+source: "direct user instruction — HLD review comments issued by the owning Board 1 Architecture authority"
+input: >
+  Five review comments on the R0 HLD. (1) There are two actors, not one: the Bank RM is the
+  certified Specified Person, and SP certification is an attribute on the RM, not a standalone
+  actor row or channel; the Insurance Partner Representative is an insurer employee who assists the
+  RM or the customer and is not an SP. (2) Lead/opportunity origination is RM-only; the opportunity
+  is the single origination point that every downstream module consumes; the IPR has no create
+  rights; no parallel origination path in MVP. (3) IPR visibility is gated — nothing is visible
+  until the RM has created the opportunity and completed suitability and need analysis — and is
+  scoped to the IPR's own insurer at the data/query layer, not the UI; because the IPR is not an
+  SP their role must be assist-only, the RM stays the accountable SP, and every IPR action must be
+  audit-logged and attributed separately so the solicitation trail is clean for IRDAI. (4) LOB
+  segregation must be visible from day one: DB schema, entity model and config tables carry LOB as
+  a first-class dimension from release 1, and product, journey, rules, commission and document
+  requirements are all LOB-partitioned from the start. (5) Everything is configuration-driven with
+  no exceptions, and this is independent of front-end availability — the configuration layer ships
+  now, versioned and seedable in the backend, even if no admin panel is built in R1.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: R0-ASSISTED-TERM-SALE
+  current_gate: "GATE-S08 (OPEN)"
+  state_as_of: "2026-08-10"
+  state_provisional: false
+  freshness_check: "exit 0 — FRESH"
+  active_work_item: "none in flight; this instruction is the work"
+
+stage_fit:
+  code: SF0
+  rationale: >
+    Prerequisite, not adjacent. The artefacts corrected here — the domain model, information model,
+    R0 solution architecture and security architecture — are the inputs S08 and S11 build from, and
+    all four are AI-DRAFTED with human signature outstanding. Nothing is implemented, so this is
+    the repair of an unsigned baseline rather than a change to a shipped one. Two of the five
+    comments are structural dimensions (LOB, configuration) that are free to carry now and become a
+    migration across every table on the sale path once a second line of business, a second insurer
+    or a live rule pack exists. Correcting a design document at S08 is exactly the posture RUNBOOK
+    section 8.3 prescribes for L4 Foundation: build the floor, and build it right.
+  blocks:
+    - "GATE-S08 criterion S08-G4 — ArchUnit and static analysis: FF-16 to FF-21 cannot be written against a wrong actor model"
+    - "S11 entry — the R0 build order and the service set change"
+
+scope:
+  code: SC0
+  business_scope: >
+    Explicitly in scope. CURRENT-STATE.yaml WS-3 current_scope.in_scope already lists the Lead
+    service (context #5), the suitability and consent contexts, the product catalogue and the audit
+    store. No new capability is admitted here; the review corrects how the admitted ones are
+    modelled.
+  serves:
+    - "R0 build decisions that are cheap now and expensive later — actors, LOB and configuration"
+    - "IRDAI solicitation attribution: one accountable Specified Person per record"
+    - "the Health and General onboarding that follows R0 on the same template"
+  failure_without_it: >
+    An uncertified insurer employee acquires a de-facto solicitation path with no separate
+    attribution; LOB becomes a backfill across every table on the sale path plus an audit history
+    that cannot be corrected; and every W1 to W4 service is written with hardcoded product and
+    insurer branches that are never removed.
+  minimal: true
+  authority: >
+    Board 1 Architecture owns the HLD. Three of the four decisions reach beyond that: ADR-004 is
+    A3_JOINT_REVIEW with Deepali and carries a compliance threshold that is Shailja's, ADR-005
+    changes the R0 build order and a Product-owned label and needs Rajal, and ADR-007 makes
+    configuration an authorization-relevant asset. An AI may draft Mahesh's reasoning; the mandatory
+    human T4 Architecture sign-off in 11-REVIEW_GATES.md is NOT satisfied by this record.
+
+necessity:
+  verdict: MUST
+  evidence_tier: E5
+  confidence: C4
+  note: >
+    The actor and IPR corrections are grounded in the repository's own material: business-problem-
+    statement section 6 already names the Insurance Partner Representative as a distinct actor, and
+    authentication-authorization README lines 33-34 already state that SP is an attribute and not a
+    synonym for RM. The origination correction resolves a live contradiction between
+    CURRENT-STATE.yaml in_scope and the deferral in ws3-platform/03 section 3, and the ratified
+    state file wins. Confidence is C4 rather than C5 only because the exact assist-only action set
+    is a compliance determination that has not been made (OPEN-D9); the gate ships default-deny
+    until it is.
+
+overrides_claimed:
+  - id: O3
+    claim: "Incorrect domain model"
+    evidence: >
+      ws3-platform/02 section 4.2 recorded lob = TERM, conflating the line of business with the
+      product class, against ws3-platform/01 INV-QUO-01 which gates on lob and the S03 acceptance
+      criterion AC-LEAD-010-1 which reads 'LOB LIFE'. Also 15 section 4 listed CERTIFIED_SP as an
+      actorType and a channel while 15 ID-20 in the same file states that certification is an
+      authorization attribute.
+    status: >
+      Recorded as evidence for necessity and priority, NOT used to interrupt an in-flight item —
+      no item was in flight. Nothing is implemented, so the defect is in the model rather than in
+      behaviour; stated here so the claim is auditable rather than inflated.
+
+action:
+  verdict: ADMIT-BYPASS
+  rationale: >
+    Implemented in the turn it was raised, which the one rule normally forbids. Recorded as
+    ADMIT-BYPASS rather than ADMITTED because it was a direct instruction from the owning human
+    authority for the artefact under review, following the precedent set by SUG-20260816-d8v and
+    SUG-20260820-n5t. The bypass and its risk are stated: the risk is that four architecture
+    decisions with Security, Compliance, Product and Database consequences are recorded without
+    their boards having met. Each ADR names the approvals it still requires, and none of them
+    becomes binding because this branch merges.
+  priority_now: P1
+  priority_at_target: P1
+  type: ARCH
+  risk_tier: T4
+  score:
+    N: 4
+    S: 4
+    B: 3
+    R: 3
+    D: 2
+    E: 2
+    formula: "2N + 2S + 2B + 2R + D - E"
+    total: 28
+    band: P1
+    pri8_note: "SF0 sets the B floor at 2; B is 3 because S08-G4 is a gate criterion this blocks"
+
+decisions_taken:
+  - id: ADR-004
+    decision: >
+      Two R0 actors. Specified Person is certification state on the BANK_RM principal, evaluated at
+      the action and not at login; CERTIFIED_SP is removed as an actor type and as a channel value.
+      INSURER_PARTNER_REP is a partner-plane principal, assist-only, with the accountable SP
+      immutable and always the originating RM, visibility gated on completed need analysis and
+      suitability, insurer scoping applied as a mandatory persistence-layer predicate, out-of-scope
+      records absent from result sets rather than refused by identifier, and every partner action
+      audited with its acting capacity.
+  - id: ADR-005
+    decision: >
+      The opportunity is the single origination point, creatable only by a BANK_RM. Context #5
+      moves from deferred-to-S13 into R0 Wave 1, reconciling ws3-platform/03 with CURRENT-STATE
+      in_scope. Every downstream aggregate carries the originating reference. Campaign and bulk
+      sales-management breadth stays deferred.
+  - id: ADR-006
+    decision: >
+      lob is mandatory and non-null on every business entity, configuration record, audit event and
+      authorization request from the first migration; the vocabulary is frozen at LIFE, HEALTH and
+      GENERAL; lob and productClass are separate dimensions. Partitioning is not forking — party,
+      opportunity, consent evidence, journey identity, payment, documents, portfolio and audit stay
+      shared.
+  - id: ADR-007
+    decision: >
+      The configuration layer ships in R0 as a Wave 0b component — LOB-partitioned, append-only,
+      versioned, effective-dated, seeded from source-controlled artefacts, resolved through a port,
+      with no compiled-in fallback and no business branch on an insurer, product, LOB or channel
+      literal. Explicitly independent of front-end availability; the admin UI stays deferred. This
+      withdraws the earlier trade under which a rule-pack change required a deployment.
+
+not_included:
+  - "any change to CURRENT-STATE.yaml scope, stage, gate state or standing_constraints. Section 7.5 of the registration document carries the five constraint lines for the orchestrator to transcribe. The ONE edit made to that file is id_allocation.sequential.ADR, advanced from 1 to 8: ADR-001..003 already existed and ADR-004..007 are indexed in the decision register, which FreshnessCheck scans, so leaving the counter behind put the repository into HALT and blocked every agent. It is an ID-allocation correction, not a stage or scope edit"
+  - "T4 Architecture sign-off, and the Security, Compliance, Product and Database approvals each ADR names"
+  - "the assist-only threshold itself — which assistance actions stop short of solicitation (OPEN-D9, Shailja)"
+  - "renaming context #5 from Lead to Opportunity in Product-owned artefacts (OPEN-D10, Rajal)"
+  - "physical partitioning of the lob dimension per store (OPEN-I6, Aarti)"
+  - "any code, migration or seed artefact — this is design; implementation is S08/S09 work under GATE-S08"
+  - "a commission service. Commission is a reserved configuration namespace with no consumer until R1"
+
+outcome:
+  registered_in: "SUGGESTION-REGISTER.md"
+  work_item_id: SUG-20260820-hr0
+  status: ADMIT-BYPASS
+  evidence:
+    - "docs/platform/ws3-platform/01-domain-model-and-invariants.md — sections 2.4, 2.5, 2.6; INV-ACT-01..04, INV-LED-04..07, INV-CFG-01..03, INV-LOB-01/02; OPEN-D9..D11"
+    - "docs/platform/ws3-platform/02-information-model.md — lob corrected to LIFE with productClass separated; opportunity, configuration and audit-attribution sheets"
+    - "docs/platform/ws3-platform/03-solution-architecture-r0.md — sections 2.1, 2.2; Wave 0b configuration and Wave 1 opportunity; seams S-20..S-22; FF-16..FF-21"
+    - "docs/platform/ws3-platform/04-security-architecture.md — four principal classes; partner gating, scoping and attribution controls"
+    - "docs/platform/ws3-platform/00-WS3-ARCHITECTURE-REGISTRATION.md — SC-W3-8..SC-W3-12 and the section 7.5 transcription block"
+    - "docs/platform/architecture-review/08-architecture-decision-log.md — ARCH-023..027 and ADR-004..ADR-007"
+    - "docs/context/roles/mahesh-principal-insurance-platform-architect/15-actor-identity-and-authorization.md — ID-15a, ID-15b; CERTIFIED_SP removed from the actorType and channel enumerations"
+    - "docs/architecture/r0-reference-architecture.svg — R0 view reconciled (HA-03, HA-06)"
+    - "scripts/governance/ci-checks.py — PASSED"
+    - "java scripts/governance/FreshnessCheck.java — FRESH"
   closed_reason: null
 
 resumed: null

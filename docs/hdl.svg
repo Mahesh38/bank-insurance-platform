@@ -37,7 +37,7 @@
   <rect x="885.3333333333334" y="192" width="30" height="15" rx="4" fill="#b45309"/>
   <text x="900.3333333333334" y="203.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R2</text>
   <text x="921.3333333333334" y="203" font-size="10.5" fill="#0f172a" font-weight="bold">Life Lifecycle &amp; Omnichannel</text>
-  <text x="885.3333333333334" y="218" font-size="8.3" fill="#475569">Hybrid/mode-switch, call centre, certified SP,</text>
+  <text x="885.3333333333334" y="218" font-size="8.3" fill="#475569">Hybrid/mode-switch, call centre, external certified partners,</text>
   <text x="885.3333333333334" y="228.5" font-size="8.3" fill="#475569">abandonment recovery, engagement engine,</text>
   <text x="885.3333333333334" y="239.0" font-size="8.3" fill="#475569">policy portfolio, renewal &amp; lapse, NTB+V-KYC.</text>
   <rect x="1287.0" y="186" width="395.6666666666667" height="56" rx="6" fill="#f3e8ff" stroke="#7e22ce" stroke-width="1.5"/>
@@ -115,7 +115,7 @@
   <text x="881.3333333333334" y="424" font-size="8.4" fill="#475569">INSURER owns: risk and medical assessment, underwriting decision, loading, exclusion, counter-offer, decline, and the policy contract.</text>
   <text x="881.3333333333334" y="436" font-size="8.4" fill="#475569">We track insurer status, requirements and next action. We never compute a risk decision.</text>
   <text x="1698.6666666666667" y="398" font-size="10.2" fill="#0f172a" font-weight="bold">Channel and actor</text>
-  <text x="1698.6666666666667" y="412" font-size="8.4" fill="#475569">Actors are JourneyParticipants, not owners: customer, RM, branch, call-centre agent, certified SP and operations act on the SAME journey.</text>
+  <text x="1698.6666666666667" y="412" font-size="8.4" fill="#475569">Actors are JourneyParticipants, not owners: customer, RM (the certified SP), insurance partner rep, branch, call-centre agent and operations act on the SAME journey.</text>
   <text x="1698.6666666666667" y="424" font-size="8.4" fill="#475569">Every action carries an InteractionContext (actor, type, channel, device, session, branch, correlationId) — that is what makes the timeline and audit answerable.</text>
   <text x="1698.6666666666667" y="436" font-size="8.4" fill="#475569">What an actor may do is decided by the PDP from role + certification + branch + LOB + stage, never by hiding a button.</text>
   <path d="M1280,482 L1280,504" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
@@ -130,10 +130,10 @@
   <rect x="64.0" y="580" width="290.0" height="77.5" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
   <rect x="316.0" y="587" width="30" height="15" rx="4" fill="#1d4ed8"/>
   <text x="331.0" y="598.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
-  <text x="74.0" y="604" font-size="11.5" fill="#0f172a" font-weight="bold">RM — Flutter app (mobile + web)</text>
-  <text x="74.0" y="620" font-size="8.8" fill="#475569">Assisted journey. Token-hiding session:</text>
-  <text x="74.0" y="632.5" font-size="8.8" fill="#475569">OAuth tokens never reach the device.</text>
-  <text x="74.0" y="645.0" font-size="8.8" fill="#475569">Store-distributed binary; APIs live in AWS.</text>
+  <text x="74.0" y="604" font-size="11.5" fill="#0f172a" font-weight="bold">Bank RM — the certified Specified Person</text>
+  <text x="74.0" y="620" font-size="8.8" fill="#475569">SP is a CERTIFICATION on the RM (number, LOB</text>
+  <text x="74.0" y="632.5" font-size="8.8" fill="#475569">scope, validity), not an actor — checked per action.</text>
+  <text x="74.0" y="645.0" font-size="8.8" fill="#475569">Flutter, token-hiding session. Sole origination right.</text>
   <rect x="370.0" y="580" width="290.0" height="77.5" rx="6" fill="#ccfbf1" stroke="#0f766e" stroke-width="1.5"/>
   <rect x="622.0" y="587" width="30" height="15" rx="4" fill="#0f766e"/>
   <text x="637.0" y="598.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R1</text>
@@ -162,13 +162,13 @@
   <text x="1298.0" y="620" font-size="8.8" fill="#475569">May view, contact, explain navigation,</text>
   <text x="1298.0" y="632.5" font-size="8.8" fill="#475569">schedule callback, send resume link.</text>
   <text x="1298.0" y="645.0" font-size="8.8" fill="#475569">May NOT recommend or do regulated steps.</text>
-  <rect x="1594.0" y="580" width="290.0" height="77.5" rx="6" fill="#fef3c7" stroke="#b45309" stroke-width="1.5"/>
-  <rect x="1846.0" y="587" width="30" height="15" rx="4" fill="#b45309"/>
-  <text x="1861.0" y="598.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R2</text>
-  <text x="1604.0" y="604" font-size="11.5" fill="#0f172a" font-weight="bold">Certified Specified Person (SP)</text>
-  <text x="1604.0" y="620" font-size="8.8" fill="#475569">May advise and perform the regulated sales</text>
-  <text x="1604.0" y="632.5" font-size="8.8" fill="#475569">steps the approved compliance model allows.</text>
-  <text x="1604.0" y="645.0" font-size="8.8" fill="#475569">Capability is a backend control, not a UI flag.</text>
+  <rect x="1594.0" y="580" width="290.0" height="77.5" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="1846.0" y="587" width="30" height="15" rx="4" fill="#1d4ed8"/>
+  <text x="1861.0" y="598.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
+  <text x="1604.0" y="604" font-size="11.5" fill="#0f172a" font-weight="bold">Insurance Partner Rep (IPR) — assist only</text>
+  <text x="1604.0" y="620" font-size="8.8" fill="#475569">Insurer employee, NOT an SP. No origination, no</text>
+  <text x="1604.0" y="632.5" font-size="8.8" fill="#475569">regulated action. Own insurer_id only, and only</text>
+  <text x="1604.0" y="645.0" font-size="8.8" fill="#475569">after the RM completes need analysis + suitability.</text>
   <rect x="1900.0" y="580" width="290.0" height="77.5" rx="6" fill="#ccfbf1" stroke="#0f766e" stroke-width="1.5"/>
   <rect x="2152.0" y="587" width="30" height="15" rx="4" fill="#0f766e"/>
   <text x="2167.0" y="598.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R1</text>
@@ -1018,7 +1018,7 @@
   <text x="935.3333333333334" y="3975.5" font-size="12" fill="#0f172a" font-weight="bold">Life Lifecycle &amp; Omnichannel</text>
   <text x="889.3333333333334" y="3992.5" font-size="8.6" fill="#b45309" font-weight="bold" letter-spacing="0.5">out_of_scope · revisit_at R2</text>
   <text x="889.3333333333334" y="4008.5" font-size="8.4" fill="#475569">Hybrid journey and assisted ⇄ DIY mode switching.</text>
-  <text x="889.3333333333334" y="4021.0" font-size="8.4" fill="#475569">Call centre as an actor · certified SP capability.</text>
+  <text x="889.3333333333334" y="4021.0" font-size="8.4" fill="#475569">Call centre as an actor · external certified partner capability.</text>
   <text x="889.3333333333334" y="4033.5" font-size="8.4" fill="#475569">Actor capability / certification entitlement engine.</text>
   <text x="889.3333333333334" y="4046.0" font-size="8.4" fill="#475569">Work Management: queues, SLA, escalation, callback.</text>
   <text x="889.3333333333334" y="4058.5" font-size="8.4" fill="#475569">Engagement / Recovery engine + abandoned-journey</text>
@@ -1101,7 +1101,7 @@
   <circle cx="1299.0" cy="4305.0" r="9" fill="#0f172a"/>
   <text x="1299.0" y="4308.5" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">2</text>
   <text x="1316.0" y="4305.0" font-size="10.2" fill="#0f172a" font-weight="bold">A journey is never owned by a channel</text>
-  <text x="1316.0" y="4317.0" font-size="8.5" fill="#475569">RM, customer, call centre and certified SP are participants on one journey. No RM-Life-Quote-Service and no per-channel journey type.</text>
+  <text x="1316.0" y="4317.0" font-size="8.5" fill="#475569">RM (the certified SP), insurance partner rep, customer and call centre are participants on one journey. A certification is an attribute on a participant, never a participant of its own. No RM-Life-Quote-Service and no per-channel journey type.</text>
   <circle cx="73.0" cy="4335.0" r="9" fill="#0f172a"/>
   <text x="73.0" y="4338.5" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">3</text>
   <text x="90.0" y="4335.0" font-size="10.2" fill="#0f172a" font-weight="bold">LOB is an isolation boundary</text>
@@ -1151,7 +1151,7 @@
   <text x="1316.0" y="4485.0" font-size="10.2" fill="#0f172a" font-weight="bold">Motor must stay extractable</text>
   <text x="1316.0" y="4497.0" font-size="8.5" fill="#475569">General/Motor is modelled so Motor can become its own cell later without rewriting the platform. Build the seam; defer the split.</text>
   <text x="40" y="4552.0" font-size="9.6" fill="#334155" font-weight="bold">AI-DRAFTED in the Architecture lane (Mahesh — Board 1, Principal Insurance Platform Architect). Mandatory human T4 Architecture sign-off is OUTSTANDING; this diagram approves nothing and admits nothing.</text>
-  <text x="40" y="4567.0" font-size="9.2" fill="#64748b">Sources · docs/governance/state/CURRENT-STATE.yaml (WS-3 objective, scope, out_of_scope revisit_at, standing constraints) · docs/platform/ws3-platform/00-WS3-ARCHITECTURE-REGISTRATION.md §3 (IF-1/IF-2/IF-3, SC-W3-1…7) · 03-solution-architecture-r0.md §3–§5 (R0 bounded contexts #1–#19, seams S-01…S-19) · 04-security-architecture.md · 05-nfr-catalogue.md · consent and suitability rule packs · target-state design discussion of 2026-08-18/19.</text>
+  <text x="40" y="4567.0" font-size="9.2" fill="#64748b">Sources · docs/governance/state/CURRENT-STATE.yaml (WS-3 objective, scope, out_of_scope revisit_at, standing constraints) · docs/platform/ws3-platform/00-WS3-ARCHITECTURE-REGISTRATION.md §3 (IF-1/IF-2/IF-3, SC-W3-1…12) · 03-solution-architecture-r0.md §2–§5 (R0 actors, bounded contexts #1–#19, seams S-01…S-22) · 01-domain-model-and-invariants.md §2.4–§2.6 (actors, LOB, configuration) · ADR-004…ADR-007 · 04-security-architecture.md · 05-nfr-catalogue.md · consent and suitability rule packs · target-state design discussion of 2026-08-18/19.</text>
   <text x="40" y="4581.0" font-size="9.2" fill="#64748b">Reading rule · The R0 band is the executable architecture and the only admitted scope. R1–R4 elements correspond to CURRENT-STATE out_of_scope entries and carry that entry's revisit_at. RN elements have no governance record at all. Nothing on this diagram may be cited as authority to start work: each element still requires AIGEM triage, an owner, and where consequential an ADR and the applicable board reviews.</text>
-  <text x="40" y="4595.0" font-size="9.2" fill="#64748b">Companion artefacts · docs/architecture/r0-reference-architecture.svg is the preserved R0 executable HLD (previously docs/hdl.svg) — the two diagrams answer different questions and neither replaces the other. Next artefact needed: an R0 → R1 → R2 transition and dependency map, so delivery knows the order in which these components must appear.</text>
+  <text x="40" y="4595.0" font-size="9.2" fill="#64748b">Companion artefacts · docs/architecture/r0-reference-architecture.svg is the preserved R0 executable HLD (previously docs/hdl.svg) — the two diagrams answer different questions and neither replaces the other. Next artefact needed: an R0 → R1 → R2 transition and dependency map, so delivery knows the order in which these components must appear. · Revised 2026-08-20 by the HLD review round (SUG-20260820-hr0): the actor band now carries two R0 actors — the RM as the certified Specified Person and the assist-only Insurance Partner Rep — and no longer draws a certification as an actor.</text>
 </svg>

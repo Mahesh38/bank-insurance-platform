@@ -53,6 +53,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | SUG-20260820-al7 | 2026-08-20 | human:Mahesh | Reconcile the North Star and R0 diagrams: one naming and layer convention across both files, the R0 view redrawn on the North Star's boundary bands so it reads as a release-zero cut of the same picture, and the Life LOB cell visually separated from the shared platform | SF1 | SC1 | MUST | ARCH | P2 / P2 | ADMITTED | [detail](#sug-20260820-al7--hld-and-r0-diagram-alignment) |
 | SUG-20260820-dc4 | 2026-08-20 | human:Mahesh | Resolve OPEN-A1 and OPEN-D10: physical database topology is an evidence-led decision, not a principle — R0 starts as one cluster with a schema per context and splits later along the LOB-cell / shared-platform seam; and context #5 is named Opportunity, because a lead is too thin to carry renewal, lapse and cross-sell demand | SF1 | SC1 | MUST | ARCH | P2 / P2 | ADMITTED | [ADR-008](../../platform/architecture-review/08-architecture-decision-log.md) |
 | SUG-20260820-hl1 | 2026-08-20 | human:Mahesh | Act as Mahesh: turn the R0 reference architecture SVG into a detailed HLD (domain, boundary, communication, API, business logic, phases/waves/what-to-do-when) and an LLD for the CTO and AWS platform team (e2e components, services, AWS, VPC, reverse proxy, PVC, DB, cache) | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMIT-BYPASS | [R0-HLD](../../architecture/R0-HLD.md) · [R0-LLD](../../architecture/R0-LLD.md) |
+| SUG-20260820-ls1 | 2026-08-20 | human:Mahesh | Create an SVG rendering of the R0 LLD for the CTO and AWS platform team | SF1 | SC0 | SHOULD | ARCH | P2 / P1 | ADMIT-BYPASS | [r0-lld.svg](../../architecture/r0-lld.svg) |
 
 <!--
 Row format:
@@ -1058,6 +1059,56 @@ bypass:
   skipped: "implementation-plan template; seven-board review of the plan before drafting"
   risk: "AWS LLD may be cited as S09 input before Security, Database and SRE have signed"
   non_negotiable_touched: false   # no secrets, no public contract change, no data-integrity change — presentation of accepted decisions
+```
+
+### SUG-20260820-ls1 · R0 LLD SVG rendering
+
+```yaml
+id: SUG-20260820-ls1
+raised_at: "2026-08-20"
+raised_by: "human:Mahesh"
+source: "follow-up on SUG-20260820-hl1 — create SVG for the LLD"
+input: >
+  can you create svg for LLD ?
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-TERM-SALE"
+  state_as_of: "2026-08-10"
+  state_provisional: false
+  active_work_item: SUG-20260820-hl1
+stage_fit:
+  code: SF1
+  rationale: "Same on-stage S09 input as hl1. The LLD prose exists; this is its rendering (HA-03 source first, diagram second)."
+scope:
+  code: SC0
+  business_scope: "in scope — R0 AWS deployment picture"
+  serves: ["SUG-20260820-hl1"]
+necessity:
+  now: SHOULD
+  future_necessity: MUST
+  target_stage: "S09 — Platform & Environment Foundation"
+  evidence_tier: E2
+  confidence: C4
+action: ADMIT-BYPASS
+action_rationale: >
+  Direct follow-up to produce the LLD picture in this turn, same executor lane as hl1.
+  No new AWS service is named. Dashed nodes are the existing DO NOT PROVISION list.
+duplicate_of: null
+continues: SUG-20260820-hl1
+classification:
+  type: ARCH
+  also: [DOC]
+  risk_tier: T4
+priority:
+  now: P2
+  at_target: P1
+bypass:
+  authorised_by: "human:Mahesh — follow-up instruction"
+  skipped: "seven-board review of the plan"
+  risk: "same as hl1 — SVG may be shown to AWS platform team before Security/Database/SRE sign"
+  non_negotiable_touched: false
 ```
 
 ---

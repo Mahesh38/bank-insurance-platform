@@ -8,6 +8,7 @@ Two diagrams, deliberately. They answer different questions and **neither replac
 | [`r0-reference-architecture.svg`](./r0-reference-architecture.svg) | *What are we building right now, and how does the R0 journey actually run?* | R0 executable architecture — the admitted scope. **Rendering**; owns nothing |
 | [`R0-HLD.md`](./R0-HLD.md) | *Walk the R0 picture in prose: domain, ten boundaries, communication, APIs, business logic, waves vs stages vs releases* | Stakeholder HLD. Compiled view of the authoritative `ws3-platform/` sources. AI-drafted, T4 outstanding |
 | [`R0-LLD.md`](./R0-LLD.md) | *What AWS resources, VPC, reverse proxies, PVCs, databases and caches does the platform team provision for R0?* | S09 requirements pack for the CTO and AWS platform team. AI-drafted; Security / Database / SRE reviews outstanding |
+| [`r0-lld.svg`](./r0-lld.svg) | *Where does each R0 service sit on AWS, and what must not be provisioned?* | Rendering of `R0-LLD.md`. Owns nothing (`HA-02`) |
 
 ## Why both
 
@@ -158,9 +159,12 @@ document wins:
 
 `SUG-20260820-hl1` added the two prose artefacts above. They do not replace
 [`03-solution-architecture-r0.md`](../platform/ws3-platform/03-solution-architecture-r0.md) or
-this folder's SVG: the HLD walks the SVG for humans (APIs, saga, *what to do when*); the LLD
+this folder's HLD SVG: the HLD walks the R0 picture for humans (APIs, saga, *what to do when*); the LLD
 narrows the target-state AWS review to the R0 bill of materials — VPC, two-hop reverse proxy,
 no PVCs on business services, one Aurora cluster, no Kafka, no shared Redis.
+
+`SUG-20260820-ls1` added [`r0-lld.svg`](./r0-lld.svg), the rendering of that LLD. Colour is
+**trust zone / subnet**, not build wave. Dashed boxes are DO NOT PROVISION.
 
 ## Still missing
 

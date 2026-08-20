@@ -6,7 +6,8 @@
 **Status:** `AI-DRAFTED`. This file is the S09 *requirements pack*. It is **not** an approval to apply Terraform. Mandatory reviews before first `apply` to a non-dev account: Architecture (human T4), Security (human), Database, SRE, Compliance (residency and WORM).
 **Date:** 2026-08-20
 **Origin:** `SUG-20260820-hl1`
-**Derives from:** [`R0-HLD.md`](./R0-HLD.md) · [`../platform/ws3-platform/03-solution-architecture-r0.md`](../platform/ws3-platform/03-solution-architecture-r0.md) · [`ADR-001`](../platform/architecture-review/08-architecture-decision-log.md) · [`ADR-008`](../platform/architecture-review/08-architecture-decision-log.md)
+**Picture this document walks:** [`r0-lld.svg`](./r0-lld.svg)
+**Companion HLD:** [`R0-HLD.md`](./R0-HLD.md) · [`r0-reference-architecture.svg`](./r0-reference-architecture.svg)
 
 ---
 

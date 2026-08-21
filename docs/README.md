@@ -127,6 +127,7 @@ docs/
 | **Wanting the R0 HLD in prose, or the AWS bill of materials** | [`architecture/R0-HLD.md`](./architecture/R0-HLD.md) · [`architecture/R0-LLD.md`](./architecture/R0-LLD.md) · picture: [`architecture/r0-lld.svg`](./architecture/r0-lld.svg) |
 | **Building the 1SB adapter** | [`1sb-insurance-integration/service-ssot/README.md`](./1sb-insurance-integration/service-ssot/README.md) |
 | **Building auth / identity services** | [`platform/authentication-authorization/README.md`](./platform/authentication-authorization/README.md) |
+| **SRE / platform — building AWS, UAT or environments** | [`platform/environments/README.md`](./platform/environments/README.md) — S09 phased build plan, component configuration, cost model, IaC layout |
 | **QA / test engineer** | [`1sb-insurance-integration/service-ssot/QA-LEAD-TESTING-STRATEGY.md`](./1sb-insurance-integration/service-ssot/QA-LEAD-TESTING-STRATEGY.md) + [`TESTING-RULES.md`](./1sb-insurance-integration/service-ssot/TESTING-RULES.md) |
 | **Looking for a decision** | See the decision registers below |
 

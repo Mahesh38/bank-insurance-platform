@@ -26,11 +26,14 @@ module belongs with that module instead.
 | **[architecture-review/](./architecture-review/README.md)** | Independent Solution Architect review — target-state **AWS/EKS microservices** architecture: ~16 services, sync/async patterns, data architecture, security/NFRs, delivery estimate | ⚠️ **Recommendation** — not yet approved by PO/Compliance/Sponsor. **R0 does not provision this estate** — use [`architecture/R0-LLD.md`](../architecture/R0-LLD.md) |
 | **[ws3-platform/](./ws3-platform/00-WS3-ARCHITECTURE-REGISTRATION.md)** | Ratified R0 architecture sources (registration, domain, information model, solution architecture, security, NFRs) | ⚠️ AI-DRAFTED baseline; human signatures outstanding |
 | **[authentication-authorization/](./authentication-authorization/README.md)** | **Workforce authentication & authorization SSOT** — token-hiding BFF, provider abstraction (Keycloak → Cognito/AD), RBAC + ABAC + relationship policies | ✅ **Approved** architecture and implementation baseline |
+| **[environments/](./environments/README.md)** | **AWS platform & environment foundation (S09)** — phased UAT build plan Aug 2026 → Jan 2027, per-component dev/UAT/prod configuration, cost model and optimisation levers, IaC module layout and apply order | ⚠️ **AI-drafted planning input** — GATE-S09 approval outstanding |
 
-**These two carry different weight.** The auth SSOT is binding on implementations today.
+**These three carry different weight.** The auth SSOT is binding on implementations today.
 The architecture review is a proposal whose technology choices are tracked as `ARCH-xxx`
 decisions in
 [08-architecture-decision-log.md](./architecture-review/08-architecture-decision-log.md).
+`environments/` is an S09 planning input: it sizes and sequences the AWS build, and it raises
+three candidate ADRs of its own, but it marks no gate passed.
 
 ---
 

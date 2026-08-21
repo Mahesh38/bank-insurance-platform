@@ -32,3 +32,7 @@ Thumbs.db
 **/application-local.properties
 **/application-local.yml
 **/secrets.properties
+
+# Python bytecode from diagram generators
+__pycache__/
+*.pyc

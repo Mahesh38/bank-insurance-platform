@@ -58,6 +58,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | SUG-20260820-ic3 | 2026-08-20 | human:Mahesh | Redraw the platform-team views in AWS / Kubernetes icon notation instead of labelled rectangles, and generate them from code rather than hand-authoring SVG | SF1 | SC0 | SHOULD | DOC | P3 / P2 | ADMIT-BYPASS | [diagrams/](../../architecture/diagrams/README.md) |
 | SUG-20260820-lay4 | 2026-08-20 | human:Mahesh | Keep the icons, drop the layout engine: place every element on a chosen grid and route every connector orthogonally, so the views are aligned and the links are straight | SF1 | SC0 | SHOULD | DOC | P3 / P2 | ADMIT-BYPASS | [diagrams/](../../architecture/diagrams/README.md) |
 | SUG-20260820-cm2 | 2026-08-20 | human:Mahesh | Close the context-architecture gap found by audit: 20 documents unreachable by any link and 96 more at 3+ hops, 22 persona-package files no card routed to, and no CI guard against either. Add a generated document-routing map (`DOC-MAP.yaml`) with a `find` query path, complete the persona `Load deeper` tables, consolidate the READMEs that carry no unique content, and fail CI on an unrouted document | SF1 | SC1 | MUST | GOV | P2 / P2 | ADMIT-BYPASS | [DOC-MAP](../../context/DOC-MAP.yaml) · [doc_routing](../../context/AGENT-CONTEXT-INDEX.yaml) · continues [CR-010](../change-requests/CR-010-context-module-and-safe-autopilot.md) |
+| SUG-20260821-tg7 | 2026-08-21 | human:Mahesh | Write the missing operations guide for the triage pipeline: the runbook gives cadence and 09 gives the agent contract, but nothing walks a *user* from a verdict to a closed loop — what ADMIT, PARK, REJECT, ESCALATE and ADMIT-BYPASS each oblige, who takes which action, and what closes them | SF1 | SC1 | SHOULD | DOC | P3 / P3 | ADMIT-BYPASS | [TRIAGE-OPERATIONS-GUIDE](../TRIAGE-OPERATIONS-GUIDE.md) · [detail](#sug-20260821-tg7--triage-operations-guide) |
 
 <!--
 Row format:
@@ -1361,6 +1362,102 @@ bypass:
   non_negotiable_touched: false
 notes:
   - "HA-10 extended: generating a diagram does not mean handing its layout to an engine."
+```
+
+
+### SUG-20260821-tg7 — Triage operations guide
+
+```yaml
+id: SUG-20260821-tg7
+raised_at: "2026-08-21"
+raised_by: "human:Mahesh"
+source: "direct request — the runbook is written, but it does not guide a user"
+input: >
+  There is a governance created where triage has been written. I want to know the whole
+  process. I know there is a runbook written, but that doesn't guide a user. For example,
+  if an AI agent or human creator suggestion — so it locks on suggestion, creates, or parks
+  it based on the requirement. But once it is parked or admitted or bypass-admitted, how
+  should one react on that? I want the comprehensive use cases, actions, how and who will
+  take those actions, what needs to be done. I need a comprehensive document. I don't want
+  any PR or code to be generated — a comprehensive document in docs format I can download
+  and read myself.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  state_as_of: "2026-08-10"
+  freshness: "FRESH (exit 0) at time of writing"
+  active_work_item: none — session opened on this request
+
+stage_fit:
+  code: SF1
+  rationale: >
+    The framework's own adoption evidence says the gap is real: 09 §2 defines the pipeline,
+    RUNBOOK §3 defines the cadence, and 08/11/12/13/14/17 define what happens downstream —
+    but the walk from "a verdict was reached" to "the loop is closed" is split across eleven
+    files and stated nowhere as one path. That is a routing gap in the operating layer, not
+    a new rule.
+
+scope:
+  code: SC1
+  serves: ["the triage capsule", "PARKED-BACKLOG sweeps", "ADMIT-BYPASS records"]
+  failure_without_it: >
+    Parks lose their unpark trigger and bypasses lose their risk statement because the
+    obligations attached to each verdict are not written in one place a non-author can read.
+  minimal: true
+
+necessity:
+  now: SHOULD
+  evidence_tier: E4
+  evidence:
+    - "18 §2 — park accuracy and bypass rate exist as metrics, but their operating procedure is scattered"
+    - "PARKED-BACKLOG.md TD-014 is flagged 'trigger has fired' with no single place that says what happens next"
+  confidence: C4
+
+action: ADMIT-BYPASS
+action_rationale: >
+  Direct instruction from the repository owner. Normal route for a new document under
+  docs/governance/** is a GOV change request with Architecture + Product boards (00 §9);
+  that was not run.
+
+classification: {type: DOC, also: [GOV], risk_tier: T1}
+priority: {now: P3, at_target: P3}
+
+bypass:
+  authorised_by: "human:Mahesh — explicit instruction, this session"
+  skipped: >
+    GOV change control and the Architecture + Product boards that 00 §9 requires for a new
+    document under docs/governance/**; queue ordering against the open GATE-S08 criteria.
+  boundary: >
+    Limited to publishing an explanatory, derived document. It adds no rule, no persona, no
+    board and no required artefact, and states in its own header that every numbered file
+    wins on conflict. It does NOT bypass any Architecture, Security, Compliance, QA, SRE,
+    Database or mandatory-human decision, and changes no register state.
+  risk: >
+    A document sits in docs/governance/ without an Architecture or Product verdict; if it
+    misstates a rule, a reader may act on the summary instead of the binding file.
+  mitigation: >
+    Every claim carries a path-and-anchor citation to its binding source, and the header
+    states the precedence rule.
+  capacity: >
+    Consumes capacity while WS-3 GATE-S08 stands at 0 of 10 exit criteria closed. It does
+    not change, waive or mark any gate criterion complete.
+  non_negotiable_touched: false
+
+side_effect:
+  what: "DOC-MAP.yaml regenerated"
+  detail: >
+    build-doc-map.py added the new document's row and, in the same pass, removed two
+    duplicate rows for SUGGESTION-REGISTER.md that were present in the committed map.
+    Generated-file hygiene, not a content change.
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  artefact: "docs/governance/TRIAGE-OPERATIONS-GUIDE.md"
+  status: ADMIT-BYPASS
+
+resumed: >
+  No prior work item was displaced — this request opened the session.
 ```
 
 ---

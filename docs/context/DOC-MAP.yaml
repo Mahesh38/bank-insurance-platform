@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 458
-total_bytes: 8509357
+document_count: 457
+total_bytes: 8469067
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -1877,7 +1877,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 164651
+    bytes: 164393
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -3150,6 +3150,14 @@ documents:
     title: "AIGEM Operating Runbook"
     answers: "This is the only governance file most people need to read."
     bytes: 59697
+  - path: docs/governance/TRIAGE-OPERATIONS-GUIDE.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "Triage Operations Guide — what happens *after* the verdict"
+    answers: "What every role does once a triage verdict lands: ADMIT, PARK, REJECT, ESCALATE or ADMIT-BYPASS — who acts, what they must write, and what closes the…"
+    bytes: 98802
   - path: docs/governance/autopilot/README.md
     bucket: governance
     authority: binding-process
@@ -3373,23 +3381,7 @@ documents:
     persona: null
     title: "Suggestion Register"
     answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 71750
-  - path: docs/governance/registers/SUGGESTION-REGISTER.md
-    bucket: governance
-    authority: binding-process
-    capsules: [triage, plan-work, delivery-planning]
-    persona: null
-    title: "Suggestion Register"
-    answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 71750
-  - path: docs/governance/registers/SUGGESTION-REGISTER.md
-    bucket: governance
-    authority: binding-process
-    capsules: [triage, plan-work, delivery-planning]
-    persona: null
-    title: "Suggestion Register"
-    answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 71750
+    bytes: 76416
   - path: docs/governance/schemas/README.md
     bucket: governance
     authority: binding-process

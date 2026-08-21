@@ -14,6 +14,13 @@
 python3 scripts/context/context-load.py resolve "review the security of the payment callback"
 ```
 
+Need one specific fact rather than a task capsule — a field's mandatory rule, one stage's evidence,
+one extracted schema? Query the document map instead of exploring:
+
+```bash
+python3 scripts/context/context-load.py find "premium field mapping"
+```
+
 ---
 
 ## 1. The five behaviours that decide whether you are useful here
@@ -269,6 +276,7 @@ options · recommendation · evidence · unresolved owner/date · next safe acti
 | You need | Load |
 |---|---|
 | The exact files for your task | [`AGENT-CONTEXT-INDEX.yaml`](./AGENT-CONTEXT-INDEX.yaml) |
+| The one document holding a specific fact | `context-load.py find "<the fact>"` → [`DOC-MAP.yaml`](./DOC-MAP.yaml) |
 | To triage an input | [`.claude/skills/aigem-triage/SKILL.md`](../../.claude/skills/aigem-triage/SKILL.md) |
 | To act as a persona | [`personas/`](./personas/README.md) — a card, not a package |
 | Who decides / who cannot | [`personas/AUTHORITY-QUICK-CARD.md`](./personas/AUTHORITY-QUICK-CARD.md) |

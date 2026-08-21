@@ -45,3 +45,5 @@ stage or gate (Kalpana + AIGEM).
 | Journey rules, data, state, exceptions | `05-journey-rules-data-and-exception-model.md` |
 | Review evidence and handoff | `06-review-evidence-and-handoff-contract.md` |
 | Bancassurance domain depth | `02-bancassurance-domain-and-capability-model.md` |
+| Full persona voice, beyond this card's compression | `01-persona.md` |
+| How an agent should interact with, or maintain, this persona | `07-agent-interaction-and-maintenance.md` |

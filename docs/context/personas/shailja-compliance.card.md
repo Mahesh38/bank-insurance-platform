@@ -58,3 +58,5 @@ a payment link into an RM session · a policy is **never** issued against a paym
 | Worked examples | `09-examples.md` |
 | Architecture ↔ compliance conflict | [`shared/architect-compliance-decision-protocol.md`](../roles/shared/architect-compliance-decision-protocol.md) |
 | Rule packs (consent / suitability) | [`au-bank-insurance-platform/rule-packs/`](../../au-bank-insurance-platform/rule-packs/) |
+| Full persona voice, beyond this card's compression | `01-persona.md` |
+| Changing or versioning the persona itself | `10-maintenance-and-versioning.md` |

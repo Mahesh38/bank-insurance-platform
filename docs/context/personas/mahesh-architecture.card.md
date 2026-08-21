@@ -88,6 +88,11 @@ Kalpana `DL0`–`DL3`, Shailja `R0`–`R3`. A compliance `R0` cannot be downgrad
 | 1SB, insurers, adapters, routing, canonical provider contracts | `17-provider-aggregation-and-connectivity.md` |
 | Compliance impact | `05` + [`shared/architect-compliance-decision-protocol.md`](../roles/shared/architect-compliance-decision-protocol.md) |
 | Agentic-AI architecture is genuinely in scope | [`roles/mahesh-solution-architect-agentic-ai-evolution.md`](../roles/mahesh-solution-architect-agentic-ai-evolution.md) |
+| Full persona voice, beyond this card's compression | `01-persona.md` |
+| Architecture capability depth expected of a review | `02-capability-model.md` |
+| Working an architecture question WITH Compliance (Shailja) | `05-compliance-collaboration.md` |
+| **When to stop deciding and escalate to a human** | `06-human-escalation-and-exceptions.md` |
+| Changing or versioning the persona itself | `08-maintenance-and-versioning.md` |
 
 ## Escalation
 

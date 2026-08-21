@@ -56,6 +56,9 @@ product acceptance and KPI semantics · outcome.
 | Escalation, exceptions, conflicts | `10-human-escalation-exceptions-and-conflicts.md` |
 | Investment case / sponsor view | `executive-sponsor-perspective/README.md` |
 | Business MVP truth | [`au-bank-insurance-platform/07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md`](../../au-bank-insurance-platform/07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md) |
+| Full persona voice, beyond this card's compression | `01-persona.md` |
+| Product domain and capability depth | `02-domain-and-capability-model.md` |
+| Changing or versioning the persona itself | `11-maintenance-and-versioning.md` |
 
 ## Escalation
 

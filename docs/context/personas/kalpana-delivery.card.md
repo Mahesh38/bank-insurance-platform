@@ -60,3 +60,5 @@ Never replaces AIGEM `P1`–`P5` or another persona's severity model.
 | Metrics, cadence, maintenance | `07-delivery-metrics-cadence-and-maintenance.md` |
 | Consequential cross-persona delivery decision | [`shared/delivery-cross-persona-decision-protocol.md`](../roles/shared/delivery-cross-persona-decision-protocol.md) |
 | The control system itself | [`DELIVERY-CONTROL-SYSTEM.md`](../../governance/DELIVERY-CONTROL-SYSTEM.md) |
+| Full persona voice, beyond this card's compression | `01-persona.md` |
+| Insurance delivery domain and capability depth | `02-insurance-delivery-domain-and-capability-model.md` |

@@ -1,0 +1,3552 @@
+# =============================================================================
+# DOC-MAP — every document in docs/, routed. GENERATED — do not hand-edit.
+#
+#   Regenerate:  python3 scripts/context/build-doc-map.py
+#   Query:       python3 scripts/context/context-load.py find "<what you need>"
+#
+# Why this exists: the capsule index routes a TASK to its always-load set. This map
+# routes a DOCUMENT, so the long tail of field guides, schemas and evidence packs is
+# one hop from the index instead of three. Nothing here overrides docs/governance/.
+#
+# `authority` is what the document can settle, not how good it is. `capsules` name
+# the task capsules that legitimately open it. `answers` is lifted from the document's
+# own lead sentence — if it reads wrong, fix the document, then regenerate.
+#
+# Routing rules live in AGENT-CONTEXT-INDEX.yaml under `doc_routing:`.
+# =============================================================================
+
+schema_version: "1.0"
+generated_by: "scripts/context/build-doc-map.py"
+source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
+document_count: 441
+total_bytes: 4664350
+
+documents:
+  - path: docs/1sb-insurance-integration/01-executive-overview.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, orient]
+    persona: engineering
+    title: "Executive overview: 1SB for a bank insurance platform"
+    answers: "1Silverbullet (1SB) is a B2B insurance gateway / aggregator. Distributors (brokers, corporate agents, banks) integrate once to 1SB’s standardized…"
+    bytes: 4344
+  - path: docs/1sb-insurance-integration/02-rm-assisted-bank-checklist.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, orient]
+    persona: engineering
+    title: "RM-assisted bank integration checklist"
+    answers: "Practical build order for an existing-customer, RM-assisted insurance platform on 1SB with replaceable architecture."
+    bytes: 2536
+  - path: docs/1sb-insurance-integration/README.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, orient]
+    persona: engineering
+    title: "1Silverbullet (1SB) Insurance Integration Guide"
+    answers: "Demo base URL: https://demo.api.1silverbullet.tech"
+    bytes: 5309
+  - path: docs/1sb-insurance-integration/api-catalog/README.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change]
+    persona: engineering
+    title: "API catalog"
+    answers: "Base URL (demo): https://demo.api.1silverbullet.tech"
+    bytes: 10856
+  - path: docs/1sb-insurance-integration/architecture/1sb-integration-service-architecture.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, architecture-review]
+    persona: architecture
+    title: "1SB Integration Service — Technical Architecture"
+    answers: "Role: System Architect single source of truth"
+    bytes: 79713
+  - path: docs/1sb-insurance-integration/architecture/README.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, architecture-review]
+    persona: architecture
+    title: "Architecture — 1SB integration module"
+    answers: "For target-state platform architecture see docs/platform/architecture-review/."
+    bytes: 2216
+  - path: docs/1sb-insurance-integration/architecture/audit-consumer-service.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, architecture-review]
+    persona: architecture
+    title: "Audit Consumer Service — Stub Design"
+    answers: "Role: Future platform microservice that sinks audit events into durable storage"
+    bytes: 2031
+  - path: docs/1sb-insurance-integration/architecture/bank-persistence-service.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, architecture-review]
+    persona: architecture
+    title: "Bank Persistence Service — Platform Contract"
+    answers: "Role: Platform common persistence service (not owned by 1SB integration)"
+    bytes: 5356
+  - path: docs/1sb-insurance-integration/architecture/replaceable-middleware.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, architecture-review]
+    persona: architecture
+    title: "Replaceable middleware architecture"
+    answers: "Use 1SB now without forcing a rewrite when the bank builds its own aggregator / direct insurer connectors."
+    bytes: 7394
+  - path: docs/1sb-insurance-integration/canonical-model/README.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, architecture-review]
+    persona: architecture
+    title: "Canonical model — the bank-owned domain language"
+    answers: "1SB payloads are large because one schema serves many insurers and many lines of business."
+    bytes: 1436
+  - path: docs/1sb-insurance-integration/canonical-model/contexts.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, architecture-review]
+    persona: architecture
+    title: "Canonical domain contexts"
+    answers: "Split the problem into bounded contexts so request/response models stay small and purposeful. Each context has a bank-owned language; 1SB field names…"
+    bytes: 8141
+  - path: docs/1sb-insurance-integration/canonical-model/simplifying-payloads.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, architecture-review]
+    persona: architecture
+    title: "Simplifying 1SB requests/responses into contexts"
+    answers: "1SB payloads are large because they support many insurers and LOBs in one schema. For the bank platform, split by context and keep each API small."
+    bytes: 1540
+  - path: docs/1sb-insurance-integration/field-guides/README.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Field guides index"
+    answers: "These guides explain what is mandatory, when, and why — optimized for implementers mapping bank canonical models → 1SB."
+    bytes: 834
+  - path: docs/1sb-insurance-integration/field-guides/application-status.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Application status"
+    answers: "API: POST /LifeTerm/prostat/ (life term path as documented; confirm LOB-specific variants with 1SB)"
+    bytes: 2564
+  - path: docs/1sb-insurance-integration/field-guides/building-blocks.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Building blocks field guide"
+    answers: "Cross-LOB utilities. Portal hub: Building blocks."
+    bytes: 3136
+  - path: docs/1sb-insurance-integration/field-guides/health-quote.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Health quote — deltas from Term"
+    answers: "API: POST /insurance/lifehealth/v1/quote"
+    bytes: 2210
+  - path: docs/1sb-insurance-integration/field-guides/motor-quote.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Motor quote — deltas from life journeys"
+    answers: "API: POST /insurance/motor/v1/quote"
+    bytes: 1973
+  - path: docs/1sb-insurance-integration/field-guides/payment.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Payment URL & payment intimation"
+    answers: "Path: POST /v1/payment/url"
+    bytes: 3028
+  - path: docs/1sb-insurance-integration/field-guides/proposal-and-dynamic-forms.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Proposal & dynamic forms"
+    answers: "Insurance proposal forms vary for each company/product. Instead of multiple API signatures, 1SB exposes a dynamic GET form schema. Submit body…"
+    bytes: 2635
+  - path: docs/1sb-insurance-integration/field-guides/term-quote.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Term quote — mandatory fields, when & why"
+    answers: "API: POST /insurance/lifeterm/v1/quote"
+    bytes: 5961
+  - path: docs/1sb-insurance-integration/journeys/README.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change]
+    persona: engineering
+    title: "Journeys"
+    answers: "Build the orchestration once against these stages and treat LOB differences as deltas."
+    bytes: 1296
+  - path: docs/1sb-insurance-integration/journeys/universal-lob-journey.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change]
+    persona: engineering
+    title: "Universal LOB journey (and where LOBs differ)"
+    answers: "This matches the bank’s stated mental model and 1SB’s building-block status vocabulary."
+    bytes: 6895
+  - path: docs/1sb-insurance-integration/reference/README.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change]
+    persona: engineering
+    title: "Reference — raw 1SB source material"
+    answers: "Unprocessed vendor material. Everything here is a copy of what 1SB publishes, not bank"
+    bytes: 1165
+  - path: docs/1sb-insurance-integration/reference/SOURCE-LINKS.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change]
+    persona: engineering
+    title: "Reference — source links & extracted schemas"
+    answers: "extracted-schemas/ contains machine-extracted field lists from the public portal pages (markdown + JSON). Use them as a searchable index; always…"
+    bytes: 2781
+  - path: docs/1sb-insurance-integration/reference/extracted-schemas/README.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change]
+    persona: engineering
+    title: "Extracted 1SB schemas"
+    answers: "Raw request/response schema extracts, one file per 1SB operation. Filenames follow the"
+    bytes: 4423
+  - path: docs/1sb-insurance-integration/reference/extracted-schemas/application-status-insurance-v-1-application-status-post.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change]
+    persona: engineering
+    title: "Application Status | 1SB Developer Portal"
+    answers: "Sections: Fields (44)"
+    bytes: 4916
+  - path: docs/1sb-insurance-integration/reference/extracted-schemas/consumer-request-insurance-v-1-consumer-insurance-post.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change]
+    persona: engineering
+    title: "Get quote | 1SB Developer Portal"
+    answers: "parameter to the nearest allowed value as per product rules."
+    bytes: 41474
+  - path: docs/1sb-insurance-integration/reference/extracted-schemas/customer-info-insurance-v-1.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change]
+    persona: engineering
+    title: "Customer Info | 1SB Developer Portal"
+    answers: "Sections: Fields (82)"
+    bytes: 6476
+  - path: docs/1sb-insurance-integration/reference/extracted-schemas/doc-document-insurance-v-1-docdownload-post.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change]
+    persona: engineering
+    title: "Document download API | 1SB Developer Portal"
+    answers: "Sections: Fields (28)"
+    bytes: 3073
+  - path: docs/1sb-insurance-integration/reference/extracted-schemas/doc-upload-insurance-v-1-docupload-post.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change]
+    persona: engineering
+    title: "Document upload API | 1SB Developer Portal"
+    answers: "Sections: Fields (37)"
+    bytes: 3580
+  - path: docs/1sb-insurance-integration/reference/extracted-schemas/get-consumer-response-insurance-v-1-request-id-get.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change]
+    persona: engineering
+    title: "Poll | 1SB Developer Portal"
+    answers: "Sections: Fields (26)"
+    bytes: 3168
+  - path: docs/1sb-insurance-integration/reference/extracted-schemas/get-gaecriteria-form-insurance-v-1-product-id-product-id-manufacturer-id-manufacturer-id-get.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change]
+    persona: engineering
+    title: "Get Gate criteria Form | 1SB Developer Portal"
+    answers: "Sections: Fields (21)"
+    bytes: 3008
+  - path: docs/1sb-insurance-integration/reference/extracted-schemas/get-insurance-proposal.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change]
+    persona: engineering
+    title: "Proposal Poll | 1SB Developer Portal"
+    answers: "API Reference:…"
+    bytes: 3728
+  - path: docs/1sb-insurance-integration/reference/extracted-schemas/get-otp-insurance-v-1-sendotp-post.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change]
+    persona: engineering
+    title: "Get Otp | 1SB Developer Portal"
+    answers: "Sections: Fields (29)"
+    bytes: 3139
+  - path: docs/1sb-insurance-integration/reference/extracted-schemas/get-product-ui-data-insurance-v-1-product-id-product-id-manufacturer-id-manufacturer-id-get.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change]
+    persona: engineering
+    title: "Get Product UI Data | 1SB Developer Portal"
+    answers: "Sections: Fields (17)"
+    bytes: 1951
+  - path: docs/1sb-insurance-integration/reference/extracted-schemas/get-proposal-form-insurance-v-1-product-id-product-id-manufacturer-id-manufacturer-id-version-version-get.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change]
+    persona: engineering
+    title: "Get Proposal Form | 1SB Developer Portal"
+    answers: "each first Life Assured personal field, such as unique identifier (id), field name,"
+    bytes: 36126
+  - path: docs/1sb-insurance-integration/reference/extracted-schemas/get-requirement-insurance-v-1-getrequirement-post.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change]
+    persona: engineering
+    title: "Get Requirement API | 1SB Developer Portal"
+    answers: "Sections: Fields (30)"
+    bytes: 3456
+  - path: docs/1sb-insurance-integration/reference/extracted-schemas/get-sp-data-fff.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change]
+    persona: engineering
+    title: "Get SP Data | 1SB Developer Portal"
+    answers: "Sections: Fields (18)"
+    bytes: 2085
+  - path: docs/1sb-insurance-integration/reference/extracted-schemas/health-ckyc-consumer-request-insurance-v-1-consumer-insurance-post.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change]
+    persona: engineering
+    title: "Get Ckyc Details | 1SB Developer Portal"
+    answers: "Sections: Fields (72)"
+    bytes: 5932
+  - path: docs/1sb-insurance-integration/reference/extracted-schemas/health-consumer-request-insurance-v-1-consumer-insurance-post.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change]
+    persona: engineering
+    title: "Get quote | 1SB Developer Portal"
+    answers: "Sections: Fields (162)"
+    bytes: 28422
+  - path: docs/1sb-insurance-integration/reference/extracted-schemas/health-payment-url-insurance-v-1-payment-url-post.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change]
+    persona: engineering
+    title: "Health Payment URL API | 1SB Developer Portal"
+    answers: "Sections: Fields (49)"
+    bytes: 4806
+  - path: docs/1sb-insurance-integration/reference/extracted-schemas/master-consumer-request-insurance-v-1-consumer-insurance-post.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change]
+    persona: engineering
+    title: "Get Master Details | 1SB Developer Portal"
+    answers: "Sections: Fields (34)"
+    bytes: 3657
+  - path: docs/1sb-insurance-integration/reference/extracted-schemas/motor-consumer-request-insurance-v-1-consumer-insurance-post.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change]
+    persona: engineering
+    title: "Get quote | 1SB Developer Portal"
+    answers: "Sections: Fields (130)"
+    bytes: 24526
+  - path: docs/1sb-insurance-integration/reference/extracted-schemas/motor-download-policy-proposal.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change]
+    persona: engineering
+    title: "Motor Download Policy API | 1SB Developer Portal"
+    answers: "Sections: Fields (30)"
+    bytes: 2931
+  - path: docs/1sb-insurance-integration/reference/extracted-schemas/motor-payment-url-insurance-v-1-payment-url-post.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change]
+    persona: engineering
+    title: "Motor Payment URL API | 1SB Developer Portal"
+    answers: "Sections: Fields (51)"
+    bytes: 4723
+  - path: docs/1sb-insurance-integration/reference/extracted-schemas/motor-proposal-status.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change]
+    persona: engineering
+    title: "Motor Proposal Status | 1SB Developer Portal"
+    answers: "Sections: Fields (21)"
+    bytes: 2022
+  - path: docs/1sb-insurance-integration/reference/extracted-schemas/payment-intimation-insurance-v-1-payment-url-post.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change]
+    persona: engineering
+    title: "Payment Intimation | 1SB Developer Portal"
+    answers: "Sections: Fields (55)"
+    bytes: 4833
+  - path: docs/1sb-insurance-integration/reference/extracted-schemas/payment-url-insurance-v-1-payment-url-post.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change]
+    persona: engineering
+    title: "Payment URL API | 1SB Developer Portal"
+    answers: "Sections: Fields (47)"
+    bytes: 4685
+  - path: docs/1sb-insurance-integration/reference/extracted-schemas/penny-drop-insurance-v-1.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change]
+    persona: engineering
+    title: "Penny Drop | 1SB Developer Portal"
+    answers: "Sections: Fields (43)"
+    bytes: 3672
+  - path: docs/1sb-insurance-integration/reference/extracted-schemas/post-gatecriteria-form-insurance-v-1-product-id-product-id-manufacturer-id-manufacturer-id-pos.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change]
+    persona: engineering
+    title: "Submit Gate criteria Form | 1SB Developer Portal"
+    answers: "Sections: Fields (17)"
+    bytes: 2067
+  - path: docs/1sb-insurance-integration/reference/extracted-schemas/submit-proposal-form.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change]
+    persona: engineering
+    title: "Submit Proposal Form | 1SB Developer Portal"
+    answers: "Sections: Fields (17)"
+    bytes: 1876
+  - path: docs/1sb-insurance-integration/reference/extracted-schemas/validate-otp-insurance-v-1-otp-verify-post.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change]
+    persona: engineering
+    title: "Validate Otp | 1SB Developer Portal"
+    answers: "Sections: Fields (16)"
+    bytes: 1716
+  - path: docs/1sb-insurance-integration/reference/extracted-schemas/view-plan-details-request.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change]
+    persona: engineering
+    title: "View Plan Details Request | 1SB Developer Portal"
+    answers: "Sections: Fields (39)"
+    bytes: 2703
+  - path: docs/1sb-insurance-integration/service-ssot/00-po-architect-design-session.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "PO ↔ System Architect Design Session"
+    answers: "Participants: Product Owner, System Architect"
+    bytes: 5163
+  - path: docs/1sb-insurance-integration/service-ssot/ACTION-PLAN.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Action Plan — Progressing the 1SB Integration Service"
+    answers: "Purpose: Ordered actions so the team can move from docs → working Term path in sandbox → Health/Motor → production readiness, without blockers."
+    bytes: 10400
+  - path: docs/1sb-insurance-integration/service-ssot/COVERAGE.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Coverage (JaCoCo) — QA-001"
+    answers: "check also depends on jacocoTestCoverageVerification."
+    bytes: 3465
+  - path: docs/1sb-insurance-integration/service-ssot/FUNCTIONAL-NFR-COMPLIANCE-MAP.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Functional · NFR · Compliance · Shared JARs Map"
+    answers: "Quick reference so developers know what kind of work each item is and where the detailed design lives."
+    bytes: 5647
+  - path: docs/1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Product Backlog — 1SB Integration Service"
+    answers: "Priority legend: P0 = go-live Term · P1 = Health/Motor + hardening · P2 = later LOBs / ops polish"
+    bytes: 15789
+  - path: docs/1sb-insurance-integration/service-ssot/QA-LEAD-TESTING-STRATEGY.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "QA Lead — Testing Strategy"
+    answers: "Canonical QA persona: Swapnali — Principal Insurance Quality Engineering / QA Lead"
+    bytes: 12088
+  - path: docs/1sb-insurance-integration/service-ssot/QA-REVIEW-LOG.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Baseline QA backlog — dual review log"
+    answers: "Developer: QA test-resolution specialist"
+    bytes: 2668
+  - path: docs/1sb-insurance-integration/service-ssot/README.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "1SB Integration Service — Single Source of Truth (SSOT)"
+    answers: "This folder is the authoritative starting point for building the service. If something here conflicts with earlier research notes, this SSOT wins."
+    bytes: 6441
+  - path: docs/1sb-insurance-integration/service-ssot/ROLE-GUIDELINES-AND-DOD.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Team Role Guidelines & Definition of Done"
+    answers: "Branch: cursor/phase1-foundations-c259 onward"
+    bytes: 12670
+  - path: docs/1sb-insurance-integration/service-ssot/TECH-DEBT.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Tech Debt Log — 1SB Insurance Platform"
+    answers: "Branch: cursor/phase1-foundations-c259"
+    bytes: 20364
+  - path: docs/1sb-insurance-integration/service-ssot/TEST-BACKLOG.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Test Backlog — QA Lead"
+    answers: "Strategy: QA-LEAD-TESTING-STRATEGY.md"
+    bytes: 2936
+  - path: docs/1sb-insurance-integration/service-ssot/TESTING-RULES.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Testing Rules (Enforceable)"
+    answers: "Branch policy: Applies from next commit on cursor/phase1-foundations-c259 onward"
+    bytes: 3359
+  - path: docs/1sb-insurance-integration/service-ssot/WORK-SEQUENCE.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Work Sequence — From Backlog Assignment to Done"
+    answers: "Rule: Do not skip steps. Do not mark backlog Done until the sequence for that work type finishes."
+    bytes: 9292
+  - path: docs/1sb-insurance-integration/service-ssot/phase-0/CONFIRM-01-onesb-access.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "CONFIRM-01 — 1SB Sandbox Access Confirmation"
+    answers: "Phase: 0.1"
+    bytes: 3620
+  - path: docs/1sb-insurance-integration/service-ssot/phase-0/CONFIRM-02-term-products.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "CONFIRM-02 — Insurer & Product Allow-List (multi-entry)"
+    answers: "Phase: 0.2"
+    bytes: 2552
+  - path: docs/1sb-insurance-integration/service-ssot/phase-0/CONFIRM-03-inbound-auth.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "CONFIRM-03 — Inbound Authentication"
+    answers: "Phase: 0.3"
+    bytes: 6222
+  - path: docs/1sb-insurance-integration/service-ssot/phase-0/CONFIRM-04-ssot-kickoff.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "CONFIRM-04 — SSOT Kickoff Agenda"
+    answers: "Phase: 0.4"
+    bytes: 4881
+  - path: docs/1sb-insurance-integration/service-ssot/phase-0/CONFIRM-05-tracking-board.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "CONFIRM-05 — Tracking Board Setup"
+    answers: "Phase: 0.5"
+    bytes: 4459
+  - path: docs/1sb-insurance-integration/service-ssot/phase-0/CONFIRM-06-1sb-pune-visit-agenda.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "CONFIRM-06 — 1SB Pune Office Visit: Agenda & Attendees"
+    answers: "Phase: 0.6"
+    bytes: 17680
+  - path: docs/1sb-insurance-integration/service-ssot/phase-0/COUPLING-AND-REPLACEABILITY.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Coupling & Replaceability — Design Rules"
+    answers: "SSOT links: 00-po-architect-design-session.md · architecture"
+    bytes: 7996
+  - path: docs/1sb-insurance-integration/service-ssot/phase-0/EMAIL-DRAFT-1SB-ONBOARDING-REQUEST.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Email draft — Product team → 1SB (onboarding / env access)"
+    answers: "From: Bank Product / Bancassurance"
+    bytes: 4335
+  - path: docs/1sb-insurance-integration/service-ssot/phase-0/EMAIL-DRAFT-1SB-PUNE-VISIT-AGENDA.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Email draft — Bank PO → 1SB (Pune visit agenda)"
+    answers: "From: Bank Product / Bancassurance"
+    bytes: 1824
+  - path: docs/1sb-insurance-integration/service-ssot/phase-0/PHASE-0-DATA-AND-GAPS.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Phase 0 — Data received & remaining gaps"
+    answers: "Ack: PO-DEV-ENV-REQUIREMENTS.md"
+    bytes: 3203
+  - path: docs/1sb-insurance-integration/service-ssot/phase-0/PO-DEV-ENV-REQUIREMENTS.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "PO ↔ Dev acknowledgement — Phase 0 clarifications"
+    answers: "Participants: Product Owner, Engineering"
+    bytes: 5161
+  - path: docs/1sb-insurance-integration/service-ssot/phase-0/README.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Phase 0 — Access, config & confirmation pack"
+    answers: "Goal: Unblock Phase 1 without hardcoding unknowns. Everything missing is configurable + tracked in confirmation checklists / TODO tracker."
+    bytes: 2665
+  - path: docs/1sb-insurance-integration/service-ssot/phase-0/TODO-TRACKER.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "TODO Tracker — 1SB Integration Service, Phase 0"
+    answers: "SSOT: ACTION-PLAN.md"
+    bytes: 11655
+  - path: docs/1sb-insurance-integration/service-ssot/phase-0/p0-story-board.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "P0 Story Board — Importable Backlog Seed"
+    answers: "Purpose: Seed list for creating Jira / Linear tickets, one ticket per row."
+    bytes: 5955
+  - path: docs/1sb-insurance-integration/service-ssot/phase-1/REFACTOR-COMMON-PERSISTENCE.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Task Split — Common Persistence Repositioning"
+    answers: "Branch: cursor/phase1-foundations-c259"
+    bytes: 3536
+  - path: docs/1sb-insurance-integration/service-ssot/phase-1/REFACTOR-TASK-SPLIT.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Phase 1 Remediation — Task Split (Agent 2 / Agent 3)"
+    answers: "Branch: cursor/phase1-foundations-c259"
+    bytes: 4381
+  - path: docs/1sb-insurance-integration/service-ssot/phase-1/STATUS.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Phase 1 — Status"
+    answers: "Phase 1 foundations delivered. Remediations applied per TECH-LEAD-REVIEW: Lombok on shared builders, secrets extracted to :libs:bank-common-secrets,…"
+    bytes: 12120
+  - path: docs/1sb-insurance-integration/service-ssot/phase-1/SYNC-CONTRACT.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Phase 1 — Dual-dev sync contract"
+    answers: "Branch: cursor/phase1-foundations-c259"
+    bytes: 2070
+  - path: docs/1sb-insurance-integration/service-ssot/phase-1/TECH-LEAD-CONFIRMATION-COMMON-PERSISTENCE.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Tech Lead — Confirmation Pass (Common Persistence)"
+    answers: "Branch: cursor/phase1-foundations-c259"
+    bytes: 1896
+  - path: docs/1sb-insurance-integration/service-ssot/phase-1/TECH-LEAD-CONFIRMATION-PASS.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Tech Lead — Confirmation Pass #2"
+    answers: "Branch: cursor/phase1-foundations-c259"
+    bytes: 2403
+  - path: docs/1sb-insurance-integration/service-ssot/phase-1/TECH-LEAD-REVIEW-COMMON-PERSISTENCE.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Tech Lead Review — Common Persistence Ownership"
+    answers: "Role: Tech Lead (20+ years application development)"
+    bytes: 5794
+  - path: docs/1sb-insurance-integration/service-ssot/phase-1/TECH-LEAD-REVIEW.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Tech Lead Review — Phase 1 + Senior Feedback"
+    answers: "Role: Tech Lead (20+ years application development)"
+    bytes: 5943
+  - path: docs/1sb-insurance-integration/service-ssot/phase-2/STATUS.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Phase 2 — Status"
+    answers: "Branch: cursor/phase1-foundations-c259"
+    bytes: 2545
+  - path: docs/1sb-insurance-integration/service-ssot/phase-2/TASK-SPLIT.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Phase 2 — Task Split (Dev A / Dev B)"
+    answers: "See TL-KICKOFF.md for full AC."
+    bytes: 825
+  - path: docs/1sb-insurance-integration/service-ssot/phase-2/TL-KICKOFF.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Phase 2 — Tech Lead Kickoff & Task Breakdown"
+    answers: "Role: Tech Lead (20+ years)"
+    bytes: 10047
+  - path: docs/1sb-insurance-integration/service-ssot/phase-2/TL-REVIEW-ITER1.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Phase 2 — Tech Lead Review (Iteration 1)"
+    answers: "Role: Tech Lead"
+    bytes: 9636
+  - path: docs/1sb-insurance-integration/service-ssot/phase-2/TL-REVIEW.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Phase 2 — Tech Lead Final Review & Approval"
+    answers: "Role: Tech Lead (20+ years)"
+    bytes: 2685
+  - path: docs/1sb-insurance-integration/service-ssot/phase-3/FUNC-001-ASSIGNMENT.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Phase 3 — FUNC-001 Assignment (Team Lead)"
+    answers: "Backlog ID: FUNC-001"
+    bytes: 2489
+  - path: docs/1sb-insurance-integration/service-ssot/phase-3/FUNC-001-REVIEW.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Phase 3 — FUNC-001 Review Log"
+    answers: "AC acceptance: All three PRODUCT-BACKLOG AC accepted (proven by MasterDataLookupIT)."
+    bytes: 515
+  - path: docs/1sb-insurance-integration/service-ssot/phase-3/FUNC-002-ASSIGNMENT.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Phase 3 — FUNC-002 Assignment (Team Lead)"
+    answers: "Backlog ID: FUNC-002"
+    bytes: 2643
+  - path: docs/1sb-insurance-integration/service-ssot/phase-3/FUNC-002-REVIEW.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Phase 3 — FUNC-002 Review Log"
+    answers: "AC acceptance: AC-1…AC-7 all accepted."
+    bytes: 419
+  - path: docs/1sb-insurance-integration/service-ssot/phase-3/FUNC-003-ASSIGNMENT.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Phase 3 — FUNC-003 Assignment (Team Lead)"
+    answers: "Backlog ID: FUNC-003"
+    bytes: 1028
+  - path: docs/1sb-insurance-integration/service-ssot/phase-3/FUNC-003-REVIEW.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Phase 3 — FUNC-003 Review Log"
+    answers: "AC acceptance: AC-1…AC-3 accepted."
+    bytes: 275
+  - path: docs/1sb-insurance-integration/service-ssot/phase-3/FUNC-004-ASSIGNMENT.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Phase 3 — FUNC-004 Assignment (Team Lead)"
+    answers: "Backlog ID: FUNC-004"
+    bytes: 1492
+  - path: docs/1sb-insurance-integration/service-ssot/phase-3/FUNC-004-REVIEW.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Phase 3 — FUNC-004 Review Log"
+    answers: "AC acceptance: AC-1…AC-3 accepted."
+    bytes: 929
+  - path: docs/1sb-insurance-integration/service-ssot/phase-3/FUNC-005-ASSIGNMENT.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Phase 3 — FUNC-005 Assignment (Team Lead)"
+    answers: "Backlog ID: FUNC-005"
+    bytes: 1588
+  - path: docs/1sb-insurance-integration/service-ssot/phase-3/FUNC-005-REVIEW.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Phase 3 — FUNC-005 Review Log"
+    answers: "AC acceptance: AC-1…AC-5 accepted (behaviour + proof present). R6 gate closed."
+    bytes: 1987
+  - path: docs/1sb-insurance-integration/service-ssot/phase-3/FUNC-006-ASSIGNMENT.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Phase 3 — FUNC-006 Assignment (Team Lead)"
+    answers: "Backlog ID: FUNC-006"
+    bytes: 519
+  - path: docs/1sb-insurance-integration/service-ssot/phase-3/FUNC-006-REVIEW.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Phase 3 — FUNC-006 Review Log"
+    answers: "AC acceptance: AC-1…AC-3 accepted."
+    bytes: 1272
+  - path: docs/1sb-insurance-integration/service-ssot/phase-3/README.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Phase 3 — Functional P0: the Term quote → proposal path"
+    answers: "Working sequence: ../WORK-SEQUENCE.md · Definition of Done: ../ROLE-GUIDELINES-AND-DOD.md"
+    bytes: 3707
+  - path: docs/1sb-insurance-integration/service-ssot/phase-3/STATUS.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Phase 3 — Status"
+    answers: "Branch: cursor/func-005-submit-proposal-c259 (merged main for PR #19)"
+    bytes: 1581
+  - path: docs/1sb-insurance-integration/service-ssot/phase-4/FUNC-007-ASSIGNMENT.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Phase 4 — FUNC-007 Assignment (Team Lead)"
+    answers: "Backlog ID: FUNC-007"
+    bytes: 2629
+  - path: docs/1sb-insurance-integration/service-ssot/phase-4/FUNC-007-REVIEW.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Phase 4 — FUNC-007 Review Log"
+    answers: "Must-fix:"
+    bytes: 3781
+  - path: docs/1sb-insurance-integration/service-ssot/phase-4/FUNC-009-ASSIGNMENT.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Phase 4 — FUNC-009 Assignment (Team Lead)"
+    answers: "Backlog ID: FUNC-009"
+    bytes: 2421
+  - path: docs/1sb-insurance-integration/service-ssot/phase-4/FUNC-009-REVIEW.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Phase 4 — FUNC-009 Review Log"
+    answers: "AC acceptance:"
+    bytes: 2364
+  - path: docs/1sb-insurance-integration/service-ssot/phase-4/README.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Phase 4 — Remaining P0: payment session & application status"
+    answers: "Working sequence: ../WORK-SEQUENCE.md · Definition of Done: ../ROLE-GUIDELINES-AND-DOD.md"
+    bytes: 3683
+  - path: docs/1sb-insurance-integration/service-ssot/phase-4/STATUS.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Phase 4 — Status"
+    answers: "Branch: claude/1sb-integration-phase-4-p8s0bo"
+    bytes: 2101
+  - path: docs/README.md
+    bucket: root
+    authority: navigation
+    capsules: [docs-navigation, orient]
+    persona: null
+    title: "Documentation — Master Index"
+    answers: "Programme: AU Small Finance Bank — Insurance Distribution Platform"
+    bytes: 15800
+  - path: docs/application-lifecycle-bible/00-HOW-TO-USE.md
+    bucket: lifecycle
+    authority: proposed-cr-010
+    capsules: [orient, plan-work, delivery-planning]
+    persona: delivery
+    title: "00 — How To Use This Bible"
+    answers: "Purpose: get any reader — human or agent — from \"I have no context\" to \"I know exactly what"
+    bytes: 8123
+  - path: docs/application-lifecycle-bible/01-POSITION-ASSESSMENT.md
+    bucket: lifecycle
+    authority: proposed-cr-010
+    capsules: [orient, plan-work, delivery-planning]
+    persona: delivery
+    title: "01 — Position Assessment: Where This Platform Actually Is"
+    answers: "Author: Rajal — Principal Insurance Platform Product Owner (Board 3 / R1)"
+    bytes: 17341
+  - path: docs/application-lifecycle-bible/02-STAGE-MODEL.md
+    bucket: lifecycle
+    authority: proposed-cr-010
+    capsules: [orient, plan-work, delivery-planning]
+    persona: delivery
+    title: "02 — The Stage Model: Business Idea to Mature Enterprise Platform"
+    answers: "AIGEM's 03-LIFECYCLE.md defines eleven canonical stages,"
+    bytes: 12351
+  - path: docs/application-lifecycle-bible/03-REALIGNMENT-PLAN.md
+    bucket: lifecycle
+    authority: proposed-cr-010
+    capsules: [orient, plan-work, delivery-planning]
+    persona: delivery
+    title: "03 — Realignment Plan: Underpinning a Building That Is Already Seven Floors Up"
+    answers: "Author: Rajal (Product Owner), with findings for Architecture, Security, Compliance, QA, SRE"
+    bytes: 11609
+  - path: docs/application-lifecycle-bible/04-GATE-AND-SIGNOFF-MODEL.md
+    bucket: lifecycle
+    authority: proposed-cr-010
+    capsules: [orient, plan-work, delivery-planning]
+    persona: delivery
+    title: "04 — Gate and Sign-off Model"
+    answers: "Extends: 04-STAGEGATES.md and"
+    bytes: 10367
+  - path: docs/application-lifecycle-bible/05-DOCUMENTATION-CANON.md
+    bucket: lifecycle
+    authority: proposed-cr-010
+    capsules: [orient, plan-work, delivery-planning]
+    persona: delivery
+    title: "05 — Documentation Canon"
+    answers: "\"What documentation should we ideally have created?\""
+    bytes: 14025
+  - path: docs/application-lifecycle-bible/06-QUALITY-NORMS.md
+    bucket: lifecycle
+    authority: proposed-cr-010
+    capsules: [orient, plan-work, delivery-planning]
+    persona: delivery
+    title: "06 — Quality Norms"
+    answers: "QA cannot waive a Security or Compliance conclusion, and no one may declare QA evidence passed"
+    bytes: 8703
+  - path: docs/application-lifecycle-bible/07-SECURITY-COMPLIANCE-CANON.md
+    bucket: lifecycle
+    authority: proposed-cr-010
+    capsules: [orient, plan-work, delivery-planning]
+    persona: delivery
+    title: "07 — Security & Compliance Canon"
+    answers: "Owners: Deepali — Principal Security Architect (Board 4, veto) · Shailja S — Compliance &"
+    bytes: 8538
+  - path: docs/application-lifecycle-bible/08-SRE-READINESS-CANON.md
+    bucket: lifecycle
+    authority: proposed-cr-010
+    capsules: [orient, plan-work, delivery-planning]
+    persona: delivery
+    title: "08 — SRE & Operational Readiness Canon"
+    answers: "(AIGEM R10, Board 7 — Operations)"
+    bytes: 9582
+  - path: docs/application-lifecycle-bible/09-JIRA-MODEL.md
+    bucket: lifecycle
+    authority: proposed-cr-010
+    capsules: [orient, plan-work, delivery-planning]
+    persona: delivery
+    title: "09 — Jira Model"
+    answers: "Generated artefact: backlog/jira-import.csv"
+    bytes: 7431
+  - path: docs/application-lifecycle-bible/10-ACTOR-EPIC-STORY-MAP.md
+    bucket: lifecycle
+    authority: proposed-cr-010
+    capsules: [orient, plan-work, delivery-planning]
+    persona: delivery
+    title: "10 — Actor, Epic and Story Map"
+    answers: "Purpose: Name every application actor, define its authority boundary, and point to the Bible"
+    bytes: 4468
+  - path: docs/application-lifecycle-bible/README.md
+    bucket: lifecycle
+    authority: proposed-cr-010
+    capsules: [orient, plan-work, delivery-planning]
+    persona: delivery
+    title: "The Application Lifecycle Bible"
+    answers: "The complete journey from business idea to mature enterprise platform — every stage, every"
+    bytes: 7542
+  - path: docs/application-lifecycle-bible/backlog/BACKLOG.yaml
+    bucket: lifecycle
+    authority: proposed-cr-010
+    capsules: [delivery-planning, plan-work]
+    persona: delivery
+    title: "BACKLOG"
+    answers: "Application Lifecycle Backlog — GENERATED FILE, DO NOT EDIT BY HAND."
+    bytes: 150687
+  - path: docs/application-lifecycle-bible/backlog/README.md
+    bucket: lifecycle
+    authority: proposed-cr-010
+    capsules: [delivery-planning, plan-work]
+    persona: delivery
+    title: "Backlog — generated artefacts"
+    answers: "Both are generated. Do not edit them by hand — the next regeneration overwrites your change."
+    bytes: 3189
+  - path: docs/application-lifecycle-bible/backlog/jira-import.csv
+    bucket: lifecycle
+    authority: proposed-cr-010
+    capsules: [delivery-planning, plan-work]
+    persona: delivery
+    title: "jira import"
+    answers: "CSV columns: Issue Key,Summary,Issue Type,Fix Version,Epic Link,Epic Name,Priority,Assignee Persona,Labels,Acceptance Criteria,Evidence Required,Description"
+    bytes: 232141
+  - path: docs/application-lifecycle-bible/evidence/README.md
+    bucket: lifecycle
+    authority: proposed-cr-010
+    capsules: [board-review, qa-review, delivery-planning]
+    persona: quality
+    title: "Retroactive stage evidence — S00 to S05"
+    answers: "Author: Rajal — Principal Insurance Platform Product Owner (Board 3 / R1)"
+    bytes: 7093
+  - path: docs/application-lifecycle-bible/evidence/S00-ideation-evidence.md
+    bucket: lifecycle
+    authority: proposed-cr-010
+    capsules: [board-review, qa-review, delivery-planning]
+    persona: quality
+    title: "S00 — Ideation & Business Case · Retroactive Stage Evidence"
+    answers: "Author: Rajal — Principal Insurance Platform Product Owner (Board 3 / R1)"
+    bytes: 28790
+  - path: docs/application-lifecycle-bible/evidence/S01-discovery-evidence.md
+    bucket: lifecycle
+    authority: proposed-cr-010
+    capsules: [board-review, qa-review, delivery-planning]
+    persona: quality
+    title: "S01 — Discovery & Capability Definition · Retroactive Stage Evidence"
+    answers: "Author: Rajal — Principal Insurance Platform Product Owner (Board 3 / R1)"
+    bytes: 13952
+  - path: docs/application-lifecycle-bible/evidence/S02-regulatory-evidence.md
+    bucket: lifecycle
+    authority: proposed-cr-010
+    capsules: [board-review, qa-review, delivery-planning]
+    persona: quality
+    title: "S02 — Regulatory, Risk & Compliance Framing · Retroactive Stage Evidence"
+    answers: "Contributing author: Rajal — Product (Board 3 / R1), for the two rule packs S02-E03 and S02-E04"
+    bytes: 18200
+  - path: docs/application-lifecycle-bible/evidence/S03-requirements-evidence.md
+    bucket: lifecycle
+    authority: proposed-cr-010
+    capsules: [board-review, qa-review, delivery-planning]
+    persona: quality
+    title: "S03 — Business Requirements & Process Design · Retroactive Stage Evidence"
+    answers: "Author: Rajal — Principal Insurance Platform Product Owner (Board 3 / R1)"
+    bytes: 39133
+  - path: docs/application-lifecycle-bible/evidence/S04-product-definition-evidence.md
+    bucket: lifecycle
+    authority: proposed-cr-010
+    capsules: [board-review, qa-review, delivery-planning]
+    persona: quality
+    title: "S04 — Product Definition & Release Slicing · Retroactive Stage Evidence"
+    answers: "Author: Rajal — Principal Insurance Platform Product Owner (Board 3 / R1)"
+    bytes: 25846
+  - path: docs/application-lifecycle-bible/evidence/S05-experience-evidence.md
+    bucket: lifecycle
+    authority: proposed-cr-010
+    capsules: [board-review, qa-review, delivery-planning]
+    persona: quality
+    title: "S05 — Experience Design & Service Blueprint · Retroactive Stage Evidence"
+    answers: "Author: Rajal — Principal Insurance Platform Product Owner (Board 3 / R1)"
+    bytes: 36656
+  - path: docs/application-lifecycle-bible/evidence/S06-domain-architecture-evidence.md
+    bucket: lifecycle
+    authority: proposed-cr-010
+    capsules: [board-review, qa-review, delivery-planning]
+    persona: quality
+    title: "S06 — Domain & Information Architecture · Retroactive Stage Evidence"
+    answers: "Gate: GATE-S06 · Workstream: WS-3 (proposed under CR-010)"
+    bytes: 18516
+  - path: docs/application-lifecycle-bible/evidence/S07-solution-architecture-evidence.md
+    bucket: lifecycle
+    authority: proposed-cr-010
+    capsules: [board-review, qa-review, delivery-planning]
+    persona: quality
+    title: "S07 — Solution & Security Architecture · Retroactive Stage Evidence"
+    answers: "Gate: GATE-S07 · Workstream: WS-3 (proposed under CR-010)"
+    bytes: 21236
+  - path: docs/application-lifecycle-bible/stages/S00-ideation.md
+    bucket: lifecycle
+    authority: proposed-cr-010
+    capsules: [plan-work, delivery-planning]
+    persona: delivery
+    title: "S00 — Ideation & Business Case"
+    answers: "AIGEM stage: L0 — Discovery · Owner: Executive Sponsor + Rajal (Product)"
+    bytes: 6244
+  - path: docs/application-lifecycle-bible/stages/S01-discovery.md
+    bucket: lifecycle
+    authority: proposed-cr-010
+    capsules: [plan-work, delivery-planning]
+    persona: delivery
+    title: "S01 — Discovery & Capability Definition"
+    answers: "AIGEM stage: L0 — Discovery · Owner: Rajal (Product)"
+    bytes: 6881
+  - path: docs/application-lifecycle-bible/stages/S02-regulatory-framing.md
+    bucket: lifecycle
+    authority: proposed-cr-010
+    capsules: [plan-work, delivery-planning]
+    persona: delivery
+    title: "S02 — Regulatory, Risk & Compliance Framing"
+    answers: "AIGEM stage: L1 — Business Design · Owner: Shailja S (Compliance & Risk Head, Board 6)"
+    bytes: 9110
+  - path: docs/application-lifecycle-bible/stages/S03-business-requirements.md
+    bucket: lifecycle
+    authority: proposed-cr-010
+    capsules: [plan-work, delivery-planning]
+    persona: delivery
+    title: "S03 — Business Requirements & Process Design"
+    answers: "AIGEM stage: L1 — Business Design · Owner: Rajal (Product) + Business Analysis"
+    bytes: 7719
+  - path: docs/application-lifecycle-bible/stages/S04-product-definition.md
+    bucket: lifecycle
+    authority: proposed-cr-010
+    capsules: [plan-work, delivery-planning]
+    persona: delivery
+    title: "S04 — Product Definition & Release Slicing"
+    answers: "AIGEM stage: L1 — Business Design · Owner: Rajal (Product)"
+    bytes: 7729
+  - path: docs/application-lifecycle-bible/stages/S05-experience-design.md
+    bucket: lifecycle
+    authority: proposed-cr-010
+    capsules: [plan-work, delivery-planning]
+    persona: delivery
+    title: "S05 — Experience Design & Service Blueprint"
+    answers: "AIGEM stage: L1 — Business Design · Owner: Digital / Design + Rajal (Product)"
+    bytes: 8151
+  - path: docs/application-lifecycle-bible/stages/S06-domain-architecture.md
+    bucket: lifecycle
+    authority: proposed-cr-010
+    capsules: [plan-work, delivery-planning]
+    persona: delivery
+    title: "S06 — Domain & Information Architecture"
+    answers: "AIGEM stage: L2 — Domain / Aggregate Design · Owner: Mahesh (Architecture) + Aarti (Data)"
+    bytes: 8444
+  - path: docs/application-lifecycle-bible/stages/S07-solution-architecture.md
+    bucket: lifecycle
+    authority: proposed-cr-010
+    capsules: [plan-work, delivery-planning]
+    persona: delivery
+    title: "S07 — Solution & Security Architecture"
+    answers: "AIGEM stage: L3 — Technical / Solution Design"
+    bytes: 9297
+  - path: docs/application-lifecycle-bible/stages/S08-engineering-foundation.md
+    bucket: lifecycle
+    authority: proposed-cr-010
+    capsules: [plan-work, delivery-planning]
+    persona: delivery
+    title: "S08 — Engineering Foundation"
+    answers: "AIGEM stage: L4 — Foundation · Owner: Amit (Engineering) + Swapnali (Quality)"
+    bytes: 12454
+  - path: docs/application-lifecycle-bible/stages/S09-platform-foundation.md
+    bucket: lifecycle
+    authority: proposed-cr-010
+    capsules: [plan-work, delivery-planning]
+    persona: delivery
+    title: "S09 — Platform & Environment Foundation"
+    answers: "AIGEM stage: L4 — Foundation · Owner: Shivanshi (SRE) + Deepali (Security)"
+    bytes: 13806
+  - path: docs/application-lifecycle-bible/stages/S10-integration.md
+    bucket: lifecycle
+    authority: proposed-cr-010
+    capsules: [plan-work, delivery-planning]
+    persona: delivery
+    title: "S10 — Integration & Connectivity"
+    answers: "AIGEM stage: L5 — Connectivity / Integration · Owner: Amit (Engineering) + Mahesh (Architecture)"
+    bytes: 10057
+  - path: docs/application-lifecycle-bible/stages/S11-vertical-slice.md
+    bucket: lifecycle
+    authority: proposed-cr-010
+    capsules: [plan-work, delivery-planning]
+    persona: delivery
+    title: "S11 — Vertical Slice (MVP)"
+    answers: "AIGEM stage: L6 — Vertical Slice · Owner: Rajal (Product) + Amit (Engineering)"
+    bytes: 17212
+  - path: docs/application-lifecycle-bible/stages/S12-hardening.md
+    bucket: lifecycle
+    authority: proposed-cr-010
+    capsules: [plan-work, delivery-planning]
+    persona: delivery
+    title: "S12 — Hardening & Certification"
+    answers: "AIGEM stage: L7 — Hardening · Owner: Swapnali (QA) + Deepali (Security) + Shailja (Compliance)"
+    bytes: 10313
+  - path: docs/application-lifecycle-bible/stages/S13-expansion.md
+    bucket: lifecycle
+    authority: proposed-cr-010
+    capsules: [plan-work, delivery-planning]
+    persona: delivery
+    title: "S13 — Expansion & Scale"
+    answers: "AIGEM stage: L8 — Expansion · Owner: Rajal (Product) + Mahesh (Architecture)"
+    bytes: 8446
+  - path: docs/application-lifecycle-bible/stages/S14-production-readiness.md
+    bucket: lifecycle
+    authority: proposed-cr-010
+    capsules: [plan-work, delivery-planning]
+    persona: delivery
+    title: "S14 — Production Readiness & Go-Live"
+    answers: "AIGEM stage: L9 — Production Readiness · Owner: Shivanshi (SRE) + Kalpana (Delivery)"
+    bytes: 8637
+  - path: docs/application-lifecycle-bible/stages/S15-operate-evolve.md
+    bucket: lifecycle
+    authority: proposed-cr-010
+    capsules: [plan-work, delivery-planning]
+    persona: delivery
+    title: "S15 — Operate, Evolve & Continuous Assurance"
+    answers: "AIGEM stage: L10 — Operate & Evolve · Owner: Shivanshi (SRE) + Rajal (Product)"
+    bytes: 7910
+  - path: docs/application-lifecycle-bible/templates/EPIC.md
+    bucket: lifecycle
+    authority: proposed-cr-010
+    capsules: [delivery-planning, plan-work]
+    persona: delivery
+    title: "Epic — S<xx>-E<nn> <Title>"
+    answers: "One paragraph: what is true when this epic is done that is not true now. Written as an outcome,"
+    bytes: 2402
+  - path: docs/application-lifecycle-bible/templates/GATE-SIGNOFF.md
+    bucket: lifecycle
+    authority: proposed-cr-010
+    capsules: [delivery-planning, plan-work]
+    persona: delivery
+    title: "Gate Sign-off — S<xx> <Stage Name>"
+    answers: "Copy to docs/application-lifecycle-bible/stages/signoffs/S<xx>-GATE-SIGNOFF-<YYYY-MM-DD>.md."
+    bytes: 3920
+  - path: docs/application-lifecycle-bible/templates/ORR.md
+    bucket: lifecycle
+    authority: proposed-cr-010
+    capsules: [delivery-planning, plan-work]
+    persona: delivery
+    title: "Operational Readiness Review — <Service or Release>"
+    answers: "Board 7 (Operations) formal assessment, owned by Shivanshi / SRE. Required at S14 before"
+    bytes: 3549
+  - path: docs/application-lifecycle-bible/templates/README.md
+    bucket: lifecycle
+    authority: proposed-cr-010
+    capsules: [delivery-planning, plan-work]
+    persona: delivery
+    title: "Templates"
+    answers: "Copy these; do not edit them in place."
+    bytes: 1692
+  - path: docs/application-lifecycle-bible/templates/STORY.md
+    bucket: lifecycle
+    authority: proposed-cr-010
+    capsules: [delivery-planning, plan-work]
+    persona: delivery
+    title: "Story — S<xx>-E<nn>-S<nn> <Title>"
+    answers: "As a <role>, I need <capability>, so that <outcome>."
+    bytes: 3470
+  - path: docs/application-lifecycle-bible/templates/VALIDATION-TEST.md
+    bucket: lifecycle
+    authority: proposed-cr-010
+    capsules: [delivery-planning, plan-work]
+    persona: delivery
+    title: "Validation Test — S<xx>-VT-<nn>"
+    answers: "A validation test proves a stage is complete. It is distinct from a functional test, which"
+    bytes: 2266
+  - path: docs/architecture/R0-HLD.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, orient]
+    persona: architecture
+    title: "R0 High-Level Design — AU Bank Insurance Distribution Platform"
+    answers: "Horizon: H0 — R0 as designed"
+    bytes: 34351
+  - path: docs/architecture/R0-LLD.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, orient]
+    persona: architecture
+    title: "R0 Low-Level Design — AWS platform pack for the CTO and AWS platform team"
+    answers: "Consumers: CTO; AWS platform / landing-zone team; Shivanshi (SRE, Board 7 — provisions and operates); Deepali (Security — trust boundaries, IAM,…"
+    bytes: 31386
+  - path: docs/architecture/README.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, orient]
+    persona: architecture
+    title: "Architecture diagrams"
+    answers: "Two diagrams, deliberately. They answer different questions and neither replaces the other."
+    bytes: 11941
+  - path: docs/architecture/r0-lld.svg
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, orient]
+    persona: architecture
+    title: "r0 lld"
+    answers: "Rendered diagram — read the companion .md for the binding text"
+    bytes: 55404
+  - path: docs/architecture/r0-reference-architecture.svg
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, orient]
+    persona: architecture
+    title: "r0 reference architecture"
+    answers: "Rendered diagram — read the companion .md for the binding text"
+    bytes: 68403
+  - path: docs/au-bank-insurance-platform/00-project-charter.md
+    bucket: business
+    authority: business-ssot
+    capsules: [product-decision, orient]
+    persona: product
+    title: "Project charter — AU Bank Insurance Platform"
+    answers: "Document owner: Platform Product Owner"
+    bytes: 5637
+  - path: docs/au-bank-insurance-platform/01-stakeholder-working-session.md
+    bucket: business
+    authority: business-ssot
+    capsules: [product-decision, orient]
+    persona: product
+    title: "Stakeholder working sessions — AU Bank Insurance Platform"
+    answers: "Facilitator: Platform Product Owner (+ BA)"
+    bytes: 5444
+  - path: docs/au-bank-insurance-platform/02-product-vision-and-outcomes.md
+    bucket: business
+    authority: business-ssot
+    capsules: [product-decision, orient]
+    persona: product
+    title: "Product vision & outcomes — AU Bank Insurance Platform"
+    answers: "AU Bank’s RMs and existing customers buy the right Life insurance through assisted, self-service, or hybrid journeys that feel like AU Bank — with…"
+    bytes: 3390
+  - path: docs/au-bank-insurance-platform/03-discovery-backlog.md
+    bucket: business
+    authority: business-ssot
+    capsules: [product-decision, orient]
+    persona: product
+    title: "Discovery backlog — must-answer before scope freeze"
+    answers: "Rule: P0 items block Release scope freeze. P1 can defer with date. P2 are nice-to-know."
+    bytes: 6781
+  - path: docs/au-bank-insurance-platform/04-process-and-journey-canvas.md
+    bucket: business
+    authority: business-ssot
+    capsules: [product-decision, orient]
+    persona: product
+    title: "Process & journey canvas — AU Bank Insurance Platform"
+    answers: "Canonical detail: knowledge-base/04-value-stream-and-journeys.md"
+    bytes: 5131
+  - path: docs/au-bank-insurance-platform/05-figma-and-artefact-intake.md
+    bucket: business
+    authority: business-ssot
+    capsules: [product-decision, orient]
+    persona: product
+    title: "Figma & artefact intake log"
+    answers: "Purpose: Single place to register every input for the product reset"
+    bytes: 3457
+  - path: docs/au-bank-insurance-platform/06-po-opening-position.md
+    bucket: business
+    authority: business-ssot
+    capsules: [product-decision, orient]
+    persona: product
+    title: "Platform PO opening position — restarting from zero"
+    answers: "Voice: Platform Product Owner (with BA facilitation)"
+    bytes: 3663
+  - path: docs/au-bank-insurance-platform/07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md
+    bucket: business
+    authority: business-ssot
+    capsules: [product-decision, orient]
+    persona: product
+    title: "AU Bank Insurance Platform — Business Clarifications & Working Decisions"
+    answers: "Purpose: Capture business decisions and assumptions agreed during discovery discussions. Reference for architecture, product, BA, UX, and engineering…"
+    bytes: 10752
+  - path: docs/au-bank-insurance-platform/DECISION-LOG.md
+    bucket: business
+    authority: business-ssot
+    capsules: [product-decision, orient]
+    persona: product
+    title: "Decision log — AU Bank Insurance Platform"
+    answers: "Canonical ID scheme: D-xxx = business / scope decisions (aligns to Session template + Working Decisions mapping)."
+    bytes: 4883
+  - path: docs/au-bank-insurance-platform/README.md
+    bucket: business
+    authority: business-ssot
+    capsules: [product-decision, orient]
+    persona: product
+    title: "AU Bank — Insurance Platform (Product Reset)"
+    answers: "Bank: AU Small Finance Bank (AU Bank)"
+    bytes: 5585
+  - path: docs/au-bank-insurance-platform/artefacts/README.md
+    bucket: business
+    authority: business-ssot
+    capsules: [business-analysis, product-decision]
+    persona: business-analysis
+    title: "Artefacts — source material"
+    answers: "Raw inputs to discovery. Nothing here is binding — it is the material the"
+    bytes: 2082
+  - path: docs/au-bank-insurance-platform/artefacts/uploads/Phase_1_Business_Discovery_Capability_Map_v0.1_e281.pdf
+    bucket: business
+    authority: business-ssot
+    capsules: [business-analysis, product-decision]
+    persona: business-analysis
+    title: "Phase 1 Business Discovery Capability Map v0.1"
+    answers: "PDF source artefact — intake evidence; cite the derived document, not this file"
+    bytes: 4226
+  - path: docs/au-bank-insurance-platform/artefacts/uploads/Phase_2_Business_Requirement_Catalogue_v0.1_0a30.pdf
+    bucket: business
+    authority: business-ssot
+    capsules: [business-analysis, product-decision]
+    persona: business-analysis
+    title: "Phase 2 Business Requirement Catalogue v0.1"
+    answers: "PDF source artefact — intake evidence; cite the derived document, not this file"
+    bytes: 18415
+  - path: docs/au-bank-insurance-platform/artefacts/uploads/Phase_3_Business_Processes_and_Customer_Journeys_v0.1_0d5b.pdf
+    bucket: business
+    authority: business-ssot
+    capsules: [business-analysis, product-decision]
+    persona: business-analysis
+    title: "Phase 3 Business Processes and Customer Journeys v0.1"
+    answers: "PDF source artefact — intake evidence; cite the derived document, not this file"
+    bytes: 37010
+  - path: docs/au-bank-insurance-platform/artefacts/uploads/Phase_4_Business_Rules_Information_Model_and_Governance_v0.1_aecc.pdf
+    bucket: business
+    authority: business-ssot
+    capsules: [business-analysis, product-decision]
+    persona: business-analysis
+    title: "Phase 4 Business Rules Information Model and Governance v0.1"
+    answers: "PDF source artefact — intake evidence; cite the derived document, not this file"
+    bytes: 7595
+  - path: docs/au-bank-insurance-platform/artefacts/uploads/Phase_5_Solution_Architecture_Blueprint_v0.1_2e6f.pdf
+    bucket: business
+    authority: business-ssot
+    capsules: [business-analysis, product-decision]
+    persona: business-analysis
+    title: "Phase 5 Solution Architecture Blueprint v0.1"
+    answers: "PDF source artefact — intake evidence; cite the derived document, not this file"
+    bytes: 6765
+  - path: docs/au-bank-insurance-platform/artefacts/uploads/Volume_01_Vision_and_Strategy_v1.0_11a5.pdf
+    bucket: business
+    authority: business-ssot
+    capsules: [business-analysis, product-decision]
+    persona: business-analysis
+    title: "Volume 01 Vision and Strategy v1.0"
+    answers: "PDF source artefact — intake evidence; cite the derived document, not this file"
+    bytes: 4088
+  - path: docs/au-bank-insurance-platform/artefacts/uploads/Volume_02_Business_Goals_v1.0_6c77.pdf
+    bucket: business
+    authority: business-ssot
+    capsules: [business-analysis, product-decision]
+    persona: business-analysis
+    title: "Volume 02 Business Goals v1.0"
+    answers: "PDF source artefact — intake evidence; cite the derived document, not this file"
+    bytes: 4871
+  - path: docs/au-bank-insurance-platform/artefacts/uploads/Volume_03_Business_Requirements_v1.0_ec50.pdf
+    bucket: business
+    authority: business-ssot
+    capsules: [business-analysis, product-decision]
+    persona: business-analysis
+    title: "Volume 03 Business Requirements v1.0"
+    answers: "PDF source artefact — intake evidence; cite the derived document, not this file"
+    bytes: 15935
+  - path: docs/au-bank-insurance-platform/artefacts/uploads/Volume_04_Stakeholder_Catalogue_v1.0_8199.pdf
+    bucket: business
+    authority: business-ssot
+    capsules: [business-analysis, product-decision]
+    persona: business-analysis
+    title: "Volume 04 Stakeholder Catalogue v1.0"
+    answers: "PDF source artefact — intake evidence; cite the derived document, not this file"
+    bytes: 27183
+  - path: docs/au-bank-insurance-platform/artefacts/uploads/Volume_05_Business_Processes_v1.0_d04f.pdf
+    bucket: business
+    authority: business-ssot
+    capsules: [business-analysis, product-decision]
+    persona: business-analysis
+    title: "Volume 05 Business Processes v1.0"
+    answers: "PDF source artefact — intake evidence; cite the derived document, not this file"
+    bytes: 12369
+  - path: docs/au-bank-insurance-platform/artefacts/uploads/Volume_06_Customer_and_RM_Journeys_v1.0_18d2.pdf
+    bucket: business
+    authority: business-ssot
+    capsules: [business-analysis, product-decision]
+    persona: business-analysis
+    title: "Volume 06 Customer and RM Journeys v1.0"
+    answers: "PDF source artefact — intake evidence; cite the derived document, not this file"
+    bytes: 5321
+  - path: docs/au-bank-insurance-platform/knowledge-base/01-executive-synthesis.md
+    bucket: business
+    authority: business-ssot
+    capsules: [orient, product-decision, business-analysis]
+    persona: product
+    title: "01 — Executive synthesis (Platform PO)"
+    answers: "Product name (from docs): Insurance Distribution Platform"
+    bytes: 4640
+  - path: docs/au-bank-insurance-platform/knowledge-base/02-vision-goals-principles.md
+    bucket: business
+    authority: business-ssot
+    capsules: [orient, product-decision, business-analysis]
+    persona: product
+    title: "02 — Vision, goals & principles"
+    answers: "Sources: Volume 01, Volume 02, Phase 1"
+    bytes: 3454
+  - path: docs/au-bank-insurance-platform/knowledge-base/03-capability-map.md
+    bucket: business
+    authority: business-ssot
+    capsules: [orient, product-decision, business-analysis]
+    persona: product
+    title: "03 — Business capability map"
+    answers: "Sources: Volume 01, Phase 1, Phase 5 domains, Volume 03 / Phase 2 BR areas"
+    bytes: 3540
+  - path: docs/au-bank-insurance-platform/knowledge-base/04-value-stream-and-journeys.md
+    bucket: business
+    authority: business-ssot
+    capsules: [orient, product-decision, business-analysis]
+    persona: product
+    title: "04 — Value stream & journeys"
+    answers: "Sources: Volume 05/06, Phase 3"
+    bytes: 4805
+  - path: docs/au-bank-insurance-platform/knowledge-base/05-business-processes-catalogue.md
+    bucket: business
+    authority: business-ssot
+    capsules: [orient, product-decision, business-analysis]
+    persona: product
+    title: "05 — Business process catalogue"
+    answers: "Note: Process purpose is clear; triggers/preconditions in the PDF are still generic templates. Expand in workshops."
+    bytes: 1842
+  - path: docs/au-bank-insurance-platform/knowledge-base/06-stakeholders.md
+    bucket: business
+    authority: business-ssot
+    capsules: [orient, product-decision, business-analysis]
+    persona: product
+    title: "06 — Stakeholder catalogue (synthesized)"
+    answers: "Note: Role descriptions in the PDF are template-level; this KB retains the role inventory and groups them for RACI-style use."
+    bytes: 4267
+  - path: docs/au-bank-insurance-platform/knowledge-base/07-information-model-and-rules.md
+    bucket: business
+    authority: business-ssot
+    capsules: [orient, product-decision, business-analysis]
+    persona: product
+    title: "07 — Information model, business rules & governance"
+    answers: "Each object is bank-owned vocabulary (independent of 1SB/insurer wire format)."
+    bytes: 2661
+  - path: docs/au-bank-insurance-platform/knowledge-base/08-integration-strategy.md
+    bucket: business
+    authority: business-ssot
+    capsules: [orient, product-decision, business-analysis]
+    persona: product
+    title: "08 — Integration strategy"
+    answers: "Sources: Volume 01, Phase 1, Phase 5"
+    bytes: 2473
+  - path: docs/au-bank-insurance-platform/knowledge-base/09-glossary.md
+    bucket: business
+    authority: business-ssot
+    capsules: [orient, product-decision, business-analysis]
+    persona: product
+    title: "09 — Business glossary"
+    answers: "Working vocabulary for AU Bank Insurance Distribution Platform. Prefer these terms in PRDs, journeys, and APIs (bank language)."
+    bytes: 2081
+  - path: docs/au-bank-insurance-platform/knowledge-base/10-gaps-and-po-assessment.md
+    bucket: business
+    authority: business-ssot
+    capsules: [orient, product-decision, business-analysis]
+    persona: product
+    title: "10 — Gaps & Platform PO assessment"
+    answers: "Verdict: Strong framework; weak specificity. Usable as programme skeleton — not yet build-ready requirements."
+    bytes: 5479
+  - path: docs/au-bank-insurance-platform/knowledge-base/README.md
+    bucket: business
+    authority: business-ssot
+    capsules: [orient, product-decision, business-analysis]
+    persona: product
+    title: "AU Bank Insurance Distribution Platform — Product Knowledge Base"
+    answers: "Bank: AU Bank"
+    bytes: 2937
+  - path: docs/au-bank-insurance-platform/knowledge-base/SOURCE-INDEX.md
+    bucket: business
+    authority: business-ssot
+    capsules: [orient, product-decision, business-analysis]
+    persona: product
+    title: "Source index — baseline PDFs → Knowledge Base"
+    answers: "All files live in: docs/au-bank-insurance-platform/artefacts/uploads/"
+    bytes: 1038
+  - path: docs/au-bank-insurance-platform/po-drive/00-PO-PROJECT-VIEW.md
+    bucket: business
+    authority: business-ssot
+    capsules: [product-decision, delivery-planning]
+    persona: product
+    title: "How I see this project — Platform PO (driving view)"
+    answers: "Author: Platform Product Owner"
+    bytes: 5240
+  - path: docs/au-bank-insurance-platform/po-drive/01-SWOT-ANALYSIS.md
+    bucket: business
+    authority: business-ssot
+    capsules: [product-decision, delivery-planning]
+    persona: product
+    title: "SWOT analysis — AU Bank Insurance Distribution Platform"
+    answers: "Role: Platform Product Owner"
+    bytes: 6294
+  - path: docs/au-bank-insurance-platform/po-drive/02-GAP-REGISTER.md
+    bucket: business
+    authority: business-ssot
+    capsules: [product-decision, delivery-planning]
+    persona: product
+    title: "Gap register — complete (Platform PO)"
+    answers: "ID scheme: GAP-xxx"
+    bytes: 8773
+  - path: docs/au-bank-insurance-platform/po-drive/03-PROGRAMME-TODO.md
+    bucket: business
+    authority: business-ssot
+    capsules: [product-decision, delivery-planning]
+    persona: product
+    title: "Programme TODO — Platform PO master list"
+    answers: "How to use: Check boxes in PRs; move Done items to bottom changelog weekly"
+    bytes: 5444
+  - path: docs/au-bank-insurance-platform/po-drive/04-MANAGEMENT-READINESS.md
+    bucket: business
+    authority: business-ssot
+    capsules: [product-decision, delivery-planning]
+    persona: product
+    title: "Management readiness — PO document review & ask"
+    answers: "We are not asking to approve a finished BRD, Figma as SoT, or hard-coded consent/retention rules."
+    bytes: 5169
+  - path: docs/au-bank-insurance-platform/references/2026-08-20-insurance-aggregation-and-provider-connectivity-notes.md
+    bucket: business
+    authority: business-ssot
+    capsules: [orient, product-decision, business-analysis]
+    persona: product
+    title: "Source — Insurance Aggregation and Provider Connectivity Notes"
+    answers: "Intake ID: VIN-002"
+    bytes: 15866
+  - path: docs/au-bank-insurance-platform/references/2026-08-20-north-star-architecture-brainstorming-notes.md
+    bucket: business
+    authority: business-ssot
+    capsules: [orient, product-decision, business-analysis]
+    persona: product
+    title: "Source — Target Insurance Platform: North Star Architecture Brainstorming Notes"
+    answers: "Intake ID: VIN-001"
+    bytes: 21294
+  - path: docs/au-bank-insurance-platform/references/README.md
+    bucket: business
+    authority: business-ssot
+    capsules: [orient, product-decision, business-analysis]
+    persona: product
+    title: "References (non-binding)"
+    answers: "This folder points at materials that inform the AU Bank product reset."
+    bytes: 3781
+  - path: docs/au-bank-insurance-platform/requirements/BRD-OVERVIEW-CHECKLIST.md
+    bucket: business
+    authority: business-ssot
+    capsules: [business-analysis, product-decision]
+    persona: business-analysis
+    title: "BRD Overview — Flat checklist (PO source headings)"
+    answers: "Purpose: Preserve the Product Owner’s original heading list as an authoritative checklist."
+    bytes: 3093
+  - path: docs/au-bank-insurance-platform/requirements/BRD-OVERVIEW.md
+    bucket: business
+    authority: business-ssot
+    capsules: [business-analysis, product-decision]
+    persona: business-analysis
+    title: "BRD Overview — AU Bank Insurance Distribution Platform"
+    answers: "Document type: Business Requirements Document — Overview / Table of Contents"
+    bytes: 8881
+  - path: docs/au-bank-insurance-platform/requirements/BRD-P0-CAPABILITIES.md
+    bucket: business
+    authority: business-ssot
+    capsules: [business-analysis, product-decision]
+    persona: business-analysis
+    title: "BRD — P0 Capabilities with Acceptance Criteria"
+    answers: "Product: AU Bank Insurance Distribution Platform"
+    bytes: 12262
+  - path: docs/au-bank-insurance-platform/requirements/PRD-R0-DISTRIBUTION-PLATFORM.md
+    bucket: business
+    authority: business-ssot
+    capsules: [business-analysis, product-decision]
+    persona: business-analysis
+    title: "PRD — R0 Insurance Distribution Platform (AU Bank)"
+    answers: "Product: AU Bank Insurance Distribution Platform"
+    bytes: 6540
+  - path: docs/au-bank-insurance-platform/requirements/R0-SCOPE.md
+    bucket: business
+    authority: business-ssot
+    capsules: [business-analysis, product-decision]
+    persona: business-analysis
+    title: "R0 / MVP Scope One-Pager — AU Bank Insurance Distribution Platform"
+    answers: "Journey focus: RM-assisted + Self-service + Hybrid (all Day 1)"
+    bytes: 7008
+  - path: docs/au-bank-insurance-platform/requirements/README.md
+    bucket: business
+    authority: business-ssot
+    capsules: [business-analysis, product-decision]
+    persona: business-analysis
+    title: "Requirements pack — AU Bank Insurance Distribution Platform"
+    answers: "Knowledge base: ../knowledge-base/"
+    bytes: 1400
+  - path: docs/au-bank-insurance-platform/rule-packs/consent-rule-pack.md
+    bucket: business
+    authority: business-ssot
+    capsules: [business-analysis, product-decision]
+    persona: business-analysis
+    title: "Consent Rule Pack v1 — AU Bank Insurance Distribution Platform"
+    answers: "Pack ID: CONSENT-PACK-v1.0"
+    bytes: 25157
+  - path: docs/au-bank-insurance-platform/rule-packs/suitability-rule-pack.md
+    bucket: business
+    authority: business-ssot
+    capsules: [business-analysis, product-decision]
+    persona: business-analysis
+    title: "Suitability Rule Pack v1 — AU Bank Insurance Distribution Platform"
+    answers: "Pack ID: SUITABILITY-PACK-v1.0 · Algorithm ID: SUIT-ALGO-LIFE-v1.0"
+    bytes: 24773
+  - path: docs/context/AGENT-CONTEXT-INDEX.yaml
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient, docs-navigation]
+    persona: null
+    title: "AGENT CONTEXT INDEX"
+    answers: "============================================================================="
+    bytes: 41570
+  - path: docs/context/BOOT.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient, docs-navigation]
+    persona: null
+    title: "BOOT — the tier-0 agent capsule"
+    answers: "Read this first, and often read nothing else. This file answers the ten-fact knowledge"
+    bytes: 17673
+  - path: docs/context/README.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient, docs-navigation]
+    persona: null
+    title: "Context Module"
+    answers: "Start here (agents): BOOT.md — tier 0 · AGENT-CONTEXT-INDEX.yaml — task routing"
+    bytes: 5832
+  - path: docs/context/business-problem-statement.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient, docs-navigation]
+    persona: null
+    title: "AU Small Finance Bank (AU SFB) Insurance Distribution Platform — Comprehensive Business & Problem Statement RAG Context"
+    answers: "Consolidated Knowledge Base: Synthesized from docs/au-bank-insurance-platform/ and docs/platform/architecture-review/"
+    bytes: 30341
+  - path: docs/context/context-manifest.yaml
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient, docs-navigation]
+    persona: null
+    title: "context manifest"
+    answers: "YAML record; first key `schema_version`"
+    bytes: 6606
+  - path: docs/context/framework/CONTEXT-MODEL.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [context-reuse]
+    persona: null
+    title: "Context Model"
+    answers: "context-manifest.yaml is the module entry point. It declares:"
+    bytes: 1507
+  - path: docs/context/framework/LOADING-PROTOCOL.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [context-reuse]
+    persona: null
+    title: "Loading Protocol"
+    answers: "Use this order for humans, agents and retrieval systems:"
+    bytes: 1319
+  - path: docs/context/framework/README.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [context-reuse]
+    persona: null
+    title: "Portable Context Framework"
+    answers: "This folder is the reusable part of the context module. It contains no bank, insurer, product,"
+    bytes: 2001
+  - path: docs/context/framework/templates/project/README.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [context-reuse]
+    persona: null
+    title: "{{PROJECT_NAME}} Context"
+    answers: "This folder is a project instance of the portable context framework."
+    bytes: 285
+  - path: docs/context/framework/templates/project/context-manifest.yaml
+    bucket: context
+    authority: non-binding-context
+    capsules: [context-reuse]
+    persona: null
+    title: "context manifest"
+    answers: "YAML record; first key `schema_version`"
+    bytes: 1117
+  - path: docs/context/framework/templates/project/problem-statement.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [context-reuse]
+    persona: null
+    title: "{{PROJECT_NAME}} — Problem Statement"
+    answers: "Describe the observable problem, affected actors and current cost. Separate evidence from"
+    bytes: 522
+  - path: docs/context/personas/AUTHORITY-QUICK-CARD.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "Authority Quick Card — who decides, who cannot"
+    answers: "One screen instead of 40 KB. Routing aid only. The canonical, binding source is"
+    bytes: 6296
+  - path: docs/context/personas/README.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "Persona Decision Cards — tier-1 context"
+    answers: "A card is how you adopt a persona. A package is where you go when the card sends you."
+    bytes: 3843
+  - path: docs/context/personas/aarti-database.card.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "Aarti — Principal Insurance Data & Database Architect / DBA · Decision Card"
+    answers: "Tier-1 card. Non-binding compression — canonical authority is"
+    bytes: 3045
+  - path: docs/context/personas/amit-engineering.card.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "Amit — Technical Head / Principal Engineering · Decision Card"
+    answers: "Tier-1 card. Non-binding compression — canonical authority is"
+    bytes: 2843
+  - path: docs/context/personas/ba-r11-business-analysis.card.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "Principal Insurance Platform Business Analyst (`R11`) · Decision Card"
+    answers: "Tier-1 card. Non-binding compression — canonical authority is"
+    bytes: 2853
+  - path: docs/context/personas/deepali-security.card.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "Deepali — Principal Security Architect / Security Head · Decision Card"
+    answers: "Tier-1 card. Non-binding compression — canonical authority is"
+    bytes: 3581
+  - path: docs/context/personas/kalpana-delivery.card.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "Kalpana — Principal Delivery Head / Delivery Lead · Decision Card"
+    answers: "Tier-1 card. Non-binding compression — canonical authority is"
+    bytes: 4090
+  - path: docs/context/personas/mahesh-architecture.card.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "Mahesh — Principal Insurance Platform Architect · Decision Card"
+    answers: "Tier-1 card. Adopt the persona from this file alone. Open the package only when a row in"
+    bytes: 6540
+  - path: docs/context/personas/rajal-product.card.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "Rajal — Principal Insurance Platform Product Owner · Decision Card"
+    answers: "Tier-1 card. Adopt the persona from this file alone. Non-binding compression — canonical"
+    bytes: 3776
+  - path: docs/context/personas/shailja-compliance.card.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "Shailja S — Compliance & Risk Head · Decision Card"
+    answers: "Tier-1 card. Non-binding compression — canonical authority is"
+    bytes: 3400
+  - path: docs/context/personas/shivanshi-sre.card.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "Shivanshi — Principal SRE / Reliability Engineering Head · Decision Card"
+    answers: "Tier-1 card. Non-binding compression — canonical authority is"
+    bytes: 3925
+  - path: docs/context/personas/swapnali-qa.card.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "Swapnali — Principal Insurance Quality Engineering / QA Lead · Decision Card"
+    answers: "Tier-1 card. Non-binding compression — canonical authority is"
+    bytes: 2963
+  - path: docs/context/roadmaps/README.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [target-state-vision, delivery-planning]
+    persona: architecture
+    title: "Roadmaps — exploratory transformation plans"
+    answers: "These roadmaps are thinking documents produced by the persona panel, not the programme"
+    bytes: 2673
+  - path: docs/context/roadmaps/agentic-ai-transformation-roadmap.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [target-state-vision, delivery-planning]
+    persona: architecture
+    title: "AU SFB Insurance Distribution Platform — Agentic AI Maturity Transformation Roadmap"
+    answers: "Document Version: 1.0"
+    bytes: 18213
+  - path: docs/context/roadmaps/brainstorming-roadmap-action-plan.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [target-state-vision, delivery-planning]
+    persona: architecture
+    title: "AU Small Finance Bank (AU SFB) Insurance Distribution Platform — Strategic Brainstorming, Roadmap & Action Plan"
+    answers: "Document Version: 1.0"
+    bytes: 27304
+  - path: docs/context/roles/README.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "Project Role Context"
+    answers: "Machine index: ../context-manifest.yaml"
+    bytes: 3724
+  - path: docs/context/roles/amit-technical-head-agentic-ai-evolution.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "Persona Training Module: Amit — Technical Head → Agentic AI Engineering Leader"
+    answers: "Persona Name: Amit"
+    bytes: 12307
+  - path: docs/context/roles/amit-technical-head.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "Persona RAG Context: Amit — Technical Head"
+    answers: "Persona Name: Amit"
+    bytes: 14510
+  - path: docs/context/roles/deepali-principal-security-architect/01-persona.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "01 — Deepali Security Persona"
+    answers: "Name: Deepali"
+    bytes: 7318
+  - path: docs/context/roles/deepali-principal-security-architect/02-security-capability-model.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "02 — Security Capability Model"
+    answers: "Deepali's capability model covers the full attack surface and control lifecycle. A security review should load only the sections relevant to the work…"
+    bytes: 8935
+  - path: docs/context/roles/deepali-principal-security-architect/03-authority-and-decision-rights.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "03 — Authority and Decision Rights"
+    answers: "Deepali owns the security outcome for platform design and delivery. Within Security jurisdiction she may be Owner, Accountable, Reviewer, Approver or…"
+    bytes: 7719
+  - path: docs/context/roles/deepali-principal-security-architect/04-network-and-trust-boundary-policy.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "04 — Network and Trust Boundary Policy"
+    answers: "Same VPC/VNet/subnet/cluster does not mean trusted."
+    bytes: 6042
+  - path: docs/context/roles/deepali-principal-security-architect/05-cryptography-key-and-secrets-management.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "05 — Cryptography, Key and Secrets Management"
+    answers: "Deepali owns the platform security requirements for encryption, signatures, hashing, certificates, key management, secrets and credential lifecycle.…"
+    bytes: 6569
+  - path: docs/context/roles/deepali-principal-security-architect/06-application-api-and-devsecops-security.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "06 — Application, API and DevSecOps Security"
+    answers: "Deepali requires application controls to enforce identity, authorization, input trust, data protection and abuse resistance at the correct boundary.…"
+    bytes: 7039
+  - path: docs/context/roles/deepali-principal-security-architect/07-data-third-party-and-insurance-security.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "07 — Data, Third-Party and Insurance Security"
+    answers: "Deepali protects data according to sensitivity, purpose, exposure and business consequence. She collaborates with Shailja for regulatory/privacy…"
+    bytes: 6430
+  - path: docs/context/roles/deepali-principal-security-architect/08-security-review-release-and-exception-contract.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "08 — Security Review, Release and Exception Contract"
+    answers: "Deepali uses a repeatable review model so Security decisions are evidence-based, proportional and traceable."
+    bytes: 6488
+  - path: docs/context/roles/deepali-principal-security-architect/09-threat-model-incident-and-evidence-policy.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "09 — Threat Model, Incident and Evidence Policy"
+    answers: "Deepali uses threat modelling to expose how a legitimate design could be abused or compromised. The method may use STRIDE, attack trees, abuse cases…"
+    bytes: 6460
+  - path: docs/context/roles/deepali-principal-security-architect/10-agent-interaction-and-maintenance.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "10 — Agent Interaction and Maintenance"
+    answers: "When an AI agent adopts Deepali it must first resolve:"
+    bytes: 5704
+  - path: docs/context/roles/deepali-principal-security-architect/README.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "Deepali — Principal Insurance Platform Security Architect / Security Head"
+    answers: "AIGEM mapping: Named reasoning persona for Board 4 — Security"
+    bytes: 6748
+  - path: docs/context/roles/kalpana-delivery-head/01-persona.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "01 — Kalpana Persona"
+    answers: "Name: Kalpana"
+    bytes: 7418
+  - path: docs/context/roles/kalpana-delivery-head/02-insurance-delivery-domain-and-capability-model.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "02 — Insurance Delivery Domain and Capability Model"
+    answers: "Kalpana must reason like a Delivery Head who understands the business chain, not a generic software scheduler."
+    bytes: 6722
+  - path: docs/context/roles/kalpana-delivery-head/03-authority-and-decision-rights.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "03 — Authority and Decision Rights"
+    answers: "Kalpana is the single canonical persona for the repository's existing R12 — Delivery Lead role."
+    bytes: 7990
+  - path: docs/context/roles/kalpana-delivery-head/04-delivery-planning-critical-path-and-parallelization.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "04 — Delivery Planning, Critical Path and Parallelization"
+    answers: "Kalpana plans from the business outcome backward:"
+    bytes: 6580
+  - path: docs/context/roles/kalpana-delivery-head/05-dependency-risk-decision-and-escalation-control.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "05 — Dependency, Risk, Decision and Escalation Control"
+    answers: "Every material delivery dependency should capture:"
+    bytes: 5672
+  - path: docs/context/roles/kalpana-delivery-head/06-release-recovery-and-fast-track-control.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "06 — Release, Recovery and Fast-Track Control"
+    answers: "Kalpana coordinates one integrated release-readiness picture across:"
+    bytes: 7451
+  - path: docs/context/roles/kalpana-delivery-head/07-delivery-metrics-cadence-and-maintenance.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "07 — Delivery Metrics, Cadence and Maintenance"
+    answers: "Kalpana never treats “percentage complete” as sufficient delivery health."
+    bytes: 6316
+  - path: docs/context/roles/kalpana-delivery-head/README.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "Kalpana — Principal Insurance Platform Delivery Head / Delivery Lead Persona Package"
+    answers: "Package version: 1.1"
+    bytes: 9324
+  - path: docs/context/roles/mahesh-principal-insurance-platform-architect/01-persona.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "01 — Mahesh, Principal Insurance Platform Architect"
+    answers: "You are Mahesh — Principal Insurance Platform Architect for the AU Bank Insurance Platform. You operate at Principal/Distinguished Architect depth…"
+    bytes: 5606
+  - path: docs/context/roles/mahesh-principal-insurance-platform-architect/02-capability-model.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "02 — Mahesh Architecture Capability Model"
+    answers: "This file defines the minimum competency expected from Mahesh — Principal Insurance Platform Architect. A review should draw only the depth required…"
+    bytes: 5509
+  - path: docs/context/roles/mahesh-principal-insurance-platform-architect/03-authority-and-decision-rights.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "03 — Mahesh Authority and Decision Rights"
+    answers: "This document defines what Mahesh — Principal Insurance Platform Architect may decide, what requires notification, what requires joint review with…"
+    bytes: 5767
+  - path: docs/context/roles/mahesh-principal-insurance-platform-architect/04-architecture-decision-framework.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "04 — Mahesh Architecture Decision Framework"
+    answers: "This is the deterministic decision method used by Mahesh — Principal Insurance Platform Architect for consequential architecture choices."
+    bytes: 5018
+  - path: docs/context/roles/mahesh-principal-insurance-platform-architect/05-compliance-collaboration.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "05 — Mahesh Collaboration with Shailja S"
+    answers: "This file defines Mahesh's architecture-side behavior when working with Shailja S — Compliance & Risk Head. The canonical bilateral contract is…"
+    bytes: 3563
+  - path: docs/context/roles/mahesh-principal-insurance-platform-architect/06-human-escalation-and-exceptions.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "06 — Mahesh Human Escalation and Architecture Exceptions"
+    answers: "This policy defines when Mahesh — Principal Insurance Platform Architect, or an AI simulation acting in his persona, must stop autonomous…"
+    bytes: 3522
+  - path: docs/context/roles/mahesh-principal-insurance-platform-architect/07-review-and-evidence-contract.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "07 — Mahesh Architecture Review and Evidence Contract"
+    answers: "This contract standardises how humans/agents request a review from Mahesh — Principal Insurance Platform Architect and how the architecture verdict…"
+    bytes: 3597
+  - path: docs/context/roles/mahesh-principal-insurance-platform-architect/08-maintenance-and-versioning.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "08 — Mahesh Persona Maintenance and Versioning"
+    answers: "This package is the modular architecture operating model for the single Mahesh — Principal Insurance Platform Architect persona. Changes must remain…"
+    bytes: 2620
+  - path: docs/context/roles/mahesh-principal-insurance-platform-architect/09-target-state-architecture-doctrine.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "09 — Mahesh Target-State and Vision Architecture Doctrine"
+    answers: "Files 01–08 train Mahesh — Principal Insurance Platform Architect to decide the next"
+    bytes: 29605
+  - path: docs/context/roles/mahesh-principal-insurance-platform-architect/10-north-star-capability-model.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "10 — Mahesh North Star Capability Model"
+    answers: "This is the artefact 09 §1 requires before any target-state diagram is drawn."
+    bytes: 43130
+  - path: docs/context/roles/mahesh-principal-insurance-platform-architect/11-line-of-business-segregation.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "11 — Mahesh Line-of-Business Segregation Doctrine"
+    answers: "This file answers one question with enough precision that it stops being re-argued:"
+    bytes: 16617
+  - path: docs/context/roles/mahesh-principal-insurance-platform-architect/12-journey-segregation.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "12 — Mahesh Journey Segregation Doctrine"
+    answers: "A journey is the most over-loaded concept on a distribution platform. Everyone uses the word, and"
+    bytes: 14896
+  - path: docs/context/roles/mahesh-principal-insurance-platform-architect/13-orchestration-doctrine.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "13 — Mahesh Orchestration Doctrine"
+    answers: "Insurance distribution is a long-running, multi-party, partially-observable business process. That"
+    bytes: 14257
+  - path: docs/context/roles/mahesh-principal-insurance-platform-architect/14-shared-capability-doctrine.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "14 — Mahesh Shared Capability Doctrine"
+    answers: "VIN-001 §3 asks it plainly: which capabilities should not be rebuilt three times?"
+    bytes: 15159
+  - path: docs/context/roles/mahesh-principal-insurance-platform-architect/15-actor-identity-and-authorization.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "15 — Mahesh Actor Identity and Authorization Doctrine"
+    answers: "Two things must be true at every horizon, and they pull in opposite directions if not stated"
+    bytes: 15269
+  - path: docs/context/roles/mahesh-principal-insurance-platform-architect/16-hld-authoring-and-update-protocol.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "16 — Mahesh HLD Authoring and Update Protocol"
+    answers: "This file makes updating the platform's high-level design a mechanical act rather than a"
+    bytes: 26364
+  - path: docs/context/roles/mahesh-principal-insurance-platform-architect/17-provider-aggregation-and-connectivity.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "17 — Mahesh Provider Aggregation and Connectivity Doctrine"
+    answers: "PR-01 — 1SB is a provider route, not a domain dependency."
+    bytes: 32619
+  - path: docs/context/roles/mahesh-principal-insurance-platform-architect/README.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "Mahesh — Principal Insurance Platform Architect Persona Package"
+    answers: "Package version: 1.2"
+    bytes: 14912
+  - path: docs/context/roles/mahesh-solution-architect-agentic-ai-evolution.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "Persona Training Module: Mahesh — Solution Architect → Agentic AI Solution Architect"
+    answers: "Persona Name: Mahesh"
+    bytes: 15412
+  - path: docs/context/roles/mahesh-solution-architect.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "Persona RAG Context: Mahesh — Principal Insurance Platform Architect"
+    answers: "Persona Name: Mahesh"
+    bytes: 9100
+  - path: docs/context/roles/principal-insurance-data-database-architect/01-persona.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "Principal Insurance Data & Database Architect / DBA — Persona"
+    answers: "Role: Principal Insurance Data & Database Architect / DBA"
+    bytes: 16497
+  - path: docs/context/roles/principal-insurance-data-database-architect/02-capability-model.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "Aarti — Principal Insurance Data & Database Architect / DBA — Capability Model"
+    answers: "This file defines the minimum technical and domain competency expected from Aarti — Principal Insurance Data & Database Architect / DBA."
+    bytes: 6154
+  - path: docs/context/roles/principal-insurance-data-database-architect/03-authority-and-decision-rights.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "Aarti — Principal Insurance Data & Database Architect / DBA — Authority & Decision Rights"
+    answers: "This file defines what Aarti, the canonical DBA persona, owns, what she may approve or block, what requires consultation, and what she is explicitly…"
+    bytes: 7553
+  - path: docs/context/roles/principal-insurance-data-database-architect/04-operating-and-review-contract.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "Aarti — Principal Insurance Data & Database Architect / DBA — Operating & Review Contract"
+    answers: "This file defines how Aarti, the canonical DBA persona, receives work, collaborates with other personas, records decisions and hands implementation…"
+    bytes: 7768
+  - path: docs/context/roles/principal-insurance-data-database-architect/README.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "Aarti — Principal Insurance Data & Database Architect / DBA Persona Package"
+    answers: "Package version: 1.1"
+    bytes: 5854
+  - path: docs/context/roles/principal-insurance-platform-architect/README.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "Principal Architect — Compatibility Redirect"
+    answers: "There is one Architecture persona. This historical path resolves to:"
+    bytes: 312
+  - path: docs/context/roles/principal-insurance-platform-business-analyst/01-persona.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "01 — Principal Insurance Platform Business Analyst Persona"
+    answers: "You are the Principal Insurance Platform Business Analyst, the named AI reasoning persona for"
+    bytes: 9301
+  - path: docs/context/roles/principal-insurance-platform-business-analyst/02-bancassurance-domain-and-capability-model.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "02 — Bancassurance Domain and Capability Model"
+    answers: "The Principal BA is analysing a regulated, long-running, multi-party financial-services lifecycle,"
+    bytes: 11303
+  - path: docs/context/roles/principal-insurance-platform-business-analyst/03-authority-and-decision-rights.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "03 — Authority and Decision Rights"
+    answers: "The Principal BA is the named reasoning persona for existing AIGEM R11 — Business Analyst."
+    bytes: 9646
+  - path: docs/context/roles/principal-insurance-platform-business-analyst/04-business-analysis-and-requirements-framework.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "04 — Business Analysis and Requirements Framework"
+    answers: "For every material capability or change, the Principal BA follows this sequence:"
+    bytes: 6673
+  - path: docs/context/roles/principal-insurance-platform-business-analyst/05-journey-rules-data-and-exception-model.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "05 — Journey, Rules, Data and Exception Model"
+    answers: "The Principal BA keeps process, state, rules, information, exceptions and evidence aligned. A"
+    bytes: 5630
+  - path: docs/context/roles/principal-insurance-platform-business-analyst/06-review-evidence-and-handoff-contract.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "06 — Review, Evidence and Handoff Contract"
+    answers: "Before a formal R11 review, the BA expects:"
+    bytes: 5969
+  - path: docs/context/roles/principal-insurance-platform-business-analyst/07-agent-interaction-and-maintenance.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "07 — Agent Interaction and Maintenance"
+    answers: "When asked to act as the Principal Insurance Platform Business Analyst, an AI agent must:"
+    bytes: 4897
+  - path: docs/context/roles/principal-insurance-platform-business-analyst/README.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "Principal Insurance Platform Business Analyst — R11 Persona Package"
+    answers: "Package version: 1.0"
+    bytes: 11803
+  - path: docs/context/roles/principal-insurance-platform-product-owner/01-persona.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "01 — Rajal: Principal Insurance Platform Product Owner"
+    answers: "Rajal is the Principal Insurance Platform Product Owner for a bank-owned digital insurance platform. She combines senior Product ownership with deep…"
+    bytes: 7092
+  - path: docs/context/roles/principal-insurance-platform-product-owner/02-domain-and-capability-model.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "02 — Domain and Capability Model"
+    answers: "Rajal must reason competently across the insurance lifecycle and recognise where specialist insurer, actuarial, underwriting, legal or compliance…"
+    bytes: 5503
+  - path: docs/context/roles/principal-insurance-platform-product-owner/03-authority-and-decision-rights.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "03 — Authority and Decision Rights"
+    answers: "One consequential decision has one accountable domain owner. Other roles may be mandatory reviewers or blockers within their own domain, but…"
+    bytes: 6077
+  - path: docs/context/roles/principal-insurance-platform-product-owner/04-product-decision-framework.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "04 — Product Decision Framework"
+    answers: "Every meaningful suggestion follows:"
+    bytes: 4128
+  - path: docs/context/roles/principal-insurance-platform-product-owner/05-platform-journey-and-product-governance.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "05 — Platform, Journey and Product Governance"
+    answers: "Rajal owns the business definition of each journey, including:"
+    bytes: 5137
+  - path: docs/context/roles/principal-insurance-platform-product-owner/06-registers-artifacts-and-traceability.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "06 — Registers, Artifacts and Traceability"
+    answers: "Product decisions must live in versioned artifacts/registers, not only in meetings or chat. Conversations may provide evidence; the maintained…"
+    bytes: 4500
+  - path: docs/context/roles/principal-insurance-platform-product-owner/07-agent-interaction-and-handoff-contract.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "07 — Agent Interaction and Handoff Contract"
+    answers: "Cross-persona communication is decision-oriented and artifact-driven. No persona should rely on informal chat memory for consequential decisions."
+    bytes: 5358
+  - path: docs/context/roles/principal-insurance-platform-product-owner/08-agentic-ai-product-governance.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "08 — Agentic AI Product Governance"
+    answers: "AI changes the actor model, not the underlying accountability model."
+    bytes: 4961
+  - path: docs/context/roles/principal-insurance-platform-product-owner/09-release-operations-and-kpi-model.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "09 — Release, Operations and KPI Model"
+    answers: "Code Complete is not Product Ready."
+    bytes: 3955
+  - path: docs/context/roles/principal-insurance-platform-product-owner/10-human-escalation-exceptions-and-conflicts.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "10 — Human Escalation, Exceptions and Conflict Resolution"
+    answers: "AI personas can recommend, simulate review and prepare evidence. They do not accept material organisational risk or impersonate approvals that…"
+    bytes: 4691
+  - path: docs/context/roles/principal-insurance-platform-product-owner/11-maintenance-and-versioning.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "11 — Maintenance and Versioning"
+    answers: "This package is the canonical operating persona for Rajal as Principal Insurance Platform Product Owner."
+    bytes: 3693
+  - path: docs/context/roles/principal-insurance-platform-product-owner/README.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "Rajal — Principal Insurance Platform Product Owner Persona Package"
+    answers: "Package version: 1.1"
+    bytes: 11877
+  - path: docs/context/roles/principal-insurance-platform-product-owner/executive-sponsor-perspective/01-dilip-business-and-bancassurance-lens.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "Dilip — Business & Bancassurance Executive Lens"
+    answers: "Purpose: reason from end-to-end bancassurance business need to the smallest justified business/digital intervention"
+    bytes: 9564
+  - path: docs/context/roles/principal-insurance-platform-product-owner/executive-sponsor-perspective/02-investment-outcome-and-metrics-model.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "Dilip — Investment, Outcome & Metrics Model"
+    answers: "Purpose: turn business proposals into evidence-backed investment decisions and measurable benefits"
+    bytes: 9207
+  - path: docs/context/roles/principal-insurance-platform-product-owner/executive-sponsor-perspective/03-invocation-and-decision-contract.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "Dilip — Invocation & Decision Contract"
+    answers: "Purpose: make sponsor-perspective intervention predictable, bounded and useful to P0/R0 and later business decisions"
+    bytes: 9105
+  - path: docs/context/roles/principal-insurance-platform-product-owner/executive-sponsor-perspective/README.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "Dilip — AI Executive Sponsor Perspective"
+    answers: "Classification: Product-side executive sponsor lens; not a new canonical AIGEM persona or review board"
+    bytes: 8735
+  - path: docs/context/roles/rajal-product-owner-agentic-ai-evolution.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "Rajal Agentic Product Governance — Compatibility Redirect"
+    answers: "This historical path is retained for external links. The maintained agentic Product contract is:"
+    bytes: 371
+  - path: docs/context/roles/rajal-product-owner.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "Rajal Product Owner — Compatibility Redirect"
+    answers: "This historical path is retained for external links. The only maintained Product context is:"
+    bytes: 347
+  - path: docs/context/roles/shailja-s-compliance-risk-head/01-persona.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "01 — Persona: Shailja S — Digital Insurance Compliance & Risk Head"
+    answers: "You are Shailja S, the Digital Insurance Platform Chief Compliance, Privacy, Cybersecurity & Technology Risk Officer Agent."
+    bytes: 9332
+  - path: docs/context/roles/shailja-s-compliance-risk-head/02-regulatory-registry.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "02 — Regulatory & Standards Registry"
+    answers: "This registry tells the persona where to look and how to classify authority. It is not intended to reproduce regulatory text."
+    bytes: 5492
+  - path: docs/context/roles/shailja-s-compliance-risk-head/03-control-catalogue.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "03 — Digital Insurance Platform Control Catalogue"
+    answers: "This is the persona's baseline control map. Controls are not automatically legal requirements. Each assessment must link a control to its actual…"
+    bytes: 7348
+  - path: docs/context/roles/shailja-s-compliance-risk-head/04-risk-taxonomy.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "04 — Risk Taxonomy & Severity Model"
+    answers: "This taxonomy separates risk severity (R0–R3) from AIGEM delivery priority (P1–P5). A low-effort fix can still address a severe risk, and a…"
+    bytes: 4305
+  - path: docs/context/roles/shailja-s-compliance-risk-head/05-decision-policy.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "05 — Decision Policy"
+    answers: "Produce decisions that are:"
+    bytes: 5731
+  - path: docs/context/roles/shailja-s-compliance-risk-head/06-evidence-policy.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "06 — Evidence & Confidence Policy"
+    answers: "Compliance decisions must be traceable to evidence. The agent must not convert memory, convention or another AI's assertion into a mandatory…"
+    bytes: 2769
+  - path: docs/context/roles/shailja-s-compliance-risk-head/07-human-exception-and-risk-acceptance.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "07 — Shailja S Human Exception, Flexibility & Risk-Acceptance Policy"
+    answers: "This policy provides the controlled flexibility required for real platform delivery without permitting serious compliance obligations to be bypassed."
+    bytes: 6483
+  - path: docs/context/roles/shailja-s-compliance-risk-head/08-agent-interaction-contract.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "08 — Agent Interaction Contract"
+    answers: "This contract standardises how developers, architects, product owners, other AI agents and governance workflows interact with Shailja S, the…"
+    bytes: 5229
+  - path: docs/context/roles/shailja-s-compliance-risk-head/09-examples.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "09 — Worked Decision Examples"
+    answers: "These examples illustrate behaviour. They are not substitutes for current regulatory/policy assessment."
+    bytes: 5623
+  - path: docs/context/roles/shailja-s-compliance-risk-head/10-maintenance-and-versioning.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "10 — Maintenance, Versioning & Governance"
+    answers: "A strong persona becomes unsafe if its regulatory/control knowledge becomes stale. Persona behaviour and regulatory knowledge must therefore be…"
+    bytes: 2900
+  - path: docs/context/roles/shailja-s-compliance-risk-head/README.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "Shailja S — Digital Insurance Compliance & Risk Head Agent"
+    answers: "Package version: 1.0"
+    bytes: 10159
+  - path: docs/context/roles/shared/architect-compliance-decision-protocol.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "Mahesh ↔ Shailja Architecture/Compliance Decision Protocol"
+    answers: "Participants: Mahesh — Principal Insurance Platform Architect ↔ Shailja S — Compliance & Risk Head"
+    bytes: 6312
+  - path: docs/context/roles/shared/cross-persona-operating-model.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "Cross-Persona Operating Model"
+    answers: "Participants: Rajal — Product ↔ Mahesh — Architecture ↔ Amit — Engineering ↔ Shivanshi — SRE/Operations ↔ Deepali — Security ↔ Aarti — Database/DBA ↔…"
+    bytes: 27722
+  - path: docs/context/roles/shared/delivery-cross-persona-decision-protocol.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "Delivery Cross-Persona Decision Protocol"
+    answers: "Participants: Kalpana — R12 Delivery Head / Delivery Lead ↔ Rajal — Product ↔ Mahesh — Architecture ↔ Amit — Engineering ↔ Deepali — Security ↔ Aarti…"
+    bytes: 9249
+  - path: docs/context/roles/shared/product-architecture-compliance-decision-protocol.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "Product ↔ Architecture ↔ Compliance Decision Protocol"
+    answers: "Participants: Rajal — Principal Insurance Platform Product Owner ↔ Principal Insurance Platform Architect / Mahesh ↔ Shailja S — Compliance & Risk…"
+    bytes: 10387
+  - path: docs/context/roles/shared/security-cross-persona-decision-protocol.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "Security Cross-Persona Decision Protocol"
+    answers: "Participants: Deepali — Security ↔ Rajal — Product ↔ Mahesh — Architecture ↔ Amit — Engineering ↔ Aarti — Database/DBA ↔ Swapnali — QA ↔ Shailja —…"
+    bytes: 8148
+  - path: docs/context/roles/shared/sre-cross-persona-decision-protocol.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "Shivanshi SRE Cross-Persona Decision Protocol"
+    answers: "Participants: Shivanshi / SRE ↔ Rajal / Product ↔ Mahesh / Architecture ↔ Amit / Engineering ↔ Deepali / Security ↔ Aarti / Database ↔ Swapnali / QA…"
+    bytes: 8088
+  - path: docs/context/roles/shivanshi-sre/01-persona.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "01 — Shivanshi Persona"
+    answers: "Shivanshi — Principal Insurance Platform Site Reliability Engineer / Reliability Engineering Head"
+    bytes: 6134
+  - path: docs/context/roles/shivanshi-sre/02-insurance-banking-and-bancassurance-domain.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "02 — Insurance, Banking & Bancassurance Domain Model for SRE"
+    answers: "Shivanshi does not operate a generic web application. She operates a bank-owned insurance distribution platform whose reliability must be judged in…"
+    bytes: 7302
+  - path: docs/context/roles/shivanshi-sre/03-authority-and-decision-rights.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "03 — Shivanshi Authority & Decision Rights"
+    answers: "Shivanshi is the named repository persona for existing AIGEM R10 — DevOps / SRE and Board 7 — Operations."
+    bytes: 10636
+  - path: docs/context/roles/shivanshi-sre/04-platform-infrastructure-and-cicd.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "04 — Platform Infrastructure & CI/CD"
+    answers: "Shivanshi creates a shared, reproducible and safe runtime/delivery platform so individual development teams do not repeatedly solve the same…"
+    bytes: 6940
+  - path: docs/context/roles/shivanshi-sre/05-observability-incidents-resilience-and-dr.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "05 — Observability, Incidents, Resilience & Disaster Recovery"
+    answers: "A production transaction should be diagnosable end-to-end without asking ten teams to manually correlate screenshots and log files."
+    bytes: 8124
+  - path: docs/context/roles/shivanshi-sre/06-business-aware-capacity-and-scaling.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "06 — Business-Aware Capacity & Scaling"
+    answers: "Scale because the business workload and bottleneck require it — not because one dashboard line is red."
+    bytes: 6706
+  - path: docs/context/roles/shivanshi-sre/07-developer-experience-and-toil-reduction.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "07 — Developer Experience & Toil Reduction"
+    answers: "If every service team must learn Kubernetes internals, invent deployment YAML, wire logging differently, debug CI/CD by hand and ask SRE for routine…"
+    bytes: 6233
+  - path: docs/context/roles/shivanshi-sre/08-operations-review-release-and-exception-contract.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "08 — Operations Review, Release & Exception Contract"
+    answers: "This file extends, never replaces, the existing AIGEM Board 7 — Operations checks."
+    bytes: 6804
+  - path: docs/context/roles/shivanshi-sre/09-agent-interaction-and-maintenance.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "09 — Agent Interaction & Maintenance"
+    answers: "When invoked as Shivanshi, the AI agent operates as the repository's Principal Insurance Platform SRE / Reliability Engineering Head and named…"
+    bytes: 6119
+  - path: docs/context/roles/shivanshi-sre/README.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "Shivanshi — Principal Insurance Platform SRE / Reliability Engineering Head"
+    answers: "Canonical identity: Shivanshi"
+    bytes: 7353
+  - path: docs/context/roles/swapnali-qa-lead/01-persona.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "01 — Swapnali Persona"
+    answers: "Swapnali is the Principal Insurance Quality Engineering Lead / QA Lead for the bank-insurance platform."
+    bytes: 2938
+  - path: docs/context/roles/swapnali-qa-lead/02-domain-and-capability-model.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "02 — Insurance Domain & Quality Capability Model"
+    answers: "Swapnali understands and can test the lifecycle:"
+    bytes: 3770
+  - path: docs/context/roles/swapnali-qa-lead/03-authority-and-decision-rights.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "03 — Authority & Decision Rights"
+    answers: "Swapnali owns/accountably governs:"
+    bytes: 4050
+  - path: docs/context/roles/swapnali-qa-lead/04-risk-based-test-strategy.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "04 — Risk-Based Test Strategy"
+    answers: "For each change Swapnali evaluates:"
+    bytes: 3038
+  - path: docs/context/roles/swapnali-qa-lead/05-critical-journeys-and-non-bypassable-gates.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "05 — Critical Journeys & Non-Bypassable Quality Gates"
+    answers: "The following require strong evidence whenever materially changed. Testing cannot be waived merely for schedule pressure."
+    bytes: 2919
+  - path: docs/context/roles/swapnali-qa-lead/06-release-waiver-and-operating-contract.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "06 — Release, Waiver & Operating Contract"
+    answers: "Swapnali issues one quality recommendation:"
+    bytes: 3361
+  - path: docs/context/roles/swapnali-qa-lead/07-quality-metrics-and-maintenance.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "07 — Quality Metrics, Evidence & Persona Maintenance"
+    answers: "Do not create competing metric copies."
+    bytes: 2855
+  - path: docs/context/roles/swapnali-qa-lead/README.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "Swapnali — Principal Insurance Quality Engineering / QA Lead Persona Package"
+    answers: "Package version: 1.0"
+    bytes: 5947
+  - path: docs/context/schemas/context-manifest.schema.json
+    bucket: context
+    authority: non-binding-context
+    capsules: [context-reuse]
+    persona: null
+    title: "context manifest.schema"
+    answers: "\"title\": \"Portable Context Module Manifest\""
+    bytes: 3924
+  - path: docs/governance/00-GOVERNANCE.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "00 — Governance Charter"
+    answers: "Custodian: Platform / Solution Architect"
+    bytes: 12896
+  - path: docs/governance/01-CURRENT_STATE.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "01 — Current State (Context Resolution)"
+    answers: "Pipeline step: 1 — Context Resolution"
+    bytes: 10065
+  - path: docs/governance/02-PROJECT_SCOPE.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "02 — Project Scope (Scope Validation)"
+    answers: "Pipeline step: 3 — Scope Validation"
+    bytes: 8132
+  - path: docs/governance/03-LIFECYCLE.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "03 — Lifecycle Model & Stage Fit"
+    answers: "Pipeline step: 2 — Lifecycle Validation"
+    bytes: 9992
+  - path: docs/governance/04-STAGE_GATES.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "04 — Stage Gates"
+    answers: "A stage gate is a written, checkable list of exit criteria. It exists so that:"
+    bytes: 8528
+  - path: docs/governance/05-PRIORITY_MODEL.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "05 — Priority Model (P1–P5)"
+    answers: "Pipeline step: 6 — Priority Scoring"
+    bytes: 10853
+  - path: docs/governance/06-WORK_CLASSIFICATION.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "06 — Work Classification & Breakdown"
+    answers: "Pipeline steps: 5 — Work Classification · 8 — Work Breakdown Analysis"
+    bytes: 12826
+  - path: docs/governance/07-DEPENDENCY_MODEL.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "07 — Dependency Model & Execution Ordering"
+    answers: "Pipeline step: 7 — Dependency Analysis (and the ordering step after approval)"
+    bytes: 8804
+  - path: docs/governance/08-BACKLOG_RULES.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "08 — Backlog Rules"
+    answers: "Every input ends somewhere. Admitted, parked, rejected, escalated, or duplicated — but"
+    bytes: 9301
+  - path: docs/governance/09-AI_EXECUTION_RULES.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "09 — AI Execution Rules (The Agent Contract)"
+    answers: "Read this file before acting on anything."
+    bytes: 11276
+  - path: docs/governance/10-IMPLEMENTATION_PLAN_TEMPLATE.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "10 — Implementation Plan"
+    answers: "Pipeline step: 9 — Implementation Plan"
+    bytes: 7077
+  - path: docs/governance/11-REVIEW_GATES.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "11 — Multi-Agent Review Gates"
+    answers: "Pipeline step: 10 — Multi-Agent Review → Approval Gate"
+    bytes: 30185
+  - path: docs/governance/12-DEFINITION_OF_READY.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "12 — Definition of Ready"
+    answers: "A work item is READY when the next person — human or agent — can start it without asking a"
+    bytes: 5079
+  - path: docs/governance/13-DEFINITION_OF_DONE.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "13 — Definition of Done"
+    answers: "Companion: ROLE-GUIDELINES-AND-DOD.md — role-level DoD, still binding"
+    bytes: 6142
+  - path: docs/governance/14-CHANGE_CONTROL.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "14 — Change Control"
+    answers: "A CR-### is required to change any of the fixed points the pipeline depends on:"
+    bytes: 10532
+  - path: docs/governance/15-TECH_DEBT_POLICY.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "15 — Technical Debt Policy"
+    answers: "Ledger: service-ssot/TECH-DEBT.md"
+    bytes: 6578
+  - path: docs/governance/16-DECISION_MODEL.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "16 — Decision Model: Necessity, Evidence, Confidence"
+    answers: "Pipeline step: 4 — Necessity Assessment (and the confidence gate that governs steps 9–14)"
+    bytes: 10910
+  - path: docs/governance/17-DRIFT_CONTROL.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "17 — Drift Control: Detection and Return"
+    answers: "Drift is the gap between the approved plan and what is actually being built. It is rarely a"
+    bytes: 8710
+  - path: docs/governance/18-GOVERNANCE_METRICS.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "18 — Governance Metrics & Health"
+    answers: "Quality metric steward: Swapnali — QA Lead"
+    bytes: 14892
+  - path: docs/governance/19-PORTING_GUIDE.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "19 — Porting AIGEM to Another Repository"
+    answers: "Purpose: install this framework in a new repo in under an hour"
+    bytes: 6888
+  - path: docs/governance/DELIVERY-CONTROL-SYSTEM.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "Delivery Control System (DCS)"
+    answers: "Operator: Kalpana — Principal Insurance Platform Delivery Head / Delivery Lead — AIGEM R12"
+    bytes: 15778
+  - path: docs/governance/ORG-STANDARDS.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "Layer 2 — Organization Standards"
+    answers: "Layer 2 holds the standards that are true for every project in the organization and that"
+    bytes: 5231
+  - path: docs/governance/PERSONA-AUTHORITY-MATRIX.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "Persona Authority, Accountability & Decision Rights Matrix"
+    answers: "This is the canonical segregation-of-duties reference for platform personas. It defines who owns a domain, who is accountable, who implements, who…"
+    bytes: 40530
+  - path: docs/governance/README.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "AIGEM — AI Governance & Execution Model"
+    answers: "Custodian: Platform / Solution Architect"
+    bytes: 19541
+  - path: docs/governance/RUNBOOK.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "AIGEM Operating Runbook"
+    answers: "This is the only governance file most people need to read."
+    bytes: 59697
+  - path: docs/governance/autopilot/README.md
+    bucket: governance
+    authority: binding-process
+    capsules: [delivery-planning, plan-work]
+    persona: delivery
+    title: "Safe Autopilot Operating Mode"
+    answers: "Autopilot is a work-conserving scheduler and evidence assembler, not an approval substitute."
+    bytes: 1982
+  - path: docs/governance/change-requests/CR-002-principal-architect-persona-integration.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "CR-002 — Mahesh Principal Insurance Platform Architect Consolidation"
+    answers: "Type: GOV"
+    bytes: 5924
+  - path: docs/governance/change-requests/CR-003-principal-dba-and-persona-authority-matrix.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "CR-003 — Principal Insurance DBA & Cross-Persona Authority Matrix"
+    answers: "Type: GOV"
+    bytes: 7696
+  - path: docs/governance/change-requests/CR-004-name-dba-persona-aarti.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "CR-004 — Name the Principal Insurance DBA Persona Aarti"
+    answers: "Type: GOV"
+    bytes: 3751
+  - path: docs/governance/change-requests/CR-005-swapnali-qa-lead-persona-and-quality-metrics.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "CR-005 — Swapnali QA Lead Persona & Quality Metrics Integration"
+    answers: "Type: GOV"
+    bytes: 3118
+  - path: docs/governance/change-requests/CR-006-add-deepali-security-architect.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "CR-006 — Add Deepali as Principal Insurance Platform Security Architect / Security Head"
+    answers: "Requested date: 2026-08-14"
+    bytes: 4096
+  - path: docs/governance/change-requests/CR-007-add-kalpana-delivery-head-and-dcs.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "CR-007 — Assign R12 Delivery Lead to Kalpana and Add Delivery Control System"
+    answers: "Change request: CR-007"
+    bytes: 8911
+  - path: docs/governance/change-requests/CR-008-add-shivanshi-sre-persona.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "CR-008 — Assign AIGEM R10 / Board 7 Operations to Shivanshi and Mature the SRE Persona"
+    answers: "Change request: CR-008"
+    bytes: 8473
+  - path: docs/governance/change-requests/CR-009-governance-flow-recalibration.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "CR-009 — Governance Flow Recalibration"
+    answers: "Change request: CR-009"
+    bytes: 13614
+  - path: docs/governance/change-requests/CR-010-context-module-and-safe-autopilot.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "CR-010 — Reusable Context Module and Safe Autopilot Foundation"
+    answers: "Change request: CR-010"
+    bytes: 6258
+  - path: docs/governance/change-requests/CR-010/verdicts/README.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "CR-010 — Board verdicts"
+    answers: "Change request: CR-010 — Reusable Context Module and Safe Autopilot Foundation"
+    bytes: 9363
+  - path: docs/governance/change-requests/CR-010/verdicts/board-1-architecture-mahesh.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "Board 1 — Architecture · Verdict on CR-010"
+    answers: "Change request: CR-010 — Reusable Context Module and Safe Autopilot Foundation"
+    bytes: 26873
+  - path: docs/governance/change-requests/CR-010/verdicts/board-3-product-rajal.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "Board 3 — Product · Verdict on CR-010"
+    answers: "Board: 3 — Product · AIGEM role: R1"
+    bytes: 19837
+  - path: docs/governance/change-requests/CR-010/verdicts/board-4-security-deepali.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "Board 4 — Security · Verdict on CR-010"
+    answers: "Change request: CR-010 — Reusable Context Module and Safe Autopilot Foundation"
+    bytes: 21556
+  - path: docs/governance/change-requests/CR-010/verdicts/board-5-qa-swapnali.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "Board 5 — QA · Verdict on CR-010"
+    answers: "This document is an AI simulation of Swapnali's QA reasoning, authored by the Rajal (Product)"
+    bytes: 13462
+  - path: docs/governance/change-requests/CR-010/verdicts/board-6-compliance-shailja.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "Board 6 — Risk & Compliance · Verdict on CR-010"
+    answers: "This document is an AI simulation of Shailja's compliance reasoning, authored by the Rajal"
+    bytes: 16458
+  - path: docs/governance/change-requests/CR-010/verdicts/board-7-operations-shivanshi.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "Board 7 — Operations · Verdict on CR-010"
+    answers: "Change request: CR-010 — Reusable Context Module and Safe Autopilot Foundation"
+    bytes: 18874
+  - path: docs/governance/change-requests/CR-010/verdicts/dba-aarti.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "Database / DBA Specialist · Verdict on CR-010"
+    answers: "Change request: CR-010 — Reusable Context Module and Safe Autopilot Foundation"
+    bytes: 23378
+  - path: docs/governance/change-requests/CR-010/verdicts/r12-delivery-kalpana.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "R12 — Delivery · Verdict on CR-010"
+    answers: "This document is an AI simulation of Kalpana's delivery reasoning, authored by the Rajal"
+    bytes: 16159
+  - path: docs/governance/change-requests/CR-010/verdicts/r3-engineering-amit.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "R3 — Engineering · Verdict on CR-010"
+    answers: "Change request: CR-010 — Reusable Context Module and Safe Autopilot Foundation"
+    bytes: 14437
+  - path: docs/governance/change-requests/CR-011-mahesh-target-state-north-star-doctrine.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "CR-011 — Mahesh Target-State / North Star Architecture Doctrine"
+    answers: "Type: GOV"
+    bytes: 10482
+  - path: docs/governance/plans/PLAN-001-context-module-and-safe-autopilot.md
+    bucket: governance
+    authority: binding-process
+    capsules: [delivery-planning, plan-work]
+    persona: delivery
+    title: "PLAN-001 — Reusable Context Module and Safe Autopilot"
+    answers: "objective: The repository has one portable context contract and an evidence-driven automation loop that continues safe READY work while preserving…"
+    bytes: 6023
+  - path: docs/governance/registers/ASSUMPTION-REGISTER.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, delivery-planning]
+    persona: null
+    title: "Assumption Register"
+    answers: "Beliefs the plan rests on that have not been verified. Every assumption has an expiry, a"
+    bytes: 3131
+  - path: docs/governance/registers/DECISION-REGISTER.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, delivery-planning]
+    persona: null
+    title: "Decision Register"
+    answers: "Index of decisions that constrain future work: ADRs, change requests, stage transitions, and"
+    bytes: 28498
+  - path: docs/governance/registers/DEPENDENCY-REGISTER.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, delivery-planning]
+    persona: null
+    title: "Dependency Register"
+    answers: "Edges of the dependency graph. Edges outlive the items that discovered them, so they are"
+    bytes: 4399
+  - path: docs/governance/registers/PARKED-BACKLOG.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, delivery-planning]
+    persona: null
+    title: "Parked Backlog"
+    answers: "Parked is not deleted. Every entry names the stage that unparks it and the observable"
+    bytes: 6248
+  - path: docs/governance/registers/RISK-REGISTER.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, delivery-planning]
+    persona: null
+    title: "Risk Register"
+    answers: "Open risks with owners, triggers, and responses. A risk is not a problem — it is a problem"
+    bytes: 4361
+  - path: docs/governance/registers/SUGGESTION-REGISTER.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, delivery-planning]
+    persona: null
+    title: "Suggestion Register"
+    answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
+    bytes: 58647
+  - path: docs/governance/schemas/README.md
+    bucket: governance
+    authority: binding-process
+    capsules: [plan-work, board-review]
+    persona: null
+    title: "Schemas"
+    answers: "JSON Schema (draft 2020-12) definitions for every AIGEM artefact. They exist so a record can be"
+    bytes: 4527
+  - path: docs/governance/schemas/approval-gate.schema.json
+    bucket: governance
+    authority: binding-process
+    capsules: [plan-work, board-review]
+    persona: null
+    title: "approval gate.schema"
+    answers: "\"title\": \"AIGEM Approval Gate\""
+    bytes: 9786
+  - path: docs/governance/schemas/current-state.schema.json
+    bucket: governance
+    authority: binding-process
+    capsules: [plan-work, board-review]
+    persona: null
+    title: "current state.schema"
+    answers: "\"title\": \"AIGEM Current State\""
+    bytes: 8600
+  - path: docs/governance/schemas/gate-evidence.schema.json
+    bucket: governance
+    authority: binding-process
+    capsules: [plan-work, board-review]
+    persona: null
+    title: "gate evidence.schema"
+    answers: "\"title\": \"AIGEM Gate Evidence Ledger\""
+    bytes: 5599
+  - path: docs/governance/schemas/implementation-plan.schema.json
+    bucket: governance
+    authority: binding-process
+    capsules: [plan-work, board-review]
+    persona: null
+    title: "implementation plan.schema"
+    answers: "\"title\": \"AIGEM Implementation Plan\""
+    bytes: 10792
+  - path: docs/governance/schemas/review-verdict.schema.json
+    bucket: governance
+    authority: binding-process
+    capsules: [plan-work, board-review]
+    persona: null
+    title: "review verdict.schema"
+    answers: "\"title\": \"AIGEM Review Verdict\""
+    bytes: 4197
+  - path: docs/governance/schemas/triage-record.schema.json
+    bucket: governance
+    authority: binding-process
+    capsules: [plan-work, board-review]
+    persona: null
+    title: "triage record.schema"
+    answers: "\"title\": \"AIGEM Triage Record\""
+    bytes: 17944
+  - path: docs/governance/schemas/work-item.schema.json
+    bucket: governance
+    authority: binding-process
+    capsules: [plan-work, board-review]
+    persona: null
+    title: "work item.schema"
+    answers: "\"title\": \"AIGEM Work Item\""
+    bytes: 11647
+  - path: docs/governance/state/CURRENT-STATE.yaml
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, delivery-planning]
+    persona: null
+    title: "CURRENT STATE"
+    answers: "AIGEM — Machine-readable current state"
+    bytes: 29781
+  - path: docs/governance/state/GATE-EVIDENCE.yaml
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, delivery-planning]
+    persona: null
+    title: "GATE EVIDENCE"
+    answers: "YAML record; first key `schema_version`"
+    bytes: 11051
+  - path: docs/governance/state/REVIEW-LOG.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, delivery-planning]
+    persona: null
+    title: "Governance Artefact Review Log"
+    answers: "Read by: scripts/governance/FreshnessCheck.java"
+    bytes: 3133
+  - path: docs/governance/templates/ADR.md
+    bucket: governance
+    authority: binding-process
+    capsules: [plan-work, board-review]
+    persona: null
+    title: "Template — Architecture Decision Record"
+    answers: "Index new ADRs in ../registers/DECISION-REGISTER.md and,"
+    bytes: 2844
+  - path: docs/governance/templates/EPIC.md
+    bucket: governance
+    authority: binding-process
+    capsules: [plan-work, board-review]
+    persona: null
+    title: "Template — Epic"
+    answers: "An epic exists when two or more epic triggers hold"
+    bytes: 2960
+  - path: docs/governance/templates/IMPLEMENTATION-PLAN.md
+    bucket: governance
+    authority: binding-process
+    capsules: [plan-work, board-review]
+    persona: null
+    title: "Template — Implementation Plan"
+    answers: "Guidance: 10-IMPLEMENTATIONPLANTEMPLATE.md"
+    bytes: 4078
+  - path: docs/governance/templates/REVIEW-VERDICT.md
+    bucket: governance
+    authority: binding-process
+    capsules: [plan-work, board-review]
+    persona: null
+    title: "Template — Review Verdict"
+    answers: "One record per board, per plan. Boards, checklists, and aggregation rules:"
+    bytes: 5301
+  - path: docs/governance/templates/TRIAGE-RECORD.md
+    bucket: governance
+    authority: binding-process
+    capsules: [plan-work, board-review]
+    persona: null
+    title: "Template — Triage Record"
+    answers: "The pipeline's output for one input. Produced for every requirement, bug, suggestion, or"
+    bytes: 5358
+  - path: docs/governance/templates/WORK-ITEM.md
+    bucket: governance
+    authority: binding-process
+    capsules: [plan-work, board-review]
+    persona: null
+    title: "Template — Work Item (Story / Task / Bug / Spike)"
+    answers: "Schema: ../schemas/work-item.schema.json"
+    bytes: 3813
+  - path: docs/governance/workstreams/README.md
+    bucket: governance
+    authority: binding-process
+    capsules: [delivery-planning, plan-work]
+    persona: delivery
+    title: "Workstream charters"
+    answers: "Purpose: the long-form, human-authored definition behind each workstreams: entry in"
+    bytes: 3089
+  - path: docs/governance/workstreams/WS-3-PLATFORM-CHARTER.md
+    bucket: governance
+    authority: binding-process
+    capsules: [delivery-planning, plan-work]
+    persona: delivery
+    title: "WS-3 — AU Bank Insurance Distribution Platform · Workstream Charter"
+    answers: "Author: Rajal — Principal Insurance Platform Product Owner (Board 3 / R1)"
+    bytes: 35099
+  - path: docs/hdl.svg
+    bucket: root
+    authority: navigation
+    capsules: [docs-navigation, orient]
+    persona: null
+    title: "hdl"
+    answers: "Rendered diagram — read the companion .md for the binding text"
+    bytes: 142306
+  - path: docs/platform/README.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review]
+    persona: architecture
+    title: "Platform — cross-cutting architecture & specifications"
+    answers: "A document belongs in platform/ when it is true of the platform as a whole — service"
+    bytes: 4162
+  - path: docs/platform/architecture-review/01-executive-summary-and-approach.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, board-review]
+    persona: architecture
+    title: "01 — Executive Summary & Approach"
+    answers: "AU Bank wants a bank-owned, insurer-agnostic Insurance Distribution Platform, not a single integration script. The charter (00-project-charter.md) is…"
+    bytes: 7522
+  - path: docs/platform/architecture-review/02-target-microservices-architecture.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, board-review]
+    persona: architecture
+    title: "02 — Target Microservices Architecture"
+    answers: "Each service = one bounded context from knowledge-base/03-capability-map.md / 07-information-model-and-rules.md, owns one write-model / one…"
+    bytes: 8002
+  - path: docs/platform/architecture-review/03-communication-patterns.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, board-review]
+    persona: architecture
+    title: "03 — Communication Patterns: Sync vs. Async"
+    answers: "If a human (RM or customer) is on-screen waiting for the result within the same interaction, the call is synchronous request/response. If the result…"
+    bytes: 7227
+  - path: docs/platform/architecture-review/04-aws-infrastructure-architecture.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, board-review]
+    persona: architecture
+    title: "04 — AWS Infrastructure Architecture"
+    answers: "Constraint honored throughout: AWS-only, Kubernetes (Amazon EKS) as the compute substrate, elastic by design."
+    bytes: 8887
+  - path: docs/platform/architecture-review/05-data-architecture.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, board-review]
+    persona: architecture
+    title: "05 — Data Architecture"
+    answers: "Amended 2026-08-20 by ADR-008. This section previously"
+    bytes: 9477
+  - path: docs/platform/architecture-review/06-security-compliance-and-nfrs.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, board-review]
+    persona: architecture
+    title: "06 — Security, Compliance & Non-Functional Requirements"
+    answers: "The business SSOT is explicit that several compliance questions are not yet answered, and this review does not pretend otherwise…"
+    bytes: 6554
+  - path: docs/platform/architecture-review/07-delivery-roadmap-and-estimate.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, board-review]
+    persona: architecture
+    title: "07 — Delivery Roadmap & Timeline Estimate"
+    answers: "No existing document in this repository commits to a delivery timeline — the business SSOT deliberately scopes what (MVP = Life only, ETB, Group A+B,…"
+    bytes: 4918
+  - path: docs/platform/architecture-review/08-architecture-decision-log.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, board-review]
+    persona: architecture
+    title: "08 — Architecture Decision Log (this review)"
+    answers: "ID scheme: ARCH-xxx — deliberately distinct from the business/scope D-xxx and process DOC-xxx IDs in docs/au-bank-insurance-platform/DECISION-LOG.md,…"
+    bytes: 56182
+  - path: docs/platform/architecture-review/README.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, board-review]
+    persona: architecture
+    title: "Architecture Review — AU Bank Insurance Distribution Platform"
+    answers: "Role: Solution Architect independent review"
+    bytes: 5013
+  - path: docs/platform/authentication-authorization/README.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [security-review, architecture-review, code-change]
+    persona: security
+    title: "Workforce Authentication and Authorization — Service SSOT"
+    answers: "Primary identity provider for development: Keycloak"
+    bytes: 18293
+  - path: docs/platform/ws3-platform/00-WS3-ARCHITECTURE-REGISTRATION.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, code-change]
+    persona: architecture
+    title: "WS-3 — Architecture Registration Proposal"
+    answers: "Proposed under: CR-010"
+    bytes: 30156
+  - path: docs/platform/ws3-platform/01-domain-model-and-invariants.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, code-change]
+    persona: architecture
+    title: "WS-3 — Platform Domain Model, State Machines and Invariants"
+    answers: "Co-owner for the logical data model: Aarti — Principal Insurance Data & Database Architect"
+    bytes: 67575
+  - path: docs/platform/ws3-platform/02-information-model.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, code-change]
+    persona: architecture
+    title: "WS-3 — Platform Information Model"
+    answers: "(04-GATE-AND-SIGNOFF-MODEL.md §5);"
+    bytes: 33442
+  - path: docs/platform/ws3-platform/03-solution-architecture-r0.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, code-change]
+    persona: architecture
+    title: "WS-3 — Ratified Solution Architecture for the R0 Slice"
+    answers: "security sign-off (S07-G3/G4) and Aarti's data sign-off (S07-G5) are mandatory and separate."
+    bytes: 32143
+  - path: docs/platform/ws3-platform/04-security-architecture.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, code-change]
+    persona: architecture
+    title: "WS-3 — Security Architecture for the R0 Slice"
+    answers: "Jurisdiction: S07-E03 is Deepali's epic. Deepali owns the security property, the residual"
+    bytes: 24166
+  - path: docs/platform/ws3-platform/05-nfr-catalogue.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, code-change]
+    persona: architecture
+    title: "WS-3 — Measurable NFR Catalogue"
+    answers: "Owners: Mahesh (Architecture) + Rajal (business derivation) + Shivanshi (feasibility and"
+    bytes: 16451

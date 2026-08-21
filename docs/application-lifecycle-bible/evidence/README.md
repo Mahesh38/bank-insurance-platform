@@ -40,8 +40,10 @@ Each file follows one shape:
 | **S03** Business Requirements | [`S03-requirements-evidence.md`](./S03-requirements-evidence.md) | `CLOSED-WITH-CONDITIONS` | **GAP-008** (60 G/W/T criteria + 12 exception criteria) · **GAP-016** (attribute sheets) · traceability matrix · GAP-014 behaviour half | Swapnali's testability review · stakeholder acceptance |
 | **S04** Product Definition & Release Slicing | [`S04-product-definition-evidence.md`](./S04-product-definition-evidence.md) | `CLOSED-WITH-CONDITIONS` | **GAP-012** (12 quote rules) · **GAP-013** (11 matrix dimensions + R0 population rule) · product routing PR-01…06 · **19 technical enablers — S04-VT-06 moves FAIL → PASS** | R0 insurer named · Kalpana's sizing and critical path |
 | **S05** Experience Design | [`S05-experience-evidence.md`](./S05-experience-evidence.md) | `CLOSED-WITH-CONDITIONS` | **GAP-009** (18-screen inventory mapped to requirements) · service blueprint · flow · 18×4 state catalogue · design-system spec · accessibility standard | **Consent/disclosure copy** · brand substitution · usability validation with real RMs and customers |
+| **S06** Domain & Information Architecture | [`S06-domain-architecture-evidence.md`](./S06-domain-architecture-evidence.md) | `CLOSED-WITH-CONDITIONS` | Bounded contexts, domain and information architecture verified against the repository rather than asserted | Logical data model attributes — **GAP-016** |
+| **S07** Solution & Security Architecture | [`S07-solution-architecture-evidence.md`](./S07-solution-architecture-evidence.md) | `CLOSED-WITH-CONDITIONS` | **GAP-017** — 58-NFR catalogue, each with a number, a measurement method, a verification stage and a business derivation · authorisation model · Board 1 verdict | Signatures on the Board verdicts |
 
-**Six stages, six `CLOSED-WITH-CONDITIONS`.** Not one `CLOSED`, and that is the honest result:
+**Eight stages, eight `CLOSED-WITH-CONDITIONS`.** Not one `CLOSED`, and that is the honest result:
 every stage now has every artefact Product can produce, and every stage still needs at least one
 human act — a signature, an approval, a test with real people — that no document and no AI can
 supply.

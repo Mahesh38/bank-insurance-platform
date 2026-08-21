@@ -10,10 +10,13 @@ agent — it adds no separate rules.
 java scripts/governance/FreshnessCheck.java                        # 0 fresh · 1 warn · 2 do NOT admit new work
 cat docs/context/BOOT.md                                           # tier 0 — the ten facts
 python3 scripts/context/context-load.py resolve "<the request>"    # -> the exact files to read
+python3 scripts/context/context-load.py find "<a specific fact>"   # -> the one document holding it
 ```
 
-Then read exactly what the capsule lists. `docs/` holds ~4.3 MB across 427 files; exploring it
-costs more context than the work does, and the index already knows the answer.
+Then read exactly what the capsule lists. `docs/` holds ~4.3 MB across 441 files; exploring it
+costs more context than the work does, and the index already knows the answer. Every one of those
+files has a routed row in [`DOC-MAP.yaml`](./docs/context/DOC-MAP.yaml), so `find` beats grep and
+"I could not find it" means it does not exist.
 
 ## Four rules that override the instinct to be helpful immediately
 

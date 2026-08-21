@@ -8,6 +8,7 @@ and prints only what to read.
   python3 scripts/context/context-load.py list
   python3 scripts/context/context-load.py show architecture-review
   python3 scripts/context/context-load.py resolve "is the payment callback secure"
+  python3 scripts/context/context-load.py find "premium field mapping"
   python3 scripts/context/context-load.py validate     # CI: paths, anchors, budgets
 
 Needs PyYAML only. This tool ROUTES; it never decides. docs/governance/ always wins.
@@ -35,6 +36,8 @@ except ImportError as exc:  # pragma: no cover
 ROOT = Path(__file__).resolve().parents[2]
 INDEX = ROOT / "docs/context/AGENT-CONTEXT-INDEX.yaml"
 MANIFEST = ROOT / "docs/context/context-manifest.yaml"
+DOC_MAP = ROOT / "docs/context/DOC-MAP.yaml"
+REL = "scripts/context/context-load.py"
 
 # Kept byte-identical in behaviour to ci-checks.py::slug so an anchor that passes
 # the link check also passes here.
@@ -184,6 +187,100 @@ def cmd_resolve(index: dict, text: str) -> int:
     return cmd_show(index, best[2]["id"])
 
 
+# --- find: the long tail, without exploring it --------------------------------
+# `resolve` answers "what does this KIND of task always need". `find` answers the
+# other question — "which single document holds this specific fact". Before DOC-MAP
+# existed the only way to answer it was to walk README hubs or grep 4.3 MB, and both
+# spend the context window that the capsule system exists to protect.
+
+STOPWORDS = {
+    "the", "a", "an", "of", "for", "to", "in", "on", "is", "are", "and", "or", "what",
+    "which", "how", "do", "does", "we", "i", "it", "this", "that", "with", "be", "our",
+    "where", "when", "why", "should", "can", "was", "were", "as", "at", "by", "from",
+}
+
+
+def load_doc_map() -> dict:
+    if not DOC_MAP.exists():
+        raise SystemExit(
+            "docs/context/DOC-MAP.yaml is missing — run: python3 scripts/context/build-doc-map.py"
+        )
+    return yaml.safe_load(DOC_MAP.read_text(encoding="utf-8"))
+
+
+def terms_of(text: str) -> list[str]:
+    words = re.findall(r"[a-z0-9][a-z0-9\-]{1,}", text.lower())
+    return [w for w in words if w not in STOPWORDS] or words
+
+
+def cmd_find(index: dict, text: str, limit: int, capsule_filter: str | None) -> int:
+    doc_map = load_doc_map()
+    terms = terms_of(text)
+    if not terms:
+        print("nothing to search for", file=sys.stderr)
+        return 2
+
+    scored = []
+    for row in doc_map["documents"]:
+        if capsule_filter and capsule_filter not in (row.get("capsules") or []):
+            continue
+        path = row["path"]
+        meta = f"{path} {row.get('title') or ''} {row.get('answers') or ''}".lower()
+        # Metadata is the strong signal: a term in the path or title means the document
+        # is ABOUT the thing. Body matches only break ties between metadata hits.
+        score = 0
+        matched = set()
+        for term in terms:
+            if term in meta:
+                score += 10
+                matched.add(term)
+            if term in path.lower():
+                score += 6
+        if not score:
+            continue
+        scored.append((score, len(matched), row))
+
+    # Body scan, restricted to plausible candidates so a query never reads the corpus.
+    if len(scored) < limit:
+        for row in doc_map["documents"]:
+            if capsule_filter and capsule_filter not in (row.get("capsules") or []):
+                continue
+            if any(r["path"] == row["path"] for _, _, r in scored):
+                continue
+            file_path = ROOT / row["path"]
+            if file_path.suffix.lower() not in {".md", ".yaml", ".yml", ".json"}:
+                continue
+            if not file_path.exists() or file_path.stat().st_size > 400_000:
+                continue
+            body = file_path.read_text(encoding="utf-8", errors="ignore").lower()
+            matched = {t for t in terms if t in body}
+            if len(matched) == len(terms) and matched:
+                scored.append((len(matched), len(matched), row))
+
+    if not scored:
+        print(f"no document matched {text!r}.")
+        print("Widen the terms, or resolve the task to a capsule instead:")
+        print(f'  python3 {REL} resolve "{text}"')
+        return 1
+
+    scored.sort(key=lambda s: (s[0], s[1], -s[2]["bytes"]), reverse=True)
+    shown = scored[:limit]
+    print(f"{len(scored)} document(s) matched {text!r} — showing {len(shown)}\n")
+    for score, _, row in shown:
+        capsules = ", ".join(row.get("capsules") or []) or "-"
+        print(f"  {row['path']}  ({row['bytes']:,}B)")
+        if row.get("title"):
+            print(f"      {row['title']}")
+        if row.get("answers"):
+            print(f"      {row['answers']}")
+        persona = row.get("persona") or "none"
+        print(f"      authority: {row['authority']} · capsule: {capsules} · persona: {persona}")
+        print()
+    print("Read the capsule first (rule CTX-1), then open only the row you need.")
+    print("Cite what you read by path and anchor (rule CTX-6).")
+    return 0
+
+
 def cmd_validate(index: dict) -> int:
     problems: list[str] = []
 
@@ -280,6 +377,10 @@ def main() -> int:
     show.add_argument("capsule")
     resolve = sub.add_parser("resolve", help="match free text to a capsule")
     resolve.add_argument("text", nargs="+")
+    find = sub.add_parser("find", help="which document holds this specific fact")
+    find.add_argument("text", nargs="+")
+    find.add_argument("--limit", type=int, default=6, help="rows to show (default 6)")
+    find.add_argument("--capsule", help="restrict to documents this capsule may open")
     sub.add_parser("validate", help="paths, anchors, budgets and manifest agreement")
     args = parser.parse_args()
 
@@ -290,6 +391,8 @@ def main() -> int:
         return cmd_show(index, args.capsule)
     if args.command == "resolve":
         return cmd_resolve(index, " ".join(args.text))
+    if args.command == "find":
+        return cmd_find(index, " ".join(args.text), args.limit, args.capsule)
     return cmd_validate(index)
 
 

@@ -100,6 +100,9 @@ resolve L3 first.** See [01-CURRENT_STATE.md](./01-CURRENT_STATE.md).
 | — | [change-requests/CR-003-principal-dba-and-persona-authority-matrix.md](./change-requests/CR-003-principal-dba-and-persona-authority-matrix.md) | Principal DBA specialist authority and canonical cross-persona authority matrix |
 | — | [change-requests/CR-008-add-shivanshi-sre-persona.md](./change-requests/CR-008-add-shivanshi-sre-persona.md) | Assign/mature existing R10 / Board 7 Operations as Shivanshi without adding a board |
 | — | [change-requests/CR-009-governance-flow-recalibration.md](./change-requests/CR-009-governance-flow-recalibration.md) | Recalibrate the framework for flow; close the persona roster at nine |
+| — | [change-requests/CR-010-context-module-and-safe-autopilot.md](./change-requests/CR-010-context-module-and-safe-autopilot.md) | Reusable context module, safe autopilot, WS-3 lifecycle — [board verdicts](./change-requests/CR-010/verdicts/README.md) |
+| — | [change-requests/CR-011-mahesh-target-state-north-star-doctrine.md](./change-requests/CR-011-mahesh-target-state-north-star-doctrine.md) | Target-state / North Star architecture doctrine · **PENDING RATIFICATION** |
+| — | [workstreams/README.md](./workstreams/README.md) | How WS-1, WS-2 and WS-3 relate, and which one owns a given change |
 
 ### Persona operating model
 

@@ -5,7 +5,7 @@
 **Owner:** Platform Product Owner  
 **Status:** Heading structure **approved by PO** — detailed requirements to be written under each section  
 **Version:** 1.0  
-**Related:** [Working Decisions](../07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md) · [R0-SCOPE.md](./R0-SCOPE.md) · [knowledge-base/](../knowledge-base/README.md) · [po-drive/](../po-drive/README.md)
+**Related:** [Working Decisions](../07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md) · [R0-SCOPE.md](./R0-SCOPE.md) · [knowledge-base/](../knowledge-base/README.md) · [po-drive/](../po-drive/00-PO-PROJECT-VIEW.md)
 
 ---
 

@@ -21,6 +21,7 @@ Checks:
   8. semantic state references and narrative/machine versions agree
   9. cost of governance is reported (never a gate)
  10. the agent context index resolves: paths, anchors, budgets, manifest agreement
+ 12. every document under docs/ is routed by DOC-MAP and the map is not stale
  11. docs/context/BOOT.md has not drifted from CURRENT-STATE.yaml
 
 Usage:  python3 scripts/governance/ci-checks.py [--quiet]
@@ -395,6 +396,27 @@ def check_boot_capsule(quiet: bool) -> None:
         ok("generated block is current", quiet)
 
 
+# --- 12. every document in docs/ is routed, and the map is not stale ----------
+def check_doc_map(quiet: bool) -> None:
+    """A document nothing routes to is a document no agent will ever open.
+
+    The capsule index routes tasks; DOC-MAP routes documents. Before it existed, 20
+    files under docs/ were unreachable by any link path and 96 more sat three or more
+    hops away — written, reviewed, and then invisible. This check makes that state
+    impossible to reintroduce: add a document without a routing rule and CI fails."""
+    print("\n[12] Every document in docs/ is routed and DOC-MAP is current")
+    result = subprocess.run(
+        [sys.executable, os.path.join(ROOT, "scripts", "context", "build-doc-map.py"), "--check"],
+        capture_output=True, text=True,
+    )
+    if result.returncode != 0:
+        for line in (result.stdout + result.stderr).splitlines():
+            if line.strip():
+                fail(f"doc map: {line.strip()}")
+    else:
+        ok(result.stdout.strip(), quiet)
+
+
 def check_governance_cost(quiet: bool) -> None:
     """Report the documentation-to-code ratio (18 section 2, Cost of governance).
 
@@ -467,6 +489,7 @@ def main() -> int:
     check_governance_cost(args.quiet)
     check_context_index(args.quiet)
     check_boot_capsule(args.quiet)
+    check_doc_map(args.quiet)
 
     print()
     if failures:

@@ -67,6 +67,11 @@ rules:
     rule: "Generated files (BOOT.md's state block, backlog/jira-import.csv) are never hand-edited. Regenerate them."
   - id: CTX-9
     rule: "Two capsules maximum per turn. Needing three means the task is not decomposed — say so."
+  - id: CTX-10
+    rule: >-
+      Hunting one specific fact is a `find`, not an explore. `context-load.py find "<fact>"`
+      queries DOC-MAP.yaml, where every document under docs/ has a row. Never grep docs/ and
+      never walk README hubs to locate a file.
 
 # ---------------------------------------------------------------------------
 # Personas — card first, package only on a named condition.
@@ -112,6 +117,242 @@ personas:
     manifest_role: delivery
     card: "docs/context/personas/kalpana-delivery.card.md"
     package: "docs/context/roles/kalpana-delivery-head/"
+
+# ---------------------------------------------------------------------------
+# Document routing — the long tail, routed.
+#
+# The capsules above route a TASK to its always-load set: small, ordered, budgeted.
+# That leaves the long tail — one field guide, one extracted schema, one stage's
+# evidence pack — reachable only by walking README hubs. Measured before these rules
+# existed: 96 documents sat 3+ hops from this index and 20 were unreachable at all.
+# Present in the repository, invisible in practice, and exactly the granular detail
+# an agent must not lose.
+#
+# These rules give every tracked document one row in the generated DOC-MAP.yaml.
+# Ordered MOST-SPECIFIC FIRST; first match wins. Adding a folder is an edit here,
+# never a code change.
+#
+#   python3 scripts/context/build-doc-map.py               # regenerate the map
+#   python3 scripts/context/context-load.py find "<need>"  # query it
+#
+# `authority` is what a document can SETTLE — not how good it is. It mirrors the six
+# buckets in docs/README.md and never overrides the precedence list at the top of
+# this file.
+# ---------------------------------------------------------------------------
+doc_routing:
+  rules:
+
+    # --- governance: process, registers and machine-checked records --------
+    - match: ["docs/governance/registers/*"]
+      bucket: governance
+      authority: binding-process
+      capsules: [triage, plan-work, delivery-planning]
+      persona: null
+      note: "Grep targets (rule CTX-5). Search for the ID; never load a 34 KB register to append a row."
+
+    - match: ["docs/governance/state/*"]
+      bucket: governance
+      authority: binding-process
+      capsules: [triage, delivery-planning]
+      persona: null
+      note: "BOOT.md already answers facts 1-9 from here. Open only for a field the capsule omits."
+
+    - match: ["docs/governance/schemas/*", "docs/governance/templates/*"]
+      bucket: governance
+      authority: binding-process
+      capsules: [plan-work, board-review]
+      persona: null
+
+    - match: ["docs/governance/change-requests/**"]
+      bucket: governance
+      authority: binding-process
+      capsules: [triage, board-review]
+      persona: null
+
+    - match: ["docs/governance/workstreams/*", "docs/governance/plans/*", "docs/governance/autopilot/*"]
+      bucket: governance
+      authority: binding-process
+      capsules: [delivery-planning, plan-work]
+      persona: delivery
+
+    - match: ["docs/governance/*"]
+      bucket: governance
+      authority: binding-process
+      capsules: [triage, plan-work, board-review]
+      persona: null
+
+    # --- lifecycle: which stage, what it must produce, when it is done -----
+    - match: ["docs/application-lifecycle-bible/stages/*"]
+      bucket: lifecycle
+      authority: proposed-cr-010
+      capsules: [plan-work, delivery-planning]
+      persona: delivery
+
+    - match: ["docs/application-lifecycle-bible/evidence/*"]
+      bucket: lifecycle
+      authority: proposed-cr-010
+      capsules: [board-review, qa-review, delivery-planning]
+      persona: quality
+
+    - match: ["docs/application-lifecycle-bible/backlog/*", "docs/application-lifecycle-bible/templates/*"]
+      bucket: lifecycle
+      authority: proposed-cr-010
+      capsules: [delivery-planning, plan-work]
+      persona: delivery
+
+    - match: ["docs/application-lifecycle-bible/*"]
+      bucket: lifecycle
+      authority: proposed-cr-010
+      capsules: [orient, plan-work, delivery-planning]
+      persona: delivery
+
+    # --- context: the agent's own routing layer ----------------------------
+    - match: ["docs/context/personas/*"]
+      bucket: context
+      authority: non-binding-context
+      capsules: [board-review]
+      persona: null
+      note: "Tier 1 cards, 3-6 KB. Always prefer a card to a package (rule CTX-2)."
+
+    - match: ["docs/context/roles/**"]
+      bucket: context
+      authority: non-binding-context
+      capsules: [board-review]
+      persona: null
+      note: "Tier 2 packages. Open ONE named file, only when a card's `Load deeper` row matches."
+
+    - match: ["docs/context/framework/**", "docs/context/schemas/*"]
+      bucket: context
+      authority: non-binding-context
+      capsules: [context-reuse]
+      persona: null
+
+    - match: ["docs/context/roadmaps/*"]
+      bucket: context
+      authority: non-binding-context
+      capsules: [target-state-vision, delivery-planning]
+      persona: architecture
+
+    - match: ["docs/context/*"]
+      bucket: context
+      authority: non-binding-context
+      capsules: [orient, docs-navigation]
+      persona: null
+
+    # --- platform: cross-cutting, applies to every service -----------------
+    - match: ["docs/platform/authentication-authorization/*"]
+      bucket: platform
+      authority: approved-spec
+      capsules: [security-review, architecture-review, code-change]
+      persona: security
+
+    - match: ["docs/platform/architecture-review/*"]
+      bucket: platform
+      authority: approved-spec
+      capsules: [architecture-review, board-review]
+      persona: architecture
+
+    - match: ["docs/platform/ws3-platform/*"]
+      bucket: platform
+      authority: approved-spec
+      capsules: [architecture-review, target-state-vision, code-change]
+      persona: architecture
+
+    - match: ["docs/platform/*"]
+      bucket: platform
+      authority: approved-spec
+      capsules: [architecture-review]
+      persona: architecture
+
+    - match: ["docs/architecture/*"]
+      bucket: platform
+      authority: approved-spec
+      capsules: [architecture-review, target-state-vision, orient]
+      persona: architecture
+
+    # --- business SSOT: what we are building and why -----------------------
+    - match: ["docs/au-bank-insurance-platform/requirements/*", "docs/au-bank-insurance-platform/rule-packs/*"]
+      bucket: business
+      authority: business-ssot
+      capsules: [business-analysis, product-decision]
+      persona: business-analysis
+
+    - match: ["docs/au-bank-insurance-platform/po-drive/**"]
+      bucket: business
+      authority: business-ssot
+      capsules: [product-decision, delivery-planning]
+      persona: product
+
+    - match: ["docs/au-bank-insurance-platform/knowledge-base/*", "docs/au-bank-insurance-platform/references/*"]
+      bucket: business
+      authority: business-ssot
+      capsules: [orient, product-decision, business-analysis]
+      persona: product
+
+    - match: ["docs/au-bank-insurance-platform/artefacts/**"]
+      bucket: business
+      authority: business-ssot
+      capsules: [business-analysis, product-decision]
+      persona: business-analysis
+      note: "Source intake — PDFs and design exports. Cite the derived requirement, not the upload."
+
+    - match: ["docs/au-bank-insurance-platform/*"]
+      bucket: business
+      authority: business-ssot
+      capsules: [product-decision, orient]
+      persona: product
+
+    # --- 1SB module: how the adapter is built ------------------------------
+    - match: ["docs/1sb-insurance-integration/field-guides/*"]
+      bucket: module-1sb
+      authority: engineering-ssot
+      capsules: [1sb-integration-change, code-change]
+      persona: engineering
+      note: "Per-field mandatory/when/why. The answer to most mapping questions is one file here."
+
+    - match: ["docs/1sb-insurance-integration/reference/extracted-schemas/*"]
+      bucket: module-1sb
+      authority: engineering-ssot
+      capsules: [1sb-integration-change]
+      persona: engineering
+      note: "Raw provider payload shapes. Evidence for a mapping, never the bank's canonical model."
+
+    - match: ["docs/1sb-insurance-integration/canonical-model/*"]
+      bucket: module-1sb
+      authority: engineering-ssot
+      capsules: [1sb-integration-change, architecture-review]
+      persona: architecture
+
+    - match: ["docs/1sb-insurance-integration/service-ssot/**"]
+      bucket: module-1sb
+      authority: engineering-ssot
+      capsules: [1sb-integration-change, code-change]
+      persona: engineering
+
+    - match: ["docs/1sb-insurance-integration/architecture/*"]
+      bucket: module-1sb
+      authority: engineering-ssot
+      capsules: [1sb-integration-change, architecture-review]
+      persona: architecture
+
+    - match: ["docs/1sb-insurance-integration/api-catalog/*", "docs/1sb-insurance-integration/journeys/*", "docs/1sb-insurance-integration/reference/*"]
+      bucket: module-1sb
+      authority: engineering-ssot
+      capsules: [1sb-integration-change]
+      persona: engineering
+
+    - match: ["docs/1sb-insurance-integration/*"]
+      bucket: module-1sb
+      authority: engineering-ssot
+      capsules: [1sb-integration-change, orient]
+      persona: engineering
+
+    # --- docs root ---------------------------------------------------------
+    - match: ["docs/*"]
+      bucket: root
+      authority: navigation
+      capsules: [docs-navigation, orient]
+      persona: null
 
 # ---------------------------------------------------------------------------
 # Capsules — one per task intent.

@@ -48,3 +48,5 @@ operational behaviour — she does not own their conclusions.
 | Quality metrics | `07-quality-metrics-and-maintenance.md` |
 | How tests are written here | [`service-ssot/TESTING-RULES.md`](../../1sb-insurance-integration/service-ssot/TESTING-RULES.md) |
 | Module strategy and backlog | [`QA-LEAD-TESTING-STRATEGY.md`](../../1sb-insurance-integration/service-ssot/QA-LEAD-TESTING-STRATEGY.md) · [`TEST-BACKLOG.md`](../../1sb-insurance-integration/service-ssot/TEST-BACKLOG.md) |
+| Full persona voice, beyond this card's compression | `01-persona.md` |
+| Insurance domain and quality capability depth | `02-domain-and-capability-model.md` |

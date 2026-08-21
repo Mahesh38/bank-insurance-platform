@@ -37,6 +37,8 @@ platform/          — all-service specs     au-bank-insurance-platform/ — pro
 > **agents** read [`context/BOOT.md`](./context/BOOT.md) — the tier-0 capsule that answers the
 > ten-fact knowledge contract from generated state — then resolve the task to its capsule with
 > `python3 scripts/context/context-load.py resolve "<the request>"` and read only what it lists.
+> Chasing one specific fact instead? `context-load.py find "<the fact>"` — every document below
+> has a routed row in [`DOC-MAP.yaml`](./context/DOC-MAP.yaml), so there is never a reason to grep.
 > **Humans** read your [role card in `RUNBOOK.md §6`](./governance/RUNBOOK.md#6-role-cards).
 > A suggestion is never implemented in the turn it is raised — it is triaged and recorded.
 
@@ -75,6 +77,7 @@ docs/
 ├── context/                           PORTABLE MODEL + PROJECT OVERLAY + AGENT ROUTING
 │   ├── BOOT.md                            TIER 0 — the only file an agent reads by default
 │   ├── AGENT-CONTEXT-INDEX.yaml           TIER 1 — task -> exact, budgeted read list
+│   ├── DOC-MAP.yaml                       TIER 1 — every doc routed (generated); query with `find`
 │   ├── personas/                          TIER 1 — persona decision cards (3-6 KB each)
 │   ├── context-manifest.yaml              Machine-readable layers, roles, load profiles
 │   ├── framework/                         Reusable model, loading protocol, templates

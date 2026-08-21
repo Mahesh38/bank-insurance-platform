@@ -8,6 +8,8 @@
 
 **Portable framework:** [`framework/`](./framework/README.md)
 
+**Manifest contract:** [`schemas/context-manifest.schema.json`](./schemas/context-manifest.schema.json) — what `validate-context.py` checks a manifest against
+
 **Binding precedence:** [`docs/README.md`](../README.md#which-document-wins)
 
 This module gives humans, agents and retrieval systems enough grounded context to understand a
@@ -20,9 +22,10 @@ governance, business, platform and engineering SSOTs decide.
 context/
 ├── BOOT.md                   TIER 0 — the ten facts, generated from CURRENT-STATE.yaml
 ├── AGENT-CONTEXT-INDEX.yaml  TIER 1 — task -> exact, budgeted read list (19 capsules)
+├── DOC-MAP.yaml              TIER 1 — every document under docs/, routed (generated)
 ├── personas/                 TIER 1 — decision cards; adopt a persona in 3-6 KB
 ├── context-manifest.yaml     active project, layers, roles and loading profiles
-├── schemas/                  portable manifest contract
+├── schemas/                  portable manifest contract — context-manifest.schema.json
 ├── framework/                reusable, domain-neutral model and templates
 ├── business-problem-statement.md
 ├── roles/                    TIER 2 — full role packages; opened only on a named condition

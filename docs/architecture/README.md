@@ -9,6 +9,11 @@ Two diagrams, deliberately. They answer different questions and **neither replac
 | [`R0-HLD.md`](./R0-HLD.md) | *Walk the R0 picture in prose: domain, ten boundaries, communication, APIs, business logic, waves vs stages vs releases* | Stakeholder HLD. Compiled view of the authoritative `ws3-platform/` sources. AI-drafted, T4 outstanding |
 | [`R0-LLD.md`](./R0-LLD.md) | *What AWS resources, VPC, reverse proxies, PVCs, databases and caches does the platform team provision for R0?* | S09 requirements pack for the CTO and AWS platform team. AI-drafted; Security / Database / SRE reviews outstanding |
 | [`r0-lld.svg`](./r0-lld.svg) | *Where does each R0 service sit on AWS, and what must not be provisioned?* | Rendering of `R0-LLD.md`. Owns nothing (`HA-02`) |
+| [`r0-platform-topology.svg`](./r0-platform-topology.svg) | *What runs where — zones, subnets, namespaces, the two-hop proxy?* | Rendering of `R0-LLD.md`. **Generated** from [`diagrams/`](./diagrams/README.md). Owns nothing (`HA-02`) |
+| [`r0-platform-az.svg`](./r0-platform-az.svg) | *Which availability zone does each resource sit in?* | Rendering of `R0-LLD.md` §2.1 |
+| [`r0-platform-dr.svg`](./r0-platform-dr.svg) | *What exists in `ap-south-2`, and what deliberately does not?* | Rendering of `R0-LLD.md` §11.1 |
+| [`r0-platform-sequence.svg`](./r0-platform-sequence.svg) | *In what order does the platform team build it?* | Rendering of `R0-LLD.md` §12.1 |
+| [`r0-platform-payment.svg`](./r0-platform-payment.svg) | *Where does the money actually go?* | Rendering of `R0-LLD.md` §3 and §11 |
 
 ## Why both
 
@@ -172,3 +177,93 @@ An **R0 → R1 → R2 transition and dependency map**. The North Star shows the 
 roadmap band shows what lands when, but neither tells delivery the *order* in which components
 must appear, or which target components are prerequisites for others. That is the next diagram,
 and it is Kalpana's (R12) input as much as Architecture's. Tracked as parked `SUG-20260820-r1t`.
+
+## Revision — 2026-08-20 platform-request round
+
+`SUG-20260820-pt9` added a third H0 rendering for the AWS platform / landing-zone team — first
+as a hand-authored `r0-platform-topology.svg`, superseded the same day by the generated set below
+(`SUG-20260820-ic3`). It exists because three of the six questions that team actually asks were not answered anywhere:
+
+| Question | Where it was answered before | Where it is answered now |
+|---|---|---|
+| What kind of application is this? | `R0-HLD.md` §1–§3 | unchanged — restated on the picture |
+| What services do we need? | `R0-LLD.md` §12 · `03-solution-architecture-r0.md` §3 | unchanged |
+| How many reverse proxies, and where? | `R0-LLD.md` §3 | unchanged — drawn as a per-hop responsibility table |
+| **Which availability zone does each resource sit in?** | nowhere — the sources said "3 AZs" and "min 2 AZ" and stopped | **`R0-LLD.md` §2.1**, rendered as the AZ placement matrix |
+| **What DR services do we provision, and are they running?** | nowhere as a resource list — §11 gave the posture only | **`R0-LLD.md` §11.1**, rendered as `D1`…`D12` |
+| **When is each resource needed?** | nowhere — no map from an AWS resource to an S09 story or a build wave | **`R0-LLD.md` §12.1**, rendered as bands `P0`…`P8` plus the wave-precondition table |
+
+`HA-03` was followed: all three gaps were closed in `R0-LLD.md` first, and the SVG renders them.
+No AWS service appears that `R0-LLD.md` §1.1/§1.2 did not already name, and the DO NOT PROVISION
+list is carried through unchanged — the point of the file is to make the R0 boundary *easier* to
+hold under a landing-zone conversation, not to widen it.
+
+`HA-09` in [`16-hld-authoring-and-update-protocol.md §3`](../context/roles/mahesh-principal-insurance-platform-architect/16-hld-authoring-and-update-protocol.md#3-horizon-rendering)
+now states why three H0 renderings coexist and what each may assert.
+
+**Still unsigned.** The pack is `AI-DRAFTED`. Deepali (Security), Aarti (Database), Shivanshi (SRE)
+and Shailja (Compliance) reviews are outstanding, and the mandatory human T4 Architecture sign-off
+is outstanding. Two decisions inside it belong to named humans and are tagged as such: Aurora
+Global versus backup-restore for DR (Aarti), and the CBS / Bank AD connectivity pattern (Shivanshi
+with the bank network team).
+
+## Revision — 2026-08-20 icon-notation round
+
+`SUG-20260820-ic3` replaced the hand-authored `r0-platform-topology.svg` with five **generated**
+diagrams that use the official AWS and Kubernetes icons. The content did not change; the notation
+did, and the change was requested for a reason worth recording:
+
+> *"I'm not looking for all those boxes. I'm looking for the actual images or the logos — when you
+> are using a Kubernetes cluster it should show that this is the Kubernetes cluster."*
+
+That is a fair reading of the audience. A landing-zone conversation happens with people who read
+AWS diagrams all day, and a wall of labelled rectangles asks them to translate before they can
+review. The SVG was also authored by hand, which made it slow to change and impossible to diff
+usefully — the exact failure `HA-03` exists to prevent.
+
+**What replaced it:** a generated set built with [`mingrammer/diagrams`](https://diagrams.mingrammer.com)
+and Graphviz (itself superseded later the same day — see the next section). The icon sets ship inside
+the pip wheel, so no image is vendored here and nothing is fetched at render time.
+
+**Why five files and not one.** The first attempt drew everything on one canvas and was
+unreadable: eleven services in one row made it 7,000 pixels wide, and the C4 payment path — which
+runs device → PG → callback → back into the VPC — looped backwards across the whole picture. Each
+file now answers exactly one of the questions the platform team asks. The tabular content that the
+old SVG carried (the AZ matrix, `D1…D12`, `P0…P8`) was never diagram content in the first place;
+it lives in `R0-LLD.md` §2.1, §11.1 and §12.1, which is where it belongs and where it already was.
+
+**One defect worth naming**, because it is the kind that survives review: the first render placed an
+Aurora *writer* in all three availability zones. The zone test was `"A" in zone`, and `"A"` is in
+`"AVAILABILITY"`. A diagram that asserts a Multi-AZ topology it does not have is worse than no
+diagram, which is the whole of `HA-02` in one bug.
+
+## Revision — 2026-08-20 orthogonal-layout round
+
+`SUG-20260820-lay4` kept the icons and threw away the layout engine. The five views are the same
+five views; what changed is that nothing in them is positioned by an algorithm any more.
+
+The reason was a fair reading of the first attempt:
+
+> *"They are not well aligned, not well positioned, and not correctly linked. The links move
+> randomly here and there, crossing and curving. It should be straight lines, diverted at ninety
+> degrees only."*
+
+That is the standard failure mode of a layered layout engine, not a tuning problem. Graphviz's
+`splines=ortho` was tried first and rejected on evidence: it produces the 90-degree lines, but it
+detaches edge labels from their edges and routes connectors straight through cluster borders, and
+node positions are still the engine's choice rather than a deliberate grid.
+
+**What replaced it:** [`diagrams/svgcanvas.py`](./diagrams/README.md), a small canvas where every
+element sits at a coordinate the source file names and every connector is a run of axis-aligned
+segments the source file routes. Corridors are constants (`COL`, `LANE_EGRESS`), so two connectors
+sharing a lane is a recorded decision rather than an accident. Output is now **SVG** — self-contained,
+with the icons embedded as base64 — plus a PNG companion for tools that will not take an SVG.
+
+**Two defects this surfaced**, both of the kind that only a rendered look will catch:
+
+- Vertical connectors were being drawn straight **through their own node's caption**, because a
+  bottom port started at the icon's edge and the label hangs below it. Fixed in the canvas rather
+  than per diagram: `Node.port("B")` now clears the label block.
+- Edge labels relied on the SVG `paint-order` property for their white halo. cairosvg and older
+  librsvg ignore it, which renders the label as a white smear — in exactly the viewers a platform
+  team is most likely to use. Labels now sit on a real plate.

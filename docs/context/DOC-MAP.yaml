@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 441
-total_bytes: 4664350
+document_count: 458
+total_bytes: 8509357
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -1317,7 +1317,7 @@ documents:
     persona: architecture
     title: "R0 Low-Level Design — AWS platform pack for the CTO and AWS platform team"
     answers: "Consumers: CTO; AWS platform / landing-zone team; Shivanshi (SRE, Board 7 — provisions and operates); Deepali (Security — trust boundaries, IAM,…"
-    bytes: 31386
+    bytes: 47670
   - path: docs/architecture/README.md
     bucket: platform
     authority: approved-spec
@@ -1325,7 +1325,39 @@ documents:
     persona: architecture
     title: "Architecture diagrams"
     answers: "Two diagrams, deliberately. They answer different questions and neither replaces the other."
-    bytes: 11941
+    bytes: 19157
+  - path: docs/architecture/diagrams/README.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, orient]
+    persona: architecture
+    title: "Diagrams as code"
+    answers: "The platform-team views in ../ are generated, not drawn:"
+    bytes: 3561
+  - path: docs/architecture/diagrams/r0_platform_views.py
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, orient]
+    persona: architecture
+    title: "r0 platform views"
+    answers: "PY artefact"
+    bytes: 29014
+  - path: docs/architecture/diagrams/requirements.txt
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, orient]
+    persona: architecture
+    title: "requirements"
+    answers: "TXT artefact"
+    bytes: 264
+  - path: docs/architecture/diagrams/svgcanvas.py
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, orient]
+    persona: architecture
+    title: "svgcanvas"
+    answers: "PY artefact"
+    bytes: 13347
   - path: docs/architecture/r0-lld.svg
     bucket: platform
     authority: approved-spec
@@ -1334,6 +1366,86 @@ documents:
     title: "r0 lld"
     answers: "Rendered diagram — read the companion .md for the binding text"
     bytes: 55404
+  - path: docs/architecture/r0-platform-az.png
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, orient]
+    persona: architecture
+    title: "r0 platform az"
+    answers: "Image artefact"
+    bytes: 229401
+  - path: docs/architecture/r0-platform-az.svg
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, orient]
+    persona: architecture
+    title: "r0 platform az"
+    answers: "Rendered diagram — read the companion .md for the binding text"
+    bytes: 352004
+  - path: docs/architecture/r0-platform-dr.png
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, orient]
+    persona: architecture
+    title: "r0 platform dr"
+    answers: "Image artefact"
+    bytes: 250044
+  - path: docs/architecture/r0-platform-dr.svg
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, orient]
+    persona: architecture
+    title: "r0 platform dr"
+    answers: "Rendered diagram — read the companion .md for the binding text"
+    bytes: 403690
+  - path: docs/architecture/r0-platform-payment.png
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, orient]
+    persona: architecture
+    title: "r0 platform payment"
+    answers: "Image artefact"
+    bytes: 164505
+  - path: docs/architecture/r0-platform-payment.svg
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, orient]
+    persona: architecture
+    title: "r0 platform payment"
+    answers: "Rendered diagram — read the companion .md for the binding text"
+    bytes: 164051
+  - path: docs/architecture/r0-platform-sequence.png
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, orient]
+    persona: architecture
+    title: "r0 platform sequence"
+    answers: "Image artefact"
+    bytes: 146482
+  - path: docs/architecture/r0-platform-sequence.svg
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, orient]
+    persona: architecture
+    title: "r0 platform sequence"
+    answers: "Rendered diagram — read the companion .md for the binding text"
+    bytes: 426288
+  - path: docs/architecture/r0-platform-topology.png
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, orient]
+    persona: architecture
+    title: "r0 platform topology"
+    answers: "Image artefact"
+    bytes: 500901
+  - path: docs/architecture/r0-platform-topology.svg
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, orient]
+    persona: architecture
+    title: "r0 platform topology"
+    answers: "Rendered diagram — read the companion .md for the binding text"
+    bytes: 813859
   - path: docs/architecture/r0-reference-architecture.svg
     bucket: platform
     authority: approved-spec
@@ -1758,6 +1870,14 @@ documents:
     title: "BOOT — the tier-0 agent capsule"
     answers: "Read this first, and often read nothing else. This file answers the ten-fact knowledge"
     bytes: 17673
+  - path: docs/context/DOC-MAP.yaml
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient, docs-navigation]
+    persona: null
+    title: "DOC MAP"
+    answers: "============================================================================="
+    bytes: 164651
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -2253,7 +2373,7 @@ documents:
     persona: null
     title: "16 — Mahesh HLD Authoring and Update Protocol"
     answers: "This file makes updating the platform's high-level design a mechanical act rather than a"
-    bytes: 26364
+    bytes: 29206
   - path: docs/context/roles/mahesh-principal-insurance-platform-architect/17-provider-aggregation-and-connectivity.md
     bucket: context
     authority: non-binding-context
@@ -3253,7 +3373,23 @@ documents:
     persona: null
     title: "Suggestion Register"
     answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 58647
+    bytes: 71750
+  - path: docs/governance/registers/SUGGESTION-REGISTER.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, delivery-planning]
+    persona: null
+    title: "Suggestion Register"
+    answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
+    bytes: 71750
+  - path: docs/governance/registers/SUGGESTION-REGISTER.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, delivery-planning]
+    persona: null
+    title: "Suggestion Register"
+    answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
+    bytes: 71750
   - path: docs/governance/schemas/README.md
     bucket: governance
     authority: binding-process

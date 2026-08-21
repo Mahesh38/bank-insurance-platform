@@ -54,6 +54,9 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | SUG-20260820-dc4 | 2026-08-20 | human:Mahesh | Resolve OPEN-A1 and OPEN-D10: physical database topology is an evidence-led decision, not a principle — R0 starts as one cluster with a schema per context and splits later along the LOB-cell / shared-platform seam; and context #5 is named Opportunity, because a lead is too thin to carry renewal, lapse and cross-sell demand | SF1 | SC1 | MUST | ARCH | P2 / P2 | ADMITTED | [ADR-008](../../platform/architecture-review/08-architecture-decision-log.md) |
 | SUG-20260820-hl1 | 2026-08-20 | human:Mahesh | Act as Mahesh: turn the R0 reference architecture SVG into a detailed HLD (domain, boundary, communication, API, business logic, phases/waves/what-to-do-when) and an LLD for the CTO and AWS platform team (e2e components, services, AWS, VPC, reverse proxy, PVC, DB, cache) | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMIT-BYPASS | [R0-HLD](../../architecture/R0-HLD.md) · [R0-LLD](../../architecture/R0-LLD.md) |
 | SUG-20260820-ls1 | 2026-08-20 | human:Mahesh | Create an SVG rendering of the R0 LLD for the CTO and AWS platform team | SF1 | SC0 | SHOULD | ARCH | P2 / P1 | ADMIT-BYPASS | [r0-lld.svg](../../architecture/r0-lld.svg) |
+| SUG-20260820-pt9 | 2026-08-20 | human:Mahesh | Draw the AWS platform-team application view: what the application is, the service inventory, availability-zone placement, the DR bill of materials, the reverse-proxy and egress chain, and **when** each resource is needed — as a deployment topology in the style of a landing-zone request diagram | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMIT-BYPASS | [R0-LLD §2.1/§11.1/§12.1](../../architecture/R0-LLD.md) · rendering superseded by [SUG-20260820-ic3](#sug-20260820-ic3--icon-notation-generated-from-code) |
+| SUG-20260820-ic3 | 2026-08-20 | human:Mahesh | Redraw the platform-team views in AWS / Kubernetes icon notation instead of labelled rectangles, and generate them from code rather than hand-authoring SVG | SF1 | SC0 | SHOULD | DOC | P3 / P2 | ADMIT-BYPASS | [diagrams/](../../architecture/diagrams/README.md) |
+| SUG-20260820-lay4 | 2026-08-20 | human:Mahesh | Keep the icons, drop the layout engine: place every element on a chosen grid and route every connector orthogonally, so the views are aligned and the links are straight | SF1 | SC0 | SHOULD | DOC | P3 / P2 | ADMIT-BYPASS | [diagrams/](../../architecture/diagrams/README.md) |
 | SUG-20260820-cm2 | 2026-08-20 | human:Mahesh | Close the context-architecture gap found by audit: 20 documents unreachable by any link and 96 more at 3+ hops, 22 persona-package files no card routed to, and no CI guard against either. Add a generated document-routing map (`DOC-MAP.yaml`) with a `find` query path, complete the persona `Load deeper` tables, consolidate the READMEs that carry no unique content, and fail CI on an unrouted document | SF1 | SC1 | MUST | GOV | P2 / P2 | ADMIT-BYPASS | [DOC-MAP](../../context/DOC-MAP.yaml) · [doc_routing](../../context/AGENT-CONTEXT-INDEX.yaml) · continues [CR-010](../change-requests/CR-010-context-module-and-safe-autopilot.md) |
 
 <!--
@@ -1110,6 +1113,254 @@ bypass:
   skipped: "seven-board review of the plan"
   risk: "same as hl1 — SVG may be shown to AWS platform team before Security/Database/SRE sign"
   non_negotiable_touched: false
+```
+
+---
+
+### SUG-20260820-pt9 · AWS platform-team application view — AZ, DR and sequence
+
+```yaml
+id: SUG-20260820-pt9
+raised_at: "2026-08-20"
+raised_by: "human:Mahesh"
+source: "follow-up on SUG-20260820-hl1 / SUG-20260820-ls1, with a reference deployment diagram attached"
+input: >
+  Use the architecture diagram, HDLD, LDLD diagram we have for our application, and create a
+  similar kind of application diagram for the platform team, so that the AWS platform team can
+  know what kind of application we are building, what all services we need, in which availability
+  zone we want, what DR services we want, how proxy services are required, and when.
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-TERM-SALE"
+  state_as_of: "2026-08-10"
+  state_provisional: false
+  freshness_check: "exit 0 — FRESH, 2026-08-20"
+  active_work_item: SUG-20260820-ls1
+stage_fit:
+  code: SF1
+  rationale: >
+    S09 — Platform & Environment Foundation is the next stage and is already overlapped into the
+    current phase. S09-E01-S03 (network foundation across AZs), S09-E01-S05 (data foundation) and
+    S09-E06-S03/S04 (backup and proven restore) are exactly the questions this asks. The request
+    is the S09 entry artefact, not new scope.
+scope:
+  code: SC0
+  business_scope: "in scope — R0 AWS deployment picture for the platform team"
+  serves: ["SUG-20260820-hl1", "SUG-20260820-ls1"]
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S09 — Platform & Environment Foundation"
+  evidence_tier: E2
+  confidence: C4
+  rationale: >
+    S09 entry criterion "cloud account structure and budget approved" cannot be met without a
+    request the platform team can price and provision from. R0-LLD.md answers what and how much,
+    but three of the six questions asked here are not answered anywhere: per-resource
+    availability-zone placement, the DR bill of materials as a resource list, and the order in
+    which each resource is needed.
+gap_analysis:
+  already_answered:
+    - "what the application is — R0-HLD.md §1-§3"
+    - "service inventory — R0-LLD.md §12, 03-solution-architecture-r0.md §3"
+    - "reverse proxy chain — R0-LLD.md §3 (two-hop: API Gateway then internal ALB)"
+  not_answered_before_this_item:
+    - "availability-zone placement per resource — sources say '3 AZs' and 'min 2 AZ', never which resource sits where"
+    - "DR as a bill of materials — R0-LLD.md §11 states the posture, not the ap-south-2 resource list"
+    - "when — no mapping from an AWS resource to the S09 story that builds it and the wave that first consumes it"
+action: ADMIT-BYPASS
+action_rationale: >
+  Direct human follow-up in the same executor lane as hl1/ls1. HA-03 is honoured: the three gaps
+  are closed in R0-LLD.md first (§2.1, §11.1, §12.1) and only then rendered. No AWS service is
+  introduced that §1.1/§1.2 does not already name, and the DO NOT PROVISION list is carried
+  through unchanged, so this cannot become scope drift.
+duplicate_of: null
+continues: SUG-20260820-ls1
+classification:
+  type: ARCH
+  also: [DOC]
+  risk_tier: T4
+priority:
+  now: P2
+  at_target: P1
+dependencies:
+  blocks: ["S09-E01-S03 network foundation", "S09-E01-S05 data foundation", "S09 entry — cloud account structure approved"]
+  blocked_by: ["Direct Connect / VPN / bank-proxy decision for CBS and Bank AD — Shivanshi + bank network (R0-LLD §14)"]
+bypass:
+  authorised_by: "human:Mahesh — direct instruction"
+  skipped: "seven-board review of the plan"
+  risk: >
+    Same as hl1 and ls1 — the view may be handed to the AWS platform team before Deepali
+    (Security), Aarti (Database) and Shivanshi (SRE) have signed. The AZ placement and DR resource
+    list are architecture constraints, not sizing decisions; every SKU, instance class and
+    Aurora-Global-versus-restore choice stays tagged DECIDE WITH.
+  non_negotiable_touched: false
+notes:
+  - "Does not unpark SUG-20260820-r1t (the R0→R1→R2 transition map)"
+  - "Does not alter GATE-S08; S08 remains the gate in flight"
+```
+
+---
+
+### SUG-20260820-ic3 · Icon notation, generated from code
+
+```yaml
+id: SUG-20260820-ic3
+raised_at: "2026-08-20"
+raised_by: "human:Mahesh"
+source: "review of SUG-20260820-pt9's rendering"
+input: >
+  I'm not looking for all those boxes. I'm looking for the actual images or the logos — when you
+  are using a Kubernetes cluster it should show that this is the Kubernetes cluster, there are
+  microservices communicating, there is CloudFront, there is an RDS service. Can you think of a
+  better approach than SVG, without importing a lot of external images?
+context:
+  workstream: WS-3
+  canonical_stage: "S08 — Engineering Foundation"
+  active_work_item: SUG-20260820-pt9
+  freshness_check: "exit 0 — FRESH, 2026-08-20"
+stage_fit:
+  code: SF1
+  rationale: "Same S09 artefact as pt9. Notation change, not a content change."
+scope:
+  code: SC0
+  serves: ["SUG-20260820-pt9"]
+necessity:
+  now: SHOULD
+  future_necessity: MUST
+  target_stage: "S09 — Platform & Environment Foundation"
+  evidence_tier: E2
+  confidence: C4
+  rationale: >
+    The audience reads AWS diagrams daily. Labelled rectangles make them translate before they can
+    review, which is friction on the artefact whose whole purpose is to be reviewed by that team.
+decision:
+  chosen: "mingrammer/diagrams — Python, rendered through Graphviz"
+  why: >
+    The official AWS, Kubernetes, Argo and Flutter icon sets ship inside the pip wheel, so no image
+    is vendored into this repository and nothing is fetched at render time. Being code, the picture
+    changes in the same commit as its source and a reviewer sees which sentence changed — which is
+    what HA-03 asks for and what a binary canvas file cannot give.
+  rejected:
+    - "draw.io / Lucid — right icons, but a binary-ish canvas: no useful diff, and the picture drifts from its source"
+    - "Mermaid architecture-beta — icon packs resolve over the network at render time"
+    - "D2 — icons are external URLs"
+    - "hand-authored SVG with embedded base64 icons — vendors the icon set and is slow to change"
+  output_format: >
+    PNG. Graphviz can emit SVG but references icons by absolute local path, so the SVG is not
+    portable. Recorded so nobody 'fixes' the format later.
+action: ADMIT-BYPASS
+action_rationale: >
+  Direct human follow-up in the same executor lane as pt9. No architectural content changes: the
+  five diagrams render R0-LLD.md §2.1 / §11.1 / §12.1, which pt9 already added and which remain the
+  source of truth (HA-02).
+duplicate_of: null
+continues: SUG-20260820-pt9
+supersedes_artefact: "docs/architecture/r0-platform-topology.svg (deleted — replaced, not kept alongside, to avoid two answers in the repository)"
+classification:
+  type: DOC
+  also: [ARCH]
+  risk_tier: T4
+priority:
+  now: P3
+  at_target: P2
+new_repository_dependency:
+  runtime: "python3 + graphviz (dot) + pip diagrams==0.25.1"
+  scope: "documentation build only — not a service dependency, not in any container image"
+  recorded_at: "docs/architecture/diagrams/requirements.txt"
+defect_found_and_fixed:
+  what: "the first render placed an Aurora WRITER in all three AZs"
+  cause: "zone test was `\"A\" in zone`, and \"A\" is a substring of \"AVAILABILITY\""
+  why_it_matters: "a diagram asserting a Multi-AZ topology the design does not have is worse than no diagram"
+bypass:
+  authorised_by: "human:Mahesh — direct instruction"
+  skipped: "seven-board review of the plan"
+  risk: "same as pt9 — the views may be shown to the AWS platform team before Security, Database and SRE sign"
+  non_negotiable_touched: false
+notes:
+  - "HA-10 added to the authoring protocol: notation follows the audience; generate rather than draw"
+```
+
+---
+
+### SUG-20260820-lay4 · Deterministic orthogonal layout
+
+```yaml
+id: SUG-20260820-lay4
+raised_at: "2026-08-20"
+raised_by: "human:Mahesh"
+source: "review of SUG-20260820-ic3's rendering"
+input: >
+  The designs look better now. The only problem is that they are not well aligned, not well
+  positioned, and not correctly linked. The links move randomly here and there, crossing and
+  curving. They should be straight lines, diverted at ninety degrees only, with the blocks and
+  logos well balanced on the image.
+context:
+  workstream: WS-3
+  canonical_stage: "S08 — Engineering Foundation"
+  active_work_item: SUG-20260820-ic3
+  freshness_check: "exit 0 — FRESH, 2026-08-20"
+stage_fit: {code: SF1, rationale: "Same S09 artefact. Presentation change, not a content change."}
+scope: {code: SC0, serves: ["SUG-20260820-ic3", "SUG-20260820-pt9"]}
+necessity:
+  now: SHOULD
+  future_necessity: MUST
+  target_stage: "S09 — Platform & Environment Foundation"
+  evidence_tier: E2
+  confidence: C4
+  rationale: >
+    A platform team reads placement in these views as a specification. Curved and crossing
+    connectors make the reader re-derive which line goes where, which is the same friction the
+    icon change was meant to remove.
+decision:
+  chosen: "hand-rolled svgcanvas.py — explicit coordinates, axis-aligned connector segments"
+  supersedes: "the mingrammer/diagrams + Graphviz layout choice recorded under SUG-20260820-ic3"
+  retained_from_ic3: >
+    The icon assets. The diagrams wheel is still the dependency, but only as the source of the
+    official AWS and Kubernetes art — none of its layout code is used.
+  rejected:
+    - what: "Graphviz splines=ortho"
+      why: >
+        TESTED, not assumed. It does emit 90-degree lines, but it detaches edge labels from their
+        edges and routes connectors straight through cluster borders, and node positions remain the
+        engine's choice rather than a deliberate grid.
+    - what: "tuning the Graphviz ranks further"
+      why: "a layered layout engine cannot be argued into a fixed grid; it re-ranks on every change"
+    - what: "draw.io / Lucid"
+      why: "already rejected under ic3 — no useful diff, and the picture drifts from its source"
+  output_format: >
+    SVG, with the icons embedded as base64 so the file is self-contained, plus a PNG companion for
+    tools that will not take an SVG. This reverses ic3's PNG-only decision, which existed only
+    because Graphviz's SVG referenced icons by absolute local path.
+action: ADMIT-BYPASS
+action_rationale: >
+  Direct human follow-up in the same executor lane. No architectural content changed: the same five
+  views render the same R0-LLD.md sections.
+continues: SUG-20260820-ic3
+classification: {type: DOC, also: [ARCH], risk_tier: T4}
+priority: {now: P3, at_target: P2}
+new_repository_dependency:
+  runtime: "pip diagrams==0.25.1 (icon assets only) + cairosvg==2.7.1 (optional PNG companion)"
+  removed: "graphviz — no longer needed, no layout engine is used"
+  scope: "documentation build only — not a service dependency, not in any container image"
+defects_found_and_fixed:
+  - what: "vertical connectors were drawn straight through their own node's caption"
+    cause: "a bottom port started at the icon edge, but the label hangs below the icon"
+    fix: "Node.port('B') clears the label block — fixed in the canvas, not per diagram"
+  - what: "edge labels rendered as white smears"
+    cause: "the white halo relied on the SVG paint-order property"
+    why_it_matters: >
+      cairosvg and older librsvg ignore paint-order, so the labels would have failed in exactly
+      the viewers a platform team is most likely to open the file in. Labels now sit on a real plate.
+bypass:
+  authorised_by: "human:Mahesh — direct instruction"
+  skipped: "seven-board review of the plan"
+  risk: "same as pt9 and ic3 — the views may be shown before Security, Database and SRE sign"
+  non_negotiable_touched: false
+notes:
+  - "HA-10 extended: generating a diagram does not mean handing its layout to an engine."
 ```
 
 ---

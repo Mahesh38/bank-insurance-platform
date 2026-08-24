@@ -5,8 +5,15 @@
 **Owner:** Mahesh — Principal Insurance Platform Architect (Board 1)
 **Audience:** Product, Architecture, Engineering, SRE, Security, Database, Compliance, Delivery, CTO
 **Status:** `AI-DRAFTED` in the Architecture lane. **Mandatory human T4 Architecture sign-off outstanding.** Deepali (Security), Aarti (Database) and Shivanshi (SRE) reviews are required before this pack is cited as S09 input.
-**Date:** 2026-08-20
-**Origin:** `SUG-20260820-hl1`
+**Date:** 2026-08-20 · **revised** 2026-08-24
+**Origin:** `SUG-20260820-hl1` · **revision** `SUG-20260824-gp1` … `gp5` ([`CR-012`](../governance/change-requests/CR-012-r0-platform-robustness.md))
+
+> **Revision 2026-08-24 — R0 robustness round.** Five deferred infrastructure layers move into R0
+> under `ADR-009` … `ADR-013`. In this document the changes are: boundary 6 and 7 (the bank path is
+> provisioned, not deferred), boundary 8 (three new tiers), **boundary 9 rewritten** (a broker
+> exists, and the transactional outbox stays in front of it as the source of truth), seams `S-23` …
+> `S-26`, and §4.3 (idempotency stays out of the cache, deliberately). Nothing about the journey,
+> the actors, the gates or the waves changed.
 
 **Picture this document walks:** [`r0-reference-architecture.svg`](./r0-reference-architecture.svg)
 
@@ -224,6 +231,7 @@ Flutter never calls a domain service or a database. The BFF holds OAuth tokens; 
 **R0 contains:** `#14` Integration Hub (all provider traffic, `SC-W3-5`) and `#15` 1SB Adapter (exists today, `adapter.onesb.*` only).
 **Greyed:** provider router and callback gateway (R1).
 **Rule:** no WS-3 service calls an adapter directly. `distributorId` is injected server-side; a caller-supplied value is rejected (`INV-DIS-01`).
+**Egress path (`ADR-010`):** provider traffic leaves through the centralised inspection VPC — Transit Gateway, then AWS Network Firewall, then the NAT gateways whose Elastic IPs 1SB allowlists. The mTLS session to 1SB is **not** decrypted; it is matched on destination and passed intact.
 
 ### Boundary 7 — External systems
 
@@ -235,6 +243,12 @@ Two boundaries, kept separate on purpose:
 | Core Banking (CBS) — CIF, ETB prefill | *(direct insurer APIs are R1+)* |
 | AU Bank Payment Gateway — 3-D Secure on the customer device | |
 
+**R0 provisions the path to the bank systems rather than deferring it (`ADR-009`).** A Transit
+Gateway hub carries CBS and Bank AD traffic over Site-to-Site VPN from day one, with Direct Connect
+becoming the primary path when the circuit is accepted and the VPN kept as the standby. `dev` may
+use CBS and AD stubs; **`uat` and `prod` may not** — a journey evidenced against a stub is not
+evidence, and that is the whole reason this layer moved into R0.
+
 ### Boundary 8 — Data and persistence
 
 **Invariant:** one owner per authoritative datum; no service reads another's tables; per-context credential with **no** cross-schema grant.
@@ -242,14 +256,34 @@ Two boundaries, kept separate on purpose:
 
 Also in R0: DynamoDB (journey state, quote jobs, audit event store); S3 + Object Lock (raw payloads, policy docs, 7-year WORM, CRR to `ap-south-2`); Secrets Manager + KMS (India regions only).
 
+**Three tiers added on 2026-08-24, each with a boundary that is part of the decision:**
+
+| Tier | R0 use | What it is never allowed to be |
+|---|---|---|
+| **ElastiCache for Valkey** (`ADR-011`) | BFF session vault; L2 read-through cache for configuration and catalogue behind the existing in-process L1; per-principal rate-limit counters | A system of record. The idempotency store — that stays transactional with the business write (§4.3). A way to serve configuration past its TTL when the store is down |
+| **Amazon MSK** (`ADR-012`) | Domain-event transport and fan-out, fed by the outbox | The audit record. Retention on a topic is an operational parameter; retention on evidence is a licence condition |
+| **Amazon OpenSearch** (`ADR-013`) | Operational search over application, firewall, flow and broker logs | The evidence store, or a business search index for catalogue and journey queries |
+
 The existing `bank-persistence-service` stays scoped to the integration job store and audit ingestion. It is **not** extended to the R0 business contexts.
 
-Aarti's Database approval and Deepali's Security review of this topology are **outstanding**. One cluster is one blast radius; isolation now rests on credentials and grants.
+Aarti's Database approval and Deepali's Security review of this topology are **outstanding**, and the 2026-08-24 round widened what they cover: one cluster is still one blast radius, and there are now two more stateful tiers plus a session vault whose read access is read access to live sessions.
 
 ### Boundary 9 — Event and messaging
 
-**R0 decision:** no Kafka, no shared event broker. Asynchronous work uses a **transactional outbox per service** (`S-17`, `S-18`, `S-19`).
-**Revisit when:** a third distinct consumer class for domain events; sustained outbox lag beyond `NFR-DAT-05`; or Reporting & MIS entering scope at S13.
+**R0 decision, revised 2026-08-24 (`ADR-012`): there is a broker, and the transactional outbox stays in front of it.** These are not alternatives and the order is the decision.
+
+```text
+business txn ─┬─► business tables      one local transaction
+              └─► outbox row           ← the source of truth, and the replay log
+                      │
+              outbox-publisher ──► MSK topic ─┬─► #16 Audit ─► DynamoDB + S3 WORM ← the record
+                                              ├─► #17 Notification
+                                              └─► compensation / reconciliation signals
+```
+
+Why both. The outbox solves the dual-write problem — a commit followed by a publish is two writes with no shared transaction, so a crash loses the event and a retry duplicates the business change. The broker solves fan-out — without it, every new consumer is a new poller against the producer's own database. R0 has three consumer classes already (audit, notification, compensation) and a fourth arrives with Reporting at S13, so the old revisit trigger was going to fire inside R0 rather than after it. Adopting the broker mid-slice, in the middle of evidencing the audit path, was the worst of the three available moments.
+
+**The rule that cannot be traded:** no regulatory evidence exists only in a topic. `#16` Audit consumes the topic and writes DynamoDB and the WORM archive; that write is what lets a journey reach `SOLD` (`INV-JRN-05`), and `FF-26` checks it. Consumers are idempotent on `eventId` and tolerate replay — which is also why the broker needs no DR copy (LLD `D14`).
 
 Must be synchronous: authorization, configuration resolution, critical validation, payment session.
 May be asynchronous: audit ingestion, notification, quote/proposal polling.
@@ -260,7 +294,7 @@ This is where the programme **is today**. Waves W0b–W4 start only after **GATE
 
 | Stage | What it proves | Gate |
 |---|---|---|
-| **S08 — Engineering Foundation** | CI, coverage, ArchUnit + FF-01…FF-21, secret/SAST/SCA/image scan, no PII in logs, p95 pipeline < 10 min | `GATE-S08` OPEN |
+| **S08 — Engineering Foundation** | CI, coverage, ArchUnit + FF-01…FF-28, secret/SAST/SCA/image scan, no PII in logs, p95 pipeline < 10 min | `GATE-S08` OPEN |
 | **S09 — Platform & Environment Foundation** | IaC, environments, secrets, observability, 7-year WORM in `ap-south-1`, restore **executed and timed**, DR warm standby `ap-south-2` | overlapped with S08 |
 
 ---
@@ -295,14 +329,20 @@ Full semantics (idempotency, timeout, on-failure) live in [`03-solution-architec
 | S-17 | any → Audit | Outbox | Business commits; `SOLD` blocked until ack |
 | S-18 | Payment/Policy → Notification | Outbox | Never blocks the journey |
 | S-19 | Journey → compensation | Durable task | Exhaustion → `MANUAL_INTERVENTION` |
-| S-21 | any → Configuration | Sync, cached to TTL | **Fail closed** — no compiled-in default |
+| S-21 | any → Configuration | Sync, cached to TTL (L1 → L2) | **Fail closed** — no compiled-in default |
 | S-22 | IPR → BFF → gated read | Sync | Out-of-scope rows absent, not 403-by-id |
+| S-23 | outbox-publisher → MSK | Async publish, at-least-once | Outbox row stays unacknowledged; nothing is lost, delivery is delayed |
+| S-24 | MSK → `#16` Audit / `#17` Notification | Async consume, replay-tolerant | Dedupe on `eventId`; DLQ after bounded attempts; `SOLD` still blocked until the evidence write lands |
+| S-25 | any service → cache tier | Sync, best-effort | **A miss is a read, never an error.** Cache unavailable degrades latency, and never authorisation or configuration correctness |
+| S-26 | `#4` / Keycloak → bank systems over the TGW | Sync | Path loss is a typed `503`; `dev` may stub, `uat`/`prod` may not |
 
-Cross-boundary seams that the SVG names rather than draws (they skip bands): `S-04/S-05`, `S-13`, `S-14/S-15`, `S-17`, `S-18`.
+Cross-boundary seams that the SVG names rather than draws (they skip bands): `S-04/S-05`, `S-13`, `S-14/S-15`, `S-17`, `S-18`, `S-23/S-24`.
 
 ### 4.3 Idempotency
 
-`Idempotency-Key` is required on every mutating platform API (`INV-IDM-01`). Client-supplied at the edge; **server-derived** internally from owning aggregate id + operation. Same body → stored response. Different body → `409 IDEMPOTENCY_KEY_CONFLICT`. Missing → `400 MISSING_IDEMPOTENCY_KEY`. Retention 24 hours, in the **owning service's store** — not a shared Redis (that is a recorded R0 deferral).
+`Idempotency-Key` is required on every mutating platform API (`INV-IDM-01`). Client-supplied at the edge; **server-derived** internally from owning aggregate id + operation. Same body → stored response. Different body → `409 IDEMPOTENCY_KEY_CONFLICT`. Missing → `400 MISSING_IDEMPOTENCY_KEY`. Retention 24 hours, in the **owning service's store**.
+
+**This did not change when the cache tier arrived.** `ADR-011` provisions a shared Valkey tier and explicitly refuses to hold idempotency in it: the record has to be written in the same transaction as the business change, and a cache cannot be transactionally consistent with a database write. Idempotency that is only mostly right on the money path is worse than none — which is why the target-state review's "ElastiCache for idempotency" line is rejected by name rather than left to be discovered.
 
 Money path additionally: no new attempt while a prior one is `AUTHORISED` or `UNCERTAIN`.
 
@@ -483,8 +523,8 @@ The R0 → R1 → R2 *dependency map* (which target component is a prerequisite 
 
 A short operating picture for anyone picking up work:
 
-1. **Do not admit a second LOB, a Customer BFF, Kafka, Redis-for-idempotency, or an admin UI.** Those are recorded deferrals with unpark triggers.
-2. **Close GATE-S08.** Amit, Swapnali, Deepali, Shivanshi, Mahesh. Fitness functions FF-01…FF-21 are the architecture half of that gate.
+1. **Do not admit a second LOB, a Customer BFF, a service mesh, Redis-for-idempotency, an analytics warehouse, or an admin UI.** Those are recorded deferrals or refusals with triggers. The event backbone, cache tier, search pipe, bank connectivity and egress inspection are **no longer on that list** — they were admitted on 2026-08-24 under `ADR-009` … `ADR-013`, and what remains open on them is approval and cost, not scope.
+2. **Close GATE-S08.** Amit, Swapnali, Deepali, Shivanshi, Mahesh. Fitness functions FF-01…FF-28 are the architecture half of that gate — `FF-22` … `FF-28` arrived with the robustness round and are mostly IaC and infrastructure checks, so they land in the S09 lane rather than adding to the application backlog.
 3. **Feed S09 from [`R0-LLD.md`](./R0-LLD.md).** Shivanshi provisions; Deepali signs the trust-boundary realisation; Aarti signs the Aurora/DynamoDB/S3 design. Restore is executed and timed (`S09-G7`).
 4. **Seed `#19` in W0b** the moment environments exist — consent rule pack and suitability rule pack are Product/Compliance artefacts (GAP-006, GAP-007) and **block S11** until Shailja signs them at evidence level E2.
 5. **Then W1 → W2 → W3 → W4**, one wave at a time, one owner per in-flight item.
@@ -511,7 +551,9 @@ A WS-3 service never imports `adapter.onesb.*`. A Flutter client never sees Keyc
 | Autoscaling targets, node sizing, cost model | Shivanshi (S14 sizes load; S09 lays the floor) |
 | Exact IPR permitted-action set (assistance vs solicitation) | Shailja (`OPEN-D9`) — architecture ships the gate default-deny |
 | Flutter design system and state management | Mahesh + Rajal (S05 still missing, GAP-009) |
-| Kafka topic design | Deferred with revisit trigger in §3 boundary 9 |
+| Topic partition counts, retention windows and the topic-to-consumer IAM matrix | Shivanshi + Deepali. The **backbone** is decided (`ADR-012`, §3 boundary 9); its operational parameters are not architecture's |
+| Broker, cache and search node sizing, and the cost envelope for all three | Shivanshi + Kalpana (`RISK-012`). Architecture sized them for availability and evidence, never for throughput |
+| The bank's own side of the connectivity: VPN termination, prefixes, firewall change, DX order | Shivanshi + bank network (`DEP-20260824-dx1`). The **pattern** is decided (`ADR-009`); the bank's work is not ours to decide |
 | Production IdP (Cognito vs Keycloak) | WS-2 Phase 2 |
 | Consent wording and suitability questions | Rajal + Shailja (GAP-006, GAP-007) |
 

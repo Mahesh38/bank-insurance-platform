@@ -166,7 +166,8 @@ document wins:
 [`03-solution-architecture-r0.md`](../platform/ws3-platform/03-solution-architecture-r0.md) or
 this folder's HLD SVG: the HLD walks the R0 picture for humans (APIs, saga, *what to do when*); the LLD
 narrows the target-state AWS review to the R0 bill of materials — VPC, two-hop reverse proxy,
-no PVCs on business services, one Aurora cluster, no Kafka, no shared Redis.
+no PVCs on business services, one Aurora cluster. *(The "no Kafka, no shared Redis" half of that
+narrowing was superseded on 2026-08-24 — see the robustness round below.)*
 
 `SUG-20260820-ls1` added [`r0-lld.svg`](./r0-lld.svg), the rendering of that LLD. Colour is
 **trust zone / subnet**, not build wave. Dashed boxes are DO NOT PROVISION.
@@ -259,7 +260,8 @@ segments the source file routes. Corridors are constants (`COL`, `LANE_EGRESS`),
 sharing a lane is a recorded decision rather than an accident. Output is now **SVG** — self-contained,
 with the icons embedded as base64 — plus a PNG companion for tools that will not take an SVG.
 
-**Two defects this surfaced**, both of the kind that only a rendered look will catch:
+**Two defects this surfaced**, both of the kind that only a rendered look will catch (continued
+below the robustness-round entry):
 
 - Vertical connectors were being drawn straight **through their own node's caption**, because a
   bottom port started at the icon's edge and the label hangs below it. Fixed in the canvas rather
@@ -267,3 +269,24 @@ with the icons embedded as base64 — plus a PNG companion for tools that will n
 - Edge labels relied on the SVG `paint-order` property for their white halo. cairosvg and older
   librsvg ignore it, which renders the label as a white smear — in exactly the viewers a platform
   team is most likely to use. Labels now sit on a real plate.
+
+## Revision — 2026-08-24 R0 robustness round
+
+`SUG-20260824-gp1` … `gp5`, under
+[`CR-012`](../governance/change-requests/CR-012-r0-platform-robustness.md), admitted five
+infrastructure layers into R0 (`ADR-009` … `ADR-013`). **Every diagram in this folder changed in the
+same commit as its source**, per `HA-03` — and the reason for saying so explicitly is that four of
+these files carried a *"not in R0"* claim that is now false, which is the most dangerous kind of
+stale diagram: it does not look out of date, it looks like a decision.
+
+| File | What changed |
+|---|---|
+| [`r0-lld.svg`](./r0-lld.svg) | The `DO NOT PROVISION` box lost MSK and ElastiCache and gained the things still refused (MSK Replicator, cache-as-idempotency); the cache box turned solid; MSK and OpenSearch replaced two boxes in the private-data band; the egress band became the inspection VPC |
+| [`r0-reference-architecture.svg`](./r0-reference-architecture.svg) | Boundary 9 now reads *outbox in front of a broker*, not *no broker*; the footer's "No Kafka, no event bus, no Redis idempotency" line became what is actually still refused; the fitness-function count moved to 28 |
+| [`../hdl.svg`](../hdl.svg) | The `R0` box in boundary 9 says outbox → MSK; the `RN` box is no longer "introduce a managed bus" — MSK is in R0, so what remains RN is cross-region and replay-heavy consumption |
+| generated set ([`diagrams/`](./diagrams/README.md)) | Inspection VPC and Transit Gateway in the topology; quorum services in the AZ view; `D13`–`D16` in the DR view; `P1`/`P3`/`P6`/`P8` in the sequence view |
+
+**What did not change, and is worth stating because it is the part a reader will assume moved:** the
+ten boundaries, the journey spine, the two actors, the wave colouring, the LOB encoding, the service
+count (fourteen plus one app) and `ADR-008`'s one-cluster data topology. The robustness round is
+strictly *beneath* the R0 slice.

@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 458
-total_bytes: 8509357
+document_count: 463
+total_bytes: 9766252
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -1125,7 +1125,7 @@ documents:
     persona: quality
     title: "S07 — Solution & Security Architecture · Retroactive Stage Evidence"
     answers: "Gate: GATE-S07 · Workstream: WS-3 (proposed under CR-010)"
-    bytes: 21236
+    bytes: 22569
   - path: docs/application-lifecycle-bible/stages/S00-ideation.md
     bucket: lifecycle
     authority: proposed-cr-010
@@ -1309,7 +1309,7 @@ documents:
     persona: architecture
     title: "R0 High-Level Design — AU Bank Insurance Distribution Platform"
     answers: "Horizon: H0 — R0 as designed"
-    bytes: 34351
+    bytes: 40313
   - path: docs/architecture/R0-LLD.md
     bucket: platform
     authority: approved-spec
@@ -1317,7 +1317,7 @@ documents:
     persona: architecture
     title: "R0 Low-Level Design — AWS platform pack for the CTO and AWS platform team"
     answers: "Consumers: CTO; AWS platform / landing-zone team; Shivanshi (SRE, Board 7 — provisions and operates); Deepali (Security — trust boundaries, IAM,…"
-    bytes: 47670
+    bytes: 84539
   - path: docs/architecture/README.md
     bucket: platform
     authority: approved-spec
@@ -1325,7 +1325,7 @@ documents:
     persona: architecture
     title: "Architecture diagrams"
     answers: "Two diagrams, deliberately. They answer different questions and neither replaces the other."
-    bytes: 19157
+    bytes: 21224
   - path: docs/architecture/diagrams/README.md
     bucket: platform
     authority: approved-spec
@@ -1333,7 +1333,7 @@ documents:
     persona: architecture
     title: "Diagrams as code"
     answers: "The platform-team views in ../ are generated, not drawn:"
-    bytes: 3561
+    bytes: 4968
   - path: docs/architecture/diagrams/r0_platform_views.py
     bucket: platform
     authority: approved-spec
@@ -1341,7 +1341,7 @@ documents:
     persona: architecture
     title: "r0 platform views"
     answers: "PY artefact"
-    bytes: 29014
+    bytes: 35579
   - path: docs/architecture/diagrams/requirements.txt
     bucket: platform
     authority: approved-spec
@@ -1365,7 +1365,7 @@ documents:
     persona: architecture
     title: "r0 lld"
     answers: "Rendered diagram — read the companion .md for the binding text"
-    bytes: 55404
+    bytes: 55764
   - path: docs/architecture/r0-platform-az.png
     bucket: platform
     authority: approved-spec
@@ -1373,7 +1373,7 @@ documents:
     persona: architecture
     title: "r0 platform az"
     answers: "Image artefact"
-    bytes: 229401
+    bytes: 334019
   - path: docs/architecture/r0-platform-az.svg
     bucket: platform
     authority: approved-spec
@@ -1381,7 +1381,7 @@ documents:
     persona: architecture
     title: "r0 platform az"
     answers: "Rendered diagram — read the companion .md for the binding text"
-    bytes: 352004
+    bytes: 805864
   - path: docs/architecture/r0-platform-dr.png
     bucket: platform
     authority: approved-spec
@@ -1389,7 +1389,7 @@ documents:
     persona: architecture
     title: "r0 platform dr"
     answers: "Image artefact"
-    bytes: 250044
+    bytes: 277790
   - path: docs/architecture/r0-platform-dr.svg
     bucket: platform
     authority: approved-spec
@@ -1397,7 +1397,7 @@ documents:
     persona: architecture
     title: "r0 platform dr"
     answers: "Rendered diagram — read the companion .md for the binding text"
-    bytes: 403690
+    bytes: 574932
   - path: docs/architecture/r0-platform-payment.png
     bucket: platform
     authority: approved-spec
@@ -1405,7 +1405,7 @@ documents:
     persona: architecture
     title: "r0 platform payment"
     answers: "Image artefact"
-    bytes: 164505
+    bytes: 143745
   - path: docs/architecture/r0-platform-payment.svg
     bucket: platform
     authority: approved-spec
@@ -1421,7 +1421,7 @@ documents:
     persona: architecture
     title: "r0 platform sequence"
     answers: "Image artefact"
-    bytes: 146482
+    bytes: 159905
   - path: docs/architecture/r0-platform-sequence.svg
     bucket: platform
     authority: approved-spec
@@ -1429,7 +1429,7 @@ documents:
     persona: architecture
     title: "r0 platform sequence"
     answers: "Rendered diagram — read the companion .md for the binding text"
-    bytes: 426288
+    bytes: 664909
   - path: docs/architecture/r0-platform-topology.png
     bucket: platform
     authority: approved-spec
@@ -1437,7 +1437,7 @@ documents:
     persona: architecture
     title: "r0 platform topology"
     answers: "Image artefact"
-    bytes: 500901
+    bytes: 446671
   - path: docs/architecture/r0-platform-topology.svg
     bucket: platform
     authority: approved-spec
@@ -1445,7 +1445,7 @@ documents:
     persona: architecture
     title: "r0 platform topology"
     answers: "Rendered diagram — read the companion .md for the binding text"
-    bytes: 813859
+    bytes: 1068654
   - path: docs/architecture/r0-reference-architecture.svg
     bucket: platform
     authority: approved-spec
@@ -1453,7 +1453,7 @@ documents:
     persona: architecture
     title: "r0 reference architecture"
     answers: "Rendered diagram — read the companion .md for the binding text"
-    bytes: 68403
+    bytes: 68473
   - path: docs/au-bank-insurance-platform/00-project-charter.md
     bucket: business
     authority: business-ssot
@@ -1877,7 +1877,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 164651
+    bytes: 166409
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -2317,7 +2317,7 @@ documents:
     persona: null
     title: "09 — Mahesh Target-State and Vision Architecture Doctrine"
     answers: "Files 01–08 train Mahesh — Principal Insurance Platform Architect to decide the next"
-    bytes: 29605
+    bytes: 29722
   - path: docs/context/roles/mahesh-principal-insurance-platform-architect/10-north-star-capability-model.md
     bucket: context
     authority: non-binding-context
@@ -2349,7 +2349,7 @@ documents:
     persona: null
     title: "13 — Mahesh Orchestration Doctrine"
     answers: "Insurance distribution is a long-running, multi-party, partially-observable business process. That"
-    bytes: 14257
+    bytes: 15515
   - path: docs/context/roles/mahesh-principal-insurance-platform-architect/14-shared-capability-doctrine.md
     bucket: context
     authority: non-binding-context
@@ -2973,7 +2973,7 @@ documents:
     persona: null
     title: "02 — Project Scope (Scope Validation)"
     answers: "Pipeline step: 3 — Scope Validation"
-    bytes: 8132
+    bytes: 8811
   - path: docs/governance/03-LIFECYCLE.md
     bucket: governance
     authority: binding-process
@@ -2981,7 +2981,7 @@ documents:
     persona: null
     title: "03 — Lifecycle Model & Stage Fit"
     answers: "Pipeline step: 2 — Lifecycle Validation"
-    bytes: 9992
+    bytes: 10635
   - path: docs/governance/04-STAGE_GATES.md
     bucket: governance
     authority: binding-process
@@ -2997,7 +2997,7 @@ documents:
     persona: null
     title: "05 — Priority Model (P1–P5)"
     answers: "Pipeline step: 6 — Priority Scoring"
-    bytes: 10853
+    bytes: 11350
   - path: docs/governance/06-WORK_CLASSIFICATION.md
     bucket: governance
     authority: binding-process
@@ -3318,6 +3318,62 @@ documents:
     title: "CR-011 — Mahesh Target-State / North Star Architecture Doctrine"
     answers: "Type: GOV"
     bytes: 10482
+  - path: docs/governance/change-requests/CR-012-r0-platform-robustness.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "CR-012 — R0 platform robustness: admit five deferred infrastructure layers"
+    answers: "Type: ARCH (with INFRA, SEC and COMP consequences)"
+    bytes: 13454
+  - path: docs/governance/change-requests/CR-012/verdicts/README.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "CR-012 — Board verdicts (drafts)"
+    answers: "Change request: CR-012 — R0 platform robustness"
+    bytes: 3913
+  - path: docs/governance/change-requests/CR-012/verdicts/board-4-security-deepali.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "Board 4 — Security · CR-012 · DRAFT"
+    answers: "Persona: Deepali — Principal Security Architect (Board 4 / R8)"
+    bytes: 6885
+  - path: docs/governance/change-requests/CR-012/verdicts/board-6-compliance-shailja.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "Board 6 — Risk & Compliance · CR-012 · DRAFT"
+    answers: "Persona: Shailja S — Compliance & Risk Head (Board 6 / R9)"
+    bytes: 5831
+  - path: docs/governance/change-requests/CR-012/verdicts/board-7-operations-shivanshi.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "Board 7 — Operations / SRE · CR-012 · DRAFT"
+    answers: "Persona: Shivanshi — Principal Insurance Platform SRE / Reliability Engineering Head (Board 7 / R10)"
+    bytes: 6646
+  - path: docs/governance/change-requests/CR-012/verdicts/dba-aarti.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "Database — specialist verdict · CR-012 · DRAFT"
+    answers: "Persona: Aarti — Principal Insurance Data & Database Architect (specialist, via existing boards)"
+    bytes: 6749
+  - path: docs/governance/change-requests/CR-012/verdicts/r12-delivery-kalpana.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "R12 — Delivery Control · CR-012 · DRAFT"
+    answers: "Persona: Kalpana — Delivery Head (R12)"
+    bytes: 6285
   - path: docs/governance/plans/PLAN-001-context-module-and-safe-autopilot.md
     bucket: governance
     authority: binding-process
@@ -3333,7 +3389,7 @@ documents:
     persona: null
     title: "Assumption Register"
     answers: "Beliefs the plan rests on that have not been verified. Every assumption has an expiry, a"
-    bytes: 3131
+    bytes: 4783
   - path: docs/governance/registers/DECISION-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -3341,7 +3397,7 @@ documents:
     persona: null
     title: "Decision Register"
     answers: "Index of decisions that constrain future work: ADRs, change requests, stage transitions, and"
-    bytes: 28498
+    bytes: 31960
   - path: docs/governance/registers/DEPENDENCY-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -3349,7 +3405,7 @@ documents:
     persona: null
     title: "Dependency Register"
     answers: "Edges of the dependency graph. Edges outlive the items that discovered them, so they are"
-    bytes: 4399
+    bytes: 6617
   - path: docs/governance/registers/PARKED-BACKLOG.md
     bucket: governance
     authority: binding-process
@@ -3357,7 +3413,7 @@ documents:
     persona: null
     title: "Parked Backlog"
     answers: "Parked is not deleted. Every entry names the stage that unparks it and the observable"
-    bytes: 6248
+    bytes: 8017
   - path: docs/governance/registers/RISK-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -3365,7 +3421,7 @@ documents:
     persona: null
     title: "Risk Register"
     answers: "Open risks with owners, triggers, and responses. A risk is not a problem — it is a problem"
-    bytes: 4361
+    bytes: 7218
   - path: docs/governance/registers/SUGGESTION-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -3373,23 +3429,7 @@ documents:
     persona: null
     title: "Suggestion Register"
     answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 71750
-  - path: docs/governance/registers/SUGGESTION-REGISTER.md
-    bucket: governance
-    authority: binding-process
-    capsules: [triage, plan-work, delivery-planning]
-    persona: null
-    title: "Suggestion Register"
-    answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 71750
-  - path: docs/governance/registers/SUGGESTION-REGISTER.md
-    bucket: governance
-    authority: binding-process
-    capsules: [triage, plan-work, delivery-planning]
-    persona: null
-    title: "Suggestion Register"
-    answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 71750
+    bytes: 86855
   - path: docs/governance/schemas/README.md
     bucket: governance
     authority: binding-process
@@ -3461,7 +3501,7 @@ documents:
     persona: null
     title: "CURRENT STATE"
     answers: "AIGEM — Machine-readable current state"
-    bytes: 29781
+    bytes: 30346
   - path: docs/governance/state/GATE-EVIDENCE.yaml
     bucket: governance
     authority: binding-process
@@ -3549,7 +3589,7 @@ documents:
     persona: null
     title: "hdl"
     answers: "Rendered diagram — read the companion .md for the binding text"
-    bytes: 142306
+    bytes: 142411
   - path: docs/platform/README.md
     bucket: platform
     authority: approved-spec
@@ -3589,7 +3629,7 @@ documents:
     persona: architecture
     title: "04 — AWS Infrastructure Architecture"
     answers: "Constraint honored throughout: AWS-only, Kubernetes (Amazon EKS) as the compute substrate, elastic by design."
-    bytes: 8887
+    bytes: 10228
   - path: docs/platform/architecture-review/05-data-architecture.md
     bucket: platform
     authority: approved-spec
@@ -3621,7 +3661,7 @@ documents:
     persona: architecture
     title: "08 — Architecture Decision Log (this review)"
     answers: "ID scheme: ARCH-xxx — deliberately distinct from the business/scope D-xxx and process DOC-xxx IDs in docs/au-bank-insurance-platform/DECISION-LOG.md,…"
-    bytes: 56182
+    bytes: 100718
   - path: docs/platform/architecture-review/README.md
     bucket: platform
     authority: approved-spec
@@ -3637,7 +3677,7 @@ documents:
     persona: security
     title: "Workforce Authentication and Authorization — Service SSOT"
     answers: "Primary identity provider for development: Keycloak"
-    bytes: 18293
+    bytes: 19336
   - path: docs/platform/ws3-platform/00-WS3-ARCHITECTURE-REGISTRATION.md
     bucket: platform
     authority: approved-spec
@@ -3669,7 +3709,7 @@ documents:
     persona: architecture
     title: "WS-3 — Ratified Solution Architecture for the R0 Slice"
     answers: "security sign-off (S07-G3/G4) and Aarti's data sign-off (S07-G5) are mandatory and separate."
-    bytes: 32143
+    bytes: 44202
   - path: docs/platform/ws3-platform/04-security-architecture.md
     bucket: platform
     authority: approved-spec
@@ -3677,7 +3717,7 @@ documents:
     persona: architecture
     title: "WS-3 — Security Architecture for the R0 Slice"
     answers: "Jurisdiction: S07-E03 is Deepali's epic. Deepali owns the security property, the residual"
-    bytes: 24166
+    bytes: 33048
   - path: docs/platform/ws3-platform/05-nfr-catalogue.md
     bucket: platform
     authority: approved-spec
@@ -3685,4 +3725,4 @@ documents:
     persona: architecture
     title: "WS-3 — Measurable NFR Catalogue"
     answers: "Owners: Mahesh (Architecture) + Rajal (business derivation) + Shivanshi (feasibility and"
-    bytes: 16451
+    bytes: 22589

@@ -115,13 +115,32 @@ recovery mechanism per failure class, not per store.
 
 ## 6. Events
 
-**Rule OR-15 — transactional outbox now; a broker when the trigger fires.** `VIN-001 §30` and
-[`03-solution-architecture-r0.md §5.1`](../../../platform/ws3-platform/03-solution-architecture-r0.md)
-agree independently: continue with the outbox approach; adopt an event bus when justified.
+**Rule OR-15 — transactional outbox always; a broker when the trigger fires.** Restated
+2026-08-24, because **the trigger fired and the rule survived it.**
 
-> **Recorded revisit trigger** (unchanged, first of):
-> a third distinct consumer class for domain events · sustained outbox lag beyond the audit SLA
-> (`NFR-DAT-05`) · Reporting & MIS entering scope.
+> **The trigger fired for WS-3 on 2026-08-24.** R0's design has three consumer classes — audit
+> (`S-17`), notification (`S-18`) and compensation (`S-19`) — so the "third distinct consumer
+> class" condition was met inside R0 rather than after it.
+> [`ADR-012`](../../../platform/architecture-review/08-architecture-decision-log.md) admitted
+> Amazon MSK, and [`03-solution-architecture-r0.md §5.1`](../../../platform/ws3-platform/03-solution-architecture-r0.md)
+> was rewritten accordingly.
+>
+> **What the rule keeps, and this is the part that matters:** the outbox did **not** go away. A
+> service still writes its business change and its outbox row in one local transaction; the
+> publisher then puts it on a topic. The outbox is the source of truth and the replay log, and the
+> broker is transport and fan-out. Replacing the outbox with direct publishing would reintroduce
+> the dual-write bug — commit, then publish, two writes with no shared transaction.
+>
+> So "outbox now, broker later" was never a sequence of two mechanisms. It was one mechanism plus a
+> deferred transport, and only the transport arrived.
+
+`VIN-001 §30` and the prior §5.1 agreed independently on the outbox approach and on adopting an
+event bus when justified. Both halves held.
+
+> **Remaining revisit trigger, now pointing the other way** (`ADR-012`): if R0 completes with one
+> real consumer class and no replay ever used, the broker is a cost to withdraw rather than a
+> decision to defend. Toward growth: sustained consumer lag that partition-level scaling cannot
+> absorb, or a cross-region consumer.
 
 `VIN-001 §30`'s own example is what will fire it: `PolicyIssued` triggering Policy Portfolio,
 Notification, Reporting, Audit, Renewal scheduling and Commission/Finance is **six consumer

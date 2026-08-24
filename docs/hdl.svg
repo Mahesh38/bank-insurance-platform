@@ -863,15 +863,15 @@
   <text x="56" y="3359.5" font-size="9.5" fill="#ffffff" font-weight="bold" letter-spacing="1.4">BOUNDARY 9</text>
   <text x="180" y="3359.5" font-size="14" fill="#ffffff" font-weight="bold" letter-spacing="0.5">EVENT &amp; MESSAGING BACKBONE</text>
   <text x="56" y="3385.5" font-size="9.5" fill="#475569">OWNS · Reliable asynchronous propagation of domain facts: LeadCreated, ConsentCaptured, QuoteRequested, ProposalSubmitted, UnderwritingApproved, PaymentCompleted, PolicyIssued, JourneyAbandoned, PolicyRenewalDue, PolicyLapsed.</text>
-  <text x="56" y="3400.5" font-size="9.5" fill="#b91c1c">DOES NOT OWN · Business decisions. And it does not arrive as Kafka on day one: an event-driven target diagram is not a reason to run a broker before the load justifies it.</text>
+  <text x="56" y="3400.5" font-size="9.5" fill="#b91c1c">DOES NOT OWN · Business decisions. The broker arrived in R0 on a NAMED TRIGGER (three consumer classes), not because the target diagram is event-driven — and the outbox stayed in front of it (ADR-012).</text>
   <rect x="64.0" y="3414.5" width="473.6" height="90.0" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
   <rect x="499.6" y="3421.5" width="30" height="15" rx="4" fill="#1d4ed8"/>
   <text x="514.6" y="3433.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
   <text x="74.0" y="3438.5" font-size="11.5" fill="#0f172a" font-weight="bold">Transactional outbox</text>
-  <text x="74.0" y="3454.5" font-size="8.8" fill="#475569">Service DB → outbox → worker, at-least-once, no</text>
-  <text x="74.0" y="3467.0" font-size="8.8" fill="#475569">broker in R0. Audit consumes the outbox. This is</text>
-  <text x="74.0" y="3479.5" font-size="8.8" fill="#475569">already the repository's pattern and it stays the</text>
-  <text x="74.0" y="3492.0" font-size="8.8" fill="#475569">starting point.</text>
+  <text x="74.0" y="3454.5" font-size="8.8" fill="#475569">Service DB → outbox row in ONE transaction, then</text>
+  <text x="74.0" y="3467.0" font-size="8.8" fill="#475569">publisher → MSK (ADR-012, 2026-08-24). The outbox</text>
+  <text x="74.0" y="3479.5" font-size="8.8" fill="#475569">is the source of truth and the replay log; the topic</text>
+  <text x="74.0" y="3492.0" font-size="8.8" fill="#475569">is transport. Evidence never lives only in a topic.</text>
   <rect x="553.6" y="3414.5" width="473.6" height="90.0" rx="6" fill="#ccfbf1" stroke="#0f766e" stroke-width="1.5"/>
   <rect x="989.2" y="3421.5" width="30" height="15" rx="4" fill="#0f766e"/>
   <text x="1004.2" y="3433.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R1</text>
@@ -883,11 +883,11 @@
   <rect x="1043.2" y="3414.5" width="473.6" height="90.0" rx="6" fill="#e0e7ff" stroke="#4338ca" stroke-width="1.5"/>
   <rect x="1478.8000000000002" y="3421.5" width="30" height="15" rx="4" fill="#4338ca"/>
   <text x="1493.8000000000002" y="3433.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">RN</text>
-  <text x="1053.2" y="3438.5" font-size="11.5" fill="#0f172a" font-weight="bold">Managed event bus (MSK / EventBridge)</text>
-  <text x="1053.2" y="3454.5" font-size="8.8" fill="#475569">Introduced when fan-out, replay or consumer count</text>
-  <text x="1053.2" y="3467.0" font-size="8.8" fill="#475569">justifies it — outbox → bus → consumers, an</text>
-  <text x="1053.2" y="3479.5" font-size="8.8" fill="#475569">evolution rather than a rewrite. Technology choice</text>
-  <text x="1053.2" y="3492.0" font-size="8.8" fill="#475569">deliberately still open.</text>
+  <text x="1053.2" y="3438.5" font-size="11.5" fill="#0f172a" font-weight="bold">Cross-region and replay-heavy bus estate</text>
+  <text x="1053.2" y="3454.5" font-size="8.8" fill="#475569">MSK itself is already in R0 (ADR-012). What is still</text>
+  <text x="1053.2" y="3467.0" font-size="8.8" fill="#475569">RN: cross-region consumers, replay-driven read-model</text>
+  <text x="1053.2" y="3479.5" font-size="8.8" fill="#475569">rebuilds and a broker estate sized by fan-out — an</text>
+  <text x="1053.2" y="3492.0" font-size="8.8" fill="#475569">evolution of the same shape, never a rewrite.</text>
   <rect x="1532.8000000000002" y="3414.5" width="473.6" height="90.0" rx="6" fill="#ccfbf1" stroke="#0f766e" stroke-width="1.5"/>
   <rect x="1968.4" y="3421.5" width="30" height="15" rx="4" fill="#0f766e"/>
   <text x="1983.4" y="3433.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R1</text>
@@ -959,7 +959,7 @@
   <text x="74.0" y="3778.0" font-size="11.5" fill="#0f172a" font-weight="bold">CI/CD + architecture fitness</text>
   <text x="74.0" y="3794.0" font-size="8.8" fill="#475569">Every module built and tested on every PR; merge</text>
   <text x="74.0" y="3806.5" font-size="8.8" fill="#475569">impossible without green; coverage floors; ArchUnit</text>
-  <text x="74.0" y="3819.0" font-size="8.8" fill="#475569">and 21 fitness functions (FF-01…FF-21); p95 under 10 min.</text>
+  <text x="74.0" y="3819.0" font-size="8.8" fill="#475569">and 28 fitness functions (FF-01…FF-28); p95 under 10 min.</text>
   <text x="74.0" y="3831.5" font-size="8.8" fill="#475569">GATE-S08 — where the platform actually is today.</text>
   <rect x="676.0" y="3754.0" width="596.0" height="102.5" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
   <rect x="1234.0" y="3761.0" width="30" height="15" rx="4" fill="#1d4ed8"/>

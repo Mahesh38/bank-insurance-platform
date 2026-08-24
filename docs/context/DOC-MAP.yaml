@@ -19,7 +19,7 @@ schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
 document_count: 463
-total_bytes: 9766252
+total_bytes: 9767792
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -1317,7 +1317,7 @@ documents:
     persona: architecture
     title: "R0 Low-Level Design — AWS platform pack for the CTO and AWS platform team"
     answers: "Consumers: CTO; AWS platform / landing-zone team; Shivanshi (SRE, Board 7 — provisions and operates); Deepali (Security — trust boundaries, IAM,…"
-    bytes: 84539
+    bytes: 85323
   - path: docs/architecture/README.md
     bucket: platform
     authority: approved-spec
@@ -2733,7 +2733,7 @@ documents:
     persona: null
     title: "09 — Worked Decision Examples"
     answers: "These examples illustrate behaviour. They are not substitutes for current regulatory/policy assessment."
-    bytes: 5623
+    bytes: 6137
   - path: docs/context/roles/shailja-s-compliance-risk-head/10-maintenance-and-versioning.md
     bucket: context
     authority: non-binding-context
@@ -3245,7 +3245,7 @@ documents:
     persona: null
     title: "Board 1 — Architecture · Verdict on CR-010"
     answers: "Change request: CR-010 — Reusable Context Module and Safe Autopilot Foundation"
-    bytes: 26873
+    bytes: 27115
   - path: docs/governance/change-requests/CR-010/verdicts/board-3-product-rajal.md
     bucket: governance
     authority: binding-process

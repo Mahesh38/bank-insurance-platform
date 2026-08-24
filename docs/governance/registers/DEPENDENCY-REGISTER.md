@@ -23,6 +23,10 @@ recorded once and reused by every later ordering computation.
 | DEP-009 | WS-2 Phase 2 (production IdP) | `blocked_by` | WS-2 Phase 1 gate | HARD | OPEN | Deliberate deferral behind the adapter |
 | DEP-010 | WS-2 Phase 2 (AD federation) | `external` | Bank confirms AD technology | EXTERNAL | OPEN | Owner Mahesh / Architecture; follow-up 2026-08-21 |
 | DEP-011 | TD-007 (tighten ArchUnit) | `requires` | Packages populated by LOB expansion | TECHNICAL | OPEN | Cannot tighten rules against empty packages |
+| DEP-20260824-dx1 | R0 bank connectivity (`ADR-009`) | `external` | Bank terminates the VPN, publishes prefixes, opens its firewall, accepts the DX order | EXTERNAL | OPEN | Owner Shivanshi / SRE with the bank network team; follow-up 2026-08-28. The **pattern** is decided; the bank's own work is not. `uat` cannot leave stubs behind until the VPN half exists |
+| DEP-20260824-eip | 1SB and AU Bank PG allowlists | `blocked_by` | Publication of the **inspection-VPC** Elastic IPs (`ADR-010`, LLD §2.3) | EXTERNAL | OPEN | Owner Shivanshi; follow-up 2026-08-28. The addresses moved out of the workload VPCs. Any allowlist conversation already started must be re-based — from 1SB's side, a stale allowlist is indistinguishable from none |
+| DEP-20260824-cst | `GATE-S09` entry (cloud account structure and budget approved) | `blocked_by` | Cost envelope for the five 2026-08-24 layers (`RISK-012`, `NFR-OPEN-6`) | DECISION | OPEN | Owner Shivanshi + Kalpana. Three stateful services, a sixth account, an inspection VPC per environment and two circuits are now inside the S09 budget line, and none of it is priced |
+| DEP-20260824-evd | `#16` Audit consumer (W3) | `requires` | MSK topics, per-topic IAM and the Glue Schema Registry (`ADR-012`) | TECHNICAL | OPEN | Owner Amit + Shivanshi. Writing the audit path against a direct outbox poll and moving it later is a rewrite of the one component that must not lose a record |
 
 ## 2. External dependencies
 
@@ -33,9 +37,15 @@ for (Rule DEP-3).
 |----|------------|-------|-----------|-------|----------------|
 | → [DEP-002](#1-edges) | Bank app team UAT integration slot | Rajal / Product | 2026-08-21 | OPEN | Phase 4 gate criterion 4.3 cannot close |
 | → [DEP-010](#1-edges) | Bank AD technology confirmation | Mahesh / Architecture | 2026-08-21 | OPEN | WS-2 Phase 2 design cannot start |
+| → [DEP-20260824-dx1](#1-edges) | Bank-side VPN termination, prefixes, firewall change, DX order | Shivanshi / SRE + bank network | 2026-08-28 | OPEN | `uat` and `prod` keep running against CBS/AD stubs, so `#4` Customer and WS-2 Phase 2 cannot be evidenced. **The one item on the programme that working harder cannot accelerate** |
+| → [DEP-20260824-eip](#1-edges) | 1SB and AU Bank PG allowlist the inspection-VPC Elastic IPs | Shivanshi / SRE | 2026-08-28 | OPEN | W2 quotes and W3 payments fail in UAT regardless of code readiness |
 
-> Both external dependencies now have an accountable chase owner and date. The dependency remains
+> Every external dependency has an accountable chase owner and date. The dependency remains
 > external; assignment makes the chase schedulable and does not pretend the answer is available.
+>
+> The two rows added on 2026-08-24 come from `ADR-009` and `ADR-010`. Deciding the connectivity
+> *pattern* removed an open architecture decision — it did **not** remove the bank's own work, and
+> recording that distinction is the point of both rows.
 
 ## 3. Resolved cycles
 

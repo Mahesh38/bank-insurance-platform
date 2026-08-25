@@ -164,7 +164,7 @@ def topology():
     band("shared", "ns: shared-platform   ·   one deployment for every line of business", 1175, 395)
     band("w1", "W0b + W1 — configuration and the journey spine", 1215, ROW_H, 758, 974)
     for i, rows in enumerate((["#19 Configuration", "W0b · fail closed"],
-                              ["#5 Opportunity", "W1 · origination"],
+                              ["#5 Lead", "W1 · origination"],
                               ["#9 Journey Orch.", "W1 · state machine"],
                               ["#4 Customer", "W1 · ETB snapshot"],
                               ["#8 Product Catalogue", "W1 · Term only"])):

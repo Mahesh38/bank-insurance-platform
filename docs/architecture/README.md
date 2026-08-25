@@ -290,3 +290,15 @@ stale diagram: it does not look out of date, it looks like a decision.
 ten boundaries, the journey spine, the two actors, the wave colouring, the LOB encoding, the service
 count (fourteen plus one app) and `ADR-008`'s one-cluster data topology. The robustness round is
 strictly *beneath* the R0 slice.
+
+## Revision — 2026-08-25 Lead-domain R0 pull (`CR-013`, `ADR-014`)
+
+Label and release-chip reconciliation only. No new bounded context, no new AWS hop.
+
+| File | What changed |
+|---|---|
+| [`../hdl.svg`](../hdl.svg) | Spoken name of `#5` is **Lead**. `#18` and the `#19` admin UI chips move to **R0**. Campaign/bulk Lead create stays R1. Opportunity remains the durable-demand alias. |
+| [`r0-reference-architecture.svg`](./r0-reference-architecture.svg) | `#5 Lead`. `#18` and Admin BFF promoted from R1 ghosts to **W4**. `#19` no longer says "NO ADMIN UI IN R0". |
+| [`r0-lld.svg`](./r0-lld.svg) | Namespace label `#5 Lead`. Topology unchanged. |
+| generated set | `#5 Lead` on the topology view. Regenerated; not hand-edited. |
+| [`R0-HLD.md`](./R0-HLD.md) | Compiled narrative matches the same cut. |

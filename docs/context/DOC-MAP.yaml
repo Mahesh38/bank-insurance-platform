@@ -3838,3 +3838,11 @@ documents:
     title: "WS-3 — Measurable NFR Catalogue"
     answers: "Owners: Mahesh (Architecture) + Rajal (business derivation) + Shivanshi (feasibility and"
     bytes: 22589
+  - path: docs/platform/ws3-platform/06-architecture-justification-and-review-answers.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, code-change]
+    persona: architecture
+    title: "WS-3 — Architecture Justification & Review Answers"
+    answers: "Persona: Mahesh — Principal Insurance Platform Architect (Board 1)"
+    bytes: 53131

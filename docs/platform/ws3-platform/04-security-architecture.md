@@ -65,9 +65,11 @@ graph TB
         SB["1SilverBullet"]
     end
 
-    subgraph Z1["Z1 — Edge (DMZ)"]
-        WAF["WAF + CDN"]
-        GW["API Gateway / ALB"]
+    subgraph Z1["Z1 — Bank Perimeter & Edge (DMZ)"]
+        CF["Cloudflare (Enterprise CDN/DDoS)"]
+        F5["F5 BIG-IP / WAF (Bank Policy)"]
+        EXT_ALB["External ALB"]
+        GW["API Gateway / Internal ALB"]
     end
 
     subgraph Z2["Z2 — Application (private)"]
@@ -98,14 +100,14 @@ graph TB
     end
 
     subgraph Z5["Z5 — Bank internal"]
-        CBS["Core Banking"]
+        EBS["EBS (Core Banking / CBS / CIF)"]
         PGW["AU Bank Payment Gateway"]
         AD["Bank AD"]
     end
 
-    RM ==>|"TB-1"| WAF
+    RM ==>|"TB-1"| CF --> F5 --> EXT_ALB --> GW
     CUSTD ==>|"TB-6"| PGW
-    WAF --> GW ==>|"TB-2"| BFF
+    GW ==>|"TB-2"| BFF
     BFF ==>|"TB-3"| PDP
     BFF --> SVCS
     BFF ==>|"TB-4"| CACHE
@@ -114,7 +116,7 @@ graph TB
     SVCS -.->|"TB-4 logs"| SRCH
     SVCS --> HUB --> ADPT --> NFW ==>|"TB-5"| SB
     SVCS ==>|"TB-6"| PGW
-    SVCS --> TGW ==>|"TB-7"| CBS
+    SVCS --> TGW ==>|"TB-7"| EBS
     IDPA --> TGW ==>|"TB-7"| AD
     IDPA --> KC
     SVCS --> KMS

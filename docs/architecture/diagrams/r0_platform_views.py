@@ -131,12 +131,13 @@ def topology():
     # ---- region and edge -------------------------------------------------
     c.group("AWS REGION · ap-south-1", 620, 200, 2160, 2220, stroke=Z["vpc"][0],
             fill="#ffffff", dash="10 7", label_size=17, width=2.2)
-    edge = c.group("PUBLIC AWS EDGE", 660, 240, 1610, 280, stroke=Z["edge"][0],
-                   fill=Z["edge"][1], sub="the only internet entry point — not in the VPC",
+    edge = c.group("BANK PERIMETER & PUBLIC AWS EDGE", 660, 240, 1610, 280, stroke=Z["edge"][0],
+                   fill=Z["edge"][1], sub="Cloudflare · F5 · External ALB · API Gateway — not in the VPC",
                    label_size=16)
-    cf = c.node(I["cf"], 760, 400, ["CloudFront", "TLS 1.3 · ACM"])
-    waf = c.node(I["waf"], 960, 400, ["AWS WAF + Shield Std", "OWASP · rate limit"])
-    agw = c.node(I["apigw"], 1160, 400, ["API Gateway", "PROXY 1 of 2", "throttle · schema"])
+    cf = c.node(I["cf"], 740, 400, ["Cloudflare", "Edge CDN · DDoS", "bank standard"])
+    waf = c.node(I["waf"], 910, 400, ["F5 BIG-IP / WAF", "L7 security policy", "bank standard"])
+    ext_alb = c.node(I["alb"], 1080, 400, ["External ALB", "Edge ingress"])
+    agw = c.node(I["apigw"], 1250, 400, ["API Gateway", "PROXY 1 of 2", "throttle · schema"])
     pgcb = c.node(I["apigw"], 1480, 400, ["PG-callback route", "SEPARATE · IP-allowlisted"])
     c.node(I["r53"], 1780, 400, ["Route 53", "public + private zones", "a lookup, not a hop"])
 
@@ -247,7 +248,7 @@ def topology():
     s3 = c.node(I["s3"], COL[0], 2310, ["S3 + Object Lock", "7-year WORM"], size=54)
     ddb = c.node(I["ddb"], COL[1], 2310, ["DynamoDB + PITR", "journey · jobs"], size=54)
     for x, rows in ((1180, ["KMS CMK hierarchy"]), (1360, ["Secrets Manager"]),
-                    (1540, ["ECR — by digest"]), (1720, ["CloudWatch · X-Ray"]),
+                    (1540, ["ECR — by digest"]), (1720, ["CloudWatch + CloudTrail"]),
                     (1900, ["AMP + AMG"]), (2080, ["Argo CD (in-cluster)"])):
         c.node(I["argo"] if x == 2080 else
                {1180: I["kms"], 1360: I["secret"], 1540: I["ecr"],
@@ -256,7 +257,7 @@ def topology():
     # ---- outside ---------------------------------------------------------
     out = c.group("OUTSIDE", 2840, 620, 360, 340, stroke=Z["ext"][0], fill=Z["ext"][1],
                   sub="bank systems and insurance providers", label_size=15)
-    cbs = c.node(I["net"], 2940, 710, ["Core Banking", "CBS / CIF"], size=54)
+    cbs = c.node(I["net"], 2940, 710, ["EBS (CBS / CIF)", "Enterprise Service Bus"], size=54)
     pg = c.node(I["net"], 3120, 710, ["AU Bank", "Payment Gateway"], size=54)
     c.node(I["net"], 2940, 860, ["Bank AD / SSO", "WS-2 Phase 2"], size=54)
     onesb = c.node(I["net"], 3120, 860, ["1SilverBullet", "R0 polls"], size=54)
@@ -264,7 +265,8 @@ def topology():
     # ---- connectors, all axis-aligned ------------------------------------
     c.link(dev.port("R", at=380), cf.port("L"), color=REQ, width=3.0)
     c.link(cf.port("R"), waf.port("L"), color=REQ, width=3.0)
-    c.link(waf.port("R"), agw.port("L"), color=REQ, width=3.0)
+    c.link(waf.port("R"), ext_alb.port("L"), color=REQ, width=3.0)
+    c.link(ext_alb.port("R"), agw.port("L"), color=REQ, width=3.0)
     c.link(agw.port("B"), alb.port("T"), color=REQ, width=3.0,
            label="VPC link", label_at=0.62, label_dx=9, label_anchor="start")
     c.link(alb.port("B"), bff.port("T"), color=REQ, width=3.0,
@@ -313,6 +315,8 @@ def topology():
         "OpenSearch as the audit store — ADR-013",
         "A second live region — DR is warm standby",
         "Cognito — Keycloak is the R0 IdP",
+        "Pipelines — GitLab CI/CD is bank standard",
+        "IaC — Terraform is the IaC baseline",
     ], size=12, color=MUTE)
 
     legend(c, 2840, 1370, 360, [
@@ -457,7 +461,7 @@ def dr():
     c.link(eks_a.port("R"), eks_b.port("L"), color="#94a3b8", width=2.2, dash="4 5",
            label="NOT replicated", label_size=11.5)
     c.node(I["r53"], 1500, 1320, ["D9  Route 53 failover", "MANUAL in R0"], size=54)
-    c.node(I["cf"], 1880, 1320, ["D10  CloudFront origin", "re-point — a runbook step"], size=54)
+    c.node(I["cf"], 1880, 1320, ["D10  Cloudflare / ALB origin", "re-point — a runbook step"], size=54)
 
     c.node(I["vpc"], 1500, 370, ["D1  VPC + subnets", "empty · no NAT until failover"], size=54)
     c.node(I["iam"], 1880, 370, ["IAM roles + IaC", "the same modules, a different tfvars"], size=54)
@@ -511,7 +515,7 @@ def sequence():
         ("P4", "EDGE + PROXY", "", "#b45309", "#fffaf0",
          ((I["alb"], ["Internal ALB"]),
           (I["apigw"], ["API Gateway", "+ PG callback — needed at W3"]),
-          (I["cf"], ["CloudFront + WAF"]))),
+          (I["cf"], ["Cloudflare + F5", "External ALB ingress"]))),
         ("P5", "IDENTITY", "WS-2", "#059669", "#f0fdf7",
          ((I["deploy"], ["Keycloak + PDP"]),
           (I["secret"], ["Secrets Manager", "rotation exercised once"]))),
@@ -521,7 +525,7 @@ def sequence():
           (I["srch"], ["OpenSearch + ISM", "P1 and P3 logs land here"]))),
         ("P7", "DELIVERY", "", "#0369a1", "#f2f9ff",
          ((I["ecr"], ["ECR — built once"]),
-          (I["argo"], ["Argo CD"]))),
+          (I["argo"], ["Argo CD + GitLab CI"]))),
         ("P8", "PROOF", "GATE-S09 accepts records, not designs", "#16a34a", "#f2fdf5",
          ((I["backup"], ["a restore, TIMED"]),
           (I["trail"], ["a rollback drill"]),

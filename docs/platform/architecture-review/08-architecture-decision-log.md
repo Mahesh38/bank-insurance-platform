@@ -1396,3 +1396,31 @@ origin: "human:Mahesh taken decision · SUG-20260825-nip"
 
 **Drafted:** Mahesh — Principal Insurance Platform Architect (Board 1 / R2) · 2026-08-25.
 Human T4 Architecture sign-off outstanding. Deepali jointly owns store-listing exposure.
+
+---
+
+## ADR-016 — Enterprise perimeter, integration and delivery baseline (Cloudflare, F5, External ALB, EBS, GitLab, Terraform, CloudTrail/CloudWatch)
+
+```yaml
+id: ADR-016
+status: PROPOSED
+problem: >
+  Internal architecture team review mandated alignment with bank enterprise standards:
+  Cloudflare Enterprise CDN/DDoS, F5 BIG-IP / WAF for L7 security policy, External ALB
+  before API Gateway, EBS (Enterprise Service Bus) APIs for Core Banking (CBS / CIF),
+  GitLab CI/CD pipelines, Terraform for IaC, and mandatory CloudTrail + CloudWatch.
+context_stage: "WS-3 at S08/S09; internal architecture review directive 2026-08-25"
+decision: >
+  1. Edge ingress: Cloudflare (Enterprise Edge CDN / DDoS) -> F5 BIG-IP / WAF (Bank Policy) ->
+     External ALB -> Amazon API Gateway (VPC Link) -> Internal ALB.
+  2. Core Banking integration: Customer lookups route via bank EBS (Enterprise Service Bus) APIs
+     over Transit Gateway private links. Terminology is standardized as EBS (CBS / CIF).
+  3. Delivery & IaC: GitLab CI/CD for enterprise pipelines and Terraform for 100% IaC provisioning.
+  4. Observability & Audit: AWS CloudTrail (mandatory management auditability) alongside
+     Amazon CloudWatch (runtime operational metrics and alerts).
+authority_class: A3_JOINT_REVIEW
+origin: SUG-20260825-arb
+```
+
+**Drafted:** Mahesh — Principal Insurance Platform Architect (Board 1 / R2) · 2026-08-25.
+Human T4 Architecture sign-off outstanding. Deepali jointly owns perimeter security policy.

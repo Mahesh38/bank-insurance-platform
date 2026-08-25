@@ -50,7 +50,7 @@ The journey ribbon on the SVG is the acceptance path, not a decoration:
 
 | Step | What must happen | Context that owns it | Hard gate |
 |---|---|---|---|
-| 1 | Lead created; ETB customer looked up from CBS | #5 Lead · #4 Customer | Origination is RM-only (`AC-8`) |
+| 1 | Lead created; ETB customer looked up via EBS APIs (CBS / CIF) | #5 Lead · #4 Customer | Origination is RM-only (`AC-8`) |
 | 2 | Need analysis and suitability complete | #7 Suitability | **C1** — no quote without a valid, unexpired assessment |
 | 3 | Consent granted via customer-device OTP | #6 Consent | **C2** — no proposal without an unexpired grant |
 | 4 | Term quote via 1SB, partial success is success | #10 Quotation · #14 Hub · #15 Adapter | C1 re-checked at quote entry (`S-08`) |
@@ -185,7 +185,7 @@ The SVG and the North Star (`docs/hdl.svg`) use the same bands (`LY-1`). A thin 
 
 **Owns:** TLS termination, WAF, throttling, request validation.
 **Does not own:** business logic, authorization decisions.
-**R0 contains:** Route 53 · CloudFront · AWS WAF · API Gateway · internal ALB.
+**R0 contains:** Route 53 · Cloudflare · F5 BIG-IP / WAF · External ALB · API Gateway · internal ALB.
 **Greyed:** insurer callback ingress (R1). R0 **polls** providers instead (`S-11`).
 **Rule:** no workload, database or cache is internet-reachable.
 

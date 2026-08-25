@@ -481,4 +481,4 @@ The platform enforces the following hard invariants across all codebases and inf
 This architecture dossier provides a comprehensive, mathematically grounded, and regulatory-compliant foundation for the AU Bank Insurance Distribution Platform. It fulfills all IRDAI mandates, enforces bank security policies, eliminates vendor lock-in, and provides a clear evolution path from R0 Term Life to full multi-LOB bancassurance distribution.
 
 **Recommendation to ARB:**  
-**Approve the R0 Solution Architecture, BOM, and associated ADRs (`ADR-001` through `ADR-015`) for progression into S09 Platform Infrastructure Provisioning using Terraform and GitLab CI/CD.**
+**Approve the R0 Solution Architecture, BOM, and associated ADRs (`ADR-001` through `ADR-016`) for progression into S09 Platform Infrastructure Provisioning using Terraform and GitLab CI/CD.**

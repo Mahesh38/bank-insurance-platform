@@ -536,9 +536,14 @@ id_allocation:
   pattern: "^(SUG|DEP)-[0-9]{8}-[0-9a-z]{3}$"
   legacy_pattern: "^(SUG|DEP)-[0-9]{4}$"
   sequential:
-    CR: 11        # CR-001..010 in use; next unused is CR-011
-    RISK: 12      # RISK-001..011 in use
-    ASM: 9        # ASM-001..008 in use
+    # Advanced 2026-08-24 by the R0 robustness round (CR-012). ID-allocation correction only:
+    # no stage, scope or gate field is touched by it — those remain human-owned (04 section 5).
+    # CR-011 existed as a file from 2026-08-20 without a register row, so the counter read 11
+    # while CR-011 was in use; it is now indexed in the decision register and the counter clears
+    # both it and CR-012.
+    CR: 13        # CR-001..012 in use; next unused is CR-013
+    RISK: 16      # RISK-001..015 in use (012..015 added by CR-012)
+    ASM: 12       # ASM-001..011 in use (009..011 added by CR-012)
     EPIC: 1
     SPIKE: 1
     # ADR-001..003 were written into architecture-review/08 under CR-010 while this counter still
@@ -548,4 +553,5 @@ id_allocation:
     # which FreshnessCheck scans — so the counter had to move or every agent would halt on a
     # collision warning. This is an ID-allocation correction only. No stage, scope or gate field is
     # touched by it; those remain human-owned (04 section 5).
-    ADR: 9
+    # ADR-009..013 were added by the 2026-08-24 R0 robustness round (CR-012, SUG-20260824-gp1..gp5).
+    ADR: 14

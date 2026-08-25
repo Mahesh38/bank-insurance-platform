@@ -164,7 +164,37 @@ catalogue.
 | NFR-SEC-06 | Vulnerability remediation SLA | S0 immediate · S1 next release · S2 two releases · S3 backlog | Tracked in the risk register with ageing | S08 onward |
 | NFR-SEC-07 | Credential rotation | Every credential class rotated at least once without outage | Rotation exercise record | S09 (S09-G5) |
 
-### 3.7 Engineering flow NFRs — NFR-ENG
+### 3.7 Platform-tier NFRs — NFR-NET, NFR-CAC, NFR-EVT, NFR-OBS
+
+Added 2026-08-24 with the five layers `ADR-009` … `ADR-013`. Every one of them exists because the
+layer it measures is otherwise a claim: a standby path nobody failed over to, a cache nobody lost,
+a broker nobody replayed and an index nobody checked for PII are four ways of having installed
+something rather than having a capability.
+
+| ID | Requirement | Target | Measure | Verify at | Derived from |
+|---|---|---|---|---|---|
+| NFR-NET-01 | **Bank-path failover** — DX loss falls to VPN without human action | Recovery **< 120 s** with no dropped journey beyond in-flight requests | Deliberate DX withdrawal in UAT, wall-clock timed, journeys running | **S09 (S09-G7 evidence pack)** | `ADR-009`. An untested standby path is a claim |
+| NFR-NET-02 | **Egress inspection coverage** | **100%** of egress traverses the firewall; zero route tables with a non-TGW default route | IaC policy-as-code pre-apply (`FF-22`) + a runtime probe attempting direct egress from a pod | S09 | `ADR-010`. A control with one bypass is not a control |
+| NFR-NET-03 | **Allowlisted EIP set published and verified** | 1SB and the AU Bank PG both confirm the **inspection-VPC** addresses before UAT opens | Written confirmation from both parties, address-by-address | **Before S11 entry** | §2.3 of the LLD. The addresses moved; a stale allowlist is indistinguishable from none |
+| NFR-NET-04 | CBS latency over the private path | p95 **< 300 ms** for a CIF lookup, inside the `NFR-LAT-01` budget | Timer at `#4`, labelled by path (DX / VPN) | S11 instrumented; S12 load | `S-05`. The RM is waiting in front of a customer |
+| NFR-CAC-01 | **Cache failover** | Automatic failover completes **< 60 s**; no session lost that was valid at the start | Forced failover in UAT with active sessions | S09 | `ADR-011`. A single-node vault makes an AZ event a mass logout |
+| NFR-CAC-02 | **Session survival** | 100% of valid sessions survive a rolling pod restart and a deploy | Rolling restart with active sessions held | S09 | The property the in-process alternative never had |
+| NFR-CAC-03 | **Cache is not on the correctness path** | With the cache unavailable: **zero** authorisation or configuration outcomes change; latency degrades only | Chaos test — cache down, full journey suite green (`S-25`) | S11 | `ADR-011`. A cache that can change an answer is a system of record |
+| NFR-EVT-01 | **Publish lag** — outbox row to topic | p95 **< 5 s**; alert at 60 s | Age of the oldest unpublished outbox row | S11 | `ADR-012`. This is the metric that shows a stalled publisher |
+| NFR-EVT-02 | **Consumer lag** | p95 **< 30 s** per consumer group; alert at 5 minutes; drains within 15 min of a 1-hour outage backlog | MSK consumer-group lag, per group | S11; drain proven S12 | The audit SLA (`NFR-DAT-05`) is the binding constraint |
+| NFR-EVT-03 | **Replay drill** | A consumer group replayed from the outbox reaches an identical evidence state — **zero duplicates, zero gaps** | Deliberate replay in UAT against a reconstructed broker | **S09 (`S09-G7`)** | `ADR-012` / LLD `D14`. This is what makes "no broker in DR" a design rather than a gap |
+| NFR-EVT-04 | **No evidence only in a topic** | **Zero** gate, audit or regulatory queries served from MSK; `SOLD` unreachable on a topic acknowledgement alone | `FF-26` + a negative journey test | S11 | The rule `ADR-012` cannot trade |
+| NFR-OBS-01 | **Log searchability** | A journey's correlated events across BFF, services, hub, adapter, firewall and broker are retrievable by `X-Correlation-Id` in **< 60 s** from emission | Timed query in UAT during the first end-to-end journey | S11 | `ADR-013`. The reason the pipe exists |
+| NFR-OBS-02 | **No PII in the index** | **Zero** matches for regulated field patterns in the index mapping or a sampled document scan | `FF-27`, scheduled | S09, then continuously | A log pipeline is the commonest route to an unclassified PII store |
+| NFR-OBS-03 | **Operational retention closes** | Indices deleted at `RET-OPERATIONAL` (90 days) with a disposal record; **no index without a lifecycle policy** | ISM policy assertion + disposal audit record | S09 | `NFR-DAT-07`. An index with no lifecycle grows until it is an incident |
+
+Two things these rows deliberately do **not** measure. There is no throughput target for the broker,
+the cache or the search domain: at CAP-A volumes they are sized for availability and evidence, and
+a throughput NFR would invite exactly the scaling conversation §2.1 says is the wrong one. And
+there is no availability tier for the search domain — it is an operational tool, so its loss is an
+SRE inconvenience rather than a journey failure (`NFR-AVL` does not apply to it).
+
+### 3.8 Engineering flow NFRs — NFR-ENG
 
 These are NFRs of the delivery system rather than the product, and S08 gates on them.
 
@@ -183,15 +213,21 @@ These are NFRs of the delivery system rather than the product, and S08 gates on 
 | Stage | What is proven | Owner |
 |---|---|---|
 | **S08** | NFR-SEC-01…04, NFR-SEC-06, NFR-ENG-01…05 | Amit + Swapnali + Deepali |
-| **S09** | NFR-DR-01…05, NFR-DAT-01/02/06/07, NFR-SEC-07 | Shivanshi + Aarti + Deepali |
-| **S11** | NFR-LAT-09, NFR-DAT-04/05, NFR-SEC-05 | Amit + Swapnali |
+| **S09** | NFR-DR-01…05, NFR-DAT-01/02/06/07, NFR-SEC-07, **NFR-NET-01/02, NFR-CAC-01/02, NFR-EVT-03, NFR-OBS-02/03** | Shivanshi + Aarti + Deepali |
+| **S11** | NFR-LAT-09, NFR-DAT-04/05, NFR-SEC-05, **NFR-NET-04, NFR-CAC-03, NFR-EVT-01/02/04, NFR-OBS-01** | Amit + Swapnali |
 | **S12** | NFR-LAT-01…08, NFR-THR-01…06, NFR-AVL-04…06, NFR-DR-06, NFR-DAT-03 | Shivanshi + Swapnali |
 | **S14** | NFR-AVL-01…03, NFR-AVL-07, DR re-exercise | Shivanshi |
 | **S15** | Continuous SLO and error-budget reporting | Shivanshi + Rajal |
+| **Before S11 entry** | **NFR-NET-03** — 1SB and the PG have confirmed the inspection-VPC addresses | Shivanshi + Kalpana |
 
 S07-VT-05 pass condition — *zero qualitative NFRs; every one has a named verification test*. Every
-row in §3 carries a number, a measurement method and a verification stage. **58 NFRs, no
-adjectives.**
+row in §3 carries a number, a measurement method and a verification stage. **72 NFRs, no
+adjectives** — 58 from the original catalogue plus the 14 platform-tier rows added on 2026-08-24.
+
+**Seven of the fourteen are drills rather than dashboards**, and that is the point: a failover, a
+replay and a session-holding restart are the only forms of evidence that distinguish an installed
+layer from a working one. They land in the S09 `P8` proof band (LLD §12.1), where nothing can be
+produced in the week the gate is reviewed.
 
 ---
 
@@ -204,9 +240,11 @@ adjectives.**
 | NFR-OPEN-3 | AU Bank PG throughput and settlement-file cadence — NFR-DAT-03's 24 hours assumes a daily file | Shivanshi + Finance | Before S11 entry |
 | NFR-OPEN-4 | Retention horizons confirmed against the final IRDAI/DPDP position (D-011 open) | Shailja | Before S11 entry |
 | NFR-OPEN-5 | Cost model per issued policy | Shivanshi + Kalpana | S14 |
+| NFR-OPEN-6 | **Run-rate cost of the five 2026-08-24 layers**, per environment, against the §1.4 shapes. Three stateful services, an inspection VPC per environment and two circuits, at ~100 journey starts an hour — the fixed cost now dominates the variable cost, and nobody has priced it | Shivanshi + Kalpana (`RISK-012`) | **S09 output, before first `apply` to `uat`** |
+| NFR-OPEN-7 | Bank-side confirmation of VPN termination, prefixes, firewall change and the DX order date (`DEP-20260824-dx1`). `NFR-NET-01` and `NFR-NET-04` cannot be measured until it exists | Shivanshi + bank network | Before S11 entry |
 
 ---
 
 **Signed:** Mahesh — Principal Insurance Platform Architect (Board 1 / R2)
 **signature_status:** `AI-DRAFTED — mandatory human signature outstanding (S07-G6 requires a signed NFR sheet: Mahesh AP, Shivanshi AP, Aarti AP, Deepali AP/B/H, Shailja AP/B, Rajal RV)`
-**Date:** 2026-08-16
+**Date:** 2026-08-16 · **revised** 2026-08-24 (R0 robustness round — §3.7 platform-tier NFRs, NFR-OPEN-6/7)

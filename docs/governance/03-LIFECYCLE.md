@@ -111,6 +111,13 @@ future_necessity: SHOULD
 action:         PARK
 ```
 
+> **The unpark trigger on this example has partly fired, and the example is still correct.**
+> `ADR-012` was accepted for **WS-3** on 2026-08-24, so a broker exists in the R0 platform estate.
+> This row is `workstream: WS-1` at `L2`, and both facts still hold there: the adapter is at
+> Phase 4, publishes to no topic, and would still be premature. An unpark trigger fires for the
+> workstream whose stage it names — which is the same rule (`LC-1`) the scope example in
+> [`02 §2`](./02-PROJECT_SCOPE.md#2-scope-is-not-one-thing) now illustrates.
+
 ### Production autoscaling during domain modelling
 
 ```yaml
@@ -216,7 +223,7 @@ Use as a prior, not a substitute for the analysis. Columns are WS-1's current st
 | Shared library extraction | L4 | SF1 if ≥ 2 consumers exist today, else SF3 |
 | Retry / circuit breaker | L5 | SF1 if an upstream failure is observed; SF3 if speculative |
 | Caching layer | L5–L7 | SF3 unless a measured latency gate fails |
-| Message broker / event backbone | L5 | SF3 — out of current topology |
+| Message broker / event backbone | L5 | SF3 — out of current topology. **Workstream-dependent:** SF1 for WS-3 since `CR-012` (`ADR-012`) put one in the R0 estate |
 | Test coverage for delivered code | L6 | SF0/SF1 — always welcome at hardening |
 | E2E / sandbox suite | L7 | **SF1 — this is the current stage's work** |
 | Compliance evidence, log-sample review | L7 | SF1 |

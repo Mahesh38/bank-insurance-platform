@@ -148,7 +148,7 @@ The states that matter most have **no HTTP status**, because nobody is waiting o
 
 ## 8. Dependency-down behaviour
 
-From [`03-solution-architecture §5.3`](../platform/ws3-platform/03-solution-architecture-r0.md#53-resilience-policy-per-dependency-class-s07-e02-s04).
+From [`03-solution-architecture §5.3`](../platform/ws3-platform/03-solution-architecture-r0.md#53-resilience-policy-per-dependency-class--s07-e02-s04).
 
 | Dependency | Timeout | Retry | Degraded mode | Caller sees |
 |---|---|---|---|---|

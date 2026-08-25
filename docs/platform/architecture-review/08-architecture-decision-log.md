@@ -7,12 +7,12 @@
 | ID | Decision | Status | Rationale | Supersedes / relates to |
 |----|----------|--------|-----------|--------------------------|
 | ARCH-001 | Target cloud is **AWS only**; no multi-cloud abstraction | Proposed | Explicit constraint for this review | — |
-| ARCH-002 | Compute substrate is **Amazon EKS** for every microservice; elasticity via Karpenter + HPA + KEDA | Proposed | Explicit constraint for this review | — |
+| ARCH-002 | Compute substrate is **Amazon EKS** for every microservice; elasticity via Karpenter + HPA + KEDA | Proposed | Explicit constraint for this review | KEDA's precondition — a broker to read lag from — is met in R0 by `ADR-012` |
 | ARCH-003 | Target-state platform = **~16 domain-aligned microservices** + 2 edge BFFs + 1 routing layer, sequenced across 4 delivery phases (P0–P3), not built simultaneously | Proposed | Capability map defines domains, not service count (`knowledge-base/03-capability-map.md` PO note); this review makes that call | See [02](./02-target-microservices-architecture.md) |
 | ARCH-004 | **Data ownership per service** — one owner per authoritative datum, no cross-service table access, separate credentials and schema ownership per service; the existing `bank-persistence-service` shared-HTTP-store pattern is scoped **only** to the integration job/correlation store and audit ingestion — not extended to Customer/Opportunity/Consent/Suitability/Catalogue/Payment/Policy/etc. **The physical-cluster-per-service half is withdrawn — see `ADR-008`.** | Proposed, qualified by `ADR-008` | A platform-wide shared persistence service becomes a single coupling/failure point once 10+ business domains exist. But ownership and physical topology are different claims, and only the first is a principle (`TI-05`, `VIN-001 §34`) | Amends `docs/1sb-insurance-integration/architecture/bank-persistence-service.md` scope, does not delete it · physical topology decided by `ADR-008` |
 | ARCH-005 | **Journey Orchestration** is a first-class microservice owning the cross-domain journey state machine | Proposed (new service, not previously named) | Someone must own `Journey { stage, externalRefs, partySnapshot }` (`canonical-model/contexts.md` §8) across domains or every BFF reimplements it, breaking replaceability | New; builds on the Journey aggregate already defined in the 1SB research pack |
 | ARCH-006 | **1SB Adapter** (existing `1sb-integration-service`) is retained as-is and placed behind a new **Integration Hub** routing layer; no rewrite | Confirms + extends | The service is already well-designed (hexagonal, SOLID/DRY/KISS, Case-2 pattern) and explicitly scoped as a Phase-A adapter slice in `knowledge-base/08-integration-strategy.md` | Confirms `docs/1sb-insurance-integration/architecture/replaceable-middleware.md` and `08-integration-strategy.md` |
-| ARCH-007 | Sync at every point a human is waiting in-session; async (Kafka/SQS/SNS) for every cross-domain side effect (audit, notification, reporting) | Proposed | Generalizes the already-accepted "sync API, async inside" rule from the 1SB adapter (Domain rule 3) to the whole platform | Confirms and extends `1sb-integration-service-architecture.md` §1 |
+| ARCH-007 | Sync at every point a human is waiting in-session; async (Kafka/SQS/SNS) for every cross-domain side effect (audit, notification, reporting) | Proposed | Generalizes the already-accepted "sync API, async inside" rule from the 1SB adapter (Domain rule 3) to the whole platform | Confirms and extends `1sb-integration-service-architecture.md` §1 · qualified by `ADR-012`: the broker is R0, and the **transactional outbox in front of it is the source of truth**, not a transitional step |
 | ARCH-008 | Shared cross-cutting libraries (`bank-common-error`, `-security`, `-audit`, `-idempotency`, `-observability`) remain the reuse mechanism for cross-cutting concerns; business logic is never extracted into a shared library | Confirms | Already-accepted decision (D13 in `service-ssot/00-po-architect-design-session.md`); this review extends the same libraries platform-wide rather than introducing a second convention | Confirms existing decision |
 | ARCH-009 | Primary AWS region `ap-south-1` (Mumbai), DR in `ap-south-2` (Hyderabad) | Proposed, **pending compliance confirmation** | Data residency is an explicitly open item in `DECISION-LOG.md`; this is this review's working assumption, not a substitute for that sign-off | Flags open item from `docs/au-bank-insurance-platform/DECISION-LOG.md` |
 | ARCH-010 | All compliance-sensitive behavior (consent rules, retention periods, masking policy) is configuration-driven via Administration & Config, never hardcoded per service | Proposed | Multiple compliance questions (D-008, D-011, and the PII/retention/residency items) are explicitly still pending; config-first absorbs the eventual answer without a re-architecture | Directly implements D-014's "configurable policy-driven controls" principle at the technology layer |
@@ -715,9 +715,590 @@ approvals:
 
 ---
 
-## Signature status for ADR-001 — ADR-008
+## ADR-009 — Hybrid bank connectivity is provisioned in R0: a Transit Gateway hub, VPN from day one, Direct Connect as the primary path when the circuit lands
 
-All eight records are **`AI-DRAFTED — mandatory human signature outstanding`**. ADR-002 is
+```yaml
+id: ADR-009
+status: PROPOSED
+problem: >
+  R0 depends on two bank-internal systems it has no network path to. Context #4 Customer reads
+  CIF/ETB data from Core Banking, and WS-2 Phase 2 federates Keycloak to Bank AD. The LLD said
+  only that this "will require either Direct Connect / VPN or a bank-hosted reverse proxy", named
+  it as an S09-entry decision owned by Shivanshi and the bank network team, and permitted stubs in
+  dev. Nothing said what R0 provisions, so nothing was provisioned, and the decision had no date.
+  That leaves the two longest-lead items on the programme — a carrier circuit and a bank firewall
+  change — sitting behind a decision nobody had been asked to take, while a stub in dev quietly
+  became the only tested path. An ETB lookup against a stub proves the code compiles, not that the
+  journey works, and W1 cannot be evidenced without the real path.
+context_stage: >
+  WS-3 at S08 with S09 overlapped. No VPC exists yet, so this is a greenfield network decision
+  today and a re-addressing exercise after the first environment is built.
+decision: >
+  R0 provisions hybrid connectivity as a first-class layer, in the same S09 change as the VPCs.
+
+  TOPOLOGY. A Transit Gateway in a new `network` account is the single hub for every
+  bank-directed and inter-VPC route. Workload VPCs (dev, uat, prod) attach to it; nothing peers
+  VPC-to-VPC. A separate TGW route table per environment carries only that environment's
+  attachments and only the bank prefixes that environment is entitled to, so no dev workload can
+  route to a production bank prefix even by misconfiguration. The account is added deliberately:
+  five accounts become six, because a shared network plane owned by an environment account is an
+  environment that can change everyone else's routing.
+
+  TWO PATHS, IN THIS ORDER. Site-to-Site VPN over the TGW is provisioned FIRST, because it needs
+  a public IP and a bank firewall rule rather than a carrier order, and it is what removes the
+  stub from uat. Direct Connect follows: two hosted VIFs at two Mumbai DX locations through one
+  Direct Connect Gateway, and it becomes the primary path when the circuit is accepted. BGP
+  prefers DX; the VPN stays configured as the standby path forever rather than being decommissioned
+  once DX is live.
+
+  WHAT DEPENDS ON IT. `dev` may use CBS and AD stubs. `uat` and `prod` may not: from R0, a bank
+  system is reached over this path or the journey is not evidenced. That is the gap this ADR
+  closes, and it is the whole of its cost.
+authority_class: A3_JOINT_REVIEW
+alternatives:
+  - option: "Keep the decision open and run CBS/AD stubs through UAT, as the previous LLD allowed"
+    rejected_because: >
+      It defers the two longest-lead items on the programme past the point where they block W1,
+      and it makes the stub the tested path. WS-1 gate 4.3 already shows how this ends: a criterion
+      that cannot close because an external party was engaged too late. Stubs are a dev convenience,
+      never an evidence source.
+  - option: "A bank-hosted reverse proxy over the internet with mTLS, and no private circuit"
+    rejected_because: >
+      It puts CIF traffic on the public internet, and Bank AD federation over a public hop is a
+      trust-boundary change Deepali would have to accept for a saving the bank has not asked for.
+      It also does not remove the bank-side firewall work, which is the actual lead time — so it
+      buys nothing and costs a boundary.
+  - option: "Direct Connect only, and wait for the circuit before UAT"
+    rejected_because: >
+      A carrier order is the one dependency on this list that working harder cannot accelerate.
+      Making it the only path makes the whole of uat wait on it. VPN-first is strictly better:
+      same routing, same TGW, available in the same change as the VPC.
+  - option: "VPN only, and treat Direct Connect as an R1 upgrade"
+    rejected_because: >
+      Acceptable for uat, not for prod. A VPN tunnel is bandwidth-limited and internet-path
+      dependent, and CIF lookups sit inside the RM's NFR-LAT-01 300 ms p95 budget. It is a
+      standby path, not a production one.
+  - option: "One shared Transit Gateway route table for all environments"
+    rejected_because: >
+      It converts the hard account boundary the landing zone exists to create into a routing
+      convention. Environment separation must survive a mistake in one attachment.
+consequences:
+  positive:
+    - "The two external-lead-time items start at the beginning of S09 instead of being discovered at W1"
+    - "uat and prod exercise the real CBS and the real AD, so an ETB lookup is evidence rather than a mock"
+    - "One hub carries bank routing, DR routing and inter-VPC routing, so the DR region is reachable by the same design (see D16 in the LLD)"
+    - "Environment isolation is enforced in the route table, not in a review comment"
+  negative:
+    - "A sixth AWS account, a TGW, per-environment route tables and attachment costs, plus two DX ports once the circuit lands — a permanent run-rate increase before the first sale"
+    - "Two paths mean two failure modes and a failover to test. An untested standby path is a claim, not a capability (NFR-NET-01)"
+    - "The bank network team becomes a hard dependency of S09 rather than a consultee, with its own change windows"
+    - "TGW data-processing charges apply to every bank-directed and inspected byte, including the egress path in ADR-010"
+mitigations:
+  - "VPN first, so no gate waits on a carrier order"
+  - "DX failover to VPN is exercised and timed once before prod, as NFR-NET-01, not assumed from a BGP config"
+  - "Per-environment TGW route tables, asserted in the IaC scan next to FF-09"
+  - "Bank-side dependency raised as a dated external dependency with a named owner rather than an architecture assumption"
+compliance_impact: >
+  Positive and material. CIF and AD traffic leaves the public internet entirely, which is the
+  posture Shailja's residency and confidentiality position assumes. No data crosses a region
+  boundary: both DX locations and the TGW are in ap-south-1, and the DR attachment terminates in
+  ap-south-2. Control C6 is unaffected.
+security_impact: >
+  Material, and Deepali's review is required. This creates a new trust boundary — TB-7, platform
+  to bank internal over a private circuit — and it is the first boundary where traffic originates
+  outside AWS. Route tables become an authorization surface: a prefix advertised into the wrong
+  route table is a lateral path between environments. The boundary is default-deny at the firewall
+  in ADR-010 and at the security group, and "inside the circuit" is not an authorisation.
+reversibility: MEDIUM
+revisit_trigger: >
+  The bank mandating a different termination pattern (a bank-hosted proxy or an existing enterprise
+  TGW we attach to instead of owning); measured DX utilisation above 60% of port capacity; or a
+  second region becoming active, at which point the hub becomes a multi-region routing decision
+  rather than a single-hub one.
+approvals:
+  - "Mahesh / Architecture — AI-DRAFTED, human signature outstanding"
+  - "Shivanshi / SRE — REQUIRED and outstanding. The circuit, the BGP design, the failover exercise and the bank-network engagement are R10's"
+  - "Deepali / Security — REQUIRED and outstanding (new trust boundary TB-7; routing as an authorization surface)"
+  - "Shailja / Compliance — notify (CIF and AD traffic leaves the public internet; residency unchanged)"
+  - "Kalpana / Delivery — REQUIRED. This adds an external dependency to the S09 critical path and it is the one item that cannot be recovered by working harder"
+```
+
+---
+
+## ADR-010 — Every egress and inter-VPC flow is inspected centrally by AWS Network Firewall, and the allowlisted Elastic IPs move to a per-environment egress VPC
+
+```yaml
+id: ADR-010
+status: PROPOSED
+problem: >
+  R0's network controls stopped at layer 4. Security groups filter by IP and port, Kubernetes
+  NetworkPolicy filters by namespace and label, and the generated topology diagram asserted
+  "Service mesh — NetworkPolicy is enough". For east-west traffic that is true. For egress it is
+  not: a pod that can reach the NAT gateway can reach any address on the internet on 443, and
+  nothing in R0 could see or stop it. That is the path that matters here — the platform holds PAN,
+  income and health attributes and calls out to an aggregator, a payment gateway and an SMS
+  gateway, so unrestricted 443 egress from a compromised or misconfigured workload is the
+  exfiltration route with the shortest description. The comparison with AU Bank's existing estate
+  made the gap concrete: that platform inspects egress at a next-generation firewall, and R0 did
+  not inspect it at all.
+context_stage: >
+  WS-3 at S08, S09 overlapped, no VPC built. Centralised inspection is a routing decision, and
+  routing decisions are cheap before the first subnet exists and invasive afterwards — every
+  workload VPC route table and the entire published Elastic IP list change with it.
+decision: >
+  All north-south egress and all inter-VPC traffic is inspected.
+
+  TOPOLOGY. Each environment gets an inspection/egress VPC in the `network` account, attached to
+  the ADR-009 Transit Gateway. Workload VPC default routes point at the TGW, not at a local NAT.
+  The inspection VPC holds AWS Network Firewall endpoints (one per AZ), and the NAT gateways with
+  the Elastic IPs sit behind the firewall. Traffic path: pod → TGW → firewall endpoint → NAT →
+  IGW. Bank-directed traffic takes the same hub and the same inspection.
+
+  ONE INSPECTION VPC PER ENVIRONMENT, not one shared across environments. Production egress never
+  transits a VPC that a dev change can alter, and a firewall rule change in dev cannot silently
+  apply to prod.
+
+  THE ELASTIC IPs MOVE, AND THIS IS THE LOAD-BEARING CONSEQUENCE. The addresses 1SB and the AU
+  Bank Payment Gateway allowlist are now the egress VPC's NAT EIPs, one per AZ per environment,
+  and they stop changing when a workload VPC changes. The list is smaller and more stable than the
+  per-VPC list it replaces, but it must be published to both external parties before uat exactly
+  as before — and it must be published from this design, not the old one. Publishing the wrong
+  EIPs is indistinguishable, from 1SB's side, from not publishing them.
+
+  RULE POSTURE. Stateless rules drop obvious noise. Stateful rules are strict-order with a domain
+  allowlist: the aggregator, the PG, the SMS/email gateway, ECR and the AWS endpoints not already
+  covered by a VPC endpoint. Everything else is dropped and logged. Managed IPS rule groups are
+  enabled in alert mode first and moved to drop before prod. TLS inspection is configured for
+  destinations we terminate normally; the mTLS flows to 1SB are NOT decrypted — they are matched
+  on SNI and destination and left intact, because a man-in-the-middle on a mutually authenticated
+  channel is an outage, not a control.
+
+  WHAT THIS IS NOT. It is not ingress inspection for public traffic: the public edge is
+  CloudFront + WAF + API Gateway (ADR unchanged), and Network Firewall is not on that path. It is
+  not a service mesh, and it does not replace NetworkPolicy — east-west inside a cluster stays with
+  NetworkPolicy and IRSA. Claiming otherwise would be the kind of overreach that makes a control
+  look installed when it is not.
+authority_class: A3_JOINT_REVIEW
+alternatives:
+  - option: "Security groups and NetworkPolicy only, as R0 previously specified"
+    rejected_because: >
+      Neither can express "this workload may reach the aggregator and nothing else on 443", and
+      neither produces a log a responder can query. The control that catches the exfiltration case
+      is domain-aware and it did not exist.
+  - option: "Squid or a self-managed proxy fleet on EKS for egress filtering"
+    rejected_because: >
+      It puts a self-patched, self-scaled, self-monitored fleet on the money and provider path,
+      owned by a team that has not yet run one service in a real environment. A managed firewall
+      has a worse feature set and a much better failure profile."
+  - option: "A third-party NGFW appliance (Fortigate, Palo Alto) in an inspection VPC"
+    rejected_because: >
+      This is what the existing AU estate runs, and it is a defensible answer with a real
+      advantage in shared tooling and existing operator skill. It is rejected for R0 on
+      operational surface, not capability: licensing, HA pairs, version upgrades and vendor
+      support all land on a team of this size before the first sale. It stays the obvious
+      migration if the bank's network standard requires it — which is this ADR's revisit trigger.
+  - option: "One shared inspection VPC for all environments"
+    rejected_because: >
+      Cheaper, and it puts production egress on a path that a dev change can modify. The account
+      boundary exists precisely so that it cannot."
+  - option: "Decrypt everything, including the 1SB mTLS session"
+    rejected_because: >
+      Mutual TLS to a provider cannot be intercepted without breaking client authentication.
+      Attempting it produces a broken quote path and a false sense of coverage.
+consequences:
+  positive:
+    - "Egress becomes an allowlist with a log, so 'what did this pod talk to' is answerable"
+    - "The EIP set that 1SB and the PG allowlist is centralised and stable, and no longer changes with workload topology"
+    - "Firewall, flow and TGW logs give ADR-013's search pipe something worth indexing — the two closures are complementary, not independent"
+    - "One inspection design covers internet egress, bank-directed traffic and inter-VPC traffic"
+  negative:
+    - "Firewall endpoints are charged per AZ per environment plus per GB processed, and every inspected byte also crosses the TGW — this is the most expensive of the five closures at R0 volumes, and R0 volumes are small"
+    - "A new mandatory hop on the provider and payment path. A firewall rule error is now a full egress outage, and the quote path is the first thing to notice"
+    - "The published Elastic IP list changes shape. Any allowlist conversation already started with 1SB or the PG has to be redone against this design"
+    - "Someone must own the domain allowlist. A rule set nobody curates decays into permit-any within two incidents"
+mitigations:
+  - "Managed IPS rule groups run in alert mode until prod, so the first drop is deliberate rather than discovered"
+  - "The domain allowlist is versioned configuration reviewed in the same change as the code that needs a new destination — a new egress destination is a pull request, not a ticket"
+  - "Firewall endpoints in every AZ the workloads use; a single-endpoint egress path is an AZ-wide outage waiting for a maintenance window"
+  - "NFR-NET-02 asserts 100% of egress traverses inspection: any route table with a default route that is not the TGW fails the IaC scan"
+  - "dev runs a single endpoint in alert-mostly mode; the cost shape is deliberately not production-shaped"
+compliance_impact: >
+  Positive. Egress inspection with retained logs is directly evidential for the RBI cyber-security
+  expectations the payment control already cites, and it makes an exfiltration claim testable. The
+  logs carry destinations and metadata, never payloads, so no new PII surface is created — and TLS
+  inspection is never enabled on a path carrying regulated payloads to a mutually authenticated
+  provider.
+security_impact: >
+  This is a security control, so Deepali owns its acceptance, not merely its review. Two things
+  need her judgement rather than mine: whether alert-mode IPS before prod is an acceptable interim,
+  and whether the TLS-inspection exemption for mTLS destinations is scoped tightly enough that it
+  cannot be used as a general bypass.
+reversibility: MEDIUM
+revisit_trigger: >
+  A bank network standard mandating the enterprise NGFW platform; measured firewall processing cost
+  exceeding the compute cost of the workloads behind it; or a second active region, which makes the
+  single-hub egress design a multi-region one.
+approvals:
+  - "Deepali / Security — REQUIRED. This is her control and her acceptance, not a notification"
+  - "Mahesh / Architecture — AI-DRAFTED, human signature outstanding"
+  - "Shivanshi / SRE — REQUIRED and outstanding. She owns the rule set, the endpoint placement, the failure runbook and the EIP publication"
+  - "Kalpana / Delivery — REQUIRED (the EIP publication moves onto the S09 critical path in a new shape)"
+  - "Shailja / Compliance — notify (inspection logs as evidence; no payload retention)"
+```
+
+---
+
+## ADR-011 — A managed cache tier is provisioned in R0 for sessions, read-through L2 and rate limiting; it is never a system of record and never softens a fail-closed rule
+
+```yaml
+id: ADR-011
+status: PROPOSED
+problem: >
+  R0 had no shared cache, and two things were wrong because of it. First, a real contradiction:
+  WS-2's accepted design specifies a Redis session vault and ships a Redis container in
+  `docker-compose.identity.yml`, while the R0 LLD said sessions should prefer DynamoDB and treated
+  ElastiCache as an exception to be avoided. Two published designs, two session stores, and the
+  decision was recorded as open. Second, an in-process-only cache tier means every pod holds its
+  own copy of configuration and catalogue data with its own TTL, so N pods produce N different
+  answers for the window of one TTL — and configuration resolution is on the path of every
+  regulated action. A per-pod cache is not a correctness problem the moment a rule version
+  changes; it is a correctness problem for exactly as long as the TTL.
+context_stage: >
+  WS-3 at S08. No service holds a session or resolves configuration yet, so the port shape is
+  still free. After W0b and W4 this becomes a change to the two things every request touches.
+decision: >
+  R0 provisions ONE ElastiCache for Valkey replication group per environment, in the private-data
+  subnets, cluster mode disabled, primary plus replica in two AZs with automatic failover on,
+  encrypted at rest with a CMK and in transit, and reached only from the app subnets.
+
+  PERMITTED USES — a closed list. (a) The token-hiding BFF session vault. This CLOSES the open
+  decision in favour of WS-2's accepted design, and the DynamoDB `sessions` table is withdrawn
+  from the BOM. (b) An L2 read-through cache behind the existing in-process L1 for configuration
+  resolution and catalogue reads. (c) Distributed rate-limit and OTP-attempt counters at the BFF,
+  which are per-principal and therefore wrong when they are per-pod.
+
+  FORBIDDEN USES — also closed, and these are the invariants the tier must not erode.
+  Idempotency records stay in the owning service's store, written in the same transaction as the
+  business change (INV-IDM-01): a cache cannot be transactionally consistent with a database
+  write, and idempotency that is only mostly right on the money path is worse than none.
+  The cache is never a system of record for anything. It never becomes a fallback for an
+  unreachable configuration store: `S-21` still fails closed when the L1 TTL has expired, and an
+  L2 hit is only usable inside its own TTL for the same reason. No PII beyond the session's
+  principal claims. Per-service Valkey ACL users with a key-prefix grant, so one service cannot
+  read another's keyspace — the same ownership rule ADR-008 applies to schemas.
+
+  SIZING. Two nodes, not a sharded cluster. At CAP-A volumes — about 100 journey starts an hour,
+  6.8 a minute at Q4 peak — the working set is thousands of session and configuration keys, and
+  cluster mode would add resharding complexity to a workload that fits in one node's memory many
+  times over. The safe range is stated so nobody has to guess: scale up a size before scaling out,
+  and revisit sharding only on measured eviction or CPU, never on headcount of services.
+authority_class: A3_JOINT_REVIEW
+alternatives:
+  - option: "DynamoDB for sessions, in-process caches only, as the previous LLD preferred"
+    rejected_because: >
+      It is a defensible design and it was chosen to avoid a new managed service. But it leaves
+      the per-pod configuration divergence in place, leaves rate limiting per-pod and therefore
+      per-pod evadable, and contradicts WS-2's accepted session design — which means one of the
+      two workstreams was going to be rewritten. Closing the contradiction in favour of the tier
+      also closes the divergence.
+  - option: "Self-managed Redis or Valkey on EKS"
+    rejected_because: >
+      Persistence, failover, patching and backup for a session store, owned by the team that is
+      still closing GATE-S08. The managed service costs money; the self-managed one costs an
+      on-call rotation.
+  - option: "Provision the tier but also move idempotency into it, as the target-state review says"
+    rejected_because: >
+      This is the trap. Idempotency must be atomic with the business write or it does not do its
+      job, and the money path (INV-PAY-04) depends on it. Target state names ElastiCache for
+      idempotency; target state is wrong about that, and this ADR says so explicitly rather than
+      leaving it to be discovered.
+  - option: "Let the cache serve stale configuration when the store is unreachable"
+    rejected_because: >
+      It is the compiled-in fallback that CF-1 forbids, arriving through a different door. A
+      platform that cannot resolve the rule must refuse the action.
+consequences:
+  positive:
+    - "One session design across WS-2 and WS-3, and a published contradiction disappears"
+    - "Configuration and catalogue reads converge across pods, so a rule activation is visible platform-wide within one TTL rather than one TTL per pod"
+    - "Rate limits and OTP attempt counters become per-principal facts instead of per-pod ones — the per-pod version was a control with a documented bypass"
+    - "Session survival across pod restart and deploy, which the in-process alternative never had"
+  negative:
+    - "A stateful managed service in the R0 estate, with its own version upgrades, maintenance windows and failover behaviour"
+    - "A new shared dependency on the session path: cache loss is a mass logout even with failover, and the failover window is real"
+    - "The strong temptation, on day one of the first incident, to put idempotency or a business fact in it. This ADR's forbidden list is the only thing standing there"
+    - "Run-rate cost in every environment, for a working set that would fit in a pod's heap today"
+mitigations:
+  - "Two nodes across two AZs with automatic failover on; a single-node session store makes an AZ event a mass logout"
+  - "Per-service ACL user and key prefix, verified in the IaC scan (FF-24)"
+  - "FF-23 asserts no idempotency or evidence write targets the cache — the forbidden list is a machine check, not a convention"
+  - "NFR-CAC-02 measures session survival across a rolling restart and a forced failover"
+  - "dev runs a single node deliberately: it is synthetic data and a failover there is not an incident"
+compliance_impact: >
+  Limited and reviewable. Session material and configuration values are cached; regulated evidence
+  is not, and consent, suitability and audit records never enter the tier. Encryption at rest with
+  a bank-owned CMK and in-transit TLS keep the residency and key-ownership position unchanged.
+security_impact: >
+  Material. A session vault is an authentication asset: read access to it is read access to live
+  sessions. Deepali's review covers the ACL model, the AUTH credential rotation path, and the
+  confirmation that no OAuth token reaches the device even though the tokens now live in a shared
+  store rather than a per-service one.
+reversibility: HIGH
+revisit_trigger: >
+  Measured eviction pressure or CPU saturation on the primary (scale up first, shard only then);
+  a second line of business needing keyspace isolation stronger than an ACL prefix; or evidence
+  that the L2 layer is not earning its latency, in which case it is removed and the L1 stays.
+approvals:
+  - "Mahesh / Architecture — AI-DRAFTED, human signature outstanding"
+  - "Deepali / Security — REQUIRED and outstanding (session vault is an authentication asset; ACL and rotation model)"
+  - "Aarti / Database — REQUIRED and outstanding. Caching topology, eviction policy, node sizing and the boundary between cache and store are hers"
+  - "Amit / Engineering — notify (the L1/L2 port shape is implemented once, in a shared library, not per service)"
+  - "WS-2 — the open session-store decision closes here in favour of their accepted design"
+```
+
+---
+
+## ADR-012 — Amazon MSK is the R0 event backbone, and the transactional outbox stays as its source of truth
+
+```yaml
+id: ADR-012
+status: PROPOSED
+problem: >
+  R0 chose a transactional outbox per service and no broker, with a revisit trigger of "a third
+  distinct consumer class, sustained outbox lag, or Reporting entering scope". The reasoning was
+  sound and the outbox is the right mechanism for the dual-write problem. What it does not solve
+  is fan-out. Every consumer of a domain event has to be given its own poller against the
+  producing service's outbox table, which means every new consumer is a change to the producer's
+  database access pattern, and the audit, notification and reconciliation consumers of R0 are
+  already three shapes of the same code. The revisit trigger was also going to fire during R0
+  rather than after it: audit, notification and compensation are three consumer classes, and #18
+  Reporting is the fourth as soon as the pilot funnel needs a read model. Deferring the broker
+  until the trigger fires means adopting it in the middle of the vertical slice instead of before
+  it, which is the worst of the three available moments.
+context_stage: >
+  WS-3 at S08. No outbox table, no publisher and no consumer exists yet, so the publish contract
+  is free to shape. Once #16 Audit is written against a direct outbox poll, moving it to a broker
+  is a rewrite of the one component that must not lose a record.
+decision: >
+  R0 provisions Amazon MSK as the event backbone AND KEEPS the transactional outbox. This is one
+  decision, not two, and the order matters.
+
+  THE OUTBOX REMAINS THE SOURCE OF TRUTH. A service writes its business change and its outbox row
+  in one local transaction. `outbox-publisher` reads the outbox and publishes to MSK. The outbox
+  row is the durable record and the replay log; the topic is transport and fan-out. This keeps
+  exactly the property the original decision was made for — no dual write, no lost event on a
+  broker outage — and adds the property it lacked.
+
+  NO REGULATORY EVIDENCE EXISTS ONLY IN A TOPIC. #16 Audit consumes from MSK and writes to
+  DynamoDB and the S3 WORM archive; that write, not the topic, is what satisfies INV-JRN-05 and
+  lets a journey reach SOLD. Retention on a topic is an operational parameter. Retention on
+  evidence is a licence condition. A topic is never cited as the audit record.
+
+  SHAPE. Provisioned MSK, three brokers, one per AZ, KRaft, TLS in transit, at-rest encryption
+  with a CMK, SASL/IAM authentication with per-topic IAM policy so a consumer group cannot read a
+  topic it was not granted. Topics are versioned and named for the domain, with a dead-letter
+  topic per consumer group. Event contracts are registered in the AWS Glue Schema Registry with
+  backward compatibility enforced in CI (FF-25) — adopting a broker without a schema contract
+  just moves the coupling from the database into the payload.
+
+  KEDA IS NOW PERMITTED, for consumer-lag scaling only. The previous "DO NOT until there is a
+  broker" was correct and its condition is now met.
+
+  DR. MSK is NOT replicated to ap-south-2 and MSK Replicator is not provisioned. Because the
+  outbox is in Aurora and Aurora is replicated, every event is reproducible in the DR region by
+  replaying the outbox — so a broker replica would be a second copy of something already
+  recoverable. The constraint this places on every consumer is stated as a design rule rather than
+  a hope: consumers must be idempotent on `eventId` and must tolerate replay, and consumer offsets
+  are not evidence of anything.
+
+  SIZING, STATED SO NOBODY SCALES BLINDLY. R0 is ~100 journey starts an hour, and a journey emits
+  single-digit events. That is tens of messages a minute against a three-broker cluster sized for
+  availability, not throughput. Three brokers is the AZ-availability floor, not a capacity
+  calculation, and partition counts start at the minimum that lets a consumer group scale to its
+  pod count.
+authority_class: A3_JOINT_REVIEW
+alternatives:
+  - option: "Keep the outbox alone and let the revisit trigger fire, as the previous decision said"
+    rejected_because: >
+      The trigger fires inside R0 — three consumer classes exist in the design already. Adopting a
+      broker mid-slice means changing the audit path, which is the one path that must not lose a
+      record, at the moment it is being evidenced for a gate."
+  - option: "Replace the outbox with direct publishing to MSK"
+    rejected_because: >
+      This is the dual-write bug in its classic form. A business commit followed by a publish is
+      two writes with no shared transaction: a crash between them loses the event, and a retry
+      duplicates the business change. The outbox exists to prevent exactly this and keeping it is
+      most of this ADR's value.
+  - option: "SNS + SQS fan-out instead of Kafka"
+    rejected_because: >
+      Genuinely simpler and cheaper, and it was the right answer while there was one consumer.
+      It is rejected on replay and ordering: SQS gives no durable, re-readable log, so a
+      consumer that needs to rebuild — the reporting read model, or an audit re-verification —
+      cannot. Per-journey ordering is also a real requirement (sequence_no gaplessness) and topic
+      partitioning by journeyId expresses it directly.
+  - option: "MSK Serverless everywhere"
+    rejected_because: >
+      Attractive for dev and it is what dev will run. For uat and prod it removes the broker
+      controls (per-broker metrics, storage tuning, replication factor) that a first DR and a
+      first load test need to be able to see."
+consequences:
+  positive:
+    - "A new consumer is a consumer group, not a change to the producer's database access"
+    - "Per-journey ordering and durable replay become available to audit and to the reporting read model that follows in S13"
+    - "The audit path keeps its exactly-once-in-effect property, because the outbox still owns durability and consumers dedupe on eventId"
+    - "KEDA can scale consumers on real lag instead of CPU, which is what a post-outage backlog actually needs"
+  negative:
+    - "A three-broker stateful cluster per environment, with version upgrades, storage growth, partition rebalancing and its own failure modes — the largest single operational addition of the five closures"
+    - "Two mechanisms on the async path instead of one. Outbox plus broker is more moving parts than outbox alone, and the publisher becomes a component that must not silently stop"
+    - "Massively over-provisioned for R0 throughput, and that is the honest trade: three brokers buys AZ availability, not capacity"
+    - "A schema registry and a compatibility policy to maintain, or the payload becomes the new coupling"
+mitigations:
+  - "The outbox stays, so a broker outage delays events rather than losing them"
+  - "Outbox age is the alert that matters (NFR-DAT-05, unchanged) — a stalled publisher is visible in seconds, not at the next audit review"
+  - "Consumers idempotent on eventId, replay-tolerant by design rule, and proven by a replay drill (NFR-EVT-03)"
+  - "FF-26 asserts no audit or evidence claim is satisfied by a topic read alone"
+  - "dev runs MSK Serverless or a single broker; the three-broker shape exists only where availability is being evidenced"
+compliance_impact: >
+  Neutral if the evidence rule holds, and a finding if it does not. The audit record remains the
+  DynamoDB row and the WORM archive. Topic data is encrypted with a bank CMK, stays in
+  ap-south-1, and carries no PII beyond the identifiers the audit event already carries — event
+  payloads follow the same PII rules as logs (PII-B), which is why the schema registry matters
+  for review rather than only for compatibility.
+security_impact: >
+  Material. SASL/IAM per-topic authorisation becomes an access-control surface: a consumer group
+  granted a topic it should not read is a data-access defect that no application code shows.
+  Deepali's review covers the topic-to-role matrix and the confirmation that the DLQ topics do not
+  become an unmanaged copy of every payload that ever failed.
+reversibility: MEDIUM
+revisit_trigger: >
+  Measured, in both directions. Toward removal: if R0 completes with only one real consumer class
+  and no replay ever used, the broker is a cost to withdraw rather than a decision to defend.
+  Toward growth: sustained consumer lag that partition-level scaling cannot absorb, or a
+  cross-region consumer, which reopens replication.
+approvals:
+  - "Mahesh / Architecture — AI-DRAFTED, human signature outstanding"
+  - "Shivanshi / SRE — REQUIRED and outstanding. Broker sizing, upgrade path, lag alerting and the replay drill are R10's, and she is the one carrying the new on-call surface"
+  - "Deepali / Security — REQUIRED and outstanding (per-topic IAM, DLQ content, payload PII rules)"
+  - "Shailja / Compliance — REQUIRED. The evidence rule above is the whole of her interest and it must be signed, not assumed"
+  - "Amit / Engineering — notify (publisher and consumer are shared-library shapes, written once)"
+```
+
+---
+
+## ADR-013 — Amazon OpenSearch is the R0 operational search and log-analytics pipe, and it never holds regulatory evidence
+
+```yaml
+id: ADR-013
+status: PROPOSED
+problem: >
+  R0's only log destination was CloudWatch Logs. That is a sound store and a poor investigation
+  tool: cross-service correlation over a journey means Logs Insights queries per log group, priced
+  per gigabyte scanned, at the moment an incident is live. The gap became structural rather than
+  merely inconvenient once the other closures were admitted — ADR-010 produces firewall and flow
+  logs, ADR-009 produces TGW logs, ADR-012 produces broker and consumer logs, and none of that is
+  worth generating if nobody can query it. The comparison with the existing AU estate named the
+  same layer from the other direction: that platform runs a search cluster for exactly this, and
+  R0 had no equivalent and no plan for one before S13.
+context_stage: >
+  WS-3 at S08 with S09 overlapped, and the first end-to-end journey (S11) is where correlated
+  search first pays for itself. Retrofitting a log pipeline after the pipeline exists means
+  re-emitting, not re-indexing.
+decision: >
+  R0 provisions one Amazon OpenSearch Service domain per environment as the OPERATIONAL search
+  and analytics pipe.
+
+  SHAPE. VPC-only domain in the private-data subnets — no public endpoint, ever. Dedicated master
+  nodes plus data nodes across the environment's AZs, encryption at rest with a CMK, node-to-node
+  encryption, TLS 1.2+ enforced, and fine-grained access control with IAM-mapped roles. Ingest is
+  Fluent Bit on the nodes to Amazon Data Firehose to OpenSearch, with a failed-delivery bucket in
+  S3 so a mapping error loses a document from the index and not from the record.
+
+  WHAT IT INDEXES. Application logs (already PII-masked at emission), plus the logs the other four
+  closures generate: Network Firewall alert and flow logs, VPC flow logs, TGW flow logs, MSK
+  broker and consumer logs, and ALB and API Gateway access logs.
+
+  THE TWO-PIPE RULE IS UNCHANGED AND NOW HAS A THIRD PARTY TO IT. The operational pipe is
+  CloudWatch plus OpenSearch, retained to RET-OPERATIONAL (90 days) with an ISM policy that rolls
+  30 days hot and deletes at the horizon. The regulatory pipe is the audit event store and the S3
+  WORM archive, and OpenSearch is NOT part of it. Deleting an OpenSearch index deletes no
+  evidence, and no gate, audit or regulatory query is ever satisfied from OpenSearch. That
+  sentence is the reason this ADR can be approved without reopening the retention position.
+
+  NO PII, ENFORCED TWICE. Masking stays where it is, at emission (FF-05). A second check runs over
+  the index itself (FF-27), because a log pipeline is the most common way a restricted attribute
+  reaches a store nobody classified.
+
+  WHAT THIS IS NOT. It is not the analytics warehouse. Glue, Athena, Redshift and QuickSight stay
+  out of R0: #18 Reporting & MIS is S13, and a pilot funnel is not a warehouse. It is not a
+  business search index either — catalogue and journey search stay in their owning stores, because
+  a search cluster fed by a log pipeline is not a system of record for a domain query.
+authority_class: A3_JOINT_REVIEW
+alternatives:
+  - option: "CloudWatch Logs Insights only, as R0 previously specified"
+    rejected_because: >
+      It works and it is what the platform would use at 03:00 on the first incident, per log group,
+      per query, priced per gigabyte scanned. The first end-to-end journey debugging session is
+      where that cost is actually paid, in hours rather than rupees.
+  - option: "Self-managed ELK on EKS"
+    rejected_because: >
+      A stateful cluster with PVCs, in a design whose whole PVC position is that business workloads
+      do not have them. Upgrades and index management would land on the same team closing GATE-S08.
+  - option: "Ship logs to the bank's existing enterprise ELK or SIEM"
+    rejected_because: >
+      Probably right eventually, and it is named as the revisit trigger: the bank has a security
+      operations function and two log estates is one too many. It is not available now — the
+      connectivity, the schema agreement and the bank-side onboarding are not in place, and R0
+      cannot wait on them to be able to query a firewall drop.
+  - option: "Also point the audit archive at OpenSearch so evidence is searchable"
+    rejected_because: >
+      This is the failure mode this ADR exists to prevent. A searchable copy becomes the copy
+      people cite, and an index with an ISM delete policy is not a seven-year immutable record.
+      Evidence is queried from its own store."
+consequences:
+  positive:
+    - "One place to correlate a journey across BFF, services, hub, adapter, firewall and broker"
+    - "The logs the other four closures generate become usable rather than merely retained"
+    - "Investigation cost stops scaling with the volume scanned per query, which is what makes people stop looking"
+    - "A named home for the security-relevant event classes the security architecture already requires to be separated from operational logs"
+  negative:
+    - "A stateful cluster per environment with version upgrades, shard management and its own capacity behaviour — and it is the closure most likely to be under-used if nobody builds the dashboards"
+    - "Run-rate cost in three environments for a log volume that CloudWatch already holds; this is a duplicate store by design"
+    - "A second place PII can land, which is why the enforcement is doubled rather than moved"
+    - "The temptation to make it the audit store, or the business search index, or both"
+mitigations:
+  - "ISM policy from day one: 30 days hot, delete at RET-OPERATIONAL. An index with no lifecycle policy grows until it becomes an incident"
+  - "FF-27 asserts no restricted attribute reaches an index; FF-28 asserts the audit archive is not written by the log pipeline"
+  - "dev runs a single data node with a 7-day policy; production shape is not replicated downward"
+  - "The domain is VPC-only with fine-grained access control, so 'searchable' never means 'reachable'"
+compliance_impact: >
+  Neutral by construction, and only because of the exclusion above. Operational logs carry no
+  regulated attributes (PII-B) and are retained to RET-OPERATIONAL with a disposal record
+  (NFR-DAT-07). The seven-year immutable position is untouched: OpenSearch holds no evidence, so
+  its ISM delete policy cannot be a retention violation.
+security_impact: >
+  Two-sided and Deepali's to weigh. It creates a store that aggregates operational data across
+  every service, which is a valuable target and needs VPC-only placement, fine-grained access
+  control and audited human access. It also gives security operations the first queryable view of
+  firewall drops, denied authorisations and attribution rejections that the security architecture
+  §9 already requires to exist.
+reversibility: HIGH
+revisit_trigger: >
+  The bank's enterprise SIEM or ELK becoming available to onboard onto, which supersedes this
+  domain rather than extending it; or measured index cost exceeding the CloudWatch cost it was
+  meant to relieve; or S13's Reporting & MIS arriving, which is a warehouse decision and not this
+  one.
+approvals:
+  - "Shivanshi / SRE — REQUIRED and outstanding. Observability is R10's; domain sizing, ISM policy, dashboards and the ingest pipeline are hers"
+  - "Mahesh / Architecture — AI-DRAFTED, human signature outstanding"
+  - "Deepali / Security — REQUIRED and outstanding (aggregated operational store, access control, security event classes)"
+  - "Shailja / Compliance — REQUIRED. The evidence exclusion is the whole of her interest here, and it is the reason this can be approved without reopening retention"
+  - "Aarti / Database — notify (a second stateful store, its capacity behaviour and its boundary against the systems of record)"
+```
+
+---
+
+## Signature status for ADR-001 — ADR-013
+
+All thirteen records are **`AI-DRAFTED — mandatory human signature outstanding`**. ADR-002 is
 `A4_HUMAN_REQUIRED`: it is a material scope and stage decision and an AI simulation of Mahesh must
 not finalise it. None of these ADRs is `ACCEPTED` until the approvals listed in each record are
 present, and none of them becomes binding merely because CR-010's checks pass or its branch is
@@ -737,5 +1318,31 @@ physical to logical, which makes **Deepali's** Security review non-optional. Nei
 exists. An architect's decision is not a DBA's sign-off and an agent does not supply either.
 ADR-008 is recorded under `SUG-20260820-dc4`, which also closes `OPEN-D10` inside ADR-005.
 
+**ADR-009 through ADR-013 are the R0 robustness set**, raised on 2026-08-24 under
+`SUG-20260824-gp1` … `SUG-20260824-gp5` and carried by
+[`CR-012`](../../governance/change-requests/CR-012-r0-platform-robustness.md). They are recorded
+together because they were decided together and because three of them only make sense as a set:
+ADR-010's inspection path runs over ADR-009's hub, and ADR-013 exists in R0 largely because
+ADR-009, ADR-010 and ADR-012 each generate logs that were otherwise unqueryable.
+
+All five are `A3_JOINT_REVIEW`, and each names a persona whose approval is **not** a notification:
+
+| ADR | The approval that is not optional | Why it is theirs and not Architecture's |
+|---|---|---|
+| ADR-009 | **Shivanshi** (circuit, BGP, failover) + **Kalpana** (external dependency on the critical path) | Architecture may specify a private path; it may not commit a carrier order or a bank change window |
+| ADR-010 | **Deepali** — acceptance, not review | It is a security control. Alert-mode IPS before prod and the mTLS inspection exemption are her risk acceptances |
+| ADR-011 | **Deepali** (session vault) + **Aarti** (cache/store boundary, sizing) | A session store is an authentication asset and a cache topology is a data decision |
+| ADR-012 | **Shailja** (no evidence exists only in a topic) + **Shivanshi** (the new on-call surface) | The evidence rule is a licence position, not an architecture preference |
+| ADR-013 | **Shailja** (the evidence exclusion) + **Shivanshi** (observability is R10's) | The exclusion is what makes the retention position survive a new searchable store |
+
+**These five are also the set with the largest cost and operational consequence in the R0 estate,
+and that is deliberate rather than incidental.** They add three stateful managed services, a
+sixth AWS account, an inspection VPC per environment and two carrier circuits to a platform
+carrying about 100 journey starts an hour. Every one of them is justified by a failure mode or an
+evidence gap rather than by throughput, and each record says so in its own negatives. Nothing in
+this set may be cited as authority to provision until the approvals above exist —
+`RISK-012` (cost envelope) and `RISK-014` (operational surface against S08 maturity) are open
+against exactly that.
+
 **Signed:** Mahesh — Principal Insurance Platform Architect (Board 1 / R2) · 2026-08-16 ·
-**revised** 2026-08-20
+**revised** 2026-08-20 · **revised** 2026-08-24 (R0 robustness set, ADR-009 … ADR-013)

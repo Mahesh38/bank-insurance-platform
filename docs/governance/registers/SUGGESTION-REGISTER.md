@@ -60,6 +60,11 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | SUG-20260820-cm2 | 2026-08-20 | human:Mahesh | Close the context-architecture gap found by audit: 20 documents unreachable by any link and 96 more at 3+ hops, 22 persona-package files no card routed to, and no CI guard against either. Add a generated document-routing map (`DOC-MAP.yaml`) with a `find` query path, complete the persona `Load deeper` tables, consolidate the READMEs that carry no unique content, and fail CI on an unrouted document | SF1 | SC1 | MUST | GOV | P2 / P2 | ADMIT-BYPASS | [DOC-MAP](../../context/DOC-MAP.yaml) · [doc_routing](../../context/AGENT-CONTEXT-INDEX.yaml) · continues [CR-010](../change-requests/CR-010-context-module-and-safe-autopilot.md) |
 | SUG-20260821-jx1 | 2026-08-21 | human:Mahesh | Produce an end-to-end Journey Execution Specification for R0: every actor use case, the hop-by-hop route of each request across edge/BFF/service/aggregate/persistence, the validation performed at each layer with its algorithm, every external API call, and every possible outcome — assembled for the dev and QA teams | SF1 | SC1 | SHOULD | DOC | P3 / P1 | ADMITTED | [detail](#sug-20260821-jx1--r0-journey-execution-specification) |
 | SUG-20260821-jx2 | 2026-08-21 | human:Mahesh | Extend the Journey Execution Specification beyond R0 to the whole application — DIY/customer journey, hybrid mode switching, Group B insurers, ULIP/Savings, Health/Motor/Travel, renewals and servicing, admin UI, operations and reporting surfaces | SF3 | SC2 | NOT-NOW | DOC | P5 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md#1-parked--scheduled-work) |
+| SUG-20260824-gp1 | 2026-08-24 | human:Mahesh | Provision hybrid bank connectivity in R0 instead of deferring it: a Transit Gateway hub with Site-to-Site VPN from day one and Direct Connect as the primary path when the circuit lands, so CBS and Bank AD are reached over a private path in `uat` and `prod` rather than stubbed | SF1 | SC0 | MUST | INFRA | P1 / P1 | ADMIT-BYPASS | [ADR-009](../../platform/architecture-review/08-architecture-decision-log.md) · [CR-012](../change-requests/CR-012-r0-platform-robustness.md) · [detail](#sug-20260824-gp1--hybrid-bank-connectivity-in-r0) |
+| SUG-20260824-gp2 | 2026-08-24 | human:Mahesh | Inspect egress in R0: a per-environment inspection VPC with AWS Network Firewall, domain allowlisting and IPS, with the 1SB/PG-allowlisted Elastic IPs moved behind it — closing unrestricted 443 egress from a platform holding PAN, income and health attributes | SF1 | SC0 | MUST | SEC | P1 / P1 | ADMIT-BYPASS | [ADR-010](../../platform/architecture-review/08-architecture-decision-log.md) · [CR-012](../change-requests/CR-012-r0-platform-robustness.md) · [detail](#sug-20260824-gp2--centralised-egress-inspection-in-r0) |
+| SUG-20260824-gp3 | 2026-08-24 | human:Mahesh | Provision a managed cache tier in R0 (ElastiCache for Valkey) for BFF sessions, an L2 read-through layer and per-principal rate limiting — resolving the published DynamoDB-versus-Redis session contradiction and the per-pod configuration divergence, while refusing idempotency | SF1 | SC0 | MUST | INFRA | P2 / P1 | ADMIT-BYPASS | [ADR-011](../../platform/architecture-review/08-architecture-decision-log.md) · [CR-012](../change-requests/CR-012-r0-platform-robustness.md) · [detail](#sug-20260824-gp3--managed-cache-tier-in-r0) |
+| SUG-20260824-gp4 | 2026-08-24 | human:Mahesh | Provision Amazon MSK as the R0 event backbone and **keep the transactional outbox as its source of truth**, because the previous decision's own revisit trigger (a third consumer class) fires inside R0 and adopting a broker mid-slice would change the audit path while it is being evidenced | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMIT-BYPASS | [ADR-012](../../platform/architecture-review/08-architecture-decision-log.md) · [CR-012](../change-requests/CR-012-r0-platform-robustness.md) · [detail](#sug-20260824-gp4--event-backbone-in-r0-with-the-outbox-retained) |
+| SUG-20260824-gp5 | 2026-08-24 | human:Mahesh | Provision Amazon OpenSearch in R0 as the operational search and log-analytics pipe — with an explicit exclusion from the regulatory pipe — so the firewall, flow, TGW and broker logs the other closures generate are queryable during the first end-to-end journey | SF1 | SC0 | SHOULD | INFRA | P2 / P2 | ADMIT-BYPASS | [ADR-013](../../platform/architecture-review/08-architecture-decision-log.md) · [CR-012](../change-requests/CR-012-r0-platform-robustness.md) · [detail](#sug-20260824-gp5--operational-search-pipe-in-r0) |
 
 <!--
 Row format:
@@ -1475,6 +1480,245 @@ conflicts:
     Keycloak, which in turn federates to bank AD. Authorization is a separate hop to
     identity-authorization-service as PDP. The specification must document the ratified
     chain, and the divergence is itself evidence that the document is needed.
+
+---
+
+### SUG-20260824-gp1 … gp5 · the R0 robustness round — shared context
+
+Five items, raised together from one instruction, triaged individually because they have different
+necessities and different owners. The shared half is recorded once here rather than five times.
+
+```yaml
+raised_at: "2026-08-24"
+raised_by: "human:Mahesh"
+source: >
+  A comparison of the R0 design against an existing AU Bank production estate (prod-ibmb) was
+  requested, and it named five layers that estate has and R0 did not. The instruction that
+  followed was explicit: "I would still at R0 as well, I don't want those gaps — let's fill those
+  gaps and make R0 more robust, and make sure we incorporate all the changes in all files wherever
+  required so there is no inconsistency."
+context:
+  workstream: WS-3
+  canonical_stage: "S08 — Engineering Foundation, S09 overlapped"
+  current_objective: R0-ASSISTED-TERM-SALE
+  state_as_of: "2026-08-10"
+  freshness_check: "exit 0 — FRESH, 2026-08-24 (review_due 2026-09-09, 16 days remaining)"
+  active_work_item: "SUG-20260820-cm2 (context-architecture round) — closed before this one started"
+why_this_is_not_scope_drift: >
+  Every one of the five is INFRASTRUCTURE UNDER an unchanged R0 slice. No bounded context is added,
+  no service is added, no journey step changes, no gate criterion moves, and nothing in
+  CURRENT-STATE.yaml `out_of_scope` for WS-3 is contradicted — the WS-3 out-of-scope list is about
+  journeys, LOBs, channels and contexts, not about platform layers. What changes is the platform
+  the same fourteen services run on.
+what_was_deliberately_NOT_admitted: >
+  The comparison also surfaced a service mesh (Istio), per-service database clusters and an
+  analytics warehouse. All three stay refused, and the target-state review's
+  "ElastiCache for idempotency" line is now rejected by name. Admitting five things is not a
+  reason to admit seven.
+cost_position: >
+  This set materially raises R0 fixed cost — three stateful managed services, a sixth account, an
+  inspection VPC per environment and two circuits, for ~100 journey starts an hour. That is
+  recorded as RISK-012 (envelope) and RISK-014 (operational surface), priced by Shivanshi and
+  Kalpana at S09, and bounded by the per-environment shapes in R0-LLD §1.4. It is not waved
+  through as "robustness".
+bypass:
+  authorised_by: "human:Mahesh — direct instruction"
+  skipped: "seven-board review before implementation"
+  risk: >
+    Documents and decisions were written in the turn the work was instructed. The five ADRs are
+    AI-DRAFTED and each names approvals that are NOT notifications — Deepali accepts ADR-010,
+    Shailja signs the two evidence exclusions, Shivanshi and Aarti own the tiers they operate, and
+    Kalpana owns the external dependency and the envelope. No approval was created by writing them,
+    and CR-012 records that explicitly.
+  non_negotiable_touched: false
+state_file_transcription_required: >
+  WS-1's `out_of_scope` still reads "Kafka / event backbone — revisit at Integration architecture
+  stage" and "Redis idempotency / multi-instance job ownership — Phase 5.4". Both remain TRUE for
+  WS-1: the platform now runs a broker and a cache tier, but WS-1's adapter neither publishes to
+  the broker nor moves its idempotency store in Phase 4. Scope text is human-owned (04 §5), so it
+  is NOT edited here — CR-012 §7 carries the wording for Kalpana / R12 to transcribe.
+```
+
+#### SUG-20260824-gp1 · hybrid bank connectivity in R0
+
+```yaml
+id: SUG-20260824-gp1
+stage_fit:
+  code: SF1
+  rationale: >
+    S09 is the platform-foundation stage and this is a platform-foundation layer. It is also SF0 in
+    one direction: W1's `#4` Customer cannot be evidenced without it, so it is a prerequisite of
+    work already admitted rather than an addition to it.
+scope: {code: SC0, serves: ["R0-ASSISTED-TERM-SALE", "S09-E01-S03", "WS-2 Phase 2"]}
+necessity:
+  now: MUST
+  future_necessity: MUST
+  evidence_tier: E2
+  confidence: C4
+  rationale: >
+    The previous position deferred the two longest-lead items on the programme behind a decision
+    with no owner and no date, and permitted a stub to become the only tested path. WS-1 gate 4.3
+    already demonstrates how that ends — a criterion that cannot close because an external party
+    was engaged too late.
+classification: {type: INFRA, also: [ARCH, SEC], risk_tier: T4}
+priority: {now: P1, at_target: P1}
+dependencies:
+  blocks: ["W1 #4 Customer evidenced against real CBS", "WS-2 Phase 2 AD federation", "NFR-NET-01", "NFR-NET-04"]
+  blocked_by: ["DEP-20260824-dx1 — bank-side VPN termination, prefixes, firewall change, DX order"]
+action: ADMIT-BYPASS
+decision: ADR-009
+notes:
+  - "VPN first is the whole reason this is admissible now: it needs a bank firewall rule, not a carrier order"
+  - "Does NOT unpark WS-2's 'Bank AD federation (OIDC/SAML/LDAP specifics)' — the path is provisioned, the protocol is still unconfirmed"
+```
+
+#### SUG-20260824-gp2 · centralised egress inspection in R0
+
+```yaml
+id: SUG-20260824-gp2
+stage_fit:
+  code: SF1
+  rationale: >
+    Egress routing is decided once, before the first subnet exists. Retrofitting it changes every
+    workload route table and the entire published Elastic IP list — the definition of a layer that
+    is cheap now and invasive later.
+scope: {code: SC0, serves: ["control C6 posture", "S09-E07", "RBI cyber-security expectations already cited by C4"]}
+necessity:
+  now: MUST
+  future_necessity: MUST
+  evidence_tier: E2
+  confidence: C4
+  rationale: >
+    A pod that can reach a NAT gateway can reach any address on 443, and R0 had no control and no
+    log on that path. For a platform holding PAN, income and health attributes and calling an
+    aggregator, a payment gateway and an SMS gateway, that is the exfiltration route with the
+    shortest description.
+classification: {type: SEC, also: [INFRA], risk_tier: T4}
+priority: {now: P1, at_target: P1}
+dependencies:
+  blocks: ["W2 quotes (1SB allowlist)", "W3 payments", "NFR-NET-02", "NFR-NET-03"]
+  blocked_by: ["gp1 — the inspection VPC hangs off the same Transit Gateway"]
+action: ADMIT-BYPASS
+decision: ADR-010
+authority_note: >
+  This is a security control, so Deepali ACCEPTS it rather than reviewing it, and two interim
+  positions are hers alone: SEC-OPEN-7 (managed IPS in alert mode until prod) and SEC-OPEN-8 (no
+  TLS inspection on the 1SB mTLS session). An agent may draft the reasoning; it may not accept the
+  residual risk.
+notes:
+  - "The allowlisted Elastic IPs MOVE to the inspection VPC — DEP-20260824-eip exists because a stale allowlist is indistinguishable from none"
+  - "Rejected within the same decision: a third-party NGFW appliance, which is what the existing AU estate runs. Rejected on operational surface, not capability"
+```
+
+#### SUG-20260824-gp3 · managed cache tier in R0
+
+```yaml
+id: SUG-20260824-gp3
+stage_fit:
+  code: SF1
+  rationale: >
+    The session port and the configuration-resolution port are both still unwritten. After W0b and
+    W4 this becomes a change to the two things every request touches.
+scope: {code: SC0, serves: ["WS-2 accepted session design", "S-21 configuration resolution", "per-principal rate limiting"]}
+necessity:
+  now: MUST
+  future_necessity: MUST
+  evidence_tier: E2
+  confidence: C4
+  rationale: >
+    Two concrete defects, not a preference. A published contradiction — WS-2 specifies a Redis
+    session vault and ships a Redis container, R0-LLD preferred DynamoDB — meant one workstream was
+    going to be rewritten. And an in-process-only cache gives N pods N answers for the length of one
+    TTL, on the configuration path of every regulated action.
+classification: {type: INFRA, also: [ARCH, SEC], risk_tier: T3}
+priority: {now: P2, at_target: P1}
+dependencies:
+  blocks: ["W0b #19 configuration resolution through L2", "W4 BFF sessions", "NFR-CAC-01..03"]
+  blocked_by: []
+closes: "the open DynamoDB-versus-Redis session-store decision in R0-LLD §14"
+action: ADMIT-BYPASS
+decision: ADR-011
+notes:
+  - "REFUSES idempotency in the cache. INV-IDM-01 and INV-PAY-04 need the record written in the same transaction as the business change"
+  - "Does NOT close TD-010 or SUG-0001 (WS-1's in-memory idempotency). A platform cache tier existing does not make a WS-1 idempotency store correct — see PARKED-BACKLOG"
+  - "Does NOT soften S-21: an expired L1 and L2 with an unreachable store still refuses the action"
+```
+
+#### SUG-20260824-gp4 · event backbone in R0, with the outbox retained
+
+```yaml
+id: SUG-20260824-gp4
+stage_fit:
+  code: SF1
+  rationale: >
+    The publish contract is free to shape while no outbox table, publisher or consumer exists. Once
+    `#16` Audit is written against a direct outbox poll, moving it is a rewrite of the one component
+    that must not lose a record.
+scope: {code: SC0, serves: ["S-17", "S-18", "S-19", "#16 Audit", "#17 Notification"]}
+necessity:
+  now: MUST
+  future_necessity: MUST
+  evidence_tier: E2
+  confidence: C4
+  rationale: >
+    The prior decision (03-solution-architecture-r0 §5.1) set its own revisit trigger at "a third
+    distinct consumer class", and R0's design already has three: audit, notification and
+    compensation. The trigger therefore fires DURING the vertical slice. Adopting a broker while the
+    audit path is being evidenced for a gate is the worst of the three available moments.
+classification: {type: ARCH, also: [INFRA], risk_tier: T4}
+priority: {now: P2, at_target: P1}
+dependencies:
+  blocks: ["W1 first domain events", "W3 #16 Audit consumer", "NFR-EVT-01..04", "KEDA consumer-lag scaling"]
+  blocked_by: []
+supersedes: "03-solution-architecture-r0.md §5.1 'why there is no event backbone in R0' — the mechanism half is retained, the timing half is withdrawn"
+action: ADMIT-BYPASS
+decision: ADR-012
+authority_note: >
+  Shailja signs the rule that no regulatory evidence exists only in a topic. It is a licence
+  position, not an architecture preference, and FF-26 exists to make it checkable.
+notes:
+  - "The outbox STAYS. Replacing it with direct publishing would reintroduce the dual-write bug"
+  - "No MSK Replicator in DR: events replay from the outbox, which Aurora already replicates (LLD D14)"
+  - "Revisit trigger runs both ways — one real consumer class and no replay used at the end of R0 makes the broker a cost to withdraw"
+```
+
+#### SUG-20260824-gp5 · operational search pipe in R0
+
+```yaml
+id: SUG-20260824-gp5
+stage_fit:
+  code: SF1
+  rationale: >
+    S11 is where correlated search first pays for itself, and a log pipeline is retrofitted by
+    re-emitting rather than re-indexing. It is also the only one of the five that would survive
+    being deferred — which is why its necessity is SHOULD and not MUST.
+scope: {code: SC0, serves: ["S09-E05 observability", "the logs gp1/gp2/gp4 generate", "security architecture §9 event classes"]}
+necessity:
+  now: SHOULD
+  future_necessity: MUST
+  evidence_tier: E3
+  confidence: C3
+  rationale: >
+    Honest about its own strength: CloudWatch Logs Insights does work. The argument is
+    investigation cost at the moment an incident is live, and the fact that three of the other four
+    closures generate logs that are otherwise unqueryable. That is an operability argument, not a
+    correctness one, so it is a SHOULD.
+classification: {type: INFRA, also: [OPS], risk_tier: T3}
+priority: {now: P2, at_target: P2}
+dependencies:
+  blocks: ["NFR-OBS-01..03"]
+  blocked_by: ["gp2 and gp4 produce most of what makes it worth having"]
+action: ADMIT-BYPASS
+decision: ADR-013
+authority_note: >
+  Shivanshi owns observability, so the domain shape, the ISM policy and the dashboards are hers.
+  Shailja signs the exclusion — OpenSearch holds no evidence — which is what allows a new
+  searchable store without reopening the retention position.
+notes:
+  - "Explicitly NOT the analytics warehouse: Glue ETL, Athena, Redshift and QuickSight stay out (S13)"
+  - "Explicitly NOT a business search index, and explicitly NOT the audit store (FF-28)"
+  - "Revisit trigger: the bank's enterprise SIEM/ELK becoming available to onboard onto supersedes this domain rather than extending it"
+```
 
 ---
 

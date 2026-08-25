@@ -2,12 +2,25 @@
 
 **Constraint honored throughout:** AWS-only, Kubernetes (Amazon EKS) as the compute substrate, elastic by design.
 
-> **R0 cut.** This file is the **target-state** AWS estate. It still names MSK, ElastiCache,
-> Istio and a cluster-per-service reading of data topology. Those are **not** R0. The
-> provisioning contract for the current slice is
-> [`../../architecture/R0-LLD.md`](../../architecture/R0-LLD.md), which derives from
+> **R0 cut — revised 2026-08-24.** This file is the **target-state** AWS estate. The provisioning
+> contract for the current slice is [`../../architecture/R0-LLD.md`](../../architecture/R0-LLD.md),
+> which derives from
 > [`../ws3-platform/03-solution-architecture-r0.md`](../ws3-platform/03-solution-architecture-r0.md)
-> and `ADR-001` / `ADR-008`. Do not raise a landing-zone request from this file alone.
+> and `ADR-001`, `ADR-008` … `ADR-013`. **Do not raise a landing-zone request from this file alone.**
+>
+> The gap between this file and R0 is now narrower and differently shaped. `CR-012` admitted
+> **MSK, ElastiCache and a managed search tier into R0**, plus two layers this file never named:
+> hybrid bank connectivity (`ADR-009`) and centralised egress inspection (`ADR-010`).
+>
+> | This file says | R0 position |
+> |---|---|
+> | MSK is the event backbone | **In R0** (`ADR-012`) — but fed by a transactional outbox that stays the source of truth, and no evidence ever lives only in a topic |
+> | ElastiCache for cache, session **and idempotency** | **Partly in R0** (`ADR-011`) — sessions, an L2 read-through layer and rate limits. **Idempotency is refused by name**: it must be atomic with the business write |
+> | Istio / App Mesh for mTLS and retries | **Still not R0.** `NetworkPolicy` + IRSA + in-app breakers. `ADR-010` inspects *egress* and is not a mesh |
+> | A cluster-per-service reading of data topology | **Not R0** — `ADR-008`, one cluster, schema per context |
+> | Glue + Athena + Redshift + QuickSight | **Still not R0** (S13). `ADR-013` provisions operational **search**, which is not a warehouse; the Glue **Schema Registry** is in, Glue ETL is not |
+> | MSK MirrorMaker to the DR region | **Not R0** — events replay from the outbox, which Aurora already replicates (`R0-LLD` `D14`) |
+> | KEDA on consumer-group lag | **In R0**, now that a broker exists — consumer lag only, never CPU |
 
 ## Landing zone shape
 

@@ -24,7 +24,10 @@ gates, the actor model, one Aurora cluster (`ADR-008`), and every fail-closed ru
 
 **Companions:** [`04-security-architecture.md`](./04-security-architecture.md) ·
 [`05-nfr-catalogue.md`](./05-nfr-catalogue.md) ·
-[`01-domain-model-and-invariants.md`](./01-domain-model-and-invariants.md)
+[`01-domain-model-and-invariants.md`](./01-domain-model-and-invariants.md) ·
+[`06-architecture-justification-and-review-answers.md`](./06-architecture-justification-and-review-answers.md)
+(why these services / merge rejections / datastore & caching / direct-insurer future — **explains
+this document, decides nothing**, `HA-02`)
 
 **Stakeholder pack** (compiled views of *this* file and its companions, not a second source of
 truth): [`../../architecture/R0-HLD.md`](../../architecture/R0-HLD.md) walks the R0 picture for

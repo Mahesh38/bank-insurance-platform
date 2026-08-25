@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20260818-4c3 | 2026-08-18 | human:Mahesh | Architecture justification pack: why service boundaries, merge rejection, datastore choices, caching, direct-insurer future, R0/R1/R2+ scope. **Aligned 2026-08-25** to `CR-012`/`ADR-008`…`ADR-013`; cites the canonical renderings rather than publishing a second pair (`HA-04`) | SF1 | SC0 | MUST | ARCH | P2 / P2 | ADMIT-BYPASS | [06-architecture-justification](../../platform/ws3-platform/06-architecture-justification-and-review-answers.md) |
 | SUG-20260816-d8v | 2026-08-16 | human:Mahesh | Add Dilip AI executive-sponsor perspective for bancassurance business/value decisions and wire it into P0/R0 | SF2 | SC1 | SHOULD | GOV | P2 / P2 | ADMIT-BYPASS | [1SB backlog governance/decision-quality enablers](../../1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md#governance--decision-quality-enablers) |
 | SUG-20260816-ba7 | 2026-08-16 | human:Mahesh | Add a senior end-to-end bancassurance BA AI persona for existing R11 and link it to current personas/context | SF2 | SC1 | SHOULD | GOV | P2 / P2 | ADMIT-BYPASS | [Principal BA package](../../context/roles/principal-insurance-platform-business-analyst/README.md) |
 | SUG-20260816-ap1 | 2026-08-16 | human:Mahesh | Build a reusable context module and safe evidence-driven autopilot; reconcile semantic governance drift and documentation structure | SF1 | SC1 | MUST | GOV | P2 / P2 | ADMITTED | [CR-010](../change-requests/CR-010-context-module-and-safe-autopilot.md) |
@@ -77,6 +78,127 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20260818-4c3 · Architecture justification pack + release-scoped HLD
+
+```yaml
+id: SUG-20260818-4c3
+raised_at: "2026-08-18"
+raised_by: "human:Mahesh"
+source: "direct follow-up after R0 HLD review — prepare comprehensive justification for architecture review questions"
+input: >
+  Diagram is really good, but I was not able to justify why we need all these services,
+  what functions/APIs/business logic each has, why we are not merging couple of services.
+  Need a comprehensive document to understand why this architecture is built like this and
+  what we are achieving. Review questions: why relational not MongoDB for quote and proposal;
+  right now no quote caching; where will caching logic be added especially for direct insurer
+  integrations; cannot see complete platform scope beyond R0 — use colour coding for R0/R1/R2+.
+  Lets do this together.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: R0-ASSISTED-TERM-SALE
+  state_as_of: "2026-08-10"
+  state_provisional: false
+  active_work_item: "SUG-20260818-4c3 architecture justification + release-map HLD"
+
+stage_fit:
+  code: SF1
+  rationale: >
+    Architecture justification and release-scoped HLD make the already-drafted S07 solution
+    architecture reviewable and defendable; they do not admit new runtime services or change
+    GATE-S08 criteria.
+
+scope:
+  code: SC0
+  business_scope: "WS-3 ARCH — explicit in CURRENT-STATE routing and 03-solution-architecture-r0"
+  serves: []
+  failure_without_it: >
+    Architecture reviews cannot answer service-boundary, datastore, caching or roadmap questions
+    from a single artefact; R0 HLD alone looks incomplete.
+  minimal: true
+  authority: "direct user instruction + Mahesh Board 1 architecture lane"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S07/S08 architecture communication — before Wave 1 service build"
+  binds_when: "next architecture / stakeholder review of platform shape"
+  evidence_tier: E2
+  evidence:
+    - "existing 02/03/05 architecture-review + ws3 03-solution-architecture-r0"
+    - "WS-3 charter R0/R1/R2 revisit table"
+    - "08-integration-strategy Phase A/B/C"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT-BYPASS
+action_rationale: >
+  Human Architecture owner directed immediate production of the justification pack and
+  release-coloured HLD as review preparation; documentation-only, no runtime change.
+duplicate_of: null
+conflicts: []
+
+classification:
+  type: ARCH
+  risk_tier: T2
+  notes: "AI-drafted Mahesh artefact; human T4 Architecture sign-off remains outstanding"
+
+priority:
+  score_now: 14
+  priority_now: P2
+  priority_at_target: P2
+  caps_applied: []
+
+dependencies: []
+
+breakdown:
+  stories:
+    - "Write 06-architecture-justification-and-review-answers.md"
+    - "Publish a release-coloured full-platform HLD with R0/R1/R2+ colour language"
+    - "Retain/refresh the R0 HLD visual"
+
+delivery_note_2026_08_25: >
+  Both diagram stories were satisfied by files that landed on main while this suggestion was open,
+  not by the two SVG/PNG pairs originally drafted for it. SUG-20260820-n5t moved the R0 view to
+  docs/architecture/r0-reference-architecture.svg and gave docs/hdl.svg the release-coded North
+  Star; rule HA-04 in 16-hld-authoring-and-update-protocol.md then assigns one file per horizon.
+  The drafted pair would have been a second answer for each of those two horizons, and both were
+  stale against ADR-005 (#5 Opportunity), CF-5 (#19 as a W0b service) and ADR-009..ADR-013 (the
+  five admitted layers, including "no Kafka in R0" printed on the R0 draft). They are therefore
+  not published; 06-architecture-justification-and-review-answers.md cites the canonical
+  renderings instead. No content the stories asked for is lost — the release colour language and
+  the R0/R1/R2+ matrix live in that document's section 8.
+
+alignment_2026_08_25:
+  reconciled_against:
+    - "CR-012 / ADR-009..ADR-013 — five infrastructure layers admitted into R0"
+    - "ADR-008 — one Aurora cluster, schema per context, amending ARCH-004"
+    - "ADR-005 / OPEN-D10 — #5 is Opportunity, W1, the single origination point (AC-8, AC-9)"
+    - "CF-1..CF-5 — #19 Configuration is a W0b service; only its UI is deferred"
+    - "03-solution-architecture-r0 section 3 — fourteen deployable services plus one app"
+    - "03-solution-architecture-r0 section 2.1 — two actors; the IPR assists and never originates"
+    - "16-hld-authoring-and-update-protocol HA-02, HA-04, HA-09, NC-1, LY-1, LB-R1"
+  corrections_made_in_place:
+    - "section 6.1 — 'idempotency in Redis' withdrawn; ADR-011 rejects it by name (FF-23)"
+    - "section 4.1 — 'Lead can stay thin' and 'Admin is versioned artefacts' both struck, with the reason kept visible"
+    - "section 1.2 — service count corrected from ~12 to fourteen plus one app"
+
+outcome:
+  registered_in: "SUGGESTION-REGISTER.md"
+  work_item_id: SUG-20260818-4c3
+  status: ADMIT-BYPASS
+  closed_reason: null
+
+resumed: null
+```
 
 ### SUG-20260816-d8v · Dilip AI Executive Sponsor Perspective
 

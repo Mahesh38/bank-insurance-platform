@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 475
-total_bytes: 9910865
+document_count: 476
+total_bytes: 9970381
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -1877,7 +1877,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 170871
+    bytes: 171273
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -3429,7 +3429,7 @@ documents:
     persona: null
     title: "Suggestion Register"
     answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 94214
+    bytes: 99940
   - path: docs/governance/schemas/README.md
     bucket: governance
     authority: binding-process
@@ -3805,7 +3805,7 @@ documents:
     persona: architecture
     title: "WS-3 — Ratified Solution Architecture for the R0 Slice"
     answers: "security sign-off (S07-G3/G4) and Aarti's data sign-off (S07-G5) are mandatory and separate."
-    bytes: 44202
+    bytes: 44459
   - path: docs/platform/ws3-platform/04-security-architecture.md
     bucket: platform
     authority: approved-spec
@@ -3822,3 +3822,11 @@ documents:
     title: "WS-3 — Measurable NFR Catalogue"
     answers: "Owners: Mahesh (Architecture) + Rajal (business derivation) + Shivanshi (feasibility and"
     bytes: 22589
+  - path: docs/platform/ws3-platform/06-architecture-justification-and-review-answers.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, code-change]
+    persona: architecture
+    title: "WS-3 — Architecture Justification & Review Answers"
+    answers: "Persona: Mahesh — Principal Insurance Platform Architect (Board 1)"
+    bytes: 53131

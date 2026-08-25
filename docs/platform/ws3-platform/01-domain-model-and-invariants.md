@@ -285,24 +285,22 @@ mis-selling review asks.
 
 R0 is **ETB-only**. Only the RM sees the ETB customer base, and only the RM may originate.
 
-**Rule AC-8 — context #5 is the single origination point.** Its aggregate is the **opportunity**:
-the record that answers *why are we contacting this person*. Every downstream aggregate — journey,
-suitability assessment, consent grant, quote, proposal, payment, policy — is reachable only from an
-opportunity, and every one of them carries its reference. There is no second way into the funnel in
-MVP: no BFF-created journey, no quote without an opportunity, no proposal assembled outside one.
+**Rule AC-8 — context #5 is the single on-platform origination point.** Its aggregate is the
+**Lead**: the working inbox that answers *why are we contacting this person*. Every **on-platform**
+downstream aggregate — journey, suitability assessment, consent grant, quote, proposal, payment,
+policy — is reachable only from a Lead, and every one of them carries its `leadId`. There is no
+second way into the on-platform funnel: no BFF-created journey, no quote without a Lead, no
+proposal assembled outside one. Off-platform / portal sales enter as Policy ingest
+(`source=OFF_PLATFORM`) and **never** create a Lead (`ADR-005`, `ADR-014`, INV-LED-09, INV-POL-05).
 
-> **Naming.** The North Star capability model calls this record the **Opportunity** (`CAP-102`,
-> [`12 §2`](../../context/roles/mahesh-principal-insurance-platform-architect/12-journey-segregation.md)).
-> `CURRENT-STATE.yaml`, the BRD and the S03 acceptance criteria call the context **Lead** and its
-> identifier `leadId`. This document keeps `Lead`/`leadId` — the registered, Product-owned labels —
-> and states here, normatively, that they denote the opportunity. Re-labelling is Rajal's to make,
-> is behaviour-neutral, and is recorded as OPEN-D10. **The identifier is not the point; the single
-> origination rule is.**
+> **Naming.** Spoken, Product, UI and architecture primary text say **Lead** (`DEC-20260825-01` D1,
+> `ADR-014`). Opportunity remains the durable-demand alias only (`CAP-102`): a renewal, lapse,
+> cross-sell or abandoned-journey recovery mints a **new Lead and a new Journey**. Identifiers
+> stay `leadId` / `INV-LED-*` / `CAP-102`. **The identifier is not the point; the single
+> on-platform origination rule is.** OPEN-D10 is closed.
 
-**Rule AC-9 — origination is un-deferred.** [`03-solution-architecture-r0.md §3`](./03-solution-architecture-r0.md)
-previously deferred context #5 to S13 while `CURRENT-STATE.yaml` `current_scope.in_scope` lists
-*"Lead service (context #5) — create, resume, status"* (the context is named **Opportunity** since `ADR-005`; the state file still carries the old label) as R0 scope. That was drift between an
-architecture document and the ratified state file, and the state file wins. Context #5 is Wave 1.
+**Rule AC-9 — origination is un-deferred.** Context #5 is Wave 1. The working inbox includes
+create, resume, convert and archive. Attribution fields stay `RET-7Y` after archive (C-RET-1).
 
 ### 2.5 Line of business is a first-class dimension from release 1
 
@@ -377,13 +375,12 @@ domain ships with idempotent seed artefacts held in the repository and applied b
 mechanism in every environment. A rule-pack change is a new seeded version plus an activation, not
 a code deployment.
 
-**Rule CF-5 — the configuration layer is independent of any front end.** There is no admin UI in
-R0, and there may be none in R1; administrators may have no interface at all. **That changes
-nothing here.** The configuration store, its versioning, its seeding and its resolution contract
-ship in R0. The UI is a later consumer of a layer that already exists — which is the only ordering
-that does not require re-platforming the rules when the UI arrives. This supersedes the earlier R0
-trade in [`03-solution-architecture-r0.md §3`](./03-solution-architecture-r0.md) under which a
-rule-pack change required a redeployment.
+**Rule CF-5 — the configuration layer is independent of any front end.** The store, its
+versioning, its seeding and its resolution contract ship in W0b. The administration UI is an
+**R0 W4 consumer** (`ADR-014`) and must not sit on the Lead writer (C-ISO-1). A missing or late
+screen still does not justify hardcoding (`CF-1`). This supersedes the earlier R0 trade in
+[`03-solution-architecture-r0.md §3`](./03-solution-architecture-r0.md) under which a rule-pack
+change required a redeployment, and withdraws the earlier "no admin UI in R0" sentence.
 
 ---
 
@@ -427,7 +424,7 @@ S06-E02-S04.
 | ID-03 | Provider identifiers (`reqId`, `applicationNumber`, insurer policy number) live in an `externalRefs` map on the owning aggregate and on `Journey`, and are never returned to a bank caller as the primary handle — the existing 1SB rule (`reqId` is not surfaced) generalised |
 | ID-04 | An aggregate is archived, never deleted, until its retention horizon expires; disposal produces an audit record (see [`02-information-model.md`](./02-information-model.md)) |
 | ID-05 | Every aggregate root carries a non-null `lob` (`LB-1`). It is set at creation from the opportunity and is immutable thereafter |
-| ID-06 | Every aggregate on the sale path carries the originating `leadId` (`AC-8`). An aggregate that cannot name its opportunity cannot be created |
+| ID-06 | Every **on-platform** aggregate on the sale path carries the originating `leadId` (`AC-8`). Exception: Policy (and its ingest payment/issuance facts) with `source=OFF_PLATFORM` have a null `leadId` (INV-POL-05) |
 
 ---
 
@@ -436,10 +433,11 @@ S06-E02-S04.
 Notation: every diagram enumerates the **legal** transitions. Any transition not drawn is illegal
 and must be rejected by the aggregate, not by the caller. Terminal states are marked `[*]` targets.
 
-### 4.1 Lead — the opportunity
+### 4.1 Lead
 
-The origination record. Created **only** by an SP-certified Bank RM (`AC-8`, INV-LED-04) and the
-single entry point to the funnel: no journey, quote or proposal exists without one.
+The **on-platform** origination record. Created **only** by an SP-certified Bank RM (`AC-8`, INV-LED-04).
+Spoken name is Lead. After `CONVERTED` (Journey sold = Payment `RECONCILED` and Policy `ACTIVE`) the
+working inbox archives. Off-platform Policy ingest does not enter this machine.
 
 ```mermaid
 stateDiagram-v2
@@ -455,9 +453,10 @@ stateDiagram-v2
     QUALIFIED --> CONVERTED: journeyReachedSold(journeyId)
     QUALIFIED --> DISQUALIFIED: disqualify(reason)
     QUALIFIED --> EXPIRED: ageOut()
-    CONVERTED --> [*]
-    DISQUALIFIED --> [*]
-    EXPIRED --> [*]
+    CONVERTED --> ARCHIVED: archiveWorkingInbox()
+    DISQUALIFIED --> ARCHIVED: archiveWorkingInbox()
+    EXPIRED --> ARCHIVED: archiveWorkingInbox()
+    ARCHIVED --> [*]
 ```
 
 | Transition | Trigger | Guard |
@@ -466,7 +465,8 @@ stateDiagram-v2
 | `NEW → ASSIGNED` | RM assignment or auto-allocation | Target RM holds a valid SP certificate for the `lob` (INV-LED-03) |
 | `ASSIGNED → ASSIGNED` | Reassignment | Previous owner retained in assignment history; SLA restart is a Product decision, recorded as OPEN-D1 |
 | `* → EXPIRED` | Ageing job | Configurable ageing horizon; no journey in a non-terminal stage references this lead |
-| `QUALIFIED → CONVERTED` | `JourneySold` event | Exactly one journey may convert a lead (INV-LED-02) |
+| `QUALIFIED → CONVERTED` | `JourneySold` event | Exactly one journey may convert a lead (INV-LED-02). Journey is `SOLD` only when Payment is `RECONCILED` and Policy is `ACTIVE` (INV-JRN-05) |
+| `* → ARCHIVED` | `archiveWorkingInbox()` | Lead is already terminal. Working columns become eligible for `RET-WORKING-LEAD`. Attribution fields stay `RET-7Y` (C-RET-1). Not delete (`ID-04`) |
 
 ### 4.2 Consent
 
@@ -782,8 +782,13 @@ enforces it, and what happens when it is violated (S06-E03-S03: *per invariant, 
 | INV-LED-03 | A `Lead` may only be assigned to a principal holding a currently valid SP certification for the LOB | Lead assignment, reading WS-2 certification metadata | `422 RM_NOT_CERTIFIED` |
 | INV-LED-04 | A `Lead` may be created **only** by a principal with `actorType = BANK_RM` (`AC-8`). No other actor type, no BFF path and no service-to-service path may originate one | Lead aggregate factory + PDP `opportunity.create` grant | `403 ORIGINATION_RM_ONLY`; emit a compliance event |
 | INV-LED-05 | A `Lead` is created only for a customer inside the creating RM's ETB book, and carries a non-null `lob` covered by the creator's SP certification | Lead aggregate at creation | `422 CUSTOMER_NOT_IN_BOOK` / `422 LOB_NOT_CERTIFIED` |
-| INV-LED-06 | Every `Journey`, `SuitabilityAssessment`, `Consent`, `Quote`, `Proposal`, `Payment` and `Policy` references exactly one `leadId`, and none may be created without it (`AC-8`, ID-06) | Each aggregate's factory + a NOT NULL foreign reference | `422 OPPORTUNITY_REQUIRED` |
+| INV-LED-06 | Every **on-platform** `Journey`, `SuitabilityAssessment`, `Consent`, `Quote`, `Proposal`, `Payment` and `Policy` references exactly one `leadId` (`AC-8`, ID-06). Exception: `source=OFF_PLATFORM` Policy (and its ingest payment facts) have a null `leadId` (INV-POL-05) | Each on-platform factory + NOT NULL foreign reference; Policy ingest omits it | `422 OPPORTUNITY_REQUIRED` on on-platform create; ingest rejected if an OFF_PLATFORM row supplies a `leadId` |
 | INV-LED-07 | A `Lead` and everything reachable from it is returned to an `INSURER_PARTNER_REP` principal only when `AC-4`'s visibility predicate holds; otherwise the record does not appear in any result set | Persistence-layer mandatory predicate (`AC-5`), not a service filter | Row is absent — never a `403` that confirms existence |
+| INV-LED-08 | An `ARCHIVED` Lead is excluded from the RM working inbox query; `leadId` remains resolvable for audit and for every downstream reference | Lead list vs get-by-id | Inbox omit; get-by-id still returns attribution fields |
+| INV-LED-09 | `lead.create` is never invoked by MIS ingest, admin, or a Policy factory | Policy ingest and Lead factory | `403 ORIGINATION_RM_ONLY` |
+| INV-POL-04 | Every Policy persists an append-only `stateHistory[]` entry on each legal transition | Policy aggregate | Write rejected |
+| INV-POL-05 | `source=OFF_PLATFORM` Policies have a null `leadId` and a non-null MIS ingest audit; they do not increment on-platform conversion | Policy factory + Reporting | Ingest rejected / metric excluded |
+| INV-PRP-06 | `issuanceMode` is mandatory and one of `STP`, `NON_STP`, `INSTA`; no mode bypasses INV-SUI-*, INV-CNS-*, INV-PAY-01, INV-POL-01 | Proposal aggregate | `422 ISSUANCE_MODE_INVALID` |
 | INV-CFG-01 | No business code path branches on an insurer, product, LOB or channel literal (`CF-1`); behaviour that varies is resolved from configuration | ArchUnit + `FF-18` | Build fails |
 | INV-CFG-02 | A configuration record is never updated in place. A change creates a new version with an effective-dated activation window (`CF-3`) | Configuration store: INSERT-only on the versioned table | Write rejected at the store |
 | INV-CFG-03 | Every business record that was produced under a rule stores the configuration version that governed it | Owning aggregate at creation | `422 CONFIG_VERSION_REQUIRED` |
@@ -821,7 +826,7 @@ enforces it, and what happens when it is violated (S06-E03-S03: *per invariant, 
 
 | Enforcement layer | Invariants |
 |---|---|
-| Aggregate (in-process, transactional) | INV-LED-01/02/03/04/05/06, INV-CNS-02, INV-SUI-01/02, INV-QUO-01…05, INV-PRP-01…04, INV-PAY-01…04/06, INV-POL-01/03, INV-JRN-01/03/04/05, INV-CFG-03 |
+| Aggregate (in-process, transactional) | INV-LED-01/02/03/04/05/06/08/09, INV-CNS-02, INV-SUI-01/02, INV-QUO-01…05, INV-PRP-01…04/06, INV-PAY-01…04/06, INV-POL-01/03/04/05, INV-JRN-01/03/04/05, INV-CFG-03 |
 | Database / object-store constraint | INV-CNS-01, INV-AUD-01, INV-POL-02, INV-PRP-05, INV-PAY-02, INV-ACT-03, INV-CFG-02, INV-LOB-01, INV-LOB-02 |
 | Cross-cutting filter or library | INV-IDM-01, INV-LOG-01 |
 | Persistence-layer mandatory predicate | INV-LED-07 — insurer scoping and IPR gating are applied where the query is built, never above it (`AC-5`) |
@@ -912,7 +917,8 @@ New or sharpened terms this document introduces. It supplements — does not rep
 | **Specified Person (SP)** | A certification attribute held by a Bank RM: certificate number, LOB scope, validity window, status (`AC-1`) | An actor, a role name, or a channel |
 | **Accountable SP** | The originating RM recorded on a record and immutable for its life (INV-ACT-03) | Whoever most recently touched the journey |
 | **IPR** | Insurance Partner Representative — an insurer's employee, assist-only, insurer-scoped, never an SP (`AC-6`) | A bank employee; a certified seller; a second RM |
-| **Opportunity** | The origination record, context #5, created only by an RM; the single entry to the funnel (`AC-8`) | A journey; a quote; a campaign list |
+| **Lead** | The on-platform origination record, context #5, created only by an RM; the working inbox and the single entry to the on-platform funnel (`AC-8`, D1) | A journey; a quote; a campaign list; an off-platform Policy |
+| **Opportunity** | Durable-demand alias for Lead (`CAP-102`). A renewal or lapse mints a new Lead, it does not reopen an archived inbox (`ADR-005`, `ADR-014`) | The working inbox row; a campaign list |
 | **LOB** | `LIFE`, `HEALTH` or `GENERAL` — an isolation and partition dimension present from release 1 (`LB-1`, `LB-2`) | A product class such as `TERM` (`LB-3`) |
 | **Configuration version** | The append-only, effective-dated version of a rule that governed a business record (`CF-3`) | A deployment; a feature flag toggle |
 
@@ -933,7 +939,7 @@ Recorded honestly, with an owner and a target. None of these is claimed closed.
 | OPEN-D7 | Field-level attribute sheets ratified at S03 (GAP-016) | S03 is Product/BA-owned. [`02-information-model.md`](./02-information-model.md) supplies the architecture-side model; formal GAP-016 closure needs BA + Rajal sign-off | Rajal + BA | Before S11 entry |
 | OPEN-D8 | Audit reconstruction walkthrough (S06-G7, evidence level E3) | Requires a completed journey to reconstruct; no journey runs end to end today | Mahesh + Swapnali | At S11 |
 | OPEN-D9 | The exact IPR permitted-action set: which assistance actions stop short of solicitation and advice for a non-SP partner employee | Compliance determination, not architecture. §2.4.1 ships the **gate** and a default-deny posture; the **threshold** is Shailja's (`ID-21`, `JS-09`) | Shailja + Rajal | Before S11 entry |
-| OPEN-D10 | Naming reconciliation: context #5 is registered as *Lead* in `CURRENT-STATE.yaml`, the BRD and the S03 acceptance criteria, and as *Opportunity* (`CAP-102`) in the North Star capability model | A Product-owned label on a Product-owned scope entry. Behaviour-neutral; this document keeps the registered labels (`AC-8`) | Rajal | S13, or at the next scope ratification |
+| OPEN-D10 | **CLOSED 2026-08-25** — spoken/Product/UI name is **Lead**; Opportunity is the durable-demand alias only (`DEC-20260825-01` D1, `ADR-014`) | Closed by stakeholder R0 pull; identifiers unchanged | Rajal + Mahesh | — |
 | OPEN-D12 | Wire spelling of the actor-type vocabulary: WS-2 types principals `BANK_EMPLOYEE` / `INSURER_REPRESENTATIVE`; this document refines them to `BANK_RM` / `INSURER_PARTNER_REP` | WS-2 owns its published contract (IF-2). The mapping in §2.4 makes them one model; one spelling should survive before the PDP contract is frozen | Deepali + Amit (WS-2) | Before GATE-IAM-P1 exit |
 | OPEN-D11 | Whether an IPR may act across more than one insurer where a group operates multiple licensed entities | A distribution-agreement question with a compliance edge. R0 assumes exactly one `insurerId` per partner principal (`AC-5`) and fails closed on anything wider | Rajal + Shailja | Before R1 partner onboarding |
 
@@ -941,4 +947,4 @@ Recorded honestly, with an owner and a target. None of these is claimed closed.
 
 **Signed:** Mahesh — Principal Insurance Platform Architect (Board 1 / R2)
 **signature_status:** `AI-DRAFTED — mandatory human signature outstanding`
-**Date:** 2026-08-16 · **revised** 2026-08-20 (HLD review round — actors, LOB, configuration)
+**Date:** 2026-08-16 · **revised** 2026-08-20 (HLD review round — actors, LOB, configuration) · **revised** 2026-08-25 (`ADR-014`, `CR-013` — Lead language, archive, off-platform ingest, issuance modes)

@@ -59,18 +59,19 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | SUG-20260820-lay4 | 2026-08-20 | human:Mahesh | Keep the icons, drop the layout engine: place every element on a chosen grid and route every connector orthogonally, so the views are aligned and the links are straight | SF1 | SC0 | SHOULD | DOC | P3 / P2 | ADMIT-BYPASS | [diagrams/](../../architecture/diagrams/README.md) |
 | SUG-20260820-cm2 | 2026-08-20 | human:Mahesh | Close the context-architecture gap found by audit: 20 documents unreachable by any link and 96 more at 3+ hops, 22 persona-package files no card routed to, and no CI guard against either. Add a generated document-routing map (`DOC-MAP.yaml`) with a `find` query path, complete the persona `Load deeper` tables, consolidate the READMEs that carry no unique content, and fail CI on an unrouted document | SF1 | SC1 | MUST | GOV | P2 / P2 | ADMIT-BYPASS | [DOC-MAP](../../context/DOC-MAP.yaml) · [doc_routing](../../context/AGENT-CONTEXT-INDEX.yaml) · continues [CR-010](../change-requests/CR-010-context-module-and-safe-autopilot.md) |
 | SUG-20260821-jx1 | 2026-08-21 | human:Mahesh | Produce an end-to-end Journey Execution Specification for R0: every actor use case, the hop-by-hop route of each request across edge/BFF/service/aggregate/persistence, the validation performed at each layer with its algorithm, every external API call, and every possible outcome — assembled for the dev and QA teams | SF1 | SC1 | SHOULD | DOC | P3 / P1 | ADMITTED | [detail](#sug-20260821-jx1--r0-journey-execution-specification) |
-| SUG-20260821-jx2 | 2026-08-21 | human:Mahesh | Extend the Journey Execution Specification beyond R0 to the whole application — DIY/customer journey, hybrid mode switching, Group B insurers, ULIP/Savings, Health/Motor/Travel, renewals and servicing, admin UI, operations and reporting surfaces | SF3 | SC2 | NOT-NOW | DOC | P5 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md#1-parked--scheduled-work) · recurrence_count 2 (2026-08-25: admin panel and MIS reports from day one; timing rejected, capability stays parked) |
+| SUG-20260821-jx2 | 2026-08-21 | human:Mahesh | Extend the Journey Execution Specification beyond R0 to the whole application — DIY/customer journey, hybrid mode switching, Group B insurers, ULIP/Savings, Health/Motor/Travel, renewals and servicing. Admin UI and Reporting/MIS carved into R0 by CR-013 | SF3 | SC2 | NOT-NOW | DOC | P5 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md#1-parked--scheduled-work) · recurrence_count 3 (2026-08-25: admin/MIS timing overridden by CR-013; those surfaces left this parked bag) |
 | SUG-20260824-gp1 | 2026-08-24 | human:Mahesh | Provision hybrid bank connectivity in R0 instead of deferring it: a Transit Gateway hub with Site-to-Site VPN from day one and Direct Connect as the primary path when the circuit lands, so CBS and Bank AD are reached over a private path in `uat` and `prod` rather than stubbed | SF1 | SC0 | MUST | INFRA | P1 / P1 | ADMIT-BYPASS | [ADR-009](../../platform/architecture-review/08-architecture-decision-log.md) · [CR-012](../change-requests/CR-012-r0-platform-robustness.md) · [detail](#sug-20260824-gp1--hybrid-bank-connectivity-in-r0) |
 | SUG-20260824-gp2 | 2026-08-24 | human:Mahesh | Inspect egress in R0: a per-environment inspection VPC with AWS Network Firewall, domain allowlisting and IPS, with the 1SB/PG-allowlisted Elastic IPs moved behind it — closing unrestricted 443 egress from a platform holding PAN, income and health attributes | SF1 | SC0 | MUST | SEC | P1 / P1 | ADMIT-BYPASS | [ADR-010](../../platform/architecture-review/08-architecture-decision-log.md) · [CR-012](../change-requests/CR-012-r0-platform-robustness.md) · [detail](#sug-20260824-gp2--centralised-egress-inspection-in-r0) |
 | SUG-20260824-gp3 | 2026-08-24 | human:Mahesh | Provision a managed cache tier in R0 (ElastiCache for Valkey) for BFF sessions, an L2 read-through layer and per-principal rate limiting — resolving the published DynamoDB-versus-Redis session contradiction and the per-pod configuration divergence, while refusing idempotency | SF1 | SC0 | MUST | INFRA | P2 / P1 | ADMIT-BYPASS | [ADR-011](../../platform/architecture-review/08-architecture-decision-log.md) · [CR-012](../change-requests/CR-012-r0-platform-robustness.md) · [detail](#sug-20260824-gp3--managed-cache-tier-in-r0) |
 | SUG-20260824-gp4 | 2026-08-24 | human:Mahesh | Provision Amazon MSK as the R0 event backbone and **keep the transactional outbox as its source of truth**, because the previous decision's own revisit trigger (a third consumer class) fires inside R0 and adopting a broker mid-slice would change the audit path while it is being evidenced | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMIT-BYPASS | [ADR-012](../../platform/architecture-review/08-architecture-decision-log.md) · [CR-012](../change-requests/CR-012-r0-platform-robustness.md) · [detail](#sug-20260824-gp4--event-backbone-in-r0-with-the-outbox-retained) |
 | SUG-20260824-gp5 | 2026-08-24 | human:Mahesh | Provision Amazon OpenSearch in R0 as the operational search and log-analytics pipe — with an explicit exclusion from the regulatory pipe — so the firewall, flow, TGW and broker logs the other closures generate are queryable during the first end-to-end journey | SF1 | SC0 | SHOULD | INFRA | P2 / P2 | ADMIT-BYPASS | [ADR-013](../../platform/architecture-review/08-architecture-decision-log.md) · [CR-012](../change-requests/CR-012-r0-platform-robustness.md) · [detail](#sug-20260824-gp5--operational-search-pipe-in-r0) |
-| SUG-20260825-lt1 | 2026-08-25 | human:Mahesh | After convert + payment, close the working Lead and keep 7-year evidence on Payment, Policy and issuance history — do not retain every Lead for 7 years | SF3 | SC1 | NOT-NOW | ARCH | P4 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md#1-parked--scheduled-work) · [detail](#sug-20260825-lt1--lead-lifecycle-archive-vs-paymentpolicy-retention) |
-| SUG-20260825-of1 | 2026-08-25 | human:Mahesh | MIS upload of products sold offline or on insurer portals so the platform sees the full book and which products still need onboarding | SF3 | SC2 | NOT-NOW | FUNC | P5 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md#1-parked--scheduled-work) · [detail](#sug-20260825-of1--off-platform-sale-ingest) |
-| SUG-20260825-st1 | 2026-08-25 | human:Mahesh | Align issuance with STP, non-STP and Insta as first-class modes on Proposal/Policy — not as Lead states | SF3 | SC1 | NOT-NOW | ARCH | P4 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md#1-parked--scheduled-work) · [detail](#sug-20260825-st1--stp-non-stp-insta-issuance-modes) |
-| SUG-20260825-pp1 | 2026-08-25 | human:Mahesh | Confirm the R0 design against IRDAI Protection of Policyholders' Interests (PPHI) — interpretation is Board 6, not Architecture | SF3 | SC0 | NOT-NOW | COMP | P4 / P1 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md#1-parked--scheduled-work) · [detail](#sug-20260825-pp1--pphi-control-mapping) |
+| SUG-20260825-lt1 | 2026-08-25 | human:Mahesh | After convert + payment, close the working Lead and keep 7-year evidence on Payment, Policy and issuance history — do not retain every Lead for 7 years | SF1 | SC0 | MUST | ARCH | P1 / P1 | ADMITTED | [CR-013](../change-requests/CR-013-r0-lead-mis-admin-scope.md) · [ADR-014](../../platform/architecture-review/08-architecture-decision-log.md) |
+| SUG-20260825-of1 | 2026-08-25 | human:Mahesh | MIS upload of products sold offline or on insurer portals so the platform sees the full book and which products still need onboarding | SF1 | SC0 | MUST | FUNC | P1 / P1 | ADMITTED | [CR-013](../change-requests/CR-013-r0-lead-mis-admin-scope.md) · [ADR-014](../../platform/architecture-review/08-architecture-decision-log.md) |
+| SUG-20260825-st1 | 2026-08-25 | human:Mahesh | Align issuance with STP, non-STP and Insta as first-class modes on Proposal/Policy — not as Lead states | SF1 | SC0 | MUST | ARCH | P1 / P1 | ADMITTED | [CR-013](../change-requests/CR-013-r0-lead-mis-admin-scope.md) · [ADR-014](../../platform/architecture-review/08-architecture-decision-log.md) |
+| SUG-20260825-pp1 | 2026-08-25 | human:Mahesh | Confirm the R0 design against IRDAI Protection of Policyholders' Interests (PPHI) — interpretation is Board 6, not Architecture | SF1 | SC0 | MUST | COMP | P1 / P1 | ADMITTED | [CR-013](../change-requests/CR-013-r0-lead-mis-admin-scope.md) · condition C-PPHI-1 |
 | SUG-20260825-wl1 | 2026-08-25 | human:Mahesh | Isolate operations / MIS workload from the RM and Lead transactional path | SF4 | SC0 | REJECT | ARCH | — / — | REJECTED | already the ratified design — [03-communication-patterns.md](../../platform/architecture-review/03-communication-patterns.md) · [05-data-architecture.md](../../platform/architecture-review/05-data-architecture.md) · [detail](#sug-20260825-wl1--oltp-vs-ops-isolation-already-decided) |
 | SUG-20260825-df1 | 2026-08-25 | human:Mahesh | Authorise every persona to decide the lead-domain intake and write one decision file | SF1 | SC1 | MUST | DOC | P2 / P2 | ADMIT-BYPASS | [DEC-20260825-01](../DEC-20260825-01-lead-domain-decisions.md) · [detail](#sug-20260825-df1--one-decision-file) |
+| SUG-20260825-r0s | 2026-08-25 | human:Mahesh | Stakeholder: include the lead-domain intake in R0 immediately; nothing parked; compliance calls only | SF0 | SC0 | MUST | ARCH | P1 / P1 | ADMIT-BYPASS | [CR-013](../change-requests/CR-013-r0-lead-mis-admin-scope.md) · [ADR-014](../../platform/architecture-review/08-architecture-decision-log.md) |
 
 <!--
 Row format:
@@ -1816,13 +1817,12 @@ necessity:
     X6_simplest_sufficient: true
     X9_problem_observed: false  # no Lead store in production; this is a design correction
 
-action: PARK
+action: ADMIT
 action_rationale: >
-  Scheduled MUST at Wave 1. The structural position is already in the model: Lead/Opportunity
-  is origination; Payment, Policy and Audit own money and issuance evidence. What is missing
-  is an explicit archive/disposal contract after CONVERTED and a Shailja ruling that some
-  Lead attributes may leave RET-7Y. Not a P1 incorrect-domain-model interrupt: the split of
-  aggregates exists; the retention class on Lead is the open question.
+  Originally PARK (SF3 at S08). Stakeholder override `SUG-20260825-r0s` / `CR-013`
+  pulled the archive contract into R0. Compliance conditions C-RET-1 / C-RET-2 bind.
+  Not a P1 incorrect-domain-model interrupt of GATE-S08 CI: the split of aggregates
+  already existed; the retention class is now written on the information-model sheet.
 duplicate_of: null
 conflicts:
   - >
@@ -1836,12 +1836,12 @@ classification:
   breakdown: STORY
   epic: null
   risk_tier: T3
-  destination: "PARKED-BACKLOG.md §1"
+  destination: "CR-013 / ADR-014"
 
 priority:
-  now: P4
-  at_target: P2
-  rationale: "MUST when W1 designs the schema; nothing at GATE-S08 fails without it"
+  now: P1
+  at_target: P1
+  rationale: "Stakeholder R0 pull; binds at W1 Lead schema"
 
 architecture_position_draft: >
   Mahesh (AI draft, not T4 sign-off). Converted + paid is not a later phase of Lead.
@@ -1855,9 +1855,10 @@ architecture_position_draft: >
   reviews any physical archive/purge path (shared-DB / SoT change).
 
 outcome:
-  registered_in: "registers/PARKED-BACKLOG.md"
-  work_item_id: null
-  status: PARKED
+  registered_in: "CR-013 / ADR-014"
+  work_item_id: CR-013
+  status: ADMITTED
+  override: "SUG-20260825-r0s — parking withdrawn; nothing hanging"
 
 resumed: GATE-S08
 ```
@@ -1920,15 +1921,12 @@ necessity:
     X5_stage_necessity: false
     X9_problem_observed: false
 
-action: PARK
+action: ADMIT
 action_rationale: >
-  SC2 forces PARK. Capability is real; R0 must not grow a bulk-import origination path.
-  Architecture position (draft): this is Policy ingest (context #13) plus a Reporting
-  read-model (context #18), not opportunity.create. MIS is not a BANK_RM Specified
-  Person. An uploaded off-platform policy must never mint a Lead that looks like an
-  assisted platform sale, or conversion, STP and onboarding-gap metrics are corrupted.
-  Maker-checker, idempotent file ingest, and product-not-onboarded flagging belong in
-  the R1 design. Related surface already parked as SUG-20260821-jx2.
+  Originally PARK (SF3 / SC2 at S08). Stakeholder override `SUG-20260825-r0s` / `CR-013`
+  pulled Policy ingest into R0. Architecture position unchanged: this is Policy ingest
+  (context #13) plus a Reporting read-model (context #18), not `lead.create`. MIS is
+  not a BANK_RM Specified Person (C-ING-1). Campaign/bulk Lead create stays out.
 duplicate_of: null
 
 classification:
@@ -1936,16 +1934,18 @@ classification:
   also: [ARCH]
   breakdown: EPIC
   risk_tier: T3
-  destination: "PARKED-BACKLOG.md §1"
+  destination: "CR-013 / ADR-014"
 
 priority:
-  now: P5
-  at_target: P2
-  rationale: "SC2 / SF3; valuable at R1 when the book is wider than the Term slice"
+  now: P1
+  at_target: P1
+  rationale: "Stakeholder R0 pull; Policy ingest in W3"
 
 outcome:
-  registered_in: "registers/PARKED-BACKLOG.md"
-  status: PARKED
+  registered_in: "CR-013 / ADR-014"
+  work_item_id: CR-013
+  status: ADMITTED
+  override: "SUG-20260825-r0s — parking withdrawn; nothing hanging"
 
 resumed: GATE-S08
 ```
@@ -2009,14 +2009,12 @@ necessity:
     X5_stage_necessity: false
     X9_problem_observed: false
 
-action: PARK
+action: ADMIT
 action_rationale: >
-  Name the dimension before W3 persists Proposal/Policy. Do not implement three issuance
-  engines in S08. Architecture position (draft): issuanceMode lives on Proposal (and is
-  inherited by Policy). Lead/Opportunity does not change shape per mode. STP and Insta
-  still cannot skip suitability, consent, customer-device payment, or RECONCILED-before-
-  issue (standing constraints). Non-STP uses the existing UW-tracking machine; it does
-  not invent a second journey. Rajal names the R0 Term value; Mahesh does not guess it.
+  Originally PARK (SF3 at S08). Stakeholder override `SUG-20260825-r0s` / `CR-013`
+  pulled `issuanceMode` into the R0 Proposal/Policy schema. Do not implement three
+  issuance engines. STP and Insta still cannot skip C1/C2/C4/C7 (C-ISS-1). Rajal
+  names the R0 Term value; Mahesh does not guess it.
 duplicate_of: null
 
 classification:
@@ -2024,15 +2022,18 @@ classification:
   also: []
   breakdown: STORY
   risk_tier: T2
-  destination: "PARKED-BACKLOG.md §1"
+  destination: "CR-013 / ADR-014"
 
 priority:
-  now: P4
-  at_target: P2
+  now: P1
+  at_target: P1
+  rationale: "Stakeholder R0 pull; field on W3 Proposal/Policy schema"
 
 outcome:
-  registered_in: "registers/PARKED-BACKLOG.md"
-  status: PARKED
+  registered_in: "CR-013 / ADR-014"
+  work_item_id: CR-013
+  status: ADMITTED
+  override: "SUG-20260825-r0s — parking withdrawn; nothing hanging"
 
 resumed: GATE-S08
 ```
@@ -2098,13 +2099,12 @@ necessity:
     X5_stage_necessity: false
     X9_problem_observed: false
 
-action: PARK
+action: ADMIT
 action_rationale: >
-  Not SC4 — the regulation is already in scope; this is not a silent admit of new
-  product scope. Not a Mahesh compliance declaration. Architecture drafts the evidence
-  pack (which seam enforces which hard gate). Shailja owns permissibility and the R0–R3
-  rating. Human T4 Risk & Compliance sign-off stays human. No new change request:
-  nothing is added to or removed from project scope.
+  Originally PARK (SF3 at S08). Stakeholder override `SUG-20260825-r0s` / `CR-013`
+  made the PPHI control-to-seam map an R0 Compliance condition (C-PPHI-1), not a later
+  park. Not a Mahesh compliance declaration. Shailja owns permissibility. Human T4
+  Risk & Compliance sign-off stays human. AI must not emit TEMPORARY_EXCEPTION_APPROVED.
 duplicate_of: null
 
 classification:
@@ -2112,16 +2112,18 @@ classification:
   also: [ARCH]
   breakdown: SPIKE
   risk_tier: T4
-  destination: "PARKED-BACKLOG.md §1"
+  destination: "CR-013 condition C-PPHI-1"
 
 priority:
-  now: P4
+  now: P1
   at_target: P1
-  rationale: "MUST before the first regulated action; P1 at that target, not during S08 CI work"
+  rationale: "C-PPHI-1 before first regulated customer action"
 
 outcome:
-  registered_in: "registers/PARKED-BACKLOG.md"
-  status: PARKED
+  registered_in: "CR-013 / ADR-014"
+  work_item_id: CR-013
+  status: ADMITTED
+  override: "SUG-20260825-r0s — parking withdrawn; nothing hanging"
   named_owner: "Shailja S / Board 6"
   mahesh_must_not: "declare PPHI-compliant or waive a Board 6 finding with an A-rating"
 

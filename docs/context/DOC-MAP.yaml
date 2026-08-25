@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 476
-total_bytes: 9955788
+document_count: 477
+total_bytes: 9965955
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -1829,7 +1829,7 @@ documents:
     persona: business-analysis
     title: "R0 / MVP Scope One-Pager — AU Bank Insurance Distribution Platform"
     answers: "Journey focus: RM-assisted + Self-service + Hybrid (all Day 1)"
-    bytes: 7008
+    bytes: 7464
   - path: docs/au-bank-insurance-platform/requirements/README.md
     bucket: business
     authority: business-ssot
@@ -1869,7 +1869,7 @@ documents:
     persona: null
     title: "BOOT — the tier-0 agent capsule"
     answers: "Read this first, and often read nothing else. This file answers the ten-fact knowledge"
-    bytes: 17673
+    bytes: 17629
   - path: docs/context/DOC-MAP.yaml
     bucket: context
     authority: non-binding-context
@@ -1877,7 +1877,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 170873
+    bytes: 171759
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -3116,8 +3116,8 @@ documents:
     capsules: [triage, plan-work, board-review]
     persona: null
     title: "DEC-20260825-01 — Lead language, lifecycle, evidence split, off-platform book, day-one visibility, issuance modes, isolation, PPHI"
-    answers: "Origin: human:Mahesh intake, then human override: use every persona and take the decisions; write one decision file"
-    bytes: 17758
+    answers: "Revised: 2026-08-25 — stakeholder pull into R0 (CR-013, ADR-014). Timing is R0 now. Parking withdrawn. Compliance conditions only."
+    bytes: 17772
   - path: docs/governance/DELIVERY-CONTROL-SYSTEM.md
     bucket: governance
     authority: binding-process
@@ -3382,6 +3382,14 @@ documents:
     title: "R12 — Delivery Control · CR-012 · DRAFT"
     answers: "Persona: Kalpana — Delivery Head (R12)"
     bytes: 6285
+  - path: docs/governance/change-requests/CR-013-r0-lead-mis-admin-scope.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "CR-013 — Pull Lead language, lifecycle, off-platform ingest, admin/MIS, issuance modes and PPHI mapping into R0"
+    answers: "Type: SCOPE (with ARCH and COMP consequences)"
+    bytes: 4981
   - path: docs/governance/plans/PLAN-001-context-module-and-safe-autopilot.md
     bucket: governance
     authority: binding-process
@@ -3405,7 +3413,7 @@ documents:
     persona: null
     title: "Decision Register"
     answers: "Index of decisions that constrain future work: ADRs, change requests, stage transitions, and"
-    bytes: 33358
+    bytes: 33993
   - path: docs/governance/registers/DEPENDENCY-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -3421,7 +3429,7 @@ documents:
     persona: null
     title: "Parked Backlog"
     answers: "Parked is not deleted. Every entry names the stage that unparks it and the observable"
-    bytes: 10837
+    bytes: 8941
   - path: docs/governance/registers/RISK-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -3437,7 +3445,7 @@ documents:
     persona: null
     title: "Suggestion Register"
     answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 117987
+    bytes: 118007
   - path: docs/governance/schemas/README.md
     bucket: governance
     authority: binding-process
@@ -3509,7 +3517,7 @@ documents:
     persona: null
     title: "CURRENT STATE"
     answers: "AIGEM — Machine-readable current state"
-    bytes: 30346
+    bytes: 30773
   - path: docs/governance/state/GATE-EVIDENCE.yaml
     bucket: governance
     authority: binding-process
@@ -3589,7 +3597,7 @@ documents:
     persona: delivery
     title: "WS-3 — AU Bank Insurance Distribution Platform · Workstream Charter"
     answers: "Author: Rajal — Principal Insurance Platform Product Owner (Board 3 / R1)"
-    bytes: 35099
+    bytes: 36044
   - path: docs/hdl.svg
     bucket: root
     authority: navigation
@@ -3765,7 +3773,7 @@ documents:
     persona: architecture
     title: "08 — Architecture Decision Log (this review)"
     answers: "ID scheme: ARCH-xxx — deliberately distinct from the business/scope D-xxx and process DOC-xxx IDs in docs/au-bank-insurance-platform/DECISION-LOG.md,…"
-    bytes: 100718
+    bytes: 101168
   - path: docs/platform/architecture-review/README.md
     bucket: platform
     authority: approved-spec
@@ -3797,7 +3805,7 @@ documents:
     persona: architecture
     title: "WS-3 — Platform Domain Model, State Machines and Invariants"
     answers: "Co-owner for the logical data model: Aarti — Principal Insurance Data & Database Architect"
-    bytes: 67575
+    bytes: 69078
   - path: docs/platform/ws3-platform/02-information-model.md
     bucket: platform
     authority: approved-spec
@@ -3805,7 +3813,7 @@ documents:
     persona: architecture
     title: "WS-3 — Platform Information Model"
     answers: "(04-GATE-AND-SIGNOFF-MODEL.md §5);"
-    bytes: 33442
+    bytes: 34564
   - path: docs/platform/ws3-platform/03-solution-architecture-r0.md
     bucket: platform
     authority: approved-spec
@@ -3813,7 +3821,7 @@ documents:
     persona: architecture
     title: "WS-3 — Ratified Solution Architecture for the R0 Slice"
     answers: "security sign-off (S07-G3/G4) and Aarti's data sign-off (S07-G5) are mandatory and separate."
-    bytes: 44202
+    bytes: 44870
   - path: docs/platform/ws3-platform/04-security-architecture.md
     bucket: platform
     authority: approved-spec

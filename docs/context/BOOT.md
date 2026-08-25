@@ -111,8 +111,7 @@ Full table with the wrong-instinct column:
 - ULIP and Savings/Endowment product classes — revisit at R1
 - Customer BFF (context #1) and the customer-facing Flutter surface — revisit at R1, with DIY
 - Notification service (context #17) beyond OTP and payment-link delivery — revisit at R1
-- Reporting and MIS (context #18) beyond the pilot funnel — revisit at R1
-- Administration and config (context #19) admin UI — revisit at R1
+- Lead campaign and bulk origination (not single-RM create, not MIS policy ingest) — revisit at R1
 - Renewals and servicing — revisit at R2+
 - Bounded contexts not listed in in_scope — revisit at S13 — justified by the working slice, not by the diagram
 - Health, Motor, Travel and other non-life LOBs — revisit at R2+, and only after WS-1 Phase 5 is unfrozen

@@ -88,6 +88,8 @@ docs/
 │
 ├── platform/                          CROSS-CUTTING — applies to all services
 │   ├── architecture-review/               Target AWS/EKS microservices architecture
+│   ├── ws3-platform/                      Ratified R0 architecture sources
+│   ├── data-architecture/                 Aarti R0 physical pack + design DDL
 │   └── authentication-authorization/      Workforce authN/authZ SSOT
 │
 ├── au-bank-insurance-platform/        BUSINESS SSOT — the programme

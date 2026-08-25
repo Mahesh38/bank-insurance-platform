@@ -412,12 +412,12 @@ today because no journey runs end to end** — recorded as OPEN-D8.
 | ID | Item | Owner | Target |
 |---|---|---|---|
 | OPEN-D7 | S03 attribute sheets ratified with per-attribute business validation rules (GAP-016 formal closure) | Rajal + BA | Before S11 entry |
-| OPEN-I1 | Physical schema, datastore selection per context and index design | Aarti + Mahesh | S07 exit for design; S09 for implementation |
+| OPEN-I1 | Physical schema, datastore selection per context and index design | Aarti + Mahesh | **Design drafted** in [`data-architecture/`](../data-architecture/README.md) (`DATA-001`). Human Aarti/Mahesh signature still required for S07 exit. Implementation remains S09 |
 | OPEN-I2 | Tokenisation service for `aadhaarRef` — the model assumes tokenisation; no tokenisation capability exists in the repository | Deepali + Aarti | Before S11 entry |
-| OPEN-I3 | Four new audit fields (§5) require a migration on `audit_event`; migration is S08/S09 work and must not be applied by this phase | Aarti + Amit | Foundation Recovery Increment |
+| OPEN-I3 | Four new audit fields (§5) require a migration on `audit_event`; migration is S08/S09 work and must not be applied by this phase | Aarti + Amit | Foundation Recovery Increment — DDL drafted as [`14-audit_event_delta.sql`](../data-architecture/schemas/14-audit_event_delta.sql), not applied |
 | OPEN-I4 | Retention horizon values for `RET-7Y` classes confirmed against the final IRDAI/DPDP position (D-011 open) | Shailja | Before S11 entry |
-| OPEN-I5 | Four further audit fields (`acting_capacity`, `actor_insurer_id`, `assisted_actor_id`, `config_version_ref`) join OPEN-I3's `audit_event` migration. Same migration, same S08/S09 window — not applied by this phase | Aarti + Amit | Foundation Recovery Increment |
-| OPEN-I6 | Physical partitioning strategy for the LOB dimension: whether `lob` is a partition key, an index prefix or both, per store. `LB-1` fixes the *logical* dimension; the physical choice is Aarti's | Aarti | S07 exit for design; S09 for implementation |
+| OPEN-I5 | Four further audit fields (`acting_capacity`, `actor_insurer_id`, `assisted_actor_id`, `config_version_ref`) join OPEN-I3's `audit_event` migration. Same migration, same S08/S09 window — not applied by this phase | Aarti + Amit | Foundation Recovery Increment — same delta script as OPEN-I3 |
+| OPEN-I6 | Physical partitioning strategy for the LOB dimension: whether `lob` is a partition key, an index prefix or both, per store. `LB-1` fixes the *logical* dimension; the physical choice is Aarti's | Aarti | **R0 design decision:** index prefix, not a partition key — [`01-physical-design.md` §5](../data-architecture/01-physical-design.md#5-open-i6--lob-partitioning). Revisit when a second LOB is admitted or a table shows measured mixed-LOB cost |
 
 ---
 

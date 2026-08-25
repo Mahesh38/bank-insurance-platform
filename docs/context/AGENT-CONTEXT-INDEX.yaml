@@ -267,6 +267,20 @@ doc_routing:
       persona: engineering
       note: "Assembly, not source of truth (HA-02). Read 01 once; then the flow file and 03."
 
+    - match: ["docs/platform/data-architecture/schemas/*"]
+      bucket: platform
+      authority: ai-drafted
+      capsules: [database-review]
+      persona: database
+      note: "Design DDL. Runtime Flyway stays in the owning service module."
+
+    - match: ["docs/platform/data-architecture/*"]
+      bucket: platform
+      authority: ai-drafted
+      capsules: [database-review, architecture-review]
+      persona: database
+      note: "Aarti R0 physical pack. AI-drafted; S07-G5 human signature outstanding."
+
     - match: ["docs/platform/ws3-platform/*"]
       bucket: platform
       authority: approved-spec
@@ -585,6 +599,8 @@ capsules:
         capsule: "architecture-review"
       - condition: "DB-side PII, encryption or credentials are affected"
         capsule: "security-review"
+      - condition: "physical schema, indexes, routines or R0 DDL is the question"
+        path: "docs/platform/data-architecture/README.md"
     output: "DB verdict + severity `D0`–`D3` + integrity/recovery guarantees the platform may rely on."
     never:
       - "Let application scaling override a DB limit."

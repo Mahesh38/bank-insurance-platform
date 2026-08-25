@@ -1,0 +1,98 @@
+# schema: work-item
+id: DATA-001
+origin: SUG-20260825-db1
+title: "Aarti R0 physical data architecture pack (rules, schemas, indexes, routines, ops)"
+type: ARCH
+also: [DOC]
+breakdown: STORY
+epic: null
+workstream: WS-3
+owner: "Aarti — Principal Insurance Data & Database Architect"
+
+serves:
+  - "S07-E04-S01 datastore per context"
+  - "S07-E04-S02 physical schema"
+  - "S07-E04-S03 migration strategy"
+  - "S07-E04-S04 encryption and access at the data layer (implementation; Deepali owns the outcome)"
+  - "S07-E04-S05 backup / PITR / recovery design"
+  - "S07-E04-S06 retention and purge design"
+  - "S07-G5 evidence assembly (signature stays human)"
+  - "OPEN-I1"
+  - "OPEN-I6"
+
+problem: >
+  The logical model is ratified as AI-drafted text but is explicitly not a physical schema.
+  S07-G5 cannot be signed against a missing pack, and S09 cannot provision Aurora schemas
+  from an attribute sheet.
+
+description: >
+  Produce the Aarti design pack under docs/platform/data-architecture/: binding rules,
+  physical topology and per-context tables/indexes, required routines, operations and
+  troubleshooting, draft database_decision, and PostgreSQL design DDL. Do not apply
+  migrations and do not mark the gate passed.
+
+acceptance_criteria:
+  - id: AC-1
+    given: "the information model ownership matrix"
+    when: "the pack is read"
+    then: "every R0 writer context has a schema name and a SQL script"
+  - id: AC-2
+    given: "the two existing Flyway histories"
+    when: "the pack is compared to code"
+    then: "they are documented faithfully; no rewrite of applied migrations"
+  - id: AC-3
+    given: "OPEN-I6"
+    when: "the physical design is read"
+    then: "R0 uses lob as an index prefix, not a partition key, with a named revisit trigger"
+  - id: AC-4
+    given: "a request for stored procedures"
+    when: "the pack is read"
+    then: "CRUD SPs are refused; immutability / sequence / visibility / S09 purge routines are listed"
+  - id: AC-5
+    given: "a foundation or S09 database incident"
+    when: "the troubleshooting plan is followed"
+    then: "integrity is protected before availability; restore is not used to reconcile payments"
+  - id: AC-6
+    given: "CURRENT-STATE.yaml and GATE-S07"
+    when: "this change lands"
+    then: "no stage field is edited and S07-G5 remains OPEN awaiting the human signature"
+
+out_of_scope:
+  - "Flyway apply for unbuilt contexts"
+  - "Proven restore / Object Lock tests"
+  - "Notification, Reporting, Integration Hub, Keycloak vendor schema"
+  - "OPEN-I2 tokenisation service"
+  - "Human S07-G5 / ADR-008 signatures"
+
+state: IN-FLIGHT
+priority_now: P2
+priority_at_target: P1
+target_stage: "S07 exit (design) / S09 (apply)"
+unpark_trigger: null
+
+dependencies:
+  blocked_by: []
+  requires:
+    - "docs/platform/ws3-platform/02-information-model.md"
+    - "docs/platform/ws3-platform/01-domain-model-and-invariants.md"
+    - "ADR-008"
+  enables:
+    - "S09-E01-S05"
+    - "S09-E03-S04"
+    - "S07-G5 human review"
+  related_to:
+    - "OPEN-I1"
+    - "OPEN-I3"
+    - "OPEN-I5"
+    - "OPEN-I6"
+    - "SUG-20260820-dc4"
+  external: []
+  decision_dependency:
+    - "ADR-008 Aarti human approval"
+
+plan: PLAN-002
+estimate: L
+assumptions: []
+risks: []
+evidence: []
+variance_log: []

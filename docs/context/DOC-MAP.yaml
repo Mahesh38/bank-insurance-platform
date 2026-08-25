@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 475
-total_bytes: 9910865
+document_count: 476
+total_bytes: 9955788
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -1877,7 +1877,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 170871
+    bytes: 170873
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -3110,6 +3110,14 @@ documents:
     title: "19 — Porting AIGEM to Another Repository"
     answers: "Purpose: install this framework in a new repo in under an hour"
     bytes: 6888
+  - path: docs/governance/DEC-20260825-01-lead-domain-decisions.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "DEC-20260825-01 — Lead language, lifecycle, evidence split, off-platform book, day-one visibility, issuance modes, isolation, PPHI"
+    answers: "Origin: human:Mahesh intake, then human override: use every persona and take the decisions; write one decision file"
+    bytes: 17758
   - path: docs/governance/DELIVERY-CONTROL-SYSTEM.md
     bucket: governance
     authority: binding-process
@@ -3397,7 +3405,7 @@ documents:
     persona: null
     title: "Decision Register"
     answers: "Index of decisions that constrain future work: ADRs, change requests, stage transitions, and"
-    bytes: 31960
+    bytes: 33358
   - path: docs/governance/registers/DEPENDENCY-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -3413,7 +3421,7 @@ documents:
     persona: null
     title: "Parked Backlog"
     answers: "Parked is not deleted. Every entry names the stage that unparks it and the observable"
-    bytes: 8845
+    bytes: 10837
   - path: docs/governance/registers/RISK-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -3429,7 +3437,7 @@ documents:
     persona: null
     title: "Suggestion Register"
     answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 94214
+    bytes: 117987
   - path: docs/governance/schemas/README.md
     bucket: governance
     authority: binding-process

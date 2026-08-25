@@ -244,3 +244,17 @@ binding until its named human signs; silence does not approve any of them.
 | The R0 insurer, product and eligibility values | Commercial facts Product does not hold, and will not invent | Bancassurance |
 | Payback period and funding envelope in currency | Requires blended cost per delivery week and a premium/commission baseline; both UNKNOWN with named owners | Kalpana + Bancassurance Finance |
 | The named executive sponsor | GAP-010. Writing a name to make a gate green would be the most damaging fabrication available in this exercise | Rajal → Bancassurance leadership |
+
+---
+
+## 8. Lead-domain persona consensus — 2026-08-25
+
+Single file: [`DEC-20260825-01-lead-domain-decisions.md`](../DEC-20260825-01-lead-domain-decisions.md).
+
+Raised after the parked triage (`SUG-20260825-lt1` / `of1` / `st1` / `pp1` / `wl1`) when the human authorised every persona card to **decide**, not only to park. Recorded as `SUG-20260825-df1` `ADMIT-BYPASS`.
+
+Every row is `AI-DRAFTED — mandatory human signature outstanding`. This is not a T4 Architecture, Security or Risk & Compliance sign-off. It does not edit stage state or `out_of_scope_now`.
+
+| ID | Date | Decision | Rationale | Authority | Status |
+|----|------|----------|-----------|-----------|--------|
+| DEC-20260825-01 | 2026-08-25 | **Seven locked design decisions** (D1–D7 in the file): spoken/Product language is Lead; 7-year evidence is Payment/Policy/history not the working Lead inbox; off-platform sales are Policy ingest; day-one visibility is the pilot funnel not admin/MIS platform; OLTP isolation stands; STP/non-STP/Insta are Proposal `issuanceMode`; PPHI applies and is not declared passed | Human override to decide from every persona card and write one file. Build stays on the existing park triggers. `ADR-005` origination and `ADR-007` no-admin-UI stand | All ten persona cards; content owners per decision in the file §11 | **AI-DRAFTED.** Human T4 outstanding. Parked build items not unparked |

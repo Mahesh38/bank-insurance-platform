@@ -70,6 +70,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | SUG-20260825-st1 | 2026-08-25 | human:Mahesh | Align issuance with STP, non-STP and Insta as first-class modes on Proposal/Policy — not as Lead states | SF3 | SC1 | NOT-NOW | ARCH | P4 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md#1-parked--scheduled-work) · [detail](#sug-20260825-st1--stp-non-stp-insta-issuance-modes) |
 | SUG-20260825-pp1 | 2026-08-25 | human:Mahesh | Confirm the R0 design against IRDAI Protection of Policyholders' Interests (PPHI) — interpretation is Board 6, not Architecture | SF3 | SC0 | NOT-NOW | COMP | P4 / P1 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md#1-parked--scheduled-work) · [detail](#sug-20260825-pp1--pphi-control-mapping) |
 | SUG-20260825-wl1 | 2026-08-25 | human:Mahesh | Isolate operations / MIS workload from the RM and Lead transactional path | SF4 | SC0 | REJECT | ARCH | — / — | REJECTED | already the ratified design — [03-communication-patterns.md](../../platform/architecture-review/03-communication-patterns.md) · [05-data-architecture.md](../../platform/architecture-review/05-data-architecture.md) · [detail](#sug-20260825-wl1--oltp-vs-ops-isolation-already-decided) |
+| SUG-20260825-df1 | 2026-08-25 | human:Mahesh | Authorise every persona to decide the lead-domain intake and write one decision file | SF1 | SC1 | MUST | DOC | P2 / P2 | ADMIT-BYPASS | [DEC-20260825-01](../DEC-20260825-01-lead-domain-decisions.md) · [detail](#sug-20260825-df1--one-decision-file) |
 
 <!--
 Row format:
@@ -2193,6 +2194,86 @@ reopen_if: >
 outcome:
   registered_in: "SUGGESTION-REGISTER.md"
   status: REJECTED
+
+resumed: GATE-S08
+```
+
+---
+
+### SUG-20260825-df1 · One decision file
+
+```yaml
+id: SUG-20260825-df1
+raised_at: "2026-08-25"
+raised_by: "human:Mahesh"
+source: "direct user instruction — I authorised you to use all the personas we have created to take decision on your own, just make one decision file which tells what decision you have taken and why"
+input: >
+  I authorised you to use all the personas we have created to take dession on your
+  own, just make one dession file which tells what dession you have taken and why.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: R0-ASSISTED-TERM-SALE
+  current_gate: "GATE-S08 (OPEN)"
+  state_as_of: "2026-08-10"
+  freshness_check: "exit 1 — WARN"
+  active_work_item: GATE-S08
+  prior_triage:
+    - SUG-20260825-lt1
+    - SUG-20260825-of1
+    - SUG-20260825-st1
+    - SUG-20260825-pp1
+    - SUG-20260825-wl1
+
+stage_fit:
+  code: SF1
+  rationale: >
+    The human asked for the decision artefact now, as the close of the same intake.
+    Writing the file does not build a service and does not pull parked work forward.
+
+scope:
+  code: SC1
+  serves: [SUG-20260825-lt1, SUG-20260825-of1, SUG-20260825-st1, SUG-20260825-pp1]
+  failure_without_it: "the parked items have no single recorded design to implement against when they unpark"
+  authority: "09-AI_EXECUTION_RULES.md §8 — human override"
+
+necessity:
+  now: MUST
+  evidence_tier: E1
+  confidence: C5
+  rationale: "Human instruction to produce the file."
+
+action: ADMIT-BYPASS
+action_rationale: >
+  09 §8. Who authorised: human:Mahesh. What was skipped: waiting for human board
+  signatures before recording a persona consensus. What was not skipped: T4 human
+  sign-off (still outstanding, stated on the file); stage-state edits; scope CR;
+  implementation of parked items.
+bypass_risk: >
+  These are AI persona verdicts, not human Board 1 / 4 / 6 signatures, and they do
+  not move GATE-S08, change out_of_scope_now, or shorten a retention horizon in the
+  information model.
+
+classification:
+  type: DOC
+  also: [ARCH]
+  breakdown: TASK
+  risk_tier: T3
+  destination: "docs/governance/DEC-20260825-01-lead-domain-decisions.md"
+
+priority:
+  now: P2
+  at_target: P2
+
+outcome:
+  registered_in: "SUGGESTION-REGISTER.md"
+  work_item_id: DEC-20260825-01
+  status: ADMIT-BYPASS
+  evidence:
+    - "docs/governance/DEC-20260825-01-lead-domain-decisions.md"
+    - "docs/governance/registers/DECISION-REGISTER.md §8"
 
 resumed: GATE-S08
 ```

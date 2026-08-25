@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 477
-total_bytes: 9965955
+document_count: 479
+total_bytes: 11809088
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -1309,7 +1309,7 @@ documents:
     persona: architecture
     title: "R0 High-Level Design — AU Bank Insurance Distribution Platform"
     answers: "Horizon: H0 — R0 as designed"
-    bytes: 40313
+    bytes: 41157
   - path: docs/architecture/R0-LLD.md
     bucket: platform
     authority: approved-spec
@@ -1317,7 +1317,7 @@ documents:
     persona: architecture
     title: "R0 Low-Level Design — AWS platform pack for the CTO and AWS platform team"
     answers: "Consumers: CTO; AWS platform / landing-zone team; Shivanshi (SRE, Board 7 — provisions and operates); Deepali (Security — trust boundaries, IAM,…"
-    bytes: 85323
+    bytes: 89358
   - path: docs/architecture/README.md
     bucket: platform
     authority: approved-spec
@@ -1325,7 +1325,7 @@ documents:
     persona: architecture
     title: "Architecture diagrams"
     answers: "Two diagrams, deliberately. They answer different questions and neither replaces the other."
-    bytes: 21224
+    bytes: 24123
   - path: docs/architecture/diagrams/README.md
     bucket: platform
     authority: approved-spec
@@ -1341,7 +1341,7 @@ documents:
     persona: architecture
     title: "r0 platform views"
     answers: "PY artefact"
-    bytes: 35579
+    bytes: 36109
   - path: docs/architecture/diagrams/requirements.txt
     bucket: platform
     authority: approved-spec
@@ -1365,7 +1365,7 @@ documents:
     persona: architecture
     title: "r0 lld"
     answers: "Rendered diagram — read the companion .md for the binding text"
-    bytes: 55764
+    bytes: 56090
   - path: docs/architecture/r0-platform-az.png
     bucket: platform
     authority: approved-spec
@@ -1437,7 +1437,7 @@ documents:
     persona: architecture
     title: "r0 platform topology"
     answers: "Image artefact"
-    bytes: 446671
+    bytes: 461695
   - path: docs/architecture/r0-platform-topology.svg
     bucket: platform
     authority: approved-spec
@@ -1445,7 +1445,7 @@ documents:
     persona: architecture
     title: "r0 platform topology"
     answers: "Rendered diagram — read the companion .md for the binding text"
-    bytes: 1068654
+    bytes: 1118622
   - path: docs/architecture/r0-reference-architecture.svg
     bucket: platform
     authority: approved-spec
@@ -1453,7 +1453,7 @@ documents:
     persona: architecture
     title: "r0 reference architecture"
     answers: "Rendered diagram — read the companion .md for the binding text"
-    bytes: 68473
+    bytes: 68246
   - path: docs/au-bank-insurance-platform/00-project-charter.md
     bucket: business
     authority: business-ssot
@@ -1877,7 +1877,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 171759
+    bytes: 172395
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -2373,7 +2373,7 @@ documents:
     persona: null
     title: "16 — Mahesh HLD Authoring and Update Protocol"
     answers: "This file makes updating the platform's high-level design a mechanical act rather than a"
-    bytes: 29206
+    bytes: 29050
   - path: docs/context/roles/mahesh-principal-insurance-platform-architect/17-provider-aggregation-and-connectivity.md
     bucket: context
     authority: non-binding-context
@@ -2950,6 +2950,14 @@ documents:
     title: "context manifest.schema"
     answers: "\"title\": \"Portable Context Module Manifest\""
     bytes: 3924
+  - path: docs/figma_file_structure.json
+    bucket: root
+    authority: navigation
+    capsules: [docs-navigation, orient]
+    persona: null
+    title: "figma file structure"
+    answers: "\"description\":  \"\""
+    bytes: 1687335
   - path: docs/governance/00-GOVERNANCE.md
     bucket: governance
     authority: binding-process
@@ -3413,7 +3421,7 @@ documents:
     persona: null
     title: "Decision Register"
     answers: "Index of decisions that constrain future work: ADRs, change requests, stage transitions, and"
-    bytes: 33993
+    bytes: 34301
   - path: docs/governance/registers/DEPENDENCY-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -3429,7 +3437,7 @@ documents:
     persona: null
     title: "Parked Backlog"
     answers: "Parked is not deleted. Every entry names the stage that unparks it and the observable"
-    bytes: 8941
+    bytes: 9207
   - path: docs/governance/registers/RISK-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -3445,7 +3453,7 @@ documents:
     persona: null
     title: "Suggestion Register"
     answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 118007
+    bytes: 145175
   - path: docs/governance/schemas/README.md
     bucket: governance
     authority: binding-process
@@ -3517,7 +3525,7 @@ documents:
     persona: null
     title: "CURRENT STATE"
     answers: "AIGEM — Machine-readable current state"
-    bytes: 30773
+    bytes: 30841
   - path: docs/governance/state/GATE-EVIDENCE.yaml
     bucket: governance
     authority: binding-process
@@ -3605,7 +3613,7 @@ documents:
     persona: null
     title: "hdl"
     answers: "Rendered diagram — read the companion .md for the binding text"
-    bytes: 142411
+    bytes: 141189
   - path: docs/journey-execution/01-REQUEST-LIFECYCLE-STANDARD.md
     bucket: platform
     authority: ai-drafted
@@ -3661,7 +3669,7 @@ documents:
     persona: engineering
     title: "Journey Execution Specification — R0"
     answers: "How a request actually travels: every actor use case, every hop, the validation performed at"
-    bytes: 5940
+    bytes: 5931
   - path: docs/journey-execution/flows/UC-01-rm-login.md
     bucket: platform
     authority: ai-drafted
@@ -3773,7 +3781,7 @@ documents:
     persona: architecture
     title: "08 — Architecture Decision Log (this review)"
     answers: "ID scheme: ARCH-xxx — deliberately distinct from the business/scope D-xxx and process DOC-xxx IDs in docs/au-bank-insurance-platform/DECISION-LOG.md,…"
-    bytes: 101168
+    bytes: 102873
   - path: docs/platform/architecture-review/README.md
     bucket: platform
     authority: approved-spec
@@ -3821,7 +3829,7 @@ documents:
     persona: architecture
     title: "WS-3 — Ratified Solution Architecture for the R0 Slice"
     answers: "security sign-off (S07-G3/G4) and Aarti's data sign-off (S07-G5) are mandatory and separate."
-    bytes: 44870
+    bytes: 45298
   - path: docs/platform/ws3-platform/04-security-architecture.md
     bucket: platform
     authority: approved-spec
@@ -3845,4 +3853,4 @@ documents:
     persona: architecture
     title: "WS-3 — Architecture Justification & Review Answers"
     answers: "Persona: Mahesh — Principal Insurance Platform Architect (Board 1)"
-    bytes: 53131
+    bytes: 53207

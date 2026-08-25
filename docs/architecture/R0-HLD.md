@@ -178,7 +178,7 @@ The SVG and the North Star (`docs/hdl.svg`) use the same bands (`LY-1`). A thin 
 ### Boundary 1 — Channels and actors
 
 **Owns:** every human or system that starts or continues a journey.
-**R0 contains:** Flutter RM app — native (mobile/tablet) **and** desktop browser (Flutter web). Token-hiding session — OAuth tokens never reach the device (`S-01`). The **web UI runs in `ns:edge`** next to `#2` (image-baked, no PVC). IPR surface on the **same** RM hostname and BFF (`S-22`). Admin/ops browser on a **separate hostname** against the Admin & Configuration BFF. Customer device for OTP and payment only.
+**R0 contains:** **NIP-APP** — one Flutter project producing web + Android APK + iOS IPA (`ADR-015`). RM, Insurance Partner Rep and admin/ops log into the **same** application; perspective is role + PDP, not a second deployable. Token-hiding session (`S-01`). Web runs in `ns:edge` as `nip-web` next to `#2` NIP BFF (image-baked, no PVC). APK on Play Store; IPA on App Store. Customer device for OTP and payment only.
 **Greyed:** Customer DIY (`#1` BFF, R1); call centre / branch / hybrid (R2).
 
 ### Boundary 2 — Edge (the only public entry point)
@@ -192,7 +192,7 @@ The SVG and the North Star (`docs/hdl.svg`) use the same bands (`LY-1`). A thin 
 ### Boundary 3 — Experience / BFF
 
 **Owns:** channel-shaped aggregation, session, token custody.
-**R0 contains:** `#2` RM Workspace BFF and the Admin & Configuration BFF (UI over `#19` + MIS). One BFF per **channel**, never per channel × LOB. Field validation rules resolved by `(lob, formId)`. Admin/MIS never use the Lead writer (`C-ISO-1`).
+**R0 contains:** `#2` **NIP BFF** — the only workforce BFF. Token custody, session, aggregation for NIP-APP including admin/MIS routes over `#19` and `#18`. One BFF per **channel**, never per channel × LOB and never per role. Field validation rules resolved by `(lob, formId)`. Admin/MIS never use the Lead writer (`C-ISO-1`).
 **Greyed:** `#1` Customer BFF (R1); Operations / call-centre BFF (R2).
 
 Flutter never calls a domain service or a database. The BFF holds OAuth tokens; the device sees an opaque session.
@@ -354,7 +354,7 @@ These are the **R0 contract sketches** implied by the seams and the information 
 
 Common headers on every call: `Authorization` (BFF: session; internal: service identity), `X-Correlation-Id`, `X-Journey-Id` (once a journey exists), `Idempotency-Key` on mutations. `distributorId` is **never** accepted from a caller.
 
-### 5.1 Public / BFF — `#2` RM Workspace BFF
+### 5.1 Public / BFF — `#2` NIP BFF
 
 Base: `https://{env}-insurance.aubank.in/api/v1` (name is illustrative; DNS is S09).
 
@@ -496,7 +496,7 @@ What we **build**, in order, once the foundation exists. Colour on the SVG.
 | **W1** | After W0b | `#5` Lead, `#9` Journey, `#14` Hub, `#4` Customer, `#8` Catalogue | Spine. Downstream cannot exist without a Lead and a journey |
 | **W2** | After W1 | `#6` Consent, `#7` Suitability, `#10` Quotation | The two hard gates, then the quote path they protect |
 | **W3** | After W2 | `#11` Proposal, `#12` Payment, `#13` Policy, `#16` Audit | Money, issuance, evidence. Audit must exist before the first regulated journey completes |
-| **W4** | After W3 contracts exist | `#2` RM BFF, Flutter RM app, `#17` Notification, Admin UI, `#18` MIS | UI last, against stable contracts. Admin/MIS on the isolated path (`C-ISO-1`). Notification is a C4 dependency |
+| **W4** | After W3 contracts exist | `#2` NIP BFF, NIP-APP (web + APK + IPA), `#17` Notification, admin/MIS **roles** on NIP-APP, `#18` MIS | UI last, against stable contracts. Admin/MIS on the isolated path (`C-ISO-1`). Notification is a C4 dependency |
 
 WS-1 (`#15` adapter) **already exists**. WS-2 (identity adapter + PDP + token-hiding BFF pattern) is an **enabler** in parallel; R0 cannot authorise a single call without the PDP (`S-02`).
 

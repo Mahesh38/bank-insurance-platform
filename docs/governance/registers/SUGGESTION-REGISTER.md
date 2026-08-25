@@ -75,10 +75,10 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | SUG-20260825-r0s | 2026-08-25 | human:Mahesh | Stakeholder: include the lead-domain intake in R0 immediately; nothing parked; compliance calls only | SF0 | SC0 | MUST | ARCH | P1 / P1 | ADMIT-BYPASS | [CR-013](../change-requests/CR-013-r0-lead-mis-admin-scope.md) · [ADR-014](../../platform/architecture-review/08-architecture-decision-log.md) · recurrence_count 2 (2026-08-25: Admin/Config BFF + admin/ops actors for MIS — already D4) |
 | SUG-20260825-pv1 | 2026-08-25 | human:Mahesh | Deploy the desktop web application on a Kubernetes PVC | SF4 | SC3 | REJECT | INFRA | — / — | REJECTED | [detail](#sug-20260825-pv1--no-pvc-for-the-web-app) |
 | SUG-20260825-ld1 | 2026-08-25 | human:Mahesh | Make Lead LOB-specific | SF4 | SC3 | REJECT | ARCH | — / — | REJECTED | [detail](#sug-20260825-ld1--lead-is-not-lob-specific) |
-| SUG-20260825-st2 | 2026-08-25 | human:Mahesh | Put the Flutter RM app on Play Store / Apple Store (and a customer store app) | SF3 | SC2 | NOT-NOW | ARCH | P5 / P3 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md#3-ideas--no-committed-stage) · recurrence_count 2 (2026-08-25: NIP-APP iOS/Android store listing — still S11 / Deepali) |
+| SUG-20260825-st2 | 2026-08-25 | human:Mahesh | Put the Flutter RM app on Play Store / Apple Store (and a customer store app) | SF1 | SC1 | MUST | ARCH | P2 / P1 | CLOSED-DELIVERED | Unparked by `ADR-015`: workforce distribution is EKS web + Play APK + App Store IPA. Customer store apps remain R1 (`#1`). Deepali owns store hardening. |
 | SUG-20260825-ac1 | 2026-08-25 | human:Mahesh | Add admin and operations as R0 on-platform actors for the Admin & Configuration BFF, reports and MIS | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [detail](#sug-20260825-ac1--admin-and-ops-actors-for-r0) · UI is NIP-APP roles (`SUG-20260825-nip`), not a second app |
-| SUG-20260825-ll1 | 2026-08-25 | human:Mahesh | Reconcile R0-LLD and platform topology with ADR-014: Admin BFF, #18 MIS, desktop admin web, no PVC | SF1 | SC1 | MUST | DOC | P3 / P2 | CLOSED-DELIVERED | [detail](#sug-20260825-ll1--lld-topology-lag-behind-adr-014) · `admin-web` / `admin.{env}` retracted by `SUG-20260825-nip` |
-| SUG-20260825-nip | 2026-08-25 | human:Mahesh | One NIP-APP (New Insurance Platform) Flutter client for web/iOS/Android; RM, ISR, admin and operations share it with role-based views; no separate admin/ops app now or later | SF1 | SC1 | MUST | ARCH | P2 / P1 | ADMITTED | [detail](#sug-20260825-nip--one-nip-app-role-based-not-a-second-admin-ui) |
+| SUG-20260825-ll1 | 2026-08-25 | human:Mahesh | Reconcile R0-LLD and platform topology with ADR-014: Admin BFF, #18 MIS, desktop admin web, no PVC | SF1 | SC1 | MUST | DOC | P3 / P2 | CLOSED-DELIVERED | [detail](#sug-20260825-ll1--lldtopology-lag-behind-adr-014) · `admin-web` / `admin.{env}` retracted by `SUG-20260825-nip` |
+| SUG-20260825-nip | 2026-08-25 | human:Mahesh | One NIP-APP (New Insurance Platform) Flutter client for web/iOS/Android; RM, ISR, admin and operations share it with role-based views; no separate admin/ops app now or later | SF1 | SC1 | MUST | ARCH | P2 / P1 | CLOSED-DELIVERED | [detail](#sug-20260825-nip--one-nip-app-role-based-not-a-second-admin-ui) · recorded as `ADR-015` (PROPOSED — human T4 outstanding) |
 
 <!--
 Row format:
@@ -2569,21 +2569,24 @@ necessity:
     - "BOOT.md — Customer BFF and customer-facing Flutter surface revisit at R1"
   confidence: C4
 recurrence_count: 2
-action: PARK
+action: ADMIT
 action_rationale: >
-  Architecture does not choose app-store vs MDM. Structure is one NIP-APP client
-  against #2 (SUG-20260825-nip). Public-store distribution of a workforce app is
-  Deepali's trust-boundary outcome and Rajal's channel decision. Customer store
-  apps are the R1 DIY surface. Recurrence 2026-08-25: same NIP codebase for
-  iOS/Android is admitted under nip; listing on Play/Apple Store is still this item.
+  Unparked by ADR-015 (human:Mahesh taken decision). Workforce NIP-APP ships as
+  one web artefact on EKS, one APK on Play Store, one IPA on the App Store.
+  Deepali jointly owns store hardening, not the distribution channel.
+  Customer store apps remain R1 (#1 Customer BFF) and are not this item.
 priority:
   now: P5
   at_target: P3
   caps_applied: [PRI-2, PRI-5]
 outcome:
-  status: PARKED
-  registered_in: "PARKED-BACKLOG.md §3 Ideas"
-resumed: "Mahesh architecture consult — channel, BFF, Lead LOB"
+  status: CLOSED-DELIVERED
+  registered_in: "SUGGESTION-REGISTER.md"
+  notes: >
+    Unparked 2026-08-25 by ADR-015. Workforce NIP-APP distribution is EKS nip-web
+    + Play Store APK + App Store IPA. Deepali still owns store hardening
+    (pinning, attestation, no tokens on device). Customer store apps remain R1 (#1).
+resumed: "ADR-015 took the workforce store-listing decision"
 ```
 
 ---
@@ -2869,9 +2872,9 @@ dependencies:
 outcome:
   registered_in: "SUGGESTION-REGISTER.md"
   work_item_id: SUG-20260825-nip
-  status: ADMITTED
-  notes: "Not implemented in the turn it was raised. Next: retract admin-web from LLD/topology; rename RM client to NIP-APP; one #2 BFF."
-resumed: "SUG-20260825-nip admitted; diagrams not edited this turn"
+  status: CLOSED-DELIVERED
+  notes: "Implemented 2026-08-25 as ADR-015. HLD/LLD/topology: ns:edge is nip-web + #2 NIP BFF only. Human T4 Architecture sign-off outstanding."
+resumed: "SUG-20260825-nip CLOSED-DELIVERED; ADR-015 drafted PROPOSED"
 ```
 
 ---

@@ -16,7 +16,7 @@ document said, for one request, *which layer enforces which rule, in what order,
 algorithm, and what the caller sees when it fails.*
 
 A developer implementing `POST /journeys/{id}/quotes` today can read that the C1 suitability gate
-applies "via `S-08`" ([`R0-HLD §5.1`](../architecture/R0-HLD.md#51-public--bff--2-rm-workspace-bff))
+applies "via `S-08`" ([`R0-HLD §5.1`](../architecture/R0-HLD.md#51-public--bff--2-nip-bff))
 and that `INV-QUO-01` is enforced at `QuotationService.request()`
 ([`01-domain-model §6.1`](../platform/ws3-platform/01-domain-model-and-invariants.md#61-compliance-hard-gates-s06-e03-s02)).
 Neither source says whether the BFF should *also* check it, what "not `EXPIRED` at the instant of

@@ -128,16 +128,16 @@ is the first thing built after that gate, because every wave beneath it reads fr
 | W3 | Payment | #12 | **C4.** Money path; depends on UW approval | service |
 | W3 | Policy & Issuance | #13 | Depends on reconciled payment | service |
 | W3 | Audit & Compliance | #16 | **C7/C8.** Must exist before the first regulated journey completes, not after | service |
-| W4 | RM Workspace BFF | #2 | The R0 journey is RM-assisted first | service (stateless) |
-| W4 | Flutter RM application | — | **No UI exists today** (`find . -name pubspec.yaml` returns nothing). Without it there is no S11 | app |
+| W4 | NIP BFF | #2 | Token-hiding session for NIP-APP. One BFF per channel. Admin/MIS are role-gated routes on this BFF, never a second public BFF (`ADR-015`) | service (stateless) |
+| W4 | NIP-APP (Flutter) | — | One Flutter project: web + Android APK + iOS IPA. RM, IPR, admin and ops share it; perspective is PDP role. Web on EKS `nip-web`; APK on Play Store; IPA on App Store (`ADR-015`) | app |
 | W4 | Notification (transactional minimum) | #17 | Payment link delivery to the customer device is a C4 dependency, not a nice-to-have | service |
-| W4 | **Administration UI** | #19 | Stakeholder R0: maker-checker config and report access. Reads configuration; never the Lead writer (`ADR-014`, C-ISO-1) | app |
+| W4 | **Administration UI** | #19 | R0 W4 **screens inside NIP-APP**, not a second app (`ADR-015`). Reads configuration; never the Lead writer (`ADR-014`, C-ISO-1) | role on NIP-APP |
 | W4 | **Reporting & MIS** | #18 | Stakeholder R0: funnel, sold, on- vs off-platform, onboarding gap. Event-fed / replica only (`ADR-014`, C-ISO-1) | service |
 | W3 | **Off-platform Policy ingest** | #13 | MIS upload of offline / portal sales. `source=OFF_PLATFORM`. Not `lead.create` (C-ING-1) | API on Policy |
 | Deferred | Lead **campaign and bulk** origination | #5 | Single-RM create and MIS Policy ingest are in R0. Campaign/bulk Lead create stays out | R1 |
 | Deferred | Customer BFF, Direct Insurer Adapter | #1 | Not on the assisted R0 path | S13 |
 
-**Sixteen deployable services plus two apps (RM + Admin), not nineteen.** Customer BFF and the
+**Sixteen deployable services plus one workforce app (NIP-APP), not two apps.** Customer BFF and the
 direct-insurer adapter remain the deferred remainder. Campaign/bulk Lead create stays out.
 
 **Administration & Config moves from a deferred artefact to a W0b service, and this supersedes the
@@ -164,8 +164,7 @@ origination record.
 ```mermaid
 graph TB
     subgraph Client["Actor devices"]
-        FL["Flutter app<br/>RM workspace<br/>actor: BANK_RM — the certified SP"]
-        IPRW["Partner web/app<br/>actor: INSURER_PARTNER_REP<br/>assist-only, gated, own-insurer"]
+        FL["NIP-APP<br/>one Flutter project: web + APK + IPA<br/>roles: BANK_RM · IPR · admin/ops"]
         CDEV["Customer device<br/>OTP + payment only<br/>not an on-platform actor"]
     end
 
@@ -175,7 +174,8 @@ graph TB
     end
 
     subgraph EKS["EKS — ap-south-1, private subnets"]
-        BFF["RM Workspace BFF #2"]
+        NIPW["nip-web<br/>Flutter web, image-baked"]
+        BFF["NIP BFF #2"]
         subgraph WS2["WS-2 identity enabler"]
             IDPA["identity-provider-adapter"]
             AUTHZ["identity-authorization (PDP)"]
@@ -214,8 +214,9 @@ graph TB
         AD["Bank AD / SSO"]
     end
 
-    FL --> WAF --> APIGW --> BFF
-    IPRW --> WAF
+    FL --> WAF --> APIGW
+    APIGW --> NIPW
+    APIGW --> BFF
     CDEV -->|"payment link only"| PG_BANK
     BFF --> IDPA
     BFF --> AUTHZ

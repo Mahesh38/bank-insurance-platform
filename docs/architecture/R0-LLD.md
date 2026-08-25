@@ -4,8 +4,8 @@
 **Owner:** Mahesh — Principal Insurance Platform Architect (Board 1)
 **Consumers:** CTO; AWS platform / landing-zone team; **Shivanshi** (SRE, Board 7 — provisions and operates); **Deepali** (Security — trust boundaries, IAM, KMS); **Aarti** (Database — Aurora/DynamoDB/S3 physical design)
 **Status:** `AI-DRAFTED`. This file is the S09 *requirements pack*. It is **not** an approval to apply Terraform. Mandatory reviews before first `apply` to a non-dev account: Architecture (human T4), Security (human), Database, SRE, Compliance (residency and WORM).
-**Date:** 2026-08-20 · **revised** 2026-08-24 · **revised** 2026-08-25 (`ADR-014`, `SUG-20260825-ll1`)
-**Origin:** `SUG-20260820-hl1` · **revision** `SUG-20260824-gp1` … `gp5` ([`CR-012`](../governance/change-requests/CR-012-r0-platform-robustness.md)) · **revision** `SUG-20260825-ll1` (RM/admin web in `ns:edge`; `#18` on the isolated path)
+**Date:** 2026-08-20 · **revised** 2026-08-24 · **revised** 2026-08-25 (`ADR-014`, `ADR-015`)
+**Origin:** `SUG-20260820-hl1` · **revision** `SUG-20260824-gp1` … `gp5` ([`CR-012`](../governance/change-requests/CR-012-r0-platform-robustness.md)) · **revision** `SUG-20260825-ll1` · **revision** `ADR-015` (one NIP-APP; `ns:edge` is nip-web + #2 NIP BFF only)
 
 > **Revision 2026-08-24 — R0 robustness round.** Five layers that were deferred are now **in R0**,
 > under `ADR-009` … `ADR-013`: hybrid bank connectivity (Transit Gateway + VPN now, Direct Connect
@@ -18,11 +18,11 @@
 > shapes, because the cheapest way to make this set unaffordable is to build production three
 > times.
 >
-> **Revision 2026-08-25 — RM/admin web hosting and ADR-014 surfaces.** The Flutter RM
-> **desktop browser** UI and the Administration UI are **stateless containers in `ns:edge`**,
-> image-baked, no PVC, sitting next to `#2` and the Admin & Configuration BFF. `#18` Reporting
-> & MIS is R0 W4 on the isolated read path (`C-ISO-1`). Glue/Athena/Redshift/QuickSight stay
-> **out** — that is a warehouse, not the R0 MIS slice.
+> **Revision 2026-08-25 — ADR-015 NIP-APP.** One Flutter enterprise client (web + APK + IPA).
+> RM, IPR, admin and ops are **roles**, not applications. `ns:edge` holds **nip-web** and
+> **#2 NIP BFF** only — nothing RM-named or admin-named. Web on EKS; APK on Play Store; IPA
+> on the App Store. `#18` Reporting & MIS stays R0 W4 on the isolated read path (`C-ISO-1`).
+> Glue/Athena/Redshift/QuickSight stay **out**.
 **Picture this document walks:** [`r0-lld.svg`](./r0-lld.svg)
 **Platform-team deployment views** (generated — see [`diagrams/`](./diagrams/README.md)): [`topology`](./r0-platform-topology.svg) · [`availability zones`](./r0-platform-az.svg) · [`DR`](./r0-platform-dr.svg) · [`sequence`](./r0-platform-sequence.svg) · [`payment path`](./r0-platform-payment.svg)
 **Companion HLD:** [`R0-HLD.md`](./R0-HLD.md) · [`r0-reference-architecture.svg`](./r0-reference-architecture.svg)
@@ -72,7 +72,7 @@ Aurora connection budget).
 | 4 | **Amazon Route 53** | Public and private DNS | Hosted zone per env; no latency-based DR routing in R0 |
 | 5 | **Amazon CloudFront** | CDN in front of the API **and** the RM/admin web UIs | TLS 1.3; origin = API Gateway (which VPC-links to the internal ALB). Static Flutter/admin assets are served from `ns:edge` through that same chain — **not** a public S3 website and **not** a PVC. India price class is acceptable; **logs stay in `ap-south-1`**. Authenticated JSON is **never** cached |
 | 6 | **AWS WAF** + **AWS Shield Standard** | Edge protection | OWASP managed rule groups + rate limit. Shield Advanced is a cost decision for Shivanshi, not required to start |
-| 7 | **Amazon API Gateway** (REST or HTTP API) | The only public reverse proxy for RM/IPR **and** admin/ops traffic | Mutual TLS not required on this edge in R0 (Flutter + session cookie). Request validation, throttling, no business logic. Admin may use a **separate hostname** on the same Gateway (`admin.{env}`) so WAF/rate-limit can differ — Deepali confirms |
+| 7 | **Amazon API Gateway** (REST or HTTP API) | The only public reverse proxy for NIP-APP (all workforce roles) | Mutual TLS not required on this edge in R0 (Flutter + session cookie). Request validation, throttling, no business logic. **One hostname** — not `admin.{env}` (`ADR-015`) |
 | 8 | **Application Load Balancer** (internal) | Reverse proxy **inside** the VPC: Gateway → EKS | Internal scheme. Public ALB is **not** used for services |
 | 9 | **Amazon EKS** × environment | All microservices | Kubernetes 1.30+ (platform current). Private API endpoint. See §3 |
 | 10 | **Amazon ECR** | Images | Immutable tags; scan on push; replicate to `ap-south-2` for DR images |
@@ -333,8 +333,8 @@ with 1SB or the PG has to be re-based on this design — recorded as `DEP-202608
 R0 uses a **two-hop reverse proxy**. There is no extra Nginx/Envoy sidecar estate.
 
 ```text
-RM / IPR device
-    │  TLS 1.3
+NIP-APP (web / APK / IPA)
+    │  TLS 1.3 · one hostname
     ▼
 CloudFront  ──►  AWS WAF
     │
@@ -343,9 +343,9 @@ API Gateway          ← THE external reverse proxy
     │  private integration / VPC link
     ▼
 Internal ALB         ← THE internal reverse proxy
-    │  target: EKS (AWS Load Balancer Controller)
+    │  GET /* → nip-web · /api/* → #2 NIP BFF
     ▼
-#2 RM Workspace BFF  (and, same listener host-route, WS-2 workforce-access-bff
+#2 NIP BFF           (and, same listener, WS-2 workforce-access-bff
                        if they remain separate deployables — see note)
     │  cluster-private
     ▼
@@ -360,43 +360,36 @@ Domain services (never published)
 | BFF | Re-encrypts outbound | **Session** | Calls PDP (`S-02`) | Aggregation only |
 | Domain service | mTLS-or-IRSA | Service identity | Re-checks PDP on regulated actions | Yes |
 
-**Note on two BFFs.** WS-2 already specifies `workforce-access-bff` (token-hiding). WS-3 specifies `#2` RM Workspace BFF (journey aggregation). R0 may deploy them as **one process** or **two**. That is Amit's packaging choice inside an approved boundary (`A1`). The edge contract does not change: Flutter talks to one public hostname and never receives OAuth tokens.
+**Note on two BFFs.** WS-2 already specifies `workforce-access-bff` (token-hiding). WS-3 specifies `#2` NIP BFF (journey + admin/MIS aggregation). R0 may deploy them as **one process** or **two**. That is Amit's packaging choice inside an approved boundary (`A1`). The edge contract does not change: NIP-APP talks to one public hostname and never receives OAuth tokens. There is **no** Admin BFF (`ADR-015`).
 
-### 3.1 Where the RM (and admin) web UI actually runs
+### 3.1 Where NIP-APP actually runs
 
-The RM **web** application is not a volume and is not a second public origin. It is a **stateless pod in `ns:edge`**, on the same internal ALB as `#2`.
+NIP-APP is one Flutter project. It is not a volume, not a second public origin, and not a family of apps. It produces **three artefacts**; only the web artefact is a pod.
 
 ```text
-RM device
-  Flutter native (iOS/Android — MDM vs public store is still S11)
-  Flutter web   (desktop browser)
-        │  TLS 1.3
+NIP-APP  (one Flutter project · role-based views)
+  web     →  nip-web pod in ns:edge     image-baked, NO PVC     EKS
+  APK     →  Google Play Store
+  IPA     →  Apple App Store
+  roles   →  BANK_RM · INSURER_PARTNER_REP · BANK_EMPLOYEE (admin/ops)
+        │  TLS 1.3   one hostname
         ▼
 CloudFront  ──►  AWS WAF  ──►  API Gateway     PROXY 1 of 2
         │  VPC link
         ▼
 Internal ALB                                   PROXY 2 of 2  ·  host/path rules
-        ├──  GET  /*            →  rm-web      Flutter web build BAKED INTO THE IMAGE
-        └──  /api/*             →  #2 BFF      tokens, session, aggregation
-                │
+        ├──  GET  /*            →  nip-web     Flutter web BAKED INTO THE IMAGE
+        └──  /api/*             →  #2 NIP BFF  tokens, session, aggregation
+                │                              admin/MIS routes here too (C-ISO-1)
                 ▼
         Domain services (never published)
 ```
 
-**Why it sits in EKS with the BFF.** The UI is workforce-facing. Baking the Flutter web build into a container in `ns:edge` keeps it on the private-app subnets, behind the same two proxies, with no public S3 website and **no PVC** (the files are in the image; a new release is a new digest). CloudFront caches those static files; it must **not** cache authenticated JSON.
+**Why it sits in EKS with the BFF.** The web UI is workforce-facing. Baking the Flutter web build into `nip-web` in `ns:edge` keeps it on the private-app subnets, behind the same two proxies, with no public S3 website and **no PVC**. CloudFront caches those static files; it must **not** cache authenticated JSON.
 
-**What it is not.** A StatefulSet. A nginx-on-EBS. A second CloudFront distribution for DIY (`#1` is R1). A public bucket website. Serving the SPA from the BFF process itself is allowed — that is Amit packaging the same boundary as one pod instead of two.
+**What it is not.** A StatefulSet. A second CloudFront for DIY (`#1` is R1). A public bucket website. A separate admin-web, admin.{env}, or Admin BFF. Serving the SPA from the BFF process itself is allowed — that is Amit packaging the same boundary as one pod instead of two.
 
-**Admin / operations** (R0 W4, `ADR-014`) uses the same pattern on the **same ALB**, preferably a **separate hostname** (`admin.{env}`) so exposure and rate-limits can differ:
-
-```text
-Internal ALB
-        ├──  GET  /              →  admin-web     image-baked, no PVC
-        └──  /api/*              →  Admin & Configuration BFF
-                                      reads #19 and #18; NEVER the Lead writer (C-ISO-1)
-```
-
-Admin/ops are `BANK_EMPLOYEE` on Bank AD. They never call `lead.create`.
+Admin / operations (R0 W4, `ADR-014`) are **roles on NIP-APP**. They read `#19` and `#18`. They **NEVER** use the Lead writer (`C-ISO-1`). They never call `lead.create`. Admin/ops are `BANK_EMPLOYEE` on Bank AD.
 
 **Ingress controller:** AWS Load Balancer Controller. One internal ALB, host/path rules, not an ALB per microservice.
 
@@ -419,7 +412,7 @@ Every WS-3 service is **stateless at the pod level** (`ARCH-002`, HLD boundary 8
 
 | Workload | PVC? | Why |
 |---|---|---|
-| All WS-3 domain services, Hub, `#2` BFF, Admin BFF, `rm-web`, `admin-web`, `#17`, `#18` consumers, outbox workers | **No** | UI files are **in the image**. `emptyDir` only if a crash-only temp file is needed; `readOnlyRootFilesystem: true` |
+| All WS-3 domain services, Hub, `#2` NIP BFF, `nip-web`, `#17`, `#18` consumers, outbox workers | **No** | UI files are **in the image**. `emptyDir` only if a crash-only temp file is needed; `readOnlyRootFilesystem: true` |
 | `1sb-integration-service` | **No** | Existing design; job state in `bank-persistence-service` / Aurora schema |
 | Keycloak | **No PVC as database** | Keycloak JDBC → Aurora schema `keycloak`. A PVC here becomes an unreplicated source of identity truth |
 | `aws-load-balancer-controller`, `external-dns`, ADOT, Fluent Bit | **No** | Use official Helm charts' default (hostPath/emptyDir as designed) |
@@ -447,9 +440,9 @@ EBS CSI without a PVC consumer is not waste; it keeps the cluster able to run a 
 ### 4.3 Namespaces (aligns with HLD boundaries, not 1:1 with services)
 
 ```text
-ns: edge              #2 RM BFF  (+ workforce-access-bff if separate)
-                      rm-web (Flutter web, image-baked)
-                      Admin & Configuration BFF  +  admin-web (image-baked)
+ns: edge              nip-web (Flutter web, image-baked)  +  #2 NIP BFF
+                      (+ workforce-access-bff merged into #2 if Amit packages them as one)
+                      NOTHING RM-named or admin-named. One hostname. No admin.{env}
 ns: identity          WS-2 adapter, PDP, Keycloak
 ns: shared-platform   #4 #5 #6 #7 #8 #9 #12 #13 #16 #17 #19
 ns: life-cell         #10 Quotation  #11 Proposal     ← first physical split seam
@@ -536,7 +529,7 @@ Two layers, and the second one is new. L1 stays in-process per pod; L2 is the sh
 | Rate limit + OTP attempt counters | **Valkey** | `edge` | Window | Per-principal, not per-pod. The per-pod version was a control with a documented bypass |
 | PDP decision | **Request-scoped only.** Not in Valkey | — | — | 300 ms fail closed. A stale allow is worse than a deny, and a shared cache makes the staleness longer |
 | Idempotency | **Owning service store** (Aurora or DynamoDB) — **never the cache** | — | 24 h | — |
-| Flutter / CDN | CloudFront in front of `rm-web` / `admin-web` in `ns:edge` | Edge | Cache-Control from the UI pod; **no** caching of authenticated JSON | — |
+| Flutter / CDN | CloudFront in front of `nip-web` in `ns:edge` | Edge | Cache-Control from the UI pod; **no** caching of authenticated JSON | — |
 
 **The forbidden list is the load-bearing half of this section.** The cache is never a system of
 record. It never holds idempotency, consent, suitability or audit data. It never serves
@@ -601,10 +594,9 @@ search result.
 
 ```text
 Z0 Internet
-  Flutter RM native       (mobile / tablet — RM device; store vs MDM is S11)
-  Flutter RM web          (desktop browser — same app, same #2, UI pod in ns:edge)
-  IPR browser             (same RM hostname, same BFF)
-  Admin / ops browser     (separate hostname, Admin BFF)
+  NIP-APP native          (one APK on Play Store · one IPA on App Store)
+  NIP-APP web             (browser · role-based views · nip-web in ns:edge)
+  roles                   BANK_RM · INSURER_PARTNER_REP · BANK_EMPLOYEE (admin/ops)
   Customer device         (OTP SMS / PG hosted page) ──► AU Bank PG   [not our VPC]
 
 Z1 Edge (public)
@@ -612,7 +604,7 @@ Z1 Edge (public)
   PG-callback API Gateway route (IP allowlist)
 
 Z2 Application (private-app subnets, EKS)
-  edge:        rm-web, rm-workspace-bff (#2), admin-web, admin-config-bff  [all stateless, no PVC]
+  edge:        nip-web, #2 NIP BFF  [both stateless, no PVC · nothing RM-named or admin-named]
   identity:    identity-provider-adapter, identity-authorization (PDP), keycloak
   shared:      lead (#5), customer (#4), consent (#6), suitability (#7),
                catalogue (#8), journey (#9), payment (#12), policy (#13),
@@ -776,7 +768,8 @@ Use this as the Terraform `for_each` checklist. Min pods = 2 in UAT/prod.
 
 | Deployable | NS | Aurora schema | DDB | S3 | Cache (`ADR-011`) | Topics (`ADR-012`) | Outbound |
 |---|---|---|---|---|---|---|---|
-| rm-workspace-bff | edge | — | — | — | **sessions, rate limits** | — | PDP, all domain APIs |
+| nip-web | edge | — | — | — | — | — | static Flutter web only (image-baked) |
+| nip-bff (#2) | edge | — | — | — | **sessions, rate limits** | — | PDP, all domain APIs |
 | identity-provider-adapter | identity | — | — | — | — | — | Keycloak, **AD over TGW** |
 | identity-authorization | identity | `identity` | — | — | — | — | — |
 | keycloak | identity | `keycloak` | — | — | — | — | **AD over TGW** (phase 2) |
@@ -803,7 +796,7 @@ the robustness round, all of them least-privilege in the same shape as the schem
 ACL user per deployable with its own key prefix, one MSK IAM policy per deployable naming only the
 topics in its row, and **no** deployable with write access to the OpenSearch domain.
 
-Two rows are worth reading twice. `rm-workspace-bff` no longer holds a DynamoDB table — the
+Two rows are worth reading twice. `nip-bff` no longer holds a DynamoDB table — the
 session vault moved to the cache tier (`ADR-011`), which is why `sessions-{env}` is withdrawn in
 §5.2. `audit` **consumes** its topic and writes DynamoDB and S3: the consumption is transport and
 the write is the record (`ADR-012`).
@@ -845,7 +838,7 @@ the service backlog rather than delivered as one lump:
 | **W1** | `#5` `#9` `#14` `#4` `#8` | + **CBS reachable over the TGW** (VPN is sufficient; `#4` cannot be evidenced against a stub outside `dev`) · **MSK topics + schema registry** (the first journey emits events) · P6 |
 | **W2** | `#6` `#7` `#10` | + **egress-VPC EIPs allowlisted by 1SB** (§2.3) · firewall domain allowlist carries 1SB · S3 `raw` bucket locked |
 | **W3** | `#11` `#12` `#13` `#16` | + **PG-callback API Gateway route** · PG settlement drop path · S3 `docs` + `audit-archive` locked · DR replication live (D3) · **audit consumer group + DLQ** |
-| **W4** | `#2` BFF · `rm-web` · Flutter native · Admin BFF · `admin-web` · `#17` · `#18` MIS consumers | + CloudFront + WAF + public API Gateway · internal ALB host/path rules · **session vault on the cache tier** · SMS/email gateway in the firewall allowlist · admin hostname confirmed with Deepali |
+| **W4** | `#2` NIP BFF · `nip-web` · NIP-APP APK (Play) · NIP-APP IPA (App Store) · `#17` · `#18` MIS consumers | + CloudFront + WAF + public API Gateway · internal ALB path rules (`GET /*` → `nip-web`, `/api/*` → `#2`) · **session vault on the cache tier** · SMS/email gateway in the firewall allowlist · **no** second hostname |
 
 **The two items with an external lead time are P1's EIP publication and the bank-side
 connectivity work.** Both depend on parties outside this programme, and the robustness round made
@@ -893,6 +886,8 @@ AVAILABILITY ZONES  (full table: LLD §2.1)
 EDGE (external reverse proxy)
 - Route 53 + CloudFront + AWS WAF (OWASP + rate limit) + API Gateway
 - Internal ALB (AWS LB Controller) as the only in-VPC reverse proxy
+- ONE public hostname. GET /* → nip-web; /api/* → #2 NIP BFF. No admin.{env}
+- ns:edge holds nip-web + #2 NIP BFF only — nothing RM-named or admin-named (ADR-015)
 - Separate API Gateway route for AU Bank PG callbacks, IP-allowlisted
 - Network Firewall is on the EGRESS path only - it is not a third inbound proxy
 - Do NOT provision Kong/Nginx Plus/F5, Istio, or a second public ALB
@@ -984,7 +979,8 @@ OUT OF SCOPE FOR THIS REQUEST
 Customer DIY stack, insurer webhook ingress, service mesh, per-service database clusters,
 ElastiCache-as-idempotency, OpenSearch-as-audit-store, MSK Replicator, third-party NGFW
 appliance, self-managed Kafka/Redis/ELK, reporting warehouse (Glue ETL/Athena/
-Redshift/QuickSight), a PVC for the RM or admin web UI, Render.com as a data path.
+Redshift/QuickSight), a PVC for nip-web, a second admin/ops Flutter app, admin.{env},
+RM-named or admin-named pods in ns:edge, Render.com as a data path.
 ```
 
 ---
@@ -1001,7 +997,7 @@ Redshift/QuickSight), a PVC for the RM or admin web UI, Render.com as a data pat
 | Whether the bank's enterprise SIEM/ELK supersedes the OpenSearch domain | Deepali + Shivanshi + bank security operations | Revisit trigger in `ADR-013`, not an R0 blocker |
 | Aurora Global vs backup-restore for DR | Aarti + Shivanshi | Must still meet RTO ≤ 1 h **measured** |
 | Argo CD vs alternative GitOps | Shivanshi + Amit | S09-E03 |
-| Flutter hosting (internal MDM vs public store) | Rajal + Deepali | S11 |
+| ~~Flutter hosting (internal MDM vs public store)~~ | **CLOSED 2026-08-25 by `ADR-015`** — one web artefact on EKS (`nip-web`), one APK on Play Store, one IPA on App Store. Deepali still owns store **hardening** (pinning, attestation, no tokens on device — `S-01`) | — |
 | **Cost envelope, now materially larger** | Shivanshi + Kalpana | S09 output, not an architecture invention. `RISK-012` is open against it, and §1.4 exists to stop the answer being "three times production" |
 
 ---

@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 463
-total_bytes: 9767792
+document_count: 475
+total_bytes: 9910865
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -933,7 +933,7 @@ documents:
     persona: null
     title: "Documentation — Master Index"
     answers: "Programme: AU Small Finance Bank — Insurance Distribution Platform"
-    bytes: 15800
+    bytes: 16025
   - path: docs/application-lifecycle-bible/00-HOW-TO-USE.md
     bucket: lifecycle
     authority: proposed-cr-010
@@ -1861,7 +1861,7 @@ documents:
     persona: null
     title: "AGENT CONTEXT INDEX"
     answers: "============================================================================="
-    bytes: 41570
+    bytes: 42236
   - path: docs/context/BOOT.md
     bucket: context
     authority: non-binding-context
@@ -1877,7 +1877,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 166409
+    bytes: 170871
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -3413,7 +3413,7 @@ documents:
     persona: null
     title: "Parked Backlog"
     answers: "Parked is not deleted. Every entry names the stage that unparks it and the observable"
-    bytes: 8017
+    bytes: 8845
   - path: docs/governance/registers/RISK-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -3429,7 +3429,7 @@ documents:
     persona: null
     title: "Suggestion Register"
     answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 86855
+    bytes: 94214
   - path: docs/governance/schemas/README.md
     bucket: governance
     authority: binding-process
@@ -3590,6 +3590,102 @@ documents:
     title: "hdl"
     answers: "Rendered diagram — read the companion .md for the binding text"
     bytes: 142411
+  - path: docs/journey-execution/01-REQUEST-LIFECYCLE-STANDARD.md
+    bucket: platform
+    authority: ai-drafted
+    capsules: [code-change, architecture-review, security-review]
+    persona: engineering
+    title: "01 — Request Lifecycle Standard"
+    answers: "The ladder every request climbs, stated once. Each flow file records only what differs from it."
+    bytes: 14146
+  - path: docs/journey-execution/02-ACTOR-AND-USE-CASE-CATALOGUE.md
+    bucket: platform
+    authority: ai-drafted
+    capsules: [code-change, architecture-review, security-review]
+    persona: engineering
+    title: "02 — Actor and Use Case Catalogue"
+    answers: "Every actor in R0, every use case each one can reach, and the id that names it."
+    bytes: 8168
+  - path: docs/journey-execution/03-VALIDATION-RULE-CATALOGUE.md
+    bucket: platform
+    authority: ai-drafted
+    capsules: [code-change, architecture-review, security-review]
+    persona: engineering
+    title: "03 — Validation Rule Catalogue"
+    answers: "Every rule, the layer that enforces it, the algorithm it follows, and the code it fails with."
+    bytes: 25946
+  - path: docs/journey-execution/04-ERROR-AND-DEGRADED-STATE-CATALOGUE.md
+    bucket: platform
+    authority: ai-drafted
+    capsules: [code-change, architecture-review, security-review]
+    persona: engineering
+    title: "04 — Error and Degraded-State Catalogue"
+    answers: "Every refusal the platform can produce: who emits it, what the client does, what the journey does."
+    bytes: 11681
+  - path: docs/journey-execution/05-EXTERNAL-CALL-CATALOGUE.md
+    bucket: platform
+    authority: ai-drafted
+    capsules: [code-change, architecture-review, security-review]
+    persona: engineering
+    title: "05 — External Call Catalogue"
+    answers: "Every call that leaves the VPC: who makes it, how it authenticates, what it costs, and what"
+    bytes: 11318
+  - path: docs/journey-execution/06-TRACEABILITY.md
+    bucket: platform
+    authority: ai-drafted
+    capsules: [code-change, architecture-review, security-review]
+    persona: engineering
+    title: "06 — Traceability"
+    answers: "Use case → rule → invariant → seam → error → test. One row per enforceable thing."
+    bytes: 6047
+  - path: docs/journey-execution/README.md
+    bucket: platform
+    authority: ai-drafted
+    capsules: [code-change, architecture-review, security-review]
+    persona: engineering
+    title: "Journey Execution Specification — R0"
+    answers: "How a request actually travels: every actor use case, every hop, the validation performed at"
+    bytes: 5940
+  - path: docs/journey-execution/flows/UC-01-rm-login.md
+    bucket: platform
+    authority: ai-drafted
+    capsules: [code-change, architecture-review, security-review]
+    persona: engineering
+    title: "UC-01 — RM login"
+    answers: "Actor: Bank RM (BANKRM) · Entry: POST /api/v1/auth/login → GET /api/v1/auth/callback"
+    bytes: 12262
+  - path: docs/journey-execution/flows/UC-02-ipr-login.md
+    bucket: platform
+    authority: ai-drafted
+    capsules: [code-change, architecture-review, security-review]
+    persona: engineering
+    title: "UC-02 — Insurance Partner Representative login"
+    answers: "Actor: Insurance Partner Rep (INSURERPARTNERREP) · Entry: same endpoints as UC-01"
+    bytes: 7269
+  - path: docs/journey-execution/flows/UC-03-session-status-and-refresh.md
+    bucket: platform
+    authority: ai-drafted
+    capsules: [code-change, architecture-review, security-review]
+    persona: engineering
+    title: "UC-03 — Session status, validation and refresh"
+    answers: "Actors: RM, IPR · Entry: GET /api/v1/auth/session, and implicitly every other request"
+    bytes: 8307
+  - path: docs/journey-execution/flows/UC-04-logout-and-revocation.md
+    bucket: platform
+    authority: ai-drafted
+    capsules: [code-change, architecture-review, security-review]
+    persona: engineering
+    title: "UC-04 — Logout, disablement and revocation"
+    answers: "Actors: RM, IPR (self) · admin (out-of-band) · Entry: POST /api/v1/auth/logout"
+    bytes: 7966
+  - path: docs/journey-execution/flows/UC-05-authorization-decision.md
+    bucket: platform
+    authority: ai-drafted
+    capsules: [code-change, architecture-review, security-review]
+    persona: engineering
+    title: "UC-05 — Authorization decision (the PDP)"
+    answers: "Actor: service principal (a PEP) · Entry: POST /internal/v1/authorization/decisions"
+    bytes: 10483
   - path: docs/platform/README.md
     bucket: platform
     authority: approved-spec

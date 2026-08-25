@@ -58,6 +58,8 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | SUG-20260820-ic3 | 2026-08-20 | human:Mahesh | Redraw the platform-team views in AWS / Kubernetes icon notation instead of labelled rectangles, and generate them from code rather than hand-authoring SVG | SF1 | SC0 | SHOULD | DOC | P3 / P2 | ADMIT-BYPASS | [diagrams/](../../architecture/diagrams/README.md) |
 | SUG-20260820-lay4 | 2026-08-20 | human:Mahesh | Keep the icons, drop the layout engine: place every element on a chosen grid and route every connector orthogonally, so the views are aligned and the links are straight | SF1 | SC0 | SHOULD | DOC | P3 / P2 | ADMIT-BYPASS | [diagrams/](../../architecture/diagrams/README.md) |
 | SUG-20260820-cm2 | 2026-08-20 | human:Mahesh | Close the context-architecture gap found by audit: 20 documents unreachable by any link and 96 more at 3+ hops, 22 persona-package files no card routed to, and no CI guard against either. Add a generated document-routing map (`DOC-MAP.yaml`) with a `find` query path, complete the persona `Load deeper` tables, consolidate the READMEs that carry no unique content, and fail CI on an unrouted document | SF1 | SC1 | MUST | GOV | P2 / P2 | ADMIT-BYPASS | [DOC-MAP](../../context/DOC-MAP.yaml) · [doc_routing](../../context/AGENT-CONTEXT-INDEX.yaml) · continues [CR-010](../change-requests/CR-010-context-module-and-safe-autopilot.md) |
+| SUG-20260821-jx1 | 2026-08-21 | human:Mahesh | Produce an end-to-end Journey Execution Specification for R0: every actor use case, the hop-by-hop route of each request across edge/BFF/service/aggregate/persistence, the validation performed at each layer with its algorithm, every external API call, and every possible outcome — assembled for the dev and QA teams | SF1 | SC1 | SHOULD | DOC | P3 / P1 | ADMITTED | [detail](#sug-20260821-jx1--r0-journey-execution-specification) |
+| SUG-20260821-jx2 | 2026-08-21 | human:Mahesh | Extend the Journey Execution Specification beyond R0 to the whole application — DIY/customer journey, hybrid mode switching, Group B insurers, ULIP/Savings, Health/Motor/Travel, renewals and servicing, admin UI, operations and reporting surfaces | SF3 | SC2 | NOT-NOW | DOC | P5 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md#1-parked--scheduled-work) |
 | SUG-20260824-gp1 | 2026-08-24 | human:Mahesh | Provision hybrid bank connectivity in R0 instead of deferring it: a Transit Gateway hub with Site-to-Site VPN from day one and Direct Connect as the primary path when the circuit lands, so CBS and Bank AD are reached over a private path in `uat` and `prod` rather than stubbed | SF1 | SC0 | MUST | INFRA | P1 / P1 | ADMIT-BYPASS | [ADR-009](../../platform/architecture-review/08-architecture-decision-log.md) · [CR-012](../change-requests/CR-012-r0-platform-robustness.md) · [detail](#sug-20260824-gp1--hybrid-bank-connectivity-in-r0) |
 | SUG-20260824-gp2 | 2026-08-24 | human:Mahesh | Inspect egress in R0: a per-environment inspection VPC with AWS Network Firewall, domain allowlisting and IPS, with the 1SB/PG-allowlisted Elastic IPs moved behind it — closing unrestricted 443 egress from a platform holding PAN, income and health attributes | SF1 | SC0 | MUST | SEC | P1 / P1 | ADMIT-BYPASS | [ADR-010](../../platform/architecture-review/08-architecture-decision-log.md) · [CR-012](../change-requests/CR-012-r0-platform-robustness.md) · [detail](#sug-20260824-gp2--centralised-egress-inspection-in-r0) |
 | SUG-20260824-gp3 | 2026-08-24 | human:Mahesh | Provision a managed cache tier in R0 (ElastiCache for Valkey) for BFF sessions, an L2 read-through layer and per-principal rate limiting — resolving the published DynamoDB-versus-Redis session contradiction and the per-pod configuration divergence, while refusing idempotency | SF1 | SC0 | MUST | INFRA | P2 / P1 | ADMIT-BYPASS | [ADR-011](../../platform/architecture-review/08-architecture-decision-log.md) · [CR-012](../change-requests/CR-012-r0-platform-robustness.md) · [detail](#sug-20260824-gp3--managed-cache-tier-in-r0) |
@@ -1367,6 +1369,117 @@ bypass:
 notes:
   - "HA-10 extended: generating a diagram does not mean handing its layout to an engine."
 ```
+
+### SUG-20260821-jx1 · R0 Journey Execution Specification
+
+```yaml
+id: SUG-20260821-jx1
+raised_at: "2026-08-21"
+raised_by: "human:Mahesh"
+source: "direct user instruction — comprehensive end-to-end application document for the dev team"
+input: >
+  A comprehensive document holding all the use cases of each actor, each request, each
+  response, how the request routes from one service to another and under what condition,
+  what validation is done at each service layer, the final output, the external API calls
+  — everything. Example given: RM login traverses CloudFront, then WAF, then the RM BFF,
+  which routes to authentication, which calls the SSO; and inside that, every validation
+  and check it performs. The same treatment for the whole application, end to end, with
+  the possible outcomes and the algorithm each validation follows, so the dev team can
+  build from it.
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-TERM-SALE"
+  state_as_of: "2026-08-10"
+  state_provisional: false
+  active_work_item: null
+stage_fit:
+  code: SF1
+  rationale: >
+    On-stage, and partly a backfill of stages already passed. The documentation canon
+    names three of the requested artefacts as canonical and marks them absent: the S05
+    service blueprint and the S05 error / empty / degraded-state catalogue are RED, and
+    the S03 requirements traceability matrix is RED
+    (05-DOCUMENTATION-CANON.md sections S03, S05). GATE-S08 criteria G6 (test
+    infrastructure at every pyramid level), G8 (engineering standards adopted) and G10
+    (a new engineer can build, test and ship in a week) all consume a per-request
+    specification that does not exist today. It is the named input to S11 slice
+    definition. Not SF3: the information exists now and is already ratified — this
+    assembles it, it does not invent it.
+scope:
+  code: SC1
+  business_scope: "in scope — the admitted R0 assisted term-sale slice only"
+  serves:
+    - "R0-ASSISTED-TERM-SALE"
+    - "GATE-S08 criteria S08-G6, S08-G8, S08-G10"
+    - "S11 vertical-slice definition and its E2E suite"
+  failure_without_it: >
+    The eight hard gates (C1 suitability, C2 consent, C3 distributorId, C4 payment device,
+    C5 no PII in logs, C6 residency, C7 immutable evidence, C8 no inferred sale) are each
+    stated in two or three separate authority documents, and no document states at WHICH
+    layer each is enforced or with what algorithm. A developer implementing the quote
+    endpoint today must infer whether C1 is checked at the BFF PEP, at the Quotation
+    service, at the aggregate, or at all three — the HLD says "C1 via S-08", which is a
+    seam reference, not an enforcement specification. The observed consequence is either
+    a gate enforced only at the BFF (bypassable by any internal caller) or the same rule
+    implemented three times with three different expiry semantics. Both are regulatory
+    findings, not style problems.
+  minimal: true
+  scope_split: >
+    The request as stated covers "the whole application". Most of the application is
+    explicitly out of scope now: DIY / customer journey (R1), hybrid mode switching (R2),
+    Group B insurers (R1), ULIP and Savings (R1), Customer BFF (R1), Health / Motor /
+    Travel (R2+), renewals and servicing (R2+), admin UI (R1), reporting beyond the pilot
+    funnel (R1). Writing their flows would manufacture design decisions Board 1 has not
+    made. That half is split out as SUG-20260821-jx2 and parked.
+  authority: >
+    CURRENT-STATE.yaml WS-3 current_scope and out_of_scope_now;
+    R0-HLD.md sections 4.2, 5.1, 5.3, 5.4, 6;
+    ws3-platform/01-domain-model-and-invariants.md section 4;
+    ws3-platform/03-solution-architecture-r0.md section 5;
+    ws3-platform/04-security-architecture.md;
+    platform/authentication-authorization/README.md sections 5, 8;
+    05-DOCUMENTATION-CANON.md sections S03, S05, S11
+necessity:
+  now: SHOULD
+  future_necessity: MUST
+  target_stage: "S11 — Vertical Slice (MVP)"
+  binds_when: "the first S11 story that implements a hard gate is picked up"
+  evidence_tier: E2
+  evidence:
+    - "05-DOCUMENTATION-CANON.md S05 — service blueprint and degraded-state catalogue both RED"
+    - "05-DOCUMENTATION-CANON.md S03 — requirements traceability matrix RED"
+    - "05-DOCUMENTATION-CANON.md S11 — slice definition RED, E2E suite RED"
+    - "GATE-S08 S08-G6, S08-G8, S08-G10 all OPEN"
+  confidence: C4
+  assumptions:
+    - "ASM-jx1-a: the R0-HLD contract sketches are stable enough to specify against. They are AI-DRAFTED with human T4 Architecture sign-off outstanding, so the specification inherits that status and cannot be cited as approved until R0-HLD is signed."
+  anti_over_engineering:
+    X1_named_consumer: true   # the dev team building S11, and QA deriving the E2E suite
+    X3_cheap_later: false     # the cost lands as rework in code, once each gate is built wrong
+    X5_stage_necessity: true
+    X9_problem_observed: true # the enforcement layer for C1-C8 is unstated in every current document
+action: ADMITTED
+action_rationale: >
+  Admitted as a document set, not as one file, and pending the author's choice of shape —
+  the user asked for a recommendation before development, which is also what Rule
+  09-AI_EXECUTION_RULES requires. Nothing is written in the turn the suggestion is raised.
+  The proposed pack restates no authoritative content: each flow cites the source that
+  owns the fact and adds only the assembly — hop order, enforcement layer, algorithm,
+  outcome set. Status on delivery is AI-DRAFTED with human T4 Architecture and Security
+  sign-off outstanding, matching R0-HLD.
+duplicate_of: null
+conflicts:
+  - >
+    The user's worked example says the BFF routes to an authentication service which calls
+    the SSO. In the ratified design there is no separate authentication service: the
+    workforce-access-bff owns the login, callback, session and logout endpoints itself
+    (authentication-authorization/README.md section 4.1) and calls
+    identity-provider-adapter-service, which is a provider-neutral port in front of
+    Keycloak, which in turn federates to bank AD. Authorization is a separate hop to
+    identity-authorization-service as PDP. The specification must document the ratified
+    chain, and the divergence is itself evidence that the document is needed.
 
 ---
 

@@ -252,6 +252,21 @@ doc_routing:
       capsules: [architecture-review, board-review]
       persona: architecture
 
+    # --- journey execution: per-request specification for the dev team --------
+    - match: ["docs/journey-execution/flows/*"]
+      bucket: platform
+      authority: ai-drafted
+      capsules: [code-change, architecture-review, security-review]
+      persona: engineering
+      note: "One use case per file. Open the one you are building; its Outcomes section is the test list."
+
+    - match: ["docs/journey-execution/*"]
+      bucket: platform
+      authority: ai-drafted
+      capsules: [code-change, architecture-review, security-review]
+      persona: engineering
+      note: "Assembly, not source of truth (HA-02). Read 01 once; then the flow file and 03."
+
     - match: ["docs/platform/ws3-platform/*"]
       bucket: platform
       authority: approved-spec

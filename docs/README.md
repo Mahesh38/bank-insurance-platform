@@ -125,6 +125,7 @@ docs/
 | **Solution Architect** | [`platform/architecture-review/README.md`](./platform/architecture-review/README.md) — target-state platform architecture |
 | **Wanting the picture, not the prose** | [`architecture/README.md`](./architecture/README.md) — the North Star HLD ([`hdl.svg`](./hdl.svg)) and the R0 architecture, and why they are two diagrams |
 | **Wanting the R0 HLD in prose, or the AWS bill of materials** | [`architecture/R0-HLD.md`](./architecture/R0-HLD.md) · [`architecture/R0-LLD.md`](./architecture/R0-LLD.md) · picture: [`architecture/r0-lld.svg`](./architecture/r0-lld.svg) |
+| **Implementing a request end to end — hops, per-layer validation, outcomes** | [`journey-execution/README.md`](./journey-execution/README.md) — the use case catalogue, then the one `flows/UC-nn-*.md` you are building |
 | **Building the 1SB adapter** | [`1sb-insurance-integration/service-ssot/README.md`](./1sb-insurance-integration/service-ssot/README.md) |
 | **Building auth / identity services** | [`platform/authentication-authorization/README.md`](./platform/authentication-authorization/README.md) |
 | **QA / test engineer** | [`1sb-insurance-integration/service-ssot/QA-LEAD-TESTING-STRATEGY.md`](./1sb-insurance-integration/service-ssot/QA-LEAD-TESTING-STRATEGY.md) + [`TESTING-RULES.md`](./1sb-insurance-integration/service-ssot/TESTING-RULES.md) |

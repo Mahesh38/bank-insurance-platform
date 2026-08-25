@@ -77,7 +77,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | SUG-20260825-ld1 | 2026-08-25 | human:Mahesh | Make Lead LOB-specific | SF4 | SC3 | REJECT | ARCH | — / — | REJECTED | [detail](#sug-20260825-ld1--lead-is-not-lob-specific) |
 | SUG-20260825-st2 | 2026-08-25 | human:Mahesh | Put the Flutter RM app on Play Store / Apple Store (and a customer store app) | SF3 | SC2 | NOT-NOW | ARCH | P5 / P3 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md#3-ideas--no-committed-stage) · LLD §14 Flutter hosting already open |
 | SUG-20260825-ac1 | 2026-08-25 | human:Mahesh | Add admin and operations as R0 on-platform actors for the Admin & Configuration BFF, reports and MIS | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [detail](#sug-20260825-ac1--admin-and-ops-actors-for-r0) |
-| SUG-20260825-ll1 | 2026-08-25 | human:Mahesh | Reconcile R0-LLD and platform topology with ADR-014: Admin BFF, #18 MIS, desktop admin web, no PVC | SF1 | SC1 | MUST | DOC | P3 / P2 | ADMITTED | [detail](#sug-20260825-ll1--lld-topology-lag-behind-adr-014) |
+| SUG-20260825-ll1 | 2026-08-25 | human:Mahesh | Reconcile R0-LLD and platform topology with ADR-014: Admin BFF, #18 MIS, desktop admin web, no PVC | SF1 | SC1 | MUST | DOC | P3 / P2 | CLOSED-DELIVERED | [detail](#sug-20260825-ll1--lld-topology-lag-behind-adr-014) |
 
 <!--
 Row format:
@@ -2752,9 +2752,12 @@ dependencies:
   state: READY
 outcome:
   registered_in: "SUGGESTION-REGISTER.md"
-  work_item_id: null
-  status: ADMITTED
-  notes: "Not implemented in the turn it was raised."
+  work_item_id: SUG-20260825-ll1
+  status: CLOSED-DELIVERED
+  notes: >
+    R0-LLD.md §3.1 places rm-web and admin-web as image-baked pods in ns:edge
+    on the internal ALB (no PVC). r0-lld.svg and generated topology show four
+    edge pods, admin/ops in Z0, and #18 on ns:jobs. Warehouse stays out.
 resumed: "Mahesh architecture consult — channel, BFF, Lead LOB"
 ```
 

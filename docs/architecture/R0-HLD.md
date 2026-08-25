@@ -178,7 +178,7 @@ The SVG and the North Star (`docs/hdl.svg`) use the same bands (`LY-1`). A thin 
 ### Boundary 1 — Channels and actors
 
 **Owns:** every human or system that starts or continues a journey.
-**R0 contains:** Flutter RM app (token-hiding session — OAuth tokens never reach the device, `S-01`); IPR surface on the **same** gateway and BFF (`S-22`); customer device for OTP and payment only.
+**R0 contains:** Flutter RM app — native (mobile/tablet) **and** desktop browser (Flutter web). Token-hiding session — OAuth tokens never reach the device (`S-01`). The **web UI runs in `ns:edge`** next to `#2` (image-baked, no PVC). IPR surface on the **same** RM hostname and BFF (`S-22`). Admin/ops browser on a **separate hostname** against the Admin & Configuration BFF. Customer device for OTP and payment only.
 **Greyed:** Customer DIY (`#1` BFF, R1); call centre / branch / hybrid (R2).
 
 ### Boundary 2 — Edge (the only public entry point)

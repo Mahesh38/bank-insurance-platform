@@ -541,7 +541,9 @@ id_allocation:
     # CR-011 existed as a file from 2026-08-20 without a register row, so the counter read 11
     # while CR-011 was in use; it is now indexed in the decision register and the counter clears
     # both it and CR-012.
-    CR: 13        # CR-001..012 in use; next unused is CR-013
+    # Advanced 2026-08-25 because registers cite CR-013 / ADR-014 (origin/main, PR #73).
+    # ID-allocation correction only: no stage, scope or gate field is touched.
+    CR: 14        # CR-001..013 in use; next unused sequential value is 14
     RISK: 16      # RISK-001..015 in use (012..015 added by CR-012)
     ASM: 12       # ASM-001..011 in use (009..011 added by CR-012)
     EPIC: 1
@@ -554,4 +556,5 @@ id_allocation:
     # collision warning. This is an ID-allocation correction only. No stage, scope or gate field is
     # touched by it; those remain human-owned (04 section 5).
     # ADR-009..013 were added by the 2026-08-24 R0 robustness round (CR-012, SUG-20260824-gp1..gp5).
-    ADR: 14
+    # ADR-014 is cited from origin/main (CR-013 / DEC-20260825-01). ID-allocation only.
+    ADR: 15

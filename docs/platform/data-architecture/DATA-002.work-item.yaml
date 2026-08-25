@@ -1,0 +1,110 @@
+# schema: work-item
+id: DATA-002
+origin: SUG-20260825-aln
+title: "Align R0 physical pack with CR-013 (archive, issuanceMode, policy ingest, MIS path, outbox)"
+type: ARCH
+also: [DOC]
+breakdown: STORY
+epic: null
+workstream: WS-3
+owner: "Aarti — Principal Insurance Data & Database Architect"
+risk_tier: T3
+
+serves:
+  - "CR-013 R0 Lead / MIS / admin / issuance / ingest scope"
+  - "DEC-20260825-01 D2 D3 D4 D5 D6"
+  - "ADR-014"
+  - "ADR-012 per-producer outbox"
+  - "C-RET-1 C-ING-1 C-ISO-1 C-ISS-1"
+  - "S07-E04 physical schema (delta)"
+  - "W1 Lead schema / W3 issuance+ingest / W4 isolated MIS"
+
+problem: >
+  DATA-001 was designed against pre-CR-013 R0. origin/main now admits Lead archive,
+  issuanceMode, off-platform Policy ingest, R0 admin/MIS on an isolated read path,
+  and (from CR-012) a transactional outbox per producer. The current DDL cannot
+  express those facts.
+
+description: >
+  After rebase onto origin/main, extend the Aarti pack: ARCHIVED + attribution
+  retention on opportunity; issuance_mode on proposal and policy; policy.source with
+  nullable lead_id, ingest/maker-checker tables, and append-only state history;
+  isolated reporting/MIS read-path design and grants; outbox_event in every
+  publishing schema. Do not pick the archive mechanism alone (joint Mahesh). Do
+  not apply Flyway. Do not mark S07-G5 PASSED. The alignment report is already
+  published; this item is the schema/docs delta.
+
+acceptance_criteria:
+  - id: AC-1
+    given: "CR-013 C-RET-1 and DEC D2"
+    when: "opportunity DDL is read"
+    then: "ARCHIVED is a legal state, archived_at exists, and RET-7Y attribution columns are named"
+  - id: AC-2
+    given: "DEC D6 / C-ISS-1"
+    when: "proposal and policy DDL are read"
+    then: "issuance_mode is NOT NULL CHECK STP|NON_STP|INSTA on both"
+  - id: AC-3
+    given: "DEC D3 / C-ING-1"
+    when: "policy DDL is read"
+    then: "source is ON_PLATFORM|OFF_PLATFORM; lead_id is null iff OFF_PLATFORM; ingest is on Policy not Lead"
+  - id: AC-4
+    given: "INV-POL-04 / C-RET-2"
+    when: "policy DDL is read"
+    then: "an INSERT-only state history table exists"
+  - id: AC-5
+    given: "DEC D4/D5 / C-ISO-1"
+    when: "the pack is read"
+    then: "Reporting is in R0 on a named isolated read path; the Lead writer is forbidden for MIS/admin/recon"
+  - id: AC-6
+    given: "ADR-012"
+    when: "mutating business schemas are read"
+    then: "each publishing schema has outbox_event"
+  - id: AC-7
+    given: "CURRENT-STATE.yaml and GATE-S07"
+    when: "this change lands"
+    then: "no stage field is edited and S07-G5 remains OPEN awaiting the human signature"
+
+out_of_scope:
+  - "Implementing the DDL in the same turn the alignment gap was raised"
+  - "Choosing partition vs archive table vs dump without Mahesh (DEC §12)"
+  - "Purge job execution / proven restore (S09, already parked)"
+  - "Second Aurora cluster or a new S08 isolation microservice"
+  - "Renaming lead_id / INV-LED-* or campaign bulk Lead create"
+  - "PPHI-compliant declaration"
+  - "Human S07-G5 / ADR-008 / CR-013 T4 signatures"
+  - "Changing CURRENT-STATE.yaml stage fields"
+
+state: READY
+priority_now: P2
+priority_at_target: P1
+target_stage: "S08 design delta (W1/W3/W4) / S09 apply"
+unpark_trigger: null
+
+dependencies:
+  blocked_by: []
+  requires:
+    - "DATA-001 pack"
+    - "origin/main CR-013 / DEC-20260825-01 / ADR-014"
+    - "rebase onto origin/main before editing ws3-platform/02 and /03"
+  enables:
+    - "W1 Lead schema"
+    - "W3 issuance + off-platform ingest"
+    - "W4 admin/MIS on isolated path"
+  related_to:
+    - "DATA-001"
+    - "ADR-012"
+    - "OPEN-I1"
+    - "SUG-20260825-db1"
+  external: []
+  decision_dependency:
+    - "W1 archive mechanism — joint Aarti/Mahesh"
+    - "CR-013 human T4 (does not block design of the delta)"
+
+plan: PLAN-003
+estimate: M
+assumptions: []
+risks: []
+evidence:
+  - "docs/platform/data-architecture/DATA-002-cr013-alignment.md"
+  - "docs/platform/data-architecture/DB-DEC-0002-cr013-alignment-review.md"
+variance_log: []

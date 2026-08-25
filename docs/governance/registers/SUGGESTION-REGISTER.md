@@ -66,6 +66,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | SUG-20260824-gp4 | 2026-08-24 | human:Mahesh | Provision Amazon MSK as the R0 event backbone and **keep the transactional outbox as its source of truth**, because the previous decision's own revisit trigger (a third consumer class) fires inside R0 and adopting a broker mid-slice would change the audit path while it is being evidenced | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMIT-BYPASS | [ADR-012](../../platform/architecture-review/08-architecture-decision-log.md) · [CR-012](../change-requests/CR-012-r0-platform-robustness.md) · [detail](#sug-20260824-gp4--event-backbone-in-r0-with-the-outbox-retained) |
 | SUG-20260824-gp5 | 2026-08-24 | human:Mahesh | Provision Amazon OpenSearch in R0 as the operational search and log-analytics pipe — with an explicit exclusion from the regulatory pipe — so the firewall, flow, TGW and broker logs the other closures generate are queryable during the first end-to-end journey | SF1 | SC0 | SHOULD | INFRA | P2 / P2 | ADMIT-BYPASS | [ADR-013](../../platform/architecture-review/08-architecture-decision-log.md) · [CR-012](../change-requests/CR-012-r0-platform-robustness.md) · [detail](#sug-20260824-gp5--operational-search-pipe-in-r0) |
 | SUG-20260825-db1 | 2026-08-25 | human:Aarti-request | Create the Aarti DB design pack: rules, physical schema, tables, relationships, indexes, required routines, troubleshooting plan, and SQL scripts for each R0 schema | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [DATA-001](../../platform/data-architecture/DATA-001.work-item.yaml) · [detail](#sug-20260825-db1--aarti-r0-physical-data-architecture-pack) |
+| SUG-20260825-aln | 2026-08-25 | human:Aarti-request | Check whether the R0 physical DB pack is aligned with recent scope changes (CR-013) and what still needs to be created | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [DATA-002](../../platform/data-architecture/DATA-002.work-item.yaml) · [alignment](../../platform/data-architecture/DATA-002-cr013-alignment.md) · [detail](#sug-20260825-aln--cr-013-physical-alignment) |
 
 <!--
 Row format:
@@ -1787,6 +1788,73 @@ notes:
   - "DynamoDB for Journey/Quote/Audit rejected for R0 (DB-DEC-0001)."
   - "S07-G5 remains OPEN. No stage field edited."
   - "Apply, proven restore and purge implementation parked — see PARKED-BACKLOG."
+```
+
+#### SUG-20260825-aln · CR-013 physical alignment
+
+```yaml
+id: SUG-20260825-aln
+raised_at: "2026-08-25"
+raised_by: "human:requested-as-Aarti"
+source: "Check if our db is aligned with recent scope changes? is there some additional things needs to be created."
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-TERM-SALE"
+  state_as_of: "2026-08-10"
+  freshness: "WARN — state_as_of is 15 days old; review_due 2026-09-09; proceed with disclosure"
+  active_work_item: DATA-001
+stage_fit:
+  code: SF1
+  rationale: >
+    CR-013 pulled Lead archive, issuanceMode, off-platform Policy ingest and R0
+    admin/MIS into current R0 scope. Physical design of those facts is S07-E04 /
+    W1–W4 on-stage work. Flyway apply remains S09 (already parked).
+scope:
+  code: SC0
+  serves: ["CR-013", "DEC-20260825-01 D2-D6", "ADR-014", "ADR-012", "S07-E04"]
+necessity:
+  now: MUST
+  future_necessity: MUST
+  evidence_tier: E2
+  confidence: C4
+  rationale: >
+    Named failure: W1/W3/W4 cannot persist admitted R0 facts against DATA-001 DDL
+    (no ARCHIVED, no issuance_mode, lead_id NOT NULL, no state history, Reporting
+    declared out of R0, outbox only on identity). Cheaper alternative (ignore
+    CR-013) is an incorrect domain model.
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+action: ADMIT
+classification:
+  type: ARCH
+  also: [DOC]
+  breakdown: STORY
+  risk_tier: T3
+priority:
+  now: P2
+  at_target: P1
+  factors: { N: 4, S: 3, B: 2, R: 3, D: 2, E: 2 }
+  score: 24
+  matrix_default: P2
+  consistency: OK
+dependencies:
+  state: READY
+  requires: ["DATA-001", "origin/main CR-013", "DEC-20260825-01", "ADR-014", "ADR-012"]
+  enables: ["W1 Lead schema", "W3 issuance+ingest", "W4 isolated MIS"]
+outcome:
+  work_item_id: DATA-002
+  plan_id: PLAN-003
+  status: ADMITTED
+  registered_in: "docs/platform/data-architecture/"
+notes:
+  - "This turn published the check (DATA-002-cr013-alignment.md, DB-DEC-0002). DDL is not implemented in the raise turn."
+  - "Archive mechanism (partition vs table vs dump) remains undecided — DEC §12 joint Aarti/Mahesh."
+  - "S07-G5 remains OPEN. No stage field edited."
 ```
 
 ---

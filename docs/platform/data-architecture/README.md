@@ -2,6 +2,7 @@
 
 **Workstream:** WS-3 — AU Bank Insurance Distribution Platform
 **Work item:** [`DATA-001`](./DATA-001.work-item.yaml) · origin [`SUG-20260825-db1`](../../governance/registers/SUGGESTION-REGISTER.md#sug-20260825-db1--aarti-r0-physical-data-architecture-pack)
+**CR-013 alignment:** [`DATA-002`](./DATA-002.work-item.yaml) · [`alignment report`](./DATA-002-cr013-alignment.md) · [`DB-DEC-0002`](./DB-DEC-0002-cr013-alignment-review.md) — `CHANGES_REQUIRED` (schema delta not implemented in the raise turn)
 **Owner:** Aarti — Principal Insurance Data & Database Architect
 **Co-owners (joint review):** Mahesh (ownership / boundaries) · Deepali (security outcome) · Shailja (retention / PII class)
 **Status:** `AI-DRAFTED` — Aarti's human signature for `S07-G5` is outstanding. This pack assembles the evidence; it does not manufacture the approval.
@@ -23,6 +24,8 @@ That document is explicit: it is **not** a physical schema
 | [`01-physical-design.md`](./01-physical-design.md) | Topology, datastore per context, tables, relationships, indexes, `OPEN-I6` |
 | [`02-operations-and-troubleshooting.md`](./02-operations-and-troubleshooting.md) | Migration, encryption/access implementation, backup/PITR/RPO/RTO, retention/purge, troubleshooting |
 | [`DB-DEC-0001-r0-physical-model.md`](./DB-DEC-0001-r0-physical-model.md) | Formal `database_decision` for `ADR-008` / `S07-G5` (draft, unsigned) |
+| [`DATA-002-cr013-alignment.md`](./DATA-002-cr013-alignment.md) | Check vs `CR-013` / `ADR-014` — what to keep, what to create, what not to invent |
+| [`DB-DEC-0002-cr013-alignment-review.md`](./DB-DEC-0002-cr013-alignment-review.md) | Aarti verdict `CHANGES_REQUIRED` (`D1`) |
 | [`schemas/`](./schemas/) | PostgreSQL design DDL — one script per schema, plus routines and grants |
 
 ## What this pack is not
@@ -71,9 +74,9 @@ Vendor-owned stores that are **not** designed here: Keycloak's own database, the
 
 | | |
 |---|---|
-| **Decision** | `APPROVED_WITH_OBSERVATIONS` as a draft for human Aarti / Mahesh / Deepali / Shailja |
-| **Severity** | `D1` — design is sufficient for S07 exit; restore and purge remain unproven (`D2` until S09 evidence) |
-| **Integrity guarantee** | Keys, uniqueness, `lob` CHECK, INSERT-only on immutable tables, no cross-schema FK |
+| **Decision** | `APPROVED_WITH_OBSERVATIONS` as a draft for human Aarti / Mahesh / Deepali / Shailja **against pre-CR-013 R0**. Against `CR-013`: [`DB-DEC-0002`](./DB-DEC-0002-cr013-alignment-review.md) is `CHANGES_REQUIRED`. |
+| **Severity** | `D1` — pre-CR-013 design is sufficient for that model; restore and purge remain unproven (`D2` until S09 evidence). CR-013 columns are missing (`D1`). |
+| **Integrity guarantee** | Keys, uniqueness, `lob` CHECK, INSERT-only on immutable tables, no cross-schema FK — **pre-CR-013 model only** |
 | **Recovery guarantee** | R0 design target: RPO 5 minutes (Aurora PITR), RTO 30 minutes (Multi-AZ failover). **Not measured.** |
 
 Cite: [`04-operating-and-review-contract.md` §4](../../context/roles/principal-insurance-data-database-architect/04-operating-and-review-contract.md#4-standard-aarti--dba-decision-output).

@@ -601,6 +601,8 @@ capsules:
         capsule: "security-review"
       - condition: "physical schema, indexes, routines or R0 DDL is the question"
         path: "docs/platform/data-architecture/README.md"
+      - condition: "alignment of the physical pack with CR-013 / Lead archive / MIS / issuanceMode"
+        path: "docs/platform/data-architecture/DATA-002-cr013-alignment.md"
     output: "DB verdict + severity `D0`–`D3` + integrity/recovery guarantees the platform may rely on."
     never:
       - "Let application scaling override a DB limit."

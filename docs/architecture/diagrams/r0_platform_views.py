@@ -124,10 +124,9 @@ def topology():
     # ---- devices ---------------------------------------------------------
     dev = c.group("DEVICES", 40, 250, 560, 270, stroke=Z["dev"][0], fill=Z["dev"][1],
                   sub="outside the VPC", label_size=15)
-    c.node(I["flutter"], 130, 340, ["RM — Flutter native", "store vs MDM is S11"])
-    c.node(I["tablet"], 310, 340, ["RM — desktop browser", "Flutter web in ns:edge"])
-    c.node(I["tablet"], 130, 455, ["Insurance Partner Rep", "same RM host, same BFF"])
-    c.node(I["mobile"], 310, 455, ["Admin / ops browser", "separate host · Admin BFF"])
+    c.node(I["flutter"], 130, 340, ["NIP-APP native", "APK Play · IPA App Store"])
+    c.node(I["tablet"], 310, 340, ["NIP-APP web", "role-based · nip-web"])
+    c.node(I["tablet"], 220, 455, ["Roles, not apps", "RM · IPR · admin/ops"])
 
     # ---- region and edge -------------------------------------------------
     c.group("AWS REGION · ap-south-1", 620, 200, 2160, 2220, stroke=Z["vpc"][0],
@@ -156,10 +155,8 @@ def topology():
                        label_size=13, radius=11, width=1.6)
 
     band("edge", "ns: edge   ·   UI pods are image-baked — no PVC", 815)
-    c.node(I["pod"], COL[0], 815 + ICON_DY, ["rm-web", "Flutter web · in the image"])
-    bff = c.node(I["pod"], COL[1], 815 + ICON_DY, ["#2 RM Workspace BFF", "W4 · holds the tokens"])
-    c.node(I["pod"], COL[2], 815 + ICON_DY, ["Admin BFF", "W4 · #19 + MIS reads"])
-    c.node(I["pod"], COL[3], 815 + ICON_DY, ["admin-web", "image-baked · no PVC"])
+    c.node(I["pod"], COL[0], 815 + ICON_DY, ["nip-web", "Flutter web · in the image"])
+    bff = c.node(I["pod"], COL[1], 815 + ICON_DY, ["#2 NIP BFF", "W4 · holds the tokens"])
 
     band("ident", "ns: identity   ·   WS-2 workforce identity", 995)
     c.node(I["deploy"], COL[0], 995 + ICON_DY, ["Keycloak", "private IdP · no PVC"])
@@ -271,7 +268,7 @@ def topology():
     c.link(agw.port("B"), alb.port("T"), color=REQ, width=3.0,
            label="VPC link", label_at=0.62, label_dx=9, label_anchor="start")
     c.link(alb.port("B"), bff.port("T"), color=REQ, width=3.0,
-           label="/api → BFF  ·  / → rm-web", label_at=0.45, label_dx=8,
+           label="GET /* → nip-web  ·  /api/* → NIP BFF", label_at=0.45, label_dx=8,
            label_anchor="start")
     c.link(bff.port("B"), pdp.port("T"), color=AUTH, width=2.8)
 

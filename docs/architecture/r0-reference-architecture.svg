@@ -38,15 +38,15 @@
   <rect x="60" y="220" width="300" height="86" rx="6" fill="#f3e8ff" stroke="#9333ea" stroke-width="1.5"/>
   <rect x="67" y="227" width="26" height="15" rx="4" fill="#9333ea"/>
   <text x="80" y="238.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">W4</text>
-  <text x="210.0" y="262" font-size="11.8" fill="#0f172a" text-anchor="middle" font-weight="bold">Flutter RM Application</text>
-  <text x="210.0" y="278.0" font-size="8.6" fill="#475569" text-anchor="middle">RM device · the certified Specified Person</text>
-  <text x="210.0" y="289.5" font-size="8.6" fill="#475569" text-anchor="middle">token-hiding session — OAuth tokens</text>
-  <text x="210.0" y="301.0" font-size="8.6" fill="#475569" text-anchor="middle">never reach the device (S-01)</text>
+  <text x="210.0" y="262" font-size="11.8" fill="#0f172a" text-anchor="middle" font-weight="bold">NIP-APP (Flutter)</text>
+  <text x="210.0" y="278.0" font-size="8.6" fill="#475569" text-anchor="middle">one project: web + APK + IPA (ADR-015)</text>
+  <text x="210.0" y="289.5" font-size="8.6" fill="#475569" text-anchor="middle">roles: RM · IPR · admin/ops — not apps</text>
+  <text x="210.0" y="301.0" font-size="8.6" fill="#475569" text-anchor="middle">token-hiding session — no OAuth on device</text>
   <rect x="380" y="220" width="300" height="86" rx="6" fill="#f3e8ff" stroke="#9333ea" stroke-width="1.5"/>
   <rect x="387" y="227" width="26" height="15" rx="4" fill="#9333ea"/>
   <text x="400" y="238.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">W4</text>
   <text x="530.0" y="262" font-size="11.8" fill="#0f172a" text-anchor="middle" font-weight="bold">Insurance Partner Rep (IPR)</text>
-  <text x="530.0" y="278.0" font-size="8.6" fill="#475569" text-anchor="middle">insurer employee · ASSIST ONLY — not an SP</text>
+  <text x="530.0" y="278.0" font-size="8.6" fill="#475569" text-anchor="middle">role on NIP-APP · ASSIST ONLY — not an SP</text>
   <text x="530.0" y="289.5" font-size="8.6" fill="#475569" text-anchor="middle">no origination, no regulated action (INV-ACT-02)</text>
   <text x="530.0" y="301.0" font-size="8.6" fill="#475569" text-anchor="middle">gated post-suitability, own insurer_id (S-22)</text>
   <rect x="700" y="220" width="300" height="86" rx="6" fill="#f3e8ff" stroke="#9333ea" stroke-width="1.5"/>
@@ -91,16 +91,16 @@
   <rect x="40" y="516" width="1720" height="12" fill="#0f172a"/>
   <text x="56" y="520.5" font-size="9.5" fill="#ffffff" font-weight="bold" letter-spacing="1.4">BOUNDARY 3</text>
   <text x="166" y="520.5" font-size="10.5" fill="#ffffff" font-weight="bold" letter-spacing="0.6">EXPERIENCE / BFF PLANE</text>
-  <text x="1744" y="520.5" font-size="9" fill="#cbd5e1" text-anchor="end" font-weight="bold">R0 ships RM + Admin BFFs — one per CHANNEL, never per channel × LOB</text>
+  <text x="1744" y="520.5" font-size="9" fill="#cbd5e1" text-anchor="end" font-weight="bold">R0 ships one NIP BFF — one per CHANNEL, never per channel × LOB</text>
   <rect x="60" y="538" width="420" height="86" rx="6" fill="#f3e8ff" stroke="#9333ea" stroke-width="1.5"/>
   <rect x="67" y="545" width="26" height="15" rx="4" fill="#9333ea"/>
   <text x="80" y="556.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">W4</text>
   <rect x="99" y="545" width="30" height="15" rx="2" fill="#e11d48"/>
   <text x="114" y="556.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">LIFE</text>
-  <text x="270.0" y="580" font-size="11.8" fill="#0f172a" text-anchor="middle" font-weight="bold">#2  RM Workspace BFF</text>
+  <text x="270.0" y="580" font-size="11.8" fill="#0f172a" text-anchor="middle" font-weight="bold">#2  NIP BFF</text>
   <text x="270.0" y="596.0" font-size="8.6" fill="#475569" text-anchor="middle">stateless session facade — holds the OAuth tokens;</text>
-  <text x="270.0" y="607.5" font-size="8.6" fill="#475569" text-anchor="middle">Flutter only ever sees an opaque session (S-01).</text>
-  <text x="270.0" y="619.0" font-size="8.6" fill="#475569" text-anchor="middle">Field validation rules resolved by (lob, formId) — CF-2</text>
+  <text x="270.0" y="607.5" font-size="8.6" fill="#475569" text-anchor="middle">NIP-APP only ever sees an opaque session (S-01).</text>
+  <text x="270.0" y="619.0" font-size="8.6" fill="#475569" text-anchor="middle">Admin/MIS are role-gated routes here — not a second BFF</text>
   <rect x="500" y="538" width="400" height="86" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.3" stroke-dasharray="5 4"/>
   <rect x="507" y="545" width="26" height="15" rx="4" fill="#e2e8f0"/>
   <text x="520" y="556.5" font-size="8.5" fill="#64748b" text-anchor="middle" font-weight="bold">R1</text>
@@ -115,13 +115,13 @@
   <text x="1120.0" y="596.0" font-size="8.6" fill="#94a3b8" text-anchor="middle">work queues, journey search, interaction timeline,</text>
   <text x="1120.0" y="607.5" font-size="8.6" fill="#94a3b8" text-anchor="middle">disposition capture. Actor capability enforced</text>
   <text x="1120.0" y="619.0" font-size="8.6" fill="#94a3b8" text-anchor="middle">server-side, never by hiding a button</text>
-  <rect x="1340" y="538" width="380" height="86" rx="6" fill="#f3e8ff" stroke="#9333ea" stroke-width="1.5"/>
-  <rect x="1347" y="545" width="26" height="15" rx="4" fill="#9333ea"/>
-  <text x="1360" y="556.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">W4</text>
-  <text x="1530.0" y="580" font-size="11.2" fill="#0f172a" text-anchor="middle" font-weight="bold">Admin &amp; Configuration BFF</text>
-  <text x="1530.0" y="596.0" font-size="8.6" fill="#475569" text-anchor="middle">R0 UI over #19 + MIS reports. Isolated</text>
-  <text x="1530.0" y="607.5" font-size="8.6" fill="#475569" text-anchor="middle">read path — never the Lead writer</text>
-  <text x="1530.0" y="619.0" font-size="8.6" fill="#475569" text-anchor="middle">(C-ISO-1, ADR-014). Layer still W0b (CF-5)</text>
+  <rect x="1340" y="538" width="380" height="86" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.3" stroke-dasharray="5 4"/>
+  <rect x="1347" y="545" width="26" height="15" rx="4" fill="#e2e8f0"/>
+  <text x="1360" y="556.5" font-size="8.5" fill="#64748b" text-anchor="middle" font-weight="bold">W4</text>
+  <text x="1530.0" y="580" font-size="11.2" fill="#94a3b8" text-anchor="middle" font-weight="bold">not a BFF — admin/ops on NIP-APP</text>
+  <text x="1530.0" y="596.0" font-size="8.6" fill="#94a3b8" text-anchor="middle">R0 UI over #19 + MIS is a role on NIP-APP</text>
+  <text x="1530.0" y="607.5" font-size="8.6" fill="#94a3b8" text-anchor="middle">served by #2. Isolated read — never Lead writer</text>
+  <text x="1530.0" y="619.0" font-size="8.6" fill="#94a3b8" text-anchor="middle">(C-ISO-1, ADR-015). Layer still W0b (CF-5)</text>
   <rect x="40" y="668" width="1720" height="424" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.3"/>
   <rect x="40" y="668" width="1720" height="24" rx="10" fill="#0f172a"/>
   <rect x="40" y="680" width="1720" height="12" fill="#0f172a"/>

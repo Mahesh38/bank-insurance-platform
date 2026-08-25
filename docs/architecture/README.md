@@ -313,3 +313,16 @@ Label and release-chip reconciliation only. No new bounded context, no new AWS h
 | [`R0-HLD.md`](./R0-HLD.md) | Boundary 1: Flutter native + desktop web in `ns:edge`; admin/ops on a separate hostname. |
 | [`r0-lld.svg`](./r0-lld.svg) | Four `ns:edge` pods (`rm-web`, `#2`, Admin BFF, `admin-web`). Z0 gains admin/ops. `#18` on `ns:jobs`. Glue/Athena still DO NOT PROVISION. |
 | generated set | Topology: RM native, RM desktop, IPR, admin/ops devices; four edge pods; `#18` in `ns:jobs`. Regenerated from [`diagrams/r0_platform_views.py`](./diagrams/r0_platform_views.py). Not hand-edited. |
+
+## Revision — 2026-08-25 one NIP-APP (`ADR-015`, PROPOSED)
+
+Taken architecture decision (human:Mahesh). **Human T4 Architecture sign-off is outstanding.** Do not rewrite the `ADR-014` / `CR-013` history above — `ADR-015` **retracts the hostname / pod split**.
+
+| File | What changed |
+|---|---|
+| [`R0-LLD.md`](./R0-LLD.md) | §3.1: one Flutter **NIP-APP** (web + APK + IPA). `ns:edge` = `nip-web` + `#2` NIP BFF **only**. One hostname. Store listing is EKS + Play + App Store. |
+| [`R0-HLD.md`](./R0-HLD.md) | Boundary 1 and 3: NIP-APP and NIP BFF. RM / IPR / admin/ops are **roles**. |
+| [`r0-lld.svg`](./r0-lld.svg) | Z0 is one NIP-APP. `ns:edge` is two pods. |
+| [`r0-reference-architecture.svg`](./r0-reference-architecture.svg) | Channel is NIP-APP. `#2` is NIP BFF. Admin BFF is **not** a second R0 BFF. |
+| [`../hdl.svg`](../hdl.svg) | `#2` NIP BFF; Admin BFF folded to roles on NIP-APP (`HA-06`). |
+| generated set | Topology devices and `ns:edge` regenerated from [`diagrams/r0_platform_views.py`](./diagrams/r0_platform_views.py). Not hand-edited. |

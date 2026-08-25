@@ -75,9 +75,10 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | SUG-20260825-r0s | 2026-08-25 | human:Mahesh | Stakeholder: include the lead-domain intake in R0 immediately; nothing parked; compliance calls only | SF0 | SC0 | MUST | ARCH | P1 / P1 | ADMIT-BYPASS | [CR-013](../change-requests/CR-013-r0-lead-mis-admin-scope.md) · [ADR-014](../../platform/architecture-review/08-architecture-decision-log.md) · recurrence_count 2 (2026-08-25: Admin/Config BFF + admin/ops actors for MIS — already D4) |
 | SUG-20260825-pv1 | 2026-08-25 | human:Mahesh | Deploy the desktop web application on a Kubernetes PVC | SF4 | SC3 | REJECT | INFRA | — / — | REJECTED | [detail](#sug-20260825-pv1--no-pvc-for-the-web-app) |
 | SUG-20260825-ld1 | 2026-08-25 | human:Mahesh | Make Lead LOB-specific | SF4 | SC3 | REJECT | ARCH | — / — | REJECTED | [detail](#sug-20260825-ld1--lead-is-not-lob-specific) |
-| SUG-20260825-st2 | 2026-08-25 | human:Mahesh | Put the Flutter RM app on Play Store / Apple Store (and a customer store app) | SF3 | SC2 | NOT-NOW | ARCH | P5 / P3 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md#3-ideas--no-committed-stage) · LLD §14 Flutter hosting already open |
-| SUG-20260825-ac1 | 2026-08-25 | human:Mahesh | Add admin and operations as R0 on-platform actors for the Admin & Configuration BFF, reports and MIS | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [detail](#sug-20260825-ac1--admin-and-ops-actors-for-r0) |
-| SUG-20260825-ll1 | 2026-08-25 | human:Mahesh | Reconcile R0-LLD and platform topology with ADR-014: Admin BFF, #18 MIS, desktop admin web, no PVC | SF1 | SC1 | MUST | DOC | P3 / P2 | CLOSED-DELIVERED | [detail](#sug-20260825-ll1--lld-topology-lag-behind-adr-014) |
+| SUG-20260825-st2 | 2026-08-25 | human:Mahesh | Put the Flutter RM app on Play Store / Apple Store (and a customer store app) | SF1 | SC1 | MUST | ARCH | P2 / P1 | CLOSED-DELIVERED | Unparked by `ADR-015`: workforce distribution is EKS web + Play APK + App Store IPA. Customer store apps remain R1 (`#1`). Deepali owns store hardening. |
+| SUG-20260825-ac1 | 2026-08-25 | human:Mahesh | Add admin and operations as R0 on-platform actors for the Admin & Configuration BFF, reports and MIS | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [detail](#sug-20260825-ac1--admin-and-ops-actors-for-r0) · UI is NIP-APP roles (`SUG-20260825-nip`), not a second app |
+| SUG-20260825-ll1 | 2026-08-25 | human:Mahesh | Reconcile R0-LLD and platform topology with ADR-014: Admin BFF, #18 MIS, desktop admin web, no PVC | SF1 | SC1 | MUST | DOC | P3 / P2 | CLOSED-DELIVERED | [detail](#sug-20260825-ll1--lldtopology-lag-behind-adr-014) · `admin-web` / `admin.{env}` retracted by `SUG-20260825-nip` |
+| SUG-20260825-nip | 2026-08-25 | human:Mahesh | One NIP-APP (New Insurance Platform) Flutter client for web/iOS/Android; RM, ISR, admin and operations share it with role-based views; no separate admin/ops app now or later | SF1 | SC1 | MUST | ARCH | P2 / P1 | CLOSED-DELIVERED | [detail](#sug-20260825-nip--one-nip-app-role-based-not-a-second-admin-ui) · recorded as `ADR-015` (PROPOSED — human T4 outstanding) |
 
 <!--
 Row format:
@@ -2567,19 +2568,25 @@ necessity:
     - "R0-LLD.md §14 — Flutter hosting (internal MDM vs public store) | Rajal + Deepali | S11"
     - "BOOT.md — Customer BFF and customer-facing Flutter surface revisit at R1"
   confidence: C4
-action: PARK
+recurrence_count: 2
+action: ADMIT
 action_rationale: >
-  Architecture does not choose app-store vs MDM. Structure is one RM client against #2.
-  Public-store distribution of a workforce app is Deepali's trust-boundary outcome and
-  Rajal's channel decision. Customer store apps are the R1 DIY surface.
+  Unparked by ADR-015 (human:Mahesh taken decision). Workforce NIP-APP ships as
+  one web artefact on EKS, one APK on Play Store, one IPA on the App Store.
+  Deepali jointly owns store hardening, not the distribution channel.
+  Customer store apps remain R1 (#1 Customer BFF) and are not this item.
 priority:
   now: P5
   at_target: P3
   caps_applied: [PRI-2, PRI-5]
 outcome:
-  status: PARKED
-  registered_in: "PARKED-BACKLOG.md §3 Ideas"
-resumed: "Mahesh architecture consult — channel, BFF, Lead LOB"
+  status: CLOSED-DELIVERED
+  registered_in: "SUGGESTION-REGISTER.md"
+  notes: >
+    Unparked 2026-08-25 by ADR-015. Workforce NIP-APP distribution is EKS nip-web
+    + Play Store APK + App Store IPA. Deepali still owns store hardening
+    (pinning, attestation, no tokens on device). Customer store apps remain R1 (#1).
+resumed: "ADR-015 took the workforce store-listing decision"
 ```
 
 ---
@@ -2667,7 +2674,10 @@ outcome:
   registered_in: "SUGGESTION-REGISTER.md"
   work_item_id: null
   status: ADMITTED
-  notes: "Not implemented in the turn it was raised. Actor catalogue, HLD §2.1 and journey-execution catalogue are the artefact updates."
+  notes: >
+    Not implemented in the turn it was raised. Actor catalogue, HLD §2.1 and
+    journey-execution catalogue are the artefact updates. 2026-08-25: those
+    actors login to NIP-APP (`SUG-20260825-nip`); they do not get a second web.
 resumed: "Mahesh architecture consult — channel, BFF, Lead LOB"
 ```
 
@@ -2758,7 +2768,113 @@ outcome:
     R0-LLD.md §3.1 places rm-web and admin-web as image-baked pods in ns:edge
     on the internal ALB (no PVC). r0-lld.svg and generated topology show four
     edge pods, admin/ops in Z0, and #18 on ns:jobs. Warehouse stays out.
+    2026-08-25: SUG-20260825-nip retracts admin-web and admin.{env}; one NIP-APP.
 resumed: "Mahesh architecture consult — channel, BFF, Lead LOB"
+```
+
+---
+
+### SUG-20260825-nip · One NIP-APP, role-based, not a second admin UI
+
+```yaml
+# schema: triage-record
+id: SUG-20260825-nip
+raised_at: "2026-08-25"
+raised_by: "human:Mahesh"
+source: "architecture consult — follow-up after PR #75; no separate admin/ops web"
+input: >
+  one important thing, we dont have or not in future will have different app or web
+  for the admin and operations, it will be in the RM web application only, it just
+  role based view will be shown. the application is enterprise application where RM,
+  Insurance sales representative and admin, operations all will login, just based on
+  the role everyone be able to see their perspective only. Also this APP in not RM app
+  actually you can call it NIP - New Insurance Platform Web Application (NIP - APP).
+  same app will be customised for andriod and ios and we will deploy on the stores.
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-TERM-SALE"
+  state_as_of: "2026-08-10"
+  active_work_item: "none — SUG-20260825-ll1 CLOSED-DELIVERED on PR #75"
+stage_fit:
+  code: SF1
+  rationale: >
+    The S09 pack just published (PR #75 / R0-LLD.md §3.1) draws a separate admin-web
+    pod and admin.{env} hostname. That picture contradicts JS-08 / ID-22 (actors are
+    authorization, not a second architecture) and the stakeholder channel model.
+    Correcting the channel topology is on-stage for the overlapped S08/S09 pack.
+    Public-store listing is not this item — that remains SUG-20260825-st2 (SF3).
+scope:
+  code: SC1
+  business_scope: "derived — the R0 workforce channel and W4 admin/MIS UI are in scope; a second app is not"
+  serves:
+    - "SUG-20260825-ac1"
+    - "ADR-014 W4 Administration UI / MIS"
+    - "R0-LLD.md S09 pack"
+    - "R0-HLD.md Boundary 1 and 3"
+  failure_without_it: >
+    S09 provisions admin-web and a second public hostname that Product will never
+    have; HLD keeps calling the client an RM app; PDP stories split across two UIs
+  minimal: true
+  authority: "12-journey-segregation.md JS-08 JS-10 · 15-actor-identity-and-authorization.md ID-22 TI-15 · ADR-014"
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S09 platform pack + R0 W4 UI"
+  binds_when: "next HLD/LLD revision; before any admin hostname is provisioned"
+  evidence_tier: E1
+  evidence:
+    - "human:Mahesh — one enterprise app, role-based, no second admin/ops web now or later"
+    - "JS-08 — a new actor type is an authorization change, not an architecture change"
+    - "JS-10 / TI-15 — UI hide/show is usability; PDP is the control"
+    - "ID-22 — the same capability serves every actor; no service per actor type"
+    - "HLD Boundary 3 — one BFF per channel, never per channel × LOB"
+  confidence: C5
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+action: ADMIT
+action_rationale: >
+  Collapse the channel to one Flutter client named NIP-APP (New Insurance Platform),
+  delivered as web plus iOS/Android from the same codebase. BANK_RM, INSURER_PARTNER_REP
+  (Insurance sales representative) and BANK_EMPLOYEE (admin/ops) all authenticate to
+  it; perspective is role + PDP, not a second deployable. Remove admin-web, admin.{env}
+  and a second public workforce BFF from HLD/LLD/topology. Admin/MIS functions stay
+  in R0 W4 as role-gated routes on #2; C-ISO-1 still forbids Lead-writer use.
+  Amit may keep admin aggregation as a module inside the one BFF process.
+  Spoken name NIP-APP is recorded here; Rajal owns a conflicting official product
+  name if the bank uses a different label. Public Play/Apple Store listing is NOT
+  admitted — recurrence of SUG-20260825-st2, still S11 (Deepali + Rajal).
+conflicts:
+  - "R0-LLD.md §3.1 admin-web / admin.{env} from SUG-20260825-ll1 — retract on implement"
+  - "R0-HLD.md Boundary 1 separate admin/ops hostname — retract on implement"
+classification:
+  type: ARCH
+  also: [DOC, SEC]
+  breakdown: STORY
+  risk_tier: T2
+  destination: "R0-HLD.md · R0-LLD.md · diagrams · actor catalogue (ac1)"
+priority:
+  now: P2
+  at_target: P1
+  factors: { N: 4, S: 3, B: 2, R: 2, D: 2, E: 1 }
+  score: 23
+  matrix_default: P2
+  consistency: OK
+  caps_applied: []
+  rationale: "SF1 MUST; PRI-8 B floor 1, raised to 2 (ac1 destination + S09 pack). Score 23 is P2, matrix default P2"
+dependencies:
+  edges: ["SUG-20260825-ac1", "ADR-014", "JS-08"]
+  state: READY
+outcome:
+  registered_in: "SUGGESTION-REGISTER.md"
+  work_item_id: SUG-20260825-nip
+  status: CLOSED-DELIVERED
+  notes: "Implemented 2026-08-25 as ADR-015. HLD/LLD/topology: ns:edge is nip-web + #2 NIP BFF only. Human T4 Architecture sign-off outstanding."
+resumed: "SUG-20260825-nip CLOSED-DELIVERED; ADR-015 drafted PROPOSED"
 ```
 
 ---

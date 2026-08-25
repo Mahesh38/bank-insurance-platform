@@ -1364,3 +1364,35 @@ origin: CR-013
 **Signed:** Mahesh — Principal Insurance Platform Architect (Board 1 / R2) · 2026-08-16 ·
 **revised** 2026-08-20 · **revised** 2026-08-24 (R0 robustness set, ADR-009 … ADR-013) ·
 **revised** 2026-08-25 (`ADR-014`, `CR-013`)
+
+---
+
+## ADR-015 — One NIP-APP client; ns:edge is NIP web + NIP BFF only
+
+```yaml
+id: ADR-015
+status: PROPOSED
+problem: >
+  RM desktop, admin/ops and Insurance Partner Rep were drawn as separate webs and
+  hostnames (admin-web, admin.{env}, Admin BFF). That is not the channel. One Flutter
+  enterprise application serves every workforce role. Store vs MDM was still open at S11.
+context_stage: "WS-3 at S08; architecture decision taken by Mahesh 2026-08-25"
+decision: >
+  There is one workforce Flutter project: NIP-APP (New Insurance Platform).
+  It produces three artefacts from the same codebase: a web build, an Android APK
+  and an iOS IPA. Roles (BANK_RM, INSURER_PARTNER_REP, BANK_EMPLOYEE admin/ops)
+  are PDP-enforced views, not applications (JS-08, JS-10, ID-22, TI-15).
+  ns:edge contains exactly two workloads: nip-web (image-baked Flutter web, no PVC)
+  and #2 NIP BFF (token-hiding session). Nothing RM-named or admin-named lives there.
+  One public hostname. GET /* → nip-web; /api/* → #2. Admin/MIS screens are routes
+  on NIP-APP; they still must not use the Lead writer (C-ISO-1, ADR-014).
+  Distribution: nip-web on EKS; APK on Google Play; IPA on the Apple App Store.
+  Deepali owns store hardening (device attestation, pinning, no tokens on device —
+  already S-01). Amit may merge workforce-access-bff into #2 (packaging).
+  #1 Customer BFF remains R1. A second admin/ops app or hostname is SF4.
+authority_class: A3_JOINT_REVIEW
+origin: "human:Mahesh taken decision · SUG-20260825-nip"
+```
+
+**Drafted:** Mahesh — Principal Insurance Platform Architect (Board 1 / R2) · 2026-08-25.
+Human T4 Architecture sign-off outstanding. Deepali jointly owns store-listing exposure.

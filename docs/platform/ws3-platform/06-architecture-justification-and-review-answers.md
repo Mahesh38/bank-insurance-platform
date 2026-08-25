@@ -171,8 +171,8 @@ an identifier is opaque and rewriting them breaks every citation to buy nothing.
 
 | Service | Release | Wave | Functions / business logic | Representative APIs | Why separate |
 |---|---|---|---|---|---|
-| **#2 RM Workspace BFF** | R0 | W4 | Token-hiding session; aggregates RM screens; never holds domain decisions. Session state lives in the shared cache tier (`ADR-011`), not in the pod | `POST /session/login`, `GET /workspace/journey/{id}`, mutation proxies with `Idempotency-Key` | Flutter must not see OAuth tokens (ARCH-019); BFF is the only public app-facing surface. **One BFF per channel, never per channel × LOB** |
-| **#1 Customer BFF** | R1 | — | Same pattern for DIY customer app | Customer session + journey proxies | Different principal, different threat model, different app — do not overload RM BFF |
+| **#2 NIP BFF** | R0 | W4 | Token-hiding session for NIP-APP; aggregates every workforce role's screens (RM, IPR, admin/ops); never holds domain decisions. Session state lives in the shared cache tier (`ADR-011`), not in the pod | `POST /session/login`, `GET /workspace/journey/{id}`, mutation proxies with `Idempotency-Key` | Flutter must not see OAuth tokens (ARCH-019); BFF is the only public app-facing surface. **One BFF per channel, never per channel × LOB and never per role** (`ADR-015`) |
+| **#1 Customer BFF** | R1 | — | Same pattern for DIY customer app | Customer session + journey proxies | Different principal, different threat model, different app — do not overload NIP BFF |
 | **#3 Identity & Access (WS-2)** | R0 (workforce) / R1+ (retail) | consumed | Provider adapter + PDP (RBAC/ABAC); **Specified Person certification** — certificate number, LOB scope, validity window, status — surfaced as principal attributes and evaluated per regulated action (`ARCH-022`, INV-ACT-01) | `POST /auth/token-exchange` (adapter-internal); `POST /authorize` (PDP) | Fail-closed authz; IdP is never business SoR. Certification is an **attribute**, not an actor row and not a channel (`AC-1`, `AC-2`) |
 
 **Two actors, and only one of them sells** ([`03-solution-architecture-r0.md §2.1`](./03-solution-architecture-r0.md)).

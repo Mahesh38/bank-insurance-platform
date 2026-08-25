@@ -78,7 +78,7 @@ as `LAPSED` after three gates (AS-3).
 
 | ID | Idea | Raised | Why not now | Revisit if |
 |----|------|--------|-------------|------------|
-| → [SUG-20260825-st2](./SUGGESTION-REGISTER.md#2-register) | Flutter RM (or customer) app on Play Store / Apple Store | 2026-08-25 | Customer store apps are R1 (`#1` Customer BFF). RM store vs MDM is already the open LLD §14 decision (Rajal + Deepali, S11). Public-store distribution of a workforce client is a trust-boundary change, not an architecture packaging default | S11 Flutter hosting decision is taken, or DIY is unparked at R1 |
+| — | *(none parked as Ideas after `ADR-015` unparked `SUG-20260825-st2`)* | — | — | — |
 
 ## 4. Sweep log
 
@@ -87,6 +87,7 @@ as `LAPSED` after three gates (AS-3).
 | 2026-08-07 | AIGEM adoption — initial seeding | 9 + 9 | 0 | — | 0 |
 | 2026-08-24 | Approved scope change — `CR-012` R0 robustness round | 4 examined (TD-010, SUG-0001, TD-009, WS-2 AD federation) | 0 | 4 — reasons in §1 | 0 |
 | 2026-08-25 | Stakeholder override — `CR-013` R0 lead/MIS/admin pull | SUG-20260825-lt1, of1, st1, pp1 | 4 — ADMITTED into R0 | 0 | 0 |
+| 2026-08-25 | Taken architecture decision — `ADR-015` one NIP-APP | SUG-20260825-st2 | 1 — unparked; workforce store listing CLOSED-DELIVERED by ADR-015. Customer store apps remain R1 | 0 | 1 (st2) |
 
 ---
 

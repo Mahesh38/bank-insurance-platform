@@ -122,10 +122,12 @@ def topology():
                "environment · every connector is a real network path, and egress has exactly one")
 
     # ---- devices ---------------------------------------------------------
-    dev = c.group("DEVICES", 60, 305, 460, 195, stroke=Z["dev"][0], fill=Z["dev"][1],
+    dev = c.group("DEVICES", 40, 250, 560, 270, stroke=Z["dev"][0], fill=Z["dev"][1],
                   sub="outside the VPC", label_size=15)
-    c.node(I["flutter"], 190, 390, ["RM — Flutter app", "certified Specified Person"])
-    c.node(I["tablet"], 390, 390, ["Insurance Partner Rep", "same host, same BFF"])
+    c.node(I["flutter"], 130, 340, ["RM — Flutter native", "store vs MDM is S11"])
+    c.node(I["tablet"], 310, 340, ["RM — desktop browser", "Flutter web in ns:edge"])
+    c.node(I["tablet"], 130, 455, ["Insurance Partner Rep", "same RM host, same BFF"])
+    c.node(I["mobile"], 310, 455, ["Admin / ops browser", "separate host · Admin BFF"])
 
     # ---- region and edge -------------------------------------------------
     c.group("AWS REGION · ap-south-1", 620, 200, 2160, 2220, stroke=Z["vpc"][0],
@@ -153,8 +155,11 @@ def topology():
         return c.group(label, x, top, w, height, stroke=s_, fill=f_,
                        label_size=13, radius=11, width=1.6)
 
-    band("edge", "ns: edge", 815)
-    bff = c.node(I["pod"], COL[2], 815 + ICON_DY, ["#2 RM Workspace BFF", "W4 · holds the tokens"])
+    band("edge", "ns: edge   ·   UI pods are image-baked — no PVC", 815)
+    c.node(I["pod"], COL[0], 815 + ICON_DY, ["rm-web", "Flutter web · in the image"])
+    bff = c.node(I["pod"], COL[1], 815 + ICON_DY, ["#2 RM Workspace BFF", "W4 · holds the tokens"])
+    c.node(I["pod"], COL[2], 815 + ICON_DY, ["Admin BFF", "W4 · #19 + MIS reads"])
+    c.node(I["pod"], COL[3], 815 + ICON_DY, ["admin-web", "image-baked · no PVC"])
 
     band("ident", "ns: identity   ·   WS-2 workforce identity", 995)
     c.node(I["deploy"], COL[0], 995 + ICON_DY, ["Keycloak", "private IdP · no PVC"])
@@ -191,6 +196,8 @@ def topology():
     c.node(I["cron"], COL[1], 1945 + ICON_DY, ["payment-reconcile", "issuance-recheck"])
     c.node(I["deploy"], COL[2], 1945 + ICON_DY, ["MSK consumers", "audit · notification",
                                                  "KEDA on lag"])
+    c.node(I["deploy"], COL[3], 1945 + ICON_DY, ["#18 Reporting/MIS", "isolated read path",
+                                                 "NEVER the Lead writer"])
 
     # ---- the right-hand infrastructure column ----------------------------
     c.group("PUBLIC SUBNETS  /24 × 3 AZ", RIGHT_X, 600, RIGHT_W, 200, stroke=Z["pub"][0],
@@ -258,12 +265,14 @@ def topology():
     onesb = c.node(I["net"], 3120, 860, ["1SilverBullet", "R0 polls"], size=54)
 
     # ---- connectors, all axis-aligned ------------------------------------
-    c.link(dev.port("R", at=400), cf.port("L"), color=REQ, width=3.0)
+    c.link(dev.port("R", at=380), cf.port("L"), color=REQ, width=3.0)
     c.link(cf.port("R"), waf.port("L"), color=REQ, width=3.0)
     c.link(waf.port("R"), agw.port("L"), color=REQ, width=3.0)
     c.link(agw.port("B"), alb.port("T"), color=REQ, width=3.0,
            label="VPC link", label_at=0.62, label_dx=9, label_anchor="start")
-    c.link(alb.port("B"), bff.port("T"), color=REQ, width=3.0)
+    c.link(alb.port("B"), bff.port("T"), color=REQ, width=3.0,
+           label="/api → BFF  ·  / → rm-web", label_at=0.45, label_dx=8,
+           label_anchor="start")
     c.link(bff.port("B"), pdp.port("T"), color=AUTH, width=2.8)
 
     c.link(eks.port("R", at=1110), aur.port("L"), color=STATE, width=2.4, dash="2 5",
@@ -301,6 +310,7 @@ def topology():
         "Service mesh — NetworkPolicy + IRSA is enough",
         "A cluster per service — ADR-008 says one",
         "Glue ETL · Athena · Redshift · QuickSight",
+        "  (#18 MIS is in R0 — this is the warehouse)",
         "MSK Replicator — DR replays the outbox",
         "Cache as an idempotency store — ADR-011",
         "OpenSearch as the audit store — ADR-013",

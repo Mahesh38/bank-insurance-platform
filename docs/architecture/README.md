@@ -302,3 +302,14 @@ Label and release-chip reconciliation only. No new bounded context, no new AWS h
 | [`r0-lld.svg`](./r0-lld.svg) | Namespace label `#5 Lead`. Topology unchanged. |
 | generated set | `#5 Lead` on the topology view. Regenerated; not hand-edited. |
 | [`R0-HLD.md`](./R0-HLD.md) | Compiled narrative matches the same cut. |
+
+## Revision — 2026-08-25 RM/admin web hosting (`SUG-20260825-ll1`)
+
+`CR-013` / `ADR-014` put the Admin BFF and `#18` on the HLD. This revision puts them on the S09 pack the platform team provisions from. No new bounded context, no new AWS hop, **no PVC**.
+
+| File | What changed |
+|---|---|
+| [`R0-LLD.md`](./R0-LLD.md) | New §3.1: RM/admin web are image-baked pods in `ns:edge` on the internal ALB. Z0/Z2, W4 and OUT OF SCOPE match `ADR-014`. Warehouse (Glue ETL) stays out; `#18` is the isolated read path. |
+| [`R0-HLD.md`](./R0-HLD.md) | Boundary 1: Flutter native + desktop web in `ns:edge`; admin/ops on a separate hostname. |
+| [`r0-lld.svg`](./r0-lld.svg) | Four `ns:edge` pods (`rm-web`, `#2`, Admin BFF, `admin-web`). Z0 gains admin/ops. `#18` on `ns:jobs`. Glue/Athena still DO NOT PROVISION. |
+| generated set | Topology: RM native, RM desktop, IPR, admin/ops devices; four edge pods; `#18` in `ns:jobs`. Regenerated from [`diagrams/r0_platform_views.py`](./diagrams/r0_platform_views.py). Not hand-edited. |

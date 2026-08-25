@@ -78,7 +78,7 @@ as `LAPSED` after three gates (AS-3).
 
 | ID | Idea | Raised | Why not now | Revisit if |
 |----|------|--------|-------------|------------|
-| — | *empty* | — | — | — |
+| → [SUG-20260825-st2](./SUGGESTION-REGISTER.md#2-register) | Flutter RM (or customer) app on Play Store / Apple Store | 2026-08-25 | Customer store apps are R1 (`#1` Customer BFF). RM store vs MDM is already the open LLD §14 decision (Rajal + Deepali, S11). Public-store distribution of a workforce client is a trust-boundary change, not an architecture packaging default | S11 Flutter hosting decision is taken, or DIY is unparked at R1 |
 
 ## 4. Sweep log
 

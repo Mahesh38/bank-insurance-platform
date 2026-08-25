@@ -72,7 +72,12 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | SUG-20260825-pp1 | 2026-08-25 | human:Mahesh | Confirm the R0 design against IRDAI Protection of Policyholders' Interests (PPHI) — interpretation is Board 6, not Architecture | SF1 | SC0 | MUST | COMP | P1 / P1 | ADMITTED | [CR-013](../change-requests/CR-013-r0-lead-mis-admin-scope.md) · condition C-PPHI-1 |
 | SUG-20260825-wl1 | 2026-08-25 | human:Mahesh | Isolate operations / MIS workload from the RM and Lead transactional path | SF4 | SC0 | REJECT | ARCH | — / — | REJECTED | already the ratified design — [03-communication-patterns.md](../../platform/architecture-review/03-communication-patterns.md) · [05-data-architecture.md](../../platform/architecture-review/05-data-architecture.md) · [detail](#sug-20260825-wl1--oltp-vs-ops-isolation-already-decided) |
 | SUG-20260825-df1 | 2026-08-25 | human:Mahesh | Authorise every persona to decide the lead-domain intake and write one decision file | SF1 | SC1 | MUST | DOC | P2 / P2 | ADMIT-BYPASS | [DEC-20260825-01](../DEC-20260825-01-lead-domain-decisions.md) · [detail](#sug-20260825-df1--one-decision-file) |
-| SUG-20260825-r0s | 2026-08-25 | human:Mahesh | Stakeholder: include the lead-domain intake in R0 immediately; nothing parked; compliance calls only | SF0 | SC0 | MUST | ARCH | P1 / P1 | ADMIT-BYPASS | [CR-013](../change-requests/CR-013-r0-lead-mis-admin-scope.md) · [ADR-014](../../platform/architecture-review/08-architecture-decision-log.md) |
+| SUG-20260825-r0s | 2026-08-25 | human:Mahesh | Stakeholder: include the lead-domain intake in R0 immediately; nothing parked; compliance calls only | SF0 | SC0 | MUST | ARCH | P1 / P1 | ADMIT-BYPASS | [CR-013](../change-requests/CR-013-r0-lead-mis-admin-scope.md) · [ADR-014](../../platform/architecture-review/08-architecture-decision-log.md) · recurrence_count 2 (2026-08-25: Admin/Config BFF + admin/ops actors for MIS — already D4) |
+| SUG-20260825-pv1 | 2026-08-25 | human:Mahesh | Deploy the desktop web application on a Kubernetes PVC | SF4 | SC3 | REJECT | INFRA | — / — | REJECTED | [detail](#sug-20260825-pv1--no-pvc-for-the-web-app) |
+| SUG-20260825-ld1 | 2026-08-25 | human:Mahesh | Make Lead LOB-specific | SF4 | SC3 | REJECT | ARCH | — / — | REJECTED | [detail](#sug-20260825-ld1--lead-is-not-lob-specific) |
+| SUG-20260825-st2 | 2026-08-25 | human:Mahesh | Put the Flutter RM app on Play Store / Apple Store (and a customer store app) | SF3 | SC2 | NOT-NOW | ARCH | P5 / P3 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md#3-ideas--no-committed-stage) · LLD §14 Flutter hosting already open |
+| SUG-20260825-ac1 | 2026-08-25 | human:Mahesh | Add admin and operations as R0 on-platform actors for the Admin & Configuration BFF, reports and MIS | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [detail](#sug-20260825-ac1--admin-and-ops-actors-for-r0) |
+| SUG-20260825-ll1 | 2026-08-25 | human:Mahesh | Reconcile R0-LLD and platform topology with ADR-014: Admin BFF, #18 MIS, desktop admin web, no PVC | SF1 | SC1 | MUST | DOC | P3 / P2 | CLOSED-DELIVERED | [detail](#sug-20260825-ll1--lld-topology-lag-behind-adr-014) |
 
 <!--
 Row format:
@@ -2400,6 +2405,360 @@ outcome:
     - "docs/governance/registers/DECISION-REGISTER.md §8"
 
 resumed: GATE-S08
+```
+
+---
+
+### SUG-20260825-pv1 · No PVC for the web app
+
+```yaml
+# schema: triage-record
+id: SUG-20260825-pv1
+raised_at: "2026-08-25"
+raised_by: "human:Mahesh"
+source: "architecture consult — Flutter store apps plus web application deployed in PVC for desktop browser"
+input: >
+  We will have flutter app developed on playstore or apple store but the web application
+  needs to be deployed in PVC which can be access with web browser on desktop so we need that.
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-TERM-SALE"
+  state_as_of: "2026-08-10"
+  freshness_check: "exit 1 — WARN, state_as_of 15 days old; review_due 2026-09-09"
+  active_work_item: "Mahesh architecture consult — channel, BFF, Lead LOB"
+stage_fit:
+  code: SF4
+  rationale: >
+    Kubernetes PersistentVolumeClaim on a business or UI workload contradicts ARCH-002 and
+    R0-LLD §4.1: every WS-3 service and BFF is stateless at the pod; state lives in Aurora,
+    DynamoDB or S3. A PVC here becomes an unreplicated source of truth — the same defect
+    the LLD already forbids for Keycloak.
+scope:
+  code: SC3
+  business_scope: "out of technical scope — refused hosting pattern"
+  serves: []
+  failure_without_it: "none — CloudFront / stateless pods already host Flutter assets and the admin UI"
+  minimal: true
+  authority: "docs/architecture/R0-LLD.md §4.1 · ARCH-002"
+necessity:
+  now: REJECT
+  future_necessity: REJECT
+  evidence_tier: E2
+  evidence:
+    - "R0-LLD.md §4.1 — no PVC on domain services, Hub, #2 BFF"
+    - "R0-LLD.md §4.1 — Keycloak JDBC to Aurora, not a PVC as database"
+    - "R0-LLD.md BOM #5 — CloudFront for API and (later) Flutter assets"
+  confidence: C5
+  anti_over_engineering:
+    X1_named_consumer: false
+    X3_cheap_later: false
+    X5_stage_necessity: false
+    X9_problem_observed: false
+action: REJECT
+action_rationale: >
+  If the ask meant VPC (private network), that topology already exists: admin/ops desktop
+  web sits on the internal ALB behind API Gateway, not on a volume. PVC as PersistentVolumeClaim
+  is refused at every horizon for this class of workload.
+duplicate_of: null
+conflicts: []
+outcome:
+  status: REJECTED
+  closed_reason: "PVC hosting of the web app contradicts R0-LLD §4.1 / ARCH-002"
+  reopen_if: "A named stateful add-on has a documented need for EBS that S3 or Aurora cannot meet, jointly reviewed by Aarti and Shivanshi"
+resumed: "Mahesh architecture consult — channel, BFF, Lead LOB"
+```
+
+---
+
+### SUG-20260825-ld1 · Lead is not LOB-specific
+
+```yaml
+# schema: triage-record
+id: SUG-20260825-ld1
+raised_at: "2026-08-25"
+raised_by: "human:Mahesh"
+source: "architecture consult — do we see any reason to make lead LOB specific?"
+input: >
+  Also do we see any reason to make lead LOB specific?
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-TERM-SALE"
+  state_as_of: "2026-08-10"
+  active_work_item: "Mahesh architecture consult — channel, BFF, Lead LOB"
+stage_fit:
+  code: SF4
+  rationale: >
+    Forking Lead per LOB contradicts LB-5, LS-01 and CAP-102. Sales mechanics do not vary
+    by line; lob is a routing attribute on a shared inbox. Quotation #10 and Proposal #11
+    are the LOB-owned execution cells.
+scope:
+  code: SC3
+  business_scope: "contradicts ratified LOB class of context #5"
+  serves: []
+  failure_without_it: "none — making Lead LOB-specific would be the defect"
+  authority: "01-domain-model-and-invariants.md LB-5 · 11-line-of-business-segregation.md §2.2 · R0-HLD.md Boundary 4"
+necessity:
+  now: REJECT
+  future_necessity: REJECT
+  evidence_tier: E1
+  evidence:
+    - "R0-HLD.md Boundary 4 — #5 Lead is LOB-agnostic shared"
+    - "11 §2.2 — Opportunity/Lead, assignment, queues never inside a cell"
+    - "LS-02 default is shared; a field (lobInterest) is not a boundary"
+    - "DEC-20260825-01 D6 — issuanceMode is not a Lead state and Lead does not change shape per mode"
+  confidence: C5
+action: REJECT
+action_rationale: >
+  No. A Life Lead and a Health Lead are the same working inbox with a different lob
+  routing key. Forking it would duplicate origination, attribution and archive across
+  cells and make a cross-sell or a second-line sale look like a different customer.
+duplicate_of: null
+outcome:
+  status: REJECTED
+  closed_reason: "Lead is LOB-agnostic shared; lob is an attribute, not a deployable"
+  reopen_if: "An evidenced LS-03 isolation failure showing Life Lead writes contend with Health Lead writes after a second LOB cell exists — then it is a physical split along the already-declared LOB-cell / shared-platform seam (ADR-008), not a second Lead bounded context"
+resumed: "Mahesh architecture consult — channel, BFF, Lead LOB"
+```
+
+---
+
+### SUG-20260825-st2 · Flutter public-store distribution
+
+```yaml
+# schema: triage-record
+id: SUG-20260825-st2
+raised_at: "2026-08-25"
+raised_by: "human:Mahesh"
+source: "architecture consult — Flutter on Play Store / Apple Store"
+input: >
+  We will have flutter app developed on playstore or apple store
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-TERM-SALE"
+  state_as_of: "2026-08-10"
+  active_work_item: "Mahesh architecture consult — channel, BFF, Lead LOB"
+stage_fit:
+  code: SF3
+  rationale: >
+    R0 Flutter is the RM workspace client (#2). Customer-facing store apps require #1
+    Customer BFF, which is out_of_scope until R1. Workforce RM distribution (MDM vs
+    public store) is already recorded as an open LLD §14 decision at S11, owned by
+    Rajal + Deepali. GATE-S08 does not need a store listing.
+  target_stage: "S11 (RM MDM vs store) / R1 (customer DIY store apps)"
+  unpark_trigger: "S11 Flutter hosting decision is taken, or DIY is unparked at R1"
+scope:
+  code: SC2
+  business_scope: "adjacent — store distribution of a client, not the R0 assisted-sale path"
+  serves: []
+  authority: "R0-LLD.md §14 · CURRENT-STATE.yaml out_of_scope Customer BFF"
+necessity:
+  now: NOT-NOW
+  future_necessity: SHOULD
+  target_stage: "S11 / R1"
+  binds_when: "a named channel owner confirms public-store distribution"
+  evidence_tier: E2
+  evidence:
+    - "R0-LLD.md §14 — Flutter hosting (internal MDM vs public store) | Rajal + Deepali | S11"
+    - "BOOT.md — Customer BFF and customer-facing Flutter surface revisit at R1"
+  confidence: C4
+action: PARK
+action_rationale: >
+  Architecture does not choose app-store vs MDM. Structure is one RM client against #2.
+  Public-store distribution of a workforce app is Deepali's trust-boundary outcome and
+  Rajal's channel decision. Customer store apps are the R1 DIY surface.
+priority:
+  now: P5
+  at_target: P3
+  caps_applied: [PRI-2, PRI-5]
+outcome:
+  status: PARKED
+  registered_in: "PARKED-BACKLOG.md §3 Ideas"
+resumed: "Mahesh architecture consult — channel, BFF, Lead LOB"
+```
+
+---
+
+### SUG-20260825-ac1 · Admin and ops actors for R0
+
+```yaml
+# schema: triage-record
+id: SUG-20260825-ac1
+raised_at: "2026-08-25"
+raised_by: "human:Mahesh"
+source: "architecture consult — BFF handling admin and config; additional actor admin and operations for reports and MIS"
+input: >
+  also we need bff handling admin and config so there will be additional actor which is
+  admin and operations for working on the reports and mis.
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-TERM-SALE"
+  state_as_of: "2026-08-10"
+  active_work_item: "Mahesh architecture consult — channel, BFF, Lead LOB"
+stage_fit:
+  code: SF1
+  rationale: >
+    CR-013 / ADR-014 already pulled Administration UI and MIS into R0 W4, and R0-HLD
+    Boundary 3 already names the Admin & Configuration BFF. The R0 actor catalogue still
+    closes at BANK_RM · INSURER_PARTNER_REP · SERVICE. Those surfaces cannot authorise
+    without an on-platform workforce actor type. This is the missing actor half of an
+    admitted R0 surface, not a new channel.
+scope:
+  code: SC0
+  business_scope: "in scope — Administration UI (#19) and Reporting/MIS (#18) are in CURRENT-STATE.yaml current_scope.in_scope"
+  serves:
+    - "Administration UI (context #19)"
+    - "Reporting and MIS (context #18)"
+    - "ADR-014 W4 admin/MIS"
+  failure_without_it: "Admin UI and MIS have no principal class; PDP cannot default-deny a role that does not exist"
+  minimal: true
+  authority: "CURRENT-STATE.yaml WS-3 in_scope · ADR-014 · DEC-20260825-01 D4"
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "R0 W4"
+  binds_when: "first admin or MIS session"
+  evidence_tier: E2
+  evidence:
+    - "R0-HLD.md Boundary 3 — Admin & Configuration BFF in R0"
+    - "R0-HLD.md §2.1 still says two on-platform human actors"
+    - "15-actor-identity-and-authorization.md — BANK_EMPLOYEE already in the target actorType vocabulary"
+    - "JS-08 — a new actor type is an authorization change, not an architecture change"
+  confidence: C4
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+action: ADMITTED
+action_rationale: >
+  Admit the actor-model delta only. Do not add a third journey BFF, a call-centre BFF,
+  or an ops microservice. Admin/ops are BANK_EMPLOYEE on the workforce plane (Bank AD),
+  served by the already-named Admin & Configuration BFF. They never originate a Lead
+  (ADR-005). MIS ingest is Policy, not lead.create (D3). Isolation from the Lead writer
+  remains standing (D5 / C-ISO-1 / SUG-20260825-wl1 REJECTED as new work).
+classification:
+  type: ARCH
+  also: [SEC]
+  breakdown: STORY
+  risk_tier: T3
+  destination: "architecture actor catalogue + WS-2 PDP grants; Deepali joint on authz"
+priority:
+  now: P2
+  at_target: P1
+  factors: { N: 3, S: 2, B: 2, R: 2, D: 1, E: 1 }
+  score: 18
+  matrix_default: P2
+  consistency: OK
+  caps_applied: []
+  rationale: "W4 admin/MIS cannot ship without a principal; SF1 MUST with B=2 because the admitted surface is blocked"
+dependencies:
+  edges: ["ADR-014", "DEC-20260825-01 D4", "WS-2 PDP"]
+  state: READY
+  earliest_start: "after this consult; before W4 UI stories"
+outcome:
+  registered_in: "SUGGESTION-REGISTER.md"
+  work_item_id: null
+  status: ADMITTED
+  notes: "Not implemented in the turn it was raised. Actor catalogue, HLD §2.1 and journey-execution catalogue are the artefact updates."
+resumed: "Mahesh architecture consult — channel, BFF, Lead LOB"
+```
+
+---
+
+### SUG-20260825-ll1 · LLD/topology lag behind ADR-014
+
+```yaml
+# schema: triage-record
+id: SUG-20260825-ll1
+raised_at: "2026-08-25"
+raised_by: "agent:cursor-grok"
+source: "architecture consult — look in LLD and topology as well"
+input: >
+  also look in LLD and topology as well.
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-TERM-SALE"
+  state_as_of: "2026-08-10"
+  active_work_item: "Mahesh architecture consult — channel, BFF, Lead LOB"
+stage_fit:
+  code: SF1
+  rationale: >
+    R0-LLD.md is the S09 AWS pack. After CR-013 the HLD and SVGs say Admin BFF and #18
+    are R0 W4, but R0-LLD.md §1.2 still lists admin UI and Glue/Athena/Redshift as out
+    of scope, §7 Z0 still shows only Flutter RM + IPR browser, and §3 still describes
+    two BFFs without the Admin & Configuration BFF. HA-03 forbids a diagram that
+    disagrees with its source; here the LLD source disagrees with ADR-014.
+scope:
+  code: SC1
+  business_scope: "derived — S09 will provision the wrong estate without it"
+  serves:
+    - "ADR-014"
+    - "S09 platform foundation (GATE-S08 next stage)"
+    - "Administration UI (context #19)"
+    - "Reporting and MIS (context #18)"
+  failure_without_it: "platform team reads LLD §13 OUT OF SCOPE and does not provision the admin edge, replica/read path, or desktop web hosting"
+  minimal: true
+  authority: "architecture/README.md HA-03 · R0-LLD.md is the S09 pack"
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S09"
+  binds_when: "S09 stories are picked from R0-LLD.md"
+  evidence_tier: E2
+  evidence:
+    - "architecture/README.md 2026-08-25 revision — r0-lld.svg topology unchanged"
+    - "R0-LLD.md §13 — admin UI, reporting warehouse still OUT OF SCOPE"
+    - "R0-HLD.md Boundary 3 — Admin & Configuration BFF in R0"
+  confidence: C5
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+action: ADMITTED
+action_rationale: >
+  Document reconciliation only. Do not invent a warehouse, a PVC, or a third public
+  hostname in this item. The LLD must show: Admin BFF in ns:edge; desktop admin web as
+  static assets (CloudFront or internal ALB), not a PVC; #18 on the isolated read path
+  (replica/events — not Glue ETL in S08); Z0 gains an admin/ops browser. Shivanshi owns
+  the operability of the resulting BOM.
+classification:
+  type: DOC
+  also: [ARCH]
+  breakdown: STORY
+  risk_tier: T2
+  destination: "docs/architecture/R0-LLD.md + diagrams/"
+priority:
+  now: P3
+  at_target: P2
+  factors: { N: 3, S: 1, B: 1, R: 2, D: 1, E: 1 }
+  score: 14
+  matrix_default: P2
+  consistency: OK
+  caps_applied: []
+  rationale: "SF1 MUST documentation; score P3 is within one band of matrix P2"
+dependencies:
+  edges: ["ADR-014", "SUG-20260825-ac1"]
+  state: READY
+outcome:
+  registered_in: "SUGGESTION-REGISTER.md"
+  work_item_id: SUG-20260825-ll1
+  status: CLOSED-DELIVERED
+  notes: >
+    R0-LLD.md §3.1 places rm-web and admin-web as image-baked pods in ns:edge
+    on the internal ALB (no PVC). r0-lld.svg and generated topology show four
+    edge pods, admin/ops in Z0, and #18 on ns:jobs. Warehouse stays out.
+resumed: "Mahesh architecture consult — channel, BFF, Lead LOB"
 ```
 
 ---

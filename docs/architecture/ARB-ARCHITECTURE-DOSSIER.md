@@ -13,8 +13,8 @@
 - **Shailja S** — Compliance & Regulatory Risk Head (Board 6 / R9)  
 - **Swapnali** — QA & Verification Lead (Board 5 / R7)  
 - **Kalpana** — Delivery & Program Lead (R12)  
-**Status:** AI-DRAFTED ARB STRATEGY PACK (Mandatory Human Sign-offs Pending)  
-**Visual Reference Diagram:** `R0 on AWS — What Runs Where` (`docs/architecture/r0-lld.svg` / `r0-reference-architecture.svg`)
+**Status:** ALIGNED WITH INTERNAL ARCHITECTURE TEAM DIRECTIVES (Mandatory Human Sign-offs Pending)  
+**Visual Reference Diagram:** `R0 on AWS — What Runs Where` (Enterprise Bank Ingress & EBS Core Connectivity)
 
 ---
 
@@ -35,10 +35,15 @@ The AU Bank Insurance Distribution Platform (National Insurance Platform - NIP) 
 
 ### 3. Key Architectural Tenets Defended at ARB
 1. **Capability before Service, Ownership before Deployment:** Every service owns one bounded context write-model. No cross-service database access.
-2. **Two Reverse Proxies, Exactly One Way Out:** Edge access is strictly mediated (CloudFront → WAF → API Gateway → Internal ALB). Outbound traffic traverses a dedicated Inspection & Egress VPC (AWS Network Firewall + NAT EIPs).
-3. **Hard Regulatory Controls Enforced in Services, Not UI:** Suitability (**C1**), Consent (**C2**), Customer-Device Payment Isolation (**C4**), and Audit-before-Sold (**C7/C8**) cannot be bypassed by any API client.
-4. **Replaceable Provider Boundary:** Domain services communicate only in bank-canonical contracts through an Integration Hub. 1SilverBullet (1SB) or direct insurers are pluggable adapters.
-5. **Pragmatic Infrastructure Sequencing:** R0 provisions 14 microservices + 1 client app on an EKS private cluster, backed by 1 Multi-AZ Aurora PostgreSQL cluster (isolated schema per context), ElastiCache Valkey (sessions, L2 read-through, rate limits), Amazon MSK (outbox-fed event backbone), and S3 Object Lock (7-year WORM compliance).
+2. **Enterprise Bank Perimeter Ingress:** Edge access traverses **Cloudflare (Enterprise CDN & DDoS)** → **F5 BIG-IP / WAF (Bank Standard)** → **External ALB** → **Amazon API Gateway** → **Internal ALB**.
+3. **Centralized Inspection & Egress:** Outbound traffic traverses a dedicated Inspection & Egress VPC (AWS Network Firewall + NAT EIPs allowlisted by insurers).
+4. **Hard Regulatory Controls Enforced in Services, Not UI:** Suitability (**C1**), Consent (**C2**), Customer-Device Payment Isolation (**C4**), and Audit-before-Sold (**C7/C8**) cannot be bypassed by any API client.
+5. **Replaceable Provider Boundary:** Domain services communicate only in bank-canonical contracts through an Integration Hub. 1SilverBullet (1SB) or direct insurers are pluggable adapters.
+6. **Core Banking via EBS (Enterprise Service Bus):** Customer profile retrieval and CIF lookups integrate via bank **EBS (Enterprise Service Bus) APIs** over private Transit Gateway hybrid connectivity.
+7. **Enterprise DevSecOps & Observability Baseline:** 
+   - **GitLab CI/CD** as the unified enterprise pipeline standard.
+   - **Terraform** for Infrastructure as Code (IaC) provisioning across AWS environments.
+   - **AWS CloudTrail** (governance, account audits, and IAM non-repudiation) alongside **Amazon CloudWatch** (operational logs, performance metrics, and alarms).
 
 ---
 
@@ -46,17 +51,29 @@ The AU Bank Insurance Distribution Platform (National Insurance Platform - NIP) 
 
 ```
 +-----------------------------------------------------------------------------------------------------------------------------------+
-|                                                     PUBLIC AWS EDGE (ap-south-1)                                                  |
-|  [RM / Partner Device] ---> CloudFront (TLS 1.3) ---> AWS WAF (OWASP/Rate) ---> Amazon API Gateway (Throttling/Proxy 1 of 2)     |
-+---------------------------------------------------------------------------------------+-------------------------------------------+
-                                                                                        | VPC Link
-                                                                                        v
-+---------------------------------------------------------------------------------------+-------------------------------------------+
-| WORKLOAD VPC (10.env.0.0/16 - 3 AZs)                                                  |                                           |
-| PRIVATE APP SUBNETS (/20 x 3 AZ)                                                      | INTERNAL ALB (Proxy 2 of 2)               |
-|                                                                                       +-------------------------------------------+
-|                                                                                               |
-|  +--------------------------------------------------------------------------------------------v--------------------------------+  |
+|                                                 BANK PERIMETER & PUBLIC AWS EDGE (ap-south-1)                                     |
+|  [RM / Partner Device]                                                                                                            |
+|         |                                                                                                                         |
+|         v                                                                                                                         |
+|  CLOUDFLARE (Enterprise CDN / Edge DDoS / DNS / TLS 1.3 - Bank Standard)                                                          |
+|         |                                                                                                                         |
+|         v                                                                                                                         |
+|  F5 BIG-IP / WAF (Bank Enterprise L7 Security Policy & Application Firewall)                                                      |
+|         |                                                                                                                         |
+|         v                                                                                                                         |
+|  EXTERNAL ALB (Edge Ingress Load Balancer)                                                                                        |
+|         |                                                                                                                         |
+|         v                                                                                                                         |
+|  AMAZON API GATEWAY (REST Throttling / Request Validation / Token Inspection / VPC Link)                                          |
++-------------------------------------------------------------------+---------------------------------------------------------------+
+                                                                    | VPC Link
+                                                                    v
++-------------------------------------------------------------------+---------------------------------------------------------------+
+| WORKLOAD VPC (10.env.0.0/16 - 3 AZs)                              |                                                               |
+| PRIVATE APP SUBNETS (/20 x 3 AZ)                                  | INTERNAL ALB (Private Ingress Router)                         |
+|                                                                   +---------------------------------------------------------------+
+|                                                                           |
+|  +------------------------------------------------------------------------v----------------------------------------------------+  |
 |  | AMAZON EKS CLUSTER                                                                                                          |  |
 |  |                                                                                                                             |  |
 |  |  [ns: edge]               nip-web (Flutter Web)               #2 NIP BFF (Token-Hiding Session Custody)                     |  |
@@ -64,7 +81,7 @@ The AU Bank Insurance Distribution Platform (National Insurance Platform - NIP) 
 |  |  [ns: identity]           Keycloak (Private IdP)     identity-provider-adapter     #3 identity-authorization (PDP Engine)   |  |
 |  |                                                                                                                             |  |
 |  |  [ns: shared-platform]    #19 Configuration (W0b)    #5 Lead (Origination)         #9 Journey Orchestration (State/Saga)    |  |
-|  |                           #4 Customer (ETB CIF)      #8 Product Catalogue (Term)                                            |  |
+|  |                           #4 Customer (EBS Client)   #8 Product Catalogue (Term)                                            |  |
 |  |                           #6 Consent (OTP/WORM)      #7 Suitability (C1 Gate)      #12 Payment (Device Isolation)           |  |
 |  |                           #13 Policy (Reconciled)    #16 Audit (C7/C8 Immutable)   #17 Notification (OTP/Link)              |  |
 |  |                                                                                                                             |  |
@@ -74,24 +91,24 @@ The AU Bank Insurance Distribution Platform (National Insurance Platform - NIP) 
 |  |                                                                                                                             |  |
 |  |  [ns: jobs]               outbox-publisher           payment-reconcile             MSK Consumers      MIS/Reporting (RO)    |  |
 |  +-----------------------------------------------------------------------------------------------------------------------------+  |
-|                                                                                               | (Inspected Egress)                |
-+-----------------------------------------------------------------------------------------------+-----------------------------------+
-| PRIVATE DATA SUBNETS (/24 x 3 AZ)                                                             | TGW Attachment                    |
-|  - Aurora PostgreSQL (1 Cluster, Schema/Context)   - DynamoDB (Journeys, Jobs)                v                                   |
-|  - ElastiCache Valkey (Sessions, L2, Rate Limits)  - Amazon MSK (3 Brokers, Outbox-Fed)   +---------------------------------------+
-|  - OpenSearch (VPC-only Operational Logs)          - S3 + Object Lock (Compliance WORM)   | AWS TRANSIT GATEWAY (TGW)             |
-+---------------------------------------------------------------------------------------+---+-------------------+-------------------+
-                                                                                            |                   |
-                                                    +---------------------------------------+                   +-------------------+
-                                                    | (Egress Inspection Path)                                  | (Private Hybrid)  |
-                                                    v                                                           v
-                        +-------------------------------------------------------+           +---------------------------------------+
-                        | INSPECTION & EGRESS VPC (network account)             |           | BANK ON-PREMISES & PARTNERS           |
-                        |  - AWS Network Firewall (Domain Allowlist / IPS)      |           |  - Core Banking (CBS / CIF via VPN/DX)|
-                        |  - NAT Gateways with Fixed Elastic IPs (EIPs)         |           |  - Bank AD / SSO                      |
-                        |  - Passthrough mTLS to 1SilverBullet / Providers      |           |  - AU Bank Payment Gateway            |
-                        +-------------------------------------------------------+           |  - 1SilverBullet Gateway (Whitelisted)|
-                                                                                            +---------------------------------------+
+|                                                                           | (Inspected Egress)                                    |
++---------------------------------------------------------------------------+-------------------------------------------------------+
+| PRIVATE DATA SUBNETS (/24 x 3 AZ)                                         | TGW Attachment                                        |
+|  - Aurora PostgreSQL (1 Cluster, Schema/Context)   - DynamoDB (Journeys)  v                                                       |
+|  - ElastiCache Valkey (Sessions, L2, Rate Limits)  - Amazon MSK (Outbox)  +-------------------------------------------------------+
+|  - OpenSearch (VPC-only SRE Logs)                  - S3 Object Lock (WORM)| AWS TRANSIT GATEWAY (TGW)                             |
++---------------------------------------------------------------------------+---+-------------------+-------------------------------+
+                                                                                |                   |
+                                        +---------------------------------------+                   +-------------------------------+
+                                        | (Egress Inspection Path)                                  | (Private Hybrid Transit)      |
+                                        v                                                           v
+            +-------------------------------------------------------+           +---------------------------------------------------+
+            | INSPECTION & EGRESS VPC (network account)             |           | BANK ON-PREMISES & PARTNER NETWORK                |
+            |  - AWS Network Firewall (Domain Allowlist / IPS)      |           |  - EBS [Enterprise Service Bus] (CBS / CIF APIs)  |
+            |  - NAT Gateways with Fixed Elastic IPs (EIPs)         |           |  - Bank Active Directory (AD / SSO)               |
+            |  - Passthrough mTLS to 1SilverBullet / Providers      |           |  - AU Bank Payment Gateway                        |
+            +-------------------------------------------------------+           |  - 1SilverBullet Gateway (Whitelisted EIPs)       |
+                                                                                +---------------------------------------------------+
 ```
 
 ---
@@ -107,42 +124,48 @@ For each tier and component in the architecture, this section articulates:
 
 ---
 
-### 1. Edge, Network & Perimeter Security
+### 1. Perimeter, Edge Ingress & Network Security
 
-#### 1.1 Amazon CloudFront
-- **What it is & What it does:** Global Content Delivery Network (CDN) terminating public client TLS 1.3 connections in front of the API Gateway and hosting static assets for Flutter Web.
-- **Why Required:** Provides DDoS absorption at edge, ensures strict TLS 1.3 ciphers, and accelerates asset delivery for branch RMs across India while keeping compute pods shielded.
+#### 1.1 Cloudflare (Enterprise Edge CDN & DDoS Protection)
+- **What it is & What it does:** Cloudflare Enterprise CDN and Edge Security layer terminating client TLS 1.3 traffic, providing global edge DDoS mitigation, DNS resolution, and edge caching for static Flutter web bundles.
+- **Why Required:** Aligns directly with AU Bank's existing enterprise perimeter contract. Shields AWS origin infrastructure from direct internet exposure.
 - **Alternatives Considered:**
-  - *Direct ALB / API Gateway Exposure:* Exposes the ingress IP/DNS directly to public scanning; lacks geo-edge DDoS mitigation.
-  - *Third-party CDN (Cloudflare / Akamai):* High commercial overhead, introduces external data residency boundaries outside AWS India accounts.
-- **Why Best Suited:** Native integration with AWS Shield and AWS WAF; enforces Indian edge points of presence (`ap-south-1` logs); keeps all configuration in Terraform.
-- **Trade-offs & Mitigations:** Authenticated API JSON payloads must never be cached (`Cache-Control: no-store` enforced on all dynamic APIs).
+  - *AWS CloudFront:* Fully functional AWS native CDN, but adopting Cloudflare leverages AU Bank's existing enterprise licensing, global security policies, and standard edge operations.
+  - *Akamai:* Higher operational complexity and distinct toolchain from bank standard.
+- **Why Best Suited:** Bank standard; provides multi-terabit volumetric DDoS mitigation, bot management, and Indian PoP traffic acceleration.
+- **Trade-offs & Mitigations:** Dynamic API responses must never be cached at Cloudflare (`Cache-Control: no-store` strictly returned on all API endpoints).
 
-#### 1.2 AWS WAF & AWS Shield Standard
-- **What it is & What it does:** L7 Web Application Firewall applying OWASP Top 10 rules, IP reputation filters, bot control, and per-client rate limiting.
-- **Why Required:** Defends against credential stuffing, injection attacks, and layer-7 denial-of-service attempts against banking endpoints.
+#### 1.2 F5 BIG-IP / Advanced WAF
+- **What it is & What it does:** Bank enterprise Layer 7 Web Application Firewall inspecting all HTTP/S traffic for OWASP Top 10 exploits, protocol anomalies, credential stuffing, and application-layer DDoS.
+- **Why Required:** Enforces AU Bank's central InfoSec security policies and compliance inspection rules across all inbound banking channels.
 - **Alternatives Considered:**
-  - *In-pod Ingress Nginx / ModSecurity:* High compute overhead on EKS, complex CVE patching lifecycle, cannot absorb high-volume edge attacks.
-- **Why Best Suited:** Managed rule groups updated automatically by AWS; zero pod compute consumption; scales seamlessly with zero maintenance.
+  - *AWS WAF:* Native and lightweight, but does not offer the deep payload inspection, custom bank F5 iRules, and unified policy management mandated by the bank's central security team.
+- **Why Best Suited:** Enterprise security standard of AU Bank; provides consistent compliance reporting, fine-grained L7 attack signature detection, and seamless InfoSec integration.
 
-#### 1.3 Amazon API Gateway (Proxy 1 of 2)
-- **What it is & What it does:** The single public REST entry point into the AU Bank platform VPC. Manages API token validation, throttling, payload size validation, and forwards traffic via VPC Link to the internal ALB.
-- **Why Required:** Establishes the outer reverse proxy boundary. Prevents unauthorized edge traffic from reaching internal VPC subnets without structural validation.
+#### 1.3 External Application Load Balancer (External ALB)
+- **What it is & What it does:** Public-facing AWS Application Load Balancer positioned behind Cloudflare and F5, serving as the ingress termination point before routing to Amazon API Gateway.
+- **Why Required:** Provides a clean AWS entry point with managed SSL certificates, health checks, and cross-AZ traffic distribution.
 - **Alternatives Considered:**
-  - *Direct Public ALB:* Lacks managed API key throttling, usage plans, and AWS-managed API request validation out of the box.
-  - *Self-hosted Kong / Apisix on EKS:* Requires running and patching another stateful/control plane on Kubernetes; operational distraction for R0.
-- **Why Best Suited:** Serverless, highly available across 3 AZs, natively links to VPC private subnets without exposing compute interfaces.
+  - *Direct Cloudflare to API Gateway routing:* Bypasses internal AWS perimeter routing and limits custom target group health checking.
+- **Why Best Suited:** High-throughput, resilient AWS edge ingress that terminates incoming traffic from F5/Cloudflare and forwards it securely via private VPC links.
 
-#### 1.4 Internal Application Load Balancer (Proxy 2 of 2)
-- **What it is & What it does:** The internal L7 load balancer residing strictly inside private subnets, receiving traffic from API Gateway VPC Link and routing to EKS pods.
-- **Why Required:** Decouples API Gateway routing from dynamic Kubernetes pod lifecycle and IP churn; provides target-group level health checking and zero-downtime rolling deployment routing.
+#### 1.4 Amazon API Gateway (Proxy 1 of 2)
+- **What it is & What it does:** Managed REST API Gateway enforcing request parameter validation, client throttling, API keys, and routing requests via private VPC Link to the internal ALB.
+- **Why Required:** Acts as the primary API governance boundary, preventing unvalidated requests from entering workload subnets.
 - **Alternatives Considered:**
-  - *NLB (Network Load Balancer):* Lacks L7 path-based routing and HTTP header inspection.
-  - *Direct Gateway to Pod IP routing:* Fragile under high pod churn; requires AWS VPC CNI native IP binding for every container.
+  - *Direct ALB to Pod routing:* Bypasses API Gateway throttling and managed request schema validation.
+  - *Self-hosted Kong on EKS:* Adds extra operational burden and state management on Kubernetes in R0.
+- **Why Best Suited:** Serverless, highly scalable, Multi-AZ gateway providing seamless private VPC Link connectivity.
+
+#### 1.5 Internal Application Load Balancer (Proxy 2 of 2)
+- **What it is & What it does:** Private L7 load balancer in internal app subnets, receiving traffic from API Gateway VPC Link and load-balancing to EKS ingress controller pods.
+- **Why Required:** Decouples API Gateway routing from dynamic Kubernetes pod IP churn; provides target-group level health checking and zero-downtime rolling deployment routing.
+- **Alternatives Considered:**
+  - *NLB (Network Load Balancer):* Lacks L7 path-based routing and internal HTTP header inspection.
 - **Why Best Suited:** Clean L7 internal boundary with private ACM TLS termination.
 
-#### 1.5 Transit Gateway (TGW) & Inspection / Egress VPC (`ADR-009`, `ADR-010`)
-- **What it is & What it does:** Central hub in a dedicated `network` AWS account connecting the workload VPC, bank on-premises data centers (via VPN / Direct Connect), and an Inspection VPC containing AWS Network Firewall and NAT Gateways.
+#### 1.6 Transit Gateway (TGW) & Inspection / Egress VPC (`ADR-009`, `ADR-010`)
+- **What it is & What it does:** Central routing hub connecting workload VPCs, on-premises bank data centers, and an Inspection VPC containing AWS Network Firewall and NAT Gateways.
 - **Why Required:**
   - Insurers and 1SB require **static allowlisted Elastic IPs (EIPs)** for mTLS whitelisting.
   - RBI & Bank Cyber Security policies mandate **100% inspection of outbound traffic** (drop-by-default domain allowlist).
@@ -166,7 +189,7 @@ For each tier and component in the architecture, this section articulates:
 
 #### 2.2 #2 NIP BFF (Backend-for-Frontend)
 - **What it is & What it does:** The sole backend service exposed to `NIP-APP`. Manages **token-hiding sessions**, translates UI screen interactions into domain API calls, and injects principal identity into downstream calls.
-- **Why Required:** **Security Invariant:** Mobile/Web clients must never receive raw OAuth access/refresh tokens (`ARCH-019`). The BFF stores OAuth tokens in ElastiCache Valkey and returns an opaque, encrypted HttpOnly session cookie to the client.
+- **Why Required:** **Security Invariant (`ARCH-019`):** Mobile/Web clients must never receive raw OAuth access/refresh tokens. The BFF stores OAuth tokens in ElastiCache Valkey and returns an opaque, encrypted HttpOnly session cookie to the client.
 - **Alternatives Considered:**
   - *Direct Client-to-Microservices Architecture:* Leaks internal microservice topology and domain schemas to the frontend; forces client to handle complex distributed sagas.
   - *GraphQL Gateway:* Heavyweight schema governance; high CPU cost; complex caching and security authorization controls for R0.
@@ -225,12 +248,13 @@ For each tier and component in the architecture, this section articulates:
   - *Temporal / Camunda:* Heavy infrastructure footprint requiring dedicated Cassandra/Elasticsearch clusters in R0.
 - **Why Best Suited:** Lightweight Spring Boot state machine persisting state snapshots to DynamoDB / Aurora, driven by deterministic events.
 
-#### 4.4 #4 Customer Service (Wave 1)
-- **What it is & What it does:** Facade over Core Banking System (CBS/CIF). Fetches customer profile snapshots, pre-fills journey forms, and validates KYC status over Transit Gateway.
-- **Why Required:** Prevents direct domain service coupling to legacy CBS protocols; enforces PII caching policies and prevents unbounded stale reads.
+#### 4.4 #4 Customer Service (Wave 1) — EBS (Enterprise Service Bus) Integration
+- **What it is & What it does:** Facade over Bank Core Systems integrating directly via **EBS (Enterprise Service Bus) APIs** to fetch Core Banking (CBS / CIF) customer snapshots, pre-fill journey forms, and validate KYC status over Transit Gateway.
+- **Why Required:** Standardizes bank customer lookups through the enterprise-governed EBS layer rather than connecting directly to backend database tables or proprietary mainframe interfaces.
 - **Alternatives Considered:**
-  - *Direct CBS calls from BFF / Journey:* Overloads core banking mainframe and leaks legacy banking schemas into modern services.
-- **Why Best Suited:** Dedicated caching facade with circuit breakers; protects core banking while enforcing PII masking.
+  - *Direct database query to CBS mainframe:* Violates bank data ownership and risks mainframe table locks.
+  - *Point-to-point SOAP integration to CBS:* Bypasses central bank ESB governance and monitoring.
+- **Why Best Suited:** Caching facade with circuit breakers calling standard bank EBS REST/JSON APIs; protects CBS while enforcing PII masking.
 
 #### 4.5 #8 Product Catalogue Service (Wave 1)
 - **What it is & What it does:** Manages insurance product master data, rider definitions, premium rate matrices, and insurer eligibility rules.
@@ -383,25 +407,27 @@ For each tier and component in the architecture, this section articulates:
 
 ---
 
-## Architectural Decision Records (ADR) Summary
+### 9. DevSecOps, Infrastructure as Code & Observability Baseline
 
-The table below summarizes the core ADRs ratified and defended in this architecture dossier:
+#### 9.1 GitLab CI/CD (Enterprise Delivery Standard)
+- **What it is & What it does:** Centralized source control and CI/CD platform executing automated builds, ArchUnit tests, JaCoCo coverage gates, security SAST/DAST scans, and automated Terraform deployments.
+- **Why Required:** Standardizes deployment pipelines across all microservices and enforces strict gate controls before merging to `main`.
+- **Alternatives Considered:**
+  - *GitHub Actions / Jenkins:* GitLab is AU Bank's existing, approved enterprise pipeline runner with native audit trails, runner autoscaling, and secret isolation.
+- **Why Best Suited:** Bank enterprise standard; provides native integration with bank artifact repositories, SonarQube, and container vulnerability scanners.
 
-| ADR ID | Decision Title | Core Principle & Constraint Enforced |
-|---|---|---|
-| **ADR-001** | AWS `ap-south-1` Target & Render Restriction | All production/regulated data strictly resides in AWS India. Render.com is restricted to dev mockups only with zero PII. |
-| **ADR-004** | Two-Actor Model & SP Certification Attribute | Bank RM is the sole origination SP. Partner Rep (IPR) is assist-only with SQL-level gated visibility. SP is an evaluated attribute. |
-| **ADR-005** | Lead as Single Origination Point (W1) | Every on-platform journey must originate from context #5 Lead. Starting journeys from customer lookup is prohibited. |
-| **ADR-006** | Line-of-Business (LOB) as Mandatory Dimension | `lob` is non-null across all entities from day 1 (`LIFE`/`HEALTH`/`GENERAL`). Quote and Proposal are LOB-owned cells. |
-| **ADR-007** | Configuration as a Wave 0b Service | Rules, checklists, and matrices live in a versioned store with effective dating. Hardcoded business branches are banned. |
-| **ADR-008** | Single Aurora Cluster with Schema Isolation | Logical data ownership per context is invariant; physical topology uses 1 shared Aurora cluster in R0. |
-| **ADR-009** | Hybrid Bank Connectivity via Transit Gateway | Transit Gateway hub with per-env route tables; Site-to-Site VPN day 1, Direct Connect primary. Stubs banned in UAT/Prod. |
-| **ADR-010** | Centralized Egress Inspection & Firewall | 100% of outbound traffic inspected via AWS Network Firewall in an Egress VPC. Fixed NAT EIPs allowlisted by 1SB. |
-| **ADR-011** | Managed Cache Tier (Valkey) & Idempotency Rules | Valkey used for sessions, L2 cache, and rate limits. Idempotency is strictly stored in the owning service DB. |
-| **ADR-012** | Event Backbone (MSK) & Outbox Source of Truth | Amazon MSK handles event fan-out; Transactional Outbox in DB remains source of truth. No evidence exists only in Kafka. |
-| **ADR-013** | VPC-Only Operational Search (OpenSearch) | OpenSearch indexes operational/SRE logs with 30-day lifecycle. Holds zero compliance or regulatory evidence. |
-| **ADR-014** | Lead Domain & Isolated Reporting/Admin Path | Lead is primary terminology. Reporting/MIS and Admin UI are R0 W4 on an isolated read replica path. |
-| **ADR-015** | Single Unified NIP-APP Client Architecture | One Flutter codebase for all roles (RM, IPR, Admin, Ops). Edge namespace contains `nip-web` and `#2 NIP BFF` only. |
+#### 9.2 Terraform for Infrastructure as Code (IaC)
+- **What it is & What it does:** Declarative Infrastructure as Code defining 100% of AWS cloud resources (VPCs, TGW, EKS, Aurora, Valkey, MSK, IAM roles, Security Groups, and KMS CMKs).
+- **Why Required:** Guarantees reproducible, immutable, auditable environment provisioning across `dev`, `uat`, `prod`, and `dr`.
+- **Alternatives Considered:**
+  - *AWS CloudFormation / CDK:* Terraform is multi-account, cloud-agnostic, bank standard, and supports policy-as-code linting (tfsec/checkov) in GitLab CI.
+- **Why Best Suited:** Prevents manual AWS console drifts; integrates directly with bank security scanning pipelines.
+
+#### 9.3 AWS CloudTrail vs Amazon CloudWatch (Both Mandatory)
+- **What they are & Why both are required:**
+  - **AWS CloudTrail (Management & Security Governance):** Logs every AWS API call made by users, roles, and automated pipelines across all AWS accounts. Essential for InfoSec, SOC monitoring, and non-repudiation of infrastructure changes.
+  - **Amazon CloudWatch (Operational Metrics & Service Observability):** Collects application metrics, container CPU/memory usage, p95/p99 latency timers, and triggers automated alerts and pager rotations.
+- **Why Neither Replaces the Other:** CloudTrail answers *"Who modified this IAM policy or database configuration in AWS?"*, while CloudWatch answers *"What is the CPU usage and HTTP 5xx error rate of the Quotation pod?"*. Both are non-negotiable for enterprise bank operations.
 
 ---
 
@@ -413,68 +439,40 @@ The platform enforces the following hard invariants across all codebases and inf
 2. **Gate C2 (Consent Hard Gate):** No proposal can be submitted to an insurer without an unexpired customer OTP consent grant recorded in Context #6.
 3. **Gate C4 (Payment Device Isolation):** Premium payment links are dispatched exclusively to the customer's personal device. No API endpoint exists allowing an RM or bank terminal to execute customer payment.
 4. **Attribution Integrity (Gate C3):** The `distributorId` is injected exclusively by Context #14 (Integration Hub). Any client-supplied attribution header is rejected.
-5. **No Direct Database Access:** No microservice may connect to or query the schema of another microservice. Data exchange is strictly via REST APIs or MSK domain events.
-6. **No PII in Logs:** Logs are scrubbed of PAN, Aadhaar, Mobile, and Bank Account numbers at the logger appender level, validated by automated CI test suites (`FF-05`).
-7. **Audit Immutability (Gate C7/C8):** Context #16 Audit tables and S3 archives reject all `UPDATE` and `DELETE` requests at both database and IAM policy levels.
-8. **Fail-Closed Policy Resolution:** If Context #19 Configuration or WS-2 Authorization is unreachable, the calling service must fail closed (deny request). Fallback to compiled-in default constants is forbidden.
-
----
-
-## Non-Functional Requirements (NFR) & Verification Matrix
-
-The platform is designed and validated against the following measurable NFR baselines:
-
-```
-+---------------+-------------------------------------+---------------------------------+----------------------------------------+
-| NFR Category  | Requirement Metric                  | Target Value                    | Measurement & Verification Method      |
-+---------------+-------------------------------------+---------------------------------+----------------------------------------+
-| Latency       | RM Workspace Screen Read            | p50 < 150ms, p95 < 300ms        | Micrometer timer at BFF (S11/S12)      |
-|               | End-to-End Multi-Quote Result       | p95 < 5.0s, p99 < 12.0s         | Distributed trace aggregate (S12 test) |
-|               | Authorization PDP Evaluation        | p95 < 100ms, p99 < 300ms        | Seam S-02 timer at PDP (S11 test)      |
-+---------------+-------------------------------------+---------------------------------+----------------------------------------+
-| Throughput    | Sustained Journey Starts            | >= 10 starts/min (BAU: 1.7/min) | Gatling load test on EKS (S12)         |
-|               | Peak Q4 Seasonality Headroom        | >= 50 provider calls/min        | Stress test with 5 active insurers     |
-+---------------+-------------------------------------+---------------------------------+----------------------------------------+
-| Availability  | Overall Platform Availability       | 99.9% (Multi-AZ EKS/Aurora)     | Prometheus uptime probe across 3 AZs   |
-|               | RTO (Recovery Time Objective)       | <= 1.0 Hour (Warm Standby DR)   | Semi-annual DR failover simulation     |
-|               | RPO (Recovery Point Objective)      | <= 5.0 Minutes (Aurora PITR)    | Continuous AWS Backup verification     |
-+---------------+-------------------------------------+---------------------------------+----------------------------------------+
-| Security      | PII Leakage in Application Logs     | ZERO Occurrences                | Automated regex log scan in CI (FF-05) |
-|               | Compliance Evidence Retention       | 7 Years Tamper-Proof            | AWS S3 Object Lock Compliance Mode     |
-+---------------+-------------------------------------+---------------------------------+----------------------------------------+
-```
+5. **Core Banking via EBS APIs:** Customer profile retrieval and CIF queries must route via bank EBS APIs; direct database connections to core banking are forbidden.
+6. **No Direct Microservice Database Access:** No microservice may connect to or query the schema of another microservice. Data exchange is strictly via REST APIs or MSK domain events.
+7. **No PII in Logs:** Logs are scrubbed of PAN, Aadhaar, Mobile, and Bank Account numbers at the logger appender level, validated by automated CI test suites (`FF-05`).
+8. **Audit Immutability (Gate C7/C8):** Context #16 Audit tables and S3 archives reject all `UPDATE` and `DELETE` requests at both database and IAM policy levels.
+9. **Fail-Closed Policy Resolution:** If Context #19 Configuration or WS-2 Authorization is unreachable, the calling service must fail closed (deny request). Fallback to compiled-in default constants is forbidden.
 
 ---
 
 ## ARB Presentation Defense Script & Anticipated Q&A
 
-### Question 1: "Why do we need 14 microservices for an R0 pilot with only ~100 journeys an hour? Isn't this over-engineered?"
+### Question 1: "Why use Cloudflare and F5 BIG-IP instead of standard AWS edge services?"
+**Defense Answer:**
+> "Adopting **Cloudflare Enterprise** and **F5 BIG-IP** aligns our platform directly with AU Bank's existing cybersecurity framework and enterprise tooling. Cloudflare provides carrier-grade global DDoS mitigation and Indian edge acceleration, while F5 BIG-IP enforces central InfoSec inspection rules and compliance policies. This ensures that the insurance platform conforms to the bank's perimeter standard rather than introducing a siloed security stack."
+
+### Question 2: "How does the platform integrate with Core Banking (CBS)?"
+**Defense Answer:**
+> "All core customer lookups and CIF queries route through **#4 Customer Service** calling **EBS (Enterprise Service Bus) APIs** over private Transit Gateway links. This adheres to bank enterprise architecture by leveraging the governed EBS integration layer rather than making direct point-to-point connections to the CBS mainframe."
+
+### Question 3: "Why do we need 14 microservices for an R0 pilot with only ~100 journeys an hour? Isn't this over-engineered?"
 **Defense Answer:**
 > "The service count is dictated by **regulatory boundaries and independent failure domains**, not by transaction volume. In bancassurance, Suitability (C1), Consent (C2), Payment (C4), and Audit (C7) represent distinct legal and compliance obligations. Merging them into a single monolithic 'Sales Service' makes it impossible to provide legally defensible, immutable audit trails, and causes any minor change in a payment gateway integration to force redeployment and re-certification of our suitability engine. Furthermore, our deployment is highly efficient: all 14 services run as lightweight stateless containers in a single EKS cluster sharing one Aurora database cluster with schema-level isolation. We get clean domain boundaries without multiplying infrastructure costs."
 
-### Question 2: "Why can't we use MongoDB for Quotes and Proposals since insurance forms have dynamic schemas?"
+### Question 4: "Why can't we use MongoDB for Quotes and Proposals since insurance forms have dynamic schemas?"
 **Defense Answer:**
 > "We evaluated MongoDB and rejected it for two critical reasons:
 > 1. **Data Lifecycle Divergence:** Quotation represents bursty, short-lived, high-churn key-value state (which we optimize using Amazon DynamoDB with automatic TTLs). Proposal, by contrast, is a multi-week relational case file requiring strict ACID guarantees across applicants, nominees, medical declarations, and payment references.
 > 2. **Integrity & Operational Skill:** In a regulated bank, relational constraints in Aurora PostgreSQL prevent corrupt underwriting states from ever being written. Additionally, our DBA and platform teams already operate PostgreSQL; introducing MongoDB creates a second operational database stack with zero tangible access-pattern benefits."
 
-### Question 3: "Why provision MSK, ElastiCache, OpenSearch, and AWS Network Firewall in R0 if our volume is low?"
+### Question 5: "Why are both AWS CloudTrail and Amazon CloudWatch mandatory?"
 **Defense Answer:**
-> "These four tiers represent **architectural foundations that are cheap to establish now and exponentially expensive to retrofit later**:
-> - **Transit Gateway & Network Firewall (`ADR-009`, `ADR-010`):** External providers (1SB, insurers) require static Elastic IPs for firewall allowlisting. Establishing our egress inspection VPC now prevents having to re-negotiate firewall allowlists across dozens of insurance partners later.
-> - **ElastiCache Valkey (`ADR-011`):** Required immediately for our token-hiding BFF session vault to protect workforce OAuth tokens.
-> - **Amazon MSK (`ADR-012`):** Our transactional outbox pattern ensures zero event loss between core sales and downstream audit/notification workers. Retrofitting a message broker during production scaling is a high-risk refactoring effort."
-
-### Question 4: "What happens if 1SilverBullet or an insurer experiences a complete outage? Does the bank platform crash?"
-**Defense Answer:**
-> "The platform fails gracefully with full bulkhead isolation:
-> - **Quotation Circuit Breakers:** Integration Hub maintains per-provider bulkheads. If 1SB or a specific insurer goes down, other insurers continue quoting. If all insurers fail, Quotation returns a structured `PARTIAL_SUCCESS` or `SERVICE_DEGRADED` error.
-> - **Asynchronous Recovery:** In-flight journeys remain safely persisted in Journey Orchestration. The RM can resume the customer's lead without re-entering data once connectivity restores.
-> - **Core Banking & Identity Resiliency:** Customer profile data uses bounded read-through caching; if CBS experiences a momentary spike, cached identity snapshots prevent journey abandonment."
-
-### Question 5: "How does this architecture support moving from 1SilverBullet to direct insurer integrations in Phase B/C?"
-**Defense Answer:**
-> "Complete replaceability is built into our Wave 1 design. Domain services (Quotation, Proposal, Policy) interact exclusively with Context #14 **Integration Hub** using standardized bank-canonical JSON schemas. 1SB is merely an adapter (`#15`) sitting behind the Hub. In Phase B, adding a direct API integration with Tata AIA or HDFC Life requires writing a new adapter module (`adapter.direct-tata.*`) and updating a routing row in Context #19 Configuration. **Zero lines of code in Quotation, Proposal, or Journey Orchestration will change.**"
+> "They serve fundamentally different, non-overlapping enterprise requirements:
+> - **CloudTrail** provides immutable governance and security audit logging of all AWS management API actions (e.g., who provisioned a resource, modified a security group, or accessed KMS).
+> - **CloudWatch** provides runtime operational telemetry, application logs, container metrics, and latency alarms for our engineering and SRE teams.
+> A banking platform requires both to satisfy RBI cybersecurity auditability and 24/7 operational reliability."
 
 ---
 
@@ -483,4 +481,4 @@ The platform is designed and validated against the following measurable NFR base
 This architecture dossier provides a comprehensive, mathematically grounded, and regulatory-compliant foundation for the AU Bank Insurance Distribution Platform. It fulfills all IRDAI mandates, enforces bank security policies, eliminates vendor lock-in, and provides a clear evolution path from R0 Term Life to full multi-LOB bancassurance distribution.
 
 **Recommendation to ARB:**  
-**Approve the R0 Solution Architecture, BOM, and associated ADRs (`ADR-001` through `ADR-015`) for progression into S09 Platform Infrastructure Provisioning.**
+**Approve the R0 Solution Architecture, BOM, and associated ADRs (`ADR-001` through `ADR-015`) for progression into S09 Platform Infrastructure Provisioning using Terraform and GitLab CI/CD.**

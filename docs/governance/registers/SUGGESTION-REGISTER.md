@@ -79,6 +79,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | SUG-20260825-ac1 | 2026-08-25 | human:Mahesh | Add admin and operations as R0 on-platform actors for the Admin & Configuration BFF, reports and MIS | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [detail](#sug-20260825-ac1--admin-and-ops-actors-for-r0) · UI is NIP-APP roles (`SUG-20260825-nip`), not a second app |
 | SUG-20260825-ll1 | 2026-08-25 | human:Mahesh | Reconcile R0-LLD and platform topology with ADR-014: Admin BFF, #18 MIS, desktop admin web, no PVC | SF1 | SC1 | MUST | DOC | P3 / P2 | CLOSED-DELIVERED | [detail](#sug-20260825-ll1--lldtopology-lag-behind-adr-014) · `admin-web` / `admin.{env}` retracted by `SUG-20260825-nip` |
 | SUG-20260825-nip | 2026-08-25 | human:Mahesh | One NIP-APP (New Insurance Platform) Flutter client for web/iOS/Android; RM, ISR, admin and operations share it with role-based views; no separate admin/ops app now or later | SF1 | SC1 | MUST | ARCH | P2 / P1 | CLOSED-DELIVERED | [detail](#sug-20260825-nip--one-nip-app-role-based-not-a-second-admin-ui) · recorded as `ADR-015` (PROPOSED — human T4 outstanding) |
+| SUG-20260825-arb | 2026-08-25 | human:Mahesh | Review with internal Architect team: Cloudflare instead of CloudFront (bank standard), F5 BIG-IP / WAF instead of AWS WAF (bank standard), External ALB before API Gateway, GitLab CI/CD for pipelines, EBS (Enterprise Service Bus) naming for Core Banking integration with CBS in brackets, Terraform IaC, CloudTrail and CloudWatch both mandatory | SF1 | SC0 | MUST | ARCH | P1 / P1 | ADMIT-BYPASS | [ARB-ARCHITECTURE-DOSSIER](../../architecture/ARB-ARCHITECTURE-DOSSIER.md) · [detail](#sug-20260825-arb--internal-architect-review-alignment) |
 
 <!--
 Row format:
@@ -91,6 +92,73 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20260825-arb · Internal Architect Review Alignment (Cloudflare, F5, External ALB, GitLab, EBS/CBS, Terraform, CloudTrail/CloudWatch)
+
+```yaml
+id: SUG-20260825-arb
+raised_at: "2026-08-25"
+raised_by: "human:Mahesh"
+source: "Internal Architecture Review Team feedback"
+input: >
+  Mahesh review with internal Architect team:
+  - Use Cloudflare as bank has that enterprise standard
+  - Use F5 BIG-IP instead of AWS WAF as bank enterprise standard
+  - External ALB before API Gateway
+  - GitLab CI/CD for all pipelines
+  - Connect CBS via EBS APIs (Enterprise Service Bus); use EBS in diagram and in brackets add CBS
+  - Terraform for Infrastructure as Code (IaC)
+  - CloudTrail and CloudWatch both mandatory
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 / S09 — Engineering & Platform Foundation"
+  current_objective: R0-ASSISTED-TERM-SALE
+  state_as_of: "2026-08-10"
+  state_provisional: false
+  active_work_item: "ARB architecture preparation"
+
+stage_fit:
+  code: SF1
+  rationale: >
+    Aligns enterprise bank infrastructure tooling and perimeter architecture directly with
+    AU Bank standards for S09 provisioning and ARB presentation.
+
+scope:
+  code: SC0
+  business_scope: "WS-3 Architecture and Infrastructure Baseline"
+  serves: []
+  failure_without_it: >
+    ARB presentation will be rejected by bank enterprise security, networking, and platform teams
+    if bank-standard tools (Cloudflare, F5, GitLab, EBS, Terraform) are omitted or contradicted.
+  minimal: true
+  authority: "Internal Architect review directive + Mahesh Board 1 Architecture"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S07/S09 Architecture Review"
+  binds_when: "ARB presentation and S09 Terraform IaC provisioning"
+  evidence_tier: E2
+  confidence: C5
+
+action: ADMIT-BYPASS
+action_rationale: "Enterprise architecture alignment directive from human Architecture owner."
+
+classification:
+  type: ARCH
+  risk_tier: T2
+
+priority:
+  score_now: 16
+  priority_now: P1
+  priority_at_target: P1
+
+breakdown:
+  stories:
+    - "Update ARB-ARCHITECTURE-DOSSIER.md to incorporate Cloudflare, F5, External ALB, GitLab CI/CD, EBS (CBS), Terraform IaC, and CloudTrail+CloudWatch"
+```
 
 ### SUG-20260818-4c3 · Architecture justification pack + release-scoped HLD
 

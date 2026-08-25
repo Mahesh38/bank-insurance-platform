@@ -51,7 +51,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | SUG-20260820-hr0 | 2026-08-20 | human:Mahesh | HLD review round: correct the R0 actor model to two actors with SP as a certification attribute, gate and insurer-scope the Insurance Partner Representative, make the opportunity the single RM-only origination point, make LOB first-class from release 1 and make the configuration layer ship in R0 independently of any admin UI | SF0 | SC0 | MUST | ARCH | P1 / P1 | ADMIT-BYPASS | [ADR-004…007](../../platform/architecture-review/08-architecture-decision-log.md) |
 | SUG-20260820-r1t | 2026-08-20 | agent:claude | Produce the R0 → R1 → R2 transition and dependency map the North Star does not answer: the order in which target components must appear and which are prerequisites for which | SF3 | SC1 | SHOULD | ARCH | P4 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md#1-parked--scheduled-work) |
 | SUG-20260820-al7 | 2026-08-20 | human:Mahesh | Reconcile the North Star and R0 diagrams: one naming and layer convention across both files, the R0 view redrawn on the North Star's boundary bands so it reads as a release-zero cut of the same picture, and the Life LOB cell visually separated from the shared platform | SF1 | SC1 | MUST | ARCH | P2 / P2 | ADMITTED | [detail](#sug-20260820-al7--hld-and-r0-diagram-alignment) |
-| SUG-20260820-dc4 | 2026-08-20 | human:Mahesh | Resolve OPEN-A1 and OPEN-D10: physical database topology is an evidence-led decision, not a principle — R0 starts as one cluster with a schema per context and splits later along the LOB-cell / shared-platform seam; and context #5 is named Opportunity, because a lead is too thin to carry renewal, lapse and cross-sell demand | SF1 | SC1 | MUST | ARCH | P2 / P2 | ADMITTED | [ADR-008](../../platform/architecture-review/08-architecture-decision-log.md) |
+| SUG-20260820-dc4 | 2026-08-20 | human:Mahesh | Resolve OPEN-A1 and OPEN-D10: physical database topology is an evidence-led decision, not a principle — R0 starts as one cluster with a schema per context and splits later along the LOB-cell / shared-platform seam; and context #5 is named Opportunity, because a lead is too thin to carry renewal, lapse and cross-sell demand | SF1 | SC1 | MUST | ARCH | P2 / P2 | ADMITTED | [ADR-008](../../platform/architecture-review/08-architecture-decision-log.md) · recurrence_count 2 (2026-08-25: rename Opportunity → Lead; not a new row — see [detail](#sug-20260820-dc4--data-topology-and-the-name-of-context-5)) |
 | SUG-20260820-hl1 | 2026-08-20 | human:Mahesh | Act as Mahesh: turn the R0 reference architecture SVG into a detailed HLD (domain, boundary, communication, API, business logic, phases/waves/what-to-do-when) and an LLD for the CTO and AWS platform team (e2e components, services, AWS, VPC, reverse proxy, PVC, DB, cache) | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMIT-BYPASS | [R0-HLD](../../architecture/R0-HLD.md) · [R0-LLD](../../architecture/R0-LLD.md) |
 | SUG-20260820-ls1 | 2026-08-20 | human:Mahesh | Create an SVG rendering of the R0 LLD for the CTO and AWS platform team | SF1 | SC0 | SHOULD | ARCH | P2 / P1 | ADMIT-BYPASS | [r0-lld.svg](../../architecture/r0-lld.svg) |
 | SUG-20260820-pt9 | 2026-08-20 | human:Mahesh | Draw the AWS platform-team application view: what the application is, the service inventory, availability-zone placement, the DR bill of materials, the reverse-proxy and egress chain, and **when** each resource is needed — as a deployment topology in the style of a landing-zone request diagram | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMIT-BYPASS | [R0-LLD §2.1/§11.1/§12.1](../../architecture/R0-LLD.md) · rendering superseded by [SUG-20260820-ic3](#sug-20260820-ic3--icon-notation-generated-from-code) |
@@ -59,12 +59,17 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | SUG-20260820-lay4 | 2026-08-20 | human:Mahesh | Keep the icons, drop the layout engine: place every element on a chosen grid and route every connector orthogonally, so the views are aligned and the links are straight | SF1 | SC0 | SHOULD | DOC | P3 / P2 | ADMIT-BYPASS | [diagrams/](../../architecture/diagrams/README.md) |
 | SUG-20260820-cm2 | 2026-08-20 | human:Mahesh | Close the context-architecture gap found by audit: 20 documents unreachable by any link and 96 more at 3+ hops, 22 persona-package files no card routed to, and no CI guard against either. Add a generated document-routing map (`DOC-MAP.yaml`) with a `find` query path, complete the persona `Load deeper` tables, consolidate the READMEs that carry no unique content, and fail CI on an unrouted document | SF1 | SC1 | MUST | GOV | P2 / P2 | ADMIT-BYPASS | [DOC-MAP](../../context/DOC-MAP.yaml) · [doc_routing](../../context/AGENT-CONTEXT-INDEX.yaml) · continues [CR-010](../change-requests/CR-010-context-module-and-safe-autopilot.md) |
 | SUG-20260821-jx1 | 2026-08-21 | human:Mahesh | Produce an end-to-end Journey Execution Specification for R0: every actor use case, the hop-by-hop route of each request across edge/BFF/service/aggregate/persistence, the validation performed at each layer with its algorithm, every external API call, and every possible outcome — assembled for the dev and QA teams | SF1 | SC1 | SHOULD | DOC | P3 / P1 | ADMITTED | [detail](#sug-20260821-jx1--r0-journey-execution-specification) |
-| SUG-20260821-jx2 | 2026-08-21 | human:Mahesh | Extend the Journey Execution Specification beyond R0 to the whole application — DIY/customer journey, hybrid mode switching, Group B insurers, ULIP/Savings, Health/Motor/Travel, renewals and servicing, admin UI, operations and reporting surfaces | SF3 | SC2 | NOT-NOW | DOC | P5 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md#1-parked--scheduled-work) |
+| SUG-20260821-jx2 | 2026-08-21 | human:Mahesh | Extend the Journey Execution Specification beyond R0 to the whole application — DIY/customer journey, hybrid mode switching, Group B insurers, ULIP/Savings, Health/Motor/Travel, renewals and servicing, admin UI, operations and reporting surfaces | SF3 | SC2 | NOT-NOW | DOC | P5 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md#1-parked--scheduled-work) · recurrence_count 2 (2026-08-25: admin panel and MIS reports from day one; timing rejected, capability stays parked) |
 | SUG-20260824-gp1 | 2026-08-24 | human:Mahesh | Provision hybrid bank connectivity in R0 instead of deferring it: a Transit Gateway hub with Site-to-Site VPN from day one and Direct Connect as the primary path when the circuit lands, so CBS and Bank AD are reached over a private path in `uat` and `prod` rather than stubbed | SF1 | SC0 | MUST | INFRA | P1 / P1 | ADMIT-BYPASS | [ADR-009](../../platform/architecture-review/08-architecture-decision-log.md) · [CR-012](../change-requests/CR-012-r0-platform-robustness.md) · [detail](#sug-20260824-gp1--hybrid-bank-connectivity-in-r0) |
 | SUG-20260824-gp2 | 2026-08-24 | human:Mahesh | Inspect egress in R0: a per-environment inspection VPC with AWS Network Firewall, domain allowlisting and IPS, with the 1SB/PG-allowlisted Elastic IPs moved behind it — closing unrestricted 443 egress from a platform holding PAN, income and health attributes | SF1 | SC0 | MUST | SEC | P1 / P1 | ADMIT-BYPASS | [ADR-010](../../platform/architecture-review/08-architecture-decision-log.md) · [CR-012](../change-requests/CR-012-r0-platform-robustness.md) · [detail](#sug-20260824-gp2--centralised-egress-inspection-in-r0) |
 | SUG-20260824-gp3 | 2026-08-24 | human:Mahesh | Provision a managed cache tier in R0 (ElastiCache for Valkey) for BFF sessions, an L2 read-through layer and per-principal rate limiting — resolving the published DynamoDB-versus-Redis session contradiction and the per-pod configuration divergence, while refusing idempotency | SF1 | SC0 | MUST | INFRA | P2 / P1 | ADMIT-BYPASS | [ADR-011](../../platform/architecture-review/08-architecture-decision-log.md) · [CR-012](../change-requests/CR-012-r0-platform-robustness.md) · [detail](#sug-20260824-gp3--managed-cache-tier-in-r0) |
 | SUG-20260824-gp4 | 2026-08-24 | human:Mahesh | Provision Amazon MSK as the R0 event backbone and **keep the transactional outbox as its source of truth**, because the previous decision's own revisit trigger (a third consumer class) fires inside R0 and adopting a broker mid-slice would change the audit path while it is being evidenced | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMIT-BYPASS | [ADR-012](../../platform/architecture-review/08-architecture-decision-log.md) · [CR-012](../change-requests/CR-012-r0-platform-robustness.md) · [detail](#sug-20260824-gp4--event-backbone-in-r0-with-the-outbox-retained) |
 | SUG-20260824-gp5 | 2026-08-24 | human:Mahesh | Provision Amazon OpenSearch in R0 as the operational search and log-analytics pipe — with an explicit exclusion from the regulatory pipe — so the firewall, flow, TGW and broker logs the other closures generate are queryable during the first end-to-end journey | SF1 | SC0 | SHOULD | INFRA | P2 / P2 | ADMIT-BYPASS | [ADR-013](../../platform/architecture-review/08-architecture-decision-log.md) · [CR-012](../change-requests/CR-012-r0-platform-robustness.md) · [detail](#sug-20260824-gp5--operational-search-pipe-in-r0) |
+| SUG-20260825-lt1 | 2026-08-25 | human:Mahesh | After convert + payment, close the working Lead and keep 7-year evidence on Payment, Policy and issuance history — do not retain every Lead for 7 years | SF3 | SC1 | NOT-NOW | ARCH | P4 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md#1-parked--scheduled-work) · [detail](#sug-20260825-lt1--lead-lifecycle-archive-vs-paymentpolicy-retention) |
+| SUG-20260825-of1 | 2026-08-25 | human:Mahesh | MIS upload of products sold offline or on insurer portals so the platform sees the full book and which products still need onboarding | SF3 | SC2 | NOT-NOW | FUNC | P5 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md#1-parked--scheduled-work) · [detail](#sug-20260825-of1--off-platform-sale-ingest) |
+| SUG-20260825-st1 | 2026-08-25 | human:Mahesh | Align issuance with STP, non-STP and Insta as first-class modes on Proposal/Policy — not as Lead states | SF3 | SC1 | NOT-NOW | ARCH | P4 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md#1-parked--scheduled-work) · [detail](#sug-20260825-st1--stp-non-stp-insta-issuance-modes) |
+| SUG-20260825-pp1 | 2026-08-25 | human:Mahesh | Confirm the R0 design against IRDAI Protection of Policyholders' Interests (PPHI) — interpretation is Board 6, not Architecture | SF3 | SC0 | NOT-NOW | COMP | P4 / P1 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md#1-parked--scheduled-work) · [detail](#sug-20260825-pp1--pphi-control-mapping) |
+| SUG-20260825-wl1 | 2026-08-25 | human:Mahesh | Isolate operations / MIS workload from the RM and Lead transactional path | SF4 | SC0 | REJECT | ARCH | — / — | REJECTED | already the ratified design — [03-communication-patterns.md](../../platform/architecture-review/03-communication-patterns.md) · [05-data-architecture.md](../../platform/architecture-review/05-data-architecture.md) · [detail](#sug-20260825-wl1--oltp-vs-ops-isolation-already-decided) |
 
 <!--
 Row format:
@@ -960,6 +965,16 @@ not_included:
   - "T4 Architecture sign-off. Signature status on both ADRs and both diagrams is unchanged (HA-10)"
   - "any physical schema, migration or seed artefact — this is design; implementation is S09 work"
 
+recurrence_count: 2
+recurrence_20260825: >
+  human:Mahesh asked again to change Opportunity to Lead because stakeholders and the team
+  already use Lead. That is the inverse of OPEN-D10, not a new decision. Rule CS-2: no new
+  row. Architecture position on the recurrence: do not reverse ADR-005 naming_resolution.
+  The UI / RM language may say Lead — that is Rajal's, still outstanding. The bounded
+  context stays Opportunity because a working pipeline object that is archived after
+  conversion is exactly why Lead was judged too thin. The 2026-08-25 lifecycle request
+  (SUG-20260825-lt1) uses that split; it does not reopen the name.
+
 outcome:
   registered_in: "SUGGESTION-REGISTER.md"
   work_item_id: SUG-20260820-dc4
@@ -976,6 +991,8 @@ outcome:
 
 resumed: null
 ```
+
+---
 
 ### SUG-20260820-hl1 · R0 stakeholder HLD and AWS LLD pack
 
@@ -1718,6 +1735,466 @@ notes:
   - "Explicitly NOT the analytics warehouse: Glue ETL, Athena, Redshift and QuickSight stay out (S13)"
   - "Explicitly NOT a business search index, and explicitly NOT the audit store (FF-28)"
   - "Revisit trigger: the bank's enterprise SIEM/ELK becoming available to onboard onto supersedes this domain rather than extending it"
+```
+
+---
+
+### SUG-20260825-lt1 · Lead lifecycle archive vs Payment/Policy retention
+
+```yaml
+id: SUG-20260825-lt1
+raised_at: "2026-08-25"
+raised_by: "human:Mahesh"
+source: "direct user instruction, acting as the Board 1 Architecture persona"
+input: >
+  Make sure lead transitions are well aligned. If a lead is converted and payment is done,
+  transit to some other phase which can be different from the lead. Lead is something we
+  work on and might need to archive based on how it grows — we do not want to preserve
+  all leads for 7 years. What we want to preserve for compliance is what happened to the
+  payments made, was a policy issued, and if a policy is issued the historic state
+  transition for that issued policy. This keeps the lead module lightweight and easy to
+  access.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: R0-ASSISTED-TERM-SALE
+  current_gate: "GATE-S08 (OPEN) — 10 of 10 exit criteria still open"
+  state_as_of: "2026-08-10"
+  freshness_check: "exit 1 — WARN; state_as_of is 15 days old; review_due 2026-09-09"
+  active_work_item: null
+
+stage_fit:
+  code: SF3
+  rationale: >
+    S08 builds the engineering floor (CI, coverage, ArchUnit, secrets, no-PII-in-logs).
+    It does not persist an Opportunity/Lead aggregate. The domain model already has a
+    terminal CONVERTED state (01-domain-model-and-invariants.md §4.1) and separate
+    Payment and Policy machines. The new work is the retention/archive contract after
+    those terminals — that binds when Wave 1 designs the Opportunity service, not when
+    GATE-S08 is open.
+  target_stage: "W1 — Opportunity aggregate design (after GATE-S08 / S09 critical path)"
+  unpark_trigger: "GATE-S08 passed and Wave 1 Opportunity / Lead aggregate design starts"
+  future_necessity: MUST
+
+scope:
+  code: SC1
+  business_scope: "derived — Wave 1 origination and the 7-year evidence obligation"
+  serves: ["W1 Opportunity / context #5", "INV-LED-01", "INV-POL-01", "INV-JRN-05", "control C7"]
+  failure_without_it: >
+    If W1 persists every Lead attribute as RET-7Y (02-information-model.md §4.2 today),
+    the working pipeline store becomes the 7-year bag. Disposal of working Leads later
+    is a migration and may be unlawful if Shailja has not approved the class split.
+  minimal: true
+  authority: >
+    ws3-platform/01-domain-model-and-invariants.md §4.1 / §4.8 / INV-LED-* / INV-POL-* /
+    INV-JRN-05; ws3-platform/02-information-model.md §2.2 and §4.2; ADR-005; ADR-008
+    naming_resolution; BOOT.md WS-3 out_of_scope_now
+
+necessity:
+  now: NOT-NOW
+  future_necessity: MUST
+  target_stage: "W1 Opportunity design"
+  binds_when: "the first Opportunity / Lead schema is designed"
+  evidence_tier: E2
+  confidence: C3
+  evidence:
+    - "02-information-model.md §4.2 currently assigns RET-7Y to leadId, state, lob"
+    - "02-information-model.md §2.2 already has RET-7Y-IMMUTABLE, RET-7Y, RET-POLICY+7Y, RET-OPERATIONAL"
+    - "01-domain-model-and-invariants.md §4.1 — CONVERTED is already terminal; Payment and Policy are other aggregates"
+    - "INV-POL-01 — policy is not created before Payment is RECONCILED"
+    - "INV-JRN-05 — SOLD requires ACTIVE policy + RECONCILED payment + issuance confirmation + audit"
+  assumptions:
+    - "Shailja has not yet approved a shorter class for a converted/expired/disqualified Lead"
+    - "Stakeholder 'Lead' means the working pipeline object, not the 7-year SoT"
+  anti_over_engineering:
+    X1_named_consumer: false    # no Opportunity service exists at S08
+    X3_cheap_later: false       # retention class after first persist is a migration
+    X5_stage_necessity: false   # binds at W1, not S08
+    X6_simplest_sufficient: true
+    X9_problem_observed: false  # no Lead store in production; this is a design correction
+
+action: PARK
+action_rationale: >
+  Scheduled MUST at Wave 1. The structural position is already in the model: Lead/Opportunity
+  is origination; Payment, Policy and Audit own money and issuance evidence. What is missing
+  is an explicit archive/disposal contract after CONVERTED and a Shailja ruling that some
+  Lead attributes may leave RET-7Y. Not a P1 incorrect-domain-model interrupt: the split of
+  aggregates exists; the retention class on Lead is the open question.
+duplicate_of: null
+conflicts:
+  - >
+    02-information-model.md §4.2 says Lead is RET-7Y. This suggestion asks to stop keeping
+    every Lead for 7 years. Resolution: do not edit the information model in this turn.
+    Park the class split for W1; Shailja owns the horizon; Aarti owns the physical archive.
+
+classification:
+  type: ARCH
+  also: [COMP]
+  breakdown: STORY
+  epic: null
+  risk_tier: T3
+  destination: "PARKED-BACKLOG.md §1"
+
+priority:
+  now: P4
+  at_target: P2
+  rationale: "MUST when W1 designs the schema; nothing at GATE-S08 fails without it"
+
+architecture_position_draft: >
+  Mahesh (AI draft, not T4 sign-off). Converted + paid is not a later phase of Lead.
+  Journey reaches SOLD only when Policy is ACTIVE and Payment is RECONCILED (INV-JRN-05).
+  After QUALIFIED → CONVERTED the Lead aggregate is terminal (INV-LED-01). Working-pipeline
+  access goes to Policy/Payment/Journey, not to an ever-growing Lead table. leadId remains
+  the opaque origin reference on every downstream aggregate (INV-LED-06) — that pointer is
+  what we keep, not the working inbox. A renewal or lapse creates a NEW opportunity and a
+  NEW journey (ADR-005 naming_resolution), never reopens an archived Lead. Archive is not
+  delete: ID-04, disposal writes an audit record, and Shailja sets the horizon. Aarti jointly
+  reviews any physical archive/purge path (shared-DB / SoT change).
+
+outcome:
+  registered_in: "registers/PARKED-BACKLOG.md"
+  work_item_id: null
+  status: PARKED
+
+resumed: GATE-S08
+```
+
+---
+
+### SUG-20260825-of1 · Off-platform sale ingest
+
+```yaml
+id: SUG-20260825-of1
+raised_at: "2026-08-25"
+raised_by: "human:Mahesh"
+source: "direct user instruction, acting as the Board 1 Architecture persona"
+input: >
+  Not all products will be on the platform from day one (insurer API not ready, 1SB not
+  configured, and other reasons). The distributor bank will still sell those products
+  offline or on insurer portals. MIS will later upload that lead or policy so we see
+  how many products were sold on-platform vs off-platform, which products still need
+  onboarding, and can generate reports and insights.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: R0-ASSISTED-TERM-SALE
+  current_gate: "GATE-S08 (OPEN)"
+  state_as_of: "2026-08-10"
+  freshness_check: "exit 1 — WARN"
+  active_work_item: null
+
+stage_fit:
+  code: SF3
+  rationale: >
+    This is a second intake path plus Reporting/MIS beyond the pilot funnel. R0 is one
+    RM, one ETB customer, one Term product, one insurer, through a real interface.
+    BOOT.md lists Reporting and MIS (context #18) beyond the pilot funnel as
+    out_of_scope_now until R1. ADR-005 forbids any parallel origination path before R1.
+  target_stage: "R1 — Reporting & MIS / off-platform book capture"
+  unpark_trigger: "R0 completes a real pilot sale, or R1 planning starts"
+  future_necessity: SHOULD
+
+scope:
+  code: SC2
+  business_scope: "adjacent — full-book visibility is real, nothing in R0 fails without it"
+  serves: []
+  failure_without_it: "no R0 acceptance criterion fails; the pilot Term path does not need off-platform upload"
+  minimal: false
+  authority: "CURRENT-STATE.yaml WS-3 out_of_scope_now; ADR-005; 03-solution-architecture-r0.md §2 and §3"
+
+necessity:
+  now: NOT-NOW
+  future_necessity: SHOULD
+  target_stage: "R1"
+  binds_when: "the bank must report the whole distributed book, not only the platform funnel"
+  evidence_tier: E4
+  confidence: C3
+  anti_over_engineering:
+    X1_named_consumer: false
+    X3_cheap_later: true
+    X5_stage_necessity: false
+    X9_problem_observed: false
+
+action: PARK
+action_rationale: >
+  SC2 forces PARK. Capability is real; R0 must not grow a bulk-import origination path.
+  Architecture position (draft): this is Policy ingest (context #13) plus a Reporting
+  read-model (context #18), not opportunity.create. MIS is not a BANK_RM Specified
+  Person. An uploaded off-platform policy must never mint a Lead that looks like an
+  assisted platform sale, or conversion, STP and onboarding-gap metrics are corrupted.
+  Maker-checker, idempotent file ingest, and product-not-onboarded flagging belong in
+  the R1 design. Related surface already parked as SUG-20260821-jx2.
+duplicate_of: null
+
+classification:
+  type: FUNC
+  also: [ARCH]
+  breakdown: EPIC
+  risk_tier: T3
+  destination: "PARKED-BACKLOG.md §1"
+
+priority:
+  now: P5
+  at_target: P2
+  rationale: "SC2 / SF3; valuable at R1 when the book is wider than the Term slice"
+
+outcome:
+  registered_in: "registers/PARKED-BACKLOG.md"
+  status: PARKED
+
+resumed: GATE-S08
+```
+
+---
+
+### SUG-20260825-st1 · STP / non-STP / Insta issuance modes
+
+```yaml
+id: SUG-20260825-st1
+raised_at: "2026-08-25"
+raised_by: "human:Mahesh"
+source: "direct user instruction, acting as the Board 1 Architecture persona"
+input: >
+  While doing this we need to make sure we are aligned with STP, non-STP and Insta.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: R0-ASSISTED-TERM-SALE
+  current_gate: "GATE-S08 (OPEN)"
+  state_as_of: "2026-08-10"
+  freshness_check: "exit 1 — WARN"
+  active_work_item: null
+
+stage_fit:
+  code: SF3
+  rationale: >
+    Issuance mode is a Proposal / UW / Policy dimension, exercised in Wave 3. S08 does
+    not build those services. The domain model already has UW tracking and an issuance
+    saga (01-domain-model-and-invariants.md §4 and F-05). The missing work is naming the
+    three modes as a first-class field, the way §2.2 named lob before a second LOB existed.
+  target_stage: "W3 — Proposal, UW-Tracking, Payment, Policy"
+  unpark_trigger: "Wave 3 Proposal / UW / Payment / Policy design starts, and Rajal names the R0 Term value"
+  future_necessity: MUST
+
+scope:
+  code: SC1
+  business_scope: "derived — R0 Term issuance must be a named mode, not an implied happy path"
+  serves: ["W3 Proposal & UW", "W3 Policy & Issuance", "INV-POL-01", "INV-JRN-05"]
+  failure_without_it: >
+    If W3 ships an implicit STP-only saga, a non-STP Term (medical / requirements) or an
+    Insta product cannot reuse the same orchestration without a contract change.
+  minimal: true
+  authority: "01-domain-model-and-invariants.md §4; 03-solution-architecture-r0.md §2.2 (dimension-now pattern)"
+
+necessity:
+  now: NOT-NOW
+  future_necessity: MUST
+  target_stage: "W3 Proposal & Issuance"
+  binds_when: "the first Proposal / Policy schema is designed"
+  evidence_tier: E4
+  confidence: C3
+  assumptions:
+    - "STP / non-STP / Insta are issuance modes, not Lead pipeline states"
+    - "R0 Term is one of these three; Product has not recorded which"
+  anti_over_engineering:
+    X1_named_consumer: false
+    X3_cheap_later: false      # same reason lob is present from release 1
+    X5_stage_necessity: false
+    X9_problem_observed: false
+
+action: PARK
+action_rationale: >
+  Name the dimension before W3 persists Proposal/Policy. Do not implement three issuance
+  engines in S08. Architecture position (draft): issuanceMode lives on Proposal (and is
+  inherited by Policy). Lead/Opportunity does not change shape per mode. STP and Insta
+  still cannot skip suitability, consent, customer-device payment, or RECONCILED-before-
+  issue (standing constraints). Non-STP uses the existing UW-tracking machine; it does
+  not invent a second journey. Rajal names the R0 Term value; Mahesh does not guess it.
+duplicate_of: null
+
+classification:
+  type: ARCH
+  also: []
+  breakdown: STORY
+  risk_tier: T2
+  destination: "PARKED-BACKLOG.md §1"
+
+priority:
+  now: P4
+  at_target: P2
+
+outcome:
+  registered_in: "registers/PARKED-BACKLOG.md"
+  status: PARKED
+
+resumed: GATE-S08
+```
+
+---
+
+### SUG-20260825-pp1 · PPHI control mapping
+
+```yaml
+id: SUG-20260825-pp1
+raised_at: "2026-08-25"
+raised_by: "human:Mahesh"
+source: "direct user instruction, acting as the Board 1 Architecture persona"
+input: >
+  We are also complied with PPHI.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: R0-ASSISTED-TERM-SALE
+  current_gate: "GATE-S08 (OPEN)"
+  state_as_of: "2026-08-10"
+  freshness_check: "exit 1 — WARN"
+  active_work_item: null
+
+stage_fit:
+  code: SF3
+  rationale: >
+    PPHI permissibility is a Board 6 verdict, not an S08 engineering-foundation deliverable.
+    The first regulated actions that PPHI bites are consent, suitability, solicitation
+    conduct and issuance disclosure — Wave 2/W3. S07 already drafted the control posture;
+    human Board 6 sign-off is outstanding.
+  target_stage: "W2 Consent / first regulated action"
+  unpark_trigger: "Shailja opens the PPHI control mapping, or Wave 2 Consent design starts"
+  future_necessity: MUST
+
+scope:
+  code: SC0
+  business_scope: "in scope — policyholder protection is already in the regulatory registry"
+  serves: []
+  failure_without_it: "an unmapped PPHI obligation can make the first regulated journey non-permissible"
+  minimal: true
+  authority: >
+    docs/context/roles/shailja-s-compliance-risk-head/02-regulatory-registry.md §3
+    (IRDAI Protection of Policyholder's Interests, Operations and Allied Matters of
+    Insurers Regulations, 2024); Shailja card — regulatory interpretation is Board 6;
+    PERSONA-AUTHORITY-MATRIX — Mahesh must not waive a Compliance conclusion
+
+necessity:
+  now: NOT-NOW
+  future_necessity: MUST
+  target_stage: "W2 Consent"
+  binds_when: "the first regulated action on a customer is implemented"
+  evidence_tier: E2
+  confidence: C3
+  evidence:
+    - "regulatory-registry.md names IRDAI PPHI 2024 as applicable to solicitation, sale, servicing, claims and customer treatment"
+    - "Standing constraints already encode suitability-before-quote, consent-before-proposal, customer-device payment, RECONCILED-before-issue, no PII in logs"
+    - "No repository document uses the token PPHI; the mapping to control IDs is unwritten"
+  anti_over_engineering:
+    X1_named_consumer: false
+    X5_stage_necessity: false
+    X9_problem_observed: false
+
+action: PARK
+action_rationale: >
+  Not SC4 — the regulation is already in scope; this is not a silent admit of new
+  product scope. Not a Mahesh compliance declaration. Architecture drafts the evidence
+  pack (which seam enforces which hard gate). Shailja owns permissibility and the R0–R3
+  rating. Human T4 Risk & Compliance sign-off stays human. No new change request:
+  nothing is added to or removed from project scope.
+duplicate_of: null
+
+classification:
+  type: COMP
+  also: [ARCH]
+  breakdown: SPIKE
+  risk_tier: T4
+  destination: "PARKED-BACKLOG.md §1"
+
+priority:
+  now: P4
+  at_target: P1
+  rationale: "MUST before the first regulated action; P1 at that target, not during S08 CI work"
+
+outcome:
+  registered_in: "registers/PARKED-BACKLOG.md"
+  status: PARKED
+  named_owner: "Shailja S / Board 6"
+  mahesh_must_not: "declare PPHI-compliant or waive a Board 6 finding with an A-rating"
+
+resumed: GATE-S08
+```
+
+---
+
+### SUG-20260825-wl1 · OLTP vs ops isolation already decided
+
+```yaml
+id: SUG-20260825-wl1
+raised_at: "2026-08-25"
+raised_by: "human:Mahesh"
+source: "direct user instruction, acting as the Board 1 Architecture persona"
+input: >
+  While doing this all we need to make sure we are stable on our db, and work load.
+  Operations work should not effect my RM systems and lead.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: R0-ASSISTED-TERM-SALE
+  current_gate: "GATE-S08 (OPEN)"
+  state_as_of: "2026-08-10"
+  freshness_check: "exit 1 — WARN"
+  active_work_item: null
+
+stage_fit:
+  code: SF4
+  rationale: >
+    The isolation rule is already the ratified communication and data architecture.
+    Re-proposing it as new S08 work would import production-tuning and a warehouse
+    into foundation. Confirming the rule is useful; building a second isolation
+    mechanism is stage-invalid.
+
+scope:
+  code: SC0
+  business_scope: "in scope as an already-decided NFR architecture rule"
+  authority: >
+    platform/architecture-review/03-communication-patterns.md (domain → Reporting is
+    async Kafka, Reporting-only consumer); 05-data-architecture.md (Reporting on
+    S3/Redshift/Athena, never shared OLTP); 04-aws-infrastructure-architecture.md
+    (batch on Spot, transactional core on on-demand); ADR-013 (OpenSearch is not
+    the regulatory archive)
+
+necessity:
+  now: REJECT
+  evidence_tier: E1
+  confidence: C5
+  rationale: "Already decided. Re-building it would violate X6 and A6."
+
+action: REJECT
+action_rationale: >
+  Isolation of MIS/ops from the RM and Lead path is already a standing architecture
+  rule, not a gap. Domain services do not serve Reporting synchronously. Reporting
+  does not share Aurora with Opportunity/Lead. Batch/analytics sit on a different
+  capacity class. ADR-013 already split operational search from the 7-year evidence
+  pipe for the same reason. Do not add a sidecar, replica, or warehouse in S08 to
+  re-prove it.
+reason: >
+  Already the design. A second isolation project at foundation would be feature
+  breadth (L4 reject-on-sight) and unnecessary infrastructure (Board 1 A6).
+reopen_if: >
+  Measured evidence that a reporting, MIS-upload, reconciliation or admin job shares
+  the Opportunity/Lead Aurora writer or blocks an RM request (E3). That becomes a
+  Shivanshi + Aarti incident item, not a new bounded context.
+
+outcome:
+  registered_in: "SUGGESTION-REGISTER.md"
+  status: REJECTED
+
+resumed: GATE-S08
 ```
 
 ---

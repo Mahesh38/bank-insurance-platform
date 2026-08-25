@@ -27,11 +27,18 @@ Four scopes are checked independently. An input is out of scope if it fails **an
 | **Technical scope** | Is it inside the approved architecture and service boundaries? | [architecture-review/](../platform/architecture-review/README.md), service architecture docs |
 | **Operational scope** | Do we own and run the thing being changed? | [01 §5](./01-CURRENT_STATE.md#5-standing-constraints-apply-to-every-triage-in-this-repo) |
 
-Worked example — *"add a Kafka topic for quote events"*:
+Worked example — *"add a Kafka topic for quote events"*, evaluated **against WS-1**:
 business ✅ (auditability is a requirement) · product ❌ (not in this increment) ·
-technical ⚠️ (event backbone exists in the target architecture, not in the current one) ·
-operational ❌ (no broker is run today). Verdict: out of current scope → and separately SF3
+technical ⚠️ (event backbone exists in the target architecture, not in WS-1's) ·
+operational ❌ (the adapter runs no broker). Verdict: out of current scope → and separately SF3
 premature → **PARK to Integration Architecture**.
+
+> **Why this example now teaches Rule LC-1 as well.** The same input evaluated against **WS-3**
+> reaches the opposite verdict: `CR-012` admitted Amazon MSK into the R0 platform estate on
+> 2026-08-24 (`ADR-012`), so *technical* and *operational* are both ✅ there. Nothing above is
+> wrong — scope fit is evaluated against the **input's own workstream**, never against the
+> repository as a whole, and this is what that rule looks like when it bites. WS-1's adapter still
+> neither publishes to nor consumes from that backbone in Phase 4.
 
 ---
 
@@ -129,7 +136,7 @@ scope:
 
 | Item | Why | Revisit at |
 |------|-----|------------|
-| Kafka / event backbone | Not in the current service topology | Integration architecture stage |
+| Kafka / event backbone **in the 1SB adapter** | Not in WS-1's service topology. The WS-3 platform runs one from R0 (`ADR-012`); the adapter neither publishes to it nor consumes from it in Phase 4 | Phase 5 |
 | Reactive rewrite | No demonstrated throughput requirement | Never, absent evidence |
 | SDK / client framework for bank apps | Consumers integrate over HTTP + OpenAPI | Post-GA, if ≥ 2 consumers ask |
 | Persistence performance optimisation | No measured problem | Production readiness |

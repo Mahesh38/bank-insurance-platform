@@ -289,7 +289,7 @@ absolute picture forces the reader to diff it; a target state expressed as a del
 | A giant shared journey state machine covering every LOB | Every LOB change risks every other LOB | Registry + per-cell execution (file `12`) |
 | A bank Underwriting Engine | The bank does not carry insurance risk | Proposal / Case Management (`TI-03`) |
 | Reopening a completed journey for renewal | Destroys the historic record | New opportunity, new journey (`TI-13`) |
-| Event backbone because "target state is event-driven" | Kafka is in the target catalogue and still wrong for a platform that has not run a service in a real environment | Outbox now, named triggers — file `13` §6 |
+| Event backbone because "target state is event-driven" | Being in the target catalogue is not a reason. What justified it in R0 (`ADR-012`, 2026-08-24) was a **named trigger firing** — three consumer classes — not the target state, and the outbox stayed in front of it | Outbox always, broker on a named trigger — file `13` §6 |
 | A BPM engine because journeys are long-running | Long-running is not the requirement that justifies a process engine | Apply the test in file `13` §7 |
 | "Cloud-native target state" | Names a hosting posture, decides nothing | Ask which capability requirement is unmet |
 | Reinstating deferred scope silently | Overrides an accepted Product decision | Return the trade to Rajal (`TP-09`) |

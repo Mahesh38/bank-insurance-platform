@@ -409,11 +409,11 @@
   <rect x="40" y="2004" width="1720" height="12" fill="#0f172a"/>
   <text x="56" y="2008.5" font-size="9.5" fill="#ffffff" font-weight="bold" letter-spacing="1.4">BOUNDARY 9</text>
   <text x="166" y="2008.5" font-size="10.5" fill="#ffffff" font-weight="bold" letter-spacing="0.6">EVENT &amp; MESSAGING BACKBONE</text>
-  <text x="1744" y="2008.5" font-size="9" fill="#cbd5e1" text-anchor="end" font-weight="bold">no broker in R0 — and that is a decision, not a gap</text>
+  <text x="1744" y="2008.5" font-size="9" fill="#cbd5e1" text-anchor="end" font-weight="bold">outbox in front of a broker — the outbox is the source of truth</text>
   <rect x="60" y="2026" width="830" height="76" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
-  <text x="475.0" y="2068" font-size="11.8" fill="#0f172a" text-anchor="middle" font-weight="bold">Transactional outbox — the only asynchronous mechanism in R0</text>
-  <text x="475.0" y="2084.0" font-size="8.6" fill="#475569" text-anchor="middle">service DB → outbox → worker, at-least-once (S-17). Audit consumes it; so does Notification (S-18). Already this</text>
-  <text x="475.0" y="2095.5" font-size="8.6" fill="#475569" text-anchor="middle">repository's pattern, and it stays the starting point. LOB-partitioned logical topics and a managed bus are R1/RN.</text>
+  <text x="475.0" y="2068" font-size="11.8" fill="#0f172a" text-anchor="middle" font-weight="bold">Transactional outbox to MSK — the outbox stays the source of truth</text>
+  <text x="475.0" y="2084.0" font-size="8.6" fill="#475569" text-anchor="middle">service DB → outbox row (one txn) → publisher → MSK topic (S-23) → consumers dedupe on eventId (S-24). Audit (S-17) and</text>
+  <text x="475.0" y="2095.5" font-size="8.6" fill="#475569" text-anchor="middle">Notification (S-18) consume. NO regulatory evidence exists only in a topic — the audit write is the record (ADR-012, FF-26).</text>
   <rect x="910" y="2026" width="810" height="76" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
   <text x="1315.0" y="2068" font-size="11.8" fill="#0f172a" text-anchor="middle" font-weight="bold">Synchronous vs asynchronous — the rule R0 applies</text>
   <text x="1315.0" y="2084.0" font-size="8.6" fill="#475569" text-anchor="middle">MUST be synchronous: authorization (S-02), configuration resolution (S-21), critical validation, payment session (S-13).</text>
@@ -427,7 +427,7 @@
   <text x="56" y="2190" font-size="9.2" fill="#92400e">Waves W0b–W4 above start only after GATE-S08 passes and the S09 critical path lands. This is where the platform actually is today.</text>
   <rect x="60" y="2200" width="830" height="82" rx="6" fill="#fffbeb" stroke="#b45309" stroke-width="1.3"/>
   <text x="76" y="2220" font-size="11.5" fill="#0f172a" font-weight="bold">S08 — Engineering Foundation · GATE-S08 OPEN</text>
-  <text x="76" y="2236" font-size="8.8" fill="#475569">CI builds + tests every module on every PR · merge impossible without green · coverage floors (libs 80 / 70) · ArchUnit + 21 fitness functions (FF-01…FF-21)</text>
+  <text x="76" y="2236" font-size="8.8" fill="#475569">CI builds + tests every module on every PR · merge impossible without green · coverage floors (libs 80 / 70) · ArchUnit + 28 fitness functions (FF-01…FF-28)</text>
   <text x="76" y="2249" font-size="8.8" fill="#475569">secret / SAST / SCA / image scanning · no PII in logs, proven by automated test · p95 pipeline feedback &lt; 10 min · engineering standards published</text>
   <text x="76" y="2266" font-size="8.8" fill="#475569">Approvers: Amit (Eng) · Swapnali (QA) · Mahesh (Arch) · Deepali (Sec) · Shivanshi (SRE)</text>
   <rect x="910" y="2200" width="810" height="82" rx="6" fill="#fffbeb" stroke="#b45309" stroke-width="1.3"/>
@@ -519,7 +519,7 @@
   <text x="1254" y="2520.5" font-size="8.5" fill="#475569">GENERAL / MOTOR cell — productLine inside lob = GENERAL</text>
   <rect x="1216" y="2528" width="30" height="14" rx="3" fill="#e2e8f0"/>
   <text x="1231" y="2538.5" font-size="8.2" fill="#475569" text-anchor="middle" font-weight="bold">—</text>
-  <text x="1254" y="2538.5" font-size="8.5" fill="#475569">No Kafka, no event bus, no Redis idempotency, no circuit breaker in R0 — each a recorded decision</text>
+  <text x="1254" y="2538.5" font-size="8.5" fill="#475569">No service mesh, no per-service clusters, no analytics warehouse, no cache-backed idempotency in R0 — each a recorded decision</text>
   <path d="M210,318 L210,350" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
   <text x="219" y="337.5" font-size="9" fill="#475569" text-anchor="start">HTTPS · opaque session (S-01)</text>
   <path d="M560,318 L560,344 L340,344 L340,350" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>

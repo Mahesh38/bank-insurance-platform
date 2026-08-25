@@ -353,9 +353,9 @@ Run before committing any HLD change. Each row has bitten a real architecture do
 | 1 | Every `#n` context number matches the service catalogue in `architecture-review/02` |
 | 2 | Every wave badge matches the build order in `03-solution-architecture-r0.md §3` |
 | 3 | Every control badge (`C1` `C2` `C4`) matches the non-waivable control set |
-| 4 | Every seam id (`S-01`–`S-22`) matches the seam catalogue, including its style |
+| 4 | Every seam id (`S-01`–`S-26`) matches the seam catalogue, including its style |
 | 5 | Every invariant reference (`INV-*`) and constraint (`SC-W3-*`) exists and says what the label claims |
-| 6 | Every fitness-function reference (`FF-01`–`FF-21`) exists |
+| 6 | Every fitness-function reference (`FF-01`–`FF-28`) exists |
 | 7 | Deferred items in the footer match the deferral list in `03-solution-architecture-r0.md §3` |
 | 8 | Every colour used appears in the legend (`HA-08`) |
 | 9 | Every edge has a style; consequential edges carry a seam id (`HA-09`) |

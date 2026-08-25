@@ -192,6 +192,12 @@ score: 2+0+0+0+1-3 = 0     →  band P5
 cap PRI-2, future_necessity = SHOULD → **P5**, park to Integration Architecture
 ```
 
+> **The same input scores differently in another workstream, which is the point of `priority_now`.**
+> The row above is WS-1 at Phase 4 hardening. Scored for **WS-3** at S09 on 2026-08-24 it came out
+> `P2 now / P1 at target` and was admitted (`SUG-20260824-gp4`, `ADR-012`) — necessity MUST rather
+> than COULD, because the platform's own revisit trigger had fired and three consumer classes
+> already existed. Priority is stage-relative *and* workstream-relative; the formula did not change.
+
 ### Compliance review of audit schema (current gate item 4.4)
 
 ```yaml

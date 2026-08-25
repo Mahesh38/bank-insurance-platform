@@ -52,6 +52,15 @@ I = {  # icon paths, resolved from the diagrams wheel
     "igw":    "aws/network/internet-gateway.png",
     "vpc":    "aws/network/vpc.png",
     "subnet": "aws/network/private-subnet.png",
+    "tgw":    "aws/network/transit-gateway.png",
+    "tgwa":   "aws/network/transit-gateway-attachment.png",
+    "nfw":    "aws/network/network-firewall.png",
+    "dx":     "aws/network/direct-connect.png",
+    "vpn":    "aws/network/site-to-site-vpn.png",
+    "cache":  "aws/database/elasticache.png",
+    "msk":    "aws/analytics/managed-streaming-for-kafka.png",
+    "srch":   "aws/analytics/amazon-opensearch-service.png",
+    "fire":   "aws/analytics/kinesis-data-firehose.png",
     "waf":    "aws/security/waf.png",
     "kms":    "aws/security/key-management-service.png",
     "secret": "aws/security/secrets-manager.png",
@@ -107,10 +116,10 @@ LANE_EGRESS = 1830                                # corridor between app and pub
 
 
 def topology():
-    c = Canvas(2790, 2500,
+    c = Canvas(3260, 2500,
                "R0 on AWS — what runs where",
-               "ap-south-1 (Mumbai) · one VPC per environment · every connector is a real "
-               "network path, and there are only two reverse proxies on it")
+               "ap-south-1 (Mumbai) · one workload VPC per environment, one inspection VPC per "
+               "environment · every connector is a real network path, and egress has exactly one")
 
     # ---- devices ---------------------------------------------------------
     dev = c.group("DEVICES", 60, 305, 460, 195, stroke=Z["dev"][0], fill=Z["dev"][1],
@@ -119,7 +128,7 @@ def topology():
     c.node(I["tablet"], 390, 390, ["Insurance Partner Rep", "same host, same BFF"])
 
     # ---- region and edge -------------------------------------------------
-    c.group("AWS REGION · ap-south-1", 620, 200, 1690, 2220, stroke=Z["vpc"][0],
+    c.group("AWS REGION · ap-south-1", 620, 200, 2160, 2220, stroke=Z["vpc"][0],
             fill="#ffffff", dash="10 7", label_size=17, width=2.2)
     edge = c.group("PUBLIC AWS EDGE", 660, 240, 1610, 280, stroke=Z["edge"][0],
                    fill=Z["edge"][1], sub="the only internet entry point — not in the VPC",
@@ -178,28 +187,53 @@ def topology():
     sb = c.node(I["pod"], COL[1], 1765 + ICON_DY, ["#15 1SB Adapter", "WS-1 · mTLS"])
 
     band("jobs", "ns: jobs", 1945)
-    c.node(I["deploy"], COL[0], 1945 + ICON_DY, ["outbox-publisher", "×2 — no Kafka in R0"])
+    c.node(I["deploy"], COL[0], 1945 + ICON_DY, ["outbox-publisher", "×2 — outbox → MSK"])
     c.node(I["cron"], COL[1], 1945 + ICON_DY, ["payment-reconcile", "issuance-recheck"])
+    c.node(I["deploy"], COL[2], 1945 + ICON_DY, ["MSK consumers", "audit · notification",
+                                                 "KEDA on lag"])
 
     # ---- the right-hand infrastructure column ----------------------------
-    c.group("PUBLIC SUBNETS  /24 × 3 AZ", RIGHT_X, 600, RIGHT_W, 370, stroke=Z["pub"][0],
-            fill=Z["pub"][1], sub="NAT and IGW only — no workloads", label_size=14)
-    nat = c.node(I["nat"], RIGHT_CX, 690, ["NAT Gateway + Elastic IP", "prod: one per AZ",
-                                           "1SB and the PG allowlist THIS EIP"])
-    igw = c.node(I["igw"], RIGHT_CX, 860, ["Internet Gateway", "for NAT egress only"])
+    c.group("PUBLIC SUBNETS  /24 × 3 AZ", RIGHT_X, 600, RIGHT_W, 200, stroke=Z["pub"][0],
+            fill=Z["pub"][1], sub="reserved and EMPTY — no NAT here", label_size=14)
+    c.ghost(RIGHT_CX, 720, 320, 72, ["no NAT · no IGW in the workload VPC",
+                                     "egress is centralised — ADR-010"])
 
-    c.group("PRIVATE-DATA SUBNETS  /24 × 3 AZ", RIGHT_X, 1010, RIGHT_W, 250,
+    c.group("TGW ATTACHMENT  /28 × 3 AZ", RIGHT_X, 830, RIGHT_W, 160, stroke=Z["vpc"][0],
+            fill="#ffffff", sub="the only way out", label_size=14)
+    tgwa = c.node(I["tgwa"], RIGHT_CX, 895, ["one ENI per AZ"], size=54)
+
+    c.group("PRIVATE-DATA SUBNETS  /24 × 3 AZ", RIGHT_X, 1020, RIGHT_W, 620,
             stroke=Z["dat"][0], fill=Z["dat"][1], sub="no 0.0.0.0/0 route", label_size=14)
-    aur = c.node(I["aurora"], RIGHT_CX, 1100, ["Aurora PostgreSQL — ONE cluster",
+    aur = c.node(I["aurora"], RIGHT_CX, 1110, ["Aurora PostgreSQL — ONE cluster",
                                                "writer AZ-A + reader AZ-B",
-                                               "16 schemas, one per context"])
+                                               "16 schemas, one per context"], size=54)
+    cache = c.node(I["cache"], RIGHT_CX, 1260, ["ElastiCache for Valkey",
+                                                "sessions · L2 · rate limits",
+                                                "NEVER idempotency"], size=54)
+    msk = c.node(I["msk"], RIGHT_CX, 1410, ["Amazon MSK — 3 brokers",
+                                            "outbox-fed transport",
+                                            "NEVER the audit record"], size=54)
+    srch = c.node(I["srch"], RIGHT_CX, 1560, ["OpenSearch — VPC only",
+                                              "operational logs · 90 d",
+                                              "NEVER evidence"], size=54)
 
-    c.group("VPC ENDPOINTS", RIGHT_X, 1310, RIGHT_W, 300, stroke=Z["dat"][0],
+    c.group("VPC ENDPOINTS", RIGHT_X, 1690, RIGHT_W, 270, stroke=Z["dat"][0],
             fill="#ffffff", sub="so none of this touches the internet", label_size=14)
-    c.node(I["subnet"], RIGHT_CX, 1440, [], size=54)
-    c.lines(RIGHT_CX, 1502, ["S3 · DynamoDB  (gateway)",
+    c.node(I["subnet"], RIGHT_CX, 1810, [], size=54)
+    c.lines(RIGHT_CX, 1872, ["S3 · DynamoDB  (gateway)",
                              "ECR · Secrets Manager · KMS",
                              "CloudWatch · STS  (interface)"], size=12, color=INK)
+
+    # ---- inspection / egress VPC — the network account -------------------
+    insp = c.group("INSPECTION / EGRESS VPC", 2350, 560, 380, 560, stroke=Z["pub"][0],
+                   fill=Z["pub"][1],
+                   sub="network account · ONE PER ENVIRONMENT", label_size=15)
+    tgw = c.node(I["tgw"], 2540, 650, ["Transit Gateway", "one route table per env",
+                                       "no VPC peering, anywhere"], size=56)
+    nfw = c.node(I["nfw"], 2540, 830, ["AWS Network Firewall", "domain allowlist · IPS",
+                                       "one endpoint per AZ"], size=56)
+    nat = c.node(I["nat"], 2540, 1010, ["NAT + ELASTIC IPs", "1SB and the PG allowlist THESE",
+                                        "they MOVED here — ADR-010"], size=56)
 
     # ---- regional managed services --------------------------------------
     # label on the right: the two state connectors drop into this strip on the left
@@ -216,12 +250,12 @@ def topology():
                 1720: I["cw"], 1900: I["amp"]}.get(x), x, 2310, rows, size=54)
 
     # ---- outside ---------------------------------------------------------
-    out = c.group("OUTSIDE", 2370, 620, 360, 340, stroke=Z["ext"][0], fill=Z["ext"][1],
+    out = c.group("OUTSIDE", 2840, 620, 360, 340, stroke=Z["ext"][0], fill=Z["ext"][1],
                   sub="bank systems and insurance providers", label_size=15)
-    c.node(I["net"], 2470, 710, ["Core Banking", "CBS / CIF"], size=54)
-    pg = c.node(I["net"], 2650, 710, ["AU Bank", "Payment Gateway"], size=54)
-    c.node(I["net"], 2470, 860, ["Bank AD / SSO", "WS-2 Phase 2"], size=54)
-    c.node(I["net"], 2650, 860, ["1SilverBullet", "R0 polls"], size=54)
+    cbs = c.node(I["net"], 2940, 710, ["Core Banking", "CBS / CIF"], size=54)
+    pg = c.node(I["net"], 3120, 710, ["AU Bank", "Payment Gateway"], size=54)
+    c.node(I["net"], 2940, 860, ["Bank AD / SSO", "WS-2 Phase 2"], size=54)
+    onesb = c.node(I["net"], 3120, 860, ["1SilverBullet", "R0 polls"], size=54)
 
     # ---- connectors, all axis-aligned ------------------------------------
     c.link(dev.port("R", at=400), cf.port("L"), color=REQ, width=3.0)
@@ -232,42 +266,60 @@ def topology():
     c.link(alb.port("B"), bff.port("T"), color=REQ, width=3.0)
     c.link(bff.port("B"), pdp.port("T"), color=AUTH, width=2.8)
 
-    c.link(eks.port("R", at=1100), aur.port("L"), color=STATE, width=2.4, dash="2 5",
+    c.link(eks.port("R", at=1110), aur.port("L"), color=STATE, width=2.4, dash="2 5",
            label="JDBC", label_dy=-10)
+    c.link(eks.port("R", at=1260), cache.port("L"), color=STATE, width=2.4, dash="2 5",
+           label="sessions · L2", label_dy=-10)
+    c.link(eks.port("R", at=1410), msk.port("L"), color=STATE, width=2.4, dash="2 5",
+           label="outbox → topic", label_dy=-10)
+    c.link(eks.port("R", at=1560), srch.port("L"), color=MUTE, width=2.0, dash="2 5",
+           label="logs only", label_dy=-10)
     c.link(eks.port("B", at=COL[0]), s3.port("T"), color=STATE, width=2.4, dash="2 5")
     c.link(eks.port("B", at=COL[1]), ddb.port("T"), color=STATE, width=2.4, dash="2 5")
 
     c.link(hub.port("R"), sb.port("L"), color="#0369a1", width=2.4)
-    c.link(sb.port("R"), nat.port("L"), color=EGR, width=2.8, dash="9 6",
+    c.link(sb.port("R"), tgwa.port("L"), color=EGR, width=2.8, dash="9 6",
            lane=LANE_EGRESS, label_seg=0, label_at=0.62,
            label=["the ONLY way out —", "every provider call"])
-    c.link(nat.port("B"), igw.port("T"), color=EGR, width=2.8, dash="9 6")
-    c.link(igw.port("R"), out.port("L", at=860), color=EGR, width=2.8, dash="9 6")
+    c.link(tgwa.port("R"), tgw.port("L"), color=EGR, width=2.8, dash="9 6", lane=2300)
+    c.link(tgw.port("B"), nfw.port("T"), color=EGR, width=2.8, dash="9 6",
+           label="inspected", label_dx=8, label_anchor="start")
+    c.link(nfw.port("B"), nat.port("T"), color=EGR, width=2.8, dash="9 6")
+    c.link(nat.port("R"), onesb.port("B"), color=EGR, width=2.8, dash="9 6",
+           label="internet — by the Elastic IP", label_seg=1, label_at=0.72,
+           label_dx=9, label_anchor="start")
+    c.link(tgw.port("R"), cbs.port("L"), color=AUTH, width=2.8, dash="9 6", lane=2790,
+           label_seg=1, label_at=0.5, label=["TB-7", "VPN now,", "DX next"],
+           label_size=11.5)
     c.link(pg.port("T"), pgcb.port("T"), color=MONEY, width=2.8, dash="9 6", lane=170,
            label="C4 payment callback — see the payment view")
 
-    c.group("NOT IN R0 — do not provision", RIGHT_X, 1660, RIGHT_W, 300,
+    c.group("NOT IN R0 — do not provision", 2840, 1010, 360, 300,
             stroke="#94a3b8", fill="#ffffff", label_size=14,
             sub="each of these is a decision, not an omission")
-    c.lines(RIGHT_CX, 1745, [
-        "MSK / Kafka — the outbox covers R0",
-        "ElastiCache — no session store needed",
-        "NLB · Transit Gateway · PrivateLink",
-        "Service mesh — NetworkPolicy is enough",
+    c.lines(3020, 1095, [
+        "Service mesh — NetworkPolicy + IRSA is enough",
+        "A cluster per service — ADR-008 says one",
+        "Glue ETL · Athena · Redshift · QuickSight",
+        "MSK Replicator — DR replays the outbox",
+        "Cache as an idempotency store — ADR-011",
+        "OpenSearch as the audit store — ADR-013",
         "A second live region — DR is warm standby",
         "Cognito — Keycloak is the R0 IdP",
     ], size=12, color=MUTE)
 
-    legend(c, 2370, 1300, 360, [
+    legend(c, 2840, 1370, 360, [
         (REQ, None, 3.0, "Client request path"),
-        (AUTH, None, 2.8, "Authorisation — on every call"),
-        (EGR, "9 6", 2.8, "Egress — by the NAT Elastic IP"),
+        (AUTH, None, 2.8, "Authorisation · bank private path"),
+        (EGR, "9 6", 2.8, "Egress — inspected, by the EIP"),
         (STATE, "2 5", 2.4, "Durable state"),
         (MONEY, "9 6", 2.8, "Payment callback (own view)"),
     ])
-    c.text(2550, 1600, "Two reverse proxies. No more.", size=14, color=INK, bold=True)
-    c.lines(2550, 1628, ["API Gateway is the only public one;",
+    c.text(3020, 1680, "Two reverse proxies. One way out.", size=14, color=INK, bold=True)
+    c.lines(3020, 1708, ["API Gateway is the only public proxy;",
                          "the internal ALB is the only one in the VPC.",
+                         "The firewall is on egress, not on ingress —",
+                         "it terminates no client session.",
                          "Anything else on the path is a defect."], size=12.5, color=MUTE)
     return c.save(os.path.join(OUT, "r0-platform-topology.svg"))
 
@@ -276,7 +328,7 @@ def topology():
 # 2 — WHICH AVAILABILITY ZONE
 # =========================================================================
 def az():
-    c = Canvas(2160, 1290, "Which availability zone",
+    c = Canvas(2160, 1560, "Which availability zone",
                "ap-south-1 · pin AZ IDs (aps1-az1…), never the names — 'ap-south-1a' is a "
                "different physical zone in each AWS account")
 
@@ -284,53 +336,76 @@ def az():
             fill=Z["mgd"][1], sub="regional services — there is nothing to place", label_size=15)
     for i, (ic, rows) in enumerate(((I["ecr"], ["ECR"]), (I["secret"], ["Secrets Manager"]),
                                     (I["kms"], ["KMS"]), (I["s3"], ["S3"]),
-                                    (I["ddb"], ["DynamoDB"]))):
-        c.node(ic, 300 + i * 200, 225, rows, size=52)
-    c.lines(1620, 218, ["A regional service has no zone to choose.",
-                        "Only the six resources below need one."], size=13, color=MUTE)
+                                    (I["ddb"], ["DynamoDB"]), (I["tgw"], ["Transit Gateway"]))):
+        c.node(ic, 260 + i * 190, 225, rows, size=52)
+    c.lines(1690, 218, ["A regional service has no zone to choose.",
+                        "Everything below needs one — and two of them need THREE."],
+            size=13, color=MUTE)
 
     zones = (("A", "dev · uat · prod", Z["app"][0], Z["app"][1], "full"),
              ("B", "uat · prod", Z["app"][0], Z["app"][1], "full"),
-             ("C", "prod only  ·  uat: subnets, no paid capacity", "#94a3b8", "#f8fafc", "thin"))
+             ("C", "prod  ·  plus the quorum services in uat", "#94a3b8", "#f8fafc", "thin"))
     for i, (zid, envs, pen, bg, mode) in enumerate(zones):
         cx = 380 + i * 670
-        c.group("AVAILABILITY ZONE  %s" % zid, cx - 320, 380, 640, 760, stroke=pen,
+        c.group("AVAILABILITY ZONE  %s" % zid, cx - 320, 380, 640, 1010, stroke=pen,
                 fill=bg, sub=envs, label_size=18)
 
-        c.group("public  /24", cx - 300, 465, 600, 180, stroke=Z["pub"][0],
-                fill=Z["pub"][1], label_size=13, radius=11, width=1.6)
+        c.group("inspection VPC  ·  firewall + public  /24", cx - 300, 465, 600, 200,
+                stroke=Z["pub"][0], fill=Z["pub"][1], label_size=13, radius=11, width=1.6)
         if mode == "full":
-            c.node(I["nat"], cx, 535, ["NAT Gateway + Elastic IP",
-                                       "allowlisted by 1SB and the PG"], size=56)
+            c.node(I["nfw"], cx - 145, 545, ["Firewall endpoint", "no endpoint = no egress"],
+                   size=54)
+            c.node(I["nat"], cx + 145, 545, ["NAT + Elastic IP",
+                                             "1SB and the PG allowlist it"], size=54)
         else:
-            c.ghost(cx, 540, 340, 74, ["NAT + EIP — prod only",
+            c.ghost(cx, 545, 420, 74, ["firewall endpoint + NAT + EIP — prod only",
                                        "a cost call: each EIP is one more to allowlist"])
 
-        c.group("private-app  /20", cx - 300, 670, 600, 190, stroke=Z["app"][0],
+        c.group("private-app  /20", cx - 300, 690, 600, 190, stroke=Z["app"][0],
                 fill="#ffffff", label_size=13, radius=11, width=1.6)
         tail = "≥ 3 in uat/prod" if mode == "full" else "prod only"
-        c.node(I["eks"], cx - 180, 745, ["EKS nodes", tail], size=56)
-        c.node(I["alb"], cx, 745, ["Internal ALB", "one node here" if mode == "full" else "prod only"], size=56)
+        c.node(I["eks"], cx - 180, 765, ["EKS nodes", tail], size=56)
+        c.node(I["alb"], cx, 765, ["Internal ALB", "one node here" if mode == "full" else "prod only"], size=56)
         if mode == "full":
-            c.node(I["deploy"], cx + 180, 745, ["sale-path pods", "zone spread + PDB"], size=56)
+            c.node(I["deploy"], cx + 180, 765, ["sale-path pods", "zone spread + PDB"], size=56)
         else:
-            c.ghost(cx + 180, 750, 215, 66, ["sale-path pods", "prod only"])
+            c.ghost(cx + 180, 770, 215, 66, ["sale-path pods", "prod only"])
 
-        c.group("private-data  /24", cx - 300, 880, 600, 230, stroke=Z["dat"][0],
+        c.group("private-data  /24", cx - 300, 905, 600, 450, stroke=Z["dat"][0],
                 fill=Z["dat"][1], label_size=13, radius=11, width=1.6)
+        # --- relational: one writer, one reader, nothing in the third zone
         if zid == "A":
-            c.node(I["aurora"], cx, 955, ["Aurora  WRITER",
-                                           "single-AZ by definition"], size=56)
+            c.node(I["aurora"], cx - 145, 985, ["Aurora  WRITER",
+                                                "single-AZ by definition"], size=54)
+            c.node(I["cache"], cx + 145, 985, ["Valkey  PRIMARY",
+                                               "sessions live here"], size=54)
         elif zid == "B":
-            c.node(I["aurora"], cx, 955, ["Aurora  READER",
-                                           "MUST be a different AZ from the writer",
-                                           "assert it in IaC — do not assume"], size=56)
+            c.node(I["aurora"], cx - 145, 985, ["Aurora  READER",
+                                                "MUST be a different AZ",
+                                                "assert it in IaC"], size=54)
+            c.node(I["cache"], cx + 145, 985, ["Valkey  REPLICA",
+                                               "automatic failover ON"], size=54)
         else:
-            c.ghost(cx, 960, 340, 66, ["subnet reserved · no instance"])
+            c.ghost(cx - 145, 990, 260, 74, ["Aurora: subnet reserved", "no instance"])
+            c.ghost(cx + 145, 990, 260, 74, ["Valkey: 2 AZs is enough", "not a shard"])
+        # --- quorum services: the third zone is NOT optional for these
+        c.node(I["msk"], cx - 145, 1130, ["MSK broker %d" % (i + 1),
+                                          "RF 3 · min.insync 2",
+                                          "3 AZs REQUIRED"], size=54)
+        if zid == "C":
+            c.node(I["srch"], cx + 145, 1130, ["OpenSearch master 3",
+                                               "the tie-breaker",
+                                               "3 AZs REQUIRED"], size=54)
+        else:
+            c.node(I["srch"], cx + 145, 1130, ["OpenSearch data + master",
+                                               "dedicated masters × 3"], size=54)
 
-    c.text(1080, 1230, "The only asymmetry that matters: the writer is in ONE zone. "
-                       "Everything else is spread, and the spread is asserted, not hoped for.",
-           size=14, color=INK)
+    c.lines(1080, 1470, [
+        "Two asymmetries matter. The Aurora writer is in ONE zone, and the cache replica pair "
+        "needs only two — losing a zone costs a failover, not a service.",
+        "The broker and the search masters are QUORUM services: two of three is the difference "
+        "between losing a node and losing the cluster, so zone C is not a cost option for them.",
+    ], size=14, color=INK)
     return c.save(os.path.join(OUT, "r0-platform-az.svg"))
 
 
@@ -338,17 +413,17 @@ def az():
 # 3 — DISASTER RECOVERY
 # =========================================================================
 def dr():
-    c = Canvas(2300, 1440, "Disaster recovery — warm standby",
+    c = Canvas(2300, 1620, "Disaster recovery — warm standby",
                "RTO ≤ 1 h MEASURED · audit RPO 0 · ap-south-2 (Hyderabad) · "
                "active-active is explicitly not R0")
 
-    c.group("PRIMARY — ap-south-1", 120, 200, 460, 1080, stroke=Z["app"][0],
+    c.group("PRIMARY — ap-south-1", 120, 200, 460, 1260, stroke=Z["app"][0],
             fill=Z["app"][1], sub="Mumbai · everything running", label_size=18)
-    c.group("DR — ap-south-2", 900, 200, 1300, 1160, stroke=Z["dr"][0], fill=Z["dr"][1],
+    c.group("DR — ap-south-2", 900, 200, 1300, 1340, stroke=Z["dr"][0], fill=Z["dr"][1],
             sub="Hyderabad", label_size=18)
-    c.group("PROVISIONED NOW — in the same change as the primary", 940, 270, 1220, 800,
+    c.group("PROVISIONED NOW — in the same change as the primary", 940, 270, 1220, 930,
             stroke="#0f766e", fill="#ccfbf1", label_size=15)
-    c.group("NOT RUNNING — created or re-pointed at failover", 940, 1090, 1220, 230,
+    c.group("NOT RUNNING — created or re-pointed at failover", 940, 1220, 1220, 240,
             stroke="#94a3b8", fill="#ffffff", label_size=15)
 
     pairs = (
@@ -359,29 +434,44 @@ def dr():
         (I["ddb"], ["DynamoDB"], ["D5  PITR is mandatory", "global tables = a cost decision"], "PITR"),
         (I["kms"], ["KMS CMKs"], ["D6  KMS replica keys"], "replica"),
         (I["secret"], ["Secrets Manager"], ["D7  Secrets replicas"], "replica"),
+        (I["tgw"], ["Transit Gateway", "VPN + Direct Connect"],
+         ["D16  TGW + VPN attachment", "a standby that cannot reach CBS",
+          "or Bank AD answers nothing"], "provisioned now"),
     )
     for i, (ic, lrows, rrows, tag) in enumerate(pairs):
-        y = 360 + i * 125
+        y = 355 + i * 122
         a = c.node(ic, 350, y, lrows, size=54)
         b = c.node(ic, 1080, y, rrows, size=54)
         c.link(a.port("R"), b.port("L"), color=REPL, width=2.6, dash="8 5",
                label=tag, label_size=11.5)
 
-    eks_a = c.node(I["eks"], 350, 1190, ["EKS — running"], size=54)
-    eks_b = c.node(I["eks"], 1080, 1190, ["D8  EKS", "node groups at 0"], size=54)
+    eks_a = c.node(I["eks"], 350, 1320, ["EKS — running"], size=54)
+    eks_b = c.node(I["eks"], 1080, 1320, ["D8  EKS", "node groups at 0"], size=54)
     c.link(eks_a.port("R"), eks_b.port("L"), color="#94a3b8", width=2.2, dash="4 5",
            label="NOT replicated", label_size=11.5)
-    c.node(I["r53"], 1500, 1190, ["D9  Route 53 failover", "MANUAL in R0"], size=54)
-    c.node(I["cf"], 1880, 1190, ["D10  CloudFront origin", "re-point — a runbook step"], size=54)
+    c.node(I["r53"], 1500, 1320, ["D9  Route 53 failover", "MANUAL in R0"], size=54)
+    c.node(I["cf"], 1880, 1320, ["D10  CloudFront origin", "re-point — a runbook step"], size=54)
 
-    c.node(I["vpc"], 1500, 380, ["D1  VPC + subnets", "empty · no NAT until failover"], size=54)
-    c.node(I["iam"], 1880, 380, ["IAM roles + IaC", "the same modules, a different tfvars"], size=54)
-    c.group("THE DELIVERABLE IS A RECORD, NOT A DESIGN", 1330, 560, 790, 260,
+    c.node(I["vpc"], 1500, 370, ["D1  VPC + subnets", "empty · no NAT until failover"], size=54)
+    c.node(I["iam"], 1880, 370, ["IAM roles + IaC", "the same modules, a different tfvars"], size=54)
+
+    # --- the three tiers that are deliberately absent, and why
+    c.group("DELIBERATELY NOT REPLICATED — reconstructed, not restored", 1330, 500, 790, 300,
+            stroke="#94a3b8", fill="#ffffff", label_size=14,
+            sub="a tier is replicated when it holds something that cannot be rebuilt")
+    c.node(I["cache"], 1470, 610, ["D13  no DR cache", "sessions are", "re-established"], size=50)
+    c.node(I["msk"], 1725, 610, ["D14  no Replicator", "events REPLAY from",
+                                 "the outbox in Aurora"], size=50)
+    c.node(I["srch"], 1980, 610, ["D15  no DR search", "operational logs", "are not evidence"],
+           size=50)
+
+    c.group("THE DELIVERABLE IS A RECORD, NOT A DESIGN", 1330, 850, 790, 300,
             stroke=Z["ext"][0], fill="#fef2f2", label_size=14)
-    c.node(I["backup"], 1725, 660, [], size=54)
-    c.lines(1725, 725, ["D11  a DR exercise, timed          (gate S09-G7)",
-                        "D12  a rollback drill in UAT     (gate S09-G4)",
-                        "An untested standby is a claim, not a capability."],
+    c.node(I["backup"], 1725, 945, [], size=52)
+    c.lines(1725, 1010, ["D11  a DR exercise, timed                    (gate S09-G7)",
+                         "D12  a rollback drill in UAT               (gate S09-G4)",
+                         "NFR-EVT-03  an outbox replay drill  — D14 depends on it",
+                         "An untested standby is a claim, not a capability."],
             size=12.5, color=INK)
     return c.save(os.path.join(OUT, "r0-platform-dr.svg"))
 
@@ -392,21 +482,25 @@ def dr():
 def sequence():
     bands = (
         ("P0", "GUARDRAILS", "before any resource exists", "#475569", "#f1f5f9",
-         ((I["org"], ["5 accounts", "region SCP · TF state"]),
+         ((I["org"], ["6 accounts", "incl. the network account"]),
           (I["trail"], ["security account", "CloudTrail · Config"]),
           (I["kms"], ["CMK hierarchy"]))),
-        ("P1", "NETWORK", "START HERE — longest external lead time", "#ea580c", "#fff7ed",
+        ("P1", "NETWORK", "START HERE — two external parties", "#ea580c", "#fff7ed",
          ((I["vpc"], ["VPC · 3 AZ subnets"]),
+          (I["tgw"], ["TRANSIT GATEWAY", "route table per env"]),
+          (I["nfw"], ["inspection VPC", "+ Network Firewall"]),
           (I["nat"], ["NAT + ELASTIC IPs", "publish to 1SB and the PG"]),
-          (I["subnet"], ["VPC endpoints"]))),
+          (I["vpn"], ["VPN now, DX ordered", "the bank's own work"]))),
         ("P2", "COMPUTE", "", "#2563eb", "#eff6ff",
          ((I["eks"], ["EKS × 3 environments"]),
           (I["deploy"], ["admission policy", "NetworkPolicy default-deny"]),
           (I["iam"], ["IRSA per deployable"]))),
-        ("P3", "DATA", "", "#475569", "#f8fafc",
+        ("P3", "DATA + MESSAGING", "", "#475569", "#f8fafc",
          ((I["aurora"], ["Aurora + 16 schemas"]),
           (I["ddb"], ["DynamoDB + PITR"]),
-          (I["s3"], ["S3 + OBJECT LOCK", "cannot be applied later"]))),
+          (I["s3"], ["S3 + OBJECT LOCK", "cannot be applied later"]),
+          (I["cache"], ["Valkey", "ACL user per service"]),
+          (I["msk"], ["MSK + schema registry", "needed at W1, not W3"]))),
         ("P4", "EDGE + PROXY", "", "#b45309", "#fffaf0",
          ((I["alb"], ["Internal ALB"]),
           (I["apigw"], ["API Gateway", "+ PG callback — needed at W3"]),
@@ -414,23 +508,26 @@ def sequence():
         ("P5", "IDENTITY", "WS-2", "#059669", "#f0fdf7",
          ((I["deploy"], ["Keycloak + PDP"]),
           (I["secret"], ["Secrets Manager", "rotation exercised once"]))),
-        ("P6", "OBSERVABILITY", "", "#7e22ce", "#faf5ff",
+        ("P6", "OBSERVABILITY + SEARCH", "", "#7e22ce", "#faf5ff",
          ((I["amp"], ["AMP + AMG"]),
-          (I["cw"], ["CloudWatch", "audit pipe SEPARATE"]))),
+          (I["cw"], ["CloudWatch", "audit pipe SEPARATE"]),
+          (I["srch"], ["OpenSearch + ISM", "P1 and P3 logs land here"]))),
         ("P7", "DELIVERY", "", "#0369a1", "#f2f9ff",
          ((I["ecr"], ["ECR — built once"]),
           (I["argo"], ["Argo CD"]))),
         ("P8", "PROOF", "GATE-S09 accepts records, not designs", "#16a34a", "#f2fdf5",
          ((I["backup"], ["a restore, TIMED"]),
           (I["trail"], ["a rollback drill"]),
+          (I["vpn"], ["DX → VPN failover, timed"]),
+          (I["msk"], ["an outbox replay drill"]),
           (I["kms"], ["rotation exercised"]))),
     )
-    w, gap, top, bh = 340, 34, 210, 530
-    PITCH = 150
-    c = Canvas(60 * 2 + len(bands) * w + (len(bands) - 1) * gap, 890,
+    w, gap, top, bh = 340, 34, 210, 720
+    PITCH = 128
+    c = Canvas(60 * 2 + len(bands) * w + (len(bands) - 1) * gap, 1090,
                "When — the S09 provisioning sequence",
-               "each band is gated on the one before it · P1 first because the Elastic IPs "
-               "have to be allowlisted by two external parties")
+               "each band is gated on the one before it · P1 first because the Elastic IPs must be "
+               "allowlisted by two external parties and the bank must terminate the VPN")
     prev, anchor_y = None, top + 130
     for i, (code, name, sub, pen, bg, items) in enumerate(bands):
         x = 60 + i * (w + gap)
@@ -445,8 +542,8 @@ def sequence():
                    color=REQ, width=3.0)
         anchor_y = first
         prev = g
-    c.text(c.w / 2, 830, "Nothing in P8 is a design document. Every item is a timed record "
-                         "of something that actually ran.", size=14, color=INK)
+    c.text(c.w / 2, 1010, "Nothing in P8 is a design document. Every item is a timed record "
+                          "of something that actually ran.", size=14, color=INK)
     return c.save(os.path.join(OUT, "r0-platform-sequence.svg"))
 
 

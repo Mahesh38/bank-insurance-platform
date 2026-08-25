@@ -180,7 +180,7 @@ one-line fix. Non-blocking.
 | A3 | Coupling justified and directional? | **Yes**, with A-F02: the safety test is wrongly coupled to live state |
 | A4 | Violates a principle or standing constraint? | **No.** It adds seven (see [`ws3-platform/00 §6`](../../../../platform/ws3-platform/00-WS3-ARCHITECTURE-REGISTRATION.md)) |
 | A5 | ADR exists where a decision changes? | **It did not.** Now supplied: ADR-001, ADR-002, ADR-003 |
-| A6 | Unnecessary infrastructure? | **No.** No runtime infrastructure is added. Deliberately: no event broker in R0 |
+| A6 | Unnecessary infrastructure? | **No.** No runtime infrastructure is added. Deliberately: no event broker in R0 *(superseded 2026-08-24 — `ADR-012` under [`CR-012`](../../CR-012-r0-platform-robustness.md) admitted MSK when this verdict's own class of trigger fired. The check and its answer stood at the time of this verdict; the R0 estate has moved)* |
 | A7 | Future migration problem? | **One**: the four audit-schema additions (OPEN-I3). Recorded, not silent |
 | A8 | Fits the current stage? | **Yes**, and it is the change that makes stage fit computable at all — GAP-D |
 | A9 | Smallest structural change? | **Nearly.** Registering one workstream and re-parenting two is the minimum that fixes GAP-D. I rejected a fourth workstream for the Flutter client (ADR-002) |

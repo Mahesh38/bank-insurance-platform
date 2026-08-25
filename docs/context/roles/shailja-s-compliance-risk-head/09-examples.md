@@ -27,6 +27,13 @@ If raw PAN is genuinely unavoidable, require a new assessment covering strict ac
 **Backlog:** performance optimisation is typically risk `R3`; AIGEM assigns its delivery priority separately.  
 **Not backlog-capable:** uncontrolled raw PAN exposure.
 
+> **This example stopped being hypothetical on 2026-08-24.** `ADR-011` provisions a shared
+> ElastiCache for Valkey tier in R0, so "put it in the cache" is now something a developer can
+> actually do. The ADR's own forbidden list already refuses it — no PII beyond the session's
+> principal claims, and per-service ACL users with key prefixes so the surface is not shared across
+> services — but the assessment above is the reasoning behind that refusal, and it is the one to
+> cite when the request arrives.
+
 ---
 
 ## Example 2 — Missing automated access recertification

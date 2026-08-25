@@ -32,6 +32,27 @@ Real work, wrong stage. Each returns to **full re-triage** at its trigger — ne
 > should promote it into the Phase 4 backlog alongside criterion 4.1, or re-park it with a
 > reason.
 
+> **2026-08-24 — what the R0 robustness round did and did not unpark.** `CR-012` admitted a
+> platform cache tier (`ADR-011`) and an event backbone (`ADR-012`) into WS-3's R0 estate. Neither
+> unparks a row above, and the distinction matters because it is the obvious mistake to make:
+>
+> - **`TD-010` / `SUG-0001` (Redis idempotency, WS-1) stay parked.** `ADR-011` explicitly refuses to
+>   hold idempotency in the cache — the record must be written in the same transaction as the
+>   business change (`INV-IDM-01`, `INV-PAY-04`). A shared cache existing does not make a
+>   cache-backed idempotency store correct, and WS-1's remaining blocker is still the horizontal
+>   scale-out decision (`DEP-006`), not the availability of infrastructure. `RISK-004` is unchanged.
+> - **`TD-009` (missing domain ports) stays parked**, on its original trigger. A broker does not
+>   supply a second implementation of anything.
+> - **WS-2's "Bank AD federation (OIDC / SAML / LDAP specifics)" (§2) stays parked.** `ADR-009`
+>   provisions the *path* to Bank AD; the *protocol* is still unconfirmed by the bank, which is what
+>   that row is waiting on (`DEP-010`, `RISK-003`). A private circuit to an unconfirmed protocol
+>   changes nothing about the design.
+>
+> What did change for §2's WS-1 rows: "Dashboards, alerts" and "Disaster-recovery testing" now have
+> a platform to run on sooner than Phase 6 assumed, because WS-3's S09 builds the observability and
+> DR layers. They stay parked for WS-1 — a platform existing is not a WS-1 work item — but a sweep
+> should check whether the WS-1 effort shrank.
+
 ## 2. Parked — stage-deferred by nature
 
 Work every platform needs, deliberately scheduled to Production Readiness. Listed so agents
@@ -63,6 +84,7 @@ as `LAPSED` after three gates (AS-3).
 | Date | Gate / trigger | Items swept | Promoted | Re-parked | Closed |
 |------|----------------|-------------|----------|-----------|--------|
 | 2026-08-07 | AIGEM adoption — initial seeding | 9 + 9 | 0 | — | 0 |
+| 2026-08-24 | Approved scope change — `CR-012` R0 robustness round | 4 examined (TD-010, SUG-0001, TD-009, WS-2 AD federation) | 0 | 4 — reasons in §1 | 0 |
 
 ---
 

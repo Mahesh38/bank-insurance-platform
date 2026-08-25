@@ -19,6 +19,20 @@ Deepali is `AP/B/H` at S07). Nothing in this document satisfies that requirement
 §3 separates the Partner principal class from Workforce, states Specified Person as an RM
 certification attribute, and adds the gated, insurer-scoped, assist-only IPR controls.
 
+**Revision 2026-08-24 — R0 robustness round** (`SUG-20260824-gp1` … `gp5`,
+[`CR-012`](../../governance/change-requests/CR-012-r0-platform-robustness.md)): five infrastructure
+layers move into R0 (`ADR-009` … `ADR-013`). For security that is one new trust boundary and three
+new assets inside an existing one: §2 adds **TB-7** (platform ↔ bank internal over a private
+circuit); §4 adds the TB-7 threat table and new TB-4 rows for the session vault, the event topics
+and the search domain; §4.1 adds `SEC-OPEN-7` and `SEC-OPEN-8`, which are Deepali's interim
+acceptances and not architecture's; §5 states that a private circuit is not encryption; §9 gains
+the denied-egress event class the new firewall makes visible for the first time.
+
+**Two of the five closures are security controls rather than security-relevant changes.**
+`ADR-010` (egress inspection) is Deepali's to **accept**, not to review. `ADR-011`'s session vault
+is an authentication asset. Nothing in this document, and nothing in those ADRs, constitutes her
+verdict.
+
 ---
 
 ## 1. Position
@@ -39,8 +53,9 @@ management, payment device isolation, and audit immutability.
 
 ## 2. Trust boundaries
 
-S07-E03-S02. Six boundaries. A boundary is a place where the assumption *"the caller is who it
-claims to be and may do what it asks"* has to be re-established.
+S07-E03-S02. **Seven** boundaries — TB-7 was added on 2026-08-24 with the private bank path. A
+boundary is a place where the assumption *"the caller is who it claims to be and may do what it
+asks"* has to be re-established.
 
 ```mermaid
 graph TB
@@ -71,7 +86,15 @@ graph TB
     subgraph Z4["Z4 — Data (private, no egress)"]
         DB[("Aurora / DynamoDB")]
         OBJ[("S3 + Object Lock")]
+        CACHE[("Valkey — sessions, L2")]
+        BUS[["MSK — event topics"]]
+        SRCH[("OpenSearch — operational")]
         KMS[("KMS / Secrets Manager")]
+    end
+
+    subgraph Z3N["Z3n — Network inspection (network account)"]
+        TGW["Transit Gateway"]
+        NFW["Network Firewall"]
     end
 
     subgraph Z5["Z5 — Bank internal"]
@@ -85,11 +108,14 @@ graph TB
     WAF --> GW ==>|"TB-2"| BFF
     BFF ==>|"TB-3"| PDP
     BFF --> SVCS
+    BFF ==>|"TB-4"| CACHE
     SVCS ==>|"TB-4"| DB
-    SVCS --> HUB --> ADPT ==>|"TB-5"| SB
+    SVCS ==>|"TB-4"| BUS
+    SVCS -.->|"TB-4 logs"| SRCH
+    SVCS --> HUB --> ADPT --> NFW ==>|"TB-5"| SB
     SVCS ==>|"TB-6"| PGW
-    SVCS --> CBS
-    IDPA --> AD
+    SVCS --> TGW ==>|"TB-7"| CBS
+    IDPA --> TGW ==>|"TB-7"| AD
     IDPA --> KC
     SVCS --> KMS
 ```
@@ -99,12 +125,15 @@ graph TB
 | **TB-1** | Internet → Edge | TLS 1.3 HTTPS; session cookie | OAuth access or refresh tokens (standing constraint); any direct datastore reach |
 | **TB-2** | Edge → Application | Authenticated session, correlation id | Unauthenticated request; caller-supplied `distributorId` |
 | **TB-3** | Application → Identity | Authorization query (subject, action, resource, context) | Business data; any request that assumes an allow on PDP failure |
-| **TB-4** | Application → Data | Least-privilege, per-service credential, TLS | Cross-service database access; a service account with UPDATE/DELETE on audit |
-| **TB-5** | Application → Provider (1SB) | Bank-canonical payload translated at the adapter, over an IP-allowlisted egress | Provider types leaking inward; secrets in payloads or logs |
+| **TB-4** | Application → Data | Least-privilege, per-service credential, TLS. **From 2026-08-24 this boundary also covers the session vault, the event topics and the search domain** — per-service Valkey ACL user with a key prefix, per-topic MSK IAM policy, and no workload write access to OpenSearch | Cross-service database access; a service account with UPDATE/DELETE on audit; a consumer group reading a topic it was not granted; a cache key prefix reachable by another service; evidence living only in a topic or an index |
+| **TB-5** | Application → Provider (1SB) | Bank-canonical payload translated at the adapter, over an **inspected, allowlisted egress** (`ADR-010`) — the mTLS session is passed intact, not decrypted | Provider types leaking inward; secrets in payloads or logs; an egress destination that is not in the firewall allowlist |
 | **TB-6** | Application/Customer → Payment Gateway | Payment session reference; PG callback | Card or account data into the platform; an RM principal on the authorisation path |
+| **TB-7** | Platform → Bank internal, over a private circuit (`ADR-009`) | CIF lookups and AD federation over Transit Gateway (VPN, then Direct Connect), **TLS on the application flow regardless of the private path** | Traffic between environments over the shared hub; a bank prefix advertised into the wrong route table; the assumption that a private circuit is authentication, or that it is encryption |
 
 **Boundary rule.** Every boundary is default-deny and every boundary re-authenticates. Being inside
-the VPC is not an authorisation.
+the VPC is not an authorisation — **and neither is being inside the circuit.** TB-7 is the first
+boundary where traffic originates outside AWS, and the routing table is part of its attack surface:
+a prefix in the wrong environment's table is a lateral path that no application code shows.
 
 ---
 
@@ -205,6 +234,12 @@ This is the artefact S07-G3 requires; a **human Security signature is required f
 | I | PII in a queryable column or an index | INV-PRP-05; restricted attributes only in the encrypted payload store (`02-information-model.md` PII-01) | Designed; `raw_payload.payload_enc` exists today |
 | I | PII in backups or logs | Backups encrypted with the store CMK; log-scan test (FF-05) | Converter exists, **unproven** (C5 🟡) |
 | E | Over-broad database role | Least-privilege roles; wildcard IAM blocked pre-apply (FF-09) | Designed, S09 |
+| S | **Session theft from the shared vault** — read access to Valkey is read access to live sessions, including the provider tokens the BFF holds | Per-service ACL user with a key-prefix grant; TLS in transit; CMK at rest; no public subnet placement; AUTH credential in Secrets Manager with a rotation path (FF-24) | **Designed 2026-08-24, unimplemented.** `ADR-011` — Deepali's review required |
+| T | **Idempotency or evidence written to the cache**, where it is not transactionally consistent with the business change | `ADR-011` forbids it, and FF-23 checks it: the idempotency and audit ports have no cache-backed implementation | Designed, machine-checked at S09 |
+| I | **A consumer group reads a topic it was not granted** | SASL/IAM with per-topic policy per consumer group; DLQ topics scoped and reviewed so they do not become an unmanaged copy of every failed payload | Designed 2026-08-24, `ADR-012` |
+| T | **Evidence exists only in a topic**, so a retention change silently destroys it | The audit consumer's write to DynamoDB + S3 WORM is the record; FF-26 asserts `SOLD` cannot be reached on a topic acknowledgement | Designed, machine-checked at S11 |
+| I | **Restricted attributes reach the search index** through the log pipeline | Masking at emission (FF-05) **plus** an index-side scan (FF-27); VPC-only domain with fine-grained access control and audited human access | Designed 2026-08-24, `ADR-013` |
+| E | **The log pipeline can write the audit archive**, or the audit role can read the search domain | IAM assertion in both directions (FF-28). The two pipes must not be able to reach each other | Designed, machine-checked at S09 |
 
 ### TB-5 — Application → 1SB
 
@@ -234,6 +269,20 @@ The highest-consequence boundary in the platform, and the one carrying a named R
 > a policy for money the bank never received. Making `RECONCILED` — not `CAPTURED` — the
 > precondition for issuance (INV-POL-01) turns that from a trust assumption into a control.
 
+### TB-7 — Platform → Bank internal (private circuit)
+
+New on 2026-08-24 with `ADR-009`. Two things make it different from the other boundaries: the
+traffic originates outside AWS, and the routing configuration is itself a control.
+
+| STRIDE | Threat | Mitigation | State |
+|---|---|---|---|
+| S | A workload impersonating the platform to CBS because the circuit is treated as authentication | Application-level authentication on every CBS and AD call, unchanged by the private path. **"Inside the circuit" is not an authorisation** | Designed |
+| T | Traffic modified on a path the bank and the platform jointly operate | TLS on every application flow **regardless** of the private circuit. A private circuit is not encryption | Designed |
+| I | **Cross-environment reach through the shared hub** — dev routing to a production bank prefix | One Transit Gateway route table per environment, explicit attachment association, no default association. Asserted in the IaC scan next to FF-09 | Designed 2026-08-24 |
+| I | CIF data on the public internet | The whole point of the closure: CBS and AD traffic leaves the internet entirely, and `uat`/`prod` may not use stubs | Designed; bank-side work outstanding (`DEP-20260824-dx1`) |
+| D | Circuit loss making the platform unable to authorise any RM | DX falls to VPN automatically; failover **exercised and timed** (`NFR-NET-01`). Both paths down is a typed `503` with no stale-identity fallback (`S-05`) | Designed, unproven |
+| E | A bank-side compromise reaching platform workloads over the same path | The hub is inspected in both directions (`ADR-010`); bank prefixes reach only the environment route table entitled to them; security groups remain default-deny on the workload side | Designed |
+
 ### 4.1 Threats accepted as open
 
 | ID | Threat | Why open | Owner | Target |
@@ -244,6 +293,8 @@ The highest-consequence boundary in the platform, and the one carrying a named R
 | SEC-OPEN-4 | No SAST, SCA, secret or image scanning | S08 deliverable | Amit + Deepali | GATE-S08 |
 | SEC-OPEN-5 | Data residency unverified on the current Render.com deployment | Deployment predates the residency control | Shivanshi + Shailja | **Immediate** — see the Security verdict |
 | SEC-OPEN-6 | No penetration test has been performed | S12 activity per the security canon | Deepali | S12 |
+| SEC-OPEN-7 | **Managed IPS rule groups run in alert mode, not drop, until production** (`ADR-010`) | Moving straight to drop on an unproven rule set turns a false positive into a provider outage. The interim is a deliberate trade and it is a **risk acceptance, not an architecture preference** | **Deepali** (accept or reject) + Shivanshi | Before prod |
+| SEC-OPEN-8 | **TLS inspection is not applied to the 1SB mTLS session** (`ADR-010`) | A man-in-the-middle on a mutually authenticated channel breaks client authentication. Those flows are matched on SNI and destination instead. The residual risk is an encrypted egress channel to one allowlisted destination that is not content-inspected | **Deepali** — and the scope must be tight enough that it cannot become a general bypass | Before UAT |
 
 ---
 
@@ -253,6 +304,9 @@ The highest-consequence boundary in the platform, and the one carrying a named R
 |---|---|
 | In transit, external | TLS 1.3; TLS 1.0/1.1 disabled at the runtime |
 | In transit, internal | Mutual TLS in the service mesh |
+| **In transit, private circuit** | TLS on every application flow over TB-7, **regardless** of Direct Connect or VPN. A private circuit is a path property, not a cryptographic one |
+| **In transit, platform tiers** | TLS to the cache (Valkey in-transit encryption on), TLS to MSK, TLS 1.2+ and node-to-node encryption on the search domain. None of the three is reachable without it |
+| **At rest, platform tiers** | Bank-owned CMKs on the cache, the broker and the search domain, drawn from the same per-class hierarchy — a new store does not get a new key convention |
 | At rest | KMS envelope encryption, AES-256, **CMK per data class**: one for `RESTRICTED`, one for `CONFIDENTIAL`, one for audit/archive. Not one platform key — blast radius is the point |
 | Key ownership | Bank-owned CMKs. No provider-managed key protects regulated data |
 | Rotation | Annual CMK rotation; credential rotation per class, **exercised at least once** (S09-E04-S04) |
@@ -331,9 +385,18 @@ sequence number and the tests do not exist. C7 is 🔴 and C8 is 🟡 for exactl
 | Restricted-data read by a human principal | every read | Audit store (PII-F) |
 | Secret access failure | every failure | Security event store + alert |
 | Maker-checker self-approval attempt | every attempt | Security event store + alert |
+| **Denied egress** (`ADR-010`) | every firewall drop on an outbound flow | Firewall alert log → CloudWatch + OpenSearch, **and** an alert on a sustained rate. This class did not exist before the closure: unrestricted 443 egress produced no event to log |
+| **Cross-environment routing anomaly** (`ADR-009`) | any accepted flow whose source and destination are in different environments | TGW flow log → security event store + alert. It should be structurally impossible; if it occurs, the route table is wrong |
+| **Cache cross-prefix access denial** (`ADR-011`) | every Valkey ACL rejection | Security event store + alert. A service reaching for another's keyspace is a defect or an attack, never a retry |
 
 Alerting on the middle four is deliberate: each is a control *working*, and a control that fires
 repeatedly is either under attack or misunderstood by a caller. Both are worth a page.
+
+The three additions follow the same logic, and the first is the reason `ADR-013` is in R0 rather
+than S13: a denied egress that nobody can query is a control that produces evidence nobody reads.
+**The security event store remains separate from the operational pipe** — OpenSearch indexes a copy
+for investigation; it is not the store of record for a security event, and it holds no regulatory
+evidence at all (`ADR-013`, `FF-28`).
 
 ---
 
@@ -344,5 +407,5 @@ outstanding mandatory human signature — is recorded separately in
 [`board-4-security-deepali.md`](../../governance/change-requests/CR-010/verdicts/board-4-security-deepali.md).
 
 **Drafted by:** Mahesh — Principal Insurance Platform Architect, for Deepali's ratification
-**signature_status:** `AI-DRAFTED — mandatory human Security signature outstanding (S07-G3, S07-G4)`
-**Date:** 2026-08-16 · **revised** 2026-08-20 (HLD review round — actors, LOB, configuration)
+**signature_status:** `AI-DRAFTED — mandatory human Security signature outstanding (S07-G3, S07-G4). The 2026-08-24 round adds TB-7, two interim risk acceptances (SEC-OPEN-7, SEC-OPEN-8) and ADR-010, which is a security control Deepali accepts rather than reviews`
+**Date:** 2026-08-16 · **revised** 2026-08-20 (HLD review round — actors, LOB, configuration) · **revised** 2026-08-24 (R0 robustness round — TB-7, platform-tier threats, denied-egress visibility)

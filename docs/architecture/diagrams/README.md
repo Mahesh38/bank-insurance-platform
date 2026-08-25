@@ -54,11 +54,30 @@ repository. Set `DIAGRAM_ICON_ROOT` to override where they are read from.
 
 | Output | Question |
 |---|---|
-| `r0-platform-topology` | What runs where — zones, subnets, namespaces, the two-hop proxy |
-| `r0-platform-az` | Which availability zone each resource sits in |
+| `r0-platform-topology` | What runs where — zones, subnets, namespaces, the two-hop proxy, and the one inspected way out |
+| `r0-platform-az` | Which availability zone each resource sits in, and which two services cannot do without the third zone |
 | `r0-platform-dr` | What exists in `ap-south-2`, and what deliberately does not |
 | `r0-platform-sequence` | In what order the platform team builds it |
 | `r0-platform-payment` | The C4 payment path — the hop people get wrong |
+
+### Revision 2026-08-24 — the R0 robustness round
+
+All five views were re-rendered in the same change as their source ([`CR-012`](../../governance/change-requests/CR-012-r0-platform-robustness.md),
+`ADR-009` … `ADR-013`), per `HA-03`. What changed in the pictures:
+
+- **topology** — an inspection/egress VPC in the `network` account (Transit Gateway → Network
+  Firewall → NAT with the allowlisted Elastic IPs), the workload VPC's public subnets drawn as
+  *reserved and empty*, three new tiers in the private-data subnets, and the `NOT IN R0` box rewritten
+  around what is still refused;
+- **az** — firewall endpoints beside the NAT, the cache pair across two zones, and MSK plus the
+  OpenSearch masters drawn as **quorum** services for which zone C is not a cost option;
+- **dr** — `D16` (the DR Transit Gateway and VPN attachment) added as a replicated pair, and a
+  *deliberately not replicated* group carrying `D13`–`D15` with the reason on each;
+- **sequence** — `P1` gains the hub, the inspection VPC and the VPN/DX order; `P3` becomes
+  *data + messaging*; `P6` becomes *observability + search*; `P8` gains two drills.
+
+The `NOT IN R0` group is the one to read first if you are checking for scope drift: it is shorter
+than it was, and every surviving row now cites the ADR that refuses it.
 
 ## The rule these files live under
 

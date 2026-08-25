@@ -107,6 +107,24 @@ The stage file's §6 names four open items. I verified each and sharpened one.
 | **ADR-001, ADR-002, ADR-003** | [`architecture-review/08`](../../platform/architecture-review/08-architecture-decision-log.md) | S07-G2, S07-E06-S01 |
 | **Standing constraints SC-W3-1…7** | [`ws3-platform/00 §6`](../../platform/ws3-platform/00-WS3-ARCHITECTURE-REGISTRATION.md) | S07-E06-S02 |
 
+### 5.0 What the 2026-08-24 robustness round changed in this table
+
+This is a record of an increment, so the counts above are left as they were when the increment
+closed. Six rows are superseded rather than wrong, and a reader comparing this file with the current
+sources needs to know which:
+
+| Row above | Then | Now (`CR-012`, `ADR-009` … `ADR-013`) |
+|---|---|---|
+| Seam catalogue | 19 seams (22 after the 2026-08-20 round) | **26** — `S-23` publish, `S-24` consume, `S-25` cache, `S-26` bank path |
+| **Event-backbone decision** | "no broker in R0, transactional outbox instead" | **Amazon MSK is in R0, and the outbox stays as its source of truth.** The recorded revisit trigger — a third distinct consumer class — fired inside R0, which is what §5.1 of the source now explains |
+| Fitness functions | 15 (21 after 2026-08-20) | **28** — `FF-22` … `FF-28` bound the five new layers |
+| Trust boundaries | 6 | **7** — `TB-7`, platform to bank internal over a private circuit |
+| NFR catalogue | 58 | **72** — `NFR-NET-*`, `NFR-CAC-*`, `NFR-EVT-*`, `NFR-OBS-*` |
+| ADRs | ADR-001 … ADR-003 | **ADR-001 … ADR-013** |
+
+Nothing in §4's verdicts changes: every one of those artefacts still carries the same outstanding
+human signatures, and the robustness round **added** approvals rather than resolving any.
+
 ### 5.1 The number that unblocks WS-1 criterion 4.6
 
 Recorded here because it is the single most operationally useful output of this increment.

@@ -60,6 +60,18 @@ flowchart LR
 
 Only API Gateway and the BFF are in the public request path. The adapter, authorization service, Keycloak, databases, Redis, and business services run in private subnets and are restricted by Kubernetes NetworkPolicy and service-to-service authentication.
 
+> **Session store decided, 2026-08-24.** The vault above is **Amazon ElastiCache for Valkey**, per
+> [`ADR-011`](../architecture-review/08-architecture-decision-log.md) under
+> [`CR-012`](../../governance/change-requests/CR-012-r0-platform-robustness.md). This closes a real
+> contradiction rather than adding a component: WS-2 specified a Redis session vault while
+> [`R0-LLD.md`](../../architecture/R0-LLD.md) §14 preferred DynamoDB and listed the choice as open.
+> WS-3's R0 estate now provisions the tier, the DynamoDB `sessions` table is withdrawn, and this
+> design stands as written. Two properties are added by that ADR: a **per-service ACL user with a
+> key prefix**, so no other service can read the session keyspace, and the tier is explicitly
+> **never** an idempotency or evidence store. The token-hiding invariant is unchanged — Flutter
+> still never receives a provider token, and the tokens now sit in a shared vault rather than a
+> per-service one, which is why Deepali's review of the ACL and rotation model is required.
+
 ## 4. Deployable components
 
 ### 4.1 `workforce-access-bff`

@@ -75,20 +75,24 @@ applies: a policy can be sold using only R0, by a real RM.
 | 1 | Foundation Recovery Increment: S08 engineering foundation and S09 platform foundation | Nothing downstream can be *evidenced* without them |
 | 2 | Consent capture and evidence (bounded context #6), per [consent rule pack](../../au-bank-insurance-platform/rule-packs/consent-rule-pack.md) | Legal precondition for processing customer data |
 | 3 | Suitability & need analysis (#7) including the quote hard-gate, per [suitability rule pack](../../au-bank-insurance-platform/rule-packs/suitability-rule-pack.md) | Bypassing suitability before quote is illegal on our own baseline |
-| 4 | Lead service (#5), thin — create, resume, status | Entry point of the journey |
+| 4 | Lead service (#5) — create, resume, status, convert, archive | Entry point; working inbox, not the 7-year bag |
 | 5 | Customer service (#4), thin — CBS/CIF lookup and prefill for ETB | ETB-only segment makes this the identity path |
 | 6 | Product catalogue (#8), R0 matrix only — Life, Group A, Term | Quote needs an eligible-product answer |
 | 7 | Journey orchestration (#9), R0 state machine only | Holds the gate sequence together |
 | 8 | Quotation (#10) via the existing 1SB path | Already largely built in WS-1 |
 | 9 | Proposal & UW tracking (#11), thin | Required to reach issuance |
 | 10 | Payment (#12) — AU Bank PG, customer-device only | RBI device isolation |
-| 11 | Policy & issuance (#13), visibility only | "Sold" is defined at issuance |
+| 11 | Policy & issuance (#13) — visibility, issuance history, `issuanceMode`, off-platform ingest | "Sold" is defined at issuance; MIS book capture |
 | 12 | Audit & compliance (#16), append-only evidence store | Every rule pack depends on it |
 | 13 | RM workspace BFF (#2) and the **Flutter RM application** for the R0 journey | Every journey currently terminates at an interface that does not exist |
 | 14 | Identity & access (#3) — consumed from WS-2, not rebuilt | See §6 |
 | 15 | Integration Hub (#14) and 1SB Adapter (#15) — consumed from WS-1, not rebuilt | See §5 |
 | 16 | R0 experience design: service blueprint, screen inventory, states, design system | S05 is the emptiest stage and S11 cannot start without a thin slice of it |
-| 17 | Pilot funnel reporting sufficient to answer whether R0 worked | A pilot with no measurement cannot conclude |
+| 17 | Reporting & MIS (#18) — R0 business reports on the isolated read path | Stakeholders require day-one reports; not on the Lead writer |
+| 18 | Administration UI (#19) — R0 maker-checker config and report access | Layer already in W0b; UI pulled into R0 by CR-013 |
+| 19 | Off-platform / portal Policy ingest (`source=OFF_PLATFORM`) | Completes the book; never `lead.create` |
+| 20 | `issuanceMode` STP / NON_STP / INSTA on Proposal and Policy | One saga, three modes |
+| 21 | PPHI 2024 control-to-seam map (Board 6 condition) | Compliance is the only remaining gate |
 
 ### 3.2 Out of scope, with revisit triggers
 
@@ -104,8 +108,7 @@ scope-fit triage consults for the rest of the programme's life
 | ULIP and Savings/Endowment product classes | R1 — suitability model already covers them ([pack §4.3–4.4](../../au-bank-insurance-platform/rule-packs/suitability-rule-pack.md#43-savings--endowment)) |
 | Customer BFF (#1) and the customer-facing Flutter surface | R1, with DIY |
 | Notification service (#17) beyond OTP and payment-link delivery | R1 |
-| Reporting & MIS (#18) beyond the pilot funnel | R1 |
-| Administration & config (#19) admin UI; R0 seeds by config | R1 |
+| Lead campaign and bulk origination (not single-RM create, not MIS policy ingest) | R1 |
 | Renewals and servicing (BR-SERV) | R2+ |
 | The remaining bounded contexts not listed in §3.1 | S13 — justified by the working slice, never by the diagram |
 | Health, Motor, Travel and other non-life LOBs | R2+ **and** only after WS-1 Phase 5 is unfrozen (§4) |
@@ -298,18 +301,22 @@ Mirrors the WS-1 and WS-2 shape exactly. Insert after the WS-2 block.
         - "Foundation Recovery Increment: S08 engineering foundation and S09 platform foundation"
         - "Consent capture and evidence (context #6) per the consent rule pack"
         - "Suitability and need analysis (context #7) including the quote hard-gate"
-        - "Lead service (context #5) — create, resume, status"
+        - "Lead service (context #5) — create, resume, status, convert, archive (working inbox; attribution fields retained)"
         - "Customer service (context #4) — CBS/CIF lookup and prefill for ETB"
         - "Product catalogue (context #8) — R0 matrix only: Life, Group A, Term"
         - "Journey orchestration (context #9) — R0 state machine"
         - "Quotation (context #10) via the existing 1SB path"
         - "Proposal and UW tracking (context #11), thin"
         - "Payment (context #12) — AU Bank PG, customer device only"
-        - "Policy and issuance (context #13) — visibility"
+        - "Policy and issuance (context #13) — visibility, issuance history, issuanceMode, off-platform ingest"
         - "Audit and compliance (context #16) — append-only evidence store"
         - "RM Workspace BFF (context #2) and the Flutter RM application for the R0 journey"
         - "R0 experience design: service blueprint, screen inventory, states, design system"
-        - "Pilot funnel reporting sufficient to conclude on R0"
+        - "Reporting and MIS (context #18) — R0 business reports on the isolated read path"
+        - "Administration UI (context #19) — R0 maker-checker config and report access"
+        - "Off-platform / insurer-portal sale ingest (Policy source=OFF_PLATFORM; never lead.create)"
+        - "issuanceMode STP | NON_STP | INSTA on Proposal and Policy"
+        - "PPHI 2024 control-to-seam mapping (Board 6 condition C-PPHI-1)"
 
       out_of_scope:
         - item: "Customer self-service (DIY) journey"
@@ -324,9 +331,7 @@ Mirrors the WS-1 and WS-2 shape exactly. Insert after the WS-2 block.
           revisit_at: "R1, with DIY"
         - item: "Notification service (context #17) beyond OTP and payment-link delivery"
           revisit_at: "R1"
-        - item: "Reporting and MIS (context #18) beyond the pilot funnel"
-          revisit_at: "R1"
-        - item: "Administration and config (context #19) admin UI"
+        - item: "Lead campaign and bulk origination (not single-RM create, not MIS policy ingest)"
           revisit_at: "R1"
         - item: "Renewals and servicing"
           revisit_at: "R2+"

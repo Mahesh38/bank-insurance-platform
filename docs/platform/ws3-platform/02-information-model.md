@@ -66,6 +66,7 @@ Flags: `[P]` personal data · `[F]` financial · `[H]` health · `[K]` KYC ident
 | `RET-7Y` | Record close + 7 years | Mutable during life, archived after | IRDAI record-keeping |
 | `RET-POLICY+7Y` | Policy termination + 7 years | Mutable during life | Long-tail policy servicing and dispute |
 | `RET-OPERATIONAL` | 90 days | Mutable | Operational telemetry; no regulated content |
+| `RET-WORKING-LEAD` | Lead terminal state + configured horizon (default 90 days) | Mutable then archived | Working inbox fields only. **Shailja C-RET-1:** attribution fields must not use this class |
 | `RET-TRANSIENT` | ≤ 24 hours | Mutable | Idempotency keys, schema cache, OTP challenge |
 
 > **Rule:** every attribute in §4 carries exactly one retention class. An attribute with no class is
@@ -141,30 +142,31 @@ Notation: `Cls` = classification · `Ret` = retention class · `Req` = mandatory
 | `snapshotTakenAt` | timestamptz | ✅ | INTERNAL | RET-POLICY+7Y | Snapshot semantics: the profile used by a journey is frozen at journey start |
 | `sourceSystem` | enum | ✅ | INTERNAL | RET-POLICY+7Y | `CBS` for R0 (ETB only) |
 
-### 4.2 Lead — the opportunity · SoR: Lead context
+### 4.2 Lead · SoR: Lead context
 
-The single origination record (`AC-8`). Created only by a `BANK_RM` principal (INV-LED-04).
+The single **on-platform** origination record (`AC-8`). Created only by a `BANK_RM` principal (INV-LED-04). Spoken and Product name is **Lead**. Opportunity is the durable-demand alias only (`ADR-014`). Off-platform sales do **not** create a Lead.
 
 | Attribute | Type | Req | Cls | Ret | Notes |
 |---|---|---|---|---|---|
-| `leadId` | ULID | ✅ | INTERNAL | RET-7Y | The opportunity identifier. Carried by every downstream aggregate (INV-LED-06) |
+| `leadId` | ULID | ✅ | INTERNAL | RET-7Y | Origin pointer. Carried by every on-platform downstream aggregate (INV-LED-06). **C-RET-1 — never `RET-WORKING-LEAD`** |
 | `customerId` | ref | ✅ | INTERNAL | RET-7Y | ETB only in R0; must be inside the creating RM's book (INV-LED-05) |
-| `state` | enum | ✅ | INTERNAL | RET-7Y | §4.1 of the domain model |
-| `lob` | enum | ✅ | INTERNAL | RET-7Y | **`LIFE` for R0.** One of `LIFE` \| `HEALTH` \| `GENERAL`, non-null, immutable (`LB-1`, `LB-2`) |
-| `productClass` | enum | ⭘ | INTERNAL | RET-7Y | **`TERM` for R0.** A distinct dimension from `lob` (`LB-3`) — this row corrects the earlier sheet, which recorded `lob = TERM` |
+| `state` | enum | ✅ | INTERNAL | RET-7Y | §4.1 — includes `ARCHIVED` |
+| `lob` | enum | ✅ | INTERNAL | RET-7Y | **`LIFE` for R0.** One of `LIFE` \| `HEALTH` \| `GENERAL`, non-null, immutable (`LB-1`, `LB-2`). **C-RET-1** |
+| `productClass` | enum | ⭘ | INTERNAL | RET-WORKING-LEAD | **`TERM` for R0.** A distinct dimension from `lob` (`LB-3`) |
 | `createdByActorType` | enum | ✅ | INTERNAL | RET-7Y | Always `BANK_RM`; no other value is writable (INV-LED-04) |
-| `accountableSpId` | ref | ✅ | INTERNAL | RET-7Y | The originating RM principal. Written once, immutable for the life of the record (INV-ACT-03) |
-| `accountableSpCertRef` | structured | ✅ | INTERNAL | RET-7Y | `{certificateNumber, lobScope, validFrom, validTo}` snapshotted at origination — the certification *as it stood* when the sale began, which is what a regulator asks for |
-| `needAnalysisState` | enum | ✅ | INTERNAL | RET-7Y | `NOT_STARTED` \| `IN_PROGRESS` \| `COMPLETED`. Half of the IPR visibility predicate (`AC-4`) |
-| `insurerId` | ref | ⭘ | INTERNAL | RET-7Y | Set when an insurer is selected; the IPR scoping key (`AC-5`). Null means visible to no IPR |
-| `partnerVisibleFrom` | timestamptz | ⭘ | INTERNAL | RET-7Y | Set when `AC-4` first holds; null while the record is invisible to every IPR |
+| `accountableSpId` | ref | ✅ | INTERNAL | RET-7Y | The originating RM principal. Written once, immutable (INV-ACT-03). **C-RET-1** |
+| `accountableSpCertRef` | structured | ✅ | INTERNAL | RET-7Y | `{certificateNumber, lobScope, validFrom, validTo}` snapshotted at origination. **C-RET-1** |
+| `needAnalysisState` | enum | ✅ | INTERNAL | RET-WORKING-LEAD | `NOT_STARTED` \| `IN_PROGRESS` \| `COMPLETED`. Half of the IPR visibility predicate (`AC-4`) |
+| `insurerId` | ref | ⭘ | INTERNAL | RET-WORKING-LEAD | Set when an insurer is selected; the IPR scoping key (`AC-5`) |
+| `partnerVisibleFrom` | timestamptz | ⭘ | INTERNAL | RET-WORKING-LEAD | Set when `AC-4` first holds |
 | `configVersions` | map | ✅ | INTERNAL | RET-7Y | Configuration versions in force at origination (INV-CFG-03) |
-| `source` | enum | ✅ | INTERNAL | RET-7Y | `RM` only in R0. Campaign and self-service origination are R1+ and are not writable now (`AC-8`) |
-| `assignedRmId` | ref | ⭘ | INTERNAL | RET-7Y | WS-2 principal |
-| `assignmentHistory[]` | entity list | ✅ | INTERNAL | RET-7Y | `{rmId, assignedAt, assignedBy, reason}` — append-only |
-| `followUps[]` | entity list | ⭘ | CONFIDENTIAL [P] | RET-7Y | Free-text notes may contain personal detail |
-| `expiresAt` | timestamptz | ✅ | INTERNAL | RET-7Y | Ageing horizon; value is configuration (OPEN-D4) |
-| `convertedJourneyId` | ref | ⭘ | INTERNAL | RET-7Y | Set once (INV-LED-02) |
+| `source` | enum | ✅ | INTERNAL | RET-7Y | `RM` only for Lead create. Campaign/self-service not writable (`AC-8`) |
+| `assignedRmId` | ref | ⭘ | INTERNAL | RET-WORKING-LEAD | WS-2 principal |
+| `assignmentHistory[]` | entity list | ✅ | INTERNAL | RET-WORKING-LEAD | `{rmId, assignedAt, assignedBy, reason}` — append-only |
+| `followUps[]` | entity list | ⭘ | CONFIDENTIAL [P] | RET-WORKING-LEAD | Free-text notes may contain personal detail |
+| `expiresAt` | timestamptz | ✅ | INTERNAL | RET-WORKING-LEAD | Ageing horizon; value is configuration (OPEN-D4) |
+| `convertedJourneyId` | ref | ⭘ | INTERNAL | RET-7Y | Set once (INV-LED-02). **C-RET-1** |
+| `archivedAt` | timestamptz | ⭘ | INTERNAL | RET-7Y | Set when the working inbox row is archived after a terminal state |
 
 ### 4.3 Consent — SoR: Consent context · **append-only**
 
@@ -242,6 +244,7 @@ which is evidence that the canonical shape is already implementable rather than 
 | `requirements[]` | entity list | ⭘ | CONFIDENTIAL [H] | RET-POLICY+7Y | `{requirementId, type, subType, description, status, dueDate}` |
 | `documents[]` | entity list | ⭘ | RESTRICTED [P][H] ⚑ | RET-7Y-IMMUTABLE | Object references, never inline bytes |
 | `counterOffer` | structured | ⭘ | CONFIDENTIAL [F] | RET-POLICY+7Y | Revised premium/sum assured |
+| `issuanceMode` | enum | ✅ | INTERNAL | RET-POLICY+7Y | `STP` \| `NON_STP` \| `INSTA`. Configuration, not a code branch. **C-ISS-1:** no mode skips C1/C2/C4/C7 |
 
 ### 4.7 Payment — SoR: Payment context
 
@@ -278,6 +281,10 @@ trust boundary.
 | `issuedAt`, `confirmedAt` | timestamptz | ✅ | INTERNAL | RET-POLICY+7Y | Two distinct facts — see the "sold" definition |
 | `documents[]` | entity list | ✅ | CONFIDENTIAL [P] | RET-7Y-IMMUTABLE | Policy PDF / COI object references |
 | `freeLookExpiresAt` | timestamptz | ✅ | INTERNAL | RET-POLICY+7Y | |
+| `issuanceMode` | enum | ✅ | INTERNAL | RET-POLICY+7Y | Inherited from Proposal |
+| `source` | enum | ✅ | INTERNAL | RET-POLICY+7Y | `ON_PLATFORM` \| `OFF_PLATFORM`. Off-platform rows have no `leadId` and must not be counted as platform conversion |
+| `leadId` | ref | ⭘ | INTERNAL | RET-POLICY+7Y | Required when `source=ON_PLATFORM`. **Absent** when `source=OFF_PLATFORM` (C-ING-1) |
+| `stateHistory[]` | entity list | ✅ | INTERNAL | RET-POLICY+7Y | Append-only `{from, to, at, actorId, reason}` — the historic issuance transitions Compliance requires |
 
 ### 4.9 Journey — SoR: Journey Orchestration
 
@@ -286,7 +293,7 @@ trust boundary.
 | `journeyId` | ULID | ✅ | INTERNAL | RET-7Y | Already threaded through `integration_job.journey_id` today |
 | `stage` | enum | ✅ | INTERNAL | RET-7Y | §5 of the domain model |
 | `channel` | enum | ✅ | INTERNAL | RET-7Y | RM-assisted / self-service / hybrid |
-| `customerId`, `rmId`, `leadId` | ref | ✅ | INTERNAL | RET-7Y | `leadId` is the originating opportunity; a journey cannot exist without it (INV-LED-06) |
+| `customerId`, `rmId`, `leadId` | ref | ✅ | INTERNAL | RET-7Y | `leadId` is the originating Lead; an on-platform journey cannot exist without it (INV-LED-06) |
 | `lob` | enum | ✅ | INTERNAL | RET-7Y | Inherited from the opportunity, non-null, immutable (`LB-1`, ID-05) |
 | `accountableSpId` | ref | ✅ | INTERNAL | RET-7Y | The RM. Immutable; unaffected by any partner assistance (INV-ACT-03) |
 | `currentAssistingActorId`, `currentAssistingActorType` | ref / enum | ⭘ | INTERNAL | RET-7Y | Who is assisting *now* (`JS-06`). Never the accountable SP |
@@ -327,9 +334,10 @@ for.
 
 ### 4.11 ConfigurationRecord — SoR: Administration & Config · **append-only, versioned**
 
-The configuration layer ships in R0 with no administrative user interface (`CF-5`). This sheet is
-the reason that is safe: the store, its versioning and its resolution contract exist from release 1,
-so the UI that arrives later is a consumer, not a re-platforming.
+The configuration layer ships in W0b. The administration UI is an R0 W4 consumer (`ADR-014`,
+`CF-5`). This sheet is why that is safe: the store, its versioning and its resolution contract
+exist before the screen; the UI does not re-platform the rules, and it must not sit on the Lead
+writer (C-ISO-1).
 
 | Attribute | Type | Req | Cls | Ret | Notes |
 |---|---|---|---|---|---|

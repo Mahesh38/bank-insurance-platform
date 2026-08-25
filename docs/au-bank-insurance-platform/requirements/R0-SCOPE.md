@@ -37,7 +37,7 @@ For material scope, investment or pilot-outcome questions, use the Dilip AI Exec
 | A7 | Suitability + Need Analysis **mandatory** before quote |
 | A8 | Consent **mandatory**; sequencing pending compliance R&D |
 | A9 | Payment on **customer device**; **no RM-device payment**; AU Bank PG only |
-| A10 | Lead module **in Insurance Platform** (future migrate to Sampath) |
+| A10 | Lead module **in Insurance Platform** — working inbox (create/resume/convert/archive). Opportunity is an alias only. 7-year SoT is Payment, Policy history, Consent, Suitability, Audit |
 | A11 | Figma = **reference only** |
 | A12 | 1SB = current integration layer (not a temporary hack); no tight coupling |
 
@@ -49,7 +49,7 @@ For material scope, investment or pilot-outcome questions, use the Dilip AI Exec
 |------|-----|
 | Identity | Bank SSO / AD path per BRD §1–2 |
 | User management | Roles, access, hierarchy (bank; partner depth as needed) |
-| Lead | In-platform Lead module (create/update/follow-up/assign; bulk/campaign may phase) |
+| Lead | In-platform Lead module (create/update/follow-up/assign/convert/archive). Bulk/campaign stays phased. Name is **Lead** |
 | Customer | CBS fetch (Cust ID / Mobile / PAN etc.) for ETB |
 | Rules / workflow | Core lead/application gates; configurable where possible |
 | Suitability | Check, partner product list, PDF, consent records |
@@ -59,8 +59,10 @@ For material scope, investment or pilot-outcome questions, use the Dilip AI Exec
 | Proposal (Group A) | Prefill/masking, consents, submission, status |
 | Risk / fraud | PTL/RAG and related flows as partner-ready (configurable) |
 | Payment | Dual mandate (as decided), IFT, AU Bank PG; cheque may phase |
-| Issuance | Status, confirmation, policy PDF & customer communication |
-| Reporting | Funnel + sold definition; full MIS may phase |
+| Issuance | Status, confirmation, policy PDF, **historic state transitions**, `issuanceMode` STP / non-STP / Insta |
+| Off-platform book | MIS upload of offline / insurer-portal policies (`source=OFF_PLATFORM`); never creates a Lead |
+| Reporting | R0 MIS: funnel, sold, on- vs off-platform, products needing onboarding — isolated read path |
+| Administration | R0 admin panel: configuration maker-checker and report generation |
 | Integration | 1SB UAT → prod; credentials model per Working Decisions §12 |
 
 ---

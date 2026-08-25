@@ -134,12 +134,10 @@ The seven that currently differ, and are therefore always written in the arrow f
 | 11 | Proposal & UW-Tracking | *LOB* Proposal / Case Mgmt | Per-LOB from R1; the boundary is frozen |
 | 13 | Policy & Issuance | Policy Portfolio / Registry | Issuance coordination moves into the cell; the registry stays shared |
 
-Context **#5** was in that table until `OPEN-D10` closed on 2026-08-20. It is now named
-**Opportunity** in the register and at target state alike, so it has no arrow form and both files
-write `#5 Opportunity` plainly
-([`ADR-005` `naming_resolution`](../../../platform/architecture-review/08-architecture-decision-log.md)).
-Identifiers did not follow the name: `leadId`, `INV-LED-*` and `CAP-102` keep their tokens, because
-an ID is opaque and rewriting them breaks every citation to buy nothing.
+Context **#5** is named **Lead** in Product, UI and architecture primary text
+(`DEC-20260825-01` D1, `ADR-014`). Opportunity remains the durable-demand alias only.
+Both files write `#5 Lead` plainly. Identifiers did not follow any rename: `leadId`,
+`INV-LED-*` and `CAP-102` keep their tokens.
 
 **Rule LY-1 — the ten boundaries are the layer vocabulary for every horizon.** The North Star's
 boundaries are not a drawing style; they are the layer model. Every horizon diagram lays its
@@ -308,9 +306,9 @@ The footer carries provenance and must be kept truthful:
   human T4 Architecture sign-off outstanding`;
 - **derivation** — which source documents the render was built from;
 - **deferrals** — what is deliberately absent, matching `03-solution-architecture-r0.md §3`
-  exactly: `#1` Customer BFF and `#18` Reporting & MIS at S13, the `#19` Administration & Config
-  **user interface** at R1+ (the configuration *layer* ships in R0 as `W0b`), and campaign / bulk
-  lead management on top of `#5` (origination itself is `W1`, `AC-9`);
+  exactly: `#1` Customer BFF (DIY, R1), campaign / bulk Lead create on top of `#5` (single-RM
+  origination itself is `W1`, `AC-9`). `#18` Reporting & MIS and the `#19` admin UI are **in R0
+  W4** on the isolated read path (`ADR-014`). The configuration *layer* still ships in `W0b`;
 - **standing exceptions** — e.g. Render.com is dev-preview only, never a PII path (`ADR-001`);
 - **date**.
 
@@ -383,7 +381,8 @@ done
 ```
 
 Read the two lists side by side. A number present in one and absent from the other is only
-correct if the context is genuinely out of R0 — `#1` and `#18` are the two legitimate cases. Any
+correct if the context is genuinely out of R0 — `#1` Customer BFF is the legitimate case. `#18`
+is in R0 W4 (`ADR-014`). Any
 other asymmetry, and any name that differs without the `NC-1` arrow form, is the finding.
 
 ---

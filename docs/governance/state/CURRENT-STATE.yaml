@@ -82,18 +82,22 @@ workstreams:
         - "Foundation Recovery Increment: S08 engineering foundation and S09 platform foundation"
         - "Consent capture and evidence (context #6) per the consent rule pack"
         - "Suitability and need analysis (context #7) including the quote hard-gate"
-        - "Lead service (context #5) — create, resume, status"
+        - "Lead service (context #5) — create, resume, status, convert, archive (working inbox; attribution fields retained)"
         - "Customer service (context #4) — CBS/CIF lookup and prefill for ETB"
         - "Product catalogue (context #8) — R0 matrix only: Life, Group A, Term"
         - "Journey orchestration (context #9) — R0 state machine"
         - "Quotation (context #10) via the existing 1SB path"
         - "Proposal and UW tracking (context #11), thin"
         - "Payment (context #12) — AU Bank PG, customer device only"
-        - "Policy and issuance (context #13) — visibility"
+        - "Policy and issuance (context #13) — visibility, issuance history, issuanceMode, off-platform ingest"
         - "Audit and compliance (context #16) — append-only evidence store"
         - "RM Workspace BFF (context #2) and the Flutter RM application for the R0 journey"
         - "R0 experience design: service blueprint, screen inventory, states, design system"
-        - "Pilot funnel reporting sufficient to conclude on R0"
+        - "Reporting and MIS (context #18) — R0 business reports on the isolated read path"
+        - "Administration UI (context #19) — R0 maker-checker config and report access"
+        - "Off-platform / insurer-portal sale ingest (Policy source=OFF_PLATFORM; never lead.create)"
+        - "issuanceMode STP | NON_STP | INSTA on Proposal and Policy"
+        - "PPHI 2024 control-to-seam mapping (Board 6 condition C-PPHI-1)"
 
       out_of_scope:
         - item: "Customer self-service (DIY) journey"
@@ -108,9 +112,7 @@ workstreams:
           revisit_at: "R1, with DIY"
         - item: "Notification service (context #17) beyond OTP and payment-link delivery"
           revisit_at: "R1"
-        - item: "Reporting and MIS (context #18) beyond the pilot funnel"
-          revisit_at: "R1"
-        - item: "Administration and config (context #19) admin UI"
+        - item: "Lead campaign and bulk origination (not single-RM create, not MIS policy ingest)"
           revisit_at: "R1"
         - item: "Renewals and servicing"
           revisit_at: "R2+"
@@ -541,7 +543,7 @@ id_allocation:
     # CR-011 existed as a file from 2026-08-20 without a register row, so the counter read 11
     # while CR-011 was in use; it is now indexed in the decision register and the counter clears
     # both it and CR-012.
-    CR: 13        # CR-001..012 in use; next unused is CR-013
+    CR: 14        # CR-001..013 in use; next unused sequential value is 14
     RISK: 16      # RISK-001..015 in use (012..015 added by CR-012)
     ASM: 12       # ASM-001..011 in use (009..011 added by CR-012)
     EPIC: 1
@@ -554,4 +556,4 @@ id_allocation:
     # collision warning. This is an ID-allocation correction only. No stage, scope or gate field is
     # touched by it; those remain human-owned (04 section 5).
     # ADR-009..013 were added by the 2026-08-24 R0 robustness round (CR-012, SUG-20260824-gp1..gp5).
-    ADR: 14
+    ADR: 15

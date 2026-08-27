@@ -49,6 +49,15 @@ without a search.
 > ADR IDs are assigned by the architecture decision log. New architectural decisions arising
 > from AIGEM triage are raised there and indexed here.
 
+### 1.1 Database decisions (Aarti)
+
+| ID | Decision | Status | Constrains |
+|----|----------|--------|------------|
+| DB-DEC-0001 | R0 physical model: one Aurora cluster, schema per context, PostgreSQL SoR for every transactional context; no CRUD stored procedures; `lob` is an index prefix not a partition key | AI-DRAFTED (`APPROVED_WITH_OBSERVATIONS`) — human Aarti signature outstanding | A second engine for Journey/Quote/Audit at R0; CRUD stored procedures; declarative `lob` partitions at R0; extending `bank-persistence-service` to business contexts |
+| DB-DEC-0002 | DATA-001 pack is **not** aligned to CR-013: need Lead archive, `issuance_mode`, Policy ingest + nullable `lead_id`, `stateHistory`, isolated MIS path, per-schema outbox | AI-DRAFTED (`CHANGES_REQUIRED`, `D1`) — schema delta is `DATA-002`; not implemented in the raise turn | Treating DATA-001 as sufficient for W1/W3/W4; second cluster / S08 isolation service; off-platform `lead.create`; purge before restore test |
+
+Full records: [`DB-DEC-0001`](../../platform/data-architecture/DB-DEC-0001-r0-physical-model.md) · [`DB-DEC-0002`](../../platform/data-architecture/DB-DEC-0002-cr013-alignment-review.md).
+
 ## 2. Governance decisions
 
 | ID | Date | Decision | Rationale | Decided by |

@@ -268,7 +268,7 @@ graph TB
 | Render.com | Dev preview only. Never a PII data path. See ADR-001 in [`../architecture-review/08-architecture-decision-log.md`](../architecture-review/08-architecture-decision-log.md) |
 | **Partner (IPR) exposure** | The partner surface enters through the **same** API Gateway and the same BFF contract as the RM surface. There is no partner-specific service and no partner-specific journey path (`AC-3`); the difference is entirely the PDP decision and the query-layer scope (`AC-5`) |
 | **Actor scoping** | Every read on behalf of an `INSURER_PARTNER_REP` principal is constrained at the persistence layer by `insurer_id` **and** the `AC-4` visibility predicate. A repository method that can be called without them does not exist (`FF-17`) |
-| **LOB** | `lob` is a non-null column on every business and configuration table from the first migration (`LB-1`). Physical partitioning strategy is Aarti's (OPEN-I6); the logical dimension is not negotiable |
+| **LOB** | `lob` is a non-null column on every business and configuration table from the first migration (`LB-1`). Physical partitioning at R0 is an index prefix, not a partition key (`DATA-001` / OPEN-I6); the logical dimension is not negotiable |
 | **Configuration** | One store, LOB-partitioned, append-only versioned, effective-dated, seeded from source-controlled artefacts. Services resolve through a port and cache to the resolution TTL; no service embeds a rule (`CF-1`…`CF-4`) |
 
 ---
@@ -503,14 +503,14 @@ be allowed to work.
 
 | Item | Owner | Why not here |
 |---|---|---|
-| Physical schema, indexes, partitioning per context | Aarti | S07-E04-S02; requires the ratified logical model first |
+| Physical schema, indexes, partitioning per context | Aarti | **Design drafted** in [`data-architecture/`](../data-architecture/README.md) (`DATA-001`). Human signature and S09 Flyway apply remain |
 | Autoscaling policy, HPA/KEDA targets, node sizing, broker/cache/search node classes | Shivanshi | S07 §7 lists it as premature; S14 sizes it. The robustness round fixes the *shapes* (§4) for availability, never the instance classes |
 | Multi-region active-active | Mahesh + Shivanshi | Premature; warm standby is the R0 posture |
 | Cost model | Shivanshi + Kalpana | S09 output |
 | Flutter application architecture, design system, state management | Mahesh + Rajal | S05 is 🔴 Missing (GAP-009); a UI architecture without a design baseline would be invented, not derived |
 | Group B redirect journey | Rajal | Out of the R0 platform slice |
 | The exact IPR permitted-action set — where assistance ends and solicitation begins | **Shailja** | `ID-21` / `JS-09`: I build the gate and ship it default-deny; the threshold is a compliance determination. Recorded as OPEN-D9 in [`01`](./01-domain-model-and-invariants.md) |
-| Physical partitioning of the `lob` dimension per store | Aarti | `LB-1` fixes the logical dimension; partition key versus index prefix is a persistence decision (OPEN-I6) |
+| Physical partitioning of the `lob` dimension per store | Aarti | **R0 decision:** index prefix, not a partition key — [`01 §5`](../data-architecture/01-physical-design.md#5-open-i6--lob-partitioning) |
 | Exact MIS report catalog and row-level access on the admin/MIS UI | Rajal + Deepali + Shailja | Surfaces are in R0 W4 (`ADR-014`); the catalogue and authz matrix are not invented here |
 | Topic partition counts, retention windows, consumer-group IAM matrix | Shivanshi + Deepali | The **backbone** is decided (§5.1, `ADR-012`). Its operational parameters and its access matrix are not architecture's to set |
 | Firewall rule-set curation and the managed-IPS alert→drop date | Deepali + Shivanshi | `ADR-010` is a security control: the interim posture is Deepali's acceptance, not an architecture preference |

@@ -556,4 +556,4 @@ id_allocation:
     # collision warning. This is an ID-allocation correction only. No stage, scope or gate field is
     # touched by it; those remain human-owned (04 section 5).
     # ADR-009..013 were added by the 2026-08-24 R0 robustness round (CR-012, SUG-20260824-gp1..gp5).
-    ADR: 16        # ADR-001..015 in use (015 = NIP-APP one client, 2026-08-25)
+    ADR: 17        # ADR-001..016 in use (015 = NIP-APP; 016 = ARB enterprise baseline). ID-allocation only.

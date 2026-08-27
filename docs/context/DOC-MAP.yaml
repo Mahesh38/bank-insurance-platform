@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 480
-total_bytes: 11943358
+document_count: 517
+total_bytes: 12935157
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -933,7 +933,7 @@ documents:
     persona: null
     title: "Documentation — Master Index"
     answers: "Programme: AU Small Finance Bank — Insurance Distribution Platform"
-    bytes: 16025
+    bytes: 16196
   - path: docs/application-lifecycle-bible/00-HOW-TO-USE.md
     bucket: lifecycle
     authority: proposed-cr-010
@@ -1125,7 +1125,7 @@ documents:
     persona: quality
     title: "S07 — Solution & Security Architecture · Retroactive Stage Evidence"
     answers: "Gate: GATE-S07 · Workstream: WS-3 (proposed under CR-010)"
-    bytes: 22569
+    bytes: 22960
   - path: docs/application-lifecycle-bible/stages/S00-ideation.md
     bucket: lifecycle
     authority: proposed-cr-010
@@ -1869,7 +1869,7 @@ documents:
     persona: null
     title: "AGENT CONTEXT INDEX"
     answers: "============================================================================="
-    bytes: 42236
+    bytes: 43066
   - path: docs/context/BOOT.md
     bucket: context
     authority: non-binding-context
@@ -1885,7 +1885,23 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 172773
+    bytes: 183555
+  - path: docs/context/DOC-MAP.yaml
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient, docs-navigation]
+    persona: null
+    title: "DOC MAP"
+    answers: "============================================================================="
+    bytes: 183555
+  - path: docs/context/DOC-MAP.yaml
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient, docs-navigation]
+    persona: null
+    title: "DOC MAP"
+    answers: "============================================================================="
+    bytes: 183555
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -3414,6 +3430,22 @@ documents:
     title: "PLAN-001 — Reusable Context Module and Safe Autopilot"
     answers: "objective: The repository has one portable context contract and an evidence-driven automation loop that continues safe READY work while preserving…"
     bytes: 6023
+  - path: docs/governance/plans/PLAN-002-r0-physical-data-architecture.md
+    bucket: governance
+    authority: binding-process
+    capsules: [delivery-planning, plan-work]
+    persona: delivery
+    title: "PLAN-002 — R0 physical data architecture pack"
+    answers: "objective: Close OPEN-I1 / OPEN-I6 as an AI-drafted physical design: rules, topology, per-context schema, indexes, required routines, operations and…"
+    bytes: 6830
+  - path: docs/governance/plans/PLAN-003-cr013-physical-alignment.md
+    bucket: governance
+    authority: binding-process
+    capsules: [delivery-planning, plan-work]
+    persona: delivery
+    title: "PLAN-003 — Align R0 physical pack with CR-013"
+    answers: "objective: After this change the DATA-001 physical pack expresses CR-013 / ADR-014 facts (Lead archive, issuanceMode, off-platform Policy ingest,…"
+    bytes: 4895
   - path: docs/governance/registers/ASSUMPTION-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -3429,7 +3461,7 @@ documents:
     persona: null
     title: "Decision Register"
     answers: "Index of decisions that constrain future work: ADRs, change requests, stage transitions, and"
-    bytes: 34777
+    bytes: 35965
   - path: docs/governance/registers/DEPENDENCY-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -3445,7 +3477,7 @@ documents:
     persona: null
     title: "Parked Backlog"
     answers: "Parked is not deleted. Every entry names the stage that unparks it and the observable"
-    bytes: 9207
+    bytes: 10425
   - path: docs/governance/registers/RISK-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -3461,7 +3493,23 @@ documents:
     persona: null
     title: "Suggestion Register"
     answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 148027
+    bytes: 153588
+  - path: docs/governance/registers/SUGGESTION-REGISTER.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, delivery-planning]
+    persona: null
+    title: "Suggestion Register"
+    answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
+    bytes: 153588
+  - path: docs/governance/registers/SUGGESTION-REGISTER.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, delivery-planning]
+    persona: null
+    title: "Suggestion Register"
+    answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
+    bytes: 153588
   - path: docs/governance/schemas/README.md
     bucket: governance
     authority: binding-process
@@ -3533,7 +3581,23 @@ documents:
     persona: null
     title: "CURRENT STATE"
     answers: "AIGEM — Machine-readable current state"
-    bytes: 30841
+    bytes: 30870
+  - path: docs/governance/state/CURRENT-STATE.yaml
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, delivery-planning]
+    persona: null
+    title: "CURRENT STATE"
+    answers: "AIGEM — Machine-readable current state"
+    bytes: 30870
+  - path: docs/governance/state/CURRENT-STATE.yaml
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, delivery-planning]
+    persona: null
+    title: "CURRENT STATE"
+    answers: "AIGEM — Machine-readable current state"
+    bytes: 30870
   - path: docs/governance/state/GATE-EVIDENCE.yaml
     bucket: governance
     authority: binding-process
@@ -3725,7 +3789,7 @@ documents:
     persona: architecture
     title: "Platform — cross-cutting architecture & specifications"
     answers: "A document belongs in platform/ when it is true of the platform as a whole — service"
-    bytes: 4162
+    bytes: 4390
   - path: docs/platform/architecture-review/01-executive-summary-and-approach.md
     bucket: platform
     authority: approved-spec
@@ -3806,6 +3870,222 @@ documents:
     title: "Workforce Authentication and Authorization — Service SSOT"
     answers: "Primary identity provider for development: Keycloak"
     bytes: 19336
+  - path: docs/platform/data-architecture/00-design-rules.md
+    bucket: platform
+    authority: ai-drafted
+    capsules: [database-review, architecture-review]
+    persona: database
+    title: "00 — Aarti persistence design rules (R0)"
+    answers: "Does not bind: Product behaviour, service boundaries, Security outcomes, QA evidence"
+    bytes: 9149
+  - path: docs/platform/data-architecture/01-physical-design.md
+    bucket: platform
+    authority: ai-drafted
+    capsules: [database-review, architecture-review]
+    persona: database
+    title: "01 — Physical design: topology, tables, relationships, indexes, routines"
+    answers: "Companion DDL: schemas/"
+    bytes: 13775
+  - path: docs/platform/data-architecture/02-operations-and-troubleshooting.md
+    bucket: platform
+    authority: ai-drafted
+    capsules: [database-review, architecture-review]
+    persona: database
+    title: "02 — Operations: migration, encryption, backup, retention, troubleshooting"
+    answers: "Design only. Restore, Object Lock and residency attestation are proven at S09"
+    bytes: 10971
+  - path: docs/platform/data-architecture/DATA-001.work-item.yaml
+    bucket: platform
+    authority: ai-drafted
+    capsules: [database-review, architecture-review]
+    persona: database
+    title: "DATA 001.work item"
+    answers: "schema: work-item"
+    bytes: 3231
+  - path: docs/platform/data-architecture/DATA-002-cr013-alignment.md
+    bucket: platform
+    authority: ai-drafted
+    capsules: [database-review, architecture-review]
+    persona: database
+    title: "DATA-002 — Alignment of the R0 physical pack with CR-013"
+    answers: "Persona: Aarti — Principal Insurance Data & Database Architect"
+    bytes: 11972
+  - path: docs/platform/data-architecture/DATA-002.work-item.yaml
+    bucket: platform
+    authority: ai-drafted
+    capsules: [database-review, architecture-review]
+    persona: database
+    title: "DATA 002.work item"
+    answers: "schema: work-item"
+    bytes: 3993
+  - path: docs/platform/data-architecture/DB-DEC-0001-r0-physical-model.md
+    bucket: platform
+    authority: ai-drafted
+    capsules: [database-review, architecture-review]
+    persona: database
+    title: "DB-DEC-0001 — R0 physical model"
+    answers: "Draft Aarti decision record. Format:"
+    bytes: 6029
+  - path: docs/platform/data-architecture/DB-DEC-0002-cr013-alignment-review.md
+    bucket: platform
+    authority: ai-drafted
+    capsules: [database-review, architecture-review]
+    persona: database
+    title: "DB-DEC-0002 — CR-013 alignment of the DATA-001 physical pack"
+    answers: "Draft Aarti decision record. Format:"
+    bytes: 6360
+  - path: docs/platform/data-architecture/README.md
+    bucket: platform
+    authority: ai-drafted
+    capsules: [database-review, architecture-review]
+    persona: database
+    title: "R0 Physical Data Architecture — Aarti pack"
+    answers: "Work item: DATA-001 · origin SUG-20260825-db1"
+    bytes: 6314
+  - path: docs/platform/data-architecture/schemas/00-cluster-bootstrap.sql
+    bucket: platform
+    authority: ai-drafted
+    capsules: [database-review]
+    persona: database
+    title: "00 cluster bootstrap"
+    answers: "SQL artefact"
+    bytes: 2169
+  - path: docs/platform/data-architecture/schemas/01-identity.sql
+    bucket: platform
+    authority: ai-drafted
+    capsules: [database-review]
+    persona: database
+    title: "01 identity"
+    answers: "SQL artefact"
+    bytes: 7083
+  - path: docs/platform/data-architecture/schemas/02-bank_persistence.sql
+    bucket: platform
+    authority: ai-drafted
+    capsules: [database-review]
+    persona: database
+    title: "02 bank persistence"
+    answers: "SQL artefact"
+    bytes: 5876
+  - path: docs/platform/data-architecture/schemas/03-customer.sql
+    bucket: platform
+    authority: ai-drafted
+    capsules: [database-review]
+    persona: database
+    title: "03 customer"
+    answers: "SQL artefact"
+    bytes: 2517
+  - path: docs/platform/data-architecture/schemas/04-opportunity.sql
+    bucket: platform
+    authority: ai-drafted
+    capsules: [database-review]
+    persona: database
+    title: "04 opportunity"
+    answers: "SQL artefact"
+    bytes: 3877
+  - path: docs/platform/data-architecture/schemas/05-consent.sql
+    bucket: platform
+    authority: ai-drafted
+    capsules: [database-review]
+    persona: database
+    title: "05 consent"
+    answers: "SQL artefact"
+    bytes: 2302
+  - path: docs/platform/data-architecture/schemas/06-suitability.sql
+    bucket: platform
+    authority: ai-drafted
+    capsules: [database-review]
+    persona: database
+    title: "06 suitability"
+    answers: "SQL artefact"
+    bytes: 2729
+  - path: docs/platform/data-architecture/schemas/07-catalogue.sql
+    bucket: platform
+    authority: ai-drafted
+    capsules: [database-review]
+    persona: database
+    title: "07 catalogue"
+    answers: "SQL artefact"
+    bytes: 2322
+  - path: docs/platform/data-architecture/schemas/08-quotation.sql
+    bucket: platform
+    authority: ai-drafted
+    capsules: [database-review]
+    persona: database
+    title: "08 quotation"
+    answers: "SQL artefact"
+    bytes: 3551
+  - path: docs/platform/data-architecture/schemas/09-proposal.sql
+    bucket: platform
+    authority: ai-drafted
+    capsules: [database-review]
+    persona: database
+    title: "09 proposal"
+    answers: "SQL artefact"
+    bytes: 3442
+  - path: docs/platform/data-architecture/schemas/10-payment.sql
+    bucket: platform
+    authority: ai-drafted
+    capsules: [database-review]
+    persona: database
+    title: "10 payment"
+    answers: "SQL artefact"
+    bytes: 3753
+  - path: docs/platform/data-architecture/schemas/11-policy.sql
+    bucket: platform
+    authority: ai-drafted
+    capsules: [database-review]
+    persona: database
+    title: "11 policy"
+    answers: "SQL artefact"
+    bytes: 2938
+  - path: docs/platform/data-architecture/schemas/12-journey.sql
+    bucket: platform
+    authority: ai-drafted
+    capsules: [database-review]
+    persona: database
+    title: "12 journey"
+    answers: "SQL artefact"
+    bytes: 3450
+  - path: docs/platform/data-architecture/schemas/13-administration.sql
+    bucket: platform
+    authority: ai-drafted
+    capsules: [database-review]
+    persona: database
+    title: "13 administration"
+    answers: "SQL artefact"
+    bytes: 2107
+  - path: docs/platform/data-architecture/schemas/14-audit_event_delta.sql
+    bucket: platform
+    authority: ai-drafted
+    capsules: [database-review]
+    persona: database
+    title: "14 audit event delta"
+    answers: "SQL artefact"
+    bytes: 1944
+  - path: docs/platform/data-architecture/schemas/90-routines.sql
+    bucket: platform
+    authority: ai-drafted
+    capsules: [database-review]
+    persona: database
+    title: "90 routines"
+    answers: "SQL artefact"
+    bytes: 5054
+  - path: docs/platform/data-architecture/schemas/91-grants.sql
+    bucket: platform
+    authority: ai-drafted
+    capsules: [database-review]
+    persona: database
+    title: "91 grants"
+    answers: "SQL artefact"
+    bytes: 2867
+  - path: docs/platform/data-architecture/schemas/README.md
+    bucket: platform
+    authority: ai-drafted
+    capsules: [database-review]
+    persona: database
+    title: "R0 design DDL"
+    answers: "PostgreSQL scripts that implement 01-physical-design.md."
+    bytes: 1597
   - path: docs/platform/ws3-platform/00-WS3-ARCHITECTURE-REGISTRATION.md
     bucket: platform
     authority: approved-spec
@@ -3829,7 +4109,7 @@ documents:
     persona: architecture
     title: "WS-3 — Platform Information Model"
     answers: "(04-GATE-AND-SIGNOFF-MODEL.md §5);"
-    bytes: 34564
+    bytes: 35045
   - path: docs/platform/ws3-platform/03-solution-architecture-r0.md
     bucket: platform
     authority: approved-spec
@@ -3837,7 +4117,23 @@ documents:
     persona: architecture
     title: "WS-3 — Ratified Solution Architecture for the R0 Slice"
     answers: "security sign-off (S07-G3/G4) and Aarti's data sign-off (S07-G5) are mandatory and separate."
-    bytes: 45672
+    bytes: 45823
+  - path: docs/platform/ws3-platform/03-solution-architecture-r0.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, code-change]
+    persona: architecture
+    title: "WS-3 — Ratified Solution Architecture for the R0 Slice"
+    answers: "security sign-off (S07-G3/G4) and Aarti's data sign-off (S07-G5) are mandatory and separate."
+    bytes: 45823
+  - path: docs/platform/ws3-platform/03-solution-architecture-r0.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, code-change]
+    persona: architecture
+    title: "WS-3 — Ratified Solution Architecture for the R0 Slice"
+    answers: "security sign-off (S07-G3/G4) and Aarti's data sign-off (S07-G5) are mandatory and separate."
+    bytes: 45823
   - path: docs/platform/ws3-platform/04-security-architecture.md
     bucket: platform
     authority: approved-spec

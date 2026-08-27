@@ -326,3 +326,16 @@ Taken architecture decision (human:Mahesh). **Human T4 Architecture sign-off is 
 | [`r0-reference-architecture.svg`](./r0-reference-architecture.svg) | Channel is NIP-APP. `#2` is NIP BFF. Admin BFF is **not** a second R0 BFF. |
 | [`../hdl.svg`](../hdl.svg) | `#2` NIP BFF; Admin BFF folded to roles on NIP-APP (`HA-06`). |
 | generated set | Topology devices and `ns:edge` regenerated from [`diagrams/r0_platform_views.py`](./diagrams/r0_platform_views.py). Not hand-edited. |
+
+## Revision — 2026-08-27 platform topology & enterprise delivery alignment (`ADR-016`, `SUG-20260827-tpo`)
+
+Alignment with bank enterprise architecture directives:
+
+| File | What changed |
+|---|---|
+| [`diagrams/r0_platform_views.py`](./diagrams/r0_platform_views.py) | Replaced in-cluster Argo CD with **GitLab CI/CD** with logo; replaced AWS Network Firewall with **F5 BIG-IP / Firewall** with logo; added **Ansible for automated DR drills / sanity testing**; highlighted **Terraform IaC**. |
+| [`r0-platform-topology.svg`](./r0-platform-topology.svg) | Rendered with GitLab CI/CD, F5 BIG-IP / Firewall, Ansible automation, and Terraform IaC. |
+| [`r0-platform-sequence.svg`](./r0-platform-sequence.svg) | Rendered `P1` (inspection VPC with F5), `P7` (GitLab CI/CD + Terraform IaC), and `P8` (Ansible automated DR & sanity proof). |
+| [`r0-platform-dr.svg`](./r0-platform-dr.svg) | Rendered `D11` / `D12` with Ansible automated execution. |
+| [`R0-LLD.md`](./R0-LLD.md) | BOM #22, #29, and provisioning sequence updated with F5, GitLab, Terraform, and Ansible automation. |
+| [`ARB-ARCHITECTURE-DOSSIER.md`](./ARB-ARCHITECTURE-DOSSIER.md) | Updated with Terraform IaC + Ansible automation defense. |

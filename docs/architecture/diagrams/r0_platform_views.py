@@ -82,7 +82,10 @@ I = {  # icon paths, resolved from the diagrams wheel
     "tablet": "generic/device/tablet.png",
     "flutter": "programming/framework/flutter.png",
     "net":    "onprem/network/internet.png",
-    "argo":   "onprem/gitops/argocd.png",
+    "gitlab": "onprem/ci/gitlabci.png",
+    "f5":     "generic/network/firewall.png",
+    "ansible": "onprem/iac/ansible.png",
+    "tf":     "onprem/iac/terraform.png",
 }
 
 
@@ -235,8 +238,8 @@ def topology():
                    sub="network account · ONE PER ENVIRONMENT", label_size=15)
     tgw = c.node(I["tgw"], 2540, 650, ["Transit Gateway", "one route table per env",
                                        "no VPC peering, anywhere"], size=56)
-    nfw = c.node(I["nfw"], 2540, 830, ["AWS Network Firewall", "domain allowlist · IPS",
-                                       "one endpoint per AZ"], size=56)
+    nfw = c.node(I["f5"], 2540, 830, ["F5 BIG-IP / Firewall", "domain allowlist · IPS",
+                                      "bank standard · per AZ"], size=56)
     nat = c.node(I["nat"], 2540, 1010, ["NAT + ELASTIC IPs", "1SB and the PG allowlist THESE",
                                         "they MOVED here — ADR-010"], size=56)
 
@@ -249,8 +252,8 @@ def topology():
     ddb = c.node(I["ddb"], COL[1], 2310, ["DynamoDB + PITR", "journey · jobs"], size=54)
     for x, rows in ((1180, ["KMS CMK hierarchy"]), (1360, ["Secrets Manager"]),
                     (1540, ["ECR — by digest"]), (1720, ["CloudWatch + CloudTrail"]),
-                    (1900, ["AMP + AMG"]), (2080, ["Argo CD (in-cluster)"])):
-        c.node(I["argo"] if x == 2080 else
+                    (1900, ["AMP + AMG"]), (2080, ["GitLab CI/CD", "Pipelines + Runner"])):
+        c.node(I["gitlab"] if x == 2080 else
                {1180: I["kms"], 1360: I["secret"], 1540: I["ecr"],
                 1720: I["cw"], 1900: I["amp"]}.get(x), x, 2310, rows, size=54)
 
@@ -317,6 +320,7 @@ def topology():
         "Cognito — Keycloak is the R0 IdP",
         "Pipelines — GitLab CI/CD is bank standard",
         "IaC — Terraform is the IaC baseline",
+        "Automation — Ansible for DR/sanity drills",
     ], size=12, color=MUTE)
 
     legend(c, 2840, 1370, 360, [
@@ -364,7 +368,7 @@ def az():
         c.group("inspection VPC  ·  firewall + public  /24", cx - 300, 465, 600, 200,
                 stroke=Z["pub"][0], fill=Z["pub"][1], label_size=13, radius=11, width=1.6)
         if mode == "full":
-            c.node(I["nfw"], cx - 145, 545, ["Firewall endpoint", "no endpoint = no egress"],
+            c.node(I["f5"], cx - 145, 545, ["F5 Firewall endpoint", "no endpoint = no egress"],
                    size=54)
             c.node(I["nat"], cx + 145, 545, ["NAT + Elastic IP",
                                              "1SB and the PG allowlist it"], size=54)
@@ -479,8 +483,8 @@ def dr():
     c.group("THE DELIVERABLE IS A RECORD, NOT A DESIGN", 1330, 850, 790, 300,
             stroke=Z["ext"][0], fill="#fef2f2", label_size=14)
     c.node(I["backup"], 1725, 945, [], size=52)
-    c.lines(1725, 1010, ["D11  a DR exercise, timed                    (gate S09-G7)",
-                         "D12  a rollback drill in UAT               (gate S09-G4)",
+    c.lines(1725, 1010, ["D11  Ansible DR exercise, timed          (gate S09-G7)",
+                         "D12  Ansible rollback drill in UAT         (gate S09-G4)",
                          "NFR-EVT-03  an outbox replay drill  — D14 depends on it",
                          "An untested standby is a claim, not a capability."],
             size=12.5, color=INK)
@@ -499,7 +503,7 @@ def sequence():
         ("P1", "NETWORK", "START HERE — two external parties", "#ea580c", "#fff7ed",
          ((I["vpc"], ["VPC · 3 AZ subnets"]),
           (I["tgw"], ["TRANSIT GATEWAY", "route table per env"]),
-          (I["nfw"], ["inspection VPC", "+ Network Firewall"]),
+          (I["f5"], ["inspection VPC", "+ F5 BIG-IP Firewall"]),
           (I["nat"], ["NAT + ELASTIC IPs", "publish to 1SB and the PG"]),
           (I["vpn"], ["VPN now, DX ordered", "the bank's own work"]))),
         ("P2", "COMPUTE", "", "#2563eb", "#eff6ff",
@@ -523,15 +527,16 @@ def sequence():
          ((I["amp"], ["AMP + AMG"]),
           (I["cw"], ["CloudWatch", "audit pipe SEPARATE"]),
           (I["srch"], ["OpenSearch + ISM", "P1 and P3 logs land here"]))),
-        ("P7", "DELIVERY", "", "#0369a1", "#f2f9ff",
+        ("P7", "DELIVERY & IaC", "GitLab CI + Terraform", "#0369a1", "#f2f9ff",
          ((I["ecr"], ["ECR — built once"]),
-          (I["argo"], ["Argo CD + GitLab CI"]))),
-        ("P8", "PROOF", "GATE-S09 accepts records, not designs", "#16a34a", "#f2fdf5",
-         ((I["backup"], ["a restore, TIMED"]),
+          (I["gitlab"], ["GitLab CI/CD", "bank pipeline standard"]),
+          (I["tf"], ["Terraform IaC", "100% automated infra"]))),
+        ("P8", "PROOF & AUTOMATION", "Ansible drills · GATE-S09 records", "#16a34a", "#f2fdf5",
+         ((I["ansible"], ["Ansible DR & sanity", "automated drills & proof"]),
+          (I["backup"], ["a restore, TIMED"]),
           (I["trail"], ["a rollback drill"]),
           (I["vpn"], ["DX → VPN failover, timed"]),
-          (I["msk"], ["an outbox replay drill"]),
-          (I["kms"], ["rotation exercised"]))),
+          (I["msk"], ["an outbox replay drill"]))),
     )
     w, gap, top, bh = 340, 34, 210, 720
     PITCH = 128

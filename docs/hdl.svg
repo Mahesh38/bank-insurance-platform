@@ -30,9 +30,9 @@
   <rect x="475.6666666666667" y="192" width="30" height="15" rx="4" fill="#0f766e"/>
   <text x="490.6666666666667" y="203.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R1</text>
   <text x="511.6666666666667" y="203" font-size="10.5" fill="#0f172a" font-weight="bold">Life Scale &amp; Digital</text>
-  <text x="475.6666666666667" y="218" font-size="8.3" fill="#475569">Customer DIY journey + Customer BFF, Lead/</text>
-  <text x="475.6666666666667" y="228.5" font-size="8.3" fill="#475569">Opportunity, Group B insurers, ULIP &amp; Savings,</text>
-  <text x="475.6666666666667" y="239.0" font-size="8.3" fill="#475569">documents, config governance, MIS, admin.</text>
+  <text x="475.6666666666667" y="218" font-size="8.3" fill="#475569">Customer DIY journey + Customer BFF,</text>
+  <text x="475.6666666666667" y="228.5" font-size="8.3" fill="#475569">Group B insurers, ULIP &amp; Savings,</text>
+  <text x="475.6666666666667" y="239.0" font-size="8.3" fill="#475569">documents, campaign / bulk Lead create.</text>
   <rect x="877.3333333333334" y="186" width="395.6666666666667" height="56" rx="6" fill="#fef3c7" stroke="#b45309" stroke-width="1.5"/>
   <rect x="885.3333333333334" y="192" width="30" height="15" rx="4" fill="#b45309"/>
   <text x="900.3333333333334" y="203.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R2</text>
@@ -68,7 +68,7 @@
   <text x="544" y="266.5" font-size="9" fill="#475569">shared code, ONE deployment — behaviour resolved from configuration keyed by (lob, …), never forked   ·</text>
   <rect x="1030" y="256" width="30" height="14" rx="3" fill="#fff1f2" stroke="#e11d48" stroke-width="2"/>
   <text x="1068" y="266.5" font-size="9" fill="#475569">inside a rose LOB cell — Health and General each get their OWN instance; Quote and Proposal are frozen here   ·</text>
-  <text x="1668" y="266.5" font-size="9" fill="#475569">untagged and outside every cell — one instance for every line of business, forever (party, opportunity, consent, payment, policy, audit).</text>
+  <text x="1668" y="266.5" font-size="9" fill="#475569">untagged and outside every cell — one instance for every line of business, forever (party, lead, consent, payment, policy, audit).</text>
   <rect x="40" y="272" width="2480" height="210" rx="10" fill="#ffffff" stroke="#0f172a" stroke-width="2"/>
   <rect x="40" y="272" width="2480" height="30" rx="10" fill="#0f172a"/>
   <rect x="40" y="292" width="2480" height="10" fill="#0f172a"/>
@@ -78,7 +78,7 @@
   <text x="166.58333333333331" y="336" font-size="10.5" fill="#ffffff" text-anchor="middle" font-weight="bold">Party /</text>
   <text x="166.58333333333331" y="350" font-size="8.2" fill="#cbd5e1" text-anchor="middle">Prospect</text>
   <polygon points="267.16666666666663,318 453.33333333333326,318 464.33333333333326,339 453.33333333333326,360 267.16666666666663,360 278.16666666666663,339" fill="#1e293b"/>
-  <text x="369.74999999999994" y="336" font-size="10.5" fill="#ffffff" text-anchor="middle" font-weight="bold">Opportunity</text>
+  <text x="369.74999999999994" y="336" font-size="10.5" fill="#ffffff" text-anchor="middle" font-weight="bold">Lead</text>
   <text x="369.74999999999994" y="350" font-size="8.2" fill="#cbd5e1" text-anchor="middle">new · renewal · lapse · cross-sell</text>
   <polygon points="470.3333333333333,318 656.5,318 667.5,339 656.5,360 470.3333333333333,360 481.3333333333333,339" fill="#1e293b"/>
   <text x="572.9166666666666" y="336" font-size="10.5" fill="#ffffff" text-anchor="middle" font-weight="bold">Journey</text>
@@ -112,13 +112,13 @@
   <text x="2401.4166666666665" y="350" font-size="8.2" fill="#cbd5e1" text-anchor="middle">+ portfolio</text>
   <path d="M2397.4166666666665,360 L2397.4166666666665,378 L365.74999999999994,378 L365.74999999999994,362" fill="none" stroke="#b45309" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrAmber)"/>
   <rect x="1099.4833333333333" y="369" width="564.1999999999999" height="14" rx="2" fill="#ffffff" stroke="#ffffff" stroke-width="0"/>
-  <text x="1381.5833333333333" y="379" font-size="9.2" fill="#b45309" text-anchor="middle" font-weight="bold">R2 · Policy renewal due, expiry or lapse creates a NEW Opportunity and a NEW Journey — an existing journey is never reopened</text>
+  <text x="1381.5833333333333" y="379" font-size="9.2" fill="#b45309" text-anchor="middle" font-weight="bold">R2 · Policy renewal due, expiry or lapse creates a NEW Lead and a NEW Journey — an existing journey is never reopened</text>
   <text x="64.0" y="398" font-size="10.2" fill="#0f172a" font-weight="bold">Cardinality — get this wrong and everything else bends around it</text>
-  <text x="64.0" y="412" font-size="8.4" fill="#475569">Party 1:N Opportunity  ·  Opportunity 1:N Journey  ·  Journey 1:1 Policy on success  ·  Policy 1:N follow-on Opportunity.</text>
+  <text x="64.0" y="412" font-size="8.4" fill="#475569">Party 1:N Lead  ·  Lead 1:N Journey  ·  Journey 1:1 Policy on success  ·  Policy 1:N follow-on Lead.</text>
   <text x="64.0" y="424" font-size="8.4" fill="#475569">partyId ≠ bankCustomerId ≠ leadId ≠ journeyId. A prospect exists with no CIF and is linked to one later without disturbing the journey.</text>
   <text x="64.0" y="436" font-size="8.4" fill="#475569">Enforced rule instead of a hard 1:1: only one ACTIVE journey per Party + LOB + product context.</text>
   <text x="881.3333333333334" y="398" font-size="10.2" fill="#0f172a" font-weight="bold">Who owns which half</text>
-  <text x="881.3333333333334" y="412" font-size="8.4" fill="#475569">BANK owns: party, opportunity, suitability, consent, product selection, proposal capture, payment, policy record, servicing intent.</text>
+  <text x="881.3333333333334" y="412" font-size="8.4" fill="#475569">BANK owns: party, lead, suitability, consent, product selection, proposal capture, payment, policy record, servicing intent.</text>
   <text x="881.3333333333334" y="424" font-size="8.4" fill="#475569">INSURER owns: risk and medical assessment, underwriting decision, loading, exclusion, counter-offer, decline, and the policy contract.</text>
   <text x="881.3333333333334" y="436" font-size="8.4" fill="#475569">We track insurer status, requirements and next action. We never compute a risk decision.</text>
   <text x="1698.6666666666667" y="398" font-size="10.2" fill="#0f172a" font-weight="bold">Channel and actor</text>
@@ -140,7 +140,7 @@
   <text x="74.0" y="604" font-size="11.5" fill="#0f172a" font-weight="bold">Bank RM — the certified Specified Person</text>
   <text x="74.0" y="620" font-size="8.8" fill="#475569">SP is a CERTIFICATION on the RM (number, LOB</text>
   <text x="74.0" y="632.5" font-size="8.8" fill="#475569">scope, validity), not an actor — checked per action.</text>
-  <text x="74.0" y="645.0" font-size="8.8" fill="#475569">Flutter, token-hiding session. Sole origination right.</text>
+  <text x="74.0" y="645.0" font-size="8.8" fill="#475569">NIP-APP (web+APK+IPA). Sole origination right.</text>
   <rect x="370.0" y="580" width="290.0" height="77.5" rx="6" fill="#ccfbf1" stroke="#0f766e" stroke-width="1.5"/>
   <rect x="622.0" y="587" width="30" height="15" rx="4" fill="#0f766e"/>
   <text x="637.0" y="598.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R1</text>
@@ -176,19 +176,19 @@
   <text x="1604.0" y="620" font-size="8.8" fill="#475569">Insurer employee, NOT an SP. No origination, no</text>
   <text x="1604.0" y="632.5" font-size="8.8" fill="#475569">regulated action. Own insurer_id only, and only</text>
   <text x="1604.0" y="645.0" font-size="8.8" fill="#475569">after the RM completes need analysis + suitability.</text>
-  <rect x="1900.0" y="580" width="290.0" height="77.5" rx="6" fill="#ccfbf1" stroke="#0f766e" stroke-width="1.5"/>
-  <rect x="2152.0" y="587" width="30" height="15" rx="4" fill="#0f766e"/>
-  <text x="2167.0" y="598.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R1</text>
+  <rect x="1900.0" y="580" width="290.0" height="77.5" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="2152.0" y="587" width="30" height="15" rx="4" fill="#1d4ed8"/>
+  <text x="2167.0" y="598.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
   <text x="1910.0" y="604" font-size="11.5" fill="#0f172a" font-weight="bold">Operations / Admin / Config</text>
-  <text x="1910.0" y="620" font-size="8.8" fill="#475569">Product, insurer, route and rule config under</text>
-  <text x="1910.0" y="632.5" font-size="8.8" fill="#475569">maker-checker. Work-queue supervision.</text>
-  <text x="1910.0" y="645.0" font-size="8.8" fill="#475569">Never a data-fix backdoor.</text>
+  <text x="1910.0" y="620" font-size="8.8" fill="#475569">R0 admin UI + MIS on isolated path.</text>
+  <text x="1910.0" y="632.5" font-size="8.8" fill="#475569">Maker-checker. Never the Lead writer.</text>
+  <text x="1910.0" y="645.0" font-size="8.8" fill="#475569">Work-queue supervision stays R2.</text>
   <rect x="2206.0" y="580" width="290.0" height="77.5" rx="6" fill="#e0e7ff" stroke="#4338ca" stroke-width="1.5"/>
   <rect x="2458.0" y="587" width="30" height="15" rx="4" fill="#4338ca"/>
   <text x="2473.0" y="598.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">RN</text>
   <text x="2216.0" y="604" font-size="11.5" fill="#0f172a" font-weight="bold">Campaign · QR · WhatsApp · Partner API</text>
   <text x="2216.0" y="620" font-size="8.8" fill="#475569">Additional origination surfaces that create an</text>
-  <text x="2216.0" y="632.5" font-size="8.8" fill="#475569">Opportunity and reuse the same journey.</text>
+  <text x="2216.0" y="632.5" font-size="8.8" fill="#475569">Lead and reuse the same journey.</text>
   <text x="2216.0" y="645.0" font-size="8.8" fill="#475569">No new business architecture per channel.</text>
   <path d="M1280,675.5 L1280,697.5" fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arr)"/>
   <text x="1294" y="691.5" font-size="9.2" fill="#64748b" font-style="italic">HTTPS · opaque session</text>
@@ -208,15 +208,15 @@
   <rect x="472.0" y="773.5" width="392.0" height="65.0" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
   <rect x="826.0" y="780.5" width="30" height="15" rx="4" fill="#1d4ed8"/>
   <text x="841.0" y="792.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
-  <text x="482.0" y="797.5" font-size="11.5" fill="#0f172a" font-weight="bold">CloudFront (CDN)</text>
-  <text x="482.0" y="813.5" font-size="8.8" fill="#475569">Static SPA delivery from S3; VPC origin</text>
-  <text x="482.0" y="826.0" font-size="8.8" fill="#475569">to the internal ALB for APIs.</text>
+  <text x="482.0" y="797.5" font-size="11.5" fill="#0f172a" font-weight="bold">Cloudflare (CDN / DDoS)</text>
+  <text x="482.0" y="813.5" font-size="8.8" fill="#475569">Bank standard edge CDN &amp; DDoS;</text>
+  <text x="482.0" y="826.0" font-size="8.8" fill="#475569">origin via F5 / External ALB.</text>
   <rect x="880.0" y="773.5" width="392.0" height="65.0" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
   <rect x="1234.0" y="780.5" width="30" height="15" rx="4" fill="#1d4ed8"/>
   <text x="1249.0" y="792.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
-  <text x="890.0" y="797.5" font-size="11.5" fill="#0f172a" font-weight="bold">AWS WAF</text>
-  <text x="890.0" y="813.5" font-size="8.8" fill="#475569">Managed + custom rules, bot control,</text>
-  <text x="890.0" y="826.0" font-size="8.8" fill="#475569">rate-based rules at the edge.</text>
+  <text x="890.0" y="797.5" font-size="11.5" fill="#0f172a" font-weight="bold">F5 BIG-IP / WAF</text>
+  <text x="890.0" y="813.5" font-size="8.8" fill="#475569">Bank enterprise L7 security policy,</text>
+  <text x="890.0" y="826.0" font-size="8.8" fill="#475569">custom iRules, bot control at edge.</text>
   <rect x="1288.0" y="773.5" width="392.0" height="65.0" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
   <rect x="1642.0" y="780.5" width="30" height="15" rx="4" fill="#1d4ed8"/>
   <text x="1657.0" y="792.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
@@ -249,10 +249,10 @@
   <text x="476.6" y="973.0" text-anchor="middle" font-size="8.5" font-weight="bold" fill="#ffffff">LOB</text>
   <rect x="499.6" y="961.5" width="30" height="15" rx="4" fill="#1d4ed8"/>
   <text x="514.6" y="973.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
-  <text x="74.0" y="978.5" font-size="11.5" fill="#0f172a" font-weight="bold">#2  RM Workspace BFF</text>
+  <text x="74.0" y="978.5" font-size="11.5" fill="#0f172a" font-weight="bold">#2  NIP BFF</text>
   <text x="74.0" y="994.5" font-size="8.8" fill="#475569">Stateless session facade. Holds OAuth tokens;</text>
-  <text x="74.0" y="1007.0" font-size="8.8" fill="#475569">Flutter only ever sees an opaque session.</text>
-  <text x="74.0" y="1019.5" font-size="8.8" fill="#475569">Composes the assisted R0 screens.</text>
+  <text x="74.0" y="1007.0" font-size="8.8" fill="#475569">NIP-APP only ever sees an opaque session.</text>
+  <text x="74.0" y="1019.5" font-size="8.8" fill="#475569">Composes every workforce role's screens.</text>
   <rect x="553.6" y="954.5" width="473.6" height="77.5" rx="6" fill="#ccfbf1" stroke="#0f766e" stroke-width="1.5"/>
   <rect x="989.2" y="961.5" width="30" height="15" rx="4" fill="#0f766e"/>
   <text x="1004.2" y="973.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R1</text>
@@ -267,13 +267,13 @@
   <text x="1053.2" y="994.5" font-size="8.8" fill="#475569">Work queues, journey search, interaction</text>
   <text x="1053.2" y="1007.0" font-size="8.8" fill="#475569">timeline, disposition capture.</text>
   <text x="1053.2" y="1019.5" font-size="8.8" fill="#475569">Actor capability enforced server-side.</text>
-  <rect x="1532.8000000000002" y="954.5" width="473.6" height="77.5" rx="6" fill="#ccfbf1" stroke="#0f766e" stroke-width="1.5"/>
-  <rect x="1968.4" y="961.5" width="30" height="15" rx="4" fill="#0f766e"/>
-  <text x="1983.4" y="973.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R1</text>
-  <text x="1542.8000000000002" y="978.5" font-size="11.5" fill="#0f172a" font-weight="bold">Admin &amp; Configuration BFF</text>
-  <text x="1542.8000000000002" y="994.5" font-size="8.8" fill="#475569">Product governance, provider routes, rule</text>
-  <text x="1542.8000000000002" y="1007.0" font-size="8.8" fill="#475569">packs, feature activation — all versioned</text>
-  <text x="1542.8000000000002" y="1019.5" font-size="8.8" fill="#475569">with maker-checker and effective dates.</text>
+  <rect x="1532.8000000000002" y="954.5" width="473.6" height="77.5" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <rect x="1968.4" y="961.5" width="30" height="15" rx="4" fill="#94a3b8"/>
+  <text x="1983.4" y="973.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
+  <text x="1542.8000000000002" y="978.5" font-size="11.5" fill="#0f172a" font-weight="bold">not a BFF — admin/ops on NIP-APP</text>
+  <text x="1542.8000000000002" y="994.5" font-size="8.8" fill="#475569">R0 UI over #19 + MIS is a role on NIP-APP,</text>
+  <text x="1542.8000000000002" y="1007.0" font-size="8.8" fill="#475569">served by #2. Never the Lead writer</text>
+  <text x="1542.8000000000002" y="1019.5" font-size="8.8" fill="#475569">(C-ISO-1, ADR-015). Layer is W0b.</text>
   <rect x="2022.4" y="954.5" width="473.6" height="77.5" rx="6" fill="#e0e7ff" stroke="#4338ca" stroke-width="1.5"/>
   <rect x="2458.0" y="961.5" width="30" height="15" rx="4" fill="#4338ca"/>
   <text x="2473.0" y="973.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">RN</text>
@@ -333,12 +333,12 @@
   <rect x="64.0" y="1264.5" width="596.0" height="102.5" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
   <rect x="622.0" y="1271.5" width="30" height="15" rx="4" fill="#1d4ed8"/>
   <text x="637.0" y="1283.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
-  <text x="74.0" y="1288.5" font-size="11.5" fill="#0f172a" font-weight="bold">#5  Opportunity</text>
-  <text x="74.0" y="1304.5" font-size="8.8" fill="#475569">R0 ships the single RM-only origination point — nothing</text>
-  <text x="74.0" y="1317.0" font-size="8.8" fill="#475569">downstream exists without one (INV-LED-04, AC-8/AC-9).</text>
-  <text x="74.0" y="1329.5" font-size="8.8" fill="#475569">R1 widens it to a durable demand object: CROSS_SELL,</text>
-  <text x="74.0" y="1342.0" font-size="8.8" fill="#475569">UP_SELL, RENEWAL, LAPSE_RECOVERY, CAMPAIGN, plus</text>
-  <text x="74.0" y="1354.5" font-size="8.8" fill="#475569">bulk upload and allocation. Opportunity 1:N Journey.</text>
+  <text x="74.0" y="1288.5" font-size="11.5" fill="#0f172a" font-weight="bold">#5  Lead</text>
+  <text x="74.0" y="1304.5" font-size="8.8" fill="#475569">Spoken name Lead. Single RM-only origination —</text>
+  <text x="74.0" y="1317.0" font-size="8.8" fill="#475569">nothing on-platform exists without one (INV-LED-04).</text>
+  <text x="74.0" y="1329.5" font-size="8.8" fill="#475569">Working inbox archives after convert + RECONCILED</text>
+  <text x="74.0" y="1342.0" font-size="8.8" fill="#475569">+ Policy ACTIVE. Campaign / bulk create stays R1.</text>
+  <text x="74.0" y="1354.5" font-size="8.8" fill="#475569">Lead 1:N Journey. Opportunity is the durable alias.</text>
   <rect x="676.0" y="1264.5" width="596.0" height="102.5" rx="6" fill="#fef3c7" stroke="#b45309" stroke-width="1.5"/>
   <rect x="1234.0" y="1271.5" width="30" height="15" rx="4" fill="#b45309"/>
   <text x="1249.0" y="1283.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R2</text>
@@ -444,18 +444,18 @@
   <text x="1910.0" y="1575.0" font-size="8.8" fill="#475569">when, under what context, with what evidence.</text>
   <text x="1910.0" y="1587.5" font-size="8.8" fill="#475569">Append-only, UPDATE/DELETE rejected, 7-year WORM.</text>
   <text x="1910.0" y="1600.0" font-size="8.8" fill="#475569">Consumes outbox events from every context.</text>
-  <rect x="64.0" y="1626.5" width="596.0" height="90.0" rx="6" fill="#ccfbf1" stroke="#0f766e" stroke-width="1.5"/>
-  <rect x="622.0" y="1633.5" width="30" height="15" rx="4" fill="#0f766e"/>
-  <text x="637.0" y="1645.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R1</text>
+  <rect x="64.0" y="1626.5" width="596.0" height="90.0" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <rect x="622.0" y="1633.5" width="30" height="15" rx="4" fill="#1d4ed8"/>
+  <text x="637.0" y="1645.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
   <text x="74.0" y="1650.5" font-size="11.5" fill="#0f172a" font-weight="bold">#18  Reporting &amp; MIS</text>
-  <text x="74.0" y="1666.5" font-size="8.8" fill="#475569">Funnel, conversion, RM/branch performance,</text>
-  <text x="74.0" y="1679.0" font-size="8.8" fill="#475569">persistency, regulatory returns. Reads the</text>
-  <text x="74.0" y="1691.5" font-size="8.8" fill="#475569">reporting event stream, never another</text>
-  <text x="74.0" y="1704.0" font-size="8.8" fill="#475569">service's database.</text>
+  <text x="74.0" y="1666.5" font-size="8.8" fill="#475569">R0: funnel, sold, on- vs off-platform,</text>
+  <text x="74.0" y="1679.0" font-size="8.8" fill="#475569">onboarding gap. Isolated read path —</text>
+  <text x="74.0" y="1691.5" font-size="8.8" fill="#475569">never the Lead writer (C-ISO-1).</text>
+  <text x="74.0" y="1704.0" font-size="8.8" fill="#475569">Reads the event stream, never a DB.</text>
   <rect x="676.0" y="1626.5" width="596.0" height="90.0" rx="6" fill="#fef3c7" stroke="#b45309" stroke-width="1.5"/>
   <rect x="1234.0" y="1633.5" width="30" height="15" rx="4" fill="#b45309"/>
   <text x="1249.0" y="1645.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R2</text>
-  <text x="686.0" y="1650.5" font-size="11.5" fill="#0f172a" font-weight="bold">Renewal &amp; Lapse Opportunity Generation</text>
+  <text x="686.0" y="1650.5" font-size="11.5" fill="#0f172a" font-weight="bold">Renewal &amp; Lapse Lead Generation</text>
   <text x="686.0" y="1666.5" font-size="8.8" fill="#475569">Policy expiry and lapse events create NEW</text>
   <text x="686.0" y="1679.0" font-size="8.8" fill="#475569">Opportunities and NEW Journeys — an old journey</text>
   <text x="686.0" y="1691.5" font-size="8.8" fill="#475569">is never reopened. Renewal execution itself is</text>
@@ -466,7 +466,7 @@
   <text x="1298.0" y="1650.5" font-size="11.5" fill="#0f172a" font-weight="bold">Customer 360 / Portfolio view</text>
   <text x="1298.0" y="1666.5" font-size="8.8" fill="#475569">My Insurance: Life, Health and Motor policies in</text>
   <text x="1298.0" y="1679.0" font-size="8.8" fill="#475569">one place, sourced from Policy Portfolio.</text>
-  <text x="1298.0" y="1691.5" font-size="8.8" fill="#475569">Cross-sell and up-sell signals feed Opportunity.</text>
+  <text x="1298.0" y="1691.5" font-size="8.8" fill="#475569">Cross-sell and up-sell signals feed a new Lead.</text>
   <rect x="1900.0" y="1626.5" width="596.0" height="90.0" rx="6" fill="#e0e7ff" stroke="#4338ca" stroke-width="1.5"/>
   <rect x="2458.0" y="1633.5" width="30" height="15" rx="4" fill="#4338ca"/>
   <text x="2473.0" y="1645.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">RN</text>
@@ -574,7 +574,7 @@
   <text x="1920.0" y="2050.5" font-size="8.1" fill="#475569">Motor providers, own pools.</text>
   <text x="1912.0" y="2064.5" font-size="8.4" fill="#4338ca">Only if Motor's scale or change rate genuinely justifies its own boundary.</text>
   <text x="1912.0" y="2077.0" font-size="8.4" fill="#4338ca">Trigger, not a plan: GENERAL CELL → MOTOR becomes MOTOR CELL with no change</text>
-  <text x="1912.0" y="2089.5" font-size="8.4" fill="#4338ca">to Party, Opportunity, Journey Registry, Payment, Policy or the router contract.</text>
+  <text x="1912.0" y="2089.5" font-size="8.4" fill="#4338ca">to Party, Lead, Journey Registry, Payment, Policy or the router contract.</text>
   <text x="1912.0" y="2102.0" font-size="8.4" fill="#4338ca">Deciding this early would be premature; making it impossible would be the real error.</text>
   <rect x="64" y="2266.0" width="2432" height="22" rx="5" fill="#ffffff" stroke="#334155" stroke-width="1.2" stroke-dasharray="4 3"/>
   <text x="76" y="2281.0" font-size="9" fill="#334155" font-weight="bold">SHARE THE FRAMEWORK, NOT THE RUNTIME  ·  canonical contracts · Quote/Proposal SDK · adapter framework · observability library · error model · idempotency helpers · security libraries — all shared as versioned libraries and standards, while the deployables, databases, caches, queues and connection pools stay isolated per cell.</text>
@@ -951,8 +951,8 @@
   <text x="1910.0" y="3677.5" font-size="8.8" fill="#475569">product, channel, branch, segment, route, version,</text>
   <text x="1910.0" y="3690.0" font-size="8.8" fill="#475569">commission, feature activation — every domain keyed by</text>
   <text x="1910.0" y="3702.5" font-size="8.8" fill="#475569">lob (CF-2). R0 ships the LAYER as Wave 0b: versioned,</text>
-  <text x="1910.0" y="3715.0" font-size="8.8" fill="#475569">append-only, effective-dated, seeded, NO ADMIN UI.</text>
-  <text x="1910.0" y="3727.5" font-size="8.8" fill="#475569">R1 adds maker-checker governance and the admin UI.</text>
+  <text x="1910.0" y="3715.0" font-size="8.8" fill="#475569">append-only, effective-dated, seeded. Admin UI is</text>
+  <text x="1910.0" y="3727.5" font-size="8.8" fill="#475569">roles on NIP-APP (ADR-015, C-ISO-1).</text>
   <rect x="64.0" y="3754.0" width="596.0" height="90.0" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
   <rect x="622.0" y="3761.0" width="30" height="15" rx="4" fill="#1d4ed8"/>
   <text x="637.0" y="3772.5" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
@@ -1007,9 +1007,9 @@
   <text x="74.0" y="4071.0" font-size="8.4" fill="#475569">Quotation (#10) via 1SB · Proposal &amp; UW tracking (#11,</text>
   <text x="74.0" y="4083.5" font-size="8.4" fill="#475569">thin) · Payment (#12, customer device) · Policy (#13,</text>
   <text x="74.0" y="4096.0" font-size="8.4" fill="#475569">visibility) · Audit (#16) · Notification (#17, OTP +</text>
-  <text x="74.0" y="4108.5" font-size="8.4" fill="#475569">payment link) · Customer (#4) · Lead (#5) · RM BFF (#2)</text>
-  <text x="74.0" y="4121.0" font-size="8.4" fill="#475569">+ Flutter RM app · Integration Hub (#14) + 1SB</text>
-  <text x="74.0" y="4133.5" font-size="8.4" fill="#475569">adapter (#15) · workforce identity + PDP.</text>
+  <text x="74.0" y="4108.5" font-size="8.4" fill="#475569">payment link) · Customer (#4) · Lead (#5) · NIP BFF (#2)</text>
+  <text x="74.0" y="4121.0" font-size="8.4" fill="#475569">+ NIP-APP · admin/ops roles · MIS (#18, isolated)</text>
+  <text x="74.0" y="4133.5" font-size="8.4" fill="#475569">Integration Hub (#14) + 1SB adapter (#15) · PDP.</text>
   <text x="74.0" y="4146.0" font-size="8.4" fill="#475569"></text>
   <text x="74.0" y="4158.5" font-size="8.4" fill="#475569">Gates: GATE-S08 (engineering foundation) then S09</text>
   <text x="74.0" y="4171.0" font-size="8.4" fill="#475569">(platform foundation). Neither is passed yet.</text>
@@ -1020,13 +1020,13 @@
   <text x="527.6666666666667" y="3975.5" font-size="12" fill="#0f172a" font-weight="bold">Life Scale &amp; Digital</text>
   <text x="481.6666666666667" y="3992.5" font-size="8.6" fill="#0f766e" font-weight="bold" letter-spacing="0.5">out_of_scope · revisit_at R1</text>
   <text x="481.6666666666667" y="4008.5" font-size="8.4" fill="#475569">Customer DIY journey + Customer BFF (#1).</text>
-  <text x="481.6666666666667" y="4021.0" font-size="8.4" fill="#475569">Lead → Opportunity model, bulk upload, allocation.</text>
+  <text x="481.6666666666667" y="4021.0" font-size="8.4" fill="#475569">Campaign / bulk Lead create and allocation.</text>
   <text x="481.6666666666667" y="4033.5" font-size="8.4" fill="#475569">Group B insurers (catalogue + controlled redirect).</text>
   <text x="481.6666666666667" y="4046.0" font-size="8.4" fill="#475569">ULIP and Savings/Endowment product classes.</text>
   <text x="481.6666666666667" y="4058.5" font-size="8.4" fill="#475569">Journey Registry / LOB Router split from execution.</text>
   <text x="481.6666666666667" y="4071.0" font-size="8.4" fill="#475569">Document platform · full Notification (#17).</text>
-  <text x="481.6666666666667" y="4083.5" font-size="8.4" fill="#475569">Reporting &amp; MIS (#18) · Admin &amp; config UI (#19).</text>
-  <text x="481.6666666666667" y="4096.0" font-size="8.4" fill="#475569">Configuration plane with maker-checker.</text>
+  <text x="481.6666666666667" y="4083.5" font-size="8.4" fill="#475569">Warehouse-depth analytics beyond the R0 MIS slice.</text>
+  <text x="481.6666666666667" y="4096.0" font-size="8.4" fill="#475569">Config-plane depth beyond the R0 admin UI.</text>
   <text x="481.6666666666667" y="4108.5" font-size="8.4" fill="#475569">Contract &amp; schema governance, CDC tests.</text>
   <text x="481.6666666666667" y="4121.0" font-size="8.4" fill="#475569">Integration control plane separated from runtime.</text>
   <text x="481.6666666666667" y="4133.5" font-size="8.4" fill="#475569">Provider Router + callback gateway.</text>
@@ -1120,7 +1120,7 @@
   <circle cx="73.0" cy="4305.0" r="9" fill="#0f172a"/>
   <text x="73.0" y="4308.5" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">1</text>
   <text x="90.0" y="4305.0" font-size="10.2" fill="#0f172a" font-weight="bold">Lead / Opportunity ≠ Journey ≠ Policy</text>
-  <text x="90.0" y="4317.0" font-size="8.5" fill="#475569">One Opportunity may have many Journeys. Renewal and lapse create a NEW Opportunity and a NEW Journey — an old journey is never reopened.</text>
+  <text x="90.0" y="4317.0" font-size="8.5" fill="#475569">One Lead may have many Journeys. Renewal and lapse create a NEW Lead and a NEW Journey — an old journey is never reopened. Opportunity is the durable-demand alias only.</text>
   <circle cx="1299.0" cy="4305.0" r="9" fill="#0f172a"/>
   <text x="1299.0" y="4308.5" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">2</text>
   <text x="1316.0" y="4305.0" font-size="10.2" fill="#0f172a" font-weight="bold">A journey is never owned by a channel</text>
@@ -1176,5 +1176,5 @@
   <text x="40" y="4552.0" font-size="9.6" fill="#334155" font-weight="bold">AI-DRAFTED in the Architecture lane (Mahesh — Board 1, Principal Insurance Platform Architect). Mandatory human T4 Architecture sign-off is OUTSTANDING; this diagram approves nothing and admits nothing.</text>
   <text x="40" y="4567.0" font-size="9.2" fill="#64748b">Sources · docs/governance/state/CURRENT-STATE.yaml (WS-3 objective, scope, out_of_scope revisit_at, standing constraints) · docs/platform/ws3-platform/00-WS3-ARCHITECTURE-REGISTRATION.md §3 (IF-1/IF-2/IF-3, SC-W3-1…12) · 03-solution-architecture-r0.md §2–§5 (R0 actors, bounded contexts #1–#19, seams S-01…S-22) · 01-domain-model-and-invariants.md §2.4–§2.6 (actors, LOB, configuration) · ADR-004…ADR-007 · 04-security-architecture.md · 05-nfr-catalogue.md · consent and suitability rule packs · target-state design discussion of 2026-08-18/19.</text>
   <text x="40" y="4581.0" font-size="9.2" fill="#64748b">Reading rule · The R0 band is the executable architecture and the only admitted scope. R1–R4 elements correspond to CURRENT-STATE out_of_scope entries and carry that entry's revisit_at. RN elements have no governance record at all. Nothing on this diagram may be cited as authority to start work: each element still requires AIGEM triage, an owner, and where consequential an ADR and the applicable board reviews.</text>
-  <text x="40" y="4595.0" font-size="9.2" fill="#64748b">Companion artefacts · docs/architecture/r0-reference-architecture.svg is the preserved R0 executable HLD (previously docs/hdl.svg) — the two diagrams answer different questions and neither replaces the other. Next artefact needed: an R0 → R1 → R2 transition and dependency map, so delivery knows the order in which these components must appear. · Revised 2026-08-20 by the HLD review round (SUG-20260820-hr0): the actor band now carries two R0 actors — the RM as the certified Specified Person and the assist-only Insurance Partner Rep — and no longer draws a certification as an actor. · Revised again 2026-08-20 by the diagram alignment round (SUG-20260820-al7): #5 Opportunity and #19 Configuration corrected from R1 to R0 to match 03-solution-architecture-r0.md §3 (Wave 1 and Wave 0b); fitness functions corrected from 15 to 21; every bounded context now carries its #n with its canonical register name and the → target-state name where they differ (NC-1); the LOB dimension is now rendered — a LOB tag marks shared services partitioned by (lob, …) per CF-2, and the rose cell stroke marks LOB-owned execution that a second LOB duplicates (LB-4 / LB-5). · Revised a third time the same day by the decision round (SUG-20260820-dc4): ADR-008 makes data ownership the invariant and physical cluster topology an evidence-led decision — R0 is one cluster with a schema per context, and the first split follows the LOB seam — and OPEN-D10 closes with context #5 named Opportunity.</text>
+  <text x="40" y="4595.0" font-size="9.2" fill="#64748b">Companion artefacts · docs/architecture/r0-reference-architecture.svg is the R0 executable HLD. · Revised 2026-08-25 — CR-013 / ADR-014: spoken name of #5 is Lead; #18 Reporting &amp; MIS and the #19 admin UI are R0 on the isolated read path; campaign/bulk Lead create stays R1. Human T4 outstanding. OPEN-D10 closed as Lead (Opportunity remains the durable-demand alias).</text>
 </svg>

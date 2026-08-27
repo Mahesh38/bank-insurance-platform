@@ -50,7 +50,7 @@ The journey ribbon on the SVG is the acceptance path, not a decoration:
 
 | Step | What must happen | Context that owns it | Hard gate |
 |---|---|---|---|
-| 1 | Opportunity created; ETB customer looked up from CBS | #5 Opportunity · #4 Customer | Origination is RM-only (`AC-8`) |
+| 1 | Lead created; ETB customer looked up via EBS APIs (CBS / CIF) | #5 Lead · #4 Customer | Origination is RM-only (`AC-8`) |
 | 2 | Need analysis and suitability complete | #7 Suitability | **C1** — no quote without a valid, unexpired assessment |
 | 3 | Consent granted via customer-device OTP | #6 Consent | **C2** — no proposal without an unexpired grant |
 | 4 | Term quote via 1SB, partial success is success | #10 Quotation · #14 Hub · #15 Adapter | C1 re-checked at quote entry (`S-08`) |
@@ -84,7 +84,7 @@ IPR visibility is a **persistence-layer predicate**, not a hidden button (`AC-4`
 
 ```text
 visible_to_IPR(record) :=
-        record.opportunityCreatedBy.actorType = BANK_RM
+        record.leadCreatedBy.actorType = BANK_RM
     AND record.needAnalysisState        = COMPLETED
     AND record.suitabilityState        IN (COMPLETED, OVERRIDDEN)
     AND record.insurerId                = principal.insurerId
@@ -93,11 +93,11 @@ visible_to_IPR(record) :=
 
 Records outside that predicate are **absent from the result set**, never a `403` on a named id (`S-22`, `INV-LED-07`). A refusal that names an id confirms the id.
 
-### 2.2 The opportunity is the only way in
+### 2.2 The Lead is the only on-platform way in
 
-Context **#5 Opportunity** (identifiers still `leadId` / `INV-LED-*` / `CAP-102`) is the single origination point (`ADR-005`). Every downstream aggregate carries `leadId`. There is no BFF-created journey, no quote without an opportunity, no second funnel.
+Context **#5 Lead** (identifiers still `leadId` / `INV-LED-*` / `CAP-102`) is the single on-platform origination point (`ADR-005`, `ADR-014`). Opportunity is the durable-demand alias only. Every on-platform downstream aggregate carries `leadId`. There is no BFF-created journey, no quote without a Lead, no second funnel. Off-platform / portal sales enter as Policy ingest (`source=OFF_PLATFORM`) and never create a Lead.
 
-Created **only** by a `BANK_RM` with a valid SP certificate covering the opportunity's `lob`. An IPR attempting `opportunity.create` receives `403 ORIGINATION_RM_ONLY` on every entry point (`FF-16`).
+Created **only** by a `BANK_RM` with a valid SP certificate covering the Lead's `lob`. An IPR attempting `lead.create` receives `403 ORIGINATION_RM_ONLY` on every entry point (`FF-16`). After convert + `Payment.RECONCILED` + `Policy.ACTIVE`, the working inbox archives.
 
 ### 2.3 Line of business is first-class from release 1
 
@@ -109,15 +109,15 @@ R0 sells `lob = LIFE`, `productClass = TERM`. Health and General follow on the s
 | `LB-2` | Vocabulary frozen: `LIFE` \| `HEALTH` \| `GENERAL`. R0 populates `LIFE` only |
 | `LB-3` | `lob` and `productClass` are different. Recording `lob = TERM` is a defect |
 | `LB-4` | Quote and Proposal are **LOB-owned execution** — Health gets its **own** `#10` and `#11`, never `if (lob == …)` |
-| `LB-5` | Party, opportunity, consent evidence, payment, policy registry and audit stay **shared**. Partitioning the *rules* makes Health possible; duplicating the *evidence* makes it unauditable |
+| `LB-5` | Party, lead, consent evidence, payment, policy registry and audit stay **shared**. Partitioning the *rules* makes Health possible; duplicating the *evidence* makes it unauditable |
 
 On the SVG: rose cell = LOB-owned; `LIFE` square tag = shared code, configuration keyed by `(lob, …)`; no tag = shared forever.
 
-### 2.4 Configuration ships in R0 without an admin UI
+### 2.4 Configuration layer ships in W0b; the admin UI is R0 W4
 
 Context **#19** is a Wave 0b service (`ADR-007`). Rules, journey steps, field validations, document checklists, product eligibility, role→permission grants, provider routing and attribution are resolved from a versioned, append-only, effective-dated, LOB-partitioned store. **No compiled-in fallback** (`CF-1`, `S-21`): an unresolvable rule is a refusal.
 
-The admin UI is R1. Administrators having no screen changes nothing about the layer (`CF-5`).
+The administration UI is **in R0 W4** (`ADR-014`). It is a consumer of the layer, not a re-platforming, and it **must not** sit on the Lead writer (`C-ISO-1`). A missing or late screen still does not justify hardcoding (`CF-5`).
 
 ### 2.5 Aggregates — one transaction, one root
 
@@ -178,22 +178,22 @@ The SVG and the North Star (`docs/hdl.svg`) use the same bands (`LY-1`). A thin 
 ### Boundary 1 — Channels and actors
 
 **Owns:** every human or system that starts or continues a journey.
-**R0 contains:** Flutter RM app (token-hiding session — OAuth tokens never reach the device, `S-01`); IPR surface on the **same** gateway and BFF (`S-22`); customer device for OTP and payment only.
+**R0 contains:** **NIP-APP** — one Flutter project producing web + Android APK + iOS IPA (`ADR-015`). RM, Insurance Partner Rep and admin/ops log into the **same** application; perspective is role + PDP, not a second deployable. Token-hiding session (`S-01`). Web runs in `ns:edge` as `nip-web` next to `#2` NIP BFF (image-baked, no PVC). APK on Play Store; IPA on App Store. Customer device for OTP and payment only.
 **Greyed:** Customer DIY (`#1` BFF, R1); call centre / branch / hybrid (R2).
 
 ### Boundary 2 — Edge (the only public entry point)
 
 **Owns:** TLS termination, WAF, throttling, request validation.
 **Does not own:** business logic, authorization decisions.
-**R0 contains:** Route 53 · CloudFront · AWS WAF · API Gateway · internal ALB.
+**R0 contains:** Route 53 · Cloudflare · F5 BIG-IP / WAF · External ALB · API Gateway · internal ALB.
 **Greyed:** insurer callback ingress (R1). R0 **polls** providers instead (`S-11`).
 **Rule:** no workload, database or cache is internet-reachable.
 
 ### Boundary 3 — Experience / BFF
 
 **Owns:** channel-shaped aggregation, session, token custody.
-**R0 contains:** `#2` RM Workspace BFF — one BFF per **channel**, never per channel × LOB. Field validation rules resolved by `(lob, formId)`.
-**Greyed:** `#1` Customer BFF (R1); Operations / call-centre BFF (R2); Admin & Configuration BFF (R1 — the **layer** `#19` still ships in R0).
+**R0 contains:** `#2` **NIP BFF** — the only workforce BFF. Token custody, session, aggregation for NIP-APP including admin/MIS routes over `#19` and `#18`. One BFF per **channel**, never per channel × LOB and never per role. Field validation rules resolved by `(lob, formId)`. Admin/MIS never use the Lead writer (`C-ISO-1`).
+**Greyed:** `#1` Customer BFF (R1); Operations / call-centre BFF (R2).
 
 Flutter never calls a domain service or a database. The BFF holds OAuth tokens; the device sees an opaque session.
 
@@ -206,7 +206,7 @@ Flutter never calls a domain service or a database. The BFF holds OAuth tokens; 
 |---|---|---|---|
 | #3 Identity & Access (workforce half, WS-2) | enabler | PDP grants are LOB-partitioned | Adapter (Keycloak first) + PDP, default-deny, fail closed 300 ms no retry (`S-02`) |
 | #9 Journey Orchestration | W1 | partitioned | State machine; compensation tasks (`S-19`) |
-| #5 Opportunity | W1 | agnostic | Single origination; RM-only create |
+| #5 Lead | W1 | agnostic | Single origination; RM-only create; archive after sold |
 | #4 Customer | W1 | agnostic | CBS/CIF lookup and prefill (`S-04`/`S-05`) |
 | #6 Consent | W2 | partitioned | Append-only grants; customer-device OTP |
 | #7 Suitability | W2 | partitioned | Hard gate; framework shared, **rules** are LOB |
@@ -216,7 +216,7 @@ Flutter never calls a domain service or a database. The BFF holds OAuth tokens; 
 | #16 Audit & Compliance | W3 | agnostic | Append-only; UPDATE/DELETE refused (`FF-10`); 7-year WORM |
 | #17 Notification | W4 | agnostic | OTP + payment-link only; failure never blocks the journey (`S-18`) |
 | #19 Configuration | W0b | partitioned | See §2.4 |
-| #18 Reporting & MIS | — | — | **Not in R0** (S13). Pilot funnel reporting is a thin read, not this service |
+| #18 Reporting & MIS | W4 | agnostic | Funnel, sold, on- vs off-platform. Isolated read path (`C-ISO-1`) |
 
 ### Boundary 5 — LOB execution cells
 
@@ -317,7 +317,7 @@ Full semantics (idempotency, timeout, on-failure) live in [`03-solution-architec
 | S-01 | Flutter → BFF | Sync | Typed error; journey stage unchanged |
 | S-02 | BFF → PDP | Sync, 300 ms, no retry | **Fail closed — deny** |
 | S-03 | BFF → Journey | Sync | No partial stage advance |
-| S-20 | BFF → Opportunity | Sync | `403 ORIGINATION_RM_ONLY` for non-RM |
+| S-20 | BFF → Lead | Sync | `403 ORIGINATION_RM_ONLY` for non-RM |
 | S-04 / S-05 | Journey → Customer → CBS | Sync | Hold at `INITIATED`; no unbounded stale identity |
 | S-06 | Journey → Consent | Sync | Fail closed; cannot advance |
 | S-07 / S-08 | Journey / Quotation → Suitability | Sync | **Fail closed** — `403 SUITABILITY_REQUIRED` |
@@ -354,7 +354,7 @@ These are the **R0 contract sketches** implied by the seams and the information 
 
 Common headers on every call: `Authorization` (BFF: session; internal: service identity), `X-Correlation-Id`, `X-Journey-Id` (once a journey exists), `Idempotency-Key` on mutations. `distributorId` is **never** accepted from a caller.
 
-### 5.1 Public / BFF — `#2` RM Workspace BFF
+### 5.1 Public / BFF — `#2` NIP BFF
 
 Base: `https://{env}-insurance.aubank.in/api/v1` (name is illustrative; DNS is S09).
 
@@ -408,7 +408,7 @@ Called by `#2` or `#9` over mTLS or mesh-equivalent later; R0 uses IRSA + Networ
 
 | Service | Representative resources | Notes |
 |---|---|---|
-| #5 Opportunity | `POST /internal/v1/opportunities`, `GET …/{leadId}` | Rejects non-`BANK_RM` at the service, not only the BFF |
+| #5 Lead | `POST /internal/v1/leads`, `GET …/{leadId}` | Rejects non-`BANK_RM` at the service, not only the BFF |
 | #9 Journey | `POST /internal/v1/journeys`, `POST …/{id}/transitions`, `GET …/{id}` | Transition payload is a *reference + event*, never an embedded decision |
 | #4 Customer | `GET /internal/v1/customers:lookup?cif=` | Snapshot; does not write CBS |
 | #6 Consent | `POST /internal/v1/consents`, `POST …/{id}/verify`, `GET …/{id}` | Append-only |
@@ -422,7 +422,7 @@ Called by `#2` or `#9` over mTLS or mesh-equivalent later; R0 uses IRSA + Networ
 | #15 Adapter | existing 1SB job API | Unchanged; Hub is the only caller from WS-3 |
 | #16 Audit | `POST /internal/v1/audit-events` (outbox consumer), `GET` query | INSERT-only IAM |
 | #17 Notification | `POST /internal/v1/notifications` | SMS/email; no journey block |
-| #19 Configuration | `GET /internal/v1/config:resolve?domain=&lob=&key=&at=` | Fail closed; no write API in R0 |
+| #19 Configuration | `GET /internal/v1/config:resolve?domain=&lob=&key=&at=` · admin write via maker-checker | Fail closed; admin UI is R0 W4, isolated (`ADR-014`) |
 | #3 PDP | `POST /internal/v1/authorize` `{subject, action, resource, context}` | 300 ms, fail closed |
 
 ### 5.4 Typical error codes (stable)
@@ -481,7 +481,7 @@ Where we **are**. Agents do not edit these fields.
 | **S09 Platform & Environment Foundation** | Can we run, observe and recover it in AWS India? | **Overlapped** with S08. This HLD's companion LLD is the S09 input |
 | S11 First vertical slice | Does one real Term sale run through a real UI? | Next, after S08 and the S09 critical path. Entry blocked while GAP-006 (consent) and GAP-007 (suitability) are open |
 | S12 Hardening of the slice | Evidence, load, reconciliation | After S11 |
-| S13 Expansion | Second channel / reporting / admin UI | After a proven journey |
+| S13 Expansion | Second channel / remaining deferred contexts | After a proven journey |
 
 **Do not start a business service (W0b–W4) before GATE-S08 and the S09 critical path.** Building `#9` on Render.com with PII is not progress; it is a residency defect (`ADR-001`).
 
@@ -493,14 +493,14 @@ What we **build**, in order, once the foundation exists. Colour on the SVG.
 |---|---|---|---|
 | **W0** | Now | Pipeline, IaC, environments, secrets, observability, WORM, restore drill | S08 + S09. Nothing else is runnable without it |
 | **W0b** | First after the gate | `#19` Configuration store + seeds | Every later wave reads it. Building services first is how hardcoded branches get written (`CF-5`) |
-| **W1** | After W0b | `#5` Opportunity, `#9` Journey, `#14` Hub, `#4` Customer, `#8` Catalogue | Spine. Downstream cannot exist without an opportunity and a journey |
+| **W1** | After W0b | `#5` Lead, `#9` Journey, `#14` Hub, `#4` Customer, `#8` Catalogue | Spine. Downstream cannot exist without a Lead and a journey |
 | **W2** | After W1 | `#6` Consent, `#7` Suitability, `#10` Quotation | The two hard gates, then the quote path they protect |
 | **W3** | After W2 | `#11` Proposal, `#12` Payment, `#13` Policy, `#16` Audit | Money, issuance, evidence. Audit must exist before the first regulated journey completes |
-| **W4** | After W3 contracts exist | `#2` BFF, Flutter RM app, `#17` Notification | UI last, against stable contracts. Notification is a C4 dependency (payment-link delivery), not a nice-to-have |
+| **W4** | After W3 contracts exist | `#2` NIP BFF, NIP-APP (web + APK + IPA), `#17` Notification, admin/MIS **roles** on NIP-APP, `#18` MIS | UI last, against stable contracts. Admin/MIS on the isolated path (`C-ISO-1`). Notification is a C4 dependency |
 
 WS-1 (`#15` adapter) **already exists**. WS-2 (identity adapter + PDP + token-hiding BFF pattern) is an **enabler** in parallel; R0 cannot authorise a single call without the PDP (`S-02`).
 
-Fourteen deployable services plus one app, not nineteen. The missing five are deferred, not forgotten.
+Sixteen deployable services plus two apps (RM + Admin), not nineteen. Customer BFF and the direct-insurer adapter remain deferred. Campaign/bulk Lead create stays out.
 
 ### 7.3 Releases (the product clock — Rajal)
 
@@ -509,7 +509,7 @@ What the **customer of the programme** gets. Colour on the North Star, not on th
 | Release | What it is | Unpark / entry |
 |---|---|---|
 | **R0** | This document. Assisted Term, ETB, Group A, one proven sale | Admitted scope in `CURRENT-STATE.yaml` |
-| **R1** | DIY customer journey, Customer BFF, Group B redirect, ULIP/Savings, hi-IN, admin UI, document platform, campaign/bulk on `#5`, journey registry split, callback gateway | After R0 completes a real sale in pilot |
+| **R1** | DIY customer journey, Customer BFF, Group B redirect, ULIP/Savings, hi-IN, document platform, campaign/bulk on `#5`, journey registry split, callback gateway | After R0 completes a real sale in pilot |
 | **R2** | Hybrid assisted ⇄ DIY, call centre, work management, renewals/lapse, NTB + V-KYC | After assisted and DIY both have stable state and hand-off contracts |
 | **R3** | HEALTH cell | WS-1 Phase 5 unfrozen **and** R0–R2 have proven the shared platform with real volume |
 | **R4** | GENERAL / MOTOR cell | After Health has proven the cell pattern |
@@ -523,7 +523,7 @@ The R0 → R1 → R2 *dependency map* (which target component is a prerequisite 
 
 A short operating picture for anyone picking up work:
 
-1. **Do not admit a second LOB, a Customer BFF, a service mesh, Redis-for-idempotency, an analytics warehouse, or an admin UI.** Those are recorded deferrals or refusals with triggers. The event backbone, cache tier, search pipe, bank connectivity and egress inspection are **no longer on that list** — they were admitted on 2026-08-24 under `ADR-009` … `ADR-013`, and what remains open on them is approval and cost, not scope.
+1. **Do not admit a second LOB, a Customer BFF, a service mesh, Redis-for-idempotency, or an analytics warehouse on the Lead writer.** Those are recorded deferrals or refusals with triggers. The admin UI and R0 MIS slice were pulled into R0 on 2026-08-25 under `ADR-014` and **must stay off the Lead writer**. The event backbone, cache tier, search pipe, bank connectivity and egress inspection were admitted on 2026-08-24 under `ADR-009` … `ADR-013`.
 2. **Close GATE-S08.** Amit, Swapnali, Deepali, Shivanshi, Mahesh. Fitness functions FF-01…FF-28 are the architecture half of that gate — `FF-22` … `FF-28` arrived with the robustness round and are mostly IaC and infrastructure checks, so they land in the S09 lane rather than adding to the application backlog.
 3. **Feed S09 from [`R0-LLD.md`](./R0-LLD.md).** Shivanshi provisions; Deepali signs the trust-boundary realisation; Aarti signs the Aurora/DynamoDB/S3 design. Restore is executed and timed (`S09-G7`).
 4. **Seed `#19` in W0b** the moment environments exist — consent rule pack and suitability rule pack are Product/Compliance artefacts (GAP-006, GAP-007) and **block S11** until Shailja signs them at evidence level E2.

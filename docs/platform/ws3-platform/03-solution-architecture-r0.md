@@ -12,6 +12,13 @@ LOB and configuration dimensions; §3 brings Opportunity (#5) into Wave 1 and Co
 into a new Wave 0b, withdrawing the earlier rule-pack-by-deployment trade; §4 redraws the component view;
 §5 adds seams S-20…S-22; §7 adds fitness functions FF-16…FF-21. Decisions: ADR-004…ADR-007.
 
+**Revision 2026-08-25 — Lead-domain R0 pull** (`CR-013`, `ADR-014`): spoken name is Lead;
+working inbox archives after convert + reconciled payment + issued policy; off-platform
+sales are Policy ingest; Administration UI and Reporting/MIS are R0 W4 on the isolated
+read path; `issuanceMode` is mandatory; PPHI mapping is condition C-PPHI-1. Unchanged:
+RM-only origination, configuration **layer** in W0b, no Lead writer for ops, GATE-S08
+criteria, no business service before the foundation floor.
+
 **Revision 2026-08-24 — R0 robustness round** (`SUG-20260824-gp1` … `gp5`, [`CR-012`](../../governance/change-requests/CR-012-r0-platform-robustness.md)):
 five infrastructure layers that were deferred are admitted into R0 — hybrid bank connectivity,
 centralised egress inspection, a managed cache tier, an event backbone and an operational search
@@ -24,7 +31,10 @@ gates, the actor model, one Aurora cluster (`ADR-008`), and every fail-closed ru
 
 **Companions:** [`04-security-architecture.md`](./04-security-architecture.md) ·
 [`05-nfr-catalogue.md`](./05-nfr-catalogue.md) ·
-[`01-domain-model-and-invariants.md`](./01-domain-model-and-invariants.md)
+[`01-domain-model-and-invariants.md`](./01-domain-model-and-invariants.md) ·
+[`06-architecture-justification-and-review-answers.md`](./06-architecture-justification-and-review-answers.md)
+(why these services / merge rejections / datastore & caching / direct-insurer future — **explains
+this document, decides nothing**, `HA-02`)
 
 **Stakeholder pack** (compiled views of *this* file and its companions, not a second source of
 truth): [`../../architecture/R0-HLD.md`](../../architecture/R0-HLD.md) walks the R0 picture for
@@ -61,12 +71,12 @@ which is explicit: *do not build the sixteen missing bounded contexts before S08
 S11 needs *perhaps six of them thinly implemented*.
 
 > **The R0 slice: one RM, one ETB customer, one Term product, one insurer, end to end.**
-> Opportunity → need analysis → suitability → consent → quote → proposal → payment on the
-> customer's device → issued policy → reconciled → audited. Through a real UI.
+> Lead → need analysis → suitability → consent → quote → proposal → payment on the
+> customer's device → issued policy → reconciled → audited. Through a real UI. Admin and MIS
+> read the same slice on an isolated path. Off-platform policies enter by MIS ingest.
 
 **Not in R0:** DIY-only journeys at scale, Health/Motor, NTB, Group B redirect, campaign and bulk
-origination, Reporting/MIS, Notification breadth beyond the transactional minimum, a second
-aggregator.
+Lead origination, Notification breadth beyond the transactional minimum, a second aggregator.
 
 ### 2.1 The actors — two, and only one of them sells
 
@@ -92,7 +102,7 @@ whole point of naming them here.
 | Dimension | R0 value | Why it is present from release 1 |
 |---|---|---|
 | **Line of business** — `LIFE` \| `HEALTH` \| `GENERAL` | `LIFE` only, `productClass = TERM` | Health and General follow R0 on the same template. `lob` is mandatory and non-null on every entity, configuration record, audit event and authorization request (`LB-1`…`LB-5`, INV-LOB-01/02). Retrofitting it is a migration across every table on the sale path |
-| **Configuration** | Backend store, versioned and seeded; **no admin UI** | Rules, journey steps, field validations, document checklists, product eligibility and role permissions are resolved from configuration, never branched in code (`CF-1`…`CF-5`, INV-CFG-01…03). Front-end availability is irrelevant to this: the layer ships now, the UI consumes it later |
+| **Configuration** | Backend store, versioned and seeded; **R0 admin UI** (`ADR-014`) | Rules, journey steps, field validations, document checklists, product eligibility and role permissions are resolved from configuration, never branched in code (`CF-1`…`CF-5`, INV-CFG-01…03). The layer still ships in W0b; the UI is now in R0 W4 |
 
 ---
 
@@ -106,7 +116,7 @@ is the first thing built after that gate, because every wave beneath it reads fr
 |---|---|---|---|---|
 | **W0 — platform foundation** | *(no services — pipeline, IaC, environments)* | — | S08 + S09. See [`00-WS3-ARCHITECTURE-REGISTRATION.md`](./00-WS3-ARCHITECTURE-REGISTRATION.md) | — |
 | **W0b — configuration layer** | **Configuration (Administration & Config, backend only)** | #19 | Every wave below resolves rules, journey steps, validations, checklists, eligibility and permissions from it. Building it after the services that read it is how hardcoded branches get written and never removed (`CF-5`) | service |
-| W1 | **Opportunity** | #5 | **The single origination point (`AC-8`).** Nothing downstream may exist without one, so it cannot follow them. Un-deferred from S13 to reconcile with `CURRENT-STATE.yaml` `in_scope`, which already lists it (`AC-9`) | service |
+| W1 | **Lead** | #5 | **The single origination point (`AC-8`).** Working inbox: create, resume, convert, archive. Nothing on-platform downstream may exist without one (`AC-9`). Off-platform Policy ingest does **not** create a Lead | service |
 | W1 | Journey Orchestration | #9 | Everything else attaches to it; building it late forces journey state into the BFFs | service |
 | W1 | Integration Hub | #14 | Places the existing 1SB adapter behind a routing seam before four services depend on it directly | service |
 | W1 | Customer | #4 | ETB lookup is the entry to every journey | service |
@@ -118,16 +128,17 @@ is the first thing built after that gate, because every wave beneath it reads fr
 | W3 | Payment | #12 | **C4.** Money path; depends on UW approval | service |
 | W3 | Policy & Issuance | #13 | Depends on reconciled payment | service |
 | W3 | Audit & Compliance | #16 | **C7/C8.** Must exist before the first regulated journey completes, not after | service |
-| W4 | RM Workspace BFF | #2 | The R0 journey is RM-assisted first | service (stateless) |
-| W4 | Flutter RM application | — | **No UI exists today** (`find . -name pubspec.yaml` returns nothing). Without it there is no S11 | app |
+| W4 | NIP BFF | #2 | Token-hiding session for NIP-APP. One BFF per channel. Admin/MIS are role-gated routes on this BFF, never a second public BFF (`ADR-015`) | service (stateless) |
+| W4 | NIP-APP (Flutter) | — | One Flutter project: web + Android APK + iOS IPA. RM, IPR, admin and ops share it; perspective is PDP role. Web on EKS `nip-web`; APK on Play Store; IPA on App Store (`ADR-015`) | app |
 | W4 | Notification (transactional minimum) | #17 | Payment link delivery to the customer device is a C4 dependency, not a nice-to-have | service |
-| Deferred | Lead **campaign and bulk** management (ageing rules, campaigns, bulk import) — *not* origination | #5 | Origination moves into W1 (`AC-9`). What stays deferred is sales-management breadth on top of it, which adds no journey capability | S13 |
-| Deferred | Administration & Config **user interface** | #19 | The configuration *layer* ships in W0. Only its UI is deferred, and administrators having no interface changes nothing about the layer (`CF-5`) | R1+ |
-| Deferred | Customer BFF, Reporting & MIS, Direct Insurer Adapter | #1, #18 | Not on the critical path to one proven journey | S13 |
+| W4 | **Administration UI** | #19 | R0 W4 **screens inside NIP-APP**, not a second app (`ADR-015`). Reads configuration; never the Lead writer (`ADR-014`, C-ISO-1) | role on NIP-APP |
+| W4 | **Reporting & MIS** | #18 | Stakeholder R0: funnel, sold, on- vs off-platform, onboarding gap. Event-fed / replica only (`ADR-014`, C-ISO-1) | service |
+| W3 | **Off-platform Policy ingest** | #13 | MIS upload of offline / portal sales. `source=OFF_PLATFORM`. Not `lead.create` (C-ING-1) | API on Policy |
+| Deferred | Lead **campaign and bulk** origination | #5 | Single-RM create and MIS Policy ingest are in R0. Campaign/bulk Lead create stays out | R1 |
+| Deferred | Customer BFF, Direct Insurer Adapter | #1 | Not on the assisted R0 path | S13 |
 
-**Fourteen deployable services plus one app, not nineteen.** The delta between this list and the
-19-context target is the single most useful thing S07 can say to a programme that currently reads
-"16 services missing" as its scope.
+**Sixteen deployable services plus one workforce app (NIP-APP), not two apps.** Customer BFF and the
+direct-insurer adapter remain the deferred remainder. Campaign/bulk Lead create stays out.
 
 **Administration & Config moves from a deferred artefact to a W0b service, and this supersedes the
 earlier trade.** The previous revision delivered it as versioned configuration artefacts consumed
@@ -135,8 +146,8 @@ at startup, accepting that a rule-pack change required a deployment until S13. T
 withdrawn: it made the deployment pipeline the rule-change mechanism, which is exactly the coupling
 `CF-1` exists to prevent, and it would have been discovered as technical debt the first time
 Compliance changed a consent statement. R0 ships the store, the version model, the effective-dated
-resolution contract and the seeds (`CF-3`, `CF-4`). **No admin UI** — that remains deferred, and its
-absence is deliberate rather than blocking (`CF-5`).
+resolution contract and the seeds (`CF-3`, `CF-4`). **The admin UI is in R0 W4** (`ADR-014`): it
+consumes the layer; it does not replace it (`CF-5` still forbids hardcoded fallbacks).
 
 **Why origination moves into Wave 1.** The earlier revision deferred context #5 and began journeys
 from a customer lookup. `CURRENT-STATE.yaml` `current_scope.in_scope` lists *"Lead service
@@ -153,26 +164,28 @@ origination record.
 ```mermaid
 graph TB
     subgraph Client["Actor devices"]
-        FL["Flutter app<br/>RM workspace<br/>actor: BANK_RM — the certified SP"]
-        IPRW["Partner web/app<br/>actor: INSURER_PARTNER_REP<br/>assist-only, gated, own-insurer"]
+        FL["NIP-APP<br/>one Flutter project: web + APK + IPA<br/>roles: BANK_RM · IPR · admin/ops"]
         CDEV["Customer device<br/>OTP + payment only<br/>not an on-platform actor"]
     end
 
-    subgraph Edge["Edge — public"]
-        WAF["WAF + CDN"]
-        APIGW["API Gateway / ALB"]
+    subgraph Edge["Bank Perimeter & Edge — public"]
+        CF["Cloudflare (Enterprise CDN/DDoS)"]
+        F5["F5 BIG-IP / WAF (Bank Policy)"]
+        EXT_ALB["External ALB"]
+        APIGW["API Gateway"]
     end
 
     subgraph EKS["EKS — ap-south-1, private subnets"]
-        BFF["RM Workspace BFF #2"]
+        NIPW["nip-web<br/>Flutter web, image-baked"]
+        BFF["NIP BFF #2"]
         subgraph WS2["WS-2 identity enabler"]
             IDPA["identity-provider-adapter"]
             AUTHZ["identity-authorization (PDP)"]
         end
-        OPP["Opportunity #5<br/>single origination point<br/>RM-only create"]
+        OPP["Lead #5<br/>single origination point<br/>RM-only create"]
         JRN["Journey Orchestration #9"]
-        CFG["Administration & Config #19<br/>versioned, seeded, LOB-partitioned<br/>no admin UI in R0"]
-        CUST["Customer #4"]
+        CFG["Administration & Config #19<br/>versioned, seeded, LOB-partitioned<br/>admin UI in R0 W4, isolated"]
+        CUST["Customer #4<br/>EBS (CBS / CIF) API Client"]
         CONS["Consent #6"]
         SUIT["Suitability #7"]
         CAT["Product Catalogue #8"]
@@ -196,15 +209,16 @@ graph TB
         SEC[("Secrets Manager + KMS")]
     end
 
-    subgraph Ext["External"]
-        CBS["Core Banking (CBS)"]
+    subgraph Ext["Bank On-Premises & External Partners"]
+        EBS["EBS (Core Banking / CBS / CIF)"]
         PG_BANK["AU Bank Payment Gateway"]
         SB["1SilverBullet"]
         AD["Bank AD / SSO"]
     end
 
-    FL --> WAF --> APIGW --> BFF
-    IPRW --> WAF
+    FL --> CF --> F5 --> EXT_ALB --> APIGW
+    APIGW --> NIPW
+    APIGW --> BFF
     CDEV -->|"payment link only"| PG_BANK
     BFF --> IDPA
     BFF --> AUTHZ
@@ -218,7 +232,7 @@ graph TB
     QTE --> CAT
     QTE & PRP & PAY & POL --> HUB
     HUB --> ONESB --> SB
-    CUST --> CBS
+    CUST --> EBS
     PAY --> PG_BANK
     IDPA --> AD
 
@@ -243,8 +257,8 @@ graph TB
 |---|---|
 | Region | `ap-south-1`; DR `ap-south-2`. Non-negotiable — control C6 |
 | Compute | EKS, per ARCH-002. Every service stateless at pod level |
-| Exposure | Only the API Gateway is public. Every service, datastore, cache node, broker and search domain is in a private subnet |
-| **Bank connectivity** (`ADR-009`) | CBS/CIF and Bank AD are reached over a Transit Gateway — Site-to-Site VPN from day one, Direct Connect primary when the circuit lands. `dev` may stub them; **`uat` and `prod` may not**. A journey evidenced against a stub is not evidence |
+| Perimeter & Edge Ingress | **Cloudflare (Enterprise CDN/DDoS)** → **F5 BIG-IP / WAF (Bank Policy)** → **External ALB** → **Amazon API Gateway** (Proxy 1 of 2) → **Internal ALB** (Proxy 2 of 2). Every service, datastore, cache node, broker and search domain is in a private subnet |
+| **Bank connectivity** (`ADR-009`) | **EBS APIs (CBS / CIF)** and Bank AD are reached over a Transit Gateway — Site-to-Site VPN from day one, Direct Connect primary when the circuit lands. `dev` may stub them; **`uat` and `prod` may not**. A journey evidenced against a stub is not evidence |
 | **Egress** (`ADR-010`) | 100% of egress and inter-VPC traffic is inspected: TGW → AWS Network Firewall → NAT with the allowlisted Elastic IPs. Domain allowlist, drop-by-default. The 1SB mTLS session is passed intact rather than decrypted. This is not a mesh and does not replace `NetworkPolicy` |
 | **Cache** (`ADR-011`) | One ElastiCache for Valkey replication group per environment: BFF sessions, an L2 read-through layer behind the in-process L1, and per-principal rate-limit counters. Per-service ACL user and key prefix. **Never** idempotency, a system of record, or a way to serve configuration past TTL |
 | **Event backbone** (`ADR-012`) | Amazon MSK, 3 brokers, SASL/IAM per topic, fed by the **transactional outbox, which remains the source of truth**. No regulatory evidence exists only in a topic |
@@ -254,7 +268,7 @@ graph TB
 | Render.com | Dev preview only. Never a PII data path. See ADR-001 in [`../architecture-review/08-architecture-decision-log.md`](../architecture-review/08-architecture-decision-log.md) |
 | **Partner (IPR) exposure** | The partner surface enters through the **same** API Gateway and the same BFF contract as the RM surface. There is no partner-specific service and no partner-specific journey path (`AC-3`); the difference is entirely the PDP decision and the query-layer scope (`AC-5`) |
 | **Actor scoping** | Every read on behalf of an `INSURER_PARTNER_REP` principal is constrained at the persistence layer by `insurer_id` **and** the `AC-4` visibility predicate. A repository method that can be called without them does not exist (`FF-17`) |
-| **LOB** | `lob` is a non-null column on every business and configuration table from the first migration (`LB-1`). Physical partitioning strategy is Aarti's (OPEN-I6); the logical dimension is not negotiable |
+| **LOB** | `lob` is a non-null column on every business and configuration table from the first migration (`LB-1`). Physical partitioning at R0 is an index prefix, not a partition key (`DATA-001` / OPEN-I6); the logical dimension is not negotiable |
 | **Configuration** | One store, LOB-partitioned, append-only versioned, effective-dated, seeded from source-controlled artefacts. Services resolve through a port and cache to the resolution TTL; no service embeds a rule (`CF-1`…`CF-4`) |
 
 ---
@@ -497,7 +511,7 @@ be allowed to work.
 | Group B redirect journey | Rajal | Out of the R0 platform slice |
 | The exact IPR permitted-action set — where assistance ends and solicitation begins | **Shailja** | `ID-21` / `JS-09`: I build the gate and ship it default-deny; the threshold is a compliance determination. Recorded as OPEN-D9 in [`01`](./01-domain-model-and-invariants.md) |
 | Physical partitioning of the `lob` dimension per store | Aarti | **R0 decision:** index prefix, not a partition key — [`01 §5`](../data-architecture/01-physical-design.md#5-open-i6--lob-partitioning) |
-| The administration user interface for configuration | Rajal + Mahesh | Deferred to R1+ and deliberately decoupled: the layer it would edit ships in R0 (`CF-5`) |
+| Exact MIS report catalog and row-level access on the admin/MIS UI | Rajal + Deepali + Shailja | Surfaces are in R0 W4 (`ADR-014`); the catalogue and authz matrix are not invented here |
 | Topic partition counts, retention windows, consumer-group IAM matrix | Shivanshi + Deepali | The **backbone** is decided (§5.1, `ADR-012`). Its operational parameters and its access matrix are not architecture's to set |
 | Firewall rule-set curation and the managed-IPS alert→drop date | Deepali + Shivanshi | `ADR-010` is a security control: the interim posture is Deepali's acceptance, not an architecture preference |
 | The bank's side of the connectivity — VPN termination, prefixes, firewall change, DX order | Shivanshi + bank network | `ADR-009` decides the **pattern**; the bank's own work is external and tracked as a dependency, not designed here |

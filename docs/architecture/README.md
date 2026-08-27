@@ -290,3 +290,39 @@ stale diagram: it does not look out of date, it looks like a decision.
 ten boundaries, the journey spine, the two actors, the wave colouring, the LOB encoding, the service
 count (fourteen plus one app) and `ADR-008`'s one-cluster data topology. The robustness round is
 strictly *beneath* the R0 slice.
+
+## Revision — 2026-08-25 Lead-domain R0 pull (`CR-013`, `ADR-014`)
+
+Label and release-chip reconciliation only. No new bounded context, no new AWS hop.
+
+| File | What changed |
+|---|---|
+| [`../hdl.svg`](../hdl.svg) | Spoken name of `#5` is **Lead**. `#18` and the `#19` admin UI chips move to **R0**. Campaign/bulk Lead create stays R1. Opportunity remains the durable-demand alias. |
+| [`r0-reference-architecture.svg`](./r0-reference-architecture.svg) | `#5 Lead`. `#18` and Admin BFF promoted from R1 ghosts to **W4**. `#19` no longer says "NO ADMIN UI IN R0". |
+| [`r0-lld.svg`](./r0-lld.svg) | Namespace label `#5 Lead`. Topology unchanged. |
+| generated set | `#5 Lead` on the topology view. Regenerated; not hand-edited. |
+| [`R0-HLD.md`](./R0-HLD.md) | Compiled narrative matches the same cut. |
+
+## Revision — 2026-08-25 RM/admin web hosting (`SUG-20260825-ll1`)
+
+`CR-013` / `ADR-014` put the Admin BFF and `#18` on the HLD. This revision puts them on the S09 pack the platform team provisions from. No new bounded context, no new AWS hop, **no PVC**.
+
+| File | What changed |
+|---|---|
+| [`R0-LLD.md`](./R0-LLD.md) | New §3.1: RM/admin web are image-baked pods in `ns:edge` on the internal ALB. Z0/Z2, W4 and OUT OF SCOPE match `ADR-014`. Warehouse (Glue ETL) stays out; `#18` is the isolated read path. |
+| [`R0-HLD.md`](./R0-HLD.md) | Boundary 1: Flutter native + desktop web in `ns:edge`; admin/ops on a separate hostname. |
+| [`r0-lld.svg`](./r0-lld.svg) | Four `ns:edge` pods (`rm-web`, `#2`, Admin BFF, `admin-web`). Z0 gains admin/ops. `#18` on `ns:jobs`. Glue/Athena still DO NOT PROVISION. |
+| generated set | Topology: RM native, RM desktop, IPR, admin/ops devices; four edge pods; `#18` in `ns:jobs`. Regenerated from [`diagrams/r0_platform_views.py`](./diagrams/r0_platform_views.py). Not hand-edited. |
+
+## Revision — 2026-08-25 one NIP-APP (`ADR-015`, PROPOSED)
+
+Taken architecture decision (human:Mahesh). **Human T4 Architecture sign-off is outstanding.** Do not rewrite the `ADR-014` / `CR-013` history above — `ADR-015` **retracts the hostname / pod split**.
+
+| File | What changed |
+|---|---|
+| [`R0-LLD.md`](./R0-LLD.md) | §3.1: one Flutter **NIP-APP** (web + APK + IPA). `ns:edge` = `nip-web` + `#2` NIP BFF **only**. One hostname. Store listing is EKS + Play + App Store. |
+| [`R0-HLD.md`](./R0-HLD.md) | Boundary 1 and 3: NIP-APP and NIP BFF. RM / IPR / admin/ops are **roles**. |
+| [`r0-lld.svg`](./r0-lld.svg) | Z0 is one NIP-APP. `ns:edge` is two pods. |
+| [`r0-reference-architecture.svg`](./r0-reference-architecture.svg) | Channel is NIP-APP. `#2` is NIP BFF. Admin BFF is **not** a second R0 BFF. |
+| [`../hdl.svg`](../hdl.svg) | `#2` NIP BFF; Admin BFF folded to roles on NIP-APP (`HA-06`). |
+| generated set | Topology devices and `ns:edge` regenerated from [`diagrams/r0_platform_views.py`](./diagrams/r0_platform_views.py). Not hand-edited. |

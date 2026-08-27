@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20260818-4c3 | 2026-08-18 | human:Mahesh | Architecture justification pack: why service boundaries, merge rejection, datastore choices, caching, direct-insurer future, R0/R1/R2+ scope. **Aligned 2026-08-25** to `CR-012`/`ADR-008`…`ADR-013`; cites the canonical renderings rather than publishing a second pair (`HA-04`) | SF1 | SC0 | MUST | ARCH | P2 / P2 | ADMIT-BYPASS | [06-architecture-justification](../../platform/ws3-platform/06-architecture-justification-and-review-answers.md) |
 | SUG-20260816-d8v | 2026-08-16 | human:Mahesh | Add Dilip AI executive-sponsor perspective for bancassurance business/value decisions and wire it into P0/R0 | SF2 | SC1 | SHOULD | GOV | P2 / P2 | ADMIT-BYPASS | [1SB backlog governance/decision-quality enablers](../../1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md#governance--decision-quality-enablers) |
 | SUG-20260816-ba7 | 2026-08-16 | human:Mahesh | Add a senior end-to-end bancassurance BA AI persona for existing R11 and link it to current personas/context | SF2 | SC1 | SHOULD | GOV | P2 / P2 | ADMIT-BYPASS | [Principal BA package](../../context/roles/principal-insurance-platform-business-analyst/README.md) |
 | SUG-20260816-ap1 | 2026-08-16 | human:Mahesh | Build a reusable context module and safe evidence-driven autopilot; reconcile semantic governance drift and documentation structure | SF1 | SC1 | MUST | GOV | P2 / P2 | ADMITTED | [CR-010](../change-requests/CR-010-context-module-and-safe-autopilot.md) |
@@ -51,7 +52,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | SUG-20260820-hr0 | 2026-08-20 | human:Mahesh | HLD review round: correct the R0 actor model to two actors with SP as a certification attribute, gate and insurer-scope the Insurance Partner Representative, make the opportunity the single RM-only origination point, make LOB first-class from release 1 and make the configuration layer ship in R0 independently of any admin UI | SF0 | SC0 | MUST | ARCH | P1 / P1 | ADMIT-BYPASS | [ADR-004…007](../../platform/architecture-review/08-architecture-decision-log.md) |
 | SUG-20260820-r1t | 2026-08-20 | agent:claude | Produce the R0 → R1 → R2 transition and dependency map the North Star does not answer: the order in which target components must appear and which are prerequisites for which | SF3 | SC1 | SHOULD | ARCH | P4 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md#1-parked--scheduled-work) |
 | SUG-20260820-al7 | 2026-08-20 | human:Mahesh | Reconcile the North Star and R0 diagrams: one naming and layer convention across both files, the R0 view redrawn on the North Star's boundary bands so it reads as a release-zero cut of the same picture, and the Life LOB cell visually separated from the shared platform | SF1 | SC1 | MUST | ARCH | P2 / P2 | ADMITTED | [detail](#sug-20260820-al7--hld-and-r0-diagram-alignment) |
-| SUG-20260820-dc4 | 2026-08-20 | human:Mahesh | Resolve OPEN-A1 and OPEN-D10: physical database topology is an evidence-led decision, not a principle — R0 starts as one cluster with a schema per context and splits later along the LOB-cell / shared-platform seam; and context #5 is named Opportunity, because a lead is too thin to carry renewal, lapse and cross-sell demand | SF1 | SC1 | MUST | ARCH | P2 / P2 | ADMITTED | [ADR-008](../../platform/architecture-review/08-architecture-decision-log.md) |
+| SUG-20260820-dc4 | 2026-08-20 | human:Mahesh | Resolve OPEN-A1 and OPEN-D10: physical database topology is an evidence-led decision, not a principle — R0 starts as one cluster with a schema per context and splits later along the LOB-cell / shared-platform seam; and context #5 is named Opportunity, because a lead is too thin to carry renewal, lapse and cross-sell demand | SF1 | SC1 | MUST | ARCH | P2 / P2 | ADMITTED | [ADR-008](../../platform/architecture-review/08-architecture-decision-log.md) · recurrence_count 2 (2026-08-25: rename Opportunity → Lead; not a new row — see [detail](#sug-20260820-dc4--data-topology-and-the-name-of-context-5)) |
 | SUG-20260820-hl1 | 2026-08-20 | human:Mahesh | Act as Mahesh: turn the R0 reference architecture SVG into a detailed HLD (domain, boundary, communication, API, business logic, phases/waves/what-to-do-when) and an LLD for the CTO and AWS platform team (e2e components, services, AWS, VPC, reverse proxy, PVC, DB, cache) | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMIT-BYPASS | [R0-HLD](../../architecture/R0-HLD.md) · [R0-LLD](../../architecture/R0-LLD.md) |
 | SUG-20260820-ls1 | 2026-08-20 | human:Mahesh | Create an SVG rendering of the R0 LLD for the CTO and AWS platform team | SF1 | SC0 | SHOULD | ARCH | P2 / P1 | ADMIT-BYPASS | [r0-lld.svg](../../architecture/r0-lld.svg) |
 | SUG-20260820-pt9 | 2026-08-20 | human:Mahesh | Draw the AWS platform-team application view: what the application is, the service inventory, availability-zone placement, the DR bill of materials, the reverse-proxy and egress chain, and **when** each resource is needed — as a deployment topology in the style of a landing-zone request diagram | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMIT-BYPASS | [R0-LLD §2.1/§11.1/§12.1](../../architecture/R0-LLD.md) · rendering superseded by [SUG-20260820-ic3](#sug-20260820-ic3--icon-notation-generated-from-code) |
@@ -59,7 +60,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | SUG-20260820-lay4 | 2026-08-20 | human:Mahesh | Keep the icons, drop the layout engine: place every element on a chosen grid and route every connector orthogonally, so the views are aligned and the links are straight | SF1 | SC0 | SHOULD | DOC | P3 / P2 | ADMIT-BYPASS | [diagrams/](../../architecture/diagrams/README.md) |
 | SUG-20260820-cm2 | 2026-08-20 | human:Mahesh | Close the context-architecture gap found by audit: 20 documents unreachable by any link and 96 more at 3+ hops, 22 persona-package files no card routed to, and no CI guard against either. Add a generated document-routing map (`DOC-MAP.yaml`) with a `find` query path, complete the persona `Load deeper` tables, consolidate the READMEs that carry no unique content, and fail CI on an unrouted document | SF1 | SC1 | MUST | GOV | P2 / P2 | ADMIT-BYPASS | [DOC-MAP](../../context/DOC-MAP.yaml) · [doc_routing](../../context/AGENT-CONTEXT-INDEX.yaml) · continues [CR-010](../change-requests/CR-010-context-module-and-safe-autopilot.md) |
 | SUG-20260821-jx1 | 2026-08-21 | human:Mahesh | Produce an end-to-end Journey Execution Specification for R0: every actor use case, the hop-by-hop route of each request across edge/BFF/service/aggregate/persistence, the validation performed at each layer with its algorithm, every external API call, and every possible outcome — assembled for the dev and QA teams | SF1 | SC1 | SHOULD | DOC | P3 / P1 | ADMITTED | [detail](#sug-20260821-jx1--r0-journey-execution-specification) |
-| SUG-20260821-jx2 | 2026-08-21 | human:Mahesh | Extend the Journey Execution Specification beyond R0 to the whole application — DIY/customer journey, hybrid mode switching, Group B insurers, ULIP/Savings, Health/Motor/Travel, renewals and servicing, admin UI, operations and reporting surfaces | SF3 | SC2 | NOT-NOW | DOC | P5 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md#1-parked--scheduled-work) |
+| SUG-20260821-jx2 | 2026-08-21 | human:Mahesh | Extend the Journey Execution Specification beyond R0 to the whole application — DIY/customer journey, hybrid mode switching, Group B insurers, ULIP/Savings, Health/Motor/Travel, renewals and servicing. Admin UI and Reporting/MIS carved into R0 by CR-013 | SF3 | SC2 | NOT-NOW | DOC | P5 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md#1-parked--scheduled-work) · recurrence_count 3 (2026-08-25: admin/MIS timing overridden by CR-013; those surfaces left this parked bag) |
 | SUG-20260824-gp1 | 2026-08-24 | human:Mahesh | Provision hybrid bank connectivity in R0 instead of deferring it: a Transit Gateway hub with Site-to-Site VPN from day one and Direct Connect as the primary path when the circuit lands, so CBS and Bank AD are reached over a private path in `uat` and `prod` rather than stubbed | SF1 | SC0 | MUST | INFRA | P1 / P1 | ADMIT-BYPASS | [ADR-009](../../platform/architecture-review/08-architecture-decision-log.md) · [CR-012](../change-requests/CR-012-r0-platform-robustness.md) · [detail](#sug-20260824-gp1--hybrid-bank-connectivity-in-r0) |
 | SUG-20260824-gp2 | 2026-08-24 | human:Mahesh | Inspect egress in R0: a per-environment inspection VPC with AWS Network Firewall, domain allowlisting and IPS, with the 1SB/PG-allowlisted Elastic IPs moved behind it — closing unrestricted 443 egress from a platform holding PAN, income and health attributes | SF1 | SC0 | MUST | SEC | P1 / P1 | ADMIT-BYPASS | [ADR-010](../../platform/architecture-review/08-architecture-decision-log.md) · [CR-012](../change-requests/CR-012-r0-platform-robustness.md) · [detail](#sug-20260824-gp2--centralised-egress-inspection-in-r0) |
 | SUG-20260824-gp3 | 2026-08-24 | human:Mahesh | Provision a managed cache tier in R0 (ElastiCache for Valkey) for BFF sessions, an L2 read-through layer and per-principal rate limiting — resolving the published DynamoDB-versus-Redis session contradiction and the per-pod configuration divergence, while refusing idempotency | SF1 | SC0 | MUST | INFRA | P2 / P1 | ADMIT-BYPASS | [ADR-011](../../platform/architecture-review/08-architecture-decision-log.md) · [CR-012](../change-requests/CR-012-r0-platform-robustness.md) · [detail](#sug-20260824-gp3--managed-cache-tier-in-r0) |
@@ -67,6 +68,20 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | SUG-20260824-gp5 | 2026-08-24 | human:Mahesh | Provision Amazon OpenSearch in R0 as the operational search and log-analytics pipe — with an explicit exclusion from the regulatory pipe — so the firewall, flow, TGW and broker logs the other closures generate are queryable during the first end-to-end journey | SF1 | SC0 | SHOULD | INFRA | P2 / P2 | ADMIT-BYPASS | [ADR-013](../../platform/architecture-review/08-architecture-decision-log.md) · [CR-012](../change-requests/CR-012-r0-platform-robustness.md) · [detail](#sug-20260824-gp5--operational-search-pipe-in-r0) |
 | SUG-20260825-db1 | 2026-08-25 | human:Aarti-request | Create the Aarti DB design pack: rules, physical schema, tables, relationships, indexes, required routines, troubleshooting plan, and SQL scripts for each R0 schema | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [DATA-001](../../platform/data-architecture/DATA-001.work-item.yaml) · [detail](#sug-20260825-db1--aarti-r0-physical-data-architecture-pack) |
 | SUG-20260825-aln | 2026-08-25 | human:Aarti-request | Check whether the R0 physical DB pack is aligned with recent scope changes (CR-013) and what still needs to be created | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [DATA-002](../../platform/data-architecture/DATA-002.work-item.yaml) · [alignment](../../platform/data-architecture/DATA-002-cr013-alignment.md) · [detail](#sug-20260825-aln--cr-013-physical-alignment) |
+| SUG-20260825-lt1 | 2026-08-25 | human:Mahesh | After convert + payment, close the working Lead and keep 7-year evidence on Payment, Policy and issuance history — do not retain every Lead for 7 years | SF1 | SC0 | MUST | ARCH | P1 / P1 | ADMITTED | [CR-013](../change-requests/CR-013-r0-lead-mis-admin-scope.md) · [ADR-014](../../platform/architecture-review/08-architecture-decision-log.md) |
+| SUG-20260825-of1 | 2026-08-25 | human:Mahesh | MIS upload of products sold offline or on insurer portals so the platform sees the full book and which products still need onboarding | SF1 | SC0 | MUST | FUNC | P1 / P1 | ADMITTED | [CR-013](../change-requests/CR-013-r0-lead-mis-admin-scope.md) · [ADR-014](../../platform/architecture-review/08-architecture-decision-log.md) |
+| SUG-20260825-st1 | 2026-08-25 | human:Mahesh | Align issuance with STP, non-STP and Insta as first-class modes on Proposal/Policy — not as Lead states | SF1 | SC0 | MUST | ARCH | P1 / P1 | ADMITTED | [CR-013](../change-requests/CR-013-r0-lead-mis-admin-scope.md) · [ADR-014](../../platform/architecture-review/08-architecture-decision-log.md) |
+| SUG-20260825-pp1 | 2026-08-25 | human:Mahesh | Confirm the R0 design against IRDAI Protection of Policyholders' Interests (PPHI) — interpretation is Board 6, not Architecture | SF1 | SC0 | MUST | COMP | P1 / P1 | ADMITTED | [CR-013](../change-requests/CR-013-r0-lead-mis-admin-scope.md) · condition C-PPHI-1 |
+| SUG-20260825-wl1 | 2026-08-25 | human:Mahesh | Isolate operations / MIS workload from the RM and Lead transactional path | SF4 | SC0 | REJECT | ARCH | — / — | REJECTED | already the ratified design — [03-communication-patterns.md](../../platform/architecture-review/03-communication-patterns.md) · [05-data-architecture.md](../../platform/architecture-review/05-data-architecture.md) · [detail](#sug-20260825-wl1--oltp-vs-ops-isolation-already-decided) |
+| SUG-20260825-df1 | 2026-08-25 | human:Mahesh | Authorise every persona to decide the lead-domain intake and write one decision file | SF1 | SC1 | MUST | DOC | P2 / P2 | ADMIT-BYPASS | [DEC-20260825-01](../DEC-20260825-01-lead-domain-decisions.md) · [detail](#sug-20260825-df1--one-decision-file) |
+| SUG-20260825-r0s | 2026-08-25 | human:Mahesh | Stakeholder: include the lead-domain intake in R0 immediately; nothing parked; compliance calls only | SF0 | SC0 | MUST | ARCH | P1 / P1 | ADMIT-BYPASS | [CR-013](../change-requests/CR-013-r0-lead-mis-admin-scope.md) · [ADR-014](../../platform/architecture-review/08-architecture-decision-log.md) · recurrence_count 2 (2026-08-25: Admin/Config BFF + admin/ops actors for MIS — already D4) |
+| SUG-20260825-pv1 | 2026-08-25 | human:Mahesh | Deploy the desktop web application on a Kubernetes PVC | SF4 | SC3 | REJECT | INFRA | — / — | REJECTED | [detail](#sug-20260825-pv1--no-pvc-for-the-web-app) |
+| SUG-20260825-ld1 | 2026-08-25 | human:Mahesh | Make Lead LOB-specific | SF4 | SC3 | REJECT | ARCH | — / — | REJECTED | [detail](#sug-20260825-ld1--lead-is-not-lob-specific) |
+| SUG-20260825-st2 | 2026-08-25 | human:Mahesh | Put the Flutter RM app on Play Store / Apple Store (and a customer store app) | SF1 | SC1 | MUST | ARCH | P2 / P1 | CLOSED-DELIVERED | Unparked by `ADR-015`: workforce distribution is EKS web + Play APK + App Store IPA. Customer store apps remain R1 (`#1`). Deepali owns store hardening. |
+| SUG-20260825-ac1 | 2026-08-25 | human:Mahesh | Add admin and operations as R0 on-platform actors for the Admin & Configuration BFF, reports and MIS | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [detail](#sug-20260825-ac1--admin-and-ops-actors-for-r0) · UI is NIP-APP roles (`SUG-20260825-nip`), not a second app |
+| SUG-20260825-ll1 | 2026-08-25 | human:Mahesh | Reconcile R0-LLD and platform topology with ADR-014: Admin BFF, #18 MIS, desktop admin web, no PVC | SF1 | SC1 | MUST | DOC | P3 / P2 | CLOSED-DELIVERED | [detail](#sug-20260825-ll1--lldtopology-lag-behind-adr-014) · `admin-web` / `admin.{env}` retracted by `SUG-20260825-nip` |
+| SUG-20260825-nip | 2026-08-25 | human:Mahesh | One NIP-APP (New Insurance Platform) Flutter client for web/iOS/Android; RM, ISR, admin and operations share it with role-based views; no separate admin/ops app now or later | SF1 | SC1 | MUST | ARCH | P2 / P1 | CLOSED-DELIVERED | [detail](#sug-20260825-nip--one-nip-app-role-based-not-a-second-admin-ui) · recorded as `ADR-015` (PROPOSED — human T4 outstanding) |
+| SUG-20260825-arb | 2026-08-25 | human:Mahesh | Review with internal Architect team: Cloudflare instead of CloudFront (bank standard), F5 BIG-IP / WAF instead of AWS WAF (bank standard), External ALB before API Gateway, GitLab CI/CD for pipelines, EBS (Enterprise Service Bus) naming for Core Banking integration with CBS in brackets, Terraform IaC, CloudTrail and CloudWatch both mandatory | SF1 | SC0 | MUST | ARCH | P1 / P1 | ADMIT-BYPASS | [ARB-ARCHITECTURE-DOSSIER](../../architecture/ARB-ARCHITECTURE-DOSSIER.md) · [detail](#sug-20260825-arb--internal-architect-review-alignment) |
 
 <!--
 Row format:
@@ -79,6 +94,194 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20260825-arb · Internal Architect Review Alignment (Cloudflare, F5, External ALB, GitLab, EBS/CBS, Terraform, CloudTrail/CloudWatch)
+
+```yaml
+id: SUG-20260825-arb
+raised_at: "2026-08-25"
+raised_by: "human:Mahesh"
+source: "Internal Architecture Review Team feedback"
+input: >
+  Mahesh review with internal Architect team:
+  - Use Cloudflare as bank has that enterprise standard
+  - Use F5 BIG-IP instead of AWS WAF as bank enterprise standard
+  - External ALB before API Gateway
+  - GitLab CI/CD for all pipelines
+  - Connect CBS via EBS APIs (Enterprise Service Bus); use EBS in diagram and in brackets add CBS
+  - Terraform for Infrastructure as Code (IaC)
+  - CloudTrail and CloudWatch both mandatory
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 / S09 — Engineering & Platform Foundation"
+  current_objective: R0-ASSISTED-TERM-SALE
+  state_as_of: "2026-08-10"
+  state_provisional: false
+  active_work_item: "ARB architecture preparation"
+
+stage_fit:
+  code: SF1
+  rationale: >
+    Aligns enterprise bank infrastructure tooling and perimeter architecture directly with
+    AU Bank standards for S09 provisioning and ARB presentation.
+
+scope:
+  code: SC0
+  business_scope: "WS-3 Architecture and Infrastructure Baseline"
+  serves: []
+  failure_without_it: >
+    ARB presentation will be rejected by bank enterprise security, networking, and platform teams
+    if bank-standard tools (Cloudflare, F5, GitLab, EBS, Terraform) are omitted or contradicted.
+  minimal: true
+  authority: "Internal Architect review directive + Mahesh Board 1 Architecture"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S07/S09 Architecture Review"
+  binds_when: "ARB presentation and S09 Terraform IaC provisioning"
+  evidence_tier: E2
+  confidence: C5
+
+action: ADMIT-BYPASS
+action_rationale: "Enterprise architecture alignment directive from human Architecture owner."
+
+classification:
+  type: ARCH
+  risk_tier: T2
+
+priority:
+  score_now: 16
+  priority_now: P1
+  priority_at_target: P1
+
+breakdown:
+  stories:
+    - "Update ARB-ARCHITECTURE-DOSSIER.md to incorporate Cloudflare, F5, External ALB, GitLab CI/CD, EBS (CBS), Terraform IaC, and CloudTrail+CloudWatch"
+```
+
+### SUG-20260818-4c3 · Architecture justification pack + release-scoped HLD
+
+```yaml
+id: SUG-20260818-4c3
+raised_at: "2026-08-18"
+raised_by: "human:Mahesh"
+source: "direct follow-up after R0 HLD review — prepare comprehensive justification for architecture review questions"
+input: >
+  Diagram is really good, but I was not able to justify why we need all these services,
+  what functions/APIs/business logic each has, why we are not merging couple of services.
+  Need a comprehensive document to understand why this architecture is built like this and
+  what we are achieving. Review questions: why relational not MongoDB for quote and proposal;
+  right now no quote caching; where will caching logic be added especially for direct insurer
+  integrations; cannot see complete platform scope beyond R0 — use colour coding for R0/R1/R2+.
+  Lets do this together.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: R0-ASSISTED-TERM-SALE
+  state_as_of: "2026-08-10"
+  state_provisional: false
+  active_work_item: "SUG-20260818-4c3 architecture justification + release-map HLD"
+
+stage_fit:
+  code: SF1
+  rationale: >
+    Architecture justification and release-scoped HLD make the already-drafted S07 solution
+    architecture reviewable and defendable; they do not admit new runtime services or change
+    GATE-S08 criteria.
+
+scope:
+  code: SC0
+  business_scope: "WS-3 ARCH — explicit in CURRENT-STATE routing and 03-solution-architecture-r0"
+  serves: []
+  failure_without_it: >
+    Architecture reviews cannot answer service-boundary, datastore, caching or roadmap questions
+    from a single artefact; R0 HLD alone looks incomplete.
+  minimal: true
+  authority: "direct user instruction + Mahesh Board 1 architecture lane"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S07/S08 architecture communication — before Wave 1 service build"
+  binds_when: "next architecture / stakeholder review of platform shape"
+  evidence_tier: E2
+  evidence:
+    - "existing 02/03/05 architecture-review + ws3 03-solution-architecture-r0"
+    - "WS-3 charter R0/R1/R2 revisit table"
+    - "08-integration-strategy Phase A/B/C"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT-BYPASS
+action_rationale: >
+  Human Architecture owner directed immediate production of the justification pack and
+  release-coloured HLD as review preparation; documentation-only, no runtime change.
+duplicate_of: null
+conflicts: []
+
+classification:
+  type: ARCH
+  risk_tier: T2
+  notes: "AI-drafted Mahesh artefact; human T4 Architecture sign-off remains outstanding"
+
+priority:
+  score_now: 14
+  priority_now: P2
+  priority_at_target: P2
+  caps_applied: []
+
+dependencies: []
+
+breakdown:
+  stories:
+    - "Write 06-architecture-justification-and-review-answers.md"
+    - "Publish a release-coloured full-platform HLD with R0/R1/R2+ colour language"
+    - "Retain/refresh the R0 HLD visual"
+
+delivery_note_2026_08_25: >
+  Both diagram stories were satisfied by files that landed on main while this suggestion was open,
+  not by the two SVG/PNG pairs originally drafted for it. SUG-20260820-n5t moved the R0 view to
+  docs/architecture/r0-reference-architecture.svg and gave docs/hdl.svg the release-coded North
+  Star; rule HA-04 in 16-hld-authoring-and-update-protocol.md then assigns one file per horizon.
+  The drafted pair would have been a second answer for each of those two horizons, and both were
+  stale against ADR-005 (#5 Opportunity), CF-5 (#19 as a W0b service) and ADR-009..ADR-013 (the
+  five admitted layers, including "no Kafka in R0" printed on the R0 draft). They are therefore
+  not published; 06-architecture-justification-and-review-answers.md cites the canonical
+  renderings instead. No content the stories asked for is lost — the release colour language and
+  the R0/R1/R2+ matrix live in that document's section 8.
+
+alignment_2026_08_25:
+  reconciled_against:
+    - "CR-012 / ADR-009..ADR-013 — five infrastructure layers admitted into R0"
+    - "ADR-008 — one Aurora cluster, schema per context, amending ARCH-004"
+    - "ADR-005 / OPEN-D10 — #5 is Opportunity, W1, the single origination point (AC-8, AC-9)"
+    - "CF-1..CF-5 — #19 Configuration is a W0b service; only its UI is deferred"
+    - "03-solution-architecture-r0 section 3 — fourteen deployable services plus one app"
+    - "03-solution-architecture-r0 section 2.1 — two actors; the IPR assists and never originates"
+    - "16-hld-authoring-and-update-protocol HA-02, HA-04, HA-09, NC-1, LY-1, LB-R1"
+  corrections_made_in_place:
+    - "section 6.1 — 'idempotency in Redis' withdrawn; ADR-011 rejects it by name (FF-23)"
+    - "section 4.1 — 'Lead can stay thin' and 'Admin is versioned artefacts' both struck, with the reason kept visible"
+    - "section 1.2 — service count corrected from ~12 to fourteen plus one app"
+
+outcome:
+  registered_in: "SUGGESTION-REGISTER.md"
+  work_item_id: SUG-20260818-4c3
+  status: ADMIT-BYPASS
+  closed_reason: null
+
+resumed: null
+```
 
 ### SUG-20260816-d8v · Dilip AI Executive Sponsor Perspective
 
@@ -962,6 +1165,16 @@ not_included:
   - "T4 Architecture sign-off. Signature status on both ADRs and both diagrams is unchanged (HA-10)"
   - "any physical schema, migration or seed artefact — this is design; implementation is S09 work"
 
+recurrence_count: 2
+recurrence_20260825: >
+  human:Mahesh asked again to change Opportunity to Lead because stakeholders and the team
+  already use Lead. That is the inverse of OPEN-D10, not a new decision. Rule CS-2: no new
+  row. Architecture position on the recurrence: do not reverse ADR-005 naming_resolution.
+  The UI / RM language may say Lead — that is Rajal's, still outstanding. The bounded
+  context stays Opportunity because a working pipeline object that is archived after
+  conversion is exactly why Lead was judged too thin. The 2026-08-25 lifecycle request
+  (SUG-20260825-lt1) uses that split; it does not reopen the name.
+
 outcome:
   registered_in: "SUGGESTION-REGISTER.md"
   work_item_id: SUG-20260820-dc4
@@ -978,6 +1191,8 @@ outcome:
 
 resumed: null
 ```
+
+---
 
 ### SUG-20260820-hl1 · R0 stakeholder HLD and AWS LLD pack
 
@@ -1855,6 +2070,1016 @@ notes:
   - "This turn published the check (DATA-002-cr013-alignment.md, DB-DEC-0002). DDL is not implemented in the raise turn."
   - "Archive mechanism (partition vs table vs dump) remains undecided — DEC §12 joint Aarti/Mahesh."
   - "S07-G5 remains OPEN. No stage field edited."
+```
+
+---
+
+### SUG-20260825-lt1 · Lead lifecycle archive vs Payment/Policy retention
+
+```yaml
+id: SUG-20260825-lt1
+raised_at: "2026-08-25"
+raised_by: "human:Mahesh"
+source: "direct user instruction, acting as the Board 1 Architecture persona"
+input: >
+  Make sure lead transitions are well aligned. If a lead is converted and payment is done,
+  transit to some other phase which can be different from the lead. Lead is something we
+  work on and might need to archive based on how it grows — we do not want to preserve
+  all leads for 7 years. What we want to preserve for compliance is what happened to the
+  payments made, was a policy issued, and if a policy is issued the historic state
+  transition for that issued policy. This keeps the lead module lightweight and easy to
+  access.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: R0-ASSISTED-TERM-SALE
+  current_gate: "GATE-S08 (OPEN) — 10 of 10 exit criteria still open"
+  state_as_of: "2026-08-10"
+  freshness_check: "exit 1 — WARN; state_as_of is 15 days old; review_due 2026-09-09"
+  active_work_item: null
+
+stage_fit:
+  code: SF3
+  rationale: >
+    S08 builds the engineering floor (CI, coverage, ArchUnit, secrets, no-PII-in-logs).
+    It does not persist an Opportunity/Lead aggregate. The domain model already has a
+    terminal CONVERTED state (01-domain-model-and-invariants.md §4.1) and separate
+    Payment and Policy machines. The new work is the retention/archive contract after
+    those terminals — that binds when Wave 1 designs the Opportunity service, not when
+    GATE-S08 is open.
+  target_stage: "W1 — Opportunity aggregate design (after GATE-S08 / S09 critical path)"
+  unpark_trigger: "GATE-S08 passed and Wave 1 Opportunity / Lead aggregate design starts"
+  future_necessity: MUST
+
+scope:
+  code: SC1
+  business_scope: "derived — Wave 1 origination and the 7-year evidence obligation"
+  serves: ["W1 Opportunity / context #5", "INV-LED-01", "INV-POL-01", "INV-JRN-05", "control C7"]
+  failure_without_it: >
+    If W1 persists every Lead attribute as RET-7Y (02-information-model.md §4.2 today),
+    the working pipeline store becomes the 7-year bag. Disposal of working Leads later
+    is a migration and may be unlawful if Shailja has not approved the class split.
+  minimal: true
+  authority: >
+    ws3-platform/01-domain-model-and-invariants.md §4.1 / §4.8 / INV-LED-* / INV-POL-* /
+    INV-JRN-05; ws3-platform/02-information-model.md §2.2 and §4.2; ADR-005; ADR-008
+    naming_resolution; BOOT.md WS-3 out_of_scope_now
+
+necessity:
+  now: NOT-NOW
+  future_necessity: MUST
+  target_stage: "W1 Opportunity design"
+  binds_when: "the first Opportunity / Lead schema is designed"
+  evidence_tier: E2
+  confidence: C3
+  evidence:
+    - "02-information-model.md §4.2 currently assigns RET-7Y to leadId, state, lob"
+    - "02-information-model.md §2.2 already has RET-7Y-IMMUTABLE, RET-7Y, RET-POLICY+7Y, RET-OPERATIONAL"
+    - "01-domain-model-and-invariants.md §4.1 — CONVERTED is already terminal; Payment and Policy are other aggregates"
+    - "INV-POL-01 — policy is not created before Payment is RECONCILED"
+    - "INV-JRN-05 — SOLD requires ACTIVE policy + RECONCILED payment + issuance confirmation + audit"
+  assumptions:
+    - "Shailja has not yet approved a shorter class for a converted/expired/disqualified Lead"
+    - "Stakeholder 'Lead' means the working pipeline object, not the 7-year SoT"
+  anti_over_engineering:
+    X1_named_consumer: false    # no Opportunity service exists at S08
+    X3_cheap_later: false       # retention class after first persist is a migration
+    X5_stage_necessity: false   # binds at W1, not S08
+    X6_simplest_sufficient: true
+    X9_problem_observed: false  # no Lead store in production; this is a design correction
+
+action: ADMIT
+action_rationale: >
+  Originally PARK (SF3 at S08). Stakeholder override `SUG-20260825-r0s` / `CR-013`
+  pulled the archive contract into R0. Compliance conditions C-RET-1 / C-RET-2 bind.
+  Not a P1 incorrect-domain-model interrupt of GATE-S08 CI: the split of aggregates
+  already existed; the retention class is now written on the information-model sheet.
+duplicate_of: null
+conflicts:
+  - >
+    02-information-model.md §4.2 says Lead is RET-7Y. This suggestion asks to stop keeping
+    every Lead for 7 years. Resolution: do not edit the information model in this turn.
+    Park the class split for W1; Shailja owns the horizon; Aarti owns the physical archive.
+
+classification:
+  type: ARCH
+  also: [COMP]
+  breakdown: STORY
+  epic: null
+  risk_tier: T3
+  destination: "CR-013 / ADR-014"
+
+priority:
+  now: P1
+  at_target: P1
+  rationale: "Stakeholder R0 pull; binds at W1 Lead schema"
+
+architecture_position_draft: >
+  Mahesh (AI draft, not T4 sign-off). Converted + paid is not a later phase of Lead.
+  Journey reaches SOLD only when Policy is ACTIVE and Payment is RECONCILED (INV-JRN-05).
+  After QUALIFIED → CONVERTED the Lead aggregate is terminal (INV-LED-01). Working-pipeline
+  access goes to Policy/Payment/Journey, not to an ever-growing Lead table. leadId remains
+  the opaque origin reference on every downstream aggregate (INV-LED-06) — that pointer is
+  what we keep, not the working inbox. A renewal or lapse creates a NEW opportunity and a
+  NEW journey (ADR-005 naming_resolution), never reopens an archived Lead. Archive is not
+  delete: ID-04, disposal writes an audit record, and Shailja sets the horizon. Aarti jointly
+  reviews any physical archive/purge path (shared-DB / SoT change).
+
+outcome:
+  registered_in: "CR-013 / ADR-014"
+  work_item_id: CR-013
+  status: ADMITTED
+  override: "SUG-20260825-r0s — parking withdrawn; nothing hanging"
+
+resumed: GATE-S08
+```
+
+---
+
+### SUG-20260825-of1 · Off-platform sale ingest
+
+```yaml
+id: SUG-20260825-of1
+raised_at: "2026-08-25"
+raised_by: "human:Mahesh"
+source: "direct user instruction, acting as the Board 1 Architecture persona"
+input: >
+  Not all products will be on the platform from day one (insurer API not ready, 1SB not
+  configured, and other reasons). The distributor bank will still sell those products
+  offline or on insurer portals. MIS will later upload that lead or policy so we see
+  how many products were sold on-platform vs off-platform, which products still need
+  onboarding, and can generate reports and insights.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: R0-ASSISTED-TERM-SALE
+  current_gate: "GATE-S08 (OPEN)"
+  state_as_of: "2026-08-10"
+  freshness_check: "exit 1 — WARN"
+  active_work_item: null
+
+stage_fit:
+  code: SF3
+  rationale: >
+    This is a second intake path plus Reporting/MIS beyond the pilot funnel. R0 is one
+    RM, one ETB customer, one Term product, one insurer, through a real interface.
+    BOOT.md lists Reporting and MIS (context #18) beyond the pilot funnel as
+    out_of_scope_now until R1. ADR-005 forbids any parallel origination path before R1.
+  target_stage: "R1 — Reporting & MIS / off-platform book capture"
+  unpark_trigger: "R0 completes a real pilot sale, or R1 planning starts"
+  future_necessity: SHOULD
+
+scope:
+  code: SC2
+  business_scope: "adjacent — full-book visibility is real, nothing in R0 fails without it"
+  serves: []
+  failure_without_it: "no R0 acceptance criterion fails; the pilot Term path does not need off-platform upload"
+  minimal: false
+  authority: "CURRENT-STATE.yaml WS-3 out_of_scope_now; ADR-005; 03-solution-architecture-r0.md §2 and §3"
+
+necessity:
+  now: NOT-NOW
+  future_necessity: SHOULD
+  target_stage: "R1"
+  binds_when: "the bank must report the whole distributed book, not only the platform funnel"
+  evidence_tier: E4
+  confidence: C3
+  anti_over_engineering:
+    X1_named_consumer: false
+    X3_cheap_later: true
+    X5_stage_necessity: false
+    X9_problem_observed: false
+
+action: ADMIT
+action_rationale: >
+  Originally PARK (SF3 / SC2 at S08). Stakeholder override `SUG-20260825-r0s` / `CR-013`
+  pulled Policy ingest into R0. Architecture position unchanged: this is Policy ingest
+  (context #13) plus a Reporting read-model (context #18), not `lead.create`. MIS is
+  not a BANK_RM Specified Person (C-ING-1). Campaign/bulk Lead create stays out.
+duplicate_of: null
+
+classification:
+  type: FUNC
+  also: [ARCH]
+  breakdown: EPIC
+  risk_tier: T3
+  destination: "CR-013 / ADR-014"
+
+priority:
+  now: P1
+  at_target: P1
+  rationale: "Stakeholder R0 pull; Policy ingest in W3"
+
+outcome:
+  registered_in: "CR-013 / ADR-014"
+  work_item_id: CR-013
+  status: ADMITTED
+  override: "SUG-20260825-r0s — parking withdrawn; nothing hanging"
+
+resumed: GATE-S08
+```
+
+---
+
+### SUG-20260825-st1 · STP / non-STP / Insta issuance modes
+
+```yaml
+id: SUG-20260825-st1
+raised_at: "2026-08-25"
+raised_by: "human:Mahesh"
+source: "direct user instruction, acting as the Board 1 Architecture persona"
+input: >
+  While doing this we need to make sure we are aligned with STP, non-STP and Insta.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: R0-ASSISTED-TERM-SALE
+  current_gate: "GATE-S08 (OPEN)"
+  state_as_of: "2026-08-10"
+  freshness_check: "exit 1 — WARN"
+  active_work_item: null
+
+stage_fit:
+  code: SF3
+  rationale: >
+    Issuance mode is a Proposal / UW / Policy dimension, exercised in Wave 3. S08 does
+    not build those services. The domain model already has UW tracking and an issuance
+    saga (01-domain-model-and-invariants.md §4 and F-05). The missing work is naming the
+    three modes as a first-class field, the way §2.2 named lob before a second LOB existed.
+  target_stage: "W3 — Proposal, UW-Tracking, Payment, Policy"
+  unpark_trigger: "Wave 3 Proposal / UW / Payment / Policy design starts, and Rajal names the R0 Term value"
+  future_necessity: MUST
+
+scope:
+  code: SC1
+  business_scope: "derived — R0 Term issuance must be a named mode, not an implied happy path"
+  serves: ["W3 Proposal & UW", "W3 Policy & Issuance", "INV-POL-01", "INV-JRN-05"]
+  failure_without_it: >
+    If W3 ships an implicit STP-only saga, a non-STP Term (medical / requirements) or an
+    Insta product cannot reuse the same orchestration without a contract change.
+  minimal: true
+  authority: "01-domain-model-and-invariants.md §4; 03-solution-architecture-r0.md §2.2 (dimension-now pattern)"
+
+necessity:
+  now: NOT-NOW
+  future_necessity: MUST
+  target_stage: "W3 Proposal & Issuance"
+  binds_when: "the first Proposal / Policy schema is designed"
+  evidence_tier: E4
+  confidence: C3
+  assumptions:
+    - "STP / non-STP / Insta are issuance modes, not Lead pipeline states"
+    - "R0 Term is one of these three; Product has not recorded which"
+  anti_over_engineering:
+    X1_named_consumer: false
+    X3_cheap_later: false      # same reason lob is present from release 1
+    X5_stage_necessity: false
+    X9_problem_observed: false
+
+action: ADMIT
+action_rationale: >
+  Originally PARK (SF3 at S08). Stakeholder override `SUG-20260825-r0s` / `CR-013`
+  pulled `issuanceMode` into the R0 Proposal/Policy schema. Do not implement three
+  issuance engines. STP and Insta still cannot skip C1/C2/C4/C7 (C-ISS-1). Rajal
+  names the R0 Term value; Mahesh does not guess it.
+duplicate_of: null
+
+classification:
+  type: ARCH
+  also: []
+  breakdown: STORY
+  risk_tier: T2
+  destination: "CR-013 / ADR-014"
+
+priority:
+  now: P1
+  at_target: P1
+  rationale: "Stakeholder R0 pull; field on W3 Proposal/Policy schema"
+
+outcome:
+  registered_in: "CR-013 / ADR-014"
+  work_item_id: CR-013
+  status: ADMITTED
+  override: "SUG-20260825-r0s — parking withdrawn; nothing hanging"
+
+resumed: GATE-S08
+```
+
+---
+
+### SUG-20260825-pp1 · PPHI control mapping
+
+```yaml
+id: SUG-20260825-pp1
+raised_at: "2026-08-25"
+raised_by: "human:Mahesh"
+source: "direct user instruction, acting as the Board 1 Architecture persona"
+input: >
+  We are also complied with PPHI.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: R0-ASSISTED-TERM-SALE
+  current_gate: "GATE-S08 (OPEN)"
+  state_as_of: "2026-08-10"
+  freshness_check: "exit 1 — WARN"
+  active_work_item: null
+
+stage_fit:
+  code: SF3
+  rationale: >
+    PPHI permissibility is a Board 6 verdict, not an S08 engineering-foundation deliverable.
+    The first regulated actions that PPHI bites are consent, suitability, solicitation
+    conduct and issuance disclosure — Wave 2/W3. S07 already drafted the control posture;
+    human Board 6 sign-off is outstanding.
+  target_stage: "W2 Consent / first regulated action"
+  unpark_trigger: "Shailja opens the PPHI control mapping, or Wave 2 Consent design starts"
+  future_necessity: MUST
+
+scope:
+  code: SC0
+  business_scope: "in scope — policyholder protection is already in the regulatory registry"
+  serves: []
+  failure_without_it: "an unmapped PPHI obligation can make the first regulated journey non-permissible"
+  minimal: true
+  authority: >
+    docs/context/roles/shailja-s-compliance-risk-head/02-regulatory-registry.md §3
+    (IRDAI Protection of Policyholder's Interests, Operations and Allied Matters of
+    Insurers Regulations, 2024); Shailja card — regulatory interpretation is Board 6;
+    PERSONA-AUTHORITY-MATRIX — Mahesh must not waive a Compliance conclusion
+
+necessity:
+  now: NOT-NOW
+  future_necessity: MUST
+  target_stage: "W2 Consent"
+  binds_when: "the first regulated action on a customer is implemented"
+  evidence_tier: E2
+  confidence: C3
+  evidence:
+    - "regulatory-registry.md names IRDAI PPHI 2024 as applicable to solicitation, sale, servicing, claims and customer treatment"
+    - "Standing constraints already encode suitability-before-quote, consent-before-proposal, customer-device payment, RECONCILED-before-issue, no PII in logs"
+    - "No repository document uses the token PPHI; the mapping to control IDs is unwritten"
+  anti_over_engineering:
+    X1_named_consumer: false
+    X5_stage_necessity: false
+    X9_problem_observed: false
+
+action: ADMIT
+action_rationale: >
+  Originally PARK (SF3 at S08). Stakeholder override `SUG-20260825-r0s` / `CR-013`
+  made the PPHI control-to-seam map an R0 Compliance condition (C-PPHI-1), not a later
+  park. Not a Mahesh compliance declaration. Shailja owns permissibility. Human T4
+  Risk & Compliance sign-off stays human. AI must not emit TEMPORARY_EXCEPTION_APPROVED.
+duplicate_of: null
+
+classification:
+  type: COMP
+  also: [ARCH]
+  breakdown: SPIKE
+  risk_tier: T4
+  destination: "CR-013 condition C-PPHI-1"
+
+priority:
+  now: P1
+  at_target: P1
+  rationale: "C-PPHI-1 before first regulated customer action"
+
+outcome:
+  registered_in: "CR-013 / ADR-014"
+  work_item_id: CR-013
+  status: ADMITTED
+  override: "SUG-20260825-r0s — parking withdrawn; nothing hanging"
+  named_owner: "Shailja S / Board 6"
+  mahesh_must_not: "declare PPHI-compliant or waive a Board 6 finding with an A-rating"
+
+resumed: GATE-S08
+```
+
+---
+
+### SUG-20260825-wl1 · OLTP vs ops isolation already decided
+
+```yaml
+id: SUG-20260825-wl1
+raised_at: "2026-08-25"
+raised_by: "human:Mahesh"
+source: "direct user instruction, acting as the Board 1 Architecture persona"
+input: >
+  While doing this all we need to make sure we are stable on our db, and work load.
+  Operations work should not effect my RM systems and lead.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: R0-ASSISTED-TERM-SALE
+  current_gate: "GATE-S08 (OPEN)"
+  state_as_of: "2026-08-10"
+  freshness_check: "exit 1 — WARN"
+  active_work_item: null
+
+stage_fit:
+  code: SF4
+  rationale: >
+    The isolation rule is already the ratified communication and data architecture.
+    Re-proposing it as new S08 work would import production-tuning and a warehouse
+    into foundation. Confirming the rule is useful; building a second isolation
+    mechanism is stage-invalid.
+
+scope:
+  code: SC0
+  business_scope: "in scope as an already-decided NFR architecture rule"
+  authority: >
+    platform/architecture-review/03-communication-patterns.md (domain → Reporting is
+    async Kafka, Reporting-only consumer); 05-data-architecture.md (Reporting on
+    S3/Redshift/Athena, never shared OLTP); 04-aws-infrastructure-architecture.md
+    (batch on Spot, transactional core on on-demand); ADR-013 (OpenSearch is not
+    the regulatory archive)
+
+necessity:
+  now: REJECT
+  evidence_tier: E1
+  confidence: C5
+  rationale: "Already decided. Re-building it would violate X6 and A6."
+
+action: REJECT
+action_rationale: >
+  Isolation of MIS/ops from the RM and Lead path is already a standing architecture
+  rule, not a gap. Domain services do not serve Reporting synchronously. Reporting
+  does not share Aurora with Opportunity/Lead. Batch/analytics sit on a different
+  capacity class. ADR-013 already split operational search from the 7-year evidence
+  pipe for the same reason. Do not add a sidecar, replica, or warehouse in S08 to
+  re-prove it.
+reason: >
+  Already the design. A second isolation project at foundation would be feature
+  breadth (L4 reject-on-sight) and unnecessary infrastructure (Board 1 A6).
+reopen_if: >
+  Measured evidence that a reporting, MIS-upload, reconciliation or admin job shares
+  the Opportunity/Lead Aurora writer or blocks an RM request (E3). That becomes a
+  Shivanshi + Aarti incident item, not a new bounded context.
+
+outcome:
+  registered_in: "SUGGESTION-REGISTER.md"
+  status: REJECTED
+
+resumed: GATE-S08
+```
+
+---
+
+### SUG-20260825-df1 · One decision file
+
+```yaml
+id: SUG-20260825-df1
+raised_at: "2026-08-25"
+raised_by: "human:Mahesh"
+source: "direct user instruction — I authorised you to use all the personas we have created to take decision on your own, just make one decision file which tells what decision you have taken and why"
+input: >
+  I authorised you to use all the personas we have created to take dession on your
+  own, just make one dession file which tells what dession you have taken and why.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: R0-ASSISTED-TERM-SALE
+  current_gate: "GATE-S08 (OPEN)"
+  state_as_of: "2026-08-10"
+  freshness_check: "exit 1 — WARN"
+  active_work_item: GATE-S08
+  prior_triage:
+    - SUG-20260825-lt1
+    - SUG-20260825-of1
+    - SUG-20260825-st1
+    - SUG-20260825-pp1
+    - SUG-20260825-wl1
+
+stage_fit:
+  code: SF1
+  rationale: >
+    The human asked for the decision artefact now, as the close of the same intake.
+    Writing the file does not build a service and does not pull parked work forward.
+
+scope:
+  code: SC1
+  serves: [SUG-20260825-lt1, SUG-20260825-of1, SUG-20260825-st1, SUG-20260825-pp1]
+  failure_without_it: "the parked items have no single recorded design to implement against when they unpark"
+  authority: "09-AI_EXECUTION_RULES.md §8 — human override"
+
+necessity:
+  now: MUST
+  evidence_tier: E1
+  confidence: C5
+  rationale: "Human instruction to produce the file."
+
+action: ADMIT-BYPASS
+action_rationale: >
+  09 §8. Who authorised: human:Mahesh. What was skipped: waiting for human board
+  signatures before recording a persona consensus. What was not skipped: T4 human
+  sign-off (still outstanding, stated on the file); stage-state edits; scope CR;
+  implementation of parked items.
+bypass_risk: >
+  These are AI persona verdicts, not human Board 1 / 4 / 6 signatures, and they do
+  not move GATE-S08, change out_of_scope_now, or shorten a retention horizon in the
+  information model.
+
+classification:
+  type: DOC
+  also: [ARCH]
+  breakdown: TASK
+  risk_tier: T3
+  destination: "docs/governance/DEC-20260825-01-lead-domain-decisions.md"
+
+priority:
+  now: P2
+  at_target: P2
+
+outcome:
+  registered_in: "SUGGESTION-REGISTER.md"
+  work_item_id: DEC-20260825-01
+  status: ADMIT-BYPASS
+  evidence:
+    - "docs/governance/DEC-20260825-01-lead-domain-decisions.md"
+    - "docs/governance/registers/DECISION-REGISTER.md §8"
+
+resumed: GATE-S08
+```
+
+---
+
+### SUG-20260825-pv1 · No PVC for the web app
+
+```yaml
+# schema: triage-record
+id: SUG-20260825-pv1
+raised_at: "2026-08-25"
+raised_by: "human:Mahesh"
+source: "architecture consult — Flutter store apps plus web application deployed in PVC for desktop browser"
+input: >
+  We will have flutter app developed on playstore or apple store but the web application
+  needs to be deployed in PVC which can be access with web browser on desktop so we need that.
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-TERM-SALE"
+  state_as_of: "2026-08-10"
+  freshness_check: "exit 1 — WARN, state_as_of 15 days old; review_due 2026-09-09"
+  active_work_item: "Mahesh architecture consult — channel, BFF, Lead LOB"
+stage_fit:
+  code: SF4
+  rationale: >
+    Kubernetes PersistentVolumeClaim on a business or UI workload contradicts ARCH-002 and
+    R0-LLD §4.1: every WS-3 service and BFF is stateless at the pod; state lives in Aurora,
+    DynamoDB or S3. A PVC here becomes an unreplicated source of truth — the same defect
+    the LLD already forbids for Keycloak.
+scope:
+  code: SC3
+  business_scope: "out of technical scope — refused hosting pattern"
+  serves: []
+  failure_without_it: "none — CloudFront / stateless pods already host Flutter assets and the admin UI"
+  minimal: true
+  authority: "docs/architecture/R0-LLD.md §4.1 · ARCH-002"
+necessity:
+  now: REJECT
+  future_necessity: REJECT
+  evidence_tier: E2
+  evidence:
+    - "R0-LLD.md §4.1 — no PVC on domain services, Hub, #2 BFF"
+    - "R0-LLD.md §4.1 — Keycloak JDBC to Aurora, not a PVC as database"
+    - "R0-LLD.md BOM #5 — CloudFront for API and (later) Flutter assets"
+  confidence: C5
+  anti_over_engineering:
+    X1_named_consumer: false
+    X3_cheap_later: false
+    X5_stage_necessity: false
+    X9_problem_observed: false
+action: REJECT
+action_rationale: >
+  If the ask meant VPC (private network), that topology already exists: admin/ops desktop
+  web sits on the internal ALB behind API Gateway, not on a volume. PVC as PersistentVolumeClaim
+  is refused at every horizon for this class of workload.
+duplicate_of: null
+conflicts: []
+outcome:
+  status: REJECTED
+  closed_reason: "PVC hosting of the web app contradicts R0-LLD §4.1 / ARCH-002"
+  reopen_if: "A named stateful add-on has a documented need for EBS that S3 or Aurora cannot meet, jointly reviewed by Aarti and Shivanshi"
+resumed: "Mahesh architecture consult — channel, BFF, Lead LOB"
+```
+
+---
+
+### SUG-20260825-ld1 · Lead is not LOB-specific
+
+```yaml
+# schema: triage-record
+id: SUG-20260825-ld1
+raised_at: "2026-08-25"
+raised_by: "human:Mahesh"
+source: "architecture consult — do we see any reason to make lead LOB specific?"
+input: >
+  Also do we see any reason to make lead LOB specific?
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-TERM-SALE"
+  state_as_of: "2026-08-10"
+  active_work_item: "Mahesh architecture consult — channel, BFF, Lead LOB"
+stage_fit:
+  code: SF4
+  rationale: >
+    Forking Lead per LOB contradicts LB-5, LS-01 and CAP-102. Sales mechanics do not vary
+    by line; lob is a routing attribute on a shared inbox. Quotation #10 and Proposal #11
+    are the LOB-owned execution cells.
+scope:
+  code: SC3
+  business_scope: "contradicts ratified LOB class of context #5"
+  serves: []
+  failure_without_it: "none — making Lead LOB-specific would be the defect"
+  authority: "01-domain-model-and-invariants.md LB-5 · 11-line-of-business-segregation.md §2.2 · R0-HLD.md Boundary 4"
+necessity:
+  now: REJECT
+  future_necessity: REJECT
+  evidence_tier: E1
+  evidence:
+    - "R0-HLD.md Boundary 4 — #5 Lead is LOB-agnostic shared"
+    - "11 §2.2 — Opportunity/Lead, assignment, queues never inside a cell"
+    - "LS-02 default is shared; a field (lobInterest) is not a boundary"
+    - "DEC-20260825-01 D6 — issuanceMode is not a Lead state and Lead does not change shape per mode"
+  confidence: C5
+action: REJECT
+action_rationale: >
+  No. A Life Lead and a Health Lead are the same working inbox with a different lob
+  routing key. Forking it would duplicate origination, attribution and archive across
+  cells and make a cross-sell or a second-line sale look like a different customer.
+duplicate_of: null
+outcome:
+  status: REJECTED
+  closed_reason: "Lead is LOB-agnostic shared; lob is an attribute, not a deployable"
+  reopen_if: "An evidenced LS-03 isolation failure showing Life Lead writes contend with Health Lead writes after a second LOB cell exists — then it is a physical split along the already-declared LOB-cell / shared-platform seam (ADR-008), not a second Lead bounded context"
+resumed: "Mahesh architecture consult — channel, BFF, Lead LOB"
+```
+
+---
+
+### SUG-20260825-st2 · Flutter public-store distribution
+
+```yaml
+# schema: triage-record
+id: SUG-20260825-st2
+raised_at: "2026-08-25"
+raised_by: "human:Mahesh"
+source: "architecture consult — Flutter on Play Store / Apple Store"
+input: >
+  We will have flutter app developed on playstore or apple store
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-TERM-SALE"
+  state_as_of: "2026-08-10"
+  active_work_item: "Mahesh architecture consult — channel, BFF, Lead LOB"
+stage_fit:
+  code: SF3
+  rationale: >
+    R0 Flutter is the RM workspace client (#2). Customer-facing store apps require #1
+    Customer BFF, which is out_of_scope until R1. Workforce RM distribution (MDM vs
+    public store) is already recorded as an open LLD §14 decision at S11, owned by
+    Rajal + Deepali. GATE-S08 does not need a store listing.
+  target_stage: "S11 (RM MDM vs store) / R1 (customer DIY store apps)"
+  unpark_trigger: "S11 Flutter hosting decision is taken, or DIY is unparked at R1"
+scope:
+  code: SC2
+  business_scope: "adjacent — store distribution of a client, not the R0 assisted-sale path"
+  serves: []
+  authority: "R0-LLD.md §14 · CURRENT-STATE.yaml out_of_scope Customer BFF"
+necessity:
+  now: NOT-NOW
+  future_necessity: SHOULD
+  target_stage: "S11 / R1"
+  binds_when: "a named channel owner confirms public-store distribution"
+  evidence_tier: E2
+  evidence:
+    - "R0-LLD.md §14 — Flutter hosting (internal MDM vs public store) | Rajal + Deepali | S11"
+    - "BOOT.md — Customer BFF and customer-facing Flutter surface revisit at R1"
+  confidence: C4
+recurrence_count: 2
+action: ADMIT
+action_rationale: >
+  Unparked by ADR-015 (human:Mahesh taken decision). Workforce NIP-APP ships as
+  one web artefact on EKS, one APK on Play Store, one IPA on the App Store.
+  Deepali jointly owns store hardening, not the distribution channel.
+  Customer store apps remain R1 (#1 Customer BFF) and are not this item.
+priority:
+  now: P5
+  at_target: P3
+  caps_applied: [PRI-2, PRI-5]
+outcome:
+  status: CLOSED-DELIVERED
+  registered_in: "SUGGESTION-REGISTER.md"
+  notes: >
+    Unparked 2026-08-25 by ADR-015. Workforce NIP-APP distribution is EKS nip-web
+    + Play Store APK + App Store IPA. Deepali still owns store hardening
+    (pinning, attestation, no tokens on device). Customer store apps remain R1 (#1).
+resumed: "ADR-015 took the workforce store-listing decision"
+```
+
+---
+
+### SUG-20260825-ac1 · Admin and ops actors for R0
+
+```yaml
+# schema: triage-record
+id: SUG-20260825-ac1
+raised_at: "2026-08-25"
+raised_by: "human:Mahesh"
+source: "architecture consult — BFF handling admin and config; additional actor admin and operations for reports and MIS"
+input: >
+  also we need bff handling admin and config so there will be additional actor which is
+  admin and operations for working on the reports and mis.
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-TERM-SALE"
+  state_as_of: "2026-08-10"
+  active_work_item: "Mahesh architecture consult — channel, BFF, Lead LOB"
+stage_fit:
+  code: SF1
+  rationale: >
+    CR-013 / ADR-014 already pulled Administration UI and MIS into R0 W4, and R0-HLD
+    Boundary 3 already names the Admin & Configuration BFF. The R0 actor catalogue still
+    closes at BANK_RM · INSURER_PARTNER_REP · SERVICE. Those surfaces cannot authorise
+    without an on-platform workforce actor type. This is the missing actor half of an
+    admitted R0 surface, not a new channel.
+scope:
+  code: SC0
+  business_scope: "in scope — Administration UI (#19) and Reporting/MIS (#18) are in CURRENT-STATE.yaml current_scope.in_scope"
+  serves:
+    - "Administration UI (context #19)"
+    - "Reporting and MIS (context #18)"
+    - "ADR-014 W4 admin/MIS"
+  failure_without_it: "Admin UI and MIS have no principal class; PDP cannot default-deny a role that does not exist"
+  minimal: true
+  authority: "CURRENT-STATE.yaml WS-3 in_scope · ADR-014 · DEC-20260825-01 D4"
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "R0 W4"
+  binds_when: "first admin or MIS session"
+  evidence_tier: E2
+  evidence:
+    - "R0-HLD.md Boundary 3 — Admin & Configuration BFF in R0"
+    - "R0-HLD.md §2.1 still says two on-platform human actors"
+    - "15-actor-identity-and-authorization.md — BANK_EMPLOYEE already in the target actorType vocabulary"
+    - "JS-08 — a new actor type is an authorization change, not an architecture change"
+  confidence: C4
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+action: ADMITTED
+action_rationale: >
+  Admit the actor-model delta only. Do not add a third journey BFF, a call-centre BFF,
+  or an ops microservice. Admin/ops are BANK_EMPLOYEE on the workforce plane (Bank AD),
+  served by the already-named Admin & Configuration BFF. They never originate a Lead
+  (ADR-005). MIS ingest is Policy, not lead.create (D3). Isolation from the Lead writer
+  remains standing (D5 / C-ISO-1 / SUG-20260825-wl1 REJECTED as new work).
+classification:
+  type: ARCH
+  also: [SEC]
+  breakdown: STORY
+  risk_tier: T3
+  destination: "architecture actor catalogue + WS-2 PDP grants; Deepali joint on authz"
+priority:
+  now: P2
+  at_target: P1
+  factors: { N: 3, S: 2, B: 2, R: 2, D: 1, E: 1 }
+  score: 18
+  matrix_default: P2
+  consistency: OK
+  caps_applied: []
+  rationale: "W4 admin/MIS cannot ship without a principal; SF1 MUST with B=2 because the admitted surface is blocked"
+dependencies:
+  edges: ["ADR-014", "DEC-20260825-01 D4", "WS-2 PDP"]
+  state: READY
+  earliest_start: "after this consult; before W4 UI stories"
+outcome:
+  registered_in: "SUGGESTION-REGISTER.md"
+  work_item_id: null
+  status: ADMITTED
+  notes: >
+    Not implemented in the turn it was raised. Actor catalogue, HLD §2.1 and
+    journey-execution catalogue are the artefact updates. 2026-08-25: those
+    actors login to NIP-APP (`SUG-20260825-nip`); they do not get a second web.
+resumed: "Mahesh architecture consult — channel, BFF, Lead LOB"
+```
+
+---
+
+### SUG-20260825-ll1 · LLD/topology lag behind ADR-014
+
+```yaml
+# schema: triage-record
+id: SUG-20260825-ll1
+raised_at: "2026-08-25"
+raised_by: "agent:cursor-grok"
+source: "architecture consult — look in LLD and topology as well"
+input: >
+  also look in LLD and topology as well.
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-TERM-SALE"
+  state_as_of: "2026-08-10"
+  active_work_item: "Mahesh architecture consult — channel, BFF, Lead LOB"
+stage_fit:
+  code: SF1
+  rationale: >
+    R0-LLD.md is the S09 AWS pack. After CR-013 the HLD and SVGs say Admin BFF and #18
+    are R0 W4, but R0-LLD.md §1.2 still lists admin UI and Glue/Athena/Redshift as out
+    of scope, §7 Z0 still shows only Flutter RM + IPR browser, and §3 still describes
+    two BFFs without the Admin & Configuration BFF. HA-03 forbids a diagram that
+    disagrees with its source; here the LLD source disagrees with ADR-014.
+scope:
+  code: SC1
+  business_scope: "derived — S09 will provision the wrong estate without it"
+  serves:
+    - "ADR-014"
+    - "S09 platform foundation (GATE-S08 next stage)"
+    - "Administration UI (context #19)"
+    - "Reporting and MIS (context #18)"
+  failure_without_it: "platform team reads LLD §13 OUT OF SCOPE and does not provision the admin edge, replica/read path, or desktop web hosting"
+  minimal: true
+  authority: "architecture/README.md HA-03 · R0-LLD.md is the S09 pack"
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S09"
+  binds_when: "S09 stories are picked from R0-LLD.md"
+  evidence_tier: E2
+  evidence:
+    - "architecture/README.md 2026-08-25 revision — r0-lld.svg topology unchanged"
+    - "R0-LLD.md §13 — admin UI, reporting warehouse still OUT OF SCOPE"
+    - "R0-HLD.md Boundary 3 — Admin & Configuration BFF in R0"
+  confidence: C5
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+action: ADMITTED
+action_rationale: >
+  Document reconciliation only. Do not invent a warehouse, a PVC, or a third public
+  hostname in this item. The LLD must show: Admin BFF in ns:edge; desktop admin web as
+  static assets (CloudFront or internal ALB), not a PVC; #18 on the isolated read path
+  (replica/events — not Glue ETL in S08); Z0 gains an admin/ops browser. Shivanshi owns
+  the operability of the resulting BOM.
+classification:
+  type: DOC
+  also: [ARCH]
+  breakdown: STORY
+  risk_tier: T2
+  destination: "docs/architecture/R0-LLD.md + diagrams/"
+priority:
+  now: P3
+  at_target: P2
+  factors: { N: 3, S: 1, B: 1, R: 2, D: 1, E: 1 }
+  score: 14
+  matrix_default: P2
+  consistency: OK
+  caps_applied: []
+  rationale: "SF1 MUST documentation; score P3 is within one band of matrix P2"
+dependencies:
+  edges: ["ADR-014", "SUG-20260825-ac1"]
+  state: READY
+outcome:
+  registered_in: "SUGGESTION-REGISTER.md"
+  work_item_id: SUG-20260825-ll1
+  status: CLOSED-DELIVERED
+  notes: >
+    R0-LLD.md §3.1 places rm-web and admin-web as image-baked pods in ns:edge
+    on the internal ALB (no PVC). r0-lld.svg and generated topology show four
+    edge pods, admin/ops in Z0, and #18 on ns:jobs. Warehouse stays out.
+    2026-08-25: SUG-20260825-nip retracts admin-web and admin.{env}; one NIP-APP.
+resumed: "Mahesh architecture consult — channel, BFF, Lead LOB"
+```
+
+---
+
+### SUG-20260825-nip · One NIP-APP, role-based, not a second admin UI
+
+```yaml
+# schema: triage-record
+id: SUG-20260825-nip
+raised_at: "2026-08-25"
+raised_by: "human:Mahesh"
+source: "architecture consult — follow-up after PR #75; no separate admin/ops web"
+input: >
+  one important thing, we dont have or not in future will have different app or web
+  for the admin and operations, it will be in the RM web application only, it just
+  role based view will be shown. the application is enterprise application where RM,
+  Insurance sales representative and admin, operations all will login, just based on
+  the role everyone be able to see their perspective only. Also this APP in not RM app
+  actually you can call it NIP - New Insurance Platform Web Application (NIP - APP).
+  same app will be customised for andriod and ios and we will deploy on the stores.
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-TERM-SALE"
+  state_as_of: "2026-08-10"
+  active_work_item: "none — SUG-20260825-ll1 CLOSED-DELIVERED on PR #75"
+stage_fit:
+  code: SF1
+  rationale: >
+    The S09 pack just published (PR #75 / R0-LLD.md §3.1) draws a separate admin-web
+    pod and admin.{env} hostname. That picture contradicts JS-08 / ID-22 (actors are
+    authorization, not a second architecture) and the stakeholder channel model.
+    Correcting the channel topology is on-stage for the overlapped S08/S09 pack.
+    Public-store listing is not this item — that remains SUG-20260825-st2 (SF3).
+scope:
+  code: SC1
+  business_scope: "derived — the R0 workforce channel and W4 admin/MIS UI are in scope; a second app is not"
+  serves:
+    - "SUG-20260825-ac1"
+    - "ADR-014 W4 Administration UI / MIS"
+    - "R0-LLD.md S09 pack"
+    - "R0-HLD.md Boundary 1 and 3"
+  failure_without_it: >
+    S09 provisions admin-web and a second public hostname that Product will never
+    have; HLD keeps calling the client an RM app; PDP stories split across two UIs
+  minimal: true
+  authority: "12-journey-segregation.md JS-08 JS-10 · 15-actor-identity-and-authorization.md ID-22 TI-15 · ADR-014"
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S09 platform pack + R0 W4 UI"
+  binds_when: "next HLD/LLD revision; before any admin hostname is provisioned"
+  evidence_tier: E1
+  evidence:
+    - "human:Mahesh — one enterprise app, role-based, no second admin/ops web now or later"
+    - "JS-08 — a new actor type is an authorization change, not an architecture change"
+    - "JS-10 / TI-15 — UI hide/show is usability; PDP is the control"
+    - "ID-22 — the same capability serves every actor; no service per actor type"
+    - "HLD Boundary 3 — one BFF per channel, never per channel × LOB"
+  confidence: C5
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+action: ADMIT
+action_rationale: >
+  Collapse the channel to one Flutter client named NIP-APP (New Insurance Platform),
+  delivered as web plus iOS/Android from the same codebase. BANK_RM, INSURER_PARTNER_REP
+  (Insurance sales representative) and BANK_EMPLOYEE (admin/ops) all authenticate to
+  it; perspective is role + PDP, not a second deployable. Remove admin-web, admin.{env}
+  and a second public workforce BFF from HLD/LLD/topology. Admin/MIS functions stay
+  in R0 W4 as role-gated routes on #2; C-ISO-1 still forbids Lead-writer use.
+  Amit may keep admin aggregation as a module inside the one BFF process.
+  Spoken name NIP-APP is recorded here; Rajal owns a conflicting official product
+  name if the bank uses a different label. Public Play/Apple Store listing is NOT
+  admitted — recurrence of SUG-20260825-st2, still S11 (Deepali + Rajal).
+conflicts:
+  - "R0-LLD.md §3.1 admin-web / admin.{env} from SUG-20260825-ll1 — retract on implement"
+  - "R0-HLD.md Boundary 1 separate admin/ops hostname — retract on implement"
+classification:
+  type: ARCH
+  also: [DOC, SEC]
+  breakdown: STORY
+  risk_tier: T2
+  destination: "R0-HLD.md · R0-LLD.md · diagrams · actor catalogue (ac1)"
+priority:
+  now: P2
+  at_target: P1
+  factors: { N: 4, S: 3, B: 2, R: 2, D: 2, E: 1 }
+  score: 23
+  matrix_default: P2
+  consistency: OK
+  caps_applied: []
+  rationale: "SF1 MUST; PRI-8 B floor 1, raised to 2 (ac1 destination + S09 pack). Score 23 is P2, matrix default P2"
+dependencies:
+  edges: ["SUG-20260825-ac1", "ADR-014", "JS-08"]
+  state: READY
+outcome:
+  registered_in: "SUGGESTION-REGISTER.md"
+  work_item_id: SUG-20260825-nip
+  status: CLOSED-DELIVERED
+  notes: "Implemented 2026-08-25 as ADR-015. HLD/LLD/topology: ns:edge is nip-web + #2 NIP BFF only. Human T4 Architecture sign-off outstanding."
+resumed: "SUG-20260825-nip CLOSED-DELIVERED; ADR-015 drafted PROPOSED"
 ```
 
 ---

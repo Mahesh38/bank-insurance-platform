@@ -8,7 +8,7 @@
   <text x="900" y="58" font-size="12" fill="#475569" text-anchor="middle">Target state at end of R0 · one RM — the certified Specified Person — sells one Term Life policy to one ETB customer of one Group A insurer, end to end, evidenced, audited · an Insurance Partner Rep may assist, never sell · WS-3 (primary) + WS-1 (supplier) + WS-2 (enabler)</text>
   <text x="60" y="82" font-size="10" fill="#64748b" font-weight="bold" letter-spacing="1">R0 OUTCOME — THE JOURNEY THAT MUST RUN END TO END</text>
   <polygon points="60,88 234,88 246,107 234,126 60,126 72,107" fill="#1f2937"/>
-  <text x="147.0" y="111" font-size="10.2" fill="#ffffff" text-anchor="middle">1 · Opportunity + ETB lookup</text>
+  <text x="147.0" y="111" font-size="10.2" fill="#ffffff" text-anchor="middle">1 · Lead + ETB lookup</text>
   <polygon points="248,88 422,88 434,107 422,126 248,126 260,107" fill="#1f2937"/>
   <text x="335.0" y="111" font-size="10.2" fill="#ffffff" text-anchor="middle">2 · Need &amp; suitability — C1</text>
   <polygon points="436,88 610,88 622,107 610,126 436,126 448,107" fill="#1f2937"/>
@@ -38,15 +38,15 @@
   <rect x="60" y="220" width="300" height="86" rx="6" fill="#f3e8ff" stroke="#9333ea" stroke-width="1.5"/>
   <rect x="67" y="227" width="26" height="15" rx="4" fill="#9333ea"/>
   <text x="80" y="238.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">W4</text>
-  <text x="210.0" y="262" font-size="11.8" fill="#0f172a" text-anchor="middle" font-weight="bold">Flutter RM Application</text>
-  <text x="210.0" y="278.0" font-size="8.6" fill="#475569" text-anchor="middle">RM device · the certified Specified Person</text>
-  <text x="210.0" y="289.5" font-size="8.6" fill="#475569" text-anchor="middle">token-hiding session — OAuth tokens</text>
-  <text x="210.0" y="301.0" font-size="8.6" fill="#475569" text-anchor="middle">never reach the device (S-01)</text>
+  <text x="210.0" y="262" font-size="11.8" fill="#0f172a" text-anchor="middle" font-weight="bold">NIP-APP (Flutter)</text>
+  <text x="210.0" y="278.0" font-size="8.6" fill="#475569" text-anchor="middle">one project: web + APK + IPA (ADR-015)</text>
+  <text x="210.0" y="289.5" font-size="8.6" fill="#475569" text-anchor="middle">roles: RM · IPR · admin/ops — not apps</text>
+  <text x="210.0" y="301.0" font-size="8.6" fill="#475569" text-anchor="middle">token-hiding session — no OAuth on device</text>
   <rect x="380" y="220" width="300" height="86" rx="6" fill="#f3e8ff" stroke="#9333ea" stroke-width="1.5"/>
   <rect x="387" y="227" width="26" height="15" rx="4" fill="#9333ea"/>
   <text x="400" y="238.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">W4</text>
   <text x="530.0" y="262" font-size="11.8" fill="#0f172a" text-anchor="middle" font-weight="bold">Insurance Partner Rep (IPR)</text>
-  <text x="530.0" y="278.0" font-size="8.6" fill="#475569" text-anchor="middle">insurer employee · ASSIST ONLY — not an SP</text>
+  <text x="530.0" y="278.0" font-size="8.6" fill="#475569" text-anchor="middle">role on NIP-APP · ASSIST ONLY — not an SP</text>
   <text x="530.0" y="289.5" font-size="8.6" fill="#475569" text-anchor="middle">no origination, no regulated action (INV-ACT-02)</text>
   <text x="530.0" y="301.0" font-size="8.6" fill="#475569" text-anchor="middle">gated post-suitability, own insurer_id (S-22)</text>
   <rect x="700" y="220" width="300" height="86" rx="6" fill="#f3e8ff" stroke="#9333ea" stroke-width="1.5"/>
@@ -79,8 +79,8 @@
   <text x="166" y="368.5" font-size="10.5" fill="#ffffff" font-weight="bold" letter-spacing="0.6">EDGE — THE ONLY PUBLIC ENTRY POINT</text>
   <text x="1744" y="368.5" font-size="9" fill="#cbd5e1" text-anchor="end" font-weight="bold">no workload is internet-reachable</text>
   <rect x="60" y="386" width="980" height="70" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
-  <text x="550.0" y="428" font-size="11.8" fill="#0f172a" text-anchor="middle" font-weight="bold">Edge — Route 53 · CloudFront · AWS WAF · API Gateway · internal ALB</text>
-  <text x="550.0" y="444.0" font-size="8.6" fill="#475569" text-anchor="middle">the only public entry point; every service, database and cache sits in a private subnet · TLS termination, WAF rules, throttling and request validation here — no business logic, no authorization decision</text>
+  <text x="550.0" y="428" font-size="11.8" fill="#0f172a" text-anchor="middle" font-weight="bold">Edge — Cloudflare · F5 BIG-IP · External ALB · API Gateway · internal ALB</text>
+  <text x="550.0" y="444.0" font-size="8.6" fill="#475569" text-anchor="middle">the bank perimeter and public entry point; every service, database and cache sits in a private subnet · TLS termination, F5 WAF rules, throttling and request validation here — no business logic, no authorization decision</text>
   <rect x="1060" y="386" width="660" height="70" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.3" stroke-dasharray="5 4"/>
   <rect x="1067" y="393" width="26" height="15" rx="4" fill="#e2e8f0"/>
   <text x="1080" y="404.5" font-size="8.5" fill="#64748b" text-anchor="middle" font-weight="bold">R1</text>
@@ -91,16 +91,16 @@
   <rect x="40" y="516" width="1720" height="12" fill="#0f172a"/>
   <text x="56" y="520.5" font-size="9.5" fill="#ffffff" font-weight="bold" letter-spacing="1.4">BOUNDARY 3</text>
   <text x="166" y="520.5" font-size="10.5" fill="#ffffff" font-weight="bold" letter-spacing="0.6">EXPERIENCE / BFF PLANE</text>
-  <text x="1744" y="520.5" font-size="9" fill="#cbd5e1" text-anchor="end" font-weight="bold">R0 ships one BFF — one per CHANNEL, never per channel × LOB</text>
+  <text x="1744" y="520.5" font-size="9" fill="#cbd5e1" text-anchor="end" font-weight="bold">R0 ships one NIP BFF — one per CHANNEL, never per channel × LOB</text>
   <rect x="60" y="538" width="420" height="86" rx="6" fill="#f3e8ff" stroke="#9333ea" stroke-width="1.5"/>
   <rect x="67" y="545" width="26" height="15" rx="4" fill="#9333ea"/>
   <text x="80" y="556.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">W4</text>
   <rect x="99" y="545" width="30" height="15" rx="2" fill="#e11d48"/>
   <text x="114" y="556.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">LIFE</text>
-  <text x="270.0" y="580" font-size="11.8" fill="#0f172a" text-anchor="middle" font-weight="bold">#2  RM Workspace BFF</text>
+  <text x="270.0" y="580" font-size="11.8" fill="#0f172a" text-anchor="middle" font-weight="bold">#2  NIP BFF</text>
   <text x="270.0" y="596.0" font-size="8.6" fill="#475569" text-anchor="middle">stateless session facade — holds the OAuth tokens;</text>
-  <text x="270.0" y="607.5" font-size="8.6" fill="#475569" text-anchor="middle">Flutter only ever sees an opaque session (S-01).</text>
-  <text x="270.0" y="619.0" font-size="8.6" fill="#475569" text-anchor="middle">Field validation rules resolved by (lob, formId) — CF-2</text>
+  <text x="270.0" y="607.5" font-size="8.6" fill="#475569" text-anchor="middle">NIP-APP only ever sees an opaque session (S-01).</text>
+  <text x="270.0" y="619.0" font-size="8.6" fill="#475569" text-anchor="middle">Admin/MIS are role-gated routes here — not a second BFF</text>
   <rect x="500" y="538" width="400" height="86" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.3" stroke-dasharray="5 4"/>
   <rect x="507" y="545" width="26" height="15" rx="4" fill="#e2e8f0"/>
   <text x="520" y="556.5" font-size="8.5" fill="#64748b" text-anchor="middle" font-weight="bold">R1</text>
@@ -117,11 +117,11 @@
   <text x="1120.0" y="619.0" font-size="8.6" fill="#94a3b8" text-anchor="middle">server-side, never by hiding a button</text>
   <rect x="1340" y="538" width="380" height="86" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.3" stroke-dasharray="5 4"/>
   <rect x="1347" y="545" width="26" height="15" rx="4" fill="#e2e8f0"/>
-  <text x="1360" y="556.5" font-size="8.5" fill="#64748b" text-anchor="middle" font-weight="bold">R1</text>
-  <text x="1530.0" y="580" font-size="11.2" fill="#94a3b8" text-anchor="middle" font-weight="bold">Admin &amp; Configuration BFF</text>
-  <text x="1530.0" y="596.0" font-size="8.6" fill="#94a3b8" text-anchor="middle">the UI over #19. The configuration LAYER ships</text>
-  <text x="1530.0" y="607.5" font-size="8.6" fill="#94a3b8" text-anchor="middle">in R0 (W0b); only its interface is deferred, and</text>
-  <text x="1530.0" y="619.0" font-size="8.6" fill="#94a3b8" text-anchor="middle">that changes nothing about the layer (CF-5)</text>
+  <text x="1360" y="556.5" font-size="8.5" fill="#64748b" text-anchor="middle" font-weight="bold">W4</text>
+  <text x="1530.0" y="580" font-size="11.2" fill="#94a3b8" text-anchor="middle" font-weight="bold">not a BFF — admin/ops on NIP-APP</text>
+  <text x="1530.0" y="596.0" font-size="8.6" fill="#94a3b8" text-anchor="middle">R0 UI over #19 + MIS is a role on NIP-APP</text>
+  <text x="1530.0" y="607.5" font-size="8.6" fill="#94a3b8" text-anchor="middle">served by #2. Isolated read — never Lead writer</text>
+  <text x="1530.0" y="619.0" font-size="8.6" fill="#94a3b8" text-anchor="middle">(C-ISO-1, ADR-015). Layer still W0b (CF-5)</text>
   <rect x="40" y="668" width="1720" height="424" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.3"/>
   <rect x="40" y="668" width="1720" height="24" rx="10" fill="#0f172a"/>
   <rect x="40" y="680" width="1720" height="12" fill="#0f172a"/>
@@ -156,7 +156,7 @@
   <text x="400" y="828.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">W1</text>
   <circle cx="573" cy="824.5" r="9" fill="#0f172a"/>
   <text x="573" y="828" font-size="9.5" fill="#ffffff" text-anchor="middle" font-weight="bold">1</text>
-  <text x="485.0" y="852" font-size="11.8" fill="#0f172a" text-anchor="middle" font-weight="bold">#5  Opportunity</text>
+  <text x="485.0" y="852" font-size="11.8" fill="#0f172a" text-anchor="middle" font-weight="bold">#5  Lead</text>
   <text x="485.0" y="868.0" font-size="8.6" fill="#475569" text-anchor="middle">SINGLE origination point ·</text>
   <text x="485.0" y="879.5" font-size="8.6" fill="#475569" text-anchor="middle">RM-only create (INV-LED-04) ·</text>
   <text x="485.0" y="891.0" font-size="8.6" fill="#475569" text-anchor="middle">carries lob + the accountable SP</text>
@@ -240,13 +240,13 @@
   <text x="937.0" y="970.0" font-size="8.6" fill="#475569" text-anchor="middle">OTP + payment-link delivery</text>
   <text x="937.0" y="981.5" font-size="8.6" fill="#475569" text-anchor="middle">(SMS / email) · a failure here</text>
   <text x="937.0" y="993.0" font-size="8.6" fill="#475569" text-anchor="middle">never blocks the journey (S-18)</text>
-  <rect x="1058" y="912" width="210" height="86" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.3" stroke-dasharray="5 4"/>
-  <rect x="1065" y="919" width="26" height="15" rx="4" fill="#e2e8f0"/>
-  <text x="1078" y="930.5" font-size="8.5" fill="#64748b" text-anchor="middle" font-weight="bold">R1</text>
-  <text x="1163.0" y="954" font-size="11.2" fill="#94a3b8" text-anchor="middle" font-weight="bold">#18  Reporting &amp; MIS</text>
-  <text x="1163.0" y="970.0" font-size="8.6" fill="#94a3b8" text-anchor="middle">funnel, conversion, RM and</text>
-  <text x="1163.0" y="981.5" font-size="8.6" fill="#94a3b8" text-anchor="middle">branch performance. Reads the</text>
-  <text x="1163.0" y="993.0" font-size="8.6" fill="#94a3b8" text-anchor="middle">event stream, never a DB</text>
+  <rect x="1058" y="912" width="210" height="86" rx="6" fill="#f3e8ff" stroke="#9333ea" stroke-width="1.5"/>
+  <rect x="1065" y="919" width="26" height="15" rx="4" fill="#9333ea"/>
+  <text x="1078" y="930.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">W4</text>
+  <text x="1163.0" y="954" font-size="11.2" fill="#0f172a" text-anchor="middle" font-weight="bold">#18  Reporting &amp; MIS</text>
+  <text x="1163.0" y="970.0" font-size="8.6" fill="#475569" text-anchor="middle">funnel, sold, on- vs off-</text>
+  <text x="1163.0" y="981.5" font-size="8.6" fill="#475569" text-anchor="middle">platform. Isolated read</text>
+  <text x="1163.0" y="993.0" font-size="8.6" fill="#475569" text-anchor="middle">path — never Lead writer</text>
   <rect x="1284" y="912" width="210" height="86" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.3" stroke-dasharray="5 4"/>
   <rect x="1291" y="919" width="26" height="15" rx="4" fill="#e2e8f0"/>
   <text x="1304" y="930.5" font-size="8.5" fill="#64748b" text-anchor="middle" font-weight="bold">R1</text>
@@ -266,7 +266,7 @@
   <text x="80" y="1034.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">W0b</text>
   <rect x="99" y="1023" width="30" height="15" rx="2" fill="#e11d48"/>
   <text x="114" y="1034.5" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">LIFE</text>
-  <text x="890.0" y="1058" font-size="11.8" fill="#0f172a" text-anchor="middle" font-weight="bold">#19  Configuration — versioned · append-only · effective-dated · seeded · LOB-partitioned · NO ADMIN UI IN R0</text>
+  <text x="890.0" y="1058" font-size="11.8" fill="#0f172a" text-anchor="middle" font-weight="bold">#19  Configuration — versioned · append-only · effective-dated · seeded · LOB-partitioned · ADMIN UI IN R0 W4</text>
   <text x="890.0" y="1074.0" font-size="8.6" fill="#475569" text-anchor="middle">journey steps · rule packs · field validations · document checklists · product eligibility · role→permission grants · provider routing · attribution — every domain keyed by lob (CF-2) · no compiled-in fallback: an unresolvable rule is a refusal, not a default (S-21)</text>
   <rect x="40" y="1126" width="1720" height="250" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.3"/>
   <rect x="40" y="1126" width="1720" height="24" rx="10" fill="#0f172a"/>
@@ -275,7 +275,7 @@
   <text x="166" y="1142.5" font-size="10.5" fill="#ffffff" font-weight="bold" letter-spacing="0.6">LOB EXECUTION CELL PLANE — WHERE THE INSURANCE BUSINESS ACTUALLY DIFFERS</text>
   <text x="1744" y="1142.5" font-size="9" fill="#cbd5e1" text-anchor="end" font-weight="bold">R0 populates LIFE only</text>
   <text x="56" y="1164" font-size="9.2" fill="#475569">OWNS · the per-LOB execution that cannot be shared. A Life quote, a Health quote and a Motor quote do not share a field shape, so Quote and Proposal are per-LOB and that boundary is FROZEN — sharing the service produces the if (lob == …) sprawl this design exists to prevent.</text>
-  <text x="56" y="1176" font-size="9.2" fill="#475569">DOES NOT OWN · customer, opportunity, consent, catalogue, payment, policy registry, notification or audit — those are boundary 4 above, one instance for every line of business. Nor the underwriting decision: that is the insurer’s.</text>
+  <text x="56" y="1176" font-size="9.2" fill="#475569">DOES NOT OWN · customer, lead, consent, catalogue, payment, policy registry, notification or audit — those are boundary 4 above, one instance for every line of business. Nor the underwriting decision: that is the insurer’s.</text>
   <rect x="60" y="1188" width="700" height="158" rx="8" fill="#fff1f2" stroke="#e11d48" stroke-width="2.5"/>
   <rect x="76" y="1200" width="46" height="17" rx="2" fill="#e11d48"/>
   <text x="99" y="1212.5" font-size="9.5" fill="#ffffff" text-anchor="middle" font-weight="bold">LIFE</text>
@@ -495,10 +495,10 @@
   <text x="1216" y="2369" font-size="8.8" fill="#64748b">Greyed on the diagram above. Each is an out_of_scope entry in CURRENT-STATE.yaml</text>
   <rect x="1216" y="2384" width="30" height="14" rx="3" fill="#e2e8f0"/>
   <text x="1231" y="2394.5" font-size="8.2" fill="#475569" text-anchor="middle" font-weight="bold">S13</text>
-  <text x="1254" y="2394.5" font-size="8.5" fill="#475569">#1 Customer BFF · #18 Reporting &amp; MIS — not on the critical path to one proven journey</text>
+  <text x="1254" y="2394.5" font-size="8.5" fill="#475569">#1 Customer BFF — not on the assisted R0 path (DIY)</text>
   <rect x="1216" y="2402" width="30" height="14" rx="3" fill="#e2e8f0"/>
   <text x="1231" y="2412.5" font-size="8.2" fill="#475569" text-anchor="middle" font-weight="bold">R1</text>
-  <text x="1254" y="2412.5" font-size="8.5" fill="#475569">#19 Administration &amp; Config USER INTERFACE — the LAYER itself is W0b and ships in R0 (CF-5)</text>
+  <text x="1254" y="2412.5" font-size="8.5" fill="#475569">Notification (#17) beyond OTP + payment-link delivery</text>
   <rect x="1216" y="2420" width="30" height="14" rx="3" fill="#e2e8f0"/>
   <text x="1231" y="2430.5" font-size="8.2" fill="#475569" text-anchor="middle" font-weight="bold">R1</text>
   <text x="1254" y="2430.5" font-size="8.5" fill="#475569">Campaign and bulk demand management on top of #5 — origination itself is W1 (AC-9)</text>
@@ -507,7 +507,7 @@
   <text x="1254" y="2448.5" font-size="8.5" fill="#475569">Customer DIY journey · Group B insurers · ULIP and Savings · document platform · hi-IN</text>
   <rect x="1216" y="2456" width="30" height="14" rx="3" fill="#e2e8f0"/>
   <text x="1231" y="2466.5" font-size="8.2" fill="#475569" text-anchor="middle" font-weight="bold">R1</text>
-  <text x="1254" y="2466.5" font-size="8.5" fill="#475569">Journey Registry / LOB Router split · provider router · callback gateway · config maker-checker</text>
+  <text x="1254" y="2466.5" font-size="8.5" fill="#475569">Journey Registry / LOB Router split · provider router · callback gateway</text>
   <rect x="1216" y="2474" width="30" height="14" rx="3" fill="#e2e8f0"/>
   <text x="1231" y="2484.5" font-size="8.2" fill="#475569" text-anchor="middle" font-weight="bold">R2</text>
   <text x="1254" y="2484.5" font-size="8.5" fill="#475569">Hybrid assisted ⇄ DIY · call centre · work management · renewal and lapse · NTB + V-KYC</text>
@@ -569,5 +569,5 @@
   <text x="1640" y="1744" font-size="8.4" fill="#64748b">payment link + OTP</text>
   <text x="60" y="2710" font-size="9.2" fill="#94a3b8">AI-DRAFTED in the Architecture lane (Mahesh — Board 1); mandatory human T4 Architecture sign-off outstanding · Derived from 03-solution-architecture-r0.md §2–§5 and §7, 01-domain-model-and-invariants.md §2.4–§2.6 (LB-1…LB-5, CF-1…CF-5),</text>
   <text x="60" y="2723" font-size="9.2" fill="#94a3b8">00-WS3-ARCHITECTURE-REGISTRATION.md §3 and §6 (SC-W3-8…12), ADR-004…ADR-007 and CURRENT-STATE.yaml (R0 scope) · Layer bands, naming and the LOB encoding follow the canvas contract in mahesh/16-hld-authoring-and-update-protocol.md §4 (NC-1, LY-1, LB-R1).</text>
-  <text x="60" y="2736" font-size="9.2" fill="#94a3b8">Render.com is dev-preview only, never a PII path (ADR-001) · revised 2026-08-20 — HLD review round (SUG-20260820-hr0), redrawn on the North Star's boundary bands with the Life cell separated (SUG-20260820-al7), then ADR-008 data topology and the #5 Opportunity rename (SUG-20260820-dc4).</text>
+  <text x="60" y="2736" font-size="9.2" fill="#94a3b8">Render.com is dev-preview only, never a PII path (ADR-001) · revised 2026-08-25 — CR-013 / ADR-014: #5 spoken name Lead; #18 and admin UI in R0 W4 on the isolated path; campaign/bulk still R1. Human T4 outstanding.</text>
 </svg>

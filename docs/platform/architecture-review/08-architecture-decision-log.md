@@ -413,24 +413,15 @@ context_naming: >
   denote the opportunity. Re-labelling is Rajal's, is behaviour-neutral, and is recorded as
   OPEN-D10. The identifier is not the point; the single-origination rule is.
 naming_resolution: >
-  OPEN-D10 CLOSED 2026-08-20 by Mahesh: the context is named Opportunity. The argument is domain
-  scope rather than preference. A lead records that someone might buy and ceases to mean anything
-  at conversion. An opportunity is the durable demand object behind a new sale, a renewal, a lapse
-  recovery, a cross-sell and an abandoned-journey recovery — which is precisely the R2 rule that a
-  renewal or a lapse creates a NEW opportunity and a NEW journey rather than reopening an old one.
-  Under the name Lead that rule reads as a contradiction; under the name Opportunity it reads as
-  the model. Carrying both names was also costing the diagrams a permanent parenthesis.
+  OPEN-D10 CLOSED 2026-08-20 on structure; spoken name superseded 2026-08-25 by
+  DEC-20260825-01 D1 / ADR-014. People, Product, UI and architecture primary text
+  say **Lead**. Opportunity remains the durable-demand alias only: a renewal, lapse
+  recovery, cross-sell or abandoned-journey recovery mints a **new Lead and a new
+  Journey**, it does not reopen an archived inbox row. That rule is unchanged.
 
-  What changes: the context NAME, in the bounded-context register, the architecture documents and
-  both diagrams. What does not change: identifiers and register IDs. leadId, INV-LED-01..07 and
-  CAP-102 keep their tokens, because an ID is opaque and rewriting them breaks every existing
-  citation to buy nothing. The UI label is Product's and is not decided here.
-
-  Residual, and it is a real one: CURRENT-STATE.yaml current_scope.in_scope still reads "Lead
-  service (context #5) — create, resume, status", and WS-3-PLATFORM-CHARTER.md mirrors it. Those
-  are human-owned scope text. Until Kalpana transcribes them the register and the state file
-  disagree about the name — a smaller drift than the one ADR-005 closed, but the same kind, and it
-  should not be left standing.
+  What does not change: identifiers and register IDs. leadId, INV-LED-* and
+  CAP-102 keep their tokens. RM-only origination, no-campaign and no-auto-create
+  stand. A rename that reversed those rules would be a reversal and is rejected.
 authority_class: A2_NOTIFY
 alternatives:
   - option: "Keep context #5 deferred and start journeys from a customer lookup"
@@ -1344,5 +1335,92 @@ this set may be cited as authority to provision until the approvals above exist 
 `RISK-012` (cost envelope) and `RISK-014` (operational surface against S08 maturity) are open
 against exactly that.
 
+---
+
+## ADR-014 — R0 Lead language, evidence split, off-platform ingest, admin/MIS, issuance modes
+
+```yaml
+id: ADR-014
+status: PROPOSED
+problem: >
+  Stakeholders require Lead as the spoken name, a light working inbox, 7-year evidence on
+  payment/policy history, off-platform book capture, day-one admin and MIS, STP/non-STP/Insta,
+  and PPHI alignment — in R0, not later.
+context_stage: "WS-3 at S08; stakeholder override CR-013"
+decision: >
+  Context #5 is named Lead in Product, UI and architecture primary text. Opportunity remains
+  the durable-demand alias only. Identifiers stay leadId / INV-LED-*. After CONVERTED
+  (Payment RECONCILED and Policy ACTIVE) the working Lead archives; 7-year SoT is Payment,
+  Policy.stateHistory, Consent, Suitability, Audit, plus Lead attribution fields (C-RET-1).
+  Off-platform sales are Policy ingest (source=OFF_PLATFORM), never lead.create.
+  Administration UI and Reporting/MIS are in R0 W4 and must not use the Lead writer (C-ISO-1).
+  issuanceMode STP|NON_STP|INSTA is mandatory on Proposal/Policy (C-ISS-1).
+  ADR-005 RM-only origination stands. ADR-007 configuration layer stands; its UI deferral
+  is withdrawn.
+authority_class: A3_JOINT_REVIEW
+origin: CR-013
+```
+
 **Signed:** Mahesh — Principal Insurance Platform Architect (Board 1 / R2) · 2026-08-16 ·
-**revised** 2026-08-20 · **revised** 2026-08-24 (R0 robustness set, ADR-009 … ADR-013)
+**revised** 2026-08-20 · **revised** 2026-08-24 (R0 robustness set, ADR-009 … ADR-013) ·
+**revised** 2026-08-25 (`ADR-014`, `CR-013`)
+
+---
+
+## ADR-015 — One NIP-APP client; ns:edge is NIP web + NIP BFF only
+
+```yaml
+id: ADR-015
+status: PROPOSED
+problem: >
+  RM desktop, admin/ops and Insurance Partner Rep were drawn as separate webs and
+  hostnames (admin-web, admin.{env}, Admin BFF). That is not the channel. One Flutter
+  enterprise application serves every workforce role. Store vs MDM was still open at S11.
+context_stage: "WS-3 at S08; architecture decision taken by Mahesh 2026-08-25"
+decision: >
+  There is one workforce Flutter project: NIP-APP (New Insurance Platform).
+  It produces three artefacts from the same codebase: a web build, an Android APK
+  and an iOS IPA. Roles (BANK_RM, INSURER_PARTNER_REP, BANK_EMPLOYEE admin/ops)
+  are PDP-enforced views, not applications (JS-08, JS-10, ID-22, TI-15).
+  ns:edge contains exactly two workloads: nip-web (image-baked Flutter web, no PVC)
+  and #2 NIP BFF (token-hiding session). Nothing RM-named or admin-named lives there.
+  One public hostname. GET /* → nip-web; /api/* → #2. Admin/MIS screens are routes
+  on NIP-APP; they still must not use the Lead writer (C-ISO-1, ADR-014).
+  Distribution: nip-web on EKS; APK on Google Play; IPA on the Apple App Store.
+  Deepali owns store hardening (device attestation, pinning, no tokens on device —
+  already S-01). Amit may merge workforce-access-bff into #2 (packaging).
+  #1 Customer BFF remains R1. A second admin/ops app or hostname is SF4.
+authority_class: A3_JOINT_REVIEW
+origin: "human:Mahesh taken decision · SUG-20260825-nip"
+```
+
+**Drafted:** Mahesh — Principal Insurance Platform Architect (Board 1 / R2) · 2026-08-25.
+Human T4 Architecture sign-off outstanding. Deepali jointly owns store-listing exposure.
+
+---
+
+## ADR-016 — Enterprise perimeter, integration and delivery baseline (Cloudflare, F5, External ALB, EBS, GitLab, Terraform, CloudTrail/CloudWatch)
+
+```yaml
+id: ADR-016
+status: PROPOSED
+problem: >
+  Internal architecture team review mandated alignment with bank enterprise standards:
+  Cloudflare Enterprise CDN/DDoS, F5 BIG-IP / WAF for L7 security policy, External ALB
+  before API Gateway, EBS (Enterprise Service Bus) APIs for Core Banking (CBS / CIF),
+  GitLab CI/CD pipelines, Terraform for IaC, and mandatory CloudTrail + CloudWatch.
+context_stage: "WS-3 at S08/S09; internal architecture review directive 2026-08-25"
+decision: >
+  1. Edge ingress: Cloudflare (Enterprise Edge CDN / DDoS) -> F5 BIG-IP / WAF (Bank Policy) ->
+     External ALB -> Amazon API Gateway (VPC Link) -> Internal ALB.
+  2. Core Banking integration: Customer lookups route via bank EBS (Enterprise Service Bus) APIs
+     over Transit Gateway private links. Terminology is standardized as EBS (CBS / CIF).
+  3. Delivery & IaC: GitLab CI/CD for enterprise pipelines and Terraform for 100% IaC provisioning.
+  4. Observability & Audit: AWS CloudTrail (mandatory management auditability) alongside
+     Amazon CloudWatch (runtime operational metrics and alerts).
+authority_class: A3_JOINT_REVIEW
+origin: SUG-20260825-arb
+```
+
+**Drafted:** Mahesh — Principal Insurance Platform Architect (Board 1 / R2) · 2026-08-25.
+Human T4 Architecture sign-off outstanding. Deepali jointly owns perimeter security policy.

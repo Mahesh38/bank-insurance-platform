@@ -122,20 +122,22 @@ def topology():
                "environment · every connector is a real network path, and egress has exactly one")
 
     # ---- devices ---------------------------------------------------------
-    dev = c.group("DEVICES", 60, 305, 460, 195, stroke=Z["dev"][0], fill=Z["dev"][1],
+    dev = c.group("DEVICES", 40, 250, 560, 270, stroke=Z["dev"][0], fill=Z["dev"][1],
                   sub="outside the VPC", label_size=15)
-    c.node(I["flutter"], 190, 390, ["RM — Flutter app", "certified Specified Person"])
-    c.node(I["tablet"], 390, 390, ["Insurance Partner Rep", "same host, same BFF"])
+    c.node(I["flutter"], 130, 340, ["NIP-APP native", "APK Play · IPA App Store"])
+    c.node(I["tablet"], 310, 340, ["NIP-APP web", "role-based · nip-web"])
+    c.node(I["tablet"], 220, 455, ["Roles, not apps", "RM · IPR · admin/ops"])
 
     # ---- region and edge -------------------------------------------------
     c.group("AWS REGION · ap-south-1", 620, 200, 2160, 2220, stroke=Z["vpc"][0],
             fill="#ffffff", dash="10 7", label_size=17, width=2.2)
-    edge = c.group("PUBLIC AWS EDGE", 660, 240, 1610, 280, stroke=Z["edge"][0],
-                   fill=Z["edge"][1], sub="the only internet entry point — not in the VPC",
+    edge = c.group("BANK PERIMETER & PUBLIC AWS EDGE", 660, 240, 1610, 280, stroke=Z["edge"][0],
+                   fill=Z["edge"][1], sub="Cloudflare · F5 · External ALB · API Gateway — not in the VPC",
                    label_size=16)
-    cf = c.node(I["cf"], 760, 400, ["CloudFront", "TLS 1.3 · ACM"])
-    waf = c.node(I["waf"], 960, 400, ["AWS WAF + Shield Std", "OWASP · rate limit"])
-    agw = c.node(I["apigw"], 1160, 400, ["API Gateway", "PROXY 1 of 2", "throttle · schema"])
+    cf = c.node(I["cf"], 740, 400, ["Cloudflare", "Edge CDN · DDoS", "bank standard"])
+    waf = c.node(I["waf"], 910, 400, ["F5 BIG-IP / WAF", "L7 security policy", "bank standard"])
+    ext_alb = c.node(I["alb"], 1080, 400, ["External ALB", "Edge ingress"])
+    agw = c.node(I["apigw"], 1250, 400, ["API Gateway", "PROXY 1 of 2", "throttle · schema"])
     pgcb = c.node(I["apigw"], 1480, 400, ["PG-callback route", "SEPARATE · IP-allowlisted"])
     c.node(I["r53"], 1780, 400, ["Route 53", "public + private zones", "a lookup, not a hop"])
 
@@ -153,8 +155,9 @@ def topology():
         return c.group(label, x, top, w, height, stroke=s_, fill=f_,
                        label_size=13, radius=11, width=1.6)
 
-    band("edge", "ns: edge", 815)
-    bff = c.node(I["pod"], COL[2], 815 + ICON_DY, ["#2 RM Workspace BFF", "W4 · holds the tokens"])
+    band("edge", "ns: edge   ·   UI pods are image-baked — no PVC", 815)
+    c.node(I["pod"], COL[0], 815 + ICON_DY, ["nip-web", "Flutter web · in the image"])
+    bff = c.node(I["pod"], COL[1], 815 + ICON_DY, ["#2 NIP BFF", "W4 · holds the tokens"])
 
     band("ident", "ns: identity   ·   WS-2 workforce identity", 995)
     c.node(I["deploy"], COL[0], 995 + ICON_DY, ["Keycloak", "private IdP · no PVC"])
@@ -164,7 +167,7 @@ def topology():
     band("shared", "ns: shared-platform   ·   one deployment for every line of business", 1175, 395)
     band("w1", "W0b + W1 — configuration and the journey spine", 1215, ROW_H, 758, 974)
     for i, rows in enumerate((["#19 Configuration", "W0b · fail closed"],
-                              ["#5 Opportunity", "W1 · origination"],
+                              ["#5 Lead", "W1 · origination"],
                               ["#9 Journey Orch.", "W1 · state machine"],
                               ["#4 Customer", "W1 · ETB snapshot"],
                               ["#8 Product Catalogue", "W1 · Term only"])):
@@ -191,6 +194,8 @@ def topology():
     c.node(I["cron"], COL[1], 1945 + ICON_DY, ["payment-reconcile", "issuance-recheck"])
     c.node(I["deploy"], COL[2], 1945 + ICON_DY, ["MSK consumers", "audit · notification",
                                                  "KEDA on lag"])
+    c.node(I["deploy"], COL[3], 1945 + ICON_DY, ["#18 Reporting/MIS", "isolated read path",
+                                                 "NEVER the Lead writer"])
 
     # ---- the right-hand infrastructure column ----------------------------
     c.group("PUBLIC SUBNETS  /24 × 3 AZ", RIGHT_X, 600, RIGHT_W, 200, stroke=Z["pub"][0],
@@ -243,7 +248,7 @@ def topology():
     s3 = c.node(I["s3"], COL[0], 2310, ["S3 + Object Lock", "7-year WORM"], size=54)
     ddb = c.node(I["ddb"], COL[1], 2310, ["DynamoDB + PITR", "journey · jobs"], size=54)
     for x, rows in ((1180, ["KMS CMK hierarchy"]), (1360, ["Secrets Manager"]),
-                    (1540, ["ECR — by digest"]), (1720, ["CloudWatch · X-Ray"]),
+                    (1540, ["ECR — by digest"]), (1720, ["CloudWatch + CloudTrail"]),
                     (1900, ["AMP + AMG"]), (2080, ["Argo CD (in-cluster)"])):
         c.node(I["argo"] if x == 2080 else
                {1180: I["kms"], 1360: I["secret"], 1540: I["ecr"],
@@ -252,18 +257,21 @@ def topology():
     # ---- outside ---------------------------------------------------------
     out = c.group("OUTSIDE", 2840, 620, 360, 340, stroke=Z["ext"][0], fill=Z["ext"][1],
                   sub="bank systems and insurance providers", label_size=15)
-    cbs = c.node(I["net"], 2940, 710, ["Core Banking", "CBS / CIF"], size=54)
+    cbs = c.node(I["net"], 2940, 710, ["EBS (CBS / CIF)", "Enterprise Service Bus"], size=54)
     pg = c.node(I["net"], 3120, 710, ["AU Bank", "Payment Gateway"], size=54)
     c.node(I["net"], 2940, 860, ["Bank AD / SSO", "WS-2 Phase 2"], size=54)
     onesb = c.node(I["net"], 3120, 860, ["1SilverBullet", "R0 polls"], size=54)
 
     # ---- connectors, all axis-aligned ------------------------------------
-    c.link(dev.port("R", at=400), cf.port("L"), color=REQ, width=3.0)
+    c.link(dev.port("R", at=380), cf.port("L"), color=REQ, width=3.0)
     c.link(cf.port("R"), waf.port("L"), color=REQ, width=3.0)
-    c.link(waf.port("R"), agw.port("L"), color=REQ, width=3.0)
+    c.link(waf.port("R"), ext_alb.port("L"), color=REQ, width=3.0)
+    c.link(ext_alb.port("R"), agw.port("L"), color=REQ, width=3.0)
     c.link(agw.port("B"), alb.port("T"), color=REQ, width=3.0,
            label="VPC link", label_at=0.62, label_dx=9, label_anchor="start")
-    c.link(alb.port("B"), bff.port("T"), color=REQ, width=3.0)
+    c.link(alb.port("B"), bff.port("T"), color=REQ, width=3.0,
+           label="GET /* → nip-web  ·  /api/* → NIP BFF", label_at=0.45, label_dx=8,
+           label_anchor="start")
     c.link(bff.port("B"), pdp.port("T"), color=AUTH, width=2.8)
 
     c.link(eks.port("R", at=1110), aur.port("L"), color=STATE, width=2.4, dash="2 5",
@@ -301,11 +309,14 @@ def topology():
         "Service mesh — NetworkPolicy + IRSA is enough",
         "A cluster per service — ADR-008 says one",
         "Glue ETL · Athena · Redshift · QuickSight",
+        "  (#18 MIS is in R0 — this is the warehouse)",
         "MSK Replicator — DR replays the outbox",
         "Cache as an idempotency store — ADR-011",
         "OpenSearch as the audit store — ADR-013",
         "A second live region — DR is warm standby",
         "Cognito — Keycloak is the R0 IdP",
+        "Pipelines — GitLab CI/CD is bank standard",
+        "IaC — Terraform is the IaC baseline",
     ], size=12, color=MUTE)
 
     legend(c, 2840, 1370, 360, [
@@ -450,7 +461,7 @@ def dr():
     c.link(eks_a.port("R"), eks_b.port("L"), color="#94a3b8", width=2.2, dash="4 5",
            label="NOT replicated", label_size=11.5)
     c.node(I["r53"], 1500, 1320, ["D9  Route 53 failover", "MANUAL in R0"], size=54)
-    c.node(I["cf"], 1880, 1320, ["D10  CloudFront origin", "re-point — a runbook step"], size=54)
+    c.node(I["cf"], 1880, 1320, ["D10  Cloudflare / ALB origin", "re-point — a runbook step"], size=54)
 
     c.node(I["vpc"], 1500, 370, ["D1  VPC + subnets", "empty · no NAT until failover"], size=54)
     c.node(I["iam"], 1880, 370, ["IAM roles + IaC", "the same modules, a different tfvars"], size=54)
@@ -504,7 +515,7 @@ def sequence():
         ("P4", "EDGE + PROXY", "", "#b45309", "#fffaf0",
          ((I["alb"], ["Internal ALB"]),
           (I["apigw"], ["API Gateway", "+ PG callback — needed at W3"]),
-          (I["cf"], ["CloudFront + WAF"]))),
+          (I["cf"], ["Cloudflare + F5", "External ALB ingress"]))),
         ("P5", "IDENTITY", "WS-2", "#059669", "#f0fdf7",
          ((I["deploy"], ["Keycloak + PDP"]),
           (I["secret"], ["Secrets Manager", "rotation exercised once"]))),
@@ -514,7 +525,7 @@ def sequence():
           (I["srch"], ["OpenSearch + ISM", "P1 and P3 logs land here"]))),
         ("P7", "DELIVERY", "", "#0369a1", "#f2f9ff",
          ((I["ecr"], ["ECR — built once"]),
-          (I["argo"], ["Argo CD"]))),
+          (I["argo"], ["Argo CD + GitLab CI"]))),
         ("P8", "PROOF", "GATE-S09 accepts records, not designs", "#16a34a", "#f2fdf5",
          ((I["backup"], ["a restore, TIMED"]),
           (I["trail"], ["a rollback drill"]),

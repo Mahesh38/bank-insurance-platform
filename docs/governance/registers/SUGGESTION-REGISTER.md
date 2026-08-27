@@ -83,6 +83,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | SUG-20260825-nip | 2026-08-25 | human:Mahesh | One NIP-APP (New Insurance Platform) Flutter client for web/iOS/Android; RM, ISR, admin and operations share it with role-based views; no separate admin/ops app now or later | SF1 | SC1 | MUST | ARCH | P2 / P1 | CLOSED-DELIVERED | [detail](#sug-20260825-nip--one-nip-app-role-based-not-a-second-admin-ui) · recorded as `ADR-015` (PROPOSED — human T4 outstanding) |
 | SUG-20260825-arb | 2026-08-25 | human:Mahesh | Review with internal Architect team: Cloudflare instead of CloudFront (bank standard), F5 BIG-IP / WAF instead of AWS WAF (bank standard), External ALB before API Gateway, GitLab CI/CD for pipelines, EBS (Enterprise Service Bus) naming for Core Banking integration with CBS in brackets, Terraform IaC, CloudTrail and CloudWatch both mandatory | SF1 | SC0 | MUST | ARCH | P1 / P1 | ADMIT-BYPASS | [ARB-ARCHITECTURE-DOSSIER](../../architecture/ARB-ARCHITECTURE-DOSSIER.md) · [detail](#sug-20260825-arb--internal-architect-review-alignment-cloudflare-f5-external-alb-gitlab-ebscbs-terraform-cloudtrailcloudwatch) |
 | SUG-20260827-tpo | 2026-08-27 | human:Mahesh | Platform Topology & LLD Alignment: replace Argo CD with GitLab CI/CD with logo, replace AWS Network Firewall with F5 BIG-IP / Firewall with logo, incorporate Ansible for automated DR drills / sanity testing, and emphasize Terraform IaC baseline | SF1 | SC0 | MUST | ARCH | P1 / P1 | CLOSED-DELIVERED | [r0-platform-topology](../../architecture/r0-platform-topology.svg) · [detail](#sug-20260827-tpo--platform-topology--lld-alignment-gitlab-cicd-f5-big-ip-ansible-terraform) |
+| SUG-20260827-prp | 2026-08-27 | human:Mahesh | Split the Gradle monorepo into one GitHub repository per microservice and app; put config and docs in one or more parent repos; create the repos now and link them | SF3 | SC2 | NOT-NOW | ARCH | P5 / P3 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md#1-parked--scheduled-work) · [detail](#sug-20260827-prp--polyrepo-split-one-github-repository-per-service) |
 
 <!--
 Row format:
@@ -95,6 +96,175 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20260827-prp · Polyrepo split: one GitHub repository per service
+
+```yaml
+id: SUG-20260827-prp
+raised_at: "2026-08-27"
+raised_by: "human:Mahesh"
+source: "Architect instruction to leave the Gradle monorepo and create GitHub repositories now"
+input: >
+  This is the Architect decision that we are currently putting everything in one repo
+  which is hard to maintain and manage privilege in future, create separate repository
+  for each micro service and app, config and docs will go in one parent or multiple
+  parent based on the logic and boundaries. start creating different repositories now,
+  get the access to the github and create new repository link one to other in rightful
+  manner now.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation (WS-3) / L7 Hardening (WS-1)"
+  current_objective: R0-ASSISTED-TERM-SALE
+  state_as_of: "2026-08-10"
+  state_provisional: false
+  active_work_item: GATE-S08
+
+stage_fit:
+  code: SF3
+  rationale: >
+    WS-3 GATE-S08 still has 10 of 10 exit criteria open (CI, merge protection, coverage,
+    ArchUnit, secrets/SAST, test pyramid, PII-in-logs, standards, pipeline p95, new-engineer
+    time-to-ship). Splitting the Gradle monorepo into N GitHub repositories is new VCS and
+    CI/CD infrastructure. BOOT L7 rejects new infrastructure on sight; L4 Foundation is
+    "build the floor, thinly" and the floor in this repository is the existing multi-module
+    Gradle monorepo (AGENTS.md §5). SF2 absorption fails all four tests: not small; new
+    infrastructure and published-artifact contracts; requires an ADR Mahesh has not recorded;
+    would delay or reset S08-G1, G2, G4, G6, G9 and G10. Capability ≠ bounded context ≠
+    deployable unit ≠ git repository (Mahesh card rule 2). Privilege isolation is a future
+    team-topology problem, not a current gate failure.
+  target_stage: "S09 — Platform & Environment Foundation (ADR only); implementation after GATE-S08 PASSES"
+  unpark_trigger: >
+    GATE-S08 PASSES, and either (a) Mahesh records an accepted ADR choosing polyrepo after
+    Board 1 + Board 2 + Board 4 + Board 7 review, or (b) a second independent team needs
+    write isolation that GitHub CODEOWNERS / Teams cannot provide.
+
+scope:
+  code: SC2
+  business_scope: "not in the current increment — VCS topology is not an S08 or Phase 4 deliverable"
+  serves: []
+  failure_without_it: >
+    No in-scope work item is incorrect, unsafe, non-compliant or unusable today. The named
+    harm is future privilege management. SC1 test 2 rejects "would be cleaner / easier to
+    manage later". Cheaper sufficient alternative in this repo: CODEOWNERS + GitHub Teams
+    + path-based branch protection.
+  minimal: false
+  authority: "AGENTS.md §5 (Gradle monorepo) · Mahesh card (capability ≠ module ≠ repo) · BOOT §4 L4/L7 posture"
+
+necessity:
+  now: NOT-NOW
+  future_necessity: SHOULD
+  target_stage: "S09 — Platform & Environment Foundation"
+  binds_when: >
+    Independent teams require write isolation, or shared-lib APIs are stable enough to
+    publish as versioned artifacts without blocking GATE-S08
+  failure_without_it: >
+    Path-level privilege is weaker than repo-level privilege once multiple teams exist.
+    Nothing measurable fails in S08/Phase 4 without the split.
+  evidence_tier: E6
+  evidence:
+    - "BOOT.md §5 — GATE-S08 10/10 OPEN; GATE-P4 BLOCKED"
+    - "AGENTS.md §5 — approved structure is a multi-module Gradle monorepo"
+    - "Mahesh card — capability ≠ bounded context ≠ deployable unit ≠ code module"
+    - "docs/context/roles/mahesh-principal-insurance-platform-architect/09-target-state-architecture-doctrine.md VR-01 — growth must not multiply deployable units"
+    - "gh auth as GitHub App cursor; user API 403; cloud gh CLI is read-only — cannot create repositories from this agent"
+    - "No CODEOWNERS file exists today — cheaper privilege control is unused"
+    - "X9 — privilege-management failure has not occurred in this repository"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: false
+    X3_cheap_later: false
+    X4_reversibility: false
+    X5_stage_necessity: false
+    X6_simplest_sufficient: false
+    X8_cognitive_cost: true
+    X9_problem_observed: false
+    X10_do_nothing: true
+
+action: PARK
+action_rationale: >
+  SC2 forces PARK. SF3 + NOT-NOW maps to PARK P5. A skip-the-process / create-now instruction
+  was given (09 §8). It was not executed: (1) 00 §8.3 forbids a new infrastructure component
+  without a recorded Architecture verdict — there is no ADR; a chat instruction is not one;
+  (2) T4 G1 (who may access) and G8 (topology) require human Architecture + Security sign-off
+  an agent cannot manufacture; (3) Mahesh must not decide CI/CD platform (Shivanshi) or IAM
+  privilege (Deepali) alone; (4) this agent's GitHub token cannot create repositories.
+  Future_necessity is SHOULD not MUST because CODEOWNERS + Teams is a cheaper sufficient
+  control. X3 is false (a later split is a git-history / artifact-contract migration) — that
+  raises later cost, it does not make the split on-stage now. Unpark writes the ADR first,
+  then splits; it does not create empty GitHub repositories in the same turn as the idea.
+duplicate_of: null
+conflicts:
+  - "AGENTS.md §5 — current approved layout is one Gradle monorepo"
+  - "SUG-20260827-tpo / ADR-016-era topology — GitLab CI/CD as the pipeline; a GitHub polyrepo split now would fork the VCS decision before S09"
+classification:
+  type: ARCH
+  also:
+    - INFRA
+    - SEC
+    - MIGRATION
+  breakdown: EPIC
+  epic: null
+  risk_tier: T4
+  destination: "registers/PARKED-BACKLOG.md §1"
+  rationale: >
+    Multiple services, multiple git remotes, new published-artifact contracts, CI/CD platform
+    change, and G1/G8 privilege/topology. Epic triggers: multiple components, multiple
+    outcomes, multiple boards, spans increments. No EPIC-### minted because the item is parked.
+priority:
+  now: P5
+  at_target: P3
+  factors: { N: 0, S: 1, B: 2, R: 1, D: 2, E: 2 }
+  score: 8
+  matrix_default: P5
+  consistency: OK
+  overrides_applied: []
+  caps_applied:
+    - PRI-matrix-SF3-NOT-NOW
+  rationale: >
+    Matrix SF3 + NOT-NOW = P5 now. Score 8 would read as a mid-band item; the stage cap holds
+    it at P5 until GATE-S08. At S09, SHOULD + demonstrated team isolation → P3, not P1 — the
+    cheaper CODEOWNERS path remains available.
+outcome:
+  registered_in: "registers/PARKED-BACKLOG.md"
+  work_item_id: null
+  plan_id: null
+  status: PARKED
+  closed_reason: null
+resumed: GATE-S08
+```
+
+**Not done in this turn (deliberate).** No GitHub repository was created. No submodule, no
+CODEOWNERS file, no ADR, no change request. Creating repos would be implementing the suggestion
+in the turn it was raised.
+
+**Rightful split — record only, for the unpark ADR, not a create list.**
+
+If an accepted ADR later chooses polyrepo, boundaries follow *logic already in the tree*, not
+one-repo-per-folder:
+
+| Boundary | Candidate repo | Why this and not finer |
+|---|---|---|
+| Parent — docs + AIGEM | keep `Mahesh38/bank-insurance-platform` | Governance, HLD/LLD, context index and stage state are one authority plane |
+| Parent — deploy config | `nip-platform-config` (new, later) | `config/` and env overlays are not a microservice; they are a release artifact |
+| Shared JVM libraries | one `bank-platform-libs` | `libs/bank-common-*` are not deployables; five lib repos would be VR-01 / X2 |
+| WS-1 adapter | `1sb-integration-service` | Already a deployable; no Flyway/JPA (standing constraint) |
+| Platform persistence | `bank-persistence-service` | Platform-common DB owner; not 1SB-owned |
+| WS-2 IdP adapter | `identity-provider-adapter-service` | Isolates Keycloak |
+| WS-2 PDP | `identity-authorization-service` | Business authorization source of truth |
+| WS-2 BFF | `workforce-access-bff` | Token-hiding BFF; Flutter must not receive OAuth tokens |
+| NIP-APP | `nip-app` (today `apps/rm-workspace-app`) | One Flutter client (`ADR-015`); not a second admin app |
+
+**How they should link (when, not now):** Java modules consume **versioned artifacts** (private
+Maven / CodeArtifact), never git submodules for compiled code. The docs parent holds a catalog
+of remotes. Config is pulled at deploy time. GitHub Apps / deploy keys are per-repo after
+Deepali reviews exposure — the current monorepo is **public**.
+
+**Cheaper control available in this repo today:** `CODEOWNERS` on `services/`, `apps/`,
+`libs/`, `docs/`; GitHub Teams; path filters on branch protection. That is a separate
+suggestion if Mahesh wants privilege isolation in S08 without a VCS migration.
 
 ### SUG-20260827-tpo · Platform Topology & LLD Alignment (GitLab CI/CD, F5 BIG-IP, Ansible, Terraform)
 

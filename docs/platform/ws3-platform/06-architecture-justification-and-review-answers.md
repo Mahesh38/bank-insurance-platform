@@ -189,7 +189,7 @@ question and not a second BFF.
 | Service | Release | Wave | Functions / business logic | Representative APIs | Why separate |
 |---|---|---|---|---|---|
 | **#5 Opportunity** | **R0 — full origination** | **W1** | **The single origination point (`AC-8`).** Creates the demand object that carries the accountable SP, the `lob` and the origination record; nothing downstream may exist without one | `POST /opportunities`, `PATCH /opportunities/{id}`, `POST /opportunities/{id}/assign` | Un-deferred from S13 to reconcile with `CURRENT-STATE.yaml` `in_scope` (`AC-9`). Beginning a journey from a customer lookup creates a **second way into the funnel**, which is precisely what `AC-8` forbids. What stays deferred to S13 is campaign and bulk sales-management breadth *on top of* origination — not origination itself |
-| **#4 Customer** | R0 | W1 | ETB CIF lookup, profile snapshot, prefill; never writes CBS. Reached over the Transit Gateway (`ADR-009`) — `uat` and `prod` may not stub it | `GET /customers/by-cif`, `GET /customers/by-mobile`, `GET /customers/{id}/snapshot` | CBS facade + PII snapshot ownership; freshness rules differ from Opportunity |
+| **#4 Customer** | R0 | W1 | ETB CIF lookup via bank EBS APIs, profile snapshot, prefill; never writes CBS directly. Reached over the Transit Gateway (`ADR-009`) — `uat` and `prod` may not stub it | `GET /customers/by-cif`, `GET /customers/by-mobile`, `GET /customers/{id}/snapshot` | EBS facade + PII snapshot ownership; freshness rules differ from Opportunity |
 | **#6 Consent** | R0 | W2 | Versioned grants; customer-device OTP evidence; append-only | `POST /consents`, `POST /consents/{id}/otp/verify`, `GET /consents/{id}` | Regulatory evidence store; different retention/CMK; must fail closed for proposal |
 | **#7 Suitability** | R0 | W2 | Need analysis; product eligibility; assessment id with TTL; PDF evidence | `POST /suitability/assessments`, `GET /suitability/assessments/{id}`, `GET …/eligible-products` | Hard gate C1 — must be independently enforceable and auditable |
 | **#8 Product Catalogue** | R0 Term-matrix / R1 ULIP+Group B | W1 | Products, insurers, eligibility matrix, documents | `GET /products`, `GET /insurers`, `GET /eligibility` | Low-write / high-read — the one place an L2 read-through cache earns its keep (`ADR-011`, §6). Admin-owned content later |
@@ -237,7 +237,10 @@ pack, and the honest answer is that `CR-012` admitted them deliberately.
 
 | Layer | What R0 provisions | The line it may not cross |
 |---|---|---|
-| **Bank connectivity** (`ADR-009`) | Transit Gateway in a new `network` account; Site-to-Site VPN from day one, Direct Connect primary when the circuit lands | `dev` may stub CBS and Bank AD; **`uat` and `prod` may not**. A journey evidenced against a stub is not evidence |
+| **Bank connectivity** (`ADR-009`) | Transit Gateway in a new `network` account connecting to bank **EBS (Enterprise Service Bus) APIs for CBS / CIF** and Bank AD; Site-to-Site VPN from day one, Direct Connect primary when the circuit lands | `dev` may stub EBS/CBS and Bank AD; **`uat` and `prod` may not**. A journey evidenced against a stub is not evidence |
+| **Perimeter & Edge Ingress** | **Cloudflare (Enterprise CDN/DDoS)** → **F5 BIG-IP / WAF (Bank Policy)** → **External ALB** → **Amazon API Gateway** (Proxy 1 of 2) → **Internal ALB** (Proxy 2 of 2) | Bank enterprise security standard. Edge TLS termination, L7 policy and rate limiting; no business logic |
+| **Delivery & IaC** | **GitLab CI/CD** for multi-stage pipelines and **Terraform** for Infrastructure as Code (IaC) across environments | Standard bank pipeline and multi-environment provisioning baseline |
+| **Governance & Logs** | **AWS CloudTrail** (account management and security audit trail) alongside **Amazon CloudWatch** (operational logs/metrics) | CloudTrail satisfies RBI management auditability; CloudWatch provides runtime telemetry |
 | **Egress inspection** (`ADR-010`) | Inspection VPC per environment, AWS Network Firewall, domain allowlist, drop-by-default; the allowlisted Elastic IPs move behind it | It is **not a mesh** and does not replace `NetworkPolicy`. The 1SB mTLS session is passed intact, not decrypted |
 | **Cache tier** (`ADR-011`) | One ElastiCache for Valkey replication group per environment: BFF sessions, an L2 read-through behind the in-process L1, per-principal rate-limit counters. Per-service ACL user and key prefix | **Never** idempotency, never a system of record, never a way to serve configuration past TTL. A miss is a read, never an error (`S-25`) |
 | **Event backbone** (`ADR-012`) | Amazon MSK, 3 brokers, SASL/IAM per topic, Glue Schema Registry | The **transactional outbox remains the source of truth**. No regulatory evidence exists only in a topic (`FF-26`) |
@@ -568,6 +571,18 @@ deployable services plus one app**, against a nineteen-context target.
 ---
 
 ## 9. One-screen answers for live review
+
+**Q: Why use Cloudflare and F5 BIG-IP instead of AWS CloudFront and AWS WAF?**  
+A: Adopting **Cloudflare Enterprise** and **F5 BIG-IP / WAF** aligns our platform directly with AU Bank's existing enterprise perimeter contract and central InfoSec policies. Cloudflare provides carrier-grade DDoS mitigation and edge acceleration, while F5 enforces enterprise L7 inspection rules and custom iRules. Behind F5, an **External ALB** terminates ingress traffic and routes securely to **Amazon API Gateway**, which connects via private VPC Link to the **Internal ALB**.
+
+**Q: How do we connect to Core Banking (CBS)?**  
+A: All customer lookups and CIF queries route through `#4 Customer Service` calling standard bank **EBS (Enterprise Service Bus) APIs** over private Transit Gateway links, adhering to bank enterprise architecture standards and protecting the core mainframe.
+
+**Q: Why are both AWS CloudTrail and Amazon CloudWatch mandatory?**  
+A: CloudTrail provides immutable governance and audit logging for RBI cybersecurity compliance (who made what AWS API call or IAM change), while CloudWatch delivers real-time runtime metrics, container telemetry, and alarms for 24/7 operational reliability.
+
+**Q: What are the enterprise standards for CI/CD and IaC?**  
+A: **GitLab CI/CD** is the bank enterprise pipeline standard executing multi-stage test gates, and **Terraform** is the IaC baseline for declarative provisioning across all AWS accounts.
 
 **Q: How many services is R0, exactly?**  
 A: **Fourteen deployable services plus one app** — not nineteen. The delta between that list and

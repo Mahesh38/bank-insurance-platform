@@ -168,9 +168,11 @@ graph TB
         CDEV["Customer device<br/>OTP + payment only<br/>not an on-platform actor"]
     end
 
-    subgraph Edge["Edge — public"]
-        WAF["WAF + CDN"]
-        APIGW["API Gateway / ALB"]
+    subgraph Edge["Bank Perimeter & Edge — public"]
+        CF["Cloudflare (Enterprise CDN/DDoS)"]
+        F5["F5 BIG-IP / WAF (Bank Policy)"]
+        EXT_ALB["External ALB"]
+        APIGW["API Gateway"]
     end
 
     subgraph EKS["EKS — ap-south-1, private subnets"]
@@ -183,7 +185,7 @@ graph TB
         OPP["Lead #5<br/>single origination point<br/>RM-only create"]
         JRN["Journey Orchestration #9"]
         CFG["Administration & Config #19<br/>versioned, seeded, LOB-partitioned<br/>admin UI in R0 W4, isolated"]
-        CUST["Customer #4"]
+        CUST["Customer #4<br/>EBS (CBS / CIF) API Client"]
         CONS["Consent #6"]
         SUIT["Suitability #7"]
         CAT["Product Catalogue #8"]
@@ -207,14 +209,14 @@ graph TB
         SEC[("Secrets Manager + KMS")]
     end
 
-    subgraph Ext["External"]
-        CBS["Core Banking (CBS)"]
+    subgraph Ext["Bank On-Premises & External Partners"]
+        EBS["EBS (Core Banking / CBS / CIF)"]
         PG_BANK["AU Bank Payment Gateway"]
         SB["1SilverBullet"]
         AD["Bank AD / SSO"]
     end
 
-    FL --> WAF --> APIGW
+    FL --> CF --> F5 --> EXT_ALB --> APIGW
     APIGW --> NIPW
     APIGW --> BFF
     CDEV -->|"payment link only"| PG_BANK
@@ -230,7 +232,7 @@ graph TB
     QTE --> CAT
     QTE & PRP & PAY & POL --> HUB
     HUB --> ONESB --> SB
-    CUST --> CBS
+    CUST --> EBS
     PAY --> PG_BANK
     IDPA --> AD
 
@@ -255,8 +257,8 @@ graph TB
 |---|---|
 | Region | `ap-south-1`; DR `ap-south-2`. Non-negotiable — control C6 |
 | Compute | EKS, per ARCH-002. Every service stateless at pod level |
-| Exposure | Only the API Gateway is public. Every service, datastore, cache node, broker and search domain is in a private subnet |
-| **Bank connectivity** (`ADR-009`) | CBS/CIF and Bank AD are reached over a Transit Gateway — Site-to-Site VPN from day one, Direct Connect primary when the circuit lands. `dev` may stub them; **`uat` and `prod` may not**. A journey evidenced against a stub is not evidence |
+| Perimeter & Edge Ingress | **Cloudflare (Enterprise CDN/DDoS)** → **F5 BIG-IP / WAF (Bank Policy)** → **External ALB** → **Amazon API Gateway** (Proxy 1 of 2) → **Internal ALB** (Proxy 2 of 2). Every service, datastore, cache node, broker and search domain is in a private subnet |
+| **Bank connectivity** (`ADR-009`) | **EBS APIs (CBS / CIF)** and Bank AD are reached over a Transit Gateway — Site-to-Site VPN from day one, Direct Connect primary when the circuit lands. `dev` may stub them; **`uat` and `prod` may not**. A journey evidenced against a stub is not evidence |
 | **Egress** (`ADR-010`) | 100% of egress and inter-VPC traffic is inspected: TGW → AWS Network Firewall → NAT with the allowlisted Elastic IPs. Domain allowlist, drop-by-default. The 1SB mTLS session is passed intact rather than decrypted. This is not a mesh and does not replace `NetworkPolicy` |
 | **Cache** (`ADR-011`) | One ElastiCache for Valkey replication group per environment: BFF sessions, an L2 read-through layer behind the in-process L1, and per-principal rate-limit counters. Per-service ACL user and key prefix. **Never** idempotency, a system of record, or a way to serve configuration past TTL |
 | **Event backbone** (`ADR-012`) | Amazon MSK, 3 brokers, SASL/IAM per topic, fed by the **transactional outbox, which remains the source of truth**. No regulatory evidence exists only in a topic |

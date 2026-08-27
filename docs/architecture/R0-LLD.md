@@ -70,10 +70,11 @@ Aurora connection budget).
 | 2 | **Amazon VPC** × environment | Network | 3 AZs, public + private-app + private-data subnets. See §2 |
 | 3 | **NAT Gateway** × AZ, **in the egress VPC** | Egress with **fixed Elastic IPs** | 1SB and the AU Bank PG allowlist these EIPs. **Moved** out of the workload VPCs by `ADR-010` — see §2.3 before publishing any address |
 | 4 | **Amazon Route 53** | Public and private DNS | Hosted zone per env; no latency-based DR routing in R0 |
-| 5 | **Amazon CloudFront** | CDN in front of the API **and** the RM/admin web UIs | TLS 1.3; origin = API Gateway (which VPC-links to the internal ALB). Static Flutter/admin assets are served from `ns:edge` through that same chain — **not** a public S3 website and **not** a PVC. India price class is acceptable; **logs stay in `ap-south-1`**. Authenticated JSON is **never** cached |
-| 6 | **AWS WAF** + **AWS Shield Standard** | Edge protection | OWASP managed rule groups + rate limit. Shield Advanced is a cost decision for Shivanshi, not required to start |
-| 7 | **Amazon API Gateway** (REST or HTTP API) | The only public reverse proxy for NIP-APP (all workforce roles) | Mutual TLS not required on this edge in R0 (Flutter + session cookie). Request validation, throttling, no business logic. **One hostname** — not `admin.{env}` (`ADR-015`) |
-| 8 | **Application Load Balancer** (internal) | Reverse proxy **inside** the VPC: Gateway → EKS | Internal scheme. Public ALB is **not** used for services |
+| 5 | **Cloudflare Enterprise (CDN & DDoS)** | Edge CDN in front of the API **and** the RM/admin web UIs | Bank standard. TLS 1.3; origin = F5 / External ALB → API Gateway (which VPC-links to the internal ALB). Static Flutter/admin assets are served from `nip-web` through that same chain — **not** a public S3 website and **not** a PVC. Logs stay in `ap-south-1`. Authenticated JSON is **never** cached |
+| 6 | **F5 BIG-IP / Advanced WAF** | Bank standard L7 Web Application Firewall | Bank enterprise security standard. Enforces InfoSec policy, custom iRules, OWASP Top 10, bot protection, and layer-7 rate limits |
+| 7 | **External Application Load Balancer (External ALB)** | Edge ingress load balancer | Terminates HTTPS from F5/Cloudflare and forwards to Amazon API Gateway |
+| 8 | **Amazon API Gateway** (REST or HTTP API) | Managed API governance proxy | Request validation, throttling, payload inspection, no business logic. VPC Link to internal ALB |
+| 9 | **Application Load Balancer** (internal) | Reverse proxy **inside** the VPC: Gateway → EKS | Internal scheme. Public ALB is **not** used directly for internal services |
 | 9 | **Amazon EKS** × environment | All microservices | Kubernetes 1.30+ (platform current). Private API endpoint. See §3 |
 | 10 | **Amazon ECR** | Images | Immutable tags; scan on push; replicate to `ap-south-2` for DR images |
 | 11 | **Amazon Aurora PostgreSQL** | **One** cluster, schema per bounded context | Multi-AZ writer + reader. See §5. **ADR-008** |
@@ -82,10 +83,12 @@ Aurora connection budget).
 | 14 | **AWS KMS** | CMK hierarchy | Separate CMKs: data, logs, secrets, WORM. India only |
 | 15 | **AWS Secrets Manager** | DB creds, 1SB keys, PG keys, IdP secrets | Rotation exercised once (`NFR-SEC-07`) |
 | 16 | **IAM Roles for Service Accounts (IRSA)** | Workload identity | No static keys in pods |
-| 17 | **Amazon CloudWatch Logs** + **CloudWatch Metrics** | Operational logs/metrics | PII-scrubbed; 90-day operational retention |
-| 18 | **AWS X-Ray** *or* **ADOT collector → AMP** | Tracing | One choice; Shivanshi picks. Traces must span BFF → services → Hub → adapter |
-| 19 | **Amazon Managed Service for Prometheus** + **Amazon Managed Grafana** | RED metrics, later HPA custom metrics | Thin in R0: four dashboards, not a platform rewrite |
-| 20 | **AWS CloudTrail** + **AWS Config** + **GuardDuty** + **Security Hub** | Account audit | In the `security` account. Distinct from application `#16` |
+| 17 | **Amazon CloudWatch Logs** + **CloudWatch Metrics** | Operational logs/metrics | PII-scrubbed; 90-day operational retention. Alerts, container metrics, latency timers |
+| 18 | **AWS CloudTrail** | Management & security audit log | In the `security` account. Mandatory governance trail recording all AWS API actions and IAM modifications |
+| 19 | **AWS X-Ray** *or* **ADOT collector → AMP** | Tracing | One choice; Shivanshi picks. Traces must span BFF → services → Hub → adapter |
+| 20 | **Amazon Managed Service for Prometheus** + **Amazon Managed Grafana** | RED metrics, later HPA custom metrics | Thin in R0: four dashboards, not a platform rewrite |
+| 21 | **AWS Config** + **GuardDuty** + **Security Hub** | Account security posture | In the `security` account. Distinct from application `#16` |
+| 22 | **GitLab CI/CD & Terraform** | Enterprise delivery & IaC standard | GitLab pipelines run compilation, ArchUnit, JaCoCo, and Terraform apply for all environments |
 | 21 | **Amazon SNS** + **Amazon SQS** (optional, thin) | Outbox worker wake-up / notification send queue | Not an event bus. Do **not** introduce MSK because SQS exists |
 | 22 | **AWS Backup** | Aurora, DynamoDB, EBS (if any) | Meeting `NFR-DR-02` RPO ≤ 5 min for transactional core |
 | 23 | **VPC endpoints** | S3, DynamoDB, Secrets Manager, ECR, STS, Logs | Stop Secrets and ECR pulling via NAT |

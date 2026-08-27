@@ -17,10 +17,24 @@ import java.util.Objects;
  *
  * <p>Intended to be serialised as the HTTP response body for all error responses.
  * Controllers must not return raw upstream error JSON.
+ *
+ * <h2>Two renderings</h2>
+ * This type carries both halves of a failure. Below the redaction boundary — service to service —
+ * it may carry {@link #getOrigin() origin} and {@link #getDiagnostic() diagnostic}, so a calling
+ * service can see which service actually failed. At the boundary, {@link #toPublic()} strips them
+ * and replaces the wording with the catalogue's safe text.
+ *
+ * <p><strong>The BFF (L4) is that boundary</strong> — the last hop that may hold a diagnostic and
+ * the first that must never emit one
+ * ({@code docs/journey-execution/07-PLATFORM-ERROR-CONTRACT.md §4.4}).
+ *
+ * <p>Prefer {@link #of(String)} over the raw builder: it takes status, title, detail, retryability
+ * and category from {@link ErrorCatalogue}, so the same code cannot be worded two ways in two
+ * services.
  */
 @Value
 @Builder
-@ToString(of = {"status", "code", "detail"})
+@ToString(of = {"status", "code", "detail", "incidentId", "service"})
 public class ServiceErrorResponse {
 
     String    type;
@@ -33,6 +47,80 @@ public class ServiceErrorResponse {
     Instant   timestamp;
     List<ServiceError> errors;
 
+    // --- Added by ERR-001. Additive: existing fields and their values are unchanged. ---
+
+    /** How the caller must treat this failure. Null only on responses built before the catalogue. */
+    ErrorCategory category;
+
+    /** The service that produced this response. */
+    String service;
+
+    /** Names this failure across every hop and every log line. Safe to show an end user. */
+    String incidentId;
+
+    /** Groups every hop of the request this failure belongs to. */
+    String correlationId;
+
+    /** Where the failure first occurred. <strong>Diagnostic — stripped at the boundary.</strong> */
+    ErrorOrigin origin;
+
+    /** The engineer-facing half. <strong>Diagnostic — stripped at the boundary.</strong> */
+    ErrorDiagnostic diagnostic;
+
+    // --- Catalogue-driven construction ---
+
+    /**
+     * A response for {@code code}, with status, title, detail, retryability and category taken
+     * from {@link ErrorCatalogue}, and a fresh incident id.
+     *
+     * @throws IllegalArgumentException if the code is not registered
+     */
+    public static ServiceErrorResponseBuilder of(String code) {
+        ErrorDefinition d = ErrorCatalogue.require(code);
+        return builder()
+            .type("about:blank")
+            .title(d.publicTitle())
+            .status(d.httpStatus())
+            .detail(d.publicDetail())
+            .code(d.code())
+            .category(d.category())
+            .retryable(d.retryability().toBoolean())
+            .incidentId(IncidentId.generate());
+    }
+
+    /**
+     * The rendering safe to send across a trust boundary.
+     *
+     * <p>Drops {@code origin} and {@code diagnostic}, and — when the code is registered — replaces
+     * {@code title} and {@code detail} with the catalogue's fixed text, so no upstream body,
+     * internal route or vendor name can survive in the wording. {@code incidentId} is kept
+     * deliberately: it is what lets support find the diagnostic that was <em>not</em> sent.
+     */
+    public ServiceErrorResponse toPublic() {
+        ErrorDefinition d = ErrorCatalogue.find(code).orElse(null);
+        return new ServiceErrorResponse(
+            type,
+            d != null ? d.publicTitle() : title,
+            status,
+            d != null ? d.publicDetail() : detail,
+            code,
+            retryable,
+            upstreamCode,
+            timestamp,
+            errors,
+            category,
+            service,
+            incidentId,
+            correlationId,
+            null,
+            null);
+    }
+
+    /** True when nothing on this response may cross a trust boundary unchanged. */
+    public boolean carriesDiagnostics() {
+        return origin != null || diagnostic != null;
+    }
+
     // --- Factory shortcuts ---
 
     public static ServiceErrorResponse validation(String detail, List<ServiceError> fieldErrors) {
@@ -42,6 +130,7 @@ public class ServiceErrorResponse {
             .status(400)
             .detail(detail)
             .code(ErrorCodes.VALIDATION_ERROR)
+            .category(ErrorCategory.VALIDATION)
             .retryable(false)
             .errors(fieldErrors)
             .build();
@@ -54,6 +143,7 @@ public class ServiceErrorResponse {
             .status(422)
             .detail(detail)
             .code(ErrorCodes.UPSTREAM_BUSINESS_ERROR)
+            .category(ErrorCategory.UPSTREAM)
             .retryable(false)
             .upstreamCode(upstreamCode)
             .build();
@@ -66,6 +156,7 @@ public class ServiceErrorResponse {
             .status(503)
             .detail(detail)
             .code(ErrorCodes.UPSTREAM_UNAVAILABLE)
+            .category(ErrorCategory.UPSTREAM)
             .retryable(true)
             .build();
     }
@@ -77,6 +168,7 @@ public class ServiceErrorResponse {
             .status(401)
             .detail("Authentication required")
             .code(ErrorCodes.UNAUTHORIZED)
+            .category(ErrorCategory.AUTHENTICATION)
             .retryable(false)
             .build();
     }
@@ -88,6 +180,7 @@ public class ServiceErrorResponse {
             .status(403)
             .detail("Insufficient permissions")
             .code(ErrorCodes.FORBIDDEN)
+            .category(ErrorCategory.AUTHORIZATION)
             .retryable(false)
             .build();
     }
@@ -99,6 +192,7 @@ public class ServiceErrorResponse {
             .status(500)
             .detail(detail)
             .code(ErrorCodes.INTERNAL_ERROR)
+            .category(ErrorCategory.INTERNAL)
             .retryable(false)
             .build();
     }
@@ -118,6 +212,26 @@ public class ServiceErrorResponse {
             return this;
         }
 
+        /**
+         * Attaches the diagnostic and adopts its incident id and origin, so the two halves of one
+         * failure cannot drift apart.
+         */
+        public ServiceErrorResponseBuilder diagnostic(ErrorDiagnostic d) {
+            this.diagnostic = d;
+            if (d != null) {
+                if (this.incidentId == null) {
+                    this.incidentId = d.getIncidentId();
+                }
+                if (this.origin == null) {
+                    this.origin = d.getOrigin();
+                }
+                if (this.service == null) {
+                    this.service = d.getService();
+                }
+            }
+            return this;
+        }
+
         public ServiceErrorResponse build() {
             Objects.requireNonNull(title, "title must not be null");
             Objects.requireNonNull(code, "code must not be null");
@@ -126,7 +240,8 @@ public class ServiceErrorResponse {
                 Collections.unmodifiableList(new ArrayList<>(errors != null ? errors : List.of()));
             return new ServiceErrorResponse(
                 type, title, status, detail, code, retryable, upstreamCode,
-                resolvedTimestamp, resolvedErrors);
+                resolvedTimestamp, resolvedErrors,
+                category, service, incidentId, correlationId, origin, diagnostic);
         }
     }
 }

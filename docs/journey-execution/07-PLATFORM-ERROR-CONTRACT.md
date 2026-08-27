@@ -414,3 +414,39 @@ T4 was considered and does not fire, per Rule `RG-6`, recorded here rather than 
 | §6, §9 | `GATE-P4 4.4` compliance review of log samples · `4.5` incident runbook |
 | §2, §3 | Implements [`04-ERROR-AND-DEGRADED-STATE-CATALOGUE.md`](./04-ERROR-AND-DEGRADED-STATE-CATALOGUE.md) |
 | §2.1 layer column | Keys on [`01 §1`](./01-REQUEST-LIFECYCLE-STANDARD.md#1-the-eight-layers) |
+
+---
+
+## 13. Discrepancies found while seeding the registry (`ERR-005`)
+
+Recorded, not silently reconciled. Each needs a decision by the catalogue's owner; the registry
+currently follows the published constant, because `ErrorCodes` is partner-consumed and this
+increment is additive-only.
+
+| # | Catalogue 04 says | `ErrorCodes` says | Registry follows | Needs |
+|---|---|---|---|---|
+| 1 | `IDEMPOTENCY_KEY_CONFLICT` (§2) | `IDEMPOTENCY_CONFLICT` | `IDEMPOTENCY_CONFLICT` | Catalogue 04 §2 corrected to the published value. Minting a second code for one condition would recreate defect **D4**, so the code was not added |
+| 2 | `OPPORTUNITY_REQUIRED` (§6) | *(absent)* | `OPPORTUNITY_REQUIRED`, public text reads "Lead required" | `ADR-014` renamed the context Opportunity → Lead, but catalogue 04 §6 still carries the old code name. The wire value is left alone (G9); the RM-facing wording follows `ADR-014` |
+
+Neither is repaired here: both are edits to a ratified catalogue, which is the owner's call, and
+this increment's scope is the library. Raised so the CI diff in `ERR-005` does not silently
+normalise them away.
+
+### 13.1 What `ERR-001` and `ERR-005` delivered
+
+| Delivered | Where |
+|---|---|
+| `ErrorCategory`, `Retryability`, `AuditDisposition`, `Propagation`, `PlatformLayer` | `libs/bank-common-error` |
+| `ErrorDefinition` + `ErrorCatalogue` — 63 codes seeded from catalogue 04 | `ErrorCatalogue.java` |
+| `ErrorDiagnostic`, `ErrorOrigin` (first-origin-wins), `IncidentId` (sortable, 26-char) | `libs/bank-common-error` |
+| `ServiceErrorResponse` gains `category`, `service`, `incidentId`, `correlationId`, `origin`, `diagnostic`, and `toPublic()` | `ServiceErrorResponse.java` |
+| `ServiceException.of(code)` — catalogue-driven, builds both halves under one incident id | `ServiceException.java` |
+| Evidence: 98.5% line / 82.9% branch on the lib; full multi-module build green | `./gradlew build` |
+
+Still open, in order: `ERR-002` (one shared handler; redaction wired at L4), `ERR-003`
+(propagation across services), `ERR-004` (structured logging and `bank.error.count`), `ERR-006`
+(PII test, ArchUnit leak rule), `ERR-007` (runbook pages).
+
+**`toPublic()` is built and tested but not yet wired.** Until `ERR-002` calls it at the boundary,
+the leaks in **D1** and **D2** are still live in the three existing handlers. The capability
+exists; the enforcement does not.

@@ -416,12 +416,15 @@ For each tier and component in the architecture, this section articulates:
   - *GitHub Actions / Jenkins:* GitLab is AU Bank's existing, approved enterprise pipeline runner with native audit trails, runner autoscaling, and secret isolation.
 - **Why Best Suited:** Bank enterprise standard; provides native integration with bank artifact repositories, SonarQube, and container vulnerability scanners.
 
-#### 9.2 Terraform for Infrastructure as Code (IaC)
-- **What it is & What it does:** Declarative Infrastructure as Code defining 100% of AWS cloud resources (VPCs, TGW, EKS, Aurora, Valkey, MSK, IAM roles, Security Groups, and KMS CMKs).
-- **Why Required:** Guarantees reproducible, immutable, auditable environment provisioning across `dev`, `uat`, `prod`, and `dr`.
+#### 9.2 Terraform for Infrastructure as Code (IaC) & Ansible for Automation
+- **What it is & What it does:**
+  - **Terraform:** Declarative Infrastructure as Code defining 100% of AWS cloud resources (VPCs, TGW, EKS, Aurora, Valkey, MSK, IAM roles, Security Groups, and KMS CMKs).
+  - **Ansible:** Automation engine for disaster recovery (DR) failover drills, DX→VPN network failover drills, outbox replay drills, and post-deployment environment sanity checks.
+- **Why Required:** Guarantees reproducible, immutable, auditable environment provisioning across `dev`, `uat`, `prod`, and `dr`, while providing automated proof of recovery and health (`Gate S09-G4/G7`).
 - **Alternatives Considered:**
   - *AWS CloudFormation / CDK:* Terraform is multi-account, cloud-agnostic, bank standard, and supports policy-as-code linting (tfsec/checkov) in GitLab CI.
-- **Why Best Suited:** Prevents manual AWS console drifts; integrates directly with bank security scanning pipelines.
+  - *Manual DR / Sanity Runbooks:* Manual failover is prone to human error and fails the RTO ≤ 1 h measured demonstration mandate.
+- **Why Best Suited:** Prevents manual AWS console drifts; integrates directly with bank security scanning pipelines; automated drills prove recovery capability without manual intervention.
 
 #### 9.3 AWS CloudTrail vs Amazon CloudWatch (Both Mandatory)
 - **What they are & Why both are required:**
@@ -467,12 +470,15 @@ The platform enforces the following hard invariants across all codebases and inf
 > 1. **Data Lifecycle Divergence:** Quotation represents bursty, short-lived, high-churn key-value state (which we optimize using Amazon DynamoDB with automatic TTLs). Proposal, by contrast, is a multi-week relational case file requiring strict ACID guarantees across applicants, nominees, medical declarations, and payment references.
 > 2. **Integrity & Operational Skill:** In a regulated bank, relational constraints in Aurora PostgreSQL prevent corrupt underwriting states from ever being written. Additionally, our DBA and platform teams already operate PostgreSQL; introducing MongoDB creates a second operational database stack with zero tangible access-pattern benefits."
 
-### Question 5: "Why are both AWS CloudTrail and Amazon CloudWatch mandatory?"
+### Question 5: "Why are both AWS CloudTrail and Amazon CloudWatch mandatory, and what is the role of Ansible alongside Terraform?"
 **Defense Answer:**
-> "They serve fundamentally different, non-overlapping enterprise requirements:
-> - **CloudTrail** provides immutable governance and security audit logging of all AWS management API actions (e.g., who provisioned a resource, modified a security group, or accessed KMS).
-> - **CloudWatch** provides runtime operational telemetry, application logs, container metrics, and latency alarms for our engineering and SRE teams.
-> A banking platform requires both to satisfy RBI cybersecurity auditability and 24/7 operational reliability."
+> "1. **CloudTrail vs CloudWatch:** They serve fundamentally different, non-overlapping enterprise requirements:
+>    - **CloudTrail** provides immutable governance and security audit logging of all AWS management API actions (e.g., who provisioned a resource, modified a security group, or accessed KMS).
+>    - **CloudWatch** provides runtime operational telemetry, application logs, container metrics, and latency alarms for our engineering and SRE teams.
+>    A banking platform requires both to satisfy RBI cybersecurity auditability and 24/7 operational reliability.
+> 2. **Terraform vs Ansible:**
+>    - **Terraform** manages 100% immutable Infrastructure as Code (IaC) provisioning across AWS accounts.
+>    - **Ansible** automates operational execution: DR failover drills, DX→VPN failover validation, outbox replay drills, and post-deployment sanity testing across private endpoints, ensuring that recovery capabilities (RTO ≤ 1 h) are mathematically demonstrated rather than asserted."
 
 ---
 

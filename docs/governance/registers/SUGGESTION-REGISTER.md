@@ -78,6 +78,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | SUG-20260825-pv1 | 2026-08-25 | human:Mahesh | Deploy the desktop web application on a Kubernetes PVC | SF4 | SC3 | REJECT | INFRA | — / — | REJECTED | [detail](#sug-20260825-pv1--no-pvc-for-the-web-app) |
 | SUG-20260825-ld1 | 2026-08-25 | human:Mahesh | Make Lead LOB-specific | SF4 | SC3 | REJECT | ARCH | — / — | REJECTED | [detail](#sug-20260825-ld1--lead-is-not-lob-specific) |
 | SUG-20260825-st2 | 2026-08-25 | human:Mahesh | Put the Flutter RM app on Play Store / Apple Store (and a customer store app) | SF1 | SC1 | MUST | ARCH | P2 / P1 | CLOSED-DELIVERED | Unparked by `ADR-015`: workforce distribution is EKS web + Play APK + App Store IPA. Customer store apps remain R1 (`#1`). Deepali owns store hardening. |
+| SUG-20260827-err | 2026-08-27 | human:Mahesh | Mature the shared utility libraries, error handling first: a standard cross-service error contract that identifies the emitting and originating service, gives end users a safe message while developers and L1/L2 support get a complete diagnostic, replaces ad-hoc per-throw-site wording with a registry seeded from catalogue 04, and emits one consistently tagged series so error dashboards are buildable | SF1 | SC1 | MUST | ARCH | P2 / P1 | ADMIT | [07-PLATFORM-ERROR-CONTRACT](../../journey-execution/07-PLATFORM-ERROR-CONTRACT.md) · [ADR-017](../../platform/architecture-review/08-architecture-decision-log.md) · [detail](#sug-20260827-err--platform-error-contract) |
 | SUG-20260825-ac1 | 2026-08-25 | human:Mahesh | Add admin and operations as R0 on-platform actors for the Admin & Configuration BFF, reports and MIS | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [detail](#sug-20260825-ac1--admin-and-ops-actors-for-r0) · UI is NIP-APP roles (`SUG-20260825-nip`), not a second app |
 | SUG-20260825-ll1 | 2026-08-25 | human:Mahesh | Reconcile R0-LLD and platform topology with ADR-014: Admin BFF, #18 MIS, desktop admin web, no PVC | SF1 | SC1 | MUST | DOC | P3 / P2 | CLOSED-DELIVERED | [detail](#sug-20260825-ll1--lldtopology-lag-behind-adr-014) · `admin-web` / `admin.{env}` retracted by `SUG-20260825-nip` |
 | SUG-20260825-nip | 2026-08-25 | human:Mahesh | One NIP-APP (New Insurance Platform) Flutter client for web/iOS/Android; RM, ISR, admin and operations share it with role-based views; no separate admin/ops app now or later | SF1 | SC1 | MUST | ARCH | P2 / P1 | CLOSED-DELIVERED | [detail](#sug-20260825-nip--one-nip-app-role-based-not-a-second-admin-ui) · recorded as `ADR-015` (PROPOSED — human T4 outstanding) |
@@ -3145,6 +3146,204 @@ outcome:
   status: CLOSED-DELIVERED
   notes: "Implemented 2026-08-25 as ADR-015. HLD/LLD/topology: ns:edge is nip-web + #2 NIP BFF only. Human T4 Architecture sign-off outstanding."
 resumed: "SUG-20260825-nip CLOSED-DELIVERED; ADR-015 drafted PROPOSED"
+```
+
+---
+
+### SUG-20260827-err — platform error contract
+
+```yaml
+# schema: triage-record
+id: SUG-20260827-err
+raised_at: "2026-08-27"
+raised_by: "human:Mahesh"
+source: "direct requirement, spoken, 2026-08-27"
+input: >
+  Make the utilities mature enough to be used across multiple services, the error one especially.
+  We should be able to identify error requests and error responses, understand which service has
+  an error and from which service we got the error that caused the request to fail. There has to
+  be a standard error response across services carrying the service name or number. Configure it
+  so the end user does not understand the exact error and gets a plain response back, while dev
+  users and L1/L2 support can understand exactly what is wrong. Different error classes —
+  resource not found, authentication, authorization, validation, constraint failures — need
+  customised messages; we should not randomly state the same error. Example: the request lands on
+  the BFF, moves to customer consent, and the orchestrator hits a validation error — it must
+  clearly state that this service's validation failed for this reason, not to the end user but to
+  dev users and in logging. Errors must be clean, crisp and monitorable on the centralised logging
+  system so we can build a dashboard or graph of which errors are populating more. This is the
+  priority requirement; error handling has to be strong from day one for release zero, not after
+  the application matures, so we do not spend a lot of time debugging what fails, where and how.
+  The logs and error messages must answer why, how, when, where and what failed, and what to do
+  about it — so that L1 support can have a manual saying in such a case perform this action.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-TERM-SALE — one RM sells one Term Life policy to one ETB customer end to end"
+  state_as_of: "2026-08-10"
+  state_provisional: false
+  active_work_item: null
+
+stage_fit:
+  code: SF1
+  rationale: >
+    Shared-library hardening with three consumers today (1sb-integration, bank-persistence,
+    workforce-access-bff), which is the SF1 condition in 03 section 7 for the shared-library
+    family — SF3 applies only when fewer than two consumers exist. It serves the open S08 gate
+    directly: S08-G7 (no PII in logs, proven by automated test) is provable by asserting over a
+    finite error registry rather than over every log statement, and S08-G8 (engineering and
+    secure coding standards published and adopted) is what this contract is. SF0 was considered
+    and not claimed: G7 could in principle be satisfied by a log scrubber, so the gate is not
+    strictly unexitable without this.
+
+scope:
+  code: SC1
+  business_scope: "in scope — derived from the open S08 gate and the ratified R0 error catalogue"
+  serves:
+    - S08-G7
+    - S08-G8
+    - GATE-P4-4.4
+    - GATE-P4-4.5
+  failure_without_it: >
+    Upstream 1SB text and internal routes are returned to bank callers verbatim
+    (OneSbErrorNormaliser sets .detail(parsed.detail()); throw sites set
+    .detail("1SB call failed: " + method + " " + path)), so the response body leaks vendor
+    identity and internal topology. No error carries a service, origin or layer, so a failure
+    observed at the BFF cannot be attributed to the service that produced it. The ~60 refusals
+    ratified in journey-execution/04 are unimplemented — ErrorCodes has 24 codes that barely
+    intersect the catalogue — so the catalogue is paper and the compliance-gate refusals it
+    specifies as evidence are not emitted as such.
+  minimal: true
+  authority: "docs/journey-execution/04-ERROR-AND-DEGRADED-STATE-CATALOGUE.md · CURRENT-STATE.yaml GATE-S08"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S09 — Platform & Environment Foundation"
+  binds_when: "first bank caller consumes an error response contractually"
+  failure_without_it: >
+    A partner-consumed contract is retrofitted after publication, which is the one case 05 scores
+    as high decay: ErrorCodes is documented as stable because it appears in partner responses.
+  evidence_tier: E1
+  evidence:
+    - "Code: OneSbErrorNormaliser .detail(parsed.detail()) returns upstream text to the caller"
+    - "Code: OneSbHttpClient .detail(\"1SB call failed: \" + method + \" \" + path) leaks internal routes"
+    - "Code: ServiceErrorResponse has no service, origin, layer or incident field"
+    - "Code: three divergent handlers — 1SB, persistence, and a bare Spring ProblemDetail at the BFF with no code at all"
+    - "Doc: journey-execution/04 defines ~60 codes; ErrorCodes defines 24 with minimal overlap"
+    - "Gate: GATE-S08 criteria G7 and G8 are OPEN"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X2_two_implementations: true
+    X3_cheap_later: false
+    X4_reversibility: true
+    X5_stage_necessity: true
+    X6_simplest_sufficient: true
+    X7_runtime_cost: false
+    X8_cognitive_cost: true
+    X9_problem_observed: true
+    X10_do_nothing: true
+
+action: ADMIT
+action_rationale: >
+  SF1 x MUST = ADMIT at P1-P2, with SC1 satisfied on all three tests of 02 section 3.1 — named
+  beneficiary (S08-G7, S08-G8), demonstrable failure (the leak and the attribution gap, both
+  present in code today), and minimality (hardening two existing libs, additive only, no new
+  dependency). X3 fails deliberately: this cannot be added cheaply later because ErrorCodes is a
+  published partner contract, which is the argument for doing it now rather than the argument
+  against doing it.
+conflicts:
+  - "S08 posture rejects generic frameworks on sight (BOOT section 4). Resolved: this hardens two
+     existing libs with three existing consumers and adds no dependency, rather than introducing a
+     framework. Recorded in ADR-017 alternatives as the rejected option."
+  - "ci-checks reports 22 pre-existing schema failures in this register's older detail blocks.
+     Not repaired here — out of this item's scope, and repairing them silently would hide drift
+     that belongs to its own item."
+
+classification:
+  type: ARCH
+  also: [SEC, COMP, NFR]
+  breakdown: EPIC
+  epic: EPIC-001
+  risk_tier: T3
+  rationale: >
+    Four epic triggers fire (multiple stories, multiple services, multiple acceptance outcomes,
+    multiple increments), and two force an epic. T3 by Rule RG-6: G9 is the close call because
+    ErrorCodes is partner-consumed, so the contract is constrained to additive-only and any story
+    proposing to change an existing value is T4 and stops. G2 does not fire because the change
+    narrows exposure; G10 does not fire because catalogue 04's audit behaviour is carried, not
+    redefined.
+  destination: "docs/journey-execution/07-PLATFORM-ERROR-CONTRACT.md · ADR-017"
+
+priority:
+  now: P2
+  at_target: P1
+  factors: { N: 4, S: 3, B: 2, R: 2, D: 2, E: 3 }
+  score: 21
+  matrix_default: P2
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: >
+    2(4) + 2(3) + 2(2) + 2(2) + 2 - 3 = 21, band P2, matching the matrix default of P2 for
+    SF1 x MUST at its lower-urgency end. B=2 for the two open S08 gate criteria and the two
+    WS-1 Phase 4 criteria it serves; B=3 was not claimed because it contributes to those criteria
+    rather than solely blocking them. D=2 because ErrorCodes is a published partner contract and
+    retrofitting it later is a breaking contract change. E=3 for five services plus two libs.
+    A hard P1 override was considered and deliberately NOT claimed: O6 covers leaking in-flight
+    data, and the leak here is upstream vendor text and internal route strings to an authenticated
+    bank caller, not regulated customer data; O2 requires reachable and exploitable. Claiming
+    either would be override inflation under 05 section 3, so this is scored normally and is P2.
+    P1 at target: at S09 and first partner consumption the same item becomes gate-blocking.
+
+dependencies:
+  edges:
+    - type: ARCHITECTURAL
+      target: "docs/journey-execution/04-ERROR-AND-DEGRADED-STATE-CATALOGUE.md"
+      relation: requires
+      state: DONE
+    - type: DECISION
+      target: ADR-017
+      relation: decision_dependency
+      state: OPEN
+    - type: TECHNICAL
+      target: S08-G7
+      relation: enables
+      state: OPEN
+    - type: TECHNICAL
+      target: S08-G8
+      relation: enables
+      state: OPEN
+  state: READY
+  enablement_count: 4
+  earliest_start: "immediately — no blocking edge"
+  cycles: none
+
+breakdown:
+  children: [ERR-001, ERR-002, ERR-003, ERR-004, ERR-005, ERR-006, ERR-007]
+  completion_definition: >
+    All five services return the section 4.2 envelope AND no response crossing L4 carries a
+    diagnostic field, proven by test AND the registry and catalogue 04 agree, proven by CI AND
+    bank.error.count is emitted with the section 7 tag set AND the S08-G7 PII test asserts over
+    the registry.
+  not_included:
+    - "Any change to an existing ErrorCodes value — additive only, trigger G9"
+    - "Grafana dashboards and alert rules — L9"
+    - "Retry, circuit breaker and bulkhead policy — unchanged, 04 section 8"
+    - "Error codes for the codeless degraded states in 04 section 7"
+    - "Repair of the 22 pre-existing schema failures in this register"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: EPIC-001
+  plan_id: "07-PLATFORM-ERROR-CONTRACT.md section 11"
+  status: ADMITTED
+  closed_reason: null
+
+resumed: "EPIC-001 — no prior work item was in flight; this session opened with this input."
 ```
 
 ---

@@ -546,7 +546,7 @@ id_allocation:
     CR: 14        # CR-001..013 in use; next unused sequential value is 14
     RISK: 16      # RISK-001..015 in use (012..015 added by CR-012)
     ASM: 12       # ASM-001..011 in use (009..011 added by CR-012)
-    EPIC: 1
+    EPIC: 2       # EPIC-001 in use (platform error contract, SUG-20260827-err). ID-allocation only.
     SPIKE: 1
     # ADR-001..003 were written into architecture-review/08 under CR-010 while this counter still
     # read 1; that file carries a standing note asking for the advance. ADR-004..007 were added by
@@ -556,4 +556,7 @@ id_allocation:
     # collision warning. This is an ID-allocation correction only. No stage, scope or gate field is
     # touched by it; those remain human-owned (04 section 5).
     # ADR-009..013 were added by the 2026-08-24 R0 robustness round (CR-012, SUG-20260824-gp1..gp5).
-    ADR: 17        # ADR-001..016 in use (015 = NIP-APP; 016 = ARB enterprise baseline). ID-allocation only.
+    # ADR-017 was added by the 2026-08-27 platform error contract round (SUG-20260827-err), and
+    # EPIC-001 by the same round. ID-allocation correction only. No stage, scope or gate field is
+    # touched by it; those remain human-owned (04 section 5).
+    ADR: 18        # ADR-001..017 in use (015 = NIP-APP; 016 = ARB enterprise baseline; 017 = platform error contract). ID-allocation only.

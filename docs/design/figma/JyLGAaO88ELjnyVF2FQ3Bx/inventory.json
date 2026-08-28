@@ -1,0 +1,1592 @@
+{
+  "meta": {
+    "fileKey": "JyLGAaO88ELjnyVF2FQ3Bx",
+    "name": "For Client Review",
+    "lastModified": "2026-08-21T11:40:22Z",
+    "version": "2390135385655988485",
+    "role": "viewer",
+    "editorType": "figma",
+    "linkAccess": "view",
+    "nodeId": "",
+    "extractedAt": "2026-08-28T06:43:57Z"
+  },
+  "pages": [
+    {
+      "id": "493:10885",
+      "name": "📱 Mobile",
+      "children": []
+    },
+    {
+      "id": "208:2982",
+      "name": "-> Batch 1 WF",
+      "children": [
+        {
+          "id": "208:9665",
+          "name": "Lead Creation With Need Assessment",
+          "type": "SECTION",
+          "width": 4881.0,
+          "height": 1633.0,
+          "childCount": 0
+        },
+        {
+          "id": "208:10665",
+          "name": "Lead Creation With Manual Product Selection",
+          "type": "SECTION",
+          "width": 4460.0,
+          "height": 1217.0,
+          "childCount": 0
+        },
+        {
+          "id": "208:17062",
+          "name": "PLP - RM Browsing",
+          "type": "SECTION",
+          "width": 5320.0,
+          "height": 2648.0,
+          "childCount": 0
+        },
+        {
+          "id": "208:17063",
+          "name": "PLP - RM With Customer",
+          "type": "SECTION",
+          "width": 2310.0,
+          "height": 1044.0,
+          "childCount": 0
+        },
+        {
+          "id": "208:17127",
+          "name": "PLP - Compare",
+          "type": "SECTION",
+          "width": 2310.0,
+          "height": 1044.0,
+          "childCount": 0
+        },
+        {
+          "id": "209:22066",
+          "name": "Pitch Deck",
+          "type": "SECTION",
+          "width": 7470.0,
+          "height": 1957.0,
+          "childCount": 0
+        },
+        {
+          "id": "209:22065",
+          "name": "PDP - RM Browsing",
+          "type": "SECTION",
+          "width": 7470.0,
+          "height": 2345.0,
+          "childCount": 0
+        },
+        {
+          "id": "209:22648",
+          "name": "PDP - RM With Customer",
+          "type": "SECTION",
+          "width": 2310.0,
+          "height": 2398.0,
+          "childCount": 0
+        },
+        {
+          "id": "209:26342",
+          "name": "Buying Journey",
+          "type": "SECTION",
+          "width": 18220.0,
+          "height": 3522.0,
+          "childCount": 0
+        },
+        {
+          "id": "493:4773",
+          "name": "Login",
+          "type": "SECTION",
+          "width": 18960.0,
+          "height": 1000.0,
+          "childCount": 0
+        }
+      ]
+    },
+    {
+      "id": "868:21686",
+      "name": "-> Batch 1 VD",
+      "children": [
+        {
+          "id": "870:21771",
+          "name": "Create New Lead",
+          "type": "SECTION",
+          "width": 3760.0,
+          "height": 1888.0,
+          "childCount": 0
+        },
+        {
+          "id": "870:22410",
+          "name": "Needs Assessment",
+          "type": "SECTION",
+          "width": 4160.0,
+          "height": 2054.0,
+          "childCount": 0
+        },
+        {
+          "id": "870:23015",
+          "name": "Select Product Manually",
+          "type": "SECTION",
+          "width": 3760.0,
+          "height": 1716.0,
+          "childCount": 0
+        },
+        {
+          "id": "870:23450",
+          "name": "Lead Creation & Onboarding",
+          "type": "TEXT",
+          "width": 5167.0,
+          "height": 480.0,
+          "childCount": 0
+        }
+      ]
+    },
+    {
+      "id": "428:10763",
+      "name": "-> Batch 2 WF",
+      "children": [
+        {
+          "id": "428:16015",
+          "name": "ULIPs",
+          "type": "SECTION",
+          "width": 16070.0,
+          "height": 2691.0,
+          "childCount": 0
+        },
+        {
+          "id": "428:16016",
+          "name": "Term Plan",
+          "type": "SECTION",
+          "width": 10910.0,
+          "height": 2966.0,
+          "childCount": 0
+        }
+      ]
+    },
+    {
+      "id": "268:1560",
+      "name": "-> Visual Design Samples",
+      "children": [
+        {
+          "id": "268:1561",
+          "name": "01",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 844.0,
+          "childCount": 0
+        },
+        {
+          "id": "483:9472",
+          "name": "15",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 844.0,
+          "childCount": 0
+        },
+        {
+          "id": "402:9115",
+          "name": "01",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 844.0,
+          "childCount": 0
+        },
+        {
+          "id": "276:2589",
+          "name": "05",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 844.0,
+          "childCount": 0
+        },
+        {
+          "id": "483:9503",
+          "name": "16",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 844.0,
+          "childCount": 0
+        },
+        {
+          "id": "276:10131",
+          "name": "11",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 844.0,
+          "childCount": 0
+        },
+        {
+          "id": "483:9534",
+          "name": "17",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 844.0,
+          "childCount": 0
+        },
+        {
+          "id": "276:7741",
+          "name": "07",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 844.0,
+          "childCount": 0
+        },
+        {
+          "id": "276:18164",
+          "name": "09",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 844.0,
+          "childCount": 0
+        },
+        {
+          "id": "276:10162",
+          "name": "13",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 844.0,
+          "childCount": 0
+        },
+        {
+          "id": "483:9629",
+          "name": "20",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 844.0,
+          "childCount": 0
+        },
+        {
+          "id": "269:7459",
+          "name": "02",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 844.0,
+          "childCount": 0
+        },
+        {
+          "id": "483:9660",
+          "name": "21",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 844.0,
+          "childCount": 0
+        },
+        {
+          "id": "269:7490",
+          "name": "03",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 1187.0,
+          "childCount": 0
+        },
+        {
+          "id": "483:9686",
+          "name": "22",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 1187.0,
+          "childCount": 0
+        },
+        {
+          "id": "269:7529",
+          "name": "04",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 1107.0,
+          "childCount": 0
+        },
+        {
+          "id": "483:9725",
+          "name": "23",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 1107.0,
+          "childCount": 0
+        },
+        {
+          "id": "276:5312",
+          "name": "06",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 2319.331298828125,
+          "childCount": 0
+        },
+        {
+          "id": "483:19592",
+          "name": "29",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 844.0,
+          "childCount": 0
+        },
+        {
+          "id": "276:7798",
+          "name": "08",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 2369.0,
+          "childCount": 0
+        },
+        {
+          "id": "276:15426",
+          "name": "10",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 844.0,
+          "childCount": 0
+        },
+        {
+          "id": "276:10315",
+          "name": "12",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 2315.0,
+          "childCount": 0
+        },
+        {
+          "id": "483:10237",
+          "name": "27",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 2315.0,
+          "childCount": 0
+        },
+        {
+          "id": "276:10494",
+          "name": "14",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 2547.0,
+          "childCount": 0
+        },
+        {
+          "id": "483:10419",
+          "name": "28",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 2547.0,
+          "childCount": 0
+        },
+        {
+          "id": "402:9157",
+          "name": "03",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 1184.0,
+          "childCount": 0
+        },
+        {
+          "id": "402:9321",
+          "name": "04",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 844.0,
+          "childCount": 0
+        },
+        {
+          "id": "402:9436",
+          "name": "02",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 1015.0,
+          "childCount": 0
+        }
+      ]
+    },
+    {
+      "id": "493:25372",
+      "name": "-",
+      "children": []
+    },
+    {
+      "id": "493:25371",
+      "name": "💻 Desktop",
+      "children": []
+    },
+    {
+      "id": "493:25373",
+      "name": "-> Batch 1 WF",
+      "children": [
+        {
+          "id": "493:42541",
+          "name": "Login",
+          "type": "SECTION",
+          "width": 24000.0,
+          "height": 1200.0,
+          "childCount": 0
+        }
+      ]
+    },
+    {
+      "id": "637:36658",
+      "name": "-> Batch 1 VD",
+      "children": [
+        {
+          "id": "637:36985",
+          "name": "Sample Screens",
+          "type": "TEXT",
+          "width": 2934.0,
+          "height": 480.0,
+          "childCount": 0
+        },
+        {
+          "id": "637:36986",
+          "name": "02",
+          "type": "FRAME",
+          "width": 1440.0,
+          "height": 1024.0,
+          "childCount": 0
+        },
+        {
+          "id": "637:37258",
+          "name": "03",
+          "type": "FRAME",
+          "width": 1440.0,
+          "height": 1024.0,
+          "childCount": 0
+        },
+        {
+          "id": "637:37582",
+          "name": "04",
+          "type": "FRAME",
+          "width": 1440.0,
+          "height": 1024.0,
+          "childCount": 0
+        },
+        {
+          "id": "637:37869",
+          "name": "07",
+          "type": "FRAME",
+          "width": 1440.0,
+          "height": 1024.0,
+          "childCount": 0
+        },
+        {
+          "id": "637:38183",
+          "name": "09",
+          "type": "FRAME",
+          "width": 1440.0,
+          "height": 1076.0,
+          "childCount": 0
+        },
+        {
+          "id": "637:38694",
+          "name": "05",
+          "type": "FRAME",
+          "width": 1440.0,
+          "height": 1024.0,
+          "childCount": 0
+        },
+        {
+          "id": "637:38964",
+          "name": "11",
+          "type": "FRAME",
+          "width": 1440.0,
+          "height": 1024.0,
+          "childCount": 0
+        },
+        {
+          "id": "637:44517",
+          "name": "01",
+          "type": "FRAME",
+          "width": 1440.0,
+          "height": 1000.0,
+          "childCount": 0
+        },
+        {
+          "id": "637:58539",
+          "name": "06",
+          "type": "FRAME",
+          "width": 1440.0,
+          "height": 1000.0,
+          "childCount": 0
+        },
+        {
+          "id": "637:58571",
+          "name": "08",
+          "type": "FRAME",
+          "width": 1440.0,
+          "height": 1000.0,
+          "childCount": 0
+        },
+        {
+          "id": "637:58603",
+          "name": "10",
+          "type": "FRAME",
+          "width": 1440.0,
+          "height": 1000.0,
+          "childCount": 0
+        }
+      ]
+    },
+    {
+      "id": "514:44581",
+      "name": "-",
+      "children": []
+    },
+    {
+      "id": "514:44580",
+      "name": "▶️ Prototype ",
+      "children": []
+    },
+    {
+      "id": "514:44582",
+      "name": "-> Batch 1 Mobile Testing",
+      "children": [
+        {
+          "id": "936:44872",
+          "name": "New Lead-Select Customer",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "1009:14689",
+          "name": "New Lead-Select Customer",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "1009:14936",
+          "name": "New Lead-Select Customer",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "936:45120",
+          "name": "New Lead-Select Customer-Term life",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "936:45392",
+          "name": "New Lead-Select Customer-Selected",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "936:45645",
+          "name": "New Lead-Select Customer-Details",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "514:46216",
+          "name": "01",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "558:82281",
+          "name": "8",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:161633",
+          "name": "10",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "558:82220",
+          "name": "7",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:160899",
+          "name": "9",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:146218",
+          "name": "Buy-Savings Plan-Customer-PIVV",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:146220",
+          "name": "Buy-Savings Plan-Customer-Payment",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:146222",
+          "name": "Buy-Savings Plan-Customer-Intro",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 1405.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:146401",
+          "name": "Buy-Savings Plan-Customer-Intro",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 2145.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:146602",
+          "name": "Buy-Savings Plan-Customer-Documents",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 1092.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:146696",
+          "name": "Buy-Savings Plan-Customer-OTP",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:147037",
+          "name": "Buy-Savings Plan-Customer-OTP",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:147204",
+          "name": "Buy-Savings Plan-Customer-OTP",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:147372",
+          "name": "Buy-Savings Plan-Customer-PIVV",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 1086.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:147550",
+          "name": "Buy-Savings Plan-Customer-Payment",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:147618",
+          "name": "Document upload",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 890.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:151474",
+          "name": "Document upload-Done",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 898.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:155330",
+          "name": "Buy-Savings Plan-Complete",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 916.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:155380",
+          "name": "Document upload-Done-Thanks",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:155429",
+          "name": "Buy-Savings Plan-Complete",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 932.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:155524",
+          "name": "Buy-Savings Plan-Customer-PIVV-Complete",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:155573",
+          "name": "Verification Overview",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 1218.0,
+          "childCount": 0
+        },
+        {
+          "id": "936:41403",
+          "name": "New Lead-Select Category",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "936:41976",
+          "name": "New Lead-Created",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "936:42198",
+          "name": "New Lead-Suitability-1",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "936:45944",
+          "name": "New Lead-Suitability-1",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "936:42249",
+          "name": "New Lead-Suitability-2",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "936:46091",
+          "name": "New Lead-Suitability-2",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "936:42356",
+          "name": "New Lead-Suitability-3",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 826.0,
+          "childCount": 0
+        },
+        {
+          "id": "936:42455",
+          "name": "New Lead-Suitability-4",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "936:46229",
+          "name": "New Lead-Suitability-4",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "936:42505",
+          "name": "New Lead-Suitability-5",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "936:42570",
+          "name": "New Lead-Suitability-5",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "936:46365",
+          "name": "New Lead-Suitability-5",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "936:46512",
+          "name": "New Lead-Suitability-5",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "936:45776",
+          "name": "New Lead-Select Category",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "1009:15242",
+          "name": "New Lead-Select Category",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "936:47053",
+          "name": "PLP-Lumpsum",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 2670.0,
+          "childCount": 0
+        },
+        {
+          "id": "936:47128",
+          "name": "PLP-Search",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "936:47293",
+          "name": "PLP-View all plans",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "936:47431",
+          "name": "Filters - Investment Amount ",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "936:47455",
+          "name": "Filters - Payment term ",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "936:47478",
+          "name": "Filters - Maturity term ",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "936:47499",
+          "name": "Filters - Payout type ",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "936:47519",
+          "name": "Filters - Sort by ",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "936:47540",
+          "name": "PLP-Savings Plan-Tax Savings",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "936:47664",
+          "name": "PLP-Savings Plan-Customer-Compare",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "936:47752",
+          "name": "PLP-Savings Plan-Customer-Compare-3",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "936:47840",
+          "name": "PLP-Savings Plan-Customer-Comparison Table",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "936:56600",
+          "name": "PDP-Savings Plan-First Fold",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 3422.000244140625,
+          "childCount": 0
+        },
+        {
+          "id": "936:56837",
+          "name": "PDP-Savings Plan-Coverage",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 1296.000244140625,
+          "childCount": 0
+        },
+        {
+          "id": "936:56903",
+          "name": "PDP-Savings Plan-Coverage-Customer",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 1020.000244140625,
+          "childCount": 0
+        },
+        {
+          "id": "936:56969",
+          "name": "PDP-Savings Plan-Customer-Returns",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:144220",
+          "name": "Buy-Savings Plan-1B",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:144275",
+          "name": "Buy-Savings Plan-1B",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 944.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:144346",
+          "name": "Buy-Savings Plan-1B",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 944.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:144417",
+          "name": "Buy-Savings Plan-1C",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:144479",
+          "name": "Buy-Savings Plan-1C",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:144573",
+          "name": "Buy-Savings Plan-1D",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 1103.000244140625,
+          "childCount": 0
+        },
+        {
+          "id": "940:144685",
+          "name": "Buy-Savings Plan-1D",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 1887.000244140625,
+          "childCount": 0
+        },
+        {
+          "id": "940:144818",
+          "name": "Buy-Savings Plan-1C",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:144837",
+          "name": "Buy-Savings Plan-1-Complete",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 872.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:144889",
+          "name": "Buy-Savings Plan-1D",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:144900",
+          "name": "Buy-Savings Plan-1A",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 902.000244140625,
+          "childCount": 0
+        },
+        {
+          "id": "940:144964",
+          "name": "Buy-Savings Plan-Quote-Returns",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:125164",
+          "name": "Buy-Savings Plan-2A",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:125219",
+          "name": "Buy-Savings Plan-2A",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 848.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:125275",
+          "name": "Buy-Savings Plan-2B",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:125324",
+          "name": "Buy-Savings Plan-2C",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 2476.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:125423",
+          "name": "Buy-Savings Plan-2F",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:125478",
+          "name": "Buy-Savings Plan-2D",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:125533",
+          "name": "Buy-Savings Plan-2G",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:125582",
+          "name": "Buy-Savings Plan-2E",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:125632",
+          "name": "Buy-Savings Plan-2A",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:146105",
+          "name": "Buy-Savings Plan-2A",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:125656",
+          "name": "Buy-Savings Plan-Proposal Form-Complete",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 1116.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:125717",
+          "name": "Buy-Savings Plan-2-Overview",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 1296.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:125767",
+          "name": "Buy-Savings Plan-2-Overview",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 1402.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:125820",
+          "name": "Buy-Savings Plan-2-Overview",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 1396.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:125873",
+          "name": "Buy-Savings Plan-2-Overview",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 1396.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:125926",
+          "name": "Buy-Savings Plan-2-Overview",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 1396.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:125979",
+          "name": "Buy-Savings Plan-2-Overview",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 1396.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:126032",
+          "name": "Buy-Savings Plan-2-Overview",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 1396.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:126085",
+          "name": "Buy-Savings Plan-2-Overview",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 1396.0,
+          "childCount": 0
+        },
+        {
+          "id": "940:161673",
+          "name": "11",
+          "type": "FRAME",
+          "width": 360.0,
+          "height": 800.0,
+          "childCount": 0
+        }
+      ]
+    },
+    {
+      "id": "16:654",
+      "name": "-",
+      "children": []
+    },
+    {
+      "id": "1:32",
+      "name": "Concepts",
+      "children": [
+        {
+          "id": "25:2590",
+          "name": "006",
+          "type": "FRAME",
+          "width": 1440.0,
+          "height": 1098.0,
+          "childCount": 0
+        },
+        {
+          "id": "25:2884",
+          "name": "005",
+          "type": "FRAME",
+          "width": 1440.0,
+          "height": 1098.0,
+          "childCount": 0
+        },
+        {
+          "id": "25:3216",
+          "name": "004",
+          "type": "FRAME",
+          "width": 1440.0,
+          "height": 923.0,
+          "childCount": 0
+        },
+        {
+          "id": "25:3599",
+          "name": "003",
+          "type": "FRAME",
+          "width": 1440.0,
+          "height": 720.0,
+          "childCount": 0
+        },
+        {
+          "id": "25:1562",
+          "name": "002",
+          "type": "FRAME",
+          "width": 1440.0,
+          "height": 923.0,
+          "childCount": 0
+        },
+        {
+          "id": "25:577",
+          "name": "001",
+          "type": "FRAME",
+          "width": 1440.0,
+          "height": 1448.0,
+          "childCount": 0
+        },
+        {
+          "id": "25:544",
+          "name": "000",
+          "type": "FRAME",
+          "width": 1440.0,
+          "height": 720.0,
+          "childCount": 0
+        },
+        {
+          "id": "2:3737",
+          "name": "05",
+          "type": "FRAME",
+          "width": 1440.0,
+          "height": 3545.0,
+          "childCount": 0
+        },
+        {
+          "id": "2:3284",
+          "name": "04",
+          "type": "FRAME",
+          "width": 1440.0,
+          "height": 3545.0,
+          "childCount": 0
+        },
+        {
+          "id": "2:2812",
+          "name": "03",
+          "type": "FRAME",
+          "width": 1440.0,
+          "height": 3792.0,
+          "childCount": 0
+        },
+        {
+          "id": "2:2017",
+          "name": "02",
+          "type": "FRAME",
+          "width": 1440.0,
+          "height": 6580.0,
+          "childCount": 0
+        },
+        {
+          "id": "3:9224",
+          "name": "01",
+          "type": "FRAME",
+          "width": 1440.0,
+          "height": 720.0,
+          "childCount": 0
+        },
+        {
+          "id": "5:532",
+          "name": "10",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 920.0,
+          "childCount": 0
+        },
+        {
+          "id": "3:10883",
+          "name": "09",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 980.0,
+          "childCount": 0
+        },
+        {
+          "id": "3:10530",
+          "name": "08",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 1117.0,
+          "childCount": 0
+        },
+        {
+          "id": "3:11213",
+          "name": "07",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 844.0,
+          "childCount": 0
+        },
+        {
+          "id": "3:9827",
+          "name": "06",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 1440.0,
+          "childCount": 0
+        },
+        {
+          "id": "3:11179",
+          "name": "05",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 844.0,
+          "childCount": 0
+        },
+        {
+          "id": "3:8513",
+          "name": "04",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 844.0,
+          "childCount": 0
+        },
+        {
+          "id": "3:9695",
+          "name": "03",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 844.0,
+          "childCount": 0
+        },
+        {
+          "id": "3:9266",
+          "name": "02",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 844.0,
+          "childCount": 0
+        },
+        {
+          "id": "2:8446",
+          "name": "01",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 844.0,
+          "childCount": 0
+        },
+        {
+          "id": "2:7844",
+          "name": "15",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 844.0,
+          "childCount": 0
+        },
+        {
+          "id": "2:8319",
+          "name": "14",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 844.0,
+          "childCount": 0
+        },
+        {
+          "id": "2:8285",
+          "name": "13",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 844.0,
+          "childCount": 0
+        },
+        {
+          "id": "2:7443",
+          "name": "12",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 844.0,
+          "childCount": 0
+        },
+        {
+          "id": "2:7395",
+          "name": "11",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 844.0,
+          "childCount": 0
+        },
+        {
+          "id": "2:7281",
+          "name": "10",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 844.0,
+          "childCount": 0
+        },
+        {
+          "id": "2:7207",
+          "name": "09",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 844.0,
+          "childCount": 0
+        },
+        {
+          "id": "2:7148",
+          "name": "08",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 844.0,
+          "childCount": 0
+        },
+        {
+          "id": "2:7073",
+          "name": "07",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 844.0,
+          "childCount": 0
+        },
+        {
+          "id": "2:6995",
+          "name": "06",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 844.0,
+          "childCount": 0
+        },
+        {
+          "id": "2:6954",
+          "name": "05",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 844.0,
+          "childCount": 0
+        },
+        {
+          "id": "2:8138",
+          "name": "04",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 844.0,
+          "childCount": 0
+        },
+        {
+          "id": "2:8065",
+          "name": "03",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 844.0,
+          "childCount": 0
+        },
+        {
+          "id": "2:6852",
+          "name": "02",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 844.0,
+          "childCount": 0
+        },
+        {
+          "id": "2:6563",
+          "name": "01",
+          "type": "FRAME",
+          "width": 390.0,
+          "height": 844.0,
+          "childCount": 0
+        }
+      ]
+    },
+    {
+      "id": "493:10886",
+      "name": "-",
+      "children": []
+    },
+    {
+      "id": "0:1",
+      "name": "Thumbnail",
+      "children": [
+        {
+          "id": "1:13",
+          "name": "Thumbnail",
+          "type": "FRAME",
+          "width": 1600.0,
+          "height": 960.0,
+          "childCount": 0
+        }
+      ]
+    }
+  ]
+}

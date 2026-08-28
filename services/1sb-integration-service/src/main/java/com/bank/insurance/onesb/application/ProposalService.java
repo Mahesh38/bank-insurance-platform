@@ -7,6 +7,7 @@ import com.bank.common.audit.AuditOutcomes;
 import com.bank.common.error.ErrorCodes;
 import com.bank.common.error.ServiceError;
 import com.bank.common.error.ServiceErrorResponse;
+import com.bank.common.error.PlatformLayer;
 import com.bank.common.error.ServiceException;
 import com.bank.common.secrets.SecretProvider;
 import com.bank.insurance.onesb.domain.command.SubmitProposalCommand;
@@ -64,13 +65,7 @@ public class ProposalService implements ProposalUseCase {
     public ProposalSchema getSchema(Lob lob, String productCode, String manufacturerId,
                                     String version, String quoteJobId) {
         if (lob == null) {
-            throw new ServiceException(ServiceErrorResponse.builder()
-                    .title("Validation Failed")
-                    .status(422)
-                    .detail("lob is required")
-                    .code(ErrorCodes.VALIDATION_ERROR)
-                    .retryable(false)
-                    .build());
+            throw missingLob("getSchema");
         }
         if (StringUtils.hasText(quoteJobId)) {
             assertQuoteUsable(quoteJobId);
@@ -84,28 +79,22 @@ public class ProposalService implements ProposalUseCase {
     @Override
     public ProposalSubmitResult submit(SubmitProposalCommand command) {
         if (command.lob() == null) {
-            throw new ServiceException(ServiceErrorResponse.builder()
-                    .title("Validation Failed")
-                    .status(422)
-                    .detail("lob is required")
-                    .code(ErrorCodes.VALIDATION_ERROR)
-                    .retryable(false)
-                    .build());
+            throw missingLob("submit");
         }
 
         String agentId = TermProposalHandler.resolveAgentId(command);
         if (!StringUtils.hasText(agentId)) {
-            throw new ServiceException(ServiceErrorResponse.builder()
-                    .title("Agent Attribution Missing")
-                    .status(422)
-                    .detail("agentId is required on proposal submit")
-                    .code(ErrorCodes.AGENT_ATTRIBUTION_MISSING)
-                    .retryable(false)
+            throw ServiceException.of(ErrorCodes.AGENT_ATTRIBUTION_MISSING)
+                    .service("onesb")
+                    .layer(PlatformLayer.L5)
+                    .component("ProposalService")
+                    .operation("submit")
+                    .reason("agentId is required on proposal submit")
                     .errors(List.of(ServiceError.ofField(
                             ErrorCodes.AGENT_ATTRIBUTION_MISSING,
                             "agentId is required",
                             "agentId")))
-                    .build());
+                    .build();
         }
 
         String actorId = StringUtils.hasText(command.actorId()) ? command.actorId() : "system";
@@ -158,13 +147,13 @@ public class ProposalService implements ProposalUseCase {
     @Override
     public QuoteJob getProposalResult(String jobId) {
         return jobStore.findQuoteJob(jobId)
-                .orElseThrow(() -> new ServiceException(ServiceErrorResponse.builder()
-                        .title("Not Found")
-                        .status(404)
-                        .detail("Proposal job not found: " + jobId)
-                        .code(ErrorCodes.RESOURCE_NOT_FOUND)
-                        .retryable(false)
-                        .build()));
+                .orElseThrow(() -> ServiceException.of(ErrorCodes.RESOURCE_NOT_FOUND)
+                        .service("onesb")
+                        .layer(PlatformLayer.L5)
+                        .component("ProposalService")
+                        .operation("getProposalResult")
+                        .reason("proposal job not found: " + jobId)
+                        .build());
     }
 
     private void assertQuoteUsable(String quoteJobId) {
@@ -183,14 +172,33 @@ public class ProposalService implements ProposalUseCase {
         }
     }
 
-    private static ServiceException quoteExpired(String detail) {
-        return new ServiceException(ServiceErrorResponse.builder()
-                .title("Quote Expired")
-                .status(410)
-                .detail(detail)
-                .code(ErrorCodes.QUOTE_EXPIRED)
-                .retryable(false)
-                .build());
+    private static ServiceException missingLob(String operation) {
+        return ServiceException.of(ErrorCodes.VALIDATION_ERROR)
+                .service("onesb")
+                .layer(PlatformLayer.L5)
+                .component("ProposalService")
+                .operation(operation)
+                .reason("lob is required")
+                .errors(List.of(ServiceError.ofField(
+                        ErrorCodes.MISSING_REQUIRED_FIELD, "lob is required", "lob")))
+                .build();
+    }
+
+    /**
+     * FUNC-004 AC-2 answers 410 here, while catalogue 04 section 6 registers QUOTE_EXPIRED as 409.
+     * Both are ratified and they describe different conditions — a quote job that is gone, versus
+     * an offer selected past its validity window. The override preserves the approved behaviour
+     * and records the disagreement; see 07-PLATFORM-ERROR-CONTRACT.md section 13.
+     */
+    private static ServiceException quoteExpired(String reason) {
+        return ServiceException.of(ErrorCodes.QUOTE_EXPIRED)
+                .service("onesb")
+                .layer(PlatformLayer.L5)
+                .component("ProposalService")
+                .operation("assertQuoteUsable")
+                .statusOverride(410, "FUNC-004 AC-2 (phase-3, TL + QA approved)")
+                .reason(reason)
+                .build();
     }
 
     private void publishConsentRefMissing(SubmitProposalCommand command,

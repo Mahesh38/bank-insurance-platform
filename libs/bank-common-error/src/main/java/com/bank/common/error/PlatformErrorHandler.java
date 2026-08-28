@@ -1,5 +1,8 @@
 package com.bank.common.error;
 
+import com.bank.common.observability.ErrorMetrics;
+import com.bank.common.observability.MdcContext;
+import com.bank.common.observability.MdcKeys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
@@ -8,7 +11,9 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The one place an error becomes an HTTP response — work item {@code ERR-002}.
@@ -53,6 +58,7 @@ public abstract class PlatformErrorHandler {
     private final String serviceId;
     private final PlatformLayer layer;
     private final Boundary boundary;
+    private final ErrorMetrics metrics;
 
     /** Declares a public-facing service. */
     protected PlatformErrorHandler(String serviceId, PlatformLayer layer) {
@@ -60,9 +66,20 @@ public abstract class PlatformErrorHandler {
     }
 
     protected PlatformErrorHandler(String serviceId, PlatformLayer layer, Boundary boundary) {
+        this(serviceId, layer, boundary, null);
+    }
+
+    /**
+     * @param metrics records the {@code bank.error.count} series; null disables metric emission
+     *                without disabling anything else, so a service can adopt the contract before
+     *                it has a registry wired
+     */
+    protected PlatformErrorHandler(String serviceId, PlatformLayer layer, Boundary boundary,
+                                   ErrorMetrics metrics) {
         this.serviceId = serviceId;
         this.layer = layer;
         this.boundary = boundary != null ? boundary : Boundary.PUBLIC;
+        this.metrics = metrics;
     }
 
     @ExceptionHandler(ServiceException.class)
@@ -163,30 +180,54 @@ public abstract class PlatformErrorHandler {
      */
     protected void record(ServiceErrorResponse body, Throwable cause) {
         ErrorDiagnostic d = body.getDiagnostic();
-        boolean clientCaused = body.getCategory() != null && body.getCategory().clientCaused();
+        ErrorCategory category = body.getCategory();
+        boolean clientCaused = category != null && category.clientCaused();
 
-        String message = "error incidentId={} code={} category={} service={} layer={} "
-            + "originService={} status={} correlationId={} runbook={} reason={}";
-        Object[] args = {
-            body.getIncidentId(),
-            body.getCode(),
-            body.getCategory(),
-            body.getService(),
-            d != null && d.getLayer() != null ? d.getLayer() : layer,
-            d != null ? d.effectiveOriginService() : body.getService(),
-            body.getStatus(),
-            body.getCorrelationId(),
-            d != null ? d.getRunbook() : ErrorCatalogue.find(body.getCode())
-                .map(ErrorDefinition::runbook).orElse(null),
-            d != null ? d.getReason() : null
-        };
+        PlatformLayer effectiveLayer = d != null && d.getLayer() != null ? d.getLayer() : layer;
+        String originService = d != null ? d.effectiveOriginService() : body.getService();
+        String runbook = d != null ? d.getRunbook()
+            : ErrorCatalogue.find(body.getCode()).map(ErrorDefinition::runbook).orElse(null);
 
-        if (clientCaused) {
-            log.warn(message, args);
-        } else if (cause != null) {
-            log.error(message, appendCause(args, cause));
-        } else {
-            log.error(message, args);
+        // MDC, so the error line is findable by the same id the caller was handed — and so any
+        // line logged inside this block carries it too.
+        Map<String, String> context = new LinkedHashMap<>();
+        context.put(MdcKeys.INCIDENT_ID, body.getIncidentId());
+        context.put(MdcKeys.ERROR_CODE, body.getCode());
+        context.put(MdcKeys.ERROR_CATEGORY, category != null ? category.name() : null);
+        context.put(MdcKeys.SERVICE, body.getService());
+        context.put(MdcKeys.ORIGIN_SERVICE, originService);
+        context.put(MdcKeys.LAYER, effectiveLayer != null ? effectiveLayer.name() : null);
+        if (body.getCorrelationId() != null) {
+            context.put(MdcKeys.CORRELATION_ID, body.getCorrelationId());
+        }
+
+        MdcContext.with(context, () -> {
+            String message = "error code={} category={} service={} layer={} originService={} "
+                + "status={} runbook={} reason={}";
+            Object[] args = {
+                body.getCode(), category, body.getService(), effectiveLayer, originService,
+                body.getStatus(), runbook, d != null ? d.getReason() : null
+            };
+            if (clientCaused) {
+                // A caller's invalid request is a normal outcome of a public API. Logging it at
+                // ERROR with a stack makes the dashboard unreadable within a week.
+                log.warn(message, args);
+            } else if (cause != null) {
+                log.error(message, appendCause(args, cause));
+            } else {
+                log.error(message, args);
+            }
+        });
+
+        if (metrics != null) {
+            metrics.record(
+                body.getService(),
+                body.getCode(),
+                category != null ? category.name() : null,
+                effectiveLayer != null ? effectiveLayer.name() : null,
+                originService,
+                body.isRetryable(),
+                body.getStatus());
         }
     }
 
@@ -195,6 +236,21 @@ public abstract class PlatformErrorHandler {
         System.arraycopy(args, 0, withCause, 0, args.length);
         withCause[args.length] = cause;
         return withCause;
+    }
+
+    /**
+     * Builds an {@link ErrorMetrics} from an optional registry.
+     *
+     * <p>A {@code @WebMvcTest} slice has no {@code MeterRegistry}, and a missing registry must not
+     * stop the advice from loading — a service losing its error responses because it could not
+     * count them would be the wrong failure by a wide margin. Metric emission is the optional
+     * part; the response and the log are not.
+     */
+    protected static ErrorMetrics errorMetrics(
+            org.springframework.beans.factory.ObjectProvider<io.micrometer.core.instrument.MeterRegistry> registries) {
+        io.micrometer.core.instrument.MeterRegistry registry =
+            registries != null ? registries.getIfAvailable() : null;
+        return registry != null ? new ErrorMetrics(registry) : null;
     }
 
     /** The service id stamped on every response this handler emits. */

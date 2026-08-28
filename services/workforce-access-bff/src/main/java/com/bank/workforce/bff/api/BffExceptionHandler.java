@@ -2,6 +2,9 @@ package com.bank.workforce.bff.api;
 
 import com.bank.common.error.ErrorCodes;
 import com.bank.common.error.PlatformErrorHandler;
+import com.bank.common.observability.ErrorMetrics;
+import io.micrometer.core.instrument.MeterRegistry;
+import org.springframework.beans.factory.ObjectProvider;
 import com.bank.common.error.PlatformLayer;
 import com.bank.common.error.ServiceErrorResponse;
 import com.bank.common.error.ServiceException;
@@ -30,8 +33,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class BffExceptionHandler extends PlatformErrorHandler {
 
-    public BffExceptionHandler() {
-        super("bff", PlatformLayer.L4, Boundary.PUBLIC);
+    public BffExceptionHandler(ObjectProvider<MeterRegistry> meterRegistry) {
+        super("bff", PlatformLayer.L4, Boundary.PUBLIC, errorMetrics(meterRegistry));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

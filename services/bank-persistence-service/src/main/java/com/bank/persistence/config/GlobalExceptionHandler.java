@@ -1,6 +1,9 @@
 package com.bank.persistence.config;
 
 import com.bank.common.error.PlatformErrorHandler;
+import com.bank.common.observability.ErrorMetrics;
+import io.micrometer.core.instrument.MeterRegistry;
+import org.springframework.beans.factory.ObjectProvider;
 import com.bank.common.error.PlatformLayer;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -17,8 +20,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler extends PlatformErrorHandler {
 
-    public GlobalExceptionHandler() {
-        super("persistence", PlatformLayer.L7, Boundary.INTERNAL);
+    public GlobalExceptionHandler(ObjectProvider<MeterRegistry> meterRegistry) {
+        super("persistence", PlatformLayer.L7, Boundary.INTERNAL, errorMetrics(meterRegistry));
     }
 
     @Override

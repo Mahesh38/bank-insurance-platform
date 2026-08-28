@@ -135,9 +135,12 @@ public final class ErrorCatalogue {
             "Sign-in required", "Please sign in and try again.", "pre-catalogue");
         put(m, ErrorCodes.FORBIDDEN, ErrorCategory.AUTHORIZATION, 403,
             "Not permitted", "You do not have access to this action.", "pre-catalogue");
-        put(m, ErrorCodes.INTERNAL_ERROR, ErrorCategory.INTERNAL, 500,
+        // WRAP, deliberately: INTERNAL means *our* defect. Propagating another service's
+        // INTERNAL_ERROR unchanged would claim their bug as ours and destroy the one signal that
+        // says whose it is.
+        put(m, ErrorCodes.INTERNAL_ERROR, ErrorCategory.INTERNAL, 500, Retryability.NO,
             "Something went wrong", "Please try again. Quote the incident id if it persists.",
-            "pre-catalogue");
+            AuditDisposition.NONE, Propagation.WRAP, "pre-catalogue");
 
         // --- 04 section 2 — envelope and protocol -----------------------------------
         put(m, ErrorCodes.PAYLOAD_TOO_LARGE, ErrorCategory.VALIDATION, 413,

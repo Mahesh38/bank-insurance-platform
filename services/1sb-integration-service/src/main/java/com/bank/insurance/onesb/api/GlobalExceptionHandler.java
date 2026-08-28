@@ -1,6 +1,9 @@
 package com.bank.insurance.onesb.api;
 
 import com.bank.common.error.PlatformErrorHandler;
+import com.bank.common.observability.ErrorMetrics;
+import io.micrometer.core.instrument.MeterRegistry;
+import org.springframework.beans.factory.ObjectProvider;
 import com.bank.common.error.PlatformLayer;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -18,8 +21,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler extends PlatformErrorHandler {
 
-    public GlobalExceptionHandler() {
-        super("onesb", PlatformLayer.L5, Boundary.INTERNAL);
+    public GlobalExceptionHandler(ObjectProvider<MeterRegistry> meterRegistry) {
+        super("onesb", PlatformLayer.L5, Boundary.INTERNAL, errorMetrics(meterRegistry));
     }
 
     @Override

@@ -3,6 +3,7 @@ package com.bank.insurance.onesb.lob;
 import com.bank.common.error.ErrorCodes;
 import com.bank.common.error.ServiceError;
 import com.bank.common.error.ServiceErrorResponse;
+import com.bank.common.error.PlatformLayer;
 import com.bank.common.error.ServiceException;
 import com.bank.insurance.onesb.domain.model.Lob;
 import org.springframework.stereotype.Component;
@@ -47,13 +48,13 @@ public class LobProposalHandlerRegistry {
 
     private static ServiceException unsupported(Lob lob) {
         String detail = lob == null ? "lob is required" : "Unsupported lob: " + lob;
-        return new ServiceException(ServiceErrorResponse.builder()
-                .title("Unsupported LOB")
-                .status(422)
-                .detail(detail)
-                .code(ErrorCodes.UNSUPPORTED_LOB)
-                .retryable(false)
-                .addError(ServiceError.ofField(ErrorCodes.UNSUPPORTED_LOB, detail, "lob"))
-                .build());
+        return ServiceException.of(ErrorCodes.UNSUPPORTED_LOB)
+                .service("onesb")
+                .layer(PlatformLayer.L5)
+                .component("LobProposalHandlerRegistry")
+                .operation("get")
+                .reason(detail)
+                .errors(java.util.List.of(ServiceError.ofField(ErrorCodes.UNSUPPORTED_LOB, detail, "lob")))
+                .build();
     }
 }

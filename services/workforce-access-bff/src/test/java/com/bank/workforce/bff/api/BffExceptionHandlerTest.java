@@ -4,8 +4,11 @@ import com.bank.common.error.ErrorCategory;
 import com.bank.common.error.ErrorCodes;
 import com.bank.common.error.IncidentId;
 import com.bank.common.error.ServiceErrorResponse;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import com.bank.common.observability.ErrorMetrics;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -27,7 +30,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class BffExceptionHandlerTest {
 
-    private final BffExceptionHandler handler = new BffExceptionHandler();
+    private final SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
+    private final BffExceptionHandler handler =
+        new BffExceptionHandler(new StaticObjectProvider<>(meterRegistry));
 
     private ServiceErrorResponse invalid(String message) {
         return body(handler.invalidRequest(new IllegalArgumentException(message)));
@@ -117,5 +122,35 @@ class BffExceptionHandlerTest {
         assertThat(detail.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
         assertThat(detail.getDetail()).isNotBlank();
         assertThat(detail.getCode()).isEqualTo(ErrorCodes.SCHEMA_INVALID);
+    }
+
+    @Test
+    @DisplayName("every refusal is counted, tagged for the dashboard")
+    void everyRefusalIsCounted() {
+        denied("Business identity is not active");
+        invalid("returnUri is not in the allow-list");
+
+        assertThat(meterRegistry.find(ErrorMetrics.ERROR_COUNT).counters())
+            .as("a dashboard needs one consistently tagged series, not a log grep")
+            .isNotEmpty();
+
+        var authCounter = meterRegistry.find(ErrorMetrics.ERROR_COUNT)
+            .tag("code", ErrorCodes.AUTHENTICATION_FAILED)
+            .tag("service", "bff")
+            .tag("category", "AUTHENTICATION")
+            .tag("originService", "bff")
+            .counter();
+
+        assertThat(authCounter).isNotNull();
+        assertThat(authCounter.count()).isEqualTo(1.0);
+    }
+
+    /** Minimal {@link ObjectProvider} so the unit test can hand the handler a real registry. */
+    private record StaticObjectProvider<T>(T value) implements ObjectProvider<T> {
+        @Override public T getObject() { return value; }
+        @Override public T getObject(Object... args) { return value; }
+        @Override public T getIfAvailable() { return value; }
+        @Override public T getIfUnique() { return value; }
+        @Override public java.util.Iterator<T> iterator() { return java.util.List.of(value).iterator(); }
     }
 }

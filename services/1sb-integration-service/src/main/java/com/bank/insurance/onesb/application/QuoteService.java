@@ -7,6 +7,7 @@ import com.bank.common.audit.AuditOutcomes;
 import com.bank.common.error.ErrorCodes;
 import com.bank.common.error.ServiceError;
 import com.bank.common.error.ServiceErrorResponse;
+import com.bank.common.error.PlatformLayer;
 import com.bank.common.error.ServiceException;
 import com.bank.insurance.onesb.domain.command.CreateQuoteCommand;
 import com.bank.insurance.onesb.domain.model.Lob;
@@ -78,13 +79,13 @@ public class QuoteService implements QuoteUseCase {
     @Override
     public QuoteJob getQuoteResult(String jobId) {
         return jobStore.findQuoteJob(jobId)
-                .orElseThrow(() -> new ServiceException(ServiceErrorResponse.builder()
-                        .title("Not Found")
-                        .status(404)
-                        .detail("Quote job not found: " + jobId)
-                        .code(ErrorCodes.RESOURCE_NOT_FOUND)
-                        .retryable(false)
-                        .build()));
+                .orElseThrow(() -> ServiceException.of(ErrorCodes.RESOURCE_NOT_FOUND)
+                        .service("onesb")
+                        .layer(PlatformLayer.L5)
+                        .component("QuoteService")
+                        .operation("getQuoteResult")
+                        .reason("quote job not found: " + jobId)
+                        .build());
     }
 
     private void validate(CreateQuoteCommand command) {
@@ -126,14 +127,14 @@ public class QuoteService implements QuoteUseCase {
                     .anyMatch(e -> ErrorCodes.UNSUPPORTED_LOB.equals(e.code()))
                     ? ErrorCodes.UNSUPPORTED_LOB
                     : ErrorCodes.VALIDATION_ERROR;
-            throw new ServiceException(ServiceErrorResponse.builder()
-                    .title("Validation Failed")
-                    .status(422)
-                    .detail("Quote request validation failed")
-                    .code(code)
-                    .retryable(false)
+            throw ServiceException.of(code)
+                    .service("onesb")
+                    .layer(PlatformLayer.L5)
+                    .component("QuoteService")
+                    .operation("createQuote")
+                    .reason("quote request validation failed: " + errors.size() + " field error(s)")
                     .errors(errors)
-                    .build());
+                    .build();
         }
     }
 

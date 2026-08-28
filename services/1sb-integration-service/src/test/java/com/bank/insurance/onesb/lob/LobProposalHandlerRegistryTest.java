@@ -37,8 +37,19 @@ class LobProposalHandlerRegistryTest {
 
         assertThatThrownBy(() -> registry.get(null))
                 .isInstanceOf(ServiceException.class)
-                .satisfies(ex -> assertThat(((ServiceException) ex).getErrorResponse().getDetail())
-                        .isEqualTo("lob is required"));
+                .satisfies(ex -> {
+                    ServiceException se = (ServiceException) ex;
+                    // `detail` is now the catalogue's fixed wording, one phrasing for this code
+                    // everywhere. What is specific to this request travels in `errors[]`, which is
+                    // where a caller looks to find out which field they got wrong.
+                    assertThat(se.getErrorResponse().getErrors())
+                            .singleElement()
+                            .satisfies(fieldError -> {
+                                assertThat(fieldError.field()).isEqualTo("lob");
+                                assertThat(fieldError.message()).isEqualTo("lob is required");
+                            });
+                    assertThat(se.getDiagnostic().getReason()).isEqualTo("lob is required");
+                });
     }
 
     @Test

@@ -104,24 +104,24 @@ public class PaymentService implements PaymentUseCase {
         }
     }
 
-    private static ServiceException notPayable(String detail) {
-        return new ServiceException(ServiceErrorResponse.builder()
-                .title("Proposal Not Payable")
-                .status(409)
-                .detail(detail)
-                .code(ErrorCodes.PROPOSAL_NOT_PAYABLE)
-                .retryable(false)
-                .build());
+    private static ServiceException notPayable(String reason) {
+        return ServiceException.of(ErrorCodes.PROPOSAL_NOT_PAYABLE)
+                .service("onesb")
+                .layer(PlatformLayer.L5)
+                .component("PaymentService")
+                .operation("assertPayable")
+                .reason(reason)
+                .build();
     }
 
-    private static ServiceException validationError(String detail) {
-        return new ServiceException(ServiceErrorResponse.builder()
-                .title("Validation Failed")
-                .status(422)
-                .detail(detail)
-                .code(ErrorCodes.VALIDATION_ERROR)
-                .retryable(false)
-                .build());
+    private static ServiceException validationError(String reason) {
+        return ServiceException.of(ErrorCodes.VALIDATION_ERROR)
+                .service("onesb")
+                .layer(PlatformLayer.L5)
+                .component("PaymentService")
+                .operation("createPaymentSession")
+                .reason(reason)
+                .build();
     }
 
     /** Audits a reference to the session only — {@code paymentUrl} itself is never logged/audited. */

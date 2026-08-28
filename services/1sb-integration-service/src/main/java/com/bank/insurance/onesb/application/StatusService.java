@@ -6,6 +6,7 @@ import com.bank.common.audit.AuditEventPublisher;
 import com.bank.common.audit.AuditOutcomes;
 import com.bank.common.error.ErrorCodes;
 import com.bank.common.error.ServiceErrorResponse;
+import com.bank.common.error.PlatformLayer;
 import com.bank.common.error.ServiceException;
 import com.bank.insurance.onesb.domain.model.ApplicationStatus;
 import com.bank.insurance.onesb.domain.model.BankApplicationStatus;
@@ -68,14 +69,14 @@ public class StatusService implements StatusUseCase {
 
         Optional<OneSbApplicationStatusResult> upstream =
                 statusPort.getStatus(applicationNumber, insurerCode, productCode);
-        OneSbApplicationStatusResult result = upstream.orElseThrow(() -> new ServiceException(
-                ServiceErrorResponse.builder()
-                        .title("Not Found")
-                        .status(404)
-                        .detail("No status found for applicationNumber: " + applicationNumber)
-                        .code(ErrorCodes.RESOURCE_NOT_FOUND)
-                        .retryable(false)
-                        .build()));
+        OneSbApplicationStatusResult result = upstream.orElseThrow(
+                () -> ServiceException.of(ErrorCodes.RESOURCE_NOT_FOUND)
+                        .service("onesb")
+                        .layer(PlatformLayer.L5)
+                        .component("StatusService")
+                        .operation("getStatus")
+                        .reason("no status found for applicationNumber: " + applicationNumber)
+                        .build());
 
         BankApplicationStatus bankStatus = normalise(result.rawStatus());
         ApplicationStatus status = new ApplicationStatus(
@@ -124,14 +125,14 @@ public class StatusService implements StatusUseCase {
         return BankApplicationStatus.UNKNOWN;
     }
 
-    private static ServiceException validationError(String detail) {
-        return new ServiceException(ServiceErrorResponse.builder()
-                .title("Validation Failed")
-                .status(422)
-                .detail(detail)
-                .code(ErrorCodes.VALIDATION_ERROR)
-                .retryable(false)
-                .build());
+    private static ServiceException validationError(String reason) {
+        return ServiceException.of(ErrorCodes.VALIDATION_ERROR)
+                .service("onesb")
+                .layer(PlatformLayer.L5)
+                .component("StatusService")
+                .operation("getStatus")
+                .reason(reason)
+                .build();
     }
 
     private void publishStatusChecked(ApplicationStatus status, Lob lob, String actorId) {

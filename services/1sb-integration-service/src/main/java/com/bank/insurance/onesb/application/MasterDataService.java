@@ -1,5 +1,7 @@
 package com.bank.insurance.onesb.application;
 
+import com.bank.common.error.ErrorCodes;
+import com.bank.common.error.PlatformLayer;
 import com.bank.common.error.ServiceException;
 import com.bank.insurance.onesb.domain.model.LookupValue;
 import com.bank.insurance.onesb.domain.port.outbound.OneSbMasterDataPort;
@@ -59,8 +61,15 @@ public class MasterDataService {
             if (ex instanceof ServiceException se) {
                 throw se;
             }
-            throw ServiceException.upstreamUnavailable(
-                    "Master lookup upstream unavailable and no cached entry", ex);
+            throw ServiceException.of(ErrorCodes.UPSTREAM_UNAVAILABLE)
+                    .service("onesb")
+                    .layer(PlatformLayer.L5)
+                    .component("MasterDataService")
+                    .operation("lookup")
+                    .upstream("1SB", null, null)
+                    .reason("master lookup upstream unavailable and no cached entry")
+                    .cause(ex)
+                    .build();
         }
     }
 

@@ -428,6 +428,7 @@ increment is additive-only.
 | 1 | `IDEMPOTENCY_KEY_CONFLICT` (§2) | `IDEMPOTENCY_CONFLICT` | `IDEMPOTENCY_CONFLICT` | Catalogue 04 §2 corrected to the published value. Minting a second code for one condition would recreate defect **D4**, so the code was not added |
 | 2 | `OPPORTUNITY_REQUIRED` (§6) | *(absent)* | `OPPORTUNITY_REQUIRED`, public text reads "Lead required" | `ADR-014` renamed the context Opportunity → Lead, but catalogue 04 §6 still carries the old code name. The wire value is left alone (G9); the RM-facing wording follows `ADR-014` |
 | 3 | *(not stated)* | `UPSTREAM_BAD_RESPONSE` was **retryable at one call site and not at another** | `Retryability.YES` | Nothing — resolved. `FUNC-007-ASSIGNMENT.md` line 28 ratifies "502, retryable" and `FUNC-007-REVIEW.md` records it passed, so the documented AC decides. This is defect **D4** in its purest form: one code, two behaviours, caught the moment a registry forced a single answer |
+| 4 | `QUOTE_EXPIRED` = **409** (§6, also `VR-082`, `INV-QUO-04`, `AC-COMP-010-3`) | `FUNC-004` AC-2 ratifies **410** for the same code | 409, with one audited override at the FUNC-004 site | **A decision.** These are two different conditions wearing one code — an offer selected past its validity window (409) versus a quote job that is gone (410). Both are human-ratified. Splitting them into two codes is additive but changes `FUNC-004`'s ratified wire response, so it is the catalogue owner's call, not the library's. Preserved as-is and surfaced: `grep -rn statusOverride` lists every such departure |
 
 Neither is repaired here: both are edits to a ratified catalogue, which is the owner's call, and
 this increment's scope is the library. Raised so the CI diff in `ERR-005` does not silently
@@ -465,14 +466,33 @@ coincidence, not a property. The message now goes to the diagnostic and the call
 incident id instead. The test was rewritten to assert the stronger property across **both** paths
 rather than deleted. This is the one item on this increment a reviewer should look at first.
 
-### 13.3 Still open
+### 13.3 What `ERR-003`, `ERR-004` and the `D4` completion delivered
 
-`ERR-003` (propagation across services), `ERR-004` (MDC + `bank.error.count`), `ERR-006` (PII test,
-ArchUnit leak rule), `ERR-007` (runbook pages).
+**`D4` is now fully closed.** `grep -rn "ServiceErrorResponse.builder()\|new ServiceException("` over
+service main code returns **nothing**: every throw site in all five services goes through
+`ServiceException.of(code)` and takes its status, wording, retryability and runbook from the
+registry. What is specific to a request — the identifiers, the developer reason — travels in
+`reason` and `errors[]`, where it belongs.
 
-**D4 is only half closed.** The registry exists and forces one answer per code, but the application
-throw sites have not been migrated to it yet — `ProposalService`, `QuoteService` and `StatusService`
-still write their own `detail` strings (`"Proposal job not found: " + jobId`,
-`"No status found for applicationNumber: "`). Those echo the *caller's own* identifiers rather than
-vendor text or internal routes, so they are not D1/D2 leaks, but they are still three phrasings for
-one condition. Migrating them is mechanical and belongs with `ERR-003`.
+| Delivered | Where |
+|---|---|
+| Every application throw site migrated to the catalogue | `ProposalService` · `QuoteService` · `StatusService` · `PaymentService` · `MasterDataService` · both LOB registries · `IdempotencyFilter` · persistence `NotFound` |
+| `statusOverride(status, ratifiedBy)` — narrow, mandatory-attribution escape for a ratified disagreement | `ServiceException.Builder`; exactly **one** use in the tree, listed above |
+| **`ERR-003`** `ErrorPropagation` — preserves incident id and first origin, and decides propagate-vs-wrap from the registry | `libs/bank-common-error` |
+| An upstream `INTERNAL_ERROR` now **wraps** rather than propagating | `ErrorCatalogue` — `INTERNAL` means *our* defect; propagating theirs claims their bug as ours |
+| **`ERR-004`** `MdcKeys` gains `incidentId`, `errorCode`, `errorCategory`, `service`, `originService`, `layer` | `libs/bank-common-observability` |
+| **`ERR-004`** `bank.error.count` with the §7 tag set, emitted once per failure | `ErrorMetrics`, called from `PlatformErrorHandler` |
+| Cardinality guard — absent, punctuated and digit-heavy values collapse to `unknown` | `ErrorMetrics.safeTag` |
+| Micrometer added **no dependency**: all five services already ship `spring-boot-starter-actuator` | service `build.gradle.kts` (unchanged) |
+
+Metric emission is optional by construction: a `@WebMvcTest` slice has no `MeterRegistry`, and a
+service must not lose its error responses because it cannot count them.
+
+### 13.4 Still open
+
+`ERR-006` (PII test over the registry, ArchUnit leak rule) and `ERR-007` (runbook pages).
+
+**One gap worth naming.** §6 says every line logged *during* a failed request should carry the
+incident id, not only the error line. Today the id enters the MDC when the handler records the
+failure, so lines logged earlier in the same request do not carry it. Closing that needs a
+request-scoped filter that seeds the MDC on entry — it belongs with `ERR-006` and is not done here.

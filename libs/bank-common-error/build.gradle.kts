@@ -11,7 +11,14 @@ dependencies {
     // MethodArgumentNotValidException extends validation.BindException, which lives here.
     compileOnly("org.springframework:spring-context")
     compileOnly("org.slf4j:slf4j-api")
+    // MDC key names and the error counter. compileOnly, not implementation: every service already
+    // declares bank-common-observability, and runtimeClasspath is dependency-locked, so a project
+    // dependency here would churn lockfiles for classes the consumers already have.
+    compileOnly(project(":libs:bank-common-observability"))
+    compileOnly("io.micrometer:micrometer-core")
 
+    testImplementation(project(":libs:bank-common-observability"))
+    testImplementation("io.micrometer:micrometer-core")
     testImplementation("org.springframework:spring-web")
     testImplementation("org.springframework:spring-context")
     testImplementation("org.slf4j:slf4j-api")

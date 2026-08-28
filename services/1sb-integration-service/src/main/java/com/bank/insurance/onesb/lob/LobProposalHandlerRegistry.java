@@ -4,6 +4,7 @@ import com.bank.common.error.ErrorCodes;
 import com.bank.common.error.ServiceError;
 import com.bank.common.error.ServiceErrorResponse;
 import com.bank.common.error.PlatformLayer;
+import com.bank.common.error.ServiceErrors;
 import com.bank.common.error.ServiceException;
 import com.bank.insurance.onesb.domain.model.Lob;
 import org.springframework.stereotype.Component;
@@ -19,8 +20,11 @@ import java.util.Map;
 public class LobProposalHandlerRegistry {
 
     private final Map<Lob, LobProposalHandler> handlers;
+    private final ServiceErrors serviceErrors;
 
-    public LobProposalHandlerRegistry(List<LobProposalHandler> handlerList) {
+
+    public LobProposalHandlerRegistry(List<LobProposalHandler> handlerList, ServiceErrors serviceErrors) {
+        this.serviceErrors = serviceErrors;
         Map<Lob, LobProposalHandler> map = new EnumMap<>(Lob.class);
         for (LobProposalHandler handler : handlerList) {
             Lob lob = handler.supportedLob();
@@ -46,11 +50,9 @@ public class LobProposalHandlerRegistry {
         return handler;
     }
 
-    private static ServiceException unsupported(Lob lob) {
+    private ServiceException unsupported(Lob lob) {
         String detail = lob == null ? "lob is required" : "Unsupported lob: " + lob;
-        return ServiceException.of(ErrorCodes.UNSUPPORTED_LOB)
-                .service("onesb")
-                .layer(PlatformLayer.L5)
+        return serviceErrors.error(ErrorCodes.UNSUPPORTED_LOB)
                 .component("LobProposalHandlerRegistry")
                 .operation("get")
                 .reason(detail)

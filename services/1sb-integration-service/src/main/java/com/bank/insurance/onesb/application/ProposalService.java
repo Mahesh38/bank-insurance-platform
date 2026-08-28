@@ -8,6 +8,7 @@ import com.bank.common.error.ErrorCodes;
 import com.bank.common.error.ServiceError;
 import com.bank.common.error.ServiceErrorResponse;
 import com.bank.common.error.PlatformLayer;
+import com.bank.common.error.ServiceErrors;
 import com.bank.common.error.ServiceException;
 import com.bank.common.secrets.SecretProvider;
 import com.bank.insurance.onesb.domain.command.SubmitProposalCommand;
@@ -46,19 +47,23 @@ public class ProposalService implements ProposalUseCase {
     private final JobPollSchedulerPort pollScheduler;
     private final AuditEventPublisher auditEventPublisher;
     private final SecretProvider secretProvider;
+    private final ServiceErrors serviceErrors;
+
 
     public ProposalService(JobStorePort jobStore,
                            LobProposalHandlerRegistry handlerRegistry,
                            OneSbProposalPort proposalPort,
                            JobPollSchedulerPort pollScheduler,
                            AuditEventPublisher auditEventPublisher,
-                           SecretProvider secretProvider) {
+                           SecretProvider secretProvider,
+                          ServiceErrors serviceErrors) {
         this.jobStore = jobStore;
         this.handlerRegistry = handlerRegistry;
         this.proposalPort = proposalPort;
         this.pollScheduler = pollScheduler;
         this.auditEventPublisher = auditEventPublisher;
         this.secretProvider = secretProvider;
+        this.serviceErrors = serviceErrors;
     }
 
     @Override
@@ -84,9 +89,7 @@ public class ProposalService implements ProposalUseCase {
 
         String agentId = TermProposalHandler.resolveAgentId(command);
         if (!StringUtils.hasText(agentId)) {
-            throw ServiceException.of(ErrorCodes.AGENT_ATTRIBUTION_MISSING)
-                    .service("onesb")
-                    .layer(PlatformLayer.L5)
+            throw serviceErrors.error(ErrorCodes.AGENT_ATTRIBUTION_MISSING)
                     .component("ProposalService")
                     .operation("submit")
                     .reason("agentId is required on proposal submit")
@@ -147,9 +150,7 @@ public class ProposalService implements ProposalUseCase {
     @Override
     public QuoteJob getProposalResult(String jobId) {
         return jobStore.findQuoteJob(jobId)
-                .orElseThrow(() -> ServiceException.of(ErrorCodes.RESOURCE_NOT_FOUND)
-                        .service("onesb")
-                        .layer(PlatformLayer.L5)
+                .orElseThrow(() -> serviceErrors.error(ErrorCodes.RESOURCE_NOT_FOUND)
                         .component("ProposalService")
                         .operation("getProposalResult")
                         .reason("proposal job not found: " + jobId)
@@ -172,10 +173,8 @@ public class ProposalService implements ProposalUseCase {
         }
     }
 
-    private static ServiceException missingLob(String operation) {
-        return ServiceException.of(ErrorCodes.VALIDATION_ERROR)
-                .service("onesb")
-                .layer(PlatformLayer.L5)
+    private ServiceException missingLob(String operation) {
+        return serviceErrors.error(ErrorCodes.VALIDATION_ERROR)
                 .component("ProposalService")
                 .operation(operation)
                 .reason("lob is required")
@@ -190,10 +189,8 @@ public class ProposalService implements ProposalUseCase {
      * an offer selected past its validity window. The override preserves the approved behaviour
      * and records the disagreement; see 07-PLATFORM-ERROR-CONTRACT.md section 13.
      */
-    private static ServiceException quoteExpired(String reason) {
-        return ServiceException.of(ErrorCodes.QUOTE_EXPIRED)
-                .service("onesb")
-                .layer(PlatformLayer.L5)
+    private ServiceException quoteExpired(String reason) {
+        return serviceErrors.error(ErrorCodes.QUOTE_EXPIRED)
                 .component("ProposalService")
                 .operation("assertQuoteUsable")
                 .statusOverride(410, "FUNC-004 AC-2 (phase-3, TL + QA approved)")

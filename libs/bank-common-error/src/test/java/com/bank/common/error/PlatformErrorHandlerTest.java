@@ -9,17 +9,26 @@ import static org.assertj.core.api.Assertions.assertThat;
 /** ERR-002 — the shared handler: identity, boundary behaviour, and the order of the two steps. */
 class PlatformErrorHandlerTest {
 
-    private static final class PublicHandler extends PlatformErrorHandler {
-        PublicHandler() { super("bff", PlatformLayer.L4, Boundary.PUBLIC); }
+    private static ErrorHandlingSettings settings(String id, PlatformLayer layer, TrustBoundary boundary) {
+        return ErrorHandlingSettings.builder(id).layer(layer).boundary(boundary).build();
     }
 
-    private static final class InternalHandler extends PlatformErrorHandler {
-        InternalHandler() { super("onesb", PlatformLayer.L5, Boundary.INTERNAL); }
-        @Override protected int validationStatus() { return 422; }
+    private static PlatformErrorHandler handler(String id, PlatformLayer layer, TrustBoundary boundary) {
+        return new PlatformErrorHandler(settings(id, layer, boundary), ErrorRecorder.NONE);
     }
 
-    private static final class DefaultingHandler extends PlatformErrorHandler {
-        DefaultingHandler() { super("newcomer", PlatformLayer.L5); }
+    private static PlatformErrorHandler publicHandler() {
+        return handler("bff", PlatformLayer.L4, TrustBoundary.PUBLIC);
+    }
+
+    private static PlatformErrorHandler internalHandler() {
+        return handler("onesb", PlatformLayer.L5, TrustBoundary.INTERNAL);
+    }
+
+    /** A service that configures nothing beyond its id. */
+    private static PlatformErrorHandler defaultingHandler() {
+        return new PlatformErrorHandler(
+            ErrorHandlingSettings.builder("newcomer").build(), ErrorRecorder.NONE);
     }
 
     private ServiceException refusal() {
@@ -33,7 +42,7 @@ class PlatformErrorHandlerTest {
 
     @Test
     void aPublicHandlerStripsTheDiagnosticHalf() {
-        ResponseEntity<ServiceErrorResponse> response = new PublicHandler().handleServiceException(refusal());
+        ResponseEntity<ServiceErrorResponse> response = publicHandler().handleServiceException(refusal());
         ServiceErrorResponse body = response.getBody();
 
         assertThat(body).isNotNull();
@@ -47,7 +56,7 @@ class PlatformErrorHandlerTest {
 
     @Test
     void anInternalHandlerPassesTheDiagnosticToItsCallingService() {
-        ServiceErrorResponse body = new InternalHandler().handleServiceException(refusal()).getBody();
+        ServiceErrorResponse body = internalHandler().handleServiceException(refusal()).getBody();
 
         assertThat(body).isNotNull();
         assertThat(body.carriesDiagnostics())
@@ -59,7 +68,7 @@ class PlatformErrorHandlerTest {
 
     @Test
     void aHandlerThatDeclaresNoBoundaryRedacts() {
-        ServiceErrorResponse body = new DefaultingHandler().handleServiceException(refusal()).getBody();
+        ServiceErrorResponse body = defaultingHandler().handleServiceException(refusal()).getBody();
 
         assertThat(body).isNotNull();
         assertThat(body.carriesDiagnostics())
@@ -69,7 +78,7 @@ class PlatformErrorHandlerTest {
 
     @Test
     void theRespondingServiceIsStampedWithoutOverwritingTheOriginatingOne() {
-        ServiceErrorResponse internal = new InternalHandler().handleServiceException(refusal()).getBody();
+        ServiceErrorResponse internal = internalHandler().handleServiceException(refusal()).getBody();
 
         assertThat(internal).isNotNull();
         // The response names the service that answered...
@@ -86,7 +95,7 @@ class PlatformErrorHandlerTest {
                 .category(ErrorCategory.CONFLICT)
                 .build());
 
-        ServiceErrorResponse body = new InternalHandler().handleServiceException(plain).getBody();
+        ServiceErrorResponse body = internalHandler().handleServiceException(plain).getBody();
 
         assertThat(body).isNotNull();
         assertThat(body.getService()).isEqualTo("onesb");
@@ -98,48 +107,48 @@ class PlatformErrorHandlerTest {
     @Test
     void redactionHappensAfterTheDiagnosticIsRecorded() {
         var recorded = new java.util.ArrayList<ServiceErrorResponse>();
+        ErrorRecorder capturing = (response, cause) -> recorded.add(response);
 
-        PlatformErrorHandler handler = new PlatformErrorHandler("bff", PlatformLayer.L4, PlatformErrorHandler.Boundary.PUBLIC) {
-            @Override
-            protected void record(ServiceErrorResponse body, Throwable cause) {
-                recorded.add(body);
-            }
-        };
+        PlatformErrorHandler handler = new PlatformErrorHandler(
+            settings("bff", PlatformLayer.L4, TrustBoundary.PUBLIC), capturing);
 
         ServiceErrorResponse published = handler.handleServiceException(refusal()).getBody();
 
         assertThat(recorded).hasSize(1);
         assertThat(recorded.getFirst().carriesDiagnostics())
-            .as("redacting before logging would destroy the evidence redaction exists to protect")
+            .as("redacting before recording would destroy the evidence redaction exists to protect")
             .isTrue();
         assertThat(recorded.getFirst().getDiagnostic().getReason()).contains("expired");
 
         assertThat(published).isNotNull();
         assertThat(published.carriesDiagnostics()).isFalse();
         assertThat(published.getIncidentId())
-            .as("the logged half and the sent half must share the id that joins them")
+            .as("the recorded half and the sent half must share the id that joins them")
             .isEqualTo(recorded.getFirst().getIncidentId());
     }
 
     @Test
     void servicesMayDeclareDifferentValidationStatuses() {
-        assertThat(new InternalHandler().validationStatus()).isEqualTo(422);
-        assertThat(new DefaultingHandler().validationStatus()).isEqualTo(422);
+        // 422 platform-wide; persistence publishes 400 on /internal/v1 and says so in configuration
+        // rather than by subclassing.
+        assertThat(settings("onesb", PlatformLayer.L5, TrustBoundary.INTERNAL).validationStatus())
+            .isEqualTo(422);
 
-        PlatformErrorHandler persistenceLike = new PlatformErrorHandler("persistence", PlatformLayer.L7, PlatformErrorHandler.Boundary.INTERNAL) {
-            @Override protected int validationStatus() { return 400; }
-        };
-        assertThat(persistenceLike.validationStatus())
-            .as("400 here is a published contract, not a default to be unified away")
+        ErrorHandlingSettings persistence = ErrorHandlingSettings.builder("persistence")
+            .layer(PlatformLayer.L7).boundary(TrustBoundary.INTERNAL).validationStatus(400).build();
+
+        assertThat(persistence.validationStatus()).isEqualTo(400);
+        assertThat(persistence.malformedBodyStatus())
+            .as("an unparseable body follows the same status unless told otherwise")
             .isEqualTo(400);
-        assertThat(persistenceLike.malformedBodyStatus()).isEqualTo(400);
     }
 
     @Test
     void handlerExposesItsOwnConfiguration() {
-        InternalHandler h = new InternalHandler();
-        assertThat(h.serviceId()).isEqualTo("onesb");
-        assertThat(h.layer()).isEqualTo(PlatformLayer.L5);
-        assertThat(h.boundary()).isEqualTo(PlatformErrorHandler.Boundary.INTERNAL);
+        PlatformErrorHandler h = internalHandler();
+        assertThat(h.settings().serviceId()).isEqualTo("onesb");
+        assertThat(h.settings().layer()).isEqualTo(PlatformLayer.L5);
+        assertThat(h.settings().boundary()).isEqualTo(TrustBoundary.INTERNAL);
+        assertThat(h.settings().redacts()).isFalse();
     }
 }

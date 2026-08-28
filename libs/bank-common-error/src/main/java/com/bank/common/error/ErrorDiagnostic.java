@@ -1,5 +1,8 @@
 package com.bank.common.error;
 
+import lombok.Builder;
+import lombok.Value;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -24,61 +27,30 @@ import java.util.List;
  * describe the decision, never echo a request body: identifiers on the non-PII allow-list only
  * ({@code 07 §8}).
  */
-public final class ErrorDiagnostic {
+@Value
+@Builder(builderMethodName = "hiddenBuilder")
+public class ErrorDiagnostic {
 
-    private final String incidentId;
-    private final String code;
-    private final ErrorCategory category;
-    private final String service;
-    private final PlatformLayer layer;
-    private final String component;
-    private final String operation;
-    private final ErrorOrigin origin;
-    private final String reason;
-    private final String upstreamSystem;
-    private final String upstreamCode;
-    private final Integer upstreamStatus;
-    private final List<String> causeChain;
-    private final String remediation;
-    private final String runbook;
+    String incidentId;
+    String code;
+    ErrorCategory category;
+    String service;
+    PlatformLayer layer;
+    String component;
+    String operation;
+    ErrorOrigin origin;
+    String reason;
+    String upstreamSystem;
+    String upstreamCode;
+    Integer upstreamStatus;
+    List<String> causeChain;
+    String remediation;
+    String runbook;
 
-    private ErrorDiagnostic(Builder b) {
-        this.incidentId = b.incidentId;
-        this.code = b.code;
-        this.category = b.category;
-        this.service = b.service;
-        this.layer = b.layer;
-        this.component = b.component;
-        this.operation = b.operation;
-        this.origin = b.origin;
-        this.reason = b.reason;
-        this.upstreamSystem = b.upstreamSystem;
-        this.upstreamCode = b.upstreamCode;
-        this.upstreamStatus = b.upstreamStatus;
-        this.causeChain = Collections.unmodifiableList(new ArrayList<>(b.causeChain));
-        this.remediation = b.remediation;
-        this.runbook = b.runbook;
-    }
-
+    /** Starts a diagnostic for {@code code}, pre-filled from the catalogue where it is registered. */
     public static Builder builder(String code) {
         return new Builder(code);
     }
-
-    public String getIncidentId()      { return incidentId; }
-    public String getCode()            { return code; }
-    public ErrorCategory getCategory() { return category; }
-    public String getService()         { return service; }
-    public PlatformLayer getLayer()    { return layer; }
-    public String getComponent()       { return component; }
-    public String getOperation()       { return operation; }
-    public ErrorOrigin getOrigin()     { return origin; }
-    public String getReason()          { return reason; }
-    public String getUpstreamSystem()  { return upstreamSystem; }
-    public String getUpstreamCode()    { return upstreamCode; }
-    public Integer getUpstreamStatus() { return upstreamStatus; }
-    public List<String> getCauseChain(){ return causeChain; }
-    public String getRemediation()     { return remediation; }
-    public String getRunbook()         { return runbook; }
 
     /**
      * The service that actually failed — the origin's service when the failure arrived from
@@ -103,60 +75,48 @@ public final class ErrorDiagnostic {
             + ", origin=" + (origin != null ? origin.service() + "/" + origin.code() : "none") + "}";
     }
 
-    /** Builder. {@code code} is required; everything else is best-effort context. */
+    /**
+     * Builder. {@code code} is required; everything else is best-effort context.
+     *
+     * <p>Hand-written rather than generated, because it does two things generation cannot: it seeds
+     * the category and runbook from the catalogue, and {@link #cause(Throwable)} walks an exception
+     * chain into strings.
+     */
     public static final class Builder {
-        private final String code;
-        private String incidentId = IncidentId.generate();
-        private ErrorCategory category;
-        private String service;
-        private PlatformLayer layer;
-        private String component;
-        private String operation;
-        private ErrorOrigin origin;
-        private String reason;
-        private String upstreamSystem;
-        private String upstreamCode;
-        private Integer upstreamStatus;
+        private final ErrorDiagnosticBuilder delegate = ErrorDiagnostic.hiddenBuilder();
         private final List<String> causeChain = new ArrayList<>();
-        private String remediation;
-        private String runbook;
 
         private Builder(String code) {
-            this.code = code;
-            ErrorCatalogue.find(code).ifPresent(d -> {
-                this.category = d.category();
-                this.runbook = d.runbook();
-            });
+            delegate.code(code).incidentId(IncidentId.generate());
+            ErrorCatalogue.find(code).ifPresent(d -> delegate.category(d.category()).runbook(d.runbook()));
         }
 
-        public Builder incidentId(String v)     { if (v != null) this.incidentId = v; return this; }
-        public Builder category(ErrorCategory v){ this.category = v; return this; }
-        public Builder service(String v)        { this.service = v; return this; }
-        public Builder layer(PlatformLayer v)   { this.layer = v; return this; }
-        public Builder component(String v)      { this.component = v; return this; }
-        public Builder operation(String v)      { this.operation = v; return this; }
-        public Builder origin(ErrorOrigin v)    { this.origin = v; return this; }
-        public Builder reason(String v)         { this.reason = v; return this; }
-        public Builder remediation(String v)    { this.remediation = v; return this; }
-        public Builder runbook(String v)        { this.runbook = v; return this; }
+        public Builder incidentId(String v)     { if (v != null) delegate.incidentId(v); return this; }
+        public Builder category(ErrorCategory v){ delegate.category(v); return this; }
+        public Builder service(String v)        { delegate.service(v); return this; }
+        public Builder layer(PlatformLayer v)   { delegate.layer(v); return this; }
+        public Builder component(String v)      { delegate.component(v); return this; }
+        public Builder operation(String v)      { delegate.operation(v); return this; }
+        public Builder origin(ErrorOrigin v)    { delegate.origin(v); return this; }
+        public Builder reason(String v)         { delegate.reason(v); return this; }
+        public Builder remediation(String v)    { delegate.remediation(v); return this; }
+        public Builder runbook(String v)        { delegate.runbook(v); return this; }
 
         public Builder upstream(String system, String upstreamCode, Integer status) {
-            this.upstreamSystem = system;
-            this.upstreamCode = upstreamCode;
-            this.upstreamStatus = status;
+            delegate.upstreamSystem(system).upstreamCode(upstreamCode).upstreamStatus(status);
             return this;
         }
 
         /**
          * Records the exception chain, outermost first, as {@code SimpleName: message}.
          *
-         * <p>Bounded at eight frames: a chain longer than that is a wrapping problem, and an
-         * unbounded chain in a log line is how one failure fills a log budget.
+         * <p>Bounded at {@link #MAX_CAUSE_DEPTH} frames: a chain longer than that is a wrapping
+         * problem, and an unbounded chain in a log line is how one failure fills a log budget.
          */
         public Builder cause(Throwable t) {
             Throwable current = t;
-            int guard = 0;
-            while (current != null && guard++ < 8) {
+            int depth = 0;
+            while (current != null && depth++ < MAX_CAUSE_DEPTH) {
                 causeChain.add(current.getClass().getSimpleName()
                     + (current.getMessage() != null ? ": " + current.getMessage() : ""));
                 current = current.getCause() == current ? null : current.getCause();
@@ -165,7 +125,10 @@ public final class ErrorDiagnostic {
         }
 
         public ErrorDiagnostic build() {
-            return new ErrorDiagnostic(this);
+            return delegate.causeChain(Collections.unmodifiableList(new ArrayList<>(causeChain))).build();
         }
     }
+
+    /** Deepest exception chain recorded. Beyond this the chain says more about wrapping than cause. */
+    static final int MAX_CAUSE_DEPTH = 8;
 }

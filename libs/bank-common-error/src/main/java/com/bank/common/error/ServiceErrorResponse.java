@@ -33,7 +33,7 @@ import java.util.Objects;
  * services.
  */
 @Value
-@Builder
+@Builder(toBuilder = true)
 @ToString(of = {"status", "code", "detail", "incidentId", "service"})
 public class ServiceErrorResponse {
 
@@ -98,22 +98,14 @@ public class ServiceErrorResponse {
      */
     public ServiceErrorResponse toPublic() {
         ErrorDefinition d = ErrorCatalogue.find(code).orElse(null);
-        return new ServiceErrorResponse(
-            type,
-            d != null ? d.publicTitle() : title,
-            status,
-            d != null ? d.publicDetail() : detail,
-            code,
-            retryable,
-            upstreamCode,
-            timestamp,
-            errors,
-            category,
-            service,
-            incidentId,
-            correlationId,
-            null,
-            null);
+        return toBuilder()
+            .title(d != null ? d.publicTitle() : title)
+            .detail(d != null ? d.publicDetail() : detail)
+            .clearErrors()
+            .errors(errors)
+            .origin(null)
+            .diagnostic(null)
+            .build();
     }
 
     /** True when nothing on this response may cross a trust boundary unchanged. */
@@ -128,32 +120,29 @@ public class ServiceErrorResponse {
      * no call site can claim to be a service it is not.
      */
     public ServiceErrorResponse withService(String serviceId) {
-        if (serviceId == null || service != null) {
-            return this;
-        }
-        return new ServiceErrorResponse(
-            type, title, status, detail, code, retryable, upstreamCode, timestamp, errors,
-            category, serviceId, incidentId, correlationId, origin, diagnostic);
+        return serviceId == null || service != null ? this : copy(b -> b.service(serviceId));
     }
 
     /** A copy carrying {@code incidentId}, when it does not already have one. */
     public ServiceErrorResponse withIncidentId(String id) {
-        if (id == null || incidentId != null) {
-            return this;
-        }
-        return new ServiceErrorResponse(
-            type, title, status, detail, code, retryable, upstreamCode, timestamp, errors,
-            category, service, id, correlationId, origin, diagnostic);
+        return id == null || incidentId != null ? this : copy(b -> b.incidentId(id));
     }
 
     /** A copy carrying {@code correlationId}, when it does not already have one. */
     public ServiceErrorResponse withCorrelationId(String id) {
-        if (id == null || correlationId != null) {
-            return this;
-        }
-        return new ServiceErrorResponse(
-            type, title, status, detail, code, retryable, upstreamCode, timestamp, errors,
-            category, service, incidentId, id, origin, diagnostic);
+        return id == null || correlationId != null ? this : copy(b -> b.correlationId(id));
+    }
+
+    /**
+     * The single copy path.
+     *
+     * <p>Every {@code withX} used to re-list all fifteen constructor arguments. Adding a field then
+     * meant editing five arg lists, and forgetting one silently dropped that field from a copied
+     * response — a defect that shows up as a missing incident id in production, not as a
+     * compile error.
+     */
+    private ServiceErrorResponse copy(java.util.function.UnaryOperator<ServiceErrorResponseBuilder> change) {
+        return change.apply(toBuilder().clearErrors().errors(errors)).build();
     }
 
     // --- Factory shortcuts ---
@@ -239,6 +228,12 @@ public class ServiceErrorResponse {
 
         public ServiceErrorResponseBuilder errors(List<ServiceError> errs) {
             this.errors.addAll(errs);
+            return this;
+        }
+
+        /** Empties the accumulated list, so a {@code toBuilder()} copy does not double it. */
+        public ServiceErrorResponseBuilder clearErrors() {
+            this.errors = new ArrayList<>();
             return this;
         }
 

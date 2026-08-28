@@ -2,6 +2,7 @@ package com.bank.insurance.onesb.application;
 
 import com.bank.common.error.ErrorCodes;
 import com.bank.common.error.PlatformLayer;
+import com.bank.common.error.ServiceErrors;
 import com.bank.common.error.ServiceException;
 import com.bank.insurance.onesb.domain.model.LookupValue;
 import com.bank.insurance.onesb.domain.port.outbound.OneSbMasterDataPort;
@@ -26,14 +27,18 @@ public class MasterDataService {
     private final long cacheTtlSeconds;
     private final Clock clock;
     private final ConcurrentHashMap<String, CacheEntry> cache = new ConcurrentHashMap<>();
+    private final ServiceErrors serviceErrors;
+
 
     public MasterDataService(
             OneSbMasterDataPort masterDataPort,
             MastersCacheProperties properties,
-            Clock clock) {
+            Clock clock,
+                          ServiceErrors serviceErrors) {
         this.masterDataPort = masterDataPort;
         this.cacheTtlSeconds = properties.cacheTtlSeconds();
         this.clock = clock;
+        this.serviceErrors = serviceErrors;
     }
 
     public MasterLookupOutcome lookup(
@@ -61,9 +66,7 @@ public class MasterDataService {
             if (ex instanceof ServiceException se) {
                 throw se;
             }
-            throw ServiceException.of(ErrorCodes.UPSTREAM_UNAVAILABLE)
-                    .service("onesb")
-                    .layer(PlatformLayer.L5)
+            throw serviceErrors.error(ErrorCodes.UPSTREAM_UNAVAILABLE)
                     .component("MasterDataService")
                     .operation("lookup")
                     .upstream("1SB", null, null)

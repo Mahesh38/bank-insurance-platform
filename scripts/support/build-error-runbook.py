@@ -233,7 +233,7 @@ OVERRIDES = {
 
 def parse():
     text = CATALOGUE.read_text(encoding="utf-8")
-    body = text[text.index("private static Map<String, ErrorDefinition> buildRegistry()"):]
+    body = text[text.index("private static Map<String, ErrorDefinition> platformDefinitions()"):]
     out = []
     for m in PUT.finditer(body):
         code, category, status, retry, title, detail, audit, prop, ref = m.groups()

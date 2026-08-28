@@ -1,5 +1,7 @@
 package com.bank.insurance.onesb.adapter.onesb.polling;
 
+import com.bank.insurance.onesb.TestErrors;
+
 import com.bank.common.audit.AuditActions;
 import com.bank.common.audit.AuditEvent;
 import com.bank.common.audit.AuditEventPublisher;
@@ -199,7 +201,7 @@ class AsyncJobPollerQuoteTest {
 
         SecretProvider secrets = mock(SecretProvider.class);
         TermQuoteHandler handler = new TermQuoteHandler(secrets);
-        LobQuoteHandlerRegistry registry = new LobQuoteHandlerRegistry(List.of(handler));
+        LobQuoteHandlerRegistry registry = new LobQuoteHandlerRegistry(List.of(handler), TestErrors.ONESB);
         RestClient restClient = RestClient.builder()
                 .baseUrl(wireMock.baseUrl())
                 .requestFactory(http1Factory())

@@ -5,6 +5,8 @@ import com.bank.common.error.ServiceError;
 import com.bank.common.error.ServiceErrorResponse;
 import com.bank.common.error.ErrorOrigin;
 import com.bank.common.error.PlatformLayer;
+import com.bank.common.error.ServiceErrors;
+import com.bank.insurance.onesb.adapter.onesb.error.OneSbErrorNormaliser;
 import com.bank.common.error.ServiceException;
 import com.bank.insurance.onesb.adapter.onesb.client.OneSbHttpClient;
 import com.bank.insurance.onesb.config.ProposalProperties;
@@ -47,23 +49,29 @@ public class OneSbProposalAdapter implements OneSbProposalPort {
     private final long schemaCacheTtlSeconds;
     private final ObjectMapper objectMapper;
     private final RawPayloadStorePort rawPayloadStorePort;
+    private final ServiceErrors serviceErrors;
     private final ConcurrentHashMap<String, CacheEntry> schemaCache = new ConcurrentHashMap<>();
 
     @Autowired
     public OneSbProposalAdapter(OneSbHttpClient httpClient, ProposalProperties proposalProperties,
-                                ObjectMapper objectMapper, RawPayloadStorePort rawPayloadStorePort) {
-        this(httpClient, proposalProperties.schemaCacheTtlSeconds(), objectMapper, rawPayloadStorePort);
+                                ObjectMapper objectMapper, RawPayloadStorePort rawPayloadStorePort,
+                                ServiceErrors serviceErrors) {
+        this(httpClient, proposalProperties.schemaCacheTtlSeconds(), objectMapper, rawPayloadStorePort,
+                serviceErrors);
     }
 
     /** Test / manual wiring without Spring properties or raw payload capture. */
     public OneSbProposalAdapter(OneSbHttpClient httpClient, long schemaCacheTtlSeconds) {
         this(httpClient, schemaCacheTtlSeconds, new ObjectMapper(),
-                (jobId, direction, operation, lob, payload, httpStatus) -> { });
+                (jobId, direction, operation, lob, payload, httpStatus) -> { },
+                ServiceErrors.of("onesb", PlatformLayer.L5));
     }
 
     public OneSbProposalAdapter(OneSbHttpClient httpClient, long schemaCacheTtlSeconds,
-                                ObjectMapper objectMapper, RawPayloadStorePort rawPayloadStorePort) {
+                                ObjectMapper objectMapper, RawPayloadStorePort rawPayloadStorePort,
+                                ServiceErrors serviceErrors) {
         this.httpClient = httpClient;
+        this.serviceErrors = serviceErrors;
         this.schemaCacheTtlSeconds = schemaCacheTtlSeconds > 0 ? schemaCacheTtlSeconds : 3600L;
         this.objectMapper = objectMapper;
         this.rawPayloadStorePort = rawPayloadStorePort;
@@ -138,7 +146,7 @@ public class OneSbProposalAdapter implements OneSbProposalPort {
         return new OneSbProposalSubmitResult(reqId, applicationNumber, complete);
     }
 
-    private static ServiceException remapBusinessReject(ServiceException ex) {
+    private ServiceException remapBusinessReject(ServiceException ex) {
         ServiceErrorResponse upstream = ex.getErrorResponse();
         if (upstream == null) {
             return ex;
@@ -158,14 +166,12 @@ public class OneSbProposalAdapter implements OneSbProposalPort {
         }
         // The upstream's incident id and origin are carried, not regenerated: one refusal keeps
         // one identity even though the code it travels under changes here.
-        return ServiceException.of(ErrorCodes.PROPOSAL_REJECTED)
-                .service("onesb")
-                .layer(PlatformLayer.L5)
-                .component("OneSbProposalAdapter")
+        return serviceErrors.error(ErrorCodes.PROPOSAL_REJECTED)
+                                .component("OneSbProposalAdapter")
                 .operation("submitProposal")
                 .incidentId(upstream.getIncidentId())
-                .origin(ErrorOrigin.inherit(upstream.getOrigin(), "1SB", upstream.getCode(), PlatformLayer.L5))
-                .upstream("1SB", upstream.getUpstreamCode(), upstream.getStatus())
+                .origin(ErrorOrigin.inherit(upstream.getOrigin(), OneSbErrorNormaliser.UPSTREAM, upstream.getCode(), PlatformLayer.L5))
+                .upstream(OneSbErrorNormaliser.UPSTREAM, upstream.getUpstreamCode(), upstream.getStatus())
                 .reason(upstream.getDiagnostic() != null && upstream.getDiagnostic().getReason() != null
                         ? upstream.getDiagnostic().getReason()
                         : "1SB rejected the proposal")

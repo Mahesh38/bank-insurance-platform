@@ -1,5 +1,7 @@
 package com.bank.insurance.onesb.application;
 
+import com.bank.insurance.onesb.TestErrors;
+
 import com.bank.common.error.ErrorCodes;
 import com.bank.common.error.ServiceException;
 import com.bank.insurance.onesb.domain.model.LookupValue;
@@ -52,7 +54,7 @@ class MasterDataServiceTest {
             @Override public Clock withZone(java.time.ZoneId zone) { return this; }
             @Override public Instant instant() { return now.get(); }
         };
-        service = new MasterDataService(port, new MastersCacheProperties(4L), clock);
+        service = new MasterDataService(port, new MastersCacheProperties(4L), clock, TestErrors.ONESB);
     }
 
     @Test

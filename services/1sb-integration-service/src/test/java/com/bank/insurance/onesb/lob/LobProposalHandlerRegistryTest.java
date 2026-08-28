@@ -1,5 +1,7 @@
 package com.bank.insurance.onesb.lob;
 
+import com.bank.insurance.onesb.TestErrors;
+
 import com.bank.common.error.ErrorCodes;
 import com.bank.common.error.ServiceException;
 import com.bank.insurance.onesb.domain.command.SubmitProposalCommand;
@@ -16,14 +18,14 @@ class LobProposalHandlerRegistryTest {
     @Test
     void get_registeredLob_returnsHandler() {
         LobProposalHandler termHandler = fakeHandler(Lob.TERM);
-        LobProposalHandlerRegistry registry = new LobProposalHandlerRegistry(List.of(termHandler));
+        LobProposalHandlerRegistry registry = new LobProposalHandlerRegistry(List.of(termHandler), TestErrors.ONESB);
 
         assertThat(registry.get(Lob.TERM)).isSameAs(termHandler);
     }
 
     @Test
     void get_unregisteredLob_throwsUnsupportedLob() {
-        LobProposalHandlerRegistry registry = new LobProposalHandlerRegistry(List.of(fakeHandler(Lob.TERM)));
+        LobProposalHandlerRegistry registry = new LobProposalHandlerRegistry(List.of(fakeHandler(Lob.TERM)), TestErrors.ONESB);
 
         assertThatThrownBy(() -> registry.get(Lob.MOTOR))
                 .isInstanceOf(ServiceException.class)
@@ -33,7 +35,7 @@ class LobProposalHandlerRegistryTest {
 
     @Test
     void get_nullLob_throwsUnsupportedLob() {
-        LobProposalHandlerRegistry registry = new LobProposalHandlerRegistry(List.of());
+        LobProposalHandlerRegistry registry = new LobProposalHandlerRegistry(List.of(), TestErrors.ONESB);
 
         assertThatThrownBy(() -> registry.get(null))
                 .isInstanceOf(ServiceException.class)
@@ -55,7 +57,7 @@ class LobProposalHandlerRegistryTest {
     @Test
     void constructor_duplicateHandlerForSameLob_throws() {
         assertThatThrownBy(() ->
-                new LobProposalHandlerRegistry(List.of(fakeHandler(Lob.TERM), fakeHandler(Lob.TERM))))
+                new LobProposalHandlerRegistry(List.of(fakeHandler(Lob.TERM), fakeHandler(Lob.TERM)), TestErrors.ONESB))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("Duplicate LobProposalHandler for TERM");
     }

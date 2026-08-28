@@ -1,6 +1,10 @@
 package com.bank.workforce.bff.api;
 
 import com.bank.common.error.ErrorCategory;
+import com.bank.common.error.ErrorHandlingSettings;
+import com.bank.common.error.PlatformLayer;
+import com.bank.common.error.Slf4jErrorRecorder;
+import com.bank.common.error.TrustBoundary;
 import com.bank.common.error.ErrorCodes;
 import com.bank.common.error.IncidentId;
 import com.bank.common.error.ServiceErrorResponse;
@@ -8,7 +12,6 @@ import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import com.bank.common.observability.ErrorMetrics;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -31,8 +34,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 class BffExceptionHandlerTest {
 
     private final SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
-    private final BffExceptionHandler handler =
-        new BffExceptionHandler(new StaticObjectProvider<>(meterRegistry));
+    private final BffExceptionHandler handler = new BffExceptionHandler(
+        ErrorHandlingSettings.builder("bff")
+            .layer(PlatformLayer.L4)
+            .boundary(TrustBoundary.PUBLIC)
+            .build(),
+        new Slf4jErrorRecorder(PlatformLayer.L4, new ErrorMetrics(meterRegistry)));
 
     private ServiceErrorResponse invalid(String message) {
         return body(handler.invalidRequest(new IllegalArgumentException(message)));
@@ -145,12 +152,4 @@ class BffExceptionHandlerTest {
         assertThat(authCounter.count()).isEqualTo(1.0);
     }
 
-    /** Minimal {@link ObjectProvider} so the unit test can hand the handler a real registry. */
-    private record StaticObjectProvider<T>(T value) implements ObjectProvider<T> {
-        @Override public T getObject() { return value; }
-        @Override public T getObject(Object... args) { return value; }
-        @Override public T getIfAvailable() { return value; }
-        @Override public T getIfUnique() { return value; }
-        @Override public java.util.Iterator<T> iterator() { return java.util.List.of(value).iterator(); }
-    }
 }

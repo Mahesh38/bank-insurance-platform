@@ -7,6 +7,7 @@ import com.bank.common.audit.AuditOutcomes;
 import com.bank.common.error.ErrorCodes;
 import com.bank.common.error.ServiceErrorResponse;
 import com.bank.common.error.PlatformLayer;
+import com.bank.common.error.ServiceErrors;
 import com.bank.common.error.ServiceException;
 import com.bank.insurance.onesb.domain.model.ApplicationStatus;
 import com.bank.insurance.onesb.domain.model.BankApplicationStatus;
@@ -47,11 +48,15 @@ public class StatusService implements StatusUseCase {
     private final OneSbStatusPort statusPort;
     private final AuditEventPublisher auditEventPublisher;
     private final Clock clock;
+    private final ServiceErrors serviceErrors;
 
-    public StatusService(OneSbStatusPort statusPort, AuditEventPublisher auditEventPublisher, Clock clock) {
+
+    public StatusService(OneSbStatusPort statusPort, AuditEventPublisher auditEventPublisher, Clock clock,
+                          ServiceErrors serviceErrors) {
         this.statusPort = statusPort;
         this.auditEventPublisher = auditEventPublisher;
         this.clock = clock;
+        this.serviceErrors = serviceErrors;
     }
 
     @Override
@@ -70,9 +75,7 @@ public class StatusService implements StatusUseCase {
         Optional<OneSbApplicationStatusResult> upstream =
                 statusPort.getStatus(applicationNumber, insurerCode, productCode);
         OneSbApplicationStatusResult result = upstream.orElseThrow(
-                () -> ServiceException.of(ErrorCodes.RESOURCE_NOT_FOUND)
-                        .service("onesb")
-                        .layer(PlatformLayer.L5)
+                () -> serviceErrors.error(ErrorCodes.RESOURCE_NOT_FOUND)
                         .component("StatusService")
                         .operation("getStatus")
                         .reason("no status found for applicationNumber: " + applicationNumber)
@@ -125,10 +128,8 @@ public class StatusService implements StatusUseCase {
         return BankApplicationStatus.UNKNOWN;
     }
 
-    private static ServiceException validationError(String reason) {
-        return ServiceException.of(ErrorCodes.VALIDATION_ERROR)
-                .service("onesb")
-                .layer(PlatformLayer.L5)
+    private ServiceException validationError(String reason) {
+        return serviceErrors.error(ErrorCodes.VALIDATION_ERROR)
                 .component("StatusService")
                 .operation("getStatus")
                 .reason(reason)

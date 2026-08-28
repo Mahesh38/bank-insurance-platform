@@ -3,6 +3,7 @@ package com.bank.insurance.onesb.adapter.onesb.error;
 import com.bank.common.error.ErrorCodes;
 import com.bank.common.error.PlatformLayer;
 import com.bank.common.error.ServiceError;
+import com.bank.common.error.ServiceErrors;
 import com.bank.common.error.ServiceException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,17 +27,19 @@ import java.util.List;
  */
 public class OneSbErrorNormaliser {
 
-    private static final String SERVICE_ID = "onesb";
-    private static final String UPSTREAM = "1SB";
+    /** The provider this normaliser speaks for. Used as the upstream system on every diagnostic. */
+    public static final String UPSTREAM = "1SB";
 
     private final ObjectMapper objectMapper;
+    private final ServiceErrors serviceErrors;
 
-    public OneSbErrorNormaliser(ObjectMapper objectMapper) {
+    public OneSbErrorNormaliser(ObjectMapper objectMapper, ServiceErrors serviceErrors) {
         this.objectMapper = objectMapper;
+        this.serviceErrors = serviceErrors;
     }
 
-    public OneSbErrorNormaliser() {
-        this(new ObjectMapper());
+    public OneSbErrorNormaliser(ServiceErrors serviceErrors) {
+        this(new ObjectMapper(), serviceErrors);
     }
 
     /**
@@ -47,9 +50,7 @@ public class OneSbErrorNormaliser {
      */
     public ServiceException normalise(int httpStatus, String responseBody) {
         if (httpStatus == 401) {
-            return ServiceException.of(ErrorCodes.UPSTREAM_AUTH_FAILURE)
-                    .service(SERVICE_ID)
-                    .layer(PlatformLayer.L5)
+            return serviceErrors.error(ErrorCodes.UPSTREAM_AUTH_FAILURE)
                     .component("OneSbErrorNormaliser")
                     .upstream(UPSTREAM, null, httpStatus)
                     .reason("1SB returned 401 Unauthorized — check the API key and IP allow-list")
@@ -57,9 +58,7 @@ public class OneSbErrorNormaliser {
                     .build();
         }
         if (httpStatus >= 500) {
-            return ServiceException.of(ErrorCodes.UPSTREAM_UNAVAILABLE)
-                    .service(SERVICE_ID)
-                    .layer(PlatformLayer.L5)
+            return serviceErrors.error(ErrorCodes.UPSTREAM_UNAVAILABLE)
                     .component("OneSbErrorNormaliser")
                     .upstream(UPSTREAM, null, httpStatus)
                     .reason("1SB returned " + httpStatus)
@@ -67,18 +66,14 @@ public class OneSbErrorNormaliser {
         }
         if (httpStatus >= 400) {
             ParsedErrors parsed = parseErrors(responseBody);
-            return ServiceException.of(ErrorCodes.UPSTREAM_BUSINESS_ERROR)
-                    .service(SERVICE_ID)
-                    .layer(PlatformLayer.L5)
+            return serviceErrors.error(ErrorCodes.UPSTREAM_BUSINESS_ERROR)
                     .component("OneSbErrorNormaliser")
                     .upstream(UPSTREAM, parsed.upstreamCode(), httpStatus)
                     .reason(parsed.detail() != null ? parsed.detail() : "1SB returned " + httpStatus)
                     .errors(parsed.errors())
                     .build();
         }
-        return ServiceException.of(ErrorCodes.UPSTREAM_BAD_RESPONSE)
-                .service(SERVICE_ID)
-                .layer(PlatformLayer.L5)
+        return serviceErrors.error(ErrorCodes.UPSTREAM_BAD_RESPONSE)
                 .component("OneSbErrorNormaliser")
                 .upstream(UPSTREAM, null, httpStatus)
                 .reason("Unexpected 1SB status " + httpStatus)

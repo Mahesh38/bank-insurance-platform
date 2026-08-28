@@ -3,14 +3,12 @@ package com.bank.common.error;
 import com.bank.common.observability.ErrorMetrics;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
-import java.util.Iterator;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
@@ -20,15 +18,14 @@ class PlatformErrorHandlerEdgeCasesTest {
 
     private final SimpleMeterRegistry registry = new SimpleMeterRegistry();
 
-    private final class Handler extends PlatformErrorHandler {
-        Handler(Boundary boundary, ErrorMetrics metrics) {
-            super("onesb", PlatformLayer.L5, boundary, metrics);
-        }
-        @Override protected int validationStatus() { return 422; }
+    private static ErrorHandlingSettings internalSettings() {
+        return ErrorHandlingSettings.builder("onesb")
+            .layer(PlatformLayer.L5).boundary(TrustBoundary.INTERNAL).validationStatus(422).build();
     }
 
-    private Handler handler() {
-        return new Handler(PlatformErrorHandler.Boundary.INTERNAL, new ErrorMetrics(registry));
+    private PlatformErrorHandler handler() {
+        return new PlatformErrorHandler(internalSettings(),
+            new Slf4jErrorRecorder(PlatformLayer.L5, new ErrorMetrics(registry)));
     }
 
     @SuppressWarnings("unused")
@@ -115,7 +112,8 @@ class PlatformErrorHandlerEdgeCasesTest {
 
     @Test
     void aHandlerWithNoMetricsStillRespondsAndLogs() {
-        var body = new Handler(PlatformErrorHandler.Boundary.INTERNAL, null)
+        var body = new PlatformErrorHandler(internalSettings(),
+                new Slf4jErrorRecorder(PlatformLayer.L5, null))
             .handleServiceException(ServiceException.of(ErrorCodes.CONFLICT)
                 .service("onesb").layer(PlatformLayer.L5).build())
             .getBody();
@@ -127,10 +125,12 @@ class PlatformErrorHandlerEdgeCasesTest {
     }
 
     @Test
-    void theMetricsFactoryToleratesAnAbsentRegistry() {
-        assertThat(PlatformErrorHandler.errorMetrics(null)).isNull();
-        assertThat(PlatformErrorHandler.errorMetrics(new EmptyProvider<>())).isNull();
-        assertThat(PlatformErrorHandler.errorMetrics(new PresentProvider<>(registry))).isNotNull();
+    void aRecorderWithNoRegistryStillLogs() {
+        // A @WebMvcTest slice has no MeterRegistry. Losing the metric is acceptable; losing the
+        // error response because we could not count it is not.
+        ErrorRecorder noMetrics = new Slf4jErrorRecorder(PlatformLayer.L5, null);
+        assertThatNoException().isThrownBy(() -> noMetrics.record(
+            ServiceErrorResponse.of(ErrorCodes.CONFLICT).service("onesb").build(), null));
     }
 
     @Test
@@ -190,21 +190,5 @@ class PlatformErrorHandlerEdgeCasesTest {
             .isEqualTo("status overridden to 410 per FUNC-004 AC-2");
     }
 
-    private static final class EmptyProvider<T> implements ObjectProvider<T> {
-        @Override public T getObject() { throw new UnsupportedOperationException(); }
-        @Override public T getObject(Object... args) { throw new UnsupportedOperationException(); }
-        @Override public T getIfAvailable() { return null; }
-        @Override public T getIfUnique() { return null; }
-        @Override public Iterator<T> iterator() { return List.<T>of().iterator(); }
-    }
 
-    private static final class PresentProvider<T> implements ObjectProvider<T> {
-        private final T value;
-        PresentProvider(T value) { this.value = value; }
-        @Override public T getObject() { return value; }
-        @Override public T getObject(Object... args) { return value; }
-        @Override public T getIfAvailable() { return value; }
-        @Override public T getIfUnique() { return value; }
-        @Override public Iterator<T> iterator() { return List.of(value).iterator(); }
-    }
 }

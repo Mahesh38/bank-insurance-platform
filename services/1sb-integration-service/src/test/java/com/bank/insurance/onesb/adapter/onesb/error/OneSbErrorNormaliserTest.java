@@ -1,5 +1,7 @@
 package com.bank.insurance.onesb.adapter.onesb.error;
 
+import com.bank.insurance.onesb.TestErrors;
+
 import com.bank.common.error.ErrorCatalogue;
 import com.bank.common.error.ErrorCodes;
 import com.bank.common.error.PlatformLayer;
@@ -15,7 +17,7 @@ class OneSbErrorNormaliserTest {
 
     @BeforeEach
     void setUp() {
-        normaliser = new OneSbErrorNormaliser();
+        normaliser = new OneSbErrorNormaliser(TestErrors.ONESB);
     }
 
     @Test

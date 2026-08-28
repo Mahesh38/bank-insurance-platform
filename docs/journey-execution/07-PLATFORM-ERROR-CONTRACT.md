@@ -519,7 +519,51 @@ Two mislabelled `catalogueRef` values in the registry were found by the parity t
 `QUOTE_TIMEOUT` cited 04 §7, which names the journey state `TIMED_OUT` rather than that code, and
 `IDEMPOTENCY_CONFLICT` cited 04 §2, which names `IDEMPOTENCY_KEY_CONFLICT` (§13 row 1).
 
-### 13.5 Still open
+### 13.5 Design review, and what it changed
+
+A SOLID/DRY review of the delivered increment found two things that were reported as done and were
+not, plus real duplication. Recorded rather than quietly fixed, because the first two change what
+the epic can claim.
+
+**Corrections.**
+
+| # | Finding | Resolution |
+|---|---|---|
+| 1 | **`ERR-003` was not wired.** `ErrorPropagation` was referenced only by its own test, and no service deserialised a peer's envelope — so cross-service attribution did not happen at runtime | `ProblemJsonReader` added; both BFF clients now propagate, preserving incident id and first origin. `IdentityAuthorizationClient` previously let a downstream refusal escape as a raw `RestClientResponseException` into Spring's default 500 |
+| 2 | **Two of five services had no handler.** `identity-authorization-service` (the PDP) and `identity-provider-adapter-service` returned Spring's default error — no `code`, no `incidentId`, no attribution — contradicting this epic's `completion_definition` | Both now get the envelope from `PlatformErrorAutoConfiguration` without writing any code |
+
+**DRY and configuration.** The service id was a string literal in **31 places**; five
+`RequestDiagnosticConfig` classes were byte-identical apart from one string; `ServiceErrorResponse`
+re-listed all fifteen constructor arguments in five places; and the same
+`.service(…).layer(…)` preamble opened twenty-three throw sites.
+
+| Was | Is |
+|---|---|
+| 31 service-id literals | `bank.error.service-id`, injected once via `ServiceErrors` — **0 literals** in main code |
+| 5 identical filter configs + 2 advice subclasses | one `@AutoConfiguration`; **7 classes deleted** |
+| `validationStatus()` overridden by subclassing | `bank.error.validation-status` |
+| Redaction fixed at compile time | `bank.error.boundary` (architectural) **and** `bank.error.expose-diagnostics` (debug, **refused under the prod profile**) |
+| 15-argument copy repeated 5× | one `copy()` path over `toBuilder()` |
+| `ErrorDiagnostic`: 15 hand-written getters | Lombok `@Value`, 171 → 134 lines, no call-site change |
+
+The two settings in that fourth row are deliberately separate. Collapsing them into one flag would
+have forced `1sb-integration-service` — cluster-private, and legitimately not redacting — to enable
+the debug switch, and then fail to start in production against the guard protecting devices.
+Architectural position is permanent; debug exposure is per-environment.
+
+**SOLID.** `PlatformErrorHandler` mapped, stamped, redacted, logged and metered; recording moved to
+`ErrorRecorder` / `Slf4jErrorRecorder`, leaving the handler the HTTP contract. `ErrorCatalogue` was
+a closed static map; `ErrorDefinitionProvider` (via `ServiceLoader`) lets a module contribute codes
+without editing the shared library, and fails at class initialisation if one redefines an existing
+code.
+
+> **Recorded per Rule 3 of the AI execution contract.** The SPI was flagged before it was built as
+> premature structure — S08 posture rejects generic extension points on sight, and there is one
+> consumer set today. Mahesh directed it be built anyway; this note is the record, not a
+> re-argument. Revisit at the second LOB module: if nothing has implemented
+> `ErrorDefinitionProvider` by then, delete it.
+
+### 13.6 Still open
 
 
 All seven stories of `EPIC-001` are delivered. What remains is not code:

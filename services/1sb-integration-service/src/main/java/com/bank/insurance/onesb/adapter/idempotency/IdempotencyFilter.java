@@ -4,6 +4,7 @@ import com.bank.common.error.ErrorCodes;
 import com.bank.common.error.ErrorDiagnostic;
 import com.bank.common.error.PlatformLayer;
 import com.bank.common.error.ServiceErrorResponse;
+import com.bank.common.error.ServiceErrors;
 import com.bank.insurance.onesb.domain.port.outbound.IdempotencyPort;
 import com.bank.insurance.onesb.domain.port.outbound.IdempotencyPort.CachedResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -41,8 +42,11 @@ public class IdempotencyFilter extends OncePerRequestFilter {
 
     private final IdempotencyPort idempotencyPort;
     private final ObjectMapper objectMapper;
+    private final ServiceErrors serviceErrors;
 
-    public IdempotencyFilter(IdempotencyPort idempotencyPort, ObjectMapper objectMapper) {
+    public IdempotencyFilter(IdempotencyPort idempotencyPort, ObjectMapper objectMapper,
+                             ServiceErrors serviceErrors) {
+        this.serviceErrors = serviceErrors;
         this.idempotencyPort = idempotencyPort;
         this.objectMapper = objectMapper;
     }
@@ -116,9 +120,8 @@ public class IdempotencyFilter extends OncePerRequestFilter {
     private void writeError(HttpServletResponse response, int status, String code,
                             String title, String detail) throws IOException {
         ServiceErrorResponse body = ServiceErrorResponse.of(code)
-                .service("onesb")
-                .diagnostic(ErrorDiagnostic.builder(code)
-                        .service("onesb")
+                .service(serviceErrors.serviceId())
+                .diagnostic(serviceErrors.diagnostic(code)
                         .layer(PlatformLayer.L4)
                         .component("IdempotencyFilter")
                         .reason(detail)

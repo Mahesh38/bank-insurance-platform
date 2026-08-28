@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.ServiceLoader;
 import java.util.Set;
 
 /**
@@ -25,12 +26,35 @@ import java.util.Set;
  * below is a constant with no interpolation, which is what makes the {@code S08-G7} PII assertion
  * a finite check over this class rather than an attempt to prove a negative over every log
  * statement in the codebase.
+ *
+ * <p><strong>Extension.</strong> The platform's codes are built in; a module with refusals of its
+ * own contributes them through {@link ErrorDefinitionProvider}, discovered by
+ * {@link ServiceLoader}. Providers are additive only — redefining an existing code fails at class
+ * initialisation rather than in production, because a module quietly changing the status or wording
+ * of a compliance gate is exactly the defect this registry exists to remove.
  */
 public final class ErrorCatalogue {
 
     private ErrorCatalogue() {}
 
-    private static final Map<String, ErrorDefinition> REGISTRY = buildRegistry();
+    private static final Map<String, ErrorDefinition> REGISTRY = loadRegistry();
+
+    private static Map<String, ErrorDefinition> loadRegistry() {
+        Map<String, ErrorDefinition> m = platformDefinitions();
+        for (ErrorDefinitionProvider provider : ServiceLoader.load(ErrorDefinitionProvider.class)) {
+            for (ErrorDefinition definition : provider.definitions()) {
+                ErrorDefinition existing = m.putIfAbsent(definition.code(), definition);
+                if (existing != null) {
+                    throw new IllegalStateException(
+                        provider.getClass().getName() + " redefines error code '" + definition.code()
+                            + "', which is already registered. Providers are additive only — "
+                            + "redefining a code makes two services answer differently for one "
+                            + "condition, which is the defect the catalogue removes.");
+                }
+            }
+        }
+        return Collections.unmodifiableMap(m);
+    }
 
     /**
      * The definition for {@code code}.
@@ -69,7 +93,7 @@ public final class ErrorCatalogue {
         return REGISTRY;
     }
 
-    private static Map<String, ErrorDefinition> buildRegistry() {
+    private static Map<String, ErrorDefinition> platformDefinitions() {
         Map<String, ErrorDefinition> m = new LinkedHashMap<>();
 
         // --- Pre-catalogue codes (kept at their published values) --------------------
@@ -290,7 +314,7 @@ public final class ErrorCatalogue {
             "Temporarily unavailable", "Please try again shortly.",
             AuditDisposition.NONE, Propagation.WRAP, "04 section 8");
 
-        return Collections.unmodifiableMap(m);
+        return m;
     }
 
     private static void put(Map<String, ErrorDefinition> m, String code, ErrorCategory category,

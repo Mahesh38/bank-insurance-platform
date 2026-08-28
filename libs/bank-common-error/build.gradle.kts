@@ -10,6 +10,9 @@ dependencies {
     compileOnly("org.springframework:spring-web")
     // MethodArgumentNotValidException extends validation.BindException, which lives here.
     compileOnly("org.springframework:spring-context")
+    compileOnly("org.springframework.boot:spring-boot-autoconfigure")
+    compileOnly("jakarta.servlet:jakarta.servlet-api")
+    compileOnly("com.fasterxml.jackson.core:jackson-databind")
     compileOnly("org.slf4j:slf4j-api")
     // MDC key names and the error counter. compileOnly, not implementation: every service already
     // declares bank-common-observability, and runtimeClasspath is dependency-locked, so a project
@@ -21,6 +24,10 @@ dependencies {
     testImplementation("io.micrometer:micrometer-core")
     testImplementation("org.springframework:spring-web")
     testImplementation("org.springframework:spring-context")
+    testImplementation("org.springframework.boot:spring-boot-autoconfigure")
+    testImplementation("org.springframework.boot:spring-boot-test")
+    testImplementation("jakarta.servlet:jakarta.servlet-api")
+    testImplementation("com.fasterxml.jackson.core:jackson-databind")
     testImplementation("org.slf4j:slf4j-api")
     testImplementation("ch.qos.logback:logback-classic")
     testImplementation("org.junit.jupiter:junit-jupiter")

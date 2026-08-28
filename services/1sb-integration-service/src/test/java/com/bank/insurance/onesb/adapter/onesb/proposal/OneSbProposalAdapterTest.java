@@ -1,5 +1,7 @@
 package com.bank.insurance.onesb.adapter.onesb.proposal;
 
+import com.bank.insurance.onesb.TestErrors;
+
 import com.bank.common.error.ErrorCodes;
 import com.bank.common.error.ServiceException;
 import com.bank.insurance.onesb.adapter.onesb.client.OneSbHttpClient;
@@ -53,7 +55,7 @@ class OneSbProposalAdapterTest {
                 .baseUrl(ONESB.baseUrl())
                 .requestFactory(http1Factory())
                 .build();
-        adapter = new OneSbProposalAdapter(new OneSbHttpClient(restClient), 3600L);
+        adapter = new OneSbProposalAdapter(new OneSbHttpClient(restClient, TestErrors.ONESB), 3600L);
     }
 
     private static JdkClientHttpRequestFactory http1Factory() {

@@ -1,6 +1,7 @@
 package com.bank.insurance.onesb.api;
 
 import com.bank.common.error.ErrorCodes;
+import com.bank.common.error.PlatformErrorAutoConfiguration;
 import com.bank.common.error.ServiceErrorResponse;
 import com.bank.common.error.ServiceException;
 import com.bank.insurance.onesb.domain.model.JobStatus;
@@ -38,7 +39,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Tag("FUNC-003")
 @WebMvcTest(controllers = QuoteController.class)
 @AutoConfigureMockMvc(addFilters = false)
-@Import(GlobalExceptionHandler.class)
+@Import(PlatformErrorAutoConfiguration.class)
 class QuoteGetControllerTest {
 
     @Autowired

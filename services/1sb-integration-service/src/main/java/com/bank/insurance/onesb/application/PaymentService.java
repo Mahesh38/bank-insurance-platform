@@ -7,6 +7,7 @@ import com.bank.common.audit.AuditOutcomes;
 import com.bank.common.error.ErrorCodes;
 import com.bank.common.error.ServiceErrorResponse;
 import com.bank.common.error.PlatformLayer;
+import com.bank.common.error.ServiceErrors;
 import com.bank.common.error.ServiceException;
 import com.bank.insurance.onesb.domain.command.CreatePaymentCommand;
 import com.bank.insurance.onesb.domain.model.JobStatus;
@@ -38,15 +39,19 @@ public class PaymentService implements PaymentUseCase {
     private final OneSbPaymentPort paymentPort;
     private final PaymentSessionStorePort sessionStore;
     private final AuditEventPublisher auditEventPublisher;
+    private final ServiceErrors serviceErrors;
+
 
     public PaymentService(JobStorePort jobStore,
                           OneSbPaymentPort paymentPort,
                           PaymentSessionStorePort sessionStore,
-                          AuditEventPublisher auditEventPublisher) {
+                          AuditEventPublisher auditEventPublisher,
+                          ServiceErrors serviceErrors) {
         this.jobStore = jobStore;
         this.paymentPort = paymentPort;
         this.sessionStore = sessionStore;
         this.auditEventPublisher = auditEventPublisher;
+        this.serviceErrors = serviceErrors;
     }
 
     @Override
@@ -66,9 +71,7 @@ public class PaymentService implements PaymentUseCase {
 
         OneSbPaymentUrlResult upstream = paymentPort.createPaymentUrl(command);
         if (!upstream.paymentUrl().toLowerCase(Locale.ROOT).startsWith("https://")) {
-            throw ServiceException.of(ErrorCodes.UPSTREAM_BAD_RESPONSE)
-                    .service("onesb")
-                    .layer(PlatformLayer.L5)
+            throw serviceErrors.error(ErrorCodes.UPSTREAM_BAD_RESPONSE)
                     .component("PaymentService")
                     .operation("createPaymentUrl")
                     .upstream("1SB", null, null)
@@ -104,20 +107,16 @@ public class PaymentService implements PaymentUseCase {
         }
     }
 
-    private static ServiceException notPayable(String reason) {
-        return ServiceException.of(ErrorCodes.PROPOSAL_NOT_PAYABLE)
-                .service("onesb")
-                .layer(PlatformLayer.L5)
+    private ServiceException notPayable(String reason) {
+        return serviceErrors.error(ErrorCodes.PROPOSAL_NOT_PAYABLE)
                 .component("PaymentService")
                 .operation("assertPayable")
                 .reason(reason)
                 .build();
     }
 
-    private static ServiceException validationError(String reason) {
-        return ServiceException.of(ErrorCodes.VALIDATION_ERROR)
-                .service("onesb")
-                .layer(PlatformLayer.L5)
+    private ServiceException validationError(String reason) {
+        return serviceErrors.error(ErrorCodes.VALIDATION_ERROR)
                 .component("PaymentService")
                 .operation("createPaymentSession")
                 .reason(reason)

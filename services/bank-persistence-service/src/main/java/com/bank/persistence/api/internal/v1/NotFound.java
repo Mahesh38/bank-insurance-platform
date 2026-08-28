@@ -1,17 +1,21 @@
 package com.bank.persistence.api.internal.v1;
 
 import com.bank.common.error.ErrorCodes;
-import com.bank.common.error.PlatformLayer;
+import com.bank.common.error.ServiceErrors;
 import com.bank.common.error.ServiceException;
 
+/**
+ * The one "not found" this service produces.
+ *
+ * <p>Takes the injected {@link ServiceErrors} rather than naming the service itself: an API class
+ * should not be the place a service id is written down.
+ */
 final class NotFound {
 
     private NotFound() {}
 
-    static ServiceException of(String resource, String id) {
-        return ServiceException.of(ErrorCodes.RESOURCE_NOT_FOUND)
-                .service("persistence")
-                .layer(PlatformLayer.L7)
+    static ServiceException of(ServiceErrors errors, String resource, String id) {
+        return errors.error(ErrorCodes.RESOURCE_NOT_FOUND)
                 .component(resource)
                 .reason(resource + " not found: " + id)
                 .build();

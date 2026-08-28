@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 510
-total_bytes: 12002856
+document_count: 511
+total_bytes: 12061063
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -1885,7 +1885,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 181325
+    bytes: 181673
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -3693,7 +3693,15 @@ documents:
     persona: engineering
     title: "07 — Platform Error Contract"
     answers: "One failure, one incident id, two renderings: a safe one for the end user and a complete one for"
-    bytes: 31622
+    bytes: 34925
+  - path: docs/journey-execution/08-SUPPORT-RUNBOOK.md
+    bucket: platform
+    authority: ai-drafted
+    capsules: [code-change, architecture-review, security-review]
+    persona: engineering
+    title: "08 — Support Runbook (`RB-*`)"
+    answers: "Every error the platform can return, and what L1 or L2 support does about it."
+    bytes: 54556
   - path: docs/journey-execution/README.md
     bucket: platform
     authority: ai-drafted

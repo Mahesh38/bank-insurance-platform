@@ -8,6 +8,7 @@ import com.bank.common.error.ErrorCodes;
 import com.bank.common.error.ServiceError;
 import com.bank.common.error.ServiceErrorResponse;
 import com.bank.common.error.PlatformLayer;
+import com.bank.common.error.ServiceErrors;
 import com.bank.common.error.ServiceException;
 import com.bank.insurance.onesb.domain.command.CreateQuoteCommand;
 import com.bank.insurance.onesb.domain.model.Lob;
@@ -34,17 +35,21 @@ public class QuoteService implements QuoteUseCase {
     private final OneSbQuotePort quotePort;
     private final JobPollSchedulerPort pollScheduler;
     private final AuditEventPublisher auditEventPublisher;
+    private final ServiceErrors serviceErrors;
+
 
     public QuoteService(JobStorePort jobStore,
                         LobQuoteHandlerRegistry handlerRegistry,
                         OneSbQuotePort quotePort,
                         JobPollSchedulerPort pollScheduler,
-                        AuditEventPublisher auditEventPublisher) {
+                        AuditEventPublisher auditEventPublisher,
+                          ServiceErrors serviceErrors) {
         this.jobStore = jobStore;
         this.handlerRegistry = handlerRegistry;
         this.quotePort = quotePort;
         this.pollScheduler = pollScheduler;
         this.auditEventPublisher = auditEventPublisher;
+        this.serviceErrors = serviceErrors;
     }
 
     @Override
@@ -79,9 +84,7 @@ public class QuoteService implements QuoteUseCase {
     @Override
     public QuoteJob getQuoteResult(String jobId) {
         return jobStore.findQuoteJob(jobId)
-                .orElseThrow(() -> ServiceException.of(ErrorCodes.RESOURCE_NOT_FOUND)
-                        .service("onesb")
-                        .layer(PlatformLayer.L5)
+                .orElseThrow(() -> serviceErrors.error(ErrorCodes.RESOURCE_NOT_FOUND)
                         .component("QuoteService")
                         .operation("getQuoteResult")
                         .reason("quote job not found: " + jobId)
@@ -127,9 +130,7 @@ public class QuoteService implements QuoteUseCase {
                     .anyMatch(e -> ErrorCodes.UNSUPPORTED_LOB.equals(e.code()))
                     ? ErrorCodes.UNSUPPORTED_LOB
                     : ErrorCodes.VALIDATION_ERROR;
-            throw ServiceException.of(code)
-                    .service("onesb")
-                    .layer(PlatformLayer.L5)
+            throw serviceErrors.error(code)
                     .component("QuoteService")
                     .operation("createQuote")
                     .reason("quote request validation failed: " + errors.size() + " field error(s)")

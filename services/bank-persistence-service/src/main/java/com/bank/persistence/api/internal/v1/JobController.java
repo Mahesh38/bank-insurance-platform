@@ -1,5 +1,6 @@
 package com.bank.persistence.api.internal.v1;
 
+import com.bank.common.error.ServiceErrors;
 import com.bank.persistence.api.internal.v1.dto.CreateJobRequest;
 import com.bank.persistence.api.internal.v1.dto.CreateOfferRequest;
 import com.bank.persistence.api.internal.v1.dto.CreatePollAttemptRequest;
@@ -35,10 +36,14 @@ public class JobController {
     private final IntegrationJobRepository jobRepository;
     private final IntegrationJobOfferRepository offerRepository;
     private final JobPollAttemptRepository pollAttemptRepository;
+    private final ServiceErrors serviceErrors;
+
 
     public JobController(IntegrationJobRepository jobRepository,
                          IntegrationJobOfferRepository offerRepository,
-                         JobPollAttemptRepository pollAttemptRepository) {
+                         JobPollAttemptRepository pollAttemptRepository,
+                          ServiceErrors serviceErrors) {
+        this.serviceErrors = serviceErrors;
         this.jobRepository = jobRepository;
         this.offerRepository = offerRepository;
         this.pollAttemptRepository = pollAttemptRepository;
@@ -68,14 +73,14 @@ public class JobController {
     public JobResponse getJob(@PathVariable String jobId) {
         return jobRepository.findById(jobId)
                 .map(JobController::toResponse)
-                .orElseThrow(() -> NotFound.of("Job", jobId));
+                .orElseThrow(() -> NotFound.of(serviceErrors, "Job", jobId));
     }
 
     @PatchMapping("/{jobId}/status")
     public JobResponse patchStatus(@PathVariable String jobId,
                                    @Valid @RequestBody PatchJobStatusRequest request) {
         IntegrationJobEntity entity = jobRepository.findById(jobId)
-                .orElseThrow(() -> NotFound.of("Job", jobId));
+                .orElseThrow(() -> NotFound.of(serviceErrors, "Job", jobId));
 
         entity.setStatus(request.status());
         if (request.failureReason() != null) {
@@ -98,7 +103,7 @@ public class JobController {
     @GetMapping("/{jobId}/offers")
     public List<OfferResponse> listOffers(@PathVariable String jobId) {
         if (!jobRepository.existsById(jobId)) {
-            throw NotFound.of("Job", jobId);
+            throw NotFound.of(serviceErrors, "Job", jobId);
         }
         return offerRepository.findByJobId(jobId).stream()
                 .map(JobController::toOfferResponse)
@@ -109,7 +114,7 @@ public class JobController {
     public ResponseEntity<OfferResponse> addOffer(@PathVariable String jobId,
                                                   @RequestBody CreateOfferRequest request) {
         if (!jobRepository.existsById(jobId)) {
-            throw NotFound.of("Job", jobId);
+            throw NotFound.of(serviceErrors, "Job", jobId);
         }
 
         Instant now = Instant.now();
@@ -137,7 +142,7 @@ public class JobController {
             @PathVariable String jobId,
             @Valid @RequestBody CreatePollAttemptRequest request) {
         if (!jobRepository.existsById(jobId)) {
-            throw NotFound.of("Job", jobId);
+            throw NotFound.of(serviceErrors, "Job", jobId);
         }
 
         JobPollAttemptEntity entity = new JobPollAttemptEntity();
@@ -156,7 +161,7 @@ public class JobController {
     @GetMapping("/{jobId}/poll-attempts")
     public List<PollAttemptResponse> listPollAttempts(@PathVariable String jobId) {
         if (!jobRepository.existsById(jobId)) {
-            throw NotFound.of("Job", jobId);
+            throw NotFound.of(serviceErrors, "Job", jobId);
         }
         return pollAttemptRepository.findByJobIdOrderByAttemptNumberAsc(jobId).stream()
                 .map(JobController::toPollAttemptResponse)

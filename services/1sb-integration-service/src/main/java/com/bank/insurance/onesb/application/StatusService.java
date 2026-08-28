@@ -6,6 +6,8 @@ import com.bank.common.audit.AuditEventPublisher;
 import com.bank.common.audit.AuditOutcomes;
 import com.bank.common.error.ErrorCodes;
 import com.bank.common.error.ServiceErrorResponse;
+import com.bank.common.error.PlatformLayer;
+import com.bank.common.error.ServiceErrors;
 import com.bank.common.error.ServiceException;
 import com.bank.insurance.onesb.domain.model.ApplicationStatus;
 import com.bank.insurance.onesb.domain.model.BankApplicationStatus;
@@ -46,11 +48,15 @@ public class StatusService implements StatusUseCase {
     private final OneSbStatusPort statusPort;
     private final AuditEventPublisher auditEventPublisher;
     private final Clock clock;
+    private final ServiceErrors serviceErrors;
 
-    public StatusService(OneSbStatusPort statusPort, AuditEventPublisher auditEventPublisher, Clock clock) {
+
+    public StatusService(OneSbStatusPort statusPort, AuditEventPublisher auditEventPublisher, Clock clock,
+                          ServiceErrors serviceErrors) {
         this.statusPort = statusPort;
         this.auditEventPublisher = auditEventPublisher;
         this.clock = clock;
+        this.serviceErrors = serviceErrors;
     }
 
     @Override
@@ -68,14 +74,12 @@ public class StatusService implements StatusUseCase {
 
         Optional<OneSbApplicationStatusResult> upstream =
                 statusPort.getStatus(applicationNumber, insurerCode, productCode);
-        OneSbApplicationStatusResult result = upstream.orElseThrow(() -> new ServiceException(
-                ServiceErrorResponse.builder()
-                        .title("Not Found")
-                        .status(404)
-                        .detail("No status found for applicationNumber: " + applicationNumber)
-                        .code(ErrorCodes.RESOURCE_NOT_FOUND)
-                        .retryable(false)
-                        .build()));
+        OneSbApplicationStatusResult result = upstream.orElseThrow(
+                () -> serviceErrors.error(ErrorCodes.RESOURCE_NOT_FOUND)
+                        .component("StatusService")
+                        .operation("getStatus")
+                        .reason("no status found for applicationNumber: " + applicationNumber)
+                        .build());
 
         BankApplicationStatus bankStatus = normalise(result.rawStatus());
         ApplicationStatus status = new ApplicationStatus(
@@ -124,14 +128,12 @@ public class StatusService implements StatusUseCase {
         return BankApplicationStatus.UNKNOWN;
     }
 
-    private static ServiceException validationError(String detail) {
-        return new ServiceException(ServiceErrorResponse.builder()
-                .title("Validation Failed")
-                .status(422)
-                .detail(detail)
-                .code(ErrorCodes.VALIDATION_ERROR)
-                .retryable(false)
-                .build());
+    private ServiceException validationError(String reason) {
+        return serviceErrors.error(ErrorCodes.VALIDATION_ERROR)
+                .component("StatusService")
+                .operation("getStatus")
+                .reason(reason)
+                .build();
     }
 
     private void publishStatusChecked(ApplicationStatus status, Lob lob, String actorId) {

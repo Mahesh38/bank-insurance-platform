@@ -90,7 +90,7 @@ class PaymentSessionApiTest {
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentTypeCompatibleWith("application/problem+json"))
                 .andExpect(jsonPath("$.code", is(ErrorCodes.RESOURCE_NOT_FOUND)))
-                .andExpect(jsonPath("$.title", is("Not Found")))
+                .andExpect(jsonPath("$.title", is("Not found")))
                 .andExpect(jsonPath("$.status", is(404)));
     }
 

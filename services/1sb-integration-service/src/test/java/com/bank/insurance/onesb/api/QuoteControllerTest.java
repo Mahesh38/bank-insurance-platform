@@ -1,5 +1,7 @@
 package com.bank.insurance.onesb.api;
 
+import com.bank.common.error.PlatformErrorAutoConfiguration;
+
 import com.bank.common.error.ErrorCodes;
 import com.bank.insurance.onesb.domain.port.inbound.QuoteUseCase;
 import com.bank.insurance.onesb.domain.port.outbound.IdempotencyPort;
@@ -9,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -24,6 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @Tag("FUNC-002")
 @WebMvcTest(controllers = QuoteController.class)
+@Import(PlatformErrorAutoConfiguration.class)
 @AutoConfigureMockMvc(addFilters = false)
 class QuoteControllerTest {
 

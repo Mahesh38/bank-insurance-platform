@@ -41,3 +41,14 @@ management:
 logging:
   level:
     com.bank.identity.authz: INFO
+
+# Error contract (ADR-017 / EPIC-001). service-id is the registered id from
+# 07-PLATFORM-ERROR-CONTRACT.md section 2.2 — it appears in every error response, log line and
+# metric tag, so it is set once here rather than repeated as a literal at each throw site.
+# boundary is architectural and permanent; expose-diagnostics is a debug switch, defaults off and
+# is refused under the prod profile.
+bank:
+  error:
+    service-id: authz
+    layer: L5
+    boundary: INTERNAL

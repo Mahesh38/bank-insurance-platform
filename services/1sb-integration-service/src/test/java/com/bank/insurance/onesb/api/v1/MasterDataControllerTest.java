@@ -1,7 +1,7 @@
 package com.bank.insurance.onesb.api.v1;
 
 import com.bank.common.error.ErrorCodes;
-import com.bank.insurance.onesb.api.GlobalExceptionHandler;
+import com.bank.common.error.PlatformErrorAutoConfiguration;
 import com.bank.insurance.onesb.application.MasterDataService;
 import com.bank.insurance.onesb.application.MasterLookupOutcome;
 import com.bank.insurance.onesb.domain.model.LookupValue;
@@ -37,7 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Tag("FUNC-001")
 @WebMvcTest(controllers = MasterDataController.class)
 @AutoConfigureMockMvc(addFilters = false)
-@Import(GlobalExceptionHandler.class)
+@Import(PlatformErrorAutoConfiguration.class)
 class MasterDataControllerTest {
 
     @Autowired

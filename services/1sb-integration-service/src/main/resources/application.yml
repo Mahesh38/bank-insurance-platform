@@ -36,6 +36,11 @@ insurance:
 
 # Platform common persistence HTTP client (bank-persistence-service)
 bank:
+  error:
+    service-id: onesb
+    layer: L5
+    boundary: INTERNAL
+
   persistence:
     base-url: ${BANK_PERSISTENCE_BASE_URL:http://localhost:8081}
 

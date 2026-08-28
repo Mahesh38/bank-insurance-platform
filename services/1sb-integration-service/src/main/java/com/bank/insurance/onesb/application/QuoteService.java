@@ -7,6 +7,8 @@ import com.bank.common.audit.AuditOutcomes;
 import com.bank.common.error.ErrorCodes;
 import com.bank.common.error.ServiceError;
 import com.bank.common.error.ServiceErrorResponse;
+import com.bank.common.error.PlatformLayer;
+import com.bank.common.error.ServiceErrors;
 import com.bank.common.error.ServiceException;
 import com.bank.insurance.onesb.domain.command.CreateQuoteCommand;
 import com.bank.insurance.onesb.domain.model.Lob;
@@ -33,17 +35,21 @@ public class QuoteService implements QuoteUseCase {
     private final OneSbQuotePort quotePort;
     private final JobPollSchedulerPort pollScheduler;
     private final AuditEventPublisher auditEventPublisher;
+    private final ServiceErrors serviceErrors;
+
 
     public QuoteService(JobStorePort jobStore,
                         LobQuoteHandlerRegistry handlerRegistry,
                         OneSbQuotePort quotePort,
                         JobPollSchedulerPort pollScheduler,
-                        AuditEventPublisher auditEventPublisher) {
+                        AuditEventPublisher auditEventPublisher,
+                          ServiceErrors serviceErrors) {
         this.jobStore = jobStore;
         this.handlerRegistry = handlerRegistry;
         this.quotePort = quotePort;
         this.pollScheduler = pollScheduler;
         this.auditEventPublisher = auditEventPublisher;
+        this.serviceErrors = serviceErrors;
     }
 
     @Override
@@ -78,13 +84,11 @@ public class QuoteService implements QuoteUseCase {
     @Override
     public QuoteJob getQuoteResult(String jobId) {
         return jobStore.findQuoteJob(jobId)
-                .orElseThrow(() -> new ServiceException(ServiceErrorResponse.builder()
-                        .title("Not Found")
-                        .status(404)
-                        .detail("Quote job not found: " + jobId)
-                        .code(ErrorCodes.RESOURCE_NOT_FOUND)
-                        .retryable(false)
-                        .build()));
+                .orElseThrow(() -> serviceErrors.error(ErrorCodes.RESOURCE_NOT_FOUND)
+                        .component("QuoteService")
+                        .operation("getQuoteResult")
+                        .reason("quote job not found: " + jobId)
+                        .build());
     }
 
     private void validate(CreateQuoteCommand command) {
@@ -126,14 +130,12 @@ public class QuoteService implements QuoteUseCase {
                     .anyMatch(e -> ErrorCodes.UNSUPPORTED_LOB.equals(e.code()))
                     ? ErrorCodes.UNSUPPORTED_LOB
                     : ErrorCodes.VALIDATION_ERROR;
-            throw new ServiceException(ServiceErrorResponse.builder()
-                    .title("Validation Failed")
-                    .status(422)
-                    .detail("Quote request validation failed")
-                    .code(code)
-                    .retryable(false)
+            throw serviceErrors.error(code)
+                    .component("QuoteService")
+                    .operation("createQuote")
+                    .reason("quote request validation failed: " + errors.size() + " field error(s)")
                     .errors(errors)
-                    .build());
+                    .build();
         }
     }
 

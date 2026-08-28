@@ -2,14 +2,12 @@ package com.bank.common.error;
 
 import lombok.Builder;
 import lombok.NonNull;
+import lombok.Singular;
 import lombok.ToString;
 import lombok.Value;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * RFC 7807 "Problem Details for HTTP APIs" response envelope, extended with
@@ -37,15 +35,25 @@ import java.util.Objects;
 @ToString(of = {"status", "code", "detail", "incidentId", "service"})
 public class ServiceErrorResponse {
 
-    String    type;
+    @Builder.Default String type = "about:blank";
     @NonNull String title;
     int       status;
     String    detail;
     @NonNull String code;
     boolean   retryable;
     String    upstreamCode;
-    Instant   timestamp;
-    List<ServiceError> errors;
+
+    /** Stamped at build time when the caller does not supply one. */
+    @Builder.Default Instant timestamp = Instant.now();
+
+    /**
+     * Field-level errors.
+     *
+     * <p>{@code @Singular} gives the accumulating semantics this envelope needs — {@code addError}
+     * for one, {@code errors} for many, {@code clearErrors} to reset — and an immutable list at
+     * build time, which is what the hand-written builder was doing by hand.
+     */
+    @Singular("addError") List<ServiceError> errors;
 
     // --- Added by ERR-001. Additive: existing fields and their values are unchanged. ---
 
@@ -78,7 +86,6 @@ public class ServiceErrorResponse {
     public static ServiceErrorResponseBuilder of(String code) {
         ErrorDefinition d = ErrorCatalogue.require(code);
         return builder()
-            .type("about:blank")
             .title(d.publicTitle())
             .status(d.httpStatus())
             .detail(d.publicDetail())
@@ -101,8 +108,6 @@ public class ServiceErrorResponse {
         return toBuilder()
             .title(d != null ? d.publicTitle() : title)
             .detail(d != null ? d.publicDetail() : detail)
-            .clearErrors()
-            .errors(errors)
             .origin(null)
             .diagnostic(null)
             .build();
@@ -142,109 +147,22 @@ public class ServiceErrorResponse {
      * compile error.
      */
     private ServiceErrorResponse copy(java.util.function.UnaryOperator<ServiceErrorResponseBuilder> change) {
-        return change.apply(toBuilder().clearErrors().errors(errors)).build();
+        return change.apply(toBuilder()).build();
     }
 
-    // --- Factory shortcuts ---
-
-    public static ServiceErrorResponse validation(String detail, List<ServiceError> fieldErrors) {
-        return builder()
-            .type("about:blank")
-            .title("Validation Failed")
-            .status(400)
-            .detail(detail)
-            .code(ErrorCodes.VALIDATION_ERROR)
-            .category(ErrorCategory.VALIDATION)
-            .retryable(false)
-            .errors(fieldErrors)
-            .build();
-    }
-
-    public static ServiceErrorResponse upstreamBusiness(String detail, String upstreamCode) {
-        return builder()
-            .type("about:blank")
-            .title("Upstream Business Error")
-            .status(422)
-            .detail(detail)
-            .code(ErrorCodes.UPSTREAM_BUSINESS_ERROR)
-            .category(ErrorCategory.UPSTREAM)
-            .retryable(false)
-            .upstreamCode(upstreamCode)
-            .build();
-    }
-
-    public static ServiceErrorResponse upstreamUnavailable(String detail) {
-        return builder()
-            .type("about:blank")
-            .title("Upstream Unavailable")
-            .status(503)
-            .detail(detail)
-            .code(ErrorCodes.UPSTREAM_UNAVAILABLE)
-            .category(ErrorCategory.UPSTREAM)
-            .retryable(true)
-            .build();
-    }
-
-    public static ServiceErrorResponse unauthorized() {
-        return builder()
-            .type("about:blank")
-            .title("Unauthorized")
-            .status(401)
-            .detail("Authentication required")
-            .code(ErrorCodes.UNAUTHORIZED)
-            .category(ErrorCategory.AUTHENTICATION)
-            .retryable(false)
-            .build();
-    }
-
-    public static ServiceErrorResponse forbidden() {
-        return builder()
-            .type("about:blank")
-            .title("Forbidden")
-            .status(403)
-            .detail("Insufficient permissions")
-            .code(ErrorCodes.FORBIDDEN)
-            .category(ErrorCategory.AUTHORIZATION)
-            .retryable(false)
-            .build();
-    }
-
-    public static ServiceErrorResponse internalError(String detail) {
-        return builder()
-            .type("about:blank")
-            .title("Internal Server Error")
-            .status(500)
-            .detail(detail)
-            .code(ErrorCodes.INTERNAL_ERROR)
-            .category(ErrorCategory.INTERNAL)
-            .retryable(false)
-            .build();
-    }
-
+    /**
+     * Only the one builder method that carries behaviour.
+     *
+     * <p>Everything else — defaults, the accumulating {@code errors} list, the null checks on
+     * {@code title} and {@code code}, and {@code build()} itself — is generated. The hand-written
+     * versions re-listed all fifteen constructor arguments, which is the duplication that made
+     * adding a field a five-site edit.
+     */
     public static class ServiceErrorResponseBuilder {
-        private String type = "about:blank";
-        private boolean retryable = false;
-        private List<ServiceError> errors = new ArrayList<>();
-
-        public ServiceErrorResponseBuilder errors(List<ServiceError> errs) {
-            this.errors.addAll(errs);
-            return this;
-        }
-
-        /** Empties the accumulated list, so a {@code toBuilder()} copy does not double it. */
-        public ServiceErrorResponseBuilder clearErrors() {
-            this.errors = new ArrayList<>();
-            return this;
-        }
-
-        public ServiceErrorResponseBuilder addError(ServiceError e) {
-            this.errors.add(e);
-            return this;
-        }
 
         /**
-         * Attaches the diagnostic and adopts its incident id and origin, so the two halves of one
-         * failure cannot drift apart.
+         * Attaches the diagnostic and adopts its incident id, origin and service, so the two halves
+         * of one failure cannot drift apart.
          */
         public ServiceErrorResponseBuilder diagnostic(ErrorDiagnostic d) {
             this.diagnostic = d;
@@ -260,18 +178,6 @@ public class ServiceErrorResponse {
                 }
             }
             return this;
-        }
-
-        public ServiceErrorResponse build() {
-            Objects.requireNonNull(title, "title must not be null");
-            Objects.requireNonNull(code, "code must not be null");
-            Instant resolvedTimestamp = timestamp != null ? timestamp : Instant.now();
-            List<ServiceError> resolvedErrors =
-                Collections.unmodifiableList(new ArrayList<>(errors != null ? errors : List.of()));
-            return new ServiceErrorResponse(
-                type, title, status, detail, code, retryable, upstreamCode,
-                resolvedTimestamp, resolvedErrors,
-                category, service, incidentId, correlationId, origin, diagnostic);
         }
     }
 }

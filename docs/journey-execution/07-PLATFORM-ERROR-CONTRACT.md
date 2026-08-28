@@ -551,6 +551,34 @@ have forced `1sb-integration-service` — cluster-private, and legitimately not 
 the debug switch, and then fail to start in production against the guard protecting devices.
 Architectural position is permanent; debug exposure is per-environment.
 
+**Boilerplate.** A second pass removed the hand-written code that duplicated what Lombok already
+generates, and the dead API that predated the catalogue.
+
+| File | Was | Is | Why it went |
+|---|---:|---:|---|
+| `ServiceErrorResponse` | 277 | 183 | `@Singular` gives exactly the accumulate / `addError` / `clearErrors` semantics that were coded by hand, plus an immutable list; `@Builder.Default` covers `type` and `timestamp`; `@NonNull` covers the null checks. The custom `build()` re-listed all fifteen constructor arguments |
+| `ErrorHandlingSettings` | 101 | 71 | `@Value @Builder` — the whole builder and every accessor were generated code written out |
+| `PlatformErrorProperties` | 76 | 58 | `@Getter @Setter` — twelve accessors |
+| `ServiceException` | 209 | 194 | Seven pre-catalogue factories deleted (see below); duplicated `reason` state removed |
+| `ErrorDiagnostic` | 134 | 123 | Ten pass-through delegates deleted; `@Singular` for the cause chain |
+
+Net **−252 lines of main code**. What survives in the three builder classes is only what a generated
+setter cannot do: `diagnostic()` adopts the incident id and origin, `upstream()` sets three fields
+that always travel together, `cause()` walks an exception chain, and `incidentId()` ignores a null
+so a peer that sent none does not blank the token support searches on.
+
+> One thing deliberately undone during this pass: the first version of
+> `ErrorDiagnostic.Builder.incidentId` reached into Lombok's generated `$value` / `$set` fields to
+> override a `@Builder.Default`. It compiled and the tests passed. It was replaced anyway — a shared
+> library coupled to codegen internals breaks on a Lombok upgrade, in every consumer at once.
+
+**Dead pre-catalogue API removed.** `ServiceException.validation / upstreamBusiness /
+upstreamUnavailable / upstreamAuth / unauthorized / forbidden / internal` and the matching
+`ServiceErrorResponse` factories had **no production call sites** once every throw site moved to the
+catalogue. They were also the defect this contract removes, preserved as public API: each hand-built
+an envelope with a literal title and status. The ArchUnit rule stops a service reaching for
+`ServiceErrorResponse.builder()`; leaving these would have left the same door open one method along.
+
 **SOLID.** `PlatformErrorHandler` mapped, stamped, redacted, logged and metered; recording moved to
 `ErrorRecorder` / `Slf4jErrorRecorder`, leaving the handler the HTTP contract. `ErrorCatalogue` was
 a closed static map; `ErrorDefinitionProvider` (via `ServiceLoader`) lets a module contribute codes

@@ -1,5 +1,7 @@
 package com.bank.common.error;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
@@ -8,6 +10,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * <p>Everything here was previously a literal compiled into a service. The defaults are chosen so
  * that a service which configures nothing behaves safely rather than conveniently.
  */
+@Getter
+@Setter
 @ConfigurationProperties("bank.error")
 public class PlatformErrorProperties {
 
@@ -35,15 +39,14 @@ public class PlatformErrorProperties {
      * <p><strong>False by default, and refused outright under the {@code prod} profile.</strong>
      * Turning it on in dev or UAT lets an engineer read the full reason, upstream code and cause
      * chain straight off the response instead of correlating by incident id. Turning it on in
-     * production would put upstream prose and internal routes on a device, which is precisely the
-     * defect this contract was written to close — so production does not merely default it off, it
-     * rejects the setting and fails to start.
+     * production would put upstream prose and internal routes on a device, so production does not
+     * merely default it off — it rejects the setting and fails to start.
      */
     private boolean exposeDiagnostics = false;
 
     /**
-     * Status returned for a bean-validation failure. 422 platform-wide; {@code bank-persistence-service}
-     * publishes 400 on {@code /internal/v1} and sets it here rather than by subclassing.
+     * Status returned for a bean-validation failure. 422 platform-wide;
+     * {@code bank-persistence-service} publishes 400 on {@code /internal/v1}.
      */
     private int validationStatus = 422;
 
@@ -52,25 +55,4 @@ public class PlatformErrorProperties {
 
     /** Whether {@code bank.error.count} is emitted. */
     private boolean metricsEnabled = true;
-
-    public String getServiceId() { return serviceId; }
-    public void setServiceId(String serviceId) { this.serviceId = serviceId; }
-
-    public PlatformLayer getLayer() { return layer; }
-    public void setLayer(PlatformLayer layer) { this.layer = layer; }
-
-    public TrustBoundary getBoundary() { return boundary; }
-    public void setBoundary(TrustBoundary boundary) { this.boundary = boundary; }
-
-    public boolean isExposeDiagnostics() { return exposeDiagnostics; }
-    public void setExposeDiagnostics(boolean exposeDiagnostics) { this.exposeDiagnostics = exposeDiagnostics; }
-
-    public int getValidationStatus() { return validationStatus; }
-    public void setValidationStatus(int validationStatus) { this.validationStatus = validationStatus; }
-
-    public Integer getMalformedBodyStatus() { return malformedBodyStatus; }
-    public void setMalformedBodyStatus(Integer malformedBodyStatus) { this.malformedBodyStatus = malformedBodyStatus; }
-
-    public boolean isMetricsEnabled() { return metricsEnabled; }
-    public void setMetricsEnabled(boolean metricsEnabled) { this.metricsEnabled = metricsEnabled; }
 }

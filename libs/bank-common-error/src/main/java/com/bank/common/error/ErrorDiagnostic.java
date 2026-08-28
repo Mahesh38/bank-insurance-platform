@@ -1,10 +1,9 @@
 package com.bank.common.error;
 
 import lombok.Builder;
+import lombok.Singular;
 import lombok.Value;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -28,7 +27,7 @@ import java.util.List;
  * ({@code 07 §8}).
  */
 @Value
-@Builder(builderMethodName = "hiddenBuilder")
+@Builder(builderClassName = "Builder", builderMethodName = "hiddenBuilder")
 public class ErrorDiagnostic {
 
     String incidentId;
@@ -43,13 +42,24 @@ public class ErrorDiagnostic {
     String upstreamSystem;
     String upstreamCode;
     Integer upstreamStatus;
-    List<String> causeChain;
+
+    /** Exception classes and redacted messages, outermost first. */
+    @Singular("causeFrame") List<String> causeChain;
+
     String remediation;
     String runbook;
 
-    /** Starts a diagnostic for {@code code}, pre-filled from the catalogue where it is registered. */
+    /**
+     * Starts a diagnostic for {@code code}, pre-filled from the catalogue where it is registered.
+     *
+     * <p>This is the entry point rather than a bare {@code builder()} because a diagnostic without
+     * a code cannot look up its own category or runbook, and one built that way would reach a log
+     * line missing exactly the fields support searches on.
+     */
     public static Builder builder(String code) {
-        return new Builder(code);
+        Builder builder = hiddenBuilder().code(code).incidentId(IncidentId.generate());
+        ErrorCatalogue.find(code).ifPresent(d -> builder.category(d.category()).runbook(d.runbook()));
+        return builder;
     }
 
     /**
@@ -76,59 +86,38 @@ public class ErrorDiagnostic {
     }
 
     /**
-     * Builder. {@code code} is required; everything else is best-effort context.
+     * Only the three builder methods that do something a generated setter cannot.
      *
-     * <p>Hand-written rather than generated, because it does two things generation cannot: it seeds
-     * the category and runbook from the catalogue, and {@link #cause(Throwable)} walks an exception
-     * chain into strings.
+     * <p>The other ten were pass-throughs to the generated builder — code whose entire content was
+     * its own signature. Nothing here reaches into Lombok's generated internals: a shared library
+     * coupled to codegen field names breaks on an upgrade, in every consumer at once.
      */
-    public static final class Builder {
-        private final ErrorDiagnosticBuilder delegate = ErrorDiagnostic.hiddenBuilder();
-        private final List<String> causeChain = new ArrayList<>();
+    public static class Builder {
 
-        private Builder(String code) {
-            delegate.code(code).incidentId(IncidentId.generate());
-            ErrorCatalogue.find(code).ifPresent(d -> delegate.category(d.category()).runbook(d.runbook()));
-        }
-
-        public Builder incidentId(String v)     { if (v != null) delegate.incidentId(v); return this; }
-        public Builder category(ErrorCategory v){ delegate.category(v); return this; }
-        public Builder service(String v)        { delegate.service(v); return this; }
-        public Builder layer(PlatformLayer v)   { delegate.layer(v); return this; }
-        public Builder component(String v)      { delegate.component(v); return this; }
-        public Builder operation(String v)      { delegate.operation(v); return this; }
-        public Builder origin(ErrorOrigin v)    { delegate.origin(v); return this; }
-        public Builder reason(String v)         { delegate.reason(v); return this; }
-        public Builder remediation(String v)    { delegate.remediation(v); return this; }
-        public Builder runbook(String v)        { delegate.runbook(v); return this; }
-
-        public Builder upstream(String system, String upstreamCode, Integer status) {
-            delegate.upstreamSystem(system).upstreamCode(upstreamCode).upstreamStatus(status);
-            return this;
+        /** The three upstream fields always travel together. */
+        public Builder upstream(String system, String code, Integer status) {
+            return upstreamSystem(system).upstreamCode(code).upstreamStatus(status);
         }
 
         /**
          * Records the exception chain, outermost first, as {@code SimpleName: message}.
          *
-         * <p>Bounded at {@link #MAX_CAUSE_DEPTH} frames: a chain longer than that is a wrapping
-         * problem, and an unbounded chain in a log line is how one failure fills a log budget.
+         * <p>Bounded at {@link #MAX_CAUSE_DEPTH} frames: a chain longer than that says more about
+         * wrapping than cause, and an unbounded chain in a log line is how one failure fills a log
+         * budget.
          */
         public Builder cause(Throwable t) {
             Throwable current = t;
             int depth = 0;
             while (current != null && depth++ < MAX_CAUSE_DEPTH) {
-                causeChain.add(current.getClass().getSimpleName()
+                causeFrame(current.getClass().getSimpleName()
                     + (current.getMessage() != null ? ": " + current.getMessage() : ""));
                 current = current.getCause() == current ? null : current.getCause();
             }
             return this;
         }
-
-        public ErrorDiagnostic build() {
-            return delegate.causeChain(Collections.unmodifiableList(new ArrayList<>(causeChain))).build();
-        }
     }
 
-    /** Deepest exception chain recorded. Beyond this the chain says more about wrapping than cause. */
+    /** Deepest exception chain recorded. */
     static final int MAX_CAUSE_DEPTH = 8;
 }

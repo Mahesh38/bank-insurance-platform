@@ -19,7 +19,7 @@ schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
 document_count: 511
-total_bytes: 12061063
+total_bytes: 12063346
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -3693,7 +3693,7 @@ documents:
     persona: engineering
     title: "07 — Platform Error Contract"
     answers: "One failure, one incident id, two renderings: a safe one for the end user and a complete one for"
-    bytes: 34925
+    bytes: 37208
   - path: docs/journey-execution/08-SUPPORT-RUNBOOK.md
     bucket: platform
     authority: ai-drafted

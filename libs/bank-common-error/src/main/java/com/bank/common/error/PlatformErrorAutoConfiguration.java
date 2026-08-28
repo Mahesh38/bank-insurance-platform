@@ -55,7 +55,7 @@ public class PlatformErrorAutoConfiguration {
             .boundary(properties.getBoundary())
             .exposeDiagnostics(properties.isExposeDiagnostics())
             .validationStatus(properties.getValidationStatus())
-            .malformedBodyStatus(properties.getMalformedBodyStatus())
+            .malformedBodyStatusOverride(properties.getMalformedBodyStatus())
             .build();
     }
 

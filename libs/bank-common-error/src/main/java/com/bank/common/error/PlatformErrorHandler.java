@@ -159,7 +159,10 @@ public abstract class PlatformErrorHandler {
     protected ResponseEntity<ServiceErrorResponse> emit(ServiceErrorResponse response, Throwable cause) {
         ServiceErrorResponse stamped = response
             .withService(serviceId)
-            .withIncidentId(IncidentId.generate());
+            .withIncidentId(IncidentId.generate())
+            // Seeded at the edge by RequestDiagnosticFilter. Stamping it here is what lets a
+            // caller quote one id and support pull every line of the request, not just the failure.
+            .withCorrelationId(org.slf4j.MDC.get(MdcKeys.CORRELATION_ID));
 
         record(stamped, cause);
 

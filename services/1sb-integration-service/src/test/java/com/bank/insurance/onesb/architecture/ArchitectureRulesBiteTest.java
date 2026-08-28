@@ -52,7 +52,8 @@ class ArchitectureRulesBiteTest {
                 .contains(
                         FIXTURE_PACKAGE + ".adapter.FixtureAdapter",
                         FIXTURE_PACKAGE + ".application.AdapterDependentApplicationFixture",
-                        FIXTURE_PACKAGE + ".domain.SpringDependentDomainFixture");
+                        FIXTURE_PACKAGE + ".domain.SpringDependentDomainFixture",
+                        FIXTURE_PACKAGE + ".errors.HandBuiltEnvelopeFixture");
     }
 
     @Test
@@ -120,5 +121,18 @@ class ArchitectureRulesBiteTest {
 
         // Passes. This is the behaviour TD-007 removed from the production rules.
         vacuousButPermitted.check(fixtureClasses);
+    }
+
+    @Test
+    void handBuildingAnErrorEnvelopeIsRejected() {
+        ArchRule rule = noClasses()
+                .that().resideInAPackage(FIXTURE_PACKAGE + "..")
+                .should().callMethod(com.bank.common.error.ServiceErrorResponse.class, "builder")
+                .as("ERR-006 registry rule");
+
+        assertThatThrownBy(() -> rule.check(fixtureClasses))
+                .as("if this stops failing, the rule that keeps D4 closed has stopped biting")
+                .isInstanceOf(AssertionError.class)
+                .hasMessageContaining("HandBuiltEnvelopeFixture");
     }
 }

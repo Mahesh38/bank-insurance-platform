@@ -10,10 +10,14 @@ dependencies {
     // the registry is on the runtime classpath everywhere without adding a dependency (ADR-017
     // section 10). Consumers supply it, same pattern as slf4j above.
     compileOnly("io.micrometer:micrometer-core")
+    compileOnly("jakarta.servlet:jakarta.servlet-api")
 
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("org.assertj:assertj-core")
     testImplementation("ch.qos.logback:logback-classic")
     testImplementation("io.micrometer:micrometer-core")
+    testImplementation("jakarta.servlet:jakarta.servlet-api")
+    testImplementation("org.springframework:spring-test")
+    testImplementation("org.springframework:spring-web")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }

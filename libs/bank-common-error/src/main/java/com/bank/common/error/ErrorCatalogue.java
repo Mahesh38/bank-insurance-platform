@@ -107,9 +107,12 @@ public final class ErrorCatalogue {
             "Service temporarily unavailable", "Please try again shortly.",
             AuditDisposition.NONE, Propagation.WRAP, "pre-catalogue · FUNC-007 AC");
 
+        // Catalogue 04 section 7 has no code for this: it lists TIMED_OUT, a *journey state*, not a
+        // refusal. QUOTE_TIMEOUT is the wire code that reports it, so the reference is
+        // "pre-catalogue" rather than a section that does not name it.
         put(m, ErrorCodes.QUOTE_TIMEOUT, ErrorCategory.UPSTREAM, 504, Retryability.YES,
             "Quote took too long", "No insurer answered in time. You can request a new quote.",
-            AuditDisposition.NONE, Propagation.PROPAGATE, "04 section 7");
+            AuditDisposition.NONE, Propagation.PROPAGATE, "pre-catalogue (reports 04 section 7 TIMED_OUT)");
         put(m, ErrorCodes.QUOTE_EXPIRED, ErrorCategory.CONFLICT, 409, Retryability.AFTER_REMEDIATION,
             "Quote expired", "This quote is no longer valid. Please request a new one.",
             AuditDisposition.NONE, Propagation.PROPAGATE, "04 section 6");
@@ -130,7 +133,8 @@ public final class ErrorCatalogue {
         // condition — two codes for one condition is the defect this registry exists to remove.
         put(m, ErrorCodes.IDEMPOTENCY_CONFLICT, ErrorCategory.CONFLICT, 409, Retryability.NO,
             "Duplicate request", "This request was already submitted with different details.",
-            AuditDisposition.AUDIT, Propagation.PROPAGATE, "04 section 2");
+            AuditDisposition.AUDIT, Propagation.PROPAGATE,
+            "pre-catalogue (04 section 2 names it IDEMPOTENCY_KEY_CONFLICT — section 13 row 1)");
         put(m, ErrorCodes.UNAUTHORIZED, ErrorCategory.AUTHENTICATION, 401,
             "Sign-in required", "Please sign in and try again.", "pre-catalogue");
         put(m, ErrorCodes.FORBIDDEN, ErrorCategory.AUTHORIZATION, 403,

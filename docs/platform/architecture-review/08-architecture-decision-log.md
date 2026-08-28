@@ -1424,3 +1424,79 @@ origin: SUG-20260825-arb
 
 **Drafted:** Mahesh — Principal Insurance Platform Architect (Board 1 / R2) · 2026-08-25.
 Human T4 Architecture sign-off outstanding. Deepali jointly owns perimeter security policy.
+
+---
+
+## ADR-017 — One platform error contract: service-attributed errors, two renderings, one incident id
+
+```yaml
+id: ADR-017
+status: PROPOSED
+problem: >
+  Errors are not attributable and not safe. ServiceErrorResponse carries no service, origin or
+  layer, so a 502 observed at the BFF cannot be traced to the service that produced it. Upstream
+  1SB text and internal routes are returned to callers verbatim (OneSbErrorNormaliser sets
+  .detail(parsed.detail()); throw sites set .detail("1SB call failed: " + method + " " + path)).
+  Three services run three different exception handlers with three different contracts, the same
+  condition is worded differently at each throw site, and the ~60 codes catalogued in
+  journey-execution/04 are largely unimplemented — ErrorCodes defines 24 that barely intersect it.
+  There is no consistently tagged platform error series, so no error dashboard can be built.
+context_stage: "WS-3 at S08 Engineering Foundation; requirement raised by Mahesh 2026-08-27 for release zero"
+decision: >
+  Adopt one platform error contract, specified in
+  docs/journey-execution/07-PLATFORM-ERROR-CONTRACT.md, hardening the existing
+  libs/bank-common-error and libs/bank-common-observability modules rather than adding a framework.
+  1. Every error carries four coordinates — code (what), service (who), layer (where),
+     category (class) — plus origin when it did not begin in the responding service.
+  2. A code's HTTP status, retryability, public wording, audit behaviour and runbook are declared
+     ONCE in an error registry seeded from catalogue 04, never at a throw site. CI diffs the
+     registry against the catalogue in both directions.
+  3. One failure produces one incidentId, generated at first failure and preserved across every
+     hop. It is shown to the end user and printed on every log line, and it is the join key L1
+     support uses.
+  4. Two renderings. The public rendering (RFC 7807 + code, category, incidentId, correlationId)
+     is safe by construction: title and detail come from the registry, never from a throw site and
+     never from an upstream body. The diagnostic rendering (service, layer, component, operation,
+     origin, reason, upstream, causeChain, remediation, runbook) goes to logs and internal hops only.
+  5. The BFF (L4) is the redaction boundary: the last hop that may hold a diagnostic, the first
+     that must never emit one. Enforced by test, not by convention.
+  6. Propagation preserves incidentId and the first origin transitively. A compliance refusal the
+     RM can act on propagates as itself; a dependency failure wraps as UPSTREAM_*. Re-wrapping a
+     dependency failure as INTERNAL_ERROR is forbidden — INTERNAL means our defect, and conflating
+     the two destroys the only signal that says whose defect it is.
+  7. One platform counter, bank.error.count{service, code, category, layer, originService,
+     retryable, httpStatus}. Every tag is a bounded enum or registered service id; no tag is ever
+     a message, identifier or path.
+  8. Log level follows category: client-caused categories WARN without a stack, platform-caused
+     categories ERROR with one.
+  9. Additive only. No existing ErrorCodes value is renamed or removed (trigger G9); ErrorCodes is
+     documented as partner-consumed. Any proposal to change an existing value is T4 and stops.
+consequences: >
+  Positive — an error names its origin service and layer; end users get safe text while L1/L2 and
+  engineers get a complete diagnostic under one incident id; the catalogue becomes executable
+  rather than paper; S08-G7 becomes provable by asserting over a finite registry instead of over
+  every log statement; an error dashboard becomes buildable from one series.
+  Negative — a registry entry is required before a new code can be thrown, which is deliberate
+  friction; five services must migrate to one handler; the envelope grows by five fields.
+alternatives:
+  - option: "Keep per-service handlers, fix the leaking detail strings only"
+    rejected_because: "Closes D1/D2 and nothing else. Attribution, wording consistency and
+      countability — the substance of the requirement — remain unsolved, and the leak returns at
+      the next throw site because nothing prevents it"
+  - option: "A new generic cross-cutting error framework module"
+    rejected_because: "S08 posture rejects generic frameworks on sight. Two shared libs with three
+      existing consumers already exist; this hardens them"
+  - option: "Renumber codes into a structured BNK-<SVC>-<CAT>-<NNNN> scheme"
+    rejected_because: "Fires G9 — ErrorCodes values are partner-consumed. Catalogue 04's names are
+      already the published taxonomy; service attribution belongs in its own field, not smuggled
+      into the code string"
+risk_tier: T3
+authority_class: A3_JOINT_REVIEW
+origin: "human:Mahesh · SUG-20260827-err · EPIC-001"
+```
+
+**Drafted:** agent, for Mahesh — Principal Insurance Platform Architect (Board 1 / R2) · 2026-08-27.
+Board verdicts outstanding: Architecture, Technical, Product, QA, Security, Risk & Compliance,
+Operations (T3, seven boards per [`11 §3`](../../governance/11-REVIEW_GATES.md#3-proportionality--which-boards-are-mandatory)).
+Deepali jointly owns the redaction boundary (§4.4) and the PII allow-list (§8); Shivanshi owns the
+metric tag set (§7). Contract: [`07-PLATFORM-ERROR-CONTRACT.md`](../../journey-execution/07-PLATFORM-ERROR-CONTRACT.md).

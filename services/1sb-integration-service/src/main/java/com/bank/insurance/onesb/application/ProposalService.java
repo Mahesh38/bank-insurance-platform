@@ -7,6 +7,8 @@ import com.bank.common.audit.AuditOutcomes;
 import com.bank.common.error.ErrorCodes;
 import com.bank.common.error.ServiceError;
 import com.bank.common.error.ServiceErrorResponse;
+import com.bank.common.error.PlatformLayer;
+import com.bank.common.error.ServiceErrors;
 import com.bank.common.error.ServiceException;
 import com.bank.common.secrets.SecretProvider;
 import com.bank.insurance.onesb.domain.command.SubmitProposalCommand;
@@ -45,32 +47,30 @@ public class ProposalService implements ProposalUseCase {
     private final JobPollSchedulerPort pollScheduler;
     private final AuditEventPublisher auditEventPublisher;
     private final SecretProvider secretProvider;
+    private final ServiceErrors serviceErrors;
+
 
     public ProposalService(JobStorePort jobStore,
                            LobProposalHandlerRegistry handlerRegistry,
                            OneSbProposalPort proposalPort,
                            JobPollSchedulerPort pollScheduler,
                            AuditEventPublisher auditEventPublisher,
-                           SecretProvider secretProvider) {
+                           SecretProvider secretProvider,
+                          ServiceErrors serviceErrors) {
         this.jobStore = jobStore;
         this.handlerRegistry = handlerRegistry;
         this.proposalPort = proposalPort;
         this.pollScheduler = pollScheduler;
         this.auditEventPublisher = auditEventPublisher;
         this.secretProvider = secretProvider;
+        this.serviceErrors = serviceErrors;
     }
 
     @Override
     public ProposalSchema getSchema(Lob lob, String productCode, String manufacturerId,
                                     String version, String quoteJobId) {
         if (lob == null) {
-            throw new ServiceException(ServiceErrorResponse.builder()
-                    .title("Validation Failed")
-                    .status(422)
-                    .detail("lob is required")
-                    .code(ErrorCodes.VALIDATION_ERROR)
-                    .retryable(false)
-                    .build());
+            throw missingLob("getSchema");
         }
         if (StringUtils.hasText(quoteJobId)) {
             assertQuoteUsable(quoteJobId);
@@ -84,28 +84,20 @@ public class ProposalService implements ProposalUseCase {
     @Override
     public ProposalSubmitResult submit(SubmitProposalCommand command) {
         if (command.lob() == null) {
-            throw new ServiceException(ServiceErrorResponse.builder()
-                    .title("Validation Failed")
-                    .status(422)
-                    .detail("lob is required")
-                    .code(ErrorCodes.VALIDATION_ERROR)
-                    .retryable(false)
-                    .build());
+            throw missingLob("submit");
         }
 
         String agentId = TermProposalHandler.resolveAgentId(command);
         if (!StringUtils.hasText(agentId)) {
-            throw new ServiceException(ServiceErrorResponse.builder()
-                    .title("Agent Attribution Missing")
-                    .status(422)
-                    .detail("agentId is required on proposal submit")
-                    .code(ErrorCodes.AGENT_ATTRIBUTION_MISSING)
-                    .retryable(false)
+            throw serviceErrors.error(ErrorCodes.AGENT_ATTRIBUTION_MISSING)
+                    .component("ProposalService")
+                    .operation("submit")
+                    .reason("agentId is required on proposal submit")
                     .errors(List.of(ServiceError.ofField(
                             ErrorCodes.AGENT_ATTRIBUTION_MISSING,
                             "agentId is required",
                             "agentId")))
-                    .build());
+                    .build();
         }
 
         String actorId = StringUtils.hasText(command.actorId()) ? command.actorId() : "system";
@@ -158,13 +150,11 @@ public class ProposalService implements ProposalUseCase {
     @Override
     public QuoteJob getProposalResult(String jobId) {
         return jobStore.findQuoteJob(jobId)
-                .orElseThrow(() -> new ServiceException(ServiceErrorResponse.builder()
-                        .title("Not Found")
-                        .status(404)
-                        .detail("Proposal job not found: " + jobId)
-                        .code(ErrorCodes.RESOURCE_NOT_FOUND)
-                        .retryable(false)
-                        .build()));
+                .orElseThrow(() -> serviceErrors.error(ErrorCodes.RESOURCE_NOT_FOUND)
+                        .component("ProposalService")
+                        .operation("getProposalResult")
+                        .reason("proposal job not found: " + jobId)
+                        .build());
     }
 
     private void assertQuoteUsable(String quoteJobId) {
@@ -183,14 +173,29 @@ public class ProposalService implements ProposalUseCase {
         }
     }
 
-    private static ServiceException quoteExpired(String detail) {
-        return new ServiceException(ServiceErrorResponse.builder()
-                .title("Quote Expired")
-                .status(410)
-                .detail(detail)
-                .code(ErrorCodes.QUOTE_EXPIRED)
-                .retryable(false)
-                .build());
+    private ServiceException missingLob(String operation) {
+        return serviceErrors.error(ErrorCodes.VALIDATION_ERROR)
+                .component("ProposalService")
+                .operation(operation)
+                .reason("lob is required")
+                .errors(List.of(ServiceError.ofField(
+                        ErrorCodes.MISSING_REQUIRED_FIELD, "lob is required", "lob")))
+                .build();
+    }
+
+    /**
+     * FUNC-004 AC-2 answers 410 here, while catalogue 04 section 6 registers QUOTE_EXPIRED as 409.
+     * Both are ratified and they describe different conditions — a quote job that is gone, versus
+     * an offer selected past its validity window. The override preserves the approved behaviour
+     * and records the disagreement; see 07-PLATFORM-ERROR-CONTRACT.md section 13.
+     */
+    private ServiceException quoteExpired(String reason) {
+        return serviceErrors.error(ErrorCodes.QUOTE_EXPIRED)
+                .component("ProposalService")
+                .operation("assertQuoteUsable")
+                .statusOverride(410, "FUNC-004 AC-2 (phase-3, TL + QA approved)")
+                .reason(reason)
+                .build();
     }
 
     private void publishConsentRefMissing(SubmitProposalCommand command,

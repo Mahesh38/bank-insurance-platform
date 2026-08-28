@@ -186,6 +186,35 @@ class ArchitectureTest {
     }
 
     /**
+     * <b>ERR-006 — the error registry stays the single source of an error's shape.</b>
+     * <p>
+     * {@code D4} — one condition worded three ways in three places — was closed by moving every
+     * throw site onto {@code ServiceException.of(code)}, which takes status, wording, retryability
+     * and runbook from {@code ErrorCatalogue}. Nothing structural stopped it coming back: the next
+     * engineer in a hurry reaches for {@code ServiceErrorResponse.builder()} and invents a title
+     * and a status again, and the review that would catch it is the one nobody schedules.
+     * <p>
+     * This rule is that structure. Building the envelope by hand is how an upstream body or an
+     * internal route gets into {@code detail} in the first place, so the rule guards the leak fix
+     * as much as the wording.
+     * <p>
+     * {@code ArchitectureRulesBiteTest} proves it rejects a real violation rather than merely
+     * existing.
+     */
+    @Test
+    void noServiceCodeBuildsAnErrorEnvelopeByHand() {
+        ArchRule rule = noClasses()
+                .that().resideInAPackage(BASE_PACKAGE + "..")
+                .should().callMethod(
+                        com.bank.common.error.ServiceErrorResponse.class, "builder")
+                .as("ERR-006: build errors with ServiceException.of(code) / ServiceErrorResponse.of(code) "
+                        + "so status, wording and retryability come from ErrorCatalogue — a hand-built "
+                        + "envelope is how one condition acquires three different responses");
+
+        rule.check(importedClasses);
+    }
+
+    /**
      * <b>New — domain purity beyond Spring.</b> The domain must not depend on the JSON
      * serialization library or on Jakarta annotations either. Jackson annotations in a domain
      * record are how a wire format starts dictating a business model, and it happens one

@@ -1,5 +1,6 @@
 package com.bank.persistence.api.internal.v1;
 
+import com.bank.common.error.ServiceErrors;
 import com.bank.persistence.api.internal.v1.dto.CreatePaymentSessionRequest;
 import com.bank.persistence.api.internal.v1.dto.PaymentSessionResponse;
 import com.bank.persistence.entity.PaymentSessionEntity;
@@ -22,8 +23,12 @@ import java.util.UUID;
 public class PaymentSessionController {
 
     private final PaymentSessionRepository paymentSessionRepository;
+    private final ServiceErrors serviceErrors;
 
-    public PaymentSessionController(PaymentSessionRepository paymentSessionRepository) {
+
+    public PaymentSessionController(PaymentSessionRepository paymentSessionRepository,
+                          ServiceErrors serviceErrors) {
+        this.serviceErrors = serviceErrors;
         this.paymentSessionRepository = paymentSessionRepository;
     }
 
@@ -53,7 +58,7 @@ public class PaymentSessionController {
     public PaymentSessionResponse get(@PathVariable String sessionId) {
         return paymentSessionRepository.findById(sessionId)
                 .map(PaymentSessionController::toResponse)
-                .orElseThrow(() -> NotFound.of("Payment session", sessionId));
+                .orElseThrow(() -> NotFound.of(serviceErrors, "Payment session", sessionId));
     }
 
     static PaymentSessionResponse toResponse(PaymentSessionEntity e) {

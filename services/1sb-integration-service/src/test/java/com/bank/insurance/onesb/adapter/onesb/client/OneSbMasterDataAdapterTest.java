@@ -1,5 +1,7 @@
 package com.bank.insurance.onesb.adapter.onesb.client;
 
+import com.bank.insurance.onesb.TestErrors;
+
 import com.bank.common.error.ErrorCodes;
 import com.bank.common.error.ServiceException;
 import com.bank.insurance.onesb.adapter.onesb.error.OneSbErrorNormaliser;
@@ -51,7 +53,7 @@ class OneSbMasterDataAdapterTest {
                 .defaultHeaders(h -> h.setBasicAuth("test-api-key", "test-api-secret"))
                 .build();
         adapter = new OneSbMasterDataAdapter(
-                new OneSbHttpClient(restClient, new OneSbErrorNormaliser(), event -> {}));
+                new OneSbHttpClient(restClient, new OneSbErrorNormaliser(TestErrors.ONESB), event -> {}, TestErrors.ONESB));
     }
 
     @Test

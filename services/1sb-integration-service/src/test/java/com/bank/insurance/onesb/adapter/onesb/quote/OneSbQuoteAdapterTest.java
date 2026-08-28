@@ -1,5 +1,7 @@
 package com.bank.insurance.onesb.adapter.onesb.quote;
 
+import com.bank.insurance.onesb.TestErrors;
+
 import com.bank.common.secrets.SecretProvider;
 import com.bank.insurance.onesb.adapter.onesb.client.OneSbHttpClient;
 import com.bank.insurance.onesb.domain.command.CreateQuoteCommand;
@@ -48,7 +50,7 @@ class OneSbQuoteAdapterTest {
         SecretProvider secrets = mock(SecretProvider.class);
         when(secrets.getDistributorId()).thenReturn("TEST_DIST");
         TermQuoteHandler handler = new TermQuoteHandler(secrets);
-        LobQuoteHandlerRegistry registry = new LobQuoteHandlerRegistry(List.of(handler));
+        LobQuoteHandlerRegistry registry = new LobQuoteHandlerRegistry(List.of(handler), TestErrors.ONESB);
 
         RestClient restClient = RestClient.builder()
                 .baseUrl(wireMock.baseUrl())

@@ -4,6 +4,8 @@ import com.bank.common.audit.AuditActions;
 import com.bank.common.audit.AuditEvent;
 import com.bank.common.audit.AuditEventPublisher;
 import com.bank.common.audit.AuditOutcomes;
+import com.bank.common.error.ErrorCodes;
+import com.bank.common.error.PlatformLayer;
 import com.bank.common.error.ServiceException;
 import com.bank.insurance.onesb.adapter.onesb.error.OneSbErrorNormaliser;
 import com.bank.insurance.onesb.observability.PiiMasker;
@@ -105,7 +107,17 @@ public class OneSbHttpClient {
                 upstreamStatus = inferUpstreamStatus(se, upstreamStatus);
                 throw se;
             }
-            throw ServiceException.upstreamUnavailable("1SB call failed: " + method + " " + path, ex);
+            // The route and the provider name are a diagnostic, never a detail: they told the
+            // caller which internal endpoint we tried and who we tried it against (defect D2).
+            throw ServiceException.of(ErrorCodes.UPSTREAM_UNAVAILABLE)
+                    .service("onesb")
+                    .layer(PlatformLayer.L5)
+                    .component("OneSbHttpClient")
+                    .operation(method + " " + path)
+                    .upstream("1SB", null, upstreamStatus)
+                    .reason("1SB call failed: " + method + " " + path)
+                    .cause(ex)
+                    .build();
         } finally {
             long latencyMs = Math.max(0L, (System.nanoTime() - started) / 1_000_000L);
             publishAudit(method, path, body, latencyMs, upstreamStatus, outcome);

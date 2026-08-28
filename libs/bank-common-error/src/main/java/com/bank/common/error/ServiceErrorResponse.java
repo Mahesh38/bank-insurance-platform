@@ -121,6 +121,41 @@ public class ServiceErrorResponse {
         return origin != null || diagnostic != null;
     }
 
+    /**
+     * A copy stamped with the service that is answering, when it does not already name one.
+     *
+     * <p>Set by the shared handler rather than at a throw site, so no call site can forget it and
+     * no call site can claim to be a service it is not.
+     */
+    public ServiceErrorResponse withService(String serviceId) {
+        if (serviceId == null || service != null) {
+            return this;
+        }
+        return new ServiceErrorResponse(
+            type, title, status, detail, code, retryable, upstreamCode, timestamp, errors,
+            category, serviceId, incidentId, correlationId, origin, diagnostic);
+    }
+
+    /** A copy carrying {@code incidentId}, when it does not already have one. */
+    public ServiceErrorResponse withIncidentId(String id) {
+        if (id == null || incidentId != null) {
+            return this;
+        }
+        return new ServiceErrorResponse(
+            type, title, status, detail, code, retryable, upstreamCode, timestamp, errors,
+            category, service, id, correlationId, origin, diagnostic);
+    }
+
+    /** A copy carrying {@code correlationId}, when it does not already have one. */
+    public ServiceErrorResponse withCorrelationId(String id) {
+        if (id == null || correlationId != null) {
+            return this;
+        }
+        return new ServiceErrorResponse(
+            type, title, status, detail, code, retryable, upstreamCode, timestamp, errors,
+            category, service, incidentId, id, origin, diagnostic);
+    }
+
     // --- Factory shortcuts ---
 
     public static ServiceErrorResponse validation(String detail, List<ServiceError> fieldErrors) {

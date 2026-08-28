@@ -2,9 +2,20 @@ plugins {
     `java-library`
 }
 
-description = "SHARED-001: Bank error model — ServiceError, ServiceErrorResponse, ServiceException"
+description = "SHARED-001: Bank error model — catalogue, envelope, diagnostic, shared handler"
 
 dependencies {
+    // Consumers supply Spring and a logging backend at runtime; the error model itself stays
+    // usable from a plain Java module. Same pattern as bank-common-security / -secrets.
+    compileOnly("org.springframework:spring-web")
+    // MethodArgumentNotValidException extends validation.BindException, which lives here.
+    compileOnly("org.springframework:spring-context")
+    compileOnly("org.slf4j:slf4j-api")
+
+    testImplementation("org.springframework:spring-web")
+    testImplementation("org.springframework:spring-context")
+    testImplementation("org.slf4j:slf4j-api")
+    testImplementation("ch.qos.logback:logback-classic")
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("org.assertj:assertj-core")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")

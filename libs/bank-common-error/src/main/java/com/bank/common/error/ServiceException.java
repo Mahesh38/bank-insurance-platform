@@ -119,6 +119,7 @@ public class ServiceException extends RuntimeException {
                 .category(definition.category())
                 .retryable(definition.retryability().toBoolean())
                 .correlationId(correlationId)
+                .upstreamCode(d.getUpstreamCode())
                 .errors(errors)
                 .diagnostic(d)
                 .build();

@@ -1,6 +1,8 @@
 package com.bank.insurance.onesb.adapter.onesb.error;
 
+import com.bank.common.error.ErrorCatalogue;
 import com.bank.common.error.ErrorCodes;
+import com.bank.common.error.PlatformLayer;
 import com.bank.common.error.ServiceException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -65,5 +67,61 @@ class OneSbErrorNormaliserTest {
 
         assertThat(ex.getErrorResponse().getCode()).isEqualTo(ErrorCodes.UPSTREAM_BUSINESS_ERROR);
         assertThat(ex.isRetryable()).isFalse();
+    }
+
+    @Test
+    void upstreamProseNeverReachesTheCallerButIsKeptForSupport() {
+        String body = """
+                {
+                  "errors": [
+                    {"field": "pan", "code": "ERR_PAN_INVALID", "message": "PAN format invalid"}
+                  ]
+                }
+                """;
+
+        ServiceException ex = normaliser.normalise(400, body);
+
+        // Defect D1: this text used to be the response `detail`.
+        assertThat(ex.getErrorResponse().getDetail())
+                .as("the provider's own words must not be the bank caller's error message")
+                .doesNotContain("PAN format invalid")
+                .isEqualTo(ErrorCatalogue.require(ErrorCodes.UPSTREAM_BUSINESS_ERROR).publicDetail());
+
+        // ...and is not lost: it moved to the half engineers and L1/L2 read.
+        assertThat(ex.getDiagnostic().getReason()).isEqualTo("PAN format invalid");
+        assertThat(ex.getDiagnostic().getUpstreamSystem()).isEqualTo("1SB");
+        assertThat(ex.getDiagnostic().getUpstreamStatus()).isEqualTo(400);
+        assertThat(ex.getDiagnostic().getService()).isEqualTo("onesb");
+        assertThat(ex.getDiagnostic().getLayer()).isEqualTo(PlatformLayer.L5);
+        assertThat(ex.getIncidentId()).isNotNull();
+    }
+
+    @Test
+    void neitherTheProviderNameNorItsStatusAppearsInAnyDetail() {
+        // Defect D2: "1SB returned 503" / "Unexpected 1SB status" were response details.
+        for (ServiceException ex : java.util.List.of(
+                normaliser.normalise(401, "{\"message\":\"unauthorized\"}"),
+                normaliser.normalise(503, "gateway timeout"),
+                normaliser.normalise(302, ""),
+                normaliser.normalise(422, ""))) {
+
+            assertThat(ex.getErrorResponse().getDetail())
+                    .as("code %s", ex.getErrorResponse().getCode())
+                    .doesNotContain("1SB")
+                    .doesNotContainIgnoringCase("unauthorized")
+                    .doesNotContain("503");
+            assertThat(ex.getErrorResponse().getTitle()).doesNotContain("1SB");
+            assertThat(ex.getDiagnostic().getReason())
+                    .as("the operator still needs to know what the provider said")
+                    .isNotBlank();
+        }
+    }
+
+    @Test
+    void the401CarriesTheCredentialRunbookForLevelOneSupport() {
+        ServiceException ex = normaliser.normalise(401, "");
+
+        assertThat(ex.getDiagnostic().getRunbook()).isEqualTo("RB-UPSTREAM_AUTH_FAILURE");
+        assertThat(ex.getDiagnostic().getRemediation()).contains("IP whitelist");
     }
 }

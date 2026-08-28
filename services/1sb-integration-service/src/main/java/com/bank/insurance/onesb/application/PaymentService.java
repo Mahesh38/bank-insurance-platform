@@ -6,6 +6,7 @@ import com.bank.common.audit.AuditEventPublisher;
 import com.bank.common.audit.AuditOutcomes;
 import com.bank.common.error.ErrorCodes;
 import com.bank.common.error.ServiceErrorResponse;
+import com.bank.common.error.PlatformLayer;
 import com.bank.common.error.ServiceException;
 import com.bank.insurance.onesb.domain.command.CreatePaymentCommand;
 import com.bank.insurance.onesb.domain.model.JobStatus;
@@ -65,13 +66,15 @@ public class PaymentService implements PaymentUseCase {
 
         OneSbPaymentUrlResult upstream = paymentPort.createPaymentUrl(command);
         if (!upstream.paymentUrl().toLowerCase(Locale.ROOT).startsWith("https://")) {
-            throw new ServiceException(ServiceErrorResponse.builder()
-                    .title("Upstream Bad Response")
-                    .status(502)
-                    .detail("1SB returned a non-HTTPS payment URL")
-                    .code(ErrorCodes.UPSTREAM_BAD_RESPONSE)
-                    .retryable(true)
-                    .build());
+            throw ServiceException.of(ErrorCodes.UPSTREAM_BAD_RESPONSE)
+                    .service("onesb")
+                    .layer(PlatformLayer.L5)
+                    .component("PaymentService")
+                    .operation("createPaymentUrl")
+                    .upstream("1SB", null, null)
+                    .reason("1SB returned a non-HTTPS payment URL")
+                    .remediation("Do not forward the link. Raise with 1SB — a payment link must be TLS.")
+                    .build();
         }
 
         PaymentSession session = sessionStore.createSession(

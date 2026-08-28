@@ -98,9 +98,14 @@ public final class ErrorCatalogue {
         put(m, ErrorCodes.UPSTREAM_TIMEOUT, ErrorCategory.UPSTREAM, 504, Retryability.YES,
             "Service temporarily unavailable", "Please try again shortly.",
             AuditDisposition.NONE, Propagation.WRAP, "pre-catalogue");
-        put(m, ErrorCodes.UPSTREAM_BAD_RESPONSE, ErrorCategory.UPSTREAM, 502, Retryability.NO,
+        // Retryable by ratified AC, not by inference: FUNC-007-ASSIGNMENT.md line 28 specifies
+        // "a non-HTTPS upstream URL is rejected as UPSTREAM_BAD_RESPONSE (502, retryable)", and
+        // FUNC-007-REVIEW.md records it as passed. Two call sites disagreed on this flag before
+        // the registry existed — which is defect D4 in its purest form — and the documented AC
+        // is the one that wins.
+        put(m, ErrorCodes.UPSTREAM_BAD_RESPONSE, ErrorCategory.UPSTREAM, 502, Retryability.YES,
             "Service temporarily unavailable", "Please try again shortly.",
-            AuditDisposition.NONE, Propagation.WRAP, "pre-catalogue");
+            AuditDisposition.NONE, Propagation.WRAP, "pre-catalogue · FUNC-007 AC");
 
         put(m, ErrorCodes.QUOTE_TIMEOUT, ErrorCategory.UPSTREAM, 504, Retryability.YES,
             "Quote took too long", "No insurer answered in time. You can request a new quote.",

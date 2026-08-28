@@ -427,6 +427,7 @@ increment is additive-only.
 |---|---|---|---|---|
 | 1 | `IDEMPOTENCY_KEY_CONFLICT` (§2) | `IDEMPOTENCY_CONFLICT` | `IDEMPOTENCY_CONFLICT` | Catalogue 04 §2 corrected to the published value. Minting a second code for one condition would recreate defect **D4**, so the code was not added |
 | 2 | `OPPORTUNITY_REQUIRED` (§6) | *(absent)* | `OPPORTUNITY_REQUIRED`, public text reads "Lead required" | `ADR-014` renamed the context Opportunity → Lead, but catalogue 04 §6 still carries the old code name. The wire value is left alone (G9); the RM-facing wording follows `ADR-014` |
+| 3 | *(not stated)* | `UPSTREAM_BAD_RESPONSE` was **retryable at one call site and not at another** | `Retryability.YES` | Nothing — resolved. `FUNC-007-ASSIGNMENT.md` line 28 ratifies "502, retryable" and `FUNC-007-REVIEW.md` records it passed, so the documented AC decides. This is defect **D4** in its purest form: one code, two behaviours, caught the moment a registry forced a single answer |
 
 Neither is repaired here: both are edits to a ratified catalogue, which is the owner's call, and
 this increment's scope is the library. Raised so the CI diff in `ERR-005` does not silently
@@ -443,10 +444,35 @@ normalise them away.
 | `ServiceException.of(code)` — catalogue-driven, builds both halves under one incident id | `ServiceException.java` |
 | Evidence: 98.5% line / 82.9% branch on the lib; full multi-module build green | `./gradlew build` |
 
-Still open, in order: `ERR-002` (one shared handler; redaction wired at L4), `ERR-003`
-(propagation across services), `ERR-004` (structured logging and `bank.error.count`), `ERR-006`
-(PII test, ArchUnit leak rule), `ERR-007` (runbook pages).
+### 13.2 What `ERR-002` delivered
 
-**`toPublic()` is built and tested but not yet wired.** Until `ERR-002` calls it at the boundary,
-the leaks in **D1** and **D2** are still live in the three existing handlers. The capability
-exists; the enforcement does not.
+| Delivered | Where |
+|---|---|
+| `PlatformErrorHandler` — the one place an error becomes an HTTP response | `libs/bank-common-error` (Spring/slf4j `compileOnly`, the lib house pattern) |
+| All three advices now extend it; the duplicated mapping code is gone | `onesb` · `persistence` · `bff` |
+| Redaction wired at L4, and **`PUBLIC` is the default** — a service that declares no boundary redacts | `PlatformErrorHandler.Boundary` |
+| Log-then-redact ordering, proven by test | `redactionHappensAfterTheDiagnosticIsRecorded` |
+| Log level follows category: client-caused `WARN` without a stack, platform-caused `ERROR` with one | `PlatformErrorHandler.record` |
+| **D1 closed** — upstream 1SB prose no longer reaches `detail`; it moves to `reason` | `OneSbErrorNormaliser` |
+| **D2 closed** — `"1SB call failed: GET /path"` and `"Unexpected 1SB status"` no longer reach `detail` | `OneSbHttpClient` · `PaymentService` |
+| **D6 closed** — the BFF returns the platform envelope with a `code`, instead of a bare `ProblemDetail` | `BffExceptionHandler` |
+
+**One caller-visible change, made deliberately.** The BFF's 400 path used to echo
+`IllegalArgumentException.getMessage()`, guarded by a test that called the asymmetry intentional.
+It is withdrawn: the exceptions reaching that path include
+`"workforce.session.encryption-key must decode to 32 bytes"`, so "the message is safe" was a
+coincidence, not a property. The message now goes to the diagnostic and the caller receives an
+incident id instead. The test was rewritten to assert the stronger property across **both** paths
+rather than deleted. This is the one item on this increment a reviewer should look at first.
+
+### 13.3 Still open
+
+`ERR-003` (propagation across services), `ERR-004` (MDC + `bank.error.count`), `ERR-006` (PII test,
+ArchUnit leak rule), `ERR-007` (runbook pages).
+
+**D4 is only half closed.** The registry exists and forces one answer per code, but the application
+throw sites have not been migrated to it yet — `ProposalService`, `QuoteService` and `StatusService`
+still write their own `detail` strings (`"Proposal job not found: " + jobId`,
+`"No status found for applicationNumber: "`). Those echo the *caller's own* identifiers rather than
+vendor text or internal routes, so they are not D1/D2 leaks, but they are still three phrasings for
+one condition. Migrating them is mechanical and belongs with `ERR-003`.

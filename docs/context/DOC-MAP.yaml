@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 509
-total_bytes: 11953860
+document_count: 514
+total_bytes: 13380305
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -1869,7 +1869,7 @@ documents:
     persona: null
     title: "AGENT CONTEXT INDEX"
     answers: "============================================================================="
-    bytes: 43066
+    bytes: 43380
   - path: docs/context/BOOT.md
     bucket: context
     authority: non-binding-context
@@ -1885,7 +1885,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 180951
+    bytes: 182351
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -2958,6 +2958,46 @@ documents:
     title: "context manifest.schema"
     answers: "\"title\": \"Portable Context Module Manifest\""
     bytes: 3924
+  - path: docs/figma/wireframe/lead-creation-manual-product-selection.png
+    bucket: business
+    authority: non-binding-context
+    capsules: [product-decision, orient]
+    persona: product
+    title: "lead creation manual product selection"
+    answers: "Image artefact"
+    bytes: 185660
+  - path: docs/figma/wireframe/lead-creation-need-assessment.png
+    bucket: business
+    authority: non-binding-context
+    capsules: [product-decision, orient]
+    persona: product
+    title: "lead creation need assessment"
+    answers: "Image artefact"
+    bytes: 205548
+  - path: docs/figma/wireframe/product-detail-page-savings-plan.png
+    bucket: business
+    authority: non-binding-context
+    capsules: [product-decision, orient]
+    persona: product
+    title: "product detail page savings plan"
+    answers: "Image artefact"
+    bytes: 540582
+  - path: docs/figma/wireframe/product-listing-page-compare.png
+    bucket: business
+    authority: non-binding-context
+    capsules: [product-decision, orient]
+    persona: product
+    title: "product listing page compare"
+    answers: "Image artefact"
+    bytes: 260538
+  - path: docs/figma/wireframe/product-listing-page-savings-plan.png
+    bucket: business
+    authority: non-binding-context
+    capsules: [product-decision, orient]
+    persona: product
+    title: "product listing page savings plan"
+    answers: "Image artefact"
+    bytes: 232403
   - path: docs/figma_file_structure.json
     bucket: root
     authority: navigation

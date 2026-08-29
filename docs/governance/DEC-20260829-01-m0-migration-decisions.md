@@ -1,6 +1,7 @@
 # DEC-20260829-01 — Phase M0 decisions: gate evidence, governance-tree home, Render disposition
 
-**Status:** `AI-DRAFTED` — seven-persona consensus recorded. **Mandatory human T4 signatures are outstanding. Silence does not approve this file.**
+**Status:** **`APPROVED` 2026-08-29** — board outcome relayed by `human:Mahesh` and recorded. Supersedes the `AI-DRAFTED` state of this file.
+**Recorded by:** `agent:claude`. The agent recorded a decision the owner gave; it did not supply one (Rule CC-1, Rule PA-1).
 **Date:** 2026-08-29
 **Workstream:** WS-3 — AU Bank Insurance Distribution Platform
 **Stage:** S08 — Engineering Foundation (`GATE-S08` `OPEN`, 10 of 10 criteria open), S09 overlapped
@@ -21,9 +22,10 @@ and the two findings that discussion surfaced which `GLM-001` did not contain.
 `CR-014` · a waiver of any `GATE-S08` criterion · the bank's Appendix C exception · authority to run
 `terraform apply` against the bank control plane.
 
-Every decision below carries a **status**. Two are `RECOMMENDED` — the reasoning is complete and the
-named owner has not confirmed. One is `BLOCKED-EXTERNAL`. None is `APPROVED`, because no agent may
-record an approval it did not receive.
+Every decision below carried a **status** when this file was drafted: two `RECOMMENDED`, one
+`BLOCKED-EXTERNAL`, none `APPROVED`. **On 2026-08-29 the boards approved all three**, and the
+statuses below are updated accordingly. The reasoning is left exactly as it was drafted *before* the
+outcome was known — it is the record of how the decision was reached, not a reconstruction after it.
 
 ---
 
@@ -74,8 +76,9 @@ wrong.
 > **Option B — re-evidence on GitLab.** Stop investing in GitHub Actions evidence beyond keeping the
 > build green. `GATE-S08` stays open across the migration window and is reported open.
 >
-> **Status: `RECOMMENDED`** — consensus of six personas, no dissent. Amit's confirmation as the named
-> owner, and the boards', outstanding.
+> **Status: `APPROVED` 2026-08-29.** Selected by the boards as `AC-1`, with one addition to the
+> drafted wording: **GitHub Actions is kept green for rollback continuity only.** `GATE-S08` remains
+> `OPEN` throughout the migration.
 
 **Consequences, accepted deliberately:**
 
@@ -126,9 +129,11 @@ its own pipeline, which is simpler than the path-filtered arrangement in place t
 
 > **Internal position: `governance/platform-governance`, a ninth project.** Recorded as **`ADR-018`**.
 >
-> **Status: `RECOMMENDED` internally · `BLOCKED-EXTERNAL` for execution.** `GLM-001` M4.3 must not
-> create the project until the bank authority accepts the Appendix C exception in writing
-> (`C-ARC-2`). Mahesh's human T4 signature on the internal position is also outstanding.
+> **Status: `APPROVED` 2026-08-29, conditionally** — `AC-2`. The ninth project is approved
+> **subject to written acceptance of the Appendix C exception by the bank GitLab/architecture
+> authority before M4.3**. The external gate is unchanged by the approval: until the bank accepts,
+> M4.3 creates **eight** projects, not nine. On rejection, the fallback below applies — it is now a
+> board-approved fallback rather than a contingency note.
 
 **Fallback if the bank refuses the exception:** the tree goes to `product/backend` under a top-level
 `governance/` directory, with the governance pipeline path-filtered — accepting the `S08-G10` cost
@@ -169,7 +174,9 @@ no real premium or quote values.
 > retired when the EKS path can demonstrate an equivalent deployment — not on a date, on a
 > capability.
 >
-> **Status: `RECOMMENDED`.** Binding conditions: `C-SEC-8` and `C-CMP-5`.
+> **Status: `APPROVED` 2026-08-29** — `AC-3`, with the data prohibition restated explicitly at
+> approval: **no PII, no real premium or quote values, no production-like data**. Retired only after
+> EKS demonstrates equivalent deployment capability. Binding: `C-SEC-8`, `C-CMP-5`.
 
 **Consequence:** `render.yaml` migrates into `product/backend` unchanged, and one `ci-components`
 template must be able to deploy it. This is roughly two hours inside `GLM-001` M7.6 and is not
@@ -217,15 +224,23 @@ is amended; `C-OPS-4` supersedes the original text.
 | ID | Decision | Owner | Status | Blocking condition |
 |---|---|---|---|---|
 | **M0.1** | Triage and register the migration | Shivanshi | **DONE** | — |
-| **M0.2** | `CR-014` raised with seven board positions | Shivanshi drafts | **RAISED — `PENDING`** | Three human T4 signatures |
-| **M0.3** | Re-evidence `S08-G1/G2/G5/G9` on GitLab; stop GitHub Actions investment | Amit + boards | **RECOMMENDED** | Owner confirmation |
-| **M0.4** | `governance/platform-governance` as a ninth project (`ADR-018`) | Mahesh → bank | **RECOMMENDED · BLOCKED-EXTERNAL** | Bank Appendix C acceptance (`C-ARC-2`) |
-| **M0.5** | `CR-015` raised for the shared-persistence conflict | Mahesh + Aarti | **RAISED — `PENDING`** | Joint review; Aarti's verdict not substitutable |
-| **M0.6** | Render survives as dev-preview demo target | Shivanshi + Kalpana | **RECOMMENDED** | `C-SEC-8`, `C-CMP-5` |
+| **M0.2** | `CR-014` | Boards | **`APPROVED_WITH_CONDITIONS` 2026-08-29** | 29 board conditions + `AC-1`…`AC-5` |
+| **M0.3** | Re-evidence `S08-G1/G2/G5/G9` on GitLab; GitHub Actions green for **rollback continuity only** | Amit + boards | **`APPROVED`** (`AC-1`) | `GATE-S08` stays `OPEN` throughout |
+| **M0.4** | `governance/platform-governance` as a ninth project (`ADR-018`) | Mahesh → bank | **`APPROVED`, conditional** (`AC-2`) | Bank Appendix C acceptance **before M4.3** |
+| **M0.5** | `CR-015` — **Option B**: persistence ownership per bounded context, after migration (`ADR-019`) | Mahesh + Aarti | **`APPROVED` target model** | Aarti's S09 integrity/recovery review still owed |
+| **M0.6** | Render survives as dev-preview demo target | Shivanshi + Kalpana | **`APPROVED`** (`AC-3`) | No PII / real values / production-like data |
 
-**Phase M0 is complete as agent work.** It is **not** closed: three human T4 signatures, one bank
-exception and four owner confirmations are outstanding, and `GLM-001` M3 does not start until they
-land.
+**Phase M0 is CLOSED.** All six items are decided. `GLM-001` M3 (bootstrap IaC) is unblocked and may
+start.
+
+**What remains outstanding is no longer M0's.** Three things gate later phases and none of them
+blocks M3:
+
+| Outstanding | Gates | Owner |
+|---|---|---|
+| Bank Appendix C acceptance (`AC-2`, `ASM-021`) | **M4.3** — eight projects until it lands | bank authority |
+| Twelve enterprise inputs (`ASM-012` … `ASM-022`) | M3.3, M3.4 detail · M5.2 · M8 | bank |
+| Aarti's S09 integrity and recovery review (`CR-015` Q4) | The S09 allocation migration, **not** the GitLab migration | Aarti |
 
 ---
 
@@ -247,14 +262,26 @@ Two are **hard blocks on the first push to the bank estate** and neither has a w
 
 ---
 
-## 8. What no persona decided, and why
+## 8. What was decided, and what still is not
 
-| Not decided | Why |
+Recorded on 2026-08-29 after the board outcome.
+
+| Decided | By |
 |---|---|
-| Whether `CR-014` is approved | Rule CC-1 — an agent may raise a CR and may never approve one |
-| The three human T4 signatures | `BOOT.md` §3 — AI simulation cannot satisfy them, on any board, at any urgency |
-| The bank Appendix C exception | External authority; outside this repository's jurisdiction entirely |
-| The shared-persistence conflict (IMP-2) | Joint Mahesh + Aarti on `CR-015`; reversing an *Accepted* ADR needs its own evidence and its own approvers |
-| Whether the estate is permissible | `CMP-F01` is unanswered and Shailja will not rule around it |
-| A security exception if the edition is Premium | Deepali declined to pre-approve a downgrade she cannot yet see |
-| Any `GATE-S08` criterion as satisfied | Swapnali — unexecuted is not passed, under any schedule |
+| `CR-014` — `APPROVED_WITH_CONDITIONS`, 29 board conditions plus `AC-1`…`AC-5` | Boards, relayed 2026-08-29 |
+| `CR-015` — **Option B** as the target model, `ADR-019` | Boards, relayed 2026-08-29 |
+| M0.3, M0.4 (conditionally), M0.6 | Boards, relayed 2026-08-29 |
+
+| Still not decided | Why it stays open |
+|---|---|
+| The bank's Appendix C exception | External authority. `AC-2` makes its written acceptance a precondition of M4.3; approving M0.4 did not grant it |
+| Whether the estate is permissible | `CMP-F01` / `ASM-022` is unanswered. `C-CMP-1` blocks the first push and the approval did not lift it |
+| A security exception if the edition is Premium | `RISK-017`. Deepali declined to pre-approve a downgrade she cannot yet see, and the approval did not overrule that |
+| The **S09 persistence allocation migration** | `CR-015` approved a *target*. Aarti's integrity and recovery guarantees (Q4) are unanswered, and a data migration is not approved by approving its destination |
+| Any `GATE-S08` criterion as satisfied | `AC-1` keeps the gate `OPEN` throughout. Unexecuted is still not passed |
+
+> **On provenance.** This file records a board outcome relayed by the repository owner. The seven
+> files under [`CR-014/verdicts/`](./change-requests/CR-014/verdicts/README.md) remain **AI-drafted
+> board inputs** and are not signature artefacts — they are retained because the twenty-nine
+> approved conditions are defined in them. The agent recorded a decision the owner gave; it did not
+> supply one.

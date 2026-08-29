@@ -9,13 +9,22 @@
 **Plan:** [`GLM-001`](../../platform/gitlab-migration/GLM-001-migration-plan.md)
 **Authority document:** *Bank Insurance Platform — GitLab Terraform Bootstrap Requirements* v1.0, 29 Aug 2026, tabled as an **Approved Baseline for SRE Implementation**
 
-> ## Decision: `PENDING`
-> **No approver has signed.** Seven AI-drafted board positions are attached under
-> [`CR-014/verdicts/`](./CR-014/verdicts/README.md) as *inputs* to the boards. Per
-> [Rule CC-1](../14-CHANGE_CONTROL.md#3-procedure) an agent may raise a change request and may
-> never approve one, and per [BOOT §3](../../context/BOOT.md) the mandatory **human** T4
-> Architecture, Security and Risk & Compliance signatures cannot be satisfied by AI simulation.
-> Nothing this CR contemplates may be implemented before those signatures exist.
+> ## Decision: `APPROVED_WITH_CONDITIONS` — 2026-08-29
+> Approved by the boards with the **twenty-nine conditions** recorded in
+> [`CR-014/verdicts/`](./CR-014/verdicts/README.md), plus the five approval conditions at §11.
+>
+> **Provenance.** The board outcome was **relayed by `human:Mahesh` (repository owner) on
+> 2026-08-29**. This record captures the decision as relayed. It does not reproduce individual
+> signature artefacts, because the agent recording it did not witness them — per
+> [Rule CC-1](../14-CHANGE_CONTROL.md#3-procedure) an agent may record a decision the owner has
+> given, and may never manufacture one. The seven files under `verdicts/` remain **AI-drafted board
+> inputs** and are not signature artefacts; they are retained because the twenty-nine conditions
+> approved with this CR are defined in them.
+>
+> **The approval does not lift the conditions.** Two remain hard blocks on the first push to the
+> bank estate and neither has a workaround: `C-SEC-1` (clean blocking full-history secret scan) and
+> `C-CMP-1` (data residency confirmed permissible). Approval authorises the work; it does not
+> authorise starting it before its gates.
 
 ---
 
@@ -187,7 +196,7 @@ session depends on. `S08-G8` and `S08-G10` both fail if the operating model is u
 
 ## 7. What this CR does **not** do
 
-- It does **not** approve itself, and it does not record any signature.
+- It did **not** approve itself. The approval at the head of this document was taken by the boards and relayed on 2026-08-29; the agent recorded it and did not supply it.
 - It does **not** edit `current_phase`, `stage_status` or any stage field in `CURRENT-STATE.yaml`.
 - It does **not** waive, re-word or lower any `GATE-S08` exit criterion.
 - It does **not** resolve the shared-persistence conflict (IMP-2). That is
@@ -197,7 +206,7 @@ session depends on. `S08-G8` and `S08-G10` both fail if the operating model is u
   with its own gate.
 - It does **not** authorise any `terraform apply` against the bank GitLab control plane.
 - It does **not** declare GitLab authoritative or archive the GitHub origin.
-- It does **not** grant the Appendix C exception at §6 — it requests it.
+- It does **not** grant the Appendix C exception at §6 — it requests it, and `AC-2` makes the bank's written acceptance a precondition of M4.3.
 
 ---
 
@@ -215,17 +224,17 @@ session depends on. `S08-G8` and `S08-G10` both fail if the operating model is u
 
 ## 9. Board positions attached
 
-Seven AI-drafted positions are attached as **inputs**, not approvals:
+Seven AI-drafted positions were attached as **inputs** to the boards. The boards have since approved (see the decision block above); the files below remain inputs, and the twenty-nine conditions approved with this CR are defined in them:
 
 | Board / role | Persona | Drafted verdict | Signature |
 |---|---|---|---|
-| Board 1 — Architecture | Mahesh | `APPROVE-WITH-CONDITIONS` · `A2` | **Human T4 outstanding** |
+| Board 1 — Architecture | Mahesh | `APPROVE-WITH-CONDITIONS` · `A2` | Approved 2026-08-29 |
 | `R3` — Engineering | Amit | `APPROVE-WITH-CONDITIONS` | AI position |
-| Board 4 — Security | Deepali | `APPROVE-WITH-CONDITIONS` · `S1` | **Human T4 outstanding** |
+| Board 4 — Security | Deepali | `APPROVE-WITH-CONDITIONS` · `S1` | Approved 2026-08-29 |
 | Board 5 — QA | Swapnali | `APPROVE-WITH-CONDITIONS` · `Q1` hold on evidence | AI position |
-| Board 6 — Risk & Compliance | Shailja | `APPROVE-WITH-CONDITIONS` · `R2` | **Human T4 outstanding** |
+| Board 6 — Risk & Compliance | Shailja | `APPROVE-WITH-CONDITIONS` · `R2` | Approved 2026-08-29 |
 | Board 7 — Operations | Shivanshi | `APPROVE-WITH-CONDITIONS` · `O1` | AI position |
-| `R12` — Delivery | Kalpana | `CANDIDATE` — decision windows set | **`CANDIDATE` is not approval** |
+| `R12` — Delivery | Kalpana | `CANDIDATE` — decision windows set | Superseded by the board approval |
 
 Aarti (Database) is **not** an approver on CR-014. Her jurisdiction is engaged by
 [`CR-015`](./CR-015-shared-persistence-vs-bank-baseline.md) and cannot be satisfied here.
@@ -259,9 +268,36 @@ change_request:
       The platform remains on a personal GitHub account with no organisational control and a
       deployment path the bank baseline does not permit; GATE-S08 would close on infrastructure
       the bank neither owns nor audits.
-  decision: PENDING
-  approvers: []
-  decided_on: null
-  conditions: []
-  signature_status: "NO SIGNATURE. Seven AI-drafted board positions attached as inputs only."
+  decision: APPROVED_WITH_CONDITIONS
+  approvers: ["Board 1 Architecture", "Board 4 Security", "Board 5 QA", "Board 6 Risk & Compliance", "Board 7 Operations", "R3 Engineering", "R12 Delivery"]
+  decided_on: "2026-08-29"
+  recorded_by: "agent:claude, from a board outcome relayed by human:Mahesh on 2026-08-29"
+  conditions:
+    - "The 29 board conditions in CR-014/verdicts/ — C-SEC-1..8, C-CMP-1..5, C-ARC-1..5, C-OPS-1..6, C-ENG-1..5, C-QA-1..5"
+    - "AC-1 M0.3 Option B: GitHub Actions is kept green for rollback continuity only; S08-G1/G2/G5/G9 are re-evidenced on GitLab; GATE-S08 remains OPEN throughout the migration"
+    - "AC-2 M0.4: governance/platform-governance approved as the ninth project, subject to written acceptance of the Appendix C exception by the bank GitLab/architecture authority BEFORE M4.3; on rejection, the documented product/backend/governance/ fallback applies"
+    - "AC-3 M0.6: Render is retained as a dev-preview target only — no PII, no real premium or quote values, no production-like data — and is retired only after EKS demonstrates equivalent deployment capability"
+    - "AC-4 M9.4: GitHub becomes read-only at cutover, remains restorable for 14 days, and is archived only after the custody and retention disposition is approved"
+    - "AC-5 bank-persistence-service migrates UNCHANGED under CR-014; repository migration is not combined with persistence restructuring (C-ARC-3, ADR-019)"
+  signature_status: >
+    Board approval relayed by human:Mahesh 2026-08-29 and recorded. The verdicts/ files remain
+    AI-drafted inputs, not signature artefacts.
 ```
+
+---
+
+## 11. Approval conditions (`AC-1` … `AC-5`)
+
+Attached by the boards at approval, in addition to the twenty-nine conditions in `verdicts/`.
+
+| ID | Condition | Gates |
+|---|---|---|
+| `AC-1` | **M0.3 Option B.** GitHub Actions is kept green **for rollback continuity only**. `S08-G1`, `G2`, `G5` and `G9` are re-evidenced on GitLab. `GATE-S08` remains `OPEN` throughout the migration and is reported open | Continuous · M10.3 |
+| `AC-2` | **M0.4 approved, conditionally.** `governance/platform-governance` is the ninth project, **subject to written acceptance of the Appendix C exception by the bank GitLab/architecture authority before M4.3**. On rejection, the documented `product/backend/governance/` fallback applies | **M4.3** |
+| `AC-3` | **M0.6.** Render is a dev-preview target only — no PII, no real premium or quote values, no production-like data. Retired only after EKS demonstrates equivalent deployment capability — on capability, not on a date | Continuous |
+| `AC-4` | **M9.4.** GitHub becomes read-only at cutover, remains restorable for **14 days**, and is archived only after the custody and retention disposition is approved | **M9.4** |
+| `AC-5` | **`bank-persistence-service` migrates unchanged.** Repository migration is never combined with persistence restructuring. `CR-015` remains parallel and non-blocking | **M5.2** |
+
+`AC-2` and `AC-5` are the two that change what the migration may do. `AC-2` means M4.3 creates
+**eight** projects unless the bank exception has landed; `AC-5` restates `C-ARC-3` as an approval
+condition rather than a board condition, which makes it non-discretionary.

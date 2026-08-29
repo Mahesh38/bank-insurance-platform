@@ -3,8 +3,8 @@
 **Workstream:** WS-3 · **Stage:** S08 Engineering Foundation with S09 Platform Foundation overlapped
 **Origin:** [`SUG-20260829-glm`](../../governance/registers/SUGGESTION-REGISTER.md#sug-20260829-glm--github-to-gitlab-estate-migration)
 **Persona:** Shivanshi — SRE (Board 7 · `R10`). Cross-persona calls are named per item; none are taken here.
-**Status:** `AI-DRAFTED`. **Phase M0 executed as agent work on 2026-08-29** — see §7. Phases M1–M10 are plan only.
-**Change requests:** [`CR-014`](../../governance/change-requests/CR-014-gitlab-estate-migration.md) (`PENDING`) · [`CR-015`](../../governance/change-requests/CR-015-shared-persistence-vs-bank-baseline.md) (`PENDING`)
+**Status:** **Phase M0 CLOSED 2026-08-29 — `CR-014` approved. M3 is unblocked.** Phases M1–M10 are plan only.
+**Change requests:** [`CR-014`](../../governance/change-requests/CR-014-gitlab-estate-migration.md) **`APPROVED_WITH_CONDITIONS`** — 29 board conditions + `AC-1`…`AC-5` · [`CR-015`](../../governance/change-requests/CR-015-shared-persistence-vs-bank-baseline.md) **`APPROVED` — Option B** (`ADR-019`)
 **Decisions:** [`DEC-20260829-01`](../../governance/DEC-20260829-01-m0-migration-decisions.md) · **Board positions:** [`CR-014/verdicts/`](../../governance/change-requests/CR-014/verdicts/README.md)
 
 > **Freshness disclosure.** `java scripts/governance/FreshnessCheck.java` exits `1` (WARNINGS):
@@ -283,7 +283,7 @@ Terraform before M1.2 and M1.6 land** — provider capability and backend shape 
 |---|---|---|---|
 | M4.1 | **Import** the existing `insurance` parent group into state (**IMP-11** #3) | SRE | 1 h |
 | M4.2 | Create `bank-insurance` + `product` / `delivery` / `engineering` / `governance` subgroups | SRE apply · BANK approve | 1 h |
-| M4.3 | Create the 7 baseline projects + `gitlab-bootstrap` + `platform-governance` — private, **empty** (**IMP-11** #1) | SRE apply | 1 h |
+| M4.3 | Create the 7 baseline projects + `gitlab-bootstrap` — private, **empty** (**IMP-11** #1). `platform-governance` **only if** the bank Appendix C acceptance has landed (`AC-2`); otherwise **eight projects** and the fallback applies | SRE apply | 1 h |
 | M4.4 | Confirm no `default_branch` and no branch protection yet (spec §7 sequencing) | SRE | 30 m |
 | M4.5 | Re-run plan: converged, zero diff | SRE | 30 m |
 
@@ -449,23 +449,40 @@ Per [BOOT.md §3](../../context/BOOT.md) and the persona authority matrix:
 
 ---
 
-## 6. Phase M0 — executed 2026-08-29
+## 6. Phase M0 — CLOSED 2026-08-29
 
-Agent work on M0 is complete. **M0 is not closed**: three human T4 signatures, one bank exception and
-four owner confirmations are outstanding, and M3 does not start until they land.
+All six items are decided and `CR-014` is approved. **M3 (bootstrap IaC) is unblocked and may start.**
 
 | # | Task | Outcome |
 |---|---|---|
 | M0.1 | Triage and register | **DONE** — `SUG-20260829-glm` · `SUG-20260829-imp` |
-| M0.2 | Raise `CR-014` | **RAISED, `PENDING`** — seven AI-drafted board positions attached as inputs; `approvers: []` |
-| M0.3 | Gate-evidence strategy | **`RECOMMENDED`** — Option B, re-evidence on GitLab. Six personas, no dissent. `GATE-S08` stays open across the migration and is reported open |
-| M0.4 | Governance-tree home | **`RECOMMENDED` internally (`ADR-018`) · `BLOCKED-EXTERNAL`** — the bank must accept the Appendix C exception before M4.3 creates the project |
-| M0.5 | Raise `CR-015` | **RAISED, `PENDING`** — **no verdict drafted**; joint Mahesh + Aarti review not yet held |
-| M0.6 | Render disposition | **`RECOMMENDED`** — survives as a dev-preview demo target, retired on EKS capability rather than on a date |
+| M0.2 | `CR-014` | **`APPROVED_WITH_CONDITIONS`** — 29 board conditions plus `AC-1`…`AC-5` |
+| M0.3 | Gate-evidence strategy | **`APPROVED`** (`AC-1`) — Option B. GitHub Actions kept green **for rollback continuity only**. `GATE-S08` remains `OPEN` throughout and is reported open |
+| M0.4 | Governance-tree home | **`APPROVED`, conditional** (`AC-2`, `ADR-018`) — bank Appendix C acceptance required **before M4.3**. Until it lands, **M4.3 creates eight projects, not nine**; on rejection the `product/backend/governance/` fallback applies |
+| M0.5 | `CR-015` | **`APPROVED` — Option B** (`ADR-019`): persistence ownership per bounded context, implemented **after** migration. `bank-persistence-service` migrates unchanged (`AC-5`) |
+| M0.6 | Render disposition | **`APPROVED`** (`AC-3`) — dev-preview only: no PII, no real premium or quote values, no production-like data. Retired only after EKS demonstrates equivalent deployment capability |
 
-**Twenty-nine conditions** were attached by the boards. Two are hard blocks on the first push to the
-bank estate, and neither has a workaround: `C-SEC-1` (clean full-history secret scan) and `C-CMP-1`
-(residency confirmed permissible). Full list: [`DEC-20260829-01` §7](../../governance/DEC-20260829-01-m0-migration-decisions.md#7-the-twenty-nine-conditions-consolidated).
+**Twenty-nine board conditions plus five approval conditions (`AC-1`…`AC-5`)** now bind the plan.
+Two remain hard blocks on the first push to the bank estate and neither has a workaround: `C-SEC-1`
+(clean full-history secret scan) and `C-CMP-1` (residency confirmed permissible). **Approval
+authorised the work; it did not authorise starting it before its gates.** Full list:
+[`DEC-20260829-01` §7](../../governance/DEC-20260829-01-m0-migration-decisions.md#7-the-twenty-nine-conditions-consolidated).
+
+### 6.1 Three things the approval changed in this plan
+
+| # | Change | Where |
+|---|---|---|
+| 1 | **M4.3 creates eight projects, not nine**, until the bank accepts the Appendix C exception in writing (`AC-2`) | M4.3 |
+| 2 | **GitHub Actions is maintained for rollback continuity only** (`AC-1`). No further evidence investment on that platform | M2–M9 |
+| 3 | **A new S09 work item exists**: allocating the `bank_persistence` tables to their owning bounded contexts (`ADR-019`). It is **parked behind the cutover** by `AC-5` and is not migration scope | Out of scope, §7 |
+
+### 6.2 What remains outstanding — none of it blocks M3
+
+| Outstanding | Gates | Owner |
+|---|---|---|
+| Bank Appendix C acceptance (`AC-2`, `ASM-021`) | **M4.3** | bank authority |
+| Twelve enterprise inputs (`ASM-012` … `ASM-022`) | M3.3, M3.4 detail · M5.2 · M8 | bank |
+| Aarti's integrity and recovery review (`CR-015` Q4) | The **S09** allocation migration, not this one | Aarti |
 
 The board round also produced **IMP-14** above and one correction to this plan's own M9.4, both
 recorded at [`DEC-20260829-01` §5](../../governance/DEC-20260829-01-m0-migration-decisions.md#5-two-findings-the-board-round-produced).
@@ -475,7 +492,7 @@ recorded at [`DEC-20260829-01` §5](../../governance/DEC-20260829-01-m0-migratio
 ## 7. What this plan does not cover
 
 * Render → EKS runtime re-platform (**IMP-5**) — deliberately separated; S09 work with its own gate.
-* The `bank-persistence-service` boundary question (**IMP-2**) — parallel CR, not migration scope.
+* The `bank-persistence-service` boundary question (**IMP-2**) — **decided** by `CR-015` Option B / `ADR-019`. The service migrates **unchanged** (`AC-5`); allocating its tables to the owning bounded contexts is a separate, independently reviewed **S09** migration, parked behind this cutover.
 * Contract content. `contracts` is seeded as a **skeleton**; no OpenAPI or AsyncAPI document exists in
   the repository today, and authoring them is Engineering and Architecture work, not migration work.
 * GitOps content. `gitops` is seeded as a skeleton; environment desired state depends on EKS existing.

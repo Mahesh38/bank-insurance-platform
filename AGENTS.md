@@ -122,7 +122,7 @@ Multi-module Gradle (Kotlin DSL) monorepo for the **1SB insurance platform** —
 | Service | Port | Required? | Notes |
 |---|---|---|---|
 | `1sb-integration-service` | 8080 | Yes (Phase 1+) | Bank-facing 1SB adapter. **No datasource** — job store via HTTP to bank-persistence. Profiles `local`/`test`/`uat`/`prod`. |
-| `bank-persistence-service` | 8081 | Yes, for local job-store / audit HTTP | **Platform-common** persistence (Flyway + JPA + `/internal/v1`); owns the DB for all consumers. H2 (`MODE=PostgreSQL`) local/test, PostgreSQL uat/prod. |
+| `bank-persistence-service` | 8081 | Yes, for local job-store / audit HTTP | **Integration Operations / Evidence context only** (Flyway + JPA + `/internal/v1`) — the 1SB adapter job store and audit ingest. **Not a platform-wide persistence gateway** (`ADR-019`): Customer, Lead, Consent, Suitability, Catalogue, Quotation, Proposal, business Payment, Policy and Journey never persist through it. Its current tables are allocated to their owning contexts by an independently reviewed S09 migration, after the GitLab migration. H2 (`MODE=PostgreSQL`) local/test, PostgreSQL uat/prod. |
 | `audit-consumer-service` | — | Future | Doc stub; will call `/internal/v1/audit-events` on bank-persistence — no second audit DB. |
 
 Architecture invariants enforced in code: bank apps never call 1SB or a database directly · 1SB

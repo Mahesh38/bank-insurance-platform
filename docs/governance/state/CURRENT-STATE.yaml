@@ -391,7 +391,7 @@ standing_constraints:
   - "Bank apps never call 1SB or a database directly"
   - "1SB specifics live only in adapter.onesb.* (ArchUnit enforced)"
   - "1sb-integration-service owns no Flyway migrations and no JPA"
-  - "Persistence is platform-common, not 1SB-owned"
+  - "Every bounded context owns its write model, schema, credentials and Flyway history (ADR-019); one R0 Aurora cluster, separate schemas, no cross-schema grants; bank-persistence-service is the Integration Operations/Evidence context, not a platform-wide gateway, and is not 1SB-owned"
   - "Flutter never receives OAuth tokens; the BFF holds them"
   - "Keycloak is not the source of truth for business authorization"
   - "No PII in logs"
@@ -547,7 +547,7 @@ id_allocation:
     # ID-allocation correction only: no stage, scope or gate field is touched — those remain
     # human-owned (04 section 5).
     CR: 16        # CR-001..015 in use (014, 015 added by the M0 round)
-    RISK: 22      # RISK-001..021 in use (016..021 added by the M0 round)
+    RISK: 23      # RISK-001..022 in use (022 added by the CR-015 approval)
     ASM: 23       # ASM-001..022 in use (012..022 = the eleven bank enterprise inputs)
     EPIC: 2       # EPIC-001 in use (platform error contract, SUG-20260827-err). ID-allocation only.
     SPIKE: 1
@@ -562,4 +562,4 @@ id_allocation:
     # ADR-017 was added by the 2026-08-27 platform error contract round (SUG-20260827-err), and
     # EPIC-001 by the same round. ID-allocation correction only. No stage, scope or gate field is
     # touched by it; those remain human-owned (04 section 5).
-    ADR: 19        # ADR-001..018 in use (016 = ARB enterprise baseline; 017 = platform error contract; 018 = governance/platform-governance project). ID-allocation only.
+    ADR: 20        # ADR-001..019 in use (016 = ARB enterprise baseline; 017 = platform error contract; 018 = governance/platform-governance project; 019 = per-context persistence ownership). ID-allocation only.

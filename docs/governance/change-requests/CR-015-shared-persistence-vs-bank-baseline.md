@@ -5,15 +5,22 @@
 **Raised by:** `agent:claude` in the Shivanshi (SRE / `R10`) persona, as finding `IMP-2` on [`GLM-001`](../../platform/gitlab-migration/GLM-001-migration-plan.md)
 **Workstream:** WS-3 · **Stage:** S08 with S09 overlapped
 **Jurisdiction:** **Joint — Mahesh (Board 1, Architecture) and Aarti (Database).** Neither alone.
-**Related:** [`CR-014`](./CR-014-gitlab-estate-migration.md) — parallel, and deliberately **not** a dependency
+**Related:** [`CR-014`](./CR-014-gitlab-estate-migration.md) — parallel and non-blocking, confirmed at approval (`AC-5`)
+**ADR:** [`ADR-019`](../../platform/architecture-review/08-architecture-decision-log.md)
 
-> ## Decision: `PENDING`
-> **No verdict is drafted in this CR, by design.** Mahesh's card makes a shared datastore,
-> cross-service database access or a source-of-truth change a **mandatory joint review with Aarti
-> before any verdict**. An AI position on one half of a joint review is not half an answer — it is a
-> way of making the joint review look already-settled. Aarti has not been convened.
+> ## Decision: `APPROVED` — **Option B**, 2026-08-29
+> **Persistence ownership is per bounded context, implemented after the migration.** Recorded as
+> [`ADR-019`](../../platform/architecture-review/08-architecture-decision-log.md). The target model
+> is at §8.
 >
-> **`signature_status: NO POSITION DRAFTED — joint Mahesh + Aarti review not yet held`**
+> **Provenance.** Board outcome **relayed by `human:Mahesh` (repository owner) on 2026-08-29**, and
+> recorded here. No AI position was drafted before the decision, which was the point: the four
+> options at §4 were put without a recommendation attached.
+>
+> **What is decided is the target, not the migration.** Aarti's integrity and recovery guarantees
+> (Q4) are **not** satisfied by this approval. The S09 allocation migration requires her independent
+> review, including the restore test against `DB-DEC-0001`'s design targets (RPO 5 min, RTO 30 min).
+> Deciding a target is not approving a data migration.
 
 ---
 
@@ -110,6 +117,62 @@ content. That is exactly what `C-ARC-3` and Mahesh's `NA` list forbid.
 
 ---
 
+## 4a. The approved target model — Option B
+
+Approved 2026-08-29. Recorded in full as [`ADR-019`](../../platform/architecture-review/08-architecture-decision-log.md).
+
+| # | Rule |
+|---|---|
+| 1 | **Every bounded context owns its authoritative write model, schema, credentials, Flyway migration history and repository layer.** No context persists through another context's service |
+| 2 | R0 **may** use one shared Aurora PostgreSQL cluster — but **separate schemas per context and no cross-schema grants**. Physical topology stays evidence-led (`ADR-008`); ownership is the invariant |
+| 3 | **`bank-persistence-service` is not a platform-wide persistence gateway.** It may survive only as a narrowly defined **Integration Operations / Evidence** context |
+| 4 | **Customer, Lead, Consent, Suitability, Catalogue, Quotation, Proposal, business Payment, Policy and Journey must never persist through it** |
+| 5 | **Sequencing.** During `CR-014` the service migrates **unchanged**. After migration, its current tables are allocated to their owning contexts through an **independently reviewed S09 migration** |
+
+### 4a.1 This ratifies a design that already exists
+
+The approval commissions no new physical design. Aarti's R0 pack already specifies it:
+
+> [`data-architecture/README.md`](../../platform/data-architecture/README.md): *"One Aurora
+> PostgreSQL cluster. One schema per bounded context. No cross-schema grants."*
+
+That pack already lists `customer`, `opportunity` (Lead), `consent`, `suitability`, `catalogue`,
+`quotation`, `proposal`, `payment` and `policy` as separate schemas, each marked **"Design only"**,
+and scopes `bank_persistence` to *"1SB Adapter job store + audit ingest"* — which is precisely the
+Integration Operations / Evidence context rule 3 now names. It also already forbids a second audit
+database.
+
+**So the conflict was never architecture versus the bank baseline.** It was three stale artefacts
+describing the code-as-built as though it were the decided target:
+
+| Artefact | Said | Status now |
+|---|---|---|
+| `DECISION-REGISTER` §1 | *"Persistence is platform-common (`bank-persistence-service`), reached over HTTP"* — **Accepted** | **Superseded by `ADR-019`** |
+| `AGENTS.md` service table | *"owns the DB for all consumers"* | **Corrected** |
+| `CURRENT-STATE.yaml` standing constraint | *"Persistence is platform-common, not 1SB-owned"* | **Replaced** — the "not 1SB-owned" half survives |
+
+### 4a.2 What does not change
+
+Three things that look adjacent and are unaffected, stated so nobody re-opens them:
+
+- *"Bank apps never call 1SB or a database directly"* — **stands**.
+- *"`1sb-integration-service` owns no Flyway migrations and no JPA"* — **stands**, and its ArchUnit
+  enforcement stands. The service still reaches its job store over HTTP; what changed is that the
+  store belongs to a narrowly scoped context rather than a platform-wide gateway. Only the old
+  *reason* for the rule (*"persistence is platform-common"*) retired, not the rule.
+- *"No second audit database"* — **stands**. Audit ingest stays with the Integration Operations /
+  Evidence context.
+
+### 4a.3 What is still owed
+
+| # | Owed | Owner | When |
+|---|---|---|---|
+| 1 | Integrity and recovery guarantees for the allocation (Q4), including the restore test against RPO 5 min / RTO 30 min | **Aarti — not substitutable** | S09, before the migration runs |
+| 2 | The table-by-table allocation from `bank_persistence` to owning contexts | Aarti + Mahesh | S09, independently reviewed |
+| 3 | Confirmation that the surviving Integration Operations / Evidence scope is drawn where `ADR-019` rule 3 intends | Mahesh + Amit | S09 |
+
+---
+
 ## 5. Impact
 
 | | |
@@ -125,13 +188,11 @@ content. That is exactly what `C-ARC-3` and Mahesh's `NA` list forbid.
 
 ## 6. What this CR does **not** do
 
-- It does **not** propose a verdict, a recommendation, or a preferred option.
-- It does **not** reverse, weaken or cast doubt on any Accepted decision. All three stand until a
-  joint review says otherwise on new evidence.
+- It did **not** propose a verdict or a preferred option. Four options were put without a recommendation attached, and the boards chose B.
+- It **does** now supersede one Accepted decision (*"Persistence is platform-common"*), via `ADR-019`. The other two — *"Integration service owns no Flyway/JPA"* and *"Bank apps never call 1SB or the DB directly"* — **stand unchanged**; see §4a.2.
 - It does **not** block `CR-014` or any `GLM-001` phase.
-- It does **not** authorise a schema, persistence or service-boundary change of any kind.
-- It does **not** substitute for Aarti. Q4 in particular cannot be answered by anyone else, and an
-  AI-drafted persistence-integrity conclusion would be a manufactured one.
+- It does **not** authorise the S09 allocation migration. That needs Aarti's independent review and its own plan.
+- It does **not** substitute for Aarti. Q4 remains hers and remains unanswered; approving a target model did not answer it.
 
 ---
 
@@ -166,9 +227,18 @@ change_request:
       consequence: >
         A boundary change inside a repository move is indistinguishable from the move in the diff
         and cannot be reviewed afterwards. Rejected by C-ARC-3.
-  decision: PENDING
-  approvers: []
-  decided_on: null
-  conditions: []
-  signature_status: "NO POSITION DRAFTED — joint Mahesh + Aarti review not yet held; Aarti not convened"
+  decision: APPROVED
+  option_selected: "B — persistence ownership per bounded context, implemented after migration"
+  approvers: ["Board 1 Architecture", "Database (Aarti) — target model only"]
+  decided_on: "2026-08-29"
+  recorded_by: "agent:claude, from a board outcome relayed by human:Mahesh on 2026-08-29"
+  adr: ADR-019
+  conditions:
+    - "During CR-014 bank-persistence-service migrates UNCHANGED; repository migration is never combined with persistence restructuring"
+    - "R0 may use one Aurora cluster but must use separate schemas per context and no cross-schema grants"
+    - "Customer, Lead, Consent, Suitability, Catalogue, Quotation, Proposal, business Payment, Policy and Journey never persist through bank-persistence-service"
+    - "The table allocation runs as an independently reviewed S09 migration; Aarti's integrity and recovery review (Q4) is outstanding and not substitutable"
+  signature_status: >
+    Target model approved and relayed 2026-08-29. Aarti's review of the S09 allocation migration is
+    preserved and outstanding — the target is decided, the data migration is not approved.
 ```

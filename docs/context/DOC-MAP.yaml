@@ -19,7 +19,7 @@ schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
 document_count: 537
-total_bytes: 15210743
+total_bytes: 15234402
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -1877,7 +1877,7 @@ documents:
     persona: null
     title: "BOOT — the tier-0 agent capsule"
     answers: "Read this first, and often read nothing else. This file answers the ten-fact knowledge"
-    bytes: 17629
+    bytes: 17865
   - path: docs/context/DOC-MAP.yaml
     bucket: context
     authority: non-binding-context
@@ -1885,7 +1885,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 189767
+    bytes: 189755
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -3244,8 +3244,8 @@ documents:
     capsules: [triage, plan-work, board-review]
     persona: null
     title: "DEC-20260829-01 — Phase M0 decisions: gate evidence, governance-tree home, Render disposition"
-    answers: "Origin: human:Mahesh — accept the improvements, activate every persona, start Phase M0, take the decisions with mutual discussion"
-    bytes: 14744
+    answers: "Recorded by: agent:claude. The agent recorded a decision the owner gave; it did not supply one (Rule CC-1, Rule PA-1)."
+    bytes: 16770
   - path: docs/governance/DELIVERY-CONTROL-SYSTEM.md
     bucket: governance
     authority: binding-process
@@ -3525,7 +3525,7 @@ documents:
     persona: null
     title: "CR-014 — Migrate the platform from personal GitHub to the company GitLab estate"
     answers: "Type: SCOPE (with STAGE, GOV and PLAN consequences)"
-    bytes: 17098
+    bytes: 21103
   - path: docs/governance/change-requests/CR-014/verdicts/README.md
     bucket: governance
     authority: binding-process
@@ -3597,7 +3597,7 @@ documents:
     persona: null
     title: "CR-015 — `bank-persistence-service` versus bank baseline §3.3: shared persistence as an accepted decision"
     answers: "Type: CONSTRAINT (potential REVERSAL of an Accepted decision)"
-    bytes: 9620
+    bytes: 14865
   - path: docs/governance/plans/PLAN-001-context-module-and-safe-autopilot.md
     bucket: governance
     authority: binding-process
@@ -3637,7 +3637,7 @@ documents:
     persona: null
     title: "Decision Register"
     answers: "Index of decisions that constrain future work: ADRs, change requests, stage transitions, and"
-    bytes: 41756
+    bytes: 44017
   - path: docs/governance/registers/DEPENDENCY-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -3645,7 +3645,7 @@ documents:
     persona: null
     title: "Dependency Register"
     answers: "Edges of the dependency graph. Edges outlive the items that discovered them, so they are"
-    bytes: 8601
+    bytes: 9145
   - path: docs/governance/registers/PARKED-BACKLOG.md
     bucket: governance
     authority: binding-process
@@ -3653,7 +3653,7 @@ documents:
     persona: null
     title: "Parked Backlog"
     answers: "Parked is not deleted. Every entry names the stage that unparks it and the observable"
-    bytes: 10425
+    bytes: 11204
   - path: docs/governance/registers/RISK-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -3661,7 +3661,7 @@ documents:
     persona: null
     title: "Risk Register"
     answers: "Open risks with owners, triggers, and responses. A risk is not a problem — it is a problem"
-    bytes: 10366
+    bytes: 11145
   - path: docs/governance/registers/SUGGESTION-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -3741,7 +3741,7 @@ documents:
     persona: null
     title: "CURRENT STATE"
     answers: "AIGEM — Machine-readable current state"
-    bytes: 31520
+    bytes: 31799
   - path: docs/governance/state/GATE-EVIDENCE.yaml
     bucket: governance
     authority: binding-process
@@ -4013,7 +4013,7 @@ documents:
     persona: architecture
     title: "08 — Architecture Decision Log (this review)"
     answers: "ID scheme: ARCH-xxx — deliberately distinct from the business/scope D-xxx and process DOC-xxx IDs in docs/au-bank-insurance-platform/DECISION-LOG.md,…"
-    bytes: 109831
+    bytes: 115716
   - path: docs/platform/architecture-review/README.md
     bucket: platform
     authority: approved-spec
@@ -4253,7 +4253,7 @@ documents:
     persona: sre-operations
     title: "GLM-001 — GitHub → GitLab estate migration plan"
     answers: "Origin: SUG-20260829-glm"
-    bytes: 34120
+    bytes: 35752
   - path: docs/platform/gitlab-migration/README.md
     bucket: platform
     authority: ai-drafted

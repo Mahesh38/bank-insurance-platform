@@ -1500,3 +1500,84 @@ Board verdicts outstanding: Architecture, Technical, Product, QA, Security, Risk
 Operations (T3, seven boards per [`11 §3`](../../governance/11-REVIEW_GATES.md#3-proportionality--which-boards-are-mandatory)).
 Deepali jointly owns the redaction boundary (§4.4) and the PII allow-list (§8); Shivanshi owns the
 metric tag set (§7). Contract: [`07-PLATFORM-ERROR-CONTRACT.md`](../../journey-execution/07-PLATFORM-ERROR-CONTRACT.md).
+
+---
+
+## ADR-019 — Persistence ownership is per bounded context; `bank-persistence-service` is not a platform-wide gateway
+
+```yaml
+id: ADR-019
+status: APPROVED
+supersedes: >
+  The previously Accepted decision "Persistence is platform-common (bank-persistence-service),
+  reached over HTTP" and the AGENTS.md claim that bank-persistence-service "owns the DB for all
+  consumers". Both are retired by this ADR.
+problem: >
+  Two artefacts described the platform's persistence model in incompatible ways. The decision
+  register carried "Persistence is platform-common (bank-persistence-service), reached over HTTP"
+  as Accepted, and AGENTS.md described the service as owning the DB for all consumers. Aarti's R0
+  physical pack (DATA-001 / DB-DEC-0001) had already designed the opposite: one Aurora cluster,
+  one schema per bounded context, no cross-schema grants, with bank_persistence scoped to the 1SB
+  adapter job store and audit ingest. The bank's GitLab Terraform Bootstrap Requirements v1.0
+  section 3.3 then forbade a generic shared persistence service for all domains, which made the
+  contradiction a blocker for the estate migration rather than latent documentation debt.
+context_stage: "WS-3 at S08 with S09 overlapped; raised as IMP-2 on GLM-001, escalated as CR-015"
+decision: >
+  1. Every bounded context owns its authoritative write model, schema, credentials, Flyway
+     migration history and repository layer. No context persists through another context's service.
+  2. R0 may use one shared Aurora PostgreSQL cluster. It must use separate schemas per context and
+     no cross-schema grants. Physical cluster topology remains an evidence-led decision (ADR-008);
+     data ownership is the invariant.
+  3. bank-persistence-service is NOT a platform-wide persistence gateway. It may survive only as a
+     narrowly defined Integration Operations / Evidence context.
+  4. Customer, Lead, Consent, Suitability, Catalogue, Quotation, Proposal, business Payment, Policy
+     and Journey must NEVER persist through bank-persistence-service.
+  5. Sequencing is fixed and non-negotiable: during CR-014 the service migrates UNCHANGED. After
+     migration, its current tables are allocated to their owning bounded contexts through an
+     independently reviewed S09 migration. A repository move never carries a data-ownership change.
+constrains: >
+  Any proposal to persist a business bounded context through bank-persistence-service; any
+  cross-schema grant or cross-schema foreign key; any shared write model across contexts; any
+  attempt to perform the table allocation inside the CR-014 migration window; any second audit
+  database (audit ingestion stays with the Integration Operations / Evidence context).
+what_does_not_change: >
+  "Bank apps never call 1SB or a database directly" stands. "1sb-integration-service owns no Flyway
+  migrations and no JPA" stands — it continues to reach its job store over HTTP, and the store is
+  now owned by a narrowly scoped context rather than by a platform-wide gateway. "No second audit
+  database" stands. ADR-008 (data ownership is the invariant, physical topology is evidence-led)
+  stands and this ADR is consistent with it.
+alignment_note: >
+  This ADR ratifies a physical design that already exists rather than commissioning a new one.
+  DATA-001 / docs/platform/data-architecture/README.md already specifies one Aurora cluster, one
+  schema per bounded context and no cross-schema grants, with customer, opportunity, consent,
+  suitability, catalogue, quotation, proposal, payment and policy schemas designed and marked
+  "Design only". What changes is which artefacts are authoritative, not what the target looks like.
+open_at_implementation: >
+  Aarti's integrity and recovery guarantees for the allocation (CR-015 Q4) are NOT satisfied by
+  this ADR. The target model is decided; the S09 migration that reaches it requires her
+  independent review, including the restore test against the design targets in DB-DEC-0001
+  (RPO 5 min, RTO 30 min). Deciding a target is not the same as approving a data migration.
+alternatives:
+  - option: "A — no change; argue to the bank that the service is context-scoped"
+    rejected_because: "AGENTS.md and the decision register both described a platform-wide gateway,
+      and the code today has the 1SB job store and audit ingest in one schema serving multiple
+      consumers. The argument would have had to misdescribe the repository"
+  - option: "C — keep one deployable, separate the schemas behind it"
+    rejected_because: "Preserves a single service as the write path for every context, which is the
+      shape section 3.3 forbids, and leaves ownership ambiguous at exactly the boundary that matters"
+  - option: "D — defer until the second write-owning context lands"
+    rejected_because: "The contexts are already designed in DATA-001 and are due at S09. Deferring
+      would decide by default, and the migration cost grows with every table written meanwhile"
+  - option: "Resolve it inside CR-014, while the repositories are being split anyway"
+    rejected_because: "A boundary change executed inside a repository move is indistinguishable
+      from the move in the diff and cannot be reviewed afterwards. Recorded as condition C-ARC-3"
+risk_tier: T4
+authority_class: A3_JOINT_REVIEW
+origin: "GLM-001 IMP-2 · CR-015 · board decision relayed by human:Mahesh 2026-08-29"
+```
+
+**Board decision relayed by human:Mahesh, 2026-08-29** — Option B selected as the target, to be
+implemented after the CR-014 migration. Joint Mahesh (Board 1, boundaries) and Aarti (Database,
+integrity and recovery) jurisdiction; Aarti's review of the S09 allocation migration is preserved
+and outstanding. Physical design reference:
+[`data-architecture/README.md`](../data-architecture/README.md) · [`DB-DEC-0001`](../data-architecture/DB-DEC-0001-r0-physical-model.md).

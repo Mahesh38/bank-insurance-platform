@@ -19,7 +19,7 @@ schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
 document_count: 541
-total_bytes: 15277165
+total_bytes: 15281706
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -1885,7 +1885,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 190899
+    bytes: 191211
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -3669,7 +3669,7 @@ documents:
     persona: null
     title: "Risk Register"
     answers: "Open risks with owners, triggers, and responses. A risk is not a problem — it is a problem"
-    bytes: 13094
+    bytes: 13830
   - path: docs/governance/registers/SUGGESTION-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -3749,7 +3749,7 @@ documents:
     persona: null
     title: "CURRENT STATE"
     answers: "AIGEM — Machine-readable current state"
-    bytes: 31818
+    bytes: 31809
   - path: docs/governance/state/GATE-EVIDENCE.yaml
     bucket: governance
     authority: binding-process
@@ -4293,7 +4293,7 @@ documents:
     persona: sre-operations
     title: "M2 — Pre-migration hygiene: evidence pack"
     answers: "Executed: 2026-08-29 · Owner: Shivanshi (SRE / R10)"
-    bytes: 11887
+    bytes: 15389
   - path: docs/platform/ws3-platform/00-WS3-ARCHITECTURE-REGISTRATION.md
     bucket: platform
     authority: approved-spec

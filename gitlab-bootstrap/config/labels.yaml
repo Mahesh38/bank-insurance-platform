@@ -1,0 +1,27 @@
+# The 24 standard group labels. Baseline section 6.5.
+# Applied at the bank-insurance group so every project inherits them.
+labels:
+  - { name: "type::feature",          color: "#1f78d1", description: "New capability" }
+  - { name: "type::bug",              color: "#d9534f", description: "Defect in delivered behaviour" }
+  - { name: "type::architecture",     color: "#6f42c1", description: "Structural or boundary change" }
+  - { name: "type::security",         color: "#8f2320", description: "Security control or finding" }
+  - { name: "type::compliance",       color: "#875008", description: "Regulatory or mandatory control" }
+  - { name: "type::technical-debt",   color: "#5b686b", description: "Known debt with a work item id" }
+  - { name: "priority::p0",           color: "#8f2320", description: "Immediate" }
+  - { name: "priority::p1",           color: "#d9534f", description: "Current increment" }
+  - { name: "priority::p2",           color: "#e0a458", description: "Next increment" }
+  - { name: "priority::p3",           color: "#5b686b", description: "Scheduled, later stage" }
+  - { name: "lob::life",              color: "#0f5560", description: "Life line of business" }
+  - { name: "lob::health",            color: "#137a63", description: "Health line of business" }
+  - { name: "lob::motor",             color: "#35586a", description: "Motor line of business" }
+  - { name: "lob::general",           color: "#4a6572", description: "General insurance" }
+  - { name: "stage::discovery",       color: "#adb5bd", description: "Discovery" }
+  - { name: "stage::design",          color: "#8fa3ad", description: "Design" }
+  - { name: "stage::development",     color: "#1f78d1", description: "Development" }
+  - { name: "stage::testing",         color: "#e0a458", description: "Testing" }
+  - { name: "stage::uat",             color: "#875008", description: "UAT" }
+  - { name: "stage::production",      color: "#137a63", description: "Production" }
+  - { name: "risk::critical",         color: "#8f2320", description: "Critical risk" }
+  - { name: "risk::high",             color: "#d9534f", description: "High risk" }
+  - { name: "risk::medium",           color: "#e0a458", description: "Medium risk" }
+  - { name: "risk::low",              color: "#5b686b", description: "Low risk" }

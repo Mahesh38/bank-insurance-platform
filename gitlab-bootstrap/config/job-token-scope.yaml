@@ -1,0 +1,22 @@
+# CI_JOB_TOKEN allowlists — IMP-9, condition C-OPS-5.
+#
+# The single most common way a monorepo split breaks CI, and it breaks AFTER
+# cutover when the GitHub origin is already read-only. Modelled at M3.6 and
+# applied at M6.8, BEFORE the first consuming pipeline runs — never reactively.
+#
+# Direction: `target` allows inbound job tokens FROM each project in `allowed`.
+allowlists:
+  ci-components:
+    target: ci-components
+    allowed: [backend, frontend, contracts, infrastructure, gitops, security-policies]
+    why: "Every application pipeline consumes versioned CI components."
+
+  contracts:
+    target: contracts
+    allowed: [backend, frontend]
+    why: "Consumer and provider contract verification reads the canonical contracts."
+
+  security-policies:
+    target: security-policies
+    allowed: [backend, frontend, contracts, infrastructure, gitops, ci-components]
+    why: "Scanner configuration and policy-as-code are read by every pipeline."

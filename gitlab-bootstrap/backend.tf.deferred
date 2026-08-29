@@ -1,0 +1,52 @@
+# ===========================================================================
+# DELIBERATELY NOT backend.tf — this file does not end in .tf and Terraform
+# does not read it. Renaming it without reading the reason below is a mistake.
+# ===========================================================================
+#
+# GLM-001 M3.3 is BLOCKED on M1.6, and blocked in a specific way.
+#
+# --- Why this is not just "waiting for the bank to name a backend" ----------
+#
+# SEC-F07 / IMP-15 / RISK-027, raised by Board 4 on 2026-08-29:
+#
+#   GitLab-managed Terraform state is available in Free/CE on self-managed, and
+#   is the attractive answer to M1.6. For delivery/infrastructure state it is
+#   fine. For THIS state it is structurally wrong.
+#
+#   This state controls the estate's groups and projects. Stored inside that
+#   estate, an apply that damages the estate ALSO damages its own state, and
+#   recovery requires the thing that was just destroyed.
+#
+#   It satisfies none of C-SEC-6's three requirements:
+#     - separate backend   -> same instance
+#     - separate KMS key   -> instance-managed encryption
+#     - distinct identity  -> the same automation account
+#
+# --- What goes here when M1.6 resolves --------------------------------------
+#
+# A backend OUTSIDE the GitLab instance. The enterprise S3/KMS platform if that
+# is the bank standard, or an approved equivalent. Requirements from baseline
+# section 4.4, all mandatory:
+#
+#   encryption at rest | access restricted to SRE/platform operators
+#   state locking      | versioning and history
+#   documented AND TESTED recovery   <- untested restore is a belief, not a control
+#   never in git
+#
+# Illustrative shape only — do not uncomment, the values are placeholders:
+#
+#   terraform {
+#     backend "s3" {
+#       bucket         = "<bank-approved-bucket>"
+#       key            = "gitlab-bootstrap/terraform.tfstate"
+#       region         = "ap-south-1"          # residency: C-CMP-1 applies here too
+#       encrypt        = true
+#       kms_key_id     = "<bootstrap-specific-key-not-shared-with-app-state>"
+#       dynamodb_table = "<lock-table>"
+#     }
+#   }
+#
+# Note the residency point: this state describes the whole estate, so ASM-022
+# and C-CMP-1 apply to where the state itself lives, not only to GitLab.
+#
+# Until then, no apply runs. Local state is prohibited and there is no fallback.

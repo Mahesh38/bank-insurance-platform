@@ -569,6 +569,61 @@ the deployment evidence for finding B exists.
 
 ---
 
+## 7a. M3 — partial start executed 2026-08-29 (`R1`)
+
+`R1` of [`DEC-20260829-02`](../../governance/DEC-20260829-02-m3-readiness-board-pack.md) approved.
+Built at [`gitlab-bootstrap/`](../../../gitlab-bootstrap/README.md), top level so `filter-repo
+--path gitlab-bootstrap/` extracts it cleanly into `governance/gitlab-bootstrap` at M5.
+
+| Task | State |
+|---|---|
+| M3.1 skeleton | **DONE** — 36 files |
+| M3.2 provider pin | **DONE, provisional.** Untestable here; `M3.11` narrows it and commits the lock file |
+| M3.3 `backend.tf` | **DEFERRED** — `M1.6` + `SEC-F07`. `backend.tf.deferred` records why |
+| M3.4 modules | **PARTIAL** — `gitlab-group`, `gitlab-project`, `labels`, `project-variables` built. `branch-governance`, `environments`, `memberships` deferred |
+| M3.5 config YAML | **DONE** — groups, projects, labels, job-token allowlists; 14/14 cross-reference checks pass |
+| M3.6 job-token-scope | **DONE** |
+| M3.7 `prevent_destroy` | **DONE** — on groups and projects |
+| M3.8 pipeline | **DEFERRED** — `CR-016`; the protected-apply mechanism depends on it |
+| M3.9 scripts | **DONE** — `validate`, `verify`, `migrate-repositories`, `seed-repositories` |
+| M3.10 docs | **DONE** — README (all ten §12.1 topics), operating model, rollback, DR |
+| M3.11 first plan | **DEFERRED** — needs a backend and credentials |
+
+### Verification status — stated plainly
+
+**Nothing has been executed.** No Terraform binary is installed and
+`registry.terraform.io` is unreachable through the egress proxy, so this configuration
+has never been `init`-ed, `fmt`-ed, `validate`-d or planned. What *was* checked:
+
+- **8 real HCL syntax errors found and fixed** — multiple attributes on one line is
+  invalid HCL2. `terraform fmt` would have caught them; a manual pass did instead.
+- Brace balance across all `.tf` files.
+- All four YAML files parse.
+- **14 cross-reference assertions pass** — every project maps to a real subgroup, the
+  three migrated-history projects carry neither README-init nor a default branch
+  (`IMP-11`), job-token targets and allowlists resolve, 24 unique labels across the
+  five expected prefixes.
+
+`scripts/validate.sh` is the first thing to run on a host with Terraform.
+
+### Design decisions worth knowing
+
+- **`C-ARC-6` honoured.** The CE limitation is a set of capability flags in `locals.tf`,
+  not missing modules. `output "unavailable_controls"` reports what this instance cannot
+  enforce, so the gap is visible in code rather than absent from it.
+- **The parent group is a data source, not an import.** Stronger than `IMP-11` #3 asks:
+  a data source cannot appear under `create` or `destroy` in any plan, so the failure
+  mode is structurally impossible rather than guarded against.
+- **`AC-2` is enforced in code.** `local.projects` filters `platform-governance` out
+  unless `platform_governance_enabled` is true, so M4.3 creates eight projects by default.
+- **The token is not a variable.** A variable can be set in a `.tfvars` file and a
+  `.tfvars` file can be committed by accident; an environment variable cannot.
+  `validate.sh` fails if any `.tfvars` exists.
+- **`migrate-repositories.sh` refuses to run** until five preconditions hold, including
+  a non-shallow source (`RISK-024`) and the anchor present on the remote (`RISK-025`).
+
+---
+
 ## 8. What this plan does not cover
 
 * Render → EKS runtime re-platform (**IMP-5**) — deliberately separated; S09 work with its own gate.

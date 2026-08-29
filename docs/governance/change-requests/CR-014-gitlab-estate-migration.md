@@ -56,7 +56,7 @@ Quoted from the approved documents as they stand today:
 | [`DECISION-REGISTER`](../registers/DECISION-REGISTER.md) `ADR-016` | GitLab CI/CD and Terraform IaC are the enterprise delivery baseline. Status `Proposed (A3_JOINT_REVIEW)` |
 | [`DECISION-REGISTER`](../registers/DECISION-REGISTER.md) §1 | *"Persistence is platform-common (`bank-persistence-service`), reached over HTTP"* — status **Accepted** |
 | `render.yaml` | Deployment is a Render.com blueprint: one container, two JVMs, one public port |
-| Repository | One GitHub repository, `Mahesh38/bank-insurance-platform`, personal account. 273 commits · 81 remote branches · **0 tags** · ~14.9 MiB pack |
+| Repository | One GitHub repository, `Mahesh38/bank-insurance-platform`, personal account. 358 commits · 81 remote branches · **0 tags** · ~14.9 MiB pack |
 
 Measured, not assumed: there is **no** Terraform, **no** GitOps manifest and **no** OpenAPI or
 AsyncAPI document anywhere in the repository today.
@@ -257,7 +257,7 @@ change_request:
     - "ADR-016 — GitLab CI/CD and Terraform IaC as the enterprise delivery baseline"
     - "GATE-S08 open, 10 of 10 criteria open; S08-G1/G2/G5/G9 evidenced by the CI platform"
     - "application-ci.yml — the S08-G2 mechanism is four named GitHub required status checks"
-    - "Measured origin: 273 commits, 81 branches, 0 tags, no Terraform, no GitOps, no contracts"
+    - "Measured origin: 358 commits, 81 branches, 0 tags, no Terraform, no GitOps, no contracts"
   impact:
     scope: "no product scope change; no bounded context added, removed, split or merged"
     stage: "S08-G1, G2, G5 and G9 change evidence platform; no criterion is waived or re-worded"

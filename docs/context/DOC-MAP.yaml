@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 538
-total_bytes: 15253162
+document_count: 541
+total_bytes: 15277165
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -1869,7 +1869,7 @@ documents:
     persona: null
     title: "AGENT CONTEXT INDEX"
     answers: "============================================================================="
-    bytes: 43691
+    bytes: 44007
   - path: docs/context/BOOT.md
     bucket: context
     authority: non-binding-context
@@ -1885,7 +1885,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 190145
+    bytes: 190899
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -3669,7 +3669,7 @@ documents:
     persona: null
     title: "Risk Register"
     answers: "Open risks with owners, triggers, and responses. A risk is not a problem — it is a problem"
-    bytes: 12357
+    bytes: 13094
   - path: docs/governance/registers/SUGGESTION-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -3749,7 +3749,7 @@ documents:
     persona: null
     title: "CURRENT STATE"
     answers: "AIGEM — Machine-readable current state"
-    bytes: 31805
+    bytes: 31818
   - path: docs/governance/state/GATE-EVIDENCE.yaml
     bucket: governance
     authority: binding-process
@@ -4261,7 +4261,7 @@ documents:
     persona: sre-operations
     title: "GLM-001 — GitHub → GitLab estate migration plan"
     answers: "Origin: SUG-20260829-glm"
-    bytes: 38760
+    bytes: 38749
   - path: docs/platform/gitlab-migration/README.md
     bucket: platform
     authority: ai-drafted
@@ -4270,6 +4270,30 @@ documents:
     title: "GitLab Estate Migration — SRE pack"
     answers: "Origin: SUG-20260829-glm"
     bytes: 1685
+  - path: docs/platform/gitlab-migration/m2-evidence/M2-1-gitleaks-full-history.json
+    bucket: platform
+    authority: ai-drafted
+    capsules: [sre-operations, security-review, delivery-planning]
+    persona: sre-operations
+    title: "M2 1 gitleaks full history"
+    answers: "JSON artefact"
+    bytes: 7547
+  - path: docs/platform/gitlab-migration/m2-evidence/M2-5-branch-triage.md
+    bucket: platform
+    authority: ai-drafted
+    capsules: [sre-operations, security-review, delivery-planning]
+    persona: sre-operations
+    title: "M2.5 — Branch triage (full history)"
+    answers: "Re-run on the unshallowed clone. The first run used the shallow clone and its ancestry was unreliable."
+    bytes: 2760
+  - path: docs/platform/gitlab-migration/m2-evidence/M2-EVIDENCE.md
+    bucket: platform
+    authority: ai-drafted
+    capsules: [sre-operations, security-review, delivery-planning]
+    persona: sre-operations
+    title: "M2 — Pre-migration hygiene: evidence pack"
+    answers: "Executed: 2026-08-29 · Owner: Shivanshi (SRE / R10)"
+    bytes: 11887
   - path: docs/platform/ws3-platform/00-WS3-ARCHITECTURE-REGISTRATION.md
     bucket: platform
     authority: approved-spec

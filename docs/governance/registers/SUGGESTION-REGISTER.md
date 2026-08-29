@@ -320,7 +320,7 @@ necessity:
     - "GitLab Terraform Bootstrap Requirements v1.0 — Approved Baseline for SRE Implementation"
     - "ADR-016 — enterprise perimeter, integration and delivery baseline (GitLab CI/CD, Terraform IaC)"
     - "SUG-20260825-arb — internal architect review alignment, ADMIT-BYPASS P1/P1"
-    - "Measured origin: 273 commits, 81 remote branches, 0 tags, ~14.9 MiB pack, 3 GitHub Actions workflows, no Terraform, no GitOps, no contracts"
+    - "Measured origin: 358 commits, 81 remote branches, 0 tags, ~14.9 MiB pack, 3 GitHub Actions workflows, no Terraform, no GitOps, no contracts"
   confidence: C4
   assumptions: []      # the eleven outstanding spec section 5 inputs each become an ASM-### with an expiry at M1.10
   anti_over_engineering:

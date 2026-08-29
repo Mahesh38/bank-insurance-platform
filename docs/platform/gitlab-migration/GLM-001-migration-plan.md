@@ -20,8 +20,8 @@
 | Fact | Value | Why it matters |
 |---|---|---|
 | Repository | `Mahesh38/bank-insurance-platform` (personal GitHub) | Single origin, single owner, no org controls |
-| Commits · tags · remote branches | 273 · **0** · **81** | No tag means **no rollback anchor exists today** |
-| Pack size | ~14.9 MiB (`.git` 16 MB) | Small. Mirroring is minutes, not hours — size is not the risk |
+| Commits · tags · remote branches | **358** · **0** · **81** | No tag means **no rollback anchor exists today** |
+| Pack size | ~20.3 MiB | Small. Mirroring is minutes, not hours — size is not the risk |
 | `docs/` | ~16 MB, 441 routed files | Larger than all source combined, and **has no home in the target topology** |
 | Source | `apps/rm-workspace-app` (Flutter), `services/` ×5, `libs/` ×5 | Frontend and backend share one history and one Gradle build |
 | CI | 3 GitHub Actions workflows | `application-ci.yml`, `governance.yml`, `security-scanning.yml` |
@@ -112,7 +112,7 @@ recovery (**IMP-7**) and the runtime change on the same critical path.
 
 ### IMP-6 · Secret hygiene is a **pre**-migration blocking gate — `O0`
 **Finding.** `security-scanning.yml` runs full-history gitleaks only on a schedule, non-blocking. Once
-273 commits across 81 branches are mirrored into the bank estate, a credential in history stops being
+358 commits across 81 branches are mirrored into the bank estate, a credential in history stops being
 a personal-repo problem and becomes a bank security incident with bank disclosure obligations. This is
 the one point where "preserve history exactly" (spec §7.2) and "do not import a leak" genuinely
 conflict, and history wins only if the scan is clean.

@@ -517,18 +517,34 @@ a new decision on new evidence, not a reopening of M0.
 half is the half that gates a phase. Both hard blocks on the first push — residency and a clean
 secret scan — remain open.
 
-### 7.3 M2 — **not started, and it is the only phase fully unblocked**
+### 7.3 M2 — **executed 2026-08-29; one remediation outstanding**
 
-M2 is pre-migration hygiene on the GitHub origin: the blocking full-history secret scan, branch
-triage and allowlist, the `pre-gitlab-migration` rollback anchor, the split rehearsal and the build
-verification. **It needs no bank input, touches no bank system, and `CR-014` authorises it.**
+| Task | State |
+|---|---|
+| M2.1 full-history scan | **All 5 findings dispositioned.** B `COMPROMISED / POTENTIALLY LIVE` — remediation not started |
+| M2.2 allowlist re-review | Awaiting Board 4 — two exact-scope entries proposed, neither applied |
+| M2.3 rotate → scrub → re-scan | **Required for B**, not started. `filter-repo` **barred** until B is rotated/retired and the anchor is on the remote |
+| M2.4 `docs/` sweep | **COMPLETE, reporting only** — 63 hits, 0 credentials, 0 real customer data; 3 items for Board 6; 23 binary assets need human eyes |
+| M2.5 branch triage | **COMPLETE** — 56 of 81 archive-only, 25 carry unapplied work |
+| M2.6 rollback anchor | Local complete; **remote push refused** by GitHub credential scope (`RISK-025`) |
+| M2.7 split rehearsal | **COMPLETE — 18/18 checks** |
+| M2.8 build verification | **Backend PASS** — 503 tests, 0 failures. **Flutter `BLOCKED_ENVIRONMENT`, not passed** |
 
-It also contains `C-SEC-1`, one of the two hard blocks on the first push — and the one with an
-unbounded tail, because a finding means rotate, then scrub, then re-scan before anything proceeds.
+Full evidence: [`m2-evidence/M2-EVIDENCE.md`](./m2-evidence/M2-EVIDENCE.md).
 
-**Recommendation: start M2 now.** It is ~15 agent-hours, it is on the critical path, and it is the
-only substantial work that does not wait on the bank. Running it while M1 is outstanding converts
-waiting into the risk reduction the programme most needs.
+### 7.4 What M2 proved about the original framing
+
+M2 was the right phase to run first and it earned its place: it needed no bank input, and it found
+three things the plan did not know.
+
+1. **The clone was shallow** (§0 of the evidence pack) — `main` carries 358 commits, not 273, and the
+   first scan over-reported 9 findings where the true count is 5.
+2. **A real credential is in `main`'s history**, now dispositioned `COMPROMISED / POTENTIALLY LIVE`.
+   `C-SEC-1` fired on something real, which is the gate doing its job rather than failing.
+3. **The repository's own blocking secret-scan job should be failing today** on a false positive.
+
+The remaining tail is exactly the one predicted: rotate → scrub → re-scan, and it is unbounded until
+the deployment evidence for finding B exists.
 
 ---
 

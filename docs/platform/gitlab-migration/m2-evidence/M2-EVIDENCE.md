@@ -5,15 +5,18 @@
 **Plan:** [`GLM-001` §3 Phase M2](../GLM-001-migration-plan.md)
 **Status:** **M2.1 BLOCKED on a real finding.** M2.5, M2.6, M2.7 complete. M2.2 awaiting Board 4.
 
-> ## Headline — updated 2026-08-29 after the operator ruling
-> **Three of five findings are dispositioned `FALSE_POSITIVE / NON-CREDENTIAL`** by operator ruling
-> (`human:Mahesh`, 2026-08-29): the Figma content identifiers. **No rotation. No `filter-repo`.**
-> `M2.3` is **N/A** for those three.
+> ## Headline — dispositioned 2026-08-29
+> **Finding B — `COMPROMISED / POTENTIALLY LIVE`.** *"A runnable Docker default cannot be declared
+> dead without deployment evidence."* `C-SEC-2` applies in full and **`filter-repo` is barred** until
+> B is rotated or formally retired, any affected `raw_payload` data is handled, and the
+> `pre-gitlab-migration` anchor is verified on the remote.
 >
-> **Two findings remain undispositioned**, and neither is a Figma identifier — see §2.6. The
-> ruling's text describes the *working-tree* finding, which is exactly one file. The *history* scan
-> returned five, and two of them are `payload-encryption` key material in different files.
-> `C-SEC-1` stays open on those two pending a specific disposition.
+> **Finding C — `TEST FIXTURE / NON-CREDENTIAL`.** No rotation, no scrub. Exact-path allowlist
+> proposed for Board 4. **Packaging verified: the built jar contains no test resources** (§2.7).
+>
+> **Findings 3–5 — `FALSE_POSITIVE / NON-CREDENTIAL`.** Figma content identifiers.
+>
+> Nothing has been rotated, scrubbed or rewritten by this workstream.
 
 ---
 
@@ -75,8 +78,8 @@ the remote; the local tag pointing at the authorised commit.
 
 | # | Rule | Location | Introduced | Verdict *(SRE technical read — Board 4 owns the ruling)* |
 |---|---|---|---|---|
-| **1** | `generic-api-key` | `Dockerfile:61` | `d2a3d4e6` · 2026-08-04 · Claude | **UNDISPOSITIONED** — not covered by the ruling. See §2.2, §2.6 |
-| 2 | `generic-api-key` | `…/application-test.yml:22` | `6ed3ad23` · 2026-07-30 · Cursor Agent | **UNDISPOSITIONED** — not covered by the ruling. `key-id: test-v1` under `payload-encryption`. See §2.6 |
+| **B** | `generic-api-key` | `Dockerfile:61` | `d2a3d4e6` · 2026-08-04 · Claude | **`COMPROMISED / POTENTIALLY LIVE`** — operator ruling 2026-08-29. `C-SEC-2` in full. See §2.6 |
+| **C** | `generic-api-key` | `…/application-test.yml:22` | `6ed3ad23` · 2026-07-30 · Cursor Agent | **`TEST FIXTURE / NON-CREDENTIAL`** — operator ruling 2026-08-29. Packaging verified §2.7 |
 | 3 | `generic-api-key` | `docs/design/figma/…/tokens.json:26` | `72b96c0a` · 2026-08-28 | **`FALSE_POSITIVE / NON-CREDENTIAL`** — operator ruling 2026-08-29. Figma publishedStyle key |
 | 4 | `generic-api-key` | `docs/design/figma/…/inventory.json:3` | `72b96c0a` · 2026-08-28 | **`FALSE_POSITIVE / NON-CREDENTIAL`** — operator ruling 2026-08-29. Figma `fileKey`, already in the directory path |
 | 5 | `generic-api-key` | `docs/figma_file_structure.json:18170` | `9fea89bb` · 2026-08-25 · Mahesh38 | **`FALSE_POSITIVE / NON-CREDENTIAL`** — operator ruling 2026-08-29. 40-hex style key, `"name": "app-grid"`. **This is the finding the ruling describes** |
@@ -125,37 +128,61 @@ The ruling's description is precisely correct for the finding it names — `figm
 line 18170 is a 40-hex Figma `publishedStyle` key with `"name": "app-grid"`, and it is the **only**
 finding the working-tree scan returns.
 
-### 2.6 Two findings the ruling does not describe — `C-SEC-1` stays open on these
+### 2.6 Dispositions for B and C — operator ruling, 2026-08-29
 
-The working-tree scan returns **1** finding. The **history** scan returns **5**. The ruling addresses
-the working-tree finding and the two other Figma identifiers. Two remain, and neither is a Figma
-identifier — different files, different content, both `payload-encryption` key material:
+#### Finding B — `COMPROMISED / POTENTIALLY LIVE`
 
-| | Finding B | Finding C |
+> *"C-SEC-2 applies: rotate or formally retire it first, check whether any `raw_payload` rows decrypt
+> with it, re-encrypt/dispose affected data if found, then scrub B from migration history and
+> re-scan. A runnable Docker default cannot be declared dead without deployment evidence."*
+
+The reasoning is the part worth preserving: **a default that ships in a runnable image is live until
+proven otherwise.** Absence of deployment evidence is not evidence of absence, and the burden sits
+the right way round.
+
+Required sequence, none of it started, none of it an agent's to perform alone:
+
+| # | Step | Owner |
 |---|---|---|
-| Location | `Dockerfile:61` @ `d2a3d4e6`, 2026-08-04 | `…/application-test.yml:22` @ `6ed3ad23`, 2026-07-30 |
-| Content | `ENV RAW_PAYLOAD_ENCRYPTION_KEY=<44-char base64>` | `payload-encryption.key-base64: <44-char base64>`, `key-id: test-v1` |
-| Introducing commit's own words | *"Dev-only AES-256 key so the image boots out of the box — override for anything beyond throwaway validation (generate your own with: `openssl rand -base64 32`)"* | test fixture under `bank.persistence.payload-encryption` |
-| Reachable from `main` | **Yes** — and from 60 branches | Yes |
-| Value | Distinct from C and from the Figma keys | Distinct from B |
+| 1 | Rotate the key, **or** formally retire it with a recorded decision | Deepali + operator |
+| 2 | Determine whether any stored `raw_payload` row decrypts with it | Aarti + Amit |
+| 3 | Re-encrypt or dispose of any affected data | Aarti · Shailja rules on disposal |
+| 4 | **Only then** scrub B from migration history | SRE |
+| 5 | Re-scan clean, retain the report | SRE · Swapnali on sufficiency |
 
-**HEAD's own `Dockerfile` describes B**, in the repository's words, not the agent's:
+#### Finding C — `TEST FIXTURE / NON-CREDENTIAL`
 
-> *"This previously carried a baked-in base64 AES-256 key so the image would boot unattended. That
-> key protects the `raw_payload` store, which holds PII and is retained for 7 years — so a default
-> key committed to the repository means any deployment that forgets to override it encrypts
-> regulated data with a key that is public. It also contradicted this platform's own rule: 'No
-> secrets in `application.yml`, Dockerfile, or source code'."*
+> *"No rotation and no history scrub. Board 4 may approve an exact allowlist limited to
+> `src/test/resources/application-test.yml`; confirm the packaged backend excludes test resources."*
 
-**What is needed:** a disposition for B and C specifically. Either is a legitimate outcome and both
-are the operator's and Board 4's to give, not the agent's:
+**Proposed for Board 4, not applied** — exact path, not a pattern:
 
-- **Not a live credential** — the value was a throwaway dev default, was never set in any running
-  environment, and no stored `raw_payload` is encrypted under it. Then no rotation is required, and
-  the remaining question is whether a dead key may be imported into the bank estate in history.
-- **It was live somewhere** — then `C-SEC-2` applies to B: rotate first, then scrub, then re-scan.
+```toml
+# Test fixture key. key-id: test-v1, used only by the H2 in-memory test profile.
+# Verified 2026-08-29: not present in the packaged bootJar (M2-EVIDENCE section 2.7).
+'''^services/bank-persistence-service/src/test/resources/application-test\.yml$'''
+```
 
-Nothing has been rotated, scrubbed or rewritten. `C-SEC-1` is held open on B and C only.
+### 2.7 Packaging verification for the C disposition — **PASS**
+
+`./gradlew :services:bank-persistence-service:bootJar`, then inspection of
+`bank-persistence-service.jar`:
+
+- **No `application-test.yml`.** No `test-classes`, no `/test/` entries of any kind.
+- Packaged config is exactly: `application.yml`, `application-local.yml`, `application-uat.yml`,
+  `application-prod.yml`.
+
+The test fixture key **cannot reach a running deployment through the artefact**. Board 4's condition
+is satisfied on the evidence.
+
+### 2.8 `filter-repo` is barred until two conditions are met
+
+Recorded so it cannot be forgotten under schedule pressure:
+
+1. **B is rotated or formally retired**, and any affected `raw_payload` data is handled.
+2. **`pre-gitlab-migration` is verified present on the remote** — see §1, currently blocked.
+
+Neither is satisfied. **No history rewrite may run**, and none has.
 
 ### 2.4 Scan-scope comparison### 2.4 Scan-scope comparison (retained as method evidence)
 
@@ -257,15 +284,47 @@ disabled, and then it protects nothing.
 
 | Task | Status |
 |---|---|
-| M2.1 blocking full-history scan | **OPEN on 2 of 5.** 3 dispositioned `FALSE_POSITIVE` by operator ruling; findings B and C undispositioned (§2.6) |
-| M2.2 allowlist re-review | **Awaiting Board 4.** Decision sheet at §3 |
-| M2.3 rotate → scrub → re-scan | **N/A for the three Figma findings** (operator ruling). Undetermined for B and C. **Nothing rotated, scrubbed or rewritten** |
-| M2.4 `docs/` PII / NDA sweep | **Not started** |
+| M2.1 blocking full-history scan | **All 5 dispositioned.** B `COMPROMISED/POTENTIALLY LIVE` — remediation not started. C and 3–5 closed |
+| M2.2 allowlist re-review | **Awaiting Board 4.** Two exact-scope entries proposed: Figma (§3) and the C fixture (§2.6). Neither applied |
+| M2.3 rotate → scrub → re-scan | **REQUIRED for B**, 5 steps at §2.6, not started, not an agent's to perform. N/A for C and 3–5. **Nothing rotated, scrubbed or rewritten** |
+| M2.4 `docs/` PII / NDA sweep | **COMPLETE — reporting only.** 63 hits, **0 credentials, 0 real customer data**. 3 items for Board 6; 23 binary assets need human eyes. [`M2-4-docs-sweep.md`](./M2-4-docs-sweep.md) |
 | M2.5 branch triage | **COMPLETE** |
 | M2.6 rollback anchor | **Local: complete and verified. Remote: BLOCKED** — GitHub refuses tag pushes on this credential |
 | M2.7 split rehearsal | **COMPLETE — 18/18** |
-| M2.8 verify split builds | **Not started** — no Flutter toolchain in this environment; backend build pending |
+| M2.8 verify split builds | **Backend PASS** — 503 tests, 0 failures, 53 tasks, all 10 modules. **Flutter `BLOCKED_ENVIRONMENT`, not passed** (§7) |
 
 **M2 cannot close yet.** Three findings are dispositioned and closed. Two await a disposition, and
 the rollback anchor is not on the remote. Neither is a reason to rush: `C-SEC-1` gates the first push
 to the bank estate, and that push is phases away.
+
+---
+
+## 7. M2.8 — build verification
+
+### 7.1 Backend — **PASS**
+
+`./gradlew test`, JDK 21, clean environment.
+
+| | |
+|---|---|
+| Result | `BUILD SUCCESSFUL` in 2m 07s |
+| Tasks | 53 executed |
+| Modules | all 10 — 5 services, 5 shared libraries |
+| **Tests** | **503 · 0 failures · 0 errors · 0 skipped** |
+| Coverage | JaCoCo reports generated for every module |
+
+This corroborates Amit's `ENG-F01` from the other direction: the backend builds and tests green as a
+unit, and the split rehearsal (§5) showed the frontend carries no Gradle coupling to sever.
+
+**Not yet done:** building from the *split* clone rather than the monorepo. `C-ENG-5` requires
+`./gradlew test` from a fresh checkout of the split `backend`, and that is a separate run.
+
+### 7.2 Flutter — `BLOCKED_ENVIRONMENT`
+
+**Recorded as blocked, explicitly not as passed.** No Flutter or Dart toolchain exists in this
+session — `which flutter dart` returns nothing, and installing one is not migration work.
+
+`apps/rm-workspace-app` therefore has **no** verification evidence: not a pass, not a fail, no run.
+Per `C-QA-5`, this may not later be recorded as satisfied by anything other than an executed run on
+a host with the toolchain. The frontend split is 2 commits, so the run is cheap — it just cannot
+happen here.

@@ -46,6 +46,7 @@ without a search.
 | ADR-015 | One NIP-APP Flutter client (web + APK + IPA); ns:edge is nip-web + #2 NIP BFF only; RM / IPR / admin / ops are roles; Play Store + App Store + EKS | Proposed (`A3_JOINT_REVIEW`) | A second admin/ops app or hostname; RM-named or admin-named pods in ns:edge; MDM-only as the default distribution |
 | ADR-016 | Enterprise perimeter, integration and delivery baseline: Cloudflare (Edge CDN/DDoS), F5 BIG-IP / WAF (Bank Policy), External ALB before API Gateway, EBS (Enterprise Service Bus) for Core Banking (CBS / CIF), GitLab CI/CD, Terraform IaC, CloudTrail + CloudWatch | Proposed (`A3_JOINT_REVIEW`) | Bypassing bank enterprise perimeter; direct database or unmanaged point-to-point connections to CBS; omitting CloudTrail management auditability; manual console drifts |
 | ADR-017 | One platform error contract: every error carries code / service / layer / category plus origin; a registry seeded from journey-execution 04 decides status, wording, retryability, audit and runbook once; one incidentId per failure across every hop; safe public rendering vs full diagnostic, with the BFF (L4) as the redaction boundary; one `bank.error.count` series; additive only | Proposed (`A3_JOINT_REVIEW`) | Returning an upstream body or internal route to a caller; wording an error at a throw site instead of the registry; re-wrapping a dependency failure as `INTERNAL_ERROR`; emitting a diagnostic past L4; renaming or removing an existing `ErrorCodes` value (G9 — that is T4); a metric tag that is a message, identifier or path |
+| ADR-018 | The AIGEM governance model, registers and agent context tooling (`docs/`, `scripts/{governance,context,lifecycle}`, `AGENTS.md`, `CLAUDE.md`) live in a dedicated ninth GitLab project `governance/platform-governance`, not in `product/backend` and not split across repositories | Proposed — internal position `RECOMMENDED`, **bank Appendix C exception outstanding** | Placing the governance tree in an application repository; splitting `DOC-MAP.yaml` / `context-load.py` / `FreshnessCheck` across repositories; creating the project before the bank exception is accepted (`C-ARC-2`) |
 
 > ADR IDs are assigned by the architecture decision log. New architectural decisions arising
 > from AIGEM triage are raised there and indexed here.
@@ -200,6 +201,39 @@ scope_of_approval: Framework text only. Every individual change that A1 tiers do
 next_check:        First GM-1 INTERVENE check falls due 2026-08-28 (two weeks from ratification).
 ```
 
+### CR-014 — Migrate the platform from personal GitHub to the company GitLab estate
+
+**Date:** 2026-08-29 · **Type:** SCOPE (with `STAGE`, `GOV`, `PLAN`) · **Decision:** `PENDING` · **Approvers:** none
+**File:** [`CR-014`](../change-requests/CR-014-gitlab-estate-migration.md) · **Plan:** [`GLM-001`](../../platform/gitlab-migration/GLM-001-migration-plan.md) · **Positions:** [`CR-014/verdicts/`](../change-requests/CR-014/verdicts/README.md)
+
+Adopt the bank's *GitLab Terraform Bootstrap Requirements* v1.0: a Terraform-provisioned estate under
+`insurance/bank-insurance`, the monorepo split into `frontend` / `backend` / `platform-governance` with history
+preserved, five greenfield projects seeded, GitHub Actions re-expressed as reusable GitLab CI components, and
+GitLab OIDC + AWS STS replacing static keys. Fourteen improvements accepted by the repository owner.
+
+Required on three grounds ([14 §1](../14-CHANGE_CONTROL.md#1-what-needs-a-change-request)): four `GATE-S08` exit
+criteria change evidence platform; the governance files move repository; the approved CI/deployment approach is
+replaced. **No criterion is waived or re-worded.**
+
+Seven AI-drafted board positions attached as inputs — Architecture `A2`, Security `S1`, Compliance `R2`,
+Operations `O1`, QA `Q1` hold, Engineering, Delivery `CANDIDATE`. Twenty-nine conditions attached.
+**Three mandatory human T4 signatures (Architecture, Security, Risk & Compliance) are outstanding**, and per Rule
+CC-1 no agent may supply them.
+
+### CR-015 — `bank-persistence-service` versus bank baseline §3.3
+
+**Date:** 2026-08-29 · **Type:** CONSTRAINT (potential `REVERSAL`) · **Decision:** `PENDING` · **Approvers:** none
+**File:** [`CR-015`](../change-requests/CR-015-shared-persistence-vs-bank-baseline.md)
+
+The bank baseline §3.3 forbids a generic shared persistence service for all domains. This register carries
+*"Persistence is platform-common (`bank-persistence-service`), reached over HTTP"* as **Accepted**, with two further
+Accepted decisions and one ArchUnit-enforced rule resting on it.
+
+**No verdict is drafted, deliberately.** Shared-datastore and source-of-truth questions are a mandatory joint
+Mahesh + Aarti review, and Aarti has not been convened; Q4 (integrity and recovery guarantees) is hers alone.
+Four options are recorded with no recommendation attached. Blocks nothing in CR-014 — `C-ARC-3` migrates the
+service as-is, because a boundary change executed inside a repository move cannot be audited afterwards.
+
 ## 4. Stage transitions
 
 | Date | Workstream | From | To | Criteria met | Waivers | Approvers |
@@ -272,3 +306,26 @@ Every row is `AI-DRAFTED — mandatory human signature outstanding`. This is not
 | ID | Date | Decision | Rationale | Authority | Status |
 |----|------|----------|-----------|-----------|--------|
 | DEC-20260825-01 | 2026-08-25 | **Seven locked design decisions** (D1–D7 in the file), **pulled into R0** by `CR-013` / `ADR-014`: Lead language; archive working inbox; off-platform Policy ingest; R0 admin/MIS on isolated path; OLTP isolation; issuanceMode; PPHI condition | Stakeholder: R0 now, nothing parked, compliance calls only | All ten persona cards; Shailja conditions in CR-013 §5 | **AI-DRAFTED.** Human T4 outstanding. Build **ADMITTED** |
+
+---
+
+## 9. Phase M0 migration decisions — 2026-08-29
+
+**File:** [`DEC-20260829-01`](../DEC-20260829-01-m0-migration-decisions.md) · **Status:** `AI-DRAFTED` — human T4 signatures outstanding
+**Origin:** human:Mahesh — *accept the improvements, activate every persona, start Phase M0, take the decisions with mutual discussion*
+
+| ID | Decision | Owner | Status |
+|----|----------|-------|--------|
+| M0.3 | Re-evidence `S08-G1/G2/G5/G9` on GitLab rather than closing them on GitHub first; stop GitHub Actions investment beyond keeping the build green. `GATE-S08` stays open across the migration and is reported open | Amit + boards | `RECOMMENDED` — six personas, no dissent; owner confirmation outstanding |
+| M0.4 | `governance/platform-governance` as a ninth project (`ADR-018`) | Mahesh → bank authority | `RECOMMENDED` internally · `BLOCKED-EXTERNAL` on the Appendix C exception |
+| M0.6 | Render survives as a dev-preview demo target redeployed from GitLab CI; retired when EKS can demonstrate an equivalent deployment — on capability, not on a date | Shivanshi + Kalpana | `RECOMMENDED`, bound by `C-SEC-8` and `C-CMP-5` |
+
+**Two findings the board round produced that `GLM-001` did not contain:**
+
+- `CMP-F01` → **IMP-14** — data residency is unresolved. `GLM-001` M1.2 asks for the GitLab URL, version and
+  edition but never where the instance and its storage physically are, and the migration proceeds identically
+  either way. The standing constraint forbids regulated data, backups, logs **or archives** outside AWS India
+  regions. Capable of `R0`; can invalidate the destination rather than the schedule. `RISK-021` · `ASM-022`.
+- `OPS-F04` — Shivanshi corrected her own plan: archiving the GitHub origin at cutover +24 h is shorter than the
+  rollback-validation window it follows. Revised to read-only at cutover, restorable for 14 days, archived only
+  once `C-CMP-4` names the disposition.

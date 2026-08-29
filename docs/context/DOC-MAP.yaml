@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 526
-total_bytes: 15088629
+document_count: 537
+total_bytes: 15210743
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -1885,7 +1885,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 185927
+    bytes: 189767
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -3238,6 +3238,14 @@ documents:
     title: "DEC-20260825-01 — Lead language, lifecycle, evidence split, off-platform book, day-one visibility, issuance modes, isolation, PPHI"
     answers: "Revised: 2026-08-25 — stakeholder pull into R0 (CR-013, ADR-014). Timing is R0 now. Parking withdrawn. Compliance conditions only."
     bytes: 17772
+  - path: docs/governance/DEC-20260829-01-m0-migration-decisions.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "DEC-20260829-01 — Phase M0 decisions: gate evidence, governance-tree home, Render disposition"
+    answers: "Origin: human:Mahesh — accept the improvements, activate every persona, start Phase M0, take the decisions with mutual discussion"
+    bytes: 14744
   - path: docs/governance/DELIVERY-CONTROL-SYSTEM.md
     bucket: governance
     authority: binding-process
@@ -3510,6 +3518,86 @@ documents:
     title: "CR-013 — Pull Lead language, lifecycle, off-platform ingest, admin/MIS, issuance modes and PPHI mapping into R0"
     answers: "Type: SCOPE (with ARCH and COMP consequences)"
     bytes: 4981
+  - path: docs/governance/change-requests/CR-014-gitlab-estate-migration.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "CR-014 — Migrate the platform from personal GitHub to the company GitLab estate"
+    answers: "Type: SCOPE (with STAGE, GOV and PLAN consequences)"
+    bytes: 17098
+  - path: docs/governance/change-requests/CR-014/verdicts/README.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "CR-014 — Board positions"
+    answers: "Change request: CR-014 — Migrate the platform from personal GitHub to the company GitLab estate"
+    bytes: 3249
+  - path: docs/governance/change-requests/CR-014/verdicts/board-1-architecture-mahesh.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "Board 1 — Architecture · Position on CR-014"
+    answers: "Change request: CR-014 · Plan: GLM-001"
+    bytes: 7782
+  - path: docs/governance/change-requests/CR-014/verdicts/board-4-security-deepali.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "Board 4 — Security · Position on CR-014"
+    answers: "Change request: CR-014 · Plan: GLM-001"
+    bytes: 7463
+  - path: docs/governance/change-requests/CR-014/verdicts/board-5-qa-swapnali.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "Board 5 — QA · Position on CR-014"
+    answers: "Change request: CR-014 · Plan: GLM-001"
+    bytes: 6082
+  - path: docs/governance/change-requests/CR-014/verdicts/board-6-compliance-shailja.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "Board 6 — Risk & Compliance · Position on CR-014"
+    answers: "Change request: CR-014 · Plan: GLM-001"
+    bytes: 6909
+  - path: docs/governance/change-requests/CR-014/verdicts/board-7-operations-shivanshi.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "Board 7 — Operations · Position on CR-014"
+    answers: "Change request: CR-014 · Plan: GLM-001"
+    bytes: 6910
+  - path: docs/governance/change-requests/CR-014/verdicts/r12-delivery-kalpana.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "`R12` — Delivery · Position on CR-014"
+    answers: "Change request: CR-014 · Plan: GLM-001"
+    bytes: 5524
+  - path: docs/governance/change-requests/CR-014/verdicts/r3-engineering-amit.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "`R3` — Engineering · Position on CR-014"
+    answers: "Change request: CR-014 · Plan: GLM-001"
+    bytes: 7360
+  - path: docs/governance/change-requests/CR-015-shared-persistence-vs-bank-baseline.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "CR-015 — `bank-persistence-service` versus bank baseline §3.3: shared persistence as an accepted decision"
+    answers: "Type: CONSTRAINT (potential REVERSAL of an Accepted decision)"
+    bytes: 9620
   - path: docs/governance/plans/PLAN-001-context-module-and-safe-autopilot.md
     bucket: governance
     authority: binding-process
@@ -3541,7 +3629,7 @@ documents:
     persona: null
     title: "Assumption Register"
     answers: "Beliefs the plan rests on that have not been verified. Every assumption has an expiry, a"
-    bytes: 4783
+    bytes: 8562
   - path: docs/governance/registers/DECISION-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -3549,7 +3637,7 @@ documents:
     persona: null
     title: "Decision Register"
     answers: "Index of decisions that constrain future work: ADRs, change requests, stage transitions, and"
-    bytes: 36717
+    bytes: 41756
   - path: docs/governance/registers/DEPENDENCY-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -3557,7 +3645,7 @@ documents:
     persona: null
     title: "Dependency Register"
     answers: "Edges of the dependency graph. Edges outlive the items that discovered them, so they are"
-    bytes: 6617
+    bytes: 8601
   - path: docs/governance/registers/PARKED-BACKLOG.md
     bucket: governance
     authority: binding-process
@@ -3573,7 +3661,7 @@ documents:
     persona: null
     title: "Risk Register"
     answers: "Open risks with owners, triggers, and responses. A risk is not a problem — it is a problem"
-    bytes: 7218
+    bytes: 10366
   - path: docs/governance/registers/SUGGESTION-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -3581,7 +3669,7 @@ documents:
     persona: null
     title: "Suggestion Register"
     answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 176291
+    bytes: 183851
   - path: docs/governance/schemas/README.md
     bucket: governance
     authority: binding-process
@@ -3653,7 +3741,7 @@ documents:
     persona: null
     title: "CURRENT STATE"
     answers: "AIGEM — Machine-readable current state"
-    bytes: 31246
+    bytes: 31520
   - path: docs/governance/state/GATE-EVIDENCE.yaml
     bucket: governance
     authority: binding-process
@@ -4165,7 +4253,7 @@ documents:
     persona: sre-operations
     title: "GLM-001 — GitHub → GitLab estate migration plan"
     answers: "Origin: SUG-20260829-glm"
-    bytes: 30371
+    bytes: 34120
   - path: docs/platform/gitlab-migration/README.md
     bucket: platform
     authority: ai-drafted

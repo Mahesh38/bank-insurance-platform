@@ -3,7 +3,9 @@
 **Workstream:** WS-3 · **Stage:** S08 Engineering Foundation with S09 Platform Foundation overlapped
 **Origin:** [`SUG-20260829-glm`](../../governance/registers/SUGGESTION-REGISTER.md#sug-20260829-glm--github-to-gitlab-estate-migration)
 **Persona:** Shivanshi — SRE (Board 7 · `R10`). Cross-persona calls are named per item; none are taken here.
-**Status:** `AI-DRAFTED`. Plan only — nothing in this document has been executed.
+**Status:** `AI-DRAFTED`. **Phase M0 executed as agent work on 2026-08-29** — see §7. Phases M1–M10 are plan only.
+**Change requests:** [`CR-014`](../../governance/change-requests/CR-014-gitlab-estate-migration.md) (`PENDING`) · [`CR-015`](../../governance/change-requests/CR-015-shared-persistence-vs-bank-baseline.md) (`PENDING`)
+**Decisions:** [`DEC-20260829-01`](../../governance/DEC-20260829-01-m0-migration-decisions.md) · **Board positions:** [`CR-014/verdicts/`](../../governance/change-requests/CR-014/verdicts/README.md)
 
 > **Freshness disclosure.** `java scripts/governance/FreshnessCheck.java` exits `1` (WARNINGS):
 > `state_as_of` is 19 days old (2026-08-10), refresh due 2026-09-09. Work may be admitted; the
@@ -183,6 +185,27 @@ announced start, and GitHub set read-only (archived) at cutover +24 h.
 
 ---
 
+### IMP-14 · Data residency is unresolved, and no phase asks — `O0`/`R0`-capable
+
+**Raised by Shailja (Board 6) during the CR-014 board round, not in the original plan.**
+
+The WS-3 standing constraint forbids regulated data, backups, logs **or archives** outside AWS India
+regions. M1.2 asks for the GitLab base URL, version and edition, because those decide provider
+capability. **It never asks where the instance and its storage physically are**, and the migration
+proceeds identically either way.
+
+Self-managed inside an in-region bank environment closes this on a written confirmation. GitLab.com
+or a managed instance outside India puts repository content, CI job logs, artifacts, the container
+registry and the Terraform state holding the estate's configuration outside India — and Board 6
+cannot then rule the estate permissible for material that will later carry regulated data.
+
+**This can invalidate the destination, not merely the schedule**, which is what separates it from
+every other open input. Added as task **M1.2a**; `RISK-021`; `ASM-022`; condition `C-CMP-1` blocks
+the first push.
+**Route:** Shailja (Board 6) rules permissibility. SRE obtains the confirmation.
+
+---
+
 ## 3. The task list, in execution order
 
 Ownership: **SRE** = Shivanshi · **SEC** = Deepali · **ARCH** = Mahesh · **ENG** = Amit ·
@@ -208,6 +231,7 @@ Ownership: **SRE** = Shivanshi · **SEC** = Deepali · **ARCH** = Mahesh · **EN
 |---|---|---|---|
 | M1.1 | Issue the spec §5 enterprise-input questionnaire (11 inputs) and track it to closure | SRE → BANK | 2 h |
 | M1.2 | GitLab base URL, **version and edition/licence** — gates **IMP-3** and every governance feature | BANK | — |
+| M1.2a | **Physical residency of the instance and its storage** — repository, CI logs, artifacts, registry, Terraform state (**IMP-14**, `C-CMP-1`) | BANK → COMP rules | — |
 | M1.3 | Existing `insurance` group path and ID; subgroup/project creation rights | BANK | — |
 | M1.4 | SSO/LDAP identity group names and IDs for the eleven logical teams (spec §5.2) | BANK | — |
 | M1.5 | Runner operating model, tags, and whether production-capable runners exist | BANK | — |
@@ -329,7 +353,7 @@ Terraform before M1.2 and M1.6 land** — provider capability and backend shape 
 | M9.1 | Execute the spec §14 acceptance checklist; record evidence per criterion | SRE + QA | 4 h |
 | M9.2 | Final `terraform plan` — no unexpected drift; attach as evidence (spec §15 item 15) | SRE | 1 h |
 | M9.3 | Final synchronisation from the frozen GitHub origin; verify parity | SRE | 2 h |
-| M9.4 | **Declare GitLab authoritative.** Archive GitHub read-only at cutover +24 h | DEL + SRE | 1 h |
+| M9.4 | **Declare GitLab authoritative.** GitHub read-only at cutover, restorable **14 days**, archived only once `C-CMP-4` names the disposition (`C-OPS-4`, revised from +24 h by `OPS-F04`) | DEL + SRE | 1 h |
 | M9.5 | Test the rollback procedure against the `pre-gitlab-migration` tag before releasing the freeze | SRE | 2 h |
 | M9.6 | Board 7 operations verdict `O1`–`O8`; Board 4 security verdict | SRE + SEC | 3 h |
 
@@ -353,6 +377,7 @@ M0.4 (governance home)        ──► M4.3 the project must exist before it ca
 M1.2 (GitLab edition)         ──► M3.4 provider capability decides what the modules can express
 M1.6 (state standard)         ──► M3.3 backend.tf cannot be written on a guess
 M2.1 (history clean)          ──► M5.2 HARD. Never push unscanned history into a bank estate
+M1.2a (residency permissible) ──► M5.2 HARD. C-CMP-1 — can invalidate the destination, not the date
 M4   (projects exist, empty)  ──► M5   never seed into a project that does not exist
 M5   (main exists)            ──► M6.1 SPEC §7. Never protect a branch before it exists
 M6.8 (job-token allowlist)    ──► M7.9 cross-project CI fails without it, and fails after cutover
@@ -424,7 +449,30 @@ Per [BOOT.md §3](../../context/BOOT.md) and the persona authority matrix:
 
 ---
 
-## 6. What this plan does not cover
+## 6. Phase M0 — executed 2026-08-29
+
+Agent work on M0 is complete. **M0 is not closed**: three human T4 signatures, one bank exception and
+four owner confirmations are outstanding, and M3 does not start until they land.
+
+| # | Task | Outcome |
+|---|---|---|
+| M0.1 | Triage and register | **DONE** — `SUG-20260829-glm` · `SUG-20260829-imp` |
+| M0.2 | Raise `CR-014` | **RAISED, `PENDING`** — seven AI-drafted board positions attached as inputs; `approvers: []` |
+| M0.3 | Gate-evidence strategy | **`RECOMMENDED`** — Option B, re-evidence on GitLab. Six personas, no dissent. `GATE-S08` stays open across the migration and is reported open |
+| M0.4 | Governance-tree home | **`RECOMMENDED` internally (`ADR-018`) · `BLOCKED-EXTERNAL`** — the bank must accept the Appendix C exception before M4.3 creates the project |
+| M0.5 | Raise `CR-015` | **RAISED, `PENDING`** — **no verdict drafted**; joint Mahesh + Aarti review not yet held |
+| M0.6 | Render disposition | **`RECOMMENDED`** — survives as a dev-preview demo target, retired on EKS capability rather than on a date |
+
+**Twenty-nine conditions** were attached by the boards. Two are hard blocks on the first push to the
+bank estate, and neither has a workaround: `C-SEC-1` (clean full-history secret scan) and `C-CMP-1`
+(residency confirmed permissible). Full list: [`DEC-20260829-01` §7](../../governance/DEC-20260829-01-m0-migration-decisions.md#7-the-twenty-nine-conditions-consolidated).
+
+The board round also produced **IMP-14** above and one correction to this plan's own M9.4, both
+recorded at [`DEC-20260829-01` §5](../../governance/DEC-20260829-01-m0-migration-decisions.md#5-two-findings-the-board-round-produced).
+
+---
+
+## 7. What this plan does not cover
 
 * Render → EKS runtime re-platform (**IMP-5**) — deliberately separated; S09 work with its own gate.
 * The `bank-persistence-service` boundary question (**IMP-2**) — parallel CR, not migration scope.

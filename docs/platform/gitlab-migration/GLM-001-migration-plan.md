@@ -206,6 +206,26 @@ the first push.
 
 ---
 
+### IMP-15 · Bootstrap state must live outside the instance it controls — `O1`/`S1`
+
+**Raised by Deepali (Board 4) in the M3-readiness board round, 2026-08-29.**
+
+`M1.6` has an attractive CE-viable answer — GitLab-managed Terraform state, available in Free on
+self-managed. For `delivery/infrastructure` state that is fine. **For the bootstrap state it is
+structurally wrong.**
+
+The bootstrap state controls the estate's groups and projects. Stored inside that estate, an apply
+that damages the estate **also damages its own state**, and recovery requires the thing just
+destroyed. It satisfies none of `C-SEC-6`'s three requirements: separate backend, separate key,
+distinct identity.
+
+**`M1.6` is therefore two questions.** Bootstrap state goes to the enterprise S3/KMS backend or an
+equivalent outside the GitLab instance; `infrastructure` state may be GitLab-managed. Only the
+bootstrap half blocks M3.3. `RISK-027`.
+**Route:** Deepali rules the control; SRE implements.
+
+---
+
 ## 3. The task list, in execution order
 
 Ownership: **SRE** = Shivanshi · **SEC** = Deepali · **ARCH** = Mahesh · **ENG** = Amit ·
@@ -235,7 +255,7 @@ Ownership: **SRE** = Shivanshi · **SEC** = Deepali · **ARCH** = Mahesh · **EN
 | M1.3 | Existing `insurance` group path and ID; subgroup/project creation rights | BANK | **HALF** — group `…/insurance`, **id `820`** confirmed. **Creation rights unconfirmed**, and that is the half gating M4.2/M4.3 |
 | M1.4 | SSO/LDAP identity group names and IDs for the eleven logical teams (spec §5.2) | BANK | — |
 | M1.5 | Runner operating model, tags, and whether production-capable runners exist | BANK | — |
-| M1.6 | Terraform state standard and the automation identity | BANK | **OPEN** — GitLab-managed state *is* available in CE self-managed, so an option exists; the bank standard is still unnamed |
+| M1.6 | Terraform state standard and the automation identity | BANK | **OPEN — now two questions (IMP-15).** Bootstrap state must sit **outside** the instance (`RISK-027`); `infrastructure` state may be GitLab-managed. Only the bootstrap half blocks M3.3 |
 | M1.7 | Container/Package Registry availability | BANK | **HALF** — **Container Registry confirmed**. Package Registry not addressed; `contracts` and the shared libs need it |
 | M1.8 | AWS account and role conventions for OIDC/STS | BANK | **HALF** — an account will exist; **conventions explicitly unconfirmed**, and conventions are what M8.1 is written against |
 | M1.9 | Retention and audit requirements for logs, artifacts and evidence | COMP + BANK | — |
@@ -375,7 +395,8 @@ Terraform before M1.2 and M1.6 land** — provider capability and backend shape 
 M0.3 (gate-evidence decision) ──► M3   nothing is built before the target of the evidence is known
 M0.4 (governance home)        ──► M4.3 the project must exist before it can be created
 M1.2 (GitLab edition)         ──► M3.4 provider capability decides what the modules can express
-M1.6 (state standard)         ──► M3.3 backend.tf cannot be written on a guess
+M1.6 (bootstrap state only)   ──► M3.3 backend.tf cannot be written on a guess — and IMP-15 bars
+                                     pointing it at the instance the bootstrap provisions
 M2.1 (history clean)          ──► M5.2 HARD. Never push unscanned history into a bank estate
 M1.2a (residency permissible) ──► M5.2 HARD. C-CMP-1 — can invalidate the destination, not the date
 M4   (projects exist, empty)  ──► M5   never seed into a project that does not exist

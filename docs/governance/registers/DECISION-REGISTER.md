@@ -362,3 +362,26 @@ Every row is `AI-DRAFTED — mandatory human signature outstanding`. This is not
 - `OPS-F04` — Shivanshi corrected her own plan: archiving the GitHub origin at cutover +24 h is shorter than the
   rollback-validation window it follows. Revised to read-only at cutover, restorable for 14 days, archived only
   once `C-CMP-4` names the disposition.
+
+---
+
+## 10. M3 readiness — seven board recommendations, 2026-08-29
+
+**File:** [`DEC-20260829-02`](../DEC-20260829-02-m3-readiness-board-pack.md) · **Status:** `AI-DRAFTED — RECOMMENDATIONS`, nothing approved
+**Origin:** repository-owner request to close M0/M1/M2 and start M3
+
+**Headline recommendation:** do **not** serialise M3 behind M1 and M2. M0 is closed; M1 has no closure event
+available to this team (7 of 12 inputs are the bank's); M2 closes on a human key rotation and a human image
+review. Measured against `GLM-001` §4, exactly one constraint reaches M3 — `M1.6 ──► M3.3` — gating one task of
+eleven. ~29 of M3's ~31 agent-hours are available immediately.
+
+**New finding:** `SEC-F07` / `IMP-15` / `RISK-027` — **bootstrap Terraform state must not be GitLab-managed.**
+The bootstrap state controls the estate; stored inside it, an apply that damages the estate destroys its own
+recovery path, and it satisfies none of `C-SEC-6`'s three requirements. `M1.6` splits in two, and only the
+bootstrap half blocks M3.3.
+
+**Also recorded:** `C-ARC-6` (proposed) — no M3 module may be omitted because CE cannot apply it; unavailable
+capabilities are declared and skipped, not deleted, so a licence upgrade is a flag change rather than a redesign.
+Eight instance checks are listed that would close more open questions in thirty minutes than a week of waiting.
+
+Nine recommendations `R1`–`R9` with named owners. No decision is recorded; each remains with its owner.

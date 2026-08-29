@@ -36,6 +36,7 @@ recorded once and reused by every later ordering computation.
 | DEP-20260829-cr15 | CR-015 verdict | `blocked_by` | Joint Mahesh + Aarti review | ARCHITECTURAL | **DONE** | Option B approved 2026-08-29 (`ADR-019`) — target model only. Q4 moves to `DEP-20260829-q4` and stays open |
 | DEP-20260829-alloc | S09 persistence allocation migration (`ADR-019`) | `blocked_by` | `CR-014` cutover complete — GitLab authoritative, freeze released | HARD | OPEN | Owner Aarti + Mahesh. `AC-5`: repository migration is never combined with persistence restructuring |
 | DEP-20260829-q4 | S09 persistence allocation migration | `blocked_by` | Aarti's integrity and recovery review (`CR-015` Q4) incl. restore test vs RPO 5 min / RTO 30 min | DATA | OPEN | Owner Aarti — **not substitutable**. Approving the target model did not answer it |
+| DEP-20260829-ce | GLM-001 M6.3 (risk-based approvals) and M6.6 (protected environments) | `blocked_by` | `CR-016` decision on the GitLab CE control-model gap | DECISION | OPEN | Owner Deepali + Mahesh. Neither task can execute in CE — the capabilities do not exist. Blocks **only** these two tasks; M2, M3, M4, M5 and M7 are unaffected |
 
 ## 2. External dependencies
 

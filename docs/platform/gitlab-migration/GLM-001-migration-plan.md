@@ -230,14 +230,14 @@ Ownership: **SRE** = Shivanshi · **SEC** = Deepali · **ARCH** = Mahesh · **EN
 | # | Task | Owner | AI |
 |---|---|---|---|
 | M1.1 | Issue the spec §5 enterprise-input questionnaire (11 inputs) and track it to closure | SRE → BANK | 2 h |
-| M1.2 | GitLab base URL, **version and edition/licence** — gates **IMP-3** and every governance feature | BANK | — |
-| M1.2a | **Physical residency of the instance and its storage** — repository, CI logs, artifacts, registry, Terraform state (**IMP-14**, `C-CMP-1`) | BANK → COMP rules | — |
-| M1.3 | Existing `insurance` group path and ID; subgroup/project creation rights | BANK | — |
+| M1.2 | GitLab base URL, **version and edition/licence** | BANK | **ANSWERED 2026-08-29** — `https://gitlab-ce.au.bank.in/` · **Community Edition v19.1.2**, below Premium. `RISK-017` **FIRED**; raised as [`CR-016`](../../governance/change-requests/CR-016-gitlab-ce-control-model-gap.md) |
+| M1.2a | **Physical residency of the instance and its storage** (**IMP-14**, `C-CMP-1`) | BANK → COMP rules | **OPEN** — a `.in` bank domain on a self-managed instance is an encouraging *indicator*, not the written confirmation Board 6 rules on |
+| M1.3 | Existing `insurance` group path and ID; subgroup/project creation rights | BANK | **HALF** — group `…/insurance`, **id `820`** confirmed. **Creation rights unconfirmed**, and that is the half gating M4.2/M4.3 |
 | M1.4 | SSO/LDAP identity group names and IDs for the eleven logical teams (spec §5.2) | BANK | — |
 | M1.5 | Runner operating model, tags, and whether production-capable runners exist | BANK | — |
-| M1.6 | Terraform state standard (GitLab-managed vs enterprise S3/KMS) and the automation identity | BANK | — |
-| M1.7 | Container/Package Registry availability | BANK | — |
-| M1.8 | AWS account and role conventions for OIDC/STS | BANK | — |
+| M1.6 | Terraform state standard and the automation identity | BANK | **OPEN** — GitLab-managed state *is* available in CE self-managed, so an option exists; the bank standard is still unnamed |
+| M1.7 | Container/Package Registry availability | BANK | **HALF** — **Container Registry confirmed**. Package Registry not addressed; `contracts` and the shared libs need it |
+| M1.8 | AWS account and role conventions for OIDC/STS | BANK | **HALF** — an account will exist; **conventions explicitly unconfirmed**, and conventions are what M8.1 is written against |
 | M1.9 | Retention and audit requirements for logs, artifacts and evidence | COMP + BANK | — |
 | M1.10 | Record every unresolved input as an `ASM-###` assumption with an expiry | SRE | 1 h |
 
@@ -489,7 +489,50 @@ recorded at [`DEC-20260829-01` §5](../../governance/DEC-20260829-01-m0-migratio
 
 ---
 
-## 7. What this plan does not cover
+## 7. Where the programme actually is — 2026-08-29
+
+### 7.1 M0 — **CLOSED**
+
+`CR-014` `APPROVED_WITH_CONDITIONS` with Product Owner approval recorded; `CR-015` approved as
+`ADR-019`. All six M0 items decided. **M0 does not reopen.**
+
+The bank's edition answer landed *after* the approval and changed the ground under part of it:
+`RISK-017` **fired**, `ASM-012` is **invalidated**, and five approved conditions are unsatisfiable as
+written. That is [`CR-016`](../../governance/change-requests/CR-016-gitlab-ce-control-model-gap.md) —
+a new decision on new evidence, not a reopening of M0.
+
+### 7.2 M1 — **5 of 12 inputs touched, none of them fully answered**
+
+| Input | State |
+|---|---|
+| M1.2 URL / version / edition | **ANSWERED** — CE v19.1.2. Fired `RISK-017` |
+| M1.3 group path and ID | **HALF** — id `820` known; creation rights unknown |
+| M1.7 registries | **HALF** — Container yes; Package not addressed |
+| M1.8 AWS | **HALF** — account yes; conventions no |
+| M1.6 state standard | **OPEN** — a CE-viable option exists; the standard is unnamed |
+| M1.2a residency | **OPEN** — indicator only. `C-CMP-1` still blocks the first push |
+| M1.4 identity groups · M1.5 runners · M1.9 retention · `ASM-020` automation account | **OPEN** |
+
+**M1 is not close to done.** Four of the five answers are half-answers, and in each case the missing
+half is the half that gates a phase. Both hard blocks on the first push — residency and a clean
+secret scan — remain open.
+
+### 7.3 M2 — **not started, and it is the only phase fully unblocked**
+
+M2 is pre-migration hygiene on the GitHub origin: the blocking full-history secret scan, branch
+triage and allowlist, the `pre-gitlab-migration` rollback anchor, the split rehearsal and the build
+verification. **It needs no bank input, touches no bank system, and `CR-014` authorises it.**
+
+It also contains `C-SEC-1`, one of the two hard blocks on the first push — and the one with an
+unbounded tail, because a finding means rotate, then scrub, then re-scan before anything proceeds.
+
+**Recommendation: start M2 now.** It is ~15 agent-hours, it is on the critical path, and it is the
+only substantial work that does not wait on the bank. Running it while M1 is outstanding converts
+waiting into the risk reduction the programme most needs.
+
+---
+
+## 8. What this plan does not cover
 
 * Render → EKS runtime re-platform (**IMP-5**) — deliberately separated; S09 work with its own gate.
 * The `bank-persistence-service` boundary question (**IMP-2**) — **decided** by `CR-015` Option B / `ADR-019`. The service migrates **unchanged** (`AC-5`); allocating its tables to the owning bounded contexts is a separate, independently reviewed **S09** migration, parked behind this cutover.

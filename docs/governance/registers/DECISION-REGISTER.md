@@ -247,6 +247,26 @@ ingest. What changed is which artefacts are authoritative, not what the target l
 including the restore test against RPO 5 min / RTO 30 min, remain outstanding and are a precondition of the S09
 allocation. Parked to S09 behind the CR-014 cutover by `AC-5`.
 
+### CR-016 — GitLab Community Edition cannot enforce the approved governance model
+
+**Date:** 2026-08-29 · **Type:** CONSTRAINT · **Decision:** `PENDING` · **Approvers:** none
+**File:** [`CR-016`](../change-requests/CR-016-gitlab-ce-control-model-gap.md) · **Driver:** validated assumption failure (`ASM-012`)
+
+The bank confirmed **GitLab Community Edition v19.1.2** at `https://gitlab-ce.au.bank.in/`, `insurance` group id `820`,
+container registry available, AWS conventions unconfirmed. `ASM-012`'s pre-computed consequence assumed Premium;
+**CE is below Premium**, so required MR approval rules, CODEOWNERS approval enforcement and protected environments are
+absent entirely rather than reduced. `RISK-017` **FIRED** at exposure 9; `RISK-023` records the governance-enforcement gap.
+
+Five approved `CR-014` conditions and baseline §6.2, §6.3 and §9.3 are unsatisfiable as written; `GLM-001` M6.3 and M6.6
+cannot execute. **`S08-G1`, `G2` and `G9` are unaffected** — "Pipelines must succeed" is a Free-tier merge check, so the
+`IMP-4` gate redesign survives — and `S08-G5` is achievable as blocking CI jobs, since the analyzers run in all tiers,
+with results as JSON artefacts and no dashboard, MR widget or policy gate.
+
+Four options are recorded with **no recommendation attached**: licence upgrade (a `gitlab-ce` → `gitlab-ee` package
+migration, not a licence key), compensating CI controls, a scoped exception with an expiry, or re-siting the estate.
+Deepali declined to pre-approve this downgrade before she could see it; she can see it now, and the decision is hers and
+Architecture's. `CR-014` stands approved and M2 is unaffected.
+
 ## 4. Stage transitions
 
 | Date | Workstream | From | To | Criteria met | Waivers | Approvers |

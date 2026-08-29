@@ -546,8 +546,8 @@ id_allocation:
     # Advanced 2026-08-29 by the GitLab estate migration Phase M0 round (CR-014 / CR-015).
     # ID-allocation correction only: no stage, scope or gate field is touched — those remain
     # human-owned (04 section 5).
-    CR: 16        # CR-001..015 in use (014, 015 added by the M0 round)
-    RISK: 23      # RISK-001..022 in use (022 added by the CR-015 approval)
+    CR: 17        # CR-001..016 in use (016 = GitLab CE control-model gap)
+    RISK: 24      # RISK-001..023 in use (023 = CE governance-enforcement gap)
     ASM: 23       # ASM-001..022 in use (012..022 = the eleven bank enterprise inputs)
     EPIC: 2       # EPIC-001 in use (platform error contract, SUG-20260827-err). ID-allocation only.
     SPIKE: 1

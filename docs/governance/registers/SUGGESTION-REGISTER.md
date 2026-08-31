@@ -85,7 +85,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | SUG-20260825-arb | 2026-08-25 | human:Mahesh | Review with internal Architect team: Cloudflare instead of CloudFront (bank standard), F5 BIG-IP / WAF instead of AWS WAF (bank standard), External ALB before API Gateway, GitLab CI/CD for pipelines, EBS (Enterprise Service Bus) naming for Core Banking integration with CBS in brackets, Terraform IaC, CloudTrail and CloudWatch both mandatory | SF1 | SC0 | MUST | ARCH | P1 / P1 | ADMIT-BYPASS | [ARB-ARCHITECTURE-DOSSIER](../../architecture/ARB-ARCHITECTURE-DOSSIER.md) · [detail](#sug-20260825-arb--internal-architect-review-alignment-cloudflare-f5-external-alb-gitlab-ebscbs-terraform-cloudtrailcloudwatch) |
 | SUG-20260827-tpo | 2026-08-27 | human:Mahesh | Platform Topology & LLD Alignment: replace Argo CD with GitLab CI/CD with logo, replace AWS Network Firewall with F5 BIG-IP / Firewall with logo, incorporate Ansible for automated DR drills / sanity testing, and emphasize Terraform IaC baseline | SF1 | SC0 | MUST | ARCH | P1 / P1 | CLOSED-DELIVERED | [r0-platform-topology](../../architecture/r0-platform-topology.svg) · [detail](#sug-20260827-tpo--platform-topology--lld-alignment-gitlab-cicd-f5-big-ip-ansible-terraform) |
 | SUG-20260831-alb | 2026-08-31 | human:Mahesh | Correct two false perimeter assumptions against the existing AU Bank estate: (1) remove the External / public ALB in front of API Gateway; (2) Cloudflare and F5-XC are bank-enterprise SaaS, not AWS services and not in any platform VPC | SF1 | SC1 | MUST | ARCH | P1 / P1 | ADMIT | [ADR-018](../../platform/architecture-review/08-architecture-decision-log.md) · [detail](#sug-20260831-alb--correct-edge-ingress-no-public-alb-saas-outside-aws) |
-| SUG-20260831-apg | 2026-08-31 | human:Mahesh | Existing bank estate routes all incoming and outgoing requests through Apigee. Decide whether Amazon API Gateway is still needed, and whether the R0 VPC / IGW / TGW pack must attach to (not duplicate) the existing network account | SF1 | SC1 | MUST | SPIKE | P1 / P1 | ADMIT | [SPIKE-001](#sug-20260831-apg--apigee-is-the-bank-api-plane--do-not-add-a-second-amazon-api-gateway-until-confirmed) |
+| SUG-20260831-apg | 2026-08-31 | human:Mahesh | Existing bank estate routes all incoming and outgoing requests through Apigee. Decide whether Amazon API Gateway is still needed, and whether the R0 VPC / IGW / TGW pack must attach to (not duplicate) the existing network account | SF1 | SC1 | MUST | SPIKE | P1 / P1 | ADMIT · draw PARKED | [SPIKE-001](#sug-20260831-apg--apigee-is-the-bank-api-plane--do-not-add-a-second-amazon-api-gateway-until-confirmed) · [PARKED](./PARKED-BACKLOG.md) |
 
 <!--
 Row format:
@@ -316,9 +316,10 @@ necessity:
 action: ADMIT
 action_rationale: >
   Admit as SPIKE-001, not as a diagram change. Confidence is C2 — below C3 —
-  so this is a confirmation spike, not an implementation. Default architectural
-  posture until the spike returns: do not add Amazon API Gateway as a second
-  governance proxy on top of Apigee.
+  so this is a confirmation spike, not an implementation. Human Architecture
+  owner 2026-08-31: keep the candidate bank API plane off every architecture
+  diagram until written answers exist. Until then Amazon API Gateway remains
+  Proxy 1 (ADR-018) and the draw of that overlay is PARKED.
 
 classification:
   type: SPIKE
@@ -335,8 +336,10 @@ breakdown:
   stories:
     - "SPIKE-001: confirm Apigee edition (X / hybrid / on-prem), whether NIP is a new Apigee product, and whether 1SB and PG callbacks already traverse Apigee"
     - "If confirmed: draft ADR amending ADR-018 — Apigee is Proxy 1; Amazon API Gateway withdrawn; Internal ALB remains"
-    - "If refuted: keep ADR-018 Amazon API Gateway; record why Apigee does not cover this platform"
+    - "If refuted: keep ADR-018 Amazon API Gateway; record why the candidate bank API plane does not cover this platform"
 ```
+
+> **Amended 2026-08-31 (human Architecture owner):** keep the candidate bank API plane **off every diagram** until SPIKE-001 returns. Amazon API Gateway stays. Network attach (existing TGW / DXGW, no workload IGW) proceeds independently of that spike.
 
 ### SUG-20260825-arb · Internal Architect Review Alignment (Cloudflare, F5, External ALB, GitLab, EBS/CBS, Terraform, CloudTrail/CloudWatch)
 

@@ -5,7 +5,7 @@
 **Owner:** Mahesh — Principal Insurance Platform Architect (Board 1)
 **Audience:** Product, Architecture, Engineering, SRE, Security, Database, Compliance, Delivery, CTO
 **Status:** `AI-DRAFTED` in the Architecture lane. **Mandatory human T4 Architecture sign-off outstanding.** Deepali (Security), Aarti (Database) and Shivanshi (SRE) reviews are required before this pack is cited as S09 input.
-**Date:** 2026-08-20 · **revised** 2026-08-24
+**Date:** 2026-08-20 · **revised** 2026-08-24 · **revised** 2026-08-31 (`ADR-018`, attach to existing TGW)
 **Origin:** `SUG-20260820-hl1` · **revision** `SUG-20260824-gp1` … `gp5` ([`CR-012`](../governance/change-requests/CR-012-r0-platform-robustness.md))
 
 > **Revision 2026-08-24 — R0 robustness round.** Five deferred infrastructure layers move into R0
@@ -185,7 +185,7 @@ The SVG and the North Star (`docs/hdl.svg`) use the same bands (`LY-1`). A thin 
 
 **Owns:** TLS termination, WAF, throttling, request validation.
 **Does not own:** business logic, authorization decisions.
-**R0 contains:** Route 53 · Cloudflare Enterprise (SaaS, not AWS, not in any VPC) · F5 Distributed Cloud / F5-XC (SaaS WAF, not AWS, not in any VPC) · API Gateway · internal ALB. **No public / External ALB** (`ADR-018`).
+**R0 contains:** Route 53 · Cloudflare Enterprise (SaaS, not AWS, not in any VPC) · F5 Distributed Cloud / F5-XC (SaaS WAF, not AWS, not in any VPC) · API Gateway · internal ALB. **No public / External ALB** (`ADR-018`). A candidate bank API-management overlay is recorded as `ASM-013` / `SPIKE-001` and is **not drawn** until written answers exist.
 **Greyed:** insurer callback ingress (R1). R0 **polls** providers instead (`S-11`).
 **Rule:** no workload, database or cache is internet-reachable.
 
@@ -231,7 +231,7 @@ Flutter never calls a domain service or a database. The BFF holds OAuth tokens; 
 **R0 contains:** `#14` Integration Hub (all provider traffic, `SC-W3-5`) and `#15` 1SB Adapter (exists today, `adapter.onesb.*` only).
 **Greyed:** provider router and callback gateway (R1).
 **Rule:** no WS-3 service calls an adapter directly. `distributorId` is injected server-side; a caller-supplied value is rejected (`INV-DIS-01`).
-**Egress path (`ADR-010`):** provider traffic leaves through the centralised inspection VPC — Transit Gateway, then AWS Network Firewall, then the NAT gateways whose Elastic IPs 1SB allowlists. The mTLS session to 1SB is **not** decrypted; it is matched on destination and passed intact.
+**Egress path (`ADR-010`):** provider traffic leaves through the centralised inspection VPC — **existing** `AU-CTO-NETWORK` Transit Gateway (we attach; we do not clone it), then AWS Network Firewall, then the NAT gateways whose Elastic IPs 1SB allowlists. The mTLS session to 1SB is **not** decrypted; it is matched on destination and passed intact. Workload VPCs have **no IGW**.
 
 ### Boundary 7 — External systems
 

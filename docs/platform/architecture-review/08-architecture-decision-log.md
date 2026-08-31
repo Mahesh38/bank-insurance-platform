@@ -727,13 +727,16 @@ context_stage: >
 decision: >
   R0 provisions hybrid connectivity as a first-class layer, in the same S09 change as the VPCs.
 
-  TOPOLOGY. A Transit Gateway in a new `network` account is the single hub for every
-  bank-directed and inter-VPC route. Workload VPCs (dev, uat, prod) attach to it; nothing peers
-  VPC-to-VPC. A separate TGW route table per environment carries only that environment's
-  attachments and only the bank prefixes that environment is entitled to, so no dev workload can
-  route to a production bank prefix even by misconfiguration. The account is added deliberately:
-  five accounts become six, because a shared network plane owned by an environment account is an
-  environment that can change everyone else's routing.
+  TOPOLOGY. Workload VPCs (dev, uat, prod) ATTACH as spokes to the existing AU Bank
+  central-network Transit Gateway (`AU-CTO-NETWORK` / Central Network Account Architecture V1).
+  Do not provision a second TGW "for insurance". If this programme holds a `network` account,
+  it is for RAM-share, per-environment route tables, and the inspection/egress VPC — not a
+  parallel hub. Nothing peers VPC-to-VPC. A separate TGW route table per environment carries
+  only that environment's attachments and only the bank prefixes that environment is entitled
+  to, so no dev workload can route to a production bank prefix even by misconfiguration.
+
+  DIRECT CONNECT. Attach to the existing Direct Connect Gateway (Sify / Airtel, already
+  extended to Hyderabad). Do not order a second circuit for this programme.
 
   TWO PATHS, IN THIS ORDER. Site-to-Site VPN over the TGW is provisioned FIRST, because it needs
   a public IP and a bank firewall rule rather than a carrier order, and it is what removes the
@@ -814,9 +817,9 @@ approvals:
   - "Kalpana / Delivery — REQUIRED. This adds an external dependency to the S09 critical path and it is the one item that cannot be recovered by working harder"
 ```
 
----
+**Amended 2026-08-31 (`SUG-20260831-apg`):** the live estate already has the `AU-CTO-NETWORK` Transit Gateway and Direct Connect Gateway (Central Network Account Architecture V1). The topology clause above is **attach as a spoke**, not "provision a second hub". The revisit trigger "existing enterprise TGW we attach to instead of owning" has fired as the default. Shivanshi confirms RAM-share vs spoke-attachment with bank network before Terraform. Amazon API Gateway remains the first AWS hop (`ADR-018`); Apigee is **not drawn** until `SPIKE-001` returns.
 
-## ADR-010 — Every egress and inter-VPC flow is inspected centrally by AWS Network Firewall, and the allowlisted Elastic IPs move to a per-environment egress VPC
+---
 
 ```yaml
 id: ADR-010
@@ -1544,6 +1547,9 @@ decision: >
      does not traverse the RM ingress chain.
   6. This amends ADR-016 decision clause 1 only. EBS, GitLab, Terraform, CloudTrail and
      CloudWatch clauses of ADR-016 are unchanged.
+  7. Apigee is a known bank API plane (SUG-20260831-apg, ASM-013) and is NOT drawn on any
+     R0 diagram until SPIKE-001 returns written answers. Until then Amazon API Gateway remains
+     Proxy 1. Human instruction 2026-08-31: keep Apigee off the pictures.
 authority_class: A3_JOINT_REVIEW
 origin: SUG-20260831-alb
 amends: ADR-016

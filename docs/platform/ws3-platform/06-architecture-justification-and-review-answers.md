@@ -237,7 +237,7 @@ pack, and the honest answer is that `CR-012` admitted them deliberately.
 
 | Layer | What R0 provisions | The line it may not cross |
 |---|---|---|
-| **Bank connectivity** (`ADR-009`) | Transit Gateway in a new `network` account connecting to bank **EBS (Enterprise Service Bus) APIs for CBS / CIF** and Bank AD; Site-to-Site VPN from day one, Direct Connect primary when the circuit lands | `dev` may stub EBS/CBS and Bank AD; **`uat` and `prod` may not**. A journey evidenced against a stub is not evidence |
+| **Bank connectivity** (`ADR-009`) | **Attach as a spoke** to the existing `AU-CTO-NETWORK` Transit Gateway (do not provision a second hub). Connects to bank **EBS (Enterprise Service Bus) APIs for CBS / CIF** and Bank AD; Site-to-Site VPN from day one; Direct Connect via the **existing** DX Gateway | `dev` may stub EBS/CBS and Bank AD; **`uat` and `prod` may not**. A journey evidenced against a stub is not evidence. Workload VPCs have **no IGW** |
 | **Perimeter & Edge Ingress** | **Cloudflare Enterprise (SaaS)** → **F5-XC (SaaS WAF)** → **Amazon API Gateway** (Proxy 1 of 2) → **Internal ALB** (Proxy 2 of 2). No public ALB. Cloudflare and F5 are not AWS and not in any VPC (`ADR-018`) | Bank enterprise security standard. Edge TLS termination, L7 policy and rate limiting; no business logic |
 | **Delivery & IaC** | **GitLab CI/CD** for multi-stage pipelines and **Terraform** for Infrastructure as Code (IaC) across environments | Standard bank pipeline and multi-environment provisioning baseline |
 | **Governance & Logs** | **AWS CloudTrail** (account management and security audit trail) alongside **Amazon CloudWatch** (operational logs/metrics) | CloudTrail satisfies RBI management auditability; CloudWatch provides runtime telemetry |

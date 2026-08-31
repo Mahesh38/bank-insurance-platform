@@ -162,7 +162,7 @@ For each tier and component in the architecture, this section articulates:
 - **Why Best Suited:** Clean L7 internal boundary with private ACM TLS termination.
 
 #### 1.6 Transit Gateway (TGW) & Inspection / Egress VPC (`ADR-009`, `ADR-010`)
-- **What it is & What it does:** Central routing hub connecting workload VPCs, on-premises bank data centers, and an Inspection VPC containing AWS Network Firewall and NAT Gateways.
+- **What it is & What it does:** Workload VPCs **attach as spokes** to the existing `AU-CTO-NETWORK` Transit Gateway (Central Network Account Architecture V1). Do **not** provision a second TGW. The hub already connects on-premises bank DCs (via the existing DX Gateway) and the EDGE / inspection path. This programme adds a per-environment inspection/egress VPC (or shares EDGE — `ASM-012`) containing AWS Network Firewall and NAT Gateways.
 - **Why Required:**
   - Insurers and 1SB require **static allowlisted Elastic IPs (EIPs)** for mTLS whitelisting.
   - RBI & Bank Cyber Security policies mandate **100% inspection of outbound traffic** (drop-by-default domain allowlist).
@@ -170,7 +170,7 @@ For each tier and component in the architecture, this section articulates:
 - **Alternatives Considered:**
   - *NAT Gateway inside each Workload VPC:* Spreads EIPs across accounts, fails central audit, and does not allow L7 stateful inspection.
   - *Direct VPC Peering:* Mesh complexity grows quadratically \(O(N^2)\); cannot enforce centralized firewall inspection.
-- **Why Best Suited:** Segregates networking into a governed `network` account; provides automated failover from Direct Connect (DX) to Site-to-Site VPN; enables single-point outbound security inspection.
+- **Why Best Suited:** Attaches to the bank's already-governed hub instead of cloning it; per-environment route tables still isolate `dev` from production Core Banking; provides automated failover from Direct Connect (existing DXGW) to Site-to-Site VPN; enables single-point outbound security inspection.
 
 ---
 

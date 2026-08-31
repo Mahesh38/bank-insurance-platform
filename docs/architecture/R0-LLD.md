@@ -4,12 +4,12 @@
 **Owner:** Mahesh — Principal Insurance Platform Architect (Board 1)
 **Consumers:** CTO; AWS platform / landing-zone team; **Shivanshi** (SRE, Board 7 — provisions and operates); **Deepali** (Security — trust boundaries, IAM, KMS); **Aarti** (Database — Aurora/DynamoDB/S3 physical design)
 **Status:** `AI-DRAFTED`. This file is the S09 *requirements pack*. It is **not** an approval to apply Terraform. Mandatory reviews before first `apply` to a non-dev account: Architecture (human T4), Security (human), Database, SRE, Compliance (residency and WORM).
-**Date:** 2026-08-20 · **revised** 2026-08-24 · **revised** 2026-08-25 (`ADR-014`, `ADR-015`)
+**Date:** 2026-08-20 · **revised** 2026-08-24 · **revised** 2026-08-25 (`ADR-014`, `ADR-015`) · **revised** 2026-08-31 (`ADR-018`, attach to existing `AU-CTO-NETWORK`)
 **Origin:** `SUG-20260820-hl1` · **revision** `SUG-20260824-gp1` … `gp5` ([`CR-012`](../governance/change-requests/CR-012-r0-platform-robustness.md)) · **revision** `SUG-20260825-ll1` · **revision** `ADR-015` (one NIP-APP; `ns:edge` is nip-web + #2 NIP BFF only)
 
 > **Revision 2026-08-24 — R0 robustness round.** Five layers that were deferred are now **in R0**,
-> under `ADR-009` … `ADR-013`: hybrid bank connectivity (Transit Gateway + VPN now, Direct Connect
-> when the circuit lands), centralised egress inspection (AWS Network Firewall), a managed cache
+> under `ADR-009` … `ADR-013`: hybrid bank connectivity (**attach** to the existing `AU-CTO-NETWORK`
+> Transit Gateway + VPN now, Direct Connect via the **existing** DX Gateway), centralised egress inspection (AWS Network Firewall), a managed cache
 > tier (ElastiCache for Valkey), an event backbone (Amazon MSK, **with the transactional outbox
 > retained as its source of truth**) and an operational search pipe (Amazon OpenSearch). What did
 > **not** change: the service mesh stays out, the analytics warehouse stays out, one Aurora cluster
@@ -98,9 +98,9 @@ Aurora connection budget).
 
 | # | AWS service | What it is for | SKU / shape (starting point — Shivanshi confirms) | ADR |
 |---|---|---|---|---|
-| 25 | **AWS Transit Gateway** (in `network`) | The single hub for bank-directed, inter-VPC and DR routing | One TGW per region, shared by RAM. **One route table per environment** — dev cannot route to a prod bank prefix. See §2.2 | `ADR-009` |
+| 25 | **AWS Transit Gateway** — **attach**, do not clone | Spoke attachment to the existing `AU-CTO-NETWORK` hub for bank-directed, inter-VPC and DR routing | **Do not provision a second TGW.** RAM-share or spoke-attach; Shivanshi confirms with bank network. **One route table per environment** — dev cannot route to a prod bank prefix. See §2.2 | `ADR-009` |
 | 26 | **AWS Site-to-Site VPN** → bank DC | The bank path that is available in the same change as the VPC | 2 tunnels, BGP, TGW attachment. **Provisioned first**; stays as the standby path after DX lands | `ADR-009` |
-| 27 | **AWS Direct Connect** + **Direct Connect Gateway** | The production bank path | 2 hosted VIFs at 2 Mumbai DX locations. Primary by BGP preference once accepted. **Longest external lead time on the programme** | `ADR-009` |
+| 27 | **AWS Direct Connect** via the **existing Direct Connect Gateway** | The production bank path | **Do not order a second circuit.** Use the existing DXGW (Sify / Airtel, already extended to Hyderabad). 2 hosted VIFs at 2 Mumbai DX locations. Primary by BGP preference once our prefixes are accepted | `ADR-009` |
 | 28 | **Inspection / egress VPC** × environment (in `network`) | Where the NAT gateways and the firewall live | /24 firewall subnets + /24 public subnets × AZ. **One per environment** — prod egress never transits a dev-mutable VPC | `ADR-010` |
 | 29 | **AWS Network Firewall** × environment | L7 egress and inter-VPC inspection with a domain allowlist and IPS | Restored to `ADR-010`. The 2026-08-27 in-VPC F5 BIG-IP icon is retracted (`ADR-018`): F5 on this estate is F5-XC SaaS on the north-south path, not an appliance in the inspection VPC. The existing AU Bank EDGE VPC already runs FortiGate NGFW (Active/Passive) — we attach as a spoke (`ASM-012`) | `ADR-010`, `ADR-018` |
 | 30 | **Amazon ElastiCache for Valkey** × environment | BFF session vault · L2 read-through cache · rate-limit counters | Cluster mode **disabled**, primary + replica across 2 AZs, automatic failover **on**, CMK at rest, TLS in transit, per-service ACL user with a key prefix. **Never** the idempotency store | `ADR-011` |
@@ -137,6 +137,9 @@ Shorter than it was, and the survivors are here on their own reasoning rather th
 | **Customer-facing CloudFront distribution for DIY** | `#1` Customer BFF | R1 |
 | **Render.com as an environment** | Existing `render.yaml` | Dev-preview **only**. Never PII, never a gate artefact (`ADR-001`) |
 | **Any resource outside `ap-south-1` except DR replicas in `ap-south-2`** | — | Control C6, `FF-08` |
+| **Apigee (bank API plane) on R0 diagrams or as an R0 AWS provision** | Verbal estate fact (`SUG-20260831-apg`, `ASM-013`) | **Not drawn. Not provisioned.** Amazon API Gateway remains Proxy 1 (`ADR-018`) until SPIKE-001 returns written answers. Unpark trigger: those answers. Do not put Apigee on any SVG |
+| **A second Transit Gateway, a second Direct Connect, a Public VPC + IGW + VPC peering copied from the existing banking app** | The live estate already has `AU-CTO-NETWORK` TGW, DX Gateway, EDGE VPC | Attach as a **spoke**. Do not clone the current app's Public VPC / Public ALB / peering pattern (`ADR-009` as amended 2026-08-31) |
+| **Internet Gateway on a workload VPC** | Convenience for a public ALB | Workload VPCs have **no IGW**. The only IGW is on the inspection / EDGE path |
 
 ### 1.4 Per-environment shapes — the reason this set is affordable
 
@@ -178,16 +181,19 @@ INSPECTION / EGRESS VPC per environment, in the `network` account   (§2.3)
 ├── TGW attachment subnets /28 × 3 AZs
 └── Internet Gateway                      the only IGW with a route to anything
 
-TRANSIT GATEWAY in the `network` account                            (§2.2)
+TRANSIT GATEWAY — attach to the existing `AU-CTO-NETWORK` hub (`ADR-009`)  (§2.2)
+├── do NOT provision a second TGW "for insurance"
 ├── route table: dev      dev VPC + inspection-dev + VPN
 ├── route table: uat      uat VPC + inspection-uat + VPN/DX (uat prefixes only)
 ├── route table: prod     prod VPC + inspection-prod + DX primary, VPN standby
-└── route table: dr       ap-south-2 peering for the warm standby (D16)
+└── route table: dr       ap-south-2 attachment for the warm standby (D16)
 ```
 
 The workload VPCs keep their public subnets **reserved and empty**: subnets cannot be added later
 without renumbering, and holding three /24s costs nothing. What they no longer hold is a NAT
-gateway, because egress is centralised (`ADR-010`).
+gateway **or an Internet Gateway** — egress is centralised (`ADR-010`), and ingress is Cloudflare
+→ F5-XC (SaaS) → Amazon API Gateway (`ADR-018`). Do not copy the existing banking application's
+Public VPC + IGW + Public ALB + VPC-peering pattern.
 
 | Control | Requirement |
 |---|---|
@@ -277,10 +283,10 @@ provisioned path.
 
 | Element | R0 requirement | Owner |
 |---|---|---|
-| Transit Gateway | One per region, in the `network` account, shared by RAM. Default route-table association **off** — every attachment is associated explicitly | Shivanshi |
+| Transit Gateway | **Attach to the existing `AU-CTO-NETWORK` regional TGW** (Central Network Account Architecture V1). If RAM-share into this programme's `network` account, or attach the spoke to that hub — Shivanshi confirms with bank network. **Do not provision a second TGW.** Per-environment route tables so `dev` cannot reach a prod bank prefix. Default association **off** | Shivanshi + bank network |
 | Route tables | One per environment plus one for DR. A bank prefix is advertised into **one** environment's table. Asserted in the IaC scan, not in review | Shivanshi + Deepali |
 | Site-to-Site VPN | **Provisioned first**, 2 tunnels, BGP, ECMP off. This is what removes the stub from `uat` without waiting for a circuit | Shivanshi + bank network |
-| Direct Connect | 2 hosted VIFs at 2 Mumbai DX locations through one DX Gateway. Primary by BGP local-preference once accepted | Shivanshi + bank network + carrier |
+| Direct Connect | **Use the existing DX Gateway** (Sify / Airtel, already extended to Hyderabad). 2 hosted VIFs at 2 Mumbai DX locations through that DXGW. Do not order a second circuit for this programme. Primary by BGP local-preference once our prefixes are accepted | Shivanshi + bank network |
 | Failover | DX loss falls to VPN automatically. **Exercised and timed once before prod** (`NFR-NET-01`) — an untested standby path is a claim | Shivanshi |
 | DNS | Route 53 Resolver inbound/outbound endpoints so bank zones resolve from the VPCs and platform zones resolve from the bank side | Shivanshi + bank network |
 | Encryption | TLS on every application flow **regardless** of the private path. A private circuit is not encryption, and "inside the circuit" is not an authorisation | Deepali |
@@ -818,7 +824,7 @@ critical path and no business service starts before them
 | Band | Provision | S09 story | Owner | First consumer | If it is late |
 |---|---|---|---|---|---|
 | **P0** Guardrails | Organizations + **6 accounts** (incl. `network`) · SCP region-pin to India · Terraform remote state + locking · `security` account (CloudTrail, Config, GuardDuty, Security Hub) · **KMS CMK hierarchy** · policy-as-code in the pipeline | `E01-S01/S02/S06/S07` · `E04-S03` | Shivanshi + Deepali | Everything | Every resource built before the region SCP has to be re-verified by hand for `S09-G9` residency attestation |
-| **P1** Network | VPC × 3 envs · public / private-app / private-data / TGW-attachment × 3 AZs (§2.1) · **Transit Gateway + per-environment route tables** · **inspection VPC × env with Network Firewall** · **NAT Gateway + Elastic IPs (now in the inspection VPC)** · **Site-to-Site VPN** · **Direct Connect order placed** · security groups · **VPC endpoints** · Route 53 private zone + Resolver endpoints · ACM certs · flow logs | `E01-S03` (network foundation) · `E07-S01` (segmentation) | Shivanshi + Deepali + bank network | P2 | **Still the longest external lead time, and now it has two external parties instead of one.** The EIP list must reach 1SB and the AU Bank PG *before* UAT and must come from §2.3, not an older diagram. The bank must terminate the VPN and accept the DX order (`DEP-20260824-dx1`). Late here blocks W1 CBS lookups, W2 quotes and W3 payments regardless of code readiness |
+| **P1** Network | VPC × 3 envs · public / private-app / private-data / TGW-attachment × 3 AZs (§2.1) · **no IGW on the workload VPC** · **attach to existing `AU-CTO-NETWORK` TGW** + per-environment route tables · **inspection VPC × env with Network Firewall** (or share EDGE — `ASM-012`) · **NAT Gateway + Elastic IPs (now in the inspection VPC)** · **Site-to-Site VPN** · **attach to existing DX Gateway** · security groups · **VPC endpoints** · Route 53 private zone + Resolver endpoints · ACM certs · flow logs | `E01-S03` (network foundation) · `E07-S01` (segmentation) | Shivanshi + Deepali + bank network | P2 | **Still the longest external lead time, and now it has two external parties instead of one.** The EIP list must reach 1SB and the AU Bank PG *before* UAT and must come from §2.3, not an older diagram. The bank must terminate the VPN and accept our prefixes on the existing DXGW (`DEP-20260824-dx1`). Late here blocks W1 CBS lookups, W2 quotes and W3 payments regardless of code readiness |
 | **P2** Compute | EKS × 3 envs, private endpoint · managed node groups (§2.1) · add-ons (VPC CNI, CoreDNS, kube-proxy, EBS CSI, AWS LB Controller, ExternalDNS, Secrets Store CSI, **Fluent Bit, ADOT, KEDA**) · **Kyverno/Gatekeeper admission** · NetworkPolicy default-deny · Karpenter (thin, uat/prod) | `E01-S04` · `E07-S01/S03` | Shivanshi + Deepali | P4, P5 | Admission policy retro-fitted onto running workloads is a migration, not a control |
 | **P3** Data & messaging | **One** Aurora cluster + schemas + per-schema roles · DynamoDB tables + PITR · S3 buckets + **Object Lock** + Block Public Access · **ElastiCache for Valkey + per-service ACL users** · **MSK 3 brokers + per-topic IAM + Glue Schema Registry** · AWS Backup plans · **`ap-south-2` replication (D1–D3, D6, D7, D16)** | `E01-S05` (data foundation) · `E06-S01/S03/S05` | Aarti + Shivanshi | W0b | Object Lock **cannot be applied retroactively** to objects already written. The broker and cache are needed at W0b–W1, not W3: `#19` resolves configuration through the L2 cache and the first journey emits audit events, so a "messaging comes later" plan means writing the audit path twice |
 | **P4** Edge & proxy | **Internal ALB** (the in-VPC reverse proxy) · **API Gateway** (the only AWS public proxy; **no public ALB**) · **Cloudflare + F5-XC SaaS** (existing bank perimeter, not provisioned in our VPC) · Route 53 public zone · **separate PG-callback route, IP-allowlisted** | `E07-S05` | Shivanshi + Deepali | W3 (callback) then W4 (RM traffic) | The PG-callback route is needed at **W3**, earlier than the RM edge at W4. Treating "the edge" as one deliverable delays the money path by a wave |
@@ -865,19 +871,21 @@ Region: ap-south-1 (Mumbai). DR: ap-south-2 (Hyderabad) replicas only.
 Accounts: shared-services, security, network, dev, uat, prod.   <-- 6, `network` added 2026-08-24
 
 NETWORK
-- 1 workload VPC per env, 3 AZs: public (reserved, empty) / private-app / private-data /
-  TGW-attachment
-- Transit Gateway in `network`, ONE ROUTE TABLE PER ENVIRONMENT plus one for DR.
-  No VPC peering: inter-VPC traffic transits the TGW so it is inspected and logged
-- Inspection/egress VPC PER ENVIRONMENT in `network`: AWS Network Firewall endpoint per AZ,
-  NAT Gateways + the allowlisted Elastic IPs behind it, the only Internet Gateway
-- Workload VPC default route = TGW. NOT a local NAT. 100% of egress is inspected
-- Site-to-Site VPN to the bank DC FIRST (2 tunnels, BGP). Direct Connect (2 hosted VIFs,
-  2 Mumbai locations, DX Gateway) becomes primary when accepted; VPN stays as standby
+- 1 workload VPC per env, 3 AZs: public (reserved, empty, NO IGW, NO NAT) / private-app /
+  private-data / TGW-attachment
+- ATTACH to the existing AU-CTO-NETWORK Transit Gateway. Do NOT provision a second TGW.
+  ONE ROUTE TABLE PER ENVIRONMENT plus one for DR. No VPC peering.
+- Inspection/egress VPC PER ENVIRONMENT in `network` (or share the existing EDGE VPC —
+  ASM-012): AWS Network Firewall endpoint per AZ, NAT + allowlisted EIPs, the only IGW
+- Workload VPC default route = TGW. NOT a local NAT. NOT a local IGW. 100% of egress is inspected
+- Site-to-Site VPN FIRST. Direct Connect uses the EXISTING DX Gateway; VPN stays as standby
 - CBS/CIF and Bank AD are reachable ONLY over the TGW. Stubs permitted in dev ONLY
 - VPC endpoints: S3, DynamoDB, Secrets Manager, ECR, STS, CloudWatch Logs
 - Route 53 Resolver inbound/outbound endpoints for bank zones
 - No public load balancer onto compute. No public database, broker or search endpoint.
+- Do NOT copy the existing banking app's Public VPC + IGW + Public ALB + VPC-peering pattern
+- Do NOT draw or provision Apigee on this platform until SPIKE-001 returns (SUG-20260831-apg).
+  Amazon API Gateway remains the first AWS hop (ADR-018).
 
 AVAILABILITY ZONES  (full table: LLD §2.1)
 - Subnets, interface VPC endpoints, TGW attachments and the internal ALB: all 3 AZs, every env
@@ -898,6 +906,7 @@ EDGE (external reverse proxy)
 - Separate API Gateway route for AU Bank PG callbacks, IP-allowlisted
 - Network Firewall is on the EGRESS path only - it is not a third inbound proxy
 - Do NOT provision Kong/Nginx Plus, an in-VPC F5 BIG-IP, Istio, or a public / External ALB
+- Do NOT draw Apigee (SPIKE-001). Amazon API Gateway stays until that spike returns
 
 COMPUTE
 - 1 private EKS cluster per env; sale-path min 2 pods, 2 AZs, PDBs

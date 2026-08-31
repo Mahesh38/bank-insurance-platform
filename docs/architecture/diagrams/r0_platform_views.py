@@ -210,7 +210,7 @@ def topology():
     c.group("PUBLIC SUBNETS  /24 × 3 AZ", RIGHT_X, 600, RIGHT_W, 200, stroke=Z["pub"][0],
             fill=Z["pub"][1], sub="reserved and EMPTY — no NAT here", label_size=14)
     c.ghost(RIGHT_CX, 720, 320, 72, ["no NAT · no IGW in the workload VPC",
-                                     "egress is centralised — ADR-010"])
+                                     "do not copy the Public VPC pattern"])
 
     c.group("TGW ATTACHMENT  /28 × 3 AZ", RIGHT_X, 830, RIGHT_W, 160, stroke=Z["vpc"][0],
             fill="#ffffff", sub="the only way out", label_size=14)
@@ -241,9 +241,9 @@ def topology():
     # ---- inspection / egress VPC — the network account -------------------
     insp = c.group("INSPECTION / EGRESS VPC", 2350, 560, 380, 560, stroke=Z["pub"][0],
                    fill=Z["pub"][1],
-                   sub="network account · ONE PER ENVIRONMENT", label_size=15)
-    tgw = c.node(I["tgw"], 2540, 650, ["Transit Gateway", "one route table per env",
-                                       "no VPC peering, anywhere"], size=56)
+                   sub="attach to AU-CTO-NETWORK · do not clone the hub", label_size=14)
+    tgw = c.node(I["tgw"], 2540, 650, ["Transit Gateway", "EXISTING hub · we ATTACH",
+                                       "no second TGW · no VPC peering"], size=56)
     nfw = c.node(I["nfw"], 2540, 830, ["Network Firewall", "domain allowlist · IPS",
                                        "ADR-010 · not an F5 appliance"], size=56)
     nat = c.node(I["nat"], 2540, 1010, ["NAT + ELASTIC IPs", "1SB and the PG allowlist THESE",
@@ -324,9 +324,9 @@ def topology():
         "OpenSearch as the audit store — ADR-013",
         "A second live region — DR is warm standby",
         "Cognito — Keycloak is the R0 IdP",
-        "Pipelines — GitLab CI/CD is bank standard",
-        "IaC — Terraform is the IaC baseline",
-        "Automation — Ansible for DR/sanity drills",
+        "A second TGW or a second Direct Connect",
+        "Public VPC + IGW + peering (the current app)",
+        "IGW on the workload VPC",
     ], size=12, color=MUTE)
 
     legend(c, 2840, 1370, 360, [
@@ -509,7 +509,7 @@ def sequence():
           (I["kms"], ["CMK hierarchy"]))),
         ("P1", "NETWORK", "START HERE — two external parties", "#ea580c", "#fff7ed",
          ((I["vpc"], ["VPC · 3 AZ subnets"]),
-          (I["tgw"], ["TRANSIT GATEWAY", "route table per env"]),
+          (I["tgw"], ["ATTACH existing TGW", "AU-CTO-NETWORK · no 2nd hub"]),
           (I["nfw"], ["inspection VPC", "+ Network Firewall"]),
           (I["nat"], ["NAT + ELASTIC IPs", "publish to 1SB and the PG"]),
           (I["vpn"], ["VPN now, DX ordered", "the bank's own work"]))),

@@ -202,6 +202,46 @@ single highest-value action available, and it is not an agent's to perform.
 
 ---
 
+### 3.1 The agent cannot run these — confirmed, not assumed
+
+Tested 2026-08-31: `gitlab-ce.au.bank.in` **resolves** from the session, and the egress
+proxy **denies CONNECT with 403** — a policy denial, recorded by the proxy as
+`connect_rejected`. It is not routed around.
+
+**A token would not change this.** The block is the network path, not the credential. So
+`R2` cannot be delegated to the agent under any access arrangement available today.
+
+What *can* be reduced is the cost of a human doing it:
+[`gitlab-bootstrap/scripts/instance-check.py`](../../gitlab-bootstrap/scripts/instance-check.py)
+answers all eight from the API in one run, standard library only, read-only by default.
+Check 7 is the single write and is opt-in behind `--allow-write`; it creates a throwaway
+subgroup named `zz-delete-me-r2-probe-<timestamp>`, deletes it, and names the path to
+remove by hand if deletion fails.
+
+```bash
+export GITLAB_TOKEN=...
+python3 instance-check.py --allow-write        # writes instance-check.json
+```
+
+**Thirty minutes of UI browsing becomes about five, and the output is machine-readable
+rather than remembered.**
+
+### 3.2 Which of the eight matters most
+
+**Check 7 — subgroup creation rights under group 820.** It is the only one that gates the
+**first apply** (M4.2/M4.3), and every technical phase after M4 sits behind it. It is also
+the one whose "no" is most expensive: a bank access request, the longest lead time of the
+eight, and one that cannot start until somebody asks.
+
+**Check 4 — "Pipelines must succeed"** is second, and second for a different reason: a "no"
+is unlikely but catastrophic. `S08-G2`'s entire redesign under `IMP-4` assumes that merge
+check exists. If it does not, the gate has no mechanism on CE at all and `CR-016` reopens
+with a much worse question.
+
+The other six are informative. Those two are decisive.
+
+---
+
 ## 4. Consolidated recommendation
 
 | # | Recommendation | Owner | Blocks |

@@ -70,9 +70,9 @@ Aurora connection budget).
 | 2 | **Amazon VPC** × environment | Network | 3 AZs, public + private-app + private-data subnets. See §2 |
 | 3 | **NAT Gateway** × AZ, **in the egress VPC** | Egress with **fixed Elastic IPs** | 1SB and the AU Bank PG allowlist these EIPs. **Moved** out of the workload VPCs by `ADR-010` — see §2.3 before publishing any address |
 | 4 | **Amazon Route 53** | Public and private DNS | Hosted zone per env; no latency-based DR routing in R0 |
-| 5 | **Cloudflare Enterprise (CDN & DDoS)** | Edge CDN in front of the API **and** the RM/admin web UIs | Bank standard. TLS 1.3; origin = F5 / External ALB → API Gateway (which VPC-links to the internal ALB). Static Flutter/admin assets are served from `nip-web` through that same chain — **not** a public S3 website and **not** a PVC. Logs stay in `ap-south-1`. Authenticated JSON is **never** cached |
-| 6 | **F5 BIG-IP / Advanced WAF** | Bank standard L7 Web Application Firewall | Bank enterprise security standard. Enforces InfoSec policy, custom iRules, OWASP Top 10, bot protection, and layer-7 rate limits |
-| 7 | **External Application Load Balancer (External ALB)** | Edge ingress load balancer | Terminates HTTPS from F5/Cloudflare and forwards to Amazon API Gateway |
+| 5 | **Cloudflare Enterprise (CDN & DDoS)** — **SaaS, not AWS, not in any VPC** | Edge CDN in front of the API **and** the RM/admin web UIs | Bank standard, matching the existing AU Bank application perimeter. TLS 1.3; origin = F5-XC (SaaS) → API Gateway (which VPC-links to the internal ALB). Static Flutter/admin assets are served from `nip-web` through that same chain — **not** a public S3 website and **not** a PVC. Logs stay in `ap-south-1`. Authenticated JSON is **never** cached |
+| 6 | **F5 Distributed Cloud / F5-XC (Advanced WAF)** — **SaaS, not AWS, not in any VPC** | Bank standard L7 Web Application Firewall | Same product the existing banking application already uses on the north-south path. Enforces InfoSec policy, OWASP Top 10, bot protection, and layer-7 rate limits. **Not** an F5 BIG-IP appliance we place in AWS or in a platform VPC (`ADR-018`) |
+| 7 | **External / public ALB** | — | **WITHDRAWN (`ADR-018`).** Do not provision. The current banking application's Public ALB is that application's AWS entry; this platform's AWS entry is API Gateway |
 | 8 | **Amazon API Gateway** (REST or HTTP API) | Managed API governance proxy | Request validation, throttling, payload inspection, no business logic. VPC Link to internal ALB |
 | 9 | **Application Load Balancer** (internal) | Reverse proxy **inside** the VPC: Gateway → EKS | Internal scheme. Public ALB is **not** used directly for internal services |
 | 9 | **Amazon EKS** × environment | All microservices | Kubernetes 1.30+ (platform current). Private API endpoint. See §3 |
@@ -92,7 +92,7 @@ Aurora connection budget).
 | 21 | **Amazon SNS** + **Amazon SQS** (optional, thin) | Outbox worker wake-up / notification send queue | Not an event bus. Do **not** introduce MSK because SQS exists |
 | 22 | **AWS Backup** | Aurora, DynamoDB, EBS (if any) | Meeting `NFR-DR-02` RPO ≤ 5 min for transactional core |
 | 23 | **VPC endpoints** | S3, DynamoDB, Secrets Manager, ECR, STS, Logs | Stop Secrets and ECR pulling via NAT |
-| 24 | **AWS Certificate Manager** | Public certs for CloudFront / API Gateway; private for internal ALB if used | |
+| 24 | **AWS Certificate Manager** | Public certs for API Gateway; private for internal ALB if used | |
 
 #### Added by the 2026-08-24 robustness round
 
@@ -102,7 +102,7 @@ Aurora connection budget).
 | 26 | **AWS Site-to-Site VPN** → bank DC | The bank path that is available in the same change as the VPC | 2 tunnels, BGP, TGW attachment. **Provisioned first**; stays as the standby path after DX lands | `ADR-009` |
 | 27 | **AWS Direct Connect** + **Direct Connect Gateway** | The production bank path | 2 hosted VIFs at 2 Mumbai DX locations. Primary by BGP preference once accepted. **Longest external lead time on the programme** | `ADR-009` |
 | 28 | **Inspection / egress VPC** × environment (in `network`) | Where the NAT gateways and the firewall live | /24 firewall subnets + /24 public subnets × AZ. **One per environment** — prod egress never transits a dev-mutable VPC | `ADR-010` |
-| 29 | **F5 BIG-IP / Firewall** × environment | L7 egress and inter-VPC inspection with a domain allowlist and IPS | Bank standard firewall. Stateful strict-order rule groups; managed IPS **alert-mode until prod**; TLS inspection on non-mTLS destinations only | `ADR-010`, `ADR-016` |
+| 29 | **AWS Network Firewall** × environment | L7 egress and inter-VPC inspection with a domain allowlist and IPS | Restored to `ADR-010`. The 2026-08-27 in-VPC F5 BIG-IP icon is retracted (`ADR-018`): F5 on this estate is F5-XC SaaS on the north-south path, not an appliance in the inspection VPC. The existing AU Bank EDGE VPC already runs FortiGate NGFW (Active/Passive) — we attach as a spoke (`ASM-012`) | `ADR-010`, `ADR-018` |
 | 30 | **Amazon ElastiCache for Valkey** × environment | BFF session vault · L2 read-through cache · rate-limit counters | Cluster mode **disabled**, primary + replica across 2 AZs, automatic failover **on**, CMK at rest, TLS in transit, per-service ACL user with a key prefix. **Never** the idempotency store | `ADR-011` |
 | 31 | **Amazon MSK** × environment | Event backbone for domain-event fan-out | **3 brokers, one per AZ**, KRaft, TLS, at-rest CMK, **SASL/IAM** with per-topic policy. Fed by the outbox, which stays the source of truth | `ADR-012` |
 | 32 | **AWS Glue Schema Registry** | Event contract for every topic | Backward compatibility enforced in CI (`FF-25`). Schema registry only — **not** Glue ETL | `ADR-012` |
@@ -191,7 +191,7 @@ gateway, because egress is centralised (`ADR-010`).
 
 | Control | Requirement |
 |---|---|
-| Internet-facing | CloudFront + API Gateway only. **No** public NLB/ALB onto EKS. No public OpenSearch endpoint, no public broker listener |
+| Internet-facing | Cloudflare + F5-XC (SaaS) + API Gateway only. **No** public NLB/ALB onto EKS. No public OpenSearch endpoint, no public broker listener |
 | EKS API | Private endpoint; `publicAccess = false` in prod |
 | Data subnets | No 0.0.0.0/0 route. Aurora, ElastiCache, MSK and OpenSearch cannot initiate internet traffic |
 | Egress | Default route is the **Transit Gateway**, never a local NAT. All 1SB, PG, CBS and SMS traffic leaves via the inspection VPC: TGW → **Network Firewall** → NAT + Elastic IP → IGW. Publish that EIP list to 1SB and the AU Bank PG **before** UAT, and publish it from §2.3 rather than from an older diagram |
@@ -313,7 +313,7 @@ pod ─► TGW ─► Network Firewall endpoint (per AZ) ─► NAT + Elastic IP
 | TLS inspection | Enabled for destinations we terminate normally. **Not** on the 1SB mTLS session — a man-in-the-middle on a mutually authenticated channel is an outage, not a control. Those flows are matched on SNI and destination and passed intact |
 | Rule-set ownership | The allowlist is versioned configuration. A new egress destination arrives as a pull request in the same change as the code that needs it — a rule set nobody curates decays to permit-any within two incidents |
 | Failure posture | Firewall unavailable = **no egress**. That is correct and it is also an outage: endpoints per AZ (§2.1) and a named runbook, because the quote path is the first thing to notice |
-| What it is not | Not ingress inspection for public traffic — that is CloudFront + WAF + API Gateway. Not a service mesh. Not a replacement for `NetworkPolicy` |
+| What it is not | Not ingress inspection for public traffic — that is Cloudflare + F5-XC (SaaS) + API Gateway. Not a service mesh. Not a replacement for `NetworkPolicy` |
 
 #### The Elastic IP list changed shape — read this before publishing anything
 
@@ -339,17 +339,20 @@ R0 uses a **two-hop reverse proxy**. There is no extra Nginx/Envoy sidecar estat
 NIP-APP (web / APK / IPA)
     │  TLS 1.3 · one hostname
     ▼
-CloudFront  ──►  AWS WAF
+Cloudflare Enterprise     ← SaaS · NOT AWS · NOT in any VPC
     │
     ▼
-API Gateway          ← THE external reverse proxy
+F5 Distributed Cloud / F5-XC   ← SaaS WAF · NOT AWS · NOT in any VPC
+    │
+    ▼
+API Gateway               ← THE external reverse proxy (first AWS hop)
     │  private integration / VPC link
     ▼
-Internal ALB         ← THE internal reverse proxy
+Internal ALB              ← THE internal reverse proxy (the only ALB)
     │  GET /* → nip-web · /api/* → #2 NIP BFF
     ▼
-#2 NIP BFF           (and, same listener, WS-2 workforce-access-bff
-                       if they remain separate deployables — see note)
+#2 NIP BFF                (and, same listener, WS-2 workforce-access-bff
+                            if they remain separate deployables — see note)
     │  cluster-private
     ▼
 Domain services (never published)
@@ -357,7 +360,7 @@ Domain services (never published)
 
 | Hop | Terminates TLS? | AuthN? | AuthZ? | Business logic? |
 |---|---|---|---|---|
-| CloudFront / WAF | Yes (ACM) | No | No | No — bot/rate/OWASP only |
+| Cloudflare / F5-XC (SaaS) | Yes (bank edge) | No | No | No — CDN / DDoS / WAF / bot / rate only |
 | API Gateway | Yes | Optional API key **not** used as auth | No | Request size, schema, throttle |
 | Internal ALB | Yes (internal cert) | No | No | Path routing to BFF |
 | BFF | Re-encrypts outbound | **Session** | Calls PDP (`S-02`) | Aggregation only |
@@ -377,8 +380,8 @@ NIP-APP  (one Flutter project · role-based views)
   roles   →  BANK_RM · INSURER_PARTNER_REP · BANK_EMPLOYEE (admin/ops)
         │  TLS 1.3   one hostname
         ▼
-CloudFront  ──►  AWS WAF  ──►  API Gateway     PROXY 1 of 2
-        │  VPC link
+Cloudflare (SaaS)  ──►  F5-XC (SaaS)  ──►  API Gateway     PROXY 1 of 2
+        │  VPC link                                         (first AWS hop · no public ALB)
         ▼
 Internal ALB                                   PROXY 2 of 2  ·  host/path rules
         ├──  GET  /*            →  nip-web     Flutter web BAKED INTO THE IMAGE
@@ -388,7 +391,7 @@ Internal ALB                                   PROXY 2 of 2  ·  host/path rules
         Domain services (never published)
 ```
 
-**Why it sits in EKS with the BFF.** The web UI is workforce-facing. Baking the Flutter web build into `nip-web` in `ns:edge` keeps it on the private-app subnets, behind the same two proxies, with no public S3 website and **no PVC**. CloudFront caches those static files; it must **not** cache authenticated JSON.
+**Why it sits in EKS with the BFF.** The web UI is workforce-facing. Baking the Flutter web build into `nip-web` in `ns:edge` keeps it on the private-app subnets, behind the same two proxies, with no public S3 website and **no PVC**. Cloudflare may cache those static files; it must **not** cache authenticated JSON.
 
 **What it is not.** A StatefulSet. A second CloudFront for DIY (`#1` is R1). A public bucket website. A separate admin-web, admin.{env}, or Admin BFF. Serving the SPA from the BFF process itself is allowed — that is Amit packaging the same boundary as one pod instead of two.
 
@@ -396,7 +399,7 @@ Admin / operations (R0 W4, `ADR-014`) are **roles on NIP-APP**. They read `#19` 
 
 **Ingress controller:** AWS Load Balancer Controller. One internal ALB, host/path rules, not an ALB per microservice.
 
-**Do we need an additional "external proxy" product (Kong, Nginx Plus, F5)?** No for R0. API Gateway + CloudFront + WAF is the external reverse proxy. Adding a fourth hop adds a PCI/PII surface without an R0 consumer.
+**Do we need an additional "external proxy" product (Kong, Nginx Plus, in-VPC F5 BIG-IP, public ALB)?** No for R0. Cloudflare + F5-XC are the **existing bank SaaS perimeter**; API Gateway is the AWS reverse proxy. Adding a public ALB in front of API Gateway, or placing F5 as an appliance in our VPC, adds a hop the existing estate does not use for this platform (`ADR-018`).
 
 **Is the Network Firewall a third proxy?** No, and the distinction matters when someone counts
 hops. `ADR-010`'s firewall sits on the **egress** path (§2.3) and on inter-VPC traffic. It
@@ -532,7 +535,7 @@ Two layers, and the second one is new. L1 stays in-process per pod; L2 is the sh
 | Rate limit + OTP attempt counters | **Valkey** | `edge` | Window | Per-principal, not per-pod. The per-pod version was a control with a documented bypass |
 | PDP decision | **Request-scoped only.** Not in Valkey | — | — | 300 ms fail closed. A stale allow is worse than a deny, and a shared cache makes the staleness longer |
 | Idempotency | **Owning service store** (Aurora or DynamoDB) — **never the cache** | — | 24 h | — |
-| Flutter / CDN | CloudFront in front of `nip-web` in `ns:edge` | Edge | Cache-Control from the UI pod; **no** caching of authenticated JSON | — |
+| Flutter / CDN | Cloudflare (SaaS) in front of `nip-web` in `ns:edge` | Edge | Cache-Control from the UI pod; **no** caching of authenticated JSON | — |
 
 **The forbidden list is the load-bearing half of this section.** The cache is never a system of
 record. It never holds idempotency, consent, suitability or audit data. It never serves
@@ -603,7 +606,7 @@ Z0 Internet
   Customer device         (OTP SMS / PG hosted page) ──► AU Bank PG   [not our VPC]
 
 Z1 Edge (public)
-  Route 53 → CloudFront → WAF → API Gateway
+  Route 53 → Cloudflare (SaaS) → F5-XC (SaaS) → API Gateway
   PG-callback API Gateway route (IP allowlist)
 
 Z2 Application (private-app subnets, EKS)
@@ -659,7 +662,7 @@ Existing repo services that **map onto** this:
 |---|---|---|---|---|
 | 1SB APIs | Egress | HTTPS mTLS | **Inspection-VPC NAT EIPs** on 1SB's list (§2.3); 1SB IPs in the firewall domain allowlist. **Payload not decrypted** | WS-1 / Shivanshi |
 | AU Bank PG session | Egress | HTTPS | Via inspection VPC; PG endpoints allowlisted | Payments + Shivanshi |
-| AU Bank PG callback | Ingress | HTTPS | **PG source IPs only** on the callback Gateway. Not on the firewall path — the edge is CloudFront/WAF/API Gateway | Deepali + Payments |
+| AU Bank PG callback | Ingress | HTTPS | **PG source IPs only** on the callback Gateway. Not on the firewall path — the edge is Cloudflare / F5-XC / API Gateway | Deepali + Payments |
 | AU Bank PG settlement | Ingress or S3 drop | File | Separate from the API path | Aarti + Finance |
 | CBS / CIF | Egress | Bank standard (often HTTPS or MQ) | **TGW → VPN, then DX** (`ADR-009`). Stubs in `dev` only | Bank network + `#4` |
 | Bank AD | Egress from Keycloak | OIDC/SAML/LDAP | **TGW → VPN, then DX.** `dev` may run Keycloak-local users | WS-2 + bank network |
@@ -736,7 +739,7 @@ platform team can provision from. **Everything below is `ap-south-2`. Nothing el
 | D7 | **Secrets Manager replica secrets** | **Yes** | Replica of DB, 1SB, PG and IdP secrets. A restored Aurora with no credential is not a restored service | Precondition for D8 |
 | D8 | **EKS cluster** | **No — created at failover, or scaled from zero** | Node groups at desired-count `0` if the cluster exists. This is what "warm" means: images and data are ready, compute is not paid for | `NFR-DR-01` RTO ≤ 1 h |
 | D9 | **Route 53 failover** | **No — manual in R0** | BOM #4: no latency-based or health-check DR routing. Failover is a deliberate, recorded human action, not an automatic flip | R0 posture |
-| D10 | **API Gateway + CloudFront origin re-point** | **No — part of the runbook** | The edge is re-pointed at the DR internal ALB during failover. Document it as a step, not as automation | R0 posture |
+| D10 | **API Gateway + Cloudflare origin re-point** | **No — part of the runbook** | The edge is re-pointed at the DR API Gateway / internal ALB during failover. Document it as a step, not as automation | R0 posture |
 | D11 | **DR runbook + measured exercise** | **Yes — the artefact is the deliverable** | Declaration → restore → verify → serve, wall-clock timed. `S09-G7` accepts the *record*, not the design | `NFR-DR-04`, `S09-G7` |
 | D12 | **Rollback drill in UAT** | **Yes** | Not cross-region, but the same family of proof: a deliberately broken release rolled back, data intact, timed | `NFR-DR-05`, `S09-G4` |
 | **D13** | **ElastiCache in DR** | **No — and this is a decision** | Sessions are re-established by re-authentication and the L2 cache is rebuilt on first miss. Replicating a cache to protect data that is by definition reconstructible is cost without recovery value | `ADR-011` |
@@ -818,7 +821,7 @@ critical path and no business service starts before them
 | **P1** Network | VPC × 3 envs · public / private-app / private-data / TGW-attachment × 3 AZs (§2.1) · **Transit Gateway + per-environment route tables** · **inspection VPC × env with Network Firewall** · **NAT Gateway + Elastic IPs (now in the inspection VPC)** · **Site-to-Site VPN** · **Direct Connect order placed** · security groups · **VPC endpoints** · Route 53 private zone + Resolver endpoints · ACM certs · flow logs | `E01-S03` (network foundation) · `E07-S01` (segmentation) | Shivanshi + Deepali + bank network | P2 | **Still the longest external lead time, and now it has two external parties instead of one.** The EIP list must reach 1SB and the AU Bank PG *before* UAT and must come from §2.3, not an older diagram. The bank must terminate the VPN and accept the DX order (`DEP-20260824-dx1`). Late here blocks W1 CBS lookups, W2 quotes and W3 payments regardless of code readiness |
 | **P2** Compute | EKS × 3 envs, private endpoint · managed node groups (§2.1) · add-ons (VPC CNI, CoreDNS, kube-proxy, EBS CSI, AWS LB Controller, ExternalDNS, Secrets Store CSI, **Fluent Bit, ADOT, KEDA**) · **Kyverno/Gatekeeper admission** · NetworkPolicy default-deny · Karpenter (thin, uat/prod) | `E01-S04` · `E07-S01/S03` | Shivanshi + Deepali | P4, P5 | Admission policy retro-fitted onto running workloads is a migration, not a control |
 | **P3** Data & messaging | **One** Aurora cluster + schemas + per-schema roles · DynamoDB tables + PITR · S3 buckets + **Object Lock** + Block Public Access · **ElastiCache for Valkey + per-service ACL users** · **MSK 3 brokers + per-topic IAM + Glue Schema Registry** · AWS Backup plans · **`ap-south-2` replication (D1–D3, D6, D7, D16)** | `E01-S05` (data foundation) · `E06-S01/S03/S05` | Aarti + Shivanshi | W0b | Object Lock **cannot be applied retroactively** to objects already written. The broker and cache are needed at W0b–W1, not W3: `#19` resolves configuration through the L2 cache and the first journey emits audit events, so a "messaging comes later" plan means writing the audit path twice |
-| **P4** Edge & proxy | **Internal ALB** (the in-VPC reverse proxy) · **API Gateway** (the only public one) · CloudFront + WAF + Shield Standard · Route 53 public zone · **separate PG-callback route, IP-allowlisted** | `E07-S05` | Shivanshi + Deepali | W3 (callback) then W4 (RM traffic) | The PG-callback route is needed at **W3**, earlier than the RM edge at W4. Treating "the edge" as one deliverable delays the money path by a wave |
+| **P4** Edge & proxy | **Internal ALB** (the in-VPC reverse proxy) · **API Gateway** (the only AWS public proxy; **no public ALB**) · **Cloudflare + F5-XC SaaS** (existing bank perimeter, not provisioned in our VPC) · Route 53 public zone · **separate PG-callback route, IP-allowlisted** | `E07-S05` | Shivanshi + Deepali | W3 (callback) then W4 (RM traffic) | The PG-callback route is needed at **W3**, earlier than the RM edge at W4. Treating "the edge" as one deliverable delays the money path by a wave |
 | **P5** Identity (WS-2) | Keycloak on EKS + Aurora `keycloak`/`identity` schemas · Secrets Manager + rotation · **IRSA role per deployable** · Secrets Store CSI → tmpfs · **session vault on the P3 cache tier** | `E04-S01/S04/S06` | Deepali + WS-2 | W0b | The PDP fails closed by design (`S-02`). No identity means no service can authorise anything — this is not a "later" item |
 | **P6** Observability & search | CloudWatch Logs/Metrics with PII masking · AMP + AMG · X-Ray *or* ADOT · **OpenSearch domain + Firehose + Fluent Bit + ISM policy** (`E05-S02` log aggregation — the story already existed; `ADR-013` decides what it aggregates *into*) · **audit pipe separated from the operational pipe** (`E05-S06`) · baseline dashboards + alert routing | `E05-S01…S06` | Shivanshi | W1 | Debugging the first end-to-end journey without correlated traces is where schedules are actually lost. The firewall, flow and broker logs from P1 and P3 are unqueryable until this band lands, which is most of why `ADR-013` is in R0 |
 | **P7** Delivery & IaC | ECR + immutable tags + scan-on-push · GitLab CI/CD → ECR · **GitLab Runner** · **Terraform IaC** · promote-by-digest · migration job in the deploy path | `E02-S01…S06` · `E03-S01…S06` | Shivanshi + Amit | W0b | Rebuilding per environment breaks `S09-E02-S02` and makes every UAT result unattributable |
@@ -841,7 +844,7 @@ the service backlog rather than delivered as one lump:
 | **W1** | `#5` `#9` `#14` `#4` `#8` | + **CBS reachable over the TGW** (VPN is sufficient; `#4` cannot be evidenced against a stub outside `dev`) · **MSK topics + schema registry** (the first journey emits events) · P6 |
 | **W2** | `#6` `#7` `#10` | + **egress-VPC EIPs allowlisted by 1SB** (§2.3) · firewall domain allowlist carries 1SB · S3 `raw` bucket locked |
 | **W3** | `#11` `#12` `#13` `#16` | + **PG-callback API Gateway route** · PG settlement drop path · S3 `docs` + `audit-archive` locked · DR replication live (D3) · **audit consumer group + DLQ** |
-| **W4** | `#2` NIP BFF · `nip-web` · NIP-APP APK (Play) · NIP-APP IPA (App Store) · `#17` · `#18` MIS consumers | + CloudFront + WAF + public API Gateway · internal ALB path rules (`GET /*` → `nip-web`, `/api/*` → `#2`) · **session vault on the cache tier** · SMS/email gateway in the firewall allowlist · **no** second hostname |
+| **W4** | `#2` NIP BFF · `nip-web` · NIP-APP APK (Play) · NIP-APP IPA (App Store) · `#17` · `#18` MIS consumers | + Cloudflare + F5-XC (SaaS) + public API Gateway · internal ALB path rules (`GET /*` → `nip-web`, `/api/*` → `#2`) · **session vault on the cache tier** · SMS/email gateway in the firewall allowlist · **no** second hostname · **no** public ALB |
 
 **The two items with an external lead time are P1's EIP publication and the bank-side
 connectivity work.** Both depend on parties outside this programme, and the robustness round made
@@ -887,13 +890,14 @@ AVAILABILITY ZONES  (full table: LLD §2.1)
 - Pin AZ IDs (aps1-azN), NOT AZ names - a name maps to a different physical AZ per account
 
 EDGE (external reverse proxy)
-- Route 53 + CloudFront + AWS WAF (OWASP + rate limit) + API Gateway
-- Internal ALB (AWS LB Controller) as the only in-VPC reverse proxy
+- Cloudflare Enterprise (SaaS) + F5-XC (SaaS WAF) + Route 53 + API Gateway
+- Cloudflare and F5-XC are NOT AWS and NOT in any VPC (ADR-018)
+- Internal ALB (AWS LB Controller) as the only in-VPC reverse proxy — the only ALB
 - ONE public hostname. GET /* → nip-web; /api/* → #2 NIP BFF. No admin.{env}
 - ns:edge holds nip-web + #2 NIP BFF only — nothing RM-named or admin-named (ADR-015)
 - Separate API Gateway route for AU Bank PG callbacks, IP-allowlisted
 - Network Firewall is on the EGRESS path only - it is not a third inbound proxy
-- Do NOT provision Kong/Nginx Plus/F5, Istio, or a second public ALB
+- Do NOT provision Kong/Nginx Plus, an in-VPC F5 BIG-IP, Istio, or a public / External ALB
 
 COMPUTE
 - 1 private EKS cluster per env; sale-path min 2 pods, 2 AZs, PDBs
@@ -959,7 +963,7 @@ P1 network (VPC, 3 AZs, TGW + per-env route tables, inspection VPC + Network Fir
 P2 compute (EKS, node groups, add-ons incl. Fluent Bit/ADOT/KEDA, admission, NetworkPolicy)
 P3 data & messaging (Aurora, DynamoDB, S3 + Object Lock, ElastiCache, MSK + schema registry,
    AWS Backup, ap-south-2 replication)
-P4 edge (internal ALB, API Gateway, CloudFront, WAF; PG-callback route needed at W3, before W4)
+P4 edge (internal ALB, API Gateway, Cloudflare + F5-XC SaaS; PG-callback route needed at W3, before W4)
 P5 identity (Keycloak, Secrets Manager, IRSA, Secrets Store CSI, session vault on the cache)
 P6 observability & search (CloudWatch, AMP/AMG, tracing, OpenSearch + Firehose + ISM,
    separated audit pipe)

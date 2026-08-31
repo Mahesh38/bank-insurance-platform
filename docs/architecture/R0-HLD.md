@@ -185,7 +185,7 @@ The SVG and the North Star (`docs/hdl.svg`) use the same bands (`LY-1`). A thin 
 
 **Owns:** TLS termination, WAF, throttling, request validation.
 **Does not own:** business logic, authorization decisions.
-**R0 contains:** Route 53 · Cloudflare · F5 BIG-IP / WAF · External ALB · API Gateway · internal ALB.
+**R0 contains:** Route 53 · Cloudflare Enterprise (SaaS, not AWS, not in any VPC) · F5 Distributed Cloud / F5-XC (SaaS WAF, not AWS, not in any VPC) · API Gateway · internal ALB. **No public / External ALB** (`ADR-018`).
 **Greyed:** insurer callback ingress (R1). R0 **polls** providers instead (`S-11`).
 **Rule:** no workload, database or cache is internet-reachable.
 

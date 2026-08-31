@@ -208,15 +208,15 @@
   <rect x="472.0" y="773.5" width="392.0" height="65.0" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
   <rect x="826.0" y="780.5" width="30" height="15" rx="4" fill="#1d4ed8"/>
   <text x="841.0" y="792.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
-  <text x="482.0" y="797.5" font-size="11.5" fill="#0f172a" font-weight="bold">Cloudflare (CDN / DDoS)</text>
-  <text x="482.0" y="813.5" font-size="8.8" fill="#475569">Bank standard edge CDN &amp; DDoS;</text>
-  <text x="482.0" y="826.0" font-size="8.8" fill="#475569">origin via F5 / External ALB.</text>
+  <text x="482.0" y="797.5" font-size="11.5" fill="#0f172a" font-weight="bold">Cloudflare (SaaS · not AWS)</text>
+  <text x="482.0" y="813.5" font-size="8.8" fill="#475569">Bank standard CDN &amp; DDoS. SaaS —</text>
+  <text x="482.0" y="826.0" font-size="8.8" fill="#475569">not AWS, not in any VPC. Origin = F5-XC.</text>
   <rect x="880.0" y="773.5" width="392.0" height="65.0" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
   <rect x="1234.0" y="780.5" width="30" height="15" rx="4" fill="#1d4ed8"/>
   <text x="1249.0" y="792.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
-  <text x="890.0" y="797.5" font-size="11.5" fill="#0f172a" font-weight="bold">F5 BIG-IP / WAF</text>
-  <text x="890.0" y="813.5" font-size="8.8" fill="#475569">Bank enterprise L7 security policy,</text>
-  <text x="890.0" y="826.0" font-size="8.8" fill="#475569">custom iRules, bot control at edge.</text>
+  <text x="890.0" y="797.5" font-size="11.5" fill="#0f172a" font-weight="bold">F5-XC / WAF (SaaS)</text>
+  <text x="890.0" y="813.5" font-size="8.8" fill="#475569">Distributed Cloud. Not an appliance</text>
+  <text x="890.0" y="826.0" font-size="8.8" fill="#475569">in AWS or in any platform VPC.</text>
   <rect x="1288.0" y="773.5" width="392.0" height="65.0" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
   <rect x="1642.0" y="780.5" width="30" height="15" rx="4" fill="#1d4ed8"/>
   <text x="1657.0" y="792.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>
@@ -1176,5 +1176,5 @@
   <text x="40" y="4552.0" font-size="9.6" fill="#334155" font-weight="bold">AI-DRAFTED in the Architecture lane (Mahesh — Board 1, Principal Insurance Platform Architect). Mandatory human T4 Architecture sign-off is OUTSTANDING; this diagram approves nothing and admits nothing.</text>
   <text x="40" y="4567.0" font-size="9.2" fill="#64748b">Sources · docs/governance/state/CURRENT-STATE.yaml (WS-3 objective, scope, out_of_scope revisit_at, standing constraints) · docs/platform/ws3-platform/00-WS3-ARCHITECTURE-REGISTRATION.md §3 (IF-1/IF-2/IF-3, SC-W3-1…12) · 03-solution-architecture-r0.md §2–§5 (R0 actors, bounded contexts #1–#19, seams S-01…S-22) · 01-domain-model-and-invariants.md §2.4–§2.6 (actors, LOB, configuration) · ADR-004…ADR-007 · 04-security-architecture.md · 05-nfr-catalogue.md · consent and suitability rule packs · target-state design discussion of 2026-08-18/19.</text>
   <text x="40" y="4581.0" font-size="9.2" fill="#64748b">Reading rule · The R0 band is the executable architecture and the only admitted scope. R1–R4 elements correspond to CURRENT-STATE out_of_scope entries and carry that entry's revisit_at. RN elements have no governance record at all. Nothing on this diagram may be cited as authority to start work: each element still requires AIGEM triage, an owner, and where consequential an ADR and the applicable board reviews.</text>
-  <text x="40" y="4595.0" font-size="9.2" fill="#64748b">Companion artefacts · docs/architecture/r0-reference-architecture.svg is the R0 executable HLD. · Revised 2026-08-25 — CR-013 / ADR-014: spoken name of #5 is Lead; #18 Reporting &amp; MIS and the #19 admin UI are R0 on the isolated read path; campaign/bulk Lead create stays R1. Human T4 outstanding. OPEN-D10 closed as Lead (Opportunity remains the durable-demand alias).</text>
+  <text x="40" y="4595.0" font-size="9.2" fill="#64748b">Companion artefacts · docs/architecture/r0-reference-architecture.svg is the R0 executable HLD. · Revised 2026-08-31 — ADR-018 / SUG-20260831-alb: Cloudflare and F5-XC are bank SaaS (not AWS, not in any VPC); no public ALB in front of API Gateway. Prior 2026-08-25 note (CR-013 / ADR-014 Lead / #18 / #19) still stands. Human T4 outstanding.</text>
 </svg>

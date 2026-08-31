@@ -545,7 +545,7 @@ id_allocation:
     # both it and CR-012.
     CR: 14        # CR-001..013 in use; next unused sequential value is 14
     RISK: 16      # RISK-001..015 in use (012..015 added by CR-012)
-    ASM: 12       # ASM-001..011 in use (009..011 added by CR-012)
+    ASM: 13       # ASM-001..012 in use (012 = EDGE FortiGate vs platform inspection VPC, SUG-20260831-alb). ID-allocation only.
     EPIC: 2       # EPIC-001 in use (platform error contract, SUG-20260827-err). ID-allocation only.
     SPIKE: 1
     # ADR-001..003 were written into architecture-review/08 under CR-010 while this counter still
@@ -559,4 +559,4 @@ id_allocation:
     # ADR-017 was added by the 2026-08-27 platform error contract round (SUG-20260827-err), and
     # EPIC-001 by the same round. ID-allocation correction only. No stage, scope or gate field is
     # touched by it; those remain human-owned (04 section 5).
-    ADR: 18        # ADR-001..017 in use (015 = NIP-APP; 016 = ARB enterprise baseline; 017 = platform error contract). ID-allocation only.
+    ADR: 19        # ADR-001..018 in use (015 = NIP-APP; 016 = ARB enterprise baseline, ingress hop amended by 018; 017 = platform error contract; 018 = SaaS edge, no public ALB). ID-allocation only.

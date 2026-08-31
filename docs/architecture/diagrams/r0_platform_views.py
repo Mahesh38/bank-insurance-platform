@@ -125,24 +125,30 @@ def topology():
                "environment · every connector is a real network path, and egress has exactly one")
 
     # ---- devices ---------------------------------------------------------
-    dev = c.group("DEVICES", 40, 250, 560, 270, stroke=Z["dev"][0], fill=Z["dev"][1],
-                  sub="outside the VPC", label_size=15)
-    c.node(I["flutter"], 130, 340, ["NIP-APP native", "APK Play · IPA App Store"])
-    c.node(I["tablet"], 310, 340, ["NIP-APP web", "role-based · nip-web"])
-    c.node(I["tablet"], 220, 455, ["Roles, not apps", "RM · IPR · admin/ops"])
+    dev = c.group("DEVICES", 40, 200, 560, 170, stroke=Z["dev"][0], fill=Z["dev"][1],
+                  sub="outside AWS · outside the VPC", label_size=15)
+    c.node(I["flutter"], 130, 290, ["NIP-APP native", "APK Play · IPA App Store"])
+    c.node(I["tablet"], 310, 290, ["NIP-APP web", "role-based · nip-web"])
+    c.node(I["tablet"], 480, 290, ["Roles, not apps", "RM · IPR · admin/ops"])
 
-    # ---- region and edge -------------------------------------------------
+    # ---- bank SaaS: Cloudflare + F5-XC sit OUTSIDE AWS and OUTSIDE every VPC
+    saas = c.group("BANK ENTERPRISE SaaS", 40, 400, 560, 220, stroke=Z["ext"][0],
+                   fill=Z["ext"][1],
+                   sub="NOT on AWS · NOT in any VPC · existing bank perimeter",
+                   label_size=15)
+    cf = c.node(I["cf"], 180, 510, ["Cloudflare", "Enterprise CDN · DDoS", "SaaS · not AWS"])
+    waf = c.node(I["waf"], 420, 510, ["F5-XC / WAF", "Distributed Cloud", "SaaS · not in VPC"])
+
+    # ---- region and AWS-managed edge -------------------------------------------------
     c.group("AWS REGION · ap-south-1", 620, 200, 2160, 2220, stroke=Z["vpc"][0],
             fill="#ffffff", dash="10 7", label_size=17, width=2.2)
-    edge = c.group("BANK PERIMETER & PUBLIC AWS EDGE", 660, 240, 1610, 280, stroke=Z["edge"][0],
-                   fill=Z["edge"][1], sub="Cloudflare · F5 · External ALB · API Gateway — not in the VPC",
+    edge = c.group("AWS MANAGED EDGE — not in the VPC", 660, 240, 1610, 280,
+                   stroke=Z["edge"][0], fill=Z["edge"][1],
+                   sub="API Gateway is the first AWS hop · no public / External ALB",
                    label_size=16)
-    cf = c.node(I["cf"], 740, 400, ["Cloudflare", "Edge CDN · DDoS", "bank standard"])
-    waf = c.node(I["waf"], 910, 400, ["F5 BIG-IP / WAF", "L7 security policy", "bank standard"])
-    ext_alb = c.node(I["alb"], 1080, 400, ["External ALB", "Edge ingress"])
-    agw = c.node(I["apigw"], 1250, 400, ["API Gateway", "PROXY 1 of 2", "throttle · schema"])
-    pgcb = c.node(I["apigw"], 1480, 400, ["PG-callback route", "SEPARATE · IP-allowlisted"])
-    c.node(I["r53"], 1780, 400, ["Route 53", "public + private zones", "a lookup, not a hop"])
+    agw = c.node(I["apigw"], 900, 400, ["API Gateway", "PROXY 1 of 2", "first AWS hop"])
+    pgcb = c.node(I["apigw"], 1250, 400, ["PG-callback route", "SEPARATE · IP-allowlisted"])
+    c.node(I["r53"], 1680, 400, ["Route 53", "public + private zones", "a lookup, not a hop"])
 
     # ---- vpc -------------------------------------------------------------
     c.group("VPC · 10.{env}.0.0/16 · 3 Availability Zones", 660, 560, 1610, 1640,
@@ -238,8 +244,8 @@ def topology():
                    sub="network account · ONE PER ENVIRONMENT", label_size=15)
     tgw = c.node(I["tgw"], 2540, 650, ["Transit Gateway", "one route table per env",
                                        "no VPC peering, anywhere"], size=56)
-    nfw = c.node(I["f5"], 2540, 830, ["F5 BIG-IP / Firewall", "domain allowlist · IPS",
-                                      "bank standard · per AZ"], size=56)
+    nfw = c.node(I["nfw"], 2540, 830, ["Network Firewall", "domain allowlist · IPS",
+                                       "ADR-010 · not an F5 appliance"], size=56)
     nat = c.node(I["nat"], 2540, 1010, ["NAT + ELASTIC IPs", "1SB and the PG allowlist THESE",
                                         "they MOVED here — ADR-010"], size=56)
 
@@ -266,10 +272,10 @@ def topology():
     onesb = c.node(I["net"], 3120, 860, ["1SilverBullet", "R0 polls"], size=54)
 
     # ---- connectors, all axis-aligned ------------------------------------
-    c.link(dev.port("R", at=380), cf.port("L"), color=REQ, width=3.0)
+    c.link(dev.port("B", at=180), cf.port("T"), color=REQ, width=3.0)
     c.link(cf.port("R"), waf.port("L"), color=REQ, width=3.0)
-    c.link(waf.port("R"), ext_alb.port("L"), color=REQ, width=3.0)
-    c.link(ext_alb.port("R"), agw.port("L"), color=REQ, width=3.0)
+    c.link(waf.port("R"), agw.port("L"), color=REQ, width=3.0,
+           label="SaaS → AWS", label_at=0.55, label_dx=8, label_anchor="start")
     c.link(agw.port("B"), alb.port("T"), color=REQ, width=3.0,
            label="VPC link", label_at=0.62, label_dx=9, label_anchor="start")
     c.link(alb.port("B"), bff.port("T"), color=REQ, width=3.0,
@@ -330,11 +336,12 @@ def topology():
         (STATE, "2 5", 2.4, "Durable state"),
         (MONEY, "9 6", 2.8, "Payment callback (own view)"),
     ])
-    c.text(3020, 1680, "Two reverse proxies. One way out.", size=14, color=INK, bold=True)
-    c.lines(3020, 1708, ["API Gateway is the only public proxy;",
-                         "the internal ALB is the only one in the VPC.",
-                         "The firewall is on egress, not on ingress —",
-                         "it terminates no client session.",
+    c.text(3020, 1680, "SaaS perimeter. Two AWS proxies. One way out.", size=14, color=INK, bold=True)
+    c.lines(3020, 1708, ["Cloudflare and F5-XC are SaaS — not AWS,",
+                         "not in any VPC. API Gateway is the first",
+                         "AWS hop; there is no public ALB.",
+                         "The internal ALB is the only load balancer.",
+                         "The firewall is on egress, not on ingress.",
                          "Anything else on the path is a defect."], size=12.5, color=MUTE)
     return c.save(os.path.join(OUT, "r0-platform-topology.svg"))
 
@@ -368,7 +375,7 @@ def az():
         c.group("inspection VPC  ·  firewall + public  /24", cx - 300, 465, 600, 200,
                 stroke=Z["pub"][0], fill=Z["pub"][1], label_size=13, radius=11, width=1.6)
         if mode == "full":
-            c.node(I["f5"], cx - 145, 545, ["F5 Firewall endpoint", "no endpoint = no egress"],
+            c.node(I["nfw"], cx - 145, 545, ["Firewall endpoint", "no endpoint = no egress"],
                    size=54)
             c.node(I["nat"], cx + 145, 545, ["NAT + Elastic IP",
                                              "1SB and the PG allowlist it"], size=54)
@@ -465,7 +472,7 @@ def dr():
     c.link(eks_a.port("R"), eks_b.port("L"), color="#94a3b8", width=2.2, dash="4 5",
            label="NOT replicated", label_size=11.5)
     c.node(I["r53"], 1500, 1320, ["D9  Route 53 failover", "MANUAL in R0"], size=54)
-    c.node(I["cf"], 1880, 1320, ["D10  Cloudflare / ALB origin", "re-point — a runbook step"], size=54)
+    c.node(I["cf"], 1880, 1320, ["D10  Cloudflare / API GW origin", "re-point — a runbook step"], size=54)
 
     c.node(I["vpc"], 1500, 370, ["D1  VPC + subnets", "empty · no NAT until failover"], size=54)
     c.node(I["iam"], 1880, 370, ["IAM roles + IaC", "the same modules, a different tfvars"], size=54)
@@ -503,7 +510,7 @@ def sequence():
         ("P1", "NETWORK", "START HERE — two external parties", "#ea580c", "#fff7ed",
          ((I["vpc"], ["VPC · 3 AZ subnets"]),
           (I["tgw"], ["TRANSIT GATEWAY", "route table per env"]),
-          (I["f5"], ["inspection VPC", "+ F5 BIG-IP Firewall"]),
+          (I["nfw"], ["inspection VPC", "+ Network Firewall"]),
           (I["nat"], ["NAT + ELASTIC IPs", "publish to 1SB and the PG"]),
           (I["vpn"], ["VPN now, DX ordered", "the bank's own work"]))),
         ("P2", "COMPUTE", "", "#2563eb", "#eff6ff",
@@ -519,7 +526,7 @@ def sequence():
         ("P4", "EDGE + PROXY", "", "#b45309", "#fffaf0",
          ((I["alb"], ["Internal ALB"]),
           (I["apigw"], ["API Gateway", "+ PG callback — needed at W3"]),
-          (I["cf"], ["Cloudflare + F5", "External ALB ingress"]))),
+          (I["cf"], ["Cloudflare + F5-XC", "SaaS · no public ALB"]))),
         ("P5", "IDENTITY", "WS-2", "#059669", "#f0fdf7",
          ((I["deploy"], ["Keycloak + PDP"]),
           (I["secret"], ["Secrets Manager", "rotation exercised once"]))),

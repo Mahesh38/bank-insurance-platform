@@ -79,8 +79,8 @@
   <text x="166" y="368.5" font-size="10.5" fill="#ffffff" font-weight="bold" letter-spacing="0.6">EDGE — THE ONLY PUBLIC ENTRY POINT</text>
   <text x="1744" y="368.5" font-size="9" fill="#cbd5e1" text-anchor="end" font-weight="bold">no workload is internet-reachable</text>
   <rect x="60" y="386" width="980" height="70" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
-  <text x="550.0" y="428" font-size="11.8" fill="#0f172a" text-anchor="middle" font-weight="bold">Edge — Cloudflare · F5 BIG-IP · External ALB · API Gateway · internal ALB</text>
-  <text x="550.0" y="444.0" font-size="8.6" fill="#475569" text-anchor="middle">the bank perimeter and public entry point; every service, database and cache sits in a private subnet · TLS termination, F5 WAF rules, throttling and request validation here — no business logic, no authorization decision</text>
+  <text x="550.0" y="428" font-size="11.8" fill="#0f172a" text-anchor="middle" font-weight="bold">Edge — Cloudflare (SaaS) · F5-XC (SaaS) · API Gateway · internal ALB</text>
+  <text x="550.0" y="444.0" font-size="8.6" fill="#475569" text-anchor="middle">Cloudflare and F5-XC are bank SaaS — not AWS, not in any VPC. No public ALB. API Gateway is the first AWS hop; the internal ALB is the only load balancer · TLS, WAF, throttle, schema — no business logic, no authorization</text>
   <rect x="1060" y="386" width="660" height="70" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.3" stroke-dasharray="5 4"/>
   <rect x="1067" y="393" width="26" height="15" rx="4" fill="#e2e8f0"/>
   <text x="1080" y="404.5" font-size="8.5" fill="#64748b" text-anchor="middle" font-weight="bold">R1</text>
@@ -569,5 +569,5 @@
   <text x="1640" y="1744" font-size="8.4" fill="#64748b">payment link + OTP</text>
   <text x="60" y="2710" font-size="9.2" fill="#94a3b8">AI-DRAFTED in the Architecture lane (Mahesh — Board 1); mandatory human T4 Architecture sign-off outstanding · Derived from 03-solution-architecture-r0.md §2–§5 and §7, 01-domain-model-and-invariants.md §2.4–§2.6 (LB-1…LB-5, CF-1…CF-5),</text>
   <text x="60" y="2723" font-size="9.2" fill="#94a3b8">00-WS3-ARCHITECTURE-REGISTRATION.md §3 and §6 (SC-W3-8…12), ADR-004…ADR-007 and CURRENT-STATE.yaml (R0 scope) · Layer bands, naming and the LOB encoding follow the canvas contract in mahesh/16-hld-authoring-and-update-protocol.md §4 (NC-1, LY-1, LB-R1).</text>
-  <text x="60" y="2736" font-size="9.2" fill="#94a3b8">Render.com is dev-preview only, never a PII path (ADR-001) · revised 2026-08-25 — CR-013 / ADR-014: #5 spoken name Lead; #18 and admin UI in R0 W4 on the isolated path; campaign/bulk still R1. Human T4 outstanding.</text>
+  <text x="60" y="2736" font-size="9.2" fill="#94a3b8">Render.com is dev-preview only, never a PII path (ADR-001) · revised 2026-08-31 — ADR-018: Cloudflare + F5-XC are SaaS (not AWS, not in VPC); no public ALB. Prior 2026-08-25 CR-013 / ADR-014 Lead / #18 note still stands. Human T4 outstanding.</text>
 </svg>

@@ -84,6 +84,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | SUG-20260825-nip | 2026-08-25 | human:Mahesh | One NIP-APP (New Insurance Platform) Flutter client for web/iOS/Android; RM, ISR, admin and operations share it with role-based views; no separate admin/ops app now or later | SF1 | SC1 | MUST | ARCH | P2 / P1 | CLOSED-DELIVERED | [detail](#sug-20260825-nip--one-nip-app-role-based-not-a-second-admin-ui) · recorded as `ADR-015` (PROPOSED — human T4 outstanding) |
 | SUG-20260825-arb | 2026-08-25 | human:Mahesh | Review with internal Architect team: Cloudflare instead of CloudFront (bank standard), F5 BIG-IP / WAF instead of AWS WAF (bank standard), External ALB before API Gateway, GitLab CI/CD for pipelines, EBS (Enterprise Service Bus) naming for Core Banking integration with CBS in brackets, Terraform IaC, CloudTrail and CloudWatch both mandatory | SF1 | SC0 | MUST | ARCH | P1 / P1 | ADMIT-BYPASS | [ARB-ARCHITECTURE-DOSSIER](../../architecture/ARB-ARCHITECTURE-DOSSIER.md) · [detail](#sug-20260825-arb--internal-architect-review-alignment-cloudflare-f5-external-alb-gitlab-ebscbs-terraform-cloudtrailcloudwatch) |
 | SUG-20260827-tpo | 2026-08-27 | human:Mahesh | Platform Topology & LLD Alignment: replace Argo CD with GitLab CI/CD with logo, replace AWS Network Firewall with F5 BIG-IP / Firewall with logo, incorporate Ansible for automated DR drills / sanity testing, and emphasize Terraform IaC baseline | SF1 | SC0 | MUST | ARCH | P1 / P1 | CLOSED-DELIVERED | [r0-platform-topology](../../architecture/r0-platform-topology.svg) · [detail](#sug-20260827-tpo--platform-topology--lld-alignment-gitlab-cicd-f5-big-ip-ansible-terraform) |
+| SUG-20260831-alb | 2026-08-31 | human:Mahesh | Correct two false perimeter assumptions against the existing AU Bank estate: (1) remove the External / public ALB in front of API Gateway; (2) Cloudflare and F5-XC are bank-enterprise SaaS, not AWS services and not in any platform VPC | SF1 | SC1 | MUST | ARCH | P1 / P1 | ADMIT | [ADR-018](../../platform/architecture-review/08-architecture-decision-log.md) · [detail](#sug-20260831-alb--correct-edge-ingress-no-public-alb-saas-outside-aws) |
 
 <!--
 Row format:
@@ -159,6 +160,91 @@ breakdown:
   stories:
     - "Update r0_platform_views.py to replace Argo CD with GitLab CI/CD logo, replace AWS Network Firewall with F5, add Ansible DR/sanity automation, and highlight Terraform IaC"
     - "Re-render all platform SVG and PNG companion diagrams"
+```
+
+### SUG-20260831-alb · Correct edge ingress (no public ALB; Cloudflare + F5-XC are SaaS outside AWS)
+
+```yaml
+id: SUG-20260831-alb
+raised_at: "2026-08-31"
+raised_by: "human:Mahesh"
+source: "Architecture correction against existing AU Bank application and central-network diagrams"
+input: >
+  Rebuild the architecture diagram. Two assumptions were wrong:
+  1. Remove the external load balancer in front of API Gateway.
+  2. Cloudflare and F5 are both SaaS — not on the AWS cloud and not in our VPC.
+  Align with the existing banking application network (north-south via Cloudflare
+  then F5-XC; east-west via the central network account TGW / EDGE VPC).
+duplicate_of: null
+conflicts:
+  - SUG-20260825-arb (External ALB before API Gateway — retracted)
+  - ADR-016 ingress hop 1 (External ALB clause — amended by ADR-018)
+  - SUG-20260827-tpo (F5 BIG-IP appliance drawn inside the inspection VPC — retracted;
+    F5 on this estate is F5-XC SaaS on the north-south path only)
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 / S09 — Engineering & Platform Foundation"
+  current_objective: R0-ASSISTED-TERM-SALE
+  state_as_of: "2026-08-10"
+  state_provisional: false
+  freshness: "WARN — state_as_of 21 days old; 04-STAGE_GATES.md 15d vs 14d limit"
+  active_work_item: "Correct R0 perimeter against existing bank estate"
+
+stage_fit:
+  code: SF1
+  rationale: >
+    The S08/S09 architecture pack currently asserts a hop and a placement the existing
+    AU Bank estate does not have. GATE-S09 platform provisioning cannot be requested
+    from a diagram that invents a public ALB and puts SaaS products in the VPC.
+
+scope:
+  code: SC1
+  business_scope: "WS-3 Architecture and Infrastructure Baseline"
+  serves: ["SUG-20260825-arb", "ADR-016", "R0-LLD", "ARB-ARCHITECTURE-DOSSIER"]
+  failure_without_it: >
+    ARB and S09 packs show a public ALB in front of API Gateway and place Cloudflare
+    and F5 inside AWS / the VPC. The existing bank application (v1.4, 9-July-2026)
+    treats Cloudflare and F5-XC as external SaaS; the insurance platform's AWS entry
+    is API Gateway, then the internal ALB. Shipping the wrong hop is an incorrect
+    landing-zone request.
+  minimal: true
+  authority: "Human Architecture owner correction + existing AU Bank estate diagrams"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S08/S09 Architecture Review"
+  binds_when: "ARB presentation and S09 Terraform IaC provisioning"
+  evidence_tier: E2
+  confidence: C5
+  evidence:
+    - "Existing AU Bank application architecture v1.4 (9-July-2026) — Cloudflare and F5-XC as external SaaS; Public ALB is the current app's AWS entry, not the insurance platform's"
+    - "Central Network Account Architecture V1 — EDGE VPC FortiGate NGFW, TGW, Direct Connect; no F5 appliance in the spoke VPC"
+    - "Human Architecture owner: remove External ALB in front of API Gateway; Cloudflare and F5 are SaaS, not AWS, not in our VPC"
+
+action: ADMIT
+action_rationale: >
+  Correction of in-scope, on-stage architecture artefacts that are currently wrong.
+  Not a new perimeter product. ADR-018 drafts the amended hop; human T4 on ADR-016
+  / ADR-018 remains outstanding. Deepali jointly owns the security outcome (A3).
+
+classification:
+  type: ARCH
+  risk_tier: T2
+  also: [DOC]
+
+priority:
+  score_now: 16
+  priority_now: P1
+  priority_at_target: P1
+
+breakdown:
+  stories:
+    - "Amend ADR-016 ingress hop; draft ADR-018"
+    - "Update authoritative sources (03-solution-architecture-r0, 04-security-architecture, R0-HLD, R0-LLD, ARB dossier)"
+    - "Redraw generated platform views and hand-authored HLD/reference edge labels"
 ```
 
 ### SUG-20260825-arb · Internal Architect Review Alignment (Cloudflare, F5, External ALB, GitLab, EBS/CBS, Terraform, CloudTrail/CloudWatch)

@@ -35,7 +35,7 @@ The AU Bank Insurance Distribution Platform (National Insurance Platform - NIP) 
 
 ### 3. Key Architectural Tenets Defended at ARB
 1. **Capability before Service, Ownership before Deployment:** Every service owns one bounded context write-model. No cross-service database access.
-2. **Enterprise Bank Perimeter Ingress:** Edge access traverses **Cloudflare (Enterprise CDN & DDoS)** → **F5 BIG-IP / WAF (Bank Standard)** → **External ALB** → **Amazon API Gateway** → **Internal ALB**.
+2. **Enterprise Bank Perimeter Ingress:** Edge access traverses **Cloudflare Enterprise (SaaS, not AWS, not in any VPC)** → **F5 Distributed Cloud / F5-XC (SaaS WAF, not AWS, not in any VPC)** → **Amazon API Gateway** → **Internal ALB**. **No public / External ALB** (`ADR-018`).
 3. **Centralized Inspection & Egress:** Outbound traffic traverses a dedicated Inspection & Egress VPC (AWS Network Firewall + NAT EIPs allowlisted by insurers).
 4. **Hard Regulatory Controls Enforced in Services, Not UI:** Suitability (**C1**), Consent (**C2**), Customer-Device Payment Isolation (**C4**), and Audit-before-Sold (**C7/C8**) cannot be bypassed by any API client.
 5. **Replaceable Provider Boundary:** Domain services communicate only in bank-canonical contracts through an Integration Hub. 1SilverBullet (1SB) or direct insurers are pluggable adapters.
@@ -51,20 +51,18 @@ The AU Bank Insurance Distribution Platform (National Insurance Platform - NIP) 
 
 ```
 +-----------------------------------------------------------------------------------------------------------------------------------+
-|                                                 BANK PERIMETER & PUBLIC AWS EDGE (ap-south-1)                                     |
+|  BANK ENTERPRISE SaaS — NOT AWS, NOT IN ANY VPC                                                                                   |
 |  [RM / Partner Device]                                                                                                            |
 |         |                                                                                                                         |
 |         v                                                                                                                         |
-|  CLOUDFLARE (Enterprise CDN / Edge DDoS / DNS / TLS 1.3 - Bank Standard)                                                          |
+|  CLOUDFLARE ENTERPRISE (CDN / Edge DDoS / DNS / TLS 1.3) — SaaS                                                                   |
 |         |                                                                                                                         |
 |         v                                                                                                                         |
-|  F5 BIG-IP / WAF (Bank Enterprise L7 Security Policy & Application Firewall)                                                      |
-|         |                                                                                                                         |
-|         v                                                                                                                         |
-|  EXTERNAL ALB (Edge Ingress Load Balancer)                                                                                        |
-|         |                                                                                                                         |
-|         v                                                                                                                         |
-|  AMAZON API GATEWAY (REST Throttling / Request Validation / Token Inspection / VPC Link)                                          |
+|  F5 DISTRIBUTED CLOUD / F5-XC (Bank Enterprise L7 WAF) — SaaS                                                                     |
++-------------------------------------------------------------------+---------------------------------------------------------------+
+|  AWS MANAGED EDGE (ap-south-1) — not in the workload VPC          |                                                               |
+|  AMAZON API GATEWAY (REST Throttling / Request Validation /       |  first AWS hop · NO public / External ALB                     |
+|                      Token Inspection / VPC Link)                 |                                                               |
 +-------------------------------------------------------------------+---------------------------------------------------------------+
                                                                     | VPC Link
                                                                     v
@@ -126,8 +124,8 @@ For each tier and component in the architecture, this section articulates:
 
 ### 1. Perimeter, Edge Ingress & Network Security
 
-#### 1.1 Cloudflare (Enterprise Edge CDN & DDoS Protection)
-- **What it is & What it does:** Cloudflare Enterprise CDN and Edge Security layer terminating client TLS 1.3 traffic, providing global edge DDoS mitigation, DNS resolution, and edge caching for static Flutter web bundles.
+#### 1.1 Cloudflare Enterprise (SaaS — not AWS, not in any VPC)
+- **What it is & What it does:** Cloudflare Enterprise CDN and Edge Security layer terminating client TLS 1.3 traffic, providing global edge DDoS mitigation, DNS resolution, and edge caching for static Flutter web bundles. **Drawn outside the AWS Cloud box.** The existing AU Bank application architecture (v1.4) already uses this hop.
 - **Why Required:** Aligns directly with AU Bank's existing enterprise perimeter contract. Shields AWS origin infrastructure from direct internet exposure.
 - **Alternatives Considered:**
   - *AWS CloudFront:* Fully functional AWS native CDN, but adopting Cloudflare leverages AU Bank's existing enterprise licensing, global security policies, and standard edge operations.
@@ -135,19 +133,18 @@ For each tier and component in the architecture, this section articulates:
 - **Why Best Suited:** Bank standard; provides multi-terabit volumetric DDoS mitigation, bot management, and Indian PoP traffic acceleration.
 - **Trade-offs & Mitigations:** Dynamic API responses must never be cached at Cloudflare (`Cache-Control: no-store` strictly returned on all API endpoints).
 
-#### 1.2 F5 BIG-IP / Advanced WAF
-- **What it is & What it does:** Bank enterprise Layer 7 Web Application Firewall inspecting all HTTP/S traffic for OWASP Top 10 exploits, protocol anomalies, credential stuffing, and application-layer DDoS.
+#### 1.2 F5 Distributed Cloud / F5-XC (SaaS WAF — not AWS, not in any VPC)
+- **What it is & What it does:** Bank enterprise Layer 7 Web Application Firewall inspecting all HTTP/S traffic for OWASP Top 10 exploits, protocol anomalies, credential stuffing, and application-layer DDoS. **This is F5-XC (Distributed Cloud), the same SaaS the existing banking application already uses.** It is not an F5 BIG-IP appliance we place in AWS or in a platform VPC.
 - **Why Required:** Enforces AU Bank's central InfoSec security policies and compliance inspection rules across all inbound banking channels.
 - **Alternatives Considered:**
-  - *AWS WAF:* Native and lightweight, but does not offer the deep payload inspection, custom bank F5 iRules, and unified policy management mandated by the bank's central security team.
-- **Why Best Suited:** Enterprise security standard of AU Bank; provides consistent compliance reporting, fine-grained L7 attack signature detection, and seamless InfoSec integration.
+  - *AWS WAF:* Native and lightweight, but does not offer the deep payload inspection and unified policy management mandated by the bank's central security team.
+  - *F5 BIG-IP appliance in a VPC:* Contradicts the existing estate. F5 on this network is SaaS; east-west / egress inspection is the central EDGE VPC (FortiGate) plus `ADR-010` Network Firewall (`ASM-012`).
+- **Why Best Suited:** Matches the live bank north-south path; consistent InfoSec policy without inventing an in-VPC appliance.
 
-#### 1.3 External Application Load Balancer (External ALB)
-- **What it is & What it does:** Public-facing AWS Application Load Balancer positioned behind Cloudflare and F5, serving as the ingress termination point before routing to Amazon API Gateway.
-- **Why Required:** Provides a clean AWS entry point with managed SSL certificates, health checks, and cross-AZ traffic distribution.
-- **Alternatives Considered:**
-  - *Direct Cloudflare to API Gateway routing:* Bypasses internal AWS perimeter routing and limits custom target group health checking.
-- **Why Best Suited:** High-throughput, resilient AWS edge ingress that terminates incoming traffic from F5/Cloudflare and forwards it securely via private VPC links.
+#### 1.3 External / public Application Load Balancer — WITHDRAWN
+- **What it was:** A public-facing AWS ALB drawn in front of API Gateway in the 2026-08-25 ARB pack (`SUG-20260825-arb`).
+- **Why withdrawn (`ADR-018`):** The hop was an assumption. The existing banking application's Public ALB is *that* application's AWS entry. This platform's AWS entry is Amazon API Gateway. A public ALB in front of API Gateway adds a PCI/PII surface and an S09 resource the Architecture owner has now removed.
+- **Do not provision.** The only ALB is the Internal ALB behind the API Gateway VPC Link.
 
 #### 1.4 Amazon API Gateway (Proxy 1 of 2)
 - **What it is & What it does:** Managed REST API Gateway enforcing request parameter validation, client throttling, API keys, and routing requests via private VPC Link to the internal ALB.
@@ -452,9 +449,9 @@ The platform enforces the following hard invariants across all codebases and inf
 
 ## ARB Presentation Defense Script & Anticipated Q&A
 
-### Question 1: "Why use Cloudflare and F5 BIG-IP instead of standard AWS edge services?"
+### Question 1: "Why use Cloudflare and F5-XC instead of standard AWS edge services — and why is there no public ALB?"
 **Defense Answer:**
-> "Adopting **Cloudflare Enterprise** and **F5 BIG-IP** aligns our platform directly with AU Bank's existing cybersecurity framework and enterprise tooling. Cloudflare provides carrier-grade global DDoS mitigation and Indian edge acceleration, while F5 BIG-IP enforces central InfoSec inspection rules and compliance policies. This ensures that the insurance platform conforms to the bank's perimeter standard rather than introducing a siloed security stack."
+> "We reuse the **existing AU Bank north-south perimeter**, not a new AWS edge stack. **Cloudflare Enterprise** and **F5 Distributed Cloud (F5-XC)** are bank-enterprise **SaaS** — they sit outside AWS and outside every VPC, exactly as the current banking application already does. Traffic then enters AWS at **Amazon API Gateway**; there is **no public ALB** in front of it. The current banking app's Public ALB is that application's AWS entry. Ours is API Gateway, then a VPC Link to the Internal ALB. Drawing Cloudflare or F5 inside AWS, or putting an F5 BIG-IP in our VPC, would invent a hop the estate does not have."
 
 ### Question 2: "How does the platform integrate with Core Banking (CBS)?"
 **Defense Answer:**

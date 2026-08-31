@@ -291,7 +291,7 @@ disabled, and then it protects nothing.
 | M2.5 branch triage | **COMPLETE** |
 | M2.6 rollback anchor | **Local: complete and verified. Remote: BLOCKED** — GitHub refuses tag pushes on this credential |
 | M2.7 split rehearsal | **COMPLETE — 18/18** |
-| M2.8 verify split builds | **Backend PASS** — 503 tests, 0 failures, 53 tasks, all 10 modules. **Flutter `BLOCKED_ENVIRONMENT`, not passed** (§7) |
+| M2.8 verify split builds | **Monorepo PASS** (503/0). **Split clone FAIL** — 4 failures, `C-ENG-5` unsatisfied, `IMP-16` / `RISK-028`. See [`M2-8-C-ENG-5-split-build.md`](./M2-8-C-ENG-5-split-build.md). **Flutter `BLOCKED_ENVIRONMENT`** |
 
 **M2 cannot close yet.** Three findings are dispositioned and closed. Two await a disposition, and
 the rollback anchor is not on the remote. Neither is a reason to rush: `C-SEC-1` gates the first push
@@ -316,8 +316,11 @@ to the bank estate, and that push is phases away.
 This corroborates Amit's `ENG-F01` from the other direction: the backend builds and tests green as a
 unit, and the split rehearsal (§5) showed the frontend carries no Gradle coupling to sever.
 
-**Not yet done:** building from the *split* clone rather than the monorepo. `C-ENG-5` requires
-`./gradlew test` from a fresh checkout of the split `backend`, and that is a separate run.
+**`C-ENG-5` has since been executed and it FAILS.** A fresh clone of the split `backend` returns 503
+tests with **4 failures** — `CatalogueParityTest` reads two ratified documents the split moves to
+`platform-governance`. The monorepo pass above could not have detected it, and a cached split build
+falsely passed. Full evidence: [`M2-8-C-ENG-5-split-build.md`](./M2-8-C-ENG-5-split-build.md).
+`IMP-16` · `RISK-028`.
 
 ### 7.2 Flutter — `BLOCKED_ENVIRONMENT`
 

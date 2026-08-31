@@ -226,6 +226,32 @@ bootstrap half blocks M3.3. `RISK-027`.
 
 ---
 
+### IMP-16 · The split breaks the `ADR-017` catalogue-parity control — `O1`
+
+**Found by executing `C-ENG-5` on 2026-08-29**, not by inspection.
+
+`CatalogueParityTest` in `libs/bank-common-error` reads
+`docs/journey-execution/04-ERROR-AND-DEGRADED-STATE-CATALOGUE.md` and `08-SUPPORT-RUNBOOK.md`. The
+approved split sends those to `platform-governance` and the test to `backend`. **Four tests fail on
+a fresh clone of the split backend** — 503 tests, 4 failures.
+
+They are the machine check that makes `ADR-017`'s error contract enforceable; the ADR's own words are
+that *"the catalogue becomes executable rather than paper."* The split returns it to paper.
+
+**Three checks passed while this was true**, which is the part worth remembering: the monorepo build
+(`docs/` present — it cannot detect this by construction), the M2.7 tree-hash verification (content
+identity cannot see a runtime dependency), and a cached split build (40 tasks `FROM-CACHE` from the
+monorepo run). Only a cache-disabled execution of the split found it.
+
+`ArchitectureTest` is **not** affected — its `docs/` references are Javadoc only, so `S08-G4` and
+`C-ENG-2` stand. Checked specifically.
+
+Five options at [`m2-evidence/M2-8-C-ENG-5-split-build.md`](./m2-evidence/M2-8-C-ENG-5-split-build.md) §4,
+no recommendation attached. `RISK-028`.
+**Route:** Mahesh (boundary) + Amit (implementation) + Swapnali (evidence).
+
+---
+
 ## 3. The task list, in execution order
 
 Ownership: **SRE** = Shivanshi · **SEC** = Deepali · **ARCH** = Mahesh · **ENG** = Amit ·
@@ -549,7 +575,7 @@ secret scan — remain open.
 | M2.5 branch triage | **COMPLETE** — 56 of 81 archive-only, 25 carry unapplied work |
 | M2.6 rollback anchor | Local complete; **remote push refused** by GitHub credential scope (`RISK-025`) |
 | M2.7 split rehearsal | **COMPLETE — 18/18 checks** |
-| M2.8 build verification | **Backend PASS** — 503 tests, 0 failures. **Flutter `BLOCKED_ENVIRONMENT`, not passed** |
+| M2.8 build verification | **Monorepo PASS** (503/0). **Split clone FAIL** (503 tests, 4 failures) — `C-ENG-5` fails on `IMP-16`. **Flutter `BLOCKED_ENVIRONMENT`, not passed** |
 
 Full evidence: [`m2-evidence/M2-EVIDENCE.md`](./m2-evidence/M2-EVIDENCE.md).
 

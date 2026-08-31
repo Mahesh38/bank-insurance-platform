@@ -547,7 +547,7 @@ id_allocation:
     # ID-allocation correction only: no stage, scope or gate field is touched — those remain
     # human-owned (04 section 5).
     CR: 17        # CR-001..016 in use (016 = GitLab CE control-model gap)
-    RISK: 28      # RISK-001..027 in use (027 = bootstrap state circularity, SEC-F07)
+    RISK: 29      # RISK-001..028 in use (028 = split breaks the ADR-017 catalogue parity control)
     ASM: 23       # ASM-001..022 in use (012..022 = the eleven bank enterprise inputs)
     EPIC: 2       # EPIC-001 in use (platform error contract, SUG-20260827-err). ID-allocation only.
     SPIKE: 1

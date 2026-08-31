@@ -2,4 +2,4 @@
 # inside this wheel. No layout engine is used from it; see svgcanvas.py.
 diagrams==0.25.1
 # PNG companions for the SVGs. Optional: without it the build emits SVG only.
-cairosvg==2.7.1
+cairosvg==2.9.0

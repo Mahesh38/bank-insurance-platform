@@ -293,7 +293,7 @@ doc_routing:
       authority: ai-drafted
       capsules: [sre-operations, delivery-planning, architecture-review]
       persona: sre-operations
-      note: "GLM-001 GitHub-to-GitLab estate migration plan. AI-drafted; CR-014 T4 sign-off outstanding."
+      note: "GLM-001 GitHub-to-GitLab estate migration plan. CR-017 / ADR-020: orphan import + file-level workbench. CR-014 T4 signatures still outstanding."
 
     - match: ["docs/platform/ws3-platform/*"]
       bucket: platform
@@ -697,6 +697,8 @@ capsules:
         path: "docs/context/roles/shivanshi-sre/04-platform-infrastructure-and-cicd.md"
       - condition: "another persona's domain is materially affected"
         path: "docs/context/roles/shared/sre-cross-persona-decision-protocol.md"
+      - condition: "the question is GitLab migration, orphan import or the personal-GitHub AI workbench"
+        path: "docs/platform/gitlab-migration/WORKBENCH.md"
     output: "Operational conclusion + severity `O0`–`O3` + evidence + recovery behaviour."
     never:
       - "Change production data as an incident workaround without the applicable authority."

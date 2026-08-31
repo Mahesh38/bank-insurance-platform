@@ -25,7 +25,7 @@ authoritative (`M9.5` gates `M9.4`).
 |---|---|
 | GitLab groups and projects | Yes — `prevent_destroy` means removal is deliberate |
 | Repository content | Yes, from the anchor |
-| A pushed history rewrite | **No.** This is why `filter-repo` is barred until finding B is resolved and the anchor is on the remote |
+| A pushed history rewrite | **No.** `CR-017` does not rewrite GitLab history — it never imports it. `filter-repo` of the *source* remains barred until Finding B is resolved; the source graph is a sealed bundle (`AC-8`), not a GitLab remote |
 | Terraform state | Only from backend versioning — untested restore is a belief |
 | An archived GitHub origin | Awkward. Hence `AC-4`: read-only at cutover, restorable 14 days, archived only after the custody disposition |
 

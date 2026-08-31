@@ -3,9 +3,9 @@
 **Workstream:** WS-3 · **Stage:** S08 Engineering Foundation with S09 Platform Foundation overlapped
 **Origin:** [`SUG-20260829-glm`](../../governance/registers/SUGGESTION-REGISTER.md#sug-20260829-glm--github-to-gitlab-estate-migration)
 **Persona:** Shivanshi — SRE (Board 7 · `R10`). Cross-persona calls are named per item; none are taken here.
-**Status:** **Phase M0 CLOSED 2026-08-29 — `CR-014` approved. M3 is unblocked.** Phases M1–M10 are plan only.
-**Change requests:** [`CR-014`](../../governance/change-requests/CR-014-gitlab-estate-migration.md) **`APPROVED_WITH_CONDITIONS`** — 29 board conditions + `AC-1`…`AC-5` · [`CR-015`](../../governance/change-requests/CR-015-shared-persistence-vs-bank-baseline.md) **`APPROVED` — Option B** (`ADR-019`)
-**Decisions:** [`DEC-20260829-01`](../../governance/DEC-20260829-01-m0-migration-decisions.md) · **Board positions:** [`CR-014/verdicts/`](../../governance/change-requests/CR-014/verdicts/README.md)
+**Status:** **Phase M0 CLOSED 2026-08-29 — `CR-014` approved. `CR-017` (2026-08-31) supersedes M5.2 history preservation with an orphan import.** Phases M1–M10 are plan only.
+**Change requests:** [`CR-014`](../../governance/change-requests/CR-014-gitlab-estate-migration.md) **`APPROVED_WITH_CONDITIONS`** — 29 board conditions + `AC-1`…`AC-8` · [`CR-015`](../../governance/change-requests/CR-015-shared-persistence-vs-bank-baseline.md) **`APPROVED` — Option B** (`ADR-019`) · [`CR-017`](../../governance/change-requests/CR-017-orphan-import-and-file-workbench.md) **`APPROVED_WITH_CONDITIONS`** — orphan import + file-level workbench (`ADR-020`)
+**Decisions:** [`DEC-20260829-01`](../../governance/DEC-20260829-01-m0-migration-decisions.md) · [`DEC-20260831-01`](../../governance/DEC-20260831-01-orphan-import-and-file-workbench.md) · **Board positions:** [`CR-014/verdicts/`](../../governance/change-requests/CR-014/verdicts/README.md)
 
 > **Freshness disclosure.** `java scripts/governance/FreshnessCheck.java` exits `1` (WARNINGS):
 > `state_as_of` is 19 days old (2026-08-10), refresh due 2026-09-09. Work may be admitted; the
@@ -19,7 +19,7 @@
 
 | Fact | Value | Why it matters |
 |---|---|---|
-| Repository | `Mahesh38/bank-insurance-platform` (personal GitHub) | Single origin, single owner, no org controls |
+| Repository | Personal GitHub monorepo (login recorded only in the sealed bundle) | Single origin, single owner, no org controls |
 | Commits · tags · remote branches | **358** · **0** · **81** | No tag means **no rollback anchor exists today** |
 | Pack size | ~20.3 MiB | Small. Mirroring is minutes, not hours — size is not the risk |
 | `docs/` | ~16 MB, 441 routed files | Larger than all source combined, and **has no home in the target topology** |
@@ -32,15 +32,15 @@
 
 | Target project (spec §2.2) | Source | Nature |
 |---|---|---|
-| `product/frontend` | `apps/rm-workspace-app` | **History split** (`git filter-repo --path`) |
-| `product/backend` | `services/`, `libs/`, root Gradle, `Dockerfile`, `config/` | **History split** (complement) |
+| `product/frontend` | `apps/rm-workspace-app` | **Orphan import** (`CR-017` / `AC-6`) — tree only |
+| `product/backend` | `services/`, `libs/`, root Gradle, `Dockerfile`, `config/` | **Orphan import** — tree only |
 | `product/contracts` | — | **Greenfield seed** — no OpenAPI/AsyncAPI exists yet |
 | `delivery/infrastructure` | — | **Greenfield seed** — no `*.tf` exists |
 | `delivery/gitops` | — | **Greenfield seed** |
 | `engineering/ci-components` | 3 GH Actions workflows, ported | **Greenfield seed, translated** |
 | `governance/security-policies` | `.gitleaks.toml`, `.trivyignore` | **Greenfield seed, translated** |
 | `governance/gitlab-bootstrap` (spec §4.1) | — | **Greenfield** |
-| **`governance/platform-governance`** ← *proposed 8th/9th project* | `docs/`, `scripts/{governance,context,lifecycle}`, `AGENTS.md`, `CLAUDE.md` | **History split** — see **IMP-1** |
+| **`governance/platform-governance`** ← *proposed 8th/9th project* | `docs/`, `scripts/{governance,context,lifecycle}`, `AGENTS.md`, `CLAUDE.md` | **Orphan import** — tree only; see **IMP-1** |
 
 > The requirements document names seven projects and recommends `gitlab-bootstrap` as an eighth.
 > This plan proposes a **ninth**, `platform-governance`, for reasons set out in **IMP-1**.
@@ -118,8 +118,12 @@ the one point where "preserve history exactly" (spec §7.2) and "do not import a
 conflict, and history wins only if the scan is clean.
 **Also:** `.gitleaks.toml` carries allowlists written for a personal repository. They must be
 re-reviewed against bank rules before they are inherited, not after.
-**Sequence, non-negotiable:** rotate any exposed credential **first**, then scrub with `git filter-repo`,
-then migrate. Scrubbing before rotating leaves the live secret live and merely harder to find.
+**Sequence, non-negotiable:** rotate any exposed credential **first** (`C-SEC-2`), then import
+**HEAD as an orphan commit** (`CR-017` / `AC-6`). Do **not** push source history into GitLab, even
+after a `filter-repo` scrub — that is the mechanism `CR-014` constraint 2 used and `CR-017`
+replaced. The original graph is a sealed offline bundle (`AC-8`), not a GitLab remote.
+Scrubbing source history before rotating still leaves the live secret live; orphaning HEAD
+without rotating does the same.
 **Route:** Deepali (Security) owns the verdict; SRE executes.
 
 ### IMP-7 · Gate-evidence continuity is the largest schedule risk — `O1`
@@ -296,11 +300,11 @@ Terraform before M1.2 and M1.6 land** — provider capability and backend shape 
 |---|---|---|---|
 | M2.1 | **Blocking** full-history gitleaks scan across all 81 branches (**IMP-6**) | SRE | 2 h |
 | M2.2 | Re-review `.gitleaks.toml` allowlists against bank rules | SEC | 1 h |
-| M2.3 | If a finding is real: **rotate first**, then `git filter-repo` scrub, then re-scan | SEC + SRE | 4 h¹ |
+| M2.3 | If a finding is real: **rotate first** (`C-SEC-2`), then re-scan HEAD. Do **not** `filter-repo` push source history into GitLab (`CR-017`) | SEC + SRE | 4 h¹ |
 | M2.4 | PII / customer-data / NDA sweep of the 16 MB `docs/` tree (**IMP-12**) | SRE runs · COMP rules | 3 h |
 | M2.5 | Branch triage: allowlist to migrate; `git bundle` the rest with a restore procedure (**IMP-8**) | SRE + ENG | 2 h |
 | M2.6 | Tag `pre-gitlab-migration` on GitHub `main` — the rollback anchor | SRE | 15 m |
-| M2.7 | **Split rehearsal**: `git filter-repo` into throwaway clones ×3; verify commit counts, authorship, tree hashes | SRE | 4 h |
+| M2.7 | **Split rehearsal**: `REHEARSE=1` on `migrate-repositories.sh` — throwaway orphans ×3; verify **one commit each**, company identity, `identity-guard.py` clean, path-tree completeness. `PUSH=1` is refused. Authorship preservation is **not** a goal (`CR-017`) | SRE | 4 h |
 | M2.8 | Verify the split builds: frontend `flutter test`, backend `./gradlew test`, governance `FreshnessCheck` | SRE + ENG | 3 h |
 
 ¹ conditional on a finding. **Exit:** clean history, verified split rehearsal, rollback anchor tagged.
@@ -338,7 +342,7 @@ Terraform before M1.2 and M1.6 land** — provider capability and backend shape 
 | # | Task | Owner | AI |
 |---|---|---|---|
 | M5.1 | Announce and start the **≤48 h freeze**; named owner (**IMP-13**) | DEL | — |
-| M5.2 | Final `filter-repo` split → push `frontend`, `backend`, `platform-governance` with history, authorship, dates | SRE | 3 h |
+| M5.2 | Path-split **orphan import** of HEAD into `frontend`, `backend`, `platform-governance`. One company-authored commit each. `identity-guard.py` must pass. Seal source as an offline `git bundle` (`AC-6`, `AC-8`). **Do not** `filter-repo` push history | SRE | 3 h |
 | M5.3 | Fix `rootProject.name` and Gradle module paths in the backend split, one labelled commit (**IMP-12**) | SRE + ENG | 2 h |
 | M5.4 | Seed `contracts`: `openapi/`, `asyncapi/`, `schemas/`, `compatibility-tests/`, `codegen/` skeleton | SRE + ENG | 2 h |
 | M5.5 | Seed `infrastructure`: `terraform/environments/{dev,sit,uat,preprod,prod,dr}`, `modules/`, `policies/` | SRE | 2 h |
@@ -346,7 +350,7 @@ Terraform before M1.2 and M1.6 land** — provider capability and backend shape 
 | M5.7 | Seed `security-policies` from `.gitleaks.toml` + `.trivyignore`, re-expressed as policy-as-code | SRE + SEC | 2 h |
 | M5.8 | Seed `service.yaml` per backend service from the `AGENTS.md` table (**IMP-12**) | SRE | 2 h |
 | M5.9 | `CODEOWNERS` in all nine repos — **group-based**, sensitive paths dual-owned (spec §6.4) | SRE + ARCH | 3 h |
-| M5.10 | Verify: `main` present, history and authorship preserved, clone/push works, builds green | SRE + QA | 3 h |
+| M5.10 | Verify: `main` present, **exactly one commit**, company identity, identity-guard clean, clone/push works, builds green. History/authorship preservation is a **failure** | SRE + QA | 3 h |
 
 **Exit:** all nine repositories populated and verified. Freeze still held.
 
@@ -423,7 +427,7 @@ M0.4 (governance home)        ──► M4.3 the project must exist before it ca
 M1.2 (GitLab edition)         ──► M3.4 provider capability decides what the modules can express
 M1.6 (bootstrap state only)   ──► M3.3 backend.tf cannot be written on a guess — and IMP-15 bars
                                      pointing it at the instance the bootstrap provisions
-M2.1 (history clean)          ──► M5.2 HARD. Never push unscanned history into a bank estate
+M2.1 (source history scanned) ──► M5.2 HARD. Never push source history into a bank estate (`AC-6`)
 M1.2a (residency permissible) ──► M5.2 HARD. C-CMP-1 — can invalidate the destination, not the date
 M4   (projects exist, empty)  ──► M5   never seed into a project that does not exist
 M5   (main exists)            ──► M6.1 SPEC §7. Never protect a branch before it exists
@@ -503,13 +507,13 @@ All six items are decided and `CR-014` is approved. **M3 (bootstrap IaC) is unbl
 | # | Task | Outcome |
 |---|---|---|
 | M0.1 | Triage and register | **DONE** — `SUG-20260829-glm` · `SUG-20260829-imp` |
-| M0.2 | `CR-014` | **`APPROVED_WITH_CONDITIONS`** — 29 board conditions plus `AC-1`…`AC-5` |
+| M0.2 | `CR-014` | **`APPROVED_WITH_CONDITIONS`** — 29 board conditions plus `AC-1`…`AC-8` (`AC-6`…`AC-8` added by `CR-017` on 2026-08-31) |
 | M0.3 | Gate-evidence strategy | **`APPROVED`** (`AC-1`) — Option B. GitHub Actions kept green **for rollback continuity only**. `GATE-S08` remains `OPEN` throughout and is reported open |
 | M0.4 | Governance-tree home | **`APPROVED`, conditional** (`AC-2`, `ADR-018`) — bank Appendix C acceptance required **before M4.3**. Until it lands, **M4.3 creates eight projects, not nine**; on rejection the `product/backend/governance/` fallback applies |
 | M0.5 | `CR-015` | **`APPROVED` — Option B** (`ADR-019`): persistence ownership per bounded context, implemented **after** migration. `bank-persistence-service` migrates unchanged (`AC-5`) |
 | M0.6 | Render disposition | **`APPROVED`** (`AC-3`) — dev-preview only: no PII, no real premium or quote values, no production-like data. Retired only after EKS demonstrates equivalent deployment capability |
 
-**Twenty-nine board conditions plus five approval conditions (`AC-1`…`AC-5`)** now bind the plan.
+**Twenty-nine board conditions plus eight approval conditions (`AC-1`…`AC-8`)** now bind the plan.
 Two remain hard blocks on the first push to the bank estate and neither has a workaround: `C-SEC-1`
 (clean full-history secret scan) and `C-CMP-1` (residency confirmed permissible). **Approval
 authorised the work; it did not authorise starting it before its gates.** Full list:
@@ -533,6 +537,21 @@ authorised the work; it did not authorise starting it before its gates.** Full l
 
 The board round also produced **IMP-14** above and one correction to this plan's own M9.4, both
 recorded at [`DEC-20260829-01` §5](../../governance/DEC-20260829-01-m0-migration-decisions.md#5-two-findings-the-board-round-produced).
+
+### 6.3 `CR-017` — orphan import, 2026-08-31
+
+Board outcome relayed by `human:Mahesh`: **Option 1 + file-level workbench**. Recorded as
+[`DEC-20260831-01`](../../governance/DEC-20260831-01-orphan-import-and-file-workbench.md) /
+[`ADR-020`](../architecture-review/08-architecture-decision-log.md).
+
+| # | Change | Where |
+|---|---|---|
+| 1 | M5.2 is an **orphan first commit** per receiving project, company identity, `identity-guard.py` clean. `filter-repo` history push is a failure | M5.2 · `AC-6` |
+| 2 | Personal GitHub / Cursor continues as an AI sandbox by **file-level import only**. Git-object sync is forbidden | `WORKBENCH.md` · `AC-7` |
+| 3 | Original history is a **sealed offline bundle**, not a GitLab remote | M5.2 · `AC-8` |
+
+Finding B (`C-SEC-2`) and residency (`C-CMP-1`) still block the first push. This CR changes *what*
+is pushed, not *whether* those gates hold.
 
 ---
 

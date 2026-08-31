@@ -2,7 +2,7 @@
 
 **Intake ID:** `VIN-002`
 **Date received:** 2026-08-20
-**Provided by:** Repository owner (Mahesh38 · mh.narkar@gmail.com)
+**Provided by:** Repository owner
 **Original medium:** External design/brainstorming session, supplied to the repository as text
 **Relationship to `VIN-001`:** continuation — refines the provider-integration half of the North Star
 **Status:** **REFERENCE — non-binding.** Transcribed for grounding under

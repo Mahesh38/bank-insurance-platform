@@ -1,9 +1,10 @@
 # Day-1 projects. Baseline section 2.2, plus gitlab-bootstrap (section 4.1) and
 # platform-governance (IMP-1 / ADR-018, gated by AC-2).
 #
-# `initialize_with_readme: false` is MANDATORY on projects receiving migrated
-# history — IMP-11 #1: a generated README commit forks the history before the
-# mirror lands.
+# `initialize_with_readme: false` is MANDATORY on projects receiving the
+# orphan first commit (CR-017 / AC-6) — IMP-11 #1: a generated README commit
+# forks the tree before the import lands. `receives_migrated_history` now
+# means "receives the orphan tree import", not git-object history.
 #
 # `set_default_branch` is false for those same projects: baseline section 7
 # forbids defaulting or protecting a branch before it exists.

@@ -122,13 +122,15 @@ state converge (baseline §12).
 
 ## What is deliberately not here
 
-| Not built | Blocked on |
-|---|---|
-| `backend.tf` | `M1.6` + `SEC-F07` |
-| `branch-governance`, `environments` modules | **`CR-016`** — CE cannot enforce approvals or protected environments |
-| `memberships` module | `M1.4` — enterprise identity groups unknown |
-| Bootstrap `.gitlab-ci.yml` (M3.8) | `CR-016` — the protected-apply mechanism depends on it |
-| First `terraform plan` (M3.11) | backend + credentials |
+| Not built | Blocked on | Kind of block |
+|---|---|---|
+| `backend.tf` | `M1.6` + `SEC-F07` | Unknown backend, and `RISK-027` bars the obvious answer |
+| `memberships` module | `M1.4` / `ASM-014` | **Content** — identity group names unknown. A flag cannot substitute for data, and a guessed grant is active harm |
+| First `terraform plan` (M3.11) | backend + credentials + instance access | Environment |
+
+`branch-governance`, `environments` and the bootstrap `.gitlab-ci.yml` were deferred and
+are now **built** — `C-ARC-6` resolved the capability question they were waiting on. See
+[`modules/_deferred/README.md`](./modules/_deferred/README.md).
 
 Per **`C-ARC-6`**, no module is omitted *because CE cannot apply it*. The capability
 flags in `locals.tf` already model those controls; `output "unavailable_controls"`

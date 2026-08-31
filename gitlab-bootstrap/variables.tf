@@ -67,3 +67,21 @@ variable "default_branch" {
   type        = string
   default     = "main"
 }
+
+variable "apply_governance" {
+  description = <<-EOT
+    Whether to apply branch protection and environments.
+
+    MUST stay false through M4. Baseline section 7 and IMP-11 #2: never protect or
+    default a branch before it exists — Terraform will protect a non-existent
+    branch and then drift on every plan.
+
+    Sequence: M4 creates empty projects (false) -> M5 pushes history and main
+    exists -> M6.1 flips this to true.
+
+    The flag exists so the sequencing rule is enforced by the configuration rather
+    than remembered by a person at the moment it matters least.
+  EOT
+  type        = bool
+  default     = false
+}

@@ -8,6 +8,8 @@ locals {
   projects_all = yamldecode(file("${path.module}/config/projects.yaml")).projects
   labels       = yamldecode(file("${path.module}/config/labels.yaml")).labels
   job_tokens   = yamldecode(file("${path.module}/config/job-token-scope.yaml")).allowlists
+  branch_gov   = yamldecode(file("${path.module}/config/branch-governance.yaml"))
+  environments = yamldecode(file("${path.module}/config/environments.yaml")).environments
 
   # AC-2 gate. platform-governance is filtered out unless the bank exception is in.
   projects = {

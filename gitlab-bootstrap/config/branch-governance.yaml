@@ -1,0 +1,45 @@
+# Baseline section 6.2 (main protection) and 6.3 (risk-based approvals).
+#
+# C-ARC-6: this file expresses the APPROVED model in full, regardless of what
+# the current instance can enforce. locals.capabilities decides what is applied.
+# On CE the approval_rules below are declared and skipped, never deleted — so a
+# licence upgrade is a flag change, and the gap is reportable rather than absent.
+
+main_protection:
+  branch: main
+  # CE-available — these are real on this instance today.
+  allow_force_push: false
+  push_access_level: no one          # direct push to main denied
+  merge_access_level: maintainer     # merge only via MR
+  # Premium+ — declared, applied only when capabilities allow.
+  code_owner_approval_required: true
+
+# Baseline section 6.3. "Controls should increase with risk" — the point of the
+# matrix is that NOT every governance role approves every routine MR.
+approval_rules:
+  - name: "Owning team"
+    approvals_required: 1
+    applies_to: all
+    rationale: "Normal application code: owning service/team review plus a passing pipeline."
+
+  - name: "API / event contract"
+    approvals_required: 2
+    applies_to: [contracts]
+    rationale: "Service owner plus architecture/API governance."
+
+  - name: "Identity and security"
+    approvals_required: 2
+    applies_to: [backend]
+    paths: ["services/identity-*/**", "libs/bank-common-security/**"]
+    rationale: "Service owner plus Security (Deepali)."
+
+  - name: "Production GitOps"
+    approvals_required: 2
+    applies_to: [gitops]
+    paths: ["environments/prod/**", "environments/dr/**"]
+    rationale: "Release/SRE plus the additional approval production policy requires."
+
+  - name: "Bootstrap IaC"
+    approvals_required: 2
+    applies_to: [gitlab-bootstrap]
+    rationale: "This configuration can delete the estate. Never a single approver."

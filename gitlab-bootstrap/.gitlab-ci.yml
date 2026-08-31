@@ -1,0 +1,169 @@
+# ===========================================================================
+# gitlab-bootstrap pipeline — GLM-001 M3.8, baseline section 11.1
+#
+#   Merge request : fmt -> validate -> lint -> plan -> human plan review
+#   main          : plan -> PROTECTED MANUAL APPLY by an authorised operator
+#
+# Baseline section 11.1: "Do not permit terraform apply from arbitrary feature/MR
+# pipelines." Apply exists on `main` only, is `when: manual`, and never runs
+# automatically.
+#
+# --- COMPENSATING CONTROL, NOT AN EQUIVALENT -------------------------------
+# The baseline expects the apply to be guarded by a PROTECTED ENVIRONMENT with
+# approvers. That is Premium+ and this instance is Community Edition (CR-016).
+#
+# What is used instead: a manual job, on a protected branch, on a restricted
+# runner tag. Amit's M3.8 position, recorded verbatim: "implement the protection
+# as a manual job plus a restricted runner, and mark it as the compensating
+# control it is rather than the equivalent it is not."
+#
+# It is weaker in one specific way that must not be glossed: there is no
+# APPROVER. Anyone who can run a job on the protected branch can apply. On CE
+# that is bounded by protected-branch membership, not by an approval gate.
+# CR-016 decides whether that is acceptable. Until it does, this pipeline must
+# not be pointed at a real estate.
+# ===========================================================================
+
+spec:
+  inputs:
+    terraform_image:
+      default: "hashicorp/terraform:1.6"
+    runner_tag_plan:
+      default: "infrastructure"
+    runner_tag_apply:
+      # Restricted runner — half the compensating control. The other half is
+      # protected-branch membership.
+      default: "infrastructure-protected"
+---
+
+stages: [validate, plan, apply]
+
+variables:
+  TF_ROOT: "${CI_PROJECT_DIR}"
+  TF_IN_AUTOMATION: "true"
+  TF_INPUT: "0"
+
+default:
+  image: "$[[ inputs.terraform_image ]]"
+  before_script:
+    - cd "$TF_ROOT"
+    # GITLAB_TOKEN is a masked, protected CI/CD variable holding the DEDICATED
+    # automation account (C-SEC-5). Never a personal token, never in a file,
+    # never echoed. Do not add it to a tfvars file — validate.sh fails on those.
+    - test -n "${GITLAB_TOKEN:-}" || { echo "GITLAB_TOKEN is not set"; exit 1; }
+
+# ---------------------------------------------------------------------------
+# validate — no credentials required, so it runs on every branch
+# ---------------------------------------------------------------------------
+fmt:
+  stage: validate
+  tags: ["$[[ inputs.runner_tag_plan ]]"]
+  before_script: []
+  script:
+    - cd "$TF_ROOT"
+    - terraform fmt -check -recursive -diff
+  # A gating job. Never allow_failure — IMP-4 / C-ENG-3: a job that does not
+  # report cannot gate, and one that reports green on failure is worse.
+  allow_failure: false
+
+validate:
+  stage: validate
+  tags: ["$[[ inputs.runner_tag_plan ]]"]
+  before_script: []
+  script:
+    - cd "$TF_ROOT"
+    - terraform init -backend=false -input=false
+    - terraform validate
+  allow_failure: false
+
+guards:
+  stage: validate
+  tags: ["$[[ inputs.runner_tag_plan ]]"]
+  before_script: []
+  script:
+    - cd "$TF_ROOT"
+    - ./scripts/validate.sh
+  allow_failure: false
+
+# ---------------------------------------------------------------------------
+# plan — needs the backend and credentials
+# ---------------------------------------------------------------------------
+.plan_base:
+  stage: plan
+  tags: ["$[[ inputs.runner_tag_plan ]]"]
+  script:
+    - terraform init -input=false
+    - terraform plan -input=false -lock-timeout=120s -out=tfplan
+    - terraform show -no-color tfplan > plan.txt
+    # Baseline section 11.2 and IMP-11 #3. A plan proposing to destroy a group or
+    # project, or to create the `insurance` parent, means something is wrong with
+    # the configuration or the state — never with the guard. Fail loudly.
+    - |
+      if grep -qE 'will be destroyed|must be replaced' plan.txt; then
+        echo "PLAN PROPOSES DESTRUCTION OR REPLACEMENT — stopping."
+        echo "Baseline 11.2: a normal refactor must never delete a repository."
+        grep -E 'will be destroyed|must be replaced' plan.txt
+        exit 1
+      fi
+    - |
+      if grep -qE 'gitlab_group.*insurance.*will be created' plan.txt; then
+        echo "PLAN WOULD CREATE THE PARENT GROUP — stopping (IMP-11 #3)."
+        exit 1
+      fi
+  artifacts:
+    paths: [plan.txt, tfplan]
+    expire_in: 30 days   # C-CMP-3: retention is a decision, not a default
+    when: always
+
+plan:mr:
+  extends: .plan_base
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  allow_failure: false
+
+plan:main:
+  extends: .plan_base
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  allow_failure: false
+
+# ---------------------------------------------------------------------------
+# apply — main only, manual only, restricted runner
+# ---------------------------------------------------------------------------
+apply:
+  stage: apply
+  tags: ["$[[ inputs.runner_tag_apply ]]"]
+  needs: ["plan:main"]
+  rules:
+    # Never from an MR pipeline. Never automatically. Baseline section 11.1.
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: manual
+      allow_failure: false
+  script:
+    - terraform init -input=false
+    - terraform apply -input=false -lock-timeout=120s tfplan
+  # NOTE: on Premium+ this job would additionally carry
+  #   environment: { name: gitlab-control-plane, action: prepare }
+  # backed by a protected environment with approvers. That is unavailable on CE
+  # (CR-016) and is deliberately NOT declared here, because declaring an
+  # environment without protection would give the appearance of a gate that does
+  # not exist. An absent control is safer than a decorative one.
+
+# ---------------------------------------------------------------------------
+# drift — M10.1. Reports; never auto-applies. Baseline section 11.4.
+# ---------------------------------------------------------------------------
+drift:
+  stage: plan
+  tags: ["$[[ inputs.runner_tag_plan ]]"]
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+  script:
+    - terraform init -input=false
+    - terraform plan -input=false -detailed-exitcode -lock-timeout=120s || EXIT=$?
+    - |
+      if [ "${EXIT:-0}" = "2" ]; then
+        echo "DRIFT DETECTED — reporting, not reconciling."
+        echo "Baseline 11.4: drift is reported for review, never blindly overwritten."
+        exit 1
+      fi
+  allow_failure: false

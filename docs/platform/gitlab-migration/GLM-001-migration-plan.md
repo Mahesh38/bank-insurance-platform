@@ -595,58 +595,73 @@ the deployment evidence for finding B exists.
 
 ---
 
-## 7a. M3 — partial start executed 2026-08-29 (`R1`)
+## 7a. M3 — built out to its real blockers, 2026-08-29 (`R1`)
 
-`R1` of [`DEC-20260829-02`](../../governance/DEC-20260829-02-m3-readiness-board-pack.md) approved.
-Built at [`gitlab-bootstrap/`](../../../gitlab-bootstrap/README.md), top level so `filter-repo
---path gitlab-bootstrap/` extracts it cleanly into `governance/gitlab-bootstrap` at M5.
+At [`gitlab-bootstrap/`](../../../gitlab-bootstrap/README.md), 45 files.
 
 | Task | State |
 |---|---|
-| M3.1 skeleton | **DONE** — 36 files |
-| M3.2 provider pin | **DONE, provisional.** Untestable here; `M3.11` narrows it and commits the lock file |
-| M3.3 `backend.tf` | **DEFERRED** — `M1.6` + `SEC-F07`. `backend.tf.deferred` records why |
-| M3.4 modules | **PARTIAL** — `gitlab-group`, `gitlab-project`, `labels`, `project-variables` built. `branch-governance`, `environments`, `memberships` deferred |
-| M3.5 config YAML | **DONE** — groups, projects, labels, job-token allowlists; 14/14 cross-reference checks pass |
+| M3.1 skeleton | **DONE** |
+| M3.2 provider pin | **DONE, provisional** — untestable here; `M3.11` narrows it and commits the lock file |
+| M3.3 `backend.tf` | **BLOCKED** — `M1.6` + `SEC-F07`. `backend.tf.deferred` records why the obvious answer is wrong |
+| M3.4 modules | **7 of 8 built** — `gitlab-group`, `gitlab-project`, `labels`, `project-variables`, `job-token-scope`, **`branch-governance`**, **`environments`**. `memberships` blocked on `M1.4` |
+| M3.5 config YAML | **DONE** — 6 files; groups, projects, labels, job tokens, branch governance, environments |
 | M3.6 job-token-scope | **DONE** |
-| M3.7 `prevent_destroy` | **DONE** — on groups and projects |
-| M3.8 pipeline | **DEFERRED** — `CR-016`; the protected-apply mechanism depends on it |
-| M3.9 scripts | **DONE** — `validate`, `verify`, `migrate-repositories`, `seed-repositories` |
-| M3.10 docs | **DONE** — README (all ten §12.1 topics), operating model, rollback, DR |
-| M3.11 first plan | **DEFERRED** — needs a backend and credentials |
+| M3.7 `prevent_destroy` | **DONE** |
+| M3.8 pipeline | **DONE** — fmt → validate → guards → plan → protected manual apply, plus scheduled drift |
+| M3.9 scripts | **DONE** |
+| M3.10 docs | **DONE** |
+| M3.11 first plan | **BLOCKED** — backend, credentials, instance access |
 
-### Verification status — stated plainly
+**M3 is complete to its real blockers.** Three tasks remain and each is blocked on
+something outside this repository, not on effort.
 
-**Nothing has been executed.** No Terraform binary is installed and
-`registry.terraform.io` is unreachable through the egress proxy, so this configuration
-has never been `init`-ed, `fmt`-ed, `validate`-d or planned. What *was* checked:
+### 7a.1 A board tension, resolved rather than picked
 
-- **8 real HCL syntax errors found and fixed** — multiple attributes on one line is
-  invalid HCL2. `terraform fmt` would have caught them; a manual pass did instead.
-- Brace balance across all `.tf` files.
-- All four YAML files parse.
-- **14 cross-reference assertions pass** — every project maps to a real subgroup, the
-  three migrated-history projects carry neither README-init nor a default branch
-  (`IMP-11`), job-token targets and allowlists resolve, 24 unique labels across the
-  five expected prefixes.
+Amit deferred `branch-governance` and `environments` *"until `CR-016`"*. Mahesh recorded
+`C-ARC-6`: *no module may be omitted because CE cannot apply it.* Those are not fully
+consistent, and `C-ARC-6` governs.
 
-`scripts/validate.sh` is the first thing to run on a host with Terraform.
+It also dissolves the risk Amit was guarding: the danger was never *writing* a module for
+an absent capability, it was *applying* one. A capability flag separates the two. Both
+modules now express the approved model in full and apply only what the tier permits.
+Amit's own M3.8 position pointed the same way — build the pipeline, mark the compensating
+control as compensating.
 
-### Design decisions worth knowing
+`memberships` stays deferred because its block is **content, not capability**: identity
+group names are unknown (`M1.4`), and a flag cannot substitute for data. A guessed grant
+is active harm, unlike a missing control.
 
-- **`C-ARC-6` honoured.** The CE limitation is a set of capability flags in `locals.tf`,
-  not missing modules. `output "unavailable_controls"` reports what this instance cannot
-  enforce, so the gap is visible in code rather than absent from it.
-- **The parent group is a data source, not an import.** Stronger than `IMP-11` #3 asks:
-  a data source cannot appear under `create` or `destroy` in any plan, so the failure
-  mode is structurally impossible rather than guarded against.
-- **`AC-2` is enforced in code.** `local.projects` filters `platform-governance` out
-  unless `platform_governance_enabled` is true, so M4.3 creates eight projects by default.
-- **The token is not a variable.** A variable can be set in a `.tfvars` file and a
-  `.tfvars` file can be committed by accident; an environment variable cannot.
-  `validate.sh` fails if any `.tfvars` exists.
-- **`migrate-repositories.sh` refuses to run** until five preconditions hold, including
-  a non-shallow source (`RISK-024`) and the anchor present on the remote (`RISK-025`).
+### 7a.2 What the CE gap looks like in code
+
+`output "control_gap"` reports declared-versus-applied:
+
+| Control | Declared | Applied on CE |
+|---|---|---|
+| Approval rules (baseline §6.3) | 5 | **0** |
+| Protected environments (§9.3) | 4 of 6 | **0** |
+| Protected branches (§6.2) | 1 | **1** |
+| Pipelines-must-succeed (`S08-G2`) | 1 | **1** |
+
+The gap is a number this configuration reports, not an absence someone has to remember.
+That is `C-ARC-6` working.
+
+### 7a.3 Sequencing enforced by the configuration
+
+`var.apply_governance` defaults **false**. M4 creates empty projects; M5 pushes history so
+`main` exists; **M6.1 flips the flag**. Baseline §7 and `IMP-11` #2 — never protect a
+branch before it exists — is enforced by the code rather than remembered by a person at
+the moment it matters least.
+
+### 7a.4 Verification status
+
+**Still nothing executed.** No Terraform binary, registry unreachable. Checked instead:
+8 HCL syntax errors found and fixed earlier; braces balanced; all 6 YAML configs parse;
+14 cross-reference assertions pass; the pipeline parses as 2 YAML documents with 6 gating
+jobs at `allow_failure: false` and `apply` correctly manual-and-main-only.
+
+One YAML bug found and fixed here: `$[[ inputs.x ]]` inside a flow sequence is invalid
+YAML and needs quoting — the kind of thing a CI lint catches and a reader does not.
 
 ---
 

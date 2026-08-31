@@ -43,3 +43,22 @@ output "edition" {
   description = "Licence tier the capability flags were derived from."
   value       = var.gitlab_edition
 }
+
+output "governance_applied" {
+  description = "Whether branch protection and environments have been applied. False until M6.1."
+  value       = var.apply_governance
+}
+
+output "control_gap" {
+  description = <<-EOT
+    The C-ARC-6 report: what the approved model declares versus what this instance
+    applies. On CE the applied counts are lower by design, and that gap is the
+    thing CR-016 has to decide about — visible here rather than absent from the code.
+  EOT
+  value = var.apply_governance ? {
+    approval_rules_declared = try(values(module.branch_governance)[0].approval_rules_declared, 0)
+    approval_rules_applied  = try(values(module.branch_governance)[0].approval_rules_applied, 0)
+    environments_protected_declared = try(values(module.environments)[0].protected_declared, 0)
+    environments_protected_applied  = try(values(module.environments)[0].protected_applied, 0)
+  } : null
+}

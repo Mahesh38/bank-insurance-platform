@@ -75,3 +75,51 @@ module "job_token_scope" {
     if contains(keys(local.projects), p)
   ]
 }
+
+# --- Branch governance ------------------------------------------------------
+# M6.1 ONLY. var.apply_governance is false through M4 because baseline section 7
+# forbids protecting a branch that does not exist yet (IMP-11 #2).
+
+module "branch_governance" {
+  source   = "./modules/branch-governance"
+  for_each = var.apply_governance ? local.projects : {}
+
+  project_id = module.project[each.key].id
+
+  protection = {
+    branch                       = local.branch_gov.main_protection.branch
+    allow_force_push             = local.branch_gov.main_protection.allow_force_push
+    push_access_level            = local.branch_gov.main_protection.push_access_level
+    merge_access_level           = local.branch_gov.main_protection.merge_access_level
+    code_owner_approval_required = local.branch_gov.main_protection.code_owner_approval_required
+  }
+
+  # Rules that name this project, plus the ones that apply to all of them.
+  approval_rules = [
+    for r in local.branch_gov.approval_rules : {
+      name               = r.name
+      approvals_required = r.approvals_required
+    }
+    if r.applies_to == "all" || (can(tolist(r.applies_to)) && contains(tolist(r.applies_to), each.key))
+  ]
+
+  capabilities = {
+    merge_request_approval_rules = local.capabilities.merge_request_approval_rules
+    code_owner_approval          = local.capabilities.code_owner_approval
+  }
+}
+
+# --- Environments -----------------------------------------------------------
+# Only the projects that actually deploy. Baseline section 9.3.
+
+module "environments" {
+  source   = "./modules/environments"
+  for_each = var.apply_governance ? { for k, v in local.projects : k => v if contains(["backend", "frontend", "gitops"], k) } : {}
+
+  project_id   = module.project[each.key].id
+  environments = local.environments
+
+  capabilities = {
+    protected_environments = local.capabilities.protected_environments
+  }
+}

@@ -48,6 +48,7 @@ without a search.
 | ADR-017 | One platform error contract: every error carries code / service / layer / category plus origin; a registry seeded from journey-execution 04 decides status, wording, retryability, audit and runbook once; one incidentId per failure across every hop; safe public rendering vs full diagnostic, with the BFF (L4) as the redaction boundary; one `bank.error.count` series; additive only | Proposed (`A3_JOINT_REVIEW`) | Returning an upstream body or internal route to a caller; wording an error at a throw site instead of the registry; re-wrapping a dependency failure as `INTERNAL_ERROR`; emitting a diagnostic past L4; renaming or removing an existing `ErrorCodes` value (G9 — that is T4); a metric tag that is a message, identifier or path |
 | ADR-018 | The AIGEM governance model, registers and agent context tooling (`docs/`, `scripts/{governance,context,lifecycle}`, `AGENTS.md`, `CLAUDE.md`) live in a dedicated ninth GitLab project `governance/platform-governance`, not in `product/backend` and not split across repositories | Proposed — internal position `RECOMMENDED`, **bank Appendix C exception outstanding** | Placing the governance tree in an application repository; splitting `DOC-MAP.yaml` / `context-load.py` / `FreshnessCheck` across repositories; creating the project before the bank exception is accepted (`C-ARC-2`) |
 | ADR-019 | Persistence ownership is **per bounded context** — each owns its write model, schema, credentials, Flyway history and repository layer. R0 may use one Aurora cluster but with separate schemas and no cross-schema grants. `bank-persistence-service` is **not** a platform-wide gateway and may survive only as the Integration Operations/Evidence context; Customer, Lead, Consent, Suitability, Catalogue, Quotation, Proposal, business Payment, Policy and Journey never persist through it. Table allocation is an independently reviewed **S09** migration, after the GitLab cutover | **APPROVED** 2026-08-29 (`CR-015` Option B) · supersedes "Persistence is platform-common" | Any business context persisting through `bank-persistence-service`; any cross-schema grant or FK; any shared write model; performing the allocation inside the CR-014 migration window; a second audit database |
+| ADR-020 | GitLab is the only git source of truth. The first commit in each receiving project is an **orphan import** of the current tree under a company identity — personal-forge history, authors, trailers and GitHub merge subjects are not imported. Any personal GitHub / Cursor workbench may contribute only by **file-level one-way import**. Git-object sync is forbidden | **APPROVED** 2026-08-31 (`CR-017`) · supersedes `CR-014` constraint 2 | History-preserving `filter-repo` push; GitLab pull-mirroring from GitHub; `git fetch` between the sandbox and GitLab; a GitLab author using a personal or AI-vendor noreply identity; claiming the import was created on a company laptop |
 
 > ADR IDs are assigned by the architecture decision log. New architectural decisions arising
 > from AIGEM triage are raised there and indexed here.
@@ -86,6 +87,7 @@ Full records: [`DB-DEC-0001`](../../platform/data-architecture/DB-DEC-0001-r0-ph
 | CR-011 | 2026-08-20 | GOV | Mahesh target-state / North Star architecture doctrine: nine persona modules (`09`–`17`), the `VIN-001`/`VIN-002` references and the `hdl.svg` canvas contract | **PENDING RATIFICATION** | Prepared on repository-owner direction — Architecture and Product ratification pending. Indexed here on 2026-08-24; the file existed from 2026-08-20 without a register row |
 | CR-012 | 2026-08-24 | ARCH | R0 platform robustness: admit hybrid bank connectivity, centralised egress inspection, a managed cache tier, an event backbone (outbox retained as source of truth) and an operational search pipe into R0 — `ADR-009`…`ADR-013` | **PENDING RATIFICATION** | Raised on repository-owner direction. **Security acceptance (Deepali), Compliance (Shailja), SRE (Shivanshi), Database (Aarti) and Delivery (Kalpana) are required and outstanding**; drafts in [`CR-012/verdicts/`](../change-requests/CR-012/verdicts/README.md). Mandatory human T4 Architecture signature outstanding |
 | CR-013 | 2026-08-25 | SCOPE | Stakeholder pull: Lead language, lifecycle/archive, off-platform ingest, admin/MIS, issuance modes and PPHI mapping into R0 — `ADR-014` | **CANDIDATE** — transcribed into scope artefacts | Human T4 Architecture / Security / Compliance outstanding. Compliance conditions in [`CR-013` §5](../change-requests/CR-013-r0-lead-mis-admin-scope.md) |
+| CR-017 | 2026-08-31 | PLAN | Orphan import into GitLab (no personal-forge history) and file-level AI workbench — amends `CR-014` constraint 2; `ADR-020` | **APPROVED_WITH_CONDITIONS** — relayed by `human:Mahesh` | Seven boards, owner-relayed. Not a T4 signature artefact. `AC-6`…`AC-8`. Finding B and `C-CMP-1` still gate the first push |
 
 ### CR-001 — add Phase 4 exit criterion 4.7
 
@@ -208,8 +210,9 @@ next_check:        First GM-1 INTERVENE check falls due 2026-08-28 (two weeks fr
 **File:** [`CR-014`](../change-requests/CR-014-gitlab-estate-migration.md) · **Plan:** [`GLM-001`](../../platform/gitlab-migration/GLM-001-migration-plan.md) · **Positions:** [`CR-014/verdicts/`](../change-requests/CR-014/verdicts/README.md)
 
 Adopt the bank's *GitLab Terraform Bootstrap Requirements* v1.0: a Terraform-provisioned estate under
-`insurance/bank-insurance`, the monorepo split into `frontend` / `backend` / `platform-governance` with history
-preserved, five greenfield projects seeded, GitHub Actions re-expressed as reusable GitLab CI components, and
+`insurance/bank-insurance`, the monorepo split into `frontend` / `backend` / `platform-governance` as
+**orphan first commits** (`CR-017` / `ADR-020`; constraint 2's history preservation is superseded),
+five greenfield projects seeded, GitHub Actions re-expressed as reusable GitLab CI components, and
 GitLab OIDC + AWS STS replacing static keys. Fourteen improvements accepted by the repository owner.
 
 Required on three grounds ([14 §1](../14-CHANGE_CONTROL.md#1-what-needs-a-change-request)): four `GATE-S08` exit
@@ -220,7 +223,8 @@ Approved with the **twenty-nine board conditions** plus five approval conditions
 green for rollback continuity only, `GATE-S08` stays `OPEN` throughout · `AC-2` the ninth project is conditional on the
 bank's written Appendix C acceptance **before M4.3** · `AC-3` Render dev-preview only, no PII or production-like data ·
 `AC-4` GitHub read-only at cutover, restorable 14 days, archived only after the custody disposition is approved ·
-`AC-5` `bank-persistence-service` migrates unchanged.
+`AC-5` `bank-persistence-service` migrates unchanged · `AC-6` orphan first commits only (`CR-017`) ·
+`AC-7` file-level workbench only · `AC-8` sealed offline bundle.
 
 `C-SEC-1` (clean full-history secret scan) and `C-CMP-1` (data residency) remain **hard blocks on the first push**;
 approval authorised the work, not starting it before its gates. The `verdicts/` files remain AI-drafted board inputs,
@@ -266,6 +270,20 @@ Four options are recorded with **no recommendation attached**: licence upgrade (
 migration, not a licence key), compensating CI controls, a scoped exception with an expiry, or re-siting the estate.
 Deepali declined to pre-approve this downgrade before she could see it; she can see it now, and the decision is hers and
 Architecture's. `CR-014` stands approved and M2 is unaffected.
+
+### CR-017 — Orphan import into GitLab; file-level AI workbench
+
+**Date:** 2026-08-31 · **Type:** PLAN · **Decision:** **`APPROVED_WITH_CONDITIONS` 2026-08-31** · **ADR:** `ADR-020`
+**File:** [`CR-017`](../change-requests/CR-017-orphan-import-and-file-workbench.md) · **Decision record:** [`DEC-20260831-01`](../DEC-20260831-01-orphan-import-and-file-workbench.md)
+
+Amends approved `CR-014` constraint 2. GitLab receives an **orphan first commit** per receiving
+project under a company git identity. Personal-forge history, Gmail authors, Anthropic/Cursor
+trailers and GitHub merge subjects are not imported. Personal GitHub / Cursor may continue as an
+AI sandbox by **file-level one-way import only** (`AC-7`); git-object sync remains forbidden (the
+`CR-014` rejection of dual-write stands). Original history is a sealed offline bundle (`AC-8`).
+
+Board acceptance relayed by `human:Mahesh` 2026-08-31. Not a T4 signature artefact. Finding B
+(`C-SEC-2`) and residency (`C-CMP-1`) still block the first push.
 
 ## 4. Stage transitions
 

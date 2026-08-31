@@ -89,6 +89,8 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | SUG-20260829-imp | 2026-08-29 | human:Mahesh | Accept all thirteen SRE improvements raised against the approved GitLab baseline in GLM-001 §2, activate the SRE, Security, Architecture, Engineering, QA, Compliance and Delivery personas, and start Phase M0 taking the required decisions by cross-persona discussion | SF1 | SC0 | MUST | GOV | P1 / P1 | ADMIT-BYPASS | [CR-014](../change-requests/CR-014-gitlab-estate-migration.md) · [CR-015](../change-requests/CR-015-shared-persistence-vs-bank-baseline.md) · [DEC-20260829-01](../DEC-20260829-01-m0-migration-decisions.md) · `ADR-018` · [detail](#sug-20260829-imp--acceptance-of-the-thirteen-glm-001-improvements) |
 
+| SUG-20260831-ids | 2026-08-31 | human:Mahesh | GitLab import must not carry personal GitHub / Gmail / Anthropic / Cursor identity; use an orphan first commit and keep the personal repo as a file-level AI workbench only | SF1 | SC0 | MUST | SEC | P1 / P1 | ADMIT-BYPASS | [CR-017](../change-requests/CR-017-orphan-import-and-file-workbench.md) · [DEC-20260831-01](../DEC-20260831-01-orphan-import-and-file-workbench.md) · `ADR-020` · [detail](#sug-20260831-ids--orphan-import-and-file-level-workbench) |
+
 <!--
 Row format:
 | SUG-0001 | 2026-08-08 | agent:claude | Redis-backed idempotency store | SF2 | SC0 | SHOULD | NFR | P4 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md#sug-0001) |
@@ -3673,6 +3675,87 @@ outcome:
   closed_reason: null
 
 resumed: "EPIC-001 — no prior work item was in flight; this session opened with this input."
+```
+
+---
+
+### SUG-20260831-ids — orphan import and file-level workbench
+
+```yaml
+# schema: triage-record
+id: SUG-20260831-ids
+raised_at: "2026-08-31"
+raised_by: "human:Mahesh"
+source: "PR 82 review follow-up — As board member we all Accept Option 1 + file-level workbench"
+input: >
+  When we migrate from GitHub to GitLab we should not keep any reference of the GitHub account
+  or commits. Everything was built on a personal GitHub account. Migration should look like we
+  created everything on our local machine and we are putting it to GitLab. Keep a way to work on
+  the personal account (company GitLab will not allow external AI MCPs) and sync to GitLab.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-TERM-SALE"
+  state_as_of: "2026-08-10"
+  state_provisional: false
+  active_work_item: GLM-001
+
+stage_fit:
+  code: SF1
+  rationale: >
+    Amends the in-flight CR-014 migration mechanism before the first push. On-stage for S09
+    overlapped work. Not a new product feature.
+
+scope:
+  code: SC0
+  business_scope: "In scope under ADR-016 / CR-014 — changes how the estate is populated, not what it contains"
+  serves: ["CR-014 M5.2"]
+  failure_without_it: "First GitLab push copies personal Gmail, GitHub merges and AI-vendor authorship into the bank SoR"
+  minimal: true
+  authority: "owner-relayed board acceptance 2026-08-31"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  evidence_tier: E2
+  evidence:
+    - "Measured identity leak on 2026-08-31: 233 personal Gmail authors, 101 AI-vendor session trailers, 67 personal-login merge subjects"
+    - "CR-014 constraint 2 would have imported that graph"
+    - "CR-014 already rejected git dual-write"
+  confidence: C5
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT-BYPASS
+action_rationale: >
+  Human override under 09 section 8: owner relayed unanimous board acceptance of Option 1 +
+  file-level workbench without a second written seven-board verdict pack. Bypass risk: T4
+  signature artefacts were not independently witnessed. Secrets/PII/provenance non-negotiables
+  are not waived — Finding B and C-CMP-1 still gate the first push.
+bypass_authorised_by: "human:Mahesh — repository owner, 2026-08-31"
+
+classification:
+  type: SEC
+  risk_tier: T4
+
+priority:
+  priority_now: P1
+  priority_at_target: P1
+  hard_p1: "Incorrect domain of trust — personal-forge identity on a bank SoR, plus standing secret Finding B"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: CR-017
+  plan_id: GLM-001
+  status: ADMIT-BYPASS
+  closed_reason: null
+
+resumed: "GLM-001 M5.2 rewrite — orphan import + identity-guard"
 ```
 
 ---

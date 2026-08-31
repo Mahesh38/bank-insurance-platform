@@ -546,8 +546,11 @@ id_allocation:
     # Advanced 2026-08-29 by the GitLab estate migration Phase M0 round (CR-014 / CR-015).
     # ID-allocation correction only: no stage, scope or gate field is touched — those remain
     # human-owned (04 section 5).
-    CR: 17        # CR-001..016 in use (016 = GitLab CE control-model gap)
-    RISK: 29      # RISK-001..028 in use (028 = split breaks the ADR-017 catalogue parity control)
+    # Advanced 2026-08-31 by CR-017 (orphan import + file-level workbench).
+    # ID-allocation correction only: no stage, scope or gate field is touched — those remain
+    # human-owned (04 section 5).
+    CR: 18        # CR-001..017 in use (017 = orphan import + file-level workbench)
+    RISK: 31      # RISK-001..030 in use (029 = sealed bundle custody; 030 = workbench git-sync temptation)
     ASM: 23       # ASM-001..022 in use (012..022 = the eleven bank enterprise inputs)
     EPIC: 2       # EPIC-001 in use (platform error contract, SUG-20260827-err). ID-allocation only.
     SPIKE: 1
@@ -562,4 +565,4 @@ id_allocation:
     # ADR-017 was added by the 2026-08-27 platform error contract round (SUG-20260827-err), and
     # EPIC-001 by the same round. ID-allocation correction only. No stage, scope or gate field is
     # touched by it; those remain human-owned (04 section 5).
-    ADR: 20        # ADR-001..019 in use (016 = ARB enterprise baseline; 017 = platform error contract; 018 = governance/platform-governance project; 019 = per-context persistence ownership). ID-allocation only.
+    ADR: 21        # ADR-001..020 in use (020 = GitLab orphan import + file-level workbench, CR-017). ID-allocation only.

@@ -1581,3 +1581,50 @@ implemented after the CR-014 migration. Joint Mahesh (Board 1, boundaries) and A
 integrity and recovery) jurisdiction; Aarti's review of the S09 allocation migration is preserved
 and outstanding. Physical design reference:
 [`data-architecture/README.md`](../data-architecture/README.md) · [`DB-DEC-0001`](../data-architecture/DB-DEC-0001-r0-physical-model.md).
+
+---
+
+## ADR-020 — GitLab receives an orphan import; personal-forge history stays off the bank SoR
+
+```yaml
+id: ADR-020
+status: APPROVED
+supersedes: >
+  CR-014 constraint 2 — "preserving history, authorship and dates via git filter-repo".
+  GLM-001 M5.2 / M5.10 as written 2026-08-29.
+problem: >
+  The approved GitLab migration would have copied the personal GitHub commit graph into the
+  bank estate: personal Gmail authors, GitHub merge commits from the personal login, AI-vendor
+  Co-author trailers, AI session URLs and Cursor Agent identity. Company GitLab
+  will also refuse external AI MCPs, so a personal GitHub workbench is still needed — but
+  git-level sync after an identity rewrite is impossible (SHAs change) and was already
+  rejected as dual-write by CR-014.
+context_stage: "WS-3 at S08 with S09 overlapped; raised as SUG-20260831-ids on review of PR 82"
+decision: >
+  1. Each GitLab project that would have received migrated history receives one orphan
+     commit of the current path-split tree, authored under a company git identity.
+  2. identity-guard.py must exit 0 on the tree and on that commit before any push (AC-6).
+  3. Personal GitHub / Cursor may remain an AI sandbox. Contribution to GitLab is a
+     file-level one-way tree import, never git fetch / pull-mirror / push --all (AC-7).
+  4. The original history is a sealed offline bundle, not a GitLab remote (AC-8).
+  5. The GitLab first-commit message is an initial import, not a claim the work was
+     created on a company laptop.
+constrains: >
+  History-preserving filter-repo push; GitLab pull-mirroring from GitHub; git fetch
+  between the sandbox and GitLab; a GitLab author/committer of a personal or AI-vendor
+  noreply identity; AI co-author or session trailers on GitLab; a false-origin story.
+what_does_not_change: >
+  CR-014 AC-1..AC-5 stand. Finding B still requires rotation (C-SEC-2) before import.
+  C-CMP-1 residency still gates the first push. GitLab remains the declared SoR at cutover
+  (AC-4). Render remains dev-preview only (AC-3).
+risk_tier: T4
+authority_class: A3_JOINT_REVIEW
+origin: "SUG-20260831-ids · CR-017 · board decision relayed by human:Mahesh 2026-08-31"
+```
+
+**Board decision relayed by human:Mahesh, 2026-08-31** — Option 1 (orphan import) plus file-level
+workbench. Not a T4 signature artefact. Joint Mahesh (Board 1), Deepali (Board 4, identity and
+secrets), Shailja (Board 6, provenance wording) and Shivanshi (Board 7, mechanism).
+Plan: [`GLM-001` §6.3](../gitlab-migration/GLM-001-migration-plan.md) ·
+SOP: [`WORKBENCH.md`](../gitlab-migration/WORKBENCH.md) ·
+denylist: [`IDENTITY-SANITIZATION.md`](../gitlab-migration/IDENTITY-SANITIZATION.md).

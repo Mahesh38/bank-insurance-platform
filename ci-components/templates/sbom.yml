@@ -1,0 +1,45 @@
+# SBOM (CycloneDX). GLM-001 M7.5. Ported from security-scanning.yml `sbom`.
+#
+# The Java-coverage assertion is carried over deliberately and verbatim in
+# intent: an SBOM with zero Maven components does not cover this estate, and an
+# SBOM that covers nothing must never be treated as evidence for S08-G5. A file
+# that exists is not the same as a file that means something.
+spec:
+  inputs:
+    stage:
+      default: package
+    image:
+      default: "eclipse-temurin:21-jdk"
+    runner_tag:
+      default: "java"
+    output:
+      default: "sbom-cyclonedx.json"
+---
+
+"sbom":
+  stage: $[[ inputs.stage ]]
+  image: $[[ inputs.image ]]
+  tags: ["$[[ inputs.runner_tag ]]"]
+  variables:
+    GRADLE_USER_HOME: "$CI_PROJECT_DIR/.gradle"
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq jq
+  script:
+    - chmod +x gradlew
+    - ./gradlew --no-daemon assemble cyclonedxBom
+    - cp build/reports/*.json "$[[ inputs.output ]]" 2>/dev/null || cp build/reports/bom.json "$[[ inputs.output ]]"
+    - |
+      set -euo pipefail
+      total=$(jq '.components | length' "$[[ inputs.output ]]")
+      maven=$(jq '[.components[]? | select((.purl // "") | startswith("pkg:maven/"))] | length' "$[[ inputs.output ]]")
+      echo "SBOM components: ${total} (Maven/Java: ${maven})"
+      if [ "${maven}" -eq 0 ]; then
+        echo "FAIL: SBOM contains ZERO Maven components."
+        echo "The Java estate is NOT covered, so this must not be treated as evidence for S08-G5."
+        exit 1
+      fi
+  artifacts:
+    when: always
+    paths: ["$[[ inputs.output ]]"]
+    expire_in: 365 days     # C-CMP-3 — SBOMs are longer-lived evidence
+  allow_failure: false

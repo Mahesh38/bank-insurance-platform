@@ -1,0 +1,37 @@
+# Dependency / SCA scan. GLM-001 M7.4. Ported from security-scanning.yml `sca`.
+#
+# Thresholds carried over EXACTLY: CRITICAL and HIGH fail, --ignore-unfixed,
+# .trivyignore honoured. Changing any of these is a Security decision, not a
+# porting decision.
+spec:
+  inputs:
+    stage:
+      default: validate
+    trivy_version:
+      default: "0.56.2"
+    runner_tag:
+      default: "security"
+    severity:
+      default: "CRITICAL,HIGH"
+    ignorefile:
+      default: ".trivyignore"
+---
+
+"dependency-scan":
+  stage: $[[ inputs.stage ]]
+  image: "aquasec/trivy:$[[ inputs.trivy_version ]]"
+  tags: ["$[[ inputs.runner_tag ]]"]
+  script:
+    # Blocking scan — same severity gate as the GitHub workflow.
+    - trivy fs . --scanners vuln --severity "$[[ inputs.severity ]]" --ignore-unfixed
+        --format table --exit-code 1 --ignorefile "$[[ inputs.ignorefile ]]"
+  after_script:
+    # Full-severity report for the risk register. Non-blocking by design: it
+    # informs triage, it does not gate.
+    - trivy fs . --scanners vuln --format json --output sca-full.json
+        --ignorefile "$[[ inputs.ignorefile ]]" || true
+  artifacts:
+    when: always
+    paths: [sca-full.json]
+    expire_in: 90 days
+  allow_failure: false

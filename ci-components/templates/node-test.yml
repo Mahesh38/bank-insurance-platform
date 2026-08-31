@@ -1,0 +1,27 @@
+# Node test. GLM-001 M7.6.
+spec:
+  inputs:
+    stage:
+      default: test
+    image:
+      default: "node:22-alpine"
+    runner_tag:
+      default: "node"
+    working_dir:
+      default: "."
+---
+
+"node-test":
+  stage: $[[ inputs.stage ]]
+  image: $[[ inputs.image ]]
+  tags: ["$[[ inputs.runner_tag ]]"]
+  script:
+    - cd "$[[ inputs.working_dir ]]"
+    - npm ci
+    - npm test
+  artifacts:
+    when: always
+    reports:
+      junit: "$[[ inputs.working_dir ]]/junit.xml"
+    expire_in: 14 days
+  allow_failure: false

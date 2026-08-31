@@ -19,7 +19,7 @@ schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
 document_count: 545
-total_bytes: 15334759
+total_bytes: 15337973
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -4269,7 +4269,7 @@ documents:
     persona: sre-operations
     title: "GLM-001 — GitHub → GitLab estate migration plan"
     answers: "Origin: SUG-20260829-glm"
-    bytes: 45886
+    bytes: 49100
   - path: docs/platform/gitlab-migration/README.md
     bucket: platform
     authority: ai-drafted

@@ -1,0 +1,45 @@
+# Terraform plan. GLM-001 M7.7.
+#
+# Carries the same two destructive-change guards as the bootstrap pipeline,
+# because they are the ones that matter and they are easy to forget when a
+# second IaC repository (delivery/infrastructure) starts using this component.
+spec:
+  inputs:
+    stage:
+      default: plan
+    image:
+      default: "hashicorp/terraform:1.6"
+    runner_tag:
+      default: "infrastructure"
+    root_dir:
+      default: "."
+    plan_file:
+      default: "tfplan"
+---
+
+"terraform-plan":
+  stage: $[[ inputs.stage ]]
+  image: $[[ inputs.image ]]
+  tags: ["$[[ inputs.runner_tag ]]"]
+  script:
+    - cd "$[[ inputs.root_dir ]]"
+    - terraform init -input=false
+    - terraform fmt -check -recursive
+    - terraform validate
+    - terraform plan -input=false -lock-timeout=120s -out="$[[ inputs.plan_file ]]"
+    - terraform show -no-color "$[[ inputs.plan_file ]]" > plan.txt
+    # Baseline section 11.2 — a normal refactor must never delete a repository
+    # or an environment.
+    - |
+      set -euo pipefail
+      if grep -qE 'will be destroyed|must be replaced' plan.txt; then
+        echo "PLAN PROPOSES DESTRUCTION OR REPLACEMENT — stopping."
+        grep -E 'will be destroyed|must be replaced' plan.txt
+        exit 1
+      fi
+      echo "OK: no destroy or replace proposed"
+  artifacts:
+    when: always
+    paths: ["$[[ inputs.root_dir ]]/plan.txt", "$[[ inputs.root_dir ]]/$[[ inputs.plan_file ]]"]
+    expire_in: 30 days
+  allow_failure: false

@@ -665,6 +665,61 @@ YAML and needs quoting — the kind of thing a CI lint catches and a reader does
 
 ---
 
+## 7b. M7 — reusable CI components built 2026-08-29
+
+At [`ci-components/`](../../../ci-components/README.md), 18 files, 15 components. Top level
+so `filter-repo --path ci-components/` extracts it into `engineering/ci-components` at M5.
+
+| Task | State |
+|---|---|
+| M7.1 `java-build`, `java-test` | **DONE** — with the three `C-ENG-2` assertions |
+| M7.2 `secret-detection` | **DONE** — tree blocking, history scheduled, plus a `RISK-024` shallow-clone guard |
+| M7.3 SAST | **DONE as a re-implementation** — Semgrep, not a port. `C-SEC-3` differential still owed |
+| M7.4 `dependency-scan` | **DONE** — Trivy, CRITICAL+HIGH, thresholds carried over exactly |
+| M7.5 `container-scan`, `sbom` | **DONE** — Java-coverage assertion preserved |
+| M7.6 `flutter`, `node`, `docker-build` | **DONE** — Kaniko, no privileged runner (§9.4) |
+| M7.7 `contract-*`, `terraform-*`, `gitops-promotion` | **DONE** |
+| M7.8 versioning, tests, docs | **DONE** — semver release job, structural test suite, consumer README |
+| M7.9 backend affected-component pipeline | **NOT BUILT** — belongs in `backend`, and needs `M1.5` runner model |
+| M7.10 governance CI port | Not started |
+| M7.11 `S08-G2` gate redesign | Partly embodied; confirmation needs `R2` check 4 |
+| M7.12 measure `S08-G9` | Needs runners |
+
+### 7b.1 Four deliberate changes in the port
+
+1. **`sast` is a re-implementation** (`IMP-3`). Semgrep, different rules, different
+   severities — the finding set will differ. `C-SEC-3`'s differential run is still owed
+   and a green job does not yet mean what a green CodeQL job meant.
+2. **The blocking decision lives in the job, not the platform** (`CR-016`). CE has no
+   scan-result policy engine, so `sast` reads its own report and exits non-zero. That is a
+   compensating control and is labelled as one.
+3. **`java-test` asserts its own mechanisms** (`C-ENG-2`). Coverage verification, ArchUnit
+   and the no-PII test each fail silently and green if dropped, so each is asserted present.
+4. **`gitops-promotion` refuses a tag** (§3.6). It takes a `sha256:` digest and rejects
+   anything else, because promoting by tag is how a rebuild reaches production while still
+   looking like a promotion.
+
+### 7b.2 The `C-ENG-3` resolution, recorded in the consumer docs
+
+M7.9's affected-component execution is **the same mechanism Amit removed from the GitHub
+workflow** — a gating job skipped by a path filter never reports, so the gate either blocks
+forever or passes vacuously. GitLab `rules:` behave identically.
+
+Resolution: gating jobs always run and always report; the **matrix inside them** narrows to
+the affected services. Plus `C-ENG-4`'s nightly full build, because a change in
+`libs/bank-common-*` affects consumers the diff does not name.
+
+### 7b.3 Verification
+
+`tests/validate-components.py` passes: 15 components parse as spec + body, every gating job
+carries `allow_failure: false`, every artefact sets an explicit expiry (`C-CMP-3`),
+`terraform-apply` is manual-and-default-branch-only with **no decorative environment block**,
+and `java-test` asserts all three `C-ENG-2` mechanisms.
+
+**Structure only. No component has been executed** — no GitLab instance was reachable.
+
+---
+
 ## 8. What this plan does not cover
 
 * Render → EKS runtime re-platform (**IMP-5**) — deliberately separated; S09 work with its own gate.

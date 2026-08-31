@@ -1,0 +1,63 @@
+# SAST. GLM-001 M7.3. THIS IS A RE-IMPLEMENTATION, NOT A PORT.
+#
+# ===========================================================================
+# IMP-3. CodeQL is GitHub-only. GitLab SAST is a different engine — Semgrep
+# and SpotBugs for Java — with different rules, severities and report format.
+# The finding set WILL differ.
+#
+# C-SEC-3 (Deepali): a differential run — CodeQL and GitLab SAST on the same
+# commit, delta recorded, every CodeQL-only finding named and owned — is
+# required BEFORE cutover. Until that has happened, a green job here does not
+# mean what a green CodeQL job meant, and S08-G5 is not satisfied by this
+# component alone.
+#
+# CE REALITY (CR-016): the analyzers run in all tiers, but Free/CE emits JSON
+# artefacts only. There is no Security Dashboard, no MR vulnerability widget
+# and no scan-result policy gate. So the BLOCKING decision is made here, in the
+# job, by reading the report — not by a platform policy.
+# ===========================================================================
+spec:
+  inputs:
+    stage:
+      default: validate
+    runner_tag:
+      default: "security"
+    fail_on:
+      default: "CRITICAL,HIGH"
+---
+
+"sast":
+  stage: $[[ inputs.stage ]]
+  image: returntocorp/semgrep:latest
+  tags: ["$[[ inputs.runner_tag ]]"]
+  script:
+    - semgrep --config=p/java --config=p/secrets --config=p/owasp-top-ten
+        --json --output=sast-report.json --error --severity=ERROR --severity=WARNING || true
+    # The gate is here because CE has no policy engine to put it in.
+    - |
+      set -euo pipefail
+      python3 - <<'PY'
+      import json, sys, os
+      want = set(os.environ.get("FAIL_ON", "CRITICAL,HIGH").split(","))
+      sev = {"ERROR": "CRITICAL", "WARNING": "HIGH", "INFO": "LOW"}
+      try:
+          results = json.load(open("sast-report.json")).get("results", [])
+      except Exception as e:
+          print(f"FAIL: SAST produced no readable report ({e}).")
+          print("A scanner that emits nothing is not a scanner that found nothing.")
+          sys.exit(1)
+      blocking = [r for r in results
+                  if sev.get(r.get("extra", {}).get("severity", ""), "LOW") in want]
+      print(f"SAST findings: {len(results)} total, {len(blocking)} blocking ({','.join(sorted(want))})")
+      for r in blocking[:20]:
+          p = r.get("path"); l = r.get("start", {}).get("line"); c = r.get("check_id")
+          print(f"  {p}:{l}  {c}")
+      sys.exit(1 if blocking else 0)
+      PY
+  variables:
+    FAIL_ON: $[[ inputs.fail_on ]]
+  artifacts:
+    when: always
+    paths: [sast-report.json]
+    expire_in: 90 days
+  allow_failure: false

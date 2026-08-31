@@ -1,0 +1,46 @@
+# Terraform apply. GLM-001 M7.7.
+#
+# ===========================================================================
+# Baseline section 11.1: apply is NEVER automatic and NEVER from an MR pipeline.
+# Default branch only, `when: manual`, restricted runner.
+#
+# CR-016: the baseline expects a protected environment with approvers. That is
+# Premium+ and this instance is CE. What is here is a COMPENSATING CONTROL and
+# is labelled as one — manual job, protected branch, restricted runner.
+#
+# It is weaker in one specific way: THERE IS NO APPROVER. Anyone able to run a
+# job on the protected branch can apply. Do not read `when: manual` as an
+# approval gate; it is a confirmation click.
+#
+# Deliberately no `environment:` block — declaring one without protection gives
+# the appearance of a gate that does not exist, and an absent control is safer
+# than a decorative one.
+# ===========================================================================
+spec:
+  inputs:
+    stage:
+      default: apply
+    image:
+      default: "hashicorp/terraform:1.6"
+    runner_tag:
+      default: "infrastructure-protected"
+    root_dir:
+      default: "."
+    plan_file:
+      default: "tfplan"
+---
+
+"terraform-apply":
+  stage: $[[ inputs.stage ]]
+  image: $[[ inputs.image ]]
+  tags: ["$[[ inputs.runner_tag ]]"]
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: manual
+      allow_failure: false
+  script:
+    - cd "$[[ inputs.root_dir ]]"
+    - terraform init -input=false
+    # Applies the SAVED plan. Never re-plans at apply time: a re-plan can apply
+    # something the reviewer never saw.
+    - terraform apply -input=false -lock-timeout=120s "$[[ inputs.plan_file ]]"

@@ -1,0 +1,39 @@
+# Container build and push. GLM-001 M7.6.
+#
+# Baseline section 9.1: images are tagged by COMMIT SHA and carry build
+# provenance. Production promotes BY DIGEST — the same immutable image that
+# passed lower environments, never a rebuild.
+spec:
+  inputs:
+    stage:
+      default: package
+    runner_tag:
+      default: "build"
+    dockerfile:
+      default: "Dockerfile"
+    context:
+      default: "."
+    image_name:
+      default: "$CI_PROJECT_NAME"
+---
+
+"docker-build":
+  stage: $[[ inputs.stage ]]
+  image: gcr.io/kaniko-project/executor:debug
+  tags: ["$[[ inputs.runner_tag ]]"]
+  # Kaniko rather than docker-in-docker: baseline section 9.4 — avoid privileged
+  # runner configuration unless explicitly required and security-approved.
+  script:
+    - /kaniko/executor
+        --context "$CI_PROJECT_DIR/$[[ inputs.context ]]"
+        --dockerfile "$CI_PROJECT_DIR/$[[ inputs.dockerfile ]]"
+        --destination "$CI_REGISTRY_IMAGE/$[[ inputs.image_name ]]:$CI_COMMIT_SHA"
+        --label "org.opencontainers.image.revision=$CI_COMMIT_SHA"
+        --label "org.opencontainers.image.created=$CI_JOB_STARTED_AT"
+        --label "bank.pipeline.id=$CI_PIPELINE_ID"
+        --digest-file=image-digest.txt
+    - echo "digest=$(cat image-digest.txt)"
+  artifacts:
+    paths: [image-digest.txt]     # the digest IS the promotion artefact
+    expire_in: 365 days
+  allow_failure: false

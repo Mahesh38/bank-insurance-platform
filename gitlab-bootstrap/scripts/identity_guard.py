@@ -16,12 +16,12 @@ from pathlib import Path
 
 TREE_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
     ("personal-gmail", re.compile(r"mh\.narkar@gmail\.com|mh,narkar@gmail\.com", re.I)),
-    ("personal-github-login", re.compile(r"\bMahesh38\b")),
+    ("personal-github-login", re.compile(r"\bmahesh38\b", re.I)),
     ("anthropic-noreply", re.compile(r"noreply@anthropic\.com", re.I)),
     ("claude-session", re.compile(r"Claude-Session:|claude\.ai/code/session", re.I)),
-    ("cursor-agent", re.compile(r"cursoragent@cursor\.com", re.I)),
+    ("cursor-agent", re.compile(r"cursoragent@cursor\.com|cursor\.com/agents", re.I)),
     ("github-noreply-user", re.compile(r"users\.noreply\.github\.com", re.I)),
-    ("claude-coauthor", re.compile(r"Co-Authored-By:\s*Claude", re.I)),
+    ("claude-coauthor", re.compile(r"Co-Authored-By:\s*Claude|Generated with Claude", re.I)),
 ]
 
 GIT_EMAIL_FORBIDDEN = re.compile(
@@ -29,9 +29,10 @@ GIT_EMAIL_FORBIDDEN = re.compile(
     r"noreply@github\.com",
     re.I,
 )
+GIT_NAME_FORBIDDEN = re.compile(r"^(Claude|Cursor Agent|GitHub)$", re.I)
 GIT_MESSAGE_FORBIDDEN = re.compile(
-    r"Merge pull request .*Mahesh38|Claude-Session:|Co-Authored-By:\s*Claude|"
-    r"noreply@anthropic\.com|cursoragent@|\bMahesh38\b",
+    r"Merge pull request|Claude-Session:|Co-Authored-By:\s*Claude|"
+    r"noreply@anthropic\.com|cursoragent@|\bmahesh38\b|Generated with Claude",
     re.I,
 )
 
@@ -92,6 +93,11 @@ def scan_git(repo: Path) -> list[str]:
     for i, line in enumerate(log.splitlines(), start=1):
         if GIT_EMAIL_FORBIDDEN.search(line) or GIT_MESSAGE_FORBIDDEN.search(line):
             hits.append(f"git:{i}:{line[:200]}")
+            continue
+        # "%an <%ae>" / "%cn <%ce>" — reject vendor display names even on a bank email.
+        name = line.split(" <", 1)[0].strip()
+        if name and GIT_NAME_FORBIDDEN.search(name):
+            hits.append(f"git:{i}:forbidden-name:{name}")
     return hits
 
 

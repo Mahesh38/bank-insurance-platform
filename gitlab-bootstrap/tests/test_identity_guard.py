@@ -27,6 +27,12 @@ class TreeScanTests(unittest.TestCase):
             self.assertTrue(any("personal-gmail" in h for h in hits))
             self.assertTrue(any("personal-github-login" in h for h in hits))
 
+    def test_lowercase_login_is_a_hit(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            Path(tmp, "state.yaml").write_text('repository: "mahesh38/bank-insurance-platform"\n')
+            hits = identity_guard.scan_tree(Path(tmp))
+            self.assertTrue(any("personal-github-login" in h for h in hits))
+
     def test_m2_evidence_is_a_hit_if_present(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             ev = Path(tmp, "m2-evidence")
@@ -42,6 +48,18 @@ class TreeScanTests(unittest.TestCase):
             )
             hits = identity_guard.scan_tree(Path(tmp))
             self.assertTrue(any("claude-session" in h for h in hits))
+
+    def test_generated_with_claude_is_a_hit(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            Path(tmp, "note.md").write_text("Generated with Claude Code\n")
+            hits = identity_guard.scan_tree(Path(tmp))
+            self.assertTrue(any("claude-coauthor" in h for h in hits))
+
+    def test_cursor_agents_url_is_a_hit(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            Path(tmp, "note.md").write_text("See https://cursor.com/agents/abc\n")
+            hits = identity_guard.scan_tree(Path(tmp))
+            self.assertTrue(any("cursor-agent" in h for h in hits))
 
 
 class CompanyIdentityTests(unittest.TestCase):
@@ -80,7 +98,7 @@ class GitLogTests(unittest.TestCase):
             }
             subprocess.check_call(["git", "add", "README.md"], cwd=tmp)
             subprocess.check_call(
-                ["git", "commit", "-m", "Initial import of the bank insurance platform"],
+                ["git", "commit", "-m", "Initial commit"],
                 cwd=tmp,
                 env=env,
                 stdout=subprocess.DEVNULL,
@@ -97,6 +115,48 @@ class GitLogTests(unittest.TestCase):
                 "GIT_AUTHOR_EMAIL": "mh.narkar@gmail.com",
                 "GIT_COMMITTER_NAME": "Mahesh38",
                 "GIT_COMMITTER_EMAIL": "mh.narkar@gmail.com",
+            }
+            subprocess.check_call(["git", "add", "README.md"], cwd=tmp)
+            subprocess.check_call(
+                ["git", "commit", "-m", "wip"],
+                cwd=tmp,
+                env=env,
+                stdout=subprocess.DEVNULL,
+            )
+            hits = identity_guard.scan_git(Path(tmp))
+            self.assertTrue(hits)
+
+    def test_merge_pull_request_message_is_a_hit(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            subprocess.check_call(["git", "init"], cwd=tmp, stdout=subprocess.DEVNULL)
+            Path(tmp, "README.md").write_text("ok\n")
+            env = {
+                **os.environ,
+                "GIT_AUTHOR_NAME": "Platform Engineer",
+                "GIT_AUTHOR_EMAIL": "dev@au.bank.in",
+                "GIT_COMMITTER_NAME": "Platform Engineer",
+                "GIT_COMMITTER_EMAIL": "dev@au.bank.in",
+            }
+            subprocess.check_call(["git", "add", "README.md"], cwd=tmp)
+            subprocess.check_call(
+                ["git", "commit", "-m", "Merge pull request #82 from someone/branch"],
+                cwd=tmp,
+                env=env,
+                stdout=subprocess.DEVNULL,
+            )
+            hits = identity_guard.scan_git(Path(tmp))
+            self.assertTrue(any("Merge pull request" in h for h in hits))
+
+    def test_cursor_agent_committer_is_a_hit(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            subprocess.check_call(["git", "init"], cwd=tmp, stdout=subprocess.DEVNULL)
+            Path(tmp, "README.md").write_text("ok\n")
+            env = {
+                **os.environ,
+                "GIT_AUTHOR_NAME": "Cursor Agent",
+                "GIT_AUTHOR_EMAIL": "cursoragent@cursor.com",
+                "GIT_COMMITTER_NAME": "Cursor Agent",
+                "GIT_COMMITTER_EMAIL": "cursoragent@cursor.com",
             }
             subprocess.check_call(["git", "add", "README.md"], cwd=tmp)
             subprocess.check_call(

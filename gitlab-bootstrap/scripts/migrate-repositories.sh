@@ -101,7 +101,9 @@ sanitize_tree() {
     fi
   done
   rm -rf "$dest/.github" \
-         "$dest/docs/platform/gitlab-migration/m2-evidence"
+         "$dest/docs/platform/gitlab-migration/m2-evidence" \
+         "$dest/CLAUDE.md" \
+         "$dest/.claude"
 }
 
 orphan_commit() {
@@ -121,7 +123,7 @@ orphan_commit() {
   GIT_AUTHOR_EMAIL="$COMPANY_GIT_EMAIL" \
   GIT_COMMITTER_NAME="$COMPANY_GIT_NAME" \
   GIT_COMMITTER_EMAIL="$COMPANY_GIT_EMAIL" \
-  git -C "$dest" -c commit.gpgsign=false commit -m "Initial import of the bank insurance platform"
+  git -C "$dest" -c commit.gpgsign=false commit -m "Initial commit"
   if ! python3 "$GUARD" --git "$dest"; then
     echo "  [STOP] $name commit failed identity-guard"
     return 1
@@ -130,6 +132,12 @@ orphan_commit() {
   count="$(git -C "$dest" rev-list --count HEAD)"
   if [ "$count" != "1" ]; then
     echo "  [STOP] $name has $count commits — orphan import must be exactly one"
+    return 1
+  fi
+  root="$(git -C "$dest" rev-list --max-parents=0 HEAD)"
+  head="$(git -C "$dest" rev-parse HEAD)"
+  if [ "$root" != "$head" ]; then
+    echo "  [STOP] $name HEAD is not a root commit — refusing a non-orphan graph"
     return 1
   fi
   echo "  [OK]   $name orphan commit $(git -C "$dest" rev-parse --short HEAD)"
@@ -152,8 +160,8 @@ copy_paths "$OUT/backend" \
   gradlew gradlew.bat gradle
 orphan_commit backend
 
-echo "  platform-governance <- docs/ scripts/ AGENTS.md CLAUDE.md .claude/"
-copy_paths "$OUT/platform-governance" docs scripts AGENTS.md CLAUDE.md .claude
+echo "  platform-governance <- docs/ scripts/ AGENTS.md (no CLAUDE.md, no .claude/)"
+copy_paths "$OUT/platform-governance" docs scripts AGENTS.md
 sanitize_tree "$OUT/platform-governance"
 orphan_commit platform-governance
 

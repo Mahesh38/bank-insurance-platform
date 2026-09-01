@@ -40,7 +40,7 @@
 | `engineering/ci-components` | 3 GH Actions workflows, ported | **Greenfield seed, translated** |
 | `governance/security-policies` | `.gitleaks.toml`, `.trivyignore` | **Greenfield seed, translated** |
 | `governance/gitlab-bootstrap` (spec §4.1) | — | **Greenfield** |
-| **`governance/platform-governance`** ← *proposed 8th/9th project* | `docs/`, `scripts/{governance,context,lifecycle}`, `AGENTS.md`, `CLAUDE.md` | **Orphan import** — tree only; see **IMP-1** |
+| **`governance/platform-governance`** ← *proposed 8th/9th project* | `docs/`, `scripts/{governance,context,lifecycle}`, `AGENTS.md` — **not** `CLAUDE.md` / `.claude/` | **Orphan import** — tree only; see **IMP-1** |
 
 > The requirements document names seven projects and recommends `gitlab-bootstrap` as an eighth.
 > This plan proposes a **ninth**, `platform-governance`, for reasons set out in **IMP-1**.
@@ -55,7 +55,7 @@ operational severity `O0`–`O3`, which is **not** AIGEM `P1`–`P5`.
 
 ### IMP-1 · `docs/` and the governance tooling have no home — `O1`
 **Finding.** The seven-project topology has nowhere to put 16 MB / 441 files of `docs/`, the AIGEM
-registers, `scripts/context/`, `scripts/governance/`, `AGENTS.md` and `CLAUDE.md`. Three placements
+registers, `scripts/context/`, `scripts/governance/` and `AGENTS.md` (`CLAUDE.md` and `.claude/` stay on the personal sandbox). Three placements
 are possible and two are wrong:
 
 * *In `backend`* — wrong. It governs all nine repositories, and every governance MR would then run
@@ -342,7 +342,7 @@ Terraform before M1.2 and M1.6 land** — provider capability and backend shape 
 | # | Task | Owner | AI |
 |---|---|---|---|
 | M5.1 | Announce and start the **≤48 h freeze**; named owner (**IMP-13**) | DEL | — |
-| M5.2 | Path-split **orphan import** of HEAD into `frontend`, `backend`, `platform-governance`. One company-authored commit each. `identity-guard.py` must pass. Seal source as an offline `git bundle` (`AC-6`, `AC-8`). **Do not** `filter-repo` push history | SRE | 3 h |
+| M5.2 | Path-split **orphan import** of HEAD into `frontend`, `backend`, `platform-governance`. One company-authored **`Initial commit`** (root, no parents) each. `identity-guard.py` must pass. Seal source as an offline `git bundle` (`AC-6`, `AC-8`). **Do not** `filter-repo` push history | SRE | 3 h |
 | M5.3 | Fix `rootProject.name` and Gradle module paths in the backend split, one labelled commit (**IMP-12**) | SRE + ENG | 2 h |
 | M5.4 | Seed `contracts`: `openapi/`, `asyncapi/`, `schemas/`, `compatibility-tests/`, `codegen/` skeleton | SRE + ENG | 2 h |
 | M5.5 | Seed `infrastructure`: `terraform/environments/{dev,sit,uat,preprod,prod,dr}`, `modules/`, `policies/` | SRE | 2 h |

@@ -145,6 +145,19 @@ class MigrateRehearseTests(unittest.TestCase):
                     text=True,
                 ).strip()
                 self.assertEqual(ident, "Platform Engineer <dev@au.bank.in>")
+                subject = subprocess.check_output(
+                    ["git", "-C", str(repo), "log", "-1", "--format=%s"],
+                    text=True,
+                ).strip()
+                self.assertEqual(subject, "Initial commit")
+                parents = subprocess.check_output(
+                    ["git", "-C", str(repo), "rev-list", "--parents", "-n", "1", "HEAD"],
+                    text=True,
+                ).split()
+                self.assertEqual(len(parents), 1, f"{name} must be a root commit")
+            gov = out / "platform-governance"
+            self.assertFalse((gov / "CLAUDE.md").exists())
+            self.assertFalse((gov / ".claude").exists())
 
 
 if __name__ == "__main__":

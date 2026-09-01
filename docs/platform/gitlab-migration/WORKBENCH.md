@@ -48,7 +48,7 @@ git -C "$GITLAB_BACKEND" push origin HEAD:main   # or an MR branch
 ```
 
 Adjust the rsync set per project (`frontend` = `apps/rm-workspace-app/`; `platform-governance` =
-`docs/` `scripts/` `AGENTS.md` `CLAUDE.md` `.claude/`).
+`docs/` `scripts/` `AGENTS.md` — not `CLAUDE.md` or `.claude/`).
 
 ## Reverse (GitLab → sandbox)
 
@@ -62,5 +62,6 @@ scan is not evidence about the sandbox.
 
 ## Commit message convention on GitLab
 
-`Workbench import YYYY-MM-DD` — not "created locally", not a copy of the sandbox commit subject
-(those subjects name the personal GitHub login and AI-vendor session URLs).
+`Workbench import YYYY-MM-DD` under the company identity. Not a copy of the sandbox commit
+subject (those subjects name the personal GitHub login and AI-vendor session URLs). Not an
+AI-vendor trailer.

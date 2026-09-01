@@ -33,13 +33,15 @@ The guard's `--tree` scan uses the identity denylist, not a blanket `github.com`
 |---|---|
 | `.github/` | GitHub Actions; CI is re-expressed as `ci-components` |
 | `docs/platform/gitlab-migration/m2-evidence/` | Embeds committer emails and the personal login in scan JSON. Lives in the sealed bundle only |
+| `CLAUDE.md`, `.claude/` | AI workbench scaffolding. Stays on the personal GitHub sandbox |
 | Personal git history | Orphan import. Sealed as `git bundle` offline (`AC-8`) |
 
 ## 3. Provenance wording
 
-The GitLab first-commit message is **Initial import of the bank insurance platform**. It is not
-"created on this machine". Board 6: stripping personal-forge metadata is hygiene; claiming a false
-origin is not.
+The GitLab first-commit message is **`Initial commit`** — one company-authored root commit, no
+parents. That is how a day-0 repository looks. Board 6: stripping personal-forge and AI-vendor
+metadata is hygiene. The sealed bundle (`AC-8`) is the honest provenance of the pre-import work;
+do not claim the code was created on a company laptop.
 
 ## 4. Guard invocation
 

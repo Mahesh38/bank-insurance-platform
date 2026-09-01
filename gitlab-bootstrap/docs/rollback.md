@@ -4,9 +4,9 @@
 
 `pre-gitlab-migration` -> `b8027751738b04d00dbe071a77b2aba56828a2cd`
 
-**Currently local-only.** GitHub refused the tag push on the session credential
-(`HTTP 403`, tag refs out of scope). `RISK-025`: a rollback anchor that exists
-only in a container is not an anchor. It must be on the remote before the freeze.
+**On `origin` as of 2026-09-01.** `git ls-remote --tags origin refs/tags/pre-gitlab-migration`
+resolves. `C-OPS-1` requires it to stay reachable before the freeze. `C-OPS-2` (execute
+the rollback, do not only document it) is still open.
 
 ## Rollback is tested by executing it
 

@@ -12,7 +12,7 @@ governance_version: "AIGEM 1.4" # CR-009 ratified 2026-08-14; matches README.md 
 
 project:
   name: "Bank Insurance Platform"
-  repository: "mahesh38/bank-insurance-platform"
+  repository: "insurance/bank-insurance"
 
 state_as_of: "2026-08-10" # quoted so the file validates directly against current-state.schema.json
 review_due: "2026-09-09"

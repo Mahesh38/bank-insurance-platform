@@ -87,6 +87,7 @@ Full records: [`DB-DEC-0001`](../../platform/data-architecture/DB-DEC-0001-r0-ph
 | CR-011 | 2026-08-20 | GOV | Mahesh target-state / North Star architecture doctrine: nine persona modules (`09`–`17`), the `VIN-001`/`VIN-002` references and the `hdl.svg` canvas contract | **PENDING RATIFICATION** | Prepared on repository-owner direction — Architecture and Product ratification pending. Indexed here on 2026-08-24; the file existed from 2026-08-20 without a register row |
 | CR-012 | 2026-08-24 | ARCH | R0 platform robustness: admit hybrid bank connectivity, centralised egress inspection, a managed cache tier, an event backbone (outbox retained as source of truth) and an operational search pipe into R0 — `ADR-009`…`ADR-013` | **PENDING RATIFICATION** | Raised on repository-owner direction. **Security acceptance (Deepali), Compliance (Shailja), SRE (Shivanshi), Database (Aarti) and Delivery (Kalpana) are required and outstanding**; drafts in [`CR-012/verdicts/`](../change-requests/CR-012/verdicts/README.md). Mandatory human T4 Architecture signature outstanding |
 | CR-013 | 2026-08-25 | SCOPE | Stakeholder pull: Lead language, lifecycle/archive, off-platform ingest, admin/MIS, issuance modes and PPHI mapping into R0 — `ADR-014` | **CANDIDATE** — transcribed into scope artefacts | Human T4 Architecture / Security / Compliance outstanding. Compliance conditions in [`CR-013` §5](../change-requests/CR-013-r0-lead-mis-admin-scope.md) |
+| CR-016 | 2026-08-29 | CONSTRAINT | GitLab CE cannot enforce required approvals, CODEOWNERS enforcement or protected environments | **APPROVED_WITH_CONDITIONS** 2026-09-01 — Option B now, A as target; owner-relayed | Deepali human T4 on the weaker boundary outstanding. Does **not** gate M5.2 |
 | CR-017 | 2026-08-31 | PLAN | Orphan import into GitLab (no personal-forge history) and file-level AI workbench — amends `CR-014` constraint 2; `ADR-020` | **APPROVED_WITH_CONDITIONS** — relayed by `human:Mahesh` | Seven boards, owner-relayed. Not a T4 signature artefact. `AC-6`…`AC-8`. Finding B and `C-CMP-1` still gate the first push |
 
 ### CR-001 — add Phase 4 exit criterion 4.7
@@ -253,8 +254,9 @@ allocation. Parked to S09 behind the CR-014 cutover by `AC-5`.
 
 ### CR-016 — GitLab Community Edition cannot enforce the approved governance model
 
-**Date:** 2026-08-29 · **Type:** CONSTRAINT · **Decision:** `PENDING` · **Approvers:** none
+**Date:** 2026-08-29 · **Type:** CONSTRAINT · **Decision:** **`APPROVED_WITH_CONDITIONS` 2026-09-01** — Option B now, A as target
 **File:** [`CR-016`](../change-requests/CR-016-gitlab-ce-control-model-gap.md) · **Driver:** validated assumption failure (`ASM-012`)
+**Recorded:** [`DEC-20260901-01`](../DEC-20260901-01-owner-authorises-unblock-path.md)
 
 The bank confirmed **GitLab Community Edition v19.1.2** at `https://gitlab-ce.au.bank.in/`, `insurance` group id `820`,
 container registry available, AWS conventions unconfirmed. `ASM-012`'s pre-computed consequence assumed Premium;
@@ -266,10 +268,10 @@ cannot execute. **`S08-G1`, `G2` and `G9` are unaffected** — "Pipelines must s
 `IMP-4` gate redesign survives — and `S08-G5` is achievable as blocking CI jobs, since the analyzers run in all tiers,
 with results as JSON artefacts and no dashboard, MR widget or policy gate.
 
-Four options are recorded with **no recommendation attached**: licence upgrade (a `gitlab-ce` → `gitlab-ee` package
-migration, not a licence key), compensating CI controls, a scoped exception with an expiry, or re-siting the estate.
-Deepali declined to pre-approve this downgrade before she could see it; she can see it now, and the decision is hers and
-Architecture's. `CR-014` stands approved and M2 is unaffected.
+Owner-relayed 2026-09-01: **Option B** (compensating CI, including `governance-merge-gate`) is the R0
+enforcement; **Option A** (`gitlab-ce` → `gitlab-ee`) remains the target; a time-boxed **Option C**
+covers the platform-enforcement gap until EE; **Option D** (re-site) is rejected. This does **not**
+gate M5.2. Deepali's human Board 4 signature on the weaker boundary remains outstanding.
 
 ### CR-017 — Orphan import into GitLab; file-level AI workbench
 

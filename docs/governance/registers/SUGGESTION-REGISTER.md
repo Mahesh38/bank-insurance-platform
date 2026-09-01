@@ -90,6 +90,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | SUG-20260829-imp | 2026-08-29 | human:Mahesh | Accept all thirteen SRE improvements raised against the approved GitLab baseline in GLM-001 §2, activate the SRE, Security, Architecture, Engineering, QA, Compliance and Delivery personas, and start Phase M0 taking the required decisions by cross-persona discussion | SF1 | SC0 | MUST | GOV | P1 / P1 | ADMIT-BYPASS | [CR-014](../change-requests/CR-014-gitlab-estate-migration.md) · [CR-015](../change-requests/CR-015-shared-persistence-vs-bank-baseline.md) · [DEC-20260829-01](../DEC-20260829-01-m0-migration-decisions.md) · `ADR-018` · [detail](#sug-20260829-imp--acceptance-of-the-thirteen-glm-001-improvements) |
 
 | SUG-20260831-ids | 2026-08-31 | human:Mahesh | GitLab import must not carry personal GitHub / Gmail / Anthropic / Cursor identity; use an orphan first commit and keep the personal repo as a file-level AI workbench only | SF1 | SC0 | MUST | SEC | P1 / P1 | ADMIT-BYPASS | [CR-017](../change-requests/CR-017-orphan-import-and-file-workbench.md) · [DEC-20260831-01](../DEC-20260831-01-orphan-import-and-file-workbench.md) · `ADR-020` · [detail](#sug-20260831-ids--orphan-import-and-file-level-workbench) |
+| SUG-20260901-own | 2026-09-01 | human:Mahesh | Owner authorises the recommended unblock path and restates: GitLab must be a day-0 company graph with no GitHub or AI identity | SF1 | SC0 | MUST | GOV | P1 / P1 | ADMIT-BYPASS | [DEC-20260901-01](../DEC-20260901-01-owner-authorises-unblock-path.md) · [CR-016](../change-requests/CR-016-gitlab-ce-control-model-gap.md) · [detail](#sug-20260901-own--owner-authorises-unblock-path) |
 
 <!--
 Row format:
@@ -3756,6 +3757,75 @@ outcome:
   closed_reason: null
 
 resumed: "GLM-001 M5.2 rewrite — orphan import + identity-guard"
+```
+
+### SUG-20260901-own — owner authorises unblock path
+
+```yaml
+# schema: triage-record
+id: SUG-20260901-own
+raised_at: "2026-09-01"
+raised_by: "human:Mahesh"
+source: "owner instruction — take the recommended actions; GitLab must be a day-0 company graph"
+input: >
+  As owner of this project I mahesh authorise you to take the recommended actions, just make sure
+  whenever we start migrating from the github to gitlab no trace back to github will be present,
+  not ai commits and changes traces should be present. it should look like fresh commit on day 0
+  and changes are done from devlopers machine and pushed to gitlab.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-TERM-SALE"
+  state_as_of: "2026-08-10"
+  state_provisional: false
+  active_work_item: GLM-001
+
+stage_fit:
+  code: SF1
+  rationale: >
+    Executes the already-recommended unblock path for the in-flight GitLab migration and restates
+    AC-6. On-stage for S09-overlapped estate work.
+
+scope:
+  code: SC0
+  business_scope: "In scope under ADR-016 / CR-014 / CR-017"
+  serves: ["CR-014 M5.2", "CR-016", "CR-017 AC-6"]
+  failure_without_it: "First push remains blocked, or GitLab receives personal-forge / AI identity"
+  minimal: true
+  authority: "owner authorisation 2026-09-01"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  evidence_tier: E2
+  confidence: C5
+
+action: ADMIT-BYPASS
+action_rationale: >
+  Human override under 09 section 8: owner authorised the previously recommended path in one
+  instruction. Bypass: no second seven-board written pack. Non-negotiables not waived —
+  Finding B and C-CMP-1 still gate the first push; T4 signatures stay human; no GitLab push.
+bypass_authorised_by: "human:Mahesh — repository owner, 2026-09-01"
+
+classification:
+  type: GOV
+  risk_tier: T4
+
+priority:
+  priority_now: P1
+  priority_at_target: P1
+  hard_p1: "Blocking dependency on first GitLab push plus incorrect domain of trust if identity leaks"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: DEC-20260901-01
+  plan_id: GLM-001
+  status: ADMIT-BYPASS
+  closed_reason: null
+
+resumed: "Execute authorised unblock path: evidence packs, CR-016 Option B, identity-guard harden, tag"
 ```
 
 ---

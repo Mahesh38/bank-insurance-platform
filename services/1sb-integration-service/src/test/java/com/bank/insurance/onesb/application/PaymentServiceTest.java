@@ -1,5 +1,7 @@
 package com.bank.insurance.onesb.application;
 
+import com.bank.insurance.onesb.TestErrors;
+
 import com.bank.common.audit.AuditActions;
 import com.bank.common.audit.AuditEvent;
 import com.bank.common.audit.AuditEventPublisher;
@@ -53,7 +55,7 @@ class PaymentServiceTest {
 
     @BeforeEach
     void setUp() {
-        paymentService = new PaymentService(jobStore, paymentPort, sessionStore, auditEventPublisher);
+        paymentService = new PaymentService(jobStore, paymentPort, sessionStore, auditEventPublisher, TestErrors.ONESB);
     }
 
     @Test

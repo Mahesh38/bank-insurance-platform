@@ -17,6 +17,13 @@ This folder points at materials that inform the AU Bank product reset.
 | [../../1sb-insurance-integration/02-rm-assisted-bank-checklist.md](../../1sb-insurance-integration/02-rm-assisted-bank-checklist.md) | Checklist → discovery questions |
 | [../../1sb-insurance-integration/service-ssot/00-po-architect-design-session.md](../../1sb-insurance-integration/service-ssot/00-po-architect-design-session.md) | Prior PO↔Architect decisions — **reopen for AU Bank** |
 
+## Stakeholder architecture input (transcribed, non-binding)
+
+| Link | Notes |
+|------|-------|
+| [2026-08-20-north-star-architecture-brainstorming-notes.md](./2026-08-20-north-star-architecture-brainstorming-notes.md) | `VIN-001` — North Star capability model, LOB/journey segregation, orchestration and shared-capability notes. **Reference only.** Reconciled against accepted decisions in [`10-north-star-capability-model.md §9`](../../context/roles/mahesh-principal-insurance-platform-architect/10-north-star-capability-model.md) |
+| [2026-08-20-insurance-aggregation-and-provider-connectivity-notes.md](./2026-08-20-insurance-aggregation-and-provider-connectivity-notes.md) | `VIN-002` — bank insurance aggregation layer, provider routing, canonical contract scoping, fan-out isolation, callback ingress. **Reference only.** Reconciled in [`17-provider-aggregation-and-connectivity.md §17`](../../context/roles/mahesh-principal-insurance-platform-architect/17-provider-aggregation-and-connectivity.md) |
+
 ## External
 
 | Link | Notes |
@@ -28,8 +35,8 @@ This folder points at materials that inform the AU Bank product reset.
 
 | Path | Purpose |
 |------|---------|
-| [`../artefacts/uploads/`](../artefacts/uploads/README.md) | Drop zone for baseline docs you upload — **11 PDFs ingested** into [knowledge-base/](../knowledge-base/README.md) |
-| [`../artefacts/figma/`](../artefacts/figma/README.md) | Optional Figma exports — 🔴 **empty**, prototype is login-gated (D-012) |
+| [`../artefacts/` — Uploads](../artefacts/README.md#uploads) | Drop zone for baseline docs you upload — **11 PDFs ingested** into [knowledge-base/](../knowledge-base/README.md) |
+| [`../artefacts/` — Figma](../artefacts/README.md#figma) | Optional Figma exports — 🔴 **empty**, prototype is login-gated (D-012) |
 
 ## Cross-cutting architecture (outside this folder)
 

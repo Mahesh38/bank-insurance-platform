@@ -6,6 +6,8 @@ import com.bank.common.audit.AuditEventPublisher;
 import com.bank.common.audit.AuditOutcomes;
 import com.bank.common.error.ErrorCodes;
 import com.bank.common.error.ServiceErrorResponse;
+import com.bank.common.error.PlatformLayer;
+import com.bank.common.error.ServiceErrors;
 import com.bank.common.error.ServiceException;
 import com.bank.insurance.onesb.domain.command.CreatePaymentCommand;
 import com.bank.insurance.onesb.domain.model.JobStatus;
@@ -37,15 +39,19 @@ public class PaymentService implements PaymentUseCase {
     private final OneSbPaymentPort paymentPort;
     private final PaymentSessionStorePort sessionStore;
     private final AuditEventPublisher auditEventPublisher;
+    private final ServiceErrors serviceErrors;
+
 
     public PaymentService(JobStorePort jobStore,
                           OneSbPaymentPort paymentPort,
                           PaymentSessionStorePort sessionStore,
-                          AuditEventPublisher auditEventPublisher) {
+                          AuditEventPublisher auditEventPublisher,
+                          ServiceErrors serviceErrors) {
         this.jobStore = jobStore;
         this.paymentPort = paymentPort;
         this.sessionStore = sessionStore;
         this.auditEventPublisher = auditEventPublisher;
+        this.serviceErrors = serviceErrors;
     }
 
     @Override
@@ -65,13 +71,13 @@ public class PaymentService implements PaymentUseCase {
 
         OneSbPaymentUrlResult upstream = paymentPort.createPaymentUrl(command);
         if (!upstream.paymentUrl().toLowerCase(Locale.ROOT).startsWith("https://")) {
-            throw new ServiceException(ServiceErrorResponse.builder()
-                    .title("Upstream Bad Response")
-                    .status(502)
-                    .detail("1SB returned a non-HTTPS payment URL")
-                    .code(ErrorCodes.UPSTREAM_BAD_RESPONSE)
-                    .retryable(true)
-                    .build());
+            throw serviceErrors.error(ErrorCodes.UPSTREAM_BAD_RESPONSE)
+                    .component("PaymentService")
+                    .operation("createPaymentUrl")
+                    .upstream("1SB", null, null)
+                    .reason("1SB returned a non-HTTPS payment URL")
+                    .remediation("Do not forward the link. Raise with 1SB — a payment link must be TLS.")
+                    .build();
         }
 
         PaymentSession session = sessionStore.createSession(
@@ -101,24 +107,20 @@ public class PaymentService implements PaymentUseCase {
         }
     }
 
-    private static ServiceException notPayable(String detail) {
-        return new ServiceException(ServiceErrorResponse.builder()
-                .title("Proposal Not Payable")
-                .status(409)
-                .detail(detail)
-                .code(ErrorCodes.PROPOSAL_NOT_PAYABLE)
-                .retryable(false)
-                .build());
+    private ServiceException notPayable(String reason) {
+        return serviceErrors.error(ErrorCodes.PROPOSAL_NOT_PAYABLE)
+                .component("PaymentService")
+                .operation("assertPayable")
+                .reason(reason)
+                .build();
     }
 
-    private static ServiceException validationError(String detail) {
-        return new ServiceException(ServiceErrorResponse.builder()
-                .title("Validation Failed")
-                .status(422)
-                .detail(detail)
-                .code(ErrorCodes.VALIDATION_ERROR)
-                .retryable(false)
-                .build());
+    private ServiceException validationError(String reason) {
+        return serviceErrors.error(ErrorCodes.VALIDATION_ERROR)
+                .component("PaymentService")
+                .operation("createPaymentSession")
+                .reason(reason)
+                .build();
     }
 
     /** Audits a reference to the session only — {@code paymentUrl} itself is never logged/audited. */

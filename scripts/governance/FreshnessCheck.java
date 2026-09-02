@@ -335,13 +335,19 @@ public class FreshnessCheck {
                 continue;
             }
             LocalDate touched = lastTouched(a.path(), p);
-            long age = java.time.temporal.ChronoUnit.DAYS.between(touched, today);
-            String line = String.format("%-58s %4dd  (limit %d, owner: %s)", a.path(), age, a.maxAgeDays(), a.owner());
+            LocalDate reviewed = lastReviewed(p);
+            // Freshness means "someone looked recently", not "someone typed recently".
+            // A reviewed-no-change acknowledgement counts (see reviewedAck / RUNBOOK section 7).
+            boolean byAck = reviewed != null && reviewed.isAfter(touched);
+            LocalDate effective = byAck ? reviewed : touched;
+            long age = java.time.temporal.ChronoUnit.DAYS.between(effective, today);
+            String how = byAck ? " [reviewed]" : "";
+            String line = String.format("%-58s %4dd  (limit %d, owner: %s)%s", a.path(), age, a.maxAgeDays(), a.owner(), how);
             if (age > a.maxAgeDays()) {
                 if (a.halting()) halt(line);
                 else             warn(line);
             } else {
-                pass(String.format("%-58s %4dd  (limit %d)", a.path(), age, a.maxAgeDays()));
+                pass(String.format("%-58s %4dd  (limit %d)%s", a.path(), age, a.maxAgeDays(), how));
             }
         }
     }
@@ -365,6 +371,93 @@ public class FreshnessCheck {
             return LocalDate.MIN;
         }
     }
+
+    /**
+     * A reviewed-no-change acknowledgement, read from the artefact's own last line:
+     *
+     *   <!-- reviewed: 2026-08-14 by Kalpana -->
+     *
+     * Rationale. Freshness limits previously demanded an EDIT: if nothing had happened,
+     * the owner still had to touch the file to keep it "fresh". That manufactures commits
+     * that look like progress and are not, and it teaches owners to make a token change
+     * rather than to actually re-read the artefact — the opposite of the intent.
+     *
+     * "Reviewed, unchanged" is a real and common outcome for a register. It is now
+     * expressible. The acknowledgement is deliberately cheap to write and deliberately
+     * dated and attributed, so a stale artefact still has a name against it.
+     *
+     * Guard rails: an ack dated in the future is ignored (it would let an owner mute the
+     * check indefinitely), and an ack never suppresses a CONTENT check — only an age one.
+     * Content correctness (ID uniqueness, counters, schema) is checked regardless.
+     */
+    static LocalDate lastReviewed(Path artefact) {
+        String rel = root.relativize(artefact).toString().replace('\\', '/');
+        LocalDate fromLog = reviewLog().get(rel);
+        if (fromLog != null) return fromLog;
+        try {
+            List<String> lines = Files.readAllLines(artefact, StandardCharsets.UTF_8);
+            for (int i = lines.size() - 1; i >= 0 && i >= lines.size() - 5; i--) {
+                Matcher m = REVIEWED_ACK.matcher(lines.get(i));
+                if (m.find()) {
+                    LocalDate d = LocalDate.parse(m.group(1));
+                    return d.isAfter(LocalDate.now()) ? null : d;   // no future-dating
+                }
+            }
+        } catch (Exception ignored) { }
+        return null;
+    }
+
+    static final Pattern REVIEWED_ACK =
+            Pattern.compile("<!--\\s*reviewed:\\s*(\\d{4}-\\d{2}-\\d{2})\\s+by\\s+[^>]*-->");
+
+    /**
+     * The central review log: docs/governance/state/REVIEW-LOG.md
+     *
+     * One table row per artefact reviewed:
+     *   | docs/governance/registers/RISK-REGISTER.md | 2026-08-14 | Kalpana | no change |
+     *
+     * This is the mechanism that actually removes the treadmill. An in-file
+     * acknowledgement is itself an edit, so acknowledging ten registers individually
+     * is still ten commits — meaningful ones, but ten. A sweep recorded here is ONE
+     * edit covering every artefact the owner actually re-read, which is how a
+     * register sweep genuinely happens: in one sitting, across all of them.
+     *
+     * Same guard rails as the in-file form: future dates are ignored, and a review
+     * acknowledgement never suppresses a content check — only an age one.
+     */
+    // Loaded lazily, NOT in a static initializer: `root` is assigned in main(), which
+    // runs after class load, so an eager initializer would read a null root, swallow the
+    // NPE and silently behave as if no review log existed.
+    static Map<String, LocalDate> reviewLog;
+
+    static Map<String, LocalDate> reviewLog() {
+        if (reviewLog == null) reviewLog = loadReviewLog();
+        return reviewLog;
+    }
+
+    static Map<String, LocalDate> loadReviewLog() {
+        Map<String, LocalDate> out = new HashMap<>();
+        try {
+            Path log = root.resolve("docs/governance/state/REVIEW-LOG.md");
+            if (!Files.exists(log)) return out;
+            LocalDate today = LocalDate.now();
+            for (String line : Files.readAllLines(log, StandardCharsets.UTF_8)) {
+                Matcher m = REVIEW_LOG_ROW.matcher(line);
+                if (!m.find()) continue;
+                try {
+                    LocalDate d = LocalDate.parse(m.group(2).trim());
+                    if (d.isAfter(today)) continue;                 // no future-dating
+                    String path = m.group(1).trim();
+                    // keep the most recent review per artefact
+                    out.merge(path, d, (a, b) -> a.isAfter(b) ? a : b);
+                } catch (DateTimeParseException ignored) { }
+            }
+        } catch (Exception ignored) { }
+        return out;
+    }
+
+    static final Pattern REVIEW_LOG_ROW =
+            Pattern.compile("^\\s*\\|\\s*([A-Za-z0-9._/-]+\\.(?:md|yaml))\\s*\\|\\s*(\\d{4}-\\d{2}-\\d{2})\\s*\\|");
 
     // ------------------------------------------------------------- helpers
 

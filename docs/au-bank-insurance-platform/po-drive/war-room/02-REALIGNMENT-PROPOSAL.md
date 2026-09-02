@@ -2,7 +2,7 @@
 
 **Raised by:** Platform Product Owner
 **Date:** 2026-08-12
-**Status:** 🟠 PROPOSAL — requires stakeholder review and `CR-002` approval
+**Status:** 🟠 PROPOSAL — requires stakeholder review and `CR-014` approval
 **Evidence base:** [01-PROCESS-GAP-ANALYSIS.md](./01-PROCESS-GAP-ANALYSIS.md)
 
 ---
@@ -31,7 +31,7 @@ design → build → prove → demo.
 | **P4** | **One flow, end to end, demoed every sprint.** Business sees working software every two weeks. | Progress measured in documents |
 | **P5** | **The bank's canonical model leads; the aggregator adapts to it.** Not the reverse. | 1SB's data model becoming the bank's product |
 | **P6** | **Traceability is retro-fitted, not re-implemented.** Existing code is mapped to requirements, not rewritten to match them. | Rework disguised as compliance |
-| **P7** | **The war room decides; agents and individuals do not.** Recorded as `CR-002`. | Silent scope drift, in either direction |
+| **P7** | **The war room decides; agents and individuals do not.** Recorded as `CR-014`. | Silent scope drift, in either direction |
 
 P5 and P6 are the two the room is most likely to argue about. They are also the two that decide
 whether this programme owns its product in six months.
@@ -105,7 +105,7 @@ Three supporting rules:
 | Rule | Statement | Enforced by |
 |------|-----------|-------------|
 | **S-2 · Contracts flow one way** | Canonical API and domain contracts are **owned by Track A**. Track B implements against them; it never mints a new canonical contract. Adapter-internal types stay adapter-internal. | Architect at design review; ArchUnit already prevents 1SB types leaking |
-| **S-3 · Traceability is a Definition-of-Done item** | No work item closes in either track without citing the requirement ID it satisfies — including retro-fitted IDs on existing code. | [13-DEFINITION_OF_DONE.md](../../../governance/13-DEFINITION_OF_DONE.md) amendment, part of `CR-002` |
+| **S-3 · Traceability is a Definition-of-Done item** | No work item closes in either track without citing the requirement ID it satisfies — including retro-fitted IDs on existing code. | [13-DEFINITION_OF_DONE.md](../../../governance/13-DEFINITION_OF_DONE.md) amendment, part of `CR-014` |
 | **S-4 · One escalation path** | A conflict between the tracks is resolved by PO + Architect jointly and recorded in the decision register. It is never resolved by whoever is closer to the keyboard. | [16-DECISION_MODEL.md](../../../governance/16-DECISION_MODEL.md) |
 
 **Why S-1 works where "be careful" does not:** it is binary, visible in every PR, and it costs a
@@ -198,7 +198,7 @@ it:
 | **R1** | **Track A becomes a documentation phase** — three months of BRD writing, no working software, business loses confidence | Medium | P3 + P4: requirements ship flow by flow; every sprint demos working software from Track B or a built flow. If a sprint produces only documents, that is a red flag raised at the retro |
 | **R2** | **Track B starves and the gates never close** — capacity drains to the shiny new track | Medium | Track B holds ~60% of engineering capacity until C3. Gate criteria are on the sprint board with named owners, not in a background queue |
 | **R3** | **Retro-fit surfaces a real design flaw in built code** — e.g. consent sequencing is wrong | Low–Medium | This is a *success* of the process, discovered at the cheapest possible moment. Handled as a normal defect with a `CR` if it changes scope. Budget one sprint of contingency |
-| **R4** | **The war room agrees and nothing changes** — the classic outcome | **High** | Every decision in [04 §4](./04-WAR-ROOM-RUNSHEET.md#4-decisions-the-room-must-take) has a named owner and a date; `CR-002` is recorded in the decision register; the first sprint after the war room is planned in the room itself, not afterwards |
+| **R4** | **The war room agrees and nothing changes** — the classic outcome | **High** | Every decision in [04 §4](./04-WAR-ROOM-RUNSHEET.md#4-decisions-the-room-must-take) has a named owner and a date; `CR-014` is recorded in the decision register; the first sprint after the war room is planned in the room itself, not afterwards |
 
 **R4 is the highest-likelihood risk in this document.** Alignment is easy to obtain and hard to
 convert. The countermeasure is that the war room does not end with agreement — it ends with a
@@ -206,7 +206,7 @@ sprint plan and eight signatures.
 
 ---
 
-## 9. What changes in the repository if `CR-002` is approved
+## 9. What changes in the repository if `CR-014` is approved
 
 Mechanical consequences, to be applied **by a human** ([14 §3](../../../governance/14-CHANGE_CONTROL.md#3-procedure),
 Rule CC-1 — an agent may raise a change request, never approve one):

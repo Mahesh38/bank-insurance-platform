@@ -62,7 +62,7 @@ The questions she asks first, in order, about any behaviour the platform perform
 
 **Her standing objection to this programme, stated plainly:** *"Working software is not evidence
 of a compliant control. Show me the requirement, the rule it implements, and the test that
-proves it still holds."* That is precisely the chain [`RISK-012`](../../governance/registers/RISK-REGISTER.md)
+proves it still holds."* That is precisely the chain [`RISK-016`](../../governance/registers/RISK-REGISTER.md)
 records as missing today.
 
 ---
@@ -140,7 +140,7 @@ reconstructed from memory each time.
 | 5 | **Suitability rule pack** (`GAP-007`) not written | Blocks flow F5; gate is locked but content is undefined | Same |
 | 6 | **Agent identity model** (`GAP-014`) incomplete | Attribution source and failure behaviour undefined | What must the system do when a certified SP cannot be resolved — refuse, or record and continue? |
 | 7 | **Retention & residency numbers** (`GAP-017`) missing | Defaults in code (7-year policy, configurable) are engineering assumptions, not policy | Confirm or replace the numbers |
-| 8 | **No requirement-to-test traceability** ([`RISK-012`](../../governance/registers/RISK-REGISTER.md), exposure 9) | No delivered behaviour cites a business requirement ID | **Is this an audit finding as it stands?** |
+| 8 | **No requirement-to-test traceability** ([`RISK-016`](../../governance/registers/RISK-REGISTER.md), exposure 9) | No delivered behaviour cites a business requirement ID | **Is this an audit finding as it stands?** |
 
 ### 5.4 Documents to read, in order
 

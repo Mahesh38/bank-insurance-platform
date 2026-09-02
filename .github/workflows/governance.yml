@@ -14,14 +14,23 @@ on:
   pull_request:
     paths:
       - "docs/governance/**"
+      - "docs/context/**"
+      - "docs/application-lifecycle-bible/**"
       - "scripts/governance/**"
+      - "scripts/context/**"
+      - "scripts/lifecycle/**"
       - ".github/workflows/governance.yml"
       - "AGENTS.md"
   push:
     branches: [main]
     paths:
       - "docs/governance/**"
+      - "docs/context/**"
+      - "docs/application-lifecycle-bible/**"
       - "scripts/governance/**"
+      - "scripts/context/**"
+      - "scripts/lifecycle/**"
+      - ".github/workflows/governance.yml"
   schedule:
     # Weekly, so staleness surfaces even when nobody touches the governance files —
     # a stale state file is exactly the failure that produces no diff.
@@ -75,3 +84,20 @@ jobs:
 
       - name: Governance CI checks
         run: python3 scripts/governance/ci-checks.py
+
+      - name: Context module validation
+        run: python3 scripts/context/validate-context.py
+
+      - name: Context portability tests
+        run: python3 scripts/context/test_context.py
+
+      - name: Autopilot safety tests
+        run: python3 scripts/governance/test_autopilot.py
+
+      - name: Autopilot status (proposal-only)
+        run: python3 scripts/governance/autopilot.py status
+
+      - name: Generated lifecycle backlog is current
+        run: |
+          python3 scripts/lifecycle/generate-backlog.py
+          git diff --exit-code -- docs/application-lifecycle-bible/backlog/

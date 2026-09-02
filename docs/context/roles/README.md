@@ -1,51 +1,66 @@
-# Stakeholder personas
+# Project Role Context
 
-**Parent:** [`docs/context/README.md`](../README.md)
-**Status:** 🟡 Non-binding context — see the [context folder rules](../README.md#what-this-folder-is)
+**Parent:** [`docs/context/`](../README.md)
 
----
+**Machine index:** [`../context-manifest.yaml`](../context-manifest.yaml)
 
-## What these are
+**Authority:** [`PERSONA-AUTHORITY-MATRIX.md`](../../governance/PERSONA-AUTHORITY-MATRIX.md)
 
-Each file captures **how one role thinks** — their domain focus, vocabulary, priorities, and
-the questions they ask first. They are written as RAG/grounding context so that a discussion
-(or an AI assistant) can adopt a specific viewpoint deliberately rather than blending all
-perspectives into one voice.
+This folder contains project/domain role instances — **tier 2**. These are the full packages,
+28 KB to 244 KB each.
 
-They are **not** job descriptions, and they are **not** the authoritative stakeholder
-catalogue — that is
-[`knowledge-base/06-stakeholders.md`](../../au-bank-insurance-platform/knowledge-base/06-stakeholders.md).
+> **Do not load a package to adopt a persona.** Read its
+> [decision card](../personas/README.md) (3–6 KB) and open one package file only when a card's
+> *Load deeper* row matches the question in front of you.
 
----
+The manifest is the canonical machine index; this page is the human navigation view. Role context
+cannot enlarge its own authority.
 
-## The panel
+## Canonical packages
 
-Each persona has two files: a **baseline** (how the role operates today) and an
-**agentic-AI evolution** (how the same role operates at the next maturity level).
+| Decision lens | Card (tier 1) | Package (tier 2) |
+|---|---|---|
+| Product — Rajal / R1 | [card](../personas/rajal-product.card.md) | [`principal-insurance-platform-product-owner/`](./principal-insurance-platform-product-owner/README.md) |
+| Business Analysis / R11 | [card](../personas/ba-r11-business-analysis.card.md) | [`principal-insurance-platform-business-analyst/`](./principal-insurance-platform-business-analyst/README.md) |
+| Architecture — Mahesh / R2 | [card](../personas/mahesh-architecture.card.md) | [`mahesh-principal-insurance-platform-architect/`](./mahesh-principal-insurance-platform-architect/README.md) |
+| Engineering — Amit / R3 | [card](../personas/amit-engineering.card.md) | [`amit-technical-head.md`](./amit-technical-head.md) |
+| Security — Deepali / R8 | [card](../personas/deepali-security.card.md) | [`deepali-principal-security-architect/`](./deepali-principal-security-architect/README.md) |
+| Database — Aarti | [card](../personas/aarti-database.card.md) | [`principal-insurance-data-database-architect/`](./principal-insurance-data-database-architect/README.md) |
+| Quality — Swapnali / R7 | [card](../personas/swapnali-qa.card.md) | [`swapnali-qa-lead/`](./swapnali-qa-lead/README.md) |
+| Compliance/Risk — Shailja / R9 | [card](../personas/shailja-compliance.card.md) | [`shailja-s-compliance-risk-head/`](./shailja-s-compliance-risk-head/README.md) |
+| SRE/Operations — Shivanshi / R10 | [card](../personas/shivanshi-sre.card.md) | [`shivanshi-sre/`](./shivanshi-sre/README.md) |
+| Delivery — Kalpana / R12 | [card](../personas/kalpana-delivery.card.md) | [`kalpana-delivery-head/`](./kalpana-delivery-head/README.md) |
 
-| Role | Baseline persona | Agentic-AI evolution | Domain focus |
-|------|-----------------|---------------------|--------------|
-| 📋 **Product Owner** | [rajal-product-owner.md](./rajal-product-owner.md) | [→ agentic evolution](./rajal-product-owner-agentic-ai-evolution.md) | Bancassurance vision, IRDAI CA0515, BRD/user stories, customer & RM journeys |
-| 🏛️ **Solution Architect** | [mahesh-solution-architect.md](./mahesh-solution-architect.md) | [→ agentic evolution](./mahesh-solution-architect-agentic-ai-evolution.md) | Banking/insurance architecture, microservices, security, aggregator abstraction |
-| ⚙️ **Technical Head** | [amit-technical-head.md](./amit-technical-head.md) | [→ agentic evolution](./amit-technical-head-agentic-ai-evolution.md) | Engineering leadership, AWS EKS, CI/CD, quality gates, reliability & SLAs |
-| ⚖️ **Compliance Officer** | [vaishnavi-compliance-officer.md](./vaishnavi-compliance-officer.md) | *not yet written* | IRDAI CA0515 **licence holder**, consent & suitability rules, PII, audit evidence, code compliance review |
+The manifest records whether each governance mapping is `active`, `candidate` or `retired` and
+links the governing decision. “Canonical package” means one maintained context source; it does
+not convert a candidate governance assignment into ratification.
 
-**Read the baseline first.** Each evolution file is written as a delta on top of its
-baseline and assumes you know it.
+### Candidate / supporting compliance package
 
-> **Vaishnavi's persona differs from the other three.** Sections 1–2 are role-derived rather
-> than self-reported, and §7 lists what must be confirmed with her directly. She is also the
-> only persona here whose sign-off is **binding** — a compliance verdict on a regulated item
-> cannot be waived ([14 §1](../../governance/14-CHANGE_CONTROL.md#1-what-needs-a-change-request)).
-> Her review scope for this repository is §5 of her file.
+| Role | Package | Note |
+|---|---|---|
+| Compliance Officer — Vaishnavi | [`vaishnavi-compliance-officer.md`](./vaishnavi-compliance-officer.md) | Supporting pack from the process-realignment war-room branch. **Board 6 / R9 remains Shailja.** Vaishnavi's file is working material for IRDAI CA0515 licence-holder review scope; it does not create a second compliance board or replace Shailja's card. |
 
----
+> Vaishnavi's pack differs from the other packages: sections 1–2 are role-derived rather than
+> self-reported, and §7 lists what must be confirmed with her directly. A compliance verdict on a
+> regulated item remains binding and cannot be waived
+> ([14 §1](../../governance/14-CHANGE_CONTROL.md#1-what-needs-a-change-request)).
 
-## Shared source
+## Shared protocols
 
-All six personas are grounded in the same problem statement:
+Load [`shared/cross-persona-operating-model.md`](./shared/cross-persona-operating-model.md) for a
+consequential multi-role decision, plus only the affected specialist protocol:
 
-→ [`../business-problem-statement.md`](../business-problem-statement.md)
+- [Product / Architecture / Compliance](./shared/product-architecture-compliance-decision-protocol.md)
+- [Architecture / Compliance](./shared/architect-compliance-decision-protocol.md)
+- [Security cross-persona](./shared/security-cross-persona-decision-protocol.md)
+- [SRE cross-persona](./shared/sre-cross-persona-decision-protocol.md)
+- [Delivery cross-persona](./shared/delivery-cross-persona-decision-protocol.md)
 
-The three evolution files are consolidated into a single panel view in
-[`../roadmaps/agentic-ai-transformation-roadmap.md`](../roadmaps/agentic-ai-transformation-roadmap.md).
+## Maintenance rules
+
+- One canonical package per role; aliases are redirects only.
+- New role packages require a named consumer, distinct decision surface and authority boundary.
+- Project/domain facts belong in overlays, not the reusable framework.
+- Do not load every persona by default; use the manifest loading profile and affected domains.
+- Mandatory human signatures remain human even when an AI simulates the reasoning checklist.

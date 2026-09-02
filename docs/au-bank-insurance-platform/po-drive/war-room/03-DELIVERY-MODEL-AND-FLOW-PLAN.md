@@ -162,7 +162,7 @@ than at the end of the quarter.
 
 The existing [12-DEFINITION_OF_READY](../../../governance/12-DEFINITION_OF_READY.md) and
 [13-DEFINITION_OF_DONE](../../../governance/13-DEFINITION_OF_DONE.md) are sound. This proposal
-adds exactly two clauses, both part of `CR-002`:
+adds exactly two clauses, both part of `CR-014`:
 
 | Amendment | Text | Why |
 |-----------|------|-----|

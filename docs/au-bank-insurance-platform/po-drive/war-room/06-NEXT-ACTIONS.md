@@ -14,8 +14,8 @@ knows something is waiting for them.
 |---|---|
 | **Files** | 13 changed, ~1,530 lines added |
 | **Code changed** | **None.** No service, library, test, build file or configuration was touched |
-| **Nature** | Six war-room documents, one persona, one triage record, one change request (`CR-002`, **PENDING**), two risks (`RISK-012`, `RISK-013`), two ID-counter bumps |
-| **Reversible?** | Entirely. Nothing is enforced until a human approves `CR-002` and edits the governance state |
+| **Nature** | Six war-room documents, one persona, one triage record, one change request (`CR-014`, **PENDING**), two risks (`RISK-016`, `RISK-017`), two ID-counter bumps |
+| **Reversible?** | Entirely. Nothing is enforced until a human approves `CR-014` and edits the governance state |
 
 **Read that first line as the reassurance it is:** the realignment has cost the codebase nothing
 so far. Everything expensive is still a decision, not a commitment.
@@ -121,7 +121,7 @@ planning can compress.
 
 ## 5. Waits for the war room
 
-Do **not** start these before `CR-002` is decided — they change governed state, and starting them
+Do **not** start these before `CR-014` is decided — they change governed state, and starting them
 early repeats the exact mistake this pack exists to correct.
 
 | Item | Owner | Waits for |
@@ -153,7 +153,7 @@ whether "nobody is on both tracks" survives contact with the real headcount.
 | **Tech Lead** | Gate 4.1 E2E in CI · 4.5 runbook · 4.6 perf smoke | Now, continuous | No |
 | **QA Lead** | Close or waive 4.7 / QA-001; counter-sign `CR-001` | This sprint | No |
 | **BA** *(unnamed — resource first)* | RTM skeleton for the five built services | This week | No |
-| **Delivery Lead** *(unnamed)* | Prepare the eight governance edits; decide how Rule S-1 is detected | After the war room | Yes — `CR-002` |
+| **Delivery Lead** *(unnamed)* | Prepare the eight governance edits; decide how Rule S-1 is detected | After the war room | Yes — `CR-014` |
 | **Security Architect** *(unnamed)* | Review the auth design that shipped in the same commit as its spec (question S1) | Before the war room | No |
 
 **Three of the ten rows have no name against them** — BA, Delivery Lead, Security Architect. That

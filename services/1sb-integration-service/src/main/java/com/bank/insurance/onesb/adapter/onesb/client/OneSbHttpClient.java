@@ -4,6 +4,9 @@ import com.bank.common.audit.AuditActions;
 import com.bank.common.audit.AuditEvent;
 import com.bank.common.audit.AuditEventPublisher;
 import com.bank.common.audit.AuditOutcomes;
+import com.bank.common.error.ErrorCodes;
+import com.bank.common.error.PlatformLayer;
+import com.bank.common.error.ServiceErrors;
 import com.bank.common.error.ServiceException;
 import com.bank.insurance.onesb.adapter.onesb.error.OneSbErrorNormaliser;
 import com.bank.insurance.onesb.observability.PiiMasker;
@@ -40,28 +43,39 @@ public class OneSbHttpClient {
     private final AuditEventPublisher auditEventPublisher;
     private final ObjectMapper objectMapper;
 
+    private final ServiceErrors serviceErrors;
+
     @Autowired
     public OneSbHttpClient(
             @Qualifier("oneSbRestClient") RestClient oneSbRestClient,
             OneSbErrorNormaliser errorNormaliser,
             AuditEventPublisher auditEventPublisher,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper,
+            ServiceErrors serviceErrors) {
         this.restClient = oneSbRestClient;
         this.errorNormaliser = errorNormaliser;
         this.auditEventPublisher = auditEventPublisher;
         this.objectMapper = objectMapper;
+        this.serviceErrors = serviceErrors;
     }
 
     /** Convenience for tests / temporary poll adapters. */
     public OneSbHttpClient(RestClient oneSbRestClient) {
-        this(oneSbRestClient, new OneSbErrorNormaliser(), event -> {}, new ObjectMapper());
+        this(oneSbRestClient, ServiceErrors.of("onesb", PlatformLayer.L5));
+    }
+
+    /** Convenience for tests / temporary poll adapters, with an explicit identity. */
+    public OneSbHttpClient(RestClient oneSbRestClient, ServiceErrors serviceErrors) {
+        this(oneSbRestClient, new OneSbErrorNormaliser(serviceErrors), event -> {}, new ObjectMapper(),
+             serviceErrors);
     }
 
     public OneSbHttpClient(
             RestClient oneSbRestClient,
             OneSbErrorNormaliser errorNormaliser,
-            AuditEventPublisher auditEventPublisher) {
-        this(oneSbRestClient, errorNormaliser, auditEventPublisher, new ObjectMapper());
+            AuditEventPublisher auditEventPublisher,
+            ServiceErrors serviceErrors) {
+        this(oneSbRestClient, errorNormaliser, auditEventPublisher, new ObjectMapper(), serviceErrors);
     }
 
     public <T> T get(String path, Class<T> responseType) {
@@ -105,7 +119,15 @@ public class OneSbHttpClient {
                 upstreamStatus = inferUpstreamStatus(se, upstreamStatus);
                 throw se;
             }
-            throw ServiceException.upstreamUnavailable("1SB call failed: " + method + " " + path, ex);
+            // The route and the provider name are a diagnostic, never a detail: they told the
+            // caller which internal endpoint we tried and who we tried it against (defect D2).
+            throw serviceErrors.error(ErrorCodes.UPSTREAM_UNAVAILABLE)
+                    .component("OneSbHttpClient")
+                    .operation(method + " " + path)
+                    .upstream(OneSbErrorNormaliser.UPSTREAM, null, upstreamStatus)
+                    .reason("1SB call failed: " + method + " " + path)
+                    .cause(ex)
+                    .build();
         } finally {
             long latencyMs = Math.max(0L, (System.nanoTime() - started) / 1_000_000L);
             publishAudit(method, path, body, latencyMs, upstreamStatus, outcome);

@@ -13,7 +13,7 @@
 | Role | Name | Required? | Why they must be in the room |
 |------|------|:---------:|------------------------------|
 | Product Owner | Rajal | **Mandatory** | Proposer; owns scope and requirement sign-off |
-| Solution Architect | Mahesh | **Mandatory** | Co-approver of `CR-002` ([14 §1](../../../governance/14-CHANGE_CONTROL.md#1-what-needs-a-change-request)); owns the canonical model |
+| Solution Architect | Mahesh | **Mandatory** | Co-approver of `CR-014` ([14 §1](../../../governance/14-CHANGE_CONTROL.md#1-what-needs-a-change-request)); owns the canonical model |
 | Technical Head | Amit | **Mandatory** | Owns engineering capacity and the staffing split |
 | Delivery Lead | | **Mandatory** | Owns `CURRENT-STATE.yaml`, the sprint calendar, and ways of working |
 | Tech Lead | | **Mandatory** | Owns Track B execution and the debt ledger |
@@ -108,7 +108,7 @@ Doing nothing is a decision with paperwork, not the absence of one.
 
 - [ ] Nine decisions in §4, each with a verdict, an owner and a date
 - [ ] Eight sign-offs in [05-STAKEHOLDER-REVIEW-SHEET.md](./05-STAKEHOLDER-REVIEW-SHEET.md)
-- [ ] `CR-002` moved from `PENDING` to `APPROVED` / `REJECTED` / `DEFERRED` in the
+- [ ] `CR-014` moved from `PENDING` to `APPROVED` / `REJECTED` / `DEFERRED` in the
       [decision register](../../../governance/registers/DECISION-REGISTER.md)
 - [ ] Sprint 1 backlog committed for both tracks
 - [ ] Executive Sponsor named (`GAP-010`) or an owner and date for naming them
@@ -119,7 +119,7 @@ Doing nothing is a decision with paperwork, not the absence of one.
 
 ## 7. Immediately after the session (Delivery Lead, within 2 working days)
 
-Only if `CR-002` is approved. All eight items are **human-only actions** — an agent may raise a
+Only if `CR-014` is approved. All eight items are **human-only actions** — an agent may raise a
 change request, never approve or apply one ([14 §3, Rule CC-1](../../../governance/14-CHANGE_CONTROL.md#3-procedure)).
 
 Execute [02 §9](./02-REALIGNMENT-PROPOSAL.md#9-what-changes-in-the-repository-if-cr-002-is-approved)

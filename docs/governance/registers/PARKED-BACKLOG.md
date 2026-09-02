@@ -22,13 +22,41 @@ Real work, wrong stage. Each returns to **full re-triage** at its trigger — ne
 | TD-009 | Missing domain ports (Proposal/Status/Master/Audit/Idempotency) | WS-1 | Phase 1 | Phase 5 | Second LOB requires the abstraction | SHOULD | P4 / P3 | Ports without a second implementation fail test X2 |
 | TD-006 | AWS Secrets Manager provider is a stub | WS-1 | Phase 1 | Phase 6 | First non-local deployment using AWS secrets | MUST | P4 / P1 | Prod profile fails fast today; no AWS target yet |
 | TD-023 | Raw payload capture for status / master-data calls | WS-1 | Phase 4 | Phase 5 | Compliance review outcome (gate 4.4) | SHOULD | P4 / P2 | COMP-003 covered the quote/proposal/payment paths |
+| → [SUG-20260820-r1t](./SUGGESTION-REGISTER.md#2-register) | R0 → R1 → R2 transition and dependency map — the order in which North Star components must appear, and which are prerequisites for which | WS-3 | S08 | S13 | R0 completes a real pilot sale, or R1 planning starts | SHOULD | P4 / P2 | The North Star ([hdl.svg](../../hdl.svg)) shows the destination and what lands per release, but sequencing is a Delivery (R12) question that needs real R0 evidence. Drawing the order now would be guessing |
+| → [SUG-20260821-jx2](./SUGGESTION-REGISTER.md#2-register) | Journey Execution Specification for remaining non-R0 surfaces — DIY / customer journey, hybrid mode switching, Group B insurers, ULIP and Savings, Health / Motor / Travel, renewals and servicing. **Admin UI and Reporting/MIS were carved out on 2026-08-25** (`CR-013` / `ADR-014`) and are R0 | WS-3 | S08 | S13 | R0 completes a real pilot sale, or R1 planning starts and Board 1 has ratified the target design for the surface being specified | SHOULD | P5 / P2 | Remaining surfaces stay in `out_of_scope_now`. Admin/MIS JES is no longer this parked row — it follows the R0 W4 surfaces. The R0 pack ([SUG-20260821-jx1](./SUGGESTION-REGISTER.md#sug-20260821-jx1--r0-journey-execution-specification)) is the template |
 | TD-007 | ArchUnit `allowEmptyShould(true)` | WS-1 | Phase 1 | Phase 5 | Packages populated by LOB expansion | SHOULD | P5 / P3 | Rules cannot tighten against empty packages |
 | E12 | Saving / Annuity / Pension LOBs | WS-1 | Backlog | Phase 6+ | Term + Health + Motor stable in production | SHOULD | P5 / P3 | P2 backlog by PO decision |
 | E13 | Replaceability proof (fake adapter / routing flag) | WS-1 | Backlog | Phase 6+ | Post-GA | COULD | P5 / P4 | Architecture is proven by ArchUnit today |
+| → [SUG-20260816-w3s](./SUGGESTION-REGISTER.md#2-register) | Extend `current-state.schema.json` so workstream relationships (`depends_on`, `entry_conditions`, `parent_workstream`, `delivers_bounded_contexts`) are validated instead of held in comments | WS-3 | S08 | S09 | A third relationship type is needed, or a validator must reason over the WS-3↔WS-1↔WS-2 topology | SHOULD | P3 / P2 | CR-010 registered WS-3 against `additionalProperties: false`; comments plus the authority documents carry the relationships correctly today |
+| → [SUG-20260825-db1](./SUGGESTION-REGISTER.md#sug-20260825-db1--aarti-r0-physical-data-architecture-pack) apply | Copy the Aarti design DDL into per-service Flyway and run it on Aurora (new contexts + `14-audit_event_delta`) | WS-3 | S08 | S09 | S09-E01-S05 / S09-E03-S04 opened, and an owning service exists for the schema | MUST | P4 / P1 | Design is DATA-001; implementation is S09 per OPEN-I1. Applying now would be a migration without an owner |
+| → [SUG-20260825-db1](./SUGGESTION-REGISTER.md#sug-20260825-db1--aarti-r0-physical-data-architecture-pack) restore | Prove Aurora PITR restore against the RPO 5 min / RTO 30 min design targets | WS-3 | S08 | S09 | S09-E06-S04 / S09-VT-07 started | MUST | P4 / P1 | A backup that has never been restored is a hypothesis. Design targets are in `02-operations-and-troubleshooting.md` |
+| → [SUG-20260825-db1](./SUGGESTION-REGISTER.md#sug-20260825-db1--aarti-r0-physical-data-architecture-pack) purge | Implement `sp_retention_sweep` / `sp_purge_operational` as a scheduled job with a disposal audit row | WS-3 | S08 | S09 | S09-E06-S06 started | MUST | P4 / P1 | Routines are designed in `90-routines.sql`; running them now has no Object Lock and no job role |
+| → [SUG-20260831-apg](./SUGGESTION-REGISTER.md#sug-20260831-apg--apigee-is-the-bank-api-plane--do-not-add-a-second-amazon-api-gateway-until-confirmed) draw | Draw Apigee on R0 HLD / LLD / platform views and decide whether Amazon API Gateway is withdrawn | WS-3 | S08 | S09 P4 | **SPIKE-001 written answers** from bank API platform + network: Apigee edition; NIP as a product; 1SB and PG callbacks; how Apigee reaches a new spoke | MUST | P4 / P1 | Human Architecture owner 2026-08-31: keep Apigee **off every diagram** until those answers exist. Amazon API Gateway stays (`ADR-018`) |
 
 > ⚠️ **TD-014's trigger has fired.** It is listed here for the record; the next gate sweep
 > should promote it into the Phase 4 backlog alongside criterion 4.1, or re-park it with a
 > reason.
+
+> **2026-08-24 — what the R0 robustness round did and did not unpark.** `CR-012` admitted a
+> platform cache tier (`ADR-011`) and an event backbone (`ADR-012`) into WS-3's R0 estate. Neither
+> unparks a row above, and the distinction matters because it is the obvious mistake to make:
+>
+> - **`TD-010` / `SUG-0001` (Redis idempotency, WS-1) stay parked.** `ADR-011` explicitly refuses to
+>   hold idempotency in the cache — the record must be written in the same transaction as the
+>   business change (`INV-IDM-01`, `INV-PAY-04`). A shared cache existing does not make a
+>   cache-backed idempotency store correct, and WS-1's remaining blocker is still the horizontal
+>   scale-out decision (`DEP-006`), not the availability of infrastructure. `RISK-004` is unchanged.
+> - **`TD-009` (missing domain ports) stays parked**, on its original trigger. A broker does not
+>   supply a second implementation of anything.
+> - **WS-2's "Bank AD federation (OIDC / SAML / LDAP specifics)" (§2) stays parked.** `ADR-009`
+>   provisions the *path* to Bank AD; the *protocol* is still unconfirmed by the bank, which is what
+>   that row is waiting on (`DEP-010`, `RISK-003`). A private circuit to an unconfirmed protocol
+>   changes nothing about the design.
+>
+> What did change for §2's WS-1 rows: "Dashboards, alerts" and "Disaster-recovery testing" now have
+> a platform to run on sooner than Phase 6 assumed, because WS-3's S09 builds the observability and
+> DR layers. They stay parked for WS-1 — a platform existing is not a WS-1 work item — but a sweep
+> should check whether the WS-1 effort shrank.
 
 ## 2. Parked — stage-deferred by nature
 
@@ -54,13 +82,16 @@ as `LAPSED` after three gates (AS-3).
 
 | ID | Idea | Raised | Why not now | Revisit if |
 |----|------|--------|-------------|------------|
-| — | *empty* | — | — | — |
+| — | *(none parked as Ideas after `ADR-015` unparked `SUG-20260825-st2`)* | — | — | — |
 
 ## 4. Sweep log
 
 | Date | Gate / trigger | Items swept | Promoted | Re-parked | Closed |
 |------|----------------|-------------|----------|-----------|--------|
 | 2026-08-07 | AIGEM adoption — initial seeding | 9 + 9 | 0 | — | 0 |
+| 2026-08-24 | Approved scope change — `CR-012` R0 robustness round | 4 examined (TD-010, SUG-0001, TD-009, WS-2 AD federation) | 0 | 4 — reasons in §1 | 0 |
+| 2026-08-25 | Stakeholder override — `CR-013` R0 lead/MIS/admin pull | SUG-20260825-lt1, of1, st1, pp1 | 4 — ADMITTED into R0 | 0 | 0 |
+| 2026-08-25 | Taken architecture decision — `ADR-015` one NIP-APP | SUG-20260825-st2 | 1 — unparked; workforce store listing CLOSED-DELIVERED by ADR-015. Customer store apps remain R1 | 0 | 1 (st2) |
 
 ---
 

@@ -1,5 +1,7 @@
 package com.bank.insurance.onesb.application;
 
+import com.bank.insurance.onesb.TestErrors;
+
 import com.bank.common.audit.AuditActions;
 import com.bank.common.audit.AuditEvent;
 import com.bank.common.audit.AuditEventPublisher;
@@ -51,8 +53,8 @@ class QuoteServiceTest {
     @BeforeEach
     void setUp() {
         when(termHandler.supportedLob()).thenReturn(Lob.TERM);
-        LobQuoteHandlerRegistry registry = new LobQuoteHandlerRegistry(List.of(termHandler));
-        quoteService = new QuoteService(jobStore, registry, quotePort, pollScheduler, auditEventPublisher);
+        LobQuoteHandlerRegistry registry = new LobQuoteHandlerRegistry(List.of(termHandler), TestErrors.ONESB);
+        quoteService = new QuoteService(jobStore, registry, quotePort, pollScheduler, auditEventPublisher, TestErrors.ONESB);
     }
 
     @Test

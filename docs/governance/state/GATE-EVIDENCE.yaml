@@ -1,0 +1,364 @@
+schema_version: "1.0"
+as_of: "2026-08-16"
+
+policy:
+  mode: proposal-only
+  human_pass_required: true
+  silence_approves: false
+  automatic_waivers: false
+
+workstreams:
+  - id: WS-1
+    gate_id: GATE-P4
+    current_stage: "Phase 4 — Hardening & consumer enablement"
+    next_stage: "Phase 5 — Expand LOBs"
+    bible_stage: S12
+    state: BLOCKED
+    required_approvers: [Architect, Product, QA, Compliance, Operations]
+    criteria:
+      - id: "4.1"
+        description: "Sandbox E2E suite for the Term path runs in CI or gated nightly."
+        state: BLOCKED
+        owner: "Amit / Engineering + Shivanshi / SRE"
+        execution_mode: AUTOMATABLE
+        priority: P1
+        effort: L
+        enables: 3
+        required_evidence_level: E4
+        verifier: ci
+        evidence: []
+        blockers:
+          - id: GATE-4.1-SANDBOX-E2E
+            type: ENVIRONMENT
+            owner: "Amit / Engineering"
+            follow_up: "2026-08-21"
+        last_verified_at: null
+      - id: "4.2"
+        description: "OpenAPI published to the internal portal; consumer collection available."
+        state: PARTIAL
+        owner: "Amit / Engineering"
+        execution_mode: AUTOMATABLE
+        priority: P2
+        effort: S
+        enables: 1
+        required_evidence_level: E3
+        verifier: document
+        evidence: ["OpenAPI generated in commit 79c65f4"]
+        blockers: []
+        last_verified_at: null
+      - id: "4.3"
+        description: "At least one bank caller exercises quote and proposal against UAT."
+        state: BLOCKED
+        owner: "Rajal / Product"
+        execution_mode: EXTERNAL_REQUIRED
+        priority: P2
+        effort: M
+        enables: 0
+        required_evidence_level: E3
+        verifier: external
+        evidence: []
+        blockers:
+          - id: DEP-001
+            type: HARD
+            owner: "Amit / Engineering"
+            follow_up: "2026-08-21"
+          - id: DEP-002
+            type: EXTERNAL
+            owner: "Rajal / Product"
+            follow_up: "2026-08-21"
+        last_verified_at: null
+      - id: "4.4"
+        description: "Compliance review of audit schema and log samples."
+        state: OPEN
+        owner: "Shailja / Compliance"
+        execution_mode: HUMAN_REQUIRED
+        priority: P1
+        effort: M
+        enables: 2
+        required_evidence_level: E2
+        verifier: human-review
+        evidence: []
+        blockers: []
+        last_verified_at: null
+      - id: "4.5"
+        description: "Operations runbook covers secrets rotation, allowlisting and 1SB incidents."
+        state: OPEN
+        owner: "R10 / Operations"
+        execution_mode: AUTOMATABLE
+        priority: P3
+        effort: S
+        enables: 0
+        required_evidence_level: E2
+        verifier: document
+        evidence: []
+        blockers: []
+        last_verified_at: null
+      - id: "4.6"
+        description: "Performance smoke measures p95 quote latency under nominal concurrency."
+        state: BLOCKED
+        owner: "Amit / Engineering + R10 / Operations"
+        execution_mode: AUTOMATABLE
+        priority: P2
+        effort: M
+        enables: 0
+        required_evidence_level: E4
+        verifier: ci
+        evidence: []
+        blockers:
+          - id: DEP-003
+            type: SOFT
+            owner: "Amit / Engineering"
+            follow_up: "2026-08-24"
+        last_verified_at: null
+      - id: "4.7"
+        description: "Coverage gates green; QA-001 closed or explicitly waived with expiry."
+        state: BLOCKED
+        owner: "Swapnali / QA"
+        execution_mode: AUTOMATABLE
+        priority: P2
+        effort: M
+        enables: 0
+        required_evidence_level: E4
+        verifier: ci
+        evidence: ["Shared-library coverage gates at 80% line / 70% branch"]
+        blockers:
+          - id: S08-G3
+            type: HARD
+            owner: "Amit / Engineering"
+            follow_up: "2026-08-30"
+        last_verified_at: null
+    approvals: []
+
+  - id: WS-2
+    gate_id: GATE-IAM-P1
+    current_stage: "Phase 1 — Foundation implementation"
+    next_stage: "Phase 2 — Bank AD federation + production IdP decision"
+    bible_stage: null
+    state: OPEN
+    required_approvers: [Architect, Security, Compliance, QA]
+    criteria:
+      - id: A.1
+        description: "BFF token-hiding proven; Flutter never receives OAuth tokens."
+        state: OPEN
+        owner: "Amit / Engineering"
+        execution_mode: AUTOMATABLE
+        priority: P1
+        effort: M
+        enables: 1
+        required_evidence_level: E4
+        verifier: ci
+        evidence: []
+        blockers: []
+        last_verified_at: null
+      - id: A.2
+        description: "Keycloak isolated behind the identity-provider adapter."
+        state: OPEN
+        owner: "Mahesh / Architecture"
+        execution_mode: AUTOMATABLE
+        priority: P1
+        effort: M
+        enables: 1
+        required_evidence_level: E4
+        verifier: ci
+        evidence: []
+        blockers: []
+        last_verified_at: null
+      - id: A.3
+        description: "Authorization service is the PDP and default-deny is verified."
+        state: OPEN
+        owner: "Amit / Engineering"
+        execution_mode: AUTOMATABLE
+        priority: P1
+        effort: M
+        enables: 1
+        required_evidence_level: E4
+        verifier: ci
+        evidence: []
+        blockers: []
+        last_verified_at: null
+      - id: A.4
+        description: "Maker-checker enforced for bulk and privileged changes."
+        state: OPEN
+        owner: "Deepali / Security"
+        execution_mode: AUTOMATABLE
+        priority: P1
+        effort: M
+        enables: 0
+        required_evidence_level: E4
+        verifier: ci
+        evidence: []
+        blockers: []
+        last_verified_at: null
+      - id: A.5
+        description: "Auth and admin events retained per policy; retention is configurable."
+        state: OPEN
+        owner: "Shailja / Compliance"
+        execution_mode: HUMAN_REQUIRED
+        priority: P1
+        effort: M
+        enables: 0
+        required_evidence_level: E3
+        verifier: human-review
+        evidence: []
+        blockers: []
+        last_verified_at: null
+      - id: A.6
+        description: "Provisioning outbox proves retry and idempotent delivery."
+        state: OPEN
+        owner: "Amit / Engineering"
+        execution_mode: AUTOMATABLE
+        priority: P1
+        effort: M
+        enables: 1
+        required_evidence_level: E4
+        verifier: ci
+        evidence: []
+        blockers: []
+        last_verified_at: null
+    approvals: []
+
+  # WS-3 registered by CR-010. Evidence levels are exactly as S08-engineering-foundation.md
+  # states: E4 for G1-G7 and G9, E2 for G8, E3 for G10.
+  - id: WS-3
+    gate_id: GATE-S08
+    current_stage: "S08 — Engineering Foundation"
+    next_stage: "S09 — Platform & Environment Foundation"
+    bible_stage: S08
+    state: OPEN
+    required_approvers: [Engineering, QA, Architect, Security, Operations]
+    criteria:
+      - id: "S08-G1"
+        description: "CI builds and tests every module on every pull request."
+        state: OPEN
+        owner: "Amit / Engineering"
+        execution_mode: AUTOMATABLE
+        priority: P1
+        effort: M
+        enables: 6
+        required_evidence_level: E4
+        verifier: ci
+        evidence: []
+        blockers: []
+        last_verified_at: null
+      - id: "S08-G2"
+        description: "Merge to main is impossible without a green pipeline."
+        state: OPEN
+        owner: "Amit / Engineering"
+        execution_mode: HUMAN_REQUIRED
+        priority: P1
+        effort: S
+        enables: 2
+        required_evidence_level: E4
+        verifier: human-review
+        evidence: []
+        blockers: []
+        last_verified_at: null
+      - id: "S08-G3"
+        description: "Coverage thresholds enforced in CI; QA-001 closed."
+        state: OPEN
+        owner: "Swapnali / QA"
+        execution_mode: AUTOMATABLE
+        priority: P1
+        effort: M
+        enables: 1
+        required_evidence_level: E4
+        verifier: ci
+        evidence: []
+        blockers: []
+        last_verified_at: null
+      - id: "S08-G4"
+        description: "ArchUnit and static analysis enforced in CI; build fails on breach."
+        state: OPEN
+        owner: "Amit / Engineering"
+        execution_mode: AUTOMATABLE
+        priority: P1
+        effort: M
+        enables: 1
+        required_evidence_level: E4
+        verifier: ci
+        evidence: []
+        blockers: []
+        last_verified_at: null
+      - id: "S08-G5"
+        description: "Secret, SAST, SCA and container image scanning in the pipeline."
+        state: OPEN
+        owner: "Deepali / Security"
+        execution_mode: AUTOMATABLE
+        priority: P1
+        effort: L
+        enables: 2
+        required_evidence_level: E4
+        verifier: ci
+        evidence: []
+        blockers: []
+        last_verified_at: null
+      - id: "S08-G6"
+        description: "Test infrastructure operational at every level: Testcontainers, WireMock, contract and E2E."
+        state: OPEN
+        owner: "Swapnali / QA"
+        execution_mode: AUTOMATABLE
+        priority: P1
+        effort: L
+        enables: 3
+        required_evidence_level: E4
+        verifier: ci
+        evidence: []
+        blockers:
+          - id: TD-014
+            type: HARD
+            owner: "Amit / Engineering"
+            follow_up: "2026-08-30"
+        last_verified_at: null
+      - id: "S08-G7"
+        description: "No PII in logs, proven by an automated test that scans emitted logs."
+        state: OPEN
+        owner: "Deepali / Security"
+        execution_mode: AUTOMATABLE
+        priority: P1
+        effort: M
+        enables: 1
+        required_evidence_level: E4
+        verifier: ci
+        evidence: []
+        blockers: []
+        last_verified_at: null
+      - id: "S08-G8"
+        description: "Engineering and secure coding standards published and adopted."
+        state: OPEN
+        owner: "Amit / Engineering"
+        execution_mode: HUMAN_REQUIRED
+        priority: P3
+        effort: M
+        enables: 0
+        required_evidence_level: E2
+        verifier: document
+        evidence: []
+        blockers: []
+        last_verified_at: null
+      - id: "S08-G9"
+        description: "Pipeline feedback under 10 minutes at p95; flaky failure rate under 1%."
+        state: OPEN
+        owner: "Shivanshi / SRE"
+        execution_mode: AUTOMATABLE
+        priority: P2
+        effort: M
+        enables: 0
+        required_evidence_level: E4
+        verifier: ci
+        evidence: []
+        blockers: []
+        last_verified_at: null
+      - id: "S08-G10"
+        description: "A new engineer can build, test and ship a change in under a week."
+        state: OPEN
+        owner: "Amit / Engineering"
+        execution_mode: HUMAN_REQUIRED
+        priority: P3
+        effort: M
+        enables: 0
+        required_evidence_level: E3
+        verifier: human-review
+        evidence: []
+        blockers: []
+        last_verified_at: null
+    approvals: []

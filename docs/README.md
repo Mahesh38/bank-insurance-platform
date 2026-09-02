@@ -11,12 +11,13 @@ lives, start here.
 ## How this folder is organised
 
 Documents are separated by **what kind of authority they carry**, not by who wrote them.
-There are five buckets, and each answers a different question:
+There are six buckets, and each answers a different question:
 
 | Bucket | Question it answers | Scope | Binding? |
 |--------|--------------------|-------|----------|
 | **[`governance/`](./governance/README.md)** | *Should this work be done at all, and when?* | How every input is triaged, prioritised, and gated — process, not content | ✅ **Binding process** |
-| **[`context/`](./context/README.md)** | *Who are we and what problem are we solving?* | Programme-wide background, personas, forward-looking roadmaps | ❌ Non-binding context |
+| **[`application-lifecycle-bible/`](./application-lifecycle-bible/README.md)** | *Which stage are we in, what must it produce, and when is it done?* | The 16-stage journey from business idea to mature platform: epics, stories, gates, evidence | ⏳ Proposed (CR-010) |
+| **[`context/`](./context/README.md)** | *Who are we, what problem are we solving, and what context should be loaded?* | Portable framework + project manifest/overlay, personas and roadmaps | ❌ Non-binding context |
 | **[`platform/`](./platform/README.md)** | *How should the whole platform be built?* | Cross-cutting, applies to **every** service | ⚠️ Recommendation / approved spec (see each doc) |
 | **[`au-bank-insurance-platform/`](./au-bank-insurance-platform/README.md)** | *What are we building and why?* | Business & product SSOT for the programme | ✅ Business SSOT |
 | **[`1sb-insurance-integration/`](./1sb-insurance-integration/README.md)** | *How is the 1SB adapter built?* | One module — the 1SB integration service | ✅ Engineering SSOT (module) |
@@ -25,16 +26,21 @@ There are five buckets, and each answers a different question:
 while they hold **what is true**. The remaining four split like this:
 
 ```text
-GENERIC / CROSS-CUTTING                    PROJECT- & MODULE-SPECIFIC
-─────────────────────────                  ──────────────────────────
-context/    — background, personas         au-bank-insurance-platform/ — the programme
-platform/   — all-service architecture     1sb-insurance-integration/  — one module
+PORTABLE / CROSS-CUTTING                   PROJECT- & MODULE-SPECIFIC
+────────────────────────                   ──────────────────────────
+context/framework/ — reusable model       context manifest/overlay — this project
+platform/          — all-service specs     au-bank-insurance-platform/ — programme
+                                             1sb-insurance-integration/ — module
 ```
 
-> ⚠️ **Before you act on anything you find here**, read
-> [`governance/RUNBOOK.md §8`](./governance/RUNBOOK.md#8-what-the-ai-agent-must-know-about-this-project)
-> (agents) or your [role card in §6](./governance/RUNBOOK.md#6-role-cards) (humans). A
-> suggestion is never implemented in the turn it is raised — it is triaged and recorded.
+> ⚠️ **Before you act on anything you find here:**
+> **agents** read [`context/BOOT.md`](./context/BOOT.md) — the tier-0 capsule that answers the
+> ten-fact knowledge contract from generated state — then resolve the task to its capsule with
+> `python3 scripts/context/context-load.py resolve "<the request>"` and read only what it lists.
+> Chasing one specific fact instead? `context-load.py find "<the fact>"` — every document below
+> has a routed row in [`DOC-MAP.yaml`](./context/DOC-MAP.yaml), so there is never a reason to grep.
+> **Humans** read your [role card in `RUNBOOK.md §6`](./governance/RUNBOOK.md#6-role-cards).
+> A suggestion is never implemented in the turn it is raised — it is triaged and recorded.
 
 ---
 
@@ -44,21 +50,46 @@ platform/   — all-service architecture     1sb-insurance-integration/  — one
 docs/
 ├── README.md                          ← you are here
 │
+├── hdl.svg                            NORTH STAR — target-state platform HLD, release-coded R0→RN
+├── architecture/                      RENDERED VIEWS — read README.md first
+│   ├── README.md                          Why there are two diagrams and which is binding
+│   ├── r0-reference-architecture.svg      R0 executable architecture (the admitted scope)
+│   ├── R0-HLD.md                          Stakeholder HLD — domain, boundaries, APIs, waves
+│   ├── R0-LLD.md                          S09 AWS pack — VPC, proxy, PVC, DB, cache BOM
+│   └── r0-lld.svg                         R0 LLD rendering (trust zones, EKS, data, do-not-provision)
+│
 ├── governance/                        PROCESS — how work is admitted, gated & recorded
 │   ├── RUNBOOK.md                         Operating manual — role cards, cadences
 │   ├── 00–19 …                            Decision pipeline, priority, review gates
 │   ├── registers/                         Suggestions, risks, decisions, parked backlog
-│   ├── state/                             CURRENT-STATE.yaml — live lifecycle state
+│   ├── state/                             CURRENT-STATE.yaml + GATE-EVIDENCE.yaml
+│   ├── autopilot/                         Safe selection/transition boundary
 │   ├── schemas/  templates/               Machine-checked record formats
 │   └── ORG-STANDARDS.md                   Company-level standards (L2)
 │
-├── context/                           GENERIC — background & AI/RAG context
-│   ├── business-problem-statement.md      Consolidated problem statement
-│   ├── roles/                             Persona context (PO, SA, Tech Head)
-│   └── roadmaps/                          Forward-looking transformation plans
+├── application-lifecycle-bible/       LIFECYCLE — idea → mature platform, stage by stage
+│   ├── 00–09 …                            How to use, position assessment, stage model,
+│   │                                      realignment plan, gates, docs/QA/security/SRE canons
+│   ├── stages/                            S00–S15: epics, stories, AC, validation tests, gates
+│   ├── backlog/                           BACKLOG.yaml + Jira import CSV (generated)
+│   └── templates/                         Epic, story, validation test, gate sign-off, ORR
+│
+├── context/                           PORTABLE MODEL + PROJECT OVERLAY + AGENT ROUTING
+│   ├── BOOT.md                            TIER 0 — the only file an agent reads by default
+│   ├── AGENT-CONTEXT-INDEX.yaml           TIER 1 — task -> exact, budgeted read list
+│   ├── DOC-MAP.yaml                       TIER 1 — every doc routed (generated); query with `find`
+│   ├── personas/                          TIER 1 — persona decision cards (3-6 KB each)
+│   ├── context-manifest.yaml              Machine-readable layers, roles, load profiles
+│   ├── framework/                         Reusable model, loading protocol, templates
+│   ├── schemas/                           Manifest validation contract
+│   ├── business-problem-statement.md      This project's problem statement
+│   ├── roles/                             This project's persona packages
+│   └── roadmaps/                          This project's forward-looking plans
 │
 ├── platform/                          CROSS-CUTTING — applies to all services
 │   ├── architecture-review/               Target AWS/EKS microservices architecture
+│   ├── ws3-platform/                      Ratified R0 architecture sources
+│   ├── data-architecture/                 Aarti R0 physical pack + design DDL
 │   └── authentication-authorization/      Workforce authN/authZ SSOT
 │
 ├── au-bank-insurance-platform/        BUSINESS SSOT — the programme
@@ -86,10 +117,17 @@ docs/
 | If you are… | Read this first |
 |-------------|-----------------|
 | **About to act on a requirement, bug, or suggestion** | [`governance/RUNBOOK.md`](./governance/RUNBOOK.md) — find your role card; triage before you build |
-| **An AI agent starting a session** | [`governance/RUNBOOK.md §8`](./governance/RUNBOOK.md#8-what-the-ai-agent-must-know-about-this-project) + [`09-AI_EXECUTION_RULES.md`](./governance/09-AI_EXECUTION_RULES.md) |
+| **An AI agent starting a session** | [`context/BOOT.md`](./context/BOOT.md), then `context-load.py resolve` — the binding contract behind them is [`09-AI_EXECUTION_RULES.md`](./governance/09-AI_EXECUTION_RULES.md) |
+| **Acting as a persona (any board)** | [`context/personas/`](./context/personas/README.md) — a card, not a package |
+| **Selecting safe non-blocked work** | [`governance/autopilot/README.md`](./governance/autopilot/README.md) + [`governance/state/GATE-EVIDENCE.yaml`](./governance/state/GATE-EVIDENCE.yaml) |
+| **Reusing context for another project/domain** | [`context/framework/README.md`](./context/framework/README.md) — scaffold, replace the project overlay, validate |
 | **New to the programme** | [`context/business-problem-statement.md`](./context/business-problem-statement.md) → [`au-bank-insurance-platform/README.md`](./au-bank-insurance-platform/README.md) |
+| **Asking "what stage are we in, and what does it require?"** | [`application-lifecycle-bible/README.md`](./application-lifecycle-bible/README.md) — position banner, then the current stage file |
 | **Product Owner / BA** | [`au-bank-insurance-platform/07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md`](./au-bank-insurance-platform/07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md) — the business MVP SSOT |
 | **Solution Architect** | [`platform/architecture-review/README.md`](./platform/architecture-review/README.md) — target-state platform architecture |
+| **Wanting the picture, not the prose** | [`architecture/README.md`](./architecture/README.md) — the North Star HLD ([`hdl.svg`](./hdl.svg)) and the R0 architecture, and why they are two diagrams |
+| **Wanting the R0 HLD in prose, or the AWS bill of materials** | [`architecture/R0-HLD.md`](./architecture/R0-HLD.md) · [`architecture/R0-LLD.md`](./architecture/R0-LLD.md) · picture: [`architecture/r0-lld.svg`](./architecture/r0-lld.svg) |
+| **Implementing a request end to end — hops, per-layer validation, outcomes** | [`journey-execution/README.md`](./journey-execution/README.md) — the use case catalogue, then the one `flows/UC-nn-*.md` you are building |
 | **Building the 1SB adapter** | [`1sb-insurance-integration/service-ssot/README.md`](./1sb-insurance-integration/service-ssot/README.md) |
 | **Building auth / identity services** | [`platform/authentication-authorization/README.md`](./platform/authentication-authorization/README.md) |
 | **QA / test engineer** | [`1sb-insurance-integration/service-ssot/QA-LEAD-TESTING-STRATEGY.md`](./1sb-insurance-integration/service-ssot/QA-LEAD-TESTING-STRATEGY.md) + [`TESTING-RULES.md`](./1sb-insurance-integration/service-ssot/TESTING-RULES.md) |
@@ -132,14 +170,22 @@ below is about **content**: when two documents disagree on a fact, resolve in th
 7. context/                                                                     background & personas — never binding
 ```
 
-Two rules that are easy to get wrong:
+Three rules that are easy to get wrong:
 
+- **`application-lifecycle-bible/` is proposed, not binding.** It carries a Product-authored
+  position assessment and a 16-stage delivery model. Until **CR-010** is ratified by Boards 1–7
+  it is a planning instrument: plan against it, but cite `governance/` — not the bible — as
+  authority in a triage record. Where the two ever conflict, **AIGEM wins**.
 - **`platform/architecture-review/` is a recommendation, not an approval.** It proposes a
   ~16-service AWS/EKS target state. It does not overwrite the business SSOT, and its
   technology choices are tracked separately as `ARCH-xxx`.
 - **`1sb-insurance-integration/` is one module, not the platform.** It is a thin adapter for
   a single aggregator. Where it and `platform/architecture-review/` appear to conflict, the
   review places the adapter inside the bigger picture — it does not discard it.
+- **Diagrams are rendered views, never sources of truth.** [`hdl.svg`](./hdl.svg) and
+  [`architecture/`](./architecture/README.md) render the documents above; where a diagram and a
+  document disagree, the document wins. `hdl.svg` in particular is *target state*: only its R0
+  band is admitted scope, and nothing on it authorises work.
 
 ---
 

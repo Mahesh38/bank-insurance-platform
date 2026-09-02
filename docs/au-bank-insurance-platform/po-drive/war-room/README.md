@@ -3,7 +3,7 @@
 **Raised by:** Platform Product Owner
 **Date raised:** 2026-08-12
 **Status:** 🟠 **PROPOSAL — awaiting stakeholder review.** Nothing in this folder is approved.
-**Governance route:** [`CR-002`](../../../governance/registers/DECISION-REGISTER.md#3-change-requests) ·
+**Governance route:** [`CR-014`](../../../governance/registers/DECISION-REGISTER.md#3-change-requests) ·
 triaged as [`SUG-20260812-p1r`](../../../governance/registers/SUGGESTION-REGISTER.md)
 
 ---
@@ -59,7 +59,7 @@ So the answer is to retro-fit traceability, not to stop.
 - It does **not** re-open decisions already recorded in
   [DECISION-LOG.md](../../DECISION-LOG.md) or the
   [architecture decision log](../../../platform/architecture-review/08-architecture-decision-log.md).
-- It does **not** change any lifecycle stage or gate. Only the war room, recorded as `CR-002`,
+- It does **not** change any lifecycle stage or gate. Only the war room, recorded as `CR-014`,
   can do that — an agent may raise a change request and never approve one
   ([14 §3, Rule CC-1](../../../governance/14-CHANGE_CONTROL.md#3-procedure)).
 
@@ -71,6 +71,6 @@ The room ends with **nine recorded decisions** ([04 §4](./04-WAR-ROOM-RUNSHEET.
 and **eight sign-offs** ([05](./05-STAKEHOLDER-REVIEW-SHEET.md)). Any decision the room cannot
 take is recorded as open, with a named owner and a date — not left implied.
 
-If `CR-002` is approved, the mechanical consequences are listed in
+If `CR-014` is approved, the mechanical consequences are listed in
 [02 §9](./02-REALIGNMENT-PROPOSAL.md#9-what-changes-in-the-repository-if-cr-002-is-approved) and
 must be applied by a human before the next sprint starts.

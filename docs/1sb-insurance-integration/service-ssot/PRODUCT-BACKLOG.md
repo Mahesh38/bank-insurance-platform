@@ -4,7 +4,7 @@
 **Priority legend:** P0 = go-live Term · P1 = Health/Motor + hardening · P2 = later LOBs / ops polish  
 **Story types:** `FUNC` functional · `NFR` non-functional · `COMP` compliance · `TECH` technical enabler · `SHARED` shared JAR
 
-All stories below are for **this service only**.
+All runtime stories below are for **this service only**. The final **Governance / decision-quality enablers** section exists only because AIGEM routes cross-cutting `GOV` work to the owning workstream backlog; it does not expand 1SB runtime scope.
 
 ---
 
@@ -295,3 +295,51 @@ All stories below are for **this service only**.
 7. P1 Health → Motor → requirements/docs  
 
 Developers should take stories **top-down within P0**; do not start Health before Term quote/proposal path is green in sandbox.
+
+---
+
+## Governance / decision-quality enablers
+
+> Cross-cutting AIGEM routing record only. Items in this section **do not add 1SB service functionality** and must not be used to interrupt P0/P1 runtime delivery except through the normal priority/override rules.
+
+### SUG-20260816-d8v · Dilip AI Executive Sponsor Perspective
+
+**Type:** GOV/DOC · **AIGEM priority:** P2 now / P2 before material AU-platform P0/R0 business decisions  
+**Status:** DONE — merged via PR #49
+**Origin:** [Suggestion Register](../../governance/registers/SUGGESTION-REGISTER.md#sug-20260816-d8v--dilip-ai-executive-sponsor-perspective)
+
+**Purpose:** provide a reusable executive sponsor business/value lens before material bancassurance scope, investment, build/buy/partner and pilot-success decisions, without creating a tenth canonical persona or impersonating a human sponsor.
+
+**Acceptance criteria:**
+
+- [x] Dilip is implemented as an auxiliary module under Rajal's canonical Product package, not a new AIGEM persona/board.
+- [x] End-to-end bancassurance business, customer, distribution, insurer/aggregator, operations and finance reasoning is explicit.
+- [x] Business-gap → capability → option → investment → outcome → KPI reasoning is explicit.
+- [x] Budget/TCO/ROI/payback and benefits-realization discipline is explicit; unknown numbers are never fabricated.
+- [x] Bounded AI sponsor states are defined: `ENDORSE`, `ENDORSE_WITH_CONDITIONS`, `CLARIFY`, `DEFER`, `DO_NOT_ENDORSE`.
+- [x] Rajal and all specialist/human authority boundaries remain unchanged.
+- [x] P0 BRD, R0 scope and stakeholder knowledge base reference the lens at material decision points.
+- [x] Human-identity guardrail prevents AI output being represented as the real Dilip Kumar Vidyarthi's approval.
+- [x] Draft PR reviewed/merged; item closed in the suggestion register.
+
+**Delivery cost / displacement:** this documentation work consumes capacity that could otherwise advance the currently open WS-1 `GATE-P4` / `P4-UAT-SIGNOFF`, particularly consumer/UAT enablement. It changes no gate criterion and claims no runtime completion.
+
+### SUG-20260816-ba7 · Principal Business Analyst / R11
+
+**Type:** GOV/DOC · **AIGEM priority:** P2
+**Status:** DONE — merged via PR #51
+**Origin:** [Suggestion Register](../../governance/registers/SUGGESTION-REGISTER.md#sug-20260816-ba7--principal-insurance-platform-business-analyst--r11)
+
+The existing R11 role now has a modular end-to-end bancassurance Business Analyst reasoning
+package. It adds no board or Product authority and preserves specialist/human boundaries.
+
+### SUG-20260816-ap1 · Reusable Context Module and Safe Autopilot
+
+**Type:** GOV/DOC/INFRA/QA · **AIGEM priority:** P2
+**Status:** IN REVIEW — implementation complete on `codex/context-autopilot-foundation`; CR-010 human verdicts pending
+**Origin:** [Suggestion Register](../../governance/registers/SUGGESTION-REGISTER.md#sug-20260816-ap1--reusable-context-module-and-safe-autopilot)
+**Plan:** [PLAN-001](../../governance/plans/PLAN-001-context-module-and-safe-autopilot.md)
+
+**Acceptance:** portable context scaffolding and validation; workstream-aware routing; semantic
+governance checks; proposal-only stage automation; application CI; generated lifecycle drift
+checks; compact compatibility redirects; no automatic human approval or stage transition.

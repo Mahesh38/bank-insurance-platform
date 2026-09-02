@@ -1,0 +1,100 @@
+name: Application CI
+
+# GATE-S08 criteria S08-G1 (build and test every module on every PR) and
+# S08-G2 (merge to main impossible without a green pipeline).
+#
+# TRIGGER DESIGN — two deliberate changes from the original version.
+#
+# 1. Runs on push to ANY branch, not only main. S08-G1 requires evidence at level
+#    E4: a run history. With PR-only triggers there was no run to point at until
+#    someone opened a PR, so the criterion could not be evidenced on a working
+#    branch at all.
+#
+# 2. The `paths:` filter is GONE from `pull_request`. It has to be, for S08-G2:
+#    a required status check that is skipped by a path filter never reports a
+#    conclusion, and GitHub then either blocks the PR indefinitely or allows the
+#    merge with no check. Both defeat the gate. The build is small; the compute
+#    the filter saved is worth less than a gate mechanism that works.
+#    (Board 1 finding A-F05 / Engineering finding T-F01.)
+#
+# BRANCH PROTECTION — required to close S08-G2, and NOT configurable from this file.
+# A repository administrator must, on `main`:
+#   * require a pull request before merging, with >= 1 approving review;
+#   * require these status checks to pass, exactly as named:
+#       - "Java 21 tests and coverage gates"       (this workflow)
+#       - "Secret scanning (gitleaks)"             (security-scanning.yml)
+#       - "SAST (CodeQL, Java)"                    (security-scanning.yml)
+#       - "SCA (Trivy dependency scan)"            (security-scanning.yml)
+#   * require branches to be up to date before merging;
+#   * dismiss stale approvals on new commits;
+#   * disallow force-push and deletion.
+# Until that is configured, S08-G2 stays OPEN however green this workflow is:
+# the pipeline is the mechanism, and branch protection is what makes it a gate.
+
+on:
+  pull_request:
+  push:
+    branches: ["**"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Supersede in-flight runs for the same ref. Without this, successive pushes queue
+# full builds against a finite runner pool, and queued checks look exactly like
+# slow checks — which is how "CI is slow" gets diagnosed for weeks.
+concurrency:
+  group: application-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-and-coverage:
+    name: Java 21 tests and coverage gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      # `build` compiles main and test sources for every module and runs `check`,
+      # which the root build script wires to jacocoTestCoverageVerification. The
+      # verification task is named explicitly as well so that a future change to
+      # that wiring cannot silently drop the coverage gate from CI.
+      - name: Build, test and verify coverage gates
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon build test jacocoTestReport jacocoTestCoverageVerification
+
+      # ArchUnit boundary rules and the S08-VT-03 "rules bite" suite run as part of
+      # `test` above. Surfacing them separately makes an architecture regression
+      # readable in the run summary instead of buried in a 350-test report.
+      - name: Architecture fitness summary
+        if: always()
+        run: |
+          set -uo pipefail
+          shopt -s nullglob
+          reports=(services/*/build/test-results/test/TEST-*rchitecture*.xml)
+          if [ ${#reports[@]} -eq 0 ]; then
+            echo "::error::No ArchUnit test results found — the architecture rules did not run."
+            exit 1
+          fi
+          for f in "${reports[@]}"; do
+            python3 -c "import sys, xml.etree.ElementTree as ET; r = ET.parse(sys.argv[1]).getroot(); print('{}: tests={} failures={} errors={}'.format(r.get('name','?').split('.')[-1], r.get('tests'), r.get('failures'), r.get('errors')))" "$f"
+          done
+
+      - name: Upload test and coverage reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: application-test-reports
+          path: |
+            **/build/reports/tests/**
+            **/build/reports/jacoco/**
+          if-no-files-found: warn
+          retention-days: 14

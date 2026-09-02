@@ -1,0 +1,43 @@
+schema_version: "1.0"
+module_version: "1.0.0"
+
+project:
+  id: "{{PROJECT_ID}}"
+  name: "{{PROJECT_NAME}}"
+  domain: "{{PROJECT_DOMAIN}}"
+  problem_statement: "{{CONTEXT_PATH}}/problem-statement.md"
+  repository_root: "."
+
+authority:
+  context_is_binding: false
+  canonical_authority: "{{CONTEXT_PATH}}/README.md"
+  precedence:
+    - "{{CONTEXT_PATH}}/"
+
+layers:
+  - id: framework
+    kind: framework
+    path: "{{CONTEXT_PATH}}/framework/"
+    portable: true
+    authority: none
+  - id: project
+    kind: project
+    path: "{{CONTEXT_PATH}}/problem-statement.md"
+    portable: false
+    authority: context
+
+roles: []
+
+loading_profiles:
+  - id: orientation
+    purpose: "Understand the project without making a governed decision."
+    include: ["layer:project"]
+
+portability:
+  scaffold_template: "{{CONTEXT_PATH}}/framework/templates/project/"
+  scaffold_command: "python scripts/context/new-project-context.py"
+  validate_command: "python scripts/context/validate-context.py"
+  excluded_from_reuse:
+    - "project problem statement"
+    - "named roles and organisation-specific authority"
+    - "domain conclusions"

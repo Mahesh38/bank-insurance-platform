@@ -1,9 +1,13 @@
 # AIGEM — AI Governance & Execution Model
 
-**Version:** 1.0
-**Status:** Binding for all AI agents and human contributors working in this repository
-**Custodian:** Platform / Solution Architect
-**Source blueprint:** *AIGEM Executive Blueprint v0.1*
+**Version:** 1.4  
+**Status:** Binding for all AI agents and human contributors working in this repository  
+**Custodian:** Platform / Solution Architect  
+**Source blueprint:** *AIGEM Executive Blueprint v0.1*  
+**Version 1.1 change:** CR-002 maps Board 1 to the Principal Insurance Platform Architect persona and adds the reciprocal Architect↔Compliance protocol. Ratification remains subject to the approvers recorded in CR-002.  
+**Version 1.2 change:** CR-003 adds the Principal Insurance Data & Database Architect / DBA specialist persona and the canonical cross-persona authority/accountability matrix without changing AIGEM's seven-board constitution.  
+**Version 1.3 change:** CR-008 maps the existing R10 DevOps/SRE role and Board 7 Operations reasoning persona to **Shivanshi — Principal Insurance Platform SRE / Reliability Engineering Head**, preserving O1–O8 while adding insurance/bancassurance-aware platform, CI/CD, observability, incident/DR, capacity/scaling and developer-experience depth. No eighth board is created.  
+**Version 1.4 change:** CR-009 recalibrates the framework for **flow**. T4 escalation becomes a test of what a change *does* rather than what it is *near*; `GOV` work is queued and counted like any other work; board silence gets a clock; approvals expire on elapsed time or changed context rather than stage arithmetic; R12 may force a decision's timing but never its content; binding-veto deadlock gets a named human tie-breaker; the persona roster is closed at nine; **gate criteria closed per week** becomes the headline metric with a self-alarm; and freshness accepts a dated, attributed "reviewed, no change". No board, veto, jurisdiction or mandatory human sign-off is changed.
 
 ---
 
@@ -64,6 +68,7 @@ resolve L3 first.** See [01-CURRENT_STATE.md](./01-CURRENT_STATE.md).
 | File | Purpose |
 |------|---------|
 | **[RUNBOOK.md](./RUNBOOK.md)** | **The operating manual — who does what, how often, and what breaks if they don't.** Role cards, cadences, the staleness matrix, and the AI agent's knowledge contract. Most people need only their role card. |
+| **[PERSONA-AUTHORITY-MATRIX.md](./PERSONA-AUTHORITY-MATRIX.md)** | **Canonical cross-persona segregation of duties** — Product, Architecture, Engineering, **SRE/Operations**, Delivery, Security, Database, QA and Compliance/Risk ownership, accountability, review/approval/blocking and Not-Authorised boundaries. |
 
 ### Decision pipeline (read in this order)
 
@@ -80,7 +85,7 @@ resolve L3 first.** See [01-CURRENT_STATE.md](./01-CURRENT_STATE.md).
 | 08 | [08-BACKLOG_RULES.md](./08-BACKLOG_RULES.md) | Where triaged work goes and how it moves |
 | 09 | [09-AI_EXECUTION_RULES.md](./09-AI_EXECUTION_RULES.md) | **The agent contract** — read this before acting |
 | 10 | [10-IMPLEMENTATION_PLAN_TEMPLATE.md](./10-IMPLEMENTATION_PLAN_TEMPLATE.md) | **Step 9** — Plan structure and required fields |
-| 11 | [11-REVIEW_GATES.md](./11-REVIEW_GATES.md) | **Step 10** — Seven review boards + approval gate |
+| 11 | [11-REVIEW_GATES.md](./11-REVIEW_GATES.md) | **Step 10** — Seven review boards + approval gate. Board 1 uses Mahesh, Board 4 Deepali, Board 5 Swapnali, Board 6 Shailja and **Board 7 Operations uses Shivanshi/R10**. Material DB work invokes Aarti through the applicable existing board; no new board is added. |
 | 12 | [12-DEFINITION_OF_READY.md](./12-DEFINITION_OF_READY.md) | When work may be picked up |
 | 13 | [13-DEFINITION_OF_DONE.md](./13-DEFINITION_OF_DONE.md) | When work may be closed |
 | 14 | [14-CHANGE_CONTROL.md](./14-CHANGE_CONTROL.md) | Changing scope, stage, or an approved plan |
@@ -91,12 +96,30 @@ resolve L3 first.** See [01-CURRENT_STATE.md](./01-CURRENT_STATE.md).
 | 19 | [19-PORTING_GUIDE.md](./19-PORTING_GUIDE.md) | Installing AIGEM into another repository |
 | — | [ORG-STANDARDS.md](./ORG-STANDARDS.md) | Layer 2 — organization-wide architecture, security, compliance and quality baselines |
 | — | [RUNBOOK.md](./RUNBOOK.md) | Operating manual: roles, cadences, maintenance, ceremonies |
+| — | [change-requests/CR-002-principal-architect-persona-integration.md](./change-requests/CR-002-principal-architect-persona-integration.md) | Board 1 persona / Architect↔Compliance protocol integration |
+| — | [change-requests/CR-003-principal-dba-and-persona-authority-matrix.md](./change-requests/CR-003-principal-dba-and-persona-authority-matrix.md) | Principal DBA specialist authority and canonical cross-persona authority matrix |
+| — | [change-requests/CR-008-add-shivanshi-sre-persona.md](./change-requests/CR-008-add-shivanshi-sre-persona.md) | Assign/mature existing R10 / Board 7 Operations as Shivanshi without adding a board |
+| — | [change-requests/CR-009-governance-flow-recalibration.md](./change-requests/CR-009-governance-flow-recalibration.md) | Recalibrate the framework for flow; close the persona roster at nine |
+| — | [change-requests/CR-010-context-module-and-safe-autopilot.md](./change-requests/CR-010-context-module-and-safe-autopilot.md) | Reusable context module, safe autopilot, WS-3 lifecycle — [board verdicts](./change-requests/CR-010/verdicts/README.md) |
+| — | [change-requests/CR-011-mahesh-target-state-north-star-doctrine.md](./change-requests/CR-011-mahesh-target-state-north-star-doctrine.md) | Target-state / North Star architecture doctrine · **PENDING RATIFICATION** |
+| — | [workstreams/README.md](./workstreams/README.md) | How WS-1, WS-2 and WS-3 relate, and which one owns a given change |
+
+### Persona operating model
+
+| File | Purpose |
+|---|---|
+| [../context/roles/shared/cross-persona-operating-model.md](../context/roles/shared/cross-persona-operating-model.md) | Product ↔ Architecture ↔ Engineering ↔ SRE/Operations ↔ Security ↔ Database ↔ QA ↔ Compliance ↔ Delivery communication, handoff, conflict and escalation contract |
+| [../context/roles/shivanshi-sre/README.md](../context/roles/shivanshi-sre/README.md) | Canonical Shivanshi Principal Insurance Platform SRE / R10 / Board 7 persona package |
+| [../context/roles/shared/sre-cross-persona-decision-protocol.md](../context/roles/shared/sre-cross-persona-decision-protocol.md) | SRE reliability/scaling/incident/recovery cross-persona handoff protocol |
+| [../context/roles/principal-insurance-data-database-architect/README.md](../context/roles/principal-insurance-data-database-architect/README.md) | Canonical Principal Insurance Data & Database Architect / DBA persona package |
 
 ### Live project data (L3)
 
 | File | Contents |
-|------|----------|
+|------|---------|
 | [state/CURRENT-STATE.yaml](./state/CURRENT-STATE.yaml) | Machine-readable current stage, objective, scope, gate |
+| [state/GATE-EVIDENCE.yaml](./state/GATE-EVIDENCE.yaml) | Owners, blockers, verification evidence and human approvals, kept separate from stage authority |
+| [state/REVIEW-LOG.md](./state/REVIEW-LOG.md) | "Reviewed, nothing changed" acknowledgements — freshness without a token edit (FR-1) |
 | [registers/SUGGESTION-REGISTER.md](./registers/SUGGESTION-REGISTER.md) | Every suggestion ever triaged, with verdict |
 | [registers/PARKED-BACKLOG.md](./registers/PARKED-BACKLOG.md) | Deferred work, with the stage that unparks it |
 | [registers/DECISION-REGISTER.md](./registers/DECISION-REGISTER.md) | Decisions + ADR index |
@@ -115,6 +138,7 @@ resolve L3 first.** See [01-CURRENT_STATE.md](./01-CURRENT_STATE.md).
 | [templates/REVIEW-VERDICT.md](./templates/REVIEW-VERDICT.md) | One reviewer's verdict |
 | [templates/ADR.md](./templates/ADR.md) | Architecture decision record |
 | [schemas/](./schemas/) | JSON Schema for each artefact — validate before accepting |
+| [autopilot/README.md](./autopilot/README.md) | Proposal-only selection and transition contract; blocked work is skipped, human gates remain human |
 
 ---
 
@@ -165,6 +189,9 @@ resolve L3 first.** See [01-CURRENT_STATE.md](./01-CURRENT_STATE.md).
        Architecture ─ Product ─ Technical ─ Security
              QA ─ Risk/Compliance ─ Operations
                             │
+             specialist evidence/review as needed
+               (for example Aarti / Principal DBA)
+                            │
                             ▼
                      APPROVAL GATE
                       /           \
@@ -207,10 +234,12 @@ An agent handed *anything* runs this:
    If PARK    → registers/PARKED-BACKLOG.md with target stage + unpark trigger. Stop.
    If REJECT  → registers/SUGGESTION-REGISTER.md with reason. Stop.
    If ESCALATE→ 14-CHANGE_CONTROL.md. Stop and ask a human.
-7. Return to the work item you were on before this input arrived.
+7. Before asserting cross-persona authority, resolve PERSONA-AUTHORITY-MATRIX.md.
+8. For material Operations/SRE questions, load Shivanshi/R10 and the SRE cross-persona protocol.
+9. Return to the work item you were on before this input arrived.
 ```
 
-Step 7 is not optional. It is the whole point.
+The final return-to-task step is not optional. It is the whole point.
 
 ---
 
@@ -231,6 +260,8 @@ Human instruction in the current conversation
 An agent may never resolve a conflict silently. Record it in the triage record's
 `conflicts` field and follow the order above.
 
+The persona authority matrix allocates decision jurisdiction; it does not override AIGEM precedence or authoritative regulation/policy.
+
 ---
 
 ## 8. What "mature" means here
@@ -242,7 +273,11 @@ This model is deliberately built to score against the blueprint's 9/10 maturity 
 | Decision confidence | [16 §5](./16-DECISION_MODEL.md#5-confidence-levels) |
 | Evidence & assumptions | [16 §4](./16-DECISION_MODEL.md#4-evidence-standard), [registers/ASSUMPTION-REGISTER.md](./registers/ASSUMPTION-REGISTER.md) |
 | Traceability matrix | [08 §6](./08-BACKLOG_RULES.md#6-traceability) |
-| Architecture principles engine | [11 §4](./11-REVIEW_GATES.md#4-board-1--architecture) |
+| Architecture principles engine | [11 §4](./11-REVIEW_GATES.md#4-board-1--architecture) + [Mahesh — Principal Insurance Platform Architect](../context/roles/mahesh-principal-insurance-platform-architect/README.md) |
+| End-to-end business analysis / R11 | [Principal Insurance Platform Business Analyst package](../context/roles/principal-insurance-platform-business-analyst/README.md) + [Runbook R11](./RUNBOOK.md#r11--business-analyst) |
+| Cross-persona authority segregation | [PERSONA-AUTHORITY-MATRIX.md](./PERSONA-AUTHORITY-MATRIX.md) + [cross-persona operating model](../context/roles/shared/cross-persona-operating-model.md) |
+| **Business-aware SRE / Operations authority** | [Shivanshi/R10 package](../context/roles/shivanshi-sre/README.md) + [Board 7](./11-REVIEW_GATES.md#10-board-7--operations) + [SRE protocol](../context/roles/shared/sre-cross-persona-decision-protocol.md) |
+| Database specialist authority | [Principal Insurance Data & Database Architect / DBA](../context/roles/principal-insurance-data-database-architect/README.md) |
 | Decision log | [registers/DECISION-REGISTER.md](./registers/DECISION-REGISTER.md) |
 | Cost vs value analysis | [05 §4](./05-PRIORITY_MODEL.md#4-the-scoring-model) |
 | Project health dashboard | [18](./18-GOVERNANCE_METRICS.md) |
@@ -250,6 +285,7 @@ This model is deliberately built to score against the blueprint's 9/10 maturity 
 | Memory categorization | [08 §2](./08-BACKLOG_RULES.md#2-the-six-buckets) |
 | Revalidation triggers | [16 §7](./16-DECISION_MODEL.md#7-revalidation-triggers) |
 | Success metrics | [18 §2](./18-GOVERNANCE_METRICS.md#2-the-metrics) |
+| Architect↔Compliance separation of duties | [shared protocol](../context/roles/shared/architect-compliance-decision-protocol.md) |
 
 ---
 

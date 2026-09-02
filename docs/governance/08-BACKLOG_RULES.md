@@ -38,17 +38,59 @@ backlog.
 
 | Type | Destination |
 |------|-------------|
-| `FUNC`, `NFR`, `COMP`, `TECH`, `SHARED` | [service-ssot/PRODUCT-BACKLOG.md](../1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md) (WS-1) · [authentication-authorization/README.md](../platform/authentication-authorization/README.md) backlog (WS-2) |
-| `BUG` | Product backlog, defects section, with the violated AC |
-| `DEBT`, `REFACTOR` | [service-ssot/TECH-DEBT.md](../1sb-insurance-integration/service-ssot/TECH-DEBT.md) |
-| `QA` | [service-ssot/TEST-BACKLOG.md](../1sb-insurance-integration/service-ssot/TEST-BACKLOG.md) |
-| `ARCH`, `MIGRATION` | ADR + backlog; ADR indexed in [registers/DECISION-REGISTER.md](./registers/DECISION-REGISTER.md) |
-| `SEC`, `COMP` (risk-bearing) | Backlog **and** [registers/RISK-REGISTER.md](./registers/RISK-REGISTER.md) |
-| `OPS`, `INFRA` | Backlog, ops section |
-| `SPIKE` | Backlog with a timebox |
-| `DOC` | Applied in place; recorded in the suggestion register |
-| `GOV` | `docs/governance/**` via change control |
+The machine authority is `state/CURRENT-STATE.yaml routing[workstream][type]`. Every active
+workstream is closed over the same 16 canonical types and every destination must exist.
+
+| Type | Destination rule |
+|---|---|
+| `FUNC`, `BUG`, `NFR`, `INFRA`, `OPS`, `SPIKE` | Owning workstream backlog |
+| `DEBT`, `REFACTOR` | Owning workstream debt/backlog destination |
+| `QA` | Owning workstream quality backlog/destination |
+| `ARCH`, `MIGRATION` | Architecture decision log plus owning backlog |
+| `SEC`, risk-bearing `COMP` | Owning backlog plus risk register |
+| `DOC` | Applied in place and recorded in the suggestion register |
+| `GOV` | Governance change control plus owning backlog (see §3.1) |
 | `IDEA` | Parked backlog → Ideas |
+
+`TECH-*` and `SHARED-*` are legacy item-ID namespaces, not work types. Classify them as
+`INFRA`, `NFR` or `ARCH` before routing.
+
+### 3.1 Governance work is work
+
+> **Rule BR-4 — `GOV` items are triaged, queued and counted like any other work type.**
+> A change to the governance framework, a persona package, a register format or this file gets a
+> `SUG-####`, a stage-fit and necessity verdict, a priority, a backlog entry and a place in the
+> queue — exactly as a `FUNC` item does. It also consumes the **single in-flight slot**
+> ([00 §2](./00-GOVERNANCE.md#2-principles), [09](./09-AI_EXECUTION_RULES.md)).
+
+Governance work previously routed only to `docs/governance/**` through change control. Change
+control asks *"is this change correct?"* — it never asks *"should we be spending this week's
+capacity on governance instead of on the open gate?"*. Nothing compared governance work against
+product work, because governance work never entered the queue where that comparison happens.
+
+The measured consequence in this repository: **61 consecutive commits of governance and persona
+documentation, zero product commits, while GATE-P4 held at 0 of 7 exit criteria closed and
+GATE-IAM-P1 at 0 of 6.** Every one of those changes was individually well-formed and correctly
+change-controlled. None of them was ever weighed against the delivery it displaced.
+
+Concretely, a `GOV` item must now:
+
+1. carry a `SUG-####` and a triage verdict like any other input;
+2. appear as a work item in the owning workstream's backlog, not only as a CR;
+3. occupy its owner's one in-flight slot while it is being written — governance work pauses that
+   owner's product lane, but it is not a global repository mutex; independent, dependency-safe
+   owners may continue, and the displacement must be visible on the board;
+4. state, in its CR `impact` block, which gate criterion or delivery outcome it defers;
+5. be reported in the gate scorecard under [18 §2](./18-GOVERNANCE_METRICS.md#2-governance-metrics).
+
+**Exempt from the queue** (hygiene, not change): correcting a broken link or typo, appending a
+row to a register during normal triage, recording a decision that has already been made, and the
+freshness acknowledgements in [17](./17-DRIFT_CONTROL.md). These are bookkeeping the framework
+already requires; they are not framework changes.
+
+> **The test:** if it adds a rule, a persona, a board, a document or a required artefact, it is
+> `GOV` work and it queues. If it only records something the framework already decided, it is
+> hygiene and it does not.
 
 ---
 
@@ -68,7 +110,7 @@ TRIAGED ──► READY ──► IN-FLIGHT ──► IN-REVIEW ──► DONE
 | `TRIAGED` | Has a `SUG-####` with stage fit, scope fit, necessity, type, priority |
 | `READY` | Meets [12-DoR](./12-DEFINITION_OF_READY.md); has an approved plan for tier T2+ |
 | `IN-FLIGHT` | Exactly one per agent/owner ([09 §3](./09-AI_EXECUTION_RULES.md#3-one-active-item)) |
-| `BLOCKED` | Names the blocker ID and its expected release |
+| `BLOCKED` | Names the blocker ID, owner and follow-up date; it does not consume an implementation WIP slot |
 | `IN-REVIEW` | Board verdicts pending or conditions outstanding |
 | `DONE` | Meets [13-DoD](./13-DEFINITION_OF_DONE.md) with evidence |
 | `PARKED` | Has `target_stage` **and** `unpark_trigger` |

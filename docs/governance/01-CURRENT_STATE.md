@@ -46,7 +46,7 @@ the agent believed at decision time — a decision that was correct against a st
 | State as of | 2026-08-10 |
 | Ratified by | **Mahesh (Solution Architect), 2026-08-10** (GOV-004) — PO counter-signature outstanding |
 | Active workstreams | 2 (see §4) |
-| Governance version | AIGEM 1.0 |
+| Governance version | AIGEM 1.4 |
 
 > This snapshot was reconstructed from repository artefacts (`ACTION-PLAN.md`, phase
 > `STATUS.md` files, `TECH-DEBT.md`, git history) and **ratified by the Solution Architect on

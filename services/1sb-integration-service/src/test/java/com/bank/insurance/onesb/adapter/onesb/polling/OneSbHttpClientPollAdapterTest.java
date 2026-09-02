@@ -1,5 +1,7 @@
 package com.bank.insurance.onesb.adapter.onesb.polling;
 
+import com.bank.common.error.ErrorCatalogue;
+import com.bank.common.error.ErrorCodes;
 import com.bank.common.error.ServiceException;
 import com.bank.insurance.onesb.adapter.onesb.client.OneSbHttpClient;
 import com.bank.insurance.onesb.domain.port.outbound.OneSbPollPort.PollResult;
@@ -88,15 +90,26 @@ class OneSbHttpClientPollAdapterTest {
     }
 
     @Test
-    void poll_serviceException_mapsHttpStatusAndMessage() {
-        when(httpClient.get(PATH, String.class))
-                .thenThrow(ServiceException.upstreamAuth("1SB returned 401"));
+    void poll_serviceException_mapsHttpStatusAndSafeMessage() {
+        ServiceException upstreamAuthFailure = ServiceException.of(ErrorCodes.UPSTREAM_AUTH_FAILURE)
+                .reason("1SB returned 401")
+                .build();
+
+        when(httpClient.get(PATH, String.class)).thenThrow(upstreamAuthFailure);
 
         PollResult result = adapter.poll(PATH);
 
         assertThat(result.complete()).isFalse();
         assertThat(result.httpStatus()).isEqualTo(502);
-        assertThat(result.errorMessage()).isEqualTo("1SB returned 401");
+
+        // The poll result carries the exception's message, and that message is now the catalogue's
+        // safe detail rather than the developer text. The developer text is not lost — it is on the
+        // diagnostic, reachable by the incident id — but it no longer travels on anything a caller
+        // can read.
+        assertThat(result.errorMessage())
+                .isEqualTo(ErrorCatalogue.require(ErrorCodes.UPSTREAM_AUTH_FAILURE).publicDetail())
+                .doesNotContain("401");
+        assertThat(upstreamAuthFailure.getDiagnostic().getReason()).isEqualTo("1SB returned 401");
     }
 
     @Test

@@ -49,6 +49,18 @@ public class TokenVaultCipher {
     public <T> T decrypt(String encrypted, Class<T> type) {
         try {
             byte[] combined = Base64.getUrlDecoder().decode(encrypted);
+
+            // The session cookie is attacker-controlled and unauthenticated at this point,
+            // so the length is validated before any buffer read. Without this guard a value
+            // shorter than the IV made ByteBuffer.get throw BufferUnderflowException — a
+            // RuntimeException outside the catch below, which escaped this method entirely
+            // and past BffExceptionHandler (it handles IllegalArgumentException and
+            // IllegalStateException only), surfacing a truncated cookie as a 500 instead of
+            // a 401. Found by TokenVaultCipherSecurityTest under S08-E03.
+            if (combined.length <= IV_LENGTH) {
+                throw new IllegalStateException("Unable to decrypt workforce session");
+            }
+
             ByteBuffer buffer = ByteBuffer.wrap(combined);
             byte[] iv = new byte[IV_LENGTH];
             buffer.get(iv);
@@ -57,7 +69,13 @@ public class TokenVaultCipher {
             Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
             cipher.init(Cipher.DECRYPT_MODE, key, new GCMParameterSpec(TAG_BITS, iv));
             return objectMapper.readValue(cipher.doFinal(ciphertext), type);
-        } catch (GeneralSecurityException | IOException | IllegalArgumentException exception) {
+        } catch (GeneralSecurityException | IOException | RuntimeException exception) {
+            // Every failure mode returns the same opaque message and the same exception type.
+            // A caller must not be able to distinguish "wrong key" from "tampered" from
+            // "malformed" — that distinction is an oracle.
+            if (exception instanceof IllegalStateException alreadyNormalised) {
+                throw alreadyNormalised;
+            }
             throw new IllegalStateException("Unable to decrypt workforce session", exception);
         }
     }

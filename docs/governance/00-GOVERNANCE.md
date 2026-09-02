@@ -43,8 +43,9 @@ AIGEM makes scheduling explicit and mechanical:
    risk tier ([11 §3](./11-REVIEW_GATES.md#3-proportionality--which-boards-are-mandatory)).
 7. **Evidence over assertion.** "This is needed" without a named consumer, a failing test, a
    regulation, or a gate criterion is an opinion — score it as low confidence.
-8. **One active objective.** An agent has exactly one work item in flight. Everything else is
-   queued.
+8. **One active objective per executor.** Each agent or named owner has exactly one work item in
+   flight. Independent owners may operate bounded, dependency-safe lanes. A blocked item is
+   snapshotted with an owner/date and releases that executor's implementation lane.
 9. **Reversibility is a first-class input.** Cheap-to-change-later beats build-it-now.
 10. **The register is the memory.** Agents forget between sessions; the registers do not.
 
@@ -81,14 +82,16 @@ and adds only the triage layer in front of it. Concretely, in this repository:
 |------|-----------------|------------------------------------------|
 | Platform / Solution Architect | Custodian of this framework; stage transitions; architecture verdicts | Architecture |
 | Product Owner | Scope definition; necessity disputes; priority ties | Product |
-| Business Analyst | Requirement clarity; acceptance criteria quality | Product (delegate) |
+| Principal Insurance Platform Business Analyst (R11) | End-to-end process/requirement/rule/information/state/exception clarity; acceptance criteria quality; traceability preparation | Product (delegate) |
 | Engineering / Tech Lead | Technical verdicts; work breakdown; debt ledger | Technical |
 | QA Lead | Testability, coverage, validation evidence | QA |
 | Security Architect | Security verdict (**veto**) | Security |
 | Risk & Compliance | Regulatory verdict (**veto**) | Risk & Compliance |
-| DevOps / SRE | Operability, deployability, rollback | Operations |
+| **DevOps / SRE — Shivanshi** | Operability, deployability, observability, rollback/recovery, platform reliability, capacity/scaling and operational evidence | Operations |
 | Delivery Lead | Gate cadence; parked-item grooming; metrics | — |
 | **AI agent** | Running the pipeline faithfully; producing records; **not** granting itself approvals | Executes review roles only where [11 §2](./11-REVIEW_GATES.md#2-who-may-sit-on-a-board) permits |
+
+**Canonical SRE identity:** [Shivanshi — Principal Insurance Platform SRE / Reliability Engineering Head](../context/roles/shivanshi-sre/README.md) fills and matures the existing R10 / Board 7 Operations role. This is a merge of the existing capability, not a replacement and not an eighth board. The Board 7 O1–O8 controls remain binding.
 
 An AI agent may *simulate* a board to produce a draft verdict. A simulated verdict is marked
 `reviewer_type: AGENT` and can never satisfy a mandatory human sign-off — see
@@ -111,7 +114,7 @@ An AI agent may *simulate* a board to produce a draft verdict. A simulated verdi
 | **Scope fit (SC)** | How the input relates to approved business/technical scope. SC0–SC4. |
 | **Necessity** | MUST / SHOULD / COULD / NOT-NOW / REJECT. |
 | **Priority** | P1–P5, always stage-relative — see [05](./05-PRIORITY_MODEL.md). |
-| **Gate** | A checkpoint with written exit criteria. Stage gates ([04](./04-STAGE_GATES.md)) and the approval gate ([11](./11-REVIEW_GATES.md)). |
+| **Gate** | A checkpoint with written exit criteria. Stage gates ([04](./04-STAGE_GATES.md)) and the approval gate ([11](./11-REVIEW_GATES.md). |
 
 ---
 
@@ -204,7 +207,15 @@ The framework itself is governed. Changes to any `docs/governance/**` file follo
 - work type `GOV`;
 - Architecture + Product boards mandatory;
 - a version bump in [README.md](./README.md) §1;
-- a note in [registers/DECISION-REGISTER.md](./registers/DECISION-REGISTER.md).
+- a note in [registers/DECISION-REGISTER.md](./registers/DECISION-REGISTER.md);
+- **a backlog entry and a place in the queue** ([08 §3.1](./08-BACKLOG_RULES.md#31-governance-work-is-work));
+- **a named cost**: which gate criterion or delivery outcome this governance work defers.
 
 An agent may **propose** framework changes. It may not apply them to L1 files without a human
 approval recorded in the change request.
+
+> **Rule GC-1 — The framework competes for capacity with the work it governs.**
+> Governance work is not free and is not exempt. It consumes the same single in-flight slot as
+> product work, and it is measured on the same board. A framework that grows while its gates stay
+> shut is not governing delivery — it has become the delivery, and it must be able to see that
+> about itself.

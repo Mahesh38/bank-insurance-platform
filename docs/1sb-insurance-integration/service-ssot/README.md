@@ -51,6 +51,7 @@ Inbound auth *for this service specifically* (JWT + mTLS dual-ready) is still lo
 | [COVERAGE.md](./COVERAGE.md) | JaCoCo how-to-run, thresholds, exclusions, interim service floor |
 | [../architecture/bank-persistence-service.md](../architecture/bank-persistence-service.md) | Platform common persistence contract (multi-consumer, Flyway, `/internal/v1`) |
 | [../architecture/audit-consumer-service.md](../architecture/audit-consumer-service.md) | Audit-consumer stub — persists via bank-persistence HTTP only |
+| [phase-1/SYNC-CONTRACT.md](./phase-1/SYNC-CONTRACT.md) | Dual-dev ownership split for E00 foundations — who owns which file, to avoid merge conflicts |
 | [phase-1/TECH-LEAD-REVIEW.md](./phase-1/TECH-LEAD-REVIEW.md) | Phase 1 + senior comment disposition |
 | [phase-1/TECH-LEAD-REVIEW-COMMON-PERSISTENCE.md](./phase-1/TECH-LEAD-REVIEW-COMMON-PERSISTENCE.md) | Persistence is platform-common (not 1SB-owned) |
 | [phase-1/REFACTOR-COMMON-PERSISTENCE.md](./phase-1/REFACTOR-COMMON-PERSISTENCE.md) | Agent split for common-persistence rename |

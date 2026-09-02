@@ -1,7 +1,7 @@
 # 05 — Stakeholder Review & Sign-Off Sheet
 
 **Proposal under review:** [02-REALIGNMENT-PROPOSAL.md](./02-REALIGNMENT-PROPOSAL.md) ·
-change request [`CR-002`](../../../governance/registers/DECISION-REGISTER.md#3-change-requests)
+change request [`CR-014`](../../../governance/registers/DECISION-REGISTER.md#3-change-requests)
 **Instruction:** fill in your block **before** the war room. Bring it with you.
 
 ---
@@ -30,7 +30,7 @@ Three rules:
 
 ## 1. Solution Architect — Mahesh
 
-**You approve:** `CR-002` jointly with the PO · WS-0 workstream and its stage map · Rules S-1 to
+**You approve:** `CR-014` jointly with the PO · WS-0 workstream and its stage map · Rules S-1 to
 S-4 · the canonical-model-first principle (P5)
 **Your veto domain:** architecture, contracts, canonical model, stage gates
 
@@ -220,7 +220,7 @@ Completed by the PO at the close of the session.
 | Compliance | | |
 | Business Analyst | | |
 
-**`CR-002` outcome:** ☐ APPROVED ☐ APPROVED WITH CONDITIONS ☐ REJECTED ☐ DEFERRED
+**`CR-014` outcome:** ☐ APPROVED ☐ APPROVED WITH CONDITIONS ☐ REJECTED ☐ DEFERRED
 **Recorded in:** [`governance/registers/DECISION-REGISTER.md`](../../../governance/registers/DECISION-REGISTER.md) §3
 **Date:** _______________  **Recorded by:** _______________
 

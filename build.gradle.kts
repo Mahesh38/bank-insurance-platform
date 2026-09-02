@@ -1,7 +1,7 @@
 plugins {
     id("java")
     id("jacoco")
-    id("org.springframework.boot") version "3.3.4" apply false
+    id("org.springframework.boot") version "3.5.16" apply false
     id("io.spring.dependency-management") version "1.1.6" apply false
 }
 
@@ -18,9 +18,20 @@ subprojects {
     // Import the Spring Boot BOM for all subprojects (libs + service).
     // This lets lib modules declare compileOnly("org.slf4j:slf4j-api") etc.
     // without pinning versions — versions come from the BOM.
+    // Spring Boot 3.5.16 pins Netty 4.1.135.Final, which is still exposed to
+    // CVE-2026-59901 (fixed in 4.1.136.Final). Overriding the BOM property is a
+    // single patch bump inside the same minor line, and it is the only override
+    // here — every other flagged package is fixed by the BOM itself.
+    // Remove this once a Spring Boot release pins 4.1.136.Final or later.
+    extra["netty.version"] = "4.1.136.Final"
+
+    // Same pattern: 3.5.16 pins PostgreSQL 42.7.11, exposed to CVE-2026-54291
+    // (fixed in 42.7.12). Remove once a Spring Boot release pins 42.7.12 or later.
+    extra["postgresql.version"] = "42.7.12"
+
     configure<io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension> {
         imports {
-            mavenBom("org.springframework.boot:spring-boot-dependencies:3.3.4")
+            mavenBom("org.springframework.boot:spring-boot-dependencies:3.5.16")
         }
     }
 
@@ -31,6 +42,40 @@ subprojects {
 
     repositories {
         mavenCentral()
+    }
+
+    // S08-E04-S03/S05 — dependency locking, so the SCA and SBOM tooling can read
+    // the resolved Java dependency graph from a file it parses natively.
+    //
+    // Trivy could not see the Java estate otherwise: its filesystem scan found only
+    // the Flutter pubspec.lock, and staging the Spring Boot fat jars into the scan
+    // root did not help, because Trivy's JAR analyzer needs trivy-java-db to
+    // identify archives and that lookup was not resolving. A gradle.lockfile is a
+    // plain manifest Trivy parses directly, with no external database involved.
+    //
+    // Only runtimeClasspath is locked. That is the configuration that describes what
+    // actually ships, which is exactly what an SBOM and a CVE scan should cover, and
+    // it keeps compile- and test-only churn out of the lockfiles.
+    dependencyLocking {
+        lockMode.set(LockMode.LENIENT)
+    }
+    configurations.matching { it.name == "runtimeClasspath" }.configureEach {
+        resolutionStrategy.activateDependencyLocking()
+    }
+
+    // Writes every lockfile in one invocation: ./gradlew resolveAndLockAll --write-locks
+    tasks.register("resolveAndLockAll") {
+        notCompatibleWithConfigurationCache("Resolves configurations at execution time")
+        doFirst {
+            require(gradle.startParameter.isWriteDependencyLocks) {
+                "Run with --write-locks"
+            }
+        }
+        doLast {
+            configurations
+                .matching { it.name == "runtimeClasspath" }
+                .forEach { it.resolve() }
+        }
     }
 
     dependencies {

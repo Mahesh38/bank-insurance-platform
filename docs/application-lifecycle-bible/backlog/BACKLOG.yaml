@@ -1,0 +1,3005 @@
+# Application Lifecycle Backlog — GENERATED FILE, DO NOT EDIT BY HAND.
+#
+# Source of truth: docs/application-lifecycle-bible/stages/*.md
+# Regenerate:      python3 scripts/lifecycle/generate-backlog.py
+#
+# Structure lives here; state lives in Jira. Do not sync state back.
+
+schema_version: "1.0"
+framework: "Application Lifecycle Bible 1.0"
+status: "proposed — binding after CR-010 ratification"
+
+stages:
+  - id: S00
+    name: "Ideation & Business Case"
+    aigem_stage: "L0"
+    owner: "Executive Sponsor + Rajal (Product)"
+    default_priority: P3
+    epics:
+      - id: S00-E01
+        title: "Problem definition and opportunity sizing"
+        owner: "Rajal"
+        stories:
+          - id: S00-E01-S01
+            title: "Articulate the as-is problem with evidence"
+            acceptance_criteria: "Current-state process documented; the specific business loss named (post-redirect blindness); quantified where data exists"
+          - id: S00-E01-S02
+            title: "Size the opportunity"
+            acceptance_criteria: "Addressable customer base by segment; attach-rate assumptions stated as assumptions; revenue range with a stated confidence"
+          - id: S00-E01-S03
+            title: "Define the target outcome"
+            acceptance_criteria: "3–5 outcome statements, each measurable; each has a baseline and a target date"
+          - id: S00-E01-S04
+            title: "Identify the alternatives considered"
+            acceptance_criteria: "At least two alternatives (buy, partner, extend legacy) with why each was not chosen"
+      - id: S00-E02
+        title: "Regulatory and licence viability"
+        owner: "Shailja"
+        stories:
+          - id: S00-E02-S01
+            title: "Confirm the activity is within licence"
+            acceptance_criteria: "Licence number, class, and permitted activities cited; open-architecture multi-insurer distribution confirmed permissible"
+          - id: S00-E02-S02
+            title: "Identify showstopper obligations"
+            acceptance_criteria: "Any obligation that would make the concept unviable is surfaced now, not at S12"
+          - id: S00-E02-S03
+            title: "Confirm data-handling viability"
+            acceptance_criteria: "Categories of regulated data identified at concept level (PII, financial, health); residency constraint stated"
+      - id: S00-E03
+        title: "Business case and funding"
+        owner: "Sponsor + Rajal"
+        stories:
+          - id: S00-E03-S01
+            title: "Build the cost model"
+            acceptance_criteria: "Build, run and change costs over 3 years; explicitly includes foundation and compliance cost, not only feature cost"
+          - id: S00-E03-S02
+            title: "Build the benefit model"
+            acceptance_criteria: "Revenue, cost-to-serve, and control benefits, separately stated"
+          - id: S00-E03-S03
+            title: "State the investment decision"
+            acceptance_criteria: "Payback period, funding envelope, tranche conditions; what would cause the programme to stop"
+          - id: S00-E03-S04
+            title: "Obtain funding approval"
+            acceptance_criteria: "Recorded approval from the investment authority, dated"
+      - id: S00-E04
+        title: "Governance establishment"
+        owner: "Rajal + Kalpana"
+        stories:
+          - id: S00-E04-S01
+            title: "Name the executive sponsor"
+            acceptance_criteria: "A named individual, with decision rights and an escalation path, recorded in the RACI"
+          - id: S00-E04-S02
+            title: "Establish the RACI"
+            acceptance_criteria: "Every decision class has a named accountable person"
+          - id: S00-E04-S03
+            title: "Define the decision cadence"
+            acceptance_criteria: "Steering frequency, membership, quorum, and what it decides"
+          - id: S00-E04-S04
+            title: "Establish the KPI tree"
+            acceptance_criteria: "Outcomes decompose to measurable KPIs; each KPI has a source system and an owner"
+    validation_tests:
+      - id: S00-VT-01
+        validates: "The problem is real, not assumed"
+        method: "Interview 5+ stakeholders across RM, branch and operations"
+        pass_condition: "≥ 4 independently describe the same post-redirect visibility loss"
+      - id: S00-VT-02
+        validates: "The opportunity is credible"
+        method: "Independent review of the sizing assumptions by Finance"
+        pass_condition: "Assumptions accepted or revised; no unsupported multiplier survives"
+      - id: S00-VT-03
+        validates: "The activity is permissible"
+        method: "Compliance opinion against the licence"
+        pass_condition: "Written opinion: permissible, with conditions listed"
+      - id: S00-VT-04
+        validates: "Someone is accountable"
+        method: "Ask any team member \"who is the sponsor?\""
+        pass_condition: "Same name from ≥ 80%"
+      - id: S00-VT-05
+        validates: "Success is measurable"
+        method: "Walk each outcome to a KPI, a source, and an owner"
+        pass_condition: "No outcome ends in \"improved experience\" with no measure"
+    exit_gate:
+      - id: S00-G1
+        criterion: "Business case approved and funded"
+        evidence_level: "E2"
+        evidence_artefact: "Signed investment approval with envelope and tranche conditions"
+      - id: S00-G2
+        criterion: "Executive sponsor named with decision rights"
+        evidence_level: "E1"
+        evidence_artefact: "RACI naming an individual"
+      - id: S00-G3
+        criterion: "Regulatory viability confirmed"
+        evidence_level: "E2"
+        evidence_artefact: "Compliance opinion, signed"
+      - id: S00-G4
+        criterion: "Target outcomes defined and measurable"
+        evidence_level: "E1"
+        evidence_artefact: "KPI tree with owners and baselines"
+      - id: S00-G5
+        criterion: "Alternatives considered and recorded"
+        evidence_level: "E1"
+        evidence_artefact: "Options paper with rationale"
+      - id: S00-G6
+        criterion: "Programme governance operating"
+        evidence_level: "E1"
+        evidence_artefact: "Steering terms of reference; first meeting minuted"
+
+  - id: S01
+    name: "Discovery & Capability Definition"
+    aigem_stage: "L0"
+    owner: "Rajal (Product)"
+    default_priority: P3
+    epics:
+      - id: S01-E01
+        title: "Stakeholder and actor definition"
+        owner: "Rajal"
+        stories:
+          - id: S01-E01-S01
+            title: "Catalogue every actor"
+            acceptance_criteria: "Bank actors (RM, BM, CM, RM-regional, Zonal, National), insurer actors (desk rep, regional ops, admin), customer segments (ETB, NTB), operations and compliance actors"
+          - id: S01-E01-S02
+            title: "Map organisational hierarchies"
+            acceptance_criteria: "Bank and insurer hierarchies with the reporting relationships that will drive data scoping"
+          - id: S01-E01-S03
+            title: "Identify decision rights per actor"
+            acceptance_criteria: "Who may quote, override, verify, approve, view MIS — the raw material for the S07 authorization model"
+          - id: S01-E01-S04
+            title: "Capture pain points per actor"
+            acceptance_criteria: "Evidence-based, from interviews or observation, not assumed"
+      - id: S01-E02
+        title: "Capability mapping"
+        owner: "Rajal + Mahesh"
+        stories:
+          - id: S01-E02-S01
+            title: "Build the level-1 and level-2 capability map"
+            acceptance_criteria: "Capabilities, not systems and not org units; each stated as a business ability"
+          - id: S01-E02-S02
+            title: "Assess each capability's current maturity"
+            acceptance_criteria: "None / partial / adequate, with the supporting system named"
+          - id: S01-E02-S03
+            title: "Identify capability gaps"
+            acceptance_criteria: "The delta between current and required maturity; this is the programme's real scope"
+          - id: S01-E02-S04
+            title: "Prioritise capabilities by business value"
+            acceptance_criteria: "Which capabilities carry the outcome from S00"
+      - id: S01-E03
+        title: "Journey and value-stream discovery"
+        owner: "Rajal + BA"
+        stories:
+          - id: S01-E03-S01
+            title: "Map the as-is journeys"
+            acceptance_criteria: "RM-assisted and self-service, including the redirect point where visibility is lost"
+          - id: S01-E03-S02
+            title: "Map the to-be journeys at concept level"
+            acceptance_criteria: "Lead → need analysis → suitability → consent → quote → proposal → payment → issuance"
+          - id: S01-E03-S03
+            title: "Identify journey variants"
+            acceptance_criteria: "ETB vs NTB; assisted vs DIY vs hybrid; Group A (aggregator) vs Group B (redirect) insurers"
+          - id: S01-E03-S04
+            title: "Identify the moments that matter"
+            acceptance_criteria: "Where the sale is won or lost; where regulatory obligations bind"
+      - id: S01-E04
+        title: "Domain vocabulary"
+        owner: "Rajal + Mahesh"
+        stories:
+          - id: S01-E04-S01
+            title: "Build the glossary"
+            acceptance_criteria: "Every domain term defined once; conflicting usages resolved, not documented in parallel"
+          - id: S01-E04-S02
+            title: "Define business-state vocabulary"
+            acceptance_criteria: "What \"quoted\", \"proposed\", \"issued\", \"sold\" mean, precisely"
+          - id: S01-E04-S03
+            title: "Agree the ubiquitous language"
+            acceptance_criteria: "The glossary's terms are the terms used in code, APIs and Jira"
+      - id: S01-E05
+        title: "Gap and question management"
+        owner: "Rajal"
+        stories:
+          - id: S01-E05-S01
+            title: "Establish the gap register"
+            acceptance_criteria: "Every open question has an ID, owner, severity, and exit criterion"
+          - id: S01-E05-S02
+            title: "Establish the discovery backlog"
+            acceptance_criteria: "Open questions tracked to closure, not to a document"
+          - id: S01-E05-S03
+            title: "Classify gaps by blocking severity"
+            acceptance_criteria: "P0 = blocks scope/build; P1 = blocks pilot; P2/P3 = later. P0 must actually block"
+    validation_tests:
+      - id: S01-VT-01
+        validates: "Capability map is complete"
+        method: "Walk each to-be journey step; every step maps to a capability"
+        pass_condition: "No orphan step; no capability with no journey"
+      - id: S01-VT-02
+        validates: "Actors are complete"
+        method: "Walk each capability; every one has an actor who performs and one who is accountable"
+        pass_condition: "No unowned capability"
+      - id: S01-VT-03
+        validates: "Glossary is unambiguous"
+        method: "Give 5 team members 10 terms to define independently"
+        pass_condition: "≥ 90% agreement; disputes resolved into the glossary"
+      - id: S01-VT-04
+        validates: "Journeys reflect reality"
+        method: "Review the as-is journey with 3 practising RMs"
+        pass_condition: "RMs recognise their own process; corrections captured"
+      - id: S01-VT-05
+        validates: "Gaps are honestly severed"
+        method: "For every P0 gap, name what it blocks and confirm that thing is actually blocked"
+        pass_condition: "No P0 gap whose \"blocked\" work is proceeding"
+    exit_gate:
+      - id: S01-G1
+        criterion: "Capability map complete and prioritised"
+        evidence_level: "E1"
+        evidence_artefact: "Capability map with maturity and priority"
+      - id: S01-G2
+        criterion: "Stakeholder catalogue with decision rights"
+        evidence_level: "E1"
+        evidence_artefact: "Stakeholder catalogue"
+      - id: S01-G3
+        criterion: "As-is and to-be journeys mapped with variants"
+        evidence_level: "E1"
+        evidence_artefact: "Journey canvas"
+      - id: S01-G4
+        criterion: "Glossary agreed and adopted"
+        evidence_level: "E2"
+        evidence_artefact: "Glossary, signed off by Product + Architecture"
+      - id: S01-G5
+        criterion: "Gap register established with severities that bind"
+        evidence_level: "E1"
+        evidence_artefact: "Gap register + a stated blocking rule"
+      - id: S01-G6
+        criterion: "Discovery findings reviewed with business stakeholders"
+        evidence_level: "E2"
+        evidence_artefact: "Review record with attendees and corrections"
+
+  - id: S02
+    name: "Regulatory, Risk & Compliance Framing"
+    aigem_stage: "L1"
+    owner: "Shailja S (Compliance & Risk Head, Board 6)"
+    default_priority: P1
+    epics:
+      - id: S02-E01
+        title: "Regulatory registry"
+        owner: "Shailja"
+        stories:
+          - id: S02-E01-S01
+            title: "Catalogue applicable regulation"
+            acceptance_criteria: "IRDAI corporate agency, RBI cyber-security and payment, DPDP/privacy, banking and AML as applicable; each with citation"
+          - id: S02-E01-S02
+            title: "Extract obligations"
+            acceptance_criteria: "Each obligation gets an ID, source citation, plain-language statement, and an owner"
+          - id: S02-E01-S03
+            title: "Map obligations to journey steps"
+            acceptance_criteria: "Every obligation attaches to where in the journey it binds"
+          - id: S02-E01-S04
+            title: "Establish the regulatory change watch"
+            acceptance_criteria: "Named owner, cadence, and a route from a change into the backlog"
+      - id: S02-E02
+        title: "Control catalogue"
+        owner: "Shailja + Deepali"
+        stories:
+          - id: S02-E02-S01
+            title: "Define a control per obligation"
+            acceptance_criteria: "Every obligation has ≥ 1 control; every control names its obligation"
+          - id: S02-E02-S02
+            title: "Classify controls as preventive/detective/corrective"
+            acceptance_criteria: "Preventive controls become hard gates in code"
+          - id: S02-E02-S03
+            title: "Define the evidence for each control"
+            acceptance_criteria: "What artefact proves it operates — automated test preferred"
+          - id: S02-E02-S04
+            title: "Identify non-waivable controls"
+            acceptance_criteria: "The list that no authority may waive; published and agreed"
+      - id: S02-E03
+        title: "Consent rule pack"
+        owner: "Shailja + Rajal"
+        stories:
+          - id: S02-E03-S01
+            title: "Define consent events"
+            acceptance_criteria: "Which actions require consent, from which actor, at which journey point"
+          - id: S02-E03-S02
+            title: "Define consent content and versioning"
+            acceptance_criteria: "Statement text, version ID, language variants; how a version change affects in-flight journeys"
+          - id: S02-E03-S03
+            title: "Define the capture mechanism per channel"
+            acceptance_criteria: "Assisted: SMS/OTP to the customer's device. DIY: in-app checkbox + OTP. Evidence captured identically in both"
+          - id: S02-E03-S04
+            title: "Define the consent evidence record"
+            acceptance_criteria: "Statement text, version, CIF, OTP transaction ID, timestamp, IP — append-only, immutable"
+          - id: S02-E03-S05
+            title: "Define withdrawal and expiry"
+            acceptance_criteria: "Can consent be withdrawn, what happens to in-flight and completed journeys, how long consent remains valid"
+          - id: S02-E03-S06
+            title: "Define retention and retrieval"
+            acceptance_criteria: "7-year retention; retrieval SLA for a regulator request"
+      - id: S02-E04
+        title: "Suitability rule pack"
+        owner: "Shailja + Rajal"
+        stories:
+          - id: S02-E04-S01
+            title: "Define the need-analysis questionnaire"
+            acceptance_criteria: "Questions, answer types, mandatory fields, per customer segment"
+          - id: S02-E04-S02
+            title: "Define the suitability algorithm"
+            acceptance_criteria: "How answers map to a suitability outcome per product class; deterministic and reproducible"
+          - id: S02-E04-S03
+            title: "Define the hard-gate rule"
+            acceptance_criteria: "Quote is refused without a valid suitability evaluation ID. Validity window and scope stated"
+          - id: S02-E04-S04
+            title: "Define override rules"
+            acceptance_criteria: "May an RM override an unsuitable outcome? By whom, with what record, and what disclosure"
+          - id: S02-E04-S05
+            title: "Define the suitability evidence record"
+            acceptance_criteria: "Answers, outcome, evaluator, timestamp, version of the algorithm used"
+          - id: S02-E04-S06
+            title: "Define re-evaluation triggers"
+            acceptance_criteria: "What invalidates a prior suitability result"
+      - id: S02-E05
+        title: "Data classification and protection framing"
+        owner: "Shailja + Deepali"
+        stories:
+          - id: S02-E05-S01
+            title: "Classify every data element"
+            acceptance_criteria: "Public / internal / confidential / restricted; PII, financial and health flagged"
+          - id: S02-E05-S02
+            title: "Define handling rules per class"
+            acceptance_criteria: "Encryption, masking, logging prohibition, access restriction, cross-border prohibition"
+          - id: S02-E05-S03
+            title: "Define the retention schedule"
+            acceptance_criteria: "Per data class, with the legal basis and the disposal method"
+          - id: S02-E05-S04
+            title: "Define data residency requirements"
+            acceptance_criteria: "India-only for regulated data, including backups, logs and archives"
+      - id: S02-E06
+        title: "Risk framework"
+        owner: "Shailja"
+        stories:
+          - id: S02-E06-S01
+            title: "Define the risk taxonomy"
+            acceptance_criteria: "Regulatory, financial, operational, security, reputational"
+          - id: S02-E06-S02
+            title: "Establish the risk register"
+            acceptance_criteria: "Each risk: description, likelihood, impact, owner, treatment, review date"
+          - id: S02-E06-S03
+            title: "Define risk acceptance authority"
+            acceptance_criteria: "Who may accept what level; material risk reserved to a named human"
+          - id: S02-E06-S04
+            title: "Define the exception process"
+            acceptance_criteria: "Waiver requirements, expiry discipline, compensating controls"
+    validation_tests:
+      - id: S02-VT-01
+        validates: "Every obligation has a control"
+        method: "Traverse the registry"
+        pass_condition: "Zero obligations with no control"
+      - id: S02-VT-02
+        validates: "Every control has evidence defined"
+        method: "Traverse the catalogue"
+        pass_condition: "Zero controls with no evidence type"
+      - id: S02-VT-03
+        validates: "Consent rules are implementable"
+        method: "Give the pack to an engineer and a tester independently"
+        pass_condition: "Both produce the same behaviour description; no clarification needed"
+      - id: S02-VT-04
+        validates: "Suitability rules are deterministic"
+        method: "Run 20 sample customer profiles through the algorithm by hand, twice, by two people"
+        pass_condition: "Identical outcomes both times"
+      - id: S02-VT-05
+        validates: "The hard-gate is unambiguous"
+        method: "Ask: what exactly makes a suitability ID \"valid\"?"
+        pass_condition: "Answer is a rule, not a judgement"
+      - id: S02-VT-06
+        validates: "Data classification is complete"
+        method: "Sample 30 fields from the information model"
+        pass_condition: "100% classified"
+      - id: S02-VT-07
+        validates: "Non-waivable list is agreed"
+        method: "Security and Compliance both sign it"
+        pass_condition: "Signed; no reservations"
+    exit_gate:
+      - id: S02-G1
+        criterion: "Regulatory registry complete with obligation IDs"
+        evidence_level: "E1"
+        evidence_artefact: "Registry document"
+      - id: S02-G2
+        criterion: "Control catalogue maps every obligation to a control and its evidence"
+        evidence_level: "E2"
+        evidence_artefact: "Catalogue, signed by Compliance + Security"
+      - id: S02-G3
+        criterion: "Consent rule pack v1 approved"
+        evidence_level: "E2"
+        evidence_artefact: "Signed rule pack — closes GAP-006"
+      - id: S02-G4
+        criterion: "Suitability rule pack v1 approved"
+        evidence_level: "E2"
+        evidence_artefact: "Signed rule pack — closes GAP-007"
+      - id: S02-G5
+        criterion: "Data classification and retention schedule approved"
+        evidence_level: "E2"
+        evidence_artefact: "Classification matrix + retention schedule"
+      - id: S02-G6
+        criterion: "Data residency requirement stated and binding"
+        evidence_level: "E1"
+        evidence_artefact: "Written requirement"
+      - id: S02-G7
+        criterion: "Risk register established with acceptance authorities"
+        evidence_level: "E1"
+        evidence_artefact: "Risk register + authority matrix"
+      - id: S02-G8
+        criterion: "Non-waivable control list agreed"
+        evidence_level: "E2"
+        evidence_artefact: "Signed list"
+
+  - id: S03
+    name: "Business Requirements & Process Design"
+    aigem_stage: "L1"
+    owner: "Rajal (Product) + Business Analysis"
+    default_priority: P2
+    epics:
+      - id: S03-E01
+        title: "Requirement catalogue"
+        owner: "Rajal + BA"
+        stories:
+          - id: S03-E01-S01
+            title: "Decompose capabilities into requirements"
+            acceptance_criteria: "Every capability yields ≥ 1 requirement; every requirement traces to a capability"
+          - id: S03-E01-S02
+            title: "Write acceptance criteria for every requirement"
+            acceptance_criteria: "Given/When/Then or an equivalent checkable form; observable by someone who did not write it"
+          - id: S03-E01-S03
+            title: "Classify requirements"
+            acceptance_criteria: "Functional / non-functional / compliance / technical enabler"
+          - id: S03-E01-S04
+            title: "Attach obligations to requirements"
+            acceptance_criteria: "Every S02 control appears in ≥ 1 requirement's AC"
+          - id: S03-E01-S05
+            title: "Define failure and exception behaviour"
+            acceptance_criteria: "For each requirement: what happens on timeout, rejection, abandonment, duplicate, and partial failure"
+      - id: S03-E02
+        title: "Business process design (to-be)"
+        owner: "BA + Rajal"
+        stories:
+          - id: S03-E02-S01
+            title: "Model each to-be process"
+            acceptance_criteria: "Actors, steps, decisions, systems, hand-offs, and the regulatory checkpoints"
+          - id: S03-E02-S02
+            title: "Define process variants"
+            acceptance_criteria: "Assisted / DIY / hybrid; ETB / NTB; Group A / Group B insurers"
+          - id: S03-E02-S03
+            title: "Define exception paths"
+            acceptance_criteria: "Underwriting rejection, payment failure, insurer timeout, KYC mismatch, consent withdrawal"
+          - id: S03-E02-S04
+            title: "Define manual and operational procedures"
+            acceptance_criteria: "What humans do when automation cannot — this becomes the S12 runbook's business half"
+          - id: S03-E02-S05
+            title: "Define SLAs per process step"
+            acceptance_criteria: "Business-time expectations that become the S07 NFR inputs"
+      - id: S03-E03
+        title: "Business rules catalogue"
+        owner: "Rajal"
+        stories:
+          - id: S03-E03-S01
+            title: "Catalogue eligibility rules"
+            acceptance_criteria: "Age, sum assured, income, medical, occupation limits per product class"
+          - id: S03-E03-S02
+            title: "Catalogue quote rules"
+            acceptance_criteria: "Validity period, comparison basis, ranking and display rules, re-quote triggers (closes GAP-012)"
+          - id: S03-E03-S03
+            title: "Catalogue proposal rules"
+            acceptance_criteria: "Mandatory fields per product, document requirements, medical triggers"
+          - id: S03-E03-S04
+            title: "Catalogue payment rules"
+            acceptance_criteria: "Permitted instruments, device isolation, timeout, retry, refund"
+          - id: S03-E03-S05
+            title: "Catalogue attribution rules"
+            acceptance_criteria: "Distributor ID and SP licence sourcing; behaviour when an RM's certification is expired (closes GAP-014)"
+          - id: S03-E03-S06
+            title: "Define the product matrix"
+            acceptance_criteria: "LOB × insurer × product × dimensions, for the catalogue service (closes GAP-013)"
+      - id: S03-E04
+        title: "Information model"
+        owner: "BA + Aarti"
+        stories:
+          - id: S03-E04-S01
+            title: "Define business entities"
+            acceptance_criteria: "Every noun in the glossary that has a lifecycle"
+          - id: S03-E04-S02
+            title: "Define attributes per entity"
+            acceptance_criteria: "Name, type, optionality, validation, classification, source of truth (closes GAP-016)"
+          - id: S03-E04-S03
+            title: "Define entity relationships and cardinality"
+            acceptance_criteria: "Including the ones that break naive models: joint life, multiple nominees, multi-policy customers"
+          - id: S03-E04-S04
+            title: "Define business states per entity"
+            acceptance_criteria: "The state machine as the business sees it, before any technical design"
+      - id: S03-E05
+        title: "Traceability"
+        owner: "Rajal + Swapnali"
+        stories:
+          - id: S03-E05-S01
+            title: "Establish the traceability matrix"
+            acceptance_criteria: "Obligation → requirement → (later) story → code → test → evidence"
+          - id: S03-E05-S02
+            title: "Verify bidirectional completeness"
+            acceptance_criteria: "No requirement without a source; no obligation without a requirement"
+          - id: S03-E05-S03
+            title: "Define how traceability is maintained"
+            acceptance_criteria: "A tool and a cadence, not a one-off spreadsheet"
+    validation_tests:
+      - id: S03-VT-01
+        validates: "Requirements are testable"
+        method: "QA reviews every AC for observability"
+        pass_condition: "100% observable; zero \"should be user-friendly\""
+      - id: S03-VT-02
+        validates: "Requirements are unambiguous"
+        method: "Two people independently describe the behaviour from the AC"
+        pass_condition: "Descriptions match"
+      - id: S03-VT-03
+        validates: "Failure paths are specified"
+        method: "Count requirements with only a happy path"
+        pass_condition: "Zero"
+      - id: S03-VT-04
+        validates: "Rules are deterministic"
+        method: "Run 20 scenarios through the eligibility and quote rules by hand"
+        pass_condition: "Same answer every time, by every person"
+      - id: S03-VT-05
+        validates: "Information model is complete"
+        method: "Walk each requirement; every field it needs exists in the model"
+        pass_condition: "No missing attribute"
+      - id: S03-VT-06
+        validates: "Traceability is complete both ways"
+        method: "Query the matrix"
+        pass_condition: "Zero orphans in either direction"
+      - id: S03-VT-07
+        validates: "Obligations are covered"
+        method: "For each S02 control, find the requirement enforcing it"
+        pass_condition: "100% covered"
+    exit_gate:
+      - id: S03-G1
+        criterion: "BRD complete with acceptance criteria on every requirement"
+        evidence_level: "E2"
+        evidence_artefact: "Signed BRD — closes GAP-008"
+      - id: S03-G2
+        criterion: "To-be processes modelled including exception paths"
+        evidence_level: "E1"
+        evidence_artefact: "Process models"
+      - id: S03-G3
+        criterion: "Business rules catalogue approved"
+        evidence_level: "E2"
+        evidence_artefact: "Signed catalogue — closes GAP-012, GAP-013, GAP-014"
+      - id: S03-G4
+        criterion: "Information model with attribute sheets"
+        evidence_level: "E2"
+        evidence_artefact: "Attribute sheets — closes GAP-016"
+      - id: S03-G5
+        criterion: "Every S02 control traces to a requirement"
+        evidence_level: "E1"
+        evidence_artefact: "Traceability matrix"
+      - id: S03-G6
+        criterion: "QA confirms every requirement is testable"
+        evidence_level: "E2"
+        evidence_artefact: "QA testability review, signed"
+      - id: S03-G7
+        criterion: "Business stakeholders accept the requirement set"
+        evidence_level: "E2"
+        evidence_artefact: "Acceptance record"
+
+  - id: S04
+    name: "Product Definition & Release Slicing"
+    aigem_stage: "L1"
+    owner: "Rajal (Product)"
+    default_priority: P2
+    epics:
+      - id: S04-E01
+        title: "Release strategy"
+        owner: "Rajal + Kalpana"
+        stories:
+          - id: S04-E01-S01
+            title: "Define the release ladder"
+            acceptance_criteria: "R0 (pilot), R1, R2… each with a business outcome, not a component list"
+          - id: S04-E01-S02
+            title: "Define R0's business outcome"
+            acceptance_criteria: "Assisted-first: an RM can sell one Term product to an ETB customer, end to end, with full audit; DIY and hybrid are later expansion waves"
+          - id: S04-E01-S03
+            title: "Define the pilot population"
+            acceptance_criteria: "Which branches, how many RMs, which customers, over what period"
+          - id: S04-E01-S04
+            title: "Define launch and rollback criteria"
+            acceptance_criteria: "What makes R0 a success; what would cause it to be withdrawn"
+      - id: S04-E02
+        title: "Scope definition"
+        owner: "Rajal"
+        stories:
+          - id: S04-E02-S01
+            title: "Define R0 in-scope"
+            acceptance_criteria: "Requirement IDs, explicitly enumerated — not described by theme"
+          - id: S04-E02-S02
+            title: "Define R0 out-of-scope with revisit triggers"
+            acceptance_criteria: "Every excluded item names the release or condition that revisits it"
+          - id: S04-E02-S03
+            title: "Define permanent exclusions"
+            acceptance_criteria: "Things that will never be in scope, so they stop being re-proposed"
+          - id: S04-E02-S04
+            title: "Lock the channel, segment and LOB decisions"
+            acceptance_criteria: "R0 = RM-assisted, ETB, Life/Term; DIY follows the proven assisted journey; hybrid follows stable assisted and DIY paths"
+          - id: S04-E02-S05
+            title: "Define the insurer panel for R0"
+            acceptance_criteria: "Group A named for in-platform journeys; Group B handled by controlled redirect"
+      - id: S04-E03
+        title: "Product backlog"
+        owner: "Rajal"
+        stories:
+          - id: S04-E03-S01
+            title: "Decompose requirements into epics and stories"
+            acceptance_criteria: "Every R0 requirement maps to ≥ 1 story; every story traces back"
+          - id: S04-E03-S02
+            title: "Prioritise using AIGEM P1–P5"
+            acceptance_criteria: "No persona-local severity used as priority"
+          - id: S04-E03-S03
+            title: "Identify dependencies between stories"
+            acceptance_criteria: "Dependency register populated; the critical path visible"
+          - id: S04-E03-S04
+            title: "Size the backlog"
+            acceptance_criteria: "Anything XL is split or converted to a spike"
+          - id: S04-E03-S05
+            title: "Identify technical enablers"
+            acceptance_criteria: "Foundation, integration and platform work made visible as backlog items, not assumed as overhead"
+          - id: S04-E03-S06
+            title: "Confirm actor-story coverage"
+            acceptance_criteria: "RM, customer, Admin, insurer representative, Operations, Compliance/Audit and management actors each map to named epics/stories or an explicit later-wave exclusion"
+      - id: S04-E04
+        title: "Definition of Ready and Done"
+        owner: "Rajal + Swapnali + Amit"
+        stories:
+          - id: S04-E04-S01
+            title: "Agree Definition of Ready"
+            acceptance_criteria: "Published, and applied — stories that fail it are not started"
+          - id: S04-E04-S02
+            title: "Agree Definition of Done"
+            acceptance_criteria: "Includes tests green in CI, evidence linked, observability present, no PII in logs"
+          - id: S04-E04-S03
+            title: "Agree the review tiering rules"
+            acceptance_criteria: "Which changes are T1–T4; the automatic T4 triggers"
+      - id: S04-E05
+        title: "Success measurement"
+        owner: "Rajal"
+        stories:
+          - id: S04-E05-S01
+            title: "Define R0 KPIs"
+            acceptance_criteria: "Conversion, drop-off by step, time-to-issue, reconciliation completeness, RM adoption"
+          - id: S04-E05-S02
+            title: "Define the measurement mechanism"
+            acceptance_criteria: "Which system emits each KPI; instrumentation becomes an S11 story, not an afterthought"
+          - id: S04-E05-S03
+            title: "Define the baseline"
+            acceptance_criteria: "What the legacy redirect model achieves today, for comparison"
+    validation_tests:
+      - id: S04-VT-01
+        validates: "R0 delivers standalone value"
+        method: "Ask: can a policy be sold using only R0?"
+        pass_condition: "Yes, end to end, by a real RM"
+      - id: S04-VT-02
+        validates: "Scope is unambiguous"
+        method: "Present 15 candidate items; ask 3 people to classify in/out"
+        pass_condition: "≥ 90% agreement"
+      - id: S04-VT-03
+        validates: "Out-of-scope items have triggers"
+        method: "Traverse the list"
+        pass_condition: "Zero items with no revisit condition"
+      - id: S04-VT-04
+        validates: "Backlog traces to requirements"
+        method: "Query both directions"
+        pass_condition: "No orphan story; no uncovered R0 requirement"
+      - id: S04-VT-05
+        validates: "Dependencies are known"
+        method: "Attempt to sequence the backlog"
+        pass_condition: "A viable critical path exists with no cycles"
+      - id: S04-VT-06
+        validates: "Enablers are visible"
+        method: "Count foundation and platform stories in the backlog"
+        pass_condition: "Non-zero, sized, and scheduled"
+      - id: S04-VT-07
+        validates: "KPIs are instrumentable"
+        method: "For each KPI, name the emitting system and the story that adds it"
+        pass_condition: "100%"
+    exit_gate:
+      - id: S04-G1
+        criterion: "R0 scope defined: in, out with triggers, and never"
+        evidence_level: "E2"
+        evidence_artefact: "Signed scope document"
+      - id: S04-G2
+        criterion: "PRD approved for R0"
+        evidence_level: "E2"
+        evidence_artefact: "Signed PRD"
+      - id: S04-G3
+        criterion: "Backlog decomposed, prioritised, sized, dependency-mapped"
+        evidence_level: "E1"
+        evidence_artefact: "Backlog with dependency register"
+      - id: S04-G4
+        criterion: "DoR and DoD agreed and published"
+        evidence_level: "E2"
+        evidence_artefact: "Signed definitions"
+      - id: S04-G5
+        criterion: "R0 delivers standalone business value"
+        evidence_level: "E2"
+        evidence_artefact: "Walkthrough record confirming a complete sale is possible"
+      - id: S04-G6
+        criterion: "KPIs defined with measurement mechanisms"
+        evidence_level: "E1"
+        evidence_artefact: "KPI definitions naming source systems"
+      - id: S04-G7
+        criterion: "Technical enablers visible in the backlog and scheduled"
+        evidence_level: "E1"
+        evidence_artefact: "Backlog query showing foundation items"
+
+  - id: S05
+    name: "Experience Design & Service Blueprint"
+    aigem_stage: "L1"
+    owner: "Digital / Design + Rajal (Product)"
+    default_priority: P2
+    epics:
+      - id: S05-E01
+        title: "Service blueprint"
+        owner: "Design + Rajal"
+        stories:
+          - id: S05-E01-S01
+            title: "Blueprint each journey front-stage"
+            acceptance_criteria: "What the actor sees at every step of every journey variant"
+          - id: S05-E01-S02
+            title: "Blueprint back-stage"
+            acceptance_criteria: "Supporting actions, systems and hand-offs behind each front-stage step"
+          - id: S05-E01-S03
+            title: "Map the moments of truth"
+            acceptance_criteria: "Where the sale is won or lost; where an obligation binds"
+          - id: S05-E01-S04
+            title: "Design the assisted/customer hand-off"
+            acceptance_criteria: "The RM-device to customer-device transition for consent and payment — a regulatory requirement, and the hardest UX in the product"
+      - id: S05-E02
+        title: "Interaction design"
+        owner: "Design"
+        stories:
+          - id: S05-E02-S01
+            title: "Wireframe every journey step"
+            acceptance_criteria: "Every wireframe references a requirement ID (closes GAP-009)"
+          - id: S05-E02-S02
+            title: "Design the need-analysis and suitability flow"
+            acceptance_criteria: "Regulated questionnaire rendered so it is completed honestly, not clicked through"
+          - id: S05-E02-S03
+            title: "Design multi-quote comparison"
+            acceptance_criteria: "Comparison basis visible; ranking rules disclosed; no dark patterns"
+          - id: S05-E02-S04
+            title: "Design proposal capture"
+            acceptance_criteria: "Progressive disclosure; pre-fill from CIF/KYC; save and resume"
+          - id: S05-E02-S05
+            title: "Design the payment hand-off"
+            acceptance_criteria: "QR/SMS link to the customer's device; RM sees status, never the payment surface"
+          - id: S05-E02-S06
+            title: "Design status, tracking and document access"
+            acceptance_criteria: "Post-sale visibility — the capability the legacy model lacks entirely"
+      - id: S05-E03
+        title: "Design system"
+        owner: "Design"
+        stories:
+          - id: S05-E03-S01
+            title: "Define the component library"
+            acceptance_criteria: "Reusable Flutter-ready components with states and variants"
+          - id: S05-E03-S02
+            title: "Define the design tokens"
+            acceptance_criteria: "Colour, type, spacing, elevation — with accessible contrast proven"
+          - id: S05-E03-S03
+            title: "Define responsive behaviour"
+            acceptance_criteria: "Mobile, tablet and web; RM tablet use in a branch is a primary case"
+          - id: S05-E03-S04
+            title: "Define the interaction and motion standard"
+            acceptance_criteria: "Consistent, and cheap enough to render on mid-range devices"
+      - id: S05-E04
+        title: "Content and regulated copy"
+        owner: "Rajal + Shailja"
+        stories:
+          - id: S05-E04-S01
+            title: "Write consent statements"
+            acceptance_criteria: "Exact wording, versioned, Compliance-approved, matching the S02 consent pack"
+          - id: S05-E04-S02
+            title: "Write regulatory disclosures"
+            acceptance_criteria: "Placement, prominence and acknowledgement mechanism defined"
+          - id: S05-E04-S03
+            title: "Write the error and exception copy"
+            acceptance_criteria: "Every failure path has copy that tells the actor what to do next"
+          - id: S05-E04-S04
+            title: "Define language and vernacular strategy"
+            acceptance_criteria: "Which languages at R0, and how content is versioned per language"
+      - id: S05-E05
+        title: "Accessibility and inclusion"
+        owner: "Design"
+        stories:
+          - id: S05-E05-S01
+            title: "Set the accessibility standard"
+            acceptance_criteria: "A named conformance target with a testing method"
+          - id: S05-E05-S02
+            title: "Design for low-literacy and assisted use"
+            acceptance_criteria: "The RM-assisted journey serves customers who will not read a screen"
+          - id: S05-E05-S03
+            title: "Design for poor connectivity"
+            acceptance_criteria: "Branch and field connectivity is unreliable; define offline and retry behaviour"
+      - id: S05-E06
+        title: "Validation with real users"
+        owner: "Design + Rajal"
+        stories:
+          - id: S05-E06-S01
+            title: "Prototype the primary journey"
+            acceptance_criteria: "Clickable prototype covering the complete RM-assisted Term journey"
+          - id: S05-E06-S02
+            title: "Test with real RMs"
+            acceptance_criteria: "≥ 5 practising RMs complete the journey unaided"
+          - id: S05-E06-S03
+            title: "Test with real customers"
+            acceptance_criteria: "≥ 5 representative customers complete the customer-device steps"
+          - id: S05-E06-S04
+            title: "Iterate on findings"
+            acceptance_criteria: "Findings logged, prioritised, and either fixed or explicitly deferred"
+    validation_tests:
+      - id: S05-VT-01
+        validates: "Every requirement has a screen"
+        method: "Traverse R0 requirements against wireframes"
+        pass_condition: "No requirement with no interface"
+      - id: S05-VT-02
+        validates: "Every screen has a requirement"
+        method: "Traverse wireframes against requirements"
+        pass_condition: "No unrequested screen — this is where scope creep enters"
+      - id: S05-VT-03
+        validates: "RMs can complete the journey unaided"
+        method: "Usability test, 5+ RMs"
+        pass_condition: "≥ 80% complete without help; time-on-task recorded"
+      - id: S05-VT-04
+        validates: "The device hand-off is understood"
+        method: "Observe the consent and payment hand-off"
+        pass_condition: "Customers understand what they are approving without RM explanation"
+      - id: S05-VT-05
+        validates: "Regulated copy is approved"
+        method: "Compliance reviews every consent and disclosure string"
+        pass_condition: "100% approved, versioned"
+      - id: S05-VT-06
+        validates: "Accessibility target is met"
+        method: "Audit the prototype against the standard"
+        pass_condition: "Conformance achieved or gaps logged with owners"
+      - id: S05-VT-07
+        validates: "Failure paths have copy"
+        method: "Traverse the exception catalogue"
+        pass_condition: "Every failure path has actionable copy"
+    exit_gate:
+      - id: S05-G1
+        criterion: "Service blueprint complete for R0 journeys"
+        evidence_level: "E1"
+        evidence_artefact: "Blueprint"
+      - id: S05-G2
+        criterion: "Wireframes mapped to requirement IDs"
+        evidence_level: "E1"
+        evidence_artefact: "Traceability map — closes GAP-009"
+      - id: S05-G3
+        criterion: "Design system published and adoptable"
+        evidence_level: "E1"
+        evidence_artefact: "Component library + tokens"
+      - id: S05-G4
+        criterion: "Regulated copy approved by Compliance"
+        evidence_level: "E2"
+        evidence_artefact: "Signed copy deck, versioned"
+      - id: S05-G5
+        criterion: "Accessibility standard set and prototype conformant"
+        evidence_level: "E3"
+        evidence_artefact: "Audit report"
+      - id: S05-G6
+        criterion: "Prototype validated with real RMs and customers"
+        evidence_level: "E3"
+        evidence_artefact: "Usability test report with findings and disposition"
+      - id: S05-G7
+        criterion: "Error, empty and degraded states catalogued"
+        evidence_level: "E1"
+        evidence_artefact: "State catalogue"
+
+  - id: S06
+    name: "Domain & Information Architecture"
+    aigem_stage: "L2"
+    owner: "Mahesh (Architecture) + Aarti (Data)"
+    default_priority: P2
+    epics:
+      - id: S06-E01
+        title: "Bounded context map"
+        owner: "Mahesh"
+        stories:
+          - id: S06-E01-S01
+            title: "Derive contexts from capabilities"
+            acceptance_criteria: "Every context traces to capabilities; every capability lands in exactly one context"
+          - id: S06-E01-S02
+            title: "Define context relationships"
+            acceptance_criteria: "Upstream/downstream, conformist, anti-corruption layer, shared kernel — named per pair"
+          - id: S06-E01-S03
+            title: "Define the language boundary per context"
+            acceptance_criteria: "Where the same word means different things, and how it translates at the seam"
+          - id: S06-E01-S04
+            title: "Justify each context's existence"
+            acceptance_criteria: "Each context has a distinct reason to change. A context that always changes with another is not a context"
+      - id: S06-E02
+        title: "Aggregate and state design"
+        owner: "Mahesh"
+        stories:
+          - id: S06-E02-S01
+            title: "Identify aggregates per context"
+            acceptance_criteria: "Consistency boundary stated: what must be transactionally consistent"
+          - id: S06-E02-S02
+            title: "Define the state machine per aggregate"
+            acceptance_criteria: "States, permitted transitions, triggers, and terminal states"
+          - id: S06-E02-S03
+            title: "Define invariants per aggregate"
+            acceptance_criteria: "What must always be true; which are enforced where"
+          - id: S06-E02-S04
+            title: "Define aggregate identity and lifecycle"
+            acceptance_criteria: "How it is created, identified, referenced across contexts, and archived"
+          - id: S06-E02-S05
+            title: "Design the journey state machine"
+            acceptance_criteria: "The cross-context saga: quote → proposal → payment → issuance, with compensations for each failure point"
+      - id: S06-E03
+        title: "Domain invariants and rules placement"
+        owner: "Mahesh + Rajal"
+        stories:
+          - id: S06-E03-S01
+            title: "Catalogue every invariant"
+            acceptance_criteria: "From the S03 rules catalogue, each mapped to the aggregate that enforces it"
+          - id: S06-E03-S02
+            title: "Place compliance hard-gates"
+            acceptance_criteria: "Where suitability, consent and attribution are enforced — enforcement point named per control"
+          - id: S06-E03-S03
+            title: "Define what happens when an invariant is violated"
+            acceptance_criteria: "Reject, compensate, or escalate — per invariant, not generically"
+          - id: S06-E03-S04
+            title: "Identify cross-aggregate consistency needs"
+            acceptance_criteria: "Where eventual consistency is acceptable and where it is not (money is not)"
+      - id: S06-E04
+        title: "Logical data model"
+        owner: "Aarti"
+        stories:
+          - id: S06-E04-S01
+            title: "Build the logical model per context"
+            acceptance_criteria: "Entities, attributes, keys, relationships, normalised"
+          - id: S06-E04-S02
+            title: "Define the data ownership matrix"
+            acceptance_criteria: "Exactly one context may write each field; others read via contract"
+          - id: S06-E04-S03
+            title: "Define data classification at field level"
+            acceptance_criteria: "Every field carries its S02 classification"
+          - id: S06-E04-S04
+            title: "Define reference and master data"
+            acceptance_criteria: "Product catalogue, insurer, branch, user — source of truth per set"
+          - id: S06-E04-S05
+            title: "Define the audit data model"
+            acceptance_criteria: "What an immutable, attributable, reconstructable audit record contains"
+      - id: S06-E05
+        title: "Canonical contracts"
+        owner: "Mahesh"
+        stories:
+          - id: S06-E05-S01
+            title: "Define the canonical model"
+            acceptance_criteria: "The bank's own model, independent of any provider's API shape"
+          - id: S06-E05-S02
+            title: "Define provider translation boundaries"
+            acceptance_criteria: "Provider types never leak past the adapter — the existing adapter.onesb.* rule, generalised"
+          - id: S06-E05-S03
+            title: "Define canonical events"
+            acceptance_criteria: "Domain events per aggregate transition, with payload and versioning policy"
+    validation_tests:
+      - id: S06-VT-01
+        validates: "Contexts are cohesive"
+        method: "For each, ask what would cause it to change"
+        pass_condition: "One reason per context"
+      - id: S06-VT-02
+        validates: "Aggregate boundaries are right"
+        method: "Walk each business transaction; count aggregates it must update atomically"
+        pass_condition: "Never more than one"
+      - id: S06-VT-03
+        validates: "State machines are complete"
+        method: "Enumerate transitions; check every state is reachable and every non-terminal state has an exit"
+        pass_condition: "No orphan or dead-end states"
+      - id: S06-VT-04
+        validates: "Invariants are enforceable"
+        method: "For each, name the code location that will enforce it"
+        pass_condition: "100% placed"
+      - id: S06-VT-05
+        validates: "The saga handles failure"
+        method: "Walk each failure point in the journey"
+        pass_condition: "Every failure has a defined compensation or a defined manual procedure"
+      - id: S06-VT-06
+        validates: "Data ownership is unambiguous"
+        method: "Sample 30 fields; ask which context writes them"
+        pass_condition: "Exactly one answer each"
+      - id: S06-VT-07
+        validates: "Audit model reconstructs a sale"
+        method: "Take a completed journey; reconstruct it from audit records alone"
+        pass_condition: "Full reconstruction possible"
+      - id: S06-VT-08
+        validates: "Canonical model is provider-neutral"
+        method: "Review for provider-shaped concepts"
+        pass_condition: "No 1SB or insurer vocabulary in the canonical model"
+    exit_gate:
+      - id: S06-G1
+        criterion: "Bounded context map with relationships and justifications"
+        evidence_level: "E2"
+        evidence_artefact: "Context map, architecture-reviewed"
+      - id: S06-G2
+        criterion: "Aggregates with state machines and invariants"
+        evidence_level: "E2"
+        evidence_artefact: "Domain model document"
+      - id: S06-G3
+        criterion: "Journey saga designed including compensations"
+        evidence_level: "E2"
+        evidence_artefact: "Saga design with failure matrix"
+      - id: S06-G4
+        criterion: "Logical data model per context"
+        evidence_level: "E2"
+        evidence_artefact: "Data model, signed by Aarti"
+      - id: S06-G5
+        criterion: "Data ownership matrix complete"
+        evidence_level: "E1"
+        evidence_artefact: "Ownership matrix"
+      - id: S06-G6
+        criterion: "Compliance hard-gate enforcement points named"
+        evidence_level: "E2"
+        evidence_artefact: "Control placement map, Compliance-reviewed"
+      - id: S06-G7
+        criterion: "Audit model proven to reconstruct a journey"
+        evidence_level: "E3"
+        evidence_artefact: "Reconstruction walkthrough record"
+      - id: S06-G8
+        criterion: "Canonical model is provider-neutral"
+        evidence_level: "E2"
+        evidence_artefact: "Architecture review verdict"
+
+  - id: S07
+    name: "Solution & Security Architecture"
+    aigem_stage: "L3"
+    owner: "Mahesh (Architecture) + Deepali (Security), jointly"
+    default_priority: P2
+    epics:
+      - id: S07-E01
+        title: "Service architecture"
+        owner: "Mahesh"
+        stories:
+          - id: S07-E01-S01
+            title: "Map contexts to deployable services"
+            acceptance_criteria: "A context may be a service, part of one, or several — with the reason stated"
+          - id: S07-E01-S02
+            title: "Define service responsibilities and boundaries"
+            acceptance_criteria: "What each owns, what it must never do"
+          - id: S07-E01-S03
+            title: "Define the internal architecture pattern"
+            acceptance_criteria: "Ports and adapters, layering rules, dependency direction — enforceable by ArchUnit"
+          - id: S07-E01-S04
+            title: "Define the edge architecture"
+            acceptance_criteria: "BFF per client type; what the edge may and may not do"
+          - id: S07-E01-S05
+            title: "Define the build order"
+            acceptance_criteria: "Which services R0 actually needs — not all nineteen"
+      - id: S07-E02
+        title: "Communication architecture"
+        owner: "Mahesh"
+        stories:
+          - id: S07-E02-S01
+            title: "Decide synchronous vs asynchronous per interaction"
+            acceptance_criteria: "Each choice justified by consistency and latency needs, not preference"
+          - id: S07-E02-S02
+            title: "Define API standards"
+            acceptance_criteria: "REST conventions, versioning, pagination, error format, idempotency semantics"
+          - id: S07-E02-S03
+            title: "Define the event backbone, if any"
+            acceptance_criteria: "Whether one is needed for R0; if not, when it becomes needed and what triggers it"
+          - id: S07-E02-S04
+            title: "Define resilience patterns"
+            acceptance_criteria: "Timeouts, retries with backoff, circuit breakers, bulkheads — per dependency class"
+          - id: S07-E02-S05
+            title: "Define idempotency across mutating APIs"
+            acceptance_criteria: "Key derivation, storage, retention, and behaviour on replay"
+      - id: S07-E03
+        title: "Security architecture"
+        owner: "Deepali"
+        stories:
+          - id: S07-E03-S01
+            title: "Threat model per trust boundary"
+            acceptance_criteria: "STRIDE per boundary; each threat has a mitigation or an accepted risk with an owner"
+          - id: S07-E03-S02
+            title: "Define the trust boundary and network model"
+            acceptance_criteria: "Public, DMZ, internal, data zones; what may cross each boundary"
+          - id: S07-E03-S03
+            title: "Define the identity architecture"
+            acceptance_criteria: "Workforce, customer and workload identity; token handling; the BFF token-hiding pattern"
+          - id: S07-E03-S04
+            title: "Define the authorization model"
+            acceptance_criteria: "RBAC + ABAC, default deny, PDP placement, policy evaluation and caching"
+          - id: S07-E03-S05
+            title: "Define cryptography and key management"
+            acceptance_criteria: "Algorithms, key hierarchy, KMS CMK ownership, rotation, and crypto agility"
+          - id: S07-E03-S06
+            title: "Define secrets management"
+            acceptance_criteria: "Storage, retrieval, rotation, revocation; no secret in code or image"
+          - id: S07-E03-S07
+            title: "Define API and webhook security"
+            acceptance_criteria: "Authentication, replay protection, payload integrity, partner trust contract"
+          - id: S07-E03-S08
+            title: "Define security logging and detection"
+            acceptance_criteria: "What security events are emitted, where they go, what detects abuse"
+      - id: S07-E04
+        title: "Data architecture"
+        owner: "Aarti + Mahesh"
+        stories:
+          - id: S07-E04-S01
+            title: "Select a datastore per context"
+            acceptance_criteria: "Justified by access pattern; database-per-service boundary respected"
+          - id: S07-E04-S02
+            title: "Design the physical schema"
+            acceptance_criteria: "Keys, constraints, indexes, partitioning where justified"
+          - id: S07-E04-S03
+            title: "Define the migration strategy"
+            acceptance_criteria: "Tooling, ownership, rollback, and zero-downtime approach"
+          - id: S07-E04-S04
+            title: "Design encryption and access at the data layer"
+            acceptance_criteria: "At-rest encryption, key ownership, PII field handling, DB access model"
+          - id: S07-E04-S05
+            title: "Design backup, PITR and recovery"
+            acceptance_criteria: "RPO and RTO per store, with the restore procedure defined"
+          - id: S07-E04-S06
+            title: "Design retention and purge"
+            acceptance_criteria: "Per data class, with immutability where regulation requires"
+      - id: S07-E05
+        title: "Non-functional requirements"
+        owner: "Mahesh + Rajal + Shivanshi"
+        stories:
+          - id: S07-E05-S01
+            title: "Set NFR numbers"
+            acceptance_criteria: "Latency (p50/p95/p99) per journey step, throughput at peak, availability target, RTO/RPO — actual numbers (closes GAP-017)"
+          - id: S07-E05-S02
+            title: "Derive NFRs from business need"
+            acceptance_criteria: "Each number traces to a business reason, not a convention"
+          - id: S07-E05-S03
+            title: "Define how each NFR is verified"
+            acceptance_criteria: "The test that proves it, at which stage"
+          - id: S07-E05-S04
+            title: "Define capacity assumptions"
+            acceptance_criteria: "RM count, journeys per day, Q4 tax-season peak multiplier"
+      - id: S07-E06
+        title: "Architecture decisions"
+        owner: "Mahesh"
+        stories:
+          - id: S07-E06-S01
+            title: "Record an ADR per significant decision"
+            acceptance_criteria: "Context, options, decision, consequences; superseded rather than edited"
+          - id: S07-E06-S02
+            title: "Define architecture principles and standing constraints"
+            acceptance_criteria: "The rules that make later triage fast"
+          - id: S07-E06-S03
+            title: "Define fitness functions"
+            acceptance_criteria: "Which constraints are machine-enforceable, and how"
+          - id: S07-E06-S04
+            title: "Define the replaceability strategy"
+            acceptance_criteria: "What must remain swappable — aggregator, IdP, payment gateway — and how that is proven"
+    validation_tests:
+      - id: S07-VT-01
+        validates: "Services align to contexts"
+        method: "Compare the service list to the context map"
+        pass_condition: "Every deviation justified in an ADR"
+      - id: S07-VT-02
+        validates: "Threat model covers every boundary"
+        method: "Traverse boundaries against the model"
+        pass_condition: "100% covered; every threat mitigated or accepted with an owner"
+      - id: S07-VT-03
+        validates: "Authorization is default-deny"
+        method: "Design review of the PDP"
+        pass_condition: "No path reaches a resource without an explicit allow"
+      - id: S07-VT-04
+        validates: "Failure modes are designed"
+        method: "Walk each dependency failure"
+        pass_condition: "Every one has a defined behaviour and a user-visible outcome"
+      - id: S07-VT-05
+        validates: "NFRs are numeric and verifiable"
+        method: "Traverse the NFR sheet"
+        pass_condition: "Zero qualitative NFRs; every one has a named verification test"
+      - id: S07-VT-06
+        validates: "Data ownership holds in the physical design"
+        method: "Check for cross-service database access"
+        pass_condition: "None"
+      - id: S07-VT-07
+        validates: "Constraints are machine-enforceable"
+        method: "Count fitness functions vs constraints"
+        pass_condition: "Every automatable constraint has one"
+      - id: S07-VT-08
+        validates: "Replaceability is real"
+        method: "Design walkthrough: replace 1SB with another aggregator"
+        pass_condition: "Change is confined to the adapter layer"
+    exit_gate:
+      - id: S07-G1
+        criterion: "Target architecture documented and reviewed"
+        evidence_level: "E2"
+        evidence_artefact: "Architecture document + review verdict"
+      - id: S07-G2
+        criterion: "ADRs recorded for all significant decisions"
+        evidence_level: "E1"
+        evidence_artefact: "ADR log"
+      - id: S07-G3
+        criterion: "Threat model complete per trust boundary"
+        evidence_level: "E2"
+        evidence_artefact: "Threat model, signed by Security (human)"
+      - id: S07-G4
+        criterion: "Security architecture approved"
+        evidence_level: "E2"
+        evidence_artefact: "Security sign-off (human)"
+      - id: S07-G5
+        criterion: "Data architecture approved including backup and retention"
+        evidence_level: "E2"
+        evidence_artefact: "Signed by Aarti"
+      - id: S07-G6
+        criterion: "NFR sheet with numbers, each verifiable"
+        evidence_level: "E2"
+        evidence_artefact: "Signed NFR sheet — closes GAP-017"
+      - id: S07-G7
+        criterion: "R0 build order defined — the minimum service set"
+        evidence_level: "E2"
+        evidence_artefact: "Build order, PO and Delivery agreed"
+      - id: S07-G8
+        criterion: "Fitness functions defined for automatable constraints"
+        evidence_level: "E1"
+        evidence_artefact: "Fitness function list"
+
+  - id: S08
+    name: "Engineering Foundation"
+    aigem_stage: "L4"
+    owner: "Amit (Engineering) + Swapnali (Quality)"
+    default_priority: P1
+    epics:
+      - id: S08-E01
+        title: "Continuous integration pipeline"
+        owner: "Amit + Shivanshi"
+        stories:
+          - id: S08-E01-S01
+            title: "Build every module on every pull request"
+            acceptance_criteria: "Full Gradle build across all libs/ and services/; failure blocks merge; build under 10 minutes"
+          - id: S08-E01-S02
+            title: "Run unit and component tests on every PR"
+            acceptance_criteria: "All tests execute; any failure blocks merge; results published as a readable report"
+          - id: S08-E01-S03
+            title: "Run integration tests on merge to main"
+            acceptance_criteria: "Testcontainers-backed; failure blocks the merge queue"
+          - id: S08-E01-S04
+            title: "Publish build artefacts"
+            acceptance_criteria: "Versioned JARs and container images to a registry, tagged with the commit SHA"
+          - id: S08-E01-S05
+            title: "Enforce branch protection"
+            acceptance_criteria: "No merge to main without a green pipeline and an approving review"
+          - id: S08-E01-S06
+            title: "Make pipeline status visible"
+            acceptance_criteria: "Build badge, failure notification to the owning team, and a dashboard of pipeline health"
+          - id: S08-E01-S07
+            title: "Optimise pipeline feedback time"
+            acceptance_criteria: "Parallelised module builds, dependency caching; PR feedback under 10 minutes or the pipeline gets bypassed in practice"
+      - id: S08-E02
+        title: "Quality gates in the pipeline"
+        owner: "Swapnali + Amit"
+        stories:
+          - id: S08-E02-S01
+            title: "Enforce JaCoCo coverage thresholds"
+            acceptance_criteria: "Build fails below threshold — libs 80/70, services per policy. Closes QA-001's mechanism"
+          - id: S08-E02-S02
+            title: "Enforce ArchUnit rules in CI"
+            acceptance_criteria: "Boundary violations fail the build; allowEmptyShould(true) removed (closes TD-007)"
+          - id: S08-E02-S03
+            title: "Enforce static analysis"
+            acceptance_criteria: "Linting and code-quality rules; new violations fail, existing ones are a tracked baseline"
+          - id: S08-E02-S04
+            title: "Enforce build reproducibility"
+            acceptance_criteria: "Same commit produces the same artefact; no snapshot or floating dependencies"
+          - id: S08-E02-S05
+            title: "Publish coverage and quality trend"
+            acceptance_criteria: "Per-module trend visible over time, so decline is noticed before it is entrenched"
+          - id: S08-E02-S06
+            title: "Define and enforce 100% coverage on compliance-gate code"
+            acceptance_criteria: "Control paths C1–C10 at 100% branch coverage, no waiver"
+      - id: S08-E03
+        title: "Test infrastructure"
+        owner: "Swapnali + Amit"
+        stories:
+          - id: S08-E03-S01
+            title: "Testcontainers for PostgreSQL"
+            acceptance_criteria: "Integration tests run against a real database, created and destroyed per run"
+          - id: S08-E03-S02
+            title: "WireMock harness for 1SB and external providers"
+            acceptance_criteria: "Provider behaviour stubbed including error, timeout and malformed responses (closes TD-014)"
+          - id: S08-E03-S03
+            title: "Shared test fixture library"
+            acceptance_criteria: "Realistic domain fixtures reused across modules; no copy-pasted test data"
+          - id: S08-E03-S04
+            title: "Contract testing across service seams"
+            acceptance_criteria: "Provider and consumer contracts verified in CI at every seam"
+          - id: S08-E03-S05
+            title: "E2E test harness"
+            acceptance_criteria: "Framework, environment hookup, data setup and teardown, reporting"
+          - id: S08-E03-S06
+            title: "PII-free synthetic test data generator"
+            acceptance_criteria: "Generates realistic profiles including the awkward cases: joint life, minor nominee, NRI, PAN mismatch"
+          - id: S08-E03-S07
+            title: "Performance test harness"
+            acceptance_criteria: "Load-generation tooling wired to run against a deployed environment and publish results"
+      - id: S08-E04
+        title: "Security in the pipeline"
+        owner: "Deepali + Amit"
+        stories:
+          - id: S08-E04-S01
+            title: "Secret scanning"
+            acceptance_criteria: "Pre-commit hook and CI stage; any detected credential fails the build; historical scan performed once"
+          - id: S08-E04-S02
+            title: "Static application security testing (SAST)"
+            acceptance_criteria: "Runs on every PR; new critical or high findings fail; findings routed to the risk register"
+          - id: S08-E04-S03
+            title: "Dependency and supply-chain scanning (SCA)"
+            acceptance_criteria: "Vulnerability check on every build; critical with a reachable path fails"
+          - id: S08-E04-S04
+            title: "Container image scanning"
+            acceptance_criteria: "Every image scanned before publication; critical CVEs block"
+          - id: S08-E04-S05
+            title: "Generate an SBOM per build"
+            acceptance_criteria: "Stored with the artefact; licence compliance checked"
+          - id: S08-E04-S06
+            title: "Define the vulnerability remediation SLA"
+            acceptance_criteria: "S0 immediate, S1 next release, S2 two releases, S3 backlog — tracked, not aspirational"
+      - id: S08-E05
+        title: "Engineering standards"
+        owner: "Amit"
+        stories:
+          - id: S08-E05-S01
+            title: "Publish coding standards"
+            acceptance_criteria: "Language level, formatting (automated), naming, package structure, error handling"
+          - id: S08-E05-S02
+            title: "Publish the secure coding standard"
+            acceptance_criteria: "Input validation, output encoding, authorization checks, secret handling, logging prohibitions"
+          - id: S08-E05-S03
+            title: "Define the branching and review model"
+            acceptance_criteria: "Trunk-based or short-lived branches; review requirements by change tier"
+          - id: S08-E05-S04
+            title: "Define the observability standard for code"
+            acceptance_criteria: "Required metrics, structured logging with correlation IDs, trace propagation — as a library, not a convention"
+          - id: S08-E05-S05
+            title: "Define the PII-masking standard and prove it"
+            acceptance_criteria: "Masking converter applied at the framework level, with a test that scans emitted logs for regulated field patterns"
+          - id: S08-E05-S06
+            title: "Publish the Definition of Done"
+            acceptance_criteria: "Agreed with QA; enforced at review"
+      - id: S08-E06
+        title: "Developer experience"
+        owner: "Shivanshi + Amit"
+        stories:
+          - id: S08-E06-S01
+            title: "One-command local environment"
+            acceptance_criteria: "A new engineer runs the full stack locally on day one"
+          - id: S08-E06-S02
+            title: "Fast local feedback"
+            acceptance_criteria: "Unit tests under 3 minutes; a documented inner-loop workflow"
+          - id: S08-E06-S03
+            title: "Service scaffolding template"
+            acceptance_criteria: "A new service starts with observability, security, error handling, health checks and CI already wired"
+          - id: S08-E06-S04
+            title: "Onboarding documentation"
+            acceptance_criteria: "A new engineer makes a merged, tested change within their first week"
+    validation_tests:
+      - id: S08-VT-01
+        validates: "CI actually blocks bad code"
+        method: "Open a PR with a deliberately failing test"
+        pass_condition: "Merge is blocked"
+      - id: S08-VT-02
+        validates: "Coverage gate bites"
+        method: "Open a PR that drops coverage below threshold"
+        pass_condition: "Build fails"
+      - id: S08-VT-03
+        validates: "Architecture rules bite"
+        method: "Open a PR importing a 1SB type outside adapter.onesb.*"
+        pass_condition: "Build fails"
+      - id: S08-VT-04
+        validates: "Secret scanning bites"
+        method: "Open a PR containing a test credential in a realistic format"
+        pass_condition: "Build fails, secret not merged"
+      - id: S08-VT-05
+        validates: "SCA bites"
+        method: "Introduce a dependency with a known critical CVE"
+        pass_condition: "Build fails"
+      - id: S08-VT-06
+        validates: "PII never reaches logs"
+        method: "Run the full test suite; scan all emitted logs for PAN, Aadhaar, phone, email and health patterns"
+        pass_condition: "Zero matches"
+      - id: S08-VT-07
+        validates: "Compliance-gate coverage is total"
+        method: "Coverage report filtered to control paths C1–C10"
+        pass_condition: "100% branch"
+      - id: S08-VT-08
+        validates: "Pipeline is fast enough to be trusted"
+        method: "Measure PR feedback time across 20 runs"
+        pass_condition: "p95 under 10 minutes"
+      - id: S08-VT-09
+        validates: "Pipeline is reliable"
+        method: "Measure flaky failures across 50 runs"
+        pass_condition: "Under 1%"
+      - id: S08-VT-10
+        validates: "A new engineer can contribute"
+        method: "Onboard someone unfamiliar; time to first merged change"
+        pass_condition: "Under one week"
+      - id: S08-VT-11
+        validates: "Builds are reproducible"
+        method: "Build the same commit twice on different agents"
+        pass_condition: "Identical artefacts"
+    exit_gate:
+      - id: S08-G1
+        criterion: "CI builds and tests every module on every PR"
+        evidence_level: "E4"
+        evidence_artefact: "Pipeline definition + run history"
+      - id: S08-G2
+        criterion: "Merge to main is impossible without a green pipeline"
+        evidence_level: "E4"
+        evidence_artefact: "Branch protection config + a blocked-merge demonstration"
+      - id: S08-G3
+        criterion: "Coverage thresholds enforced; QA-001 closed"
+        evidence_level: "E4"
+        evidence_artefact: "Coverage report from CI + QA-001 closure record"
+      - id: S08-G4
+        criterion: "ArchUnit and static analysis enforced"
+        evidence_level: "E4"
+        evidence_artefact: "CI run showing enforcement + a demonstrated failure"
+      - id: S08-G5
+        criterion: "Secret, SAST, SCA and image scanning in the pipeline"
+        evidence_level: "E4"
+        evidence_artefact: "Scan reports from a CI run"
+      - id: S08-G6
+        criterion: "Test infrastructure operational at every pyramid level"
+        evidence_level: "E4"
+        evidence_artefact: "Tests of each type running in CI"
+      - id: S08-G7
+        criterion: "No PII in logs, proven by automated test"
+        evidence_level: "E4"
+        evidence_artefact: "Log-scan test result"
+      - id: S08-G8
+        criterion: "Engineering and secure coding standards published and adopted"
+        evidence_level: "E2"
+        evidence_artefact: "Standards documents + review checklist referencing them"
+      - id: S08-G9
+        criterion: "Pipeline feedback under 10 minutes at p95, flake under 1%"
+        evidence_level: "E4"
+        evidence_artefact: "Pipeline metrics over ≥ 50 runs"
+      - id: S08-G10
+        criterion: "A new engineer can build, test and ship in under a week"
+        evidence_level: "E3"
+        evidence_artefact: "Onboarding record"
+
+  - id: S09
+    name: "Platform & Environment Foundation"
+    aigem_stage: "L4"
+    owner: "Shivanshi (SRE) + Deepali (Security)"
+    default_priority: P1
+    epics:
+      - id: S09-E01
+        title: "Infrastructure as code"
+        owner: "Shivanshi"
+        stories:
+          - id: S09-E01-S01
+            title: "Establish the IaC repository and module standard"
+            acceptance_criteria: "Terraform (or equivalent) with versioned, reviewed modules; no console-created production resource"
+          - id: S09-E01-S02
+            title: "Define remote state and locking"
+            acceptance_criteria: "State stored securely, encrypted, locked against concurrent apply"
+          - id: S09-E01-S03
+            title: "Build the network foundation"
+            acceptance_criteria: "VPC, subnets across AZs, routing, NAT, security groups — per the S07 trust boundary model"
+          - id: S09-E01-S04
+            title: "Build the compute foundation"
+            acceptance_criteria: "EKS cluster (or approved alternative) with node management and workload isolation"
+          - id: S09-E01-S05
+            title: "Build the data foundation"
+            acceptance_criteria: "Aurora PostgreSQL Multi-AZ, DynamoDB tables, S3 buckets — encrypted, private, least-privilege"
+          - id: S09-E01-S06
+            title: "Enforce region pinning to India"
+            acceptance_criteria: "Every resource in ap-south-1; DR in ap-south-2; a policy check fails any other region"
+          - id: S09-E01-S07
+            title: "IaC scanning in the pipeline"
+            acceptance_criteria: "Policy-as-code blocks public exposure, unencrypted stores and over-broad IAM before apply"
+          - id: S09-E01-S08
+            title: "Define drift detection"
+            acceptance_criteria: "Scheduled comparison of actual state to code; drift alerts and is reconciled, not tolerated"
+      - id: S09-E02
+        title: "Environments"
+        owner: "Shivanshi"
+        stories:
+          - id: S09-E02-S01
+            title: "Provision dev, UAT and production"
+            acceptance_criteria: "Each from the same IaC modules with different parameters — not hand-built variants"
+          - id: S09-E02-S02
+            title: "Define the promotion model"
+            acceptance_criteria: "An artefact built once is promoted; never rebuilt per environment"
+          - id: S09-E02-S03
+            title: "Enforce environment isolation"
+            acceptance_criteria: "Separate accounts or equivalent; no shared credentials; no network path from lower to production data"
+          - id: S09-E02-S04
+            title: "Define environment configuration management"
+            acceptance_criteria: "Config external to the image; per-environment values versioned and reviewed"
+          - id: S09-E02-S05
+            title: "Define ephemeral environments for testing"
+            acceptance_criteria: "Created per pipeline run or per feature branch, destroyed after"
+          - id: S09-E02-S06
+            title: "Prohibit production data in lower environments"
+            acceptance_criteria: "Technically enforced, not policy-only"
+      - id: S09-E03
+        title: "Deployment and rollback"
+        owner: "Shivanshi + Amit"
+        stories:
+          - id: S09-E03-S01
+            title: "Automated deployment to every environment"
+            acceptance_criteria: "Single pipeline, no manual steps, full audit trail of who deployed what"
+          - id: S09-E03-S02
+            title: "Progressive delivery"
+            acceptance_criteria: "Rolling, blue/green or canary — chosen per service and justified"
+          - id: S09-E03-S03
+            title: "Automated, tested rollback"
+            acceptance_criteria: "Rollback executed successfully in UAT as an acceptance condition, not a documented intention"
+          - id: S09-E03-S04
+            title: "Database migration in the deployment path"
+            acceptance_criteria: "Ordered, reversible or forward-fixable, safe under a rolling deploy with mixed versions live"
+          - id: S09-E03-S05
+            title: "Deployment gating"
+            acceptance_criteria: "Production deploy requires the required approvals recorded; emergency path exists and is audited"
+          - id: S09-E03-S06
+            title: "Deployment observability"
+            acceptance_criteria: "Deploy events correlate to metric changes so a bad release is visible immediately"
+      - id: S09-E04
+        title: "Secrets and key management"
+        owner: "Deepali + Shivanshi"
+        stories:
+          - id: S09-E04-S01
+            title: "Deploy real secrets management"
+            acceptance_criteria: "AWS Secrets Manager wired end to end — closes TD-006's stub provider"
+          - id: S09-E04-S02
+            title: "Eliminate secrets from code, images and config"
+            acceptance_criteria: "Verified by scanning; build fails on any occurrence"
+          - id: S09-E04-S03
+            title: "Build the KMS key hierarchy"
+            acceptance_criteria: "CMKs per data class, with defined ownership, policy and rotation"
+          - id: S09-E04-S04
+            title: "Implement secret rotation"
+            acceptance_criteria: "Rotation procedure for every credential class, exercised at least once"
+          - id: S09-E04-S05
+            title: "Implement emergency revocation"
+            acceptance_criteria: "A credential or partner key can be revoked and replaced under incident conditions; exercised"
+          - id: S09-E04-S06
+            title: "Define workload identity"
+            acceptance_criteria: "Services authenticate to cloud resources by role, never by static credential"
+      - id: S09-E05
+        title: "Observability substrate"
+        owner: "Shivanshi"
+        stories:
+          - id: S09-E05-S01
+            title: "Deploy metrics collection and storage"
+            acceptance_criteria: "Every service scraped; retention defined; queryable"
+          - id: S09-E05-S02
+            title: "Deploy log aggregation"
+            acceptance_criteria: "Structured logs centralised, searchable, retained per policy, with PII masking verified in the pipeline"
+          - id: S09-E05-S03
+            title: "Deploy distributed tracing"
+            acceptance_criteria: "Traces span every service hop and external call; trace ID correlates to logs"
+          - id: S09-E05-S04
+            title: "Build baseline dashboards"
+            acceptance_criteria: "Per service: RED metrics, saturation, dependency health"
+          - id: S09-E05-S05
+            title: "Build the alerting platform"
+            acceptance_criteria: "Routing, on-call schedule, escalation, and runbook links in the alert payload"
+          - id: S09-E05-S06
+            title: "Separate the audit event pipeline"
+            acceptance_criteria: "Audit events do not flow through operational logging; immutable, separately retained"
+      - id: S09-E06
+        title: "Data protection, backup and retention"
+        owner: "Aarti + Shivanshi"
+        stories:
+          - id: S09-E06-S01
+            title: "Enable encryption at rest everywhere"
+            acceptance_criteria: "Every store, backup and archive, with owned CMKs"
+          - id: S09-E06-S02
+            title: "Enforce TLS in transit"
+            acceptance_criteria: "TLS 1.3 externally; mutual TLS or equivalent internally; verified by scan"
+          - id: S09-E06-S03
+            title: "Implement automated backup"
+            acceptance_criteria: "Per store, meeting the S07 RPO; backups encrypted and access-controlled"
+          - id: S09-E06-S04
+            title: "Prove restore"
+            acceptance_criteria: "A restore performed to a working state, timed against RTO — a backup that has never been restored is a hypothesis"
+          - id: S09-E06-S05
+            title: "Implement 7-year immutable retention"
+            acceptance_criteria: "S3 Object Lock for raw payloads and audit archives; immutability tested by attempting deletion"
+          - id: S09-E06-S06
+            title: "Implement retention purge"
+            acceptance_criteria: "Data past its retention horizon is disposed of, with an audit record of disposal"
+          - id: S09-E06-S07
+            title: "Attest data residency"
+            acceptance_criteria: "Evidence that every store, backup, log and archive is in an India region"
+      - id: S09-E07
+        title: "Platform security baseline"
+        owner: "Deepali"
+        stories:
+          - id: S09-E07-S01
+            title: "Implement network segmentation"
+            acceptance_criteria: "Trust zones enforced by security groups and network policy; default deny between zones"
+          - id: S09-E07-S02
+            title: "Implement least-privilege IAM"
+            acceptance_criteria: "No wildcard production policies; access reviewed and time-bound"
+          - id: S09-E07-S03
+            title: "Harden the container platform"
+            acceptance_criteria: "Non-root, read-only filesystems, no privileged containers, admission policy enforced"
+          - id: S09-E07-S04
+            title: "Deploy runtime security monitoring"
+            acceptance_criteria: "Anomalous behaviour detected and alerted"
+          - id: S09-E07-S05
+            title: "Implement edge protection"
+            acceptance_criteria: "WAF, rate limiting, DDoS protection on public endpoints"
+          - id: S09-E07-S06
+            title: "Implement security event logging"
+            acceptance_criteria: "Security events to a separate, tamper-evident store"
+    validation_tests:
+      - id: S09-VT-01
+        validates: "Infrastructure is reproducible"
+        method: "Destroy and recreate a non-production environment entirely from code"
+        pass_condition: "Identical, working environment; no manual step"
+      - id: S09-VT-02
+        validates: "Region pinning holds"
+        method: "Attempt to apply a resource outside India regions"
+        pass_condition: "Policy blocks it"
+      - id: S09-VT-03
+        validates: "Deployment works unattended"
+        method: "Deploy through the pipeline with no manual intervention"
+        pass_condition: "Success, fully audited"
+      - id: S09-VT-04
+        validates: "Rollback works"
+        method: "Deploy a deliberately broken version to UAT, roll back"
+        pass_condition: "Previous version restored; data intact; timed"
+      - id: S09-VT-05
+        validates: "Secrets are absent from artefacts"
+        method: "Scan images and repository history"
+        pass_condition: "Zero secrets"
+      - id: S09-VT-06
+        validates: "Rotation works"
+        method: "Rotate a credential in UAT"
+        pass_condition: "Services continue; no outage"
+      - id: S09-VT-07
+        validates: "Restore works"
+        method: "Restore each store from backup to a working state"
+        pass_condition: "RPO and RTO met and measured"
+      - id: S09-VT-08
+        validates: "Retention is immutable"
+        method: "Attempt to delete an object under Object Lock"
+        pass_condition: "Deletion refused"
+      - id: S09-VT-09
+        validates: "Observability is complete"
+        method: "Trigger a request; follow it end to end"
+        pass_condition: "Metrics, logs and a trace all present and correlated"
+      - id: S09-VT-10
+        validates: "PII never reaches aggregated logs"
+        method: "Query the log store for regulated field patterns after a full test run"
+        pass_condition: "Zero matches"
+      - id: S09-VT-11
+        validates: "Network segmentation holds"
+        method: "Attempt a cross-zone connection that policy forbids"
+        pass_condition: "Refused"
+      - id: S09-VT-12
+        validates: "Residency is attestable"
+        method: "Enumerate every resource, backup and log destination"
+        pass_condition: "100% in India regions"
+      - id: S09-VT-13
+        validates: "Lower environments cannot reach production data"
+        method: "Attempt access from dev to production stores"
+        pass_condition: "Refused at the infrastructure layer"
+    exit_gate:
+      - id: S09-G1
+        criterion: "All infrastructure defined as code; no console-created production resource"
+        evidence_level: "E4"
+        evidence_artefact: "IaC repository + drift report"
+      - id: S09-G2
+        criterion: "Dev, UAT and production provisioned from the same modules"
+        evidence_level: "E4"
+        evidence_artefact: "Environment inventory + apply logs"
+      - id: S09-G3
+        criterion: "Environment recreatable from code"
+        evidence_level: "E3"
+        evidence_artefact: "Destroy-and-recreate record"
+      - id: S09-G4
+        criterion: "Automated deployment with tested rollback"
+        evidence_level: "E3"
+        evidence_artefact: "Deploy and rollback execution record"
+      - id: S09-G5
+        criterion: "Secrets management operational; TD-006 closed"
+        evidence_level: "E4"
+        evidence_artefact: "Config evidence + rotation exercise record"
+      - id: S09-G6
+        criterion: "Observability operational: metrics, logs, traces correlated"
+        evidence_level: "E4"
+        evidence_artefact: "Dashboard links + a walked trace"
+      - id: S09-G7
+        criterion: "Backup automated and restore proven against RTO/RPO"
+        evidence_level: "E3"
+        evidence_artefact: "Restore test record with measured times"
+      - id: S09-G8
+        criterion: "7-year immutable retention implemented"
+        evidence_level: "E4"
+        evidence_artefact: "Object Lock config + deletion-refusal test"
+      - id: S09-G9
+        criterion: "Data residency attested"
+        evidence_level: "E2"
+        evidence_artefact: "Residency attestation signed by SRE and Compliance"
+      - id: S09-G10
+        criterion: "Encryption at rest and in transit verified"
+        evidence_level: "E4"
+        evidence_artefact: "Scan results"
+      - id: S09-G11
+        criterion: "Network segmentation and least-privilege IAM enforced"
+        evidence_level: "E4"
+        evidence_artefact: "Policy config + connectivity test results"
+      - id: S09-G12
+        criterion: "IaC scanning in the pipeline"
+        evidence_level: "E4"
+        evidence_artefact: "Scan report from a run"
+      - id: S09-G13
+        criterion: "No PII in aggregated logs"
+        evidence_level: "E4"
+        evidence_artefact: "Log-store query result"
+
+  - id: S10
+    name: "Integration & Connectivity"
+    aigem_stage: "L5"
+    owner: "Amit (Engineering) + Mahesh (Architecture)"
+    default_priority: P2
+    epics:
+      - id: S10-E01
+        title: "Integration catalogue and governance"
+        owner: "Mahesh + Kalpana"
+        stories:
+          - id: S10-E01-S01
+            title: "Catalogue every external dependency"
+            acceptance_criteria: "System, owner, protocol, environments, SLA, escalation contact, contract reference"
+          - id: S10-E01-S02
+            title: "Establish access to every sandbox"
+            acceptance_criteria: "Credentials, IP allowlisting and connectivity proven from our egress, per environment"
+          - id: S10-E01-S03
+            title: "Define the dependency criticality tier"
+            acceptance_criteria: "Which failures stop a sale, which degrade it, which are invisible to the customer"
+          - id: S10-E01-S04
+            title: "Track integration readiness as a delivery dependency"
+            acceptance_criteria: "Each with a required-by date; overdue items escalate under Kalpana's decision-forcing authority"
+      - id: S10-E02
+        title: "Aggregator integration (1SB)"
+        owner: "Amit"
+        stories:
+          - id: S10-E02-S01
+            title: "HTTP client with auth, timeouts and no-retry on 401"
+            acceptance_criteria: "Single HTTP stack; credentials from secrets management"
+          - id: S10-E02-S02
+            title: "Error normalisation to the bank problem model"
+            acceptance_criteria: "Provider error shapes never surface to bank callers"
+          - id: S10-E02-S03
+            title: "Async job and polling infrastructure"
+            acceptance_criteria: "Shared across quote and proposal; multi-instance safe"
+          - id: S10-E02-S04
+            title: "LOB routing behind ports"
+            acceptance_criteria: "Adding an LOB requires no orchestration change"
+          - id: S10-E02-S05
+            title: "Raw payload capture, encrypted"
+            acceptance_criteria: "For every provider exchange, retained per the retention schedule"
+          - id: S10-E02-S06
+            title: "Idempotency on mutating operations"
+            acceptance_criteria: "Replay produces the original result, never a duplicate effect"
+      - id: S10-E03
+        title: "Core banking integration (CBS)"
+        owner: "Amit"
+        stories:
+          - id: S10-E03-S01
+            title: "Customer lookup by CIF"
+            acceptance_criteria: "ETB identification with the fields the journey needs"
+          - id: S10-E03-S02
+            title: "KYC and demographic retrieval for pre-fill"
+            acceptance_criteria: "Only fields with a stated purpose; classification honoured"
+          - id: S10-E03-S03
+            title: "Relationship verification"
+            acceptance_criteria: "Confirms the ETB eligibility rule"
+          - id: S10-E03-S04
+            title: "Define degraded behaviour when CBS is unavailable"
+            acceptance_criteria: "Product decision recorded: block, or proceed with manual capture"
+      - id: S10-E04
+        title: "Payment gateway integration"
+        owner: "Amit + Deepali"
+        stories:
+          - id: S10-E04-S01
+            title: "Payment session and link generation"
+            acceptance_criteria: "Link issued to the customer's device only — never rendered on an RM device"
+          - id: S10-E04-S02
+            title: "Payment status callback handling"
+            acceptance_criteria: "Authenticated, replay-protected, integrity-verified"
+          - id: S10-E04-S03
+            title: "Status reconciliation by polling"
+            acceptance_criteria: "Callback loss cannot leave a payment in unknown state indefinitely"
+          - id: S10-E04-S04
+            title: "Handle the uncertain-payment case"
+            acceptance_criteria: "Defined behaviour when payment state cannot be determined; never a double charge"
+          - id: S10-E04-S05
+            title: "Refund and failure paths"
+            acceptance_criteria: "Per the S03 payment rules"
+      - id: S10-E05
+        title: "Identity integration"
+        owner: "Amit + Deepali"
+        stories:
+          - id: S10-E05-S01
+            title: "Bank AD federation for workforce identity"
+            acceptance_criteria: "Behind the provider adapter; no provider type leaks"
+          - id: S10-E05-S02
+            title: "Token-hiding BFF session"
+            acceptance_criteria: "The client never receives OAuth tokens"
+          - id: S10-E05-S03
+            title: "Customer authentication for DIY journeys"
+            acceptance_criteria: "Digital banking SSO for ETB"
+          - id: S10-E05-S04
+            title: "Certification metadata retrieval"
+            acceptance_criteria: "SP licence validity available to the attribution rule"
+      - id: S10-E06
+        title: "Notification integration"
+        owner: "Amit"
+        stories:
+          - id: S10-E06-S01
+            title: "SMS delivery for OTP and payment links"
+            acceptance_criteria: "Delivery status tracked; failures visible"
+          - id: S10-E06-S02
+            title: "Email delivery for documents and confirmations"
+            acceptance_criteria: "Attachment handling; bounce handling"
+          - id: S10-E06-S03
+            title: "Template management with versioning"
+            acceptance_criteria: "Regulated content versioned like any other regulated artefact"
+      - id: S10-E07
+        title: "Resilience"
+        owner: "Shivanshi + Amit"
+        stories:
+          - id: S10-E07-S01
+            title: "Timeouts on every external call"
+            acceptance_criteria: "No unbounded call anywhere; values justified by the NFR sheet"
+          - id: S10-E07-S02
+            title: "Retry with backoff and jitter, where safe"
+            acceptance_criteria: "Only on idempotent operations; never on 401; bounded attempts"
+          - id: S10-E07-S03
+            title: "Circuit breakers per dependency"
+            acceptance_criteria: "Trip thresholds and recovery defined; state observable"
+          - id: S10-E07-S04
+            title: "Bulkhead isolation"
+            acceptance_criteria: "One slow provider cannot exhaust shared resources"
+          - id: S10-E07-S05
+            title: "Rate limiting toward providers"
+            acceptance_criteria: "Respects contracted limits; never amplifies under retry"
+          - id: S10-E07-S06
+            title: "Dependency health observability"
+            acceptance_criteria: "Availability, latency and error rate per provider, measured from our side"
+    validation_tests:
+      - id: S10-VT-01
+        validates: "Happy path works per integration"
+        method: "Sandbox call"
+        pass_condition: "Success with the expected payload"
+      - id: S10-VT-02
+        validates: "Timeouts are enforced"
+        method: "Stub a provider that never responds"
+        pass_condition: "Call times out at the configured value; caller gets a normalised error"
+      - id: S10-VT-03
+        validates: "Malformed responses are handled"
+        method: "Stub invalid JSON, truncated payloads, wrong content type"
+        pass_condition: "No crash; normalised error; nothing corrupted"
+      - id: S10-VT-04
+        validates: "Auth failure does not retry-storm"
+        method: "Stub 401"
+        pass_condition: "No retry; alert raised"
+      - id: S10-VT-05
+        validates: "Circuit breaker trips and recovers"
+        method: "Stub sustained failure, then recovery"
+        pass_condition: "Breaker opens, half-opens, closes; state observable"
+      - id: S10-VT-06
+        validates: "Idempotency holds"
+        method: "Replay a mutating request 5×"
+        pass_condition: "One effect, identical response"
+      - id: S10-VT-07
+        validates: "Payment uncertainty is safe"
+        method: "Stub a callback that never arrives"
+        pass_condition: "Reconciliation resolves state; no double charge"
+      - id: S10-VT-08
+        validates: "Provider types do not leak"
+        method: "ArchUnit"
+        pass_condition: "No provider type outside its adapter package"
+      - id: S10-VT-09
+        validates: "Credentials rotate without outage"
+        method: "Rotate in UAT"
+        pass_condition: "Calls continue"
+      - id: S10-VT-10
+        validates: "Rate limits are respected"
+        method: "Drive load beyond contracted limits"
+        pass_condition: "Requests shaped locally; provider limit never breached"
+    exit_gate:
+      - id: S10-G1
+        criterion: "Integration catalogue complete with owners and SLAs"
+        evidence_level: "E1"
+        evidence_artefact: "Catalogue"
+      - id: S10-G2
+        criterion: "Connectivity proven to every R0 dependency in UAT"
+        evidence_level: "E4"
+        evidence_artefact: "Successful calls with correlation IDs"
+      - id: S10-G3
+        criterion: "Error normalisation verified for every integration"
+        evidence_level: "E4"
+        evidence_artefact: "Test results including malformed and timeout cases"
+      - id: S10-G4
+        criterion: "Resilience patterns implemented and proven"
+        evidence_level: "E4"
+        evidence_artefact: "Failure-injection test results"
+      - id: S10-G5
+        criterion: "Idempotency proven on every mutating operation"
+        evidence_level: "E4"
+        evidence_artefact: "Replay test results"
+      - id: S10-G6
+        criterion: "Credentials in secrets management; rotation exercised"
+        evidence_level: "E3"
+        evidence_artefact: "Rotation record"
+      - id: S10-G7
+        criterion: "Third-party security assessment complete per partner"
+        evidence_level: "E2"
+        evidence_artefact: "Assessment records"
+      - id: S10-G8
+        criterion: "Dependency observability live"
+        evidence_level: "E4"
+        evidence_artefact: "Dashboards per provider"
+      - id: S10-G9
+        criterion: "Provider isolation enforced by fitness function"
+        evidence_level: "E4"
+        evidence_artefact: "ArchUnit run"
+
+  - id: S11
+    name: "Vertical Slice (MVP)"
+    aigem_stage: "L6"
+    owner: "Rajal (Product) + Amit (Engineering)"
+    default_priority: P1
+    epics:
+      - id: S11-E01
+        title: "Journey orchestration"
+        owner: "Amit + Mahesh"
+        stories:
+          - id: S11-E01-S01
+            title: "Implement the journey state machine"
+            acceptance_criteria: "States and transitions per the S06 saga; state durable and resumable"
+          - id: S11-E01-S02
+            title: "Implement compensations"
+            acceptance_criteria: "Every failure point has its designed compensation, tested"
+          - id: S11-E01-S03
+            title: "Implement save and resume"
+            acceptance_criteria: "An abandoned journey resumes with full context, subject to consent and quote validity"
+          - id: S11-E01-S04
+            title: "Emit journey telemetry"
+            acceptance_criteria: "Every state transition emits a metric and an audit event"
+      - id: S11-E02
+        title: "Lead and customer"
+        owner: "Amit"
+        stories:
+          - id: S11-E02-S01
+            title: "Create a lead"
+            acceptance_criteria: "RM-initiated, attributed to RM and branch"
+          - id: S11-E02-S02
+            title: "Identify the ETB customer via CBS"
+            acceptance_criteria: "CIF lookup; relationship verified; ETB rule enforced"
+          - id: S11-E02-S03
+            title: "Snapshot the customer profile"
+            acceptance_criteria: "Only classified, purpose-justified fields; provenance recorded"
+      - id: S11-E03
+        title: "Suitability, consent and the compliance gates"
+        owner: "Amit + Shailja"
+        stories:
+          - id: S11-E03-S01
+            title: "Implement the need-analysis questionnaire"
+            acceptance_criteria: "Per the S02 suitability pack; answers persisted with the algorithm version"
+          - id: S11-E03-S02
+            title: "Implement suitability evaluation"
+            acceptance_criteria: "Deterministic; produces an evaluation ID with a validity window"
+          - id: S11-E03-S03
+            title: "Implement the suitability hard-gate (C1)"
+            acceptance_criteria: "Quote endpoints return 403 without a valid evaluation ID. Negative test at 100% branch coverage"
+          - id: S11-E03-S04
+            title: "Implement override handling"
+            acceptance_criteria: "Per the S02 rules; override recorded with actor, reason and disclosure"
+          - id: S11-E03-S05
+            title: "Implement consent capture (C2)"
+            acceptance_criteria: "OTP to the customer's device; append-only record of statement text, version, CIF, OTP txn ID, timestamp, IP"
+          - id: S11-E03-S06
+            title: "Implement consent enforcement"
+            acceptance_criteria: "Proposal cannot proceed without valid consent; negative test"
+          - id: S11-E03-S07
+            title: "Implement attribution (C3)"
+            acceptance_criteria: "distributorId and SP licence server-injected; caller-supplied values rejected; expired certification blocks the sale"
+      - id: S11-E04
+        title: "Quote and proposal"
+        owner: "Amit"
+        stories:
+          - id: S11-E04-S01
+            title: "Generate a quote for the Term product"
+            acceptance_criteria: "Through the existing 1SB path, now behind the suitability gate"
+          - id: S11-E04-S02
+            title: "Present the quote with disclosed basis"
+            acceptance_criteria: "Comparison and ranking basis visible per the S05 design"
+          - id: S11-E04-S03
+            title: "Enforce quote validity"
+            acceptance_criteria: "Expired quotes cannot be proposed against"
+          - id: S11-E04-S04
+            title: "Capture the proposal"
+            acceptance_criteria: "Dynamic form per product; pre-filled from CIF; validated per the rules catalogue"
+          - id: S11-E04-S05
+            title: "Handle underwriting outcomes"
+            acceptance_criteria: "Accepted, counter-offered, rejected, and pending — each with a defined actor experience"
+          - id: S11-E04-S06
+            title: "Upload and manage documents"
+            acceptance_criteria: "Classified, encrypted, retained per schedule"
+      - id: S11-E05
+        title: "Payment and issuance"
+        owner: "Amit + Deepali"
+        stories:
+          - id: S11-E05-S01
+            title: "Implement payment device isolation (C4)"
+            acceptance_criteria: "Link or QR to the customer's device; the RM app never renders a payment surface. Negative test"
+          - id: S11-E05-S02
+            title: "Handle payment status"
+            acceptance_criteria: "Callback plus reconciliation polling; unknown state resolves within a defined window"
+          - id: S11-E05-S03
+            title: "Trigger and confirm policy issuance"
+            acceptance_criteria: "Insurer confirmation received and persisted"
+          - id: S11-E05-S04
+            title: "Reconcile premium to policy"
+            acceptance_criteria: "Both directions; unreconciled items surface on an operations queue"
+          - id: S11-E05-S05
+            title: "Implement the \"policy sold\" determination"
+            acceptance_criteria: "All four conditions — issued, confirmed, reconciled, persisted"
+          - id: S11-E05-S06
+            title: "Deliver the policy document"
+            acceptance_criteria: "COI generated or retrieved, delivered, and retrievable later"
+      - id: S11-E06
+        title: "RM application (Flutter)"
+        owner: "Digital + Amit"
+        stories:
+          - id: S11-E06-S01
+            title: "Authenticate the RM"
+            acceptance_criteria: "Via the BFF; no OAuth token reaches the client"
+          - id: S11-E06-S02
+            title: "Implement the journey screens"
+            acceptance_criteria: "Per the S05 design, using the design system"
+          - id: S11-E06-S03
+            title: "Implement the customer-device hand-off"
+            acceptance_criteria: "Consent and payment transitions, with status visible to the RM"
+          - id: S11-E06-S04
+            title: "Implement error, empty and degraded states"
+            acceptance_criteria: "Per the S05 state catalogue; every failure tells the RM what to do"
+          - id: S11-E06-S05
+            title: "Implement offline and poor-connectivity behaviour"
+            acceptance_criteria: "Branch connectivity is unreliable; no data loss on interruption"
+      - id: S11-E07
+        title: "Audit and observability"
+        owner: "Amit + Shivanshi"
+        stories:
+          - id: S11-E07-S01
+            title: "Emit an audit event per regulated action"
+            acceptance_criteria: "Immutable, attributable, with correlation to the journey"
+          - id: S11-E07-S02
+            title: "Prove journey reconstruction"
+            acceptance_criteria: "Any completed or abandoned journey reconstructable from audit records alone"
+          - id: S11-E07-S03
+            title: "Instrument the journey KPIs"
+            acceptance_criteria: "Conversion and drop-off per step, per the S04 KPI definitions"
+          - id: S11-E07-S04
+            title: "Build the journey dashboard"
+            acceptance_criteria: "Business-visible: sales, drop-offs, failures by cause"
+      - id: S11-E08
+        title: "Minimum administration and configuration"
+        owner: "Rajal + Amit + Deepali"
+        stories:
+          - id: S11-E08-S01
+            title: "Maintain the R0 catalogue seed"
+            acceptance_criteria: "One approved Term product and insurer configuration; effective-dated; changes attributable and maker-checker controlled"
+          - id: S11-E08-S02
+            title: "Publish consent and disclosure versions"
+            acceptance_criteria: "Version, effective date and approval provenance retained; a published version is never silently overwritten"
+          - id: S11-E08-S03
+            title: "Administer workforce and partner scopes"
+            acceptance_criteria: "RM, Admin, insurer representative, Operations and management scopes are explicit; privileged changes require a different checker"
+          - id: S11-E08-S04
+            title: "Activate integration configuration safely"
+            acceptance_criteria: "Distributor and insurer configuration references approved secret storage; no secret is displayed or accepted from a channel caller"
+      - id: S11-E09
+        title: "Insurer representative distribution collaboration"
+        owner: "Rajal + Amit + Deepali"
+        stories:
+          - id: S11-E09-S01
+            title: "Access partner-visible cases"
+            acceptance_criteria: "Representative sees only explicitly shared cases for their own insurer and authorised branches; sharing and revocation are audited"
+          - id: S11-E09-S02
+            title: "Respond to underwriting requirements"
+            acceptance_criteria: "Representative may update approved requirement/status fields but cannot alter bank consent, suitability, recommendation or customer declarations"
+          - id: S11-E09-S03
+            title: "Collaborate with RM and Operations"
+            acceptance_criteria: "Case-bound notes and responses are attributable; representative cannot become bank owner, submit as RM, take payment or mark Sold"
+      - id: S11-E10
+        title: "Operations and lifecycle control"
+        owner: "Shivanshi + Amit"
+        stories:
+          - id: S11-E10-S01
+            title: "Operate the exception queue"
+            acceptance_criteria: "Stuck journeys show stage, age, reason, owner, retryability and next action; normal waiting is distinct from an exception"
+          - id: S11-E10-S02
+            title: "Resolve reconciliation mismatches"
+            acceptance_criteria: "Bank, gateway, aggregator and insurer references can be compared and resolved with source evidence; payment match alone never marks Sold"
+          - id: S11-E10-S03
+            title: "Escalate underwriting blockers"
+            acceptance_criteria: "Overdue or unclear requirements identify the accountable RM, insurer representative or Operations owner, due state and escalation history"
+          - id: S11-E10-S04
+            title: "Track post-issuance completion"
+            acceptance_criteria: "Issued, confirmed, reconciled, document-delivered and customer-notified states remain distinct; missing confirmation or documents create exceptions"
+      - id: S11-E11
+        title: "Management oversight and bounded authority"
+        owner: "Rajal + Deepali"
+        stories:
+          - id: S11-E11-S01
+            title: "Provide branch-level oversight"
+            acceptance_criteria: "Branch Manager sees authorised branch pipeline and may assign or escalate work; the role does not grant selling authority or bypass qualification"
+          - id: S11-E11-S02
+            title: "Provide regional and sales oversight"
+            acceptance_criteria: "Regional Manager and Sales Head receive aggregated performance and ageing; customer-level drill-down requires explicit purpose-based permission"
+          - id: S11-E11-S03
+            title: "Provide business-head oversight"
+            acceptance_criteria: "Insurance Business Head sees portfolio, insurer and lifecycle outcomes but cannot override consent, suitability, underwriting, reconciliation or audit evidence"
+          - id: S11-E11-S04
+            title: "Enforce management-role separation"
+            acceptance_criteria: "A management user can perform RM actions only when separately assigned the RM role, required branch scope and valid regulatory qualification"
+    validation_tests:
+      - id: S11-VT-01
+        validates: "A policy can actually be sold"
+        method: "A real RM completes the journey in UAT with a test customer"
+        pass_condition: "Policy issued, confirmed, reconciled, audited"
+      - id: S11-VT-02
+        validates: "The suitability gate blocks"
+        method: "Attempt a quote with no, expired, and mismatched suitability IDs"
+        pass_condition: "403 in all three cases"
+      - id: S11-VT-03
+        validates: "Consent is enforced and evidenced"
+        method: "Attempt a proposal without consent; then retrieve a consent record"
+        pass_condition: "Blocked; record complete and immutable"
+      - id: S11-VT-04
+        validates: "Attribution cannot be spoofed"
+        method: "Send a caller-supplied distributorId; attempt a sale with expired RM certification"
+        pass_condition: "Rejected in both cases"
+      - id: S11-VT-05
+        validates: "Payment isolation holds"
+        method: "Inspect every RM-app surface and network call during payment"
+        pass_condition: "No payment surface, no card data path on the RM device"
+      - id: S11-VT-06
+        validates: "Money is never double-taken"
+        method: "Replay payment initiation; simulate duplicate callbacks"
+        pass_condition: "One charge, one policy"
+      - id: S11-VT-07
+        validates: "Failure paths work"
+        method: "Inject failure at every journey step"
+        pass_condition: "Each produces the designed compensation and a defined RM experience"
+      - id: S11-VT-08
+        validates: "Journeys resume"
+        method: "Abandon at each step; resume later"
+        pass_condition: "Context preserved, subject to validity rules"
+      - id: S11-VT-09
+        validates: "Audit reconstructs the sale"
+        method: "Reconstruct a completed journey from audit records only"
+        pass_condition: "Complete reconstruction, including who did what and when"
+      - id: S11-VT-10
+        validates: "No PII leaks"
+        method: "Scan all logs and telemetry after a full journey run"
+        pass_condition: "Zero regulated fields"
+      - id: S11-VT-11
+        validates: "Real users can use it"
+        method: "5+ RMs complete the journey unaided in UAT"
+        pass_condition: "≥ 80% complete; time-on-task within the S05 target"
+      - id: S11-VT-12
+        validates: "E2E suite runs in CI"
+        method: "Nightly run of the full journey suite"
+        pass_condition: "Green, repeatable"
+      - id: S11-VT-13
+        validates: "Admin authority is bounded"
+        method: "Attempt self-approval, direct secret entry and case-level selling as Admin"
+        pass_condition: "All denied; approved maker-checker changes remain attributable"
+      - id: S11-VT-14
+        validates: "Insurer isolation holds"
+        method: "Attempt cross-insurer and unshared-case access as an insurer representative"
+        pass_condition: "Denied in every case; revocation removes access immediately"
+      - id: S11-VT-15
+        validates: "Operations cannot rewrite regulated evidence"
+        method: "Resolve exceptions and reconciliation while attempting to alter consent, suitability and insurer evidence"
+        pass_condition: "Exceptions resolve through additive evidence; protected records remain unchanged"
+      - id: S11-VT-16
+        validates: "Management role does not imply selling authority"
+        method: "Attempt quote/proposal actions using each management role without a separate qualified RM assignment"
+        pass_condition: "Denied for every management-only identity"
+    exit_gate:
+      - id: S11-G1
+        criterion: "Complete journey works end to end in UAT"
+        evidence_level: "E3"
+        evidence_artefact: "Recorded walkthrough with correlation IDs and the issued policy"
+      - id: S11-G2
+        criterion: "All compliance hard-gates C1–C4 implemented and proven"
+        evidence_level: "E4"
+        evidence_artefact: "Negative test results at 100% branch coverage"
+      - id: S11-G3
+        criterion: "E2E suite green in CI"
+        evidence_level: "E4"
+        evidence_artefact: "CI run"
+      - id: S11-G4
+        criterion: "Journey reconstructable from audit"
+        evidence_level: "E3"
+        evidence_artefact: "Reconstruction record"
+      - id: S11-G5
+        criterion: "RM app usable by real RMs"
+        evidence_level: "E3"
+        evidence_artefact: "UAT usability record"
+      - id: S11-G6
+        criterion: "Failure paths and compensations proven"
+        evidence_level: "E4"
+        evidence_artefact: "Failure-injection results"
+      - id: S11-G7
+        criterion: "KPIs instrumented and visible"
+        evidence_level: "E4"
+        evidence_artefact: "Dashboard"
+      - id: S11-G8
+        criterion: "No PII in logs"
+        evidence_level: "E4"
+        evidence_artefact: "Scan result"
+      - id: S11-G9
+        criterion: "Business acceptance of the slice"
+        evidence_level: "E2"
+        evidence_artefact: "PO and business sign-off"
+      - id: S11-G10
+        criterion: "Supporting actor boundaries and lifecycle operations proven"
+        evidence_level: "E4"
+        evidence_artefact: "Admin, insurer-isolation, Operations and management negative-test results"
+
+  - id: S12
+    name: "Hardening & Certification"
+    aigem_stage: "L7"
+    owner: "Swapnali (QA) + Deepali (Security) + Shailja (Compliance)"
+    default_priority: P2
+    epics:
+      - id: S12-E01
+        title: "Functional certification"
+        owner: "Swapnali"
+        stories:
+          - id: S12-E01-S01
+            title: "Execute the full functional test suite"
+            acceptance_criteria: "Every requirement's AC exercised; results published"
+          - id: S12-E01-S02
+            title: "Execute negative, boundary and exception testing"
+            acceptance_criteria: "Not only the happy path; every failure path from S03 covered"
+          - id: S12-E01-S03
+            title: "Execute the data-variant suite"
+            acceptance_criteria: "Joint life, minor nominee, NRI, PAN mismatch, mid-journey abandonment, duplicate submission"
+          - id: S12-E01-S04
+            title: "Build the regression suite"
+            acceptance_criteria: "Full journey regression, automated, runnable on demand"
+          - id: S12-E01-S05
+            title: "Complete the traceability matrix"
+            acceptance_criteria: "Requirement → code → test → evidence, closed with no orphans"
+          - id: S12-E01-S06
+            title: "Triage and close defects"
+            acceptance_criteria: "Zero D0 and D1 open at exit; D2 agreed with PO and QA"
+      - id: S12-E02
+        title: "Security certification"
+        owner: "Deepali"
+        stories:
+          - id: S12-E02-S01
+            title: "Commission an independent penetration test"
+            acceptance_criteria: "Scope covers every public surface, the partner boundary and the authorization model"
+          - id: S12-E02-S02
+            title: "Remediate findings per SLA"
+            acceptance_criteria: "S0 and S1 closed; S2 scheduled; each with evidence of the fix"
+          - id: S12-E02-S03
+            title: "Execute authorization negative testing"
+            acceptance_criteria: "Every role against every resource, including horizontal and vertical escalation attempts"
+          - id: S12-E02-S04
+            title: "Verify secrets and key handling in a running system"
+            acceptance_criteria: "No secret in any image, log, config, error or telemetry path"
+          - id: S12-E02-S05
+            title: "Verify the trust boundaries as built"
+            acceptance_criteria: "Segmentation matches the threat model; drift identified"
+          - id: S12-E02-S06
+            title: "Refresh the threat model against the built system"
+            acceptance_criteria: "Design-time assumptions confirmed or corrected"
+      - id: S12-E03
+        title: "Compliance certification"
+        owner: "Shailja"
+        stories:
+          - id: S12-E03-S01
+            title: "Certify every control C1–C10"
+            acceptance_criteria: "Each with its automated test result, reviewed and signed"
+          - id: S12-E03-S02
+            title: "Review audit schema and log samples"
+            acceptance_criteria: "Signed review confirming completeness, attribution and PII absence"
+          - id: S12-E03-S03
+            title: "Verify consent and suitability evidence end to end"
+            acceptance_criteria: "Records retrievable, complete, immutable, correctly versioned"
+          - id: S12-E03-S04
+            title: "Verify retention and immutability in the running system"
+            acceptance_criteria: "Deletion attempts refused; purge operates at the horizon"
+          - id: S12-E03-S05
+            title: "Verify data residency in the running system"
+            acceptance_criteria: "Every store, backup, log and archive attested in-region"
+          - id: S12-E03-S06
+            title: "Assemble the regulatory evidence pack"
+            acceptance_criteria: "The artefact set a regulator would be shown, indexed and complete"
+      - id: S12-E04
+        title: "Performance and resilience certification"
+        owner: "Swapnali + Shivanshi"
+        stories:
+          - id: S12-E04-S01
+            title: "Execute load testing at projected peak"
+            acceptance_criteria: "Against the S07 NFR numbers, including the Q4 tax-season multiplier"
+          - id: S12-E04-S02
+            title: "Execute soak testing"
+            acceptance_criteria: "Sustained load; no leak, no degradation, no connection exhaustion"
+          - id: S12-E04-S03
+            title: "Execute failure-injection testing"
+            acceptance_criteria: "Each dependency failed in turn; behaviour matches design"
+          - id: S12-E04-S04
+            title: "Verify resilience patterns under load"
+            acceptance_criteria: "Breakers, bulkheads and rate limits behave as designed when it matters"
+          - id: S12-E04-S05
+            title: "Establish the performance baseline"
+            acceptance_criteria: "Recorded, so S13 expansion can be measured against it"
+      - id: S12-E05
+        title: "Operational certification"
+        owner: "Shivanshi"
+        stories:
+          - id: S12-E05-S01
+            title: "Write the operational runbook"
+            acceptance_criteria: "Secrets rotation, credential failure, provider 401/5xx, payment uncertainty, poll timeout, data-fix procedure"
+          - id: S12-E05-S02
+            title: "Exercise the runbook"
+            acceptance_criteria: "Someone who did not write it executes each procedure successfully"
+          - id: S12-E05-S03
+            title: "Verify alerting"
+            acceptance_criteria: "Every alert fires when it should, routes correctly, and links a runbook"
+          - id: S12-E05-S04
+            title: "Verify rollback under realistic conditions"
+            acceptance_criteria: "With data written, mid-journey, and confirm no journey is corrupted"
+          - id: S12-E05-S05
+            title: "Complete failure-mode analysis"
+            acceptance_criteria: "Every component's failure modes documented with blast radius"
+      - id: S12-E06
+        title: "Consumer enablement"
+        owner: "Rajal + Amit"
+        stories:
+          - id: S12-E06-S01
+            title: "Publish API contracts"
+            acceptance_criteria: "OpenAPI to the internal portal, with a consumer collection"
+          - id: S12-E06-S02
+            title: "Support a real consumer through integration"
+            acceptance_criteria: "≥ 1 bank caller exercises the journey against UAT, with traces"
+          - id: S12-E06-S03
+            title: "Publish integration documentation"
+            acceptance_criteria: "Auth, errors, idempotency, rate limits, support path"
+    validation_tests:
+      - id: S12-VT-01
+        validates: "All requirements verified"
+        method: "Traceability matrix query"
+        pass_condition: "100% with a passing test"
+      - id: S12-VT-02
+        validates: "No critical defects"
+        method: "Defect register"
+        pass_condition: "Zero D0 and D1 open"
+      - id: S12-VT-03
+        validates: "Security findings remediated"
+        method: "Pentest retest"
+        pass_condition: "S0 and S1 closed and retested"
+      - id: S12-VT-04
+        validates: "Every compliance control operates"
+        method: "Control test suite"
+        pass_condition: "100% pass, signed"
+      - id: S12-VT-05
+        validates: "NFRs met"
+        method: "Load test against the NFR sheet"
+        pass_condition: "Every target met or a waiver with a named human owner"
+      - id: S12-VT-06
+        validates: "System degrades gracefully"
+        method: "Failure injection across all dependencies"
+        pass_condition: "No data loss, no money error, defined user experience"
+      - id: S12-VT-07
+        validates: "Runbook works in someone else's hands"
+        method: "Independent execution"
+        pass_condition: "All procedures succeed"
+      - id: S12-VT-08
+        validates: "Rollback is safe with data written"
+        method: "Rollback mid-journey"
+        pass_condition: "No corruption; journeys resolvable"
+      - id: S12-VT-09
+        validates: "Evidence pack is complete"
+        method: "Compliance review"
+        pass_condition: "A regulator's questions answerable from the pack alone"
+      - id: S12-VT-10
+        validates: "A real consumer can integrate"
+        method: "External caller against UAT"
+        pass_condition: "Successful journey with trace evidence"
+    exit_gate:
+      - id: S12-G1
+        criterion: "Full functional and regression suite green in CI"
+        evidence_level: "E4"
+        evidence_artefact: "CI run"
+      - id: S12-G2
+        criterion: "Zero D0/D1 defects; D2 agreed"
+        evidence_level: "E1"
+        evidence_artefact: "Defect register"
+      - id: S12-G3
+        criterion: "Penetration test complete; S0/S1 remediated and retested"
+        evidence_level: "E3"
+        evidence_artefact: "Pentest report + retest"
+      - id: S12-G4
+        criterion: "All controls C1–C10 certified"
+        evidence_level: "E4"
+        evidence_artefact: "Control test results + Compliance sign-off (human)"
+      - id: S12-G5
+        criterion: "Audit schema and log samples reviewed"
+        evidence_level: "E2"
+        evidence_artefact: "Signed review"
+      - id: S12-G6
+        criterion: "Retention, immutability and residency verified in the running system"
+        evidence_level: "E3"
+        evidence_artefact: "Verification records"
+      - id: S12-G7
+        criterion: "NFRs met under load at projected peak"
+        evidence_level: "E3"
+        evidence_artefact: "Load test report vs the NFR sheet"
+      - id: S12-G8
+        criterion: "Resilience proven under failure injection"
+        evidence_level: "E3"
+        evidence_artefact: "Results"
+      - id: S12-G9
+        criterion: "Runbook exercised by an independent operator"
+        evidence_level: "E3"
+        evidence_artefact: "Execution record"
+      - id: S12-G10
+        criterion: "Rollback proven with data written"
+        evidence_level: "E3"
+        evidence_artefact: "Rollback record"
+      - id: S12-G11
+        criterion: "Traceability matrix complete"
+        evidence_level: "E1"
+        evidence_artefact: "Matrix"
+      - id: S12-G12
+        criterion: "≥ 1 real consumer integrated against UAT"
+        evidence_level: "E3"
+        evidence_artefact: "Consumer confirmation + traces"
+      - id: S12-G13
+        criterion: "Coverage gates green; QA-001 closed"
+        evidence_level: "E4"
+        evidence_artefact: "Coverage report"
+
+  - id: S13
+    name: "Expansion & Scale"
+    aigem_stage: "L8"
+    owner: "Rajal (Product) + Mahesh (Architecture)"
+    default_priority: P3
+    epics:
+      - id: S13-E01
+        title: "Expansion readiness"
+        owner: "Mahesh"
+        stories:
+          - id: S13-E01-S01
+            title: "Assess the abstraction against the first real second case"
+            acceptance_criteria: "Named extension points; nothing shared requires modification"
+          - id: S13-E01-S02
+            title: "Publish the expansion pattern guide"
+            acceptance_criteria: "A step-by-step for adding an LOB, channel or insurer"
+          - id: S13-E01-S03
+            title: "Define the reuse fitness function"
+            acceptance_criteria: "An automated check that expansion has not modified orchestration"
+          - id: S13-E01-S04
+            title: "Establish the pre-expansion regression baseline"
+            acceptance_criteria: "Green, recorded, and the bar every expansion must clear"
+      - id: S13-E02
+        title: "LOB expansion"
+        owner: "Rajal + Amit"
+        stories:
+          - id: S13-E02-S01
+            title: "Specify the per-LOB delta"
+            acceptance_criteria: "Products, fields, rules, documents, underwriting differences"
+          - id: S13-E02-S02
+            title: "Add Health"
+            acceptance_criteria: "Schemas and handlers only; orchestration unchanged; full journey green"
+          - id: S13-E02-S03
+            title: "Add Motor"
+            acceptance_criteria: "Same constraint; motor-specific vehicle and RTO data handled in the LOB layer"
+          - id: S13-E02-S04
+            title: "Verify no regression to prior LOBs"
+            acceptance_criteria: "Full regression of every previously shipped journey, green"
+          - id: S13-E02-S05
+            title: "Verify per-LOB compliance controls"
+            acceptance_criteria: "C1–C10 hold for each new LOB; suitability rules are LOB-specific and must be re-certified"
+      - id: S13-E03
+        title: "Channel expansion"
+        owner: "Rajal + Digital"
+        stories:
+          - id: S13-E03-S01
+            title: "Add the DIY self-service journey"
+            acceptance_criteria: "First channel expansion after the assisted S11 slice is stable; customer authentication via digital banking SSO; self-consent per the S02 pack"
+          - id: S13-E03-S02
+            title: "Add the hybrid journey"
+            acceptance_criteria: "Starts only after assisted and DIY paths are independently stable; attribution, ownership and state preserved across hand-off"
+          - id: S13-E03-S03
+            title: "Verify attribution across channels"
+            acceptance_criteria: "Distributor and SP attribution correct in every channel variant"
+          - id: S13-E03-S04
+            title: "Verify compliance gates per channel"
+            acceptance_criteria: "Suitability and consent enforced identically regardless of channel"
+          - id: S13-E03-S05
+            title: "Recover failed or expired hand-offs"
+            acceptance_criteria: "Journey returns to a safe resumable owner and state; no duplicate journey, proposal or payment action"
+      - id: S13-E04
+        title: "Insurer and catalogue expansion"
+        owner: "Rajal + Amit"
+        stories:
+          - id: S13-E04-S01
+            title: "Add further Group A insurers"
+            acceptance_criteria: "Configuration and catalogue, not code, wherever possible"
+          - id: S13-E04-S02
+            title: "Implement multi-insurer comparison"
+            acceptance_criteria: "Ranking and display per the S03 rules; basis disclosed"
+          - id: S13-E04-S03
+            title: "Implement the Group B controlled redirect"
+            acceptance_criteria: "Attribution and audit preserved through the redirect — the legacy model's exact failure, not repeated"
+          - id: S13-E04-S04
+            title: "Build catalogue administration"
+            acceptance_criteria: "Product matrix maintainable by business users, with maker-checker"
+      - id: S13-E05
+        title: "Scale readiness"
+        owner: "Shivanshi + Aarti"
+        stories:
+          - id: S13-E05-S01
+            title: "Implement distributed idempotency and job ownership"
+            acceptance_criteria: "Multi-instance safe before scale-out (closes TD-010)"
+          - id: S13-E05-S02
+            title: "Verify performance at expanded scope"
+            acceptance_criteria: "Load test with all LOBs and channels active"
+          - id: S13-E05-S03
+            title: "Address data growth"
+            acceptance_criteria: "Partitioning, archival and index strategy against real volumes"
+          - id: S13-E05-S04
+            title: "Verify provider capacity"
+            acceptance_criteria: "Aggregate rate limits across all LOBs stay within contracted limits"
+    validation_tests:
+      - id: S13-VT-01
+        validates: "Expansion did not modify orchestration"
+        method: "Diff review + fitness function"
+        pass_condition: "No change to shared orchestration"
+      - id: S13-VT-02
+        validates: "Prior journeys still work"
+        method: "Full regression of every shipped journey"
+        pass_condition: "100% green"
+      - id: S13-VT-03
+        validates: "Compliance holds per LOB and channel"
+        method: "Control suite per variant"
+        pass_condition: "100% pass for every combination"
+      - id: S13-VT-04
+        validates: "Attribution survives every path"
+        method: "Trace attribution through each channel including Group B redirect"
+        pass_condition: "Correct in every case"
+      - id: S13-VT-05
+        validates: "Performance holds at expanded scope"
+        method: "Load test"
+        pass_condition: "Within NFR; no degradation of the S12 baseline"
+      - id: S13-VT-06
+        validates: "Multi-instance operation is safe"
+        method: "Run with N instances; concurrent identical operations"
+        pass_condition: "No duplicate job, no double effect"
+      - id: S13-VT-07
+        validates: "Expansion is genuinely cheap"
+        method: "Measure effort for LOB 2 vs LOB 3"
+        pass_condition: "Declining, and consistent with the pattern guide"
+      - id: S13-VT-08
+        validates: "Channel sequencing is safe"
+        method: "Complete assisted and DIY regression before enabling hybrid; inject expired and failed hand-offs"
+        pass_condition: "Both source paths green; hand-offs preserve state and audit or recover safely"
+    exit_gate:
+      - id: S13-G1
+        criterion: "Each new LOB's journey green end to end"
+        evidence_level: "E4"
+        evidence_artefact: "CI runs per LOB"
+      - id: S13-G2
+        criterion: "Orchestration unchanged by expansion"
+        evidence_level: "E4"
+        evidence_artefact: "Diff + fitness function result"
+      - id: S13-G3
+        criterion: "Full regression of all shipped journeys green"
+        evidence_level: "E4"
+        evidence_artefact: "CI run"
+      - id: S13-G4
+        criterion: "Compliance controls certified per LOB and channel"
+        evidence_level: "E4"
+        evidence_artefact: "Control results + Compliance sign-off"
+      - id: S13-G5
+        criterion: "Attribution correct across all channels including redirect"
+        evidence_level: "E4"
+        evidence_artefact: "Test results"
+      - id: S13-G6
+        criterion: "Performance within NFR at expanded scope"
+        evidence_level: "E3"
+        evidence_artefact: "Load test report"
+      - id: S13-G7
+        criterion: "Multi-instance safety proven; TD-010 closed"
+        evidence_level: "E4"
+        evidence_artefact: "Concurrency test results"
+      - id: S13-G8
+        criterion: "Expansion pattern guide published and used"
+        evidence_level: "E1"
+        evidence_artefact: "Guide + evidence it was followed"
+      - id: S13-G9
+        criterion: "DIY proven before hybrid; actor boundaries preserved across channels"
+        evidence_level: "E4"
+        evidence_artefact: "Channel regression, hand-off and authorization test results"
+
+  - id: S14
+    name: "Production Readiness & Go-Live"
+    aigem_stage: "L9"
+    owner: "Shivanshi (SRE) + Kalpana (Delivery)"
+    default_priority: P2
+    epics:
+      - id: S14-E01
+        title: "Production environment readiness"
+        owner: "Shivanshi"
+        stories:
+          - id: S14-E01-S01
+            title: "Provision production from the same IaC as UAT"
+            acceptance_criteria: "Parameter differences only; no bespoke production resource"
+          - id: S14-E01-S02
+            title: "Verify production credentials and connectivity"
+            acceptance_criteria: "Production keys, IP allowlisting, distributor ID, TLS egress, per partner"
+          - id: S14-E01-S03
+            title: "Verify production data protection"
+            acceptance_criteria: "Encryption, key ownership, residency, retention — attested in production, not inferred from UAT"
+          - id: S14-E01-S04
+            title: "Size production capacity"
+            acceptance_criteria: "Per the capacity model, with launch headroom"
+          - id: S14-E01-S05
+            title: "Verify production access control"
+            acceptance_criteria: "Least privilege; break-glass defined, audited and time-bound"
+      - id: S14-E02
+        title: "SLO and observability readiness"
+        owner: "Shivanshi + Rajal"
+        stories:
+          - id: S14-E02-S01
+            title: "Publish SLIs and SLOs"
+            acceptance_criteria: "Journey-level and component-level, agreed with Product"
+          - id: S14-E02-S02
+            title: "Agree the error budget policy"
+            acceptance_criteria: "What happens at each consumption threshold, agreed before launch not after the first breach"
+          - id: S14-E02-S03
+            title: "Build production dashboards"
+            acceptance_criteria: "Technical and business views; the business view usable by the sponsor"
+          - id: S14-E02-S04
+            title: "Configure production alerting"
+            acceptance_criteria: "Every alert actionable, routed, runbook-linked, and tested by firing it"
+          - id: S14-E02-S05
+            title: "Verify end-to-end traceability in production"
+            acceptance_criteria: "A real journey followed through metrics, logs and traces"
+      - id: S14-E03
+        title: "Operational readiness review"
+        owner: "Shivanshi"
+        stories:
+          - id: S14-E03-S01
+            title: "Conduct the ORR against O1–O13"
+            acceptance_criteria: "Every check evidenced per 08-SRE-READINESS-CANON §5"
+          - id: S14-E03-S02
+            title: "Establish on-call"
+            acceptance_criteria: "Roster, rotation, escalation, compensation, and someone actually rostered on day one"
+          - id: S14-E03-S03
+            title: "Verify runbooks against production"
+            acceptance_criteria: "Procedures valid for the production topology, not just UAT"
+          - id: S14-E03-S04
+            title: "Conduct an incident simulation"
+            acceptance_criteria: "A realistic scenario run end to end with the actual on-call team"
+          - id: S14-E03-S05
+            title: "Establish the support model"
+            acceptance_criteria: "Tier 1/2/3, business-hours coverage, RM support path, partner escalation"
+      - id: S14-E04
+        title: "Disaster recovery"
+        owner: "Shivanshi + Aarti"
+        stories:
+          - id: S14-E04-S01
+            title: "Implement the DR configuration"
+            acceptance_criteria: "Secondary region per the S07 architecture"
+          - id: S14-E04-S02
+            title: "Execute a DR test"
+            acceptance_criteria: "Failover performed; RTO and RPO measured against target, not asserted"
+          - id: S14-E04-S03
+            title: "Execute a production-grade restore test"
+            acceptance_criteria: "Restore from production backup to a working state, timed"
+          - id: S14-E04-S04
+            title: "Document and rehearse the DR decision"
+            acceptance_criteria: "Who declares a disaster, on what criteria, and how the decision is communicated"
+      - id: S14-E05
+        title: "Launch management"
+        owner: "Kalpana + Rajal"
+        stories:
+          - id: S14-E05-S01
+            title: "Build the go-live checklist"
+            acceptance_criteria: "Every item owned, dated and signed"
+          - id: S14-E05-S02
+            title: "Define the launch approach"
+            acceptance_criteria: "Pilot cohort, ramp criteria, and the decision points between waves"
+          - id: S14-E05-S03
+            title: "Define rollback and contingency"
+            acceptance_criteria: "What triggers withdrawal; how in-flight journeys and issued policies are handled"
+          - id: S14-E05-S04
+            title: "Complete business readiness"
+            acceptance_criteria: "RM training delivered, materials published, support briefed, operational procedures live"
+          - id: S14-E05-S05
+            title: "Plan hypercare"
+            acceptance_criteria: "Duration, staffing, daily review cadence, and the criteria to exit hypercare"
+          - id: S14-E05-S06
+            title: "Obtain go-live approvals"
+            acceptance_criteria: "Every required sign-off recorded before launch, not retrospectively"
+    validation_tests:
+      - id: S14-VT-01
+        validates: "Production matches the certified system"
+        method: "Compare production config to UAT and to IaC"
+        pass_condition: "Differences are parameters only, all justified"
+      - id: S14-VT-02
+        validates: "Alerts fire and route"
+        method: "Trigger each alert condition in production"
+        pass_condition: "All fire, route correctly, runbook reachable"
+      - id: S14-VT-03
+        validates: "On-call can respond"
+        method: "Unannounced incident simulation"
+        pass_condition: "Response within target; runbook sufficient"
+      - id: S14-VT-04
+        validates: "DR works"
+        method: "Execute failover"
+        pass_condition: "RTO and RPO met and measured"
+      - id: S14-VT-05
+        validates: "Restore works in production"
+        method: "Restore from a production backup"
+        pass_condition: "Working state, timed within RTO"
+      - id: S14-VT-06
+        validates: "Rollback works in production"
+        method: "Rehearse rollback"
+        pass_condition: "Previous version restored; no data loss; in-flight journeys resolvable"
+      - id: S14-VT-07
+        validates: "The pilot cohort can transact"
+        method: "First real sale by a real RM to a real customer"
+        pass_condition: "Policy issued, confirmed, reconciled, audited"
+      - id: S14-VT-08
+        validates: "Business is ready"
+        method: "Survey trained RMs"
+        pass_condition: "Confident, and able to complete the journey without support"
+      - id: S14-VT-09
+        validates: "Support paths work"
+        method: "Raise a test issue through each support tier"
+        pass_condition: "Correctly routed and resolved"
+    exit_gate:
+      - id: S14-G1
+        criterion: "Production provisioned from IaC and verified"
+        evidence_level: "E4"
+        evidence_artefact: "IaC apply record + verification"
+      - id: S14-G2
+        criterion: "Production credentials and partner connectivity verified"
+        evidence_level: "E3"
+        evidence_artefact: "Connectivity evidence per partner"
+      - id: S14-G3
+        criterion: "SLOs published; error budget policy agreed"
+        evidence_level: "E2"
+        evidence_artefact: "Signed SLO document"
+      - id: S14-G4
+        criterion: "Dashboards and alerting live and tested"
+        evidence_level: "E4"
+        evidence_artefact: "Dashboards + alert-fire evidence"
+      - id: S14-G5
+        criterion: "ORR passed against O1–O13"
+        evidence_level: "E2"
+        evidence_artefact: "Signed ORR record"
+      - id: S14-G6
+        criterion: "On-call staffed with escalation defined"
+        evidence_level: "E1"
+        evidence_artefact: "Roster + escalation matrix"
+      - id: S14-G7
+        criterion: "DR test executed; RTO/RPO met"
+        evidence_level: "E3"
+        evidence_artefact: "DR test record with measured times"
+      - id: S14-G8
+        criterion: "Production restore proven"
+        evidence_level: "E3"
+        evidence_artefact: "Restore record"
+      - id: S14-G9
+        criterion: "Rollback rehearsed in production"
+        evidence_level: "E3"
+        evidence_artefact: "Rehearsal record"
+      - id: S14-G10
+        criterion: "Incident simulation completed"
+        evidence_level: "E3"
+        evidence_artefact: "Simulation record with findings closed"
+      - id: S14-G11
+        criterion: "Go-live checklist signed by security, compliance and product"
+        evidence_level: "E2"
+        evidence_artefact: "Signed checklist (human signatures)"
+      - id: S14-G12
+        criterion: "Business readiness complete"
+        evidence_level: "E2"
+        evidence_artefact: "Training records + support model sign-off"
+      - id: S14-G13
+        criterion: "Hypercare plan agreed and staffed"
+        evidence_level: "E1"
+        evidence_artefact: "Plan with named people"
+
+  - id: S15
+    name: "Operate, Evolve & Continuous Assurance"
+    aigem_stage: "L10"
+    owner: "Shivanshi (SRE) + Rajal (Product)"
+    default_priority: P3
+    epics:
+      - id: S15-E01
+        title: "Operate"
+        owner: "Shivanshi"
+        stories:
+          - id: S15-E01-S01
+            title: "Run the SLO reporting cadence"
+            acceptance_criteria: "SLO attainment and error budget consumption reported on a fixed rhythm to Product and Delivery"
+          - id: S15-E01-S02
+            title: "Run incident management"
+            acceptance_criteria: "Every incident classified, responded to within target, and recorded"
+          - id: S15-E01-S03
+            title: "Run blameless postmortems"
+            acceptance_criteria: "For every O0 and O1, within 5 working days, with action items in the backlog"
+          - id: S15-E01-S04
+            title: "Track and reduce toil"
+            acceptance_criteria: "Toil measured; automation prioritised against it"
+          - id: S15-E01-S05
+            title: "Manage capacity proactively"
+            acceptance_criteria: "Trend-based forecasting; the Q4 tax-season peak planned for, not reacted to"
+          - id: S15-E01-S06
+            title: "Exit hypercare deliberately"
+            acceptance_criteria: "Against the stated criteria, with a handover to steady-state operation"
+      - id: S15-E02
+        title: "Business operation"
+        owner: "Rajal"
+        stories:
+          - id: S15-E02-S01
+            title: "Report KPIs against the S00 outcomes"
+            acceptance_criteria: "Conversion, drop-off by step, time-to-issue, reconciliation completeness, RM adoption"
+          - id: S15-E02-S02
+            title: "Compare against the legacy baseline"
+            acceptance_criteria: "Prove the business case, or discover it is not proving"
+          - id: S15-E02-S03
+            title: "Run the exception operations process"
+            acceptance_criteria: "Unreconciled payments, failed issuance, stuck journeys — owned, queued, resolved"
+          - id: S15-E02-S04
+            title: "Gather user feedback systematically"
+            acceptance_criteria: "From RMs and customers, routed into the backlog through triage"
+      - id: S15-E03
+        title: "Continuous assurance"
+        owner: "Shailja + Deepali"
+        stories:
+          - id: S15-E03-S01
+            title: "Run periodic control attestation"
+            acceptance_criteria: "Each control C1–C10 re-evidenced on a defined cadence, not assumed to still operate"
+          - id: S15-E03-S02
+            title: "Run continuous security scanning"
+            acceptance_criteria: "SAST, SCA, image and infrastructure scanning on a schedule as well as per change"
+          - id: S15-E03-S03
+            title: "Refresh the threat model"
+            acceptance_criteria: "On any trust-boundary change, and at least annually"
+          - id: S15-E03-S04
+            title: "Run periodic access review"
+            acceptance_criteria: "Who has access to what, in production and in the data stores; revoke by exception"
+          - id: S15-E03-S05
+            title: "Monitor regulatory change"
+            acceptance_criteria: "Named owner, defined cadence, and a route from change to backlog"
+          - id: S15-E03-S06
+            title: "Verify retention and purge operation"
+            acceptance_criteria: "Data disposed of at the horizon; immutability intact for what remains"
+          - id: S15-E03-S07
+            title: "Re-verify residency"
+            acceptance_criteria: "On any infrastructure change"
+      - id: S15-E04
+        title: "Evolve"
+        owner: "Rajal + Mahesh + Amit"
+        stories:
+          - id: S15-E04-S01
+            title: "Run the triage pipeline continuously"
+            acceptance_criteria: "Every input classified through AIGEM; nothing enters the backlog untriaged"
+          - id: S15-E04-S02
+            title: "Run the unpark sweep"
+            acceptance_criteria: "At every stage transition and on a periodic cadence; parked items re-triaged, never auto-admitted"
+          - id: S15-E04-S03
+            title: "Repay technical debt"
+            acceptance_criteria: "A standing allocation per increment, prioritised by the ledger"
+          - id: S15-E04-S04
+            title: "Run architecture evolution review"
+            acceptance_criteria: "Drift from intended architecture detected and either corrected or consciously accepted"
+          - id: S15-E04-S05
+            title: "Maintain the documentation canon"
+            acceptance_criteria: "Staleness limits enforced; stale canonical documents are a defect, not a backlog nicety"
+          - id: S15-E04-S06
+            title: "Maintain the governance framework"
+            acceptance_criteria: "AIGEM and this bible reviewed; changes via CR"
+    validation_tests:
+      - id: S15-VT-01
+        validates: "SLOs are met"
+        method: "SLO report"
+        pass_condition: "Attainment at target, or a recovery plan in place"
+      - id: S15-VT-02
+        validates: "Controls still operate"
+        method: "Control attestation"
+        pass_condition: "100% evidenced, not asserted"
+      - id: S15-VT-03
+        validates: "DR still works"
+        method: "DR exercise"
+        pass_condition: "RTO/RPO met"
+      - id: S15-VT-04
+        validates: "Restore still works"
+        method: "Restore test"
+        pass_condition: "Working state, within RTO"
+      - id: S15-VT-05
+        validates: "Runbooks are still accurate"
+        method: "Spot execution"
+        pass_condition: "Procedures valid against current topology"
+      - id: S15-VT-06
+        validates: "Alerts are still useful"
+        method: "Alert review"
+        pass_condition: "Every alert actionable; noisy alerts removed or fixed"
+      - id: S15-VT-07
+        validates: "Access is appropriate"
+        method: "Access review"
+        pass_condition: "No unjustified access"
+      - id: S15-VT-08
+        validates: "Debt is not accumulating"
+        method: "Ledger trend"
+        pass_condition: "Flat or declining"
+      - id: S15-VT-09
+        validates: "The business case is proving"
+        method: "KPI report vs baseline"
+        pass_condition: "Outcomes trending to target, or an honest reassessment"
+      - id: S15-VT-10
+        validates: "Documentation is fresh"
+        method: "Staleness check"
+        pass_condition: "No canonical document past its limit"
+    exit_gate:
+      - id: S15-G1
+        criterion: "SLOs met or a recovery plan active"
+        evidence_level: "E4"
+        evidence_artefact: "SLO report"
+      - id: S15-G2
+        criterion: "All controls attested current"
+        evidence_level: "E3"
+        evidence_artefact: "Attestation record"
+      - id: S15-G3
+        criterion: "No overdue S0/S1 security findings"
+        evidence_level: "E4"
+        evidence_artefact: "Scan and remediation report"
+      - id: S15-G4
+        criterion: "DR and restore verified within cadence"
+        evidence_level: "E3"
+        evidence_artefact: "Exercise records"
+      - id: S15-G5
+        criterion: "Incident actions closed within target"
+        evidence_level: "E1"
+        evidence_artefact: "Postmortem action tracker"
+      - id: S15-G6
+        criterion: "Debt ledger flat or declining"
+        evidence_level: "E1"
+        evidence_artefact: "Ledger trend"
+      - id: S15-G7
+        criterion: "KPIs reported against the business case"
+        evidence_level: "E1"
+        evidence_artefact: "KPI report"
+      - id: S15-G8
+        criterion: "Canonical documentation within staleness limits"
+        evidence_level: "E4"
+        evidence_artefact: "Freshness check output"
+      - id: S15-G9
+        criterion: "Access review completed"
+        evidence_level: "E1"
+        evidence_artefact: "Review record"
+

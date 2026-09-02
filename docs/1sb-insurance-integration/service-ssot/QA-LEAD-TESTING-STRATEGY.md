@@ -1,10 +1,12 @@
 # QA Lead — Testing Strategy
 
+**Canonical QA persona:** [Swapnali — Principal Insurance Quality Engineering / QA Lead](../../context/roles/swapnali-qa-lead/README.md)  
 **Role:** QA Lead  
 **Branch:** `cursor/phase1-foundations-c259`  
-**Date:** 2026-07-30  
+**Date:** 2026-08-14  
 **Applies to:** `1sb-integration-service`, `bank-persistence-service`, `libs/bank-common-*`  
-**SSOT companions:** [TESTING-RULES.md](./TESTING-RULES.md) · [TEST-BACKLOG.md](./TEST-BACKLOG.md) · architecture §13 (tests)
+**SSOT companions:** [TESTING-RULES.md](./TESTING-RULES.md) · [TEST-BACKLOG.md](./TEST-BACKLOG.md) · [COVERAGE.md](./COVERAGE.md) · architecture §13 (tests)  
+**Repository-wide quality metrics:** [AIGEM Governance Metrics](../../governance/18-GOVERNANCE_METRICS.md#3-merged-quality-health-metrics)
 
 ---
 
@@ -22,6 +24,8 @@
 | Persistence controller coverage | Thin (poll-attempt only) |
 
 **QA verdict:** Phase 2 delivered *some* automated checks, but we do **not** meet a bank-grade quality bar. Unmeasured coverage ≈ unmanaged risk. Phase 3 (quote/proposal) must not land without the rules below.
+
+> **Metrics SSOT:** This baseline is historical context. Current measured coverage and numeric thresholds are authoritative in [COVERAGE.md](./COVERAGE.md). Repository-wide quality-health metrics are authoritative in [`docs/governance/18-GOVERNANCE_METRICS.md`](../../governance/18-GOVERNANCE_METRICS.md). Do not maintain competing copies.
 
 ---
 
@@ -41,7 +45,7 @@
 
 | Layer | % of automated effort (target) | Speed | Flakiness budget |
 |-------|-------------------------------|-------|------------------|
-| Unit | 60–70% | &lt; 1s class | Zero tolerated |
+| Unit | 60–70% | < 1s class | Zero tolerated |
 | Slice / component | 15–20% | Seconds | Low |
 | Integration | 10–15% | Tens of seconds | Low; quarantine if flaky |
 | E2E / sandbox | 5% | Minutes | Nightly / gated OK |
@@ -81,7 +85,7 @@
 
 ---
 
-### 3.3 Integration tests (Developer-owned primary; QA designs cases)
+### 3.3 Integration tests (Developer-owned primary; Swapnali/QA designs cases)
 
 **Definition:** Multiple real components together **without** mocking the boundary under test.
 
@@ -95,7 +99,7 @@
 
 ---
 
-### 3.4 Contract tests (QA + Dev; Automation-friendly)
+### 3.4 Contract tests (Swapnali/QA + Dev; Automation-friendly)
 
 - OpenAPI for bank `/v1/**` published; consumer-driven checks (Schemathesis / Dredd / Prism) optional later
 - Persistence internal API: markdown/OpenAPI kept in sync; smoke contract in CI
@@ -103,7 +107,7 @@
 
 ---
 
-### 3.5 End-to-end / sandbox (QA-owned design; Automation / AI execute)
+### 3.5 End-to-end / sandbox (Swapnali/QA-owned design; Automation / AI execute)
 
 - Journey: masters → quote → proposal → payment → status against **1SB sandbox**
 - Gated: secrets required; nightly or manual promote — not every PR
@@ -121,23 +125,25 @@
 | Chaos / upstream 5xx / timeout | QA designs | WireMock fault injection in IT-I |
 | Accessibility | N/A (API-only) | — |
 
+**Insurance criticality overlay:** when a change materially affects authn/authz, consent, suitability/eligibility, premium/sum assured, proposal declarations, payment, policy issuance, reconciliation, PII, auditability or critical idempotency/recovery, load Swapnali's [protected quality gates](../../context/roles/swapnali-qa-lead/05-critical-journeys-and-non-bypassable-gates.md) in addition to this service strategy. **Payment success is not policy issuance.**
+
 ---
 
 ## 4. Ownership matrix
 
-| Activity | Developer | QA Lead / QA | Automation / AI agents |
+| Activity | Developer | Swapnali / QA Lead | Automation / AI agents |
 |----------|-----------|--------------|------------------------|
-| Unit tests for own code | **R/A** | C (reviews gaps) | Assist: generate cases from AC; **never** replace review |
-| Slice tests (MVC/JPA/WireMock) | **R/A** | C | Assist scaffolding |
+| Unit tests for own code | **R/A** | C/RV (reviews gaps) | Assist: generate cases from AC; **never** replace review |
+| Slice tests (MVC/JPA/WireMock) | **R/A** | C/RV | Assist scaffolding |
 | Integration tests (IT-P/IT-I) | **R** | **A** for scenarios | Scaffold + maintain WireMock stubs |
 | Dual-service IT-D / sandbox E2E | C | **R/A** | **R** execute in CI/nightly |
-| Coverage gate / JaCoCo | **R** wire in Gradle | **A** thresholds | Report in PR |
-| Test data & PII corpora | C | **A** | **R** generate masked fixtures |
-| Flaky triage | **R** | **A** quarantine policy | Detect flakes across runs |
-| Exploratory / UAT sign-off | — | **R/A** | Suggest charters |
-| ArchUnit / static rules | **R** | C | Propose new rules from architecture |
+| Coverage gate / JaCoCo | **R** wire in Gradle | **A** thresholds/waivers | Report in PR |
+| Test data & PII corpora | C | **A** quality | **R** generate masked fixtures |
+| Flaky triage | **R** fix | **A** quarantine policy | Detect flakes across runs |
+| Exploratory / UAT sign-off | — | **R/A quality evidence** | Suggest charters |
+| ArchUnit / static rules | **R** | C/RV | Propose new rules from architecture |
 
-R = Responsible · A = Accountable · C = Consulted
+R = Responsible · A = Accountable · C = Consulted · RV = Reviewer
 
 ---
 
@@ -150,7 +156,7 @@ See [TESTING-RULES.md](./TESTING-RULES.md). Summary:
 3. **MockMvc** for any new bank-facing endpoint + idempotency behaviour.
 4. **No secrets** in test resources committed as real values — placeholders only.
 5. **Green** `./gradlew test` locally before push.
-6. After JaCoCo lands: meet module thresholds or justify waiver in TECH-DEBT.
+6. Meet current canonical coverage thresholds in [COVERAGE.md](./COVERAGE.md) or use the governed waiver path.
 
 ---
 
@@ -170,10 +176,13 @@ See [TESTING-RULES.md](./TESTING-RULES.md). Summary:
 - Weak tests that only call constructors / assertNotNull without behaviour
 - Hitting real 1SB sandbox from every PR (cost + flake + credential risk)
 - Committing production credentials or live PII
+- Fabricating execution evidence or weakening assertions to make a gate green
 
 ---
 
-## 7. Coverage targets (once JaCoCo enabled)
+## 7. Coverage targets
+
+The table below remains the service strategy baseline; **current enforced values and measured results in [COVERAGE.md](./COVERAGE.md) are canonical if this table becomes stale.**
 
 | Module / package | Line | Branch | When enforced |
 |------------------|------|--------|---------------|
@@ -212,9 +221,13 @@ FUNC-002 AC "missing fields → 422, no 1SB call"
 
 QA maintains the map in [TEST-BACKLOG.md](./TEST-BACKLOG.md) as stories close.
 
+For Swapnali `Q0/Q1` and protected-gate paths, material acceptance criteria require complete traceability to current executed evidence before quality exit unless a genuinely permitted governed exception is recorded.
+
 ---
 
 ## 10. Immediate QA directives (next engineering work)
+
+Current execution status is authoritative in [TEST-BACKLOG.md](./TEST-BACKLOG.md). The historical directives remain useful context:
 
 1. **QA-001** Wire JaCoCo + publish HTML/XML; fail build under thresholds (libs first).
 2. **QA-002** Fill persistence API tests (jobs, offers, payment, audit, exception handler).
@@ -223,3 +236,9 @@ QA maintains the map in [TEST-BACKLOG.md](./TEST-BACKLOG.md) as stories close.
 5. **QA-005** CI badge/report for coverage on PR.
 
 Owned as backlog items in [TEST-BACKLOG.md](./TEST-BACKLOG.md); tech-debt cross-links in TECH-DEBT.md.
+
+---
+
+## 11. Repository-wide quality metrics
+
+Do not create a second QA metrics scorebook here. Swapnali's repository-wide quality metrics are merged into [`docs/governance/18-GOVERNANCE_METRICS.md`](../../governance/18-GOVERNANCE_METRICS.md) and include critical-journey evidence coverage, acceptance traceability, coverage-gate pass, Q0 findings, production escapes, flaky-test rate, waiver health, evidence freshness, regression effectiveness and critical idempotency/reconciliation evidence.

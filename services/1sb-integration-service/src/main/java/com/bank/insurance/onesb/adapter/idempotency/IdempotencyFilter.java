@@ -1,7 +1,10 @@
 package com.bank.insurance.onesb.adapter.idempotency;
 
 import com.bank.common.error.ErrorCodes;
+import com.bank.common.error.ErrorDiagnostic;
+import com.bank.common.error.PlatformLayer;
 import com.bank.common.error.ServiceErrorResponse;
+import com.bank.common.error.ServiceErrors;
 import com.bank.insurance.onesb.domain.port.outbound.IdempotencyPort;
 import com.bank.insurance.onesb.domain.port.outbound.IdempotencyPort.CachedResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -39,8 +42,11 @@ public class IdempotencyFilter extends OncePerRequestFilter {
 
     private final IdempotencyPort idempotencyPort;
     private final ObjectMapper objectMapper;
+    private final ServiceErrors serviceErrors;
 
-    public IdempotencyFilter(IdempotencyPort idempotencyPort, ObjectMapper objectMapper) {
+    public IdempotencyFilter(IdempotencyPort idempotencyPort, ObjectMapper objectMapper,
+                             ServiceErrors serviceErrors) {
+        this.serviceErrors = serviceErrors;
         this.idempotencyPort = idempotencyPort;
         this.objectMapper = objectMapper;
     }
@@ -106,15 +112,23 @@ public class IdempotencyFilter extends OncePerRequestFilter {
         cachingResponse.copyBodyToResponse();
     }
 
+    /**
+     * This filter runs before the handler, so it writes the envelope itself. It still takes its
+     * wording, status and retryability from the catalogue — a caller must not be able to tell
+     * whether a refusal came from a filter or a controller.
+     */
     private void writeError(HttpServletResponse response, int status, String code,
                             String title, String detail) throws IOException {
-        ServiceErrorResponse body = ServiceErrorResponse.builder()
-                .title(title)
-                .status(status)
-                .detail(detail)
-                .code(code)
-                .retryable(false)
-                .build();
+        ServiceErrorResponse body = ServiceErrorResponse.of(code)
+                .service(serviceErrors.serviceId())
+                .diagnostic(serviceErrors.diagnostic(code)
+                        .layer(PlatformLayer.L4)
+                        .component("IdempotencyFilter")
+                        .reason(detail)
+                        .build())
+                .build()
+                .toPublic();
+        status = body.getStatus();
         response.setStatus(status);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());

@@ -69,15 +69,62 @@ Rigour scales with risk. Running seven boards on a typo teaches everyone to rubb
 | Risk & Compliance | — | if compliance_impact ≠ none | ✅ | ✅ **human** |
 | Operations | — | if operational_impact ≠ none | ✅ | ✅ |
 
-**Automatic T4 triggers** (any one): PII handling · secrets or credentials · authn/authz ·
-cryptography · money movement · consent or retention · data migration or backfill · production
-topology · a breaking public contract · anything a regulator can ask about.
+### Automatic T4 triggers — the change test
+
+> **Rule RG-5 — T4 is about what the change *does*, not what it is *near*.**
+> A trigger fires when the change **alters the behaviour, strength, coverage or trust boundary**
+> of the listed control. Working *inside* a component that implements one of these controls,
+> without changing the control itself, does **not** fire it.
+
+A trigger fires when the change does any of the following:
+
+| # | Trigger — the change… |
+|---|---|
+| G1 | changes **who or what may access** a resource, or how that decision is reached (authn/authz logic, roles, scopes, policy, default-deny posture) |
+| G2 | changes which **PII, restricted, health or financial fields** are collected, stored, logged, exported or shared — or widens who can see them |
+| G3 | changes how **secrets, credentials, keys or certificates** are created, stored, transported, rotated or revoked |
+| G4 | changes a **cryptographic** algorithm, mode, key length, key ownership or trust anchor |
+| G5 | changes **money movement**, financial correctness, limits, reconciliation or maker-checker |
+| G6 | changes **consent capture, retention or deletion** behaviour |
+| G7 | performs or changes a **data migration or backfill** against real data |
+| G8 | changes **production topology**, public exposure or a network trust boundary |
+| G9 | **breaks a public contract** already consumed by a bank caller or partner |
+| G10 | creates, removes or changes a control a **regulator can ask us to evidence** |
+
+**Explicitly not T4** (assign the tier on the change's own merits — usually T1 or T2):
+
+- logging, comment, naming, formatting or error-message changes inside a security or payment component that leave the control logic unchanged;
+- adding a test, fixture or test-only helper for an existing control;
+- dependency bumps with no reachable change to a control (Board 4 still applies at T2 via `security_impact`);
+- documentation, runbook and observability changes that do not alter enforcement;
+- refactoring that is behaviour-preserving under existing tests and moves no trust boundary.
+
+> **Rule RG-6 — Tier down, then justify.** When a change is genuinely ambiguous against G1–G10,
+> tier it **T3**, record which trigger was considered and why it did not fire, and let the
+> Security or Compliance board escalate it to T4 if it disagrees. That escalation is one board's
+> single call — it needs no CR. Escalating up is cheap; running seven boards on every log-line
+> edit is not.
+>
+> Where a workstream's whole subject matter is a listed control — WS-2 is an authentication and
+> authorization platform — G1–G10 must be applied to the **delta**, not to the workstream.
+> Otherwise every change in that workstream is T4 by definition, the tier ladder collapses to a
+> single rung, and the proportionality this section exists to provide is lost.
 
 ---
 
 ## 4. Board 1 — Architecture
 
 **Question:** *Does this belong here, shaped like this?*
+
+### Named persona and accountable owner
+
+For this repository, Board 1 uses **[Mahesh — Principal Insurance Platform Architect](../context/roles/mahesh-solution-architect.md)** as its single named Architecture persona and accountable Architecture Board owner. Mahesh's deeper authority, decision, evidence and exception model is modularized in the **[Mahesh Principal Architect package](../context/roles/mahesh-principal-insurance-platform-architect/README.md)**. Those files are part of the same Mahesh persona, not a separate role.
+
+When an AI agent simulates Board 1 it should load Mahesh and the relevant modules from that package, apply his authority/decision framework, and translate the result into the canonical AIGEM verdict below. The AI simulation **does not** grant itself Mahesh's mandatory human signature; the T4 rule in §2 remains binding.
+
+Architecture findings may use `A0`–`A3` severity internally. These labels must not be confused with AIGEM `P1`–`P5` delivery priority, Rajal's local Product `P0`–`P2` execution criticality, Deepali's `S0`–`S3` security severity, Shivanshi's `O0`–`O3` operational severity, or Shailja S `R0`–`R3` risk severity.
+
+For consequential Product ↔ Architecture ↔ Compliance decisions, Boards 1, 3 and 6 use the shared **[Product ↔ Architecture ↔ Compliance Decision Protocol](../context/roles/shared/product-architecture-compliance-decision-protocol.md)**. For detailed architecture-control resolution, Boards 1 and 6 additionally use the **[Mahesh ↔ Shailja Architecture/Compliance Decision Protocol](../context/roles/shared/architect-compliance-decision-protocol.md)**. When trust boundaries, identity, public exposure, cryptography or another material security concern is affected, also involve **Deepali** through the **[Security Cross-Persona Decision Protocol](../context/roles/shared/security-cross-persona-decision-protocol.md)**. When operability, capacity, scaling, deployment, recovery or production topology is materially affected, involve **Shivanshi** through the **[SRE Cross-Persona Decision Protocol](../context/roles/shared/sre-cross-persona-decision-protocol.md)**. Mahesh owns architecture design/implementation; Deepali owns Security outcomes; Shivanshi owns Board 7/SRE operational posture; Board 6/Shailja owns compliance permissibility/control outcomes.
 
 | # | Check |
 |---|-------|
@@ -128,37 +175,69 @@ maintainability · complexity.
 
 **Question:** *Is this the thing we asked for — and only that?*
 
+### Named persona and Product authority
+
+For this repository, Board 3 uses **[Rajal — Principal Insurance Platform Product Owner](../context/roles/principal-insurance-platform-product-owner/README.md)** as its named Product reasoning persona.
+
+Rajal owns **WHAT / WHY / FOR WHOM / Product behaviour / scope / priority / acceptance / outcome**. She does not own technical architecture, regulatory permissibility, Security exceptions or material human risk acceptance.
+
+When an AI agent simulates Board 3 it should load Rajal's canonical package in the order defined by its README, apply the Product authority and decision framework, and then translate the result into the canonical AIGEM verdict below. The persona does not grant itself authority that AIGEM or organisational policy reserves for humans.
+
+Rajal's local `P0`–`P2` labels are Product execution criticality **within admitted scope**. They must not replace AIGEM `P1`–`P5` delivery priority.
+
+For Product decisions with material Architecture or Compliance impact, Board 3 uses the shared **[Product ↔ Architecture ↔ Compliance Decision Protocol](../context/roles/shared/product-architecture-compliance-decision-protocol.md)**. Where Security is material, it also invokes Deepali through the Security Cross-Persona Decision Protocol. Where reliability/operability/capacity or degraded production behaviour is material, it involves Shivanshi through the SRE Cross-Persona Decision Protocol. Product may challenge another board's assumptions, but cannot silently override its binding domain decision.
+
 | # | Check |
 |---|-------|
-| P1 | Does it satisfy the requirement? |
-| P2 | Does the behaviour match product expectation? |
+| P1 | Does it satisfy the requirement and approved business objective? |
+| P2 | Does the behaviour match the approved Product/journey expectation? |
 | P3 | **Are we adding unrequested behaviour?** |
-| P4 | Are the acceptance criteria correct and complete? |
-| P5 | Does it change the customer or RM experience — and is that intended? |
-| P6 | **Does it introduce scope creep?** |
+| P4 | Are the acceptance criteria correct, observable and complete? |
+| P5 | Does it change the customer, RM, operations or channel experience — and is that intended? |
+| P6 | **Does it introduce scope creep or import later-stage functionality?** |
 | P7 | Is `out_of_scope` honest, or does it omit what the plan quietly includes? |
+| P8 | Are actor, LoB/product, journey/capability and business state explicit where material? |
+| P9 | Does the plan preserve canonical bank Product behaviour rather than leaking provider/aggregator API shape into the Product model without justification? |
+| P10 | Is this the smallest Product change that delivers the approved outcome, with P1/P2 improvements parked rather than silently bundled? |
+| P11 | Are material failure, abandonment, resume and exception outcomes defined from the Product perspective? |
+| P12 | Is the intended outcome measurable through an agreed KPI/evidence path? |
 
-P3 and P6 are the board's real job. Product is the primary defence against gold-plating.
+P3, P6, P9 and P10 are central defences against gold-plating, provider-driven Product distortion and uncontrolled scope expansion.
 
 ## 7. Board 4 — Security
 
-**Question:** *What does this expose?* — **veto power**
+**Question:** *What does this expose, what can be abused, and are the required security controls/evidence sufficient?* — **veto power**
 
-Authentication · authorization · PII · secrets · encryption · input validation · attack surface ·
-OWASP · auditability · data exposure · dependency vulnerabilities.
+### Named persona and Security authority
+
+For this repository, Board 4 uses **[Deepali — Principal Insurance Platform Security Architect / Security Head](../context/roles/deepali-principal-security-architect/README.md)** as its named Security reasoning persona.
+
+Deepali owns Security outcomes within her jurisdiction: trust boundaries, public/private exposure, IAM security, authentication/authorization controls, cryptography, keys/secrets/certificates, application/API security, cloud/Kubernetes/container security, third-party trust, DevSecOps/supply-chain security, threat modelling, vulnerability security severity and incident containment recommendations.
+
+Deepali uses local `S0`–`S3` **security severity**. It must not be confused with AIGEM `P1`–`P5` delivery priority or other persona-local severity models.
+
+When an AI agent simulates Board 4, it loads Deepali's package and emits the canonical Security verdict with evidence. At **T4**, that AI review cannot satisfy the mandatory human Security sign-off in §2.
+
+Deepali is not authorised to redefine Product behaviour, replace Mahesh's overall architecture authority, replace Engineering/SRE/DBA/QA execution authority, reinterpret regulation on Shailja's behalf or accept material organisational risk for an accountable human.
+
+For cross-persona security decisions use **[Security Cross-Persona Decision Protocol](../context/roles/shared/security-cross-persona-decision-protocol.md)** and the canonical **[Persona Authority Matrix](./PERSONA-AUTHORITY-MATRIX.md)**.
+
+Authentication · authorization · PII/restricted data · secrets · encryption · key/certificate lifecycle · input validation · attack surface · OWASP/security abuse classes · auditability · dependency/supply-chain vulnerabilities · detection/incident readiness.
 
 | # | Check |
 |---|-------|
-| S1 | Does it change who can do what? |
-| S2 | Is any PII introduced, moved, logged, or persisted? |
-| S3 | Are secrets handled through the secrets SPI — never in code, config, or logs? |
-| S4 | Is data encrypted at rest and in transit where required? |
-| S5 | Is all external input validated at the boundary? |
-| S6 | Does the attack surface grow? Is the growth necessary? |
-| S7 | OWASP Top 10 relevance for the changed paths |
-| S8 | Are security-relevant events auditable and attributable? |
-| S9 | New or updated dependencies: known vulnerabilities, provenance |
-| S10 | Failure mode: does it fail **closed**? |
+| S1 | Does it change who/what can do what? Are authentication, authorization and resource ownership explicit? |
+| S2 | Is any PII/restricted/health/financial data introduced, moved, logged, persisted, exported or shared? Is every field necessary? |
+| S3 | Are secrets, credentials, keys and certificates stored, retrieved, rotated and revoked through approved mechanisms — never hard-coded or leaked? |
+| S4 | Is data protected in transit and at rest where required, with correct key/certificate ownership and cryptographic agility? |
+| S5 | Is all external/untrusted input validated at the boundary, including callbacks, uploads and provider payloads? |
+| S6 | Does the public/east-west/third-party attack surface grow? Is that growth necessary and bounded? |
+| S7 | Which applicable application/API/security-abuse classes affect the changed paths, including object-level authorization, injection, SSRF, replay and sensitive-data exposure? |
+| S8 | Are security-relevant events attributable, auditable and detectable without leaking secrets or restricted payloads? |
+| S9 | New/updated dependencies, images, IaC or artifacts: known vulnerabilities, reachability, provenance and remediation? |
+| S10 | Does the protected path fail closed or use an explicitly approved safe-degraded mode? |
+| S11 | For partner/1SB/insurer communication, is the trust contract explicit: identity, authorization, network path, payload, replay/integrity, credential rotation and emergency revoke? |
+| S12 | What is the blast radius if this workload, credential, user or partner is compromised, and how is compromise contained? |
 
 ## 8. Board 5 — QA
 
@@ -182,6 +261,10 @@ OWASP · auditability · data exposure · dependency vulnerabilities.
 Regulatory requirements · consent · audit · data retention · legal · financial controls ·
 operational risk · traceability.
 
+For this repository, Board 6 uses **[Shailja S — Compliance & Risk Head](../context/roles/shailja-s-compliance-risk-head/README.md)** as its named reasoning persona. Shailja's package supplements this checklist with obligation classification, evidence, risk severity and human-exception rules; it never replaces the T4 human sign-off rule.
+
+Where a control is materially security-specific, Board 6 should consult Deepali rather than treating Compliance as a substitute for technical Security authority. Where business continuity, recovery evidence, operational resilience or production incident control is material, Board 6 should consult Shivanshi rather than treating Compliance as a substitute for SRE/Operations evidence. Deepali determines technical security posture; Shivanshi determines Board 7 operational posture; Shailja determines regulatory/compliance permissibility and mandatory control outcome.
+
 | # | Check |
 |---|-------|
 | R1 | Does any regulatory obligation apply (IRDAI, banking, data protection)? |
@@ -196,6 +279,18 @@ operational risk · traceability.
 ## 10. Board 7 — Operations
 
 **Question:** *Can we run, observe, and recover this?*
+
+### Named persona and SRE / Operations authority
+
+For this repository, Board 7 uses **[Shivanshi — Principal Insurance Platform SRE / Reliability Engineering Head](../context/roles/shivanshi-sre/README.md)** as its named Operations reasoning persona and canonical identity for existing **R10 — DevOps / SRE**.
+
+This is a **merge/maturity of the existing role**, not a replacement and not an eighth board. The canonical O1–O8 checklist below remains unchanged in meaning. Shivanshi's modular package adds insurance/banking/bancassurance business context, B2B/B2C/B2B2C workload reasoning, platform engineering, infrastructure/CI-CD, SLI/SLO/error budgets, incident/resilience/DR, business-aware capacity/scaling and developer-experience evidence around those controls.
+
+When an AI agent simulates Board 7 it should load Shivanshi in the order defined by her package, apply [`08-operations-review-release-and-exception-contract.md`](../context/roles/shivanshi-sre/08-operations-review-release-and-exception-contract.md), and translate the result into the canonical AIGEM verdict below. The persona does not grant the agent destructive production authority, material risk acceptance or any other persona's decision rights.
+
+Shivanshi may use local `O0`–`O3` **operational severity** internally. It must not be confused with AIGEM `P1`–`P5`, incident severity or other persona-local severity models.
+
+For consequential Operations/SRE decisions use the **[SRE Cross-Persona Decision Protocol](../context/roles/shared/sre-cross-persona-decision-protocol.md)** and the canonical **[Persona Authority Matrix](./PERSONA-AUTHORITY-MATRIX.md)**.
 
 | # | Check |
 |---|-------|
@@ -227,7 +322,7 @@ Verdict record ([templates/REVIEW-VERDICT.md](./templates/REVIEW-VERDICT.md)):
 ```yaml
 review:
   board: SECURITY
-  reviewer: "Security Architect"
+  reviewer: "Deepali / Security Architect"
   reviewer_type: HUMAN
   self_review: false
   plan: PLAN-011
@@ -238,10 +333,10 @@ review:
   should_fix:
     - "consider rotating the session key on privilege change"
   evidence:
-    - "checked S1–S10 against plan §security_impact and §files_expected"
+    - "checked S1–S12 against plan security impact and files_expected"
     - "PaymentSessionController audit path reviewed"
-  notes: "No new attack surface; existing masking rules cover the new field."
-  date: 2026-08-12
+  notes: "No new unbounded attack surface; existing masking rules cover the new field."
+  date: 2026-08-14
 ```
 
 > **Rule RG-3 — No evidence, no verdict.** `APPROVED` with an empty `evidence[]` is recorded as
@@ -264,9 +359,43 @@ APPROVED  ⇔  every mandatory board for the tier returned APPROVED or
 | Any mandatory board `REWORK` | **REWORK** — plan returns with the union of all `must_fix[]` |
 | Any board `REJECTED` | **REJECTED** — back to pipeline step 2 (stage/scope/necessity were probably wrong) |
 | Security or Risk & Compliance `REWORK`/`REJECTED` | **Binding veto.** No aggregate or majority override |
-| Architecture `REWORK` | Overridable only by a recorded ADR signed by a human architect |
-| A mandatory board did not respond | Gate is **not** approved. Silence is never assent |
-| Boards conflict (e.g. Security wants X, Product wants not-X) | Escalate to Architect + PO; the resolution is recorded as an ADR |
+| Architecture `REWORK` | Overridable only by a recorded ADR signed by a human architect where AIGEM permits; never overrides a separate binding Security/Compliance conclusion |
+| Product `REWORK` | Product behaviour/scope/acceptance must be corrected or consciously changed by the authorised Product owner; Engineering/Architecture cannot silently override it |
+| A mandatory board did not respond | Gate is **not** approved. Silence is never assent — see §12.1 for the response clock |
+| Boards conflict | Use the relevant shared protocol; identify each domain owner, resolve outcome-vs-implementation separately, and persist the final decision. No majority voting |
+
+### 12.1 Board response clock
+
+Silence must never approve a change. It must also never be able to stop one indefinitely without
+a named person owning that stop. Both are true at once, so the clock escalates — it never
+approves.
+
+| Tier | Board must respond within | On expiry |
+|------|---------------------------|-----------|
+| T1–T2 | 1 working day | Auto-escalate to the board's named persona |
+| T3 | 2 working days | Auto-escalate to the board's named persona, notify R12 |
+| T4 | 3 working days | Auto-escalate to the accountable human owner (R1/R2 + the binding domain owner), notify R12 |
+
+```text
+Board does not respond within its window
+   → R12 records NO_RESPONSE against the board on the gate record (this is not a verdict)
+   → the named persona for that board is asked directly, with the deadline restated
+   → still no response by the next window
+       → escalate to the accountable human(s) for that board
+       → the gate stays NOT APPROVED throughout
+```
+
+> **Rule RG-7 — A non-response is an unowned decision, not an approval.** `NO_RESPONSE` never
+> counts toward the gate, never substitutes for a verdict, and never satisfies a mandatory T4
+> human sign-off. What it does is put a name and a date against the stop, so an unstaffed board
+> becomes a visible, assignable problem instead of an invisible, permanent one.
+
+Repeated `NO_RESPONSE` against the same board is a **staffing signal**, not a discipline one: the
+board is either unstaffed, over-triggered by [§3](#3-proportionality--which-boards-are-mandatory),
+or reviewing work it has no genuine interest in. Fix the cause; do not shorten the window.
+`NO_RESPONSE` counts are reported under [18 §2](./18-GOVERNANCE_METRICS.md#2-governance-metrics) Flow.
+
+For material Security conflict, use the Security Cross-Persona Decision Protocol. For material SRE/Operations conflict, use the SRE Cross-Persona Decision Protocol. For material Product ↔ Architecture ↔ Risk/Compliance conflict, use the shared Product ↔ Architecture ↔ Compliance protocol. For a material Mahesh/Architecture ↔ Shailja/Risk & Compliance conflict, use the bilateral Mahesh ↔ Shailja protocol. If conflict remains after one substantive alternatives/redesign cycle, escalate to accountable humans; an AI agent does not arbitrate residual material risk or mandatory sign-off.
 
 ---
 
@@ -275,7 +404,7 @@ APPROVED  ⇔  every mandatory board for the tier returned APPROVED or
 ```text
 Round 1  REWORK → author revises → re-review by the objecting boards only
 Round 2  REWORK → author revises → re-review
-Round 3  ── not permitted ──► ESCALATE to a human (Architect + PO)
+Round 3  ── not permitted ──► ESCALATE to accountable humans (Product + Architecture + other binding domain owner as applicable)
 ```
 
 Two rounds is the limit. A third is a signal that the *problem*, not the plan, is misunderstood:
@@ -291,7 +420,22 @@ usually the item needs splitting, a spike, or re-triage. Rework counts feed
 | `APPROVED_WITH_CONDITIONS` conditions | Appended to the plan's `acceptance_criteria`; verified at DoD ([13](./13-DEFINITION_OF_DONE.md)) |
 | `should_fix` items | Triaged as fresh `SUG-####` — they are suggestions, and get the same treatment as any other |
 | Plan changes materially after approval | Re-review by the affected boards ([14 §4](./14-CHANGE_CONTROL.md#4-changing-an-approved-plan)) |
-| Approval age > one stage | Expired. Re-run the boards — the context that justified it has changed |
+| Approval age > 30 calendar days | Expired. Re-run the boards |
+| The plan's stage, scope or standing constraints changed under it | Expired immediately, regardless of age |
+
+> **Rule RG-8 — Approvals expire on changed context or elapsed time, not on stage arithmetic.**
+> An approval expires when it is **30 calendar days old**, or sooner if the context that justified
+> it actually changed: a stage transition, an approved CR touching the plan's scope, a change to a
+> standing constraint, or a material plan edit under [14 §4](./14-CHANGE_CONTROL.md#4-changing-an-approved-plan).
+>
+> Elapsed time inside a single long-running stage is **not**, by itself, expiry. The previous rule
+> ("age > one stage") expired approvals whenever a gate stayed open longer than the work took —
+> which meant boards re-reviewed plans that nobody had changed, in a stage nobody had left. That
+> is ceremony, and it consumed the review capacity the gate depends on.
+>
+> Re-review after expiry is scoped to the boards whose **inputs** changed, not automatically to all
+> seven. If nothing in a board's jurisdiction moved, it re-affirms with a one-line evidence entry
+> rather than a fresh full review.
 
 ---
 
@@ -302,7 +446,13 @@ pass — the value is in the different questions, and blending them loses exactl
 
 ```text
 For each mandatory board:
-  1. Load only that board's checklist.
+  1. Load only that board's checklist and its named persona when one is defined.
+     - Architecture → Mahesh — Principal Insurance Platform Architect
+     - Product → Rajal / Principal Insurance Platform Product Owner
+     - Security → Deepali — Principal Insurance Platform Security Architect / Security Head
+     - QA → Swapnali — Principal Insurance Quality Engineering / QA Lead
+     - Risk & Compliance → Shailja S
+     - Operations → Shivanshi — Principal Insurance Platform SRE / Reliability Engineering Head
   2. Answer each numbered check against the plan — cite the plan section or file.
   3. Emit the verdict with evidence[] listing the checks actually performed.
   4. Do not carry the previous board's conclusion into the next.
@@ -310,4 +460,4 @@ For each mandatory board:
 
 Where the repository already has role personas
 ([docs/context/roles/](../context/roles/README.md)), an agent should adopt the matching persona for that
-board: it produces sharper, more consistent verdicts than a generic reviewer voice.
+board: it produces sharper, more consistent verdicts than a generic reviewer voice. Persona authority never expands the reviewer's AIGEM authority or removes mandatory human sign-offs.

@@ -1,0 +1,29 @@
+server:
+  port: 8105
+
+spring:
+  application:
+    name: direct-insurer-adapter-service
+  threads:
+    virtual:
+      enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+logging:
+  level:
+    com.bank.platform.integration.direct: INFO
+
+bank:
+  error:
+    service-id: direct-insurer
+    layer: L5
+    boundary: INTERNAL

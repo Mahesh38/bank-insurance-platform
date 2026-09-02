@@ -1,0 +1,29 @@
+server:
+  port: 8101
+
+spring:
+  application:
+    name: audit-compliance-service
+  threads:
+    virtual:
+      enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+logging:
+  level:
+    com.bank.platform.audit: INFO
+
+bank:
+  error:
+    service-id: audit
+    layer: L5
+    boundary: INTERNAL

@@ -1,0 +1,29 @@
+server:
+  port: 8096
+
+spring:
+  application:
+    name: quotation-service
+  threads:
+    virtual:
+      enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+logging:
+  level:
+    com.bank.platform.quotation: INFO
+
+bank:
+  error:
+    service-id: quotation
+    layer: L5
+    boundary: INTERNAL

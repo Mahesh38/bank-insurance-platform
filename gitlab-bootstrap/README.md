@@ -73,7 +73,15 @@ never in git. An untested restore is a belief, not a control.
 ./scripts/validate.sh          # fmt, validate, and the guard checks — no credentials needed
 export GITLAB_TOKEN=...        # dedicated automation account
 terraform plan -input=false    # requires a backend — blocked until M1.6
+
+# M5.2 orphan import — gates only, then (on a bank host) PUSH=1
+PREFLIGHT=1 SRC=/path/to/full-clone \
+  COMPANY_GIT_NAME=... COMPANY_GIT_EMAIL=... \
+  bash scripts/migrate-repositories.sh
 ```
+
+M5.2 operator sequence: [`docs/platform/gitlab-migration/M5.2-OPERATOR.md`](../docs/platform/gitlab-migration/M5.2-OPERATOR.md).
+`PUSH=1` refuses a destination that already has refs.
 
 `apply` is **never** run locally. It runs from a protected pipeline job, manually,
 by an authorised operator (baseline §11.1).

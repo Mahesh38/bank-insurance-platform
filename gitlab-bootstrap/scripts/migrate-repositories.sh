@@ -13,16 +13,18 @@
 #   5. Finding B rotated or formally retired (RISK-026 / C-SEC-2)
 #   6. COMPANY_GIT_NAME + COMPANY_GIT_EMAIL set to a non-personal identity
 #   7. identity-guard.py exits 0 on each orphan repo before any push
+#   8. each GitLab remote is empty (no refs) — never add a parent to GitLab
 # ===========================================================================
 set -euo pipefail
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 GUARD="$HERE/identity-guard.py"
 SRC="${SRC:?SRC must point at a full, non-shallow clone of the origin}"
-OUT="${OUT:?OUT is the directory that will hold orphan clones (not the GitLab remote)}"
+OUT="${OUT:-}"
 SEALED="${SEALED:-}"
 PUSH="${PUSH:-0}"
 REHEARSE="${REHEARSE:-0}"
+PREFLIGHT="${PREFLIGHT:-0}"
 
 fail=0
 gate() { if eval "$2"; then printf '  [OK]   %s\n' "$1"; else printf '  [STOP] %s\n' "$1"; fail=1; fi; }
@@ -31,6 +33,35 @@ if [ "$REHEARSE" = "1" ] && [ "$PUSH" = "1" ]; then
   echo "REFUSING TO RUN. REHEARSE=1 is M2.7 throwaway clones; it cannot PUSH=1."
   exit 1
 fi
+if [ "$PREFLIGHT" = "1" ] && [ "$PUSH" = "1" ]; then
+  echo "REFUSING TO RUN. PREFLIGHT=1 is the M5.2 gate check; it cannot PUSH=1."
+  exit 1
+fi
+if [ "$PREFLIGHT" = "1" ] && [ "$REHEARSE" = "1" ]; then
+  echo "REFUSING TO RUN. PREFLIGHT=1 cannot combine with REHEARSE=1 — that would skip signed gates."
+  exit 1
+fi
+if [ "$PREFLIGHT" != "1" ] && [ -z "$OUT" ]; then
+  echo "OUT is the directory that will hold orphan clones (not the GitLab remote)" >&2
+  exit 1
+fi
+
+# A receiving GitLab project must exist (M4.3) and must have no refs.
+# Pushing onto a graph that already has a commit would create parents — AC-6 fails.
+assert_empty_remote() {
+  local name="$1" url="$2"
+  local refs
+  if ! refs="$(git ls-remote "$url" 2>/dev/null)"; then
+    printf '  [STOP] %s unreachable (M4.3 empty project missing?): %s\n' "$name" "$url"
+    return 1
+  fi
+  if [ -n "$refs" ]; then
+    printf '  [STOP] %s is not empty — refusing to add history to an existing graph\n' "$name"
+    return 1
+  fi
+  printf '  [OK]   %s is empty\n' "$name"
+  return 0
+}
 
 echo "== Preconditions =="
 gate "source clone is not shallow (RISK-024)" \
@@ -61,6 +92,28 @@ echo "== Company identity (AC-6) =="
 if ! python3 "$GUARD" --company-identity; then
   echo "REFUSING TO RUN. COMPANY_GIT_NAME / COMPANY_GIT_EMAIL failed the denylist."
   exit 1
+fi
+
+if [ "$PREFLIGHT" = "1" ]; then
+  echo
+  echo "== Destination emptiness (M4.3 / AC-6) =="
+  if [ -n "${GITLAB_FRONTEND_URL:-}" ] && [ -n "${GITLAB_BACKEND_URL:-}" ] && [ -n "${GITLAB_GOVERNANCE_URL:-}" ]; then
+    dest_fail=0
+    assert_empty_remote frontend "$GITLAB_FRONTEND_URL" || dest_fail=1
+    assert_empty_remote backend "$GITLAB_BACKEND_URL" || dest_fail=1
+    assert_empty_remote platform-governance "$GITLAB_GOVERNANCE_URL" || dest_fail=1
+    if [ "$dest_fail" -ne 0 ]; then
+      echo
+      echo "PREFLIGHT FAIL. Destinations missing or not empty. M4.3 first."
+      exit 1
+    fi
+  else
+    echo "  [INFO] GITLAB_*_URL unset — destination emptiness not checked"
+  fi
+  echo
+  echo "PREFLIGHT PASS. Signed gates and company identity are present."
+  echo "Not copying trees. Not pushing. Re-run without PREFLIGHT=1 to import."
+  exit 0
 fi
 
 mkdir -p "$OUT"
@@ -178,6 +231,18 @@ if [ "$PUSH" = "1" ]; then
   : "${GITLAB_FRONTEND_URL:?GITLAB_FRONTEND_URL required when PUSH=1}"
   : "${GITLAB_BACKEND_URL:?GITLAB_BACKEND_URL required when PUSH=1}"
   : "${GITLAB_GOVERNANCE_URL:?GITLAB_GOVERNANCE_URL required when PUSH=1}"
+  echo
+  echo "== Destination emptiness (M4.3 / AC-6) =="
+  dest_fail=0
+  assert_empty_remote frontend "$GITLAB_FRONTEND_URL" || dest_fail=1
+  assert_empty_remote backend "$GITLAB_BACKEND_URL" || dest_fail=1
+  assert_empty_remote platform-governance "$GITLAB_GOVERNANCE_URL" || dest_fail=1
+  if [ "$dest_fail" -ne 0 ]; then
+    echo
+    echo "REFUSING TO PUSH. Destinations missing or not empty."
+    echo "M4.3 must create empty projects. Do not push onto an existing graph."
+    exit 1
+  fi
   echo
   echo "== Push (PUSH=1) =="
   git -C "$OUT/frontend" remote add origin "$GITLAB_FRONTEND_URL"

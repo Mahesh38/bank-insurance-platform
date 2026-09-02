@@ -85,6 +85,7 @@ Full records: [`DB-DEC-0001`](../../platform/data-architecture/DB-DEC-0001-r0-ph
 | CR-011 | 2026-08-20 | GOV | Mahesh target-state / North Star architecture doctrine: nine persona modules (`09`–`17`), the `VIN-001`/`VIN-002` references and the `hdl.svg` canvas contract | **PENDING RATIFICATION** | Prepared on repository-owner direction — Architecture and Product ratification pending. Indexed here on 2026-08-24; the file existed from 2026-08-20 without a register row |
 | CR-012 | 2026-08-24 | ARCH | R0 platform robustness: admit hybrid bank connectivity, centralised egress inspection, a managed cache tier, an event backbone (outbox retained as source of truth) and an operational search pipe into R0 — `ADR-009`…`ADR-013` | **PENDING RATIFICATION** | Raised on repository-owner direction. **Security acceptance (Deepali), Compliance (Shailja), SRE (Shivanshi), Database (Aarti) and Delivery (Kalpana) are required and outstanding**; drafts in [`CR-012/verdicts/`](../change-requests/CR-012/verdicts/README.md). Mandatory human T4 Architecture signature outstanding |
 | CR-013 | 2026-08-25 | SCOPE | Stakeholder pull: Lead language, lifecycle/archive, off-platform ingest, admin/MIS, issuance modes and PPHI mapping into R0 — `ADR-014` | **CANDIDATE** — transcribed into scope artefacts | Human T4 Architecture / Security / Compliance outstanding. Compliance conditions in [`CR-013` §5](../change-requests/CR-013-r0-lead-mis-admin-scope.md) |
+| CR-014 | 2026-08-12 | GOV | Process realignment: add workstream **WS-0 — Distribution Platform**, adopt the dual-track recovery model and its seam rules, amend DoR/DoD for traceability | **PENDING** — war room | PO + Architect (required); QA, Security, Compliance, Delivery Lead, Tech Head, Tech Lead, BA verdicts recorded |
 
 ### CR-001 — add Phase 4 exit criterion 4.7
 
@@ -199,6 +200,80 @@ provenance:        The A1/B4 approvals were given by the R2 authority on behalf 
 scope_of_approval: Framework text only. Every individual change that A1 tiers down remains fully
                    subject to Board 4 and Board 6 binding veto, unchanged by this CR.
 next_check:        First GM-1 INTERVENE check falls due 2026-08-28 (two weeks from ratification).
+
+### CR-014 — process realignment (dual-track recovery)
+
+Full proposal: [`po-drive/war-room/`](../../au-bank-insurance-platform/po-drive/war-room/README.md) ·
+triage record: [`SUG-20260812-p1r`](./SUGGESTION-REGISTER.md#sug-20260812-p1r--process-realignment-dual-track-recovery)
+
+```text
+raised_by:         human:PO (Rajal) — pack prepared by agent:claude
+type:              GOV  (also SCOPE and STAGE in effect — see impact)
+
+current_position:  CURRENT-STATE.yaml declares two workstreams, WS-1 (1SB adapter) and WS-2
+                   (workforce auth), both engineering. The AU Bank Insurance Distribution
+                   Platform itself has no workstream, no stage, no objective and no gate.
+                   03-PROGRAMME-TODO.md Wave 0 states "No delivery sprint commit until Wave 0
+                   exit criteria met"; Wave 0 exit is open while WS-1 is at Phase 4 Hardening.
+                   No delivered behaviour in the five built services cites a business
+                   requirement ID; GAP-008 records that BR templates still lack acceptance
+                   criteria.
+
+proposed_change:   (1) Add workstream WS-0 "AU Bank Insurance Distribution Platform" to
+                       state/CURRENT-STATE.yaml and 01-CURRENT_STATE.md, at canonical stage L1,
+                       with WS-1 and WS-2 as modules within it; add its stage map to 03 and its
+                       gates to 04.
+                   (2) Adopt the dual-track operating model: Track A (foundation-first, WS-0)
+                       and Track B (harden and hold, WS-1/WS-2), converging when both existing
+                       gates pass.
+                   (3) Adopt seam rules S-1 (Track B may only close work an existing gate
+                       criterion, debt ID or defect already names; anything new needs a Track A
+                       requirement ID), S-2 (canonical contracts owned by Track A), S-3
+                       (traceability in Definition of Done), S-4 (single escalation path).
+                   (4) Amend 12-DEFINITION_OF_READY (work item cites a signed requirement ID or
+                       a gate/debt ID) and 13-DEFINITION_OF_DONE (RTM row complete).
+                   (5) Add WS-0 routing entries so platform FUNC/DOC/COMP work does not route
+                       into the 1SB module backlog.
+
+driver:            New evidence — validated assumption failure. The repository's own history
+                   shows L3-L5 executed before L0-L1, and the programme's own Wave 0 rule is
+                   being violated. Not a preference: gate criteria 4.3 and 4.4 cannot be
+                   satisfied against unsigned, untestable requirements.
+
+evidence:
+  - "git --follow: services + libs 2026-07-30; charter/BRD/PRD/R0-SCOPE 2026-07-31; consolidated problem statement 2026-08-04"
+  - "commit cd40460 (2026-08-06): workforce auth SSOT (342 lines) and three implementing services in a single commit — no design review point existed"
+  - "03-PROGRAMME-TODO.md Wave 0 rule vs CURRENT-STATE.yaml WS-1 Phase 4"
+  - "CURRENT-STATE.yaml workstreams[] — no platform workstream; 02 section 3 therefore forces platform work to SC2/PARK"
+  - "GAP-008 In progress: no requirement carries acceptance criteria; GAP-010 sponsor unnamed; GAP-018 team boundary open"
+
+impact:
+  scope:         "No change to WHAT is being built. Changes the ORDER and adds a traceability obligation. All five services stay in scope; none is parked."
+  stage:         "No stage is advanced or reverted by this CR. Adds a new workstream at L1. Track B's gates (GATE-P4, GATE-IAM-P1) are unchanged; the DoR/DoD amendments do change what 'done' means for items inside them, which is why the affected boards must record verdicts."
+  dependencies:  "Unblocks nothing mechanically; makes platform requirement work admittable for the first time. DEP-002 (external bank caller) remains the constraint on gate 4.3."
+  parked_items:  "None currently parked become eligible; the parked backlog is unaffected."
+  effort:        "M — 8 governance/document changes, then ~40% of engineering capacity redirected for approximately 3 sprints."
+  risk_if_rejected: "RISK-016 and RISK-017 stay open and grow with each further flow built without traceability. UAT (4.3) and compliance (4.4) sign-off remain blocked on artefacts that do not exist."
+
+alternatives_considered:
+  - option: "A — do nothing, carry on building"
+    consequence: "Fastest short-term velocity; requires a FORMAL WAIVER of the Wave 0 rule and acceptance of the CA0515 evidence exposure by name. Product converges on the aggregator's model over time."
+  - option: "B — stop all build, complete discovery first"
+    consequence: "Cleanest process; 6-10 weeks with no demonstrable delivery; wastes the maturity of the 1SB adapter; unlikely to survive steering."
+  - option: "C — dual track with the seam rule (PROPOSED)"
+    consequence: "Delivery stays visible, foundation is repaired, convergence in 4-6 weeks; costs ~40% capacity for 3 sprints and requires Rule S-1 discipline."
+  - option: "D — dual track without the seam rule"
+    consequence: "The status quo with a name. The built track keeps running ahead of the signed track. Not recommended."
+
+decision:          PENDING
+approvers:         []
+decided_on:
+conditions:        []
+
+note:              Raised by an agent on the PO's instruction. Rule CC-1 — an agent may raise a
+                   change request and may never approve one, not even its own. No governance
+                   state, stage field, gate or Definition of Done has been edited; the pack, this
+                   CR, the triage record and RISK-016/017 are the complete set of changes made.
 ```
 
 ## 4. Stage transitions

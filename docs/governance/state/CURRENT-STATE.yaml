@@ -538,13 +538,11 @@ id_allocation:
   pattern: "^(SUG|DEP)-[0-9]{8}-[0-9a-z]{3}$"
   legacy_pattern: "^(SUG|DEP)-[0-9]{4}$"
   sequential:
-    # Advanced 2026-08-24 by the R0 robustness round (CR-012). ID-allocation correction only:
-    # no stage, scope or gate field is touched by it — those remain human-owned (04 section 5).
-    # CR-011 existed as a file from 2026-08-20 without a register row, so the counter read 11
-    # while CR-011 was in use; it is now indexed in the decision register and the counter clears
-    # both it and CR-012.
-    CR: 14        # CR-001..013 in use; next unused sequential value is 14
-    RISK: 16      # RISK-001..015 in use (012..015 added by CR-012)
+    # Advanced for CR-014 (process realignment war-room, formerly claimed CR-002 on this branch)
+    # and RISK-016/017 (process-realignment risks; main already used RISK-012..015 for CR-012).
+    # ID-allocation correction only — no stage, scope or gate field is touched.
+    CR: 15        # CR-001..014 in use; next unused sequential value is 15
+    RISK: 18      # RISK-001..017 in use (016/017 = process realignment war-room)
     ASM: 14       # ASM-001..013 in use (013 = Apigee as bank in/out API plane, SUG-20260831-apg). ID-allocation only.
     EPIC: 2       # EPIC-001 in use (platform error contract, SUG-20260827-err). ID-allocation only.
     SPIKE: 2       # SPIKE-001 in use (Apigee vs Amazon API Gateway, SUG-20260831-apg). ID-allocation only.

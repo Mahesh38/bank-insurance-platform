@@ -35,6 +35,17 @@ The manifest records whether each governance mapping is `active`, `candidate` or
 links the governing decision. “Canonical package” means one maintained context source; it does
 not convert a candidate governance assignment into ratification.
 
+### Candidate / supporting compliance package
+
+| Role | Package | Note |
+|---|---|---|
+| Compliance Officer — Vaishnavi | [`vaishnavi-compliance-officer.md`](./vaishnavi-compliance-officer.md) | Supporting pack from the process-realignment war-room branch. **Board 6 / R9 remains Shailja.** Vaishnavi's file is working material for IRDAI CA0515 licence-holder review scope; it does not create a second compliance board or replace Shailja's card. |
+
+> Vaishnavi's pack differs from the other packages: sections 1–2 are role-derived rather than
+> self-reported, and §7 lists what must be confirmed with her directly. A compliance verdict on a
+> regulated item remains binding and cannot be waived
+> ([14 §1](../../governance/14-CHANGE_CONTROL.md#1-what-needs-a-change-request)).
+
 ## Shared protocols
 
 Load [`shared/cross-persona-operating-model.md`](./shared/cross-persona-operating-model.md) for a

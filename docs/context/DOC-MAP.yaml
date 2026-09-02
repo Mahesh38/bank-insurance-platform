@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 553
-total_bytes: 15386039
+document_count: 554
+total_bytes: 15392057
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -1885,7 +1885,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 194283
+    bytes: 195733
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -4317,7 +4317,7 @@ documents:
     persona: sre-operations
     title: "GLM-001 — GitHub → GitLab estate migration plan"
     answers: "Origin: SUG-20260829-glm"
-    bytes: 51234
+    bytes: 51983
   - path: docs/platform/gitlab-migration/IDENTITY-SANITIZATION.md
     bucket: platform
     authority: ai-drafted
@@ -4326,6 +4326,14 @@ documents:
     title: "Identity sanitization — denylist for the GitLab import"
     answers: "Enforced by: gitlab-bootstrap/scripts/identityguard.py"
     bytes: 2565
+  - path: docs/platform/gitlab-migration/M5.2-OPERATOR.md
+    bucket: platform
+    authority: ai-drafted
+    capsules: [sre-operations, delivery-planning, architecture-review]
+    persona: sre-operations
+    title: "M5.2 — Operator runbook (orphan import)"
+    answers: "gates exist. This file is the sequence a bank operator runs on a company machine."
+    bytes: 3705
   - path: docs/platform/gitlab-migration/README.md
     bucket: platform
     authority: ai-drafted
@@ -4333,7 +4341,7 @@ documents:
     persona: sre-operations
     title: "GitLab Estate Migration — SRE pack"
     answers: "Origin: SUG-20260829-glm"
-    bytes: 2174
+    bytes: 2288
   - path: docs/platform/gitlab-migration/WORKBENCH.md
     bucket: platform
     authority: ai-drafted

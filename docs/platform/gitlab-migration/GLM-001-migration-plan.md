@@ -321,7 +321,7 @@ Terraform before M1.2 and M1.6 land** — provider capability and backend shape 
 | M3.6 | `job-token-scope` module (**IMP-9**) | SRE | 1 h |
 | M3.7 | `prevent_destroy` lifecycle guards on 5 groups + 9 projects (spec §11.2) | SRE | 1 h |
 | M3.8 | Bootstrap `.gitlab-ci.yml`: fmt → validate → IaC lint → plan → **protected manual apply** | SRE | 3 h |
-| M3.9 | `scripts/`: `validate.sh`, `migrate-repositories.sh`, `seed-repositories.sh`, `verify.sh` | SRE | 4 h |
+| M3.9 | `scripts/`: `validate.sh`, `migrate-repositories.sh` (`PREFLIGHT=1`), `seed-repositories.sh`, `verify.sh` | SRE | 4 h |
 | M3.10 | Docs: `README.md` (10 required topics, spec §12.1), `operating-model.md`, `rollback.md`, `disaster-recovery.md` | SRE | 5 h |
 | M3.11 | First `terraform plan` reviewed by a human — **no destructive changes** | SRE + BANK | 1 h |
 
@@ -342,7 +342,7 @@ Terraform before M1.2 and M1.6 land** — provider capability and backend shape 
 | # | Task | Owner | AI |
 |---|---|---|---|
 | M5.1 | Announce and start the **≤48 h freeze**; named owner (**IMP-13**) | DEL | — |
-| M5.2 | Path-split **orphan import** of HEAD into `frontend`, `backend`, `platform-governance`. One company-authored **`Initial commit`** (root, no parents) each. `identity-guard.py` must pass. Seal source as an offline `git bundle` (`AC-6`, `AC-8`). **Do not** `filter-repo` push history | SRE | 3 h |
+| M5.2 | Path-split **orphan import** of HEAD into `frontend`, `backend`, `platform-governance`. One company-authored **`Initial commit`** (root, no parents) each. `identity-guard.py` must pass. Seal source as an offline `git bundle` (`AC-6`, `AC-8`). **Do not** `filter-repo` push history. Operator sequence: [`M5.2-OPERATOR.md`](./M5.2-OPERATOR.md). `PREFLIGHT=1` checks gates; `PUSH=1` refuses a non-empty remote | SRE | 3 h |
 | M5.3 | Fix `rootProject.name` and Gradle module paths in the backend split, one labelled commit (**IMP-12**) | SRE + ENG | 2 h |
 | M5.4 | Seed `contracts`: `openapi/`, `asyncapi/`, `schemas/`, `compatibility-tests/`, `codegen/` skeleton | SRE + ENG | 2 h |
 | M5.5 | Seed `infrastructure`: `terraform/environments/{dev,sit,uat,preprod,prod,dr}`, `modules/`, `policies/` | SRE | 2 h |
@@ -634,6 +634,17 @@ At [`gitlab-bootstrap/`](../../../gitlab-bootstrap/README.md), 45 files.
 
 **M3 is complete to its real blockers.** Three tasks remain and each is blocked on
 something outside this repository, not on effort.
+
+### 7a.3 M5.2 — mechanism ready, first push blocked (2026-09-02)
+
+| Check | State |
+|---|---|
+| Orphan import + `identity-guard` + `Initial commit` | **DONE** (rehearsed; `REHEARSE=1` cannot push) |
+| `PREFLIGHT=1` gate check | **DONE** — operator sequence in [`M5.2-OPERATOR.md`](./M5.2-OPERATOR.md) |
+| Refuse a non-empty destination | **DONE** |
+| `C-SEC-1.signed` / `C-CMP-1.signed` / `finding-B.resolved` | **MISSING** — humans |
+| M4.3 empty GitLab projects | **MISSING** — first apply not run |
+| `PUSH=1` to `gitlab-ce.au.bank.in` | **NOT RUN** — and must not be, from this environment |
 
 ### 7a.1 A board tension, resolved rather than picked
 

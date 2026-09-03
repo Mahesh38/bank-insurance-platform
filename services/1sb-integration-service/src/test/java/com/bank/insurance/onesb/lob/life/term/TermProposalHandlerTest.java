@@ -38,8 +38,8 @@ class TermProposalHandlerTest {
     @Test
     void schemaPath_includesQueryParams() {
         String path = handler.schemaPath("T1", "HDFC", "1");
-        assertThat(path).startsWith("/insurance/lifeterm/v1/proposal/form?");
-        assertThat(path).contains("productCode=T1");
+        assertThat(path).startsWith("/insurance/lifeterm/v1/proposal?");
+        assertThat(path).contains("productId=T1");
         assertThat(path).contains("manufacturerId=HDFC");
         assertThat(path).contains("version=1");
     }
@@ -47,9 +47,9 @@ class TermProposalHandlerTest {
     @Test
     void schemaPath_omitsBlankParams() {
         assertThat(handler.schemaPath(null, null, null))
-                .isEqualTo("/insurance/lifeterm/v1/proposal/form");
+                .isEqualTo("/insurance/lifeterm/v1/proposal");
         assertThat(handler.schemaPath("T1", null, ""))
-                .isEqualTo("/insurance/lifeterm/v1/proposal/form?productCode=T1");
+                .isEqualTo("/insurance/lifeterm/v1/proposal?productId=T1");
     }
 
     @Test

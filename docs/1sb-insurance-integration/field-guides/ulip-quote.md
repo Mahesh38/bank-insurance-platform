@@ -1,48 +1,42 @@
-# ULIP quote — deltas from Term
+# ULIP quote — portal-aligned (Saving API + ULIP filter)
 
-**Status:** `DOC-020` draft under `CR-014` / `EPIC-002` — confirm path and field names against the 1SB portal before marking Done.  
-**API (expected):** `POST /insurance/lifeulip/v1/quote` *(confirm with 1SB)*  
-**Poll (expected):** `GET /insurance/lifeulip/v1/quote/poll/:requestId` *(confirm with 1SB)*  
-**LOB discriminator (bank):** `lob=ULIP`
+**Status:** `DOC-020` aligned to 1SB portal (2026-09-03) under `CR-014` / `EPIC-002`  
+**Quote API:** `POST /insurance/lifesave/v1/quote` with `product.savingsProductType=["ULIP"]`  
+**Poll:** `GET /insurance/lifesave/v1/quote/poll/:requestId`  
+**LOB discriminator (bank):** `lob=ULIP`  
+**Product type (1SB):** `LifeSave` (ULIP is a Saving subtype filter, not a separate path prefix)
 
-ULIP reuses the Term envelope with fund / NAV / premium-allocation specifics.
+Gateway hub: [Insurance Gateway API](https://docs.1silverbullet.tech/docs/insurance/retail/apiDocs/insurance-gateway-api)
 
-## Controls
+## Important portal fact
 
-| Field | Required | Values / notes |
-|-------|----------|----------------|
-| `typeOfQuote` | Yes | `Single Quote` / `Multi-Quote` |
-| `quoteCategory` | Yes | Confirm ULIP categories (often `Premium`-led) |
-| `includeBI` | Strongly recommended | ULIP illustrations commonly require BI |
-| `distributor.*` | Yes | Same Term pattern; `channelType` `B2B` for RM-assisted |
+There is **no** `/insurance/lifeulip/v1/quote` in the retail portal sitemap. ULIP appears as:
 
-## Members
+1. A value of `savingsProductType` on the **Saving** quote request (`nonParticipating` | `Participating` | `ULIP`)
+2. Supplementary Saving-category ops:
+   - [ULIP list](https://docs.1silverbullet.tech/docs/insurance/retail/apiDocs/ulip-list-saving-consumer-request-insurance-v-1-consumer-insurance-post)
+   - [ULIP performance](https://docs.1silverbullet.tech/docs/insurance/retail/apiDocs/ulip-performance-saving-consumer-request-insurance-v-1-consumer-insurance-post)
 
-| Field | Required | Why |
-|-------|----------|-----|
-| `memberType` | Yes | `Life Assured` / proposer |
-| `memberSequenceNumber` | Yes | Member key |
-| `gender`, `dateOfBirth` | Yes | Rating / eligibility |
-| `annualIncome` | Yes | Financial UW / suitability inputs |
-| `zipCode` | Yes | Serviceability |
+## Quote controls
 
-## Product / funds
+Same envelope as [savings-quote.md](./savings-quote.md). Handler sets:
 
-| Field | Required | Why |
-|-------|----------|-----|
-| `product` | Yes | ULIP family token — **confirm exact 1SB enum** |
-| `insuranceAndProducts[]` | Conditionally | Single Quote pinning |
-| Fund allocation / risk profile fields | Conditionally | ULIP-specific — capture only after portal schema confirmed; do not invent fund codes |
-| `premiumPaymentFrequency` / PPT / term | Conditionally | Product rules |
+| Field | Value |
+|-------|-------|
+| `product.productType` | `LifeSave` |
+| `product.savingsProductType` | `["ULIP"]` |
 
-## Mapping notes (bank → 1SB)
+## Supplementary APIs (not the quote submit)
 
-- Handler package: `lob.life.ulip` (new under `EPIC-002`).
-- Typed 1SB DTOs only (`REFACTOR-002`); no Map assembly.
-- Suitability / risk-profile evidence remains a bank journey concern; the adapter maps fields, it does not invent suitability outcomes.
+| API | Use |
+|-----|-----|
+| ULIP list | Applicable funds for plan / allocation UX |
+| ULIP performance | Fund performance data for disclosure |
 
-## Open confirmations (block FUNC-019 Done)
+Wire those as separate outbound ports when the journey needs fund pickers — do not invent a second quote base path.
 
-1. Exact submit and poll paths on the 1SB sandbox.
-2. Fund allocation schema and mandatory risk-profile fields.
-3. BI defaults for Multi-Quote vs Single Quote.
+## Mapping notes
+
+- Handler: `UlipQuoteHandler` shares `/insurance/lifesave/v1/…` with Savings
+- Typed body: `LifeQuoteRequest` with ULIP filter
+- Proposal path family: Saving proposal endpoints (portal `submit-saving-proposal-form-…`)

@@ -13,13 +13,15 @@ import org.springframework.stereotype.Component;
  * {@link LifeQuoteRequest} for {@code POST /insurance/lifeterm/v1/quote}.
  * <p>
  * Poll path: {@code GET /insurance/lifeterm/v1/quote/poll/{reqId}}.
+ * Portal: retail Term consumer-request (insurance-gateway-api).
  */
 @Component
 public class TermQuoteHandler implements LobQuoteHandler {
 
     static final String SUBMIT_PATH = "/insurance/lifeterm/v1/quote";
     static final String POLL_PATH_PREFIX = "/insurance/lifeterm/v1/quote/poll/";
-    static final String PRODUCT_TOKEN = "LifeTerm";
+    /** 1SB productType / legacy product token for Term. */
+    static final String PRODUCT_TYPE = "LifeTerm";
 
     private final SecretProvider secretProvider;
 
@@ -34,7 +36,8 @@ public class TermQuoteHandler implements LobQuoteHandler {
 
     @Override
     public LifeQuoteRequest buildSubmitPayload(CreateQuoteCommand command) {
-        return LifeQuotePayloadFactory.build(command, secretProvider, PRODUCT_TOKEN);
+        return LifeQuotePayloadFactory.build(
+                command, secretProvider, LifeQuoteRequest.Product.term(PRODUCT_TYPE));
     }
 
     @Override

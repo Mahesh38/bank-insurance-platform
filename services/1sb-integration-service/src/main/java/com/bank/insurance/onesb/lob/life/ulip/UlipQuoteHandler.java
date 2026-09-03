@@ -8,16 +8,23 @@ import com.bank.insurance.onesb.lob.life.LifeQuotePayloadFactory;
 import com.bank.insurance.onesb.lob.life.payload.LifeQuoteRequest;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 /**
- * Life ULIP quote handler ({@code FUNC-019} / {@code EPIC-002}).
- * Paths follow {@code docs/.../field-guides/ulip-quote.md} — confirm against 1SB sandbox.
+ * Life ULIP quote handler ({@code FUNC-019}).
+ * <p>
+ * Portal reality: ULIP is <strong>not</strong> a separate {@code /lifeulip} quote API.
+ * Quotes use the Saving API ({@code /insurance/lifesave/v1/quote}) with
+ * {@code product.savingsProductType = ["ULIP"]}. Supplementary portal ops
+ * {@code ulip-list-…} and {@code ulip-performance-…} are fund-list/performance helpers,
+ * not the primary quote submit path.
  */
 @Component
 public class UlipQuoteHandler implements LobQuoteHandler {
 
-    static final String SUBMIT_PATH = "/insurance/lifeulip/v1/quote";
-    static final String POLL_PATH_PREFIX = "/insurance/lifeulip/v1/quote/poll/";
-    static final String PRODUCT_TOKEN = "LifeUlip";
+    static final String SUBMIT_PATH = "/insurance/lifesave/v1/quote";
+    static final String POLL_PATH_PREFIX = "/insurance/lifesave/v1/quote/poll/";
+    static final String PRODUCT_TYPE = "LifeSave";
 
     private final SecretProvider secretProvider;
 
@@ -32,7 +39,10 @@ public class UlipQuoteHandler implements LobQuoteHandler {
 
     @Override
     public LifeQuoteRequest buildSubmitPayload(CreateQuoteCommand command) {
-        return LifeQuotePayloadFactory.build(command, secretProvider, PRODUCT_TOKEN);
+        return LifeQuotePayloadFactory.build(
+                command,
+                secretProvider,
+                LifeQuoteRequest.Product.saving(PRODUCT_TYPE, List.of("ULIP")));
     }
 
     @Override

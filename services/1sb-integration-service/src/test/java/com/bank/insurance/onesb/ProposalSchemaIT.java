@@ -47,7 +47,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Tag("integration")
 class ProposalSchemaIT {
 
-    private static final String TERM_SCHEMA_PATH = "/insurance/lifeterm/v1/proposal/form";
+    private static final String TERM_SCHEMA_PATH = "/insurance/lifeterm/v1/proposal";
 
     private static final WireMockServer ONESB = new WireMockServer(wireMockConfig().dynamicPort());
 

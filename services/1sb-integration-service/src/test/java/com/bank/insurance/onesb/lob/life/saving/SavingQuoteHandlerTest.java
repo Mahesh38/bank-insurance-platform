@@ -45,9 +45,10 @@ class SavingQuoteHandlerTest {
         );
 
         LifeQuoteRequest payload = handler.buildSubmitPayload(command);
-        assertThat(handler.submitPath()).isEqualTo("/insurance/lifesaving/v1/quote");
-        assertThat(handler.pollPath("R1")).isEqualTo("/insurance/lifesaving/v1/quote/poll/R1");
-        assertThat(payload.product().product()).isEqualTo("LifeSaving");
+        assertThat(handler.submitPath()).isEqualTo("/insurance/lifesave/v1/quote");
+        assertThat(handler.pollPath("R1")).isEqualTo("/insurance/lifesave/v1/quote/poll/R1");
+        assertThat(payload.product().productType()).isEqualTo("LifeSave");
         assertThat(payload.distributor().distributorID()).isEqualTo("TEST_DIST");
+        assertThat(payload.product().savingsProductType()).containsExactly("nonParticipating");
     }
 }

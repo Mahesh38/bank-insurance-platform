@@ -14,14 +14,15 @@ import java.util.Map;
 /**
  * Term LOB proposal handler — schema path, submit path, and payload build.
  * <p>
- * Schema: {@code GET /insurance/lifeterm/v1/proposal/form}
+ * Schema: {@code GET /insurance/lifeterm/v1/proposal?productId=&manufacturerId=&version=}
+ * (portal retail Term proposal form — not {@code /proposal/form})
  * Submit: {@code POST /insurance/lifeterm/v1/proposal}
  * Poll: {@code GET /insurance/lifeterm/v1/proposal/poll/{reqId}}
  */
 @Component
 public class TermProposalHandler implements LobProposalHandler {
 
-    static final String SCHEMA_PATH = "/insurance/lifeterm/v1/proposal/form";
+    static final String SCHEMA_PATH = "/insurance/lifeterm/v1/proposal";
     static final String SUBMIT_PATH = "/insurance/lifeterm/v1/proposal";
     static final String POLL_PATH_PREFIX = "/insurance/lifeterm/v1/proposal/poll/";
 
@@ -40,7 +41,8 @@ public class TermProposalHandler implements LobProposalHandler {
     public String schemaPath(String productCode, String manufacturerId, String version) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromPath(SCHEMA_PATH);
         if (productCode != null && !productCode.isBlank()) {
-            builder.queryParam("productCode", productCode);
+            // Portal query param is productId (slug: …-product-id-product-id-…).
+            builder.queryParam("productId", productCode);
         }
         if (manufacturerId != null && !manufacturerId.isBlank()) {
             builder.queryParam("manufacturerId", manufacturerId);

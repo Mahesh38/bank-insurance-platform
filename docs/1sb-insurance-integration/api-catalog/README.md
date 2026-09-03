@@ -95,14 +95,16 @@ Query params commonly required: `productId`, `manufacturerId`, and for proposal 
 
 ## 4. Retail — Saving / ULIP / Annuity / Pension
 
-| LOB | Quote path (confirmed or patterned) | Notes |
-|-----|-------------------------------------|-------|
-| Saving | `POST /insurance/lifesave/v1/quote` | Confirmed |
-| ULIP | Saving category add-ons | `ulip-list-...`, `ulip-performance-...` |
-| Annuity | Confirm prefix with 1SB (`*annuity*`) | Gate criteria + proposal mirror Term |
-| Pension | Confirm prefix with 1SB (`*pension*`) | Gate criteria + proposal mirror Term |
+| LOB | Quote path | Notes |
+|-----|------------|-------|
+| Saving | `POST /insurance/lifesave/v1/quote` | Confirmed (`SOURCE-LINKS`, portal saving-consumer-request). `productType=LifeSave`. |
+| ULIP | **Same** `POST /insurance/lifesave/v1/quote` with `savingsProductType=["ULIP"]` | Not a separate `/lifeulip` prefix. Helpers: `ulip-list-…`, `ulip-performance-…`. |
+| Annuity | Confirm prefix with 1SB (`annuity-*` portal pages) | Gate criteria + proposal mirror Term |
+| Pension | Confirm prefix with 1SB (`pension-*` portal pages) | Gate criteria + proposal mirror Term |
 
-Each has: quote, poll, gate criteria get/post, product UI data, proposal get/submit/poll.
+Each Saving/Annuity/Pension family has: quote, poll, gate criteria get/post, product UI data, proposal get/submit/poll.
+
+**Alignment note (2026-09-03):** see [`service-ssot/API-ALIGNMENT-1SB-GATEWAY-2026-09-03.md`](../service-ssot/API-ALIGNMENT-1SB-GATEWAY-2026-09-03.md).
 
 ---
 

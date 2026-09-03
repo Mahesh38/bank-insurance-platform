@@ -33,7 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>
  * <b>Term paths:</b>
  * <ul>
- *   <li>Schema (FUNC-004): {@code GET /insurance/lifeterm/v1/proposal/form?...}</li>
+ *   <li>Schema (FUNC-004): {@code GET /insurance/lifeterm/v1/proposal?...}</li>
  *   <li>Submit (FUNC-005): {@code POST /insurance/lifeterm/v1/proposal}</li>
  * </ul>
  * Upstream 4xx business errors on submit are remapped to {@code PROPOSAL_REJECTED}.

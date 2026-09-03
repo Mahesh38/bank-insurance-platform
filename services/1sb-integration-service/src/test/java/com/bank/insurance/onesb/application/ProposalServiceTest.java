@@ -68,7 +68,7 @@ class ProposalServiceTest {
     void getSchema_delegatesToHandlerAndPort() {
         when(handlerRegistry.get(Lob.TERM)).thenReturn(handler);
         when(handler.schemaPath("T1", "HDFC", "1"))
-                .thenReturn("/insurance/lifeterm/v1/proposal/form?productCode=T1&manufacturerId=HDFC&version=1");
+                .thenReturn("/insurance/lifeterm/v1/proposal?productId=T1&manufacturerId=HDFC&version=1");
         ProposalSchema expected = new ProposalSchema(Lob.TERM, "T1", "HDFC", "1", Map.of("a", 1));
         when(proposalPort.getSchema(eq(Lob.TERM), eq("T1"), eq("HDFC"), eq("1"), any()))
                 .thenReturn(expected);

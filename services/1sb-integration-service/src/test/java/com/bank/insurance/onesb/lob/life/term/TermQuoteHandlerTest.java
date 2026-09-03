@@ -64,6 +64,6 @@ class TermQuoteHandlerTest {
         assertThat(member.tobacco()).isEqualTo("Yes");
         assertThat(member.quoteAmount()).isEqualTo(new BigDecimal("5000000"));
         assertThat(member.zipCode()).isEqualTo("400001");
-        assertThat(payload.product().product()).isEqualTo("LifeTerm");
+        assertThat(payload.product().productType()).isEqualTo("LifeTerm");
     }
 }

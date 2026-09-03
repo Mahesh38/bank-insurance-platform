@@ -24,6 +24,8 @@
 | Term proposal | `GET/POST https://demo.api.1silverbullet.tech/insurance/lifeterm/v1/proposal` |
 | Health quote | `POST https://demo.api.1silverbullet.tech/insurance/lifehealth/v1/quote` |
 | Saving quote | `POST https://demo.api.1silverbullet.tech/insurance/lifesave/v1/quote` |
+| Saving quote poll | `GET https://demo.api.1silverbullet.tech/insurance/lifesave/v1/quote/poll/:requestId` |
+| ULIP quote | Same Saving quote URL with `product.savingsProductType=["ULIP"]` (no `/lifeulip` prefix) |
 | Motor quote | `POST https://demo.api.1silverbullet.tech/insurance/motor/v1/quote` |
 | Master lookup | `POST https://demo.api.1silverbullet.tech/v1/master/lookup` |
 | Payment URL | `POST https://demo.api.1silverbullet.tech/v1/payment/url` |

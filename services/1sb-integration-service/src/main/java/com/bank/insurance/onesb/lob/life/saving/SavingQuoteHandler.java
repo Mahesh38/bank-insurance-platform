@@ -8,16 +8,21 @@ import com.bank.insurance.onesb.lob.life.LifeQuotePayloadFactory;
 import com.bank.insurance.onesb.lob.life.payload.LifeQuoteRequest;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 /**
- * Life Savings quote handler ({@code FUNC-015} / {@code EPIC-002}).
- * Paths follow {@code docs/.../field-guides/savings-quote.md} — confirm against 1SB sandbox.
+ * Life Savings quote handler ({@code FUNC-015}).
+ * <p>
+ * Portal-confirmed path: {@code POST /insurance/lifesave/v1/quote}
+ * ({@code SOURCE-LINKS.md}, api-catalog §4, saving-consumer-request).
+ * Product type {@code LifeSave}; optional {@code savingsProductType} filter.
  */
 @Component
 public class SavingQuoteHandler implements LobQuoteHandler {
 
-    static final String SUBMIT_PATH = "/insurance/lifesaving/v1/quote";
-    static final String POLL_PATH_PREFIX = "/insurance/lifesaving/v1/quote/poll/";
-    static final String PRODUCT_TOKEN = "LifeSaving";
+    static final String SUBMIT_PATH = "/insurance/lifesave/v1/quote";
+    static final String POLL_PATH_PREFIX = "/insurance/lifesave/v1/quote/poll/";
+    static final String PRODUCT_TYPE = "LifeSave";
 
     private final SecretProvider secretProvider;
 
@@ -32,7 +37,12 @@ public class SavingQuoteHandler implements LobQuoteHandler {
 
     @Override
     public LifeQuoteRequest buildSubmitPayload(CreateQuoteCommand command) {
-        return LifeQuotePayloadFactory.build(command, secretProvider, PRODUCT_TOKEN);
+        // Default filter: nonParticipating (confirmed E38 GIFT Select). Callers can pin
+        // Participating/ULIP later via preferences once CreateQuoteCommand carries them.
+        return LifeQuotePayloadFactory.build(
+                command,
+                secretProvider,
+                LifeQuoteRequest.Product.saving(PRODUCT_TYPE, List.of("nonParticipating")));
     }
 
     @Override

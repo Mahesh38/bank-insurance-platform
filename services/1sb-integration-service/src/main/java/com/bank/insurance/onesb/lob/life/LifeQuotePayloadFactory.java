@@ -1,21 +1,24 @@
 package com.bank.insurance.onesb.lob.life;
 
 import com.bank.common.secrets.SecretProvider;
-import com.bank.insurance.onesb.lob.life.payload.LifeQuoteRequest;
 import com.bank.insurance.onesb.domain.command.CreateQuoteCommand;
+import com.bank.insurance.onesb.lob.life.payload.LifeQuoteRequest;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Shared mapping from bank {@link CreateQuoteCommand} to typed {@link LifeQuoteRequest}.
- * LOB handlers supply product family token and 1SB paths only (DRY).
+ * LOB handlers supply product family token, optional savings filters, and 1SB paths (DRY).
  */
 public final class LifeQuotePayloadFactory {
 
     private LifeQuotePayloadFactory() {}
 
-    public static LifeQuoteRequest build(CreateQuoteCommand command, SecretProvider secrets, String productToken) {
+    public static LifeQuoteRequest build(
+            CreateQuoteCommand command,
+            SecretProvider secrets,
+            LifeQuoteRequest.Product product) {
         List<LifeQuoteRequest.IndividualDetail> individuals = new ArrayList<>();
         List<CreateQuoteCommand.MemberDetail> members =
                 command.members() != null ? command.members() : List.of();
@@ -46,7 +49,7 @@ public final class LifeQuotePayloadFactory {
                         resolveChannelType(command)
                 ),
                 new LifeQuoteRequest.PersonalInformation(List.copyOf(individuals)),
-                new LifeQuoteRequest.Product(productToken)
+                product
         );
     }
 

@@ -7,8 +7,10 @@ import java.util.List;
 
 /**
  * Typed 1SB Life quote request body shared by Term, Savings and ULIP handlers.
- * Product family is selected via {@link Product#product()}; LOB-specific paths stay on the handler.
- * Replaces Map-based payload assembly ({@code REFACTOR-002} / {@code EPIC-002}).
+ * <p>
+ * Portal alignment ({@code insurance-gateway-api} / retail LOB pages):
+ * request {@code product.productType} is {@code LifeTerm} or {@code LifeSave};
+ * Savings/ULIP filter via {@code product.savingsProductType} ({@code nonParticipating}|{@code Participating}|{@code ULIP}).
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record LifeQuoteRequest(
@@ -42,6 +44,23 @@ public record LifeQuoteRequest(
             BigDecimal quoteAmount
     ) {}
 
+    /**
+     * @param productType          1SB LOB family token ({@code LifeTerm}, {@code LifeSave}, …)
+     * @param savingsProductType   Saving filters; use {@code ULIP} for ULIP quotes on the lifesave API
+     * @param product              Legacy alias some Term fixtures used ({@code product.product}); prefer {@code productType}
+     */
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    public record Product(String product) {}
+    public record Product(
+            String productType,
+            List<String> savingsProductType,
+            String product
+    ) {
+        public static Product term(String token) {
+            return new Product(token, null, token);
+        }
+
+        public static Product saving(String token, List<String> savingsTypes) {
+            return new Product(token, savingsTypes, null);
+        }
+    }
 }

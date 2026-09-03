@@ -2,7 +2,7 @@ package com.bank.insurance.onesb.lob.life.term;
 
 import com.bank.common.secrets.SecretProvider;
 import com.bank.insurance.onesb.domain.command.SubmitProposalCommand;
-import com.bank.insurance.onesb.domain.model.Lob;
+import com.bank.common.domain.Lob;
 import com.bank.insurance.onesb.lob.LobProposalHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;

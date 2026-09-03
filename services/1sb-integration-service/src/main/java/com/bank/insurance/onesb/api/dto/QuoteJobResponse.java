@@ -1,7 +1,7 @@
 package com.bank.insurance.onesb.api.dto;
 
-import com.bank.insurance.onesb.domain.model.JobStatus;
-import com.bank.insurance.onesb.domain.model.QuoteOffer;
+import com.bank.common.domain.JobStatus;
+import com.bank.common.domain.QuoteOffer;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.util.List;

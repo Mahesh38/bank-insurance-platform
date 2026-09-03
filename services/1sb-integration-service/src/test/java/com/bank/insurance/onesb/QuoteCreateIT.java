@@ -2,7 +2,7 @@ package com.bank.insurance.onesb;
 
 import com.bank.common.error.ErrorCodes;
 import com.bank.insurance.onesb.adapter.onesb.polling.AsyncJobPoller;
-import com.bank.insurance.onesb.domain.model.JobStatus;
+import com.bank.common.domain.JobStatus;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;

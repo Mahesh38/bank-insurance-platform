@@ -1,10 +1,10 @@
 package com.bank.insurance.onesb;
 
 import com.bank.common.error.ErrorCodes;
-import com.bank.insurance.onesb.domain.model.JobStatus;
-import com.bank.insurance.onesb.domain.model.Lob;
-import com.bank.insurance.onesb.domain.model.QuoteJob;
-import com.bank.insurance.onesb.domain.model.QuoteOffer;
+import com.bank.common.domain.JobStatus;
+import com.bank.common.domain.Lob;
+import com.bank.common.domain.QuoteJob;
+import com.bank.common.domain.QuoteOffer;
 import com.bank.insurance.onesb.domain.port.outbound.JobStorePort;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import org.junit.jupiter.api.AfterAll;

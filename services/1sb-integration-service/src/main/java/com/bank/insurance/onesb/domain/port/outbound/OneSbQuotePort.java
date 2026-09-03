@@ -1,6 +1,6 @@
 package com.bank.insurance.onesb.domain.port.outbound;
 
-import com.bank.insurance.onesb.domain.model.QuoteOffer;
+import com.bank.common.domain.QuoteOffer;
 
 import java.util.List;
 

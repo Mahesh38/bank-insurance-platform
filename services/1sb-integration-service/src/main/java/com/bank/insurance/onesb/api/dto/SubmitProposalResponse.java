@@ -1,6 +1,6 @@
 package com.bank.insurance.onesb.api.dto;
 
-import com.bank.insurance.onesb.domain.model.JobStatus;
+import com.bank.common.domain.JobStatus;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**

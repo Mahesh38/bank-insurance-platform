@@ -1,4 +1,4 @@
-package com.bank.insurance.onesb.domain.model;
+package com.bank.common.domain;
 
 /**
  * Bank-normalised application stage, mapped from 1SB {@code applicationStatus} values

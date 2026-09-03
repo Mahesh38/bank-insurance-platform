@@ -43,42 +43,45 @@ not_included:
 stories:
   - id: DOC-020
     title: "Savings and ULIP field guides + extracted schema deltas"
-    state: READY
+    state: DONE
     priority_now: P1
     priority_at_target: P1
   - id: REFACTOR-001
     title: "Extract bank-owned models from 1sb-integration-service into shared package"
-    state: READY
+    state: DONE
     priority_now: P1
     priority_at_target: P1
   - id: REFACTOR-002
     title: "Replace Map-based 1SB payload assembly with typed JSON models"
-    state: BLOCKED
+    state: DONE
+    notes: "Life quote + proposal handlers typed (LifeQuoteRequest / LifeProposalSubmitBody). Payment/status Map assembly remains outside LOB-handler scope."
     priority_now: P1
     priority_at_target: P1
   - id: FUNC-015
     title: "Life Savings quote/proposal/poll handlers"
-    state: BLOCKED
+    state: DONE
+    notes: "SavingQuoteHandler + SavingProposalHandler registered; unit tests green. WireMock IT coverage tracked under QA-012."
     priority_now: P1
     priority_at_target: P1
   - id: FUNC-019
     title: "Life ULIP quote/proposal/poll handlers"
-    state: BLOCKED
+    state: DONE
+    notes: "UlipQuoteHandler + UlipProposalHandler use lifesave paths + savingsProductType ULIP; unit tests green. WireMock IT under QA-012."
     priority_now: P1
     priority_at_target: P1
   - id: NFR-004
     title: "Circuit breaker / bulkhead for 1SB egress"
-    state: READY
+    state: DONE
     priority_now: P1
     priority_at_target: P1
   - id: NFR-007
     title: "Document and enforce poll/retry stop policy"
-    state: READY
+    state: DONE
     priority_now: P1
     priority_at_target: P1
   - id: QA-012
     title: "Life LOB regression (Term + Savings + ULIP) and Term non-regression"
-    state: BLOCKED
+    state: READY
     priority_now: P1
     priority_at_target: P1
 
@@ -103,8 +106,9 @@ assumptions: []
 
 progress:
   stories_total: 8
-  stories_done: 0
+  stories_done: 7
   completion_definition_met: false
+  next_story: QA-012
 
 priority_now: P1
 priority_at_target: P1

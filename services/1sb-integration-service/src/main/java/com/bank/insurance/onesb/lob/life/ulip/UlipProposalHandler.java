@@ -1,4 +1,4 @@
-package com.bank.insurance.onesb.lob.life.term;
+package com.bank.insurance.onesb.lob.life.ulip;
 
 import com.bank.common.domain.Lob;
 import com.bank.common.secrets.SecretProvider;
@@ -9,28 +9,25 @@ import com.bank.insurance.onesb.lob.life.payload.LifeProposalSubmitBody;
 import org.springframework.stereotype.Component;
 
 /**
- * Term LOB proposal handler.
- * <p>
- * Schema: {@code GET /insurance/lifeterm/v1/proposal?productId=&manufacturerId=&version=}
- * Submit: {@code POST /insurance/lifeterm/v1/proposal}
- * Poll: {@code GET /insurance/lifeterm/v1/proposal/poll/{reqId}}
+ * Life ULIP proposal handler ({@code FUNC-019}).
+ * Uses Saving proposal paths — ULIP is a Saving subtype on the 1SB portal, not a separate prefix.
  */
 @Component
-public class TermProposalHandler implements LobProposalHandler {
+public class UlipProposalHandler implements LobProposalHandler {
 
-    static final String SCHEMA_PATH = "/insurance/lifeterm/v1/proposal";
-    static final String SUBMIT_PATH = "/insurance/lifeterm/v1/proposal";
-    static final String POLL_PATH_PREFIX = "/insurance/lifeterm/v1/proposal/poll/";
+    static final String SCHEMA_PATH = "/insurance/lifesave/v1/proposal";
+    static final String SUBMIT_PATH = "/insurance/lifesave/v1/proposal";
+    static final String POLL_PATH_PREFIX = "/insurance/lifesave/v1/proposal/poll/";
 
     private final SecretProvider secretProvider;
 
-    public TermProposalHandler(SecretProvider secretProvider) {
+    public UlipProposalHandler(SecretProvider secretProvider) {
         this.secretProvider = secretProvider;
     }
 
     @Override
     public Lob supportedLob() {
-        return Lob.TERM;
+        return Lob.ULIP;
     }
 
     @Override

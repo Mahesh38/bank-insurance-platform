@@ -1,4 +1,4 @@
-package com.bank.insurance.onesb.lob.life.term;
+package com.bank.insurance.onesb.lob.life.saving;
 
 import com.bank.common.domain.Lob;
 import com.bank.common.secrets.SecretProvider;
@@ -9,28 +9,25 @@ import com.bank.insurance.onesb.lob.life.payload.LifeProposalSubmitBody;
 import org.springframework.stereotype.Component;
 
 /**
- * Term LOB proposal handler.
- * <p>
- * Schema: {@code GET /insurance/lifeterm/v1/proposal?productId=&manufacturerId=&version=}
- * Submit: {@code POST /insurance/lifeterm/v1/proposal}
- * Poll: {@code GET /insurance/lifeterm/v1/proposal/poll/{reqId}}
+ * Life Savings proposal handler ({@code FUNC-015}).
+ * Paths mirror Term under {@code /insurance/lifesave/v1/…} (portal saving-proposal pages).
  */
 @Component
-public class TermProposalHandler implements LobProposalHandler {
+public class SavingProposalHandler implements LobProposalHandler {
 
-    static final String SCHEMA_PATH = "/insurance/lifeterm/v1/proposal";
-    static final String SUBMIT_PATH = "/insurance/lifeterm/v1/proposal";
-    static final String POLL_PATH_PREFIX = "/insurance/lifeterm/v1/proposal/poll/";
+    static final String SCHEMA_PATH = "/insurance/lifesave/v1/proposal";
+    static final String SUBMIT_PATH = "/insurance/lifesave/v1/proposal";
+    static final String POLL_PATH_PREFIX = "/insurance/lifesave/v1/proposal/poll/";
 
     private final SecretProvider secretProvider;
 
-    public TermProposalHandler(SecretProvider secretProvider) {
+    public SavingProposalHandler(SecretProvider secretProvider) {
         this.secretProvider = secretProvider;
     }
 
     @Override
     public Lob supportedLob() {
-        return Lob.TERM;
+        return Lob.SAVING;
     }
 
     @Override

@@ -24,7 +24,7 @@ import com.bank.insurance.onesb.domain.port.outbound.JobStorePort;
 import com.bank.insurance.onesb.domain.port.outbound.OneSbProposalPort;
 import com.bank.insurance.onesb.lob.LobProposalHandler;
 import com.bank.insurance.onesb.lob.LobProposalHandlerRegistry;
-import com.bank.insurance.onesb.lob.life.term.TermProposalHandler;
+import com.bank.insurance.onesb.lob.life.LifeProposalSupport;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -87,7 +87,7 @@ public class ProposalService implements ProposalUseCase {
             throw missingLob("submit");
         }
 
-        String agentId = TermProposalHandler.resolveAgentId(command);
+        String agentId = LifeProposalSupport.resolveAgentId(command);
         if (!StringUtils.hasText(agentId)) {
             throw serviceErrors.error(ErrorCodes.AGENT_ATTRIBUTION_MISSING)
                     .component("ProposalService")

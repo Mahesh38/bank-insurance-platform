@@ -95,11 +95,13 @@ public class QuoteService implements QuoteUseCase {
         List<ServiceError> errors = new ArrayList<>();
         if (command.lob() == null) {
             errors.add(ServiceError.ofField(ErrorCodes.MISSING_REQUIRED_FIELD, "lob is required", "lob"));
-        } else if (command.lob() != Lob.TERM) {
-            // FUNC-002: only TERM; other LOBs → UNSUPPORTED_LOB via registry after field checks
-            // Still collect as unsupported here for clear 422 before port
+        } else if (!isSupportedLifeQuoteLob(command.lob())) {
+            // EPIC-002 / FUNC-015 / FUNC-019: Term + Savings + ULIP; others → UNSUPPORTED_LOB
+            // (registry also rejects missing handlers — keep early clear 422 for non-Life)
             errors.add(ServiceError.ofField(
-                    ErrorCodes.UNSUPPORTED_LOB, "Only TERM is supported for quote create", "lob"));
+                    ErrorCodes.UNSUPPORTED_LOB,
+                    "Unsupported lob for quote create: " + command.lob(),
+                    "lob"));
         }
         if (command.sumAssured() == null) {
             errors.add(ServiceError.ofField(
@@ -137,6 +139,10 @@ public class QuoteService implements QuoteUseCase {
                     .errors(errors)
                     .build();
         }
+    }
+
+    private static boolean isSupportedLifeQuoteLob(Lob lob) {
+        return lob == Lob.TERM || lob == Lob.SAVING || lob == Lob.ULIP;
     }
 
     private void publishQuoteCreated(CreateQuoteCommand command, String jobId, String actorId) {

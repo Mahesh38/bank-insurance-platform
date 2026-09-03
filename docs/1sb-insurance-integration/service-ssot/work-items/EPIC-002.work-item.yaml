@@ -81,7 +81,8 @@ stories:
     priority_at_target: P1
   - id: QA-012
     title: "Life LOB regression (Term + Savings + ULIP) and Term non-regression"
-    state: READY
+    state: DONE
+    notes: "LifeLobRegressionIT covers Term non-regression, Saving/ULIP quote+proposal WireMock paths, schema GET, unsupported HEALTH. QuoteService admits TERM/SAVING/ULIP. CB covered by OneSbCircuitBreakerTest."
     priority_now: P1
     priority_at_target: P1
 
@@ -106,9 +107,11 @@ assumptions: []
 
 progress:
   stories_total: 8
-  stories_done: 7
-  completion_definition_met: false
-  next_story: QA-012
+  stories_done: 8
+  completion_definition_met: true
+  evidence:
+    - "LifeLobRegressionIT + unit handler tests green on 1sb-integration-service"
+    - "Human T4 on CR-014 still outstanding (not agent-satisfiable)"
 
 priority_now: P1
 priority_at_target: P1

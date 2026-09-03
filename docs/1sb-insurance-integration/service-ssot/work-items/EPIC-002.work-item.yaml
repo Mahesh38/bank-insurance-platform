@@ -1,0 +1,111 @@
+# schema: work-item
+id: EPIC-002
+title: "WS-1 Life LOB 1SB coverage (Term + Savings + ULIP) and adapter standards"
+type: FUNC
+also: [ARCH, NFR, REFACTOR, QA, DOC]
+breakdown: EPIC
+workstream: WS-1
+origin: ["SUG-20260903-lif", "CR-014", "E12-partial", "NFR-004"]
+owner: "Amit — Technical Head (R3) with Mahesh (R2) on packaging boundary"
+state: READY
+target_stage: null
+unpark_trigger: null
+
+outcome: >
+  Bank callers can exercise Life LOB quote → proposal → poll through the single 1SB
+  integration service for Term, Savings and ULIP; bank-owned models live outside the
+  1SB app service; outbound 1SB JSON is built from typed models; packaging follows
+  SOLID/DRY; poll/retry stop criteria and circuit breakers are configured and tested.
+
+epic_triggers_met:
+  - multiple_stories
+  - multiple_components
+  - multiple_acceptance_outcomes
+  - multiple_dependencies
+
+completion_definition: >
+  Savings and ULIP sandbox (or WireMock-equivalent) paths green end to end AND Term
+  regression suite still green AND no bank-owned model remains under the 1SB app
+  service's domain that belongs in the shared bank package AND no Lob handler builds
+  outbound 1SB bodies via Map.put AND resilience config documents max poll attempts,
+  backoff, stop conditions and CB open/half-open behaviour with tests.
+
+not_included:
+  - "Health LOB handlers (FUNC-012 / Phase 5)"
+  - "Motor LOB handlers (FUNC-013 / Phase 5)"
+  - "Annuity / Pension LOB handlers (remain E12)"
+  - "WS-3 R0 product catalogue or RM journey for Savings/ULIP sales (stay R1)"
+  - "Redis multi-instance idempotency (NFR-005 / TD-010)"
+  - "FUNC-008 payment intimation"
+  - "Kafka / event backbone"
+  - "Provider routing flag / fake adapter (E13)"
+
+stories:
+  - id: DOC-020
+    title: "Savings and ULIP field guides + extracted schema deltas"
+    state: READY
+    priority_now: P1
+    priority_at_target: P1
+  - id: REFACTOR-001
+    title: "Extract bank-owned models from 1sb-integration-service into shared package"
+    state: READY
+    priority_now: P1
+    priority_at_target: P1
+  - id: REFACTOR-002
+    title: "Replace Map-based 1SB payload assembly with typed JSON models"
+    state: BLOCKED
+    priority_now: P1
+    priority_at_target: P1
+  - id: FUNC-015
+    title: "Life Savings quote/proposal/poll handlers"
+    state: BLOCKED
+    priority_now: P1
+    priority_at_target: P1
+  - id: FUNC-019
+    title: "Life ULIP quote/proposal/poll handlers"
+    state: BLOCKED
+    priority_now: P1
+    priority_at_target: P1
+  - id: NFR-004
+    title: "Circuit breaker / bulkhead for 1SB egress"
+    state: READY
+    priority_now: P1
+    priority_at_target: P1
+  - id: NFR-007
+    title: "Document and enforce poll/retry stop policy"
+    state: READY
+    priority_now: P1
+    priority_at_target: P1
+  - id: QA-012
+    title: "Life LOB regression (Term + Savings + ULIP) and Term non-regression"
+    state: BLOCKED
+    priority_now: P1
+    priority_at_target: P1
+
+story_order:
+  - DOC-020
+  - REFACTOR-001
+  - REFACTOR-002
+  - NFR-007
+  - NFR-004
+  - FUNC-015
+  - FUNC-019
+  - QA-012
+
+dependencies:
+  blocked_by: []
+  requires: ["TECH-006", "TECH-007", "FUNC-002", "FUNC-003", "FUNC-005"]
+  enables: []
+  decision_dependency: ["CR-014"]
+
+risks: []
+assumptions: []
+
+progress:
+  stories_total: 8
+  stories_done: 0
+  completion_definition_met: false
+
+priority_now: P1
+priority_at_target: P1
+change_request: CR-014

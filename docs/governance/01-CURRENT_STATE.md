@@ -112,11 +112,16 @@ Keycloak session handling is on-stage for WS-2 and premature for WS-1.
 These are stable facts an agent must not re-derive or re-litigate:
 
 1. **Bank apps never call 1SB or a database directly.** Topology is Bank → integration service
-   → ports/adapters → 1SB; durable state via `bank-persistence-service` HTTP only.
+   → ports/adapters → 1SB; the 1SB adapter's durable job/audit state is reached via
+   `bank-persistence-service` HTTP only. Other bounded contexts own their own schema and never
+   go through that HTTP store (`ADR-019`).
 2. **1SB specifics live only in `adapter.onesb.*`.** Enforced by ArchUnit.
 3. **The integration service owns no Flyway migrations and no JPA.** (TD-011, closed — do not
    reintroduce.)
-4. **Persistence is platform-common,** not 1SB-owned (TD-016/TD-017, closed).
+4. **`bank-persistence-service` is Integration Ops / Evidence, not a platform DB gateway.**
+   It owns the job/correlation store and audit ingest only. Each bounded context owns its own
+   schema and Flyway on the R0 Aurora cluster (`ADR-019`, `ADR-008`; TD-016/TD-017 remain
+   closed for the adapter split).
 5. **Flutter never receives OAuth tokens;** the BFF holds them (WS-2 decision 2).
 6. **Keycloak is not the source of truth for business authorization** (WS-2 decision 5).
 7. **No PII in logs.** Masking is a compliance gate, not a preference.

@@ -1,5 +1,10 @@
 # Tech Lead Review — Common Persistence Ownership
 
+> **Superseded in scope by [`ADR-019`](../../../platform/architecture-review/08-architecture-decision-log.md#adr-019--persistence-ownership-is-per-bounded-context-bank-persistence-service-is-not-a-platform-wide-gateway) / [`CR-015`](../../../governance/change-requests/CR-015-persistence-ownership-per-context.md).**
+> The Phase 1 **split** (Flyway/JPA out of `1sb-integration-service`) **stands**.
+> Section 2's "other MS later" / "all Flyway scripts for shared insurance/platform tables" is
+> **not** a licence to route Lead, Consent, Payment-context or Policy through this service.
+
 **Role:** Tech Lead (20+ years application development)  
 **Branch:** `cursor/phase1-foundations-c259`  
 **Date:** 2026-07-30  

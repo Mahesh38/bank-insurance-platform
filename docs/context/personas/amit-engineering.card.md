@@ -34,7 +34,8 @@ Shared platform CI/CD, runtime and operability responsibility sits with **Shivan
 
 1. Bank apps never call 1SB or a database directly.
 2. 1SB specifics live only in `adapter.onesb.*` — **ArchUnit-enforced**.
-3. `1sb-integration-service` owns no Flyway migrations and no JPA; persistence is platform-common.
+3. `1sb-integration-service` owns no Flyway migrations and no JPA; it reaches the Integration
+   Ops job store over HTTP. Business contexts own their own Flyway (`ADR-019`).
 4. No PII in logs.
 5. Coverage gates: libs line ≥ 80% / branch ≥ 70%; services on the interim line floor.
 6. Every `TODO` carries a work item ID. Nothing is Done without evidence.

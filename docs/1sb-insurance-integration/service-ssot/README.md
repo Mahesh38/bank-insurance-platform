@@ -49,11 +49,11 @@ Inbound auth *for this service specifically* (JWT + mTLS dual-ready) is still lo
 | [TEST-BACKLOG.md](./TEST-BACKLOG.md) | QA test backlog (JaCoCo, IT, Phase 3 gates) |
 | [QA-REVIEW-LOG.md](./QA-REVIEW-LOG.md) | Dual TL+QA Lead approvals for baseline QA items |
 | [COVERAGE.md](./COVERAGE.md) | JaCoCo how-to-run, thresholds, exclusions, interim service floor |
-| [../architecture/bank-persistence-service.md](../architecture/bank-persistence-service.md) | Platform common persistence contract (multi-consumer, Flyway, `/internal/v1`) |
+| [../architecture/bank-persistence-service.md](../architecture/bank-persistence-service.md) | Integration Ops / Evidence contract (job store + audit ingest only; `ADR-019`) |
 | [../architecture/audit-consumer-service.md](../architecture/audit-consumer-service.md) | Audit-consumer stub — persists via bank-persistence HTTP only |
 | [phase-1/SYNC-CONTRACT.md](./phase-1/SYNC-CONTRACT.md) | Dual-dev ownership split for E00 foundations — who owns which file, to avoid merge conflicts |
 | [phase-1/TECH-LEAD-REVIEW.md](./phase-1/TECH-LEAD-REVIEW.md) | Phase 1 + senior comment disposition |
-| [phase-1/TECH-LEAD-REVIEW-COMMON-PERSISTENCE.md](./phase-1/TECH-LEAD-REVIEW-COMMON-PERSISTENCE.md) | Persistence is platform-common (not 1SB-owned) |
+| [phase-1/TECH-LEAD-REVIEW-COMMON-PERSISTENCE.md](./phase-1/TECH-LEAD-REVIEW-COMMON-PERSISTENCE.md) | Phase 1 split of Flyway out of 1SB adapter (stands); "other MS later" superseded by `ADR-019` |
 | [phase-1/REFACTOR-COMMON-PERSISTENCE.md](./phase-1/REFACTOR-COMMON-PERSISTENCE.md) | Agent split for common-persistence rename |
 | [phase-1/TECH-LEAD-CONFIRMATION-COMMON-PERSISTENCE.md](./phase-1/TECH-LEAD-CONFIRMATION-COMMON-PERSISTENCE.md) | TL pass — common persistence senior comment closed |
 | [phase-2/TL-KICKOFF.md](./phase-2/TL-KICKOFF.md) | Phase 2 task breakdown + AC |

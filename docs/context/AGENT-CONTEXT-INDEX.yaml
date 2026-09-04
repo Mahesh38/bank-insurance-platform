@@ -312,6 +312,13 @@ doc_routing:
       capsules: [product-decision, delivery-planning]
       persona: product
 
+    - match: ["docs/au-bank-insurance-platform/references/2026-09-04-universal-insurance-suitability-specification.md"]
+      bucket: business
+      authority: ai-drafted
+      capsules: [product-decision, business-analysis]
+      persona: product
+      note: "Research only. Does not supersede rule-packs/suitability-rule-pack.md. Engine/catalogue implementation is parked as SUG-20260904-eng."
+
     - match: ["docs/au-bank-insurance-platform/knowledge-base/*", "docs/au-bank-insurance-platform/references/*"]
       bucket: business
       authority: business-ssot
@@ -544,6 +551,10 @@ capsules:
         capsule: "business-analysis"
       - condition: "an earlier product decision may already cover it"
         path: "docs/au-bank-insurance-platform/DECISION-LOG.md"
+      - condition: "R0 suitability, need-analysis or the quote-gate rule pack is the subject"
+        path: "docs/au-bank-insurance-platform/rule-packs/suitability-rule-pack.md"
+      - condition: "multi-insurer suitability comparison or product-catalogue rule attributes are the subject"
+        path: "docs/au-bank-insurance-platform/references/2026-09-04-universal-insurance-suitability-specification.md"
     output: "Product verdict stated as behaviour and outcome, never as a design."
     never: ["Choose technology, waive a control, or declare QA evidence passed."]
 
@@ -562,6 +573,10 @@ capsules:
         path: "docs/context/roles/principal-insurance-platform-business-analyst/06-review-evidence-and-handoff-contract.md"
       - condition: "a specialist domain is materially affected"
         path: "docs/context/personas/AUTHORITY-QUICK-CARD.md"
+      - condition: "R0 suitability, need-analysis or the quote-gate rule pack is the subject"
+        path: "docs/au-bank-insurance-platform/rule-packs/suitability-rule-pack.md"
+      - condition: "multi-insurer suitability matrices or product-catalogue attributes are being analysed"
+        path: "docs/au-bank-insurance-platform/references/2026-09-04-universal-insurance-suitability-specification.md"
     output: "`READY` / `CHANGES_REQUIRED` / `NOT_READY` on analysis quality only — never a Product or specialist decision."
     never: ["Invent business intent to close a gap. Raise it to Rajal."]
 
@@ -656,8 +671,10 @@ capsules:
         path: "docs/context/roles/shailja-s-compliance-risk-head/03-control-catalogue.md"
       - condition: "an exception or human risk acceptance is requested"
         path: "docs/context/roles/shailja-s-compliance-risk-head/07-human-exception-and-risk-acceptance.md"
-      - condition: "consent or suitability rules are the subject"
+      - condition: "consent rules are the subject"
         path: "docs/au-bank-insurance-platform/rule-packs/consent-rule-pack.md"
+      - condition: "suitability rules, need-analysis or the quote-gate pack are the subject"
+        path: "docs/au-bank-insurance-platform/rule-packs/suitability-rule-pack.md"
     output: "Permissibility + severity `R0`–`R3` + mandatory controls + evidence + named human owner where required."
     never:
       - "Declare unexecuted Security, QA or SRE evidence passed."

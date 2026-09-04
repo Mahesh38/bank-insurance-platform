@@ -73,7 +73,7 @@ Management pack: [po-drive/04-MANAGEMENT-READINESS.md](./po-drive/04-MANAGEMENT-
 | **KB** | **[knowledge-base/](./knowledge-base/README.md)** | **Application knowledge base (synthesized from uploaded Volumes/Phases)** |
 | **PO drive** | **[po-drive/](./po-drive/00-PO-PROJECT-VIEW.md)** | **Project view · SWOT · Gap register · Programme TODO** |
 | **Requirements** | **[requirements/](./requirements/README.md)** | **Working Decisions · BRD overview (PO) · R0 scope · PRD · P0 BRD** |
-| — | [references/](./references/README.md) | Pointers to prior research (non-binding) |
+| — | [references/](./references/README.md) | Pointers to prior research (non-binding) — includes the 2026-09-04 universal suitability synthesis |
 
 ---
 

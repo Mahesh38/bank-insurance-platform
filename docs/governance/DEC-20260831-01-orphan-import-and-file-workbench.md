@@ -8,7 +8,7 @@
 **Stage:** S08 — Engineering Foundation (`GATE-S08` `OPEN`), S09 overlapped
 **Origin:** human:Mahesh — *As board member we all Accept Option 1 + file-level workbench*
 **Scope CR:** [`CR-017`](./change-requests/CR-017-orphan-import-and-file-workbench.md) amends [`CR-014`](./change-requests/CR-014-gitlab-estate-migration.md)
-**ADR:** [`ADR-020`](../platform/architecture-review/08-architecture-decision-log.md)
+**ADR:** [`ADR-021`](../platform/architecture-review/08-architecture-decision-log.md)
 **Plan:** [`GLM-001`](../platform/gitlab-migration/GLM-001-migration-plan.md) M5.2 / M5.10 rewritten
 **Workbench SOP:** [`WORKBENCH.md`](../platform/gitlab-migration/WORKBENCH.md)
 **Freshness:** `state_as_of` is 21 days old — `FreshnessCheck` exit `1` (WARN). Review due 2026-09-09.

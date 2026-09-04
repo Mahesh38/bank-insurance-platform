@@ -1,4 +1,4 @@
-# Subgroups beneath the existing `insurance` parent (id 820, ASM-013).
+# Subgroups beneath the existing `insurance` parent (id 820, ASM-024).
 # The parent is a PREREQUISITE and is never created here — IMP-11 #3.
 groups:
   bank-insurance:

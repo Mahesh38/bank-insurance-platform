@@ -4,7 +4,7 @@
 **Type:** CONSTRAINT (with `WAIVER` consequences on approved `CR-014` conditions)
 **Raised by:** `agent:claude` in the Shivanshi (SRE / `R10`) persona
 **Workstream:** WS-3 · **Stage:** S08 with S09 overlapped
-**Driver:** **Validated assumption failure** — `ASM-012` answered, and answered worse than it contemplated
+**Driver:** **Validated assumption failure** — `ASM-023` answered, and answered worse than it contemplated
 **Related:** [`CR-014`](./CR-014-gitlab-estate-migration.md) `APPROVED_WITH_CONDITIONS` · `RISK-017` **FIRED** · `RISK-023`
 
 > ## Decision: `APPROVED_WITH_CONDITIONS` — 2026-09-01
@@ -26,13 +26,13 @@
 
 | Input | Answer | Register |
 |---|---|---|
-| Base URL | `https://gitlab-ce.au.bank.in/` | `ASM-012` |
-| Version and edition | **GitLab Community Edition v19.1.2** | `ASM-012` **INVALIDATED** |
-| `insurance` group | `https://gitlab-ce.au.bank.in/insurance`, **id `820`** | `ASM-013` partial |
+| Base URL | `https://gitlab-ce.au.bank.in/` | `ASM-023` |
+| Version and edition | **GitLab Community Edition v19.1.2** | `ASM-023` **INVALIDATED** |
+| `insurance` group | `https://gitlab-ce.au.bank.in/insurance`, **id `820`** | `ASM-024` partial |
 | Container Registry | Available | `ASM-017` partial |
 | AWS | Account will exist; **conventions not yet confirmed** | `ASM-018` partial |
 
-`ASM-012`'s pre-computed consequence read: *"if Premium, `S08-G5`'s mechanism reopens and only
+`ASM-023`'s pre-computed consequence read: *"if Premium, `S08-G5`'s mechanism reopens and only
 Deepali may grant the exception."* **Community Edition is below Premium**, so the consequence is
 larger than the one the assumption was written against. That is why this is a CR and not a register
 update.
@@ -147,7 +147,7 @@ change_request:
   raised_by: "agent:claude"
   date: 2026-08-29
   type: CONSTRAINT
-  driver: "validated assumption failure — ASM-012 answered as GitLab Community Edition v19.1.2, below the Premium its consequence contemplated"
+  driver: "validated assumption failure — ASM-023 answered as GitLab Community Edition v19.1.2, below the Premium its consequence contemplated"
   evidence:
     - "Bank confirmation 2026-08-29: https://gitlab-ce.au.bank.in/, GitLab Community Edition v19.1.2, insurance group id 820, container registry available, AWS conventions unconfirmed"
     - "GitLab documentation: required MR approval rules, CODEOWNERS approval enforcement and protected environments are Premium or above"

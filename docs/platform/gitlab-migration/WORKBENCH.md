@@ -1,6 +1,6 @@
 # File-level workbench — personal GitHub / Cursor → company GitLab
 
-**Status:** Binding under [`ADR-020`](../../governance/registers/DECISION-REGISTER.md) / [`CR-017`](../../governance/change-requests/CR-017-orphan-import-and-file-workbench.md) `AC-7`
+**Status:** Binding under [`ADR-021`](../../governance/registers/DECISION-REGISTER.md) / [`CR-017`](../../governance/change-requests/CR-017-orphan-import-and-file-workbench.md) `AC-7`
 **Owner:** Shivanshi (mechanism) · Amit (what lands in `backend`/`frontend`) · Deepali (secrets on both trees)
 
 Company GitLab will not allow external AI account MCPs. The personal GitHub repository stays a

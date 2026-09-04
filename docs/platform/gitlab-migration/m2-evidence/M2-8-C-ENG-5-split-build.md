@@ -36,7 +36,7 @@ files by walking up to six parent directories:
 - `docs/journey-execution/04-ERROR-AND-DEGRADED-STATE-CATALOGUE.md`
 - `docs/journey-execution/08-SUPPORT-RUNBOOK.md`
 
-Under the approved split those go to **`governance/platform-governance`** (`ADR-018`), while the test
+Under the approved split those go to **`governance/platform-governance`** (`ADR-020`), while the test
 goes to **`product/backend`**. The resolver then fails with its own message:
 
 > *"could not locate `docs/journey-execution/04-ERROR-AND-DEGRADED-STATE-CATALOGUE.md` … this test
@@ -80,7 +80,7 @@ sufficiency). It is not the agent's.
 
 | # | Option | Technical read |
 |---|---|---|
-| A | Move the two documents into `backend` | Fastest. But they are ratified governance artefacts under `ADR-018` / `IMP-1`, and moving them splits the governance tree — the thing `IMP-1` exists to prevent |
+| A | Move the two documents into `backend` | Fastest. But they are ratified governance artefacts under `ADR-020` / `IMP-1`, and moving them splits the governance tree — the thing `IMP-1` exists to prevent |
 | B | Publish the catalogue as a **versioned artefact** from `platform-governance`; `backend` consumes it via the Package Registry | Proper decoupling and matches the baseline's contracts thinking. Costs a publish pipeline, and `ASM-017`'s Package Registry half is still unconfirmed |
 | C | Move the catalogue to `product/contracts` | It *is* an interface contract — the error taxonomy is partner-consumed per `ADR-017` G9. Puts it beside OpenAPI/AsyncAPI, where consumers already look |
 | D | Make the test skip when the documents are absent | **Recommend against, and Amit's `C-ENG-2` already forbids the shape**: a check that passes when its input is missing is the silent-green failure mode. It converts a red build into a disabled control |

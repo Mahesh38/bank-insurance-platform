@@ -47,9 +47,9 @@ rather than a technical one.
 Reporting against myself, because the sweep does not get to skip its own author.
 
 **Real bank hostnames are now in the repository.** `gitlab-ce.au.bank.in` was recorded on 2026-08-29
-in four places as part of answering `ASM-012`:
+in four places as part of answering `ASM-023`:
 
-`CR-016` §1 · `ASSUMPTION-REGISTER` `ASM-012` · `DECISION-REGISTER` §3 · `GLM-001` M1.2
+`CR-016` §1 · `ASSUMPTION-REGISTER` `ASM-023` · `DECISION-REGISTER` §3 · `GLM-001` M1.2
 
 Before today the repository's bank hostnames were **illustrative placeholders**, and said so —
 `R0-HLD.md:359` carries *"name is illustrative; DNS is S09"*, and `bank.internal` / `aubank.local`

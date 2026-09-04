@@ -37,7 +37,7 @@ input, and I am not treating it as the answer.
 ## 2. `DECISION-BLOCKED` — recorded, not averaged
 
 Eleven bank enterprise inputs (GLM-001 M1.2–M1.9, plus residency per `CMP-F01`) are outside this
-team's control. They are recorded as `ASM-012` … `ASM-022`, expiry **2026-09-19**.
+team's control. They are recorded as `ASM-014` … `ASM-024`, expiry **2026-09-19**.
 
 I am recording the programme as **`DECISION-BLOCKED` on M1**, and I will not convert that into a
 green forecast, an assumed answer, or a provisional default. Two of them are load-bearing:

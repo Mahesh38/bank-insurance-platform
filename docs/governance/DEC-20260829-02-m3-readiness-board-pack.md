@@ -49,7 +49,7 @@ The slow path in `GLM-001` §5.2 was costed at 12+ weeks. **Serialising is how y
 The request contains a waterfall premise — *close M0, M1, M2, then start M3* — and it is the
 expensive one. I am obliged to say so and not to decide it.
 
-**M1 has no closure event available to this team.** Seven inputs sit with the bank; `ASM-012`…
+**M1 has no closure event available to this team.** Seven inputs sit with the bank; `ASM-023`…
 `ASM-022` expire 2026-09-19. "Closing M1" is not a decision anyone here can take, and treating it as
 a milestone makes the programme's forecast a function of someone else's inbox. I am recording M1 as
 a **standing dependency with expiry**, not a gate — and reporting `DECISION-BLOCKED` on it, as before.
@@ -194,7 +194,7 @@ Before D3 is decided, someone with access should confirm on the instance itself:
 | 4 | Is **"Pipelines must succeed"** present under Merge checks? | **`S08-G2` — the one that must be true** |
 | 5 | Do the `Security/*.gitlab-ci.yml` templates resolve? | `S08-G5` mechanism |
 | 6 | Is **Package Registry** enabled? | `ASM-017` second half |
-| 7 | Can this team **create a subgroup** under group `820`? | `ASM-013` second half, M4.2 |
+| 7 | Can this team **create a subgroup** under group `820`? | `ASM-024` second half, M4.2 |
 | 8 | Is GitLab-managed Terraform state available and where is it stored? | D2, `SEC-F07` |
 
 **Thirty minutes on the instance closes more open questions than a week of waiting.** It is the

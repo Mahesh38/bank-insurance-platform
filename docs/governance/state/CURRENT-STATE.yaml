@@ -543,17 +543,18 @@ id_allocation:
     # CR-011 existed as a file from 2026-08-20 without a register row, so the counter read 11
     # while CR-011 was in use; it is now indexed in the decision register and the counter clears
     # both it and CR-012.
-    # Advanced 2026-08-29 by the GitLab estate migration Phase M0 round (CR-014 / CR-015).
+    # Advanced 2026-08-29 by the GitLab estate migration Phase M0 round (CR-014 / CR-015),
+    # then reconciled with main's #83 Apigee/edge IDs (ASM-012/013, ADR-018, SPIKE-001).
     # ID-allocation correction only: no stage, scope or gate field is touched — those remain
     # human-owned (04 section 5).
-    # Advanced 2026-08-31 by CR-017 (orphan import + file-level workbench).
-    # ID-allocation correction only: no stage, scope or gate field is touched — those remain
-    # human-owned (04 section 5).
+    # Advanced 2026-08-31 by CR-017 (orphan import + file-level workbench), then
+    # reconciled with main/#82 ID remaps (ASM-023/024, ADR-020 governance project).
+    # ID-allocation correction only: no stage, scope or gate field is touched.
     CR: 18        # CR-001..017 in use (017 = orphan import + file-level workbench)
     RISK: 31      # RISK-001..030 in use (029 = sealed bundle custody; 030 = workbench git-sync temptation)
-    ASM: 23       # ASM-001..022 in use (012..022 = the eleven bank enterprise inputs)
+    ASM: 25       # ASM-001..024 in use (012/013 = edge FortiGate + Apigee; 014..024 = GitLab bank inputs)
     EPIC: 2       # EPIC-001 in use (platform error contract, SUG-20260827-err). ID-allocation only.
-    SPIKE: 1
+    SPIKE: 2       # SPIKE-001 in use (Apigee vs Amazon API Gateway, SUG-20260831-apg). ID-allocation only.
     # ADR-001..003 were written into architecture-review/08 under CR-010 while this counter still
     # read 1; that file carries a standing note asking for the advance. ADR-004..007 were added by
     # the 2026-08-20 HLD review round (SUG-20260820-hr0); ADR-008 by the same day's decision round
@@ -565,4 +566,4 @@ id_allocation:
     # ADR-017 was added by the 2026-08-27 platform error contract round (SUG-20260827-err), and
     # EPIC-001 by the same round. ID-allocation correction only. No stage, scope or gate field is
     # touched by it; those remain human-owned (04 section 5).
-    ADR: 21        # ADR-001..020 in use (020 = GitLab orphan import + file-level workbench, CR-017). ID-allocation only.
+    ADR: 22        # ADR-001..021 in use (020 = GitLab governance/platform-governance project; 021 = orphan import + file-level workbench, remapped from this overlay's former ADR-020). ID-allocation only.

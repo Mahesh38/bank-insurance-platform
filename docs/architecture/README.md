@@ -339,3 +339,30 @@ Alignment with bank enterprise architecture directives:
 | [`r0-platform-dr.svg`](./r0-platform-dr.svg) | Rendered `D11` / `D12` with Ansible automated execution. |
 | [`R0-LLD.md`](./R0-LLD.md) | BOM #22, #29, and provisioning sequence updated with F5, GitLab, Terraform, and Ansible automation. |
 | [`ARB-ARCHITECTURE-DOSSIER.md`](./ARB-ARCHITECTURE-DOSSIER.md) | Updated with Terraform IaC + Ansible automation defense. |
+
+## Revision — 2026-08-31 edge correction (`ADR-018`, `SUG-20260831-alb`)
+
+Two assumptions in the 2026-08-25/27 perimeter were wrong against the existing AU Bank estate:
+
+| Correction | Was | Is |
+|---|---|---|
+| Public / External ALB in front of API Gateway | Drawn as a hop | **Withdrawn.** API Gateway is the first AWS hop. The only ALB is the Internal ALB. |
+| Cloudflare and F5 placement | Drawn as if on AWS / in a VPC | **Bank-enterprise SaaS.** Outside the AWS Cloud box, outside every VPC. F5 is F5-XC (Distributed Cloud), not an in-VPC BIG-IP. |
+
+| File | What changed |
+|---|---|
+| [`diagrams/r0_platform_views.py`](./diagrams/r0_platform_views.py) | SaaS group outside the AWS region box; External ALB removed; inspection VPC restored to Network Firewall (`ADR-010`). |
+| generated set | Topology, AZ, DR, sequence re-rendered. Not hand-edited. |
+| [`R0-HLD.md`](./R0-HLD.md) · [`R0-LLD.md`](./R0-LLD.md) · [`ARB-ARCHITECTURE-DOSSIER.md`](./ARB-ARCHITECTURE-DOSSIER.md) | Ingress hop and BOM #7 / #29 aligned to `ADR-018`. |
+| [`r0-reference-architecture.svg`](./r0-reference-architecture.svg) · [`../hdl.svg`](../hdl.svg) | Edge band labels. |
+
+## Revision — 2026-08-31 attach to existing bank network; Apigee stays off the pictures (`SUG-20260831-apg`)
+
+Human Architecture owner: keep Apigee **off every diagram** until `SPIKE-001` returns. Amazon API Gateway remains. Network pack attaches to the existing `AU-CTO-NETWORK` TGW / DX Gateway; do not clone Public VPC + IGW + peering.
+
+| File | What changed |
+|---|---|
+| [`R0-LLD.md`](./R0-LLD.md) | §1.3 / §2 / §2.2 / §13 / BOM #25 #27 / P1: attach, do not duplicate; no workload IGW; candidate bank API plane not drawn. |
+| [`R0-HLD.md`](./R0-HLD.md) · [`ARB-ARCHITECTURE-DOSSIER.md`](./ARB-ARCHITECTURE-DOSSIER.md) | Spoke-attach language; overlay not named on the picture. |
+| [`diagrams/r0_platform_views.py`](./diagrams/r0_platform_views.py) | TGW labelled as existing hub we attach to; NOT IN R0 lists a second TGW/DX and Public VPC+IGW — **does not name the parked overlay**. |
+| [`r0-lld.svg`](./r0-lld.svg) | Stale CloudFront+WAF caption corrected; TGW labelled as existing hub. |

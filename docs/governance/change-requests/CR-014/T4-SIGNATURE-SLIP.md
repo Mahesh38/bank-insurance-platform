@@ -10,7 +10,7 @@ Do **not** treat a signature as closing `C-SEC-2` or `C-CMP-1`.
 
 | Board | What you are signing | Human | Date | Signature |
 |---|---|---|---|---|
-| 1 Architecture | `CR-014` + `CR-017` / `ADR-020` orphan import; `CR-016` Option B/A | Mahesh | | |
+| 1 Architecture | `CR-014` + `CR-017` / `ADR-021` orphan import; `CR-016` Option B/A | Mahesh | | |
 | 4 Security | `CR-014` `C-SEC-1`…`C-SEC-8`; Finding B path; `CR-016` weaker CE boundary | Deepali | | |
 | 6 Risk & Compliance | `CR-014` `C-CMP-1`…`C-CMP-5`; provenance of the GitLab first commit is an **initial import**, not a false origin | Shailja | | |
 

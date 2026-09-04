@@ -237,8 +237,8 @@ pack, and the honest answer is that `CR-012` admitted them deliberately.
 
 | Layer | What R0 provisions | The line it may not cross |
 |---|---|---|
-| **Bank connectivity** (`ADR-009`) | Transit Gateway in a new `network` account connecting to bank **EBS (Enterprise Service Bus) APIs for CBS / CIF** and Bank AD; Site-to-Site VPN from day one, Direct Connect primary when the circuit lands | `dev` may stub EBS/CBS and Bank AD; **`uat` and `prod` may not**. A journey evidenced against a stub is not evidence |
-| **Perimeter & Edge Ingress** | **Cloudflare (Enterprise CDN/DDoS)** → **F5 BIG-IP / WAF (Bank Policy)** → **External ALB** → **Amazon API Gateway** (Proxy 1 of 2) → **Internal ALB** (Proxy 2 of 2) | Bank enterprise security standard. Edge TLS termination, L7 policy and rate limiting; no business logic |
+| **Bank connectivity** (`ADR-009`) | **Attach as a spoke** to the existing `AU-CTO-NETWORK` Transit Gateway (do not provision a second hub). Connects to bank **EBS (Enterprise Service Bus) APIs for CBS / CIF** and Bank AD; Site-to-Site VPN from day one; Direct Connect via the **existing** DX Gateway | `dev` may stub EBS/CBS and Bank AD; **`uat` and `prod` may not**. A journey evidenced against a stub is not evidence. Workload VPCs have **no IGW** |
+| **Perimeter & Edge Ingress** | **Cloudflare Enterprise (SaaS)** → **F5-XC (SaaS WAF)** → **Amazon API Gateway** (Proxy 1 of 2) → **Internal ALB** (Proxy 2 of 2). No public ALB. Cloudflare and F5 are not AWS and not in any VPC (`ADR-018`) | Bank enterprise security standard. Edge TLS termination, L7 policy and rate limiting; no business logic |
 | **Delivery & IaC** | **GitLab CI/CD** for multi-stage pipelines and **Terraform** for Infrastructure as Code (IaC) across environments | Standard bank pipeline and multi-environment provisioning baseline |
 | **Governance & Logs** | **AWS CloudTrail** (account management and security audit trail) alongside **Amazon CloudWatch** (operational logs/metrics) | CloudTrail satisfies RBI management auditability; CloudWatch provides runtime telemetry |
 | **Egress inspection** (`ADR-010`) | Inspection VPC per environment, AWS Network Firewall, domain allowlist, drop-by-default; the allowlisted Elastic IPs move behind it | It is **not a mesh** and does not replace `NetworkPolicy`. The 1SB mTLS session is passed intact, not decrypted |
@@ -572,8 +572,8 @@ deployable services plus one app**, against a nineteen-context target.
 
 ## 9. One-screen answers for live review
 
-**Q: Why use Cloudflare and F5 BIG-IP instead of AWS CloudFront and AWS WAF?**  
-A: Adopting **Cloudflare Enterprise** and **F5 BIG-IP / WAF** aligns our platform directly with AU Bank's existing enterprise perimeter contract and central InfoSec policies. Cloudflare provides carrier-grade DDoS mitigation and edge acceleration, while F5 enforces enterprise L7 inspection rules and custom iRules. Behind F5, an **External ALB** terminates ingress traffic and routes securely to **Amazon API Gateway**, which connects via private VPC Link to the **Internal ALB**.
+**Q: Why use Cloudflare and F5-XC instead of AWS CloudFront and AWS WAF?**  
+A: Adopting **Cloudflare Enterprise** and **F5 Distributed Cloud (F5-XC)** aligns our platform with the existing AU Bank application perimeter (architecture v1.4). Both are **bank-enterprise SaaS** — they are not AWS services and they are not placed in any platform VPC. Traffic then enters AWS at **Amazon API Gateway** (no public / External ALB) and reaches workloads through a **VPC Link** to the **Internal ALB**. The current banking app's Public ALB is that application's AWS entry; this platform's AWS entry is API Gateway (`ADR-018`).
 
 **Q: How do we connect to Core Banking (CBS)?**  
 A: All customer lookups and CIF queries route through `#4 Customer Service` calling standard bank **EBS (Enterprise Service Bus) APIs** over private Transit Gateway links, adhering to bank enterprise architecture standards and protecting the core mainframe.

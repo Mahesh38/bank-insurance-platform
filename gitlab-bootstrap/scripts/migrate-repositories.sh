@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# GLM-001 M5.2 — orphan import into empty GitLab projects (CR-017 / ADR-020 / AC-6).
+# GLM-001 M5.2 — orphan import into empty GitLab projects (CR-017 / ADR-021 / AC-6).
 #
 # This script does NOT preserve personal-forge history. It copies the current
 # tree, path-split, into new orphan repositories and makes one company-authored

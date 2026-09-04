@@ -39,7 +39,7 @@ a YAML entry. That is the baseline §16.1 future-change test, and it is the desi
 |---|---|
 | Instance | `https://gitlab-ce.au.bank.in/` — **Community Edition v19.1.2** |
 | Parent group | `insurance`, id **820**, must already exist |
-| Rights | create subgroups and projects beneath group 820 — **`ASM-013` unconfirmed**, gates M4.2 |
+| Rights | create subgroups and projects beneath group 820 — **`ASM-024` unconfirmed**, gates M4.2 |
 | Terraform | `>= 1.6.0` |
 | Identity | dedicated least-privileged automation service account (§3) |
 

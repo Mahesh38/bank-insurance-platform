@@ -168,14 +168,17 @@ graph TB
         CDEV["Customer device<br/>OTP + payment only<br/>not an on-platform actor"]
     end
 
-    subgraph Edge["Bank Perimeter & Edge — public"]
-        CF["Cloudflare (Enterprise CDN/DDoS)"]
-        F5["F5 BIG-IP / WAF (Bank Policy)"]
-        EXT_ALB["External ALB"]
+    subgraph SaaS["Bank Enterprise SaaS — NOT AWS, NOT in any VPC"]
+        CF["Cloudflare Enterprise (CDN / DDoS)"]
+        F5["F5 Distributed Cloud / F5-XC (WAF)"]
+    end
+
+    subgraph Edge["AWS managed edge — not in the VPC"]
         APIGW["API Gateway"]
     end
 
     subgraph EKS["EKS — ap-south-1, private subnets"]
+        IALB["Internal ALB<br/>only load balancer · only hop in the VPC"]
         NIPW["nip-web<br/>Flutter web, image-baked"]
         BFF["NIP BFF #2"]
         subgraph WS2["WS-2 identity enabler"]
@@ -216,9 +219,9 @@ graph TB
         AD["Bank AD / SSO"]
     end
 
-    FL --> CF --> F5 --> EXT_ALB --> APIGW
-    APIGW --> NIPW
-    APIGW --> BFF
+    FL --> CF --> F5 --> APIGW --> IALB
+    IALB --> NIPW
+    IALB --> BFF
     CDEV -->|"payment link only"| PG_BANK
     BFF --> IDPA
     BFF --> AUTHZ
@@ -257,8 +260,8 @@ graph TB
 |---|---|
 | Region | `ap-south-1`; DR `ap-south-2`. Non-negotiable — control C6 |
 | Compute | EKS, per ARCH-002. Every service stateless at pod level |
-| Perimeter & Edge Ingress | **Cloudflare (Enterprise CDN/DDoS)** → **F5 BIG-IP / WAF (Bank Policy)** → **External ALB** → **Amazon API Gateway** (Proxy 1 of 2) → **Internal ALB** (Proxy 2 of 2). Every service, datastore, cache node, broker and search domain is in a private subnet |
-| **Bank connectivity** (`ADR-009`) | **EBS APIs (CBS / CIF)** and Bank AD are reached over a Transit Gateway — Site-to-Site VPN from day one, Direct Connect primary when the circuit lands. `dev` may stub them; **`uat` and `prod` may not**. A journey evidenced against a stub is not evidence |
+| Perimeter & Edge Ingress | **Cloudflare Enterprise (SaaS, not AWS, not in any VPC)** → **F5 Distributed Cloud / F5-XC (SaaS WAF, not AWS, not in any VPC)** → **Amazon API Gateway** (Proxy 1 of 2; first AWS hop) → **Internal ALB** (Proxy 2 of 2; the only load balancer, and the only hop inside the VPC). **No public / External ALB.** Apigee is a known bank plane and is **not drawn** until `SPIKE-001` (`ADR-018` §7). Every service, datastore, cache node, broker and search domain is in a private subnet |
+| **Bank connectivity** (`ADR-009`) | **EBS APIs (CBS / CIF)** and Bank AD are reached by **attaching as a spoke** to the existing `AU-CTO-NETWORK` Transit Gateway — not a second hub. Site-to-Site VPN from day one; Direct Connect via the **existing** DX Gateway. `dev` may stub them; **`uat` and `prod` may not**. A journey evidenced against a stub is not evidence. Workload VPCs have **no IGW** |
 | **Egress** (`ADR-010`) | 100% of egress and inter-VPC traffic is inspected: TGW → AWS Network Firewall → NAT with the allowlisted Elastic IPs. Domain allowlist, drop-by-default. The 1SB mTLS session is passed intact rather than decrypted. This is not a mesh and does not replace `NetworkPolicy` |
 | **Cache** (`ADR-011`) | One ElastiCache for Valkey replication group per environment: BFF sessions, an L2 read-through layer behind the in-process L1, and per-principal rate-limit counters. Per-service ACL user and key prefix. **Never** idempotency, a system of record, or a way to serve configuration past TTL |
 | **Event backbone** (`ADR-012`) | Amazon MSK, 3 brokers, SASL/IAM per topic, fed by the **transactional outbox, which remains the source of truth**. No regulatory evidence exists only in a topic |

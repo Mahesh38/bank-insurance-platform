@@ -180,16 +180,16 @@ def main():
                              f"was created and NOT deleted (HTTP {dst})")
             record("7_subgroup_creation", f"Can this team create a subgroup under group {PARENT_GROUP}?",
                    "YES", f"created and {'deleted' if cleaned else 'FAILED TO DELETE'} {created.get('full_path')}",
-                   "ASM-013 second half. GLM-001 M4.2/M4.3 — the FIRST APPLY. Nothing downstream runs without it.")
+                   "ASM-024 second half. GLM-001 M4.2/M4.3 — the FIRST APPLY. Nothing downstream runs without it.")
         else:
             record("7_subgroup_creation", f"Can this team create a subgroup under group {PARENT_GROUP}?",
                    "NO", f"POST /groups -> HTTP {st}: {str(created)[:200]}",
-                   "ASM-013. A NO here blocks M4 entirely and needs a bank access request — "
+                   "ASM-024. A NO here blocks M4 entirely and needs a bank access request — "
                    "the longest lead time of any of the eight.")
     else:
         record("7_subgroup_creation", f"Can this team create a subgroup under group {PARENT_GROUP}?",
                "?", "skipped — this is the only write. Re-run with --allow-write.",
-               "ASM-013 second half. THE HIGHEST-VALUE ANSWER: it gates the first apply.")
+               "ASM-024 second half. THE HIGHEST-VALUE ANSWER: it gates the first apply.")
 
     # --- output -------------------------------------------------------------
     out = {"results": results, "notes": notes}
@@ -202,7 +202,7 @@ def main():
     ans = {k: v["answer"] for k, v in results.items() if not k.startswith("_")}
     print(f"\nanswered YES/NO: {sum(1 for v in ans.values() if v in ('YES', 'NO'))}/{len(ans)}   "
           f"inconclusive: {sum(1 for v in ans.values() if v == '?')}")
-    print("\nWrote instance-check.json — paste it back, or attach it to ASM-012/013/017.")
+    print("\nWrote instance-check.json — paste it back, or attach it to ASM-023/024/017.")
     print("Nothing in that file is a secret; the token is never recorded.\n")
 
 

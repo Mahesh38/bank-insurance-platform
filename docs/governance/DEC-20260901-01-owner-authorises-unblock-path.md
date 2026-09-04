@@ -10,7 +10,7 @@ supply one (Rule CC-1, Rule PA-1, [09 §8](./09-AI_EXECUTION_RULES.md#8-when-a-h
 no AI commits… fresh commit on day 0*
 **Related:** [`CR-017`](./change-requests/CR-017-orphan-import-and-file-workbench.md) ·
 [`CR-016`](./change-requests/CR-016-gitlab-ce-control-model-gap.md) ·
-[`ADR-020`](../platform/architecture-review/08-architecture-decision-log.md)
+[`ADR-021`](../platform/architecture-review/08-architecture-decision-log.md)
 **Freshness:** `state_as_of` is 22 days old — `FreshnessCheck` exit `1` (WARN). Review due 2026-09-09.
 
 ---

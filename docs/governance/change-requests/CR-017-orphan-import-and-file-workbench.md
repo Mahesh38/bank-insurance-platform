@@ -4,7 +4,7 @@
 **Type:** PLAN (amends approved `CR-014` constraint 2) with `SEC` and `COMP` consequences
 **Raised by:** `agent:claude` on the previous-turn review of PR 82; origin `SUG-20260831-ids`
 **Workstream:** WS-3 · **Stage:** S08 with S09 overlapped
-**Related:** [`CR-014`](./CR-014-gitlab-estate-migration.md) · [`GLM-001`](../../platform/gitlab-migration/GLM-001-migration-plan.md) · [`ADR-020`](../../platform/architecture-review/08-architecture-decision-log.md)
+**Related:** [`CR-014`](./CR-014-gitlab-estate-migration.md) · [`GLM-001`](../../platform/gitlab-migration/GLM-001-migration-plan.md) · [`ADR-021`](../../platform/architecture-review/08-architecture-decision-log.md)
 **Authority:** [14 §4](../14-CHANGE_CONTROL.md#4-changing-an-approved-plan) — *approach replaced with a different mechanism* → re-review by the boards that approved `CR-014`
 
 > ## Decision: `APPROVED_WITH_CONDITIONS` — 2026-08-31

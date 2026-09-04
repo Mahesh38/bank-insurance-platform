@@ -148,7 +148,7 @@ are untouched.
 |---|---|---|
 | All GLM-001 technical phases, on eleven bank enterprise inputs (M1) and on this CR | Nothing yet | `ASM-006` *"No AWS deployment target before Phase 6"* is under pressure — GLM-001 M8 designs AWS OIDC at S09 |
 
-Eleven enterprise inputs are recorded as `ASM-012` … `ASM-022` with expiry 2026-09-19.
+Eleven enterprise inputs are recorded as `ASM-014` … `ASM-024` with expiry 2026-09-19.
 
 ### 5.4 Effort
 
@@ -261,7 +261,7 @@ change_request:
   impact:
     scope: "no product scope change; no bounded context added, removed, split or merged"
     stage: "S08-G1, G2, G5 and G9 change evidence platform; no criterion is waived or re-worded"
-    dependencies: "all GLM-001 technical phases blocked on eleven bank inputs (ASM-012..ASM-022) and on this CR"
+    dependencies: "all GLM-001 technical phases blocked on eleven bank inputs (ASM-014..ASM-024) and on this CR"
     parked_items: "none made eligible"
     effort: "XL"
     risk_if_rejected: >

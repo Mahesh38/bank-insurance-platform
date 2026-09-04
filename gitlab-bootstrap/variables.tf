@@ -13,7 +13,7 @@ variable "gitlab_edition" {
   description = <<-EOT
     Licence tier of the target instance. Drives the capability flags in locals.tf.
 
-    Confirmed 2026-08-29: the bank instance is Community Edition v19.1.2 (ASM-012).
+    Confirmed 2026-08-29: the bank instance is Community Edition v19.1.2 (ASM-023).
     CE cannot enforce required merge-request approvals, CODEOWNERS approval, or
     protected environments — see CR-016.
 
@@ -32,7 +32,7 @@ variable "gitlab_edition" {
 variable "parent_group_id" {
   description = <<-EOT
     Numeric id of the EXISTING top-level `insurance` group. Confirmed by the bank
-    on 2026-08-29 as 820 (ASM-013).
+    on 2026-08-29 as 820 (ASM-024).
 
     This group is a prerequisite, never a managed resource. IMP-11 #3: import the
     parent, never create it. Nothing in this configuration is safe if the parent

@@ -7,7 +7,7 @@
 **Stage:** S08 — Engineering Foundation (`GATE-S08` `OPEN`, 10 of 10 criteria open), S09 overlapped
 **Origin:** human:Mahesh — *accept the improvements, activate every persona, start Phase M0, take the decisions with mutual discussion*
 **Scope CR:** [`CR-014`](./change-requests/CR-014-gitlab-estate-migration.md) · **Parallel CR:** [`CR-015`](./change-requests/CR-015-shared-persistence-vs-bank-baseline.md)
-**Plan:** [`GLM-001`](../platform/gitlab-migration/GLM-001-migration-plan.md) · **ADR:** `ADR-018`
+**Plan:** [`GLM-001`](../platform/gitlab-migration/GLM-001-migration-plan.md) · **ADR:** `ADR-020`
 **Board positions:** [`CR-014/verdicts/`](./change-requests/CR-014/verdicts/README.md)
 **Freshness:** `state_as_of` is 19 days old — `FreshnessCheck` exit `1` (WARN). Review due 2026-09-09.
 
@@ -127,7 +127,7 @@ its own pipeline, which is simpler than the path-filtered arrangement in place t
 
 ### 3.2 Decision
 
-> **Internal position: `governance/platform-governance`, a ninth project.** Recorded as **`ADR-018`**.
+> **Internal position: `governance/platform-governance`, a ninth project.** Recorded as **`ADR-020`**.
 >
 > **Status: `APPROVED` 2026-08-29, conditionally** — `AC-2`. The ninth project is approved
 > **subject to written acceptance of the Appendix C exception by the bank GitLab/architecture
@@ -226,7 +226,7 @@ is amended; `C-OPS-4` supersedes the original text.
 | **M0.1** | Triage and register the migration | Shivanshi | **DONE** | — |
 | **M0.2** | `CR-014` | Boards | **`APPROVED_WITH_CONDITIONS` 2026-08-29** | 29 board conditions + `AC-1`…`AC-5` |
 | **M0.3** | Re-evidence `S08-G1/G2/G5/G9` on GitLab; GitHub Actions green for **rollback continuity only** | Amit + boards | **`APPROVED`** (`AC-1`) | `GATE-S08` stays `OPEN` throughout |
-| **M0.4** | `governance/platform-governance` as a ninth project (`ADR-018`) | Mahesh → bank | **`APPROVED`, conditional** (`AC-2`) | Bank Appendix C acceptance **before M4.3** |
+| **M0.4** | `governance/platform-governance` as a ninth project (`ADR-020`) | Mahesh → bank | **`APPROVED`, conditional** (`AC-2`) | Bank Appendix C acceptance **before M4.3** |
 | **M0.5** | `CR-015` — **Option B**: persistence ownership per bounded context, after migration (`ADR-019`) | Mahesh + Aarti | **`APPROVED` target model** | Aarti's S09 integrity/recovery review still owed |
 | **M0.6** | Render survives as dev-preview demo target | Shivanshi + Kalpana | **`APPROVED`** (`AC-3`) | No PII / real values / production-like data |
 
@@ -239,7 +239,7 @@ blocks M3:
 | Outstanding | Gates | Owner |
 |---|---|---|
 | Bank Appendix C acceptance (`AC-2`, `ASM-021`) | **M4.3** — eight projects until it lands | bank authority |
-| Twelve enterprise inputs (`ASM-012` … `ASM-022`) | M3.3, M3.4 detail · M5.2 · M8 | bank |
+| Twelve enterprise inputs (`ASM-014` … `ASM-024`) | M3.3, M3.4 detail · M5.2 · M8 | bank |
 | Aarti's S09 integrity and recovery review (`CR-015` Q4) | The S09 allocation migration, **not** the GitLab migration | Aarti |
 
 ---

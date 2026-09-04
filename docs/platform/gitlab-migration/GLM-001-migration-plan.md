@@ -505,7 +505,7 @@ All six items are decided and `CR-014` is approved. **M3 (bootstrap IaC) is unbl
 | M0.1 | Triage and register | **DONE** — `SUG-20260829-glm` · `SUG-20260829-imp` |
 | M0.2 | `CR-014` | **`APPROVED_WITH_CONDITIONS`** — 29 board conditions plus `AC-1`…`AC-5` |
 | M0.3 | Gate-evidence strategy | **`APPROVED`** (`AC-1`) — Option B. GitHub Actions kept green **for rollback continuity only**. `GATE-S08` remains `OPEN` throughout and is reported open |
-| M0.4 | Governance-tree home | **`APPROVED`, conditional** (`AC-2`, `ADR-018`) — bank Appendix C acceptance required **before M4.3**. Until it lands, **M4.3 creates eight projects, not nine**; on rejection the `product/backend/governance/` fallback applies |
+| M0.4 | Governance-tree home | **`APPROVED`, conditional** (`AC-2`, `ADR-020`) — bank Appendix C acceptance required **before M4.3**. Until it lands, **M4.3 creates eight projects, not nine**; on rejection the `product/backend/governance/` fallback applies |
 | M0.5 | `CR-015` | **`APPROVED` — Option B** (`ADR-019`): persistence ownership per bounded context, implemented **after** migration. `bank-persistence-service` migrates unchanged (`AC-5`) |
 | M0.6 | Render disposition | **`APPROVED`** (`AC-3`) — dev-preview only: no PII, no real premium or quote values, no production-like data. Retired only after EKS demonstrates equivalent deployment capability |
 
@@ -528,7 +528,7 @@ authorised the work; it did not authorise starting it before its gates.** Full l
 | Outstanding | Gates | Owner |
 |---|---|---|
 | Bank Appendix C acceptance (`AC-2`, `ASM-021`) | **M4.3** | bank authority |
-| Twelve enterprise inputs (`ASM-012` … `ASM-022`) | M3.3, M3.4 detail · M5.2 · M8 | bank |
+| Twelve enterprise inputs (`ASM-014` … `ASM-024`) | M3.3, M3.4 detail · M5.2 · M8 | bank |
 | Aarti's integrity and recovery review (`CR-015` Q4) | The **S09** allocation migration, not this one | Aarti |
 
 The board round also produced **IMP-14** above and one correction to this plan's own M9.4, both
@@ -544,7 +544,7 @@ recorded at [`DEC-20260829-01` §5](../../governance/DEC-20260829-01-m0-migratio
 `ADR-019`. All six M0 items decided. **M0 does not reopen.**
 
 The bank's edition answer landed *after* the approval and changed the ground under part of it:
-`RISK-017` **fired**, `ASM-012` is **invalidated**, and five approved conditions are unsatisfiable as
+`RISK-017` **fired**, `ASM-023` is **invalidated**, and five approved conditions are unsatisfiable as
 written. That is [`CR-016`](../../governance/change-requests/CR-016-gitlab-ce-control-model-gap.md) —
 a new decision on new evidence, not a reopening of M0.
 

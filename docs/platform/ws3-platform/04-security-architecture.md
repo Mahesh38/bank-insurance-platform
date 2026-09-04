@@ -65,11 +65,13 @@ graph TB
         SB["1SilverBullet"]
     end
 
-    subgraph Z1["Z1 — Bank Perimeter & Edge (DMZ)"]
-        CF["Cloudflare (Enterprise CDN/DDoS)"]
-        F5["F5 BIG-IP / WAF (Bank Policy)"]
-        EXT_ALB["External ALB"]
-        GW["API Gateway / Internal ALB"]
+    subgraph Z1S["Z1a — Bank Enterprise SaaS (NOT AWS, NOT in any VPC)"]
+        CF["Cloudflare Enterprise (CDN / DDoS)"]
+        F5["F5 Distributed Cloud / F5-XC (WAF)"]
+    end
+
+    subgraph Z1["Z1b — AWS managed edge (not in the VPC)"]
+        GW["API Gateway → Internal ALB"]
     end
 
     subgraph Z2["Z2 — Application (private)"]
@@ -105,7 +107,7 @@ graph TB
         AD["Bank AD"]
     end
 
-    RM ==>|"TB-1"| CF --> F5 --> EXT_ALB --> GW
+    RM ==>|"TB-1"| CF --> F5 --> GW
     CUSTD ==>|"TB-6"| PGW
     GW ==>|"TB-2"| BFF
     BFF ==>|"TB-3"| PDP

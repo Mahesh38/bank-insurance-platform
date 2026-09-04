@@ -72,6 +72,7 @@ stories:
   - id: NFR-004
     title: "Circuit breaker / bulkhead for 1SB egress"
     state: DONE
+    notes: "Open on consecutive 5xx/timeouts; 401 and 422 UPSTREAM_BUSINESS_ERROR do not trip (RESILIENCE-POLICY §3). Covered by OneSbHttpClientTest businessError_422_doesNotOpenBreaker_NFR004."
     priority_now: P1
     priority_at_target: P1
   - id: NFR-007
@@ -82,7 +83,7 @@ stories:
   - id: QA-012
     title: "Life LOB regression (Term + Savings + ULIP) and Term non-regression"
     state: DONE
-    notes: "LifeLobRegressionIT covers Term non-regression, Saving/ULIP quote+proposal WireMock paths, schema GET, unsupported HEALTH. QuoteService admits TERM/SAVING/ULIP. CB covered by OneSbCircuitBreakerTest."
+    notes: "LifeLobRegressionIT covers Term non-regression, Saving/ULIP quote+proposal WireMock paths, schema GET, unsupported HEALTH. QuoteService admits TERM/SAVING/ULIP. CB: OneSbCircuitBreakerTest plus OneSbHttpClientTest 422-does-not-open / 5xx-opens."
     priority_now: P1
     priority_at_target: P1
 

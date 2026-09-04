@@ -19,7 +19,7 @@ schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
 document_count: 531
-total_bytes: 15236153
+total_bytes: 15236394
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -965,7 +965,7 @@ documents:
     persona: engineering
     title: "EPIC 002.work item"
     answers: "schema: work-item"
-    bytes: 4153
+    bytes: 4394
   - path: docs/README.md
     bucket: root
     authority: navigation

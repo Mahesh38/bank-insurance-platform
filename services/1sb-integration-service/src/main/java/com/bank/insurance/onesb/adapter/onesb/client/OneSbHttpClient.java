@@ -158,8 +158,11 @@ public class OneSbHttpClient {
     }
 
     private void recordBreakerFailure(ServiceException ex) {
-        // Auth failures must not open the breaker (credentials / allowlist — ops action).
-        if (ErrorCodes.UPSTREAM_AUTH_FAILURE.equals(ex.getErrorResponse().getCode())) {
+        // RESILIENCE-POLICY.md §3: never open on auth failures or business 4xx
+        // (payload / contract mistakes). Count timeouts, 5xx, and connection errors.
+        String code = ex.getErrorResponse().getCode();
+        if (ErrorCodes.UPSTREAM_AUTH_FAILURE.equals(code)
+                || ErrorCodes.UPSTREAM_BUSINESS_ERROR.equals(code)) {
             return;
         }
         circuitBreaker.recordFailure();

@@ -12,6 +12,11 @@ executed. Human T4 sign-off and the Phase M1 enterprise inputs are outstanding.
 | Document | What it settles |
 |---|---|
 | [`GLM-001-migration-plan.md`](./GLM-001-migration-plan.md) | The task list, the sequence, the improvements and the AI-persona effort estimate |
+| [`IDENTITY-SANITIZATION.md`](./IDENTITY-SANITIZATION.md) | Denylist for personal-forge / AI-vendor identity (`CR-017` / `AC-6`) |
+| [`WORKBENCH.md`](./WORKBENCH.md) | File-level one-way import from the personal GitHub sandbox (`AC-7`) |
+| [`C-CMP-1-RESIDENCY-QUESTIONNAIRE.md`](./C-CMP-1-RESIDENCY-QUESTIONNAIRE.md) | Questions bank infra must answer before Board 6 can rule |
+| [`FINDING-B-DISPOSITION.md`](./FINDING-B-DISPOSITION.md) | Retirement/rotation evidence pack — unsigned |
+| [`M5.2-OPERATOR.md`](./M5.2-OPERATOR.md) | Bank-machine sequence for the orphan import. Preflight cannot push |
 
 ## Read this first
 

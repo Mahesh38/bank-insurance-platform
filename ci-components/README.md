@@ -4,7 +4,7 @@
 **Plan:** [`GLM-001`](../docs/platform/gitlab-migration/GLM-001-migration-plan.md) Phase M7
 
 > ### Nothing here has run
-> No GitLab instance was reachable from the authoring environment. These 15 components
+> No GitLab instance was reachable from the authoring environment. These 16 components
 > are written, ported faithfully from the three GitHub Actions workflows, and checked by
 > `tests/validate-components.py` — which validates **structure**, not behaviour. First
 > execution against `gitlab-ce.au.bank.in` is the real test.
@@ -25,7 +25,7 @@ include:
 
 Always pin a version. `@main` is a floating dependency on someone else's next commit.
 
-## The 15 components
+## The 16 components
 
 | Component | Purpose | Gates |
 |---|---|---|
@@ -43,6 +43,7 @@ Always pin a version. `@main` is a floating dependency on someone else's next co
 | `terraform-plan` | fmt, validate, plan, destructive-change guard | §11.2 |
 | `terraform-apply` | **manual, default-branch only, restricted runner** | §11.1 |
 | `gitops-promotion` | **promotes a digest, refuses a tag** | §3.6 |
+| **`governance-merge-gate`** | CE compensating control (`CR-016` Option B): required `/approve` notes | not §6.3 |
 
 ---
 

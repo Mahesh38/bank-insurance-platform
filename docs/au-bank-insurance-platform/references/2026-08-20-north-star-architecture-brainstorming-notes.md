@@ -2,7 +2,7 @@
 
 **Intake ID:** `VIN-001`
 **Date received:** 2026-08-20
-**Provided by:** Repository owner (Mahesh38 · mh.narkar@gmail.com)
+**Provided by:** Repository owner
 **Original medium:** External design/brainstorming session, supplied to the repository as text
 **Status:** **REFERENCE — non-binding.** Transcribed for grounding under
 [`09-target-state-architecture-doctrine.md §9`](../../context/roles/mahesh-principal-insurance-platform-architect/09-target-state-architecture-doctrine.md) rule `VI-01`.

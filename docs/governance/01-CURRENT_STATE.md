@@ -42,7 +42,7 @@ the agent believed at decision time — a decision that was correct against a st
 
 | Field | Value |
 |-------|-------|
-| Project | Bank Insurance Platform (`mahesh38/bank-insurance-platform`) |
+| Project | Bank Insurance Platform (`insurance/bank-insurance`) |
 | State as of | 2026-08-10 |
 | Ratified by | **Mahesh (Solution Architect), 2026-08-10** (GOV-004) — PO counter-signature outstanding |
 | Active workstreams | 2 (see §4) |

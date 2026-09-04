@@ -19,6 +19,7 @@ GATING = {
     "flutter-analyze", "flutter-test", "node-build", "node-test",
     "contract-validate", "contract-compatibility", "terraform-plan",
     "gitops-promotion",
+    "governance-merge-gate",
 }
 # terraform-apply is deliberately NOT gating: it is manual-and-main-only, and
 # its rules carry allow_failure: false at the rule level instead.

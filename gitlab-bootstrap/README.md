@@ -1,8 +1,8 @@
 # `gitlab-bootstrap` — Terraform for the Bank Insurance GitLab estate
 
 **Status:** `M3 PARTIAL` — built under `R1` of [`DEC-20260829-02`](../docs/governance/DEC-20260829-02-m3-readiness-board-pack.md), 2026-08-29.
-**Authorised by:** [`CR-014`](../docs/governance/change-requests/CR-014-gitlab-estate-migration.md) `APPROVED_WITH_CONDITIONS`
-**Plan:** [`GLM-001`](../docs/platform/gitlab-migration/GLM-001-migration-plan.md) Phase M3
+**Authorised by:** [`CR-014`](../docs/governance/change-requests/CR-014-gitlab-estate-migration.md) `APPROVED_WITH_CONDITIONS` · [`CR-017`](../docs/governance/change-requests/CR-017-orphan-import-and-file-workbench.md) (orphan import)
+**Plan:** [`GLM-001`](../docs/platform/gitlab-migration/GLM-001-migration-plan.md) Phase M3; M5.2 is `scripts/migrate-repositories.sh` (orphan, not `filter-repo`)
 
 > ### Nothing here has been executed, and it cannot be from the authoring environment
 > No Terraform binary is installed and `registry.terraform.io` is unreachable through
@@ -73,7 +73,15 @@ never in git. An untested restore is a belief, not a control.
 ./scripts/validate.sh          # fmt, validate, and the guard checks — no credentials needed
 export GITLAB_TOKEN=...        # dedicated automation account
 terraform plan -input=false    # requires a backend — blocked until M1.6
+
+# M5.2 orphan import — gates only, then (on a bank host) PUSH=1
+PREFLIGHT=1 SRC=/path/to/full-clone \
+  COMPANY_GIT_NAME=... COMPANY_GIT_EMAIL=... \
+  bash scripts/migrate-repositories.sh
 ```
+
+M5.2 operator sequence: [`docs/platform/gitlab-migration/M5.2-OPERATOR.md`](../docs/platform/gitlab-migration/M5.2-OPERATOR.md).
+`PUSH=1` refuses a destination that already has refs.
 
 `apply` is **never** run locally. It runs from a protected pipeline job, manually,
 by an authorised operator (baseline §11.1).

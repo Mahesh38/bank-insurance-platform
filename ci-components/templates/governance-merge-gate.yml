@@ -1,0 +1,68 @@
+# CR-016 Option B — compensating merge gate for Community Edition.
+#
+# CE cannot enforce required MR approval rules or CODEOWNERS approval
+# (Premium+). This job is a convention with teeth: it fails the pipeline
+# unless listed reviewers have posted an explicit `/approve` note on the MR
+# via the GitLab API. It is NOT a platform approval rule. Do not record
+# baseline §6.2 / §6.3 as satisfied because this job exists.
+#
+# S08-G2 still comes from the native CE merge check "pipelines must succeed".
+spec:
+  inputs:
+    stage:
+      default: validate
+    runner_tag:
+      default: "general"
+    required_reviewers:
+      default: ""
+---
+
+"governance-merge-gate":
+  stage: $[[ inputs.stage ]]
+  image: alpine:3.20
+  tags: ["$[[ inputs.runner_tag ]]"]
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  allow_failure: false
+  before_script:
+    - apk add --no-cache curl jq
+  script:
+    - |
+      set -euo pipefail
+      REVIEWERS="${GOVERNANCE_REVIEWERS:-$[[ inputs.required_reviewers ]]}"
+      if [ -z "$REVIEWERS" ]; then
+        echo "FAIL: GOVERNANCE_REVIEWERS / required_reviewers is empty."
+        echo "Name the bank identities who must /approve this MR."
+        exit 1
+      fi
+      : "${CI_API_V4_URL:?}"
+      : "${CI_PROJECT_ID:?}"
+      : "${CI_MERGE_REQUEST_IID:?}"
+      : "${GITLAB_TOKEN:?dedicated automation token — C-SEC-5}"
+      notes="$(curl -sSf --header "PRIVATE-TOKEN: ${GITLAB_TOKEN}" \
+        "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests/${CI_MERGE_REQUEST_IID}/notes")"
+      missing=0
+      IFS=','
+      for who in $REVIEWERS; do
+        who="$(echo "$who" | sed 's/^ *//;s/ *$//')"
+        [ -n "$who" ] || continue
+        if echo "$notes" | jq -e --arg u "$who" \
+          '[.[] | select(.author.username==$u and (.body|test("^/approve\\b")))] | length > 0' \
+          >/dev/null; then
+          echo "approved-by: $who"
+        else
+          echo "MISSING /approve from: $who"
+          missing=1
+        fi
+      done
+      if [ "$missing" -ne 0 ]; then
+        echo "FAIL: CR-016 Option B — required /approve notes not present." | tee governance-merge-gate.log
+        exit 1
+      fi
+      echo "CR-016 Option B: all required /approve notes present" | tee governance-merge-gate.log
+  artifacts:
+    when: always
+    expire_in: "90 days"
+    paths:
+      - governance-merge-gate.log
+    reports: {}

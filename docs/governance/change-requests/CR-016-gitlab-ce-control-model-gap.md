@@ -7,15 +7,18 @@
 **Driver:** **Validated assumption failure** — `ASM-023` answered, and answered worse than it contemplated
 **Related:** [`CR-014`](./CR-014-gitlab-estate-migration.md) `APPROVED_WITH_CONDITIONS` · `RISK-017` **FIRED** · `RISK-023`
 
-> ## Decision: `PENDING`
-> **No verdict is drafted.** This CR reports a capability fact and puts three options to the boards.
-> Security (Deepali) explicitly **declined to pre-approve a control downgrade she could not yet see**
-> ([`CR-014` Board 4 §4](./CR-014/verdicts/board-4-security-deepali.md)); she can now see it, and the
-> decision is hers and Architecture's, not the agent's. Per Rule CC-1 an agent may raise a change
-> request and may never approve one.
+> ## Decision: `APPROVED_WITH_CONDITIONS` — 2026-09-01
+> Relayed by `human:Mahesh` (repository owner) as authorisation to take the recommended path:
+> **Option B now** (compensating CI controls), **Option A as the target** (CE → EE when the bank
+> can run the package-migration window), a **time-boxed exception (C)** covering the
+> platform-enforcement gap until EE, and **Option D rejected**.
 >
-> **This CR does not stop the migration.** `CR-014` stands approved and M2 is unaffected. What it
-> stops is recording §6.2, §6.3 or §9.3 as *satisfied* on controls that do not exist.
+> The agent recorded a decision the owner gave; it did not supply one (Rule CC-1, Rule PA-1).
+> **This is not a T4 Security signature artefact.** Deepali's human Board 4 sign-off on the
+> weaker enforcement boundary remains mandatory and outstanding.
+>
+> **This CR still does not stop the first push.** It blocks recording §6.2, §6.3 or §9.3 as
+> *satisfied*, and it blocks M6.3 / M6.6 until the compensating jobs exist.
 
 ---
 
@@ -94,10 +97,10 @@ and a Security decision.
 
 ---
 
-## 4. Options — no recommendation attached
+## 4. Options — owner-relayed choice 2026-09-01
 
-The choice is Security's and Architecture's. The agent's job here is to state the options honestly
-and the costs accurately.
+The owner's authorised combination: **B now**, **A as the target**, **C until EE**, **D rejected**.
+Deepali's human signature on the weaker enforcement boundary remains outstanding.
 
 | # | Option | Cost | Leaves |
 |---|---|---|---|
@@ -127,7 +130,7 @@ precisely the judgement Deepali and Shailja hold and the agent does not.
 
 ## 6. What this CR does **not** do
 
-- It does **not** propose a verdict or a preferred option.
+- It does **not** manufacture Deepali's T4 Security signature on the weaker CE boundary.
 - It does **not** re-open `CR-014`, which stands approved. M2 is unaffected and may proceed.
 - It does **not** record §6.2, §6.3 or §9.3 as satisfied, waived, or downgraded.
 - It does **not** grant the security exception Deepali declined to pre-approve — it gives her the
@@ -164,9 +167,18 @@ change_request:
       consequence: >
         Records a control as present when it is advisory. This is the specific failure the CR exists
         to prevent, and Swapnali's C-QA-5 already forbids the equivalent move on gate evidence.
-  decision: PENDING
-  approvers: []
-  decided_on: null
-  conditions: []
-  signature_status: "NO POSITION DRAFTED — Security and Architecture decision outstanding"
+  decision: APPROVED_WITH_CONDITIONS
+  approvers: ["Board 1 Architecture (owner-relayed)", "Board 4 Security (human signature outstanding)"]
+  decided_on: "2026-09-01"
+  recorded_by: "agent:cursor, from owner authorisation by human:Mahesh on 2026-09-01"
+  conditions:
+    - "Option B compensating CI (governance-merge-gate + existing manual/restricted-runner apply) is the R0 enforcement"
+    - "Option A (gitlab-ce → gitlab-ee) remains the target; package-migration window is a bank change"
+    - "Time-boxed exception (C): platform CODEOWNERS / required-approvals / protected-environments are unenforced until EE"
+    - "Option D (re-site) is rejected — it reopens C-CMP-1"
+    - "Do not record baseline §6.2, §6.3 or §9.3 as satisfied"
+    - "Does not gate M5.2 orphan import"
+  signature_status: >
+    Owner-relayed 2026-09-01. Not a T4 Security signature artefact. Deepali's human
+    Board 4 sign-off on the weaker enforcement boundary remains outstanding.
 ```

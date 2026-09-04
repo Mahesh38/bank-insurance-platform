@@ -64,7 +64,9 @@ DESC_MAX = 150
 
 def tracked_docs() -> list[str]:
     out = subprocess.check_output(["git", "ls-files", "docs"], cwd=ROOT, text=True)
-    return sorted(p for p in out.split("\n") if p.strip())
+    # Unmerged index stages (merge conflicts) list the same path three times.
+    # Dedup so a regenerate during a merge cannot write duplicate DOC-MAP rows.
+    return sorted({p for p in out.split("\n") if p.strip()})
 
 
 def humanise(path: Path) -> str:

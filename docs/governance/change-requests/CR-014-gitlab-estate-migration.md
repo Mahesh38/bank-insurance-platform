@@ -56,7 +56,7 @@ Quoted from the approved documents as they stand today:
 | [`DECISION-REGISTER`](../registers/DECISION-REGISTER.md) `ADR-016` | GitLab CI/CD and Terraform IaC are the enterprise delivery baseline. Status `Proposed (A3_JOINT_REVIEW)` |
 | [`DECISION-REGISTER`](../registers/DECISION-REGISTER.md) §1 | *"Persistence is platform-common (`bank-persistence-service`), reached over HTTP"* — status **Accepted** |
 | `render.yaml` | Deployment is a Render.com blueprint: one container, two JVMs, one public port |
-| Repository | One GitHub repository, `Mahesh38/bank-insurance-platform`, personal account. 358 commits · 81 remote branches · **0 tags** · ~14.9 MiB pack |
+| Repository | One personal GitHub repository (login recorded only in the sealed bundle). 358 commits · 81 remote branches · **0 tags** · ~14.9 MiB pack |
 
 Measured, not assumed: there is **no** Terraform, **no** GitOps manifest and **no** OpenAPI or
 AsyncAPI document anywhere in the repository today.
@@ -73,7 +73,7 @@ accepted by the repository owner on 2026-08-29.
 | # | Change |
 |---|---|
 | 1 | The GitLab estate is provisioned as Terraform/IaC under `insurance/bank-insurance`, with `product`, `delivery`, `engineering` and `governance` subgroups |
-| 2 | The monorepo splits into `product/frontend` (Flutter) and `product/backend` (services + libs), preserving history, authorship and dates via `git filter-repo` |
+| 2 | The monorepo splits into `product/frontend` (Flutter) and `product/backend` (services + libs) as **orphan first commits** under a company git identity ([`CR-017`](./CR-017-orphan-import-and-file-workbench.md) / `AC-6`). Personal-forge history, authorship and dates are **not** imported. *Supersedes the 2026-08-29 wording that preserved history via `git filter-repo`.* |
 | 3 | `contracts`, `infrastructure`, `gitops`, `ci-components`, `security-policies` and `gitlab-bootstrap` are seeded as governed skeletons |
 | 4 | **A ninth project, `governance/platform-governance`**, receives `docs/`, `scripts/{governance,context,lifecycle}`, `AGENTS.md` and `CLAUDE.md`. This is an addition to the bank baseline and requires the Appendix C exception at §6 |
 | 5 | The three GitHub Actions workflows are re-expressed as versioned components in `engineering/ci-components` and consumed by the application repositories |
@@ -279,16 +279,21 @@ change_request:
     - "AC-3 M0.6: Render is retained as a dev-preview target only — no PII, no real premium or quote values, no production-like data — and is retired only after EKS demonstrates equivalent deployment capability"
     - "AC-4 M9.4: GitHub becomes read-only at cutover, remains restorable for 14 days, and is archived only after the custody and retention disposition is approved"
     - "AC-5 bank-persistence-service migrates UNCHANGED under CR-014; repository migration is not combined with persistence restructuring (C-ARC-3, ADR-019)"
+    - "AC-6 CR-017: GitLab receives orphan first commits only; identity-guard must pass (supersedes constraint 2 history preservation)"
+    - "AC-7 CR-017: personal GitHub / Cursor workbench is file-level one-way import only; git-object sync forbidden"
+    - "AC-8 CR-017: original history is a sealed offline bundle; disposition after Finding B + C-CMP-4"
   signature_status: >
     Board approval relayed by human:Mahesh 2026-08-29 and recorded. The verdicts/ files remain
-    AI-drafted inputs, not signature artefacts.
+    AI-drafted inputs, not signature artefacts. Constraint 2 was superseded 2026-08-31 by CR-017
+    (orphan import + file-level workbench), also relayed by human:Mahesh.
 ```
 
 ---
 
-## 11. Approval conditions (`AC-1` … `AC-5`)
+## 11. Approval conditions (`AC-1` … `AC-8`)
 
 Attached by the boards at approval, in addition to the twenty-nine conditions in `verdicts/`.
+`AC-6`…`AC-8` were added on 2026-08-31 by [`CR-017`](./CR-017-orphan-import-and-file-workbench.md).
 
 | ID | Condition | Gates |
 |---|---|---|
@@ -297,7 +302,10 @@ Attached by the boards at approval, in addition to the twenty-nine conditions in
 | `AC-3` | **M0.6.** Render is a dev-preview target only — no PII, no real premium or quote values, no production-like data. Retired only after EKS demonstrates equivalent deployment capability — on capability, not on a date | Continuous |
 | `AC-4` | **M9.4.** GitHub becomes read-only at cutover, remains restorable for **14 days**, and is archived only after the custody and retention disposition is approved | **M9.4** |
 | `AC-5` | **`bank-persistence-service` migrates unchanged.** Repository migration is never combined with persistence restructuring. `CR-015` remains parallel and non-blocking | **M5.2** |
+| `AC-6` | **Orphan first commits only** (`CR-017`). No personal-forge history, authors, committers, trailers or GitHub merge subjects. `identity-guard.py` must exit 0 before push | **M5.2** |
+| `AC-7` | **File-level workbench only.** Personal GitHub / Cursor may contribute trees; git-object sync (`fetch` / pull-mirror / `push --all`) is forbidden | Continuous |
+| `AC-8` | **Sealed offline bundle** of the original history. Destroy or legal-hold only after Finding B is closed and Board 6 names the disposition (`C-CMP-4`) | **M5.2** create · **M9.4** dispose |
 
-`AC-2` and `AC-5` are the two that change what the migration may do. `AC-2` means M4.3 creates
-**eight** projects unless the bank exception has landed; `AC-5` restates `C-ARC-3` as an approval
-condition rather than a board condition, which makes it non-discretionary.
+`AC-2`, `AC-5` and `AC-6` are the three that change what the migration may do. `AC-2` means M4.3
+creates **eight** projects unless the bank exception has landed; `AC-5` restates `C-ARC-3`; `AC-6`
+supersedes constraint 2's history-preserving `filter-repo` push.

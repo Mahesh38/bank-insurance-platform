@@ -1,31 +1,84 @@
 #!/usr/bin/env bash
-# GLM-001 M5.2 — the split push. REHEARSED at M2.7 (18/18 checks); this is the
-# real run.
+# GLM-001 M5.2 — orphan import into empty GitLab projects (CR-017 / ADR-021 / AC-6).
+#
+# This script does NOT preserve personal-forge history. It copies the current
+# tree, path-split, into new orphan repositories and makes one company-authored
+# commit per project. git filter-repo history push is forbidden here.
 #
 # ============================ HARD PRECONDITIONS ============================
-# This script REFUSES to run until every one of these is satisfied. They are not
-# advisory and they are not ordered by preference.
-#
-#   1. C-SEC-1  clean full-history secret scan
+#   1. C-SEC-1  source full-history secret scan executed (Finding B known)
 #   2. C-CMP-1  data residency confirmed permissible by Board 6
 #   3. RISK-024 the source clone is NOT shallow
 #   4. C-OPS-1  pre-gitlab-migration anchor present ON THE REMOTE
-#   5. Finding B rotated or formally retired (RISK-026)
+#   5. Finding B rotated or formally retired (RISK-026 / C-SEC-2)
+#   6. COMPANY_GIT_NAME + COMPANY_GIT_EMAIL set to a non-personal identity
+#   7. identity-guard.py exits 0 on each orphan repo before any push
+#   8. each GitLab remote is empty (no refs) — never add a parent to GitLab
 # ===========================================================================
 set -euo pipefail
 
+HERE="$(cd "$(dirname "$0")" && pwd)"
+GUARD="$HERE/identity-guard.py"
 SRC="${SRC:?SRC must point at a full, non-shallow clone of the origin}"
+OUT="${OUT:-}"
+SEALED="${SEALED:-}"
+PUSH="${PUSH:-0}"
+REHEARSE="${REHEARSE:-0}"
+PREFLIGHT="${PREFLIGHT:-0}"
+
 fail=0
 gate() { if eval "$2"; then printf '  [OK]   %s\n' "$1"; else printf '  [STOP] %s\n' "$1"; fail=1; fi; }
+
+if [ "$REHEARSE" = "1" ] && [ "$PUSH" = "1" ]; then
+  echo "REFUSING TO RUN. REHEARSE=1 is M2.7 throwaway clones; it cannot PUSH=1."
+  exit 1
+fi
+if [ "$PREFLIGHT" = "1" ] && [ "$PUSH" = "1" ]; then
+  echo "REFUSING TO RUN. PREFLIGHT=1 is the M5.2 gate check; it cannot PUSH=1."
+  exit 1
+fi
+if [ "$PREFLIGHT" = "1" ] && [ "$REHEARSE" = "1" ]; then
+  echo "REFUSING TO RUN. PREFLIGHT=1 cannot combine with REHEARSE=1 — that would skip signed gates."
+  exit 1
+fi
+if [ "$PREFLIGHT" != "1" ] && [ -z "$OUT" ]; then
+  echo "OUT is the directory that will hold orphan clones (not the GitLab remote)" >&2
+  exit 1
+fi
+
+# A receiving GitLab project must exist (M4.3) and must have no refs.
+# Pushing onto a graph that already has a commit would create parents — AC-6 fails.
+assert_empty_remote() {
+  local name="$1" url="$2"
+  local refs
+  if ! refs="$(git ls-remote "$url" 2>/dev/null)"; then
+    printf '  [STOP] %s unreachable (M4.3 empty project missing?): %s\n' "$name" "$url"
+    return 1
+  fi
+  if [ -n "$refs" ]; then
+    printf '  [STOP] %s is not empty — refusing to add history to an existing graph\n' "$name"
+    return 1
+  fi
+  printf '  [OK]   %s is empty\n' "$name"
+  return 0
+}
 
 echo "== Preconditions =="
 gate "source clone is not shallow (RISK-024)" \
      '[ "$(git -C "$SRC" rev-parse --is-shallow-repository)" = "false" ]'
-gate "rollback anchor exists on the remote (C-OPS-1, RISK-025)" \
-     'git -C "$SRC" ls-remote --tags origin refs/tags/pre-gitlab-migration | grep -q .'
-gate "C-SEC-1 sign-off file present" '[ -f "${EVIDENCE_DIR:-./evidence}/C-SEC-1.signed" ]'
-gate "C-CMP-1 sign-off file present" '[ -f "${EVIDENCE_DIR:-./evidence}/C-CMP-1.signed" ]'
-gate "finding B disposition recorded (RISK-026)" '[ -f "${EVIDENCE_DIR:-./evidence}/finding-B.resolved" ]'
+gate "COMPANY_GIT_NAME set" '[ -n "${COMPANY_GIT_NAME:-}" ]'
+gate "COMPANY_GIT_EMAIL set" '[ -n "${COMPANY_GIT_EMAIL:-}" ]'
+gate "identity-guard.py present" '[ -f "$GUARD" ]'
+
+if [ "$REHEARSE" = "1" ]; then
+  echo "  [INFO] REHEARSE=1 — M2.7 throwaway; signed gates and remote tag not required"
+else
+  gate "rollback anchor exists on the remote (C-OPS-1, RISK-025)" \
+       'git -C "$SRC" ls-remote --tags origin refs/tags/pre-gitlab-migration | grep -q .'
+  gate "C-SEC-1 sign-off file present" '[ -f "${EVIDENCE_DIR:-./evidence}/C-SEC-1.signed" ]'
+  gate "C-CMP-1 sign-off file present" '[ -f "${EVIDENCE_DIR:-./evidence}/C-CMP-1.signed" ]'
+  gate "finding B disposition recorded (RISK-026)" '[ -f "${EVIDENCE_DIR:-./evidence}/finding-B.resolved" ]'
+fi
 
 if [ "$fail" -ne 0 ]; then
   echo
@@ -35,10 +88,170 @@ if [ "$fail" -ne 0 ]; then
 fi
 
 echo
-echo "All preconditions met. Split definitions (verified at M2.7):"
-echo "  frontend             -> apps/rm-workspace-app/"
-echo "  backend              -> services/ libs/ config/ gradle* Dockerfile docker-compose* render.yaml"
-echo "  platform-governance  -> docs/ scripts/ AGENTS.md CLAUDE.md .claude/"
+echo "== Company identity (AC-6) =="
+if ! python3 "$GUARD" --company-identity; then
+  echo "REFUSING TO RUN. COMPANY_GIT_NAME / COMPANY_GIT_EMAIL failed the denylist."
+  exit 1
+fi
+
+if [ "$PREFLIGHT" = "1" ]; then
+  echo
+  echo "== Destination emptiness (M4.3 / AC-6) =="
+  if [ -n "${GITLAB_FRONTEND_URL:-}" ] && [ -n "${GITLAB_BACKEND_URL:-}" ] && [ -n "${GITLAB_GOVERNANCE_URL:-}" ]; then
+    dest_fail=0
+    assert_empty_remote frontend "$GITLAB_FRONTEND_URL" || dest_fail=1
+    assert_empty_remote backend "$GITLAB_BACKEND_URL" || dest_fail=1
+    assert_empty_remote platform-governance "$GITLAB_GOVERNANCE_URL" || dest_fail=1
+    if [ "$dest_fail" -ne 0 ]; then
+      echo
+      echo "PREFLIGHT FAIL. Destinations missing or not empty. M4.3 first."
+      exit 1
+    fi
+  else
+    echo "  [INFO] GITLAB_*_URL unset — destination emptiness not checked"
+  fi
+  echo
+  echo "PREFLIGHT PASS. Signed gates and company identity are present."
+  echo "Not copying trees. Not pushing. Re-run without PREFLIGHT=1 to import."
+  exit 0
+fi
+
+mkdir -p "$OUT"
+
+if [ -n "$SEALED" ]; then
+  echo
+  echo "== AC-8 sealed bundle (offline; never a GitLab remote) =="
+  mkdir -p "$(dirname "$SEALED")"
+  git -C "$SRC" bundle create "$SEALED" --all
+  echo "  wrote $SEALED"
+fi
+
+copy_paths() {
+  local dest="$1"
+  shift
+  mkdir -p "$dest"
+  local item
+  for item in "$@"; do
+    local src_item="$SRC/$item"
+    if [ -e "$src_item" ]; then
+      mkdir -p "$dest/$(dirname "$item")"
+      cp -a "$src_item" "$dest/$item"
+    fi
+  done
+}
+
+sanitize_tree() {
+  local dest="$1"
+  # Provenance lines — role only, no personal login or Gmail (C-CMP-2).
+  local f
+  for f in \
+    "$dest/docs/au-bank-insurance-platform/references/2026-08-20-insurance-aggregation-and-provider-connectivity-notes.md" \
+    "$dest/docs/au-bank-insurance-platform/references/2026-08-20-north-star-architecture-brainstorming-notes.md"
+  do
+    if [ -f "$f" ]; then
+      # Strip any remaining parenthetical personal identity on the provenance line.
+      sed -i 's/^\(\*\*Provided by:\*\* Repository owner\)(.*)$/\1/' "$f"
+    fi
+  done
+  rm -rf "$dest/.github" \
+         "$dest/docs/platform/gitlab-migration/m2-evidence" \
+         "$dest/CLAUDE.md" \
+         "$dest/.claude"
+}
+
+orphan_commit() {
+  local name="$1"
+  local dest="$OUT/$name"
+  git -C "$dest" init -b main
+  git -C "$dest" add -A
+  if git -C "$dest" diff --cached --quiet; then
+    echo "  [STOP] $name tree is empty — refusing an empty import"
+    return 1
+  fi
+  if ! python3 "$GUARD" --tree "$dest"; then
+    echo "  [STOP] $name tree failed identity-guard"
+    return 1
+  fi
+  GIT_AUTHOR_NAME="$COMPANY_GIT_NAME" \
+  GIT_AUTHOR_EMAIL="$COMPANY_GIT_EMAIL" \
+  GIT_COMMITTER_NAME="$COMPANY_GIT_NAME" \
+  GIT_COMMITTER_EMAIL="$COMPANY_GIT_EMAIL" \
+  git -C "$dest" -c commit.gpgsign=false commit -m "Initial commit"
+  if ! python3 "$GUARD" --git "$dest"; then
+    echo "  [STOP] $name commit failed identity-guard"
+    return 1
+  fi
+  local count
+  count="$(git -C "$dest" rev-list --count HEAD)"
+  if [ "$count" != "1" ]; then
+    echo "  [STOP] $name has $count commits — orphan import must be exactly one"
+    return 1
+  fi
+  root="$(git -C "$dest" rev-list --max-parents=0 HEAD)"
+  head="$(git -C "$dest" rev-parse HEAD)"
+  if [ "$root" != "$head" ]; then
+    echo "  [STOP] $name HEAD is not a root commit — refusing a non-orphan graph"
+    return 1
+  fi
+  echo "  [OK]   $name orphan commit $(git -C "$dest" rev-parse --short HEAD)"
+}
+
 echo
-echo "Run git filter-repo per split, then verify with M2.7's tree-hash comparison"
-echo "BEFORE pushing. Content identity is proven by tree hash, never by inspection."
+echo "== Orphan splits (tree only; no history) =="
+
+rm -rf "$OUT/frontend" "$OUT/backend" "$OUT/platform-governance"
+
+echo "  frontend <- apps/rm-workspace-app/"
+copy_paths "$OUT/frontend" "apps/rm-workspace-app"
+orphan_commit frontend
+
+echo "  backend <- services/ libs/ config/ gradle* Dockerfile docker-compose* render.yaml settings.gradle*"
+# shellcheck disable=SC2046
+copy_paths "$OUT/backend" \
+  services libs config Dockerfile docker-compose.yml docker-compose.yaml render.yaml \
+  settings.gradle.kts settings.gradle build.gradle.kts build.gradle gradle.properties \
+  gradlew gradlew.bat gradle
+orphan_commit backend
+
+echo "  platform-governance <- docs/ scripts/ AGENTS.md (no CLAUDE.md, no .claude/)"
+copy_paths "$OUT/platform-governance" docs scripts AGENTS.md
+sanitize_tree "$OUT/platform-governance"
+orphan_commit platform-governance
+
+echo
+echo "Orphan imports written under $OUT"
+echo "  frontend             $(git -C "$OUT/frontend" rev-parse HEAD)"
+echo "  backend              $(git -C "$OUT/backend" rev-parse HEAD)"
+echo "  platform-governance  $(git -C "$OUT/platform-governance" rev-parse HEAD)"
+echo
+echo "History was NOT copied. filter-repo push is not this script."
+echo "Git-object sync with the personal GitHub is forbidden (AC-7)."
+
+if [ "$PUSH" = "1" ]; then
+  : "${GITLAB_FRONTEND_URL:?GITLAB_FRONTEND_URL required when PUSH=1}"
+  : "${GITLAB_BACKEND_URL:?GITLAB_BACKEND_URL required when PUSH=1}"
+  : "${GITLAB_GOVERNANCE_URL:?GITLAB_GOVERNANCE_URL required when PUSH=1}"
+  echo
+  echo "== Destination emptiness (M4.3 / AC-6) =="
+  dest_fail=0
+  assert_empty_remote frontend "$GITLAB_FRONTEND_URL" || dest_fail=1
+  assert_empty_remote backend "$GITLAB_BACKEND_URL" || dest_fail=1
+  assert_empty_remote platform-governance "$GITLAB_GOVERNANCE_URL" || dest_fail=1
+  if [ "$dest_fail" -ne 0 ]; then
+    echo
+    echo "REFUSING TO PUSH. Destinations missing or not empty."
+    echo "M4.3 must create empty projects. Do not push onto an existing graph."
+    exit 1
+  fi
+  echo
+  echo "== Push (PUSH=1) =="
+  git -C "$OUT/frontend" remote add origin "$GITLAB_FRONTEND_URL"
+  git -C "$OUT/backend" remote add origin "$GITLAB_BACKEND_URL"
+  git -C "$OUT/platform-governance" remote add origin "$GITLAB_GOVERNANCE_URL"
+  git -C "$OUT/frontend" push -u origin main
+  git -C "$OUT/backend" push -u origin main
+  git -C "$OUT/platform-governance" push -u origin main
+else
+  echo
+  echo "PUSH is not 1 — orphan repos stay local. Inspect, then re-run with PUSH=1."
+fi

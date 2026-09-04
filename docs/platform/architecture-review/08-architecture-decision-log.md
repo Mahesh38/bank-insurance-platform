@@ -9,7 +9,7 @@
 | ARCH-001 | Target cloud is **AWS only**; no multi-cloud abstraction | Proposed | Explicit constraint for this review | — |
 | ARCH-002 | Compute substrate is **Amazon EKS** for every microservice; elasticity via Karpenter + HPA + KEDA | Proposed | Explicit constraint for this review | KEDA's precondition — a broker to read lag from — is met in R0 by `ADR-012` |
 | ARCH-003 | Target-state platform = **~16 domain-aligned microservices** + 2 edge BFFs + 1 routing layer, sequenced across 4 delivery phases (P0–P3), not built simultaneously | Proposed | Capability map defines domains, not service count (`knowledge-base/03-capability-map.md` PO note); this review makes that call | See [02](./02-target-microservices-architecture.md) |
-| ARCH-004 | **Data ownership per service** — one owner per authoritative datum, no cross-service table access, separate credentials and schema ownership per service; the existing `bank-persistence-service` shared-HTTP-store pattern is scoped **only** to the integration job/correlation store and audit ingestion — not extended to Customer/Opportunity/Consent/Suitability/Catalogue/Payment/Policy/etc. **The physical-cluster-per-service half is withdrawn — see `ADR-008`.** | Proposed, qualified by `ADR-008` | A platform-wide shared persistence service becomes a single coupling/failure point once 10+ business domains exist. But ownership and physical topology are different claims, and only the first is a principle (`TI-05`, `VIN-001 §34`) | Amends `docs/1sb-insurance-integration/architecture/bank-persistence-service.md` scope, does not delete it · physical topology decided by `ADR-008` |
+| ARCH-004 | **Data ownership per service** — one owner per authoritative datum, no cross-service table access, separate credentials and schema ownership per service; the existing `bank-persistence-service` shared-HTTP-store pattern is scoped **only** to the integration job/correlation store and audit ingestion — not extended to Customer/Opportunity/Consent/Suitability/Catalogue/Payment/Policy/etc. **The physical-cluster-per-service half is withdrawn — see `ADR-008`.** Persistence-service scope is promoted to **`ADR-019`.** | Proposed, qualified by `ADR-008`, promoted by `ADR-019` | A platform-wide shared persistence service becomes a single coupling/failure point once 10+ business domains exist. But ownership and physical topology are different claims, and only the first is a principle (`TI-05`, `VIN-001 §34`) | Amends `docs/1sb-insurance-integration/architecture/bank-persistence-service.md` scope, does not delete it · physical topology decided by `ADR-008` · service-scope decided by `ADR-019` |
 | ARCH-005 | **Journey Orchestration** is a first-class microservice owning the cross-domain journey state machine | Proposed (new service, not previously named) | Someone must own `Journey { stage, externalRefs, partySnapshot }` (`canonical-model/contexts.md` §8) across domains or every BFF reimplements it, breaking replaceability | New; builds on the Journey aggregate already defined in the 1SB research pack |
 | ARCH-006 | **1SB Adapter** (existing `1sb-integration-service`) is retained as-is and placed behind a new **Integration Hub** routing layer; no rewrite | Confirms + extends | The service is already well-designed (hexagonal, SOLID/DRY/KISS, Case-2 pattern) and explicitly scoped as a Phase-A adapter slice in `knowledge-base/08-integration-strategy.md` | Confirms `docs/1sb-insurance-integration/architecture/replaceable-middleware.md` and `08-integration-strategy.md` |
 | ARCH-007 | Sync at every point a human is waiting in-session; async (Kafka/SQS/SNS) for every cross-domain side effect (audit, notification, reporting) | Proposed | Generalizes the already-accepted "sync API, async inside" rule from the 1SB adapter (Domain rule 3) to the whole platform | Confirms and extends `1sb-integration-service-architecture.md` §1 · qualified by `ADR-012`: the broker is R0, and the **transactional outbox in front of it is the source of truth**, not a transitional step |
@@ -1560,3 +1560,119 @@ Human T4 Architecture sign-off outstanding. Deepali jointly owns the perimeter s
 Shivanshi owns the S09 landing-zone request that must no longer ask for a public ALB.
 Evidence: existing AU Bank application architecture v1.4 (Atul Singh, reviewed Manish Salaria,
 9-July-2026); Central Network Account Architecture V1 (AU_AWS_MAS, Mumbai + Hyderabad EDGE VPC).
+
+---
+
+## ADR-019 — Persistence ownership is per bounded context; `bank-persistence-service` is not a platform-wide gateway
+
+```yaml
+id: ADR-019
+status: PROPOSED
+problem: >
+  Phase 1 correctly extracted Flyway and JPA from 1sb-integration-service into
+  bank-persistence-service, then over-claimed that service as the centralised HTTP
+  point of contact for all future database access ("other MS later", "owns the DB for
+  all consumers"). That claim is still Accepted in the decision register, AGENTS.md,
+  Aarti's card and the Phase 1 persistence contract, while ARCH-004, ADR-008, R0-LLD
+  §5.1 and DB-DEC-0001 already forbade extending it to business contexts. Agents that
+  trust the Accepted row will keep adding Lead / Consent / Payment / Policy tables to
+  /internal/v1. A second question arrived with the same intake: whether Flyway can
+  live in a persistence service that depends on nothing.
+context_stage: >
+  WS-3 at S08 with S09 overlapped; WS-1 at L7 (docs only). Raised as SUG-20260904-bps
+  under stakeholder ADMIT-BYPASS. Same target as PR #82 CR-015 Option B (2026-08-29),
+  landed on main independent of the GitLab freeze.
+decision: >
+  1. Every bounded context owns its authoritative write model, schema, credentials,
+     Flyway migration history and repository layer. No context persists through another
+     context's service.
+
+  2. R0 uses one Aurora PostgreSQL cluster, schema per context, no cross-schema grants.
+     Physical cluster topology remains evidence-led (ADR-008). Ownership is the invariant.
+
+  3. bank-persistence-service is kept. It is the Integration Ops / Evidence bounded
+     context — not a platform-wide persistence gateway. Its Flyway covers only:
+     integration_job, integration_job_offer, job_poll_attempt, raw_payload,
+     audit_event, and the 1SB-adapter payment_session (link/URL record). That last
+     table is not CAP-301 Payment.
+
+  4. Customer, Lead, Consent, Suitability, Catalogue, Quotation, Proposal, business
+     Payment, Policy, Journey and Identity must NEVER persist through
+     bank-persistence-service. identity-authorization-service already owns its own
+     Flyway; that pattern is the paved road for every subsequent context.
+
+  5. 1sb-integration-service still owns no Flyway and no JPA. It reaches the job store
+     over HTTP. Bank apps still never call a database. There is still no second audit
+     database — audit ingest stays with this context.
+
+  6. A Flyway-only mega-migrator that holds every context's scripts is rejected. A
+     service that owns all migrations still owns all schemas. If consumers then JDBC
+     to those tables, that is cross-service DB access (forbidden). If they still go
+     HTTP, the split has no S08 benefit. Optional later, per context: a migrator Job
+     (DDL role) versus the app (DML role) for that schema only — already named in
+     R0-LLD §5.1. Not a new shared database.
+
+  7. H0 implementation is this contract correction. Do not delete the service. Do not
+     move its Flyway back into the 1SB adapter. Do not add business schemas to V1.
+     The next context that needs a table ships Flyway inside that service, same cluster.
+authority_class: A3_JOINT_REVIEW
+origin: "SUG-20260904-bps · CR-015 · stakeholder ADMIT-BYPASS 2026-09-04"
+promotes: ARCH-004
+aligns_with:
+  - ADR-008
+  - DB-DEC-0001
+  - "docs/architecture/R0-LLD.md §5.1"
+  - "docs/platform/architecture-review/05-data-architecture.md"
+constrains: >
+  Any proposal to persist a business bounded context through bank-persistence-service;
+  any cross-schema grant or cross-schema foreign key; any shared write model across
+  contexts; any Flyway-only bag of all platform scripts; any JDBC from
+  1sb-integration-service or another consumer into persistence-owned tables; any
+  second audit database; any move of this context's Flyway back into
+  1sb-integration-service.
+what_does_not_change: >
+  Bank apps never call 1SB or a database directly. 1sb-integration-service owns no
+  Flyway/JPA. No second audit database. ADR-008 stands. The existing V1 DDL is not
+  rewritten by this ADR.
+alternatives:
+  - option: "Keep the Phase 1 gateway — every future MS calls /internal/v1"
+    rejected_because: >
+      Single coupling and failure point once ten business domains exist. Contradicts
+      ARCH-004, R0-LLD §5.1, DB-DEC-0001, SC-03 and SC-21. Phase 1 had two real
+      consumers (integration + future audit ingest) sharing one concern; that is not
+      a licence to share a database.
+  - option: "Delete bank-persistence-service; put Flyway back in 1sb-integration-service"
+    rejected_because: >
+      Reopens TD-011. The 1SB adapter would own durable platform evidence and the
+      audit ingest path. The Phase 1 split of ownership out of the adapter was right;
+      only the 'for all consumers' extrapolation was wrong.
+  - option: "Flyway-only service holding every script; apps JDBC independently"
+    rejected_because: >
+      The migrator still owns every schema. Independent JDBC is cross-service DB
+      access, which ADR-008 forbids. Independent HTTP would split migrator from API
+      for no S08 benefit (X1/X6/X7).
+  - option: "One deployable, separate schemas behind it, still the write path for every context"
+    rejected_because: >
+      Preserves a single service as the write path for every context. Ownership stays
+      ambiguous at the boundary that matters. Identity already did not wait for this
+      shape — it shipped its own Flyway.
+  - option: "Park until S09 / a second write-owning context lands"
+    rejected_because: >
+      The second write-owning context already landed (identity). Stakeholder withdrew
+      parking. Leaving the Accepted over-claim in force means agents keep implementing it.
+risk_tier: T3
+```
+
+**Drafted:** agent, for Mahesh — Principal Insurance Platform Architect (Board 1 / R2) and
+Aarti — Database (mandatory joint) · 2026-09-04. Human T4 Architecture and Database
+sign-offs outstanding. This record does **not** copy PR #82's `APPROVED` stamp onto `main`.
+
+A 2026-08-29 Option B relay on PR #82 selected the same **target** (per-context ownership,
+service retained as Integration Ops / Evidence). This ADR lands that target on `main` and
+adds the Flyway-only-service rejection the 2026-09-04 intake asked for.
+
+Evidence: [`R0-LLD` §5.1](../../architecture/R0-LLD.md) · [`ARCH-004`](#08--architecture-decision-log-this-review) ·
+[`ADR-008`](#adr-008--data-ownership-is-the-invariant-physical-cluster-topology-is-an-evidence-led-decision) ·
+[`DB-DEC-0001`](../data-architecture/DB-DEC-0001-r0-physical-model.md) ·
+[`05-data-architecture.md`](./05-data-architecture.md) ·
+`services/identity-authorization-service/src/main/resources/db/migration/`.

@@ -45,9 +45,10 @@ cross-persona protocol when it blocks an architecture option.
 
 ## Standing constraints in this repo
 
-Persistence is **platform-common**, not 1SB-owned · `1sb-integration-service` owns no Flyway
-migrations and no JPA · consumers never embed a second DB for these tables ·
-`bank-persistence-service` (8081) owns the DB for all consumers.
+`1sb-integration-service` owns no Flyway migrations and no JPA ·
+`bank-persistence-service` (8081) owns **only** the integration job/correlation store and
+audit ingest · each bounded context owns its own schema and Flyway on the R0 Aurora cluster
+(`ADR-019`, `ADR-008`) · no cross-schema grants · no second audit database.
 
 ## Load deeper only when
 

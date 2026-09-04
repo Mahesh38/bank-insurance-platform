@@ -86,6 +86,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | SUG-20260827-tpo | 2026-08-27 | human:Mahesh | Platform Topology & LLD Alignment: replace Argo CD with GitLab CI/CD with logo, replace AWS Network Firewall with F5 BIG-IP / Firewall with logo, incorporate Ansible for automated DR drills / sanity testing, and emphasize Terraform IaC baseline | SF1 | SC0 | MUST | ARCH | P1 / P1 | CLOSED-DELIVERED | [r0-platform-topology](../../architecture/r0-platform-topology.svg) · [detail](#sug-20260827-tpo--platform-topology--lld-alignment-gitlab-cicd-f5-big-ip-ansible-terraform) |
 | SUG-20260831-alb | 2026-08-31 | human:Mahesh | Correct two false perimeter assumptions against the existing AU Bank estate: (1) remove the External / public ALB in front of API Gateway; (2) Cloudflare and F5-XC are bank-enterprise SaaS, not AWS services and not in any platform VPC | SF1 | SC1 | MUST | ARCH | P1 / P1 | ADMIT | [ADR-018](../../platform/architecture-review/08-architecture-decision-log.md) · [detail](#sug-20260831-alb--correct-edge-ingress-no-public-alb-cloudflare--f5-xc-are-saas-outside-aws) |
 | SUG-20260831-apg | 2026-08-31 | human:Mahesh | Existing bank estate routes all incoming and outgoing requests through Apigee. Decide whether Amazon API Gateway is still needed, and whether the R0 VPC / IGW / TGW pack must attach to (not duplicate) the existing network account | SF1 | SC1 | MUST | SPIKE | P1 / P1 | ADMIT · draw PARKED | [SPIKE-001](#sug-20260831-apg--apigee-is-the-bank-api-plane--do-not-add-a-second-amazon-api-gateway-until-confirmed) · [PARKED](./PARKED-BACKLOG.md) |
+| SUG-20260904-bps | 2026-09-04 | human:stakeholder | Was `bank-persistence-service` as centralised DB access the right decision? If not, better approach + how to implement. Can Flyway live in a persistence service that depends on nothing? Review with boards; do not park | SF1 | SC0 | MUST | ARCH | P1 / P1 | ADMIT-BYPASS | [CR-015](../change-requests/CR-015-persistence-ownership-per-context.md) · [ADR-019](../../platform/architecture-review/08-architecture-decision-log.md) · [detail](#sug-20260904-bps--persistence-is-per-context-not-a-platform-db-gateway) |
 
 <!--
 Row format:
@@ -98,6 +99,51 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20260904-bps · Persistence is per context, not a platform DB gateway
+
+```yaml
+id: SUG-20260904-bps
+raised_at: "2026-09-04"
+raised_by: "human:stakeholder"
+source: "Cloud agent intake — priority architecture decision, parking withdrawn"
+input: >
+  This is priority task and cant be parked, must act on it right away as per our
+  scope change. "bank-persistence-service" to have this service which will be
+  centrilized point of contact for db access was that a right decession? if not
+  then what is better approach and how can we impliment it? can just keep flyway
+  scripts in persistance service so that script will be different service all
+  together and doesn't depend on any thing? review with board, understand the
+  future and take right ful decision
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-TERM-SALE"
+  state_as_of: "2026-08-10"
+  state_provisional: false
+  active_work_item: "CR-015 / ADR-019 persistence ownership"
+stage_fit:
+  code: SF1
+  rationale: >
+    Correcting a published data-ownership contradiction is on-stage for S08.
+    Stakeholder withdrew parking. Identity already shipped the correct second-context pattern.
+scope:
+  code: SC0
+  business_scope: "Explicit in R0-LLD §5.1, ARCH-004, ADR-008 and DB-DEC-0001"
+  failure_without_it: "Agents keep adding business schemas to bank-persistence-service"
+necessity:
+  now: MUST
+  future_necessity: MUST
+  evidence_tier: E2
+  confidence: C4
+action: ADMIT-BYPASS
+bypass_authorised_by: "human:stakeholder 2026-09-04 — do not park, act immediately"
+outcome:
+  registered_in: "docs/governance/change-requests/CR-015-persistence-ownership-per-context.md"
+  status: ADMITTED
+resumed: "CR-015 / ADR-019"
+```
 
 ### SUG-20260827-tpo · Platform Topology & LLD Alignment (GitLab CI/CD, F5 BIG-IP, Ansible, Terraform)
 

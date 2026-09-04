@@ -1,5 +1,7 @@
--- V1 — Platform/common schema owned by bank-persistence-service
--- (shared durable tables for integration, audit-consumer, and other MS — not 1SB-private).
+-- V1 — Integration Ops / Evidence schema owned by bank-persistence-service
+-- (job/correlation store, audit ingest, 1SB-adapter payment_session).
+-- Not a platform-wide DB gateway. Do not add Lead / Consent / Payment-context /
+-- Policy tables here (ADR-019, ARCH-004, R0-LLD §5.1).
 -- Compatible with PostgreSQL (production) and H2 in MODE=PostgreSQL (CI/test).
 --
 -- Tables:
@@ -8,7 +10,7 @@
 --   job_poll_attempt         — audit trail of each poll call made to 1SB
 --   raw_payload              — encrypted store for full 1SB request/response bodies
 --   audit_event              — immutable compliance audit log (INSERT-only for service account)
---   payment_session          — payment session records
+--   payment_session          — 1SB adapter payment-link session (not CAP-301 Payment)
 --
 -- H2 compatibility notes (Phase 1 CI):
 --   TIMESTAMP WITH TIME ZONE is used instead of TIMESTAMPTZ (H2 compatible)

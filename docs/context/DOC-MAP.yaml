@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 524
-total_bytes: 15194982
+document_count: 525
+total_bytes: 15225467
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -83,9 +83,9 @@ documents:
     authority: engineering-ssot
     capsules: [1sb-integration-change, architecture-review]
     persona: architecture
-    title: "Bank Persistence Service — Platform Contract"
-    answers: "Role: Platform common persistence service (not owned by 1SB integration)"
-    bytes: 5356
+    title: "Bank Persistence Service — Integration Ops / Evidence contract"
+    answers: "Role: Integration Ops / Evidence bounded context — not a platform-wide DB gateway"
+    bytes: 6956
   - path: docs/1sb-insurance-integration/architecture/replaceable-middleware.md
     bucket: module-1sb
     authority: engineering-ssot
@@ -509,7 +509,7 @@ documents:
     persona: engineering
     title: "1SB Integration Service — Single Source of Truth (SSOT)"
     answers: "This folder is the authoritative starting point for building the service. If something here conflicts with earlier research notes, this SSOT wins."
-    bytes: 6441
+    bytes: 6489
   - path: docs/1sb-insurance-integration/service-ssot/ROLE-GUIDELINES-AND-DOD.md
     bucket: module-1sb
     authority: engineering-ssot
@@ -716,8 +716,8 @@ documents:
     capsules: [1sb-integration-change, code-change]
     persona: engineering
     title: "Tech Lead Review — Common Persistence Ownership"
-    answers: "Role: Tech Lead (20+ years application development)"
-    bytes: 5794
+    answers: "Superseded in scope by ADR-019 / CR-015."
+    bytes: 6380
   - path: docs/1sb-insurance-integration/service-ssot/phase-1/TECH-LEAD-REVIEW.md
     bucket: module-1sb
     authority: engineering-ssot
@@ -1877,7 +1877,7 @@ documents:
     persona: null
     title: "BOOT — the tier-0 agent capsule"
     answers: "Read this first, and often read nothing else. This file answers the ten-fact knowledge"
-    bytes: 17629
+    bytes: 17724
   - path: docs/context/DOC-MAP.yaml
     bucket: context
     authority: non-binding-context
@@ -1885,7 +1885,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 185289
+    bytes: 185750
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -1981,7 +1981,7 @@ documents:
     persona: null
     title: "Aarti — Principal Insurance Data & Database Architect / DBA · Decision Card"
     answers: "Tier-1 card. Non-binding compression — canonical authority is"
-    bytes: 3045
+    bytes: 3134
   - path: docs/context/personas/amit-engineering.card.md
     bucket: context
     authority: non-binding-context
@@ -1989,7 +1989,7 @@ documents:
     persona: null
     title: "Amit — Technical Head / Principal Engineering · Decision Card"
     answers: "Tier-1 card. Non-binding compression — canonical authority is"
-    bytes: 2843
+    bytes: 2918
   - path: docs/context/personas/ba-r11-business-analysis.card.md
     bucket: context
     authority: non-binding-context
@@ -3085,7 +3085,7 @@ documents:
     persona: null
     title: "01 — Current State (Context Resolution)"
     answers: "Pipeline step: 1 — Context Resolution"
-    bytes: 10065
+    bytes: 10436
   - path: docs/governance/02-PROJECT_SCOPE.md
     bucket: governance
     authority: binding-process
@@ -3510,6 +3510,14 @@ documents:
     title: "CR-013 — Pull Lead language, lifecycle, off-platform ingest, admin/MIS, issuance modes and PPHI mapping into R0"
     answers: "Type: SCOPE (with ARCH and COMP consequences)"
     bytes: 4981
+  - path: docs/governance/change-requests/CR-015-persistence-ownership-per-context.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "CR-015 — Narrow `bank-persistence-service` to Integration Ops / Evidence; persist per bounded context"
+    answers: "Type: CONSTRAINT (standing-constraint change; potential supersession of one Accepted register row)"
+    bytes: 16236
   - path: docs/governance/plans/PLAN-001-context-module-and-safe-autopilot.md
     bucket: governance
     authority: binding-process
@@ -3549,7 +3557,7 @@ documents:
     persona: null
     title: "Decision Register"
     answers: "Index of decisions that constrain future work: ADRs, change requests, stage transitions, and"
-    bytes: 37624
+    bytes: 39130
   - path: docs/governance/registers/DEPENDENCY-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -3581,7 +3589,7 @@ documents:
     persona: null
     title: "Suggestion Register"
     answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 175410
+    bytes: 177807
   - path: docs/governance/schemas/README.md
     bucket: governance
     authority: binding-process
@@ -3653,7 +3661,7 @@ documents:
     persona: null
     title: "CURRENT STATE"
     answers: "AIGEM — Machine-readable current state"
-    bytes: 31453
+    bytes: 31602
   - path: docs/governance/state/GATE-EVIDENCE.yaml
     bucket: governance
     authority: binding-process
@@ -3901,7 +3909,7 @@ documents:
     persona: architecture
     title: "05 — Data Architecture"
     answers: "Amended 2026-08-20 by ADR-008. This section previously"
-    bytes: 9477
+    bytes: 9507
   - path: docs/platform/architecture-review/06-security-compliance-and-nfrs.md
     bucket: platform
     authority: approved-spec
@@ -3925,7 +3933,7 @@ documents:
     persona: architecture
     title: "08 — Architecture Decision Log (this review)"
     answers: "ID scheme: ARCH-xxx — deliberately distinct from the business/scope D-xxx and process DOC-xxx IDs in docs/au-bank-insurance-platform/DECISION-LOG.md,…"
-    bytes: 113963
+    bytes: 120805
   - path: docs/platform/architecture-review/README.md
     bucket: platform
     authority: approved-spec

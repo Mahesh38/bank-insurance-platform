@@ -54,6 +54,7 @@
 | Path | Treatment |
 |------|-----------|
 | `docs/1sb-insurance-integration/**` | Candidate Integration Hub / Phase A adapter research — not full Distribution Platform |
+| [`references/2026-09-04-universal-insurance-suitability-specification.md`](./references/2026-09-04-universal-insurance-suitability-specification.md) | 2026-09-04 intake (`SUG-20260904-uis`). Cross-insurer suitability BRD + rulebook synthesis (206 products, 8,811 source-fidelity tests). **Reopen** when Suitability / Product Catalogue contexts are built — do not adopt over [rule-packs/suitability-rule-pack.md](./rule-packs/suitability-rule-pack.md). Source `.docx` / `.xlsx` were **not** uploaded. |
 
 ---
 

@@ -55,3 +55,5 @@ Figma client-review prototype remains a **UX hypothesis** (not yet inventoried i
 |------|------|
 | Project view · SWOT · Gaps · TODO | [../po-drive/](../po-drive/00-PO-PROJECT-VIEW.md) |
 | R0 scope · PRD · BRD | [../requirements/](../requirements/README.md) |
+| R0 suitability content (SSOT) | [../rule-packs/suitability-rule-pack.md](../rule-packs/suitability-rule-pack.md) |
+| Multi-insurer suitability research (non-binding) | [../references/2026-09-04-universal-insurance-suitability-specification.md](../references/2026-09-04-universal-insurance-suitability-specification.md) |

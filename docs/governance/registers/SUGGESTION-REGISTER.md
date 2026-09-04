@@ -43,6 +43,8 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20260904-uis | 2026-09-04 | human:cloud-agent | File the cross-insurer Universal Insurance Suitability specification (7-layer model, 206-product catalogue attributes, 8,811 source-fidelity tests) as non-binding project research for later Suitability / Product Catalogue work | SF2 | SC2 | SHOULD | DOC | P3 / P2 | ADMIT-BYPASS | [spec](../../au-bank-insurance-platform/references/2026-09-04-universal-insurance-suitability-specification.md) · [detail](#sug-20260904-uis--file-universal-suitability-research-specification) |
+| SUG-20260904-eng | 2026-09-04 | human:cloud-agent | Implement the 7-layer universal suitability engine and the 206-product multi-insurer catalogue as the Suitability microservice and Product Catalogue | SF3 | SC2 | MUST | FUNC | P4 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md#1-parked--scheduled-work) · [detail](#sug-20260904-eng--implement-7-layer-engine-and-multi-insurer-catalogue) |
 | SUG-20260818-4c3 | 2026-08-18 | human:Mahesh | Architecture justification pack: why service boundaries, merge rejection, datastore choices, caching, direct-insurer future, R0/R1/R2+ scope. **Aligned 2026-08-25** to `CR-012`/`ADR-008`…`ADR-013`; cites the canonical renderings rather than publishing a second pair (`HA-04`) | SF1 | SC0 | MUST | ARCH | P2 / P2 | ADMIT-BYPASS | [06-architecture-justification](../../platform/ws3-platform/06-architecture-justification-and-review-answers.md) |
 | SUG-20260816-d8v | 2026-08-16 | human:Mahesh | Add Dilip AI executive-sponsor perspective for bancassurance business/value decisions and wire it into P0/R0 | SF2 | SC1 | SHOULD | GOV | P2 / P2 | ADMIT-BYPASS | [1SB backlog governance/decision-quality enablers](../../1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md#governance--decision-quality-enablers) |
 | SUG-20260816-ba7 | 2026-08-16 | human:Mahesh | Add a senior end-to-end bancassurance BA AI persona for existing R11 and link it to current personas/context | SF2 | SC1 | SHOULD | GOV | P2 / P2 | ADMIT-BYPASS | [Principal BA package](../../context/roles/principal-insurance-platform-business-analyst/README.md) |
@@ -98,6 +100,202 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20260904-uis · File universal suitability research specification
+
+```yaml
+id: SUG-20260904-uis
+raised_at: "2026-09-04"
+raised_by: "human:cloud-agent"
+source: "Uploaded Universal_Insurance_Suitability_Specification markdown (BRD + rulebook + 8,811-case validated workbook synthesis)"
+input: >
+  Use this md file, this was created by comparing suitability logic of different
+  insurance companies and then run regression test to verify that logic. this
+  logic is something we need to add as our project documentation as we will
+  need it when start building out projects suitability micro services and the
+  product catalogues.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation (L4)"
+  current_objective: R0-ASSISTED-TERM-SALE
+  state_as_of: "2026-08-10"
+  state_provisional: false
+  freshness: "WARN — state_as_of 25 days old; 04-STAGE_GATES.md 19d vs 14d limit"
+  active_work_item: "File universal suitability research (this request)"
+
+stage_fit:
+  code: SF2
+  rationale: >
+    Filing a research artefact is adjacent to S08 (CI / foundation). The
+    consumers are the later Suitability (#7) and Product Catalogue (#8)
+    contexts. Absorption test passed: one document, no new service or
+    dependency, no ADR, gate-neutral. Implementing the engine is a separate
+    SF3 item (SUG-20260904-eng).
+  absorption_test:
+    small: true
+    no_new_dependency: true
+    no_new_decision: true   # banner forbids treating this as SSOT or an ADR
+    gate_neutral: true
+
+scope:
+  code: SC2
+  business_scope: >
+    Suitability evidence is in R0 scope, but this synthesis is the six-insurer
+    universal engine and 206-product catalogue — including ULIP/Savings, which
+    are out_of_scope_now. Nothing in the current increment fails without it.
+  serves: []
+  failure_without_it: "none on the current increment — research would otherwise be lost from the session upload"
+  minimal: true
+  authority: "Human requested documentation filing; R0 SSOT remains suitability-rule-pack.md"
+
+necessity:
+  now: SHOULD
+  future_necessity: MUST
+  target_stage: "S13 / Suitability (#7) + Product Catalogue (#8) design"
+  binds_when: "those contexts open for multi-insurer rule packs beyond SUIT-ALGO-LIFE-v1.0"
+  evidence_tier: E3
+  confidence: C4
+  evidence:
+    - "Uploaded synthesis: 206 products, 8,368 rules, 8,811 source-fidelity tests"
+    - "OPEN-SUIT-05 — insurer-specific requirements that exceed the R0 pack"
+    - "Standing constraint: no quote without a valid suitability assessment"
+  anti_over_engineering:
+    X1_named_consumer: true   # Suitability #7, Catalogue #8, OPEN-SUIT-05
+    X3_cheap_later: false     # losing the upload would force a full re-synthesis
+    X5_stage_necessity: false
+    X9_problem_observed: false
+
+action: ADMIT-BYPASS
+action_rationale: >
+  SC2 would force PARK to Ideas. The human assigned filing the document as
+  this session's work so the synthesis is not lost, and the SF2 absorption
+  test holds if — and only if — the file is marked research, not SSOT.
+  Bypass risk: an agent treats the 7-layer model as the R0 pack. Mitigation:
+  authority banner, vocabulary-conflict table, ai-drafted DOC-MAP row,
+  SUG-20260904-eng parked for implementation.
+duplicate_of: null
+conflicts:
+  - "suitability-rule-pack.md (SUITABILITY-PACK-v1.0) — different need/risk/horizon enums, arithmetic vs 7-layer gates, ELIGIBLE/NOT_ELIGIBLE vs RECOMMENDED/CONDITIONAL; resolved by making this file non-binding"
+
+classification:
+  type: DOC
+  also: []
+  breakdown: TASK
+  risk_tier: T1
+  destination: "docs/au-bank-insurance-platform/references/"
+
+priority:
+  now: P3
+  at_target: P2
+  factors: { N: 2, S: 1, B: 0, R: 2, D: 2, E: 0 }
+  score: 12
+  matrix_default: P4
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: >
+    SF2+SHOULD matrix default is PARK P4. Human bypass admits the filing now;
+    score 12 lands P3 (one band from default). At target this is the input
+    pack for #7/#8 design (P2).
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: SUG-20260904-uis
+  status: ADMIT-BYPASS
+  closed_reason: "Document filed at references/2026-09-04-universal-insurance-suitability-specification.md"
+
+resumed: "SUG-20260904-uis — this session's assigned work; implementation parked as SUG-20260904-eng."
+```
+
+### SUG-20260904-eng · Implement 7-layer engine and multi-insurer catalogue
+
+```yaml
+id: SUG-20260904-eng
+raised_at: "2026-09-04"
+raised_by: "human:cloud-agent"
+source: "Same upload as SUG-20260904-uis — the 'when we start building' half"
+input: >
+  …we will need it when start building out projects suitability micro services
+  and the product catalogues.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation (L4)"
+  current_objective: R0-ASSISTED-TERM-SALE
+  state_as_of: "2026-08-10"
+  freshness: "WARN — state_as_of 25 days old; 04-STAGE_GATES.md 19d vs 14d limit"
+  active_work_item: SUG-20260904-uis
+
+stage_fit:
+  code: SF3
+  rationale: >
+    A universal 7-layer engine and 206-product multi-insurer catalogue belong
+    to Suitability (#7) and Product Catalogue (#8) design/build, not S08 CI
+    foundation. ULIP and Savings/Endowment are out_of_scope_now (revisit R1).
+    Bounded contexts not in R0 in_scope revisit at S13.
+  target_stage: "S13 — or R1 planning if Suitability / Catalogue open earlier"
+  unpark_trigger: >
+    Suitability (context #7) or Product Catalogue (context #8) is opened for
+    multi-insurer declarative rule packs beyond SUIT-ALGO-LIFE-v1.0, or R1
+    planning starts.
+  future_necessity: MUST
+
+scope:
+  code: SC2
+  business_scope: "Future Suitability + Product Catalogue contexts; not the R0 Term Life arithmetic pack"
+  serves: []
+  failure_without_it: "none on R0 — SUITABILITY-PACK-v1.0 already supplies the quote gate content"
+  minimal: true
+  authority: "BOOT.md out_of_scope_now · R0-SCOPE · suitability-rule-pack.md"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S13 / R1 Suitability + Catalogue"
+  binds_when: "those contexts leave discovery and need insurer rule packs + catalogue attributes"
+  evidence_tier: E3
+  confidence: C3
+  evidence:
+    - "Source synthesis claims 8,811/8,811 source-fidelity; not IRDAI certification"
+    - "OPEN-SUIT-05 still owned by Bancassurance + Shailja"
+    - "R0 pack OPEN items do not block building the R0 Suitability service"
+
+action: PARK
+action_rationale: >
+  SF3 + MUST at a later stage is PARK P4, future MUST. SC2 also forces PARK.
+  Filing the research (SUG-20260904-uis) is the only work admitted this turn.
+duplicate_of: null
+conflicts:
+  - "SUITABILITY-PACK-v1.0 remains the R0 executable model until Product + Compliance ratify a change"
+
+classification:
+  type: FUNC
+  also: [ARCH, COMP]
+  breakdown: EPIC
+  risk_tier: T4
+  destination: "PARKED-BACKLOG.md §1"
+
+priority:
+  now: P4
+  at_target: P2
+  factors: { N: 4, S: 0, B: 0, R: 2, D: 1, E: 3 }
+  score: 10
+  matrix_default: P4
+  consistency: OK
+  overrides_applied: []
+  rationale: "SF3 + MUST → PARK P4. Unpark as MUST/P2 when #7/#8 open."
+
+outcome:
+  registered_in: "registers/PARKED-BACKLOG.md"
+  work_item_id: null
+  status: PARKED
+  closed_reason: null
+
+resumed: "SUG-20260904-uis — filing the research document."
+```
 
 ### SUG-20260827-tpo · Platform Topology & LLD Alignment (GitLab CI/CD, F5 BIG-IP, Ansible, Terraform)
 

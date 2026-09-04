@@ -92,6 +92,22 @@ One short, stable id per deployable, set once from configuration and never typed
 | `persistence` | `services/bank-persistence-service` |
 | `idp-adapter` | `services/identity-provider-adapter-service` |
 | `authz` | `services/identity-authorization-service` |
+| `customer` | `services/customer-service` |
+| `lead` | `services/lead-service` |
+| `consent` | `services/consent-service` |
+| `suitability` | `services/suitability-service` |
+| `catalogue` | `services/product-catalogue-service` |
+| `journey-orchestration` | `services/journey-orchestration-service` |
+| `quotation` | `services/quotation-service` |
+| `proposal` | `services/proposal-service` |
+| `payment` | `services/payment-service` |
+| `policy` | `services/policy-issuance-service` |
+| `integration-hub` | `services/integration-hub-service` |
+| `audit` | `services/audit-compliance-service` |
+| `notification` | `services/notification-service` |
+| `reporting` | `services/reporting-mis-service` |
+| `admin-config` | `services/administration-config-service` |
+| `direct-insurer` | `services/direct-insurer-adapter-service` |
 
 New services register their id here in the same change that creates the module.
 

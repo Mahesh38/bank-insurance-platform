@@ -42,6 +42,11 @@ paths = [
   # extracted API schemas, not live credentials. They are still scanned by the
   # regex allowlist below rather than being blanket-exempt.
   '''^docs/1sb-insurance-integration/reference/extracted-schemas/.*\.md$''',
+
+  # Figma file export used for wireframe/layout reference. The `styles.*.key`
+  # fields are Figma style node identifiers (public design metadata), not API
+  # tokens or service credentials. Live Figma access tokens never belong here.
+  '''^docs/figma_file_structure\.json$''',
 ]
 
 regexes = [

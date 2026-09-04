@@ -1,0 +1,41 @@
+# Baseline section 9.3. Deployment behaviour and control intent per environment.
+#
+# C-ARC-6: protected_environments is Premium+. On CE the environments are still
+# created (CE-available) and the protection is declared and skipped. CR-016
+# decides the compensating control for PROD and DR.
+environments:
+  - name: dev
+    deployment: automated
+    intent: "Developer feedback"
+    protected: false
+    approvals_required: 0
+
+  - name: sit
+    deployment: automated-controlled
+    intent: "Integration validation"
+    protected: false
+    approvals_required: 0
+
+  - name: uat
+    deployment: controlled-promotion
+    intent: "QA/Product acceptance"
+    protected: true
+    approvals_required: 1
+
+  - name: preprod
+    deployment: controlled-promotion
+    intent: "Release readiness"
+    protected: true
+    approvals_required: 1
+
+  - name: prod
+    deployment: protected-manual
+    intent: "Restricted production release"
+    protected: true
+    approvals_required: 2
+
+  - name: dr
+    deployment: protected-manual
+    intent: "Restricted DR operations"
+    protected: true
+    approvals_required: 2

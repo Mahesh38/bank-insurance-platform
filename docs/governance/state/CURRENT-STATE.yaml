@@ -391,7 +391,7 @@ standing_constraints:
   - "Bank apps never call 1SB or a database directly"
   - "1SB specifics live only in adapter.onesb.* (ArchUnit enforced)"
   - "1sb-integration-service owns no Flyway migrations and no JPA"
-  - "Persistence is platform-common, not 1SB-owned"
+  - "Every bounded context owns its write model, schema, credentials and Flyway history (ADR-019); one R0 Aurora cluster, separate schemas, no cross-schema grants; bank-persistence-service is the Integration Operations/Evidence context, not a platform-wide gateway, and is not 1SB-owned"
   - "Flutter never receives OAuth tokens; the BFF holds them"
   - "Keycloak is not the source of truth for business authorization"
   - "No PII in logs"
@@ -543,9 +543,13 @@ id_allocation:
     # CR-011 existed as a file from 2026-08-20 without a register row, so the counter read 11
     # while CR-011 was in use; it is now indexed in the decision register and the counter clears
     # both it and CR-012.
-    CR: 14        # CR-001..013 in use; next unused sequential value is 14
-    RISK: 16      # RISK-001..015 in use (012..015 added by CR-012)
-    ASM: 14       # ASM-001..013 in use (013 = Apigee as bank in/out API plane, SUG-20260831-apg). ID-allocation only.
+    # Advanced 2026-08-29 by the GitLab estate migration Phase M0 round (CR-014 / CR-015),
+    # then reconciled with main's #83 Apigee/edge IDs (ASM-012/013, ADR-018, SPIKE-001).
+    # ID-allocation correction only: no stage, scope or gate field is touched — those remain
+    # human-owned (04 section 5).
+    CR: 17        # CR-001..016 in use (016 = GitLab CE control-model gap)
+    RISK: 29      # RISK-001..028 in use (028 = split breaks the ADR-017 catalogue parity control)
+    ASM: 25       # ASM-001..024 in use (012/013 = edge FortiGate + Apigee from #83; 014..024 = GitLab bank inputs, with former GitLab ASM-012/013 remapped to 023/024)
     EPIC: 2       # EPIC-001 in use (platform error contract, SUG-20260827-err). ID-allocation only.
     SPIKE: 2       # SPIKE-001 in use (Apigee vs Amazon API Gateway, SUG-20260831-apg). ID-allocation only.
     # ADR-001..003 were written into architecture-review/08 under CR-010 while this counter still
@@ -559,4 +563,4 @@ id_allocation:
     # ADR-017 was added by the 2026-08-27 platform error contract round (SUG-20260827-err), and
     # EPIC-001 by the same round. ID-allocation correction only. No stage, scope or gate field is
     # touched by it; those remain human-owned (04 section 5).
-    ADR: 19        # ADR-001..018 in use (015 = NIP-APP; 016 = ARB enterprise baseline, ingress hop amended by 018; 017 = platform error contract; 018 = SaaS edge, no public ALB). ID-allocation only.
+    ADR: 21        # ADR-001..020 in use (018 = SaaS edge, no public ALB; 019 = per-context persistence; 020 = GitLab governance/platform-governance project, remapped from this branch's former ADR-018). ID-allocation only.

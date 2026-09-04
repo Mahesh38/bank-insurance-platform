@@ -1,0 +1,38 @@
+# Java build. GLM-001 M7.1.
+#
+# Ported from .github/workflows/application-ci.yml. The port preserves the
+# MECHANISM, not just the commands — see java-test.yml for the gates.
+spec:
+  inputs:
+    stage:
+      default: build
+    java_version:
+      default: "21"
+    image:
+      default: "eclipse-temurin:21-jdk"
+    runner_tag:
+      default: "java"
+    gradle_args:
+      default: ""
+---
+
+"java-build":
+  stage: $[[ inputs.stage ]]
+  image: $[[ inputs.image ]]
+  tags: ["$[[ inputs.runner_tag ]]"]
+  variables:
+    GRADLE_USER_HOME: "$CI_PROJECT_DIR/.gradle"
+    GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+  cache:
+    key:
+      files: [gradle/wrapper/gradle-wrapper.properties]
+    paths: [.gradle/wrapper, .gradle/caches]
+    policy: pull-push
+  script:
+    - chmod +x gradlew
+    - ./gradlew --no-daemon assemble $[[ inputs.gradle_args ]]
+  artifacts:
+    paths: ["**/build/libs/*.jar"]
+    expire_in: 7 days     # C-CMP-3: retention is a decision, not a default
+  # A gating job never allows failure. IMP-4 / C-ENG-3.
+  allow_failure: false

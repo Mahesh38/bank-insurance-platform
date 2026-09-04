@@ -1,0 +1,97 @@
+# Java test and coverage gates. GLM-001 M7.1. THE GATE COMPONENT.
+#
+# ===========================================================================
+# C-ENG-2 — three mechanisms must survive translation, and each fails SILENTLY
+# AND GREEN if a component drops it. That is the only failure mode worth
+# writing a guard about, so each is asserted present by a check that fails
+# when the mechanism is absent.
+#
+#   1. jacocoTestCoverageVerification   S08-G3 — libs line >=80% / branch >=70%
+#   2. ArchUnit boundary rules          S08-G4 — 1SB confined to adapter.onesb.*
+#   3. no-PII-in-logs test              S08-G7
+#
+# Naming the verification task explicitly, rather than relying on `check`
+# wiring, is deliberate and carried over from the GitHub workflow: a future
+# change to that wiring cannot then silently drop the coverage gate.
+# ===========================================================================
+spec:
+  inputs:
+    stage:
+      default: test
+    image:
+      default: "eclipse-temurin:21-jdk"
+    runner_tag:
+      default: "java"
+    gradle_targets:
+      default: "build test jacocoTestReport jacocoTestCoverageVerification"
+    archunit_pattern:
+      default: "*rchitecture*"
+    pii_test_pattern:
+      default: "*PiiMasker*"
+---
+
+"java-test":
+  stage: $[[ inputs.stage ]]
+  image: $[[ inputs.image ]]
+  tags: ["$[[ inputs.runner_tag ]]"]
+  variables:
+    GRADLE_USER_HOME: "$CI_PROJECT_DIR/.gradle"
+    GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+  cache:
+    key:
+      files: [gradle/wrapper/gradle-wrapper.properties]
+    paths: [.gradle/wrapper, .gradle/caches]
+    policy: pull
+  script:
+    - chmod +x gradlew
+    - ./gradlew --no-daemon $[[ inputs.gradle_targets ]]
+
+    # --- C-ENG-2 assertion 1: coverage verification actually ran -------------
+    - |
+      set -euo pipefail
+      if ! find . -path '*/build/reports/jacoco/*' -name '*.xml' | grep -q .; then
+        echo "FAIL: no JaCoCo report produced. S08-G3's coverage gate did not run."
+        echo "A pipeline that publishes no coverage report has not verified coverage,"
+        echo "however green it looks."
+        exit 1
+      fi
+      echo "OK: JaCoCo reports present"
+
+    # --- C-ENG-2 assertion 2: ArchUnit rules actually ran --------------------
+    # Ported from the GitHub 'Architecture fitness summary' step, which exists
+    # for the same reason: an architecture regression should be readable, and a
+    # selector that silently stops matching must fail rather than report green.
+    - |
+      set -euo pipefail
+      shopt -s nullglob
+      reports=(services/*/build/test-results/test/TEST-$[[ inputs.archunit_pattern ]].xml)
+      if [ ${#reports[@]} -eq 0 ]; then
+        echo "FAIL: no ArchUnit results found — the architecture rules did not run (S08-G4)."
+        exit 1
+      fi
+      for f in "${reports[@]}"; do
+        python3 -c "import sys,xml.etree.ElementTree as ET; r=ET.parse(sys.argv[1]).getroot(); print('  {}: tests={} failures={} errors={}'.format(r.get('name','?').split('.')[-1], r.get('tests'), r.get('failures'), r.get('errors')))" "$f"
+      done
+      echo "OK: ArchUnit rules executed"
+
+    # --- C-ENG-2 assertion 3: the no-PII-in-logs test actually ran -----------
+    - |
+      set -euo pipefail
+      shopt -s nullglob
+      pii=(services/*/build/test-results/test/TEST-$[[ inputs.pii_test_pattern ]].xml)
+      if [ ${#pii[@]} -eq 0 ]; then
+        echo "FAIL: no PII-masking test results found — S08-G7 did not run."
+        exit 1
+      fi
+      echo "OK: PII-masking tests executed"
+  coverage: '/Total.*?([0-9]{1,3})%/'
+  artifacts:
+    when: always
+    expire_in: 14 days
+    paths:
+      - "**/build/reports/tests/**"
+      - "**/build/reports/jacoco/**"
+    reports:
+      junit: "**/build/test-results/test/TEST-*.xml"
+  # S08-G2. This is a gating job: it always runs and always reports.
+  allow_failure: false

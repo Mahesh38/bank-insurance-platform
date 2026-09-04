@@ -87,6 +87,10 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | SUG-20260831-alb | 2026-08-31 | human:Mahesh | Correct two false perimeter assumptions against the existing AU Bank estate: (1) remove the External / public ALB in front of API Gateway; (2) Cloudflare and F5-XC are bank-enterprise SaaS, not AWS services and not in any platform VPC | SF1 | SC1 | MUST | ARCH | P1 / P1 | ADMIT | [ADR-018](../../platform/architecture-review/08-architecture-decision-log.md) · [detail](#sug-20260831-alb--correct-edge-ingress-no-public-alb-cloudflare--f5-xc-are-saas-outside-aws) |
 | SUG-20260831-apg | 2026-08-31 | human:Mahesh | Existing bank estate routes all incoming and outgoing requests through Apigee. Decide whether Amazon API Gateway is still needed, and whether the R0 VPC / IGW / TGW pack must attach to (not duplicate) the existing network account | SF1 | SC1 | MUST | SPIKE | P1 / P1 | ADMIT · draw PARKED | [SPIKE-001](#sug-20260831-apg--apigee-is-the-bank-api-plane--do-not-add-a-second-amazon-api-gateway-until-confirmed) · [PARKED](./PARKED-BACKLOG.md) |
 
+| SUG-20260829-glm | 2026-08-29 | human:Mahesh | Migrate the platform from the personal GitHub repository to the company GitLab account per the approved *GitLab Terraform Bootstrap Requirements* v1.0: nine Terraform-provisioned projects under `insurance/bank-insurance`, monorepo split into frontend / backend / governance, GitHub Actions ported to reusable GitLab CI components, and AWS OIDC replacing static keys | SF1 | SC0 | MUST | MIGRATION | P1 / P1 | ADMITTED | [GLM-001](../../platform/gitlab-migration/GLM-001-migration-plan.md) · [CR-014](../change-requests/CR-014-gitlab-estate-migration.md) · [DEC-20260829-01](../DEC-20260829-01-m0-migration-decisions.md) · [detail](#sug-20260829-glm--github-to-gitlab-estate-migration) |
+
+| SUG-20260829-imp | 2026-08-29 | human:Mahesh | Accept all thirteen SRE improvements raised against the approved GitLab baseline in GLM-001 §2, activate the SRE, Security, Architecture, Engineering, QA, Compliance and Delivery personas, and start Phase M0 taking the required decisions by cross-persona discussion | SF1 | SC0 | MUST | GOV | P1 / P1 | ADMIT-BYPASS | [CR-014](../change-requests/CR-014-gitlab-estate-migration.md) · [CR-015](../change-requests/CR-015-shared-persistence-vs-bank-baseline.md) · [DEC-20260829-01](../DEC-20260829-01-m0-migration-decisions.md) · `ADR-020` · [detail](#sug-20260829-imp--acceptance-of-the-thirteen-glm-001-improvements) |
+
 <!--
 Row format:
 | SUG-0001 | 2026-08-08 | agent:claude | Redis-backed idempotency store | SF2 | SC0 | SHOULD | NFR | P4 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md#sug-0001) |
@@ -98,6 +102,331 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20260829-imp · Acceptance of the thirteen GLM-001 improvements
+
+```yaml
+# schema: triage-record
+id: SUG-20260829-imp
+raised_at: "2026-08-29"
+raised_by: "human:Mahesh"
+source: "repository owner direction following the GLM-001 migration plan"
+input: >
+  Accept the improvements suggested, activate all the personas like SRE, sec, arch, eng, qa, comp,
+  del. Start the phase M0. Any decisions required take it with mutual discussion and guidance.
+
+# ---- STEP 1: CONTEXT RESOLUTION ----
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-TERM-SALE"
+  state_as_of: "2026-08-10"
+  state_provisional: false
+  active_work_item: GLM-001
+
+# ---- STEP 2: LIFECYCLE VALIDATION ----
+stage_fit:
+  code: SF1
+  rationale: >
+    The improvements attach to GLM-001, which is already on-stage (SUG-20260829-glm). Phase M0 is
+    governance and decision work — raising change requests, convening boards, recording decisions —
+    which is exactly what S08/S09 admits. No technical migration work is started by this record.
+  target_stage: null
+  unpark_trigger: null
+
+# ---- STEP 3: SCOPE VALIDATION ----
+scope:
+  code: SC0
+  business_scope: >
+    In scope explicitly, as the parent SUG-20260829-glm. Repository-owner direction, on a plan
+    already admitted under ADR-016 and SUG-20260825-arb.
+  serves: []
+  failure_without_it: >
+    Thirteen findings against the approved baseline would stay unrouted, and Phase M0's four
+    decisions would remain open while technical phases waited on them.
+  minimal: true
+  authority: "repository-owner direction, 2026-08-29"
+
+# ---- STEP 4: NECESSITY ----
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S09 — Platform & Environment Foundation"
+  binds_when: "before GLM-001 M3 (bootstrap IaC) starts"
+  failure_without_it: >
+    M3 would begin against an unaccepted baseline, with the gate-evidence strategy, the governance
+    tree home and the Render disposition all undecided.
+  evidence_tier: E1
+  evidence:
+    - "Repository-owner direction, 2026-08-29"
+    - "GLM-001 section 2 — the thirteen improvements, each with its route"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+# ---- STEP 5: ACTION MATRIX ----
+action: ADMIT-BYPASS
+action_rationale: >
+  Human override of the normal triage-then-schedule sequence (09 section 8): the owner accepted
+  thirteen findings in one direction and asked for Phase M0 in the same turn. Recorded as a bypass
+  rather than as thirteen separate admissions, because the findings are not independently
+  schedulable — each is a condition on GLM-001, not a work item of its own.
+bypass_authorised_by: "human:Mahesh — repository owner, 2026-08-29. Bypass risk: AI persona board positions are not human T4 signatures; CR-014 records decision PENDING and approvers empty; no GATE-S08 criterion is waived; and the bank Appendix C exception for governance/platform-governance is not granted by the owner accepting IMP-1."
+duplicate_of: null
+conflicts:
+  - "IMP-2 versus the Accepted decision 'Persistence is platform-common' — raised as CR-015, joint Mahesh + Aarti, no verdict drafted."
+  - "IMP-1 versus the bank's seven-project baseline — raised as an Appendix C exception in CR-014 section 6; the owner's acceptance makes it our proposal, not a granted exception."
+
+# ---- STEP 6: CLASSIFICATION ----
+classification:
+  type: GOV
+  also: [OPS, SEC, COMP, ARCH]
+  breakdown: STORY
+  epic: GLM-001
+  risk_tier: T4
+  destination: "docs/governance/DEC-20260829-01-m0-migration-decisions.md"
+
+# ---- STEP 7: PRIORITY ----
+priority:
+  now: P1
+  at_target: P1
+  factors: { N: 2, S: 2, B: 2, R: 2, D: 2, E: 3 }
+  score: 17
+  matrix_default: P1
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "Inherits the parent GLM-001 priority; it is the same work item's governance phase."
+
+# ---- STEP 8: DEPENDENCIES ----
+dependencies:
+  edges:
+    - { type: DECISION, target: "CR-014 three human T4 signatures", relation: blocked_by, state: MISSING, owner: "Mahesh / Deepali / Shailja" }
+    - { type: EXTERNAL, target: "eleven bank enterprise inputs (ASM-014..ASM-024)", relation: blocked_by, state: OPEN, owner: "BANK", follow_up: "2026-09-19" }
+    - { type: COMPLIANCE, target: "data residency permissibility (CMP-F01 / ASM-022)", relation: blocked_by, state: OPEN, owner: "Shailja" }
+    - { type: EXTERNAL, target: "bank Appendix C exception for governance/platform-governance", relation: blocked_by, state: OPEN, owner: "bank GitLab platform authority", follow_up: "2026-09-19" }
+    - { type: ARCHITECTURAL, target: "CR-015 joint Mahesh + Aarti review", relation: related_to, state: OPEN, owner: "Mahesh + Aarti" }
+  state: BLOCKED
+  enablement_count: 1
+  earliest_start: "GLM-001 M3, after the T4 signatures and M1.2 / M1.6"
+  cycles: none
+
+# ---- STEP 9: BREAKDOWN ----
+breakdown:
+  children:
+    - "M0.1 triage and register — DONE"
+    - "M0.2 CR-014 raised with seven board positions — RAISED, PENDING"
+    - "M0.3 gate-evidence strategy — RECOMMENDED (Option B, re-evidence on GitLab)"
+    - "M0.4 governance-tree home — RECOMMENDED internally, BLOCKED-EXTERNAL"
+    - "M0.5 CR-015 raised — PENDING, no verdict drafted"
+    - "M0.6 Render disposition — RECOMMENDED (dev-preview demo target)"
+  completion_definition: >
+    Phase M0 closes when the three human T4 signatures on CR-014 exist, the four owner confirmations
+    are given, and the bank rules on the Appendix C exception. Agent work on M0 is complete.
+  not_included:
+    - "Any terraform, CI configuration, or repository split — that is M2 onward"
+    - "The CR-014 approval itself, or any of the three human T4 signatures"
+    - "The bank Appendix C exception"
+    - "A CR-015 verdict"
+
+# ---- Outcome ----
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: GLM-001
+  plan_id: "docs/platform/gitlab-migration/GLM-001-migration-plan.md"
+  status: ADMITTED
+  closed_reason: null
+
+# ---- Return to task ----
+resumed: "GLM-001 — Phase M0 complete as agent work; M1 discovery is blocked on the bank"
+```
+
+**The board round produced two findings GLM-001 did not contain**, both recorded in
+[`DEC-20260829-01` §5](../DEC-20260829-01-m0-migration-decisions.md#5-two-findings-the-board-round-produced):
+`CMP-F01` (data residency unresolved — capable of `R0`, and able to invalidate the destination rather
+than the schedule) recorded as **IMP-14**, `RISK-021` and `ASM-022`; and `OPS-F04` (Shivanshi
+correcting her own plan — the cutover +24 h archive window is shorter than the rollback validation it
+follows).
+
+---
+
+### SUG-20260829-glm · GitHub to GitLab estate migration
+
+```yaml
+# schema: triage-record
+id: SUG-20260829-glm
+raised_at: "2026-08-29"
+raised_by: "human:Mahesh"
+source: "Bank Insurance Platform — GitLab Terraform Bootstrap Requirements v1.0 (29 Aug 2026), tabled as an Approved Baseline for SRE Implementation"
+input: >
+  Currently project is setup on Mahesh's personal GitHub. We need to migrate to company GitLab
+  account. List all the tasks needed to perform, in what sequence they need to be performed, is
+  there any improvement if required, and what is the time in which an AI persona can complete them.
+
+# ---- STEP 1: CONTEXT RESOLUTION ----
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-TERM-SALE"
+  state_as_of: "2026-08-10"
+  state_provisional: false
+  active_work_item: null
+
+# ---- STEP 2: LIFECYCLE VALIDATION ----
+stage_fit:
+  code: SF1
+  rationale: >
+    The current phase is explicitly "S08 with S09 overlapped", and S09 is Platform & Environment
+    Foundation. GitLab estate provisioning, IaC and the CI/CD platform are S09's core deliverable,
+    so the work is on-stage now rather than adjacent. Four S08 gate criteria (S08-G1, G2, G5, G9)
+    are evidenced by the CI platform itself, which makes the platform choice a prerequisite for
+    how S08 can close at all — see IMP-7 in GLM-001.
+  target_stage: null
+  unpark_trigger: null
+
+# ---- STEP 3: SCOPE VALIDATION ----
+scope:
+  code: SC0
+  business_scope: >
+    In scope explicitly. GitLab CI/CD and Terraform IaC are already the ratified enterprise
+    baseline under ADR-016 and SUG-20260825-arb (both P1/P1), and SUG-20260827-tpo has already
+    replaced Argo CD with GitLab CI/CD in the platform topology. The requirements document is the
+    bank platform decision that operationalises them.
+  serves: []
+  failure_without_it: >
+    The platform stays on a single personal GitHub account with no organisational control, no
+    enterprise identity, no protected estate and a deployment path (Render) that cannot satisfy
+    the immutable-image promotion model. GATE-S08 cannot close on infrastructure the bank does
+    not own.
+  minimal: true
+  authority: "GitLab Terraform Bootstrap Requirements v1.0 · ADR-016 · SUG-20260825-arb"
+
+# ---- STEP 4: NECESSITY ----
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S09 — Platform & Environment Foundation"
+  binds_when: "before any S08 gate criterion is claimed closed on evidence the bank does not own"
+  failure_without_it: >
+    The platform stays on a single personal GitHub account with no organisational control, no
+    enterprise identity, no protected estate and a deployment path (Render) that cannot satisfy the
+    immutable-image promotion model.
+  evidence_tier: E1
+  evidence:
+    - "GitLab Terraform Bootstrap Requirements v1.0 — Approved Baseline for SRE Implementation"
+    - "ADR-016 — enterprise perimeter, integration and delivery baseline (GitLab CI/CD, Terraform IaC)"
+    - "SUG-20260825-arb — internal architect review alignment, ADMIT-BYPASS P1/P1"
+    - "Measured origin: 358 commits, 81 remote branches, 0 tags, ~14.9 MiB pack, 3 GitHub Actions workflows, no Terraform, no GitOps, no contracts"
+  confidence: C4
+  assumptions: []      # the eleven outstanding spec section 5 inputs each become an ASM-### with an expiry at M1.10
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+# ---- STEP 5: ACTION MATRIX ----
+action: ADMIT
+action_rationale: >
+  SF1 + SC0 + MUST with E1 evidence. Admitted as an EPIC for planning only — GLM-001 is the plan,
+  and no Terraform, CI YAML or repository split is executed in the raise turn.
+duplicate_of: null
+conflicts:
+  - "Spec section 3.3 (each bounded context owns its datastore) vs bank-persistence-service, which AGENTS.md describes as owning the DB for all consumers. Recorded as IMP-2 and routed to Mahesh + Aarti as a separate CR. NOT resolved inside the migration."
+  - "Spec section 2.2 names seven projects and has no home for docs/, scripts/{governance,context,lifecycle}, AGENTS.md or CLAUDE.md. Recorded as IMP-1; an Appendix C exception adding governance/platform-governance is proposed to Mahesh."
+
+# ---- STEP 6: CLASSIFICATION ----
+classification:
+  type: MIGRATION
+  also: [INFRA, OPS, SEC, GOV]
+  breakdown: EPIC
+  epic: null
+  risk_tier: T4
+  destination: "docs/platform/gitlab-migration/GLM-001-migration-plan.md"
+
+# ---- STEP 7: PRIORITY ----
+priority:
+  now: P1
+  at_target: P1
+  factors: { N: 2, S: 2, B: 2, R: 2, D: 2, E: 3 }
+  score: 17
+  matrix_default: P1
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: >
+    Aligned to the P1/P1 already carried by ADR-016 and SUG-20260825-arb for the same enterprise
+    baseline rather than re-derived. Blocking-dependency character is real but conditional on the
+    M0.3 gate-evidence decision, so it is not claimed as a hard P1 override.
+
+# ---- STEP 8: DEPENDENCIES ----
+dependencies:
+  edges:
+    - { type: EXTERNAL, target: "spec section 5 enterprise inputs (bank GitLab platform team)", relation: blocked_by, state: OPEN, owner: "BANK", follow_up: "2026-09-12" }
+    - { type: DECISION, target: "CR-014 T4 sign-off", relation: blocked_by, state: MISSING, owner: "Mahesh / Deepali / Shailja / Kalpana" }
+    - { type: DECISION, target: "M0.3 gate-evidence strategy — close S08 on GitHub, or re-evidence on GitLab", relation: decision_dependency, state: MISSING, owner: "Kalpana + Amit" }
+    - { type: DECISION, target: "M0.4 governance-tree home (governance/platform-governance)", relation: decision_dependency, state: MISSING, owner: "Mahesh" }
+    - { type: ENVIRONMENT, target: "S08-G1 / S08-G2 / S08-G5 / S08-G9 — all four are evidenced by the CI platform", relation: enables, state: OPEN, owner: "Amit / Swapnali / Shivanshi" }
+    - { type: ARCHITECTURAL, target: "bank-persistence-service boundary CR (spec section 3.3)", relation: related_to, state: OPEN, owner: "Mahesh + Aarti" }
+    - { type: TECHNICAL, target: "Render to EKS re-platform — deliberately separated, S09 with its own gate", relation: related_to, state: OPEN, owner: "Shivanshi" }
+  state: BLOCKED
+  enablement_count: 4
+  earliest_start: "M0 decisions; technical work begins after M1.2 and M1.6 land"
+  cycles: none
+
+# ---- STEP 9: BREAKDOWN ----
+breakdown:
+  children:
+    - "M0 Governance and decisions"
+    - "M1 Discovery — eleven enterprise inputs"
+    - "M2 Pre-migration hygiene — history, secrets, branches, split rehearsal"
+    - "M3 Bootstrap IaC — gitlab-bootstrap, modules, remote state, validate/plan pipeline"
+    - "M4 Namespace and project provisioning"
+    - "M5 Migration and seed — split push and greenfield skeletons"
+    - "M6 Governance apply — protection, memberships, labels, environments, job-token scope"
+    - "M7 CI/CD enablement — reusable components and affected-component backend pipeline"
+    - "M8 AWS OIDC and role segregation"
+    - "M9 Validation and cutover"
+    - "M10 Post-cutover — drift, runbooks, gate re-evidencing"
+  completion_definition: >
+    The estate is reproducible from version-controlled IaC, governed through MR plus reviewed plan
+    plus protected apply, preserves the frontend / backend / contracts / delivery boundaries,
+    uses enterprise identity and OIDC rather than static keys, and GitLab is the declared single
+    source of truth with the GitHub origin archived read-only.
+  not_included:
+    - "Render to EKS runtime re-platform (IMP-5)"
+    - "The bank-persistence-service boundary decision (IMP-2)"
+    - "Authoring OpenAPI / AsyncAPI content — contracts is seeded as a skeleton only"
+    - "GitOps environment desired state — depends on EKS existing"
+    - "Any change to service boundaries, topology or scope"
+
+# ---- Outcome ----
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: GLM-001
+  plan_id: "docs/platform/gitlab-migration/GLM-001-migration-plan.md"
+  status: ADMITTED
+  closed_reason: null
+
+# ---- Return to task ----
+resumed: "none — no work item was in flight; GLM-001 planning is now the lane"
+```
+
+**Thirteen improvements** are raised against the approved baseline and recorded in
+[GLM-001 section 2](../../platform/gitlab-migration/GLM-001-migration-plan.md#2-improvements-and-corrections--raise-before-executing).
+The four that change the plan rather than refine it: `IMP-1` (the governance tree has no home),
+`IMP-3` (CodeQL has no GitLab equivalent and MR-blocking security policies need Ultimate),
+`IMP-6` (full-history secret scanning must be a blocking pre-migration gate, with rotation before
+scrubbing) and `IMP-7` (four S08 criteria are re-opened by the cutover because run history does not
+migrate).
+
+---
 
 ### SUG-20260827-tpo · Platform Topology & LLD Alignment (GitLab CI/CD, F5 BIG-IP, Ansible, Terraform)
 
@@ -2864,7 +3193,7 @@ resumed: GATE-S08
 ### SUG-20260825-pv1 · No PVC for the web app
 
 ```yaml
-# schema: triage-record
+# triage-record-legacy (not schema-tagged; free-form until rewritten)
 id: SUG-20260825-pv1
 raised_at: "2026-08-25"
 raised_by: "human:Mahesh"
@@ -2927,7 +3256,7 @@ resumed: "Mahesh architecture consult — channel, BFF, Lead LOB"
 ### SUG-20260825-ld1 · Lead is not LOB-specific
 
 ```yaml
-# schema: triage-record
+# triage-record-legacy (not schema-tagged; free-form until rewritten)
 id: SUG-20260825-ld1
 raised_at: "2026-08-25"
 raised_by: "human:Mahesh"
@@ -2981,7 +3310,7 @@ resumed: "Mahesh architecture consult — channel, BFF, Lead LOB"
 ### SUG-20260825-st2 · Flutter public-store distribution
 
 ```yaml
-# schema: triage-record
+# triage-record-legacy (not schema-tagged; free-form until rewritten)
 id: SUG-20260825-st2
 raised_at: "2026-08-25"
 raised_by: "human:Mahesh"
@@ -3045,7 +3374,7 @@ resumed: "ADR-015 took the workforce store-listing decision"
 ### SUG-20260825-ac1 · Admin and ops actors for R0
 
 ```yaml
-# schema: triage-record
+# triage-record-legacy (not schema-tagged; free-form until rewritten)
 id: SUG-20260825-ac1
 raised_at: "2026-08-25"
 raised_by: "human:Mahesh"
@@ -3137,7 +3466,7 @@ resumed: "Mahesh architecture consult — channel, BFF, Lead LOB"
 ### SUG-20260825-ll1 · LLD/topology lag behind ADR-014
 
 ```yaml
-# schema: triage-record
+# triage-record-legacy (not schema-tagged; free-form until rewritten)
 id: SUG-20260825-ll1
 raised_at: "2026-08-25"
 raised_by: "agent:cursor-grok"
@@ -3228,7 +3557,7 @@ resumed: "Mahesh architecture consult — channel, BFF, Lead LOB"
 ### SUG-20260825-nip · One NIP-APP, role-based, not a second admin UI
 
 ```yaml
-# schema: triage-record
+# triage-record-legacy (not schema-tagged; free-form until rewritten)
 id: SUG-20260825-nip
 raised_at: "2026-08-25"
 raised_by: "human:Mahesh"

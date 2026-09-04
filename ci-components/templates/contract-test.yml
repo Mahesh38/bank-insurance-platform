@@ -1,0 +1,83 @@
+# Contract validation. GLM-001 M7.7. Baseline section 8.3.
+#
+# Validates OpenAPI and AsyncAPI, and detects backward-INCOMPATIBLE change
+# before merge. The compatibility check is the point: a schema that parses is
+# not a schema that is safe to publish.
+spec:
+  inputs:
+    stage:
+      default: validate
+    runner_tag:
+      default: "general"
+    openapi_glob:
+      default: "openapi/**/*.yaml"
+    asyncapi_glob:
+      default: "asyncapi/**/*.yaml"
+    base_ref:
+      default: "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME"
+---
+
+"contract-validate":
+  stage: $[[ inputs.stage ]]
+  image: node:22-alpine
+  tags: ["$[[ inputs.runner_tag ]]"]
+  before_script:
+    - apk add --no-cache git
+    - npm i -g @redocly/cli @asyncapi/cli
+  script:
+    - |
+      set -euo pipefail
+      shopt -s nullglob 2>/dev/null || true
+      found=0
+      for f in $[[ inputs.openapi_glob ]]; do
+        [ -e "$f" ] || continue
+        found=1; echo "openapi: $f"; redocly lint "$f"
+      done
+      for f in $[[ inputs.asyncapi_glob ]]; do
+        [ -e "$f" ] || continue
+        found=1; echo "asyncapi: $f"; asyncapi validate "$f"
+      done
+      if [ "$found" -eq 0 ]; then
+        echo "FAIL: no contract documents matched. A contracts pipeline that"
+        echo "validates nothing reports green and proves nothing."
+        exit 1
+      fi
+  allow_failure: false
+
+"contract-compatibility":
+  stage: $[[ inputs.stage ]]
+  image: node:22-alpine
+  tags: ["$[[ inputs.runner_tag ]]"]
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  variables:
+    GIT_DEPTH: 0     # the diff needs both sides
+  before_script:
+    - apk add --no-cache git
+    - npm i -g oasdiff
+  script:
+    # Baseline section 3.4: "Detect backward-incompatible changes before merge",
+    # and section 8.3: intentional breaking changes need explicit governance —
+    # so a break FAILS here and is unblocked by a recorded decision, never by
+    # editing the threshold.
+    - |
+      set -euo pipefail
+      git fetch --quiet origin "$[[ inputs.base_ref ]]"
+      mkdir -p /tmp/base && git archive "origin/$[[ inputs.base_ref ]]" | tar -x -C /tmp/base
+      breaking=0
+      for f in $[[ inputs.openapi_glob ]]; do
+        [ -e "$f" ] || continue
+        if [ -e "/tmp/base/$f" ]; then
+          echo "diff: $f"
+          oasdiff breaking "/tmp/base/$f" "$f" --fail-on ERR || breaking=1
+        else
+          echo "new contract (no baseline): $f"
+        fi
+      done
+      if [ "$breaking" -ne 0 ]; then
+        echo "FAIL: backward-incompatible contract change."
+        echo "Baseline 8.3 — an intentional break needs explicit governance,"
+        echo "recorded as a decision. It is never unblocked by relaxing this check."
+        exit 1
+      fi
+  allow_failure: false

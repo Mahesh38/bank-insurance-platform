@@ -1,0 +1,27 @@
+# Node build. GLM-001 M7.6. Present for the language diversity the baseline
+# section 3.7 asks for; no Node consumer exists in the estate today.
+spec:
+  inputs:
+    stage:
+      default: build
+    image:
+      default: "node:22-alpine"
+    runner_tag:
+      default: "node"
+    working_dir:
+      default: "."
+---
+
+"node-build":
+  stage: $[[ inputs.stage ]]
+  image: $[[ inputs.image ]]
+  tags: ["$[[ inputs.runner_tag ]]"]
+  cache:
+    key:
+      files: ["$[[ inputs.working_dir ]]/package-lock.json"]
+    paths: ["$[[ inputs.working_dir ]]/node_modules"]
+  script:
+    - cd "$[[ inputs.working_dir ]]"
+    - npm ci
+    - npm run build --if-present
+  allow_failure: false

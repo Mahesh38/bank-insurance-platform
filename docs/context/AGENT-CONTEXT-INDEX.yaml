@@ -281,6 +281,20 @@ doc_routing:
       persona: database
       note: "Aarti R0 physical pack. AI-drafted; S07-G5 human signature outstanding."
 
+    - match: ["docs/platform/gitlab-migration/m2-evidence/*"]
+      bucket: platform
+      authority: ai-drafted
+      capsules: [sre-operations, security-review, delivery-planning]
+      persona: sre-operations
+      note: "M2 pre-migration hygiene evidence. C-SEC-1 fired on a real credential in main's history."
+
+    - match: ["docs/platform/gitlab-migration/*"]
+      bucket: platform
+      authority: ai-drafted
+      capsules: [sre-operations, delivery-planning, architecture-review]
+      persona: sre-operations
+      note: "GLM-001 GitHub-to-GitLab estate migration plan. AI-drafted; CR-014 T4 sign-off outstanding."
+
     - match: ["docs/platform/ws3-platform/*"]
       bucket: platform
       authority: approved-spec

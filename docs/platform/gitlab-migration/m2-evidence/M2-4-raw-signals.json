@@ -1,0 +1,483 @@
+[
+{
+"cls": "PROVIDER_NDA",
+"file": "docs/1sb-insurance-integration/01-executive-overview.md",
+"line": 14,
+"why": "1SB hostname",
+"n": 1,
+"path_allowlisted": false
+},
+{
+"cls": "PROVIDER_NDA",
+"file": "docs/1sb-insurance-integration/README.md",
+"line": 5,
+"why": "1SB hostname",
+"n": 2,
+"path_allowlisted": false
+},
+{
+"cls": "PROVIDER_NDA",
+"file": "docs/1sb-insurance-integration/api-catalog/README.md",
+"line": 3,
+"why": "1SB hostname",
+"n": 3,
+"path_allowlisted": false
+},
+{
+"cls": "PII_GOVT_ID",
+"file": "docs/1sb-insurance-integration/architecture/1sb-integration-service-architecture.md",
+"line": 601,
+"why": "PAN shape",
+"n": 1,
+"path_allowlisted": false
+},
+{
+"cls": "MONETARY_SAMPLE",
+"file": "docs/1sb-insurance-integration/architecture/1sb-integration-service-architecture.md",
+"line": 471,
+"why": "premium/sum-assured literal in JSON",
+"n": 2,
+"path_allowlisted": false
+},
+{
+"cls": "PROVIDER_NDA",
+"file": "docs/1sb-insurance-integration/architecture/1sb-integration-service-architecture.md",
+"line": 88,
+"why": "1SB hostname",
+"n": 2,
+"path_allowlisted": false
+},
+{
+"cls": "BANK_INTERNAL",
+"file": "docs/1sb-insurance-integration/architecture/1sb-integration-service-architecture.md",
+"line": 443,
+"why": "bank-internal hostname",
+"n": 1,
+"path_allowlisted": false
+},
+{
+"cls": "MONETARY_SAMPLE",
+"file": "docs/1sb-insurance-integration/canonical-model/contexts.md",
+"line": 186,
+"why": "premium/sum-assured literal in JSON",
+"n": 2,
+"path_allowlisted": false
+},
+{
+"cls": "PROVIDER_NDA",
+"file": "docs/1sb-insurance-integration/field-guides/application-status.md",
+"line": 4,
+"why": "1SB hostname",
+"n": 1,
+"path_allowlisted": false
+},
+{
+"cls": "PROVIDER_NDA",
+"file": "docs/1sb-insurance-integration/field-guides/building-blocks.md",
+"line": 3,
+"why": "1SB hostname",
+"n": 1,
+"path_allowlisted": false
+},
+{
+"cls": "PROVIDER_NDA",
+"file": "docs/1sb-insurance-integration/field-guides/health-quote.md",
+"line": 4,
+"why": "1SB hostname",
+"n": 1,
+"path_allowlisted": false
+},
+{
+"cls": "PROVIDER_NDA",
+"file": "docs/1sb-insurance-integration/field-guides/motor-quote.md",
+"line": 4,
+"why": "1SB hostname",
+"n": 1,
+"path_allowlisted": false
+},
+{
+"cls": "PROVIDER_NDA",
+"file": "docs/1sb-insurance-integration/field-guides/payment.md",
+"line": 6,
+"why": "1SB hostname",
+"n": 2,
+"path_allowlisted": false
+},
+{
+"cls": "PROVIDER_NDA",
+"file": "docs/1sb-insurance-integration/field-guides/term-quote.md",
+"line": 5,
+"why": "1SB hostname",
+"n": 1,
+"path_allowlisted": false
+},
+{
+"cls": "PROVIDER_NDA",
+"file": "docs/1sb-insurance-integration/reference/SOURCE-LINKS.md",
+"line": 7,
+"why": "1SB hostname",
+"n": 20,
+"path_allowlisted": false
+},
+{
+"cls": "PROVIDER_NDA",
+"file": "docs/1sb-insurance-integration/service-ssot/phase-0/CONFIRM-01-onesb-access.md",
+"line": 20,
+"why": "1SB hostname",
+"n": 2,
+"path_allowlisted": false
+},
+{
+"cls": "PROVIDER_NDA",
+"file": "docs/1sb-insurance-integration/service-ssot/phase-0/CONFIRM-03-inbound-auth.md",
+"line": 112,
+"why": "distributorId literal",
+"n": 1,
+"path_allowlisted": false
+},
+{
+"cls": "BANK_INTERNAL",
+"file": "docs/1sb-insurance-integration/service-ssot/phase-0/CONFIRM-03-inbound-auth.md",
+"line": 42,
+"why": "bank-internal hostname",
+"n": 2,
+"path_allowlisted": false
+},
+{
+"cls": "PROVIDER_NDA",
+"file": "docs/1sb-insurance-integration/service-ssot/phase-0/CONFIRM-06-1sb-pune-visit-agenda.md",
+"line": 104,
+"why": "1SB hostname",
+"n": 1,
+"path_allowlisted": false
+},
+{
+"cls": "PROVIDER_NDA",
+"file": "docs/1sb-insurance-integration/service-ssot/phase-0/EMAIL-DRAFT-1SB-ONBOARDING-REQUEST.md",
+"line": 16,
+"why": "1SB hostname",
+"n": 1,
+"path_allowlisted": false
+},
+{
+"cls": "PROVIDER_NDA",
+"file": "docs/1sb-insurance-integration/service-ssot/phase-0/PHASE-0-DATA-AND-GAPS.md",
+"line": 12,
+"why": "1SB hostname",
+"n": 1,
+"path_allowlisted": false
+},
+{
+"cls": "PROVIDER_NDA",
+"file": "docs/1sb-insurance-integration/service-ssot/phase-0/PO-DEV-ENV-REQUIREMENTS.md",
+"line": 51,
+"why": "1SB hostname",
+"n": 1,
+"path_allowlisted": false
+},
+{
+"cls": "PII_CONTACT",
+"file": "docs/1sb-insurance-integration/service-ssot/phase-2/TL-KICKOFF.md",
+"line": 65,
+"why": "India mobile number shape",
+"n": 1,
+"path_allowlisted": false
+},
+{
+"cls": "PII_GOVT_ID",
+"file": "docs/1sb-insurance-integration/service-ssot/phase-2/TL-KICKOFF.md",
+"line": 64,
+"why": "PAN shape",
+"n": 1,
+"path_allowlisted": false
+},
+{
+"cls": "MONETARY_SAMPLE",
+"file": "docs/1sb-insurance-integration/service-ssot/phase-3/FUNC-002-ASSIGNMENT.md",
+"line": 53,
+"why": "premium/sum-assured literal in JSON",
+"n": 1,
+"path_allowlisted": false
+},
+{
+"cls": "BANK_INTERNAL",
+"file": "docs/architecture/R0-HLD.md",
+"line": 359,
+"why": "bank-internal hostname",
+"n": 1,
+"path_allowlisted": false
+},
+{
+"cls": "BANK_INTERNAL",
+"file": "docs/architecture/R0-LLD.md",
+"line": 201,
+"why": "bank-internal hostname",
+"n": 1,
+"path_allowlisted": false
+},
+{
+"cls": "BINARY_ASSET",
+"file": "docs/architecture/r0-platform-az.png",
+"line": 0,
+"why": "binary \u2014 visual inspection required (screenshots hide PII)",
+"n": 1
+},
+{
+"cls": "BINARY_ASSET",
+"file": "docs/architecture/r0-platform-dr.png",
+"line": 0,
+"why": "binary \u2014 visual inspection required (screenshots hide PII)",
+"n": 1
+},
+{
+"cls": "BINARY_ASSET",
+"file": "docs/architecture/r0-platform-payment.png",
+"line": 0,
+"why": "binary \u2014 visual inspection required (screenshots hide PII)",
+"n": 1
+},
+{
+"cls": "BINARY_ASSET",
+"file": "docs/architecture/r0-platform-sequence.png",
+"line": 0,
+"why": "binary \u2014 visual inspection required (screenshots hide PII)",
+"n": 1
+},
+{
+"cls": "BINARY_ASSET",
+"file": "docs/architecture/r0-platform-topology.png",
+"line": 0,
+"why": "binary \u2014 visual inspection required (screenshots hide PII)",
+"n": 1
+},
+{
+"cls": "BINARY_ASSET",
+"file": "docs/au-bank-insurance-platform/artefacts/uploads/Phase_1_Business_Discovery_Capability_Map_v0.1_e281.pdf",
+"line": 0,
+"why": "binary \u2014 visual inspection required (screenshots hide PII)",
+"n": 1
+},
+{
+"cls": "BINARY_ASSET",
+"file": "docs/au-bank-insurance-platform/artefacts/uploads/Phase_2_Business_Requirement_Catalogue_v0.1_0a30.pdf",
+"line": 0,
+"why": "binary \u2014 visual inspection required (screenshots hide PII)",
+"n": 1
+},
+{
+"cls": "BINARY_ASSET",
+"file": "docs/au-bank-insurance-platform/artefacts/uploads/Phase_3_Business_Processes_and_Customer_Journeys_v0.1_0d5b.pdf",
+"line": 0,
+"why": "binary \u2014 visual inspection required (screenshots hide PII)",
+"n": 1
+},
+{
+"cls": "BINARY_ASSET",
+"file": "docs/au-bank-insurance-platform/artefacts/uploads/Phase_4_Business_Rules_Information_Model_and_Governance_v0.1_aecc.pdf",
+"line": 0,
+"why": "binary \u2014 visual inspection required (screenshots hide PII)",
+"n": 1
+},
+{
+"cls": "BINARY_ASSET",
+"file": "docs/au-bank-insurance-platform/artefacts/uploads/Phase_5_Solution_Architecture_Blueprint_v0.1_2e6f.pdf",
+"line": 0,
+"why": "binary \u2014 visual inspection required (screenshots hide PII)",
+"n": 1
+},
+{
+"cls": "BINARY_ASSET",
+"file": "docs/au-bank-insurance-platform/artefacts/uploads/Volume_01_Vision_and_Strategy_v1.0_11a5.pdf",
+"line": 0,
+"why": "binary \u2014 visual inspection required (screenshots hide PII)",
+"n": 1
+},
+{
+"cls": "BINARY_ASSET",
+"file": "docs/au-bank-insurance-platform/artefacts/uploads/Volume_02_Business_Goals_v1.0_6c77.pdf",
+"line": 0,
+"why": "binary \u2014 visual inspection required (screenshots hide PII)",
+"n": 1
+},
+{
+"cls": "BINARY_ASSET",
+"file": "docs/au-bank-insurance-platform/artefacts/uploads/Volume_03_Business_Requirements_v1.0_ec50.pdf",
+"line": 0,
+"why": "binary \u2014 visual inspection required (screenshots hide PII)",
+"n": 1
+},
+{
+"cls": "BINARY_ASSET",
+"file": "docs/au-bank-insurance-platform/artefacts/uploads/Volume_04_Stakeholder_Catalogue_v1.0_8199.pdf",
+"line": 0,
+"why": "binary \u2014 visual inspection required (screenshots hide PII)",
+"n": 1
+},
+{
+"cls": "BINARY_ASSET",
+"file": "docs/au-bank-insurance-platform/artefacts/uploads/Volume_05_Business_Processes_v1.0_d04f.pdf",
+"line": 0,
+"why": "binary \u2014 visual inspection required (screenshots hide PII)",
+"n": 1
+},
+{
+"cls": "BINARY_ASSET",
+"file": "docs/au-bank-insurance-platform/artefacts/uploads/Volume_06_Customer_and_RM_Journeys_v1.0_18d2.pdf",
+"line": 0,
+"why": "binary \u2014 visual inspection required (screenshots hide PII)",
+"n": 1
+},
+{
+"cls": "PII_CONTACT",
+"file": "docs/au-bank-insurance-platform/references/2026-08-20-insurance-aggregation-and-provider-connectivity-notes.md",
+"line": 5,
+"why": "email address",
+"n": 1,
+"path_allowlisted": false
+},
+{
+"cls": "PII_CONTACT",
+"file": "docs/au-bank-insurance-platform/references/2026-08-20-north-star-architecture-brainstorming-notes.md",
+"line": 5,
+"why": "email address",
+"n": 1,
+"path_allowlisted": false
+},
+{
+"cls": "PROVIDER_NDA",
+"file": "docs/au-bank-insurance-platform/references/README.md",
+"line": 32,
+"why": "1SB hostname",
+"n": 1,
+"path_allowlisted": false
+},
+{
+"cls": "PROVIDER_NDA",
+"file": "docs/context/DOC-MAP.yaml",
+"line": 47,
+"why": "1SB hostname",
+"n": 2,
+"path_allowlisted": true
+},
+{
+"cls": "BINARY_ASSET",
+"file": "docs/figma/wireframe/auth-login-2fa-forgot-password-mpin.png",
+"line": 0,
+"why": "binary \u2014 visual inspection required (screenshots hide PII)",
+"n": 1
+},
+{
+"cls": "BINARY_ASSET",
+"file": "docs/figma/wireframe/lead-creation-manual-product-selection.png",
+"line": 0,
+"why": "binary \u2014 visual inspection required (screenshots hide PII)",
+"n": 1
+},
+{
+"cls": "BINARY_ASSET",
+"file": "docs/figma/wireframe/lead-creation-need-assessment.png",
+"line": 0,
+"why": "binary \u2014 visual inspection required (screenshots hide PII)",
+"n": 1
+},
+{
+"cls": "BINARY_ASSET",
+"file": "docs/figma/wireframe/product-detail-page-savings-plan.png",
+"line": 0,
+"why": "binary \u2014 visual inspection required (screenshots hide PII)",
+"n": 1
+},
+{
+"cls": "BINARY_ASSET",
+"file": "docs/figma/wireframe/product-listing-page-compare.png",
+"line": 0,
+"why": "binary \u2014 visual inspection required (screenshots hide PII)",
+"n": 1
+},
+{
+"cls": "BINARY_ASSET",
+"file": "docs/figma/wireframe/product-listing-page-savings-plan-and-compare-combined.png",
+"line": 0,
+"why": "binary \u2014 visual inspection required (screenshots hide PII)",
+"n": 1
+},
+{
+"cls": "BINARY_ASSET",
+"file": "docs/figma/wireframe/product-listing-page-savings-plan.png",
+"line": 0,
+"why": "binary \u2014 visual inspection required (screenshots hide PII)",
+"n": 1
+},
+{
+"cls": "PII_GOVT_ID",
+"file": "docs/figma_file_structure.json",
+"line": 731,
+"why": "Aadhaar shape",
+"n": 2,
+"path_allowlisted": false
+},
+{
+"cls": "BANK_INTERNAL",
+"file": "docs/figma_file_structure.json",
+"line": 731,
+"why": "12-digit AWS account id shape",
+"n": 2,
+"path_allowlisted": false
+},
+{
+"cls": "BANK_INTERNAL",
+"file": "docs/governance/change-requests/CR-016-gitlab-ce-control-model-gap.md",
+"line": 26,
+"why": "bank-internal hostname",
+"n": 3,
+"path_allowlisted": false
+},
+{
+"cls": "BANK_INTERNAL",
+"file": "docs/governance/registers/ASSUMPTION-REGISTER.md",
+"line": 26,
+"why": "bank-internal hostname",
+"n": 3,
+"path_allowlisted": false
+},
+{
+"cls": "BANK_INTERNAL",
+"file": "docs/governance/registers/DECISION-REGISTER.md",
+"line": 255,
+"why": "bank-internal hostname",
+"n": 1,
+"path_allowlisted": false
+},
+{
+"cls": "PII_GOVT_ID",
+"file": "docs/hdl.svg",
+"line": 107,
+"why": "Aadhaar shape",
+"n": 6,
+"path_allowlisted": false
+},
+{
+"cls": "BANK_INTERNAL",
+"file": "docs/hdl.svg",
+"line": 107,
+"why": "12-digit AWS account id shape",
+"n": 6,
+"path_allowlisted": false
+},
+{
+"cls": "BANK_INTERNAL",
+"file": "docs/platform/gitlab-migration/GLM-001-migration-plan.md",
+"line": 233,
+"why": "bank-internal hostname",
+"n": 1,
+"path_allowlisted": false
+},
+{
+"cls": "PII_CONTACT",
+"file": "docs/platform/gitlab-migration/m2-evidence/M2-1-gitleaks-full-history.json",
+"line": 15,
+"why": "email address",
+"n": 7,
+"path_allowlisted": false
+}
+]

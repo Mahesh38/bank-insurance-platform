@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 524
-total_bytes: 15194982
+document_count: 545
+total_bytes: 15489390
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -1869,7 +1869,7 @@ documents:
     persona: null
     title: "AGENT CONTEXT INDEX"
     answers: "============================================================================="
-    bytes: 43380
+    bytes: 44007
   - path: docs/context/BOOT.md
     bucket: context
     authority: non-binding-context
@@ -1877,7 +1877,7 @@ documents:
     persona: null
     title: "BOOT — the tier-0 agent capsule"
     answers: "Read this first, and often read nothing else. This file answers the ten-fact knowledge"
-    bytes: 17629
+    bytes: 17865
   - path: docs/context/DOC-MAP.yaml
     bucket: context
     authority: non-binding-context
@@ -1885,7 +1885,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 185289
+    bytes: 192716
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -3238,6 +3238,22 @@ documents:
     title: "DEC-20260825-01 — Lead language, lifecycle, evidence split, off-platform book, day-one visibility, issuance modes, isolation, PPHI"
     answers: "Revised: 2026-08-25 — stakeholder pull into R0 (CR-013, ADR-014). Timing is R0 now. Parking withdrawn. Compliance conditions only."
     bytes: 17772
+  - path: docs/governance/DEC-20260829-01-m0-migration-decisions.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "DEC-20260829-01 — Phase M0 decisions: gate evidence, governance-tree home, Render disposition"
+    answers: "Recorded by: agent:claude. The agent recorded a decision the owner gave; it did not supply one (Rule CC-1, Rule PA-1)."
+    bytes: 16770
+  - path: docs/governance/DEC-20260829-02-m3-readiness-board-pack.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "DEC-20260829-02 — M3 readiness: seven board recommendations"
+    answers: "Origin: repository-owner request — \"help me decide the path and close M0, M1 and M2 so we can work on M3\""
+    bytes: 15284
   - path: docs/governance/DELIVERY-CONTROL-SYSTEM.md
     bucket: governance
     authority: binding-process
@@ -3510,6 +3526,94 @@ documents:
     title: "CR-013 — Pull Lead language, lifecycle, off-platform ingest, admin/MIS, issuance modes and PPHI mapping into R0"
     answers: "Type: SCOPE (with ARCH and COMP consequences)"
     bytes: 4981
+  - path: docs/governance/change-requests/CR-014-gitlab-estate-migration.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "CR-014 — Migrate the platform from personal GitHub to the company GitLab estate"
+    answers: "Type: SCOPE (with STAGE, GOV and PLAN consequences)"
+    bytes: 21103
+  - path: docs/governance/change-requests/CR-014/verdicts/README.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "CR-014 — Board positions"
+    answers: "Change request: CR-014 — Migrate the platform from personal GitHub to the company GitLab estate"
+    bytes: 3249
+  - path: docs/governance/change-requests/CR-014/verdicts/board-1-architecture-mahesh.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "Board 1 — Architecture · Position on CR-014"
+    answers: "Change request: CR-014 · Plan: GLM-001"
+    bytes: 7782
+  - path: docs/governance/change-requests/CR-014/verdicts/board-4-security-deepali.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "Board 4 — Security · Position on CR-014"
+    answers: "Change request: CR-014 · Plan: GLM-001"
+    bytes: 7463
+  - path: docs/governance/change-requests/CR-014/verdicts/board-5-qa-swapnali.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "Board 5 — QA · Position on CR-014"
+    answers: "Change request: CR-014 · Plan: GLM-001"
+    bytes: 6082
+  - path: docs/governance/change-requests/CR-014/verdicts/board-6-compliance-shailja.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "Board 6 — Risk & Compliance · Position on CR-014"
+    answers: "Change request: CR-014 · Plan: GLM-001"
+    bytes: 6909
+  - path: docs/governance/change-requests/CR-014/verdicts/board-7-operations-shivanshi.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "Board 7 — Operations · Position on CR-014"
+    answers: "Change request: CR-014 · Plan: GLM-001"
+    bytes: 6910
+  - path: docs/governance/change-requests/CR-014/verdicts/r12-delivery-kalpana.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "`R12` — Delivery · Position on CR-014"
+    answers: "Change request: CR-014 · Plan: GLM-001"
+    bytes: 5524
+  - path: docs/governance/change-requests/CR-014/verdicts/r3-engineering-amit.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "`R3` — Engineering · Position on CR-014"
+    answers: "Change request: CR-014 · Plan: GLM-001"
+    bytes: 7360
+  - path: docs/governance/change-requests/CR-015-shared-persistence-vs-bank-baseline.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "CR-015 — `bank-persistence-service` versus bank baseline §3.3: shared persistence as an accepted decision"
+    answers: "Type: CONSTRAINT (potential REVERSAL of an Accepted decision)"
+    bytes: 14865
+  - path: docs/governance/change-requests/CR-016-gitlab-ce-control-model-gap.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "CR-016 — GitLab Community Edition cannot enforce the approved governance model"
+    answers: "Type: CONSTRAINT (with WAIVER consequences on approved CR-014 conditions)"
+    bytes: 10691
   - path: docs/governance/plans/PLAN-001-context-module-and-safe-autopilot.md
     bucket: governance
     authority: binding-process
@@ -3541,7 +3645,7 @@ documents:
     persona: null
     title: "Assumption Register"
     answers: "Beliefs the plan rests on that have not been verified. Every assumption has an expiry, a"
-    bytes: 6839
+    bytes: 12283
   - path: docs/governance/registers/DECISION-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -3549,7 +3653,7 @@ documents:
     persona: null
     title: "Decision Register"
     answers: "Index of decisions that constrain future work: ADRs, change requests, stage transitions, and"
-    bytes: 37624
+    bytes: 48167
   - path: docs/governance/registers/DEPENDENCY-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -3557,7 +3661,7 @@ documents:
     persona: null
     title: "Dependency Register"
     answers: "Edges of the dependency graph. Edges outlive the items that discovered them, so they are"
-    bytes: 6617
+    bytes: 9487
   - path: docs/governance/registers/PARKED-BACKLOG.md
     bucket: governance
     authority: binding-process
@@ -3565,7 +3669,7 @@ documents:
     persona: null
     title: "Parked Backlog"
     answers: "Parked is not deleted. Every entry names the stage that unparks it and the observable"
-    bytes: 11013
+    bytes: 11792
   - path: docs/governance/registers/RISK-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -3573,7 +3677,7 @@ documents:
     persona: null
     title: "Risk Register"
     answers: "Open risks with owners, triggers, and responses. A risk is not a problem — it is a problem"
-    bytes: 7218
+    bytes: 16497
   - path: docs/governance/registers/SUGGESTION-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -3581,7 +3685,7 @@ documents:
     persona: null
     title: "Suggestion Register"
     answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 175410
+    bytes: 192790
   - path: docs/governance/schemas/README.md
     bucket: governance
     authority: binding-process
@@ -3653,7 +3757,7 @@ documents:
     persona: null
     title: "CURRENT STATE"
     answers: "AIGEM — Machine-readable current state"
-    bytes: 31453
+    bytes: 32101
   - path: docs/governance/state/GATE-EVIDENCE.yaml
     bucket: governance
     authority: binding-process
@@ -3925,7 +4029,7 @@ documents:
     persona: architecture
     title: "08 — Architecture Decision Log (this review)"
     answers: "ID scheme: ARCH-xxx — deliberately distinct from the business/scope D-xxx and process DOC-xxx IDs in docs/au-bank-insurance-platform/DECISION-LOG.md,…"
-    bytes: 113963
+    bytes: 119850
   - path: docs/platform/architecture-review/README.md
     bucket: platform
     authority: approved-spec
@@ -4158,6 +4262,70 @@ documents:
     title: "R0 design DDL"
     answers: "PostgreSQL scripts that implement 01-physical-design.md."
     bytes: 1597
+  - path: docs/platform/gitlab-migration/GLM-001-migration-plan.md
+    bucket: platform
+    authority: ai-drafted
+    capsules: [sre-operations, delivery-planning, architecture-review]
+    persona: sre-operations
+    title: "GLM-001 — GitHub → GitLab estate migration plan"
+    answers: "Origin: SUG-20260829-glm"
+    bytes: 49100
+  - path: docs/platform/gitlab-migration/README.md
+    bucket: platform
+    authority: ai-drafted
+    capsules: [sre-operations, delivery-planning, architecture-review]
+    persona: sre-operations
+    title: "GitLab Estate Migration — SRE pack"
+    answers: "Origin: SUG-20260829-glm"
+    bytes: 1685
+  - path: docs/platform/gitlab-migration/m2-evidence/M2-1-gitleaks-full-history.json
+    bucket: platform
+    authority: ai-drafted
+    capsules: [sre-operations, security-review, delivery-planning]
+    persona: sre-operations
+    title: "M2 1 gitleaks full history"
+    answers: "JSON artefact"
+    bytes: 7547
+  - path: docs/platform/gitlab-migration/m2-evidence/M2-4-docs-sweep.md
+    bucket: platform
+    authority: ai-drafted
+    capsules: [sre-operations, security-review, delivery-planning]
+    persona: sre-operations
+    title: "M2.4 — `docs/` PII, NDA and credential sweep"
+    answers: "Executed: 2026-08-29 · Run by: Shivanshi (SRE) · Rules owner: Shailja (Board 6)"
+    bytes: 6792
+  - path: docs/platform/gitlab-migration/m2-evidence/M2-4-raw-signals.json
+    bucket: platform
+    authority: ai-drafted
+    capsules: [sre-operations, security-review, delivery-planning]
+    persona: sre-operations
+    title: "M2 4 raw signals"
+    answers: "JSON artefact"
+    bytes: 11773
+  - path: docs/platform/gitlab-migration/m2-evidence/M2-5-branch-triage.md
+    bucket: platform
+    authority: ai-drafted
+    capsules: [sre-operations, security-review, delivery-planning]
+    persona: sre-operations
+    title: "M2.5 — Branch triage (full history)"
+    answers: "Re-run on the unshallowed clone. The first run used the shallow clone and its ancestry was unreliable."
+    bytes: 2760
+  - path: docs/platform/gitlab-migration/m2-evidence/M2-8-C-ENG-5-split-build.md
+    bucket: platform
+    authority: ai-drafted
+    capsules: [sre-operations, security-review, delivery-planning]
+    persona: sre-operations
+    title: "`C-ENG-5` — backend build from the split clone · **FAIL**"
+    answers: "Executed: 2026-08-29 · Condition: C-ENG-5 (Amit) · Recommendation: R8 of DEC-20260829-02"
+    bytes: 5859
+  - path: docs/platform/gitlab-migration/m2-evidence/M2-EVIDENCE.md
+    bucket: platform
+    authority: ai-drafted
+    capsules: [sre-operations, security-review, delivery-planning]
+    persona: sre-operations
+    title: "M2 — Pre-migration hygiene: evidence pack"
+    answers: "Executed: 2026-08-29 · Owner: Shivanshi (SRE / R10)"
+    bytes: 17780
   - path: docs/platform/ws3-platform/00-WS3-ARCHITECTURE-REGISTRATION.md
     bucket: platform
     authority: approved-spec

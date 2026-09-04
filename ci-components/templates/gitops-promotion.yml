@@ -1,0 +1,63 @@
+# GitOps promotion. GLM-001 M7.7.
+#
+# ===========================================================================
+# THE ARTIFACT PROMOTION RULE (baseline section 3.6, and section 14 acceptance):
+#
+#   "The exact immutable application artifact/image tested in lower environments
+#    is promoted to production. Production promotion must not rebuild."
+#
+# So this component promotes A DIGEST. It never builds, never tags by branch,
+# and refuses to run if handed a mutable reference — because "promote by tag"
+# is how a rebuild sneaks into production while still looking like a promotion.
+# ===========================================================================
+spec:
+  inputs:
+    stage:
+      default: promote
+    runner_tag:
+      default: "general"
+    environment:
+      default: "dev"
+    image_digest:
+      default: ""
+    gitops_path:
+      default: "environments"
+---
+
+"gitops-promotion":
+  stage: $[[ inputs.stage ]]
+  image: alpine:3.20
+  tags: ["$[[ inputs.runner_tag ]]"]
+  before_script:
+    - apk add --no-cache git yq
+  script:
+    - |
+      set -euo pipefail
+      digest="$[[ inputs.image_digest ]]"
+      if [ -z "$digest" ]; then
+        echo "FAIL: no image digest supplied."
+        echo "Promotion moves a digest that already passed a lower environment."
+        exit 1
+      fi
+      case "$digest" in
+        sha256:*) : ;;
+        *)
+          echo "FAIL: '$digest' is not a sha256 digest."
+          echo "A tag is mutable. Promoting by tag is how a REBUILD reaches"
+          echo "production while still looking like a promotion (baseline 3.6)."
+          exit 1
+          ;;
+      esac
+      echo "OK: promoting immutable digest $digest to $[[ inputs.environment ]]"
+    - |
+      set -euo pipefail
+      target="$[[ inputs.gitops_path ]]/$[[ inputs.environment ]]/values.yaml"
+      test -f "$target" || { echo "FAIL: $target not found"; exit 1; }
+      yq -i ".image.digest = \"$[[ inputs.image_digest ]]\"" "$target"
+      git diff --stat
+      echo "Commit and merge this change through an MR — promotion is a reviewed"
+      echo "desired-state change, not a pipeline side effect."
+  artifacts:
+    paths: ["$[[ inputs.gitops_path ]]/$[[ inputs.environment ]]/values.yaml"]
+    expire_in: 30 days
+  allow_failure: false

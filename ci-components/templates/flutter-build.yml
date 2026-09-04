@@ -1,0 +1,41 @@
+# Flutter build and test. GLM-001 M7.6.
+#
+# Frontend release cadence is independent of backend deployment cadence
+# (baseline section 8.2). Note: this component has NEVER been executed — no
+# Flutter toolchain existed in the authoring environment (BLOCKED_ENVIRONMENT).
+spec:
+  inputs:
+    stage:
+      default: test
+    image:
+      default: "ghcr.io/cirruslabs/flutter:stable"
+    runner_tag:
+      default: "flutter"
+    app_path:
+      default: "apps/rm-workspace-app"
+---
+
+"flutter-analyze":
+  stage: $[[ inputs.stage ]]
+  image: $[[ inputs.image ]]
+  tags: ["$[[ inputs.runner_tag ]]"]
+  script:
+    - cd "$[[ inputs.app_path ]]"
+    - flutter pub get
+    - flutter analyze --fatal-infos --fatal-warnings
+  allow_failure: false
+
+"flutter-test":
+  stage: $[[ inputs.stage ]]
+  image: $[[ inputs.image ]]
+  tags: ["$[[ inputs.runner_tag ]]"]
+  script:
+    - cd "$[[ inputs.app_path ]]"
+    - flutter pub get
+    - flutter test --coverage --reporter expanded
+  coverage: '/lines\.*: \d+\.\d+\%/'
+  artifacts:
+    when: always
+    paths: ["$[[ inputs.app_path ]]/coverage/lcov.info"]
+    expire_in: 14 days
+  allow_failure: false

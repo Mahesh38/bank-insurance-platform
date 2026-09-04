@@ -1,0 +1,92 @@
+# Day-1 projects. Baseline section 2.2, plus gitlab-bootstrap (section 4.1) and
+# platform-governance (IMP-1 / ADR-018, gated by AC-2).
+#
+# `initialize_with_readme: false` is MANDATORY on projects receiving migrated
+# history — IMP-11 #1: a generated README commit forks the history before the
+# mirror lands.
+#
+# `set_default_branch` is false for those same projects: baseline section 7
+# forbids defaulting or protecting a branch before it exists.
+projects:
+  frontend:
+    group: product
+    description: "Flutter/mobile and future UI applications"
+    receives_migrated_history: true
+    initialize_with_readme: false
+    set_default_branch: false
+    container_registry: true
+    packages: false
+
+  backend:
+    group: product
+    description: "Backend microservices monorepo"
+    receives_migrated_history: true
+    initialize_with_readme: false
+    set_default_branch: false
+    container_registry: true
+    packages: true
+
+  contracts:
+    group: product
+    description: "OpenAPI, event schemas and compatibility"
+    receives_migrated_history: false
+    initialize_with_readme: false
+    set_default_branch: true
+    container_registry: false
+    packages: true
+
+  infrastructure:
+    group: delivery
+    description: "AWS/EKS/Terraform infrastructure composition"
+    receives_migrated_history: false
+    initialize_with_readme: false
+    set_default_branch: true
+    container_registry: false
+    packages: false
+
+  gitops:
+    group: delivery
+    description: "Environment desired deployment state"
+    receives_migrated_history: false
+    initialize_with_readme: false
+    set_default_branch: true
+    container_registry: false
+    packages: false
+
+  ci-components:
+    group: engineering
+    description: "Versioned reusable GitLab CI/CD components"
+    receives_migrated_history: false
+    initialize_with_readme: false
+    set_default_branch: true
+    container_registry: false
+    packages: true
+
+  security-policies:
+    group: governance
+    description: "Central security/compliance policies where supported"
+    receives_migrated_history: false
+    initialize_with_readme: false
+    set_default_branch: true
+    container_registry: false
+    packages: false
+
+  gitlab-bootstrap:
+    group: governance
+    description: "Terraform IaC that provisions and governs this estate"
+    receives_migrated_history: false
+    initialize_with_readme: false
+    set_default_branch: true
+    container_registry: false
+    packages: false
+
+  # NINTH PROJECT — gated by AC-2 / var.platform_governance_enabled.
+  # Not created until the bank accepts the Appendix C exception in writing.
+  platform-governance:
+    group: governance
+    description: "AIGEM governance model, registers and agent context tooling (ADR-018)"
+    receives_migrated_history: true
+    initialize_with_readme: false
+    set_default_branch: false
+    container_registry: false
+    packages: false

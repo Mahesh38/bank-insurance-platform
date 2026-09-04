@@ -1,0 +1,32 @@
+# Subgroups beneath the existing `insurance` parent (id 820, ASM-024).
+# The parent is a PREREQUISITE and is never created here — IMP-11 #3.
+groups:
+  bank-insurance:
+    path: bank-insurance
+    parent: null                 # null => parent_group_id (insurance, 820)
+    description: "AU Bank Insurance Distribution Platform"
+    visibility: private
+
+  product:
+    path: product
+    parent: bank-insurance
+    description: "Application source code and canonical contracts"
+    visibility: private
+
+  delivery:
+    path: delivery
+    parent: bank-insurance
+    description: "AWS/EKS infrastructure composition and runtime desired state"
+    visibility: private
+
+  engineering:
+    path: engineering
+    parent: bank-insurance
+    description: "Reusable GitLab CI/CD capabilities and engineering automation"
+    visibility: private
+
+  governance:
+    path: governance
+    parent: bank-insurance
+    description: "Security/compliance policy and GitLab bootstrap IaC"
+    visibility: private

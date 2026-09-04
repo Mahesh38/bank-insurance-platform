@@ -1,0 +1,29 @@
+# Container image scan. GLM-001 M7.5.
+spec:
+  inputs:
+    stage:
+      default: verify
+    trivy_version:
+      default: "0.56.2"
+    runner_tag:
+      default: "security"
+    image_ref:
+      default: "$CI_REGISTRY_IMAGE/$CI_PROJECT_NAME:$CI_COMMIT_SHA"
+    severity:
+      default: "CRITICAL,HIGH"
+---
+
+"container-scan":
+  stage: $[[ inputs.stage ]]
+  image: "aquasec/trivy:$[[ inputs.trivy_version ]]"
+  tags: ["$[[ inputs.runner_tag ]]"]
+  script:
+    - trivy image "$[[ inputs.image_ref ]]" --severity "$[[ inputs.severity ]]"
+        --ignore-unfixed --exit-code 1 --format table
+  after_script:
+    - trivy image "$[[ inputs.image_ref ]]" --format json --output container-scan.json || true
+  artifacts:
+    when: always
+    paths: [container-scan.json]
+    expire_in: 90 days
+  allow_failure: false

@@ -201,7 +201,7 @@ Full table with the wrong-instinct column:
 - Bank apps never call 1SB or a database directly
 - 1SB specifics live only in adapter.onesb.* (ArchUnit enforced)
 - 1sb-integration-service owns no Flyway migrations and no JPA
-- Persistence is platform-common, not 1SB-owned
+- Every bounded context owns its write model, schema, credentials and Flyway history (ADR-019); one R0 Aurora cluster, separate schemas, no cross-schema grants; bank-persistence-service is the Integration Operations/Evidence context, not a platform-wide gateway, and is not 1SB-owned
 - Flutter never receives OAuth tokens; the BFF holds them
 - Keycloak is not the source of truth for business authorization
 - No PII in logs

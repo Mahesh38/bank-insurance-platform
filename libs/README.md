@@ -1,8 +1,19 @@
 # Shared Libraries — `libs/`
 
-These are Java 21 / Spring Boot **3.3.4** compatible shared libraries for the bank insurance platform.
+These are Java 21 / Spring Boot **3.5.x** compatible shared libraries for the bank insurance platform.
 They are **not Spring Boot applications** — they are plain JARs consumed by services via
 `implementation(project(":libs:..."))`.
+
+| Module | Owns |
+|--------|------|
+| `bank-common-domain` | Bank-owned domain models (`Lob`, jobs, payments, status) — **not** 1SB wire types |
+| `bank-common-error` | Error catalogue, problem+JSON, shared handler |
+| `bank-common-security` | Security helpers |
+| `bank-common-audit` | Audit event model + publisher SPI |
+| `bank-common-observability` | MDC / metrics helpers |
+| `bank-common-secrets` | SecretProvider SPI |
+
+1SB provider DTOs and HTTP clients stay in `services/1sb-integration-service/.../adapter.onesb.*`.
 
 ---
 

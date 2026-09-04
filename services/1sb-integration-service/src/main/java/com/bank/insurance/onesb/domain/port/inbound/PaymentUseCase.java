@@ -1,7 +1,7 @@
 package com.bank.insurance.onesb.domain.port.inbound;
 
 import com.bank.insurance.onesb.domain.command.CreatePaymentCommand;
-import com.bank.insurance.onesb.domain.model.PaymentSession;
+import com.bank.common.domain.PaymentSession;
 
 /**
  * Inbound use-case for payment session creation (FUNC-007).

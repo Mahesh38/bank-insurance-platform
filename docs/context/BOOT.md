@@ -140,7 +140,7 @@ Full table with the wrong-instinct column:
 **Phase:** Phase 4 — Hardening & consumer enablement  
 **Next:** Phase 5 — Expand LOBs (Health → Motor)
 
-**Objective** (`P4-UAT-SIGNOFF`): Term path signed off for UAT use by at least one bank caller
+**Objective** (`P4-UAT-SIGNOFF`): Term path signed off for UAT use by at least one bank caller, while EPIC-002 delivers Life LOB adapter coverage (Term + Savings + ULIP) and adapter standards under CR-014 (does not replace Term UAT exit criteria).
 
 **Open gate:** `GATE-P4` · state `BLOCKED` · 7 of 7 exit criteria still open
 - `4.1` **BLOCKED** — Sandbox E2E suite for the Term path runs in CI (or gated nightly) · Amit / Engineering + R10 / Operations · blocked by GATE-4.1-SANDBOX-E2E
@@ -156,13 +156,14 @@ Full table with the wrong-instinct column:
 - Health and Motor LOB handlers — revisit at Phase 5
 - Redis idempotency / multi-instance job ownership — revisit at Phase 5.4
 - FUNC-008 payment intimation — revisit at Phase 5.3
-- Circuit breaker, mandatory consentRef — revisit at Phase 5.5
+- Mandatory consentRef tighten (COMP-005) — revisit at Phase 5.5
 - Dashboards, alerting, SLOs — revisit at Phase 6
 - Autoscaling, DR testing, retention jobs, backup/restore — revisit at Phase 6
-- Saving / Annuity / Pension LOBs — revisit at Phase 6+
+- Annuity / Pension LOBs — revisit at Phase 6+
 - Provider routing flag / fake adapter (E13) — revisit at Phase 6+
 - Persistence performance optimisation — revisit at evidence-driven only
 - Reactive rewrite / SDK framework — revisit at never, absent evidence
+- WS-3 R0 product catalogue or RM journey for Savings/ULIP sales — revisit at R1 — adapter readiness does not admit R0 journey sales
 
 **Never in this workstream:**
 - Bank apps calling 1SB or the database directly

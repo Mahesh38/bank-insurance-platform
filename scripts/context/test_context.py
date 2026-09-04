@@ -87,8 +87,9 @@ class DocumentRoutingTests(unittest.TestCase):
         self.assertEqual(0, result.returncode, result.stdout + result.stderr)
 
         tracked = subprocess.run(
-            ["git", "ls-files", "docs"], cwd=ROOT, capture_output=True, text=True, check=True
-        ).stdout.split()
+            ["git", "ls-files", "-z", "docs"], cwd=ROOT, capture_output=True, text=True, check=True
+        ).stdout.split("\0")
+        tracked = [path for path in tracked if path]
         import yaml  # local: the builder already hard-requires it
 
         mapped = {

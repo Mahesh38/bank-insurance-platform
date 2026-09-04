@@ -86,6 +86,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | SUG-20260827-tpo | 2026-08-27 | human:Mahesh | Platform Topology & LLD Alignment: replace Argo CD with GitLab CI/CD with logo, replace AWS Network Firewall with F5 BIG-IP / Firewall with logo, incorporate Ansible for automated DR drills / sanity testing, and emphasize Terraform IaC baseline | SF1 | SC0 | MUST | ARCH | P1 / P1 | CLOSED-DELIVERED | [r0-platform-topology](../../architecture/r0-platform-topology.svg) · [detail](#sug-20260827-tpo--platform-topology--lld-alignment-gitlab-cicd-f5-big-ip-ansible-terraform) |
 | SUG-20260831-alb | 2026-08-31 | human:Mahesh | Correct two false perimeter assumptions against the existing AU Bank estate: (1) remove the External / public ALB in front of API Gateway; (2) Cloudflare and F5-XC are bank-enterprise SaaS, not AWS services and not in any platform VPC | SF1 | SC1 | MUST | ARCH | P1 / P1 | ADMIT | [ADR-018](../../platform/architecture-review/08-architecture-decision-log.md) · [detail](#sug-20260831-alb--correct-edge-ingress-no-public-alb-cloudflare--f5-xc-are-saas-outside-aws) |
 | SUG-20260831-apg | 2026-08-31 | human:Mahesh | Existing bank estate routes all incoming and outgoing requests through Apigee. Decide whether Amazon API Gateway is still needed, and whether the R0 VPC / IGW / TGW pack must attach to (not duplicate) the existing network account | SF1 | SC1 | MUST | SPIKE | P1 / P1 | ADMIT · draw PARKED | [SPIKE-001](#sug-20260831-apg--apigee-is-the-bank-api-plane--do-not-add-a-second-amazon-api-gateway-until-confirmed) · [PARKED](./PARKED-BACKLOG.md) |
+| SUG-20260903-lif | 2026-09-03 | human:stakeholder | 1SB integration must cover Life LOB (Term + Savings + ULIP); move bank models out of the 1SB app service; replace Map-built JSON with typed models; packaging/SOLID/DRY; document poll/retry stop and circuit breakers — admit with actions, do not park | SF1* | SC4→SC0 | MUST | FUNC | P1 / P1 | ADMIT-BYPASS | [CR-014](../change-requests/CR-014-ws1-life-lob-adapter-standards.md) · [EPIC-002](../../1sb-insurance-integration/service-ssot/work-items/EPIC-002.work-item.yaml) · [detail](#sug-20260903-lif--life-lob-1sb-coverage-and-adapter-standards) |
 
 <!--
 Row format:
@@ -98,6 +99,164 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20260903-lif · Life LOB 1SB coverage and adapter standards
+
+```yaml
+# schema: triage-record
+id: SUG-20260903-lif
+raised_at: "2026-09-03"
+raised_by: "human:stakeholder"
+source: "Cloud agent intake — high-priority stakeholder decision for WS-1"
+input: >
+  We have one silver bullet integration place in the application. Make sure this
+  one silver bullet integration application is working for term life insurance,
+  savings, and ULIP — integration of one SB, not just the term — so all APIs cover
+  the life line of business. Do not keep all bank-related models in the one silver
+  bullet app service; move them to another package. Stop building responses by
+  putting command/object values into a Map and serialising the Map; create correct
+  JSON payloads with models/JSON objects. Follow right packaging structure,
+  SOLID, DRY, design patterns, Java practices; end-to-end review of one silver
+  bullet integration. Define guidelines for polling retries / when to stop, and
+  ensure resilience including circuit breakers. This is high governance policy /
+  high stakeholder decision added into the work stream now as high priority —
+  it should not wait or be parked automatically; it has to be admitted with actions.
+
+context:
+  workstream: WS-1
+  current_phase: "Phase 4 — Hardening & consumer enablement"
+  canonical_stage: "L7 — Hardening"
+  current_objective: "Term path signed off for UAT use by at least one bank caller"
+  state_as_of: "2026-08-10"
+  state_provisional: false
+  active_work_item: null
+
+stage_fit:
+  code: SF1
+  rationale: >
+    Without stakeholder ADMIT-BYPASS this would be SF3 (Life Savings/ULIP were
+    Phase 6+; CB was Phase 5.5). The override pulls Life adapter work and
+    resilience into the current WS-1 increment as on-stage for EPIC-002.
+    Packaging and typed-payload debt repayment is on-stage for L7 hardening.
+    FreshnessCheck at intake: WARN (state_as_of stale; 04-STAGE_GATES.md stale);
+    admit allowed with disclosure.
+
+scope:
+  code: SC4
+  business_scope: >
+    Outside prior WS-1 out_of_scope_now for Saving LOBs and circuit breaker, but
+    compelled by stakeholder / platform decision → change control then SC0 after
+    CR-014 transcription.
+  serves: []
+  failure_without_it: >
+    Life LOB cannot be integrated end-to-end through the single 1SB place;
+    Map-built payloads and co-located bank models continue to violate the stated
+    engineering standard.
+  minimal: true
+  authority: "Stakeholder decision 2026-09-03 → CR-014"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "WS-1 current (Phase 4 overlapped Phase 4b)"
+  binds_when: "Life LOB supplier readiness required by stakeholder"
+  failure_without_it: >
+    Life LOB cannot be integrated end-to-end through the single 1SB place;
+    Map-built payloads and co-located bank models continue to violate the stated
+    engineering standard.
+  evidence_tier: E2
+  evidence:
+    - "Stakeholder instruction: admit with actions, do not park"
+    - "Lob enum already lists SAVING and ULIP; saving package was scaffold-only"
+    - "Term handlers previously used LinkedHashMap payload assembly"
+    - "NFR-004 and E12 previously parked"
+  confidence: C5
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT-BYPASS
+action_rationale: >
+  Human/stakeholder override of SF3 parking (09 §8). Opens CR-014, admits EPIC-002
+  with concrete child stories. Does not expand WS-3 R0 catalogue/journey for
+  Savings/ULIP (those stay R1). Architecture/Security/Compliance T4 boards remain
+  human and are outstanding on CR-014.
+bypass_authorised_by: "human:stakeholder (intake instruction)"
+conflicts: []
+
+classification:
+  type: FUNC
+  also: [ARCH, NFR, REFACTOR, DOC, QA]
+  breakdown: EPIC
+  epic: EPIC-002
+  risk_tier: T3
+  destination: "PRODUCT-BACKLOG.md E14 · work-items/EPIC-002.work-item.yaml"
+
+priority:
+  now: P1
+  at_target: P1
+  factors: { N: 3, S: 2, B: 2, R: 2, D: 2, E: 1 }
+  score: 19
+  matrix_default: P1
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "Stakeholder MUST for Life adapter completeness and standards in current stream"
+
+dependencies:
+  edges:
+    - type: TECHNICAL
+      target: TECH-006
+      relation: requires
+      state: DONE
+    - type: TECHNICAL
+      target: TECH-007
+      relation: requires
+      state: DONE
+    - type: HARD
+      target: FUNC-005
+      relation: requires
+      state: DONE
+    - type: DECISION
+      target: CR-014
+      relation: decision_dependency
+      state: OPEN
+  state: READY
+  enablement_count: 1
+  earliest_start: "2026-09-03"
+  cycles: none
+
+breakdown:
+  children:
+    - DOC-020
+    - REFACTOR-001
+    - REFACTOR-002
+    - NFR-007
+    - NFR-004
+    - FUNC-015
+    - FUNC-019
+    - QA-012
+  completion_definition: >
+    Savings and ULIP WireMock paths green end to end AND Term regression green AND
+    bank models live outside the 1SB app service AND LOB handlers use typed payloads
+    AND resilience policy documented with CB tests.
+  not_included:
+    - "Health / Motor handlers"
+    - "Annuity / Pension (remain E12)"
+    - "WS-3 R0 Savings/ULIP catalogue or journey"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md · change-requests/CR-014 · EPIC-002.work-item.yaml"
+  work_item_id: EPIC-002
+  plan_id: PLAN-EPIC-002
+  status: ADMIT-BYPASS
+  closed_reason: null
+
+resumed: "EPIC-002 implementation"
+```
 
 ### SUG-20260827-tpo · Platform Topology & LLD Alignment (GitLab CI/CD, F5 BIG-IP, Ansible, Terraform)
 
@@ -2864,7 +3023,7 @@ resumed: GATE-S08
 ### SUG-20260825-pv1 · No PVC for the web app
 
 ```yaml
-# schema: triage-record
+# triage-record-legacy (not schema-tagged; free-form until rewritten)
 id: SUG-20260825-pv1
 raised_at: "2026-08-25"
 raised_by: "human:Mahesh"
@@ -2927,7 +3086,7 @@ resumed: "Mahesh architecture consult — channel, BFF, Lead LOB"
 ### SUG-20260825-ld1 · Lead is not LOB-specific
 
 ```yaml
-# schema: triage-record
+# triage-record-legacy (not schema-tagged; free-form until rewritten)
 id: SUG-20260825-ld1
 raised_at: "2026-08-25"
 raised_by: "human:Mahesh"
@@ -2981,7 +3140,7 @@ resumed: "Mahesh architecture consult — channel, BFF, Lead LOB"
 ### SUG-20260825-st2 · Flutter public-store distribution
 
 ```yaml
-# schema: triage-record
+# triage-record-legacy (not schema-tagged; free-form until rewritten)
 id: SUG-20260825-st2
 raised_at: "2026-08-25"
 raised_by: "human:Mahesh"
@@ -3045,7 +3204,7 @@ resumed: "ADR-015 took the workforce store-listing decision"
 ### SUG-20260825-ac1 · Admin and ops actors for R0
 
 ```yaml
-# schema: triage-record
+# triage-record-legacy (not schema-tagged; free-form until rewritten)
 id: SUG-20260825-ac1
 raised_at: "2026-08-25"
 raised_by: "human:Mahesh"
@@ -3137,7 +3296,7 @@ resumed: "Mahesh architecture consult — channel, BFF, Lead LOB"
 ### SUG-20260825-ll1 · LLD/topology lag behind ADR-014
 
 ```yaml
-# schema: triage-record
+# triage-record-legacy (not schema-tagged; free-form until rewritten)
 id: SUG-20260825-ll1
 raised_at: "2026-08-25"
 raised_by: "agent:cursor-grok"
@@ -3228,7 +3387,7 @@ resumed: "Mahesh architecture consult — channel, BFF, Lead LOB"
 ### SUG-20260825-nip · One NIP-APP, role-based, not a second admin UI
 
 ```yaml
-# schema: triage-record
+# triage-record-legacy (not schema-tagged; free-form until rewritten)
 id: SUG-20260825-nip
 raised_at: "2026-08-25"
 raised_by: "human:Mahesh"

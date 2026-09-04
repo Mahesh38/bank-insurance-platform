@@ -4,7 +4,7 @@ import com.bank.insurance.onesb.api.v1.dto.MasterLookupRequest;
 import com.bank.insurance.onesb.api.v1.dto.MasterLookupResponse;
 import com.bank.insurance.onesb.application.MasterDataService;
 import com.bank.insurance.onesb.application.MasterLookupOutcome;
-import com.bank.insurance.onesb.domain.model.LookupValue;
+import com.bank.common.domain.LookupValue;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

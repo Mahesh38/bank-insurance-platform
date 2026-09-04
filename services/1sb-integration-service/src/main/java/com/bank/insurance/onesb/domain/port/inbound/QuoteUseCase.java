@@ -1,7 +1,7 @@
 package com.bank.insurance.onesb.domain.port.inbound;
 
 import com.bank.insurance.onesb.domain.command.CreateQuoteCommand;
-import com.bank.insurance.onesb.domain.model.QuoteJob;
+import com.bank.common.domain.QuoteJob;
 
 /**
  * Inbound use-case interface for quote operations.

@@ -1,4 +1,4 @@
-package com.bank.insurance.onesb.domain.model;
+package com.bank.common.domain;
 
 /**
  * Supported Lines of Business discriminator.

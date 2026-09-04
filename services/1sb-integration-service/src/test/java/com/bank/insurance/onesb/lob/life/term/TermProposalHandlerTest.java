@@ -1,8 +1,9 @@
 package com.bank.insurance.onesb.lob.life.term;
 
+import com.bank.common.domain.Lob;
 import com.bank.common.secrets.SecretProvider;
 import com.bank.insurance.onesb.domain.command.SubmitProposalCommand;
-import com.bank.insurance.onesb.domain.model.Lob;
+import com.bank.insurance.onesb.lob.life.payload.LifeProposalSubmitBody;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -38,8 +39,8 @@ class TermProposalHandlerTest {
     @Test
     void schemaPath_includesQueryParams() {
         String path = handler.schemaPath("T1", "HDFC", "1");
-        assertThat(path).startsWith("/insurance/lifeterm/v1/proposal/form?");
-        assertThat(path).contains("productCode=T1");
+        assertThat(path).startsWith("/insurance/lifeterm/v1/proposal?");
+        assertThat(path).contains("productId=T1");
         assertThat(path).contains("manufacturerId=HDFC");
         assertThat(path).contains("version=1");
     }
@@ -47,9 +48,9 @@ class TermProposalHandlerTest {
     @Test
     void schemaPath_omitsBlankParams() {
         assertThat(handler.schemaPath(null, null, null))
-                .isEqualTo("/insurance/lifeterm/v1/proposal/form");
+                .isEqualTo("/insurance/lifeterm/v1/proposal");
         assertThat(handler.schemaPath("T1", null, ""))
-                .isEqualTo("/insurance/lifeterm/v1/proposal/form?productCode=T1");
+                .isEqualTo("/insurance/lifeterm/v1/proposal?productId=T1");
     }
 
     @Test
@@ -62,7 +63,6 @@ class TermProposalHandlerTest {
 
     @Test
     @Tag("FUNC-005")
-    @SuppressWarnings("unchecked")
     void buildSubmitPayload_injectsDistributorFromSecrets_ignoresClientDistributorId() {
         when(secretProvider.getDistributorId()).thenReturn("BCIBL");
 
@@ -78,14 +78,16 @@ class TermProposalHandlerTest {
                 "j-1", null, "idem-1", "actor-1"
         );
 
-        Map<String, Object> payload = (Map<String, Object>) handler.buildSubmitPayload(command);
+        LifeProposalSubmitBody payload = handler.buildSubmitPayload(command);
 
-        assertThat(payload).doesNotContainKey("distributorId");
-        assertThat(payload.get("proposer.panNumber")).isEqualTo("ABCDE1234F");
-        @SuppressWarnings("unchecked")
-        Map<String, Object> distributor = (Map<String, Object>) payload.get("distributor");
-        assertThat(distributor.get("distributorID")).isEqualTo("BCIBL");
-        assertThat(distributor.get("agentID")).isEqualTo("109337");
-        assertThat(distributor.get("channelType")).isEqualTo("B2B");
+        assertThat(payload.formFields()).containsEntry("proposer.panNumber", "ABCDE1234F");
+        assertThat(payload.formFields()).doesNotContainKeys("distributorId", "distributor");
+        assertThat(payload.getDistributor().distributorID()).isEqualTo("BCIBL");
+        assertThat(payload.getDistributor().agentID()).isEqualTo("109337");
+        assertThat(payload.getDistributor().channelType()).isEqualTo("B2B");
+        assertThat(payload.getProductCode()).isEqualTo("T1");
+        assertThat(payload.getManufacturerId()).isEqualTo("HDFC");
+        assertThat(payload.getOfferId()).isEqualTo("off-1");
+        assertThat(payload.getSchemaId()).isEqualTo("scm-1");
     }
 }

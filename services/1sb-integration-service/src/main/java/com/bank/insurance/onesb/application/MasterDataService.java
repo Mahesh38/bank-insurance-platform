@@ -4,7 +4,7 @@ import com.bank.common.error.ErrorCodes;
 import com.bank.common.error.PlatformLayer;
 import com.bank.common.error.ServiceErrors;
 import com.bank.common.error.ServiceException;
-import com.bank.insurance.onesb.domain.model.LookupValue;
+import com.bank.common.domain.LookupValue;
 import com.bank.insurance.onesb.domain.port.outbound.OneSbMasterDataPort;
 import com.bank.insurance.onesb.domain.port.outbound.OneSbMasterDataPort.MasterLookupResult;
 import org.springframework.stereotype.Service;

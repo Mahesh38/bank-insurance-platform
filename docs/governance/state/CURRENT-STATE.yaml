@@ -214,13 +214,17 @@ workstreams:
 
     current_objective:
       id: P4-UAT-SIGNOFF
-      description: "Term path signed off for UAT use by at least one bank caller"
+      description: >
+        Term path signed off for UAT use by at least one bank caller, while EPIC-002
+        delivers Life LOB adapter coverage (Term + Savings + ULIP) and adapter standards
+        under CR-014 (does not replace Term UAT exit criteria).
 
     current_deliverable:
       description: >
         Hardened Term vertical slice: sandbox E2E evidence in CI, published OpenAPI and
         consumer collection, compliance-reviewed audit schema, operations runbook,
-        performance smoke measurement.
+        performance smoke measurement; plus admitted EPIC-002 Life LOB adapter work
+        (Savings + ULIP handlers, bank-model extraction, typed 1SB payloads, resilience).
 
     current_scope:
       in_scope:
@@ -232,6 +236,12 @@ workstreams:
         - "Performance smoke (p95 quote under nominal concurrency)"
         - "Coverage gate closure (QA-001)"
         - "Defect fixes on the delivered Term path"
+        # CR-014 / SUG-20260903-lif — stakeholder Life LOB + adapter standards (WS-1 only)
+        - "Life LOB 1SB API coverage: Term + Savings + ULIP (EPIC-002)"
+        - "Extract bank-owned models from 1sb-integration-service into a shared package"
+        - "Typed JSON models for outbound/inbound 1SB payloads (no Map assembly)"
+        - "Package segregation / SOLID / DRY engineering review of the 1SB module"
+        - "Documented poll/retry stop policy and circuit breaker / bulkhead for 1SB egress (NFR-004, NFR-007)"
 
       out_of_scope:
         - item: "Kafka / event backbone"
@@ -242,13 +252,13 @@ workstreams:
           revisit_at: "Phase 5.4"
         - item: "FUNC-008 payment intimation"
           revisit_at: "Phase 5.3"
-        - item: "Circuit breaker, mandatory consentRef"
+        - item: "Mandatory consentRef tighten (COMP-005)"
           revisit_at: "Phase 5.5"
         - item: "Dashboards, alerting, SLOs"
           revisit_at: "Phase 6"
         - item: "Autoscaling, DR testing, retention jobs, backup/restore"
           revisit_at: "Phase 6"
-        - item: "Saving / Annuity / Pension LOBs"
+        - item: "Annuity / Pension LOBs"
           revisit_at: "Phase 6+"
         - item: "Provider routing flag / fake adapter (E13)"
           revisit_at: "Phase 6+"
@@ -256,6 +266,8 @@ workstreams:
           revisit_at: "evidence-driven only"
         - item: "Reactive rewrite / SDK framework"
           revisit_at: "never, absent evidence"
+        - item: "WS-3 R0 product catalogue or RM journey for Savings/ULIP sales"
+          revisit_at: "R1 — adapter readiness does not admit R0 journey sales"
 
       never:
         - "Bank apps calling 1SB or the database directly"
@@ -543,10 +555,10 @@ id_allocation:
     # CR-011 existed as a file from 2026-08-20 without a register row, so the counter read 11
     # while CR-011 was in use; it is now indexed in the decision register and the counter clears
     # both it and CR-012.
-    CR: 14        # CR-001..013 in use; next unused sequential value is 14
+    CR: 15        # CR-001..014 in use (014 = WS-1 Life LOB adapter standards, SUG-20260903-lif); next unused is 15
     RISK: 16      # RISK-001..015 in use (012..015 added by CR-012)
     ASM: 14       # ASM-001..013 in use (013 = Apigee as bank in/out API plane, SUG-20260831-apg). ID-allocation only.
-    EPIC: 2       # EPIC-001 in use (platform error contract, SUG-20260827-err). ID-allocation only.
+    EPIC: 3       # EPIC-001..002 in use (002 = Life LOB 1SB coverage, SUG-20260903-lif / CR-014). ID-allocation only.
     SPIKE: 2       # SPIKE-001 in use (Apigee vs Amazon API Gateway, SUG-20260831-apg). ID-allocation only.
     # ADR-001..003 were written into architecture-review/08 under CR-010 while this counter still
     # read 1; that file carries a standing note asking for the advance. ADR-004..007 were added by

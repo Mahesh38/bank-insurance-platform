@@ -1,7 +1,7 @@
 package com.bank.insurance.onesb.adapter.onesb.polling;
 
 import com.bank.insurance.onesb.adapter.onesb.client.OneSbHttpClient;
-import com.bank.insurance.onesb.domain.model.JobStatus;
+import com.bank.common.domain.JobStatus;
 import com.bank.insurance.onesb.domain.port.outbound.JobStorePort;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;

@@ -55,6 +55,11 @@ onesb:
     multiplier: ${ONESB_POLL_MULTIPLIER:2.0}
     max-delay-ms: ${ONESB_POLL_MAX_DELAY_MS:30000}
     max-attempts: ${ONESB_POLL_MAX_ATTEMPTS:20}
+  circuit-breaker:
+    enabled: ${ONESB_CB_ENABLED:true}
+    failure-threshold: ${ONESB_CB_FAILURE_THRESHOLD:5}
+    open-wait-ms: ${ONESB_CB_OPEN_WAIT_MS:30000}
+    half-open-success-threshold: ${ONESB_CB_HALF_OPEN_SUCCESS:1}
 
 logging:
   level:

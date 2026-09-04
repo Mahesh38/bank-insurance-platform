@@ -1,8 +1,8 @@
 package com.bank.insurance.onesb.domain.port.outbound;
 
-import com.bank.insurance.onesb.domain.model.Lob;
-import com.bank.insurance.onesb.domain.model.PaymentSession;
-import com.bank.insurance.onesb.domain.model.PaymentStatus;
+import com.bank.common.domain.Lob;
+import com.bank.common.domain.PaymentSession;
+import com.bank.common.domain.PaymentStatus;
 
 import java.time.Instant;
 

@@ -1,5 +1,4 @@
 /**
- * Scaffold package for Life Saving LOB handlers.
- * Implementations will be added in Phase 2.
+ * Life Saving LOB handlers ({@code FUNC-015} / {@code EPIC-002}).
  */
 package com.bank.insurance.onesb.lob.life.saving;

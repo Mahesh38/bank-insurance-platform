@@ -5,7 +5,7 @@ import com.bank.insurance.onesb.TestErrors;
 import com.bank.common.error.ErrorCodes;
 import com.bank.common.error.ServiceException;
 import com.bank.insurance.onesb.domain.command.SubmitProposalCommand;
-import com.bank.insurance.onesb.domain.model.Lob;
+import com.bank.common.domain.Lob;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

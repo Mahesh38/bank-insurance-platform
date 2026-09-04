@@ -6,7 +6,7 @@ import com.bank.common.error.ServiceErrorResponse;
 import com.bank.common.error.PlatformLayer;
 import com.bank.common.error.ServiceErrors;
 import com.bank.common.error.ServiceException;
-import com.bank.insurance.onesb.domain.model.Lob;
+import com.bank.common.domain.Lob;
 import org.springframework.stereotype.Component;
 
 import java.util.EnumMap;

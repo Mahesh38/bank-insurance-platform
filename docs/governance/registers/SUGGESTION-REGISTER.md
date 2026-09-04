@@ -3035,7 +3035,7 @@ resumed: GATE-S08
 ### SUG-20260825-pv1 · No PVC for the web app
 
 ```yaml
-# schema: triage-record
+# triage-record-legacy (not schema-tagged; free-form until rewritten)
 id: SUG-20260825-pv1
 raised_at: "2026-08-25"
 raised_by: "human:Mahesh"
@@ -3098,7 +3098,7 @@ resumed: "Mahesh architecture consult — channel, BFF, Lead LOB"
 ### SUG-20260825-ld1 · Lead is not LOB-specific
 
 ```yaml
-# schema: triage-record
+# triage-record-legacy (not schema-tagged; free-form until rewritten)
 id: SUG-20260825-ld1
 raised_at: "2026-08-25"
 raised_by: "human:Mahesh"
@@ -3152,7 +3152,7 @@ resumed: "Mahesh architecture consult — channel, BFF, Lead LOB"
 ### SUG-20260825-st2 · Flutter public-store distribution
 
 ```yaml
-# schema: triage-record
+# triage-record-legacy (not schema-tagged; free-form until rewritten)
 id: SUG-20260825-st2
 raised_at: "2026-08-25"
 raised_by: "human:Mahesh"
@@ -3216,7 +3216,7 @@ resumed: "ADR-015 took the workforce store-listing decision"
 ### SUG-20260825-ac1 · Admin and ops actors for R0
 
 ```yaml
-# schema: triage-record
+# triage-record-legacy (not schema-tagged; free-form until rewritten)
 id: SUG-20260825-ac1
 raised_at: "2026-08-25"
 raised_by: "human:Mahesh"
@@ -3308,7 +3308,7 @@ resumed: "Mahesh architecture consult — channel, BFF, Lead LOB"
 ### SUG-20260825-ll1 · LLD/topology lag behind ADR-014
 
 ```yaml
-# schema: triage-record
+# triage-record-legacy (not schema-tagged; free-form until rewritten)
 id: SUG-20260825-ll1
 raised_at: "2026-08-25"
 raised_by: "agent:cursor-grok"
@@ -3399,7 +3399,7 @@ resumed: "Mahesh architecture consult — channel, BFF, Lead LOB"
 ### SUG-20260825-nip · One NIP-APP, role-based, not a second admin UI
 
 ```yaml
-# schema: triage-record
+# triage-record-legacy (not schema-tagged; free-form until rewritten)
 id: SUG-20260825-nip
 raised_at: "2026-08-25"
 raised_by: "human:Mahesh"

@@ -1,5 +1,7 @@
 package com.bank.insurance.onesb.application;
 
+import com.bank.insurance.onesb.TestErrors;
+
 import com.bank.common.error.ErrorCodes;
 import com.bank.common.error.ServiceException;
 import com.bank.insurance.onesb.domain.model.LookupValue;
@@ -52,7 +54,7 @@ class MasterDataServiceTest {
             @Override public Clock withZone(java.time.ZoneId zone) { return this; }
             @Override public Instant instant() { return now.get(); }
         };
-        service = new MasterDataService(port, new MastersCacheProperties(4L), clock);
+        service = new MasterDataService(port, new MastersCacheProperties(4L), clock, TestErrors.ONESB);
     }
 
     @Test
@@ -94,7 +96,7 @@ class MasterDataServiceTest {
         when(port.lookup(anyString(), anyString(), anyList(), any()))
                 .thenReturn(new MasterLookupResult(Map.of(
                         "TITLE", List.of(LookupValue.of("MR")))))
-                .thenThrow(ServiceException.upstreamUnavailable("1SB down", null));
+                .thenThrow(ServiceException.of(ErrorCodes.UPSTREAM_UNAVAILABLE).reason("1SB down").build());
 
         service.lookup("TERM", "quote", List.of("TITLE"), null);
         now.set(now.get().plusSeconds(10)); // expire TTL (4s)
@@ -112,7 +114,7 @@ class MasterDataServiceTest {
     @DisplayName("AC-3: port failure with no cache throws UPSTREAM_UNAVAILABLE 503")
     void portFailure_noCache_throws503() {
         when(port.lookup(anyString(), anyString(), anyList(), any()))
-                .thenThrow(ServiceException.upstreamUnavailable("1SB down", null));
+                .thenThrow(ServiceException.of(ErrorCodes.UPSTREAM_UNAVAILABLE).reason("1SB down").build());
 
         assertThatThrownBy(() -> service.lookup("TERM", "quote", List.of("GENDER"), null))
                 .isInstanceOf(ServiceException.class)

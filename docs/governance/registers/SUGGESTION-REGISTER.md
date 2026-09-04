@@ -78,12 +78,15 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | SUG-20260825-pv1 | 2026-08-25 | human:Mahesh | Deploy the desktop web application on a Kubernetes PVC | SF4 | SC3 | REJECT | INFRA | — / — | REJECTED | [detail](#sug-20260825-pv1--no-pvc-for-the-web-app) |
 | SUG-20260825-ld1 | 2026-08-25 | human:Mahesh | Make Lead LOB-specific | SF4 | SC3 | REJECT | ARCH | — / — | REJECTED | [detail](#sug-20260825-ld1--lead-is-not-lob-specific) |
 | SUG-20260825-st2 | 2026-08-25 | human:Mahesh | Put the Flutter RM app on Play Store / Apple Store (and a customer store app) | SF1 | SC1 | MUST | ARCH | P2 / P1 | CLOSED-DELIVERED | Unparked by `ADR-015`: workforce distribution is EKS web + Play APK + App Store IPA. Customer store apps remain R1 (`#1`). Deepali owns store hardening. |
+| SUG-20260827-err | 2026-08-27 | human:Mahesh | Mature the shared utility libraries, error handling first: a standard cross-service error contract that identifies the emitting and originating service, gives end users a safe message while developers and L1/L2 support get a complete diagnostic, replaces ad-hoc per-throw-site wording with a registry seeded from catalogue 04, and emits one consistently tagged series so error dashboards are buildable | SF1 | SC1 | MUST | ARCH | P2 / P1 | ADMIT | [07-PLATFORM-ERROR-CONTRACT](../../journey-execution/07-PLATFORM-ERROR-CONTRACT.md) · [ADR-017](../../platform/architecture-review/08-architecture-decision-log.md) · [detail](#sug-20260827-err--platform-error-contract) |
 | SUG-20260825-ac1 | 2026-08-25 | human:Mahesh | Add admin and operations as R0 on-platform actors for the Admin & Configuration BFF, reports and MIS | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [detail](#sug-20260825-ac1--admin-and-ops-actors-for-r0) · UI is NIP-APP roles (`SUG-20260825-nip`), not a second app |
 | SUG-20260825-ll1 | 2026-08-25 | human:Mahesh | Reconcile R0-LLD and platform topology with ADR-014: Admin BFF, #18 MIS, desktop admin web, no PVC | SF1 | SC1 | MUST | DOC | P3 / P2 | CLOSED-DELIVERED | [detail](#sug-20260825-ll1--lldtopology-lag-behind-adr-014) · `admin-web` / `admin.{env}` retracted by `SUG-20260825-nip` |
 | SUG-20260825-nip | 2026-08-25 | human:Mahesh | One NIP-APP (New Insurance Platform) Flutter client for web/iOS/Android; RM, ISR, admin and operations share it with role-based views; no separate admin/ops app now or later | SF1 | SC1 | MUST | ARCH | P2 / P1 | CLOSED-DELIVERED | [detail](#sug-20260825-nip--one-nip-app-role-based-not-a-second-admin-ui) · recorded as `ADR-015` (PROPOSED — human T4 outstanding) |
 | SUG-20260825-arb | 2026-08-25 | human:Mahesh | Review with internal Architect team: Cloudflare instead of CloudFront (bank standard), F5 BIG-IP / WAF instead of AWS WAF (bank standard), External ALB before API Gateway, GitLab CI/CD for pipelines, EBS (Enterprise Service Bus) naming for Core Banking integration with CBS in brackets, Terraform IaC, CloudTrail and CloudWatch both mandatory | SF1 | SC0 | MUST | ARCH | P1 / P1 | ADMIT-BYPASS | [ARB-ARCHITECTURE-DOSSIER](../../architecture/ARB-ARCHITECTURE-DOSSIER.md) · [detail](#sug-20260825-arb--internal-architect-review-alignment-cloudflare-f5-external-alb-gitlab-ebscbs-terraform-cloudtrailcloudwatch) |
 | SUG-20260827-tpo | 2026-08-27 | human:Mahesh | Platform Topology & LLD Alignment: replace Argo CD with GitLab CI/CD with logo, replace AWS Network Firewall with F5 BIG-IP / Firewall with logo, incorporate Ansible for automated DR drills / sanity testing, and emphasize Terraform IaC baseline | SF1 | SC0 | MUST | ARCH | P1 / P1 | CLOSED-DELIVERED | [r0-platform-topology](../../architecture/r0-platform-topology.svg) · [detail](#sug-20260827-tpo--platform-topology--lld-alignment-gitlab-cicd-f5-big-ip-ansible-terraform) |
 | SUG-20260827-prp | 2026-08-27 | human:Mahesh | Split the Gradle monorepo into one GitHub repository per microservice and app; put config and docs in one or more parent repos; create the repos now and link them | SF3 | SC2 | NOT-NOW | ARCH | P5 / P3 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md#1-parked--scheduled-work) · [detail](#sug-20260827-prp--polyrepo-split-one-github-repository-per-service) |
+| SUG-20260831-alb | 2026-08-31 | human:Mahesh | Correct two false perimeter assumptions against the existing AU Bank estate: (1) remove the External / public ALB in front of API Gateway; (2) Cloudflare and F5-XC are bank-enterprise SaaS, not AWS services and not in any platform VPC | SF1 | SC1 | MUST | ARCH | P1 / P1 | ADMIT | [ADR-018](../../platform/architecture-review/08-architecture-decision-log.md) · [detail](#sug-20260831-alb--correct-edge-ingress-no-public-alb-cloudflare--f5-xc-are-saas-outside-aws) |
+| SUG-20260831-apg | 2026-08-31 | human:Mahesh | Existing bank estate routes all incoming and outgoing requests through Apigee. Decide whether Amazon API Gateway is still needed, and whether the R0 VPC / IGW / TGW pack must attach to (not duplicate) the existing network account | SF1 | SC1 | MUST | SPIKE | P1 / P1 | ADMIT · draw PARKED | [SPIKE-001](#sug-20260831-apg--apigee-is-the-bank-api-plane--do-not-add-a-second-amazon-api-gateway-until-confirmed) · [PARKED](./PARKED-BACKLOG.md) |
 
 <!--
 Row format:
@@ -100,6 +103,7 @@ Detail blocks live here for every non-trivial triage. Format:
 ### SUG-20260827-prp · Polyrepo split: one GitHub repository per service
 
 ```yaml
+# schema: triage-record
 id: SUG-20260827-prp
 raised_at: "2026-08-27"
 raised_by: "human:Mahesh"
@@ -329,6 +333,184 @@ breakdown:
     - "Update r0_platform_views.py to replace Argo CD with GitLab CI/CD logo, replace AWS Network Firewall with F5, add Ansible DR/sanity automation, and highlight Terraform IaC"
     - "Re-render all platform SVG and PNG companion diagrams"
 ```
+
+### SUG-20260831-alb · Correct edge ingress (no public ALB; Cloudflare + F5-XC are SaaS outside AWS)
+
+```yaml
+id: SUG-20260831-alb
+raised_at: "2026-08-31"
+raised_by: "human:Mahesh"
+source: "Architecture correction against existing AU Bank application and central-network diagrams"
+input: >
+  Rebuild the architecture diagram. Two assumptions were wrong:
+  1. Remove the external load balancer in front of API Gateway.
+  2. Cloudflare and F5 are both SaaS — not on the AWS cloud and not in our VPC.
+  Align with the existing banking application network (north-south via Cloudflare
+  then F5-XC; east-west via the central network account TGW / EDGE VPC).
+duplicate_of: null
+conflicts:
+  - SUG-20260825-arb (External ALB before API Gateway — retracted)
+  - ADR-016 ingress hop 1 (External ALB clause — amended by ADR-018)
+  - SUG-20260827-tpo (F5 BIG-IP appliance drawn inside the inspection VPC — retracted;
+    F5 on this estate is F5-XC SaaS on the north-south path only)
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 / S09 — Engineering & Platform Foundation"
+  current_objective: R0-ASSISTED-TERM-SALE
+  state_as_of: "2026-08-10"
+  state_provisional: false
+  freshness: "WARN — state_as_of 21 days old; 04-STAGE_GATES.md 15d vs 14d limit"
+  active_work_item: "Correct R0 perimeter against existing bank estate"
+
+stage_fit:
+  code: SF1
+  rationale: >
+    The S08/S09 architecture pack currently asserts a hop and a placement the existing
+    AU Bank estate does not have. GATE-S09 platform provisioning cannot be requested
+    from a diagram that invents a public ALB and puts SaaS products in the VPC.
+
+scope:
+  code: SC1
+  business_scope: "WS-3 Architecture and Infrastructure Baseline"
+  serves: ["SUG-20260825-arb", "ADR-016", "R0-LLD", "ARB-ARCHITECTURE-DOSSIER"]
+  failure_without_it: >
+    ARB and S09 packs show a public ALB in front of API Gateway and place Cloudflare
+    and F5 inside AWS / the VPC. The existing bank application (v1.4, 9-July-2026)
+    treats Cloudflare and F5-XC as external SaaS; the insurance platform's AWS entry
+    is API Gateway, then the internal ALB. Shipping the wrong hop is an incorrect
+    landing-zone request.
+  minimal: true
+  authority: "Human Architecture owner correction + existing AU Bank estate diagrams"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S08/S09 Architecture Review"
+  binds_when: "ARB presentation and S09 Terraform IaC provisioning"
+  evidence_tier: E2
+  confidence: C5
+  evidence:
+    - "Existing AU Bank application architecture v1.4 (9-July-2026) — Cloudflare and F5-XC as external SaaS; Public ALB is the current app's AWS entry, not the insurance platform's"
+    - "Central Network Account Architecture V1 — EDGE VPC FortiGate NGFW, TGW, Direct Connect; no F5 appliance in the spoke VPC"
+    - "Human Architecture owner: remove External ALB in front of API Gateway; Cloudflare and F5 are SaaS, not AWS, not in our VPC"
+
+action: ADMIT
+action_rationale: >
+  Correction of in-scope, on-stage architecture artefacts that are currently wrong.
+  Not a new perimeter product. ADR-018 drafts the amended hop; human T4 on ADR-016
+  / ADR-018 remains outstanding. Deepali jointly owns the security outcome (A3).
+
+classification:
+  type: ARCH
+  risk_tier: T2
+  also: [DOC]
+
+priority:
+  score_now: 16
+  priority_now: P1
+  priority_at_target: P1
+
+breakdown:
+  stories:
+    - "Amend ADR-016 ingress hop; draft ADR-018"
+    - "Update authoritative sources (03-solution-architecture-r0, 04-security-architecture, R0-HLD, R0-LLD, ARB dossier)"
+    - "Redraw generated platform views and hand-authored HLD/reference edge labels"
+```
+
+### SUG-20260831-apg · Apigee is the bank API plane — do not add a second Amazon API Gateway until confirmed
+
+```yaml
+id: SUG-20260831-apg
+raised_at: "2026-08-31"
+raised_by: "human:Mahesh"
+source: "Follow-up after SUG-20260831-alb — bank existing architecture + new fact that all in/out traffic is routed through Apigee"
+input: >
+  As per the bank's existing architecture, do we need any more changes in our
+  application architecture — VPC, Internet Gateway, Transit Gateway, and other
+  things the existing bank applications already have? Also: all incoming and
+  outgoing requests are routed through Apigee. If that is there, do I need to
+  add Amazon API Gateway separately?
+duplicate_of: null
+conflicts:
+  - ADR-018 (Amazon API Gateway as first AWS hop — contested if Apigee already is Proxy 1)
+  - ADR-009 (a new network-account TGW — must mean attach to existing AU-CTO-NETWORK, not a second hub)
+  - ADR-010 (platform inspection VPC + NAT EIPs — contested if Apigee is the outbound plane)
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 / S09 — Engineering & Platform Foundation"
+  current_objective: R0-ASSISTED-TERM-SALE
+  state_as_of: "2026-08-10"
+  state_provisional: false
+  freshness: "WARN — state_as_of 21 days old; 04-STAGE_GATES.md 15d vs 14d limit"
+  active_work_item: SUG-20260831-alb
+
+stage_fit:
+  code: SF1
+  rationale: >
+    S09 P4 will provision an API hop. If the bank's Apigee already is that hop,
+    requesting Amazon API Gateway is the same class of defect as the withdrawn
+    public ALB — a hop with no named job.
+
+scope:
+  code: SC1
+  business_scope: "WS-3 Architecture and Infrastructure Baseline"
+  serves: ["ADR-018", "ADR-009", "ADR-010", "R0-LLD P1/P4"]
+  failure_without_it: >
+    The S09 landing-zone request asks for Amazon API Gateway, a platform TGW,
+    and possibly an IGW / inspection VPC that duplicate the existing bank
+    network and API plane.
+  minimal: true
+  authority: "Human Architecture owner question + existing AU Bank estate"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S09 P4 Edge band"
+  binds_when: "S09 Terraform request for the edge hop"
+  evidence_tier: E5
+  confidence: C2
+  evidence:
+    - "Verbal fact from Architecture owner: all incoming and outgoing requests route through Apigee"
+    - "Apigee is not named anywhere in this repository today"
+    - "Existing application architecture v1.4 and Central Network Account V1 do not label Apigee"
+  assumptions: [ASM-013]
+  anti_over_engineering:
+    X1_named_consumer: false
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: false
+
+action: ADMIT
+action_rationale: >
+  Admit as SPIKE-001, not as a diagram change. Confidence is C2 — below C3 —
+  so this is a confirmation spike, not an implementation. Human Architecture
+  owner 2026-08-31: keep the candidate bank API plane off every architecture
+  diagram until written answers exist. Until then Amazon API Gateway remains
+  Proxy 1 (ADR-018) and the draw of that overlay is PARKED.
+
+classification:
+  type: SPIKE
+  also: [ARCH]
+  breakdown: SPIKE
+  risk_tier: T2
+
+priority:
+  score_now: 16
+  priority_now: P1
+  priority_at_target: P1
+
+breakdown:
+  stories:
+    - "SPIKE-001: confirm Apigee edition (X / hybrid / on-prem), whether NIP is a new Apigee product, and whether 1SB and PG callbacks already traverse Apigee"
+    - "If confirmed: draft ADR amending ADR-018 — Apigee is Proxy 1; Amazon API Gateway withdrawn; Internal ALB remains"
+    - "If refuted: keep ADR-018 Amazon API Gateway; record why the candidate bank API plane does not cover this platform"
+```
+
+> **Amended 2026-08-31 (human Architecture owner):** keep the candidate bank API plane **off every diagram** until SPIKE-001 returns. Amazon API Gateway stays. Network attach (existing TGW / DXGW, no workload IGW) proceeds independently of that spike.
 
 ### SUG-20260825-arb · Internal Architect Review Alignment (Cloudflare, F5, External ALB, GitLab, EBS/CBS, Terraform, CloudTrail/CloudWatch)
 
@@ -3315,6 +3497,204 @@ outcome:
   status: CLOSED-DELIVERED
   notes: "Implemented 2026-08-25 as ADR-015. HLD/LLD/topology: ns:edge is nip-web + #2 NIP BFF only. Human T4 Architecture sign-off outstanding."
 resumed: "SUG-20260825-nip CLOSED-DELIVERED; ADR-015 drafted PROPOSED"
+```
+
+---
+
+### SUG-20260827-err — platform error contract
+
+```yaml
+# schema: triage-record
+id: SUG-20260827-err
+raised_at: "2026-08-27"
+raised_by: "human:Mahesh"
+source: "direct requirement, spoken, 2026-08-27"
+input: >
+  Make the utilities mature enough to be used across multiple services, the error one especially.
+  We should be able to identify error requests and error responses, understand which service has
+  an error and from which service we got the error that caused the request to fail. There has to
+  be a standard error response across services carrying the service name or number. Configure it
+  so the end user does not understand the exact error and gets a plain response back, while dev
+  users and L1/L2 support can understand exactly what is wrong. Different error classes —
+  resource not found, authentication, authorization, validation, constraint failures — need
+  customised messages; we should not randomly state the same error. Example: the request lands on
+  the BFF, moves to customer consent, and the orchestrator hits a validation error — it must
+  clearly state that this service's validation failed for this reason, not to the end user but to
+  dev users and in logging. Errors must be clean, crisp and monitorable on the centralised logging
+  system so we can build a dashboard or graph of which errors are populating more. This is the
+  priority requirement; error handling has to be strong from day one for release zero, not after
+  the application matures, so we do not spend a lot of time debugging what fails, where and how.
+  The logs and error messages must answer why, how, when, where and what failed, and what to do
+  about it — so that L1 support can have a manual saying in such a case perform this action.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-TERM-SALE — one RM sells one Term Life policy to one ETB customer end to end"
+  state_as_of: "2026-08-10"
+  state_provisional: false
+  active_work_item: null
+
+stage_fit:
+  code: SF1
+  rationale: >
+    Shared-library hardening with three consumers today (1sb-integration, bank-persistence,
+    workforce-access-bff), which is the SF1 condition in 03 section 7 for the shared-library
+    family — SF3 applies only when fewer than two consumers exist. It serves the open S08 gate
+    directly: S08-G7 (no PII in logs, proven by automated test) is provable by asserting over a
+    finite error registry rather than over every log statement, and S08-G8 (engineering and
+    secure coding standards published and adopted) is what this contract is. SF0 was considered
+    and not claimed: G7 could in principle be satisfied by a log scrubber, so the gate is not
+    strictly unexitable without this.
+
+scope:
+  code: SC1
+  business_scope: "in scope — derived from the open S08 gate and the ratified R0 error catalogue"
+  serves:
+    - S08-G7
+    - S08-G8
+    - GATE-P4-4.4
+    - GATE-P4-4.5
+  failure_without_it: >
+    Upstream 1SB text and internal routes are returned to bank callers verbatim
+    (OneSbErrorNormaliser sets .detail(parsed.detail()); throw sites set
+    .detail("1SB call failed: " + method + " " + path)), so the response body leaks vendor
+    identity and internal topology. No error carries a service, origin or layer, so a failure
+    observed at the BFF cannot be attributed to the service that produced it. The ~60 refusals
+    ratified in journey-execution/04 are unimplemented — ErrorCodes has 24 codes that barely
+    intersect the catalogue — so the catalogue is paper and the compliance-gate refusals it
+    specifies as evidence are not emitted as such.
+  minimal: true
+  authority: "docs/journey-execution/04-ERROR-AND-DEGRADED-STATE-CATALOGUE.md · CURRENT-STATE.yaml GATE-S08"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S09 — Platform & Environment Foundation"
+  binds_when: "first bank caller consumes an error response contractually"
+  failure_without_it: >
+    A partner-consumed contract is retrofitted after publication, which is the one case 05 scores
+    as high decay: ErrorCodes is documented as stable because it appears in partner responses.
+  evidence_tier: E1
+  evidence:
+    - "Code: OneSbErrorNormaliser .detail(parsed.detail()) returns upstream text to the caller"
+    - "Code: OneSbHttpClient .detail(\"1SB call failed: \" + method + \" \" + path) leaks internal routes"
+    - "Code: ServiceErrorResponse has no service, origin, layer or incident field"
+    - "Code: three divergent handlers — 1SB, persistence, and a bare Spring ProblemDetail at the BFF with no code at all"
+    - "Doc: journey-execution/04 defines ~60 codes; ErrorCodes defines 24 with minimal overlap"
+    - "Gate: GATE-S08 criteria G7 and G8 are OPEN"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X2_two_implementations: true
+    X3_cheap_later: false
+    X4_reversibility: true
+    X5_stage_necessity: true
+    X6_simplest_sufficient: true
+    X7_runtime_cost: false
+    X8_cognitive_cost: true
+    X9_problem_observed: true
+    X10_do_nothing: true
+
+action: ADMIT
+action_rationale: >
+  SF1 x MUST = ADMIT at P1-P2, with SC1 satisfied on all three tests of 02 section 3.1 — named
+  beneficiary (S08-G7, S08-G8), demonstrable failure (the leak and the attribution gap, both
+  present in code today), and minimality (hardening two existing libs, additive only, no new
+  dependency). X3 fails deliberately: this cannot be added cheaply later because ErrorCodes is a
+  published partner contract, which is the argument for doing it now rather than the argument
+  against doing it.
+conflicts:
+  - "S08 posture rejects generic frameworks on sight (BOOT section 4). Resolved: this hardens two
+     existing libs with three existing consumers and adds no dependency, rather than introducing a
+     framework. Recorded in ADR-017 alternatives as the rejected option."
+  - "ci-checks reports 22 pre-existing schema failures in this register's older detail blocks.
+     Not repaired here — out of this item's scope, and repairing them silently would hide drift
+     that belongs to its own item."
+
+classification:
+  type: ARCH
+  also: [SEC, COMP, NFR]
+  breakdown: EPIC
+  epic: EPIC-001
+  risk_tier: T3
+  rationale: >
+    Four epic triggers fire (multiple stories, multiple services, multiple acceptance outcomes,
+    multiple increments), and two force an epic. T3 by Rule RG-6: G9 is the close call because
+    ErrorCodes is partner-consumed, so the contract is constrained to additive-only and any story
+    proposing to change an existing value is T4 and stops. G2 does not fire because the change
+    narrows exposure; G10 does not fire because catalogue 04's audit behaviour is carried, not
+    redefined.
+  destination: "docs/journey-execution/07-PLATFORM-ERROR-CONTRACT.md · ADR-017"
+
+priority:
+  now: P2
+  at_target: P1
+  factors: { N: 4, S: 3, B: 2, R: 2, D: 2, E: 3 }
+  score: 21
+  matrix_default: P2
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: >
+    2(4) + 2(3) + 2(2) + 2(2) + 2 - 3 = 21, band P2, matching the matrix default of P2 for
+    SF1 x MUST at its lower-urgency end. B=2 for the two open S08 gate criteria and the two
+    WS-1 Phase 4 criteria it serves; B=3 was not claimed because it contributes to those criteria
+    rather than solely blocking them. D=2 because ErrorCodes is a published partner contract and
+    retrofitting it later is a breaking contract change. E=3 for five services plus two libs.
+    A hard P1 override was considered and deliberately NOT claimed: O6 covers leaking in-flight
+    data, and the leak here is upstream vendor text and internal route strings to an authenticated
+    bank caller, not regulated customer data; O2 requires reachable and exploitable. Claiming
+    either would be override inflation under 05 section 3, so this is scored normally and is P2.
+    P1 at target: at S09 and first partner consumption the same item becomes gate-blocking.
+
+dependencies:
+  edges:
+    - type: ARCHITECTURAL
+      target: "docs/journey-execution/04-ERROR-AND-DEGRADED-STATE-CATALOGUE.md"
+      relation: requires
+      state: DONE
+    - type: DECISION
+      target: ADR-017
+      relation: decision_dependency
+      state: OPEN
+    - type: TECHNICAL
+      target: S08-G7
+      relation: enables
+      state: OPEN
+    - type: TECHNICAL
+      target: S08-G8
+      relation: enables
+      state: OPEN
+  state: READY
+  enablement_count: 4
+  earliest_start: "immediately — no blocking edge"
+  cycles: none
+
+breakdown:
+  children: [ERR-001, ERR-002, ERR-003, ERR-004, ERR-005, ERR-006, ERR-007]
+  completion_definition: >
+    All five services return the section 4.2 envelope AND no response crossing L4 carries a
+    diagnostic field, proven by test AND the registry and catalogue 04 agree, proven by CI AND
+    bank.error.count is emitted with the section 7 tag set AND the S08-G7 PII test asserts over
+    the registry.
+  not_included:
+    - "Any change to an existing ErrorCodes value — additive only, trigger G9"
+    - "Grafana dashboards and alert rules — L9"
+    - "Retry, circuit breaker and bulkhead policy — unchanged, 04 section 8"
+    - "Error codes for the codeless degraded states in 04 section 7"
+    - "Repair of the 22 pre-existing schema failures in this register"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: EPIC-001
+  plan_id: "07-PLATFORM-ERROR-CONTRACT.md section 11"
+  status: ADMITTED
+  closed_reason: null
+
+resumed: "EPIC-001 — no prior work item was in flight; this session opened with this input."
 ```
 
 ---

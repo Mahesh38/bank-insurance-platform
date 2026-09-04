@@ -727,13 +727,16 @@ context_stage: >
 decision: >
   R0 provisions hybrid connectivity as a first-class layer, in the same S09 change as the VPCs.
 
-  TOPOLOGY. A Transit Gateway in a new `network` account is the single hub for every
-  bank-directed and inter-VPC route. Workload VPCs (dev, uat, prod) attach to it; nothing peers
-  VPC-to-VPC. A separate TGW route table per environment carries only that environment's
-  attachments and only the bank prefixes that environment is entitled to, so no dev workload can
-  route to a production bank prefix even by misconfiguration. The account is added deliberately:
-  five accounts become six, because a shared network plane owned by an environment account is an
-  environment that can change everyone else's routing.
+  TOPOLOGY. Workload VPCs (dev, uat, prod) ATTACH as spokes to the existing AU Bank
+  central-network Transit Gateway (`AU-CTO-NETWORK` / Central Network Account Architecture V1).
+  Do not provision a second TGW "for insurance". If this programme holds a `network` account,
+  it is for RAM-share, per-environment route tables, and the inspection/egress VPC — not a
+  parallel hub. Nothing peers VPC-to-VPC. A separate TGW route table per environment carries
+  only that environment's attachments and only the bank prefixes that environment is entitled
+  to, so no dev workload can route to a production bank prefix even by misconfiguration.
+
+  DIRECT CONNECT. Attach to the existing Direct Connect Gateway (Sify / Airtel, already
+  extended to Hyderabad). Do not order a second circuit for this programme.
 
   TWO PATHS, IN THIS ORDER. Site-to-Site VPN over the TGW is provisioned FIRST, because it needs
   a public IP and a bank firewall rule rather than a carrier order, and it is what removes the
@@ -814,9 +817,9 @@ approvals:
   - "Kalpana / Delivery — REQUIRED. This adds an external dependency to the S09 critical path and it is the one item that cannot be recovered by working harder"
 ```
 
----
+**Amended 2026-08-31 (`SUG-20260831-apg`):** the live estate already has the `AU-CTO-NETWORK` Transit Gateway and Direct Connect Gateway (Central Network Account Architecture V1). The topology clause above is **attach as a spoke**, not "provision a second hub". The revisit trigger "existing enterprise TGW we attach to instead of owning" has fired as the default. Shivanshi confirms RAM-share vs spoke-attachment with bank network before Terraform. Amazon API Gateway remains the first AWS hop (`ADR-018`); Apigee is **not drawn** until `SPIKE-001` returns.
 
-## ADR-010 — Every egress and inter-VPC flow is inspected centrally by AWS Network Firewall, and the allowlisted Elastic IPs move to a per-environment egress VPC
+---
 
 ```yaml
 id: ADR-010
@@ -1399,20 +1402,22 @@ Human T4 Architecture sign-off outstanding. Deepali jointly owns store-listing e
 
 ---
 
-## ADR-016 — Enterprise perimeter, integration and delivery baseline (Cloudflare, F5, External ALB, EBS, GitLab, Terraform, CloudTrail/CloudWatch)
+## ADR-016 — Enterprise perimeter, integration and delivery baseline (Cloudflare, F5, EBS, GitLab, Terraform, CloudTrail/CloudWatch)
 
 ```yaml
 id: ADR-016
 status: PROPOSED
 problem: >
   Internal architecture team review mandated alignment with bank enterprise standards:
-  Cloudflare Enterprise CDN/DDoS, F5 BIG-IP / WAF for L7 security policy, External ALB
-  before API Gateway, EBS (Enterprise Service Bus) APIs for Core Banking (CBS / CIF),
-  GitLab CI/CD pipelines, Terraform for IaC, and mandatory CloudTrail + CloudWatch.
+  Cloudflare Enterprise CDN/DDoS, F5 WAF for L7 security policy, EBS (Enterprise Service Bus)
+  APIs for Core Banking (CBS / CIF), GitLab CI/CD pipelines, Terraform for IaC, and mandatory
+  CloudTrail + CloudWatch.
 context_stage: "WS-3 at S08/S09; internal architecture review directive 2026-08-25"
 decision: >
-  1. Edge ingress: Cloudflare (Enterprise Edge CDN / DDoS) -> F5 BIG-IP / WAF (Bank Policy) ->
-     External ALB -> Amazon API Gateway (VPC Link) -> Internal ALB.
+  1. Edge ingress: AMENDED by ADR-018. Cloudflare (Enterprise Edge CDN / DDoS, SaaS) ->
+     F5 Distributed Cloud / F5-XC (Bank Policy, SaaS) -> Amazon API Gateway (VPC Link) ->
+     Internal ALB. The 2026-08-25 "External ALB before API Gateway" hop is withdrawn.
+     Cloudflare and F5 are not AWS services and are not placed in any platform VPC.
   2. Core Banking integration: Customer lookups route via bank EBS (Enterprise Service Bus) APIs
      over Transit Gateway private links. Terminology is standardized as EBS (CBS / CIF).
   3. Delivery & IaC: GitLab CI/CD for enterprise pipelines and Terraform for 100% IaC provisioning.
@@ -1420,7 +1425,138 @@ decision: >
      Amazon CloudWatch (runtime operational metrics and alerts).
 authority_class: A3_JOINT_REVIEW
 origin: SUG-20260825-arb
+amended_by: ADR-018
 ```
 
 **Drafted:** Mahesh — Principal Insurance Platform Architect (Board 1 / R2) · 2026-08-25.
+**Amended:** 2026-08-31 — ingress hop 1 corrected by `ADR-018` (`SUG-20260831-alb`).
 Human T4 Architecture sign-off outstanding. Deepali jointly owns perimeter security policy.
+
+---
+
+## ADR-017 — One platform error contract: service-attributed errors, two renderings, one incident id
+
+```yaml
+id: ADR-017
+status: PROPOSED
+problem: >
+  Errors are not attributable and not safe. ServiceErrorResponse carries no service, origin or
+  layer, so a 502 observed at the BFF cannot be traced to the service that produced it. Upstream
+  1SB text and internal routes are returned to callers verbatim (OneSbErrorNormaliser sets
+  .detail(parsed.detail()); throw sites set .detail("1SB call failed: " + method + " " + path)).
+  Three services run three different exception handlers with three different contracts, the same
+  condition is worded differently at each throw site, and the ~60 codes catalogued in
+  journey-execution/04 are largely unimplemented — ErrorCodes defines 24 that barely intersect it.
+  There is no consistently tagged platform error series, so no error dashboard can be built.
+context_stage: "WS-3 at S08 Engineering Foundation; requirement raised by Mahesh 2026-08-27 for release zero"
+decision: >
+  Adopt one platform error contract, specified in
+  docs/journey-execution/07-PLATFORM-ERROR-CONTRACT.md, hardening the existing
+  libs/bank-common-error and libs/bank-common-observability modules rather than adding a framework.
+  1. Every error carries four coordinates — code (what), service (who), layer (where),
+     category (class) — plus origin when it did not begin in the responding service.
+  2. A code's HTTP status, retryability, public wording, audit behaviour and runbook are declared
+     ONCE in an error registry seeded from catalogue 04, never at a throw site. CI diffs the
+     registry against the catalogue in both directions.
+  3. One failure produces one incidentId, generated at first failure and preserved across every
+     hop. It is shown to the end user and printed on every log line, and it is the join key L1
+     support uses.
+  4. Two renderings. The public rendering (RFC 7807 + code, category, incidentId, correlationId)
+     is safe by construction: title and detail come from the registry, never from a throw site and
+     never from an upstream body. The diagnostic rendering (service, layer, component, operation,
+     origin, reason, upstream, causeChain, remediation, runbook) goes to logs and internal hops only.
+  5. The BFF (L4) is the redaction boundary: the last hop that may hold a diagnostic, the first
+     that must never emit one. Enforced by test, not by convention.
+  6. Propagation preserves incidentId and the first origin transitively. A compliance refusal the
+     RM can act on propagates as itself; a dependency failure wraps as UPSTREAM_*. Re-wrapping a
+     dependency failure as INTERNAL_ERROR is forbidden — INTERNAL means our defect, and conflating
+     the two destroys the only signal that says whose defect it is.
+  7. One platform counter, bank.error.count{service, code, category, layer, originService,
+     retryable, httpStatus}. Every tag is a bounded enum or registered service id; no tag is ever
+     a message, identifier or path.
+  8. Log level follows category: client-caused categories WARN without a stack, platform-caused
+     categories ERROR with one.
+  9. Additive only. No existing ErrorCodes value is renamed or removed (trigger G9); ErrorCodes is
+     documented as partner-consumed. Any proposal to change an existing value is T4 and stops.
+consequences: >
+  Positive — an error names its origin service and layer; end users get safe text while L1/L2 and
+  engineers get a complete diagnostic under one incident id; the catalogue becomes executable
+  rather than paper; S08-G7 becomes provable by asserting over a finite registry instead of over
+  every log statement; an error dashboard becomes buildable from one series.
+  Negative — a registry entry is required before a new code can be thrown, which is deliberate
+  friction; five services must migrate to one handler; the envelope grows by five fields.
+alternatives:
+  - option: "Keep per-service handlers, fix the leaking detail strings only"
+    rejected_because: "Closes D1/D2 and nothing else. Attribution, wording consistency and
+      countability — the substance of the requirement — remain unsolved, and the leak returns at
+      the next throw site because nothing prevents it"
+  - option: "A new generic cross-cutting error framework module"
+    rejected_because: "S08 posture rejects generic frameworks on sight. Two shared libs with three
+      existing consumers already exist; this hardens them"
+  - option: "Renumber codes into a structured BNK-<SVC>-<CAT>-<NNNN> scheme"
+    rejected_because: "Fires G9 — ErrorCodes values are partner-consumed. Catalogue 04's names are
+      already the published taxonomy; service attribution belongs in its own field, not smuggled
+      into the code string"
+risk_tier: T3
+authority_class: A3_JOINT_REVIEW
+origin: "human:Mahesh · SUG-20260827-err · EPIC-001"
+```
+
+**Drafted:** agent, for Mahesh — Principal Insurance Platform Architect (Board 1 / R2) · 2026-08-27.
+Board verdicts outstanding: Architecture, Technical, Product, QA, Security, Risk & Compliance,
+Operations (T3, seven boards per [`11 §3`](../../governance/11-REVIEW_GATES.md#3-proportionality--which-boards-are-mandatory)).
+Deepali jointly owns the redaction boundary (§4.4) and the PII allow-list (§8); Shivanshi owns the
+metric tag set (§7). Contract: [`07-PLATFORM-ERROR-CONTRACT.md`](../../journey-execution/07-PLATFORM-ERROR-CONTRACT.md).
+
+---
+
+## ADR-018 — North-south ingress is SaaS Cloudflare → SaaS F5-XC → API Gateway → Internal ALB (no public ALB)
+
+```yaml
+id: ADR-018
+status: PROPOSED
+problem: >
+  ADR-016 hop 1 and the 2026-08-25/27 diagrams assumed an External / public ALB in front of
+  Amazon API Gateway, and drew Cloudflare and F5 as if they sat on AWS or in a platform VPC.
+  The existing AU Bank application architecture (v1.4, 9-July-2026) treats Cloudflare and
+  F5-XC as external SaaS outside the AWS Cloud box. The existing Central Network Account
+  Architecture V1 inspects east-west and internet egress through the AU-CTO-NETWORK EDGE VPC
+  (FortiGate NGFW) and Transit Gateway — it does not place an F5 appliance in a spoke VPC.
+  A public ALB in front of API Gateway is a hop the insurance platform does not need and
+  that the human Architecture owner has now withdrawn.
+context_stage: "WS-3 at S08/S09; correction against existing bank estate, 2026-08-31"
+decision: >
+  1. North-south (customer / RM / partner) ingress is exactly:
+     device -> Cloudflare Enterprise (SaaS, not AWS, not in any VPC)
+            -> F5 Distributed Cloud / F5-XC (SaaS WAF, not AWS, not in any VPC)
+            -> Amazon API Gateway (AWS managed regional service; not in the workload VPC)
+            -> VPC Link
+            -> Internal ALB (the only load balancer, and the only hop inside the VPC)
+            -> nip-web / #2 NIP BFF.
+  2. Do not provision a public or External ALB in front of API Gateway. The current banking
+     application's Public ALB in the DMZ is that application's AWS entry; this platform's
+     AWS entry is API Gateway.
+  3. Cloudflare and F5 are bank-enterprise SaaS. Diagrams must draw them outside the AWS
+     region box and outside every VPC. F5 on this estate is F5-XC (Distributed Cloud), not
+     an F5 BIG-IP appliance we place in AWS. SUG-20260827-tpo's in-VPC F5 firewall icon is
+     retracted; egress inspection remains ADR-010 (AWS Network Firewall in the inspection
+     VPC) pending ASM-012 (whether we also share the existing EDGE FortiGate path).
+  4. Inbound remains two proxies: API Gateway, then the Internal ALB. SaaS hops are the
+     bank perimeter, not additional AWS reverse proxies.
+  5. Payment callbacks still enter on a separate API Gateway route (TB-6). Customer payment
+     does not traverse the RM ingress chain.
+  6. This amends ADR-016 decision clause 1 only. EBS, GitLab, Terraform, CloudTrail and
+     CloudWatch clauses of ADR-016 are unchanged.
+  7. Apigee is a known bank API plane (SUG-20260831-apg, ASM-013) and is NOT drawn on any
+     R0 diagram until SPIKE-001 returns written answers. Until then Amazon API Gateway remains
+     Proxy 1. Human instruction 2026-08-31: keep Apigee off the pictures.
+authority_class: A3_JOINT_REVIEW
+origin: SUG-20260831-alb
+amends: ADR-016
+```
+
+**Drafted:** agent, for Mahesh — Principal Insurance Platform Architect (Board 1 / R2) · 2026-08-31.
+Human T4 Architecture sign-off outstanding. Deepali jointly owns the perimeter security outcome;
+Shivanshi owns the S09 landing-zone request that must no longer ask for a public ALB.
+Evidence: existing AU Bank application architecture v1.4 (Atul Singh, reviewed Manish Salaria,
+9-July-2026); Central Network Account Architecture V1 (AU_AWS_MAS, Mumbai + Hyderabad EDGE VPC).

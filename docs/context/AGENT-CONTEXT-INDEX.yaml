@@ -376,6 +376,14 @@ doc_routing:
       capsules: [1sb-integration-change, orient]
       persona: engineering
 
+    # --- figma: UX wireframe exports ---------------------------------------
+    - match: ["docs/figma/**"]
+      bucket: business
+      authority: non-binding-context
+      capsules: [product-decision, orient]
+      persona: product
+      note: "Figma wireframe exports. Cite the derived journey, not the PNG."
+
     # --- docs root ---------------------------------------------------------
     - match: ["docs/*"]
       bucket: root

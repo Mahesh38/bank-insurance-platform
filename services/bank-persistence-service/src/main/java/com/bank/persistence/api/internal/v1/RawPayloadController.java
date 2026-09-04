@@ -1,5 +1,6 @@
 package com.bank.persistence.api.internal.v1;
 
+import com.bank.common.error.ServiceErrors;
 import com.bank.persistence.api.internal.v1.dto.CreateRawPayloadRequest;
 import com.bank.persistence.api.internal.v1.dto.RawPayloadResponse;
 import com.bank.persistence.api.internal.v1.dto.RawPayloadSummaryResponse;
@@ -36,10 +37,14 @@ public class RawPayloadController {
     private final RawPayloadRepository rawPayloadRepository;
     private final RawPayloadEncryptionService encryptionService;
     private final RawPayloadRetentionProperties retentionProperties;
+    private final ServiceErrors serviceErrors;
+
 
     public RawPayloadController(RawPayloadRepository rawPayloadRepository,
                                 RawPayloadEncryptionService encryptionService,
-                                RawPayloadRetentionProperties retentionProperties) {
+                                RawPayloadRetentionProperties retentionProperties,
+                          ServiceErrors serviceErrors) {
+        this.serviceErrors = serviceErrors;
         this.rawPayloadRepository = rawPayloadRepository;
         this.encryptionService = encryptionService;
         this.retentionProperties = retentionProperties;
@@ -69,7 +74,7 @@ public class RawPayloadController {
     @GetMapping("/{payloadId}")
     public RawPayloadResponse get(@PathVariable String payloadId) {
         RawPayloadEntity entity = rawPayloadRepository.findById(payloadId)
-                .orElseThrow(() -> NotFound.of("Raw payload", payloadId));
+                .orElseThrow(() -> NotFound.of(serviceErrors, "Raw payload", payloadId));
         return new RawPayloadResponse(
                 entity.getPayloadId(),
                 entity.getJobId(),

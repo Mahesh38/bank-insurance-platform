@@ -1,5 +1,7 @@
 package com.bank.insurance.onesb.application;
 
+import com.bank.insurance.onesb.TestErrors;
+
 import com.bank.common.audit.AuditActions;
 import com.bank.common.audit.AuditEvent;
 import com.bank.common.audit.AuditEventPublisher;
@@ -58,7 +60,7 @@ class ProposalServiceTest {
     void setUp() {
         proposalService = new ProposalService(
                 jobStore, handlerRegistry, proposalPort, pollScheduler,
-                auditEventPublisher, secretProvider);
+                auditEventPublisher, secretProvider, TestErrors.ONESB);
     }
 
     @Test

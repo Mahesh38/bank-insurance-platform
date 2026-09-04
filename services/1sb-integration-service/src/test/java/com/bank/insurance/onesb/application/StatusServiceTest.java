@@ -1,5 +1,7 @@
 package com.bank.insurance.onesb.application;
 
+import com.bank.insurance.onesb.TestErrors;
+
 import com.bank.common.audit.AuditActions;
 import com.bank.common.audit.AuditEvent;
 import com.bank.common.audit.AuditEventPublisher;
@@ -43,7 +45,7 @@ class StatusServiceTest {
 
     @BeforeEach
     void setUp() {
-        statusService = new StatusService(statusPort, auditEventPublisher, Clock.fixed(NOW, ZoneOffset.UTC));
+        statusService = new StatusService(statusPort, auditEventPublisher, Clock.fixed(NOW, ZoneOffset.UTC), TestErrors.ONESB);
     }
 
     @Test

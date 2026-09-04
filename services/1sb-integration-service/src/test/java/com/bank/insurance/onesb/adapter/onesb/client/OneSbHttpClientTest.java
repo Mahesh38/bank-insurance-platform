@@ -1,5 +1,7 @@
 package com.bank.insurance.onesb.adapter.onesb.client;
 
+import com.bank.insurance.onesb.TestErrors;
+
 import com.bank.common.audit.AuditActions;
 import com.bank.common.audit.AuditEvent;
 import com.bank.common.audit.AuditEventPublisher;
@@ -74,7 +76,7 @@ class OneSbHttpClientTest {
                 .build();
 
         publisher = new RecordingPublisher();
-        client = new OneSbHttpClient(restClient, new OneSbErrorNormaliser(), publisher);
+        client = new OneSbHttpClient(restClient, new OneSbErrorNormaliser(TestErrors.ONESB), publisher, TestErrors.ONESB);
     }
 
     @Test

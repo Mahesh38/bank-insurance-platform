@@ -1,8 +1,9 @@
 package com.bank.insurance.onesb.adapter.onesb.error;
 
 import com.bank.common.error.ErrorCodes;
+import com.bank.common.error.PlatformLayer;
 import com.bank.common.error.ServiceError;
-import com.bank.common.error.ServiceErrorResponse;
+import com.bank.common.error.ServiceErrors;
 import com.bank.common.error.ServiceException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -13,17 +14,32 @@ import java.util.List;
 /**
  * Maps 1SB HTTP status + {@code errors[]} bodies to bank {@link ServiceException}s.
  * Controllers never see raw 1SB JSON — only normalised bank error envelopes.
+ *
+ * <p><strong>The upstream's prose is a diagnostic, not a detail.</strong> This class used to set
+ * {@code detail} from the parsed 1SB body, which put the provider's own words — and its name and
+ * status — into the response the bank caller received (defect D1). The text now goes to
+ * {@code reason} on the diagnostic, where support and engineers read it, while {@code detail}
+ * comes from {@link com.bank.common.error.ErrorCatalogue}.
+ *
+ * <p>Field-level errors keep travelling in {@code errors[]}: those describe the caller's own
+ * submitted fields, they are what makes the failure actionable, and they are covered by the
+ * catalogue's per-item bank code rather than the raw 1SB one.
  */
 public class OneSbErrorNormaliser {
 
-    private final ObjectMapper objectMapper;
+    /** The provider this normaliser speaks for. Used as the upstream system on every diagnostic. */
+    public static final String UPSTREAM = "1SB";
 
-    public OneSbErrorNormaliser(ObjectMapper objectMapper) {
+    private final ObjectMapper objectMapper;
+    private final ServiceErrors serviceErrors;
+
+    public OneSbErrorNormaliser(ObjectMapper objectMapper, ServiceErrors serviceErrors) {
         this.objectMapper = objectMapper;
+        this.serviceErrors = serviceErrors;
     }
 
-    public OneSbErrorNormaliser() {
-        this(new ObjectMapper());
+    public OneSbErrorNormaliser(ServiceErrors serviceErrors) {
+        this(new ObjectMapper(), serviceErrors);
     }
 
     /**
@@ -34,32 +50,34 @@ public class OneSbErrorNormaliser {
      */
     public ServiceException normalise(int httpStatus, String responseBody) {
         if (httpStatus == 401) {
-            return ServiceException.upstreamAuth("1SB returned 401 Unauthorized");
+            return serviceErrors.error(ErrorCodes.UPSTREAM_AUTH_FAILURE)
+                    .component("OneSbErrorNormaliser")
+                    .upstream(UPSTREAM, null, httpStatus)
+                    .reason("1SB returned 401 Unauthorized — check the API key and IP allow-list")
+                    .remediation("Runbook: 1SB credential rotation and IP whitelist.")
+                    .build();
         }
         if (httpStatus >= 500) {
-            return ServiceException.upstreamUnavailable("1SB returned " + httpStatus, null);
+            return serviceErrors.error(ErrorCodes.UPSTREAM_UNAVAILABLE)
+                    .component("OneSbErrorNormaliser")
+                    .upstream(UPSTREAM, null, httpStatus)
+                    .reason("1SB returned " + httpStatus)
+                    .build();
         }
         if (httpStatus >= 400) {
             ParsedErrors parsed = parseErrors(responseBody);
-            ServiceErrorResponse.ServiceErrorResponseBuilder builder = ServiceErrorResponse.builder()
-                    .title("Upstream Business Error")
-                    .status(422)
-                    .detail(parsed.detail() != null ? parsed.detail() : "1SB returned " + httpStatus)
-                    .code(ErrorCodes.UPSTREAM_BUSINESS_ERROR)
-                    .retryable(false)
-                    .upstreamCode(parsed.upstreamCode());
-            for (ServiceError error : parsed.errors()) {
-                builder.addError(error);
-            }
-            return new ServiceException(builder.build());
+            return serviceErrors.error(ErrorCodes.UPSTREAM_BUSINESS_ERROR)
+                    .component("OneSbErrorNormaliser")
+                    .upstream(UPSTREAM, parsed.upstreamCode(), httpStatus)
+                    .reason(parsed.detail() != null ? parsed.detail() : "1SB returned " + httpStatus)
+                    .errors(parsed.errors())
+                    .build();
         }
-        return new ServiceException(ServiceErrorResponse.builder()
-                .title("Upstream Bad Response")
-                .status(502)
-                .detail("Unexpected 1SB status " + httpStatus)
-                .code(ErrorCodes.UPSTREAM_BAD_RESPONSE)
-                .retryable(false)
-                .build());
+        return serviceErrors.error(ErrorCodes.UPSTREAM_BAD_RESPONSE)
+                .component("OneSbErrorNormaliser")
+                .upstream(UPSTREAM, null, httpStatus)
+                .reason("Unexpected 1SB status " + httpStatus)
+                .build();
     }
 
     private ParsedErrors parseErrors(String responseBody) {

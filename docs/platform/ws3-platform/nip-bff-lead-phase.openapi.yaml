@@ -51,6 +51,21 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PipelinePage'
+              example:
+                items:
+                  - leadId: 01JQX4K7R8M2N3P4Q5S6T7V8W9
+                    customerDisplayName: Abhishek Sharma
+                    initials: AS
+                    maskedMobile: '+91 933****412'
+                    state: ASSIGNED
+                    productClass: TERM
+                    journeyId: 01JQX4K8A1B2C3D4E5F6G7H8J9
+                    journeyStage: INITIATED
+                    updatedAt: '2026-09-07T11:15:00Z'
+                page:
+                  size: 20
+                  nextCursor: c1.v1.opaque
+                  hasMore: true
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -97,6 +112,21 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SearchPage'
+              example:
+                query:
+                  by: MOBILE
+                  resultCount: 1
+                items:
+                  - customerId: 01JQX4K7R8M2N3P4Q5S6T7V8X1
+                    fullName: Abhishek Sharma
+                    initials: AS
+                    maskedMobile: '+91 933****412'
+                    maskedEmail: abh*****@gmail.com
+                    eligibility: ETB
+                page:
+                  page: 0
+                  size: 20
+                  hasMore: false
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -119,6 +149,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CustomerSummary'
+              example:
+                customerId: 01JQX4K7R8M2N3P4Q5S6T7V8X1
+                fullName: Abhishek Sharma
+                initials: AS
+                maskedMobile: '+91 933****412'
+                maskedEmail: abh*****@gmail.com
+                eligibility: ETB
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
@@ -144,6 +181,22 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ActiveLeadPage'
+              examples:
+                none:
+                  summary: No active own Term lead
+                  value:
+                    items: []
+                    hasMore: false
+                existing:
+                  summary: Active own Term lead — offer resume
+                  value:
+                    items:
+                      - leadId: 01JQX4K7R8M2N3P4Q5S6T7V8W9
+                        productClass: TERM
+                        state: ASSIGNED
+                        journeyId: 01JQX4K8A1B2C3D4E5F6G7H8J9
+                        createdAt: '2026-09-07T11:15:00Z'
+                    hasMore: false
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
@@ -166,6 +219,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProductClassPage'
+              example:
+                lob: LIFE
+                items:
+                  - productClass: TERM
+                    label: Term Life Insurance
+                    selectable: true
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -186,6 +245,17 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/CreateLeadRequest'
+            examples:
+              createNew:
+                summary: Mint a Term lead
+                value:
+                  customerId: 01JQX4K7R8M2N3P4Q5S6T7V8X1
+                  lob: LIFE
+                  productClass: TERM
+              resumeExisting:
+                summary: Resume an own active lead
+                value:
+                  resumeLeadId: 01JQX4K7R8M2N3P4Q5S6T7V8W9
       responses:
         '201':
           description: New lead minted
@@ -193,12 +263,30 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/LeadCreated'
+              example:
+                leadId: 01JQX4K7R8M2N3P4Q5S6T7V8W9
+                journeyId: 01JQX4K8A1B2C3D4E5F6G7H8J9
+                customerId: 01JQX4K7R8M2N3P4Q5S6T7V8X1
+                lob: LIFE
+                productClass: TERM
+                state: ASSIGNED
+                createdAt: '2026-09-07T11:15:00Z'
+                outcome: CREATED
         '200':
           description: Idempotent replay or resume
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/LeadCreated'
+              example:
+                leadId: 01JQX4K7R8M2N3P4Q5S6T7V8W9
+                journeyId: 01JQX4K8A1B2C3D4E5F6G7H8J9
+                customerId: 01JQX4K7R8M2N3P4Q5S6T7V8X1
+                lob: LIFE
+                productClass: TERM
+                state: ASSIGNED
+                createdAt: '2026-09-07T11:15:00Z'
+                outcome: RESUMED
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -225,6 +313,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/LeadSummary'
+              example:
+                leadId: 01JQX4K7R8M2N3P4Q5S6T7V8W9
+                journeyId: 01JQX4K8A1B2C3D4E5F6G7H8J9
+                customerId: 01JQX4K7R8M2N3P4Q5S6T7V8X1
+                lob: LIFE
+                productClass: TERM
+                state: ASSIGNED
+                createdAt: '2026-09-07T11:15:00Z'
+                outcome: CREATED
+                needAnalysisState: NOT_STARTED
+                journeyStage: INITIATED
+                updatedAt: '2026-09-07T11:15:00Z'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
@@ -520,19 +620,43 @@ components:
         outcome:
           $ref: '#/components/schemas/CreateOutcome'
     LeadSummary:
-      allOf:
-        - $ref: '#/components/schemas/LeadCreated'
-        - type: object
-          additionalProperties: false
-          properties:
-            needAnalysisState:
-              $ref: '#/components/schemas/NeedAnalysisState'
-            journeyStage:
-              type: string
-              nullable: true
-            updatedAt:
-              type: string
-              format: date-time
+      type: object
+      required:
+        - leadId
+        - journeyId
+        - customerId
+        - lob
+        - productClass
+        - state
+        - createdAt
+        - outcome
+      additionalProperties: false
+      properties:
+        leadId:
+          $ref: '#/components/schemas/Ulid'
+        journeyId:
+          $ref: '#/components/schemas/Ulid'
+        customerId:
+          $ref: '#/components/schemas/Ulid'
+        lob:
+          $ref: '#/components/schemas/Lob'
+        productClass:
+          $ref: '#/components/schemas/ProductClass'
+        state:
+          $ref: '#/components/schemas/LeadState'
+        createdAt:
+          type: string
+          format: date-time
+        outcome:
+          $ref: '#/components/schemas/CreateOutcome'
+        needAnalysisState:
+          $ref: '#/components/schemas/NeedAnalysisState'
+        journeyStage:
+          type: string
+          nullable: true
+        updatedAt:
+          type: string
+          format: date-time
     FieldError:
       type: object
       required: [code]

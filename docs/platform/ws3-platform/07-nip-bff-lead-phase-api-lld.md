@@ -334,6 +334,141 @@ Resume / status for `SCR-02` row tap. Same visibility as pipeline. IPR: row abse
 fails. Returns the create-response projection plus `needAnalysisState` and `journeyStage`.
 Not a dump of follow-ups.
 
+### 6.8 Wire examples (e2e happy path)
+
+Identifiers below are illustrative ULIDs. Masking is already applied. Flutter never sees
+`cifNumber`, PAN, DOB, or a full mobile.
+
+**1. Landing — `GET /workspace/pipeline?inbox=WORKING&limit=20`**
+
+```json
+{
+  "items": [
+    {
+      "leadId": "01JQX4K7R8M2N3P4Q5S6T7V8W9",
+      "customerDisplayName": "Abhishek Sharma",
+      "initials": "AS",
+      "maskedMobile": "+91 933****412",
+      "state": "ASSIGNED",
+      "productClass": "TERM",
+      "journeyId": "01JQX4K8A1B2C3D4E5F6G7H8J9",
+      "journeyStage": "INITIATED",
+      "updatedAt": "2026-09-07T11:15:00Z"
+    }
+  ],
+  "page": { "size": 20, "nextCursor": "c1.v1.opaque", "hasMore": true }
+}
+```
+
+Prospects tab: same resource with `inbox=UNSTARTED`. Next page: repeat with `cursor`.
+Empty inbox: `{ "items": [], "page": { "size": 20, "hasMore": false } }`.
+
+**2. Search — `GET /customers:search?by=MOBILE&q=9331111412&limit=20`**
+
+```json
+{
+  "query": { "by": "MOBILE", "resultCount": 1 },
+  "items": [
+    {
+      "customerId": "01JQX4K7R8M2N3P4Q5S6T7V8X1",
+      "fullName": "Abhishek Sharma",
+      "initials": "AS",
+      "maskedMobile": "+91 933****412",
+      "maskedEmail": "abh*****@gmail.com",
+      "eligibility": "ETB"
+    }
+  ],
+  "page": { "page": 0, "size": 20, "hasMore": false }
+}
+```
+
+Zero hits: `items: []`, `resultCount: 0` (`AC-CUST-010-2`). Non-ETB hits keep
+`eligibility=NOT_ETB`; Continue stays disabled (`AC-CUST-010-3`). `q` is never echoed.
+
+**3. Confirm (optional) — `GET /customers/01JQX4K7R8M2N3P4Q5S6T7V8X1`**
+
+Same body as one `CustomerSummary` from the search hit. Prefer the hit when the RM has not
+left `SCR-03`.
+
+**4. Parallel after selection**
+
+- `GET /customers/{customerId}/active-leads?productClass=TERM`
+- `GET /catalogue/product-classes?lob=LIFE` (skip if session-cached)
+
+Active none:
+
+```json
+{ "items": [], "hasMore": false }
+```
+
+Active own Term lead:
+
+```json
+{
+  "items": [
+    {
+      "leadId": "01JQX4K7R8M2N3P4Q5S6T7V8W9",
+      "productClass": "TERM",
+      "state": "ASSIGNED",
+      "journeyId": "01JQX4K8A1B2C3D4E5F6G7H8J9",
+      "createdAt": "2026-09-07T11:15:00Z"
+    }
+  ],
+  "hasMore": false
+}
+```
+
+Catalogue (R0):
+
+```json
+{
+  "lob": "LIFE",
+  "items": [
+    { "productClass": "TERM", "label": "Term Life Insurance", "selectable": true }
+  ]
+}
+```
+
+**5a. Create — `POST /leads`**
+
+Headers: `Idempotency-Key: 550e8400-e29b-41d4-a716-446655440000`, `X-Correlation-Id`.
+
+```json
+{
+  "customerId": "01JQX4K7R8M2N3P4Q5S6T7V8X1",
+  "lob": "LIFE",
+  "productClass": "TERM"
+}
+```
+
+**201:**
+
+```json
+{
+  "leadId": "01JQX4K7R8M2N3P4Q5S6T7V8W9",
+  "journeyId": "01JQX4K8A1B2C3D4E5F6G7H8J9",
+  "customerId": "01JQX4K7R8M2N3P4Q5S6T7V8X1",
+  "lob": "LIFE",
+  "productClass": "TERM",
+  "state": "ASSIGNED",
+  "createdAt": "2026-09-07T11:15:00Z",
+  "outcome": "CREATED"
+}
+```
+
+**5b. Resume — same POST**, body `{ "resumeLeadId": "01JQX4K7R8M2N3P4Q5S6T7V8W9" }`, **200**
+with `outcome=RESUMED` and the same envelope.
+
+**5c. Duplicate without resume — 409** public error, `code=CONFLICT`,
+`errors[].field=leadId`, `errors[].message` = the existing ULID only (no name, no CIF).
+
+**6. Row tap — `GET /leads/{leadId}`**
+
+Create envelope plus `needAnalysisState` and `journeyStage`. No follow-ups.
+
+There is **no poll** on this slice. After `201`/`200` the app navigates with `journeyId`
+into `SCR-06` (next pack) or returns to the pipeline (invalidate the inbox cache).
+
 ---
 
 ## 7. Internal seams (cluster-private)

@@ -19,7 +19,7 @@ schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
 document_count: 543
-total_bytes: 15393423
+total_bytes: 15403603
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -1933,7 +1933,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 189632
+    bytes: 191985
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -4325,7 +4325,7 @@ documents:
     persona: architecture
     title: "07 — NIP BFF lead landing & create API LLD (R0)"
     answers: "Origin: SUG-20260907-ldc · EPIC-003 · ARCH-023 · PLAN-004"
-    bytes: 22001
+    bytes: 25426
   - path: docs/platform/ws3-platform/08-nip-bff-lead-phase-java-records.md
     bucket: platform
     authority: approved-spec
@@ -4365,4 +4365,4 @@ documents:
     persona: architecture
     title: "nip bff lead phase.openapi"
     answers: "YAML record; first key `openapi`"
-    bytes: 16887
+    bytes: 21289

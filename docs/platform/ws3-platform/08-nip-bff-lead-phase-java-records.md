@@ -12,6 +12,8 @@ internal → public and applies masking. Flutter never depends on internal packa
 
 Error envelope is already implemented:
 `com.bank.common.error.ServiceErrorResponse` (`ADR-017`). Do not fork it.
+Do not wrap success bodies in `{success, data, message}` — HTTP status plus the resource
+is the platform success contract. Public errors include `category` after `toPublic()`.
 
 ```java
 package com.bank.insurance.nip.bff.api.v1.lead;

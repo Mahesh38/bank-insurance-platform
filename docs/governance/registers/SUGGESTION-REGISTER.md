@@ -44,6 +44,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
 | SUG-20260907-ldc | 2026-09-07 | human:front-architect | NIP BFF / RM app consumer contract for R0 lead landing (own inbox) + ETB search + Term lead create through success | SF1 | SC0 | SHOULD | ARCH | P2 / P1 | ADMITTED | [EPIC-003](../../platform/ws3-platform/EPIC-003.work-item.yaml) · [PLAN-004](../plans/PLAN-004-nip-bff-lead-phase-contract.md) · [LLD](../../platform/ws3-platform/07-nip-bff-lead-phase-api-lld.md) · [detail](#sug-20260907-ldc--nip-bff-lead-landing-and-create-contract) |
+| SUG-20260907-std | 2026-09-07 | human:front-architect | Confirm platform-wide standard API response, versioning, security and REST practices on the NIP BFF lead OpenAPI | SF1 | SC0 | SHOULD | DOC | P2 / P2 | ADMITTED | [ARCH-023](../../platform/ws3-platform/ARCH-023.work-item.yaml) · [ADR-017](../../journey-execution/07-PLATFORM-ERROR-CONTRACT.md) · [detail](#sug-20260907-std--platform-api-conventions-on-lead-openapi) |
 | SUG-20260907-fig | 2026-09-07 | human:front-architect | Figma extras on the same journey: ULIP-leads tab, Savings/ULIP/Health product picker, meeting scheduler after create | SF3 | SC2 | MUST | FUNC | P4 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md#1-parked--scheduled-work) · [detail](#sug-20260907-fig--figma-ulip--health--meeting-extras) |
 | SUG-20260904-uis | 2026-09-04 | human:cloud-agent | File the cross-insurer Universal Insurance Suitability specification (7-layer model, 206-product catalogue attributes, 8,811 source-fidelity tests) as non-binding project research for later Suitability / Product Catalogue work | SF2 | SC2 | SHOULD | DOC | P3 / P2 | ADMIT-BYPASS | [spec](../../au-bank-insurance-platform/references/2026-09-04-universal-insurance-suitability-specification.md) · [detail](#sug-20260904-uis--file-universal-suitability-research-specification) |
 | SUG-20260904-eng | 2026-09-04 | human:cloud-agent | Implement the 7-layer universal suitability engine and the 206-product multi-insurer catalogue as the Suitability microservice and Product Catalogue | SF3 | SC2 | MUST | FUNC | P4 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md#1-parked--scheduled-work) · [detail](#sug-20260904-eng--implement-7-layer-engine-and-multi-insurer-catalogue) |
@@ -234,6 +235,119 @@ outcome:
   closed_reason: null
 
 resumed: "EPIC-003 — this intake is the work item for the lane."
+```
+
+### SUG-20260907-std · Platform API conventions on lead OpenAPI
+
+```yaml
+# schema: triage-record
+id: SUG-20260907-std
+raised_at: "2026-09-07"
+raised_by: "human:front-architect"
+source: "Review of nip-bff-lead-phase.openapi.yaml after EPIC-003"
+input: >
+  I go through open API spec, i saw the API contracts, the only concern i have is
+  do we have standard API response accross all the service, and are we following
+  the best practices for the rest API development like versioning,security and
+  standard response.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-TERM-SALE — one RM sells one Term Life policy to one ETB customer end to end"
+  state_as_of: "2026-08-10"
+  state_provisional: false
+  active_work_item: EPIC-003
+
+stage_fit:
+  code: SF1
+  rationale: >
+    The lead OpenAPI is the in-flight consumer contract (ARCH-023). Making it
+    declare the already-ratified platform conventions (ADR-017, URI /api/v1,
+    token-hiding session) is completing that artefact, not a new public API.
+    Introducing a second success envelope would be a new architectural decision
+    and is rejected in action_rationale.
+
+scope:
+  code: SC0
+  business_scope: "Same SCR-02..SCR-05 contract; no new capability"
+  serves: []
+  failure_without_it: >
+    Flutter would infer a {success,data} wrapper or a per-endpoint error shape
+    that bank-common-error and ADR-017 already forbid.
+  minimal: true
+  authority: "07-PLATFORM-ERROR-CONTRACT.md ADR-017 · R0-HLD.md §5 · WS-2 token-hiding BFF"
+
+necessity:
+  now: SHOULD
+  future_necessity: MUST
+  target_stage: "S11 — Vertical Slice"
+  binds_when: "NIP-APP generates clients from this OpenAPI"
+  failure_without_it: >
+    The lead spec would look like an isolated API family instead of one surface
+    of the platform error and session contracts.
+  evidence_tier: E2
+  evidence:
+    - "docs/journey-execution/07-PLATFORM-ERROR-CONTRACT.md §4.2 public rendering"
+    - "libs/bank-common-error ServiceErrorResponse.toPublic()"
+    - "docs/architecture/R0-HLD.md §5 base /api/v1"
+    - "docs/platform/authentication-authorization/README.md decisions 1-2"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT
+action_rationale: >
+  SF1 x SHOULD = ADMIT into ARCH-023. Score 2N+2S+2B+2R+D-E = 4+4+4+4+1-1 = 16 → P2.
+  Explicitly does NOT admit a generic {success, data, message} wrapper: that
+  contradicts ADR-017 (errors are RFC 7807 problem+json; success is the resource).
+  Documents only. FreshnessCheck WARN (state_as_of 28d); admit allowed.
+conflicts: []
+
+classification:
+  type: DOC
+  also: [ARCH]
+  breakdown: TASK
+  epic: EPIC-003
+  risk_tier: T3
+  destination: "docs/platform/ws3-platform/ARCH-023.work-item.yaml"
+  rationale: "Align the already-drafted OpenAPI with ADR-017 public fields and inherited session/versioning rules."
+
+priority:
+  now: P2
+  at_target: P2
+  factors: { N: 2, S: 2, B: 2, R: 2, D: 1, E: 1 }
+  score: 16
+  matrix_default: P3
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "On-stage documentation completeness of ARCH-023"
+
+dependencies:
+  edges:
+    - type: ARCHITECTURAL
+      target: ADR-017
+      relation: requires
+      state: OPEN
+    - type: TECHNICAL
+      target: ARCH-023
+      relation: related_to
+      state: IN-FLIGHT
+
+outcome:
+  registered_in: docs/governance/registers/SUGGESTION-REGISTER.md
+  work_item_id: ARCH-023
+  plan_id: PLAN-004
+  status: ADMITTED
+  closed_reason: null
+
+resumed: "EPIC-003 / ARCH-023"
 ```
 
 ### SUG-20260907-fig · Figma ULIP / Health / meeting extras

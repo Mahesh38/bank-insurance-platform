@@ -5,6 +5,25 @@ info:
   description: |
     Public contract for NIP-APP screens SCR-02..SCR-05. Flutter talks only to this
     surface. Status: AI-DRAFTED (ARCH-023). Not the S12 published portal artefact.
+
+    Platform conventions (all NIP BFF and internal services share these; this file
+    does not invent a second style):
+
+    Versioning — URI `/api/v1` on the public gateway; cluster-private services use
+    `/internal/v1`. Additive fields are compatible. A breaking change is `/api/v2`.
+
+    Success — the resource is the JSON body. There is no `{success, data, message}`
+    wrapper. HTTP status is the outcome (200/201 empty-list is still 200).
+
+    Errors — RFC 7807 `application/problem+json` via `ServiceErrorResponse.toPublic()`
+    (ADR-017). Public fields: type, title, status, detail, code, category, retryable,
+    incidentId, correlationId, timestamp, errors[]. Never origin, diagnostic, upstream
+    vendor text, or stack. The BFF (L4) is the redaction boundary.
+
+    Security — opaque BFF session only (cookie `NIPSESSION` for web, `Authorization`
+    bearer handle for native). These are not OAuth access tokens. Cookie/browser
+    calls also send CSRF (`X-CSRF-Token`). PDP is fail-closed. Mutations require
+    `Idempotency-Key`. `distributorId` is forbidden.
   contact:
     name: Mahesh — Principal Insurance Platform Architect
 servers:
@@ -20,6 +39,7 @@ tags:
   - name: Leads
 security:
   - sessionCookie: []
+  - sessionHandle: []
 paths:
   /workspace/pipeline:
     get:
@@ -239,6 +259,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/CorrelationId'
         - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CsrfToken'
       requestBody:
         required: true
         content:
@@ -335,7 +356,17 @@ components:
       type: apiKey
       in: cookie
       name: NIPSESSION
-      description: Opaque BFF session. OAuth tokens never reach Flutter.
+      description: |
+        Opaque BFF session for browser/WebView. HttpOnly, Secure, SameSite.
+        Cookie clients MUST also send X-CSRF-Token. OAuth tokens never reach Flutter.
+    sessionHandle:
+      type: http
+      scheme: bearer
+      bearerFormat: OpaqueSession
+      description: |
+        Opaque BFF session handle for native (Keychain/Keystore). This is NOT an
+        OAuth access or refresh token. The BFF exchanges it for provider tokens
+        server-side (ADR-015).
   parameters:
     CorrelationId:
       name: X-Correlation-Id
@@ -344,6 +375,15 @@ components:
       schema:
         type: string
         format: uuid
+    CsrfToken:
+      name: X-CSRF-Token
+      in: header
+      required: false
+      description: Required when authenticating with the NIPSESSION cookie. Not used with the native session handle.
+      schema:
+        type: string
+        minLength: 16
+        maxLength: 128
     IdempotencyKey:
       name: Idempotency-Key
       in: header
@@ -668,9 +708,27 @@ components:
           type: string
         message:
           type: string
+    ErrorCategory:
+      type: string
+      description: How the caller must treat the failure (ADR-017 §2.1). Not an HTTP status.
+      enum:
+        - VALIDATION
+        - AUTHENTICATION
+        - AUTHORIZATION
+        - NOT_FOUND
+        - CONFLICT
+        - COMPLIANCE_GATE
+        - UPSTREAM
+        - CONFIG
+        - RATE_LIMIT
+        - INTERNAL
     ServiceErrorResponse:
       type: object
-      required: [title, status, code, retryable]
+      description: |
+        Public rendering of ServiceErrorResponse.toPublic(). Identical across every
+        bank service that crosses L4. Diagnostic fields (origin, service internals,
+        upstream vendor text) MUST NOT appear here.
+      required: [title, status, code, category, retryable]
       additionalProperties: false
       properties:
         type:
@@ -684,6 +742,9 @@ components:
           type: string
         code:
           type: string
+          example: CONFLICT
+        category:
+          $ref: '#/components/schemas/ErrorCategory'
         retryable:
           type: boolean
         timestamp:
@@ -691,12 +752,28 @@ components:
           format: date-time
         incidentId:
           type: string
+          description: Safe to show the RM. Join key for support logs.
         correlationId:
           type: string
         errors:
           type: array
           items:
             $ref: '#/components/schemas/FieldError'
+      example:
+        type: about:blank
+        title: Active lead exists
+        status: 409
+        detail: This customer already has an active Term lead you can resume.
+        code: CONFLICT
+        category: CONFLICT
+        retryable: false
+        incidentId: 01JQX4K7R8M2N3P4Q5S6T7V8Y2
+        correlationId: 550e8400-e29b-41d4-a716-446655440000
+        timestamp: '2026-09-07T11:15:00Z'
+        errors:
+          - code: CONFLICT
+            field: leadId
+            message: 01JQX4K7R8M2N3P4Q5S6T7V8W9
   responses:
     BadRequest:
       description: Validation or missing Idempotency-Key

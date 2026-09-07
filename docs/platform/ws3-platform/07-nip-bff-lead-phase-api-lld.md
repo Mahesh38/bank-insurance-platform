@@ -54,6 +54,24 @@ IPR principals: pipeline and search are RM book queries. Create is `403 ORIGINAT
 (`INV-LED-04`, `S-20`). Out-of-scope rows are **absent**, never a `403` on a named id
 (`INV-LED-07`).
 
+### 2.1 Platform conventions this pack inherits
+
+This file does **not** invent a second API style. Every NIP BFF and internal service in R0
+shares the same three rules. The lead OpenAPI is one consumer of them (`SUG-20260907-std`).
+
+| Concern | Platform rule | What Flutter sees on this pack |
+|---|---|---|
+| **Versioning** | URI version on the public gateway: `/api/v1`. Cluster-private services use `/internal/v1`. Additive fields are compatible; a breaking change is `/api/v2` (not a header-only swap in R0) | Server URL already includes `/api/v1`. Resource paths in this file are unversioned relative to that base |
+| **Success body** | The HTTP resource **is** the body. No `{ "success": true, "data": …, "message": … }` wrapper — that would duplicate HTTP status and fight sparse projections | `PipelinePage`, `SearchPage`, `LeadCreated`, … |
+| **Error body** | One envelope everywhere: RFC 7807 `application/problem+json` = `ServiceErrorResponse.toPublic()` ([ADR-017](../../journey-execution/07-PLATFORM-ERROR-CONTRACT.md#42-public-rendering--crosses-the-trust-boundary)) | `code`, `category`, `retryable`, `incidentId`, `correlationId`. No `origin`, no `diagnostic`, no vendor text |
+| **Security** | Token-hiding BFF (`ADR-015`): opaque session only; PDP fail-closed; object-level visibility in the store; CSRF on cookie/browser; native uses a Keychain handle, not a cookie | `NIPSESSION` cookie **or** `Authorization: Bearer <opaque-session>` — neither is an OAuth access token |
+| **Correlation** | `X-Correlation-Id` on every hop; `Idempotency-Key` on mutations | Required headers on this spec |
+| **1SB / provider APIs** | Different schemas, behind the Integration Hub. Bank BFFs never copy 1SB envelopes | Not in this file |
+
+A `{success, data, message}` wrapper is **rejected** for this platform: HTTP status already
+carries outcome; ADR-017 already standardises failure; wrapping would force every list page
+to nest `data.items` and would leak a second error shape past `toPublic()`.
+
 ---
 
 ## 3. Screen → API map
@@ -494,7 +512,8 @@ non-RM at the aggregate, not only at the BFF — `INV-LED-04`):
 
 Public envelope: [`ServiceErrorResponse`](../../../libs/bank-common-error/src/main/java/com/bank/common/error/ServiceErrorResponse.java)
 (`ADR-017`). Codes from [`ErrorCodes`](../../../libs/bank-common-error/src/main/java/com/bank/common/error/ErrorCodes.java)
-— additive later if needed; this pack reuses.
+— additive later if needed; this pack reuses. The public body always includes `category` so the
+app can branch on class (retry vs re-login vs resume) without parsing `title`.
 
 | HTTP | `code` | Screen | RM-visible outcome |
 |---|---|---|---|

@@ -4,6 +4,11 @@ Integration knowledge base for building a bank insurance platform on **1Silverbu
 
 ## Start here
 
+**New to the project or looking for one place to understand everything?**
+→ **[Bank Insurance Platform Knowledge Hub](./docs/knowledge-base/index.md)** — the role-based entry point for governance, glossary, current state, backlog/decisions, business, architecture, services/APIs, 1SB, identity and repository navigation.
+
+To run the searchable/tabbed UI locally or build it as a static internal site, see **[Knowledge Hub operating guide](./docs/knowledge-base/README.md)**.
+
 **On the team, or working with an AI agent on this repo?**
 → **[docs/governance/RUNBOOK.md](./docs/governance/RUNBOOK.md)** — the AIGEM operating manual.
 Find your [role card](./docs/governance/RUNBOOK.md#6-role-cards) (one screen: what you do, how

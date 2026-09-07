@@ -58,7 +58,8 @@ nav:
       - Repository map: knowledge-base/repository-map.md
       - Glossary: knowledge-base/glossary.md
       - Status & decisions explained: knowledge-base/status-and-decisions.md
-      - Portal operating guide: knowledge-base/README.md
+      - Portal operating guide: knowledge-base/operating-guide.md
+      - Human bypass record: knowledge-base/bypass-record.md
   - Governance:
       - Runbook: governance/RUNBOOK.md
       - Governance overview: governance/README.md

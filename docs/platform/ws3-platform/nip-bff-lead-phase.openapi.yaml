@@ -1,0 +1,618 @@
+openapi: 3.0.3
+info:
+  title: NIP BFF — R0 lead landing and create
+  version: 0.1.0
+  description: |
+    Public contract for NIP-APP screens SCR-02..SCR-05. Flutter talks only to this
+    surface. Status: AI-DRAFTED (ARCH-023). Not the S12 published portal artefact.
+  contact:
+    name: Mahesh — Principal Insurance Platform Architect
+servers:
+  - url: https://{env}-insurance.aubank.in/api/v1
+    variables:
+      env:
+        default: uat
+        enum: [dev, uat, prod]
+tags:
+  - name: Workspace
+  - name: Customers
+  - name: Catalogue
+  - name: Leads
+security:
+  - sessionCookie: []
+paths:
+  /workspace/pipeline:
+    get:
+      tags: [Workspace]
+      operationId: getPipeline
+      summary: RM working inbox (own leads)
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - name: inbox
+          in: query
+          schema:
+            $ref: '#/components/schemas/InboxFilter'
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+        - name: cursor
+          in: query
+          schema:
+            type: string
+            maxLength: 512
+      responses:
+        '200':
+          description: Page of sparse pipeline rows. Empty inbox is 200 with items [].
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PipelinePage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /customers:search:
+    get:
+      tags: [Customers]
+      operationId: searchCustomers
+      summary: ETB customer search in the RM book
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - name: by
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/SearchBy'
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 80
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 4
+            default: 0
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 20
+            default: 20
+      responses:
+        '200':
+          description: Ranked hits. Zero hits is 200 with items [].
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchPage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /customers/{customerId}:
+    get:
+      tags: [Customers]
+      operationId: getCustomerSummary
+      summary: Confirm-sheet projection (masked)
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/CustomerId'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerSummary'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /customers/{customerId}/active-leads:
+    get:
+      tags: [Leads]
+      operationId: listActiveLeads
+      summary: Active own leads for duplicate handling
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/CustomerId'
+        - name: productClass
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/ProductClass'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActiveLeadPage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /catalogue/product-classes:
+    get:
+      tags: [Catalogue]
+      operationId: listProductClasses
+      summary: R0 selectable classes for lead create (LIFE/TERM only)
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - name: lob
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/Lob'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductClassPage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+  /leads:
+    post:
+      tags: [Leads]
+      operationId: createOrResumeLead
+      summary: Create a Term Life lead or resume an existing own lead
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateLeadRequest'
+      responses:
+        '201':
+          description: New lead minted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeadCreated'
+        '200':
+          description: Idempotent replay or resume
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeadCreated'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /leads/{leadId}:
+    get:
+      tags: [Leads]
+      operationId: getLead
+      summary: Resume / status projection
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/LeadId'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeadSummary'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: NIPSESSION
+      description: Opaque BFF session. OAuth tokens never reach Flutter.
+  parameters:
+    CorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: true
+      schema:
+        type: string
+        format: uuid
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema:
+        type: string
+        format: uuid
+    CustomerId:
+      name: customerId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Ulid'
+    LeadId:
+      name: leadId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Ulid'
+  schemas:
+    Ulid:
+      type: string
+      pattern: '^[0-9A-HJKMNP-TV-Z]{26}$'
+      example: 01JQX4K7R8M2N3P4Q5S6T7V8W9
+    InboxFilter:
+      type: string
+      enum: [WORKING, UNSTARTED]
+      default: WORKING
+    SearchBy:
+      type: string
+      enum: [CUSTOMER_ID, MOBILE, PAN, NAME]
+    Lob:
+      type: string
+      enum: [LIFE]
+    ProductClass:
+      type: string
+      enum: [TERM]
+    LeadState:
+      type: string
+      enum:
+        - NEW
+        - ASSIGNED
+        - CONTACTED
+        - QUALIFIED
+        - CONVERTED
+        - DISQUALIFIED
+        - EXPIRED
+        - ARCHIVED
+    Eligibility:
+      type: string
+      enum: [ETB, NOT_ETB]
+    NeedAnalysisState:
+      type: string
+      enum: [NOT_STARTED, IN_PROGRESS, COMPLETED]
+    CreateOutcome:
+      type: string
+      enum: [CREATED, RESUMED]
+    CursorPage:
+      type: object
+      required: [size, hasMore]
+      additionalProperties: false
+      properties:
+        size:
+          type: integer
+        nextCursor:
+          type: string
+          nullable: true
+        hasMore:
+          type: boolean
+    OffsetPage:
+      type: object
+      required: [page, size, hasMore]
+      additionalProperties: false
+      properties:
+        page:
+          type: integer
+        size:
+          type: integer
+        hasMore:
+          type: boolean
+    PipelineRow:
+      type: object
+      required:
+        - leadId
+        - customerDisplayName
+        - initials
+        - maskedMobile
+        - state
+        - productClass
+        - updatedAt
+      additionalProperties: false
+      properties:
+        leadId:
+          $ref: '#/components/schemas/Ulid'
+        customerDisplayName:
+          type: string
+          maxLength: 140
+        initials:
+          type: string
+          maxLength: 4
+        maskedMobile:
+          type: string
+          example: '+91 933****412'
+        state:
+          $ref: '#/components/schemas/LeadState'
+        productClass:
+          $ref: '#/components/schemas/ProductClass'
+        journeyId:
+          allOf:
+            - $ref: '#/components/schemas/Ulid'
+          nullable: true
+        journeyStage:
+          type: string
+          nullable: true
+        updatedAt:
+          type: string
+          format: date-time
+    PipelinePage:
+      type: object
+      required: [items, page]
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PipelineRow'
+        page:
+          $ref: '#/components/schemas/CursorPage'
+    CustomerSummary:
+      type: object
+      required:
+        - customerId
+        - fullName
+        - initials
+        - maskedMobile
+        - eligibility
+      additionalProperties: false
+      properties:
+        customerId:
+          $ref: '#/components/schemas/Ulid'
+        fullName:
+          type: string
+          maxLength: 140
+        initials:
+          type: string
+          maxLength: 4
+        maskedMobile:
+          type: string
+        maskedEmail:
+          type: string
+          nullable: true
+          example: 'abh*****@gmail.com'
+        eligibility:
+          $ref: '#/components/schemas/Eligibility'
+    SearchPage:
+      type: object
+      required: [items, page, query]
+      additionalProperties: false
+      properties:
+        query:
+          type: object
+          required: [by]
+          additionalProperties: false
+          properties:
+            by:
+              $ref: '#/components/schemas/SearchBy'
+            resultCount:
+              type: integer
+              minimum: 0
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CustomerSummary'
+        page:
+          $ref: '#/components/schemas/OffsetPage'
+    ActiveLead:
+      type: object
+      required: [leadId, productClass, state, createdAt]
+      additionalProperties: false
+      properties:
+        leadId:
+          $ref: '#/components/schemas/Ulid'
+        productClass:
+          $ref: '#/components/schemas/ProductClass'
+        state:
+          $ref: '#/components/schemas/LeadState'
+        journeyId:
+          allOf:
+            - $ref: '#/components/schemas/Ulid'
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+    ActiveLeadPage:
+      type: object
+      required: [items, hasMore]
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          maxItems: 20
+          items:
+            $ref: '#/components/schemas/ActiveLead'
+        hasMore:
+          type: boolean
+    ProductClassOption:
+      type: object
+      required: [productClass, label, selectable]
+      additionalProperties: false
+      properties:
+        productClass:
+          $ref: '#/components/schemas/ProductClass'
+        label:
+          type: string
+          example: Term Life Insurance
+        selectable:
+          type: boolean
+    ProductClassPage:
+      type: object
+      required: [lob, items]
+      additionalProperties: false
+      properties:
+        lob:
+          $ref: '#/components/schemas/Lob'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductClassOption'
+    CreateLeadRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        customerId:
+          $ref: '#/components/schemas/Ulid'
+        lob:
+          $ref: '#/components/schemas/Lob'
+        productClass:
+          $ref: '#/components/schemas/ProductClass'
+        resumeLeadId:
+          allOf:
+            - $ref: '#/components/schemas/Ulid'
+          nullable: true
+      description: |
+        New create requires customerId + lob + productClass.
+        Resume requires resumeLeadId. distributorId is forbidden.
+    LeadCreated:
+      type: object
+      required:
+        - leadId
+        - journeyId
+        - customerId
+        - lob
+        - productClass
+        - state
+        - createdAt
+        - outcome
+      additionalProperties: false
+      properties:
+        leadId:
+          $ref: '#/components/schemas/Ulid'
+        journeyId:
+          $ref: '#/components/schemas/Ulid'
+        customerId:
+          $ref: '#/components/schemas/Ulid'
+        lob:
+          $ref: '#/components/schemas/Lob'
+        productClass:
+          $ref: '#/components/schemas/ProductClass'
+        state:
+          $ref: '#/components/schemas/LeadState'
+        createdAt:
+          type: string
+          format: date-time
+        outcome:
+          $ref: '#/components/schemas/CreateOutcome'
+    LeadSummary:
+      allOf:
+        - $ref: '#/components/schemas/LeadCreated'
+        - type: object
+          additionalProperties: false
+          properties:
+            needAnalysisState:
+              $ref: '#/components/schemas/NeedAnalysisState'
+            journeyStage:
+              type: string
+              nullable: true
+            updatedAt:
+              type: string
+              format: date-time
+    FieldError:
+      type: object
+      required: [code]
+      additionalProperties: false
+      properties:
+        code:
+          type: string
+        field:
+          type: string
+        message:
+          type: string
+    ServiceErrorResponse:
+      type: object
+      required: [title, status, code, retryable]
+      additionalProperties: false
+      properties:
+        type:
+          type: string
+          default: about:blank
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        code:
+          type: string
+        retryable:
+          type: boolean
+        timestamp:
+          type: string
+          format: date-time
+        incidentId:
+          type: string
+        correlationId:
+          type: string
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/FieldError'
+  responses:
+    BadRequest:
+      description: Validation or missing Idempotency-Key
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ServiceErrorResponse'
+    Unauthorized:
+      description: Session missing or expired
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ServiceErrorResponse'
+    Forbidden:
+      description: Default-deny, RM-only origination, or SP cert
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ServiceErrorResponse'
+    NotFound:
+      description: Absent from this principal's visibility set (INV-LED-07)
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ServiceErrorResponse'
+    Conflict:
+      description: Active lead exists, or idempotency key reused with a different body
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ServiceErrorResponse'
+    Unprocessable:
+      description: Unsupported LOB/class or customer not in book
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ServiceErrorResponse'
+    Unavailable:
+      description: CBS, Lead, or Catalogue dependency down
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ServiceErrorResponse'

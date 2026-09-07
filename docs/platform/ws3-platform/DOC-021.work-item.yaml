@@ -1,0 +1,61 @@
+# schema: work-item
+id: DOC-021
+origin: SUG-20260907-ldc
+title: "Java record sketches and BFF masking map for SCR-02..SCR-05"
+type: DOC
+also: [ARCH]
+breakdown: STORY
+epic: EPIC-003
+workstream: WS-3
+owner: "Amit — Technical Head (sketches); Mahesh on public field set"
+risk_tier: T3
+
+serves:
+  - "ARCH-023"
+  - "AP-5 contract-first"
+
+problem: >
+  OpenAPI alone does not show the BFF-private mapping from Customer #4 / Lead #5
+  internals onto the masked Flutter types.
+
+description: >
+  08-nip-bff-lead-phase-java-records.md — public records matching the OpenAPI and
+  internal masking types that must never be serialised to Flutter.
+
+acceptance_criteria:
+  - id: AC-1
+    given: "the Java sketches"
+    when: "compared to the OpenAPI schemas"
+    then: "every public record field exists on the corresponding schema and cifNumber is only on the internal lookup type"
+  - id: AC-2
+    given: "S11 starts NIP BFF"
+    when: "engineers open the sketches"
+    then: "package name, controller signatures and ServiceErrorResponse reuse are named"
+
+out_of_scope:
+  - "Compiling the records into a Gradle module"
+  - "Changing bank-common-error"
+
+state: IN-FLIGHT
+priority_now: P2
+priority_at_target: P1
+target_stage: null
+unpark_trigger: null
+
+dependencies:
+  blocked_by: []
+  requires:
+    - "ARCH-023"
+  enables:
+    - "S11-E06"
+  related_to:
+    - "EPIC-003"
+  external: []
+  decision_dependency: []
+
+plan: PLAN-004
+estimate: S
+assumptions: []
+risks: []
+evidence: []
+variance_log: []

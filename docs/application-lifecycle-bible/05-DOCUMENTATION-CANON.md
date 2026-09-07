@@ -114,7 +114,7 @@ Legend for **This repo**: 🟢 exists and is good · 🟡 exists, incomplete · 
 |---|---|---|---|---|
 | Target architecture (C4 or equivalent) | Mahesh | Canonical | Build structure | 🟢 |
 | ADR log | Mahesh | Canonical | Why things are as they are | 🟢 |
-| API contracts / OpenAPI per service | Mahesh + Amit | Canonical | Consumers, contract tests | 🟡 1SB only |
+| API contracts / OpenAPI per service | Mahesh + Amit | Canonical | Consumers, contract tests | 🟡 1SB + NIP BFF lead-phase draft (`ARCH-023`) |
 | **NFR sheet with numbers** | Mahesh + Rajal | Canonical | S12 performance gates | 🔴 **GAP-017** |
 | Threat model (STRIDE per trust boundary) | Deepali | Canonical | S08 security tests, S12 pentest scope | 🟡 |
 | Trust boundary & network topology | Deepali + Mahesh | Canonical | S09 IaC | 🟡 |

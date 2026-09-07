@@ -1,0 +1,72 @@
+# schema: work-item
+id: ARCH-023
+origin: SUG-20260907-ldc
+title: "NIP BFF R0 lead landing and create — LLD, OpenAPI, HLD /leads repair"
+type: ARCH
+also: [DOC]
+breakdown: STORY
+epic: EPIC-003
+workstream: WS-3
+owner: "Mahesh — Principal Insurance Platform Architect"
+risk_tier: T3
+
+serves:
+  - "FF-15"
+  - "S11-E02-S01"
+  - "S11-E02-S02"
+  - "AC-CUST-010-1"
+  - "AC-LEAD-010-1"
+  - "CR-013 Lead naming"
+
+problem: >
+  The HLD sketch is not a consumer contract: missing search, inbox pagination, masking
+  and duplicate detection; paths still say /opportunities after ADR-014.
+
+description: >
+  Publish 07-nip-bff-lead-phase-api-lld.md and nip-bff-lead-phase.openapi.yaml; retarget
+  HLD §5.1 and S-20 wording to Lead. Java sketches are DOC-021.
+
+acceptance_criteria:
+  - id: AC-1
+    given: "a contract test generator"
+    when: "it reads nip-bff-lead-phase.openapi.yaml"
+    then: "pipeline, search, confirm, product-classes, active-leads, POST /leads and GET /leads/{id} exist"
+  - id: AC-2
+    given: "Flutter"
+    when: "it uses list/search schemas"
+    then: "no cifNumber, PAN, DOB, address or full mobile field is defined"
+  - id: AC-3
+    given: "R0-HLD.md §5.1"
+    when: "create is looked up"
+    then: "the path is POST /leads for BANK_RM"
+
+out_of_scope:
+  - "Service implementation"
+  - "Portal publication"
+  - "Human T4 signature"
+
+state: IN-FLIGHT
+priority_now: P2
+priority_at_target: P1
+target_stage: null
+unpark_trigger: null
+
+dependencies:
+  blocked_by: []
+  requires:
+    - "ADR-014"
+    - "ADR-017"
+  enables:
+    - "DOC-021"
+    - "S11-E02"
+  related_to:
+    - "EPIC-003"
+  external: []
+  decision_dependency: []
+
+plan: PLAN-004
+estimate: M
+assumptions: []
+risks: []
+evidence: []
+variance_log: []

@@ -350,7 +350,7 @@ Money path additionally: no new attempt while a prior one is `AUTHORISED` or `UN
 
 ## 5. API details
 
-These are the **R0 contract sketches** implied by the seams and the information model. They are not a published OpenAPI (that is S08/S11 work, `FF-15`). Flutter talks **only** to `#2`. Service-to-service calls never go via the public gateway.
+These are the **R0 contract sketches** implied by the seams and the information model. They are not a published OpenAPI portal drop (S12-E06-S01). The **consumer-ready** expansion for screens `SCR-02`…`SCR-05` (landing, search, Term create) is [`07-nip-bff-lead-phase-api-lld.md`](../platform/ws3-platform/07-nip-bff-lead-phase-api-lld.md) + [`nip-bff-lead-phase.openapi.yaml`](../platform/ws3-platform/nip-bff-lead-phase.openapi.yaml) (`EPIC-003` / `ARCH-023`, `FF-15`). Flutter talks **only** to `#2`. Service-to-service calls never go via the public gateway.
 
 Common headers on every call: `Authorization` (BFF: session; internal: service identity), `X-Correlation-Id`, `X-Journey-Id` (once a journey exists), `Idempotency-Key` on mutations. `distributorId` is **never** accepted from a caller.
 
@@ -358,14 +358,20 @@ Common headers on every call: `Authorization` (BFF: session; internal: service i
 
 Base: `https://{env}-insurance.aubank.in/api/v1` (name is illustrative; DNS is S09).
 
+Spoken resource name is **Lead** (`ADR-014`). Paths are `/leads`, not `/opportunities`.
+
 | Method | Path | Actor | What it does | Hard gate |
 |---|---|---|---|---|
 | `POST` | `/sessions` | RM, IPR | Establish opaque session; BFF talks to IdP adapter | Tokens never returned |
 | `DELETE` | `/sessions/current` | RM, IPR | Logout; revoke server session | |
 | `GET` | `/me` | RM, IPR | Principal + SP certification snapshot + `insurerId` (IPR) | |
-| `POST` | `/opportunities` | **RM only** | Create opportunity (`S-20`) | SP cert valid for `lob` |
-| `GET` | `/opportunities/{leadId}` | RM; IPR if `AC-4` | Resume / status | IPR: absent if gated |
-| `POST` | `/opportunities/{leadId}/journeys` | RM | Start journey from a `QUALIFIED` opportunity | |
+| `GET` | `/workspace/pipeline` | **RM** | Own working inbox, cursor-paginated (`SCR-02`) | Book-scoped; IPR uses gated read not this inbox |
+| `GET` | `/customers:search` | **RM** | ETB search by CIF / mobile / PAN (`SCR-03`) | Masked projection; CBS fail-closed |
+| `GET` | `/customers/{customerId}` | **RM** | Confirm sheet (`SCR-04`) | No CIF/PAN/DOB on the wire |
+| `GET` | `/customers/{customerId}/active-leads` | **RM** | Duplicate detection before create | Own active Term leads only |
+| `GET` | `/catalogue/product-classes` | RM | R0 selectable classes (`SCR-05`) | `LIFE`/`TERM` only |
+| `POST` | `/leads` | **RM only** | Create Term lead **or** resume (`S-20`, `AC-LEAD-010-1`) | SP cert valid for `lob`; returns `leadId` **and** `journeyId` |
+| `GET` | `/leads/{leadId}` | RM; IPR if `AC-4` | Resume / status | IPR: absent if gated |
 | `GET` | `/journeys/{journeyId}` | RM; IPR gated | Stage + references only | |
 | `POST` | `/journeys/{journeyId}/need-analysis` | RM | Complete need analysis | SP re-checked |
 | `POST` | `/journeys/{journeyId}/suitability` | RM | Evaluate (`S-07`) | C1 |
@@ -408,9 +414,9 @@ Called by `#2` or `#9` over mTLS or mesh-equivalent later; R0 uses IRSA + Networ
 
 | Service | Representative resources | Notes |
 |---|---|---|
-| #5 Lead | `POST /internal/v1/leads`, `GET …/{leadId}` | Rejects non-`BANK_RM` at the service, not only the BFF |
+| #5 Lead | `POST /internal/v1/leads`, `GET …/{leadId}`, `GET …?assignedRmId&inbox` | Rejects non-`BANK_RM` at the service, not only the BFF |
 | #9 Journey | `POST /internal/v1/journeys`, `POST …/{id}/transitions`, `GET …/{id}` | Transition payload is a *reference + event*, never an embedded decision |
-| #4 Customer | `GET /internal/v1/customers:lookup?cif=` | Snapshot; does not write CBS |
+| #4 Customer | `GET /internal/v1/customers:lookup?by=&q=` | Snapshot; does not write CBS. `by` ∈ CIF / mobile / PAN / name |
 | #6 Consent | `POST /internal/v1/consents`, `POST …/{id}/verify`, `GET …/{id}` | Append-only |
 | #7 Suitability | `POST /internal/v1/assessments`, `GET …/{id}` | `S-08` is a read of validity, 500 ms, no retry |
 | #8 Catalogue | `GET /internal/v1/offerings` | Read-through cache inside the service |

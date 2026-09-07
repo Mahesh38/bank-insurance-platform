@@ -1,0 +1,139 @@
+# schema: work-item
+id: EPIC-003
+title: "NIP BFF R0 lead landing and create — consumer contract pack"
+type: ARCH
+also: [DOC]
+breakdown: EPIC
+workstream: WS-3
+origin: ["SUG-20260907-ldc"]
+owner: "Mahesh — Principal Insurance Platform Architect (R2); Amit on consumer tests at S11"
+risk_tier: T3
+state: IN-FLIGHT
+priority_now: P2
+priority_at_target: P1
+target_stage: "S08 contract (this pack) / S11 implementation"
+unpark_trigger: null
+
+outcome: >
+  NIP-APP and NIP BFF share one consumer-ready contract for SCR-02..SCR-05 (pipeline,
+  ETB search, confirm, Term create/resume) with pagination, masking, parallel-call
+  rules and Java record sketches, aligned to CR-013 Lead naming and AC-LEAD-010-1.
+
+epic_triggers_met:
+  - multiple_stories
+  - multiple_components
+  - multiple_acceptance_outcomes
+  - multiple_dependencies
+
+completion_definition: >
+  LLD, OpenAPI and Java sketches agree; HLD §5.1 uses /leads not /opportunities for
+  this slice; FF-15 has a named consumer contract for the first RM seam; human Board 1
+  signature outstanding and not claimed. No NIP BFF or Lead service code is required
+  for this epic to be documentation-complete.
+
+not_included:
+  - "Implementing NIP BFF, Lead (#5), Customer (#4) or Flutter screens (S11-E02 / S11-E06)"
+  - "ULIP / Savings / Health product pickers and ULIP-leads tab (SUG-20260907-fig)"
+  - "Meeting scheduler (SUG-20260907-fig)"
+  - "Consent, suitability, quote, proposal, payment APIs (SCR-06+)"
+  - "Customer BFF (#1)"
+  - "Campaign / bulk lead create (ADR-005)"
+  - "Publishing OpenAPI to the internal portal (S12-E06-S01)"
+  - "Human T4 Architecture / Security / Compliance signatures"
+
+stories:
+  - id: ARCH-023
+    title: "NIP BFF lead-phase public contract (LLD + OpenAPI + HLD path repair)"
+    state: IN-FLIGHT
+    priority_now: P2
+    priority_at_target: P1
+  - id: DOC-021
+    title: "Java record sketches and internal masking map for SCR-02..SCR-05"
+    state: IN-FLIGHT
+    priority_now: P2
+    priority_at_target: P1
+
+story_order:
+  - ARCH-023
+  - DOC-021
+
+serves:
+  - "FF-15 consumer contract for the first RM seam"
+  - "S07 documentation canon: API contracts / OpenAPI per service (currently 1SB only)"
+  - "S11-E02-S01 create a lead"
+  - "S11-E02-S02 identify ETB customer via CBS"
+  - "S11-E06-S02 journey screens SCR-02..SCR-05"
+  - "CR-013 / ADR-014 Lead path naming"
+
+problem: >
+  R0-HLD §5.1 is a seam sketch that still publishes /opportunities after CR-013 renamed
+  the spoken path to Lead, and it omits pipeline pagination, CBS search, confirm-sheet
+  masking and duplicate handling that S05 SCR-02..SCR-05 and AC-CUST-010 / AC-LEAD-010
+  already require. Documentation canon marks NIP BFF OpenAPI as 1SB-only. S11 cannot
+  be contract-first without this pack.
+
+description: >
+  Admit and publish the R0-constrained NIP BFF contract pack for landing and lead
+  create. Park Figma extras that contradict BOOT out_of_scope_now and the S11 slice.
+
+acceptance_criteria:
+  - id: AC-1
+    given: "NIP-APP implements SCR-02"
+    when: "it reads the OpenAPI"
+    then: "GET /workspace/pipeline is cursor-paginated, book-scoped, and has no nested full Lead"
+  - id: AC-2
+    given: "NIP-APP implements SCR-03"
+    when: "it searches by CUSTOMER_ID, MOBILE or PAN"
+    then: "the response carries customerId + masked fields only; cifNumber and PAN are absent"
+  - id: AC-3
+    given: "AC-LEAD-010-1"
+    when: "POST /leads succeeds"
+    then: "the body contains both leadId and journeyId and lob=LIFE productClass=TERM"
+  - id: AC-4
+    given: "HLD §5.1 after this change"
+    when: "a consumer looks up create"
+    then: "the R0 create path is POST /leads, not POST /opportunities"
+  - id: AC-5
+    given: "CURRENT-STATE.yaml"
+    when: "this change lands"
+    then: "no stage field is edited; GATE-S08 remains OPEN"
+
+out_of_scope:
+  - "Runtime services and Flutter"
+  - "Figma-only tabs and meeting API"
+  - "Editing GATE-S08 / current_phase"
+
+dependencies:
+  blocked_by: []
+  requires:
+    - "docs/architecture/R0-HLD.md"
+    - "docs/application-lifecycle-bible/evidence/S05-experience-evidence.md"
+    - "ADR-005"
+    - "ADR-014"
+    - "ADR-015"
+    - "ADR-017"
+  enables:
+    - "S11-E02"
+    - "S11-E06"
+    - "FF-15 NIP BFF consumer tests"
+  related_to:
+    - "SUG-20260907-fig"
+    - "CR-013"
+    - "EPIC-001"
+  external: []
+  decision_dependency:
+    - "OPEN-LEAD-NAME"
+    - "OPEN-LEAD-DUP"
+
+plan: PLAN-004
+estimate: M
+assumptions: []
+risks: []
+evidence: []
+variance_log: []
+
+progress:
+  stories_total: 2
+  stories_done: 0
+  completion_definition_met: false
+  evidence: []

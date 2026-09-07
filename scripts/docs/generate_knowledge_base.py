@@ -17,10 +17,6 @@ DOCS = ROOT / "docs"
 OUT = DOCS / "knowledge-base" / "generated"
 
 
-def rel_doc(path: Path) -> str:
-    return path.relative_to(DOCS).as_posix()
-
-
 def md_link(label: str, target_from_docs: str) -> str:
     # Generated files are docs/knowledge-base/generated/*, therefore ../../ reaches docs/.
     return f"[{label}](../../{target_from_docs})"
@@ -30,6 +26,19 @@ def clean(value) -> str:
     if value is None:
         return "—"
     return str(value).replace("\n", " ").strip()
+
+
+def plain_markdown(value: str) -> str:
+    """Flatten embedded links before moving register text into a generated page.
+
+    Relative links in a source register are relative to that register's directory. Copying them
+    verbatim into docs/knowledge-base/generated would silently retarget them, so generated summary
+    cells keep the visible text and send readers to the authoritative register for navigation.
+    """
+    text = clean(value)
+    text = re.sub(r"\[([^\]]+)\]\([^\)]+\)", r"\1", text)
+    text = re.sub(r"<([^>]+)>", r"\1", text)
+    return text
 
 
 def write(name: str, text: str) -> None:
@@ -150,7 +159,7 @@ def generate_service_inventory() -> None:
         "| Module | Type | Java source files | Controllers | Mapped endpoints | README |",
         "|---|---|---:|---:|---:|---|",
     ]
-    mapping_re = re.compile(r"@(Get|Post|Put|Delete|Patch)Mapping\\b")
+    mapping_re = re.compile(r"@(Get|Post|Put|Delete|Patch)Mapping\b")
     for module in modules:
         parts = module.split(":", 1)
         path = ROOT / parts[0] / parts[1]
@@ -163,7 +172,6 @@ def generate_service_inventory() -> None:
             except OSError:
                 pass
         readme = path / "README.md"
-        # Files outside docs/ are not rendered by MkDocs; point to repository source instead.
         readme_cell = "yes" if readme.exists() else "—"
         lines.append(
             f"| `{module}` | {parts[0][:-1] if parts[0].endswith('s') else parts[0]} | {len(java_files)} | {len(controllers)} | {endpoint_count} | {readme_cell} |"
@@ -220,8 +228,7 @@ def generate_decisions() -> None:
     ]
     for cells in interesting:
         ident = cells[0]
-        # Register sections use different shapes. Prefer the longest descriptive middle cell and the cell that looks like a status.
-        candidates = [c for c in cells[1:] if c]
+        candidates = [plain_markdown(c) for c in cells[1:] if c]
         summary = max(candidates, key=len) if candidates else "—"
         status_tokens = [c for c in candidates if re.search(r"APPROV|PROPOS|PENDING|CANDIDATE|REJECT|ACCEPT|DRAFT|DECID", c, re.I)]
         status = status_tokens[0] if status_tokens else (candidates[-1] if candidates else "—")

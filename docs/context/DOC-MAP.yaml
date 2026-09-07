@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 536
-total_bytes: 15322656
+document_count: 537
+total_bytes: 15371236
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -973,7 +973,7 @@ documents:
     persona: null
     title: "Documentation — Master Index"
     answers: "Programme: AU Small Finance Bank — Insurance Distribution Platform"
-    bytes: 16196
+    bytes: 16530
   - path: docs/application-lifecycle-bible/00-HOW-TO-USE.md
     bucket: lifecycle
     authority: proposed-cr-010
@@ -1917,7 +1917,7 @@ documents:
     persona: null
     title: "AGENT CONTEXT INDEX"
     answers: "============================================================================="
-    bytes: 44751
+    bytes: 45280
   - path: docs/context/BOOT.md
     bucket: context
     authority: non-binding-context
@@ -1933,7 +1933,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 189632
+    bytes: 190125
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -3645,7 +3645,7 @@ documents:
     persona: null
     title: "Suggestion Register"
     answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 190115
+    bytes: 195361
   - path: docs/governance/schemas/README.md
     bucket: governance
     authority: binding-process
@@ -3925,7 +3925,7 @@ documents:
     persona: architecture
     title: "Platform — cross-cutting architecture & specifications"
     answers: "A document belongs in platform/ when it is true of the platform as a whole — service"
-    bytes: 4390
+    bytes: 4681
   - path: docs/platform/architecture-review/01-executive-summary-and-approach.md
     bucket: platform
     authority: approved-spec
@@ -4230,18 +4230,26 @@ documents:
     title: "R0 design DDL"
     answers: "PostgreSQL scripts that implement 01-physical-design.md."
     bytes: 1597
+  - path: docs/platform/engineering/GITLAB-BANK-DEVOPS-PROVISIONING.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [sre-operations, architecture-review]
+    persona: sre-operations
+    title: "GitLab provisioning request — AU Bank Insurance Distribution Platform"
+    answers: "From: Application delivery team — Shivanshi (SRE / R10), with Mahesh (Architecture), Amit (Engineering), Deepali (Security), Swapnali (QA)"
+    bytes: 40226
   - path: docs/platform/engineering/GITLAB-REPO-STRUCTURE.md
     bucket: platform
     authority: approved-spec
-    capsules: [architecture-review]
+    capsules: [architecture-review, sre-operations]
     persona: architecture
     title: "GitLab repository structure — backend services"
-    answers: "Purpose: Map Gradle modules to GitLab groups/projects ahead of the GitHub → GitLab migration"
-    bytes: 4219
+    answers: "Purpose: Map Gradle modules to GitLab groups/projects for the bank GitLab estate"
+    bytes: 5680
   - path: docs/platform/engineering/MICROSERVICE-SCAFFOLD-TEMPLATE.md
     bucket: platform
     authority: approved-spec
-    capsules: [architecture-review]
+    capsules: [architecture-review, sre-operations]
     persona: architecture
     title: "Microservice scaffold template"
     answers: "Horizon: H0 — pre-implementation structure only"
@@ -4249,7 +4257,7 @@ documents:
   - path: docs/platform/engineering/backend-service-catalog.yaml
     bucket: platform
     authority: approved-spec
-    capsules: [architecture-review]
+    capsules: [architecture-review, sre-operations]
     persona: architecture
     title: "backend service catalog"
     answers: "Backend service catalogue — maps architecture bounded contexts to Gradle modules."

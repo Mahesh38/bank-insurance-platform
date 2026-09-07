@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20260907-gdv | 2026-09-07 | human:cloud-agent | Bank DevOps GitLab create-from-scratch request: groups, Wave 0 backend/frontend/governance repos, roles, CI vs CD split (application team does not use Terraform/Terragrunt/AWS), security SAST/SCA and coverage gates | SF1 | SC0 | MUST | INFRA | P1 / P1 | ADMIT | [provisioning](../../platform/engineering/GITLAB-BANK-DEVOPS-PROVISIONING.md) · [detail](#sug-20260907-gdv--bank-devops-gitlab-provisioning-request) |
 | SUG-20260904-uis | 2026-09-04 | human:cloud-agent | File the cross-insurer Universal Insurance Suitability specification (7-layer model, 206-product catalogue attributes, 8,811 source-fidelity tests) as non-binding project research for later Suitability / Product Catalogue work | SF2 | SC2 | SHOULD | DOC | P3 / P2 | ADMIT-BYPASS | [spec](../../au-bank-insurance-platform/references/2026-09-04-universal-insurance-suitability-specification.md) · [detail](#sug-20260904-uis--file-universal-suitability-research-specification) |
 | SUG-20260904-eng | 2026-09-04 | human:cloud-agent | Implement the 7-layer universal suitability engine and the 206-product multi-insurer catalogue as the Suitability microservice and Product Catalogue | SF3 | SC2 | MUST | FUNC | P4 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md#1-parked--scheduled-work) · [detail](#sug-20260904-eng--implement-7-layer-engine-and-multi-insurer-catalogue) |
 | SUG-20260818-4c3 | 2026-08-18 | human:Mahesh | Architecture justification pack: why service boundaries, merge rejection, datastore choices, caching, direct-insurer future, R0/R1/R2+ scope. **Aligned 2026-08-25** to `CR-012`/`ADR-008`…`ADR-013`; cites the canonical renderings rather than publishing a second pair (`HA-04`) | SF1 | SC0 | MUST | ARCH | P2 / P2 | ADMIT-BYPASS | [06-architecture-justification](../../platform/ws3-platform/06-architecture-justification-and-review-answers.md) |
@@ -101,6 +102,149 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20260907-gdv · Bank DevOps GitLab provisioning request
+
+```yaml
+# schema: triage-record
+id: SUG-20260907-gdv
+raised_at: "2026-09-07"
+raised_by: "human:cloud-agent"
+source: "SRE intake — AU Bank DevOps will create GitLab/AWS/CD; application team codes and owns CI only"
+input: >
+  Act as SRE, AU bank doesn't allow dev and tech team to interact with
+  terragrunt and terraform and put anything on the gitlab or aws, they will
+  take the requirement from us and they will build the repo and LOC for CD,
+  we just need to code and do CI part. Create a detailed document to create
+  this all structure right from scratch: repo, group, user role, CI on GitLab,
+  new repo template, group, subgroup, repo, CI, backend repo, frontend repo,
+  governance, security, static code analysis and code coverage, repository
+  structure.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-TERM-SALE"
+  state_as_of: "2026-08-10"
+  state_provisional: false
+  active_work_item: "SUG-20260907-gdv"
+
+stage_fit:
+  code: SF1
+  rationale: >
+    GATE-S08 requires CI, coverage, ArchUnit, secret/SAST/SCA/image scanning
+    in the bank GitLab estate. GitLab CI/CD is already the enterprise standard
+    (ADR-016, ARB §9.1). A create-from-scratch provisioning request is the
+    floor that lets those gates exist where DevOps, not the application team,
+    is allowed to create projects. FreshnessCheck at intake: WARN
+    (state_as_of 28 days old; 04-STAGE_GATES.md 22d vs 14d limit); admit
+    allowed with disclosure.
+
+scope:
+  code: SC0
+  business_scope: "in scope — GitLab CI/CD and repository structure are explicit programme standards"
+  serves: []
+  failure_without_it: >
+    Bank DevOps cannot provision groups, roles, CI templates or CD loc;
+    GATE-S08 cannot be evidenced on the bank GitLab.
+  minimal: true
+  authority: "ARB-ARCHITECTURE-DOSSIER §9.1 · ADR-016 · GITLAB-REPO-STRUCTURE.md · S08-G1…G5"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "WS-3 S08 / S09"
+  binds_when: "bank DevOps creates the GitLab estate"
+  failure_without_it: >
+    The application team cannot put projects on GitLab or AWS themselves;
+    without a written requirement DevOps will not build the repo tree, CI
+    paved road or CD loc, and S08 security/coverage gates have nowhere to run.
+  evidence_tier: E2
+  evidence:
+    - "BOOT.md GATE-S08 G1–G5, G9 still OPEN"
+    - "ARB dossier §9.1 GitLab CI/CD + SonarQube"
+    - "ADR-016 GitLab CI/CD + Terraform IaC"
+    - "GITLAB-REPO-STRUCTURE.md proposed hierarchy"
+    - "COVERAGE.md JaCoCo floors; 07-SECURITY-COMPLIANCE-CANON §4 pipeline gates"
+  confidence: C5
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT
+action_rationale: >
+  Assigned work for this session: write the bank-facing provisioning
+  document. Does not edit stage state, does not apply Terraform, does not
+  create GitLab projects, does not mention any unofficial repository.
+duplicate_of: null
+conflicts: []
+
+classification:
+  type: INFRA
+  also: [DOC, OPS, SEC]
+  breakdown: STORY
+  epic: null
+  risk_tier: T2
+  destination: "docs/platform/engineering/GITLAB-BANK-DEVOPS-PROVISIONING.md"
+
+priority:
+  now: P1
+  at_target: P1
+  factors: { N: 4, S: 3, B: 3, R: 2, D: 1, E: 0 }
+  score: 25
+  matrix_default: P1
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: >
+    MUST on-stage for S08; blocks GATE-S08 evidence on the bank GitLab
+    (B=3). Score 2*4+2*3+2*3+2*2+1-0 = 25.
+
+dependencies:
+  edges:
+    - type: ARCHITECTURAL
+      target: ADR-016
+      relation: requires
+      state: OPEN
+    - type: HARD
+      target: GITLAB-REPO-STRUCTURE.md
+      relation: requires
+      state: READY
+    - type: EXTERNAL
+      target: "AU Bank DevOps GitLab/AWS provisioning"
+      relation: enables
+      state: OPEN
+      owner: "Bank DevOps"
+      follow_up: "2026-09-21"
+  state: READY
+  enablement_count: 5
+  earliest_start: "2026-09-07"
+  cycles: none
+
+breakdown:
+  children: []
+  completion_definition: >
+    Bank-facing document lists groups, Wave 0 repos, roles, new-project
+    template, CI vs CD split, SAST/SCA/secret/image/SBOM, and JaCoCo floors,
+    with no unofficial-repository leakage.
+  not_included:
+    - "Actually creating GitLab groups or AWS resources"
+    - "Terraform/Terragrunt code"
+    - "Wave 1 service extract"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: SUG-20260907-gdv
+  plan_id: null
+  status: ADMITTED
+  closed_reason: null
+
+resumed: "SUG-20260907-gdv — this request is the in-flight work item"
+```
 
 ### SUG-20260903-lif · Life LOB 1SB coverage and adapter standards
 

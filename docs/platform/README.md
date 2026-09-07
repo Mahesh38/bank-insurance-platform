@@ -27,7 +27,7 @@ module belongs with that module instead.
 | **[ws3-platform/](./ws3-platform/00-WS3-ARCHITECTURE-REGISTRATION.md)** | Ratified R0 architecture sources (registration, domain, information model, solution architecture, security, NFRs) | ⚠️ AI-DRAFTED baseline; human signatures outstanding |
 | **[data-architecture/](./data-architecture/README.md)** | Aarti R0 physical pack — rules, schemas, indexes, routines, ops/troubleshooting, design DDL | ⚠️ AI-DRAFTED; `S07-G5` human signature outstanding. Apply is S09 |
 | **[authentication-authorization/](./authentication-authorization/README.md)** | **Workforce authentication & authorization SSOT** — token-hiding BFF, provider abstraction (Keycloak → Cognito/AD), RBAC + ABAC + relationship policies | ✅ **Approved** architecture and implementation baseline |
-| **[engineering/](./engineering/GITLAB-BANK-DEVOPS-PROVISIONING.md)** | GitLab estate for bank DevOps: groups, Wave 0 backend/frontend/governance repos, CI vs CD split, security and coverage gates | ⚠️ **Requirements** — DevOps provisions; application team does not apply Terraform |
+| **[engineering/](./engineering/GITLAB-BANK-DEVOPS-PROVISIONING.md)** | GitLab estate for bank DevOps: groups, Wave 0 backend/frontend/governance repos, CI vs CD split, security and coverage gates. Shareable Word work-order: [`AU-SFB-NIP-GitLab-DevOps-Work-Order.docx`](./engineering/AU-SFB-NIP-GitLab-DevOps-Work-Order.docx) | ⚠️ **Requirements** — DevOps provisions; application team does not apply Terraform |
 
 **These two carry different weight.** The auth SSOT is binding on implementations today.
 The architecture review is a proposal whose technology choices are tracked as `ARCH-xxx`

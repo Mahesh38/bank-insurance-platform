@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 537
-total_bytes: 15371236
+document_count: 538
+total_bytes: 15426384
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -973,7 +973,7 @@ documents:
     persona: null
     title: "Documentation — Master Index"
     answers: "Programme: AU Small Finance Bank — Insurance Distribution Platform"
-    bytes: 16530
+    bytes: 16657
   - path: docs/application-lifecycle-bible/00-HOW-TO-USE.md
     bucket: lifecycle
     authority: proposed-cr-010
@@ -1933,7 +1933,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 190125
+    bytes: 190496
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -3925,7 +3925,7 @@ documents:
     persona: architecture
     title: "Platform — cross-cutting architecture & specifications"
     answers: "A document belongs in platform/ when it is true of the platform as a whole — service"
-    bytes: 4681
+    bytes: 4810
   - path: docs/platform/architecture-review/01-executive-summary-and-approach.md
     bucket: platform
     authority: approved-spec
@@ -4230,6 +4230,14 @@ documents:
     title: "R0 design DDL"
     answers: "PostgreSQL scripts that implement 01-physical-design.md."
     bytes: 1597
+  - path: docs/platform/engineering/AU-SFB-NIP-GitLab-DevOps-Work-Order.docx
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, sre-operations]
+    persona: architecture
+    title: "AU SFB NIP GitLab DevOps Work Order"
+    answers: "Shareable Word work-order for bank DevOps; markdown remains the repo source of truth"
+    bytes: 54171
   - path: docs/platform/engineering/GITLAB-BANK-DEVOPS-PROVISIONING.md
     bucket: platform
     authority: approved-spec
@@ -4237,7 +4245,7 @@ documents:
     persona: sre-operations
     title: "GitLab provisioning request — AU Bank Insurance Distribution Platform"
     answers: "From: Application delivery team — Shivanshi (SRE / R10), with Mahesh (Architecture), Amit (Engineering), Deepali (Security), Swapnali (QA)"
-    bytes: 40226
+    bytes: 40439
   - path: docs/platform/engineering/GITLAB-REPO-STRUCTURE.md
     bucket: platform
     authority: approved-spec
@@ -4245,7 +4253,7 @@ documents:
     persona: architecture
     title: "GitLab repository structure — backend services"
     answers: "Purpose: Map Gradle modules to GitLab groups/projects for the bank GitLab estate"
-    bytes: 5680
+    bytes: 5817
   - path: docs/platform/engineering/MICROSERVICE-SCAFFOLD-TEMPLATE.md
     bucket: platform
     authority: approved-spec

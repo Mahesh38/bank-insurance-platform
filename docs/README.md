@@ -131,7 +131,7 @@ docs/
 | **Implementing a request end to end — hops, per-layer validation, outcomes** | [`journey-execution/README.md`](./journey-execution/README.md) — the use case catalogue, then the one `flows/UC-nn-*.md` you are building |
 | **Building the 1SB adapter** | [`1sb-insurance-integration/service-ssot/README.md`](./1sb-insurance-integration/service-ssot/README.md) |
 | **Building auth / identity services** | [`platform/authentication-authorization/README.md`](./platform/authentication-authorization/README.md) |
-| **Bank DevOps / SRE handing GitLab to the bank** | [`platform/engineering/GITLAB-BANK-DEVOPS-PROVISIONING.md`](./platform/engineering/GITLAB-BANK-DEVOPS-PROVISIONING.md) — groups, Wave 0 repos, CI vs CD, roles, SAST/coverage |
+| **Bank DevOps / SRE handing GitLab to the bank** | [`platform/engineering/GITLAB-BANK-DEVOPS-PROVISIONING.md`](./platform/engineering/GITLAB-BANK-DEVOPS-PROVISIONING.md) — groups, Wave 0 repos, CI vs CD, roles, SAST/coverage. Shareable Word: [`AU-SFB-NIP-GitLab-DevOps-Work-Order.docx`](./platform/engineering/AU-SFB-NIP-GitLab-DevOps-Work-Order.docx) |
 | **QA / test engineer** | [`1sb-insurance-integration/service-ssot/QA-LEAD-TESTING-STRATEGY.md`](./1sb-insurance-integration/service-ssot/QA-LEAD-TESTING-STRATEGY.md) + [`TESTING-RULES.md`](./1sb-insurance-integration/service-ssot/TESTING-RULES.md) |
 | **Looking for a decision** | See the decision registers below |
 

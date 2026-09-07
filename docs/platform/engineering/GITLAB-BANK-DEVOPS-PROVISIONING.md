@@ -4,6 +4,7 @@
 **From:** Application delivery team — Shivanshi (SRE / R10), with Mahesh (Architecture), Amit (Engineering), Deepali (Security), Swapnali (QA)  
 **Work item:** `SUG-20260907-gdv`  
 **Status:** Requirements for **bank DevOps to create from scratch**. This is not an instruction for the application team to click GitLab, AWS, Terraform or Terragrunt.  
+**Shareable copy for DevOps (Word):** [`AU-SFB-NIP-GitLab-DevOps-Work-Order.docx`](./AU-SFB-NIP-GitLab-DevOps-Work-Order.docx) — regenerate with `python3 scripts/platform/generate-gitlab-devops-work-order.py`  
 **Authority:** GitLab is the bank enterprise delivery standard ([ARB dossier §9.1](../../architecture/ARB-ARCHITECTURE-DOSSIER.md); [ADR-016](../../governance/registers/DECISION-REGISTER.md)). Group mapping: [GITLAB-REPO-STRUCTURE.md](./GITLAB-REPO-STRUCTURE.md). Service catalogue: [backend-service-catalog.yaml](./backend-service-catalog.yaml).
 
 ---

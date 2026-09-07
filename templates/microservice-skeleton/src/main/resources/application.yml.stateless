@@ -1,0 +1,29 @@
+server:
+  port: {{PORT}}
+
+spring:
+  application:
+    name: {{MODULE}}
+  threads:
+    virtual:
+      enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+logging:
+  level:
+    {{PACKAGE}}: INFO
+
+bank:
+  error:
+    service-id: {{SERVICE_ID}}
+    layer: {{LAYER}}
+    boundary: {{BOUNDARY}}

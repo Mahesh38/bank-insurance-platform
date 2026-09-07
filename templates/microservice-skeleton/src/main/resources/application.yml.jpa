@@ -1,0 +1,42 @@
+server:
+  port: {{PORT}}
+
+spring:
+  application:
+    name: {{MODULE}}
+  datasource:
+    url: ${{{ENV_PREFIX}}_DATASOURCE_URL:jdbc:h2:mem:{{SCHEMA_NAME}};MODE=PostgreSQL;DB_CLOSE_DELAY=-1}
+    driver-class-name: ${{{ENV_PREFIX}}_DATASOURCE_DRIVER:org.h2.Driver}
+    username: ${{{ENV_PREFIX}}_DATASOURCE_USERNAME:sa}
+    password: ${{{ENV_PREFIX}}_DATASOURCE_PASSWORD:}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    validate-on-migrate: true
+  threads:
+    virtual:
+      enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+logging:
+  level:
+    {{PACKAGE}}: INFO
+
+bank:
+  error:
+    service-id: {{SERVICE_ID}}
+    layer: {{LAYER}}
+    boundary: {{BOUNDARY}}

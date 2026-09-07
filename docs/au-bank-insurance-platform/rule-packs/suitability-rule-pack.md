@@ -16,6 +16,12 @@
 > Product owns the question set, the deterministic model and the outcome semantics. **Compliance
 > owns whether this model discharges the IRDAI suitability obligation**, and owns the override
 > policy in §7. **Signature status:** `AI-DRAFTED — mandatory human signature outstanding`.
+>
+> **Related research (non-binding).** A 2026-09-04 synthesis of six insurers' suitability
+> methods — 7-layer gates, 206-product catalogue attributes, 8,811 source-workbook tests —
+> lives at [`references/2026-09-04-universal-insurance-suitability-specification.md`](../references/2026-09-04-universal-insurance-suitability-specification.md).
+> It does **not** replace this pack. Vocabularies and outcome codes conflict; do not silently
+> map them. Implementing that engine is parked as `SUG-20260904-eng`.
 
 ---
 
@@ -357,7 +363,7 @@ remedy operates on the population.
 | OPEN-SUIT-02 | Whether `NOT_SUITABLE` may ever be overridden with senior authorisation in a later release (R0 position: never) | Shailja + Sponsor | R1 |
 | OPEN-SUIT-03 | Exact approved disclosure wording for §7.2 and §7.4 | Shailja + Legal | S05 copy deck |
 | OPEN-SUIT-04 | Whether the 30-day validity window is regulator-acceptable | Shailja | S11 entry |
-| OPEN-SUIT-05 | Insurer-specific suitability requirements that exceed this model (Group A panel) | Bancassurance + Shailja | S10 |
+| OPEN-SUIT-05 | Insurer-specific suitability requirements that exceed this model (Group A panel) | Bancassurance + Shailja | S10 — research input filed at [`references/2026-09-04-universal-insurance-suitability-specification.md`](../references/2026-09-04-universal-insurance-suitability-specification.md); not adopted |
 
 **None of these blocks building the Suitability service.** All five are calibration or wording
 questions over a model whose structure, storage, gate and failure behaviour they do not change.

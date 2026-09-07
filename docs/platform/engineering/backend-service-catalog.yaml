@@ -1,0 +1,280 @@
+# Backend service catalogue — maps architecture bounded contexts to Gradle modules.
+# Source: docs/platform/architecture-review/02-target-microservices-architecture.md
+#         docs/platform/ws3-platform/03-solution-architecture-r0.md
+#
+# Used by scripts/scaffold/create-microservice.py and GitLab group planning.
+
+gitlab_groups:
+  platform-common:
+    description: Shared persistence and cross-cutting platform infrastructure
+  ws2-iam:
+    description: Workforce identity, authorization, and workforce BFF
+  ws3-domain:
+    description: Core sales and advisory bounded contexts (WS-3)
+  ws3-integration:
+    description: Provider routing, adapters, and integration hub
+  ws3-platform:
+    description: Audit, notification, reporting, administration
+
+services:
+  - context_id: "15"
+    name: 1SB Adapter
+    module: 1sb-integration-service
+    package: insurance.onesb
+    application_class: OneSbIntegrationApplication
+    service_id: onesb
+    port: 8080
+    gitlab_group: ws3-integration
+    layer: L5
+    datastore: "Aurora (job store via bank-persistence) + S3"
+    status: implemented
+
+  - context_id: platform
+    name: Platform Persistence
+    module: bank-persistence-service
+    package: persistence
+    application_class: PersistenceApplication
+    service_id: persistence
+    port: 8081
+    gitlab_group: platform-common
+    layer: L5
+    datastore: Aurora PostgreSQL
+    status: implemented
+
+  - context_id: ws2
+    name: Identity Provider Adapter
+    module: identity-provider-adapter-service
+    package: identity.provider.adapter
+    application_class: IdentityProviderAdapterApplication
+    service_id: idp-adapter
+    port: 8082
+    gitlab_group: ws2-iam
+    layer: L5
+    datastore: none
+    status: implemented
+
+  - context_id: "3"
+    name: Identity & Access (Authorization PDP)
+    module: identity-authorization-service
+    package: identity.authz
+    application_class: IdentityAuthorizationApplication
+    service_id: authz
+    port: 8083
+    gitlab_group: ws2-iam
+    layer: L5
+    datastore: Aurora PostgreSQL
+    status: implemented
+
+  - context_id: ws2-bff
+    name: Workforce Access BFF
+    module: workforce-access-bff
+    package: workforce.bff
+    application_class: WorkforceAccessBffApplication
+    service_id: bff
+    port: 8084
+    gitlab_group: ws2-iam
+    layer: L4
+    boundary: CLIENT
+    datastore: none
+    status: implemented
+    note: Edge BFF — frontend surfaces consume this; not a domain service.
+
+  - context_id: "4"
+    name: Customer
+    module: customer-service
+    package: platform.customer
+    application_class: CustomerApplication
+    service_id: customer
+    port: 8090
+    gitlab_group: ws3-domain
+    layer: L5
+    datastore: Aurora PostgreSQL
+    status: skeleton
+
+  - context_id: "5"
+    name: Lead
+    module: lead-service
+    package: platform.lead
+    application_class: LeadApplication
+    service_id: lead
+    port: 8091
+    gitlab_group: ws3-domain
+    layer: L5
+    datastore: Aurora PostgreSQL
+    status: skeleton
+
+  - context_id: "6"
+    name: Consent
+    module: consent-service
+    package: platform.consent
+    application_class: ConsentApplication
+    service_id: consent
+    port: 8092
+    gitlab_group: ws3-domain
+    layer: L5
+    datastore: Aurora PostgreSQL (append-only)
+    status: skeleton
+
+  - context_id: "7"
+    name: Suitability & Recommendation
+    module: suitability-service
+    package: platform.suitability
+    application_class: SuitabilityApplication
+    service_id: suitability
+    port: 8093
+    gitlab_group: ws3-domain
+    layer: L5
+    datastore: Aurora PostgreSQL
+    status: skeleton
+
+  - context_id: "8"
+    name: Product Catalogue
+    module: product-catalogue-service
+    package: platform.catalogue
+    application_class: ProductCatalogueApplication
+    service_id: catalogue
+    port: 8094
+    gitlab_group: ws3-domain
+    layer: L5
+    datastore: Aurora PostgreSQL + Redis (read cache)
+    status: skeleton
+
+  - context_id: "9"
+    name: Journey Orchestration
+    module: journey-orchestration-service
+    package: platform.journey
+    application_class: JourneyOrchestrationApplication
+    service_id: journey-orchestration
+    port: 8095
+    gitlab_group: ws3-domain
+    layer: L6
+    datastore: DynamoDB (state machine)
+    persistence: stateless
+    status: skeleton
+
+  - context_id: "10"
+    name: Quotation
+    module: quotation-service
+    package: platform.quotation
+    application_class: QuotationApplication
+    service_id: quotation
+    port: 8096
+    gitlab_group: ws3-domain
+    layer: L5
+    datastore: DynamoDB (job/poll) + Redis (idempotency)
+    persistence: stateless
+    status: skeleton
+
+  - context_id: "11"
+    name: Proposal & UW-Tracking
+    module: proposal-service
+    package: platform.proposal
+    application_class: ProposalApplication
+    service_id: proposal
+    port: 8097
+    gitlab_group: ws3-domain
+    layer: L5
+    datastore: Aurora PostgreSQL
+    status: skeleton
+
+  - context_id: "12"
+    name: Payment
+    module: payment-service
+    package: platform.payment
+    application_class: PaymentApplication
+    service_id: payment
+    port: 8098
+    gitlab_group: ws3-domain
+    layer: L5
+    datastore: Aurora PostgreSQL
+    status: skeleton
+
+  - context_id: "13"
+    name: Policy & Issuance
+    module: policy-issuance-service
+    package: platform.policy
+    application_class: PolicyIssuanceApplication
+    service_id: policy
+    port: 8099
+    gitlab_group: ws3-domain
+    layer: L5
+    datastore: Aurora PostgreSQL + S3 (policy PDFs)
+    status: skeleton
+
+  - context_id: "14"
+    name: Integration Hub
+    module: integration-hub-service
+    package: platform.integration.hub
+    application_class: IntegrationHubApplication
+    service_id: integration-hub
+    port: 8100
+    gitlab_group: ws3-integration
+    layer: L5
+    datastore: DynamoDB (routing config only)
+    persistence: stateless
+    status: skeleton
+
+  - context_id: "16"
+    name: Audit & Compliance
+    module: audit-compliance-service
+    package: platform.audit
+    application_class: AuditComplianceApplication
+    service_id: audit
+    port: 8101
+    gitlab_group: ws3-platform
+    layer: L5
+    datastore: DynamoDB (append-only) + S3 archive
+    persistence: stateless
+    status: skeleton
+
+  - context_id: "17"
+    name: Notification
+    module: notification-service
+    package: platform.notification
+    application_class: NotificationApplication
+    service_id: notification
+    port: 8102
+    gitlab_group: ws3-platform
+    layer: L5
+    datastore: DynamoDB (delivery log)
+    persistence: stateless
+    status: skeleton
+
+  - context_id: "18"
+    name: Reporting & MIS
+    module: reporting-mis-service
+    package: platform.reporting
+    application_class: ReportingMisApplication
+    service_id: reporting
+    port: 8103
+    gitlab_group: ws3-platform
+    layer: L5
+    datastore: Redshift / Athena over S3 data lake
+    persistence: stateless
+    status: skeleton
+
+  - context_id: "19"
+    name: Administration & Config
+    module: administration-config-service
+    package: platform.adminconfig
+    application_class: AdministrationConfigApplication
+    service_id: admin-config
+    port: 8104
+    gitlab_group: ws3-platform
+    layer: L5
+    datastore: Aurora PostgreSQL
+    status: skeleton
+
+  - context_id: adapter-direct
+    name: Direct Insurer Adapter
+    module: direct-insurer-adapter-service
+    package: platform.integration.direct
+    application_class: DirectInsurerAdapterApplication
+    service_id: direct-insurer
+    port: 8105
+    gitlab_group: ws3-integration
+    layer: L5
+    datastore: none (adapter only)
+    persistence: stateless
+    status: skeleton
+    note: Phase B — proves replaceability behind Integration Hub.

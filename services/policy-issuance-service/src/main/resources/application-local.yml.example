@@ -1,0 +1,17 @@
+# Copy to application-local.yml for local overrides (not committed).
+# Example for JPA services — adjust env prefix for your module.
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:policy_issuance_service;MODE=PostgreSQL;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    validate-on-migrate: true

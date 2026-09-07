@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 531
-total_bytes: 15236394
+document_count: 540
+total_bytes: 16078043
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -1549,7 +1549,7 @@ documents:
     persona: product
     title: "Figma & artefact intake log"
     answers: "Purpose: Single place to register every input for the product reset"
-    bytes: 3457
+    bytes: 3963
   - path: docs/au-bank-insurance-platform/06-po-opening-position.md
     bucket: business
     authority: business-ssot
@@ -1581,7 +1581,7 @@ documents:
     persona: product
     title: "AU Bank — Insurance Platform (Product Reset)"
     answers: "Bank: AU Small Finance Bank (AU Bank)"
-    bytes: 5585
+    bytes: 5645
   - path: docs/au-bank-insurance-platform/artefacts/README.md
     bucket: business
     authority: business-ssot
@@ -1765,7 +1765,7 @@ documents:
     persona: product
     title: "AU Bank Insurance Distribution Platform — Product Knowledge Base"
     answers: "Bank: AU Bank"
-    bytes: 2937
+    bytes: 3260
   - path: docs/au-bank-insurance-platform/knowledge-base/SOURCE-INDEX.md
     bucket: business
     authority: business-ssot
@@ -1830,6 +1830,14 @@ documents:
     title: "Source — Target Insurance Platform: North Star Architecture Brainstorming Notes"
     answers: "Intake ID: VIN-001"
     bytes: 21294
+  - path: docs/au-bank-insurance-platform/references/2026-09-04-universal-insurance-suitability-specification.md
+    bucket: business
+    authority: ai-drafted
+    capsules: [product-decision, business-analysis]
+    persona: product
+    title: "Universal Insurance Suitability Engine — research specification"
+    answers: "Cross-insurer comparison of KLI, HDFC Life, Bajaj Allianz, LIC, Bharti AXA and ICICI Prudential suitability methods, normalized into a 7-layer…"
+    bytes: 52791
   - path: docs/au-bank-insurance-platform/references/README.md
     bucket: business
     authority: business-ssot
@@ -1837,7 +1845,7 @@ documents:
     persona: product
     title: "References (non-binding)"
     answers: "This folder points at materials that inform the AU Bank product reset."
-    bytes: 3781
+    bytes: 4263
   - path: docs/au-bank-insurance-platform/requirements/BRD-OVERVIEW-CHECKLIST.md
     bucket: business
     authority: business-ssot
@@ -1901,7 +1909,7 @@ documents:
     persona: business-analysis
     title: "Suitability Rule Pack v1 — AU Bank Insurance Distribution Platform"
     answers: "Pack ID: SUITABILITY-PACK-v1.0 · Algorithm ID: SUIT-ALGO-LIFE-v1.0"
-    bytes: 24773
+    bytes: 25477
   - path: docs/context/AGENT-CONTEXT-INDEX.yaml
     bucket: context
     authority: non-binding-context
@@ -1909,7 +1917,7 @@ documents:
     persona: null
     title: "AGENT CONTEXT INDEX"
     answers: "============================================================================="
-    bytes: 43380
+    bytes: 44751
   - path: docs/context/BOOT.md
     bucket: context
     authority: non-binding-context
@@ -1925,7 +1933,23 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 187780
+    bytes: 188529
+  - path: docs/context/DOC-MAP.yaml
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient, docs-navigation]
+    persona: null
+    title: "DOC MAP"
+    answers: "============================================================================="
+    bytes: 188529
+  - path: docs/context/DOC-MAP.yaml
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient, docs-navigation]
+    persona: null
+    title: "DOC MAP"
+    answers: "============================================================================="
+    bytes: 188529
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -3621,7 +3645,7 @@ documents:
     persona: null
     title: "Parked Backlog"
     answers: "Parked is not deleted. Every entry names the stage that unparks it and the observable"
-    bytes: 11145
+    bytes: 11909
   - path: docs/governance/registers/RISK-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -3637,7 +3661,23 @@ documents:
     persona: null
     title: "Suggestion Register"
     answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 181770
+    bytes: 189839
+  - path: docs/governance/registers/SUGGESTION-REGISTER.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, delivery-planning]
+    persona: null
+    title: "Suggestion Register"
+    answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
+    bytes: 189839
+  - path: docs/governance/registers/SUGGESTION-REGISTER.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, delivery-planning]
+    persona: null
+    title: "Suggestion Register"
+    answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
+    bytes: 189839
   - path: docs/governance/schemas/README.md
     bucket: governance
     authority: binding-process
@@ -3853,7 +3893,7 @@ documents:
     persona: engineering
     title: "07 — Platform Error Contract"
     answers: "One failure, one incident id, two renderings: a safe one for the end user and a complete one for"
-    bytes: 37208
+    bytes: 38035
   - path: docs/journey-execution/08-SUPPORT-RUNBOOK.md
     bucket: platform
     authority: ai-drafted
@@ -3982,6 +4022,14 @@ documents:
     title: "08 — Architecture Decision Log (this review)"
     answers: "ID scheme: ARCH-xxx — deliberately distinct from the business/scope D-xxx and process DOC-xxx IDs in docs/au-bank-insurance-platform/DECISION-LOG.md,…"
     bytes: 113963
+  - path: docs/platform/architecture-review/ADR-019-microservice-skeleton-scaffold.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, board-review]
+    persona: architecture
+    title: "ADR-019 — Backend microservice skeleton scaffold"
+    answers: "Deciders: Mahesh (Principal Insurance Platform Architect)"
+    bytes: 2660
   - path: docs/platform/architecture-review/README.md
     bucket: platform
     authority: approved-spec
@@ -4214,6 +4262,30 @@ documents:
     title: "R0 design DDL"
     answers: "PostgreSQL scripts that implement 01-physical-design.md."
     bytes: 1597
+  - path: docs/platform/engineering/GITLAB-REPO-STRUCTURE.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review]
+    persona: architecture
+    title: "GitLab repository structure — backend services"
+    answers: "Purpose: Map Gradle modules to GitLab groups/projects ahead of the GitHub → GitLab migration"
+    bytes: 4219
+  - path: docs/platform/engineering/MICROSERVICE-SCAFFOLD-TEMPLATE.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review]
+    persona: architecture
+    title: "Microservice scaffold template"
+    answers: "Horizon: H0 — pre-implementation structure only"
+    bytes: 3709
+  - path: docs/platform/engineering/backend-service-catalog.yaml
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review]
+    persona: architecture
+    title: "backend service catalog"
+    answers: "Backend service catalogue — maps architecture bounded contexts to Gradle modules."
+    bytes: 7679
   - path: docs/platform/ws3-platform/00-WS3-ARCHITECTURE-REGISTRATION.md
     bucket: platform
     authority: approved-spec

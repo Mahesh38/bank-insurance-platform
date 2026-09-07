@@ -1,0 +1,42 @@
+server:
+  port: 8091
+
+spring:
+  application:
+    name: lead-service
+  datasource:
+    url: ${LEAD_SERVICE_DATASOURCE_URL:jdbc:h2:mem:lead_service;MODE=PostgreSQL;DB_CLOSE_DELAY=-1}
+    driver-class-name: ${LEAD_SERVICE_DATASOURCE_DRIVER:org.h2.Driver}
+    username: ${LEAD_SERVICE_DATASOURCE_USERNAME:sa}
+    password: ${LEAD_SERVICE_DATASOURCE_PASSWORD:}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    validate-on-migrate: true
+  threads:
+    virtual:
+      enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+logging:
+  level:
+    com.bank.platform.lead: INFO
+
+bank:
+  error:
+    service-id: lead
+    layer: L5
+    boundary: INTERNAL

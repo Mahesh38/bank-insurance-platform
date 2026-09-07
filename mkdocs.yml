@@ -1,0 +1,114 @@
+site_name: Bank Insurance Platform Knowledge Hub
+site_description: Role-based navigation for governance, architecture, business, APIs, workstreams, decisions and delivery state.
+repo_name: Mahesh38/bank-insurance-platform
+repo_url: https://github.com/Mahesh38/bank-insurance-platform
+docs_dir: docs
+site_dir: site
+use_directory_urls: true
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - search.highlight
+    - search.suggest
+    - content.code.copy
+  palette:
+    - scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+
+extra_css:
+  - knowledge-base/stylesheets/extra.css
+
+nav:
+  - Home:
+      - Knowledge Hub: knowledge-base/index.md
+      - Start by role: knowledge-base/role-guides.md
+      - Live current state: knowledge-base/generated/current-state.md
+      - Live backlog index: knowledge-base/generated/backlog-index.md
+      - Live decision index: knowledge-base/generated/decision-index.md
+      - Live service inventory: knowledge-base/generated/service-inventory.md
+      - Repository map: knowledge-base/repository-map.md
+      - Glossary: knowledge-base/glossary.md
+      - Status & decisions explained: knowledge-base/status-and-decisions.md
+      - Portal operating guide: knowledge-base/operating-guide.md
+      - Human bypass record: knowledge-base/bypass-record.md
+  - Governance:
+      - Runbook: governance/RUNBOOK.md
+      - Governance overview: governance/README.md
+      - Core governance model: governance/00-GOVERNANCE.md
+      - Current state model: governance/01-CURRENT_STATE.md
+      - Scope model: governance/02-PROJECT_SCOPE.md
+      - Lifecycle & stage fit: governance/03-LIFECYCLE.md
+      - Priority model: governance/05-PRIORITY_MODEL.md
+      - Backlog rules: governance/08-BACKLOG_RULES.md
+      - AI execution rules: governance/09-AI_EXECUTION_RULES.md
+      - Review gates / T1-T4: governance/11-REVIEW_GATES.md
+      - Definition of Ready: governance/12-DEFINITION_OF_READY.md
+      - Definition of Done: governance/13-DEFINITION_OF_DONE.md
+      - Change control: governance/14-CHANGE_CONTROL.md
+      - Decision model: governance/16-DECISION_MODEL.md
+      - Drift control: governance/17-DRIFT_CONTROL.md
+      - Governance metrics: governance/18-GOVERNANCE_METRICS.md
+      - Suggestion register: governance/registers/SUGGESTION-REGISTER.md
+      - Parked backlog: governance/registers/PARKED-BACKLOG.md
+      - Decision register: governance/registers/DECISION-REGISTER.md
+  - Business & R0:
+      - Business documentation index: au-bank-insurance-platform/README.md
+      - Project charter: au-bank-insurance-platform/00-project-charter.md
+      - Business problem statement: context/business-problem-statement.md
+      - R0 scope: au-bank-insurance-platform/requirements/R0-SCOPE.md
+      - Working decisions: au-bank-insurance-platform/07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md
+      - Business decision log: au-bank-insurance-platform/DECISION-LOG.md
+  - Architecture:
+      - Architecture index: architecture/README.md
+      - R0 HLD: architecture/R0-HLD.md
+      - R0 LLD: architecture/R0-LLD.md
+      - WS-3 architecture registration: platform/ws3-platform/00-WS3-ARCHITECTURE-REGISTRATION.md
+      - Domain model & invariants: platform/ws3-platform/01-domain-model-and-invariants.md
+      - Information model: platform/ws3-platform/02-information-model.md
+      - R0 solution architecture: platform/ws3-platform/03-solution-architecture-r0.md
+      - Security architecture: platform/ws3-platform/04-security-architecture.md
+      - NFR catalogue: platform/ws3-platform/05-nfr-catalogue.md
+      - Architecture decision log: platform/architecture-review/08-architecture-decision-log.md
+  - Journey & APIs:
+      - Journey execution index: journey-execution/README.md
+      - Request lifecycle: journey-execution/01-REQUEST-LIFECYCLE-STANDARD.md
+      - Traceability: journey-execution/06-TRACEABILITY.md
+      - API & service catalogue: knowledge-base/api-service-catalogue.md
+      - Live module/service inventory: knowledge-base/generated/service-inventory.md
+  - Workstreams:
+      - WS-1 · 1SB integration: 1sb-insurance-integration/service-ssot/README.md
+      - 1SB service architecture: 1sb-insurance-integration/architecture/1sb-integration-service-architecture.md
+      - WS-2 · Workforce identity: platform/authentication-authorization/README.md
+      - WS-3 · Platform architecture: platform/ws3-platform/00-WS3-ARCHITECTURE-REGISTRATION.md
+  - Roles:
+      - Authority matrix: governance/PERSONA-AUTHORITY-MATRIX.md
+      - Delivery control system: governance/DELIVERY-CONTROL-SYSTEM.md

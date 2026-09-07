@@ -1,7 +1,7 @@
 # Product Backlog — 1SB Integration Service
 
 **Status:** Approved baseline (PO + Architect)  
-**Priority legend:** P0 = go-live Term · P1 = Health/Motor + hardening · P2 = later LOBs / ops polish  
+**Priority legend:** P0 = go-live Term · P0† = stakeholder-admitted Life LOB / adapter standards (`CR-014`) · P1 = Health/Motor + hardening · P2 = later LOBs / ops polish  
 **Story types:** `FUNC` functional · `NFR` non-functional · `COMP` compliance · `TECH` technical enabler · `SHARED` shared JAR
 
 All runtime stories below are for **this service only**. The final **Governance / decision-quality enablers** section exists only because AIGEM routes cross-cutting `GOV` work to the owning workstream backlog; it does not expand 1SB runtime scope.
@@ -24,8 +24,11 @@ All runtime stories below are for **this service only**. The final **Governance 
 | E09 Health LOB | P1 | FUNC | Same APIs, Health handler |
 | E10 Motor LOB | P1 | FUNC | Same APIs, Motor handler + lookers |
 | E11 Resilience & scale | P1 | NFR | Idempotency Redis, CB, flags |
-| E12 Later LOBs | P2 | FUNC | Saving/Annuity/Pension |
+| E12 Later LOBs | P2 | FUNC | Annuity/Pension (Savings+ULIP moved to E14) |
 | E13 Replaceability proof | P2 | TECH | Fake adapter / routing flag |
+| E14 Life LOB complete (`EPIC-002`) | P0† | FUNC/ARCH/NFR | Term+Savings+ULIP + bank-model extraction + typed payloads + resilience (`CR-014`) |
+
+> † P0† = stakeholder-admitted via `CR-014` / `SUG-20260903-lif`; does not replace Term UAT exit for GATE-P4.
 
 ---
 
@@ -247,7 +250,7 @@ All runtime stories below are for **this service only**. The final **Governance 
 **Priority:** P1 · **AC:** Motor handlers; vehicle looker endpoints or master port methods; New vs Roll-Over validation.
 
 #### NFR-004 · Circuit breaker / bulkhead
-**Priority:** P1 · **AC:** 1SB consecutive failures open breaker; callers get 503 with retryable; Term handler unaffected by Motor CB if bulkheaded.
+**Priority:** P1 → **P0† (pulled forward by CR-014 / EPIC-002)** · **AC:** 1SB consecutive failures open breaker; callers get 503 with retryable; Term handler unaffected by Motor CB if bulkheaded; Life LOB handlers share the 1SB egress breaker with documented bulkhead policy.
 
 #### NFR-005 · Redis idempotency + multi-instance job ownership
 **Priority:** P1 · **AC:** Safe horizontal scale; no duplicate poll workers fighting (ownership column / lock).
@@ -260,9 +263,38 @@ All runtime stories below are for **this service only**. The final **Governance 
 
 ---
 
+## E14 / EPIC-002 — Life LOB complete + adapter standards (CR-014)
+
+> Admitted 2026-09-03 by stakeholder `SUG-20260903-lif` / `CR-014`. Work item:
+> [`EPIC-002.work-item.yaml`](./work-items/EPIC-002.work-item.yaml) · plan:
+> [`PLAN-EPIC-002`](../../governance/plans/PLAN-EPIC-002-life-lob-adapter.md).
+
+#### DOC-020 · Savings and ULIP field guides
+**Type:** DOC · **Priority:** P0† · **AC:** Field guides state mandatory fields, submit/poll paths, and deltas from Term; extracted-schema links present.
+
+#### REFACTOR-001 · Extract bank-owned models from 1sb-integration-service
+**Type:** REFACTOR · **Priority:** P0† · **AC:** Bank API/domain models that are not 1SB wire types live in a shared library; ArchUnit still confines 1SB types to `adapter.onesb.*`; service compiles and Term tests green.
+
+#### REFACTOR-002 · Typed 1SB JSON payloads (no Map assembly)
+**Type:** REFACTOR · **Priority:** P0† · **AC:** Term (then Savings/ULIP) handlers build outbound bodies from Jackson-mapped types; no `LinkedHashMap.put` of command fields for serialisation; golden fixture tests lock shapes.
+
+#### FUNC-015 · Life Savings quote/proposal/poll handlers
+**Type:** FUNC · **Priority:** P0† · **AC:** `lob=SAVING` quote + proposal + poll reuse orchestrators; unsupported → clear error; Term regression green.
+
+#### FUNC-019 · Life ULIP quote/proposal/poll handlers
+**Type:** FUNC · **Priority:** P0† · **AC:** `lob=ULIP` quote + proposal + poll; same DRY orchestration; Term + Savings regression green.
+
+#### NFR-007 · Poll / retry stop policy
+**Type:** NFR · **Priority:** P0† · **AC:** Documented and config-enforced: max poll attempts, backoff (base/multiplier/cap), exhaustion → TIMEOUT retryable to caller; HTTP 401 never auto-retried; 5xx retry policy named; stop conditions tested.
+
+#### QA-012 · Life LOB regression suite
+**Type:** QA · **Priority:** P0† · **AC:** Term + Savings + ULIP WireMock (or sandbox) paths green; CB open/half-open cases covered; evidence attached before EPIC-002 Done.
+
+---
+
 ## P2 backlog
 
-#### FUNC-015 · Saving / Annuity / Pension handlers  
+#### FUNC-015a · Annuity / Pension handlers *(remainder of former E12; Savings+ULIP moved to E14)*
 #### FUNC-016 · OTP / CKYC / penny-drop / SP-data adapters (as required by products)  
 #### TECH-008 · Provider routing flag (`ONE_SB` only initially)  
 #### TECH-009 · Retention cleanup job for expired raw payloads  

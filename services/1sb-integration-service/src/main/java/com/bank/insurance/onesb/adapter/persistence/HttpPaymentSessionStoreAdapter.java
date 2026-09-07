@@ -2,9 +2,9 @@ package com.bank.insurance.onesb.adapter.persistence;
 
 import com.bank.insurance.onesb.adapter.persistence.dto.PersistenceApiDtos.CreatePaymentSessionRequest;
 import com.bank.insurance.onesb.adapter.persistence.dto.PersistenceApiDtos.PaymentSessionResponse;
-import com.bank.insurance.onesb.domain.model.Lob;
-import com.bank.insurance.onesb.domain.model.PaymentSession;
-import com.bank.insurance.onesb.domain.model.PaymentStatus;
+import com.bank.common.domain.Lob;
+import com.bank.common.domain.PaymentSession;
+import com.bank.common.domain.PaymentStatus;
 import com.bank.insurance.onesb.domain.port.outbound.PaymentSessionStorePort;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;

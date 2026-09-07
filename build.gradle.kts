@@ -29,6 +29,11 @@ subprojects {
     // (fixed in 42.7.12). Remove once a Spring Boot release pins 42.7.12 or later.
     extra["postgresql.version"] = "42.7.12"
 
+    // Same pattern: 3.5.16 pins Tomcat embed 10.1.55, exposed to CVE-2026-65182 /
+    // CVE-2026-65905 / CVE-2026-68525 (fixed in 10.1.58). Remove once a Spring Boot
+    // release pins 10.1.58 or later.
+    extra["tomcat.version"] = "10.1.59"
+
     configure<io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension> {
         imports {
             mavenBom("org.springframework.boot:spring-boot-dependencies:3.5.16")

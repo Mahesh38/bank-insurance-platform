@@ -1,9 +1,9 @@
 package com.bank.insurance.onesb.adapter.onesb.quote;
 
 import com.bank.insurance.onesb.adapter.onesb.client.OneSbHttpClient;
-import com.bank.insurance.onesb.domain.model.Lob;
-import com.bank.insurance.onesb.domain.model.QuoteOffer;
-import com.bank.insurance.onesb.domain.model.RawPayloadDirection;
+import com.bank.common.domain.Lob;
+import com.bank.common.domain.QuoteOffer;
+import com.bank.common.domain.RawPayloadDirection;
 import com.bank.insurance.onesb.domain.port.outbound.OneSbQuotePort;
 import com.bank.insurance.onesb.domain.port.outbound.RawPayloadStorePort;
 import com.bank.insurance.onesb.lob.LobQuoteHandler;

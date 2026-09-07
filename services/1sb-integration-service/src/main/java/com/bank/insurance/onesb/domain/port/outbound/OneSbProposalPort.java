@@ -1,8 +1,8 @@
 package com.bank.insurance.onesb.domain.port.outbound;
 
-import com.bank.insurance.onesb.domain.model.Lob;
+import com.bank.common.domain.Lob;
 import com.bank.insurance.onesb.domain.model.OneSbProposalSubmitResult;
-import com.bank.insurance.onesb.domain.model.ProposalSchema;
+import com.bank.common.domain.ProposalSchema;
 
 /**
  * Outbound port for 1SB proposal-form (schema) retrieval and proposal submit.

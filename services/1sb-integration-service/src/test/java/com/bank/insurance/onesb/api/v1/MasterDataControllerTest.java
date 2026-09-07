@@ -4,7 +4,7 @@ import com.bank.common.error.ErrorCodes;
 import com.bank.common.error.PlatformErrorAutoConfiguration;
 import com.bank.insurance.onesb.application.MasterDataService;
 import com.bank.insurance.onesb.application.MasterLookupOutcome;
-import com.bank.insurance.onesb.domain.model.LookupValue;
+import com.bank.common.domain.LookupValue;
 import com.bank.insurance.onesb.domain.port.outbound.IdempotencyPort;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;

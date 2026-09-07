@@ -11,6 +11,8 @@ import com.bank.common.error.ServiceException;
 import com.bank.common.secrets.SecretProvider;
 import com.bank.insurance.onesb.adapter.onesb.config.OneSbClientProperties;
 import com.bank.insurance.onesb.adapter.onesb.error.OneSbErrorNormaliser;
+import com.bank.insurance.onesb.adapter.onesb.resilience.OneSbCircuitBreaker;
+import com.bank.insurance.onesb.adapter.onesb.resilience.OneSbCircuitBreakerProperties;
 import com.bank.insurance.onesb.observability.PiiMasker;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
@@ -50,6 +52,7 @@ class OneSbHttpClientTest {
     private static final String PAN = "ABCDE1234F";
 
     private OneSbHttpClient client;
+    private RestClient restClient;
     private OneSbClientProperties properties;
     private RecordingPublisher publisher;
 
@@ -69,7 +72,7 @@ class OneSbHttpClientTest {
         JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(httpClient);
         factory.setReadTimeout(Duration.ofMillis(properties.readTimeoutMs()));
 
-        RestClient restClient = RestClient.builder()
+        restClient = RestClient.builder()
                 .baseUrl(properties.baseUrl())
                 .requestFactory(factory)
                 .defaultHeaders(h -> h.setBasicAuth(secrets.getApiKey(), secrets.getApiSecret()))
@@ -77,6 +80,16 @@ class OneSbHttpClientTest {
 
         publisher = new RecordingPublisher();
         client = new OneSbHttpClient(restClient, new OneSbErrorNormaliser(TestErrors.ONESB), publisher, TestErrors.ONESB);
+    }
+
+    private OneSbHttpClient clientWithBreaker(OneSbCircuitBreaker breaker) {
+        return new OneSbHttpClient(
+                restClient,
+                new OneSbErrorNormaliser(TestErrors.ONESB),
+                publisher,
+                new ObjectMapper(),
+                TestErrors.ONESB,
+                breaker);
     }
 
     @Test
@@ -151,6 +164,52 @@ class OneSbHttpClientTest {
         assertThat(publisher.events).hasSize(1);
         assertThat(publisher.events.getFirst().getOutcome()).isEqualTo(AuditOutcomes.FAILURE);
         assertThat(publisher.events.getFirst().getMetadata().get("upstreamHttpStatus")).isEqualTo("401");
+    }
+
+    @Test
+    void businessError_422_doesNotOpenBreaker_NFR004() {
+        OneSbCircuitBreaker breaker = new OneSbCircuitBreaker(
+                new OneSbCircuitBreakerProperties(true, 2, 30_000L, 1));
+        OneSbHttpClient gated = clientWithBreaker(breaker);
+        stubFor(get(urlEqualTo("/v1/quote"))
+                .willReturn(aResponse().withStatus(422)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("{\"errors\":[{\"field\":\"pan\",\"code\":\"ERR_PAN\",\"message\":\"invalid\"}]}")));
+
+        assertThatThrownBy(() -> gated.get("/v1/quote", Map.class))
+                .isInstanceOf(ServiceException.class)
+                .satisfies(ex -> assertThat(((ServiceException) ex).getErrorResponse().getCode())
+                        .isEqualTo(ErrorCodes.UPSTREAM_BUSINESS_ERROR));
+        assertThatThrownBy(() -> gated.get("/v1/quote", Map.class))
+                .isInstanceOf(ServiceException.class);
+
+        assertThat(breaker.state()).isEqualTo(OneSbCircuitBreaker.State.CLOSED);
+        assertThat(breaker.allowRequest()).isTrue();
+        verify(exactly(2), getRequestedFor(urlEqualTo("/v1/quote")));
+    }
+
+    @Test
+    void serverError_5xx_opensBreakerAfterThreshold_NFR004() {
+        OneSbCircuitBreaker breaker = new OneSbCircuitBreaker(
+                new OneSbCircuitBreakerProperties(true, 2, 30_000L, 1));
+        OneSbHttpClient gated = clientWithBreaker(breaker);
+        stubFor(get(urlEqualTo("/v1/unstable"))
+                .willReturn(aResponse().withStatus(503).withBody("unavailable")));
+
+        assertThatThrownBy(() -> gated.get("/v1/unstable", Map.class)).isInstanceOf(ServiceException.class);
+        assertThat(breaker.state()).isEqualTo(OneSbCircuitBreaker.State.CLOSED);
+        assertThatThrownBy(() -> gated.get("/v1/unstable", Map.class)).isInstanceOf(ServiceException.class);
+        assertThat(breaker.state()).isEqualTo(OneSbCircuitBreaker.State.OPEN);
+        assertThat(breaker.allowRequest()).isFalse();
+
+        assertThatThrownBy(() -> gated.get("/v1/unstable", Map.class))
+                .isInstanceOf(ServiceException.class)
+                .satisfies(ex -> {
+                    ServiceException se = (ServiceException) ex;
+                    assertThat(se.getErrorResponse().getCode()).isEqualTo(ErrorCodes.UPSTREAM_UNAVAILABLE);
+                    assertThat(se.getDiagnostic().getUpstreamCode()).isEqualTo("CIRCUIT_OPEN");
+                });
+        verify(exactly(2), getRequestedFor(urlEqualTo("/v1/unstable")));
     }
 
     @Test

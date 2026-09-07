@@ -2,6 +2,8 @@ package com.bank.insurance.onesb.adapter.onesb.config;
 
 import com.bank.common.secrets.SecretProvider;
 import com.bank.insurance.onesb.adapter.onesb.error.OneSbErrorNormaliser;
+import com.bank.insurance.onesb.adapter.onesb.resilience.OneSbCircuitBreaker;
+import com.bank.insurance.onesb.adapter.onesb.resilience.OneSbCircuitBreakerProperties;
 import com.bank.common.error.ServiceErrors;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -17,12 +19,17 @@ import java.time.Duration;
  * Wires the 1SB {@link RestClient} with Basic Auth and connect/read timeouts.
  */
 @Configuration
-@EnableConfigurationProperties(OneSbClientProperties.class)
+@EnableConfigurationProperties({OneSbClientProperties.class, OneSbCircuitBreakerProperties.class})
 public class OneSbClientConfig {
 
     @Bean
     OneSbErrorNormaliser oneSbErrorNormaliser(ObjectMapper objectMapper, ServiceErrors serviceErrors) {
         return new OneSbErrorNormaliser(objectMapper, serviceErrors);
+    }
+
+    @Bean
+    OneSbCircuitBreaker oneSbCircuitBreaker(OneSbCircuitBreakerProperties properties) {
+        return new OneSbCircuitBreaker(properties);
     }
 
     @Bean

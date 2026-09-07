@@ -1,6 +1,6 @@
 package com.bank.insurance.onesb.adapter.onesb.client;
 
-import com.bank.insurance.onesb.domain.model.LookupValue;
+import com.bank.common.domain.LookupValue;
 import com.bank.insurance.onesb.domain.port.outbound.OneSbMasterDataPort;
 import org.springframework.stereotype.Component;
 

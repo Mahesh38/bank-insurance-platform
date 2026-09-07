@@ -131,9 +131,27 @@ Happy-path **Term** journey works against **1SB sandbox** with audit events for 
 
 ---
 
+## Phase 4b — Life LOB adapter + standards (`CR-014` / `EPIC-002`) — overlapped with Phase 4
+
+**Backlog:** DOC-020, REFACTOR-001, REFACTOR-002, FUNC-015, FUNC-019, NFR-004, NFR-007, QA-012
+
+| # | Action | Rule |
+|---|--------|------|
+| 4b.1 | Savings + ULIP field guides | No handler without a field guide |
+| 4b.2 | Extract bank-owned models to shared package | 1SB types stay in `adapter.onesb.*` |
+| 4b.3 | Typed 1SB JSON models (replace Map assembly) | Jackson types; golden fixtures |
+| 4b.4 | Poll/retry stop policy documented + tested | Exhaustion → TIMEOUT; 401 never retried |
+| 4b.5 | Circuit breaker / bulkhead on 1SB egress | Callers get 503 retryable when open |
+| 4b.6 | Savings then ULIP handlers | Reuse orchestrators (DRY); no QuoteService fork |
+| 4b.7 | Life LOB regression + Term non-regression | Evidence before EPIC Done |
+
+**Exit:** Life LOB (Term + Savings + ULIP) adapter paths green; bank models extracted; typed payloads; resilience policy evidenced. **Does not waive Phase 4 Term UAT exit.**
+
+---
+
 ## Phase 5 — Expand LOBs (reuse orchestrators — DRY)
 
-**Backlog:** FUNC-012 (Health), FUNC-013 (Motor), FUNC-010…011, FUNC-008, NFR-004…005, COMP-005, FUNC-014
+**Backlog:** FUNC-012 (Health), FUNC-013 (Motor), FUNC-010…011, FUNC-008, NFR-005, COMP-005, FUNC-014
 
 | # | Action | Rule |
 |---|--------|------|
@@ -141,9 +159,9 @@ Happy-path **Term** journey works against **1SB sandbox** with audit events for 
 | 5.2 | Motor handler + lookers | Separate schemas; still shared poller/HTTP |
 | 5.3 | Requirements + docs + payment intimation | As product needs |
 | 5.4 | Redis idempotency / multi-instance job ownership | Before scale-out |
-| 5.5 | Circuit breaker; `consentRef` mandatory | P1 compliance tighten |
+| 5.5 | `consentRef` mandatory (COMP-005) | P1 compliance tighten |
 
-**Exit:** Health and Motor sandbox paths green; Term regression still green.
+**Exit:** Health and Motor sandbox paths green; Term + Life regression still green.
 
 ---
 
@@ -152,12 +170,12 @@ Happy-path **Term** journey works against **1SB sandbox** with audit events for 
 | # | Action |
 |---|--------|
 | 6.1 | Prod credentials, IP whitelist, distributorId, TLS egress verified |
-| 6.2 | Dashboards + alerts (auth failure, poll timeout, upstream 5xx, p95) |
+| 6.2 | Dashboards + alerts (auth failure, poll timeout, upstream 5xx, p95, CB open) |
 | 6.3 | Retention job for raw payloads; backup/restore checked |
 | 6.4 | Go-live checklist signed (security, compliance, product) |
 | 6.5 | Hypercare: error budget, 1SB escalation contact, rollback plan |
 
-**Later (P2):** Saving/Annuity/Pension, provider routing flag, API versioning freeze — only after prod Term/Health/Motor stable.
+**Later (P2):** Annuity/Pension, provider routing flag, API versioning freeze — only after prod Term/Life/Health/Motor stable.
 
 ---
 

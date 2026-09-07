@@ -1,6 +1,6 @@
 package com.bank.insurance.onesb.api.dto;
 
-import com.bank.insurance.onesb.domain.model.BankApplicationStatus;
+import com.bank.common.domain.BankApplicationStatus;
 
 import java.time.Instant;
 

@@ -1,6 +1,6 @@
 package com.bank.insurance.onesb.application;
 
-import com.bank.insurance.onesb.domain.model.LookupValue;
+import com.bank.common.domain.LookupValue;
 
 import java.util.List;
 import java.util.Map;

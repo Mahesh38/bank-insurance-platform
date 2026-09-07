@@ -1,6 +1,6 @@
 package com.bank.insurance.onesb.domain.command;
 
-import com.bank.insurance.onesb.domain.model.Lob;
+import com.bank.common.domain.Lob;
 
 import java.math.BigDecimal;
 import java.util.List;

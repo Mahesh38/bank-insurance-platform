@@ -3,7 +3,7 @@ package com.bank.insurance.onesb.api;
 import com.bank.insurance.onesb.api.dto.CreatePaymentRequest;
 import com.bank.insurance.onesb.api.dto.CreatePaymentResponse;
 import com.bank.insurance.onesb.domain.command.CreatePaymentCommand;
-import com.bank.insurance.onesb.domain.model.PaymentSession;
+import com.bank.common.domain.PaymentSession;
 import com.bank.insurance.onesb.domain.port.inbound.PaymentUseCase;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;

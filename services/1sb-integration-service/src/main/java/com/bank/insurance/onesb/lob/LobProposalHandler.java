@@ -1,7 +1,7 @@
 package com.bank.insurance.onesb.lob;
 
 import com.bank.insurance.onesb.domain.command.SubmitProposalCommand;
-import com.bank.insurance.onesb.domain.model.Lob;
+import com.bank.common.domain.Lob;
 
 /**
  * Strategy interface for LOB-specific proposal path/payload translation.

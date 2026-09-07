@@ -9,6 +9,8 @@ import com.bank.common.error.PlatformLayer;
 import com.bank.common.error.ServiceErrors;
 import com.bank.common.error.ServiceException;
 import com.bank.insurance.onesb.adapter.onesb.error.OneSbErrorNormaliser;
+import com.bank.insurance.onesb.adapter.onesb.resilience.OneSbCircuitBreaker;
+import com.bank.insurance.onesb.adapter.onesb.resilience.OneSbCircuitBreakerProperties;
 import com.bank.insurance.onesb.observability.PiiMasker;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,6 +34,7 @@ import java.util.HexFormat;
 /**
  * Single HTTP stack for all outbound 1SB calls (Basic Auth, timeouts, no 401 retry).
  * Emits outbound audit events with a hash of the <em>masked</em> request body.
+ * Circuit breaker ({@code NFR-004}) fails fast with {@link ErrorCodes#UPSTREAM_UNAVAILABLE}.
  */
 @Component
 public class OneSbHttpClient {
@@ -42,8 +45,8 @@ public class OneSbHttpClient {
     private final OneSbErrorNormaliser errorNormaliser;
     private final AuditEventPublisher auditEventPublisher;
     private final ObjectMapper objectMapper;
-
     private final ServiceErrors serviceErrors;
+    private final OneSbCircuitBreaker circuitBreaker;
 
     @Autowired
     public OneSbHttpClient(
@@ -51,12 +54,14 @@ public class OneSbHttpClient {
             OneSbErrorNormaliser errorNormaliser,
             AuditEventPublisher auditEventPublisher,
             ObjectMapper objectMapper,
-            ServiceErrors serviceErrors) {
+            ServiceErrors serviceErrors,
+            OneSbCircuitBreaker circuitBreaker) {
         this.restClient = oneSbRestClient;
         this.errorNormaliser = errorNormaliser;
         this.auditEventPublisher = auditEventPublisher;
         this.objectMapper = objectMapper;
         this.serviceErrors = serviceErrors;
+        this.circuitBreaker = circuitBreaker != null ? circuitBreaker : disabledBreaker();
     }
 
     /** Convenience for tests / temporary poll adapters. */
@@ -67,7 +72,7 @@ public class OneSbHttpClient {
     /** Convenience for tests / temporary poll adapters, with an explicit identity. */
     public OneSbHttpClient(RestClient oneSbRestClient, ServiceErrors serviceErrors) {
         this(oneSbRestClient, new OneSbErrorNormaliser(serviceErrors), event -> {}, new ObjectMapper(),
-             serviceErrors);
+             serviceErrors, disabledBreaker());
     }
 
     public OneSbHttpClient(
@@ -75,7 +80,12 @@ public class OneSbHttpClient {
             OneSbErrorNormaliser errorNormaliser,
             AuditEventPublisher auditEventPublisher,
             ServiceErrors serviceErrors) {
-        this(oneSbRestClient, errorNormaliser, auditEventPublisher, new ObjectMapper(), serviceErrors);
+        this(oneSbRestClient, errorNormaliser, auditEventPublisher, new ObjectMapper(), serviceErrors,
+                disabledBreaker());
+    }
+
+    private static OneSbCircuitBreaker disabledBreaker() {
+        return new OneSbCircuitBreaker(new OneSbCircuitBreakerProperties(false, 5, 30_000L, 1));
     }
 
     public <T> T get(String path, Class<T> responseType) {
@@ -87,6 +97,14 @@ public class OneSbHttpClient {
     }
 
     public <T> T exchange(HttpMethod method, String path, Object body, Class<T> responseType) {
+        if (!circuitBreaker.allowRequest()) {
+            throw serviceErrors.error(ErrorCodes.UPSTREAM_UNAVAILABLE)
+                    .component("OneSbHttpClient")
+                    .operation(method + " " + path)
+                    .upstream(OneSbErrorNormaliser.UPSTREAM, "CIRCUIT_OPEN", 503)
+                    .reason("1SB circuit breaker open")
+                    .build();
+        }
         log.debug("1SB {} {}", method, path);
         long started = System.nanoTime();
         Integer upstreamStatus = null;
@@ -107,20 +125,25 @@ public class OneSbHttpClient {
                     .toEntity(responseType);
             upstreamStatus = entity.getStatusCode().value();
             outcome = AuditOutcomes.SUCCESS;
+            circuitBreaker.recordSuccess();
             return entity.getBody();
         } catch (ServiceException ex) {
             upstreamStatus = inferUpstreamStatus(ex, upstreamStatus);
+            recordBreakerFailure(ex);
             throw ex;
         } catch (RestClientResponseException ex) {
             upstreamStatus = ex.getStatusCode().value();
-            throw errorNormaliser.normalise(ex.getStatusCode().value(), ex.getResponseBodyAsString());
+            ServiceException normalised = errorNormaliser.normalise(
+                    ex.getStatusCode().value(), ex.getResponseBodyAsString());
+            recordBreakerFailure(normalised);
+            throw normalised;
         } catch (Exception ex) {
             if (ex.getCause() instanceof ServiceException se) {
                 upstreamStatus = inferUpstreamStatus(se, upstreamStatus);
+                recordBreakerFailure(se);
                 throw se;
             }
-            // The route and the provider name are a diagnostic, never a detail: they told the
-            // caller which internal endpoint we tried and who we tried it against (defect D2).
+            circuitBreaker.recordFailure();
             throw serviceErrors.error(ErrorCodes.UPSTREAM_UNAVAILABLE)
                     .component("OneSbHttpClient")
                     .operation(method + " " + path)
@@ -132,6 +155,17 @@ public class OneSbHttpClient {
             long latencyMs = Math.max(0L, (System.nanoTime() - started) / 1_000_000L);
             publishAudit(method, path, body, latencyMs, upstreamStatus, outcome);
         }
+    }
+
+    private void recordBreakerFailure(ServiceException ex) {
+        // RESILIENCE-POLICY.md §3: never open on auth failures or business 4xx
+        // (payload / contract mistakes). Count timeouts, 5xx, and connection errors.
+        String code = ex.getErrorResponse().getCode();
+        if (ErrorCodes.UPSTREAM_AUTH_FAILURE.equals(code)
+                || ErrorCodes.UPSTREAM_BUSINESS_ERROR.equals(code)) {
+            return;
+        }
+        circuitBreaker.recordFailure();
     }
 
     private void publishAudit(

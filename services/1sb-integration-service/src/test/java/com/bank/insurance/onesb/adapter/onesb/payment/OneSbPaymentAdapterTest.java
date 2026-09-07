@@ -3,7 +3,7 @@ package com.bank.insurance.onesb.adapter.onesb.payment;
 import com.bank.common.secrets.SecretProvider;
 import com.bank.insurance.onesb.adapter.onesb.client.OneSbHttpClient;
 import com.bank.insurance.onesb.domain.command.CreatePaymentCommand;
-import com.bank.insurance.onesb.domain.model.Lob;
+import com.bank.common.domain.Lob;
 import com.bank.insurance.onesb.domain.model.OneSbPaymentUrlResult;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import org.junit.jupiter.api.AfterAll;

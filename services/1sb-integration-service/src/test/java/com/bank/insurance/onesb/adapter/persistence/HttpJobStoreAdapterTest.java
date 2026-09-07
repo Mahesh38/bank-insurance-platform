@@ -1,9 +1,9 @@
 package com.bank.insurance.onesb.adapter.persistence;
 
-import com.bank.insurance.onesb.domain.model.JobStatus;
-import com.bank.insurance.onesb.domain.model.Lob;
-import com.bank.insurance.onesb.domain.model.QuoteJob;
-import com.bank.insurance.onesb.domain.model.QuoteOffer;
+import com.bank.common.domain.JobStatus;
+import com.bank.common.domain.Lob;
+import com.bank.common.domain.QuoteJob;
+import com.bank.common.domain.QuoteOffer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;

@@ -12,19 +12,19 @@ import com.bank.common.error.ServiceErrors;
 import com.bank.common.error.ServiceException;
 import com.bank.common.secrets.SecretProvider;
 import com.bank.insurance.onesb.domain.command.SubmitProposalCommand;
-import com.bank.insurance.onesb.domain.model.JobStatus;
-import com.bank.insurance.onesb.domain.model.Lob;
+import com.bank.common.domain.JobStatus;
+import com.bank.common.domain.Lob;
 import com.bank.insurance.onesb.domain.model.OneSbProposalSubmitResult;
-import com.bank.insurance.onesb.domain.model.ProposalSchema;
-import com.bank.insurance.onesb.domain.model.ProposalSubmitResult;
-import com.bank.insurance.onesb.domain.model.QuoteJob;
+import com.bank.common.domain.ProposalSchema;
+import com.bank.common.domain.ProposalSubmitResult;
+import com.bank.common.domain.QuoteJob;
 import com.bank.insurance.onesb.domain.port.inbound.ProposalUseCase;
 import com.bank.insurance.onesb.domain.port.outbound.JobPollSchedulerPort;
 import com.bank.insurance.onesb.domain.port.outbound.JobStorePort;
 import com.bank.insurance.onesb.domain.port.outbound.OneSbProposalPort;
 import com.bank.insurance.onesb.lob.LobProposalHandler;
 import com.bank.insurance.onesb.lob.LobProposalHandlerRegistry;
-import com.bank.insurance.onesb.lob.life.term.TermProposalHandler;
+import com.bank.insurance.onesb.lob.life.LifeProposalSupport;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -87,7 +87,7 @@ public class ProposalService implements ProposalUseCase {
             throw missingLob("submit");
         }
 
-        String agentId = TermProposalHandler.resolveAgentId(command);
+        String agentId = LifeProposalSupport.resolveAgentId(command);
         if (!StringUtils.hasText(agentId)) {
             throw serviceErrors.error(ErrorCodes.AGENT_ATTRIBUTION_MISSING)
                     .component("ProposalService")

@@ -1,10 +1,10 @@
 package com.bank.insurance.onesb.domain.port.inbound;
 
 import com.bank.insurance.onesb.domain.command.SubmitProposalCommand;
-import com.bank.insurance.onesb.domain.model.Lob;
-import com.bank.insurance.onesb.domain.model.ProposalSchema;
-import com.bank.insurance.onesb.domain.model.ProposalSubmitResult;
-import com.bank.insurance.onesb.domain.model.QuoteJob;
+import com.bank.common.domain.Lob;
+import com.bank.common.domain.ProposalSchema;
+import com.bank.common.domain.ProposalSubmitResult;
+import com.bank.common.domain.QuoteJob;
 
 /**
  * Inbound use-case for proposal schema (FUNC-004), submit (FUNC-005), and job poll (FUNC-006).

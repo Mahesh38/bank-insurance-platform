@@ -5,9 +5,9 @@ import com.bank.insurance.onesb.TestErrors;
 import com.bank.common.error.ErrorCodes;
 import com.bank.common.error.ServiceException;
 import com.bank.insurance.onesb.adapter.onesb.client.OneSbHttpClient;
-import com.bank.insurance.onesb.domain.model.Lob;
+import com.bank.common.domain.Lob;
 import com.bank.insurance.onesb.domain.model.OneSbProposalSubmitResult;
-import com.bank.insurance.onesb.domain.model.ProposalSchema;
+import com.bank.common.domain.ProposalSchema;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -70,7 +70,7 @@ class OneSbProposalAdapterTest {
 
     @Test
     void getSchema_passThroughFields() {
-        String path = "/insurance/lifeterm/v1/proposal/form?productCode=T1&manufacturerId=HDFC&version=1";
+        String path = "/insurance/lifeterm/v1/proposal?productId=T1&manufacturerId=HDFC&version=1";
         ONESB.stubFor(get(urlEqualTo(path))
                 .willReturn(aResponse()
                         .withStatus(200)
@@ -86,7 +86,7 @@ class OneSbProposalAdapterTest {
 
     @Test
     void getSchema_cacheHit_skipsSecondHttpCall() {
-        String path = "/insurance/lifeterm/v1/proposal/form?productCode=C1&manufacturerId=M1&version=v";
+        String path = "/insurance/lifeterm/v1/proposal?productId=C1&manufacturerId=M1&version=v";
         ONESB.stubFor(get(urlEqualTo(path))
                 .willReturn(aResponse()
                         .withStatus(200)
@@ -101,7 +101,7 @@ class OneSbProposalAdapterTest {
 
     @Test
     void getSchema_upstream5xx_throwsRetryableUpstreamUnavailable() {
-        String path = "/insurance/lifeterm/v1/proposal/form?productCode=ERR";
+        String path = "/insurance/lifeterm/v1/proposal?productId=ERR";
         ONESB.stubFor(get(urlEqualTo(path))
                 .willReturn(aResponse().withStatus(503).withBody("down")));
 

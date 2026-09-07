@@ -1,8 +1,8 @@
 package com.bank.insurance.onesb.adapter.persistence;
 
-import com.bank.insurance.onesb.domain.model.Lob;
-import com.bank.insurance.onesb.domain.model.PaymentSession;
-import com.bank.insurance.onesb.domain.model.PaymentStatus;
+import com.bank.common.domain.Lob;
+import com.bank.common.domain.PaymentSession;
+import com.bank.common.domain.PaymentStatus;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;

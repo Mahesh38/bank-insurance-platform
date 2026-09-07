@@ -1,7 +1,7 @@
 package com.bank.insurance.onesb.domain.port.outbound;
 
-import com.bank.insurance.onesb.domain.model.Lob;
-import com.bank.insurance.onesb.domain.model.RawPayloadDirection;
+import com.bank.common.domain.Lob;
+import com.bank.common.domain.RawPayloadDirection;
 
 /**
  * Port for capturing full 1SB request/response bodies as dispute/audit evidence (COMP-003).

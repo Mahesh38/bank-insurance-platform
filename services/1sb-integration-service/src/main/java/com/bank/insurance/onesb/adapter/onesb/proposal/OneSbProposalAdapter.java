@@ -10,10 +10,10 @@ import com.bank.insurance.onesb.adapter.onesb.error.OneSbErrorNormaliser;
 import com.bank.common.error.ServiceException;
 import com.bank.insurance.onesb.adapter.onesb.client.OneSbHttpClient;
 import com.bank.insurance.onesb.config.ProposalProperties;
-import com.bank.insurance.onesb.domain.model.Lob;
+import com.bank.common.domain.Lob;
 import com.bank.insurance.onesb.domain.model.OneSbProposalSubmitResult;
-import com.bank.insurance.onesb.domain.model.ProposalSchema;
-import com.bank.insurance.onesb.domain.model.RawPayloadDirection;
+import com.bank.common.domain.ProposalSchema;
+import com.bank.common.domain.RawPayloadDirection;
 import com.bank.insurance.onesb.domain.port.outbound.OneSbProposalPort;
 import com.bank.insurance.onesb.domain.port.outbound.RawPayloadStorePort;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -33,7 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>
  * <b>Term paths:</b>
  * <ul>
- *   <li>Schema (FUNC-004): {@code GET /insurance/lifeterm/v1/proposal/form?...}</li>
+ *   <li>Schema (FUNC-004): {@code GET /insurance/lifeterm/v1/proposal?...}</li>
  *   <li>Submit (FUNC-005): {@code POST /insurance/lifeterm/v1/proposal}</li>
  * </ul>
  * Upstream 4xx business errors on submit are remapped to {@code PROPOSAL_REJECTED}.

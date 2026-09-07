@@ -6,10 +6,10 @@ import com.bank.insurance.onesb.adapter.persistence.dto.PersistenceApiDtos.Creat
 import com.bank.insurance.onesb.adapter.persistence.dto.PersistenceApiDtos.JobResponse;
 import com.bank.insurance.onesb.adapter.persistence.dto.PersistenceApiDtos.OfferResponse;
 import com.bank.insurance.onesb.adapter.persistence.dto.PersistenceApiDtos.PatchJobStatusRequest;
-import com.bank.insurance.onesb.domain.model.JobStatus;
-import com.bank.insurance.onesb.domain.model.Lob;
-import com.bank.insurance.onesb.domain.model.QuoteJob;
-import com.bank.insurance.onesb.domain.model.QuoteOffer;
+import com.bank.common.domain.JobStatus;
+import com.bank.common.domain.Lob;
+import com.bank.common.domain.QuoteJob;
+import com.bank.common.domain.QuoteOffer;
 import com.bank.insurance.onesb.domain.port.outbound.JobStorePort;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;

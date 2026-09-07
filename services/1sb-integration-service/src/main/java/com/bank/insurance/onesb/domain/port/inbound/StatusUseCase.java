@@ -1,7 +1,7 @@
 package com.bank.insurance.onesb.domain.port.inbound;
 
-import com.bank.insurance.onesb.domain.model.ApplicationStatus;
-import com.bank.insurance.onesb.domain.model.Lob;
+import com.bank.common.domain.ApplicationStatus;
+import com.bank.common.domain.Lob;
 
 /**
  * Inbound use-case for application status lookup (FUNC-009).

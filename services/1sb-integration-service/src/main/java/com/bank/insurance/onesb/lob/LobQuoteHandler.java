@@ -1,7 +1,7 @@
 package com.bank.insurance.onesb.lob;
 
 import com.bank.insurance.onesb.domain.command.CreateQuoteCommand;
-import com.bank.insurance.onesb.domain.model.Lob;
+import com.bank.common.domain.Lob;
 
 /**
  * Strategy interface for LOB-specific quote request translation.
@@ -13,8 +13,9 @@ public interface LobQuoteHandler {
     Lob supportedLob();
 
     /**
-     * Builds a JSON-serializable Map (or nested Maps/Lists) for the 1SB quote POST body.
-     * Must not leak bank-only fields; adapter posts this as-is.
+     * Builds a typed JSON-serializable payload for the 1SB quote POST body.
+     * Must not leak bank-only fields; adapter posts this as-is via Jackson.
+     * Prefer records / DTOs — do not assemble bodies via {@code Map.put}.
      */
     Object buildSubmitPayload(CreateQuoteCommand command);
 

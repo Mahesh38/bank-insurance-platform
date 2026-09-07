@@ -1,7 +1,7 @@
 package com.bank.insurance.onesb.adapter.persistence;
 
-import com.bank.insurance.onesb.domain.model.Lob;
-import com.bank.insurance.onesb.domain.model.RawPayloadDirection;
+import com.bank.common.domain.Lob;
+import com.bank.common.domain.RawPayloadDirection;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

@@ -11,12 +11,12 @@ import com.bank.common.error.ServiceErrorResponse;
 import com.bank.common.error.ServiceException;
 import com.bank.common.secrets.SecretProvider;
 import com.bank.insurance.onesb.domain.command.SubmitProposalCommand;
-import com.bank.insurance.onesb.domain.model.JobStatus;
-import com.bank.insurance.onesb.domain.model.Lob;
+import com.bank.common.domain.JobStatus;
+import com.bank.common.domain.Lob;
 import com.bank.insurance.onesb.domain.model.OneSbProposalSubmitResult;
-import com.bank.insurance.onesb.domain.model.ProposalSchema;
-import com.bank.insurance.onesb.domain.model.ProposalSubmitResult;
-import com.bank.insurance.onesb.domain.model.QuoteJob;
+import com.bank.common.domain.ProposalSchema;
+import com.bank.common.domain.ProposalSubmitResult;
+import com.bank.common.domain.QuoteJob;
 import com.bank.insurance.onesb.domain.port.outbound.JobPollSchedulerPort;
 import com.bank.insurance.onesb.domain.port.outbound.JobStorePort;
 import com.bank.insurance.onesb.domain.port.outbound.OneSbProposalPort;
@@ -68,7 +68,7 @@ class ProposalServiceTest {
     void getSchema_delegatesToHandlerAndPort() {
         when(handlerRegistry.get(Lob.TERM)).thenReturn(handler);
         when(handler.schemaPath("T1", "HDFC", "1"))
-                .thenReturn("/insurance/lifeterm/v1/proposal/form?productCode=T1&manufacturerId=HDFC&version=1");
+                .thenReturn("/insurance/lifeterm/v1/proposal?productId=T1&manufacturerId=HDFC&version=1");
         ProposalSchema expected = new ProposalSchema(Lob.TERM, "T1", "HDFC", "1", Map.of("a", 1));
         when(proposalPort.getSchema(eq(Lob.TERM), eq("T1"), eq("HDFC"), eq("1"), any()))
                 .thenReturn(expected);

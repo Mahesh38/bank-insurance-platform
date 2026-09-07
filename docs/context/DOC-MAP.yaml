@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 525
-total_bytes: 15260818
+document_count: 536
+total_bytes: 15322656
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -53,7 +53,7 @@ documents:
     persona: engineering
     title: "API catalog"
     answers: "Base URL (demo): https://demo.api.1silverbullet.tech"
-    bytes: 10856
+    bytes: 11190
   - path: docs/1sb-insurance-integration/architecture/1sb-integration-service-architecture.md
     bucket: module-1sb
     authority: engineering-ssot
@@ -125,7 +125,7 @@ documents:
     persona: engineering
     title: "Field guides index"
     answers: "These guides explain what is mandatory, when, and why — optimized for implementers mapping bank canonical models → 1SB."
-    bytes: 834
+    bytes: 1007
   - path: docs/1sb-insurance-integration/field-guides/application-status.md
     bucket: module-1sb
     authority: engineering-ssot
@@ -174,6 +174,14 @@ documents:
     title: "Proposal & dynamic forms"
     answers: "Insurance proposal forms vary for each company/product. Instead of multiple API signatures, 1SB exposes a dynamic GET form schema. Submit body…"
     bytes: 2635
+  - path: docs/1sb-insurance-integration/field-guides/savings-quote.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Savings quote — portal-aligned"
+    answers: "API: POST /insurance/lifesave/v1/quote"
+    bytes: 2254
   - path: docs/1sb-insurance-integration/field-guides/term-quote.md
     bucket: module-1sb
     authority: engineering-ssot
@@ -182,6 +190,14 @@ documents:
     title: "Term quote — mandatory fields, when & why"
     answers: "API: POST /insurance/lifeterm/v1/quote"
     bytes: 5961
+  - path: docs/1sb-insurance-integration/field-guides/ulip-quote.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "ULIP quote — portal-aligned (Saving API + ULIP filter)"
+    answers: "Quote API: POST /insurance/lifesave/v1/quote with product.savingsProductType=[\"ULIP\"]"
+    bytes: 1928
   - path: docs/1sb-insurance-integration/journeys/README.md
     bucket: module-1sb
     authority: engineering-ssot
@@ -213,7 +229,7 @@ documents:
     persona: engineering
     title: "Reference — source links & extracted schemas"
     answers: "extracted-schemas/ contains machine-extracted field lists from the public portal pages (markdown + JSON). Use them as a searchable index; always…"
-    bytes: 2781
+    bytes: 2997
   - path: docs/1sb-insurance-integration/reference/extracted-schemas/README.md
     bucket: module-1sb
     authority: engineering-ssot
@@ -461,7 +477,15 @@ documents:
     persona: engineering
     title: "Action Plan — Progressing the 1SB Integration Service"
     answers: "Purpose: Ordered actions so the team can move from docs → working Term path in sandbox → Health/Motor → production readiness, without blockers."
-    bytes: 10400
+    bytes: 11434
+  - path: docs/1sb-insurance-integration/service-ssot/API-ALIGNMENT-1SB-GATEWAY-2026-09-03.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "1SB Insurance Gateway — API alignment verification"
+    answers: "Work: EPIC-002 / DOC-020 / CR-014"
+    bytes: 3514
   - path: docs/1sb-insurance-integration/service-ssot/COVERAGE.md
     bucket: module-1sb
     authority: engineering-ssot
@@ -484,8 +508,8 @@ documents:
     capsules: [1sb-integration-change, code-change]
     persona: engineering
     title: "Product Backlog — 1SB Integration Service"
-    answers: "Priority legend: P0 = go-live Term · P1 = Health/Motor + hardening · P2 = later LOBs / ops polish"
-    bytes: 15789
+    answers: "Priority legend: P0 = go-live Term · P0† = stakeholder-admitted Life LOB / adapter standards (CR-014) · P1 = Health/Motor + hardening · P2 = later…"
+    bytes: 18364
   - path: docs/1sb-insurance-integration/service-ssot/QA-LEAD-TESTING-STRATEGY.md
     bucket: module-1sb
     authority: engineering-ssot
@@ -510,6 +534,14 @@ documents:
     title: "1SB Integration Service — Single Source of Truth (SSOT)"
     answers: "This folder is the authoritative starting point for building the service. If something here conflicts with earlier research notes, this SSOT wins."
     bytes: 6441
+  - path: docs/1sb-insurance-integration/service-ssot/RESILIENCE-POLICY.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "1SB egress resilience — poll, retry and circuit breaker"
+    answers: "Work items: NFR-007, NFR-004 · Origin: CR-014 / EPIC-002 / SUG-20260903-lif"
+    bytes: 3644
   - path: docs/1sb-insurance-integration/service-ssot/ROLE-GUIDELINES-AND-DOD.md
     bucket: module-1sb
     authority: engineering-ssot
@@ -926,6 +958,14 @@ documents:
     title: "Phase 4 — Status"
     answers: "Branch: claude/1sb-integration-phase-4-p8s0bo"
     bytes: 2101
+  - path: docs/1sb-insurance-integration/service-ssot/work-items/EPIC-002.work-item.yaml
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "EPIC 002.work item"
+    answers: "schema: work-item"
+    bytes: 4394
   - path: docs/README.md
     bucket: root
     authority: navigation
@@ -1117,7 +1157,7 @@ documents:
     persona: quality
     title: "S06 — Domain & Information Architecture · Retroactive Stage Evidence"
     answers: "Gate: GATE-S06 · Workstream: WS-3 (proposed under CR-010)"
-    bytes: 18516
+    bytes: 18498
   - path: docs/application-lifecycle-bible/evidence/S07-solution-architecture-evidence.md
     bucket: lifecycle
     authority: proposed-cr-010
@@ -1885,7 +1925,7 @@ documents:
     persona: null
     title: "BOOT — the tier-0 agent capsule"
     answers: "Read this first, and often read nothing else. This file answers the ten-fact knowledge"
-    bytes: 17629
+    bytes: 17912
   - path: docs/context/DOC-MAP.yaml
     bucket: context
     authority: non-binding-context
@@ -1893,7 +1933,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 185779
+    bytes: 189632
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -3518,6 +3558,14 @@ documents:
     title: "CR-013 — Pull Lead language, lifecycle, off-platform ingest, admin/MIS, issuance modes and PPHI mapping into R0"
     answers: "Type: SCOPE (with ARCH and COMP consequences)"
     bytes: 4981
+  - path: docs/governance/change-requests/CR-014-ws1-life-lob-adapter-standards.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "CR-014 — Admit Life LOB (Term + Savings + ULIP) into WS-1 1SB adapter, with packaging, typed payloads and resilience"
+    answers: "Type: SCOPE (with ARCH, NFR and ENG consequences)"
+    bytes: 6404
   - path: docs/governance/plans/PLAN-001-context-module-and-safe-autopilot.md
     bucket: governance
     authority: binding-process
@@ -3542,6 +3590,14 @@ documents:
     title: "PLAN-003 — Align R0 physical pack with CR-013"
     answers: "objective: After this change the DATA-001 physical pack expresses CR-013 / ADR-014 facts (Lead archive, issuanceMode, off-platform Policy ingest,…"
     bytes: 4895
+  - path: docs/governance/plans/PLAN-EPIC-002-life-lob-adapter.md
+    bucket: governance
+    authority: binding-process
+    capsules: [delivery-planning, plan-work]
+    persona: delivery
+    title: "schema: implementation-plan"
+    answers: "id: PLAN-EPIC-002"
+    bytes: 4174
   - path: docs/governance/registers/ASSUMPTION-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -3557,7 +3613,7 @@ documents:
     persona: null
     title: "Decision Register"
     answers: "Index of decisions that constrain future work: ADRs, change requests, stage transitions, and"
-    bytes: 37624
+    bytes: 38088
   - path: docs/governance/registers/DEPENDENCY-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -3573,7 +3629,7 @@ documents:
     persona: null
     title: "Parked Backlog"
     answers: "Parked is not deleted. Every entry names the stage that unparks it and the observable"
-    bytes: 11777
+    bytes: 11909
   - path: docs/governance/registers/RISK-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -3589,7 +3645,7 @@ documents:
     persona: null
     title: "Suggestion Register"
     answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 183755
+    bytes: 190115
   - path: docs/governance/schemas/README.md
     bucket: governance
     authority: binding-process
@@ -3661,7 +3717,7 @@ documents:
     persona: null
     title: "CURRENT STATE"
     answers: "AIGEM — Machine-readable current state"
-    bytes: 31453
+    bytes: 32509
   - path: docs/governance/state/GATE-EVIDENCE.yaml
     bucket: governance
     authority: binding-process
@@ -3805,7 +3861,7 @@ documents:
     persona: engineering
     title: "07 — Platform Error Contract"
     answers: "One failure, one incident id, two renderings: a safe one for the end user and a complete one for"
-    bytes: 37208
+    bytes: 38035
   - path: docs/journey-execution/08-SUPPORT-RUNBOOK.md
     bucket: platform
     authority: ai-drafted
@@ -3934,6 +3990,14 @@ documents:
     title: "08 — Architecture Decision Log (this review)"
     answers: "ID scheme: ARCH-xxx — deliberately distinct from the business/scope D-xxx and process DOC-xxx IDs in docs/au-bank-insurance-platform/DECISION-LOG.md,…"
     bytes: 113963
+  - path: docs/platform/architecture-review/ADR-019-microservice-skeleton-scaffold.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, board-review]
+    persona: architecture
+    title: "ADR-019 — Backend microservice skeleton scaffold"
+    answers: "Deciders: Mahesh (Principal Insurance Platform Architect)"
+    bytes: 2630
   - path: docs/platform/architecture-review/README.md
     bucket: platform
     authority: approved-spec
@@ -4166,6 +4230,30 @@ documents:
     title: "R0 design DDL"
     answers: "PostgreSQL scripts that implement 01-physical-design.md."
     bytes: 1597
+  - path: docs/platform/engineering/GITLAB-REPO-STRUCTURE.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review]
+    persona: architecture
+    title: "GitLab repository structure — backend services"
+    answers: "Purpose: Map Gradle modules to GitLab groups/projects ahead of the GitHub → GitLab migration"
+    bytes: 4219
+  - path: docs/platform/engineering/MICROSERVICE-SCAFFOLD-TEMPLATE.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review]
+    persona: architecture
+    title: "Microservice scaffold template"
+    answers: "Horizon: H0 — pre-implementation structure only"
+    bytes: 3709
+  - path: docs/platform/engineering/backend-service-catalog.yaml
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review]
+    persona: architecture
+    title: "backend service catalog"
+    answers: "Backend service catalogue — maps architecture bounded contexts to Gradle modules."
+    bytes: 7679
   - path: docs/platform/ws3-platform/00-WS3-ARCHITECTURE-REGISTRATION.md
     bucket: platform
     authority: approved-spec

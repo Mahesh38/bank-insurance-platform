@@ -1,8 +1,8 @@
 package com.bank.insurance.onesb.domain.port.outbound;
 
-import com.bank.insurance.onesb.domain.model.JobStatus;
-import com.bank.insurance.onesb.domain.model.QuoteJob;
-import com.bank.insurance.onesb.domain.model.QuoteOffer;
+import com.bank.common.domain.JobStatus;
+import com.bank.common.domain.QuoteJob;
+import com.bank.common.domain.QuoteOffer;
 
 import java.util.List;
 import java.util.Optional;

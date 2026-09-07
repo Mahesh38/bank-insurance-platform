@@ -1,6 +1,6 @@
 package com.bank.insurance.onesb.api.dto;
 
-import com.bank.insurance.onesb.domain.model.Lob;
+import com.bank.common.domain.Lob;
 import jakarta.validation.constraints.NotNull;
 
 import java.util.Map;

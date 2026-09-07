@@ -4,14 +4,16 @@
 **From:** Application delivery team — Shivanshi (SRE / R10), with Mahesh (Architecture), Amit (Engineering), Deepali (Security), Swapnali (QA)  
 **Work item:** `SUG-20260907-gdv`  
 **Status:** Requirements for **bank DevOps to create from scratch**. This is not an instruction for the application team to click GitLab, AWS, Terraform or Terragrunt.  
-**Shareable copy for DevOps (Word):** [`AU-SFB-NIP-GitLab-DevOps-Work-Order.docx`](./AU-SFB-NIP-GitLab-DevOps-Work-Order.docx) — regenerate with `python3 scripts/platform/generate-gitlab-devops-work-order.py`  
+**Shareable copy for DevOps (Phase 1 — send this, 4 pages):** [`AU-SFB-NIP-GitLab-Phase-1-Collaboration-Brief.docx`](./AU-SFB-NIP-GitLab-Phase-1-Collaboration-Brief.docx)  
+**Shareable copy for later phases (do not send as the Phase 1 ask):** [`AU-SFB-NIP-GitLab-DevOps-Work-Order.docx`](./AU-SFB-NIP-GitLab-DevOps-Work-Order.docx) — regenerate with `python3 scripts/platform/generate-gitlab-devops-work-order.py`  
+**Phase 1 markdown:** [`GITLAB-PHASE-1-COLLABORATION.md`](./GITLAB-PHASE-1-COLLABORATION.md)  
 **Authority:** GitLab is the bank enterprise delivery standard ([ARB dossier §9.1](../../architecture/ARB-ARCHITECTURE-DOSSIER.md); [ADR-016](../../governance/registers/DECISION-REGISTER.md)). Group mapping: [GITLAB-REPO-STRUCTURE.md](./GITLAB-REPO-STRUCTURE.md). Service catalogue: [backend-service-catalog.yaml](./backend-service-catalog.yaml).
 
 ---
 
 ## 0. How to use this document
 
-Give this file to the assigned bank DevOps engineer. It is the complete create-from-scratch request:
+Give **Phase 1** to the assigned bank DevOps engineer as the four-page Word brief. Keep this file for Phase 2 / Phase 3.
 
 | They need to know | Section |
 |---|---|

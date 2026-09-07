@@ -4,7 +4,7 @@
 **Purpose:** Map Gradle modules to GitLab groups/projects for the bank GitLab estate  
 **Status:** Proposed — for stakeholder review before cutover  
 **Bank DevOps create-from-scratch request (CI vs CD, roles, security, coverage):** [`GITLAB-BANK-DEVOPS-PROVISIONING.md`](./GITLAB-BANK-DEVOPS-PROVISIONING.md)  
-**Shareable Word work-order to send DevOps:** [`AU-SFB-NIP-GitLab-DevOps-Work-Order.docx`](./AU-SFB-NIP-GitLab-DevOps-Work-Order.docx)
+**Shareable Word work-order to send DevOps:** Phase 1 (4 pages) [`AU-SFB-NIP-GitLab-Phase-1-Collaboration-Brief.docx`](./AU-SFB-NIP-GitLab-Phase-1-Collaboration-Brief.docx) · later phases [`AU-SFB-NIP-GitLab-DevOps-Work-Order.docx`](./AU-SFB-NIP-GitLab-DevOps-Work-Order.docx)
 
 ## Proposed GitLab hierarchy
 

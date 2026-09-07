@@ -15,6 +15,21 @@ The portal therefore remains:
 - deployable as static HTML on any approved internal hosting;
 - explicit about which source is authoritative.
 
+## Live generated views
+
+Some portal pages are generated at build time by `scripts/docs/generate_knowledge_base.py`.
+
+The generator reads only authoritative repository sources and writes disposable derived Markdown under `docs/knowledge-base/generated/`:
+
+| Generated page | Source |
+|---|---|
+| Live current state | `docs/governance/state/CURRENT-STATE.yaml` |
+| Backlog / suggestion index | `docs/governance/registers/SUGGESTION-REGISTER.md` + `PARKED-BACKLOG.md` |
+| Decision index | `docs/governance/registers/DECISION-REGISTER.md` |
+| Module / service inventory | `settings.gradle.kts` + current source tree |
+
+Generated pages are intentionally **not authority** and are not used to change stage, gate, approval or backlog state.
+
 ## Run locally
 
 From the repository root:
@@ -23,18 +38,33 @@ From the repository root:
 python -m venv .venv-docs
 source .venv-docs/bin/activate   # Windows PowerShell: .venv-docs\Scripts\Activate.ps1
 pip install -r requirements-docs.txt
+python scripts/docs/generate_knowledge_base.py
 mkdocs serve
 ```
 
 Open the local address printed by MkDocs (normally `http://127.0.0.1:8000`).
 
+Whenever `CURRENT-STATE.yaml`, governance registers, service modules or source controllers change, rerun the generator before refreshing the portal.
+
 ## Build static HTML
 
 ```bash
+python scripts/docs/generate_knowledge_base.py
 mkdocs build
 ```
 
 The generated `site/` directory is a static website that can be served by an approved internal web server, artifact server, container or platform route. **Do not publish it publicly by default.** Hosting choice is an operational/security decision separate from this documentation UI.
+
+## CI validation
+
+`.github/workflows/knowledge-hub.yml` validates portal changes and source changes that feed the portal. It:
+
+1. installs the documentation-only Python dependencies;
+2. regenerates the live pages from the checked-out branch;
+3. runs `mkdocs build --strict`;
+4. uploads the built static site as a CI artifact.
+
+This gives reviewers a reproducible documentation build without deploying anything publicly.
 
 ## Content rule
 
@@ -55,17 +85,16 @@ This keeps the portal from becoming a competing source of truth.
 3. Add the page to `mkdocs.yml` navigation if it should be globally visible.
 4. If you introduce a new abbreviation, add it to `glossary.md`.
 5. If you introduce a new documentation family, add it to `repository-map.md`.
-6. If you add a service/API, update `api-service-catalogue.md` or automate that catalogue from code metadata.
+6. If information already has a machine-readable or canonical repository source, prefer extending the generator instead of creating another manually maintained status page.
 
-## Recommended next automation
+## What remains curated
 
-The first version is curated. A later improvement should generate parts of the portal from source files so they cannot drift:
+Some knowledge cannot be safely generated from identifiers alone and therefore stays human-readable/curated:
 
-- workstream/stage/gate cards from `CURRENT-STATE.yaml`;
-- READY/PARKED/BLOCKED counts from governance registers/backlogs;
-- ADR/CR signature status from the decision register and change-request files;
-- service list from `settings.gradle.kts`;
-- API list from OpenAPI/contracts/controllers where a canonical machine-readable source exists;
-- glossary lint to flag undefined identifier prefixes.
+- glossary meanings and namespace-collision explanations;
+- role-based reading paths;
+- repository authority/precedence explanation;
+- business/domain mental models;
+- explanation of the difference between target architecture, implemented code and evidenced completion.
 
-Generation should read authoritative files and write derived pages only; it must not mutate lifecycle state or approvals.
+The automation goal is **less drift**, not replacing human explanation with generated tables.

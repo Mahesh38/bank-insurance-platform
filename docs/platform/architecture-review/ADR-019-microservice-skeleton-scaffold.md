@@ -7,7 +7,7 @@
 
 ## Context
 
-The target microservices architecture ([`02-target-microservices-architecture.md`](../platform/architecture-review/02-target-microservices-architecture.md))
+The target microservices architecture ([`02-target-microservices-architecture.md`](./02-target-microservices-architecture.md))
 defines ~16 logic-bearing backend services plus integration adapters. Only five Gradle modules existed
 before this decision. A GitHub → GitLab migration requires **known repository boundaries and group-level
 ownership** before policies, CI and access controls can be applied.

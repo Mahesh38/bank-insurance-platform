@@ -45,7 +45,6 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
 | SUG-20260904-uis | 2026-09-04 | human:cloud-agent | File the cross-insurer Universal Insurance Suitability specification (7-layer model, 206-product catalogue attributes, 8,811 source-fidelity tests) as non-binding project research for later Suitability / Product Catalogue work | SF2 | SC2 | SHOULD | DOC | P3 / P2 | ADMIT-BYPASS | [spec](../../au-bank-insurance-platform/references/2026-09-04-universal-insurance-suitability-specification.md) · [detail](#sug-20260904-uis--file-universal-suitability-research-specification) |
 | SUG-20260904-eng | 2026-09-04 | human:cloud-agent | Implement the 7-layer universal suitability engine and the 206-product multi-insurer catalogue as the Suitability microservice and Product Catalogue | SF3 | SC2 | MUST | FUNC | P4 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md#1-parked--scheduled-work) · [detail](#sug-20260904-eng--implement-7-layer-engine-and-multi-insurer-catalogue) |
-| SUG-20260903-lif | 2026-09-03 | human:stakeholder | 1SB integration must cover Life LOB (Term + Savings + ULIP); move bank models out of the 1SB app service; replace Map-built JSON with typed models; packaging/SOLID/DRY; document poll/retry stop and circuit breakers — admit with actions, do not park | SF1* | SC4→SC0 | MUST | FUNC | P1 / P1 | ADMIT-BYPASS | [CR-014](../change-requests/CR-014-ws1-life-lob-adapter-standards.md) · [EPIC-002](../../1sb-insurance-integration/service-ssot/work-items/EPIC-002.work-item.yaml) · [detail](#sug-20260903-lif--life-lob-1sb-coverage-and-adapter-standards) |
 | SUG-20260818-4c3 | 2026-08-18 | human:Mahesh | Architecture justification pack: why service boundaries, merge rejection, datastore choices, caching, direct-insurer future, R0/R1/R2+ scope. **Aligned 2026-08-25** to `CR-012`/`ADR-008`…`ADR-013`; cites the canonical renderings rather than publishing a second pair (`HA-04`) | SF1 | SC0 | MUST | ARCH | P2 / P2 | ADMIT-BYPASS | [06-architecture-justification](../../platform/ws3-platform/06-architecture-justification-and-review-answers.md) |
 | SUG-20260816-d8v | 2026-08-16 | human:Mahesh | Add Dilip AI executive-sponsor perspective for bancassurance business/value decisions and wire it into P0/R0 | SF2 | SC1 | SHOULD | GOV | P2 / P2 | ADMIT-BYPASS | [1SB backlog governance/decision-quality enablers](../../1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md#governance--decision-quality-enablers) |
 | SUG-20260816-ba7 | 2026-08-16 | human:Mahesh | Add a senior end-to-end bancassurance BA AI persona for existing R11 and link it to current personas/context | SF2 | SC1 | SHOULD | GOV | P2 / P2 | ADMIT-BYPASS | [Principal BA package](../../context/roles/principal-insurance-platform-business-analyst/README.md) |
@@ -89,6 +88,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | SUG-20260827-tpo | 2026-08-27 | human:Mahesh | Platform Topology & LLD Alignment: replace Argo CD with GitLab CI/CD with logo, replace AWS Network Firewall with F5 BIG-IP / Firewall with logo, incorporate Ansible for automated DR drills / sanity testing, and emphasize Terraform IaC baseline | SF1 | SC0 | MUST | ARCH | P1 / P1 | CLOSED-DELIVERED | [r0-platform-topology](../../architecture/r0-platform-topology.svg) · [detail](#sug-20260827-tpo--platform-topology--lld-alignment-gitlab-cicd-f5-big-ip-ansible-terraform) |
 | SUG-20260831-alb | 2026-08-31 | human:Mahesh | Correct two false perimeter assumptions against the existing AU Bank estate: (1) remove the External / public ALB in front of API Gateway; (2) Cloudflare and F5-XC are bank-enterprise SaaS, not AWS services and not in any platform VPC | SF1 | SC1 | MUST | ARCH | P1 / P1 | ADMIT | [ADR-018](../../platform/architecture-review/08-architecture-decision-log.md) · [detail](#sug-20260831-alb--correct-edge-ingress-no-public-alb-cloudflare--f5-xc-are-saas-outside-aws) |
 | SUG-20260831-apg | 2026-08-31 | human:Mahesh | Existing bank estate routes all incoming and outgoing requests through Apigee. Decide whether Amazon API Gateway is still needed, and whether the R0 VPC / IGW / TGW pack must attach to (not duplicate) the existing network account | SF1 | SC1 | MUST | SPIKE | P1 / P1 | ADMIT · draw PARKED | [SPIKE-001](#sug-20260831-apg--apigee-is-the-bank-api-plane--do-not-add-a-second-amazon-api-gateway-until-confirmed) · [PARKED](./PARKED-BACKLOG.md) |
+| SUG-20260903-lif | 2026-09-03 | human:stakeholder | 1SB integration must cover Life LOB (Term + Savings + ULIP); move bank models out of the 1SB app service; replace Map-built JSON with typed models; packaging/SOLID/DRY; document poll/retry stop and circuit breakers — admit with actions, do not park | SF1* | SC4→SC0 | MUST | FUNC | P1 / P1 | ADMIT-BYPASS | [CR-014](../change-requests/CR-014-ws1-life-lob-adapter-standards.md) · [EPIC-002](../../1sb-insurance-integration/service-ssot/work-items/EPIC-002.work-item.yaml) · [detail](#sug-20260903-lif--life-lob-1sb-coverage-and-adapter-standards) |
 
 <!--
 Row format:
@@ -3221,7 +3221,7 @@ resumed: GATE-S08
 ### SUG-20260825-pv1 · No PVC for the web app
 
 ```yaml
-# schema: triage-record
+# triage-record-legacy (not schema-tagged; free-form until rewritten)
 id: SUG-20260825-pv1
 raised_at: "2026-08-25"
 raised_by: "human:Mahesh"
@@ -3284,7 +3284,7 @@ resumed: "Mahesh architecture consult — channel, BFF, Lead LOB"
 ### SUG-20260825-ld1 · Lead is not LOB-specific
 
 ```yaml
-# schema: triage-record
+# triage-record-legacy (not schema-tagged; free-form until rewritten)
 id: SUG-20260825-ld1
 raised_at: "2026-08-25"
 raised_by: "human:Mahesh"
@@ -3338,7 +3338,7 @@ resumed: "Mahesh architecture consult — channel, BFF, Lead LOB"
 ### SUG-20260825-st2 · Flutter public-store distribution
 
 ```yaml
-# schema: triage-record
+# triage-record-legacy (not schema-tagged; free-form until rewritten)
 id: SUG-20260825-st2
 raised_at: "2026-08-25"
 raised_by: "human:Mahesh"
@@ -3402,7 +3402,7 @@ resumed: "ADR-015 took the workforce store-listing decision"
 ### SUG-20260825-ac1 · Admin and ops actors for R0
 
 ```yaml
-# schema: triage-record
+# triage-record-legacy (not schema-tagged; free-form until rewritten)
 id: SUG-20260825-ac1
 raised_at: "2026-08-25"
 raised_by: "human:Mahesh"
@@ -3494,7 +3494,7 @@ resumed: "Mahesh architecture consult — channel, BFF, Lead LOB"
 ### SUG-20260825-ll1 · LLD/topology lag behind ADR-014
 
 ```yaml
-# schema: triage-record
+# triage-record-legacy (not schema-tagged; free-form until rewritten)
 id: SUG-20260825-ll1
 raised_at: "2026-08-25"
 raised_by: "agent:cursor-grok"
@@ -3585,7 +3585,7 @@ resumed: "Mahesh architecture consult — channel, BFF, Lead LOB"
 ### SUG-20260825-nip · One NIP-APP, role-based, not a second admin UI
 
 ```yaml
-# schema: triage-record
+# triage-record-legacy (not schema-tagged; free-form until rewritten)
 id: SUG-20260825-nip
 raised_at: "2026-08-25"
 raised_by: "human:Mahesh"

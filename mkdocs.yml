@@ -51,9 +51,14 @@ nav:
   - Home:
       - Knowledge Hub: knowledge-base/index.md
       - Start by role: knowledge-base/role-guides.md
+      - Live current state: knowledge-base/generated/current-state.md
+      - Live backlog index: knowledge-base/generated/backlog-index.md
+      - Live decision index: knowledge-base/generated/decision-index.md
+      - Live service inventory: knowledge-base/generated/service-inventory.md
       - Repository map: knowledge-base/repository-map.md
       - Glossary: knowledge-base/glossary.md
-      - Status & decisions: knowledge-base/status-and-decisions.md
+      - Status & decisions explained: knowledge-base/status-and-decisions.md
+      - Portal operating guide: knowledge-base/README.md
   - Governance:
       - Runbook: governance/RUNBOOK.md
       - Governance overview: governance/README.md
@@ -97,6 +102,7 @@ nav:
       - Request lifecycle: journey-execution/01-REQUEST-LIFECYCLE-STANDARD.md
       - Traceability: journey-execution/06-TRACEABILITY.md
       - API & service catalogue: knowledge-base/api-service-catalogue.md
+      - Live module/service inventory: knowledge-base/generated/service-inventory.md
   - Workstreams:
       - WS-1 · 1SB integration: 1sb-insurance-integration/service-ssot/README.md
       - 1SB service architecture: 1sb-insurance-integration/architecture/1sb-integration-service-architecture.md

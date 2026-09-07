@@ -12,8 +12,13 @@ This portal **indexes and explains** the existing authoritative documentation. I
   </div>
   <div class="kb-card">
     <h3>What is happening now?</h3>
-    <p>Understand stages, gates, current workstreams, admitted work, parked work and unresolved decisions.</p>
-    <p><a href="status-and-decisions/">Current state & decisions →</a></p>
+    <p>Use the generated live view of workstreams, stages, gates, scope and exit criteria.</p>
+    <p><a href="generated/current-state/">Live current state →</a></p>
+  </div>
+  <div class="kb-card">
+    <h3>What is parked or decided?</h3>
+    <p>Navigate generated register indexes without replacing the governance registers.</p>
+    <p><a href="generated/backlog-index/">Backlog →</a> · <a href="generated/decision-index/">Decisions →</a></p>
   </div>
   <div class="kb-card">
     <h3>What does this abbreviation mean?</h3>
@@ -26,9 +31,9 @@ This portal **indexes and explains** the existing authoritative documentation. I
     <p><a href="repository-map/">Repository map →</a></p>
   </div>
   <div class="kb-card">
-    <h3>Services & APIs</h3>
-    <p>See target bounded contexts, currently implemented backend modules and documented API contracts.</p>
-    <p><a href="api-service-catalogue/">API/service catalogue →</a></p>
+    <h3>What code/modules exist now?</h3>
+    <p>See the live Gradle-derived module inventory, controller counts and route counts.</p>
+    <p><a href="generated/service-inventory/">Live service inventory →</a></p>
   </div>
 </div>
 
@@ -40,7 +45,16 @@ This portal **indexes and explains** the existing authoritative documentation. I
 | **Domain** | Which bounded context owns each piece of truth and which rules must always hold? | [Domain model & invariants](../platform/ws3-platform/01-domain-model-and-invariants.md) |
 | **Architecture** | How do those owners communicate and where do they run? | [R0 HLD](../architecture/R0-HLD.md) · [R0 solution architecture](../platform/ws3-platform/03-solution-architecture-r0.md) |
 | **Governance** | Should this work be done now, later, or not at all; and who must approve it? | [Runbook](../governance/RUNBOOK.md) · [AIGEM](../governance/README.md) |
-| **Code** | What actually exists today? | Repository `settings.gradle.kts`, `services/`, `libs/`, `apps/` and service READMEs |
+| **Code** | What actually exists today? | [Live module/service inventory](generated/service-inventory.md) · repository `services/`, `libs/`, `apps/` |
+
+## Live views vs curated explanations
+
+The Knowledge Hub deliberately has both:
+
+- **Generated views** read authoritative repository files at build time. They show current state, gate criteria, registers and module structure with minimal interpretation.
+- **Curated pages** explain concepts, terminology, reading order and relationships between sources.
+
+Generated pages are never approval records and never change lifecycle state.
 
 ## Do not confuse documentation status with implementation status
 
@@ -59,11 +73,11 @@ Use these labels when reading:
 
 1. [Repository map](repository-map.md) — understand what every major folder is for.
 2. [Glossary](glossary.md) — remove the abbreviation barrier.
-3. [Current state & decisions](status-and-decisions.md) — know where each workstream is today.
+3. [Live current state](generated/current-state.md) — know where each workstream and gate is today.
 4. [Business problem statement](../context/business-problem-statement.md) — understand why the platform exists.
 5. [R0 HLD](../architecture/R0-HLD.md) — understand the end-to-end R0 journey.
 6. [Domain model & invariants](../platform/ws3-platform/01-domain-model-and-invariants.md) — learn ownership and hard rules.
-7. [API/service catalogue](api-service-catalogue.md) — distinguish target services from currently implemented modules.
+7. [Live service inventory](generated/service-inventory.md) and [API/service explanation](api-service-catalogue.md) — distinguish code structure from intended contracts and completion evidence.
 8. [Role guide](role-guides.md) — follow the reading sequence for Developer, Architect, QA, Security, DBA, SRE/DevOps, Product or Delivery.
 
 ## Portal authority rule

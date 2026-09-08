@@ -45,6 +45,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
 | SUG-20260907-ldc | 2026-09-07 | human:front-architect | NIP BFF / RM app consumer contract for R0 lead landing (own inbox) + ETB search + Term lead create through success | SF1 | SC0 | SHOULD | ARCH | P2 / P1 | ADMITTED | [EPIC-003](../../platform/ws3-platform/EPIC-003.work-item.yaml) · [PLAN-004](../plans/PLAN-004-nip-bff-lead-phase-contract.md) · [LLD](../../platform/ws3-platform/07-nip-bff-lead-phase-api-lld.md) · [detail](#sug-20260907-ldc--nip-bff-lead-landing-and-create-contract) |
 | SUG-20260907-std | 2026-09-07 | human:front-architect | Confirm platform-wide standard API response, versioning, security and REST practices on the NIP BFF lead OpenAPI | SF1 | SC0 | SHOULD | DOC | P2 / P2 | ADMITTED | [ARCH-023](../../platform/ws3-platform/ARCH-023.work-item.yaml) · [ADR-017](../../journey-execution/07-PLATFORM-ERROR-CONTRACT.md) · [detail](#sug-20260907-std--platform-api-conventions-on-lead-openapi) |
+| SUG-20260908-yml | 2026-09-08 | human:front-architect | Make the lead OpenAPI YAML detailed enough for internal-team documentation (operation intent, parameter purpose, field meaning) | SF1 | SC0 | SHOULD | DOC | P2 / P2 | ADMITTED | [OpenAPI](../../platform/ws3-platform/nip-bff-lead-phase.openapi.yaml) · [detail](#sug-20260908-yml--detailed-openapi-for-internal-docs) |
 | SUG-20260907-fig | 2026-09-07 | human:front-architect | Figma extras on the same journey: ULIP-leads tab, Savings/ULIP/Health product picker, meeting scheduler after create | SF3 | SC2 | MUST | FUNC | P4 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md#1-parked--scheduled-work) · [detail](#sug-20260907-fig--figma-ulip--health--meeting-extras) |
 | SUG-20260904-uis | 2026-09-04 | human:cloud-agent | File the cross-insurer Universal Insurance Suitability specification (7-layer model, 206-product catalogue attributes, 8,811 source-fidelity tests) as non-binding project research for later Suitability / Product Catalogue work | SF2 | SC2 | SHOULD | DOC | P3 / P2 | ADMIT-BYPASS | [spec](../../au-bank-insurance-platform/references/2026-09-04-universal-insurance-suitability-specification.md) · [detail](#sug-20260904-uis--file-universal-suitability-research-specification) |
 | SUG-20260904-eng | 2026-09-04 | human:cloud-agent | Implement the 7-layer universal suitability engine and the 206-product multi-insurer catalogue as the Suitability microservice and Product Catalogue | SF3 | SC2 | MUST | FUNC | P4 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md#1-parked--scheduled-work) · [detail](#sug-20260904-eng--implement-7-layer-engine-and-multi-insurer-catalogue) |
@@ -335,6 +336,108 @@ dependencies:
       target: ADR-017
       relation: requires
       state: OPEN
+    - type: TECHNICAL
+      target: ARCH-023
+      relation: related_to
+      state: IN-FLIGHT
+
+outcome:
+  registered_in: docs/governance/registers/SUGGESTION-REGISTER.md
+  work_item_id: ARCH-023
+  plan_id: PLAN-004
+  status: ADMITTED
+  closed_reason: null
+
+resumed: "EPIC-003 / ARCH-023"
+```
+
+### SUG-20260908-yml · Detailed OpenAPI for internal docs
+
+```yaml
+# schema: triage-record
+id: SUG-20260908-yml
+raised_at: "2026-09-08"
+raised_by: "human:front-architect"
+source: "Review of nip-bff-lead-phase.openapi.yaml after SUG-20260907-std"
+input: >
+  open api yml can we more detailed as it is going to be used by internal team
+  as for documentation, like what is API doing, what is the parameter used for
+  and so on
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-TERM-SALE — one RM sells one Term Life policy to one ETB customer end to end"
+  state_as_of: "2026-08-10"
+  state_provisional: false
+  active_work_item: EPIC-003
+
+stage_fit:
+  code: SF1
+  rationale: >
+    Documentation depth of the in-flight ARCH-023 consumer contract so NIP-APP
+    and BFF engineers can use the OpenAPI as the internal brief without reading
+    Figma. No new path, field or decision.
+
+scope:
+  code: SC0
+  business_scope: "Same SCR-02..SCR-05 contract; descriptions only"
+  serves: []
+  failure_without_it: >
+    Internal teams would keep inferring intent from summaries and the LLD,
+    defeating AP-5 contract-first documentation.
+  minimal: true
+  authority: "ARCH-023 completion_definition; PLAN-004 AC-1"
+
+necessity:
+  now: SHOULD
+  future_necessity: MUST
+  target_stage: "S11 — Vertical Slice"
+  binds_when: "internal teams implement against this OpenAPI"
+  failure_without_it: "Swagger/Redoc would show paths without parameter purpose or screen mapping"
+  evidence_tier: E2
+  evidence:
+    - "PLAN-004 objective: NIP-APP implemented against a written R0 contract without Figma as SoT"
+    - "ARCH-023 AC that S11 can generate clients from the OpenAPI"
+  confidence: C5
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT
+action_rationale: >
+  SF1 x SHOULD = ADMIT into ARCH-023. Score 2N+2S+2B+2R+D-E = 4+2+2+2+1-1 = 10 → P3
+  matrix default; raised to P2 because it is the in-flight contract the team is
+  reviewing now (same lane as ARCH-023, not a new epic). Documents only.
+  FreshnessCheck WARN (state_as_of 29d; 04-STAGE_GATES and DEPENDENCY-REGISTER stale).
+conflicts: []
+
+classification:
+  type: DOC
+  also: [ARCH]
+  breakdown: TASK
+  epic: EPIC-003
+  risk_tier: T3
+  destination: "docs/platform/ws3-platform/ARCH-023.work-item.yaml"
+  rationale: "Operation/parameter/schema descriptions on the existing OpenAPI. No runtime change."
+
+priority:
+  now: P2
+  at_target: P2
+  factors: { N: 2, S: 1, B: 1, R: 1, D: 1, E: 1 }
+  score: 10
+  matrix_default: P3
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "In-flight ARCH-023 documentation completeness; same lane P2"
+
+dependencies:
+  edges:
     - type: TECHNICAL
       target: ARCH-023
       relation: related_to

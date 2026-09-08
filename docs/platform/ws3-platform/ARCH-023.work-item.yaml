@@ -1,6 +1,6 @@
 # schema: work-item
 id: ARCH-023
-origin: ["SUG-20260907-ldc", "SUG-20260907-std"]
+origin: ["SUG-20260907-ldc", "SUG-20260907-std", "SUG-20260908-yml"]
 title: "NIP BFF R0 lead landing and create — LLD, OpenAPI, HLD /leads repair"
 type: ARCH
 also: [DOC]
@@ -43,6 +43,10 @@ acceptance_criteria:
     given: "ADR-017 public rendering"
     when: "an error schema is read from this OpenAPI"
     then: "ServiceErrorResponse includes category and is application/problem+json; success schemas are not wrapped in success/data/message"
+  - id: AC-5
+    given: "an internal engineer opens the OpenAPI in Swagger/Redoc"
+    when: "they inspect an operation and its parameters"
+    then: "each path has a description of what it does and each parameter documents what it is used for"
 
 out_of_scope:
   - "Service implementation"

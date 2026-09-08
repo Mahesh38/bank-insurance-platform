@@ -4,7 +4,8 @@
 **Owner:** Mahesh (Board 1) — public contract · Amit (Board 2) — Java records / consumer tests  
 **Status:** `AI-DRAFTED` · T3 · human Board 1 / 4 / 6 signatures outstanding  
 **Origin:** `SUG-20260907-ldc` · `EPIC-003` · `ARCH-023` · `PLAN-004`  
-**Machine contract:** [`nip-bff-lead-phase.openapi.yaml`](./nip-bff-lead-phase.openapi.yaml)  
+**Machine contract:** [`nip-bff-lead-phase.openapi.yaml`](./nip-bff-lead-phase.openapi.yaml)
+(internal-team documentation: operation intent, parameter purpose, field meaning)  
 **Java sketches:** [`08-nip-bff-lead-phase-java-records.md`](./08-nip-bff-lead-phase-java-records.md)
 
 This file is the **consumer-ready expansion** of the R0 HLD contract *sketch* for screens

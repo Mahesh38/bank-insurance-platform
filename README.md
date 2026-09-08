@@ -4,31 +4,34 @@ Integration knowledge base for building a bank insurance platform on **1Silverbu
 
 ## Start here
 
-**New to the project or looking for one place to understand everything?**
-→ **[Bank Insurance Platform Knowledge Hub](./docs/knowledge-base/index.md)** — the role-based entry point for governance, glossary, current state, backlog/decisions, business, architecture, services/APIs, 1SB, identity and repository navigation.
+**New to the project or looking for one place to understand everything?**  
+→ **[Bank Insurance Platform Knowledge Hub](./docs/knowledge-base/index.md)** — the GitHub/GitLab-native, role-based entry point for governance, glossary, current state, backlog/decisions, business, architecture, services/APIs, 1SB, identity and repository navigation.
 
-To run the searchable/tabbed UI locally or build it as a static internal site, see **[Knowledge Hub operating guide](./docs/knowledge-base/README.md)**.
+**No documentation hosting is required.** GitHub and GitLab render the Knowledge Hub Markdown directly. The generated dashboards are committed to the repository and CI verifies that they remain synchronized with their source files.
 
-**On the team, or working with an AI agent on this repo?**
-→ **[docs/governance/RUNBOOK.md](./docs/governance/RUNBOOK.md)** — the AIGEM operating manual.
-Find your [role card](./docs/governance/RUNBOOK.md#6-role-cards) (one screen: what you do, how
-often, what you own). Agents start at
-[§8](./docs/governance/RUNBOOK.md#8-what-the-ai-agent-must-know-about-this-project).
+Useful live dashboards:
 
-**Triaging a new requirement, bug, or AI suggestion?**
-→ **[docs/governance/README.md](./docs/governance/README.md)** — the governance model itself
-(stage-fit and scope-fit triage, P1–P5 priority, dependency ordering, seven-board review gate,
-drift control).
+- [Current state and gate dashboard](./docs/knowledge-base/generated/current-state.md)
+- [Backlog and parking dashboard](./docs/knowledge-base/generated/backlog-index.md)
+- [Decision dashboard](./docs/knowledge-base/generated/decision-index.md)
+- [Module and service inventory](./docs/knowledge-base/generated/service-inventory.md)
 
-**Looking for a document and don't know where it lives?**
-📖 **[docs/README.md](./docs/README.md)** — the full documentation index: the map of every
-folder, how they are segregated by authority level, where decisions live, and which document
-wins on conflict.
+For maintenance, refresh rules, or the optional local MkDocs UI, see **[Knowledge Hub operating guide](./docs/knowledge-base/operating-guide.md)**.
+
+**On the team, or working with an AI agent on this repo?**  
+→ **[docs/governance/RUNBOOK.md](./docs/governance/RUNBOOK.md)** — the AIGEM operating manual.  
+Find your [role card](./docs/governance/RUNBOOK.md#6-role-cards) (one screen: what you do, how often, what you own). Agents start at [§8](./docs/governance/RUNBOOK.md#8-what-the-ai-agent-must-know-about-this-project).
+
+**Triaging a new requirement, bug, or AI suggestion?**  
+→ **[docs/governance/README.md](./docs/governance/README.md)** — the governance model itself (stage-fit and scope-fit triage, P1–P5 priority, dependency ordering, seven-board review gate, drift control).
+
+**Looking for a document and don't know where it lives?**  
+📖 **[docs/README.md](./docs/README.md)** — the full documentation index: the map of every folder, how they are segregated by authority level, where decisions live, and which document wins on conflict.
 
 Common jump-offs:
 
-**Building workforce authentication and authorization?**
--> **[docs/platform/authentication-authorization/README.md](./docs/platform/authentication-authorization/README.md)**
+**Building workforce authentication and authorization?**  
+→ **[docs/platform/authentication-authorization/README.md](./docs/platform/authentication-authorization/README.md)**  
 (Phase 1 employee/insurer identity, token-hiding BFF, provider abstraction, Keycloak, RBAC + ABAC + relationship policies)
 
 Local identity stack:
@@ -37,8 +40,8 @@ Local identity stack:
 docker compose --env-file .env.identity -f docker-compose.identity.yml up --build
 ```
 
-**Full-platform architecture review (AWS/Kubernetes microservices target state)?**
-→ **[docs/platform/architecture-review/README.md](./docs/platform/architecture-review/README.md)**
+**Full-platform architecture review (AWS/Kubernetes microservices target state)?**  
+→ **[docs/platform/architecture-review/README.md](./docs/platform/architecture-review/README.md)**  
 (Service decomposition, sync/async communication, AWS/EKS infrastructure, data architecture, security/NFRs, delivery estimate)
 
 **Building the 1SB integration service?**  

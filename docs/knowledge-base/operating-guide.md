@@ -1,36 +1,48 @@
 # Knowledge Hub operating guide
 
-This directory contains the **navigation/explanation layer** for the Bank Insurance Platform documentation portal.
+This directory is the **navigation/explanation layer** for the Bank Insurance Platform documentation.
 
-## Why MkDocs
+## Primary access model: GitHub / GitLab
 
-The project already stores its knowledge as Markdown in Git. MkDocs lets us turn those existing files into a searchable, tabbed static site without introducing a wiki or moving ownership outside the repository.
+No internal web hosting is required.
 
-The portal therefore remains:
+The primary Knowledge Hub experience is the repository's own Markdown UI:
 
-- version-controlled with the code and architecture;
-- accessible to every role with repository/internal-site access;
-- searchable;
-- navigable by tabs/sections;
-- deployable as static HTML on any approved internal hosting;
-- explicit about which source is authoritative.
+1. open the repository;
+2. open `README.md`;
+3. click **Bank Insurance Platform Knowledge Hub**;
+4. navigate the Markdown links to governance, current state, backlog, decisions, architecture, APIs/services, 1SB, identity and role guides.
 
-## Live generated views
+GitHub and GitLab both render these Markdown files directly. The committed pages under `docs/knowledge-base/generated/` make the current-state and service dashboards visible without running Python or MkDocs.
 
-Some portal pages are generated at build time by `scripts/docs/generate_knowledge_base.py`.
+## Why generated pages are committed
 
-The generator reads only authoritative repository sources and writes disposable derived Markdown under `docs/knowledge-base/generated/`:
+`python scripts/docs/generate_knowledge_base.py` reads repository sources of truth and regenerates four derived pages:
 
-| Generated page | Source |
+| Generated page | Source / purpose |
 |---|---|
-| Live current state | `docs/governance/state/CURRENT-STATE.yaml` |
-| Backlog / suggestion index | `docs/governance/registers/SUGGESTION-REGISTER.md` + `PARKED-BACKLOG.md` |
-| Decision index | `docs/governance/registers/DECISION-REGISTER.md` |
-| Module / service inventory | `settings.gradle.kts` + current source tree |
+| `generated/current-state.md` | Current workstreams, stages and gates from `governance/state/CURRENT-STATE.yaml` |
+| `generated/service-inventory.md` | Registered modules from `settings.gradle.kts` |
+| `generated/backlog-index.md` | Git-native navigation to the authoritative suggestion/parking/dependency/risk registers |
+| `generated/decision-index.md` | Git-native navigation to the authoritative decision/change/ADR records |
 
-Generated pages are intentionally **not authority** and are not used to change stage, gate, approval or backlog state.
+These generated pages are **not authority**. They are committed only so repository viewers can see them immediately.
 
-## Run locally
+CI regenerates the pages and runs `git diff`. If a source changes without its generated dashboard being refreshed, the Knowledge Hub workflow fails.
+
+## Source-of-truth rule
+
+Do not copy authoritative content into the Knowledge Hub merely to make it look nicer.
+
+Prefer:
+
+1. a concise explanation;
+2. a direct link to authority;
+3. a generated/read-only summary only where it improves navigation.
+
+If a generated or explanatory page disagrees with an authoritative source, the authoritative source wins.
+
+## Refresh the committed dashboards
 
 From the repository root:
 
@@ -39,63 +51,61 @@ python -m venv .venv-docs
 source .venv-docs/bin/activate   # Windows PowerShell: .venv-docs\Scripts\Activate.ps1
 pip install -r requirements-docs.txt
 python scripts/docs/generate_knowledge_base.py
-mkdocs serve
 ```
 
-Open the local address printed by MkDocs (normally `http://127.0.0.1:8000`).
+Commit any changed files under:
 
-Whenever `CURRENT-STATE.yaml`, governance registers, service modules or source controllers change, rerun the generator before refreshing the portal.
+```text
+docs/knowledge-base/generated/
+```
 
-## Build static HTML
+This is required whenever a source feeding those dashboards changes.
+
+## Optional richer MkDocs UI
+
+MkDocs remains available as an optional local UI. It is **not required for ordinary reading**.
 
 ```bash
 python scripts/docs/generate_knowledge_base.py
+mkdocs serve
+```
+
+Or build static HTML:
+
+```bash
 mkdocs build
 ```
 
-The generated `site/` directory is a static website that can be served by an approved internal web server, artifact server, container or platform route. **Do not publish it publicly by default.** Hosting choice is an operational/security decision separate from this documentation UI.
+The resulting `site/` directory is an optional local/static artifact. Do not publish it publicly by default.
 
 ## CI validation
 
-`.github/workflows/knowledge-hub.yml` validates portal changes and source changes that feed the portal. It:
+`.github/workflows/knowledge-hub.yml`:
 
-1. installs the documentation-only Python dependencies;
-2. regenerates the live pages from the checked-out branch;
-3. builds the MkDocs site;
-4. fails if the build emits a warning attributable to `knowledge-base/` or its generated pages;
-5. uploads the built static site as a CI artifact.
+1. installs documentation dependencies;
+2. regenerates the committed dashboards;
+3. fails if the committed dashboards are stale;
+4. builds the optional MkDocs site;
+5. rejects warnings introduced by `knowledge-base/`;
+6. uploads the static site as a CI artifact.
 
-The repository already contains historical Markdown links to source/config files outside `docs/` and some stale anchors. Those are visible as documentation debt but do not make an unrelated Knowledge Hub PR fail. Portal-originated warnings do fail CI.
+Historical Markdown link debt outside the Knowledge Hub is not silently repaired by this workflow; it remains separate documentation debt.
 
-## Content rule
-
-Do not copy whole authoritative documents into `knowledge-base/` just to make them look nicer.
-
-Prefer:
-
-1. a concise explanation,
-2. a link to the authority,
-3. a status/interpretation note where useful.
-
-This keeps the portal from becoming a competing source of truth.
-
-## Adding a page
+## Adding knowledge
 
 1. Put explanatory/navigation content under `docs/knowledge-base/`.
-2. Link authoritative content from its original location under `docs/`.
-3. Add the page to `mkdocs.yml` navigation if it should be globally visible.
-4. If you introduce a new abbreviation, add it to `glossary.md`.
-5. If you introduce a new documentation family, add it to `repository-map.md`.
-6. If information already has a machine-readable or canonical repository source, prefer extending the generator instead of creating another manually maintained status page.
+2. Link authoritative content from its original location.
+3. Add globally useful pages to `mkdocs.yml` navigation.
+4. Add new abbreviations to `glossary.md`.
+5. Add new documentation families to `repository-map.md`.
+6. If information has a canonical machine-readable source, extend the generator instead of maintaining a competing manual snapshot.
 
-## What remains curated
+## What stays curated
 
-Some knowledge cannot be safely generated from identifiers alone and therefore stays human-readable/curated:
+Human-readable interpretation remains curated for:
 
-- glossary meanings and namespace-collision explanations;
+- glossary meanings and namespace collisions;
 - role-based reading paths;
-- repository authority/precedence explanation;
+- authority/precedence rules;
 - business/domain mental models;
-- explanation of the difference between target architecture, implemented code and evidenced completion.
-
-The automation goal is **less drift**, not replacing human explanation with generated tables.
+- the distinction between target architecture, implemented code and evidenced completion.

@@ -19,7 +19,7 @@ schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
 document_count: 561
-total_bytes: 15649347
+total_bytes: 15648091
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -1933,7 +1933,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 199337
+    bytes: 198081
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context

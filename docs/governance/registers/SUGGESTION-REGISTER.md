@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20260909-gce | 2026-09-09 | human:Mahesh | App team moves code GitHub → GitLab CE as a fresh first commit with no GitHub history/connection and no Terraform/IaC/CD in this repo; bank DevOps owns projects, IaC and CD | SF1 | SC0 | MUST | MIGRATION | P1 / P1 | ESCALATED | [detail](#sug-20260909-gce--orphan-first-commit-no-app-team-iac) · #84 `CR-017` · #89 Phase 1 brief |
 | SUG-20260907-ldc | 2026-09-07 | human:front-architect | NIP BFF / RM app consumer contract for R0 lead landing (own inbox) + ETB search + Term lead create through success | SF1 | SC0 | SHOULD | ARCH | P2 / P1 | ADMITTED | [EPIC-003](../../platform/ws3-platform/EPIC-003.work-item.yaml) · [PLAN-004](../plans/PLAN-004-nip-bff-lead-phase-contract.md) · [LLD](../../platform/ws3-platform/07-nip-bff-lead-phase-api-lld.md) · [detail](#sug-20260907-ldc--nip-bff-lead-landing-and-create-contract) |
 | SUG-20260907-std | 2026-09-07 | human:front-architect | Confirm platform-wide standard API response, versioning, security and REST practices on the NIP BFF lead OpenAPI | SF1 | SC0 | SHOULD | DOC | P2 / P2 | ADMITTED | [ARCH-023](../../platform/ws3-platform/ARCH-023.work-item.yaml) · [ADR-017](../../journey-execution/07-PLATFORM-ERROR-CONTRACT.md) · [detail](#sug-20260907-std--platform-api-conventions-on-lead-openapi) |
 | SUG-20260908-yml | 2026-09-08 | human:front-architect | Make the lead OpenAPI YAML detailed enough for internal-team documentation (operation intent, parameter purpose, field meaning) | SF1 | SC0 | SHOULD | DOC | P2 / P2 | ADMITTED | [OpenAPI](../../platform/ws3-platform/nip-bff-lead-phase.openapi.yaml) · [detail](#sug-20260908-yml--detailed-openapi-for-internal-docs) |
@@ -105,6 +106,127 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20260909-gce · Orphan first commit; no app-team IaC
+
+```yaml
+# schema: triage-record
+id: SUG-20260909-gce
+raised_at: "2026-09-09"
+raised_by: "human:Mahesh"
+source: "Follow-up on PR 82 / PR 84 merge readiness — owner proposing a narrower GitLab transfer"
+input: >
+  what if i say we don't need any terraform or IOC as everthing will be handled
+  by the devops team and we will not even handle the CD part and they will take
+  care of, we just need to move this code from github to gitlab ce without
+  showing any connection and commits from existing repo as fresh first commit
+  without any IOC.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-TERM-SALE — one RM sells one Term Life policy to one ETB customer end to end"
+  state_as_of: "2026-08-10"
+  state_provisional: false
+  active_work_item: "PR-82/PR-84 GitLab migration stack (status question; not implementing)"
+
+stage_fit:
+  code: SF1
+  rationale: >
+    Getting application source onto bank GitLab CE is on-stage for S08-with-S09
+    overlapped (collaboration home). Dropping app-team Terraform/CD is the
+    smallest sufficient transfer: bank DevOps already owns IaC and CD.
+    Terraform-in-this-repo is not a current-stage MUST for the app team.
+    FreshnessCheck WARN (state_as_of 30d; review_due 2026-09-09). Admit of new
+    implementation is not requested this turn.
+
+scope:
+  code: SC0
+  business_scope: >
+    GitLab as the bank CI/CD home is explicit in SUG-20260825-arb / ADR-016.
+    This input does not add a business journey.
+  serves: []
+  failure_without_it: >
+    Either the app team keeps authoring gitlab-bootstrap Terraform nobody will
+    apply, or the code never leaves personal GitHub.
+  minimal: true
+  authority: "SUG-20260825-arb · ADR-016 · CR-017 (PR 84) · SUG-20260907-gdv (PR 89)"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S09 — Platform & Environment Foundation"
+  binds_when: "first commit on bank GitLab CE"
+  failure_without_it: >
+    Personal-forge history and AI identity would enter the bank SoR if #82's
+    history-preserving path is used; app-team Terraform would duplicate DevOps
+    ownership.
+  evidence_tier: E2
+  evidence:
+    - "CR-017 (PR 84): orphan first commit; AC-6..AC-8; identity-guard"
+    - "PR 89 Phase 1 brief: DevOps creates three empty projects; no Terragrunt/Terraform/AWS/CD in Phase 1"
+    - "14-CHANGE_CONTROL.md §4: approach replaced → re-review of CR-014 boards"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: true
+    X5_stage_necessity: true
+    X6_simplest_sufficient: true
+    X9_problem_observed: true
+    X10_do_nothing: false
+
+action: ESCALATE
+action_rationale: >
+  Two already-written vehicles cover most of this: CR-017 on PR 84 (orphan
+  first commit; owner-relayed APPROVED_WITH_CONDITIONS, T4 still unsigned) and
+  PR 89 (DevOps Phase 1: empty projects, no Terraform/CD from the app team).
+  Combining them and withdrawing gitlab-bootstrap / GitOps / CD from PR 82
+  replaces the approved CR-014 mechanism (M3–M8 Terraform apply by this repo).
+  14 §4: approach replaced → re-review, not a silent plan edit. Escalated to
+  change control; no CR file minted this turn (CR-015 on main is also claimed
+  by open PR 87). Do not merge #82's Terraform as-is under this instruction.
+  Bank Terraform as an enterprise standard (SUG-20260825-arb) is NOT rejected
+  — only authorship in this repository.
+  This turn does not implement the import.
+duplicate_of: null
+conflicts:
+  - "SUG-20260825-arb names Terraform IaC as bank standard — resolved: DevOps authors it; this repo does not"
+  - "CR-014 (GitLab estate, on PR 82) M3–M8 — superseded for the app team if this CR is approved; remint ID before touching main's CR-014 Life LOB"
+
+classification:
+  type: MIGRATION
+  also: [INFRA, COMP]
+  breakdown: STORY
+  epic: null
+  risk_tier: T4
+  destination: "change-control — CR not minted this turn"
+  rationale: >
+    First push into the bank estate remains T4 (G8 source-control topology, G3
+    secrets in the tree, G10 provenance). Orphaning HEAD does not retire
+    Finding B (C-SEC-2) and does not satisfy C-CMP-1.
+
+priority:
+  now: P1
+  at_target: P1
+  factors: { N: 3, S: 2, B: 2, R: 2, D: 2, E: 1 }
+  score: 19
+  matrix_default: P1
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "SF1 x MUST matrix P1–P2; collaboration home is on the critical path. Terraform-in-this-repo is the part that parks."
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: null
+  plan_id: null
+  status: ESCALATED
+  closed_reason: null
+
+resumed: "PR-82/PR-84 status question — recorded, not implemented."
+```
 
 ### SUG-20260907-ldc · NIP BFF lead landing and create contract
 

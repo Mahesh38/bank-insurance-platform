@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 543
-total_bytes: 15440180
+document_count: 561
+total_bytes: 15648091
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -973,7 +973,7 @@ documents:
     persona: null
     title: "Documentation — Master Index"
     answers: "Programme: AU Small Finance Bank — Insurance Distribution Platform"
-    bytes: 16196
+    bytes: 16622
   - path: docs/application-lifecycle-bible/00-HOW-TO-USE.md
     bucket: lifecycle
     authority: proposed-cr-010
@@ -1917,7 +1917,7 @@ documents:
     persona: null
     title: "AGENT CONTEXT INDEX"
     answers: "============================================================================="
-    bytes: 44751
+    bytes: 45280
   - path: docs/context/BOOT.md
     bucket: context
     authority: non-binding-context
@@ -1933,7 +1933,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 191985
+    bytes: 198081
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -3653,7 +3653,7 @@ documents:
     persona: null
     title: "Suggestion Register"
     answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 206205
+    bytes: 211451
   - path: docs/governance/schemas/README.md
     bucket: governance
     authority: binding-process
@@ -3926,6 +3926,118 @@ documents:
     title: "UC-05 — Authorization decision (the PDP)"
     answers: "Actor: service principal (a PEP) · Entry: POST /internal/v1/authorization/decisions"
     bytes: 10483
+  - path: docs/knowledge-base/api-service-catalogue.md
+    bucket: root
+    authority: navigation
+    capsules: [docs-navigation, orient]
+    persona: null
+    title: "API and service catalogue"
+    answers: "This page answers two different questions:"
+    bytes: 7252
+  - path: docs/knowledge-base/bypass-record.md
+    bucket: root
+    authority: navigation
+    capsules: [docs-navigation, orient]
+    persona: null
+    title: "Knowledge Hub bypass record"
+    answers: "Record: SUG-20260907-kb1"
+    bytes: 1594
+  - path: docs/knowledge-base/generated/.gitkeep
+    bucket: root
+    authority: navigation
+    capsules: [docs-navigation, orient]
+    persona: null
+    title: ".gitkeep"
+    answers: "Binary artefact"
+    bytes: 69
+  - path: docs/knowledge-base/generated/backlog-index.md
+    bucket: root
+    authority: navigation
+    capsules: [docs-navigation, orient]
+    persona: null
+    title: "Backlog & Parking Dashboard"
+    answers: "Git-native navigation view. The registers below are already Markdown and therefore render directly in GitHub/GitLab. This page intentionally links to…"
+    bytes: 1471
+  - path: docs/knowledge-base/generated/current-state.md
+    bucket: root
+    authority: navigation
+    capsules: [docs-navigation, orient]
+    persona: null
+    title: "Current State Dashboard"
+    answers: "Generated, committed view. CI regenerates this file from governance/state/CURRENT-STATE.yaml and fails if it drifts. The YAML remains authoritative."
+    bytes: 4919
+  - path: docs/knowledge-base/generated/decision-index.md
+    bucket: root
+    authority: navigation
+    capsules: [docs-navigation, orient]
+    persona: null
+    title: "Decision Dashboard"
+    answers: "Git-native navigation view. Open the authoritative record before relying on a decision. A document existing in the repository does not mean it is…"
+    bytes: 1203
+  - path: docs/knowledge-base/generated/service-inventory.md
+    bucket: root
+    authority: navigation
+    capsules: [docs-navigation, orient]
+    persona: null
+    title: "Module & Service Inventory"
+    answers: "Generated, committed view. CI regenerates this file from settings.gradle.kts and fails if it drifts. A registered module is not proof that its…"
+    bytes: 2891
+  - path: docs/knowledge-base/glossary.md
+    bucket: root
+    authority: navigation
+    capsules: [docs-navigation, orient]
+    persona: null
+    title: "Consolidated glossary"
+    answers: "This page decodes the abbreviations and identifier families used across governance, architecture, delivery, insurance and code."
+    bytes: 8883
+  - path: docs/knowledge-base/index.md
+    bucket: root
+    authority: navigation
+    capsules: [docs-navigation, orient]
+    persona: null
+    title: "Bank Insurance Platform Knowledge Hub"
+    answers: "Purpose: one navigable entry point for understanding the repository without creating a second source of truth."
+    bytes: 5626
+  - path: docs/knowledge-base/operating-guide.md
+    bucket: root
+    authority: navigation
+    capsules: [docs-navigation, orient]
+    persona: null
+    title: "Knowledge Hub operating guide"
+    answers: "This directory is the navigation/explanation layer for the Bank Insurance Platform documentation."
+    bytes: 3981
+  - path: docs/knowledge-base/repository-map.md
+    bucket: root
+    authority: navigation
+    capsules: [docs-navigation, orient]
+    persona: null
+    title: "Repository and documentation map"
+    answers: "Use this page when the question is “where do I go for this?”"
+    bytes: 6185
+  - path: docs/knowledge-base/role-guides.md
+    bucket: root
+    authority: navigation
+    capsules: [docs-navigation, orient]
+    persona: null
+    title: "Start by role"
+    answers: "The same repository looks very different depending on what you are responsible for. Use the shortest path that gets you productive without reading…"
+    bytes: 4354
+  - path: docs/knowledge-base/status-and-decisions.md
+    bucket: root
+    authority: navigation
+    capsules: [docs-navigation, orient]
+    persona: null
+    title: "Current state, backlog and decisions"
+    answers: "Live authority: governance/state/CURRENT-STATE.yaml. This page is a navigation aid; always use the live state file for an execution decision."
+    bytes: 4642
+  - path: docs/knowledge-base/stylesheets/extra.css
+    bucket: root
+    authority: navigation
+    capsules: [docs-navigation, orient]
+    persona: null
+    title: "extra"
+    answers: "CSS artefact"
+    bytes: 769
   - path: docs/platform/README.md
     bucket: platform
     authority: approved-spec
@@ -3933,7 +4045,7 @@ documents:
     persona: architecture
     title: "Platform — cross-cutting architecture & specifications"
     answers: "A document belongs in platform/ when it is true of the platform as a whole — service"
-    bytes: 4390
+    bytes: 4716
   - path: docs/platform/architecture-review/01-executive-summary-and-approach.md
     bucket: platform
     authority: approved-spec
@@ -4238,18 +4350,50 @@ documents:
     title: "R0 design DDL"
     answers: "PostgreSQL scripts that implement 01-physical-design.md."
     bytes: 1597
+  - path: docs/platform/engineering/AU-SFB-NIP-GitLab-DevOps-Work-Order.docx
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, sre-operations]
+    persona: architecture
+    title: "AU SFB NIP GitLab DevOps Work Order"
+    answers: "Shareable Word work-order for bank DevOps; markdown remains the repo source of truth"
+    bytes: 54171
+  - path: docs/platform/engineering/AU-SFB-NIP-GitLab-Phase-1-Collaboration-Brief.docx
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, sre-operations]
+    persona: architecture
+    title: "AU SFB NIP GitLab Phase 1 Collaboration Brief"
+    answers: "Shareable Word work-order for bank DevOps; markdown remains the repo source of truth"
+    bytes: 42860
+  - path: docs/platform/engineering/GITLAB-BANK-DEVOPS-PROVISIONING.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [sre-operations, architecture-review]
+    persona: sre-operations
+    title: "GitLab provisioning request — AU Bank Insurance Distribution Platform"
+    answers: "From: Application delivery team — Shivanshi (SRE / R10), with Mahesh (Architecture), Amit (Engineering), Deepali (Security), Swapnali (QA)"
+    bytes: 40761
+  - path: docs/platform/engineering/GITLAB-PHASE-1-COLLABORATION.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, sre-operations]
+    persona: architecture
+    title: "GitLab Phase 1 — collaboration brief (max 4 pages)"
+    answers: "Shareable Word (send this): AU-SFB-NIP-GitLab-Phase-1-Collaboration-Brief.docx"
+    bytes: 1916
   - path: docs/platform/engineering/GITLAB-REPO-STRUCTURE.md
     bucket: platform
     authority: approved-spec
-    capsules: [architecture-review]
+    capsules: [architecture-review, sre-operations]
     persona: architecture
     title: "GitLab repository structure — backend services"
-    answers: "Purpose: Map Gradle modules to GitLab groups/projects ahead of the GitHub → GitLab migration"
-    bytes: 4219
+    answers: "Purpose: Map Gradle modules to GitLab groups/projects for the bank GitLab estate"
+    bytes: 5960
   - path: docs/platform/engineering/MICROSERVICE-SCAFFOLD-TEMPLATE.md
     bucket: platform
     authority: approved-spec
-    capsules: [architecture-review]
+    capsules: [architecture-review, sre-operations]
     persona: architecture
     title: "Microservice scaffold template"
     answers: "Horizon: H0 — pre-implementation structure only"
@@ -4257,7 +4401,7 @@ documents:
   - path: docs/platform/engineering/backend-service-catalog.yaml
     bucket: platform
     authority: approved-spec
-    capsules: [architecture-review]
+    capsules: [architecture-review, sre-operations]
     persona: architecture
     title: "backend service catalog"
     answers: "Backend service catalogue — maps architecture bounded contexts to Gradle modules."

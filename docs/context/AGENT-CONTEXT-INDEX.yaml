@@ -287,6 +287,19 @@ doc_routing:
       capsules: [architecture-review, target-state-vision, code-change]
       persona: architecture
 
+    - match: ["docs/platform/engineering/GITLAB-BANK-DEVOPS-PROVISIONING.md"]
+      bucket: platform
+      authority: approved-spec
+      capsules: [sre-operations, architecture-review]
+      persona: sre-operations
+      note: "Bank DevOps GitLab create-from-scratch request. Application teams do not apply Terraform or create GitLab projects."
+
+    - match: ["docs/platform/engineering/*"]
+      bucket: platform
+      authority: approved-spec
+      capsules: [architecture-review, sre-operations]
+      persona: architecture
+
     - match: ["docs/platform/*"]
       bucket: platform
       authority: approved-spec

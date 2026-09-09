@@ -27,6 +27,7 @@ module belongs with that module instead.
 | **[ws3-platform/](./ws3-platform/00-WS3-ARCHITECTURE-REGISTRATION.md)** | Ratified R0 architecture sources (registration, domain, information model, solution architecture, security, NFRs) | ⚠️ AI-DRAFTED baseline; human signatures outstanding |
 | **[data-architecture/](./data-architecture/README.md)** | Aarti R0 physical pack — rules, schemas, indexes, routines, ops/troubleshooting, design DDL | ⚠️ AI-DRAFTED; `S07-G5` human signature outstanding. Apply is S09 |
 | **[authentication-authorization/](./authentication-authorization/README.md)** | **Workforce authentication & authorization SSOT** — token-hiding BFF, provider abstraction (Keycloak → Cognito/AD), RBAC + ABAC + relationship policies | ✅ **Approved** architecture and implementation baseline |
+| **[engineering/](./engineering/GITLAB-PHASE-1-COLLABORATION.md)** | Phase 1 GitLab brief (4 pages) for bank DevOps so the app team can start MRs. Later-phase spec: [`GITLAB-BANK-DEVOPS-PROVISIONING.md`](./engineering/GITLAB-BANK-DEVOPS-PROVISIONING.md) | ⚠️ **Requirements** — Phase 1 only opens repos; no Terraform |
 
 **These two carry different weight.** The auth SSOT is binding on implementations today.
 The architecture review is a proposal whose technology choices are tracked as `ARCH-xxx`

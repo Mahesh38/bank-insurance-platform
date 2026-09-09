@@ -90,7 +90,8 @@ docs/
 │   ├── architecture-review/               Target AWS/EKS microservices architecture
 │   ├── ws3-platform/                      Ratified R0 architecture sources
 │   ├── data-architecture/                 Aarti R0 physical pack + design DDL
-│   └── authentication-authorization/      Workforce authN/authZ SSOT
+│   ├── authentication-authorization/      Workforce authN/authZ SSOT
+│   └── engineering/                       GitLab structure + bank DevOps provisioning request
 │
 ├── au-bank-insurance-platform/        BUSINESS SSOT — the programme
 │   ├── 00-07 …                            Charter → vision → discovery → decisions
@@ -130,6 +131,7 @@ docs/
 | **Implementing a request end to end — hops, per-layer validation, outcomes** | [`journey-execution/README.md`](./journey-execution/README.md) — the use case catalogue, then the one `flows/UC-nn-*.md` you are building |
 | **Building the 1SB adapter** | [`1sb-insurance-integration/service-ssot/README.md`](./1sb-insurance-integration/service-ssot/README.md) |
 | **Building auth / identity services** | [`platform/authentication-authorization/README.md`](./platform/authentication-authorization/README.md) |
+| **Bank DevOps / SRE handing GitLab to the bank** | Phase 1 (4 pages): [`AU-SFB-NIP-GitLab-Phase-1-Collaboration-Brief.docx`](./platform/engineering/AU-SFB-NIP-GitLab-Phase-1-Collaboration-Brief.docx) · later-phase spec: [`GITLAB-BANK-DEVOPS-PROVISIONING.md`](./platform/engineering/GITLAB-BANK-DEVOPS-PROVISIONING.md) |
 | **QA / test engineer** | [`1sb-insurance-integration/service-ssot/QA-LEAD-TESTING-STRATEGY.md`](./1sb-insurance-integration/service-ssot/QA-LEAD-TESTING-STRATEGY.md) + [`TESTING-RULES.md`](./1sb-insurance-integration/service-ssot/TESTING-RULES.md) |
 | **Looking for a decision** | See the decision registers below |
 

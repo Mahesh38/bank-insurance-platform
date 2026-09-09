@@ -101,6 +101,7 @@ def describe_data(path: Path) -> tuple[str, str]:
         pass
     labels = {
         ".pdf": "PDF source artefact — intake evidence; cite the derived document, not this file",
+        ".docx": "Shareable Word work-order for bank DevOps; markdown remains the repo source of truth",
         ".svg": "Rendered diagram — read the companion .md for the binding text",
         ".png": "Image artefact",
         ".jpg": "Image artefact",

@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 565
-total_bytes: 16470923
+document_count: 561
+total_bytes: 15649347
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -1934,22 +1934,6 @@ documents:
     title: "DOC MAP"
     answers: "============================================================================="
     bytes: 199337
-  - path: docs/context/DOC-MAP.yaml
-    bucket: context
-    authority: non-binding-context
-    capsules: [orient, docs-navigation]
-    persona: null
-    title: "DOC MAP"
-    answers: "============================================================================="
-    bytes: 199337
-  - path: docs/context/DOC-MAP.yaml
-    bucket: context
-    authority: non-binding-context
-    capsules: [orient, docs-navigation]
-    persona: null
-    title: "DOC MAP"
-    answers: "============================================================================="
-    bytes: 199337
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -3662,22 +3646,6 @@ documents:
     title: "Risk Register"
     answers: "Open risks with owners, triggers, and responses. A risk is not a problem — it is a problem"
     bytes: 7218
-  - path: docs/governance/registers/SUGGESTION-REGISTER.md
-    bucket: governance
-    authority: binding-process
-    capsules: [triage, plan-work, delivery-planning]
-    persona: null
-    title: "Suggestion Register"
-    answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 211451
-  - path: docs/governance/registers/SUGGESTION-REGISTER.md
-    bucket: governance
-    authority: binding-process
-    capsules: [triage, plan-work, delivery-planning]
-    persona: null
-    title: "Suggestion Register"
-    answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 211451
   - path: docs/governance/registers/SUGGESTION-REGISTER.md
     bucket: governance
     authority: binding-process

@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 540
-total_bytes: 15472259
+document_count: 565
+total_bytes: 16470923
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -1021,7 +1021,7 @@ documents:
     persona: delivery
     title: "05 — Documentation Canon"
     answers: "\"What documentation should we ideally have created?\""
-    bytes: 14025
+    bytes: 14060
   - path: docs/application-lifecycle-bible/06-QUALITY-NORMS.md
     bucket: lifecycle
     authority: proposed-cr-010
@@ -1357,7 +1357,7 @@ documents:
     persona: architecture
     title: "R0 High-Level Design — AU Bank Insurance Distribution Platform"
     answers: "Horizon: H0 — R0 as designed"
-    bytes: 41599
+    bytes: 42622
   - path: docs/architecture/R0-LLD.md
     bucket: platform
     authority: approved-spec
@@ -1373,7 +1373,7 @@ documents:
     persona: architecture
     title: "Architecture diagrams"
     answers: "Two diagrams, deliberately. They answer different questions and neither replaces the other."
-    bytes: 27496
+    bytes: 27787
   - path: docs/architecture/diagrams/README.md
     bucket: platform
     authority: approved-spec
@@ -1933,7 +1933,23 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 191259
+    bytes: 199337
+  - path: docs/context/DOC-MAP.yaml
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient, docs-navigation]
+    persona: null
+    title: "DOC MAP"
+    answers: "============================================================================="
+    bytes: 199337
+  - path: docs/context/DOC-MAP.yaml
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient, docs-navigation]
+    persona: null
+    title: "DOC MAP"
+    answers: "============================================================================="
+    bytes: 199337
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -3590,6 +3606,14 @@ documents:
     title: "PLAN-003 — Align R0 physical pack with CR-013"
     answers: "objective: After this change the DATA-001 physical pack expresses CR-013 / ADR-014 facts (Lead archive, issuanceMode, off-platform Policy ingest,…"
     bytes: 4895
+  - path: docs/governance/plans/PLAN-004-nip-bff-lead-phase-contract.md
+    bucket: governance
+    authority: binding-process
+    capsules: [delivery-planning, plan-work]
+    persona: delivery
+    title: "PLAN-004 — NIP BFF lead landing and create contract pack"
+    answers: "objective: After this change NIP-APP can be implemented against a written R0 contract for SCR-02..SCR-05 (own-lead inbox, ETB search, Term…"
+    bytes: 5810
   - path: docs/governance/plans/PLAN-EPIC-002-life-lob-adapter.md
     bucket: governance
     authority: binding-process
@@ -3629,7 +3653,7 @@ documents:
     persona: null
     title: "Parked Backlog"
     answers: "Parked is not deleted. Every entry names the stage that unparks it and the observable"
-    bytes: 11909
+    bytes: 12365
   - path: docs/governance/registers/RISK-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -3645,7 +3669,23 @@ documents:
     persona: null
     title: "Suggestion Register"
     answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 195361
+    bytes: 211451
+  - path: docs/governance/registers/SUGGESTION-REGISTER.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, delivery-planning]
+    persona: null
+    title: "Suggestion Register"
+    answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
+    bytes: 211451
+  - path: docs/governance/registers/SUGGESTION-REGISTER.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, delivery-planning]
+    persona: null
+    title: "Suggestion Register"
+    answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
+    bytes: 211451
   - path: docs/governance/schemas/README.md
     bucket: governance
     authority: binding-process
@@ -3717,7 +3757,7 @@ documents:
     persona: null
     title: "CURRENT STATE"
     answers: "AIGEM — Machine-readable current state"
-    bytes: 32509
+    bytes: 32515
   - path: docs/governance/state/GATE-EVIDENCE.yaml
     bucket: governance
     authority: binding-process
@@ -3918,6 +3958,118 @@ documents:
     title: "UC-05 — Authorization decision (the PDP)"
     answers: "Actor: service principal (a PEP) · Entry: POST /internal/v1/authorization/decisions"
     bytes: 10483
+  - path: docs/knowledge-base/api-service-catalogue.md
+    bucket: root
+    authority: navigation
+    capsules: [docs-navigation, orient]
+    persona: null
+    title: "API and service catalogue"
+    answers: "This page answers two different questions:"
+    bytes: 7252
+  - path: docs/knowledge-base/bypass-record.md
+    bucket: root
+    authority: navigation
+    capsules: [docs-navigation, orient]
+    persona: null
+    title: "Knowledge Hub bypass record"
+    answers: "Record: SUG-20260907-kb1"
+    bytes: 1594
+  - path: docs/knowledge-base/generated/.gitkeep
+    bucket: root
+    authority: navigation
+    capsules: [docs-navigation, orient]
+    persona: null
+    title: ".gitkeep"
+    answers: "Binary artefact"
+    bytes: 69
+  - path: docs/knowledge-base/generated/backlog-index.md
+    bucket: root
+    authority: navigation
+    capsules: [docs-navigation, orient]
+    persona: null
+    title: "Backlog & Parking Dashboard"
+    answers: "Git-native navigation view. The registers below are already Markdown and therefore render directly in GitHub/GitLab. This page intentionally links to…"
+    bytes: 1471
+  - path: docs/knowledge-base/generated/current-state.md
+    bucket: root
+    authority: navigation
+    capsules: [docs-navigation, orient]
+    persona: null
+    title: "Current State Dashboard"
+    answers: "Generated, committed view. CI regenerates this file from governance/state/CURRENT-STATE.yaml and fails if it drifts. The YAML remains authoritative."
+    bytes: 4919
+  - path: docs/knowledge-base/generated/decision-index.md
+    bucket: root
+    authority: navigation
+    capsules: [docs-navigation, orient]
+    persona: null
+    title: "Decision Dashboard"
+    answers: "Git-native navigation view. Open the authoritative record before relying on a decision. A document existing in the repository does not mean it is…"
+    bytes: 1203
+  - path: docs/knowledge-base/generated/service-inventory.md
+    bucket: root
+    authority: navigation
+    capsules: [docs-navigation, orient]
+    persona: null
+    title: "Module & Service Inventory"
+    answers: "Generated, committed view. CI regenerates this file from settings.gradle.kts and fails if it drifts. A registered module is not proof that its…"
+    bytes: 2891
+  - path: docs/knowledge-base/glossary.md
+    bucket: root
+    authority: navigation
+    capsules: [docs-navigation, orient]
+    persona: null
+    title: "Consolidated glossary"
+    answers: "This page decodes the abbreviations and identifier families used across governance, architecture, delivery, insurance and code."
+    bytes: 8883
+  - path: docs/knowledge-base/index.md
+    bucket: root
+    authority: navigation
+    capsules: [docs-navigation, orient]
+    persona: null
+    title: "Bank Insurance Platform Knowledge Hub"
+    answers: "Purpose: one navigable entry point for understanding the repository without creating a second source of truth."
+    bytes: 5626
+  - path: docs/knowledge-base/operating-guide.md
+    bucket: root
+    authority: navigation
+    capsules: [docs-navigation, orient]
+    persona: null
+    title: "Knowledge Hub operating guide"
+    answers: "This directory is the navigation/explanation layer for the Bank Insurance Platform documentation."
+    bytes: 3981
+  - path: docs/knowledge-base/repository-map.md
+    bucket: root
+    authority: navigation
+    capsules: [docs-navigation, orient]
+    persona: null
+    title: "Repository and documentation map"
+    answers: "Use this page when the question is “where do I go for this?”"
+    bytes: 6185
+  - path: docs/knowledge-base/role-guides.md
+    bucket: root
+    authority: navigation
+    capsules: [docs-navigation, orient]
+    persona: null
+    title: "Start by role"
+    answers: "The same repository looks very different depending on what you are responsible for. Use the shortest path that gets you productive without reading…"
+    bytes: 4354
+  - path: docs/knowledge-base/status-and-decisions.md
+    bucket: root
+    authority: navigation
+    capsules: [docs-navigation, orient]
+    persona: null
+    title: "Current state, backlog and decisions"
+    answers: "Live authority: governance/state/CURRENT-STATE.yaml. This page is a navigation aid; always use the live state file for an execution decision."
+    bytes: 4642
+  - path: docs/knowledge-base/stylesheets/extra.css
+    bucket: root
+    authority: navigation
+    capsules: [docs-navigation, orient]
+    persona: null
+    title: "extra"
+    answers: "CSS artefact"
+    bytes: 769
   - path: docs/platform/README.md
     bucket: platform
     authority: approved-spec
@@ -4317,7 +4469,7 @@ documents:
     persona: architecture
     title: "WS-3 — Ratified Solution Architecture for the R0 Slice"
     answers: "security sign-off (S07-G3/G4) and Aarti's data sign-off (S07-G5) are mandatory and separate."
-    bytes: 46276
+    bytes: 46309
   - path: docs/platform/ws3-platform/04-security-architecture.md
     bucket: platform
     authority: approved-spec
@@ -4341,4 +4493,52 @@ documents:
     persona: architecture
     title: "WS-3 — Architecture Justification & Review Answers"
     answers: "Persona: Mahesh — Principal Insurance Platform Architect (Board 1)"
-    bytes: 55726
+    bytes: 55797
+  - path: docs/platform/ws3-platform/07-nip-bff-lead-phase-api-lld.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, code-change]
+    persona: architecture
+    title: "07 — NIP BFF lead landing & create API LLD (R0)"
+    answers: "Origin: SUG-20260907-ldc · EPIC-003 · ARCH-023 · PLAN-004"
+    bytes: 27650
+  - path: docs/platform/ws3-platform/08-nip-bff-lead-phase-java-records.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, code-change]
+    persona: architecture
+    title: "08 — Java record sketches · NIP BFF lead phase"
+    answers: "Companion to 07-nip-bff-lead-phase-api-lld.md"
+    bytes: 8187
+  - path: docs/platform/ws3-platform/ARCH-023.work-item.yaml
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, code-change]
+    persona: architecture
+    title: "ARCH 023.work item"
+    answers: "schema: work-item"
+    bytes: 2254
+  - path: docs/platform/ws3-platform/DOC-021.work-item.yaml
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, code-change]
+    persona: architecture
+    title: "DOC 021.work item"
+    answers: "schema: work-item"
+    bytes: 1483
+  - path: docs/platform/ws3-platform/EPIC-003.work-item.yaml
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, code-change]
+    persona: architecture
+    title: "EPIC 003.work item"
+    answers: "schema: work-item"
+    bytes: 4559
+  - path: docs/platform/ws3-platform/nip-bff-lead-phase.openapi.yaml
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, code-change]
+    persona: architecture
+    title: "nip bff lead phase.openapi"
+    answers: "YAML record; first key `openapi`"
+    bytes: 47223

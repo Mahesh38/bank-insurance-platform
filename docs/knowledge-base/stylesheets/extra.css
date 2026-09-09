@@ -1,0 +1,42 @@
+:root {
+  --kb-card-border: rgba(100, 116, 139, 0.28);
+}
+
+.kb-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+  margin: 1rem 0 1.5rem;
+}
+
+.kb-card {
+  border: 1px solid var(--kb-card-border);
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
+  background: var(--md-default-bg-color);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+}
+
+.kb-card h3 {
+  margin-top: 0;
+}
+
+.kb-badge {
+  display: inline-block;
+  padding: 0.12rem 0.5rem;
+  margin-right: 0.25rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  border: 1px solid var(--kb-card-border);
+}
+
+.kb-path {
+  font-family: var(--md-code-font-family);
+  font-size: 0.85em;
+}
+
+.kb-warning {
+  border-left: 4px solid #f59e0b;
+  padding-left: 1rem;
+}

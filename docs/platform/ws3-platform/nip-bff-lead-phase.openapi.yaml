@@ -1,0 +1,1198 @@
+openapi: 3.0.3
+info:
+  title: NIP BFF — R0 lead landing and create
+  version: 0.2.0
+  description: |
+    Internal consumer contract for NIP-APP screens SCR-02..SCR-05 (RM landing inbox,
+    ETB customer search, identity confirm, Term create / resume). Flutter talks only
+    to this surface. Status: AI-DRAFTED (ARCH-023 / EPIC-003). Not the S12 published
+    portal artefact.
+
+    How to read this file
+    - Each operation's `summary` is the one-line intent. `description` is the
+      internal-team brief: which screen, when to call, when not to call, what is
+      masked, and whether the call may run in parallel.
+    - Query / path / header parameters document purpose, format, and client vs
+      server validation.
+    - Schema properties document the field's meaning on the Flutter wire.
+      Fields that must never appear (cifNumber, PAN, DOB, full mobile, distributorId)
+      are omitted on purpose — absence is the contract.
+    - Companion prose: docs/platform/ws3-platform/07-nip-bff-lead-phase-api-lld.md
+    - Java sketches: docs/platform/ws3-platform/08-nip-bff-lead-phase-java-records.md
+
+    Recommended call order (happy path)
+    1. GET /workspace/pipeline  (landing)  ∥  GET /catalogue/product-classes
+    2. GET /customers:search  (find ETB customer)
+    3. Optional GET /customers/{customerId}  (confirm sheet if the search hit was dropped)
+    4. GET /customers/{customerId}/active-leads  ∥  product-classes if cache miss
+    5. POST /leads  (create or resume) — slice ends when leadId + journeyId return
+    6. GET /leads/{leadId}  only to resume a pipeline row, not after a successful POST
+
+    There is no polling on this slice. Quote / proposal / payment poll later.
+
+    Platform conventions (all NIP BFF and internal services share these)
+    Versioning — URI `/api/v1` on the public gateway; cluster-private services use
+    `/internal/v1`. Additive fields are compatible. A breaking change is `/api/v2`.
+    Success — the resource is the JSON body. There is no `{success, data, message}`
+    wrapper. HTTP status is the outcome (200 with items:[] is still success).
+    Errors — RFC 7807 `application/problem+json` via `ServiceErrorResponse.toPublic()`
+    (ADR-017). Public fields: type, title, status, detail, code, category, retryable,
+    incidentId, correlationId, timestamp, errors[]. Never origin, diagnostic, upstream
+    vendor text, or stack. The BFF (L4) is the redaction boundary.
+    Security — opaque BFF session only (cookie `NIPSESSION` for web, `Authorization`
+    bearer handle for native). These are not OAuth access tokens. Cookie/browser
+    calls also send CSRF (`X-CSRF-Token`). PDP is fail-closed. Mutations require
+    `Idempotency-Key`. `distributorId` is forbidden.
+  contact:
+    name: Mahesh — Principal Insurance Platform Architect
+  externalDocs:
+    description: LLD — flow, pagination, parallel calls, masking, open Product questions
+    url: ./07-nip-bff-lead-phase-api-lld.md
+servers:
+  - url: https://{env}-insurance.aubank.in/api/v1
+    description: Public NIP BFF base. Gateway strips nothing after /api/v1; paths below are relative to this.
+    variables:
+      env:
+        default: uat
+        enum: [dev, uat, prod]
+        description: Environment DNS label. Names are illustrative until S09 DNS lands.
+tags:
+  - name: Workspace
+    description: |
+      Authenticated RM's own working inbox (SCR-02). Book-scoped. IPR principals
+      do not use this resource — they use a gated read, not the RM pipeline.
+  - name: Customers
+    description: |
+      ETB customer lookup and confirm-sheet projection (SCR-03, SCR-04). Results
+      are masked at the BFF. CBS is the source; empty list means no match, never
+      a fabricated customer.
+  - name: Catalogue
+    description: |
+      Selectable product classes for lead create (SCR-05). R0 returns LIFE/TERM
+      only. This is not the post-suitability offering matrix (GET /catalogue/offerings).
+  - name: Leads
+    description: |
+      Create, resume, duplicate-check and sparse status for a Term Life lead
+      (SCR-05 and SCR-02 row tap). Spoken name is Lead (ADR-014); paths are /leads.
+security:
+  - sessionCookie: []
+  - sessionHandle: []
+paths:
+  /workspace/pipeline:
+    get:
+      tags: [Workspace]
+      operationId: getPipeline
+      summary: List the RM's own working inbox (or unstarted "prospects")
+      description: |
+        Powers SCR-02 landing. Returns a sparse page of leads assigned to the
+        calling RM — never another RM's book, never a nested Lead aggregate.
+
+        Wireframe "Recent leads" = `inbox=WORKING` (default).
+        Wireframe "Recent prospects" = `inbox=UNSTARTED` (same resource; there is
+        no Prospect aggregate). "ULIP leads" is not served in R0.
+
+        Call this on session-valid landing. Safe to parallelise with
+        GET /catalogue/product-classes (no PII, cacheable). Do not prefetch
+        customer snapshots. Do not poll on a timer — pull-to-refresh after
+        create (invalidate any local inbox cache).
+
+        Empty inbox is 200 with items: [] so the app can show the S05 empty
+        copy and a CTA into search. Not 404.
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - name: inbox
+          in: query
+          required: false
+          description: |
+            Which landing tab to fill.
+            WORKING (default) — own leads that are in progress (need-analysis
+            started or a journey exists; not ARCHIVED).
+            UNSTARTED — own leads with needAnalysisState=NOT_STARTED and no
+            journeyId (the "prospects" tab).
+          schema:
+            $ref: '#/components/schemas/InboxFilter'
+        - name: limit
+          in: query
+          required: false
+          description: |
+            Page size. Default 20, max 50. The app should request 20 on first
+            paint. Larger pages are for scroll prefetch, not a dump of the book.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+        - name: cursor
+          in: query
+          required: false
+          description: |
+            Opaque pagination token from the previous page's `page.nextCursor`.
+            Omit on the first request. Treat as a blob — do not parse. Offset
+            paging is not supported because the inbox mutates while the RM
+            scrolls (would skip or duplicate rows).
+          schema:
+            type: string
+            maxLength: 512
+      responses:
+        '200':
+          description: |
+            Sparse pipeline page. `page.hasMore=false` (and omitted nextCursor)
+            ends the walk. Each row is display-only: name, initials, masked
+            mobile, state chip, leadId. No CIF, PAN, email, follow-ups or
+            assignment history.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PipelinePage'
+              example:
+                items:
+                  - leadId: 01JQX4K7R8M2N3P4Q5S6T7V8W9
+                    customerDisplayName: Abhishek Sharma
+                    initials: AS
+                    maskedMobile: '+91 933****412'
+                    state: ASSIGNED
+                    productClass: TERM
+                    journeyId: 01JQX4K8A1B2C3D4E5F6G7H8J9
+                    journeyStage: INITIATED
+                    updatedAt: '2026-09-07T11:15:00Z'
+                page:
+                  size: 20
+                  nextCursor: c1.v1.opaque
+                  hasMore: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /customers:search:
+    get:
+      tags: [Customers]
+      operationId: searchCustomers
+      summary: Search ETB customers in this RM's book
+      description: |
+        Powers SCR-03. Looks up customers the calling RM is allowed to see
+        (in-book ETB). The BFF calls Customer #4 → CBS; Flutter never talks to
+        CBS. Masking happens in the BFF before the response is built.
+
+        Search button enablement is client-side (non-empty + format). The
+        server still validates. Do not log `q` (it may be PAN, mobile or CIF).
+        Do not cache PAN/mobile results (stale identity is forbidden).
+
+        Zero hits is 200 with items: [] (AC-CUST-010-2) — do not fabricate a
+        customer and do not open a journey. Non-ETB matches may appear with
+        eligibility=NOT_ETB; Continue stays disabled (AC-CUST-010-3).
+        Out-of-book identities are absent, not listed as forbidden.
+
+        CBS unavailable: 503 UPSTREAM_UNAVAILABLE — Do not proceed (AC-EXC-10).
+
+        Do not parallelise this call with a full CIF fetch.
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - name: by
+          in: query
+          required: true
+          description: |
+            Which identifier the RM typed in the "Search by" dropdown.
+            CUSTOMER_ID — bank CIF / customer id (1–20 chars). The request
+            carries the CIF; the response never echoes it.
+            MOBILE — E.164 or 10-digit Indian; digits only after normalisation.
+            PAN — `^[A-Z]{5}[0-9]{4}[A-Z]$`. RESTRICTED. Not logged.
+            NAME — min 3 Unicode letters, max 80. Proposed (OPEN-LEAD-NAME).
+            If Product drops it, the BFF returns 400 VALIDATION_ERROR for
+            by=NAME without a schema break.
+          schema:
+            $ref: '#/components/schemas/SearchBy'
+        - name: q
+          in: query
+          required: true
+          description: |
+            The search value matching `by`. Never echoed in the response.
+            Never logged. Trimmed server-side. Max 80 characters.
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 80
+        - name: page
+          in: query
+          required: false
+          description: |
+            0-based page index. Default 0. Maximum 4 (deep CBS pages are the
+            wrong UX — AC-CUST-010-1 is "the match", not a dump). Most R0
+            searches should stop after the first page.
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 4
+            default: 0
+        - name: limit
+          in: query
+          required: false
+          description: Page size. Default 20, hard max 20. Ranked CBS search is not a bulk export.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 20
+            default: 20
+      responses:
+        '200':
+          description: |
+            Ranked, masked hits. `query.resultCount` is the size of this page's
+            consideration set, not a CBS grand total. Zero hits is a valid 200.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchPage'
+              example:
+                query:
+                  by: MOBILE
+                  resultCount: 1
+                items:
+                  - customerId: 01JQX4K7R8M2N3P4Q5S6T7V8X1
+                    fullName: Abhishek Sharma
+                    initials: AS
+                    maskedMobile: '+91 933****412'
+                    maskedEmail: abh*****@gmail.com
+                    eligibility: ETB
+                page:
+                  page: 0
+                  size: 20
+                  hasMore: false
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /customers/{customerId}:
+    get:
+      tags: [Customers]
+      operationId: getCustomerSummary
+      summary: Load the masked identity confirm sheet
+      description: |
+        Powers SCR-04. Returns the same projection as one search hit: name,
+        initials, masked mobile, masked email, eligibility. No CIF, PAN, DOB
+        or address — confirm is identity, not prefill (SCR-07 needs consent).
+
+        Prefer reusing the search hit when the RM has not left SCR-03→SCR-04.
+        This GET exists for deep links, process death, and returning to confirm
+        after the hit fell out of memory.
+
+        404 means the id is not in this RM's book (absent, not named as
+        forbidden — INV-LED-07). 503 if CBS cannot re-read.
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/CustomerId'
+      responses:
+        '200':
+          description: Masked confirm-sheet projection. Same shape as a search hit.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerSummary'
+              example:
+                customerId: 01JQX4K7R8M2N3P4Q5S6T7V8X1
+                fullName: Abhishek Sharma
+                initials: AS
+                maskedMobile: '+91 933****412'
+                maskedEmail: abh*****@gmail.com
+                eligibility: ETB
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /customers/{customerId}/active-leads:
+    get:
+      tags: [Leads]
+      operationId: listActiveLeads
+      summary: List this RM's active Term leads on the customer (duplicate check)
+      description: |
+        Powers the SCR-05 duplicate gate before POST /leads. Returns the
+        calling RM's own active Term leads for this customer.
+
+        "Active" = Lead state not in {CONVERTED, DISQUALIFIED, EXPIRED, ARCHIVED}
+        and assignedRmId = caller. Cross-RM duplicates are not leaked
+        (OPEN-LEAD-XRM — another RM's leadId is absent).
+
+        Call this after the customer is confirmed, in parallel with
+        GET /catalogue/product-classes if the session cache missed.
+        Hard cap 20; hasMore=true means resume-by-id rather than dump.
+
+        If items is non-empty, the app offers Resume (POST /leads with
+        resumeLeadId) rather than a silent second create. Creating without
+        resumeLeadId while an own active Term lead exists is 409 CONFLICT.
+        Force-duplicate is not in this contract (OPEN-LEAD-DUP).
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/CustomerId'
+        - name: productClass
+          in: query
+          required: true
+          description: |
+            Product class to check. R0 required value is TERM. Sending ULIP or
+            SAVINGS is 422 UNSUPPORTED_LOB (those pickers are parked).
+          schema:
+            $ref: '#/components/schemas/ProductClass'
+      responses:
+        '200':
+          description: |
+            Own active leads for this customer and product class. Empty items
+            means create-new is allowed. Non-empty means offer resume.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActiveLeadPage'
+              examples:
+                none:
+                  summary: No active own Term lead — create is allowed
+                  value:
+                    items: []
+                    hasMore: false
+                existing:
+                  summary: Active own Term lead — offer resume
+                  value:
+                    items:
+                      - leadId: 01JQX4K7R8M2N3P4Q5S6T7V8W9
+                        productClass: TERM
+                        state: ASSIGNED
+                        journeyId: 01JQX4K8A1B2C3D4E5F6G7H8J9
+                        createdAt: '2026-09-07T11:15:00Z'
+                    hasMore: false
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /catalogue/product-classes:
+    get:
+      tags: [Catalogue]
+      operationId: listProductClasses
+      summary: List selectable product classes for lead create (R0 = Term only)
+      description: |
+        Powers the SCR-05 "what is the customer looking for?" picker. R0 body
+        is one row: TERM / "Term Life Insurance" / selectable=true. Savings,
+        ULIP and Health are not returned.
+
+        Safe to prefetch in parallel with the pipeline on landing (public
+        within bank, cached S-21, no PII). Client may keep it in memory for
+        the session. BFF caches L1→L2; a miss reads Configuration, never a
+        compiled default.
+
+        This is not SCR-10 eligible products. Post-suitability offerings are
+        GET /catalogue/offerings in a later pack.
+
+        Sending productClass=ULIP on a later POST /leads is 422 UNSUPPORTED_LOB.
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - name: lob
+          in: query
+          required: true
+          description: |
+            Line of business. R0 required value is LIFE. Other LOBs are out of
+            slice (Health / Motor / Travel) and return 422 UNSUPPORTED_LOB.
+          schema:
+            $ref: '#/components/schemas/Lob'
+      responses:
+        '200':
+          description: Selectable classes for this LOB. R0 is a one-element TERM list.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductClassPage'
+              example:
+                lob: LIFE
+                items:
+                  - productClass: TERM
+                    label: Term Life Insurance
+                    selectable: true
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+  /leads:
+    post:
+      tags: [Leads]
+      operationId: createOrResumeLead
+      summary: Create a Term Life lead or resume an existing own lead
+      description: |
+        Powers SCR-05 Continue. This is the end of the landing+create slice.
+
+        Two modes, one resource:
+        - Create-new: body has customerId + lob=LIFE + productClass=TERM
+          (resumeLeadId omitted/null). Returns 201 CREATED with leadId and
+          journeyId together (AC-LEAD-010-1). Lead lands ASSIGNED to the
+          creating RM in one transaction. source=RM.
+        - Resume: body has resumeLeadId. Ignores create-new fields. Returns
+          200 with outcome=RESUMED if the lead is still owned by this RM and
+          non-terminal.
+
+        Idempotency-Key is required. Same key + same body replays 200.
+        Same key + different body is 409 IDEMPOTENCY_CONFLICT.
+
+        If an own active Term lead exists and resumeLeadId was omitted:
+        409 CONFLICT. errors[].field=leadId and errors[].message is the
+        existing ULID only (no name, no CIF). App offers Resume.
+
+        Guards: INV-LED-04 RM-only (403 ORIGINATION_RM_ONLY), INV-LED-05
+        in-book ETB (422 CUSTOMER_NOT_IN_BOOK), SP cert covers LIFE
+        (403 RM_NOT_CERTIFIED / SP_CERTIFICATION_REQUIRED).
+
+        distributorId in the body is 400 ATTRIBUTION_NOT_CALLER_SUPPLIED.
+        forceDuplicate is not a field (OPEN-LEAD-DUP).
+
+        Synchronous, target ≤ 2 s (S-20). No job id, no poll. After success,
+        navigate with journeyId into SCR-06 (next pack) or return to pipeline
+        (invalidate inbox cache). Material action — audited (BR-SEC-030).
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CsrfToken'
+      requestBody:
+        required: true
+        description: |
+          Create-new requires customerId, lob, productClass.
+          Resume requires resumeLeadId (create fields then ignored).
+          Unknown properties are rejected (do not send distributorId).
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateLeadRequest'
+            examples:
+              createNew:
+                summary: Mint a Term lead
+                value:
+                  customerId: 01JQX4K7R8M2N3P4Q5S6T7V8X1
+                  lob: LIFE
+                  productClass: TERM
+              resumeExisting:
+                summary: Resume an own active lead
+                value:
+                  resumeLeadId: 01JQX4K7R8M2N3P4Q5S6T7V8W9
+      responses:
+        '201':
+          description: |
+            New lead minted. outcome=CREATED. Use leadId + journeyId immediately;
+            do not call GET /leads/{id} just to echo this body.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeadCreated'
+              example:
+                leadId: 01JQX4K7R8M2N3P4Q5S6T7V8W9
+                journeyId: 01JQX4K8A1B2C3D4E5F6G7H8J9
+                customerId: 01JQX4K7R8M2N3P4Q5S6T7V8X1
+                lob: LIFE
+                productClass: TERM
+                state: ASSIGNED
+                createdAt: '2026-09-07T11:15:00Z'
+                outcome: CREATED
+        '200':
+          description: |
+            Idempotent replay of a previous create, or resume of resumeLeadId.
+            outcome=RESUMED (or CREATED on a pure idempotent replay of 201).
+            Same envelope as 201.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeadCreated'
+              example:
+                leadId: 01JQX4K7R8M2N3P4Q5S6T7V8W9
+                journeyId: 01JQX4K8A1B2C3D4E5F6G7H8J9
+                customerId: 01JQX4K7R8M2N3P4Q5S6T7V8X1
+                lob: LIFE
+                productClass: TERM
+                state: ASSIGNED
+                createdAt: '2026-09-07T11:15:00Z'
+                outcome: RESUMED
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /leads/{leadId}:
+    get:
+      tags: [Leads]
+      operationId: getLead
+      summary: Load sparse lead status for a pipeline row tap
+      description: |
+        Powers SCR-02 row tap when the RM resumes an existing lead without
+        going through search. Same visibility as the pipeline: if the RM
+        cannot see the row, the resource is 404 (absent), not 403 with a name.
+
+        Returns the create envelope plus needAnalysisState and journeyStage.
+        Not a dump of follow-ups, assignment history or the customer CIF.
+
+        After a successful POST /leads, prefer the POST body — this GET is
+        for later resume / process death, not a required round-trip.
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/LeadId'
+      responses:
+        '200':
+          description: Sparse resume/status projection for this RM's lead.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeadSummary'
+              example:
+                leadId: 01JQX4K7R8M2N3P4Q5S6T7V8W9
+                journeyId: 01JQX4K8A1B2C3D4E5F6G7H8J9
+                customerId: 01JQX4K7R8M2N3P4Q5S6T7V8X1
+                lob: LIFE
+                productClass: TERM
+                state: ASSIGNED
+                createdAt: '2026-09-07T11:15:00Z'
+                outcome: CREATED
+                needAnalysisState: NOT_STARTED
+                journeyStage: INITIATED
+                updatedAt: '2026-09-07T11:15:00Z'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: NIPSESSION
+      description: |
+        Opaque BFF session for browser/WebView. HttpOnly, Secure, SameSite.
+        Cookie clients MUST also send X-CSRF-Token. OAuth tokens never reach Flutter.
+    sessionHandle:
+      type: http
+      scheme: bearer
+      bearerFormat: OpaqueSession
+      description: |
+        Opaque BFF session handle for native (Keychain/Keystore). This is NOT an
+        OAuth access or refresh token. The BFF exchanges it for provider tokens
+        server-side (ADR-015). Send as Authorization: Bearer <handle>.
+  parameters:
+    CorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: true
+      description: |
+        Caller-generated UUID that groups every hop of this user action in logs
+        and error bodies. Generate once per screen action (search click, create
+        tap), reuse on retries of the same action. Not an incident id — a
+        request that fails twice has one correlation id and two incident ids.
+      schema:
+        type: string
+        format: uuid
+    CsrfToken:
+      name: X-CSRF-Token
+      in: header
+      required: false
+      description: |
+        Anti-CSRF token for cookie-authenticated browser/WebView calls.
+        Required when using NIPSESSION. Omit when using the native session
+        handle (Authorization bearer). Typical length 16–128.
+      schema:
+        type: string
+        minLength: 16
+        maxLength: 128
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: |
+        Client-generated UUID for POST /leads. Required on every mutation
+        (INV-IDM-01). Stored in Lead's store, not in the session cache.
+        Same key + same body → replay the original 201/200.
+        Same key + different body → 409 IDEMPOTENCY_CONFLICT.
+        Generate a new key for a genuine second create attempt.
+      schema:
+        type: string
+        format: uuid
+    CustomerId:
+      name: customerId
+      in: path
+      required: true
+      description: |
+        Platform customer id (ULID) from a previous search hit or confirm
+        sheet. This is not a CIF and is not a sequential display id (ID-01).
+        If the id is not in this RM's book the resource is 404 (absent).
+      schema:
+        $ref: '#/components/schemas/Ulid'
+    LeadId:
+      name: leadId
+      in: path
+      required: true
+      description: |
+        Platform lead id (ULID) from the pipeline row or a previous create
+        response. Not a human display label like Figma "RR 2024-001"
+        (OPEN-LEAD-DISPLAY — omitted). Unknown or out-of-visibility → 404.
+      schema:
+        $ref: '#/components/schemas/Ulid'
+  schemas:
+    Ulid:
+      type: string
+      description: |
+        Crockford Base32 ULID (26 chars). Platform identity for customer, lead
+        and journey. Not a CIF, not PAN, not a sequential display number.
+      pattern: '^[0-9A-HJKMNP-TV-Z]{26}$'
+      example: 01JQX4K7R8M2N3P4Q5S6T7V8W9
+    InboxFilter:
+      type: string
+      description: |
+        Landing-tab filter for GET /workspace/pipeline.
+        WORKING — in-progress own leads (default, "Recent leads").
+        UNSTARTED — own leads not yet started ("Recent prospects").
+      enum: [WORKING, UNSTARTED]
+      default: WORKING
+    SearchBy:
+      type: string
+      description: |
+        Search key for GET /customers:search.
+        CUSTOMER_ID — CIF / customer id (request only; never returned).
+        MOBILE — registered mobile.
+        PAN — PAN (RESTRICTED; not logged; not returned).
+        NAME — proposed CBS name search (OPEN-LEAD-NAME).
+      enum: [CUSTOMER_ID, MOBILE, PAN, NAME]
+    Lob:
+      type: string
+      description: Line of business. R0 admits LIFE only. Other values → 422 UNSUPPORTED_LOB.
+      enum: [LIFE]
+    ProductClass:
+      type: string
+      description: |
+        Product class within the LOB. R0 admits TERM only. Savings / ULIP /
+        Health are parked (SUG-20260907-fig) and → 422 UNSUPPORTED_LOB.
+      enum: [TERM]
+    LeadState:
+      type: string
+      description: |
+        Lead aggregate state. Create always returns ASSIGNED (auto-assigned
+        to the creating RM). Terminal for duplicate-check: CONVERTED,
+        DISQUALIFIED, EXPIRED, ARCHIVED.
+      enum:
+        - NEW
+        - ASSIGNED
+        - CONTACTED
+        - QUALIFIED
+        - CONVERTED
+        - DISQUALIFIED
+        - EXPIRED
+        - ARCHIVED
+    Eligibility:
+      type: string
+      description: |
+        Whether this customer may start an assisted Term journey.
+        ETB — Continue enabled.
+        NOT_ETB — listed so the RM sees why Continue is disabled (AC-CUST-010-3).
+      enum: [ETB, NOT_ETB]
+    NeedAnalysisState:
+      type: string
+      description: Need-analysis progress on the lead. UNSTARTED inbox rows are NOT_STARTED.
+      enum: [NOT_STARTED, IN_PROGRESS, COMPLETED]
+    CreateOutcome:
+      type: string
+      description: |
+        How POST /leads resolved.
+        CREATED — a new lead and journey were minted (typically HTTP 201).
+        RESUMED — existing own lead returned (HTTP 200), including idempotent replay.
+      enum: [CREATED, RESUMED]
+    CursorPage:
+      type: object
+      description: Cursor pagination metadata for the pipeline. Clients treat nextCursor as an opaque blob.
+      required: [size, hasMore]
+      additionalProperties: false
+      properties:
+        size:
+          type: integer
+          description: Requested page size (echo of limit, not items.length).
+        nextCursor:
+          type: string
+          nullable: true
+          description: Pass as `cursor` on the next GET. Null/omitted when hasMore is false.
+        hasMore:
+          type: boolean
+          description: True when another page exists. Stop when false.
+    OffsetPage:
+      type: object
+      description: Offset pagination metadata for ranked CBS search. Deep pages are capped.
+      required: [page, size, hasMore]
+      additionalProperties: false
+      properties:
+        page:
+          type: integer
+          description: 0-based page index that was served.
+        size:
+          type: integer
+          description: Requested page size (echo of limit).
+        hasMore:
+          type: boolean
+          description: True when another ranked page exists within the server cap (max page 4).
+    PipelineRow:
+      type: object
+      description: |
+        One inbox row. Sparse on purpose — enough to render initials, name,
+        masked phone and a state chip. Tap uses leadId.
+      required:
+        - leadId
+        - customerDisplayName
+        - initials
+        - maskedMobile
+        - state
+        - productClass
+        - updatedAt
+      additionalProperties: false
+      properties:
+        leadId:
+          allOf:
+            - $ref: '#/components/schemas/Ulid'
+          description: Lead to open on row tap.
+        customerDisplayName:
+          type: string
+          maxLength: 140
+          description: Customer full name as shown in the inbox. Not a CIF.
+        initials:
+          type: string
+          maxLength: 4
+          description: Derived from fullName by the BFF (avatar placeholder).
+        maskedMobile:
+          type: string
+          description: BFF-masked mobile, e.g. +91 933****412. Full MSISDN never on the wire.
+          example: '+91 933****412'
+        state:
+          $ref: '#/components/schemas/LeadState'
+        productClass:
+          $ref: '#/components/schemas/ProductClass'
+        journeyId:
+          allOf:
+            - $ref: '#/components/schemas/Ulid'
+          nullable: true
+          description: Present once a journey exists. Null on UNSTARTED / prospects rows.
+        journeyStage:
+          type: string
+          nullable: true
+          description: Orchestrator stage label for the chip, e.g. INITIATED. Null if no journey.
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last mutation time (UTC). Used for display and cursor encoding server-side.
+    PipelinePage:
+      type: object
+      description: One cursor page of pipeline rows.
+      required: [items, page]
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          description: Zero or more sparse rows. Empty array is a valid empty inbox.
+          items:
+            $ref: '#/components/schemas/PipelineRow'
+        page:
+          $ref: '#/components/schemas/CursorPage'
+    CustomerSummary:
+      type: object
+      description: |
+        Masked identity used on search results and the confirm sheet.
+        Forbidden on this schema: cifNumber, PAN, DOB, address, income, tobacco, Aadhaar.
+      required:
+        - customerId
+        - fullName
+        - initials
+        - maskedMobile
+        - eligibility
+      additionalProperties: false
+      properties:
+        customerId:
+          allOf:
+            - $ref: '#/components/schemas/Ulid'
+          description: Platform customer id to send on subsequent confirm / active-leads / create.
+        fullName:
+          type: string
+          maxLength: 140
+          description: Display name on the confirm sheet.
+        initials:
+          type: string
+          maxLength: 4
+          description: Derived from fullName by the BFF.
+        maskedMobile:
+          type: string
+          description: BFF-masked mobile. Full number never returned.
+        maskedEmail:
+          type: string
+          nullable: true
+          description: BFF-masked email, e.g. abh*****@gmail.com. Null if CBS has no email.
+          example: 'abh*****@gmail.com'
+        eligibility:
+          $ref: '#/components/schemas/Eligibility'
+    SearchPage:
+      type: object
+      description: Ranked search results. Does not echo `q`.
+      required: [items, page, query]
+      additionalProperties: false
+      properties:
+        query:
+          type: object
+          description: Echo of how the search was interpreted. Value `q` is never echoed.
+          required: [by]
+          additionalProperties: false
+          properties:
+            by:
+              $ref: '#/components/schemas/SearchBy'
+            resultCount:
+              type: integer
+              minimum: 0
+              description: Number of hits in this response (not a CBS grand total).
+        items:
+          type: array
+          description: Masked hits. Empty when nobody matched.
+          items:
+            $ref: '#/components/schemas/CustomerSummary'
+        page:
+          $ref: '#/components/schemas/OffsetPage'
+    ActiveLead:
+      type: object
+      description: One own active lead used to offer Resume on SCR-05.
+      required: [leadId, productClass, state, createdAt]
+      additionalProperties: false
+      properties:
+        leadId:
+          allOf:
+            - $ref: '#/components/schemas/Ulid'
+          description: Pass as resumeLeadId on POST /leads.
+        productClass:
+          $ref: '#/components/schemas/ProductClass'
+        state:
+          $ref: '#/components/schemas/LeadState'
+        journeyId:
+          allOf:
+            - $ref: '#/components/schemas/Ulid'
+          nullable: true
+          description: Existing journey to continue, if any.
+        createdAt:
+          type: string
+          format: date-time
+          description: When this lead was first minted (UTC).
+    ActiveLeadPage:
+      type: object
+      description: Duplicate-check result. Cap 20; hasMore forces resume-by-id.
+      required: [items, hasMore]
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          maxItems: 20
+          description: Own active leads. Empty means create-new is allowed.
+          items:
+            $ref: '#/components/schemas/ActiveLead'
+        hasMore:
+          type: boolean
+          description: True if more than 20 active leads exist (should be rare). Do not page; resume by known id.
+    ProductClassOption:
+      type: object
+      description: One radio option on SCR-05.
+      required: [productClass, label, selectable]
+      additionalProperties: false
+      properties:
+        productClass:
+          $ref: '#/components/schemas/ProductClass'
+        label:
+          type: string
+          description: RM-visible label, e.g. "Term Life Insurance".
+          example: Term Life Insurance
+        selectable:
+          type: boolean
+          description: False would grey the option. R0 TERM is true.
+    ProductClassPage:
+      type: object
+      description: Picker payload for a LOB. R0 LIFE → one TERM row.
+      required: [lob, items]
+      additionalProperties: false
+      properties:
+        lob:
+          $ref: '#/components/schemas/Lob'
+        items:
+          type: array
+          description: Classes the RM may pick. Empty is a configuration defect (fail closed), not a UI empty state.
+          items:
+            $ref: '#/components/schemas/ProductClassOption'
+    CreateLeadRequest:
+      type: object
+      additionalProperties: false
+      description: |
+        POST /leads body.
+        Create-new: customerId + lob + productClass (resumeLeadId null/omitted).
+        Resume: resumeLeadId set; create fields ignored.
+        distributorId is forbidden (400 ATTRIBUTION_NOT_CALLER_SUPPLIED).
+        forceDuplicate is not a field.
+      properties:
+        customerId:
+          allOf:
+            - $ref: '#/components/schemas/Ulid'
+          description: Required for create-new. Platform customer id from search/confirm.
+        lob:
+          allOf:
+            - $ref: '#/components/schemas/Lob'
+          description: Required for create-new. Must be LIFE in R0.
+        productClass:
+          allOf:
+            - $ref: '#/components/schemas/ProductClass'
+          description: Required for create-new. Must be TERM in R0.
+        resumeLeadId:
+          allOf:
+            - $ref: '#/components/schemas/Ulid'
+          nullable: true
+          description: If set, resume this own lead instead of creating. From active-leads or the pipeline row.
+    LeadCreated:
+      type: object
+      description: |
+        Success body of POST /leads. Always includes both leadId and journeyId
+        (AC-LEAD-010-1). Sparse — no full customer, quote or payment.
+      required:
+        - leadId
+        - journeyId
+        - customerId
+        - lob
+        - productClass
+        - state
+        - createdAt
+        - outcome
+      additionalProperties: false
+      properties:
+        leadId:
+          allOf:
+            - $ref: '#/components/schemas/Ulid'
+          description: New or resumed lead. Show on the success screen; use for later GET.
+        journeyId:
+          allOf:
+            - $ref: '#/components/schemas/Ulid'
+          description: Journey opened at INITIATED. Navigate into SCR-06 with this id.
+        customerId:
+          allOf:
+            - $ref: '#/components/schemas/Ulid'
+          description: Customer the lead is attached to.
+        lob:
+          $ref: '#/components/schemas/Lob'
+        productClass:
+          $ref: '#/components/schemas/ProductClass'
+        state:
+          $ref: '#/components/schemas/LeadState'
+        createdAt:
+          type: string
+          format: date-time
+          description: When the lead was first minted (UTC). Unchanged on resume.
+        outcome:
+          $ref: '#/components/schemas/CreateOutcome'
+    LeadSummary:
+      type: object
+      description: GET /leads/{leadId} projection — create envelope plus journey progress.
+      required:
+        - leadId
+        - journeyId
+        - customerId
+        - lob
+        - productClass
+        - state
+        - createdAt
+        - outcome
+      additionalProperties: false
+      properties:
+        leadId:
+          $ref: '#/components/schemas/Ulid'
+        journeyId:
+          $ref: '#/components/schemas/Ulid'
+        customerId:
+          $ref: '#/components/schemas/Ulid'
+        lob:
+          $ref: '#/components/schemas/Lob'
+        productClass:
+          $ref: '#/components/schemas/ProductClass'
+        state:
+          $ref: '#/components/schemas/LeadState'
+        createdAt:
+          type: string
+          format: date-time
+        outcome:
+          $ref: '#/components/schemas/CreateOutcome'
+        needAnalysisState:
+          $ref: '#/components/schemas/NeedAnalysisState'
+        journeyStage:
+          type: string
+          nullable: true
+          description: Current orchestrator stage, e.g. INITIATED.
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last mutation time (UTC).
+    FieldError:
+      type: object
+      description: Field-level problem. For 409 CONFLICT, field=leadId and message is the existing ULID only.
+      required: [code]
+      additionalProperties: false
+      properties:
+        code:
+          type: string
+          description: Stable machine code, often the same as the parent error code.
+        field:
+          type: string
+          description: JSON field or resource pointer the RM/app can act on, e.g. leadId.
+        message:
+          type: string
+          description: Public, non-PII text. For CONFLICT this is the existing leadId, not a name.
+    ErrorCategory:
+      type: string
+      description: |
+        How the caller must treat the failure (ADR-017 §2.1). Not an HTTP status.
+        VALIDATION — fix the request.
+        AUTHENTICATION — re-login.
+        AUTHORIZATION — stop; principal is known and not permitted.
+        NOT_FOUND — resource absent from this visibility set.
+        CONFLICT — state disagrees (active lead or idempotency).
+        COMPLIANCE_GATE — regulator-mandated refusal; RM must remediate.
+        UPSTREAM — dependency down; usually retryable.
+        CONFIG — platform cannot resolve its own configuration; fail closed.
+        RATE_LIMIT — honour Retry-After.
+        INTERNAL — our defect; not retryable by the RM.
+      enum:
+        - VALIDATION
+        - AUTHENTICATION
+        - AUTHORIZATION
+        - NOT_FOUND
+        - CONFLICT
+        - COMPLIANCE_GATE
+        - UPSTREAM
+        - CONFIG
+        - RATE_LIMIT
+        - INTERNAL
+    ServiceErrorResponse:
+      type: object
+      description: |
+        Public rendering of ServiceErrorResponse.toPublic(). Identical across every
+        bank service that crosses L4. Diagnostic fields (origin, service internals,
+        upstream vendor text) MUST NOT appear here. Show incidentId to the RM so
+        support can join logs.
+      required: [title, status, code, category, retryable]
+      additionalProperties: false
+      properties:
+        type:
+          type: string
+          default: about:blank
+          description: RFC 7807 type URI. about:blank until the public error catalogue is hosted.
+        title:
+          type: string
+          description: Catalogue public title. Safe for the RM. Never vendor text.
+        status:
+          type: integer
+          description: HTTP status, repeated in the body for clients that drop it.
+        detail:
+          type: string
+          description: Catalogue public detail. Safe for the RM. Never a stack or path.
+        code:
+          type: string
+          description: Stable machine code, e.g. CONFLICT, SESSION_EXPIRED, UPSTREAM_UNAVAILABLE.
+          example: CONFLICT
+        category:
+          $ref: '#/components/schemas/ErrorCategory'
+        retryable:
+          type: boolean
+          description: Whether the same request may be retried without a user fix.
+        timestamp:
+          type: string
+          format: date-time
+          description: When this error was rendered (UTC).
+        incidentId:
+          type: string
+          description: Safe to show the RM. Join key for support logs. Not the correlation id.
+        correlationId:
+          type: string
+          description: Echo of X-Correlation-Id for this request.
+        errors:
+          type: array
+          description: Optional field-level problems (validation, conflict pointer).
+          items:
+            $ref: '#/components/schemas/FieldError'
+      example:
+        type: about:blank
+        title: Active lead exists
+        status: 409
+        detail: This customer already has an active Term lead you can resume.
+        code: CONFLICT
+        category: CONFLICT
+        retryable: false
+        incidentId: 01JQX4K7R8M2N3P4Q5S6T7V8Y2
+        correlationId: 550e8400-e29b-41d4-a716-446655440000
+        timestamp: '2026-09-07T11:15:00Z'
+        errors:
+          - code: CONFLICT
+            field: leadId
+            message: 01JQX4K7R8M2N3P4Q5S6T7V8W9
+  responses:
+    BadRequest:
+      description: |
+        400. Request failed validation (wrong `by`/`q` format, unknown property
+        such as distributorId, missing Idempotency-Key). code typically
+        VALIDATION_ERROR, MISSING_IDEMPOTENCY_KEY or ATTRIBUTION_NOT_CALLER_SUPPLIED.
+        category=VALIDATION. Search button stays usable.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ServiceErrorResponse'
+    Unauthorized:
+      description: |
+        401. Opaque session missing, invalid or expired. code SESSION_INVALID
+        or SESSION_EXPIRED. category=AUTHENTICATION. App returns to SCR-01 login.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ServiceErrorResponse'
+    Forbidden:
+      description: |
+        403. Known principal, not permitted. Codes include DEFAULT_DENY (generic,
+        no named resource), ORIGINATION_RM_ONLY (IPR/create), RM_NOT_CERTIFIED
+        / SP_CERTIFICATION_REQUIRED. category=AUTHORIZATION or COMPLIANCE_GATE.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ServiceErrorResponse'
+    NotFound:
+      description: |
+        404. Resource is not in this principal's visibility set (INV-LED-07).
+        Do not treat as "exists but forbidden" — the body does not name the id
+        as a leak. category=NOT_FOUND.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ServiceErrorResponse'
+    Conflict:
+      description: |
+        409. Either an own active Term lead already exists (code=CONFLICT;
+        errors[].field=leadId; offer Resume) or the Idempotency-Key was reused
+        with a different body (code=IDEMPOTENCY_CONFLICT). category=CONFLICT.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ServiceErrorResponse'
+    Unprocessable:
+      description: |
+        422. Semantically wrong for R0: UNSUPPORTED_LOB (non-LIFE / non-TERM)
+        or CUSTOMER_NOT_IN_BOOK. category=VALIDATION or CONFIG.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ServiceErrorResponse'
+    Unavailable:
+      description: |
+        503. CBS, Lead, Catalogue or PDP dependency down. code UPSTREAM_UNAVAILABLE.
+        category=UPSTREAM. retryable=true. For search, copy is AC-EXC-10 —
+        Do not proceed; do not fabricate a customer.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ServiceErrorResponse'

@@ -18,6 +18,12 @@
 __pycache__/
 *.pyc
 .pytest_cache/
+.venv-docs/
+
+# Knowledge Hub static build output
+# Generated Markdown under docs/knowledge-base/generated/ IS committed intentionally so
+# GitHub/GitLab can render the live dashboards without separate hosting.
+site/
 
 # OS
 .DS_Store

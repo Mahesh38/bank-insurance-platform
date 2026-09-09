@@ -1,0 +1,80 @@
+name: Knowledge Hub
+
+on:
+  pull_request:
+    paths:
+      - "docs/**"
+      - "scripts/docs/**"
+      - "settings.gradle.kts"
+      - "mkdocs.yml"
+      - "requirements-docs.txt"
+      - ".github/workflows/knowledge-hub.yml"
+  push:
+    branches: [main]
+    paths:
+      - "docs/**"
+      - "scripts/docs/**"
+      - "settings.gradle.kts"
+      - "mkdocs.yml"
+      - "requirements-docs.txt"
+      - ".github/workflows/knowledge-hub.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Verify Git-native Knowledge Hub
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-docs.txt
+
+      - name: Install documentation dependencies
+        run: python -m pip install -r requirements-docs.txt
+
+      - name: Regenerate committed dashboards
+        run: |
+          python scripts/docs/generate_knowledge_base.py
+          test -s docs/knowledge-base/generated/current-state.md
+          test -s docs/knowledge-base/generated/backlog-index.md
+          test -s docs/knowledge-base/generated/decision-index.md
+          test -s docs/knowledge-base/generated/service-inventory.md
+
+      - name: Fail if committed dashboards are stale
+        run: |
+          if ! git diff --exit-code -- docs/knowledge-base/generated; then
+            echo "Knowledge Hub generated dashboards are stale."
+            echo "Run: python scripts/docs/generate_knowledge_base.py"
+            echo "Then commit docs/knowledge-base/generated/*.md."
+            exit 1
+          fi
+
+      - name: Build optional MkDocs UI and reject portal-originated warnings
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdocs build 2>&1 | tee mkdocs.log
+
+          # The repository predates the portal and has known link debt to source/config files
+          # outside docs/ plus stale historical anchors. Fail only on warnings introduced by
+          # the Knowledge Hub itself; the historical debt is tracked separately.
+          if grep -E "WARNING.*(knowledge-base/|knowledge-base\\b)|Excluding 'knowledge-base/|reference to 'knowledge-base/" mkdocs.log; then
+            echo "Knowledge Hub introduced a documentation warning."
+            exit 1
+          fi
+
+      - name: Upload optional static site artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bank-insurance-knowledge-hub
+          path: site/
+          if-no-files-found: error
+          retention-days: 14

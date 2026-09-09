@@ -558,7 +558,7 @@ id_allocation:
     CR: 15        # CR-001..014 in use (014 = WS-1 Life LOB adapter standards, SUG-20260903-lif); next unused is 15
     RISK: 16      # RISK-001..015 in use (012..015 added by CR-012)
     ASM: 14       # ASM-001..013 in use (013 = Apigee as bank in/out API plane, SUG-20260831-apg). ID-allocation only.
-    EPIC: 3       # EPIC-001..002 in use (002 = Life LOB 1SB coverage, SUG-20260903-lif / CR-014). ID-allocation only.
+    EPIC: 4       # EPIC-001..003 in use (003 = NIP BFF lead landing/create contract, SUG-20260907-ldc). ID-allocation only.
     SPIKE: 2       # SPIKE-001 in use (Apigee vs Amazon API Gateway, SUG-20260831-apg). ID-allocation only.
     # ADR-001..003 were written into architecture-review/08 under CR-010 while this counter still
     # read 1; that file carries a standing note asking for the advance. ADR-004..007 were added by

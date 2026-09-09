@@ -16,6 +16,7 @@ Real work, wrong stage. Each returns to **full re-triage** at its trigger — ne
 
 | ID | Item | WS | Parked at | Target stage | Unpark trigger | Future necessity | P now / target | Parked because |
 |----|------|----|-----------|--------------|----------------|------------------|----------------|----------------|
+| → [SUG-20260907-fig](./SUGGESTION-REGISTER.md#sug-20260907-fig--figma-ulip--health--meeting-extras) | Figma extras on RM lead create: ULIP-leads tab, Savings/ULIP/Health product picker, post-create meeting scheduler | WS-3 | S08 | S13 / R1 | R0 completes a real pilot Term sale, or R1 planning starts for those surfaces | MUST | P4 / P2 | BOOT `out_of_scope_now`; S11 slice is Term only; Figma is reference (A11); no Prospect/Meeting aggregate in R0 |
 | TD-022 | FUNC-008 payment intimation | WS-1 | Phase 4 | Phase 5.3 | Phase 4 gate PASSED | MUST | P4 / P2 | Term path closed without intimation; port stubbed |
 | TD-010 | Redis idempotency / cache adapter | WS-1 | Phase 2 | Phase 5.4 | Before horizontal scale-out | MUST | P4 / P2 | In-memory is correct for single-instance UAT |
 | TD-014 | WireMock / full E2E for integration ↔ persistence | WS-1 | Phase 1 | Phase 4 | **Now eligible** — overlaps gate criterion 4.1 | MUST | P2 / P2 | ⚠️ Trigger has fired — sweep at next triage |

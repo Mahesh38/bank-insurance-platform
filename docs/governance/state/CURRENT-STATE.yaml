@@ -571,4 +571,4 @@ id_allocation:
     # ADR-017 was added by the 2026-08-27 platform error contract round (SUG-20260827-err), and
     # EPIC-001 by the same round. ID-allocation correction only. No stage, scope or gate field is
     # touched by it; those remain human-owned (04 section 5).
-    ADR: 19        # ADR-001..018 in use (015 = NIP-APP; 016 = ARB enterprise baseline, ingress hop amended by 018; 017 = platform error contract; 018 = SaaS edge, no public ALB). ID-allocation only.
+    ADR: 21        # ADR-001..020 in use (019 = microservice skeletons, indexed 2026-09-09; 020 = GitLab CE backend monorepo H0, SUG-20260909-glc). ID-allocation only. No stage/scope/gate field touched.

@@ -2,7 +2,11 @@
 # Source: docs/platform/architecture-review/02-target-microservices-architecture.md
 #         docs/platform/ws3-platform/03-solution-architecture-r0.md
 #
-# Used by scripts/scaffold/create-microservice.py and GitLab group planning.
+# Used by scripts/scaffold/create-microservice.py and GitLab ownership planning.
+# gitlab_group values are LOGICAL folders (CODEOWNERS / future extract names).
+# H0 GitLab CE layout is one backend project: insurance/backend/nip-backend
+# (see GITLAB-REPO-STRUCTURE.md / ADR-020). Do not treat these keys as GitLab
+# project names at S08.
 
 gitlab_groups:
   platform-common:

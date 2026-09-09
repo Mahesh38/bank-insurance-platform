@@ -7,8 +7,10 @@
 
 ## Decision
 
-Before migrating from GitHub to GitLab, every **backend bounded context** in the target microservices
-architecture must exist as a **Gradle module skeleton** in this monorepo. Each skeleton:
+Before migrating from GitHub to GitLab CE, every **backend bounded context** in the target
+microservices architecture must exist as a **Gradle module skeleton** in this monorepo
+(H0 remains one GitLab project — [`ADR-020`](../architecture-review/ADR-020-gitlab-ce-backend-monorepo.md)).
+Each skeleton:
 
 - boots with Spring Boot 3.5 / Java 21;
 - wires `bank-common-error`, `bank-common-observability` and `bank-common-audit`;
@@ -22,8 +24,10 @@ contexts. This is **structure for ownership and CI**, not feature delivery.
 
 ## Catalogue
 
-The authoritative mapping of bounded context → module → port → GitLab group is
-[`backend-service-catalog.yaml`](./backend-service-catalog.yaml).
+The authoritative mapping of bounded context → module → port → **logical** GitLab
+ownership group is [`backend-service-catalog.yaml`](./backend-service-catalog.yaml).
+H0 GitLab CE project is `insurance/backend/nip-backend`
+([`GITLAB-REPO-STRUCTURE.md`](./GITLAB-REPO-STRUCTURE.md)).
 
 ## Template location
 

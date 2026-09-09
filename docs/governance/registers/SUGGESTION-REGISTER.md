@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20260909-glc | 2026-09-09 | human:owner | GitHub → GitLab CE cutover for backend only, no GitHub integration; choose mono vs poly and plan `Insurance/{platform,frontend,backend}` | SF1 | SC1 | MUST | ARCH | P2 / P1 | ADMITTED | [ADR-020](../../platform/architecture-review/ADR-020-gitlab-ce-backend-monorepo.md) · [PLAN-005](../plans/PLAN-005-gitlab-ce-backend-monorepo.md) · extract PARKED · [detail](#sug-20260909-glc--gitlab-ce-backend-monorepo-not-per-service-projects) |
 | SUG-20260907-ldc | 2026-09-07 | human:front-architect | NIP BFF / RM app consumer contract for R0 lead landing (own inbox) + ETB search + Term lead create through success | SF1 | SC0 | SHOULD | ARCH | P2 / P1 | ADMITTED | [EPIC-003](../../platform/ws3-platform/EPIC-003.work-item.yaml) · [PLAN-004](../plans/PLAN-004-nip-bff-lead-phase-contract.md) · [LLD](../../platform/ws3-platform/07-nip-bff-lead-phase-api-lld.md) · [detail](#sug-20260907-ldc--nip-bff-lead-landing-and-create-contract) |
 | SUG-20260907-std | 2026-09-07 | human:front-architect | Confirm platform-wide standard API response, versioning, security and REST practices on the NIP BFF lead OpenAPI | SF1 | SC0 | SHOULD | DOC | P2 / P2 | ADMITTED | [ARCH-023](../../platform/ws3-platform/ARCH-023.work-item.yaml) · [ADR-017](../../journey-execution/07-PLATFORM-ERROR-CONTRACT.md) · [detail](#sug-20260907-std--platform-api-conventions-on-lead-openapi) |
 | SUG-20260908-yml | 2026-09-08 | human:front-architect | Make the lead OpenAPI YAML detailed enough for internal-team documentation (operation intent, parameter purpose, field meaning) | SF1 | SC0 | SHOULD | DOC | P2 / P2 | ADMITTED | [OpenAPI](../../platform/ws3-platform/nip-bff-lead-phase.openapi.yaml) · [detail](#sug-20260908-yml--detailed-openapi-for-internal-docs) |
@@ -105,6 +106,137 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20260909-glc · GitLab CE backend monorepo, not per-service projects
+
+```yaml
+# schema: triage-record
+id: SUG-20260909-glc
+raised_at: "2026-09-09"
+raised_by: "human:owner"
+source: "Cloud agent intake — GitHub to GitLab CE migration; screenshot of Insurance group"
+input: >
+  I need to migrate my code to my company GitLab which is CE. I am not allowed
+  to use any direct integration from GitHub to GitLab; it will create a compliance
+  issue. I need to manually or module by module move my code. I will only move
+  backend code and microservices. Frontend is taken care by the frontend team.
+  One important suggestion I need is to go with mono repo or poly repo while
+  migrating and how easy or difficult it is to maintain on GitLab CE. How
+  should I plan the repo. Current GitLab: Insurance / platform/nip-governance,
+  frontend/nip-app, backend/nip-backend. I can change GitLab as owner; CI/CD
+  is DevOps.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-TERM-SALE — one RM sells one Term Life policy to one ETB customer end to end"
+  state_as_of: "2026-08-10"
+  state_provisional: false
+  active_work_item: SUG-20260909-glc
+
+stage_fit:
+  code: SF1
+  rationale: >
+    Choosing the GitLab project grain is on-stage for S08. GATE-S08-G1/G2/G9/G10
+    and the bank GitLab CI/CD decision (SUG-20260825-arb / ADR-016) need a topology
+    before cutover. ADR-019 already mapped modules to proposed GitLab groups.
+    The per-service extract is SF3 (parked), not this row.
+
+scope:
+  code: SC1
+  serves: ["GATE-S08-G1", "GATE-S08-G2", "GATE-S08-G10", "SUG-20260825-arb"]
+  failure_without_it: >
+    Cutover into 20 CE projects would make S08-G1 untestable as one pipeline and
+    would violate the no-GitHub-integration constraint if an importer/mirror were
+    used as a shortcut.
+  minimal: true
+  authority: "ADR-016 GitLab CI/CD; ADR-019 deferred split; Insurance group already created"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S08 cutover (decision) / S09+ (optional extract)"
+  failure_without_it: >
+    Without an H0 topology, cutover follows the old one-project-per-module map,
+    GATE-S08-G1 cannot be one pipeline on GitLab CE, and an importer/mirror becomes
+    the tempting compliance bypass.
+  evidence_tier: E2
+  evidence:
+    - "GATE-S08-G1/G2/G10 written criteria"
+    - "SUG-20260825-arb / ADR-016 GitLab CI/CD"
+    - "application-ci.yml: path filters forbidden so a skipped check cannot fake S08-G2"
+  confidence: C4
+  anti_over_engineering:
+    X1_named_consumer: true   # the owner is cutting over now
+    X3_cheap_later: true       # extract later is cheaper than assembling 20 repos
+    X5_stage_necessity: true  # H0 topology is needed now; 20 projects are not
+    X6_simplest_sufficient: true
+    X9_problem_observed: true # GitLab group already exists; old SSOT would mis-create projects
+
+action: ADMIT
+action_rationale: >
+  SF1 × MUST → ADMIT the H0 topology decision and rewrite GITLAB-REPO-STRUCTURE.md.
+  Park the per-service GitLab project split (same SUG, parked row).
+duplicate_of: null
+conflicts:
+  - "docs/platform/engineering/GITLAB-REPO-STRUCTURE.md previously recommended multi-repo on GitLab — superseded by ADR-020 (Proposed)"
+
+classification:
+  type: ARCH
+  also: [MIGRATION, DOC]
+  breakdown: ADR
+  epic: null
+  risk_tier: T3
+  destination: "ADR-020 + GITLAB-REPO-STRUCTURE.md"
+
+priority:
+  now: P2
+  at_target: P1
+  factors: { N: 4, S: 3, B: 1, R: 2, D: 2, E: 1 }
+  score: 20
+  matrix_default: P2
+  consistency: OK
+  overrides_applied: []
+  rationale: >
+    PRI-8 floor B=1 for SF1 MUST. Score 2*4+2*3+2*1+2*2+2-1=20 → P2. Matrix
+    SF1 MUST is P1–P2; lower-urgency default P2. Wrong split is expensive (D=2)
+    but GitHub still builds today so this is not a hard P1 interrupt.
+
+dependencies:
+  edges:
+    - type: ARCHITECTURAL
+      target: ADR-016
+      relation: related_to
+      state: OPEN
+    - type: ARCHITECTURAL
+      target: ADR-019
+      relation: related_to
+      state: OPEN
+    - type: TECHNICAL
+      target: SUG-20260909-glc extract
+      relation: related_to
+      state: PARKED
+  state: READY
+  enablement_count: 1
+
+breakdown:
+  children: []
+  completion_definition: "ADR-020 drafted Proposed; GITLAB-REPO-STRUCTURE.md matches Insurance CE groups; extract parked"
+  not_included:
+    - "git push to GitLab"
+    - ".gitlab-ci.yml"
+    - "human T4"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: ADR-020
+  plan_id: PLAN-005
+  status: ADMITTED
+  closed_reason: null
+
+resumed: SUG-20260909-glc
+```
 
 ### SUG-20260907-ldc · NIP BFF lead landing and create contract
 

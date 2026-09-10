@@ -3,8 +3,8 @@
 > **Generated, committed view.** CI regenerates this file from `governance/state/CURRENT-STATE.yaml` and fails if it drifts. The YAML remains authoritative.
 
 **Governance:** AIGEM 1.4  
-**State as of:** 2026-08-10  
-**Review due:** 2026-09-09  
+**State as of:** 2026-09-10  
+**Review due:** 2026-10-10  
 **Ratified by:** Mahesh (Solution Architect), 2026-08-10 — PO counter-signature outstanding
 
 Authority: [CURRENT-STATE.yaml](../../governance/state/CURRENT-STATE.yaml)

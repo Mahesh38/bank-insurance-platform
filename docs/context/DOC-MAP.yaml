@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 557
-total_bytes: 15515942
+document_count: 559
+total_bytes: 15527769
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -1933,7 +1933,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 196409
+    bytes: 197326
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -3598,6 +3598,14 @@ documents:
     title: "PLAN-004 — NIP BFF lead landing and create contract pack"
     answers: "objective: After this change NIP-APP can be implemented against a written R0 contract for SCR-02..SCR-05 (own-lead inbox, ETB search, Term…"
     bytes: 5810
+  - path: docs/governance/plans/PLAN-005-gitlab-ce-backend-monorepo.md
+    bucket: governance
+    authority: binding-process
+    capsules: [delivery-planning, plan-work]
+    persona: delivery
+    title: "PLAN-005 — GitLab CE backend monorepo cutover plan (docs)"
+    answers: "objective: The GitLab CE cutover plan matches the Insurance group already created: one Gradle backend project (nip-backend), frontend left to…"
+    bytes: 5337
   - path: docs/governance/plans/PLAN-EPIC-002-life-lob-adapter.md
     bucket: governance
     authority: binding-process
@@ -4118,6 +4126,14 @@ documents:
     title: "ADR-019 — Backend microservice skeleton scaffold"
     answers: "Deciders: Mahesh (Principal Insurance Platform Architect)"
     bytes: 2759
+  - path: docs/platform/architecture-review/ADR-020-gitlab-ce-backend-monorepo.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, board-review]
+    persona: architecture
+    title: "ADR-020 — GitLab CE H0: team-split polyrepo, Gradle backend monorepo"
+    answers: "Deciders (named, not signed): Mahesh (Architecture) · consulted Amit (Engineering), Shivanshi (SRE / CI platform), Shailja (Compliance — no GitHub…"
+    bytes: 5573
   - path: docs/platform/architecture-review/README.md
     bucket: platform
     authority: approved-spec

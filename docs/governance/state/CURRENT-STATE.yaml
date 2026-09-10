@@ -14,8 +14,12 @@ project:
   name: "Bank Insurance Platform"
   repository: "mahesh38/bank-insurance-platform"
 
-state_as_of: "2026-08-10" # quoted so the file validates directly against current-state.schema.json
-review_due: "2026-09-09"
+# FR-1 no-change freshness refresh 2026-09-10 (CI halt: calendar passed review_due
+# 2026-09-09; state_as_of was 31 days old). current_phase / stage_status / gate
+# criterion states are unchanged. This is not a T4 re-ratification and does not
+# impersonate Kalpana / R12. Human R12 should confirm at the next Governance Sync.
+state_as_of: "2026-09-10" # quoted so the file validates directly against current-state.schema.json
+review_due: "2026-10-10"
 ratified_by: "Mahesh (Solution Architect), 2026-08-10 — PO counter-signature outstanding"
 provisional: false # ratified 2026-08-10; agents run the full pipeline
 
@@ -571,4 +575,4 @@ id_allocation:
     # ADR-017 was added by the 2026-08-27 platform error contract round (SUG-20260827-err), and
     # EPIC-001 by the same round. ID-allocation correction only. No stage, scope or gate field is
     # touched by it; those remain human-owned (04 section 5).
-    ADR: 19        # ADR-001..018 in use (015 = NIP-APP; 016 = ARB enterprise baseline, ingress hop amended by 018; 017 = platform error contract; 018 = SaaS edge, no public ALB). ID-allocation only.
+    ADR: 21        # ADR-001..020 in use (019 = microservice skeletons, indexed 2026-09-09; 020 = GitLab CE backend monorepo H0, SUG-20260909-glc). ID-allocation only. No stage/scope/gate field touched.

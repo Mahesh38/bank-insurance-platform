@@ -169,7 +169,13 @@ jobs:
           distribution: temurin
           java-version: "21"
 
+      # CodeQL traces javac. gradle/actions restores the Gradle build cache, so
+      # compileJava is FROM-CACHE and the extractor sees zero Java/Kotlin
+      # ("no source code seen during build", CodeQL exit 32). Disable the cache
+      # for this job only — Application CI still uses the cache.
       - uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-disabled: true
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
@@ -182,7 +188,7 @@ jobs:
       - name: Build for analysis
         run: |
           chmod +x gradlew
-          ./gradlew --no-daemon classes testClasses
+          ./gradlew --no-daemon --no-build-cache classes testClasses
 
       - name: Perform CodeQL analysis
         id: codeql

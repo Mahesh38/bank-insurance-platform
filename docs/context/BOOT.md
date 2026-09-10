@@ -80,7 +80,7 @@ Full table with the wrong-instinct column:
 
 > Generated from [`CURRENT-STATE.yaml`](../governance/state/CURRENT-STATE.yaml) by `scripts/context/build-boot-capsule.py`. Do not hand-edit this block.
 
-**AIGEM 1.4** · state as of **2026-08-10** · review due **2026-09-09** · provisional: **no**
+**AIGEM 1.4** · state as of **2026-09-10** · review due **2026-10-10** · provisional: **no**
 
 > **Fact 9 — freshness.** Past `review_due`, an agent may park and reject but **must not admit new work** (Rule CS-1). Run `java scripts/governance/FreshnessCheck.java` and act on the exit code: `0` fresh · `1` warn, disclose it · `2` do not admit.
 

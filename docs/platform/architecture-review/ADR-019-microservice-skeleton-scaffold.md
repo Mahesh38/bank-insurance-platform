@@ -45,7 +45,9 @@ Two template variants:
 
 - Skeleton JPA modules do not reflect DynamoDB/Redis production stores yet — README and catalogue
   document the target datastore; physical wiring lands with each context's implementation epic.
-- Monorepo still builds all modules; GitLab split is a migration step, not done in this ADR.
+- Monorepo still builds all modules. A GitLab **project** per module is **not** this ADR;
+  H0 cutover keeps one backend project (`ADR-020`). Catalogue `gitlab_group` is logical
+  ownership, not a project-creation script.
 - BFFs (`customer-bff`, `rm-workspace-bff`) remain manual — edge layer follows backend stabilisation.
 
 ## Evidence

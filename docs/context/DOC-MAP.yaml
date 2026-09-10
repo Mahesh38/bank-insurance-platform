@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 543
-total_bytes: 15440180
+document_count: 559
+total_bytes: 15536430
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -1933,7 +1933,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 191985
+    bytes: 197326
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -3133,7 +3133,7 @@ documents:
     persona: null
     title: "01 — Current State (Context Resolution)"
     answers: "Pipeline step: 1 — Context Resolution"
-    bytes: 10065
+    bytes: 10552
   - path: docs/governance/02-PROJECT_SCOPE.md
     bucket: governance
     authority: binding-process
@@ -3598,6 +3598,14 @@ documents:
     title: "PLAN-004 — NIP BFF lead landing and create contract pack"
     answers: "objective: After this change NIP-APP can be implemented against a written R0 contract for SCR-02..SCR-05 (own-lead inbox, ETB search, Term…"
     bytes: 5810
+  - path: docs/governance/plans/PLAN-005-gitlab-ce-backend-monorepo.md
+    bucket: governance
+    authority: binding-process
+    capsules: [delivery-planning, plan-work]
+    persona: delivery
+    title: "PLAN-005 — GitLab CE backend monorepo cutover plan (docs)"
+    answers: "objective: The GitLab CE cutover plan matches the Insurance group already created: one Gradle backend project (nip-backend), frontend left to…"
+    bytes: 5678
   - path: docs/governance/plans/PLAN-EPIC-002-life-lob-adapter.md
     bucket: governance
     authority: binding-process
@@ -3621,7 +3629,7 @@ documents:
     persona: null
     title: "Decision Register"
     answers: "Index of decisions that constrain future work: ADRs, change requests, stage transitions, and"
-    bytes: 38088
+    bytes: 38963
   - path: docs/governance/registers/DEPENDENCY-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -3637,7 +3645,7 @@ documents:
     persona: null
     title: "Parked Backlog"
     answers: "Parked is not deleted. Every entry names the stage that unparks it and the observable"
-    bytes: 12365
+    bytes: 13126
   - path: docs/governance/registers/RISK-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -3653,7 +3661,7 @@ documents:
     persona: null
     title: "Suggestion Register"
     answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 206205
+    bytes: 216142
   - path: docs/governance/schemas/README.md
     bucket: governance
     authority: binding-process
@@ -3725,7 +3733,7 @@ documents:
     persona: null
     title: "CURRENT STATE"
     answers: "AIGEM — Machine-readable current state"
-    bytes: 32515
+    bytes: 32844
   - path: docs/governance/state/GATE-EVIDENCE.yaml
     bucket: governance
     authority: binding-process
@@ -3741,7 +3749,7 @@ documents:
     persona: null
     title: "Governance Artefact Review Log"
     answers: "Read by: scripts/governance/FreshnessCheck.java"
-    bytes: 3133
+    bytes: 3612
   - path: docs/governance/templates/ADR.md
     bucket: governance
     authority: binding-process
@@ -3926,6 +3934,118 @@ documents:
     title: "UC-05 — Authorization decision (the PDP)"
     answers: "Actor: service principal (a PEP) · Entry: POST /internal/v1/authorization/decisions"
     bytes: 10483
+  - path: docs/knowledge-base/api-service-catalogue.md
+    bucket: root
+    authority: navigation
+    capsules: [docs-navigation, orient]
+    persona: null
+    title: "API and service catalogue"
+    answers: "This page answers two different questions:"
+    bytes: 7252
+  - path: docs/knowledge-base/bypass-record.md
+    bucket: root
+    authority: navigation
+    capsules: [docs-navigation, orient]
+    persona: null
+    title: "Knowledge Hub bypass record"
+    answers: "Record: SUG-20260907-kb1"
+    bytes: 1594
+  - path: docs/knowledge-base/generated/.gitkeep
+    bucket: root
+    authority: navigation
+    capsules: [docs-navigation, orient]
+    persona: null
+    title: ".gitkeep"
+    answers: "Binary artefact"
+    bytes: 69
+  - path: docs/knowledge-base/generated/backlog-index.md
+    bucket: root
+    authority: navigation
+    capsules: [docs-navigation, orient]
+    persona: null
+    title: "Backlog & Parking Dashboard"
+    answers: "Git-native navigation view. The registers below are already Markdown and therefore render directly in GitHub/GitLab. This page intentionally links to…"
+    bytes: 1471
+  - path: docs/knowledge-base/generated/current-state.md
+    bucket: root
+    authority: navigation
+    capsules: [docs-navigation, orient]
+    persona: null
+    title: "Current State Dashboard"
+    answers: "Generated, committed view. CI regenerates this file from governance/state/CURRENT-STATE.yaml and fails if it drifts. The YAML remains authoritative."
+    bytes: 4919
+  - path: docs/knowledge-base/generated/decision-index.md
+    bucket: root
+    authority: navigation
+    capsules: [docs-navigation, orient]
+    persona: null
+    title: "Decision Dashboard"
+    answers: "Git-native navigation view. Open the authoritative record before relying on a decision. A document existing in the repository does not mean it is…"
+    bytes: 1203
+  - path: docs/knowledge-base/generated/service-inventory.md
+    bucket: root
+    authority: navigation
+    capsules: [docs-navigation, orient]
+    persona: null
+    title: "Module & Service Inventory"
+    answers: "Generated, committed view. CI regenerates this file from settings.gradle.kts and fails if it drifts. A registered module is not proof that its…"
+    bytes: 2891
+  - path: docs/knowledge-base/glossary.md
+    bucket: root
+    authority: navigation
+    capsules: [docs-navigation, orient]
+    persona: null
+    title: "Consolidated glossary"
+    answers: "This page decodes the abbreviations and identifier families used across governance, architecture, delivery, insurance and code."
+    bytes: 8883
+  - path: docs/knowledge-base/index.md
+    bucket: root
+    authority: navigation
+    capsules: [docs-navigation, orient]
+    persona: null
+    title: "Bank Insurance Platform Knowledge Hub"
+    answers: "Purpose: one navigable entry point for understanding the repository without creating a second source of truth."
+    bytes: 5626
+  - path: docs/knowledge-base/operating-guide.md
+    bucket: root
+    authority: navigation
+    capsules: [docs-navigation, orient]
+    persona: null
+    title: "Knowledge Hub operating guide"
+    answers: "This directory is the navigation/explanation layer for the Bank Insurance Platform documentation."
+    bytes: 3981
+  - path: docs/knowledge-base/repository-map.md
+    bucket: root
+    authority: navigation
+    capsules: [docs-navigation, orient]
+    persona: null
+    title: "Repository and documentation map"
+    answers: "Use this page when the question is “where do I go for this?”"
+    bytes: 6185
+  - path: docs/knowledge-base/role-guides.md
+    bucket: root
+    authority: navigation
+    capsules: [docs-navigation, orient]
+    persona: null
+    title: "Start by role"
+    answers: "The same repository looks very different depending on what you are responsible for. Use the shortest path that gets you productive without reading…"
+    bytes: 4354
+  - path: docs/knowledge-base/status-and-decisions.md
+    bucket: root
+    authority: navigation
+    capsules: [docs-navigation, orient]
+    persona: null
+    title: "Current state, backlog and decisions"
+    answers: "Live authority: governance/state/CURRENT-STATE.yaml. This page is a navigation aid; always use the live state file for an execution decision."
+    bytes: 4642
+  - path: docs/knowledge-base/stylesheets/extra.css
+    bucket: root
+    authority: navigation
+    capsules: [docs-navigation, orient]
+    persona: null
+    title: "extra"
+    answers: "CSS artefact"
+    bytes: 769
   - path: docs/platform/README.md
     bucket: platform
     authority: approved-spec
@@ -4005,7 +4125,15 @@ documents:
     persona: architecture
     title: "ADR-019 — Backend microservice skeleton scaffold"
     answers: "Deciders: Mahesh (Principal Insurance Platform Architect)"
-    bytes: 2630
+    bytes: 2759
+  - path: docs/platform/architecture-review/ADR-020-gitlab-ce-backend-monorepo.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, board-review]
+    persona: architecture
+    title: "ADR-020 — GitLab CE H0: team-split polyrepo, Gradle backend monorepo"
+    answers: "Deciders (named, not signed): Mahesh (Architecture) · consulted Amit (Engineering), Shivanshi (SRE / CI platform), Shailja (Compliance — no GitHub…"
+    bytes: 6123
   - path: docs/platform/architecture-review/README.md
     bucket: platform
     authority: approved-spec
@@ -4243,9 +4371,9 @@ documents:
     authority: approved-spec
     capsules: [architecture-review]
     persona: architecture
-    title: "GitLab repository structure — backend services"
-    answers: "Purpose: Map Gradle modules to GitLab groups/projects ahead of the GitHub → GitLab migration"
-    bytes: 4219
+    title: "GitLab CE repository structure — backend cutover"
+    answers: "Origin: SUG-20260909-glc · ADR-020 (Proposed)"
+    bytes: 15979
   - path: docs/platform/engineering/MICROSERVICE-SCAFFOLD-TEMPLATE.md
     bucket: platform
     authority: approved-spec
@@ -4253,7 +4381,7 @@ documents:
     persona: architecture
     title: "Microservice scaffold template"
     answers: "Horizon: H0 — pre-implementation structure only"
-    bytes: 3709
+    bytes: 3960
   - path: docs/platform/engineering/backend-service-catalog.yaml
     bucket: platform
     authority: approved-spec
@@ -4261,7 +4389,7 @@ documents:
     persona: architecture
     title: "backend service catalog"
     answers: "Backend service catalogue — maps architecture bounded contexts to Gradle modules."
-    bytes: 7679
+    bytes: 7940
   - path: docs/platform/ws3-platform/00-WS3-ARCHITECTURE-REGISTRATION.md
     bucket: platform
     authority: approved-spec

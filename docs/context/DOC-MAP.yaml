@@ -19,7 +19,7 @@ schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
 document_count: 559
-total_bytes: 15527769
+total_bytes: 15529061
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -3133,7 +3133,7 @@ documents:
     persona: null
     title: "01 — Current State (Context Resolution)"
     answers: "Pipeline step: 1 — Context Resolution"
-    bytes: 10065
+    bytes: 10552
   - path: docs/governance/02-PROJECT_SCOPE.md
     bucket: governance
     authority: binding-process
@@ -3733,7 +3733,7 @@ documents:
     persona: null
     title: "CURRENT STATE"
     answers: "AIGEM — Machine-readable current state"
-    bytes: 32518
+    bytes: 32844
   - path: docs/governance/state/GATE-EVIDENCE.yaml
     bucket: governance
     authority: binding-process
@@ -3749,7 +3749,7 @@ documents:
     persona: null
     title: "Governance Artefact Review Log"
     answers: "Read by: scripts/governance/FreshnessCheck.java"
-    bytes: 3133
+    bytes: 3612
   - path: docs/governance/templates/ADR.md
     bucket: governance
     authority: binding-process

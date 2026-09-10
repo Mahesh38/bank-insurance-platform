@@ -55,6 +55,8 @@ Prefer this log for sweeps — it is one edit rather than one per artefact.
 | Artefact | Reviewed | By | Outcome |
 |---|---|---|---|
 | docs/governance/registers/PARKED-BACKLOG.md | 2026-08-14 | Claude (agent), for CR-009 | Re-read as the CR-009 unpark sweep ([14 §3](../14-CHANGE_CONTROL.md#3-procedure) step 5c). **7 parked items; no change made to the register.** One finding raised, not actioned here: **TD-014's unpark trigger has fired** — "now eligible", overlapping GATE-P4 criterion 4.1. Unparking is a triage decision for R1/R2, not for this CR. |
+| docs/governance/state/CURRENT-STATE.yaml | 2026-09-10 | Cursor agent (PR #94 CI halt) | **No change** to `current_phase`, `stage_status`, scope, or gate criterion states. Calendar `state_as_of`/`review_due` refresh only (FR-1) after `review_due` 2026-09-09 passed. Not a T4 re-ratification; does not impersonate Kalpana / R12. |
+| docs/governance/01-CURRENT_STATE.md | 2026-09-10 | Cursor agent (PR #94 CI halt) | Snapshot dates aligned with YAML; stage narrative unchanged. |
 
 ---
 

@@ -43,7 +43,7 @@ the agent believed at decision time — a decision that was correct against a st
 | Field | Value |
 |-------|-------|
 | Project | Bank Insurance Platform (`mahesh38/bank-insurance-platform`) |
-| State as of | 2026-08-10 |
+| State as of | 2026-09-10 |
 | Ratified by | **Mahesh (Solution Architect), 2026-08-10** (GOV-004) — PO counter-signature outstanding |
 | Active workstreams | 2 (see §4) |
 | Governance version | AIGEM 1.4 |
@@ -169,7 +169,14 @@ If the PO disagrees with any stage or scope value, that is a `CR` against this f
 reversion to provisional.
 
 **Re-ratification** is required whenever a stage transitions, and at every `review_due`
-(currently 2026-09-09).
+(currently 2026-10-10).
+
+**Freshness refresh 2026-09-10:** `state_as_of` and `review_due` were rolled forward with
+**no change** to `current_phase`, `stage_status`, or gate criterion states. The previous
+`review_due` (2026-09-09) had passed, which halted `FreshnessCheck` (exit 2) and the
+Governance CI job. This is an FR-1 calendar refresh so agents and CI can trust the
+snapshot; it is **not** a T4 re-ratification and does not impersonate Kalpana / R12.
+Human R12 should confirm at the next Governance Sync.
 
 ---
 

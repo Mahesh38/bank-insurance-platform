@@ -4,7 +4,7 @@
 **Origin:** `SUG-20260909-glc` · [`ADR-020`](../architecture-review/ADR-020-gitlab-ce-backend-monorepo.md) (Proposed)  
 **Purpose:** How to place this Gradle tree on the bank GitLab Community Edition **without** a GitHub↔GitLab integration.  
 **Status:** Proposed — human Architecture / SRE / Compliance sign-off outstanding  
-**Horizon:** **H0 now** (S08/S09 cutover) · per-service GitLab projects are **parked**
+**Horizon:** **H0 now** (S08/S09 cutover) · per-service GitLab projects are **parked** · first copy wave is **libs + 1SB path** (`SUG-20260910-w1s`)
 
 > This file used to propose one GitLab project per Gradle module. That is the **wrong grain for GitLab CE at S08**. The three subgroups already created under `Insurance` are the right team/layer split. Do not explode `nip-backend` into ~20 projects during migration.
 
@@ -27,6 +27,7 @@ Insurance/                          (existing top-level group — private)
 | Frontend vs backend | **Polyrepo (already done)** | Different team, stack, cadence. `ADR-015` / `nip-app`. |
 | Governance vs backend code | **Do not split AIGEM out of `nip-backend` at H0** | `FreshnessCheck`, `context-load.py` and `./gradlew test` are one GATE-S08 pipeline. |
 | One GitLab project per microservice | **Park** | Most modules are skeletons; libs are `project()` dependencies; GATE-S08-G1 needs one pipeline that builds every module. |
+| Module-by-module *copy* into `nip-backend` | **Yes, if you cannot land one bundle** | Wave 1 = all six `libs/*` **in one go** plus `bank-persistence-service` + `1sb-integration-service`. Later services copy into **this same project** when mature (`SUG-20260910-w1s`). |
 
 **Mahesh (draft, not T4):** severity `A2` if someone still creates 20 empty GitLab projects before S09 is green — recoverable, expensive. Severity `A0` if a GitHub↔GitLab integration is turned on against the compliance constraint.
 
@@ -142,19 +143,22 @@ Empty the GitLab project first if it already contains a README commit, or push t
 
 Create a **new root commit** on GitLab with the same tree (clean-room copy). Record the reason in the MR. Audit then starts at cutover; you lose blame. Only do this if Compliance (`R9`) requires it in writing.
 
-### Module-by-module — still one GitLab project
+### Module-by-module — still one GitLab project (`SUG-20260910-w1s`)
 
-If you cannot land the whole tree in one push, copy **into `nip-backend`**, not into new projects:
+If you cannot land the whole tree in one push, copy **into `nip-backend`**, not into new projects. The owner sequence is: **all common libs in one go, then the 1SB path, then one service at a time when it is mature.**
 
-| Wave | Content | Why this order |
+`1sb-integration-service` has **no datasource**. Its job store is HTTP to `bank-persistence-service`. Wave 1 therefore always includes persistence. Do not copy 1SB alone.
+
+| Wave | Content | Maturity / why |
 |---|---|---|
-| 0 | `gradlew`, `settings.gradle.kts`, `build.gradle.kts`, version catalog, `.gitignore` | Build must exist before modules |
-| 1 | `libs/*` + `services/bank-persistence-service` + `services/1sb-integration-service` | Implemented path; GATE-S08 evidence |
-| 2 | `identity-*-service`, `workforce-access-bff` | Implemented IAM |
-| 3 | Remaining `services/*` skeletons | Catalogue completeness (`ADR-019`) |
-| 4 | `docs/`, `scripts/`, `templates/` | Governance CI; do not skip if Wave 1 already relies on it |
+| 0 | `gradlew`, `settings.gradle.kts` (only the modules already copied), `build.gradle.kts`, version catalog, `.gitignore` | Build must exist before modules |
+| 1 | All six `libs/*` **together** + `services/bank-persistence-service` + `services/1sb-integration-service` | First implemented 1SB path. Libs stay `project()` dependencies — do not invent a Maven registry for this wave |
+| 2+ | **One** further service per GitLab MR, when it is mature | Mature = catalogue `status: implemented` (or that module has GATE evidence). Next implemented candidates today: `identity-provider-adapter-service`, `identity-authorization-service`, `workforce-access-bff` — still **one MR each**, not a new GitLab project |
+| Last before GitHub archive | Remaining `services/*` skeletons + `docs/`, `scripts/`, `templates/` | Skeletons may wait on GitHub until mature **or** until GitHub is archived. Archive requires the rest of the tree in `nip-backend` so GATE-S08-G1/G10 still have one clone |
 
-Each wave is a normal GitLab MR on `nip-backend`. DevOps does not need a new project per wave.
+On GitLab, `settings.gradle.kts` `include(...)` lists **only modules that have been copied**. Do not leave `include("services:lead-service")` pointing at a missing directory.
+
+Each wave is a normal GitLab MR on `nip-backend`. DevOps does **not** create `insurance/backend/<service>` projects for these waves. That extract stays parked (`SUG-20260909-glc` extract).
 
 ### After the first successful push
 

@@ -28,7 +28,9 @@ problem: >
 proposed_solution: >
   Rewrite GITLAB-REPO-STRUCTURE.md for H0: team-split polyrepo + Gradle monorepo
   in nip-backend; air-gapped git bundle procedure; nip-governance = CI templates
-  only. Draft ADR-020 as Proposed. Park per-service extract. Do not push to GitLab,
+  only. Draft ADR-020 as Proposed. Park per-service extract. Owner sequencing
+  (SUG-20260910-w1s): Wave 1 = all libs + bank-persistence + 1sb-integration;
+  later services copy into the same project when mature. Do not push to GitLab,
   do not add .gitlab-ci.yml (DevOps), do not split the GitHub tree, do not claim T4.
 
 alternatives:
@@ -94,6 +96,7 @@ acceptance_criteria:
   - "AC-3 Per-service extract is in PARKED-BACKLOG with target stage and unpark trigger"
   - "AC-4 CURRENT-STATE.yaml stage fields unchanged; ADR counter advanced for ADR-020"
   - "AC-5 No .gitlab-ci.yml and no Gradle module split in this change"
+  - "AC-6 Wave 1 is all six libs plus 1sb-integration-service and bank-persistence-service; later copies are one mature service into nip-backend; per-service GitLab projects remain parked"
 
 out_of_scope:
   - "git push to gitlab-ce.au.bank.in"

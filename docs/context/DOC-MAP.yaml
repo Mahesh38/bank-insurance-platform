@@ -19,7 +19,7 @@ schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
 document_count: 559
-total_bytes: 15529061
+total_bytes: 15536430
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -3605,7 +3605,7 @@ documents:
     persona: delivery
     title: "PLAN-005 — GitLab CE backend monorepo cutover plan (docs)"
     answers: "objective: The GitLab CE cutover plan matches the Insurance group already created: one Gradle backend project (nip-backend), frontend left to…"
-    bytes: 5337
+    bytes: 5678
   - path: docs/governance/plans/PLAN-EPIC-002-life-lob-adapter.md
     bucket: governance
     authority: binding-process
@@ -3629,7 +3629,7 @@ documents:
     persona: null
     title: "Decision Register"
     answers: "Index of decisions that constrain future work: ADRs, change requests, stage transitions, and"
-    bytes: 38794
+    bytes: 38963
   - path: docs/governance/registers/DEPENDENCY-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -3645,7 +3645,7 @@ documents:
     persona: null
     title: "Parked Backlog"
     answers: "Parked is not deleted. Every entry names the stage that unparks it and the observable"
-    bytes: 12987
+    bytes: 13126
   - path: docs/governance/registers/RISK-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -3661,7 +3661,7 @@ documents:
     persona: null
     title: "Suggestion Register"
     answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 211369
+    bytes: 216142
   - path: docs/governance/schemas/README.md
     bucket: governance
     authority: binding-process
@@ -4133,7 +4133,7 @@ documents:
     persona: architecture
     title: "ADR-020 — GitLab CE H0: team-split polyrepo, Gradle backend monorepo"
     answers: "Deciders (named, not signed): Mahesh (Architecture) · consulted Amit (Engineering), Shivanshi (SRE / CI platform), Shailja (Compliance — no GitHub…"
-    bytes: 5573
+    bytes: 6123
   - path: docs/platform/architecture-review/README.md
     bucket: platform
     authority: approved-spec
@@ -4373,7 +4373,7 @@ documents:
     persona: architecture
     title: "GitLab CE repository structure — backend cutover"
     answers: "Origin: SUG-20260909-glc · ADR-020 (Proposed)"
-    bytes: 14582
+    bytes: 15979
   - path: docs/platform/engineering/MICROSERVICE-SCAFFOLD-TEMPLATE.md
     bucket: platform
     authority: approved-spec

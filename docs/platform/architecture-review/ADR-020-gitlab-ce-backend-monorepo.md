@@ -20,11 +20,12 @@ Unknowns: exact CE version and whether Package Registry is enabled on the instan
 ## Decision
 
 1. **H0 GitLab layout is the three projects already created** under group `Insurance`: `platform/nip-governance`, `frontend/nip-app`, `backend/nip-backend`.
-2. **`nip-backend` receives this entire GitHub tree** (Gradle + `docs/` + governance scripts). It remains one Gradle monorepo.
+2. **`nip-backend` remains one Gradle monorepo.** Prefer one air-gapped bundle of this entire GitHub tree. If copy is module-by-module, it is still **this one GitLab project** (decision 7), not new projects.
 3. **Do not create one GitLab project per microservice or shared library at H0.** Catalogue `gitlab_group` values are logical ownership (CODEOWNERS / future extract), not project-creation instructions.
 4. **`nip-governance` is CI templates and group policy**, not a second AIGEM source of truth.
 5. **Cutover is an air-gapped git bundle (or clean-room tree copy if Compliance forbids history), then `git push` to GitLab.** No importer, no mirroring, no GitHub OAuth, no GitHub Actions trigger.
 6. Per-service extract is **parked** until S09 is green, libs are published to GitLab Maven Package Registry, and a service has an independent release cadence.
+7. **First copy wave** (`SUG-20260910-w1s`): all six `libs/*` in one go, plus `bank-persistence-service` and `1sb-integration-service`. Later services copy **into the same `nip-backend` project** one at a time when mature. This is cutover sequencing, not a GitLab project per service. 1SB cannot be copied without persistence (no datasource; job store is HTTP).
 
 ## Alternatives considered
 
@@ -54,6 +55,7 @@ Unknowns: exact CE version and whether Package Registry is enabled on the instan
 **Constrains future work**
 
 - Creating `insurance/backend/<service>` projects before the unpark trigger is SF4 against this ADR unless a CR amends it.
+- Copying `1sb-integration-service` without `bank-persistence-service` and `libs/*` is rejected at Wave 1.
 - GitHub↔GitLab integration remains REJECT (`SC4` if mandated, else policy).
 
 ## Reversibility

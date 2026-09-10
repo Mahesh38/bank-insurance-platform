@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20260910-w1s | 2026-09-10 | human:owner | Move all common libs in one go and the 1SB service first; later services one at a time when mature | SF1 | SC1 | SHOULD | ARCH | P3 / P2 | ADMITTED | amends [SUG-20260909-glc](#sug-20260909-glc--gitlab-ce-backend-monorepo-not-per-service-projects) · [GITLAB-REPO-STRUCTURE.md §6](../../platform/engineering/GITLAB-REPO-STRUCTURE.md) · per-service GitLab projects still PARKED · [detail](#sug-20260910-w1s--libs-plus-1sb-first-then-one-mature-service-at-a-time) |
 | SUG-20260909-glc | 2026-09-09 | human:owner | GitHub → GitLab CE cutover for backend only, no GitHub integration; choose mono vs poly and plan `Insurance/{platform,frontend,backend}` | SF1 | SC1 | MUST | ARCH | P2 / P1 | ADMITTED | [ADR-020](../../platform/architecture-review/ADR-020-gitlab-ce-backend-monorepo.md) · [PLAN-005](../plans/PLAN-005-gitlab-ce-backend-monorepo.md) · extract PARKED · [detail](#sug-20260909-glc--gitlab-ce-backend-monorepo-not-per-service-projects) |
 | SUG-20260907-ldc | 2026-09-07 | human:front-architect | NIP BFF / RM app consumer contract for R0 lead landing (own inbox) + ETB search + Term lead create through success | SF1 | SC0 | SHOULD | ARCH | P2 / P1 | ADMITTED | [EPIC-003](../../platform/ws3-platform/EPIC-003.work-item.yaml) · [PLAN-004](../plans/PLAN-004-nip-bff-lead-phase-contract.md) · [LLD](../../platform/ws3-platform/07-nip-bff-lead-phase-api-lld.md) · [detail](#sug-20260907-ldc--nip-bff-lead-landing-and-create-contract) |
 | SUG-20260907-std | 2026-09-07 | human:front-architect | Confirm platform-wide standard API response, versioning, security and REST practices on the NIP BFF lead OpenAPI | SF1 | SC0 | SHOULD | DOC | P2 / P2 | ADMITTED | [ARCH-023](../../platform/ws3-platform/ARCH-023.work-item.yaml) · [ADR-017](../../journey-execution/07-PLATFORM-ERROR-CONTRACT.md) · [detail](#sug-20260907-std--platform-api-conventions-on-lead-openapi) |
@@ -106,6 +107,133 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20260910-w1s · Libs plus 1SB first, then one mature service at a time
+
+```yaml
+# schema: triage-record
+id: SUG-20260910-w1s
+raised_at: "2026-09-10"
+raised_by: "human:owner"
+source: "Cloud agent follow-up on SUG-20260909-glc / PR 94 after CI green"
+input: >
+  good so idea to move all common libs in one go and 1sb service for now, we will
+  keep on moving one service at a time when it is mature enough
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-TERM-SALE — one RM sells one Term Life policy to one ETB customer end to end"
+  state_as_of: "2026-09-10"
+  state_provisional: false
+  active_work_item: SUG-20260909-glc
+
+stage_fit:
+  code: SF1
+  rationale: >
+    Cutover sequencing is on-stage for S08 and is the remaining PLAN-005
+    decision inside already-admitted SUG-20260909-glc. Creating a new GitLab
+    project per service remains SF3 (parked extract), not this row.
+
+scope:
+  code: SC1
+  serves: ["SUG-20260909-glc", "ADR-020", "PLAN-005", "GATE-S08-G1"]
+  failure_without_it: >
+    First GitLab copy of 1sb-integration-service without libs and
+    bank-persistence-service cannot build or store jobs (1SB owns no
+    datasource). Copying each service into a new GitLab project would
+    unpark the parked extract against ADR-020.
+  minimal: true
+  authority: "ADR-020 Proposed; GITLAB-REPO-STRUCTURE.md section 6 already sketched waves"
+
+necessity:
+  now: SHOULD
+  future_necessity: MUST
+  target_stage: "S08 GitLab cutover execution"
+  binds_when: "first air-gapped copy into insurance/backend/nip-backend"
+  failure_without_it: >
+    DevOps copies 1SB without persistence, or creates per-service GitLab
+    projects as each module 'matures'.
+  evidence_tier: E2
+  evidence:
+    - "AGENTS.md / BOOT: 1sb-integration-service has no datasource; job store via HTTP to bank-persistence"
+    - "backend-service-catalog.yaml: 1sb and persistence implemented; most WS-3 modules skeleton"
+    - "GITLAB-REPO-STRUCTURE.md section 6 module-by-module table (pre-existing)"
+    - "PARKED SUG-20260909-glc extract — one GitLab project per module"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: true
+    X5_stage_necessity: true
+    X6_simplest_sufficient: true
+    X9_problem_observed: true
+
+action: ADMIT
+action_rationale: >
+  SF1 × SHOULD → ADMIT as a PLAN-005 / GITLAB-REPO-STRUCTURE.md sequencing
+  amendment: one nip-backend project; Wave 1 = all libs + persistence + 1SB;
+  later modules copy into that same project when mature. Do not unpark the
+  per-service GitLab extract.
+duplicate_of: null
+conflicts:
+  - "Reading 'one service at a time' as new GitLab projects contradicts ADR-020 — that reading stays PARKED (SUG-20260909-glc extract)"
+
+classification:
+  type: ARCH
+  also: ["DOC", "MIGRATION"]
+  breakdown: TASK
+  epic: null
+  risk_tier: T3
+  destination: "GITLAB-REPO-STRUCTURE.md section 6 + ADR-020 decision 7 + PLAN-005"
+
+priority:
+  now: P3
+  at_target: P2
+  factors: { N: 2, S: 3, B: 0, R: 2, D: 1, E: 0 }
+  score: 15
+  matrix_default: P2
+  consistency: OK
+  overrides_applied: []
+  rationale: >
+    PRI-8 floor B=0 for SF1 SHOULD. Score 2*2+2*3+2*0+2*2+1-0=15 → P3.
+    Matrix SF1 SHOULD is P2–P3; default P2; one-band adjustment OK (PRI-4).
+
+dependencies:
+  edges:
+    - type: ARCHITECTURAL
+      target: SUG-20260909-glc
+      relation: related_to
+      state: OPEN
+    - type: TECHNICAL
+      target: SUG-20260909-glc extract
+      relation: related_to
+      state: PARKED
+  state: READY
+  enablement_count: 1
+
+breakdown:
+  children: []
+  completion_definition: >
+    GITLAB-REPO-STRUCTURE.md Wave 1 names all six libs plus 1sb-integration-service
+    and bank-persistence-service; later copies are one mature service into nip-backend;
+    per-service GitLab projects remain parked.
+  not_included:
+    - "git push to GitLab"
+    - "changing settings.gradle.kts on GitHub now"
+    - "creating GitLab projects"
+    - "human T4"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: ADR-020
+  plan_id: PLAN-005
+  status: ADMITTED
+  closed_reason: null
+
+resumed: SUG-20260909-glc
+```
 
 ### SUG-20260909-glc · GitLab CE backend monorepo, not per-service projects
 

@@ -432,6 +432,28 @@ class OneSbQuoteAdapterTest {
     }
 
     @Test
+    void isPollComplete_explicitFalse_doesNotCompleteOnEarlyOffers() {
+        wireMock.stubFor(get(urlEqualTo("/insurance/lifeterm/v1/quote/poll/REQ-early"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("""
+                                {
+                                  "data": {
+                                    "isPollComplete": false,
+                                    "quote": [{
+                                      "insurerCode": "BALIC",
+                                      "productCode": "345",
+                                      "premiumAmount": 1200
+                                    }]
+                                  }
+                                }
+                                """)));
+
+        assertThat(adapter.isPollComplete("job-1", "REQ-early", "TERM")).isFalse();
+    }
+
+    @Test
     void parseOffers_liveSavingQuoteShape_mapsPremiumAndIdentity() {
         List<QuoteOffer> offers = adapter.parseOffers("""
                 {

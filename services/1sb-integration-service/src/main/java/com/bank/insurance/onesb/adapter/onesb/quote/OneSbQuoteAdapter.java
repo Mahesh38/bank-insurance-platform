@@ -72,7 +72,11 @@ public class OneSbQuoteAdapter implements OneSbQuotePort {
     @Override
     public boolean isPollComplete(String jobId, String externalReqId, String lob) {
         String body = httpClient.get(pollPath(lob, externalReqId), String.class);
-        return parseComplete(body) || hasAvailableOffer(body);
+        Boolean flag = completeFlag(body);
+        if (flag != null) {
+            return flag;
+        }
+        return hasAvailableOffer(body);
     }
 
     private boolean hasAvailableOffer(String body) {
@@ -110,9 +114,9 @@ public class OneSbQuoteAdapter implements OneSbQuotePort {
         return reqId.toString();
     }
 
-    private boolean parseComplete(String body) {
+    private Boolean completeFlag(String body) {
         if (body == null || body.isBlank()) {
-            return false;
+            return null;
         }
         try {
             JsonNode root = objectMapper.readTree(body);
@@ -120,15 +124,18 @@ public class OneSbQuoteAdapter implements OneSbQuotePort {
             if (flag.isMissingNode() || flag.isNull()) {
                 flag = root.path("isPollComplete");
             }
+            if (flag.isMissingNode() || flag.isNull()) {
+                return null;
+            }
             if (flag.isBoolean()) {
                 return flag.booleanValue();
             }
-            if (flag.isTextual()) {
+            if (flag.isTextual() && !flag.asText().isBlank()) {
                 return Boolean.parseBoolean(flag.asText());
             }
-            return false;
+            return null;
         } catch (Exception e) {
-            return false;
+            return null;
         }
     }
 

@@ -72,7 +72,11 @@ public class OneSbQuoteAdapter implements OneSbQuotePort {
     @Override
     public boolean isPollComplete(String jobId, String externalReqId, String lob) {
         String body = httpClient.get(pollPath(lob, externalReqId), String.class);
-        return parseComplete(body) || !parseOffers(body).isEmpty();
+        return parseComplete(body) || hasAvailableOffer(body);
+    }
+
+    private boolean hasAvailableOffer(String body) {
+        return parseOffers(body).stream().anyMatch(o -> o.errorSummary() == null);
     }
 
     private String pollPath(String lob, String externalReqId) {
@@ -279,6 +283,11 @@ public class OneSbQuoteAdapter implements OneSbQuotePort {
             offerStatus = statusField;
         }
 
+        String freq = firstText(node, parent, "premiumFrequency", "frequency", "premiumPaymentFrequency", "freq");
+        if (freq == null && parent != null) {
+            freq = text(parent.path("productDetails"), "premiumPaymentFrequency", "freq", "frequency");
+        }
+
         return new QuoteOffer(
                 firstText(node, parent, "offerId", "quoteId", "id"),
                 firstText(node, parent, "insurerCode", "manufacturerId", "manufacturerCode",
@@ -287,7 +296,7 @@ public class OneSbQuoteAdapter implements OneSbQuotePort {
                 firstText(node, parent, "productCode", "productId"),
                 firstText(node, parent, "productName", "product"),
                 premium,
-                firstText(node, parent, "premiumFrequency", "frequency", "premiumPaymentFrequency", "freq"),
+                freq,
                 sumAssured,
                 oob,
                 offerStatus,
@@ -296,10 +305,31 @@ public class OneSbQuoteAdapter implements OneSbQuotePort {
     }
 
     private static BigDecimal nestedPremium(JsonNode node) {
-        if (node == null || !node.path("premium").isObject()) {
+        if (node == null) {
             return null;
         }
-        return decimal(node.path("premium"), "amount", "premiumAmount", "modalPremium", "installmentPremium");
+        if (node.path("premium").isObject()) {
+            BigDecimal nested = decimal(node.path("premium"), "amount", "premiumAmount",
+                    "modalPremium", "installmentPremium");
+            if (nested != null) {
+                return nested;
+            }
+        }
+        JsonNode individuals = node.path("individualDetails");
+        if (individuals.isArray()) {
+            for (JsonNode ind : individuals) {
+                JsonNode details = ind.path("premiumDetails");
+                if (details.isArray()) {
+                    for (JsonNode pd : details) {
+                        BigDecimal value = decimal(pd, "totalPremiumValue", "premiumValue", "amount");
+                        if (value != null) {
+                            return value;
+                        }
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     private static String errorMessage(JsonNode err) {

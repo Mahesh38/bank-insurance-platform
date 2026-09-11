@@ -80,7 +80,7 @@ Full table with the wrong-instinct column:
 
 > Generated from [`CURRENT-STATE.yaml`](../governance/state/CURRENT-STATE.yaml) by `scripts/context/build-boot-capsule.py`. Do not hand-edit this block.
 
-**AIGEM 1.4** · state as of **2026-08-10** · review due **2026-09-09** · provisional: **no**
+**AIGEM 1.4** · state as of **2026-09-11** · review due **2026-10-11** · provisional: **no**
 
 > **Fact 9 — freshness.** Past `review_due`, an agent may park and reject but **must not admit new work** (Rule CS-1). Run `java scripts/governance/FreshnessCheck.java` and act on the exit code: `0` fresh · `1` warn, disclose it · `2` do not admit.
 
@@ -92,14 +92,14 @@ Full table with the wrong-instinct column:
 
 **Objective** (`R0-ASSISTED-TERM-SALE`): One RM sells one Term Life policy to one ETB customer from one Group A insurer, end to end, through a real interface, with consent and suitability evidence, payment on the customer's own device, an issued and reconciled policy, and a complete audit trail.
 
-**Open gate:** `GATE-S08` · state `OPEN` · 10 of 10 exit criteria still open
-- `S08-G1` **OPEN** — CI builds and tests every module on every PR · Amit / Engineering
+**Open gate:** `GATE-S08` · state `OPEN` · 10 of 10 exit criteria not yet met — 5 OPEN · 5 PARTIAL
+- `S08-G1` **PARTIAL** — CI builds and tests every module on every PR · Amit / Engineering
 - `S08-G2` **OPEN** — Merge to main impossible without a green pipeline · Amit / Engineering
-- `S08-G3` **OPEN** — Coverage thresholds enforced; QA-001 closed · Swapnali / QA
-- `S08-G4` **OPEN** — ArchUnit and static analysis enforced · Amit / Engineering
-- `S08-G5` **OPEN** — Secret, SAST, SCA and image scanning in the pipeline · Deepali / Security
+- `S08-G3` **PARTIAL** — Coverage thresholds enforced; QA-001 closed · Swapnali / QA
+- `S08-G4` **PARTIAL** — ArchUnit and static analysis enforced · Amit / Engineering
+- `S08-G5` **PARTIAL** — Secret, SAST, SCA and image scanning in the pipeline · Deepali / Security
 - `S08-G6` **OPEN** — Test infrastructure operational at every pyramid level · Swapnali / QA
-- `S08-G7` **OPEN** — No PII in logs, proven by automated test · Deepali / Security
+- `S08-G7` **PARTIAL** — No PII in logs, proven by automated test · Deepali / Security
 - `S08-G8` **OPEN** — Engineering and secure coding standards published and adopted · Amit / Engineering
 - `S08-G9` **OPEN** — Pipeline feedback under 10 minutes at p95; flake under 1% · Shivanshi / SRE
 - `S08-G10` **OPEN** — A new engineer can build, test and ship in under a week · Amit / Engineering
@@ -142,14 +142,14 @@ Full table with the wrong-instinct column:
 
 **Objective** (`P4-UAT-SIGNOFF`): Term path signed off for UAT use by at least one bank caller, while EPIC-002 delivers Life LOB adapter coverage (Term + Savings + ULIP) and adapter standards under CR-014 (does not replace Term UAT exit criteria).
 
-**Open gate:** `GATE-P4` · state `BLOCKED` · 7 of 7 exit criteria still open
+**Open gate:** `GATE-P4` · state `BLOCKED` · 7 of 7 exit criteria not yet met — 2 OPEN · 2 PARTIAL · 3 BLOCKED
 - `4.1` **BLOCKED** — Sandbox E2E suite for the Term path runs in CI (or gated nightly) · Amit / Engineering + R10 / Operations · blocked by GATE-4.1-SANDBOX-E2E
 - `4.2` **PARTIAL** — OpenAPI published to internal portal; consumer collection available
 - `4.3` **BLOCKED** — At least one bank caller exercises quote + proposal against UAT · Rajal / Product · blocked by DEP-001, DEP-002
 - `4.4` **OPEN** — Compliance review of audit schema and log samples
 - `4.5` **OPEN** — Runbook: secrets rotation, IP whitelist, 1SB 401/5xx incident
 - `4.6` **BLOCKED** — Performance smoke: p95 quote under nominal concurrency · Amit / Engineering + R10 / Operations · blocked by DEP-003
-- `4.7` **BLOCKED** — Coverage gates green; QA-001 closed or explicitly waived with expiry · Swapnali / QA · blocked by S08-G3
+- `4.7` **PARTIAL** — Coverage gates green; QA-001 closed or explicitly waived with expiry · Swapnali / QA · blocked by S08-G3
 
 **Out of scope now — do not propose, do not build:**
 - Kafka / event backbone — revisit at Integration architecture stage
@@ -179,7 +179,7 @@ Full table with the wrong-instinct column:
 
 **Objective** (`IAM-P1`): Provider-neutral workforce identity: token-hiding BFF session, Keycloak behind an adapter, business authorization service as the PDP.
 
-**Open gate:** `GATE-IAM-P1` · state `OPEN` · 6 of 6 exit criteria still open
+**Open gate:** `GATE-IAM-P1` · state `OPEN` · 6 of 6 exit criteria not yet met — 6 OPEN
 - `A.1` **OPEN** — BFF token-hiding proven: Flutter never receives OAuth tokens
 - `A.2` **OPEN** — Keycloak isolated behind identity-provider-adapter-service
 - `A.3` **OPEN** — identity-authorization-service is the PDP; default-deny verified

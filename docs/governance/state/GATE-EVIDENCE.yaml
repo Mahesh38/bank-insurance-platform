@@ -1,5 +1,23 @@
 schema_version: "1.0"
-as_of: "2026-08-16"
+as_of: "2026-09-11"
+
+# 2026-09-11 — R12 (Kalpana seat) gate-evidence sweep, run with the CURRENT-STATE.yaml freshness
+# refresh. Three things happened here and they are deliberately different actions:
+#
+#  1. EVIDENCE ASSEMBLED. Criteria whose mechanism now demonstrably exists carry that evidence in
+#     `evidence:` and a `last_verified_at` date. Assembling evidence is not passing a gate.
+#     `policy.mode` is still proposal-only, `human_pass_required` is still true, and every
+#     `approvals:` list is still empty. No criterion was set MET or WAIVED by this sweep.
+#
+#  2. BLOCKER AGEING CORRECTED. Every follow-up date in this file had passed — the newest by 12
+#     days, the oldest by 21. A follow-up date in the past is not a tracked dependency, it is a
+#     hope (Rule DEP-3). Each one is re-dated below against its named owner, with the delivery
+#     severity that set the window: DL1 = 2 working days (2026-09-15), DL2 = 5 (2026-09-18).
+#     R12 sets the date and names the owner. R12 does not supply the answer (Rule PA-1).
+#
+#  3. GAPS NAMED. Where a criterion is short of its own S08-VT validation test, the missing half
+#     is stated rather than averaged into "in progress" — static analysis (G4), container image
+#     scanning (G5), the log-scan test (G7), the shared integration harness (G6).
 
 policy:
   mode: proposal-only
@@ -31,7 +49,10 @@ workstreams:
           - id: GATE-4.1-SANDBOX-E2E
             type: ENVIRONMENT
             owner: "Amit / Engineering"
-            follow_up: "2026-08-21"
+            # OVERDUE 21 days (was 2026-08-21). Re-dated by R12 on 2026-09-11: DL1, because this
+            # blocker enables three other criteria and also holds 4.6 through DEP-003. It is the
+            # single highest-leverage open item on GATE-P4.
+            follow_up: "2026-09-15"
         last_verified_at: null
       - id: "4.2"
         description: "OpenAPI published to the internal portal; consumer collection available."
@@ -45,7 +66,9 @@ workstreams:
         verifier: document
         evidence: ["OpenAPI generated in commit 79c65f4"]
         blockers: []
-        last_verified_at: null
+        # Still PARTIAL on 2026-09-11: the contract is generated, the portal publication and the
+        # consumer collection are not done. DEP-001 makes 4.3 wait on exactly this.
+        last_verified_at: "2026-09-11"
       - id: "4.3"
         description: "At least one bank caller exercises quote and proposal against UAT."
         state: BLOCKED
@@ -61,11 +84,15 @@ workstreams:
           - id: DEP-001
             type: HARD
             owner: "Amit / Engineering"
-            follow_up: "2026-08-21"
+            # OVERDUE 21 days. DL1 — it is a publication step, not a build.
+            follow_up: "2026-09-15"
           - id: DEP-002
             type: EXTERNAL
             owner: "Rajal / Product"
-            follow_up: "2026-08-21"
+            # OVERDUE 21 days. DL2 for the CHASE, not for the slot: the bank app team owns the
+            # slot and R12 cannot shorten someone else's calendar. What is owed by 2026-09-18 is
+            # a named date or a stated refusal, either of which is progress. Silence is not.
+            follow_up: "2026-09-18"
         last_verified_at: null
       - id: "4.4"
         description: "Compliance review of audit schema and log samples."
@@ -108,11 +135,13 @@ workstreams:
           - id: DEP-003
             type: SOFT
             owner: "Amit / Engineering"
-            follow_up: "2026-08-24"
+            # OVERDUE 18 days. DL2. Soft edge: the smoke can be built standalone at higher cost,
+            # so this is a sequencing choice to confirm, not a wall.
+            follow_up: "2026-09-18"
         last_verified_at: null
       - id: "4.7"
         description: "Coverage gates green; QA-001 closed or explicitly waived with expiry."
-        state: BLOCKED
+        state: PARTIAL
         owner: "Swapnali / QA"
         execution_mode: AUTOMATABLE
         priority: P2
@@ -120,13 +149,18 @@ workstreams:
         enables: 0
         required_evidence_level: E4
         verifier: ci
-        evidence: ["Shared-library coverage gates at 80% line / 70% branch"]
+        evidence:
+          - "Shared-library coverage gates at 80% line / 70% branch"
+          - "jacocoTestCoverageVerification executes on every pull request via application-ci.yml and is green (348 recorded runs, latest 2026-09-11) — the condition CURRENT-STATE.yaml recorded for returning 4.7 to PARTIAL"
         blockers:
           - id: S08-G3
             type: HARD
             owner: "Amit / Engineering"
-            follow_up: "2026-08-30"
-        last_verified_at: null
+            # OVERDUE 12 days. DL2. Upstream S08-G3 is itself PARTIAL now: the threshold
+            # mechanism runs, so what remains is a QA decision — close QA-001 or waive it with an
+            # expiry and a compensating control. Either closes 4.7; neither is R12's to make.
+            follow_up: "2026-09-18"
+        last_verified_at: "2026-09-11"
     approvals: []
 
   - id: WS-2
@@ -136,6 +170,10 @@ workstreams:
     bible_stage: null
     state: OPEN
     required_approvers: [Architect, Security, Compliance, QA]
+    # 2026-09-11 (R12 sweep): all six criteria re-read, all six still OPEN with empty evidence and
+    # no blockers recorded. Six criteria with no blockers and no progress for a month is not a
+    # blocked workstream, it is an unstaffed one — a different problem with a different fix, and
+    # the reason no `blockers:` entry is being invented here to explain it.
     criteria:
       - id: A.1
         description: "BFF token-hiding proven; Flutter never receives OAuth tokens."
@@ -229,7 +267,7 @@ workstreams:
     criteria:
       - id: "S08-G1"
         description: "CI builds and tests every module on every pull request."
-        state: OPEN
+        state: PARTIAL
         owner: "Amit / Engineering"
         execution_mode: AUTOMATABLE
         priority: P1
@@ -237,9 +275,14 @@ workstreams:
         enables: 6
         required_evidence_level: E4
         verifier: ci
-        evidence: []
+        evidence:
+          - "Pipeline definition: .github/workflows/application-ci.yml (c4e8d9f, 2026-08-16). Triggers on pull_request with no paths filter and on push to every branch, so a working branch is evidenced before a PR exists."
+          - "Module coverage: the root task line runs build, test, jacocoTestReport and jacocoTestCoverageVerification across all 27 modules declared in settings.gradle.kts (6 libs + 21 services)."
+          - "Run history: 348 recorded runs of the workflow; the 15 most recent all concluded success, the latest against PR #95 at 2026-09-11T13:38Z."
         blockers: []
-        last_verified_at: null
+        # PARTIAL, not MET. The E4 evidence is assembled and it is Amit's declaration to make
+        # (04 section 5). An agent that wrote MET here would be manufacturing a pass.
+        last_verified_at: "2026-09-11"
       - id: "S08-G2"
         description: "Merge to main is impossible without a green pipeline."
         state: OPEN
@@ -250,12 +293,17 @@ workstreams:
         enables: 2
         required_evidence_level: E4
         verifier: human-review
-        evidence: []
+        evidence:
+          - "The four status checks that must be required are named exactly in the application-ci.yml header: \"Java 21 tests and coverage gates\", \"Secret scanning (gitleaks)\", \"SAST (CodeQL, Java)\", \"SCA (Trivy dependency scan)\". The naming work is done."
         blockers: []
-        last_verified_at: null
+        # Stays OPEN on 2026-09-11 and will stay OPEN however green the pipeline gets. Branch
+        # protection on main is a repository-administrator setting, not a file in this repository,
+        # and the criterion also wants a blocked-merge demonstration. A green pipeline is the
+        # mechanism; branch protection is what makes it a gate. R12 cannot evidence either.
+        last_verified_at: "2026-09-11"
       - id: "S08-G3"
         description: "Coverage thresholds enforced in CI; QA-001 closed."
-        state: OPEN
+        state: PARTIAL
         owner: "Swapnali / QA"
         execution_mode: AUTOMATABLE
         priority: P1
@@ -263,12 +311,17 @@ workstreams:
         enables: 1
         required_evidence_level: E4
         verifier: ci
-        evidence: []
+        evidence:
+          - "Enforcement: build.gradle.kts wires jacocoTestCoverageVerification into `check` and CI names the task explicitly, so a future rewiring cannot silently drop the gate."
+          - "Thresholds in force: libs at 80% line / 70% branch; all other services on the QA-002 interim 50% line floor."
         blockers: []
-        last_verified_at: null
+        # PARTIAL: the first clause is evidenced, the second is not. QA-001 is open because the
+        # service floor is interim pending QA-003. Closing this needs a QA decision — raise the
+        # floor, or waive QA-001 with an expiry and a compensating control. Both are Swapnali's.
+        last_verified_at: "2026-09-11"
       - id: "S08-G4"
         description: "ArchUnit and static analysis enforced in CI; build fails on breach."
-        state: OPEN
+        state: PARTIAL
         owner: "Amit / Engineering"
         execution_mode: AUTOMATABLE
         priority: P1
@@ -276,12 +329,16 @@ workstreams:
         enables: 1
         required_evidence_level: E4
         verifier: ci
-        evidence: []
+        evidence:
+          - "ArchUnit breadth: 18 modules carry an architecture test (ServiceArchitectureTest in 17 platform services plus ArchitectureTest in 1sb-integration-service)."
+          - "Rules bite: 1sb-integration-service carries ArchitectureRulesBiteTest, the S08-VT-03 demonstration."
+          - "CI enforcement: the architecture-fitness step fails the run when no ArchUnit result files are found, so the rules cannot silently stop running."
+          - "GAP — static analysis: the root build declares no Checkstyle, PMD, SpotBugs or Spotless. The criterion says \"ArchUnit AND static analysis\"; only the first half has a mechanism."
         blockers: []
-        last_verified_at: null
+        last_verified_at: "2026-09-11"
       - id: "S08-G5"
         description: "Secret, SAST, SCA and container image scanning in the pipeline."
-        state: OPEN
+        state: PARTIAL
         owner: "Deepali / Security"
         execution_mode: AUTOMATABLE
         priority: P1
@@ -289,9 +346,14 @@ workstreams:
         enables: 2
         required_evidence_level: E4
         verifier: ci
-        evidence: []
+        evidence:
+          - "Secret scanning: gitleaks runs on the working tree and blocks the build; a scheduled job scans full git history separately."
+          - "SAST: CodeQL Java analysis runs and fails the build on critical or high findings."
+          - "SCA: Trivy dependency scan fails the build on CRITICAL and HIGH, with a non-blocking full-severity report for the risk register; runtimeClasspath is locked so the scan genuinely covers the Java estate (1e4d69e)."
+          - "Supply chain: an SBOM job runs and fails when it does not cover the Java estate."
+          - "GAP — container image scanning: security-scanning.yml has secret-scan, secret-scan-history, sast, sca and sbom jobs and no image scan, while a root Dockerfile ships a runnable image. Three of four named scanners cannot close a four-scanner criterion."
         blockers: []
-        last_verified_at: null
+        last_verified_at: "2026-09-11"
       - id: "S08-G6"
         description: "Test infrastructure operational at every level: Testcontainers, WireMock, contract and E2E."
         state: OPEN
@@ -302,16 +364,22 @@ workstreams:
         enables: 3
         required_evidence_level: E4
         verifier: ci
-        evidence: []
+        evidence:
+          - "Unit level: present across the estate — 1sb-integration-service carries 54 test files, bank-common-error 11, bank-persistence-service 7."
+          - "Service-virtualisation level: WireMock is declared in one module only (1sb-integration-service), including the QA-012 Life LOB regression suite (eb1dbc0)."
+          - "GAP — integration and contract levels: Testcontainers appears nowhere in the build, so there is no shared harness for database- or broker-backed tests. The 19 scaffolded services carry 2 test files each, which is a skeleton, not a pyramid."
         blockers:
           - id: TD-014
             type: HARD
             owner: "Amit / Engineering"
-            follow_up: "2026-08-30"
-        last_verified_at: null
+            # OVERDUE 12 days. DL2. TD-014 is absorbed by GATE-P4 criterion 4.1 and its unpark
+            # trigger has already fired (recorded in REVIEW-LOG.md on 2026-08-14 and left as a
+            # triage decision). It is now blocking two gates, S08-G6 and 4.1, from one cause.
+            follow_up: "2026-09-18"
+        last_verified_at: "2026-09-11"
       - id: "S08-G7"
         description: "No PII in logs, proven by an automated test that scans emitted logs."
-        state: OPEN
+        state: PARTIAL
         owner: "Deepali / Security"
         execution_mode: AUTOMATABLE
         priority: P1
@@ -319,9 +387,12 @@ workstreams:
         enables: 1
         required_evidence_level: E4
         verifier: ci
-        evidence: []
+        evidence:
+          - "Component proof: NoPiiInErrorOutputTest and ErrorDiagnosticAndRedactionTest in bank-common-error (EPIC-001, ADR-017); PiiMaskerTest in 1sb-integration-service."
+          - "Redaction is centralised: EPIC-001 put one shared error handler and L4 redaction behind every service, which is what makes a single scanning test feasible."
+          - "GAP — S08-VT-06: no test runs the suite and scans all emitted logs for PAN, Aadhaar, phone, email and health patterns. A redaction unit test proves the masker works; it does not prove no code path bypasses it."
         blockers: []
-        last_verified_at: null
+        last_verified_at: "2026-09-11"
       - id: "S08-G8"
         description: "Engineering and secure coding standards published and adopted."
         state: OPEN
@@ -332,9 +403,13 @@ workstreams:
         enables: 0
         required_evidence_level: E2
         verifier: document
-        evidence: []
+        evidence:
+          - "Adjacent documents exist but are not this criterion: ORG-STANDARDS.md is layer-2 organisational policy, and MICROSERVICE-SCAFFOLD-TEMPLATE.md is module structure. Neither is an engineering or secure-coding standard, and neither is referenced by a review checklist."
         blockers: []
-        last_verified_at: null
+        # Stays OPEN. E2 needs the standards documents plus a review checklist that cites them.
+        # Cheapest criterion on the gate and the one with no mechanism started — worth noting that
+        # it blocks nothing, which is exactly why it keeps being skipped.
+        last_verified_at: "2026-09-11"
       - id: "S08-G9"
         description: "Pipeline feedback under 10 minutes at p95; flaky failure rate under 1%."
         state: OPEN
@@ -345,9 +420,13 @@ workstreams:
         enables: 0
         required_evidence_level: E4
         verifier: ci
-        evidence: []
+        evidence:
+          - "Observation only, not a measurement: the 15 most recent Application CI runs all concluded success with wall-clock times of roughly 60-90 seconds each."
+          - "GAP — S08-VT-08 asks for feedback time across >= 20 runs and S08-VT-09 for flake rate across >= 50. Neither measurement is recorded anywhere, so the criterion is unevidenced even though the observed sample is comfortably inside both thresholds."
         blockers: []
-        last_verified_at: null
+        # The observation is an input for Shivanshi, not a closure. An unmeasured criterion is not
+        # a passing one, and 348 runs exist to measure — the data is there, the record is not.
+        last_verified_at: "2026-09-11"
       - id: "S08-G10"
         description: "A new engineer can build, test and ship a change in under a week."
         state: OPEN
@@ -360,5 +439,8 @@ workstreams:
         verifier: human-review
         evidence: []
         blockers: []
-        last_verified_at: null
+        # Stays OPEN: E3 needs an onboarding record and no one has been onboarded against this
+        # build. S08-VT-10 cannot be run retrospectively, so this criterion has a lead time the
+        # others do not — it is worth starting before the rest of the gate is ready, not after.
+        last_verified_at: "2026-09-11"
     approvals: []

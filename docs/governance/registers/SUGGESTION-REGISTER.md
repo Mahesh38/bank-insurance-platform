@@ -92,7 +92,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | SUG-20260827-tpo | 2026-08-27 | human:Mahesh | Platform Topology & LLD Alignment: replace Argo CD with GitLab CI/CD with logo, replace AWS Network Firewall with F5 BIG-IP / Firewall with logo, incorporate Ansible for automated DR drills / sanity testing, and emphasize Terraform IaC baseline | SF1 | SC0 | MUST | ARCH | P1 / P1 | CLOSED-DELIVERED | [r0-platform-topology](../../architecture/r0-platform-topology.svg) · [detail](#sug-20260827-tpo--platform-topology--lld-alignment-gitlab-cicd-f5-big-ip-ansible-terraform) |
 | SUG-20260831-alb | 2026-08-31 | human:Mahesh | Correct two false perimeter assumptions against the existing AU Bank estate: (1) remove the External / public ALB in front of API Gateway; (2) Cloudflare and F5-XC are bank-enterprise SaaS, not AWS services and not in any platform VPC | SF1 | SC1 | MUST | ARCH | P1 / P1 | ADMIT | [ADR-018](../../platform/architecture-review/08-architecture-decision-log.md) · [detail](#sug-20260831-alb--correct-edge-ingress-no-public-alb-cloudflare--f5-xc-are-saas-outside-aws) |
 | SUG-20260831-apg | 2026-08-31 | human:Mahesh | Existing bank estate routes all incoming and outgoing requests through Apigee. Decide whether Amazon API Gateway is still needed, and whether the R0 VPC / IGW / TGW pack must attach to (not duplicate) the existing network account | SF1 | SC1 | MUST | SPIKE | P1 / P1 | ADMIT · draw PARKED | [SPIKE-001](#sug-20260831-apg--apigee-is-the-bank-api-plane--do-not-add-a-second-amazon-api-gateway-until-confirmed) · [PARKED](./PARKED-BACKLOG.md) |
-| SUG-20260903-lif | 2026-09-03 | human:stakeholder | 1SB integration must cover Life LOB (Term + Savings + ULIP); move bank models out of the 1SB app service; replace Map-built JSON with typed models; packaging/SOLID/DRY; document poll/retry stop and circuit breakers — admit with actions, do not park | SF1* | SC4→SC0 | MUST | FUNC | P1 / P1 | ADMIT-BYPASS | [CR-014](../change-requests/CR-014-ws1-life-lob-adapter-standards.md) · [EPIC-002](../../1sb-insurance-integration/service-ssot/work-items/EPIC-002.work-item.yaml) · [detail](#sug-20260903-lif--life-lob-1sb-coverage-and-adapter-standards) |
+| SUG-20260903-lif | 2026-09-03 | human:stakeholder | 1SB integration must cover Life LOB (Term + Savings + ULIP); move bank models out of the 1SB app service; replace Map-built JSON with typed models; packaging/SOLID/DRY; document poll/retry stop and circuit breakers — admit with actions, do not park | SF1* | SC4→SC0 | MUST | FUNC | P1 / P1 | ADMIT-BYPASS | [CR-014](../change-requests/CR-014-ws1-life-lob-adapter-standards.md) · [EPIC-002](../../1sb-insurance-integration/service-ssot/work-items/EPIC-002.work-item.yaml) · [detail](#sug-20260903-lif--life-lob-1sb-coverage-and-adapter-standards) · recurrence_count 2 (2026-09-11: restated Term+Savings+ULIP; adapter already delivered — not a new row) |
 
 <!--
 Row format:
@@ -687,7 +687,22 @@ outcome:
   status: ADMIT-BYPASS
   closed_reason: null
 
-resumed: "EPIC-002 implementation"
+resumed: "GATE-P4 Term UAT hardening (EPIC-002 stories already DONE)"
+
+recurrence_count: 2
+recurrence_20260911: >
+  human restated "we need term, savings and ulip all for life insurance" and cited
+  stale findings (QuoteService TERM-only; no Saving quote/proposal handlers; no
+  Saving contracts). Rule CS-2: not a new row. FreshnessCheck 2026-09-11 exit 2
+  HALT (CS-1) — cannot admit new work. Checkout already has FUNC-015 / FUNC-019 /
+  QA-012: QuoteService admits TERM/SAVING/ULIP; SavingQuoteHandler,
+  SavingProposalHandler, UlipQuoteHandler, UlipProposalHandler registered;
+  LifeLobRegressionIT green. Remaining non-adapter items stay parked: WS-3 R0
+  catalogue/journey for Savings/ULIP (SUG-20260821-jx2 / SUG-20260907-fig,
+  revisit R1); Saving gate-criteria has no Java handler for any LOB including
+  Term; ULIP fund list/performance ports not wired; CR-014 human T4 outstanding.
+  Stale API-ALIGNMENT "proposal handlers still TODO" corrected in the same
+  change so the false gap is not re-reported.
 ```
 
 ### SUG-20260904-uis · File universal suitability research specification

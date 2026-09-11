@@ -356,4 +356,61 @@ class OneSbQuoteAdapterTest {
         assertThat(offers).hasSize(1);
         assertThat(offers.getFirst().premiumAmount()).isNull();
     }
+
+    @Test
+    void parseOffers_nestedInsuranceAndProducts_mapped() {
+        List<QuoteOffer> offers = adapter.parseOffers("""
+                {
+                  "data": {
+                    "isPollComplete": true,
+                    "quote": [{
+                      "insuranceAndProducts": [{
+                        "insuranceCompanyCode": "BALIC",
+                        "insuranceCompanyName": "Bajaj Life",
+                        "productCode": "301",
+                        "productName": "Bajaj Life Future Wealth Gain IV",
+                        "freq": "M",
+                        "productDetails": {
+                          "premium": { "amount": 8500 }
+                        }
+                      }]
+                    }]
+                  }
+                }
+                """);
+
+        assertThat(offers).hasSize(1);
+        QuoteOffer offer = offers.getFirst();
+        assertThat(offer.insurerCode()).isEqualTo("BALIC");
+        assertThat(offer.productCode()).isEqualTo("301");
+        assertThat(offer.productName()).isEqualTo("Bajaj Life Future Wealth Gain IV");
+        assertThat(offer.premiumAmount()).isEqualByComparingTo("8500");
+        assertThat(offer.premiumFrequency()).isEqualTo("M");
+    }
+
+    @Test
+    void parseOffers_listOfErrors_mapped() {
+        List<QuoteOffer> offers = adapter.parseOffers("""
+                {
+                  "data": {
+                    "errors": [{
+                      "productId": "100",
+                      "manufacturerId": "MAXLIFE",
+                      "insuranceCompanyName": "Max Life Insurance",
+                      "productName": "Online Savings Plan",
+                      "listOfErrors": [{
+                        "errorMessage": "non jsonable error response from insurer.",
+                        "errorCode": "INSGW_MANUFACTURER_ERROR"
+                      }]
+                    }]
+                  }
+                }
+                """);
+
+        assertThat(offers).hasSize(1);
+        assertThat(offers.getFirst().insurerCode()).isEqualTo("MAXLIFE");
+        assertThat(offers.getFirst().productCode()).isEqualTo("100");
+        assertThat(offers.getFirst().errorSummary()).contains("non jsonable");
+        assertThat(offers.getFirst().offerStatus()).isEqualTo("ERROR");
+    }
 }

@@ -42,7 +42,7 @@ Saving quote schema requires `productType` and `savingsProductType[]` ∈ {`nonP
 
 ## Code changes applied
 
-- `SavingQuoteHandler` → `lifesave` + `LifeSave` + default `nonParticipating`
+- `SavingQuoteHandler` → `lifesave` + `LifeSave` + default `ULIP` (demo catalog is ULIP-only; `agentId` required)
 - `UlipQuoteHandler` → `lifesave` + `LifeSave` + `ULIP` filter (no `lifeulip` path)
 - `LifeQuoteRequest.Product` → `productType` + `savingsProductType`
 - `TermProposalHandler` → schema GET `/proposal` with `productId` query param

@@ -33,10 +33,17 @@ Same envelope as [savings-quote.md](./savings-quote.md). Handler sets:
 | ULIP list | Applicable funds for plan / allocation UX |
 | ULIP performance | Fund performance data for disclosure |
 
-Wire those as separate outbound ports when the journey needs fund pickers — do not invent a second quote base path.
+Do **not** invent a second quote base path or a second LOB handler for 1SB. Bank `lob=ULIP` still routes through `UlipQuoteHandler`, which is the same Saving quote call with the ULIP filter.
+
+Live demo notes (2026-09-11):
+
+- `POST /insurance/lifesave/v1/quote/ulipList` returns an ALB stub (`{"status":" returned from ALB (AWS) "}`), not a fund list.
+- Guessed `/ulip/list` and `/ulip/performance` paths 404 on demo.
+- Funds **do** appear on the Saving quote poll under `productDetails.planOption.investmentOptions.fundDetails`.
 
 ## Mapping notes
 
-- Handler: `UlipQuoteHandler` shares `/insurance/lifesave/v1/…` with Savings
+- Handler: `UlipQuoteHandler` shares `/insurance/lifesave/v1/…` with Savings — no `/lifeulip` prefix
 - Typed body: `LifeQuoteRequest` with ULIP filter
+- Distributor: serialise `agentId` (Saving schema); `agentID` alone fails product matching
 - Proposal path family: Saving proposal endpoints (portal `submit-saving-proposal-form-…`)

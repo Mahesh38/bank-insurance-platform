@@ -49,6 +49,25 @@ class SavingQuoteHandlerTest {
         assertThat(handler.pollPath("R1")).isEqualTo("/insurance/lifesave/v1/quote/poll/R1");
         assertThat(payload.product().productType()).isEqualTo("LifeSave");
         assertThat(payload.distributor().distributorID()).isEqualTo("TEST_DIST");
-        assertThat(payload.product().savingsProductType()).containsExactly("nonParticipating");
+        assertThat(payload.product().savingsProductType()).containsExactly("ULIP");
+        assertThat(payload.distributor().salesChannel()).isEqualTo("Online");
+    }
+
+    @Test
+    void premiumCategory_usesPremiumAmountAsQuoteAmount() {
+        CreateQuoteCommand command = new CreateQuoteCommand(
+                Lob.SAVING, "MULTI", "PREMIUM", new BigDecimal("5000000"), new BigDecimal("100000"),
+                List.of(new CreateQuoteCommand.MemberDetail(
+                        "LIFE_ASSURED", 1, "1985-06-01", "F", false,
+                        new BigDecimal("900000"), "560001")),
+                null,
+                new CreateQuoteCommand.DistributionContext(null, "A1", "B2B"),
+                "j-s", null, "idem", "actor"
+        );
+
+        LifeQuoteRequest payload = handler.buildSubmitPayload(command);
+        assertThat(payload.quoteCategory()).isEqualTo("Premium");
+        assertThat(payload.personalInformation().individualDetails().getFirst().quoteAmount())
+                .isEqualByComparingTo("100000");
     }
 }

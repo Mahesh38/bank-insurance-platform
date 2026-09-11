@@ -72,6 +72,7 @@ class ProposalSubmitIT {
     static void bindWireMockBaseUrls(DynamicPropertyRegistry registry) {
         registry.add("onesb.client.base-url", ONESB::baseUrl);
         registry.add("bank.persistence.base-url", PERSISTENCE::baseUrl);
+        registry.add("onesb.distributor-id", () -> "TEST_DIST");
         registry.add("onesb.poll.base-delay-ms", () -> "1");
         registry.add("onesb.poll.max-delay-ms", () -> "5");
         registry.add("onesb.poll.max-attempts", () -> "3");

@@ -1,6 +1,8 @@
 package com.bank.insurance.onesb.lob.life.payload;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -11,6 +13,8 @@ import java.util.List;
  * Portal alignment ({@code insurance-gateway-api} / retail LOB pages):
  * request {@code product.productType} is {@code LifeTerm} or {@code LifeSave};
  * Savings/ULIP filter via {@code product.savingsProductType} ({@code nonParticipating}|{@code Participating}|{@code ULIP}).
+ * Saving docs require distributor {@code agentId} (camelCase {@code d}); Term still accepts
+ * {@code agentID}. Both names are serialised so one payload works on every Life path.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record LifeQuoteRequest(
@@ -26,8 +30,24 @@ public record LifeQuoteRequest(
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record AdditionalSetup(String currency, String userCountry) {}
 
+    /**
+     * 1SB distributor block. Saving Get-quote schema names the agent field {@code agentId};
+     * Term fixtures historically used {@code agentID}. Live demo (2026-09-11): Saving
+     * Multi-Quote with only {@code agentID} returns {@code INSGW_NO_VALID_PRODUCT_FOUND};
+     * {@code agentId} succeeds. Term accepts {@code agentId} alone.
+     */
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    public record Distributor(String distributorID, String agentID, String channelType) {}
+    public record Distributor(
+            String distributorID,
+            @JsonProperty("agentId") String agentID,
+            String channelType,
+            String salesChannel
+    ) {
+        @JsonGetter("agentID")
+        public String agentIDAlias() {
+            return agentID;
+        }
+    }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record PersonalInformation(List<IndividualDetail> individualDetails) {}

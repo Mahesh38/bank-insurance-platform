@@ -39,6 +39,18 @@ Real work, wrong stage. Each returns to **full re-triage** at its trigger — ne
 > should promote it into the Phase 4 backlog alongside criterion 4.1, or re-park it with a
 > reason.
 
+> **2026-09-11 — unpark requested, not completed.** Human intake: WS-3 Savings/ULIP journey
+> sales must not stay parked (`SUG-20260911-uls`). That is a Product increment change and
+> needs [`CR-015`](../change-requests/CR-015-ws3-r0-savings-ulip-journey.md) (PO + Architect).
+> FreshnessCheck HALT (CS-1) forbids ADMIT. Per [08 §5](../08-BACKLOG_RULES.md#5-unparking)
+> this is a re-triage request, never an auto-admit. Rows below are **not deleted**:
+>
+> - `SUG-20260821-jx2` — ULIP/Savings JES slice proposed for split into CR-015; DIY / hybrid /
+>   Group B / Health-Motor-Travel / renewals stay in this parked bag.
+> - `SUG-20260907-fig` — Savings/ULIP picker proposed for split into CR-015; Health picker,
+>   ULIP-leads inbox tab, and meeting scheduler stay parked.
+> - `SUG-20260904-eng` — **unchanged.** The 7-layer / 206-product engine is not the R0 matrix.
+
 > **2026-08-24 — what the R0 robustness round did and did not unpark.** `CR-012` admitted a
 > platform cache tier (`ADR-011`) and an event backbone (`ADR-012`) into WS-3's R0 estate. Neither
 > unparks a row above, and the distinction matters because it is the obvious mistake to make:

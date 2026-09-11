@@ -555,10 +555,10 @@ id_allocation:
     # CR-011 existed as a file from 2026-08-20 without a register row, so the counter read 11
     # while CR-011 was in use; it is now indexed in the decision register and the counter clears
     # both it and CR-012.
-    CR: 15        # CR-001..014 in use (014 = WS-1 Life LOB adapter standards, SUG-20260903-lif); next unused is 15
+    CR: 16        # CR-001..015 in use (015 = WS-3 R0 Savings/ULIP journey, SUG-20260911-uls, CANDIDATE not transcribed); next unused is 16
     RISK: 16      # RISK-001..015 in use (012..015 added by CR-012)
     ASM: 14       # ASM-001..013 in use (013 = Apigee as bank in/out API plane, SUG-20260831-apg). ID-allocation only.
-    EPIC: 4       # EPIC-001..003 in use (003 = NIP BFF lead landing/create contract, SUG-20260907-ldc). ID-allocation only.
+    EPIC: 5       # EPIC-001..003 in use; 004 reserved by CR-015 CANDIDATE (SUG-20260911-uls), not minted. Next unused is 5. ID-allocation only.
     SPIKE: 2       # SPIKE-001 in use (Apigee vs Amazon API Gateway, SUG-20260831-apg). ID-allocation only.
     # ADR-001..003 were written into architecture-review/08 under CR-010 while this counter still
     # read 1; that file carries a standing note asking for the advance. ADR-004..007 were added by

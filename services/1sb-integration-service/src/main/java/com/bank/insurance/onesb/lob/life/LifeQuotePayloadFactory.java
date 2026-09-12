@@ -4,6 +4,7 @@ import com.bank.common.secrets.SecretProvider;
 import com.bank.insurance.onesb.domain.command.CreateQuoteCommand;
 import com.bank.insurance.onesb.lob.life.payload.LifeQuoteRequest;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,6 +23,8 @@ public final class LifeQuotePayloadFactory {
         List<LifeQuoteRequest.IndividualDetail> individuals = new ArrayList<>();
         List<CreateQuoteCommand.MemberDetail> members =
                 command.members() != null ? command.members() : List.of();
+        String quoteCategory = resolveQuoteCategory(command);
+        BigDecimal quoteAmount = resolveQuoteAmount(command, quoteCategory);
         int seq = 1;
         for (CreateQuoteCommand.MemberDetail member : members) {
             individuals.add(new LifeQuoteRequest.IndividualDetail(
@@ -32,25 +35,43 @@ public final class LifeQuotePayloadFactory {
                     member.tobacco() ? "Yes" : "No",
                     member.annualIncome(),
                     blankToNull(member.pincode()),
-                    command.sumAssured()
+                    quoteAmount
             ));
             seq++;
         }
-
         return new LifeQuoteRequest(
                 "Multi-Quote",
-                "Sum Assured",
+                quoteCategory,
                 "withoutBI",
                 "Yes",
                 new LifeQuoteRequest.AdditionalSetup("INR", "IN"),
                 new LifeQuoteRequest.Distributor(
                         secrets.getDistributorId(),
                         resolveAgentId(command),
-                        resolveChannelType(command)
+                        resolveChannelType(command),
+                        "Online"
                 ),
                 new LifeQuoteRequest.PersonalInformation(List.copyOf(individuals)),
                 product
         );
+    }
+
+    private static String resolveQuoteCategory(CreateQuoteCommand command) {
+        if (command.category() == null || command.category().isBlank()) {
+            return "Sum Assured";
+        }
+        return switch (command.category().trim().toUpperCase().replace(' ', '_')) {
+            case "PREMIUM" -> "Premium";
+            case "INCOME" -> "Income";
+            default -> "Sum Assured";
+        };
+    }
+
+    private static BigDecimal resolveQuoteAmount(CreateQuoteCommand command, String quoteCategory) {
+        if ("Premium".equals(quoteCategory) && command.premiumAmount() != null) {
+            return command.premiumAmount();
+        }
+        return command.sumAssured();
     }
 
     private static String resolveAgentId(CreateQuoteCommand command) {

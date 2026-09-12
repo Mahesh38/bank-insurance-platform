@@ -48,13 +48,14 @@ Source: [`business-problem-statement.md §3`](../../context/business-problem-sta
 
 WS-3 exists to deliver **R0**, and R0 is one sentence:
 
-> **One RM sells one Term Life policy to one ETB customer from one Group A insurer, end to end,
-> through a real interface, with consent and suitability evidence, payment on the customer's own
-> device, an issued and reconciled policy, and a complete audit trail.**
+> **One RM sells a complete Life insurance policy — Term or Savings/ULIP — to one ETB customer
+> from one Group A insurer, end to end, through a real interface, with consent and suitability
+> evidence, payment on the customer's own device, an issued and reconciled policy, and a complete
+> audit trail.** (`R0-ASSISTED-LIFE-SALE`, CR-015.)
 
 R0 is deliberately narrower than the requirement baseline
-([`R0-SCOPE.md`](../../au-bank-insurance-platform/requirements/R0-SCOPE.md) v0.3 carries RM +
-self-service + hybrid from Day 1). **Product direction is now assisted-first**, per
+([`R0-SCOPE.md`](../../au-bank-insurance-platform/requirements/R0-SCOPE.md) v0.4 carries RM +
+self-service + hybrid from Day 1; the **current increment** is assisted Life only). **Product direction is now assisted-first**, per
 [S04 §6](../../application-lifecycle-bible/stages/S04-product-definition.md#6-current-position-in-this-repository---partial):
 DIY follows the proven assisted journey; hybrid follows stable assisted *and* DIY paths. DIY and
 hybrid are not removed from the product — they are sequenced behind a journey that has been
@@ -77,7 +78,7 @@ applies: a policy can be sold using only R0, by a real RM.
 | 3 | Suitability & need analysis (#7) including the quote hard-gate, per [suitability rule pack](../../au-bank-insurance-platform/rule-packs/suitability-rule-pack.md) | Bypassing suitability before quote is illegal on our own baseline |
 | 4 | Lead service (#5) — create, resume, status, convert, archive | Entry point; working inbox, not the 7-year bag |
 | 5 | Customer service (#4), thin — CBS/CIF lookup and prefill for ETB | ETB-only segment makes this the identity path |
-| 6 | Product catalogue (#8), R0 matrix only — Life, Group A, Term | Quote needs an eligible-product answer |
+| 6 | Product catalogue (#8), R0 matrix — Life, Group A, Term + Savings + ULIP | Quote needs an eligible-product answer; CR-015 pulled Savings/ULIP into the assisted increment |
 | 7 | Journey orchestration (#9), R0 state machine only | Holds the gate sequence together |
 | 8 | Quotation (#10) via the existing 1SB path | Already largely built in WS-1 |
 | 9 | Proposal & UW tracking (#11), thin | Required to reach issuance |
@@ -105,7 +106,6 @@ scope-fit triage consults for the rest of the programme's life
 | Customer self-service (DIY) journey | R1 — after the assisted journey completes a real sale in pilot |
 | Hybrid journey and assisted↔DIY mode switching | R2 — after assisted and DIY both have stable state and hand-off contracts |
 | Group B insurers: catalogue entry + controlled redirect | R1 |
-| ULIP and Savings/Endowment product classes | R1 — suitability model already covers them ([pack §4.3–4.4](../../au-bank-insurance-platform/rule-packs/suitability-rule-pack.md#43-savings--endowment)) |
 | Customer BFF (#1) and the customer-facing Flutter surface | R1, with DIY |
 | Notification service (#17) beyond OTP and payment-link delivery | R1 |
 | Lead campaign and bulk origination (not single-RM create, not MIS policy ingest) | R1 |
@@ -281,12 +281,12 @@ Mirrors the WS-1 and WS-2 shape exactly. Insert after the WS-2 block.
       next_stage: "S09 — Platform & Environment Foundation"
 
     current_objective:
-      id: R0-ASSISTED-TERM-SALE
+      id: R0-ASSISTED-LIFE-SALE
       description: >
-        One RM sells one Term Life policy to one ETB customer from one Group A insurer,
-        end to end, through a real interface, with consent and suitability evidence,
-        payment on the customer's own device, an issued and reconciled policy, and a
-        complete audit trail.
+        One RM sells a complete Life insurance policy — Term or Savings/ULIP — to one
+        ETB customer from one Group A insurer, end to end, through a real interface,
+        with consent and suitability evidence, payment on the customer's own device,
+        an issued and reconciled policy, and a complete audit trail.
 
     current_deliverable:
       description: >
@@ -303,7 +303,7 @@ Mirrors the WS-1 and WS-2 shape exactly. Insert after the WS-2 block.
         - "Suitability and need analysis (context #7) including the quote hard-gate"
         - "Lead service (context #5) — create, resume, status, convert, archive (working inbox; attribution fields retained)"
         - "Customer service (context #4) — CBS/CIF lookup and prefill for ETB"
-        - "Product catalogue (context #8) — R0 matrix only: Life, Group A, Term"
+        - "Product catalogue (context #8) — R0 matrix: Life, Group A, Term + Savings + ULIP"
         - "Journey orchestration (context #9) — R0 state machine"
         - "Quotation (context #10) via the existing 1SB path"
         - "Proposal and UW tracking (context #11), thin"
@@ -324,8 +324,6 @@ Mirrors the WS-1 and WS-2 shape exactly. Insert after the WS-2 block.
         - item: "Hybrid journey and assisted/DIY mode switching"
           revisit_at: "R2 — after assisted and DIY both have stable state and hand-off contracts"
         - item: "Group B insurers: catalogue entry and controlled redirect"
-          revisit_at: "R1"
-        - item: "ULIP and Savings/Endowment product classes"
           revisit_at: "R1"
         - item: "Customer BFF (context #1) and the customer-facing Flutter surface"
           revisit_at: "R1, with DIY"

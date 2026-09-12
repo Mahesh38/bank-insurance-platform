@@ -18,12 +18,13 @@ subprojects {
     // Import the Spring Boot BOM for all subprojects (libs + service).
     // This lets lib modules declare compileOnly("org.slf4j:slf4j-api") etc.
     // without pinning versions — versions come from the BOM.
-    // Spring Boot 3.5.16 pins Netty 4.1.135.Final, which is still exposed to
-    // CVE-2026-59901 (fixed in 4.1.136.Final). Overriding the BOM property is a
-    // single patch bump inside the same minor line, and it is the only override
-    // here — every other flagged package is fixed by the BOM itself.
-    // Remove this once a Spring Boot release pins 4.1.136.Final or later.
-    extra["netty.version"] = "4.1.136.Final"
+    // Spring Boot 3.5.16 pins Netty 4.1.135.Final. 4.1.136.Final closed
+    // CVE-2026-59901; Trivy 2026-09-12 flags CVE-2026-75595 on netty-handler
+    // 4.1.136.Final (fixed in 4.1.137.Final). Overriding the BOM property is a
+    // single patch bump inside the same minor line, and it is the only Netty
+    // override here — every other flagged package is fixed by the BOM itself.
+    // Remove this once a Spring Boot release pins 4.1.137.Final or later.
+    extra["netty.version"] = "4.1.137.Final"
 
     // Same pattern: 3.5.16 pins PostgreSQL 42.7.11, exposed to CVE-2026-54291
     // (fixed in 42.7.12). Remove once a Spring Boot release pins 42.7.12 or later.

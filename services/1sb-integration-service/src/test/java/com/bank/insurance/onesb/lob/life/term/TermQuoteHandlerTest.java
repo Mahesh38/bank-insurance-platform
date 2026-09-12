@@ -57,6 +57,7 @@ class TermQuoteHandlerTest {
         assertThat(payload.distributor().distributorID()).isEqualTo("TEST_DIST");
         assertThat(payload.distributor().agentID()).isEqualTo("109337");
         assertThat(payload.distributor().channelType()).isEqualTo("B2B");
+        assertThat(payload.distributor().salesChannel()).isEqualTo("Online");
         assertThat(payload.personalInformation().individualDetails()).hasSize(1);
         LifeQuoteRequest.IndividualDetail member = payload.personalInformation().individualDetails().getFirst();
         assertThat(member.dateOfBirth()).isEqualTo("1990-01-15");

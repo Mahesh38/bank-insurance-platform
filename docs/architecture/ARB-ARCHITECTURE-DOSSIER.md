@@ -30,8 +30,8 @@ AU Small Finance Bank holds an IRDAI Composite Corporate Agency Licence (`CA0515
 ### 2. The Core Architecture Mission
 The AU Bank Insurance Distribution Platform (National Insurance Platform - NIP) establishes a **bank-owned, evidence-bearing, multi-carrier distribution engine**. 
 
-> **The R0 Objective (`R0-ASSISTED-TERM-SALE`):**  
-> Enable one Relationship Manager (RM) — acting as a certified Specified Person (SP) — to sell one Term Life policy to one Existing-to-Bank (ETB) customer across Group A insurers end-to-end through a unified Flutter interface, with automated suitability evaluation, customer-device OTP consent, customer-device payment execution, reconciled issuance, and immutable audit logging.
+> **The R0 Objective (`R0-ASSISTED-LIFE-SALE`):**  
+> Enable one Relationship Manager (RM) — acting as a certified Specified Person (SP) — to sell a complete Life policy (Term or Savings/ULIP) to one Existing-to-Bank (ETB) customer across Group A insurers end-to-end through a unified Flutter interface, with automated suitability evaluation, customer-device OTP consent, customer-device payment execution, reconciled issuance, and immutable audit logging. (CR-015 CANDIDATE transcribed 2026-09-12; HUMAN T4 outstanding.)
 
 ### 3. Key Architectural Tenets Defended at ARB
 1. **Capability before Service, Ownership before Deployment:** Every service owns one bounded context write-model. No cross-service database access.

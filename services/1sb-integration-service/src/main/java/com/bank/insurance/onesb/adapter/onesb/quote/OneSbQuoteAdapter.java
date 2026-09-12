@@ -72,7 +72,15 @@ public class OneSbQuoteAdapter implements OneSbQuotePort {
     @Override
     public boolean isPollComplete(String jobId, String externalReqId, String lob) {
         String body = httpClient.get(pollPath(lob, externalReqId), String.class);
-        return parseComplete(body) || !parseOffers(body).isEmpty();
+        Boolean flag = completeFlag(body);
+        if (flag != null) {
+            return flag;
+        }
+        return hasAvailableOffer(body);
+    }
+
+    private boolean hasAvailableOffer(String body) {
+        return parseOffers(body).stream().anyMatch(o -> o.errorSummary() == null);
     }
 
     private String pollPath(String lob, String externalReqId) {
@@ -106,9 +114,9 @@ public class OneSbQuoteAdapter implements OneSbQuotePort {
         return reqId.toString();
     }
 
-    private boolean parseComplete(String body) {
+    private Boolean completeFlag(String body) {
         if (body == null || body.isBlank()) {
-            return false;
+            return null;
         }
         try {
             JsonNode root = objectMapper.readTree(body);
@@ -116,15 +124,18 @@ public class OneSbQuoteAdapter implements OneSbQuotePort {
             if (flag.isMissingNode() || flag.isNull()) {
                 flag = root.path("isPollComplete");
             }
+            if (flag.isMissingNode() || flag.isNull()) {
+                return null;
+            }
             if (flag.isBoolean()) {
                 return flag.booleanValue();
             }
-            if (flag.isTextual()) {
+            if (flag.isTextual() && !flag.asText().isBlank()) {
                 return Boolean.parseBoolean(flag.asText());
             }
-            return false;
+            return null;
         } catch (Exception e) {
-            return false;
+            return null;
         }
     }
 
@@ -137,20 +148,13 @@ public class OneSbQuoteAdapter implements OneSbQuotePort {
             JsonNode data = root.path("data");
             List<QuoteOffer> offers = new ArrayList<>();
 
-            JsonNode quoteNode = data.path("quote");
-            if (quoteNode.isArray()) {
-                for (JsonNode q : quoteNode) {
-                    offers.add(mapOffer(q));
-                }
-            } else if (quoteNode.isObject() && !quoteNode.isEmpty()) {
-                offers.add(mapOffer(quoteNode));
-            }
-
-            JsonNode products = data.path("products");
-            if (products.isArray()) {
-                for (JsonNode p : products) {
-                    offers.add(mapOffer(p));
-                }
+            collectOfferNodes(offers, data.path("quote"));
+            collectOfferNodes(offers, data.path("products"));
+            collectOfferNodes(offers, data.path("insuranceAndProducts"));
+            JsonNode quoteResponse = data.path("quoteResponse");
+            if (quoteResponse.isObject() && !quoteResponse.isEmpty()) {
+                collectOfferNodes(offers, quoteResponse.path("quote"));
+                collectOfferNodes(offers, quoteResponse.path("insuranceAndProducts"));
             }
 
             // Per-manufacturer errors with no product payload → offer-shaped failure rows
@@ -160,8 +164,9 @@ public class OneSbQuoteAdapter implements OneSbQuotePort {
             }
             if (errors.isArray()) {
                 for (JsonNode err : errors) {
-                    String insurer = text(err, "manufacturerId", "insurerCode", "code");
-                    String message = text(err, "message", "errorMessage", "detail");
+                    String insurer = text(err, "manufacturerId", "insurerCode", "code",
+                            "insuranceCompanyCode");
+                    String message = errorMessage(err);
                     if (message == null || message.isBlank()) {
                         continue;
                     }
@@ -172,8 +177,8 @@ public class OneSbQuoteAdapter implements OneSbQuotePort {
                         offers.add(new QuoteOffer(
                                 null,
                                 insurer,
-                                text(err, "manufacturerName", "insurerName"),
-                                text(err, "productCode"),
+                                text(err, "manufacturerName", "insurerName", "insuranceCompanyName"),
+                                text(err, "productCode", "productId"),
                                 text(err, "productName"),
                                 null,
                                 null,
@@ -187,8 +192,8 @@ public class OneSbQuoteAdapter implements OneSbQuotePort {
                         offers.add(new QuoteOffer(
                                 null,
                                 insurer,
-                                text(err, "manufacturerName", "insurerName"),
-                                text(err, "productCode"),
+                                text(err, "manufacturerName", "insurerName", "insuranceCompanyName"),
+                                text(err, "productCode", "productId"),
                                 text(err, "productName"),
                                 null,
                                 null,
@@ -206,41 +211,160 @@ public class OneSbQuoteAdapter implements OneSbQuotePort {
         }
     }
 
-    private QuoteOffer mapOffer(JsonNode node) {
-        String errorSummary = text(node, "errorSummary", "errorMessage", "error");
+    private void collectOfferNodes(List<QuoteOffer> offers, JsonNode node) {
+        if (node == null || node.isMissingNode() || node.isNull()) {
+            return;
+        }
+        if (node.isArray()) {
+            for (JsonNode item : node) {
+                expandOfferNode(offers, item);
+            }
+            return;
+        }
+        if (node.isObject() && !node.isEmpty()) {
+            expandOfferNode(offers, node);
+        }
+    }
+
+    private void expandOfferNode(List<QuoteOffer> offers, JsonNode node) {
+        JsonNode nestedIap = node.path("insuranceAndProducts");
+        if (nestedIap.isArray() && !nestedIap.isEmpty()) {
+            for (JsonNode iap : nestedIap) {
+                expandProductDetails(offers, iap, node);
+            }
+            return;
+        }
+        if (nestedIap.isObject() && !nestedIap.isEmpty()) {
+            expandProductDetails(offers, nestedIap, node);
+            return;
+        }
+        JsonNode productDetails = node.path("productDetails");
+        if (productDetails.isArray() && !productDetails.isEmpty()) {
+            for (JsonNode pd : productDetails) {
+                offers.add(mapOffer(pd, node));
+            }
+            return;
+        }
+        offers.add(mapOffer(node, null));
+    }
+
+    private void expandProductDetails(List<QuoteOffer> offers, JsonNode companyOrProduct, JsonNode parent) {
+        JsonNode productDetails = companyOrProduct.path("productDetails");
+        if (productDetails.isArray() && !productDetails.isEmpty()) {
+            for (JsonNode pd : productDetails) {
+                offers.add(mapOffer(pd, companyOrProduct));
+            }
+            return;
+        }
+        if (productDetails.isObject() && !productDetails.isEmpty()) {
+            offers.add(mapOffer(productDetails, companyOrProduct));
+            return;
+        }
+        offers.add(mapOffer(companyOrProduct, parent));
+    }
+
+    private QuoteOffer mapOffer(JsonNode node, JsonNode parent) {
+        String errorSummary = firstText(node, parent, "errorSummary", "errorMessage", "error");
         JsonNode errArr = node.path("errors");
         if ((errorSummary == null || errorSummary.isBlank()) && errArr.isArray() && !errArr.isEmpty()) {
             errorSummary = text(errArr.get(0), "message", "errorMessage", "detail");
         }
 
-        BigDecimal premium = decimal(node, "premiumAmount", "premium", "totalPremium");
-        if (premium == null && node.path("premium").isObject()) {
-            premium = decimal(node.path("premium"), "amount", "premiumAmount");
+        BigDecimal premium = firstDecimal(node, parent,
+                "premiumAmount", "premium", "totalPremium", "modalPremium", "installmentPremium");
+        if (premium == null) {
+            premium = nestedPremium(node);
+        }
+        if (premium == null && parent != null) {
+            premium = nestedPremium(parent);
         }
 
-        BigDecimal sumAssured = decimal(node, "sumAssured", "sum_assured", "quoteAmount");
+        BigDecimal sumAssured = firstDecimal(node, parent, "sumAssured", "sum_assured", "quoteAmount");
         boolean oob = node.path("outOfBound").asBoolean(false)
-                || "Yes".equalsIgnoreCase(text(node, "outOfBound"));
+                || (parent != null && parent.path("outOfBound").asBoolean(false))
+                || "Yes".equalsIgnoreCase(firstText(node, parent, "outOfBound"));
 
         String offerStatus = errorSummary != null && !errorSummary.isBlank() ? "ERROR" : "AVAILABLE";
-        String statusField = text(node, "offerStatus", "status");
+        String statusField = firstText(node, parent, "offerStatus", "status");
         if (statusField != null) {
             offerStatus = statusField;
         }
 
+        String freq = firstText(node, parent, "premiumFrequency", "frequency", "premiumPaymentFrequency", "freq");
+        if (freq == null && parent != null) {
+            freq = text(parent.path("productDetails"), "premiumPaymentFrequency", "freq", "frequency");
+        }
+
         return new QuoteOffer(
-                text(node, "offerId", "quoteId", "id"),
-                text(node, "insurerCode", "manufacturerId", "manufacturerCode"),
-                text(node, "insurerName", "manufacturerName"),
-                text(node, "productCode", "productId"),
-                text(node, "productName", "product"),
+                firstText(node, parent, "offerId", "quoteId", "id"),
+                firstText(node, parent, "insurerCode", "manufacturerId", "manufacturerCode",
+                        "insuranceCompanyCode"),
+                firstText(node, parent, "insurerName", "manufacturerName", "insuranceCompanyName"),
+                firstText(node, parent, "productCode", "productId"),
+                firstText(node, parent, "productName", "product"),
                 premium,
-                text(node, "premiumFrequency", "frequency", "premiumPaymentFrequency"),
+                freq,
                 sumAssured,
                 oob,
                 offerStatus,
                 errorSummary
         );
+    }
+
+    private static BigDecimal nestedPremium(JsonNode node) {
+        if (node == null) {
+            return null;
+        }
+        if (node.path("premium").isObject()) {
+            BigDecimal nested = decimal(node.path("premium"), "amount", "premiumAmount",
+                    "modalPremium", "installmentPremium");
+            if (nested != null) {
+                return nested;
+            }
+        }
+        JsonNode individuals = node.path("individualDetails");
+        if (individuals.isArray()) {
+            for (JsonNode ind : individuals) {
+                JsonNode details = ind.path("premiumDetails");
+                if (details.isArray()) {
+                    for (JsonNode pd : details) {
+                        BigDecimal value = decimal(pd, "totalPremiumValue", "premiumValue", "amount");
+                        if (value != null) {
+                            return value;
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    private static String errorMessage(JsonNode err) {
+        String message = text(err, "message", "errorMessage", "detail", "errorDisplayMessage");
+        if (message != null && !message.isBlank()) {
+            return message;
+        }
+        JsonNode list = err.path("listOfErrors");
+        if (list.isArray() && !list.isEmpty()) {
+            return text(list.get(0), "message", "errorMessage", "errorDisplayMessage", "detail");
+        }
+        return null;
+    }
+
+    private static String firstText(JsonNode node, JsonNode parent, String... fields) {
+        String value = text(node, fields);
+        if (value != null) {
+            return value;
+        }
+        return text(parent, fields);
+    }
+
+    private static BigDecimal firstDecimal(JsonNode node, JsonNode parent, String... fields) {
+        BigDecimal value = decimal(node, fields);
+        if (value != null) {
+            return value;
+        }
+        return decimal(parent, fields);
     }
 
     private static String text(JsonNode node, String... fields) {

@@ -34,7 +34,7 @@ not_included:
   - "Health LOB handlers (FUNC-012 / Phase 5)"
   - "Motor LOB handlers (FUNC-013 / Phase 5)"
   - "Annuity / Pension LOB handlers (remain E12)"
-  - "WS-3 R0 product catalogue or RM journey for Savings/ULIP sales (stay R1)"
+  - "WS-3 R0 product catalogue or RM journey for Savings/ULIP sales — admitted by CR-015 / EPIC-004 (CANDIDATE transcribed 2026-09-12; HUMAN T4 outstanding)"
   - "Redis multi-instance idempotency (NFR-005 / TD-010)"
   - "FUNC-008 payment intimation"
   - "Kafka / event backbone"

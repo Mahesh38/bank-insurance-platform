@@ -1,7 +1,9 @@
 package com.bank.insurance.onesb.lob.life.payload;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -74,5 +76,15 @@ public final class LifeProposalSubmitBody {
     }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    public record Distributor(String distributorID, String agentID, String channelType) {}
+    public record Distributor(
+            String distributorID,
+            @JsonProperty("agentId") String agentID,
+            String channelType,
+            String salesChannel
+    ) {
+        @JsonGetter("agentID")
+        public String agentIDAlias() {
+            return agentID;
+        }
+    }
 }

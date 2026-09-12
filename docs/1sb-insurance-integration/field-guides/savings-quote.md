@@ -16,17 +16,20 @@ Savings reuses the Term envelope (distributor + personalInformation + product + 
 | Field | Required | Values / notes |
 |-------|----------|----------------|
 | `typeOfQuote` | Yes | `Single Quote` / `Multi-Quote` |
-| `quoteCategory` | Yes | `Premium` / `Sum Assured` / `Income` |
+| `quoteCategory` | Yes | `Premium` / `Sum Assured` / `Income`. Live ULIP Multi-Quote for `BCIBL` succeeds with `Premium`. |
 | `includeBI` | Recommended | Savings often needs BI |
-| `distributor.*` | Yes | Same Term pattern; `channelType` `B2B` for RM-assisted |
+| `distributor.distributorID` | Yes | Tenant id (`BCIBL` on demo) |
+| `distributor.agentId` | Yes | Saving schema spelling is **`agentId`** (camelCase `d`). Sending only `agentID` yields `INSGW_NO_VALID_PRODUCT_FOUND` on lifesave even when Term accepts `agentID`. Adapter emits both. |
+| `distributor.channelType` | Yes | `B2B` / `B2C` |
+| `distributor.salesChannel` | Optional in docs; send `Online` | Enum `[Online, Others]` |
 
 ## Product
 
 | Field | Required | Why |
 |-------|----------|-----|
 | `product.productType` | Yes | `LifeSave` (confirmed catalog / portal) |
-| `product.savingsProductType[]` | Yes (Saving schema) | `nonParticipating` \| `Participating` \| `ULIP` — filters Saving family |
-| `insuranceAndProducts[]` | Conditionally | Mandatory for Single Quote pinning |
+| `product.savingsProductType[]` | Yes (live schema rejects omit) | `nonParticipating` \| `Participating` \| `ULIP`. Demo `BCIBL` catalog is **ULIP-only**; `nonParticipating` / omit both fail. Adapter default is `["ULIP"]`. |
+| `insuranceAndProducts[]` | Conditionally | Mandatory for Single Quote pinning — use `insuranceCompanyCode` + `productCode[]`, not `manufacturerId` |
 
 ## Related operations (Saving category)
 
@@ -40,4 +43,5 @@ Savings reuses the Term envelope (distributor + personalInformation + product + 
 
 - Handler: `SavingQuoteHandler` → paths under `/insurance/lifesave/v1/…`
 - Typed body: `LifeQuoteRequest` (`REFACTOR-002`)
-- Default filter in code today: `savingsProductType=["nonParticipating"]` (E38 GIFT Select)
+- Default filter in code: `savingsProductType=["ULIP"]` (live demo catalog). E38 GIFT Select (`nonParticipating`) is not currently quotable for `BCIBL`.
+- ULIP is the same Saving API; bank `lob=ULIP` is a discriminator only (`UlipQuoteHandler` shares this path).

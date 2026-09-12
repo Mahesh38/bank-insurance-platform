@@ -67,6 +67,7 @@ class LifeLobRegressionIT {
     static void bindWireMockBaseUrls(DynamicPropertyRegistry registry) {
         registry.add("onesb.client.base-url", ONESB::baseUrl);
         registry.add("bank.persistence.base-url", PERSISTENCE::baseUrl);
+        registry.add("onesb.distributor-id", () -> "TEST_DIST");
         registry.add("onesb.poll.base-delay-ms", () -> "1");
         registry.add("onesb.poll.max-delay-ms", () -> "5");
         registry.add("onesb.poll.max-attempts", () -> "3");
@@ -126,7 +127,9 @@ class LifeLobRegressionIT {
         ONESB.verify(exactly(1), postRequestedFor(urlEqualTo(LIFESAVE_QUOTE))
                 .withRequestBody(matchingJsonPath("$.product.productType", containing("LifeSave")))
                 .withRequestBody(matchingJsonPath("$.product.savingsProductType[0]",
-                        containing("nonParticipating"))));
+                        containing("ULIP")))
+                .withRequestBody(matchingJsonPath("$.distributor.agentId", containing("109337")))
+                .withRequestBody(matchingJsonPath("$.distributor.salesChannel", containing("Online"))));
     }
 
     @Test
@@ -175,6 +178,7 @@ class LifeLobRegressionIT {
 
         ONESB.verify(exactly(1), postRequestedFor(urlEqualTo(LIFESAVE_PROPOSAL))
                 .withRequestBody(matchingJsonPath("$.distributor.distributorID", containing("TEST_DIST")))
+                .withRequestBody(matchingJsonPath("$.distributor.agentId", containing("109337")))
                 .withRequestBody(matchingJsonPath("$['proposer.panNumber']", containing("ABCDE1234F"))));
     }
 

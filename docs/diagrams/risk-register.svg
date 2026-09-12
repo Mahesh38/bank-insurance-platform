@@ -1,0 +1,179 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1900" height="1170" viewBox="0 0 1900 1170" font-family="Helvetica, Arial, sans-serif">
+<defs>
+<marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#334155"/></marker>
+<marker id="arrGray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/></marker>
+<marker id="arrRed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker>
+<marker id="arrGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker>
+</defs>
+<rect width="1900" height="1170" fill="#ffffff"/>
+<text x="950.0" y="36.0" font-size="25" fill="#0f172a" text-anchor="middle" font-weight="bold">AU Bank Insurance Distribution Platform — Architecture Risk Exposure</text>
+<text x="950.0" y="60.0" font-size="12.5" fill="#475569" text-anchor="middle">scored on the repository's own scale (05-PRIORITY_MODEL: exposure = likelihood × impact, each 1–3) · every risk carries ONE named owner and an escalation trigger</text>
+<rect x="52.0" y="84.0" width="1796.0" height="44.0" rx="7" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2"/>
+<text x="68.0" y="104.0" font-size="12" fill="#0f172a" font-weight="bold">These are architecture risks. They belong in RISK-REGISTER.md under RISK-nnn IDs — this diagram is the view, not a second register.</text>
+<text x="68.0" y="121.0" font-size="10" fill="#475569">Response bands: 1–2 accept and monitor · 3–4 mitigate this stage · 6 mitigate now (P1/P2 work item) · 9 escalate to PO and Architect immediately.</text>
+<rect x="170.0" y="490.0" width="144.0" height="144.0" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="1.4"/>
+<text x="178.0" y="507.0" font-size="8.5" fill="#059669" font-weight="bold">exposure 1</text>
+<rect x="320.0" y="490.0" width="144.0" height="144.0" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="1.4"/>
+<text x="328.0" y="507.0" font-size="8.5" fill="#059669" font-weight="bold">exposure 2</text>
+<text x="328.0" y="522.0" font-size="9" fill="#0f172a" font-weight="bold">AR-18</text>
+<text x="360.0" y="522.0" font-size="8.3" fill="#334155">diagram/doc drift</text>
+<rect x="470.0" y="490.0" width="144.0" height="144.0" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.4"/>
+<text x="478.0" y="507.0" font-size="8.5" fill="#d97706" font-weight="bold">exposure 3</text>
+<text x="478.0" y="522.0" font-size="9" fill="#0f172a" font-weight="bold">AR-16</text>
+<text x="510.0" y="522.0" font-size="8.3" fill="#334155">audit alterable</text>
+<rect x="170.0" y="340.0" width="144.0" height="144.0" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="1.4"/>
+<text x="178.0" y="357.0" font-size="8.5" fill="#059669" font-weight="bold">exposure 2</text>
+<text x="178.0" y="372.0" font-size="9" fill="#0f172a" font-weight="bold">AR-17</text>
+<text x="210.0" y="372.0" font-size="8.3" fill="#334155">config-only admin</text>
+<text x="210.0" y="381.5" font-size="8.3" fill="#334155">friction</text>
+<rect x="320.0" y="340.0" width="144.0" height="144.0" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.4"/>
+<text x="328.0" y="357.0" font-size="8.5" fill="#d97706" font-weight="bold">exposure 4</text>
+<text x="328.0" y="372.0" font-size="9" fill="#0f172a" font-weight="bold">AR-11</text>
+<text x="360.0" y="372.0" font-size="8.3" fill="#334155">partner latency breaks</text>
+<text x="360.0" y="381.5" font-size="8.3" fill="#334155">RM flow</text>
+<text x="328.0" y="394.0" font-size="9" fill="#0f172a" font-weight="bold">AR-12</text>
+<text x="360.0" y="394.0" font-size="8.3" fill="#334155">too many services</text>
+<text x="328.0" y="406.5" font-size="9" fill="#0f172a" font-weight="bold">AR-13</text>
+<text x="360.0" y="406.5" font-size="8.3" fill="#334155">partner format leaks</text>
+<text x="360.0" y="416.0" font-size="8.3" fill="#334155">inward</text>
+<text x="328.0" y="428.5" font-size="9" fill="#0f172a" font-weight="bold">AR-14</text>
+<text x="360.0" y="428.5" font-size="8.3" fill="#334155">capacity without limits</text>
+<text x="328.0" y="441.0" font-size="9" fill="#0f172a" font-weight="bold">AR-15</text>
+<text x="360.0" y="441.0" font-size="8.3" fill="#334155">rules change</text>
+<text x="360.0" y="450.5" font-size="8.3" fill="#334155">unversioned</text>
+<rect x="470.0" y="340.0" width="144.0" height="144.0" rx="6" fill="#ffedd5" stroke="#ea580c" stroke-width="1.4"/>
+<text x="478.0" y="357.0" font-size="8.5" fill="#ea580c" font-weight="bold">exposure 6</text>
+<text x="478.0" y="372.0" font-size="9" fill="#0f172a" font-weight="bold">AR-03</text>
+<text x="510.0" y="372.0" font-size="8.3" fill="#334155">duplicate</text>
+<text x="510.0" y="381.5" font-size="8.3" fill="#334155">proposal/payment</text>
+<text x="478.0" y="394.0" font-size="9" fill="#0f172a" font-weight="bold">AR-04</text>
+<text x="510.0" y="394.0" font-size="8.3" fill="#334155">payment state uncertain</text>
+<text x="478.0" y="406.5" font-size="9" fill="#0f172a" font-weight="bold">AR-05</text>
+<text x="510.0" y="406.5" font-size="8.3" fill="#334155">sold before reconciled</text>
+<text x="478.0" y="419.0" font-size="9" fill="#0f172a" font-weight="bold">AR-06</text>
+<text x="510.0" y="419.0" font-size="8.3" fill="#334155">PII in logs</text>
+<text x="478.0" y="431.5" font-size="9" fill="#0f172a" font-weight="bold">AR-07</text>
+<text x="510.0" y="431.5" font-size="8.3" fill="#334155">retention/location</text>
+<text x="510.0" y="441.0" font-size="8.3" fill="#334155">wrong</text>
+<text x="478.0" y="453.5" font-size="9" fill="#0f172a" font-weight="bold">AR-08</text>
+<text x="510.0" y="453.5" font-size="8.3" fill="#334155">backup not restorable</text>
+<rect x="170.0" y="190.0" width="144.0" height="144.0" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.4"/>
+<text x="178.0" y="207.0" font-size="8.5" fill="#d97706" font-weight="bold">exposure 3</text>
+<rect x="320.0" y="190.0" width="144.0" height="144.0" rx="6" fill="#ffedd5" stroke="#ea580c" stroke-width="1.4"/>
+<text x="328.0" y="207.0" font-size="8.5" fill="#ea580c" font-weight="bold">exposure 6</text>
+<text x="328.0" y="222.0" font-size="9" fill="#0f172a" font-weight="bold">AR-09</text>
+<text x="360.0" y="222.0" font-size="8.3" fill="#334155">partner limits unknown</text>
+<text x="328.0" y="234.5" font-size="9" fill="#0f172a" font-weight="bold">AR-10</text>
+<text x="360.0" y="234.5" font-size="8.3" fill="#334155">self-service identity</text>
+<text x="360.0" y="244.0" font-size="8.3" fill="#334155">undecided</text>
+<rect x="470.0" y="190.0" width="144.0" height="144.0" rx="6" fill="#fee2e2" stroke="#dc2626" stroke-width="1.4"/>
+<text x="478.0" y="207.0" font-size="8.5" fill="#dc2626" font-weight="bold">exposure 9</text>
+<text x="478.0" y="222.0" font-size="9" fill="#0f172a" font-weight="bold">AR-01</text>
+<text x="510.0" y="222.0" font-size="8.3" fill="#334155">consent/suitability</text>
+<text x="510.0" y="231.5" font-size="8.3" fill="#334155">signature</text>
+<text x="478.0" y="244.0" font-size="9" fill="#0f172a" font-weight="bold">AR-02</text>
+<text x="510.0" y="244.0" font-size="8.3" fill="#334155">external access delayed</text>
+<text x="242.0" y="178.0" font-size="9.5" fill="#0f172a" text-anchor="middle" font-weight="bold">1 · Contained</text>
+<text x="392.0" y="178.0" font-size="9.5" fill="#0f172a" text-anchor="middle" font-weight="bold">2 · Material</text>
+<text x="542.0" y="178.0" font-size="9.5" fill="#0f172a" text-anchor="middle" font-weight="bold">3 · Severe</text>
+<text x="158.0" y="558.0" font-size="9" fill="#0f172a" text-anchor="end" font-weight="bold">1 · Unlikely in</text>
+<text x="158.0" y="569.0" font-size="9" fill="#0f172a" text-anchor="end" font-weight="bold">this stage</text>
+<text x="158.0" y="408.0" font-size="9" fill="#0f172a" text-anchor="end" font-weight="bold">2 · Plausible</text>
+<text x="158.0" y="258.0" font-size="9" fill="#0f172a" text-anchor="end" font-weight="bold">3 · Expected</text>
+<text x="158.0" y="269.0" font-size="9" fill="#0f172a" text-anchor="end" font-weight="bold">without action</text>
+<text x="395.0" y="656.0" font-size="9.5" fill="#64748b" text-anchor="middle" font-weight="bold">IMPACT →</text>
+<text x="660.0" y="176.0" font-size="10" fill="#64748b" font-weight="bold" letter-spacing="1">EXPOSURE 6 AND ABOVE — MITIGATE NOW, WITH A NAMED OWNER</text>
+<rect x="660.0" y="192.0" width="1188.0" height="122.0" rx="7" fill="#fff7ed" stroke="#ea580c" stroke-width="1.4"/>
+<text x="672.0" y="213.0" font-size="11" fill="#0f172a" font-weight="bold">AR-01 — Consent and suitability rule packs carry no human Compliance signature</text>
+<text x="672.0" y="229.0" font-size="9.5" fill="#9a3412" font-weight="bold">Owner: Shailja</text>
+<text x="672.0" y="245.0" font-size="9.5" fill="#334155">content exists (42 + 62 rules, PR #54); the E2 signature does not. S11 entry is bound on GAP-006/007 (DEC-20260816-06, non-waivable)</text>
+<text x="672.0" y="302.0" font-size="9" fill="#b91c1c" font-weight="bold">ESCALATE IF: GATE-S08 passes with both still open</text>
+<rect x="660.0" y="324.0" width="1188.0" height="122.0" rx="7" fill="#fff7ed" stroke="#ea580c" stroke-width="1.4"/>
+<text x="672.0" y="345.0" font-size="11" fill="#0f172a" font-weight="bold">AR-02 — Core banking, payment or insurer access is not contracted in time</text>
+<text x="672.0" y="361.0" font-size="9.5" fill="#9a3412" font-weight="bold">Owner: Kalpana</text>
+<text x="672.0" y="377.0" font-size="9.5" fill="#334155">every dependency in the map has an owner; four have no required-by date agreed. A dependency without a date is not managed</text>
+<text x="672.0" y="434.0" font-size="9" fill="#b91c1c" font-weight="bold">ESCALATE IF: any D-item passes its date with no escalation raised</text>
+<rect x="660.0" y="456.0" width="1188.0" height="122.0" rx="7" fill="#fff7ed" stroke="#ea580c" stroke-width="1.4"/>
+<text x="672.0" y="477.0" font-size="11" fill="#0f172a" font-weight="bold">AR-09 — Partner service limits and maintenance windows are unknown</text>
+<text x="672.0" y="493.0" font-size="9.5" fill="#9a3412" font-weight="bold">Owner: Shivanshi</text>
+<text x="672.0" y="509.0" font-size="9.5" fill="#334155">bulkheads are designed but sized against a guess. Capacity numbers derive from CAP-A1…A3, which are assumptions, not baselines</text>
+<text x="672.0" y="566.0" font-size="9" fill="#b91c1c" font-weight="bold">ESCALATE IF: load test scheduled before written limits arrive</text>
+<rect x="660.0" y="588.0" width="1188.0" height="122.0" rx="7" fill="#fff7ed" stroke="#ea580c" stroke-width="1.4"/>
+<text x="672.0" y="609.0" font-size="11" fill="#0f172a" font-weight="bold">AR-10 — Customer identity for self-service is undecided</text>
+<text x="672.0" y="625.0" font-size="9.5" fill="#9a3412" font-weight="bold">Owner: Rajal + Deepali</text>
+<text x="672.0" y="641.0" font-size="9.5" fill="#334155">does not block R0 (assisted-only, DEC-20260816-03) but blocks R1 entry. Deciding it late forces a session redesign</text>
+<text x="672.0" y="698.0" font-size="9" fill="#b91c1c" font-weight="bold">ESCALATE IF: R1 planning starts with the decision still open</text>
+<text x="52.0" y="748.0" font-size="10" fill="#64748b" font-weight="bold" letter-spacing="1">CLOSED SINCE THE V0.1 PACK — RESTATING THESE AS OPEN RISKS WOULD BE WRONG</text>
+<rect x="52.0" y="762.0" width="440.0" height="118.0" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="1.4"/>
+<text x="64.0" y="782.0" font-size="9.5" fill="#065f46" font-weight="bold">R-13 was: 'delivery begins before automated checks work'</text>
+<text x="64.0" y="797.0" font-size="9" fill="#334155">CI now runs tests + coverage floors, CodeQL SAST, Trivy SCA, CycloneDX SBOM and gitleaks; ten</text>
+<text x="64.0" y="808.0" font-size="9" fill="#334155">SCA findings cleared 2026-08-17. Residual risk is gate coverage, not absence.</text>
+<rect x="504.0" y="762.0" width="440.0" height="118.0" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="1.4"/>
+<text x="516.0" y="782.0" font-size="9.5" fill="#065f46" font-weight="bold">A-01 was: 'first release scope unconfirmed'</text>
+<text x="516.0" y="797.0" font-size="9" fill="#334155">DEC-20260816-03 — DECIDED by Product. Assisted-first; DIY at R1, hybrid at R2. Outstanding is</text>
+<text x="516.0" y="808.0" font-size="9" fill="#334155">the R0-SCOPE v0.4 republish (condition C4), not the decision.</text>
+<rect x="956.0" y="762.0" width="440.0" height="118.0" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="1.4"/>
+<text x="968.0" y="782.0" font-size="9.5" fill="#065f46" font-weight="bold">'payment on customer device' was: Pending</text>
+<text x="968.0" y="797.0" font-size="9" fill="#334155">DEC-20260816-12 — enforced structurally in apps/rm-workspace-app: no interface method or widget</text>
+<text x="968.0" y="808.0" font-size="9" fill="#334155">can accept an instrument. 105 tests pass. The backend half remains to build.</text>
+<rect x="1408.0" y="762.0" width="440.0" height="118.0" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="1.4"/>
+<text x="1420.0" y="782.0" font-size="9.5" fill="#065f46" font-weight="bold">'retention periods not approved'</text>
+<text x="1420.0" y="797.0" font-size="9" fill="#334155">7-year write-once in ap-south-1 is named in CURRENT-STATE.yaml as an S09 deliverable; ASM-005</text>
+<text x="1420.0" y="808.0" font-size="9" fill="#334155">tracks the regime question. The gap is the signature, not the number.</text>
+<text x="52.0" y="902.0" font-size="10" fill="#64748b" font-weight="bold" letter-spacing="1">ASSUMPTIONS THE ARCHITECTURE RESTS ON — EACH WITH THE CONSEQUENCE IF IT IS FALSE</text>
+<rect x="52.0" y="916.0" width="1796.0" height="25.0" rx="4" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+<text x="60.0" y="931.9" font-size="9" fill="#0f172a" font-weight="bold">ID</text>
+<text x="140.0" y="931.9" font-size="9" fill="#0f172a" font-weight="bold">Assumption</text>
+<text x="570.0" y="931.9" font-size="9" fill="#0f172a" font-weight="bold">Consequence if false</text>
+<text x="1050.0" y="931.9" font-size="9" fill="#0f172a" font-weight="bold">Validation owner</text>
+<text x="1290.0" y="931.9" font-size="9" fill="#0f172a" font-weight="bold">Anchor</text>
+<text x="1590.0" y="931.9" font-size="9" fill="#0f172a" font-weight="bold">State</text>
+<text x="60.0" y="956.9" font-size="9" fill="#334155">ASM-A1</text>
+<text x="140.0" y="956.9" font-size="9" fill="#334155">Initial volume is modest; correctness matters more than throughput</text>
+<text x="570.0" y="956.9" font-size="9" fill="#334155">capacity and cost model change; bulkhead sizing revisited</text>
+<text x="1050.0" y="956.9" font-size="9" fill="#334155">Rajal + Shivanshi</text>
+<text x="1290.0" y="956.9" font-size="9" fill="#0f172a">CAP-A1…A3 in 05-nfr-catalogue</text>
+<text x="1590.0" y="956.9" font-size="9" fill="#b45309" font-weight="bold">Unconfirmed</text>
+<line x1="52.0" y1="966.0" x2="1848.0" y2="966.0" stroke="#cbd5e1" stroke-width="0.8"/>
+<rect x="52.0" y="966.0" width="1796.0" height="25.0" rx="0" fill="#f8fafc"/>
+<text x="60.0" y="981.9" font-size="9" fill="#334155">ASM-A2</text>
+<text x="140.0" y="981.9" font-size="9" fill="#334155">The PG supplies authenticated callbacks AND a T+1 settlement file</text>
+<text x="570.0" y="981.9" font-size="9" fill="#334155">the entire reconciliation design changes; F1/F3 have no arbiter</text>
+<text x="1050.0" y="981.9" font-size="9" fill="#334155">Deepali + Finance</text>
+<text x="1290.0" y="981.9" font-size="9" fill="#334155">S-14 / S-15</text>
+<text x="1590.0" y="981.9" font-size="9" fill="#b45309" font-weight="bold">Unconfirmed</text>
+<line x1="52.0" y1="991.0" x2="1848.0" y2="991.0" stroke="#cbd5e1" stroke-width="0.8"/>
+<text x="60.0" y="1006.9" font-size="9" fill="#334155">ASM-A3</text>
+<text x="140.0" y="1006.9" font-size="9" fill="#334155">1SB supports status recovery after an uncertain submission</text>
+<text x="570.0" y="1006.9" font-size="9" fill="#334155">duplicate-submission risk becomes unmitigable; AR-03 rises to exposure 9</text>
+<text x="1050.0" y="1006.9" font-size="9" fill="#334155">WS-1 owner</text>
+<text x="1290.0" y="1006.9" font-size="9" fill="#334155">S-12 · INV-ACL-01</text>
+<text x="1590.0" y="1006.9" font-size="9" fill="#b45309" font-weight="bold">Unconfirmed</text>
+<line x1="52.0" y1="1016.0" x2="1848.0" y2="1016.0" stroke="#cbd5e1" stroke-width="0.8"/>
+<rect x="52.0" y="1016.0" width="1796.0" height="25.0" rx="0" fill="#f8fafc"/>
+<text x="60.0" y="1031.9" font-size="9" fill="#334155">ASM-A4</text>
+<text x="140.0" y="1031.9" font-size="9" fill="#334155">Protected data can be hosted and recovered entirely in India</text>
+<text x="570.0" y="1031.9" font-size="9" fill="#334155">hosting and DR design change; cost model reopens</text>
+<text x="1050.0" y="1031.9" font-size="9" fill="#334155">Shailja + Shivanshi</text>
+<text x="1290.0" y="1031.9" font-size="9" fill="#334155">ap-south-1 / ap-south-2</text>
+<text x="1590.0" y="1031.9" font-size="9" fill="#b45309" font-weight="bold">Unconfirmed</text>
+<line x1="52.0" y1="1041.0" x2="1848.0" y2="1041.0" stroke="#cbd5e1" stroke-width="0.8"/>
+<text x="60.0" y="1056.9" font-size="9" fill="#334155">ASM-A5</text>
+<text x="140.0" y="1056.9" font-size="9" fill="#334155">Workforce identity carries branch, role, insurer scope and certification</text>
+<text x="570.0" y="1056.9" font-size="9" fill="#334155">the permission model needs a second source of truth</text>
+<text x="1050.0" y="1056.9" font-size="9" fill="#334155">Deepali + Rajal</text>
+<text x="1290.0" y="1056.9" font-size="9" fill="#334155">IF-2 · WS-2</text>
+<text x="1590.0" y="1056.9" font-size="9" fill="#b45309" font-weight="bold">Unconfirmed</text>
+<line x1="52.0" y1="1066.0" x2="1848.0" y2="1066.0" stroke="#cbd5e1" stroke-width="0.8"/>
+<rect x="52.0" y="1066.0" width="1796.0" height="25.0" rx="0" fill="#f8fafc"/>
+<text x="60.0" y="1081.9" font-size="9" fill="#334155">ASM-A6</text>
+<text x="140.0" y="1081.9" font-size="9" fill="#334155">The customer can receive an OTP and a payment link on a personal device</text>
+<text x="570.0" y="1081.9" font-size="9" fill="#334155">C2 and C4 both need a different mechanism — a journey redesign, not a tweak</text>
+<text x="1050.0" y="1081.9" font-size="9" fill="#334155">Rajal + Shivanshi</text>
+<text x="1290.0" y="1081.9" font-size="9" fill="#334155">C2 · C4</text>
+<text x="1590.0" y="1081.9" font-size="9" fill="#b45309" font-weight="bold">Unconfirmed</text>
+<line x1="52.0" y1="1091.0" x2="1848.0" y2="1091.0" stroke="#cbd5e1" stroke-width="0.8"/>
+<rect x="52.0" y="916.0" width="1796.0" height="175.0" rx="4" fill="none" stroke="#cbd5e1" stroke-width="1"/>
+<text x="52.0" y="1148.0" font-size="9.5" fill="#64748b" font-weight="bold">DRAFT FOR REVIEW · v0.2 · not approved, not authorised for development · AI-drafted; no human signature</text>
+<text x="1848.0" y="1148.0" font-size="9.5" fill="#64748b" text-anchor="end">WS-3 · AU Bank Insurance Distribution Platform · R0</text>
+</svg>

@@ -1,0 +1,208 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1900" height="1080" viewBox="0 0 1900 1080" font-family="Helvetica, Arial, sans-serif">
+<defs>
+<marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#334155"/></marker>
+<marker id="arrGray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/></marker>
+<marker id="arrRed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker>
+<marker id="arrGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker>
+</defs>
+<rect width="1900" height="1080" fill="#ffffff"/>
+<text x="950.0" y="36.0" font-size="25" fill="#0f172a" text-anchor="middle" font-weight="bold">AU Bank Insurance Distribution Platform — How This Pack Actually Gets Approved</text>
+<text x="950.0" y="60.0" font-size="12.5" fill="#475569" text-anchor="middle">the AIGEM seven-board model with one aggregator and one gate · replaces the five-step CTO flow in v0.1, which described an authority the matrix does not define</text>
+<rect x="52.0" y="84.0" width="1796.0" height="54.0" rx="7" fill="#fff7ed" stroke="#ea580c" stroke-width="1.6"/>
+<text x="68.0" y="103.0" font-size="12" fill="#9a3412" font-weight="bold">Correction carried from the v0.1 review (finding F-56)</text>
+<text x="68.0" y="119.0" font-size="9.5" fill="#475569">v0.1 drew a five-step flow placing a 'Chief Technology Officer' review ahead of the mandatory approvers. PERSONA-AUTHORITY-MATRIX v1.6 defines no CTO persona; strategic technology sits with Architecture (A/AP) and funding with an Executive Sponsor who does not exist (GAP-010). The real model is below.</text>
+<text x="52.0" y="168.0" font-size="10" fill="#64748b" font-weight="bold" letter-spacing="1">SEVEN BOARDS · EACH ANSWERS ONLY ITS OWN CHECKLIST · SILENCE IS NEVER ASSENT</text>
+<rect x="52.0" y="182.0" width="246.3" height="126.0" rx="7" fill="#dbeafe" stroke="#2563eb" stroke-width="1.4"/>
+<text x="175.1" y="204.0" font-size="10" fill="#0f172a" text-anchor="middle" font-weight="bold">Board 1 — Architecture</text>
+<text x="175.1" y="219.0" font-size="10.5" fill="#1e40af" text-anchor="middle" font-weight="bold">Mahesh</text>
+<text x="175.1" y="236.0" font-size="8.8" fill="#475569" text-anchor="middle">boundaries, decomposition, ADRs, drift</text>
+<rect x="62.0" y="274.0" width="226.3" height="15.0" rx="4" fill="#ffffff" stroke="#2563eb" stroke-width="1"/>
+<text x="175.1" y="285.0" font-size="8.5" fill="#1e40af" text-anchor="middle" font-weight="bold">AP · B</text>
+<text x="175.1" y="302.0" font-size="8.5" fill="#64748b" text-anchor="middle">AGENT ok at T3</text>
+<rect x="310.3" y="182.0" width="246.3" height="126.0" rx="7" fill="#dbeafe" stroke="#2563eb" stroke-width="1.4"/>
+<text x="433.4" y="204.0" font-size="10" fill="#0f172a" text-anchor="middle" font-weight="bold">Board 2 — Technical</text>
+<text x="433.4" y="219.0" font-size="10.5" fill="#1e40af" text-anchor="middle" font-weight="bold">Amit</text>
+<text x="433.4" y="236.0" font-size="8.8" fill="#475569" text-anchor="middle">buildability, engineering standards, feasibility</text>
+<rect x="320.3" y="274.0" width="226.3" height="15.0" rx="4" fill="#ffffff" stroke="#2563eb" stroke-width="1"/>
+<text x="433.4" y="285.0" font-size="8.5" fill="#1e40af" text-anchor="middle" font-weight="bold">RV</text>
+<text x="433.4" y="302.0" font-size="8.5" fill="#64748b" text-anchor="middle">AGENT ok</text>
+<rect x="568.6" y="182.0" width="246.3" height="126.0" rx="7" fill="#fef3c7" stroke="#d97706" stroke-width="1.4"/>
+<text x="691.7" y="204.0" font-size="10" fill="#0f172a" text-anchor="middle" font-weight="bold">Board 3 — Product</text>
+<text x="691.7" y="219.0" font-size="10.5" fill="#92400e" text-anchor="middle" font-weight="bold">Rajal</text>
+<text x="691.7" y="236.0" font-size="8.8" fill="#475569" text-anchor="middle">scope, journey behaviour, acceptance, KPI semantics</text>
+<rect x="578.6" y="274.0" width="226.3" height="15.0" rx="4" fill="#ffffff" stroke="#d97706" stroke-width="1"/>
+<text x="691.7" y="285.0" font-size="8.5" fill="#92400e" text-anchor="middle" font-weight="bold">AP</text>
+<text x="691.7" y="302.0" font-size="8.5" fill="#64748b" text-anchor="middle">AGENT ok at T3</text>
+<rect x="826.9" y="182.0" width="246.3" height="126.0" rx="7" fill="#fef2f2" stroke="#dc2626" stroke-width="2.0"/>
+<text x="950.0" y="204.0" font-size="10" fill="#0f172a" text-anchor="middle" font-weight="bold">Board 4 — Security</text>
+<text x="950.0" y="219.0" font-size="10.5" fill="#b91c1c" text-anchor="middle" font-weight="bold">Deepali</text>
+<text x="950.0" y="236.0" font-size="8.8" fill="#475569" text-anchor="middle">trust boundaries, controls, residual risk</text>
+<rect x="836.9" y="274.0" width="226.3" height="15.0" rx="4" fill="#ffffff" stroke="#dc2626" stroke-width="1"/>
+<text x="950.0" y="285.0" font-size="8.5" fill="#b91c1c" text-anchor="middle" font-weight="bold">AP · B</text>
+<text x="950.0" y="302.0" font-size="8.5" fill="#b91c1c" text-anchor="middle" font-weight="bold">HUMAN — no exception</text>
+<rect x="1085.1" y="182.0" width="246.3" height="126.0" rx="7" fill="#dcfce7" stroke="#16a34a" stroke-width="1.4"/>
+<text x="1208.3" y="204.0" font-size="10" fill="#0f172a" text-anchor="middle" font-weight="bold">Board 5 — QA</text>
+<text x="1208.3" y="219.0" font-size="10.5" fill="#065f46" text-anchor="middle" font-weight="bold">Swapnali</text>
+<text x="1208.3" y="236.0" font-size="8.8" fill="#475569" text-anchor="middle">evidence sufficiency, testability, release risk</text>
+<rect x="1095.1" y="274.0" width="226.3" height="15.0" rx="4" fill="#ffffff" stroke="#16a34a" stroke-width="1"/>
+<text x="1208.3" y="285.0" font-size="8.5" fill="#065f46" text-anchor="middle" font-weight="bold">AP</text>
+<text x="1208.3" y="302.0" font-size="8.5" fill="#64748b" text-anchor="middle">AGENT ok</text>
+<rect x="1343.4" y="182.0" width="246.3" height="126.0" rx="7" fill="#fef2f2" stroke="#dc2626" stroke-width="2.0"/>
+<text x="1466.6" y="204.0" font-size="10" fill="#0f172a" text-anchor="middle" font-weight="bold">Board 6 — Risk &amp; Compliance</text>
+<text x="1466.6" y="219.0" font-size="10.5" fill="#b91c1c" text-anchor="middle" font-weight="bold">Shailja</text>
+<text x="1466.6" y="236.0" font-size="8.8" fill="#475569" text-anchor="middle">permissibility, mandatory outcomes, evidence</text>
+<rect x="1353.4" y="274.0" width="226.3" height="15.0" rx="4" fill="#ffffff" stroke="#dc2626" stroke-width="1"/>
+<text x="1466.6" y="285.0" font-size="8.5" fill="#b91c1c" text-anchor="middle" font-weight="bold">AP · B</text>
+<text x="1466.6" y="302.0" font-size="8.5" fill="#b91c1c" text-anchor="middle" font-weight="bold">HUMAN — no exception</text>
+<rect x="1601.7" y="182.0" width="246.3" height="126.0" rx="7" fill="#dcfce7" stroke="#16a34a" stroke-width="1.4"/>
+<text x="1724.9" y="204.0" font-size="10" fill="#0f172a" text-anchor="middle" font-weight="bold">Board 7 — Operations</text>
+<text x="1724.9" y="219.0" font-size="10.5" fill="#065f46" text-anchor="middle" font-weight="bold">Shivanshi</text>
+<text x="1724.9" y="236.0" font-size="8.8" fill="#475569" text-anchor="middle">operability, capacity, recovery, ORR</text>
+<rect x="1611.7" y="274.0" width="226.3" height="15.0" rx="4" fill="#ffffff" stroke="#16a34a" stroke-width="1"/>
+<text x="1724.9" y="285.0" font-size="8.5" fill="#065f46" text-anchor="middle" font-weight="bold">AP</text>
+<text x="1724.9" y="302.0" font-size="8.5" fill="#64748b" text-anchor="middle">AGENT ok</text>
+<rect x="650.0" y="336.0" width="600.0" height="56.0" rx="8" fill="#f1f5f9" stroke="#64748b" stroke-width="1.6"/>
+<text x="950.0" y="359.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="bold">Approval Aggregator</text>
+<text x="950.0" y="376.0" font-size="9.5" fill="#475569" text-anchor="middle">one gate · records to approval-gate.schema.json · max two rounds, then ESCALATED</text>
+<line x1="175.1" y1="316.0" x2="692.9" y2="336.0" stroke="#94a3b8" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#arrGray)"/>
+<line x1="433.4" y1="316.0" x2="778.6" y2="336.0" stroke="#94a3b8" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#arrGray)"/>
+<line x1="691.7" y1="316.0" x2="864.3" y2="336.0" stroke="#94a3b8" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#arrGray)"/>
+<line x1="950.0" y1="316.0" x2="950.0" y2="336.0" stroke="#94a3b8" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#arrGray)"/>
+<line x1="1208.3" y1="316.0" x2="1035.7" y2="336.0" stroke="#94a3b8" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#arrGray)"/>
+<line x1="1466.6" y1="316.0" x2="1121.4" y2="336.0" stroke="#94a3b8" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#arrGray)"/>
+<line x1="1724.9" y1="316.0" x2="1207.1" y2="336.0" stroke="#94a3b8" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#arrGray)"/>
+<rect x="470.0" y="418.0" width="230.0" height="48.0" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="1.4"/>
+<text x="585.0" y="438.0" font-size="11" fill="#0f172a" text-anchor="middle" font-weight="bold">APPROVED</text>
+<text x="585.0" y="452.0" font-size="8.5" fill="#475569" text-anchor="middle">conditions folded into acceptance criteria</text>
+<line x1="950.0" y1="392.0" x2="585.0" y2="418.0" stroke="#94a3b8" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#arrGray)"/>
+<rect x="720.0" y="418.0" width="230.0" height="48.0" rx="6" fill="#fff7ed" stroke="#ea580c" stroke-width="1.4"/>
+<text x="835.0" y="438.0" font-size="11" fill="#0f172a" text-anchor="middle" font-weight="bold">REWORK</text>
+<text x="835.0" y="452.0" font-size="8.5" fill="#475569" text-anchor="middle">round 2 only — a third round is not permitted</text>
+<line x1="950.0" y1="392.0" x2="835.0" y2="418.0" stroke="#94a3b8" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#arrGray)"/>
+<rect x="970.0" y="418.0" width="230.0" height="48.0" rx="6" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.4"/>
+<text x="1085.0" y="438.0" font-size="11" fill="#0f172a" text-anchor="middle" font-weight="bold">REJECTED</text>
+<text x="1085.0" y="452.0" font-size="8.5" fill="#475569" text-anchor="middle">may not be re-litigated without new evidence</text>
+<line x1="950.0" y1="392.0" x2="1085.0" y2="418.0" stroke="#94a3b8" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#arrGray)"/>
+<rect x="1220.0" y="418.0" width="230.0" height="48.0" rx="6" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.4"/>
+<text x="1335.0" y="438.0" font-size="11" fill="#0f172a" text-anchor="middle" font-weight="bold">ESCALATED</text>
+<text x="1335.0" y="452.0" font-size="8.5" fill="#475569" text-anchor="middle">unresolved after two rounds, or a standing veto</text>
+<line x1="950.0" y1="392.0" x2="1335.0" y2="418.0" stroke="#94a3b8" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#arrGray)"/>
+<text x="52.0" y="540.0" font-size="10" fill="#64748b" font-weight="bold" letter-spacing="1">THE RULES THAT DECIDE WHETHER THIS PACK CAN BE APPROVED AT ALL</text>
+<rect x="52.0" y="554.0" width="289.3" height="150.0" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.3"/>
+<text x="64.0" y="574.0" font-size="10" fill="#0f172a" font-weight="bold">This pack is T4</text>
+<text x="64.0" y="590.0" font-size="9" fill="#475569">It changes, or asserts, the behaviour of authorization (G1),</text>
+<text x="64.0" y="601.0" font-size="9" fill="#475569">restricted-data handling (G2), secrets (G3), money movement</text>
+<text x="64.0" y="612.0" font-size="9" fill="#475569">and reconciliation (G5), consent capture and retention (G6)</text>
+<text x="64.0" y="623.0" font-size="9" fill="#475569">and production topology (G8). Any one fires T4.</text>
+<rect x="353.3" y="554.0" width="289.3" height="150.0" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.3"/>
+<text x="365.3" y="574.0" font-size="10" fill="#0f172a" font-weight="bold">Two verdicts must be human</text>
+<text x="365.3" y="590.0" font-size="9" fill="#475569">Security (Board 4) and Risk &amp; Compliance (Board 6) at T4</text>
+<text x="365.3" y="601.0" font-size="9" fill="#475569">require reviewer_type: HUMAN. No aggregate override exists,</text>
+<text x="365.3" y="612.0" font-size="9" fill="#475569">and no AI simulation — including this pack's own review</text>
+<text x="365.3" y="623.0" font-size="9" fill="#475569">record — can satisfy them.</text>
+<rect x="654.7" y="554.0" width="289.3" height="150.0" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.3"/>
+<text x="666.7" y="574.0" font-size="10" fill="#0f172a" font-weight="bold">An agent verdict with empty evidence is invalid</text>
+<text x="666.7" y="590.0" font-size="9" fill="#475569">Rule RG-3: it is treated as NOT_RUN, not as approval. Every</text>
+<text x="666.7" y="601.0" font-size="9" fill="#475569">board verdict must cite a path a reader can open.</text>
+<rect x="956.0" y="554.0" width="289.3" height="150.0" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.3"/>
+<text x="968.0" y="574.0" font-size="10" fill="#0f172a" font-weight="bold">Self-review must be declared</text>
+<text x="968.0" y="590.0" font-size="9" fill="#475569">An agent that authored the plan may produce verdicts for it,</text>
+<text x="968.0" y="601.0" font-size="9" fill="#475569">marked self_review: true — and a self-reviewed T3+ plan</text>
+<text x="968.0" y="612.0" font-size="9" fill="#475569">still needs at least one human board.</text>
+<rect x="1257.3" y="554.0" width="289.3" height="150.0" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.3"/>
+<text x="1269.3" y="574.0" font-size="10" fill="#0f172a" font-weight="bold">Approval expires</text>
+<text x="1269.3" y="590.0" font-size="9" fill="#475569">At the next stage boundary (11 §14). An approval carried</text>
+<text x="1269.3" y="601.0" font-size="9" fill="#475569">across a gate is not an approval, it is an assumption.</text>
+<rect x="1558.7" y="554.0" width="289.3" height="150.0" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.3"/>
+<text x="1570.7" y="574.0" font-size="10" fill="#0f172a" font-weight="bold">Compliance debt is never accepted</text>
+<text x="1570.7" y="590.0" font-size="9" fill="#475569">CMP-6. Unlike technical debt, there is no 'accept with</text>
+<text x="1570.7" y="601.0" font-size="9" fill="#475569">expiry' path for a compliance control.</text>
+<text x="52.0" y="740.0" font-size="10" fill="#64748b" font-weight="bold" letter-spacing="1">SIGNATURE LEDGER — ONE TABLE, USED IDENTICALLY IN ALL EIGHT DOCUMENTS</text>
+<rect x="52.0" y="754.0" width="1796.0" height="23.0" rx="4" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+<text x="60.0" y="768.9" font-size="9" fill="#0f172a" font-weight="bold">Board / seat</text>
+<text x="260.0" y="768.9" font-size="9" fill="#0f172a" font-weight="bold">Named human</text>
+<text x="730.0" y="768.9" font-size="9" fill="#0f172a" font-weight="bold">Rights</text>
+<text x="890.0" y="768.9" font-size="9" fill="#0f172a" font-weight="bold">What they are actually signing</text>
+<text x="1550.0" y="768.9" font-size="9" fill="#0f172a" font-weight="bold">State</text>
+<text x="60.0" y="791.9" font-size="9" fill="#334155">Architecture</text>
+<text x="260.0" y="791.9" font-size="9" fill="#334155">Mahesh — Principal Insurance Platform Architect</text>
+<text x="730.0" y="791.9" font-size="9" fill="#334155">AP · B</text>
+<text x="890.0" y="791.9" font-size="9" fill="#334155">AI-drafted, self-review declared</text>
+<text x="1550.0" y="791.9" font-size="9" fill="#b45309" font-weight="bold">Pending</text>
+<line x1="52.0" y1="800.0" x2="1848.0" y2="800.0" stroke="#cbd5e1" stroke-width="0.8"/>
+<rect x="52.0" y="800.0" width="1796.0" height="23.0" rx="0" fill="#f8fafc"/>
+<text x="60.0" y="814.9" font-size="9" fill="#334155">Product</text>
+<text x="260.0" y="814.9" font-size="9" fill="#334155">Rajal — Principal Insurance Platform Product Owner</text>
+<text x="730.0" y="814.9" font-size="9" fill="#334155">AP</text>
+<text x="890.0" y="814.9" font-size="9" fill="#334155">scope re-affirms DEC-20260816-03</text>
+<text x="1550.0" y="814.9" font-size="9" fill="#b45309" font-weight="bold">Pending</text>
+<line x1="52.0" y1="823.0" x2="1848.0" y2="823.0" stroke="#cbd5e1" stroke-width="0.8"/>
+<text x="60.0" y="837.9" font-size="9" fill="#334155">Business Analysis</text>
+<text x="260.0" y="837.9" font-size="9" fill="#334155">Principal Insurance Platform BA (R11)</text>
+<text x="730.0" y="837.9" font-size="9" fill="#334155">RV</text>
+<text x="890.0" y="837.9" font-size="9" fill="#334155">traceability and testable expression</text>
+<text x="1550.0" y="837.9" font-size="9" fill="#b45309" font-weight="bold">Pending</text>
+<line x1="52.0" y1="846.0" x2="1848.0" y2="846.0" stroke="#cbd5e1" stroke-width="0.8"/>
+<rect x="52.0" y="846.0" width="1796.0" height="23.0" rx="0" fill="#f8fafc"/>
+<text x="60.0" y="860.9" font-size="9" fill="#334155">Engineering</text>
+<text x="260.0" y="860.9" font-size="9" fill="#334155">Amit — Technical Head</text>
+<text x="730.0" y="860.9" font-size="9" fill="#334155">RV</text>
+<text x="890.0" y="860.9" font-size="9" fill="#334155">buildability against the existing estate</text>
+<text x="1550.0" y="860.9" font-size="9" fill="#b45309" font-weight="bold">Pending</text>
+<line x1="52.0" y1="869.0" x2="1848.0" y2="869.0" stroke="#cbd5e1" stroke-width="0.8"/>
+<text x="60.0" y="883.9" font-size="9" fill="#334155">Security</text>
+<text x="260.0" y="883.9" font-size="9" fill="#334155">Deepali — Principal Security Architect</text>
+<text x="730.0" y="883.9" font-size="9" fill="#334155">AP · B · HUMAN</text>
+<text x="890.0" y="883.9" font-size="9" fill="#334155">cannot be satisfied without the S07-G3 threat model</text>
+<text x="1550.0" y="883.9" font-size="9" fill="#b91c1c" font-weight="bold">Pending — HUMAN</text>
+<line x1="52.0" y1="892.0" x2="1848.0" y2="892.0" stroke="#cbd5e1" stroke-width="0.8"/>
+<rect x="52.0" y="892.0" width="1796.0" height="23.0" rx="0" fill="#f8fafc"/>
+<text x="60.0" y="906.9" font-size="9" fill="#334155">Data &amp; Database</text>
+<text x="260.0" y="906.9" font-size="9" fill="#334155">Aarti — Principal Data &amp; Database Architect</text>
+<text x="730.0" y="906.9" font-size="9" fill="#334155">AP</text>
+<text x="890.0" y="906.9" font-size="9" fill="#334155">S07-G5: data architecture incl. backup and retention</text>
+<text x="1550.0" y="906.9" font-size="9" fill="#b45309" font-weight="bold">Pending</text>
+<line x1="52.0" y1="915.0" x2="1848.0" y2="915.0" stroke="#cbd5e1" stroke-width="0.8"/>
+<text x="60.0" y="929.9" font-size="9" fill="#334155">Quality</text>
+<text x="260.0" y="929.9" font-size="9" fill="#334155">Swapnali — QA Lead</text>
+<text x="730.0" y="929.9" font-size="9" fill="#334155">AP</text>
+<text x="890.0" y="929.9" font-size="9" fill="#334155">evidence levels and control-to-test coverage</text>
+<text x="1550.0" y="929.9" font-size="9" fill="#b45309" font-weight="bold">Pending</text>
+<line x1="52.0" y1="938.0" x2="1848.0" y2="938.0" stroke="#cbd5e1" stroke-width="0.8"/>
+<rect x="52.0" y="938.0" width="1796.0" height="23.0" rx="0" fill="#f8fafc"/>
+<text x="60.0" y="952.9" font-size="9" fill="#334155">Risk &amp; Compliance</text>
+<text x="260.0" y="952.9" font-size="9" fill="#334155">Shailja — Compliance &amp; Risk Head</text>
+<text x="730.0" y="952.9" font-size="9" fill="#334155">AP · B · HUMAN</text>
+<text x="890.0" y="952.9" font-size="9" fill="#334155">permissibility; GAP-006/007 remain open</text>
+<text x="1550.0" y="952.9" font-size="9" fill="#b91c1c" font-weight="bold">Pending — HUMAN</text>
+<line x1="52.0" y1="961.0" x2="1848.0" y2="961.0" stroke="#cbd5e1" stroke-width="0.8"/>
+<text x="60.0" y="975.9" font-size="9" fill="#334155">Operations</text>
+<text x="260.0" y="975.9" font-size="9" fill="#334155">Shivanshi — Principal SRE / Reliability Head</text>
+<text x="730.0" y="975.9" font-size="9" fill="#334155">AP</text>
+<text x="890.0" y="975.9" font-size="9" fill="#334155">SLOs, capacity, recovery, ORR</text>
+<text x="1550.0" y="975.9" font-size="9" fill="#b45309" font-weight="bold">Pending</text>
+<line x1="52.0" y1="984.0" x2="1848.0" y2="984.0" stroke="#cbd5e1" stroke-width="0.8"/>
+<rect x="52.0" y="984.0" width="1796.0" height="23.0" rx="0" fill="#f8fafc"/>
+<text x="60.0" y="998.9" font-size="9" fill="#334155">Delivery</text>
+<text x="260.0" y="998.9" font-size="9" fill="#334155">Kalpana — Delivery Head (R12)</text>
+<text x="730.0" y="998.9" font-size="9" fill="#334155">RV</text>
+<text x="890.0" y="998.9" font-size="9" fill="#334155">dependency dates and sequence</text>
+<text x="1550.0" y="998.9" font-size="9" fill="#b45309" font-weight="bold">Pending</text>
+<line x1="52.0" y1="1007.0" x2="1848.0" y2="1007.0" stroke="#cbd5e1" stroke-width="0.8"/>
+<text x="60.0" y="1021.9" font-size="9" fill="#334155">Finance</text>
+<text x="260.0" y="1021.9" font-size="9" fill="#b91c1c" font-weight="bold">SEAT NOT FILLED — owns reconciliation in this pack</text>
+<text x="730.0" y="1021.9" font-size="9" fill="#334155">—</text>
+<text x="890.0" y="1021.9" font-size="9" fill="#334155">settlement timing, break ownership, refund accounting</text>
+<text x="1550.0" y="1021.9" font-size="9" fill="#b91c1c" font-weight="bold">Blocked</text>
+<line x1="52.0" y1="1030.0" x2="1848.0" y2="1030.0" stroke="#cbd5e1" stroke-width="0.8"/>
+<rect x="52.0" y="1030.0" width="1796.0" height="23.0" rx="0" fill="#f8fafc"/>
+<text x="60.0" y="1044.9" font-size="9" fill="#334155">Executive Sponsor</text>
+<text x="260.0" y="1044.9" font-size="9" fill="#b91c1c" font-weight="bold">SEAT NOT FILLED — GAP-010</text>
+<text x="730.0" y="1044.9" font-size="9" fill="#334155">—</text>
+<text x="890.0" y="1044.9" font-size="9" fill="#334155">FRI-001 funding line has no approver</text>
+<text x="1550.0" y="1044.9" font-size="9" fill="#b91c1c" font-weight="bold">Blocked</text>
+<line x1="52.0" y1="1053.0" x2="1848.0" y2="1053.0" stroke="#cbd5e1" stroke-width="0.8"/>
+<rect x="52.0" y="754.0" width="1796.0" height="299.0" rx="4" fill="none" stroke="#cbd5e1" stroke-width="1"/>
+<text x="52.0" y="1058.0" font-size="9.5" fill="#64748b" font-weight="bold">DRAFT FOR REVIEW · v0.2 · not approved, not authorised for development · AI-drafted; no human signature</text>
+<text x="1848.0" y="1058.0" font-size="9.5" fill="#64748b" text-anchor="end">WS-3 · AU Bank Insurance Distribution Platform · R0</text>
+</svg>

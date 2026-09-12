@@ -22,7 +22,7 @@ Authority: [CURRENT-STATE.yaml](../../governance/state/CURRENT-STATE.yaml)
 **Stage:** S08 — Engineering Foundation  
 **Phase:** Foundation Recovery Increment — S08 with S09 overlapped  
 **Next:** S09 — Platform & Environment Foundation  
-**Objective:** `R0-ASSISTED-TERM-SALE` — One RM sells one Term Life policy to one ETB customer from one Group A insurer, end to end, through a real interface, with consent and suitability evidence, payment on the customer's own device, an issued and reconciled policy, and a complete audit trail.
+**Objective:** `R0-ASSISTED-LIFE-SALE` — One RM sells a complete Life insurance policy — Term or Savings/ULIP — to one ETB customer from one Group A insurer, end to end, through a real interface, with consent and suitability evidence, payment on the customer's own device, an issued and reconciled policy, and a complete audit trail. R0 includes both Term and Savings/ULIP assisted paths (CR-015). DIY and hybrid stay sequenced behind the assisted journey.
 
 **Gate:** `GATE-S08` · **OPEN** — OPEN: 5, PARTIAL: 5
 

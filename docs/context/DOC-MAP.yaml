@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 558
-total_bytes: 15558483
+document_count: 562
+total_bytes: 15573209
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -1933,7 +1933,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 196900
+    bytes: 198159
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -3574,6 +3574,30 @@ documents:
     title: "CR-015 — Serve the complete assisted Life journey in R0 (Term + Savings/ULIP end to end)"
     answers: "Type: SCOPE (with ARCH and COMP consequences)"
     bytes: 13136
+  - path: docs/governance/change-requests/CR-015/verdicts/README.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "CR-015 — Board verdicts"
+    answers: "Change request: CR-015 — complete assisted Life journey in R0"
+    bytes: 1751
+  - path: docs/governance/change-requests/CR-015/verdicts/board-1-architecture-mahesh.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "Board 1 — Architecture · Draft verdict on CR-015"
+    answers: "Board: 1 — Architecture · AIGEM role: R2"
+    bytes: 3075
+  - path: docs/governance/change-requests/CR-015/verdicts/board-3-product-rajal.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "Board 3 — Product · Draft verdict on CR-015"
+    answers: "Board: 3 — Product · AIGEM role: R1"
+    bytes: 2762
   - path: docs/governance/plans/PLAN-001-context-module-and-safe-autopilot.md
     bucket: governance
     authority: binding-process
@@ -3973,7 +3997,7 @@ documents:
     persona: null
     title: "Current State Dashboard"
     answers: "Generated, committed view. CI regenerates this file from governance/state/CURRENT-STATE.yaml and fails if it drifts. The YAML remains authoritative."
-    bytes: 5033
+    bytes: 5197
   - path: docs/knowledge-base/generated/decision-index.md
     bucket: root
     authority: navigation
@@ -4478,6 +4502,14 @@ documents:
     title: "EPIC 003.work item"
     answers: "schema: work-item"
     bytes: 4595
+  - path: docs/platform/ws3-platform/EPIC-004.work-item.yaml
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, code-change]
+    persona: architecture
+    title: "EPIC 004.work item"
+    answers: "schema: work-item"
+    bytes: 5715
   - path: docs/platform/ws3-platform/nip-bff-lead-phase.openapi.yaml
     bucket: platform
     authority: approved-spec

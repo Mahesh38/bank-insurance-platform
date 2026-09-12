@@ -51,9 +51,15 @@ def gate_lines(gate: dict) -> list[str]:
     criteria = gate.get("exit_criteria") or []
     open_states = {"OPEN", "BLOCKED", "PARTIAL", "FAILED"}
     still_open = [c for c in criteria if isinstance(c, dict) and str(c.get("state", "")).upper() in open_states]
+    # Break the count down by state. "N of N still open" was accurate while every criterion was
+    # OPEN and became misleading the moment some carried partial evidence: PARTIAL is not met, but
+    # it is not untouched either, and an agent reading only the summary line could not tell.
+    order = ["OPEN", "PARTIAL", "BLOCKED", "FAILED"]
+    counts = {s: sum(1 for c in still_open if str(c.get("state", "")).upper() == s) for s in order}
+    breakdown = " · ".join(f"{n} {s}" for s, n in counts.items() if n)
     lines = [
         f"**Open gate:** `{gate.get('id')}` · state `{gate.get('state')}` · "
-        f"{len(still_open)} of {len(criteria)} exit criteria still open"
+        f"{len(still_open)} of {len(criteria)} exit criteria not yet met — {breakdown}"
     ]
     for c in still_open:
         blockers = c.get("blockers") or []

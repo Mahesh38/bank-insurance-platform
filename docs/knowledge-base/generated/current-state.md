@@ -3,9 +3,9 @@
 > **Generated, committed view.** CI regenerates this file from `governance/state/CURRENT-STATE.yaml` and fails if it drifts. The YAML remains authoritative.
 
 **Governance:** AIGEM 1.4  
-**State as of:** 2026-08-10  
-**Review due:** 2026-09-09  
-**Ratified by:** Mahesh (Solution Architect), 2026-08-10 — PO counter-signature outstanding
+**State as of:** 2026-09-11  
+**Review due:** 2026-10-11  
+**Ratified by:** Mahesh (Solution Architect), 2026-08-10 — PO counter-signature outstanding; stage, scope and objective values re-confirmed unchanged at the 2026-09-11 R12 refresh
 
 Authority: [CURRENT-STATE.yaml](../../governance/state/CURRENT-STATE.yaml)
 
@@ -24,17 +24,17 @@ Authority: [CURRENT-STATE.yaml](../../governance/state/CURRENT-STATE.yaml)
 **Next:** S09 — Platform & Environment Foundation  
 **Objective:** `R0-ASSISTED-TERM-SALE` — One RM sells one Term Life policy to one ETB customer from one Group A insurer, end to end, through a real interface, with consent and suitability evidence, payment on the customer's own device, an issued and reconciled policy, and a complete audit trail.
 
-**Gate:** `GATE-S08` · **OPEN** — OPEN: 10
+**Gate:** `GATE-S08` · **OPEN** — OPEN: 5, PARTIAL: 5
 
 | Criterion | State | Owner |
 |---|---|---|
-| `S08-G1` CI builds and tests every module on every PR | **OPEN** | Amit / Engineering |
+| `S08-G1` CI builds and tests every module on every PR | **PARTIAL** | Amit / Engineering |
 | `S08-G2` Merge to main impossible without a green pipeline | **OPEN** | Amit / Engineering |
-| `S08-G3` Coverage thresholds enforced; QA-001 closed | **OPEN** | Swapnali / QA |
-| `S08-G4` ArchUnit and static analysis enforced | **OPEN** | Amit / Engineering |
-| `S08-G5` Secret, SAST, SCA and image scanning in the pipeline | **OPEN** | Deepali / Security |
+| `S08-G3` Coverage thresholds enforced; QA-001 closed | **PARTIAL** | Swapnali / QA |
+| `S08-G4` ArchUnit and static analysis enforced | **PARTIAL** | Amit / Engineering |
+| `S08-G5` Secret, SAST, SCA and image scanning in the pipeline | **PARTIAL** | Deepali / Security |
 | `S08-G6` Test infrastructure operational at every pyramid level | **OPEN** | Swapnali / QA |
-| `S08-G7` No PII in logs, proven by automated test | **OPEN** | Deepali / Security |
+| `S08-G7` No PII in logs, proven by automated test | **PARTIAL** | Deepali / Security |
 | `S08-G8` Engineering and secure coding standards published and adopted | **OPEN** | Amit / Engineering |
 | `S08-G9` Pipeline feedback under 10 minutes at p95; flake under 1% | **OPEN** | Shivanshi / SRE |
 | `S08-G10` A new engineer can build, test and ship in under a week | **OPEN** | Amit / Engineering |
@@ -46,7 +46,7 @@ Authority: [CURRENT-STATE.yaml](../../governance/state/CURRENT-STATE.yaml)
 **Next:** Phase 5 — Expand LOBs (Health → Motor)  
 **Objective:** `P4-UAT-SIGNOFF` — Term path signed off for UAT use by at least one bank caller, while EPIC-002 delivers Life LOB adapter coverage (Term + Savings + ULIP) and adapter standards under CR-014 (does not replace Term UAT exit criteria).
 
-**Gate:** `GATE-P4` · **BLOCKED** — BLOCKED: 4, OPEN: 2, PARTIAL: 1
+**Gate:** `GATE-P4` · **BLOCKED** — BLOCKED: 3, OPEN: 2, PARTIAL: 2
 
 | Criterion | State | Owner |
 |---|---|---|
@@ -56,7 +56,7 @@ Authority: [CURRENT-STATE.yaml](../../governance/state/CURRENT-STATE.yaml)
 | `4.4` Compliance review of audit schema and log samples | **OPEN** | — |
 | `4.5` Runbook: secrets rotation, IP whitelist, 1SB 401/5xx incident | **OPEN** | — |
 | `4.6` Performance smoke: p95 quote under nominal concurrency | **BLOCKED** | Amit / Engineering + R10 / Operations |
-| `4.7` Coverage gates green; QA-001 closed or explicitly waived with expiry | **BLOCKED** | Swapnali / QA |
+| `4.7` Coverage gates green; QA-001 closed or explicitly waived with expiry | **PARTIAL** | Swapnali / QA |
 
 ## WS-2 · Workforce Authentication & Authorization
 

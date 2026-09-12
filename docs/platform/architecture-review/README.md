@@ -37,6 +37,7 @@ No document in the repository yet says: how many services the *whole platform* s
 | 6 | [06-security-compliance-and-nfrs.md](./06-security-compliance-and-nfrs.md) | Security controls, IRDAI/RBI posture, availability/latency/DR targets |
 | 7 | [07-delivery-roadmap-and-estimate.md](./07-delivery-roadmap-and-estimate.md) | Phased plan, team shape, timeline estimate and its assumptions |
 | 8 | [08-architecture-decision-log.md](./08-architecture-decision-log.md) | `ARCH-xxx` decisions this review commits to, and why |
+| 9 | [09-hld-review-question-responses.md](./09-hld-review-question-responses.md) | Responses to the internal review questions on `docs/hdl.svg` — lead system, telecaller/DIY, journey vs lead, quote caching, LOB isolation, retention, post-proposal requirements, post-issuance BMS (analysis only, no decisions) |
 
 ## One-paragraph summary
 

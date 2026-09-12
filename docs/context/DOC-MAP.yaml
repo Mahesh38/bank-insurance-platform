@@ -19,7 +19,7 @@ schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
 document_count: 558
-total_bytes: 15554448
+total_bytes: 15558483
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -965,7 +965,7 @@ documents:
     persona: engineering
     title: "EPIC 002.work item"
     answers: "schema: work-item"
-    bytes: 4394
+    bytes: 4475
   - path: docs/README.md
     bucket: root
     authority: navigation
@@ -1349,7 +1349,7 @@ documents:
     persona: architecture
     title: "AU Bank Insurance Distribution Platform (NIP / 1SB) — Architecture Review Board (ARB) Dossier"
     answers: "Document Reference: ARB-DOSSIER-2026-R0"
-    bytes: 50704
+    bytes: 50794
   - path: docs/architecture/R0-HLD.md
     bucket: platform
     authority: approved-spec
@@ -1357,7 +1357,7 @@ documents:
     persona: architecture
     title: "R0 High-Level Design — AU Bank Insurance Distribution Platform"
     answers: "Horizon: H0 — R0 as designed"
-    bytes: 42622
+    bytes: 42795
   - path: docs/architecture/R0-LLD.md
     bucket: platform
     authority: approved-spec
@@ -1805,7 +1805,7 @@ documents:
     persona: product
     title: "Programme TODO — Platform PO master list"
     answers: "How to use: Check boxes in PRs; move Done items to bottom changelog weekly"
-    bytes: 5444
+    bytes: 5701
   - path: docs/au-bank-insurance-platform/po-drive/04-MANAGEMENT-READINESS.md
     bucket: business
     authority: business-ssot
@@ -1884,8 +1884,8 @@ documents:
     capsules: [business-analysis, product-decision]
     persona: business-analysis
     title: "R0 / MVP Scope One-Pager — AU Bank Insurance Distribution Platform"
-    answers: "Journey focus: RM-assisted + Self-service + Hybrid (all Day 1)"
-    bytes: 7464
+    answers: "Journey focus: RM-assisted first in the current increment; Self-service + Hybrid remain in the product (A2) but sequenced behind assisted"
+    bytes: 7824
   - path: docs/au-bank-insurance-platform/requirements/README.md
     bucket: business
     authority: business-ssot
@@ -1925,7 +1925,7 @@ documents:
     persona: null
     title: "BOOT — the tier-0 agent capsule"
     answers: "Read this first, and often read nothing else. This file answers the ten-fact knowledge"
-    bytes: 18002
+    bytes: 17966
   - path: docs/context/DOC-MAP.yaml
     bucket: context
     authority: non-binding-context
@@ -1933,7 +1933,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 196836
+    bytes: 196900
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -3133,7 +3133,7 @@ documents:
     persona: null
     title: "01 — Current State (Context Resolution)"
     answers: "Pipeline step: 1 — Context Resolution"
-    bytes: 20549
+    bytes: 21065
   - path: docs/governance/02-PROJECT_SCOPE.md
     bucket: governance
     authority: binding-process
@@ -3565,15 +3565,15 @@ documents:
     persona: null
     title: "CR-014 — Admit Life LOB (Term + Savings + ULIP) into WS-1 1SB adapter, with packaging, typed payloads and resilience"
     answers: "Type: SCOPE (with ARCH, NFR and ENG consequences)"
-    bytes: 6515
+    bytes: 6587
   - path: docs/governance/change-requests/CR-015-ws3-r0-savings-ulip-journey.md
     bucket: governance
     authority: binding-process
     capsules: [triage, board-review]
     persona: null
-    title: "CR-015 — Pull WS-3 R0 assisted Savings/ULIP journey sales forward (separate Product CR from CR-014)"
+    title: "CR-015 — Serve the complete assisted Life journey in R0 (Term + Savings/ULIP end to end)"
     answers: "Type: SCOPE (with ARCH and COMP consequences)"
-    bytes: 11702
+    bytes: 13136
   - path: docs/governance/plans/PLAN-001-context-module-and-safe-autopilot.md
     bucket: governance
     authority: binding-process
@@ -3629,7 +3629,7 @@ documents:
     persona: null
     title: "Decision Register"
     answers: "Index of decisions that constrain future work: ADRs, change requests, stage transitions, and"
-    bytes: 38557
+    bytes: 38492
   - path: docs/governance/registers/DEPENDENCY-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -3645,7 +3645,7 @@ documents:
     persona: null
     title: "Parked Backlog"
     answers: "Parked is not deleted. Every entry names the stage that unparks it and the observable"
-    bytes: 13243
+    bytes: 13509
   - path: docs/governance/registers/RISK-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -3661,7 +3661,7 @@ documents:
     persona: null
     title: "Suggestion Register"
     answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 213686
+    bytes: 214257
   - path: docs/governance/schemas/README.md
     bucket: governance
     authority: binding-process
@@ -3733,7 +3733,7 @@ documents:
     persona: null
     title: "CURRENT STATE"
     answers: "AIGEM — Machine-readable current state"
-    bytes: 41024
+    bytes: 41134
   - path: docs/governance/state/GATE-EVIDENCE.yaml
     bucket: governance
     authority: binding-process
@@ -3813,7 +3813,7 @@ documents:
     persona: delivery
     title: "WS-3 — AU Bank Insurance Distribution Platform · Workstream Charter"
     answers: "Author: Rajal — Principal Insurance Platform Product Owner (Board 3 / R1)"
-    bytes: 36044
+    bytes: 35997
   - path: docs/hdl.svg
     bucket: root
     authority: navigation
@@ -3893,7 +3893,7 @@ documents:
     persona: engineering
     title: "Journey Execution Specification — R0"
     answers: "How a request actually travels: every actor use case, every hop, the validation performed at"
-    bytes: 5931
+    bytes: 6084
   - path: docs/journey-execution/flows/UC-01-rm-login.md
     bucket: platform
     authority: ai-drafted
@@ -4477,7 +4477,7 @@ documents:
     persona: architecture
     title: "EPIC 003.work item"
     answers: "schema: work-item"
-    bytes: 4559
+    bytes: 4595
   - path: docs/platform/ws3-platform/nip-bff-lead-phase.openapi.yaml
     bucket: platform
     authority: approved-spec

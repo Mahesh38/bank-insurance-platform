@@ -16,7 +16,7 @@ Real work, wrong stage. Each returns to **full re-triage** at its trigger — ne
 
 | ID | Item | WS | Parked at | Target stage | Unpark trigger | Future necessity | P now / target | Parked because |
 |----|------|----|-----------|--------------|----------------|------------------|----------------|----------------|
-| → [SUG-20260907-fig](./SUGGESTION-REGISTER.md#sug-20260907-fig--figma-ulip--health--meeting-extras) | Figma extras on RM lead create: ULIP-leads tab, Savings/ULIP/Health product picker, post-create meeting scheduler | WS-3 | S08 | S13 / R1 | R0 completes a real pilot Term sale, or R1 planning starts for those surfaces | MUST | P4 / P2 | BOOT `out_of_scope_now`; S11 slice is Term only; Figma is reference (A11); no Prospect/Meeting aggregate in R0 |
+| → [SUG-20260907-fig](./SUGGESTION-REGISTER.md#sug-20260907-fig--figma-ulip--health--meeting-extras) | Figma extras on RM lead create: ULIP-leads tab, Health product picker, post-create meeting scheduler. **Savings/ULIP picker carved 2026-09-12** to `EPIC-004` / CR-015 | WS-3 | S08 | S13 / R1 | R0 completes a real pilot assisted Life sale, or R1 planning starts for those remaining surfaces | MUST | P4 / P2 | BOOT `out_of_scope_now` for Health / meetings; Figma is reference (A11); no Prospect/Meeting aggregate in R0 |
 | TD-022 | FUNC-008 payment intimation | WS-1 | Phase 4 | Phase 5.3 | Phase 4 gate PASSED | MUST | P4 / P2 | Term path closed without intimation; port stubbed |
 | TD-010 | Redis idempotency / cache adapter | WS-1 | Phase 2 | Phase 5.4 | Before horizontal scale-out | MUST | P4 / P2 | In-memory is correct for single-instance UAT |
 | TD-014 | WireMock / full E2E for integration ↔ persistence | WS-1 | Phase 1 | Phase 4 | **Now eligible** — overlaps gate criterion 4.1 | MUST | P2 / P2 | ⚠️ Trigger has fired — sweep at next triage |
@@ -24,7 +24,7 @@ Real work, wrong stage. Each returns to **full re-triage** at its trigger — ne
 | TD-006 | AWS Secrets Manager provider is a stub | WS-1 | Phase 1 | Phase 6 | First non-local deployment using AWS secrets | MUST | P4 / P1 | Prod profile fails fast today; no AWS target yet |
 | TD-023 | Raw payload capture for status / master-data calls | WS-1 | Phase 4 | Phase 5 | Compliance review outcome (gate 4.4) | SHOULD | P4 / P2 | COMP-003 covered the quote/proposal/payment paths |
 | → [SUG-20260820-r1t](./SUGGESTION-REGISTER.md#2-register) | R0 → R1 → R2 transition and dependency map — the order in which North Star components must appear, and which are prerequisites for which | WS-3 | S08 | S13 | R0 completes a real pilot sale, or R1 planning starts | SHOULD | P4 / P2 | The North Star ([hdl.svg](../../hdl.svg)) shows the destination and what lands per release, but sequencing is a Delivery (R12) question that needs real R0 evidence. Drawing the order now would be guessing |
-| → [SUG-20260821-jx2](./SUGGESTION-REGISTER.md#2-register) | Journey Execution Specification for remaining non-R0 surfaces — DIY / customer journey, hybrid mode switching, Group B insurers, ULIP and Savings, Health / Motor / Travel, renewals and servicing. **Admin UI and Reporting/MIS were carved out on 2026-08-25** (`CR-013` / `ADR-014`) and are R0 | WS-3 | S08 | S13 | R0 completes a real pilot sale, or R1 planning starts and Board 1 has ratified the target design for the surface being specified | SHOULD | P5 / P2 | Remaining surfaces stay in `out_of_scope_now`. Admin/MIS JES is no longer this parked row — it follows the R0 W4 surfaces. The R0 pack ([SUG-20260821-jx1](./SUGGESTION-REGISTER.md#sug-20260821-jx1--r0-journey-execution-specification)) is the template |
+| → [SUG-20260821-jx2](./SUGGESTION-REGISTER.md#2-register) | Journey Execution Specification for remaining non-R0 surfaces — DIY / customer journey, hybrid mode switching, Group B insurers, Health / Motor / Travel, renewals and servicing. **Admin UI and Reporting/MIS were carved out on 2026-08-25** (`CR-013` / `ADR-014`) and are R0. **Assisted ULIP/Savings JES carved 2026-09-12** to `EPIC-004` / CR-015 | WS-3 | S08 | S13 | R0 completes a real pilot sale, or R1 planning starts and Board 1 has ratified the target design for the surface being specified | SHOULD | P5 / P2 | Remaining surfaces stay in `out_of_scope_now`. Admin/MIS JES is no longer this parked row — it follows the R0 W4 surfaces. The R0 pack ([SUG-20260821-jx1](./SUGGESTION-REGISTER.md#sug-20260821-jx1--r0-journey-execution-specification)) is the template |
 | TD-007 | ArchUnit `allowEmptyShould(true)` | WS-1 | Phase 1 | Phase 5 | Packages populated by LOB expansion | SHOULD | P5 / P3 | Rules cannot tighten against empty packages |
 | E12 | Annuity / Pension LOBs (Savings + ULIP **removed 2026-09-03** → `EPIC-002` / `CR-014`) | WS-1 | Backlog | Phase 6+ | Term + Health + Motor stable in production | SHOULD | P5 / P3 | P2 backlog by PO decision; Life Savings/ULIP adapter work admitted by stakeholder `SUG-20260903-lif` |
 | E13 | Replaceability proof (fake adapter / routing flag) | WS-1 | Backlog | Phase 6+ | Post-GA | COULD | P5 / P4 | Architecture is proven by ArchUnit today |
@@ -33,23 +33,25 @@ Real work, wrong stage. Each returns to **full re-triage** at its trigger — ne
 | → [SUG-20260825-db1](./SUGGESTION-REGISTER.md#sug-20260825-db1--aarti-r0-physical-data-architecture-pack) restore | Prove Aurora PITR restore against the RPO 5 min / RTO 30 min design targets | WS-3 | S08 | S09 | S09-E06-S04 / S09-VT-07 started | MUST | P4 / P1 | A backup that has never been restored is a hypothesis. Design targets are in `02-operations-and-troubleshooting.md` |
 | → [SUG-20260825-db1](./SUGGESTION-REGISTER.md#sug-20260825-db1--aarti-r0-physical-data-architecture-pack) purge | Implement `sp_retention_sweep` / `sp_purge_operational` as a scheduled job with a disposal audit row | WS-3 | S08 | S09 | S09-E06-S06 started | MUST | P4 / P1 | Routines are designed in `90-routines.sql`; running them now has no Object Lock and no job role |
 | → [SUG-20260831-apg](./SUGGESTION-REGISTER.md#sug-20260831-apg--apigee-is-the-bank-api-plane--do-not-add-a-second-amazon-api-gateway-until-confirmed) draw | Draw Apigee on R0 HLD / LLD / platform views and decide whether Amazon API Gateway is withdrawn | WS-3 | S08 | S09 P4 | **SPIKE-001 written answers** from bank API platform + network: Apigee edition; NIP as a product; 1SB and PG callbacks; how Apigee reaches a new spoke | MUST | P4 / P1 | Human Architecture owner 2026-08-31: keep Apigee **off every diagram** until those answers exist. Amazon API Gateway stays (`ADR-018`) |
-| → [SUG-20260904-eng](./SUGGESTION-REGISTER.md#sug-20260904-eng--implement-7-layer-engine-and-multi-insurer-catalogue) | Implement the 7-layer universal suitability engine and the 206-product multi-insurer catalogue as Suitability (#7) + Product Catalogue (#8). Research is already filed (`SUG-20260904-uis`). Does **not** replace `SUITABILITY-PACK-v1.0` | WS-3 | S08 | S13 / R1 | Suitability (context #7) or Product Catalogue (context #8) is opened for multi-insurer declarative rule packs beyond `SUIT-ALGO-LIFE-v1.0`, or R1 planning starts | MUST | P4 / P2 | S08 is foundation. ULIP/Savings and Group B are `out_of_scope_now`. R0 quote-gate content already lives in the rule pack. `PASS` on 8,811 tests is source-workbook fidelity, not IRDAI certification |
+| → [SUG-20260904-eng](./SUGGESTION-REGISTER.md#sug-20260904-eng--implement-7-layer-engine-and-multi-insurer-catalogue) | Implement the 7-layer universal suitability engine and the 206-product multi-insurer catalogue as Suitability (#7) + Product Catalogue (#8). Research is already filed (`SUG-20260904-uis`). Does **not** replace `SUITABILITY-PACK-v1.0` | WS-3 | S08 | S13 / R1 | Suitability (context #7) or Product Catalogue (context #8) is opened for multi-insurer declarative rule packs beyond `SUIT-ALGO-LIFE-v1.0`, or R1 planning starts | MUST | P4 / P2 | S08 is foundation. CR-015 expands the R0 matrix to Term+Savings+ULIP; this engine is still not that matrix. R0 quote-gate content already lives in the rule pack. `PASS` on 8,811 tests is source-workbook fidelity, not IRDAI certification |
 
 > ⚠️ **TD-014's trigger has fired.** It is listed here for the record; the next gate sweep
 > should promote it into the Phase 4 backlog alongside criterion 4.1, or re-park it with a
 > reason.
 
-> **2026-09-11 — unpark requested, not completed.** Human intake: WS-3 Savings/ULIP journey
-> sales must not stay parked (`SUG-20260911-uls`). That is a Product increment change and
-> needs [`CR-015`](../change-requests/CR-015-ws3-r0-savings-ulip-journey.md) (PO + Architect).
-> FreshnessCheck HALT (CS-1) forbids ADMIT. Per [08 §5](../08-BACKLOG_RULES.md#5-unparking)
-> this is a re-triage request, never an auto-admit. Rows below are **not deleted**:
+> **2026-09-12 — CR-015 transcribed (split, not deleted).** Stakeholder restated complete
+> assisted Life in R0 (Term + Saving/ULIP e2e). HALT is lifted. [`CR-015`](../change-requests/CR-015-ws3-r0-savings-ulip-journey.md)
+> is **CANDIDATE transcribed** under ADMIT-BYPASS; HUMAN T4 still outstanding. Rows below are
+> **not deleted**:
 >
-> - `SUG-20260821-jx2` — ULIP/Savings JES slice proposed for split into CR-015; DIY / hybrid /
+> - `SUG-20260821-jx2` — assisted ULIP/Savings JES carved to [`EPIC-004`](../../platform/ws3-platform/EPIC-004.work-item.yaml) `DOC-022`; DIY / hybrid /
 >   Group B / Health-Motor-Travel / renewals stay in this parked bag.
-> - `SUG-20260907-fig` — Savings/ULIP picker proposed for split into CR-015; Health picker,
+> - `SUG-20260907-fig` — Savings/ULIP picker carved to EPIC-004 `FUNC-021` (S11); Health picker,
 >   ULIP-leads inbox tab, and meeting scheduler stay parked.
 > - `SUG-20260904-eng` — **unchanged.** The 7-layer / 206-product engine is not the R0 matrix.
+>
+> **2026-09-11 — unpark requested, not completed (superseded by the 2026-09-12 transcription).**
+> HALT (CS-1) then forbade ADMIT. Historical note only.
 
 > **2026-08-24 — what the R0 robustness round did and did not unpark.** `CR-012` admitted a
 > platform cache tier (`ADR-011`) and an event backbone (`ADR-012`) into WS-3's R0 estate. Neither

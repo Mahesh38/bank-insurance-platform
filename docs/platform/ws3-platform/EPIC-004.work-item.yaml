@@ -1,0 +1,161 @@
+# schema: work-item
+id: EPIC-004
+title: "WS-3 R0 complete assisted Life journey (Term + Savings + ULIP)"
+type: FUNC
+also: [ARCH, DOC, COMP, QA]
+breakdown: EPIC
+workstream: WS-3
+origin: ["SUG-20260911-uls", "CR-015"]
+owner: "Rajal — Product Owner (R1) on increment; Mahesh (R2) on contracts; Amit on S11 engineering"
+risk_tier: T4
+state: IN-FLIGHT
+priority_now: P2
+priority_at_target: P1
+target_stage: "S08 docs/contracts (this pack) / S11 sale-path implementation"
+unpark_trigger: null
+
+outcome: >
+  One RM can complete an assisted Life sale end to end for Term and for Savings/ULIP
+  (lead → suitability → quote → proposal → customer-device payment → RECONCILED →
+  issued policy + audit trail) against Group A, with the R0 catalogue matrix covering
+  those three classes. Docs and contracts may land at S08; Flutter/BFF screens stay
+  S11. Human T4 on CR-015 outstanding and not claimed.
+
+epic_triggers_met:
+  - multiple_stories
+  - multiple_components
+  - multiple_acceptance_outcomes
+  - multiple_dependencies
+
+completion_definition: >
+  Savings/ULIP assisted JES exists as a carve from SUG-20260821-jx2 AND NIP BFF/RM
+  OpenAPI names Savings/ULIP lead+quote+proposal deltas AND the R0 catalogue matrix
+  lists Life × Group A × {Term, Savings, ULIP} AND (at S11) RM Workspace + Flutter
+  can complete Term and Savings/ULIP assisted sales with Term non-regression
+  evidence. Human Board 1 / Board 3 / Board 4 / Board 6 signatures outstanding
+  and not claimed. No Flutter, NIP BFF or catalogue runtime code is required for
+  this epic to be documentation-complete at S08.
+
+not_included:
+  - "Health picker, ULIP-leads inbox tab, meeting scheduler (remain SUG-20260907-fig)"
+  - "DIY / hybrid / Group B / Health-Motor-Travel / renewals (remain SUG-20260821-jx2)"
+  - "7-layer 206-product engine (remain SUG-20260904-eng)"
+  - "Customer BFF / DIY Flutter"
+  - "GATE-S08 waiver or GATE-P4 Term UAT waiver"
+  - "Human T4 Architecture / Security / Compliance / Product signatures"
+  - "Editing current_phase, stage_status, or GATE-S08 state"
+
+stories:
+  - id: DOC-022
+    title: "Savings/ULIP assisted Journey Execution Specification (carve SUG-20260821-jx2)"
+    state: READY
+    priority_now: P2
+    priority_at_target: P1
+  - id: ARCH-024
+    title: "NIP BFF / RM OpenAPI deltas for Savings/ULIP lead + quote + proposal"
+    state: READY
+    priority_now: P2
+    priority_at_target: P1
+  - id: FUNC-020
+    title: "R0 catalogue matrix Life / Group A / Term + Savings + ULIP"
+    state: READY
+    priority_now: P2
+    priority_at_target: P1
+  - id: FUNC-021
+    title: "S11 RM Workspace + Flutter assisted Term and Savings/ULIP sale path"
+    state: BLOCKED
+    notes: "HARD-blocked on GATE-S08, GAP-006, GAP-007 (Rajal C5). Not S08 feature breadth."
+    priority_now: P4
+    priority_at_target: P1
+  - id: QA-013
+    title: "Assisted Savings/ULIP journey evidence; Term path non-regression"
+    state: BLOCKED
+    notes: "Evidence at S11; Term GATE-P4 criteria stay."
+    priority_now: P4
+    priority_at_target: P1
+
+story_order:
+  - DOC-022
+  - ARCH-024
+  - FUNC-020
+  - FUNC-021
+  - QA-013
+
+serves:
+  - "R0-ASSISTED-LIFE-SALE"
+  - "R0-SCOPE A1 Life = Term, ULIP, Savings/Investment — current increment now matches A1 for assisted"
+  - "CR-015 CANDIDATE transcribed under ADMIT-BYPASS"
+  - "S11-E06 journey screens for Life product classes"
+
+problem: >
+  CR-014 made the 1SB adapter Life-ready (Term + Savings + ULIP) while WS-3 R0 stayed
+  Term-only. Stakeholder direction 2026-09-12 requires the complete assisted Life
+  journey in R0, including Term and Saving/ULIP end to end. Without this epic the
+  bank RM cannot sell Savings/ULIP through the platform journey.
+
+description: >
+  Admit the assisted Savings/ULIP sale path into the R0 increment alongside Term.
+  Split the relevant slices from parked SUG-20260821-jx2 and SUG-20260907-fig.
+  Keep DIY, hybrid, Health, meetings, Group B and the 206-product engine parked.
+  Do not implement screens until S11 and HUMAN APPROVED.
+
+acceptance_criteria:
+  - id: AC-1
+    given: "CURRENT-STATE.yaml after this change"
+    when: "an agent reads WS-3 current_objective"
+    then: "id is R0-ASSISTED-LIFE-SALE and description covers Term and Savings/ULIP assisted e2e"
+  - id: AC-2
+    given: "WS-3 current_scope"
+    when: "an agent reads catalogue in_scope and out_of_scope"
+    then: "catalogue is Life, Group A, Term + Savings + ULIP and ULIP/Savings is not in out_of_scope"
+  - id: AC-3
+    given: "EPIC-004 docs work at S08"
+    when: "GATE-S08 is still OPEN"
+    then: "no Flutter, NIP BFF runtime or catalogue service code is required for documentation-complete"
+  - id: AC-4
+    given: "FUNC-021"
+    when: "GATE-S08, GAP-006 or GAP-007 is open"
+    then: "the S11 sale path remains BLOCKED; Rajal C5 is not waived"
+  - id: AC-5
+    given: "CR-015"
+    when: "this epic exists"
+    then: "decision remains CANDIDATE; no HUMAN T4 signature is claimed"
+
+out_of_scope:
+  - "Runtime services and Flutter in this S08 increment"
+  - "DIY / hybrid / Health / Group B / 206-product engine"
+  - "Editing GATE-S08 / current_phase / stage_status"
+
+dependencies:
+  blocked_by:
+    - "GATE-S08"
+    - "GAP-006"
+    - "GAP-007"
+  requires:
+    - "EPIC-002"
+    - "EPIC-003"
+    - "CR-015"
+  enables:
+    - "S11 assisted Life sale"
+  related_to:
+    - "SUG-20260821-jx2"
+    - "SUG-20260907-fig"
+    - "SUG-20260904-eng"
+    - "CR-014"
+  external: []
+  decision_dependency:
+    - "CR-015"
+
+plan: null
+estimate: L
+assumptions: []
+risks: []
+evidence: []
+variance_log: []
+
+progress:
+  stories_total: 5
+  stories_done: 0
+  completion_definition_met: false
+  evidence:
+    - "CR-015 CANDIDATE transcribed 2026-09-12 under ADMIT-BYPASS; HUMAN T4 outstanding"

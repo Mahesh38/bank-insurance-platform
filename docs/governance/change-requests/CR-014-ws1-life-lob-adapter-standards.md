@@ -38,7 +38,7 @@ Admit into **WS-1 current scope**, and schedule as `EPIC-002`:
 - Edit `current_phase` or `stage_status` (stage fields stay human).
 - Admit **Health / Motor** LOB handlers (remain Phase 5).
 - Admit **Annuity / Pension** LOB handlers (remain parked).
-- Expand **WS-3 R0 product catalogue** or RM journey to Savings/ULIP sales — those stay R1 in WS-3 until a separate Product CR. This CR makes the **supplier adapter** Life-ready; it does not authorise R0 assisted sales of Savings/ULIP.
+- Expand **WS-3 R0 product catalogue** or RM journey to Savings/ULIP sales — deferred in this CR to a separate Product CR. That CR is now [`CR-015`](./CR-015-ws3-r0-savings-ulip-journey.md) (CANDIDATE transcribed 2026-09-12; HUMAN T4 outstanding).
 - Waive GATE-P4 Term UAT exit criteria, coverage gates, or ArchUnit standing constraints.
 - Introduce Redis multi-instance idempotency (`NFR-005` / TD-010 stay Phase 5.4).
 - Approve human T4 board signatures by AI simulation.
@@ -58,7 +58,7 @@ Stakeholder decision (2026-09-03): one silver-bullet integration application mus
 | E12 Saving / Annuity / Pension | **Split.** Savings (+ ULIP, newly explicit) → admitted under `EPIC-002`. Annuity / Pension remain parked as E12. |
 | NFR-004 Circuit breaker (Phase 5.5) | **Pulled forward** into `EPIC-002` (requires this CR per [14 §1](../14-CHANGE_CONTROL.md)). |
 | SUG-20260821-jx2 ULIP/Savings journey specs (WS-3) | **Unchanged in this CR.** Adapter work is not a JES unpark. 2026-09-11 unpark request is a separate Product CR: [`CR-015`](./CR-015-ws3-r0-savings-ulip-journey.md). |
-| WS-3 out_of_scope “ULIP and Savings/Endowment product classes” | **Unchanged in this CR.** Catalogue/journey remain R1 until CR-015 is APPROVED. |
+| WS-3 out_of_scope “ULIP and Savings/Endowment product classes” | **Unchanged in this CR.** Catalogue/journey remained R1 until [`CR-015`](./CR-015-ws3-r0-savings-ulip-journey.md) (transcribed 2026-09-12). |
 
 ---
 

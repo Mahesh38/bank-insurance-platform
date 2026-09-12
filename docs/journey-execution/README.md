@@ -73,9 +73,10 @@ with pseudocode filled in as each slice lands. A rule with `pseudocode: pending`
 (layer, source, failure code are binding) but **not yet expanded**.
 
 Out of scope for every slice: the DIY / customer journey, hybrid mode switching, Group B insurers,
-ULIP and Savings, Health / Motor / Travel, renewals and servicing, the admin UI, and reporting
-beyond the pilot funnel. All sit in `out_of_scope_now`; specifying them is parked as
-`SUG-20260821-jx2`.
+Health / Motor / Travel, renewals and servicing. Assisted Term + Savings/ULIP JES is in the current
+increment ([CR-015](../governance/change-requests/CR-015-ws3-r0-savings-ulip-journey.md) / `EPIC-004`).
+Admin UI and reporting were carved into R0 by CR-013. Remaining surfaces sit in `out_of_scope_now`;
+specifying them is parked as `SUG-20260821-jx2`.
 
 ---
 

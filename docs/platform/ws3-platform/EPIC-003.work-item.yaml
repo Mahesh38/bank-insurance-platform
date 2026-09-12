@@ -33,7 +33,7 @@ completion_definition: >
 
 not_included:
   - "Implementing NIP BFF, Lead (#5), Customer (#4) or Flutter screens (S11-E02 / S11-E06)"
-  - "ULIP / Savings / Health product pickers and ULIP-leads tab (SUG-20260907-fig)"
+  - "Health product picker and ULIP-leads inbox tab (SUG-20260907-fig); Savings/ULIP picker moved to EPIC-004 / CR-015"
   - "Meeting scheduler (SUG-20260907-fig)"
   - "Consent, suitability, quote, proposal, payment APIs (SCR-06+)"
   - "Customer BFF (#1)"

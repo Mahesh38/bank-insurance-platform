@@ -90,7 +90,7 @@ Full table with the wrong-instinct column:
 **Phase:** Foundation Recovery Increment — S08 with S09 overlapped  
 **Next:** S09 — Platform & Environment Foundation
 
-**Objective** (`R0-ASSISTED-TERM-SALE`): One RM sells one Term Life policy to one ETB customer from one Group A insurer, end to end, through a real interface, with consent and suitability evidence, payment on the customer's own device, an issued and reconciled policy, and a complete audit trail.
+**Objective** (`R0-ASSISTED-LIFE-SALE`): One RM sells a complete Life insurance policy — Term or Savings/ULIP — to one ETB customer from one Group A insurer, end to end, through a real interface, with consent and suitability evidence, payment on the customer's own device, an issued and reconciled policy, and a complete audit trail. R0 includes both Term and Savings/ULIP assisted paths (CR-015). DIY and hybrid stay sequenced behind the assisted journey.
 
 **Open gate:** `GATE-S08` · state `OPEN` · 10 of 10 exit criteria not yet met — 5 OPEN · 5 PARTIAL
 - `S08-G1` **PARTIAL** — CI builds and tests every module on every PR · Amit / Engineering
@@ -108,7 +108,6 @@ Full table with the wrong-instinct column:
 - Customer self-service (DIY) journey — revisit at R1 — after the assisted journey completes a real sale in pilot
 - Hybrid journey and assisted/DIY mode switching — revisit at R2 — after assisted and DIY both have stable state and hand-off contracts
 - Group B insurers: catalogue entry and controlled redirect — revisit at R1
-- ULIP and Savings/Endowment product classes — revisit at R1
 - Customer BFF (context #1) and the customer-facing Flutter surface — revisit at R1, with DIY
 - Notification service (context #17) beyond OTP and payment-link delivery — revisit at R1
 - Lead campaign and bulk origination (not single-RM create, not MIS policy ingest) — revisit at R1
@@ -163,7 +162,6 @@ Full table with the wrong-instinct column:
 - Provider routing flag / fake adapter (E13) — revisit at Phase 6+
 - Persistence performance optimisation — revisit at evidence-driven only
 - Reactive rewrite / SDK framework — revisit at never, absent evidence
-- WS-3 R0 product catalogue or RM journey for Savings/ULIP sales — revisit at R1 — adapter readiness does not admit R0 journey sales
 
 **Never in this workstream:**
 - Bank apps calling 1SB or the database directly

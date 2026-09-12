@@ -14,10 +14,30 @@ project:
   name: "Bank Insurance Platform"
   repository: "mahesh38/bank-insurance-platform"
 
-state_as_of: "2026-08-10" # quoted so the file validates directly against current-state.schema.json
-review_due: "2026-09-09"
-ratified_by: "Mahesh (Solution Architect), 2026-08-10 — PO counter-signature outstanding"
-provisional: false # ratified 2026-08-10; agents run the full pipeline
+# R12 freshness refresh, 2026-09-11 — Delivery Lead (Kalpana) seat, agent-executed.
+#
+# Cleared a HALT: state_as_of was 32 days old (limit 30) and review_due passed on 2026-09-09,
+# so every agent was barred from admitting work (Rule CS-1). This is a real review sweep, not a
+# date bump: the 2026-08-10 → 2026-09-11 delta was read out of git history, the CI and security
+# workflows, the module list, the registers and the GitHub Actions run history, and the findings
+# are recorded per criterion below and in GATE-EVIDENCE.yaml.
+#
+# WHAT THIS REFRESH DID NOT TOUCH, and cannot:
+#   * current_phase and stage_status — human only (04 section 5). Unchanged in all 3 workstreams.
+#   * gate `state` (OPEN / CANDIDATE / PASSED / BLOCKED) — unchanged. No gate was marked CANDIDATE.
+#   * criterion state MET or WAIVED — never set by an agent. Criteria that now carry assembled
+#     E4 evidence are recorded PARTIAL; declaring one MET is the named owner's call.
+#   * ratification. `ratified_by` still records Mahesh's 2026-08-10 signature. The stage, scope
+#     and objective values he ratified are unchanged, so this refresh re-confirms them rather
+#     than re-ratifying them — see 01-CURRENT_STATE.md section 7.
+#
+# OVERLAP: PR #94 (branch cursor/gitlab-ce-repo-plan-c1db, open) carries a pure FR-1 date bump of
+# these same two fields to 2026-09-10 / 2026-10-10 and explicitly deferred the content review to
+# R12. This block supersedes it on merge; the content review is the part that was deferred.
+state_as_of: "2026-09-11" # quoted so the file validates directly against current-state.schema.json
+review_due: "2026-10-11"
+ratified_by: "Mahesh (Solution Architect), 2026-08-10 — PO counter-signature outstanding; stage, scope and objective values re-confirmed unchanged at the 2026-09-11 R12 refresh"
+provisional: false # ratified 2026-08-10; stage/scope values unchanged since; agents run the full pipeline
 
 # ---------------------------------------------------------------------------
 # Workstreams — stage fit is ALWAYS evaluated against the input's own
@@ -76,6 +96,19 @@ workstreams:
         write-once retention in ap-south-1 (S09). Product-side in parallel: consent and
         suitability rule packs, R0 acceptance criteria and traceability, R0 product matrix
         and quote rules, and the R0 service blueprint, screen inventory and design system.
+      # Progress read at the 2026-09-11 R12 refresh (delivery fact, not a gate declaration):
+      #   * Application CI exists and runs green on every push and pull request
+      #     (.github/workflows/application-ci.yml, c4e8d9f 2026-08-16). 348 recorded runs.
+      #   * Security scanning pipeline exists: gitleaks (blocking), CodeQL Java SAST, Trivy SCA,
+      #     scheduled full-history secret scan, SBOM (.github/workflows/security-scanning.yml).
+      #   * Service estate scaffolded from the architecture catalogue: 21 services + 6 shared
+      #     libraries on the root build (settings.gradle.kts, b6d4304/b9040c3 2026-09-02), each
+      #     carrying an ArchUnit ServiceArchitectureTest.
+      #   * EPIC-001 platform error contract delivered across the shared libraries (ADR-017).
+      #   * EPIC-003 NIP BFF lead landing and create API contract published (888096f..ba20387).
+      # Not yet started in this increment: S09 IaC, environments, secrets management and the
+      # ap-south-1 retention path. The scaffolded services are skeletons — presence of a module
+      # is not delivery of its bounded context.
 
     current_scope:
       in_scope:
@@ -150,32 +183,63 @@ workstreams:
       exit_criteria:
         - id: "S08-G1"
           criterion: "CI builds and tests every module on every PR"
-          state: OPEN
+          state: PARTIAL
           owner: "Amit / Engineering"
+          # 2026-09-11 (R12 sweep): E4 evidence assembled. application-ci.yml triggers on
+          # pull_request with NO path filter and on push to every branch; the root task line
+          # `build test jacocoTestReport jacocoTestCoverageVerification` covers all 27 modules in
+          # settings.gradle.kts; run history is 348 runs, green on PR #95 at 2026-09-11T13:38Z.
+          # Held at PARTIAL because MET is Amit's declaration, not an agent's (04 section 5).
         - id: "S08-G2"
           criterion: "Merge to main impossible without a green pipeline"
           state: OPEN
           owner: "Amit / Engineering"
         - id: "S08-G3"
           criterion: "Coverage thresholds enforced; QA-001 closed"
-          state: OPEN
+          state: PARTIAL
           owner: "Swapnali / QA"
+          # 2026-09-11 (R12 sweep): first clause now has evidence — jacocoTestCoverageVerification
+          # is wired into `check` and named explicitly in CI, and it executes on every run, which
+          # is what 4.7 was waiting on. Second clause is not met: libs hold 80% line / 70% branch,
+          # every other service still sits on the QA-002 interim 50% line floor pending QA-003, so
+          # QA-001 stays open. Known debt — do not re-report (Rule CS-2).
         - id: "S08-G4"
           criterion: "ArchUnit and static analysis enforced"
-          state: OPEN
+          state: PARTIAL
           owner: "Amit / Engineering"
+          # 2026-09-11 (R12 sweep): ArchUnit half is evidenced — 18 modules carry a
+          # ServiceArchitectureTest, 1sb-integration-service carries ArchitectureRulesBiteTest
+          # (S08-VT-03), and the CI architecture-fitness step fails when no ArchUnit results are
+          # found. Static-analysis half is NOT enforced: the root build declares no Checkstyle,
+          # PMD, SpotBugs or Spotless, so "and static analysis" has no mechanism behind it.
         - id: "S08-G5"
           criterion: "Secret, SAST, SCA and image scanning in the pipeline"
-          state: OPEN
+          state: PARTIAL
           owner: "Deepali / Security"
+          # 2026-09-11 (R12 sweep): three of the four scanners are in the pipeline and blocking —
+          # gitleaks on the working tree, CodeQL Java SAST failing on critical/high, Trivy
+          # dependency SCA failing on CRITICAL/HIGH — plus a scheduled full-history secret scan
+          # and an SBOM job. CONTAINER IMAGE scanning is absent: security-scanning.yml has
+          # secret-scan, secret-scan-history, sast, sca and sbom jobs and no image scan, while a
+          # root Dockerfile ships an image. The criterion cannot close on the other three.
         - id: "S08-G6"
           criterion: "Test infrastructure operational at every pyramid level"
           state: OPEN
           owner: "Swapnali / QA"
+          # 2026-09-11 (R12 sweep): stays OPEN. WireMock is present in one module only
+          # (1sb-integration-service) and Testcontainers appears nowhere in the build, so the
+          # integration and contract levels of the pyramid have no shared harness. Blocked by
+          # TD-014 (known debt). The scaffolded services carry 2 test files each — a skeleton,
+          # not a pyramid.
         - id: "S08-G7"
           criterion: "No PII in logs, proven by automated test"
-          state: OPEN
+          state: PARTIAL
           owner: "Deepali / Security"
+          # 2026-09-11 (R12 sweep): component-level proof exists — NoPiiInErrorOutputTest and
+          # ErrorDiagnosticAndRedactionTest in bank-common-error (EPIC-001), PiiMaskerTest in
+          # 1sb-integration-service. What S08-VT-06 asks for does not exist: a test that runs the
+          # suite and scans ALL emitted logs for PAN, Aadhaar, phone, email and health patterns.
+          # A redaction unit test proves the masker works, not that no path bypasses it.
         - id: "S08-G8"
           criterion: "Engineering and secure coding standards published and adopted"
           state: OPEN
@@ -184,6 +248,11 @@ workstreams:
           criterion: "Pipeline feedback under 10 minutes at p95; flake under 1%"
           state: OPEN
           owner: "Shivanshi / SRE"
+          # 2026-09-11 (R12 sweep): stays OPEN — S08-VT-08/VT-09 require measurement over >= 20
+          # and >= 50 runs and no metrics record exists. Input for Shivanshi, not closure: the 15
+          # most recent Application CI runs all concluded success with wall-clock times of roughly
+          # 60-90 seconds. If that holds across 50 runs the criterion is measurable now; an
+          # unmeasured criterion is not a passing one.
         - id: "S08-G10"
           criterion: "A new engineer can build, test and ship in under a week"
           state: OPEN
@@ -225,6 +294,16 @@ workstreams:
         consumer collection, compliance-reviewed audit schema, operations runbook,
         performance smoke measurement; plus admitted EPIC-002 Life LOB adapter work
         (Savings + ULIP handlers, bank-model extraction, typed 1SB payloads, resilience).
+      # Progress read at the 2026-09-11 R12 refresh (delivery fact, not a gate declaration):
+      #   * EPIC-002 has landed on main: typed Life quote and proposal handlers for Term, Saving
+      #     and ULIP (e273a82, 0f407b9), bank domain model extracted to libs/bank-common-domain,
+      #     1SB Life paths aligned to the gateway portal docs (a866143), circuit breaker that no
+      #     longer opens on 422 business errors (59f193c), QA-012 Life LOB WireMock regression
+      #     (eb1dbc0). Adapter coverage is delivered; the Term UAT exit criteria below are not
+      #     replaced by it, and R0 journey sales for Savings/ULIP remain out of scope.
+      #   * None of the seven GATE-P4 criteria closed in this period. The gate has been BLOCKED
+      #     since 2026-08-16 on four blockers whose follow-up dates are all now past — that, not
+      #     adapter capability, is what is holding Phase 4.
 
     current_scope:
       in_scope:
@@ -305,12 +384,18 @@ workstreams:
           blockers: ["DEP-003"]
         - id: "4.7"
           criterion: "Coverage gates green; QA-001 closed or explicitly waived with expiry"
-          state: BLOCKED
+          state: PARTIAL
           owner: "Swapnali / QA"
           blockers: ["S08-G3"]
           # CR-010 / Rule GS-3: JaCoCo is configured but has never executed on a pull request.
           # Closure depends on the WS-3 S08 foundation (IF-3), not on WS-1 effort.
           # Returns to PARTIAL on the first green application-CI run.
+          # 2026-09-11 (R12 sweep): that condition has fired. Application CI has executed
+          # jacocoTestCoverageVerification on pull requests since 2026-08-16 and is green, so the
+          # criterion moves to PARTIAL under its own recorded rule — not by an agent's judgement.
+          # This also aligns the YAML with 04-STAGE_GATES.md section 6, which has carried 4.7 as
+          # "Partial" throughout. Blocker S08-G3 stands: closure still needs QA-001 closed or
+          # waived with an expiry, which is Swapnali's call.
       # 4.5 is owned by Shivanshi (R10 / Board 7), named by CR-008. Previously listed as
       # "Ops" — an approver with no persona, which is why 4.5 could not close.
       approvers: ["Architect", "PO", "QA Lead", "Compliance (4.4)", "Shivanshi / SRE (4.5)"]
@@ -347,6 +432,17 @@ workstreams:
       description: >
         workforce-access-bff, identity-provider-adapter-service and
         identity-authorization-service meeting the SSOT's accepted decisions.
+      # 2026-09-11 (R12 refresh): NO criterion movement in this period. All three services exist
+      # on the root build and carry the EPIC-001 error contract, but their test depth is thin
+      # (6 / 2 / 5 test files) and not one of A.1-A.6 has evidence attached. The only commits
+      # touching them since 2026-08-10 were cross-cutting — the shared error handler and CI
+      # dependency fixes — so WS-2 has had no dedicated effort for a month.
+      #
+      # Delivery consequence, stated because it is easy to miss: WS-2 is an ENABLER for WS-3,
+      # delivering the workforce half of bounded context #3 behind IF-2. A.1 (BFF token-hiding)
+      # is the one WS-3's RM journey cannot be evidenced without. A stalled enabler does not
+      # announce itself — it surfaces as a WS-3 slip later. Named for the Governance Sync;
+      # sequencing WS-2 against WS-3 R0 is a Product and Architecture call, not R12's.
 
     current_scope:
       in_scope:

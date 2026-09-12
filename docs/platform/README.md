@@ -27,11 +27,14 @@ module belongs with that module instead.
 | **[ws3-platform/](./ws3-platform/00-WS3-ARCHITECTURE-REGISTRATION.md)** | Ratified R0 architecture sources (registration, domain, information model, solution architecture, security, NFRs) | ⚠️ AI-DRAFTED baseline; human signatures outstanding |
 | **[data-architecture/](./data-architecture/README.md)** | Aarti R0 physical pack — rules, schemas, indexes, routines, ops/troubleshooting, design DDL | ⚠️ AI-DRAFTED; `S07-G5` human signature outstanding. Apply is S09 |
 | **[authentication-authorization/](./authentication-authorization/README.md)** | **Workforce authentication & authorization SSOT** — token-hiding BFF, provider abstraction (Keycloak → Cognito/AD), RBAC + ABAC + relationship policies | ✅ **Approved** architecture and implementation baseline |
+| **[environments/](./environments/README.md)** | **AWS platform & environment foundation (S09)** — phased UAT build plan Aug 2026 → Jan 2027, per-component dev/UAT/prod configuration, cost model and optimisation levers, IaC module layout and apply order | ⚠️ **AI-drafted planning input** — GATE-S09 approval outstanding |
 
-**These two carry different weight.** The auth SSOT is binding on implementations today.
+**These three carry different weight.** The auth SSOT is binding on implementations today.
 The architecture review is a proposal whose technology choices are tracked as `ARCH-xxx`
 decisions in
 [08-architecture-decision-log.md](./architecture-review/08-architecture-decision-log.md).
+`environments/` is an S09 planning input: it sizes and sequences the AWS build, and it raises
+three candidate ADRs of its own, but it marks no gate passed.
 
 ---
 

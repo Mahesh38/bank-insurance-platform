@@ -417,7 +417,7 @@ workstreams:
         last_verified_at: "2026-09-13T19:47:46Z"
       - id: "S08-G8"
         description: "Engineering and secure coding standards published and adopted."
-        state: OPEN
+        state: MET
         owner: "Amit / Engineering"
         execution_mode: HUMAN_REQUIRED
         priority: P3
@@ -426,12 +426,11 @@ workstreams:
         required_evidence_level: E2
         verifier: document
         evidence:
-          - "Adjacent documents exist but are not this criterion: ORG-STANDARDS.md is layer-2 organisational policy, and MICROSERVICE-SCAFFOLD-TEMPLATE.md is module structure. Neither is an engineering or secure-coding standard, and neither is referenced by a review checklist."
+          - "Published standard: docs/governance/ENGINEERING-AND-SECURE-CODING-STANDARDS.md (ENG-1..10, SEC-C1..C10) — L3 repo standard building on ORG-STANDARDS.md."
+          - "Adoption mechanism: docs/governance/PR-REVIEW-CHECKLIST.md cites that standard by path; .github/pull_request_template.md requires ENG/SEC checklist completion on every PR."
+          - "Engineering declaration (Amit seat, 2026-09-13): criterion S08-G8 MET on the document verifier (E2). GATE-S08 remains OPEN; this is not a stage transition and not a T4 approval."
         blockers: []
-        # Stays OPEN. E2 needs the standards documents plus a review checklist that cites them.
-        # Cheapest criterion on the gate and the one with no mechanism started — worth noting that
-        # it blocks nothing, which is exactly why it keeps being skipped.
-        last_verified_at: "2026-09-11"
+        last_verified_at: "2026-09-13T20:05:00Z"
       - id: "S08-G9"
         description: "Pipeline feedback under 10 minutes at p95; flaky failure rate under 1%."
         state: MET
@@ -459,8 +458,10 @@ workstreams:
         enables: 0
         required_evidence_level: E3
         verifier: human-review
-        evidence: []
+        evidence:
+          - "Human pack assembled 2026-09-13: scripts/governance/evidence/S08-G10-onboarding-human-pack.md (5-day path, reading list, attestation template). Still OPEN until a named engineer completes the attestation and Amit confirms on human-review."
         blockers: []
+        last_verified_at: "2026-09-13T20:05:00Z"
         # Stays OPEN: E3 needs an onboarding record and no one has been onboarded against this
         # build. S08-VT-10 cannot be run retrospectively, so this criterion has a lead time the
         # others do not — it is worth starting before the rest of the gate is ready, not after.

@@ -242,8 +242,11 @@ workstreams:
           # 2026-09-11 (R12 sweep): component-level proof existed; S08-VT-06 log-scan was the gap.
         - id: "S08-G8"
           criterion: "Engineering and secure coding standards published and adopted"
-          state: OPEN
+          state: MET
           owner: "Amit / Engineering"
+          # 2026-09-13 (Engineering / Amit seat): declared MET on document verifier.
+          # ENGINEERING-AND-SECURE-CODING-STANDARDS.md + PR-REVIEW-CHECKLIST.md +
+          # .github/pull_request_template.md. GATE-S08 stays OPEN.
         - id: "S08-G9"
           criterion: "Pipeline feedback under 10 minutes at p95; flake under 1%"
           state: MET
@@ -257,6 +260,8 @@ workstreams:
           criterion: "A new engineer can build, test and ship in under a week"
           state: OPEN
           owner: "Amit / Engineering"
+          # 2026-09-13: human pack at scripts/governance/evidence/S08-G10-onboarding-human-pack.md.
+          # Still OPEN pending named attestation + Amit human-review.
       approvers: ["Amit / Engineering", "Swapnali / QA", "Mahesh / Architecture", "Deepali / Security", "Shivanshi / SRE"]
 
     completed_stages: []

@@ -87,3 +87,5 @@ It is not a substitute for doing the review, and it is not a place to keep an ar
 fresh while it rots. A register whose only activity for two cycles is a row in this file is
 telling you something — either it genuinely never changes and its limit is wrong, or it is not
 being used and should be retired. Both are worth acting on; neither is fixed by another row here.
+| docs/governance/state/GATE-EVIDENCE.yaml | 2026-09-13 | Engineering seat (Amit), agent-executed | **Changed.** S08-G8 OPEN → MET (standards + PR checklist + template). G10 human pack attached; still OPEN. |
+| docs/governance/state/CURRENT-STATE.yaml | 2026-09-13 | Engineering seat (Amit), agent-executed | **Changed.** S08-G8 → MET. No stage/gate-state edit. |

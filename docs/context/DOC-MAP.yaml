@@ -19,7 +19,7 @@ schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
 document_count: 562
-total_bytes: 15620366
+total_bytes: 15621113
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -1925,7 +1925,7 @@ documents:
     persona: null
     title: "BOOT — the tier-0 agent capsule"
     answers: "Read this first, and often read nothing else. This file answers the ten-fact knowledge"
-    bytes: 17360
+    bytes: 17252
   - path: docs/context/DOC-MAP.yaml
     bucket: context
     authority: non-binding-context
@@ -3133,7 +3133,7 @@ documents:
     persona: null
     title: "01 — Current State (Context Resolution)"
     answers: "Pipeline step: 1 — Context Resolution"
-    bytes: 22790
+    bytes: 22746
   - path: docs/governance/02-PROJECT_SCOPE.md
     bucket: governance
     authority: binding-process
@@ -3757,7 +3757,7 @@ documents:
     persona: null
     title: "CURRENT STATE"
     answers: "AIGEM — Machine-readable current state"
-    bytes: 40688
+    bytes: 41091
   - path: docs/governance/state/GATE-EVIDENCE.yaml
     bucket: governance
     authority: binding-process
@@ -3765,7 +3765,7 @@ documents:
     persona: null
     title: "GATE EVIDENCE"
     answers: "YAML record; first key `schema_version`"
-    bytes: 24566
+    bytes: 25062
   - path: docs/governance/state/REVIEW-LOG.md
     bucket: governance
     authority: binding-process

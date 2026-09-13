@@ -133,7 +133,7 @@ LOB, lead contract) is real, and none of it was gate-closing work.
 | **Deliverable** | Application CI with enforced quality, security and architecture gates (S08); IaC, environments, secrets, observability and 7-year write-once retention in ap-south-1 (S09); consent and suitability rule packs, R0 acceptance criteria, product matrix and service blueprint in parallel |
 | **Delivered so far** | Application CI and security scanning pipelines; 21 services and 6 libraries scaffolded with ArchUnit boundary tests; EPIC-001 error contract; EPIC-003 lead API contract |
 | **Not yet started** | All of S09 — IaC, environments, secrets management, the ap-south-1 retention path |
-| **Gate** | `GATE-S08` · `OPEN` · 7 of 10 criteria MET (G1, G3, G4, G5, G6, G7, G9), 0 PARTIAL, 3 OPEN |
+| **Gate** | `GATE-S08` · `OPEN` · 8 of 10 criteria MET (G1, G3–G9), 0 PARTIAL, 2 OPEN (G2, G10) |
 | **Next stage** | S09 — Platform & Environment Foundation |
 | **Authority** | [WS-3 charter](./workstreams/WS-3-PLATFORM-CHARTER.md) · [architecture registration](../platform/ws3-platform/00-WS3-ARCHITECTURE-REGISTRATION.md) |
 | **Entry condition on S11** | Non-waivable (Rajal condition C5): no WS-3 stage enters S11 while GAP-006 (consent) or GAP-007 (suitability) is open |
@@ -150,9 +150,9 @@ LOB, lead contract) is real, and none of it was gate-closing work.
 | S08-G5 | Secret, SAST, SCA and image scanning in the pipeline | ✅ MET — Trivy image-scan job on Phase 1 + combined images (2026-09-13) | Deepali |
 | S08-G6 | Test infrastructure at every pyramid level | ✅ MET — `bank-common-test` harness + Postgres/WireMock proving ITs; TD-014 Closed (2026-09-13) | Swapnali |
 | S08-G7 | No PII in logs, proven by automated test | ✅ MET — LogPiiScrubber + NoPiiInEmittedLogsTest (S08-VT-06) (2026-09-13) | Deepali |
-| S08-G8 | Engineering and secure coding standards published | ❌ Open — no mechanism started; blocks nothing, which is why it keeps slipping | Amit |
+| S08-G8 | Engineering and secure coding standards published | ✅ MET — standards + PR checklist + PR template (2026-09-13) | Amit |
 | S08-G9 | Pipeline feedback < 10 min p95; flake < 1% | ✅ MET — p95 ≈ 2.8 min; flake 0.00% over ≥50 runs (2026-09-13) | Shivanshi |
-| S08-G10 | A new engineer can build, test and ship in under a week | ❌ Open — needs an onboarding record, which has a lead time the others do not | Amit |
+| S08-G10 | A new engineer can build, test and ship in under a week | ❌ Open — onboarding pack ready; needs named attestation | Amit |
 
 ### WS-1 · 1SB Insurance Integration
 

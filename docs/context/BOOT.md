@@ -92,9 +92,8 @@ Full table with the wrong-instinct column:
 
 **Objective** (`R0-ASSISTED-LIFE-SALE`): One RM sells a complete Life insurance policy — Term or Savings/ULIP — to one ETB customer from one Group A insurer, end to end, through a real interface, with consent and suitability evidence, payment on the customer's own device, an issued and reconciled policy, and a complete audit trail. R0 includes both Term and Savings/ULIP assisted paths (CR-015). DIY and hybrid stay sequenced behind the assisted journey.
 
-**Open gate:** `GATE-S08` · state `OPEN` · 3 of 10 exit criteria not yet met — 3 OPEN
+**Open gate:** `GATE-S08` · state `OPEN` · 2 of 10 exit criteria not yet met — 2 OPEN
 - `S08-G2` **OPEN** — Merge to main impossible without a green pipeline · Amit / Engineering
-- `S08-G8` **OPEN** — Engineering and secure coding standards published and adopted · Amit / Engineering
 - `S08-G10` **OPEN** — A new engineer can build, test and ship in under a week · Amit / Engineering
 
 **Out of scope now — do not propose, do not build:**

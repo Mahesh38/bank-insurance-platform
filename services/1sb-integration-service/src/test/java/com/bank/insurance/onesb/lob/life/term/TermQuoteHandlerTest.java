@@ -57,6 +57,7 @@ class TermQuoteHandlerTest {
         assertThat(payload.distributor().distributorID()).isEqualTo("TEST_DIST");
         assertThat(payload.distributor().agentID()).isEqualTo("109337");
         assertThat(payload.distributor().channelType()).isEqualTo("B2B");
+        assertThat(payload.distributor().salesChannel()).isEqualTo("Online");
         assertThat(payload.personalInformation().individualDetails()).hasSize(1);
         LifeQuoteRequest.IndividualDetail member = payload.personalInformation().individualDetails().getFirst();
         assertThat(member.dateOfBirth()).isEqualTo("1990-01-15");
@@ -65,5 +66,28 @@ class TermQuoteHandlerTest {
         assertThat(member.quoteAmount()).isEqualTo(new BigDecimal("5000000"));
         assertThat(member.zipCode()).isEqualTo("400001");
         assertThat(payload.product().productType()).isEqualTo("LifeTerm");
+    }
+
+    @Test
+    @Tag("FUNC-022")
+    void buildSubmitPayload_singleQuote_emitsPin() {
+        CreateQuoteCommand command = new CreateQuoteCommand(
+                Lob.TERM, "SINGLE", "SUM_ASSURED", new BigDecimal("5000000"), null,
+                List.of(new CreateQuoteCommand.MemberDetail(
+                        "LIFE_ASSURED", 1, "1990-01-15", "M", false,
+                        new BigDecimal("1200000"), "400001")),
+                null,
+                new CreateQuoteCommand.DistributionContext(null, "109337", "B2B"),
+                "j-1", null, "idem", "actor",
+                new CreateQuoteCommand.ProductSelection(
+                        "BALIC", List.of("345"), null, null, null, 20, 15, "Y", null)
+        );
+
+        LifeQuoteRequest payload = handler.buildSubmitPayload(command);
+        assertThat(payload.typeOfQuote()).isEqualTo("Single Quote");
+        assertThat(payload.product().insuranceAndProducts().getFirst().insuranceCompanyCode())
+                .isEqualTo("BALIC");
+        assertThat(handler.criteriaPath("345", "BALIC"))
+                .isEqualTo("/insurance/lifeterm/v1/quote/gateCriteria?productId=345&manufacturerId=BALIC");
     }
 }

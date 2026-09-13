@@ -81,7 +81,7 @@ Track as delivery backlog after Wave 1. Epic checklist:
 - [ ] E-LEAD Lead create/resume
 - [ ] E-CONSENT Consent capture & gate
 - [ ] E-SUIT Suitability & recommendation record
-- [ ] E-PROD Product Matrix eligibility (first LOB)
+- [ ] E-PROD Product Matrix eligibility (Life: Term + Savings + ULIP — CR-015 / EPIC-004)
 - [ ] E-QUOTE Quote + compare + select
 - [ ] E-PROP Proposal dynamic form + submit
 - [ ] E-UW Underwriting status tracking (lite)
@@ -138,4 +138,5 @@ Track as delivery backlog after Wave 1. Epic checklist:
 
 | Date | Note |
 |------|------|
+| 2026-09-12 | **CR-015 / EPIC-004** — current increment serves complete **assisted Life** (Term + Savings/ULIP e2e). CANDIDATE transcribed; HUMAN T4 outstanding. DIY/hybrid stay parked. Routed here as WS-3 FUNC. |
 | 2026-07-31 | Initial master TODO from SWOT + gap register + KB |

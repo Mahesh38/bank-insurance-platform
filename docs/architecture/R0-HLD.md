@@ -42,9 +42,9 @@ It is **not** a new source of truth. Rule `HA-02` still holds: if this file and 
 
 ## 1. The R0 outcome, in one screen
 
-> One Relationship Manager — the certified Specified Person — sells one Term Life policy to one existing-to-bank customer of one Group A insurer, end to end, through a real interface, with consent and suitability evidence, payment on the customer's own device, an issued and reconciled policy, and a complete audit trail.
+> One Relationship Manager — the certified Specified Person — sells a complete Life insurance policy (Term or Savings/ULIP) to one existing-to-bank customer of one Group A insurer, end to end, through a real interface, with consent and suitability evidence, payment on the customer's own device, an issued and reconciled policy, and a complete audit trail.
 
-That sentence is the whole of `R0-ASSISTED-TERM-SALE`. Everything in this HLD either makes that sentence true or is deferred until it is.
+That sentence is the whole of `R0-ASSISTED-LIFE-SALE` ([CR-015](../governance/change-requests/CR-015-ws3-r0-savings-ulip-journey.md), CANDIDATE transcribed 2026-09-12). Everything in this HLD either makes that sentence true or is deferred until it is.
 
 The journey ribbon on the SVG is the acceptance path, not a decoration:
 
@@ -53,7 +53,7 @@ The journey ribbon on the SVG is the acceptance path, not a decoration:
 | 1 | Lead created; ETB customer looked up via EBS APIs (CBS / CIF) | #5 Lead · #4 Customer | Origination is RM-only (`AC-8`) |
 | 2 | Need analysis and suitability complete | #7 Suitability | **C1** — no quote without a valid, unexpired assessment |
 | 3 | Consent granted via customer-device OTP | #6 Consent | **C2** — no proposal without an unexpired grant |
-| 4 | Term quote via 1SB, partial success is success | #10 Quotation · #14 Hub · #15 Adapter | C1 re-checked at quote entry (`S-08`) |
+| 4 | Life quote (Term / Savings / ULIP) via 1SB, partial success is success | #10 Quotation · #14 Hub · #15 Adapter | C1 re-checked at quote entry (`S-08`) |
 | 5 | Proposal submitted; UW tracked | #11 Proposal & UW | Consent grant still valid |
 | 6 | Payment link issued to the **customer device** | #12 Payment · #17 Notification | **C4** — never an RM or bank device |
 | 7 | Customer pays; bank reconciles | #12 Payment · AU Bank PG | `UNCERTAIN` until settlement; never guessed |

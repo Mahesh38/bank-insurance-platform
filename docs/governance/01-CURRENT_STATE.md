@@ -111,7 +111,7 @@ criterion rather than new scope:
 | **Canonical stage** | S08 — Engineering Foundation |
 | **Current phase** | Foundation Recovery Increment — S08 with S09 overlapped |
 | **Stage status** | IN_PROGRESS |
-| **Current objective** | `R0-ASSISTED-TERM-SALE` — one RM sells one Term Life policy to one ETB customer, end to end, with consent and suitability evidence, payment on the customer's own device, and a complete audit trail |
+| **Current objective** | `R0-ASSISTED-LIFE-SALE` — one RM sells a complete Life policy (Term or Savings/ULIP) to one ETB customer, end to end, with consent and suitability evidence, payment on the customer's own device, and a complete audit trail (CR-015 CANDIDATE transcribed 2026-09-12; HUMAN T4 outstanding) |
 | **Deliverable** | Application CI with enforced quality, security and architecture gates (S08); IaC, environments, secrets, observability and 7-year write-once retention in ap-south-1 (S09); consent and suitability rule packs, R0 acceptance criteria, product matrix and service blueprint in parallel |
 | **Delivered so far** | Application CI and security scanning pipelines; 21 services and 6 libraries scaffolded with ArchUnit boundary tests; EPIC-001 error contract; EPIC-003 lead API contract |
 | **Not yet started** | All of S09 — IaC, environments, secrets management, the ap-south-1 retention path |
@@ -235,11 +235,17 @@ Agents should recognise these so they do not re-report them as new findings. Ful
 full pipeline, including ADMIT, against this state.
 
 **The 2026-09-11 refresh did not re-ratify it.** It could not: an agent in the R12 seat may compel
-a decision to happen and may never supply its content (Rule PA-1). What the refresh establishes is
-narrower and enough to lift the CS-1 halt — the stage, scope and objective values Mahesh signed on
-2026-08-10 are **unchanged**, so there is nothing new to ratify, and the fields that did change are
-freshness dates and per-criterion evidence, both owned by R12 under
-[RUNBOOK §4.1](./RUNBOOK.md#41-live-project-state-l3--highest-decay-rate).
+a decision to happen and may never supply its content (Rule PA-1). What the refresh established
+was narrower and enough to lift the CS-1 halt — at that date the stage, scope and objective
+values Mahesh signed on 2026-08-10 were unchanged.
+
+**2026-09-12 — CR-015 ADMIT-BYPASS transcribed WS-3 scope and objective only.** Stakeholder
+direction restated that R0 must serve the complete assisted Life journey (Term and Saving/ULIP
+end to end). `current_objective` is now `R0-ASSISTED-LIFE-SALE` and the catalogue in-scope line
+includes Term + Savings + ULIP. **Stage fields were not edited** (`current_phase`, `stage_status`,
+GATE-S08 remain as ratified). This is CANDIDATE transcription, the same pattern as CR-013 /
+CR-014 — not APPROVED, and not a T4 signature. PO counter-signature and human Architecture /
+Security / Risk & Compliance verdicts remain outstanding.
 
 | Agent action | Allowed |
 |--------------|---------|

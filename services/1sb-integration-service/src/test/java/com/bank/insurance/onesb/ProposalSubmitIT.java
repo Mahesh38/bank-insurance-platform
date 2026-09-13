@@ -72,6 +72,7 @@ class ProposalSubmitIT {
     static void bindWireMockBaseUrls(DynamicPropertyRegistry registry) {
         registry.add("onesb.client.base-url", ONESB::baseUrl);
         registry.add("bank.persistence.base-url", PERSISTENCE::baseUrl);
+        registry.add("onesb.distributor-id", () -> "TEST_DIST");
         registry.add("onesb.poll.base-delay-ms", () -> "1");
         registry.add("onesb.poll.max-delay-ms", () -> "5");
         registry.add("onesb.poll.max-attempts", () -> "3");
@@ -105,6 +106,31 @@ class ProposalSubmitIT {
                                 """))
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.code", is(ErrorCodes.AGENT_ATTRIBUTION_MISSING)));
+
+        ONESB.verify(0, postRequestedFor(urlEqualTo(TERM_PROPOSAL_PATH)));
+        PERSISTENCE.verify(0, postRequestedFor(urlEqualTo("/internal/v1/jobs")));
+    }
+
+    @Test
+    @Tag("FUNC-025")
+    void emptyValues_returns422_andNeverCallsOneSb() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.post("/v1/proposals")
+                        .header("Idempotency-Key", "idem-empty-" + UUID.randomUUID())
+                        .header("X-Actor-Id", "rm-empty")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "lob": "TERM",
+                                  "journeyId": "j-empty",
+                                  "consentRef": "consent-empty",
+                                  "agentId": "109337",
+                                  "productCode": "T1",
+                                  "manufacturerId": "HDFC",
+                                  "values": {}
+                                }
+                                """))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code", is(ErrorCodes.VALIDATION_ERROR)));
 
         ONESB.verify(0, postRequestedFor(urlEqualTo(TERM_PROPOSAL_PATH)));
         PERSISTENCE.verify(0, postRequestedFor(urlEqualTo("/internal/v1/jobs")));

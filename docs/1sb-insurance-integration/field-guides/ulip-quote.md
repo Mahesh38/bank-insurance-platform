@@ -28,15 +28,18 @@ Same envelope as [savings-quote.md](./savings-quote.md). Handler sets:
 
 ## Supplementary APIs (not the quote submit)
 
-| API | Use |
-|-----|-----|
-| ULIP list | Applicable funds for plan / allocation UX |
-| ULIP performance | Fund performance data for disclosure |
+| API | Use on demo |
+|-----|-------------|
+| ULIP list (`…/quote/ulipList`) | ALB stub — **not** a fund list |
+| ULIP performance | Guessed paths 404 — **not** a real demo API |
 
-Wire those as separate outbound ports when the journey needs fund pickers — do not invent a second quote base path.
+Do **not** invent a second quote base path, a `/lifeulip` prefix, or a bank `/ulip/list` that pretends to be 1SB.
+
+Funds **do** appear on the Saving quote poll under `productDetails.planOption.investmentOptions.fundDetails`. The adapter maps those rows onto bank `QuoteOffer.funds` (`FUNC-026`). GET `/v1/quotes/{jobId}` returns them after poll completes.
 
 ## Mapping notes
 
-- Handler: `UlipQuoteHandler` shares `/insurance/lifesave/v1/…` with Savings
+- Handler: `UlipQuoteHandler` shares `/insurance/lifesave/v1/…` with Savings — no `/lifeulip` prefix
 - Typed body: `LifeQuoteRequest` with ULIP filter
+- Distributor: serialise `agentId` (Saving schema); `agentID` alone fails product matching
 - Proposal path family: Saving proposal endpoints (portal `submit-saving-proposal-form-…`)

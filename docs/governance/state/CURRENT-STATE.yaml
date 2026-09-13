@@ -82,12 +82,14 @@ workstreams:
       #   Both close only on Shailja's signature against the two rule packs at evidence level E2.
 
     current_objective:
-      id: R0-ASSISTED-TERM-SALE
+      id: R0-ASSISTED-LIFE-SALE
       description: >
-        One RM sells one Term Life policy to one ETB customer from one Group A insurer,
-        end to end, through a real interface, with consent and suitability evidence,
-        payment on the customer's own device, an issued and reconciled policy, and a
-        complete audit trail.
+        One RM sells a complete Life insurance policy — Term or Savings/ULIP — to one
+        ETB customer from one Group A insurer, end to end, through a real interface,
+        with consent and suitability evidence, payment on the customer's own device,
+        an issued and reconciled policy, and a complete audit trail. R0 includes both
+        Term and Savings/ULIP assisted paths (CR-015). DIY and hybrid stay sequenced
+        behind the assisted journey.
 
     current_deliverable:
       description: >
@@ -117,7 +119,7 @@ workstreams:
         - "Suitability and need analysis (context #7) including the quote hard-gate"
         - "Lead service (context #5) — create, resume, status, convert, archive (working inbox; attribution fields retained)"
         - "Customer service (context #4) — CBS/CIF lookup and prefill for ETB"
-        - "Product catalogue (context #8) — R0 matrix only: Life, Group A, Term"
+        - "Product catalogue (context #8) — R0 matrix: Life, Group A, Term + Savings + ULIP"
         - "Journey orchestration (context #9) — R0 state machine"
         - "Quotation (context #10) via the existing 1SB path"
         - "Proposal and UW tracking (context #11), thin"
@@ -138,8 +140,6 @@ workstreams:
         - item: "Hybrid journey and assisted/DIY mode switching"
           revisit_at: "R2 — after assisted and DIY both have stable state and hand-off contracts"
         - item: "Group B insurers: catalogue entry and controlled redirect"
-          revisit_at: "R1"
-        - item: "ULIP and Savings/Endowment product classes"
           revisit_at: "R1"
         - item: "Customer BFF (context #1) and the customer-facing Flutter surface"
           revisit_at: "R1, with DIY"
@@ -300,7 +300,8 @@ workstreams:
       #     1SB Life paths aligned to the gateway portal docs (a866143), circuit breaker that no
       #     longer opens on 422 business errors (59f193c), QA-012 Life LOB WireMock regression
       #     (eb1dbc0). Adapter coverage is delivered; the Term UAT exit criteria below are not
-      #     replaced by it, and R0 journey sales for Savings/ULIP remain out of scope.
+      #     replaced by it. WS-3 R0 assisted journey for Term + Savings/ULIP is CR-015 /
+      #     EPIC-004 (CANDIDATE transcribed 2026-09-12; HUMAN T4 outstanding).
       #   * None of the seven GATE-P4 criteria closed in this period. The gate has been BLOCKED
       #     since 2026-08-16 on four blockers whose follow-up dates are all now past — that, not
       #     adapter capability, is what is holding Phase 4.
@@ -345,8 +346,6 @@ workstreams:
           revisit_at: "evidence-driven only"
         - item: "Reactive rewrite / SDK framework"
           revisit_at: "never, absent evidence"
-        - item: "WS-3 R0 product catalogue or RM journey for Savings/ULIP sales"
-          revisit_at: "R1 — adapter readiness does not admit R0 journey sales"
 
       never:
         - "Bank apps calling 1SB or the database directly"
@@ -651,10 +650,10 @@ id_allocation:
     # CR-011 existed as a file from 2026-08-20 without a register row, so the counter read 11
     # while CR-011 was in use; it is now indexed in the decision register and the counter clears
     # both it and CR-012.
-    CR: 15        # CR-001..014 in use (014 = WS-1 Life LOB adapter standards, SUG-20260903-lif); next unused is 15
+    CR: 16        # CR-001..015 in use (015 = WS-3 R0 complete assisted Life journey, SUG-20260911-uls, CANDIDATE transcribed 2026-09-12 under ADMIT-BYPASS; HUMAN T4 outstanding); next unused is 16
     RISK: 16      # RISK-001..015 in use (012..015 added by CR-012)
     ASM: 14       # ASM-001..013 in use (013 = Apigee as bank in/out API plane, SUG-20260831-apg). ID-allocation only.
-    EPIC: 4       # EPIC-001..003 in use (003 = NIP BFF lead landing/create contract, SUG-20260907-ldc). ID-allocation only.
+    EPIC: 5       # EPIC-001..004 in use (004 = WS-3 R0 assisted Life Term+Savings+ULIP, CR-015 / SUG-20260911-uls, minted 2026-09-12). Next unused is 5. ID-allocation only.
     SPIKE: 2       # SPIKE-001 in use (Apigee vs Amazon API Gateway, SUG-20260831-apg). ID-allocation only.
     # ADR-001..003 were written into architecture-review/08 under CR-010 while this counter still
     # read 1; that file carries a standing note asking for the advance. ADR-004..007 were added by

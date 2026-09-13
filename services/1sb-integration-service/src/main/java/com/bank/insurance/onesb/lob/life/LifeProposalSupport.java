@@ -48,7 +48,8 @@ public final class LifeProposalSupport {
         LifeProposalSubmitBody.Distributor distributor = new LifeProposalSubmitBody.Distributor(
                 secretProvider.getDistributorId(),
                 resolveAgentId(command),
-                resolveChannelType(command)
+                resolveChannelType(command),
+                "Online"
         );
 
         return new LifeProposalSubmitBody(

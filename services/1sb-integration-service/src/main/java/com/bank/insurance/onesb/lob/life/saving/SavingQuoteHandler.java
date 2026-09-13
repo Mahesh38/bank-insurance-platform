@@ -4,6 +4,7 @@ import com.bank.common.domain.Lob;
 import com.bank.common.secrets.SecretProvider;
 import com.bank.insurance.onesb.domain.command.CreateQuoteCommand;
 import com.bank.insurance.onesb.lob.LobQuoteHandler;
+import com.bank.insurance.onesb.lob.life.LifeEligibilitySupport;
 import com.bank.insurance.onesb.lob.life.LifeQuotePayloadFactory;
 import com.bank.insurance.onesb.lob.life.payload.LifeQuoteRequest;
 import org.springframework.stereotype.Component;
@@ -15,7 +16,9 @@ import java.util.List;
  * <p>
  * Portal-confirmed path: {@code POST /insurance/lifesave/v1/quote}
  * ({@code SOURCE-LINKS.md}, api-catalog §4, saving-consumer-request).
- * Product type {@code LifeSave}; optional {@code savingsProductType} filter.
+ * Product type {@code LifeSave}. Demo catalog for {@code BCIBL} is ULIP-only;
+ * {@code savingsProductType=["ULIP"]} is the working Multi-Quote filter.
+ * There is no separate {@code /lifeulip} quote API — ULIP is this same path.
  */
 @Component
 public class SavingQuoteHandler implements LobQuoteHandler {
@@ -37,12 +40,12 @@ public class SavingQuoteHandler implements LobQuoteHandler {
 
     @Override
     public LifeQuoteRequest buildSubmitPayload(CreateQuoteCommand command) {
-        // Default filter: nonParticipating (confirmed E38 GIFT Select). Callers can pin
-        // Participating/ULIP later via preferences once CreateQuoteCommand carries them.
+        // Demo Saving catalog is ULIP-only. nonParticipating/Participating remain valid
+        // 1SB enum values but return INSGW_NO_VALID_PRODUCT_FOUND for BCIBL today.
         return LifeQuotePayloadFactory.build(
                 command,
                 secretProvider,
-                LifeQuoteRequest.Product.saving(PRODUCT_TYPE, List.of("nonParticipating")));
+                LifeQuoteRequest.Product.saving(PRODUCT_TYPE, List.of("ULIP")));
     }
 
     @Override
@@ -53,5 +56,10 @@ public class SavingQuoteHandler implements LobQuoteHandler {
     @Override
     public String pollPath(String externalReqId) {
         return POLL_PATH_PREFIX + externalReqId;
+    }
+
+    @Override
+    public String criteriaPath(String productCode, String manufacturerId) {
+        return LifeEligibilitySupport.criteriaPath(SUBMIT_PATH, productCode, manufacturerId);
     }
 }

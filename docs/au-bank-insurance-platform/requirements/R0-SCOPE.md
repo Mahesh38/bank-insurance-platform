@@ -1,10 +1,14 @@
 # R0 / MVP Scope One-Pager — AU Bank Insurance Distribution Platform
 
-**Version:** 0.3  
+**Version:** 0.4  
 **Status:** Aligned to [Business Clarifications & Working Decisions v1](../07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md)  
-**Journey focus:** RM-assisted + Self-service + Hybrid (all Day 1)  
+**Journey focus:** RM-assisted first in the **current increment**; Self-service + Hybrid remain in the product (A2) but sequenced behind assisted  
 **Sold =** Policy issued + confirmation + reconcilable + ops-trackable  
 **Executive sponsor perspective:** [Dilip — AI Executive Sponsor Perspective](../../context/roles/principal-insurance-platform-product-owner/executive-sponsor-perspective/README.md)
+
+> **Current increment (CR-015, 2026-09-12).** Assisted Life now matches A1 product classes:
+> Term **and** Savings/ULIP, end to end, through the RM journey. A2 DIY / hybrid stay out of
+> this increment (revisit R1 / R2). CR-015 is **CANDIDATE transcribed**; HUMAN T4 outstanding.
 
 ---
 

@@ -43,10 +43,11 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20260911-uls | 2026-09-11 | human:stakeholder | Complete R0 assisted Life journey — Term and Saving/ULIP end to end (the bag CR-014 excluded) | SF2 | SC0 | MUST | FUNC | P2 / P1 | ADMIT-BYPASS | [CR-015](../change-requests/CR-015-ws3-r0-savings-ulip-journey.md) · [EPIC-004](../../platform/ws3-platform/EPIC-004.work-item.yaml) · [detail](#sug-20260911-uls--unpark-ws-3-savingsulip-journey-sales) · recurrence_count 2 (2026-09-12 complete Life e2e restatement) |
 | SUG-20260907-ldc | 2026-09-07 | human:front-architect | NIP BFF / RM app consumer contract for R0 lead landing (own inbox) + ETB search + Term lead create through success | SF1 | SC0 | SHOULD | ARCH | P2 / P1 | ADMITTED | [EPIC-003](../../platform/ws3-platform/EPIC-003.work-item.yaml) · [PLAN-004](../plans/PLAN-004-nip-bff-lead-phase-contract.md) · [LLD](../../platform/ws3-platform/07-nip-bff-lead-phase-api-lld.md) · [detail](#sug-20260907-ldc--nip-bff-lead-landing-and-create-contract) |
 | SUG-20260907-std | 2026-09-07 | human:front-architect | Confirm platform-wide standard API response, versioning, security and REST practices on the NIP BFF lead OpenAPI | SF1 | SC0 | SHOULD | DOC | P2 / P2 | ADMITTED | [ARCH-023](../../platform/ws3-platform/ARCH-023.work-item.yaml) · [ADR-017](../../journey-execution/07-PLATFORM-ERROR-CONTRACT.md) · [detail](#sug-20260907-std--platform-api-conventions-on-lead-openapi) |
 | SUG-20260908-yml | 2026-09-08 | human:front-architect | Make the lead OpenAPI YAML detailed enough for internal-team documentation (operation intent, parameter purpose, field meaning) | SF1 | SC0 | SHOULD | DOC | P2 / P2 | ADMITTED | [OpenAPI](../../platform/ws3-platform/nip-bff-lead-phase.openapi.yaml) · [detail](#sug-20260908-yml--detailed-openapi-for-internal-docs) |
-| SUG-20260907-fig | 2026-09-07 | human:front-architect | Figma extras on the same journey: ULIP-leads tab, Savings/ULIP/Health product picker, meeting scheduler after create | SF3 | SC2 | MUST | FUNC | P4 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md#1-parked--scheduled-work) · [detail](#sug-20260907-fig--figma-ulip--health--meeting-extras) |
+| SUG-20260907-fig | 2026-09-07 | human:front-architect | Figma extras on the same journey: ULIP-leads tab, Health product picker, meeting scheduler after create. **Savings/ULIP picker carved 2026-09-12** to EPIC-004 / CR-015 | SF3 | SC2 | MUST | FUNC | P4 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md#1-parked--scheduled-work) · [detail](#sug-20260907-fig--figma-ulip--health--meeting-extras) |
 | SUG-20260904-uis | 2026-09-04 | human:cloud-agent | File the cross-insurer Universal Insurance Suitability specification (7-layer model, 206-product catalogue attributes, 8,811 source-fidelity tests) as non-binding project research for later Suitability / Product Catalogue work | SF2 | SC2 | SHOULD | DOC | P3 / P2 | ADMIT-BYPASS | [spec](../../au-bank-insurance-platform/references/2026-09-04-universal-insurance-suitability-specification.md) · [detail](#sug-20260904-uis--file-universal-suitability-research-specification) |
 | SUG-20260904-eng | 2026-09-04 | human:cloud-agent | Implement the 7-layer universal suitability engine and the 206-product multi-insurer catalogue as the Suitability microservice and Product Catalogue | SF3 | SC2 | MUST | FUNC | P4 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md#1-parked--scheduled-work) · [detail](#sug-20260904-eng--implement-7-layer-engine-and-multi-insurer-catalogue) |
 | SUG-20260818-4c3 | 2026-08-18 | human:Mahesh | Architecture justification pack: why service boundaries, merge rejection, datastore choices, caching, direct-insurer future, R0/R1/R2+ scope. **Aligned 2026-08-25** to `CR-012`/`ADR-008`…`ADR-013`; cites the canonical renderings rather than publishing a second pair (`HA-04`) | SF1 | SC0 | MUST | ARCH | P2 / P2 | ADMIT-BYPASS | [06-architecture-justification](../../platform/ws3-platform/06-architecture-justification-and-review-answers.md) |
@@ -66,7 +67,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | SUG-20260820-lay4 | 2026-08-20 | human:Mahesh | Keep the icons, drop the layout engine: place every element on a chosen grid and route every connector orthogonally, so the views are aligned and the links are straight | SF1 | SC0 | SHOULD | DOC | P3 / P2 | ADMIT-BYPASS | [diagrams/](../../architecture/diagrams/README.md) |
 | SUG-20260820-cm2 | 2026-08-20 | human:Mahesh | Close the context-architecture gap found by audit: 20 documents unreachable by any link and 96 more at 3+ hops, 22 persona-package files no card routed to, and no CI guard against either. Add a generated document-routing map (`DOC-MAP.yaml`) with a `find` query path, complete the persona `Load deeper` tables, consolidate the READMEs that carry no unique content, and fail CI on an unrouted document | SF1 | SC1 | MUST | GOV | P2 / P2 | ADMIT-BYPASS | [DOC-MAP](../../context/DOC-MAP.yaml) · [doc_routing](../../context/AGENT-CONTEXT-INDEX.yaml) · continues [CR-010](../change-requests/CR-010-context-module-and-safe-autopilot.md) |
 | SUG-20260821-jx1 | 2026-08-21 | human:Mahesh | Produce an end-to-end Journey Execution Specification for R0: every actor use case, the hop-by-hop route of each request across edge/BFF/service/aggregate/persistence, the validation performed at each layer with its algorithm, every external API call, and every possible outcome — assembled for the dev and QA teams | SF1 | SC1 | SHOULD | DOC | P3 / P1 | ADMITTED | [detail](#sug-20260821-jx1--r0-journey-execution-specification) |
-| SUG-20260821-jx2 | 2026-08-21 | human:Mahesh | Extend the Journey Execution Specification beyond R0 to the whole application — DIY/customer journey, hybrid mode switching, Group B insurers, ULIP/Savings, Health/Motor/Travel, renewals and servicing. Admin UI and Reporting/MIS carved into R0 by CR-013 | SF3 | SC2 | NOT-NOW | DOC | P5 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md#1-parked--scheduled-work) · recurrence_count 3 (2026-08-25: admin/MIS timing overridden by CR-013; those surfaces left this parked bag) |
+| SUG-20260821-jx2 | 2026-08-21 | human:Mahesh | Extend the Journey Execution Specification beyond R0 to the whole application — DIY/customer journey, hybrid mode switching, Group B insurers, Health/Motor/Travel, renewals and servicing. Admin UI and Reporting/MIS carved into R0 by CR-013. **Assisted ULIP/Savings JES carved 2026-09-12** to EPIC-004 / CR-015 | SF3 | SC2 | NOT-NOW | DOC | P5 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md#1-parked--scheduled-work) · recurrence_count 4 (2026-09-12: assisted ULIP/Savings JES left this parked bag) |
 | SUG-20260824-gp1 | 2026-08-24 | human:Mahesh | Provision hybrid bank connectivity in R0 instead of deferring it: a Transit Gateway hub with Site-to-Site VPN from day one and Direct Connect as the primary path when the circuit lands, so CBS and Bank AD are reached over a private path in `uat` and `prod` rather than stubbed | SF1 | SC0 | MUST | INFRA | P1 / P1 | ADMIT-BYPASS | [ADR-009](../../platform/architecture-review/08-architecture-decision-log.md) · [CR-012](../change-requests/CR-012-r0-platform-robustness.md) · [detail](#sug-20260824-gp1--hybrid-bank-connectivity-in-r0) |
 | SUG-20260824-gp2 | 2026-08-24 | human:Mahesh | Inspect egress in R0: a per-environment inspection VPC with AWS Network Firewall, domain allowlisting and IPS, with the 1SB/PG-allowlisted Elastic IPs moved behind it — closing unrestricted 443 egress from a platform holding PAN, income and health attributes | SF1 | SC0 | MUST | SEC | P1 / P1 | ADMIT-BYPASS | [ADR-010](../../platform/architecture-review/08-architecture-decision-log.md) · [CR-012](../change-requests/CR-012-r0-platform-robustness.md) · [detail](#sug-20260824-gp2--centralised-egress-inspection-in-r0) |
 | SUG-20260824-gp3 | 2026-08-24 | human:Mahesh | Provision a managed cache tier in R0 (ElastiCache for Valkey) for BFF sessions, an L2 read-through layer and per-principal rate limiting — resolving the published DynamoDB-versus-Redis session contradiction and the per-pod configuration divergence, while refusing idempotency | SF1 | SC0 | MUST | INFRA | P2 / P1 | ADMIT-BYPASS | [ADR-011](../../platform/architecture-review/08-architecture-decision-log.md) · [CR-012](../change-requests/CR-012-r0-platform-robustness.md) · [detail](#sug-20260824-gp3--managed-cache-tier-in-r0) |
@@ -92,7 +93,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | SUG-20260827-tpo | 2026-08-27 | human:Mahesh | Platform Topology & LLD Alignment: replace Argo CD with GitLab CI/CD with logo, replace AWS Network Firewall with F5 BIG-IP / Firewall with logo, incorporate Ansible for automated DR drills / sanity testing, and emphasize Terraform IaC baseline | SF1 | SC0 | MUST | ARCH | P1 / P1 | CLOSED-DELIVERED | [r0-platform-topology](../../architecture/r0-platform-topology.svg) · [detail](#sug-20260827-tpo--platform-topology--lld-alignment-gitlab-cicd-f5-big-ip-ansible-terraform) |
 | SUG-20260831-alb | 2026-08-31 | human:Mahesh | Correct two false perimeter assumptions against the existing AU Bank estate: (1) remove the External / public ALB in front of API Gateway; (2) Cloudflare and F5-XC are bank-enterprise SaaS, not AWS services and not in any platform VPC | SF1 | SC1 | MUST | ARCH | P1 / P1 | ADMIT | [ADR-018](../../platform/architecture-review/08-architecture-decision-log.md) · [detail](#sug-20260831-alb--correct-edge-ingress-no-public-alb-cloudflare--f5-xc-are-saas-outside-aws) |
 | SUG-20260831-apg | 2026-08-31 | human:Mahesh | Existing bank estate routes all incoming and outgoing requests through Apigee. Decide whether Amazon API Gateway is still needed, and whether the R0 VPC / IGW / TGW pack must attach to (not duplicate) the existing network account | SF1 | SC1 | MUST | SPIKE | P1 / P1 | ADMIT · draw PARKED | [SPIKE-001](#sug-20260831-apg--apigee-is-the-bank-api-plane--do-not-add-a-second-amazon-api-gateway-until-confirmed) · [PARKED](./PARKED-BACKLOG.md) |
-| SUG-20260903-lif | 2026-09-03 | human:stakeholder | 1SB integration must cover Life LOB (Term + Savings + ULIP); move bank models out of the 1SB app service; replace Map-built JSON with typed models; packaging/SOLID/DRY; document poll/retry stop and circuit breakers — admit with actions, do not park | SF1* | SC4→SC0 | MUST | FUNC | P1 / P1 | ADMIT-BYPASS | [CR-014](../change-requests/CR-014-ws1-life-lob-adapter-standards.md) · [EPIC-002](../../1sb-insurance-integration/service-ssot/work-items/EPIC-002.work-item.yaml) · [detail](#sug-20260903-lif--life-lob-1sb-coverage-and-adapter-standards) |
+| SUG-20260903-lif | 2026-09-03 | human:stakeholder | 1SB integration must cover Life LOB (Term + Savings + ULIP); move bank models out of the 1SB app service; replace Map-built JSON with typed models; packaging/SOLID/DRY; document poll/retry stop and circuit breakers — admit with actions, do not park | SF1* | SC4→SC0 | MUST | FUNC | P1 / P1 | ADMIT-BYPASS | [CR-014](../change-requests/CR-014-ws1-life-lob-adapter-standards.md) · [EPIC-002](../../1sb-insurance-integration/service-ssot/work-items/EPIC-002.work-item.yaml) · [detail](#sug-20260903-lif--life-lob-1sb-coverage-and-adapter-standards) · recurrence_count 2 (2026-09-11 adapter restatement). Excluded WS-3 journey bag → [SUG-20260911-uls](#sug-20260911-uls--unpark-ws-3-savingsulip-journey-sales) / CR-015 |
 
 <!--
 Row format:
@@ -105,6 +106,175 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20260911-uls · Unpark WS-3 Savings/ULIP journey sales
+
+```yaml
+# schema: triage-record
+id: SUG-20260911-uls
+raised_at: "2026-09-11"
+raised_by: "human:stakeholder"
+recurrence_count: 2
+source: "Cloud agent intake — GATE-P4 / 4.1 continuation plus explicit unpark of WS-3 journey"
+input: >
+  Continuing GATE-P4 / 4.1 sandbox E2E. WS-3 Savings/ULIP journey sales does
+  not stay parked we need to work on it.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-LIFE-SALE — one RM sells complete assisted Life (Term or Savings/ULIP) to one ETB customer end to end"
+  state_as_of: "2026-09-11"
+  state_provisional: false
+  active_work_item: "GATE-P4 / 4.1 sandbox E2E (WS-1) + admitted EPIC-002 adapter; EPIC-004 docs/contracts"
+
+stage_fit:
+  code: SF2
+  rationale: >
+    HALT lifted (FreshnessCheck 2026-09-12 exit 0). CR-015 CANDIDATE transcribed under
+    ADMIT-BYPASS. Docs/JES/contracts are SF2 absorbable-adjacent at S08 (same split as
+    EPIC-003). Flutter/BFF sale-path implementation remains SF3 until S11 and is
+    PARKED-DEPENDENT on GATE-S08, GAP-006, GAP-007. Recurrence 2026-09-12 widened
+    the objective from "Term first, Savings/ULIP extra" to complete assisted Life
+    e2e (Term and Saving/ULIP).
+  target_stage: "S11 / R0 assisted Life journey — docs/contracts at S08; full sale path at S11"
+  unpark_trigger: "CR-015 HUMAN APPROVED by Rajal (R1) + Mahesh (R2) for production use; GATE-S08 PASSED and GAP-006 / GAP-007 closed before S11 screens"
+  absorption_test:
+    small: false
+    no_new_dependency: true
+    no_new_decision: false
+    gate_neutral: true
+
+scope:
+  code: SC0
+  business_scope: >
+    R0-SCOPE A1 already names Life = Term, ULIP, Savings. Current increment now
+    matches A1 for the assisted journey (CR-015 transcription). DIY/hybrid (A2)
+    remain out of this increment.
+  serves: ["R0-ASSISTED-LIFE-SALE"]
+  failure_without_it: >
+    Bank RM cannot complete an assisted Savings or ULIP sale; CR-014 adapter
+    readiness has no WS-3 journey consumer.
+  minimal: true
+  authority: "Stakeholder decision 2026-09-11 restated 2026-09-12 → CR-015"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "R0 assisted journey (S11 implementation)"
+  binds_when: "Stakeholder requires complete assisted Life (Term and Saving/ULIP) e2e in R0"
+  failure_without_it: >
+    Bank RM cannot complete an assisted Savings or ULIP sale; CR-014 adapter
+    readiness has no WS-3 journey consumer.
+  evidence_tier: E2
+  evidence:
+    - "Verbatim human instruction 2026-09-11: does not stay parked; we need to work on it"
+    - "Verbatim human restatement 2026-09-12: complete life insurance assisted journey in R0 including term and saving/ulip end2end; CR-015 CANDIDATE"
+    - "R0-SCOPE A1 already lists Term, ULIP, Savings/Investment"
+    - "CR-014 §3 deferred this bag to a separate Product CR"
+    - "Parked SUG-20260821-jx2 / SUG-20260907-fig / SUG-20260904-eng"
+    - "WS-1 sandbox already returns priced Saving/ULIP offers (EPIC-002)"
+    - "FreshnessCheck 2026-09-12 exit 0 (HALT lifted)"
+  confidence: C5
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: false
+    X9_problem_observed: true
+
+action: ADMIT-BYPASS
+action_rationale: >
+  HALT lifted. Human restated CR-015 as CANDIDATE with required approvers Rajal
+  (R1) and Mahesh (R2) and widened intent to complete assisted Life e2e.
+  09 §8 ADMIT-BYPASS transcribes CANDIDATE into scope artefacts (CR-013/014
+  pattern). Listing approvers is not a HUMAN T4 signature; decided_on stays
+  null. 14 §3: do not implement Flutter/BFF/JES code until APPROVED. 08 §5:
+  parked rows are split, not deleted. EPIC-004 minted for docs/contracts;
+  FUNC-021 screens remain BLOCKED.
+bypass_authorised_by: "human:stakeholder 2026-09-12 (complete assisted Life e2e; CANDIDATE; ADMIT-BYPASS transcription after HALT lift)"
+duplicate_of: null
+conflicts:
+  - "Resolution: WS-3 out_of_scope ULIP/Savings row removed; catalogue in_scope expanded; objective R0-ASSISTED-LIFE-SALE"
+
+classification:
+  type: FUNC
+  also: [ARCH, DOC, COMP]
+  breakdown: EPIC
+  epic: EPIC-004
+  risk_tier: T4
+  destination: "CR-015 CANDIDATE transcribed · EPIC-004 minted · screens S11"
+
+priority:
+  now: P2
+  at_target: P1
+  factors: { N: 3, S: 2, B: 2, R: 2, D: 1, E: 2 }
+  score: 17
+  matrix_default: P2
+  consistency: RECHECK
+  overrides_applied: []
+  caps_applied: []
+  rationale: >
+    Stakeholder MUST for complete R0 assisted Life (Term + Saving/ULIP). P2 while
+    S08 foundation is open (contracts/JES only). P1 at S11. Not a hard P1
+    interrupt of GATE-P4.
+
+dependencies:
+  edges:
+    - type: DECISION
+      target: CR-015
+      relation: decision_dependency
+      state: OPEN
+    - type: HARD
+      target: GATE-S08
+      relation: blocked_by
+      state: OPEN
+    - type: COMPLIANCE
+      target: GAP-006
+      relation: blocked_by
+      state: OPEN
+    - type: COMPLIANCE
+      target: GAP-007
+      relation: blocked_by
+      state: OPEN
+    - type: TECHNICAL
+      target: EPIC-002
+      relation: requires
+      state: READY
+    - type: SOFT
+      target: EPIC-003
+      relation: related_to
+      state: IN-FLIGHT
+  state: PARKED-DEPENDENT
+  enablement_count: 0
+  earliest_start: "Docs/contracts now (S08); screens after CR-015 HUMAN APPROVED, GATE-S08, GAP-006, GAP-007"
+  cycles: none
+
+breakdown:
+  children: [DOC-022, ARCH-024, FUNC-020, FUNC-021, QA-013]
+  completion_definition: >
+    JES + NIP BFF/RM contract deltas + R0 catalogue matrix for Term+Savings+ULIP
+    AND (at S11) assisted sale path with Term non-regression.
+  not_included:
+    - "Health picker, ULIP-leads inbox tab, meeting scheduler (remain SUG-20260907-fig)"
+    - "DIY / hybrid / Group B / Health-Motor-Travel / renewals (remain SUG-20260821-jx2)"
+    - "7-layer 206-product engine (remain SUG-20260904-eng)"
+    - "Customer BFF / DIY Flutter"
+    - "GATE-S08 or GATE-P4 Term UAT waiver"
+    - "Manufacturing HUMAN T4 signatures"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md · change-requests/CR-015 · EPIC-004 · PARKED-BACKLOG split note"
+  work_item_id: EPIC-004
+  plan_id: null
+  status: ADMIT-BYPASS
+  closed_reason: null
+
+resumed: "GATE-P4 / 4.1 sandbox E2E; EPIC-004 docs/contracts may proceed in parallel"
+```
+
+Recurrence 2026-09-12 (CS-2, not a new row): human restated CR-015 as `decision: CANDIDATE` with required approvers Rajal (R1) and Mahesh (R2), and widened the product intent to **complete assisted Life in R0 (Term and Saving/ULIP end to end)**. HALT is lifted. ADMIT-BYPASS transcribed scope into artefacts; HUMAN T4 still outstanding. Listing those names is not a signature.
 
 ### SUG-20260907-ldc · NIP BFF lead landing and create contract
 
@@ -687,8 +857,12 @@ outcome:
   status: ADMIT-BYPASS
   closed_reason: null
 
-resumed: "EPIC-002 implementation"
+resumed: "GATE-P4 Term UAT hardening (EPIC-002 stories already DONE)"
+
+recurrence_count: 2
 ```
+
+Recurrence 2026-09-11 (CS-2, not a new row): human restated Term+Savings+ULIP and cited stale adapter findings. Checkout already has FUNC-015 / FUNC-019 / QA-012; LifeLobRegressionIT green. The excluded WS-3 R0 catalogue/journey bag is `SUG-20260911-uls` / `CR-015` (ADMIT-BYPASS transcribed 2026-09-12; HUMAN T4 outstanding) — not a third silent reuse of this row. Remaining adapter gaps: Saving gate-criteria handler, ULIP fund list/performance ports, CR-014 human T4.
 
 ### SUG-20260904-uis · File universal suitability research specification
 

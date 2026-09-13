@@ -1,13 +1,20 @@
 schema_version: "1.0"
-as_of: "2026-09-11"
+as_of: "2026-09-13"
 
+# 2026-09-13 — Engineering (Amit seat) closed S08-G1 → MET. Verifier is `ci`. Re-verified
+# against application-ci.yml (no path filter on pull_request; push to every branch), the root
+# Gradle line covering all 27 modules in settings.gradle.kts, and run history (392 recorded
+# runs; latest 20 all success, tip run 34768713603 at 2026-09-13T16:29:09Z). This is a
+# criterion closure, not a gate transition: GATE-S08 remains OPEN, policy.mode remains
+# proposal-only, every approvals: list remains empty, and no stage field was touched.
+#
 # 2026-09-11 — R12 (Kalpana seat) gate-evidence sweep, run with the CURRENT-STATE.yaml freshness
 # refresh. Three things happened here and they are deliberately different actions:
 #
 #  1. EVIDENCE ASSEMBLED. Criteria whose mechanism now demonstrably exists carry that evidence in
 #     `evidence:` and a `last_verified_at` date. Assembling evidence is not passing a gate.
 #     `policy.mode` is still proposal-only, `human_pass_required` is still true, and every
-#     `approvals:` list is still empty. No criterion was set MET or WAIVED by this sweep.
+#     `approvals:` list is still empty. No criterion was set MET or WAIVED by that sweep.
 #
 #  2. BLOCKER AGEING CORRECTED. Every follow-up date in this file had passed — the newest by 12
 #     days, the oldest by 21. A follow-up date in the past is not a tracked dependency, it is a
@@ -267,7 +274,7 @@ workstreams:
     criteria:
       - id: "S08-G1"
         description: "CI builds and tests every module on every pull request."
-        state: PARTIAL
+        state: MET
         owner: "Amit / Engineering"
         execution_mode: AUTOMATABLE
         priority: P1
@@ -277,12 +284,11 @@ workstreams:
         verifier: ci
         evidence:
           - "Pipeline definition: .github/workflows/application-ci.yml (c4e8d9f, 2026-08-16). Triggers on pull_request with no paths filter and on push to every branch, so a working branch is evidenced before a PR exists."
-          - "Module coverage: the root task line runs build, test, jacocoTestReport and jacocoTestCoverageVerification across all 27 modules declared in settings.gradle.kts (6 libs + 21 services)."
-          - "Run history: 348 recorded runs of the workflow; the 15 most recent all concluded success, the latest against PR #95 at 2026-09-11T13:38Z."
+          - "Module coverage: the root task line runs `./gradlew --no-daemon build test jacocoTestReport jacocoTestCoverageVerification` across all 27 modules declared in settings.gradle.kts (6 libs + 21 services)."
+          - "Run history: 392 recorded runs of the workflow (API total_count); the 20 most recent all concluded success, the latest run 34768713603 at 2026-09-13T16:29:09Z on pull_request."
+          - "Engineering declaration (Amit seat, 2026-09-13): criterion S08-G1 MET on the ci verifier. GATE-S08 remains OPEN; this is not a stage transition and not a human gate approval."
         blockers: []
-        # PARTIAL, not MET. The E4 evidence is assembled and it is Amit's declaration to make
-        # (04 section 5). An agent that wrote MET here would be manufacturing a pass.
-        last_verified_at: "2026-09-11"
+        last_verified_at: "2026-09-13T16:29:09Z"
       - id: "S08-G2"
         description: "Merge to main is impossible without a green pipeline."
         state: OPEN

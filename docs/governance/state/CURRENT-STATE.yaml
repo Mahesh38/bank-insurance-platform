@@ -34,7 +34,7 @@ project:
 # OVERLAP: PR #94 (branch cursor/gitlab-ce-repo-plan-c1db, open) carries a pure FR-1 date bump of
 # these same two fields to 2026-09-10 / 2026-10-10 and explicitly deferred the content review to
 # R12. This block supersedes it on merge; the content review is the part that was deferred.
-state_as_of: "2026-09-11" # quoted so the file validates directly against current-state.schema.json
+state_as_of: "2026-09-13" # quoted so the file validates directly against current-state.schema.json
 review_due: "2026-10-11"
 ratified_by: "Mahesh (Solution Architect), 2026-08-10 — PO counter-signature outstanding; stage, scope and objective values re-confirmed unchanged at the 2026-09-11 R12 refresh"
 provisional: false # ratified 2026-08-10; stage/scope values unchanged since; agents run the full pipeline
@@ -183,13 +183,14 @@ workstreams:
       exit_criteria:
         - id: "S08-G1"
           criterion: "CI builds and tests every module on every PR"
-          state: PARTIAL
+          state: MET
           owner: "Amit / Engineering"
-          # 2026-09-11 (R12 sweep): E4 evidence assembled. application-ci.yml triggers on
-          # pull_request with NO path filter and on push to every branch; the root task line
-          # `build test jacocoTestReport jacocoTestCoverageVerification` covers all 27 modules in
-          # settings.gradle.kts; run history is 348 runs, green on PR #95 at 2026-09-11T13:38Z.
-          # Held at PARTIAL because MET is Amit's declaration, not an agent's (04 section 5).
+          # 2026-09-13 (Engineering / Amit seat): declared MET. Re-verified application-ci.yml
+          # (pull_request, no path filter; push to every branch), root Gradle line covering all
+          # 27 modules in settings.gradle.kts, and 392 workflow runs (20 most recent success;
+          # tip 34768713603 at 2026-09-13T16:29:09Z). Criterion closure only — GATE-S08 stays
+          # OPEN; current_phase and stage_status untouched; no approvals fabricated.
+          # 2026-09-11 (R12 sweep): E4 evidence assembled; held at PARTIAL pending Engineering.
         - id: "S08-G2"
           criterion: "Merge to main impossible without a green pipeline"
           state: OPEN

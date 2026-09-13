@@ -2,7 +2,7 @@
 
 **Criterion:** Merge to `main` is impossible without a green pipeline.  
 **Mode:** `HUMAN_REQUIRED` · Owner: Amit / Engineering · Verifier: `human-review`  
-**Assembled / refreshed:** 2026-09-13 (agent) · **Not a MET declaration**
+**Assembled / refreshed:** 2026-09-13T20:21Z (agent) · **Not a MET declaration**
 
 ## Why an agent cannot close this
 
@@ -10,6 +10,14 @@ Classic branch-protection read returns `403` for this integration:
 
 ```text
 gh api repos/Mahesh38/bank-insurance-platform/branches/main/protection
+→ HTTP 403 Resource not accessible by integration
+```
+
+Ruleset **create** and **update** also return `403` (probed 2026-09-13T20:16Z):
+
+```text
+POST /repos/Mahesh38/bank-insurance-platform/rulesets
+PUT  /repos/Mahesh38/bank-insurance-platform/rulesets/20028494
 → HTTP 403 Resource not accessible by integration
 ```
 
@@ -22,11 +30,24 @@ Rulesets **are** readable. Current repo ruleset:
 There is **no** active ruleset requiring status checks on `main`. Enabling required checks
 (and a blocked-merge demo) remains a human admin action.
 
-## Required status checks (exact names from live `main` tip)
+## Prerequisite now satisfied (green tip pipeline)
 
-Captured 2026-09-13 from `GET .../commits/<main-sha>/check-runs` on tip `8369a9a…`:
+Branch `cursor/close-s08-g3-eb1b` tip `cd5ba9c` (2026-09-13) — all required-named checks **success**:
 
-| Check name (require exactly) | Observed on main tip |
+| Workflow run | Conclusion | URL |
+|---|---|---|
+| Application CI `34780098265` | success | https://github.com/Mahesh38/bank-insurance-platform/actions/runs/34780098265 |
+| Security Scanning `34780098279` | success | https://github.com/Mahesh38/bank-insurance-platform/actions/runs/34780098279 |
+| Governance (AIGEM) `34780098270` | success | https://github.com/Mahesh38/bank-insurance-platform/actions/runs/34780098270 |
+| Knowledge Hub `34780098271` | success | https://github.com/Mahesh38/bank-insurance-platform/actions/runs/34780098271 |
+
+A green pipeline is necessary but **not sufficient** for S08-G2 — admin must still require the four checks below on `main`.
+
+## Required status checks (exact job names — require these strings)
+
+Captured 2026-09-13 from tip `cd5ba9c` and `main` tip `8369a9a` check-runs:
+
+| Check name (require exactly) | Observed |
 |---|---|
 | `Java 21 tests and coverage gates` | success |
 | `Secret scanning (gitleaks)` | success |
@@ -39,6 +60,7 @@ Optional (present but not part of the original four-name contract):
 |---|---|
 | `SBOM (CycloneDX)` | supply-chain artefact; recommend once G2 four are required |
 | `Schemas, records and links` / `State freshness (JDK baseline)` / `Verify Git-native Knowledge Hub` | governance; keep if already used as soft gates |
+| `Container image scan (Trivy) — *` | image matrix; useful after G2 four |
 
 ## Admin steps (GitHub UI or Rulesets)
 
@@ -46,9 +68,38 @@ Optional (present but not part of the original four-name contract):
 2. Enforce: **Require a pull request before merging** (≥1 review recommended).
 3. Enforce: **Require status checks to pass** — add the four names above **exactly**.
 4. Enforce: **Require branches to be up to date before merging**.
-5. Block force pushes / deletions (can enable existing ruleset `20028494` or fold into the new one).
+5. Block force pushes / deletions (enable existing ruleset `20028494` or fold into the new one).
 6. Do **not** allow administrator bypass without a dated break-glass note.
 7. Save with enforcement **Active**.
+
+### Copy-paste ruleset JSON (admin token / UI advanced)
+
+```json
+{
+  "name": "Require GATE-S08 CI checks",
+  "target": "branch",
+  "enforcement": "active",
+  "conditions": {
+    "ref_name": { "include": ["refs/heads/main"], "exclude": [] }
+  },
+  "rules": [
+    {
+      "type": "required_status_checks",
+      "parameters": {
+        "strict_required_status_checks_policy": true,
+        "required_status_checks": [
+          { "context": "Java 21 tests and coverage gates" },
+          { "context": "Secret scanning (gitleaks)" },
+          { "context": "SAST (CodeQL, Java)" },
+          { "context": "SCA (Trivy dependency scan)" }
+        ]
+      }
+    },
+    { "type": "non_fast_forward" },
+    { "type": "deletion" }
+  ]
+}
+```
 
 ## Blocked-merge demonstration (E4)
 
@@ -59,9 +110,10 @@ After protection is on:
 3. Store screenshot or transcript next to this file as `S08-G2-blocked-merge.*`.
 4. Amit seat declares **S08-G2 MET** on `human-review` with that evidence.
 
-## Related CI note (2026-09-13)
+## Related CI notes (2026-09-13)
 
-`application-ci.yml` now uses `fetch-depth: 0` + `origin/main` fetch so Spotless
-`ratchetFrom("origin/main")` works on GitHub runners (shallow clones previously failed
-with `No such reference 'origin/main'`). That restores the green-pipeline *mechanism*;
-it does not close S08-G2 without the admin ruleset above.
+1. `application-ci.yml` uses `fetch-depth: 0` + `origin/main` fetch so Spotless
+   `ratchetFrom("origin/main")` works on GitHub runners.
+2. `libs/bank-common-test` JaCoCo raised to libs floor (80% line / 70% branch) —
+   tip Application CI success after covering `register()` + long-prefix `idempotencyKey`.
+3. Neither change closes S08-G2 without the admin ruleset above.

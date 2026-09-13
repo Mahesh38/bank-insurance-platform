@@ -20,11 +20,12 @@
 
 - Day-0.5 dry-run log: `scripts/governance/evidence/S08-G10-day0.5-dry-run.log`
 - Day-1 local boot dry-run: `scripts/governance/evidence/S08-G10-day1-local-boot-dry-run.log` — `bank-persistence-service` :8081 and `1sb-integration-service` :8080 both `/actuator/health` **UP** (local profile + documented local-only secrets)
+- Day-2 dry-run log: `scripts/governance/evidence/S08-G10-day2-dry-run.log` — `ENGINEERING-AND-SECURE-CODING-STANDARDS.md` + `PR-REVIEW-CHECKLIST.md` + PR template present; PR #104 used as shadow-review surface (checklist smoke only)
 - Reading list paths all present (`BOOT.md`, standards, PR checklist, `AGENTS.md`)
 - `./gradlew :libs:bank-common-error:test :services:bank-persistence-service:test :services:1sb-integration-service:test` → **BUILD SUCCESSFUL in 18s** wall-clock (warm deps)
 - Full estate CI under S08-G9 (p95 ≈ 2.8 min); tip Application CI `34780660671` + Security Scanning `34780660696` both **success**
 
-Remaining G10 gap is a **named human** completing the attestation below — not missing docs or build time.
+Remaining G10 gap is a **named human** completing days 3–5 + the attestation below — not missing docs, build time, or day-2 reading material.
 
 ## Required reading (ordered)
 
@@ -45,6 +46,7 @@ Repo collaborator API lists only **`Mahesh38`** (`role_name=admin`). Until anoth
 Agent dry-runs already logged (not MET):
 - `S08-G10-day0.5-dry-run.log` — Phase-1 unit tests ~18s
 - `S08-G10-day1-local-boot-dry-run.log` — persistence + 1sb-integration actuator health UP
+- `S08-G10-day2-dry-run.log` — standards + checklist + PR template; PR #104 shadow-review smoke
 
 ## Attestation (human)
 

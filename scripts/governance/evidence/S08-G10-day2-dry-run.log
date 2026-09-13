@@ -1,0 +1,34 @@
+S08-G10 day-2 dry-run — 2026-09-13T21:28Z — tip d4fe27d
+NOT a MET declaration — agent verifies reading-list + review surface only.
+
+Day-2 outcome (from pack): Read ENGINEERING-AND-SECURE-CODING-STANDARDS +
+PR-REVIEW-CHECKLIST; shadow one PR review.
+
+== Reading list present ==
+OK docs/governance/ENGINEERING-AND-SECURE-CODING-STANDARDS.md (59 lines)
+  sections: §1 ENG (ENG-1..ENG-10) · §2 SEC (SEC-C1..SEC-C10) · §3 DoD · §4 Exceptions
+OK docs/governance/PR-REVIEW-CHECKLIST.md (34 lines)
+  sections: Author · Reviewer ENG · Reviewer SEC · Merge bar
+OK .github/pull_request_template.md (23 lines)
+  cites checklist + standards (S08-G8 adoption path)
+OK docs/context/BOOT.md · AGENTS.md (still on ordered reading list)
+
+== Shadow-review surface (agent cannot substitute for human buddy) ==
+Open PR #104 https://github.com/Mahesh38/bank-insurance-platform/pull/104
+  title: GATE-S08: 8/10 MET; Mahesh38 must close G2+G10
+  state: OPEN · draft: false
+  tip checks observed SUCCESS for the four G2-required names:
+    "Java 21 tests and coverage gates"
+    "Secret scanning (gitleaks)"
+    "SAST (CodeQL, Java)"
+    "SCA (Trivy dependency scan)"
+Checklist applicability smoke (docs/governance evidence PR):
+  Author rows: purpose/risk clear; no secrets/PII; API/OpenAPI N/A; ADR N/A
+  ENG rows: module boundaries N/A for docs; quality gates remain green (observed)
+  SEC rows: no new endpoints/crypto; logging N/A for docs change
+  Merge bar: human reviewer still required for real attestation
+
+== Gap remaining ==
+Named human (Mahesh38 or designee) must still complete days 3–5 (own a change through
+PR, record wall-clock) and write scripts/governance/evidence/S08-G10-onboarding-attestation.md.
+Day-2 dry-run does NOT close S08-G10.

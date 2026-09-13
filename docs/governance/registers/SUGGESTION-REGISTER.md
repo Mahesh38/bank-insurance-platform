@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20260913-wss | 2026-09-13 | human:mahesh | Change workstream strategy: one continuous North Star program lane + one service workstream per microservice with progress boards and dependency sync. | SF1 | SC0 | MUST | GOV | P1 / P1 | ADMIT-BYPASS | [CR-016](../change-requests/CR-016-north-star-and-service-workstream-strategy.md) · [ADR-020](../../platform/architecture-review/ADR-020-north-star-and-service-workstream-strategy.md) · [strategy](../workstreams/WORKSTREAM-STRATEGY.md) · [detail](#sug-20260913-wss--north-star--service-workstream-strategy) |
 | SUG-20260913-qul | 2026-09-13 | agent:sandbox-validation | Retarget ULIP fund adapter to `/quote/ulipList` because demo unauth 401 “proves a route”. | SF4 | SC3 | REJECT | FUNC | — / — | REJECTED | [detail](#sug-20260913-qul--do-not-retarget-funds-to-quote-uliplist) |
 | SUG-20260913-fnd | 2026-09-13 | agent:sandbox-validation | 1SB demo 404 on documented `POST /insurance/lifesave/v1/fund/list` and `/fund/performance`. | SF2 | SC1 | NOT-NOW | OPS | P4 / P1 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [detail](#sug-20260913-fnd--1sb-demo-missing-documented-fund-routes) |
 | SUG-20260913-lap | 2026-09-13 | human:stakeholder | Wire only documented 1SB Life retail APIs (Product UI Data + ULIP fund list/performance). No save/send quote. Master is Building Blocks `POST /v1/master/lookup`. | SF1 | SC0 | MUST | FUNC | P1 / P1 | ADMITTED | [FUNC-027](../../1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md) · [detail](#sug-20260913-lap--documented-life-retail-api-parity) |
@@ -108,6 +109,94 @@ Row format:
 ---
 
 ## 3. Detail records
+
+### SUG-20260913-wss · North Star + service workstream strategy
+
+```yaml
+# schema: triage-record
+id: SUG-20260913-wss
+raised_at: "2026-09-13"
+raised_by: "human:mahesh"
+source: "Solution Architect / governance owner directive — workstream strategy change"
+input: >
+  Change work stream strategy. One important continuous work stream until North Star.
+  Rest: each microservice is one work stream; agents work independently with ownership.
+  Dependent services have governance sync checks. Maintain markdown progress per
+  microservice (active, completed, waiting to unblock). Approved 2026-09-13 by Mahesh.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "L4 — Foundation"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-11"
+  state_provisional: false
+  active_work_item: "GOV-CR-016"
+
+stage_fit:
+  code: SF1
+  rationale: >
+    Operating-model clarity for multi-agent delivery is on-stage for S08 foundation
+    recovery; without ownership lanes, GATE-S08 / S08-G10 onboarding and parallel
+    delivery stay informal. Does not invent a later-stage feature.
+
+scope:
+  code: SC0
+  business_scope: "in scope — governance operating model for the platform programme"
+  serves: []
+  authority: "docs/governance/00-GOVERNANCE.md · ADR-002 · Mahesh R2 governance custody"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  failure_without_it: >
+    Multi-agent ownership of the microservice estate stays tribal; cross-service
+    waits and progress are invisible; North Star delivery cannot parallelise safely.
+  evidence_tier: E2
+  evidence:
+    - "Human Architecture/governance directive dated 2026-09-13"
+    - "Multi-service catalogue with parallel agent need (ADR-019 estate)"
+  confidence: C5
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT-BYPASS
+action_rationale: >
+  Mahesh (R2 / governance owner) approved the operating model on 2026-09-13 and
+  authorised documentation under CR-016. Full CURRENT-STATE.yaml topology
+  transcription still requires Rajal + Kalpana countersign (recorded as conditions).
+  GOV capacity cost named against S08-G10 (BR-4 / GC-1).
+bypass_authorised_by: "human:mahesh 2026-09-13 (Architecture / governance owner — CR-016 / ADR-020)"
+
+classification:
+  type: GOV
+  breakdown: ADR
+  risk_tier: T3
+  destination: "CR-016 · ADR-020 · workstreams/WORKSTREAM-STRATEGY.md · service-progress/"
+
+priority:
+  now: P1
+  at_target: P1
+  rationale: "Blocks coherent multi-agent ownership of the microservice estate toward North Star"
+
+dependencies:
+  edges:
+    - type: HARD
+      target: "Rajal R1 countersign (North Star objective continuity)"
+      relation: blocked_by
+      state: OPEN
+      owner: "Rajal"
+    - type: HARD
+      target: "Kalpana R12 countersign + CURRENT-STATE.yaml workstreams topology transcription"
+      relation: blocked_by
+      state: OPEN
+      owner: "Kalpana"
+```
+
+---
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).

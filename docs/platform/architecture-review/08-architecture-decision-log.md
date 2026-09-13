@@ -1560,3 +1560,28 @@ Human T4 Architecture sign-off outstanding. Deepali jointly owns the perimeter s
 Shivanshi owns the S09 landing-zone request that must no longer ask for a public ALB.
 Evidence: existing AU Bank application architecture v1.4 (Atul Singh, reviewed Manish Salaria,
 9-July-2026); Central Network Account Architecture V1 (AU_AWS_MAS, Mumbai + Hyderabad EDGE VPC).
+
+---
+
+## ADR-020 — North Star program workstream + per-microservice service workstreams
+
+Full record:
+[`ADR-020-north-star-and-service-workstream-strategy.md`](./ADR-020-north-star-and-service-workstream-strategy.md)
+
+```yaml
+id: ADR-020
+status: ACCEPTED_ARCHITECTURE
+date: "2026-09-13"
+origin: SUG-20260913-wss / CR-016
+amends: ADR-002
+decision: >
+  Two-tier workstreams: continuous North Star programme lane (WS-NS) plus one service
+  workstream (SWS-*) per microservice with progress markdown boards and dependency sync
+  checks. Service lanes are execution/ownership lanes, not independent lifecycle stages.
+  WS-1/WS-2/WS-3 remain domain cluster labels and historical gate carriers until human
+  transcription of CURRENT-STATE.yaml after Product and Delivery countersign.
+approvals:
+  - "Mahesh / Architecture — APPROVED 2026-09-13 (human directive)"
+  - "Rajal / Product — outstanding (North Star objective continuity)"
+  - "Kalpana / Delivery — outstanding (critical path + state transcription)"
+```

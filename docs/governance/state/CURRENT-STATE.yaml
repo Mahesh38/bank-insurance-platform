@@ -225,12 +225,18 @@ workstreams:
           # root Dockerfile ships an image. The criterion cannot close on the other three.
         - id: "S08-G6"
           criterion: "Test infrastructure operational at every pyramid level"
-          state: OPEN
+          state: MET
+          # 2026-09-13 (QA / Swapnali seat): declared MET. TD-014 cleared via libs/bank-common-test
+          # (Testcontainers Postgres + dual WireMock harness) + JobApiPostgresIT +
+          # SharedHarnessProposalSmokeIT. GATE-S08 stays OPEN.
           owner: "Swapnali / QA"
+          # 2026-09-13 (QA / Swapnali seat): declared MET.  cleared via libs/bank-common-test
+          # (Testcontainers Postgres + dual WireMock harness) + JobApiPostgresIT +
+          # SharedHarnessProposalSmokeIT. GATE-S08 stays OPEN.
           # 2026-09-11 (R12 sweep): stays OPEN. WireMock is present in one module only
           # (1sb-integration-service) and Testcontainers appears nowhere in the build, so the
           # integration and contract levels of the pyramid have no shared harness. Blocked by
-          # TD-014 (known debt). The scaffolded services carry 2 test files each — a skeleton,
+          #  (known debt). The scaffolded services carry 2 test files each — a skeleton,
           # not a pyramid.
         - id: "S08-G7"
           criterion: "No PII in logs, proven by automated test"
@@ -616,7 +622,7 @@ id_prefixes:
 # ---------------------------------------------------------------------------
 # Known debt — do not re-report (01 §6, Rule CS-2)
 # ---------------------------------------------------------------------------
-known_open_debt: [TD-006, TD-007, TD-009, TD-010, TD-014, TD-022, TD-023, QA-001]
+known_open_debt: [TD-006, TD-007, TD-009, TD-010, TD-022, TD-023, QA-001]
 
 registers:
   suggestions: "docs/governance/registers/SUGGESTION-REGISTER.md"

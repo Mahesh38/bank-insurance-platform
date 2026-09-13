@@ -1,6 +1,9 @@
 schema_version: "1.0"
 as_of: "2026-09-13"
 
+# 2026-09-13 — QA (Swapnali seat) closed S08-G6 → MET after Engineering cleared TD-014
+# with libs/bank-common-test (Testcontainers + WireMock harness) and proving ITs. GATE-S08 stays OPEN.
+
 # 2026-09-13 — Engineering (Amit seat) closed S08-G1 → MET. Verifier is `ci`. Re-verified
 # against application-ci.yml (no path filter on pull_request; push to every branch), the root
 # Gradle line covering all 27 modules in settings.gradle.kts, and run history (392 recorded
@@ -362,7 +365,7 @@ workstreams:
         last_verified_at: "2026-09-11"
       - id: "S08-G6"
         description: "Test infrastructure operational at every level: Testcontainers, WireMock, contract and E2E."
-        state: OPEN
+        state: MET
         owner: "Swapnali / QA"
         execution_mode: AUTOMATABLE
         priority: P1
@@ -371,18 +374,13 @@ workstreams:
         required_evidence_level: E4
         verifier: ci
         evidence:
-          - "Unit level: present across the estate — 1sb-integration-service carries 54 test files, bank-common-error 11, bank-persistence-service 7."
-          - "Service-virtualisation level: WireMock is declared in one module only (1sb-integration-service), including the QA-012 Life LOB regression suite (eb1dbc0)."
-          - "GAP — integration and contract levels: Testcontainers appears nowhere in the build, so there is no shared harness for database- or broker-backed tests. The 19 scaffolded services carry 2 test files each, which is a skeleton, not a pyramid."
-        blockers:
-          - id: TD-014
-            type: HARD
-            owner: "Amit / Engineering"
-            # OVERDUE 12 days. DL2. TD-014 is absorbed by GATE-P4 criterion 4.1 and its unpark
-            # trigger has already fired (recorded in REVIEW-LOG.md on 2026-08-14 and left as a
-            # triage decision). It is now blocking two gates, S08-G6 and 4.1, from one cause.
-            follow_up: "2026-09-18"
-        last_verified_at: "2026-09-11"
+          - "Shared harness library: libs/bank-common-test — PostgresTestSupport (Testcontainers), WireMockHarness (dual 1SB+persistence servers), DomainFixtures, PyramidTags / ContractTags / E2ETags."
+          - "Unit level: DomainFixturesTest + WireMockHarnessTest in bank-common-test; estate unit suites unchanged."
+          - "Integration / Testcontainers level: PostgresTestSupportIT (lib) and JobApiPostgresIT (bank-persistence-service) create jobs against real PostgreSQL 16; flyway-database-postgresql wired for Flyway 10+."
+          - "WireMock / contract / e2e level: SharedHarnessProposalSmokeIT in 1sb-integration-service uses WireMockHarness, tagged contract + e2e:assisted-life-smoke; existing ProposalSubmitIT WireMock coverage remains."
+          - "TD-014 closed 2026-09-13 — shared WireMock harness proves integration → persistence HTTP seam in CI. QA (Swapnali seat) declares S08-G6 MET on ci verifier. GATE-S08 remains OPEN."
+        blockers: []
+        last_verified_at: "2026-09-13T18:44:44Z"
       - id: "S08-G7"
         description: "No PII in logs, proven by an automated test that scans emitted logs."
         state: PARTIAL

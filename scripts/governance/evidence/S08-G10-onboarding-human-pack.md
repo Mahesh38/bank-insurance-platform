@@ -14,6 +14,9 @@
 | 3–4 | Own a small change (docs or test) through PR using the template checklist |
 | 5 | Change merged (or merge-ready); engineer records wall-clock in the attestation below |
 
+### Agent timing sample (not a MET)
+
+2026-09-13 on this branch: `./gradlew :libs:bank-common-error:test :services:1sb-integration-service:test` completed in **~26s** wall-clock after deps warm. Full estate CI is separately measured under S08-G9 (p95 ≈ 2.8 min). Remaining G10 gap is a **named human** completing the attestation, not build time.
 ## Required reading (ordered)
 
 1. `docs/context/BOOT.md`

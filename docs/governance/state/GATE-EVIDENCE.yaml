@@ -320,7 +320,8 @@ workstreams:
         verifier: human-review
         evidence:
           - "The four status checks that must be required are named exactly in the application-ci.yml header and matching security-scanning.yml job names: \"Java 21 tests and coverage gates\", \"Secret scanning (gitleaks)\", \"SAST (CodeQL, Java)\", \"SCA (Trivy dependency scan)\". The naming work is done."
-          - "Human action pack assembled 2026-09-13: scripts/governance/evidence/S08-G2-branch-protection-human-pack.md (exact check names, admin UI steps, blocked-merge demo). Agent probe of GET .../branches/main/protection returned HTTP 403 — admin must confirm and attach settings/blocked-merge evidence. Still OPEN; not a MET declaration."
+          - "Human action pack assembled/refreshed 2026-09-13: scripts/governance/evidence/S08-G2-branch-protection-human-pack.md. Live check-run names captured from main tip; ruleset 20028494 ('No force push allowed') exists but is disabled; no required-status ruleset active. Classic protection GET returns HTTP 403. Still OPEN; not a MET declaration."
+          - "CI mechanism hardened 2026-09-13: application-ci.yml fetch-depth 0 + origin/main fetch so Spotless ratchetFrom(origin/main) works on runners (fixes No such reference 'origin/main' on run 34779413538). Green pipeline still does not close G2 without admin required checks."
         blockers: []
         # Stays OPEN until a human admin enables required checks on main and demonstrates a
         # blocked merge. Branch protection is not a file in this repository.

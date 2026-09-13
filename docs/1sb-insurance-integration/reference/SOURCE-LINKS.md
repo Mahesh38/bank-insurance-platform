@@ -26,8 +26,10 @@
 | Saving quote | `POST https://demo.api.1silverbullet.tech/insurance/lifesave/v1/quote` |
 | Saving quote poll | `GET https://demo.api.1silverbullet.tech/insurance/lifesave/v1/quote/poll/:requestId` |
 | ULIP quote | Same Saving quote URL with `product.savingsProductType=["ULIP"]` (no `/lifeulip` prefix) |
+| ULIP fund list | `POST https://demo.api.1silverbullet.tech/insurance/lifesave/v1/fund/list` (portal path; **demo 404 NO_ROUTE** as of 2026-09-13) |
+| ULIP fund performance | `POST https://demo.api.1silverbullet.tech/insurance/lifesave/v1/fund/performance` (portal path; **demo 404 NO_ROUTE** as of 2026-09-13) |
 | Motor quote | `POST https://demo.api.1silverbullet.tech/insurance/motor/v1/quote` |
-| Master lookup | `POST https://demo.api.1silverbullet.tech/v1/master/lookup` |
+| Master lookup (Building Blocks docs) | `POST https://demo.api.1silverbullet.tech/v1/master/lookup` (demo 404 — LOB `/insurance/lifeterm` or `/insurance/lifesave` `/v1/master/lookup` used) |
 | Payment URL | `POST https://demo.api.1silverbullet.tech/v1/payment/url` |
 | Application status (life) | `POST https://demo.api.1silverbullet.tech/LifeTerm/prostat/` |
 | Get requirements | `POST https://demo.api.1silverbullet.tech/insurance/:apiId/getReq` |
@@ -35,6 +37,8 @@
 ## Extracted schemas folder
 
 `extracted-schemas/` contains machine-extracted field lists from the public portal pages (markdown + JSON). Use them as a searchable index; always re-validate against the live portal/sandbox because proposal forms and enums change by insurer/product.
+
+**Sandbox vs docs (2026-09-13):** authenticated Life calls that the demo *routes* currently fail with `auth_api_internal_server` (500). Documented ULIP fund helpers 404. Documented Building Blocks `POST /v1/master/lookup` 404s (FUNC-024 LOB fallback). Unauth 401 on `/quote/*` is an ALB catch-all, not proof of save-quote, send-quote, or `/quote/ulipList`. GATE-P4 4.1 is not claimed.
 
 Notable files:
 

@@ -16,7 +16,6 @@ import com.bank.insurance.onesb.domain.port.inbound.QuoteUseCase;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -53,7 +52,7 @@ public class QuoteController {
             @RequestHeader(value = IDEMPOTENCY_HEADER, required = false) String idempotencyKey,
             @RequestHeader(value = ACTOR_HEADER, required = false) String actorId) {
 
-        CreateQuoteCommand command = toCommand(request, idempotencyKey, actorId);
+        CreateQuoteCommand command = QuoteCommandMapper.toCommand(request, idempotencyKey, actorId);
         String jobId = quoteUseCase.createQuote(command);
         return ResponseEntity.status(HttpStatus.ACCEPTED)
                 .body(new CreateQuoteResponse(jobId, JobStatus.PENDING));
@@ -87,62 +86,6 @@ public class QuoteController {
     public ResponseEntity<QuoteJobResponse> getQuote(@PathVariable String jobId) {
         QuoteJob job = quoteUseCase.getQuoteResult(jobId);
         return ResponseEntity.ok(toResponse(job));
-    }
-
-    private static CreateQuoteCommand toCommand(CreateQuoteRequest request,
-                                                String idempotencyKey,
-                                                String actorId) {
-        List<CreateQuoteCommand.MemberDetail> members = request.members().stream()
-                .map(m -> new CreateQuoteCommand.MemberDetail(
-                        m.role(),
-                        m.sequenceNumber() != null ? m.sequenceNumber() : 0,
-                        m.dob(),
-                        m.gender(),
-                        Boolean.TRUE.equals(m.tobacco()),
-                        m.annualIncome(),
-                        m.pincode()
-                ))
-                .toList();
-
-        CreateQuoteCommand.DistributionContext distribution = null;
-        if (request.distribution() != null) {
-            distribution = new CreateQuoteCommand.DistributionContext(
-                    request.distribution().rmEmployeeId(),
-                    request.distribution().agentId(),
-                    request.distribution().channelType()
-            );
-        }
-
-        CreateQuoteCommand.ProductSelection selection = null;
-        if (request.selection() != null) {
-            selection = new CreateQuoteCommand.ProductSelection(
-                    request.selection().insurerCode(),
-                    request.selection().productCodes(),
-                    request.selection().planOption(),
-                    request.selection().coverOption(),
-                    request.selection().deathBenefitOption(),
-                    request.selection().policyTerm(),
-                    request.selection().premiumPaymentTerm(),
-                    request.selection().premiumFrequency(),
-                    request.selection().premiumPaymentOption()
-            );
-        }
-
-        return new CreateQuoteCommand(
-                request.lob(),
-                request.mode(),
-                request.category(),
-                request.sumAssured(),
-                request.premiumAmount(),
-                members,
-                request.preferences(),
-                distribution,
-                request.journeyId(),
-                request.sessionId(),
-                idempotencyKey,
-                StringUtils.hasText(actorId) ? actorId : "system",
-                selection
-        );
     }
 
     /**

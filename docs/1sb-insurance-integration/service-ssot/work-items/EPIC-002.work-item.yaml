@@ -116,6 +116,12 @@ stories:
     notes: "QuoteOffer.funds from planOption.investmentOptions.fundDetails; persisted as funds_json. Demo ulipList is an ALB stub — do not expose as a real fund API."
     priority_now: P1
     priority_at_target: P1
+  - id: FUNC-027
+    title: "Wire documented Life retail remainder (Product UI Data + ULIP fund list/performance)"
+    state: DONE
+    notes: "Bank GET /v1/products/ui-data → GET /insurance/lifeterm/v1/master/getproductuidata. Bank POST /v1/ulip/funds/list|performance → POST /insurance/lifesave/v1/fund/list|performance. LifeDocumentedRetailApiIT asserts portal paths and never /quote/ulipList. Sandbox 2026-09-13: outbound paths confirmed; Product UI 1SB 500 auth; fund paths 404. GATE-P4 4.1 not claimed."
+    priority_now: P1
+    priority_at_target: P1
 
 story_order:
   - DOC-020
@@ -131,6 +137,7 @@ story_order:
   - FUNC-024
   - FUNC-025
   - FUNC-026
+  - FUNC-027
 
 dependencies:
   blocked_by: []
@@ -142,11 +149,12 @@ risks: []
 assumptions: []
 
 progress:
-  stories_total: 13
-  stories_done: 13
+  stories_total: 14
+  stories_done: 14
   completion_definition_met: true
   evidence:
     - "LifeLobRegressionIT + QuoteCreateIT SINGLE + QuoteCriteriaIT + MasterDataLookupIT LOB paths + ProposalSubmitIT empty values + fundDetails parse; unit handler tests green on 1sb-integration-service"
+    - "FUNC-027: LifeDocumentedRetailApiIT + adapter unit tests for Product UI Data and ULIP fund list/performance documented paths"
     - "Live demo sandbox auth was not claimed recovered; GATE-P4 4.1 remains open"
     - "Human T4 on CR-014 still outstanding (not agent-satisfiable)"
 

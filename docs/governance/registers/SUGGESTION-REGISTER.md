@@ -178,7 +178,7 @@ necessity:
     - "BOOT standing constraint: bank apps never call 1SB; provider traffic through Integration Hub"
     - "1SB portal Get Master Details: manufacturerId is for proposal enum lookup"
   confidence: C5
-  assumptions: ["ASM-014"]
+  assumptions: []   # hop/ACL does not depend on quote-common; ASM-014 belongs on SUG-20260913-hms only
   anti_over_engineering:
     X1_named_consumer: true
     X3_cheap_later: false

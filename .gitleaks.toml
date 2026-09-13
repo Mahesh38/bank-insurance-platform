@@ -26,6 +26,12 @@ paths = [
   '''^\.env\.identity\.example$''',
   '''.*application-local\.yml\.example$''',
 
+  # Human-authorised SANDBOX/DEMO credentials for agent and local connectivity
+  # validation only (SUG-20260913-osk ADMIT-BYPASS). Not production secrets.
+  # Residual risk: values are recoverable from git history — rotate if elevated
+  # or if the repository becomes public. Do not widen this to other paths.
+  '''^config/onesb/sandbox-agent\.credentials\.(env|properties)$''',
+
   # Gradle wrapper binary and checksums — high entropy by construction.
   '''^gradle/wrapper/gradle-wrapper\.(jar|properties)$''',
 

@@ -12,8 +12,10 @@
 |------|---------|
 | `provider-config.yml` | Full provider config schema with sandbox/prod profile overlays |
 | `.env.example` | Environment variable names and vault path conventions — copy to `.env`, fill in real values, never commit |
+| `sandbox-agent.credentials.env` | **Sandbox/demo only** — committed agent/local validation credentials (`SUG-20260913-osk`). Never for uat/prod. |
+| `sandbox-agent.credentials.properties` | Same sandbox values as Spring `onesb.*` properties for `bootRun` / agents |
 
-`.env` is git-ignored. Never commit real credentials.
+`.env` and `application-local.properties` are git-ignored. Production credentials stay out of git. The `sandbox-agent.credentials.*` pair is an explicit sandbox exception for agent validation.
 
 ---
 
@@ -78,9 +80,10 @@ This is the [replaceable middleware pattern](../../docs/1sb-insurance-integratio
 
 ## Secrets policy (non-negotiable)
 
-- Real API keys, secrets, and distributor IDs are **never stored in git**.
+- **Production / UAT** API keys, secrets, and distributor IDs are **never stored in git**.
 - All credential references in `provider-config.yml` are environment variable names or vault paths only.
-- The application fails fast at startup if a required env var (`ONESB_API_KEY`, `ONESB_API_SECRET`, `ONESB_DISTRIBUTOR_ID`) is absent — this is intentional.
+- The application fails fast at startup if required secrets are absent — this is intentional.
+- **Sandbox exception (`SUG-20260913-osk`):** `sandbox-agent.credentials.env` / `.properties` hold demo credentials so agents and developers can validate connectivity without a personal vault. They must never be copied into uat/prod profiles or images.
 - See [CONFIRM-01-onesb-access.md](../../docs/1sb-insurance-integration/service-ssot/phase-0/CONFIRM-01-onesb-access.md) for vault path conventions and confirmation checklist.
 
 ---
@@ -88,18 +91,15 @@ This is the [replaceable middleware pattern](../../docs/1sb-insurance-integratio
 ## Local development setup
 
 ```bash
-# 1. Copy the example file
+# Option A — agent / quick sandbox validation (committed demo credentials)
+set -a && source config/onesb/sandbox-agent.credentials.env && set +a
+./gradlew :services:1sb-integration-service:bootRun --args='--spring.profiles.active=local'
+
+# Option B — personal credentials (gitignored)
 cp config/onesb/.env.example .env
-
-# 2. Fill in your sandbox credentials (obtained from 1SB RM)
-#    ONESB_API_KEY=...
-#    ONESB_API_SECRET=...
-#    ONESB_DISTRIBUTOR_ID=...
-#    SPRING_PROFILES_ACTIVE=sandbox
-
-# 3. Start the service (credentials picked up automatically)
-./mvnw spring-boot:run
-# or: java -jar target/1sb-integration-service.jar
+# Fill ONESB_API_KEY / ONESB_API_SECRET / ONESB_DISTRIBUTOR_ID
+# SPRING_PROFILES_ACTIVE=sandbox
+./gradlew :services:1sb-integration-service:bootRun --args='--spring.profiles.active=local'
 ```
 
 ---

@@ -14,18 +14,29 @@ Durable job/offer/payment/audit state is **not** stored here. It is owned by the
 - Gradle (uses wrapper — no install needed)
 - **`bank-persistence-service` running on port 8081** when exercising job-store / persistence HTTP calls
 
-### 1. Copy and fill local secrets
+### 1. Provide local / sandbox secrets
+
+**Agents (preferred):** use the committed sandbox credentials — do not invent placeholders.
+
+```bash
+# From repo root — env form (curl + Spring relaxed binding)
+set -a && source config/onesb/sandbox-agent.credentials.env && set +a
+
+# Or Spring properties form
+# --spring.config.additional-location=optional:file:./config/onesb/sandbox-agent.credentials.properties
+```
+
+See `config/onesb/sandbox-agent.credentials.*` (`SUG-20260913-osk`). Sandbox/demo only — never for uat/prod.
+
+**Personal override (gitignored):**
 
 ```bash
 cp src/main/resources/application-local.properties.example \
    src/main/resources/application-local.properties
-# Edit and set:
-#   onesb.api-key=<your sandbox API key>
-#   onesb.api-secret=<your sandbox API secret>
-#   onesb.distributor-id=<your distributor ID>
+# Edit and set onesb.api-key / onesb.api-secret / onesb.distributor-id
 ```
 
-`application-local.properties` is **gitignored** — never commit real credentials.
+`application-local.properties` is **gitignored** — never commit personal credentials.
 
 ### 2. Start persistence (required for job store)
 

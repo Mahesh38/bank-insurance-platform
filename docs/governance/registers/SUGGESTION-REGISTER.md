@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20260913-osk | 2026-09-13 | human:cloud-agent | Keep 1SB sandbox api-key/api-secret/distributor-id in the repo for agent validation | SF1 | SC0 | SHOULD | SEC | P3 / P3 | ADMIT-BYPASS | [creds](../../../config/onesb/sandbox-agent.credentials.env) · [detail](#sug-20260913-osk--sandbox-agent-onesb-credentials-in-repo) |
 | SUG-20260913-acl | 2026-09-13 | human:stakeholder | UI/BFF never see 1SB master codes. Hop UI → BFF → Integration Hub. Hub translates; 1SB is a replaceable provider. | SF1 | SC0 | MUST | GOV | P2 / P1 | CLOSED-DELIVERED | [detail](#sug-20260913-acl--no-1sb-codes-on-ui-or-bff) |
 | SUG-20260913-hms | 2026-09-13 | human:stakeholder | Persist Integration Hub masters in bank language: quote-category common; proposal-category insurer-keyed. Do not forward 1SB `entityIds` to BFF. | SF2 | SC1 | SHOULD | FUNC | P4 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [detail](#sug-20260913-hms--hub-owned-bank-language-masters) |
 | SUG-20260911-uls | 2026-09-11 | human:stakeholder | Complete R0 assisted Life journey — Term and Saving/ULIP end to end (the bag CR-014 excluded) | SF2 | SC0 | MUST | FUNC | P2 / P1 | ADMIT-BYPASS | [CR-015](../change-requests/CR-015-ws3-r0-savings-ulip-journey.md) · [EPIC-004](../../platform/ws3-platform/EPIC-004.work-item.yaml) · [detail](#sug-20260911-uls--unpark-ws-3-savingsulip-journey-sales) · recurrence_count 2 (2026-09-12 complete Life e2e restatement) |
@@ -108,6 +109,81 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20260913-osk · Sandbox agent OneSB credentials in repo
+
+```yaml
+# schema: triage-record
+id: SUG-20260913-osk
+raised_at: "2026-09-13"
+raised_by: "human:cloud-agent"
+source: "Cloud agent intake — store onesb sandbox credentials for agent validation"
+input: >
+  onesb:
+    api-key : finoux_key
+    api-secret : finoux_secret
+    distributor-id : BCIBL
+  Keep this creds in our repo somewhere, when agents needs to validate the codes
+  they can use it whenever they want.
+
+context:
+  workstream: WS-1
+  current_phase: "Phase 1 foundations / connectivity — overlapped with WS-3 S08"
+  canonical_stage: "L4–L5 Foundation / Connectivity"
+  current_objective: "Agent-usable sandbox credentials for 1SB connectivity validation"
+  state_as_of: "2026-09-11"
+  state_provisional: false
+  active_work_item: "SUG-20260913-osk (this intake)"
+
+stage_fit:
+  code: SF1
+  rationale: >
+    Sandbox credentials unblock CONFIRM-01 B1/B2 and agent validation of the
+    demo API during foundation/connectivity work.
+
+scope:
+  code: SC0
+  business_scope: "in scope — 1SB sandbox access for the integration service"
+  authority: "CONFIRM-01-onesb-access.md · config/onesb/README.md"
+
+necessity:
+  now: SHOULD
+  future_necessity: SHOULD
+  evidence_tier: E2
+  evidence:
+    - "Human supplied sandbox credentials for agent use"
+    - "CONFIRM-01 B1/B2 were open"
+  confidence: C5
+
+action: ADMIT-BYPASS
+action_rationale: >
+  Human directed credentials into the repository. This touches the secrets-in-git
+  non-negotiable (CONFIRM-01 B3, config/onesb secrets policy, Deepali §9 for
+  production). Per 09 §8 honour the instruction, record the bypass, and constrain
+  the files to sandbox/demo only with a narrow gitleaks allowlist.
+bypass:
+  authorised_by: "human:cloud-agent-request"
+  skipped: "Board 4 Security exception process; vault-first storage for sandbox"
+  risk: >
+    Sandbox API key/secret are recoverable from git history. Severity S2 for
+    demo keys; escalate to rotate if keys are elevated or the repo is public.
+  residual_controls:
+    - "Files labelled SANDBOX/DEMO ONLY; never loaded by uat/prod profiles"
+    - "gitleaks allowlist limited to these two paths"
+    - "AGENTS.md / CONFIRM-01 document the exception"
+
+classification:
+  type: SEC
+  risk_tier: T3
+
+priority:
+  priority_now: P3
+  priority_at_target: P3
+```
+
+Delivered: `config/onesb/sandbox-agent.credentials.env`,
+`config/onesb/sandbox-agent.credentials.properties`, `.gitleaks.toml` allowlist,
+`AGENTS.md` pointer, CONFIRM-01 B1/B2 update.
 
 ### SUG-20260913-acl · No 1SB codes on UI or BFF
 

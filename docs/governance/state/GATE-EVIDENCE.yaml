@@ -1,6 +1,11 @@
 schema_version: "1.0"
 as_of: "2026-09-13"
 
+# 2026-09-13 — Security (Deepali seat) closed S08-G5 → MET. Container image scanning added to
+# security-scanning.yml (Trivy image job matrix: bank-persistence-service, 1sb-integration-service,
+# bank-insurance-combined). Local verify: CRITICAL/HIGH 0 on all three images with ignore-unfixed.
+# GATE-S08 stays OPEN; policy.mode proposal-only; approvals empty; no stage field touched.
+#
 # 2026-09-13 — QA (Swapnali seat) closed S08-G6 → MET after Engineering cleared TD-014
 # with libs/bank-common-test (Testcontainers + WireMock harness) and proving ITs. GATE-S08 stays OPEN.
 
@@ -26,8 +31,8 @@ as_of: "2026-09-13"
 #     R12 sets the date and names the owner. R12 does not supply the answer (Rule PA-1).
 #
 #  3. GAPS NAMED. Where a criterion is short of its own S08-VT validation test, the missing half
-#     is stated rather than averaged into "in progress" — static analysis (G4), container image
-#     scanning (G5), the log-scan test (G7), the shared integration harness (G6).
+#     is stated rather than averaged into "in progress" — static analysis (G4), the log-scan
+#     test (G7). (G5 image scanning and G6 shared harness closed 2026-09-13.)
 
 policy:
   mode: proposal-only
@@ -347,7 +352,7 @@ workstreams:
         last_verified_at: "2026-09-11"
       - id: "S08-G5"
         description: "Secret, SAST, SCA and container image scanning in the pipeline."
-        state: PARTIAL
+        state: MET
         owner: "Deepali / Security"
         execution_mode: AUTOMATABLE
         priority: P1
@@ -360,9 +365,10 @@ workstreams:
           - "SAST: CodeQL Java analysis runs and fails the build on critical or high findings."
           - "SCA: Trivy dependency scan fails the build on CRITICAL and HIGH, with a non-blocking full-severity report for the risk register; runtimeClasspath is locked so the scan genuinely covers the Java estate (1e4d69e)."
           - "Supply chain: an SBOM job runs and fails when it does not cover the Java estate."
-          - "GAP — container image scanning: security-scanning.yml has secret-scan, secret-scan-history, sast, sca and sbom jobs and no image scan, while a root Dockerfile ships a runnable image. Three of four named scanners cannot close a four-scanner criterion."
+          - "Container image scanning: security-scanning.yml image-scan job builds and Trivy-scans bank-persistence-service, 1sb-integration-service, and bank-insurance-combined (root Dockerfile); CRITICAL/HIGH with ignore-unfixed fails the build; full-severity JSON artefact retained; .trivyignore shared with SCA."
+          - "Local verify 2026-09-13: docker build + aquasec/trivy:0.53.0 image scan — Total CRITICAL/HIGH 0 on all three images (exit code 0). Security (Deepali seat) declares S08-G5 MET on ci verifier. GATE-S08 remains OPEN."
         blockers: []
-        last_verified_at: "2026-09-11"
+        last_verified_at: "2026-09-13T19:10:36Z"
       - id: "S08-G6"
         description: "Test infrastructure operational at every level: Testcontainers, WireMock, contract and E2E."
         state: MET

@@ -215,29 +215,21 @@ workstreams:
           # PMD, SpotBugs or Spotless, so "and static analysis" has no mechanism behind it.
         - id: "S08-G5"
           criterion: "Secret, SAST, SCA and image scanning in the pipeline"
-          state: PARTIAL
+          state: MET
           owner: "Deepali / Security"
-          # 2026-09-11 (R12 sweep): three of the four scanners are in the pipeline and blocking —
-          # gitleaks on the working tree, CodeQL Java SAST failing on critical/high, Trivy
-          # dependency SCA failing on CRITICAL/HIGH — plus a scheduled full-history secret scan
-          # and an SBOM job. CONTAINER IMAGE scanning is absent: security-scanning.yml has
-          # secret-scan, secret-scan-history, sast, sca and sbom jobs and no image scan, while a
-          # root Dockerfile ships an image. The criterion cannot close on the other three.
+          # 2026-09-13 (Security / Deepali seat): declared MET. image-scan job added to
+          # security-scanning.yml — builds and Trivy-scans bank-persistence-service,
+          # 1sb-integration-service, and bank-insurance-combined; CRITICAL/HIGH fail the build.
+          # Local verify: 0 CRITICAL/HIGH on all three images. GATE-S08 stays OPEN.
+          # 2026-09-11 (R12 sweep): three of the four scanners were in the pipeline; container
+          # image scanning was the named gap that kept this PARTIAL.
         - id: "S08-G6"
           criterion: "Test infrastructure operational at every pyramid level"
           state: MET
+          owner: "Swapnali / QA"
           # 2026-09-13 (QA / Swapnali seat): declared MET. TD-014 cleared via libs/bank-common-test
           # (Testcontainers Postgres + dual WireMock harness) + JobApiPostgresIT +
           # SharedHarnessProposalSmokeIT. GATE-S08 stays OPEN.
-          owner: "Swapnali / QA"
-          # 2026-09-13 (QA / Swapnali seat): declared MET.  cleared via libs/bank-common-test
-          # (Testcontainers Postgres + dual WireMock harness) + JobApiPostgresIT +
-          # SharedHarnessProposalSmokeIT. GATE-S08 stays OPEN.
-          # 2026-09-11 (R12 sweep): stays OPEN. WireMock is present in one module only
-          # (1sb-integration-service) and Testcontainers appears nowhere in the build, so the
-          # integration and contract levels of the pyramid have no shared harness. Blocked by
-          #  (known debt). The scaffolded services carry 2 test files each — a skeleton,
-          # not a pyramid.
         - id: "S08-G7"
           criterion: "No PII in logs, proven by automated test"
           state: PARTIAL

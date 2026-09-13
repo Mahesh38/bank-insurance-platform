@@ -92,11 +92,10 @@ Full table with the wrong-instinct column:
 
 **Objective** (`R0-ASSISTED-LIFE-SALE`): One RM sells a complete Life insurance policy — Term or Savings/ULIP — to one ETB customer from one Group A insurer, end to end, through a real interface, with consent and suitability evidence, payment on the customer's own device, an issued and reconciled policy, and a complete audit trail. R0 includes both Term and Savings/ULIP assisted paths (CR-015). DIY and hybrid stay sequenced behind the assisted journey.
 
-**Open gate:** `GATE-S08` · state `OPEN` · 8 of 10 exit criteria not yet met — 4 OPEN · 4 PARTIAL
+**Open gate:** `GATE-S08` · state `OPEN` · 7 of 10 exit criteria not yet met — 4 OPEN · 3 PARTIAL
 - `S08-G2` **OPEN** — Merge to main impossible without a green pipeline · Amit / Engineering
 - `S08-G3` **PARTIAL** — Coverage thresholds enforced; QA-001 closed · Swapnali / QA
 - `S08-G4` **PARTIAL** — ArchUnit and static analysis enforced · Amit / Engineering
-- `S08-G5` **PARTIAL** — Secret, SAST, SCA and image scanning in the pipeline · Deepali / Security
 - `S08-G7` **PARTIAL** — No PII in logs, proven by automated test · Deepali / Security
 - `S08-G8` **OPEN** — Engineering and secure coding standards published and adopted · Amit / Engineering
 - `S08-G9` **OPEN** — Pipeline feedback under 10 minutes at p95; flake under 1% · Shivanshi / SRE

@@ -327,10 +327,11 @@ workstreams:
           - "2026-09-13T20:42Z tip a7d6e71 CI all success (App 34781213462). Added admin apply + read-only verify scripts under scripts/governance/evidence/S08-G2-*.sh; verify exit 1 (no active required-checks ruleset). Still OPEN; not a MET declaration."
           - "2026-09-13T21:05Z collaborator API: Mahesh38 is repo admin; agent token admin=false. Named Mahesh38 in S08-G2 pack as the actor to run S08-G2-apply-required-checks.sh. Ruleset 20028494 still disabled; verify exit 1. Still OPEN; not a MET declaration."
           - "2026-09-13T21:28Z tip d4fe27d — S08-G2-verify-required-checks.sh exit 1; ruleset 20028494 still enforcement=disabled (deletion + non_fast_forward only); four required checks still MISS; PUT ruleset still HTTP 403. Still OPEN; not a MET declaration."
+          - "2026-09-13T21:42Z tip e9a5e5d CI all success (22 checks). Added S08-G2-demo-blocked-merge.sh (post-verify API merge probe → S08-G2-blocked-merge.out). Smoke: demo exits 1 while protection off. Ruleset 20028494 still disabled; verify exit 1. Still OPEN; not a MET declaration."
         blockers: []
         # Stays OPEN until a human admin enables required checks on main and demonstrates a
         # blocked merge. Branch protection is not a file in this repository.
-        last_verified_at: "2026-09-13T21:28:00Z"
+        last_verified_at: "2026-09-13T21:42:00Z"
       - id: "S08-G3"
         description: "Coverage thresholds enforced in CI; QA-001 closed."
         state: MET
@@ -471,9 +472,10 @@ workstreams:
           - "2026-09-13T20:52Z day-1 local boot dry-run logged at scripts/governance/evidence/S08-G10-day1-local-boot-dry-run.log — persistence :8081 and 1sb-integration :8080 actuator health UP on tip 47d2be2. Still OPEN; not a MET declaration (needs named human attestation)."
           - "2026-09-13T21:14Z collaborator API: only Mahesh38 (admin) present. Named Mahesh38 in S08-G10 pack as attestation actor (or designee). Day-0.5 and day-1 dry-runs already on branch. Still OPEN; not a MET declaration."
           - "2026-09-13T21:28Z day-2 dry-run logged at scripts/governance/evidence/S08-G10-day2-dry-run.log — ENGINEERING-AND-SECURE-CODING-STANDARDS.md + PR-REVIEW-CHECKLIST.md + PR template present; PR #104 used as shadow-review surface (checklist smoke). Still OPEN; not a MET declaration (needs named human days 3–5 + attestation)."
+          - "2026-09-13T21:42Z added S08-G10-onboarding-attestation.TEMPLATE.md for Mahesh38 (or designee) to copy/fill. Tip e9a5e5d CI green. Still OPEN; not a MET declaration."
         blockers: []
         # Stays OPEN: E3 needs an onboarding record and no one has been onboarded against this
         # build. S08-VT-10 cannot be run retrospectively, so this criterion has a lead time the
         # others do not — it is worth starting before the rest of the gate is ready, not after.
-        last_verified_at: "2026-09-13T21:28:00Z"
+        last_verified_at: "2026-09-13T21:42:00Z"
     approvals: []

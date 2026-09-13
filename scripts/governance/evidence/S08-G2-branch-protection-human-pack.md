@@ -122,12 +122,20 @@ Until that runs, `S08-G2-verify-required-checks.sh` exits 1 and S08-G2 stays OPE
 |---|---|---|
 | `scripts/governance/evidence/S08-G2-verify-required-checks.sh` | anyone / agent | Read-only GET probe — exit 1 until the four checks are enforced (latest log: `S08-G2-verify-required-checks.out`) |
 | `scripts/governance/evidence/S08-G2-apply-required-checks.sh` | **repo admin** | Creates the active required-checks ruleset (`DRY_RUN=1` to print payload). Agent token gets HTTP 403. |
+| `scripts/governance/evidence/S08-G2-demo-blocked-merge.sh` | admin / anyone after verify=0 | Attempts API merge of PR #104 (or arg); expects refusal; writes `S08-G2-blocked-merge.out`. Exit 1 if protection not on yet. |
 
-After apply: re-run verify (expect exit 0), then do the blocked-merge demo below before declaring MET.
+After apply: re-run verify (expect exit 0), then run the blocked-merge demo before declaring MET.
 
 ## Blocked-merge demonstration (E4)
 
 After protection is on:
+
+```bash
+./scripts/governance/evidence/S08-G2-verify-required-checks.sh   # expect exit 0
+./scripts/governance/evidence/S08-G2-demo-blocked-merge.sh 104  # expect exit 0 + S08-G2-blocked-merge.out
+```
+
+Manual alternative:
 
 1. Open a throwaway PR that fails one required check (or use a known red run).
 2. Confirm Merge is blocked (UI and/or `gh api` merge attempt fails).

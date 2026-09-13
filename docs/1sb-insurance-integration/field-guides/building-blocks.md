@@ -41,6 +41,8 @@ Bank: `GET /v1/products/ui-data?productId=&manufacturerId=` (`FUNC-027`).
 
 The Saving category’s “Get Product UI Data” link opens the **Term** OpenAPI page (lifeterm path only). Do **not** invent `/insurance/lifesave/v1/master/getproductuidata`. This is Product UI, not Master Lookup — the path happens to sit under `/master/`.
 
+**Sandbox (2026-09-13):** unauth `GET` on the documented Term path is **401** (routed). Authenticated `GET` returns **500** `auth_api_internal_server`. Demo also routes the undocumented lifesave Product UI path (401/500) — sandbox ≠ docs; the adapter does not call it. GATE-P4 4.1 is not claimed.
+
 ---
 
 ## Get Requirement

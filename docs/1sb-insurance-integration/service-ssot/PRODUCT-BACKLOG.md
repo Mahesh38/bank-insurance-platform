@@ -306,7 +306,7 @@ All runtime stories below are for **this service only**. The final **Governance 
 **Type:** FUNC · **Priority:** P0† · **AC:** Fund rows on `QuoteOffer.funds` from poll `fundDetails`; no invented `/quote/ulipList` as a fund API. Documented list/performance paths are FUNC-027.
 
 #### FUNC-027 · Documented Life retail remainder (Product UI + ULIP funds)
-**Type:** FUNC · **Priority:** P0† · **AC:** Bank `GET /v1/products/ui-data` → 1SB `GET /insurance/lifeterm/v1/master/getproductuidata?productId&manufacturerId` (Term OpenAPI only; do not invent lifesave Product UI). Bank `POST /v1/ulip/funds/list` → `POST /insurance/lifesave/v1/fund/list`. Bank `POST /v1/ulip/funds/performance` → `POST /insurance/lifesave/v1/fund/performance` with `insuranceAndProducts` pin. POSTs require `Idempotency-Key`. No save-quote / send-quote. Master stays Building Blocks `POST /v1/master/lookup` (LOB demo fallback already FUNC-024).
+**Type:** FUNC · **Priority:** P0† · **AC:** Bank `GET /v1/products/ui-data` → 1SB `GET /insurance/lifeterm/v1/master/getproductuidata?productId&manufacturerId` (Term OpenAPI only; do not invent lifesave Product UI). Bank `POST /v1/ulip/funds/list` → `POST /insurance/lifesave/v1/fund/list`. Bank `POST /v1/ulip/funds/performance` → `POST /insurance/lifesave/v1/fund/performance` with `insuranceAndProducts` pin. POSTs require `Idempotency-Key`. No save-quote / send-quote. Master stays Building Blocks `POST /v1/master/lookup` (LOB demo fallback already FUNC-024). **Sandbox 2026-09-13:** outbound paths confirmed on live demo; Product UI 1SB 500 `auth_api_internal_server`; fund paths 404. GATE-P4 4.1 not claimed.
 
 ---
 

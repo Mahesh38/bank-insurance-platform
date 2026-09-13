@@ -98,7 +98,7 @@ Query params commonly required: `productId`, `manufacturerId`, and for proposal 
 | LOB | Quote path | Notes |
 |-----|------------|-------|
 | Saving | `POST /insurance/lifesave/v1/quote` | Confirmed (`SOURCE-LINKS`, portal saving-consumer-request). `productType=LifeSave`. |
-| ULIP | **Same** `POST /insurance/lifesave/v1/quote` with `savingsProductType=["ULIP"]` | Not a separate `/lifeulip` prefix. Helpers: `POST /insurance/lifesave/v1/fund/list`, `POST /insurance/lifesave/v1/fund/performance`. |
+| ULIP | **Same** `POST /insurance/lifesave/v1/quote` with `savingsProductType=["ULIP"]` | Not a separate `/lifeulip` prefix. Helpers: `POST /insurance/lifesave/v1/fund/list`, `POST /insurance/lifesave/v1/fund/performance` (portal; **demo 404** as of 2026-09-13 — do not retarget to `/quote/ulipList`). |
 | Annuity | Confirm prefix with 1SB (`annuity-*` portal pages) | Gate criteria + proposal mirror Term |
 | Pension | Confirm prefix with 1SB (`pension-*` portal pages) | Gate criteria + proposal mirror Term |
 

@@ -39,6 +39,8 @@ Performance OpenAPI requires `product.insuranceAndProducts` (bank `selection.ins
 
 Do **not** call guessed ALB stubs (`…/quote/ulipList`, `…/quote/ulipPerformance`). There is no `/insurance/lifeulip/…` prefix and no save-quote / send-quote API.
 
+**Sandbox (2026-09-13, `demo.api.1silverbullet.tech`):** documented `POST /insurance/lifesave/v1/fund/list` and `/fund/performance` return **404 NO_ROUTE** (auth and unauth). Unauthenticated `POST …/quote/ulipList` returns **401** because ALB treats `/quote/*` as a catch-all — that is not a live fund API. Authenticated Life calls that *are* routed still fail with `auth_api_internal_server` (500). Adapter stays on the OpenAPI paths. GATE-P4 4.1 is not claimed.
+
 Funds **also** appear on the Saving quote poll under `productDetails.planOption.investmentOptions.fundDetails`. The adapter maps those rows onto bank `QuoteOffer.funds` (`FUNC-026`). GET `/v1/quotes/{jobId}` returns them after poll completes. `FUNC-027` is the documented list/performance pair.
 
 ## Mapping notes

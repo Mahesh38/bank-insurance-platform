@@ -119,7 +119,7 @@ stories:
   - id: FUNC-027
     title: "Wire documented Life retail remainder (Product UI Data + ULIP fund list/performance)"
     state: DONE
-    notes: "Bank GET /v1/products/ui-data → GET /insurance/lifeterm/v1/master/getproductuidata. Bank POST /v1/ulip/funds/list|performance → POST /insurance/lifesave/v1/fund/list|performance. LifeDocumentedRetailApiIT asserts portal paths and never /quote/ulipList."
+    notes: "Bank GET /v1/products/ui-data → GET /insurance/lifeterm/v1/master/getproductuidata. Bank POST /v1/ulip/funds/list|performance → POST /insurance/lifesave/v1/fund/list|performance. LifeDocumentedRetailApiIT asserts portal paths and never /quote/ulipList. Sandbox 2026-09-13: outbound paths confirmed; Product UI 1SB 500 auth; fund paths 404. GATE-P4 4.1 not claimed."
     priority_now: P1
     priority_at_target: P1
 

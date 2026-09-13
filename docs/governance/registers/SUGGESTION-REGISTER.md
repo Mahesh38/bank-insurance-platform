@@ -43,6 +43,8 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20260913-qul | 2026-09-13 | agent:sandbox-validation | Retarget ULIP fund adapter to `/quote/ulipList` because demo unauth 401 “proves a route”. | SF4 | SC3 | REJECT | FUNC | — / — | REJECTED | [detail](#sug-20260913-qul--do-not-retarget-funds-to-quote-uliplist) |
+| SUG-20260913-fnd | 2026-09-13 | agent:sandbox-validation | 1SB demo 404 on documented `POST /insurance/lifesave/v1/fund/list` and `/fund/performance`. | SF2 | SC1 | NOT-NOW | OPS | P4 / P1 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [detail](#sug-20260913-fnd--onesb-demo-missing-documented-fund-routes) |
 | SUG-20260913-lap | 2026-09-13 | human:stakeholder | Wire only documented 1SB Life retail APIs (Product UI Data + ULIP fund list/performance). No save/send quote. Master is Building Blocks `POST /v1/master/lookup`. | SF1 | SC0 | MUST | FUNC | P1 / P1 | ADMITTED | [FUNC-027](../../1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md) · [detail](#sug-20260913-lap--documented-life-retail-api-parity) |
 | SUG-20260911-uls | 2026-09-11 | human:stakeholder | Complete R0 assisted Life journey — Term and Saving/ULIP end to end (the bag CR-014 excluded) | SF2 | SC0 | MUST | FUNC | P2 / P1 | ADMIT-BYPASS | [CR-015](../change-requests/CR-015-ws3-r0-savings-ulip-journey.md) · [EPIC-004](../../platform/ws3-platform/EPIC-004.work-item.yaml) · [detail](#sug-20260911-uls--unpark-ws-3-savingsulip-journey-sales) · recurrence_count 2 (2026-09-12 complete Life e2e restatement) |
 | SUG-20260907-ldc | 2026-09-07 | human:front-architect | NIP BFF / RM app consumer contract for R0 lead landing (own inbox) + ETB search + Term lead create through success | SF1 | SC0 | SHOULD | ARCH | P2 / P1 | ADMITTED | [EPIC-003](../../platform/ws3-platform/EPIC-003.work-item.yaml) · [PLAN-004](../plans/PLAN-004-nip-bff-lead-phase-contract.md) · [LLD](../../platform/ws3-platform/07-nip-bff-lead-phase-api-lld.md) · [detail](#sug-20260907-ldc--nip-bff-lead-landing-and-create-contract) |
@@ -107,6 +109,158 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20260913-qul · Do not retarget funds to /quote/ulipList
+
+```yaml
+# schema: triage-record
+id: SUG-20260913-qul
+raised_at: "2026-09-13"
+raised_by: "agent:cursor"
+source: "FUNC-027 live sandbox validation vs demo.api.1silverbullet.tech"
+input: >
+  Unauthenticated POST /insurance/lifesave/v1/quote/ulipList and
+  /quote/fund/list return 401, so retarget OneSbUlipFundAdapter from the
+  documented 404 /fund/list paths onto those quote-prefixed URLs.
+
+context:
+  workstream: WS-1
+  current_phase: "Phase 4 — Hardening & consumer enablement"
+  canonical_stage: "L7 — Hardening"
+  current_objective: "P4-UAT-SIGNOFF — Term UAT sign-off; FUNC-027 portal parity"
+  state_as_of: "2026-09-11"
+  state_provisional: false
+  active_work_item: FUNC-027
+
+stage_fit:
+  code: SF4
+  rationale: >
+    Inventing a provider API from an ALB /quote/* catch-all contradicts the
+    stakeholder rule (do not invent APIs) and FUNC-026/027 AC. Same class as
+    save-quote / send-quote 401s.
+
+scope:
+  code: SC3
+  business_scope: "out of scope — not a portal-documented operation"
+  failure_without_it: "N/A — implementing it would ship a fake fund API"
+  minimal: true
+  authority: "portal ULIP catalog; FUNC-027 AC; SUG-20260913-lap"
+
+necessity:
+  now: REJECT
+  evidence_tier: E2
+  evidence:
+    - "Portal ULIP ops are POST /insurance/lifesave/v1/fund/list and /fund/performance"
+    - "Unauth 401 on /quote/ulipList matches /quote/save and /quote/send catch-all"
+    - "Documented /fund/list is 404 NO_ROUTE on demo (not a 401)"
+  confidence: C5
+  anti_over_engineering:
+    X1_named_consumer: false
+    X9_problem_observed: true
+
+action: REJECT
+action_rationale: >
+  401 on /quote/* proves the catch-all exists, not that a fund API exists.
+  Adapter stays on OpenAPI paths. Reopen only if the portal publishes a
+  different live path.
+reason: "ALB catch-all is not a documented 1SB API."
+reopen_if: "Portal OpenAPI documents a replacement fund path that demo also routes."
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  status: REJECTED
+
+resumed: "FUNC-027 sandbox validation — mapping confirmed; 2xx E2E blocked by 1SB."
+```
+
+### SUG-20260913-fnd · 1SB demo missing documented fund routes
+
+```yaml
+# schema: triage-record
+id: SUG-20260913-fnd
+raised_at: "2026-09-13"
+raised_by: "agent:cursor"
+source: "FUNC-027 live sandbox validation vs demo.api.1silverbullet.tech"
+input: >
+  Documented POST /insurance/lifesave/v1/fund/list and /fund/performance
+  return 404 NO_ROUTE on demo (auth and unauth). Bank adapter correctly maps
+  404 to 422 UPSTREAM_BUSINESS_ERROR. Happy-path fund list cannot run until
+  1SB deploys the documented routes or the portal publishes a replacement.
+
+context:
+  workstream: WS-1
+  current_phase: "Phase 4 — Hardening & consumer enablement"
+  canonical_stage: "L7 — Hardening"
+  current_objective: "GATE-P4 4.1 sandbox E2E — not claimed"
+  state_as_of: "2026-09-11"
+  state_provisional: false
+  active_work_item: FUNC-027
+
+stage_fit:
+  code: SF2
+  rationale: >
+    Provider deploy gap sits next to GATE-P4 4.1. Bank code is already on the
+    documented paths (FUNC-027). Absorption fails: fixing it in bank code
+    would invent an API (new decision, not gate-neutral).
+  absorption_test:
+    small: false
+    no_new_dependency: false
+    no_new_decision: false
+    gate_neutral: true
+  target_stage: "Phase 4 — Hardening (GATE-P4 4.1)"
+  unpark_trigger: >
+    Demo returns a routed (non-404) response on the documented fund paths,
+    or the portal documents a different path that demo also routes.
+
+scope:
+  code: SC1
+  business_scope: "derived — FUNC-027 AC cannot be proven live until 1SB routes the catalog paths"
+  serves: ["FUNC-027", "GATE-P4 4.1"]
+  failure_without_it: "ULIP fund list/performance 2xx sandbox evidence stays unexecuted"
+  minimal: true
+  authority: "ACTION-PLAN.md Phase 4.1; portal ULIP OpenAPI"
+
+necessity:
+  now: NOT-NOW
+  future_necessity: MUST
+  target_stage: "Phase 4 — Hardening (GATE-P4 4.1)"
+  binds_when: "claiming live E2E of ULIP fund helpers"
+  evidence_tier: E2
+  evidence:
+    - "demo 404 on documented /fund/list and /fund/performance (2026-09-13)"
+    - "bank 8082 outbound audit shows those exact paths"
+  confidence: C5
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: true
+    X5_stage_necessity: false
+    X9_problem_observed: true
+
+action: PARK
+action_rationale: >
+  SF2 absorption fails — a bank workaround would invent a path. This is a
+  1SB RM deploy/docs mismatch (same class as FUNC-024 master lookup 404).
+  Do not implement a catch-all retarget. Unpark when demo routes the
+  documented ops or the portal changes.
+duplicate_of: null
+
+classification:
+  type: OPS
+  risk_tier: T2
+  new_public_contract: false
+
+priority:
+  now: P4
+  at_target: P1
+  override: null
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  status: PARKED
+  parked_in: "registers/PARKED-BACKLOG.md"
+
+resumed: "FUNC-027 sandbox validation. Continuing: evidence report, not a path change."
+```
 
 ### SUG-20260913-lap · Documented Life retail API parity
 

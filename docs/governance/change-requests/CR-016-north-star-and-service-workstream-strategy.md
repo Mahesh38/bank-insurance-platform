@@ -116,3 +116,16 @@ change_request:
 ## 10. Board review pack
 
 Draft AIGEM board simulations (2026-09-13): [`CR-016/verdicts/`](./CR-016/verdicts/README.md).
+
+## 11. Conditions closure (mandatory before “moving ahead”)
+
+Board HOLDs and `must_fix` items are real. Solutions are recorded in
+[`CR-016/CONDITIONS-CLOSURE.md`](./CR-016/CONDITIONS-CLOSURE.md).
+
+| Residual human act | Brief |
+|---|---|
+| H1 Rajal Product countersign | [`countersign-rajal-north-star-continuity.md`](./CR-016/countersign-rajal-north-star-continuity.md) |
+| H2 Kalpana Delivery countersign + transcription | [`countersign-kalpana-transcription-checklist.md`](./CR-016/countersign-kalpana-transcription-checklist.md) |
+
+Until H1 and H2 complete: agents may use `SWS-*` boards under interim Rule WS-NS-3, but must not
+rewrite `CURRENT-STATE.yaml` topology or claim GATE progress from board counts.

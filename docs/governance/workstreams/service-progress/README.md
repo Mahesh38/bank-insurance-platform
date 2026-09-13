@@ -1,10 +1,12 @@
 # Service progress boards
 
 **Authority:** [WORKSTREAM-STRATEGY.md](../WORKSTREAM-STRATEGY.md) · [CR-016](../../change-requests/CR-016-north-star-and-service-workstream-strategy.md) · [ADR-020](../../../platform/architecture-review/ADR-020-north-star-and-service-workstream-strategy.md)  
+**Conditions closure:** [CONDITIONS-CLOSURE.md](../../change-requests/CR-016/CONDITIONS-CLOSURE.md)  
 **Approved (Architecture):** Mahesh · 2026-09-13
 
 One markdown board per microservice. Agents owning a service update that board in the same
-change that moves work. Boards are progress ledgers — they do **not** carry lifecycle stage.
+change that moves work. Boards are progress ledgers — they do **not** carry lifecycle stage
+and are **not** GATE / regulatory evidence (WS-NS-8).
 
 ## Index
 
@@ -34,7 +36,10 @@ change that moves work. Boards are progress ledgers — they do **not** carry li
 
 ## How to update
 
-1. Move at most one item into **Active** for the owning agent lane.
-2. When Done, move it to **Completed** with evidence (PR, test path, ADR).
-3. When blocked by another service, add a row under **Waiting to unblock** on *both* boards.
-4. Run the [dependency sync check](../WORKSTREAM-STRATEGY.md#53-dependency-sync-check) before clearing a cross-service wait.
+1. Move at most one item into **Active** for the owning agent lane — with a **work-item ID** (WS-NS-4).
+2. Claim an `SWS-*` only when READY work exists for that module (WS-NS-5).
+3. When Done, move to **Completed** with evidence (PR, test path, ADR). Behaviour change ⇒ test/AC evidence.
+4. When blocked by another service, add a row under **Waiting to unblock** on *both* boards; age via [PROGRAMME-ROLLUP](../PROGRAMME-ROLLUP.md) §4.
+5. Before clearing a cross-service wait, pass the [SYNC-CHECK-EVIDENCE-BAR](../SYNC-CHECK-EVIDENCE-BAR.md).
+6. Never put PII/secrets on boards (WS-NS-6). Never use boards as GATE/regulatory evidence (WS-NS-8).
+7. Programme status questions → [PROGRAMME-ROLLUP](../PROGRAMME-ROLLUP.md), not board-count green.

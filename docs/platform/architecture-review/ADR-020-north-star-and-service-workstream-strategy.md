@@ -113,3 +113,15 @@ We will operate a **two-tier workstream model**:
 - Regulatory obligations touched: none directly.
 - Security posture change: none — Deepali’s trust boundaries unchanged.
 - Audit or attribution implications: clearer ownership attribution per service board.
+
+## Conditions closure (2026-09-13)
+
+AIGEM board simulation raised HOLDs and `must_fix` conditions. Architecture accepts them as
+**real** and requires the controls in
+[`CR-016/CONDITIONS-CLOSURE.md`](../../governance/change-requests/CR-016/CONDITIONS-CLOSURE.md)
+before treating CR-016 as operationally closed:
+
+- Rules WS-NS-1…8 in `WORKSTREAM-STRATEGY.md` (dual-topology routing, work-item IDs, claim gate, no PII, standing constraints, boards ≠ gate/regulatory evidence).
+- `SYNC-CHECK-EVIDENCE-BAR.md` (E1–E3 or dated waiver).
+- `PROGRAMME-ROLLUP.md` (programme green ≠ service-board green; DL ageing).
+- Ready-to-sign briefs for Rajal (H1) and Kalpana (H2). Human signatures remain outstanding.

@@ -20,13 +20,17 @@ the workstream's `authority` list so agents can reach it.
 
 | Artefact | Role |
 |---|---|
-| [`WORKSTREAM-STRATEGY.md`](./WORKSTREAM-STRATEGY.md) | Binding two-tier model: `WS-NS` + `SWS-*` |
+| [`WORKSTREAM-STRATEGY.md`](./WORKSTREAM-STRATEGY.md) | Binding two-tier model: `WS-NS` + `SWS-*` + WS-NS-1…8 controls |
+| [`SYNC-CHECK-EVIDENCE-BAR.md`](./SYNC-CHECK-EVIDENCE-BAR.md) | Minimum evidence for cross-SWS Done (Board 5 condition) |
+| [`PROGRAMME-ROLLUP.md`](./PROGRAMME-ROLLUP.md) | Critical-path roll-up — prevents false parallel green |
 | [`service-progress/`](./service-progress/README.md) | Per-microservice progress boards |
 | [CR-016](../change-requests/CR-016-north-star-and-service-workstream-strategy.md) | Change control |
+| [CONDITIONS-CLOSURE](../change-requests/CR-016/CONDITIONS-CLOSURE.md) | HOLD / must_fix → solution matrix |
 | [ADR-020](../../platform/architecture-review/ADR-020-north-star-and-service-workstream-strategy.md) | Architecture decision |
 
 **Approved by:** Mahesh (Architecture / governance) · **2026-09-13**  
-**Countersign outstanding:** Rajal (Product), Kalpana (Delivery) before `CURRENT-STATE.yaml` topology transcription.
+**Countersign outstanding:** Rajal (Product), Kalpana (Delivery) before `CURRENT-STATE.yaml` topology transcription.  
+**Board concerns:** addressed in CONDITIONS-CLOSURE — human H1/H2 signatures still required.
 
 ---
 

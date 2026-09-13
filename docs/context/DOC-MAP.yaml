@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 587
-total_bytes: 15676414
+document_count: 596
+total_bytes: 15720074
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -1933,7 +1933,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 207541
+    bytes: 210410
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -3605,7 +3605,79 @@ documents:
     persona: null
     title: "CR-016 — North Star continuity + per-microservice service workstreams"
     answers: "Change request: CR-016"
-    bytes: 6397
+    bytes: 7115
+  - path: docs/governance/change-requests/CR-016/verdicts/README.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "CR-016 — Board verdicts (draft pack)"
+    answers: "Change request: CR-016"
+    bytes: 3692
+  - path: docs/governance/change-requests/CR-016/verdicts/board-1-architecture-mahesh.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "Board 1 — Architecture · Draft verdict on CR-016"
+    answers: "Board: 1 — Architecture · AIGEM role: R2"
+    bytes: 3504
+  - path: docs/governance/change-requests/CR-016/verdicts/board-2-technical-amit.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "Board 2 — Technical · Draft verdict on CR-016"
+    answers: "Board: 2 — Technical · AIGEM role: R3"
+    bytes: 2376
+  - path: docs/governance/change-requests/CR-016/verdicts/board-3-product-rajal.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "Board 3 — Product · Draft verdict on CR-016"
+    answers: "Board: 3 — Product · AIGEM role: R1"
+    bytes: 2616
+  - path: docs/governance/change-requests/CR-016/verdicts/board-4-security-deepali.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "Board 4 — Security · Draft verdict on CR-016"
+    answers: "Board: 4 — Security · AIGEM role: R8"
+    bytes: 2045
+  - path: docs/governance/change-requests/CR-016/verdicts/board-5-qa-swapnali.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "Board 5 — QA · Draft verdict on CR-016"
+    answers: "Board: 5 — QA · AIGEM role: R7"
+    bytes: 1956
+  - path: docs/governance/change-requests/CR-016/verdicts/board-6-compliance-shailja.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "Board 6 — Risk & Compliance · Draft verdict on CR-016"
+    answers: "Board: 6 — Risk & Compliance · AIGEM role: R9"
+    bytes: 1883
+  - path: docs/governance/change-requests/CR-016/verdicts/board-7-operations-shivanshi.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "Board 7 — Operations · Draft verdict on CR-016"
+    answers: "Board: 7 — Operations / SRE · AIGEM role: R10"
+    bytes: 1879
+  - path: docs/governance/change-requests/CR-016/verdicts/r12-delivery-kalpana.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "R12 — Delivery Control · Draft note on CR-016"
+    answers: "Seat: R12 — Delivery · Not a board"
+    bytes: 2714
   - path: docs/governance/plans/PLAN-001-context-module-and-safe-autopilot.md
     bucket: governance
     authority: binding-process
@@ -3837,7 +3909,7 @@ documents:
     persona: delivery
     title: "Workstream charters"
     answers: "Purpose: the long-form, human-authored definition behind each workstreams: entry in"
-    bytes: 4198
+    bytes: 4662
   - path: docs/governance/workstreams/WORKSTREAM-STRATEGY.md
     bucket: governance
     authority: binding-process
@@ -3845,7 +3917,7 @@ documents:
     persona: delivery
     title: "Workstream strategy — North Star + service lanes"
     answers: "Countersign outstanding: Rajal (Product), Kalpana (Delivery) — required before CURRENT-STATE.yaml topology transcription"
-    bytes: 5347
+    bytes: 8059
   - path: docs/governance/workstreams/WS-3-PLATFORM-CHARTER.md
     bucket: governance
     authority: binding-process
@@ -3860,8 +3932,8 @@ documents:
     capsules: [delivery-planning, plan-work]
     persona: delivery
     title: "Service progress boards"
-    answers: "One markdown board per microservice. Agents owning a service update that board in the same"
-    bytes: 3677
+    answers: "Conditions closure: CONDITIONS-CLOSURE.md"
+    bytes: 4223
   - path: docs/governance/workstreams/service-progress/SWS-1sb-integration-service.md
     bucket: governance
     authority: binding-process
@@ -3869,7 +3941,7 @@ documents:
     persona: delivery
     title: "SWS-1sb-integration-service — 1SB Adapter"
     answers: "Implemented; active WS-1 hardening / Life adapter epics may land here."
-    bytes: 1316
+    bytes: 1934
   - path: docs/governance/workstreams/service-progress/SWS-administration-config-service.md
     bucket: governance
     authority: binding-process
@@ -3877,7 +3949,7 @@ documents:
     persona: delivery
     title: "SWS-administration-config-service — Administration & Config"
     answers: "Catalogue status: skeleton. Seed board — no active agent ownership claimed yet."
-    bytes: 1301
+    bytes: 1919
   - path: docs/governance/workstreams/service-progress/SWS-audit-compliance-service.md
     bucket: governance
     authority: binding-process
@@ -3885,7 +3957,7 @@ documents:
     persona: delivery
     title: "SWS-audit-compliance-service — Audit & Compliance"
     answers: "Catalogue status: skeleton. Seed board — no active agent ownership claimed yet."
-    bytes: 1274
+    bytes: 1892
   - path: docs/governance/workstreams/service-progress/SWS-bank-persistence-service.md
     bucket: governance
     authority: binding-process
@@ -3893,7 +3965,7 @@ documents:
     persona: delivery
     title: "SWS-bank-persistence-service — Platform Persistence"
     answers: "Implemented; platform-common persistence for job-store and audit HTTP."
-    bytes: 1283
+    bytes: 1901
   - path: docs/governance/workstreams/service-progress/SWS-consent-service.md
     bucket: governance
     authority: binding-process
@@ -3901,7 +3973,7 @@ documents:
     persona: delivery
     title: "SWS-consent-service — Consent"
     answers: "Catalogue status: skeleton. Seed board — no active agent ownership claimed yet."
-    bytes: 1238
+    bytes: 1856
   - path: docs/governance/workstreams/service-progress/SWS-customer-service.md
     bucket: governance
     authority: binding-process
@@ -3909,7 +3981,7 @@ documents:
     persona: delivery
     title: "SWS-customer-service — Customer"
     answers: "Catalogue status: skeleton. Seed board — no active agent ownership claimed yet."
-    bytes: 1243
+    bytes: 1861
   - path: docs/governance/workstreams/service-progress/SWS-direct-insurer-adapter-service.md
     bucket: governance
     authority: binding-process
@@ -3917,7 +3989,7 @@ documents:
     persona: delivery
     title: "SWS-direct-insurer-adapter-service — Direct Insurer Adapter"
     answers: "Catalogue status: skeleton. Seed board — no active agent ownership claimed yet."
-    bytes: 1294
+    bytes: 1912
   - path: docs/governance/workstreams/service-progress/SWS-identity-authorization-service.md
     bucket: governance
     authority: binding-process
@@ -3925,7 +3997,7 @@ documents:
     persona: delivery
     title: "SWS-identity-authorization-service — Identity & Access (Authorization PDP)"
     answers: "Implemented under WS-2 IAM."
-    bytes: 1265
+    bytes: 1883
   - path: docs/governance/workstreams/service-progress/SWS-identity-provider-adapter-service.md
     bucket: governance
     authority: binding-process
@@ -3933,7 +4005,7 @@ documents:
     persona: delivery
     title: "SWS-identity-provider-adapter-service — Identity Provider Adapter"
     answers: "Implemented under WS-2 IAM."
-    bytes: 1265
+    bytes: 1883
   - path: docs/governance/workstreams/service-progress/SWS-integration-hub-service.md
     bucket: governance
     authority: binding-process
@@ -3941,7 +4013,7 @@ documents:
     persona: delivery
     title: "SWS-integration-hub-service — Integration Hub"
     answers: "Catalogue status: skeleton. Seed board — no active agent ownership claimed yet."
-    bytes: 1335
+    bytes: 1953
   - path: docs/governance/workstreams/service-progress/SWS-journey-orchestration-service.md
     bucket: governance
     authority: binding-process
@@ -3949,7 +4021,7 @@ documents:
     persona: delivery
     title: "SWS-journey-orchestration-service — Journey Orchestration"
     answers: "Catalogue status: skeleton. Seed board — no active agent ownership claimed yet."
-    bytes: 1335
+    bytes: 1953
   - path: docs/governance/workstreams/service-progress/SWS-lead-service.md
     bucket: governance
     authority: binding-process
@@ -3957,7 +4029,7 @@ documents:
     persona: delivery
     title: "SWS-lead-service — Lead"
     answers: "Catalogue status: skeleton. Seed board — no active agent ownership claimed yet."
-    bytes: 1223
+    bytes: 1841
   - path: docs/governance/workstreams/service-progress/SWS-notification-service.md
     bucket: governance
     authority: binding-process
@@ -3965,7 +4037,7 @@ documents:
     persona: delivery
     title: "SWS-notification-service — Notification"
     answers: "Catalogue status: skeleton. Seed board — no active agent ownership claimed yet."
-    bytes: 1263
+    bytes: 1881
   - path: docs/governance/workstreams/service-progress/SWS-payment-service.md
     bucket: governance
     authority: binding-process
@@ -3973,7 +4045,7 @@ documents:
     persona: delivery
     title: "SWS-payment-service — Payment"
     answers: "Catalogue status: skeleton. Seed board — no active agent ownership claimed yet."
-    bytes: 1231
+    bytes: 1849
   - path: docs/governance/workstreams/service-progress/SWS-policy-issuance-service.md
     bucket: governance
     authority: binding-process
@@ -3981,7 +4053,7 @@ documents:
     persona: delivery
     title: "SWS-policy-issuance-service — Policy & Issuance"
     answers: "Catalogue status: skeleton. Seed board — no active agent ownership claimed yet."
-    bytes: 1281
+    bytes: 1899
   - path: docs/governance/workstreams/service-progress/SWS-product-catalogue-service.md
     bucket: governance
     authority: binding-process
@@ -3989,7 +4061,7 @@ documents:
     persona: delivery
     title: "SWS-product-catalogue-service — Product Catalogue"
     answers: "Catalogue status: skeleton. Seed board — no active agent ownership claimed yet."
-    bytes: 1280
+    bytes: 1898
   - path: docs/governance/workstreams/service-progress/SWS-proposal-service.md
     bucket: governance
     authority: binding-process
@@ -3997,7 +4069,7 @@ documents:
     persona: delivery
     title: "SWS-proposal-service — Proposal & UW-Tracking"
     answers: "Catalogue status: skeleton. Seed board — no active agent ownership claimed yet."
-    bytes: 1273
+    bytes: 1891
   - path: docs/governance/workstreams/service-progress/SWS-quotation-service.md
     bucket: governance
     authority: binding-process
@@ -4005,7 +4077,7 @@ documents:
     persona: delivery
     title: "SWS-quotation-service — Quotation"
     answers: "Catalogue status: skeleton. Seed board — no active agent ownership claimed yet."
-    bytes: 1276
+    bytes: 1894
   - path: docs/governance/workstreams/service-progress/SWS-reporting-mis-service.md
     bucket: governance
     authority: binding-process
@@ -4013,7 +4085,7 @@ documents:
     persona: delivery
     title: "SWS-reporting-mis-service — Reporting & MIS"
     answers: "Catalogue status: skeleton. Seed board — no active agent ownership claimed yet."
-    bytes: 1266
+    bytes: 1884
   - path: docs/governance/workstreams/service-progress/SWS-suitability-service.md
     bucket: governance
     authority: binding-process
@@ -4021,7 +4093,7 @@ documents:
     persona: delivery
     title: "SWS-suitability-service — Suitability & Recommendation"
     answers: "Catalogue status: skeleton. Seed board — no active agent ownership claimed yet."
-    bytes: 1275
+    bytes: 1893
   - path: docs/governance/workstreams/service-progress/SWS-workforce-access-bff.md
     bucket: governance
     authority: binding-process
@@ -4029,7 +4101,7 @@ documents:
     persona: delivery
     title: "SWS-workforce-access-bff — Workforce Access BFF"
     answers: "Implemented edge BFF under WS-2; Flutter never receives OAuth tokens."
-    bytes: 1268
+    bytes: 1886
   - path: docs/hdl.svg
     bucket: root
     authority: navigation
@@ -4349,7 +4421,7 @@ documents:
     persona: architecture
     title: "ADR-020 — North Star program workstream + per-microservice service workstreams"
     answers: "Deciders: Mahesh (Principal Insurance Platform Architect / governance custodian)"
-    bytes: 5582
+    bytes: 6290
   - path: docs/platform/architecture-review/README.md
     bucket: platform
     authority: approved-spec

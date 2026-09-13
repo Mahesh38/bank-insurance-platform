@@ -126,7 +126,7 @@ Same **life-style** skeleton as Term (quote → poll → gate criteria → produ
 | LOB | Confirmed quote path |
 |-----|----------------------|
 | Saving | `POST /insurance/lifesave/v1/quote` |
-| ULIP | Under Saving category (`ulip-list`, `ulip-performance` APIs) |
+| ULIP | Same Saving quote path + `savingsProductType=["ULIP"]`. Fund helpers: `POST /insurance/lifesave/v1/fund/list`, `POST /insurance/lifesave/v1/fund/performance` |
 | Annuity / Pension | Mirror Term/Saving structure; confirm exact prefix with 1SB RM (`lifeannuity` / `lifepension` style expected) |
 
 ---

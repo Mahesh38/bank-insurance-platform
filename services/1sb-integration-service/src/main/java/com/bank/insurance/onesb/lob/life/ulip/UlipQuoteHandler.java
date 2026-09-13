@@ -17,8 +17,9 @@ import java.util.List;
  * Portal reality: ULIP is <strong>not</strong> a separate {@code /lifeulip} quote API.
  * Quotes use the Saving API ({@code /insurance/lifesave/v1/quote}) with
  * {@code product.savingsProductType = ["ULIP"]}. Supplementary portal ops
- * {@code ulip-list-…} and {@code ulip-performance-…} are fund-list/performance helpers,
- * not the primary quote submit path.
+ * {@code ulip-list-…} and {@code ulip-performance-…} are fund-list/performance helpers
+ * on {@code POST /insurance/lifesave/v1/fund/list} and
+ * {@code POST /insurance/lifesave/v1/fund/performance} (FUNC-027), not a second quote path.
  */
 @Component
 public class UlipQuoteHandler implements LobQuoteHandler {

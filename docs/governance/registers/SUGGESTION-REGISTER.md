@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20260913-lap | 2026-09-13 | human:stakeholder | Wire only documented 1SB Life retail APIs (Product UI Data + ULIP fund list/performance). No save/send quote. Master is Building Blocks `POST /v1/master/lookup`. | SF1 | SC0 | MUST | FUNC | P1 / P1 | ADMITTED | [FUNC-027](../../1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md) · [detail](#sug-20260913-lap--documented-life-retail-api-parity) |
 | SUG-20260911-uls | 2026-09-11 | human:stakeholder | Complete R0 assisted Life journey — Term and Saving/ULIP end to end (the bag CR-014 excluded) | SF2 | SC0 | MUST | FUNC | P2 / P1 | ADMIT-BYPASS | [CR-015](../change-requests/CR-015-ws3-r0-savings-ulip-journey.md) · [EPIC-004](../../platform/ws3-platform/EPIC-004.work-item.yaml) · [detail](#sug-20260911-uls--unpark-ws-3-savingsulip-journey-sales) · recurrence_count 2 (2026-09-12 complete Life e2e restatement) |
 | SUG-20260907-ldc | 2026-09-07 | human:front-architect | NIP BFF / RM app consumer contract for R0 lead landing (own inbox) + ETB search + Term lead create through success | SF1 | SC0 | SHOULD | ARCH | P2 / P1 | ADMITTED | [EPIC-003](../../platform/ws3-platform/EPIC-003.work-item.yaml) · [PLAN-004](../plans/PLAN-004-nip-bff-lead-phase-contract.md) · [LLD](../../platform/ws3-platform/07-nip-bff-lead-phase-api-lld.md) · [detail](#sug-20260907-ldc--nip-bff-lead-landing-and-create-contract) |
 | SUG-20260907-std | 2026-09-07 | human:front-architect | Confirm platform-wide standard API response, versioning, security and REST practices on the NIP BFF lead OpenAPI | SF1 | SC0 | SHOULD | DOC | P2 / P2 | ADMITTED | [ARCH-023](../../platform/ws3-platform/ARCH-023.work-item.yaml) · [ADR-017](../../journey-execution/07-PLATFORM-ERROR-CONTRACT.md) · [detail](#sug-20260907-std--platform-api-conventions-on-lead-openapi) |
@@ -106,6 +107,110 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20260913-lap · Documented Life retail API parity
+
+```yaml
+# schema: triage-record
+id: SUG-20260913-lap
+raised_at: "2026-09-13"
+raised_by: "human:stakeholder"
+source: "Cloud agent follow-up after EPIC-002 adapter-gap merge — Life API completeness vs 1SB docs"
+input: >
+  I know there is no save quote or send quote API actually and we dont need it too.
+  We want to know are we able to setup all the life insurance API exposed by the
+  1silverbullet gateway. If we have setup all which are there on their documentation
+  site then we are good. I can't see any master API as well on their documentation
+  site, please correct me if any. Dont invent api for them, setup only which are
+  existing APIs as per their documentation.
+
+context:
+  workstream: WS-1
+  current_phase: "Phase 4 — Hardening & consumer enablement"
+  canonical_stage: "L7 — Hardening"
+  current_objective: "P4-UAT-SIGNOFF — Term UAT sign-off while EPIC-002 delivers Life LOB adapter coverage"
+  state_as_of: "2026-09-11"
+  state_provisional: false
+  active_work_item: FUNC-027
+
+stage_fit:
+  code: SF1
+  rationale: >
+    Completing documented Life retail ops on the existing adapter is on-stage for
+    GATE-P4 / EPIC-002 Life coverage. Not a new LOB (Health/Motor remain Phase 5).
+    Save/send quote are absent from the portal and are not invented.
+
+scope:
+  code: SC0
+  business_scope: "EPIC-002 / CR-014 Life LOB adapter coverage; api-catalog already lists Product UI Data and ULIP list/performance"
+  serves: ["EPIC-002", "FUNC-015", "FUNC-019", "DOC-020"]
+  failure_without_it: "Bank cannot call documented Get Product UI Data or ULIP fund list/performance; field guides still described guessed /quote/ulipList paths"
+  minimal: true
+  authority: "docs/1sb-insurance-integration/api-catalog/README.md §1 and §4; API-ALIGNMENT remaining item 4; portal Term/Saving/ULIP/Building-blocks catalogs"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "L7 — Hardening"
+  binds_when: "Life retail adapter claims portal parity"
+  evidence_tier: E2
+  evidence:
+    - "Portal Term: GET /insurance/lifeterm/v1/master/getproductuidata"
+    - "Portal ULIP: POST /insurance/lifesave/v1/fund/list and /fund/performance"
+    - "Portal Building Blocks: Get Master Details POST /v1/master/lookup (already wired; demo 404 uses LOB fallback FUNC-024)"
+    - "No save-quote or send-quote on Term/Saving catalogs"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT
+action_rationale: >
+  SF1 × MUST × SC0 → ADMIT. Hard P1 override O4 (missing documented provider APIs
+  named by the Life catalog / alignment remaining item 4). Do not implement parked
+  FUNC-008 / FUNC-016 building blocks.
+duplicate_of: null
+conflicts: []
+
+classification:
+  type: FUNC
+  risk_tier: T2
+  new_public_contract: true
+  touches_security: false
+  touches_pii: false
+
+priority:
+  now: P1
+  at_target: P1
+  override: O4
+  override_evidence: "api-catalog and portal document Product UI Data and ULIP fund list/performance; adapter did not expose them; guessed /quote/ulipList must not be used"
+  score:
+    N: 4
+    S: 3
+    B: 1
+    R: 2
+    D: 1
+    E: 0
+    total: 21
+
+breakdown:
+  work_item_id: FUNC-027
+  title: "Wire documented Life retail remainder (Product UI Data + ULIP fund list/performance)"
+  owner: Amit
+  acceptance_outcome: "Bank GET /v1/products/ui-data and POST /v1/ulip/funds/list|performance call only the portal-documented 1SB paths; tests assert those paths and never /quote/ulipList"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: FUNC-027
+  plan_id: null
+  status: ADMITTED
+  closed_reason: null
+
+resumed: "FUNC-027 — documented Life retail API parity after EPIC-002 FUNC-022–026 merge."
+```
 
 ### SUG-20260911-uls · Unpark WS-3 Savings/ULIP journey sales
 

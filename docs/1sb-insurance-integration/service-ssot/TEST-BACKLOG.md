@@ -33,6 +33,8 @@ Priority: **P0** before Phase 3 functional exit · **P1** hardening · **P2** ni
 | Story | AC excerpt | Automated test |
 |-------|------------|----------------|
 | FUNC-002 | Valid quote → job + 1SB call | `QuoteServiceTest`, `QuoteControllerSliceTest`, `QuoteFlowIT` |
+| FUNC-027 | Product UI Data GET documented Term path | `ProductUiDataControllerTest`, `OneSbProductUiDataAdapterTest`, `LifeDocumentedRetailApiIT` |
+| FUNC-027 | ULIP fund list/performance documented Saving paths; never `/quote/ulipList`; POST Idempotency-Key | `UlipFundControllerTest`, `OneSbUlipFundAdapterTest`, `UlipFundServiceTest`, `LifeDocumentedRetailApiIT` |
 | FUNC-002 | Invalid → 422, no 1SB | WireMock verify 0 |
 | FUNC-002 | Poll timeout → QUOTE_TIMEOUT | `AsyncJobPoller` + quote orchestration IT |
 | NFR-001 | Idempotent POST | `IdempotencyFilterTest` + controller slice |

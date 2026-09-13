@@ -55,8 +55,8 @@ Saving quote schema requires `productType` and `savingsProductType[]` ∈ {`nonP
 1. Exact Saving proposal poll URL template (portal slug is long; confirm against demo). Adapter uses `GET /insurance/lifesave/v1/proposal/poll/{id}` (mirrors Term).
 2. Whether Term quote body prefers nested `product.product` vs `product.productType` in live sandbox (we now emit **both** for Term: `productType` + legacy `product`).
 3. Application-status path variants for Saving/ULIP (today Term prostat path).
-4. Wire ULIP list/performance ports when fund UX is in scope.
-5. Saving/ULIP gate-criteria GET/POST — portal ops exist; no Java handler for **any** Life LOB including Term (not an EPIC-002 quote/proposal AC).
+4. Wire ULIP list/performance — **FUNC-027**: documented paths `POST /insurance/lifesave/v1/fund/list` and `POST /insurance/lifesave/v1/fund/performance` (not guessed `/quote/ulipList`).
+5. Saving/ULIP gate-criteria GET/POST — portal ops exist; Life handlers now supply `gateCriteria` via FUNC-023 (`GET/POST /v1/quotes/criteria`).
 6. Extracted-schema markdown dumps for Saving consumer-request / proposal (portal pages are linked from field guides; Term dumps exist under `extracted-schemas/`).
 
 ---
@@ -67,7 +67,7 @@ Saving quote schema requires `productType` and `savingsProductType[]` ∈ {`nonP
 |-----------------|-------------------|----------------|
 | Term Life | Retail Term APIs | Implemented (`TermQuoteHandler` / `TermProposalHandler`) |
 | Savings | Retail Saving APIs | Implemented (`SavingQuoteHandler` / `SavingProposalHandler` → `/insurance/lifesave/v1/…`) |
-| ULIP | Saving + ULIP filter (+ fund helpers) | Quote + proposal implemented (`UlipQuoteHandler` / `UlipProposalHandler`, `savingsProductType=["ULIP"]`). Fund list/performance ports **not** wired |
+| ULIP | Saving + ULIP filter (+ fund helpers) | Quote + proposal implemented (`UlipQuoteHandler` / `UlipProposalHandler`, `savingsProductType=["ULIP"]`). Fund list/performance wired (`FUNC-027`: `POST /insurance/lifesave/v1/fund/list` and `/fund/performance`) |
 | Typed JSON | N/A (engineering) | Quote and proposal typed (`LifeQuoteRequest` / `LifeProposalSubmitBody`) |
 | Resilience | N/A (engineering) | Poll config + CB in place (`NFR-007` / `NFR-004`) |
 

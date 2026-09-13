@@ -6,16 +6,20 @@ Cross-LOB utilities. Portal hub: [Building blocks](https://docs.1silverbullet.te
 
 ## Master Lookup
 
-Working demo paths (2026-09-11):
+**Portal (Building Blocks — Get Master Details):**
+[Get Master Details](https://docs.1silverbullet.tech/docs/insurance/building-blocks/apiDocs/master-consumer-request-insurance-v-1-consumer-insurance-post)
+documents **`POST /v1/master/lookup`**. This is **not** on the Term/Saving/ULIP retail pages — that is why it is easy to miss. It is a cross-LOB building block, not a Life-only “master API”.
+
+Bank API remains `POST /v1/master-data/lookup` (`lob` selects the 1SB path). Request body includes `lookUpCategory`, `entityIds[]`, optional `manufacturerId`, and distributor (`distributorID`, `channelType`, `salesChannel`).
+
+**Demo workaround (FUNC-024):** live demo `POST /v1/master/lookup` 404s. The adapter therefore calls the LOB-scoped lookup that the sandbox actually routes:
 
 | LOB | Path |
 |-----|------|
 | Term (default) | `POST /insurance/lifeterm/v1/master/lookup` |
 | Saving / ULIP | `POST /insurance/lifesave/v1/master/lookup` |
 
-`POST /v1/master/lookup` 404s on demo — do not use it. There is no `/insurance/lifeulip/…/master/lookup`.
-
-Bank API remains `POST /v1/master-data/lookup` (`lob` selects the 1SB path). Request body includes `lookUpCategory`, `entityIds[]`, optional `manufacturerId`, and distributor (`distributorID`, `channelType`, `salesChannel`).
+There is no `/insurance/lifeulip/…/master/lookup`. Do not invent a second master product API.
 
 | Field | Required | Why |
 |-------|----------|-----|
@@ -26,6 +30,16 @@ Bank API remains `POST /v1/master-data/lookup` (`lob` selects the 1SB path). Req
 Common entityIds: `CHANNEL`, `EDUCATN`, `GENDER`, `MARITAL`, `MEMTYPE`, `OCC`, `PPF`, `PPO`, `QUOTECAT`, `QUOTETYP`, `RELWTHLA`, `STATE`, `TITLE`, `TOBACCO`.
 
 **Bank rule:** Never hardcode dropdowns in UI for long-lived releases; cache with short TTL + manufacturer key.
+
+---
+
+## Get Product UI Data
+
+**Portal (Retail Term):** `GET /insurance/lifeterm/v1/master/getproductuidata?productId=&manufacturerId=`
+
+Bank: `GET /v1/products/ui-data?productId=&manufacturerId=` (`FUNC-027`).
+
+The Saving category’s “Get Product UI Data” link opens the **Term** OpenAPI page (lifeterm path only). Do **not** invent `/insurance/lifesave/v1/master/getproductuidata`. This is Product UI, not Master Lookup — the path happens to sit under `/master/`.
 
 ---
 

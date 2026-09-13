@@ -319,13 +319,12 @@ workstreams:
         required_evidence_level: E4
         verifier: human-review
         evidence:
-          - "The four status checks that must be required are named exactly in the application-ci.yml header: \"Java 21 tests and coverage gates\", \"Secret scanning (gitleaks)\", \"SAST (CodeQL, Java)\", \"SCA (Trivy dependency scan)\". The naming work is done."
+          - "The four status checks that must be required are named exactly in the application-ci.yml header and matching security-scanning.yml job names: \"Java 21 tests and coverage gates\", \"Secret scanning (gitleaks)\", \"SAST (CodeQL, Java)\", \"SCA (Trivy dependency scan)\". The naming work is done."
+          - "Human action pack assembled 2026-09-13: scripts/governance/evidence/S08-G2-branch-protection-human-pack.md (exact check names, admin UI steps, blocked-merge demo). Agent probe of GET .../branches/main/protection returned HTTP 403 — admin must confirm and attach settings/blocked-merge evidence. Still OPEN; not a MET declaration."
         blockers: []
-        # Stays OPEN on 2026-09-11 and will stay OPEN however green the pipeline gets. Branch
-        # protection on main is a repository-administrator setting, not a file in this repository,
-        # and the criterion also wants a blocked-merge demonstration. A green pipeline is the
-        # mechanism; branch protection is what makes it a gate. R12 cannot evidence either.
-        last_verified_at: "2026-09-11"
+        # Stays OPEN until a human admin enables required checks on main and demonstrates a
+        # blocked merge. Branch protection is not a file in this repository.
+        last_verified_at: "2026-09-13T19:59:00Z"
       - id: "S08-G3"
         description: "Coverage thresholds enforced in CI; QA-001 closed."
         state: MET

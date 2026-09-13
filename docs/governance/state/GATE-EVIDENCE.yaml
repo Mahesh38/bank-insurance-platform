@@ -1,6 +1,12 @@
 schema_version: "1.0"
 as_of: "2026-09-13"
 
+# 2026-09-13 — Engineering (Amit seat) closed S08-G4 → MET. Spotless (ratchetFrom origin/main)
+# + Checkstyle (config/checkstyle, maxWarnings=0) wired into root `check` and named explicitly
+# in application-ci.yml. Local verify: checkstyle/spotless clean exit 0; star-import and
+# format-breach probes exit 1. ArchUnit half unchanged. GATE-S08 stays OPEN; policy.mode
+# proposal-only; approvals empty; no stage field touched.
+#
 # 2026-09-13 — Security (Deepali seat) closed S08-G5 → MET. Container image scanning added to
 # security-scanning.yml (Trivy image job matrix: bank-persistence-service, 1sb-integration-service,
 # bank-insurance-combined). Local verify: CRITICAL/HIGH 0 on all three images with ignore-unfixed.
@@ -32,7 +38,7 @@ as_of: "2026-09-13"
 #
 #  3. GAPS NAMED. Where a criterion is short of its own S08-VT validation test, the missing half
 #     is stated rather than averaged into "in progress" — static analysis (G4), the log-scan
-#     test (G7). (G5 image scanning and G6 shared harness closed 2026-09-13.)
+#     test (G7). (G4 static analysis, G5 image scanning and G6 shared harness closed 2026-09-13.)
 
 policy:
   mode: proposal-only
@@ -328,7 +334,7 @@ workstreams:
         last_verified_at: "2026-09-13T19:22:01Z"
       - id: "S08-G4"
         description: "ArchUnit and static analysis enforced in CI; build fails on breach."
-        state: PARTIAL
+        state: MET
         owner: "Amit / Engineering"
         execution_mode: AUTOMATABLE
         priority: P1
@@ -339,10 +345,12 @@ workstreams:
         evidence:
           - "ArchUnit breadth: 18 modules carry an architecture test (ServiceArchitectureTest in 17 platform services plus ArchitectureTest in 1sb-integration-service)."
           - "Rules bite: 1sb-integration-service carries ArchitectureRulesBiteTest, the S08-VT-03 demonstration."
-          - "CI enforcement: the architecture-fitness step fails the run when no ArchUnit result files are found, so the rules cannot silently stop running."
-          - "GAP — static analysis: the root build declares no Checkstyle, PMD, SpotBugs or Spotless. The criterion says \"ArchUnit AND static analysis\"; only the first half has a mechanism."
+          - "CI ArchUnit enforcement: the architecture-fitness step fails the run when no ArchUnit result files are found, so the rules cannot silently stop running."
+          - "Static analysis mechanism (S08-E02-S03): root build.gradle.kts applies Checkstyle (config/checkstyle/checkstyle.xml, maxWarnings=0) and Spotless 6.25.0 (google-java-format, ratchetFrom origin/main) to every Java subproject; both are dependents of `check`."
+          - "CI static-analysis step: application-ci.yml runs `./gradlew checkstyleMain checkstyleTest spotlessCheck` explicitly after build, and uploads checkstyle/spotless reports."
+          - "Local verify 2026-09-13: estate checkstyleMain/checkstyleTest/spotlessCheck BUILD SUCCESSFUL (exit 0); star-import probe on bank-common-domain fails checkstyleMain (exit 1); trailing-whitespace probe on bank-common-test fails spotlessCheck (exit 1). Engineering (Amit seat) declares S08-G4 MET on ci verifier. GATE-S08 remains OPEN."
         blockers: []
-        last_verified_at: "2026-09-11"
+        last_verified_at: "2026-09-13T19:40:36Z"
       - id: "S08-G5"
         description: "Secret, SAST, SCA and container image scanning in the pipeline."
         state: MET

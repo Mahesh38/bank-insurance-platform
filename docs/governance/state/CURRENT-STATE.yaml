@@ -206,13 +206,15 @@ workstreams:
           # interim service floor.
         - id: "S08-G4"
           criterion: "ArchUnit and static analysis enforced"
-          state: PARTIAL
+          state: MET
           owner: "Amit / Engineering"
+          # 2026-09-13 (Engineering / Amit seat): declared MET. Checkstyle + Spotless wired into
+          # root `check` and application-ci.yml; estate clean; breach probes fail the build.
+          # ArchUnit half unchanged. GATE-S08 stays OPEN.
           # 2026-09-11 (R12 sweep): ArchUnit half is evidenced — 18 modules carry a
           # ServiceArchitectureTest, 1sb-integration-service carries ArchitectureRulesBiteTest
           # (S08-VT-03), and the CI architecture-fitness step fails when no ArchUnit results are
-          # found. Static-analysis half is NOT enforced: the root build declares no Checkstyle,
-          # PMD, SpotBugs or Spotless, so "and static analysis" has no mechanism behind it.
+          # found. Static-analysis half was the named gap (no Checkstyle/PMD/SpotBugs/Spotless).
         - id: "S08-G5"
           criterion: "Secret, SAST, SCA and image scanning in the pipeline"
           state: MET

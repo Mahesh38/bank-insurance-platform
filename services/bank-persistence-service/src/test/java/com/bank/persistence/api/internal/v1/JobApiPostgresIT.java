@@ -1,5 +1,11 @@
 package com.bank.persistence.api.internal.v1;
 
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.bank.common.test.PyramidTags;
 import com.bank.common.test.fixtures.DomainFixtures;
 import com.bank.common.test.postgres.PostgresTestSupport;
@@ -17,15 +23,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-/**
- * S08-E03-S01 — persistence jobs API against real PostgreSQL via shared Testcontainers.
- */
+/** S08-E03-S01 — persistence jobs API against real PostgreSQL via shared Testcontainers. */
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -34,26 +32,28 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Tag(PyramidTags.TESTCONTAINERS)
 class JobApiPostgresIT {
 
-    @Container
-    @SuppressWarnings("resource")
-    static final PostgreSQLContainer<?> POSTGRES = PostgresTestSupport.create();
+  @Container
+  @SuppressWarnings("resource")
+  static final PostgreSQLContainer<?> POSTGRES = PostgresTestSupport.create();
 
-    @DynamicPropertySource
-    static void datasource(DynamicPropertyRegistry registry) {
-        PostgresTestSupport.register(POSTGRES, registry);
-    }
+  @DynamicPropertySource
+  static void datasource(DynamicPropertyRegistry registry) {
+    PostgresTestSupport.register(POSTGRES, registry);
+  }
 
-    @Autowired
-    private MockMvc mockMvc;
+  @Autowired private MockMvc mockMvc;
 
-    @Test
-    void createJob_againstPostgres_returns201() throws Exception {
-        String idem = DomainFixtures.idempotencyKey("pg-job");
-        String journey = DomainFixtures.journeyId();
+  @Test
+  void createJob_againstPostgres_returns201() throws Exception {
+    String idem = DomainFixtures.idempotencyKey("pg-job");
+    String journey = DomainFixtures.journeyId();
 
-        mockMvc.perform(post("/internal/v1/jobs")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
+    mockMvc
+        .perform(
+            post("/internal/v1/jobs")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
                                 {
                                   "lob": "TERM",
                                   "jobType": "QUOTE",
@@ -61,13 +61,14 @@ class JobApiPostgresIT {
                                   "idempotencyKey": "%s",
                                   "createdByActor": "%s"
                                 }
-                                """.formatted(journey, idem, DomainFixtures.actorId())))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.jobId", notNullValue()))
-                .andExpect(jsonPath("$.lob", is("TERM")))
-                .andExpect(jsonPath("$.jobType", is("QUOTE")))
-                .andExpect(jsonPath("$.status", is("PENDING")))
-                .andExpect(jsonPath("$.journeyId", is(journey)))
-                .andExpect(jsonPath("$.idempotencyKey", is(idem)));
-    }
+                                """
+                        .formatted(journey, idem, DomainFixtures.actorId())))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.jobId", notNullValue()))
+        .andExpect(jsonPath("$.lob", is("TERM")))
+        .andExpect(jsonPath("$.jobType", is("QUOTE")))
+        .andExpect(jsonPath("$.status", is("PENDING")))
+        .andExpect(jsonPath("$.journeyId", is(journey)))
+        .andExpect(jsonPath("$.idempotencyKey", is(idem)));
+  }
 }

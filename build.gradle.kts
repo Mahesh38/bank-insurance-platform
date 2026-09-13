@@ -3,6 +3,8 @@ plugins {
     id("jacoco")
     id("org.springframework.boot") version "3.5.16" apply false
     id("io.spring.dependency-management") version "1.1.6" apply false
+    // S08-G4 / S08-E02-S03 — formatting half of static analysis (Checkstyle is the quality half).
+    id("com.diffplug.spotless") version "6.25.0" apply false
 }
 
 allprojects {
@@ -13,6 +15,8 @@ allprojects {
 subprojects {
     apply(plugin = "java")
     apply(plugin = "jacoco")
+    apply(plugin = "checkstyle")
+    apply(plugin = "com.diffplug.spotless")
     apply(plugin = "io.spring.dependency-management")
 
     // Import the Spring Boot BOM for all subprojects (libs + service).
@@ -174,9 +178,48 @@ subprojects {
         }
     }
 
+    // ------------------------------------------------------------------
+    // S08-G4 / S08-E02-S03 — static analysis (Checkstyle quality + Spotless format)
+    //
+    // Checkstyle: small blocking rule set in config/checkstyle/. maxWarnings=0 so
+    // any finding fails the build. suppressions.xml is the tracked baseline for
+    // pre-existing violations that cannot be fixed in the introducing change.
+    //
+    // Spotless: google-java-format + unused-import cleanup. ratchetFrom(origin/main)
+    // means only files touched since main must be clean — existing formatting debt
+    // is the baseline; new violations fail spotlessCheck (and therefore `check`).
+    // ------------------------------------------------------------------
+    configure<CheckstyleExtension> {
+        toolVersion = "10.17.0"
+        configFile = rootProject.file("config/checkstyle/checkstyle.xml")
+        maxErrors = 0
+        maxWarnings = 0
+        isIgnoreFailures = false
+    }
+    tasks.withType<Checkstyle>().configureEach {
+        reports {
+            xml.required.set(true)
+            html.required.set(true)
+        }
+    }
+
+    configure<com.diffplug.gradle.spotless.SpotlessExtension> {
+        // S08-E02-S03: new violations fail; existing ones are a tracked baseline.
+        ratchetFrom("origin/main")
+        java {
+            target("src/*/java/**/*.java")
+            googleJavaFormat("1.22.0")
+            removeUnusedImports()
+            trimTrailingWhitespace()
+            endWithNewline()
+        }
+    }
+
     // Make `check` (and typical CI `./gradlew test jacocoTestCoverageVerification`) enforce gates
     tasks.named("check") {
         dependsOn(tasks.named("jacocoTestCoverageVerification"))
+        dependsOn(tasks.named("spotlessCheck"))
+        // checkstyleMain / checkstyleTest are already dependents of `check` via the plugin
     }
 
     tasks.withType<JavaCompile> {

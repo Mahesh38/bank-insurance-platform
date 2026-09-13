@@ -63,13 +63,21 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
 
       # `build` compiles main and test sources for every module and runs `check`,
-      # which the root build script wires to jacocoTestCoverageVerification. The
-      # verification task is named explicitly as well so that a future change to
-      # that wiring cannot silently drop the coverage gate from CI.
+      # which the root build script wires to jacocoTestCoverageVerification,
+      # checkstyleMain/checkstyleTest (S08-G4), and spotlessCheck (S08-G4). The
+      # verification tasks are named explicitly as well so that a future change to
+      # that wiring cannot silently drop the coverage or static-analysis gates from CI.
       - name: Build, test and verify coverage gates
         run: |
           chmod +x gradlew
           ./gradlew --no-daemon build test jacocoTestReport jacocoTestCoverageVerification
+
+      # S08-G4 — static analysis half. `build` already ran these via `check`; naming
+      # them here keeps a regression readable in the job summary and fails loudly if
+      # a future rewiring drops them from `check`.
+      - name: Static analysis (Checkstyle + Spotless)
+        run: |
+          ./gradlew --no-daemon checkstyleMain checkstyleTest spotlessCheck
 
       # ArchUnit boundary rules and the S08-VT-03 "rules bite" suite run as part of
       # `test` above. Surfacing them separately makes an architecture regression
@@ -96,5 +104,7 @@ jobs:
           path: |
             **/build/reports/tests/**
             **/build/reports/jacoco/**
+            **/build/reports/checkstyle/**
+            **/build/reports/spotless/**
           if-no-files-found: warn
           retention-days: 14

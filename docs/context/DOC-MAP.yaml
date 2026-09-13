@@ -19,7 +19,7 @@ schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
 document_count: 562
-total_bytes: 15611679
+total_bytes: 15617666
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -493,7 +493,7 @@ documents:
     persona: engineering
     title: "Coverage (JaCoCo) — QA-001"
     answers: "check also depends on jacocoTestCoverageVerification."
-    bytes: 3465
+    bytes: 3751
   - path: docs/1sb-insurance-integration/service-ssot/FUNCTIONAL-NFR-COMPLIANCE-MAP.md
     bucket: module-1sb
     authority: engineering-ssot
@@ -557,7 +557,7 @@ documents:
     persona: engineering
     title: "Tech Debt Log — 1SB Insurance Platform"
     answers: "Branch: cursor/phase1-foundations-c259"
-    bytes: 20364
+    bytes: 21069
   - path: docs/1sb-insurance-integration/service-ssot/TEST-BACKLOG.md
     bucket: module-1sb
     authority: engineering-ssot
@@ -565,7 +565,7 @@ documents:
     persona: engineering
     title: "Test Backlog — QA Lead"
     answers: "Strategy: QA-LEAD-TESTING-STRATEGY.md"
-    bytes: 3507
+    bytes: 3666
   - path: docs/1sb-insurance-integration/service-ssot/TESTING-RULES.md
     bucket: module-1sb
     authority: engineering-ssot
@@ -1925,7 +1925,7 @@ documents:
     persona: null
     title: "BOOT — the tier-0 agent capsule"
     answers: "Read this first, and often read nothing else. This file answers the ten-fact knowledge"
-    bytes: 18175
+    bytes: 17564
   - path: docs/context/DOC-MAP.yaml
     bucket: context
     authority: non-binding-context
@@ -3133,7 +3133,7 @@ documents:
     persona: null
     title: "01 — Current State (Context Resolution)"
     answers: "Pipeline step: 1 — Context Resolution"
-    bytes: 21380
+    bytes: 22469
   - path: docs/governance/02-PROJECT_SCOPE.md
     bucket: governance
     authority: binding-process
@@ -3245,7 +3245,7 @@ documents:
     persona: null
     title: "15 — Technical Debt Policy"
     answers: "Ledger: service-ssot/TECH-DEBT.md"
-    bytes: 6578
+    bytes: 6570
   - path: docs/governance/16-DECISION_MODEL.md
     bucket: governance
     authority: binding-process
@@ -3757,7 +3757,7 @@ documents:
     persona: null
     title: "CURRENT STATE"
     answers: "AIGEM — Machine-readable current state"
-    bytes: 41406
+    bytes: 40786
   - path: docs/governance/state/GATE-EVIDENCE.yaml
     bucket: governance
     authority: binding-process
@@ -3765,7 +3765,7 @@ documents:
     persona: null
     title: "GATE EVIDENCE"
     answers: "YAML record; first key `schema_version`"
-    bytes: 20637
+    bytes: 23043
   - path: docs/governance/state/REVIEW-LOG.md
     bucket: governance
     authority: binding-process
@@ -3773,7 +3773,7 @@ documents:
     persona: null
     title: "Governance Artefact Review Log"
     answers: "Read by: scripts/governance/FreshnessCheck.java"
-    bytes: 5135
+    bytes: 7666
   - path: docs/governance/templates/ADR.md
     bucket: governance
     authority: binding-process
@@ -3997,7 +3997,7 @@ documents:
     persona: null
     title: "Current State Dashboard"
     answers: "Generated, committed view. CI regenerates this file from governance/state/CURRENT-STATE.yaml and fails if it drifts. The YAML remains authoritative."
-    bytes: 5197
+    bytes: 5192
   - path: docs/knowledge-base/generated/decision-index.md
     bucket: root
     authority: navigation
@@ -4013,7 +4013,7 @@ documents:
     persona: null
     title: "Module & Service Inventory"
     answers: "Generated, committed view. CI regenerates this file from settings.gradle.kts and fails if it drifts. A registered module is not proof that its…"
-    bytes: 2891
+    bytes: 2946
   - path: docs/knowledge-base/glossary.md
     bucket: root
     authority: navigation

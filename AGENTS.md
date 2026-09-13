@@ -161,6 +161,15 @@ interim line floor).
 not required for this Java platform. Docker is not required for unit tests. After cloning there is
 no install step beyond a Gradle build — the wrapper downloads the toolchain and dependencies.
 
+**1SB sandbox credentials for agents** (`SUG-20260913-osk`): use
+`config/onesb/sandbox-agent.credentials.env` (or the sibling `.properties` file) whenever you need
+to call the demo 1SB API or boot `1sb-integration-service` with real sandbox auth. Sandbox/demo
+only — never for uat/prod.
+
+```bash
+set -a && source config/onesb/sandbox-agent.credentials.env && set +a
+```
+
 ## 6. Keeping this layer honest
 
 ```bash

@@ -1,9 +1,9 @@
 # CONFIRM-01 — 1SB Sandbox Access Confirmation
 
 **Phase:** 0.1  
-**Status:** `PARTIAL` — URL + distributor confirmed; credentials & IP whitelist still open  
+**Status:** `PARTIAL` — URL + distributor + sandbox agent credentials confirmed; vault (prod/shared) & IP whitelist still open  
 **Owner:** Platform / 1SB RM  
-**Last updated:** 2026-07-30  
+**Last updated:** 2026-09-13  
 **Data log:** [PHASE-0-DATA-AND-GAPS.md](./PHASE-0-DATA-AND-GAPS.md)
 
 > Critical path (B, D, E) must be done before trusting demo connectivity.  
@@ -25,24 +25,27 @@ Override via env: `ONESB_BASE_URL`.
 
 ---
 
-### B — API Credentials — **STILL REQUIRED**
+### B — API Credentials
 
 | # | Item | Status | Owner | Due |
 |---|------|--------|-------|-----|
-| B1 | `ONESB_API_KEY` from 1SB | ⬜ Pending | 1SB RM | |
-| B2 | `ONESB_API_SECRET` from 1SB | ⬜ Pending | 1SB RM | |
-| B3 | Stored in vault — NOT in git/chat | ⬜ Pending | Platform | |
-| B4 | Vault path confirmed | ⬜ Pending | Platform | |
+| B1 | `ONESB_API_KEY` from 1SB | ✅ Sandbox value in `config/onesb/sandbox-agent.credentials.*` (`SUG-20260913-osk`) | 1SB RM / Eng | 2026-09-13 |
+| B2 | `ONESB_API_SECRET` from 1SB | ✅ Sandbox value in `config/onesb/sandbox-agent.credentials.*` | 1SB RM / Eng | 2026-09-13 |
+| B3 | Stored in vault — NOT in git/chat | ⚠️ **Exception:** sandbox/demo values committed for agent validation only. Production/UAT remain vault-only. | Platform | |
+| B4 | Vault path confirmed | ⬜ Pending (prod/shared envs) | Platform | |
 | B5 | Boot-time read verified | ⬜ Pending | Eng | |
 
-**Vault path placeholders:**
+**Vault path placeholders (prod / shared — unchanged):**
 
 ```
-Demo/Sandbox:
+Demo/Sandbox (vault still preferred for shared bank envs):
   secret/onesb/sandbox/api-key
   secret/onesb/sandbox/api-secret
-```
 
+Agent / local quick path (committed sandbox exception):
+  config/onesb/sandbox-agent.credentials.env
+  config/onesb/sandbox-agent.credentials.properties
+```
 ---
 
 ### C — Distributor

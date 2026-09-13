@@ -246,13 +246,13 @@ workstreams:
           owner: "Amit / Engineering"
         - id: "S08-G9"
           criterion: "Pipeline feedback under 10 minutes at p95; flake under 1%"
-          state: OPEN
+          state: MET
           owner: "Shivanshi / SRE"
-          # 2026-09-11 (R12 sweep): stays OPEN — S08-VT-08/VT-09 require measurement over >= 20
-          # and >= 50 runs and no metrics record exists. Input for Shivanshi, not closure: the 15
-          # most recent Application CI runs all concluded success with wall-clock times of roughly
-          # 60-90 seconds. If that holds across 50 runs the criterion is measurable now; an
-          # unmeasured criterion is not a passing one.
+          # 2026-09-13 (SRE / Shivanshi seat): declared MET. Measured Application CI
+          # (scripts/governance/measure-pipeline-feedback.py): p95 ≈ 2.775 min; flake 0.00% over
+          # ≥50 concluded runs (401 API total). Snapshot committed under
+          # scripts/governance/evidence/S08-G9-pipeline-feedback.json. GATE-S08 stays OPEN.
+          # 2026-09-11 (R12 sweep): was OPEN — S08-VT-08/VT-09 unmeasured.
         - id: "S08-G10"
           criterion: "A new engineer can build, test and ship in under a week"
           state: OPEN

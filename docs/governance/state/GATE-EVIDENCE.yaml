@@ -1,6 +1,12 @@
 schema_version: "1.0"
 as_of: "2026-09-13"
 
+# 2026-09-13 — SRE (Shivanshi seat) closed S08-G9 → MET. Measured Application CI via
+# scripts/governance/measure-pipeline-feedback.py: p95 feedback ~2.8 min across ≥20 PR runs;
+# flake rate 0.00% across ≥50 concluded runs (401 API total; 351 concluded). Committed snapshot
+# scripts/governance/evidence/S08-G9-pipeline-feedback.json; governance CI asserts thresholds.
+# GATE-S08 stays OPEN; policy.mode proposal-only; approvals empty; no stage field touched.
+#
 # 2026-09-13 — Security (Deepali seat) closed S08-G7 → MET. Framework LogPiiScrubber on
 # Slf4jErrorRecorder plus NoPiiInEmittedLogsTest (S08-VT-06 ListAppender scan of emitted logs for
 # PAN, Aadhaar, phone, email, health). Local verify: bank-common-error test + coverage green.
@@ -429,7 +435,7 @@ workstreams:
         last_verified_at: "2026-09-11"
       - id: "S08-G9"
         description: "Pipeline feedback under 10 minutes at p95; flaky failure rate under 1%."
-        state: OPEN
+        state: MET
         owner: "Shivanshi / SRE"
         execution_mode: AUTOMATABLE
         priority: P2
@@ -438,12 +444,12 @@ workstreams:
         required_evidence_level: E4
         verifier: ci
         evidence:
-          - "Observation only, not a measurement: the 15 most recent Application CI runs all concluded success with wall-clock times of roughly 60-90 seconds each."
-          - "GAP — S08-VT-08 asks for feedback time across >= 20 runs and S08-VT-09 for flake rate across >= 50. Neither measurement is recorded anywhere, so the criterion is unevidenced even though the observed sample is comfortably inside both thresholds."
+          - "Measurement script: scripts/governance/measure-pipeline-feedback.py (fetch via gh api against .github/workflows/application-ci.yml). Committed snapshot: scripts/governance/evidence/S08-G9-pipeline-feedback.json. Governance CI re-asserts thresholds offline."
+          - "S08-VT-08: PR feedback p95 across most recent 20 pull_request runs and across all concluded samples is under 10 minutes (gate p95 ≈ 2.775 min; all-concluded N=351, PR N=141, API total_count=401 as of 2026-09-13)."
+          - "S08-VT-09: flake rate 0.00% over most recent 50 concluded runs (0 flaky failures). Flake = failure on a head_sha that also has ≥1 success in the sample. Raw non-flake failures exist and are excluded by definition."
+          - "SRE declaration (Shivanshi seat, 2026-09-13): criterion S08-G9 MET on the ci verifier. GATE-S08 remains OPEN; this is not a stage transition and not a human gate approval."
         blockers: []
-        # The observation is an input for Shivanshi, not a closure. An unmeasured criterion is not
-        # a passing one, and 348 runs exist to measure — the data is there, the record is not.
-        last_verified_at: "2026-09-11"
+        last_verified_at: "2026-09-13T19:50:32Z"
       - id: "S08-G10"
         description: "A new engineer can build, test and ship a change in under a week."
         state: OPEN

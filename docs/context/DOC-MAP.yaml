@@ -19,7 +19,7 @@ schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
 document_count: 562
-total_bytes: 15594729
+total_bytes: 15594708
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -3645,7 +3645,7 @@ documents:
     persona: null
     title: "Assumption Register"
     answers: "Beliefs the plan rests on that have not been verified. Every assumption has an expiry, a"
-    bytes: 7614
+    bytes: 7593
   - path: docs/governance/registers/DECISION-REGISTER.md
     bucket: governance
     authority: binding-process

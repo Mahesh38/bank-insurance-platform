@@ -1,0 +1,15 @@
+S08-G10 day-1 dry-run — 2026-09-13T20:54Z — tip 47d2be2
+NOT a MET / NOT a human attestation
+
+== bank-persistence-service :8081 (profile=local) ==
+RAW_PAYLOAD_ENCRYPTION_KEY set from application-local.yml.example (local-only key)
+GET /actuator/health → {"status":"UP","groups":["liveness","readiness"]}
+
+== 1sb-integration-service :8080 (profile=local) ==
+onesb.api-key/api-secret/distributor-id = local-dry-run placeholders (not live sandbox)
+bank.persistence.base-url=http://127.0.0.1:8081
+GET /actuator/health → {"status":"UP","groups":["liveness","readiness"]}
+
+== Outcome ==
+Phase-1 pair local boot + actuator health both UP. Documents Day-1 of onboarding pack.
+Remaining G10 gap: named human attestation after shipping a real change.

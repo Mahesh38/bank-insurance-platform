@@ -19,6 +19,7 @@
 2026-09-13 on tip `2da9ce3`:
 
 - Day-0.5 dry-run log: `scripts/governance/evidence/S08-G10-day0.5-dry-run.log`
+- Day-1 local boot dry-run: `scripts/governance/evidence/S08-G10-day1-local-boot-dry-run.log` — `bank-persistence-service` :8081 and `1sb-integration-service` :8080 both `/actuator/health` **UP** (local profile + documented local-only secrets)
 - Reading list paths all present (`BOOT.md`, standards, PR checklist, `AGENTS.md`)
 - `./gradlew :libs:bank-common-error:test :services:bank-persistence-service:test :services:1sb-integration-service:test` → **BUILD SUCCESSFUL in 18s** wall-clock (warm deps)
 - Full estate CI under S08-G9 (p95 ≈ 2.8 min); tip Application CI `34780660671` + Security Scanning `34780660696` both **success**

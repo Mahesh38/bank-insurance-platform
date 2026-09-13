@@ -466,9 +466,10 @@ workstreams:
           - "Human pack assembled 2026-09-13: scripts/governance/evidence/S08-G10-onboarding-human-pack.md (5-day path, reading list, attestation template). Still OPEN until a named engineer completes the attestation and Amit confirms on human-review."
           - "2026-09-13T20:21Z pack refreshed — tip cd5ba9c Application CI + Security Scanning success cited as green reference pipeline for onboarding timing. Still OPEN; not a MET declaration."
           - "2026-09-13T20:33Z day-0.5 dry-run logged at scripts/governance/evidence/S08-G10-day0.5-dry-run.log — reading list present; Phase-1 pair unit tests BUILD SUCCESSFUL in 18s on tip 2da9ce3; tip CI all success. Still OPEN; not a MET declaration (needs named human attestation)."
+          - "2026-09-13T20:52Z day-1 local boot dry-run logged at scripts/governance/evidence/S08-G10-day1-local-boot-dry-run.log — persistence :8081 and 1sb-integration :8080 actuator health UP on tip 47d2be2. Still OPEN; not a MET declaration (needs named human attestation)."
         blockers: []
         # Stays OPEN: E3 needs an onboarding record and no one has been onboarded against this
         # build. S08-VT-10 cannot be run retrospectively, so this criterion has a lead time the
         # others do not — it is worth starting before the rest of the gate is ready, not after.
-        last_verified_at: "2026-09-13T20:33:00Z"
+        last_verified_at: "2026-09-13T20:52:00Z"
     approvals: []

@@ -13,6 +13,12 @@ becomes a rewrite instead of an adapter swap.
 The canonical model is the answer: **a bank-owned, LOB-agnostic vocabulary**, split into
 small bounded contexts. 1SB field names appear **only inside adapters**.
 
+**Masters:** quote-category 1SB lookup is documented as gateway-common; proposal-category
+lookup is documented as insurer-specific (`manufacturerId`). The Integration Hub may
+ingest those feeds into **Hub masters** (common vs insurer-keyed). BFF/UI receive Hub
+codes and labels, never 1SB wire values. See [building-blocks.md](../field-guides/building-blocks.md)
+and [replaceable-middleware.md](../architecture/replaceable-middleware.md).
+
 | Document | What it covers |
 |----------|---------------|
 | [contexts.md](./contexts.md) | The bounded contexts and the language each one owns |

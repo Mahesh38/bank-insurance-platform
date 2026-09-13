@@ -57,7 +57,8 @@ Split the problem into **bounded contexts** so request/response models stay smal
 | `ChannelType` | `channelType` = B2B \| B2C | RM-assisted → **B2B** |
 | `SalesChannel` | `salesChannel` = Online \| Others | |
 
-Use Master Lookup (`CHANNEL`, etc.) rather than hardcoding enums.
+Hub `MasterDataPort` supplies **bank-owned** dropdowns. The 1SB adapter maps those to
+provider `entityIds` (`CHANNEL`, `GENDER`, …). Do not expose 1SB master keys on the BFF.
 
 ---
 

@@ -18,7 +18,12 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * Bank-facing master / enum lookup API.
+ * Hub-internal master / enum lookup API.
+ *
+ * <p>Response is still provider-shaped ({@code entityIds} → {@code {code,label}}, often the
+ * 1SB string). This is <strong>not</strong> the BFF/RM contract. UI and BFF speak bank/Hub
+ * language only ({@code SUG-20260913-acl}); a bank-language Hub catalog is parked
+ * ({@code SUG-20260913-hms}).
  */
 @RestController
 @RequestMapping("/v1/master-data")

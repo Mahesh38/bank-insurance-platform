@@ -106,6 +106,7 @@ This is the canonical list. Any deviation requires Architect sign-off and an upd
 | Raw payload retention period | `application.yaml` (`compliance.retention.days`) | Policy change without code |
 | Master data cache TTL | `application.yaml` (`insurance.masters.cache-ttl`) | Tunable |
 | 1SB field names | `adapter.onesb.*` mappers only | Replaceability / no leakage |
+| 1SB master `entityIds` / enum strings (`GENDER`, `TOBACCO`, …) | Hub adapter + Hub-internal cache only. BFF/UI receive bank-language Hub masters (`SUG-20260913-acl`). Today's `POST /v1/master-data/lookup` is still provider-shaped — not the BFF contract (`SUG-20260913-hms` parked) | Anti-corruption; 1SB is a replaceable feed |
 
 ---
 
@@ -115,6 +116,7 @@ Run this checklist at every PR review and sprint retrospective:
 
 - [ ] **No new string constant** containing a provider ID, URL, or credential was added to `application.*` or `lob.*` packages.
 - [ ] **No new DTO field** named `distributorId`, `manufacturerId`, or any 1SB-specific field was added outside `adapter.onesb.*`.
+- [ ] **No BFF or frontend contract** exposes 1SB master `entityIds` or 1SB enum strings. Hop is UI → BFF → Integration Hub (`SUG-20260913-acl`). Reject the suggestion; do not “just pass through” Get Master Details.
 - [ ] **No new LOB** was added without a corresponding `LOB_<NAME>_ENABLED` flag.
 - [ ] **No new product code** was added in Java source; catalog YAML was updated instead.
 - [ ] **ArchUnit** tests still pass (no `adapter.onesb` types leaked outside adapter package).

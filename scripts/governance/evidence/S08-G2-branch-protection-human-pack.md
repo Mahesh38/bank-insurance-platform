@@ -32,20 +32,20 @@ There is **no** active ruleset requiring status checks on `main`. Enabling requi
 
 ## Prerequisite now satisfied (green tip pipeline)
 
-Branch `cursor/close-s08-g3-eb1b` tip `cd5ba9c` (2026-09-13) — all required-named checks **success**:
+Branch `cursor/close-s08-g3-eb1b` tip `2da9ce3` (2026-09-13) — all required-named checks **success**:
 
 | Workflow run | Conclusion | URL |
 |---|---|---|
-| Application CI `34780098265` | success | https://github.com/Mahesh38/bank-insurance-platform/actions/runs/34780098265 |
-| Security Scanning `34780098279` | success | https://github.com/Mahesh38/bank-insurance-platform/actions/runs/34780098279 |
-| Governance (AIGEM) `34780098270` | success | https://github.com/Mahesh38/bank-insurance-platform/actions/runs/34780098270 |
-| Knowledge Hub `34780098271` | success | https://github.com/Mahesh38/bank-insurance-platform/actions/runs/34780098271 |
+| Application CI `34780660671` | success | https://github.com/Mahesh38/bank-insurance-platform/actions/runs/34780660671 |
+| Security Scanning `34780660696` | success | https://github.com/Mahesh38/bank-insurance-platform/actions/runs/34780660696 |
+| Governance (AIGEM) `34780660661` | success | https://github.com/Mahesh38/bank-insurance-platform/actions/runs/34780660661 |
+| Knowledge Hub `34780660629` | success | https://github.com/Mahesh38/bank-insurance-platform/actions/runs/34780660629 |
 
 A green pipeline is necessary but **not sufficient** for S08-G2 — admin must still require the four checks below on `main`.
 
 ## Required status checks (exact job names — require these strings)
 
-Captured 2026-09-13 from tip `cd5ba9c` and `main` tip `8369a9a` check-runs:
+Captured 2026-09-13 from tip `2da9ce3` and `main` tip `8369a9a` check-runs:
 
 | Check name (require exactly) | Observed |
 |---|---|

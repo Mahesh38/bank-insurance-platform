@@ -16,7 +16,14 @@
 
 ### Agent timing sample (not a MET)
 
-2026-09-13 on this branch: `./gradlew :libs:bank-common-error:test :services:1sb-integration-service:test` completed in **~26s** wall-clock after deps warm. Full estate CI is separately measured under S08-G9 (p95 ≈ 2.8 min). Tip `cd5ba9c` Application CI + Security Scanning both **success** (runs `34780098265` / `34780098279`) — a new engineer following this pack will see a green reference pipeline. Remaining G10 gap is a **named human** completing the attestation, not build time.
+2026-09-13 on tip `2da9ce3`:
+
+- Day-0.5 dry-run log: `scripts/governance/evidence/S08-G10-day0.5-dry-run.log`
+- Reading list paths all present (`BOOT.md`, standards, PR checklist, `AGENTS.md`)
+- `./gradlew :libs:bank-common-error:test :services:bank-persistence-service:test :services:1sb-integration-service:test` → **BUILD SUCCESSFUL in 18s** wall-clock (warm deps)
+- Full estate CI under S08-G9 (p95 ≈ 2.8 min); tip Application CI `34780660671` + Security Scanning `34780660696` both **success**
+
+Remaining G10 gap is a **named human** completing the attestation below — not missing docs or build time.
 
 ## Required reading (ordered)
 

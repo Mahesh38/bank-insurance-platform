@@ -323,10 +323,11 @@ workstreams:
           - "Human action pack assembled/refreshed 2026-09-13: scripts/governance/evidence/S08-G2-branch-protection-human-pack.md. Live check-run names captured from main tip; ruleset 20028494 ('No force push allowed') exists but is disabled; no required-status ruleset active. Classic protection GET returns HTTP 403. Still OPEN; not a MET declaration."
           - "CI mechanism hardened 2026-09-13: application-ci.yml fetch-depth 0 + origin/main fetch so Spotless ratchetFrom(origin/main) works on runners (fixes No such reference 'origin/main' on run 34779413538). Green pipeline still does not close G2 without admin required checks."
           - "2026-09-13T20:21Z tip cd5ba9c — Application CI 34780098265 + Security Scanning 34780098279 + Governance + Knowledge Hub all success; four required-named checks green. POST/PUT rulesets still HTTP 403 for the agent token. Pack refreshed with copy-paste ruleset JSON. Still OPEN; not a MET declaration."
+          - "2026-09-13T20:33Z tip 2da9ce3 — Application CI 34780660671 + Security Scanning 34780660696 + Governance 34780660661 + Knowledge Hub 34780660629 all success. Ruleset 20028494 still disabled; PUT ruleset still HTTP 403. Pack tip references refreshed. Still OPEN; not a MET declaration."
         blockers: []
         # Stays OPEN until a human admin enables required checks on main and demonstrates a
         # blocked merge. Branch protection is not a file in this repository.
-        last_verified_at: "2026-09-13T20:21:00Z"
+        last_verified_at: "2026-09-13T20:33:00Z"
       - id: "S08-G3"
         description: "Coverage thresholds enforced in CI; QA-001 closed."
         state: MET
@@ -463,9 +464,10 @@ workstreams:
         evidence:
           - "Human pack assembled 2026-09-13: scripts/governance/evidence/S08-G10-onboarding-human-pack.md (5-day path, reading list, attestation template). Still OPEN until a named engineer completes the attestation and Amit confirms on human-review."
           - "2026-09-13T20:21Z pack refreshed — tip cd5ba9c Application CI + Security Scanning success cited as green reference pipeline for onboarding timing. Still OPEN; not a MET declaration."
+          - "2026-09-13T20:33Z day-0.5 dry-run logged at scripts/governance/evidence/S08-G10-day0.5-dry-run.log — reading list present; Phase-1 pair unit tests BUILD SUCCESSFUL in 18s on tip 2da9ce3; tip CI all success. Still OPEN; not a MET declaration (needs named human attestation)."
         blockers: []
         # Stays OPEN: E3 needs an onboarding record and no one has been onboarded against this
         # build. S08-VT-10 cannot be run retrospectively, so this criterion has a lead time the
         # others do not — it is worth starting before the rest of the gate is ready, not after.
-        last_verified_at: "2026-09-13T20:21:00Z"
+        last_verified_at: "2026-09-13T20:33:00Z"
     approvals: []

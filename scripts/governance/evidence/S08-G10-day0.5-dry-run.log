@@ -1,0 +1,23 @@
+S08-G10 day-0.5 dry-run — 2026-09-13T20:33Z — tip 2da9ce3
+NOT a MET / NOT a human attestation
+
+== Reading list presence ==
+OK  docs/context/BOOT.md (275 lines)
+OK  docs/governance/ENGINEERING-AND-SECURE-CODING-STANDARDS.md (59 lines)
+OK  docs/governance/PR-REVIEW-CHECKLIST.md (34 lines)
+OK  AGENTS.md (175 lines)
+
+== Timed Phase-1 pair unit tests ==
+./gradlew :libs:bank-common-error:test :services:bank-persistence-service:test :services:1sb-integration-service:test
+wall_seconds=18
+> Task :services:bank-persistence-service:test
+> Task :services:bank-persistence-service:jacocoTestReport
+
+BUILD SUCCESSFUL in 18s
+30 actionable tasks: 3 executed, 27 up-to-date
+
+== Tip CI reference (2da9ce3 pack-refresh) ==
+Application CI run 34780660671 — success
+Security Scanning run 34780660696 — success
+Governance (AIGEM) run 34780660661 — success
+Knowledge Hub run 34780660629 — success

@@ -64,6 +64,10 @@ the agent believed at decision time — a decision that was correct against a st
 >
 > **2026-09-13 — S08-G1 closed.** Engineering (Amit seat) declared `S08-G1` `MET` on the `ci`
 > verifier after re-verifying application CI. `GATE-S08` remains `OPEN`. No stage advanced.
+>
+> **2026-09-13 — S08-G6 closed.** QA (Swapnali seat) declared `S08-G6` `MET` after Engineering
+> cleared `TD-014` with `libs/bank-common-test` (Testcontainers + WireMock harness) and proving
+> ITs. `GATE-S08` remains `OPEN`. No stage advanced.
 
 ---
 
@@ -104,8 +108,8 @@ criterion rather than new scope:
    root `Dockerfile` ships an image that nothing scans.
 3. **No log-scan PII test** (S08-G7). Redaction is unit-tested; S08-VT-06 asks for a test that
    scans all emitted logs, which would prove no path bypasses the masker.
-4. **No shared integration harness** (S08-G6). WireMock exists in one module, Testcontainers in
-   none, so the middle of the test pyramid has nothing to stand on. TD-014 is the ledger entry.
+4. ~~**No shared integration harness** (S08-G6)~~ — **closed 2026-09-13** (`bank-common-test` +
+   Testcontainers/WireMock proving ITs; TD-014 Closed; S08-G6 MET).
 
 ### WS-3 · AU Bank Insurance Distribution Platform — **primary**
 
@@ -118,7 +122,7 @@ criterion rather than new scope:
 | **Deliverable** | Application CI with enforced quality, security and architecture gates (S08); IaC, environments, secrets, observability and 7-year write-once retention in ap-south-1 (S09); consent and suitability rule packs, R0 acceptance criteria, product matrix and service blueprint in parallel |
 | **Delivered so far** | Application CI and security scanning pipelines; 21 services and 6 libraries scaffolded with ArchUnit boundary tests; EPIC-001 error contract; EPIC-003 lead API contract |
 | **Not yet started** | All of S09 — IaC, environments, secrets management, the ap-south-1 retention path |
-| **Gate** | `GATE-S08` · `OPEN` · 1 of 10 criteria MET (G1), 4 PARTIAL, 5 OPEN |
+| **Gate** | `GATE-S08` · `OPEN` · 2 of 10 criteria MET (G1, G6), 4 PARTIAL, 4 OPEN |
 | **Next stage** | S09 — Platform & Environment Foundation |
 | **Authority** | [WS-3 charter](./workstreams/WS-3-PLATFORM-CHARTER.md) · [architecture registration](../platform/ws3-platform/00-WS3-ARCHITECTURE-REGISTRATION.md) |
 | **Entry condition on S11** | Non-waivable (Rajal condition C5): no WS-3 stage enters S11 while GAP-006 (consent) or GAP-007 (suitability) is open |
@@ -133,7 +137,7 @@ criterion rather than new scope:
 | S08-G3 | Coverage thresholds enforced; QA-001 closed | 🟡 Partial — enforcement runs; QA-001 open on the interim service floor | Swapnali |
 | S08-G4 | ArchUnit and static analysis enforced | 🟡 Partial — ArchUnit in 18 modules; no static analysis at all | Amit |
 | S08-G5 | Secret, SAST, SCA and image scanning in the pipeline | 🟡 Partial — three of four; no image scanning | Deepali |
-| S08-G6 | Test infrastructure at every pyramid level | ❌ Open — blocked by TD-014; no shared integration harness | Swapnali |
+| S08-G6 | Test infrastructure at every pyramid level | ✅ MET — `bank-common-test` harness + Postgres/WireMock proving ITs; TD-014 Closed (2026-09-13) | Swapnali |
 | S08-G7 | No PII in logs, proven by automated test | 🟡 Partial — redaction unit-tested; no log-scan test (S08-VT-06) | Deepali |
 | S08-G8 | Engineering and secure coding standards published | ❌ Open — no mechanism started; blocks nothing, which is why it keeps slipping | Amit |
 | S08-G9 | Pipeline feedback < 10 min p95; flake < 1% | ❌ Open — unmeasured; observed sample is inside both thresholds | Shivanshi |
@@ -224,7 +228,7 @@ Agents should recognise these so they do not re-report them as new findings. Ful
 | TD-007 | P3 | ArchUnit `allowEmptyShould(true)` | Known. |
 | TD-009 | P2 | Missing domain ports vs architecture | Known. |
 | TD-010 | P2 | No Redis idempotency/cache adapter | Known; in-memory accepted until Phase 5.4. |
-| TD-014 | P2 | No WireMock/E2E for integration ↔ persistence | Overlaps Phase 4 gate item 4.1. |
+| TD-014 | P2 | ~~No WireMock/E2E for integration ↔ persistence~~ | **Closed 2026-09-13** — `bank-common-test` + SharedHarnessProposalSmokeIT |
 | TD-022 | P1 | FUNC-008 payment intimation not implemented | Scheduled Phase 5.3. |
 | TD-023 | P2 | Raw payload capture not wired for status/master-data | Known. |
 | QA-001 | P0 | JaCoCo gates — **partial** | Libs done; service floor interim. |

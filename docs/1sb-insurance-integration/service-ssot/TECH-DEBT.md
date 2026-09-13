@@ -27,7 +27,7 @@ Severity: **P0** = blocks Phase 2 / multi-service reuse · **P1** = fix this spr
 | TD-011 | P1 | Integration service must not own Flyway or JPA after split | Senior #3–4 | **Closed** | Agent 3 |
 | TD-012 | P2 | Convention for future JPA entities / API DTOs (Lombok vs records) | Senior #1 + TL | **Closed** | Agent 2 |
 | TD-013 | P3 | Stale integration README / STATUS after persistence split | Confirmation | **Closed** | Agent 2 |
-| TD-014 | P2 | WireMock / full E2E for integration ↔ persistence HTTP | Confirmation | Deferred Phase 2 | Backlog |
+| TD-014 | P2 | WireMock / full E2E for integration ↔ persistence HTTP | Confirmation | **Closed** — shared `bank-common-test` WireMockHarness + SharedHarnessProposalSmokeIT (2026-09-13) | S08-G6 |
 | TD-015 | P2 | Poll-attempt / raw-payload HTTP ports on persistence | Confirmation | Partial — poll-attempt done P2-B2 | Backlog |
 | TD-016 | P0 | Rename `1sb-persistence-service` → `bank-persistence-service` | Senior (common persistence) | **Closed** | Agent 3 |
 | TD-017 | P0 | Docs/ownership: persistence is platform-common, not 1SB-owned | Senior (common persistence) | **Closed** | Agent 2 |
@@ -274,11 +274,13 @@ Track only; do not block this refactor PR. TD-006 remains Phase 2 (real AWS SM).
 
 ---
 
-## TD-014 — WireMock / full E2E (Deferred Phase 2)
+## TD-014 — WireMock / full E2E (**Closed** 2026-09-13)
 
-**Problem:** End-to-end contract test with WireMock (or Testcontainers dual-service) for integration → persistence HTTP is not yet in CI.
+**Problem:** End-to-end contract test with WireMock (or Testcontainers dual-service) for integration → persistence HTTP was not yet in CI as a shared harness.
 
-**Mitigation (Phase 1):** `HttpJobStoreAdapterTest` uses `MockRestServiceServer` for createJob + findQuoteJob. Full WireMock E2E deferred to Phase 2.
+**Resolution:** Introduced `libs/bank-common-test` (`WireMockHarness`, `PostgresTestSupport`, pyramid/contract/e2e tags, `DomainFixtures`). Proving ITs: `SharedHarnessProposalSmokeIT` (1sb-integration-service) and `JobApiPostgresIT` (bank-persistence-service). Closes the S08-G6 HARD blocker.
+
+**Prior mitigation (Phase 1):** `HttpJobStoreAdapterTest` used `MockRestServiceServer` for createJob + findQuoteJob.
 
 ---
 
@@ -332,4 +334,4 @@ Track only; do not block this refactor PR. TD-006 remains Phase 2 (real AWS SM).
 | 2026-07-30 | QA-001 Partial: JaCoCo reports + libs 80%/70% gates; services interim 35% line (see COVERAGE.md) |
 | 2026-07-30 | QA-002 Done: persistence API tests (jobs/offers/payments/audit); services interim 35%→50% line |
 | 2026-08-04 | Phase 4: FUNC-007 (payment) + FUNC-009 (status) implemented; TD-022 opened (FUNC-008 intimation deferred P1) |
-| 2026-08-04 | COMP-003 (raw payload encryption at rest) implemented: `RawPayloadEncryptionService` (AES-256-GCM) + `/internal/v1/raw-payloads` on `bank-persistence-service`; `RawPayloadStorePort` + `HttpRawPayloadStoreAdapter` wired into quote/proposal/payment submit+response capture on `1sb-integration-service` (best-effort, never fails the caller). Status/master-data capture not wired (no `jobId` in those port signatures) — tracked as **TD-023**. `1sb-integration-service` JaCoCo floor raised **50% → 90% line / 70% branch** (measured ~90.7%/~71.4%) — see COVERAGE.md. Dockerfiles added for both services + root `docker-compose.yml`; springdoc-openapi (`/swagger-ui.html`, `/v3/api-docs`) added to both — both services already run on embedded Tomcat independently (`spring-boot-starter-web`, no exclusions), no change needed there. |
+| 2026-09-13 | S08-G6 / TD-014: `libs/bank-common-test` shared Testcontainers+WireMock harness; JobApiPostgresIT + SharedHarnessProposalSmokeIT; TD-014 Closed; S08-G6 MET |

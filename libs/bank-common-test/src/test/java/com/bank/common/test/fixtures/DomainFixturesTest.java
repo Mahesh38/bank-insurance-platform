@@ -16,4 +16,11 @@ class DomainFixturesTest {
     assertThat(DomainFixtures.actorId()).startsWith("actor-");
     assertThat(DomainFixtures.jobId()).hasSize(36);
   }
+
+  @Test
+  void idempotencyKey_truncatesWhenPrefixPlusUuidExceeds64() {
+    String longPrefix = "p".repeat(64);
+    String key = DomainFixtures.idempotencyKey(longPrefix);
+    assertThat(key).hasSize(36).doesNotStartWith(longPrefix);
+  }
 }

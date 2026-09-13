@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 562
-total_bytes: 15621113
+document_count: 564
+total_bytes: 15627940
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -1933,7 +1933,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 198159
+    bytes: 198803
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -3294,6 +3294,14 @@ documents:
     title: "Delivery Control System (DCS)"
     answers: "Operator: Kalpana — Principal Insurance Platform Delivery Head / Delivery Lead — AIGEM R12"
     bytes: 15778
+  - path: docs/governance/ENGINEERING-AND-SECURE-CODING-STANDARDS.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "Engineering and Secure Coding Standards"
+    answers: "Adoption mechanism: PR-REVIEW-CHECKLIST.md and .github/pullrequesttemplate.md"
+    bytes: 3927
   - path: docs/governance/ORG-STANDARDS.md
     bucket: governance
     authority: binding-process
@@ -3310,6 +3318,14 @@ documents:
     title: "Persona Authority, Accountability & Decision Rights Matrix"
     answers: "This is the canonical segregation-of-duties reference for platform personas. It defines who owns a domain, who is accountable, who implements, who…"
     bytes: 40530
+  - path: docs/governance/PR-REVIEW-CHECKLIST.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "Pull request review checklist"
+    answers: "Cites: ENGINEERING-AND-SECURE-CODING-STANDARDS.md"
+    bytes: 1595
   - path: docs/governance/README.md
     bucket: governance
     authority: binding-process
@@ -3765,7 +3781,7 @@ documents:
     persona: null
     title: "GATE EVIDENCE"
     answers: "YAML record; first key `schema_version`"
-    bytes: 25062
+    bytes: 25356
   - path: docs/governance/state/REVIEW-LOG.md
     bucket: governance
     authority: binding-process
@@ -3773,7 +3789,7 @@ documents:
     persona: null
     title: "Governance Artefact Review Log"
     answers: "Read by: scripts/governance/FreshnessCheck.java"
-    bytes: 8841
+    bytes: 9209
   - path: docs/governance/templates/ADR.md
     bucket: governance
     authority: binding-process
@@ -3997,7 +4013,7 @@ documents:
     persona: null
     title: "Current State Dashboard"
     answers: "Generated, committed view. CI regenerates this file from governance/state/CURRENT-STATE.yaml and fails if it drifts. The YAML remains authoritative."
-    bytes: 5175
+    bytes: 5174
   - path: docs/knowledge-base/generated/decision-index.md
     bucket: root
     authority: navigation

@@ -11,8 +11,12 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.function.Supplier;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.context.DynamicPropertyRegistry;
 
 @Tag(PyramidTags.UNIT)
 class WireMockHarnessTest {
@@ -54,6 +58,20 @@ class WireMockHarnessTest {
       harness.reset();
       assertThat(harness.onesb().findAll(WireMock.getRequestedFor(urlEqualTo("/onesb/ping"))))
           .isEmpty();
+    }
+  }
+
+  @Test
+  void register_bindsOnesbAndPersistenceBaseUrls() {
+    try (WireMockHarness harness = WireMockHarness.start()) {
+      Map<String, Supplier<Object>> bound = new LinkedHashMap<>();
+      DynamicPropertyRegistry registry = (name, valueSupplier) -> bound.put(name, valueSupplier);
+
+      harness.register(registry);
+
+      assertThat(bound.get("onesb.client.base-url").get()).isEqualTo(harness.onesb().baseUrl());
+      assertThat(bound.get("bank.persistence.base-url").get())
+          .isEqualTo(harness.persistence().baseUrl());
     }
   }
 }

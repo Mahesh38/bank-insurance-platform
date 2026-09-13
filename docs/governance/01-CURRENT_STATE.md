@@ -59,8 +59,11 @@ the agent believed at decision time — a decision that was correct against a st
 > 2026-09-09, which halted new-work admission for every agent under Rule CS-1. The refresh is a
 > review sweep, not a date bump: the delta is in §4.1 and the per-criterion evidence is in
 > [`state/GATE-EVIDENCE.yaml`](./state/GATE-EVIDENCE.yaml). **No stage advanced, no gate was
-> marked `CANDIDATE` or `PASSED`, and no criterion was marked `MET`.** Three workstreams sit in
-> the same phase they did on 2026-08-10.
+> marked `CANDIDATE` or `PASSED`, and no criterion was marked `MET` at that refresh.** Three
+> workstreams sit in the same phase they did on 2026-08-10.
+>
+> **2026-09-13 — S08-G1 closed.** Engineering (Amit seat) declared `S08-G1` `MET` on the `ci`
+> verifier after re-verifying application CI. `GATE-S08` remains `OPEN`. No stage advanced.
 
 ---
 
@@ -115,7 +118,7 @@ criterion rather than new scope:
 | **Deliverable** | Application CI with enforced quality, security and architecture gates (S08); IaC, environments, secrets, observability and 7-year write-once retention in ap-south-1 (S09); consent and suitability rule packs, R0 acceptance criteria, product matrix and service blueprint in parallel |
 | **Delivered so far** | Application CI and security scanning pipelines; 21 services and 6 libraries scaffolded with ArchUnit boundary tests; EPIC-001 error contract; EPIC-003 lead API contract |
 | **Not yet started** | All of S09 — IaC, environments, secrets management, the ap-south-1 retention path |
-| **Gate** | `GATE-S08` · `OPEN` · 5 of 10 criteria PARTIAL, 5 OPEN, none MET |
+| **Gate** | `GATE-S08` · `OPEN` · 1 of 10 criteria MET (G1), 4 PARTIAL, 5 OPEN |
 | **Next stage** | S09 — Platform & Environment Foundation |
 | **Authority** | [WS-3 charter](./workstreams/WS-3-PLATFORM-CHARTER.md) · [architecture registration](../platform/ws3-platform/00-WS3-ARCHITECTURE-REGISTRATION.md) |
 | **Entry condition on S11** | Non-waivable (Rajal condition C5): no WS-3 stage enters S11 while GAP-006 (consent) or GAP-007 (suitability) is open |
@@ -125,7 +128,7 @@ criterion rather than new scope:
 
 | # | Exit criterion | State | Owner |
 |---|----------------|-------|-------|
-| S08-G1 | CI builds and tests every module on every PR | 🟡 Partial — E4 evidence assembled, `MET` is Engineering's to declare | Amit |
+| S08-G1 | CI builds and tests every module on every PR | ✅ MET — Engineering declared 2026-09-13 on ci verifier (392 runs; tip 34768713603) | Amit |
 | S08-G2 | Merge to main impossible without a green pipeline | ❌ Open — branch protection is a repo-admin setting, not a file here | Amit |
 | S08-G3 | Coverage thresholds enforced; QA-001 closed | 🟡 Partial — enforcement runs; QA-001 open on the interim service floor | Swapnali |
 | S08-G4 | ArchUnit and static analysis enforced | 🟡 Partial — ArchUnit in 18 modules; no static analysis at all | Amit |

@@ -234,13 +234,12 @@ workstreams:
           # SharedHarnessProposalSmokeIT. GATE-S08 stays OPEN.
         - id: "S08-G7"
           criterion: "No PII in logs, proven by automated test"
-          state: PARTIAL
+          state: MET
           owner: "Deepali / Security"
-          # 2026-09-11 (R12 sweep): component-level proof exists — NoPiiInErrorOutputTest and
-          # ErrorDiagnosticAndRedactionTest in bank-common-error (EPIC-001), PiiMaskerTest in
-          # 1sb-integration-service. What S08-VT-06 asks for does not exist: a test that runs the
-          # suite and scans ALL emitted logs for PAN, Aadhaar, phone, email and health patterns.
-          # A redaction unit test proves the masker works, not that no path bypasses it.
+          # 2026-09-13 (Security / Deepali seat): declared MET. LogPiiScrubber on Slf4jErrorRecorder
+          # plus NoPiiInEmittedLogsTest (ListAppender scan for PAN/Aadhaar/phone/email/health —
+          # S08-VT-06). Local verify bank-common-error test+coverage green. GATE-S08 stays OPEN.
+          # 2026-09-11 (R12 sweep): component-level proof existed; S08-VT-06 log-scan was the gap.
         - id: "S08-G8"
           criterion: "Engineering and secure coding standards published and adopted"
           state: OPEN

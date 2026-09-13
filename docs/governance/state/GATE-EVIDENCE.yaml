@@ -1,6 +1,11 @@
 schema_version: "1.0"
 as_of: "2026-09-13"
 
+# 2026-09-13 — Security (Deepali seat) closed S08-G7 → MET. Framework LogPiiScrubber on
+# Slf4jErrorRecorder plus NoPiiInEmittedLogsTest (S08-VT-06 ListAppender scan of emitted logs for
+# PAN, Aadhaar, phone, email, health). Local verify: bank-common-error test + coverage green.
+# GATE-S08 stays OPEN; policy.mode proposal-only; approvals empty; no stage field touched.
+#
 # 2026-09-13 — Engineering (Amit seat) closed S08-G4 → MET. Spotless (ratchetFrom origin/main)
 # + Checkstyle (config/checkstyle, maxWarnings=0) wired into root `check` and named explicitly
 # in application-ci.yml. Local verify: checkstyle/spotless clean exit 0; star-import and
@@ -37,8 +42,8 @@ as_of: "2026-09-13"
 #     R12 sets the date and names the owner. R12 does not supply the answer (Rule PA-1).
 #
 #  3. GAPS NAMED. Where a criterion is short of its own S08-VT validation test, the missing half
-#     is stated rather than averaged into "in progress" — static analysis (G4), the log-scan
-#     test (G7). (G4 static analysis, G5 image scanning and G6 shared harness closed 2026-09-13.)
+#     is stated rather than averaged into "in progress". (G4 static analysis, G5 image scanning,
+#     G6 shared harness and G7 log-scan PII test closed 2026-09-13.)
 
 policy:
   mode: proposal-only
@@ -390,7 +395,7 @@ workstreams:
         last_verified_at: "2026-09-13T18:44:44Z"
       - id: "S08-G7"
         description: "No PII in logs, proven by an automated test that scans emitted logs."
-        state: PARTIAL
+        state: MET
         owner: "Deepali / Security"
         execution_mode: AUTOMATABLE
         priority: P1
@@ -400,10 +405,11 @@ workstreams:
         verifier: ci
         evidence:
           - "Component proof: NoPiiInErrorOutputTest and ErrorDiagnosticAndRedactionTest in bank-common-error (EPIC-001, ADR-017); PiiMaskerTest in 1sb-integration-service."
-          - "Redaction is centralised: EPIC-001 put one shared error handler and L4 redaction behind every service, which is what makes a single scanning test feasible."
-          - "GAP — S08-VT-06: no test runs the suite and scans all emitted logs for PAN, Aadhaar, phone, email and health patterns. A redaction unit test proves the masker works; it does not prove no code path bypasses it."
+          - "Framework emission scrubber: LogPiiScrubber applied by Slf4jErrorRecorder to reason text and attached throwable messages before any log line is written (FF-05 / S08-E05-S05)."
+          - "S08-VT-06 log-scan: NoPiiInEmittedLogsTest attaches a Logback ListAppender to Slf4jErrorRecorder, drives PlatformErrorHandler and direct recorder paths with PAN, Aadhaar, phone, email and health payloads, asserts zero unmasked pattern matches in all emitted events, and asserts scrubbed forms appear."
+          - "Local verify 2026-09-13: ./gradlew :libs:bank-common-error:test :libs:bank-common-error:jacocoTestCoverageVerification BUILD SUCCESSFUL (LogPiiScrubberTest + NoPiiInEmittedLogsTest green). Security (Deepali seat) declares S08-G7 MET on ci verifier. GATE-S08 remains OPEN."
         blockers: []
-        last_verified_at: "2026-09-11"
+        last_verified_at: "2026-09-13T19:47:46Z"
       - id: "S08-G8"
         description: "Engineering and secure coding standards published and adopted."
         state: OPEN

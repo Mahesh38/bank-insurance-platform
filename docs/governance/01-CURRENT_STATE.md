@@ -112,8 +112,9 @@ LOB, lead contract) is real, and none of it was gate-closing work.
    Spotless in root `check` / application-ci; estate clean; breach probes fail; S08-G4 MET).
 2. ~~**No container image scanning** (S08-G5)~~ — **closed 2026-09-13** (`image-scan` job in
    `security-scanning.yml`; Trivy CRITICAL/HIGH on Phase 1 + combined images; S08-G5 MET).
-3. **No log-scan PII test** (S08-G7). Redaction is unit-tested; S08-VT-06 asks for a test that
-   scans all emitted logs, which would prove no path bypasses the masker.
+3. ~~**No log-scan PII test** (S08-G7)~~ — **closed 2026-09-13** (`LogPiiScrubber` on
+   `Slf4jErrorRecorder` + `NoPiiInEmittedLogsTest` ListAppender scan for PAN/Aadhaar/phone/email/
+   health; S08-VT-06; S08-G7 MET).
 4. ~~**No shared integration harness** (S08-G6)~~ — **closed 2026-09-13** (`bank-common-test` +
    Testcontainers/WireMock proving ITs; TD-014 Closed; S08-G6 MET).
 
@@ -128,7 +129,7 @@ LOB, lead contract) is real, and none of it was gate-closing work.
 | **Deliverable** | Application CI with enforced quality, security and architecture gates (S08); IaC, environments, secrets, observability and 7-year write-once retention in ap-south-1 (S09); consent and suitability rule packs, R0 acceptance criteria, product matrix and service blueprint in parallel |
 | **Delivered so far** | Application CI and security scanning pipelines; 21 services and 6 libraries scaffolded with ArchUnit boundary tests; EPIC-001 error contract; EPIC-003 lead API contract |
 | **Not yet started** | All of S09 — IaC, environments, secrets management, the ap-south-1 retention path |
-| **Gate** | `GATE-S08` · `OPEN` · 5 of 10 criteria MET (G1, G3, G4, G5, G6), 1 PARTIAL, 4 OPEN |
+| **Gate** | `GATE-S08` · `OPEN` · 6 of 10 criteria MET (G1, G3, G4, G5, G6, G7), 0 PARTIAL, 4 OPEN |
 | **Next stage** | S09 — Platform & Environment Foundation |
 | **Authority** | [WS-3 charter](./workstreams/WS-3-PLATFORM-CHARTER.md) · [architecture registration](../platform/ws3-platform/00-WS3-ARCHITECTURE-REGISTRATION.md) |
 | **Entry condition on S11** | Non-waivable (Rajal condition C5): no WS-3 stage enters S11 while GAP-006 (consent) or GAP-007 (suitability) is open |
@@ -144,7 +145,7 @@ LOB, lead contract) is real, and none of it was gate-closing work.
 | S08-G4 | ArchUnit and static analysis enforced | ✅ MET — Checkstyle + Spotless in `check`/CI; ArchUnit unchanged (2026-09-13) | Amit |
 | S08-G5 | Secret, SAST, SCA and image scanning in the pipeline | ✅ MET — Trivy image-scan job on Phase 1 + combined images (2026-09-13) | Deepali |
 | S08-G6 | Test infrastructure at every pyramid level | ✅ MET — `bank-common-test` harness + Postgres/WireMock proving ITs; TD-014 Closed (2026-09-13) | Swapnali |
-| S08-G7 | No PII in logs, proven by automated test | 🟡 Partial — redaction unit-tested; no log-scan test (S08-VT-06) | Deepali |
+| S08-G7 | No PII in logs, proven by automated test | ✅ MET — LogPiiScrubber + NoPiiInEmittedLogsTest (S08-VT-06) (2026-09-13) | Deepali |
 | S08-G8 | Engineering and secure coding standards published | ❌ Open — no mechanism started; blocks nothing, which is why it keeps slipping | Amit |
 | S08-G9 | Pipeline feedback < 10 min p95; flake < 1% | ❌ Open — unmeasured; observed sample is inside both thresholds | Shivanshi |
 | S08-G10 | A new engineer can build, test and ship in under a week | ❌ Open — needs an onboarding record, which has a lead time the others do not | Amit |

@@ -200,6 +200,10 @@ These are stable facts an agent must not re-derive or re-litigate:
 7. **No PII in logs.** Masking is a compliance gate, not a preference.
 8. **Coverage gates:** libs line ≥ 80% / branch ≥ 70%; services on the interim floor
    ([COVERAGE.md](../1sb-insurance-integration/service-ssot/COVERAGE.md)).
+9. **UI and BFF never receive 1SB or insurer wire codes.** Hop is UI → BFF → Integration
+   Hub. Hub masters are bank-owned language; 1SB Get Master Details is a provider feed
+   behind the adapter (`SUG-20260913-acl`). A suggestion that puts 1SB master `entityIds`
+   on the RM app or BFF is **SF4 / REJECT**.
 
 A suggestion that violates a standing constraint is **SF4 / REJECT** unless it arrives as a
 formal change request under [14](./14-CHANGE_CONTROL.md).

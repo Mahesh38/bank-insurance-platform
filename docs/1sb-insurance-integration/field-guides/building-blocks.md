@@ -21,11 +21,35 @@ Bank API remains `POST /v1/master-data/lookup` (`lob` selects the 1SB path). Req
 |-------|----------|-----|
 | `lookUpCategory` | Yes | `quote` or `proposal` — context of enums |
 | `entityIds[]` | Yes | Which masters to fetch |
-| `manufacturerId` | Optional | Insurer-specific enum variants for proposal |
+| `manufacturerId` | Optional | **Proposal only** — insurer-specific enum variants. Portal: “Manufacturer ID of which need to find the enum value for proposal.” |
 
-Common entityIds: `CHANNEL`, `EDUCATN`, `GENDER`, `MARITAL`, `MEMTYPE`, `OCC`, `PPF`, `PPO`, `QUOTECAT`, `QUOTETYP`, `RELWTHLA`, `STATE`, `TITLE`, `TOBACCO`.
+Common 1SB entityIds (provider keys, **not** UI fields): `CHANNEL`, `EDUCATN`, `GENDER`, `MARITAL`, `MEMTYPE`, `OCC`, `PPF`, `PPO`, `QUOTECAT`, `QUOTETYP`, `RELWTHLA`, `STATE`, `TITLE`, `TOBACCO`.
 
-**Bank rule:** Never hardcode dropdowns in UI for long-lived releases; cache with short TTL + manufacturer key.
+### Does master data change by insurer? (portal 2026-09-13)
+
+1SB does **not** document one master list that varies by insurer for every entity. It documents **two contexts**:
+
+| `lookUpCategory` | Insurer-specific? | How 1SB says to call it |
+|------------------|-------------------|-------------------------|
+| `quote` | **No (gateway-common).** `manufacturerId` is not described for this context. Entity descriptions are “supported by the system” (the 1SB gateway), e.g. gender, tobacco, quote type/category. Treat as Integration Hub **common** masters once mapped to bank language. | `entityIds` + `quote` |
+| `proposal` | **Yes.** `manufacturerId` exists specifically to fetch that manufacturer’s proposal enums. | `entityIds` + `proposal` + `manufacturerId` |
+
+Product UI, gate criteria, and the proposal **form schema** are separately keyed by `productId` + `manufacturerId`. Those are product/insurer forms, not this master-lookup entity list.
+
+Live demo has not compared quote lookup with vs without `manufacturerId` (auth 500 as of 2026-09-13). Quote-common is documented; `ASM-014` tracks proof on sandbox.
+
+### Anti-corruption — UI / BFF never see 1SB codes
+
+Hop is **UI → BFF → Integration Hub**. The Hub may call 1SB (or later a direct insurer) behind `adapter.*`. Do **not** suggest or build:
+
+- frontend or BFF calling 1SB master lookup
+- forwarding 1SB `entityIds` / 1SB enum strings as the BFF/UI contract
+
+Cache 1SB (or insurer) codes **inside the Hub** so the adapter can send values the provider understands. Expose to BFF/RM UI only **bank-owned** codes and labels (and translate). Quote-category Hub masters can be one list. Proposal-category Hub masters are keyed by insurer.
+
+Today `POST /v1/master-data/lookup` still returns provider-shaped `{code,label}` (often `code ==` 1SB string). That is a Hub-internal feed, not the target BFF contract (`SUG-20260913-hms` parked).
+
+**Bank rule:** Never hardcode dropdowns in the RM UI from 1SB OpenAPI examples. Hub cache TTL + insurer key for proposal masters.
 
 ---
 

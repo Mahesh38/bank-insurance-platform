@@ -43,6 +43,8 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20260913-acl | 2026-09-13 | human:stakeholder | UI/BFF never see 1SB master codes. Hop UI → BFF → Integration Hub. Hub translates; 1SB is a replaceable provider. | SF1 | SC0 | MUST | GOV | P2 / P1 | CLOSED-DELIVERED | [detail](#sug-20260913-acl--no-1sb-codes-on-ui-or-bff) |
+| SUG-20260913-hms | 2026-09-13 | human:stakeholder | Persist Integration Hub masters in bank language: quote-category common; proposal-category insurer-keyed. Do not forward 1SB `entityIds` to BFF. | SF2 | SC1 | SHOULD | FUNC | P4 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [detail](#sug-20260913-hms--hub-owned-bank-language-masters) |
 | SUG-20260911-uls | 2026-09-11 | human:stakeholder | Complete R0 assisted Life journey — Term and Saving/ULIP end to end (the bag CR-014 excluded) | SF2 | SC0 | MUST | FUNC | P2 / P1 | ADMIT-BYPASS | [CR-015](../change-requests/CR-015-ws3-r0-savings-ulip-journey.md) · [EPIC-004](../../platform/ws3-platform/EPIC-004.work-item.yaml) · [detail](#sug-20260911-uls--unpark-ws-3-savingsulip-journey-sales) · recurrence_count 2 (2026-09-12 complete Life e2e restatement) |
 | SUG-20260907-ldc | 2026-09-07 | human:front-architect | NIP BFF / RM app consumer contract for R0 lead landing (own inbox) + ETB search + Term lead create through success | SF1 | SC0 | SHOULD | ARCH | P2 / P1 | ADMITTED | [EPIC-003](../../platform/ws3-platform/EPIC-003.work-item.yaml) · [PLAN-004](../plans/PLAN-004-nip-bff-lead-phase-contract.md) · [LLD](../../platform/ws3-platform/07-nip-bff-lead-phase-api-lld.md) · [detail](#sug-20260907-ldc--nip-bff-lead-landing-and-create-contract) |
 | SUG-20260907-std | 2026-09-07 | human:front-architect | Confirm platform-wide standard API response, versioning, security and REST practices on the NIP BFF lead OpenAPI | SF1 | SC0 | SHOULD | DOC | P2 / P2 | ADMITTED | [ARCH-023](../../platform/ws3-platform/ARCH-023.work-item.yaml) · [ADR-017](../../journey-execution/07-PLATFORM-ERROR-CONTRACT.md) · [detail](#sug-20260907-std--platform-api-conventions-on-lead-openapi) |
@@ -106,6 +108,284 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20260913-acl · No 1SB codes on UI or BFF
+
+```yaml
+# schema: triage-record
+id: SUG-20260913-acl
+raised_at: "2026-09-13"
+raised_by: "human:stakeholder"
+source: "Cloud agent intake — standing anti-corruption hop for masters"
+input: >
+  UI doesn't care what the masters for One Silver Bullet are. They care about
+  the Integration Hub. Bank system calls integration services; integration
+  takes care of the data. Bank / UI must not rely on 1SB master data. We may
+  store 1SB enum codes inside the Hub for outbound API calls, because those
+  enums are what 1SB / the insurance system understands, but we must not
+  impose them on the UI. Anti-corruption layer in between. We can't just
+  push the One Silver Bullet code. Frontend always connects with the BFF and
+  BFF always connects with the Integration Hub. They do not care what the Hub
+  does in the background. Hub might use the 1SB adapter; later they might
+  replace 1SB or integrate directly with insurer partners. Master data we get
+  should be stored as Integration Hub / insurer-specific, not as 1SB. Keep
+  note so suggestions never create a direct connection between app or frontend
+  to 1SB.
+
+context:
+  workstream: WS-1
+  current_phase: "Phase 4 — Hardening & consumer enablement"
+  canonical_stage: "L7 — Hardening"
+  current_objective: "Term path signed off for UAT use by at least one bank caller; Life adapter coverage EPIC-002"
+  state_as_of: "2026-09-11"
+  state_provisional: false
+  active_work_item: "SUG-20260913-acl (record standing hop / ACL for masters)"
+
+stage_fit:
+  code: SF1
+  rationale: >
+    Recording an already-ratified replaceability invariant (BOOT standing
+    constraint: bank apps never call 1SB; provider traffic through the Hub)
+    as an explicit UI/BFF hop rule. Docs/GOV only — no new service, no new
+    master catalog. L7 hardening is the right stage to lock the anti-corruption
+    boundary before BFF/RM quote screens consume Hub masters.
+
+scope:
+  code: SC0
+  business_scope: >
+    In scope — replaceable middleware and canonical model already forbid 1SB
+    shapes on bank APIs. Stakeholder restated the hop and master ACL.
+  serves: []
+  failure_without_it: >
+    Agents keep suggesting frontend or BFF contracts that reuse 1SB entityIds
+    and enum strings, coupling RM UI to a replaceable provider.
+  minimal: true
+  authority: "replaceable-middleware.md hop rule; canonical-model README; BOOT standing constraints; stakeholder 2026-09-13"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "Standing — every subsequent suggestion and BFF contract"
+  binds_when: "Any suggestion that would wire UI or BFF to 1SB, or expose 1SB master codes"
+  failure_without_it: >
+    A later agent or BFF contract publishes 1SB GENDER/TOBACCO codes as the
+    RM dropdown contract; replacing 1SB then rewrites the frontend.
+  evidence_tier: E2
+  evidence:
+    - "Verbatim stakeholder 2026-09-13: UI/BFF never rely on 1SB masters; hop UI → BFF → Hub"
+    - "docs/1sb-insurance-integration/architecture/replaceable-middleware.md — bank DTOs only"
+    - "docs/1sb-insurance-integration/canonical-model/README.md — 1SB names only in adapters"
+    - "BOOT standing constraint: bank apps never call 1SB; provider traffic through Integration Hub"
+    - "1SB portal Get Master Details: manufacturerId is for proposal enum lookup"
+  confidence: C5
+  assumptions: []   # hop/ACL does not depend on quote-common; ASM-014 belongs on SUG-20260913-hms only
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT
+action_rationale: >
+  DOC/GOV deliverable is this recording: standing constraint, hop rule,
+  SF4/REJECT for 1SB codes on UI/BFF. Does not implement a Hub master catalog
+  (that is SUG-20260913-hms, parked).
+duplicate_of: null
+conflicts: []
+
+classification:
+  type: GOV
+  also: [DOC, ARCH]
+  breakdown: TASK
+  epic: null
+  risk_tier: T1
+  destination: "01-CURRENT_STATE.md §5 item 9 · CURRENT-STATE.yaml standing_constraints · replaceable-middleware.md"
+
+priority:
+  now: P2
+  at_target: P1
+  factors: { N: 4, S: 3, B: 1, R: 2, D: 1, E: 0 }
+  score: 21
+  matrix_default: P2
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: >
+    SF1 MUST scores P2 (21). At BFF quote UI the same leak is P1 (UI rewrite).
+    No O3 override: this records an invariant; it does not fix implemented
+    incorrect behaviour.
+
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 0
+  earliest_start: "this change"
+  cycles: none
+
+breakdown:
+  children: []
+  completion_definition: >
+    Standing constraint in CURRENT-STATE.yaml and 01 §5; hop rule in
+    replaceable-middleware.md; quote vs proposal master split in
+    building-blocks.md; ASM-014 open; SUG-20260913-hms parked.
+  not_included:
+    - "Hub-owned bank-language master catalog (SUG-20260913-hms)"
+    - "Changing POST /v1/master-data/lookup response shape"
+    - "LifeQuotePayloadFactory validation against cache"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md · 01-CURRENT_STATE.md §5 · CURRENT-STATE.yaml standing_constraints"
+  work_item_id: null
+  plan_id: null
+  status: CLOSED-DELIVERED
+  closed_reason: "Standing hop / ACL recorded in governance + architecture docs in this change"
+
+resumed: "SUG-20260913-hms parked; no catalog implementation this turn"
+```
+
+### SUG-20260913-hms · Hub-owned bank-language masters
+
+```yaml
+# schema: triage-record
+id: SUG-20260913-hms
+raised_at: "2026-09-13"
+raised_by: "human:stakeholder"
+source: "Cloud agent intake — Hub masters in bank language, not 1SB wire codes"
+input: >
+  Whatever we get from the master data we might need to store it in the
+  Integration Hub or in the cache in a way that it is something specific to
+  the insurers not to One Silver Bullet, because master data also change
+  based on the insurer / insurance partner. If it stays the same across
+  insurers we can simply use it as Integration Hub masters. That master
+  might interpret into the appropriate language or fields to the RM UI or
+  BFF layer.
+
+context:
+  workstream: WS-1
+  current_phase: "Phase 4 — Hardening & consumer enablement"
+  canonical_stage: "L7 — Hardening"
+  current_objective: "Term path signed off for UAT use by at least one bank caller; Life adapter coverage EPIC-002"
+  state_as_of: "2026-09-11"
+  state_provisional: false
+  active_work_item: "SUG-20260913-acl (record standing hop / ACL for masters)"
+
+stage_fit:
+  code: SF2
+  rationale: >
+    A Hub bank-language master store plus a BFF contract is adjacent to
+    replaceability (already decided) but fails the absorption test: new
+    persistence/cache shape, new enum catalog, new BFF field names. L7
+    hardening must not add that catalog. Target is S11 BFF/RM quote UI or
+    the first named Hub master API for BFF.
+  target_stage: "S11 / NIP BFF quote or proposal dropdowns, or first named Hub master API for BFF"
+  unpark_trigger: >
+    NIP BFF or RM quote/proposal UI needs Hub-owned dropdowns (S11 assisted
+    Life screens / EPIC-004 FUNC), or a named Hub master API for BFF is opened.
+    Re-triage in full — do not auto-admit.
+  absorption_test:
+    small: false
+    no_new_dependency: false
+    no_new_decision: false
+    gate_neutral: true
+
+scope:
+  code: SC1
+  business_scope: >
+    Derived from replaceability and R0 assisted Life: BFF/RM must show
+    dropdowns without 1SB entityIds. Not an explicit current-stage backlog
+    item today.
+  serves:
+    - "R0-ASSISTED-LIFE-SALE BFF/RM quote and proposal screens"
+    - "SUG-20260913-acl (standing hop cannot be evidenced on a BFF contract until Hub masters exist)"
+  failure_without_it: >
+    Today's POST /v1/master-data/lookup still returns provider-shaped
+    {code,label} keyed by 1SB entityIds. A BFF that consumes it as-is
+    violates SUG-20260913-acl.
+  minimal: true
+  authority: "stakeholder 2026-09-13 · replaceable-middleware.md · building-blocks.md · ASM-014"
+
+necessity:
+  now: SHOULD
+  future_necessity: MUST
+  target_stage: "S11 / first Hub master API for BFF"
+  binds_when: "BFF or RM UI needs dropdowns for quote or proposal"
+  failure_without_it: >
+    RM quote screens either hardcode 1SB examples or call Hub lookup that
+    still speaks 1SB, coupling the frontend to a replaceable provider.
+  evidence_tier: E2
+  evidence:
+    - "Stakeholder 2026-09-13: store Hub/insurer masters, translate to BFF/RM"
+    - "1SB Get Master Details: quote vs proposal; manufacturerId for proposal enums"
+    - "Current MasterDataController still forwards provider-shaped lookups"
+    - "TD-010 Redis cache remains parked — do not unpark it as this catalog"
+  confidence: C4
+  assumptions: ["ASM-014"]
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: true
+    X5_stage_necessity: false
+    X9_problem_observed: true
+
+action: PARK
+action_rationale: >
+  Real work, wrong stage. SF2 absorption fails (new catalog + BFF contract).
+  Quote-category Hub masters can be one common bank-language list if ASM-014
+  holds; proposal-category masters are insurer-keyed. Do not implement in
+  the same turn as recording the standing rule. Redis (TD-010) is not this item.
+duplicate_of: null
+conflicts: []
+
+classification:
+  type: FUNC
+  also: [ARCH]
+  breakdown: STORY
+  epic: null
+  risk_tier: T2
+  destination: "PARKED-BACKLOG.md §1"
+
+priority:
+  now: P4
+  at_target: P2
+  factors: { N: 2, S: 1, B: 0, R: 2, D: 1, E: 2 }
+  score: 9
+  matrix_default: P4
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: >
+    SHOULD + SF2 parks at P4. At S11 BFF dropdowns it becomes MUST / P2.
+    Do not treat as P1 while no BFF consumer exists.
+
+dependencies:
+  edges:
+    - type: ARCHITECTURAL
+      target: "SUG-20260913-acl"
+      relation: "related_to"
+    - type: TECHNICAL
+      target: "ASM-014"
+      relation: "related_to"
+  state: READY
+  enablement_count: 0
+  earliest_start: "S11 BFF quote/proposal dropdowns or named Hub master API"
+  cycles: none
+
+breakdown:
+  children: []
+  completion_definition: null
+  not_included:
+    - "Redis idempotency store (TD-010)"
+    - "Validating LifeQuotePayloadFactory against the lookup cache"
+    - "Changing the current Hub-internal POST /v1/master-data/lookup in this turn"
+
+outcome:
+  registered_in: "registers/PARKED-BACKLOG.md"
+  work_item_id: null
+  plan_id: null
+  status: PARKED
+  closed_reason: null
+
+resumed: "SUG-20260913-acl (record standing rule only)"
+```
 
 ### SUG-20260911-uls · Unpark WS-3 Savings/ULIP journey sales
 

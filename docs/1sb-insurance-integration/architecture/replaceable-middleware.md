@@ -12,9 +12,10 @@ Use 1SB now without forcing a rewrite when the bank builds its own aggregator / 
 │  - Customer app / netbanking / mobile                        │
 │  - RM assisted desk / tablet journey                         │
 └────────────────────────────┬─────────────────────────────────┘
-                             │ bank DTOs only
+                             │ bank DTOs only — never 1SB JSON
 ┌────────────────────────────▼─────────────────────────────────┐
 │ Experience & Orchestration (Bank)                            │
+│  - BFF (token hiding; bank language only)                    │
 │  - Suitability / need analysis                               │
 │  - Journey state machine                                     │
 │  - RM assignment, audit, disclosures                         │
@@ -56,6 +57,12 @@ Define these as the **only** contracts UI/orchestration may call:
 | `PaymentPort` | Create pay URL + intimation | Payment URL (+ LOB-specific) / Payment Intimation |
 | `IdentityVerificationPort` | OTP, CKYC, penny drop, customer info | Building blocks |
 | `AgentPort` | SP/PoSP validation | Get SP Data |
+
+## Hop rule (non-negotiable)
+
+`UI / RM app → BFF → Integration Hub → adapter (1SB today, direct insurer later).`
+
+The BFF and frontend **do not know** 1SB exists. They consume Hub ports in **bank language**. Provider master codes, `entityIds` such as `GENDER`/`TOBACCO`, and 1SB enum strings stay inside the Hub/adapter so a later insurer adapter can replace 1SB without a UI rewrite. Stakeholder restatement 2026-09-13 (`SUG-20260913-acl`).
 
 ## Adapter rules (non-negotiable)
 
@@ -116,7 +123,9 @@ insurance-platform/
 
 | Anti-pattern | Why it blocks replacement |
 |--------------|---------------------------|
-| UI posts raw 1SB quote JSON | UI rewrite required later |
+| UI or BFF posts raw 1SB quote JSON | UI rewrite required later |
+| UI or BFF consumes 1SB master `entityIds` / enum strings | Couples screens to 1SB; blocks direct-insurer replacement |
+| Treating 1SB Get Master Details as the RM dropdown contract | Hub must own bank-language masters; 1SB is a feed |
 | Persisting only 1SB `reqId` without bank journey id | Broken ownership of state |
 | Hardcoding Term proposal screens | Health/Motor/dynamic forms won’t fit |
 | Using 1SB Application Layer as system of record | Harder to detach |

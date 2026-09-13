@@ -18,9 +18,9 @@ name: Application CI
 #    (Board 1 finding A-F05 / Engineering finding T-F01.)
 #
 # BRANCH PROTECTION — required to close S08-G2, and NOT configurable from this file.
-# A repository administrator must, on `main`:
+# A repository administrator must, on `main` (ruleset preferred):
 #   * require a pull request before merging, with >= 1 approving review;
-#   * require these status checks to pass, exactly as named:
+#   * require these status checks to pass, exactly as named on check runs:
 #       - "Java 21 tests and coverage gates"       (this workflow)
 #       - "Secret scanning (gitleaks)"             (security-scanning.yml)
 #       - "SAST (CodeQL, Java)"                    (security-scanning.yml)
@@ -30,6 +30,7 @@ name: Application CI
 #   * disallow force-push and deletion.
 # Until that is configured, S08-G2 stays OPEN however green this workflow is:
 # the pipeline is the mechanism, and branch protection is what makes it a gate.
+# Human pack: scripts/governance/evidence/S08-G2-branch-protection-human-pack.md
 
 on:
   pull_request:
@@ -53,7 +54,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
+      # fetch-depth: 0 so Spotless ratchetFrom("origin/main") can resolve the baseline
+      # commit. A shallow clone makes spotlessCheck fail with "No such reference
+      # 'origin/main'" before any formatting rule runs (seen on run 34779413538).
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Ensure origin/main exists for Spotless ratchet
+        run: git rev-parse --verify origin/main || git fetch --no-tags origin main:refs/remotes/origin/main
 
       - uses: actions/setup-java@v4
         with:

@@ -33,6 +33,19 @@ Remaining G10 gap is a **named human** completing the attestation below — not 
 3. `docs/governance/PR-REVIEW-CHECKLIST.md`
 4. `AGENTS.md` / service SSOT testing rules for the module touched
 
+
+## Who must act (confirmed 2026-09-13)
+
+Repo collaborator API lists only **`Mahesh38`** (`role_name=admin`). Until another engineer is added, G10 closure requires that account (or a named engineer they designate) to:
+
+1. Follow the 5-day path (or compress with the day-0.5 / day-1 dry-run evidence already on this branch).
+2. Fill the attestation below and commit it as `scripts/governance/evidence/S08-G10-onboarding-attestation.md`.
+3. Declare **S08-G10 MET** on `human-review`.
+
+Agent dry-runs already logged (not MET):
+- `S08-G10-day0.5-dry-run.log` — Phase-1 unit tests ~18s
+- `S08-G10-day1-local-boot-dry-run.log` — persistence + 1sb-integration actuator health UP
+
 ## Attestation (human)
 
 ```text

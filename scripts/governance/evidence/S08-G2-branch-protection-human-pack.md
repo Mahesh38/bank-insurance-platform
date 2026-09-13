@@ -2,7 +2,17 @@
 
 **Criterion:** Merge to `main` is impossible without a green pipeline.  
 **Mode:** `HUMAN_REQUIRED` · Owner: Amit / Engineering · Verifier: `human-review`  
-**Assembled / refreshed:** 2026-09-13T20:21Z (agent) · **Not a MET declaration**
+**Assembled / refreshed:** 2026-09-13T22:26Z (agent) · **Not a MET declaration**
+
+## Fastest path (Mahesh38)
+
+```bash
+export GH_TOKEN=<admin-pat-with-repo-admin>
+./scripts/governance/evidence/S08-Mahesh38-close-remaining.sh 104
+# expect exit 0 → then declare S08-G2 MET on human-review with verify + blocked-merge.out
+```
+
+Individual steps (apply / verify / demo) remain below if you prefer to run them one-by-one.
 
 ## Why an agent cannot close this
 

@@ -102,6 +102,20 @@ Optional (present but not part of the original four-name contract):
 ```
 
 
+
+## Who must act (confirmed 2026-09-13)
+
+Repo collaborator API shows **`Mahesh38`** with `role_name=admin` (agent token has no admin). Only that account (or another admin PAT) can run:
+
+```bash
+# from repo root, with an admin PAT:
+export GH_TOKEN=<admin-pat-with-repo-admin>
+./scripts/governance/evidence/S08-G2-apply-required-checks.sh
+./scripts/governance/evidence/S08-G2-verify-required-checks.sh   # expect exit 0
+```
+
+Until that runs, `S08-G2-verify-required-checks.sh` exits 1 and S08-G2 stays OPEN.
+
 ## Helper scripts (2026-09-13)
 
 | Script | Who | Purpose |

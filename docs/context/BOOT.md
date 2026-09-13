@@ -80,7 +80,7 @@ Full table with the wrong-instinct column:
 
 > Generated from [`CURRENT-STATE.yaml`](../governance/state/CURRENT-STATE.yaml) by `scripts/context/build-boot-capsule.py`. Do not hand-edit this block.
 
-**AIGEM 1.4** · state as of **2026-09-11** · review due **2026-10-11** · provisional: **no**
+**AIGEM 1.4** · state as of **2026-09-13** · review due **2026-10-11** · provisional: **no**
 
 > **Fact 9 — freshness.** Past `review_due`, an agent may park and reject but **must not admit new work** (Rule CS-1). Run `java scripts/governance/FreshnessCheck.java` and act on the exit code: `0` fresh · `1` warn, disclose it · `2` do not admit.
 
@@ -92,8 +92,7 @@ Full table with the wrong-instinct column:
 
 **Objective** (`R0-ASSISTED-LIFE-SALE`): One RM sells a complete Life insurance policy — Term or Savings/ULIP — to one ETB customer from one Group A insurer, end to end, through a real interface, with consent and suitability evidence, payment on the customer's own device, an issued and reconciled policy, and a complete audit trail. R0 includes both Term and Savings/ULIP assisted paths (CR-015). DIY and hybrid stay sequenced behind the assisted journey.
 
-**Open gate:** `GATE-S08` · state `OPEN` · 10 of 10 exit criteria not yet met — 5 OPEN · 5 PARTIAL
-- `S08-G1` **PARTIAL** — CI builds and tests every module on every PR · Amit / Engineering
+**Open gate:** `GATE-S08` · state `OPEN` · 9 of 10 exit criteria not yet met — 5 OPEN · 4 PARTIAL
 - `S08-G2` **OPEN** — Merge to main impossible without a green pipeline · Amit / Engineering
 - `S08-G3` **PARTIAL** — Coverage thresholds enforced; QA-001 closed · Swapnali / QA
 - `S08-G4` **PARTIAL** — ArchUnit and static analysis enforced · Amit / Engineering

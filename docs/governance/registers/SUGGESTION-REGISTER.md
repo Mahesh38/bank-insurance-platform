@@ -164,24 +164,21 @@ action_rationale: >
   non-negotiable (CONFIRM-01 B3, config/onesb secrets policy, Deepali §9 for
   production). Per 09 §8 honour the instruction, record the bypass, and constrain
   the files to sandbox/demo only with a narrow gitleaks allowlist.
-bypass:
-  authorised_by: "human:cloud-agent-request"
-  skipped: "Board 4 Security exception process; vault-first storage for sandbox"
-  risk: >
-    Sandbox API key/secret are recoverable from git history. Severity S2 for
-    demo keys; escalate to rotate if keys are elevated or the repo is public.
-  residual_controls:
-    - "Files labelled SANDBOX/DEMO ONLY; never loaded by uat/prod profiles"
-    - "gitleaks allowlist limited to these two paths"
-    - "AGENTS.md / CONFIRM-01 document the exception"
+  Residual risk: sandbox API key/secret are recoverable from git history
+  (severity S2 for demo keys; rotate if elevated or the repo is public).
+  Residual controls: files labelled SANDBOX/DEMO ONLY and never loaded by
+  uat/prod profiles; gitleaks allowlist limited to these two paths;
+  AGENTS.md / CONFIRM-01 document the exception.
+bypass_authorised_by: "human:cloud-agent-request"
 
 classification:
   type: SEC
+  breakdown: TASK
   risk_tier: T3
 
 priority:
-  priority_now: P3
-  priority_at_target: P3
+  now: P3
+  at_target: P3
 ```
 
 Delivered: `config/onesb/sandbox-agent.credentials.env`,

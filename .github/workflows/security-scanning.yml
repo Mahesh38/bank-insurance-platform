@@ -179,10 +179,14 @@ jobs:
           # financial application, a missed injection sink costs more than triage time.
           queries: security-extended
 
+      # CodeQL's Java extractor only sees a live javac. A warm Gradle build
+      # cache can serve every compile* FROM-CACHE and leave the database empty
+      # (finalize exit 32 / no-source-code-seen-during-build). Force a traced
+      # compile for this job only — do not weaken caching on other workflows.
       - name: Build for analysis
         run: |
           chmod +x gradlew
-          ./gradlew --no-daemon classes testClasses
+          ./gradlew --no-daemon --no-build-cache clean classes testClasses
 
       - name: Perform CodeQL analysis
         id: codeql

@@ -110,3 +110,9 @@ change_request:
     - "Kalpana R12 countersign + human transcription before workstreams: topology in CURRENT-STATE.yaml changes"
     - "Service workstreams never carry independent lifecycle stage_status"
 ```
+
+---
+
+## 10. Board review pack
+
+Draft AIGEM board simulations (2026-09-13): [`CR-016/verdicts/`](./CR-016/verdicts/README.md).

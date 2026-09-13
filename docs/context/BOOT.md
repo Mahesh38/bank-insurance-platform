@@ -210,6 +210,7 @@ Full table with the wrong-instinct column:
 - Premium payment executes only on the customer's device; no API path issues a payment link into an RM session
 - A policy is never issued against a payment that is not RECONCILED
 - No platform service calls a provider adapter directly; provider traffic routes through the Integration Hub
+- UI and BFF never receive 1SB or insurer wire codes; they speak bank/Hub language only. Hop is UI → BFF → Integration Hub. 1SB master lookup is a provider feed behind the adapter, not a frontend contract
 - Journey Orchestration holds stage and references only, never another context's business decision
 - Render.com is dev-preview only and is never a data path for PII or production-like data
 

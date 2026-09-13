@@ -57,7 +57,13 @@ Split the problem into **bounded contexts** so request/response models stay smal
 | `ChannelType` | `channelType` = B2B \| B2C | RM-assisted → **B2B** |
 | `SalesChannel` | `salesChannel` = Online \| Others | |
 
-Use Master Lookup (`CHANNEL`, etc.) rather than hardcoding enums.
+**Target:** Hub `MasterDataPort` supplies **bank-owned** dropdowns to BFF/RM. The 1SB adapter
+maps those to provider `entityIds` (`CHANNEL`, `GENDER`, …). Do not expose 1SB master keys
+on the BFF.
+
+**Today:** `POST /v1/master-data/lookup` still accepts 1SB `entityIds` and returns
+provider-shaped `{code,label}`. That is Hub-internal, not the BFF contract
+(`SUG-20260913-hms` parked).
 
 ---
 

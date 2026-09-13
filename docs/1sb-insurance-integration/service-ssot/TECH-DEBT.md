@@ -37,11 +37,12 @@ Severity: **P0** = blocks Phase 2 / multi-service reuse · **P1** = fix this spr
 | TD-021 | P2 | Document audit-consumer → persistence audit API (stub; no full service) | Senior (audit consumer) | **Closed** | Agent 2 |
 | TD-022 | P1 | Payment intimation (FUNC-008) not implemented | Phase 4 (FUNC-007) | Deferred P1 | Backlog |
 | TD-023 | P2 | Raw payload capture (COMP-003) not wired for status/master-data calls | COMP-003 impl | Deferred | Backlog |
-| QA-001 | P0 | JaCoCo coverage reports + verification gates | QA Lead / TEST-BACKLOG | **Partial** | Dev |
+| QA-001 | P0 | JaCoCo coverage reports + verification gates | QA Lead / TEST-BACKLOG | **Closed** | Dev |
+| QA-012 | P1 | Package-level strategy §7 JaCoCo floors | QA Lead / COVERAGE.md | **Open** | Dev |
 
 ---
 
-## QA-001 — JaCoCo coverage (Partial)
+## QA-001 — JaCoCo coverage (Closed)
 
 **Problem:** No measured coverage; CI could not enforce strategy §7 floors.
 
@@ -52,11 +53,25 @@ Severity: **P0** = blocks Phase 2 / multi-service reuse · **P1** = fix this spr
 - Minimal unit tests added for `EnvSecretProvider` and other lib gaps to meet the gate.
 - Docs: [COVERAGE.md](./COVERAGE.md), AGENTS.md run command.
 
-**Residual (interim):** Services gated at **line ≥ 50%** only (no branch gate) — raised from 35% in **QA-002** after persistence API coverage (~96% line). Package-specific adapter/api floors from strategy §7 land with **QA-003** (IT template) / remaining package rules. Mark **Closed** when service package rules match strategy or interim is explicitly retired by QA Lead.
+**Closed (2026-09-13, Swapnali / QA Lead):**
+- Phase-1 deployables gated at **line ≥ 90% / branch ≥ 70%** (`1sb-integration-service`, `bank-persistence-service`) — measured ~91.7/71.8 and ~99.0/85.0.
+- Scaffold services: the former "interim" **50% line** floor is **explicitly retired as a ratified scaffold module floor** (QA-003 is Done; the open residual was mis-attributed to it).
+- Strategy §7 *package* floors are split to **QA-012** (expiry 2026-10-31) with compensating control = module `jacocoTestCoverageVerification` on every CI `check`.
+- Closes GATE-S08 criterion **S08-G3**.
 
-**Expiry (R7):** Revisit / retire interim service floor by **2026-08-30** or when QA-003 closes — whichever first. TL + QA Lead co-approved wiring **2026-07-30**.
+**Status:** **Closed**
 
-**Status:** **Partial**
+---
+
+## QA-012 — Package-level strategy §7 JaCoCo floors (Open)
+
+**Problem:** Module gates do not yet enforce strategy §7 package floors (`…onesb.application.*` / `…lob.*` 80/70, `…adapter.onesb.*` 70/60, `…adapter.idempotency.*` 80/70, `com.bank.persistence.api.*` 70/60). Several `adapter.onesb.*` packages currently sit below branch targets, so flipping the rules on would fail CI without additional tests.
+
+**Compensating control:** Module-level `jacocoTestCoverageVerification` (libs 80/70; Phase-1 90/70; scaffold 50% line) remains mandatory on CI `check`.
+
+**Expiry (R7):** **2026-10-31** — re-decide: enforce package rules, extend with evidence, or narrow scope.
+
+**Status:** **Open**
 
 ---
 
@@ -335,3 +350,4 @@ Track only; do not block this refactor PR. TD-006 remains Phase 2 (real AWS SM).
 | 2026-07-30 | QA-002 Done: persistence API tests (jobs/offers/payments/audit); services interim 35%→50% line |
 | 2026-08-04 | Phase 4: FUNC-007 (payment) + FUNC-009 (status) implemented; TD-022 opened (FUNC-008 intimation deferred P1) |
 | 2026-09-13 | S08-G6 / TD-014: `libs/bank-common-test` shared Testcontainers+WireMock harness; JobApiPostgresIT + SharedHarnessProposalSmokeIT; TD-014 Closed; S08-G6 MET |
+| 2026-09-13 | QA-001 Closed (Swapnali): Phase-1 services 90/70; scaffold 50% floor ratified; package floors → QA-012 (expiry 2026-10-31); S08-G3 MET |

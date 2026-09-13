@@ -135,22 +135,27 @@ subprojects {
         )
 
         val isLib = project.path.startsWith(":libs:")
-        // 1sb-integration-service raised to 90% line / 70% branch (measured ~90.7%/~71% —
-        // see COVERAGE.md). Other services keep the QA-002 interim 50% line floor pending QA-003
-        // package-level gates.
-        val isOneSbIntegration = project.path == ":services:1sb-integration-service"
+        // Phase-1 deployables (Swapnali / QA-001 close 2026-09-13):
+        //   1sb-integration-service + bank-persistence-service → 90% line / 70% branch
+        // Scaffold services keep the ratified 50% line module floor (not "interim pending
+        // QA-003" — QA-003 is Done). Package-level strategy §7 floors track as QA-012.
+        val isPhase1Service = project.path in setOf(
+            ":services:1sb-integration-service",
+            ":services:bank-persistence-service",
+        )
         val lineFloor = when {
             isLib -> "0.80"
-            isOneSbIntegration -> "0.90"
+            isPhase1Service -> "0.90"
             else -> "0.50"
         }.toBigDecimal()
         val branchFloor = when {
             isLib -> "0.70"
-            isOneSbIntegration -> "0.70"
+            isPhase1Service -> "0.70"
             else -> null
         }?.toBigDecimal()
         // Libs: strategy §7 (80% line / 70% branch).
-        // Services: raised interim floor (QA-002) — package gates still pending QA-003.
+        // Phase-1 services: raised module floors (measured evidence in COVERAGE.md).
+        // Scaffold services: ratified 50% line module floor; package gates → QA-012.
         violationRules {
             rule {
                 limit {

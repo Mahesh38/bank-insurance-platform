@@ -68,6 +68,13 @@ the agent believed at decision time — a decision that was correct against a st
 > **2026-09-13 — S08-G6 closed.** QA (Swapnali seat) declared `S08-G6` `MET` after Engineering
 > cleared `TD-014` with `libs/bank-common-test` (Testcontainers + WireMock harness) and proving
 > ITs. `GATE-S08` remains `OPEN`. No stage advanced.
+>
+> **2026-09-13 — S08-G5 closed.** Security (Deepali seat) declared `S08-G5` `MET` after the
+> blocking Trivy container image scan job landed. `GATE-S08` remains `OPEN`.
+>
+> **2026-09-13 — S08-G3 closed.** QA (Swapnali seat) declared `S08-G3` `MET`: QA-001 Closed —
+> Phase-1 services at 90/70, scaffold 50% floor ratified, package floors → QA-012 (expiry
+> 2026-10-31). WS-1 criterion 4.7 also MET. `GATE-S08` remains `OPEN`. No stage advanced.
 
 ---
 
@@ -122,7 +129,7 @@ criterion rather than new scope:
 | **Deliverable** | Application CI with enforced quality, security and architecture gates (S08); IaC, environments, secrets, observability and 7-year write-once retention in ap-south-1 (S09); consent and suitability rule packs, R0 acceptance criteria, product matrix and service blueprint in parallel |
 | **Delivered so far** | Application CI and security scanning pipelines; 21 services and 6 libraries scaffolded with ArchUnit boundary tests; EPIC-001 error contract; EPIC-003 lead API contract |
 | **Not yet started** | All of S09 — IaC, environments, secrets management, the ap-south-1 retention path |
-| **Gate** | `GATE-S08` · `OPEN` · 3 of 10 criteria MET (G1, G5, G6), 3 PARTIAL, 4 OPEN |
+| **Gate** | `GATE-S08` · `OPEN` · 4 of 10 criteria MET (G1, G3, G5, G6), 2 PARTIAL, 4 OPEN |
 | **Next stage** | S09 — Platform & Environment Foundation |
 | **Authority** | [WS-3 charter](./workstreams/WS-3-PLATFORM-CHARTER.md) · [architecture registration](../platform/ws3-platform/00-WS3-ARCHITECTURE-REGISTRATION.md) |
 | **Entry condition on S11** | Non-waivable (Rajal condition C5): no WS-3 stage enters S11 while GAP-006 (consent) or GAP-007 (suitability) is open |
@@ -134,7 +141,7 @@ criterion rather than new scope:
 |---|----------------|-------|-------|
 | S08-G1 | CI builds and tests every module on every PR | ✅ MET — Engineering declared 2026-09-13 on ci verifier (392 runs; tip 34768713603) | Amit |
 | S08-G2 | Merge to main impossible without a green pipeline | ❌ Open — branch protection is a repo-admin setting, not a file here | Amit |
-| S08-G3 | Coverage thresholds enforced; QA-001 closed | 🟡 Partial — enforcement runs; QA-001 open on the interim service floor | Swapnali |
+| S08-G3 | Coverage thresholds enforced; QA-001 closed | ✅ MET — Phase-1 at 90/70; scaffold floor ratified; QA-001 Closed → QA-012 (2026-09-13) | Swapnali |
 | S08-G4 | ArchUnit and static analysis enforced | 🟡 Partial — ArchUnit in 18 modules; no static analysis at all | Amit |
 | S08-G5 | Secret, SAST, SCA and image scanning in the pipeline | ✅ MET — Trivy image-scan job on Phase 1 + combined images (2026-09-13) | Deepali |
 | S08-G6 | Test infrastructure at every pyramid level | ✅ MET — `bank-common-test` harness + Postgres/WireMock proving ITs; TD-014 Closed (2026-09-13) | Swapnali |
@@ -164,7 +171,7 @@ criterion rather than new scope:
 - [ ] Compliance sign-off on audit schema and log samples
 - [ ] Runbook (secrets rotation, IP whitelist, 1SB 401/5xx incident) exists
 - [ ] p95 quote latency measured under nominal concurrency
-- [ ] Coverage gates green; QA-001 closed or waived with expiry (added by CR-001)
+- [x] Coverage gates green; QA-001 closed (Closed 2026-09-13; package floors → QA-012)
 
 ### WS-2 · Workforce Authentication & Authorization
 
@@ -231,7 +238,7 @@ Agents should recognise these so they do not re-report them as new findings. Ful
 | TD-014 | P2 | ~~No WireMock/E2E for integration ↔ persistence~~ | **Closed 2026-09-13** — `bank-common-test` + SharedHarnessProposalSmokeIT |
 | TD-022 | P1 | FUNC-008 payment intimation not implemented | Scheduled Phase 5.3. |
 | TD-023 | P2 | Raw payload capture not wired for status/master-data | Known. |
-| QA-001 | P0 | JaCoCo gates — **partial** | Libs done; service floor interim. |
+| QA-001 | P0 | JaCoCo gates — **Closed** | Phase-1 90/70; scaffold floor ratified; package floors → QA-012 |
 
 > **Rule CS-2 — Duplicate suppression.** Before creating a `SUG-####`, an agent checks the debt
 > ledger and [registers/SUGGESTION-REGISTER.md](./registers/SUGGESTION-REGISTER.md). A repeat

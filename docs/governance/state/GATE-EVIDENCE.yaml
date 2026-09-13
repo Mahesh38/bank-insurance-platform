@@ -156,7 +156,7 @@ workstreams:
         last_verified_at: null
       - id: "4.7"
         description: "Coverage gates green; QA-001 closed or explicitly waived with expiry."
-        state: PARTIAL
+        state: MET
         owner: "Swapnali / QA"
         execution_mode: AUTOMATABLE
         priority: P2
@@ -166,16 +166,10 @@ workstreams:
         verifier: ci
         evidence:
           - "Shared-library coverage gates at 80% line / 70% branch"
-          - "jacocoTestCoverageVerification executes on every pull request via application-ci.yml and is green (348 recorded runs, latest 2026-09-11) — the condition CURRENT-STATE.yaml recorded for returning 4.7 to PARTIAL"
-        blockers:
-          - id: S08-G3
-            type: HARD
-            owner: "Amit / Engineering"
-            # OVERDUE 12 days. DL2. Upstream S08-G3 is itself PARTIAL now: the threshold
-            # mechanism runs, so what remains is a QA decision — close QA-001 or waive it with an
-            # expiry and a compensating control. Either closes 4.7; neither is R12's to make.
-            follow_up: "2026-09-18"
-        last_verified_at: "2026-09-11"
+          - "jacocoTestCoverageVerification executes on every pull request via application-ci.yml and is green"
+          - "QA-001 Closed 2026-09-13; S08-G3 MET — Phase-1 90/70; scaffold floor ratified; package floors → QA-012 with expiry 2026-10-31"
+        blockers: []
+        last_verified_at: "2026-09-13T19:22:01Z"
     approvals: []
 
   - id: WS-2
@@ -317,7 +311,7 @@ workstreams:
         last_verified_at: "2026-09-11"
       - id: "S08-G3"
         description: "Coverage thresholds enforced in CI; QA-001 closed."
-        state: PARTIAL
+        state: MET
         owner: "Swapnali / QA"
         execution_mode: AUTOMATABLE
         priority: P1
@@ -327,12 +321,11 @@ workstreams:
         verifier: ci
         evidence:
           - "Enforcement: build.gradle.kts wires jacocoTestCoverageVerification into `check` and CI names the task explicitly, so a future rewiring cannot silently drop the gate."
-          - "Thresholds in force: libs at 80% line / 70% branch; all other services on the QA-002 interim 50% line floor."
+          - "Thresholds in force: libs 80% line / 70% branch; Phase-1 services (1sb-integration-service, bank-persistence-service) 90% line / 70% branch; scaffold services ratified 50% line module floor."
+          - "QA-001 Closed 2026-09-13 (Swapnali): interim framing retired; package-level strategy §7 floors split to QA-012 (expiry 2026-10-31) with compensating control = module jacocoTestCoverageVerification on every CI check."
+          - "Local verify 2026-09-13: ./gradlew test jacocoTestReport jacocoTestCoverageVerification BUILD SUCCESSFUL; bank-persistence-service measured ~99.0% line / ~85.0% branch under the raised 90/70 gate."
         blockers: []
-        # PARTIAL: the first clause is evidenced, the second is not. QA-001 is open because the
-        # service floor is interim pending QA-003. Closing this needs a QA decision — raise the
-        # floor, or waive QA-001 with an expiry and a compensating control. Both are Swapnali's.
-        last_verified_at: "2026-09-11"
+        last_verified_at: "2026-09-13T19:22:01Z"
       - id: "S08-G4"
         description: "ArchUnit and static analysis enforced in CI; build fails on breach."
         state: PARTIAL

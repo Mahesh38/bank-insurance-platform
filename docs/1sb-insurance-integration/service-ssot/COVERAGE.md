@@ -29,12 +29,13 @@ Examples:
 | Module group | Line | Branch | Notes |
 |--------------|------|--------|-------|
 | `libs/*` | **≥ 80%** | **≥ 70%** | Strategy §7 — enforced immediately |
-| `services:1sb-integration-service` | **≥ 90%** | **≥ 70%** | Raised 2026-08-04 — measured ~90.7% line / ~71.4% branch after closing gaps in `OneSbQuoteAdapter`, `LobQuoteHandlerRegistry`, `LobProposalHandlerRegistry`, plus new raw-payload capture tests |
-| `services/*` (other) | **≥ 50%** (interim) | *not gated* | Raised in QA-002 after persistence API coverage (~96% line measured); package floors still pending QA-003 |
+| `services:1sb-integration-service` | **≥ 90%** | **≥ 70%** | Raised 2026-08-04 — measured ~91.7% line / ~71.8% branch (2026-09-13 re-measure) |
+| `services:bank-persistence-service` | **≥ 90%** | **≥ 70%** | Raised 2026-09-13 (QA-001 close) — measured ~99.0% line / ~85.0% branch |
+| `services/*` (scaffold) | **≥ 50%** | *not gated* | **Ratified scaffold module floor** (Swapnali 2026-09-13) — no longer an open interim; package floors track as **QA-012** |
 
-### Planned service package gates (QA-002 / QA-003)
+### Planned service package gates (QA-012)
 
-Per strategy §7 (not yet enforced as package-level rules):
+Per strategy §7 (not yet enforced as package-level rules — follow-up **QA-012**):
 
 | Package | Line | Branch |
 |---------|------|--------|
@@ -43,7 +44,9 @@ Per strategy §7 (not yet enforced as package-level rules):
 | `…adapter.idempotency.*` | 80% | 70% |
 | `com.bank.persistence.api.*` | 70% | 60% |
 
-**QA-002 note (2026-07-30):** `bank-persistence-service` measured **~96% line / ~75% branch** after jobs/offers/payments/audit API tests; `api.internal.v1` package at **100% line**. Monorepo services interim floor raised **35% → 50%** (both services measured ≥55%). Package-level rules remain deferred to QA-003 / strategy §7.
+**QA-002 note (2026-07-30):** `bank-persistence-service` measured **~96% line / ~75% branch** after jobs/offers/payments/audit API tests; `api.internal.v1` package at **100% line**. Monorepo services floor raised **35% → 50%**.
+
+**QA-001 close (2026-09-13, Swapnali / QA):** Mechanism + Phase-1 module floors are the S08 exit bar. Strategy §7 *package* floors split to **QA-012** (expiry 2026-10-31). Compensating control: module `jacocoTestCoverageVerification` remains on every CI `check`.
 
 ### IT-I template (QA-003)
 
@@ -61,8 +64,9 @@ Applied to report + verification class sets:
 
 | ID | Status | Note |
 |----|--------|------|
-| QA-001 | **Partial** | Libs at strategy thresholds; services interim raised **35% → 50%** line after QA-002 (persistence ~96%); package floors still not enforced |
-| QA-002 | **Done** | Persistence API tests landed; services floor → 50%; package-level `com.bank.persistence.api.*` gate still not enforced (strategy §7) |
-| QA-003 | **Done** | IT-I template `OneSbConnectivityIT` (WireMock 1SB + persistence); package-level JaCoCo floors remain separate follow-up |
+| QA-001 | **Closed** | JaCoCo + CI gates delivered; Phase-1 services at 90/70; scaffold floor ratified at 50% line (2026-09-13) |
+| QA-002 | **Done** | Persistence API tests landed; services floor → 50%; package-level `com.bank.persistence.api.*` gate still not enforced (strategy §7 → QA-012) |
+| QA-003 | **Done** | IT-I template `OneSbConnectivityIT` (WireMock 1SB + persistence) |
+| QA-012 | **Open** | Package-level strategy §7 JaCoCo floors — expiry **2026-10-31**; compensating control = module gates in CI |
 
-Do not lower lib gates without TL + QA Lead co-approval and a TECH-DEBT id + expiry.
+Do not lower lib or Phase-1 gates without TL + QA Lead co-approval and a TECH-DEBT id + expiry.

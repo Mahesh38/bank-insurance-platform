@@ -197,13 +197,13 @@ workstreams:
           owner: "Amit / Engineering"
         - id: "S08-G3"
           criterion: "Coverage thresholds enforced; QA-001 closed"
-          state: PARTIAL
+          state: MET
           owner: "Swapnali / QA"
-          # 2026-09-11 (R12 sweep): first clause now has evidence — jacocoTestCoverageVerification
-          # is wired into `check` and named explicitly in CI, and it executes on every run, which
-          # is what 4.7 was waiting on. Second clause is not met: libs hold 80% line / 70% branch,
-          # every other service still sits on the QA-002 interim 50% line floor pending QA-003, so
-          # QA-001 stays open. Known debt — do not re-report (Rule CS-2).
+          # 2026-09-13 (QA / Swapnali seat): declared MET. QA-001 Closed — Phase-1 services at
+          # 90% line / 70% branch; scaffold 50% line floor ratified; package floors → QA-012
+          # (expiry 2026-10-31). GATE-S08 stays OPEN.
+          # 2026-09-11 (R12 sweep): first clause evidenced; second clause held QA-001 open on the
+          # interim service floor.
         - id: "S08-G4"
           criterion: "ArchUnit and static analysis enforced"
           state: PARTIAL
@@ -382,18 +382,12 @@ workstreams:
           blockers: ["DEP-003"]
         - id: "4.7"
           criterion: "Coverage gates green; QA-001 closed or explicitly waived with expiry"
-          state: PARTIAL
+          state: MET
           owner: "Swapnali / QA"
-          blockers: ["S08-G3"]
-          # CR-010 / Rule GS-3: JaCoCo is configured but has never executed on a pull request.
-          # Closure depends on the WS-3 S08 foundation (IF-3), not on WS-1 effort.
-          # Returns to PARTIAL on the first green application-CI run.
-          # 2026-09-11 (R12 sweep): that condition has fired. Application CI has executed
-          # jacocoTestCoverageVerification on pull requests since 2026-08-16 and is green, so the
-          # criterion moves to PARTIAL under its own recorded rule — not by an agent's judgement.
-          # This also aligns the YAML with 04-STAGE_GATES.md section 6, which has carried 4.7 as
-          # "Partial" throughout. Blocker S08-G3 stands: closure still needs QA-001 closed or
-          # waived with an expiry, which is Swapnali's call.
+          blockers: []
+          # 2026-09-13 (QA / Swapnali seat): QA-001 Closed and S08-G3 MET — criterion satisfied.
+          # 2026-09-11 (R12 sweep): moved BLOCKED → PARTIAL when application CI began executing
+          # jacocoTestCoverageVerification on every PR.
       # 4.5 is owned by Shivanshi (R10 / Board 7), named by CR-008. Previously listed as
       # "Ops" — an approver with no persona, which is why 4.5 could not close.
       approvers: ["Architect", "PO", "QA Lead", "Compliance (4.4)", "Shivanshi / SRE (4.5)"]
@@ -614,7 +608,7 @@ id_prefixes:
 # ---------------------------------------------------------------------------
 # Known debt — do not re-report (01 §6, Rule CS-2)
 # ---------------------------------------------------------------------------
-known_open_debt: [TD-006, TD-007, TD-009, TD-010, TD-022, TD-023, QA-001]
+known_open_debt: [TD-006, TD-007, TD-009, TD-010, TD-022, TD-023, QA-012]
 
 registers:
   suggestions: "docs/governance/registers/SUGGESTION-REGISTER.md"

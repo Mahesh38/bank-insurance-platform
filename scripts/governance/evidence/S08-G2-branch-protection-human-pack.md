@@ -101,6 +101,16 @@ Optional (present but not part of the original four-name contract):
 }
 ```
 
+
+## Helper scripts (2026-09-13)
+
+| Script | Who | Purpose |
+|---|---|---|
+| `scripts/governance/evidence/S08-G2-verify-required-checks.sh` | anyone / agent | Read-only GET probe — exit 1 until the four checks are enforced (latest log: `S08-G2-verify-required-checks.out`) |
+| `scripts/governance/evidence/S08-G2-apply-required-checks.sh` | **repo admin** | Creates the active required-checks ruleset (`DRY_RUN=1` to print payload). Agent token gets HTTP 403. |
+
+After apply: re-run verify (expect exit 0), then do the blocked-merge demo below before declaring MET.
+
 ## Blocked-merge demonstration (E4)
 
 After protection is on:

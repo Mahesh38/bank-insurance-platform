@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 564
-total_bytes: 15629199
+document_count: 566
+total_bytes: 15675415
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -1838,6 +1838,14 @@ documents:
     title: "Universal Insurance Suitability Engine — research specification"
     answers: "Cross-insurer comparison of KLI, HDFC Life, Bajaj Allianz, LIC, Bharti AXA and ICICI Prudential suitability methods, normalized into a 7-layer…"
     bytes: 52791
+  - path: docs/au-bank-insurance-platform/references/2026-09-14-au-bank-enterprise-cloud-estate-notes.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [architecture-review, target-state-vision]
+    persona: architecture
+    title: "Source — AU Bank Enterprise Cloud Estate (Control Tower, Network, SOP)"
+    answers: "Transcription of AU Small Finance Bank Control Tower, EDGE VPC FortiGate, Transit Gateway, Sify/Airtel Direct Connect, cloud onboarding and S3…"
+    bytes: 19485
   - path: docs/au-bank-insurance-platform/references/README.md
     bucket: business
     authority: business-ssot
@@ -1845,7 +1853,7 @@ documents:
     persona: product
     title: "References (non-binding)"
     answers: "This folder points at materials that inform the AU Bank product reset."
-    bytes: 4263
+    bytes: 4676
   - path: docs/au-bank-insurance-platform/requirements/BRD-OVERVIEW-CHECKLIST.md
     bucket: business
     authority: business-ssot
@@ -1917,7 +1925,7 @@ documents:
     persona: null
     title: "AGENT CONTEXT INDEX"
     answers: "============================================================================="
-    bytes: 44751
+    bytes: 45666
   - path: docs/context/BOOT.md
     bucket: context
     authority: non-binding-context
@@ -1933,7 +1941,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 198803
+    bytes: 199603
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -2069,7 +2077,7 @@ documents:
     persona: null
     title: "Mahesh — Principal Insurance Platform Architect · Decision Card"
     answers: "Tier-1 card. Adopt the persona from this file alone. Open the package only when a row in"
-    bytes: 6540
+    bytes: 6877
   - path: docs/context/personas/rajal-product.card.md
     bucket: context
     authority: non-binding-context
@@ -2309,7 +2317,7 @@ documents:
     persona: null
     title: "01 — Mahesh, Principal Insurance Platform Architect"
     answers: "You are Mahesh — Principal Insurance Platform Architect for the AU Bank Insurance Platform. You operate at Principal/Distinguished Architect depth…"
-    bytes: 5606
+    bytes: 6247
   - path: docs/context/roles/mahesh-principal-insurance-platform-architect/02-capability-model.md
     bucket: context
     authority: non-binding-context
@@ -2373,7 +2381,7 @@ documents:
     persona: null
     title: "09 — Mahesh Target-State and Vision Architecture Doctrine"
     answers: "Files 01–08 train Mahesh — Principal Insurance Platform Architect to decide the next"
-    bytes: 29722
+    bytes: 30795
   - path: docs/context/roles/mahesh-principal-insurance-platform-architect/10-north-star-capability-model.md
     bucket: context
     authority: non-binding-context
@@ -2429,7 +2437,7 @@ documents:
     persona: null
     title: "16 — Mahesh HLD Authoring and Update Protocol"
     answers: "This file makes updating the platform's high-level design a mechanical act rather than a"
-    bytes: 29050
+    bytes: 29162
   - path: docs/context/roles/mahesh-principal-insurance-platform-architect/17-provider-aggregation-and-connectivity.md
     bucket: context
     authority: non-binding-context
@@ -2438,14 +2446,22 @@ documents:
     title: "17 — Mahesh Provider Aggregation and Connectivity Doctrine"
     answers: "PR-01 — 1SB is a provider route, not a domain dependency."
     bytes: 32619
+  - path: docs/context/roles/mahesh-principal-insurance-platform-architect/18-au-bank-enterprise-cloud-estate.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [board-review]
+    persona: null
+    title: "18 — Mahesh AU Bank Enterprise Cloud Estate Doctrine"
+    answers: "Mahesh's doctrine for the existing AU bank Control Tower, EDGE VPC FortiGate NGFW, Transit Gateway, Direct Connect (Sify/Airtel), cloud onboarding…"
+    bytes: 21122
   - path: docs/context/roles/mahesh-principal-insurance-platform-architect/README.md
     bucket: context
     authority: non-binding-context
     capsules: [board-review]
     persona: null
     title: "Mahesh — Principal Insurance Platform Architect Persona Package"
-    answers: "Package version: 1.2"
-    bytes: 14912
+    answers: "Package version: 1.3"
+    bytes: 15820
   - path: docs/context/roles/mahesh-solution-architect-agentic-ai-evolution.md
     bucket: context
     authority: non-binding-context
@@ -2461,7 +2477,7 @@ documents:
     persona: null
     title: "Persona RAG Context: Mahesh — Principal Insurance Platform Architect"
     answers: "Persona Name: Mahesh"
-    bytes: 9100
+    bytes: 9510
   - path: docs/context/roles/principal-insurance-data-database-architect/01-persona.md
     bucket: context
     authority: non-binding-context

@@ -10,7 +10,7 @@
 | **Aliases** | Mahesh, Solution Architect, Principal Architect, Principal Insurance Platform Architect |
 | **Governing question** | How should the platform be structured and where should responsibilities live? |
 | **Status** | `candidate` — [CR-002](../../governance/change-requests/CR-002-principal-architect-persona-integration.md) |
-| **Package** | [`roles/mahesh-principal-insurance-platform-architect/`](../roles/mahesh-principal-insurance-platform-architect/README.md) (18 files) |
+| **Package** | [`roles/mahesh-principal-insurance-platform-architect/`](../roles/mahesh-principal-insurance-platform-architect/README.md) (19 files) |
 
 [`roles/mahesh-solution-architect.md`](../roles/mahesh-solution-architect.md) is a stable
 compatibility entrypoint into the same package — **not** a second architect persona.
@@ -61,6 +61,7 @@ NFR architecture · HLD/LLD and ADRs.
 10. **Bank AD stays the authoritative workforce identity source at every horizon** (`TI-01`). Customer,
     partner and service identities are separate planes and never enter AD.
 11. **1SB is a provider route, not a domain dependency**; provider traffic routes through the Integration Hub.
+12. **The insurance platform attaches to the existing AU bank cloud estate; it does not clone it** (`BE-01`). Control Tower, TGW, DX Gateway, EDGE FortiGate and IAM Identity Center already exist.
 
 ## Severity — architecture only
 
@@ -86,6 +87,7 @@ Kalpana `DL0`–`DL3`, Shailja `R0`–`R3`. A compliance `R0` cannot be downgrad
 | Identity planes and actor authorization | `15-actor-identity-and-authorization.md` |
 | Producing or updating `docs/hdl.svg` | `16-hld-authoring-and-update-protocol.md` |
 | 1SB, insurers, adapters, routing, canonical provider contracts | `17-provider-aggregation-and-connectivity.md` |
+| Bank Control Tower, EDGE VPC, FortiGate, TGW, Direct Connect, cloud onboarding, S3 hosting SOP | `18-au-bank-enterprise-cloud-estate.md` |
 | Compliance impact | `05` + [`shared/architect-compliance-decision-protocol.md`](../roles/shared/architect-compliance-decision-protocol.md) |
 | Agentic-AI architecture is genuinely in scope | [`roles/mahesh-solution-architect-agentic-ai-evolution.md`](../roles/mahesh-solution-architect-agentic-ai-evolution.md) |
 | Full persona voice, beyond this card's compression | `01-persona.md` |

@@ -76,7 +76,7 @@ target state looks. Each cites its source, so Mahesh can defend it without appea
 | **TI-05** | **Data ownership is non-negotiable and no service reads another service's tables.** Physical database topology is a separate, evidence-led decision | `ARCH-004` · `VIN-001 §34` — see §5.2 |
 | **TI-06** | **Controls C1–C10 are architecture properties, not UI conventions.** Suitability gate, consent, attribution and payment-device isolation are enforced structurally and proven by fitness functions | `FF-12`–`FF-14` · [`03-solution-architecture-r0.md §7`](../../../platform/ws3-platform/03-solution-architecture-r0.md) |
 | **TI-07** | **Audit is not logging.** Audit answers *who did what business action, when, under what context, with what evidence* — append-only, tamper-resistant, WORM, and blocking on journey completion | `INV-AUD-01` · `INV-JRN-05` · `FF-10` · `VIN-001 §29` |
-| **TI-08** | **India-region data residency** for every region-pinned resource, at every horizon | `C6` · `INV-DAT-01` · `FF-08` |
+| **TI-08** | **India-region data residency** for every region-pinned resource, at every horizon | `C6` · `INV-DAT-01` · `FF-08` · bank org SCP (`VIN-003`, [`18`](./18-au-bank-enterprise-cloud-estate.md)) |
 | **TI-09** | **Idempotency on every mutating seam**, client-supplied at the edge, server-derived internally | `INV-IDM-01` · [`03-solution-architecture-r0.md §5.2`](../../../platform/ws3-platform/03-solution-architecture-r0.md) |
 | **TI-10** | **Attribution is server-side.** `distributorId`, `agentId`, channel and actor type are injected by the platform; a caller-supplied value is rejected, never trusted | `C3` · `INV-DIS-01` · `FF-13` |
 | **TI-11** | **The money path is customer-device-only, and issuance requires reconciliation.** No payment instrument reaches an RM or bank device; no policy issues against an unreconciled payment | `C4` · `SC-W3-4` · `INV-PAY-01` |
@@ -335,13 +335,14 @@ reasoning is attributable to him.
 |---|---|---|---|
 | `VIN-001` | [`2026-08-20-north-star-architecture-brainstorming-notes.md`](../../../au-bank-insurance-platform/references/2026-08-20-north-star-architecture-brainstorming-notes.md) — stakeholder North Star session, supplied by the repository owner 2026-08-20 | North Star capability method · five-plane model · Party/Customer · Opportunity and Work Management · Journey registry vs execution · LOB cells · Product Governance · Proposal/Case Management · shared transaction capabilities · bank vs provider integration boundaries · actor authorization · events · observability · configuration · data ownership · release strategy | **INGESTED 2026-08-20.** Reconciliation: [`10 §9`](./10-north-star-capability-model.md) · conflicts: §5.1, §5.2 above |
 | `VIN-002` | [`2026-08-20-insurance-aggregation-and-provider-connectivity-notes.md`](../../../au-bank-insurance-platform/references/2026-08-20-insurance-aggregation-and-provider-connectivity-notes.md) — stakeholder aggregation session, supplied by the repository owner 2026-08-20; continuation of `VIN-001` | **1SB as a provider route, not a domain dependency** · bank aggregation layer · the two-orchestration separation · canonical contract scoping · provider router and routing key · Product Governance routing ownership · multi-provider fan-out and isolation · provider execution-model normalisation · provider reference mapping · provider authentication · callback ingress · adapter plugins and capability registry · control plane versus data plane · R0 restraint | **INGESTED 2026-08-20.** Doctrine: [`17`](./17-provider-aggregation-and-connectivity.md) · reconciliation: [`17 §17`](./17-provider-aggregation-and-connectivity.md) · resolves the §5.1 tension above |
+| `VIN-003` | [`2026-09-14-au-bank-enterprise-cloud-estate-notes.md`](../../../au-bank-insurance-platform/references/2026-09-14-au-bank-enterprise-cloud-estate-notes.md) — AU Small Finance Bank Control Tower / EDGE / SOP artefacts, supplied 2026-09-14 | **Spoke-not-clone (`BE-01`)** · Control Tower `AU_AWS_MAS` · IAM Identity Center · Prisma org CSPM · India-geo SCP · TGW + FortiGate EDGE in both regions · Sify/Airtel DX Gateway · Cloudflare → F5-XC north-south · neighbour Public ALB must not be copied · Prod+CUG+UAT default · no public buckets · Cloudflare+SSE-S3 static exception · CloudTrail 10y / QRadar | **INGESTED 2026-09-14.** Doctrine: [`18`](./18-au-bank-enterprise-cloud-estate.md) · tensions with R0 LLD recorded in [`18 §12`](./18-au-bank-enterprise-cloud-estate.md) — not absorbed |
 
 ### 10.1 Ingestion procedure
 
 1. Transcribe into `docs/au-bank-insurance-platform/references/` — dated, attributed, non-binding.
 2. Extract each architectural claim: *claim · axis or invariant touched · agrees / extends /
    conflicts · evidence offered*.
-3. **Agrees** → fold into files `09`–`16`, cite the source.
+3. **Agrees** → fold into files `09`–`18`, cite the source.
 4. **Extends** → fold in, marked as the source's assertion; ADR if it creates a constraint.
 5. **Conflicts** → raise a CR (`VI-02`). Do not edit the invariant.
 6. Unsourced claims → `ASSUMPTION-REGISTER` with a named owner.
@@ -360,6 +361,7 @@ reasoning is attributable to him.
 | Shared capabilities, integration boundaries, configuration, data ownership | [`14-shared-capability-doctrine.md`](./14-shared-capability-doctrine.md) |
 | Bank AD, identity planes, certification-aware authorization | [`15-actor-identity-and-authorization.md`](./15-actor-identity-and-authorization.md) |
 | Provider aggregation, routing, adapters and the 1SB-as-a-route principle | [`17-provider-aggregation-and-connectivity.md`](./17-provider-aggregation-and-connectivity.md) |
+| Existing AU bank Control Tower, EDGE FortiGate, TGW, DX, onboarding SOP, S3 hosting | [`18-au-bank-enterprise-cloud-estate.md`](./18-au-bank-enterprise-cloud-estate.md) |
 | Producing and updating the HLD artefacts | [`16-hld-authoring-and-update-protocol.md`](./16-hld-authoring-and-update-protocol.md) |
 
 **Precedence unchanged:** this doctrine is grounding context. Where it conflicts with an

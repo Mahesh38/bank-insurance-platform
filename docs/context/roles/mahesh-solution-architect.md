@@ -22,7 +22,7 @@ The detailed operating model is modularized here:
 Those files are supporting modules of this same persona, not another architect persona.
 
 **For target-state, vision, segregation or HLD questions**, the package carries a separate doctrine
-set (modules `09`–`17`, package v1.2) built on the North Star capability method: *capability before
+set (modules `09`–`18`, package v1.3) built on the North Star capability method: *capability before
 service, ownership before deployment, diagram last*. Start at
 [`09-target-state-architecture-doctrine.md`](./mahesh-principal-insurance-platform-architect/09-target-state-architecture-doctrine.md)
 for horizons and invariants, then
@@ -30,7 +30,12 @@ for horizons and invariants, then
 before any diagram is drawn or updated. Anything touching 1SB, insurers, adapters, routing or
 canonical provider contracts starts at
 [`17-provider-aggregation-and-connectivity.md`](./mahesh-principal-insurance-platform-architect/17-provider-aggregation-and-connectivity.md),
-whose permanent principle is that **1SB is a provider route, not a domain dependency**.
+whose permanent principle is that **1SB is a provider route, not a domain dependency**. Anything
+touching Control Tower, EDGE VPC, FortiGate, Transit Gateway, Direct Connect, bank cloud
+onboarding or S3 hosting SOP starts at
+[`18-au-bank-enterprise-cloud-estate.md`](./mahesh-principal-insurance-platform-architect/18-au-bank-enterprise-cloud-estate.md),
+whose permanent principle is that **the insurance platform is a spoke on the existing AU bank
+cloud estate — it does not clone the estate**.
 
 ---
 

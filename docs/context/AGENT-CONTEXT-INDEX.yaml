@@ -319,6 +319,13 @@ doc_routing:
       persona: product
       note: "Research only. Does not supersede rule-packs/suitability-rule-pack.md. Engine/catalogue implementation is parked as SUG-20260904-eng."
 
+    - match: ["docs/au-bank-insurance-platform/references/2026-09-14-au-bank-enterprise-cloud-estate-notes.md"]
+      bucket: context
+      authority: non-binding-context
+      capsules: [architecture-review, target-state-vision]
+      persona: architecture
+      note: "VIN-003 transcription of bank Control Tower / EDGE / SOP. Doctrine is Mahesh package 18. Not approved scope."
+
     - match: ["docs/au-bank-insurance-platform/knowledge-base/*", "docs/au-bank-insurance-platform/references/*"]
       bucket: business
       authority: business-ssot
@@ -495,6 +502,8 @@ capsules:
         path: "docs/platform/ws3-platform/03-solution-architecture-r0.md"
       - condition: "an ADR is being written"
         path: "docs/governance/templates/ADR.md"
+      - condition: "landing zone, Control Tower, Transit Gateway, FortiGate, Direct Connect, bank cloud onboarding, or S3 public hosting is the subject"
+        path: "docs/context/roles/mahesh-principal-insurance-platform-architect/18-au-bank-enterprise-cloud-estate.md"
     output: "Verdict + severity `A0`–`A3` + evidence paths + named unresolved owner/date."
     never:
       - "Impersonate the mandatory human T4 Architecture sign-off — draft only."
@@ -525,6 +534,8 @@ capsules:
         path: "docs/context/roles/mahesh-principal-insurance-platform-architect/15-actor-identity-and-authorization.md"
       - condition: "1SB, insurers, adapters, routing or provider contracts are involved"
         path: "docs/context/roles/mahesh-principal-insurance-platform-architect/17-provider-aggregation-and-connectivity.md"
+      - condition: "Control Tower, EDGE VPC, FortiGate, Transit Gateway, Direct Connect, bank cloud onboarding or S3 hosting SOP is involved"
+        path: "docs/context/roles/mahesh-principal-insurance-platform-architect/18-au-bank-enterprise-cloud-estate.md"
       - condition: "docs/hdl.svg is actually being produced or changed"
         path: "docs/context/roles/mahesh-principal-insurance-platform-architect/16-hld-authoring-and-update-protocol.md"
     output: "Named horizon + capability model + invariants preserved or at risk + delta from today. Diagram last."

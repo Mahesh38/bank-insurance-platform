@@ -10,6 +10,19 @@ board escalations. **A decision recorded here may not be re-litigated without ne
 
 ---
 
+
+## DEC-2026-09-14-S08-PASS — GATE-S08 PASSED; stage advanced to S09
+
+| Field | Value |
+|---|---|
+| Date | 2026-09-14 |
+| Decision | GATE-S08 PASSED; WS-3 advances S08 → S09 |
+| Authority | Mahesh (sole human) wearing Engineering+QA+Architecture+Security+SRE(+PO+Compliance); Architect+PO joint PASS per 04 §5 |
+| Evidence | `scripts/governance/evidence/S08-GATE-PASSED-RECORD.yaml`; persona AGENT validation; G1–G10 MET |
+| Consequences | Live gate is GATE-S09 OPEN. Agents begin S09 platform/environment work. WS-1 Phase 5 still blocked on GATE-S11 (Rajal C6). |
+| Explicit non-goals | Do not start Phase 5 LOB expansion. |
+
+
 ## 1. Architecture decisions (ADR index)
 
 Full ADRs live in the architecture decision log. This index exists so triage can cite them

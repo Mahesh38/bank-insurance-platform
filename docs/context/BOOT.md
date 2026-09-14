@@ -80,19 +80,32 @@ Full table with the wrong-instinct column:
 
 > Generated from [`CURRENT-STATE.yaml`](../governance/state/CURRENT-STATE.yaml) by `scripts/context/build-boot-capsule.py`. Do not hand-edit this block.
 
-**AIGEM 1.4** · state as of **2026-09-13** · review due **2026-10-11** · provisional: **no**
+**AIGEM 1.4** · state as of **2026-09-14** · review due **2026-10-11** · provisional: **no**
 
 > **Fact 9 — freshness.** Past `review_due`, an agent may park and reject but **must not admit new work** (Rule CS-1). Run `java scripts/governance/FreshnessCheck.java` and act on the exit code: `0` fresh · `1` warn, disclose it · `2` do not admit.
 
 ### WS-3 — AU Bank Insurance Distribution Platform
 
-**Stage:** S08 — Engineering Foundation · `IN_PROGRESS`  
-**Phase:** Foundation Recovery Increment — S08 with S09 overlapped  
-**Next:** S09 — Platform & Environment Foundation
+**Stage:** S09 — Platform & Environment Foundation · `IN_PROGRESS`  
+**Phase:** Foundation Recovery Increment — S09 platform & environment foundation  
+**Next:** S10 — Integration & Connectivity
 
 **Objective** (`R0-ASSISTED-LIFE-SALE`): One RM sells a complete Life insurance policy — Term or Savings/ULIP — to one ETB customer from one Group A insurer, end to end, through a real interface, with consent and suitability evidence, payment on the customer's own device, an issued and reconciled policy, and a complete audit trail. R0 includes both Term and Savings/ULIP assisted paths (CR-015). DIY and hybrid stay sequenced behind the assisted journey.
 
-**Open gate:** `GATE-S08` · state `OPEN` · 0 of 10 exit criteria not yet met — 
+**Open gate:** `GATE-S09` · state `OPEN` · 13 of 13 exit criteria not yet met — 13 OPEN
+- `S09-G1` **OPEN** — All infrastructure defined as code; no console-created production resource · Shivanshi / SRE
+- `S09-G2` **OPEN** — Dev, UAT and production provisioned from the same modules · Shivanshi / SRE
+- `S09-G3` **OPEN** — Environment recreatable from code · Shivanshi / SRE
+- `S09-G4` **OPEN** — Automated deployment with tested rollback · Shivanshi / SRE + Amit / Engineering
+- `S09-G5` **OPEN** — Secrets management operational; TD-006 closed · Deepali / Security + Shivanshi / SRE
+- `S09-G6` **OPEN** — Observability operational: metrics, logs, traces correlated · Shivanshi / SRE
+- `S09-G7` **OPEN** — Backup automated and restore proven against RTO/RPO · Aarti / Database + Shivanshi / SRE
+- `S09-G8` **OPEN** — 7-year immutable retention implemented · Shivanshi / SRE + Shailja / Compliance
+- `S09-G9` **OPEN** — Data residency attested · Shivanshi / SRE + Shailja / Compliance
+- `S09-G10` **OPEN** — Encryption at rest and in transit verified · Deepali / Security
+- `S09-G11` **OPEN** — Network segmentation and least-privilege IAM enforced · Deepali / Security
+- `S09-G12` **OPEN** — IaC scanning in the pipeline · Deepali / Security + Shivanshi / SRE
+- `S09-G13` **OPEN** — No PII in aggregated logs · Deepali / Security
 
 **Out of scope now — do not propose, do not build:**
 - Customer self-service (DIY) journey — revisit at R1 — after the assisted journey completes a real sale in pilot

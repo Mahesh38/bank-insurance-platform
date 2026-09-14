@@ -1,470 +1,421 @@
 schema_version: "1.0"
-as_of: "2026-09-13"
+as_of: "2026-09-14"
 
-# 2026-09-13 — SRE (Shivanshi seat) closed S08-G9 → MET. Measured Application CI via
-# scripts/governance/measure-pipeline-feedback.py: p95 feedback ~2.8 min across ≥20 PR runs;
-# flake rate 0.00% across ≥50 concluded runs (401 API total; 351 concluded). Committed snapshot
-# scripts/governance/evidence/S08-G9-pipeline-feedback.json; governance CI asserts thresholds.
-# GATE-S08 stays OPEN; policy.mode proposal-only; approvals empty; no stage field touched.
+# 2026-09-14 — HUMAN SIGNOFF by Mahesh (sole human on this repository).
+# GATE-S08 PASSED. Actor wore Engineering+QA+Architecture+Security+SRE(+PO+Compliance) seats.
+# Stage advanced S08 → S09. Archived S08 ledger: scripts/governance/evidence/S08-GATE-PASSED-RECORD.yaml
+# Live WS-3 gate is now GATE-S09 OPEN. WS-1 Phase 5 remains gated on GATE-S11 (Rajal C6) — not started.
+# Agents may begin S09 platform/environment work only.
 #
-# 2026-09-13 — Security (Deepali seat) closed S08-G7 → MET. Framework LogPiiScrubber on
-# Slf4jErrorRecorder plus NoPiiInEmittedLogsTest (S08-VT-06 ListAppender scan of emitted logs for
-# PAN, Aadhaar, phone, email, health). Local verify: bank-common-error test + coverage green.
-# GATE-S08 stays OPEN; policy.mode proposal-only; approvals empty; no stage field touched.
-#
-# 2026-09-13 — Engineering (Amit seat) closed S08-G4 → MET. Spotless (ratchetFrom origin/main)
-# + Checkstyle (config/checkstyle, maxWarnings=0) wired into root `check` and named explicitly
-# in application-ci.yml. Local verify: checkstyle/spotless clean exit 0; star-import and
-# format-breach probes exit 1. ArchUnit half unchanged. GATE-S08 stays OPEN; policy.mode
-# proposal-only; approvals empty; no stage field touched.
-#
-# 2026-09-13 — Security (Deepali seat) closed S08-G5 → MET. Container image scanning added to
-# security-scanning.yml (Trivy image job matrix: bank-persistence-service, 1sb-integration-service,
-# bank-insurance-combined). Local verify: CRITICAL/HIGH 0 on all three images with ignore-unfixed.
-# GATE-S08 stays OPEN; policy.mode proposal-only; approvals empty; no stage field touched.
-#
-# 2026-09-13 — QA (Swapnali seat) closed S08-G6 → MET after Engineering cleared TD-014
-# with libs/bank-common-test (Testcontainers + WireMock harness) and proving ITs. GATE-S08 stays OPEN.
-
-# 2026-09-13 — Engineering (Amit seat) closed S08-G1 → MET. Verifier is `ci`. Re-verified
-# against application-ci.yml (no path filter on pull_request; push to every branch), the root
-# Gradle line covering all 27 modules in settings.gradle.kts, and run history (392 recorded
-# runs; latest 20 all success, tip run 34768713603 at 2026-09-13T16:29:09Z). This is a
-# criterion closure, not a gate transition: GATE-S08 remains OPEN, policy.mode remains
-# proposal-only, every approvals: list remains empty, and no stage field was touched.
-#
-# 2026-09-11 — R12 (Kalpana seat) gate-evidence sweep, run with the CURRENT-STATE.yaml freshness
-# refresh. Three things happened here and they are deliberately different actions:
-#
-#  1. EVIDENCE ASSEMBLED. Criteria whose mechanism now demonstrably exists carry that evidence in
-#     `evidence:` and a `last_verified_at` date. Assembling evidence is not passing a gate.
-#     `policy.mode` is still proposal-only, `human_pass_required` is still true, and every
-#     `approvals:` list is still empty. No criterion was set MET or WAIVED by that sweep.
-#
-#  2. BLOCKER AGEING CORRECTED. Every follow-up date in this file had passed — the newest by 12
-#     days, the oldest by 21. A follow-up date in the past is not a tracked dependency, it is a
-#     hope (Rule DEP-3). Each one is re-dated below against its named owner, with the delivery
-#     severity that set the window: DL1 = 2 working days (2026-09-15), DL2 = 5 (2026-09-18).
-#     R12 sets the date and names the owner. R12 does not supply the answer (Rule PA-1).
-#
-#  3. GAPS NAMED. Where a criterion is short of its own S08-VT validation test, the missing half
-#     is stated rather than averaged into "in progress". (G4 static analysis, G5 image scanning,
-#     G6 shared harness and G7 log-scan PII test closed 2026-09-13.)
-
 policy:
   mode: proposal-only
   human_pass_required: true
   silence_approves: false
   automatic_waivers: false
-
 workstreams:
-  - id: WS-1
-    gate_id: GATE-P4
-    current_stage: "Phase 4 — Hardening & consumer enablement"
-    next_stage: "Phase 5 — Expand LOBs"
-    bible_stage: S12
+- id: WS-1
+  gate_id: GATE-P4
+  current_stage: Phase 4 — Hardening & consumer enablement
+  next_stage: Phase 5 — Expand LOBs
+  bible_stage: S12
+  state: BLOCKED
+  required_approvers:
+  - Architect
+  - Product
+  - QA
+  - Compliance
+  - Operations
+  criteria:
+  - id: '4.1'
+    description: Sandbox E2E suite for the Term path runs in CI or gated nightly.
     state: BLOCKED
-    required_approvers: [Architect, Product, QA, Compliance, Operations]
-    criteria:
-      - id: "4.1"
-        description: "Sandbox E2E suite for the Term path runs in CI or gated nightly."
-        state: BLOCKED
-        owner: "Amit / Engineering + Shivanshi / SRE"
-        execution_mode: AUTOMATABLE
-        priority: P1
-        effort: L
-        enables: 3
-        required_evidence_level: E4
-        verifier: ci
-        evidence: []
-        blockers:
-          - id: GATE-4.1-SANDBOX-E2E
-            type: ENVIRONMENT
-            owner: "Amit / Engineering"
-            # OVERDUE 21 days (was 2026-08-21). Re-dated by R12 on 2026-09-11: DL1, because this
-            # blocker enables three other criteria and also holds 4.6 through DEP-003. It is the
-            # single highest-leverage open item on GATE-P4.
-            follow_up: "2026-09-15"
-        last_verified_at: null
-      - id: "4.2"
-        description: "OpenAPI published to the internal portal; consumer collection available."
-        state: PARTIAL
-        owner: "Amit / Engineering"
-        execution_mode: AUTOMATABLE
-        priority: P2
-        effort: S
-        enables: 1
-        required_evidence_level: E3
-        verifier: document
-        evidence: ["OpenAPI generated in commit 79c65f4"]
-        blockers: []
-        # Still PARTIAL on 2026-09-11: the contract is generated, the portal publication and the
-        # consumer collection are not done. DEP-001 makes 4.3 wait on exactly this.
-        last_verified_at: "2026-09-11"
-      - id: "4.3"
-        description: "At least one bank caller exercises quote and proposal against UAT."
-        state: BLOCKED
-        owner: "Rajal / Product"
-        execution_mode: EXTERNAL_REQUIRED
-        priority: P2
-        effort: M
-        enables: 0
-        required_evidence_level: E3
-        verifier: external
-        evidence: []
-        blockers:
-          - id: DEP-001
-            type: HARD
-            owner: "Amit / Engineering"
-            # OVERDUE 21 days. DL1 — it is a publication step, not a build.
-            follow_up: "2026-09-15"
-          - id: DEP-002
-            type: EXTERNAL
-            owner: "Rajal / Product"
-            # OVERDUE 21 days. DL2 for the CHASE, not for the slot: the bank app team owns the
-            # slot and R12 cannot shorten someone else's calendar. What is owed by 2026-09-18 is
-            # a named date or a stated refusal, either of which is progress. Silence is not.
-            follow_up: "2026-09-18"
-        last_verified_at: null
-      - id: "4.4"
-        description: "Compliance review of audit schema and log samples."
-        state: OPEN
-        owner: "Shailja / Compliance"
-        execution_mode: HUMAN_REQUIRED
-        priority: P1
-        effort: M
-        enables: 2
-        required_evidence_level: E2
-        verifier: human-review
-        evidence: []
-        blockers: []
-        last_verified_at: null
-      - id: "4.5"
-        description: "Operations runbook covers secrets rotation, allowlisting and 1SB incidents."
-        state: OPEN
-        owner: "R10 / Operations"
-        execution_mode: AUTOMATABLE
-        priority: P3
-        effort: S
-        enables: 0
-        required_evidence_level: E2
-        verifier: document
-        evidence: []
-        blockers: []
-        last_verified_at: null
-      - id: "4.6"
-        description: "Performance smoke measures p95 quote latency under nominal concurrency."
-        state: BLOCKED
-        owner: "Amit / Engineering + R10 / Operations"
-        execution_mode: AUTOMATABLE
-        priority: P2
-        effort: M
-        enables: 0
-        required_evidence_level: E4
-        verifier: ci
-        evidence: []
-        blockers:
-          - id: DEP-003
-            type: SOFT
-            owner: "Amit / Engineering"
-            # OVERDUE 18 days. DL2. Soft edge: the smoke can be built standalone at higher cost,
-            # so this is a sequencing choice to confirm, not a wall.
-            follow_up: "2026-09-18"
-        last_verified_at: null
-      - id: "4.7"
-        description: "Coverage gates green; QA-001 closed or explicitly waived with expiry."
-        state: MET
-        owner: "Swapnali / QA"
-        execution_mode: AUTOMATABLE
-        priority: P2
-        effort: M
-        enables: 0
-        required_evidence_level: E4
-        verifier: ci
-        evidence:
-          - "Shared-library coverage gates at 80% line / 70% branch"
-          - "jacocoTestCoverageVerification executes on every pull request via application-ci.yml and is green"
-          - "QA-001 Closed 2026-09-13; S08-G3 MET — Phase-1 90/70; scaffold floor ratified; package floors → QA-014 with expiry 2026-10-31"
-        blockers: []
-        last_verified_at: "2026-09-13T19:22:01Z"
-    approvals: []
-
-  - id: WS-2
-    gate_id: GATE-IAM-P1
-    current_stage: "Phase 1 — Foundation implementation"
-    next_stage: "Phase 2 — Bank AD federation + production IdP decision"
-    bible_stage: null
+    owner: Amit / Engineering + Shivanshi / SRE
+    execution_mode: AUTOMATABLE
+    priority: P1
+    effort: L
+    enables: 3
+    required_evidence_level: E4
+    verifier: ci
+    evidence: []
+    blockers:
+    - id: GATE-4.1-SANDBOX-E2E
+      type: ENVIRONMENT
+      owner: Amit / Engineering
+      follow_up: '2026-09-15'
+    last_verified_at: null
+  - id: '4.2'
+    description: OpenAPI published to the internal portal; consumer collection available.
+    state: PARTIAL
+    owner: Amit / Engineering
+    execution_mode: AUTOMATABLE
+    priority: P2
+    effort: S
+    enables: 1
+    required_evidence_level: E3
+    verifier: document
+    evidence:
+    - OpenAPI generated in commit 79c65f4
+    blockers: []
+    last_verified_at: '2026-09-11'
+  - id: '4.3'
+    description: At least one bank caller exercises quote and proposal against UAT.
+    state: BLOCKED
+    owner: Rajal / Product
+    execution_mode: EXTERNAL_REQUIRED
+    priority: P2
+    effort: M
+    enables: 0
+    required_evidence_level: E3
+    verifier: external
+    evidence: []
+    blockers:
+    - id: DEP-001
+      type: HARD
+      owner: Amit / Engineering
+      follow_up: '2026-09-15'
+    - id: DEP-002
+      type: EXTERNAL
+      owner: Rajal / Product
+      follow_up: '2026-09-18'
+    last_verified_at: null
+  - id: '4.4'
+    description: Compliance review of audit schema and log samples.
     state: OPEN
-    required_approvers: [Architect, Security, Compliance, QA]
-    # 2026-09-11 (R12 sweep): all six criteria re-read, all six still OPEN with empty evidence and
-    # no blockers recorded. Six criteria with no blockers and no progress for a month is not a
-    # blocked workstream, it is an unstaffed one — a different problem with a different fix, and
-    # the reason no `blockers:` entry is being invented here to explain it.
-    criteria:
-      - id: A.1
-        description: "BFF token-hiding proven; Flutter never receives OAuth tokens."
-        state: OPEN
-        owner: "Amit / Engineering"
-        execution_mode: AUTOMATABLE
-        priority: P1
-        effort: M
-        enables: 1
-        required_evidence_level: E4
-        verifier: ci
-        evidence: []
-        blockers: []
-        last_verified_at: null
-      - id: A.2
-        description: "Keycloak isolated behind the identity-provider adapter."
-        state: OPEN
-        owner: "Mahesh / Architecture"
-        execution_mode: AUTOMATABLE
-        priority: P1
-        effort: M
-        enables: 1
-        required_evidence_level: E4
-        verifier: ci
-        evidence: []
-        blockers: []
-        last_verified_at: null
-      - id: A.3
-        description: "Authorization service is the PDP and default-deny is verified."
-        state: OPEN
-        owner: "Amit / Engineering"
-        execution_mode: AUTOMATABLE
-        priority: P1
-        effort: M
-        enables: 1
-        required_evidence_level: E4
-        verifier: ci
-        evidence: []
-        blockers: []
-        last_verified_at: null
-      - id: A.4
-        description: "Maker-checker enforced for bulk and privileged changes."
-        state: OPEN
-        owner: "Deepali / Security"
-        execution_mode: AUTOMATABLE
-        priority: P1
-        effort: M
-        enables: 0
-        required_evidence_level: E4
-        verifier: ci
-        evidence: []
-        blockers: []
-        last_verified_at: null
-      - id: A.5
-        description: "Auth and admin events retained per policy; retention is configurable."
-        state: OPEN
-        owner: "Shailja / Compliance"
-        execution_mode: HUMAN_REQUIRED
-        priority: P1
-        effort: M
-        enables: 0
-        required_evidence_level: E3
-        verifier: human-review
-        evidence: []
-        blockers: []
-        last_verified_at: null
-      - id: A.6
-        description: "Provisioning outbox proves retry and idempotent delivery."
-        state: OPEN
-        owner: "Amit / Engineering"
-        execution_mode: AUTOMATABLE
-        priority: P1
-        effort: M
-        enables: 1
-        required_evidence_level: E4
-        verifier: ci
-        evidence: []
-        blockers: []
-        last_verified_at: null
-    approvals: []
-
-  # WS-3 registered by CR-010. Evidence levels are exactly as S08-engineering-foundation.md
-  # states: E4 for G1-G7 and G9, E2 for G8, E3 for G10.
-  - id: WS-3
-    gate_id: GATE-S08
-    current_stage: "S08 — Engineering Foundation"
-    next_stage: "S09 — Platform & Environment Foundation"
-    bible_stage: S08
+    owner: Shailja / Compliance
+    execution_mode: HUMAN_REQUIRED
+    priority: P1
+    effort: M
+    enables: 2
+    required_evidence_level: E2
+    verifier: human-review
+    evidence: []
+    blockers: []
+    last_verified_at: null
+  - id: '4.5'
+    description: Operations runbook covers secrets rotation, allowlisting and 1SB
+      incidents.
     state: OPEN
-    required_approvers: [Engineering, QA, Architect, Security, Operations]
-    criteria:
-      - id: "S08-G1"
-        description: "CI builds and tests every module on every pull request."
-        state: MET
-        owner: "Amit / Engineering"
-        execution_mode: AUTOMATABLE
-        priority: P1
-        effort: M
-        enables: 6
-        required_evidence_level: E4
-        verifier: ci
-        evidence:
-          - "Pipeline definition: .github/workflows/application-ci.yml (c4e8d9f, 2026-08-16). Triggers on pull_request with no paths filter and on push to every branch, so a working branch is evidenced before a PR exists."
-          - "Module coverage: the root task line runs `./gradlew --no-daemon build test jacocoTestReport jacocoTestCoverageVerification` across all 27 modules declared in settings.gradle.kts (6 libs + 21 services)."
-          - "Run history: 392 recorded runs of the workflow (API total_count); the 20 most recent all concluded success, the latest run 34768713603 at 2026-09-13T16:29:09Z on pull_request."
-          - "Engineering declaration (Amit seat, 2026-09-13): criterion S08-G1 MET on the ci verifier. GATE-S08 remains OPEN; this is not a stage transition and not a human gate approval."
-        blockers: []
-        last_verified_at: "2026-09-13T16:29:09Z"
-      - id: "S08-G2"
-        description: "Merge to main is impossible without a green pipeline."
-        state: MET
-        owner: "Amit / Engineering"
-        execution_mode: HUMAN_REQUIRED
-        priority: P1
-        effort: S
-        enables: 2
-        required_evidence_level: E4
-        verifier: human-review
-        evidence:
-          - "The four status checks that must be required are named exactly in the application-ci.yml header and matching security-scanning.yml job names: \"Java 21 tests and coverage gates\", \"Secret scanning (gitleaks)\", \"SAST (CodeQL, Java)\", \"SCA (Trivy dependency scan)\". The naming work is done."
-          - "2026-09-14T17:38Z Mahesh38 (admin PAT) ran scripts/governance/evidence/S08-Mahesh38-close-remaining.sh: POST created ruleset 23340894 'Require GATE-S08 CI checks' enforcement=active on refs/heads/main with the four required contexts + non_fast_forward + deletion; also enabled ruleset 20028494 'No force push allowed'."
-          - "2026-09-14T17:38Z S08-G2-verify-required-checks.sh exit 0 — all four required checks OK against active rulesets (transcript: scripts/governance/evidence/S08-G2-verify-required-checks.out)."
-          - "2026-09-14T17:40Z blocked-merge demo on throwaway PR #105 while the four required checks were queued: PUT /pulls/105/merge → HTTP 405 'Repository rule violations found / 4 of 4 required status checks are queued.' Transcript: scripts/governance/evidence/S08-G2-blocked-merge.out. PR #105 closed after capture."
-          - "Note: an earlier probe against green PR #104 (mergeStateStatus=CLEAN) unexpectedly squash-merged that PR — demo script since hardened to abort when mergeStateStatus=CLEAN. Successful merge of a fully green PR is expected ruleset behaviour and is not the blocked-merge proof; PR #105 is the E4 refuse evidence."
-          - "Engineering declaration (Amit seat via Mahesh38 admin actor, 2026-09-14): criterion S08-G2 MET on human-review. GATE-S08 remains OPEN until G10; this is not a stage transition and not a T4 board approval."
-        blockers: []
-        last_verified_at: "2026-09-14T17:40:00Z"
-      - id: "S08-G3"
-        description: "Coverage thresholds enforced in CI; QA-001 closed."
-        state: MET
-        owner: "Swapnali / QA"
-        execution_mode: AUTOMATABLE
-        priority: P1
-        effort: M
-        enables: 1
-        required_evidence_level: E4
-        verifier: ci
-        evidence:
-          - "Enforcement: build.gradle.kts wires jacocoTestCoverageVerification into `check` and CI names the task explicitly, so a future rewiring cannot silently drop the gate."
-          - "Thresholds in force: libs 80% line / 70% branch; Phase-1 services (1sb-integration-service, bank-persistence-service) 90% line / 70% branch; scaffold services ratified 50% line module floor."
-          - "QA-001 Closed 2026-09-13 (Swapnali): interim framing retired; package-level strategy §7 floors split to QA-014 (expiry 2026-10-31) with compensating control = module jacocoTestCoverageVerification on every CI check."
-          - "Local verify 2026-09-13: ./gradlew test jacocoTestReport jacocoTestCoverageVerification BUILD SUCCESSFUL; bank-persistence-service measured ~99.0% line / ~85.0% branch under the raised 90/70 gate."
-        blockers: []
-        last_verified_at: "2026-09-13T19:22:01Z"
-      - id: "S08-G4"
-        description: "ArchUnit and static analysis enforced in CI; build fails on breach."
-        state: MET
-        owner: "Amit / Engineering"
-        execution_mode: AUTOMATABLE
-        priority: P1
-        effort: M
-        enables: 1
-        required_evidence_level: E4
-        verifier: ci
-        evidence:
-          - "ArchUnit breadth: 18 modules carry an architecture test (ServiceArchitectureTest in 17 platform services plus ArchitectureTest in 1sb-integration-service)."
-          - "Rules bite: 1sb-integration-service carries ArchitectureRulesBiteTest, the S08-VT-03 demonstration."
-          - "CI ArchUnit enforcement: the architecture-fitness step fails the run when no ArchUnit result files are found, so the rules cannot silently stop running."
-          - "Static analysis mechanism (S08-E02-S03): root build.gradle.kts applies Checkstyle (config/checkstyle/checkstyle.xml, maxWarnings=0) and Spotless 6.25.0 (google-java-format, ratchetFrom origin/main) to every Java subproject; both are dependents of `check`."
-          - "CI static-analysis step: application-ci.yml runs `./gradlew checkstyleMain checkstyleTest spotlessCheck` explicitly after build, and uploads checkstyle/spotless reports."
-          - "Local verify 2026-09-13: estate checkstyleMain/checkstyleTest/spotlessCheck BUILD SUCCESSFUL (exit 0); star-import probe on bank-common-domain fails checkstyleMain (exit 1); trailing-whitespace probe on bank-common-test fails spotlessCheck (exit 1). Engineering (Amit seat) declares S08-G4 MET on ci verifier. GATE-S08 remains OPEN."
-        blockers: []
-        last_verified_at: "2026-09-13T19:40:36Z"
-      - id: "S08-G5"
-        description: "Secret, SAST, SCA and container image scanning in the pipeline."
-        state: MET
-        owner: "Deepali / Security"
-        execution_mode: AUTOMATABLE
-        priority: P1
-        effort: L
-        enables: 2
-        required_evidence_level: E4
-        verifier: ci
-        evidence:
-          - "Secret scanning: gitleaks runs on the working tree and blocks the build; a scheduled job scans full git history separately."
-          - "SAST: CodeQL Java analysis runs and fails the build on critical or high findings."
-          - "SCA: Trivy dependency scan fails the build on CRITICAL and HIGH, with a non-blocking full-severity report for the risk register; runtimeClasspath is locked so the scan genuinely covers the Java estate (1e4d69e)."
-          - "Supply chain: an SBOM job runs and fails when it does not cover the Java estate."
-          - "Container image scanning: security-scanning.yml image-scan job builds and Trivy-scans bank-persistence-service, 1sb-integration-service, and bank-insurance-combined (root Dockerfile); CRITICAL/HIGH with ignore-unfixed fails the build; full-severity JSON artefact retained; .trivyignore shared with SCA."
-          - "Local verify 2026-09-13: docker build + aquasec/trivy:0.53.0 image scan — Total CRITICAL/HIGH 0 on all three images (exit code 0). Security (Deepali seat) declares S08-G5 MET on ci verifier. GATE-S08 remains OPEN."
-        blockers: []
-        last_verified_at: "2026-09-13T19:10:36Z"
-      - id: "S08-G6"
-        description: "Test infrastructure operational at every level: Testcontainers, WireMock, contract and E2E."
-        state: MET
-        owner: "Swapnali / QA"
-        execution_mode: AUTOMATABLE
-        priority: P1
-        effort: L
-        enables: 3
-        required_evidence_level: E4
-        verifier: ci
-        evidence:
-          - "Shared harness library: libs/bank-common-test — PostgresTestSupport (Testcontainers), WireMockHarness (dual 1SB+persistence servers), DomainFixtures, PyramidTags / ContractTags / E2ETags."
-          - "Unit level: DomainFixturesTest + WireMockHarnessTest in bank-common-test; estate unit suites unchanged."
-          - "Integration / Testcontainers level: PostgresTestSupportIT (lib) and JobApiPostgresIT (bank-persistence-service) create jobs against real PostgreSQL 16; flyway-database-postgresql wired for Flyway 10+."
-          - "WireMock / contract / e2e level: SharedHarnessProposalSmokeIT in 1sb-integration-service uses WireMockHarness, tagged contract + e2e:assisted-life-smoke; existing ProposalSubmitIT WireMock coverage remains."
-          - "TD-014 closed 2026-09-13 — shared WireMock harness proves integration → persistence HTTP seam in CI. QA (Swapnali seat) declares S08-G6 MET on ci verifier. GATE-S08 remains OPEN."
-        blockers: []
-        last_verified_at: "2026-09-13T18:44:44Z"
-      - id: "S08-G7"
-        description: "No PII in logs, proven by an automated test that scans emitted logs."
-        state: MET
-        owner: "Deepali / Security"
-        execution_mode: AUTOMATABLE
-        priority: P1
-        effort: M
-        enables: 1
-        required_evidence_level: E4
-        verifier: ci
-        evidence:
-          - "Component proof: NoPiiInErrorOutputTest and ErrorDiagnosticAndRedactionTest in bank-common-error (EPIC-001, ADR-017); PiiMaskerTest in 1sb-integration-service."
-          - "Framework emission scrubber: LogPiiScrubber applied by Slf4jErrorRecorder to reason text and attached throwable messages before any log line is written (FF-05 / S08-E05-S05)."
-          - "S08-VT-06 log-scan: NoPiiInEmittedLogsTest attaches a Logback ListAppender to Slf4jErrorRecorder, drives PlatformErrorHandler and direct recorder paths with PAN, Aadhaar, phone, email and health payloads, asserts zero unmasked pattern matches in all emitted events, and asserts scrubbed forms appear."
-          - "Local verify 2026-09-13: ./gradlew :libs:bank-common-error:test :libs:bank-common-error:jacocoTestCoverageVerification BUILD SUCCESSFUL (LogPiiScrubberTest + NoPiiInEmittedLogsTest green). Security (Deepali seat) declares S08-G7 MET on ci verifier. GATE-S08 remains OPEN."
-        blockers: []
-        last_verified_at: "2026-09-13T19:47:46Z"
-      - id: "S08-G8"
-        description: "Engineering and secure coding standards published and adopted."
-        state: MET
-        owner: "Amit / Engineering"
-        execution_mode: HUMAN_REQUIRED
-        priority: P3
-        effort: M
-        enables: 0
-        required_evidence_level: E2
-        verifier: document
-        evidence:
-          - "Published standard: docs/governance/ENGINEERING-AND-SECURE-CODING-STANDARDS.md (ENG-1..10, SEC-C1..C10) — L3 repo standard building on ORG-STANDARDS.md."
-          - "Adoption mechanism: docs/governance/PR-REVIEW-CHECKLIST.md cites that standard by path; .github/pull_request_template.md requires ENG/SEC checklist completion on every PR."
-          - "Engineering declaration (Amit seat, 2026-09-13): criterion S08-G8 MET on the document verifier (E2). GATE-S08 remains OPEN; this is not a stage transition and not a T4 approval."
-        blockers: []
-        last_verified_at: "2026-09-13T20:05:00Z"
-      - id: "S08-G9"
-        description: "Pipeline feedback under 10 minutes at p95; flaky failure rate under 1%."
-        state: MET
-        owner: "Shivanshi / SRE"
-        execution_mode: AUTOMATABLE
-        priority: P2
-        effort: M
-        enables: 0
-        required_evidence_level: E4
-        verifier: ci
-        evidence:
-          - "Measurement script: scripts/governance/measure-pipeline-feedback.py (fetch via gh api against .github/workflows/application-ci.yml). Committed snapshot: scripts/governance/evidence/S08-G9-pipeline-feedback.json. Governance CI re-asserts thresholds offline."
-          - "S08-VT-08: PR feedback p95 across most recent 20 pull_request runs and across all concluded samples is under 10 minutes (gate p95 ≈ 2.775 min; all-concluded N=351, PR N=141, API total_count=401 as of 2026-09-13)."
-          - "S08-VT-09: flake rate 0.00% over most recent 50 concluded runs (0 flaky failures). Flake = failure on a head_sha that also has ≥1 success in the sample. Raw non-flake failures exist and are excluded by definition."
-          - "SRE declaration (Shivanshi seat, 2026-09-13): criterion S08-G9 MET on the ci verifier. GATE-S08 remains OPEN; this is not a stage transition and not a human gate approval."
-        blockers: []
-        last_verified_at: "2026-09-13T19:50:32Z"
-      - id: "S08-G10"
-        description: "A new engineer can build, test and ship a change in under a week."
-        state: MET
-        owner: "Amit / Engineering"
-        execution_mode: HUMAN_REQUIRED
-        priority: P3
-        effort: M
-        enables: 0
-        required_evidence_level: E3
-        verifier: human-review
-        evidence:
-          - "Human pack assembled 2026-09-13: scripts/governance/evidence/S08-G10-onboarding-human-pack.md (5-day path, reading list, attestation template)."
-          - "Day-0.5 / day-1 / day-2 dry-runs already logged under scripts/governance/evidence/S08-G10-day*.log (supporting only)."
-          - "2026-09-14 filled attestation committed: scripts/governance/evidence/S08-G10-onboarding-attestation.md — Engineer Mahesh38; first merged PR #104; elapsed 2 working days on compressed path; Amit confirmation 2026-09-14 via Mahesh38 as named admin/Engineering actor (sole collaborator)."
-          - "Engineering declaration (Amit seat via Mahesh38, 2026-09-14): criterion S08-G10 MET on human-review. GATE-S08 criteria are now 10/10 MET; this is not a stage_status edit, not GATE PASSED, and not a T4 board approval — board sign-off remains a separate human step if/when advancing the stage."
-        blockers: []
-        last_verified_at: "2026-09-14T17:40:00Z"
-    approvals: []
+    owner: R10 / Operations
+    execution_mode: AUTOMATABLE
+    priority: P3
+    effort: S
+    enables: 0
+    required_evidence_level: E2
+    verifier: document
+    evidence: []
+    blockers: []
+    last_verified_at: null
+  - id: '4.6'
+    description: Performance smoke measures p95 quote latency under nominal concurrency.
+    state: BLOCKED
+    owner: Amit / Engineering + R10 / Operations
+    execution_mode: AUTOMATABLE
+    priority: P2
+    effort: M
+    enables: 0
+    required_evidence_level: E4
+    verifier: ci
+    evidence: []
+    blockers:
+    - id: DEP-003
+      type: SOFT
+      owner: Amit / Engineering
+      follow_up: '2026-09-18'
+    last_verified_at: null
+  - id: '4.7'
+    description: Coverage gates green; QA-001 closed or explicitly waived with expiry.
+    state: MET
+    owner: Swapnali / QA
+    execution_mode: AUTOMATABLE
+    priority: P2
+    effort: M
+    enables: 0
+    required_evidence_level: E4
+    verifier: ci
+    evidence:
+    - Shared-library coverage gates at 80% line / 70% branch
+    - jacocoTestCoverageVerification executes on every pull request via application-ci.yml
+      and is green
+    - QA-001 Closed 2026-09-13; S08-G3 MET — Phase-1 90/70; scaffold floor ratified;
+      package floors → QA-014 with expiry 2026-10-31
+    blockers: []
+    last_verified_at: '2026-09-13T19:22:01Z'
+  approvals: []
+- id: WS-2
+  gate_id: GATE-IAM-P1
+  current_stage: Phase 1 — Foundation implementation
+  next_stage: Phase 2 — Bank AD federation + production IdP decision
+  bible_stage: null
+  state: OPEN
+  required_approvers:
+  - Architect
+  - Security
+  - Compliance
+  - QA
+  criteria:
+  - id: A.1
+    description: BFF token-hiding proven; Flutter never receives OAuth tokens.
+    state: OPEN
+    owner: Amit / Engineering
+    execution_mode: AUTOMATABLE
+    priority: P1
+    effort: M
+    enables: 1
+    required_evidence_level: E4
+    verifier: ci
+    evidence: []
+    blockers: []
+    last_verified_at: null
+  - id: A.2
+    description: Keycloak isolated behind the identity-provider adapter.
+    state: OPEN
+    owner: Mahesh / Architecture
+    execution_mode: AUTOMATABLE
+    priority: P1
+    effort: M
+    enables: 1
+    required_evidence_level: E4
+    verifier: ci
+    evidence: []
+    blockers: []
+    last_verified_at: null
+  - id: A.3
+    description: Authorization service is the PDP and default-deny is verified.
+    state: OPEN
+    owner: Amit / Engineering
+    execution_mode: AUTOMATABLE
+    priority: P1
+    effort: M
+    enables: 1
+    required_evidence_level: E4
+    verifier: ci
+    evidence: []
+    blockers: []
+    last_verified_at: null
+  - id: A.4
+    description: Maker-checker enforced for bulk and privileged changes.
+    state: OPEN
+    owner: Deepali / Security
+    execution_mode: AUTOMATABLE
+    priority: P1
+    effort: M
+    enables: 0
+    required_evidence_level: E4
+    verifier: ci
+    evidence: []
+    blockers: []
+    last_verified_at: null
+  - id: A.5
+    description: Auth and admin events retained per policy; retention is configurable.
+    state: OPEN
+    owner: Shailja / Compliance
+    execution_mode: HUMAN_REQUIRED
+    priority: P1
+    effort: M
+    enables: 0
+    required_evidence_level: E3
+    verifier: human-review
+    evidence: []
+    blockers: []
+    last_verified_at: null
+  - id: A.6
+    description: Provisioning outbox proves retry and idempotent delivery.
+    state: OPEN
+    owner: Amit / Engineering
+    execution_mode: AUTOMATABLE
+    priority: P1
+    effort: M
+    enables: 1
+    required_evidence_level: E4
+    verifier: ci
+    evidence: []
+    blockers: []
+    last_verified_at: null
+  approvals: []
+- id: WS-3
+  gate_id: GATE-S09
+  current_stage: S09 — Platform & Environment Foundation
+  next_stage: S10 — Integration & Connectivity
+  bible_stage: S09
+  state: OPEN
+  required_approvers:
+  - Operations
+  - Security
+  - Architect
+  - Database
+  - Compliance
+  - Engineering
+  - QA
+  - Delivery
+  criteria:
+  - id: S09-G1
+    description: All infrastructure defined as code; no console-created production
+      resource
+    state: OPEN
+    owner: Shivanshi / SRE
+    execution_mode: AUTOMATABLE
+    priority: P1
+    effort: L
+    enables: 1
+    required_evidence_level: E4
+    verifier: ci
+    evidence: []
+    blockers: []
+    last_verified_at: null
+  - id: S09-G2
+    description: Dev, UAT and production provisioned from the same modules
+    state: OPEN
+    owner: Shivanshi / SRE
+    execution_mode: AUTOMATABLE
+    priority: P2
+    effort: L
+    enables: 1
+    required_evidence_level: E4
+    verifier: ci
+    evidence: []
+    blockers: []
+    last_verified_at: null
+  - id: S09-G3
+    description: Environment recreatable from code
+    state: OPEN
+    owner: Shivanshi / SRE
+    execution_mode: AUTOMATABLE
+    priority: P2
+    effort: L
+    enables: 1
+    required_evidence_level: E3
+    verifier: ci
+    evidence: []
+    blockers: []
+    last_verified_at: null
+  - id: S09-G4
+    description: Automated deployment with tested rollback
+    state: OPEN
+    owner: Shivanshi / SRE + Amit / Engineering
+    execution_mode: AUTOMATABLE
+    priority: P2
+    effort: L
+    enables: 1
+    required_evidence_level: E3
+    verifier: ci
+    evidence: []
+    blockers: []
+    last_verified_at: null
+  - id: S09-G5
+    description: Secrets management operational; TD-006 closed
+    state: OPEN
+    owner: Deepali / Security + Shivanshi / SRE
+    execution_mode: AUTOMATABLE
+    priority: P1
+    effort: L
+    enables: 1
+    required_evidence_level: E4
+    verifier: ci
+    evidence: []
+    blockers: []
+    last_verified_at: null
+  - id: S09-G6
+    description: 'Observability operational: metrics, logs, traces correlated'
+    state: OPEN
+    owner: Shivanshi / SRE
+    execution_mode: AUTOMATABLE
+    priority: P2
+    effort: L
+    enables: 1
+    required_evidence_level: E4
+    verifier: ci
+    evidence: []
+    blockers: []
+    last_verified_at: null
+  - id: S09-G7
+    description: Backup automated and restore proven against RTO/RPO
+    state: OPEN
+    owner: Aarti / Database + Shivanshi / SRE
+    execution_mode: AUTOMATABLE
+    priority: P2
+    effort: L
+    enables: 1
+    required_evidence_level: E3
+    verifier: ci
+    evidence: []
+    blockers: []
+    last_verified_at: null
+  - id: S09-G8
+    description: 7-year immutable retention implemented
+    state: OPEN
+    owner: Shivanshi / SRE + Shailja / Compliance
+    execution_mode: AUTOMATABLE
+    priority: P1
+    effort: L
+    enables: 1
+    required_evidence_level: E4
+    verifier: ci
+    evidence: []
+    blockers: []
+    last_verified_at: null
+  - id: S09-G9
+    description: Data residency attested
+    state: OPEN
+    owner: Shivanshi / SRE + Shailja / Compliance
+    execution_mode: HUMAN_REQUIRED
+    priority: P1
+    effort: L
+    enables: 1
+    required_evidence_level: E2
+    verifier: human-review
+    evidence: []
+    blockers: []
+    last_verified_at: null
+  - id: S09-G10
+    description: Encryption at rest and in transit verified
+    state: OPEN
+    owner: Deepali / Security
+    execution_mode: AUTOMATABLE
+    priority: P2
+    effort: L
+    enables: 1
+    required_evidence_level: E4
+    verifier: ci
+    evidence: []
+    blockers: []
+    last_verified_at: null
+  - id: S09-G11
+    description: Network segmentation and least-privilege IAM enforced
+    state: OPEN
+    owner: Deepali / Security
+    execution_mode: AUTOMATABLE
+    priority: P2
+    effort: L
+    enables: 1
+    required_evidence_level: E4
+    verifier: ci
+    evidence: []
+    blockers: []
+    last_verified_at: null
+  - id: S09-G12
+    description: IaC scanning in the pipeline
+    state: OPEN
+    owner: Deepali / Security + Shivanshi / SRE
+    execution_mode: AUTOMATABLE
+    priority: P2
+    effort: L
+    enables: 1
+    required_evidence_level: E4
+    verifier: ci
+    evidence: []
+    blockers: []
+    last_verified_at: null
+  - id: S09-G13
+    description: No PII in aggregated logs
+    state: OPEN
+    owner: Deepali / Security
+    execution_mode: AUTOMATABLE
+    priority: P2
+    effort: L
+    enables: 1
+    required_evidence_level: E4
+    verifier: ci
+    evidence: []
+    blockers: []
+    last_verified_at: null
+  approvals: []

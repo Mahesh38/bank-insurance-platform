@@ -24,12 +24,12 @@ Authority: [CURRENT-STATE.yaml](../../governance/state/CURRENT-STATE.yaml)
 **Next:** S09 — Platform & Environment Foundation  
 **Objective:** `R0-ASSISTED-LIFE-SALE` — One RM sells a complete Life insurance policy — Term or Savings/ULIP — to one ETB customer from one Group A insurer, end to end, through a real interface, with consent and suitability evidence, payment on the customer's own device, an issued and reconciled policy, and a complete audit trail. R0 includes both Term and Savings/ULIP assisted paths (CR-015). DIY and hybrid stay sequenced behind the assisted journey.
 
-**Gate:** `GATE-S08` · **OPEN** — MET: 8, OPEN: 2
+**Gate:** `GATE-S08` · **OPEN** — MET: 10
 
 | Criterion | State | Owner |
 |---|---|---|
 | `S08-G1` CI builds and tests every module on every PR | **MET** | Amit / Engineering |
-| `S08-G2` Merge to main impossible without a green pipeline | **OPEN** | Amit / Engineering |
+| `S08-G2` Merge to main impossible without a green pipeline | **MET** | Amit / Engineering |
 | `S08-G3` Coverage thresholds enforced; QA-001 closed | **MET** | Swapnali / QA |
 | `S08-G4` ArchUnit and static analysis enforced | **MET** | Amit / Engineering |
 | `S08-G5` Secret, SAST, SCA and image scanning in the pipeline | **MET** | Deepali / Security |
@@ -37,7 +37,7 @@ Authority: [CURRENT-STATE.yaml](../../governance/state/CURRENT-STATE.yaml)
 | `S08-G7` No PII in logs, proven by automated test | **MET** | Deepali / Security |
 | `S08-G8` Engineering and secure coding standards published and adopted | **MET** | Amit / Engineering |
 | `S08-G9` Pipeline feedback under 10 minutes at p95; flake under 1% | **MET** | Shivanshi / SRE |
-| `S08-G10` A new engineer can build, test and ship in under a week | **OPEN** | Amit / Engineering |
+| `S08-G10` A new engineer can build, test and ship in under a week | **MET** | Amit / Engineering |
 
 ## WS-1 · 1SB Insurance Integration
 

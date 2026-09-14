@@ -180,10 +180,15 @@ jobs:
           # financial application, a missed injection sink costs more than triage time.
           queries: security-extended
 
+      # CodeQL's Java tracer only sees work that actually compiles in this job.
+      # gradle/actions/setup-gradle restores the remote build cache, so a plain
+      # `classes testClasses` can finish entirely FROM-CACHE and CodeQL then fails
+      # with "could not process any of the files with the following extensions: java, kt".
+      # --rerun-tasks forces real javac so extraction has bytecode to analyze.
       - name: Build for analysis
         run: |
           chmod +x gradlew
-          ./gradlew --no-daemon classes testClasses
+          ./gradlew --no-daemon classes testClasses --rerun-tasks
 
       - name: Perform CodeQL analysis
         id: codeql

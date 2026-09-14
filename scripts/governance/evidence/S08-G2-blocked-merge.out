@@ -1,0 +1,11 @@
+S08-G2 blocked-merge demo — 2026-09-14T17:40Z
+repo=Mahesh38/bank-insurance-platform pr=105
+verify_exit=0
+note=throwaway PR opened with pending/incomplete checks; merge attempt should be refused
+--- merge attempt ---
+exit=1
+{"message":"Repository rule violations found\n\n4 of 4 required status checks are queued.\n\n","documentation_url":"https://docs.github.com/rest/pulls/pulls#merge-a-pull-request","status":"405"}gh: Repository rule violations found
+
+4 of 4 required status checks are queued.
+
+ (HTTP 405)

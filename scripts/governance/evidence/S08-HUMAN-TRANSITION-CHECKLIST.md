@@ -18,10 +18,16 @@ Evidence PR (G2+G10): https://github.com/Mahesh38/bank-insurance-platform/pull/1
 | Stage fields (`current_phase` / `stage_status`) | unchanged (human only) |
 | Board / T4 signatures | **missing** — Amit / Engineering, Swapnali / QA, Mahesh / Architecture, Deepali / Security, Shivanshi / SRE |
 
-## What you (humans) do, in order
+## Operating model
+
+**Sole real human: Mahesh.** Other seats are personas. Agents completed persona validation
+(`S08-PERSONA-VALIDATION.md`). Mahesh signs every required HUMAN seat via
+`S08-MAHESH-HUMAN-SIGNOFF.md`, then marks PASSED / advances stage.
+
+## What Mahesh does, in order
 
 1. **Review evidence** in `scripts/governance/evidence/S08-STAGE_TRANSITION_CANDIDATE.yaml` and the criterion artefacts under `scripts/governance/evidence/S08-*`.
-2. **Each required approver** records a named HUMAN verdict on the draft sign-off (`docs/application-lifecycle-bible/stages/signoffs/S08-GATE-SIGNOFF-DRAFT.md`):
+2. **Mahesh** records a named HUMAN verdict for each required seat (Engineering, QA, Architecture, Security, SRE; plus PO/Compliance as applicable) on `S08-MAHESH-HUMAN-SIGNOFF.md` / the draft sign-off (`docs/application-lifecycle-bible/stages/signoffs/S08-GATE-SIGNOFF-DRAFT.md`):
    - Amit / Engineering
    - Swapnali / QA
    - Mahesh / Architecture

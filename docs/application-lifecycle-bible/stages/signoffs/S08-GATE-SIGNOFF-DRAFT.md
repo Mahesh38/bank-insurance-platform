@@ -1,21 +1,12 @@
-# Gate Sign-off — S08 Engineering Foundation (DRAFT — awaiting humans)
+# Gate Sign-off — S08 Engineering Foundation (DRAFT — awaiting Mahesh)
 
-> **DRAFT.** Evidence pre-filled from autopilot `STAGE_TRANSITION_CANDIDATE`.
-> All `decision` fields are `PENDING_HUMAN`. Agents must not change them to `APPROVED`
-> or set `outcome.decision: PASSED` (`docs/governance/04-STAGE_GATES.md` §5).
+> **Operating model:** Mahesh is the sole real human. Persona seats ran AGENT validation in
+> `scripts/governance/evidence/S08-PERSONA-VALIDATION.md` → `READY_FOR_HUMAN_SIGNOFF`.
+> Mahesh records HUMAN verdicts (all required hats) in
+> `scripts/governance/evidence/S08-MAHESH-HUMAN-SIGNOFF.md`, then marks PASSED.
 >
-> When complete: rename to `S08-GATE-SIGNOFF-YYYY-MM-DD.md` and have Architect + PO jointly pass the gate.
-
-```yaml
-gate_signoff:
-  stage: S08
-  gate_id: GATE-S08
-  transition: "S08 → PASSED"          # set only after human joint pass
-  date: null                          # human fills on PASS
-  marked_candidate_by: "agent / autopilot propose-transition"
-  candidate_date: 2026-09-14
-  freeze_in_effect: false             # Delivery Lead may set true when formally marking CANDIDATE
-```
+> Agents must not change `decision` to `APPROVED` with `reviewer_type: HUMAN`, nor set
+> `outcome.decision: PASSED` (`04-STAGE_GATES.md` §5).
 
 ## 1. Evidence table
 
@@ -42,7 +33,7 @@ approvals:
     board: TECHNICAL
     reviewer_type: HUMAN
     self_review: false
-    decision: PENDING_HUMAN
+    decision: PENDING_HUMAN   # Mahesh sole human fills
     must_fix: []
     conditions: []
     evidence: []
@@ -52,7 +43,7 @@ approvals:
     board: QA
     reviewer_type: HUMAN
     self_review: false
-    decision: PENDING_HUMAN
+    decision: PENDING_HUMAN   # Mahesh sole human fills
     must_fix: []
     conditions: []
     evidence: []
@@ -62,7 +53,7 @@ approvals:
     board: ARCHITECTURE
     reviewer_type: HUMAN
     self_review: false
-    decision: PENDING_HUMAN
+    decision: PENDING_HUMAN   # Mahesh sole human fills
     must_fix: []
     conditions: []
     evidence: []
@@ -72,7 +63,7 @@ approvals:
     board: SECURITY
     reviewer_type: HUMAN            # mandatory HUMAN at T4 — no AI substitution
     self_review: false
-    decision: PENDING_HUMAN
+    decision: PENDING_HUMAN   # Mahesh sole human fills
     must_fix: []
     conditions: []
     evidence: []
@@ -82,7 +73,7 @@ approvals:
     board: OPERATIONS
     reviewer_type: HUMAN
     self_review: false
-    decision: PENDING_HUMAN
+    decision: PENDING_HUMAN   # Mahesh sole human fills
     must_fix: []
     conditions: []
     evidence: []
@@ -104,7 +95,7 @@ None proposed by the agent candidate.
 
 ```yaml
 outcome:
-  decision: PENDING_HUMAN           # humans set PASSED | OPEN | BLOCKED
+  decision: PENDING_HUMAN   # Mahesh sole human fills           # humans set PASSED | OPEN | BLOCKED
   blocking_items: []
   passed_by: []                     # must be Architect + PO jointly when PASSED
 

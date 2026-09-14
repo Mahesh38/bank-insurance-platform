@@ -36,7 +36,8 @@ public final class LogPiiScrubber {
   static final Pattern HEALTH =
       Pattern.compile(
           "(?i)\\b(diagnosis|diagnosed|medical[_ -]?condition|pre[_ -]?existing|"
-              + "health[_ -]?attribute|icd[- ]?10?)\\s*[:=]\\s*([^\\s,;|]+)");
+              + "health[_ -]?attribute|icd[- ]?10?)\\s*[:=]\\s*"
+              + "(.+?)(?=\\s*(?:[,;|]|$|[A-Za-z_][\\w]*=))");
 
   private LogPiiScrubber() {}
 

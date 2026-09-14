@@ -28,6 +28,19 @@ class LogPiiScrubberTest {
   }
 
   @Test
+  void scrubsMultiWordHealthValuesWithoutLeavingClinicalResidue() {
+    String raw = "diagnosis=Type 2 Diabetes pan=ABCDE1234F jobId=j-9";
+
+    String scrubbed = LogPiiScrubber.scrub(raw);
+
+    assertThat(scrubbed).doesNotContain("Type 2 Diabetes");
+    assertThat(scrubbed).doesNotContain("Diabetes");
+    assertThat(scrubbed).contains("diagnosis=[REDACTED_HEALTH]");
+    assertThat(scrubbed).contains("*****1234F");
+    assertThat(scrubbed).contains("jobId=j-9");
+  }
+
+  @Test
   void nullAndEmptyPassThrough() {
     assertThat(LogPiiScrubber.scrub(null)).isNull();
     assertThat(LogPiiScrubber.scrub("")).isEmpty();

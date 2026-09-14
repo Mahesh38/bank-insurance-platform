@@ -142,7 +142,7 @@ subprojects {
         // Phase-1 deployables (Swapnali / QA-001 close 2026-09-13):
         //   1sb-integration-service + bank-persistence-service → 90% line / 70% branch
         // Scaffold services keep the ratified 50% line module floor (not "interim pending
-        // QA-003" — QA-003 is Done). Package-level strategy §7 floors track as QA-012.
+        // QA-003" — QA-003 is Done). Package-level strategy §7 floors track as QA-014.
         val isPhase1Service = project.path in setOf(
             ":services:1sb-integration-service",
             ":services:bank-persistence-service",
@@ -159,7 +159,7 @@ subprojects {
         }?.toBigDecimal()
         // Libs: strategy §7 (80% line / 70% branch).
         // Phase-1 services: raised module floors (measured evidence in COVERAGE.md).
-        // Scaffold services: ratified 50% line module floor; package gates → QA-012.
+        // Scaffold services: ratified 50% line module floor; package gates → QA-014.
         violationRules {
             rule {
                 limit {

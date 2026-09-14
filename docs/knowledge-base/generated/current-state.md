@@ -3,7 +3,7 @@
 > **Generated, committed view.** CI regenerates this file from `governance/state/CURRENT-STATE.yaml` and fails if it drifts. The YAML remains authoritative.
 
 **Governance:** AIGEM 1.4  
-**State as of:** 2026-09-13  
+**State as of:** 2026-09-14  
 **Review due:** 2026-10-11  
 **Ratified by:** Mahesh (Solution Architect), 2026-08-10 — PO counter-signature outstanding; stage, scope and objective values re-confirmed unchanged at the 2026-09-11 R12 refresh
 
@@ -13,31 +13,34 @@ Authority: [CURRENT-STATE.yaml](../../governance/state/CURRENT-STATE.yaml)
 
 | Workstream | Current stage / phase | Status | Gate | Gate state |
 |---|---|---|---|---|
-| **WS-3 · AU Bank Insurance Distribution Platform** | S08 — Engineering Foundation<br>Foundation Recovery Increment — S08 with S09 overlapped | IN_PROGRESS | `GATE-S08` | **OPEN** |
+| **WS-3 · AU Bank Insurance Distribution Platform** | S09 — Platform & Environment Foundation<br>Foundation Recovery Increment — S09 platform & environment foundation | IN_PROGRESS | `GATE-S09` | **OPEN** |
 | **WS-1 · 1SB Insurance Integration** | L7 — Hardening<br>Phase 4 — Hardening & consumer enablement | IN_PROGRESS | `GATE-P4` | **BLOCKED** |
 | **WS-2 · Workforce Authentication & Authorization** | L4/L6 — Foundation into first vertical slice<br>Phase 1 — Foundation implementation | IN_PROGRESS | `GATE-IAM-P1` | **OPEN** |
 
 ## WS-3 · AU Bank Insurance Distribution Platform
 
-**Stage:** S08 — Engineering Foundation  
-**Phase:** Foundation Recovery Increment — S08 with S09 overlapped  
-**Next:** S09 — Platform & Environment Foundation  
+**Stage:** S09 — Platform & Environment Foundation  
+**Phase:** Foundation Recovery Increment — S09 platform & environment foundation  
+**Next:** S10 — Integration & Connectivity  
 **Objective:** `R0-ASSISTED-LIFE-SALE` — One RM sells a complete Life insurance policy — Term or Savings/ULIP — to one ETB customer from one Group A insurer, end to end, through a real interface, with consent and suitability evidence, payment on the customer's own device, an issued and reconciled policy, and a complete audit trail. R0 includes both Term and Savings/ULIP assisted paths (CR-015). DIY and hybrid stay sequenced behind the assisted journey.
 
-**Gate:** `GATE-S08` · **OPEN** — MET: 10
+**Gate:** `GATE-S09` · **OPEN** — OPEN: 13
 
 | Criterion | State | Owner |
 |---|---|---|
-| `S08-G1` CI builds and tests every module on every PR | **MET** | Amit / Engineering |
-| `S08-G2` Merge to main impossible without a green pipeline | **MET** | Amit / Engineering |
-| `S08-G3` Coverage thresholds enforced; QA-001 closed | **MET** | Swapnali / QA |
-| `S08-G4` ArchUnit and static analysis enforced | **MET** | Amit / Engineering |
-| `S08-G5` Secret, SAST, SCA and image scanning in the pipeline | **MET** | Deepali / Security |
-| `S08-G6` Test infrastructure operational at every pyramid level | **MET** | Swapnali / QA |
-| `S08-G7` No PII in logs, proven by automated test | **MET** | Deepali / Security |
-| `S08-G8` Engineering and secure coding standards published and adopted | **MET** | Amit / Engineering |
-| `S08-G9` Pipeline feedback under 10 minutes at p95; flake under 1% | **MET** | Shivanshi / SRE |
-| `S08-G10` A new engineer can build, test and ship in under a week | **MET** | Amit / Engineering |
+| `S09-G1` All infrastructure defined as code; no console-created production resource | **OPEN** | Shivanshi / SRE |
+| `S09-G2` Dev, UAT and production provisioned from the same modules | **OPEN** | Shivanshi / SRE |
+| `S09-G3` Environment recreatable from code | **OPEN** | Shivanshi / SRE |
+| `S09-G4` Automated deployment with tested rollback | **OPEN** | Shivanshi / SRE + Amit / Engineering |
+| `S09-G5` Secrets management operational; TD-006 closed | **OPEN** | Deepali / Security + Shivanshi / SRE |
+| `S09-G6` Observability operational: metrics, logs, traces correlated | **OPEN** | Shivanshi / SRE |
+| `S09-G7` Backup automated and restore proven against RTO/RPO | **OPEN** | Aarti / Database + Shivanshi / SRE |
+| `S09-G8` 7-year immutable retention implemented | **OPEN** | Shivanshi / SRE + Shailja / Compliance |
+| `S09-G9` Data residency attested | **OPEN** | Shivanshi / SRE + Shailja / Compliance |
+| `S09-G10` Encryption at rest and in transit verified | **OPEN** | Deepali / Security |
+| `S09-G11` Network segmentation and least-privilege IAM enforced | **OPEN** | Deepali / Security |
+| `S09-G12` IaC scanning in the pipeline | **OPEN** | Deepali / Security + Shivanshi / SRE |
+| `S09-G13` No PII in aggregated logs | **OPEN** | Deepali / Security |
 
 ## WS-1 · 1SB Insurance Integration
 

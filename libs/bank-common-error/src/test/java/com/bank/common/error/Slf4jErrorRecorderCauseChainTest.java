@@ -5,8 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 
 /**
- * Review fix: {@link Slf4jErrorRecorder#forLogging(Throwable)} must keep the cause chain (and
- * scrub every message) so operators still see the root failure under "Caused by:".
+ * Review fix: {@link Slf4jErrorRecorder#forLogging(Throwable)} must keep the cause chain (and scrub
+ * every message) so operators still see the root failure under "Caused by:".
  */
 class Slf4jErrorRecorderCauseChainTest {
 

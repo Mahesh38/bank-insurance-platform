@@ -314,6 +314,13 @@ doc_routing:
       persona: architecture
       note: "Human direction 2026-09-14. Not an ADR. SPIKE-001 / ASM-015. T4 outstanding."
 
+    - match: ["docs/architecture/ARB-PREREQUISITE-PACK.md", "docs/architecture/arb-prerequisites/*"]
+      bucket: platform
+      authority: ai-drafted
+      capsules: [architecture-review, board-review]
+      persona: architecture
+      note: "SUG-20260914-arb. Bank ARB 19-item evidence index. Not an ARB, T4, Board 4, or Board 6 signature."
+
     - match: ["docs/architecture/*"]
       bucket: platform
       authority: approved-spec
@@ -502,7 +509,7 @@ capsules:
 
   - id: architecture-review
     intent: "Board 1 — decide whether a design is correctly shaped, or produce an HLD/LLD/ADR."
-    triggers: ["architecture review", "board 1", "service boundary", "bounded context", "should this be a service", "api design", "sync or async", "adr", "e2e architecture", "explain architecture", "why this component"]
+    triggers: ["architecture review", "board 1", "service boundary", "bounded context", "should this be a service", "api design", "sync or async", "adr", "e2e architecture", "explain architecture", "why this component", "architecture review board", "ARB prerequisite"]
     persona: architecture
     budget_bytes: 45000
     load:
@@ -527,6 +534,8 @@ capsules:
         path: "docs/governance/templates/ADR.md"
       - condition: "landing zone, Control Tower, Transit Gateway, FortiGate, Direct Connect, bank cloud onboarding, or S3 public hosting is the subject"
         path: "docs/context/roles/mahesh-principal-insurance-platform-architect/18-au-bank-enterprise-cloud-estate.md"
+      - condition: "the bank ARB, ARB prerequisites, CIS classification, shared-responsibility matrix, or architecture review board pack is the subject"
+        path: "docs/architecture/ARB-PREREQUISITE-PACK.md"
     output: "Verdict + severity `A0`–`A3` + evidence paths + named unresolved owner/date."
     never:
       - "Impersonate the mandatory human T4 Architecture sign-off — draft only."

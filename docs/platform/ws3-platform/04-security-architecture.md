@@ -33,6 +33,11 @@ the denied-egress event class the new firewall makes visible for the first time.
 is an authentication asset. Nothing in this document, and nothing in those ADRs, constitutes her
 verdict.
 
+**Revision 2026-09-14 — `ADR-020`:** TB-5 and TB-7 now show **Apigee** as the outbound plane
+(1SB never called from EKS; AD-verify / EBS stay on private Apigee targets). TB-6 splits
+session-create (Apigee out) from callback (API Gateway in). This is a diagram alignment with the
+already-admitted ADR, not a new Security verdict.
+
 ---
 
 ## 1. Position
@@ -104,11 +109,16 @@ graph TB
     subgraph Z5["Z5 — Bank internal"]
         EBS["EBS (Core Banking / CBS / CIF)"]
         PGW["AU Bank Payment Gateway"]
-        AD["Bank AD"]
+        AD["Bank AD-verify API"]
+    end
+
+    subgraph Z6["Z6 — Bank outbound API plane (NOT in our VPC)"]
+        APIGEE["Apigee · ADR-020"]
     end
 
     RM ==>|"TB-1"| CF --> F5 --> GW
-    CUSTD ==>|"TB-6"| PGW
+    CUSTD -->|"3-DS hosted page"| PGW
+    PGW -.->|"TB-6 callback"| GW
     GW ==>|"TB-2"| BFF
     BFF ==>|"TB-3"| PDP
     BFF --> SVCS
@@ -116,10 +126,11 @@ graph TB
     SVCS ==>|"TB-4"| DB
     SVCS ==>|"TB-4"| BUS
     SVCS -.->|"TB-4 logs"| SRCH
-    SVCS --> HUB --> ADPT --> NFW ==>|"TB-5"| SB
-    SVCS ==>|"TB-6"| PGW
-    SVCS --> TGW ==>|"TB-7"| EBS
-    IDPA --> TGW ==>|"TB-7"| AD
+    SVCS --> HUB --> ADPT --> NFW ==>|"TB-5 pod→Apigee"| APIGEE --> SB
+    SVCS --> APIGEE -->|"session-create"| PGW
+    SVCS --> TGW ==>|"TB-7 private"| APIGEE
+    APIGEE --> EBS
+    IDPA --> APIGEE --> AD
     IDPA --> KC
     SVCS --> KMS
 ```
@@ -130,9 +141,9 @@ graph TB
 | **TB-2** | Edge → Application | Authenticated session, correlation id | Unauthenticated request; caller-supplied `distributorId` |
 | **TB-3** | Application → Identity | Authorization query (subject, action, resource, context) | Business data; any request that assumes an allow on PDP failure |
 | **TB-4** | Application → Data | Least-privilege, per-service credential, TLS. **From 2026-08-24 this boundary also covers the session vault, the event topics and the search domain** — per-service Valkey ACL user with a key prefix, per-topic MSK IAM policy, and no workload write access to OpenSearch | Cross-service database access; a service account with UPDATE/DELETE on audit; a consumer group reading a topic it was not granted; a cache key prefix reachable by another service; evidence living only in a topic or an index |
-| **TB-5** | Application → Provider (1SB) | Bank-canonical payload translated at the adapter, over an **inspected, allowlisted egress** (`ADR-010`) — the mTLS session is passed intact, not decrypted | Provider types leaking inward; secrets in payloads or logs; an egress destination that is not in the firewall allowlist |
-| **TB-6** | Application/Customer → Payment Gateway | Payment session reference; PG callback | Card or account data into the platform; an RM principal on the authorisation path |
-| **TB-7** | Platform → Bank internal, over a private circuit (`ADR-009`) | CIF lookups and AD federation over Transit Gateway (VPN, then Direct Connect), **TLS on the application flow regardless of the private path** | Traffic between environments over the shared hub; a bank prefix advertised into the wrong route table; the assumption that a private circuit is authentication, or that it is encryption |
+| **TB-5** | Application → Provider (1SB) | Bank-canonical payload translated at the adapter, then **Apigee** (`ADR-020`). Spoke NFW may inspect **pod → Apigee**. 1SB allowlists **Apigee IPs**, not spoke NAT EIPs. The mTLS session to 1SB is passed intact, not decrypted | Java calling a 1SB origin; publishing spoke NAT EIPs to 1SB; provider types leaking inward; secrets in payloads or logs |
+| **TB-6** | Application/Customer → Payment Gateway | Session-create **outbound via Apigee**; customer 3-DS on the hosted page; **callback inbound** on a separate API Gateway route | Card or account data into the platform; an RM principal on the authorisation path; callback on the RM session |
+| **TB-7** | Platform → Bank internal | CIF and AD-verify over **Apigee private** targets (`ADR-020`), reached via the spoke TGW. **TLS on the application flow regardless of the private path**. Never LDAP from EKS. Never Cloudflare/F5 hairpin | Traffic between environments over the shared hub; a bank prefix advertised into the wrong route table; treating a private circuit as authentication or encryption |
 
 **Boundary rule.** Every boundary is default-deny and every boundary re-authenticates. Being inside
 the VPC is not an authorisation — **and neither is being inside the circuit.** TB-7 is the first
@@ -412,4 +423,4 @@ outstanding mandatory human signature — is recorded separately in
 
 **Drafted by:** Mahesh — Principal Insurance Platform Architect, for Deepali's ratification
 **signature_status:** `AI-DRAFTED — mandatory human Security signature outstanding (S07-G3, S07-G4). The 2026-08-24 round adds TB-7, two interim risk acceptances (SEC-OPEN-7, SEC-OPEN-8) and ADR-010, which is a security control Deepali accepts rather than reviews`
-**Date:** 2026-08-16 · **revised** 2026-08-20 (HLD review round — actors, LOB, configuration) · **revised** 2026-08-24 (R0 robustness round — TB-7, platform-tier threats, denied-egress visibility)
+**Date:** 2026-08-16 · **revised** 2026-08-20 (HLD review round — actors, LOB, configuration) · **revised** 2026-08-24 (R0 robustness round — TB-7, platform-tier threats, denied-egress visibility) · **revised** 2026-09-14 (`ADR-020` TB-5/TB-6/TB-7 alignment — still not a Board 4 verdict)

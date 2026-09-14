@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20260914-arb | 2026-09-14 | human:Mahesh | Assemble bank ARB prerequisite pack (business sign-off, CIS, SAD, current/target, trust-boundary, integration matrix, capacity, RTO/RPO, DR, security, VA/PT, SBOM, classification/residency, IAM/PAM, logging, third parties, shared-responsibility, lifecycle, exit) as an evidence index — no manufactured signatures | SF1 | SC1 | MUST | ARCH | P1 / P1 | ADMITTED | [pack](../../architecture/ARB-PREREQUISITE-PACK.md) · [detail](#sug-20260914-arb--bank-arb-prerequisite-evidence-pack) |
 | SUG-20260914-egr | 2026-09-14 | human:Mahesh | Outbound calls leave the building via Apigee (1SB never called from EKS; 1SB allowlists Apigee IPs). Inbound RM/mobile stays AWS API Gateway. Internal bank APIs via Apigee must not hairpin Cloudflare/F5. | SF1 | SC1 | MUST | ARCH | P1 / P1 | ADMITTED | [SPIKE-001](#sug-20260831-apg--apigee-is-the-bank-api-plane--do-not-add-a-second-amazon-api-gateway-until-confirmed) · [note](../../architecture/2026-09-14-HUMAN-DIRECTION-APIGEE-EGRESS-IDP.md) · [detail](#sug-20260914-egr--apigee-is-outbound-only-ingress-stays-api-gateway) |
 | SUG-20260914-uat | 2026-09-14 | human:Mahesh | Keep `dev` inside the UAT AWS account (cost). Isolate namespaces/data. No CUG environment at R0 (waiver, do not provision). | SF1 | SC1 | MUST | INFRA | P2 / P1 | ADMITTED | [detail](#sug-20260914-uat--dev-inside-uat-no-cug-at-r0) |
 | SUG-20260914-idp | 2026-09-14 | human:Mahesh | Workforce auth via existing bank AD-verify API (never bind LDAP). Partner users created in IdP bulk/one-by-one. Keycloak OK if bank Fireframe UI owns look-and-feel and maps users/roles/permissions. | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [detail](#sug-20260914-idp--ad-verify-api-partner-idp-fireframe-ui) |
@@ -1880,6 +1881,106 @@ breakdown:
 >
 > **Amended 2026-09-14 (`ADR-020`):** outbound Apigee is **drawn**. Remaining SPIKE-001 work is
 > written answers only (edition, private URL, per-env IPs, per-API onboard, PG callback hop).
+
+### SUG-20260914-arb · Bank ARB prerequisite evidence pack
+
+```yaml
+id: SUG-20260914-arb
+raised_at: "2026-09-14"
+raised_by: "human:Mahesh"
+source: "Bank ARB board — listed prerequisites; create a new PR and assemble the pack"
+input: >
+  We need to get the architecture reviewed by the ARB board. Prerequisites:
+  business asks and signoff; Critical Information System classification;
+  Solution Architecture Document; current-state and target-state architecture;
+  data-flow and trust-boundary diagrams; integration and dependency matrix;
+  infrastructure sizing and capacity; availability, RTO and RPO; DR architecture
+  and failover; security architecture (Security NFR); VA/PT and secure-code-review;
+  SBOM or software dependency inventory; data classification and residency;
+  IAM/PAM design; logging and monitoring; third-party and subcontractor details;
+  cloud architecture and shared-responsibility matrix; technology lifecycle and
+  end-of-support; exit, portability and decommissioning strategy.
+duplicate_of: null
+conflicts: []
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 / S09 — Engineering & Platform Foundation"
+  current_objective: R0-ASSISTED-LIFE-SALE
+  state_as_of: "2026-09-13"
+  state_provisional: false
+  freshness: FRESH
+  active_work_item: "ADR-020 split API plane (closed on sibling branch)"
+
+stage_fit:
+  code: SF1
+  rationale: >
+    S08 overlapped with S09. Bank ARB is the review the landing-zone request
+    walks into. Assembling evidence is on-stage; inventing VA/PT results or
+    CIS register entries is not.
+  target_stage: null
+  unpark_trigger: null
+
+scope:
+  code: SC1
+  business_scope: "in scope — bank cloud / architecture governance of the admitted R0 platform"
+  serves: ["GATE-S09", "ARB-DOSSIER-2026-R0", "ADR-020"]
+  failure_without_it: "ARB has no single indexed pack; reviewers open 400 files or refuse the item"
+  minimal: true
+  authority: "human:Mahesh · bank ARB prerequisite list"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S09 — Platform & Environment Foundation"
+  binds_when: "walking the design into bank ARB / requesting non-dev account apply"
+  evidence_tier: E2
+  evidence:
+    - "Bank ARB prerequisite list supplied in the request"
+    - "Existing SAD, HLD, LLD, NFR catalogue, security architecture, information model"
+  confidence: C4
+  assumptions: [ASM-015, ASM-017, ASM-018, ASM-019]
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT
+action_rationale: >
+  Admit as an architecture evidence pack: index existing sources, fill only the
+  rows that had no ARB-shaped paper (CIS proposal, integration matrix, shared
+  responsibility, lifecycle/exit, lockfile SBOM). Do not manufacture business
+  sign-off, CIS register entry, Deepali Board 4, VA/PT pass, or T4 Architecture.
+  Do not apply Terraform.
+
+classification:
+  type: ARCH
+  also: [DOC, GOV]
+  breakdown: story
+  risk_tier: T4
+
+priority:
+  score_notes: "Blocks bank ARB / S09 apply; hard P1-class blocking dependency for landing zone"
+  priority_now: P1
+  priority_at_target: P1
+
+dependencies:
+  edges:
+    - "ADR-020 split API plane (bound on sibling branch)"
+    - "DEP-20260914-apg Apigee IPs (OPEN)"
+  state: IN_PROGRESS
+  enablement_count: 0
+
+work_item: ARB-PRE-2026-09-14
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: ARB-PRE-2026-09-14
+  status: ADMITTED
+  closed_reason: null
+resumed: "ARB-PRE-2026-09-14 — 19-row evidence pack. Humans still sign CIS, Board 4, T4, VA/PT."
+```
 
 ### SUG-20260914-egr · Apigee is outbound only; ingress stays API Gateway
 

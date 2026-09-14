@@ -5,7 +5,7 @@
 #
 # Rule CS-1: if this file is missing, malformed, or past review_due, agents HALT
 # triage and report the gap rather than guessing.
-# Rule (04 §5): agents MUST NOT edit current_phase / stage_status. Human only.
+# Rule (04 §5): agents MUST NOT edit current_phase / stage_status unless a HUMAN SIGNOFF explicitly authorises the transition (Mahesh 2026-09-14: GATE-S08 PASSED → S09).
 
 schema_version: "1.0"
 governance_version: "AIGEM 1.4" # CR-009 ratified 2026-08-14; matches README.md section 1
@@ -23,7 +23,7 @@ project:
 # are recorded per criterion below and in GATE-EVIDENCE.yaml.
 #
 # WHAT THIS REFRESH DID NOT TOUCH, and cannot:
-#   * current_phase and stage_status — human only (04 section 5). Unchanged in all 3 workstreams.
+#   * current_phase and stage_status — human only (04 section 5). WS-3 advanced 2026-09-14 by Mahesh HUMAN SIGNOFF (S08→S09).
 #   * gate `state` (OPEN / CANDIDATE / PASSED / BLOCKED) — unchanged. No gate was marked CANDIDATE.
 #   * criterion state MET or WAIVED — never set by an agent. Criteria that now carry assembled
 #     E4 evidence are recorded PARTIAL; declaring one MET is the named owner's call.
@@ -34,7 +34,7 @@ project:
 # OVERLAP: PR #94 (branch cursor/gitlab-ce-repo-plan-c1db, open) carries a pure FR-1 date bump of
 # these same two fields to 2026-09-10 / 2026-10-10 and explicitly deferred the content review to
 # R12. This block supersedes it on merge; the content review is the part that was deferred.
-state_as_of: "2026-09-13" # quoted so the file validates directly against current-state.schema.json
+state_as_of: "2026-09-14" # quoted so the file validates directly against current-state.schema.json
 review_due: "2026-10-11"
 ratified_by: "Mahesh (Solution Architect), 2026-08-10 — PO counter-signature outstanding; stage, scope and objective values re-confirmed unchanged at the 2026-09-11 R12 refresh"
 provisional: false # ratified 2026-08-10; stage/scope values unchanged since; agents run the full pipeline
@@ -70,10 +70,12 @@ workstreams:
       - "docs/context/business-problem-statement.md"
 
     lifecycle:
-      canonical_stage: "S08 — Engineering Foundation"
-      current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+      # 2026-09-14 HUMAN SIGNOFF by Mahesh (sole human): GATE-S08 PASSED; stage advanced to S09.
+      # Architect+PO joint PASS authorised under 04 §5 (Mahesh wears both seats).
+      canonical_stage: "S09 — Platform & Environment Foundation"
+      current_phase: "Foundation Recovery Increment — S09 platform & environment foundation"
       stage_status: IN_PROGRESS
-      next_stage: "S09 — Platform & Environment Foundation"
+      next_stage: "S10 — Integration & Connectivity"
       # Dependencies (schema has no key for these; normative in the authority documents):
       #   WS-1 — SUPPLIER, delivers bounded contexts #14 Integration Hub and #15 1SB Adapter (IF-1)
       #   WS-2 — ENABLER,  delivers bounded context #3 Identity & Access, workforce half (IF-2)
@@ -178,99 +180,67 @@ workstreams:
         - "An agentic-AI action substituting for a deterministic hard gate"
 
     current_gate:
-      id: GATE-S08
+      id: GATE-S09
       state: OPEN
+      # Prior gate GATE-S08 PASSED 2026-09-14 by Mahesh (sole human). Archive:
+      # scripts/governance/evidence/S08-GATE-PASSED-RECORD.yaml
       exit_criteria:
-        - id: "S08-G1"
-          criterion: "CI builds and tests every module on every PR"
-          state: MET
-          owner: "Amit / Engineering"
-          # 2026-09-13 (Engineering / Amit seat): declared MET. Re-verified application-ci.yml
-          # (pull_request, no path filter; push to every branch), root Gradle line covering all
-          # 27 modules in settings.gradle.kts, and 392 workflow runs (20 most recent success;
-          # tip 34768713603 at 2026-09-13T16:29:09Z). Criterion closure only — GATE-S08 stays
-          # OPEN; current_phase and stage_status untouched; no approvals fabricated.
-          # 2026-09-11 (R12 sweep): E4 evidence assembled; held at PARTIAL pending Engineering.
-        - id: "S08-G2"
-          criterion: "Merge to main impossible without a green pipeline"
-          state: MET
-          owner: "Amit / Engineering"
-          # 2026-09-14 (Engineering / Amit seat via Mahesh38 admin): ruleset 23340894 active with
-          # the four required checks; verify exit 0; throwaway PR #105 merge refused (HTTP 405,
-          # 4/4 checks queued). Evidence under scripts/governance/evidence/S08-G2-*.out.
-          # Criterion closure only — GATE-S08 stays OPEN; stage_status untouched; no T4 approval.
-        - id: "S08-G3"
-          criterion: "Coverage thresholds enforced; QA-001 closed"
-          state: MET
-          owner: "Swapnali / QA"
-          # 2026-09-13 (QA / Swapnali seat): declared MET. QA-001 Closed — Phase-1 services at
-          # 90% line / 70% branch; scaffold 50% line floor ratified; package floors → QA-014
-          # (expiry 2026-10-31). GATE-S08 stays OPEN.
-          # 2026-09-11 (R12 sweep): first clause evidenced; second clause held QA-001 open on the
-          # interim service floor.
-        - id: "S08-G4"
-          criterion: "ArchUnit and static analysis enforced"
-          state: MET
-          owner: "Amit / Engineering"
-          # 2026-09-13 (Engineering / Amit seat): declared MET. Checkstyle + Spotless wired into
-          # root `check` and application-ci.yml; estate clean; breach probes fail the build.
-          # ArchUnit half unchanged. GATE-S08 stays OPEN.
-          # 2026-09-11 (R12 sweep): ArchUnit half is evidenced — 18 modules carry a
-          # ServiceArchitectureTest, 1sb-integration-service carries ArchitectureRulesBiteTest
-          # (S08-VT-03), and the CI architecture-fitness step fails when no ArchUnit results are
-          # found. Static-analysis half was the named gap (no Checkstyle/PMD/SpotBugs/Spotless).
-        - id: "S08-G5"
-          criterion: "Secret, SAST, SCA and image scanning in the pipeline"
-          state: MET
-          owner: "Deepali / Security"
-          # 2026-09-13 (Security / Deepali seat): declared MET. image-scan job added to
-          # security-scanning.yml — builds and Trivy-scans bank-persistence-service,
-          # 1sb-integration-service, and bank-insurance-combined; CRITICAL/HIGH fail the build.
-          # Local verify: 0 CRITICAL/HIGH on all three images. GATE-S08 stays OPEN.
-          # 2026-09-11 (R12 sweep): three of the four scanners were in the pipeline; container
-          # image scanning was the named gap that kept this PARTIAL.
-        - id: "S08-G6"
-          criterion: "Test infrastructure operational at every pyramid level"
-          state: MET
-          owner: "Swapnali / QA"
-          # 2026-09-13 (QA / Swapnali seat): declared MET. TD-014 cleared via libs/bank-common-test
-          # (Testcontainers Postgres + dual WireMock harness) + JobApiPostgresIT +
-          # SharedHarnessProposalSmokeIT. GATE-S08 stays OPEN.
-        - id: "S08-G7"
-          criterion: "No PII in logs, proven by automated test"
-          state: MET
-          owner: "Deepali / Security"
-          # 2026-09-13 (Security / Deepali seat): declared MET. LogPiiScrubber on Slf4jErrorRecorder
-          # plus NoPiiInEmittedLogsTest (ListAppender scan for PAN/Aadhaar/phone/email/health —
-          # S08-VT-06). Local verify bank-common-error test+coverage green. GATE-S08 stays OPEN.
-          # 2026-09-11 (R12 sweep): component-level proof existed; S08-VT-06 log-scan was the gap.
-        - id: "S08-G8"
-          criterion: "Engineering and secure coding standards published and adopted"
-          state: MET
-          owner: "Amit / Engineering"
-          # 2026-09-13 (Engineering / Amit seat): declared MET on document verifier.
-          # ENGINEERING-AND-SECURE-CODING-STANDARDS.md + PR-REVIEW-CHECKLIST.md +
-          # .github/pull_request_template.md. GATE-S08 stays OPEN.
-        - id: "S08-G9"
-          criterion: "Pipeline feedback under 10 minutes at p95; flake under 1%"
-          state: MET
+        - id: "S09-G1"
+          criterion: "All infrastructure defined as code; no console-created production resource"
+          state: OPEN
           owner: "Shivanshi / SRE"
-          # 2026-09-13 (SRE / Shivanshi seat): declared MET. Measured Application CI
-          # (scripts/governance/measure-pipeline-feedback.py): p95 ≈ 2.775 min; flake 0.00% over
-          # ≥50 concluded runs (401 API total). Snapshot committed under
-          # scripts/governance/evidence/S08-G9-pipeline-feedback.json. GATE-S08 stays OPEN.
-          # 2026-09-11 (R12 sweep): was OPEN — S08-VT-08/VT-09 unmeasured.
-        - id: "S08-G10"
-          criterion: "A new engineer can build, test and ship in under a week"
-          state: MET
-          owner: "Amit / Engineering"
-          # 2026-09-14 (Engineering / Amit seat via Mahesh38): filled attestation at
-          # scripts/governance/evidence/S08-G10-onboarding-attestation.md (PR #104 first ship,
-          # 2 working days compressed path). Criterion closure only — GATE-S08 stays OPEN;
-          # stage_status untouched; no T4 board approval.
-      approvers: ["Amit / Engineering", "Swapnali / QA", "Mahesh / Architecture", "Deepali / Security", "Shivanshi / SRE"]
+        - id: "S09-G2"
+          criterion: "Dev, UAT and production provisioned from the same modules"
+          state: OPEN
+          owner: "Shivanshi / SRE"
+        - id: "S09-G3"
+          criterion: "Environment recreatable from code"
+          state: OPEN
+          owner: "Shivanshi / SRE"
+        - id: "S09-G4"
+          criterion: "Automated deployment with tested rollback"
+          state: OPEN
+          owner: "Shivanshi / SRE + Amit / Engineering"
+        - id: "S09-G5"
+          criterion: "Secrets management operational; TD-006 closed"
+          state: OPEN
+          owner: "Deepali / Security + Shivanshi / SRE"
+        - id: "S09-G6"
+          criterion: "Observability operational: metrics, logs, traces correlated"
+          state: OPEN
+          owner: "Shivanshi / SRE"
+        - id: "S09-G7"
+          criterion: "Backup automated and restore proven against RTO/RPO"
+          state: OPEN
+          owner: "Aarti / Database + Shivanshi / SRE"
+        - id: "S09-G8"
+          criterion: "7-year immutable retention implemented"
+          state: OPEN
+          owner: "Shivanshi / SRE + Shailja / Compliance"
+        - id: "S09-G9"
+          criterion: "Data residency attested"
+          state: OPEN
+          owner: "Shivanshi / SRE + Shailja / Compliance"
+        - id: "S09-G10"
+          criterion: "Encryption at rest and in transit verified"
+          state: OPEN
+          owner: "Deepali / Security"
+        - id: "S09-G11"
+          criterion: "Network segmentation and least-privilege IAM enforced"
+          state: OPEN
+          owner: "Deepali / Security"
+        - id: "S09-G12"
+          criterion: "IaC scanning in the pipeline"
+          state: OPEN
+          owner: "Deepali / Security + Shivanshi / SRE"
+        - id: "S09-G13"
+          criterion: "No PII in aggregated logs"
+          state: OPEN
+          owner: "Deepali / Security"
+      approvers: ["Shivanshi / SRE", "Deepali / Security", "Mahesh / Architecture", "Aarti / Database", "Shailja / Compliance", "Amit / Engineering", "Swapnali / QA", "Kalpana / Delivery"]
 
-    completed_stages: []
+    completed_stages:
+      - "S08 — Engineering Foundation (GATE-S08 PASSED 2026-09-14 by Mahesh sole human)"
 
   - id: WS-1
     name: "1SB Insurance Integration"

@@ -1,0 +1,371 @@
+# Snapshot of GATE-S08 ledger at HUMAN PASS. Live ledger advances to GATE-S09.
+id: WS-3
+gate_id: GATE-S08
+current_stage: S08 — Engineering Foundation
+next_stage: S09 — Platform & Environment Foundation
+bible_stage: S08
+state: CANDIDATE
+required_approvers:
+- Engineering
+- QA
+- Architect
+- Security
+- Operations
+criteria:
+- id: S08-G1
+  description: CI builds and tests every module on every pull request.
+  state: MET
+  owner: Amit / Engineering
+  execution_mode: AUTOMATABLE
+  priority: P1
+  effort: M
+  enables: 6
+  required_evidence_level: E4
+  verifier: ci
+  evidence:
+  - 'Pipeline definition: .github/workflows/application-ci.yml (c4e8d9f, 2026-08-16).
+    Triggers on pull_request with no paths filter and on push to every branch, so
+    a working branch is evidenced before a PR exists.'
+  - 'Module coverage: the root task line runs `./gradlew --no-daemon build test jacocoTestReport
+    jacocoTestCoverageVerification` across all 27 modules declared in settings.gradle.kts
+    (6 libs + 21 services).'
+  - 'Run history: 392 recorded runs of the workflow (API total_count); the 20 most
+    recent all concluded success, the latest run 34768713603 at 2026-09-13T16:29:09Z
+    on pull_request.'
+  - 'Engineering declaration (Amit seat, 2026-09-13): criterion S08-G1 MET on the
+    ci verifier. GATE-S08 remains OPEN; this is not a stage transition and not a human
+    gate approval.'
+  blockers: []
+  last_verified_at: '2026-09-13T16:29:09Z'
+- id: S08-G2
+  description: Merge to main is impossible without a green pipeline.
+  state: MET
+  owner: Amit / Engineering
+  execution_mode: HUMAN_REQUIRED
+  priority: P1
+  effort: S
+  enables: 2
+  required_evidence_level: E4
+  verifier: human-review
+  evidence:
+  - 'The four status checks that must be required are named exactly in the application-ci.yml
+    header and matching security-scanning.yml job names: "Java 21 tests and coverage
+    gates", "Secret scanning (gitleaks)", "SAST (CodeQL, Java)", "SCA (Trivy dependency
+    scan)". The naming work is done.'
+  - '2026-09-14T17:38Z Mahesh38 (admin PAT) ran scripts/governance/evidence/S08-Mahesh38-close-remaining.sh:
+    POST created ruleset 23340894 ''Require GATE-S08 CI checks'' enforcement=active
+    on refs/heads/main with the four required contexts + non_fast_forward + deletion;
+    also enabled ruleset 20028494 ''No force push allowed''.'
+  - '2026-09-14T17:38Z S08-G2-verify-required-checks.sh exit 0 — all four required
+    checks OK against active rulesets (transcript: scripts/governance/evidence/S08-G2-verify-required-checks.out).'
+  - '2026-09-14T17:40Z blocked-merge demo on throwaway PR #105 while the four required
+    checks were queued: PUT /pulls/105/merge → HTTP 405 ''Repository rule violations
+    found / 4 of 4 required status checks are queued.'' Transcript: scripts/governance/evidence/S08-G2-blocked-merge.out.
+    PR #105 closed after capture.'
+  - 'Note: an earlier probe against green PR #104 (mergeStateStatus=CLEAN) unexpectedly
+    squash-merged that PR — demo script since hardened to abort when mergeStateStatus=CLEAN.
+    Successful merge of a fully green PR is expected ruleset behaviour and is not
+    the blocked-merge proof; PR #105 is the E4 refuse evidence.'
+  - 'Engineering declaration (Amit seat via Mahesh38 admin actor, 2026-09-14): criterion
+    S08-G2 MET on human-review. GATE-S08 remains OPEN until G10; this is not a stage
+    transition and not a T4 board approval.'
+  blockers: []
+  last_verified_at: '2026-09-14T17:40:00Z'
+- id: S08-G3
+  description: Coverage thresholds enforced in CI; QA-001 closed.
+  state: MET
+  owner: Swapnali / QA
+  execution_mode: AUTOMATABLE
+  priority: P1
+  effort: M
+  enables: 1
+  required_evidence_level: E4
+  verifier: ci
+  evidence:
+  - 'Enforcement: build.gradle.kts wires jacocoTestCoverageVerification into `check`
+    and CI names the task explicitly, so a future rewiring cannot silently drop the
+    gate.'
+  - 'Thresholds in force: libs 80% line / 70% branch; Phase-1 services (1sb-integration-service,
+    bank-persistence-service) 90% line / 70% branch; scaffold services ratified 50%
+    line module floor.'
+  - 'QA-001 Closed 2026-09-13 (Swapnali): interim framing retired; package-level strategy
+    §7 floors split to QA-014 (expiry 2026-10-31) with compensating control = module
+    jacocoTestCoverageVerification on every CI check.'
+  - 'Local verify 2026-09-13: ./gradlew test jacocoTestReport jacocoTestCoverageVerification
+    BUILD SUCCESSFUL; bank-persistence-service measured ~99.0% line / ~85.0% branch
+    under the raised 90/70 gate.'
+  blockers: []
+  last_verified_at: '2026-09-13T19:22:01Z'
+- id: S08-G4
+  description: ArchUnit and static analysis enforced in CI; build fails on breach.
+  state: MET
+  owner: Amit / Engineering
+  execution_mode: AUTOMATABLE
+  priority: P1
+  effort: M
+  enables: 1
+  required_evidence_level: E4
+  verifier: ci
+  evidence:
+  - 'ArchUnit breadth: 18 modules carry an architecture test (ServiceArchitectureTest
+    in 17 platform services plus ArchitectureTest in 1sb-integration-service).'
+  - 'Rules bite: 1sb-integration-service carries ArchitectureRulesBiteTest, the S08-VT-03
+    demonstration.'
+  - 'CI ArchUnit enforcement: the architecture-fitness step fails the run when no
+    ArchUnit result files are found, so the rules cannot silently stop running.'
+  - 'Static analysis mechanism (S08-E02-S03): root build.gradle.kts applies Checkstyle
+    (config/checkstyle/checkstyle.xml, maxWarnings=0) and Spotless 6.25.0 (google-java-format,
+    ratchetFrom origin/main) to every Java subproject; both are dependents of `check`.'
+  - 'CI static-analysis step: application-ci.yml runs `./gradlew checkstyleMain checkstyleTest
+    spotlessCheck` explicitly after build, and uploads checkstyle/spotless reports.'
+  - 'Local verify 2026-09-13: estate checkstyleMain/checkstyleTest/spotlessCheck BUILD
+    SUCCESSFUL (exit 0); star-import probe on bank-common-domain fails checkstyleMain
+    (exit 1); trailing-whitespace probe on bank-common-test fails spotlessCheck (exit
+    1). Engineering (Amit seat) declares S08-G4 MET on ci verifier. GATE-S08 remains
+    OPEN.'
+  blockers: []
+  last_verified_at: '2026-09-13T19:40:36Z'
+- id: S08-G5
+  description: Secret, SAST, SCA and container image scanning in the pipeline.
+  state: MET
+  owner: Deepali / Security
+  execution_mode: AUTOMATABLE
+  priority: P1
+  effort: L
+  enables: 2
+  required_evidence_level: E4
+  verifier: ci
+  evidence:
+  - 'Secret scanning: gitleaks runs on the working tree and blocks the build; a scheduled
+    job scans full git history separately.'
+  - 'SAST: CodeQL Java analysis runs and fails the build on critical or high findings.'
+  - 'SCA: Trivy dependency scan fails the build on CRITICAL and HIGH, with a non-blocking
+    full-severity report for the risk register; runtimeClasspath is locked so the
+    scan genuinely covers the Java estate (1e4d69e).'
+  - 'Supply chain: an SBOM job runs and fails when it does not cover the Java estate.'
+  - 'Container image scanning: security-scanning.yml image-scan job builds and Trivy-scans
+    bank-persistence-service, 1sb-integration-service, and bank-insurance-combined
+    (root Dockerfile); CRITICAL/HIGH with ignore-unfixed fails the build; full-severity
+    JSON artefact retained; .trivyignore shared with SCA.'
+  - 'Local verify 2026-09-13: docker build + aquasec/trivy:0.53.0 image scan — Total
+    CRITICAL/HIGH 0 on all three images (exit code 0). Security (Deepali seat) declares
+    S08-G5 MET on ci verifier. GATE-S08 remains OPEN.'
+  blockers: []
+  last_verified_at: '2026-09-13T19:10:36Z'
+- id: S08-G6
+  description: 'Test infrastructure operational at every level: Testcontainers, WireMock,
+    contract and E2E.'
+  state: MET
+  owner: Swapnali / QA
+  execution_mode: AUTOMATABLE
+  priority: P1
+  effort: L
+  enables: 3
+  required_evidence_level: E4
+  verifier: ci
+  evidence:
+  - 'Shared harness library: libs/bank-common-test — PostgresTestSupport (Testcontainers),
+    WireMockHarness (dual 1SB+persistence servers), DomainFixtures, PyramidTags /
+    ContractTags / E2ETags.'
+  - 'Unit level: DomainFixturesTest + WireMockHarnessTest in bank-common-test; estate
+    unit suites unchanged.'
+  - 'Integration / Testcontainers level: PostgresTestSupportIT (lib) and JobApiPostgresIT
+    (bank-persistence-service) create jobs against real PostgreSQL 16; flyway-database-postgresql
+    wired for Flyway 10+.'
+  - 'WireMock / contract / e2e level: SharedHarnessProposalSmokeIT in 1sb-integration-service
+    uses WireMockHarness, tagged contract + e2e:assisted-life-smoke; existing ProposalSubmitIT
+    WireMock coverage remains.'
+  - TD-014 closed 2026-09-13 — shared WireMock harness proves integration → persistence
+    HTTP seam in CI. QA (Swapnali seat) declares S08-G6 MET on ci verifier. GATE-S08
+    remains OPEN.
+  blockers: []
+  last_verified_at: '2026-09-13T18:44:44Z'
+- id: S08-G7
+  description: No PII in logs, proven by an automated test that scans emitted logs.
+  state: MET
+  owner: Deepali / Security
+  execution_mode: AUTOMATABLE
+  priority: P1
+  effort: M
+  enables: 1
+  required_evidence_level: E4
+  verifier: ci
+  evidence:
+  - 'Component proof: NoPiiInErrorOutputTest and ErrorDiagnosticAndRedactionTest in
+    bank-common-error (EPIC-001, ADR-017); PiiMaskerTest in 1sb-integration-service.'
+  - 'Framework emission scrubber: LogPiiScrubber applied by Slf4jErrorRecorder to
+    reason text and attached throwable messages before any log line is written (FF-05
+    / S08-E05-S05).'
+  - 'S08-VT-06 log-scan: NoPiiInEmittedLogsTest attaches a Logback ListAppender to
+    Slf4jErrorRecorder, drives PlatformErrorHandler and direct recorder paths with
+    PAN, Aadhaar, phone, email and health payloads, asserts zero unmasked pattern
+    matches in all emitted events, and asserts scrubbed forms appear.'
+  - 'Local verify 2026-09-13: ./gradlew :libs:bank-common-error:test :libs:bank-common-error:jacocoTestCoverageVerification
+    BUILD SUCCESSFUL (LogPiiScrubberTest + NoPiiInEmittedLogsTest green). Security
+    (Deepali seat) declares S08-G7 MET on ci verifier. GATE-S08 remains OPEN.'
+  blockers: []
+  last_verified_at: '2026-09-13T19:47:46Z'
+- id: S08-G8
+  description: Engineering and secure coding standards published and adopted.
+  state: MET
+  owner: Amit / Engineering
+  execution_mode: HUMAN_REQUIRED
+  priority: P3
+  effort: M
+  enables: 0
+  required_evidence_level: E2
+  verifier: document
+  evidence:
+  - 'Published standard: docs/governance/ENGINEERING-AND-SECURE-CODING-STANDARDS.md
+    (ENG-1..10, SEC-C1..C10) — L3 repo standard building on ORG-STANDARDS.md.'
+  - 'Adoption mechanism: docs/governance/PR-REVIEW-CHECKLIST.md cites that standard
+    by path; .github/pull_request_template.md requires ENG/SEC checklist completion
+    on every PR.'
+  - 'Engineering declaration (Amit seat, 2026-09-13): criterion S08-G8 MET on the
+    document verifier (E2). GATE-S08 remains OPEN; this is not a stage transition
+    and not a T4 approval.'
+  blockers: []
+  last_verified_at: '2026-09-13T20:05:00Z'
+- id: S08-G9
+  description: Pipeline feedback under 10 minutes at p95; flaky failure rate under
+    1%.
+  state: MET
+  owner: Shivanshi / SRE
+  execution_mode: AUTOMATABLE
+  priority: P2
+  effort: M
+  enables: 0
+  required_evidence_level: E4
+  verifier: ci
+  evidence:
+  - 'Measurement script: scripts/governance/measure-pipeline-feedback.py (fetch via
+    gh api against .github/workflows/application-ci.yml). Committed snapshot: scripts/governance/evidence/S08-G9-pipeline-feedback.json.
+    Governance CI re-asserts thresholds offline.'
+  - 'S08-VT-08: PR feedback p95 across most recent 20 pull_request runs and across
+    all concluded samples is under 10 minutes (gate p95 ≈ 2.775 min; all-concluded
+    N=351, PR N=141, API total_count=401 as of 2026-09-13).'
+  - 'S08-VT-09: flake rate 0.00% over most recent 50 concluded runs (0 flaky failures).
+    Flake = failure on a head_sha that also has ≥1 success in the sample. Raw non-flake
+    failures exist and are excluded by definition.'
+  - 'SRE declaration (Shivanshi seat, 2026-09-13): criterion S08-G9 MET on the ci
+    verifier. GATE-S08 remains OPEN; this is not a stage transition and not a human
+    gate approval.'
+  blockers: []
+  last_verified_at: '2026-09-13T19:50:32Z'
+- id: S08-G10
+  description: A new engineer can build, test and ship a change in under a week.
+  state: MET
+  owner: Amit / Engineering
+  execution_mode: HUMAN_REQUIRED
+  priority: P3
+  effort: M
+  enables: 0
+  required_evidence_level: E3
+  verifier: human-review
+  evidence:
+  - 'Human pack assembled 2026-09-13: scripts/governance/evidence/S08-G10-onboarding-human-pack.md
+    (5-day path, reading list, attestation template).'
+  - Day-0.5 / day-1 / day-2 dry-runs already logged under scripts/governance/evidence/S08-G10-day*.log
+    (supporting only).
+  - '2026-09-14 filled attestation committed: scripts/governance/evidence/S08-G10-onboarding-attestation.md
+    — Engineer Mahesh38; first merged PR #104; elapsed 2 working days on compressed
+    path; Amit confirmation 2026-09-14 via Mahesh38 as named admin/Engineering actor
+    (sole collaborator).'
+  - 'Engineering declaration (Amit seat via Mahesh38, 2026-09-14): criterion S08-G10
+    MET on human-review. GATE-S08 criteria are now 10/10 MET; this is not a stage_status
+    edit, not GATE PASSED, and not a T4 board approval — board sign-off remains a
+    separate human step if/when advancing the stage.'
+  blockers: []
+  last_verified_at: '2026-09-14T17:40:00Z'
+approvals:
+- authority: Engineering
+  reviewer: Mahesh (sole human) wearing Amit / Engineering seat
+  reviewer_type: HUMAN
+  decision: APPROVED
+  date: '2026-09-14'
+  evidence:
+  - scripts/governance/evidence/S08-PERSONA-VALIDATION.md (AGENT READY_FOR_HUMAN_SIGNOFF)
+  - scripts/governance/evidence/S08-MAHESH-HUMAN-SIGNOFF.md
+  - Chat HUMAN SIGNOFF 2026-09-14 by Mahesh (sole human)
+  - 'PR #106 merged — G2+G10 evidence; PR #107 transition pack'
+  - 'HUMAN SIGNOFF: GATE-S08 PASSED. Actor=Mahesh (sole human) wearing Engineering+QA+Architecture+Security+SRE(+PO+Compliance)
+    seats. Stage → S09.'
+- authority: QA
+  reviewer: Mahesh (sole human) wearing Swapnali / QA seat
+  reviewer_type: HUMAN
+  decision: APPROVED
+  date: '2026-09-14'
+  evidence:
+  - scripts/governance/evidence/S08-PERSONA-VALIDATION.md (AGENT READY_FOR_HUMAN_SIGNOFF)
+  - scripts/governance/evidence/S08-MAHESH-HUMAN-SIGNOFF.md
+  - Chat HUMAN SIGNOFF 2026-09-14 by Mahesh (sole human)
+  - 'PR #106 merged — G2+G10 evidence; PR #107 transition pack'
+  - 'HUMAN SIGNOFF: GATE-S08 PASSED. Actor=Mahesh (sole human) wearing Engineering+QA+Architecture+Security+SRE(+PO+Compliance)
+    seats. Stage → S09.'
+- authority: Architect
+  reviewer: Mahesh (sole human) wearing Mahesh / Architecture seat
+  reviewer_type: HUMAN
+  decision: APPROVED
+  date: '2026-09-14'
+  evidence:
+  - scripts/governance/evidence/S08-PERSONA-VALIDATION.md (AGENT READY_FOR_HUMAN_SIGNOFF)
+  - scripts/governance/evidence/S08-MAHESH-HUMAN-SIGNOFF.md
+  - Chat HUMAN SIGNOFF 2026-09-14 by Mahesh (sole human)
+  - 'PR #106 merged — G2+G10 evidence; PR #107 transition pack'
+  - 'HUMAN SIGNOFF: GATE-S08 PASSED. Actor=Mahesh (sole human) wearing Engineering+QA+Architecture+Security+SRE(+PO+Compliance)
+    seats. Stage → S09.'
+- authority: Security
+  reviewer: Mahesh (sole human) wearing Deepali / Security seat
+  reviewer_type: HUMAN
+  decision: APPROVED
+  date: '2026-09-14'
+  evidence:
+  - scripts/governance/evidence/S08-PERSONA-VALIDATION.md (AGENT READY_FOR_HUMAN_SIGNOFF)
+  - scripts/governance/evidence/S08-MAHESH-HUMAN-SIGNOFF.md
+  - Chat HUMAN SIGNOFF 2026-09-14 by Mahesh (sole human)
+  - 'PR #106 merged — G2+G10 evidence; PR #107 transition pack'
+  - 'HUMAN SIGNOFF: GATE-S08 PASSED. Actor=Mahesh (sole human) wearing Engineering+QA+Architecture+Security+SRE(+PO+Compliance)
+    seats. Stage → S09.'
+- authority: Operations
+  reviewer: Mahesh (sole human) wearing Shivanshi / SRE seat
+  reviewer_type: HUMAN
+  decision: APPROVED
+  date: '2026-09-14'
+  evidence:
+  - scripts/governance/evidence/S08-PERSONA-VALIDATION.md (AGENT READY_FOR_HUMAN_SIGNOFF)
+  - scripts/governance/evidence/S08-MAHESH-HUMAN-SIGNOFF.md
+  - Chat HUMAN SIGNOFF 2026-09-14 by Mahesh (sole human)
+  - 'PR #106 merged — G2+G10 evidence; PR #107 transition pack'
+  - 'HUMAN SIGNOFF: GATE-S08 PASSED. Actor=Mahesh (sole human) wearing Engineering+QA+Architecture+Security+SRE(+PO+Compliance)
+    seats. Stage → S09.'
+- authority: Product
+  reviewer: Mahesh (sole human) wearing Rajal / Product seat (joint Architect+PO pass)
+  reviewer_type: HUMAN
+  decision: APPROVED
+  date: '2026-09-14'
+  evidence:
+  - scripts/governance/evidence/S08-PERSONA-VALIDATION.md (AGENT READY_FOR_HUMAN_SIGNOFF)
+  - scripts/governance/evidence/S08-MAHESH-HUMAN-SIGNOFF.md
+  - Chat HUMAN SIGNOFF 2026-09-14 by Mahesh (sole human)
+  - 'PR #106 merged — G2+G10 evidence; PR #107 transition pack'
+  - 'HUMAN SIGNOFF: GATE-S08 PASSED. Actor=Mahesh (sole human) wearing Engineering+QA+Architecture+Security+SRE(+PO+Compliance)
+    seats. Stage → S09.'
+- authority: Compliance
+  reviewer: Mahesh (sole human) wearing Shailja / Compliance seat
+  reviewer_type: HUMAN
+  decision: APPROVED
+  date: '2026-09-14'
+  evidence:
+  - scripts/governance/evidence/S08-PERSONA-VALIDATION.md (AGENT READY_FOR_HUMAN_SIGNOFF)
+  - scripts/governance/evidence/S08-MAHESH-HUMAN-SIGNOFF.md
+  - Chat HUMAN SIGNOFF 2026-09-14 by Mahesh (sole human)
+  - 'PR #106 merged — G2+G10 evidence; PR #107 transition pack'
+  - 'HUMAN SIGNOFF: GATE-S08 PASSED. Actor=Mahesh (sole human) wearing Engineering+QA+Architecture+Security+SRE(+PO+Compliance)
+    seats. Stage → S09.'
+human_pass:
+  decision: PASSED
+  recorded_in: docs/governance/state/CURRENT-STATE.yaml
+  actor: Mahesh
+  date: '2026-09-14'
+  note: 'HUMAN SIGNOFF: GATE-S08 PASSED. Actor=Mahesh (sole human) wearing Engineering+QA+Architecture+Security+SRE(+PO+Compliance)
+    seats. Stage → S09.'

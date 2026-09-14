@@ -1,5 +1,7 @@
 # GATE-S08 — Mahesh sole-human sign-off
 
+> **EXECUTED 2026-09-14.** Chat HUMAN SIGNOFF applied. GATE-S08 PASSED. Stage → S09. Live gate is GATE-S09 OPEN.
+
 > Repo reality: **Mahesh is the only real human**. Persona AGENT validations are in
 > `S08-PERSONA-VALIDATION.md` (`READY_FOR_HUMAN_SIGNOFF`).  
 > This sheet is the single place Mahesh records HUMAN verdicts and (if satisfied) marks the gate PASSED.
@@ -32,52 +34,52 @@ human_approvals:
   - seat: "Amit / Engineering"
     reviewer_type: HUMAN
     actor: "Mahesh"
-    decision: _______________   # APPROVED | REWORK | REJECTED
-    date: _______________
-    signature: _______________
+    decision: APPROVED
+    date: 2026-09-14
+    signature: Mahesh (sole human) — chat HUMAN SIGNOFF 2026-09-14
 
   - seat: "Swapnali / QA"
     reviewer_type: HUMAN
     actor: "Mahesh"
-    decision: _______________
-    date: _______________
-    signature: _______________
+    decision: APPROVED
+    date: 2026-09-14
+    signature: Mahesh (sole human) — chat HUMAN SIGNOFF 2026-09-14
 
   - seat: "Mahesh / Architecture"
     reviewer_type: HUMAN
     actor: "Mahesh"
-    decision: _______________
-    date: _______________
-    signature: _______________
+    decision: APPROVED
+    date: 2026-09-14
+    signature: Mahesh (sole human) — chat HUMAN SIGNOFF 2026-09-14
 
   - seat: "Deepali / Security"          # T4 — human mandatory
     reviewer_type: HUMAN
     actor: "Mahesh"
-    decision: _______________
-    date: _______________
-    signature: _______________
+    decision: APPROVED
+    date: 2026-09-14
+    signature: Mahesh (sole human) — chat HUMAN SIGNOFF 2026-09-14
 
   - seat: "Shivanshi / SRE"
     reviewer_type: HUMAN
     actor: "Mahesh"
-    decision: _______________
-    date: _______________
-    signature: _______________
+    decision: APPROVED
+    date: 2026-09-14
+    signature: Mahesh (sole human) — chat HUMAN SIGNOFF 2026-09-14
 
   # Recommended extra hats for stage advance (Architect + PO joint PASS):
   - seat: "Rajal / Product (PO joint pass)"
     reviewer_type: HUMAN
     actor: "Mahesh"
-    decision: _______________
-    date: _______________
-    signature: _______________
+    decision: APPROVED
+    date: 2026-09-14
+    signature: Mahesh (sole human) — chat HUMAN SIGNOFF 2026-09-14
 
   - seat: "Shailja / Compliance"        # T4 — human mandatory if you treat stage close as T4
     reviewer_type: HUMAN
     actor: "Mahesh"
-    decision: _______________
-    date: _______________
-    signature: _______________
+    decision: APPROVED
+    date: 2026-09-14
+    signature: Mahesh (sole human) — chat HUMAN SIGNOFF 2026-09-14
 ```
 
 ---

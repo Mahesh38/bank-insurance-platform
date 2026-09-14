@@ -25,7 +25,7 @@ Priority: **P0** before Phase 3 functional exit · **P1** hardening · **P2** ni
 | QA-010 | P2 | Mutation testing on mappers (PIT) | QA | Phase 4 |
 | QA-011 | P2 | k6 performance smoke from NFR table | QA + Eng | Phase 4 |
 | QA-014 | P1 | Package-level strategy §7 JaCoCo floors | QA Lead | **Open** — expiry 2026-10-31; compensating control = module gates (split from QA-001 close) |
-| QA-013 | P2 | Contract test vs OpenAPI once published | QA | Phase 4 |
+| QA-015 | P2 | Contract test vs OpenAPI once published | QA | Phase 4 |
 
 ---
 

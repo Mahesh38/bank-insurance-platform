@@ -41,6 +41,17 @@ class LogPiiScrubberTest {
   }
 
   @Test
+  void scrubsCommaContainingHealthValues() {
+    String raw = "diagnosis=Type 2, severe diabetes; upstream=1sb";
+
+    String scrubbed = LogPiiScrubber.scrub(raw);
+
+    assertThat(scrubbed).doesNotContain("severe diabetes");
+    assertThat(scrubbed).doesNotContain("Type 2");
+    assertThat(scrubbed).contains("diagnosis=[REDACTED_HEALTH]");
+  }
+
+  @Test
   void nullAndEmptyPassThrough() {
     assertThat(LogPiiScrubber.scrub(null)).isNull();
     assertThat(LogPiiScrubber.scrub("")).isEmpty();

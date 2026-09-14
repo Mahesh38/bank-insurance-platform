@@ -1,0 +1,6 @@
+# Copy to envs/<env>/backend.hcl and fill after bootstrap.
+bucket         = "bip-tfstate-<account-id>-ap-south-1"
+key            = "ws3/s09/<env>/terraform.tfstate"
+region         = "ap-south-1"
+dynamodb_table = "bip-tfstate-lock"
+encrypt        = true

@@ -31,6 +31,7 @@ architecture diagram will almost draw itself.*
 | **`docs/architecture/r0-reference-architecture.svg`** | **Rendering** | Nothing. It *depicts* the R0 slice of the same picture |
 | [`docs/architecture/R0-HLD.md`](../../../architecture/R0-HLD.md) | **Compiled narrative** | Nothing new. Walks the R0 rendering for humans (domain, APIs, waves). If it disagrees with the rows above, those rows win (`HA-02`) |
 | [`docs/architecture/R0-LLD.md`](../../../architecture/R0-LLD.md) | **S09 platform pack** | Maps already-accepted R0 decisions onto AWS resources for the CTO / platform team. Must not invent a service the rows above do not name |
+| [`docs/architecture/BOARD-1-REREVIEW-VIN003-ESTATE-2026-09-14.md`](../../../architecture/BOARD-1-REREVIEW-VIN003-ESTATE-2026-09-14.md) | **Grounding · Board 1 draft** | `ARCH-DEC-VIN003-B1` — R0 spoke vs live AU estate. `APPROVED_WITH_CONDITIONS`. Does not own ADRs; does not replace T4 |
 | **`docs/architecture/r0-lld.svg`** | **Rendering** | Nothing. It *depicts* `R0-LLD.md`: VPC tiers, two-hop reverse proxy, EKS namespaces, data stores, PVC/cache/do-not-provision |
 | **`docs/architecture/r0-platform-*.svg`** (5 views, each with a `.png` companion) | **Rendering · generated** | Nothing. They *depict* `R0-LLD.md` §2.1 / §11.1 / §12.1 for the AWS platform team, in AWS and Kubernetes icon notation. **Build output** — the source is [`diagrams/r0_platform_views.py`](../../../architecture/diagrams/README.md) and an edit to an SVG or PNG that is not an edit to that file is a defect |
 

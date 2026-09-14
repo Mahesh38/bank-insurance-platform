@@ -293,6 +293,13 @@ doc_routing:
       capsules: [architecture-review]
       persona: architecture
 
+    - match: ["docs/architecture/BOARD-1-REREVIEW-VIN003-ESTATE-2026-09-14.md"]
+      bucket: platform
+      authority: ai-drafted
+      capsules: [architecture-review, board-review]
+      persona: architecture
+      note: "ARCH-DEC-VIN003-B1 Board 1 draft vs VIN-003 estate. T4 human signature outstanding. Does not amend ADRs."
+
     - match: ["docs/architecture/*"]
       bucket: platform
       authority: approved-spec

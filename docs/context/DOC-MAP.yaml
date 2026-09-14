@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 566
-total_bytes: 15675415
+document_count: 567
+total_bytes: 15695336
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -1350,6 +1350,14 @@ documents:
     title: "AU Bank Insurance Distribution Platform (NIP / 1SB) — Architecture Review Board (ARB) Dossier"
     answers: "Document Reference: ARB-DOSSIER-2026-R0"
     bytes: 50794
+  - path: docs/architecture/BOARD-1-REREVIEW-VIN003-ESTATE-2026-09-14.md
+    bucket: platform
+    authority: ai-drafted
+    capsules: [architecture-review, board-review]
+    persona: architecture
+    title: "Board 1 — Architecture rereview of R0 against the live AU bank cloud estate"
+    answers: "Decision id: ARCH-DEC-VIN003-B1"
+    bytes: 18154
   - path: docs/architecture/R0-HLD.md
     bucket: platform
     authority: approved-spec
@@ -1373,7 +1381,7 @@ documents:
     persona: architecture
     title: "Architecture diagrams"
     answers: "Two diagrams, deliberately. They answer different questions and neither replaces the other."
-    bytes: 27787
+    bytes: 28091
   - path: docs/architecture/diagrams/README.md
     bucket: platform
     authority: approved-spec
@@ -1925,7 +1933,7 @@ documents:
     persona: null
     title: "AGENT CONTEXT INDEX"
     answers: "============================================================================="
-    bytes: 45666
+    bytes: 45997
   - path: docs/context/BOOT.md
     bucket: context
     authority: non-binding-context
@@ -1941,7 +1949,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 199603
+    bytes: 200144
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -2437,7 +2445,7 @@ documents:
     persona: null
     title: "16 — Mahesh HLD Authoring and Update Protocol"
     answers: "This file makes updating the platform's high-level design a mechanical act rather than a"
-    bytes: 29162
+    bytes: 29456
   - path: docs/context/roles/mahesh-principal-insurance-platform-architect/17-provider-aggregation-and-connectivity.md
     bucket: context
     authority: non-binding-context
@@ -2453,7 +2461,7 @@ documents:
     persona: null
     title: "18 — Mahesh AU Bank Enterprise Cloud Estate Doctrine"
     answers: "Mahesh's doctrine for the existing AU bank Control Tower, EDGE VPC FortiGate NGFW, Transit Gateway, Direct Connect (Sify/Airtel), cloud onboarding…"
-    bytes: 21122
+    bytes: 21419
   - path: docs/context/roles/mahesh-principal-insurance-platform-architect/README.md
     bucket: context
     authority: non-binding-context

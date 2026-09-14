@@ -330,7 +330,9 @@ Technology-qualification gaps are `A1`/`A2` with a named owner.
 | Account names `AU_AWS_MAS` / `au-platform` | Real hub identities to attach to |
 | FortiGate is the **hub** NGFW | Spoke AWS Network Firewall (`ADR-010`) is additional inspection, not FortiGate's replacement — `ASM-012` already flagged "attach vs share EDGE" |
 
-`VIN-003` **conflicts** — raise at rereview; **do not overwrite the ADR in this change**:
+`VIN-003` **conflicts** — scored in the 2026-09-14 rereview
+([`ARCH-DEC-VIN003-B1`](../../../architecture/BOARD-1-REREVIEW-VIN003-ESTATE-2026-09-14.md));
+**do not overwrite the ADR from this persona file**:
 
 | # | Estate rule | Accepted programme row | Why it is not absorbed here |
 |---|---|---|---|
@@ -338,12 +340,14 @@ Technology-qualification gaps are `A1`/`A2` with a named owner.
 | X-2 | Existing apps: Public VPC + IGW + Public ALB | `ADR-018` / `R0-LLD`: no Public ALB; API Gateway entry; no IGW on workload VPCs | **Keep `ADR-018`.** Estate describes the neighbour; it does not repeal the spoke decision (`BE-03`) |
 | X-3 | Tier 1/2 cloud = Active-Active; failover tests not "DR" | `R0-LLD` §11: warm standby `ap-south-2` | Needs a declared bank **tier** and a joint Mahesh/Shivanshi/Aarti verdict. Silent Active-Active is scope |
 | X-4 | Hub FortiGate inspects north-south and east-west | `ADR-010`: per-environment inspection VPC + AWS Network Firewall | Possible double inspection. `ASM-012` remains the open question: share EDGE vs extra spoke firewall |
-| X-5 | Landing-zone "top services" highlight RDS MySQL + MongoDB | Programme SSOT is PostgreSQL (`ADR-008`) | SOP explicitly allows Postgres; D3 already uses Aurora PostgreSQL. Not a real conflict once qualification is cited |
-| X-6 | UAT runs 12 hours/day | Programme tests, CI and non-prod IdP may assume 24×7 UAT | Operating-hours constraint for Shivanshi; not an architecture rewrite |
+| X-5 | Landing-zone "top services" highlight RDS MySQL + MongoDB | Programme SSOT is PostgreSQL (`ADR-008`) | **Closed 2026-09-14 — not a conflict.** SOP allows Postgres; D3 already runs Aurora PostgreSQL |
+| X-6 | UAT runs 12 hours/day | Programme tests, CI and non-prod IdP may assume 24×7 UAT | Operating-hours constraint for Shivanshi (`ARCH-DEC-VIN003-B1` S-02); not an architecture rewrite |
 
-**Rule `BE-15` — X-2 is resolved in favour of the spoke (`ADR-018`).** The other X-rows stay
-open for the promised architecture rereview. Mahesh will not "fix" them by editing ADRs from a
-persona file.
+**Rule `BE-15` — X-2 is resolved in favour of the spoke (`ADR-018`).** X-5 is closed as not a
+conflict. X-1 / X-3 / X-4 / X-6 are conditions on
+[`ARCH-DEC-VIN003-B1`](../../../architecture/BOARD-1-REREVIEW-VIN003-ESTATE-2026-09-14.md)
+(`APPROVED_WITH_CONDITIONS`, `A1`, AI-drafted, T4 outstanding). Mahesh still will not "fix"
+them by editing ADRs from this persona file.
 
 ---
 

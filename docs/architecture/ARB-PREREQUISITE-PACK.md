@@ -12,13 +12,17 @@
 
 | ARB asks for | File |
 |---|---|
-| Walk-in slides | [`AU-NIP-R0-ARB-Walk-In-2026-09-14.pptx`](./arb-prerequisites/exports/AU-NIP-R0-ARB-Walk-In-2026-09-14.pptx) |
+| **First sitting — open this in the room** | [`AU-NIP-R0-ARB-First-Review-DEV-UAT-2026-09-14.pptx`](./arb-prerequisites/exports/AU-NIP-R0-ARB-First-Review-DEV-UAT-2026-09-14.pptx) (`SUG-20260914-1st`) |
+| Presenter script | [`AU-NIP-R0-ARB-First-Review-SCRIPT-2026-09-14.pdf`](./arb-prerequisites/exports/AU-NIP-R0-ARB-First-Review-SCRIPT-2026-09-14.pdf) · [Word](./arb-prerequisites/exports/AU-NIP-R0-ARB-First-Review-SCRIPT-2026-09-14.docx) |
+| FAQ + deferral plays | [`AU-NIP-R0-ARB-First-Review-FAQ-2026-09-14.xlsx`](./arb-prerequisites/exports/AU-NIP-R0-ARB-First-Review-FAQ-2026-09-14.xlsx) |
+| First-review kit zip | [`AU-NIP-R0-ARB-First-Review-Kit-2026-09-14.zip`](./arb-prerequisites/exports/AU-NIP-R0-ARB-First-Review-Kit-2026-09-14.zip) |
+| 19-row dashboard (leave-behind, not the hour) | [`AU-NIP-R0-ARB-Walk-In-2026-09-14.pptx`](./arb-prerequisites/exports/AU-NIP-R0-ARB-Walk-In-2026-09-14.pptx) |
 | Circulate / print | [`AU-NIP-R0-ARB-Prerequisite-Pack-2026-09-14.pdf`](./arb-prerequisites/exports/AU-NIP-R0-ARB-Prerequisite-Pack-2026-09-14.pdf) |
 | Word comments | [`AU-NIP-R0-ARB-Prerequisite-Pack-2026-09-14.docx`](./arb-prerequisites/exports/AU-NIP-R0-ARB-Prerequisite-Pack-2026-09-14.docx) |
 | Matrices / RACI / SBOM / CIS | [`AU-NIP-R0-ARB-Matrices-2026-09-14.xlsx`](./arb-prerequisites/exports/AU-NIP-R0-ARB-Matrices-2026-09-14.xlsx) |
-| One zip for email | [`AU-NIP-R0-ARB-Reviewer-Pack-2026-09-14.zip`](./arb-prerequisites/exports/AU-NIP-R0-ARB-Reviewer-Pack-2026-09-14.zip) |
+| Leave-behind zip | [`AU-NIP-R0-ARB-Reviewer-Pack-2026-09-14.zip`](./arb-prerequisites/exports/AU-NIP-R0-ARB-Reviewer-Pack-2026-09-14.zip) |
 
-Regenerate after this pack changes: `python3 scripts/architecture/build_arb_reviewer_pack.py`. The generated files compile; ADRs / LLD / NFR still win (`HA-02`).
+Regenerate: `python3 scripts/architecture/build_arb_first_review.py` (first sitting) then `python3 scripts/architecture/build_arb_reviewer_pack.py` (19-row leave-behind). The generated files compile; ADRs / LLD / NFR still win (`HA-02`).
 
 > **How to use this in the ARB room.** Each row below is one bank prerequisite. *Canonical source*
 > is what the board should open. *This pack* only compiles, classifies readiness, and names the

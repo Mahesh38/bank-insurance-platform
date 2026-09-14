@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20260914-1st | 2026-09-14 | human:Mahesh | First ARB sitting is Dev/UAT design review (not production): 1-hour presenter PPT + speaker script + FAQ/deferral plays so the board can non-object to vpc-dev and vpc-uat | SF1 | SC1 | MUST | DOC | P1 / P1 | ADMITTED | [WHAT-TO-SEND](../../architecture/arb-prerequisites/exports/WHAT-TO-SEND.md) · [detail](#sug-20260914-1st--first-arb-sitting-devuat-ppt-script-faq) |
 | SUG-20260914-xpt | 2026-09-14 | human:Mahesh | Export the admitted ARB prerequisite pack to reviewer formats (PPTX walk-in, PDF/DOCX leave-behind, XLSX matrices) because ARB cannot be shown Markdown | SF1 | SC1 | MUST | DOC | P1 / P1 | ADMITTED | [exports](../../architecture/arb-prerequisites/exports/WHAT-TO-SEND.md) · [detail](#sug-20260914-xpt--arb-reviewer-formats-pptx-pdf-docx-xlsx) |
 | SUG-20260914-arb | 2026-09-14 | human:Mahesh | Assemble bank ARB prerequisite pack (business sign-off, CIS, SAD, current/target, trust-boundary, integration matrix, capacity, RTO/RPO, DR, security, VA/PT, SBOM, classification/residency, IAM/PAM, logging, third parties, shared-responsibility, lifecycle, exit) as an evidence index — no manufactured signatures | SF1 | SC1 | MUST | ARCH | P1 / P1 | ADMITTED | [pack](../../architecture/ARB-PREREQUISITE-PACK.md) · [detail](#sug-20260914-arb--bank-arb-prerequisite-evidence-pack) |
 | SUG-20260914-egr | 2026-09-14 | human:Mahesh | Outbound calls leave the building via Apigee (1SB never called from EKS; 1SB allowlists Apigee IPs). Inbound RM/mobile stays AWS API Gateway. Internal bank APIs via Apigee must not hairpin Cloudflare/F5. | SF1 | SC1 | MUST | ARCH | P1 / P1 | ADMITTED | [SPIKE-001](#sug-20260831-apg--apigee-is-the-bank-api-plane--do-not-add-a-second-amazon-api-gateway-until-confirmed) · [note](../../architecture/2026-09-14-HUMAN-DIRECTION-APIGEE-EGRESS-IDP.md) · [detail](#sug-20260914-egr--apigee-is-outbound-only-ingress-stays-api-gateway) |
@@ -1981,6 +1982,80 @@ outcome:
   status: ADMITTED
   closed_reason: null
 resumed: "ARB-PRE-2026-09-14 — 19-row evidence pack. Humans still sign CIS, Board 4, T4, VA/PT."
+```
+
+### SUG-20260914-1st · First ARB sitting — Dev/UAT PPT, script, FAQ
+
+```yaml
+id: SUG-20260914-1st
+raised_at: "2026-09-14"
+raised_by: "human:Mahesh"
+source: "Follow-up to SUG-20260914-arb / SUG-20260914-xpt — first sitting is not production ARB"
+input: >
+  Prepare the PPT that explains the ARB board the complete e2e details for the
+  application. This is the 1st review, not production release. We need sign-off
+  to stand up Dev and UAT. Discussion is about 1 hour. Also a detailed script,
+  key points, and FAQ with professional deferrals so networking questions do
+  not become a blocker to Dev/UAT.
+
+duplicate_of: SUG-20260914-arb
+recurrence_count: 2
+conflicts: []
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 / S09 — Engineering & Platform Foundation"
+  current_objective: R0-ASSISTED-LIFE-SALE
+  state_as_of: "2026-09-13"
+  freshness: FRESH
+  active_work_item: ARB-PRE-2026-09-14
+
+stage_fit:
+  code: SF1
+  rationale: >
+    Same sitting as the admitted ARB pack. The 19-row walk-in is the leave-behind;
+    the first-review deck is what is presented in the 60-minute room.
+
+scope:
+  code: SC1
+  serves: ["SUG-20260914-arb", "SUG-20260914-xpt", "ARB-PRE-2026-09-14"]
+  failure_without_it: >
+    Presenter walks in with a 19-row dashboard instead of a 1-hour narrative,
+    and has no script/FAQ for Public-ALB / TGW / NAT questions.
+  minimal: true
+  authority: "human:Mahesh"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S09 — bank ARB first sitting (Dev/UAT)"
+  binds_when: "First ARB review for vpc-dev / vpc-uat vending"
+  evidence_tier: E2
+  confidence: C5
+  assumptions: []
+
+action: ADMIT
+action_rationale: >
+  Continue ARB-PRE-2026-09-14. Generate first-review PPTX with speaker notes,
+  presenter script DOCX/PDF, FAQ XLSX with deferral plays. Do not invent
+  architecture facts. Do not manufacture signatures. Do not claim production
+  or DR-ready approval. Generator is scripts/architecture/build_arb_first_review.py.
+
+classification:
+  type: DOC
+  also: [ARCH]
+  breakdown: story
+  risk_tier: T4
+
+priority:
+  priority_now: P1
+  priority_at_target: P1
+
+work_item: ARB-PRE-2026-09-14
+outcome:
+  status: ADMITTED
+  work_item_id: ARB-PRE-2026-09-14
 ```
 
 ### SUG-20260914-xpt · ARB reviewer formats (PPTX, PDF, DOCX, XLSX)

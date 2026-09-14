@@ -99,6 +99,19 @@ def describe_data(path: Path) -> tuple[str, str]:
                     return title, line.strip().rstrip(",")[:DESC_MAX]
     except (OSError, IndexError):
         pass
+    name = path.name
+    if "First-Review" in name:
+        first = {
+            ".pptx": "Generated first ARB sitting deck (Dev/UAT) — regenerate with scripts/architecture/build_arb_first_review.py",
+            ".xlsx": "Generated first ARB sitting FAQ and deferral plays — regenerate with scripts/architecture/build_arb_first_review.py",
+            ".docx": "Generated first ARB presenter script — regenerate with scripts/architecture/build_arb_first_review.py",
+            ".pdf": "Generated first ARB presenter script (PDF) — regenerate with scripts/architecture/build_arb_first_review.py",
+            ".zip": "Generated first ARB sitting kit (PPTX + script + FAQ)",
+        }
+        if suffix in first:
+            return title, first[suffix]
+    if suffix == ".pdf" and "ARB-Prerequisite-Pack" in name:
+        return title, "Generated ARB leave-behind PDF — regenerate with scripts/architecture/build_arb_reviewer_pack.py"
     labels = {
         ".pdf": "PDF source artefact — intake evidence; cite the derived document, not this file",
         ".svg": "Rendered diagram — read the companion .md for the binding text",

@@ -319,7 +319,7 @@ doc_routing:
       authority: ai-drafted
       capsules: [architecture-review, board-review]
       persona: architecture
-      note: "SUG-20260914-arb. Bank ARB 19-item evidence index. Not an ARB, T4, Board 4, or Board 6 signature."
+      note: "SUG-20260914-arb / 1st / xpt. First-sitting PPT+script+FAQ and 19-row leave-behind. Not an ARB, T4, Board 4, or Board 6 signature."
 
     - match: ["docs/architecture/*"]
       bucket: platform

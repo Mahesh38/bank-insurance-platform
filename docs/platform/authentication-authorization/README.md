@@ -6,10 +6,18 @@
 
 **Scope:** Phase 1 bank employees and insurer representatives
 
-**Primary identity provider for development:** Keycloak
+**Primary identity provider for development:** Keycloak (partners; workforce AD-verify is the bank API)
 
 **Production identity provider:** Decision deferred behind a provider-neutral adapter
 **Out of scope for Phase 1:** Retail-customer authentication
+
+> **Revision 2026-09-14 (`ADR-020`).** Workforce (RM / bank employee) authenticates via the
+> **existing bank AD-verify API** through **Apigee private** — never LDAP from EKS to AD.
+> Partners / IPR are created in the private IdP (Keycloak is acceptable). **NIP-APP / Fireframe**
+> is the only UI chrome for login and for user/role/permission mapping; the Keycloak admin
+> console is not shown to bank users. PDP remains business authorization SoT. Password-in-NIP
+> vs Fireframe SSO ceremony is `A3_JOINT_REVIEW` with Deepali (`ID-11`). Flutter still never
+> talks to Keycloak or Apigee.
 
 This document is the single source of truth for workforce authentication and authorization in the bank-insurance platform. Implementations, tests, deployment manifests, and future architecture discussions must preserve the decisions and invariants recorded here unless an Architecture Decision Record explicitly supersedes them.
 
@@ -21,7 +29,7 @@ This document is the single source of truth for workforce authentication and aut
 4. `identity-authorization-service` is the business source of truth for partner users, roles, permissions, insurer/branch scopes, hierarchy, certification metadata, grants, and denials.
 5. Keycloak owns credentials, authentication ceremonies, provider sessions, MFA, and token issuance. It is not the source of truth for business authorization.
 6. Phase 1 supports bank employees and insurer representatives. Customer identity is a later bounded context.
-7. Bank Active Directory technology is not yet confirmed. The solution must support OIDC, SAML, or LDAP/AD federation without changing BFF or authorization contracts.
+7. Bank Active Directory remains the workforce source of record (`TI-01`). R0 reaches it through the **existing bank AD-verify API via Apigee private** (`ADR-020`). LDAP from EKS to AD is forbidden. Partners never enter AD.
 8. Authentication and administrative events are retained for seven years initially; retention remains configurable pending Compliance confirmation.
 9. Bulk identity and privileged-access changes use maker-checker approval.
 10. Authorization is default-deny and combines RBAC, attribute-based scope, and resource relationships.
@@ -50,7 +58,9 @@ flowchart LR
     BFF -->|authorized request| Domain[Business services]
     Domain -->|defence-in-depth decision| Authz
     Adapter -->|provider-neutral port| Keycloak[Keycloak]
-    Keycloak -->|OIDC / SAML / LDAP federation| AD[Bank Active Directory]
+    Adapter -->|AD-verify HTTPS| Apigee[Apigee private outbound]
+    Apigee -->|existing bank AD-verify API| AD[Bank Active Directory]
+    Keycloak -->|partners only · never LDAP to AD| Partners[Partner identities]
     Adapter -.future adapter.-> Cognito[Amazon Cognito]
     Authz --> AuthzDb[(Authorization PostgreSQL)]
     Keycloak --> KeycloakDb[(Keycloak PostgreSQL)]
@@ -114,13 +124,13 @@ Keycloak is a separately deployed product, not one of the three custom Spring se
 1. Flutter calls the BFF login endpoint without an authenticated session.
 2. The BFF creates a short-lived pending-login transaction containing state, nonce, PKCE verifier, client type, and an allow-listed return location.
 3. The provider adapter returns the provider authorization URI.
-4. The user completes the bank-controlled authentication ceremony. Depending on the confirmed AD technology, Keycloak brokers OIDC/SAML or uses approved LDAP federation.
+4. The user completes the bank-controlled authentication ceremony. Workforce credentials are checked by the **existing bank AD-verify API** through Apigee private (`ADR-020`). LDAP from EKS is not used. NIP-APP / Fireframe is the UI chrome; Keycloak admin console is not shown to bank users.
 5. The provider redirects only to the BFF callback.
 6. The BFF verifies state and exchanges the one-time code through the provider adapter.
 7. The BFF resolves the provider subject to a business identity and confirms account, employment, branch mapping, and required certification state.
 8. The BFF stores provider tokens server-side and returns only an opaque platform session.
 
-The architecture does not assume that an AD username/password can be replayed through OIDC. Direct credential forwarding is disabled unless the bank confirms an explicitly approved LDAP/direct-grant arrangement.
+The architecture does not replay an AD username/password through Keycloak LDAP. Direct credential forwarding to AD from EKS is forbidden (`ADR-020`). Password-in-NIP vs Fireframe SSO is Deepali's `ID-11` joint review.
 
 ### 5.2 Insurer representative
 
@@ -327,7 +337,7 @@ Events contain identifiers and non-sensitive decision metadata; they never conta
 
 ### Follow-up slices
 
-1. Confirm AD type and configure the correct Keycloak federation/broker.
+1. Confirm AD-verify API onboarding onto Apigee private (`DEP-20260914-apg`) and that no LDAP bind from EKS exists.
 2. Complete maker-checker bulk-import workflow and administration UI contract.
 3. Add event outbox relay and audit-consumer integration.
 4. Integrate authorization PEPs into Lead, Proposal, and other domain services.

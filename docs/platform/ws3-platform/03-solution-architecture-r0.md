@@ -29,6 +29,10 @@ adds the three new dependency classes; §7 adds FF-22…FF-28; §8 adds the tier
 **not** in the DR region. Decisions: ADR-009…ADR-013. Unchanged: the service set, the waves, the
 gates, the actor model, one Aurora cluster (`ADR-008`), and every fail-closed rule.
 
+**Revision 2026-09-14 — split API plane** (`ADR-020`): §4 component view and deployment properties
+draw **Apigee on egress only**. Inbound stays Amazon API Gateway (`ADR-018`). 1SB allowlists
+Apigee IPs. Internal bank APIs (AD-verify, EBS) use Apigee private targets.
+
 **Companions:** [`04-security-architecture.md`](./04-security-architecture.md) ·
 [`05-nfr-catalogue.md`](./05-nfr-catalogue.md) ·
 [`01-domain-model-and-invariants.md`](./01-domain-model-and-invariants.md) ·
@@ -38,9 +42,10 @@ this document, decides nothing**, `HA-02`)
 
 **Stakeholder pack** (compiled views of *this* file and its companions, not a second source of
 truth): [`../../architecture/R0-HLD.md`](../../architecture/R0-HLD.md) walks the R0 picture for
-humans; [`../../architecture/R0-LLD.md`](../../architecture/R0-LLD.md) is the S09 AWS bill of
-materials for the CTO and platform team. Rule `HA-02` still applies: if those files and this
-document disagree, **this document wins**.
+humans; [`../../architecture/R0-E2E-FOR-DEVELOPERS.md`](../../architecture/R0-E2E-FOR-DEVELOPERS.md)
+teaches the same picture hop-by-hop to engineers; [`../../architecture/R0-LLD.md`](../../architecture/R0-LLD.md)
+is the S09 AWS bill of materials for the CTO and platform team. Rule `HA-02` still applies: if those
+files and this document disagree, **this document wins**.
 
 ---
 
@@ -213,10 +218,11 @@ graph TB
     end
 
     subgraph Ext["Bank On-Premises & External Partners"]
+        APIGEE["Apigee<br/>outbound API plane · not in our VPC"]
         EBS["EBS (Core Banking / CBS / CIF)"]
         PG_BANK["AU Bank Payment Gateway"]
         SB["1SilverBullet"]
-        AD["Bank AD / SSO"]
+        AD["Bank AD-verify API"]
     end
 
     FL --> CF --> F5 --> APIGW --> IALB
@@ -234,10 +240,12 @@ graph TB
     SUIT --> CAT
     QTE --> CAT
     QTE & PRP & PAY & POL --> HUB
-    HUB --> ONESB --> SB
-    CUST --> EBS
-    PAY --> PG_BANK
-    IDPA --> AD
+    HUB --> ONESB --> APIGEE --> SB
+    CUST --> APIGEE --> EBS
+    PAY --> APIGEE
+    APIGEE --> PG_BANK
+    IDPA --> APIGEE
+    APIGEE --> AD
 
     OPP & JRN & QTE & PRP & PAY & POL -. "domain events, written to the outbox" .-> BUS
     BUS -. "consume + dedupe on eventId" .-> AUD
@@ -260,9 +268,9 @@ graph TB
 |---|---|
 | Region | `ap-south-1`; DR `ap-south-2`. Non-negotiable — control C6 |
 | Compute | EKS, per ARCH-002. Every service stateless at pod level |
-| Perimeter & Edge Ingress | **Cloudflare Enterprise (SaaS, not AWS, not in any VPC)** → **F5 Distributed Cloud / F5-XC (SaaS WAF, not AWS, not in any VPC)** → **Amazon API Gateway** (Proxy 1 of 2; first AWS hop) → **Internal ALB** (Proxy 2 of 2; the only load balancer, and the only hop inside the VPC). **No public / External ALB.** Apigee is a known bank plane and is **not drawn** until `SPIKE-001` (`ADR-018` §7). Every service, datastore, cache node, broker and search domain is in a private subnet |
+| Perimeter & Edge Ingress | **Cloudflare Enterprise (SaaS, not AWS, not in any VPC)** → **F5 Distributed Cloud / F5-XC (SaaS WAF, not AWS, not in any VPC)** → **Amazon API Gateway** (inbound Proxy 1 of 2; first AWS hop) → **Internal ALB** (Proxy 2 of 2; the only load balancer, and the only hop inside the VPC). **No public / External ALB.** **Apigee is outbound only** (`ADR-020`) — not on the RM/mobile front door. Every service, datastore, cache node, broker and search domain is in a private subnet |
 | **Bank connectivity** (`ADR-009`) | **EBS APIs (CBS / CIF)** and Bank AD are reached by **attaching as a spoke** to the existing `AU-CTO-NETWORK` Transit Gateway — not a second hub. Site-to-Site VPN from day one; Direct Connect via the **existing** DX Gateway. `dev` may stub them; **`uat` and `prod` may not**. A journey evidenced against a stub is not evidence. Workload VPCs have **no IGW** |
-| **Egress** (`ADR-010`) | 100% of egress and inter-VPC traffic is inspected: TGW → AWS Network Firewall → NAT with the allowlisted Elastic IPs. Domain allowlist, drop-by-default. The 1SB mTLS session is passed intact rather than decrypted. This is not a mesh and does not replace `NetworkPolicy` |
+| **Egress** (`ADR-010` + `ADR-020`) | 100% of egress and inter-VPC traffic is inspected on the hop **pod → Apigee**: TGW → AWS Network Firewall → **Apigee**. Domain allowlist, drop-by-default. **1SB allowlists Apigee IPs, not spoke NAT EIPs.** Internal Apigee targets stay private (no Cloudflare/F5 hairpin). The 1SB mTLS session is passed intact rather than decrypted. This is not a mesh and does not replace `NetworkPolicy` |
 | **Cache** (`ADR-011`) | One ElastiCache for Valkey replication group per environment: BFF sessions, an L2 read-through layer behind the in-process L1, and per-principal rate-limit counters. Per-service ACL user and key prefix. **Never** idempotency, a system of record, or a way to serve configuration past TTL |
 | **Event backbone** (`ADR-012`) | Amazon MSK, 3 brokers, SASL/IAM per topic, fed by the **transactional outbox, which remains the source of truth**. No regulatory evidence exists only in a topic |
 | **Operational search** (`ADR-013`) | One VPC-only OpenSearch domain per environment for application, firewall, flow and broker logs, 30 d hot → delete at 90 d. It holds no evidence and satisfies no gate |

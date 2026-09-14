@@ -79,6 +79,16 @@ All five views were re-rendered in the same change as their source ([`CR-012`](.
 The `NOT IN R0` group is the one to read first if you are checking for scope drift: it is shorter
 than it was, and every surviving row now cites the ADR that refuses it.
 
+### Revision 2026-09-14 — split API plane (`ADR-020`)
+
+- **topology** — Apigee drawn outside the VPC on the **egress** path; NAT caption no longer
+  claims 1SB allowlists those EIPs; internal Apigee private targets for AD-verify / EBS;
+  NOT IN R0 gains "no CUG / no extra dev account / no LDAP / no Apigee on the front door";
+- **az** — NAT labelled spoke→Apigee, not 1SB allowlist;
+- **sequence** — P0 is five accounts (UAT hosts two VPCs); P1 NAT is not published to 1SB;
+  P4 adds Apigee outbound onboard; P5 AD-verify via Apigee;
+- **payment** — session-create outbound via Apigee; callback stays the separate API Gateway route.
+
 ## The rule these files live under
 
 They are **renderings** (`HA-02`). They own nothing. Every element is named by

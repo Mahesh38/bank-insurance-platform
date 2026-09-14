@@ -7,8 +7,11 @@ Two diagrams, deliberately. They answer different questions and **neither replac
 | [`../hdl.svg`](../hdl.svg) | *Where is this platform going, and what arrives in which release?* | Target state (North Star). AI-drafted, **T4 Architecture sign-off outstanding** |
 | [`r0-reference-architecture.svg`](./r0-reference-architecture.svg) | *What are we building right now, and how does the R0 journey actually run?* | R0 executable architecture — the admitted scope. **Rendering**; owns nothing |
 | [`R0-HLD.md`](./R0-HLD.md) | *Walk the R0 picture in prose: domain, ten boundaries, communication, APIs, business logic, waves vs stages vs releases* | Stakeholder HLD. Compiled view of the authoritative `ws3-platform/` sources. AI-drafted, T4 outstanding |
+| [`R0-E2E-FOR-DEVELOPERS.md`](./R0-E2E-FOR-DEVELOPERS.md) | *Why does each hop exist, does it match the bank estate, and what did we refuse?* | Teaching compilation for engineers. `HA-02`: HLD/LLD/ADRs still win |
 | [`../platform/ws3-platform/07-nip-bff-lead-phase-api-lld.md`](../platform/ws3-platform/07-nip-bff-lead-phase-api-lld.md) | *What does NIP-APP call for SCR-02..SCR-05 (inbox, search, Term create)?* | Consumer LLD + OpenAPI (`EPIC-003` / `ARCH-023`). AI-drafted; human Board 1 outstanding |
 | [`R0-LLD.md`](./R0-LLD.md) | *What AWS resources, VPC, reverse proxies, PVCs, databases and caches does the platform team provision for R0?* | S09 requirements pack for the CTO and AWS platform team. AI-drafted; Security / Database / SRE reviews outstanding |
+| [`BOARD-1-REREVIEW-VIN003-ESTATE-2026-09-14.md`](./BOARD-1-REREVIEW-VIN003-ESTATE-2026-09-14.md) | *Does that R0 spoke still hold against the live AU Control Tower / EDGE / SOP (`VIN-003`)?* | Board 1 draft `ARCH-DEC-VIN003-B1`: `APPROVED_WITH_CONDITIONS`, `A1`. **AI-drafted; human T4 outstanding** |
+| [`2026-09-14-HUMAN-DIRECTION-APIGEE-EGRESS-IDP.md`](./2026-09-14-HUMAN-DIRECTION-APIGEE-EGRESS-IDP.md) | *Apigee outbound vs API Gateway inbound, Dev-inside-UAT, no CUG, AD-verify API, Keycloak behind Fireframe UI* | Human direction record. Not an ADR |
 | [`r0-lld.svg`](./r0-lld.svg) | *Where does each R0 service sit on AWS, and what must not be provisioned?* | Rendering of `R0-LLD.md`. Owns nothing (`HA-02`) |
 | [`r0-platform-topology.svg`](./r0-platform-topology.svg) | *What runs where — zones, subnets, namespaces, the two-hop proxy?* | Rendering of `R0-LLD.md`. **Generated** from [`diagrams/`](./diagrams/README.md). Owns nothing (`HA-02`) |
 | [`r0-platform-az.svg`](./r0-platform-az.svg) | *Which availability zone does each resource sit in?* | Rendering of `R0-LLD.md` §2.1 |
@@ -357,6 +360,18 @@ Two assumptions in the 2026-08-25/27 perimeter were wrong against the existing A
 | [`R0-HLD.md`](./R0-HLD.md) · [`R0-LLD.md`](./R0-LLD.md) · [`ARB-ARCHITECTURE-DOSSIER.md`](./ARB-ARCHITECTURE-DOSSIER.md) | Ingress hop and BOM #7 / #29 aligned to `ADR-018`. |
 | [`r0-reference-architecture.svg`](./r0-reference-architecture.svg) · [`../hdl.svg`](../hdl.svg) | Edge band labels. |
 
+## Revision — 2026-09-14 split API plane (`ADR-020`, `SUG-20260914-egr`)
+
+Human Architecture owner: **inbound** stays Amazon API Gateway (`ADR-018`). **Outbound** (1SB, SMS, bank internal APIs, AD-verify) is **Apigee**, drawn on the loading-dock path. 1SB allowlists Apigee IPs. Five Control Tower accounts; `dev` is a VPC inside UAT; no CUG. Workforce AD-verify is the bank API, never LDAP.
+
+| File | What changed |
+|---|---|
+| [`R0-LLD.md`](./R0-LLD.md) · [`R0-HLD.md`](./R0-HLD.md) · [`ARB-ARCHITECTURE-DOSSIER.md`](./ARB-ARCHITECTURE-DOSSIER.md) | BOM, egress path, accounts, identity hop aligned to `ADR-020`. |
+| [`diagrams/r0_platform_views.py`](./diagrams/r0_platform_views.py) | Outbound Apigee node; NAT no longer labelled as the 1SB allowlist; sequence P0 = 5 accounts; P4 Apigee onboard. |
+| generated set | Topology, AZ, sequence, payment re-rendered. Not hand-edited. |
+| [`r0-lld.svg`](./r0-lld.svg) · [`../hdl.svg`](../hdl.svg) | Egress captions. |
+| [`R0-E2E-FOR-DEVELOPERS.md`](./R0-E2E-FOR-DEVELOPERS.md) | §11 "do not draw" withdrawn for outbound. |
+
 ## Revision — 2026-08-31 attach to existing bank network; Apigee stays off the pictures (`SUG-20260831-apg`)
 
 Human Architecture owner: keep Apigee **off every diagram** until `SPIKE-001` returns. Amazon API Gateway remains. Network pack attaches to the existing `AU-CTO-NETWORK` TGW / DX Gateway; do not clone Public VPC + IGW + peering.
@@ -367,3 +382,10 @@ Human Architecture owner: keep Apigee **off every diagram** until `SPIKE-001` re
 | [`R0-HLD.md`](./R0-HLD.md) · [`ARB-ARCHITECTURE-DOSSIER.md`](./ARB-ARCHITECTURE-DOSSIER.md) | Spoke-attach language; overlay not named on the picture. |
 | [`diagrams/r0_platform_views.py`](./diagrams/r0_platform_views.py) | TGW labelled as existing hub we attach to; NOT IN R0 lists a second TGW/DX and Public VPC+IGW — **does not name the parked overlay**. |
 | [`r0-lld.svg`](./r0-lld.svg) | Stale CloudFront+WAF caption corrected; TGW labelled as existing hub. |
+
+## Revision — 2026-09-14 developer E2E walkthrough
+
+[`R0-E2E-FOR-DEVELOPERS.md`](./R0-E2E-FOR-DEVELOPERS.md) is a teaching cut of the same R0 picture
+for engineers who write Java / Flutter. It does not own a decision. If it disagrees with
+[`03-solution-architecture-r0.md`](../platform/ws3-platform/03-solution-architecture-r0.md),
+`R0-LLD.md`, or an ADR, those files win (`HA-02`).

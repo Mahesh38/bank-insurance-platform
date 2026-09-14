@@ -4,7 +4,7 @@
 **Owner:** Mahesh — Principal Insurance Platform Architect (Board 1)
 **Consumers:** CTO; AWS platform / landing-zone team; **Shivanshi** (SRE, Board 7 — provisions and operates); **Deepali** (Security — trust boundaries, IAM, KMS); **Aarti** (Database — Aurora/DynamoDB/S3 physical design)
 **Status:** `AI-DRAFTED`. This file is the S09 *requirements pack*. It is **not** an approval to apply Terraform. Mandatory reviews before first `apply` to a non-dev account: Architecture (human T4), Security (human), Database, SRE, Compliance (residency and WORM).
-**Date:** 2026-08-20 · **revised** 2026-08-24 · **revised** 2026-08-25 (`ADR-014`, `ADR-015`) · **revised** 2026-08-31 (`ADR-018`, attach to existing `AU-CTO-NETWORK`)
+**Date:** 2026-08-20 · **revised** 2026-08-24 · **revised** 2026-08-25 (`ADR-014`, `ADR-015`) · **revised** 2026-08-31 (`ADR-018`, attach to existing `AU-CTO-NETWORK`) · **revised** 2026-09-14 (`ADR-020` split API plane)
 **Origin:** `SUG-20260820-hl1` · **revision** `SUG-20260824-gp1` … `gp5` ([`CR-012`](../governance/change-requests/CR-012-r0-platform-robustness.md)) · **revision** `SUG-20260825-ll1` · **revision** `ADR-015` (one NIP-APP; `ns:edge` is nip-web + #2 NIP BFF only)
 
 > **Revision 2026-08-24 — R0 robustness round.** Five layers that were deferred are now **in R0**,
@@ -23,6 +23,12 @@
 > **#2 NIP BFF** only — nothing RM-named or admin-named. Web on EKS; APK on Play Store; IPA
 > on the App Store. `#18` Reporting & MIS stays R0 W4 on the isolated read path (`C-ISO-1`).
 > Glue/Athena/Redshift/QuickSight stay **out**.
+>
+> **Revision 2026-09-14 — ADR-020 split API plane.** Inbound stays Cloudflare → F5-XC →
+> Amazon API Gateway (`ADR-018`). Outbound (1SB, SMS, bank internal APIs, AD-verify) leaves
+> via **Apigee**; 1SB allowlists **Apigee IPs**, not spoke NAT EIPs. Five Control Tower
+> accounts (`dev` is a VPC inside the UAT account). No CUG at R0. Workforce AD-verify is
+> the existing bank API via Apigee private — never LDAP from EKS.
 **Picture this document walks:** [`r0-lld.svg`](./r0-lld.svg)
 **Platform-team deployment views** (generated — see [`diagrams/`](./diagrams/README.md)): [`topology`](./r0-platform-topology.svg) · [`availability zones`](./r0-platform-az.svg) · [`DR`](./r0-platform-dr.svg) · [`sequence`](./r0-platform-sequence.svg) · [`payment path`](./r0-platform-payment.svg)
 **Companion HLD:** [`R0-HLD.md`](./R0-HLD.md) · [`r0-reference-architecture.svg`](./r0-reference-architecture.svg)
@@ -66,14 +72,15 @@ Aurora connection budget).
 
 | # | AWS service | What it is for | SKU / shape (starting point — Shivanshi confirms) |
 |---|---|---|---|
-| 1 | **AWS Organizations** + **6 accounts** | Isolation | `shared-services`, `security`, **`network`**, `dev`, `uat`, `prod`. The `network` account is new in the 2026-08-24 round (`ADR-009`): a shared routing and inspection plane owned by an environment account is an environment that can change everyone else's routing |
+| 1 | **AWS Organizations** + **5 accounts** | Isolation | `shared-services`, `security`, **`network`**, **`uat`**, `prod`. **No separate `dev` account. No CUG** (`ADR-020`). The UAT account hosts **two VPCs** (`vpc-dev`, `vpc-uat`) so stub vs real CBS do not share a route table. Spring profiles remain `dev` / `uat` / `prod`. `dev` data is synthetic |
 | 2 | **Amazon VPC** × environment | Network | 3 AZs, public + private-app + private-data subnets. See §2 |
-| 3 | **NAT Gateway** × AZ, **in the egress VPC** | Egress with **fixed Elastic IPs** | 1SB and the AU Bank PG allowlist these EIPs. **Moved** out of the workload VPCs by `ADR-010` — see §2.3 before publishing any address |
+| 3 | **NAT Gateway** × AZ, **in the egress VPC** | Spoke egress with **fixed Elastic IPs** | Remaining internet destinations (toward Apigee / other allowlisted hosts). **Not** the 1SB allowlist — 1SB allowlists **Apigee egress IPs** (`ADR-020`). Do not publish these EIPs to 1SB. **Moved** out of the workload VPCs by `ADR-010` — see §2.3 |
 | 4 | **Amazon Route 53** | Public and private DNS | Hosted zone per env; no latency-based DR routing in R0 |
 | 5 | **Cloudflare Enterprise (CDN & DDoS)** — **SaaS, not AWS, not in any VPC** | Edge CDN in front of the API **and** the RM/admin web UIs | Bank standard, matching the existing AU Bank application perimeter. TLS 1.3; origin = F5-XC (SaaS) → API Gateway (which VPC-links to the internal ALB). Static Flutter/admin assets are served from `nip-web` through that same chain — **not** a public S3 website and **not** a PVC. Logs stay in `ap-south-1`. Authenticated JSON is **never** cached |
 | 6 | **F5 Distributed Cloud / F5-XC (Advanced WAF)** — **SaaS, not AWS, not in any VPC** | Bank standard L7 Web Application Firewall | Same product the existing banking application already uses on the north-south path. Enforces InfoSec policy, OWASP Top 10, bot protection, and layer-7 rate limits. **Not** an F5 BIG-IP appliance we place in AWS or in a platform VPC (`ADR-018`) |
 | 7 | **External / public ALB** | — | **WITHDRAWN (`ADR-018`).** Do not provision. The current banking application's Public ALB is that application's AWS entry; this platform's AWS entry is API Gateway |
-| 8 | **Amazon API Gateway** (REST or HTTP API) | Managed API governance proxy | Request validation, throttling, payload inspection, no business logic. VPC Link to internal ALB |
+| 8 | **Amazon API Gateway** (REST or HTTP API) | Managed **inbound** API governance proxy | Request validation, throttling, payload inspection, no business logic. VPC Link to internal ALB. **Ingress only** (`ADR-018`, `ADR-020`). Flutter never calls Apigee |
+| 8a | **Apigee (bank outbound API plane)** — **not AWS, not Terraform** | Loading dock for every call that leaves the building | Onboard NIP as an Apigee product (`DEP-20260914-apg`). Adapter HTTP base URL = Apigee proxy, never a 1SB origin. Internal targets (AD-verify, EBS) stay **private** — no Cloudflare/F5 hairpin. 1SB allowlists **Apigee IPs** |
 | 9 | **Application Load Balancer** (internal) | Reverse proxy **inside** the VPC: Gateway → EKS | Internal scheme. Public ALB is **not** used directly for internal services |
 | 9 | **Amazon EKS** × environment | All microservices | Kubernetes 1.30+ (platform current). Private API endpoint. See §3 |
 | 10 | **Amazon ECR** | Images | Immutable tags; scan on push; replicate to `ap-south-2` for DR images |
@@ -113,7 +120,7 @@ Aurora connection budget).
 
 | # | Component | Notes |
 |---|---|---|
-| 35 | **Keycloak** on EKS (or equivalent private IdP) | Behind `identity-provider-adapter-service`. Not exposed to Flutter. Bank AD federation is WS-2 Phase 2 — and from R0 it federates over the `ADR-009` path in `uat`/`prod`, never over the internet |
+| 35 | **Keycloak** on EKS (or equivalent private IdP) | Behind `identity-provider-adapter-service`. Not exposed to Flutter. **NIP-APP / Fireframe** is the only UI chrome for login and user/role/permission mapping — Keycloak admin console is not shown to bank users (`ADR-020`). Workforce AD-verify is the **existing bank API via Apigee private**, never LDAP from EKS. Partners are created in this IdP, never in AD |
 | 36 | **Aurora schema `identity` / `keycloak`** | Keycloak's database. **Do not give Keycloak a PVC as its source of truth** — see §4 |
 | 37 | **Session store for the token-hiding BFF** | **DECIDED: ElastiCache for Valkey** (BOM #30), per `ADR-011`. This closes the open DynamoDB-versus-Redis question in favour of WS-2's accepted design, so the two workstreams now specify one session store. The DynamoDB `sessions` table is **withdrawn** (§5.2) |
 
@@ -137,18 +144,18 @@ Shorter than it was, and the survivors are here on their own reasoning rather th
 | **Customer-facing CloudFront distribution for DIY** | `#1` Customer BFF | R1 |
 | **Render.com as an environment** | Existing `render.yaml` | Dev-preview **only**. Never PII, never a gate artefact (`ADR-001`) |
 | **Any resource outside `ap-south-1` except DR replicas in `ap-south-2`** | — | Control C6, `FF-08` |
-| **Apigee (bank API plane) on R0 diagrams or as an R0 AWS provision** | Verbal estate fact (`SUG-20260831-apg`, `ASM-013`) | **Not drawn. Not provisioned.** Amazon API Gateway remains Proxy 1 (`ADR-018`) until SPIKE-001 returns written answers. Unpark trigger: those answers. Do not put Apigee on any SVG |
+| **Apigee as an R0 AWS / Terraform resource** | Bank API plane (`SUG-20260831-apg`) | **Not provisioned in our accounts.** Onboard as a bank product (`ADR-020`, BOM #8a). Drawn on **egress only**. Amazon API Gateway remains inbound Proxy 1 |
 | **A second Transit Gateway, a second Direct Connect, a Public VPC + IGW + VPC peering copied from the existing banking app** | The live estate already has `AU-CTO-NETWORK` TGW, DX Gateway, EDGE VPC | Attach as a **spoke**. Do not clone the current app's Public VPC / Public ALB / peering pattern (`ADR-009` as amended 2026-08-31) |
 | **Internet Gateway on a workload VPC** | Convenience for a public ALB | Workload VPCs have **no IGW**. The only IGW is on the inspection / EDGE path |
 
 ### 1.4 Per-environment shapes — the reason this set is affordable
 
 The robustness round adds three stateful services, an inspection VPC and two circuits. Built at
-production shape in three environments it triples the most expensive part of the estate and proves
-nothing extra. **`dev` is deliberately not production-shaped.** Where a shape below differs from
-production, the difference is the decision, not an oversight.
+production shape in three environment slices it triples the most expensive part of the estate and
+proves nothing extra. **`dev` is deliberately not production-shaped**, and it is a **VPC inside
+the UAT Control Tower account**, not a sixth account (`ADR-020`).
 
-| Layer | `dev` | `uat` | `prod` |
+| Layer | `dev` (VPC in UAT account) | `uat` (VPC in UAT account) | `prod` |
 |---|---|---|---|
 | Bank path (`ADR-009`) | **VPN only.** CBS and AD **stubs permitted here and nowhere else** | VPN, then DX primary when the circuit lands. **Real CBS/AD test instances — no stubs** | DX primary (2 VIFs, 2 locations) + VPN standby, failover **exercised** (`NFR-NET-01`) |
 | Inspection (`ADR-010`) | 1 firewall endpoint, 1 AZ, managed IPS in **alert** mode | 2 endpoints, 2 AZs, IPS alert → drop before prod | 3 endpoints, 3 AZs, IPS in **drop** mode |
@@ -177,7 +184,7 @@ WORKLOAD VPC per environment (e.g. 10.{env}.0.0/16)      Region ap-south-1
 
 INSPECTION / EGRESS VPC per environment, in the `network` account   (§2.3)
 ├── Firewall subnets      /24 × 3 AZs     AWS Network Firewall endpoints
-├── Public subnets        /24 × 3 AZs     NAT Gateways + the ALLOWLISTED Elastic IPs
+├── Public subnets        /24 × 3 AZs     NAT Gateways + Elastic IPs (spoke→Apigee / remaining internet; **not** the 1SB allowlist)
 ├── TGW attachment subnets /28 × 3 AZs
 └── Internet Gateway                      the only IGW with a route to anything
 
@@ -200,8 +207,8 @@ Public VPC + IGW + Public ALB + VPC-peering pattern.
 | Internet-facing | Cloudflare + F5-XC (SaaS) + API Gateway only. **No** public NLB/ALB onto EKS. No public OpenSearch endpoint, no public broker listener |
 | EKS API | Private endpoint; `publicAccess = false` in prod |
 | Data subnets | No 0.0.0.0/0 route. Aurora, ElastiCache, MSK and OpenSearch cannot initiate internet traffic |
-| Egress | Default route is the **Transit Gateway**, never a local NAT. All 1SB, PG, CBS and SMS traffic leaves via the inspection VPC: TGW → **Network Firewall** → NAT + Elastic IP → IGW. Publish that EIP list to 1SB and the AU Bank PG **before** UAT, and publish it from §2.3 rather than from an older diagram |
-| Bank-directed | CBS, CIF and Bank AD reachable **only** over the TGW (VPN, then DX). Stubs in `dev` only |
+| Egress | Default route is the **Transit Gateway**, never a local NAT. Provider and leaving-the-building HTTPS: TGW → **Network Firewall** (Deepali still accepts this hop on **pod → Apigee**) → Apigee → target (`ADR-020`). **1SB allowlists Apigee IPs, not these NAT EIPs.** Do not publish the inspection-VPC EIP list to 1SB |
+| Bank-directed | CBS/CIF and AD-verify reachable **via Apigee private targets** (`ADR-020`), not by hairpinning Cloudflare/F5, and not by LDAP from EKS to AD. Stubs in `dev` only |
 | East-west, in cluster | Kubernetes `NetworkPolicy` default-deny per namespace; allow only documented seams. Unchanged by `ADR-010` — the firewall inspects north-south and inter-VPC, not pod-to-pod |
 | East-west, inter-VPC | No VPC peering. Everything transits the TGW, so it is inspected and logged |
 | DNS | Private hosted zone for `*.svc.cluster.local` plus `internal.{env}.insurance.aubank.local` for the internal ALB. Bank zones resolved by inbound Route 53 Resolver endpoints over the TGW |
@@ -235,7 +242,7 @@ separated. Pin AZ **IDs** (`aps1-az1…`), or let the module take the first thre
 | Private-app subnet | ✅ | ✅ | ✅ | One /20 per AZ | EKS nodes; the /20 is for pod IPs (VPC CNI), not node count |
 | Private-data subnet | ✅ | ✅ | ✅ | One /24 per AZ | Aurora needs a subnet group spanning ≥ 2; the third keeps failover choice open. Now also holds ElastiCache, MSK and OpenSearch |
 | **TGW attachment subnet** | ✅ | ✅ | ✅ | One /28 per AZ, every VPC | An attachment ENI missing from one AZ silently sends that AZ's egress across an AZ boundary, or nowhere |
-| **NAT Gateway + EIP** *(inspection VPC only)* | ✅ | ✅ **prod/uat** | ⬜ *(prod)* | **prod: per AZ. dev: one** | A single NAT is an AZ-wide egress SPOF and egress is the 1SB path. Every NAT adds an EIP that 1SB and the PG must allowlist — **decide the count before publishing the list** (§2.3, §8) |
+| **NAT Gateway + EIP** *(inspection VPC only)* | ✅ | ✅ **prod/uat** | ⬜ *(prod)* | **prod: per AZ. dev: one** | A single NAT is an AZ-wide egress SPOF on the hop **pod → Apigee**. Every NAT adds an EIP — **do not publish that list to 1SB** (`ADR-020`). 1SB allowlists Apigee IPs (§2.3, §8) |
 | **Network Firewall endpoint** | ✅ | ✅ **prod/uat** | ⬜ *(prod)* | One per AZ that has a NAT | The endpoint is the egress path. One endpoint for three AZs means an AZ event or a firewall maintenance window is a **total egress outage**, and the quote path notices first |
 | Internet Gateway | — regional — | | | One per VPC, **inspection VPC only** | Not AZ-bound. The workload VPCs have none |
 | **Internal ALB** | ✅ | ✅ | ✅ | Subnets in all three; ALB places a node per enabled AZ | The only in-VPC reverse proxy (§3). Losing it loses every RM session |
@@ -265,9 +272,11 @@ no amount of AZ spreading answers it.
 
 ### 2.2 Hybrid bank connectivity — the path to CBS and Bank AD (`ADR-009`)
 
-R0 reads CIF data from Core Banking (`#4`, seam `S-05`) and federates Keycloak to Bank AD (WS-2
-Phase 2). Neither is reachable from a VPC by default, and until this round neither had a
-provisioned path.
+R0 reads CIF data from Core Banking (`#4`, seam `S-05`) through **Apigee private** (`ADR-020`)
+and verifies workforce credentials against the **existing bank AD-verify API** (same plane;
+never LDAP from EKS). The spoke still **attaches** to `AU-CTO-NETWORK` so that path is private.
+Neither CBS nor AD-verify is reachable from a VPC by default; this round provisions the private
+hop, not an LDAP bind and not a Cloudflare/F5 hairpin.
 
 ```text
          ap-south-1                                  AU Bank data centre
@@ -306,9 +315,15 @@ evidenced against a stub is not evidence — that is the whole reason this layer
 Every packet leaving the platform, and every packet crossing between VPCs, is inspected.
 
 ```text
-pod ─► TGW ─► Network Firewall endpoint (per AZ) ─► NAT + Elastic IP ─► IGW ─► 1SB / PG / SMS
-                        │
+pod ─► TGW ─► Network Firewall endpoint (per AZ) ─► Apigee (bank outbound plane) ─► 1SB / PG session-create / SMS
+                        │                              │
+                        │                              └─ 1SB allowlists **Apigee egress IPs** (ADR-020)
                         └─ alert + flow logs ─► CloudWatch + OpenSearch (ADR-013)
+
+Internal bank APIs (AD-verify, EBS/CBS):
+pod ─► TGW ─► (optional NFW on pod→Apigee) ─► Apigee **private** target ─► bank API
+FORBIDDEN: pod ─► internet ─► Cloudflare ─► F5 ─► bank API
+FORBIDDEN: Java ─► https://*.1silverbullet.tech
 ```
 
 | Control | Requirement |
@@ -321,19 +336,18 @@ pod ─► TGW ─► Network Firewall endpoint (per AZ) ─► NAT + Elastic IP
 | Failure posture | Firewall unavailable = **no egress**. That is correct and it is also an outage: endpoints per AZ (§2.1) and a named runbook, because the quote path is the first thing to notice |
 | What it is not | Not ingress inspection for public traffic — that is Cloudflare + F5-XC (SaaS) + API Gateway. Not a service mesh. Not a replacement for `NetworkPolicy` |
 
-#### The Elastic IP list changed shape — read this before publishing anything
+#### The Elastic IP list is no longer the 1SB allowlist — read this before publishing anything
 
-| | Before this round | From `ADR-010` |
+| | Until ADR-020 | From `ADR-020` |
 |---|---|---|
-| Where the EIPs live | Each workload VPC's public subnets | The **inspection VPC** of that environment |
-| How many | One per AZ per environment VPC | One per AZ per environment, and stable |
-| When they change | Whenever workload networking changes | Only when the egress design changes |
-| Who must have them | 1SB and the AU Bank PG, **before UAT** | Unchanged, and this is the point |
+| Where the EIPs live | Inspection VPC of that environment | Unchanged — they still exist for spoke→Apigee / remaining internet |
+| How many | One per AZ per environment, and stable | Unchanged |
+| Who 1SB allowlists | Those NAT EIPs | **Apigee egress IPs** (`DEP-20260914-apg`). **Do not publish spoke NAT EIPs to 1SB** |
+| Who the PG allowlists for **callbacks** | PG source IPs on our API Gateway route | Unchanged (`ADR-018` / TB-6). Outbound PG **session-create** goes via Apigee |
 
-The list is smaller and more stable than the one it replaces, which is a real benefit. It is also
-**different**, which is a real hazard: from 1SB's side, an allowlist populated from the old design
-is indistinguishable from an allowlist that was never populated. Any conversation already started
-with 1SB or the PG has to be re-based on this design — recorded as `DEP-20260824-eip`.
+The list is still smaller and more stable than the pre-`ADR-010` design. Publishing it to 1SB is
+now the defect: 1SB would allowlist the wrong host. Re-base any 1SB conversation onto Apigee IPs
+(`DEP-20260824-eip` → `DEP-20260914-apg`).
 
 ---
 
@@ -666,12 +680,12 @@ Existing repo services that **map onto** this:
 
 | Dependency | Direction | Protocol | Path and allowlist | Owner to confirm |
 |---|---|---|---|---|
-| 1SB APIs | Egress | HTTPS mTLS | **Inspection-VPC NAT EIPs** on 1SB's list (§2.3); 1SB IPs in the firewall domain allowlist. **Payload not decrypted** | WS-1 / Shivanshi |
-| AU Bank PG session | Egress | HTTPS | Via inspection VPC; PG endpoints allowlisted | Payments + Shivanshi |
+| 1SB APIs | Egress | HTTPS mTLS | **Apigee proxy**; 1SB allowlists **Apigee IPs** (`ADR-020`, §2.3). Adapter never calls a `*.1silverbullet.tech` origin. Firewall may inspect **pod → Apigee**; payload to 1SB is **not decrypted** | WS-1 / Shivanshi + Apigee team |
+| AU Bank PG session | Egress | HTTPS | Via **Apigee** (outbound session-create). Do not publish spoke NAT EIPs as the PG allowlist for this hop | Payments + Shivanshi |
 | AU Bank PG callback | Ingress | HTTPS | **PG source IPs only** on the callback Gateway. Not on the firewall path — the edge is Cloudflare / F5-XC / API Gateway | Deepali + Payments |
 | AU Bank PG settlement | Ingress or S3 drop | File | Separate from the API path | Aarti + Finance |
 | CBS / CIF | Egress | Bank standard (often HTTPS or MQ) | **TGW → VPN, then DX** (`ADR-009`). Stubs in `dev` only | Bank network + `#4` |
-| Bank AD | Egress from Keycloak | OIDC/SAML/LDAP | **TGW → VPN, then DX.** `dev` may run Keycloak-local users | WS-2 + bank network |
+| Bank AD | Egress | HTTPS to existing AD-verify API | **Apigee private target** (`ADR-020`). Never LDAP from EKS. `dev` may run Keycloak-local users | WS-2 + bank API platform |
 | SMS/email gateway | Egress | HTTPS | Via inspection VPC; in the domain allowlist | Bank comms |
 
 No inbound from 1SB in R0 (we poll). Do not open a public webhook "just in case".
@@ -682,8 +696,8 @@ No inbound from 1SB in R0 (we poll). Do not open a public webhook "just in case"
 
 | Env | Account | Data | Purpose |
 |---|---|---|---|
-| `dev` | `dev` | Synthetic only | Engineers. Render.com may remain as a **no-PII** preview alongside, never instead |
-| `uat` | `uat` | Masked / synthetic; **no production CIF dumps** | Bank caller exercises quote + proposal (WS-1 gate 4.3) |
+| `dev` | **`uat` account**, `vpc-dev` | Synthetic only | Engineers. Isolated namespaces / schemas / Valkey prefix / MSK prefix / Apigee product. Render.com may remain as a **no-PII** preview alongside, never instead |
+| `uat` | **`uat` account**, `vpc-uat` | Masked / synthetic; **no production CIF dumps** | Bank caller exercises quote + proposal (WS-1 gate 4.3). Real CBS/AD-verify — no stubs |
 | `prod` | `prod` | Real ETB | Pilot branches only |
 
 Promotion: **image built once** in `shared-services`, promoted by digest. Never rebuilt per env (`S09-E02-S02`).
@@ -782,25 +796,25 @@ Use this as the Terraform `for_each` checklist. Min pods = 2 in UAT/prod.
 |---|---|---|---|---|---|---|---|
 | nip-web | edge | — | — | — | — | — | static Flutter web only (image-baked) |
 | nip-bff (#2) | edge | — | — | — | **sessions, rate limits** | — | PDP, all domain APIs |
-| identity-provider-adapter | identity | — | — | — | — | — | Keycloak, **AD over TGW** |
+| identity-provider-adapter | identity | — | — | — | — | — | Keycloak; **AD-verify via Apigee private** |
 | identity-authorization | identity | `identity` | — | — | — | — | — |
-| keycloak | identity | `keycloak` | — | — | — | — | **AD over TGW** (phase 2) |
+| keycloak | identity | `keycloak` | — | — | — | — | Partners in IdP; **no LDAP to AD** |
 | configuration | shared | `cfg` | — | — | L2 (read) | — | — |
 | opportunity | shared | `opportunity` | — | — | L2 config | produces `journey.v1` | PDP |
-| customer | shared | `customer` | — | — | L2 config | — | **CBS over TGW** |
+| customer | shared | `customer` | — | — | L2 config | — | **CBS via Apigee private** |
 | consent | shared | `consent` | — | — | L2 config | produces `journey.v1` | Notification (OTP) |
 | suitability | shared | `suitability` | — | — | L2 config | produces `journey.v1` | Catalogue |
 | catalogue | shared | `catalogue` | — | — | L2 catalogue | — | — |
 | journey-orchestration | shared | optional | `journey-state` | — | L2 config | produces `journey.v1` | all domain refs |
 | quotation | life-cell | `quotation` | `integration-jobs` | — | L2 config, catalogue | produces `journey.v1` | Hub |
 | proposal | life-cell | `proposal` | `integration-jobs` | — | L2 config | produces `journey.v1` | Hub |
-| payment | shared | `payment` | — | — | L2 config | produces `payment.v1` | **AU Bank PG** |
+| payment | shared | `payment` | — | — | L2 config | produces `payment.v1` | **AU Bank PG session-create via Apigee** |
 | policy | shared | `policy` | — | `docs` | L2 config | produces `policy.v1` | Hub |
 | integration-hub | integration | `hub` | — | — | L2 config | — | Adapter only |
-| 1sb-integration-service | integration | `onesb` via persistence svc | jobs | `raw` | — | — | **1SB via the egress-VPC EIP** |
+| 1sb-integration-service | integration | `onesb` via persistence svc | jobs | `raw` | — | — | **1SB via Apigee** (`ADR-020`) |
 | bank-persistence-service | integration | `onesb`, audit ingest | — | — | — | — | Aurora only |
 | audit | shared | optional | `audit-events` | `audit-archive` | — | **consumes `audit.v1`** | — |
-| notification | shared | `notif` | — | — | — | **consumes `notification.v1`** | SMS/email gateway |
+| notification | shared | `notif` | — | — | — | **consumes `notification.v1`** | SMS/email gateway **via Apigee** |
 | outbox-publisher | jobs | reads each service outbox | — | — | — | **produces every topic** | MSK only |
 
 IAM: one IRSA role per deployable. No wildcard production policies (`FF-09`). Three additions from
@@ -823,12 +837,12 @@ critical path and no business service starts before them
 
 | Band | Provision | S09 story | Owner | First consumer | If it is late |
 |---|---|---|---|---|---|
-| **P0** Guardrails | Organizations + **6 accounts** (incl. `network`) · SCP region-pin to India · Terraform remote state + locking · `security` account (CloudTrail, Config, GuardDuty, Security Hub) · **KMS CMK hierarchy** · policy-as-code in the pipeline | `E01-S01/S02/S06/S07` · `E04-S03` | Shivanshi + Deepali | Everything | Every resource built before the region SCP has to be re-verified by hand for `S09-G9` residency attestation |
-| **P1** Network | VPC × 3 envs · public / private-app / private-data / TGW-attachment × 3 AZs (§2.1) · **no IGW on the workload VPC** · **attach to existing `AU-CTO-NETWORK` TGW** + per-environment route tables · **inspection VPC × env with Network Firewall** (or share EDGE — `ASM-012`) · **NAT Gateway + Elastic IPs (now in the inspection VPC)** · **Site-to-Site VPN** · **attach to existing DX Gateway** · security groups · **VPC endpoints** · Route 53 private zone + Resolver endpoints · ACM certs · flow logs | `E01-S03` (network foundation) · `E07-S01` (segmentation) | Shivanshi + Deepali + bank network | P2 | **Still the longest external lead time, and now it has two external parties instead of one.** The EIP list must reach 1SB and the AU Bank PG *before* UAT and must come from §2.3, not an older diagram. The bank must terminate the VPN and accept our prefixes on the existing DXGW (`DEP-20260824-dx1`). Late here blocks W1 CBS lookups, W2 quotes and W3 payments regardless of code readiness |
+| **P0** Guardrails | Organizations + **5 accounts** (`shared-services`, `security`, `network`, **`uat`**, `prod` — **no separate `dev`, no CUG**; UAT account hosts `vpc-dev` + `vpc-uat`) · SCP region-pin to India · Terraform remote state + locking · `security` account (CloudTrail, Config, GuardDuty, Security Hub) · **KMS CMK hierarchy** · policy-as-code in the pipeline | `E01-S01/S02/S06/S07` · `E04-S03` | Shivanshi + Deepali | Everything | Every resource built before the region SCP has to be re-verified by hand for `S09-G9` residency attestation |
+| **P1** Network | VPC × 3 envs · public / private-app / private-data / TGW-attachment × 3 AZs (§2.1) · **no IGW on the workload VPC** · **attach to existing `AU-CTO-NETWORK` TGW** + per-environment route tables · **inspection VPC × env with Network Firewall** (or share EDGE — `ASM-012`) · **NAT Gateway + Elastic IPs (now in the inspection VPC)** · **Site-to-Site VPN** · **attach to existing DX Gateway** · security groups · **VPC endpoints** · Route 53 private zone + Resolver endpoints · ACM certs · flow logs | `E01-S03` (network foundation) · `E07-S01` (segmentation) | Shivanshi + Deepali + bank network | P2 | **Still the longest external lead time, and now it has two external parties instead of one.** The EIP list is **not** published to 1SB (`ADR-020` — 1SB allowlists Apigee IPs; `DEP-20260914-apg`). The bank must terminate the VPN and accept our prefixes on the existing DXGW (`DEP-20260824-dx1`). Late here blocks W1 CBS lookups, W2 quotes and W3 payments regardless of code readiness |
 | **P2** Compute | EKS × 3 envs, private endpoint · managed node groups (§2.1) · add-ons (VPC CNI, CoreDNS, kube-proxy, EBS CSI, AWS LB Controller, ExternalDNS, Secrets Store CSI, **Fluent Bit, ADOT, KEDA**) · **Kyverno/Gatekeeper admission** · NetworkPolicy default-deny · Karpenter (thin, uat/prod) | `E01-S04` · `E07-S01/S03` | Shivanshi + Deepali | P4, P5 | Admission policy retro-fitted onto running workloads is a migration, not a control |
 | **P3** Data & messaging | **One** Aurora cluster + schemas + per-schema roles · DynamoDB tables + PITR · S3 buckets + **Object Lock** + Block Public Access · **ElastiCache for Valkey + per-service ACL users** · **MSK 3 brokers + per-topic IAM + Glue Schema Registry** · AWS Backup plans · **`ap-south-2` replication (D1–D3, D6, D7, D16)** | `E01-S05` (data foundation) · `E06-S01/S03/S05` | Aarti + Shivanshi | W0b | Object Lock **cannot be applied retroactively** to objects already written. The broker and cache are needed at W0b–W1, not W3: `#19` resolves configuration through the L2 cache and the first journey emits audit events, so a "messaging comes later" plan means writing the audit path twice |
-| **P4** Edge & proxy | **Internal ALB** (the in-VPC reverse proxy) · **API Gateway** (the only AWS public proxy; **no public ALB**) · **Cloudflare + F5-XC SaaS** (existing bank perimeter, not provisioned in our VPC) · Route 53 public zone · **separate PG-callback route, IP-allowlisted** | `E07-S05` | Shivanshi + Deepali | W3 (callback) then W4 (RM traffic) | The PG-callback route is needed at **W3**, earlier than the RM edge at W4. Treating "the edge" as one deliverable delays the money path by a wave |
-| **P5** Identity (WS-2) | Keycloak on EKS + Aurora `keycloak`/`identity` schemas · Secrets Manager + rotation · **IRSA role per deployable** · Secrets Store CSI → tmpfs · **session vault on the P3 cache tier** | `E04-S01/S04/S06` | Deepali + WS-2 | W0b | The PDP fails closed by design (`S-02`). No identity means no service can authorise anything — this is not a "later" item |
+| **P4** Edge & proxy | **Internal ALB** (the in-VPC reverse proxy) · **API Gateway** (inbound only; **no public ALB**) · **Cloudflare + F5-XC SaaS** · **Apigee outbound onboard** (`ADR-020` — not Terraform in our accounts) · Route 53 public zone · **separate PG-callback route, IP-allowlisted** | `E07-S05` | Shivanshi + Deepali + bank API platform | W2 (Apigee/1SB) · W3 (callback) · W4 (RM traffic) | Apigee product onboard is on the **quote** critical path. The PG-callback route is needed at **W3**, earlier than the RM edge at W4. Treating "the edge" as one deliverable delays the money path by a wave |
+| **P5** Identity (WS-2) | Keycloak on EKS + Aurora `keycloak`/`identity` schemas · **AD-verify via Apigee private** (never LDAP) · Fireframe / NIP-APP as the only UI chrome · Secrets Manager + rotation · **IRSA role per deployable** · Secrets Store CSI → tmpfs · **session vault on the P3 cache tier** | `E04-S01/S04/S06` | Deepali + WS-2 | W0b | The PDP fails closed by design (`S-02`). No identity means no service can authorise anything — this is not a "later" item |
 | **P6** Observability & search | CloudWatch Logs/Metrics with PII masking · AMP + AMG · X-Ray *or* ADOT · **OpenSearch domain + Firehose + Fluent Bit + ISM policy** (`E05-S02` log aggregation — the story already existed; `ADR-013` decides what it aggregates *into*) · **audit pipe separated from the operational pipe** (`E05-S06`) · baseline dashboards + alert routing | `E05-S01…S06` | Shivanshi | W1 | Debugging the first end-to-end journey without correlated traces is where schedules are actually lost. The firewall, flow and broker logs from P1 and P3 are unqueryable until this band lands, which is most of why `ADR-013` is in R0 |
 | **P7** Delivery & IaC | ECR + immutable tags + scan-on-push · GitLab CI/CD → ECR · **GitLab Runner** · **Terraform IaC** · promote-by-digest · migration job in the deploy path | `E02-S01…S06` · `E03-S01…S06` | Shivanshi + Amit | W0b | Rebuilding per environment breaks `S09-E02-S02` and makes every UAT result unattributable |
 | **P8** Proof & Automation | **Restore executed and timed** · **Ansible rollback drill in UAT** · secret rotation exercised once · deletion-refusal test on a locked object · residency enumeration · **Ansible DX→VPN failover timed** (`NFR-NET-01`) · **Ansible outbox replay drill** (`NFR-EVT-03`) · **cache failover with sessions held** (`NFR-CAC-02`) · **automated DR failover drill** (`NFR-DR-04`, `S09-G7`) | `E06-S04` · `E03-S03` · `E04-S04` | Shivanshi + Aarti + Shailja | `GATE-S09` | `S09-G4`, `S09-G7`, `S09-G8`, `S09-G9` accept **records**, not designs. Ansible playbooks automate DR exercises, network drills, and post-deployment sanity validation |
@@ -848,7 +862,7 @@ the service backlog rather than delivered as one lump:
 |---|---|---|
 | **W0b** | `#19` Configuration | P0 · P1 · P2 · P3 (incl. **cache tier** — `#19` resolves through L2) · P5 · P7 |
 | **W1** | `#5` `#9` `#14` `#4` `#8` | + **CBS reachable over the TGW** (VPN is sufficient; `#4` cannot be evidenced against a stub outside `dev`) · **MSK topics + schema registry** (the first journey emits events) · P6 |
-| **W2** | `#6` `#7` `#10` | + **egress-VPC EIPs allowlisted by 1SB** (§2.3) · firewall domain allowlist carries 1SB · S3 `raw` bucket locked |
+| **W2** | `#6` `#7` `#10` | + **Apigee product onboarded; 1SB allowlists Apigee IPs** (`ADR-020`, §2.3) · firewall domain allowlist carries **Apigee** · S3 `raw` bucket locked |
 | **W3** | `#11` `#12` `#13` `#16` | + **PG-callback API Gateway route** · PG settlement drop path · S3 `docs` + `audit-archive` locked · DR replication live (D3) · **audit consumer group + DLQ** |
 | **W4** | `#2` NIP BFF · `nip-web` · NIP-APP APK (Play) · NIP-APP IPA (App Store) · `#17` · `#18` MIS consumers | + Cloudflare + F5-XC (SaaS) + public API Gateway · internal ALB path rules (`GET /*` → `nip-web`, `/api/*` → `#2`) · **session vault on the cache tier** · SMS/email gateway in the firewall allowlist · **no** second hostname · **no** public ALB |
 
@@ -868,7 +882,7 @@ The following block is intended to be pasted into an infrastructure request / CR
 ```text
 R0 AWS PLATFORM REQUEST — AU Bank Insurance Distribution Platform
 Region: ap-south-1 (Mumbai). DR: ap-south-2 (Hyderabad) replicas only.
-Accounts: shared-services, security, network, dev, uat, prod.   <-- 6, `network` added 2026-08-24
+Accounts: shared-services, security, network, uat, prod.   <-- 5, `network` added 2026-08-24; `dev` is a VPC inside `uat` (ADR-020); no CUG
 
 NETWORK
 - 1 workload VPC per env, 3 AZs: public (reserved, empty, NO IGW, NO NAT) / private-app /
@@ -879,13 +893,13 @@ NETWORK
   ASM-012): AWS Network Firewall endpoint per AZ, NAT + allowlisted EIPs, the only IGW
 - Workload VPC default route = TGW. NOT a local NAT. NOT a local IGW. 100% of egress is inspected
 - Site-to-Site VPN FIRST. Direct Connect uses the EXISTING DX Gateway; VPN stays as standby
-- CBS/CIF and Bank AD are reachable ONLY over the TGW. Stubs permitted in dev ONLY
+- CBS/CIF and AD-verify are reachable via Apigee **private** targets (ADR-020). Stubs permitted in dev ONLY. Never LDAP from EKS. Never hairpin Cloudflare/F5
 - VPC endpoints: S3, DynamoDB, Secrets Manager, ECR, STS, CloudWatch Logs
 - Route 53 Resolver inbound/outbound endpoints for bank zones
 - No public load balancer onto compute. No public database, broker or search endpoint.
 - Do NOT copy the existing banking app's Public VPC + IGW + Public ALB + VPC-peering pattern
-- Do NOT draw or provision Apigee on this platform until SPIKE-001 returns (SUG-20260831-apg).
-  Amazon API Gateway remains the first AWS hop (ADR-018).
+- DRAW Apigee on the **egress** path only (ADR-020). Do NOT put Apigee on the RM/mobile front door.
+  Amazon API Gateway remains the first AWS inbound hop (ADR-018). Do NOT Terraform Apigee in our accounts.
 
 AVAILABILITY ZONES  (full table: LLD §2.1)
 - Subnets, interface VPC endpoints, TGW attachments and the internal ALB: all 3 AZs, every env
@@ -904,9 +918,9 @@ EDGE (external reverse proxy)
 - ONE public hostname. GET /* → nip-web; /api/* → #2 NIP BFF. No admin.{env}
 - ns:edge holds nip-web + #2 NIP BFF only — nothing RM-named or admin-named (ADR-015)
 - Separate API Gateway route for AU Bank PG callbacks, IP-allowlisted
-- Network Firewall is on the EGRESS path only - it is not a third inbound proxy
+- Network Firewall is on the EGRESS path (pod → Apigee) - it is not a third inbound proxy
+- DRAW Apigee outbound (ADR-020). Amazon API Gateway stays inbound. Flutter never calls Apigee
 - Do NOT provision Kong/Nginx Plus, an in-VPC F5 BIG-IP, Istio, or a public / External ALB
-- Do NOT draw Apigee (SPIKE-001). Amazon API Gateway stays until that spike returns
 
 COMPUTE
 - 1 private EKS cluster per env; sale-path min 2 pods, 2 AZs, PDBs
@@ -966,14 +980,16 @@ DISASTER RECOVERY - ap-south-2, warm standby  (full table: LLD §11.1)
   re-established), DR OpenSearch (D15 - logs are not evidence), anything outside India
 
 WHEN - provisioning sequence  (full table: LLD §12.1)
-P0 guardrails (6 accounts, region SCP, TF state, security account, KMS hierarchy)
+P0 guardrails (5 accounts — uat hosts vpc-dev + vpc-uat, no CUG; region SCP, TF state, security account, KMS hierarchy)
 P1 network (VPC, 3 AZs, TGW + per-env route tables, inspection VPC + Network Firewall,
-   NAT + EIPs, VPN now + DX ordered, endpoints, ACM)   <-- START FIRST, two external parties
+   NAT + EIPs NOT published to 1SB, VPN now + DX ordered, endpoints, ACM)   <-- START FIRST
 P2 compute (EKS, node groups, add-ons incl. Fluent Bit/ADOT/KEDA, admission, NetworkPolicy)
 P3 data & messaging (Aurora, DynamoDB, S3 + Object Lock, ElastiCache, MSK + schema registry,
    AWS Backup, ap-south-2 replication)
-P4 edge (internal ALB, API Gateway, Cloudflare + F5-XC SaaS; PG-callback route needed at W3, before W4)
-P5 identity (Keycloak, Secrets Manager, IRSA, Secrets Store CSI, session vault on the cache)
+P4 edge (internal ALB, inbound API Gateway, Cloudflare + F5-XC SaaS, Apigee outbound onboard;
+   PG-callback route needed at W3, before W4)
+P5 identity (Keycloak behind Fireframe/NIP-APP UI, AD-verify via Apigee private, never LDAP,
+   Secrets Manager, IRSA, Secrets Store CSI, session vault on the cache)
 P6 observability & search (CloudWatch, AMP/AMG, tracing, OpenSearch + Firehose + ISM,
    separated audit pipe)
 P7 delivery (ECR, GitOps, promote-by-digest, migration job)
@@ -981,8 +997,8 @@ P8 proof (restore timed, rollback drill, rotation exercised, Object Lock deletio
    residency enumerated, DX->VPN failover timed, outbox replay drill, cache failover)
 
 Two items have an external lead time and cannot be accelerated internally:
-  1. publishing the INSPECTION-VPC Elastic IP list to 1SB and AU Bank PG for allowlisting
-     (the addresses MOVED on 2026-08-24 - re-base any conversation already started)
+  1. Apigee product onboard + Apigee egress IP list to 1SB (ADR-020, DEP-20260914-apg).
+     Do NOT publish inspection-VPC NAT EIPs to 1SB
   2. the bank side of the connectivity: VPN termination, prefixes, firewall change, DX order
      (the PATTERN is decided by ADR-009; the bank's own work is not)
 

@@ -72,6 +72,9 @@ Failure modes, observability, deployment, rollback, capacity, RTO/RPO and suppor
 ### AP-12 — Evidence over architectural taste
 A decision should be supported by requirements, measured constraints, known failure modes, regulatory/control requirements, accepted ADRs or credible evolution triggers.
 
+### AP-13 — Attach to the bank estate; do not clone it
+The AU bank Control Tower, Transit Gateway, Direct Connect Gateway, EDGE FortiGate and IAM Identity Center already exist. The insurance platform is a spoke (`BE-01`). A second hub, a cloned Public ALB, or a public S3 website is not architecture — it is a collision with organisation standard. Doctrine: [`18-au-bank-enterprise-cloud-estate.md`](./18-au-bank-enterprise-cloud-estate.md).
+
 ## 5. Behaviour
 
 Mahesh must:
@@ -99,6 +102,7 @@ Mahesh must:
 - Do not call technical debt a target architecture.
 - Do not silently override a previously accepted ADR or current-state constraint.
 - Do not confuse AIGEM priority (`P1`–`P5`) with architecture severity (`A0`–`A3`) or Shailja risk severity (`R0`–`R3`).
+- Do not clone the current banking application's Public VPC / Public ALB / IGW, or provision a second TGW or Direct Connect, because a landscape diagram showed that neighbour's shape (`BE-03`).
 
 ## 7. Communication style
 

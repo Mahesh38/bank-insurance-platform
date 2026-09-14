@@ -43,6 +43,9 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20260914-egr | 2026-09-14 | human:Mahesh | Outbound calls leave the building via Apigee (1SB never called from EKS; 1SB allowlists Apigee IPs). Inbound RM/mobile stays AWS API Gateway. Internal bank APIs via Apigee must not hairpin Cloudflare/F5. | SF1 | SC1 | MUST | ARCH | P1 / P1 | ADMITTED | [SPIKE-001](#sug-20260831-apg--apigee-is-the-bank-api-plane--do-not-add-a-second-amazon-api-gateway-until-confirmed) · [note](../../architecture/2026-09-14-HUMAN-DIRECTION-APIGEE-EGRESS-IDP.md) · [detail](#sug-20260914-egr--apigee-is-outbound-only-ingress-stays-api-gateway) |
+| SUG-20260914-uat | 2026-09-14 | human:Mahesh | Keep `dev` inside the UAT AWS account (cost). Isolate namespaces/data. No CUG environment at R0 (waiver, do not provision). | SF1 | SC1 | MUST | INFRA | P2 / P1 | ADMITTED | [detail](#sug-20260914-uat--dev-inside-uat-no-cug-at-r0) |
+| SUG-20260914-idp | 2026-09-14 | human:Mahesh | Workforce auth via existing bank AD-verify API (never bind LDAP). Partner users created in IdP bulk/one-by-one. Keycloak OK if bank Fireframe UI owns look-and-feel and maps users/roles/permissions. | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [detail](#sug-20260914-idp--ad-verify-api-partner-idp-fireframe-ui) |
 | SUG-20260913-qul | 2026-09-13 | agent:sandbox-validation | Retarget ULIP fund adapter to `/quote/ulipList` because demo unauth 401 “proves a route”. | SF4 | SC3 | REJECT | FUNC | — / — | REJECTED | [detail](#sug-20260913-qul--do-not-retarget-funds-to-quote-uliplist) |
 | SUG-20260913-fnd | 2026-09-13 | agent:sandbox-validation | 1SB demo 404 on documented `POST /insurance/lifesave/v1/fund/list` and `/fund/performance`. | SF2 | SC1 | NOT-NOW | OPS | P4 / P1 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [detail](#sug-20260913-fnd--1sb-demo-missing-documented-fund-routes) |
 | SUG-20260913-lap | 2026-09-13 | human:stakeholder | Wire only documented 1SB Life retail APIs (Product UI Data + ULIP fund list/performance). No save/send quote. Master is Building Blocks `POST /v1/master/lookup`. | SF1 | SC0 | MUST | FUNC | P1 / P1 | ADMITTED | [FUNC-027](../../1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md) · [detail](#sug-20260913-lap--documented-life-retail-api-parity) |
@@ -97,7 +100,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | SUG-20260825-arb | 2026-08-25 | human:Mahesh | Review with internal Architect team: Cloudflare instead of CloudFront (bank standard), F5 BIG-IP / WAF instead of AWS WAF (bank standard), External ALB before API Gateway, GitLab CI/CD for pipelines, EBS (Enterprise Service Bus) naming for Core Banking integration with CBS in brackets, Terraform IaC, CloudTrail and CloudWatch both mandatory | SF1 | SC0 | MUST | ARCH | P1 / P1 | ADMIT-BYPASS | [ARB-ARCHITECTURE-DOSSIER](../../architecture/ARB-ARCHITECTURE-DOSSIER.md) · [detail](#sug-20260825-arb--internal-architect-review-alignment-cloudflare-f5-external-alb-gitlab-ebscbs-terraform-cloudtrailcloudwatch) |
 | SUG-20260827-tpo | 2026-08-27 | human:Mahesh | Platform Topology & LLD Alignment: replace Argo CD with GitLab CI/CD with logo, replace AWS Network Firewall with F5 BIG-IP / Firewall with logo, incorporate Ansible for automated DR drills / sanity testing, and emphasize Terraform IaC baseline | SF1 | SC0 | MUST | ARCH | P1 / P1 | CLOSED-DELIVERED | [r0-platform-topology](../../architecture/r0-platform-topology.svg) · [detail](#sug-20260827-tpo--platform-topology--lld-alignment-gitlab-cicd-f5-big-ip-ansible-terraform) |
 | SUG-20260831-alb | 2026-08-31 | human:Mahesh | Correct two false perimeter assumptions against the existing AU Bank estate: (1) remove the External / public ALB in front of API Gateway; (2) Cloudflare and F5-XC are bank-enterprise SaaS, not AWS services and not in any platform VPC | SF1 | SC1 | MUST | ARCH | P1 / P1 | ADMIT | [ADR-018](../../platform/architecture-review/08-architecture-decision-log.md) · [detail](#sug-20260831-alb--correct-edge-ingress-no-public-alb-cloudflare--f5-xc-are-saas-outside-aws) |
-| SUG-20260831-apg | 2026-08-31 | human:Mahesh | Existing bank estate routes all incoming and outgoing requests through Apigee. Decide whether Amazon API Gateway is still needed, and whether the R0 VPC / IGW / TGW pack must attach to (not duplicate) the existing network account | SF1 | SC1 | MUST | SPIKE | P1 / P1 | ADMIT · draw PARKED | [SPIKE-001](#sug-20260831-apg--apigee-is-the-bank-api-plane--do-not-add-a-second-amazon-api-gateway-until-confirmed) · [PARKED](./PARKED-BACKLOG.md) |
+| SUG-20260831-apg | 2026-08-31 | human:Mahesh | Existing bank estate routes all incoming and outgoing requests through Apigee. Decide whether Amazon API Gateway is still needed, and whether the R0 VPC / IGW / TGW pack must attach to (not duplicate) the existing network account | SF1 | SC1 | MUST | SPIKE | P1 / P1 | ADMIT · outbound draw UNPARKED (`ADR-020`) · remaining answers PARKED | [SPIKE-001](#sug-20260831-apg--apigee-is-the-bank-api-plane--do-not-add-a-second-amazon-api-gateway-until-confirmed) · [PARKED remaining](./PARKED-BACKLOG.md) · [ADR-020](../../platform/architecture-review/08-architecture-decision-log.md) |
 | SUG-20260903-lif | 2026-09-03 | human:stakeholder | 1SB integration must cover Life LOB (Term + Savings + ULIP); move bank models out of the 1SB app service; replace Map-built JSON with typed models; packaging/SOLID/DRY; document poll/retry stop and circuit breakers — admit with actions, do not park | SF1* | SC4→SC0 | MUST | FUNC | P1 / P1 | ADMIT-BYPASS | [CR-014](../change-requests/CR-014-ws1-life-lob-adapter-standards.md) · [EPIC-002](../../1sb-insurance-integration/service-ssot/work-items/EPIC-002.work-item.yaml) · [detail](#sug-20260903-lif--life-lob-1sb-coverage-and-adapter-standards) · recurrence_count 2 (2026-09-11 adapter restatement). Excluded WS-3 journey bag → [SUG-20260911-uls](#sug-20260911-uls--unpark-ws-3-savingsulip-journey-sales) / CR-015 |
 
 <!--
@@ -1868,6 +1871,259 @@ breakdown:
 ```
 
 > **Amended 2026-08-31 (human Architecture owner):** keep the candidate bank API plane **off every diagram** until SPIKE-001 returns. Amazon API Gateway stays. Network attach (existing TGW / DXGW, no workload IGW) proceeds independently of that spike.
+>
+> **Amended 2026-09-14 (human Architecture owner, `SUG-20260914-egr`, recurrence on this spike):**
+> inbound RM/mobile **keeps** Amazon API Gateway. **Outbound** (1SB, internal bank APIs, other
+> leaving-the-building calls) **will** go via Apigee. `1sb-integration-service` never calls the
+> 1SB origin; 1SB allowlists Apigee egress IPs. Internal Apigee targets must stay private (no
+> Cloudflare/F5 hairpin). `ASM-013` (all inbound *and* outbound) is invalidated; see `ASM-015`.
+>
+> **Amended 2026-09-14 (`ADR-020`):** outbound Apigee is **drawn**. Remaining SPIKE-001 work is
+> written answers only (edition, private URL, per-env IPs, per-API onboard, PG callback hop).
+
+### SUG-20260914-egr · Apigee is outbound only; ingress stays API Gateway
+
+```yaml
+id: SUG-20260914-egr
+raised_at: "2026-09-14"
+raised_by: "human:Mahesh"
+source: "Follow-up to R0 E2E teaching open items (egress / SPIKE-001)"
+input: >
+  1sb-integration-service will never call the 1SB API directly from EKS; it will
+  call APIGEE and APIGEE will call the external or internal service. Example:
+  https://demo.api.1silverbullet.tech/insurance/lifeterm/v1/quote must first be
+  configured with the APIGEE team; 1SB requires IP whitelisting. Internal APIs
+  (e.g. confirm RM username/password) also route from APIGEE. Internal API
+  requests must not route over the public network (Cloudflare and F5) because
+  that adds latency. APIGEE might or might not replace external traffic from
+  the RM system or mobile as we want to use AWS API Gateway, but outgoing
+  calls from the building will go via APIGEE.
+duplicate_of: SUG-20260831-apg
+recurrence_count: 1
+conflicts:
+  - ADR-010 (spoke NAT EIPs published to 1SB — contested if Apigee is the only caller 1SB sees)
+  - ASM-013 (all inbound AND outbound through Apigee — inbound half now refuted)
+  - DEP-20260824-eip (inspection-VPC EIP publication as the 1SB allowlist)
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 / S09 — Engineering & Platform Foundation"
+  current_objective: R0-ASSISTED-LIFE-SALE
+  state_as_of: "2026-09-13"
+  state_provisional: false
+  freshness: FRESH
+  active_work_item: "R0 E2E architecture teaching / VIN-003 Board 1 rereview"
+
+stage_fit:
+  code: SF1
+  rationale: >
+    S09 P4 edge and S09 network build cannot publish the wrong IPs to 1SB.
+    Adapter HTTP clients cannot hardcode 1SB origins if Apigee is the outbound plane.
+
+scope:
+  code: SC1
+  business_scope: "WS-3 Architecture and Infrastructure Baseline"
+  serves: ["SPIKE-001", "ADR-018", "ADR-010", "1sb-integration-service outbound"]
+  failure_without_it: >
+    We publish spoke NAT EIPs 1SB will never see, and 1SB rejects production
+    calls that actually come from Apigee. Internal AD/EBS calls hairpin the
+    public edge and add latency plus a false trust path.
+  minimal: true
+  authority: "Human Architecture owner direction 2026-09-14"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S09 P4 Edge band / first 1SB allowlist"
+  binds_when: "Any 1SB IP-allowlist conversation, or adapter base-URL wiring"
+  evidence_tier: E5
+  confidence: C3
+  evidence:
+    - "Human Architecture owner: outbound via Apigee; 1SB IP whitelist; never call 1SB from EKS"
+    - "Human Architecture owner: inbound RM/mobile wants AWS API Gateway"
+    - "Human Architecture owner: internal APIs via Apigee must stay off Cloudflare/F5"
+  assumptions: [ASM-015, ASM-016]
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT
+action_rationale: >
+  Admit as SPIKE-001 evidence and assumption split. Confidence C3 on direction, C2 on
+  Apigee edition / private path / exact IPs — those remain SPIKE-001 written answers.
+  `ADR-020` (same day) binds the split plane and draws outbound Apigee. Do not
+  implement a Java Apigee client beyond a configurable outbound base URL in a
+  later story. Do not publish spoke EIPs to 1SB.
+
+classification:
+  type: SPIKE
+  also: [ARCH]
+  breakdown: SPIKE
+  risk_tier: T3
+
+priority:
+  score_now: 16
+  priority_now: P1
+  priority_at_target: P1
+
+breakdown:
+  stories:
+    - "SPIKE-001 remaining: Apigee edition; NIP product; private spoke→Apigee path; egress IPs per env; per-API onboarding; PG callback inbound hop"
+    - "Do not draw Apigee until those written answers exist"
+    - "Later ADR: amend ADR-010 allowlist clause if Apigee IPs replace spoke NAT EIPs — Deepali accepts remainder"
+```
+
+### SUG-20260914-uat · Dev inside UAT; no CUG at R0
+
+```yaml
+id: SUG-20260914-uat
+raised_at: "2026-09-14"
+raised_by: "human:Mahesh"
+source: "Follow-up to ARCH-DEC-VIN003-B1 C-02 / C-03"
+input: >
+  Keep dev inside UAT only to reduce cost; we should still be able to tell them
+  apart and maintain data isolation and consistency. We do not need a CUG
+  environment for now.
+duplicate_of: null
+conflicts:
+  - R0-LLD BOM #1 separate dev AWS account
+  - ARCH-DEC-VIN003-B1 C-02 option (a) Cloud exception for split dev
+  - Bank Onboarding v1.4 mandatory CUG class
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S09 — Platform & Environment Foundation"
+  current_objective: R0-ASSISTED-LIFE-SALE
+  state_as_of: "2026-09-13"
+  freshness: FRESH
+  active_work_item: "R0 E2E architecture teaching / VIN-003 Board 1 rereview"
+
+stage_fit:
+  code: SF1
+  rationale: "Account vending is S09. Choosing split-dev vs Dev-inside-UAT after accounts exist is expensive."
+
+scope:
+  code: SC1
+  serves: ["ARCH-DEC-VIN003-B1 C-02", "C-03", "BE-12", "R0-LLD BOM #1"]
+  failure_without_it: "A second AWS account billed for no isolation win, or a CUG account with no R0 consumer."
+  minimal: true
+  authority: "Human Architecture owner direction 2026-09-14"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S09 Control Tower account request"
+  binds_when: "Before the account-create pack (C-05)"
+  evidence_tier: E5
+  confidence: C4
+  assumptions: [ASM-017, ASM-018]
+
+action: ADMIT
+action_rationale: >
+  Intended close of C-02 option (b) and C-03 waiver. Do not rewrite R0-LLD in
+  the triage turn. Follow-up: LLD BOM #1 amendment + Cloud waiver language.
+  Isolation (namespaces, schemas, prefixes, data) is part of the LLD edit.
+
+classification:
+  type: INFRA
+  also: [DOC]
+  risk_tier: T2
+
+priority:
+  score_now: 12
+  priority_now: P2
+  priority_at_target: P1
+
+breakdown:
+  stories:
+    - "Amend R0-LLD BOM #1: no separate dev account; dev slice inside UAT with isolation rules"
+    - "CUG: waiver wording for onboarding pack; do not provision"
+```
+
+### SUG-20260914-idp · AD-verify API, partner IdP, Fireframe UI
+
+```yaml
+id: SUG-20260914-idp
+raised_at: "2026-09-14"
+raised_by: "human:Mahesh"
+source: "Follow-up to R0 E2E Keycloak vs final IdP open item"
+input: >
+  Authentication works via a service that calls an API which verifies username
+  and password against AD; we will never connect AD directly. RM and bank
+  employee data is in AD. For insurance sales partners we need to create the
+  user in bulk or one by one. Unsure Keycloak vs different IdP because the bank
+  does not want to compromise Fireframe look and feel. If adding user, role,
+  permission and mapping them from bank UI with Keycloak is possible, Keycloak
+  is fine.
+duplicate_of: null
+conflicts:
+  - ID-02 / ID-03 if Flutter collects AD passwords without Deepali accepting credential handling
+  - Direct Keycloak-to-AD LDAP bind (never the path)
+
+context:
+  workstream: WS-2
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "WS-2 Phase 1/2 identity"
+  current_objective: "BFF token-hiding; adapter; PDP"
+  state_as_of: "2026-09-13"
+  freshness: FRESH
+  active_work_item: "R0 E2E architecture teaching / VIN-003 Board 1 rereview"
+
+stage_fit:
+  code: SF1
+  rationale: "WS-2 A.1–A.3 are open. Choosing LDAP-to-AD or password-in-Flutter now would be a trust-boundary defect."
+
+scope:
+  code: SC0
+  business_scope: "WS-2 workforce identity; WS-3 NIP BFF consumes it"
+  serves: ["TI-01", "ID-04", "ID-12", "ARCH-018"]
+  failure_without_it: >
+    Either we bind EKS to AD (forbidden) or we put partners in AD (forbidden)
+    or bank users see Keycloak chrome (rejected UX).
+  minimal: true
+  authority: "Human Architecture owner direction 2026-09-14"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "WS-2 adapter + NIP login"
+  binds_when: "First workforce login story"
+  evidence_tier: E5
+  confidence: C3
+  assumptions: [ASM-019]
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: true
+    X5_stage_necessity: true
+
+action: ADMIT
+action_rationale: >
+  Record the two-plane model and the Fireframe constraint. Do not pick Cognito
+  over Keycloak. Keycloak remains acceptable as a private IdP if NIP-APP /
+  Fireframe is the only UI and the PDP owns roles/permissions. Password-in-NIP
+  vs Fireframe SSO ceremony is A3_JOINT_REVIEW with Deepali (ID-11). Adapter
+  stays. No Java this turn.
+
+classification:
+  type: ARCH
+  also: [SEC]
+  risk_tier: T3
+
+priority:
+  score_now: 12
+  priority_now: P2
+  priority_at_target: P1
+
+breakdown:
+  stories:
+    - "Adapter calls bank AD-verify API via Apigee private path; never LDAP"
+    - "Partner provision APIs: bank UI → BFF → PDP + adapter → IdP (maker-checker)"
+    - "Deepali: accept or refuse NIP collecting AD passwords"
+```
 
 ### SUG-20260825-arb · Internal Architect Review Alignment (Cloudflare, F5, External ALB, GitLab, EBS/CBS, Terraform, CloudTrail/CloudWatch)
 

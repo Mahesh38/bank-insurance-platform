@@ -658,7 +658,7 @@ id_allocation:
     # both it and CR-012.
     CR: 16        # CR-001..015 in use (015 = WS-3 R0 complete assisted Life journey, SUG-20260911-uls, CANDIDATE transcribed 2026-09-12 under ADMIT-BYPASS; HUMAN T4 outstanding); next unused is 16
     RISK: 16      # RISK-001..015 in use (012..015 added by CR-012)
-    ASM: 15       # ASM-001..014 in use (014 = quote-category 1SB masters are gateway-common; proposal-category is insurer-specific). ID-allocation only. No stage field touched.
+    ASM: 20       # ASM-001..014, 015..019 in use (013 invalidated 2026-09-14; 015 = Apigee outbound / API Gateway inbound; 016 = private Apigee for internal APIs; 017 = dev-inside-UAT; 018 = no CUG at R0; 019 = AD-verify API + partner IdP + Fireframe UI). ID-allocation only. No stage field touched.
     EPIC: 5       # EPIC-001..004 in use (004 = WS-3 R0 assisted Life Term+Savings+ULIP, CR-015 / SUG-20260911-uls, minted 2026-09-12). Next unused is 5. ID-allocation only.
     SPIKE: 2       # SPIKE-001 in use (Apigee vs Amazon API Gateway, SUG-20260831-apg). ID-allocation only.
     # ADR-001..003 were written into architecture-review/08 under CR-010 while this counter still

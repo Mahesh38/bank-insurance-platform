@@ -307,6 +307,13 @@ doc_routing:
       persona: architecture
       note: "Compiled teaching. HA-02: 03-solution-architecture-r0, R0-LLD and ADRs win."
 
+    - match: ["docs/architecture/2026-09-14-HUMAN-DIRECTION-APIGEE-EGRESS-IDP.md"]
+      bucket: platform
+      authority: ai-drafted
+      capsules: [architecture-review, board-review]
+      persona: architecture
+      note: "Human direction 2026-09-14. Not an ADR. SPIKE-001 / ASM-015. T4 outstanding."
+
     - match: ["docs/architecture/*"]
       bucket: platform
       authority: approved-spec

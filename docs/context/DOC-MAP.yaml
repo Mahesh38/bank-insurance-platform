@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 568
-total_bytes: 15723205
+document_count: 569
+total_bytes: 15749201
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -1342,6 +1342,14 @@ documents:
     title: "Validation Test — S<xx>-VT-<nn>"
     answers: "A validation test proves a stage is complete. It is distinct from a functional test, which"
     bytes: 2266
+  - path: docs/architecture/2026-09-14-HUMAN-DIRECTION-APIGEE-EGRESS-IDP.md
+    bucket: platform
+    authority: ai-drafted
+    capsules: [architecture-review, board-review]
+    persona: architecture
+    title: "Human architecture direction — Apigee egress, env model, identity (2026-09-14)"
+    answers: "Standing: Record of human Architecture-owner direction. Not an ADR. Does not amend"
+    bytes: 8174
   - path: docs/architecture/ARB-ARCHITECTURE-DOSSIER.md
     bucket: platform
     authority: approved-spec
@@ -1357,7 +1365,7 @@ documents:
     persona: architecture
     title: "Board 1 — Architecture rereview of R0 against the live AU bank cloud estate"
     answers: "Decision id: ARCH-DEC-VIN003-B1"
-    bytes: 18154
+    bytes: 19312
   - path: docs/architecture/R0-E2E-FOR-DEVELOPERS.md
     bucket: platform
     authority: approved-spec
@@ -1365,7 +1373,7 @@ documents:
     persona: architecture
     title: "R0 architecture for developers — end to end, every box, every refusal"
     answers: "Walk one RM sale through every hop: why that hop exists, whether it matches the AU bank estate, and what we refused."
-    bytes: 25899
+    bytes: 27264
   - path: docs/architecture/R0-HLD.md
     bucket: platform
     authority: approved-spec
@@ -1389,7 +1397,7 @@ documents:
     persona: architecture
     title: "Architecture diagrams"
     answers: "Two diagrams, deliberately. They answer different questions and neither replaces the other."
-    bytes: 28692
+    bytes: 28948
   - path: docs/architecture/diagrams/README.md
     bucket: platform
     authority: approved-spec
@@ -1941,7 +1949,7 @@ documents:
     persona: null
     title: "AGENT CONTEXT INDEX"
     answers: "============================================================================="
-    bytes: 46508
+    bytes: 46814
   - path: docs/context/BOOT.md
     bucket: context
     authority: non-binding-context
@@ -1957,7 +1965,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 200497
+    bytes: 200554
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -2453,7 +2461,7 @@ documents:
     persona: null
     title: "16 — Mahesh HLD Authoring and Update Protocol"
     answers: "This file makes updating the platform's high-level design a mechanical act rather than a"
-    bytes: 29695
+    bytes: 29966
   - path: docs/context/roles/mahesh-principal-insurance-platform-architect/17-provider-aggregation-and-connectivity.md
     bucket: context
     authority: non-binding-context
@@ -2469,7 +2477,7 @@ documents:
     persona: null
     title: "18 — Mahesh AU Bank Enterprise Cloud Estate Doctrine"
     answers: "Mahesh's doctrine for the existing AU bank Control Tower, EDGE VPC FortiGate NGFW, Transit Gateway, Direct Connect (Sify/Airtel), cloud onboarding…"
-    bytes: 21419
+    bytes: 21984
   - path: docs/context/roles/mahesh-principal-insurance-platform-architect/README.md
     bucket: context
     authority: non-binding-context
@@ -3693,7 +3701,7 @@ documents:
     persona: null
     title: "Assumption Register"
     answers: "Beliefs the plan rests on that have not been verified. Every assumption has an expiry, a"
-    bytes: 7593
+    bytes: 10073
   - path: docs/governance/registers/DECISION-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -3709,7 +3717,7 @@ documents:
     persona: null
     title: "Dependency Register"
     answers: "Edges of the dependency graph. Edges outlive the items that discovered them, so they are"
-    bytes: 8674
+    bytes: 9142
   - path: docs/governance/registers/PARKED-BACKLOG.md
     bucket: governance
     authority: binding-process
@@ -3717,7 +3725,7 @@ documents:
     persona: null
     title: "Parked Backlog"
     answers: "Parked is not deleted. Every entry names the stage that unparks it and the observable"
-    bytes: 14761
+    bytes: 15020
   - path: docs/governance/registers/RISK-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -3733,7 +3741,7 @@ documents:
     persona: null
     title: "Suggestion Register"
     answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 236026
+    bytes: 246540
   - path: docs/governance/schemas/README.md
     bucket: governance
     authority: binding-process
@@ -3805,7 +3813,7 @@ documents:
     persona: null
     title: "CURRENT STATE"
     answers: "AIGEM — Machine-readable current state"
-    bytes: 41633
+    bytes: 41756
   - path: docs/governance/state/GATE-EVIDENCE.yaml
     bucket: governance
     authority: binding-process

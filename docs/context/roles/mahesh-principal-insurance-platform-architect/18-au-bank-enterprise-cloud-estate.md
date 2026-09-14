@@ -325,7 +325,7 @@ Technology-qualification gaps are `A1`/`A2` with a named owner.
 |---|---|
 | Prisma Cloud at org | Inherited CSPM; not a programme invention |
 | QRadar as SIEM; CloudTrail **10 years** | Distinct from 90-day operational logs and 7-year WORM evidence |
-| CUG environment class | Unnamed in R0 BOM |
+| CUG environment class | **Not required at R0** (human 2026-09-14, `ASM-018`) — waive rather than provision |
 | Cloudflare+SSE-S3 origin pattern | Approved **exception** if static origin ever is S3 |
 | Account names `AU_AWS_MAS` / `au-platform` | Real hub identities to attach to |
 | FortiGate is the **hub** NGFW | Spoke AWS Network Firewall (`ADR-010`) is additional inspection, not FortiGate's replacement — `ASM-012` already flagged "attach vs share EDGE" |
@@ -336,15 +336,16 @@ Technology-qualification gaps are `A1`/`A2` with a named owner.
 
 | # | Estate rule | Accepted programme row | Why it is not absorbed here |
 |---|---|---|---|
-| X-1 | Default environments = Prod + CUG + UAT; Dev lives **inside UAT** | `R0-LLD` BOM #1: separate `dev` / `uat` / `prod` (+ `network`, `security`, `shared-services`) | Isolation vs bank cost default. Options in `BE-12`. Cloud-team approval required for a split `dev` |
+| X-1 | Default environments = Prod + CUG + UAT; Dev lives **inside UAT** | `R0-LLD` BOM #1: separate `dev` / `uat` / `prod` | Human 2026-09-14 **intends** Dev-inside-UAT (`ASM-017`) and no CUG (`ASM-018`). LLD amendment + Cloud waiver still outstanding — not absorbed by editing this file |
 | X-2 | Existing apps: Public VPC + IGW + Public ALB | `ADR-018` / `R0-LLD`: no Public ALB; API Gateway entry; no IGW on workload VPCs | **Keep `ADR-018`.** Estate describes the neighbour; it does not repeal the spoke decision (`BE-03`) |
 | X-3 | Tier 1/2 cloud = Active-Active; failover tests not "DR" | `R0-LLD` §11: warm standby `ap-south-2` | Needs a declared bank **tier** and a joint Mahesh/Shivanshi/Aarti verdict. Silent Active-Active is scope |
-| X-4 | Hub FortiGate inspects north-south and east-west | `ADR-010`: per-environment inspection VPC + AWS Network Firewall | Possible double inspection. `ASM-012` remains the open question: share EDGE vs extra spoke firewall |
+| X-4 | Hub FortiGate inspects north-south and east-west | `ADR-010`: per-environment inspection VPC + AWS Network Firewall | 1SB allowlist likely moves to **Apigee IPs** (`ASM-015`). Remaining question is spoke NFW on **pod → Apigee**, not “publish our EIP to 1SB” |
 | X-5 | Landing-zone "top services" highlight RDS MySQL + MongoDB | Programme SSOT is PostgreSQL (`ADR-008`) | **Closed 2026-09-14 — not a conflict.** SOP allows Postgres; D3 already runs Aurora PostgreSQL |
 | X-6 | UAT runs 12 hours/day | Programme tests, CI and non-prod IdP may assume 24×7 UAT | Operating-hours constraint for Shivanshi (`ARCH-DEC-VIN003-B1` S-02); not an architecture rewrite |
+| X-7 | Bank API plane is Apigee | `ADR-018` Amazon API Gateway on ingress; `SPIKE-001` had assumed all in **and** out | Human 2026-09-14 **split**: inbound keeps API Gateway; outbound via Apigee (`ASM-015`). `ASM-013` invalidated. Draw still parked |
 
 **Rule `BE-15` — X-2 is resolved in favour of the spoke (`ADR-018`).** X-5 is closed as not a
-conflict. X-1 / X-3 / X-4 / X-6 are conditions on
+conflict. X-1 / X-3 / X-4 / X-6 / X-7 are conditions or recorded human direction on
 [`ARCH-DEC-VIN003-B1`](../../../architecture/BOARD-1-REREVIEW-VIN003-ESTATE-2026-09-14.md)
 (`APPROVED_WITH_CONDITIONS`, `A1`, AI-drafted, T4 outstanding). Mahesh still will not "fix"
 them by editing ADRs from this persona file.
@@ -355,9 +356,10 @@ them by editing ADRs from this persona file.
 
 - Physical CIDR allocation, TGW route-table contents, FortiGate policy — bank network + Shivanshi.
 - Whether EDGE is shared or a per-environment inspection VPC is added — Security + SRE + bank
-  network (`ASM-012`).
+  network (`ASM-012`). 1SB’s allowlist is a **separate** question (`ASM-015` — Apigee IPs).
 - Production IdP product (Cognito vs Keycloak vs other) — still deferred behind the adapter
-  (BOOT WS-2). Federation **path** is AD over the `ADR-009` attachment.
+  (BOOT WS-2). Federation **path** is the bank AD-verify API via Apigee (`ASM-019`), not LDAP
+  from EKS. Fireframe / NIP-APP is the UI chrome.
 - OCI ERP topology, GCP, or any workload outside the insurance spoke.
 - Application RIA ID, cost sheet, or Cloud-team account vending — onboarding SOP, not Board 1.
 

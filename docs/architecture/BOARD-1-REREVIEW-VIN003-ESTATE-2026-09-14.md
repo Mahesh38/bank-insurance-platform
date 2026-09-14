@@ -208,11 +208,14 @@ No `must_fix` that would return this rereview as `REWORK`. The plan is the right
 
 - Impersonate human T4 Architecture sign-off.
 - Accept `ADR-010` on Deepali's behalf, or withdraw it without her.
-- Treat bank Cloud silence as approval of a split `dev` account.
-- Upgrade R0 to Active-Active, add a CUG, or collapse `dev` into UAT in the same change as this
-  document.
+- Treat bank Cloud silence as approval of a split `dev` account. Human 2026-09-14 **intends**
+  Dev-inside-UAT (`ASM-017`) and no CUG (`ASM-018`); that still needs the LLD amendment and the
+  onboarding waiver, not this verdict block claiming they are closed.
+- Upgrade R0 to Active-Active.
 - Edit `CURRENT-STATE.yaml` stage fields.
-- Close `ASM-012`, `ASM-013`, `DEP-20260824-dx1` or `DEP-20260824-eip` from a review file.
+- Close `ASM-012`, `DEP-20260824-dx1` or `DEP-20260824-eip` from a review file. (`ASM-013` was
+  invalidated in the assumption register by `SUG-20260914-egr` / `ASM-015` — still not from this
+  verdict YAML.)
 
 ---
 
@@ -224,6 +227,20 @@ No `must_fix` that would return this rereview as `REWORK`. The plan is the right
 3. S-01 (drop leftover public subnets) is a small LLD edit — do it in a follow-up, not by
    silently widening this file.
 4. S08 application engineering continues; it does not need these conditions to write Java.
+
+---
+
+## 9. Human direction received 2026-09-14 (does not close this verdict)
+
+Recorded in [`2026-09-14-HUMAN-DIRECTION-APIGEE-EGRESS-IDP.md`](./2026-09-14-HUMAN-DIRECTION-APIGEE-EGRESS-IDP.md)
+and `SUG-20260914-egr` / `uat` / `idp`. **Not a T4 signature. Not an ADR amendment.**
+
+| Condition | Intended outcome (still needs the named owner’s written artefact) |
+|---|---|
+| **C-01** | 1SB allowlists **Apigee** IPs, not spoke NAT EIPs. Do not publish spoke EIPs to 1SB. Deepali still accepts whatever remains on **pod → Apigee** (`ADR-010` remainder / `ASM-012`) |
+| **C-02** | Option (b): `dev` slice **inside UAT** account, with isolation (`ASM-017`). LLD BOM #1 amendment is follow-up |
+| **C-03** | **No CUG at R0** — waiver, do not provision (`ASM-018`) |
+| Ingress vs Apigee | **Keep `ADR-018`** for RM/mobile. Apigee is the **outbound** plane (`ASM-015`). Draw still waits on `SPIKE-001` written answers |
 
 ---
 

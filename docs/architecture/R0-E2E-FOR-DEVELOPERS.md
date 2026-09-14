@@ -285,15 +285,24 @@ Customer lookup goes through **EBS (Enterprise Service Bus)** APIs — bank inte
 
 ### B. Internet partners (1SB, SMS) — inspected egress
 
+Human 2026-09-14 direction (`ASM-015`): the pod does **not** call 1SB. It calls **Apigee**;
+Apigee calls 1SB; 1SB allowlists **Apigee** IPs.
+
 ```text
-Pod → TGW → (spoke) AWS Network Firewall → NAT + Elastic IP → IGW → 1SB
+Intended:  Pod → Apigee (private) → 1SB
+Do not:    Pod → NAT EIP → 1SB   (and then tell 1SB that EIP)
+Do not:    Pod → public internet → Cloudflare → F5 → bank internal API
 ```
 
-1SB allowlists **those NAT EIPs**. Workload VPCs have no NAT and no IGW.
+`ADR-010` still draws `Pod → TGW → spoke Network Firewall → NAT EIP` as a **control we have not
+rewritten**. Deepali still decides whether that firewall sits on **pod → Apigee**. It is **not**
+permission to publish those NAT EIPs to 1SB.
 
-| Bank standard? | Hub already inspects via **FortiGate**. Our extra Network Firewall is **R0's** domain-allowlist control (`ADR-010`) because Security Groups cannot say "only 1SB hostname on 443". |
-| Tension | Board 1 `C-01` / `ASM-012`: bank may insist egress **only** through EDGE FortiGate. **Do not publish EIPs until that answer exists.** |
-| Not chosen | Open 443 from nodes. FortiGate **pair inside our VPC** (licence + HA we are not staffed to run). Decrypt 1SB mTLS at the firewall (would break mutual TLS). One inspection VPC shared by dev and prod. |
+Internal bank APIs that go via Apigee must stay on a **private** target (`ASM-016`).
+
+| Bank standard? | **Apigee as outbound API plane is bank practice** (human Architecture owner). Hub FortiGate still inspects org paths. |
+| Tension | `SPIKE-001` written answers (edition, private path, IPs, per-API onboard). `ADR-010` remainder for Deepali |
+| Not chosen | Open 443 from nodes to 1SB. Hairpin internal APIs through Cloudflare/F5. FortiGate pair **inside our VPC**. Decrypt 1SB mTLS at a firewall |
 
 ### C. Money — not our VPC at all
 
@@ -359,15 +368,19 @@ Environments the **bank** vendors by default: **Prod, CUG, UAT** (Dev lives **in
 
 ## 11. What is still open (so you do not code as if it were closed)
 
-From the Board 1 rereview — **not** excuses to invent a fourth architecture:
+Human Architecture owner answered the five Board 1 leftovers on 2026-09-14. The durable
+record is [`2026-09-14-HUMAN-DIRECTION-APIGEE-EGRESS-IDP.md`](./2026-09-14-HUMAN-DIRECTION-APIGEE-EGRESS-IDP.md).
+That is **direction**, not an ADR and not T4.
 
-1. **Egress:** spoke Network Firewall vs EDGE FortiGate only (`ASM-012`) — before publishing 1SB EIPs.
-2. **Apigee:** might replace API Gateway (`SPIKE-001`) — do not draw it, do not call it from Java.
-3. **Split `dev` account** vs Dev-inside-UAT — Cloud team.
-4. **CUG** environment — unnamed in R0.
-5. **Keycloak vs final IdP** — adapter stays; product can change.
+| Item | Direction | Still not closed until |
+|---|---|---|
+| **1SB / egress IPs** | `1sb-integration-service` **never** calls the 1SB origin from EKS. It calls **Apigee**. 1SB allowlists **Apigee’s** IPs, not our NAT EIPs | Apigee team writes product + IPs (`ASM-015`, `DEP-20260914-apg`). Do not publish spoke EIPs |
+| **Apigee vs API Gateway** | **Split.** Inbound RM/mobile: **keep AWS API Gateway**. Outbound from the building: **Apigee**. Internal APIs via Apigee must **not** hairpin Cloudflare/F5 | Written private path + per-API onboarding (`SPIKE-001`). Still **do not draw** Apigee |
+| **Dev vs UAT** | `dev` lives **inside** the UAT account, isolated (namespaces, schemas, data) | LLD BOM #1 amendment + Cloud vending (`ASM-017`) |
+| **CUG** | **Not needed for R0** — waiver, do not provision | Onboarding waiver (`ASM-018`) |
+| **Keycloak vs IdP** | AD-verify is an **existing bank API** (never LDAP from EKS). Partners are created in the IdP. Keycloak is fine **if** bank Fireframe / NIP-APP is the UI for look-and-feel, users, roles, permissions | Deepali on password-in-NIP vs Fireframe SSO (`ASM-019`, `ID-11`) |
 
-You can still write services. You cannot assume a public ALB, a second TGW, or payment on the RM session.
+You can still write services. You cannot assume a public ALB, a second TGW, payment on the RM session, a hardcoded `*.1silverbullet.tech` origin, or Keycloak chrome in front of the RM.
 
 ---
 

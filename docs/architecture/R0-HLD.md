@@ -5,7 +5,7 @@
 **Owner:** Mahesh — Principal Insurance Platform Architect (Board 1)
 **Audience:** Product, Architecture, Engineering, SRE, Security, Database, Compliance, Delivery, CTO
 **Status:** `AI-DRAFTED` in the Architecture lane. **Mandatory human T4 Architecture sign-off outstanding.** Deepali (Security), Aarti (Database) and Shivanshi (SRE) reviews are required before this pack is cited as S09 input.
-**Date:** 2026-08-20 · **revised** 2026-08-24 · **revised** 2026-08-31 (`ADR-018`, attach to existing TGW)
+**Date:** 2026-08-20 · **revised** 2026-08-24 · **revised** 2026-08-31 (`ADR-018`, attach to existing TGW) · **revised** 2026-09-14 (`ADR-020` split API plane)
 **Origin:** `SUG-20260820-hl1` · **revision** `SUG-20260824-gp1` … `gp5` ([`CR-012`](../governance/change-requests/CR-012-r0-platform-robustness.md))
 
 > **Revision 2026-08-24 — R0 robustness round.** Five deferred infrastructure layers move into R0
@@ -185,7 +185,7 @@ The SVG and the North Star (`docs/hdl.svg`) use the same bands (`LY-1`). A thin 
 
 **Owns:** TLS termination, WAF, throttling, request validation.
 **Does not own:** business logic, authorization decisions.
-**R0 contains:** Route 53 · Cloudflare Enterprise (SaaS, not AWS, not in any VPC) · F5 Distributed Cloud / F5-XC (SaaS WAF, not AWS, not in any VPC) · API Gateway · internal ALB. **No public / External ALB** (`ADR-018`). A candidate bank API-management overlay is recorded as `ASM-013` / `SPIKE-001` and is **not drawn** until written answers exist.
+**R0 contains:** Route 53 · Cloudflare Enterprise (SaaS, not AWS, not in any VPC) · F5 Distributed Cloud / F5-XC (SaaS WAF, not AWS, not in any VPC) · **inbound** API Gateway · internal ALB. **No public / External ALB** (`ADR-018`). **Outbound** bank API plane is **Apigee** (`ADR-020`) — drawn on the loading-dock path only; Flutter never calls it. SPIKE-001 remaining written answers: edition, private URL, per-env IPs, per-API onboard.
 **Greyed:** insurer callback ingress (R1). R0 **polls** providers instead (`S-11`).
 **Rule:** no workload, database or cache is internet-reachable.
 
@@ -231,7 +231,7 @@ Flutter never calls a domain service or a database. The BFF holds OAuth tokens; 
 **R0 contains:** `#14` Integration Hub (all provider traffic, `SC-W3-5`) and `#15` 1SB Adapter (exists today, `adapter.onesb.*` only).
 **Greyed:** provider router and callback gateway (R1).
 **Rule:** no WS-3 service calls an adapter directly. `distributorId` is injected server-side; a caller-supplied value is rejected (`INV-DIS-01`).
-**Egress path (`ADR-010`):** provider traffic leaves through the centralised inspection VPC — **existing** `AU-CTO-NETWORK` Transit Gateway (we attach; we do not clone it), then AWS Network Firewall, then the NAT gateways whose Elastic IPs 1SB allowlists. The mTLS session to 1SB is **not** decrypted; it is matched on destination and passed intact. Workload VPCs have **no IGW**.
+**Egress path (`ADR-010` + `ADR-020`):** provider traffic leaves through the centralised inspection VPC — **existing** `AU-CTO-NETWORK` Transit Gateway (we attach; we do not clone it), then AWS Network Firewall on the hop **pod → Apigee**, then **Apigee**. 1SB allowlists **Apigee egress IPs**, not spoke NAT Elastic IPs. Do not publish those EIPs to 1SB. The mTLS session to 1SB is **not** decrypted; it is matched on destination and passed intact. Workload VPCs have **no IGW**. Internal bank APIs (AD-verify, EBS) use **Apigee private** targets — no Cloudflare/F5 hairpin.
 
 ### Boundary 7 — External systems
 
@@ -239,7 +239,7 @@ Two boundaries, kept separate on purpose:
 
 | Bank systems | Insurance providers |
 |---|---|
-| Bank AD / SSO (WS-2 Phase 2 federation; adapter exists first) | 1SilverBullet — Group A, Term only, reached only through `#14` → `#15` |
+| Bank AD / SSO (workforce AD-verify API via Apigee private; never LDAP from EKS; partners live in the private IdP) | 1SilverBullet — Group A, Term only, reached only through `#14` → `#15` → **Apigee** |
 | Core Banking (CBS) — CIF, ETB prefill | *(direct insurer APIs are R1+)* |
 | AU Bank Payment Gateway — 3-D Secure on the customer device | |
 

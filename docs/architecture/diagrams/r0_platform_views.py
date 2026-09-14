@@ -86,7 +86,18 @@ I = {  # icon paths, resolved from the diagrams wheel
     "f5":     "generic/network/firewall.png",
     "ansible": "onprem/iac/ansible.png",
     "tf":     "onprem/iac/terraform.png",
+    "apigee": "aws/network/api-gateway.png",  # relabelled Apigee; swapped for gcp glyph if present
 }
+
+
+def _resolve_apigee_icon():
+    """Prefer the GCP Apigee glyph when the diagrams wheel ships it."""
+    try:
+        from svgcanvas import _icon_root
+        if (_icon_root() / "gcp/api/apigee.png").is_file():
+            I["apigee"] = "gcp/api/apigee.png"
+    except Exception:
+        pass
 
 
 def legend(c, x, y, w, rows, title="Legend"):
@@ -119,10 +130,10 @@ LANE_EGRESS = 1830                                # corridor between app and pub
 
 
 def topology():
-    c = Canvas(3260, 2500,
+    c = Canvas(3560, 2500,
                "R0 on AWS — what runs where",
-               "ap-south-1 (Mumbai) · one workload VPC per environment, one inspection VPC per "
-               "environment · every connector is a real network path, and egress has exactly one")
+               "ap-south-1 (Mumbai) · five Control Tower accounts · UAT hosts vpc-dev + vpc-uat · "
+               "inbound API Gateway · outbound Apigee · 1SB never called from EKS")
 
     # ---- devices ---------------------------------------------------------
     dev = c.group("DEVICES", 40, 200, 560, 170, stroke=Z["dev"][0], fill=Z["dev"][1],
@@ -246,8 +257,8 @@ def topology():
                                        "no second TGW · no VPC peering"], size=56)
     nfw = c.node(I["nfw"], 2540, 830, ["Network Firewall", "domain allowlist · IPS",
                                        "ADR-010 · not an F5 appliance"], size=56)
-    nat = c.node(I["nat"], 2540, 1010, ["NAT + ELASTIC IPs", "1SB and the PG allowlist THESE",
-                                        "they MOVED here — ADR-010"], size=56)
+    nat = c.node(I["nat"], 2540, 1010, ["NAT + ELASTIC IPs", "spoke egress toward Apigee",
+                                        "NOT the 1SB allowlist"], size=56)
 
     # ---- regional managed services --------------------------------------
     # label on the right: the two state connectors drop into this strip on the left
@@ -263,13 +274,23 @@ def topology():
                {1180: I["kms"], 1360: I["secret"], 1540: I["ecr"],
                 1720: I["cw"], 1900: I["amp"]}.get(x), x, 2310, rows, size=54)
 
+    # ---- bank outbound API plane (Apigee) — outside our VPC, egress only ----
+    plane = c.group("BANK API PLANE", 2780, 560, 300, 400, stroke=Z["ext"][0],
+                    fill="#fff7ed",
+                    sub="Apigee · NOT in our VPC · outbound only · ADR-020",
+                    label_size=14)
+    apigee = c.node(I["apigee"], 2930, 710, ["Apigee", "outbound proxies",
+                                             "1SB allowlists THESE IPs"], size=56)
+    c.node(I["apigee"], 2930, 880, ["Apigee private", "AD-verify · EBS",
+                                    "NO Cloudflare/F5 hairpin"], size=56)
+
     # ---- outside ---------------------------------------------------------
-    out = c.group("OUTSIDE", 2840, 620, 360, 340, stroke=Z["ext"][0], fill=Z["ext"][1],
+    out = c.group("OUTSIDE", 3140, 620, 360, 340, stroke=Z["ext"][0], fill=Z["ext"][1],
                   sub="bank systems and insurance providers", label_size=15)
-    cbs = c.node(I["net"], 2940, 710, ["EBS (CBS / CIF)", "Enterprise Service Bus"], size=54)
-    pg = c.node(I["net"], 3120, 710, ["AU Bank", "Payment Gateway"], size=54)
-    c.node(I["net"], 2940, 860, ["Bank AD / SSO", "WS-2 Phase 2"], size=54)
-    onesb = c.node(I["net"], 3120, 860, ["1SilverBullet", "R0 polls"], size=54)
+    cbs = c.node(I["net"], 3240, 710, ["EBS (CBS / CIF)", "Enterprise Service Bus"], size=54)
+    pg = c.node(I["net"], 3420, 710, ["AU Bank", "Payment Gateway"], size=54)
+    ad = c.node(I["net"], 3240, 860, ["Bank AD-verify API", "never LDAP from EKS"], size=54)
+    onesb = c.node(I["net"], 3420, 860, ["1SilverBullet", "R0 polls"], size=54)
 
     # ---- connectors, all axis-aligned ------------------------------------
     c.link(dev.port("B", at=180), cf.port("T"), color=REQ, width=3.0)
@@ -297,24 +318,26 @@ def topology():
     c.link(hub.port("R"), sb.port("L"), color="#0369a1", width=2.4)
     c.link(sb.port("R"), tgwa.port("L"), color=EGR, width=2.8, dash="9 6",
            lane=LANE_EGRESS, label_seg=0, label_at=0.62,
-           label=["the ONLY way out —", "every provider call"])
+           label=["the ONLY way out —", "adapter → Apigee, never 1SB origin"])
     c.link(tgwa.port("R"), tgw.port("L"), color=EGR, width=2.8, dash="9 6", lane=2300)
     c.link(tgw.port("B"), nfw.port("T"), color=EGR, width=2.8, dash="9 6",
-           label="inspected", label_dx=8, label_anchor="start")
+           label="inspected pod→Apigee", label_dx=8, label_anchor="start")
     c.link(nfw.port("B"), nat.port("T"), color=EGR, width=2.8, dash="9 6")
-    c.link(nat.port("R"), onesb.port("B"), color=EGR, width=2.8, dash="9 6",
-           label="internet — by the Elastic IP", label_seg=1, label_at=0.72,
-           label_dx=9, label_anchor="start")
-    c.link(tgw.port("R"), cbs.port("L"), color=AUTH, width=2.8, dash="9 6", lane=2790,
-           label_seg=1, label_at=0.5, label=["TB-7", "VPN now,", "DX next"],
-           label_size=11.5)
+    c.link(nfw.port("R"), apigee.port("L"), color=EGR, width=2.8, dash="9 6",
+           label="outbound", label_at=0.55)
+    c.link(apigee.port("R"), onesb.port("L"), color=EGR, width=2.8, dash="9 6",
+           label="1SB allowlists Apigee", label_seg=0, label_at=0.55)
+    c.link(apigee.port("B"), ad.port("L"), color=AUTH, width=2.4, dash="9 6",
+           label="private", label_size=11.5)
+    c.link(apigee.port("T"), cbs.port("L"), color=AUTH, width=2.4, dash="9 6",
+           label="private EBS", label_size=11.5)
     c.link(pg.port("T"), pgcb.port("T"), color=MONEY, width=2.8, dash="9 6", lane=170,
            label="C4 payment callback — see the payment view")
 
-    c.group("NOT IN R0 — do not provision", 2840, 1010, 360, 300,
+    c.group("NOT IN R0 — do not provision", 3140, 1010, 360, 300,
             stroke="#94a3b8", fill="#ffffff", label_size=14,
             sub="each of these is a decision, not an omission")
-    c.lines(3020, 1095, [
+    c.lines(3320, 1095, [
         "Service mesh — NetworkPolicy + IRSA is enough",
         "A cluster per service — ADR-008 says one",
         "Glue ETL · Athena · Redshift · QuickSight",
@@ -327,21 +350,24 @@ def topology():
         "A second TGW or a second Direct Connect",
         "Public VPC + IGW + peering (the current app)",
         "IGW on the workload VPC",
+        "A separate Control Tower dev or CUG account",
+        "LDAP from EKS to Bank AD",
+        "Apigee on the RM/mobile front door",
     ], size=12, color=MUTE)
 
-    legend(c, 2840, 1370, 360, [
+    legend(c, 3140, 1370, 360, [
         (REQ, None, 3.0, "Client request path"),
         (AUTH, None, 2.8, "Authorisation · bank private path"),
-        (EGR, "9 6", 2.8, "Egress — inspected, by the EIP"),
+        (EGR, "9 6", 2.8, "Egress — inspected, via Apigee"),
         (STATE, "2 5", 2.4, "Durable state"),
         (MONEY, "9 6", 2.8, "Payment callback (own view)"),
     ])
-    c.text(3020, 1680, "SaaS perimeter. Two AWS proxies. One way out.", size=14, color=INK, bold=True)
-    c.lines(3020, 1708, ["Cloudflare and F5-XC are SaaS — not AWS,",
-                         "not in any VPC. API Gateway is the first",
-                         "AWS hop; there is no public ALB.",
-                         "The internal ALB is the only load balancer.",
-                         "The firewall is on egress, not on ingress.",
+    c.text(3320, 1680, "SaaS inbound. Apigee outbound. One way out.", size=14, color=INK, bold=True)
+    c.lines(3320, 1708, ["Cloudflare and F5-XC are SaaS — not AWS,",
+                         "not in any VPC. API Gateway is inbound.",
+                         "Apigee is the loading dock (ADR-020).",
+                         "1SB allowlists Apigee IPs, not our NAT.",
+                         "Internal Apigee targets stay private.",
                          "Anything else on the path is a defect."], size=12.5, color=MUTE)
     return c.save(os.path.join(OUT, "r0-platform-topology.svg"))
 
@@ -378,10 +404,10 @@ def az():
             c.node(I["nfw"], cx - 145, 545, ["Firewall endpoint", "no endpoint = no egress"],
                    size=54)
             c.node(I["nat"], cx + 145, 545, ["NAT + Elastic IP",
-                                             "1SB and the PG allowlist it"], size=54)
+                                             "spoke→Apigee; not 1SB allowlist"], size=54)
         else:
             c.ghost(cx, 545, 420, 74, ["firewall endpoint + NAT + EIP — prod only",
-                                       "a cost call: each EIP is one more to allowlist"])
+                                       "a cost call: NAT is not the 1SB allowlist"])
 
         c.group("private-app  /20", cx - 300, 690, 600, 190, stroke=Z["app"][0],
                 fill="#ffffff", label_size=13, radius=11, width=1.6)
@@ -504,14 +530,14 @@ def dr():
 def sequence():
     bands = (
         ("P0", "GUARDRAILS", "before any resource exists", "#475569", "#f1f5f9",
-         ((I["org"], ["6 accounts", "incl. the network account"]),
+         ((I["org"], ["5 accounts", "uat hosts vpc-dev + vpc-uat", "no CUG · no extra dev"]),
           (I["trail"], ["security account", "CloudTrail · Config"]),
           (I["kms"], ["CMK hierarchy"]))),
-        ("P1", "NETWORK", "START HERE — two external parties", "#ea580c", "#fff7ed",
+        ("P1", "NETWORK", "START HERE — do not publish NAT EIPs to 1SB", "#ea580c", "#fff7ed",
          ((I["vpc"], ["VPC · 3 AZ subnets"]),
           (I["tgw"], ["ATTACH existing TGW", "AU-CTO-NETWORK · no 2nd hub"]),
           (I["nfw"], ["inspection VPC", "+ Network Firewall"]),
-          (I["nat"], ["NAT + ELASTIC IPs", "publish to 1SB and the PG"]),
+          (I["nat"], ["NAT + ELASTIC IPs", "NOT published to 1SB"]),
           (I["vpn"], ["VPN now, DX ordered", "the bank's own work"]))),
         ("P2", "COMPUTE", "", "#2563eb", "#eff6ff",
          ((I["eks"], ["EKS × 3 environments"]),
@@ -525,10 +551,11 @@ def sequence():
           (I["msk"], ["MSK + schema registry", "needed at W1, not W3"]))),
         ("P4", "EDGE + PROXY", "", "#b45309", "#fffaf0",
          ((I["alb"], ["Internal ALB"]),
-          (I["apigw"], ["API Gateway", "+ PG callback — needed at W3"]),
-          (I["cf"], ["Cloudflare + F5-XC", "SaaS · no public ALB"]))),
+          (I["apigw"], ["API Gateway inbound", "+ PG callback — needed at W3"]),
+          (I["cf"], ["Cloudflare + F5-XC", "SaaS · no public ALB"]),
+          (I["apigee"], ["Apigee outbound", "onboard · not ingress"]))),
         ("P5", "IDENTITY", "WS-2", "#059669", "#f0fdf7",
-         ((I["deploy"], ["Keycloak + PDP"]),
+         ((I["deploy"], ["Keycloak + PDP", "AD-verify via Apigee", "never LDAP"]),
           (I["secret"], ["Secrets Manager", "rotation exercised once"]))),
         ("P6", "OBSERVABILITY + SEARCH", "", "#7e22ce", "#faf5ff",
          ((I["amp"], ["AMP + AMG"]),
@@ -549,8 +576,8 @@ def sequence():
     PITCH = 128
     c = Canvas(60 * 2 + len(bands) * w + (len(bands) - 1) * gap, 1090,
                "When — the S09 provisioning sequence",
-               "each band is gated on the one before it · P1 first because the Elastic IPs must be "
-               "allowlisted by two external parties and the bank must terminate the VPN")
+               "each band is gated on the one before it · P1 first because spoke NAT EIPs must "
+               "NOT be published to 1SB and the bank must terminate the VPN")
     prev, anchor_y = None, top + 130
     for i, (code, name, sub, pen, bg, items) in enumerate(bands):
         x = 60 + i * (w + gap)
@@ -595,12 +622,19 @@ def payment():
     pg = c.node(I["net"], 1800, 300, ["AU Bank Payment Gateway", "hosted page"], size=56)
     settle = c.node(I["net"], 2200, 300, ["settlement file", "arrives out-of-band"], size=56)
 
+    c.group("OUTBOUND API PLANE — session-create, not the callback", 1600, 480, 820, 160,
+            stroke=Z["ext"][0], fill="#fff7ed", label_size=14)
+    apigee_pay = c.node(I["apigee"], 1800, 560, ["Apigee", "PG session-create outbound"], size=52)
+
     c.group("OUR EDGE — a SEPARATE route from RM traffic (TB-6)", 1100, 580, 400, 240,
             stroke=Z["edge"][0], fill=Z["edge"][1], label_size=14)
     cb = c.node(I["apigw"], 1300, 700, ["PG-callback route", "IP-allowlisted to the PG"])
 
     c.link(pay.port("R"), cust.port("L"), color=MONEY, width=3.0,
            label="1   pay-link to the CUSTOMER device")
+    c.link(pay.port("R"), apigee_pay.port("L"), color=EGR, width=2.6, dash="9 6",
+           lane=420, label="0   session-create via Apigee")
+    c.link(apigee_pay.port("T"), pg.port("B"), color=EGR, width=2.6, dash="9 6")
     c.link(cust.port("R"), pg.port("L"), color=MONEY, width=3.0,
            label="2   the RM never sees this URL")
     c.link(pg.port("B"), cb.port("T"), color=MONEY, width=3.0, lane=530,
@@ -617,9 +651,10 @@ def payment():
 
     c.text(1760, 950, "Why this has its own view", size=15, color=INK, bold=True)
     c.lines(1760, 985, [
-        "Three things on this path are routinely got wrong:",
+        "Four things on this path are routinely got wrong:",
+        "session-create leaves via Apigee (ADR-020), not a 1SB-style origin URL;",
         "the pay-link goes to the CUSTOMER, not the RM device;",
-        "the callback arrives on its own IP-allowlisted route, not the RM one;",
+        "the callback arrives on its own IP-allowlisted API Gateway route, not Apigee;",
         "and a policy is issued only after RECONCILED — never on the callback alone.",
     ], size=13, color=MUTE)
     return c.save(os.path.join(OUT, "r0-platform-payment.svg"))
@@ -638,6 +673,7 @@ def rasterise(svg_path, width=2400):
 
 
 if __name__ == "__main__":
+    _resolve_apigee_icon()
     for fn in (topology, az, dr, sequence, payment):
         svg = fn()
         png = rasterise(svg)

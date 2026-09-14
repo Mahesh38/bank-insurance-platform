@@ -120,7 +120,7 @@ Think of this as **servlet filters you do not write**, in a fixed order.
 | | |
 |---|---|
 | **Use** | First **AWS** hop. Request size, schema, throttle. **No business logic.** VPC Link into the internal ALB. |
-| **Bank standard?** | **Partial.** Existing banking apps enter AWS on a **Public ALB**. We deliberately did **not** copy that (`ADR-018`, Board 1 rereview F-06). A candidate bank **Apigee** plane exists (`ASM-013`); we **do not draw it** until `SPIKE-001` answers. Until then API Gateway is Proxy 1. |
+| **Bank standard?** | **Partial on ingress.** Existing banking apps enter AWS on a **Public ALB**. We deliberately did **not** copy that (`ADR-018`, Board 1 rereview F-06). **Outbound** uses the bank **Apigee** plane (`ADR-020`); API Gateway stays inbound Proxy 1. Flutter never calls Apigee. |
 | **Not chosen** | Public ALB in front of API Gateway (extra hop, extra attack surface). Exposing EKS with a public NLB. Letting Flutter hit pods. |
 
 ### Internal Application Load Balancer
@@ -370,13 +370,13 @@ Environments the **bank** vendors by default: **Prod, CUG, UAT** (Dev lives **in
 
 Human Architecture owner answered the five Board 1 leftovers on 2026-09-14. The durable
 record is [`2026-09-14-HUMAN-DIRECTION-APIGEE-EGRESS-IDP.md`](./2026-09-14-HUMAN-DIRECTION-APIGEE-EGRESS-IDP.md).
-That is **direction**, not an ADR and not T4.
+That is **direction**, bound by `ADR-020`. Human T4 Architecture sign-off is still outstanding.
 
 | Item | Direction | Still not closed until |
 |---|---|---|
 | **1SB / egress IPs** | `1sb-integration-service` **never** calls the 1SB origin from EKS. It calls **Apigee**. 1SB allowlists **Apigee’s** IPs, not our NAT EIPs | Apigee team writes product + IPs (`ASM-015`, `DEP-20260914-apg`). Do not publish spoke EIPs |
-| **Apigee vs API Gateway** | **Split.** Inbound RM/mobile: **keep AWS API Gateway**. Outbound from the building: **Apigee**. Internal APIs via Apigee must **not** hairpin Cloudflare/F5 | Written private path + per-API onboarding (`SPIKE-001`). Still **do not draw** Apigee |
-| **Dev vs UAT** | `dev` lives **inside** the UAT account, isolated (namespaces, schemas, data) | LLD BOM #1 amendment + Cloud vending (`ASM-017`) |
+| **Apigee vs API Gateway** | **Split.** Inbound RM/mobile: **keep AWS API Gateway**. Outbound from the building: **Apigee**. Internal APIs via Apigee must **not** hairpin Cloudflare/F5 | Written private path + per-API onboarding (`SPIKE-001` remaining). **Outbound Apigee is drawn** (`ADR-020`) |
+| **Dev vs UAT** | `dev` lives **inside** the UAT account, isolated (two VPCs, namespaces, schemas, prefixes) | Cloud vending of the two VPCs (`ASM-017`) |
 | **CUG** | **Not needed for R0** — waiver, do not provision | Onboarding waiver (`ASM-018`) |
 | **Keycloak vs IdP** | AD-verify is an **existing bank API** (never LDAP from EKS). Partners are created in the IdP. Keycloak is fine **if** bank Fireframe / NIP-APP is the UI for look-and-feel, users, roles, permissions | Deepali on password-in-NIP vs Fireframe SSO (`ASM-019`, `ID-11`) |
 

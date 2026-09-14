@@ -360,6 +360,18 @@ Two assumptions in the 2026-08-25/27 perimeter were wrong against the existing A
 | [`R0-HLD.md`](./R0-HLD.md) · [`R0-LLD.md`](./R0-LLD.md) · [`ARB-ARCHITECTURE-DOSSIER.md`](./ARB-ARCHITECTURE-DOSSIER.md) | Ingress hop and BOM #7 / #29 aligned to `ADR-018`. |
 | [`r0-reference-architecture.svg`](./r0-reference-architecture.svg) · [`../hdl.svg`](../hdl.svg) | Edge band labels. |
 
+## Revision — 2026-09-14 split API plane (`ADR-020`, `SUG-20260914-egr`)
+
+Human Architecture owner: **inbound** stays Amazon API Gateway (`ADR-018`). **Outbound** (1SB, SMS, bank internal APIs, AD-verify) is **Apigee**, drawn on the loading-dock path. 1SB allowlists Apigee IPs. Five Control Tower accounts; `dev` is a VPC inside UAT; no CUG. Workforce AD-verify is the bank API, never LDAP.
+
+| File | What changed |
+|---|---|
+| [`R0-LLD.md`](./R0-LLD.md) · [`R0-HLD.md`](./R0-HLD.md) · [`ARB-ARCHITECTURE-DOSSIER.md`](./ARB-ARCHITECTURE-DOSSIER.md) | BOM, egress path, accounts, identity hop aligned to `ADR-020`. |
+| [`diagrams/r0_platform_views.py`](./diagrams/r0_platform_views.py) | Outbound Apigee node; NAT no longer labelled as the 1SB allowlist; sequence P0 = 5 accounts; P4 Apigee onboard. |
+| generated set | Topology, AZ, sequence, payment re-rendered. Not hand-edited. |
+| [`r0-lld.svg`](./r0-lld.svg) · [`../hdl.svg`](../hdl.svg) | Egress captions. |
+| [`R0-E2E-FOR-DEVELOPERS.md`](./R0-E2E-FOR-DEVELOPERS.md) | §11 "do not draw" withdrawn for outbound. |
+
 ## Revision — 2026-08-31 attach to existing bank network; Apigee stays off the pictures (`SUG-20260831-apg`)
 
 Human Architecture owner: keep Apigee **off every diagram** until `SPIKE-001` returns. Amazon API Gateway remains. Network pack attaches to the existing `AU-CTO-NETWORK` TGW / DX Gateway; do not clone Public VPC + IGW + peering.

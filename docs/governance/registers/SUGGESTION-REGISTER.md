@@ -100,7 +100,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | SUG-20260825-arb | 2026-08-25 | human:Mahesh | Review with internal Architect team: Cloudflare instead of CloudFront (bank standard), F5 BIG-IP / WAF instead of AWS WAF (bank standard), External ALB before API Gateway, GitLab CI/CD for pipelines, EBS (Enterprise Service Bus) naming for Core Banking integration with CBS in brackets, Terraform IaC, CloudTrail and CloudWatch both mandatory | SF1 | SC0 | MUST | ARCH | P1 / P1 | ADMIT-BYPASS | [ARB-ARCHITECTURE-DOSSIER](../../architecture/ARB-ARCHITECTURE-DOSSIER.md) · [detail](#sug-20260825-arb--internal-architect-review-alignment-cloudflare-f5-external-alb-gitlab-ebscbs-terraform-cloudtrailcloudwatch) |
 | SUG-20260827-tpo | 2026-08-27 | human:Mahesh | Platform Topology & LLD Alignment: replace Argo CD with GitLab CI/CD with logo, replace AWS Network Firewall with F5 BIG-IP / Firewall with logo, incorporate Ansible for automated DR drills / sanity testing, and emphasize Terraform IaC baseline | SF1 | SC0 | MUST | ARCH | P1 / P1 | CLOSED-DELIVERED | [r0-platform-topology](../../architecture/r0-platform-topology.svg) · [detail](#sug-20260827-tpo--platform-topology--lld-alignment-gitlab-cicd-f5-big-ip-ansible-terraform) |
 | SUG-20260831-alb | 2026-08-31 | human:Mahesh | Correct two false perimeter assumptions against the existing AU Bank estate: (1) remove the External / public ALB in front of API Gateway; (2) Cloudflare and F5-XC are bank-enterprise SaaS, not AWS services and not in any platform VPC | SF1 | SC1 | MUST | ARCH | P1 / P1 | ADMIT | [ADR-018](../../platform/architecture-review/08-architecture-decision-log.md) · [detail](#sug-20260831-alb--correct-edge-ingress-no-public-alb-cloudflare--f5-xc-are-saas-outside-aws) |
-| SUG-20260831-apg | 2026-08-31 | human:Mahesh | Existing bank estate routes all incoming and outgoing requests through Apigee. Decide whether Amazon API Gateway is still needed, and whether the R0 VPC / IGW / TGW pack must attach to (not duplicate) the existing network account | SF1 | SC1 | MUST | SPIKE | P1 / P1 | ADMIT · draw PARKED | [SPIKE-001](#sug-20260831-apg--apigee-is-the-bank-api-plane--do-not-add-a-second-amazon-api-gateway-until-confirmed) · [PARKED](./PARKED-BACKLOG.md) |
+| SUG-20260831-apg | 2026-08-31 | human:Mahesh | Existing bank estate routes all incoming and outgoing requests through Apigee. Decide whether Amazon API Gateway is still needed, and whether the R0 VPC / IGW / TGW pack must attach to (not duplicate) the existing network account | SF1 | SC1 | MUST | SPIKE | P1 / P1 | ADMIT · outbound draw UNPARKED (`ADR-020`) · remaining answers PARKED | [SPIKE-001](#sug-20260831-apg--apigee-is-the-bank-api-plane--do-not-add-a-second-amazon-api-gateway-until-confirmed) · [PARKED remaining](./PARKED-BACKLOG.md) · [ADR-020](../../platform/architecture-review/08-architecture-decision-log.md) |
 | SUG-20260903-lif | 2026-09-03 | human:stakeholder | 1SB integration must cover Life LOB (Term + Savings + ULIP); move bank models out of the 1SB app service; replace Map-built JSON with typed models; packaging/SOLID/DRY; document poll/retry stop and circuit breakers — admit with actions, do not park | SF1* | SC4→SC0 | MUST | FUNC | P1 / P1 | ADMIT-BYPASS | [CR-014](../change-requests/CR-014-ws1-life-lob-adapter-standards.md) · [EPIC-002](../../1sb-insurance-integration/service-ssot/work-items/EPIC-002.work-item.yaml) · [detail](#sug-20260903-lif--life-lob-1sb-coverage-and-adapter-standards) · recurrence_count 2 (2026-09-11 adapter restatement). Excluded WS-3 journey bag → [SUG-20260911-uls](#sug-20260911-uls--unpark-ws-3-savingsulip-journey-sales) / CR-015 |
 
 <!--
@@ -1876,8 +1876,10 @@ breakdown:
 > inbound RM/mobile **keeps** Amazon API Gateway. **Outbound** (1SB, internal bank APIs, other
 > leaving-the-building calls) **will** go via Apigee. `1sb-integration-service` never calls the
 > 1SB origin; 1SB allowlists Apigee egress IPs. Internal Apigee targets must stay private (no
-> Cloudflare/F5 hairpin). Diagrams still wait on written Apigee-team answers. `ASM-013` (all
-> inbound *and* outbound) is invalidated; see `ASM-015`.
+> Cloudflare/F5 hairpin). `ASM-013` (all inbound *and* outbound) is invalidated; see `ASM-015`.
+>
+> **Amended 2026-09-14 (`ADR-020`):** outbound Apigee is **drawn**. Remaining SPIKE-001 work is
+> written answers only (edition, private URL, per-env IPs, per-API onboard, PG callback hop).
 
 ### SUG-20260914-egr · Apigee is outbound only; ingress stays API Gateway
 
@@ -1950,9 +1952,9 @@ necessity:
 
 action: ADMIT
 action_rationale: >
-  Admit as SPIKE-001 evidence and assumption split, not as an ADR rewrite and
-  not as a diagram change. Confidence C3 on direction, C2 on Apigee edition /
-  private path / exact IPs — those remain SPIKE-001 written answers. Do not
+  Admit as SPIKE-001 evidence and assumption split. Confidence C3 on direction, C2 on
+  Apigee edition / private path / exact IPs — those remain SPIKE-001 written answers.
+  `ADR-020` (same day) binds the split plane and draws outbound Apigee. Do not
   implement a Java Apigee client beyond a configurable outbound base URL in a
   later story. Do not publish spoke EIPs to 1SB.
 

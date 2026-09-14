@@ -817,7 +817,7 @@ approvals:
   - "Kalpana / Delivery — REQUIRED. This adds an external dependency to the S09 critical path and it is the one item that cannot be recovered by working harder"
 ```
 
-**Amended 2026-08-31 (`SUG-20260831-apg`):** the live estate already has the `AU-CTO-NETWORK` Transit Gateway and Direct Connect Gateway (Central Network Account Architecture V1). The topology clause above is **attach as a spoke**, not "provision a second hub". The revisit trigger "existing enterprise TGW we attach to instead of owning" has fired as the default. Shivanshi confirms RAM-share vs spoke-attachment with bank network before Terraform. Amazon API Gateway remains the first AWS hop (`ADR-018`); Apigee is **not drawn** until `SPIKE-001` returns.
+**Amended 2026-08-31 (`SUG-20260831-apg`):** the live estate already has the `AU-CTO-NETWORK` Transit Gateway and Direct Connect Gateway (Central Network Account Architecture V1). The topology clause above is **attach as a spoke**, not "provision a second hub". The revisit trigger "existing enterprise TGW we attach to instead of owning" has fired as the default. Shivanshi confirms RAM-share vs spoke-attachment with bank network before Terraform. Amazon API Gateway remains the first AWS hop (`ADR-018`); Apigee is drawn on **egress only** (`ADR-020`). SPIKE-001 remaining written answers: edition, private URL, per-env IPs, per-API onboard.
 
 ---
 
@@ -852,12 +852,11 @@ decision: >
   transits a VPC that a dev change can alter, and a firewall rule change in dev cannot silently
   apply to prod.
 
-  THE ELASTIC IPs MOVE, AND THIS IS THE LOAD-BEARING CONSEQUENCE. The addresses 1SB and the AU
-  Bank Payment Gateway allowlist are now the egress VPC's NAT EIPs, one per AZ per environment,
-  and they stop changing when a workload VPC changes. The list is smaller and more stable than the
-  per-VPC list it replaces, but it must be published to both external parties before uat exactly
-  as before — and it must be published from this design, not the old one. Publishing the wrong
-  EIPs is indistinguishable, from 1SB's side, from not publishing them.
+  THE ELASTIC IPs MOVE, AND THIS IS THE LOAD-BEARING CONSEQUENCE. Until ADR-020, the addresses
+  1SB and the AU Bank Payment Gateway allowlist were the egress VPC's NAT EIPs. **ADR-020
+  rebases that allowlist to Apigee egress IPs.** Do not publish these NAT EIPs to 1SB. The NAT
+  still exists for spoke egress toward Apigee / remaining internet destinations; it is no longer
+  the 1SB allowlist.
 
   RULE POSTURE. Stateless rules drop obvious noise. Stateful rules are strict-order with a domain
   allowlist: the aggregator, the PG, the SMS/email gateway, ECR and the AWS endpoints not already
@@ -873,6 +872,7 @@ decision: >
   NetworkPolicy and IRSA. Claiming otherwise would be the kind of overreach that makes a control
   look installed when it is not.
 authority_class: A3_JOINT_REVIEW
+amended_by: ADR-020
 alternatives:
   - option: "Security groups and NetworkPolicy only, as R0 previously specified"
     rejected_because: >
@@ -903,6 +903,7 @@ consequences:
   positive:
     - "Egress becomes an allowlist with a log, so 'what did this pod talk to' is answerable"
     - "The EIP set that 1SB and the PG allowlist is centralised and stable, and no longer changes with workload topology"
+    - "**Amended ADR-020:** 1SB allowlists Apigee IPs, not these NAT EIPs. Publishing the NAT list to 1SB is now the defect this clause used to prevent."
     - "Firewall, flow and TGW logs give ADR-013's search pipe something worth indexing — the two closures are complementary, not independent"
     - "One inspection design covers internet egress, bank-directed traffic and inter-VPC traffic"
   negative:
@@ -1547,16 +1548,81 @@ decision: >
      does not traverse the RM ingress chain.
   6. This amends ADR-016 decision clause 1 only. EBS, GitLab, Terraform, CloudTrail and
      CloudWatch clauses of ADR-016 are unchanged.
-  7. Apigee is a known bank API plane (SUG-20260831-apg, ASM-013) and is NOT drawn on any
-     R0 diagram until SPIKE-001 returns written answers. Until then Amazon API Gateway remains
-     Proxy 1. Human instruction 2026-08-31: keep Apigee off the pictures.
+  7. Apigee is the **outbound** bank API plane (`ADR-020`). Amazon API Gateway remains
+     **inbound** Proxy 1. Clause 7 of 2026-08-31 ("do not draw Apigee") is **amended**: draw
+     Apigee on the egress / loading-dock path only. Do not put Apigee on the RM/mobile front door.
 authority_class: A3_JOINT_REVIEW
 origin: SUG-20260831-alb
 amends: ADR-016
+amended_by: ADR-020
 ```
 
 **Drafted:** agent, for Mahesh — Principal Insurance Platform Architect (Board 1 / R2) · 2026-08-31.
+**Amended:** 2026-09-14 (`ADR-020`, `SUG-20260914-egr`) — inbound stays API Gateway; outbound Apigee is now drawn.
 Human T4 Architecture sign-off outstanding. Deepali jointly owns the perimeter security outcome;
 Shivanshi owns the S09 landing-zone request that must no longer ask for a public ALB.
 Evidence: existing AU Bank application architecture v1.4 (Atul Singh, reviewed Manish Salaria,
 9-July-2026); Central Network Account Architecture V1 (AU_AWS_MAS, Mumbai + Hyderabad EDGE VPC).
+
+---
+
+## ADR-020 — Split API plane: inbound Amazon API Gateway; outbound Apigee; 1SB never called from EKS
+
+```yaml
+id: ADR-020
+status: PROPOSED
+problem: >
+  SPIKE-001 / ASM-013 treated Apigee as a possible replacement for Amazon API Gateway on
+  every hop. Human Architecture owner 2026-09-14 split the plane: RM/mobile ingress stays
+  on AWS API Gateway; every call that leaves the building (1SB, SMS, bank internal APIs)
+  goes via Apigee. 1SB IP-whitelists the caller it sees — that caller is Apigee, not our
+  NAT Elastic IPs. Publishing ADR-010 inspection-VPC EIPs to 1SB would allowlist the wrong
+  host. Internal APIs must not hairpin Cloudflare/F5. Dev cost and bank onboarding default
+  require Dev-inside-UAT and no CUG at R0. Workforce AD must not be bound over LDAP from EKS.
+context_stage: "WS-3 S08/S09; implements SUG-20260914-egr / uat / idp"
+decision: >
+  INBOUND (front door). Unchanged from ADR-018 clauses 1–6: device → Cloudflare (SaaS) →
+  F5-XC (SaaS) → Amazon API Gateway → VPC Link → Internal ALB → nip-web / NIP BFF.
+  PG callbacks stay a separate API Gateway route (TB-6). Flutter never calls Apigee.
+
+  OUTBOUND (loading dock). 1sb-integration-service, Notification, Payment session-create,
+  Customer/EBS lookups and the workforce AD-verify call leave the cluster through the bank
+  Apigee plane. The adapter HTTP base URL is an Apigee proxy, never a 1SB origin host.
+  Hub → adapter is unchanged. 1SB JSON still terminates in adapter.onesb.*.
+
+  ALLOWLIST. 1SB (and outbound PG, if the PG allowlists callers) allowlist **Apigee egress
+  IPs**, not spoke NAT Elastic IPs. Do not publish ADR-010 NAT EIPs to 1SB. DEP-20260824-eip
+  rebases onto the Apigee IP list (DEP-20260914-apg).
+
+  PRIVATE INTERNAL TARGETS. AD-verify, EBS/CBS and similar Apigee proxies use a **private**
+  Apigee target. Forbidden: pod → internet → Cloudflare → F5 → bank internal API.
+
+  INSPECTION (ADR-010 remainder). Spoke Network Firewall may still inspect **pod → Apigee**.
+  That is Deepali's acceptance, not a 1SB allowlist. FortiGate remains the hub NGFW.
+
+  DRAW. Apigee is drawn on R0 diagrams as bank API plane **outside our VPC**, on the egress
+  path only. Edition, private hostname and per-env IP list remain SPIKE-001 written answers;
+  absence of those answers does not keep Apigee off the picture now that the hop is decided.
+
+  ACCOUNTS. Control Tower vendors **five** programme accounts: shared-services, security,
+  network, uat, prod. No separate `dev` account. No CUG at R0 (waiver). The UAT account
+  hosts two environment slices — `dev` and `uat` — as two VPCs (so stub vs real CBS do not
+  share a route table) with namespace, schema, Valkey prefix, MSK prefix and Apigee product
+  isolation. Spring profiles remain `dev` vs `uat`. `dev` data is synthetic.
+
+  IDENTITY. Workforce (RM / bank employee): existing bank AD-verify API via Apigee private
+  path; never LDAP from EKS; AD remains SoR (TI-01, ID-01). Partners/IPR: created in the
+  private IdP (Keycloak is acceptable) one-by-one or bulk, maker-checker; never in AD.
+  NIP-APP / Fireframe is the only UI chrome for login and for user/role/permission mapping.
+  Keycloak admin console is not shown to bank users. PDP remains business authorization SoT.
+  Password-in-NIP vs Fireframe SSO ceremony is A3_JOINT_REVIEW with Deepali (ID-11).
+authority_class: A3_JOINT_REVIEW
+origin: SUG-20260914-egr
+also: [SUG-20260914-uat, SUG-20260914-idp]
+amends: [ADR-010, ADR-018]
+```
+
+**Drafted:** agent, for Mahesh — Principal Insurance Platform Architect (Board 1 / R2) · 2026-09-14.
+Human T4 Architecture sign-off outstanding. Deepali owns remaining spoke-firewall acceptance
+and the AD-password ceremony. Shivanshi owns Apigee product onboarding and the UAT-account
+vending pack. This ADR does not manufacture those signatures.

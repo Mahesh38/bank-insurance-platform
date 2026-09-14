@@ -36,7 +36,7 @@ The AU Bank Insurance Distribution Platform (National Insurance Platform - NIP) 
 ### 3. Key Architectural Tenets Defended at ARB
 1. **Capability before Service, Ownership before Deployment:** Every service owns one bounded context write-model. No cross-service database access.
 2. **Enterprise Bank Perimeter Ingress:** Edge access traverses **Cloudflare Enterprise (SaaS, not AWS, not in any VPC)** → **F5 Distributed Cloud / F5-XC (SaaS WAF, not AWS, not in any VPC)** → **Amazon API Gateway** → **Internal ALB**. **No public / External ALB** (`ADR-018`).
-3. **Centralized Inspection & Egress:** Outbound traffic traverses a dedicated Inspection & Egress VPC (AWS Network Firewall + NAT EIPs allowlisted by insurers).
+3. **Split API plane (`ADR-020`):** inbound stays Cloudflare → F5-XC → Amazon API Gateway; **outbound** (1SB, SMS, bank internal APIs, AD-verify) leaves via **Apigee**. 1SB allowlists **Apigee IPs**, not spoke NAT EIPs. AWS Network Firewall may still inspect **pod → Apigee**.
 4. **Hard Regulatory Controls Enforced in Services, Not UI:** Suitability (**C1**), Consent (**C2**), Customer-Device Payment Isolation (**C4**), and Audit-before-Sold (**C7/C8**) cannot be bypassed by any API client.
 5. **Replaceable Provider Boundary:** Domain services communicate only in bank-canonical contracts through an Integration Hub. 1SilverBullet (1SB) or direct insurers are pluggable adapters.
 6. **Core Banking via EBS (Enterprise Service Bus):** Customer profile retrieval and CIF lookups integrate via bank **EBS (Enterprise Service Bus) APIs** over private Transit Gateway hybrid connectivity.
@@ -164,8 +164,8 @@ For each tier and component in the architecture, this section articulates:
 #### 1.6 Transit Gateway (TGW) & Inspection / Egress VPC (`ADR-009`, `ADR-010`)
 - **What it is & What it does:** Workload VPCs **attach as spokes** to the existing `AU-CTO-NETWORK` Transit Gateway (Central Network Account Architecture V1). Do **not** provision a second TGW. The hub already connects on-premises bank DCs (via the existing DX Gateway) and the EDGE / inspection path. This programme adds a per-environment inspection/egress VPC (or shares EDGE — `ASM-012`) containing AWS Network Firewall and NAT Gateways.
 - **Why Required:**
-  - Insurers and 1SB require **static allowlisted Elastic IPs (EIPs)** for mTLS whitelisting.
-  - RBI & Bank Cyber Security policies mandate **100% inspection of outbound traffic** (drop-by-default domain allowlist).
+  - 1SB require **static allowlisted IPs** — those IPs are **Apigee egress addresses** (`ADR-020`), not these spoke NAT EIPs. Do not publish spoke EIPs to 1SB.
+  - RBI & Bank Cyber Security policies mandate **100% inspection of outbound traffic** (drop-by-default domain allowlist) on the hop **pod → Apigee**.
   - Isolates routing rules so a dev environment can never route to production Core Banking.
 - **Alternatives Considered:**
   - *NAT Gateway inside each Workload VPC:* Spreads EIPs across accounts, fails central audit, and does not allow L7 stateful inspection.

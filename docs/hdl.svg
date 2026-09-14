@@ -715,7 +715,7 @@
   <text x="56" y="2856.5" font-size="9.5" fill="#ffffff" font-weight="bold" letter-spacing="1.4">BOUNDARY 7</text>
   <text x="180" y="2856.5" font-size="14" fill="#ffffff" font-weight="bold" letter-spacing="0.5">EXTERNAL BOUNDARIES — BANK SYSTEMS vs INSURANCE PROVIDERS</text>
   <text x="56" y="2882.5" font-size="9.5" fill="#475569">OWNS · Two separate integration boundaries, deliberately. Bank-system integration (CBS, CRM, PG, AD) is isolated from insurance-provider integration so a core-banking change never leaks into Life Quote, and an insurer change never touches customer lookup.</text>
-  <text x="56" y="2897.5" font-size="9.5" fill="#b91c1c">DOES NOT OWN · Anything canonical. Provider and bank vocabulary terminates inside its adapter package. Outbound provider traffic leaves through controlled egress — NAT gateway with a stable Elastic IP the insurer can allowlist, or VPN / Direct Connect / private connectivity with mTLS.</text>
+  <text x="56" y="2897.5" font-size="9.5" fill="#b91c1c">DOES NOT OWN · Anything canonical. Provider and bank vocabulary terminates inside its adapter package. Outbound provider traffic leaves through controlled egress — Apigee (bank outbound API plane). 1SB allowlists Apigee egress IPs, not spoke NAT Elastic IPs (ADR-020). VPN / Direct Connect remains the private path to reach Apigee and bank internal APIs.</text>
   <rect x="64.0" y="2911.5" width="392.0" height="77.5" rx="6" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
   <rect x="418.0" y="2918.5" width="30" height="15" rx="4" fill="#1d4ed8"/>
   <text x="433.0" y="2930.0" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#ffffff">R0</text>

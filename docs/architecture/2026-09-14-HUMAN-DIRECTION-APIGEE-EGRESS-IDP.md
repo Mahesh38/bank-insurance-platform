@@ -1,9 +1,9 @@
 # Human architecture direction — Apigee egress, env model, identity (2026-09-14)
 
-**Standing:** Record of human Architecture-owner direction. **Not an ADR.** Does not amend
-`ADR-010` / `ADR-018`, does not close `SPIKE-001`, does not manufacture T4 or Deepali
-acceptance. If this file disagrees with an ADR, the ADR still wins until a later ADR
-amends it (`HA-02`).
+**Standing:** Record of human Architecture-owner direction that `ADR-020` now binds.
+Does **not** close `SPIKE-001` remaining written answers (edition, private URL, per-env
+IPs, per-API onboard). Does **not** manufacture T4 or Deepali acceptance. If this file
+disagrees with an ADR, the ADR wins (`HA-02`).
 
 **Source:** human follow-up to the R0 E2E teaching open items.  
 **Triage:** `SUG-20260914-egr` · `SUG-20260914-uat` · `SUG-20260914-idp`.  

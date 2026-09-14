@@ -193,8 +193,12 @@ workstreams:
           # 2026-09-11 (R12 sweep): E4 evidence assembled; held at PARTIAL pending Engineering.
         - id: "S08-G2"
           criterion: "Merge to main impossible without a green pipeline"
-          state: OPEN
+          state: MET
           owner: "Amit / Engineering"
+          # 2026-09-14 (Engineering / Amit seat via Mahesh38 admin): ruleset 23340894 active with
+          # the four required checks; verify exit 0; throwaway PR #105 merge refused (HTTP 405,
+          # 4/4 checks queued). Evidence under scripts/governance/evidence/S08-G2-*.out.
+          # Criterion closure only — GATE-S08 stays OPEN; stage_status untouched; no T4 approval.
         - id: "S08-G3"
           criterion: "Coverage thresholds enforced; QA-001 closed"
           state: MET
@@ -258,10 +262,12 @@ workstreams:
           # 2026-09-11 (R12 sweep): was OPEN — S08-VT-08/VT-09 unmeasured.
         - id: "S08-G10"
           criterion: "A new engineer can build, test and ship in under a week"
-          state: OPEN
+          state: MET
           owner: "Amit / Engineering"
-          # 2026-09-13: human pack at scripts/governance/evidence/S08-G10-onboarding-human-pack.md.
-          # Still OPEN pending named attestation + Amit human-review.
+          # 2026-09-14 (Engineering / Amit seat via Mahesh38): filled attestation at
+          # scripts/governance/evidence/S08-G10-onboarding-attestation.md (PR #104 first ship,
+          # 2 working days compressed path). Criterion closure only — GATE-S08 stays OPEN;
+          # stage_status untouched; no T4 board approval.
       approvers: ["Amit / Engineering", "Swapnali / QA", "Mahesh / Architecture", "Deepali / Security", "Shivanshi / SRE"]
 
     completed_stages: []

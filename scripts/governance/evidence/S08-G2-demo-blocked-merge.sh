@@ -46,6 +46,18 @@ gh pr view "$PR" --repo "$REPO" --json number,mergeable,mergeStateStatus,statusC
   --jq '{number,mergeable,mergeStateStatus,checks:(.statusCheckRollup|map({name:.name,conclusion:.conclusion}))}' \
   | tee /tmp/s08-g2-pr-snap.json
 
+
+# Safety: never attempt merge on a fully green / CLEAN PR — that would merge it.
+# Blocked-merge proof requires pending or failing required checks.
+MERGE_STATE=$(gh pr view "$PR" --repo "$REPO" --json mergeStateStatus -q .mergeStateStatus 2>/dev/null || true)
+if [[ "$MERGE_STATE" == "CLEAN" ]]; then
+  echo
+  echo "ABORT: PR #${PR} mergeStateStatus=CLEAN (all required checks green)."
+  echo "Use a throwaway PR with pending/queued required checks instead."
+  echo "Do NOT declare S08-G2 MET from a successful merge of a green PR."
+  exit 2
+fi
+
 echo
 echo "== Attempt merge via API (expect failure while checks incomplete / ruleset active) =="
 # Intentionally omit --admin; we want the ruleset to block.

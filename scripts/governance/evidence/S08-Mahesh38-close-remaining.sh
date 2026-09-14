@@ -9,14 +9,16 @@
 # What it does:
 #   1) apply required-status ruleset on main (S08-G2)
 #   2) verify exit 0
-#   3) blocked-merge demo against PR (default 104)
+#   3) blocked-merge demo against a PR with PENDING required checks
+#      (do NOT pass a green/CLEAN PR — the demo aborts, and a prior green
+#      probe against #104 squash-merged it; use a throwaway PR instead)
 #   4) print exact G10 attestation copy/fill/commit steps
 #
 # Does NOT edit stage_status, gate PASSED, or T4 approvals.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
-PR="${1:-104}"
+PR="${1:?Usage: $0 <pr-number-with-pending-required-checks>}"
 APPLY="$ROOT/scripts/governance/evidence/S08-G2-apply-required-checks.sh"
 VERIFY="$ROOT/scripts/governance/evidence/S08-G2-verify-required-checks.sh"
 DEMO="$ROOT/scripts/governance/evidence/S08-G2-demo-blocked-merge.sh"

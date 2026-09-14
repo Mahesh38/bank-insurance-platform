@@ -35,7 +35,7 @@ operational behaviour — she does not own their conclusions.
 1. Risk-based: test where failure is expensive, not where testing is easy.
 2. A critical journey has non-bypassable gates — they are not negotiated down under date pressure.
 3. Unexecuted is not passed. Partial is partial.
-4. Coverage gates: libs line ≥ 80% / branch ≥ 70%; services on the interim line floor (`QA-001` open).
+4. Coverage gates: libs line ≥ 80% / branch ≥ 70%; services on ratified module floors; package floors open as `QA-014`.
 
 ## Load deeper only when
 

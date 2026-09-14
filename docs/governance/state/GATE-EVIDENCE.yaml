@@ -184,7 +184,7 @@ workstreams:
         evidence:
           - "Shared-library coverage gates at 80% line / 70% branch"
           - "jacocoTestCoverageVerification executes on every pull request via application-ci.yml and is green"
-          - "QA-001 Closed 2026-09-13; S08-G3 MET — Phase-1 90/70; scaffold floor ratified; package floors → QA-012 with expiry 2026-10-31"
+          - "QA-001 Closed 2026-09-13; S08-G3 MET — Phase-1 90/70; scaffold floor ratified; package floors → QA-014 with expiry 2026-10-31"
         blockers: []
         last_verified_at: "2026-09-13T19:22:01Z"
     approvals: []
@@ -346,7 +346,7 @@ workstreams:
         evidence:
           - "Enforcement: build.gradle.kts wires jacocoTestCoverageVerification into `check` and CI names the task explicitly, so a future rewiring cannot silently drop the gate."
           - "Thresholds in force: libs 80% line / 70% branch; Phase-1 services (1sb-integration-service, bank-persistence-service) 90% line / 70% branch; scaffold services ratified 50% line module floor."
-          - "QA-001 Closed 2026-09-13 (Swapnali): interim framing retired; package-level strategy §7 floors split to QA-012 (expiry 2026-10-31) with compensating control = module jacocoTestCoverageVerification on every CI check."
+          - "QA-001 Closed 2026-09-13 (Swapnali): interim framing retired; package-level strategy §7 floors split to QA-014 (expiry 2026-10-31) with compensating control = module jacocoTestCoverageVerification on every CI check."
           - "Local verify 2026-09-13: ./gradlew test jacocoTestReport jacocoTestCoverageVerification BUILD SUCCESSFUL; bank-persistence-service measured ~99.0% line / ~85.0% branch under the raised 90/70 gate."
         blockers: []
         last_verified_at: "2026-09-13T19:22:01Z"

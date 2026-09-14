@@ -73,7 +73,7 @@ the agent believed at decision time — a decision that was correct against a st
 > blocking Trivy container image scan job landed. `GATE-S08` remains `OPEN`.
 >
 > **2026-09-13 — S08-G3 closed.** QA (Swapnali seat) declared `S08-G3` `MET`: QA-001 Closed —
-> Phase-1 services at 90/70, scaffold 50% floor ratified, package floors → QA-012 (expiry
+> Phase-1 services at 90/70, scaffold 50% floor ratified, package floors → QA-014 (expiry
 > 2026-10-31). WS-1 criterion 4.7 also MET. `GATE-S08` remains `OPEN`. No stage advanced.
 >
 > **2026-09-13 — S08-G9 closed.** SRE (Shivanshi seat) declared `S08-G9` `MET` after measuring
@@ -145,7 +145,7 @@ LOB, lead contract) is real, and none of it was gate-closing work.
 |---|----------------|-------|-------|
 | S08-G1 | CI builds and tests every module on every PR | ✅ MET — Engineering declared 2026-09-13 on ci verifier (392 runs; tip 34768713603) | Amit |
 | S08-G2 | Merge to main impossible without a green pipeline | ❌ Open — branch protection is a repo-admin setting, not a file here | Amit |
-| S08-G3 | Coverage thresholds enforced; QA-001 closed | ✅ MET — Phase-1 at 90/70; scaffold floor ratified; QA-001 Closed → QA-012 (2026-09-13) | Swapnali |
+| S08-G3 | Coverage thresholds enforced; QA-001 closed | ✅ MET — Phase-1 at 90/70; scaffold floor ratified; QA-001 Closed → QA-014 (2026-09-13) | Swapnali |
 | S08-G4 | ArchUnit and static analysis enforced | ✅ MET — Checkstyle + Spotless in `check`/CI; ArchUnit unchanged (2026-09-13) | Amit |
 | S08-G5 | Secret, SAST, SCA and image scanning in the pipeline | ✅ MET — Trivy image-scan job on Phase 1 + combined images (2026-09-13) | Deepali |
 | S08-G6 | Test infrastructure at every pyramid level | ✅ MET — `bank-common-test` harness + Postgres/WireMock proving ITs; TD-014 Closed (2026-09-13) | Swapnali |
@@ -175,7 +175,7 @@ LOB, lead contract) is real, and none of it was gate-closing work.
 - [ ] Compliance sign-off on audit schema and log samples
 - [ ] Runbook (secrets rotation, IP whitelist, 1SB 401/5xx incident) exists
 - [ ] p95 quote latency measured under nominal concurrency
-- [x] Coverage gates green; QA-001 closed (Closed 2026-09-13; package floors → QA-012)
+- [x] Coverage gates green; QA-001 closed (Closed 2026-09-13; package floors → QA-014)
 
 ### WS-2 · Workforce Authentication & Authorization
 
@@ -242,7 +242,7 @@ Agents should recognise these so they do not re-report them as new findings. Ful
 | TD-014 | P2 | ~~No WireMock/E2E for integration ↔ persistence~~ | **Closed 2026-09-13** — `bank-common-test` + SharedHarnessProposalSmokeIT |
 | TD-022 | P1 | FUNC-008 payment intimation not implemented | Scheduled Phase 5.3. |
 | TD-023 | P2 | Raw payload capture not wired for status/master-data | Known. |
-| QA-001 | P0 | JaCoCo gates — **Closed** | Phase-1 90/70; scaffold floor ratified; package floors → QA-012 |
+| QA-001 | P0 | JaCoCo gates — **Closed** | Phase-1 90/70; scaffold floor ratified; package floors → QA-014 |
 
 > **Rule CS-2 — Duplicate suppression.** Before creating a `SUG-####`, an agent checks the debt
 > ledger and [registers/SUGGESTION-REGISTER.md](./registers/SUGGESTION-REGISTER.md). A repeat

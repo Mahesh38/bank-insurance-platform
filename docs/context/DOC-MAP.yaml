@@ -19,7 +19,7 @@ schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
 document_count: 564
-total_bytes: 15631682
+total_bytes: 15631699
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -2101,7 +2101,7 @@ documents:
     persona: null
     title: "Swapnali — Principal Insurance Quality Engineering / QA Lead · Decision Card"
     answers: "Tier-1 card. Non-binding compression — canonical authority is"
-    bytes: 2963
+    bytes: 2980
   - path: docs/context/roadmaps/README.md
     bucket: context
     authority: non-binding-context

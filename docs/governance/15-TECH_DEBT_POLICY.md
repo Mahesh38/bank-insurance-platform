@@ -120,7 +120,7 @@ Is it a deliberate shortcut recorded at the time?
 ```
 
 Agents must check [01 §6](./01-CURRENT_STATE.md#6-known-open-debt-affecting-triage) before
-raising debt. TD-006, TD-007, TD-009, TD-010, TD-022, TD-023 and QA-001 are known —
+raising debt. TD-006, TD-007, TD-009, TD-010, TD-022, TD-023 and QA-014 are known —
 re-reporting them is noise, and noise is how real findings get ignored.
 
 ---

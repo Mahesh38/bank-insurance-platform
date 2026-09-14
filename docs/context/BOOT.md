@@ -207,7 +207,7 @@ Full table with the wrong-instinct column:
 
 ### Known open debt — **fact 7: do not re-report these**
 
-`TD-006` · `TD-007` · `TD-009` · `TD-010` · `TD-022` · `TD-023` · `QA-012`  
+`TD-006` · `TD-007` · `TD-009` · `TD-010` · `TD-022` · `TD-023` · `QA-014`  
 Detail: [`01-CURRENT_STATE.md` section 6](../governance/01-CURRENT_STATE.md#6-known-open-debt-affecting-triage).
 
 <!-- END GENERATED: current-state -->

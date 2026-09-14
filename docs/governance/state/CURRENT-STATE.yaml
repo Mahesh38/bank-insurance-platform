@@ -200,7 +200,7 @@ workstreams:
           state: MET
           owner: "Swapnali / QA"
           # 2026-09-13 (QA / Swapnali seat): declared MET. QA-001 Closed — Phase-1 services at
-          # 90% line / 70% branch; scaffold 50% line floor ratified; package floors → QA-012
+          # 90% line / 70% branch; scaffold 50% line floor ratified; package floors → QA-014
           # (expiry 2026-10-31). GATE-S08 stays OPEN.
           # 2026-09-11 (R12 sweep): first clause evidenced; second clause held QA-001 open on the
           # interim service floor.
@@ -614,7 +614,7 @@ id_prefixes:
 # ---------------------------------------------------------------------------
 # Known debt — do not re-report (01 §6, Rule CS-2)
 # ---------------------------------------------------------------------------
-known_open_debt: [TD-006, TD-007, TD-009, TD-010, TD-022, TD-023, QA-012]
+known_open_debt: [TD-006, TD-007, TD-009, TD-010, TD-022, TD-023, QA-014]
 
 registers:
   suggestions: "docs/governance/registers/SUGGESTION-REGISTER.md"

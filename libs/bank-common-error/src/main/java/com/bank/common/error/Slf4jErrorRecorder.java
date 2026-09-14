@@ -3,6 +3,7 @@ package com.bank.common.error;
 import com.bank.common.observability.ErrorMetrics;
 import com.bank.common.observability.MdcContext;
 import com.bank.common.observability.MdcKeys;
+import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -115,10 +116,25 @@ public class Slf4jErrorRecorder implements ErrorRecorder {
   }
 
   /**
-   * Preserves the original stack for operators while ensuring the exception message printed by the
-   * logging backend cannot carry regulated attributes.
+   * Preserves the original stack <em>and</em> cause chain for operators while ensuring every
+   * exception message printed by the logging backend cannot carry regulated attributes.
+   *
+   * <p>A shallow copy that drops {@link Throwable#getCause()} was rejected in review: operators
+   * lose the root failure. Suppressed exceptions are scrubbed the same way. Cycles are broken with
+   * an identity map so a malicious / broken cause graph cannot recurse forever.
    */
   static Throwable forLogging(Throwable cause) {
+    return scrubChain(cause, new IdentityHashMap<>());
+  }
+
+  private static Throwable scrubChain(Throwable cause, IdentityHashMap<Throwable, Throwable> seen) {
+    if (cause == null) {
+      return null;
+    }
+    Throwable existing = seen.get(cause);
+    if (existing != null) {
+      return existing;
+    }
     String type = cause.getClass().getName();
     String scrubbedMessage = LogPiiScrubber.scrub(cause.getMessage());
     Throwable logged =
@@ -126,7 +142,15 @@ public class Slf4jErrorRecorder implements ErrorRecorder {
             scrubbedMessage == null || scrubbedMessage.isBlank()
                 ? type
                 : type + ": " + scrubbedMessage);
+    seen.put(cause, logged);
     logged.setStackTrace(cause.getStackTrace());
+    Throwable scrubbedCause = scrubChain(cause.getCause(), seen);
+    if (scrubbedCause != null) {
+      logged.initCause(scrubbedCause);
+    }
+    for (Throwable suppressed : cause.getSuppressed()) {
+      logged.addSuppressed(scrubChain(suppressed, seen));
+    }
     return logged;
   }
 }

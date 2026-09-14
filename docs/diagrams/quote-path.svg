@@ -1,0 +1,253 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1900" height="1330" viewBox="0 0 1900 1330" font-family="Helvetica, Arial, sans-serif">
+<defs>
+<marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#334155"/></marker>
+<marker id="arrGray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/></marker>
+<marker id="arrRed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker>
+<marker id="arrGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker>
+</defs>
+<rect width="1900" height="1330" fill="#ffffff"/>
+<text x="950.0" y="36.0" font-size="25" fill="#0f172a" text-anchor="middle" font-weight="bold">AU Bank Insurance Distribution Platform — R0 Quote Path</text>
+<text x="950.0" y="60.0" font-size="12.5" fill="#475569" text-anchor="middle">customer lookup → need &amp; suitability (C1) → consent (C2) → quote · the lawful-gate half of the journey, and the five ways it is refused</text>
+<text x="52.0" y="88.0" font-size="10" fill="#64748b" font-weight="bold" letter-spacing="1">THE RULE THIS HALF OF THE JOURNEY EXISTS TO ENFORCE</text>
+<rect x="52.0" y="96.0" width="1796.0" height="46.0" rx="7" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2"/>
+<text x="68.0" y="116.0" font-size="12" fill="#0f172a" font-weight="bold">C1 — no quotation without a valid, unexpired suitability result. C2 — no proposal without current consent.</text>
+<text x="68.0" y="133.0" font-size="10" fill="#475569">Both are hard gates enforced in the owning context, not checks the UI is trusted to have done. A gate that can be skipped by calling the API directly is not a gate — FF-08 and FF-09 assert exactly that.</text>
+<rect x="57.8" y="168.0" width="168.0" height="52.0" rx="6" fill="#f3e8ff" stroke="#9333ea" stroke-width="1.4"/>
+<text x="141.8" y="190.0" font-size="10.5" fill="#0f172a" text-anchor="middle" font-weight="bold">RM · Flutter + #2 BFF</text>
+<text x="141.8" y="205.0" font-size="9" fill="#64748b" text-anchor="middle">assisted journey</text>
+<rect x="63.8" y="173.0" width="19.0" height="13.0" rx="3" fill="#9333ea"/>
+<text x="73.3" y="182.7" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">W4</text>
+<line x1="141.8" y1="220.0" x2="141.8" y2="909.0" stroke="#cbd5e1" stroke-width="1.4" stroke-dasharray="3 4"/>
+<rect x="231.6" y="220.0" width="179.6" height="689.0" rx="0" fill="#f8fafc"/>
+<rect x="237.4" y="168.0" width="168.0" height="52.0" rx="6" fill="#ffffff" stroke="#94a3b8" stroke-width="1.4" stroke-dasharray="5 3"/>
+<text x="321.4" y="190.0" font-size="10.5" fill="#0f172a" text-anchor="middle" font-weight="bold">Identity + PDP</text>
+<text x="321.4" y="205.0" font-size="9" fill="#64748b" text-anchor="middle">default deny · 300 ms</text>
+<line x1="321.4" y1="220.0" x2="321.4" y2="909.0" stroke="#cbd5e1" stroke-width="1.4" stroke-dasharray="3 4"/>
+<rect x="417.0" y="168.0" width="168.0" height="52.0" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.4"/>
+<text x="501.0" y="190.0" font-size="10.5" fill="#0f172a" text-anchor="middle" font-weight="bold">#4 Customer</text>
+<text x="501.0" y="205.0" font-size="9" fill="#64748b" text-anchor="middle">snapshot + freshness</text>
+<rect x="423.0" y="173.0" width="19.0" height="13.0" rx="3" fill="#2563eb"/>
+<text x="432.5" y="182.7" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">W1</text>
+<line x1="501.0" y1="220.0" x2="501.0" y2="909.0" stroke="#cbd5e1" stroke-width="1.4" stroke-dasharray="3 4"/>
+<rect x="590.8" y="220.0" width="179.6" height="689.0" rx="0" fill="#f8fafc"/>
+<rect x="596.6" y="168.0" width="168.0" height="52.0" rx="6" fill="#ffffff" stroke="#94a3b8" stroke-width="1.4" stroke-dasharray="5 3"/>
+<text x="680.6" y="190.0" font-size="10.5" fill="#0f172a" text-anchor="middle" font-weight="bold">Core Banking</text>
+<text x="680.6" y="205.0" font-size="9" fill="#64748b" text-anchor="middle">external · golden</text>
+<line x1="680.6" y1="220.0" x2="680.6" y2="909.0" stroke="#cbd5e1" stroke-width="1.4" stroke-dasharray="3 4"/>
+<rect x="776.2" y="168.0" width="168.0" height="52.0" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.4"/>
+<text x="860.2" y="190.0" font-size="10.5" fill="#0f172a" text-anchor="middle" font-weight="bold">#9 Journey</text>
+<text x="860.2" y="205.0" font-size="9" fill="#64748b" text-anchor="middle">stage + references</text>
+<rect x="782.2" y="173.0" width="19.0" height="13.0" rx="3" fill="#2563eb"/>
+<text x="791.7" y="182.7" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">W1</text>
+<line x1="860.2" y1="220.0" x2="860.2" y2="909.0" stroke="#cbd5e1" stroke-width="1.4" stroke-dasharray="3 4"/>
+<rect x="950.0" y="220.0" width="179.6" height="689.0" rx="0" fill="#f8fafc"/>
+<rect x="955.8" y="168.0" width="168.0" height="52.0" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.4"/>
+<text x="1039.8" y="190.0" font-size="10.5" fill="#0f172a" text-anchor="middle" font-weight="bold">#7 Suitability</text>
+<text x="1039.8" y="205.0" font-size="9" fill="#64748b" text-anchor="middle">the C1 gate</text>
+<rect x="961.8" y="173.0" width="19.0" height="13.0" rx="3" fill="#d97706"/>
+<text x="971.3" y="182.7" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">W2</text>
+<rect x="1095.8" y="173.0" width="22.0" height="13.0" rx="6.5" fill="#dc2626"/>
+<text x="1106.8" y="182.7" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">C1</text>
+<line x1="1039.8" y1="220.0" x2="1039.8" y2="909.0" stroke="#cbd5e1" stroke-width="1.4" stroke-dasharray="3 4"/>
+<rect x="1135.4" y="168.0" width="168.0" height="52.0" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.4"/>
+<text x="1219.4" y="190.0" font-size="10.5" fill="#0f172a" text-anchor="middle" font-weight="bold">#6 Consent</text>
+<text x="1219.4" y="205.0" font-size="9" fill="#64748b" text-anchor="middle">the C2 gate</text>
+<rect x="1141.4" y="173.0" width="19.0" height="13.0" rx="3" fill="#d97706"/>
+<text x="1150.9" y="182.7" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">W2</text>
+<rect x="1275.4" y="173.0" width="22.0" height="13.0" rx="6.5" fill="#dc2626"/>
+<text x="1286.4" y="182.7" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">C2</text>
+<line x1="1219.4" y1="220.0" x2="1219.4" y2="909.0" stroke="#cbd5e1" stroke-width="1.4" stroke-dasharray="3 4"/>
+<rect x="1309.2" y="220.0" width="179.6" height="689.0" rx="0" fill="#f8fafc"/>
+<rect x="1315.0" y="168.0" width="168.0" height="52.0" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.4"/>
+<text x="1399.0" y="190.0" font-size="10.5" fill="#0f172a" text-anchor="middle" font-weight="bold">#8 Catalogue</text>
+<text x="1399.0" y="205.0" font-size="9" fill="#64748b" text-anchor="middle">what may be sold</text>
+<rect x="1321.0" y="173.0" width="19.0" height="13.0" rx="3" fill="#2563eb"/>
+<text x="1330.5" y="182.7" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">W1</text>
+<line x1="1399.0" y1="220.0" x2="1399.0" y2="909.0" stroke="#cbd5e1" stroke-width="1.4" stroke-dasharray="3 4"/>
+<rect x="1494.6" y="168.0" width="168.0" height="52.0" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.4"/>
+<text x="1578.6" y="190.0" font-size="10.5" fill="#0f172a" text-anchor="middle" font-weight="bold">#10 Quotation</text>
+<text x="1578.6" y="205.0" font-size="9" fill="#64748b" text-anchor="middle">offers + ordering</text>
+<rect x="1500.6" y="173.0" width="19.0" height="13.0" rx="3" fill="#d97706"/>
+<text x="1510.1" y="182.7" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">W2</text>
+<line x1="1578.6" y1="220.0" x2="1578.6" y2="909.0" stroke="#cbd5e1" stroke-width="1.4" stroke-dasharray="3 4"/>
+<rect x="1668.4" y="220.0" width="179.6" height="689.0" rx="0" fill="#f8fafc"/>
+<rect x="1674.2" y="168.0" width="168.0" height="52.0" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.4"/>
+<text x="1758.2" y="190.0" font-size="10.5" fill="#0f172a" text-anchor="middle" font-weight="bold">#14 Hub → insurer</text>
+<text x="1758.2" y="205.0" font-size="9" fill="#64748b" text-anchor="middle">canonical contract</text>
+<rect x="1680.2" y="173.0" width="19.0" height="13.0" rx="3" fill="#2563eb"/>
+<text x="1689.7" y="182.7" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">W1</text>
+<line x1="1758.2" y1="220.0" x2="1758.2" y2="909.0" stroke="#cbd5e1" stroke-width="1.4" stroke-dasharray="3 4"/>
+<line x1="141.8" y1="268.0" x2="321.4" y2="268.0" stroke="#334155" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="141.8" cy="268.0" r="8.5" fill="#1f2937"/>
+<text x="141.8" y="271.2" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">1</text>
+<text x="157.8" y="260.0" font-size="9.5" fill="#0f172a" font-weight="bold">RM signs in; permissions resolved server-side</text>
+<text x="157.8" y="281.0" font-size="9" fill="#64748b">role · branch · hierarchy · insurer scope · certification — never from the device</text>
+<line x1="141.8" y1="309.0" x2="501.0" y2="309.0" stroke="#334155" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="141.8" cy="309.0" r="8.5" fill="#1f2937"/>
+<text x="141.8" y="312.2" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">2</text>
+<text x="157.8" y="301.0" font-size="9.5" fill="#0f172a" font-weight="bold">look up ETB customer (CIF / mobile / PAN)</text>
+<text x="157.8" y="322.0" font-size="9" fill="#64748b">purpose recorded · narrow result set · rate limited — search abuse is a named threat</text>
+<line x1="501.0" y1="350.0" x2="680.6" y2="350.0" stroke="#334155" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="501.0" cy="350.0" r="8.5" fill="#1f2937"/>
+<text x="501.0" y="353.2" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">3</text>
+<text x="517.0" y="342.0" font-size="9.5" fill="#0f172a" font-weight="bold">fetch customer</text>
+<text x="517.0" y="363.0" font-size="9" fill="#64748b">CBS stays the golden source; the platform keeps a timestamped snapshot (S-04 / S-05)</text>
+<line x1="501.0" y1="391.0" x2="860.2" y2="391.0" stroke="#334155" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="501.0" cy="391.0" r="8.5" fill="#1f2937"/>
+<text x="501.0" y="394.2" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">4</text>
+<text x="517.0" y="383.0" font-size="9.5" fill="#0f172a" font-weight="bold">open journey · stage := CUSTOMER_LINKED</text>
+<text x="517.0" y="404.0" font-size="9" fill="#64748b">the journey now has an owner, a stage and a resumable reference</text>
+<line x1="141.8" y1="432.0" x2="1039.8" y2="432.0" stroke="#334155" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="141.8" cy="432.0" r="8.5" fill="#1f2937"/>
+<text x="141.8" y="435.2" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">5</text>
+<text x="157.8" y="424.0" font-size="9.5" fill="#0f172a" font-weight="bold">capture need &amp; submit suitability inputs</text>
+<text x="157.8" y="445.0" font-size="9" fill="#64748b">16 inputs · SUIT-ALGO-LIFE-v1.1 · 62 rules (PR #54)</text>
+<path d="M1039.8,465 h26 v16 h-26" fill="none" stroke="#334155" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="1035.8" cy="453.0" r="8.5" fill="#dc2626"/>
+<text x="1035.8" y="456.2" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">6</text>
+<text x="1077.8" y="472.0" font-size="9.5" fill="#0f172a" font-weight="bold">evaluate — eligibility-based, never a ranking or a recommendation</text>
+<text x="1077.8" y="485.0" font-size="9" fill="#64748b">records inputs, rule-pack version, outcome, reasons and a validity window</text>
+<line x1="1039.8" y1="514.0" x2="860.2" y2="514.0" stroke="#334155" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="1039.8" cy="514.0" r="8.5" fill="#1f2937"/>
+<text x="1039.8" y="517.2" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">7</text>
+<text x="884.2" y="506.0" font-size="9.5" fill="#0f172a" font-weight="bold">stage := SUITABILITY_PASSED + suitabilityRef</text>
+<text x="884.2" y="527.0" font-size="9" fill="#64748b">#9 stores the reference; it never stores what suitability decided (SC-W3-6)</text>
+<line x1="141.8" y1="555.0" x2="1219.4" y2="555.0" stroke="#334155" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="141.8" cy="555.0" r="8.5" fill="#1f2937"/>
+<text x="141.8" y="558.2" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">8</text>
+<text x="157.8" y="547.0" font-size="9.5" fill="#0f172a" font-weight="bold">request customer consent</text>
+<text x="157.8" y="568.0" font-size="9" fill="#64748b">42 consent rules · CONSENT-PACK · wording version pinned to the record</text>
+<line x1="1219.4" y1="596.0" x2="141.8" y2="596.0" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#arrGray)"/>
+<circle cx="1219.4" cy="596.0" r="8.5" fill="#1f2937"/>
+<text x="1219.4" y="599.2" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">9</text>
+<text x="165.8" y="588.0" font-size="9.5" fill="#0f172a" font-weight="bold">customer confirms on their own device via OTP</text>
+<text x="165.8" y="609.0" font-size="9" fill="#64748b">the RM cannot confirm consent on the customer's behalf — attributable or invalid</text>
+<line x1="1219.4" y1="637.0" x2="860.2" y2="637.0" stroke="#334155" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="1219.4" cy="637.0" r="8.5" fill="#1f2937"/>
+<text x="1219.4" y="640.2" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">10</text>
+<text x="884.2" y="629.0" font-size="9.5" fill="#0f172a" font-weight="bold">stage := CONSENT_CAPTURED + consentRef</text>
+<text x="884.2" y="650.0" font-size="9" fill="#64748b">withdrawal is a first-class event, not an absence of a record</text>
+<line x1="141.8" y1="678.0" x2="1399.0" y2="678.0" stroke="#334155" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="141.8" cy="678.0" r="8.5" fill="#1f2937"/>
+<text x="141.8" y="681.2" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">11</text>
+<text x="157.8" y="670.0" font-size="9.5" fill="#0f172a" font-weight="bold">list eligible products</text>
+<text x="157.8" y="691.0" font-size="9" fill="#64748b">R0: Term Life, Group A, one insurer · eligibility + channel + effective dates</text>
+<line x1="141.8" y1="719.0" x2="1578.6" y2="719.0" stroke="#334155" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="141.8" cy="719.0" r="8.5" fill="#dc2626"/>
+<text x="141.8" y="722.2" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">12</text>
+<text x="157.8" y="711.0" font-size="9.5" fill="#0f172a" font-weight="bold">request quotes</text>
+<text x="157.8" y="732.0" font-size="9" fill="#64748b">refused with 403 unless a valid unexpired suitabilityRef is presented (C1 · FF-08)</text>
+<line x1="1578.6" y1="760.0" x2="1758.2" y2="760.0" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#arrGray)"/>
+<circle cx="1578.6" cy="760.0" r="8.5" fill="#1f2937"/>
+<text x="1578.6" y="763.2" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">13</text>
+<text x="1594.6" y="752.0" font-size="9.5" fill="#0f172a" font-weight="bold">provider quote request</text>
+<text x="1594.6" y="773.0" font-size="9" fill="#64748b">translated to the canonical contract at the seam; no insurer format travels inward</text>
+<line x1="1758.2" y1="801.0" x2="1578.6" y2="801.0" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#arrGray)"/>
+<circle cx="1758.2" cy="801.0" r="8.5" fill="#1f2937"/>
+<text x="1758.2" y="804.2" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">14</text>
+<text x="1602.6" y="793.0" font-size="9.5" fill="#0f172a" font-weight="bold">offers → normalised to the bank's common shape</text>
+<text x="1602.6" y="814.0" font-size="9" fill="#64748b">expiry captured per offer; a stale offer cannot be selected</text>
+<line x1="1578.6" y1="842.0" x2="141.8" y2="842.0" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#arrGray)"/>
+<circle cx="1578.6" cy="842.0" r="8.5" fill="#1f2937"/>
+<text x="1578.6" y="845.2" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">15</text>
+<text x="165.8" y="834.0" font-size="9.5" fill="#0f172a" font-weight="bold">offers ordered by disclosed customer-relevant basis only</text>
+<text x="165.8" y="855.0" font-size="9" fill="#64748b">commission and bank preference are not inputs, and no field exists to make them one (QR-07)</text>
+<line x1="141.8" y1="883.0" x2="860.2" y2="883.0" stroke="#334155" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="141.8" cy="883.0" r="8.5" fill="#1f2937"/>
+<text x="141.8" y="886.2" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">16</text>
+<text x="157.8" y="875.0" font-size="9.5" fill="#0f172a" font-weight="bold">customer selects an offer · stage := OFFER_SELECTED</text>
+<text x="157.8" y="896.0" font-size="9" fill="#64748b">hands over to the money path — see r0-money-path.svg</text>
+<rect x="52.0" y="923.0" width="1796.0" height="44.0" rx="7" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="68.0" y="942.0" font-size="12" fill="#065f46" font-weight="bold">Handover — OFFER_SELECTED</text>
+<text x="68.0" y="958.0" font-size="9.5" fill="#475569">Everything above is the lawful-gate half. The money path picks up here: proposal → underwriting → payment → reconciliation → issuance → SOLD (r0-money-path.svg).</text>
+<text x="52.0" y="985.0" font-size="10" fill="#64748b" font-weight="bold" letter-spacing="1">REFUSALS — WHAT THE PLATFORM MUST SAY NO TO, AND WHAT THE RM SEES WHEN IT DOES</text>
+<rect x="52.0" y="997.0" width="349.6" height="218.0" rx="7" fill="#fff7ed" stroke="#ea580c" stroke-width="1.4"/>
+<rect x="52.0" y="997.0" width="349.6" height="27.0" rx="7" fill="#ea580c"/>
+<rect x="52.0" y="1015.0" width="349.6" height="9.0" rx="0" fill="#ea580c"/>
+<text x="63.0" y="1015.0" font-size="10.5" fill="#ffffff" font-weight="bold">X1 · Quote without suitability</text>
+<text x="390.6" y="1015.0" font-size="8.5" fill="#ffedd5" text-anchor="end">step 12</text>
+<text x="63.0" y="1043.0" font-size="8.5" fill="#9a3412" font-weight="bold">Trigger</text>
+<text x="63.0" y="1055.0" font-size="9" fill="#334155">no suitabilityRef, or the reference does not resolve</text>
+<text x="63.0" y="1072.0" font-size="8.5" fill="#9a3412" font-weight="bold">Response</text>
+<text x="63.0" y="1084.0" font-size="9" fill="#334155">403 — the quote request is not attempted at the insurer</text>
+<text x="63.0" y="1101.0" font-size="8.5" fill="#9a3412" font-weight="bold">RM sees</text>
+<text x="63.0" y="1113.0" font-size="9" fill="#334155">'complete the suitability assessment first', with a link to it</text>
+<text x="63.0" y="1130.0" font-size="8.5" fill="#9a3412" font-weight="bold">Proven by</text>
+<text x="63.0" y="1142.0" font-size="9" fill="#334155">FF-08 asserts the API refuses, not just the UI</text>
+<text x="63.0" y="1159.0" font-size="8.5" fill="#9a3412" font-weight="bold">Never</text>
+<text x="63.0" y="1171.0" font-size="9" fill="#b91c1c">a warning the RM can dismiss · an override flag · a supervisor bypass</text>
+<rect x="413.6" y="997.0" width="349.6" height="218.0" rx="7" fill="#fff7ed" stroke="#ea580c" stroke-width="1.4"/>
+<rect x="413.6" y="997.0" width="349.6" height="27.0" rx="7" fill="#ea580c"/>
+<rect x="413.6" y="1015.0" width="349.6" height="9.0" rx="0" fill="#ea580c"/>
+<text x="424.6" y="1015.0" font-size="10.5" fill="#ffffff" font-weight="bold">X2 · Suitability expired</text>
+<text x="752.2" y="1015.0" font-size="8.5" fill="#ffedd5" text-anchor="end">step 12</text>
+<text x="424.6" y="1043.0" font-size="8.5" fill="#9a3412" font-weight="bold">Trigger</text>
+<text x="424.6" y="1055.0" font-size="9" fill="#334155">suitability outside its validity window at quote time</text>
+<text x="424.6" y="1072.0" font-size="8.5" fill="#9a3412" font-weight="bold">Response</text>
+<text x="424.6" y="1084.0" font-size="9" fill="#334155">403 — a stale assessment is treated as no assessment</text>
+<text x="424.6" y="1101.0" font-size="8.5" fill="#9a3412" font-weight="bold">RM sees</text>
+<text x="424.6" y="1113.0" font-size="9" fill="#334155">'this assessment expired on &lt;date&gt;, reassess to continue'</text>
+<text x="424.6" y="1130.0" font-size="8.5" fill="#9a3412" font-weight="bold">Proven by</text>
+<text x="424.6" y="1142.0" font-size="9" fill="#334155">validity window is stored on the record, not computed at read</text>
+<text x="424.6" y="1159.0" font-size="8.5" fill="#9a3412" font-weight="bold">Never</text>
+<text x="424.6" y="1171.0" font-size="9" fill="#b91c1c">silently re-use, extend, or round the window</text>
+<rect x="775.2" y="997.0" width="349.6" height="218.0" rx="7" fill="#fff7ed" stroke="#ea580c" stroke-width="1.4"/>
+<rect x="775.2" y="997.0" width="349.6" height="27.0" rx="7" fill="#ea580c"/>
+<rect x="775.2" y="1015.0" width="349.6" height="9.0" rx="0" fill="#ea580c"/>
+<text x="786.2" y="1015.0" font-size="10.5" fill="#ffffff" font-weight="bold">X3 · Consent withdrawn or stale</text>
+<text x="1113.8" y="1015.0" font-size="8.5" fill="#ffedd5" text-anchor="end">at proposal</text>
+<text x="786.2" y="1043.0" font-size="8.5" fill="#9a3412" font-weight="bold">Trigger</text>
+<text x="786.2" y="1055.0" font-size="9" fill="#334155">consent withdrawn, or the wording version has been superseded</text>
+<text x="786.2" y="1072.0" font-size="8.5" fill="#9a3412" font-weight="bold">Response</text>
+<text x="786.2" y="1084.0" font-size="9" fill="#334155">proposal submission is blocked and the journey states why</text>
+<text x="786.2" y="1101.0" font-size="8.5" fill="#9a3412" font-weight="bold">RM sees</text>
+<text x="786.2" y="1113.0" font-size="9" fill="#334155">'consent was withdrawn on &lt;date&gt;' — never a generic error</text>
+<text x="786.2" y="1130.0" font-size="8.5" fill="#9a3412" font-weight="bold">Proven by</text>
+<text x="786.2" y="1142.0" font-size="9" fill="#334155">FF-09 · withdrawal is an event with its own record</text>
+<text x="786.2" y="1159.0" font-size="8.5" fill="#9a3412" font-weight="bold">Never</text>
+<text x="786.2" y="1171.0" font-size="9" fill="#b91c1c">treat absence of a withdrawal as presence of consent</text>
+<rect x="1136.8" y="997.0" width="349.6" height="218.0" rx="7" fill="#fff7ed" stroke="#ea580c" stroke-width="1.4"/>
+<rect x="1136.8" y="997.0" width="349.6" height="27.0" rx="7" fill="#ea580c"/>
+<rect x="1136.8" y="1015.0" width="349.6" height="9.0" rx="0" fill="#ea580c"/>
+<text x="1147.8" y="1015.0" font-size="10.5" fill="#ffffff" font-weight="bold">X4 · Product not eligible</text>
+<text x="1475.4" y="1015.0" font-size="8.5" fill="#ffedd5" text-anchor="end">step 11</text>
+<text x="1147.8" y="1043.0" font-size="8.5" fill="#9a3412" font-weight="bold">Trigger</text>
+<text x="1147.8" y="1055.0" font-size="9" fill="#334155">customer or channel falls outside the catalogue's eligibility</text>
+<text x="1147.8" y="1072.0" font-size="8.5" fill="#9a3412" font-weight="bold">Response</text>
+<text x="1147.8" y="1084.0" font-size="9" fill="#334155">the product is not listed — not listed-and-then-refused</text>
+<text x="1147.8" y="1101.0" font-size="8.5" fill="#9a3412" font-weight="bold">RM sees</text>
+<text x="1147.8" y="1113.0" font-size="9" fill="#334155">only products that can lawfully be sold to this customer</text>
+<text x="1147.8" y="1130.0" font-size="8.5" fill="#9a3412" font-weight="bold">Proven by</text>
+<text x="1147.8" y="1142.0" font-size="9" fill="#334155">eligibility evaluated in #8, not filtered in the client</text>
+<text x="1147.8" y="1159.0" font-size="8.5" fill="#9a3412" font-weight="bold">Never</text>
+<text x="1147.8" y="1171.0" font-size="9" fill="#b91c1c">show it, take the input, then fail at submission</text>
+<rect x="1498.4" y="997.0" width="349.6" height="218.0" rx="7" fill="#fff7ed" stroke="#ea580c" stroke-width="1.4"/>
+<rect x="1498.4" y="997.0" width="349.6" height="27.0" rx="7" fill="#ea580c"/>
+<rect x="1498.4" y="1015.0" width="349.6" height="9.0" rx="0" fill="#ea580c"/>
+<text x="1509.4" y="1015.0" font-size="10.5" fill="#ffffff" font-weight="bold">X5 · Offer expired at selection</text>
+<text x="1837.0" y="1015.0" font-size="8.5" fill="#ffedd5" text-anchor="end">step 16</text>
+<text x="1509.4" y="1043.0" font-size="8.5" fill="#9a3412" font-weight="bold">Trigger</text>
+<text x="1509.4" y="1055.0" font-size="9" fill="#334155">the selected offer's expiry has passed</text>
+<text x="1509.4" y="1072.0" font-size="8.5" fill="#9a3412" font-weight="bold">Response</text>
+<text x="1509.4" y="1084.0" font-size="9" fill="#334155">re-quote required; the expired offer cannot be carried forward</text>
+<text x="1509.4" y="1101.0" font-size="8.5" fill="#9a3412" font-weight="bold">RM sees</text>
+<text x="1509.4" y="1113.0" font-size="9" fill="#334155">'this quote expired — request a fresh one'</text>
+<text x="1509.4" y="1130.0" font-size="8.5" fill="#9a3412" font-weight="bold">Proven by</text>
+<text x="1509.4" y="1142.0" font-size="9" fill="#334155">expiry is a property of the offer record</text>
+<text x="1509.4" y="1159.0" font-size="8.5" fill="#9a3412" font-weight="bold">Never</text>
+<text x="1509.4" y="1171.0" font-size="9" fill="#b91c1c">honour a lapsed premium because the journey is nearly complete</text>
+<line x1="52.0" y1="1227.0" x2="1848.0" y2="1227.0" stroke="#cbd5e1" stroke-width="1"/>
+<line x1="52.0" y1="1241.0" x2="86.0" y2="1241.0" stroke="#334155" stroke-width="1.5" marker-end="url(#arr)"/>
+<text x="94.0" y="1245.0" font-size="9.5" fill="#475569">synchronous — caller waits, deadline enforced</text>
+<line x1="331.9" y1="1241.0" x2="365.9" y2="1241.0" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#arrGray)"/>
+<text x="373.9" y="1245.0" font-size="9.5" fill="#475569">asynchronous — provider call, poll or callback</text>
+<rect x="616.4" y="1233.0" width="22.0" height="13.0" rx="6.5" fill="#dc2626"/>
+<text x="627.4" y="1242.7" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">C1</text>
+<text x="646.4" y="1245.0" font-size="9.5" fill="#475569">non-waivable control</text>
+<circle cx="776.8" cy="1240.0" r="8.5" fill="#1f2937"/>
+<text x="776.8" y="1243.2" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">6</text>
+<text x="792.8" y="1245.0" font-size="9.5" fill="#475569">hard gate — fails closed</text>
+<text x="1132.0" y="1243.0" font-size="9.5" fill="#475569">#n bounded context · S-nn / FF-nn / QR-07 as used in docs/hdl.svg</text>
+<text x="52.0" y="1308.0" font-size="9.5" fill="#64748b" font-weight="bold">DRAFT FOR REVIEW · v0.2 · not approved, not authorised for development · AI-drafted; no human signature</text>
+<text x="1848.0" y="1308.0" font-size="9.5" fill="#64748b" text-anchor="end">WS-3 · AU Bank Insurance Distribution Platform · R0</text>
+</svg>

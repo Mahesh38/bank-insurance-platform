@@ -30,6 +30,7 @@ architecture diagram will almost draw itself.*
 | **`docs/hdl.svg`** | **Rendering** | Nothing. It *depicts* the target state, release-coded `R0`…`RN` |
 | **`docs/architecture/r0-reference-architecture.svg`** | **Rendering** | Nothing. It *depicts* the R0 slice of the same picture |
 | [`docs/architecture/R0-HLD.md`](../../../architecture/R0-HLD.md) | **Compiled narrative** | Nothing new. Walks the R0 rendering for humans (domain, APIs, waves). If it disagrees with the rows above, those rows win (`HA-02`) |
+| [`docs/architecture/R0-E2E-FOR-DEVELOPERS.md`](../../../architecture/R0-E2E-FOR-DEVELOPERS.md) | **Compiled teaching** | Nothing new. Walks one sale and every hop for engineers (why, bank-standard fit, refusals). `HA-02` still applies |
 | [`docs/architecture/R0-LLD.md`](../../../architecture/R0-LLD.md) | **S09 platform pack** | Maps already-accepted R0 decisions onto AWS resources for the CTO / platform team. Must not invent a service the rows above do not name |
 | [`docs/architecture/BOARD-1-REREVIEW-VIN003-ESTATE-2026-09-14.md`](../../../architecture/BOARD-1-REREVIEW-VIN003-ESTATE-2026-09-14.md) | **Grounding · Board 1 draft** | `ARCH-DEC-VIN003-B1` — R0 spoke vs live AU estate. `APPROVED_WITH_CONDITIONS`. Does not own ADRs; does not replace T4 |
 | **`docs/architecture/r0-lld.svg`** | **Rendering** | Nothing. It *depicts* `R0-LLD.md`: VPC tiers, two-hop reverse proxy, EKS namespaces, data stores, PVC/cache/do-not-provision |

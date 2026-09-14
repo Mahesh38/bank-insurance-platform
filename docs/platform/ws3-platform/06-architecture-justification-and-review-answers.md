@@ -26,7 +26,7 @@
 - Normative R0 solution: [`03-solution-architecture-r0.md`](./03-solution-architecture-r0.md) — **authoritative; if this document disagrees with it, it wins (`HA-02`)**  
 - Visual HLD (R0 slice): [`../../architecture/r0-reference-architecture.svg`](../../architecture/r0-reference-architecture.svg) — the H0 rendering  
 - Visual HLD (full platform · release-coded `R0`…`RN`): [`../../hdl.svg`](../../hdl.svg) — the North Star rendering  
-- Compiled R0 narrative and S09 AWS pack: [`../../architecture/R0-HLD.md`](../../architecture/R0-HLD.md) · [`../../architecture/R0-LLD.md`](../../architecture/R0-LLD.md)  
+- Compiled R0 narrative, developer E2E walkthrough and S09 AWS pack: [`../../architecture/R0-HLD.md`](../../architecture/R0-HLD.md) · [`../../architecture/R0-E2E-FOR-DEVELOPERS.md`](../../architecture/R0-E2E-FOR-DEVELOPERS.md) · [`../../architecture/R0-LLD.md`](../../architecture/R0-LLD.md)  
 - Decision log (`ARCH-*`, `ADR-001`…`ADR-013`): [`../architecture-review/08-architecture-decision-log.md`](../architecture-review/08-architecture-decision-log.md)  
 - Target catalogue: [`../architecture-review/02-target-microservices-architecture.md`](../architecture-review/02-target-microservices-architecture.md)  
 - Data engines: [`../architecture-review/05-data-architecture.md`](../architecture-review/05-data-architecture.md)  

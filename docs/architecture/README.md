@@ -7,6 +7,7 @@ Two diagrams, deliberately. They answer different questions and **neither replac
 | [`../hdl.svg`](../hdl.svg) | *Where is this platform going, and what arrives in which release?* | Target state (North Star). AI-drafted, **T4 Architecture sign-off outstanding** |
 | [`r0-reference-architecture.svg`](./r0-reference-architecture.svg) | *What are we building right now, and how does the R0 journey actually run?* | R0 executable architecture — the admitted scope. **Rendering**; owns nothing |
 | [`R0-HLD.md`](./R0-HLD.md) | *Walk the R0 picture in prose: domain, ten boundaries, communication, APIs, business logic, waves vs stages vs releases* | Stakeholder HLD. Compiled view of the authoritative `ws3-platform/` sources. AI-drafted, T4 outstanding |
+| [`R0-E2E-FOR-DEVELOPERS.md`](./R0-E2E-FOR-DEVELOPERS.md) | *Why does each hop exist, does it match the bank estate, and what did we refuse?* | Teaching compilation for engineers. `HA-02`: HLD/LLD/ADRs still win |
 | [`../platform/ws3-platform/07-nip-bff-lead-phase-api-lld.md`](../platform/ws3-platform/07-nip-bff-lead-phase-api-lld.md) | *What does NIP-APP call for SCR-02..SCR-05 (inbox, search, Term create)?* | Consumer LLD + OpenAPI (`EPIC-003` / `ARCH-023`). AI-drafted; human Board 1 outstanding |
 | [`R0-LLD.md`](./R0-LLD.md) | *What AWS resources, VPC, reverse proxies, PVCs, databases and caches does the platform team provision for R0?* | S09 requirements pack for the CTO and AWS platform team. AI-drafted; Security / Database / SRE reviews outstanding |
 | [`BOARD-1-REREVIEW-VIN003-ESTATE-2026-09-14.md`](./BOARD-1-REREVIEW-VIN003-ESTATE-2026-09-14.md) | *Does that R0 spoke still hold against the live AU Control Tower / EDGE / SOP (`VIN-003`)?* | Board 1 draft `ARCH-DEC-VIN003-B1`: `APPROVED_WITH_CONDITIONS`, `A1`. **AI-drafted; human T4 outstanding** |
@@ -368,3 +369,10 @@ Human Architecture owner: keep Apigee **off every diagram** until `SPIKE-001` re
 | [`R0-HLD.md`](./R0-HLD.md) · [`ARB-ARCHITECTURE-DOSSIER.md`](./ARB-ARCHITECTURE-DOSSIER.md) | Spoke-attach language; overlay not named on the picture. |
 | [`diagrams/r0_platform_views.py`](./diagrams/r0_platform_views.py) | TGW labelled as existing hub we attach to; NOT IN R0 lists a second TGW/DX and Public VPC+IGW — **does not name the parked overlay**. |
 | [`r0-lld.svg`](./r0-lld.svg) | Stale CloudFront+WAF caption corrected; TGW labelled as existing hub. |
+
+## Revision — 2026-09-14 developer E2E walkthrough
+
+[`R0-E2E-FOR-DEVELOPERS.md`](./R0-E2E-FOR-DEVELOPERS.md) is a teaching cut of the same R0 picture
+for engineers who write Java / Flutter. It does not own a decision. If it disagrees with
+[`03-solution-architecture-r0.md`](../platform/ws3-platform/03-solution-architecture-r0.md),
+`R0-LLD.md`, or an ADR, those files win (`HA-02`).

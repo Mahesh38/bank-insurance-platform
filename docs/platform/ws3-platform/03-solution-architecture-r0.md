@@ -38,9 +38,10 @@ this document, decides nothing**, `HA-02`)
 
 **Stakeholder pack** (compiled views of *this* file and its companions, not a second source of
 truth): [`../../architecture/R0-HLD.md`](../../architecture/R0-HLD.md) walks the R0 picture for
-humans; [`../../architecture/R0-LLD.md`](../../architecture/R0-LLD.md) is the S09 AWS bill of
-materials for the CTO and platform team. Rule `HA-02` still applies: if those files and this
-document disagree, **this document wins**.
+humans; [`../../architecture/R0-E2E-FOR-DEVELOPERS.md`](../../architecture/R0-E2E-FOR-DEVELOPERS.md)
+teaches the same picture hop-by-hop to engineers; [`../../architecture/R0-LLD.md`](../../architecture/R0-LLD.md)
+is the S09 AWS bill of materials for the CTO and platform team. Rule `HA-02` still applies: if those
+files and this document disagree, **this document wins**.
 
 ---
 

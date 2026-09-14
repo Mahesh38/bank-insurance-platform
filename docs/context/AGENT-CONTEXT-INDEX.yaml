@@ -300,6 +300,13 @@ doc_routing:
       persona: architecture
       note: "ARCH-DEC-VIN003-B1 Board 1 draft vs VIN-003 estate. T4 human signature outstanding. Does not amend ADRs."
 
+    - match: ["docs/architecture/R0-E2E-FOR-DEVELOPERS.md"]
+      bucket: platform
+      authority: approved-spec
+      capsules: [architecture-review, target-state-vision, orient]
+      persona: architecture
+      note: "Compiled teaching. HA-02: 03-solution-architecture-r0, R0-LLD and ADRs win."
+
     - match: ["docs/architecture/*"]
       bucket: platform
       authority: approved-spec
@@ -488,7 +495,7 @@ capsules:
 
   - id: architecture-review
     intent: "Board 1 — decide whether a design is correctly shaped, or produce an HLD/LLD/ADR."
-    triggers: ["architecture review", "board 1", "service boundary", "bounded context", "should this be a service", "api design", "sync or async", "adr"]
+    triggers: ["architecture review", "board 1", "service boundary", "bounded context", "should this be a service", "api design", "sync or async", "adr", "e2e architecture", "explain architecture", "why this component"]
     persona: architecture
     budget_bytes: 45000
     load:
@@ -507,6 +514,8 @@ capsules:
         capsule: "database-review"
       - condition: "the R0 platform design is the subject"
         path: "docs/platform/ws3-platform/03-solution-architecture-r0.md"
+      - condition: "a developer wants an end-to-end teaching walkthrough of each hop"
+        path: "docs/architecture/R0-E2E-FOR-DEVELOPERS.md"
       - condition: "an ADR is being written"
         path: "docs/governance/templates/ADR.md"
       - condition: "landing zone, Control Tower, Transit Gateway, FortiGate, Direct Connect, bank cloud onboarding, or S3 public hosting is the subject"

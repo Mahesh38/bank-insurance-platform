@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20260913-ihb | 2026-09-13 | human:stakeholder | Build Integration Hub service (#14) as ACL middleman between BFF and provider adapters (1SB, later ICICI/HDFC). | SF3 | SC0 | NOT-NOW | ARCH | P4 / P1 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [detail](#sug-20260913-ihb--build-integration-hub-service-for-bff) |
 | SUG-20260913-qul | 2026-09-13 | agent:sandbox-validation | Retarget ULIP fund adapter to `/quote/ulipList` because demo unauth 401 “proves a route”. | SF4 | SC3 | REJECT | FUNC | — / — | REJECTED | [detail](#sug-20260913-qul--do-not-retarget-funds-to-quote-uliplist) |
 | SUG-20260913-fnd | 2026-09-13 | agent:sandbox-validation | 1SB demo 404 on documented `POST /insurance/lifesave/v1/fund/list` and `/fund/performance`. | SF2 | SC1 | NOT-NOW | OPS | P4 / P1 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [detail](#sug-20260913-fnd--1sb-demo-missing-documented-fund-routes) |
 | SUG-20260913-lap | 2026-09-13 | human:stakeholder | Wire only documented 1SB Life retail APIs (Product UI Data + ULIP fund list/performance). No save/send quote. Master is Building Blocks `POST /v1/master/lookup`. | SF1 | SC0 | MUST | FUNC | P1 / P1 | ADMITTED | [FUNC-027](../../1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md) · [detail](#sug-20260913-lap--documented-life-retail-api-parity) |
@@ -111,6 +112,152 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20260913-ihb · Build Integration Hub service for BFF
+
+```yaml
+# schema: triage-record
+id: SUG-20260913-ihb
+raised_at: "2026-09-13"
+raised_by: "human:stakeholder"
+source: "Cloud agent intake — start Integration Hub ASAP for BFF"
+input: >
+  We have 1sb-integration-service almost ready to use for the life lob, but we
+  have not started working on the integration hub service which is the anti
+  corruption layer for us which will act middlemen between our bff and
+  integrations like 1sb , icici, hdfc and so on. This will understand the bank
+  domain and 1sb too so we need it asap to start using it with bff.
+
+context:
+  workstream: WS-1
+  current_phase: "Phase 4 — Hardening & consumer enablement"
+  canonical_stage: "L7 — Hardening"
+  current_objective: "Term path signed off for UAT use by at least one bank caller; Life adapter coverage EPIC-002"
+  state_as_of: "2026-09-11"
+  state_provisional: false
+  active_work_item: "FUNC-027 / GATE-P4"
+
+stage_fit:
+  code: SF3
+  rationale: >
+    Integration Hub (#14) is real work and a standing hop (SUG-20260913-acl),
+    but neither GATE-P4 nor GATE-S08 requires Hub runtime. WS-1 Phase 4 in_scope
+    is Term UAT hardening + EPIC-002 adapter coverage, not Hub business logic.
+    WS-3 is S08 foundation; RM BFF provider ops land at S11. Work from n+2 is
+    always premature (03 §2). Skeleton module already exists
+    (services/integration-hub-service — SKELETON).
+  target_stage: "S11 / first named Hub API for BFF (WS-1 supplies #14 behind IF-1)"
+  unpark_trigger: >
+    NIP BFF or RM assisted Life screens need provider ops through Hub
+    (S11 / EPIC-004 FUNC), or Architecture opens a named Hub API epic for BFF.
+    Re-triage in full — do not auto-admit. Unpark with SUG-20260913-hms when
+    masters are in the same BFF contract slice.
+  future_necessity: MUST
+
+scope:
+  code: SC0
+  business_scope: >
+    Explicit WS-1 deliverable: bounded context #14 Integration Hub (WS-3
+    charter §5 supplier; backend-service-catalog; standing constraint that
+    provider traffic routes through the Hub).
+  serves: []
+  failure_without_it: >
+    At S11, BFF either violates the hop (calls 1SB directly) or has no bank-
+    language provider façade for quote/proposal/payment.
+  minimal: true
+  authority: "WS-3-PLATFORM-CHARTER §5 #14/#15; BOOT standing_constraints; backend-service-catalog context 14"
+
+necessity:
+  now: NOT-NOW
+  future_necessity: MUST
+  target_stage: "S11 / first named Hub API for BFF"
+  binds_when: "RM BFF or platform services need provider ops without speaking 1SB/insurer wire"
+  failure_without_it: >
+    Assisted Life screens cannot call providers through the ratified hop;
+    pressure rises to wire BFF → 1sb-integration-service directly (SF4 against
+    standing constraint).
+  evidence_tier: E2
+  evidence:
+    - "Verbatim stakeholder 2026-09-13: Hub ACL between BFF and 1SB/ICICI/HDFC ASAP"
+    - "BOOT standing constraint: provider traffic through Integration Hub; hop UI → BFF → Hub"
+    - "SUG-20260913-acl CLOSED-DELIVERED (hop recorded; catalog not built)"
+    - "services/integration-hub-service README: SKELETON — no business logic yet"
+    - "WS-1 CURRENT-STATE in_scope omits Hub implementation for Phase 4"
+    - "direct-insurer-adapter / E13 parked Phase 6+; ICICI/HDFC not R0"
+  confidence: C5
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: false   # no BFF calling Hub provider APIs today
+    X2_two_implementations: false  # only 1SB adapter live; ICICI/HDFC not started
+    X3_cheap_later: true       # contracts + routing can land when S11 BFF needs them
+    X5_stage_necessity: false  # S08 / Phase 4 do not need Hub runtime
+    X7_runtime_cost: true      # real service beyond scaffold
+    X9_problem_observed: false # no BFF→provider path blocked yet; lead BFF is EPIC-003
+
+action: PARK
+action_rationale: >
+  SC0 + future MUST, wrong stage. Park to S11 / named Hub API. Do not implement
+  Hub business logic in this turn. Related parked masters: SUG-20260913-hms.
+  Hop already locked: SUG-20260913-acl. Finish FUNC-027 / GATE-P4 first.
+duplicate_of: null
+related:
+  - SUG-20260913-acl   # hop / ACL standing rule — CLOSED-DELIVERED
+  - SUG-20260913-hms   # Hub bank-language masters — PARKED same trigger family
+  - EPIC-003           # NIP BFF lead phase — does not yet require Hub provider ops
+  - EPIC-004 / CR-015  # assisted Life journey — Hub unparks with BFF provider screens
+conflicts: []
+
+classification:
+  type: ARCH
+  also: [FUNC, INFRA]
+  breakdown: EPIC   # Hub runtime + bank API + routing + at least one adapter consumer
+  epic: null        # mint at unpark
+  risk_tier: T3     # new service boundary + contracts; Architecture board at unpark
+  destination: "PARKED-BACKLOG → unpark to WS-1 Hub epic / PRODUCT or platform backlog"
+
+priority:
+  now: P4
+  at_target: P1
+  factors: { N: 4, S: 1, B: 2, R: 2, D: 2, E: 1 }
+  score: null
+  matrix_default: P4
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: >
+    SF3 MUST → PARK · P4 now (00 §6). At S11 the same gap is P1: BFF cannot
+    complete assisted Life provider hops without Hub.
+
+dependencies:
+  edges:
+    - { type: ENABLES, target: "SUG-20260913-hms" }
+    - { type: DEPENDS_ON, target: "SUG-20260913-acl" }
+    - { type: DEPENDS_ON, target: "EPIC-002 / 1sb-integration-service Life path" }
+  state: PARKED
+  enablement_count: 0
+  earliest_start: "S11 unpark / named Hub API epic"
+  cycles: none
+
+breakdown:
+  children: []
+  completion_definition: >
+    At unpark: Hub exposes bank-language APIs; routes to 1sb-integration-service
+    only; BFF never sees 1SB wire; ArchUnit/hop proven; ICICI/HDFC remain later.
+  not_included:
+    - "Implementing Hub business logic in this turn"
+    - "ICICI / HDFC / direct-insurer-adapter (Phase B / E13)"
+    - "Customer BFF (context #1) — out of scope until R1"
+    - "Hub masters catalog alone (SUG-20260913-hms)"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md · PARKED-BACKLOG.md"
+  work_item_id: null
+  plan_id: null
+  status: PARKED
+  closed_reason: null
+
+resumed: "FUNC-027 / GATE-P4 — no Hub implementation this turn"
+```
 
 ### SUG-20260913-qul · Do not retarget funds to quote-ulipList
 

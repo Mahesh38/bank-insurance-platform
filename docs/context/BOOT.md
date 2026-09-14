@@ -80,7 +80,7 @@ Full table with the wrong-instinct column:
 
 > Generated from [`CURRENT-STATE.yaml`](../governance/state/CURRENT-STATE.yaml) by `scripts/context/build-boot-capsule.py`. Do not hand-edit this block.
 
-**AIGEM 1.4** · state as of **2026-09-11** · review due **2026-10-11** · provisional: **no**
+**AIGEM 1.4** · state as of **2026-09-13** · review due **2026-10-11** · provisional: **no**
 
 > **Fact 9 — freshness.** Past `review_due`, an agent may park and reject but **must not admit new work** (Rule CS-1). Run `java scripts/governance/FreshnessCheck.java` and act on the exit code: `0` fresh · `1` warn, disclose it · `2` do not admit.
 
@@ -92,16 +92,8 @@ Full table with the wrong-instinct column:
 
 **Objective** (`R0-ASSISTED-LIFE-SALE`): One RM sells a complete Life insurance policy — Term or Savings/ULIP — to one ETB customer from one Group A insurer, end to end, through a real interface, with consent and suitability evidence, payment on the customer's own device, an issued and reconciled policy, and a complete audit trail. R0 includes both Term and Savings/ULIP assisted paths (CR-015). DIY and hybrid stay sequenced behind the assisted journey.
 
-**Open gate:** `GATE-S08` · state `OPEN` · 10 of 10 exit criteria not yet met — 5 OPEN · 5 PARTIAL
-- `S08-G1` **PARTIAL** — CI builds and tests every module on every PR · Amit / Engineering
+**Open gate:** `GATE-S08` · state `OPEN` · 2 of 10 exit criteria not yet met — 2 OPEN
 - `S08-G2` **OPEN** — Merge to main impossible without a green pipeline · Amit / Engineering
-- `S08-G3` **PARTIAL** — Coverage thresholds enforced; QA-001 closed · Swapnali / QA
-- `S08-G4` **PARTIAL** — ArchUnit and static analysis enforced · Amit / Engineering
-- `S08-G5` **PARTIAL** — Secret, SAST, SCA and image scanning in the pipeline · Deepali / Security
-- `S08-G6` **OPEN** — Test infrastructure operational at every pyramid level · Swapnali / QA
-- `S08-G7` **PARTIAL** — No PII in logs, proven by automated test · Deepali / Security
-- `S08-G8` **OPEN** — Engineering and secure coding standards published and adopted · Amit / Engineering
-- `S08-G9` **OPEN** — Pipeline feedback under 10 minutes at p95; flake under 1% · Shivanshi / SRE
 - `S08-G10` **OPEN** — A new engineer can build, test and ship in under a week · Amit / Engineering
 
 **Out of scope now — do not propose, do not build:**
@@ -141,14 +133,13 @@ Full table with the wrong-instinct column:
 
 **Objective** (`P4-UAT-SIGNOFF`): Term path signed off for UAT use by at least one bank caller, while EPIC-002 delivers Life LOB adapter coverage (Term + Savings + ULIP) and adapter standards under CR-014 (does not replace Term UAT exit criteria).
 
-**Open gate:** `GATE-P4` · state `BLOCKED` · 7 of 7 exit criteria not yet met — 2 OPEN · 2 PARTIAL · 3 BLOCKED
+**Open gate:** `GATE-P4` · state `BLOCKED` · 6 of 7 exit criteria not yet met — 2 OPEN · 1 PARTIAL · 3 BLOCKED
 - `4.1` **BLOCKED** — Sandbox E2E suite for the Term path runs in CI (or gated nightly) · Amit / Engineering + R10 / Operations · blocked by GATE-4.1-SANDBOX-E2E
 - `4.2` **PARTIAL** — OpenAPI published to internal portal; consumer collection available
 - `4.3` **BLOCKED** — At least one bank caller exercises quote + proposal against UAT · Rajal / Product · blocked by DEP-001, DEP-002
 - `4.4` **OPEN** — Compliance review of audit schema and log samples
 - `4.5` **OPEN** — Runbook: secrets rotation, IP whitelist, 1SB 401/5xx incident
 - `4.6` **BLOCKED** — Performance smoke: p95 quote under nominal concurrency · Amit / Engineering + R10 / Operations · blocked by DEP-003
-- `4.7` **PARTIAL** — Coverage gates green; QA-001 closed or explicitly waived with expiry · Swapnali / QA · blocked by S08-G3
 
 **Out of scope now — do not propose, do not build:**
 - Kafka / event backbone — revisit at Integration architecture stage
@@ -216,7 +207,7 @@ Full table with the wrong-instinct column:
 
 ### Known open debt — **fact 7: do not re-report these**
 
-`TD-006` · `TD-007` · `TD-009` · `TD-010` · `TD-014` · `TD-022` · `TD-023` · `QA-001`  
+`TD-006` · `TD-007` · `TD-009` · `TD-010` · `TD-022` · `TD-023` · `QA-014`  
 Detail: [`01-CURRENT_STATE.md` section 6](../governance/01-CURRENT_STATE.md#6-known-open-debt-affecting-triage).
 
 <!-- END GENERATED: current-state -->

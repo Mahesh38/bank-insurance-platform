@@ -18,9 +18,9 @@ name: Application CI
 #    (Board 1 finding A-F05 / Engineering finding T-F01.)
 #
 # BRANCH PROTECTION — required to close S08-G2, and NOT configurable from this file.
-# A repository administrator must, on `main`:
+# A repository administrator must, on `main` (ruleset preferred):
 #   * require a pull request before merging, with >= 1 approving review;
-#   * require these status checks to pass, exactly as named:
+#   * require these status checks to pass, exactly as named on check runs:
 #       - "Java 21 tests and coverage gates"       (this workflow)
 #       - "Secret scanning (gitleaks)"             (security-scanning.yml)
 #       - "SAST (CodeQL, Java)"                    (security-scanning.yml)
@@ -30,6 +30,7 @@ name: Application CI
 #   * disallow force-push and deletion.
 # Until that is configured, S08-G2 stays OPEN however green this workflow is:
 # the pipeline is the mechanism, and branch protection is what makes it a gate.
+# Human pack: scripts/governance/evidence/S08-G2-branch-protection-human-pack.md
 
 on:
   pull_request:
@@ -53,7 +54,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
+      # fetch-depth: 0 so Spotless ratchetFrom("origin/main") can resolve the baseline
+      # commit. A shallow clone makes spotlessCheck fail with "No such reference
+      # 'origin/main'" before any formatting rule runs (seen on run 34779413538).
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Ensure origin/main exists for Spotless ratchet
+        run: git rev-parse --verify origin/main || git fetch --no-tags origin main:refs/remotes/origin/main
 
       - uses: actions/setup-java@v4
         with:
@@ -63,13 +72,21 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
 
       # `build` compiles main and test sources for every module and runs `check`,
-      # which the root build script wires to jacocoTestCoverageVerification. The
-      # verification task is named explicitly as well so that a future change to
-      # that wiring cannot silently drop the coverage gate from CI.
+      # which the root build script wires to jacocoTestCoverageVerification,
+      # checkstyleMain/checkstyleTest (S08-G4), and spotlessCheck (S08-G4). The
+      # verification tasks are named explicitly as well so that a future change to
+      # that wiring cannot silently drop the coverage or static-analysis gates from CI.
       - name: Build, test and verify coverage gates
         run: |
           chmod +x gradlew
           ./gradlew --no-daemon build test jacocoTestReport jacocoTestCoverageVerification
+
+      # S08-G4 — static analysis half. `build` already ran these via `check`; naming
+      # them here keeps a regression readable in the job summary and fails loudly if
+      # a future rewiring drops them from `check`.
+      - name: Static analysis (Checkstyle + Spotless)
+        run: |
+          ./gradlew --no-daemon checkstyleMain checkstyleTest spotlessCheck
 
       # ArchUnit boundary rules and the S08-VT-03 "rules bite" suite run as part of
       # `test` above. Surfacing them separately makes an architecture regression
@@ -96,5 +113,7 @@ jobs:
           path: |
             **/build/reports/tests/**
             **/build/reports/jacoco/**
+            **/build/reports/checkstyle/**
+            **/build/reports/spotless/**
           if-no-files-found: warn
           retention-days: 14

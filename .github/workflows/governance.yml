@@ -94,6 +94,15 @@ jobs:
       - name: Autopilot safety tests
         run: python3 scripts/governance/test_autopilot.py
 
+      - name: S08-G9 pipeline feedback measurement tests
+        run: python3 scripts/governance/test_measure_pipeline_feedback.py
+
+      - name: S08-G9 pipeline feedback thresholds (committed snapshot)
+        run: >
+          python3 scripts/governance/measure-pipeline-feedback.py
+          --from-file scripts/governance/evidence/S08-G9-pipeline-feedback.json
+          --assert
+
       - name: Autopilot status (proposal-only)
         run: python3 scripts/governance/autopilot.py status
 

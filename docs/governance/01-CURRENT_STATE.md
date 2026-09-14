@@ -59,8 +59,26 @@ the agent believed at decision time — a decision that was correct against a st
 > 2026-09-09, which halted new-work admission for every agent under Rule CS-1. The refresh is a
 > review sweep, not a date bump: the delta is in §4.1 and the per-criterion evidence is in
 > [`state/GATE-EVIDENCE.yaml`](./state/GATE-EVIDENCE.yaml). **No stage advanced, no gate was
-> marked `CANDIDATE` or `PASSED`, and no criterion was marked `MET`.** Three workstreams sit in
-> the same phase they did on 2026-08-10.
+> marked `CANDIDATE` or `PASSED`, and no criterion was marked `MET` at that refresh.** Three
+> workstreams sit in the same phase they did on 2026-08-10.
+>
+> **2026-09-13 — S08-G1 closed.** Engineering (Amit seat) declared `S08-G1` `MET` on the `ci`
+> verifier after re-verifying application CI. `GATE-S08` remains `OPEN`. No stage advanced.
+>
+> **2026-09-13 — S08-G6 closed.** QA (Swapnali seat) declared `S08-G6` `MET` after Engineering
+> cleared `TD-014` with `libs/bank-common-test` (Testcontainers + WireMock harness) and proving
+> ITs. `GATE-S08` remains `OPEN`. No stage advanced.
+>
+> **2026-09-13 — S08-G5 closed.** Security (Deepali seat) declared `S08-G5` `MET` after the
+> blocking Trivy container image scan job landed. `GATE-S08` remains `OPEN`.
+>
+> **2026-09-13 — S08-G3 closed.** QA (Swapnali seat) declared `S08-G3` `MET`: QA-001 Closed —
+> Phase-1 services at 90/70, scaffold 50% floor ratified, package floors → QA-014 (expiry
+> 2026-10-31). WS-1 criterion 4.7 also MET. `GATE-S08` remains `OPEN`. No stage advanced.
+>
+> **2026-09-13 — S08-G9 closed.** SRE (Shivanshi seat) declared `S08-G9` `MET` after measuring
+> Application CI feedback p95 ≈ 2.8 min (≥20 PR runs) and flake rate 0.00% (≥50 concluded runs).
+> `GATE-S08` remains `OPEN`. No stage advanced.
 
 ---
 
@@ -79,7 +97,7 @@ moved a stage.
 |---|--------|-----------------------|
 | 1 | **WS-3 was missing from this file entirely.** It is the primary workstream, registered by CR-010, and §4 listed only WS-1 and WS-2. Added below. | [CR-010](./change-requests/) · [WS-3 charter](./workstreams/WS-3-PLATFORM-CHARTER.md) |
 | 2 | **Application CI exists and runs on every push and pull request**, building and testing all 27 modules. 348 recorded runs; the 15 most recent all green. | `.github/workflows/application-ci.yml` (`c4e8d9f`) |
-| 3 | **A security scanning pipeline exists and blocks**: gitleaks, CodeQL Java SAST, Trivy SCA, scheduled full-history secret scan, SBOM. Container image scanning is still absent. | `.github/workflows/security-scanning.yml` |
+| 3 | **A security scanning pipeline exists and blocks**: gitleaks, CodeQL Java SAST, Trivy SCA, Trivy container image scan (Phase 1 + combined images), scheduled full-history secret scan, SBOM. | `.github/workflows/security-scanning.yml` |
 | 4 | **The service estate was scaffolded from the architecture catalogue** — 21 services and 6 shared libraries, each service carrying an ArchUnit boundary test. They are skeletons: 2 test files each. | `settings.gradle.kts` (`b6d4304`, `b9040c3`) |
 | 5 | **EPIC-001 platform error contract delivered** across the shared libraries: one error handler, L4 redaction, incident ids, MDC propagation. | ADR-017 · `6243aa5`…`e6c806f` |
 | 6 | **EPIC-002 Life LOB adapter coverage delivered on main**: typed Term, Saving and ULIP quote and proposal handlers, bank domain model extracted, circuit breaker corrected for 422, QA-012 WireMock regression. | `e273a82`, `0f407b9`, `a866143`, `59f193c`, `eb1dbc0` |
@@ -92,17 +110,17 @@ GATE-P4 has been `BLOCKED` since 2026-08-16 on four blockers that nobody chased.
 dedicated effort at all. The capability delivered in this period (services, error contract, Life
 LOB, lead contract) is real, and none of it was gate-closing work.
 
-**Four named gaps** stand between the current evidence and GATE-S08, each against a ratified
-criterion rather than new scope:
+**Named gaps** against ratified GATE-S08 criteria (not new scope):
 
-1. **Static analysis has no mechanism** (S08-G4). No Checkstyle, PMD, SpotBugs or Spotless in the
-   root build. ArchUnit is enforced; the other half of the criterion is not.
-2. **No container image scanning** (S08-G5). Three of four named scanners are in the pipeline and a
-   root `Dockerfile` ships an image that nothing scans.
-3. **No log-scan PII test** (S08-G7). Redaction is unit-tested; S08-VT-06 asks for a test that
-   scans all emitted logs, which would prove no path bypasses the masker.
-4. **No shared integration harness** (S08-G6). WireMock exists in one module, Testcontainers in
-   none, so the middle of the test pyramid has nothing to stand on. TD-014 is the ledger entry.
+1. ~~**Static analysis has no mechanism** (S08-G4)~~ — **closed 2026-09-13** (Checkstyle +
+   Spotless in root `check` / application-ci; estate clean; breach probes fail; S08-G4 MET).
+2. ~~**No container image scanning** (S08-G5)~~ — **closed 2026-09-13** (`image-scan` job in
+   `security-scanning.yml`; Trivy CRITICAL/HIGH on Phase 1 + combined images; S08-G5 MET).
+3. ~~**No log-scan PII test** (S08-G7)~~ — **closed 2026-09-13** (`LogPiiScrubber` on
+   `Slf4jErrorRecorder` + `NoPiiInEmittedLogsTest` ListAppender scan for PAN/Aadhaar/phone/email/
+   health; S08-VT-06; S08-G7 MET).
+4. ~~**No shared integration harness** (S08-G6)~~ — **closed 2026-09-13** (`bank-common-test` +
+   Testcontainers/WireMock proving ITs; TD-014 Closed; S08-G6 MET).
 
 ### WS-3 · AU Bank Insurance Distribution Platform — **primary**
 
@@ -115,7 +133,7 @@ criterion rather than new scope:
 | **Deliverable** | Application CI with enforced quality, security and architecture gates (S08); IaC, environments, secrets, observability and 7-year write-once retention in ap-south-1 (S09); consent and suitability rule packs, R0 acceptance criteria, product matrix and service blueprint in parallel |
 | **Delivered so far** | Application CI and security scanning pipelines; 21 services and 6 libraries scaffolded with ArchUnit boundary tests; EPIC-001 error contract; EPIC-003 lead API contract |
 | **Not yet started** | All of S09 — IaC, environments, secrets management, the ap-south-1 retention path |
-| **Gate** | `GATE-S08` · `OPEN` · 5 of 10 criteria PARTIAL, 5 OPEN, none MET |
+| **Gate** | `GATE-S08` · `OPEN` · 8 of 10 criteria MET (G1, G3–G9), 0 PARTIAL, 2 OPEN (G2, G10) |
 | **Next stage** | S09 — Platform & Environment Foundation |
 | **Authority** | [WS-3 charter](./workstreams/WS-3-PLATFORM-CHARTER.md) · [architecture registration](../platform/ws3-platform/00-WS3-ARCHITECTURE-REGISTRATION.md) |
 | **Entry condition on S11** | Non-waivable (Rajal condition C5): no WS-3 stage enters S11 while GAP-006 (consent) or GAP-007 (suitability) is open |
@@ -125,16 +143,16 @@ criterion rather than new scope:
 
 | # | Exit criterion | State | Owner |
 |---|----------------|-------|-------|
-| S08-G1 | CI builds and tests every module on every PR | 🟡 Partial — E4 evidence assembled, `MET` is Engineering's to declare | Amit |
+| S08-G1 | CI builds and tests every module on every PR | ✅ MET — Engineering declared 2026-09-13 on ci verifier (392 runs; tip 34768713603) | Amit |
 | S08-G2 | Merge to main impossible without a green pipeline | ❌ Open — branch protection is a repo-admin setting, not a file here | Amit |
-| S08-G3 | Coverage thresholds enforced; QA-001 closed | 🟡 Partial — enforcement runs; QA-001 open on the interim service floor | Swapnali |
-| S08-G4 | ArchUnit and static analysis enforced | 🟡 Partial — ArchUnit in 18 modules; no static analysis at all | Amit |
-| S08-G5 | Secret, SAST, SCA and image scanning in the pipeline | 🟡 Partial — three of four; no image scanning | Deepali |
-| S08-G6 | Test infrastructure at every pyramid level | ❌ Open — blocked by TD-014; no shared integration harness | Swapnali |
-| S08-G7 | No PII in logs, proven by automated test | 🟡 Partial — redaction unit-tested; no log-scan test (S08-VT-06) | Deepali |
-| S08-G8 | Engineering and secure coding standards published | ❌ Open — no mechanism started; blocks nothing, which is why it keeps slipping | Amit |
-| S08-G9 | Pipeline feedback < 10 min p95; flake < 1% | ❌ Open — unmeasured; observed sample is inside both thresholds | Shivanshi |
-| S08-G10 | A new engineer can build, test and ship in under a week | ❌ Open — needs an onboarding record, which has a lead time the others do not | Amit |
+| S08-G3 | Coverage thresholds enforced; QA-001 closed | ✅ MET — Phase-1 at 90/70; scaffold floor ratified; QA-001 Closed → QA-014 (2026-09-13) | Swapnali |
+| S08-G4 | ArchUnit and static analysis enforced | ✅ MET — Checkstyle + Spotless in `check`/CI; ArchUnit unchanged (2026-09-13) | Amit |
+| S08-G5 | Secret, SAST, SCA and image scanning in the pipeline | ✅ MET — Trivy image-scan job on Phase 1 + combined images (2026-09-13) | Deepali |
+| S08-G6 | Test infrastructure at every pyramid level | ✅ MET — `bank-common-test` harness + Postgres/WireMock proving ITs; TD-014 Closed (2026-09-13) | Swapnali |
+| S08-G7 | No PII in logs, proven by automated test | ✅ MET — LogPiiScrubber + NoPiiInEmittedLogsTest (S08-VT-06) (2026-09-13) | Deepali |
+| S08-G8 | Engineering and secure coding standards published | ✅ MET — standards + PR checklist + PR template (2026-09-13) | Amit |
+| S08-G9 | Pipeline feedback < 10 min p95; flake < 1% | ✅ MET — p95 ≈ 2.8 min; flake 0.00% over ≥50 runs (2026-09-13) | Shivanshi |
+| S08-G10 | A new engineer can build, test and ship in under a week | ❌ Open — onboarding pack ready; needs named attestation | Amit |
 
 ### WS-1 · 1SB Insurance Integration
 
@@ -157,7 +175,7 @@ criterion rather than new scope:
 - [ ] Compliance sign-off on audit schema and log samples
 - [ ] Runbook (secrets rotation, IP whitelist, 1SB 401/5xx incident) exists
 - [ ] p95 quote latency measured under nominal concurrency
-- [ ] Coverage gates green; QA-001 closed or waived with expiry (added by CR-001)
+- [x] Coverage gates green; QA-001 closed (Closed 2026-09-13; package floors → QA-014)
 
 ### WS-2 · Workforce Authentication & Authorization
 
@@ -221,10 +239,10 @@ Agents should recognise these so they do not re-report them as new findings. Ful
 | TD-007 | P3 | ArchUnit `allowEmptyShould(true)` | Known. |
 | TD-009 | P2 | Missing domain ports vs architecture | Known. |
 | TD-010 | P2 | No Redis idempotency/cache adapter | Known; in-memory accepted until Phase 5.4. |
-| TD-014 | P2 | No WireMock/E2E for integration ↔ persistence | Overlaps Phase 4 gate item 4.1. |
+| TD-014 | P2 | ~~No WireMock/E2E for integration ↔ persistence~~ | **Closed 2026-09-13** — `bank-common-test` + SharedHarnessProposalSmokeIT |
 | TD-022 | P1 | FUNC-008 payment intimation not implemented | Scheduled Phase 5.3. |
 | TD-023 | P2 | Raw payload capture not wired for status/master-data | Known. |
-| QA-001 | P0 | JaCoCo gates — **partial** | Libs done; service floor interim. |
+| QA-001 | P0 | JaCoCo gates — **Closed** | Phase-1 90/70; scaffold floor ratified; package floors → QA-014 |
 
 > **Rule CS-2 — Duplicate suppression.** Before creating a `SUG-####`, an agent checks the debt
 > ledger and [registers/SUGGESTION-REGISTER.md](./registers/SUGGESTION-REGISTER.md). A repeat

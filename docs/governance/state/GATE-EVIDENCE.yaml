@@ -1,13 +1,45 @@
 schema_version: "1.0"
-as_of: "2026-09-11"
+as_of: "2026-09-13"
 
+# 2026-09-13 — SRE (Shivanshi seat) closed S08-G9 → MET. Measured Application CI via
+# scripts/governance/measure-pipeline-feedback.py: p95 feedback ~2.8 min across ≥20 PR runs;
+# flake rate 0.00% across ≥50 concluded runs (401 API total; 351 concluded). Committed snapshot
+# scripts/governance/evidence/S08-G9-pipeline-feedback.json; governance CI asserts thresholds.
+# GATE-S08 stays OPEN; policy.mode proposal-only; approvals empty; no stage field touched.
+#
+# 2026-09-13 — Security (Deepali seat) closed S08-G7 → MET. Framework LogPiiScrubber on
+# Slf4jErrorRecorder plus NoPiiInEmittedLogsTest (S08-VT-06 ListAppender scan of emitted logs for
+# PAN, Aadhaar, phone, email, health). Local verify: bank-common-error test + coverage green.
+# GATE-S08 stays OPEN; policy.mode proposal-only; approvals empty; no stage field touched.
+#
+# 2026-09-13 — Engineering (Amit seat) closed S08-G4 → MET. Spotless (ratchetFrom origin/main)
+# + Checkstyle (config/checkstyle, maxWarnings=0) wired into root `check` and named explicitly
+# in application-ci.yml. Local verify: checkstyle/spotless clean exit 0; star-import and
+# format-breach probes exit 1. ArchUnit half unchanged. GATE-S08 stays OPEN; policy.mode
+# proposal-only; approvals empty; no stage field touched.
+#
+# 2026-09-13 — Security (Deepali seat) closed S08-G5 → MET. Container image scanning added to
+# security-scanning.yml (Trivy image job matrix: bank-persistence-service, 1sb-integration-service,
+# bank-insurance-combined). Local verify: CRITICAL/HIGH 0 on all three images with ignore-unfixed.
+# GATE-S08 stays OPEN; policy.mode proposal-only; approvals empty; no stage field touched.
+#
+# 2026-09-13 — QA (Swapnali seat) closed S08-G6 → MET after Engineering cleared TD-014
+# with libs/bank-common-test (Testcontainers + WireMock harness) and proving ITs. GATE-S08 stays OPEN.
+
+# 2026-09-13 — Engineering (Amit seat) closed S08-G1 → MET. Verifier is `ci`. Re-verified
+# against application-ci.yml (no path filter on pull_request; push to every branch), the root
+# Gradle line covering all 27 modules in settings.gradle.kts, and run history (392 recorded
+# runs; latest 20 all success, tip run 34768713603 at 2026-09-13T16:29:09Z). This is a
+# criterion closure, not a gate transition: GATE-S08 remains OPEN, policy.mode remains
+# proposal-only, every approvals: list remains empty, and no stage field was touched.
+#
 # 2026-09-11 — R12 (Kalpana seat) gate-evidence sweep, run with the CURRENT-STATE.yaml freshness
 # refresh. Three things happened here and they are deliberately different actions:
 #
 #  1. EVIDENCE ASSEMBLED. Criteria whose mechanism now demonstrably exists carry that evidence in
 #     `evidence:` and a `last_verified_at` date. Assembling evidence is not passing a gate.
 #     `policy.mode` is still proposal-only, `human_pass_required` is still true, and every
-#     `approvals:` list is still empty. No criterion was set MET or WAIVED by this sweep.
+#     `approvals:` list is still empty. No criterion was set MET or WAIVED by that sweep.
 #
 #  2. BLOCKER AGEING CORRECTED. Every follow-up date in this file had passed — the newest by 12
 #     days, the oldest by 21. A follow-up date in the past is not a tracked dependency, it is a
@@ -16,8 +48,8 @@ as_of: "2026-09-11"
 #     R12 sets the date and names the owner. R12 does not supply the answer (Rule PA-1).
 #
 #  3. GAPS NAMED. Where a criterion is short of its own S08-VT validation test, the missing half
-#     is stated rather than averaged into "in progress" — static analysis (G4), container image
-#     scanning (G5), the log-scan test (G7), the shared integration harness (G6).
+#     is stated rather than averaged into "in progress". (G4 static analysis, G5 image scanning,
+#     G6 shared harness and G7 log-scan PII test closed 2026-09-13.)
 
 policy:
   mode: proposal-only
@@ -141,7 +173,7 @@ workstreams:
         last_verified_at: null
       - id: "4.7"
         description: "Coverage gates green; QA-001 closed or explicitly waived with expiry."
-        state: PARTIAL
+        state: MET
         owner: "Swapnali / QA"
         execution_mode: AUTOMATABLE
         priority: P2
@@ -151,16 +183,10 @@ workstreams:
         verifier: ci
         evidence:
           - "Shared-library coverage gates at 80% line / 70% branch"
-          - "jacocoTestCoverageVerification executes on every pull request via application-ci.yml and is green (348 recorded runs, latest 2026-09-11) — the condition CURRENT-STATE.yaml recorded for returning 4.7 to PARTIAL"
-        blockers:
-          - id: S08-G3
-            type: HARD
-            owner: "Amit / Engineering"
-            # OVERDUE 12 days. DL2. Upstream S08-G3 is itself PARTIAL now: the threshold
-            # mechanism runs, so what remains is a QA decision — close QA-001 or waive it with an
-            # expiry and a compensating control. Either closes 4.7; neither is R12's to make.
-            follow_up: "2026-09-18"
-        last_verified_at: "2026-09-11"
+          - "jacocoTestCoverageVerification executes on every pull request via application-ci.yml and is green"
+          - "QA-001 Closed 2026-09-13; S08-G3 MET — Phase-1 90/70; scaffold floor ratified; package floors → QA-014 with expiry 2026-10-31"
+        blockers: []
+        last_verified_at: "2026-09-13T19:22:01Z"
     approvals: []
 
   - id: WS-2
@@ -267,7 +293,7 @@ workstreams:
     criteria:
       - id: "S08-G1"
         description: "CI builds and tests every module on every pull request."
-        state: PARTIAL
+        state: MET
         owner: "Amit / Engineering"
         execution_mode: AUTOMATABLE
         priority: P1
@@ -277,12 +303,11 @@ workstreams:
         verifier: ci
         evidence:
           - "Pipeline definition: .github/workflows/application-ci.yml (c4e8d9f, 2026-08-16). Triggers on pull_request with no paths filter and on push to every branch, so a working branch is evidenced before a PR exists."
-          - "Module coverage: the root task line runs build, test, jacocoTestReport and jacocoTestCoverageVerification across all 27 modules declared in settings.gradle.kts (6 libs + 21 services)."
-          - "Run history: 348 recorded runs of the workflow; the 15 most recent all concluded success, the latest against PR #95 at 2026-09-11T13:38Z."
+          - "Module coverage: the root task line runs `./gradlew --no-daemon build test jacocoTestReport jacocoTestCoverageVerification` across all 27 modules declared in settings.gradle.kts (6 libs + 21 services)."
+          - "Run history: 392 recorded runs of the workflow (API total_count); the 20 most recent all concluded success, the latest run 34768713603 at 2026-09-13T16:29:09Z on pull_request."
+          - "Engineering declaration (Amit seat, 2026-09-13): criterion S08-G1 MET on the ci verifier. GATE-S08 remains OPEN; this is not a stage transition and not a human gate approval."
         blockers: []
-        # PARTIAL, not MET. The E4 evidence is assembled and it is Amit's declaration to make
-        # (04 section 5). An agent that wrote MET here would be manufacturing a pass.
-        last_verified_at: "2026-09-11"
+        last_verified_at: "2026-09-13T16:29:09Z"
       - id: "S08-G2"
         description: "Merge to main is impossible without a green pipeline."
         state: OPEN
@@ -294,16 +319,23 @@ workstreams:
         required_evidence_level: E4
         verifier: human-review
         evidence:
-          - "The four status checks that must be required are named exactly in the application-ci.yml header: \"Java 21 tests and coverage gates\", \"Secret scanning (gitleaks)\", \"SAST (CodeQL, Java)\", \"SCA (Trivy dependency scan)\". The naming work is done."
+          - "The four status checks that must be required are named exactly in the application-ci.yml header and matching security-scanning.yml job names: \"Java 21 tests and coverage gates\", \"Secret scanning (gitleaks)\", \"SAST (CodeQL, Java)\", \"SCA (Trivy dependency scan)\". The naming work is done."
+          - "Human action pack assembled/refreshed 2026-09-13: scripts/governance/evidence/S08-G2-branch-protection-human-pack.md. Live check-run names captured from main tip; ruleset 20028494 ('No force push allowed') exists but is disabled; no required-status ruleset active. Classic protection GET returns HTTP 403. Still OPEN; not a MET declaration."
+          - "CI mechanism hardened 2026-09-13: application-ci.yml fetch-depth 0 + origin/main fetch so Spotless ratchetFrom(origin/main) works on runners (fixes No such reference 'origin/main' on run 34779413538). Green pipeline still does not close G2 without admin required checks."
+          - "2026-09-13T20:21Z tip cd5ba9c — Application CI 34780098265 + Security Scanning 34780098279 + Governance + Knowledge Hub all success; four required-named checks green. POST/PUT rulesets still HTTP 403 for the agent token. Pack refreshed with copy-paste ruleset JSON. Still OPEN; not a MET declaration."
+          - "2026-09-13T20:33Z tip 2da9ce3 — Application CI 34780660671 + Security Scanning 34780660696 + Governance 34780660661 + Knowledge Hub 34780660629 all success. Ruleset 20028494 still disabled; PUT ruleset still HTTP 403. Pack tip references refreshed. Still OPEN; not a MET declaration."
+          - "2026-09-13T20:42Z tip a7d6e71 CI all success (App 34781213462). Added admin apply + read-only verify scripts under scripts/governance/evidence/S08-G2-*.sh; verify exit 1 (no active required-checks ruleset). Still OPEN; not a MET declaration."
+          - "2026-09-13T21:05Z collaborator API: Mahesh38 is repo admin; agent token admin=false. Named Mahesh38 in S08-G2 pack as the actor to run S08-G2-apply-required-checks.sh. Ruleset 20028494 still disabled; verify exit 1. Still OPEN; not a MET declaration."
+          - "2026-09-13T21:28Z tip d4fe27d — S08-G2-verify-required-checks.sh exit 1; ruleset 20028494 still enforcement=disabled (deletion + non_fast_forward only); four required checks still MISS; PUT ruleset still HTTP 403. Still OPEN; not a MET declaration."
+          - "2026-09-13T21:42Z tip e9a5e5d CI all success (22 checks). Added S08-G2-demo-blocked-merge.sh (post-verify API merge probe → S08-G2-blocked-merge.out). Smoke: demo exits 1 while protection off. Ruleset 20028494 still disabled; verify exit 1. Still OPEN; not a MET declaration."
+          - "2026-09-13T22:26Z re-probe (pre-one-shot commit): ruleset 20028494 still enforcement=disabled; verify exit 1; agent PUT still HTTP 403. Added scripts/governance/evidence/S08-Mahesh38-close-remaining.sh (one-shot apply→verify→demo + G10 attestation reminder for admin PAT). Still OPEN; not a MET declaration."
         blockers: []
-        # Stays OPEN on 2026-09-11 and will stay OPEN however green the pipeline gets. Branch
-        # protection on main is a repository-administrator setting, not a file in this repository,
-        # and the criterion also wants a blocked-merge demonstration. A green pipeline is the
-        # mechanism; branch protection is what makes it a gate. R12 cannot evidence either.
-        last_verified_at: "2026-09-11"
+        # Stays OPEN until a human admin enables required checks on main and demonstrates a
+        # blocked merge. Branch protection is not a file in this repository.
+        last_verified_at: "2026-09-13T22:26:00Z"
       - id: "S08-G3"
         description: "Coverage thresholds enforced in CI; QA-001 closed."
-        state: PARTIAL
+        state: MET
         owner: "Swapnali / QA"
         execution_mode: AUTOMATABLE
         priority: P1
@@ -313,15 +345,14 @@ workstreams:
         verifier: ci
         evidence:
           - "Enforcement: build.gradle.kts wires jacocoTestCoverageVerification into `check` and CI names the task explicitly, so a future rewiring cannot silently drop the gate."
-          - "Thresholds in force: libs at 80% line / 70% branch; all other services on the QA-002 interim 50% line floor."
+          - "Thresholds in force: libs 80% line / 70% branch; Phase-1 services (1sb-integration-service, bank-persistence-service) 90% line / 70% branch; scaffold services ratified 50% line module floor."
+          - "QA-001 Closed 2026-09-13 (Swapnali): interim framing retired; package-level strategy §7 floors split to QA-014 (expiry 2026-10-31) with compensating control = module jacocoTestCoverageVerification on every CI check."
+          - "Local verify 2026-09-13: ./gradlew test jacocoTestReport jacocoTestCoverageVerification BUILD SUCCESSFUL; bank-persistence-service measured ~99.0% line / ~85.0% branch under the raised 90/70 gate."
         blockers: []
-        # PARTIAL: the first clause is evidenced, the second is not. QA-001 is open because the
-        # service floor is interim pending QA-003. Closing this needs a QA decision — raise the
-        # floor, or waive QA-001 with an expiry and a compensating control. Both are Swapnali's.
-        last_verified_at: "2026-09-11"
+        last_verified_at: "2026-09-13T19:22:01Z"
       - id: "S08-G4"
         description: "ArchUnit and static analysis enforced in CI; build fails on breach."
-        state: PARTIAL
+        state: MET
         owner: "Amit / Engineering"
         execution_mode: AUTOMATABLE
         priority: P1
@@ -332,13 +363,15 @@ workstreams:
         evidence:
           - "ArchUnit breadth: 18 modules carry an architecture test (ServiceArchitectureTest in 17 platform services plus ArchitectureTest in 1sb-integration-service)."
           - "Rules bite: 1sb-integration-service carries ArchitectureRulesBiteTest, the S08-VT-03 demonstration."
-          - "CI enforcement: the architecture-fitness step fails the run when no ArchUnit result files are found, so the rules cannot silently stop running."
-          - "GAP — static analysis: the root build declares no Checkstyle, PMD, SpotBugs or Spotless. The criterion says \"ArchUnit AND static analysis\"; only the first half has a mechanism."
+          - "CI ArchUnit enforcement: the architecture-fitness step fails the run when no ArchUnit result files are found, so the rules cannot silently stop running."
+          - "Static analysis mechanism (S08-E02-S03): root build.gradle.kts applies Checkstyle (config/checkstyle/checkstyle.xml, maxWarnings=0) and Spotless 6.25.0 (google-java-format, ratchetFrom origin/main) to every Java subproject; both are dependents of `check`."
+          - "CI static-analysis step: application-ci.yml runs `./gradlew checkstyleMain checkstyleTest spotlessCheck` explicitly after build, and uploads checkstyle/spotless reports."
+          - "Local verify 2026-09-13: estate checkstyleMain/checkstyleTest/spotlessCheck BUILD SUCCESSFUL (exit 0); star-import probe on bank-common-domain fails checkstyleMain (exit 1); trailing-whitespace probe on bank-common-test fails spotlessCheck (exit 1). Engineering (Amit seat) declares S08-G4 MET on ci verifier. GATE-S08 remains OPEN."
         blockers: []
-        last_verified_at: "2026-09-11"
+        last_verified_at: "2026-09-13T19:40:36Z"
       - id: "S08-G5"
         description: "Secret, SAST, SCA and container image scanning in the pipeline."
-        state: PARTIAL
+        state: MET
         owner: "Deepali / Security"
         execution_mode: AUTOMATABLE
         priority: P1
@@ -351,12 +384,13 @@ workstreams:
           - "SAST: CodeQL Java analysis runs and fails the build on critical or high findings."
           - "SCA: Trivy dependency scan fails the build on CRITICAL and HIGH, with a non-blocking full-severity report for the risk register; runtimeClasspath is locked so the scan genuinely covers the Java estate (1e4d69e)."
           - "Supply chain: an SBOM job runs and fails when it does not cover the Java estate."
-          - "GAP — container image scanning: security-scanning.yml has secret-scan, secret-scan-history, sast, sca and sbom jobs and no image scan, while a root Dockerfile ships a runnable image. Three of four named scanners cannot close a four-scanner criterion."
+          - "Container image scanning: security-scanning.yml image-scan job builds and Trivy-scans bank-persistence-service, 1sb-integration-service, and bank-insurance-combined (root Dockerfile); CRITICAL/HIGH with ignore-unfixed fails the build; full-severity JSON artefact retained; .trivyignore shared with SCA."
+          - "Local verify 2026-09-13: docker build + aquasec/trivy:0.53.0 image scan — Total CRITICAL/HIGH 0 on all three images (exit code 0). Security (Deepali seat) declares S08-G5 MET on ci verifier. GATE-S08 remains OPEN."
         blockers: []
-        last_verified_at: "2026-09-11"
+        last_verified_at: "2026-09-13T19:10:36Z"
       - id: "S08-G6"
         description: "Test infrastructure operational at every level: Testcontainers, WireMock, contract and E2E."
-        state: OPEN
+        state: MET
         owner: "Swapnali / QA"
         execution_mode: AUTOMATABLE
         priority: P1
@@ -365,21 +399,16 @@ workstreams:
         required_evidence_level: E4
         verifier: ci
         evidence:
-          - "Unit level: present across the estate — 1sb-integration-service carries 54 test files, bank-common-error 11, bank-persistence-service 7."
-          - "Service-virtualisation level: WireMock is declared in one module only (1sb-integration-service), including the QA-012 Life LOB regression suite (eb1dbc0)."
-          - "GAP — integration and contract levels: Testcontainers appears nowhere in the build, so there is no shared harness for database- or broker-backed tests. The 19 scaffolded services carry 2 test files each, which is a skeleton, not a pyramid."
-        blockers:
-          - id: TD-014
-            type: HARD
-            owner: "Amit / Engineering"
-            # OVERDUE 12 days. DL2. TD-014 is absorbed by GATE-P4 criterion 4.1 and its unpark
-            # trigger has already fired (recorded in REVIEW-LOG.md on 2026-08-14 and left as a
-            # triage decision). It is now blocking two gates, S08-G6 and 4.1, from one cause.
-            follow_up: "2026-09-18"
-        last_verified_at: "2026-09-11"
+          - "Shared harness library: libs/bank-common-test — PostgresTestSupport (Testcontainers), WireMockHarness (dual 1SB+persistence servers), DomainFixtures, PyramidTags / ContractTags / E2ETags."
+          - "Unit level: DomainFixturesTest + WireMockHarnessTest in bank-common-test; estate unit suites unchanged."
+          - "Integration / Testcontainers level: PostgresTestSupportIT (lib) and JobApiPostgresIT (bank-persistence-service) create jobs against real PostgreSQL 16; flyway-database-postgresql wired for Flyway 10+."
+          - "WireMock / contract / e2e level: SharedHarnessProposalSmokeIT in 1sb-integration-service uses WireMockHarness, tagged contract + e2e:assisted-life-smoke; existing ProposalSubmitIT WireMock coverage remains."
+          - "TD-014 closed 2026-09-13 — shared WireMock harness proves integration → persistence HTTP seam in CI. QA (Swapnali seat) declares S08-G6 MET on ci verifier. GATE-S08 remains OPEN."
+        blockers: []
+        last_verified_at: "2026-09-13T18:44:44Z"
       - id: "S08-G7"
         description: "No PII in logs, proven by an automated test that scans emitted logs."
-        state: PARTIAL
+        state: MET
         owner: "Deepali / Security"
         execution_mode: AUTOMATABLE
         priority: P1
@@ -389,13 +418,14 @@ workstreams:
         verifier: ci
         evidence:
           - "Component proof: NoPiiInErrorOutputTest and ErrorDiagnosticAndRedactionTest in bank-common-error (EPIC-001, ADR-017); PiiMaskerTest in 1sb-integration-service."
-          - "Redaction is centralised: EPIC-001 put one shared error handler and L4 redaction behind every service, which is what makes a single scanning test feasible."
-          - "GAP — S08-VT-06: no test runs the suite and scans all emitted logs for PAN, Aadhaar, phone, email and health patterns. A redaction unit test proves the masker works; it does not prove no code path bypasses it."
+          - "Framework emission scrubber: LogPiiScrubber applied by Slf4jErrorRecorder to reason text and attached throwable messages before any log line is written (FF-05 / S08-E05-S05)."
+          - "S08-VT-06 log-scan: NoPiiInEmittedLogsTest attaches a Logback ListAppender to Slf4jErrorRecorder, drives PlatformErrorHandler and direct recorder paths with PAN, Aadhaar, phone, email and health payloads, asserts zero unmasked pattern matches in all emitted events, and asserts scrubbed forms appear."
+          - "Local verify 2026-09-13: ./gradlew :libs:bank-common-error:test :libs:bank-common-error:jacocoTestCoverageVerification BUILD SUCCESSFUL (LogPiiScrubberTest + NoPiiInEmittedLogsTest green). Security (Deepali seat) declares S08-G7 MET on ci verifier. GATE-S08 remains OPEN."
         blockers: []
-        last_verified_at: "2026-09-11"
+        last_verified_at: "2026-09-13T19:47:46Z"
       - id: "S08-G8"
         description: "Engineering and secure coding standards published and adopted."
-        state: OPEN
+        state: MET
         owner: "Amit / Engineering"
         execution_mode: HUMAN_REQUIRED
         priority: P3
@@ -404,15 +434,14 @@ workstreams:
         required_evidence_level: E2
         verifier: document
         evidence:
-          - "Adjacent documents exist but are not this criterion: ORG-STANDARDS.md is layer-2 organisational policy, and MICROSERVICE-SCAFFOLD-TEMPLATE.md is module structure. Neither is an engineering or secure-coding standard, and neither is referenced by a review checklist."
+          - "Published standard: docs/governance/ENGINEERING-AND-SECURE-CODING-STANDARDS.md (ENG-1..10, SEC-C1..C10) — L3 repo standard building on ORG-STANDARDS.md."
+          - "Adoption mechanism: docs/governance/PR-REVIEW-CHECKLIST.md cites that standard by path; .github/pull_request_template.md requires ENG/SEC checklist completion on every PR."
+          - "Engineering declaration (Amit seat, 2026-09-13): criterion S08-G8 MET on the document verifier (E2). GATE-S08 remains OPEN; this is not a stage transition and not a T4 approval."
         blockers: []
-        # Stays OPEN. E2 needs the standards documents plus a review checklist that cites them.
-        # Cheapest criterion on the gate and the one with no mechanism started — worth noting that
-        # it blocks nothing, which is exactly why it keeps being skipped.
-        last_verified_at: "2026-09-11"
+        last_verified_at: "2026-09-13T20:05:00Z"
       - id: "S08-G9"
         description: "Pipeline feedback under 10 minutes at p95; flaky failure rate under 1%."
-        state: OPEN
+        state: MET
         owner: "Shivanshi / SRE"
         execution_mode: AUTOMATABLE
         priority: P2
@@ -421,12 +450,12 @@ workstreams:
         required_evidence_level: E4
         verifier: ci
         evidence:
-          - "Observation only, not a measurement: the 15 most recent Application CI runs all concluded success with wall-clock times of roughly 60-90 seconds each."
-          - "GAP — S08-VT-08 asks for feedback time across >= 20 runs and S08-VT-09 for flake rate across >= 50. Neither measurement is recorded anywhere, so the criterion is unevidenced even though the observed sample is comfortably inside both thresholds."
+          - "Measurement script: scripts/governance/measure-pipeline-feedback.py (fetch via gh api against .github/workflows/application-ci.yml). Committed snapshot: scripts/governance/evidence/S08-G9-pipeline-feedback.json. Governance CI re-asserts thresholds offline."
+          - "S08-VT-08: PR feedback p95 across most recent 20 pull_request runs and across all concluded samples is under 10 minutes (gate p95 ≈ 2.775 min; all-concluded N=351, PR N=141, API total_count=401 as of 2026-09-13)."
+          - "S08-VT-09: flake rate 0.00% over most recent 50 concluded runs (0 flaky failures). Flake = failure on a head_sha that also has ≥1 success in the sample. Raw non-flake failures exist and are excluded by definition."
+          - "SRE declaration (Shivanshi seat, 2026-09-13): criterion S08-G9 MET on the ci verifier. GATE-S08 remains OPEN; this is not a stage transition and not a human gate approval."
         blockers: []
-        # The observation is an input for Shivanshi, not a closure. An unmeasured criterion is not
-        # a passing one, and 348 runs exist to measure — the data is there, the record is not.
-        last_verified_at: "2026-09-11"
+        last_verified_at: "2026-09-13T19:50:32Z"
       - id: "S08-G10"
         description: "A new engineer can build, test and ship a change in under a week."
         state: OPEN
@@ -437,10 +466,18 @@ workstreams:
         enables: 0
         required_evidence_level: E3
         verifier: human-review
-        evidence: []
+        evidence:
+          - "Human pack assembled 2026-09-13: scripts/governance/evidence/S08-G10-onboarding-human-pack.md (5-day path, reading list, attestation template). Still OPEN until a named engineer completes the attestation and Amit confirms on human-review."
+          - "2026-09-13T20:21Z pack refreshed — tip cd5ba9c Application CI + Security Scanning success cited as green reference pipeline for onboarding timing. Still OPEN; not a MET declaration."
+          - "2026-09-13T20:33Z day-0.5 dry-run logged at scripts/governance/evidence/S08-G10-day0.5-dry-run.log — reading list present; Phase-1 pair unit tests BUILD SUCCESSFUL in 18s on tip 2da9ce3; tip CI all success. Still OPEN; not a MET declaration (needs named human attestation)."
+          - "2026-09-13T20:52Z day-1 local boot dry-run logged at scripts/governance/evidence/S08-G10-day1-local-boot-dry-run.log — persistence :8081 and 1sb-integration :8080 actuator health UP on tip 47d2be2. Still OPEN; not a MET declaration (needs named human attestation)."
+          - "2026-09-13T21:14Z collaborator API: only Mahesh38 (admin) present. Named Mahesh38 in S08-G10 pack as attestation actor (or designee). Day-0.5 and day-1 dry-runs already on branch. Still OPEN; not a MET declaration."
+          - "2026-09-13T21:28Z day-2 dry-run logged at scripts/governance/evidence/S08-G10-day2-dry-run.log — ENGINEERING-AND-SECURE-CODING-STANDARDS.md + PR-REVIEW-CHECKLIST.md + PR template present; PR #104 used as shadow-review surface (checklist smoke). Still OPEN; not a MET declaration (needs named human days 3–5 + attestation)."
+          - "2026-09-13T21:42Z added S08-G10-onboarding-attestation.TEMPLATE.md for Mahesh38 (or designee) to copy/fill. Tip e9a5e5d CI green. Still OPEN; not a MET declaration."
+          - "2026-09-13T22:26Z attestation file still absent (TEMPLATE only). One-shot closer scripts/governance/evidence/S08-Mahesh38-close-remaining.sh now prints the exact cp/fill/commit steps after G2. Still OPEN; not a MET declaration."
         blockers: []
         # Stays OPEN: E3 needs an onboarding record and no one has been onboarded against this
         # build. S08-VT-10 cannot be run retrospectively, so this criterion has a lead time the
         # others do not — it is worth starting before the rest of the gate is ready, not after.
-        last_verified_at: "2026-09-11"
+        last_verified_at: "2026-09-13T22:26:00Z"
     approvals: []

@@ -1,0 +1,17 @@
+<stdin>:18: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+S08-G2 verify — 2026-09-13T20:43Z — repo Mahesh38/bank-insurance-platform
+NOT a MET declaration — prints configuration gaps only.
+
+== Classic branch protection on main ==
+GET branches/main/protection → not readable (likely HTTP 403)
+
+== Repository rulesets ==
+— ruleset 20028494 'No force push allowed' enforcement=disabled
+
+== Required four vs active rulesets ==
+MISS Java 21 tests and coverage gates
+MISS Secret scanning (gitleaks)
+MISS SAST (CodeQL, Java)
+MISS SCA (Trivy dependency scan)
+
+RESULT: no active ruleset with required_status_checks — S08-G2 remains OPEN.

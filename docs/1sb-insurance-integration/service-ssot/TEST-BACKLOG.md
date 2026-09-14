@@ -13,7 +13,7 @@ Priority: **P0** before Phase 3 functional exit · **P1** hardening · **P2** ni
 
 | ID | Sev | Item | Owner | Notes |
 |----|-----|------|-------|-------|
-| QA-001 | P0 | Introduce JaCoCo + CI coverage verification | Dev | **Done (wiring)** — `008ec04`; residual **Partial** (services interim 50% line after QA-002 → package floors QA-003). TL+QA Lead **APPROVED** 2026-07-30. |
+| QA-001 | P0 | Introduce JaCoCo + CI coverage verification | Dev | **Closed 2026-09-13** — Phase-1 at 90/70; scaffold floor ratified 50% line; package floors → **QA-014**. TL+QA Lead wiring **APPROVED** 2026-07-30. |
 | QA-002 | P0 | Persistence API tests: jobs, offers, status patch, payments, audit, `GlobalExceptionHandler` | Dev | **Done** — TL+QA **APPROVED** (incl. validation 400 re-review) |
 | QA-003 | P0 | Integration IT template: service + WireMock 1SB + WireMock/stub persistence | Dev + QA | **Done** — `OneSbConnectivityIT`; TL+QA **APPROVED** |
 | QA-004 | P0 | Phase 3 quote path: unit (handler/mapper) + `@WebMvcTest` + IT-I | Dev | Gate FUNC-002 DoD |
@@ -24,7 +24,8 @@ Priority: **P0** before Phase 3 functional exit · **P1** hardening · **P2** ni
 | QA-009 | P1 | Sandbox E2E charter + automated smoke (nightly) | QA | Secrets-gated |
 | QA-010 | P2 | Mutation testing on mappers (PIT) | QA | Phase 4 |
 | QA-011 | P2 | k6 performance smoke from NFR table | QA + Eng | Phase 4 |
-| QA-012 | P2 | Contract test vs OpenAPI once published | QA | Phase 4 |
+| QA-014 | P1 | Package-level strategy §7 JaCoCo floors | QA Lead | **Open** — expiry 2026-10-31; compensating control = module gates (split from QA-001 close) |
+| QA-015 | P2 | Contract test vs OpenAPI once published | QA | Phase 4 |
 
 ---
 

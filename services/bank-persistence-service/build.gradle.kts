@@ -14,6 +14,8 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
 
     implementation("org.flywaydb:flyway-core")
+    // Flyway 10+ ships database support as separate modules; required for Postgres ITs (S08-G6).
+    runtimeOnly("org.flywaydb:flyway-database-postgresql")
 
     runtimeOnly("org.postgresql:postgresql")
     runtimeOnly("com.h2database:h2")
@@ -24,6 +26,8 @@ dependencies {
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    // S08-G6 / TD-014 — shared Testcontainers harness
+    testImplementation(project(":libs:bank-common-test"))
 }
 
 tasks.bootJar {

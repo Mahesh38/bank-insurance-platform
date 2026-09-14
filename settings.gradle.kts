@@ -7,6 +7,7 @@ include(
     "libs:bank-common-audit",
     "libs:bank-common-observability",
     "libs:bank-common-secrets",
+    "libs:bank-common-test",
     "services:1sb-integration-service",
     "services:administration-config-service",
     "services:audit-compliance-service",

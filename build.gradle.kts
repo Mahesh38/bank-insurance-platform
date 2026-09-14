@@ -3,6 +3,8 @@ plugins {
     id("jacoco")
     id("org.springframework.boot") version "3.5.16" apply false
     id("io.spring.dependency-management") version "1.1.6" apply false
+    // S08-G4 / S08-E02-S03 — formatting half of static analysis (Checkstyle is the quality half).
+    id("com.diffplug.spotless") version "6.25.0" apply false
 }
 
 allprojects {
@@ -13,6 +15,8 @@ allprojects {
 subprojects {
     apply(plugin = "java")
     apply(plugin = "jacoco")
+    apply(plugin = "checkstyle")
+    apply(plugin = "com.diffplug.spotless")
     apply(plugin = "io.spring.dependency-management")
 
     // Import the Spring Boot BOM for all subprojects (libs + service).
@@ -135,22 +139,27 @@ subprojects {
         )
 
         val isLib = project.path.startsWith(":libs:")
-        // 1sb-integration-service raised to 90% line / 70% branch (measured ~90.7%/~71% —
-        // see COVERAGE.md). Other services keep the QA-002 interim 50% line floor pending QA-003
-        // package-level gates.
-        val isOneSbIntegration = project.path == ":services:1sb-integration-service"
+        // Phase-1 deployables (Swapnali / QA-001 close 2026-09-13):
+        //   1sb-integration-service + bank-persistence-service → 90% line / 70% branch
+        // Scaffold services keep the ratified 50% line module floor (not "interim pending
+        // QA-003" — QA-003 is Done). Package-level strategy §7 floors track as QA-014.
+        val isPhase1Service = project.path in setOf(
+            ":services:1sb-integration-service",
+            ":services:bank-persistence-service",
+        )
         val lineFloor = when {
             isLib -> "0.80"
-            isOneSbIntegration -> "0.90"
+            isPhase1Service -> "0.90"
             else -> "0.50"
         }.toBigDecimal()
         val branchFloor = when {
             isLib -> "0.70"
-            isOneSbIntegration -> "0.70"
+            isPhase1Service -> "0.70"
             else -> null
         }?.toBigDecimal()
         // Libs: strategy §7 (80% line / 70% branch).
-        // Services: raised interim floor (QA-002) — package gates still pending QA-003.
+        // Phase-1 services: raised module floors (measured evidence in COVERAGE.md).
+        // Scaffold services: ratified 50% line module floor; package gates → QA-014.
         violationRules {
             rule {
                 limit {
@@ -169,9 +178,48 @@ subprojects {
         }
     }
 
+    // ------------------------------------------------------------------
+    // S08-G4 / S08-E02-S03 — static analysis (Checkstyle quality + Spotless format)
+    //
+    // Checkstyle: small blocking rule set in config/checkstyle/. maxWarnings=0 so
+    // any finding fails the build. suppressions.xml is the tracked baseline for
+    // pre-existing violations that cannot be fixed in the introducing change.
+    //
+    // Spotless: google-java-format + unused-import cleanup. ratchetFrom(origin/main)
+    // means only files touched since main must be clean — existing formatting debt
+    // is the baseline; new violations fail spotlessCheck (and therefore `check`).
+    // ------------------------------------------------------------------
+    configure<CheckstyleExtension> {
+        toolVersion = "10.17.0"
+        configFile = rootProject.file("config/checkstyle/checkstyle.xml")
+        maxErrors = 0
+        maxWarnings = 0
+        isIgnoreFailures = false
+    }
+    tasks.withType<Checkstyle>().configureEach {
+        reports {
+            xml.required.set(true)
+            html.required.set(true)
+        }
+    }
+
+    configure<com.diffplug.gradle.spotless.SpotlessExtension> {
+        // S08-E02-S03: new violations fail; existing ones are a tracked baseline.
+        ratchetFrom("origin/main")
+        java {
+            target("src/*/java/**/*.java")
+            googleJavaFormat("1.22.0")
+            removeUnusedImports()
+            trimTrailingWhitespace()
+            endWithNewline()
+        }
+    }
+
     // Make `check` (and typical CI `./gradlew test jacocoTestCoverageVerification`) enforce gates
     tasks.named("check") {
         dependsOn(tasks.named("jacocoTestCoverageVerification"))
+        dependsOn(tasks.named("spotlessCheck"))
+        // checkstyleMain / checkstyleTest are already dependents of `check` via the plugin
     }
 
     tasks.withType<JavaCompile> {

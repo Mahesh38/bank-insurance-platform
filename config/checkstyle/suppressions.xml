@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<!DOCTYPE suppressions PUBLIC
+    "-//Checkstyle//DTD SuppressionFilter Configuration 1.2//EN"
+    "https://checkstyle.org/dtds/suppressions_1_2.dtd">
+<!--
+  S08-E02-S03 tracked baseline suppressions.
+
+  Add a <suppress> only for a pre-existing violation that cannot be fixed in the
+  same change as the check introduction. New code must not land suppressions
+  without a TECH-DEBT / work-item id in the files or message attribute.
+-->
+<suppressions>
+</suppressions>

@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20260914-xpt | 2026-09-14 | human:Mahesh | Export the admitted ARB prerequisite pack to reviewer formats (PPTX walk-in, PDF/DOCX leave-behind, XLSX matrices) because ARB cannot be shown Markdown | SF1 | SC1 | MUST | DOC | P1 / P1 | ADMITTED | [exports](../../architecture/arb-prerequisites/exports/WHAT-TO-SEND.md) · [detail](#sug-20260914-xpt--arb-reviewer-formats-pptx-pdf-docx-xlsx) |
 | SUG-20260914-arb | 2026-09-14 | human:Mahesh | Assemble bank ARB prerequisite pack (business sign-off, CIS, SAD, current/target, trust-boundary, integration matrix, capacity, RTO/RPO, DR, security, VA/PT, SBOM, classification/residency, IAM/PAM, logging, third parties, shared-responsibility, lifecycle, exit) as an evidence index — no manufactured signatures | SF1 | SC1 | MUST | ARCH | P1 / P1 | ADMITTED | [pack](../../architecture/ARB-PREREQUISITE-PACK.md) · [detail](#sug-20260914-arb--bank-arb-prerequisite-evidence-pack) |
 | SUG-20260914-egr | 2026-09-14 | human:Mahesh | Outbound calls leave the building via Apigee (1SB never called from EKS; 1SB allowlists Apigee IPs). Inbound RM/mobile stays AWS API Gateway. Internal bank APIs via Apigee must not hairpin Cloudflare/F5. | SF1 | SC1 | MUST | ARCH | P1 / P1 | ADMITTED | [SPIKE-001](#sug-20260831-apg--apigee-is-the-bank-api-plane--do-not-add-a-second-amazon-api-gateway-until-confirmed) · [note](../../architecture/2026-09-14-HUMAN-DIRECTION-APIGEE-EGRESS-IDP.md) · [detail](#sug-20260914-egr--apigee-is-outbound-only-ingress-stays-api-gateway) |
 | SUG-20260914-uat | 2026-09-14 | human:Mahesh | Keep `dev` inside the UAT AWS account (cost). Isolate namespaces/data. No CUG environment at R0 (waiver, do not provision). | SF1 | SC1 | MUST | INFRA | P2 / P1 | ADMITTED | [detail](#sug-20260914-uat--dev-inside-uat-no-cug-at-r0) |
@@ -1980,6 +1981,74 @@ outcome:
   status: ADMITTED
   closed_reason: null
 resumed: "ARB-PRE-2026-09-14 — 19-row evidence pack. Humans still sign CIS, Board 4, T4, VA/PT."
+```
+
+### SUG-20260914-xpt · ARB reviewer formats (PPTX, PDF, DOCX, XLSX)
+
+```yaml
+id: SUG-20260914-xpt
+raised_at: "2026-09-14"
+raised_by: "human:Mahesh"
+source: "Follow-up to SUG-20260914-arb — ARB reviewers cannot be shown Markdown"
+input: >
+  Create appropriate documentation type file as I cannot show the ARB reviewer
+  the md files. I will need docs, ppt, matrix tables or pdf based on what they
+  want from us.
+duplicate_of: SUG-20260914-arb
+recurrence_count: 1
+conflicts: []
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 / S09 — Engineering & Platform Foundation"
+  current_objective: R0-ASSISTED-LIFE-SALE
+  state_as_of: "2026-09-13"
+  freshness: FRESH
+  active_work_item: ARB-PRE-2026-09-14
+
+stage_fit:
+  code: SF1
+  rationale: >
+    Same sitting as the admitted ARB pack. Format is the delivery mechanism;
+    ARB cannot consume the markdown index.
+
+scope:
+  code: SC1
+  serves: ["SUG-20260914-arb", "ARB-PRE-2026-09-14"]
+  failure_without_it: "The 19-row pack exists and cannot be put in front of the board"
+  minimal: true
+  authority: "human:Mahesh"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S09 — bank ARB walk-in"
+  binds_when: "Any ARB circulation or meeting"
+  evidence_tier: E2
+  confidence: C5
+  assumptions: []
+
+action: ADMIT
+action_rationale: >
+  Continue ARB-PRE-2026-09-14. Generate PPTX (room), PDF/DOCX (leave-behind),
+  XLSX (matrices/SBOM/RACI). Do not invent new architecture facts. Do not
+  manufacture signatures. Generator is scripts/architecture/build_arb_reviewer_pack.py.
+
+classification:
+  type: DOC
+  also: [ARCH]
+  breakdown: story
+  risk_tier: T4
+
+priority:
+  priority_now: P1
+  priority_at_target: P1
+
+work_item: ARB-PRE-2026-09-14
+outcome:
+  status: ADMITTED
+  work_item_id: ARB-PRE-2026-09-14
 ```
 
 ### SUG-20260914-egr · Apigee is outbound only; ingress stays API Gateway

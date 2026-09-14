@@ -12,6 +12,7 @@ Two diagrams, deliberately. They answer different questions and **neither replac
 | [`R0-LLD.md`](./R0-LLD.md) | *What AWS resources, VPC, reverse proxies, PVCs, databases and caches does the platform team provision for R0?* | S09 requirements pack for the CTO and AWS platform team. AI-drafted; Security / Database / SRE reviews outstanding |
 | [`ARB-ARCHITECTURE-DOSSIER.md`](./ARB-ARCHITECTURE-DOSSIER.md) | Narrative ARB dossier | AI-drafted; human sign-offs pending |
 | [`ARB-PREREQUISITE-PACK.md`](./ARB-PREREQUISITE-PACK.md) | *Bank ARB 19-item prerequisite cover: readiness, CIS proposal, integration matrix, shared responsibility, SBOM, lifecycle/exit* | `SUG-20260914-arb`. Evidence pack, not an approval |
+| [`arb-prerequisites/exports/WHAT-TO-SEND.md`](./arb-prerequisites/exports/WHAT-TO-SEND.md) | *What to put in front of ARB: PPTX, PDF, DOCX, XLSX — not Markdown* | `SUG-20260914-xpt`. Generated; regenerate with `scripts/architecture/build_arb_reviewer_pack.py` |
 | [`2026-09-14-HUMAN-DIRECTION-APIGEE-EGRESS-IDP.md`](./2026-09-14-HUMAN-DIRECTION-APIGEE-EGRESS-IDP.md) | *Apigee outbound vs API Gateway inbound, Dev-inside-UAT, no CUG, AD-verify API, Keycloak behind Fireframe UI* | Human direction record. Not an ADR |
 | [`BOARD-1-REREVIEW-VIN003-ESTATE-2026-09-14.md`](./BOARD-1-REREVIEW-VIN003-ESTATE-2026-09-14.md) | *VIN-003: attach to Control Tower, do not clone; five accounts, no CUG* | Board 1 re-review. `SUG-20260914-est` |
 | [`r0-lld.svg`](./r0-lld.svg) | *Where does each R0 service sit on AWS, and what must not be provisioned?* | Rendering of `R0-LLD.md`. Owns nothing (`HA-02`) |
@@ -399,3 +400,10 @@ Bank ARB walk-in evidence is now indexed from
 [`arb-prerequisites/`](./arb-prerequisites/README.md). Existing SAD / HLD / LLD / NFR / identity
 documents remain the owners of those facts (`HA-02`). This pack does not mark Board 1, Board 4,
 Board 6, or T4 as passed.
+
+## Revision — 2026-09-14 ARB reviewer formats (`SUG-20260914-xpt`)
+
+Markdown stays the engineering source. Reviewer artefacts (PPTX, PDF, DOCX, XLSX, zip) are
+generated into [`arb-prerequisites/exports/`](./arb-prerequisites/exports/WHAT-TO-SEND.md).
+Do not walk into ARB with `.md` files. Regenerator:
+`python3 scripts/architecture/build_arb_reviewer_pack.py`.

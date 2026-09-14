@@ -7,6 +7,19 @@
 **Origin:** human request to take the bank ARB with the listed prerequisites · triage `SUG-20260914-arb`  
 **Status:** `AI-DRAFTED` evidence pack. **This file does not constitute ARB approval, T4 Architecture sign-off, Board 4 Security sign-off, or Board 6 Compliance sign-off.**
 
+**Reviewer formats (do not walk into ARB with Markdown):** see
+[`arb-prerequisites/exports/WHAT-TO-SEND.md`](./arb-prerequisites/exports/WHAT-TO-SEND.md).
+
+| ARB asks for | File |
+|---|---|
+| Walk-in slides | [`AU-NIP-R0-ARB-Walk-In-2026-09-14.pptx`](./arb-prerequisites/exports/AU-NIP-R0-ARB-Walk-In-2026-09-14.pptx) |
+| Circulate / print | [`AU-NIP-R0-ARB-Prerequisite-Pack-2026-09-14.pdf`](./arb-prerequisites/exports/AU-NIP-R0-ARB-Prerequisite-Pack-2026-09-14.pdf) |
+| Word comments | [`AU-NIP-R0-ARB-Prerequisite-Pack-2026-09-14.docx`](./arb-prerequisites/exports/AU-NIP-R0-ARB-Prerequisite-Pack-2026-09-14.docx) |
+| Matrices / RACI / SBOM / CIS | [`AU-NIP-R0-ARB-Matrices-2026-09-14.xlsx`](./arb-prerequisites/exports/AU-NIP-R0-ARB-Matrices-2026-09-14.xlsx) |
+| One zip for email | [`AU-NIP-R0-ARB-Reviewer-Pack-2026-09-14.zip`](./arb-prerequisites/exports/AU-NIP-R0-ARB-Reviewer-Pack-2026-09-14.zip) |
+
+Regenerate after this pack changes: `python3 scripts/architecture/build_arb_reviewer_pack.py`. The generated files compile; ADRs / LLD / NFR still win (`HA-02`).
+
 > **How to use this in the ARB room.** Each row below is one bank prerequisite. *Canonical source*
 > is what the board should open. *This pack* only compiles, classifies readiness, and names the
 > human who still has to sign. Rule `HA-02`: if a paragraph here disagrees with an ADR, LLD, NFR

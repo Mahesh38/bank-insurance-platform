@@ -104,6 +104,10 @@ def describe_data(path: Path) -> tuple[str, str]:
         ".svg": "Rendered diagram — read the companion .md for the binding text",
         ".png": "Image artefact",
         ".jpg": "Image artefact",
+        ".pptx": "Generated ARB walk-in deck — regenerate with scripts/architecture/build_arb_reviewer_pack.py",
+        ".xlsx": "Generated ARB matrix workbook — regenerate with scripts/architecture/build_arb_reviewer_pack.py",
+        ".docx": "Generated ARB leave-behind Word pack — regenerate with scripts/architecture/build_arb_reviewer_pack.py",
+        ".zip": "Generated ARB reviewer bundle (PPTX + PDF + DOCX + XLSX)",
     }
     return title, labels.get(suffix, f"{suffix.lstrip('.').upper() or 'Binary'} artefact")
 

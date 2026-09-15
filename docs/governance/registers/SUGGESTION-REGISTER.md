@@ -74,7 +74,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | SUG-20260820-hl1 | 2026-08-20 | human:Mahesh | Act as Mahesh: turn the R0 reference architecture SVG into a detailed HLD (domain, boundary, communication, API, business logic, phases/waves/what-to-do-when) and an LLD for the CTO and AWS platform team (e2e components, services, AWS, VPC, reverse proxy, PVC, DB, cache) | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMIT-BYPASS | [R0-HLD](../../architecture/R0-HLD.md) · [R0-LLD](../../architecture/R0-LLD.md) |
 | SUG-20260820-ls1 | 2026-08-20 | human:Mahesh | Create an SVG rendering of the R0 LLD for the CTO and AWS platform team | SF1 | SC0 | SHOULD | ARCH | P2 / P1 | ADMIT-BYPASS | [r0-lld.svg](../../architecture/r0-lld.svg) |
 | SUG-20260820-pt9 | 2026-08-20 | human:Mahesh | Draw the AWS platform-team application view: what the application is, the service inventory, availability-zone placement, the DR bill of materials, the reverse-proxy and egress chain, and **when** each resource is needed — as a deployment topology in the style of a landing-zone request diagram | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMIT-BYPASS | [R0-LLD §2.1/§11.1/§12.1](../../architecture/R0-LLD.md) · rendering superseded by [SUG-20260820-ic3](#sug-20260820-ic3--icon-notation-generated-from-code) |
-| SUG-20260820-ic3 | 2026-08-20 | human:Mahesh | Redraw the platform-team views in AWS / Kubernetes icon notation instead of labelled rectangles, and generate them from code rather than hand-authoring SVG | SF1 | SC0 | SHOULD | DOC | P3 / P2 | ADMIT-BYPASS | [diagrams/](../../architecture/diagrams/README.md) |
+| SUG-20260820-ic3 | 2026-08-20 | human:Mahesh | Redraw the platform-team views in AWS / Kubernetes icon notation instead of labelled rectangles, and generate them from code rather than hand-authoring SVG | SF1 | SC0 | SHOULD | DOC | P3 / P2 | ADMIT-BYPASS | [diagrams/](../../architecture/diagrams/README.md) · recurrence_count 2 (2026-09-15: Kubernetes pod logo for each microservice — already delivered on generated platform views; see [detail](#sug-20260820-ic3--icon-notation-generated-from-code)) |
 | SUG-20260820-lay4 | 2026-08-20 | human:Mahesh | Keep the icons, drop the layout engine: place every element on a chosen grid and route every connector orthogonally, so the views are aligned and the links are straight | SF1 | SC0 | SHOULD | DOC | P3 / P2 | ADMIT-BYPASS | [diagrams/](../../architecture/diagrams/README.md) |
 | SUG-20260820-cm2 | 2026-08-20 | human:Mahesh | Close the context-architecture gap found by audit: 20 documents unreachable by any link and 96 more at 3+ hops, 22 persona-package files no card routed to, and no CI guard against either. Add a generated document-routing map (`DOC-MAP.yaml`) with a `find` query path, complete the persona `Load deeper` tables, consolidate the READMEs that carry no unique content, and fail CI on an unrouted document | SF1 | SC1 | MUST | GOV | P2 / P2 | ADMIT-BYPASS | [DOC-MAP](../../context/DOC-MAP.yaml) · [doc_routing](../../context/AGENT-CONTEXT-INDEX.yaml) · continues [CR-010](../change-requests/CR-010-context-module-and-safe-autopilot.md) |
 | SUG-20260821-jx1 | 2026-08-21 | human:Mahesh | Produce an end-to-end Journey Execution Specification for R0: every actor use case, the hop-by-hop route of each request across edge/BFF/service/aggregate/persistence, the validation performed at each layer with its algorithm, every external API call, and every possible outcome — assembled for the dev and QA teams | SF1 | SC1 | SHOULD | DOC | P3 / P1 | ADMITTED | [detail](#sug-20260821-jx1--r0-journey-execution-specification) |
@@ -3780,6 +3780,21 @@ bypass:
   non_negotiable_touched: false
 notes:
   - "HA-10 added to the authoring protocol: notation follows the audience; generate rather than draw"
+
+recurrence_count: 2
+recurrence_20260915: >
+  Stakeholder restated: represent each microservice with the official Kubernetes Pod logo so a
+  viewer immediately reads "this is a microservice deployed as a pod on the Kubernetes cluster",
+  and use vendor visual designs / logos to improve diagram look-and-feel. Rule CS-2: no new row —
+  same ask as this suggestion's original input ("when you are using a Kubernetes cluster it should
+  show that this is the Kubernetes cluster, there are microservices communicating"). Disposition:
+  already delivered. The five generated platform views under docs/architecture/diagrams/ embed
+  official k8s/compute/pod.png (and deploy/cronjob where appropriate) via svgcanvas.icon();
+  microservices in ns:edge / shared-platform / lob-life / jobs are drawn as Pod nodes in
+  r0_platform_views.py. Layout follow-on remains SUG-20260820-lay4. Out of this row's delivered
+  scope: r0-lld.svg and r0-reference-architecture.svg stay labelled-rectangle notation (logical /
+  LLD component views, not the platform-team icon set). Extending Pod/AWS icon notation onto those
+  two files is a separate ask if still wanted — raise it explicitly; do not silently reopen ic3.
 ```
 
 ---

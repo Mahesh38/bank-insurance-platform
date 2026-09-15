@@ -18,6 +18,10 @@ ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "docs/architecture/arb-prerequisites/exports"
 STAMP = "2026-09-14"
 
+import sys as _sys
+_sys.path.insert(0, str(Path(__file__).resolve().parent))
+from arb_first_review_visuals import render_all  # noqa: E402
+
 NAVY = (0x00, 0x33, 0x66)
 GOLD = (0xC4, 0xA3, 0x5A)
 WHITE = (0xFF, 0xFF, 0xFF)
@@ -31,13 +35,13 @@ DISCLAIMER = "First review · Dev & UAT · not production · not DR-ready · not
 
 OPENING = """Good morning. This is the first architecture review of the Insurance Distribution Platform.
 
-The slot is sixty minutes. I will take about thirty-five to walk the problem, the outcome we are building, and how this architecture does it. The remainder is for you — questions, observations, improvements.
+Today we walk the intended design: the problem, one sale as it will actually run, the runtime, and the stack — so Dev and UAT can be stood up.
 
-We are not seeking production authority today. We are seeking a recorded review of the intended design so Dev and UAT can be stood up.
+We are not claiming production evidence. Working logs, security operations, compliance proofs and a proven day-one estate are what we bring after UAT, to a later sitting. A longer copy of this deck is not that sitting.
 
-If a question needs a measured number we do not have, I will take it as a dated action. I will not guess an IP, a restore time, or a pentest result."""
+I will take about thirty-five minutes. The rest of the hour is yours."""
 
-CLOSING = """The decision we are requesting: record this as the intended R0 design, and allow Dev and UAT to be provisioned on this shape. Production authority, DR proof and pentest belong to a later sitting. I will stop here so we can discuss."""
+CLOSING = """Please record this as the intended R0 design and allow Dev and UAT on this shape. When UAT has run, we return with evidence — logging, security ops, compliance, services on the path — not with a thicker version of these pictures. I will stop here so we can discuss."""
 
 PLAYS = [
     (
@@ -83,178 +87,134 @@ TALK = [
         "kind": "title",
         "minutes": 1,
         "say": OPENING,
-        "if_asked": "If someone asks whether this is production approval — no. Say it once, write it on the parking lot, keep walking.",
-        "do_not": "Do not say the architecture was designed by AI. Do not apologise for the design. Do not promise production in the same breath as Dev.",
+        "if_asked": "If someone asks whether this is production approval — no. Say it once, park it, keep walking.",
+        "do_not": "Do not say the architecture was designed by AI. Do not claim logs, VA/PT or DR drills as done.",
     },
     {
-        "id": "clock",
-        "kind": "clock",
-        "title": "Purpose of this sitting",
-        "minutes": 1,
-        "say": "Thirty-five minutes from me so that twenty-five remain for the board. I will show the problem, the R0 outcome, then how a sale, a session, a partner call, identity, money and recovery actually work. Please hold deep dives until the discussion — I will pause after the topology picture if the room is already there.",
-        "if_asked": "If they want network first, skip to 'How a session reaches the application'. The problem slide can wait two minutes.",
-        "do_not": "Do not read a table of timings aloud. Point at the two clocks and move.",
+        "id": "sittings",
+        "kind": "hero",
+        "hero": "sittings",
+        "title": "Two sittings — design now, evidence later",
+        "minutes": 2,
+        "say": "Left is today: intended design, Dev and UAT, your comments. Right is after UAT: a production sitting with evidence that logging is capturing, security ops are running, compliance is in the pack, and the day-one services actually work. We will not pretend those proofs exist this morning.",
+        "if_asked": "If they want one ARB for everything — we still cannot evidence a pentest of an unvended estate. Staged review matches how landing zones are vended.",
+        "do_not": "Do not promise a production date. Kalpana schedules sitting two after UAT.",
     },
     {
         "id": "problem",
-        "kind": "cards",
+        "kind": "hero",
+        "hero": "problem",
         "title": "Why this platform exists",
-        "minutes": 3,
-        "cards": [
-            ("01", "Evidence we must own", "A complete Life sale has to leave suitability, consent, payment and issuance records that the bank can defend."),
-            ("02", "Controls that cannot be skipped", "Those records cannot be reconstructed after the fact. A missing OTP is not a paperwork issue; it is a failed sale."),
-            ("03", "The customer pays", "Premium on a staff device is the wrong control. The customer completes payment on the customer's device."),
-            ("04", "A portal is not a pack", "Sending the customer to an aggregator site does not produce a bank-owned audit trail, and it does not let us replace that aggregator."),
-        ],
-        "say": "This is an insurance distribution problem, not a hosting problem. We hold a composite corporate-agency licence. If we cannot show suitability, customer consent, customer-device payment and a reconciled policy, we do not have a sale we can stand behind. That is why we are not wrapping someone else's portal.",
-        "if_asked": "Health, Motor and DIY are later horizons. Do not design them in this sitting.",
-        "do_not": "Do not invent a Product signature. Rajal owns volumes and business sign-off.",
-    },
-    {
-        "id": "outcome",
-        "kind": "outcome",
-        "title": "What R0 must deliver",
         "minutes": 2,
-        "headline": "One specified-person relationship manager completes a Term or Savings/ULIP sale to one existing customer — quote to policy — on a platform the bank owns.",
-        "pills": ["Suitability first", "Customer OTP", "Customer-device pay", "Issue only when reconciled", "Seven-year audit"],
-        "say": "R0 is narrow on purpose: one RM, one ETB customer, one Group A insurer, assisted Life. Depth over breadth. The five bars on this slide are not features — they are gates. If a shortcut skips one of them, it is not a simplification.",
-        "if_asked": "Volumes are still Product assumptions. They do not change the Dev/UAT network shape.",
-        "do_not": "Do not expand into DIY, hybrid, or a second line of business to look more complete.",
+        "say": "Four pictures, one point: a licensed corporate agent must own the evidence of a Life sale. Suitability on the RM glass, OTP and premium on the customer phone, a policy only when money and issuance agree. Redirecting the customer to an aggregator site does not produce that pack.",
+        "if_asked": "Health, Motor and DIY are later horizons. Do not design them here.",
+        "do_not": "Do not invent a Product signature.",
     },
     {
-        "id": "sale",
-        "kind": "steps",
-        "title": "How one sale completes",
+        "id": "journey",
+        "kind": "hero",
+        "hero": "journey",
+        "title": "How one sale actually runs",
         "minutes": 5,
-        "steps": [
-            ("1", "Identify", "CIF on the bank path"),
-            ("2", "Suitability", "No quote without it"),
-            ("3", "Consent", "OTP on the customer phone"),
-            ("4", "Quote", "Hub, then adapter"),
-            ("5", "Pay", "Customer's own device"),
-            ("6", "Issue", "Only after reconciled"),
-        ],
-        "caption": "The device holds a session, not tokens. Provider JSON stops at the adapter. HTTP 200 is not a policy.",
-        "say": "Forget boxes for a moment — this sequence is the architecture. Flutter never calls the aggregator, never calls the database, never calls Apigee. The customer phone appears twice: OTP and pay. If someone proposes collapsing quote and suitability into one service to look smaller, that is a control failure dressed as simplicity.",
-        "if_asked": "Why several services? Because a later Health journey must not rewrite Life. Different systems of record stay different.",
-        "do_not": "Do not call Kafka the audit log. Do not accept RM-pays-for-the-customer as a UAT exception.",
+        "say": "Walk the ribbon left to right. The RM stands with NIP-APP. Suitability is a gate on that device — no quote without it. Consent and premium are the customer's phone, not the iPad. Quote and proposal go Hub then adapter. Policy is last, and only after reconciled. The gold line is an orchestrated saga: Journey Orchestration is the one record of where the sale is. Flutter never calls the aggregator, the database, or Apigee.",
+        "if_asked": "Why not one InsuranceService? Health later must not rewrite Life. Quote and suitability are different systems of record.",
+        "do_not": "Do not accept RM-pays-for-the-customer as a UAT exception. Do not call Kafka the audit log.",
     },
     {
         "id": "inbound",
-        "kind": "flow",
+        "kind": "hero",
+        "hero": "inbound",
         "title": "How a session reaches the application",
-        "minutes": 4,
-        "items": [
-            ("Device", "RM or customer"),
-            ("Edge", "CDN and WAF"),
-            ("API Gateway", "Schema and throttle"),
-            ("Internal ALB", "Private, in-VPC"),
-            ("Application", "Web and BFF"),
-        ],
-        "caption": "No public load balancer on the workload. No internet gateway on the application VPC. Payment callbacks use a separate gateway route.",
-        "say": "A session is terminated at the edge, then at API Gateway, then at an internal load balancer. You cannot curl a pod from the internet — that is intentional. If the room asks why not a public ALB, the one-line answer is: it would add a public target in front of a front door we already have. That is ADR-018. Changing it is a Deepali exposure decision, not a Dev convenience. Do not agree to a public ALB 'just for Dev'.",
-        "if_asked": "Use FAQ on public ALB. Play 2 if they insist. Play 3 if they want a redesign in the last twenty minutes.",
-        "do_not": "Do not contrast this with neighbour applications on the slide. Answer that only if asked, from the notes.",
+        "minutes": 3,
+        "say": "You cannot curl a pod from the internet. If asked why not a public ALB — it would put a public target in front of a front door we already have. ADR-018. That is a Security exposure decision, not a Dev convenience.",
+        "if_asked": "FAQ on public ALB. Play 2 if they insist.",
+        "do_not": "Do not agree to a public ALB just for Dev.",
     },
     {
         "id": "outbound",
-        "kind": "flow",
+        "kind": "hero",
+        "hero": "outbound",
         "title": "How the platform calls a partner",
-        "minutes": 3,
-        "items": [
-            ("Service", "In the cluster"),
-            ("Transit Gateway", "Spoke attachment"),
-            ("Firewall", "Inspection hop"),
-            ("Apigee", "Outbound API plane"),
-            ("Partner", "1SB or bank API"),
-        ],
-        "caption": "The aggregator never sees a workload address. Internal bank APIs stay on the private path — they do not hairpin the public edge.",
-        "say": "Two different outsides. Mixing them is how CIF ends up on the public internet. The adapter's base URL is the Apigee proxy, not the aggregator host. Publishing NAT Elastic IPs to 1SB allowlists the wrong host — ADR-020. I will not read out an IP list; that action sits with the Apigee team and does not block vpc-dev.",
-        "if_asked": "Apigee edition and IPs: Play 3, DEP-20260914-apg. Dev uses stubs.",
-        "do_not": "Do not promise the Apigee product exists today. Do not invent IPs.",
+        "minutes": 2,
+        "say": "The adapter base URL is the Apigee proxy, never the aggregator host. I will not read IPs. That action does not block vpc-dev.",
+        "if_asked": "Play 3, DEP-20260914-apg. Dev uses stubs.",
+        "do_not": "Do not invent IPs.",
     },
     {
         "id": "topology",
         "kind": "picture",
         "picture": "topology",
         "title": "Where a request runs",
-        "minutes": 3,
-        "say": "This is the runtime picture. Three facts: we attach as a spoke — we do not build a second hub. Inbound is the path you just saw. Outbound leaves through Apigee. The picture is a rendering of the LLD. If it disagrees with an ADR, the ADR wins. I will pause here if you want to interrogate the drawing; otherwise I will keep moving so we protect discussion time.",
-        "if_asked": "If the drawing is too busy, the previous two slides are the same facts in sequence.",
-        "do_not": "Do not walk every box. Offer the LLD after the sitting.",
+        "minutes": 2,
+        "say": "Attach as a spoke. Inbound as you saw. Outbound through Apigee. I will pause here if you want the drawing; otherwise I protect discussion time. If this picture disagrees with an ADR, the ADR wins.",
+        "if_asked": "Previous two slides are the same facts in sequence.",
+        "do_not": "Do not walk every box.",
     },
     {
         "id": "envs",
-        "kind": "envs",
+        "kind": "hero",
+        "hero": "envs",
         "title": "How Dev and UAT are isolated",
-        "minutes": 2,
-        "say": "Five accounts. Dev is not a sixth account — it is a VPC inside UAT, with its own route table, namespaces and schemas, so stubs cannot ride a production CBS route. CUG is not in R0; there is no consumer for it. Production is on this picture so you can see blast radius — we are not asking to vendor it today.",
-        "if_asked": "A split Dev account is a Cloud cost exception we are not requesting. We can consume it; we are not asking for it.",
-        "do_not": "Do not offer to vendor production 'while we are here'.",
+        "minutes": 1,
+        "say": "Five accounts. Dev is a VPC inside UAT, not a sixth account. Stubs cannot ride a production CBS route. Production is drawn so you see blast radius — we are not vending it today.",
+        "if_asked": "Split Dev account is a Cloud exception we are not requesting.",
+        "do_not": "Do not offer to vendor production while we are here.",
     },
     {
-        "id": "controls",
-        "kind": "three",
-        "title": "How identity, records and exposure are handled",
+        "id": "services",
+        "kind": "hero",
+        "hero": "services",
+        "title": "What we run — edge, AWS, operate",
         "minutes": 3,
-        "cols": [
-            (
-                "Identity",
-                [
-                    "Workforce is verified through the bank AD-verify API, privately.",
-                    "Partners live in a separate IdP. They do not enter AD.",
-                    "Pods assume IRSA roles. Humans use existing privileged access.",
-                    "The device never talks to the IdP or to Apigee.",
-                ],
-            ),
-            (
-                "Records",
-                [
-                    "India only: Mumbai primary, Hyderabad standby.",
-                    "One Aurora cluster, schema per bounded context.",
-                    "Audit is insert-only plus object lock — seven years.",
-                    "Search and logs are operational. They are not evidence.",
-                ],
-            ),
-            (
-                "Exposure",
-                [
-                    "Seven trust boundaries from device to partner.",
-                    "No public ALB. No internet gateway on the workload.",
-                    "Secrets from the manager, not from images.",
-                    "SAST is in CI now. Pentest is a later sitting.",
-                ],
-            ),
-        ],
-        "say": "Please do not let anyone treat the search cluster as the audit pack. Search can be rebuilt. WORM cannot be shortened because we are in a hurry. We are not binding LDAP from Kubernetes to Active Directory — that would be a new credential path. VA/PT does not exist yet; we will not pentest an environment we have not been allowed to vendor.",
-        "if_asked": "CIS class is a proposal; Shailja and CISO register it. Play 2. Play 4 on pentest.",
-        "do_not": "Do not classify the system into the CIS register from this slide. Do not say pentest is next week unless a date exists.",
+        "say": "Four clusters, not a shopping list. Edge is Cloudflare, F5-XC, Apigee — they do not sit in our VPC. Compute is EKS behind API Gateway and an internal ALB. Data is Aurora PostgreSQL — one cluster, schema per context — not a public RDS. Events on MSK, fed by an outbox. Keys in KMS, secrets in Secrets Manager, telemetry in CloudWatch and CloudTrail. OpenSearch is operational search, not the audit pack.",
+        "if_asked": "Why not RDS? Aurora PostgreSQL is the recorded pin (ADR-008). Why not self-managed Kafka on EKS? MSK is the managed backbone; the outbox remains source of truth.",
+        "do_not": "Do not add Istio, Cognito, or a warehouse to look more complete. They are not R0.",
+    },
+    {
+        "id": "stack",
+        "kind": "hero",
+        "hero": "stack",
+        "title": "How we build it",
+        "minutes": 3,
+        "say": "Experience is Flutter — one project, web, APK, IPA. Services are Java 21 and Spring Boot 3.5 on EKS. Coordination is an orchestrated saga, not a choreography: Journey Orchestration is queryable when a sale stops. Outbox then MSK. 1SB JSON dies in the adapter. Tokens never reach the glass.",
+        "if_asked": "They said Jetty — we run Java 21 LTS. Spring Boot 3.5 is the BOM in repo. Saga is recorded in the domain model §5, not a slide invention.",
+        "do_not": "Do not start a language war. Do not claim a saga framework product — it is the Journey service plus state, not a third-party BPM.",
+    },
+    {
+        "id": "micro",
+        "kind": "hero",
+        "hero": "micro",
+        "title": "How the services sit",
+        "minutes": 2,
+        "say": "Five lanes. Flutter talks only to the BFF. The sale spine owns lead, saga, suitability, consent. Product owns catalogue, quote, proposal. Fulfilment owns payment, policy, WORM audit. Integration is Hub, 1SB adapter, Apigee. That is why Health later does not rewrite Life.",
+        "if_asked": "Not every name is a pod today. R0 is the assisted Life cut of these lanes.",
+        "do_not": "Do not list twenty class names. Stay on the lanes.",
     },
     {
         "id": "payment",
         "kind": "picture",
         "picture": "payment",
         "title": "How premium is collected",
-        "minutes": 3,
-        "say": "Session-create goes out through Apigee. The customer completes 3-D Secure on their own device. The callback arrives on a separate API Gateway route, not on the RM session. We do not mark sold because a payment API returned 200. We wait for reconciled. If the callback is lost, state is uncertain and we block a second attempt. Timeouts do not mint money.",
-        "if_asked": "PAN never on the RM device and never in our logs. We use the bank payment gateway; we do not replace it.",
-        "do_not": "Do not accept 'RM pays on behalf for the UAT demo' as an architecture exception.",
+        "minutes": 2,
+        "say": "Session-create through Apigee. Customer completes 3-D Secure on their phone. Callback on a separate API Gateway route. Sold waits for reconciled. Uncertain blocks a second attempt. Timeouts do not mint money.",
+        "if_asked": "PAN never on the RM device, never in logs.",
+        "do_not": "Do not accept RM pays on behalf for a demo.",
     },
     {
         "id": "dr",
         "kind": "kpis",
         "title": "Continuity — designed, not yet drilled",
-        "minutes": 2,
+        "minutes": 1,
         "kpis": [
             ("≤ 1 h", "Recovery time"),
             ("≤ 5 min", "Transactional RPO"),
             ("0", "Audit RPO"),
         ],
-        "caption": "Warm standby in Hyderabad. Cache, search and the bus are rebuilt, not replicated. A region with no path to CBS cannot sell. Proof is a timed drill — later sitting.",
+        "caption": "Warm standby in Hyderabad. Proof is a timed drill — later sitting.",
         "picture": "dr",
-        "say": "Three numbers, one caveat: we have not measured them in a drill. That is exactly why this is not the production ARB. Warm standby matches a one-hour RTO. Active-active is a different money and data problem — I will not 'fix' SOP language in this hour without Aarti and Shivanshi.",
-        "if_asked": "Play 4. NFR-DR-04 is the drill.",
-        "do_not": "Do not claim DR is proven. Do not drop Hyderabad 'to save money' without Aarti.",
+        "say": "Designed, not measured. That is why this is not the production ARB.",
+        "if_asked": "Play 4. NFR-DR-04.",
+        "do_not": "Do not claim DR is proven.",
     },
     {
         "id": "ask",
@@ -262,14 +222,14 @@ TALK = [
         "title": "Decision requested",
         "minutes": 2,
         "cards": [
-            ("Review", "Record this as the intended R0 design for the Insurance Distribution Platform."),
-            ("Proceed", "Allow Dev and UAT to be provisioned on this shape — two VPCs in the UAT account."),
-            ("Capture", "Write observations as dated actions. A question is not a blocker unless you name it as one."),
+            ("Review", "Record this as the intended R0 design."),
+            ("Proceed", "Allow Dev and UAT on this shape — two VPCs in the UAT account."),
+            ("Return", "Production sitting after UAT, with evidence, not with a thicker deck."),
         ],
-        "later": "Later sitting — production apply · timed restore · CIS register · VA/PT",
+        "later": "After UAT — logs, security ops, compliance pack, VA/PT, timed restore, day-one services",
         "say": CLOSING,
-        "if_asked": "If they will only write 'approved', ask them to qualify: first review, Dev/UAT vending, production ARB still required.",
-        "do_not": "Do not leave without a written observation, even if it is 'no objection to Dev/UAT, firewall remainder with Security'.",
+        "if_asked": "If they write only 'approved', qualify: first review, Dev/UAT vending, production ARB still required.",
+        "do_not": "Do not leave without a written observation.",
     },
 ]
 
@@ -350,6 +310,18 @@ FAQ = [
     ("Why Java 21 / Spring Boot, not Node or .NET?",
      "LTS, already in the programme, Spring Boot 3.5 in support. A language war does not change a trust boundary. We will not restart R0 on a new runtime.",
      "Lifecycle paper", False, "Amit"),
+    ("Is that Jetty 21?",
+     "No. The runtime pin is Java 21 LTS with Spring Boot 3.5. Jetty is not the recorded server pin.",
+     "Lifecycle paper / Gradle BOM", False, "Amit"),
+    ("Are you using Postgres RDS?",
+     "Aurora PostgreSQL — one cluster, schema per bounded context (ADR-008). Not a public RDS instance, not one database per microservice at R0.",
+     "ADR-008 / LLD BOM", False, "Aarti"),
+    ("Why Saga? Is this a BPM product?",
+     "Orchestrated saga owned by Journey Orchestration (#9). Not choreography, not a third-party BPM. One queryable record of where the sale is and why it stopped. Domain model §5.",
+     "01-domain-model §5 / HLD 2.6", False, ""),
+    ("When do we see production logging and security evidence?",
+     "After UAT. This sitting is intended design for Dev/UAT. Sitting two brings working logs, security ops, compliance pack, VA/PT and a timed restore. We will not invent those proofs today.",
+     "This sitting's ask", False, "Kalpana to schedule sitting 2"),
     ("Why not one InsuranceService monolith?",
      "Every rule change would be a release, and Health later becomes a rewrite. Suitability and quote are different systems of record.",
      "03 SAD / R0-E2E §5", False, ""),
@@ -603,8 +575,9 @@ def build_pptx(path: Path, pngs: dict) -> int:
     for spec in TALK[1:] + APPENDIX:
         s = prs.slides.add_slide(blank)
         fill(s.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0), Inches(0), Inches(13.333), Inches(7.5)), ice)
-        header(s, spec["title"])
         kind = spec["kind"]
+        if kind not in ("hero", "picture"):
+            header(s, spec["title"])
 
         if kind == "clock":
             # two large clocks
@@ -658,10 +631,26 @@ def build_pptx(path: Path, pngs: dict) -> int:
             flow(s, spec["items"], top=2.15)
             caption_bar(s, spec["caption"])
 
+        elif kind == "hero":
+            key = spec.get("hero")
+            png = pngs.get(key) if key else None
+            png_path = Path(png) if png else None
+            if png_path is not None and png_path.exists():
+                s.shapes.add_picture(str(png_path), Inches(0), Inches(0), Inches(13.333), Inches(7.22))
+            else:
+                tb = s.shapes.add_textbox(Inches(0.5), Inches(2.5), Inches(12), Inches(1))
+                set_run(
+                    first_run(tb.text_frame.paragraphs[0]),
+                    f"Illustration missing ({key}).",
+                    16,
+                    False,
+                    muted,
+                )
+                raise FileNotFoundError(f"hero illustration missing: {key} -> {png}")
         elif kind == "picture":
             png = pngs.get(spec.get("picture"))
             if png:
-                s.shapes.add_picture(str(png), Inches(0.35), Inches(0.95), Inches(12.65), Inches(6.1))
+                s.shapes.add_picture(str(png), Inches(0), Inches(0), Inches(13.333), Inches(7.22))
             else:
                 tb = s.shapes.add_textbox(Inches(0.5), Inches(2.5), Inches(12), Inches(1))
                 set_run(first_run(tb.text_frame.paragraphs[0]), "Diagram unavailable in this build — see R0-LLD.", 16, False, muted)
@@ -986,12 +975,22 @@ def build_script_pdf(path: Path) -> None:
 
 def main() -> int:
     OUT.mkdir(parents=True, exist_ok=True)
-    tmp = OUT / ".generated-png-first"
-    pngs = {
-        "topology": svg_png(ROOT / "docs/architecture/r0-platform-topology.svg", tmp / "topology.png", 1800),
-        "payment": svg_png(ROOT / "docs/architecture/r0-platform-payment.svg", tmp / "payment.png", 1600),
-        "dr": svg_png(ROOT / "docs/architecture/r0-platform-dr.svg", tmp / "dr.png", 1600),
-    }
+    tmp = Path("/tmp/arb-first-review-pngs")
+    if tmp.exists():
+        shutil.rmtree(tmp)
+    tmp.mkdir(parents=True, exist_ok=True)
+    pngs = render_all(tmp / "scenes")
+    pngs.update(
+        {
+            "topology": svg_png(ROOT / "docs/architecture/r0-platform-topology.svg", tmp / "topology.png", 1800),
+            "payment": svg_png(ROOT / "docs/architecture/r0-platform-payment.svg", tmp / "payment.png", 1600),
+            "dr": svg_png(ROOT / "docs/architecture/r0-platform-dr.svg", tmp / "dr.png", 1600),
+        }
+    )
+    print("png map:", {k: str(v) if v else None for k, v in pngs.items()})
+    missing = [k for k, v in pngs.items() if not v or not Path(v).exists()]
+    if missing:
+        raise FileNotFoundError(f"generated PNG missing: {missing}")
     files = {
         "pptx": OUT / f"AU-NIP-R0-ARB-First-Review-DEV-UAT-{STAMP}.pptx",
         "script_docx": OUT / f"AU-NIP-R0-ARB-First-Review-SCRIPT-{STAMP}.docx",
@@ -1000,19 +999,21 @@ def main() -> int:
         "zip": OUT / f"AU-NIP-R0-ARB-First-Review-Kit-{STAMP}.zip",
     }
     n = build_pptx(files["pptx"], pngs)
+    media = [name for name in zipfile.ZipFile(files["pptx"]).namelist() if name.startswith("ppt/media/")]
+    if len(media) < 12:
+        raise RuntimeError(f"expected >=12 embedded pictures, got {len(media)}: {media}")
     build_script_docx(files["script_docx"])
     build_script_pdf(files["script_pdf"])
     build_faq_xlsx(files["faq"])
     with zipfile.ZipFile(files["zip"], "w", zipfile.ZIP_DEFLATED) as zf:
         for key in ("pptx", "script_docx", "script_pdf", "faq"):
             zf.write(files[key], files[key].name)
-    if tmp.exists():
-        shutil.rmtree(tmp)
     talk_min = sum(s.get("minutes") or 0 for s in TALK)
-    print(f"slides={n} talk_minutes={talk_min}")
+    print(f"slides={n} talk_minutes={talk_min} media={len(media)}")
     print("wrote:")
     for p in files.values():
         print(f"  {p.relative_to(ROOT)}  ({p.stat().st_size:,} bytes)")
+    print(f"scenes kept at {tmp}")
     return 0
 
 

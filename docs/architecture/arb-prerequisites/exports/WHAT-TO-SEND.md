@@ -2,9 +2,9 @@
 
 Markdown in this repository is for the delivery team. **Do not walk into ARB with `.md` files.**
 
-This sitting is the **first review** (Dev / UAT environment shape). It is **not** production go-live and **not** DR-ready sign-off.
+This sitting is the **first review** (Dev / UAT environment shape). It is **not** production go-live and **not** DR-ready sign-off. Walk the **intended design** so Dev and UAT can be stood up. Working logs, security operations, compliance proofs and a proven day-one estate belong to a **later sitting after UAT** — a thicker copy of this deck is not that sitting.
 
-**How to run the hour:** talk **~35 minutes**, leave **~25 minutes** for the board. Slides are billboards — the argument is in presenter notes and the FAQ workbook.
+**How to run the hour:** talk **~35 minutes**, leave **~25 minutes** for the board. Slides are illustrated scenes (RM on the glass, sale ribbon, inbound/outbound hops, AWS and edge services, Java 21 / Flutter / saga). The argument is in presenter notes and the FAQ workbook.
 
 | If they ask for… | Give them this file |
 |---|---|

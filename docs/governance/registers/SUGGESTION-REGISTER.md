@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20260915-pic | 2026-09-15 | human:Mahesh | First-review deck must be illustrated (RM, suitability, quote, proposal, pay, policy), with AWS/external service map and stack/saga — still a Dev/UAT design sitting, production evidence after UAT | SF1 | SC1 | MUST | DOC | P1 / P1 | ADMITTED | [WHAT-TO-SEND](../../architecture/arb-prerequisites/exports/WHAT-TO-SEND.md) · [detail](#sug-20260915-pic--illustrated-journey-and-stack) |
 | SUG-20260915-vis | 2026-09-15 | human:Mahesh | Recast the first ARB deck as a 35-minute visual walk (problem, outcome, how) with 25 minutes for the board — not a bank-inventory, not a 60-minute monologue | SF1 | SC1 | MUST | DOC | P1 / P1 | ADMITTED | [WHAT-TO-SEND](../../architecture/arb-prerequisites/exports/WHAT-TO-SEND.md) · [detail](#sug-20260915-vis--visual-35-minute-first-arb-deck) |
 | SUG-20260914-1st | 2026-09-14 | human:Mahesh | First ARB sitting is Dev/UAT design review (not production): 1-hour presenter PPT + speaker script + FAQ/deferral plays so the board can non-object to vpc-dev and vpc-uat | SF1 | SC1 | MUST | DOC | P1 / P1 | ADMITTED | [WHAT-TO-SEND](../../architecture/arb-prerequisites/exports/WHAT-TO-SEND.md) · [detail](#sug-20260914-1st--first-arb-sitting-devuat-ppt-script-faq) |
 | SUG-20260914-xpt | 2026-09-14 | human:Mahesh | Export the admitted ARB prerequisite pack to reviewer formats (PPTX walk-in, PDF/DOCX leave-behind, XLSX matrices) because ARB cannot be shown Markdown | SF1 | SC1 | MUST | DOC | P1 / P1 | ADMITTED | [exports](../../architecture/arb-prerequisites/exports/WHAT-TO-SEND.md) · [detail](#sug-20260914-xpt--arb-reviewer-formats-pptx-pdf-docx-xlsx) |
@@ -1983,6 +1984,77 @@ outcome:
   status: ADMITTED
   closed_reason: null
 resumed: "ARB-PRE-2026-09-14 — 19-row evidence pack. Humans still sign CIS, Board 4, T4, VA/PT."
+```
+
+### SUG-20260915-pic · Illustrated journey and stack
+
+```yaml
+id: SUG-20260915-pic
+raised_at: "2026-09-15"
+raised_by: "human:Mahesh"
+source: "Follow-up to SUG-20260915-vis — boxes of text are not executive-grade"
+input: >
+  More visual graphics: RM standing, suitability on the device, symbols for
+  quote, proposal, payment, policy. Bullet points in boxes are not professional
+  enough for 20–25 year high-tech management. Add a slide of AWS and external
+  services (F5, Cloudflare, MSK, KMS, Postgres RDS, CloudWatch). Tech stack:
+  Java 21 Spring Boot microservices, Flutter, Saga. Keep this sitting minimal;
+  production review after UAT comes with evidence (logging, security ops,
+  compliance, day-one services running). Script must follow that idea.
+
+duplicate_of: SUG-20260915-vis
+recurrence_count: 1
+conflicts: []
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 / S09 — Engineering & Platform Foundation"
+  current_objective: R0-ASSISTED-LIFE-SALE
+  state_as_of: "2026-09-13"
+  freshness: FRESH
+  active_work_item: ARB-PRE-2026-09-14
+
+stage_fit:
+  code: SF1
+  rationale: Same first ARB sitting. Raising the presenter artefact to executive visual grade.
+
+scope:
+  code: SC1
+  serves: ["SUG-20260915-vis", "ARB-PRE-2026-09-14"]
+  failure_without_it: "Board reads boxes of prose instead of seeing the sale and the stack."
+  minimal: true
+  authority: "human:Mahesh"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S09 — bank ARB first sitting (Dev/UAT)"
+  binds_when: "First ARB review"
+  evidence_tier: E2
+  confidence: C5
+  assumptions: []
+
+action: ADMIT
+action_rationale: >
+  Continue ARB-PRE-2026-09-14. Illustrate the journey from recorded HLD/LLD.
+  AWS list from R0-LLD BOM (Aurora PostgreSQL, not RDS). Saga is orchestrated
+  (#9). Do not invent Istio or production evidence. Do not manufacture signatures.
+
+classification:
+  type: DOC
+  also: [ARCH]
+  breakdown: story
+  risk_tier: T4
+
+priority:
+  priority_now: P1
+  priority_at_target: P1
+
+work_item: ARB-PRE-2026-09-14
+outcome:
+  status: ADMITTED
+  work_item_id: ARB-PRE-2026-09-14
 ```
 
 ### SUG-20260915-vis · Visual 35-minute first ARB deck

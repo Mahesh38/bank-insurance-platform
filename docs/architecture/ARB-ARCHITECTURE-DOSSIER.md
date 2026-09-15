@@ -16,6 +16,11 @@
 **Status:** ALIGNED WITH INTERNAL ARCHITECTURE TEAM DIRECTIVES (Mandatory Human Sign-offs Pending)  
 **Visual Reference Diagram:** `R0 on AWS — What Runs Where` (Enterprise Bank Ingress & EBS Core Connectivity)
 
+**Bank ARB prerequisite cover (2026-09-14):** [`ARB-PREREQUISITE-PACK.md`](./ARB-PREREQUISITE-PACK.md) —
+nineteen-row readiness dashboard, CIS proposal, integration matrix, shared-responsibility matrix,
+lifecycle/exit, and lockfile SBOM. That pack is the walk-in index; this dossier remains the
+narrative. Neither file is an ARB or T4 signature.
+
 ---
 
 ## Executive Summary & Strategic Objective

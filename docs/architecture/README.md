@@ -10,8 +10,11 @@ Two diagrams, deliberately. They answer different questions and **neither replac
 | [`R0-E2E-FOR-DEVELOPERS.md`](./R0-E2E-FOR-DEVELOPERS.md) | *Why does each hop exist, does it match the bank estate, and what did we refuse?* | Teaching compilation for engineers. `HA-02`: HLD/LLD/ADRs still win |
 | [`../platform/ws3-platform/07-nip-bff-lead-phase-api-lld.md`](../platform/ws3-platform/07-nip-bff-lead-phase-api-lld.md) | *What does NIP-APP call for SCR-02..SCR-05 (inbox, search, Term create)?* | Consumer LLD + OpenAPI (`EPIC-003` / `ARCH-023`). AI-drafted; human Board 1 outstanding |
 | [`R0-LLD.md`](./R0-LLD.md) | *What AWS resources, VPC, reverse proxies, PVCs, databases and caches does the platform team provision for R0?* | S09 requirements pack for the CTO and AWS platform team. AI-drafted; Security / Database / SRE reviews outstanding |
-| [`BOARD-1-REREVIEW-VIN003-ESTATE-2026-09-14.md`](./BOARD-1-REREVIEW-VIN003-ESTATE-2026-09-14.md) | *Does that R0 spoke still hold against the live AU Control Tower / EDGE / SOP (`VIN-003`)?* | Board 1 draft `ARCH-DEC-VIN003-B1`: `APPROVED_WITH_CONDITIONS`, `A1`. **AI-drafted; human T4 outstanding** |
+| [`ARB-ARCHITECTURE-DOSSIER.md`](./ARB-ARCHITECTURE-DOSSIER.md) | Narrative ARB dossier | AI-drafted; human sign-offs pending |
+| [`ARB-PREREQUISITE-PACK.md`](./ARB-PREREQUISITE-PACK.md) | *Bank ARB 19-item prerequisite cover: readiness, CIS proposal, integration matrix, shared responsibility, SBOM, lifecycle/exit* | `SUG-20260914-arb`. Evidence pack, not an approval |
+| [`arb-prerequisites/exports/WHAT-TO-SEND.md`](./arb-prerequisites/exports/WHAT-TO-SEND.md) | *What to put in front of ARB: first-review PPT + script + FAQ; 19-row leave-behind — not Markdown* | `SUG-20260914-1st` / `SUG-20260914-xpt`. Generated; `build_arb_first_review.py` then `build_arb_reviewer_pack.py` |
 | [`2026-09-14-HUMAN-DIRECTION-APIGEE-EGRESS-IDP.md`](./2026-09-14-HUMAN-DIRECTION-APIGEE-EGRESS-IDP.md) | *Apigee outbound vs API Gateway inbound, Dev-inside-UAT, no CUG, AD-verify API, Keycloak behind Fireframe UI* | Human direction record. Not an ADR |
+| [`BOARD-1-REREVIEW-VIN003-ESTATE-2026-09-14.md`](./BOARD-1-REREVIEW-VIN003-ESTATE-2026-09-14.md) | *VIN-003: attach to Control Tower, do not clone; five accounts, no CUG* | Board 1 re-review. `SUG-20260914-est` |
 | [`r0-lld.svg`](./r0-lld.svg) | *Where does each R0 service sit on AWS, and what must not be provisioned?* | Rendering of `R0-LLD.md`. Owns nothing (`HA-02`) |
 | [`r0-platform-topology.svg`](./r0-platform-topology.svg) | *What runs where — zones, subnets, namespaces, the two-hop proxy?* | Rendering of `R0-LLD.md`. **Generated** from [`diagrams/`](./diagrams/README.md). Owns nothing (`HA-02`) |
 | [`r0-platform-az.svg`](./r0-platform-az.svg) | *Which availability zone does each resource sit in?* | Rendering of `R0-LLD.md` §2.1 |
@@ -389,3 +392,23 @@ Human Architecture owner: keep Apigee **off every diagram** until `SPIKE-001` re
 for engineers who write Java / Flutter. It does not own a decision. If it disagrees with
 [`03-solution-architecture-r0.md`](../platform/ws3-platform/03-solution-architecture-r0.md),
 `R0-LLD.md`, or an ADR, those files win (`HA-02`).
+
+## Revision — 2026-09-14 ARB 19-item prerequisite pack (`SUG-20260914-arb`)
+
+Bank ARB walk-in evidence is now indexed from
+[`ARB-PREREQUISITE-PACK.md`](./ARB-PREREQUISITE-PACK.md). New gap-fill papers live under
+[`arb-prerequisites/`](./arb-prerequisites/README.md). Existing SAD / HLD / LLD / NFR / identity
+documents remain the owners of those facts (`HA-02`). This pack does not mark Board 1, Board 4,
+Board 6, or T4 as passed.
+
+## Revision — 2026-09-14 first ARB sitting (`SUG-20260914-1st`) + reviewer formats (`SUG-20260914-xpt`)
+
+Markdown stays the engineering source. **Open the first-review PPTX in the room**; the 19-row
+walk-in is the leave-behind. Regenerators:
+
+```bash
+python3 scripts/architecture/build_arb_first_review.py
+python3 scripts/architecture/build_arb_reviewer_pack.py
+```
+
+Do not walk into ARB with `.md` files. Index: [`arb-prerequisites/exports/WHAT-TO-SEND.md`](./arb-prerequisites/exports/WHAT-TO-SEND.md).

@@ -13,4 +13,4 @@ compile; they do not replace ADRs, the LLD, or Board 4/6 signatures.
 | [`CLOUD-SHARED-RESPONSIBILITY.md`](./CLOUD-SHARED-RESPONSIBILITY.md) | Cloud shared-responsibility |
 | [`TECHNOLOGY-LIFECYCLE-AND-EXIT.md`](./TECHNOLOGY-LIFECYCLE-AND-EXIT.md) | Lifecycle / EOS · exit and decommission |
 | [`SBOM-RUNTIME-INVENTORY.md`](./SBOM-RUNTIME-INVENTORY.md) | Software dependency inventory from Gradle lockfiles |
-| [`exports/`](./exports/WHAT-TO-SEND.md) | First-review PPT + script + FAQ (`SUG-20260914-1st`); 19-row leave-behind (`SUG-20260914-xpt`) |
+| [`exports/`](./exports/WHAT-TO-SEND.md) | First-review illustrated PPT + script + FAQ (`SUG-20260915-pic`); 19-row leave-behind (`SUG-20260914-xpt`) |

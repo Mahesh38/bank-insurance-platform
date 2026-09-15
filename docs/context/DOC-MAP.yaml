@@ -19,7 +19,7 @@ schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
 document_count: 587
-total_bytes: 19127375
+total_bytes: 20184058
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -1365,7 +1365,7 @@ documents:
     persona: architecture
     title: "ARB prerequisite pack — R0 Insurance Distribution Platform (NIP)"
     answers: "Document: ARB-PRE-2026-09-14"
-    bytes: 16770
+    bytes: 16793
   - path: docs/architecture/BOARD-1-REREVIEW-VIN003-ESTATE-2026-09-14.md
     bucket: platform
     authority: ai-drafted
@@ -1437,7 +1437,7 @@ documents:
     persona: architecture
     title: "ARB prerequisite papers"
     answers: "Gap-fill evidence for ../ARB-PREREQUISITE-PACK.md. These files"
-    bytes: 1080
+    bytes: 1092
   - path: docs/architecture/arb-prerequisites/SBOM-RUNTIME-INVENTORY.md
     bucket: platform
     authority: ai-drafted
@@ -1461,7 +1461,7 @@ documents:
     persona: architecture
     title: "AU NIP R0 ARB First Review DEV UAT 2026 09"
     answers: "Generated first ARB sitting deck (Dev/UAT) — regenerate with scripts/architecture/build_arb_first_review.py"
-    bytes: 721559
+    bytes: 1253203
   - path: docs/architecture/arb-prerequisites/exports/AU-NIP-R0-ARB-First-Review-FAQ-2026-09-14.xlsx
     bucket: platform
     authority: ai-drafted
@@ -1469,7 +1469,7 @@ documents:
     persona: architecture
     title: "AU NIP R0 ARB First Review FAQ 2026 09"
     answers: "Generated first ARB sitting FAQ and deferral plays — regenerate with scripts/architecture/build_arb_first_review.py"
-    bytes: 13303
+    bytes: 12815
   - path: docs/architecture/arb-prerequisites/exports/AU-NIP-R0-ARB-First-Review-Kit-2026-09-14.zip
     bucket: platform
     authority: ai-drafted
@@ -1477,7 +1477,7 @@ documents:
     persona: architecture
     title: "AU NIP R0 ARB First Review Kit 2026 09"
     answers: "Generated first ARB sitting kit (PPTX + script + FAQ)"
-    bytes: 781420
+    bytes: 1310602
   - path: docs/architecture/arb-prerequisites/exports/AU-NIP-R0-ARB-First-Review-SCRIPT-2026-09-14.docx
     bucket: platform
     authority: ai-drafted
@@ -1485,7 +1485,7 @@ documents:
     persona: architecture
     title: "AU NIP R0 ARB First Review SCRIPT 2026 09"
     answers: "Generated first ARB presenter script — regenerate with scripts/architecture/build_arb_first_review.py"
-    bytes: 49319
+    bytes: 44624
   - path: docs/architecture/arb-prerequisites/exports/AU-NIP-R0-ARB-First-Review-SCRIPT-2026-09-14.pdf
     bucket: platform
     authority: ai-drafted
@@ -1493,7 +1493,7 @@ documents:
     persona: architecture
     title: "AU NIP R0 ARB First Review SCRIPT 2026 09"
     answers: "Generated first ARB presenter script (PDF) — regenerate with scripts/architecture/build_arb_first_review.py"
-    bytes: 24423
+    bytes: 19744
   - path: docs/architecture/arb-prerequisites/exports/AU-NIP-R0-ARB-Matrices-2026-09-14.xlsx
     bucket: platform
     authority: ai-drafted
@@ -1541,7 +1541,7 @@ documents:
     persona: architecture
     title: "What to send the ARB reviewer"
     answers: "Markdown in this repository is for the delivery team. Do not walk into ARB with .md files."
-    bytes: 1561
+    bytes: 2072
   - path: docs/architecture/diagrams/README.md
     bucket: platform
     authority: approved-spec
@@ -2109,7 +2109,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 207853
+    bytes: 207855
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -3885,7 +3885,7 @@ documents:
     persona: null
     title: "Suggestion Register"
     answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 255978
+    bytes: 261149
   - path: docs/governance/schemas/README.md
     bucket: governance
     authority: binding-process

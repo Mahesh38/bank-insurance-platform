@@ -12,7 +12,7 @@
 
 | ARB asks for | File |
 |---|---|
-| **First sitting — open this in the room** | [`AU-NIP-R0-ARB-First-Review-DEV-UAT-2026-09-14.pptx`](./arb-prerequisites/exports/AU-NIP-R0-ARB-First-Review-DEV-UAT-2026-09-14.pptx) (`SUG-20260914-1st`) |
+| **First sitting — open this in the room** | [`AU-NIP-R0-ARB-First-Review-DEV-UAT-2026-09-14.pptx`](./arb-prerequisites/exports/AU-NIP-R0-ARB-First-Review-DEV-UAT-2026-09-14.pptx) (`SUG-20260915-vis` · ~35 min visual walk) |
 | Presenter script | [`AU-NIP-R0-ARB-First-Review-SCRIPT-2026-09-14.pdf`](./arb-prerequisites/exports/AU-NIP-R0-ARB-First-Review-SCRIPT-2026-09-14.pdf) · [Word](./arb-prerequisites/exports/AU-NIP-R0-ARB-First-Review-SCRIPT-2026-09-14.docx) |
 | FAQ + deferral plays | [`AU-NIP-R0-ARB-First-Review-FAQ-2026-09-14.xlsx`](./arb-prerequisites/exports/AU-NIP-R0-ARB-First-Review-FAQ-2026-09-14.xlsx) |
 | First-review kit zip | [`AU-NIP-R0-ARB-First-Review-Kit-2026-09-14.zip`](./arb-prerequisites/exports/AU-NIP-R0-ARB-First-Review-Kit-2026-09-14.zip) |

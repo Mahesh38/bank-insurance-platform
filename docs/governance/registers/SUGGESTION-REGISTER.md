@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20260915-vis | 2026-09-15 | human:Mahesh | Recast the first ARB deck as a 35-minute visual walk (problem, outcome, how) with 25 minutes for the board — not a bank-inventory, not a 60-minute monologue | SF1 | SC1 | MUST | DOC | P1 / P1 | ADMITTED | [WHAT-TO-SEND](../../architecture/arb-prerequisites/exports/WHAT-TO-SEND.md) · [detail](#sug-20260915-vis--visual-35-minute-first-arb-deck) |
 | SUG-20260914-1st | 2026-09-14 | human:Mahesh | First ARB sitting is Dev/UAT design review (not production): 1-hour presenter PPT + speaker script + FAQ/deferral plays so the board can non-object to vpc-dev and vpc-uat | SF1 | SC1 | MUST | DOC | P1 / P1 | ADMITTED | [WHAT-TO-SEND](../../architecture/arb-prerequisites/exports/WHAT-TO-SEND.md) · [detail](#sug-20260914-1st--first-arb-sitting-devuat-ppt-script-faq) |
 | SUG-20260914-xpt | 2026-09-14 | human:Mahesh | Export the admitted ARB prerequisite pack to reviewer formats (PPTX walk-in, PDF/DOCX leave-behind, XLSX matrices) because ARB cannot be shown Markdown | SF1 | SC1 | MUST | DOC | P1 / P1 | ADMITTED | [exports](../../architecture/arb-prerequisites/exports/WHAT-TO-SEND.md) · [detail](#sug-20260914-xpt--arb-reviewer-formats-pptx-pdf-docx-xlsx) |
 | SUG-20260914-arb | 2026-09-14 | human:Mahesh | Assemble bank ARB prerequisite pack (business sign-off, CIS, SAD, current/target, trust-boundary, integration matrix, capacity, RTO/RPO, DR, security, VA/PT, SBOM, classification/residency, IAM/PAM, logging, third parties, shared-responsibility, lifecycle, exit) as an evidence index — no manufactured signatures | SF1 | SC1 | MUST | ARCH | P1 / P1 | ADMITTED | [pack](../../architecture/ARB-PREREQUISITE-PACK.md) · [detail](#sug-20260914-arb--bank-arb-prerequisite-evidence-pack) |
@@ -1982,6 +1983,79 @@ outcome:
   status: ADMITTED
   closed_reason: null
 resumed: "ARB-PRE-2026-09-14 — 19-row evidence pack. Humans still sign CIS, Board 4, T4, VA/PT."
+```
+
+### SUG-20260915-vis · Visual 35-minute first ARB deck
+
+```yaml
+id: SUG-20260915-vis
+raised_at: "2026-09-15"
+raised_by: "human:Mahesh"
+source: "Follow-up to SUG-20260914-1st — first-sitting PPT was too textual and too long"
+input: >
+  Act like professional documents and product expert. Make a better PPT:
+  bullet points, better formatting, more graphical view than text, more
+  visualisation. Do not tell them what the bank already has and what we are
+  adding. Tell the problem statement, what we are doing, how we are doing it
+  in this architecture. Do not use my words as-is in bullet points or headers.
+  Meeting is 60 min; I cannot talk 60 min — make the talk 30-45 min so others
+  can speak.
+
+duplicate_of: SUG-20260914-1st
+recurrence_count: 1
+conflicts: []
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 / S09 — Engineering & Platform Foundation"
+  current_objective: R0-ASSISTED-LIFE-SALE
+  state_as_of: "2026-09-13"
+  freshness: FRESH
+  active_work_item: ARB-PRE-2026-09-14
+
+stage_fit:
+  code: SF1
+  rationale: >
+    Same first ARB sitting. Revising the presenter artefact so the hour has
+    room for the board is on-stage for S09 landing-zone review.
+
+scope:
+  code: SC1
+  serves: ["SUG-20260914-1st", "ARB-PRE-2026-09-14"]
+  failure_without_it: "Presenter reads dense slides for 60 minutes; the board cannot interrogate the design."
+  minimal: true
+  authority: "human:Mahesh"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S09 — bank ARB first sitting (Dev/UAT)"
+  binds_when: "First ARB review"
+  evidence_tier: E2
+  confidence: C5
+  assumptions: []
+
+action: ADMIT
+action_rationale: >
+  Continue ARB-PRE-2026-09-14. Recast build_arb_first_review.py as a visual
+  35-minute walk (problem → outcome → how). Speaker notes and FAQ remain
+  the density. Do not invent architecture. Do not manufacture signatures.
+
+classification:
+  type: DOC
+  also: [ARCH]
+  breakdown: story
+  risk_tier: T4
+
+priority:
+  priority_now: P1
+  priority_at_target: P1
+
+work_item: ARB-PRE-2026-09-14
+outcome:
+  status: ADMITTED
+  work_item_id: ARB-PRE-2026-09-14
 ```
 
 ### SUG-20260914-1st · First ARB sitting — Dev/UAT PPT, script, FAQ

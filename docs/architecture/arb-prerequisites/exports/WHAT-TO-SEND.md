@@ -4,6 +4,8 @@ Markdown in this repository is for the delivery team. **Do not walk into ARB wit
 
 This sitting is the **first review** (Dev / UAT environment shape). It is **not** production go-live and **not** DR-ready sign-off.
 
+**How to run the hour:** talk **~35 minutes**, leave **~25 minutes** for the board. Slides are billboards — the argument is in presenter notes and the FAQ workbook.
+
 | If they ask for… | Give them this file |
 |---|---|
 | **Open this in the room** (presenter deck + speaker notes) | `AU-NIP-R0-ARB-First-Review-DEV-UAT-2026-09-14.pptx` |

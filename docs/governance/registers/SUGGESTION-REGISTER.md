@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20260921-pws | 2026-09-21 | human:AI-team | Parallel microservice development via 4–5 “dev personas” and per-service workstreams so independent services are not blocked by unrelated incomplete streams; review (eng/compliance/security/SRE) before merge | SF1 | SC1 | SHOULD | GOV | P2 / P2 | ESCALATED | [CR-016](../change-requests/CR-016-microservice-executor-lanes.md) · [detail](#sug-20260921-pws--parallel-microservice-executor-lanes) |
 | SUG-20260915-pic | 2026-09-15 | human:Mahesh | First-review deck must be illustrated (RM, suitability, quote, proposal, pay, policy), with AWS/external service map and stack/saga — still a Dev/UAT design sitting, production evidence after UAT | SF1 | SC1 | MUST | DOC | P1 / P1 | ADMITTED | [WHAT-TO-SEND](../../architecture/arb-prerequisites/exports/WHAT-TO-SEND.md) · [detail](#sug-20260915-pic--illustrated-journey-and-stack) |
 | SUG-20260915-vis | 2026-09-15 | human:Mahesh | Recast the first ARB deck as a 35-minute visual walk (problem, outcome, how) with 25 minutes for the board — not a bank-inventory, not a 60-minute monologue | SF1 | SC1 | MUST | DOC | P1 / P1 | ADMITTED | [WHAT-TO-SEND](../../architecture/arb-prerequisites/exports/WHAT-TO-SEND.md) · [detail](#sug-20260915-vis--visual-35-minute-first-arb-deck) |
 | SUG-20260914-1st | 2026-09-14 | human:Mahesh | First ARB sitting is Dev/UAT design review (not production): 1-hour presenter PPT + speaker script + FAQ/deferral plays so the board can non-object to vpc-dev and vpc-uat | SF1 | SC1 | MUST | DOC | P1 / P1 | ADMITTED | [WHAT-TO-SEND](../../architecture/arb-prerequisites/exports/WHAT-TO-SEND.md) · [detail](#sug-20260914-1st--first-arb-sitting--devuat-ppt-script-faq) |
@@ -1984,6 +1985,102 @@ outcome:
   status: ADMITTED
   closed_reason: null
 resumed: "ARB-PRE-2026-09-14 — 19-row evidence pack. Humans still sign CIS, Board 4, T4, VA/PT."
+```
+
+### SUG-20260921-pws · Parallel microservice executor lanes
+
+```yaml
+id: SUG-20260921-pws
+raised_at: "2026-09-21"
+raised_by: "human:AI-team"
+source: "Cloud agent intake — AI team architectural direction on parallel microservice workstreams"
+input: >
+  Architectural decision by the AI team: distribute each microservice into a
+  workstream because current workstreams are not sufficient. Create four to five
+  developer personas so those personas work different workstreams in parallel.
+  Assign tasks only to those personas; they own development of independent
+  microservices (e.g. authorization/authentication as one workstream, or each
+  microservice as one workstream). After a persona finishes code, other personas,
+  leads, and AI team run compliance, security and SRE checks before merge.
+  Goal: stop one incomplete workstream from blocking independent work that can
+  run simultaneously.
+
+duplicate_of: null
+recurrence_count: 1
+conflicts:
+  - "14-CHANGE_CONTROL.md §1.1 closed persona roster / Rule CC-2 — resolved by escalating; preferred option uses executor lanes not new personas"
+  - "CURRENT-STATE.yaml three-workstream model vs per-microservice workstreams — resolved by distinguishing governance WS from delivery/executor lanes"
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 / S09 — Engineering & Platform Foundation"
+  current_objective: R0-ASSISTED-LIFE-SALE
+  state_as_of: "2026-09-13"
+  freshness: FRESH
+  active_work_item: null   # intake is the work for this lane; no prior in-flight item
+
+stage_fit:
+  code: SF1
+  rationale: >
+    Clarifying how independent scaffolded services are staffed in parallel is
+    on-stage for Foundation Recovery. Minting new CURRENT-STATE workstreams or
+    new canonical personas is not absorbable without change control.
+
+scope:
+  code: SC1
+  serves: ["GATE-S08 Foundation Recovery", "WS-1 Phase 4", "WS-2 IAM-P1"]
+  failure_without_it: >
+    Independent microservice work remains falsely serialised behind unrelated
+    incomplete streams; AI parallel capacity is unused.
+  minimal: false   # full ask (new personas + per-service WS) is not minimal; CR prefers lanes
+  authority: "AI-team direction 2026-09-21 · 14-CHANGE_CONTROL §1 · AGENTS.md §2 parallel owners"
+
+necessity:
+  now: SHOULD
+  future_necessity: MUST
+  target_stage: "S08 — while multi-service foundation fill is the critical path"
+  binds_when: "False cross-stream blocking is the measured critical-path drag"
+  evidence_tier: E3
+  evidence:
+    - "Human intake: one incomplete workstream blocks another; want independent parallel streams"
+    - "BOOT: ~21 services scaffolded; modules are not yet delivered contexts"
+    - "14 §1.1: roster closed; persona growth historically crowded out product commits"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X6_simplest_sufficient: false   # for the full persona/WS ask; true for executor-lane alternative
+    X8_cognitive_cost: true
+    X9_problem_observed: true
+
+action: ESCALATE
+action_rationale: >
+  Outcome (parallel independent microservice delivery + review-before-merge) is
+  valid and SHOULD. Mechanism (4–5 new developer personas + per-microservice
+  governance workstreams) requires change control: persona roster closed (CR-009 /
+  14 §1.1), CURRENT-STATE workstream taxonomy is a fixed point, agents cannot
+  approve. CR-016 offers preferred Option A — executor lanes under Amit/Kalpana
+  inside WS-1/2/3 — and recommends rejecting persona growth and per-service WS
+  unless PR-1–PR-4 and CC-2 pass.
+
+classification:
+  type: GOV
+  also: [DOC, ENG]
+  breakdown: story   # lane map if Option A approved; not an epic until APPROVED
+  risk_tier: T2      # process map; persona/WS explosion would be T4
+
+priority:
+  priority_now: P2
+  priority_at_target: P2
+  scoring_note: "Throughput enablement; no O1–O8 hard P1 override evidenced"
+
+work_item: null
+outcome:
+  status: ESCALATED
+  change_request: CR-016
 ```
 
 ### SUG-20260915-pic · Illustrated journey and stack

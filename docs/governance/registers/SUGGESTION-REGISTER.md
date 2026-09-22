@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20260922-1ed | 2026-09-22 | human:architecture-discussion | Quotation Data Lifecycle: suitability append-only versions → quote batch → provider attempts → offers → presentation/evidence snapshot; narrow PG + S3 payloads; hot/warm/cold; no Mongo; retention classes pending OPEN-I4 — decide before Quotation implement | SF2 | SC1 | NOT-NOW→MUST | ARCH | P4 / P1 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [detail](#sug-20260922-1ed--quotation-data-lifecycle-decision) |
 | SUG-20260915-pic | 2026-09-15 | human:Mahesh | First-review deck must be illustrated (RM, suitability, quote, proposal, pay, policy), with AWS/external service map and stack/saga — still a Dev/UAT design sitting, production evidence after UAT | SF1 | SC1 | MUST | DOC | P1 / P1 | ADMITTED | [WHAT-TO-SEND](../../architecture/arb-prerequisites/exports/WHAT-TO-SEND.md) · [detail](#sug-20260915-pic--illustrated-journey-and-stack) |
 | SUG-20260915-vis | 2026-09-15 | human:Mahesh | Recast the first ARB deck as a 35-minute visual walk (problem, outcome, how) with 25 minutes for the board — not a bank-inventory, not a 60-minute monologue | SF1 | SC1 | MUST | DOC | P1 / P1 | ADMITTED | [WHAT-TO-SEND](../../architecture/arb-prerequisites/exports/WHAT-TO-SEND.md) · [detail](#sug-20260915-vis--visual-35-minute-first-arb-deck) |
 | SUG-20260914-1st | 2026-09-14 | human:Mahesh | First ARB sitting is Dev/UAT design review (not production): 1-hour presenter PPT + speaker script + FAQ/deferral plays so the board can non-object to vpc-dev and vpc-uat | SF1 | SC1 | MUST | DOC | P1 / P1 | ADMITTED | [WHAT-TO-SEND](../../architecture/arb-prerequisites/exports/WHAT-TO-SEND.md) · [detail](#sug-20260914-1st--first-arb-sitting--devuat-ppt-script-faq) |
@@ -119,6 +120,206 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20260922-1ed · Quotation Data Lifecycle decision
+
+```yaml
+# schema: triage-record
+id: SUG-20260922-1ed
+raised_at: "2026-09-22"
+raised_by: "human:architecture-discussion"
+source: "Cloud agent intake — quotation modelling, retention, hot/warm/cold, Mongo vs PostgreSQL"
+input: >
+  Keep PostgreSQL for Lead + Suitability + Quotation, but redesign quotation storage so
+  PostgreSQL is not forced to carry every bulky provider response forever. Model:
+  Lead → Suitability versions (append-only, never update prior) → Quote Batch / Quote Run
+  → Provider Attempts (SUCCESS/FAILED/TIMEOUT/…) → Offers (successful pricing only) →
+  Quote Presentation / Evidence Set (what was actually shown) → selected offer → immutable
+  evidence snapshot (email + audit + S3 WORM). Separate transactional narrow rows in Aurora
+  from raw payloads / PDFs / email artefacts in S3. Distinguish DB backup (DR) from data
+  retention and evidence retention. Three temperatures: HOT (active journey), WARM
+  (historical metadata), COLD (S3 evidence). Do not introduce MongoDB for this problem;
+  evolve via indexes → time partitioning → LOB/cluster split → evaluate KV only on measured
+  evidence. Do not implement selective deletion until Shailja/Compliance closes OPEN-I4
+  against current IRDAI/PPHI interpretation. Define a Quotation Data Lifecycle decision
+  before implementing Quotation.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-LIFE-SALE — one RM sells complete Life (Term or Savings/ULIP) end to end"
+  state_as_of: "2026-09-13"
+  state_provisional: false
+  active_work_item: null
+
+stage_fit:
+  code: SF2
+  rationale: >
+    Belongs with Quotation SoR ratification / design-DDL apply (S09 and before Quotation
+    implementation), not with S08 foundation coding. Absorption fails: new aggregates
+    (quote_batch, quote_provider_attempt, quote_presentation/evidence), retention-class
+    revisions feeding OPEN-I4, and a consequential ADR/DB-DEC — not a one-story absorb
+    into current S08 work. Suitability append-only, S3 for bytes, reject second engine at
+    R0, and defer partitioning are already recorded elsewhere; the NEW work is the
+    Quotation Data Lifecycle decision that reshapes 02-information-model §4.5 and
+    schemas/08-quotation.sql before first persist.
+  target_stage: "S09 — before Quotation Flyway apply / Quotation SoR physical ratification"
+  unpark_trigger: >
+    S09 Quotation schema-apply work opens (→ SUG-20260825-db1 apply lane), OR Quotation
+    bounded-context implementation starts, OR Board 6 opens OPEN-I4 retention confirmation
+    for Quote/Offer classes — whichever is first. Full re-triage; do not auto-admit.
+    Selective purge/archive jobs stay deferred until OPEN-I4 is closed (and remain
+    distinct from Aurora backup/DR).
+  absorption_test:
+    small: false
+    no_new_dependency: true
+    no_new_decision: false
+    gate_neutral: false
+
+scope:
+  code: SC1
+  business_scope: >
+    Derived: R0 assisted Life requires Quotation SoR; incorrect quote/offer shape or a
+    blanket RET-7Y on every unsuccessful/failed attempt forces either storage bloat or
+    non-reconstructable presentation evidence. Serves Quotation design pack and OPEN-I4.
+  serves:
+    - "Quotation SoR (ws3-platform/02 §4.5; data-architecture/schemas/08-quotation.sql)"
+    - "OPEN-I4 (retention horizon confirmation — Shailja, before S11 entry)"
+    - "INV-QUO-01 (quote references exact suitabilityId)"
+    - "R0-ASSISTED-LIFE-SALE quote → select → email/evidence path"
+  failure_without_it: >
+    First Quotation persist locks in flat quote→offer with RET-7Y on all offers (including
+    encoding failures as offer rows) and no presentation snapshot; later split of working
+    vs evidence vs raw payload becomes a migration, and customer email cannot be rebuilt
+    from what was shown.
+  minimal: true
+  authority: >
+    docs/platform/ws3-platform/02-information-model.md §4.5 / OPEN-I4 ·
+    docs/platform/data-architecture/DB-DEC-0001-r0-physical-model.md ·
+    docs/platform/data-architecture/01-physical-design.md (S3 for bytes) ·
+    SUG-20260825-lt1 pattern (Lead lifecycle vs retention)
+
+necessity:
+  now: NOT-NOW
+  future_necessity: MUST
+  target_stage: "S09 — before Quotation Flyway apply"
+  binds_when: "first Quotation SoR row is persisted, or OPEN-I4 is decided against Quote/Offer"
+  failure_without_it: >
+    Wrong physical model and retention class land in production-shaped data; X3 fails —
+    correcting retention/shape after first persist is a migration.
+  evidence_tier: E2
+  evidence:
+    - "02-information-model.md §4.5 assigns RET-7Y to Quote and Offer including unselected; OPEN-I4 still open"
+    - "schemas/08-quotation.sql is flat quote→offer with error_summary on offer; no batch/attempt/presentation"
+    - "schemas/06-suitability.sql already SUPERSEDED / append-only (INV-SUI-01) — direction confirmed"
+    - "DB-DEC-0001 rejects DynamoDB/second engine at R0; lob not partition key until measured/second LOB"
+    - "01-physical-design.md already places encrypted raw payloads / PDF bytes on S3 Object Lock"
+    - "Author correctly refuses selective deletion until Compliance closes OPEN-I4"
+  confidence: C4
+  assumptions: []
+  already_decided_do_not_reopen:
+    - "No MongoDB/DynamoDB Quotation SoR at R0 — DB-DEC-0001 / ADR-008"
+    - "S3 for large immutable payloads — 01-physical-design.md"
+    - "Suitability corrections insert new assessment — 06-suitability.sql INV-SUI-01"
+    - "No declarative partitioning at R0 — OPEN-I6 / DB-DEC-0001"
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: false
+    X6_simplest_sufficient: true
+    X9_problem_observed: false
+    X10_do_nothing: "First Quotation persist freezes the wrong shape; later lifecycle is migration"
+
+action: PARK
+action_rationale: >
+  Real architecture MUST before Quotation implement; wrong stage for S08 coding.
+  SF2 absorption fails (new decision + multi-artefact reshape). Park to S09 before
+  08-quotation.sql apply. Do not implement Mongo, partitions, or selective purge in
+  this turn. When unparked, deliver as Quotation Data Lifecycle ADR/DB-DEC + info-model
+  §4.5 revision + design DDL reshape; Board 6 signs retention classes (OPEN-I4); Aarti+Mahesh
+  joint-review schema; do not invent IRDAI year-counts beyond Compliance position.
+duplicate_of: null
+conflicts: []
+related:
+  - "SUG-20260825-lt1 (Lead lifecycle archive vs Payment/Policy retention — same pattern)"
+  - "SUG-20260825-db1 (design DDL apply parked to S09)"
+  - "OPEN-I4 (Shailja — retention horizons)"
+  - "OPEN-I6 (partitioning deferred)"
+  - "DB-DEC-0001 (PostgreSQL SoR; reject second engine)"
+  - "TD-023 / PARKED retention jobs (raw payload / purge — later stage)"
+
+classification:
+  type: ARCH
+  also: [DOC, COMP]
+  breakdown: ADR
+  epic: null
+  risk_tier: T3
+  destination: "PARKED-BACKLOG.md §1"
+
+priority:
+  now: P4
+  at_target: P1
+  factors: { N: 0, S: 0, B: 0, R: 2, D: 3, E: 2 }
+  score: 5
+  matrix_default: P4
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: >
+    NOT-NOW at S08 → P4. At target (before Quotation persist) future MUST + high decay
+    (schema after first write) → P1. No hard P1 override claimed now: no incorrect domain
+    model is live yet; design DDL is unapplied.
+
+dependencies:
+  edges:
+    - type: DECISION
+      target: "OPEN-I4"
+      relation: "requires"
+      state: OPEN
+    - type: ARCHITECTURAL
+      target: "DB-DEC-0001"
+      relation: "extends"
+      state: DONE
+    - type: TECHNICAL
+      target: "SUG-20260825-db1 apply"
+      relation: "blocks"
+      state: PARKED
+    - type: ARCHITECTURAL
+      target: "SUG-20260825-lt1"
+      relation: "related_to"
+      state: DONE
+  state: PARKED-DEPENDENT
+  enablement_count: 0
+  earliest_start: "S09 Quotation design apply lane, after re-triage"
+  cycles: none
+
+breakdown:
+  children: []
+  completion_definition: >
+    When unparked: Quotation Data Lifecycle decision recorded (ADR and/or DB-DEC);
+    02-information-model §4.5 distinguishes working quote metadata, presented-offer
+    evidence, selected-offer evidence, failed provider-attempt evidence, raw provider
+    payload, and long-term regulatory evidence; design DDL introduces quote_batch,
+    quote_provider_attempt, quote_offer (narrow), presentation/evidence refs to S3;
+    Board 6 position on OPEN-I4 recorded before any selective purge. Out of scope until
+    measured: Mongo/Dynamo, declarative partitioning, production retention jobs.
+  not_included:
+    - "Implementing MongoDB or a second Quotation engine"
+    - "Declarative partitioning of quote tables at R0"
+    - "Selective deletion/purge jobs before OPEN-I4 closure"
+    - "Changing Aurora backup/PITR policy (backup ≠ retention)"
+    - "Health/General LOB quotation cells"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md · registers/PARKED-BACKLOG.md"
+  work_item_id: null
+  plan_id: null
+  status: PARKED
+  closed_reason: null
+
+resumed: "No prior work item in this lane; session opened on this design input — triage only."
+```
 
 ### SUG-20260913-qul · Do not retarget funds to quote-ulipList
 

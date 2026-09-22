@@ -1,0 +1,149 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1900" height="900" viewBox="0 0 1900 900" font-family="Helvetica, Arial, sans-serif">
+<defs>
+<marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#334155"/></marker>
+<marker id="arrGray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/></marker>
+<marker id="arrRed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker>
+<marker id="arrGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker>
+</defs>
+<rect width="1900" height="900" fill="#ffffff"/>
+<text x="950.0" y="36.0" font-size="25" fill="#0f172a" text-anchor="middle" font-weight="bold">AU Bank Insurance Distribution Platform — Gate Criteria Coverage</text>
+<text x="950.0" y="60.0" font-size="12.5" fill="#475569" text-anchor="middle">what this pack actually contributes to S06 and S07, criterion by criterion · replaces the v0.1 'drafting 100% complete' dashboard, which measured the wrong thing</text>
+<rect x="52.0" y="84.0" width="1796.0" height="52.0" rx="7" fill="#fff7ed" stroke="#ea580c" stroke-width="1.6"/>
+<text x="68.0" y="103.0" font-size="12" fill="#9a3412" font-weight="bold">Drafting percentage is not a measure of anything</text>
+<text x="68.0" y="119.0" font-size="9.5" fill="#475569">v0.1 reported '100% architecture drafting complete'. A pack is not measured by how much of it was written; it is measured by which gate criteria it can close, and at what evidence level. Below is that view — including the four criteria this pack cannot close no matter how well it is written.</text>
+<text x="52.0" y="170.0" font-size="10" fill="#64748b" font-weight="bold" letter-spacing="1">S06 — DOMAIN &amp; INFORMATION ARCHITECTURE</text>
+<rect x="52.0" y="184.0" width="1796.0" height="25.0" rx="4" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+<text x="60.0" y="199.9" font-size="9" fill="#0f172a" font-weight="bold">Criterion</text>
+<text x="150.0" y="199.9" font-size="9" fill="#0f172a" font-weight="bold">What it requires</text>
+<text x="620.0" y="199.9" font-size="9" fill="#0f172a" font-weight="bold">Level</text>
+<text x="690.0" y="199.9" font-size="9" fill="#0f172a" font-weight="bold">State after this pack</text>
+<text x="1020.0" y="199.9" font-size="9" fill="#0f172a" font-weight="bold">Evidence, or what is still missing</text>
+<text x="60.0" y="224.9" font-size="9" fill="#0f172a" font-weight="bold">S06-G1</text>
+<text x="150.0" y="224.9" font-size="9" fill="#334155">Bounded context map with relationships and justifications</text>
+<text x="620.0" y="224.9" font-size="9" fill="#0f172a" font-weight="bold">E2</text>
+<text x="690.0" y="224.9" font-size="9" fill="#065f46" font-weight="bold">Met — evidence cited</text>
+<text x="1020.0" y="224.9" font-size="9" fill="#334155">domain-ownership.svg + hdl.svg · 19 contexts, owns / never-owns per context</text>
+<line x1="52.0" y1="234.0" x2="1848.0" y2="234.0" stroke="#cbd5e1" stroke-width="0.8"/>
+<rect x="52.0" y="234.0" width="1796.0" height="25.0" rx="0" fill="#f8fafc"/>
+<text x="60.0" y="249.9" font-size="9" fill="#0f172a" font-weight="bold">S06-G2</text>
+<text x="150.0" y="249.9" font-size="9" fill="#334155">Aggregates with state machines and invariants</text>
+<text x="620.0" y="249.9" font-size="9" fill="#0f172a" font-weight="bold">E2</text>
+<text x="690.0" y="249.9" font-size="9" fill="#065f46" font-weight="bold">Met — evidence cited</text>
+<text x="1020.0" y="249.9" font-size="9" fill="#334155">journey-state-machine.svg · 17 states, 6 forbidden transitions</text>
+<line x1="52.0" y1="259.0" x2="1848.0" y2="259.0" stroke="#cbd5e1" stroke-width="0.8"/>
+<text x="60.0" y="274.9" font-size="9" fill="#0f172a" font-weight="bold">S06-G3</text>
+<text x="150.0" y="274.9" font-size="9" fill="#334155">Journey saga designed including compensations</text>
+<text x="620.0" y="274.9" font-size="9" fill="#0f172a" font-weight="bold">E2</text>
+<text x="690.0" y="274.9" font-size="9" fill="#065f46" font-weight="bold">Met — evidence cited</text>
+<text x="1020.0" y="274.9" font-size="9" fill="#334155">journey-state-machine.svg compensation table · S-19 tasks per failing transition</text>
+<line x1="52.0" y1="284.0" x2="1848.0" y2="284.0" stroke="#cbd5e1" stroke-width="0.8"/>
+<rect x="52.0" y="284.0" width="1796.0" height="25.0" rx="0" fill="#f8fafc"/>
+<text x="60.0" y="299.9" font-size="9" fill="#0f172a" font-weight="bold">S06-G4</text>
+<text x="150.0" y="299.9" font-size="9" fill="#334155">Logical data model per context</text>
+<text x="620.0" y="299.9" font-size="9" fill="#0f172a" font-weight="bold">E2</text>
+<text x="690.0" y="299.9" font-size="9" fill="#b91c1c" font-weight="bold">Open — this pack does not close it</text>
+<text x="1020.0" y="299.9" font-size="9" fill="#334155">NOT in this pack — Aarti's artefact; ownership ≠ a data model</text>
+<line x1="52.0" y1="309.0" x2="1848.0" y2="309.0" stroke="#cbd5e1" stroke-width="0.8"/>
+<text x="60.0" y="324.9" font-size="9" fill="#0f172a" font-weight="bold">S06-G5</text>
+<text x="150.0" y="324.9" font-size="9" fill="#334155">Data ownership matrix complete</text>
+<text x="620.0" y="324.9" font-size="9" fill="#0f172a" font-weight="bold">E1</text>
+<text x="690.0" y="324.9" font-size="9" fill="#065f46" font-weight="bold">Met — evidence cited</text>
+<text x="1020.0" y="324.9" font-size="9" fill="#334155">domain-ownership.svg · golden source and 'never owns' for all 19</text>
+<line x1="52.0" y1="334.0" x2="1848.0" y2="334.0" stroke="#cbd5e1" stroke-width="0.8"/>
+<rect x="52.0" y="334.0" width="1796.0" height="25.0" rx="0" fill="#f8fafc"/>
+<text x="60.0" y="349.9" font-size="9" fill="#0f172a" font-weight="bold">S06-G6</text>
+<text x="150.0" y="349.9" font-size="9" fill="#334155">Compliance hard-gate enforcement points named</text>
+<text x="620.0" y="349.9" font-size="9" fill="#0f172a" font-weight="bold">E2</text>
+<text x="690.0" y="349.9" font-size="9" fill="#065f46" font-weight="bold">Met — evidence cited</text>
+<text x="1020.0" y="349.9" font-size="9" fill="#334155">quote-path.svg · C1 at #7/#10, C2 at #6/#11, with FF-08 / FF-09</text>
+<line x1="52.0" y1="359.0" x2="1848.0" y2="359.0" stroke="#cbd5e1" stroke-width="0.8"/>
+<text x="60.0" y="374.9" font-size="9" fill="#0f172a" font-weight="bold">S06-G7</text>
+<text x="150.0" y="374.9" font-size="9" fill="#334155">Audit model proven to reconstruct a journey</text>
+<text x="620.0" y="374.9" font-size="9" fill="#0f172a" font-weight="bold">E3</text>
+<text x="690.0" y="374.9" font-size="9" fill="#b91c1c" font-weight="bold">Open — this pack does not close it</text>
+<text x="1020.0" y="374.9" font-size="9" fill="#334155">E3 means EXECUTED. A diagram cannot close it — a reconstruction run can</text>
+<line x1="52.0" y1="384.0" x2="1848.0" y2="384.0" stroke="#cbd5e1" stroke-width="0.8"/>
+<rect x="52.0" y="384.0" width="1796.0" height="25.0" rx="0" fill="#f8fafc"/>
+<text x="60.0" y="399.9" font-size="9" fill="#0f172a" font-weight="bold">S06-G8</text>
+<text x="150.0" y="399.9" font-size="9" fill="#334155">Canonical model is provider-neutral</text>
+<text x="620.0" y="399.9" font-size="9" fill="#0f172a" font-weight="bold">E2</text>
+<text x="690.0" y="399.9" font-size="9" fill="#92400e" font-weight="bold">Partial — needs one more thing</text>
+<text x="1020.0" y="399.9" font-size="9" fill="#334155">asserted at the #14 seam; ArchUnit provider-isolation rule exists, needs citing</text>
+<line x1="52.0" y1="409.0" x2="1848.0" y2="409.0" stroke="#cbd5e1" stroke-width="0.8"/>
+<rect x="52.0" y="184.0" width="1796.0" height="225.0" rx="4" fill="none" stroke="#cbd5e1" stroke-width="1"/>
+<text x="52.0" y="439.0" font-size="10" fill="#64748b" font-weight="bold" letter-spacing="1">S07 — SOLUTION &amp; SECURITY ARCHITECTURE</text>
+<rect x="52.0" y="453.0" width="1796.0" height="25.0" rx="4" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+<text x="60.0" y="468.9" font-size="9" fill="#0f172a" font-weight="bold">Criterion</text>
+<text x="150.0" y="468.9" font-size="9" fill="#0f172a" font-weight="bold">What it requires</text>
+<text x="620.0" y="468.9" font-size="9" fill="#0f172a" font-weight="bold">Level</text>
+<text x="690.0" y="468.9" font-size="9" fill="#0f172a" font-weight="bold">State after this pack</text>
+<text x="1020.0" y="468.9" font-size="9" fill="#0f172a" font-weight="bold">Evidence, or what is still missing</text>
+<text x="60.0" y="493.9" font-size="9" fill="#0f172a" font-weight="bold">S07-G1</text>
+<text x="150.0" y="493.9" font-size="9" fill="#334155">Target architecture documented and reviewed</text>
+<text x="620.0" y="493.9" font-size="9" fill="#0f172a" font-weight="bold">E2</text>
+<text x="690.0" y="493.9" font-size="9" fill="#92400e" font-weight="bold">Partial — needs one more thing</text>
+<text x="1020.0" y="493.9" font-size="9" fill="#334155">documented (hdl.svg + this pack); the review verdict is what is missing</text>
+<line x1="52.0" y1="503.0" x2="1848.0" y2="503.0" stroke="#cbd5e1" stroke-width="0.8"/>
+<rect x="52.0" y="503.0" width="1796.0" height="25.0" rx="0" fill="#f8fafc"/>
+<text x="60.0" y="518.9" font-size="9" fill="#0f172a" font-weight="bold">S07-G2</text>
+<text x="150.0" y="518.9" font-size="9" fill="#334155">ADRs recorded for all significant decisions</text>
+<text x="620.0" y="518.9" font-size="9" fill="#0f172a" font-weight="bold">E1</text>
+<text x="690.0" y="518.9" font-size="9" fill="#b91c1c" font-weight="bold">Open — this pack does not close it</text>
+<text x="1020.0" y="518.9" font-size="9" fill="#334155">12 decisions in doc 04 carry no ADR IDs; ARCH-001…022 exist and are not extended</text>
+<line x1="52.0" y1="528.0" x2="1848.0" y2="528.0" stroke="#cbd5e1" stroke-width="0.8"/>
+<text x="60.0" y="543.9" font-size="9" fill="#0f172a" font-weight="bold">S07-G3</text>
+<text x="150.0" y="543.9" font-size="9" fill="#334155">Threat model complete per trust boundary</text>
+<text x="620.0" y="543.9" font-size="9" fill="#0f172a" font-weight="bold">E2</text>
+<text x="690.0" y="543.9" font-size="9" fill="#b91c1c" font-weight="bold">Needs a HUMAN signature — unclosable by any AI</text>
+<text x="1020.0" y="543.9" font-size="9" fill="#334155">trust-zones.svg gives the boundaries; the threat model per boundary is Deepali's</text>
+<line x1="52.0" y1="553.0" x2="1848.0" y2="553.0" stroke="#cbd5e1" stroke-width="0.8"/>
+<rect x="52.0" y="553.0" width="1796.0" height="25.0" rx="0" fill="#f8fafc"/>
+<text x="60.0" y="568.9" font-size="9" fill="#0f172a" font-weight="bold">S07-G4</text>
+<text x="150.0" y="568.9" font-size="9" fill="#334155">Security architecture approved</text>
+<text x="620.0" y="568.9" font-size="9" fill="#0f172a" font-weight="bold">E2</text>
+<text x="690.0" y="568.9" font-size="9" fill="#b91c1c" font-weight="bold">Needs a HUMAN signature — unclosable by any AI</text>
+<text x="1020.0" y="568.9" font-size="9" fill="#334155">no AI output can satisfy this — including this pack</text>
+<line x1="52.0" y1="578.0" x2="1848.0" y2="578.0" stroke="#cbd5e1" stroke-width="0.8"/>
+<text x="60.0" y="593.9" font-size="9" fill="#0f172a" font-weight="bold">S07-G5</text>
+<text x="150.0" y="593.9" font-size="9" fill="#334155">Data architecture approved incl. backup and retention</text>
+<text x="620.0" y="593.9" font-size="9" fill="#0f172a" font-weight="bold">E2</text>
+<text x="690.0" y="593.9" font-size="9" fill="#b91c1c" font-weight="bold">Open — this pack does not close it</text>
+<text x="1020.0" y="593.9" font-size="9" fill="#334155">needs the logical model, classification and the retention schedule — then Aarti</text>
+<line x1="52.0" y1="603.0" x2="1848.0" y2="603.0" stroke="#cbd5e1" stroke-width="0.8"/>
+<rect x="52.0" y="603.0" width="1796.0" height="25.0" rx="0" fill="#f8fafc"/>
+<text x="60.0" y="618.9" font-size="9" fill="#0f172a" font-weight="bold">S07-G6</text>
+<text x="150.0" y="618.9" font-size="9" fill="#334155">NFR sheet with numbers, each verifiable</text>
+<text x="620.0" y="618.9" font-size="9" fill="#0f172a" font-weight="bold">E2</text>
+<text x="690.0" y="618.9" font-size="9" fill="#92400e" font-weight="bold">Partial — needs one more thing</text>
+<text x="1020.0" y="618.9" font-size="9" fill="#334155">ws3-platform/05-nfr-catalogue.md exists with IDs and methods; unsigned</text>
+<line x1="52.0" y1="628.0" x2="1848.0" y2="628.0" stroke="#cbd5e1" stroke-width="0.8"/>
+<text x="60.0" y="643.9" font-size="9" fill="#0f172a" font-weight="bold">S07-G7</text>
+<text x="150.0" y="643.9" font-size="9" fill="#334155">R0 build order defined — minimum service set</text>
+<text x="620.0" y="643.9" font-size="9" fill="#0f172a" font-weight="bold">E2</text>
+<text x="690.0" y="643.9" font-size="9" fill="#065f46" font-weight="bold">Met — evidence cited</text>
+<text x="1020.0" y="643.9" font-size="9" fill="#334155">12 services + 1 app, waved W1–W4 · capability-map.svg + dependency-map.svg</text>
+<line x1="52.0" y1="653.0" x2="1848.0" y2="653.0" stroke="#cbd5e1" stroke-width="0.8"/>
+<rect x="52.0" y="653.0" width="1796.0" height="25.0" rx="0" fill="#f8fafc"/>
+<text x="60.0" y="668.9" font-size="9" fill="#0f172a" font-weight="bold">S07-G8</text>
+<text x="150.0" y="668.9" font-size="9" fill="#334155">Fitness functions defined for automatable constraints</text>
+<text x="620.0" y="668.9" font-size="9" fill="#0f172a" font-weight="bold">E1</text>
+<text x="690.0" y="668.9" font-size="9" fill="#92400e" font-weight="bold">Partial — needs one more thing</text>
+<text x="1020.0" y="668.9" font-size="9" fill="#334155">FF-01…FF-15 referenced throughout; the consolidated list belongs in one place</text>
+<line x1="52.0" y1="678.0" x2="1848.0" y2="678.0" stroke="#cbd5e1" stroke-width="0.8"/>
+<rect x="52.0" y="453.0" width="1796.0" height="225.0" rx="4" fill="none" stroke="#cbd5e1" stroke-width="1"/>
+<text x="52.0" y="712.0" font-size="10" fill="#64748b" font-weight="bold" letter-spacing="1">THE HONEST TALLY</text>
+<rect x="52.0" y="726.0" width="438.5" height="74.0" rx="7" fill="#ecfdf5" stroke="#059669" stroke-width="1.5"/>
+<text x="271.2" y="756.0" font-size="20" fill="#0f172a" text-anchor="middle" font-weight="bold">6 of 16</text>
+<text x="271.2" y="774.0" font-size="9.5" fill="#065f46" text-anchor="middle">criteria this pack meets</text>
+<rect x="504.5" y="726.0" width="438.5" height="74.0" rx="7" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
+<text x="723.8" y="756.0" font-size="20" fill="#0f172a" text-anchor="middle" font-weight="bold">4 of 16</text>
+<text x="723.8" y="774.0" font-size="9.5" fill="#92400e" text-anchor="middle">partial — one identified thing away</text>
+<rect x="957.0" y="726.0" width="438.5" height="74.0" rx="7" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.5"/>
+<text x="1176.2" y="756.0" font-size="20" fill="#0f172a" text-anchor="middle" font-weight="bold">4 of 16</text>
+<text x="1176.2" y="774.0" font-size="9.5" fill="#334155" text-anchor="middle">open — belong to Aarti, or need an executed run</text>
+<rect x="1409.5" y="726.0" width="438.5" height="74.0" rx="7" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5"/>
+<text x="1628.8" y="756.0" font-size="20" fill="#0f172a" text-anchor="middle" font-weight="bold">2 of 16</text>
+<text x="1628.8" y="774.0" font-size="9.5" fill="#9a3412" text-anchor="middle">unclosable by any AI — S07-G3 and S07-G4 need Deepali's human signature</text>
+<text x="52.0" y="878.0" font-size="9.5" fill="#64748b" font-weight="bold">DRAFT FOR REVIEW · v0.2 · not approved, not authorised for development · AI-drafted; no human signature</text>
+<text x="1848.0" y="878.0" font-size="9.5" fill="#64748b" text-anchor="end">WS-3 · AU Bank Insurance Distribution Platform · R0</text>
+</svg>

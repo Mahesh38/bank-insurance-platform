@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20260923-sdu | 2026-09-23 | human:front-architect | Server-driven NIP-APP: LOB tree + icons from one API; capture forms (assignment first) from a field/type/validation/visibility descriptor so iOS/Android/Web do not store-resubmit for field or catalogue adds | SF5 | SC1 | MUST | ARCH | P3 / P2 | ADMITTED | [ARCH-026](../../platform/ws3-platform/ARCH-026.work-item.yaml) · [detail](#sug-20260923-sdu--server-driven-catalogue-and-form-descriptor) |
 | SUG-20260923-scs | 2026-09-23 | human:architect | NIP BFF SCR-03 search-customer contract: Customer ID / PAN / mobile; lead-first then CBS via Apigee; one stakeholder+dev doc | SF1 | SC0 | SHOULD | ARCH | P2 / P1 | ADMITTED | [ARCH-025](../../platform/ws3-platform/ARCH-025.work-item.yaml) · [PLAN-005](../plans/PLAN-005-nip-bff-customer-search-contract.md) · [contract](../../platform/ws3-platform/09-nip-bff-customer-search-contract.md) · [detail](#sug-20260923-scs--scr-03-customer-search-unified-contract) |
 | SUG-20260923-par | 2026-09-23 | human:stakeholder | Remove governance over-serialization: SF5 parallel lanes, evidence-based unpark, SG-2 CANDIDATE, RG-9 evidenced-blocker T4 relief, DEP-4 soft-default | SF1 | SC1 | MUST | GOV | P1 / P1 | ADMIT-BYPASS | [CR-016](../change-requests/CR-016-parallel-lanes-evidence-unpark.md) · [detail](#sug-20260923-par--parallel-lanes-and-evidence-unpark) |
 | SUG-20260915-pic | 2026-09-15 | human:Mahesh | First-review deck must be illustrated (RM, suitability, quote, proposal, pay, policy), with AWS/external service map and stack/saga — still a Dev/UAT design sitting, production evidence after UAT | SF1 | SC1 | MUST | DOC | P1 / P1 | ADMITTED | [WHAT-TO-SEND](../../architecture/arb-prerequisites/exports/WHAT-TO-SEND.md) · [detail](#sug-20260915-pic--illustrated-journey-and-stack) |
@@ -121,6 +122,182 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20260923-sdu · Server-driven catalogue and form descriptor
+
+```yaml
+# schema: triage-record
+id: SUG-20260923-sdu
+raised_at: "2026-09-23"
+raised_by: "human:front-architect"
+source: "Follow-up on Lead Created Figma — store-approval / multi-platform constraint"
+input: >
+  I understand this but this is the product requirement that we need all screen
+  dynamic and redered with API as we dont want to deploy IOS and andriod app
+  again and again and it will take 4 days approval period burden so what i
+  expect is for example when i search customer and i found abhishek and i
+  select him and click continue then on next screen i will get list LOB which
+  will have list of sub business and respective icon link on the s3, for
+  example lob is life and sub line of business is term, ulip, saving and so on
+  for each lob. this is one api. now for leas assignment form front end person
+  will call another api to render this form which list field, there type,
+  validation, dependance field and visibility and so on. so in future i need to
+  capture any additional field on the app i dont need to redeploy on the each
+  platform again as in future we will have web, andriod and ios app and this is
+  business requirement which we must fullfill we cant avoid it
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-LIFE-SALE — one RM sells complete assisted Life (Term or Savings/ULIP) to one ETB customer end to end"
+  state_as_of: "2026-09-13"
+  state_provisional: false
+  active_work_item: "analysis of Lead Created Figma vs NIP BFF lead-phase contract"
+
+stage_fit:
+  code: SF5
+  rationale: >
+    The no-store-resubmit outcome is a Product MUST before the first NIP-APP
+    store submit (S11). Publishing the two BFF contracts now is dependency-safe
+    documentation (same pattern as ARCH-023 / PLAN-004) and does not delay
+    GATE-S08. A Flutter form-interpreter runtime, raw S3 to the device, and
+    treating pipeline/login/payment as schema screens are not this item.
+  lane: "Architecture / NIP-APP screen contracts"
+  parallel_test:
+    off_critical_path: true
+    dependency_safe: true
+    in_scope: true
+    standing_constraint_clean: true
+    separate_lane: "Architecture / NIP-APP screen contracts"
+    no_silent_trust_boundary_change: true
+
+scope:
+  code: SC1
+  business_scope: >
+    Derived — CR-015 / EPIC-004 already require a Life catalogue of Term +
+    Savings + ULIP on the RM surface; SCR-13 already requires a schema-driven
+    proposal form. Hardcoding those on iOS/Android makes FUNC-021 and SCR-13
+    unusable under the stated store-approval constraint.
+  serves: ["EPIC-004", "FUNC-020", "FUNC-021", "ARCH-024", "SCR-13"]
+  failure_without_it: >
+    First store build ships hardcoded LOB tiles and capture fields; every
+    catalogue or field add then costs a 4-day iOS/Android resubmit and a
+    rewrite of the S11 renderer.
+  minimal: true
+  authority: "CR-015 R0 Life classes; S05 SCR-13 dynamic proposal; Product no-redeploy outcome (this input)"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S11 — Vertical Slice (first NIP-APP store submit)"
+  binds_when: "NIP-APP is submitted to App Store / Play Store, or a second capture form is added"
+  failure_without_it: >
+    Field or LOB/icon changes require a store resubmit on every platform;
+    web/iOS/Android diverge.
+  evidence_tier: E4
+  evidence:
+    - "Stakeholder: iOS/Android approval period ~4 days; web + Android + iOS required"
+    - "CR-015 / EPIC-004 — R0 catalogue is Life × {Term, Savings, ULIP}, not Term-only"
+    - "S05 §4.3 SCR-13 — proposal form is already schema-driven"
+    - "X3: shipping a hardcoded S11 client makes the later descriptor a migration"
+  confidence: C3
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X2_two_implementations: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X6_simplest_sufficient: true
+    X9_problem_observed: true
+
+action: ADMIT
+action_rationale: >
+  SF5 × MUST → ADMIT P2–P3; PRI-9 caps parallel work at P3 now. Score
+  2N+2S+2B+2R+D−E = 8+4+0+4+2−1 = 17 (P2) capped to P3. Split (X6): admit the
+  catalogue-tree GET and the capture-form descriptor GET/POST as a contract
+  pack (ARCH-026, READY, not IN-FLIGHT). Do not admit a generic interpreter
+  for every screen; do not unpark meeting fields (SUG-20260907-fig); do not
+  put raw S3 URLs on Flutter (iconUrl is a BFF/CDN https URL). Runtime
+  renderer stays S11 (FUNC-021). No LLD/OpenAPI in the triage turn.
+conflicts:
+  - "07-nip-bff-lead-phase-api-lld.md still documents R0 product-classes as TERM-only — CR-015 already overturned that; ARCH-024 / FUNC-020 own the repair"
+  - "SUG-20260907-fig meeting scheduler stays parked — assignment form *mechanism* is admitted, meeting *fields* are not"
+
+classification:
+  type: ARCH
+  also: [DOC]
+  breakdown: STORY
+  epic: EPIC-004
+  risk_tier: T3
+  destination: "docs/platform/ws3-platform/ARCH-026.work-item.yaml"
+  rationale: >
+    New public BFF contracts (catalogue tree + form descriptor). T3: PII-adjacent
+    icon delivery and a closed widget vocabulary. Human Board 1 later; agent
+    does not sign T4. Documents only in this increment.
+
+priority:
+  now: P3
+  at_target: P2
+  factors: { N: 4, S: 2, B: 0, R: 2, D: 2, E: 1 }
+  score: 17
+  matrix_default: P3
+  consistency: OK
+  overrides_applied: []
+  caps_applied: ["PRI-9"]
+  rationale: "SF5 MUST; PRI-9 caps parallel at P3. At S11 store submit this is SF1 MUST P2."
+
+dependencies:
+  edges:
+    - type: ARCHITECTURAL
+      target: ADR-017
+      relation: requires
+      state: OPEN
+    - type: TECHNICAL
+      target: ARCH-024
+      relation: related_to
+      state: READY
+    - type: TECHNICAL
+      target: FUNC-020
+      relation: related_to
+      state: READY
+    - type: TECHNICAL
+      target: FUNC-021
+      relation: enables
+      state: BLOCKED
+    - type: BUSINESS
+      target: SUG-20260907-fig
+      relation: related_to
+      state: PARKED
+  state: READY
+  enablement_count: 2
+  earliest_start: "S08 documentation lane — after ARCH-023 / ARCH-025 leave IN-FLIGHT"
+  cycles: none
+
+breakdown:
+  children: ["ARCH-026"]
+  completion_definition: >
+    ADR + LLD + OpenAPI agree on GET /catalogue/lobs (tree + iconUrl) and
+    GET/POST /forms/{formId} (fields, widgets, validation, dependsOn,
+    visibleWhen). Widget vocabulary is closed. Success bodies are unwrapped
+    resources; errors are ADR-017.
+  not_included:
+    - "Flutter / iOS / Android / Web renderer runtime (S11 FUNC-021)"
+    - "Interpreting non-form screens (login, pipeline, payment status) as form schema"
+    - "Raw S3 bucket URLs or 1SB hosts on the device"
+    - "Meeting scheduler fields (remain SUG-20260907-fig)"
+    - "Health / Motor / Travel LOB rows in the R0 response"
+    - "Human T4 Architecture / Security signatures"
+
+outcome:
+  registered_in: docs/governance/registers/SUGGESTION-REGISTER.md
+  work_item_id: ARCH-026
+  plan_id: null
+  status: ADMITTED
+  closed_reason: null
+
+resumed: "ARCH-026 (READY) — analysis of the two APIs; no LLD written this turn"
+```
 
 ### SUG-20260923-scs · SCR-03 customer search unified contract
 

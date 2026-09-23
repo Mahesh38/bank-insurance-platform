@@ -1,0 +1,100 @@
+# schema: work-item
+id: ARCH-026
+origin: ["SUG-20260923-sdu"]
+title: "NIP BFF server-driven catalogue tree + capture-form descriptor contracts"
+type: ARCH
+also: [DOC]
+breakdown: STORY
+epic: EPIC-004
+workstream: WS-3
+owner: "Mahesh — Principal Insurance Platform Architect"
+risk_tier: T3
+
+serves:
+  - "EPIC-004"
+  - "FUNC-020"
+  - "FUNC-021"
+  - "ARCH-024"
+  - "SCR-13"
+  - "SUG-20260923-sdu"
+
+problem: >
+  NIP-APP will ship on web, iOS and Android. Store approval is ~4 days. If LOB
+  tiles, icons, or capture fields are compiled into each binary, every catalogue
+  or field add requires a three-platform resubmit and the S11 renderer must be
+  rewritten. CR-015 already expanded the R0 catalogue to Life × {Term, Savings,
+  ULIP}; SCR-13 is already schema-driven for insurer proposal forms. Bank capture
+  forms and the LOB picker have no equivalent contract.
+
+description: >
+  Publish (next increment, not this triage turn) an ADR plus LLD/OpenAPI for two
+  BFF resources only: (1) GET /catalogue/lobs — LOB → productClass tree with
+  BFF/CDN iconUrl, R0 items limited to admitted Life classes; (2) GET /forms/{formId}
+  + POST /forms/{formId}/submissions — closed widget vocabulary, field name/type/
+  validation/dependsOn/visibleWhen, values posted against formVersion.
+  Success bodies stay unwrapped resources; errors stay ADR-017 problem+json.
+  Icon URLs are https on the bank CDN/BFF, never raw S3 or 1SB hosts.
+  Runtime Flutter/web renderers are FUNC-021 (S11), not this item.
+
+acceptance_criteria:
+  - id: AC-1
+    given: "the catalogue OpenAPI"
+    when: "GET /catalogue/lobs is read"
+    then: "the schema is a tree of lob + productClasses with label, selectable, iconUrl; R0 example items are LIFE / TERM, SAVINGS, ULIP only"
+  - id: AC-2
+    given: "the form-descriptor OpenAPI"
+    when: "GET /forms/{formId} is read"
+    then: "each field declares name, widget, required, validation, optional dependsOn and visibleWhen; widget enum is closed"
+  - id: AC-3
+    given: "a new capture field that uses an already-shipped widget"
+    when: "catalogue or Configuration publishes a new formVersion"
+    then: "the contract does not require a store binary change for that field"
+  - id: AC-4
+    given: "Flutter or a future web client"
+    when: "it reads iconUrl or form schema"
+    then: "no raw S3 URL, no 1SB host, no cifNumber/PAN/full mobile, no {success,data,message} wrapper"
+  - id: AC-5
+    given: "this work item"
+    when: "documentation-complete is claimed"
+    then: "no Flutter/BFF/catalogue runtime code was required; human T4 is not claimed"
+
+out_of_scope:
+  - "Flutter / iOS / Android / Web renderer implementation"
+  - "Interpreting login, pipeline or payment-status screens as form schema"
+  - "Raw S3 to the device"
+  - "Meeting scheduler fields (SUG-20260907-fig)"
+  - "Health / Motor / Travel rows in the R0 catalogue response"
+  - "Human T4 Architecture / Security / Product signatures"
+  - "Editing current_phase, stage_status, or GATE-S08"
+
+state: READY
+priority_now: P3
+priority_at_target: P2
+target_stage: "S11 — first NIP-APP store submit"
+unpark_trigger: null
+
+dependencies:
+  blocked_by: []
+  requires:
+    - "ADR-017"
+    - "CR-015"
+  enables:
+    - "FUNC-021"
+  related_to:
+    - "ARCH-023"
+    - "ARCH-024"
+    - "ARCH-025"
+    - "FUNC-020"
+    - "SUG-20260907-fig"
+    - "EPIC-003"
+    - "EPIC-004"
+  external: []
+  decision_dependency:
+    - "ADR to mint for bank form-descriptor + catalogue-tree (next unused ADR-021)"
+
+plan: null
+estimate: M
+assumptions: []
+risks: []
+evidence: []
+variance_log: []

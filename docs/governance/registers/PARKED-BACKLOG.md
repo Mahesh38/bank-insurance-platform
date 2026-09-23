@@ -3,8 +3,13 @@
 **Parked is not deleted.** Every entry names the stage that unparks it and the observable
 trigger that fires. Items without both are invalid ([03 §3](../03-LIFECYCLE.md#sf3-carries-three-mandatory-fields)).
 
+Prefer **evidence-ready / criterion-MET / GATE CANDIDATE** triggers over `gate PASSED` alone when
+the work is SF5-eligible ([08 §5](../08-BACKLOG_RULES.md#5-unparking) Rule BR-5). A gate that is
+fully evidenced may unlock re-triage before human PASS advances the stage pointer.
+
 **Owner:** Delivery Lead (sweeps) · Tech Lead (technical items)
-**Swept at:** every stage gate, every approved scope change, and on the aging rules in
+**Swept at:** every stage gate (incl. CANDIDATE / all-criteria-MET), every approved scope change,
+criterion MET events, and on the aging rules in
 [05 §7](../05-PRIORITY_MODEL.md#7-anti-starvation)
 
 ---
@@ -106,6 +111,7 @@ as `LAPSED` after three gates (AS-3).
 
 | Date | Gate / trigger | Items swept | Promoted | Re-parked | Closed |
 |------|----------------|-------------|----------|-----------|--------|
+| 2026-09-23 | CR-016 / GATE-S08 → CANDIDATE (SG-2); BR-5 evidence unpark enabled | Eligible for re-triage: items naming GATE-S08 / evidence-ready / all-criteria-MET | 0 this turn — re-triage deferred to owning lanes | — | 0 |
 | 2026-08-07 | AIGEM adoption — initial seeding | 9 + 9 | 0 | — | 0 |
 | 2026-08-24 | Approved scope change — `CR-012` R0 robustness round | 4 examined (TD-010, SUG-0001, TD-009, WS-2 AD federation) | 0 | 4 — reasons in §1 | 0 |
 | 2026-08-25 | Stakeholder override — `CR-013` R0 lead/MIS/admin pull | SUG-20260825-lt1, of1, st1, pp1 | 4 — ADMITTED into R0 | 0 | 0 |

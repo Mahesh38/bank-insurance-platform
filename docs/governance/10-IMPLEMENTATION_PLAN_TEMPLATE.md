@@ -26,7 +26,7 @@ detection ([17](./17-DRIFT_CONTROL.md)) measures the eventual change against.
 | **T1 Trivial** | Docs, comments, test-only additions, config typo | Not required — a triage record suffices |
 | **T2 Standard** | A story inside existing architecture; a bug fix with a known cause | **Yes** — short form (§3) |
 | **T3 Significant** | New component, new public API, new data structure, new dependency, security surface | **Yes** — full form |
-| **T4 Critical** | Regulatory, PII, money movement, authn/authz, migration, production topology | **Yes** — full form + human sign-off |
+| **T4 Critical** | Change that **alters** a G1–G10 control ([11 §3](./11-REVIEW_GATES.md#3-proportionality--which-boards-are-mandatory)) | **Yes** — full form + human sign-off. **Not** automatic for gate-blocker remediation with unchanged-control evidence — apply RG-9 (cap T3/T2) |
 
 Tier is assigned in the triage record and drives the mandatory review boards
 ([11 §3](./11-REVIEW_GATES.md#3-proportionality--which-boards-are-mandatory)).

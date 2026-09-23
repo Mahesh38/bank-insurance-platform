@@ -49,21 +49,57 @@ premature.
 |------|------|------------|--------|
 | **SF0** | PREREQUISITE | The current stage **cannot exit** without it; it blocks a gate criterion | ADMIT — may preempt current work |
 | **SF1** | ON-STAGE | Directly serves the current stage's deliverable | ADMIT |
-| **SF2** | ADJACENT | Belongs to the next stage, but is absorbable now (see the absorption test) | ADMIT if absorbable, else PARK |
-| **SF3** | PREMATURE | Belongs to a later stage; the information or the need does not exist yet | **PARK** with a target stage |
+| **SF5** | PARALLEL | Off critical path, dependency-safe, in-scope; runs under a **separate lane/owner** without delaying the gate | **ADMIT** to that lane (see parallel-lane test) |
+| **SF2** | ADJACENT | Belongs to the next stage, but is absorbable into the *current* item's plan (see the absorption test) | ADMIT if absorbable, else try SF5, else PARK |
+| **SF3** | PREMATURE | Belongs to a later stage; the information or the need does not exist yet — **and** SF5 fails | **PARK** with a target stage |
 | **SF4** | STAGE-INVALID | No stage on the roadmap will need it, or it contradicts a standing constraint | **REJECT** with reason |
+
+> **Rule LC-2 — Stage name is not a mutex.** Work needed for a later stage that is dependency-safe
+> *today* is SF5, not SF3. SF3 is reserved for work that would consume critical-path attention,
+> invent missing decisions, or violate a standing constraint if started now.
+
+### The SF5 parallel-lane test
+
+SF5 is the primary escape from over-serialization. Admit as SF5 only if **all six** hold:
+
+1. **Off critical path** — `critical_path: false`; does not delay any *open* exit criterion of the
+   current gate (or only helps one without holding others).
+2. **Dependency-safe** — no unsatisfied `HARD` `blocked_by` on in-flight critical-path items;
+   contract-first, mocks, and `SOFT` edges are allowed ([07](./07-DEPENDENCY_MODEL.md) DEP-4).
+3. **In scope** — `scope_fit` is SC0 or SC1 (SC2 stays Ideas; SC3/SC4 unchanged).
+4. **Standing-constraint clean** — does not violate [01 §5](./01-CURRENT_STATE.md#5-standing-constraints-apply-to-every-triage-in-this-repo) / BOOT constraints.
+5. **Separate lane** — names a distinct owner or executor lane (not the same WIP slot as the
+   critical-path item). One IN-FLIGHT per lane still applies ([09 §3](./09-AI_EXECUTION_RULES.md#3-one-active-item)).
+6. **No silent trust-boundary change** — does not alter a G1–G10 control ([11 §3](./11-REVIEW_GATES.md#3-proportionality--which-boards-are-mandatory)). Those changes use the normal tier path; SF5 may still admit *contract drafts, spikes, and evidence packs* that prepare them.
+
+Fail any one → do not use SF5. Then try SF2 absorption; else SF3 PARK with evidence-based
+unpark trigger ([08 §5](./08-BACKLOG_RULES.md#5-unparking)).
+
+```yaml
+stage_fit:
+  code: SF5
+  rationale: "Contract-first Hub masters for S11; gate-neutral at S08; separate Engineering lane"
+  parallel_test:
+    off_critical_path: true
+    dependency_safe: true
+    in_scope: true
+    standing_constraint_clean: true
+    separate_lane: "Engineering / Hub masters"
+    no_silent_trust_boundary_change: true
+  lane: "Engineering / Hub masters"
+```
 
 ### The SF2 absorption test
 
-SF2 is the only discretionary code. Admit only if **all four** hold:
+SF2 absorbs into the **current** work item's plan (not a new lane). Admit only if **all four** hold:
 
 1. **Small** — one story or less; fits inside the current work item's plan without extending it.
 2. **No new dependency** — no new library, service, infrastructure component, or contract.
 3. **No new decision** — it does not require an ADR or a choice we lack information to make.
 4. **Gate-neutral** — it cannot delay or endanger the current stage's exit criteria.
 
-Fail any one → PARK. When in doubt, PARK: parking costs a register line, wrongly absorbing costs
-a stage.
+Fail any one → try SF5 (new lane) before PARK. When in doubt between inventing complexity and a
+register line, PARK: parking costs a line; wrongly absorbing into the critical path costs a stage.
 
 ### SF3 carries three mandatory fields
 

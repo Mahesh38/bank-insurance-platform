@@ -110,6 +110,21 @@ A trigger fires when the change does any of the following:
 > Otherwise every change in that workstream is T4 by definition, the tier ladder collapses to a
 > single rung, and the proportionality this section exists to provide is lost.
 
+> **Rule RG-9 — Evidenced blocker relief.** When **all** of the following hold, cap the risk tier
+> at **T3** (or **T2** if the change is documentation, evidence assembly, runbook, test-only, or
+> criterion-closure packaging with no behaviour change):
+>
+> 1. The item is **SF0**, or `serves` an OPEN/PARTIAL/BLOCKED gate criterion, or clears a named
+>    P1 override (O1–O8);
+> 2. The delta does **not** alter a G1–G10 control under RG-5 (working *near* a control is not
+>    enough — see the explicit not-T4 list above);
+> 3. **E2+ evidence** already shows the relevant control is unchanged (passing ArchUnit / tests /
+>    prior board verdict / published standard cited in the plan's `evidence[]`).
+>
+> Record `tier_relief: RG-9` and the evidence ids on the plan. Security or Compliance may still
+> escalate a single board to T4 (RG-6) — they do not need a CR. RG-9 never waives a mandatory
+> human signature when a G1–G10 control *does* change.
+
 ---
 
 ## 4. Board 1 — Architecture

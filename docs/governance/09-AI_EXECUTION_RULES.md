@@ -27,9 +27,11 @@
 | A user explicitly says "just do X, skip the process" | ⚠️ Honour it, and record the bypass ([§8](#8-when-a-human-overrides-the-process)) |
 | Executing an already-approved work item | ❌ No — you are past the gate; follow the plan |
 | Answering a question with no change implied | ❌ No |
+| Analysing governance / architecture context / bottlenecks | ❌ No — use capsule `governance-flow` or `orient`; do not force triage |
 
 > **Rule AE-1 — Answering is not implementing.** An agent may explain, analyse, and recommend
-> freely. The pipeline governs *changes to the repository*, not conversation.
+> freely. The pipeline governs *changes to the repository*, not conversation. Unmatched *questions*
+> route to orientation / governance-flow; unmatched *change proposals* still triage.
 
 ---
 
@@ -63,22 +65,26 @@ Steps 2–5 are cheap and must always run. Most inputs stop at step 5.
 
 ## 3. One active item
 
-> **Rule AE-2 — An agent holds exactly one `IN-FLIGHT` work item.**
+> **Rule AE-2 — An agent holds exactly one `IN-FLIGHT` work item *per executor lane*.**
 
-This is a per-agent/per-owner WIP limit, not a repository-wide mutex. Independent workstreams or
-owners may progress in parallel when their dependency edges do not conflict. When an item becomes
-`BLOCKED`, record its blocker, owner and follow-up date, move it out of `IN-FLIGHT`, and select the
-next eligible READY item. Chasing the blocker is a separate owned work item.
+This is a per-agent/per-owner WIP limit, not a repository-wide mutex. Independent workstreams,
+**SF5 parallel lanes**, and named owners may progress concurrently when their dependency edges
+do not conflict. When an item becomes `BLOCKED`, record its blocker, owner and follow-up date,
+move it out of `IN-FLIGHT`, and select the next eligible READY item for **that** lane. Chasing
+the blocker is a separate owned work item (often SF0/P1) and must not freeze other lanes.
 
-While an item is in flight:
+While an item is in flight **in a lane**:
 
-- Do not start a second item in the same executor lane, however small.
+- Do not start a second item in the **same** executor lane, however small.
 - Do not "quickly fix" something noticed in passing — write `SUG-####`, continue.
 - Do not extend the current item's scope beyond its plan's `files_expected` and
   `affected_components` without re-review ([14 §4](./14-CHANGE_CONTROL.md#4-changing-an-approved-plan)).
 - Do not refactor code you are merely reading.
+- **Do** admit and schedule SF5 work into *other* READY lanes when the parallel-lane test passes
+  ([03 §3](./03-LIFECYCLE.md#the-sf5-parallel-lane-test)).
 
-The single most valuable behaviour this framework buys is **finishing the thing you started.**
+The single most valuable behaviour this framework buys is **finishing the thing you started** —
+without forcing every other dependency-safe stream to wait.
 
 ---
 

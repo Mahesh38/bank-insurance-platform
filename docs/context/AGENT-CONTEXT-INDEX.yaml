@@ -465,7 +465,7 @@ capsules:
         why: "The 14-step pipeline, compressed. Most inputs terminate by step 5."
       - path: "docs/governance/03-LIFECYCLE.md"
         anchor: "3-stage-fit-codes-sf"
-        why: "SF0–SF4 stage fit — the step that changes the verdict most often."
+        why: "SF0–SF5 stage fit — including SF5 parallel lanes (LC-2)."
       - path: "docs/governance/02-PROJECT_SCOPE.md"
         anchor: "3-scope-fit-codes-l1--generic"
         why: "SC0–SC4 scope fit."
@@ -485,6 +485,35 @@ capsules:
       - "Implement in the turn the suggestion is raised."
       - "Park without a target stage and an unpark trigger."
       - "Re-report known debt or re-propose a parked item — check BOOT.md section 5 first."
+      - "Park dependency-safe off-path work as SF3 when SF5 parallel-lane test passes."
+
+  - id: governance-flow
+    intent: "Analyse or change AIGEM flow — bottlenecks, parallel lanes, unpark, T4 proportionality — without treating the question as a product triage."
+    triggers: ["governance bottleneck", "parallel lane", "sf5", "evidence unpark", "streamline governance", "over-serializing", "off critical path", "governance flow", "aigem bottleneck"]
+    persona: null
+    budget_bytes: 45000
+    load:
+      - path: "docs/governance/change-requests/CR-016-parallel-lanes-evidence-unpark.md"
+        why: "The binding recalibration for parallel lanes, evidence unpark, RG-9, SG-2."
+      - path: "docs/governance/03-LIFECYCLE.md"
+        anchor: "3-stage-fit-codes-sf"
+        why: "SF5 parallel-lane test (LC-2)."
+      - path: "docs/governance/08-BACKLOG_RULES.md"
+        anchor: "5-unparking"
+        why: "Evidence-based unpark triggers (BR-5)."
+      - path: "docs/governance/11-REVIEW_GATES.md"
+        anchor: "3-proportionality--which-boards-are-mandatory"
+        why: "RG-5/RG-6/RG-9 — when T4 is and is not required."
+    then_only_if:
+      - condition: "the change will edit L1 governance files"
+        path: "docs/governance/00-GOVERNANCE.md"
+        anchor: "9-amending-this-framework"
+      - condition: "delivery parallelization is the question"
+        path: "docs/governance/DELIVERY-CONTROL-SYSTEM.md"
+    output: "Diagnosis of flow friction + named rule ids + whether a GOV CR is required. No manufactured approvals."
+    never:
+      - "Route a pure analysis question into product ADMIT/PARK."
+      - "Weaken standing constraints or silence-approves rules."
 
   - id: plan-work
     intent: "Turn an ADMITTED item into an implementation plan and get it to READY."
@@ -773,7 +802,7 @@ capsules:
 
   - id: delivery-planning
     intent: "R12 — critical path, sequencing, dependency ageing, forecast, release orchestration, recovery."
-    triggers: ["delivery", "r12", "critical path", "milestone", "when will", "forecast", "release plan", "dependency ageing", "blocked decision", "parallelise"]
+    triggers: ["delivery", "r12", "critical path", "milestone", "when will", "forecast", "release plan", "dependency ageing", "blocked decision", "parallelise", "parallelize", "parallel work"]
     persona: delivery
     budget_bytes: 60000
     load:
@@ -899,8 +928,8 @@ capsules:
 # Fallback — when nothing above matches.
 # ---------------------------------------------------------------------------
 fallback:
-  capsule: triage
+  capsule: orient
   note: >-
-    An unmatched input is still an input. Triage it. If triage shows the work is real
-    and recurring, propose a new capsule as a suggestion — it is triaged, not added
-    in the turn it is raised (Rule CTX-7).
+    An unmatched *question* orients first. If the input is a change proposal (add, fix,
+    implement, should we), re-resolve with those words or use capsule `triage`. Analysis of
+    governance flow uses capsule `governance-flow`.

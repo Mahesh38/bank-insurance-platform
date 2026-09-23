@@ -73,7 +73,7 @@ Used when no hard override applies. Six factors; each is an integer.
 | Factor | Symbol | Scale |
 |--------|--------|-------|
 | **Necessity** | N | MUST = 4 · SHOULD = 2 · COULD = 1 · NOT-NOW = 0 |
-| **Stage fit** | S | SF0 = 4 · SF1 = 3 · SF2 = 1 · SF3 = 0 |
+| **Stage fit** | S | SF0 = 4 · SF1 = 3 · SF5 = 2 · SF2 = 1 · SF3 = 0 |
 | **Blocking factor** | B | 0 blocks nothing · 1 blocks one item · 2 blocks 2–3 · 3 blocks ≥ 4 items **or** a gate criterion |
 | **Risk if deferred** | R | 0 negligible · 1 contained · 2 material · 3 severe or irreversible |
 | **Decay** (does delay make it costlier?) | D | 0 none · 1 moderate rework later · 2 high — migration, data backfill, or breaking a published contract |
@@ -104,7 +104,7 @@ item contradicts the classification that produced the SF0 in the first place.
 |---|---|---|
 | **SF0** prerequisite | **2** | By definition it blocks a gate criterion or the current deliverable. `B = 3` if it blocks the gate itself |
 | **SF1** on-stage **and** necessity MUST | **1** | A MUST on the current stage's deliverable blocks that deliverable |
-| SF1 otherwise, SF2, SF3 | 0 | No implied blocking |
+| SF5 parallel, SF1 otherwise, SF2, SF3 | 0 | No implied blocking — SF5 is off critical path by definition |
 
 Set `B` from the dependency analysis when it is higher. The floor exists so the two routes to a
 priority cannot silently disagree — before this rule, `SF0 + MUST` with `B = 0` scored **P3**
@@ -147,6 +147,7 @@ the queue:
 | **PRI-1** | Every item carries both `priority_now` and `priority_at_target` | — |
 | **PRI-2** | `stage_fit = SF3` (premature) | `priority_now` ≤ **P4** if `future_necessity = MUST`, else ≤ **P5** |
 | **PRI-3** | `stage_fit = SF2` (adjacent) | `priority_now` ≤ **P3** |
+| **PRI-9** | `stage_fit = SF5` (parallel) | `priority_now` ≤ **P3** — parallel work must not outrank gate-critical P1/P2 |
 | **PRI-4** | Score vs matrix default differ by > 1 band | Re-classify before proceeding |
 | **PRI-5** | `scope_fit = SC2` (adjacent value) | `priority_now` = **P5**, bucket = Ideas |
 | **PRI-6** | `confidence < C3` | Cannot be P1/P2 as *implementation*; convert to a **SPIKE**, which itself may be P1/P2 |

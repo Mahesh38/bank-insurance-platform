@@ -1,0 +1,101 @@
+# schema: work-item
+id: ARCH-025
+origin: ["SUG-20260923-scs"]
+title: "NIP BFF SCR-03 customer search — unified stakeholder/dev contract (lead-first, CBS via Apigee)"
+type: ARCH
+also: [DOC]
+breakdown: STORY
+epic: EPIC-003
+workstream: WS-3
+owner: "Mahesh — Principal Insurance Platform Architect"
+risk_tier: T3
+
+serves:
+  - "FF-15"
+  - "S11-E02-S02"
+  - "AC-CUST-010-1"
+  - "AC-CUST-010-2"
+  - "AC-CUST-010-3"
+  - "AC-EXC-10"
+  - "ADR-020"
+
+problem: >
+  SCR-03 has a human screen (Customer ID / PAN / mobile; result card with masked CIF
+  and an existing product chip) and a stated hop (lead exists? else CBS via Apigee),
+  but the 2026-09-07 lead-phase pack searches CBS first, forbids every CIF-shaped
+  field, and splits the same story across an LLD, OpenAPI and Java sketches. S11
+  cannot implement the screen from one artefact.
+
+description: >
+  Publish one unified contract for GET /customers:search: Product/BA screen map,
+  lead-first then Customer #4 → Apigee private → CBS, public schema (maskedCif,
+  source, existingLead), security/audit, QA matrix and SRE limits. Align the
+  lead-phase LLD/OpenAPI/Java sketches and HLD §5.1 search row so they do not
+  contradict. Do not implement NIP BFF, Customer, Lead or Apigee. Do not claim T4.
+
+acceptance_criteria:
+  - id: AC-1
+    given: "NIP-APP implements SCR-03"
+    when: "it reads 09-nip-bff-customer-search-contract.md"
+    then: "one public GET /customers:search is specified for CUSTOMER_ID, PAN and MOBILE with lead-first then CBS-via-Apigee"
+  - id: AC-2
+    given: "a search hit"
+    when: "the public schema is read"
+    then: "cifNumber, PAN, DOB, address and full mobile are absent; maskedCif and source are defined"
+  - id: AC-3
+    given: "an own lead exists for the key"
+    when: "the sequence is followed"
+    then: "the card is EXISTING_LEAD and CBS/Apigee is not on the wait-path"
+  - id: AC-4
+    given: "Product, BA, Security, Compliance, QA, SRE, Delivery and Engineering"
+    when: "they need SCR-03"
+    then: "they are routed to this one file, not a second role-specific document"
+  - id: AC-5
+    given: "CURRENT-STATE.yaml"
+    when: "this change lands"
+    then: "no stage field is edited"
+
+out_of_scope:
+  - "NIP BFF / Customer / Lead / Flutter implementation"
+  - "Apigee product onboarding and the exact CBS verb (OPEN-SEARCH-CBS-OP)"
+  - "POST /leads create-new for SAVINGS/ULIP (EPIC-004)"
+  - "Customer BFF (#1)"
+  - "Human T4 signatures"
+  - "Editing current_phase or GATE-S08"
+
+state: IN-FLIGHT
+priority_now: P2
+priority_at_target: P1
+target_stage: null
+unpark_trigger: null
+
+dependencies:
+  blocked_by: []
+  requires:
+    - "ADR-014"
+    - "ADR-015"
+    - "ADR-017"
+    - "ADR-020"
+    - "ARCH-023"
+    - "AC-CUST-010"
+  enables:
+    - "S11-E02-S02"
+    - "S11-E06-S02"
+  related_to:
+    - "EPIC-003"
+    - "EPIC-004"
+    - "SUG-20260907-ldc"
+  external:
+    - "OPEN-SEARCH-CBS-OP"
+  decision_dependency:
+    - "OPEN-SEARCH-CIF-MASK"
+    - "OPEN-LEAD-XRM"
+
+plan: PLAN-005
+estimate: M
+assumptions:
+  - "ASM-016"
+evidence: []
+variance_log: []
+risks:
+  - "OPEN-SEARCH-CIF-MASK may drop maskedCif"

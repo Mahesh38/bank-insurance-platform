@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20260923-scs | 2026-09-23 | human:architect | NIP BFF SCR-03 search-customer contract: Customer ID / PAN / mobile; lead-first then CBS via Apigee; one stakeholder+dev doc | SF1 | SC0 | SHOULD | ARCH | P2 / P1 | ADMITTED | [ARCH-025](../../platform/ws3-platform/ARCH-025.work-item.yaml) · [PLAN-005](../plans/PLAN-005-nip-bff-customer-search-contract.md) · [contract](../../platform/ws3-platform/09-nip-bff-customer-search-contract.md) · [detail](#sug-20260923-scs--scr-03-customer-search-unified-contract) |
 | SUG-20260923-par | 2026-09-23 | human:stakeholder | Remove governance over-serialization: SF5 parallel lanes, evidence-based unpark, SG-2 CANDIDATE, RG-9 evidenced-blocker T4 relief, DEP-4 soft-default | SF1 | SC1 | MUST | GOV | P1 / P1 | ADMIT-BYPASS | [CR-016](../change-requests/CR-016-parallel-lanes-evidence-unpark.md) · [detail](#sug-20260923-par--parallel-lanes-and-evidence-unpark) |
 | SUG-20260915-pic | 2026-09-15 | human:Mahesh | First-review deck must be illustrated (RM, suitability, quote, proposal, pay, policy), with AWS/external service map and stack/saga — still a Dev/UAT design sitting, production evidence after UAT | SF1 | SC1 | MUST | DOC | P1 / P1 | ADMITTED | [WHAT-TO-SEND](../../architecture/arb-prerequisites/exports/WHAT-TO-SEND.md) · [detail](#sug-20260915-pic--illustrated-journey-and-stack) |
 | SUG-20260915-vis | 2026-09-15 | human:Mahesh | Recast the first ARB deck as a 35-minute visual walk (problem, outcome, how) with 25 minutes for the board — not a bank-inventory, not a 60-minute monologue | SF1 | SC1 | MUST | DOC | P1 / P1 | ADMITTED | [WHAT-TO-SEND](../../architecture/arb-prerequisites/exports/WHAT-TO-SEND.md) · [detail](#sug-20260915-vis--visual-35-minute-first-arb-deck) |
@@ -120,6 +121,130 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20260923-scs · SCR-03 customer search unified contract
+
+```yaml
+# schema: triage-record
+id: SUG-20260923-scs
+raised_at: "2026-09-23"
+raised_by: "human:architect"
+source: "NIP-APP SCR-03 screenshot + request for one BFF search contract"
+input: >
+  As architect create the API contract for the BFF layer for search customer by
+  customer id, pan, mobile number which will internally look for lead exist for
+  the customer or pan or mobile number if not then it calls the CBS via APIGEE
+  to get customer details. Create detailed documentation. this is the screen,
+  create doc for all stakeholder and dev so we dont have to create multiple
+  docs for the same.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-13"
+  state_provisional: false
+  active_work_item: EPIC-003
+
+stage_fit:
+  code: SF1
+  rationale: >
+    FF-15 consumer contract and S07 API-contract canon are S08 deliverables.
+    This refines the already-admitted EPIC-003 search hop (lead-first, Apigee
+    egress, screen-aligned fields). It is not S11 feature implementation and
+    not a new capsule. FreshnessCheck 2026-09-23 exit 0.
+
+scope:
+  code: SC0
+  business_scope: >
+    Explicit in R0-SCOPE §3 Customer (CBS fetch by Cust ID / Mobile / PAN),
+    S05 SCR-03, AC-CUST-010-1/2/3. Customer BFF (#1) stays out.
+  serves: []
+  failure_without_it: >
+    S11-E02-S02 implements CBS-first against a screen that shows an existing
+    lead product chip, and Flutter would call or skip Apigee incorrectly.
+  minimal: true
+  authority: "R0-SCOPE.md §3 · S05 SCR-03 · AC-CUST-010 · ADR-020 · EPIC-003"
+
+necessity:
+  now: SHOULD
+  future_necessity: MUST
+  target_stage: "S11 — Vertical Slice"
+  binds_when: "S11-E02-S02 identify ETB customer"
+  failure_without_it: >
+    NIP-APP SCR-03 cannot be contract-first against the stated hop and screen.
+  evidence_tier: E2
+  evidence:
+    - "Human SCR-03 screenshot (Customer ID, result CIF XXXXX0433 • ULIP)"
+    - "AC-CUST-010-1/2/3 and AC-EXC-10 already written"
+    - "07-nip-bff-lead-phase-api-lld.md §4.2 is CBS-first"
+    - "ADR-020 / 2026-09-14 human direction — Apigee outbound"
+  confidence: C4
+  assumptions: ["ASM-016"]
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT
+action_rationale: >
+  SF1 x SHOULD = ADMIT P2-P3. Score 2N+2S+2B+2R+D-E = 4+6+4+4+1-1 = 18 → P2.
+  Matrix default P3; one band away (PRI-4 OK). Not a duplicate of
+  SUG-20260907-ldc: same epic, different hop and a single-doc constraint.
+  Documents only; S08 feature-breadth bar is not crossed.
+duplicate_of: null
+conflicts:
+  - "07-LLD §4.2 CBS-first — superseded for SCR-03 by this contract"
+
+classification:
+  type: ARCH
+  also: [DOC]
+  breakdown: STORY
+  epic: EPIC-003
+  risk_tier: T3
+  destination: "docs/platform/ws3-platform/ARCH-025.work-item.yaml"
+  rationale: >
+    Public API contract change (T3). Specifies masking; does not change a
+    runtime control (RG-6). Security/Compliance may escalate CIF-mask to T4.
+    Agent does not sign.
+
+priority:
+  now: P2
+  at_target: P1
+  factors: { N: 2, S: 3, B: 2, R: 2, D: 1, E: 1 }
+  score: 18
+  matrix_default: P3
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "SHOULD on-stage search-contract refinement; MUST at S11 implementation"
+
+dependencies:
+  edges:
+    - type: ARCHITECTURAL
+      target: ADR-020
+      relation: requires
+      state: OPEN
+    - type: ARCHITECTURAL
+      target: ARCH-023
+      relation: requires
+      state: OPEN
+    - type: BUSINESS
+      target: S11-E02-S02
+      relation: enables
+      state: PARKED
+
+outcome:
+  registered_in: docs/governance/registers/SUGGESTION-REGISTER.md
+  work_item_id: ARCH-025
+  plan_id: PLAN-005
+  status: ADMITTED
+  closed_reason: null
+
+resumed: "ARCH-025 — this intake is the work item for the lane."
+```
 
 ### SUG-20260923-par · Parallel lanes and evidence unpark
 

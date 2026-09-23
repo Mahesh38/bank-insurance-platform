@@ -366,8 +366,8 @@ Spoken resource name is **Lead** (`ADR-014`). Paths are `/leads`, not `/opportun
 | `DELETE` | `/sessions/current` | RM, IPR | Logout; revoke server session | |
 | `GET` | `/me` | RM, IPR | Principal + SP certification snapshot + `insurerId` (IPR) | |
 | `GET` | `/workspace/pipeline` | **RM** | Own working inbox, cursor-paginated (`SCR-02`) | Book-scoped; IPR uses gated read not this inbox |
-| `GET` | `/customers:search` | **RM** | ETB search by CIF / mobile / PAN (`SCR-03`) | Masked projection; CBS fail-closed |
-| `GET` | `/customers/{customerId}` | **RM** | Confirm sheet (`SCR-04`) | No CIF/PAN/DOB on the wire |
+| `GET` | `/customers:search` | **RM** | ETB search by CIF / mobile / PAN (`SCR-03`) | Lead-first, else CBS via Apigee; masked projection; CBS fail-closed only when no own lead. SSOT: [`09-nip-bff-customer-search-contract.md`](../platform/ws3-platform/09-nip-bff-customer-search-contract.md) |
+| `GET` | `/customers/{customerId}` | **RM** | Confirm sheet (`SCR-04`) | No full CIF/PAN/DOB; last-4 `maskedCif` permitted pending `OPEN-SEARCH-CIF-MASK` |
 | `GET` | `/customers/{customerId}/active-leads` | **RM** | Duplicate detection before create | Own active Term leads only |
 | `GET` | `/catalogue/product-classes` | RM | R0 selectable classes (`SCR-05`) | `LIFE`/`TERM` only |
 | `POST` | `/leads` | **RM only** | Create Term lead **or** resume (`S-20`, `AC-LEAD-010-1`) | SP cert valid for `lob`; returns `leadId` **and** `journeyId` |
@@ -416,7 +416,8 @@ Called by `#2` or `#9` over mTLS or mesh-equivalent later; R0 uses IRSA + Networ
 |---|---|---|
 | #5 Lead | `POST /internal/v1/leads`, `GET …/{leadId}`, `GET …?assignedRmId&inbox` | Rejects non-`BANK_RM` at the service, not only the BFF |
 | #9 Journey | `POST /internal/v1/journeys`, `POST …/{id}/transitions`, `GET …/{id}` | Transition payload is a *reference + event*, never an embedded decision |
-| #4 Customer | `GET /internal/v1/customers:lookup?by=&q=` | Snapshot; does not write CBS. `by` ∈ CIF / mobile / PAN / name |
+| #4 Customer | `GET /internal/v1/customers:resolve?by=&q=` | Local store only; no Apigee |
+| #4 Customer | `GET /internal/v1/customers:lookup?by=&q=` | Snapshot via Apigee private → CBS; does not write CBS. `by` ∈ CIF / mobile / PAN |
 | #6 Consent | `POST /internal/v1/consents`, `POST …/{id}/verify`, `GET …/{id}` | Append-only |
 | #7 Suitability | `POST /internal/v1/assessments`, `GET …/{id}` | `S-08` is a read of validity, 500 ms, no retry |
 | #8 Catalogue | `GET /internal/v1/offerings` | Read-through cache inside the service |

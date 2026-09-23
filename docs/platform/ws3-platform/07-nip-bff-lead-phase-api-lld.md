@@ -6,7 +6,9 @@
 **Origin:** `SUG-20260907-ldc` · `EPIC-003` · `ARCH-023` · `PLAN-004`  
 **Machine contract:** [`nip-bff-lead-phase.openapi.yaml`](./nip-bff-lead-phase.openapi.yaml)
 (internal-team documentation: operation intent, parameter purpose, field meaning)  
-**Java sketches:** [`08-nip-bff-lead-phase-java-records.md`](./08-nip-bff-lead-phase-java-records.md)
+**Java sketches:** [`08-nip-bff-lead-phase-java-records.md`](./08-nip-bff-lead-phase-java-records.md)  
+**SCR-03 search SSOT (all seats):** [`09-nip-bff-customer-search-contract.md`](./09-nip-bff-customer-search-contract.md)
+(`SUG-20260923-scs` · `ARCH-025`). If §4.2 / §6.2 here disagree with that file, **09 wins**.
 
 This file is the **consumer-ready expansion** of the R0 HLD contract *sketch* for screens
 `SCR-02` … `SCR-05` only: the RM landing inbox, ETB customer search, identity confirm, Term
@@ -81,7 +83,7 @@ to nest `data.items` and would leak a second error shape past `toPublic()`.
 |---|---|---|---|
 | `SCR-02` | See my working inbox | `GET /workspace/pipeline` | List row: name, initials, masked mobile, state chip, `leadId` |
 | `SCR-02` empty | CTA to search | none | Copy from S05 §4.5 |
-| `SCR-03` | Find ETB customer | `GET /customers:search` | Search hit: name, initials, masked mobile, eligibility |
+| `SCR-03` | Find ETB customer | `GET /customers:search` | Search hit: name, initials, masked CIF, masked mobile, eligibility, optional existing product class. Hop: lead-first, else CBS via Apigee — [09](./09-nip-bff-customer-search-contract.md) |
 | `SCR-04` | Confirm identity | `GET /customers/{customerId}` **or** reuse the selected search hit | Confirm sheet: name, masked mobile, masked email. **No CIF, PAN, DOB, address** |
 | `SCR-05` | Confirm Term Life | `GET /catalogue/product-classes?lob=LIFE` (usually cached) | R0: single selectable class `TERM` |
 | `SCR-05` | Duplicate check | `GET /customers/{customerId}/active-leads?productClass=TERM` | Active own leads only |
@@ -133,6 +135,10 @@ customer snapshots.
 
 ### 4.2 Search → confirm → Term → create (`SCR-03` … `SCR-05`)
 
+`GET /customers:search` orchestration (lead-first, else CBS via Apigee) is specified in
+[`09-nip-bff-customer-search-contract.md`](./09-nip-bff-customer-search-contract.md) §2.4.
+The diagram below is the landing-to-create slice; do not re-derive the search hop from it.
+
 ```mermaid
 sequenceDiagram
     autonumber
@@ -140,18 +146,24 @@ sequenceDiagram
     participant BFF as NIP BFF #2
     participant PDP as PDP #3
     participant Cust as Customer #4
-    participant CBS as CBS
+    participant CBS as CBS via Apigee
     participant Lead as Lead #5
     participant Jrn as Journey #9
 
     App->>BFF: GET /customers:search?by=MOBILE&q=…&limit=20
     BFF->>PDP: authorize customer.search
     PDP-->>BFF: allow
-    BFF->>Cust: GET /internal/v1/customers:lookup
-    Cust->>CBS: CIF / mobile / PAN / name lookup
-    CBS-->>Cust: hits (ETB book scoped)
-    Cust-->>BFF: customerId + profile (full, internal)
-    BFF-->>App: SearchPage (masked only)
+    BFF->>Cust: GET /internal/v1/customers:resolve (local only)
+    alt own lead exists
+        BFF->>Lead: GET /internal/v1/leads?customerId&assignedRmId=me&active=true
+        BFF-->>App: SearchPage source=EXISTING_LEAD (masked; product class)
+    else no lead
+        BFF->>Cust: GET /internal/v1/customers:lookup
+        Cust->>CBS: CIF / mobile / PAN via Apigee private
+        CBS-->>Cust: hits (ETB book scoped)
+        Cust-->>BFF: customerId + profile (full, internal)
+        BFF-->>App: SearchPage source=CBS (masked; no product chip)
+    end
 
     Note over App: RM taps a row → confirm sheet from the hit; optional GET /customers/{id}
 
@@ -179,8 +191,9 @@ sequenceDiagram
     end
 ```
 
-CBS unavailable: BFF returns `503 UPSTREAM_UNAVAILABLE` with public copy matching
-`AC-EXC-10` / S05 `SCR-03` error — **Do not proceed.** No fabricated customer. No journey.
+CBS unavailable **and no own lead**: BFF returns `503 UPSTREAM_UNAVAILABLE` with public
+copy matching `AC-EXC-10` / S05 `SCR-03` error — **Do not proceed.** No fabricated
+customer. No journey. An own-lead hit is enough; do not 503 when only CBS is down.
 
 ### 4.3 What is synchronous vs polled
 
@@ -217,8 +230,8 @@ CIF snapshot on a list.
 | API | Fields allowed on the wire to Flutter | Fields forbidden |
 |---|---|---|
 | Pipeline row | `leadId`, `customerDisplayName`, `initials`, `maskedMobile`, `state`, `productClass`, `journeyId`, `journeyStage`, `updatedAt` | `cifNumber`, PAN, email, follow-ups, `accountableSpCertRef`, assignment history |
-| Search hit | `customerId`, `fullName`, `initials`, `maskedMobile`, `maskedEmail`, `eligibility` | `cifNumber`, PAN, DOB, address, income, tobacco, Aadhaar |
-| Confirm sheet | Same as search hit | Same forbid list. Confirm is identity, not prefill (`SCR-07` / `AC-CUST-020-*` need `CNS-DP`) |
+| Search hit | `customerId`, `fullName`, `initials`, `maskedCif`, `maskedMobile`, `maskedEmail`, `eligibility`, `source`, `existingLead` | `cifNumber`, PAN, DOB, address, income, tobacco, Aadhaar |
+| Confirm sheet | Same as search hit (including `maskedCif`, `source`, `existingLead`) | Same forbid list. Confirm is identity, not prefill (`SCR-07` / `AC-CUST-020-*` need `CNS-DP`) |
 | Create response | `leadId`, `journeyId`, `customerId`, `lob`, `productClass`, `state`, `createdAt`, `outcome` | Full customer, payment, quote |
 
 Masking **happens in the BFF**, not in Flutter: `maskedMobile` = `+91 933****412` pattern;
@@ -264,20 +277,24 @@ Empty inbox is **200** with `items: []` (S05 empty copy), not `404`.
 
 ### 6.2 `GET /customers:search`
 
+**SSOT:** [`09-nip-bff-customer-search-contract.md`](./09-nip-bff-customer-search-contract.md).
+
 **Query:**
 
-| `by` | `q` rules | Maps to CBS | In S03 AC? |
+| `by` | `q` rules | First hop | Then if no own lead |
 |---|---|---|---|
-| `CUSTOMER_ID` | 1–20 chars, trimmed | CIF (`cifNumber`). Flutter never sees the CIF back | Yes (`AC-CUST-010-1`) |
-| `MOBILE` | E.164 or 10-digit Indian; digits only after normalisation | Registered mobile | Yes |
-| `PAN` | `^[A-Z]{5}[0-9]{4}[A-Z]$` | PAN (RESTRICTED). Not logged | Yes |
-| `NAME` | min 3 Unicode letters; max 80 | CBS name search | **Proposed.** R0-SCOPE says “Cust ID / Mobile / PAN **etc.**”. S03 AC names three keys. Keep `NAME` in the contract so the search dropdown can exist; Rajal confirms. If rejected, BFF returns `400 VALIDATION_ERROR` for `by=NAME` |
+| `CUSTOMER_ID` | 1–20 `[A-Za-z0-9]`, trimmed | `#4` resolve + `#5` leads | `#4` lookup → Apigee private → CBS CIF |
+| `MOBILE` | E.164 or 10-digit Indian; digits only after normalisation | same | CBS registered mobile |
+| `PAN` | `^[A-Z]{5}[0-9]{4}[A-Z]$` | same | CBS PAN (RESTRICTED). Not logged |
+| `NAME` | min 3 Unicode letters; max 80 | **Not on SCR-03 dropdown.** Keep in this OpenAPI for `OPEN-LEAD-NAME`; 09 returns `400` for `by=NAME` | — |
 
 Button enablement is client-side (non-empty + format). Server still validates.
 
-**200** `SearchPage`. Zero hits → `items: []` (`AC-CUST-010-2`). Non-ETB → included with
-`eligibility=NOT_ETB`; Continue disabled (`AC-CUST-010-3`). Out-of-book identities are
-**absent** (`INV-LED-05`), not listed.
+**200** `SearchPage`. Lead hit → `source=EXISTING_LEAD` and `existingLead.productClass` (the
+screen chip). CBS hit → `source=CBS`, no product chip. Zero hits → `items: []`
+(`AC-CUST-010-2`). Non-ETB → `eligibility=NOT_ETB`; Continue disabled (`AC-CUST-010-3`).
+Out-of-book identities are **absent** (`INV-LED-05`), not listed. Public body may include
+`maskedCif` (last four); never `cifNumber`.
 
 ### 6.3 `GET /customers/{customerId}`
 
@@ -285,7 +302,7 @@ Confirm-sheet projection. `404` if the id is not in this RM’s book (absent, no
 forbidden). `503 UPSTREAM_UNAVAILABLE` if CBS cannot re-read.
 
 Prefer reusing the search hit when the RM has not left `SCR-03`→`SCR-04`; this GET exists for
-deep links and process death.
+deep links, “View details”, and process death. Same public projection as one search hit.
 
 ### 6.4 `GET /customers/{customerId}/active-leads`
 
@@ -382,19 +399,31 @@ Identifiers below are illustrative ULIDs. Masking is already applied. Flutter ne
 Prospects tab: same resource with `inbox=UNSTARTED`. Next page: repeat with `cursor`.
 Empty inbox: `{ "items": [], "page": { "size": 20, "hasMore": false } }`.
 
-**2. Search — `GET /customers:search?by=MOBILE&q=9331111412&limit=20`**
+**2. Search — `GET /customers:search?by=CUSTOMER_ID&q=560098111&limit=20`**
+(lead-first example matching SCR-03). Full field rules in [09 §3](./09-nip-bff-customer-search-contract.md#31-get-customerssearch).
 
 ```json
 {
-  "query": { "by": "MOBILE", "resultCount": 1 },
+  "query": { "by": "CUSTOMER_ID", "resultCount": 1, "source": "EXISTING_LEAD" },
   "items": [
     {
       "customerId": "01JQX4K7R8M2N3P4Q5S6T7V8X1",
-      "fullName": "Abhishek Sharma",
-      "initials": "AS",
+      "fullName": "Abhishek Kummar",
+      "initials": "AK",
+      "maskedCif": "XXXXX0433",
       "maskedMobile": "+91 933****412",
       "maskedEmail": "abh*****@gmail.com",
-      "eligibility": "ETB"
+      "eligibility": "ETB",
+      "source": "EXISTING_LEAD",
+      "existingLead": {
+        "leadId": "01JQX4K7R8M2N3P4Q5S6T7V8W9",
+        "productClass": "ULIP",
+        "lob": "LIFE",
+        "state": "ASSIGNED",
+        "journeyId": "01JQX4K8A1B2C3D4E5F6G7H8J9",
+        "updatedAt": "2026-09-23T09:42:00Z"
+      },
+      "existingLeadCount": 1
     }
   ],
   "page": { "page": 0, "size": 20, "hasMore": false }
@@ -498,7 +527,8 @@ non-RM at the aggregate, not only at the BFF — `INV-LED-04`):
 | Service | Call | Notes |
 |---|---|---|
 | #3 PDP | `POST /internal/v1/authorize` | 300 ms, no retry, fail closed (`S-02`) |
-| #4 Customer | `GET /internal/v1/customers:lookup?by=&q=` | Snapshot; does not write CBS. Timeout 2 s (`S-04`/`S-05`) |
+| #4 Customer | `GET /internal/v1/customers:resolve?by=&q=` | Local store only; no Apigee. Book-scoped |
+| #4 Customer | `GET /internal/v1/customers:lookup?by=&q=` | Snapshot via Apigee private → CBS. Does not write CBS. Timeout 2 s (`S-04`/`S-05`) |
 | #4 Customer | `GET /internal/v1/customers/{customerId}` | Book-scoped |
 | #5 Lead | `GET /internal/v1/leads?...` | Inbox + active-leads queries. Visibility predicate in the store |
 | #5 Lead | `POST /internal/v1/leads` | Idempotency in **Lead’s** store, not Valkey (`ADR-011`) |
@@ -562,6 +592,8 @@ OpenAPI only (`AP-5` contract-first).
 | Contract behaviour | Authority |
 |---|---|
 | Search keys CIF / mobile / PAN | `AC-CUST-010-1`, R0-SCOPE §3 Customer |
+| Lead-first then CBS via Apigee | [`09`](./09-nip-bff-customer-search-contract.md), `ADR-020`, `ARCH-025` |
+| Last-4 `maskedCif` on the card | Screen + `AC-CUST-010-1`; `OPEN-SEARCH-CIF-MASK` |
 | Empty search does not create a customer | `AC-CUST-010-2` |
 | Non-ETB cannot start a journey | `AC-CUST-010-3`, D-009 |
 | Create returns `leadId` + `journeyId`, owned by creating RM | `AC-LEAD-010-1`, `BR-LEAD-010` |

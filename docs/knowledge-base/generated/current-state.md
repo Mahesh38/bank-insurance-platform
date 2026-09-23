@@ -2,7 +2,7 @@
 
 > **Generated, committed view.** CI regenerates this file from `governance/state/CURRENT-STATE.yaml` and fails if it drifts. The YAML remains authoritative.
 
-**Governance:** AIGEM 1.4  
+**Governance:** AIGEM 1.5  
 **State as of:** 2026-09-13  
 **Review due:** 2026-10-11  
 **Ratified by:** Mahesh (Solution Architect), 2026-08-10 — PO counter-signature outstanding; stage, scope and objective values re-confirmed unchanged at the 2026-09-11 R12 refresh
@@ -13,7 +13,7 @@ Authority: [CURRENT-STATE.yaml](../../governance/state/CURRENT-STATE.yaml)
 
 | Workstream | Current stage / phase | Status | Gate | Gate state |
 |---|---|---|---|---|
-| **WS-3 · AU Bank Insurance Distribution Platform** | S08 — Engineering Foundation<br>Foundation Recovery Increment — S08 with S09 overlapped | IN_PROGRESS | `GATE-S08` | **OPEN** |
+| **WS-3 · AU Bank Insurance Distribution Platform** | S08 — Engineering Foundation<br>Foundation Recovery Increment — S08 with S09 overlapped | IN_PROGRESS | `GATE-S08` | **CANDIDATE** |
 | **WS-1 · 1SB Insurance Integration** | L7 — Hardening<br>Phase 4 — Hardening & consumer enablement | IN_PROGRESS | `GATE-P4` | **BLOCKED** |
 | **WS-2 · Workforce Authentication & Authorization** | L4/L6 — Foundation into first vertical slice<br>Phase 1 — Foundation implementation | IN_PROGRESS | `GATE-IAM-P1` | **OPEN** |
 
@@ -24,7 +24,7 @@ Authority: [CURRENT-STATE.yaml](../../governance/state/CURRENT-STATE.yaml)
 **Next:** S09 — Platform & Environment Foundation  
 **Objective:** `R0-ASSISTED-LIFE-SALE` — One RM sells a complete Life insurance policy — Term or Savings/ULIP — to one ETB customer from one Group A insurer, end to end, through a real interface, with consent and suitability evidence, payment on the customer's own device, an issued and reconciled policy, and a complete audit trail. R0 includes both Term and Savings/ULIP assisted paths (CR-015). DIY and hybrid stay sequenced behind the assisted journey.
 
-**Gate:** `GATE-S08` · **OPEN** — MET: 10
+**Gate:** `GATE-S08` · **CANDIDATE** — MET: 10
 
 | Criterion | State | Owner |
 |---|---|---|

@@ -1,13 +1,14 @@
 # AIGEM — AI Governance & Execution Model
 
-**Version:** 1.4  
+**Version:** 1.5  
 **Status:** Binding for all AI agents and human contributors working in this repository  
 **Custodian:** Platform / Solution Architect  
 **Source blueprint:** *AIGEM Executive Blueprint v0.1*  
 **Version 1.1 change:** CR-002 maps Board 1 to the Principal Insurance Platform Architect persona and adds the reciprocal Architect↔Compliance protocol. Ratification remains subject to the approvers recorded in CR-002.  
 **Version 1.2 change:** CR-003 adds the Principal Insurance Data & Database Architect / DBA specialist persona and the canonical cross-persona authority/accountability matrix without changing AIGEM's seven-board constitution.  
 **Version 1.3 change:** CR-008 maps the existing R10 DevOps/SRE role and Board 7 Operations reasoning persona to **Shivanshi — Principal Insurance Platform SRE / Reliability Engineering Head**, preserving O1–O8 while adding insurance/bancassurance-aware platform, CI/CD, observability, incident/DR, capacity/scaling and developer-experience depth. No eighth board is created.  
-**Version 1.4 change:** CR-009 recalibrates the framework for **flow**. T4 escalation becomes a test of what a change *does* rather than what it is *near*; `GOV` work is queued and counted like any other work; board silence gets a clock; approvals expire on elapsed time or changed context rather than stage arithmetic; R12 may force a decision's timing but never its content; binding-veto deadlock gets a named human tie-breaker; the persona roster is closed at nine; **gate criteria closed per week** becomes the headline metric with a self-alarm; and freshness accepts a dated, attributed "reviewed, no change". No board, veto, jurisdiction or mandatory human sign-off is changed.
+**Version 1.4 change:** CR-009 recalibrates the framework for **flow**. T4 escalation becomes a test of what a change *does* rather than what it is *near*; `GOV` work is queued and counted like any other work; board silence gets a clock; approvals expire on elapsed time or changed context rather than stage arithmetic; R12 may force a decision's timing but never its content; binding-veto deadlock gets a named human tie-breaker; the persona roster is closed at nine; **gate criteria closed per week** becomes the headline metric with a self-alarm; and freshness accepts a dated, attributed "reviewed, no change". No board, veto, jurisdiction or mandatory human sign-off is changed.  
+**Version 1.5 change:** CR-016 adds **SF5 PARALLEL** lanes (LC-2), **evidence-based unpark** (BR-5), **all-criteria-MET → CANDIDATE** (SG-2), **evidenced-blocker T4 relief** (RG-9), and **DEP-4** soft-default dependencies. Standing constraints and genuine G1–G10 human T4 remain.
 
 ---
 

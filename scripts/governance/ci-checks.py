@@ -319,13 +319,14 @@ def check_priority_calibration(quiet: bool) -> None:
     band = lambda s: "P1" if s >= 24 else "P2" if s >= 17 else "P3" if s >= 11 else "P4" if s >= 5 else "P5"
     order = {"P1": 1, "P2": 2, "P3": 3, "P4": 4, "P5": 5}
     N = {"MUST": 4, "SHOULD": 2, "COULD": 1, "NOT-NOW": 0}
-    S = {"SF0": 4, "SF1": 3, "SF2": 1, "SF3": 0}
+    S = {"SF0": 4, "SF1": 3, "SF5": 2, "SF2": 1, "SF3": 0}
     # PRI-8 floors: an SF0 item blocks by definition; an on-stage MUST blocks its deliverable
     floor = lambda sf, n: 2 if sf == "SF0" else (1 if sf == "SF1" and n == "MUST" else 0)
     # 00 section 6, taking the lower-urgency end where the matrix gives a range
     matrix = {
         ("SF0", "MUST"): "P1", ("SF0", "SHOULD"): "P2", ("SF0", "COULD"): "P3",
         ("SF1", "MUST"): "P2", ("SF1", "SHOULD"): "P3", ("SF1", "COULD"): "P3", ("SF1", "NOT-NOW"): "P4",
+        ("SF5", "MUST"): "P3", ("SF5", "SHOULD"): "P3", ("SF5", "COULD"): "P4", ("SF5", "NOT-NOW"): "P4",
         ("SF2", "MUST"): "P3", ("SF2", "SHOULD"): "P4", ("SF2", "COULD"): "P5", ("SF2", "NOT-NOW"): "P4",
         ("SF3", "MUST"): "P4", ("SF3", "SHOULD"): "P4", ("SF3", "COULD"): "P5", ("SF3", "NOT-NOW"): "P5",
     }
@@ -336,10 +337,12 @@ def check_priority_calibration(quiet: bool) -> None:
             for effort in (0, 1, 2):
                 score = 2 * N[n] + 2 * S[sf] + 2 * b + 2 * risk - effort
                 got = band(score)
-                # caps PRI-2 / PRI-3
+                # caps PRI-2 / PRI-3 / PRI-9
                 if sf == "SF3":
                     got = max(got, "P4" if n in ("MUST", "SHOULD") else "P5", key=lambda x: order[x])
                 if sf == "SF2":
+                    got = max(got, "P3", key=lambda x: order[x])
+                if sf == "SF5":
                     got = max(got, "P3", key=lambda x: order[x])
                 gap = abs(order[got] - order[default])
                 worst = max(worst, gap)

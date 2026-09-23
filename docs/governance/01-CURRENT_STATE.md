@@ -47,7 +47,7 @@ the agent believed at decision time — a decision that was correct against a st
 | Review due | 2026-10-11 |
 | Ratified by | **Mahesh (Solution Architect), 2026-08-10** (GOV-004) — PO counter-signature outstanding; stage, scope and objective values re-confirmed unchanged on 2026-09-11 |
 | Active workstreams | **3** (see §4) — WS-3 is primary |
-| Governance version | AIGEM 1.4 |
+| Governance version | AIGEM 1.5 |
 
 > This snapshot was reconstructed from repository artefacts (`ACTION-PLAN.md`, phase
 > `STATUS.md` files, `TECH-DEBT.md`, git history) and **ratified by the Solution Architect on

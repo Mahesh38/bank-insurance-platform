@@ -25,12 +25,14 @@ is safe to trust and cheap to read.
 
 - **A suggestion is never implemented in the turn it is raised.** Triage it
   ([`aigem-triage`](./.claude/skills/aigem-triage/SKILL.md)), record it, schedule it — then go back
-  to the work item you were on.
-- **Exactly one work item in flight per agent/owner.** Independent, dependency-safe owners may
-  progress in parallel; a blocked item is recorded with owner and date and releases the lane. Only
-  the [hard `P1` overrides](./docs/governance/05-PRIORITY_MODEL.md#3-hard-p1-overrides) interrupt.
-- **Parked is not deleted.** Every deferral records a target stage and an unpark trigger in
-  [`registers/PARKED-BACKLOG.md`](./docs/governance/registers/PARKED-BACKLOG.md).
+  to the work item you were on. **Exception:** analysis/questions are not triage (`AE-1`);
+  dependency-safe off-path work admits as **SF5 PARALLEL** under a separate lane (LC-2 / CR-016).
+- **Exactly one work item in flight per agent/owner lane.** Independent, dependency-safe owners and
+  SF5 lanes may progress in parallel; a blocked item is recorded with owner and date and releases
+  the lane. Only the [hard `P1` overrides](./docs/governance/05-PRIORITY_MODEL.md#3-hard-p1-overrides) interrupt.
+- **Park with a target stage and an unpark trigger** in
+  [`registers/PARKED-BACKLOG.md`](./docs/governance/registers/PARKED-BACKLOG.md). Prefer
+  evidence-ready / criterion-MET / gate-CANDIDATE triggers (BR-5) over gate-PASSED alone.
 - **Priority is stage-relative.** Record `priority_now` **and** `priority_at_target`.
 - **Do not re-report known debt** — `BOOT.md` section 5, detail in
   [`01 §6`](./docs/governance/01-CURRENT_STATE.md#6-known-open-debt-affecting-triage).

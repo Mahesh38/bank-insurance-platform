@@ -38,10 +38,14 @@ STEP 1  Mint SUG-<YYYYMMDD>-<3 chars>, e.g. SUG-20260812-a1b (no shared counter)
         a repeat is a link plus recurrence_count, not a new row.
 
 STEP 2  Stage fit  → 03-LIFECYCLE.md §3
-        SF0 prerequisite · SF1 on-stage · SF2 adjacent · SF3 premature · SF4 invalid
-        SF3 MUST carry target_stage + unpark_trigger.
+        SF0 prerequisite · SF1 on-stage · SF5 parallel · SF2 adjacent · SF3 premature · SF4 invalid
+        Prefer SF5 over SF2/SF3 when the parallel-lane test passes (LC-2) — off critical path,
+        dependency-safe, SC0/SC1, standing-constraint clean, separate lane, no silent G1–G10 change.
+        SF5 MUST carry `parallel_test` + named `lane`.
+        SF3 MUST carry target_stage + unpark_trigger (prefer evidence-ready / criterion MET /
+        GATE CANDIDATE over gate PASSED alone — BR-5).
         SF2 must pass the absorption test (small, no new dependency, no new
-        decision, gate-neutral) or it parks.
+        decision, gate-neutral) or try SF5, else park.
 
 STEP 3  Scope fit  → 02-PROJECT_SCOPE.md §3
         SC0 explicit · SC1 derived (must name `serves`) · SC2 adjacent → Ideas ·
@@ -58,6 +62,8 @@ STEP 5  Action matrix → 00-GOVERNANCE.md §6 → ADMIT | PARK | REJECT | ESCAL
 ── ADMIT only, from here ──
 
 STEP 6  Classify   → 06-WORK_CLASSIFICATION.md §2–§3 (type + risk tier T1–T4)
+        Apply RG-9: SF0 / gate-blocker work with E2+ unchanged-control evidence caps at T3
+        (docs/evidence/runbook/tests → T2) — do not default to T4.
 STEP 7  Score      → 05-PRIORITY_MODEL.md
         Hard P1 overrides first (§3, evidence required); else
         SCORE = 2N + 2S + 2B + 2R + D − E, then caps PRI-2/PRI-3/PRI-5/PRI-6.

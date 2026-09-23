@@ -124,21 +124,33 @@ Parked work returns through a defined sweep, never through someone remembering.
 
 **Triggers**
 1. Stage gate `PASSED` — sweep every item whose `unpark_trigger` names that transition
-2. Scope change approved (CR) — sweep items whose rejection reason was scope
-3. `recurrence_count` reaches 3 — the idea keeps arriving; re-evaluate
-4. Aging rules AS-2 / AS-3 ([05 §7](./05-PRIORITY_MODEL.md#7-anti-starvation))
-5. A dependency that caused `PARKED-DEPENDENT` becomes Done
+2. Stage gate `CANDIDATE` or **all exit criteria MET/WAIVED** — sweep items whose trigger names
+   that gate, `evidence-ready`, or `all-criteria-MET` (Rule BR-5). Do **not** wait for human PASS
+   to unlock evidence-ready prep work.
+3. A named **exit criterion** moves to `MET` or `WAIVED` — sweep items that name that criterion id
+4. Scope change approved (CR) — sweep items whose rejection reason was scope
+5. `recurrence_count` reaches 3 — the idea keeps arriving; re-evaluate
+6. Aging rules AS-2 / AS-3 ([05 §7](./05-PRIORITY_MODEL.md#7-anti-starvation))
+7. A dependency that caused `PARKED-DEPENDENT` becomes Done
+
+> **Rule BR-5 — Evidence unlocks; signatures advance stages.**
+> Human PASS still advances `current_phase` / `stage_status`. Unpark and re-triage of
+> dependency-safe prep must not be held solely behind that signature when the trigger's
+> *evidence* already exists. Prefer unpark triggers of the form
+> `criterion <id> MET`, `evidence-ready:<artefact>`, or `GATE-… CANDIDATE` over
+> `GATE-… PASSED` alone when the work is SF5-eligible.
 
 **Sweep procedure**
 
 ```text
 For each candidate parked item:
   1. Re-run pipeline steps 2–7 against the NEW current state.
-     (Do not auto-admit. Six months of delivery may have solved it, obsoleted it,
-      or made it a different problem.)
+     (Do not auto-admit. Delivery may have solved it, obsoleted it,
+      or made it a different problem — including SF5 ADMIT to a parallel lane.)
   2. Outcomes:
        still SF3      → re-park with a NEW target stage and a reason for the roll
-       now SF0/SF1    → ADMIT: score fresh, plan, review
+       now SF0/SF1/SF5 → ADMIT: score fresh, plan, review (tier per RG-9 when applicable)
+       now SF2 absorb → ADMIT into current plan if absorption passes
        now SF4 / SC3  → close as SUPERSEDED or WONT-DO with a reason
   3. Record the sweep result on the item: sweep date, previous target, new state.
 ```

@@ -26,14 +26,18 @@ python3 scripts/context/context-load.py find "premium field mapping"
 ## 1. The five behaviours that decide whether you are useful here
 
 1. **Triage before implementing.** A suggestion is *never* implemented in the turn it is raised —
-   triage it, record it, schedule it, then return to the work item you were on.
+   triage it, record it, schedule it, then return to the work item you were on. Analysis and
+   questions are not triage (`AE-1`).
 2. **One work item in flight per executor lane.** Only an evidenced
    [hard `P1` override](../governance/05-PRIORITY_MODEL.md#3-hard-p1-overrides) interrupts:
    build failure · exploitable vulnerability · incorrect domain model · missing mandatory API ·
    regulatory violation · data corruption · blocking dependency · AC failure.
-3. **Park with a target stage and an unpark trigger.** Never "someday". Parked is not deleted.
+   **SF5 parallel lanes** may run concurrently under other owners ([03 §3](../governance/03-LIFECYCLE.md#the-sf5-parallel-lane-test)).
+3. **Park with a target stage and an unpark trigger.** Prefer evidence-ready / criterion-MET /
+   gate-CANDIDATE triggers over gate-PASSED alone (BR-5). Never "someday". Parked is not deleted.
 4. **Return to the task, out loud.** End every triage with `Continuing with <item>.`
 5. **Report honestly.** Partial is partial, red gates are red, drift is reported not hidden.
+   When all gate criteria are MET, mark `CANDIDATE` (SG-2) — do not leave OPEN with empty approvals.
 
 ## 2. Priority is stage-relative
 
@@ -80,7 +84,7 @@ Full table with the wrong-instinct column:
 
 > Generated from [`CURRENT-STATE.yaml`](../governance/state/CURRENT-STATE.yaml) by `scripts/context/build-boot-capsule.py`. Do not hand-edit this block.
 
-**AIGEM 1.4** · state as of **2026-09-13** · review due **2026-10-11** · provisional: **no**
+**AIGEM 1.5** · state as of **2026-09-13** · review due **2026-10-11** · provisional: **no**
 
 > **Fact 9 — freshness.** Past `review_due`, an agent may park and reject but **must not admit new work** (Rule CS-1). Run `java scripts/governance/FreshnessCheck.java` and act on the exit code: `0` fresh · `1` warn, disclose it · `2` do not admit.
 
@@ -92,7 +96,7 @@ Full table with the wrong-instinct column:
 
 **Objective** (`R0-ASSISTED-LIFE-SALE`): One RM sells a complete Life insurance policy — Term or Savings/ULIP — to one ETB customer from one Group A insurer, end to end, through a real interface, with consent and suitability evidence, payment on the customer's own device, an issued and reconciled policy, and a complete audit trail. R0 includes both Term and Savings/ULIP assisted paths (CR-015). DIY and hybrid stay sequenced behind the assisted journey.
 
-**Open gate:** `GATE-S08` · state `OPEN` · 0 of 10 exit criteria not yet met — 
+**Open gate:** `GATE-S08` · state `CANDIDATE` · 0 of 10 exit criteria not yet met — 
 
 **Out of scope now — do not propose, do not build:**
 - Customer self-service (DIY) journey — revisit at R1 — after the assisted journey completes a real sale in pilot
@@ -239,9 +243,10 @@ END    [ ] current item: done / in-flight with a snapshot / blocked with a block
 ```text
 TRIAGE
 SUG-00NN · "<the suggestion>"
-Stage: <phase> — <fits / belongs to X>     Scope: <SC code>
+Stage: <phase> — <SF0|SF1|SF5|SF2|SF3|SF4>  Scope: <SC code>
 Necessity: <MUST|SHOULD|COULD|NOT-NOW>     Verdict: <ADMIT|PARK|REJECT|ESCALATE>
-Priority: P<n> now · P<n> at target        Recorded: <register file>
+Priority: P<n> now · P<n> at target        Lane: <critical-path | named SF5 lane>
+Recorded: <register file>
 Continuing with <current work item>.
 
 CONSEQUENTIAL DECISION
@@ -252,10 +257,12 @@ options · recommendation · evidence · unresolved owner/date · next safe acti
 | Situation | Say |
 |---|---|
 | Suggestion mid-task | "Noted as `SUG-00NN` (parked, Phase 5). Continuing `FUNC-011`." |
+| SF5 parallel admit | "Admitted as SF5 on lane `<owner>` — does not delay the gate. Continuing critical-path `<item>`." |
 | Genuine P1 | "Interrupting `FUNC-011` for a P1. Snapshot recorded; returning after." |
 | You drifted | "I drifted: changed an adjacent component. Reverting, registering as `SUG-00NN`, finishing the current item." |
 | State is stale | "`CURRENT-STATE.yaml` is past `review_due`. I can park and reject against it, but not admit new work. **Kalpana / R12** needs to refresh it." |
 | Asked to skip the process | "Understood — doing it directly. Recording the bypass and its one risk." |
+| All gate criteria MET | "Gate criteria are complete — marking `CANDIDATE` (SG-2). Architect + PO PASS still required to advance the stage." |
 | Item bigger than planned | "Larger than the plan — stopping to re-review rather than expanding scope." |
 | Asked to scale production | "I'll first identify the business load, real bottleneck and downstream limit; scaling a non-bottleneck can worsen the incident." |
 

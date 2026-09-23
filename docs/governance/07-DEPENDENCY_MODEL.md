@@ -110,6 +110,18 @@ a band. An enabler with three dependants beats a leaf item of equal score.
 > owner and a follow-up date, or they are not tracked, they are hoped for. Work blocked
 > externally is parked, and the *chase* becomes its own item.
 
+> **Rule DEP-4 — Prefer fewer HARD edges.** Before recording `HARD` / `blocked_by`:
+> 1. Can the consumer proceed from a **contract, mock, stub, or synthetic fixture**?
+> 2. Is the edge actually `SOFT` (better after, tolerable before)?
+> 3. Is the real need a **DECISION** item (ADR) rather than an implementation wait?
+> 4. **Never invent a HARD edge to a stage gate id** (`GATE-P4`, `GATE-S08`, …). Gates are
+>    scheduling instruments, not work items. Depend on a named criterion, evidence pack, or
+>    work-item ID — or use an evidence-based unpark trigger ([08 §5](./08-BACKLOG_RULES.md#5-unparking)).
+>
+> Cross-stage prep that passes the SF5 parallel-lane test ([03 §3](./03-LIFECYCLE.md#the-sf5-parallel-lane-test))
+> must not be forced into `PARKED-DEPENDENT` solely because a later stage name appears in the
+> description. If a HARD predecessor is truly required, give it an ID and schedule it.
+
 ---
 
 ## 5. Execution ordering

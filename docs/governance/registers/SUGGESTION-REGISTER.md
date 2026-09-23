@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20260923-par | 2026-09-23 | human:stakeholder | Remove governance over-serialization: SF5 parallel lanes, evidence-based unpark, SG-2 CANDIDATE, RG-9 evidenced-blocker T4 relief, DEP-4 soft-default | SF1 | SC1 | MUST | GOV | P1 / P1 | ADMIT-BYPASS | [CR-016](../change-requests/CR-016-parallel-lanes-evidence-unpark.md) · [detail](#sug-20260923-par--parallel-lanes-and-evidence-unpark) |
 | SUG-20260915-pic | 2026-09-15 | human:Mahesh | First-review deck must be illustrated (RM, suitability, quote, proposal, pay, policy), with AWS/external service map and stack/saga — still a Dev/UAT design sitting, production evidence after UAT | SF1 | SC1 | MUST | DOC | P1 / P1 | ADMITTED | [WHAT-TO-SEND](../../architecture/arb-prerequisites/exports/WHAT-TO-SEND.md) · [detail](#sug-20260915-pic--illustrated-journey-and-stack) |
 | SUG-20260915-vis | 2026-09-15 | human:Mahesh | Recast the first ARB deck as a 35-minute visual walk (problem, outcome, how) with 25 minutes for the board — not a bank-inventory, not a 60-minute monologue | SF1 | SC1 | MUST | DOC | P1 / P1 | ADMITTED | [WHAT-TO-SEND](../../architecture/arb-prerequisites/exports/WHAT-TO-SEND.md) · [detail](#sug-20260915-vis--visual-35-minute-first-arb-deck) |
 | SUG-20260914-1st | 2026-09-14 | human:Mahesh | First ARB sitting is Dev/UAT design review (not production): 1-hour presenter PPT + speaker script + FAQ/deferral plays so the board can non-object to vpc-dev and vpc-uat | SF1 | SC1 | MUST | DOC | P1 / P1 | ADMITTED | [WHAT-TO-SEND](../../architecture/arb-prerequisites/exports/WHAT-TO-SEND.md) · [detail](#sug-20260914-1st--first-arb-sitting--devuat-ppt-script-faq) |
@@ -119,6 +120,118 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20260923-par · Parallel lanes and evidence unpark
+
+```yaml
+# schema: triage-record
+id: SUG-20260923-par
+raised_at: "2026-09-23"
+raised_by: "human:stakeholder"
+source: "Explicit direction — remove governance bottlenecks; enable parallel lanes"
+input: >
+  Fix the bottom lines from the governance bottleneck analysis: stop over-serializing
+  dependency-safe work; do not hold unpark behind human stage signature when evidence
+  is ready; do not force T4 when small/existing evidence shows a blocker fix does not
+  change a control; enable parallel work streams.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-13"
+  state_provisional: false
+  active_work_item: "CR-016 GOV flow recalibration"
+
+stage_fit:
+  code: SF1
+  rationale: >
+    Framework flow defect affecting every workstream's admit/unpark path; on-stage for
+    governance of delivery, not a later-stage product feature.
+
+scope:
+  code: SC1
+  business_scope: "derived — open gates cannot clear while dependency-safe work is falsely parked"
+  serves: ["GATE-S08", "GATE-P4", "GATE-IAM-P1"]
+  failure_without_it: >
+    Dependency-safe prep stays SF3-parked; unpark keys held behind PASS while criteria are MET;
+    blocker remediation over-tiers to T4 without control change.
+  minimal: true
+  authority: "CR-016 · GOV-009 · stakeholder direction 2026-09-23"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "AIGEM 1.5 operating now"
+  binds_when: "any agent triages or unparks work"
+  failure_without_it: >
+    Dependency-safe prep stays SF3-parked; unpark keys held behind PASS while criteria are MET;
+    blocker remediation over-tiers to T4 without control change.
+  evidence_tier: E2
+  evidence:
+    - "Prior analysis: GATE-S08 10/10 MET with empty approvals while OPEN"
+    - "CR-009 measured 61 consecutive GOV commits with gates shut — same class of cost"
+    - "Stakeholder explicit implement direction 2026-09-23"
+  confidence: C5
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT-BYPASS
+action_rationale: >
+  Human directed L1 framework edit now. 09 §8 ADMIT-BYPASS. CR-016 transcribed;
+  Architecture+Product human ratification recorded as outstanding on the CR.
+bypass_authorised_by: "human:stakeholder 2026-09-23 (explicit: fix bottlenecks; enable parallel lanes)"
+duplicate_of: null
+conflicts: []
+
+classification:
+  type: GOV
+  also: []
+  breakdown: STORY
+  epic: null
+  risk_tier: T3
+  destination: "docs/governance/** · CR-016 · GOV-009"
+
+priority:
+  now: P1
+  at_target: P1
+  factors: { N: 4, S: 3, B: 3, R: 2, D: 1, E: 2 }
+  score: 25
+  matrix_default: P1
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "Gate-flow defect blocking delivery capacity across workstreams"
+
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 3
+  earliest_start: "now"
+  cycles: none
+
+breakdown:
+  children: []
+  completion_definition: >
+    SF5/LC-2, BR-5, SG-2, RG-9, DEP-4 in L1 docs + schema + triage skill + context capsule;
+    GATE-S08 marked CANDIDATE; CI calibration green.
+  not_included:
+    - "Manufacturing Architecture/Product human signatures on CR-016"
+    - "Auto-PASS of GATE-S08 or editing current_phase/stage_status"
+    - "Weakening standing constraints or G1-G10 human T4 on real control changes"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md · change-requests/CR-016 · DECISION-REGISTER GOV-009"
+  work_item_id: CR-016
+  plan_id: null
+  status: ADMIT-BYPASS
+  closed_reason: null
+```
 
 ### SUG-20260913-qul · Do not retarget funds to quote-ulipList
 

@@ -39,28 +39,37 @@ signed document, a merged PR, a dashboard link. "Confirmed verbally" is not evid
 
 | State | Meaning | Agent behaviour |
 |-------|---------|-----------------|
-| `OPEN` | Stage in progress, criteria incomplete | Normal triage |
-| `CANDIDATE` | All criteria claim done, evidence under review | Freeze on non-P1 ADMITs; finish in-flight work |
+| `OPEN` | Stage in progress, criteria incomplete | Normal triage; prefer SF5 for off-path work |
+| `CANDIDATE` | All criteria claim done, evidence under review | Freeze on non-P1/SF0 admits **on the critical path**; SF5 parallel lanes may continue; finish in-flight work |
 | `PASSED` | Approvers signed | Run the unpark sweep; advance current state |
-| `BLOCKED` | A criterion cannot be met (external dependency, decision missing) | Blocking item becomes P1; other work continues in dependency order |
+| `BLOCKED` | A criterion cannot be met (external dependency, decision missing) | Blocking item becomes P1; **other dependency-safe work continues** (SF1/SF5); do not freeze the whole workstream |
 
-**Freeze rule:** in `CANDIDATE`, only SF0 and P1-override work is admitted. Everything else is
-parked to the next stage — this is what stops a stage from being extended indefinitely by
-late-arriving good ideas.
+**Freeze rule:** in `CANDIDATE`, only SF0 and P1-override work is admitted **onto the critical path**.
+SF5 parallel-lane work remains admissible. Everything else for that gate's critical path is parked
+to the next stage — this stops a stage being extended indefinitely by late-arriving good ideas
+without serializing the whole repository.
+
+> **Rule SG-2 — All criteria MET with empty approvals is not a stable `OPEN`.**
+> When every exit criterion is `MET` or `WAIVED` and `approvals: []`, the Delivery Lead or an
+> agent **must mark the gate `CANDIDATE` within one working day** and request Architect + PO
+> PASS/REWORK. Leaving a fully evidenced gate at `OPEN` holds unpark keys behind silence — that
+> is a process defect (CR-016). Agents may mark `CANDIDATE`; they still never mark `PASSED`
+> ([§5](#5-who-may-declare-a-transition)).
 
 ---
 
 ## 4. Transition procedure
 
 ```text
-1. Delivery Lead marks gate CANDIDATE
-2. For each exit criterion: attach evidence artefact
+1. Delivery Lead or agent marks gate CANDIDATE when all criteria are MET/WAIVED (Rule SG-2)
+2. For each exit criterion: attach evidence artefact (already present at CANDIDATE)
 3. Required approvers review (see §6 per stage)
 4. Any REWORK  → gate returns to OPEN with named blocking items (P1/P2)
 5. All APPROVE → gate PASSED
 6. Update state/CURRENT-STATE.yaml: current_phase, stage_status, next_stage
 7. Run unpark sweep (08 §5): every parked item whose unpark_trigger matched is re-triaged
    *from step 2 of the pipeline* — not auto-admitted
+   Triggers include: gate PASSED, gate CANDIDATE, criterion MET, evidence-ready (BR-5)
 8. Record the transition in registers/DECISION-REGISTER.md
 ```
 

@@ -8,7 +8,7 @@
 # Rule (04 §5): agents MUST NOT edit current_phase / stage_status. Human only.
 
 schema_version: "1.0"
-governance_version: "AIGEM 1.4" # CR-009 ratified 2026-08-14; matches README.md section 1
+governance_version: "AIGEM 1.5" # CR-016 transcribed 2026-09-23 (parallel lanes / evidence unpark / RG-9); CR-009 was 1.4
 
 project:
   name: "Bank Insurance Platform"
@@ -179,7 +179,10 @@ workstreams:
 
     current_gate:
       id: GATE-S08
-      state: OPEN
+      state: CANDIDATE
+      # 2026-09-23 (CR-016 / SG-2): all ten exit criteria MET; agent marked CANDIDATE.
+      # Architect + PO human PASS still required to advance current_phase / stage_status.
+      # Approvals list remains empty — no signatures manufactured.
       exit_criteria:
         - id: "S08-G1"
           criterion: "CI builds and tests every module on every PR"
@@ -656,7 +659,7 @@ id_allocation:
     # CR-011 existed as a file from 2026-08-20 without a register row, so the counter read 11
     # while CR-011 was in use; it is now indexed in the decision register and the counter clears
     # both it and CR-012.
-    CR: 16        # CR-001..015 in use (015 = WS-3 R0 complete assisted Life journey, SUG-20260911-uls, CANDIDATE transcribed 2026-09-12 under ADMIT-BYPASS; HUMAN T4 outstanding); next unused is 16
+    CR: 17        # CR-001..016 in use (016 = parallel lanes / evidence unpark / RG-9, SUG-20260923-par, CANDIDATE transcribed 2026-09-23 under ADMIT-BYPASS; HUMAN Architecture+Product ratification outstanding); next unused is 17
     RISK: 16      # RISK-001..015 in use (012..015 added by CR-012)
     ASM: 20       # ASM-001..014, 015..019 in use (013 invalidated 2026-09-14; 015 = Apigee outbound / API Gateway inbound; 016 = private Apigee for internal APIs; 017 = dev-inside-UAT; 018 = no CUG at R0; 019 = AD-verify API + partner IdP + Fireframe UI). ID-allocation only. No stage field touched.
     EPIC: 5       # EPIC-001..004 in use (004 = WS-3 R0 assisted Life Term+Savings+ULIP, CR-015 / SUG-20260911-uls, minted 2026-09-12). Next unused is 5. ID-allocation only.

@@ -46,8 +46,11 @@ AIGEM makes scheduling explicit and mechanical:
 8. **One active objective per executor.** Each agent or named owner has exactly one work item in
    flight. Independent owners may operate bounded, dependency-safe lanes. A blocked item is
    snapshotted with an owner/date and releases that executor's implementation lane.
-9. **Reversibility is a first-class input.** Cheap-to-change-later beats build-it-now.
-10. **The register is the memory.** Agents forget between sessions; the registers do not.
+9. **Parallel lanes beat serial waiting.** Dependency-safe, off-critical-path work is admitted as
+   **SF5 PARALLEL** under a separate owner/lane — it is not parked solely because it is not the
+   current stage's headline deliverable ([03 §3](./03-LIFECYCLE.md#3-stage-fit-codes-sf), Rule LC-2).
+10. **Reversibility is a first-class input.** Cheap-to-change-later beats build-it-now.
+11. **The register is the memory.** Agents forget between sessions; the registers do not.
 
 ---
 
@@ -110,10 +113,11 @@ An AI agent may *simulate* a board to produce a draft verdict. A simulated verdi
 | **PARK** | Work is recorded against a *future* stage with an unpark trigger. |
 | **REJECT** | Work will not be done; the reason is recorded permanently. |
 | **ESCALATE** | The decision exceeds agent authority → [14-CHANGE_CONTROL.md](./14-CHANGE_CONTROL.md). |
-| **Stage fit (SF)** | How the input relates to the current lifecycle stage. SF0–SF4. |
+| **Stage fit (SF)** | How the input relates to the current lifecycle stage. SF0–SF5. |
 | **Scope fit (SC)** | How the input relates to approved business/technical scope. SC0–SC4. |
 | **Necessity** | MUST / SHOULD / COULD / NOT-NOW / REJECT. |
 | **Priority** | P1–P5, always stage-relative — see [05](./05-PRIORITY_MODEL.md). |
+| **Parallel lane** | A separate owner/WIP slot for SF5 work that does not delay the current gate. |
 | **Gate** | A checkpoint with written exit criteria. Stage gates ([04](./04-STAGE_GATES.md)) and the approval gate ([11](./11-REVIEW_GATES.md). |
 
 ---
@@ -127,9 +131,14 @@ first as a filter — see the note beneath.
 |---|---|---|---|---|
 | **SF0** prerequisite | ADMIT · P1 | ADMIT · P2 | ADMIT · P3 | *invalid — a prerequisite cannot be NOT-NOW* |
 | **SF1** on-stage | ADMIT · P1–P2 | ADMIT · P2–P3 | ADMIT · P3 | PARK · P4 |
+| **SF5** parallel | ADMIT · P2–P3 | ADMIT · P3 | ADMIT · P3–P4 | PARK · P4 |
 | **SF2** adjacent | ADMIT if absorbable, else PARK · ≤P3 | PARK · P4 | PARK · P5 | PARK · P4 |
 | **SF3** premature | PARK · P4 (+ future necessity MUST) | PARK · P4 | PARK · P5 | PARK · P5 |
 | **SF4** stage-invalid | REJECT | REJECT | REJECT | REJECT |
+
+> **SF5 before SF2/SF3.** If the parallel-lane test in [03 §3](./03-LIFECYCLE.md#the-sf5-parallel-lane-test)
+> passes, classify **SF5** and ADMIT — do not park as SF2/SF3 merely because the work belongs to
+> a later *stage name*. False serialization is a process defect (CR-016).
 
 Scope filter, applied **before** the matrix:
 

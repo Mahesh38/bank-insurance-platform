@@ -1,7 +1,8 @@
 # 08 — Java record sketches · NIP BFF lead phase
 
-**Companion to** [`07-nip-bff-lead-phase-api-lld.md`](./07-nip-bff-lead-phase-api-lld.md)
-and [`nip-bff-lead-phase.openapi.yaml`](./nip-bff-lead-phase.openapi.yaml).
+**Companion to** [`07-nip-bff-lead-phase-api-lld.md`](./07-nip-bff-lead-phase-api-lld.md),
+[`nip-bff-lead-phase.openapi.yaml`](./nip-bff-lead-phase.openapi.yaml)
+and [`09-nip-bff-customer-search-contract.md`](./09-nip-bff-customer-search-contract.md) (SCR-03).
 
 These types are **sketches for S11**. They are not compiled in this change. When NIP BFF is
 scaffolded they belong in `com.bank.insurance.nip.bff.api.v1.lead` and should be generated
@@ -37,9 +38,14 @@ public final class LeadPhaseApi {
 
     public enum SearchBy { CUSTOMER_ID, MOBILE, PAN, NAME }
 
+    public enum SearchSource { EXISTING_LEAD, CBS }
+
     public enum Lob { LIFE }
 
     public enum ProductClass { TERM }
+
+    /** Display/resume chip on SCR-03. POST /leads create-new stays ProductClass. */
+    public enum ProductClassOnLead { TERM, SAVINGS, ULIP }
 
     public enum LeadState {
         NEW, ASSIGNED, CONTACTED, QUALIFIED, CONVERTED, DISQUALIFIED, EXPIRED, ARCHIVED
@@ -82,17 +88,31 @@ public final class LeadPhaseApi {
             @NotNull CursorPage page) {}
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
+    public record ExistingLeadSummary(
+            @NotNull Ulid leadId,
+            @NotNull ProductClassOnLead productClass,
+            @NotNull Lob lob,
+            @NotNull LeadState state,
+            Ulid journeyId,
+            Instant updatedAt) {}
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public record CustomerSummary(
             @NotNull Ulid customerId,
             @NotBlank @Size(max = 140) String fullName,
             @NotBlank @Size(max = 4) String initials,
-            @NotBlank String maskedMobile,
+            String maskedCif,
+            String maskedMobile,
             String maskedEmail,
-            @NotNull Eligibility eligibility) {}
+            @NotNull Eligibility eligibility,
+            @NotNull SearchSource source,
+            ExistingLeadSummary existingLead,
+            @Min(0) int existingLeadCount) {}
 
     public record SearchQueryMeta(
             @NotNull SearchBy by,
-            @Min(0) int resultCount) {}
+            @Min(0) int resultCount,
+            SearchSource source) {}
 
     public record SearchPage(
             @NotNull SearchQueryMeta query,
@@ -199,6 +219,8 @@ public final class LeadPhaseMasking {
     public static String maskMobile(String e164) { /* +91 933****412 */ return ""; }
 
     public static String maskEmail(String email) { /* abh*****@gmail.com */ return ""; }
+
+    public static String maskCif(String cifNumber) { /* XXXXX0433 last-4 */ return ""; }
 
     public static Eligibility eligibility(boolean etb) {
         return etb ? Eligibility.ETB : Eligibility.NOT_ETB;

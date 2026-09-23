@@ -171,9 +171,14 @@ paths:
       operationId: searchCustomers
       summary: Search ETB customers in this RM's book
       description: |
-        Powers SCR-03. Looks up customers the calling RM is allowed to see
-        (in-book ETB). The BFF calls Customer #4 → CBS; Flutter never talks to
-        CBS. Masking happens in the BFF before the response is built.
+        Powers SCR-03. SSOT for hop, fields and seats:
+        09-nip-bff-customer-search-contract.md (ARCH-025).
+
+        Lead-first: BFF asks Customer #4 to resolve the key locally, then Lead
+        #5 for an own active lead. If a lead exists, return source=EXISTING_LEAD
+        and do not call CBS. If not, Customer #4 → Apigee private → CBS
+        (ADR-020). Flutter never talks to CBS, Apigee, Lead or a database.
+        Masking happens in the BFF before the response is built.
 
         Search button enablement is client-side (non-empty + format). The
         server still validates. Do not log `q` (it may be PAN, mobile or CIF).
@@ -184,7 +189,8 @@ paths:
         eligibility=NOT_ETB; Continue stays disabled (AC-CUST-010-3).
         Out-of-book identities are absent, not listed as forbidden.
 
-        CBS unavailable: 503 UPSTREAM_UNAVAILABLE — Do not proceed (AC-EXC-10).
+        CBS unavailable AND no own lead: 503 UPSTREAM_UNAVAILABLE — Do not
+        proceed (AC-EXC-10). An own-lead hit is enough.
 
         Do not parallelise this call with a full CIF fetch.
       parameters:
@@ -195,12 +201,13 @@ paths:
           description: |
             Which identifier the RM typed in the "Search by" dropdown.
             CUSTOMER_ID — bank CIF / customer id (1–20 chars). The request
-            carries the CIF; the response never echoes it.
+            carries the CIF; the response never echoes it (maskedCif last-4
+            only).
             MOBILE — E.164 or 10-digit Indian; digits only after normalisation.
             PAN — `^[A-Z]{5}[0-9]{4}[A-Z]$`. RESTRICTED. Not logged.
             NAME — min 3 Unicode letters, max 80. Proposed (OPEN-LEAD-NAME).
-            If Product drops it, the BFF returns 400 VALIDATION_ERROR for
-            by=NAME without a schema break.
+            SCR-03 dropdown does not offer NAME; 09-contract returns 400 for
+            by=NAME. Kept here so the enum can exist without a schema break.
           schema:
             $ref: '#/components/schemas/SearchBy'
         - name: q
@@ -245,15 +252,26 @@ paths:
                 $ref: '#/components/schemas/SearchPage'
               example:
                 query:
-                  by: MOBILE
+                  by: CUSTOMER_ID
                   resultCount: 1
+                  source: EXISTING_LEAD
                 items:
                   - customerId: 01JQX4K7R8M2N3P4Q5S6T7V8X1
-                    fullName: Abhishek Sharma
-                    initials: AS
+                    fullName: Abhishek Kummar
+                    initials: AK
+                    maskedCif: XXXXX0433
                     maskedMobile: '+91 933****412'
                     maskedEmail: abh*****@gmail.com
                     eligibility: ETB
+                    source: EXISTING_LEAD
+                    existingLead:
+                      leadId: 01JQX4K7R8M2N3P4Q5S6T7V8W9
+                      productClass: ULIP
+                      lob: LIFE
+                      state: ASSIGNED
+                      journeyId: 01JQX4K8A1B2C3D4E5F6G7H8J9
+                      updatedAt: '2026-09-23T09:42:00Z'
+                    existingLeadCount: 1
                 page:
                   page: 0
                   size: 20
@@ -272,8 +290,9 @@ paths:
       operationId: getCustomerSummary
       summary: Load the masked identity confirm sheet
       description: |
-        Powers SCR-04. Returns the same projection as one search hit: name,
-        initials, masked mobile, masked email, eligibility. No CIF, PAN, DOB
+        Powers SCR-04 and SCR-03 “View details”. Returns the same projection
+        as one search hit: name, initials, maskedCif, masked mobile, masked
+        email, eligibility, source, existingLead. No full CIF, PAN, DOB
         or address — confirm is identity, not prefill (SCR-07 needs consent).
 
         Prefer reusing the search hit when the RM has not left SCR-03→SCR-04.
@@ -294,11 +313,21 @@ paths:
                 $ref: '#/components/schemas/CustomerSummary'
               example:
                 customerId: 01JQX4K7R8M2N3P4Q5S6T7V8X1
-                fullName: Abhishek Sharma
-                initials: AS
+                fullName: Abhishek Kummar
+                initials: AK
+                maskedCif: XXXXX0433
                 maskedMobile: '+91 933****412'
                 maskedEmail: abh*****@gmail.com
                 eligibility: ETB
+                source: EXISTING_LEAD
+                existingLead:
+                  leadId: 01JQX4K7R8M2N3P4Q5S6T7V8W9
+                  productClass: ULIP
+                  lob: LIFE
+                  state: ASSIGNED
+                  journeyId: 01JQX4K8A1B2C3D4E5F6G7H8J9
+                  updatedAt: '2026-09-23T09:42:00Z'
+                existingLeadCount: 1
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
@@ -657,11 +686,24 @@ components:
       type: string
       description: |
         Search key for GET /customers:search.
-        CUSTOMER_ID — CIF / customer id (request only; never returned).
+        CUSTOMER_ID — CIF / customer id (request only; never returned as cifNumber).
         MOBILE — registered mobile.
         PAN — PAN (RESTRICTED; not logged; not returned).
-        NAME — proposed CBS name search (OPEN-LEAD-NAME).
+        NAME — proposed CBS name search (OPEN-LEAD-NAME). SCR-03 dropdown omits it.
       enum: [CUSTOMER_ID, MOBILE, PAN, NAME]
+    SearchSource:
+      type: string
+      description: |
+        Which hop produced a search row.
+        EXISTING_LEAD — own lead found; CBS not called.
+        CBS — no own lead; identity from CBS via Apigee.
+      enum: [EXISTING_LEAD, CBS]
+    ProductClassOnLead:
+      type: string
+      description: |
+        Product class on an existing lead card (SCR-03 chip). Display/resume only.
+        POST /leads create-new remains R0-gated by ProductClass (TERM) / EPIC-004.
+      enum: [TERM, SAVINGS, ULIP]
     Lob:
       type: string
       description: Line of business. R0 admits LIFE only. Other values → 422 UNSUPPORTED_LOB.
@@ -802,12 +844,14 @@ components:
       description: |
         Masked identity used on search results and the confirm sheet.
         Forbidden on this schema: cifNumber, PAN, DOB, address, income, tobacco, Aadhaar.
+        maskedCif is last-4 only (OPEN-SEARCH-CIF-MASK).
       required:
         - customerId
         - fullName
         - initials
-        - maskedMobile
         - eligibility
+        - source
+        - existingLeadCount
       additionalProperties: false
       properties:
         customerId:
@@ -822,6 +866,10 @@ components:
           type: string
           maxLength: 4
           description: Derived from fullName by the BFF.
+        maskedCif:
+          type: string
+          description: Last-4 CBS CIF, other digits X. Full cifNumber never returned.
+          example: XXXXX0433
         maskedMobile:
           type: string
           description: BFF-masked mobile. Full number never returned.
@@ -832,6 +880,36 @@ components:
           example: 'abh*****@gmail.com'
         eligibility:
           $ref: '#/components/schemas/Eligibility'
+        source:
+          $ref: '#/components/schemas/SearchSource'
+        existingLead:
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/ExistingLeadSummary'
+          description: Latest own non-terminal lead, or null on a CBS-only hit.
+        existingLeadCount:
+          type: integer
+          minimum: 0
+          description: Number of own non-terminal leads on this customer. 0 on CBS-only.
+    ExistingLeadSummary:
+      type: object
+      description: Sparse own-lead chip for SCR-03. Not a full Lead aggregate.
+      required: [leadId, productClass, lob, state]
+      additionalProperties: false
+      properties:
+        leadId:
+          $ref: '#/components/schemas/Ulid'
+        productClass:
+          $ref: '#/components/schemas/ProductClassOnLead'
+        lob:
+          $ref: '#/components/schemas/Lob'
+        state:
+          $ref: '#/components/schemas/LeadState'
+        journeyId:
+          $ref: '#/components/schemas/Ulid'
+        updatedAt:
+          type: string
+          format: date-time
     SearchPage:
       type: object
       description: Ranked search results. Does not echo `q`.
@@ -850,6 +928,8 @@ components:
               type: integer
               minimum: 0
               description: Number of hits in this response (not a CBS grand total).
+            source:
+              $ref: '#/components/schemas/SearchSource'
         items:
           type: array
           description: Masked hits. Empty when nobody matched.

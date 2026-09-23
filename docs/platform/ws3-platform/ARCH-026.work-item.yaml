@@ -27,14 +27,13 @@ problem: >
   forms and the LOB picker have no equivalent contract.
 
 description: >
-  Publish (next increment, not this triage turn) an ADR plus LLD/OpenAPI for two
-  BFF resources only: (1) GET /catalogue/lobs — LOB → productClass tree with
-  BFF/CDN iconUrl, R0 items limited to admitted Life classes; (2) GET /forms/{formId}
-  + POST /forms/{formId}/submissions — closed widget vocabulary, field name/type/
-  validation/dependsOn/visibleWhen, values posted against formVersion.
-  Success bodies stay unwrapped resources; errors stay ADR-017 problem+json.
-  Icon URLs are https on the bank CDN/BFF, never raw S3 or 1SB hosts.
-  Runtime Flutter/web renderers are FUNC-021 (S11), not this item.
+  Publish ADR-021, 10-nip-bff-screen-descriptor.md and
+  nip-bff-screen-descriptor.openapi.yaml. One ScreenDocument for FORM / LIST /
+  CARD / CAROUSEL. Nested dependence via options[].reveals / field.reveals
+  (max depth 3) plus visibleWhen predicates. FieldValidation covers required,
+  format (number/email/mobile/regex), min/max length and min/max value.
+  GET /screens/{screenId} + POST /screens/{screenId}/submissions.
+  Runtime Flutter/web renderers remain FUNC-021 (S11).
 
 acceptance_criteria:
   - id: AC-1
@@ -67,7 +66,7 @@ out_of_scope:
   - "Human T4 Architecture / Security / Product signatures"
   - "Editing current_phase, stage_status, or GATE-S08"
 
-state: READY
+state: IN-FLIGHT
 priority_now: P3
 priority_at_target: P2
 target_stage: "S11 — first NIP-APP store submit"
@@ -90,11 +89,15 @@ dependencies:
     - "EPIC-004"
   external: []
   decision_dependency:
-    - "ADR to mint for bank form-descriptor + catalogue-tree (next unused ADR-021)"
+    - "ADR-021"
 
-plan: null
+plan: PLAN-006
 estimate: M
 assumptions: []
 risks: []
-evidence: []
+evidence:
+  - "docs/platform/ws3-platform/10-nip-bff-screen-descriptor.md"
+  - "docs/platform/ws3-platform/nip-bff-screen-descriptor.openapi.yaml"
+  - "docs/platform/architecture-review/ADR-021-nip-screen-descriptor.md"
+  - "docs/governance/plans/PLAN-006-nip-bff-screen-descriptor.md"
 variance_log: []

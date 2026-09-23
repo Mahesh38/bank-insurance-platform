@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 591
-total_bytes: 20283974
+document_count: 592
+total_bytes: 20288698
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -1405,7 +1405,7 @@ documents:
     persona: architecture
     title: "Architecture diagrams"
     answers: "Two diagrams, deliberately. They answer different questions and neither replaces the other."
-    bytes: 31888
+    bytes: 32214
   - path: docs/architecture/arb-prerequisites/CIS-CLASSIFICATION-PROPOSAL.md
     bucket: platform
     authority: ai-drafted
@@ -2109,7 +2109,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 209327
+    bytes: 209615
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -3869,7 +3869,7 @@ documents:
     persona: null
     title: "Decision Register"
     answers: "Index of decisions that constrain future work: ADRs, change requests, stage transitions, and"
-    bytes: 40150
+    bytes: 40548
   - path: docs/governance/registers/DEPENDENCY-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -3973,7 +3973,7 @@ documents:
     persona: null
     title: "CURRENT STATE"
     answers: "AIGEM — Machine-readable current state"
-    bytes: 42107
+    bytes: 42186
   - path: docs/governance/state/GATE-EVIDENCE.yaml
     bucket: governance
     authority: binding-process
@@ -4718,6 +4718,14 @@ documents:
     title: "ARCH 025.work item"
     answers: "schema: work-item"
     bytes: 3097
+  - path: docs/platform/ws3-platform/ARCH-026.work-item.yaml
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, code-change]
+    persona: architecture
+    title: "ARCH 026.work item"
+    answers: "schema: work-item"
+    bytes: 3633
   - path: docs/platform/ws3-platform/DOC-021.work-item.yaml
     bucket: platform
     authority: approved-spec

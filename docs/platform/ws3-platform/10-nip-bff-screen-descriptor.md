@@ -4,7 +4,8 @@
 **Owner:** Mahesh (Board 1) — public contract · Amit (Board 2) — renderer at S11 (`FUNC-021`)  
 **Status:** `AI-DRAFTED` · T3 · human Board 1 / 4 signatures outstanding  
 **Origin:** `SUG-20260923-sdu` · `ARCH-026` · `PLAN-006` · `ADR-021`  
-**Machine contract:** [`nip-bff-screen-descriptor.openapi.yaml`](./nip-bff-screen-descriptor.openapi.yaml)
+**Machine contract:** [`nip-bff-screen-descriptor.openapi.yaml`](./nip-bff-screen-descriptor.openapi.yaml)  
+**Runtime (store, L1/L2 validate, action bind, persist):** [`11-nip-bff-screen-runtime.md`](./11-nip-bff-screen-runtime.md)
 
 This file is the **single** frontend contract for server-driven **surfaces**. NIP-APP (web, iOS,
 Android) renders from it so a new field, option, icon or validation rule that uses an
@@ -218,8 +219,10 @@ PAN / Aadhaar **formats** may exist for **search** screens that already allow th
 must not appear as **echoed values** on Flutter (`ARCH-023` / `ARCH-025` forbid-list). A
 readonly “Customer ID” on success is a **masked** string the BFF computed, not CIF.
 
-Client validates for UX. **Server re-validates** on submit against the same `version`. Mismatch
-→ `400 VALIDATION_ERROR` with `errors[].field` = field `name`.
+Client validates for UX. **Server re-validates** on submit against the same `version` (**L1**
+in `FormRuntime` — file 11 §3). Mismatch → `400 VALIDATION_ERROR` with `errors[].field` = field
+`name`. Domain rules (**L2** — book-scope, SP cert, `INV-LED-*`) stay on the owning service and
+may still return `403` after L1 passes. The BFF does not become the decision maker.
 
 ---
 
@@ -386,6 +389,7 @@ row in Configuration, not an app release.
 {
   "screenId": "LEAD_ASSIGNMENT",
   "version": "2026-09-23.1",
+  "actionId": "continue",
   "leadId": "01JQX4K7R8M2N3P4Q5S6T7V8W9",
   "values": {
     "branchId": "BR-KOCHI-MGRD",
@@ -394,6 +398,9 @@ row in Configuration, not an app release.
   }
 }
 ```
+
+`actionId` selects a `SCREEN_ACTION` binding (file 11 §4). Flutter never sends `command` or
+`ownerContext`. Missing binding → `422 ACTION_NOT_BOUND`.
 
 `READONLY` names may be omitted. Hidden names must be omitted. Stale `version` →
 `409 IDEMPOTENCY_CONFLICT` is wrong; use `409 CONFLICT` / `errors[].code=STALE_FORM_VERSION`
@@ -443,7 +450,8 @@ New list/card screens after this ADR use `ScreenDocument`. Existing typed resour
 | Nesting deeper than 3 | No — split the screen |
 | Login / pipeline / payment-status as FORM | No — `ARCH-026` out of scope |
 | Meeting date/time/link in R0 | No — `SUG-20260907-fig` |
-| Client-only validation | No — server repeats the same object |
+| Client-only validation | No — L1 schema + L2 invariant (file 11 §3) |
+| A form microservice that owns Lead state | No — file 11 §1 / §7 |
 | CIF/PAN/full mobile on the wire as values | No — mask at BFF |
 
 ---
@@ -457,9 +465,11 @@ New list/card screens after this ADR use `ScreenDocument`. Existing typed resour
 | Unwrapped body + problem+json | `ADR-017`, `SUG-20260907-std` |
 | Schema-driven capture (proposal already) | S05 `SCR-13`, field-guide `proposal-and-dynamic-forms.md` |
 | Token-hiding BFF | `ADR-015` |
+| Store, L1/L2, action bind, capture | file 11, `ADR-007`, `CF-2`, `INV-CFG-02/03` |
 
 ## 9. Done for this document
 
-`ARCH-026` documentation is complete when this file, the OpenAPI, and `ADR-021` agree on
-surfaces, widgets, predicates, validation and submit. Human Board 1 is outstanding. Runtime
-is `FUNC-021`.
+`ARCH-026` documentation is complete when this file, file 11, the OpenAPI, and `ADR-021` agree
+on surfaces, widgets, predicates, validation, **where the definition is stored**, **L1 vs L2**,
+**which `actionId` runs which command**, and **what is persisted**. Human Board 1 is outstanding.
+Flutter renderer is `FUNC-021`.

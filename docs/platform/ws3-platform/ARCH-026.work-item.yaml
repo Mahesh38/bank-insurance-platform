@@ -27,26 +27,30 @@ problem: >
   forms and the LOB picker have no equivalent contract.
 
 description: >
-  Publish ADR-021, 10-nip-bff-screen-descriptor.md and
+  Publish ADR-021, 10-nip-bff-screen-descriptor.md (wire),
+  11-nip-bff-screen-runtime.md (store / validate / bind / persist) and
   nip-bff-screen-descriptor.openapi.yaml. One ScreenDocument for FORM / LIST /
   CARD / CAROUSEL. Nested dependence via options[].reveals / field.reveals
   (max depth 3) plus visibleWhen predicates. FieldValidation covers required,
   format (number/email/mobile/regex), min/max length and min/max value.
+  Definitions live as SCREEN_DOCUMENT / SCREEN_ACTION in Configuration #19.
+  Submit actionId maps to a closed command; L1 FormRuntime + L2 owning
+  invariants; capture on lead.screen_submission.
   GET /screens/{screenId} + POST /screens/{screenId}/submissions.
   Runtime Flutter/web renderers remain FUNC-021 (S11).
 
 acceptance_criteria:
   - id: AC-1
-    given: "the catalogue OpenAPI"
-    when: "GET /catalogue/lobs is read"
-    then: "the schema is a tree of lob + productClasses with label, selectable, iconUrl; R0 example items are LIFE / TERM, SAVINGS, ULIP only"
+    given: "GET /screens/LEAD_PRODUCT_CLASS"
+    when: "the ScreenDocument is read"
+    then: "a CAROUSEL of LIFE tiles exists; R0 items are TERM, ULIP, SAVINGS only; iconUrl is https CDN/BFF"
   - id: AC-2
-    given: "the form-descriptor OpenAPI"
-    when: "GET /forms/{formId} is read"
-    then: "each field declares name, widget, required, validation, optional dependsOn and visibleWhen; widget enum is closed"
+    given: "GET /screens/{screenId}"
+    when: "a FORM surface is read"
+    then: "each field declares name, widget, validation, optional dependsOn, visibleWhen and reveals; widget enum is closed"
   - id: AC-3
     given: "a new capture field that uses an already-shipped widget"
-    when: "catalogue or Configuration publishes a new formVersion"
+    when: "Configuration publishes a new SCREEN_DOCUMENT version"
     then: "the contract does not require a store binary change for that field"
   - id: AC-4
     given: "Flutter or a future web client"
@@ -56,6 +60,18 @@ acceptance_criteria:
     given: "this work item"
     when: "documentation-complete is claimed"
     then: "no Flutter/BFF/catalogue runtime code was required; human T4 is not claimed"
+  - id: AC-6
+    given: "file 11 and CF-2"
+    when: "a reader asks where the form lives"
+    then: "SCREEN_DOCUMENT and SCREEN_ACTION are named payloads on administration.configuration_record; no form microservice"
+  - id: AC-7
+    given: "POST /screens/{screenId}/submissions"
+    when: "actionId is present"
+    then: "BFF resolves a closed command; Flutter does not send command or ownerContext; missing binding is 422 ACTION_NOT_BOUND"
+  - id: AC-8
+    given: "an accepted submit"
+    when: "Lead persists the outcome"
+    then: "SoR columns, an append-only screen_submission row (config_version + values_json), and an audit outbox event are specified"
 
 out_of_scope:
   - "Flutter / iOS / Android / Web renderer implementation"
@@ -97,6 +113,7 @@ assumptions: []
 risks: []
 evidence:
   - "docs/platform/ws3-platform/10-nip-bff-screen-descriptor.md"
+  - "docs/platform/ws3-platform/11-nip-bff-screen-runtime.md"
   - "docs/platform/ws3-platform/nip-bff-screen-descriptor.openapi.yaml"
   - "docs/platform/architecture-review/ADR-021-nip-screen-descriptor.md"
   - "docs/governance/plans/PLAN-006-nip-bff-screen-descriptor.md"

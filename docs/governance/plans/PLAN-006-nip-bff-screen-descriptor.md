@@ -22,11 +22,12 @@ problem: >
   follow-up 2026-09-23.
 
 proposed_solution: >
-  Publish ADR-021, 10-nip-bff-screen-descriptor.md and
+  Publish ADR-021, 10-nip-bff-screen-descriptor.md (wire),
+  11-nip-bff-screen-runtime.md (store / L1+L2 / action bind / capture) and
   nip-bff-screen-descriptor.openapi.yaml. Closed widget and surface enums;
-  reveals max depth 3; same validation object on client and server. Do not
-  implement Flutter or BFF runtime. Do not claim T4. Do not rewrite ARCH-025
-  SearchPage.
+  reveals max depth 3; SCREEN_DOCUMENT + SCREEN_ACTION in Configuration #19;
+  submit actionId maps to a closed command. Do not implement Flutter or BFF
+  runtime. Do not claim T4. Do not rewrite ARCH-025 SearchPage.
 
 alternatives:
   - option: "Leave nested rules as prose in the triage record"
@@ -44,6 +45,7 @@ affected_components:
 
 files_expected:
   - docs/platform/ws3-platform/10-nip-bff-screen-descriptor.md
+  - docs/platform/ws3-platform/11-nip-bff-screen-runtime.md
   - docs/platform/ws3-platform/nip-bff-screen-descriptor.openapi.yaml
   - docs/platform/architecture-review/ADR-021-nip-screen-descriptor.md
   - docs/platform/ws3-platform/ARCH-026.work-item.yaml
@@ -52,6 +54,7 @@ files_expected:
   - docs/governance/state/CURRENT-STATE.yaml
   - docs/architecture/README.md
   - docs/context/DOC-MAP.yaml
+  - docs/platform/ws3-platform/01-domain-model-and-invariants.md
 
 data_changes: none
 api_changes: "additive documentation of unpublished /screens/{screenId} and submissions; no runtime caller"
@@ -84,8 +87,10 @@ acceptance_criteria:
   - "AC-1 ScreenDocument defines FORM, LIST, CARD, CAROUSEL"
   - "AC-2 Field supports reveals (max depth 3), visibleWhen, and FieldValidation"
   - "AC-3 Widget and format enums are closed in OpenAPI"
-  - "AC-4 CURRENT-STATE.yaml stage fields unchanged; ADR counter advanced to 22"
+  - "AC-4 CURRENT-STATE.yaml stage fields unchanged; ADR counter stays at 22 (amendment, not a new ADR)"
   - "AC-5 No Flutter or BFF runtime code"
+  - "AC-6 File 11 names SCREEN_DOCUMENT / SCREEN_ACTION in Configuration #19, L1+L2, closed command catalogue, and screen_submission capture"
+  - "AC-7 ScreenSubmission requires actionId; Flutter does not send command"
 
 out_of_scope:
   - "Flutter / iOS / Android / Web renderer"

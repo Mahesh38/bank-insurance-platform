@@ -605,6 +605,12 @@ approvals:
   - "Kalpana / Delivery — notify (a new Wave 0b lands before Wave 1)"
 ```
 
+**Amended 2026-09-24 (`ADR-021`):** the closed CF-2 list gains two enumerated domains —
+`SCREEN_DOCUMENT` (partition `(lob, formId, version)`, `formId` = `screenId`) and
+`SCREEN_ACTION` (partition `(lob, formId, fieldId, version)`, `fieldId` = `actionId`).
+Same store, same append-only / seed / fail-closed rules. Not a second configuration database
+and not a form microservice.
+
 ---
 
 ## ADR-008 — Data ownership is the invariant; physical cluster topology is an evidence-led decision
@@ -1624,5 +1630,32 @@ amends: [ADR-010, ADR-018]
 
 **Drafted:** agent, for Mahesh — Principal Insurance Platform Architect (Board 1 / R2) · 2026-09-14.
 Human T4 Architecture sign-off outstanding. Deepali owns remaining spoke-firewall acceptance
-and the AD-password ceremony. Shivanshi owns Apigee product onboarding and the UAT-account
-vending pack. This ADR does not manufacture those signatures.
+  and the AD-password ceremony. Shivanshi owns Apigee product onboarding and the UAT-account
+  vending pack. This ADR does not manufacture those signatures.
+
+---
+
+## ADR-021 — Bank screen descriptor for NIP-APP (form, list, card, carousel)
+
+Canonical prose (not duplicated here):
+[`ADR-021-nip-screen-descriptor.md`](./ADR-021-nip-screen-descriptor.md) ·
+wire [`10-nip-bff-screen-descriptor.md`](../ws3-platform/10-nip-bff-screen-descriptor.md) ·
+runtime [`11-nip-bff-screen-runtime.md`](../ws3-platform/11-nip-bff-screen-runtime.md).
+
+```yaml
+id: ADR-021
+status: PROPOSED
+amends: [ADR-007]
+origin: SUG-20260923-sdu
+work_item: ARCH-026
+authority_class: A3_JOINT_REVIEW
+decision: >
+  Closed ScreenDocument (FORM|LIST|CARD|CAROUSEL, closed widget enum, reveals max depth 3).
+  Definition and submit-binding are SCREEN_DOCUMENT / SCREEN_ACTION payloads in the existing
+  Configuration #19 store (extends ADR-007 / CF-2; no form microservice). Submit actionId
+  maps to a closed command owned by a named context. L1 FormRuntime + L2 owning invariants.
+  Capture is append-only screen_submission beside SoR columns. No 1SB envelope, no raw S3.
+```
+
+**Amended 2026-09-24:** store, two-layer validation, action catalogue and capture were
+underspecified on the first draft (wire-only). The amendment does not mint ADR-022.

@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 592
-total_bytes: 20288698
+document_count: 597
+total_bytes: 20349163
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -1405,7 +1405,7 @@ documents:
     persona: architecture
     title: "Architecture diagrams"
     answers: "Two diagrams, deliberately. They answer different questions and neither replaces the other."
-    bytes: 32214
+    bytes: 32579
   - path: docs/architecture/arb-prerequisites/CIS-CLASSIFICATION-PROPOSAL.md
     bucket: platform
     authority: ai-drafted
@@ -2109,7 +2109,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 209615
+    bytes: 211157
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -3846,6 +3846,14 @@ documents:
     title: "PLAN-005 — NIP BFF SCR-03 customer search unified contract"
     answers: "objective: After this change every seat implements or reviews SCR-03 from one written contract: lead-first search by Customer ID / PAN / mobile, else…"
     bytes: 5134
+  - path: docs/governance/plans/PLAN-006-nip-bff-screen-descriptor.md
+    bucket: governance
+    authority: binding-process
+    capsules: [delivery-planning, plan-work]
+    persona: delivery
+    title: "PLAN-006 — NIP BFF screen descriptor contract"
+    answers: "objective: After this change NIP-APP can implement one renderer for FORM / LIST / CARD / CAROUSEL against a written contract: nested X→Y→Z reveals,…"
+    bytes: 4645
   - path: docs/governance/plans/PLAN-EPIC-002-life-lob-adapter.md
     bucket: governance
     authority: binding-process
@@ -3869,7 +3877,7 @@ documents:
     persona: null
     title: "Decision Register"
     answers: "Index of decisions that constrain future work: ADRs, change requests, stage transitions, and"
-    bytes: 40548
+    bytes: 40769
   - path: docs/governance/registers/DEPENDENCY-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -4357,7 +4365,7 @@ documents:
     persona: architecture
     title: "08 — Architecture Decision Log (this review)"
     answers: "ID scheme: ARCH-xxx — deliberately distinct from the business/scope D-xxx and process DOC-xxx IDs in docs/au-bank-insurance-platform/DECISION-LOG.md,…"
-    bytes: 118062
+    bytes: 119610
   - path: docs/platform/architecture-review/ADR-019-microservice-skeleton-scaffold.md
     bucket: platform
     authority: approved-spec
@@ -4366,6 +4374,14 @@ documents:
     title: "ADR-019 — Backend microservice skeleton scaffold"
     answers: "Deciders: Mahesh (Principal Insurance Platform Architect)"
     bytes: 2630
+  - path: docs/platform/architecture-review/ADR-021-nip-screen-descriptor.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, board-review]
+    persona: architecture
+    title: "ADR-021 — Bank screen descriptor for NIP-APP (form, list, card, carousel)"
+    answers: "Deciders: Mahesh (Architecture) — draft. Human T4 outstanding."
+    bytes: 6512
   - path: docs/platform/architecture-review/README.md
     bucket: platform
     authority: approved-spec
@@ -4637,7 +4653,7 @@ documents:
     persona: architecture
     title: "WS-3 — Platform Domain Model, State Machines and Invariants"
     answers: "Co-owner for the logical data model: Aarti — Principal Insurance Data & Database Architect"
-    bytes: 69078
+    bytes: 69385
   - path: docs/platform/ws3-platform/02-information-model.md
     bucket: platform
     authority: approved-spec
@@ -4702,6 +4718,22 @@ documents:
     title: "09 — NIP BFF customer search (SCR-03) — unified contract"
     answers: "Origin: SUG-20260923-scs · ARCH-025 · PLAN-005 · EPIC-003"
     bytes: 46192
+  - path: docs/platform/ws3-platform/10-nip-bff-screen-descriptor.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, code-change]
+    persona: architecture
+    title: "10 — NIP BFF screen descriptor (form, list, card, carousel)"
+    answers: "Origin: SUG-20260923-sdu · ARCH-026 · PLAN-006 · ADR-021"
+    bytes: 16267
+  - path: docs/platform/ws3-platform/11-nip-bff-screen-runtime.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, code-change]
+    persona: architecture
+    title: "11 — Screen runtime: store, validate, bind, persist"
+    answers: "Origin: SUG-20260923-sdu · ARCH-026 · ADR-021 (amended) · ADR-007 · CF-2…CF-5"
+    bytes: 14712
   - path: docs/platform/ws3-platform/ARCH-023.work-item.yaml
     bucket: platform
     authority: approved-spec
@@ -4725,7 +4757,7 @@ documents:
     persona: architecture
     title: "ARCH 026.work item"
     answers: "schema: work-item"
-    bytes: 3633
+    bytes: 4588
   - path: docs/platform/ws3-platform/DOC-021.work-item.yaml
     bucket: platform
     authority: approved-spec
@@ -4758,3 +4790,11 @@ documents:
     title: "nip bff lead phase.openapi"
     answers: "YAML record; first key `openapi`"
     bytes: 50495
+  - path: docs/platform/ws3-platform/nip-bff-screen-descriptor.openapi.yaml
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, code-change]
+    persona: architecture
+    title: "nip bff screen descriptor.openapi"
+    answers: "YAML record; first key `openapi`"
+    bytes: 13391

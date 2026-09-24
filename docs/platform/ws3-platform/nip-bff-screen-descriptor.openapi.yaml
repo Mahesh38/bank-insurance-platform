@@ -5,12 +5,15 @@ info:
   description: |
     Internal consumer contract for server-driven NIP-APP surfaces.
     Companion: docs/platform/ws3-platform/10-nip-bff-screen-descriptor.md
+    Runtime: docs/platform/ws3-platform/11-nip-bff-screen-runtime.md
     Status: AI-DRAFTED (ARCH-026 / ADR-021). Not the S12 portal artefact.
 
     Success body is the resource. Errors are application/problem+json (ADR-017).
     iconUrl is https on the bank CDN/BFF only. Widget enum is closed.
     Field names are unique on a screen. Nested dependence is options[].reveals
     or field.reveals, max depth 3, plus visibleWhen predicates.
+    Submit carries actionId; the BFF resolves SCREEN_ACTION. Flutter never
+    sends command or ownerContext.
 servers:
   - url: /api/v1
     description: Public gateway prefix
@@ -55,8 +58,11 @@ paths:
       operationId: submitScreen
       summary: Submit visible field values for a screen version
       description: |
-        Flat values map. Hidden fields must be omitted; server ignores them if
-        sent. Stale version is 409 CONFLICT / STALE_FORM_VERSION.
+        Flat values map plus actionId. Hidden fields must be omitted; server
+        ignores them if sent. Stale version is 409 CONFLICT / STALE_FORM_VERSION.
+        Missing SCREEN_ACTION binding is 422 ACTION_NOT_BOUND. L1 schema fail
+        is 400 VALIDATION_ERROR. L2 invariant fail is the owning context's
+        status (typically 403 / 409).
       parameters:
         - $ref: '#/components/parameters/ScreenId'
         - $ref: '#/components/parameters/CorrelationId'
@@ -83,6 +89,8 @@ paths:
         '400':
           $ref: '#/components/responses/Problem'
         '409':
+          $ref: '#/components/responses/Problem'
+        '422':
           $ref: '#/components/responses/Problem'
   /workspace/assignment-options:
     get:
@@ -391,12 +399,17 @@ components:
     ScreenSubmission:
       type: object
       additionalProperties: false
-      required: [screenId, version, values]
+      required: [screenId, version, actionId, values]
       properties:
         screenId:
           type: string
         version:
           type: string
+        actionId:
+          type: string
+          description: >
+            Key into SCREEN_ACTION for this screen version (e.g. continue).
+            Does not carry command or ownerContext — those stay server-side.
         leadId:
           type: string
         customerId:
@@ -408,11 +421,13 @@ components:
     ScreenSubmissionResult:
       type: object
       additionalProperties: false
-      required: [screenId, version, outcome]
+      required: [screenId, version, actionId, outcome]
       properties:
         screenId:
           type: string
         version:
+          type: string
+        actionId:
           type: string
         outcome:
           type: string

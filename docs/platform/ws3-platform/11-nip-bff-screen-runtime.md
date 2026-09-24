@@ -201,20 +201,6 @@ catalogue. 1SB dynamic schema stops at the adapter.
 Nobody puts an arbitrary URL or script in the screen JSON. If the binding is missing, submit
 fails closed (`422 ACTION_NOT_BOUND`).
 
-### 4.4 Several actions on one screen
-
-`actions[]` on the document is the **menu**. Each `SUBMIT` id has its own `SCREEN_ACTION` row.
-`NAVIGATE` / `CANCEL` have no command — the client leaves; the BFF does not invent a write.
-
-| `actionId` | Typical `command` | Notes |
-|---|---|---|
-| `continue` | `CREATE_LEAD` or `ASSIGN_LEAD` | Primary path; one command per screen |
-| `save_draft` | not seeded in R0 | Would need a `DRAFT_LEAD` command + Board 1 |
-| `cancel` | none (`NAVIGATE`) | No capture row |
-
-Two `SUBMIT` ids that map to the same `command` are a seed defect. The **place this is managed**
-is the git seed for `SCREEN_ACTION`, not Flutter and not a workflow engine inside the BFF.
-
 ### 4.3 Submit body (file 10 + `actionId`)
 
 ```json
@@ -233,6 +219,20 @@ is the git seed for `SCREEN_ACTION`, not Flutter and not a workflow engine insid
 
 BFF: resolve document + binding at `version` → L1 → map → Lead command. Flutter never sees
 `command` or `ownerContext`.
+
+### 4.4 Several actions on one screen
+
+`actions[]` on the document is the **menu**. Each `SUBMIT` id has its own `SCREEN_ACTION` row.
+`NAVIGATE` / `CANCEL` have no command — the client leaves; the BFF does not invent a write.
+
+| `actionId` | Typical `command` | Notes |
+|---|---|---|
+| `continue` | `CREATE_LEAD` or `ASSIGN_LEAD` | Primary path; one command per screen |
+| `save_draft` | not seeded in R0 | Would need a `DRAFT_LEAD` command + Board 1 |
+| `cancel` | none (`NAVIGATE`) | No capture row |
+
+Two `SUBMIT` ids that map to the same `command` are a seed defect. The **place this is managed**
+is the git seed for `SCREEN_ACTION`, not Flutter and not a workflow engine inside the BFF.
 
 ---
 

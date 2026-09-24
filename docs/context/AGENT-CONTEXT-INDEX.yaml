@@ -293,6 +293,13 @@ doc_routing:
       capsules: [architecture-review]
       persona: architecture
 
+    - match: ["docs/architecture/CAB-UAT-ENV-SIGNOFF-CHECKLIST-MAHESH-2026-09-24.md"]
+      bucket: platform
+      authority: ai-drafted
+      capsules: [architecture-review, board-review]
+      persona: architecture
+      note: "ARCH-DEC-CAB-UAT-20260924 Board 1 draft answers to the bank CAB UAT env form. REWORK for unconditional sign-off. T4 human signature outstanding."
+
     - match: ["docs/architecture/BOARD-1-REREVIEW-VIN003-ESTATE-2026-09-14.md"]
       bucket: platform
       authority: ai-drafted

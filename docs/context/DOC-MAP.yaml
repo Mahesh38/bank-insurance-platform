@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 591
-total_bytes: 20276325
+document_count: 592
+total_bytes: 20299415
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -1374,6 +1374,14 @@ documents:
     title: "Board 1 — Architecture rereview of R0 against the live AU bank cloud estate"
     answers: "Decision id: ARCH-DEC-VIN003-B1"
     bytes: 19312
+  - path: docs/architecture/CAB-UAT-ENV-SIGNOFF-CHECKLIST-MAHESH-2026-09-24.md
+    bucket: platform
+    authority: ai-drafted
+    capsules: [architecture-review, board-review]
+    persona: architecture
+    title: "Board 1 — Architecture answers to the bank CAB / UAT environment sign-off checklist"
+    answers: "Board: 1 — Architecture · AIGEM role: R2"
+    bytes: 22713
   - path: docs/architecture/R0-E2E-FOR-DEVELOPERS.md
     bucket: platform
     authority: approved-spec
@@ -2093,7 +2101,7 @@ documents:
     persona: null
     title: "AGENT CONTEXT INDEX"
     answers: "============================================================================="
-    bytes: 49186
+    bytes: 49563
   - path: docs/context/BOOT.md
     bucket: context
     authority: non-binding-context

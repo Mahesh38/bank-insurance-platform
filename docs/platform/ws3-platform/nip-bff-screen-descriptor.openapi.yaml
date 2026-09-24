@@ -1,0 +1,720 @@
+openapi: 3.0.3
+info:
+  title: NIP BFF — screen descriptor (form, list, card, carousel)
+  version: 0.1.0
+  description: |
+    Internal consumer contract for server-driven NIP-APP surfaces.
+    Companion: docs/platform/ws3-platform/10-nip-bff-screen-descriptor.md
+    Runtime: docs/platform/ws3-platform/11-nip-bff-screen-runtime.md
+    Status: AI-DRAFTED (ARCH-026 / ADR-021). Not the S12 portal artefact.
+
+    Success body is the resource. Errors are application/problem+json (ADR-017).
+    iconUrl is https on the bank CDN/BFF only. Widget enum is closed.
+    Field names are unique on a screen. Nested dependence is options[].reveals
+    or field.reveals, max depth 3, plus visibleWhen predicates.
+    Submit carries actionId; the BFF resolves SCREEN_ACTION. Flutter never
+    sends command or ownerContext.
+    R0 LEAD_PRODUCT_CLASS is FORM+RADIO (Figma picker). Health is omitted.
+servers:
+  - url: /api/v1
+    description: Public gateway prefix
+paths:
+  /screens/{screenId}:
+    get:
+      operationId: getScreen
+      summary: Fetch a screen document for the RM to render
+      description: |
+        Returns FORM / LIST / CARD / CAROUSEL surfaces plus fields, validation
+        and nested reveals. submission is the blank POST the client clones.
+        Client evaluates visibility locally. Do not poll.
+      parameters:
+        - $ref: '#/components/parameters/ScreenId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - name: leadId
+          in: query
+          schema:
+            type: string
+        - name: customerId
+          in: query
+          schema:
+            type: string
+        - name: productClass
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ScreenDocument
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScreenDocument'
+              examples:
+                leadProductClass:
+                  $ref: '#/components/examples/LeadProductClassDocument'
+                leadAssignment:
+                  $ref: '#/components/examples/LeadAssignmentDocument'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+  /screens/{screenId}/submissions:
+    post:
+      operationId: submitScreen
+      summary: Submit visible field values for a screen version
+      description: |
+        Flat values map plus actionId. Hidden fields must be omitted; server
+        ignores them if sent. Stale version is 409 CONFLICT / STALE_FORM_VERSION.
+        Missing SCREEN_ACTION binding is 422 ACTION_NOT_BOUND. L1 schema fail
+        is 400 VALIDATION_ERROR. L2 invariant fail is the owning context's
+        status (typically 403 / 409).
+      parameters:
+        - $ref: '#/components/parameters/ScreenId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScreenSubmission'
+            examples:
+              productClass:
+                $ref: '#/components/examples/SubmitProductClass'
+              assignment:
+                $ref: '#/components/examples/SubmitAssignment'
+      responses:
+        '200':
+          description: Accepted (idempotent replay)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScreenSubmissionResult'
+              examples:
+                replayed:
+                  $ref: '#/components/examples/SubmissionReplayed'
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScreenSubmissionResult'
+              examples:
+                productClassCreated:
+                  $ref: '#/components/examples/SubmissionCreatedLead'
+                assignmentAccepted:
+                  $ref: '#/components/examples/SubmissionAcceptedAssignment'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '409':
+          $ref: '#/components/responses/Problem'
+        '422':
+          $ref: '#/components/responses/Problem'
+  /workspace/assignment-options:
+    get:
+      operationId: getAssignmentOptions
+      summary: Cascading branch / vertical / RM options
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - name: level
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [BRANCH, VERTICAL, RM]
+        - name: branchId
+          in: query
+          schema:
+            type: string
+        - name: verticalId
+          in: query
+          schema:
+            type: string
+        - name: leadId
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OptionPage
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OptionPage'
+              examples:
+                branch:
+                  $ref: '#/components/examples/OptionsBranch'
+                vertical:
+                  $ref: '#/components/examples/OptionsVertical'
+                rm:
+                  $ref: '#/components/examples/OptionsRm'
+components:
+  examples:
+    LeadProductClassDocument:
+      summary: Figma — What is Abhishek looking for? (Health omitted)
+      value:
+        screenId: LEAD_PRODUCT_CLASS
+        version: "2026-09-24.1"
+        title: What is Abhishek looking for?
+        surfaces:
+          - id: life
+            type: FORM
+            title: Life Insurance
+            sections:
+              - id: life-classes
+                fields:
+                  - name: productClass
+                    widget: RADIO
+                    validation:
+                      required: true
+                    options:
+                      - value: TERM
+                        label: Term Life Insurance
+                        iconUrl: https://assets.bank.example/nip/classes/term.svg
+                        selectable: true
+                      - value: SAVINGS
+                        label: Savings Plan
+                        iconUrl: https://assets.bank.example/nip/classes/savings.svg
+                        selectable: true
+                      - value: ULIP
+                        label: ULIP Plan
+                        iconUrl: https://assets.bank.example/nip/classes/ulip.svg
+                        selectable: true
+        actions:
+          - id: continue
+            label: Continue
+            type: SUBMIT
+            surfaceId: life
+        submission:
+          method: POST
+          href: /api/v1/screens/LEAD_PRODUCT_CLASS/submissions
+          body:
+            screenId: LEAD_PRODUCT_CLASS
+            version: "2026-09-24.1"
+            actionId: continue
+            customerId: 01JQX4K7R8M2N3P4Q5S6T7V8X1
+            values:
+              productClass: ""
+    LeadAssignmentDocument:
+      summary: Lead created facts + assignment
+      value:
+        screenId: LEAD_ASSIGNMENT
+        version: "2026-09-24.1"
+        title: Lead created
+        surfaces:
+          - id: facts
+            type: FORM
+            sections:
+              - id: identity
+                fields:
+                  - name: customerDisplayName
+                    label: Customer Name
+                    widget: READONLY
+                    value: Abhishek Kumar
+                  - name: maskedCustomerRef
+                    label: Customer ID
+                    widget: READONLY
+                    value: XXXXXX0433
+                  - name: leadId
+                    label: Lead ID
+                    widget: READONLY
+                    value: 01JQX4K7R8M2N3P4Q5S6T7V8W9
+              - id: assignment
+                title: Assign lead to SP
+                fields:
+                  - name: branchId
+                    label: Select branch
+                    widget: SELECT
+                    validation:
+                      required: true
+                    optionsUrl: /api/v1/workspace/assignment-options?level=BRANCH
+                  - name: verticalId
+                    label: Select vertical
+                    widget: SELECT
+                    dependsOn: [branchId]
+                    visibleWhen:
+                      all:
+                        - field: branchId
+                          op: SET
+                    validation:
+                      required: true
+                    optionsUrl: /api/v1/workspace/assignment-options?level=VERTICAL&branchId={branchId}
+                  - name: assignedRmId
+                    label: Select RM
+                    widget: SELECT
+                    dependsOn: [branchId, verticalId]
+                    visibleWhen:
+                      all:
+                        - field: verticalId
+                          op: SET
+                    validation:
+                      required: true
+                    optionsUrl: /api/v1/workspace/assignment-options?level=RM&branchId={branchId}&verticalId={verticalId}
+        actions:
+          - id: continue
+            label: Continue
+            type: SUBMIT
+            surfaceId: facts
+        submission:
+          method: POST
+          href: /api/v1/screens/LEAD_ASSIGNMENT/submissions
+          body:
+            screenId: LEAD_ASSIGNMENT
+            version: "2026-09-24.1"
+            actionId: continue
+            leadId: 01JQX4K7R8M2N3P4Q5S6T7V8W9
+            values:
+              branchId: ""
+              verticalId: ""
+              assignedRmId: ""
+    SubmitProductClass:
+      value:
+        screenId: LEAD_PRODUCT_CLASS
+        version: "2026-09-24.1"
+        actionId: continue
+        customerId: 01JQX4K7R8M2N3P4Q5S6T7V8X1
+        values:
+          productClass: TERM
+    SubmitAssignment:
+      value:
+        screenId: LEAD_ASSIGNMENT
+        version: "2026-09-24.1"
+        actionId: continue
+        leadId: 01JQX4K7R8M2N3P4Q5S6T7V8W9
+        values:
+          branchId: BR-KOCHI-MGRD
+          verticalId: LIFE
+          assignedRmId: RM-4412
+    SubmissionCreatedLead:
+      value:
+        screenId: LEAD_PRODUCT_CLASS
+        version: "2026-09-24.1"
+        actionId: continue
+        outcome: CREATED
+        leadId: 01JQX4K7R8M2N3P4Q5S6T7V8W9
+        journeyId: 01JQX4K8S9N3P4Q5S6T7V8W9X0
+    SubmissionAcceptedAssignment:
+      value:
+        screenId: LEAD_ASSIGNMENT
+        version: "2026-09-24.1"
+        actionId: continue
+        outcome: ACCEPTED
+        leadId: 01JQX4K7R8M2N3P4Q5S6T7V8W9
+        journeyId: 01JQX4K8S9N3P4Q5S6T7V8W9X0
+    SubmissionReplayed:
+      value:
+        screenId: LEAD_ASSIGNMENT
+        version: "2026-09-24.1"
+        actionId: continue
+        outcome: REPLAYED
+        leadId: 01JQX4K7R8M2N3P4Q5S6T7V8W9
+        journeyId: 01JQX4K8S9N3P4Q5S6T7V8W9X0
+    OptionsBranch:
+      value:
+        level: BRANCH
+        items:
+          - value: BR-KOCHI-MGRD
+            label: MG Road, Kochi
+            selectable: true
+          - value: BR-KOCHI-EDPL
+            label: Edappally, Kochi
+            selectable: true
+    OptionsVertical:
+      value:
+        level: VERTICAL
+        items:
+          - value: LIFE
+            label: Life
+            selectable: true
+    OptionsRm:
+      value:
+        level: RM
+        items:
+          - value: RM-4412
+            label: Priya Nair
+            selectable: true
+  parameters:
+    ScreenId:
+      name: screenId
+      in: path
+      required: true
+      schema:
+        type: string
+        enum: [LEAD_PRODUCT_CLASS, LEAD_ASSIGNMENT]
+      description: Closed R0 list; additive later without a store release.
+    CorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: true
+      schema:
+        type: string
+        format: uuid
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema:
+        type: string
+        format: uuid
+  responses:
+    Problem:
+      description: RFC 7807 public error (ADR-017)
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+  schemas:
+    ScreenDocument:
+      type: object
+      additionalProperties: false
+      required: [screenId, version, surfaces, submission]
+      properties:
+        screenId:
+          type: string
+        version:
+          type: string
+          description: Opaque config version. Submit must echo it.
+        title:
+          type: string
+        surfaces:
+          type: array
+          items:
+            $ref: '#/components/schemas/Surface'
+        actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Action'
+        submission:
+          $ref: '#/components/schemas/SubmissionTemplate'
+          description: >
+            Blank POST the client clones. Fill values[name] for each writable
+            field; do not invent keys or the path. READONLY names omitted.
+    Surface:
+      type: object
+      additionalProperties: false
+      required: [id, type]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [FORM, LIST, CARD, CAROUSEL]
+        title:
+          type: string
+        sections:
+          type: array
+          items:
+            $ref: '#/components/schemas/Section'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CardItem'
+    Section:
+      type: object
+      additionalProperties: false
+      required: [id, fields]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/Field'
+    CardItem:
+      type: object
+      additionalProperties: false
+      required: [id]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        subtitle:
+          type: string
+        iconUrl:
+          type: string
+          format: uri
+          description: https CDN/BFF only. Never raw S3 or 1SB.
+        selectable:
+          type: boolean
+        payload:
+          type: object
+          additionalProperties: true
+          description: Bank-language keys only (lob, productClass, customerId, …).
+        fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/Field'
+    Field:
+      type: object
+      additionalProperties: false
+      required: [name, widget]
+      properties:
+        name:
+          type: string
+          description: Unique on the screen, including nested reveals.
+        label:
+          type: string
+        help:
+          type: string
+        widget:
+          $ref: '#/components/schemas/Widget'
+        value:
+          description: Server prefill (READONLY or known value).
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/FieldOption'
+        optionsUrl:
+          type: string
+          description: GET that returns OptionPage. May contain {fieldName} tokens.
+        dependsOn:
+          type: array
+          items:
+            type: string
+          description: Refetch optionsUrl when these names change.
+        visibleWhen:
+          $ref: '#/components/schemas/Predicate'
+        enabledWhen:
+          $ref: '#/components/schemas/Predicate'
+        reveals:
+          type: array
+          items:
+            $ref: '#/components/schemas/Field'
+          description: Shown when this CHECKBOX/TOGGLE is true. Max remaining depth 3.
+        validation:
+          $ref: '#/components/schemas/FieldValidation'
+    FieldOption:
+      type: object
+      additionalProperties: false
+      required: [value, label]
+      properties:
+        value:
+          type: string
+        label:
+          type: string
+        iconUrl:
+          type: string
+          format: uri
+        selectable:
+          type: boolean
+          default: true
+        reveals:
+          type: array
+          items:
+            $ref: '#/components/schemas/Field'
+          description: Shown when this option is selected. Max remaining depth 3.
+    FieldValidation:
+      type: object
+      additionalProperties: false
+      properties:
+        required:
+          type: boolean
+          default: false
+        requiredWhen:
+          $ref: '#/components/schemas/Predicate'
+        format:
+          $ref: '#/components/schemas/ValueFormat'
+        pattern:
+          type: string
+          description: Only when format=REGEX. Server anchors if ^ $ missing.
+        minLength:
+          type: integer
+          minimum: 0
+        maxLength:
+          type: integer
+          minimum: 0
+        min:
+          description: Inclusive. Number or YYYY-MM-DD / HH:mm.
+        max:
+          description: Inclusive.
+        decimalPlaces:
+          type: integer
+          minimum: 0
+          maximum: 6
+        messages:
+          type: object
+          additionalProperties:
+            type: string
+          description: Keys required, format, minLength, maxLength, min, max, pattern.
+    Predicate:
+      type: object
+      additionalProperties: false
+      description: AND/OR/NOT over named fields on this screen.
+      properties:
+        all:
+          type: array
+          items:
+            $ref: '#/components/schemas/Condition'
+        any:
+          type: array
+          items:
+            $ref: '#/components/schemas/Condition'
+        not:
+          $ref: '#/components/schemas/Predicate'
+    Condition:
+      type: object
+      additionalProperties: false
+      required: [field, op]
+      properties:
+        field:
+          type: string
+        op:
+          type: string
+          enum: [SET, NOT_SET, EQ, NEQ, IN, NOT_IN]
+        value: {}
+    Widget:
+      type: string
+      enum:
+        - READONLY
+        - TEXT
+        - TEXTAREA
+        - SELECT
+        - MULTI_SELECT
+        - RADIO
+        - CHECKBOX
+        - TOGGLE
+        - DATE
+        - TIME
+        - DATETIME
+        - TEL
+        - EMAIL
+    ValueFormat:
+      type: string
+      enum:
+        - TEXT
+        - INTEGER
+        - NUMBER
+        - EMAIL
+        - MOBILE_IN
+        - PAN
+        - PINCODE
+        - URI
+        - DATE
+        - TIME
+        - DATETIME
+        - REGEX
+    SubmissionTemplate:
+      type: object
+      additionalProperties: false
+      required: [method, href, body]
+      properties:
+        method:
+          type: string
+          enum: [POST]
+        href:
+          type: string
+          description: Path the client POSTs. Same origin as this GET.
+        body:
+          $ref: '#/components/schemas/ScreenSubmission'
+          description: >
+            Same schema as POST /screens/{screenId}/submissions. Writable
+            values are blank tokens ("" / [] / null). Known ids are prefilled.
+    Action:
+      type: object
+      additionalProperties: false
+      required: [id, label, type]
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        type:
+          type: string
+          enum: [SUBMIT, NAVIGATE, CANCEL]
+        surfaceId:
+          type: string
+    ScreenSubmission:
+      type: object
+      additionalProperties: false
+      required: [screenId, version, actionId, values]
+      properties:
+        screenId:
+          type: string
+        version:
+          type: string
+        actionId:
+          type: string
+          description: >
+            Key into SCREEN_ACTION for this screen version (e.g. continue).
+            Does not carry command or ownerContext — those stay server-side.
+        leadId:
+          type: string
+        customerId:
+          type: string
+        values:
+          type: object
+          additionalProperties: true
+          description: Flat name → value. Hidden names omitted.
+    ScreenSubmissionResult:
+      type: object
+      additionalProperties: false
+      required: [screenId, version, actionId, outcome]
+      properties:
+        screenId:
+          type: string
+        version:
+          type: string
+        actionId:
+          type: string
+        outcome:
+          type: string
+          enum: [ACCEPTED, CREATED, REPLAYED]
+        leadId:
+          type: string
+        journeyId:
+          type: string
+    OptionPage:
+      type: object
+      additionalProperties: false
+      required: [level, items]
+      properties:
+        level:
+          type: string
+          enum: [BRANCH, VERTICAL, RM]
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/FieldOption'
+    Problem:
+      type: object
+      additionalProperties: false
+      required: [code, category]
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        code:
+          type: string
+        category:
+          type: string
+        retryable:
+          type: boolean
+        incidentId:
+          type: string
+        correlationId:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        errors:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              field:
+                type: string
+              code:
+                type: string
+              message:
+                type: string

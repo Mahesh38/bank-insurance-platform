@@ -159,14 +159,15 @@ key into `SCREEN_ACTION`.
   "ownerContext": "LEAD",
   "idempotent": true,
   "extrasPolicy": "REJECT_UNMAPPED",
+  "defaults": { "lob": "LIFE" },
   "bindings": [
-    { "field": "lob", "to": "lob" },
     { "field": "productClass", "to": "productClass" }
   ]
 }
 ```
 
-Carousel tile `payload` is merged into `values` before binding (`lob`, `productClass`).
+`defaults` are server-side (not painted). A `LIST`/`CAROUSEL` tile `payload` is still merged
+into `values` before binding when that surface is used. The Figma picker is `RADIO`.
 
 ### 4.1 Closed command catalogue (R0)
 
@@ -206,7 +207,7 @@ fails closed (`422 ACTION_NOT_BOUND`).
 ```json
 {
   "screenId": "LEAD_ASSIGNMENT",
-  "version": "2026-09-23.1",
+  "version": "2026-09-24.1",
   "actionId": "continue",
   "leadId": "01JQX4K7R8M2N3P4Q5S6T7V8W9",
   "values": {

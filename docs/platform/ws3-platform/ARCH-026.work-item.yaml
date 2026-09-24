@@ -43,7 +43,7 @@ acceptance_criteria:
   - id: AC-1
     given: "GET /screens/LEAD_PRODUCT_CLASS"
     when: "the ScreenDocument is read"
-    then: "a CAROUSEL of LIFE tiles exists; R0 items are TERM, ULIP, SAVINGS only; iconUrl is https CDN/BFF"
+    then: "a FORM RADIO of LIFE classes exists; R0 options are TERM, SAVINGS, ULIP in that order with Figma labels; iconUrl is https CDN/BFF; Health is absent"
   - id: AC-2
     given: "GET /screens/{screenId}"
     when: "a FORM surface is read"

@@ -38,12 +38,12 @@ ScreenDocument
 | `FORM` | Capture / assignment / extra questions | `sections[].fields[]` |
 | `LIST` | Vertical collection (search hits, inbox rows) | `items[]` (each item is a `CARD`) |
 | `CARD` | One summary tile | `fields[]` (usually `READONLY`) + `actions[]` |
-| `CAROUSEL` | Horizontal tiles (LOB / product-class picker) | `items[]` (each item is a `CARD`) |
+| `CAROUSEL` | Horizontal tiles | `items[]` (each item is a `CARD`) |
 
 A screen may mix surfaces. After customer Continue, `SCR-05` is typically:
 
-1. `CAROUSEL` — Life → Term / ULIP / Savings tiles  
-2. `FORM` — assignment (and later extra fields)
+1. `FORM` + `RADIO` — “What is {firstName} looking for?” (Figma; Life classes only in R0)  
+2. `FORM` — assignment (fields Product admits; meeting stays `SUG-20260907-fig`)
 
 `GET /screens/{screenId}` returns the document. Lookups (`optionsUrl`) stay separate GETs so
 dropdowns can cascade without re-downloading the screen.
@@ -255,57 +255,73 @@ Do **not** call the BFF to recompute visibility. The document is the rules engin
 
 | `screenId` | Surfaces | When |
 |---|---|---|
-| `LEAD_PRODUCT_CLASS` | `CAROUSEL` | After customer Continue (`SCR-05`) |
+| `LEAD_PRODUCT_CLASS` | `FORM` (`RADIO`) | After customer Continue (`SCR-05`). Figma: “What is {firstName} looking for?” |
 | `LEAD_ASSIGNMENT` | `FORM` | After lead create (fields Product admits; meeting stays `SUG-20260907-fig`) |
 
-### 5.1 Catalogue carousel example
+Figma is **reference only** (`R0-SCOPE` A11). The Health Insurance row on the picker frame is
+**not** in this document (`CR-015` no Health picker; `SUG-20260907-fig`; BOOT out of scope).
+Back / Get Helpful are app chrome, not this resource.
+
+### 5.1 Product class — Figma-aligned (`RADIO`)
 
 `GET /screens/LEAD_PRODUCT_CLASS?customerId=01J…`
+
+Title uses the customer’s **first name** (prefill). Section title and option **labels** match
+the frame. Option **values** stay bank codes. Order on the frame: Term → Savings → ULIP.
+No painted CTA — the client posts `actionId=continue` when the radio changes.
 
 ```json
 {
   "screenId": "LEAD_PRODUCT_CLASS",
-  "version": "2026-09-23.1",
-  "title": "Select a product",
+  "version": "2026-09-24.1",
+  "title": "What is Abhishek looking for?",
   "surfaces": [
     {
-      "id": "life-classes",
-      "type": "CAROUSEL",
+      "id": "life",
+      "type": "FORM",
       "title": "Life Insurance",
-      "items": [
+      "sections": [
         {
-          "id": "TERM",
-          "title": "Term",
-          "iconUrl": "https://assets.bank.example/nip/classes/term.svg",
-          "selectable": true,
-          "payload": { "lob": "LIFE", "productClass": "TERM" }
-        },
-        {
-          "id": "ULIP",
-          "title": "ULIP",
-          "iconUrl": "https://assets.bank.example/nip/classes/ulip.svg",
-          "selectable": true,
-          "payload": { "lob": "LIFE", "productClass": "ULIP" }
-        },
-        {
-          "id": "SAVINGS",
-          "title": "Savings",
-          "iconUrl": "https://assets.bank.example/nip/classes/savings.svg",
-          "selectable": true,
-          "payload": { "lob": "LIFE", "productClass": "SAVINGS" }
+          "id": "life-classes",
+          "fields": [
+            {
+              "name": "productClass",
+              "widget": "RADIO",
+              "validation": { "required": true },
+              "options": [
+                {
+                  "value": "TERM",
+                  "label": "Term Life Insurance",
+                  "iconUrl": "https://assets.bank.example/nip/classes/term.svg",
+                  "selectable": true
+                },
+                {
+                  "value": "SAVINGS",
+                  "label": "Savings Plan",
+                  "iconUrl": "https://assets.bank.example/nip/classes/savings.svg",
+                  "selectable": true
+                },
+                {
+                  "value": "ULIP",
+                  "label": "ULIP Plan",
+                  "iconUrl": "https://assets.bank.example/nip/classes/ulip.svg",
+                  "selectable": true
+                }
+              ]
+            }
+          ]
         }
       ]
     }
   ],
   "actions": [
-    { "id": "continue", "label": "Continue", "type": "SUBMIT", "surfaceId": "life-classes" }
+    { "id": "continue", "label": "Continue", "type": "SUBMIT", "surfaceId": "life" }
   ]
 }
 ```
 
-Selecting a tile writes `payload` into the submission `values` (or the client calls
-`POST /leads` with those two fields — same as today). Adding Health later is another `items[]`
-row in Configuration, not an app release.
+`lob=LIFE` is a `SCREEN_ACTION` default, not a painted field (the frame has no LOB label).
+Adding a selectable Health option is a scope change, not a `version` bump.
 
 ### 5.2 Nested assignment form example
 
@@ -314,7 +330,7 @@ row in Configuration, not an app release.
 ```json
 {
   "screenId": "LEAD_ASSIGNMENT",
-  "version": "2026-09-23.1",
+  "version": "2026-09-24.1",
   "title": "Lead created",
   "surfaces": [
     {
@@ -377,18 +393,38 @@ row in Configuration, not an app release.
         }
       ]
     }
+  ],
+  "actions": [
+    { "id": "continue", "label": "Continue", "type": "SUBMIT", "surfaceId": "facts" }
   ]
 }
 ```
 
+Meeting date / time / link are **not** on this document (`SUG-20260907-fig`).
+
 ### 5.3 Submit
+
+`POST /screens/LEAD_PRODUCT_CLASS/submissions` — radio `productClass` only; `lob` comes from
+the binding default.
+
+```json
+{
+  "screenId": "LEAD_PRODUCT_CLASS",
+  "version": "2026-09-24.1",
+  "actionId": "continue",
+  "customerId": "01JQX4K7R8M2N3P4Q5S6T7V8X1",
+  "values": {
+    "productClass": "TERM"
+  }
+}
+```
 
 `POST /screens/LEAD_ASSIGNMENT/submissions`
 
 ```json
 {
   "screenId": "LEAD_ASSIGNMENT",
-  "version": "2026-09-23.1",
+  "version": "2026-09-24.1",
   "actionId": "continue",
   "leadId": "01JQX4K7R8M2N3P4Q5S6T7V8W9",
   "values": {

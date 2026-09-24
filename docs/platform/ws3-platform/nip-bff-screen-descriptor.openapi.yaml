@@ -14,6 +14,7 @@ info:
     or field.reveals, max depth 3, plus visibleWhen predicates.
     Submit carries actionId; the BFF resolves SCREEN_ACTION. Flutter never
     sends command or ownerContext.
+    R0 LEAD_PRODUCT_CLASS is FORM+RADIO (Figma picker). Health is omitted.
 servers:
   - url: /api/v1
     description: Public gateway prefix
@@ -47,6 +48,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ScreenDocument'
+              examples:
+                leadProductClass:
+                  $ref: '#/components/examples/LeadProductClassDocument'
+                leadAssignment:
+                  $ref: '#/components/examples/LeadAssignmentDocument'
         '401':
           $ref: '#/components/responses/Problem'
         '403':
@@ -73,6 +79,11 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ScreenSubmission'
+            examples:
+              productClass:
+                $ref: '#/components/examples/SubmitProductClass'
+              assignment:
+                $ref: '#/components/examples/SubmitAssignment'
       responses:
         '200':
           description: Accepted (idempotent replay)
@@ -80,12 +91,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ScreenSubmissionResult'
+              examples:
+                replayed:
+                  $ref: '#/components/examples/SubmissionReplayed'
         '201':
           description: Created
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ScreenSubmissionResult'
+              examples:
+                productClassCreated:
+                  $ref: '#/components/examples/SubmissionCreatedLead'
+                assignmentAccepted:
+                  $ref: '#/components/examples/SubmissionAcceptedAssignment'
         '400':
           $ref: '#/components/responses/Problem'
         '409':
@@ -123,7 +142,176 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OptionPage'
+              examples:
+                branch:
+                  $ref: '#/components/examples/OptionsBranch'
+                vertical:
+                  $ref: '#/components/examples/OptionsVertical'
+                rm:
+                  $ref: '#/components/examples/OptionsRm'
 components:
+  examples:
+    LeadProductClassDocument:
+      summary: Figma — What is Abhishek looking for? (Health omitted)
+      value:
+        screenId: LEAD_PRODUCT_CLASS
+        version: "2026-09-24.1"
+        title: What is Abhishek looking for?
+        surfaces:
+          - id: life
+            type: FORM
+            title: Life Insurance
+            sections:
+              - id: life-classes
+                fields:
+                  - name: productClass
+                    widget: RADIO
+                    validation:
+                      required: true
+                    options:
+                      - value: TERM
+                        label: Term Life Insurance
+                        iconUrl: https://assets.bank.example/nip/classes/term.svg
+                        selectable: true
+                      - value: SAVINGS
+                        label: Savings Plan
+                        iconUrl: https://assets.bank.example/nip/classes/savings.svg
+                        selectable: true
+                      - value: ULIP
+                        label: ULIP Plan
+                        iconUrl: https://assets.bank.example/nip/classes/ulip.svg
+                        selectable: true
+        actions:
+          - id: continue
+            label: Continue
+            type: SUBMIT
+            surfaceId: life
+    LeadAssignmentDocument:
+      summary: Lead created facts + assignment
+      value:
+        screenId: LEAD_ASSIGNMENT
+        version: "2026-09-24.1"
+        title: Lead created
+        surfaces:
+          - id: facts
+            type: FORM
+            sections:
+              - id: identity
+                fields:
+                  - name: customerDisplayName
+                    label: Customer Name
+                    widget: READONLY
+                    value: Abhishek Kumar
+                  - name: maskedCustomerRef
+                    label: Customer ID
+                    widget: READONLY
+                    value: XXXXXX0433
+                  - name: leadId
+                    label: Lead ID
+                    widget: READONLY
+                    value: 01JQX4K7R8M2N3P4Q5S6T7V8W9
+              - id: assignment
+                title: Assign lead to SP
+                fields:
+                  - name: branchId
+                    label: Select branch
+                    widget: SELECT
+                    validation:
+                      required: true
+                    optionsUrl: /api/v1/workspace/assignment-options?level=BRANCH
+                  - name: verticalId
+                    label: Select vertical
+                    widget: SELECT
+                    dependsOn: [branchId]
+                    visibleWhen:
+                      all:
+                        - field: branchId
+                          op: SET
+                    validation:
+                      required: true
+                    optionsUrl: /api/v1/workspace/assignment-options?level=VERTICAL&branchId={branchId}
+                  - name: assignedRmId
+                    label: Select RM
+                    widget: SELECT
+                    dependsOn: [branchId, verticalId]
+                    visibleWhen:
+                      all:
+                        - field: verticalId
+                          op: SET
+                    validation:
+                      required: true
+                    optionsUrl: /api/v1/workspace/assignment-options?level=RM&branchId={branchId}&verticalId={verticalId}
+        actions:
+          - id: continue
+            label: Continue
+            type: SUBMIT
+            surfaceId: facts
+    SubmitProductClass:
+      value:
+        screenId: LEAD_PRODUCT_CLASS
+        version: "2026-09-24.1"
+        actionId: continue
+        customerId: 01JQX4K7R8M2N3P4Q5S6T7V8X1
+        values:
+          productClass: TERM
+    SubmitAssignment:
+      value:
+        screenId: LEAD_ASSIGNMENT
+        version: "2026-09-24.1"
+        actionId: continue
+        leadId: 01JQX4K7R8M2N3P4Q5S6T7V8W9
+        values:
+          branchId: BR-KOCHI-MGRD
+          verticalId: LIFE
+          assignedRmId: RM-4412
+    SubmissionCreatedLead:
+      value:
+        screenId: LEAD_PRODUCT_CLASS
+        version: "2026-09-24.1"
+        actionId: continue
+        outcome: CREATED
+        leadId: 01JQX4K7R8M2N3P4Q5S6T7V8W9
+        journeyId: 01JQX4K8S9N3P4Q5S6T7V8W9X0
+    SubmissionAcceptedAssignment:
+      value:
+        screenId: LEAD_ASSIGNMENT
+        version: "2026-09-24.1"
+        actionId: continue
+        outcome: ACCEPTED
+        leadId: 01JQX4K7R8M2N3P4Q5S6T7V8W9
+        journeyId: 01JQX4K8S9N3P4Q5S6T7V8W9X0
+    SubmissionReplayed:
+      value:
+        screenId: LEAD_ASSIGNMENT
+        version: "2026-09-24.1"
+        actionId: continue
+        outcome: REPLAYED
+        leadId: 01JQX4K7R8M2N3P4Q5S6T7V8W9
+        journeyId: 01JQX4K8S9N3P4Q5S6T7V8W9X0
+    OptionsBranch:
+      value:
+        level: BRANCH
+        items:
+          - value: BR-KOCHI-MGRD
+            label: MG Road, Kochi
+            selectable: true
+          - value: BR-KOCHI-EDPL
+            label: Edappally, Kochi
+            selectable: true
+    OptionsVertical:
+      value:
+        level: VERTICAL
+        items:
+          - value: LIFE
+            label: Life
+            selectable: true
+    OptionsRm:
+      value:
+        level: RM
+        items:
+          - value: RM-4412
+            label: Priya Nair
+            selectable: true
   parameters:
     ScreenId:
       name: screenId

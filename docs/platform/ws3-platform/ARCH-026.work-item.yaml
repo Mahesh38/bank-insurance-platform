@@ -72,6 +72,10 @@ acceptance_criteria:
     given: "an accepted submit"
     when: "Lead persists the outcome"
     then: "SoR columns, an append-only screen_submission row (config_version + values_json), and an audit outbox event are specified"
+  - id: AC-9
+    given: "GET /screens/{screenId}"
+    when: "a ScreenDocument is read"
+    then: "submission.href and submission.body are present; body.values lists every writable field with a blank token; READONLY names are omitted; client POSTs that object without inventing keys"
 
 out_of_scope:
   - "Flutter / iOS / Android / Web renderer implementation"

@@ -32,7 +32,9 @@ We will publish a **closed** bank `ScreenDocument`:
 3. Nested dependence is `options[].reveals` / `field.reveals` (max depth 3) plus
    `visibleWhen` / `requiredWhen` / `enabledWhen` predicates.  
 4. Validation lives on the field; client and server use the same object.  
-5. Submit is a flat `values` map against `version` **and** `actionId`. Hidden fields are ignored.  
+5. Submit is a flat `values` map against `version` **and** `actionId`. Hidden fields are ignored.
+   Every GET carries `submission` — the blank POST the client clones (`href` + `body`). Writable
+   `values` keys are listed with blank tokens so a new field is configuration, not a client change.  
 6. `iconUrl` is https on the bank CDN/BFF.  
 7. A new **widget** is a store release. A new **field** using a shipped widget is configuration.  
 8. The **definition** (`SCREEN_DOCUMENT`) and the **binding** (`SCREEN_ACTION`) are two payloads

@@ -25,7 +25,8 @@ paths:
       summary: Fetch a screen document for the RM to render
       description: |
         Returns FORM / LIST / CARD / CAROUSEL surfaces plus fields, validation
-        and nested reveals. Client evaluates visibility locally. Do not poll.
+        and nested reveals. submission is the blank POST the client clones.
+        Client evaluates visibility locally. Do not poll.
       parameters:
         - $ref: '#/components/parameters/ScreenId'
         - $ref: '#/components/parameters/CorrelationId'
@@ -186,6 +187,16 @@ components:
             label: Continue
             type: SUBMIT
             surfaceId: life
+        submission:
+          method: POST
+          href: /api/v1/screens/LEAD_PRODUCT_CLASS/submissions
+          body:
+            screenId: LEAD_PRODUCT_CLASS
+            version: "2026-09-24.1"
+            actionId: continue
+            customerId: 01JQX4K7R8M2N3P4Q5S6T7V8X1
+            values:
+              productClass: ""
     LeadAssignmentDocument:
       summary: Lead created facts + assignment
       value:
@@ -246,6 +257,18 @@ components:
             label: Continue
             type: SUBMIT
             surfaceId: facts
+        submission:
+          method: POST
+          href: /api/v1/screens/LEAD_ASSIGNMENT/submissions
+          body:
+            screenId: LEAD_ASSIGNMENT
+            version: "2026-09-24.1"
+            actionId: continue
+            leadId: 01JQX4K7R8M2N3P4Q5S6T7V8W9
+            values:
+              branchId: ""
+              verticalId: ""
+              assignedRmId: ""
     SubmitProductClass:
       value:
         screenId: LEAD_PRODUCT_CLASS
@@ -346,7 +369,7 @@ components:
     ScreenDocument:
       type: object
       additionalProperties: false
-      required: [screenId, version, surfaces]
+      required: [screenId, version, surfaces, submission]
       properties:
         screenId:
           type: string
@@ -363,6 +386,11 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Action'
+        submission:
+          $ref: '#/components/schemas/SubmissionTemplate'
+          description: >
+            Blank POST the client clones. Fill values[name] for each writable
+            field; do not invent keys or the path. READONLY names omitted.
     Surface:
       type: object
       additionalProperties: false
@@ -570,6 +598,22 @@ components:
         - TIME
         - DATETIME
         - REGEX
+    SubmissionTemplate:
+      type: object
+      additionalProperties: false
+      required: [method, href, body]
+      properties:
+        method:
+          type: string
+          enum: [POST]
+        href:
+          type: string
+          description: Path the client POSTs. Same origin as this GET.
+        body:
+          $ref: '#/components/schemas/ScreenSubmission'
+          description: >
+            Same schema as POST /screens/{screenId}/submissions. Writable
+            values are blank tokens ("" / [] / null). Known ids are prefilled.
     Action:
       type: object
       additionalProperties: false

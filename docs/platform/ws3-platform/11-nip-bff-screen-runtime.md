@@ -219,7 +219,8 @@ fails closed (`422 ACTION_NOT_BOUND`).
 ```
 
 BFF: resolve document + binding at `version` → L1 → map → Lead command. Flutter never sees
-`command` or `ownerContext`.
+`command` or `ownerContext`. The GET returns this same object under `submission.body`
+with writable `values` left blank so the client does not hardcode field names.
 
 ### 4.4 Several actions on one screen
 

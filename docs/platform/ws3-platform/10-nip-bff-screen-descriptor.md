@@ -28,6 +28,7 @@ One resource, one shape:
 ```text
 ScreenDocument
   screenId, version, title, actions[]
+  submission          ← blank POST the client fills (same shape as ScreenSubmission)
   surfaces[]          ← FORM | LIST | CARD | CAROUSEL
     each surface has items[] and/or sections[].fields[]
       Field           ← widget + validation + visibleWhen + reveals
@@ -316,7 +317,20 @@ No painted CTA — the client posts `actionId=continue` when the radio changes.
   ],
   "actions": [
     { "id": "continue", "label": "Continue", "type": "SUBMIT", "surfaceId": "life" }
-  ]
+  ],
+  "submission": {
+    "method": "POST",
+    "href": "/api/v1/screens/LEAD_PRODUCT_CLASS/submissions",
+    "body": {
+      "screenId": "LEAD_PRODUCT_CLASS",
+      "version": "2026-09-24.1",
+      "actionId": "continue",
+      "customerId": "01JQX4K7R8M2N3P4Q5S6T7V8X1",
+      "values": {
+        "productClass": ""
+      }
+    }
+  }
 }
 ```
 
@@ -396,9 +410,34 @@ Adding a selectable Health option is a scope change, not a `version` bump.
   ],
   "actions": [
     { "id": "continue", "label": "Continue", "type": "SUBMIT", "surfaceId": "facts" }
-  ]
+  ],
+  "submission": {
+    "method": "POST",
+    "href": "/api/v1/screens/LEAD_ASSIGNMENT/submissions",
+    "body": {
+      "screenId": "LEAD_ASSIGNMENT",
+      "version": "2026-09-24.1",
+      "actionId": "continue",
+      "leadId": "01JQX4K7R8M2N3P4Q5S6T7V8W9",
+      "values": {
+        "branchId": "",
+        "verticalId": "",
+        "assignedRmId": ""
+      }
+    }
+  }
 }
 ```
+
+The client **does not invent** the POST shape. It clones `submission.body`, writes each
+writable field into `values[name]`, and POSTs that object to `submission.href` with
+`Idempotency-Key` + `X-Correlation-Id`. `READONLY` names are omitted from `values`.
+Keys for fields that start hidden (`verticalId`, `assignedRmId`) are still listed so a
+new field is a `version` bump, not a client change.
+
+Blank tokens: string / radio / select → `""` · `MULTI_SELECT` → `[]` · boolean
+checkbox/toggle → `null`. Nested `reveals` names are included as extra keys when the
+seed contains them.
 
 Meeting date / time / link are **not** on this document (`SUG-20260907-fig`).
 

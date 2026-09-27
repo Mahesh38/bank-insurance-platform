@@ -300,6 +300,13 @@ doc_routing:
       persona: architecture
       note: "ARCH-DEC-VIN003-B1 Board 1 draft vs VIN-003 estate. T4 human signature outstanding. Does not amend ADRs."
 
+    - match: ["docs/architecture/GOVERNANCE-ALIGNMENT-REVIEW-2026-09-27.md"]
+      bucket: platform
+      authority: ai-drafted
+      capsules: [architecture-review, board-review, product-decision]
+      persona: architecture
+      note: "GA-01..GA-22 cross-layer conflict register (BRD/PRD/Figma/ADR). Findings only — no decision, no T4 signature."
+
     - match: ["docs/architecture/R0-E2E-FOR-DEVELOPERS.md"]
       bucket: platform
       authority: approved-spec

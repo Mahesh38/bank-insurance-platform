@@ -208,9 +208,42 @@ Standing constraints that any later implementation must still honour (`BOOT.md` 
 | Artefact quality | Result |
 |------------------|--------|
 | Source fidelity of the nine extracts | `READY` (QA pack passed) |
-| Cross-BRD consistency | `NOT_READY` — C1, C2, C3, C5, C7 open |
-| Deterministic AC for implementation | `NOT_READY` — Q10 formulas and masters open |
+| Cross-BRD consistency | C1/C2/C3 closed by Rajal 2026-09-28 (`D-015`, `D-016`). C5 pending Board 6. C7 deferred |
+| Deterministic AC for implementation | Login catalogue is implementable. Suitability formulas and listing tax API remain TBD |
 | Product intent | **Rajal owns**. This file does not invent it |
+
+---
+
+## 8. Rajal answers 2026-09-28
+
+Recorded from the Product Owner after this ingest. These close some conflicts. They do **not** invent Infosec or Compliance sign-off.
+
+| ID | Question | Rajal decision | Effect |
+|----|----------|----------------|--------|
+| Q1 | Draft BRDs as SSOT now? | **Working SSOT now**; formal Business / Technology / IS / QA sign-off can follow | Implementation may start against the pack |
+| Q2 | D-002 / CR-015 journeys | **Keep CR-015**: assisted + this customer-controlled payment/submission slice now; DIY / mode-switch later | `D-002` not overturned. Customer v1.2 payment slice is in this increment |
+| Q3 | BI lock event (C1/C2) | **Successful final BI** (Suitability AC-038 / Quote finalisation) | Product Details AC-025 (toolkit / Sample BI lock) is **superseded**. Lead `BR-BI-001` is the Quote-API path to that final BI, not a second lock event |
+| Q4 | Insurance RM assignment (C3) | **At lead creation.** Every Bank SP is an RM; not every RM is an SP | Lead BRD assignment timing wins. Quote / Customer v1.2 “update the Lead BRD to assign after BI” is **not** followed. SP is a certification of RM, not a second actor (aligns with ADR-004) |
+| Q5 | Buy outside suitable set (C5) | Product intent: **Compare / Buy outside the suitable set is allowed** as an explicit exception to `D-005` | **Not implemented.** Rajal cannot waive Compliance alone. Escalate to **Shailja (Board 6)** before any code. Standing constraint “no quote without suitability evaluation id” stays in force until Board 6 confirms |
+| Q6 | Exception multi-rule (C7) | **Defer** — take the call in a separate discussion | Parked. Highlighted with the other “do not assume” items in §9 |
+| Q7 | First module to implement | **Login** | This increment: RM app Login UI + fake directory against Login BRD. Real Captcha/OTP gateways and session timeout remain IS-owned (`SEC-009`, `SEC-010`) |
+
+---
+
+## 9. Highlighted items for a later discussion (do not assume)
+
+Rajal asked that cases like C7 be called out rather than decided here.
+
+| Item | Why it is not decided in this change |
+|------|--------------------------------------|
+| Exception Handling C7 — Block-if-any vs highest hierarchy | Rajal: separate discussion |
+| Login Table 4 “first-time password through User Login” vs `BR-LOGIN-005` / §4.1 Unlock User | In-scope and `BR-LOGIN-005` say Unlock User. Table 4 is a documentation defect to clean in the Login BRD. Implementation follows Unlock User |
+| Captcha complexity, session timeout, concurrent login | Login BRD: Information Security will confirm (`SEC-009`, `SEC-010`) |
+| Unlock User guide content and support contact | Login BRD: IT will provide |
+| Suitability tentative premium, PPT/PT, occupation/education masters | Suitability §22 “to be defined” |
+| Listing eligibility, tax API, comparison rows, AU Bank Advantage copy | Listing §21 “to be finalised” |
+| Cheque API lifecycle | Customer v1.2: until the integration contract is finalised |
+| Q5 suitability bypass | Product intent recorded; **Shailja** must confirm before code |
 
 ---
 
@@ -219,3 +252,4 @@ Standing constraints that any later implementation must still honour (`BOOT.md` 
 | Version | Date | Change | Owner |
 |---------|------|--------|-------|
 | 0.1 | 2026-09-28 | Ingest pack, record conflicts, ask Rajal. No application code. | Agent (BA analysis) / Rajal (intent) |
+| 0.2 | 2026-09-28 | Rajal answers Q1–Q7 recorded. Login UI alignment started. C7 and Q5 not implemented. | Rajal / BA |

@@ -55,7 +55,7 @@ Sign in, then walk the complete R0 journey end to end:
 
 | Step | Screen | Real behaviour | Faked |
 |---|---|---|---|
-| Sign in | SCR-01 | Session gate — every other route refuses without it | Bank SSO / AD federation |
+| Sign in | SCR-01 | Bank RM / Insurance Partner tabs, Captcha, OTP, Unlock User, no Forgot Password (Login BRD v1.0). Session gate — every other route refuses without it | Demo directory, demo Captcha `A7K2`, demo OTP `123456`. Bank AD, Captcha service, SMS/email OTP and session timeout are not this fake |
 | Pipeline | SCR-02 | Empty and populated states; resume at last incomplete step | — |
 | Customer search | SCR-03/04 | Search, no-match empty state, ETB eligibility refusal, masked mobile | CBS lookup — 3 sample customers |
 | Lead | SCR-05 | Lead created, journey opened at `needAnalysis` | — |

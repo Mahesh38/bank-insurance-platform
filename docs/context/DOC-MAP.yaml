@@ -19,7 +19,7 @@ schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
 document_count: 603
-total_bytes: 20805433
+total_bytes: 20809659
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -1741,7 +1741,7 @@ documents:
     persona: product
     title: "Decision log — AU Bank Insurance Platform"
     answers: "Canonical ID scheme: D-xxx = business / scope decisions (aligns to Session template + Working Decisions mapping)."
-    bytes: 5317
+    bytes: 6235
   - path: docs/au-bank-insurance-platform/README.md
     bucket: business
     authority: business-ssot
@@ -2029,7 +2029,7 @@ documents:
     persona: business-analysis
     title: "BRD alignment — Rajal pack 2026-09-28"
     answers: "Work item: SUG-20260928-brd · DOC-005"
-    bytes: 13401
+    bytes: 16709
   - path: docs/au-bank-insurance-platform/requirements/BRD-OVERVIEW-CHECKLIST.md
     bucket: business
     authority: business-ssot

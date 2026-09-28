@@ -1,4 +1,4 @@
-/// SCR-01 Login · SCR-02 RM pipeline · SCR-18 Pilot funnel.
+/// SCR-02 RM pipeline · SCR-18 Pilot funnel.
 library;
 
 import 'package:flutter/material.dart';
@@ -8,51 +8,6 @@ import '../design/components.dart';
 import '../design/tokens.dart';
 import '../domain/journey.dart';
 import '../guards/journey_guard.dart';
-
-/// SCR-01 — Login / SSO landing. BR-SEC-010, AC-SEC-010-1.
-class LoginScreen extends StatelessWidget {
-  const LoginScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = JourneyScope.of(context);
-    return AppScreen(
-      title: 'AU Bank — RM Workspace',
-      screenId: 'SCR-01',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const SectionHeading(
-            'Sign in',
-            subtitle:
-                'Bank single sign-on. In R0 this is a demonstration sign-in; '
-                'the real path federates with Bank AD through the workforce BFF '
-                '(WS-2), and the RM app never receives an OAuth token.',
-          ),
-          AppCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const LabelledValue('Relationship Manager', 'Demo RM'),
-                const LabelledValue('IRDAI SP licence', 'SP-DEMO-778812', mono: true),
-                const LabelledValue('Branch', 'Demo branch'),
-                const SizedBox(height: AppSpace.x4),
-                AppButton(
-                  label: 'Sign in with Bank SSO',
-                  icon: Icons.login,
-                  onPressed: () {
-                    c.signIn();
-                    goReplace(context, AppRoute.pipeline);
-                  },
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 /// SCR-02 — RM pipeline. BR-RM-010, BR-LEAD-030, AC-LEAD-030-1.
 class PipelineScreen extends StatelessWidget {

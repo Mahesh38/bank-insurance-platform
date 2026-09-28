@@ -20,15 +20,27 @@ Future<void> _pump(WidgetTester tester, JourneyController c, AppRoute route) asy
 }
 
 void main() {
-  testWidgets('SCR-01 login renders and signs in', (tester) async {
+  testWidgets('SCR-01 login renders BRD fields, hides Forgot Password, and signs in after OTP',
+      (tester) async {
     final c = JourneyController.withFake();
     await _pump(tester, c, AppRoute.login);
 
     expect(find.text('SCR-01'), findsOneWidget);
-    expect(find.text('Sign in with Bank SSO'), findsOneWidget);
+    expect(find.text('Sign In'), findsOneWidget);
+    expect(find.text('Forgot Password'), findsNothing);
+    expect(find.text('Unlock User'), findsOneWidget);
     expect(c.signedIn, isFalse);
 
-    await tester.tap(find.text('Sign in with Bank SSO'));
+    await tester.enterText(find.byKey(const Key('login-password')), 'BankPass1!');
+    await tester.enterText(find.byKey(const Key('login-captcha')), 'A7K2');
+    await tester.ensureVisible(find.text('Sign In'));
+    await tester.tap(find.text('Sign In'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Verify OTP'), findsOneWidget);
+    await tester.enterText(find.byKey(const Key('login-otp')), '123456');
+    await tester.ensureVisible(find.text('Verify'));
+    await tester.tap(find.text('Verify'));
     await tester.pumpAndSettle();
     expect(c.signedIn, isTrue);
   });

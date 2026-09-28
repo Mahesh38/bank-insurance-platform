@@ -15,6 +15,7 @@ import 'screens/confirmation_screen.dart';
 import 'screens/consent_screen.dart';
 import 'screens/customer_and_lead.dart';
 import 'screens/guard_blocked.dart';
+import 'screens/login_screens.dart';
 import 'screens/payment_screen.dart';
 import 'screens/proposal_screens.dart';
 import 'screens/quote_screens.dart';

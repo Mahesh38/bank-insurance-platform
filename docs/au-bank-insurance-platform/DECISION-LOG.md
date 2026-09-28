@@ -26,6 +26,9 @@
 | D-012 | 2026-07-31 | Figma = **reference only**, not SoT | Mixed MVP + concept + future | Business (draft) | Working | WD §15 |
 | D-013 | 2026-07-31 | Platform deps: SSO, bank notifications, AU Bank PG; Lead in-platform → Sampath later | Bank systems of record | Business (draft) | Working | WD §14 |
 | D-014 | 2026-07-31 | Until compliance validated, engineering uses **configurable policy-driven controls** | Avoid hard-coded regulatory assumptions | Business (draft) | Working | WD §16 |
+| D-015 | 2026-09-28 | Suitability lock, Eligible Lead and reassignment block occur on **successful final BI** | Rajal Q3 on the 2026-09 pack (C1/C2) | Rajal | Working | [alignment §8](./requirements/BRD-ALIGNMENT-2026-09-28.md#8-rajal-answers-2026-09-28) |
+| D-016 | 2026-09-28 | Insurance RM is selected at **lead creation**. Every Bank SP is an RM; not every RM is an SP | Rajal Q4. SP is a certification, not a second actor | Rajal | Working | [alignment §8](./requirements/BRD-ALIGNMENT-2026-09-28.md#8-rajal-answers-2026-09-28) |
+| D-017 | 2026-09-28 | Product intent: Compare/Buy of a product **outside** the suitable set is allowed | Rajal Q5. **Board 6 must confirm** before implementation; standing suitability gate stays until then | Rajal (intent) · Shailja (permissibility outstanding) | **Pending compliance** | [alignment §8](./requirements/BRD-ALIGNMENT-2026-09-28.md#8-rajal-answers-2026-09-28) |
 
 ---
 

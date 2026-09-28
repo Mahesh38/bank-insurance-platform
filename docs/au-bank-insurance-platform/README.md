@@ -4,7 +4,7 @@
 **Bank:** AU Small Finance Bank (AU Bank)  
 **Working name:** AU Bank Insurance Platform  
 **Folder purpose:** Product Owner + Business Analysis + stakeholder alignment — **from scratch**  
-**Status:** Discovery — **Working Decisions Draft v1** is the working SSOT for MVP scope (pending formal validation)
+**Status:** Working Decisions Draft v1 remains the programme-level MVP SSOT. **Module behaviour** for chapters in the September 2026 Rajal pack lives in [requirements/brd-detailed/](./requirements/brd-detailed/README.md) (`DOC-005`).
 
 ---
 
@@ -42,15 +42,18 @@ This folder is the **clean restart**:
 ### Document win-order (when docs disagree)
 
 ```text
-1. Working Decisions (07) — business MVP SSOT (Working → then Sponsor-Approved)
-2. Decision Log — canonical D-xxx / DOC-xxx only
-3. R0-SCOPE + BRD-OVERVIEW — delivery one-pager + BRD TOC
-4. PRD + BRD-P0 — must not contradict 1–3
-5. Discovery backlog + Gap register — status trackers
-6. Charter / Vision / Journey canvas — narrative
-7. Knowledge base — baseline corpus; superseded by WD where conflicted
-8. Figma / prior 1SB eng / references — non-binding
+1. requirements/brd-detailed/ — module behaviour for chapters the 2026-09 pack covers (TBDs stay open)
+2. Working Decisions (07) — programme MVP decisions not restated in the pack
+3. Decision Log — canonical D-xxx / DOC-xxx only
+4. R0-SCOPE + BRD-OVERVIEW — delivery one-pager + BRD TOC
+5. PRD + BRD-P0 — superseded where they conflict with 1
+6. Discovery backlog + Gap register — status trackers
+7. Charter / Vision / Journey canvas — narrative
+8. Knowledge base — baseline corpus; superseded by 1 and 2 where conflicted
+9. Figma / prior 1SB eng / references — non-binding
 ```
+
+Conflict report: [requirements/BRD-ALIGNMENT-2026-09-28.md](./requirements/BRD-ALIGNMENT-2026-09-28.md).
 
 Management pack: [po-drive/04-MANAGEMENT-READINESS.md](./po-drive/04-MANAGEMENT-READINESS.md).
 
@@ -72,7 +75,7 @@ Management pack: [po-drive/04-MANAGEMENT-READINESS.md](./po-drive/04-MANAGEMENT-
 | 6 | [06-po-opening-position.md](./06-po-opening-position.md) | PO kickoff stance for the stakeholder room |
 | **KB** | **[knowledge-base/](./knowledge-base/README.md)** | **Application knowledge base (synthesized from uploaded Volumes/Phases)** |
 | **PO drive** | **[po-drive/](./po-drive/00-PO-PROJECT-VIEW.md)** | **Project view · SWOT · Gap register · Programme TODO** |
-| **Requirements** | **[requirements/](./requirements/README.md)** | **Working Decisions · BRD overview (PO) · R0 scope · PRD · P0 BRD** |
+| **Requirements** | **[requirements/](./requirements/README.md)** | **Detailed module BRDs (2026-09) · Working Decisions · BRD overview · R0 scope · PRD · P0 BRD** |
 | — | [references/](./references/README.md) | Pointers to prior research (non-binding) — includes the 2026-09-04 universal suitability synthesis |
 
 ---

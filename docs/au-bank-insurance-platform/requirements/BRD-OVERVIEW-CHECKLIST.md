@@ -7,52 +7,51 @@ Use this list when reviewing scope completeness. Do not drop items without PO ap
 
 ---
 
-- [ ] **Login**
-  - [ ] AD Integration
-  - [ ] Forgot Password
-  - [ ] Account Lock / Unlock
-  - [ ] SSO redirection
+- [x] **Login** — detailed BRD v1.0 in [brd-detailed/](./brd-detailed/Login_Module_BRD_Detailed_CONTEXT.md) (Forgot Password removed)
+  - [x] AD Integration / bank-system password + OTP
+  - [x] Forgot Password — **removed**; Unlock User for partners
+  - [x] Account Lock / Unlock
+  - [ ] SSO redirection — confirm vs bank-system password wording
 - [ ] **User Management Module**
   - [ ] Role Rights
   - [ ] User Access & Permission
   - [ ] User Hierarchy Management (Both AU Bank & Partner)
   - [ ] User Create / Update & Terminate Module
-- [ ] **Lead Management**
-  - [ ] Lead Create
-  - [ ] Lead Update
-  - [ ] Lead follow-up & Reminder (Meeting)
-  - [ ] Lead Bulk upload
-  - [ ] Lead Assignment & Reassignment (Individual & bulk)
-  - [ ] Campaign & Drive Lead module
-  - [ ] Lead duplicate flagging, Lead Expiry & Lead Deletion
-- [ ] **Customer Data Fetch**
-  - [ ] CBS Integration (Fetch data using Cust ID, Mobile No, PAN etc.)
+- [x] **Lead Management** — detailed BRD v1.0 (assignment timing still conflicts with Customer v1.2)
+  - [x] Lead Create
+  - [x] Lead Update
+  - [x] Lead follow-up & Reminder (Meeting) — optional meeting; completion/outcome out of that BRD
+  - [ ] Lead Bulk upload — out of Lead BRD unless formal scope change
+  - [x] Lead Assignment & Reassignment (individual; bulk later)
+  - [ ] Campaign & Drive Lead module — out of Lead BRD
+  - [x] Lead duplicate flagging; expiry/deletion per Lead BRD rules
+- [x] **Customer Data Fetch** — inside Lead BRD (Customer ID / mobile / PAN)
 - [ ] **Lead / Application Rules and workflow**
   - [ ] Lead Rules
   - [ ] New Rule creation and updating existing rules
   - [ ] Workflow management
   - [ ] Approval management and records
-- [ ] **Suitability Check Module**
-  - [ ] Suitability Check
-  - [ ] List product based on suitability for each partner
-  - [ ] Suitability PDF creation
-  - [ ] Suitability Consent Capture and storing records
-- [ ] **Quote list & Compare**
-  - [ ] Quote listing logic
-  - [ ] Sorting and Filter options
-  - [ ] View more and product details
-  - [ ] Downloads (Brochure, Policy wording etc)
-  - [ ] Compare Quote
-  - [ ] Share Quote
-  - [ ] Modify Quote (Change SA, PT, PPT, Paymode etc.)
-  - [ ] Add-on covers (Addition & Deletion)
-  - [ ] Discounting (Credit Score, Existing customer discount, DIY Discount etc.)
-  - [ ] eBI sharing and acceptance
-- [ ] **Proposal journey**
-  - [ ] Data prefill & Masking
-  - [ ] Document waiver (Fetching & passing KYC, Credit score, Income proof etc.)
-  - [ ] Proposal acceptance & Consent on eBI, CIS, Proposal form, Suitability etc.
-  - [ ] ACR Process
+- [x] **Suitability Check Module** — detailed BRD v1.0 for **Savings/ULIP only**; Term missing; formulas TBD
+  - [x] Suitability Check (Savings/ULIP)
+  - [x] List product based on suitability
+  - [ ] Suitability PDF creation — not specified as a deliverable in the Suitability BRD
+  - [ ] Suitability Consent Capture — consent sits in Customer Buying Journey v1.2
+- [x] **Quote list & Compare** — Savings detailed BRDs; Term/ULIP listing not in pack
+  - [x] Quote listing logic (Savings)
+  - [x] Sorting and Filter options
+  - [x] View more and product details (Savings)
+  - [x] Downloads (Brochure; customer-specific BI in Product Details)
+  - [x] Compare Quote (up to 3)
+  - [x] Share Quote / final BI share
+  - [x] Modify Quote
+  - [x] Add-on covers (riders in Quote Finalisation BRD)
+  - [ ] Discounting — not in this pack
+  - [x] eBI sharing (final BI)
+- [x] **Proposal journey** — Customer Buying Journey v1.2
+  - [x] Data prefill & Masking
+  - [ ] Document waiver — confirm vs v1.2
+  - [x] Proposal acceptance & Consent
+  - [ ] ACR Process — not named in v1.2
 - [ ] **Insurance Risk and fraud detection module**
   - [ ] PTL API & RAG API
   - [ ] Pre-issuance verification process
@@ -61,17 +60,17 @@ Use this list when reviewing scope completeness. Do not drop items without PO ap
   - [ ] Both in a single call
   - [ ] Storing Video, PDF & sharing it with Insurance partners
   - [ ] Updating FR in Insurance system
-- [ ] **Payment**
-  - [ ] Dual Payment Mandate
-  - [ ] Payment Process
-    - [ ] i. Internal Fund Transfer
-    - [ ] ii. Online Payment options (Payment Gateway)
-    - [ ] iii. Cheque Payment Process
-  - [ ] Payment & Mandate communication to customers
-- [ ] **Proposal Submission**
-  - [ ] Status update
-  - [ ] Policy Issuance confirmation
-  - [ ] Policy PDF & communication to customers
+- [x] **Payment** — Customer Buying Journey v1.2 (cheque API lifecycle still open)
+  - [x] Dual Payment Mandate / eMandate
+  - [x] Payment Process
+    - [x] i. Internal Fund Transfer
+    - [x] ii. Online Payment options (Payment Gateway)
+    - [x] iii. Cheque Payment Process — in scope; realisation API TBC
+  - [x] Payment & Mandate communication to customers
+- [x] **Proposal Submission** — Customer Buying Journey v1.2
+  - [x] Status update
+  - [x] Policy Issuance confirmation
+  - [x] Policy PDF & communication to customers
 - [ ] **Welcome Calling process**
   - [ ] Calling customer
   - [ ] Follow-up

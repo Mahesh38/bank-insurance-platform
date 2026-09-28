@@ -161,13 +161,14 @@ Each register owns a distinct ID range so IDs never collide across folders.
 below is about **content**: when two documents disagree on a fact, resolve in this order:
 
 ```text
-1. au-bank-insurance-platform/07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md   business MVP SSOT
-2. au-bank-insurance-platform/DECISION-LOG.md                                   canonical D-xxx / DOC-xxx
-3. platform/authentication-authorization/README.md                              approved workforce authN/authZ spec
-4. 1sb-insurance-integration/service-ssot/                                      module engineering SSOT (1SB adapter only)
-5. platform/architecture-review/                                                architecture *recommendation* — not yet approved
-6. au-bank-insurance-platform/knowledge-base/                                   baseline corpus; superseded where conflicted
-7. context/                                                                     background & personas — never binding
+1. au-bank-insurance-platform/requirements/brd-detailed/                        module-behaviour SSOT (Rajal pack 2026-09; TBDs stay open)
+2. au-bank-insurance-platform/07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md   programme MVP decisions not restated in the pack
+3. au-bank-insurance-platform/DECISION-LOG.md                                   canonical D-xxx / DOC-xxx
+4. platform/authentication-authorization/README.md                              approved workforce authN/authZ spec
+5. 1sb-insurance-integration/service-ssot/                                      module engineering SSOT (1SB adapter only)
+6. platform/architecture-review/                                                architecture *recommendation* — not yet approved
+7. au-bank-insurance-platform/knowledge-base/                                   baseline corpus; superseded where conflicted
+8. context/                                                                     background & personas — never binding
 ```
 
 Three rules that are easy to get wrong:

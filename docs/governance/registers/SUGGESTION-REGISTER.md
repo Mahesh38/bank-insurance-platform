@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20260928-brd | 2026-09-28 | human:Rajal | Treat September 2026 detailed module BRD pack as source of truth; realign repo docs; do not assume TBDs or silent conflict resolution | SF1 | SC0 | MUST | DOC | P2 / P1 | ADMITTED | [DOC-005](../../au-bank-insurance-platform/DECISION-LOG.md) · [pack](../../au-bank-insurance-platform/requirements/brd-detailed/README.md) · [alignment](../../au-bank-insurance-platform/requirements/BRD-ALIGNMENT-2026-09-28.md) · [detail](#sug-20260928-brd--rajal-detailed-brd-pack-as-module-ssot) |
 | SUG-20260923-scs | 2026-09-23 | human:architect | NIP BFF SCR-03 search-customer contract: Customer ID / PAN / mobile; lead-first then CBS via Apigee; one stakeholder+dev doc | SF1 | SC0 | SHOULD | ARCH | P2 / P1 | ADMITTED | [ARCH-025](../../platform/ws3-platform/ARCH-025.work-item.yaml) · [PLAN-005](../plans/PLAN-005-nip-bff-customer-search-contract.md) · [contract](../../platform/ws3-platform/09-nip-bff-customer-search-contract.md) · [detail](#sug-20260923-scs--scr-03-customer-search-unified-contract) |
 | SUG-20260923-par | 2026-09-23 | human:stakeholder | Remove governance over-serialization: SF5 parallel lanes, evidence-based unpark, SG-2 CANDIDATE, RG-9 evidenced-blocker T4 relief, DEP-4 soft-default | SF1 | SC1 | MUST | GOV | P1 / P1 | ADMIT-BYPASS | [CR-016](../change-requests/CR-016-parallel-lanes-evidence-unpark.md) · [detail](#sug-20260923-par--parallel-lanes-and-evidence-unpark) |
 | SUG-20260915-pic | 2026-09-15 | human:Mahesh | First-review deck must be illustrated (RM, suitability, quote, proposal, pay, policy), with AWS/external service map and stack/saga — still a Dev/UAT design sitting, production evidence after UAT | SF1 | SC1 | MUST | DOC | P1 / P1 | ADMITTED | [WHAT-TO-SEND](../../architecture/arb-prerequisites/exports/WHAT-TO-SEND.md) · [detail](#sug-20260915-pic--illustrated-journey-and-stack) |
@@ -121,6 +122,125 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20260928-brd · Rajal detailed BRD pack as module SSOT
+
+```yaml
+# schema: triage-record
+id: SUG-20260928-brd
+raised_at: "2026-09-28"
+raised_by: "human:Rajal"
+source: "September 2026 detailed module BRD pack (9 context MD files)"
+input: >
+  This is the latest BRD we receive from RAJAL and we need to align the existing
+  application against it, make sure we take this as source of truth, if any
+  conflicts or issue found with existing repository docs then realign our self
+  with this updated documents. if you need any clarity on anything please ask
+  dont assume.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-13"
+  state_provisional: false
+  active_work_item: SUG-20260928-brd
+
+stage_fit:
+  code: SF1
+  rationale: >
+    FreshnessCheck 2026-09-28 exit 1 (state_as_of 15 days old) disclosed.
+    BRD-OVERVIEW already required detailed chapters under the approved TOC.
+    Ingesting Rajal's pack and realigning doc precedence is on-stage BA/Product
+    SSOT work for WS-3. Implementing every module in application code in one
+    turn is not READY: five cross-BRD conflicts and multiple TBDs are open,
+    and the pack forbids silent resolution. Application stories stay unstarted
+    until Rajal answers BRD-ALIGNMENT §5.
+
+scope:
+  code: SC0
+  business_scope: "in scope — PO-issued detailed BRDs for assisted Life chapters"
+  serves: []
+  failure_without_it: "agents and engineers would keep implementing against superseded Working Decisions / P0 capabilities"
+  minimal: true
+  authority: "Rajal R1 · BRD-OVERVIEW · DOC-005"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S08 — Engineering Foundation"
+  binds_when: "any implementation against Login, Lead, Suitability, Savings quote, Pitch Deck, Customer buying, or Exception Handling"
+  failure_without_it: "module behaviour would be implemented from superseded Working Decisions and P0 capabilities"
+  evidence_tier: E2
+  evidence:
+    - "Nine Draft BRDs with source hashes in requirements/brd-detailed/manifest.json"
+    - "QA fidelity report passed (0 missing source values)"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT
+action_rationale: >
+  Admit DOC ingest and conflict analysis only. Do not admit a single
+  implementation epic that silently picks winners for C1–C7. Application
+  alignment is MUST after Rajal answers; it is not READY.
+duplicate_of: null
+conflicts:
+  - "C1/C2 BI lock event — Lead vs Product Details vs Suitability/Quote"
+  - "C3 Insurance RM assignment timing — Lead vs Quote/Customer v1.2"
+  - "C5 buy outside suitability — Listing KBR-03 vs Suitability §4.2 vs D-005"
+  - "C7 Exception multi-rule — Block-if-any vs highest hierarchy"
+  - "D-002 three journeys Day 1 vs assisted-only pack / CR-015 sequencing (not overturned)"
+
+classification:
+  type: DOC
+  also: []
+  breakdown: STORY
+  epic: null
+  risk_tier: T2
+  destination: "requirements/brd-detailed/ + BRD-ALIGNMENT-2026-09-28.md"
+
+priority:
+  now: P2
+  at_target: P1
+  factors: { N: 2, S: 1, B: 2, R: 1, D: 1, E: 1 }
+  score: 11
+  matrix_default: P2
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "MUST SSOT correction at S08; application code blocked on Product answers"
+
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 0
+  earliest_start: "2026-09-28"
+  cycles: none
+
+breakdown:
+  children: []
+  completion_definition: "Pack ingested, precedence updated, conflicts listed, Rajal questions asked. Application code not in this story."
+  not_included:
+    - "Flutter / BFF / domain-service implementation"
+    - "Silent resolution of C1–C7"
+    - "Invented premium / PPT / tax / notification values"
+    - "Overturning D-002 or CR-015 without Rajal"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: DOC-005
+  plan_id: null
+  status: ADMITTED
+  closed_reason: null
+
+resumed: "SUG-20260928-brd — no prior work item was in flight; this session opened with this input."
+```
 
 ### SUG-20260923-scs · SCR-03 customer search unified contract
 

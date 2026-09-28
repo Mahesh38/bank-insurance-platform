@@ -1,17 +1,19 @@
 # Requirements pack — AU Bank Insurance Distribution Platform
 
 **Owner:** Platform Product Owner + Business Analysis  
-**Status:** v0.2 — aligned to [Working Decisions Draft v1](../07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md)  
+**Status:** v0.3 — detailed module BRDs ingested 2026-09-28 (`DOC-005`)  
 **Knowledge base:** [../knowledge-base/](../knowledge-base/README.md)
 
 | Doc | Purpose |
 |-----|---------|
-| [07 Working Decisions](../07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md) | Working SSOT for MVP business decisions |
+| **[brd-detailed/](./brd-detailed/README.md)** | **Module-behaviour SSOT — Rajal pack September 2026** |
+| [BRD-ALIGNMENT-2026-09-28.md](./BRD-ALIGNMENT-2026-09-28.md) | Conflicts, TBDs, questions, requirement-to-code map — no silent resolution |
+| [07 Working Decisions](../07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md) | Programme-level MVP decisions not restated in the pack |
 | **[BRD-OVERVIEW.md](./BRD-OVERVIEW.md)** | **PO-approved BRD chapter map (binding TOC)** |
 | [BRD-OVERVIEW-CHECKLIST.md](./BRD-OVERVIEW-CHECKLIST.md) | Flat checklist of PO source headings |
 | [R0-SCOPE.md](./R0-SCOPE.md) | Release 0 / MVP scope one-pager |
-| [PRD-R0-DISTRIBUTION-PLATFORM.md](./PRD-R0-DISTRIBUTION-PLATFORM.md) | Product requirements for R0 |
-| [BRD-P0-CAPABILITIES.md](./BRD-P0-CAPABILITIES.md) | P0 capability requirements with acceptance criteria (integration-era; align to BRD overview) |
+| [PRD-R0-DISTRIBUTION-PLATFORM.md](./PRD-R0-DISTRIBUTION-PLATFORM.md) | Product requirements for R0 — superseded where the pack conflicts |
+| [BRD-P0-CAPABILITIES.md](./BRD-P0-CAPABILITIES.md) | P0 capability requirements (integration-era; superseded where the pack conflicts) |
 
 ### Traceability
 

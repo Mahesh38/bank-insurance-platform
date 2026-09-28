@@ -42,6 +42,7 @@
 | 9 | `Phase_3_Business_Processes_and_Customer_Journeys_v0.1_*.pdf` | 2026-07-31 | JRN-001… (RM assisted sale etc.) | **Adopt** spine; reopen detail | KB 04 |
 | 10 | `Phase_4_Business_Rules_Information_Model_and_Governance_v0.1_*.pdf` | 2026-07-31 | Rule categories, canonical objects, governance | **Adopt** structure | KB 07 |
 | 11 | `Phase_5_Solution_Architecture_Blueprint_v0.1_*.pdf` | 2026-07-31 | Domains, integration phases A–C, flow | **Adopt** as advisory blueprint | KB 08 |
+| 12 | Rajal detailed module BRD pack (9 DOCX → context MD) | 2026-09-28 | Login, Lead, Suitability (Savings/ULIP), Savings listing/details/quote, Pitch Deck, Customer Buying Journey v1.2, Exception Handling | **Adopt** as module-behaviour SSOT (`DOC-005`). Conflicts/TBDs not closed. | [brd-detailed/](./requirements/brd-detailed/README.md) · [alignment](./requirements/BRD-ALIGNMENT-2026-09-28.md) |
 
 **Location:** `docs/au-bank-insurance-platform/artefacts/uploads/`
 
@@ -62,4 +63,5 @@
 
 1. Figma walkthrough or frame exports → map to CJ/RMJ (Figma = **reference only**, D-012).  
 2. **Management validation** of Working Decisions + R0-SCOPE ([04-MANAGEMENT-READINESS](./po-drive/04-MANAGEMENT-READINESS.md)) — LOB/Sold already working-decided.  
-3. BA pack: Consent/Suitability **content** rules + hybrid journey deep dive.
+3. BA pack: Consent/Suitability **content** rules + hybrid journey deep dive.  
+4. Rajal answers on [BRD-ALIGNMENT-2026-09-28.md §5](./requirements/BRD-ALIGNMENT-2026-09-28.md#5-questions-for-rajal--do-not-assume) before any application alignment.

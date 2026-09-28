@@ -13,11 +13,11 @@
 | Rule | Guidance |
 |------|----------|
 | Status | **Working decisions** — not yet board-signed; treat as default until overturned |
-| Conflicts | If older docs disagree, **this file wins** until a newer version is published |
+| Conflicts | Programme-level decisions in this file (LOB, ETB, Sold, payment device, 1SB, consent principle) stand until Rajal overturns them. **Module behaviour** for Login, Lead, Suitability (Savings/ULIP), Savings listing/details/quote, Pitch Deck, Customer buying, and Exception Handling is owned by the [2026-09 detailed BRD pack](./requirements/brd-detailed/README.md) (`DOC-005`). Unresolved TBDs and cross-BRD conflicts: [BRD-ALIGNMENT-2026-09-28.md](./requirements/BRD-ALIGNMENT-2026-09-28.md) |
 | Engineering | Prefer **configurable policy-driven controls** where §16 items are still pending |
 | Aggregator | 1SB is the **current integration layer**, not a temporary hack (§18) |
 
-Related: [BRD-OVERVIEW.md](./requirements/BRD-OVERVIEW.md) · [R0-SCOPE.md](./requirements/R0-SCOPE.md) · [knowledge-base/](./knowledge-base/README.md)
+Related: [detailed module BRDs](./requirements/brd-detailed/README.md) · [BRD-OVERVIEW.md](./requirements/BRD-OVERVIEW.md) · [R0-SCOPE.md](./requirements/R0-SCOPE.md) · [knowledge-base/](./knowledge-base/README.md)
 
 ---
 
@@ -387,3 +387,4 @@ Canonical IDs: [DECISION-LOG.md](./DECISION-LOG.md).
 |---------|------|--------|-------|
 | 1.0 | 2026-07-31 | Initial working draft from discovery clarifications | Platform PO |
 | 1.1 | 2026-07-31 | PO document review: align Decision Log IDs; clarify Working vs Approved | Platform PO |
+| 1.2 | 2026-09-28 | Module-behaviour SSOT moved to the September 2026 detailed BRD pack (`DOC-005`). This file keeps programme decisions. Conflicts not silently closed. | Platform PO (pack) / BA ingest |

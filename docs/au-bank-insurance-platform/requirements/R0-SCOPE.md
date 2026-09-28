@@ -1,7 +1,7 @@
 # R0 / MVP Scope One-Pager — AU Bank Insurance Distribution Platform
 
 **Version:** 0.4  
-**Status:** Aligned to [Business Clarifications & Working Decisions v1](../07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md)  
+**Status:** Aligned to [Business Clarifications & Working Decisions v1](../07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md). Module behaviour for chapters in the [2026-09 Rajal pack](./brd-detailed/README.md) follows that pack (`DOC-005`). Open conflicts: [BRD-ALIGNMENT-2026-09-28.md](./BRD-ALIGNMENT-2026-09-28.md).  
 **Journey focus:** RM-assisted first in the **current increment**; Self-service + Hybrid remain in the product (A2) but sequenced behind assisted  
 **Sold =** Policy issued + confirmation + reconcilable + ops-trackable  
 **Executive sponsor perspective:** [Dilip — AI Executive Sponsor Perspective](../../context/roles/principal-insurance-platform-product-owner/executive-sponsor-perspective/README.md)

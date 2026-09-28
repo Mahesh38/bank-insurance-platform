@@ -10,8 +10,8 @@ info:
 
     Success body is the resource. Errors are application/problem+json (ADR-017).
     iconUrl is https on the bank CDN/BFF only. Widget enum is closed.
-    Field names are unique on a screen. Nested dependence is options[].reveals
-    or field.reveals, max depth 3, plus visibleWhen predicates.
+    Field names are unique on a screen. Every field is a sibling. Dependence
+    is visibleWhen / requiredWhen / enabledWhen / dependsOn only. No reveals.
     Submit carries actionId; the BFF resolves SCREEN_ACTION. Flutter never
     sends command or ownerContext.
     R0 LEAD_PRODUCT_CLASS is FORM+RADIO (Figma picker). Health is omitted.
@@ -24,8 +24,8 @@ paths:
       operationId: getScreen
       summary: Fetch a screen document for the RM to render
       description: |
-        Returns FORM / LIST / CARD / CAROUSEL surfaces plus fields, validation
-        and nested reveals. submission is the blank POST the client clones.
+        Returns FORM / LIST / CARD / CAROUSEL surfaces plus independent fields
+        and validation. submission is the blank POST the client clones.
         Client evaluates visibility locally. Do not poll.
       parameters:
         - $ref: '#/components/parameters/ScreenId'
@@ -456,7 +456,7 @@ components:
       properties:
         name:
           type: string
-          description: Unique on the screen, including nested reveals.
+          description: Unique on the screen. Fields are siblings only.
         label:
           type: string
         help:
@@ -481,11 +481,6 @@ components:
           $ref: '#/components/schemas/Predicate'
         enabledWhen:
           $ref: '#/components/schemas/Predicate'
-        reveals:
-          type: array
-          items:
-            $ref: '#/components/schemas/Field'
-          description: Shown when this CHECKBOX/TOGGLE is true. Max remaining depth 3.
         validation:
           $ref: '#/components/schemas/FieldValidation'
     FieldOption:
@@ -503,11 +498,6 @@ components:
         selectable:
           type: boolean
           default: true
-        reveals:
-          type: array
-          items:
-            $ref: '#/components/schemas/Field'
-          description: Shown when this option is selected. Max remaining depth 3.
     FieldValidation:
       type: object
       additionalProperties: false

@@ -110,7 +110,7 @@ Client validation is UX. **It is never sufficient.**
 
 1. Resolve `SCREEN_DOCUMENT` at the **submitted** `version`. Missing / `SUPERSEDED` without
    replay → `409 CONFLICT` / `STALE_FORM_VERSION`.  
-2. Walk fields; compute visible set from `reveals` + `visibleWhen`.  
+2. Walk sibling fields; compute visible set from `visibleWhen` only.  
 3. Drop hidden names (anti-tamper).  
 4. Apply `FieldValidation` to each visible field.  
 5. If `extrasPolicy=REJECT_UNMAPPED`, reject unknown names.  

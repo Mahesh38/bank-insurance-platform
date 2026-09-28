@@ -30,8 +30,8 @@ description: >
   Publish ADR-021, 10-nip-bff-screen-descriptor.md (wire),
   11-nip-bff-screen-runtime.md (store / validate / bind / persist) and
   nip-bff-screen-descriptor.openapi.yaml. One ScreenDocument for FORM / LIST /
-  CARD / CAROUSEL. Nested dependence via options[].reveals / field.reveals
-  (max depth 3) plus visibleWhen predicates. FieldValidation covers required,
+  CARD / CAROUSEL. Every field is a sibling; dependence is visibleWhen /
+  requiredWhen / enabledWhen / dependsOn only (no reveals tree). FieldValidation covers required,
   format (number/email/mobile/regex), min/max length and min/max value.
   Definitions live as SCREEN_DOCUMENT / SCREEN_ACTION in Configuration #19.
   Submit actionId maps to a closed command; L1 FormRuntime + L2 owning
@@ -47,7 +47,7 @@ acceptance_criteria:
   - id: AC-2
     given: "GET /screens/{screenId}"
     when: "a FORM surface is read"
-    then: "each field declares name, widget, validation, optional dependsOn, visibleWhen and reveals; widget enum is closed"
+    then: "each field is a sibling and declares name, widget, validation, optional dependsOn and visibleWhen; no reveals; widget enum is closed"
   - id: AC-3
     given: "a new capture field that uses an already-shipped widget"
     when: "Configuration publishes a new SCREEN_DOCUMENT version"

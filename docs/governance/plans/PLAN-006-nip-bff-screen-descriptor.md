@@ -12,7 +12,7 @@ date: "2026-09-23"
 
 objective: >
   After this change NIP-APP can implement one renderer for FORM / LIST / CARD /
-  CAROUSEL against a written contract: nested X→Y→Z reveals, visibleWhen
+  CAROUSEL against a written contract: independent sibling fields, visibleWhen
   predicates, and field validation (required, format, length, min/max, regex).
 
 problem: >
@@ -25,7 +25,7 @@ proposed_solution: >
   Publish ADR-021, 10-nip-bff-screen-descriptor.md (wire),
   11-nip-bff-screen-runtime.md (store / L1+L2 / action bind / capture) and
   nip-bff-screen-descriptor.openapi.yaml. Closed widget and surface enums;
-  reveals max depth 3; SCREEN_DOCUMENT + SCREEN_ACTION in Configuration #19;
+  sibling fields only (no reveals); SCREEN_DOCUMENT + SCREEN_ACTION in Configuration #19;
   submit actionId maps to a closed command. Do not implement Flutter or BFF
   runtime. Do not claim T4. Do not rewrite ARCH-025 SearchPage.
 
@@ -85,7 +85,7 @@ dependencies:
 
 acceptance_criteria:
   - "AC-1 ScreenDocument defines FORM, LIST, CARD, CAROUSEL"
-  - "AC-2 Field supports reveals (max depth 3), visibleWhen, and FieldValidation"
+  - "AC-2 Fields are siblings; visibleWhen and FieldValidation; no reveals"
   - "AC-3 Widget and format enums are closed in OpenAPI"
   - "AC-4 CURRENT-STATE.yaml stage fields unchanged; ADR counter stays at 22 (amendment, not a new ADR)"
   - "AC-5 No Flutter or BFF runtime code"

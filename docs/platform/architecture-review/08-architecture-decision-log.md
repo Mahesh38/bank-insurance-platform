@@ -1650,7 +1650,7 @@ origin: SUG-20260923-sdu
 work_item: ARCH-026
 authority_class: A3_JOINT_REVIEW
 decision: >
-  Closed ScreenDocument (FORM|LIST|CARD|CAROUSEL, closed widget enum, reveals max depth 3).
+  Closed ScreenDocument (FORM|LIST|CARD|CAROUSEL, closed widget enum, sibling fields + visibleWhen).
   Definition and submit-binding are SCREEN_DOCUMENT / SCREEN_ACTION payloads in the existing
   Configuration #19 store (extends ADR-007 / CF-2; no form microservice). Submit actionId
   maps to a closed command owned by a named context. L1 FormRuntime + L2 owning invariants.

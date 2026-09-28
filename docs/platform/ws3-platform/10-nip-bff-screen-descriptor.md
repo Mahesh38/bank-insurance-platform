@@ -31,7 +31,7 @@ ScreenDocument
   submission          ← blank POST the client fills (same shape as ScreenSubmission)
   surfaces[]          ← FORM | LIST | CARD | CAROUSEL
     each surface has items[] and/or sections[].fields[]
-      Field           ← widget + validation + visibleWhen + reveals
+      Field           ← widget + validation + visibleWhen (siblings only)
 ```
 
 | Surface | Use | Children |
@@ -54,55 +54,47 @@ dropdowns can cascade without re-downloading the screen.
 ## 2. Field (the only interactive atom)
 
 Every input, label, radio, checkbox and read-only fact is a `Field`. Names are **unique on the
-screen** (including nested `reveals`). Values on submit are a **flat map** `name → value`.
+screen**. Every field is a **sibling** — never a child of another field or option. Values on
+submit are a **flat map** `name → value`. Sections group fields for layout only.
+
+Dependence is **only** `visibleWhen` / `requiredWhen` / `enabledWhen` / `dependsOn`. There is
+no `reveals` tree.
 
 ```json
-{
-  "name": "tobaccoUse",
-  "label": "Does the customer use tobacco?",
-  "widget": "RADIO",
-  "validation": { "required": true },
-  "options": [
-    {
-      "value": "YES",
-      "label": "Yes",
-      "reveals": [
-        {
-          "name": "cigarettesPerDay",
-          "label": "Cigarettes per day",
-          "widget": "SELECT",
-          "validation": { "required": true },
-          "options": [
-            { "value": "1_10", "label": "1–10" },
-            {
-              "value": "20_PLUS",
-              "label": "20+",
-              "reveals": [
-                {
-                  "name": "quitCounselNote",
-                  "label": "Counselling note",
-                  "widget": "TEXTAREA",
-                  "validation": { "required": true, "maxLength": 200 }
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    { "value": "NO", "label": "No" }
-  ]
-}
+[
+  {
+    "name": "tobaccoUse",
+    "label": "Does the customer use tobacco?",
+    "widget": "RADIO",
+    "validation": { "required": true },
+    "options": [
+      { "value": "YES", "label": "Yes" },
+      { "value": "NO", "label": "No" }
+    ]
+  },
+  {
+    "name": "cigarettesPerDay",
+    "label": "Cigarettes per day",
+    "widget": "SELECT",
+    "visibleWhen": { "all": [{ "field": "tobaccoUse", "op": "EQ", "value": "YES" }] },
+    "validation": { "required": true },
+    "options": [
+      { "value": "1_10", "label": "1–10" },
+      { "value": "20_PLUS", "label": "20+" }
+    ]
+  },
+  {
+    "name": "quitCounselNote",
+    "label": "Counselling note",
+    "widget": "TEXTAREA",
+    "visibleWhen": { "all": [{ "field": "cigarettesPerDay", "op": "EQ", "value": "20_PLUS" }] },
+    "validation": { "required": true, "maxLength": 200 }
+  }
+]
 ```
 
-That is **X → Y → Z**:
-
-- X = `tobaccoUse` radio  
-- Y = `cigarettesPerDay` dropdown, only if X is `YES`  
-- Z = `quitCounselNote` textarea, only if Y is `20_PLUS`
-
-Nesting is **`options[].reveals`** (choice widgets) or **`field.reveals`** (CHECKBOX / TOGGLE
-when true). Max depth **3**. A fourth level is a contract defect — split the screen.
+X, Y and Z are independent fields. `submission.body.values` lists all three keys as blanks.
+The client never walks a tree.
 
 ### 2.1 Closed widget vocabulary
 
@@ -128,7 +120,8 @@ widget is a `version` bump only.
 
 ### 2.2 Cross-field predicates (`visibleWhen` / `requiredWhen` / `enabledWhen`)
 
-Use when the child is **not** owned by one option (e.g. show Z only if X=`A` **and** Y=`B`).
+This is the **only** way one field depends on another. Example: show Z only if X=`A` **and**
+Y=`B`.
 
 ```json
 {
@@ -232,9 +225,9 @@ may still return `403` after L1 passes. The BFF does not become the decision mak
 On every value change:
 
 1. Build `values` from visible widgets only.  
-2. Walk fields in document order, depth-first through `reveals`.  
-3. A field is visible if **all** of: parent (if any) is visible; owning option is selected or
-   owning checkbox/toggle is true; `visibleWhen` (if present) is true.  
+2. Walk fields in document order (flat list; sections are layout).  
+3. A field is visible if `visibleWhen` is absent or true. A hidden peer is `NOT_SET`
+   for later predicates (hide cascades).  
 4. A field is enabled unless `enabledWhen` is present and false.  
 5. Required = (`required` or `requiredWhen`) **and** visible.  
 6. Refetch any `optionsUrl` whose `dependsOn` names changed.  
@@ -436,8 +429,7 @@ Keys for fields that start hidden (`verticalId`, `assignedRmId`) are still liste
 new field is a `version` bump, not a client change.
 
 Blank tokens: string / radio / select → `""` · `MULTI_SELECT` → `[]` · boolean
-checkbox/toggle → `null`. Nested `reveals` names are included as extra keys when the
-seed contains them.
+checkbox/toggle → `null`. Every writable sibling is listed, including those that start hidden.
 
 Meeting date / time / link are **not** on this document (`SUG-20260907-fig`).
 
@@ -522,7 +514,7 @@ New list/card screens after this ADR use `ScreenDocument`. Existing typed resour
 | 1SB field names / `{data,errors,reqId}` | No — bank language (`SUG-20260913-acl`) |
 | `{success,data,message}` wrapper | No — §2.1 of the lead LLD |
 | Unbounded widget plugins from the server | No — closed enum; unknown → TEXT fallback |
-| Nesting deeper than 3 | No — split the screen |
+| A field nested under another field or option (`reveals`) | No — siblings + `visibleWhen` only |
 | Login / pipeline / payment-status as FORM | No — `ARCH-026` out of scope |
 | Meeting date/time/link in R0 | No — `SUG-20260907-fig` |
 | Client-only validation | No — L1 schema + L2 invariant (file 11 §3) |

@@ -659,7 +659,7 @@ id_allocation:
     # CR-011 existed as a file from 2026-08-20 without a register row, so the counter read 11
     # while CR-011 was in use; it is now indexed in the decision register and the counter clears
     # both it and CR-012.
-    CR: 17        # CR-001..016 in use (016 = parallel lanes / evidence unpark / RG-9, SUG-20260923-par, CANDIDATE transcribed 2026-09-23 under ADMIT-BYPASS; HUMAN Architecture+Product ratification outstanding); next unused is 17
+    CR: 18        # CR-001..017 in use (017 = UAT AWS account-create / vpc-dev+vpc-uat inventory, SUG-20260928-inf, PENDING — not an approval to apply). Next unused is 18. ID-allocation only; no stage, scope or gate field touched.
     RISK: 16      # RISK-001..015 in use (012..015 added by CR-012)
     ASM: 20       # ASM-001..014, 015..019 in use (013 invalidated 2026-09-14; 015 = Apigee outbound / API Gateway inbound; 016 = private Apigee for internal APIs; 017 = dev-inside-UAT; 018 = no CUG at R0; 019 = AD-verify API + partner IdP + Fireframe UI). ID-allocation only. No stage field touched.
     EPIC: 5       # EPIC-001..004 in use (004 = WS-3 R0 assisted Life Term+Savings+ULIP, CR-015 / SUG-20260911-uls, minted 2026-09-12). Next unused is 5. ID-allocation only.

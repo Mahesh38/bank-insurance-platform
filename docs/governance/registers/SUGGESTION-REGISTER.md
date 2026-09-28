@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20260928-inf | 2026-09-28 | human:stakeholder | Create a CR so Cloud can provision the UAT AWS account: list every service that must exist in that account (`vpc-dev` + `vpc-uat`) | SF1 | SC0 | MUST | INFRA | P2 / P1 | ESCALATED | [CR-017](../change-requests/CR-017-uat-aws-account-provision.md) · [detail](#sug-20260928-inf--uat-aws-account-create-cr) |
 | SUG-20260923-scs | 2026-09-23 | human:architect | NIP BFF SCR-03 search-customer contract: Customer ID / PAN / mobile; lead-first then CBS via Apigee; one stakeholder+dev doc | SF1 | SC0 | SHOULD | ARCH | P2 / P1 | ADMITTED | [ARCH-025](../../platform/ws3-platform/ARCH-025.work-item.yaml) · [PLAN-005](../plans/PLAN-005-nip-bff-customer-search-contract.md) · [contract](../../platform/ws3-platform/09-nip-bff-customer-search-contract.md) · [detail](#sug-20260923-scs--scr-03-customer-search-unified-contract) |
 | SUG-20260923-par | 2026-09-23 | human:stakeholder | Remove governance over-serialization: SF5 parallel lanes, evidence-based unpark, SG-2 CANDIDATE, RG-9 evidenced-blocker T4 relief, DEP-4 soft-default | SF1 | SC1 | MUST | GOV | P1 / P1 | ADMIT-BYPASS | [CR-016](../change-requests/CR-016-parallel-lanes-evidence-unpark.md) · [detail](#sug-20260923-par--parallel-lanes-and-evidence-unpark) |
 | SUG-20260915-pic | 2026-09-15 | human:Mahesh | First-review deck must be illustrated (RM, suitability, quote, proposal, pay, policy), with AWS/external service map and stack/saga — still a Dev/UAT design sitting, production evidence after UAT | SF1 | SC1 | MUST | DOC | P1 / P1 | ADMITTED | [WHAT-TO-SEND](../../architecture/arb-prerequisites/exports/WHAT-TO-SEND.md) · [detail](#sug-20260915-pic--illustrated-journey-and-stack) |
@@ -121,6 +122,113 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20260928-inf · UAT AWS account-create CR
+
+```yaml
+# schema: triage-record
+id: SUG-20260928-inf
+raised_at: "2026-09-28"
+raised_by: "human:stakeholder"
+source: "Request to create a CR listing AWS services for the UAT account"
+input: >
+  i need to create CR to create infra and need to tell them what all services
+  infra needs to create on the AWS for my UAT account.
+duplicate_of: null
+conflicts: []
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S09 — Platform & Environment Foundation"
+  current_objective: R0-ASSISTED-LIFE-SALE
+  state_as_of: "2026-09-13"
+  freshness: WARN   # state_as_of 15 days old; review_due 2026-10-11 — disclose, do not HALT
+  active_work_item: "CR-017 UAT AWS account-create pack"
+
+stage_fit:
+  code: SF1
+  rationale: >
+    S09 is overlapped with S08 and is the next named stage. Account vending and
+    UAT/dev environment apply are S09-E02-S01 / R0-LLD P0–P3. SF5 fails: the
+    change alters G1/G3/G4/G8/G10 (IAM, secrets/KMS, crypto ownership, network
+    topology, regulator-evidenced WORM/residency).
+
+scope:
+  code: SC0
+  business_scope: "in scope — S09 platform foundation; UAT path for WS-1 GATE-P4 4.3"
+  serves: ["S09-E01", "S09-E02", "GATE-P4 4.3 environment half"]
+  failure_without_it: "No UAT AWS account; GATE-S09 and GATE-P4 4.3 cannot close; Render.com cannot carry PII"
+  minimal: true
+  authority: "R0-LLD §1.1 BOM #1 · ADR-020 · S09-platform-foundation.md"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S09 — first apply to vpc-uat"
+  binds_when: "Before C-05 account-create pack is sent to Cloud"
+  evidence_tier: E2
+  evidence:
+    - "R0-LLD §1.1 / §9 / §13"
+    - "S09-E02-S01"
+    - "GATE-P4 4.3 BLOCKED"
+  confidence: C5
+  assumptions: [ASM-017, ASM-018]
+  anti_over_engineering:
+    X1_named_consumer: true    # Cloud / Shivanshi / GATE-P4 4.3
+    X3_cheap_later: false      # account vending after the fact is a rewrite of every resource
+    X5_stage_necessity: true
+    X9_problem_observed: true  # S09 §6: environments absent
+
+action: ESCALATE
+action_rationale: >
+  The architecture is already in R0-LLD. What was missing is the change-control
+  wrapper Cloud can execute: UAT-account inventory, sibling-account split, and
+  an explicit do-not-provision list. Rule CC-1: raise CR-017 PENDING; do not
+  apply; do not manufacture T4 signatures. Not a duplicate of SUG-20260914-uat
+  (that decided *dev-inside-UAT / no CUG*); this CR *requests the account*.
+
+classification:
+  type: INFRA
+  also: [SEC, COMP]
+  breakdown: STORY
+  epic: null
+  risk_tier: T4
+  destination: "change-requests/CR-017-uat-aws-account-provision.md"
+
+priority:
+  score_now: 23
+  factors: { N: 4, S: 3, B: 3, R: 2, D: 2, E: 3 }
+  priority_now: P2
+  priority_at_target: P1
+  overrides_applied: []
+  rationale: >
+    SF1×MUST matrix is P1–P2. Held at P2 while S08 is still the named current
+    phase and GATE-P4 4.3 is also blocked by DEP-002. P1 when S09 apply is the
+    in-flight item.
+
+dependencies:
+  edges:
+    - "blocked_by CR-012 design (already in LLD; ratification outstanding for vpc-uat apply)"
+    - "blocked_by C-05 onboarding pack"
+    - "enables S09-E01/E02 and GATE-P4 4.3 environment half; does not close DEP-002"
+  state: BLOCKED
+  enablement_count: 2
+
+breakdown:
+  stories:
+    - "CR-017: UAT-account AWS inventory + copy-paste Cloud ticket"
+    - "Do not terraform apply in this turn"
+    - "Do not vend prod, split-dev, or CUG"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md · change-requests/CR-017 · DECISION-REGISTER"
+  work_item_id: CR-017
+  status: ESCALATED
+  closed_reason: null
+
+resumed: "CR-017 UAT AWS account-create pack"
+```
 
 ### SUG-20260923-scs · SCR-03 customer search unified contract
 

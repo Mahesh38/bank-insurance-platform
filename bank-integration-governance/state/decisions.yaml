@@ -1,0 +1,153 @@
+# Open decisions (docs/05-decisions.md). Building never waits on these (DC-1); promotion does.
+# Carried over from AIGEM registers at 2026-09-28. needed_by dates are PROPOSED — the delivery lead
+# sets them at the first decision clinic (migration M1.4). AI-drafted until a human decides (DC-4).
+schema: decisions/v1
+as_of: "2026-09-28"
+
+open:
+  # --- The migration itself -------------------------------------------------------------
+  - id: DEC-MIG-01
+    type: 1
+    question: "Adopt FLOW governance (this repository) in place of AIGEM 1.5, via the migration plan?"
+    owner: sponsor
+    advisors: [architecture, product, delivery, security, compliance]
+    needed_by: "2026-10-02"
+    default_while_pending: "AIGEM remains binding in the product repo; this repo is a proposal"
+    blocks_promotion_to: none
+    source: "migration/README.md §2"
+
+  - id: DEC-MIG-02
+    type: 2
+    question: "Treat engineering foundation (old GATE-S08, 10/10 MET, CANDIDATE) as complete and stop gating platform work on its PASS signature?"
+    owner: architecture
+    advisors: [product, delivery]
+    needed_by: "2026-10-02"
+    default_while_pending: "Platform IaC work starts now as Enabler cards (CR-016 SF5 already permits it)"
+    blocks_promotion_to: none
+    source: "CURRENT-STATE.yaml WS-3 current_gate"
+
+  # --- Architecture ---------------------------------------------------------------------
+  - id: DEC-OPEN-ADR-BATCH
+    type: 1
+    question: "Decide the 21 Proposed / AI-drafted ADR and DB-DEC rows (ADR-001..018, ADR-020, DB-DEC-0001/0002): accept, amend or reject each"
+    owner: architecture
+    advisors: [security, reliability, data, compliance]
+    needed_by: "2026-10-16"
+    default_while_pending: "Build to the proposed ADRs in dev; each ADR gates UAT for the paths it governs"
+    blocks_promotion_to: uat
+    note: "Suggest clinic batches of 5, ordered by what bank-UAT needs first (ADR-020, 010, 018, 009, 001)"
+  - id: DEC-OPEN-APIGEE
+    type: 1
+    question: "Apigee product onboarding: private spoke path, per-1SB-path proxies, per-env egress IPs"
+    owner: reliability
+    needed_by: "2026-10-09"
+    default_while_pending: "Configurable adapter base URL; sandbox/WireMock in dev"
+    blocks_promotion_to: uat
+    source: "DEP-20260914-apg; ASM-015; ADR-020"
+  - id: DEC-OPEN-LOB-UNFREEZE
+    type: 1
+    question: "Replace DEC-20260816-05 (Health/Motor waits for GATE-S08 and GATE-S11 PASSED) with a release rule: may Explore work start while R0 is not prod-ready?"
+    owner: product
+    advisors: [compliance, architecture]
+    needed_by: "2026-10-16"
+    default_while_pending: "No Health/Motor code; contract study only"
+    blocks_promotion_to: dev
+  - id: DEC-OPEN-AUDIT-BACKBONE
+    type: 1
+    question: "Audit consumer on MSK (ADR-012) or direct outbox poll for R0"
+    owner: architecture
+    advisors: [data, compliance, reliability]
+    needed_by: "2026-10-16"
+    default_while_pending: "Outbox is the source of truth; consumer behind a port"
+    blocks_promotion_to: uat
+
+  # --- Identity ----------------------------------------------------------------------------
+  - id: DEC-OPEN-AD-TECH
+    type: 1
+    question: "Bank AD technology and the ASM-019 verify-via-bank-API model"
+    owner: architecture
+    external: true
+    needed_by: "2026-10-09"
+    default_while_pending: "Adapter port + stub verifier; no federation code"
+    blocks_promotion_to: uat
+    source: "DEP-010 (overdue since 2026-08-21)"
+  - id: DEC-OPEN-PROD-IDP
+    type: 1
+    question: "Production IdP (Keycloak / Cognito / other)"
+    owner: security
+    needed_by: "2026-11-13"
+    default_while_pending: "Keycloak behind the adapter in dev"
+    blocks_promotion_to: prod
+  - id: DEC-OPEN-RETENTION-AUTH
+    type: 1
+    question: "Confirm 7-year retention for auth/admin events"
+    owner: compliance
+    needed_by: "2026-10-16"
+    default_while_pending: "Configurable, set to 7 years"
+    blocks_promotion_to: prod
+    source: "ASM-005"
+
+  # --- Product / requirements --------------------------------------------------------------
+  - id: DEC-OPEN-BRD-C5
+    type: 1
+    question: "Permissibility of Compare/Buy outside the suitable set (product intent D-017)"
+    owner: compliance
+    advisors: [product]
+    needed_by: "2026-10-09"
+    default_while_pending: "GR-JNY-01 stands; rule built behind configuration, off"
+    blocks_promotion_to: uat
+  - id: DEC-OPEN-BRD-C7
+    type: 2
+    question: "Exception handling when several rules fire"
+    owner: product
+    needed_by: "2026-10-09"
+    default_while_pending: "First-match, ordered by configuration"
+    blocks_promotion_to: uat
+  - id: DEC-OPEN-BRD-Q8
+    type: 2
+    question: "BRD 'PWA' wording vs Flutter NIP-APP (ADR-015)"
+    owner: product
+    needed_by: "2026-10-09"
+    default_while_pending: "ADR-015 stands"
+    blocks_promotion_to: none
+  - id: DEC-OPEN-BRD-Q10
+    type: 1
+    question: "Open formulas in the BRD pack (do not invent)"
+    owner: product
+    needed_by: "2026-10-16"
+    default_while_pending: "Formula is a configured, versioned rule; placeholder refuses to price"
+    blocks_promotion_to: uat
+  - id: DEC-OPEN-GAP006-007
+    type: 1
+    question: "Compliance sign-off of consent (GAP-006) and suitability (GAP-007) rule packs at E2"
+    owner: compliance
+    needed_by: "2026-10-30"
+    default_while_pending: "Rule packs v1 as configuration; build proceeds"
+    blocks_promotion_to: uat
+    note: "Was an S11 entry condition (DEC-20260816-06, non-waivable). Kept as a hard promotion rule, no longer an intake freeze."
+
+  # --- Platform ------------------------------------------------------------------------------
+  - id: DEC-OPEN-COST
+    type: 1
+    question: "Cost envelope for the five 2026-08-24 platform layers (RISK-012, NFR-OPEN-6)"
+    owner: delivery
+    advisors: [reliability, architecture]
+    needed_by: "2026-10-09"
+    default_while_pending: "dev at minimal sizes; price from Terraform plans"
+    blocks_promotion_to: uat
+    source: "DEP-20260824-cst"
+
+# Moved here with date, decider(s), roles held (HAT-1) and link to the record.
+decided:
+  - id: DEC-OPEN-BRD-C1C2
+    question: "When does BI lock suitability and make the lead Eligible?"
+    decision: "On successful final BI"
+    decided_by: "Rajal (product)"
+    decided_on: "2026-09-28"
+    record: "product repo docs/au-bank-insurance-platform/DECISION-LOG.md D-015"
+  - id: DEC-OPEN-BRD-C3
+    question: "Insurance RM assignment timing; Bank RM vs Bank SP"
+    decision: "Insurance RM selected at lead creation; every Bank SP is an RM, not every RM is an SP"
+    decided_by: "Rajal (product)"
+    decided_on: "2026-09-28"
+    record: "product repo docs/au-bank-insurance-platform/DECISION-LOG.md D-016"

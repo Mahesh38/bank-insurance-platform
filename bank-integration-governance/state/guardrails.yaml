@@ -1,0 +1,170 @@
+# Guardrails — the only reasons work may be refused outright.
+# Rules: docs/02-guardrails.md (GR-1..GR-5).
+# Carried over from the product repo: docs/governance/state/CURRENT-STATE.yaml
+#   standing_constraints + every workstream's `never` list, deduplicated.
+# enforcement: code | ci | release | review   (review-only guardrails are automation candidates)
+# owner: a role id from personas/roster.yaml
+
+schema: guardrails/v1
+as_of: "2026-09-28"
+
+guardrails:
+
+  # --- Architecture & integration -------------------------------------------------
+  - id: GR-ARC-01
+    rule: "Bank apps and the client never call 1SB, an insurer or a database directly."
+    scope: programme
+    owner: architecture
+    enforcement: code
+    evidence: "ArchUnit ServiceArchitectureTest in every module"
+    source: "standing_constraints[0]; WS-1/WS-3 never"
+  - id: GR-ARC-02
+    rule: "1SB and insurer specifics live only in adapter.onesb.*; no provider types leak outside the adapter."
+    scope: lane:integration-hub
+    owner: architecture
+    enforcement: code
+    evidence: "ArchUnit ArchitectureRulesBiteTest (1sb-integration-service)"
+    source: "standing_constraints[1]; WS-1 never"
+  - id: GR-ARC-03
+    rule: "1sb-integration-service owns no Flyway migration and no JPA; persistence is platform-common via bank-persistence-service."
+    scope: lane:integration-hub
+    owner: architecture
+    enforcement: code
+    evidence: "ArchUnit + build dependency check"
+    source: "standing_constraints[2,3]"
+  - id: GR-ARC-04
+    rule: "No platform service calls a provider adapter directly; provider traffic routes through the Integration Hub."
+    scope: programme
+    owner: architecture
+    enforcement: code
+    source: "standing_constraints[12]"
+  - id: GR-ARC-05
+    rule: "UI and BFF speak bank/Hub language only — never 1SB or insurer wire codes. Hop is UI -> BFF -> Integration Hub."
+    scope: programme
+    owner: architecture
+    enforcement: review
+    automation_candidate: "contract lint on BFF OpenAPI for provider enums"
+    source: "standing_constraints[13]"
+  - id: GR-ARC-06
+    rule: "Journey orchestration holds stage and references only, never another context's business decision."
+    scope: lane:distribution-journey
+    owner: architecture
+    enforcement: review
+    source: "standing_constraints[14]"
+  - id: GR-ARC-07
+    rule: "One audit store (append-only, via bank-persistence-service). No second audit database; no regulatory evidence exists only in a topic, cache or search index."
+    scope: programme
+    owner: architecture
+    enforcement: review
+    source: "WS-1 never; ADR-011/012/013 invariants"
+  - id: GR-ARC-08
+    rule: "An insurer or aggregator API never defines the bank's canonical journey or domain model."
+    scope: programme
+    owner: architecture
+    enforcement: review
+    source: "WS-3 never"
+
+  # --- Identity & access ------------------------------------------------------------
+  - id: GR-IAM-01
+    rule: "The client never receives OAuth access or refresh tokens; the BFF holds them."
+    scope: programme
+    owner: security
+    enforcement: code
+    evidence: "workforce-access-bff contract tests"
+    source: "standing_constraints[4]; WS-2 never"
+  - id: GR-IAM-02
+    rule: "Keycloak, Cognito or AD are never exposed to the client and are never the source of truth for business authorization."
+    scope: lane:workforce-identity
+    owner: security
+    enforcement: review
+    source: "standing_constraints[5]; WS-2 never"
+  - id: GR-IAM-03
+    rule: "distributorId and actor identity are derived server-side, never taken from a caller-supplied value."
+    scope: programme
+    owner: security
+    enforcement: code
+    source: "WS-3 never"
+
+  # --- Data & privacy -----------------------------------------------------------------
+  - id: GR-DAT-01
+    rule: "No PII in logs."
+    scope: programme
+    owner: security
+    enforcement: code
+    evidence: "LogPiiScrubber + NoPiiInEmittedLogsTest (S08-VT-06)"
+    source: "standing_constraints[6]"
+  - id: GR-DAT-02
+    rule: "Regulated data, backups, logs and archives stay in AWS India regions. Render.com is dev-preview only and never carries PII or production-like data."
+    scope: programme
+    owner: compliance
+    enforcement: release
+    source: "standing_constraints[15]; WS-3 never; ADR-001"
+  - id: GR-DAT-03
+    rule: "Consent, suitability and audit evidence are immutable — append-only, never updated or deleted."
+    scope: programme
+    owner: compliance
+    enforcement: code
+    source: "WS-3 never"
+
+  # --- Regulated journey controls ---------------------------------------------------
+  - id: GR-JNY-01
+    rule: "No quote is produced without a valid, unexpired suitability assessment id."
+    scope: lane:distribution-journey
+    owner: compliance
+    enforcement: code
+    source: "standing_constraints[8]; WS-3 never"
+    note: "D-017 (buy outside suitable set) is product intent only; this guardrail stands until Compliance decides DEC-OPEN-BRD-C5."
+  - id: GR-JNY-02
+    rule: "No proposal is submitted without an unexpired consent grant, and consent is recorded only with a verified customer-device OTP."
+    scope: lane:distribution-journey
+    owner: compliance
+    enforcement: code
+    source: "standing_constraints[9]; WS-3 never"
+  - id: GR-PAY-01
+    rule: "Premium payment executes only on the customer's own device; no API path issues a payment link into an RM or employee session."
+    scope: programme
+    owner: compliance
+    enforcement: code
+    source: "standing_constraints[10]; WS-3 never"
+  - id: GR-PAY-02
+    rule: "A policy is never issued against a payment that is not RECONCILED; 'Policy Sold' is never inferred from quote, proposal or payment alone."
+    scope: lane:distribution-journey
+    owner: product
+    enforcement: code
+    source: "standing_constraints[11]; WS-3 never"
+  - id: GR-JNY-03
+    rule: "An agentic-AI action never substitutes for a deterministic hard gate (suitability, consent, payment device, reconciliation)."
+    scope: programme
+    owner: compliance
+    enforcement: review
+    source: "WS-3 never"
+  - id: GR-JNY-04
+    rule: "The platform does no claims administration and no insurer underwriting decisioning."
+    scope: programme
+    owner: product
+    enforcement: review
+    source: "WS-3 never"
+
+  # --- Engineering floor ------------------------------------------------------------
+  - id: GR-ENG-01
+    rule: "Merge to main requires a green pipeline (build, tests, ArchUnit, static analysis, secret/SAST/SCA/image scans)."
+    scope: programme
+    owner: engineering
+    enforcement: ci
+    evidence: "GitHub ruleset 23340894 (S08-G2)"
+    source: "GATE-S08 G1/G2/G4/G5"
+  - id: GR-ENG-02
+    rule: "Coverage floors hold: libs line >= 80% / branch >= 70%; services at the ratified floor."
+    scope: programme
+    owner: quality
+    enforcement: ci
+    source: "standing_constraints[7]; S08-G3"
+
+  # --- Governance itself ----------------------------------------------------------------
+  - id: GR-GOV-01
+    rule: "No AI agent records a human approval, signs a control change, accepts material risk, interprets regulation as final, or authorises a production release."
+    scope: programme
+    owner: delivery
+    enforcement: review
+    automation_candidate: "PR check: approval fields in state/ may only be changed in commits by humans listed in roster.yaml"
+    source: "AGENTS.md §2; PERSONA-AUTHORITY-MATRIX §4"

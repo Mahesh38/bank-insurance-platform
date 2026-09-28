@@ -1,0 +1,54 @@
+# External dependencies (docs/04-flow.md §4, FL-2). Every row: owner + chase date + how we proceed meanwhile.
+# Carried over from DEPENDENCY-REGISTER.md at 2026-09-28; all four external rows were already past
+# their re-dated 2026-09-18 follow-up.
+schema: dependencies/v1
+as_of: "2026-09-28"
+
+external:
+  - id: DEP-UAT-SLOT
+    was: DEP-002
+    what: "Bank app team UAT slot to exercise Term quote + proposal"
+    owner: product
+    chase_by: "2026-10-02"
+    proceed_meanwhile: "Publish OpenAPI + consumer collection (4.2); run a contract-test consumer in CI"
+    gates: "O-IH-1 done signal"
+  - id: DEP-VPN-DX
+    was: DEP-20260824-dx1
+    what: "Bank terminates Site-to-Site VPN, publishes prefixes, opens firewall, accepts DX order"
+    owner: reliability
+    chase_by: "2026-10-02"
+    proceed_meanwhile: "CBS/AD stubs in dev and UAT; connectivity Terraform written and planned"
+    gates: "bank-UAT against real CBS/AD"
+  - id: DEP-ALLOWLIST
+    was: DEP-20260824-eip
+    what: "1SB and AU Bank PG allowlist the Apigee egress IPs"
+    owner: reliability
+    chase_by: "2026-10-02"
+    proceed_meanwhile: "Sandbox via existing path; never publish NAT EIPs"
+    gates: "bank-UAT quotes and payments"
+  - id: DEP-APIGEE
+    was: DEP-20260914-apg
+    what: "Apigee product onboarded (see DEC-OPEN-APIGEE)"
+    owner: reliability
+    chase_by: "2026-10-02"
+    proceed_meanwhile: "Configurable adapter base URL"
+    gates: "bank-UAT"
+  - id: DEP-AD
+    was: DEP-010
+    what: "Bank confirms AD technology (see DEC-OPEN-AD-TECH)"
+    owner: architecture
+    chase_by: "2026-10-02"
+    proceed_meanwhile: "O-WI-1 and O-WI-2 do not depend on it — proceed in full"
+    gates: "AD federation only"
+
+internal_contract_edges:
+  - { from: distribution-journey, to: integration-hub, contract: "Hub quote/proposal API (bank language)", proceed_meanwhile: "stub from OpenAPI" }
+  - { from: experience-bff, to: distribution-journey, contract: "lead / customer-search", proceed_meanwhile: "BFF stub" }
+  - { from: integration-hub, to: persistence-audit, contract: "/internal/v1 job store + audit", proceed_meanwhile: "already live" }
+  - { from: persistence-audit, to: platform, contract: "MSK topics / IAM (ADR-012)", proceed_meanwhile: "outbox behind a port" }
+
+retired_edges:
+  - { was: DEP-001, why: "Gate 4.3 blocked_by 4.2 — kept as the O-IH-1 sequence inside one outcome, not a cross-lane block" }
+  - { was: DEP-003, why: "Perf smoke SOFT on E2E harness — build standalone smoke if E2E is late" }
+  - { was: DEP-005, why: "Phase 5 blocked_by Phase 4 gate — replaced by DEC-OPEN-LOB-UNFREEZE (release rule)" }
+  - { was: DEP-009, why: "WS-2 Phase 2 blocked_by Phase 1 gate — stage coupling removed; AD dependency remains as DEP-AD" }

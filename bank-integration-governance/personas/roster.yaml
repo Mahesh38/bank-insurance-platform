@@ -1,0 +1,68 @@
+# Roster — role -> human holder. Names are data; lenses are in cards/.
+# Holders below are carried over from the product repo's persona set (AGENTS.md §3) and are
+# UNCONFIRMED until each human confirms their seat and names a deputy (migration step M1.3).
+# A human may hold several roles (HAT-1). Author != approver still applies to R2 (HAT-2).
+
+schema: roster/v1
+as_of: "2026-09-28"
+
+roles:
+  product:
+    holder: "Rajal"
+    deputy: null
+    confirmed: false
+  analyst:
+    holder: "Principal BA (unnamed in source)"
+    deputy: null
+    confirmed: false
+    reports_to: product
+  architecture:
+    holder: "Mahesh"
+    deputy: null
+    confirmed: false
+  engineering:
+    holder: "Amit"
+    deputy: null
+    confirmed: false
+  security:
+    holder: "Deepali"
+    deputy: null
+    confirmed: false
+  data:
+    holder: "Aarti"
+    deputy: null
+    confirmed: false
+  quality:
+    holder: "Swapnali"
+    deputy: null
+    confirmed: false
+  compliance:
+    holder: "Shailja S"
+    deputy: null
+    confirmed: false
+  reliability:
+    holder: "Shivanshi"
+    deputy: null
+    confirmed: false
+  delivery:
+    holder: "Kalpana"
+    deputy: null
+    confirmed: false
+  sponsor:
+    holder: null            # escalation target for missed decision SLAs (DC-2) — must be named
+    deputy: null
+    confirmed: false
+
+lane_leads:                 # one human per lane; see state/lanes.yaml
+  integration-hub: null
+  persistence-audit: null
+  workforce-identity: null
+  distribution-journey: null
+  experience-bff: null
+  platform: null
+  governance: null
+
+# Known reality to resolve at cutover (docs/00-diagnosis.md F6): CR-009 §9.1 records one human
+# approving as Architecture, Product, Delivery, Security and Compliance. If that remains true,
+# record it here honestly (same holder on several roles) and name at least one second human who
+# can approve R2 control changes, or R2 releases cannot happen (HAT-2).

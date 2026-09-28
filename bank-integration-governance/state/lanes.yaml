@@ -1,0 +1,43 @@
+# Lanes — capability-aligned streams (docs/04-flow.md §1). Lane leads are humans (personas/roster.yaml).
+# WIP limits are on human attention (docs/04-flow.md §3); agents per lane are unlimited.
+schema: lanes/v1
+as_of: "2026-09-28"
+
+defaults:
+  now_cards_per_human_reviewer: 2
+  open_prs_per_reviewer: 4
+  open_decisions_per_owner: 5
+  expedite_per_lane: 1
+  enabler_share_min: 0.20
+
+lanes:
+  - id: integration-hub
+    replaces: "WS-1"
+    maturity: { term_path: M3, savings: M2, ulip: M1, health_motor: M0 }
+    pack: context/packs/integration-hub.md
+  - id: persistence-audit
+    replaces: "parts of WS-1 / WS-3 (#16)"
+    maturity: { job_store: M3, audit_store: M2, r0_physical_model: M1 }
+    pack: context/packs/persistence-audit.md
+  - id: workforce-identity
+    replaces: "WS-2"
+    maturity: { bff_session: M2, idp_adapter: M1, pdp: M1, ad_federation: M0 }
+    pack: context/packs/workforce-identity.md
+  - id: distribution-journey
+    replaces: "WS-3 product contexts #4-#13, #16, #18, #19"
+    maturity: { consent: M1, suitability: M1, lead: M1, quote: M1, proposal: M0, payment: M0, policy: M0 }
+    pack: context/packs/distribution-journey.md
+  - id: experience-bff
+    replaces: "WS-3 context #2"
+    maturity: { lead_phase_contract: M1, customer_search_contract: M1 }
+    pack: context/packs/experience-bff.md
+  - id: platform
+    replaces: "WS-3 S08/S09"
+    maturity: { ci_cd: M4, security_scanning: M4, iac: M0, environments: M0, observability: M0, connectivity: M0 }
+    pack: context/packs/platform.md
+  - id: governance
+    replaces: "GOV work type"
+    pack: null
+
+# Maturity values are the migration's initial reading from AIGEM evidence (GATE-EVIDENCE.yaml,
+# CURRENT-STATE.yaml). After cutover they are computed from checkpoint evidence, not edited by hand.

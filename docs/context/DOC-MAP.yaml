@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 592
-total_bytes: 20312252
+document_count: 593
+total_bytes: 20318948
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -2109,7 +2109,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 209698
+    bytes: 210023
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -3806,6 +3806,14 @@ documents:
     title: "CR-016 — Parallel lanes, evidence-based unpark, evidenced-blocker T4 relief"
     answers: "Change request: CR-016"
     bytes: 5968
+  - path: docs/governance/change-requests/CR-017-cloud-email.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "Email to Cloud / infra — UAT AWS account (copy and send)"
+    answers: "Use: paste into Outlook / the bank Cloud ticket."
+    bytes: 6250
   - path: docs/governance/change-requests/CR-017-uat-aws-account-provision.md
     bucket: governance
     authority: binding-process
@@ -3813,7 +3821,7 @@ documents:
     persona: null
     title: "CR-017 — Authorize UAT AWS account-create and first S09 apply (`vpc-dev` + `vpc-uat`)"
     answers: "Type: PLAN (with INFRA, SEC and COMP consequences)"
-    bytes: 31094
+    bytes: 31215
   - path: docs/governance/plans/PLAN-001-context-module-and-safe-autopilot.md
     bucket: governance
     authority: binding-process

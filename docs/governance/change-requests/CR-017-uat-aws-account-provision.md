@@ -7,6 +7,7 @@
 **Stage:** WS-3 S08 — Engineering Foundation, **S09 overlapped** · WS-1 L7 Hardening
 **Decision:** **PENDING.** This CR is the Cloud / landing-zone request. It is **not** an approval to `terraform apply`, not a stage transition, and not a substitute for the human T4 signatures on [`R0-LLD.md` §15](../../architecture/R0-LLD.md#15-sign-off-required-before-this-pack-is-used-as-s09-input).
 **Origin:** `SUG-20260928-inf`
+**Email to send to Cloud:** [`CR-017-cloud-email.md`](./CR-017-cloud-email.md) — copy-paste mail for the infra team.  
 **SSOT for SKUs, CIDRs, IAM and sequencing:** [`docs/architecture/R0-LLD.md`](../../architecture/R0-LLD.md) — this file extracts the **UAT-account slice**. If this CR and the LLD disagree, **the LLD wins**.
 **Related:** [`CR-012`](./CR-012-r0-platform-robustness.md) (design of five platform layers — still PENDING RATIFICATION, **not** an approval to provision) · [`ADR-020`](../registers/DECISION-REGISTER.md) (dev-inside-UAT, no CUG, split API plane) · [`SUG-20260914-uat`](../registers/SUGGESTION-REGISTER.md#sug-20260914-uat--dev-inside-uat-no-cug-at-r0)
 

@@ -359,6 +359,8 @@ that provider's adapter package (`INV-ACL-01`). Enforced by `FF-18`.
 | Journey step definitions and transitions | `(lob, journeyType, version)` | Journey Orchestration #9 |
 | Business rules and rule packs (consent, suitability) | `(lob, ruleSet, version)` | Consent #6, Suitability #7 |
 | Field validation rules | `(lob, formId, fieldId, version)` | BFF #2 and the owning service |
+| Screen documents (`SCREEN_DOCUMENT`) (`ADR-021`) | `(lob, formId, version)` — `formId` = `screenId` | NIP BFF #2 (`GET /screens/{screenId}`) |
+| Screen action bindings (`SCREEN_ACTION`) (`ADR-021`) | `(lob, formId, fieldId, version)` — `fieldId` = `actionId` | NIP BFF #2 + owning context on submit |
 | Document checklists / requirements | `(lob, insurerId, productCode, version)` | Proposal & UW #11 |
 | Role → permission grants, including the IPR gate (`AC-4`…`AC-6`) | `(lob, actorType, roleId, version)` | Identity & Access #3 (PDP) |
 | Commission structures | `(lob, insurerId, productCode, version)` | *namespace reserved in R0; no consumer until R1* |

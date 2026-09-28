@@ -1651,6 +1651,7 @@ work_item: ARCH-026
 authority_class: A3_JOINT_REVIEW
 decision: >
   Closed ScreenDocument (FORM|LIST|CARD|CAROUSEL, closed widget enum, sibling fields + visibleWhen).
+  Every Field declares pii + mask (NONE|LAST4|MOBILE|EMAIL|REDACT); BFF applies mask on GET.
   Definition and submit-binding are SCREEN_DOCUMENT / SCREEN_ACTION payloads in the existing
   Configuration #19 store (extends ADR-007 / CF-2; no form microservice). Submit actionId
   maps to a closed command owned by a named context. L1 FormRuntime + L2 owning invariants.
@@ -1659,3 +1660,6 @@ decision: >
 
 **Amended 2026-09-24:** store, two-layer validation, action catalogue and capture were
 underspecified on the first draft (wire-only). The amendment does not mint ADR-022.
+
+**Amended 2026-09-28:** sibling fields only (no `reveals`); every Field required `pii` + `mask`.
+Does not mint ADR-022.

@@ -12,6 +12,7 @@ info:
     iconUrl is https on the bank CDN/BFF only. Widget enum is closed.
     Field names are unique on a screen. Every field is a sibling. Dependence
     is visibleWhen / requiredWhen / enabledWhen / dependsOn only. No reveals.
+    Every field declares pii (boolean) and mask (NONE|LAST4|MOBILE|EMAIL|REDACT).
     Submit carries actionId; the BFF resolves SCREEN_ACTION. Flutter never
     sends command or ownerContext.
     R0 LEAD_PRODUCT_CLASS is FORM+RADIO (Figma picker). Health is omitted.
@@ -156,7 +157,7 @@ components:
       summary: Figma — What is Abhishek looking for? (Health omitted)
       value:
         screenId: LEAD_PRODUCT_CLASS
-        version: "2026-09-24.1"
+        version: "2026-09-28.1"
         title: What is Abhishek looking for?
         surfaces:
           - id: life
@@ -167,6 +168,8 @@ components:
                 fields:
                   - name: productClass
                     widget: RADIO
+                    pii: false
+                    mask: NONE
                     validation:
                       required: true
                     options:
@@ -192,7 +195,7 @@ components:
           href: /api/v1/screens/LEAD_PRODUCT_CLASS/submissions
           body:
             screenId: LEAD_PRODUCT_CLASS
-            version: "2026-09-24.1"
+            version: "2026-09-28.1"
             actionId: continue
             customerId: 01JQX4K7R8M2N3P4Q5S6T7V8X1
             values:
@@ -201,7 +204,7 @@ components:
       summary: Lead created facts + assignment
       value:
         screenId: LEAD_ASSIGNMENT
-        version: "2026-09-24.1"
+        version: "2026-09-28.1"
         title: Lead created
         surfaces:
           - id: facts
@@ -212,14 +215,20 @@ components:
                   - name: customerDisplayName
                     label: Customer Name
                     widget: READONLY
+                    pii: true
+                    mask: NONE
                     value: Abhishek Kumar
                   - name: maskedCustomerRef
                     label: Customer ID
                     widget: READONLY
+                    pii: true
+                    mask: LAST4
                     value: XXXXXX0433
                   - name: leadId
                     label: Lead ID
                     widget: READONLY
+                    pii: false
+                    mask: NONE
                     value: 01JQX4K7R8M2N3P4Q5S6T7V8W9
               - id: assignment
                 title: Assign lead to SP
@@ -227,12 +236,16 @@ components:
                   - name: branchId
                     label: Select branch
                     widget: SELECT
+                    pii: false
+                    mask: NONE
                     validation:
                       required: true
                     optionsUrl: /api/v1/workspace/assignment-options?level=BRANCH
                   - name: verticalId
                     label: Select vertical
                     widget: SELECT
+                    pii: false
+                    mask: NONE
                     dependsOn: [branchId]
                     visibleWhen:
                       all:
@@ -244,6 +257,8 @@ components:
                   - name: assignedRmId
                     label: Select RM
                     widget: SELECT
+                    pii: false
+                    mask: NONE
                     dependsOn: [branchId, verticalId]
                     visibleWhen:
                       all:
@@ -262,7 +277,7 @@ components:
           href: /api/v1/screens/LEAD_ASSIGNMENT/submissions
           body:
             screenId: LEAD_ASSIGNMENT
-            version: "2026-09-24.1"
+            version: "2026-09-28.1"
             actionId: continue
             leadId: 01JQX4K7R8M2N3P4Q5S6T7V8W9
             values:
@@ -272,7 +287,7 @@ components:
     SubmitProductClass:
       value:
         screenId: LEAD_PRODUCT_CLASS
-        version: "2026-09-24.1"
+        version: "2026-09-28.1"
         actionId: continue
         customerId: 01JQX4K7R8M2N3P4Q5S6T7V8X1
         values:
@@ -280,7 +295,7 @@ components:
     SubmitAssignment:
       value:
         screenId: LEAD_ASSIGNMENT
-        version: "2026-09-24.1"
+        version: "2026-09-28.1"
         actionId: continue
         leadId: 01JQX4K7R8M2N3P4Q5S6T7V8W9
         values:
@@ -290,7 +305,7 @@ components:
     SubmissionCreatedLead:
       value:
         screenId: LEAD_PRODUCT_CLASS
-        version: "2026-09-24.1"
+        version: "2026-09-28.1"
         actionId: continue
         outcome: CREATED
         leadId: 01JQX4K7R8M2N3P4Q5S6T7V8W9
@@ -298,7 +313,7 @@ components:
     SubmissionAcceptedAssignment:
       value:
         screenId: LEAD_ASSIGNMENT
-        version: "2026-09-24.1"
+        version: "2026-09-28.1"
         actionId: continue
         outcome: ACCEPTED
         leadId: 01JQX4K7R8M2N3P4Q5S6T7V8W9
@@ -306,7 +321,7 @@ components:
     SubmissionReplayed:
       value:
         screenId: LEAD_ASSIGNMENT
-        version: "2026-09-24.1"
+        version: "2026-09-28.1"
         actionId: continue
         outcome: REPLAYED
         leadId: 01JQX4K7R8M2N3P4Q5S6T7V8W9
@@ -452,7 +467,7 @@ components:
     Field:
       type: object
       additionalProperties: false
-      required: [name, widget]
+      required: [name, widget, pii, mask]
       properties:
         name:
           type: string
@@ -463,8 +478,19 @@ components:
           type: string
         widget:
           $ref: '#/components/schemas/Widget'
+        pii:
+          type: boolean
+          description: >
+            Shailja classification. true = personal or restricted data.
+            Logs, crash reports and analytics never contain the value.
+            Omission is a seed defect (fail closed). pii false requires
+            mask NONE. mask other than NONE requires pii true.
+        mask:
+          $ref: '#/components/schemas/MaskAlgorithm'
         value:
-          description: Server prefill (READONLY or known value).
+          description: >
+            Server prefill already in display form. BFF applied mask at
+            the L4→device hop. Client paints it; it does not re-mask.
         options:
           type: array
           items:
@@ -557,6 +583,18 @@ components:
           type: string
           enum: [SET, NOT_SET, EQ, NEQ, IN, NOT_IN]
         value: {}
+    MaskAlgorithm:
+      type: string
+      description: >
+        Display-form algorithm the BFF applied to GET value. Client never
+        re-applies it. Algorithms match ARCH-025 toPublic(). PAN is never
+        LAST4-and-returned — use REDACT and omit value.
+      enum:
+        - NONE
+        - LAST4
+        - MOBILE
+        - EMAIL
+        - REDACT
     Widget:
       type: string
       enum:

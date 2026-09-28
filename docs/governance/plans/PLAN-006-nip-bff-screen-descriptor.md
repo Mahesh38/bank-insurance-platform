@@ -5,6 +5,7 @@
 id: PLAN-006
 work_item: ARCH-026
 origin: SUG-20260923-sdu
+# absorbed: SUG-20260928-pii (Field pii + mask)
 workstream: WS-3
 risk_tier: T3
 author: "agent:cursor-grok (persona: Mahesh)"
@@ -13,7 +14,8 @@ date: "2026-09-23"
 objective: >
   After this change NIP-APP can implement one renderer for FORM / LIST / CARD /
   CAROUSEL against a written contract: independent sibling fields, visibleWhen
-  predicates, and field validation (required, format, length, min/max, regex).
+  predicates, field validation (required, format, length, min/max, regex), and
+  per-field pii + mask.
 
 problem: >
   SUG-20260923-sdu admitted ARCH-026 without the field/surface grammar frontend
@@ -27,7 +29,7 @@ proposed_solution: >
   12-nip-bff-screen-authoring.md (cookbook to seed any form) and
   nip-bff-screen-descriptor.openapi.yaml. Closed widget and surface enums;
   sibling fields only (no reveals); SCREEN_DOCUMENT + SCREEN_ACTION in Configuration #19;
-  submit actionId maps to a closed command. Do not implement Flutter or BFF
+  submit actionId maps to a closed command. Every Field declares pii + mask. Do not implement Flutter or BFF
   runtime. Do not claim T4. Do not rewrite ARCH-025 SearchPage.
 
 alternatives:
@@ -60,7 +62,7 @@ files_expected:
 
 data_changes: none
 api_changes: "additive documentation of unpublished /screens/{screenId} and submissions; no runtime caller"
-security_impact: "PII — iconUrl CDN-only; PAN format not echoed; no runtime exposure change"
+security_impact: "PII — every Field declares pii+mask; iconUrl CDN-only; PAN format not echoed; no runtime exposure change"
 compliance_impact: "audit — assignment submit remains a material action; no consent change"
 backward_compatibility: "compatible for runtime (no callers); does not rewrite SearchPage or PipelinePage"
 performance_impact: "none — documentation"
@@ -94,6 +96,7 @@ acceptance_criteria:
   - "AC-6 File 11 names SCREEN_DOCUMENT / SCREEN_ACTION in Configuration #19, L1+L2, closed command catalogue, and screen_submission capture"
   - "AC-7 ScreenSubmission requires actionId; Flutter does not send command"
   - "AC-8 File 12 authoring cookbook covers GET/POST, every widget, value tokens, operators, validation, optionsUrl and seed checklist"
+  - "AC-9 Every Field declares pii and mask; BFF applies mask on GET value; client does not re-mask; pii values never logged"
 
 out_of_scope:
   - "Flutter / iOS / Android / Web renderer"

@@ -47,11 +47,12 @@ Do these in order. Skip none.
 5. **Widgets** — only the closed enum in §5. Unknown widget is a seed defect.  
 6. **Options** — inline for a small closed list; `optionsUrl` for live / cascading lists.  
 7. **Dependence** — `visibleWhen` / `requiredWhen` / `enabledWhen` / `dependsOn`. Never nest a field inside another field.  
-8. **Validation** — same object the client and L1 will run (§7).  
-9. **`submission.body`** — every writable `name` as a blank token; `READONLY` omitted; known ids prefilled.  
-10. **`SCREEN_ACTION`** — `actionId` → `command` + `bindings` + optional `defaults`. Flutter never sees this.  
-11. **Seed** — new `version`, `effective_from`, git (`INV-CFG-02`, `CF-4`). Never UPDATE an active row.  
-12. **Project GET** — BFF resolves config, writes request-scoped prefill into `READONLY.value`.
+8. **PII / mask** — every field: `pii` boolean + `mask` enum. Fail closed if omitted.  
+9. **Validation** — same object the client and L1 will run (§7).  
+10. **`submission.body`** — every writable `name` as a blank token; `READONLY` omitted; known ids prefilled.  
+11. **`SCREEN_ACTION`** — `actionId` → `command` + `bindings` + optional `defaults`. Flutter never sees this.  
+12. **Seed** — new `version`, `effective_from`, git (`INV-CFG-02`, `CF-4`). Never UPDATE an active row.  
+13. **Project GET** — BFF resolves config, writes request-scoped prefill into `READONLY.value` **already masked**.
 
 ---
 
@@ -76,7 +77,7 @@ BFF internally:
 ```text
 config:resolve SCREEN_DOCUMENT (lob, screenId, at=now)
   → payload ScreenDocument
-  → stamp READONLY.value from SoR (name, mask, leadId)
+  → stamp READONLY.value from SoR (name, mask, leadId) using each field's mask
   → stamp submission.body.version / leadId / customerId
   → stamp submission.body.values with blank tokens for every writable sibling
   → return unwrapped ScreenDocument
@@ -91,7 +92,7 @@ Missing / withdrawn screen → `404`. No compiled-in fallback (`S-21`).
 ```json
 {
   "screenId": "LEAD_ASSIGNMENT",
-  "version": "2026-09-24.1",
+  "version": "2026-09-28.1",
   "title": "Lead created",
   "surfaces": [ /* FORM | LIST | CARD | CAROUSEL */ ],
   "actions": [ /* SUBMIT | NAVIGATE | CANCEL */ ],
@@ -125,6 +126,9 @@ for each field in surfaces[].sections[].fields[] (and CARD.fields[]):
   visible  = (no visibleWhen) OR eval(visibleWhen) == true
   enabled  = (no enabledWhen) OR eval(enabledWhen) == true
   required = visible AND (validation.required OR eval(requiredWhen))
+  if field.pii:
+      never log name or value; never send to analytics / crash
+  paint GET value as-is   # already display-form; do not re-apply mask
   if !visible:
       drop values[name]          # treat as NOT_SET for later predicates
   if optionsUrl and a dependsOn name changed:
@@ -183,6 +187,8 @@ never the server’s behaviour (file 11 §3.1).
   "name": "customerDisplayName",
   "label": "Customer Name",
   "widget": "READONLY",
+  "pii": true,
+  "mask": "NONE",
   "value": "Abhishek Kumar"
 }
 ```
@@ -194,6 +200,8 @@ never the server’s behaviour (file 11 §3.1).
   "name": "verticalId",
   "label": "Select vertical",
   "widget": "SELECT",
+  "pii": false,
+  "mask": "NONE",
   "dependsOn": ["branchId"],
   "visibleWhen": { "all": [{ "field": "branchId", "op": "SET" }] },
   "validation": { "required": true },
@@ -207,6 +215,8 @@ never the server’s behaviour (file 11 §3.1).
 {
   "name": "productClass",
   "widget": "RADIO",
+  "pii": false,
+  "mask": "NONE",
   "validation": { "required": true },
   "options": [
     { "value": "TERM", "label": "Term Life Insurance", "iconUrl": "https://assets.bank.example/nip/classes/term.svg", "selectable": true },
@@ -226,6 +236,8 @@ Product asks to show it). R0 Health is **absent**, not disabled.
   "name": "marketingOptIn",
   "label": "Customer agrees to marketing",
   "widget": "TOGGLE",
+  "pii": true,
+  "mask": "NONE",
   "validation": { "required": false }
 }
 ```
@@ -239,6 +251,8 @@ Product asks to show it). R0 Health is **absent**, not disabled.
   "name": "needs",
   "label": "What matters",
   "widget": "CHECKBOX",
+  "pii": true,
+  "mask": "NONE",
   "validation": { "required": true },
   "options": [
     { "value": "PROTECTION", "label": "Protection" },
@@ -256,6 +270,8 @@ Product asks to show it). R0 Health is **absent**, not disabled.
   "name": "annualIncomeInr",
   "label": "Annual income (₹)",
   "widget": "TEXT",
+  "pii": true,
+  "mask": "REDACT",
   "validation": {
     "required": true,
     "format": "NUMBER",
@@ -275,6 +291,8 @@ Product asks to show it). R0 Health is **absent**, not disabled.
   "name": "dob",
   "label": "Date of birth",
   "widget": "DATE",
+  "pii": true,
+  "mask": "REDACT",
   "validation": { "required": true, "max": "2008-09-28" }
 }
 ```
@@ -291,6 +309,66 @@ Product asks to show it). R0 Health is **absent**, not disabled.
 | Bank language (`lob`, `productClass`, `branchId`) | 1SB codes, CIF, PAN, full mobile |
 
 `iconUrl` is display. It is never a submitted value.
+
+### 6.4 PII and masking — declare on every field
+
+Two required keys. Fail closed if either is missing.
+
+| Key | Type | Who owns the meaning |
+|---|---|---|
+| `pii` | boolean | Shailja — is this personal / restricted data? |
+| `mask` | `NONE` \| `LAST4` \| `MOBILE` \| `EMAIL` \| `REDACT` | Deepali — how GET `value` is painted |
+
+`pii: true` does **not** always hide the field from the RM. Name is PII and still shown (`mask: NONE`). Logs, crash reports and analytics **always** drop `pii: true` values (`INV-LOG-01`, `PII-02`).
+
+| `mask` | When to use | GET `value` |
+|---|---|---|
+| `NONE` | Not PII, **or** PII the RM must read (name, YES/NO health codes) | As in SoR / blank capture token |
+| `LAST4` | Customer ID / CIF-shaped identifiers | `XXXXXX0433` — BFF already applied |
+| `MOBILE` | Mobile that may be prefilled | `+91 933****412` |
+| `EMAIL` | Email that may be prefilled | `abh*****@gmail.com` |
+| `REDACT` | PAN, DOB, income, free-text health notes | `""` or `********` — never raw |
+
+Resolution:
+
+```text
+BFF GET:
+  SoR raw → apply field.mask → Field.value (display-form)
+Client:
+  paint Field.value
+  do not run LAST4/MOBILE/EMAIL/REDACT again
+  if pii: never log
+POST:
+  capture widgets send the typed value (full mobile, not the masked paint)
+  READONLY names stay omitted
+400 VALIDATION_ERROR:
+  errors[].field = name; body must not echo a pii value
+```
+
+Seed rules the CI must fail:
+
+- `pii` and `mask` present on every field
+- `pii: false` ⇒ `mask: NONE`
+- `mask != NONE` ⇒ `pii: true`
+- `format: PAN` ⇒ `mask: REDACT` and no GET `value`
+- Double-masking is a client bug, not a seed bug
+
+Worked R0 stamps: `customerDisplayName` `pii:true`/`NONE` · `maskedCustomerRef` `pii:true`/`LAST4` · `leadId` and bank codes `pii:false`/`NONE`.
+
+A TEL capture field the RM types:
+
+```json
+{
+  "name": "mobile",
+  "label": "Mobile",
+  "widget": "TEL",
+  "pii": true,
+  "mask": "MOBILE",
+  "validation": { "required": true, "format": "MOBILE_IN" }
+}
+```
+
+GET blank token stays `""`. If BFF later prefills, it stamps `+91 933****412`. POST still sends `9331111412`.
 
 ---
 
@@ -317,7 +395,8 @@ Hidden fields are **not** validated (they are `NOT_SET`).
 L1 order per visible field: required → format/pattern → length → min/max → decimalPlaces →
 (for SELECT/RADIO) value ∈ last option list.
 
-Fail → `400 VALIDATION_ERROR`, `errors[].field` = `name`.
+Fail → `400 VALIDATION_ERROR`, `errors[].field` = `name`. Do not put the rejected
+value in the problem body when `pii: true`.
 
 ### 7.2 `format` resolution
 
@@ -383,13 +462,13 @@ Start: `{ branchId:"", verticalId:"", assignedRmId:"" }`
 ### 8.4 X → Y → Z as siblings (never a tree)
 
 ```json
-{ "name": "tobaccoUse", "widget": "RADIO", "validation": { "required": true }, "options": [
+{ "name": "tobaccoUse", "widget": "RADIO", "pii": true, "mask": "NONE", "validation": { "required": true }, "options": [
   { "value": "YES", "label": "Yes" }, { "value": "NO", "label": "No" }
 ]}
-{ "name": "cigarettesPerDay", "widget": "SELECT",
+{ "name": "cigarettesPerDay", "widget": "SELECT", "pii": true, "mask": "NONE",
   "visibleWhen": { "all": [{ "field": "tobaccoUse", "op": "EQ", "value": "YES" }] },
   "validation": { "required": true } }
-{ "name": "quitCounselNote", "widget": "TEXTAREA",
+{ "name": "quitCounselNote", "widget": "TEXTAREA", "pii": true, "mask": "REDACT",
   "visibleWhen": { "all": [{ "field": "cigarettesPerDay", "op": "EQ", "value": "20_PLUS" }] },
   "validation": { "required": true, "maxLength": 200 } }
 ```
@@ -472,7 +551,7 @@ Prefill into **body**, not into `values`: `leadId`, `customerId`, `screenId`, `v
 ```json
 {
   "screenId": "LEAD_ASSIGNMENT",
-  "version": "2026-09-24.1",
+  "version": "2026-09-28.1",
   "actionId": "continue",
   "leadId": "01JQX4K7R8M2N3P4Q5S6T7V8W9",
   "values": {
@@ -505,7 +584,7 @@ return ScreenSubmissionResult
 ```json
 {
   "screenId": "LEAD_ASSIGNMENT",
-  "version": "2026-09-24.1",
+  "version": "2026-09-28.1",
   "actionId": "continue",
   "outcome": "ACCEPTED",
   "leadId": "01JQX4K7R8M2N3P4Q5S6T7V8W9",
@@ -609,6 +688,9 @@ release**, not a seed.
 - [ ] Every `name` unique  
 - [ ] No `reveals`, no field nested under an option  
 - [ ] Every `widget` in the enum  
+- [ ] Every field has `pii` (boolean) and `mask` (`NONE`\|`LAST4`\|`MOBILE`\|`EMAIL`\|`REDACT`)  
+- [ ] `pii: false` only with `mask: NONE`; `mask` other than `NONE` only with `pii: true`  
+- [ ] `format: PAN` uses `mask: REDACT` and no GET `value`  
 - [ ] Every `visibleWhen.field` names a sibling on this screen  
 - [ ] No predicate cycles  
 - [ ] `optionsUrl` tokens `{name}` exist as fields  
@@ -635,6 +717,9 @@ release**, not a seed.
 | Client-only validation | L1 + L2 |
 | UPDATE the live seed | New version |
 | A form microservice | Configuration #19 + owning context |
+| Omit `pii` / `mask` | Seed CI fails; do not default to false |
+| Client re-masks GET `value` | Paint it; BFF already applied `mask` |
+| Log a `pii: true` value | Correlation id only (`INV-LOG-01`) |
 
 ---
 
@@ -645,6 +730,7 @@ release**, not a seed.
 | Wire + samples | file 10, OpenAPI |
 | Store, L1/L2, commands | file 11, `ADR-007`, `CF-2` |
 | Sibling fields | `ADR-021` (2026-09-28 amendment) |
-| No store resubmit for a shipped widget | `ARCH-026` AC-3 / AC-9 |
+| Field `pii` / `mask` | `CTRL-02`, `INV-LOG-01`, `PII-02`, `ARCH-025`, `SUG-20260928-pii` |
+| No store resubmit for a shipped widget | `ARCH-026` AC-3 / AC-9 / AC-11 |
 | Figma is reference | `R0-SCOPE` A11 |
 | Health / meetings parked | `CR-015`, `SUG-20260907-fig` |

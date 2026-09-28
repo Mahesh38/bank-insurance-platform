@@ -82,11 +82,12 @@ GET /internal/v1/config:resolve
 ```
 
 BFF `GET /screens/{screenId}` is a projection of that resolve, plus request-scoped prefill
-(name, masked ref, `leadId`) written into `READONLY.value`. Prefill is **not** stored in the
-seed.
+(name, masked ref, `leadId`) written into `READONLY.value` **after** applying that field's
+`mask` (`NONE` | `LAST4` | `MOBILE` | `EMAIL` | `REDACT`). Prefill is **not** stored in the
+seed. The device never sees the SoR raw identifier.
 
 `version` on the wire is the configuration version string the seed published (e.g.
-`2026-09-23.1`). Every later business row stores that version (`INV-CFG-03`).
+`2026-09-28.1`). Every later business row stores that version (`INV-CFG-03`).
 
 ### 2.3 What is not stored here
 
@@ -121,7 +122,8 @@ Unknown `widget` on a stored definition is a seed defect (CI must fail the seed)
 fallback (`TEXT`) must never be the server’s behaviour.
 
 PAN / mobile in values: validate format if the field exists; **do not log the value**
-(correlation id only).
+(correlation id only). `VALIDATION_ERROR` cites `errors[].field` = `name` and must not echo
+a `pii: true` rejected value. L1 also refuses a seed that omitted `pii` / `mask`.
 
 ### 3.2 L2 stays where it is
 
@@ -208,7 +210,7 @@ fails closed (`422 ACTION_NOT_BOUND`).
 ```json
 {
   "screenId": "LEAD_ASSIGNMENT",
-  "version": "2026-09-24.1",
+  "version": "2026-09-28.1",
   "actionId": "continue",
   "leadId": "01JQX4K7R8M2N3P4Q5S6T7V8W9",
   "values": {
@@ -285,8 +287,9 @@ lead.screen_submission
   created_at             timestamptz
 ```
 
-INSERT-only. No PII in logs; `values_json` is restricted at the DB (Deepali). Idempotency of
-the **command** stays in Lead’s existing store, not in this table.
+INSERT-only. No PII in logs; `values_json` is restricted at the DB (Deepali). Fields with
+`pii: true` are redacted by the log converter even if a caller tries to print `values_json`.
+Idempotency of the **command** stays in Lead’s existing store, not in this table.
 
 ---
 
@@ -303,7 +306,7 @@ sequenceDiagram
     App->>BFF: GET /screens/LEAD_ASSIGNMENT?leadId=
     BFF->>Cfg: resolve SCREEN_DOCUMENT
     Cfg-->>BFF: version + document
-    BFF-->>App: ScreenDocument (READONLY prefilled)
+    BFF-->>App: ScreenDocument (READONLY prefilled, already masked)
 
     App->>BFF: POST /screens/LEAD_ASSIGNMENT/submissions
     BFF->>Cfg: resolve SCREEN_DOCUMENT + SCREEN_ACTION at version
@@ -334,6 +337,7 @@ CBS / 1SB are not on this path.
 | Using capture JSON as Suitability input | No — promote first |
 | Client-only validation | No — L1 + L2 |
 | Storing raw S3 or 1SB payloads as the definition | No |
+| Echoing a `pii: true` value in logs or problem+json | No — `mask` at BFF; correlation id in logs |
 
 ---
 
@@ -346,6 +350,7 @@ CBS / 1SB are not on this path.
 | BFF is not the decision maker | `07` §2, `ADR-015` |
 | Journey holds references only | Standing constraint |
 | Audit on material submit | `BR-SEC-030` |
+| Field `pii` / `mask` | `CTRL-02`, `INV-LOG-01`, `PII-02`, `ARCH-025`, `SUG-20260928-pii` |
 | Persistence via bank-persistence | Standing constraint; Aarti physical |
 
 ## 9. Open for humans (not silently decided)

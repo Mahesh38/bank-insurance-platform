@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20260928-pii | 2026-09-28 | human:front-architect | Every screen Field must declare whether it is PII and whether masking is needed | SF2 | SC1 | MUST | ARCH | P3 / P2 | ADMITTED | [ARCH-026](../../platform/ws3-platform/ARCH-026.work-item.yaml) · [detail](#sug-20260928-pii--field-pii-and-mask) |
 | SUG-20260923-sdu | 2026-09-23 | human:front-architect | Server-driven NIP-APP: LOB tree + icons from one API; capture forms (assignment first) from a field/type/validation/visibility descriptor so iOS/Android/Web do not store-resubmit for field or catalogue adds | SF5 | SC1 | MUST | ARCH | P3 / P2 | ADMITTED | [ARCH-026](../../platform/ws3-platform/ARCH-026.work-item.yaml) · [detail](#sug-20260923-sdu--server-driven-catalogue-and-form-descriptor) |
 | SUG-20260923-scs | 2026-09-23 | human:architect | NIP BFF SCR-03 search-customer contract: Customer ID / PAN / mobile; lead-first then CBS via Apigee; one stakeholder+dev doc | SF1 | SC0 | SHOULD | ARCH | P2 / P1 | ADMITTED | [ARCH-025](../../platform/ws3-platform/ARCH-025.work-item.yaml) · [PLAN-005](../plans/PLAN-005-nip-bff-customer-search-contract.md) · [contract](../../platform/ws3-platform/09-nip-bff-customer-search-contract.md) · [detail](#sug-20260923-scs--scr-03-customer-search-unified-contract) |
 | SUG-20260923-par | 2026-09-23 | human:stakeholder | Remove governance over-serialization: SF5 parallel lanes, evidence-based unpark, SG-2 CANDIDATE, RG-9 evidenced-blocker T4 relief, DEP-4 soft-default | SF1 | SC1 | MUST | GOV | P1 / P1 | ADMIT-BYPASS | [CR-016](../change-requests/CR-016-parallel-lanes-evidence-unpark.md) · [detail](#sug-20260923-par--parallel-lanes-and-evidence-unpark) |
@@ -122,6 +123,149 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20260928-pii · Field PII and mask
+
+```yaml
+# schema: triage-record
+id: SUG-20260928-pii
+raised_at: "2026-09-28"
+raised_by: "human:front-architect"
+source: "Follow-up on ARCH-026 form-authoring cookbook"
+input: >
+  can we also add if the field is PII of not and masking needed or not?
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-LIFE-SALE — one RM sells complete assisted Life (Term or Savings/ULIP) to one ETB customer end to end"
+  state_as_of: "2026-09-13"
+  state_provisional: false
+  active_work_item: ARCH-026
+
+stage_fit:
+  code: SF2
+  rationale: >
+    Absorbs into in-flight ARCH-026 Field schema. Without pii/mask on the
+    unpublished contract, FUNC-021 would hardcode which names are PII and a
+    later add would be a store change (contradicts AC-3). Documentation only;
+    GATE-S08-neutral.
+  absorption_test:
+    small: true
+    no_new_dependency: true
+    no_new_decision: true
+    gate_neutral: true
+
+scope:
+  code: SC1
+  business_scope: >
+    Derived — standing constraint no PII in logs (INV-LOG-01 / PII-02 / CTRL-02)
+    and ARCH-026 AC-4 (no CIF/PAN/full mobile on the wire) cannot be enforced
+    per field when authors add fields via configuration.
+  serves: ["ARCH-026", "FUNC-021"]
+  failure_without_it: >
+    ScreenDocument ships without a machine-readable PII/mask flag; the S11
+    renderer hardcodes name lists; adding a TEL/EMAIL/READONLY identifier later
+    is a store release and INV-LOG-01 cannot be asserted per field.
+  minimal: true
+  authority: "INV-LOG-01; PII-02; CTRL-02; CTRL-10; ARCH-025 toPublic(); ARCH-026 AC-4 / AC-3"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S11 — Vertical Slice (first NIP-APP store submit)"
+  binds_when: "FUNC-021 implements the Field renderer"
+  failure_without_it: >
+    Field schema without pii/mask makes PII handling a compiled client list,
+    which is the store-resubmit failure ARCH-026 exists to prevent, and leaves
+    INV-LOG-01 unenforceable on config-added fields.
+  evidence_tier: E2
+  evidence:
+    - "Standing constraint: no PII in logs (BOOT / INV-LOG-01 / PII-02)"
+    - "CTRL-02 field-level classification; CTRL-10 log redaction"
+    - "ARCH-026 AC-3 / AC-4; ARCH-025 masking algorithms already decided"
+    - "X3: adding pii/mask after FUNC-021 ships is a breaking Field contract"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X2_two_implementations: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X6_simplest_sufficient: true
+    X7_runtime_cost: false
+    X9_problem_observed: true
+
+action: ADMIT
+action_rationale: >
+  SF2 absorbable × MUST → ADMIT into ARCH-026. Two required Field keys plus
+  closed mask enum reused from ARCH-025. Does not mint ADR-022; amends ADR-021.
+  Does not implement a DLP engine, tokenisation service, or Flutter. Board 6
+  classification of each later seed stays human; OPEN-SEARCH-CIF-MASK stays open.
+conflicts: []
+
+classification:
+  type: ARCH
+  also: [DOC, COMP]
+  breakdown: STORY
+  epic: EPIC-004
+  risk_tier: T3
+  destination: "docs/platform/ws3-platform/ARCH-026.work-item.yaml"
+  rationale: >
+    Contract flags on an unpublished T3 BFF schema. RG-9 / T3: specifies
+    masking, does not change a runtime control. No T4 signature.
+
+priority:
+  now: P3
+  at_target: P2
+  factors: { N: 4, S: 1, B: 0, R: 2, D: 2, E: 1 }
+  score: 13
+  matrix_default: P3
+  consistency: OK
+  overrides_applied: []
+  caps_applied: ["PRI-9"]
+  rationale: "Absorbed into SF5 ARCH-026; PRI-9 already caps that lane at P3."
+
+dependencies:
+  edges:
+    - type: ARCHITECTURAL
+      target: ARCH-026
+      relation: requires
+      state: IN-FLIGHT
+    - type: ARCHITECTURAL
+      target: ADR-021
+      relation: requires
+      state: OPEN
+    - type: TECHNICAL
+      target: ARCH-025
+      relation: related_to
+      state: READY
+  state: READY
+  enablement_count: 0
+  earliest_start: "now — same ARCH-026 documentation lane"
+  cycles: none
+
+breakdown:
+  children: []
+  completion_definition: >
+    Field schema, OpenAPI, samples, cookbook and ADR-021 name pii + mask;
+    seed checklist fails closed; no Flutter/BFF runtime.
+  not_included:
+    - "Flutter / BFF FormRuntime implementation"
+    - "Human Board 6 / 4 T4 signatures"
+    - "Resolving OPEN-SEARCH-CIF-MASK"
+    - "A classification microservice"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: ARCH-026
+  plan_id: PLAN-006
+  status: ADMITTED
+  closed_reason: null
+
+resumed: ARCH-026
+```
 
 ### SUG-20260923-sdu · Server-driven catalogue and form descriptor
 

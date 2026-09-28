@@ -1,6 +1,6 @@
 # schema: work-item
 id: ARCH-026
-origin: ["SUG-20260923-sdu"]
+origin: ["SUG-20260923-sdu", "SUG-20260928-pii"]
 title: "NIP BFF server-driven catalogue tree + capture-form descriptor contracts"
 type: ARCH
 also: [DOC]
@@ -17,6 +17,7 @@ serves:
   - "ARCH-024"
   - "SCR-13"
   - "SUG-20260923-sdu"
+  - "SUG-20260928-pii"
 
 problem: >
   NIP-APP will ship on web, iOS and Android. Store approval is ~4 days. If LOB
@@ -37,6 +38,7 @@ description: >
   Submit actionId maps to a closed command; L1 FormRuntime + L2 owning
   invariants; capture on lead.screen_submission.
   GET /screens/{screenId} + POST /screens/{screenId}/submissions.
+  Every Field declares pii + mask (NONE|LAST4|MOBILE|EMAIL|REDACT).
   Runtime Flutter/web renderers remain FUNC-021 (S11).
 
 acceptance_criteria:
@@ -47,7 +49,7 @@ acceptance_criteria:
   - id: AC-2
     given: "GET /screens/{screenId}"
     when: "a FORM surface is read"
-    then: "each field is a sibling and declares name, widget, validation, optional dependsOn and visibleWhen; no reveals; widget enum is closed"
+    then: "each field is a sibling and declares name, widget, pii, mask, validation, optional dependsOn and visibleWhen; no reveals; widget enum is closed"
   - id: AC-3
     given: "a new capture field that uses an already-shipped widget"
     when: "Configuration publishes a new SCREEN_DOCUMENT version"
@@ -80,6 +82,10 @@ acceptance_criteria:
     given: "file 12"
     when: "an author seeds a new screen"
     then: "GET/POST, every widget, value tokens, operators, validation, optionsUrl, bindings and the seed checklist are specified without a Flutter change"
+  - id: AC-11
+    given: "a Field on GET /screens/{screenId}"
+    when: "the ScreenDocument is read"
+    then: "every field declares pii and mask; pii false implies mask NONE; GET value is already masked by the BFF; client does not re-mask; pii true values are never logged or echoed in VALIDATION_ERROR"
 
 out_of_scope:
   - "Flutter / iOS / Android / Web renderer implementation"

@@ -1,9 +1,9 @@
 # ADR-021 — Bank screen descriptor for NIP-APP (form, list, card, carousel)
 
 **Status:** Proposed (`A3_JOINT_REVIEW` — Board 1; Board 4 on icon URL / PII)  
-**Date:** 2026-09-23 · **Amended:** 2026-09-24 (runtime: store / L1+L2 / action bind / capture)  
+**Date:** 2026-09-23 · **Amended:** 2026-09-24 (runtime) · 2026-09-28 (sibling fields; `pii`/`mask` on every Field)  
 **Deciders:** Mahesh (Architecture) — draft. Human T4 outstanding.  
-**Consulted:** Amit (Engineering), Rajal (Product outcome), Deepali (icon URL / no raw S3), Aarti (physical capture)  
+**Consulted:** Amit (Engineering), Rajal (Product outcome), Deepali (icon URL / no raw S3 / mask algorithms), Shailja (PII classification), Aarti (physical capture)  
 **Workstream:** WS-3  
 **Stage:** S08 documentation · binds at S11 first store submit  
 **Origin:** `SUG-20260923-sdu` · `ARCH-026` · `PLAN-006`
@@ -46,10 +46,15 @@ We will publish a **closed** bank `ScreenDocument`:
 10. Validation is **two layers**: L1 schema in a shared `FormRuntime` lib; L2 invariants on the
     owning service. Client validation is UX only.  
 11. One accepted submit writes **SoR columns** + an append-only `screen_submission` capture +
-    an audit outbox event. Later steps read promoted columns, not the widget tree.
+    an audit outbox event. Later steps read promoted columns, not the widget tree.  
+12. Every `Field` declares `pii` (boolean) and `mask` (`NONE` | `LAST4` | `MOBILE` | `EMAIL` |
+    `REDACT`). Shailja classifies; Deepali’s BFF applies `mask` at the L4→device hop
+    (`ARCH-025` `toPublic()`). `pii: true` values are never logged. Client does not re-mask
+    GET `value`. Omission is a seed defect.
 
 Canonical wire: [`10-nip-bff-screen-descriptor.md`](../ws3-platform/10-nip-bff-screen-descriptor.md).  
 Canonical runtime: [`11-nip-bff-screen-runtime.md`](../ws3-platform/11-nip-bff-screen-runtime.md).  
+Canonical cookbook: [`12-nip-bff-screen-authoring.md`](../ws3-platform/12-nip-bff-screen-authoring.md).  
 Machine contract: [`nip-bff-screen-descriptor.openapi.yaml`](../ws3-platform/nip-bff-screen-descriptor.openapi.yaml).
 
 This does **not** replace typed resources already published (`SearchPage`, `PipelinePage`,
@@ -108,6 +113,8 @@ and payment-status stay typed.
 - Product requires a field owned by an option rather than a sibling predicate
 - Aarti rejects `values_json` capture in favour of a fully columnar model
 - A required R0 command is missing from the closed catalogue (then a service deploy + seed)
+- Board 6 rejects last-4 identifiers on the RM device (`OPEN-SEARCH-CIF-MASK`) — then drop
+  LAST4 fields rather than echo full identifiers
 
 ## Compliance and security impact
 
@@ -115,4 +122,6 @@ and payment-status stay typed.
 - Security posture change: server-driven UI; treat `optionsUrl` as same-origin BFF only
 - Audit: submissions of assignment remain material actions (`BR-SEC-030`); capture row stores
   `config_version` (`INV-CFG-03`)
-- PII: `values_json` is restricted at the DB; no PAN/mobile in logs (Deepali)
+- PII: every Field carries `pii` + `mask`; `values_json` is restricted at the DB; no PAN/mobile
+  in logs (Deepali). Classification of each seed stays Shailja’s; this ADR does not manufacture
+  a Board 6 signature. `OPEN-SEARCH-CIF-MASK` remains open.

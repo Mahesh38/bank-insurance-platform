@@ -56,7 +56,8 @@ dropdowns can cascade without re-downloading the screen.
 
 Every input, label, radio, checkbox and read-only fact is a `Field`. Names are **unique on the
 screen**. Every field is a **sibling** — never a child of another field or option. Values on
-submit are a **flat map** `name → value`. Sections group fields for layout only.
+submit are a **flat map** `name → value`. Sections group fields for layout only. Every field
+declares `pii` and `mask` (§2.3).
 
 Dependence is **only** `visibleWhen` / `requiredWhen` / `enabledWhen` / `dependsOn`. There is
 no `reveals` tree.
@@ -67,6 +68,8 @@ no `reveals` tree.
     "name": "tobaccoUse",
     "label": "Does the customer use tobacco?",
     "widget": "RADIO",
+    "pii": true,
+    "mask": "NONE",
     "validation": { "required": true },
     "options": [
       { "value": "YES", "label": "Yes" },
@@ -77,6 +80,8 @@ no `reveals` tree.
     "name": "cigarettesPerDay",
     "label": "Cigarettes per day",
     "widget": "SELECT",
+    "pii": true,
+    "mask": "NONE",
     "visibleWhen": { "all": [{ "field": "tobaccoUse", "op": "EQ", "value": "YES" }] },
     "validation": { "required": true },
     "options": [
@@ -88,6 +93,8 @@ no `reveals` tree.
     "name": "quitCounselNote",
     "label": "Counselling note",
     "widget": "TEXTAREA",
+    "pii": true,
+    "mask": "REDACT",
     "visibleWhen": { "all": [{ "field": "cigarettesPerDay", "op": "EQ", "value": "20_PLUS" }] },
     "validation": { "required": true, "maxLength": 200 }
   }
@@ -128,12 +135,14 @@ Y=`B`.
 {
   "name": "meetingLink",
   "widget": "TEXT",
+  "pii": false,
+  "mask": "NONE",
   "visibleWhen": {
     "all": [
       { "field": "meetingMode", "op": "EQ", "value": "ONLINE" }
     ]
   },
-  "validation": {
+```  "validation": {
     "requiredWhen": {
       "all": [{ "field": "meetingMode", "op": "EQ", "value": "ONLINE" }]
     },
@@ -161,6 +170,47 @@ Rules:
 
 `dependsOn: ["branchId"]` is a hint to refetch `optionsUrl` when those names change. It does
 not hide the field; `visibleWhen` does.
+
+### 2.3 PII classification and masking
+
+Every field **must** declare `pii` and `mask`. Omission is a seed defect (fail closed, `S-21`).
+Shailja owns classification (`CTRL-02`). Deepali owns the mask algorithms and log redaction
+(`CTRL-10`, `INV-LOG-01`, `PII-02`). PII **does not** always mean “hide from the RM”: the
+authenticated RM may need the customer’s name in the clear. Logs still redact.
+
+| Key | Type | Rule |
+|---|---|---|
+| `pii` | boolean | `true` = personal or restricted data. Never in logs, crash reports, analytics. |
+| `mask` | enum | How BFF paints GET `value`. Client **does not re-mask**. |
+
+| `mask` | GET `value` | Algorithm (same as `ARCH-025` `toPublic()`) |
+|---|---|---|
+| `NONE` | As in SoR (or blank for capture) | Legal with `pii: true` when the RM must read it (name). Still redacted in logs. |
+| `LAST4` | Last 4 digits visible, rest `X`, length preserved | `5600980433` → `XXXXXX0433` |
+| `MOBILE` | `+91` + first 3 of national + `****` + last 3 | `9331111412` → `+91 933****412` |
+| `EMAIL` | First 3 of local-part + `***@` + domain | `abhishek@gmail.com` → `abh*****@gmail.com` |
+| `REDACT` | `""` or `********` | Never the raw SoR. Use for PAN, DOB, income, free-text health notes. |
+
+Seed rules:
+
+1. `pii` and `mask` are **required**.  
+2. `pii: false` ⇒ `mask` **must** be `NONE`.  
+3. `mask` other than `NONE` ⇒ `pii` **must** be `true`.  
+4. `format: PAN` (or Aadhaar) ⇒ `mask: REDACT` and **no** GET `value`. PAN is never last-4-and-returned (`ARCH-025`).  
+5. BFF applies `mask` when stamping `READONLY.value`. The wire `value` is already display-form.  
+6. Capture fields still **POST the typed value** over TLS. `mask` governs GET prefill and error echo, not the submit payload.  
+7. `VALIDATION_ERROR` must not echo a `pii: true` rejected value — `errors[].field` = `name` only.
+
+R0 assignment stamps:
+
+| `name` | `pii` | `mask` | Why |
+|---|---|---|---|
+| `customerDisplayName` | `true` | `NONE` | RM must see the name; logs still redact |
+| `maskedCustomerRef` | `true` | `LAST4` | BFF already computed `XXXXXX0433` |
+| `leadId` | `false` | `NONE` | Opaque ULID |
+| `productClass` / `branchId` / `verticalId` / `assignedRmId` | `false` | `NONE` | Bank codes / workforce id, not customer PII |
+
+`OPEN-SEARCH-CIF-MASK` (Board 6 on last-4 CIF) stays open. LAST4 here matches that default.
 
 ---
 
@@ -232,7 +282,8 @@ On every value change:
 4. A field is enabled unless `enabledWhen` is present and false.  
 5. Required = (`required` or `requiredWhen`) **and** visible.  
 6. Refetch any `optionsUrl` whose `dependsOn` names changed.  
-7. Drop values for fields that just became hidden.
+7. Drop values for fields that just became hidden.  
+8. Treat `pii: true` values as unloggable. Paint GET `value` as-is (already masked).
 
 Do **not** call the BFF to recompute visibility. The document is the rules engine.
 
@@ -268,7 +319,7 @@ No painted CTA — the client posts `actionId=continue` when the radio changes.
 ```json
 {
   "screenId": "LEAD_PRODUCT_CLASS",
-  "version": "2026-09-24.1",
+  "version": "2026-09-28.1",
   "title": "What is Abhishek looking for?",
   "surfaces": [
     {
@@ -282,6 +333,8 @@ No painted CTA — the client posts `actionId=continue` when the radio changes.
             {
               "name": "productClass",
               "widget": "RADIO",
+              "pii": false,
+              "mask": "NONE",
               "validation": { "required": true },
               "options": [
                 {
@@ -317,7 +370,7 @@ No painted CTA — the client posts `actionId=continue` when the radio changes.
     "href": "/api/v1/screens/LEAD_PRODUCT_CLASS/submissions",
     "body": {
       "screenId": "LEAD_PRODUCT_CLASS",
-      "version": "2026-09-24.1",
+      "version": "2026-09-28.1",
       "actionId": "continue",
       "customerId": "01JQX4K7R8M2N3P4Q5S6T7V8X1",
       "values": {
@@ -338,7 +391,7 @@ Adding a selectable Health option is a scope change, not a `version` bump.
 ```json
 {
   "screenId": "LEAD_ASSIGNMENT",
-  "version": "2026-09-24.1",
+  "version": "2026-09-28.1",
   "title": "Lead created",
   "surfaces": [
     {
@@ -352,18 +405,24 @@ Adding a selectable Health option is a scope change, not a `version` bump.
               "name": "customerDisplayName",
               "label": "Customer Name",
               "widget": "READONLY",
+              "pii": true,
+              "mask": "NONE",
               "value": "Abhishek Kumar"
             },
             {
               "name": "maskedCustomerRef",
               "label": "Customer ID",
               "widget": "READONLY",
+              "pii": true,
+              "mask": "LAST4",
               "value": "XXXXXX0433"
             },
             {
               "name": "leadId",
               "label": "Lead ID",
               "widget": "READONLY",
+              "pii": false,
+              "mask": "NONE",
               "value": "01JQX4K7R8M2N3P4Q5S6T7V8W9"
             }
           ]
@@ -376,6 +435,8 @@ Adding a selectable Health option is a scope change, not a `version` bump.
               "name": "branchId",
               "label": "Select branch",
               "widget": "SELECT",
+              "pii": false,
+              "mask": "NONE",
               "validation": { "required": true },
               "optionsUrl": "/api/v1/workspace/assignment-options?level=BRANCH"
             },
@@ -383,6 +444,8 @@ Adding a selectable Health option is a scope change, not a `version` bump.
               "name": "verticalId",
               "label": "Select vertical",
               "widget": "SELECT",
+              "pii": false,
+              "mask": "NONE",
               "dependsOn": ["branchId"],
               "visibleWhen": { "all": [{ "field": "branchId", "op": "SET" }] },
               "validation": { "required": true },
@@ -392,6 +455,8 @@ Adding a selectable Health option is a scope change, not a `version` bump.
               "name": "assignedRmId",
               "label": "Select RM",
               "widget": "SELECT",
+              "pii": false,
+              "mask": "NONE",
               "dependsOn": ["branchId", "verticalId"],
               "visibleWhen": { "all": [{ "field": "verticalId", "op": "SET" }] },
               "validation": { "required": true },
@@ -410,7 +475,7 @@ Adding a selectable Health option is a scope change, not a `version` bump.
     "href": "/api/v1/screens/LEAD_ASSIGNMENT/submissions",
     "body": {
       "screenId": "LEAD_ASSIGNMENT",
-      "version": "2026-09-24.1",
+      "version": "2026-09-28.1",
       "actionId": "continue",
       "leadId": "01JQX4K7R8M2N3P4Q5S6T7V8W9",
       "values": {
@@ -442,7 +507,7 @@ the binding default.
 ```json
 {
   "screenId": "LEAD_PRODUCT_CLASS",
-  "version": "2026-09-24.1",
+  "version": "2026-09-28.1",
   "actionId": "continue",
   "customerId": "01JQX4K7R8M2N3P4Q5S6T7V8X1",
   "values": {
@@ -456,7 +521,7 @@ the binding default.
 ```json
 {
   "screenId": "LEAD_ASSIGNMENT",
-  "version": "2026-09-24.1",
+  "version": "2026-09-28.1",
   "actionId": "continue",
   "leadId": "01JQX4K7R8M2N3P4Q5S6T7V8W9",
   "values": {
@@ -520,7 +585,10 @@ New list/card screens after this ADR use `ScreenDocument`. Existing typed resour
 | Meeting date/time/link in R0 | No — `SUG-20260907-fig` |
 | Client-only validation | No — L1 schema + L2 invariant (file 11 §3) |
 | A form microservice that owns Lead state | No — file 11 §1 / §7 |
-| CIF/PAN/full mobile on the wire as values | No — mask at BFF |
+| CIF/PAN/full mobile on the wire as values | No — mask at BFF (`pii` + `mask`) |
+| Omit `pii` / `mask` on a field | No — seed CI fails closed |
+| Client re-masks GET `value` | No — BFF already applied `mask` |
+| Echo a `pii: true` value in `VALIDATION_ERROR` | No — `errors[].field` = `name` only |
 
 ---
 
@@ -533,11 +601,12 @@ New list/card screens after this ADR use `ScreenDocument`. Existing typed resour
 | Unwrapped body + problem+json | `ADR-017`, `SUG-20260907-std` |
 | Schema-driven capture (proposal already) | S05 `SCR-13`, field-guide `proposal-and-dynamic-forms.md` |
 | Token-hiding BFF | `ADR-015` |
+| Field `pii` / `mask` | `CTRL-02`, `INV-LOG-01`, `PII-02`, `ARCH-025` `toPublic()`, `SUG-20260928-pii` |
 | Store, L1/L2, action bind, capture | file 11, `ADR-007`, `CF-2`, `INV-CFG-02/03` |
 
 ## 9. Done for this document
 
 `ARCH-026` documentation is complete when this file, file 11, the OpenAPI, and `ADR-021` agree
-on surfaces, widgets, predicates, validation, **where the definition is stored**, **L1 vs L2**,
+on surfaces, widgets, predicates, validation, **pii/mask**, **where the definition is stored**, **L1 vs L2**,
 **which `actionId` runs which command**, and **what is persisted**. Human Board 1 is outstanding.
 Flutter renderer is `FUNC-021`.

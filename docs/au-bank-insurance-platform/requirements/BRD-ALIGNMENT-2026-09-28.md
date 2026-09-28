@@ -161,8 +161,8 @@ On multiple triggered rules: **Block-if-any-Block**, or **highest hierarchy wins
 
 Existing application surfaces today:
 
-- Login: BFF + identity services (Slice 1) — closest to a real path
-- Lead / Suitability / Quote: Flutter fake backend + domain-service **skeletons**
+- Login: `workforce-access-bff` + identity services (Slice 1) — closest to a real path. Evaluated against Figma (`DOC-006`); no in-repo client app
+- Lead / Suitability / Quote: NIP BFF OpenAPI / domain-service **skeletons**; Figma is the frontend reference
 - Pitch Deck: Figma only
 - Customer buying: no customer app
 - Exception (AUBIMA): not built (platform HTTP errors are a different module)
@@ -189,9 +189,9 @@ Who supplies each, and when?
 
 | BRD | UI today | API today | Data / tests today | First honest gap |
 |-----|----------|-----------|--------------------|------------------|
-| Login | Flutter demo SSO | `workforce-access-bff` `/api/v1/auth/*` + identity adapter + PDP | JES UC-01…UC-05 delivered | Captcha, mandatory OTP every login, lock after 3 failures / 30-day inactivity, Unlock User, partner password create/expiry — **not built**. Bank password ownership is bank IdP, not this platform (matches Login out-of-scope) |
-| Lead | `apps/rm-workspace-app` fake inbox / create | NIP BFF lead OpenAPI **spec only**; `lead-service` skeleton | PLAN-004 / PLAN-005 contracts | No `/leads` runtime. Assignment timing blocked on Q4 |
-| Suitability | Flutter `SUIT-ALGO-LIFE-v1.0` + screens | `suitability-service` skeleton | Rule pack is Term-shaped | Savings/ULIP screens and lock rules blocked on Q3, Q5, Q10 |
+| Login | Figma wireframe (Forgot Password / mPIN on the PNG are **not** BRD) | `workforce-access-bff` `/api/v1/auth/*` + identity adapter + PDP | JES UC-01…UC-05 delivered | Captcha, mandatory OTP every login, lock after 3 failures / 30-day inactivity, Unlock User, partner password create/expiry — **not built**. Bank password ownership is bank IdP, not this platform (matches Login out-of-scope). See [LOGIN-BFF-FIGMA-EVALUATION.md](./LOGIN-BFF-FIGMA-EVALUATION.md) |
+| Lead | Figma lead-creation wireframes | NIP BFF lead OpenAPI **spec only**; `lead-service` skeleton | PLAN-004 / PLAN-005 contracts | No `/leads` runtime. Assignment timing closed by Q4 / `D-016` |
+| Suitability | Figma + Term-shaped rule pack | `suitability-service` skeleton | Rule pack is Term-shaped | Savings/ULIP screens and lock rules blocked on Q5, Q10 (`D-015` closed the BI lock event) |
 | Savings listing / compare | Term sample compare UI | `product-catalogue-service` / `quotation-service` skeletons; 1SB savings quote adapter exists | 1SB `SavingQuoteHandler` | No savings listing/compare journey; tax popup API unknown |
 | Product details Savings | Figma only | Term `ProductUiDataController` only | — | No savings details / toolkit / sample-BI path |
 | Quote finalisation / riders / final BI | Basic quote + compare | 1SB quote path | — | No riders, final BI, share, post-BI RM assignment |
@@ -199,7 +199,7 @@ Who supplies each, and when?
 | Customer Buying Journey | none | 1SB proposal/payment controllers (adapter), no customer BFF/app | — | Customer-controlled surface is out of current increment unless Q2 says otherwise |
 | Exception (AUBIMA) | journey-guard UX only | `bank-common-error` (HTTP contract — **different module**) | — | Greenfield business-exception engine; blocked on Q6 |
 
-Standing constraints that any later implementation must still honour (`BOOT.md` §5): no quote without valid suitability; no proposal without unexpired consent; payment only on customer device; UI/BFF never see 1SB wire codes; Flutter never receives OAuth tokens.
+Standing constraints that any later implementation must still honour (`BOOT.md` §5): no quote without valid suitability; no proposal without unexpired consent; payment only on customer device; UI/BFF never see 1SB wire codes; the workforce client never receives OAuth tokens. This repository does not hold client app source (`DOC-006`).
 
 ---
 
@@ -226,7 +226,7 @@ Recorded from the Product Owner after this ingest. These close some conflicts. T
 | Q4 | Insurance RM assignment (C3) | **At lead creation.** Every Bank SP is an RM; not every RM is an SP | Lead BRD assignment timing wins. Quote / Customer v1.2 “update the Lead BRD to assign after BI” is **not** followed. SP is a certification of RM, not a second actor (aligns with ADR-004) |
 | Q5 | Buy outside suitable set (C5) | Product intent: **Compare / Buy outside the suitable set is allowed** as an explicit exception to `D-005` | **Not implemented.** Rajal cannot waive Compliance alone. Escalate to **Shailja (Board 6)** before any code. Standing constraint “no quote without suitability evaluation id” stays in force until Board 6 confirms |
 | Q6 | Exception multi-rule (C7) | **Defer** — take the call in a separate discussion | Parked. Highlighted with the other “do not assume” items in §9 |
-| Q7 | First module to implement | **Login** | This increment: RM app Login UI + fake directory against Login BRD. Real Captcha/OTP gateways and session timeout remain IS-owned (`SEC-009`, `SEC-010`) |
+| Q7 | First module to implement | **Login** | This increment: evaluate `workforce-access-bff` `/api/v1/auth/*` against the Login BRD and Figma (`DOC-006`). No in-repo Flutter Login UI. Real Captcha/OTP gateways and session timeout remain IS-owned (`SEC-009`, `SEC-010`). OIDC vs on-BFF credential collection is Mahesh + Deepali |
 
 ---
 
@@ -253,3 +253,4 @@ Rajal asked that cases like C7 be called out rather than decided here.
 |---------|------|--------|-------|
 | 0.1 | 2026-09-28 | Ingest pack, record conflicts, ask Rajal. No application code. | Agent (BA analysis) / Rajal (intent) |
 | 0.2 | 2026-09-28 | Rajal answers Q1–Q7 recorded. Login UI alignment started. C7 and Q5 not implemented. | Rajal / BA |
+| 0.3 | 2026-09-28 | `DOC-006`: no client app source in this repository. Flutter Login UI withdrawn. Login continues as BFF vs Figma. | Stakeholder / BA |

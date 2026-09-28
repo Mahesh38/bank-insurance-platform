@@ -54,6 +54,7 @@ This folder is the **clean restart**:
 ```
 
 Conflict report: [requirements/BRD-ALIGNMENT-2026-09-28.md](./requirements/BRD-ALIGNMENT-2026-09-28.md).
+Repository boundary: Java + docs only (`DOC-006`); BFF vs [`docs/figma/`](../figma/README.md).
 
 Management pack: [po-drive/04-MANAGEMENT-READINESS.md](./po-drive/04-MANAGEMENT-READINESS.md).
 
@@ -84,7 +85,7 @@ Management pack: [po-drive/04-MANAGEMENT-READINESS.md](./po-drive/04-MANAGEMENT-
 
 | Input | Status |
 |-------|--------|
-| Figma prototype (client review) | Linked — see [05](./05-figma-and-artefact-intake.md); **screen inventory pending** (login-gated; needs walkthrough / exports) |
+| Figma prototype (client review) | Linked — see [05](./05-figma-and-artefact-intake.md) and [`docs/figma/`](../figma/README.md). BFF is evaluated against these exports (`DOC-006`). Client app source is not in this repository. |
 | Baseline docs (Volumes 01–06, Phases 1–5) | **Ingested** → [knowledge-base/](./knowledge-base/README.md) |
 | Prior repo research (`docs/1sb-insurance-integration/`) | Available as optional reference only |
 

@@ -23,10 +23,10 @@ Use this page when the question is **“where do I go for this?”**
 
 | Path | Purpose |
 |---|---|
-| `apps/` | User-facing application projects, including the Flutter workforce app |
-| `services/` | Executable backend service modules |
+| `services/` | Executable backend service modules (Java / Spring Boot) |
 | `libs/` | Shared Java libraries and cross-cutting primitives |
 | `docs/` | Business, architecture, governance, workstream, journey and role documentation |
+| `docs/figma/` | Frontend reference exports for BFF evaluation (`DOC-006`). Not client source. |
 | `config/` | Configuration assets used by the repository |
 | `scripts/` | Governance/context/validation and engineering automation |
 | `.github/` | GitHub Actions and repository automation |
@@ -99,10 +99,10 @@ For what exists **today**, check:
 
 1. `settings.gradle.kts`
 2. `services/`
-3. `apps/`
-4. `libs/`
-5. each module's README
-6. controllers/use cases/tests for actual implemented behaviour
+3. `libs/`
+4. each module's README
+5. controllers/use cases/tests for actual implemented behaviour
+6. `docs/figma/` for the frontend layout reference when evaluating a BFF contract (`DOC-006`)
 
 The target architecture can legitimately describe components that are not yet implemented.
 

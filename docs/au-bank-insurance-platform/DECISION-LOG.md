@@ -41,6 +41,7 @@
 | DOC-003 | 2026-07-31 | BRD overview headings (Login → Commission/MIS) are PO-approved chapter map | Accepted | [BRD Overview](./requirements/BRD-OVERVIEW.md) |
 | DOC-004 | 2026-07-31 | Working Decisions Draft v1 adopted as **working** SSOT for MVP scope (pending formal sponsor validation) | Working | [Working Decisions](./07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md) |
 | DOC-005 | 2026-09-28 | September 2026 Rajal detailed module BRD pack is the **working module-behaviour SSOT** for the chapters it covers. Programme `D-xxx` in Working Decisions stand until Rajal overturns them. TBDs and cross-BRD conflicts stay open — [alignment](./requirements/BRD-ALIGNMENT-2026-09-28.md). Application code not started. | Working | [brd-detailed/](./requirements/brd-detailed/README.md) · `SUG-20260928-brd` |
+| DOC-006 | 2026-09-28 | **This git repository is Java + docs only.** Client application source (NIP-APP / Flutter) is not maintained here. `ADR-015` is **not** overturned — one workforce client still exists; its source lives elsewhere. BFF contracts are evaluated against [`docs/figma/`](../figma/README.md) as the frontend reference. Figma remains not behaviour SSOT (`D-012`). Login first-module work continues on `workforce-access-bff`, not an in-repo app. | Working | `SUG-20260928-jvo` · [Login BFF vs Figma](./requirements/LOGIN-BFF-FIGMA-EVALUATION.md) |
 
 ---
 

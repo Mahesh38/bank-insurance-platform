@@ -45,7 +45,7 @@
 | **Domain** | Which bounded context owns each piece of truth and which rules must always hold? | [Domain model & invariants](../platform/ws3-platform/01-domain-model-and-invariants.md) |
 | **Architecture** | How do those owners communicate and where do they run? | [R0 HLD](../architecture/R0-HLD.md) · [R0 solution architecture](../platform/ws3-platform/03-solution-architecture-r0.md) |
 | **Governance** | Should this work be done now, later, or not at all; and who must approve it? | [Runbook](../governance/RUNBOOK.md) · [AIGEM](../governance/README.md) |
-| **Code** | What modules are registered today? | [Module/service inventory](generated/service-inventory.md) · repository `services/`, `libs/`, `apps/` |
+| **Code** | What modules are registered today? | [Module/service inventory](generated/service-inventory.md) · repository `services/`, `libs/` (Java only — `DOC-006`) |
 
 ## Git-native dashboards vs curated explanations
 

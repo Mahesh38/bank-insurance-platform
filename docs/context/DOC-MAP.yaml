@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 603
-total_bytes: 20809659
+document_count: 605
+total_bytes: 20826716
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -1717,7 +1717,7 @@ documents:
     persona: product
     title: "Figma & artefact intake log"
     answers: "Purpose: Single place to register every input for the product reset"
-    bytes: 4539
+    bytes: 4689
   - path: docs/au-bank-insurance-platform/06-po-opening-position.md
     bucket: business
     authority: business-ssot
@@ -1741,7 +1741,7 @@ documents:
     persona: product
     title: "Decision log — AU Bank Insurance Platform"
     answers: "Canonical ID scheme: D-xxx = business / scope decisions (aligns to Session template + Working Decisions mapping)."
-    bytes: 6235
+    bytes: 6801
   - path: docs/au-bank-insurance-platform/README.md
     bucket: business
     authority: business-ssot
@@ -1749,7 +1749,7 @@ documents:
     persona: product
     title: "AU Bank — Insurance Platform (Product Reset)"
     answers: "Bank: AU Small Finance Bank (AU Bank)"
-    bytes: 6012
+    bytes: 6172
   - path: docs/au-bank-insurance-platform/artefacts/README.md
     bucket: business
     authority: business-ssot
@@ -1965,7 +1965,7 @@ documents:
     persona: product
     title: "Gap register — complete (Platform PO)"
     answers: "ID scheme: GAP-xxx"
-    bytes: 8773
+    bytes: 8987
   - path: docs/au-bank-insurance-platform/po-drive/03-PROGRAMME-TODO.md
     bucket: business
     authority: business-ssot
@@ -2029,7 +2029,7 @@ documents:
     persona: business-analysis
     title: "BRD alignment — Rajal pack 2026-09-28"
     answers: "Work item: SUG-20260928-brd · DOC-005"
-    bytes: 16709
+    bytes: 17312
   - path: docs/au-bank-insurance-platform/requirements/BRD-OVERVIEW-CHECKLIST.md
     bucket: business
     authority: business-ssot
@@ -2054,6 +2054,14 @@ documents:
     title: "BRD — P0 Capabilities with Acceptance Criteria"
     answers: "Product: AU Bank Insurance Distribution Platform"
     bytes: 12262
+  - path: docs/au-bank-insurance-platform/requirements/LOGIN-BFF-FIGMA-EVALUATION.md
+    bucket: business
+    authority: business-ssot
+    capsules: [business-analysis, product-decision]
+    persona: business-analysis
+    title: "Login — BFF evaluated against Figma (not an in-repo app)"
+    answers: "Work item: DOC-006 + Login first module (Q7)"
+    bytes: 7386
   - path: docs/au-bank-insurance-platform/requirements/PRD-R0-DISTRIBUTION-PLATFORM.md
     bucket: business
     authority: business-ssot
@@ -2077,7 +2085,7 @@ documents:
     persona: business-analysis
     title: "Requirements pack — AU Bank Insurance Distribution Platform"
     answers: "Knowledge base: ../knowledge-base/"
-    bytes: 1657
+    bytes: 1805
   - path: docs/au-bank-insurance-platform/requirements/brd-detailed/Create_Pitch_Deck_BRD_Detailed_CONTEXT.md
     bucket: business
     authority: business-ssot
@@ -2189,7 +2197,7 @@ documents:
     persona: null
     title: "AGENT CONTEXT INDEX"
     answers: "============================================================================="
-    bytes: 49691
+    bytes: 49750
   - path: docs/context/BOOT.md
     bucket: context
     authority: non-binding-context
@@ -2205,7 +2213,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 213666
+    bytes: 214429
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -3286,6 +3294,14 @@ documents:
     title: "context manifest.schema"
     answers: "\"title\": \"Portable Context Module Manifest\""
     bytes: 3924
+  - path: docs/figma/README.md
+    bucket: business
+    authority: non-binding-context
+    capsules: [product-decision, orient]
+    persona: product
+    title: "Figma exports — frontend reference for BFF evaluation"
+    answers: "Why this folder exists in a Java repository: DOC-006 — this git repository does not hold NIP-APP / Flutter source. Workforce BFF contracts are…"
+    bytes: 1967
   - path: docs/figma/Visual Design/compare-plans-modal.png
     bucket: business
     authority: non-binding-context
@@ -3965,7 +3981,7 @@ documents:
     persona: null
     title: "Decision Register"
     answers: "Index of decisions that constrain future work: ADRs, change requests, stage transitions, and"
-    bytes: 40150
+    bytes: 40256
   - path: docs/governance/registers/DEPENDENCY-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -3997,7 +4013,7 @@ documents:
     persona: null
     title: "Suggestion Register"
     answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 274635
+    bytes: 279423
   - path: docs/governance/schemas/README.md
     bucket: governance
     authority: binding-process
@@ -4341,7 +4357,7 @@ documents:
     persona: null
     title: "Bank Insurance Platform Knowledge Hub"
     answers: "Purpose: one navigable entry point for understanding the repository without creating a second source of truth."
-    bytes: 5626
+    bytes: 5643
   - path: docs/knowledge-base/operating-guide.md
     bucket: root
     authority: navigation
@@ -4357,7 +4373,7 @@ documents:
     persona: null
     title: "Repository and documentation map"
     answers: "Use this page when the question is “where do I go for this?”"
-    bytes: 6185
+    bytes: 6303
   - path: docs/knowledge-base/role-guides.md
     bucket: root
     authority: navigation
@@ -4477,7 +4493,7 @@ documents:
     persona: security
     title: "Workforce Authentication and Authorization — Service SSOT"
     answers: "Primary identity provider for development: Keycloak (partners; workforce AD-verify is the bank API)"
-    bytes: 20346
+    bytes: 20358
   - path: docs/platform/data-architecture/00-design-rules.md
     bucket: platform
     authority: ai-drafted

@@ -8,6 +8,7 @@
 |-----|---------|
 | **[brd-detailed/](./brd-detailed/README.md)** | **Module-behaviour SSOT — Rajal pack September 2026** |
 | [BRD-ALIGNMENT-2026-09-28.md](./BRD-ALIGNMENT-2026-09-28.md) | Conflicts, TBDs, questions, requirement-to-code map — no silent resolution |
+| [LOGIN-BFF-FIGMA-EVALUATION.md](./LOGIN-BFF-FIGMA-EVALUATION.md) | Login first module: `workforce-access-bff` vs Figma vs Login BRD (`DOC-006`) |
 | [07 Working Decisions](../07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md) | Programme-level MVP decisions not restated in the pack |
 | **[BRD-OVERVIEW.md](./BRD-OVERVIEW.md)** | **PO-approved BRD chapter map (binding TOC)** |
 | [BRD-OVERVIEW-CHECKLIST.md](./BRD-OVERVIEW-CHECKLIST.md) | Flat checklist of PO source headings |

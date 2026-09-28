@@ -41,7 +41,7 @@ This document is the single source of truth for workforce authentication and aut
 | RM | Bank Relationship Manager. An RM may also hold a valid IRDAI Specified Person qualification. |
 | SP | Specified Person qualification/certificate; it is an attribute, not a synonym for RM. |
 | SR | Insurer Sales Representative. Partner certification is optional in Phase 1 but is modelled for later enforcement. |
-| BFF | Backend for Frontend used by the Flutter workforce application. |
+| BFF | Backend for Frontend used by NIP-APP. Client source is not in this repository (`DOC-006`). |
 | IdP | Identity provider: Keycloak initially; Cognito or another OIDC provider may replace it. |
 | PEP | Policy Enforcement Point in the BFF and each business service. |
 | PDP | Policy Decision Point exposed by `identity-authorization-service`. |
@@ -51,7 +51,7 @@ This document is the single source of truth for workforce authentication and aut
 
 ```mermaid
 flowchart LR
-    Flutter[Flutter workforce app] -->|TLS; opaque session only| Gateway[AWS API Gateway + WAF]
+    NipApp[NIP-APP] -->|TLS; opaque session only| Gateway[AWS API Gateway + WAF]
     Gateway --> BFF[workforce-access-bff]
     BFF -->|private API| Adapter[identity-provider-adapter-service]
     BFF -->|authorize action| Authz[identity-authorization-service]

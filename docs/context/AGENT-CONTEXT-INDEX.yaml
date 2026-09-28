@@ -432,7 +432,7 @@ doc_routing:
       authority: non-binding-context
       capsules: [product-decision, orient]
       persona: product
-      note: "Figma wireframe exports. Cite the derived journey, not the PNG."
+      note: "Figma wireframe exports. Frontend reference for BFF evaluation (DOC-006). Cite the BRD for behaviour; the PNG is not SSOT."
 
     # --- docs root ---------------------------------------------------------
     - match: ["docs/*"]

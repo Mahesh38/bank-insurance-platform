@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20260928-jvo | 2026-09-28 | human:stakeholder | This repository holds Java code only; no client app source; evaluate BFF against Figma as the frontend reference | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [DOC-006](../../au-bank-insurance-platform/DECISION-LOG.md) · [Figma](../../figma/README.md) · [Login BFF vs Figma](../../au-bank-insurance-platform/requirements/LOGIN-BFF-FIGMA-EVALUATION.md) · [detail](#sug-20260928-jvo--java-only-repository-bff-vs-figma) |
 | SUG-20260928-brd | 2026-09-28 | human:Rajal | Treat September 2026 detailed module BRD pack as source of truth; realign repo docs; do not assume TBDs or silent conflict resolution | SF1 | SC0 | MUST | DOC | P2 / P1 | ADMITTED | [DOC-005](../../au-bank-insurance-platform/DECISION-LOG.md) · [pack](../../au-bank-insurance-platform/requirements/brd-detailed/README.md) · [alignment](../../au-bank-insurance-platform/requirements/BRD-ALIGNMENT-2026-09-28.md) · [detail](#sug-20260928-brd--rajal-detailed-brd-pack-as-module-ssot) |
 | SUG-20260923-scs | 2026-09-23 | human:architect | NIP BFF SCR-03 search-customer contract: Customer ID / PAN / mobile; lead-first then CBS via Apigee; one stakeholder+dev doc | SF1 | SC0 | SHOULD | ARCH | P2 / P1 | ADMITTED | [ARCH-025](../../platform/ws3-platform/ARCH-025.work-item.yaml) · [PLAN-005](../plans/PLAN-005-nip-bff-customer-search-contract.md) · [contract](../../platform/ws3-platform/09-nip-bff-customer-search-contract.md) · [detail](#sug-20260923-scs--scr-03-customer-search-unified-contract) |
 | SUG-20260923-par | 2026-09-23 | human:stakeholder | Remove governance over-serialization: SF5 parallel lanes, evidence-based unpark, SG-2 CANDIDATE, RG-9 evidenced-blocker T4 relief, DEP-4 soft-default | SF1 | SC1 | MUST | GOV | P1 / P1 | ADMIT-BYPASS | [CR-016](../change-requests/CR-016-parallel-lanes-evidence-unpark.md) · [detail](#sug-20260923-par--parallel-lanes-and-evidence-unpark) |
@@ -240,6 +241,131 @@ outcome:
   closed_reason: null
 
 resumed: "SUG-20260928-brd — no prior work item was in flight; this session opened with this input."
+```
+
+### SUG-20260928-jvo · Java-only repository; BFF vs Figma
+
+```yaml
+# schema: triage-record
+id: SUG-20260928-jvo
+raised_at: "2026-09-28"
+raised_by: "human:stakeholder"
+source: "follow-up on Rajal BRD ingest / Login first-module work"
+input: >
+  one important decision that we will not put any app code here in this
+  repository. We will keep the code java code here only this repository.
+  We can evaluate the bff with figma only so that we have referance of
+  the front end.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-13"
+  state_provisional: false
+  active_work_item: DOC-005
+
+stage_fit:
+  code: SF1
+  rationale: >
+    FreshnessCheck 2026-09-28 exit 1 (state_as_of 15 days old) disclosed.
+    Login was already admitted as the first module after Rajal's Q7 answer.
+    Putting Flutter source in this git repository contradicts the stakeholder
+    repo-boundary. Removing in-repo client source and evaluating
+    workforce-access-bff against Figma is on-stage for WS-3 S08. This does
+    not overturn ADR-015 (one NIP-APP client); it relocates client source
+    out of this repository. Confirmed 2026-09-28: delete apps/rm-workspace-app
+    now; ADR-015 remains repo-boundary-only.
+
+scope:
+  code: SC0
+  business_scope: "in scope — repository contents for the platform workstream"
+  serves: []
+  failure_without_it: "agents would keep adding NIP-APP / Flutter source here and treat a fake UI as Login evidence"
+  minimal: true
+  authority: "stakeholder instruction 2026-09-28 · DOC-006 · ADR-015 not overturned"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S08 — Engineering Foundation"
+  binds_when: "any Login or BFF contract work after 2026-09-28"
+  failure_without_it: "Login alignment would continue as in-repo Flutter instead of Java BFF vs Figma"
+  evidence_tier: E2
+  evidence:
+    - "Stakeholder instruction: Java only in this repository; BFF evaluated against Figma"
+    - "Confirmation: delete apps/rm-workspace-app; ADR-015 not overturned"
+  confidence: C5
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT
+action_rationale: >
+  Admit the repository-boundary and the deletion of in-repo client source.
+  Do not admit a replacement NIP-APP repository, do not overturn ADR-015,
+  and do not invent a password-collection API that replaces UC-01 without
+  Mahesh and Deepali.
+duplicate_of: null
+conflicts:
+  - "DEC-20260816-12 placed RM Workspace Flutter at apps/rm-workspace-app/ — source relocates; decision not un-delivered"
+  - "ADR-015 one NIP-APP client — not overturned; source is out of this git repository"
+
+classification:
+  type: ARCH
+  also: [DOC]
+  breakdown: STORY
+  epic: null
+  risk_tier: T2
+  destination: "DOC-006 + remove apps/rm-workspace-app + Login BFF vs Figma evaluation"
+
+priority:
+  now: P2
+  at_target: P1
+  factors: { N: 2, S: 1, B: 2, R: 1, D: 1, E: 1 }
+  score: 11
+  matrix_default: P2
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "MUST repo-boundary so Login Q7 can proceed on Java BFF vs Figma"
+
+dependencies:
+  edges:
+    - type: DECISION
+      target: ADR-015
+      relation: related_to
+      state: OPEN
+    - type: DECISION
+      target: DOC-005
+      relation: related_to
+      state: READY
+  state: READY
+  enablement_count: 0
+  earliest_start: "2026-09-28"
+  cycles: none
+
+breakdown:
+  children: []
+  completion_definition: "Client source removed from this repo; DOC-006 recorded; Login evaluated as BFF vs Figma; ADR-015 not rewritten."
+  not_included:
+    - "Overturning ADR-015 or replacing Flutter as the NIP-APP stack"
+    - "Creating the NIP-APP git repository"
+    - "Implementing password / Captcha / platform-OTP APIs that change UC-01"
+    - "Implementing Figma Forgot Password or mPIN (Login BRD forbids Forgot Password; mPIN is not in the BRD)"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: DOC-006
+  plan_id: null
+  status: ADMITTED
+  closed_reason: null
+
+resumed: "DOC-005 / Q7 Login — continue as workforce-access-bff vs Figma, not Flutter."
 ```
 
 ### SUG-20260923-scs · SCR-03 customer search unified contract

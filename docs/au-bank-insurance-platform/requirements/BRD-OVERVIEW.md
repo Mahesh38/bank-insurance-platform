@@ -3,16 +3,16 @@
 **Document type:** Business Requirements Document — Overview / Table of Contents  
 **Bank:** AU Bank  
 **Owner:** Platform Product Owner  
-**Status:** Heading structure **approved by PO** — detailed requirements to be written under each section  
-**Version:** 1.0  
-**Related:** [Working Decisions](../07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md) · [R0-SCOPE.md](./R0-SCOPE.md) · [knowledge-base/](../knowledge-base/README.md) · [po-drive/](../po-drive/00-PO-PROJECT-VIEW.md)
+**Status:** Heading structure **approved by PO**. Detailed chapters for Login, Lead, Suitability (Savings/ULIP), Savings listing/details/quote, Pitch Deck, Customer buying, and Exception Handling are in [brd-detailed/](./brd-detailed/README.md) (`DOC-005`). Remaining chapters still need a detailed BRD.  
+**Version:** 1.1  
+**Related:** [brd-detailed/](./brd-detailed/README.md) · [alignment](./BRD-ALIGNMENT-2026-09-28.md) · [Working Decisions](../07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md) · [R0-SCOPE.md](./R0-SCOPE.md) · [knowledge-base/](../knowledge-base/README.md) · [po-drive/](../po-drive/00-PO-PROJECT-VIEW.md)
 
 ---
 
 ## How to use this document
 
 1. This overview is the **binding chapter map** for the BRD.  
-2. Do **not** invent parallel top-level modules without PO approval.  
+2. Do **not** invent parallel top-level modules without PO approval. Detailed behaviour for a numbered chapter is in [brd-detailed/](./brd-detailed/README.md) when a file exists; do not invent a chapter from this TOC alone.  
 3. Each numbered section below becomes a BRD chapter with: business objective, actors, functional requirements, rules, exceptions, AC, data, integrations, reports.  
 4. Priority tags (R0 / R1 / R2+) are **PO sequencing guidance** for delivery — not a change to the heading list.  
 5. Scope constraints from Working Decisions apply across chapters: **Life LOB**, **ETB**, **three journeys Day 1**, **Group A/B insurers**, **Sold = issuance**.
@@ -28,14 +28,14 @@
 ## Approved BRD overview (PO)
 
 ### 1. Login
+**Detailed BRD:** [Login_Module_BRD_Detailed_CONTEXT.md](./brd-detailed/Login_Module_BRD_Detailed_CONTEXT.md) (v1.0, 04-Sep-2026). That file **removes Forgot Password** from both login modes; partner recovery is Unlock User. Bank RM uses Employee ID + bank-system password + OTP.
+
 | # | Sub-heading | Priority |
 |---|-------------|----------|
 | 1.1 | AD Integration | R0 |
-| 1.2 | Forgot Password | R0 / R1* |
+| 1.2 | Forgot Password | Removed in Login BRD v1.0 — Unlock User replaces it for partners; Bank RM password is out of platform scope |
 | 1.3 | Account Lock / Unlock | R0 |
-| 1.4 | SSO redirection | R0 |
-
-\*If AD/SSO is primary, Forgot Password may be limited to non-AD users or deferred — confirm with Infosec.
+| 1.4 | SSO redirection | R0 — Login BRD describes bank-system password + OTP, not a named SSO redirect; confirm with Infosec / Mahesh |
 
 ---
 
@@ -50,6 +50,8 @@
 ---
 
 ### 3. Lead Management
+**Detailed BRD:** [Lead_Module_BRD_Detailed_CONTEXT.md](./brd-detailed/Lead_Module_BRD_Detailed_CONTEXT.md) (v1.0). CBS search is in this BRD (overview §4). Bulk / campaign stay out unless Rajal issues a formal scope change. Assignment timing conflicts with Customer Buying Journey v1.2 — see [alignment C3](./BRD-ALIGNMENT-2026-09-28.md#c3--insurance-rm-assignment-timing-and-bank-rm-vs-bank-sp).
+
 | # | Sub-heading | Priority |
 |---|-------------|----------|
 | 3.1 | Lead Create | R0 |
@@ -63,6 +65,8 @@
 ---
 
 ### 4. Customer Data Fetch
+**Covered in** the Lead BRD (Customer ID / mobile / PAN search). No separate September 2026 BRD.
+
 | # | Sub-heading | Priority |
 |---|-------------|----------|
 | 4.1 | CBS Integration (Fetch data using Cust ID, Mobile No, PAN etc.) | R0 |
@@ -70,6 +74,8 @@
 ---
 
 ### 5. Lead / Application Rules and workflow
+**Partial:** [Exception_Handling_BRD_V1.0_CONTEXT.md](./brd-detailed/Exception_Handling_BRD_V1.0_CONTEXT.md) covers block / approval / hierarchy. A configurable rule designer is **not** in this pack.
+
 | # | Sub-heading | Priority |
 |---|-------------|----------|
 | 5.1 | Lead Rules | R0 |
@@ -80,6 +86,8 @@
 ---
 
 ### 6. Suitability Check Module
+**Detailed BRD (Savings / ULIP only):** [Suitability_Module_BRD_Detailed_CONTEXT.md](./brd-detailed/Suitability_Module_BRD_Detailed_CONTEXT.md). Term suitability is **not** in this pack. Tentative premium / PPT / PT formulas are TBD.
+
 | # | Sub-heading | Priority |
 |---|-------------|----------|
 | 6.1 | Suitability Check | R0 |
@@ -90,6 +98,8 @@
 ---
 
 ### 7. Quote list & Compare
+**Detailed BRDs (Savings only):** [listing/compare](./brd-detailed/Savings_Listing_and_Compare_Plans_BRD_Detailed_CONTEXT.md) · [product details](./brd-detailed/Product_Details_Savings_Plan_BRD_Detailed_CONTEXT.md) · [quote / riders / final BI](./brd-detailed/Quote_Finalisation_Riders_and_Final_BI_BRD_Detailed_CONTEXT.md) · [pitch deck](./brd-detailed/Create_Pitch_Deck_BRD_Detailed_CONTEXT.md). Term / ULIP listing and details are **not** in this pack.
+
 | # | Sub-heading | Priority |
 |---|-------------|----------|
 | 7.1 | Quote listing logic | R0 |
@@ -106,6 +116,8 @@
 ---
 
 ### 8. Proposal journey
+**Detailed BRD:** [Customer_Buying_Journey_BRD_V1.2_CONTEXT.md](./brd-detailed/Customer_Buying_Journey_BRD_V1.2_CONTEXT.md) (also covers §10 Payment and §11 Submission). Seller completes proposal; customer controls verification, consent, PIVC handoff, payment and submission.
+
 | # | Sub-heading | Priority |
 |---|-------------|----------|
 | 8.1 | Data prefill & Masking | R0 |
@@ -129,6 +141,8 @@
 ---
 
 ### 10. Payment
+**Covered in** Customer Buying Journey v1.2 (IFT / PG / Cheque / eMandate). Cheque API lifecycle remains open until the integration contract is finalised.
+
 | # | Sub-heading | Priority |
 |---|-------------|----------|
 | 10.1 | Dual Payment Mandate | R0 / R1 |
@@ -141,6 +155,8 @@
 ---
 
 ### 11. Proposal Submission
+**Covered in** Customer Buying Journey v1.2. Application ID is created only when Proposal Form initiation succeeds.
+
 | # | Sub-heading | Priority |
 |---|-------------|----------|
 | 11.1 | Status update | R0 |
@@ -246,6 +262,8 @@ For each approved heading, produce:
 
 Start deep-dive order (PO recommendation): **§1 → §2 → §3 → §4 → §6 → §7 → §8 → §10 → §11**, then §5/§9, then §12–§16.
 
+September 2026 pack covers §1, §3, §4 (inside Lead), §6 (Savings/ULIP), §7 (Savings), §8/§10/§11, plus Pitch Deck and Exception Handling. **Still missing a detailed BRD:** §2 User Management, Term suitability, ULIP listing/details, §9 Risk/fraud, §12–§16.
+
 ---
 
 ## Change control
@@ -253,5 +271,6 @@ Start deep-dive order (PO recommendation): **§1 → §2 → §3 → §4 → §6
 | Version | Date | Change | Owner |
 |---------|------|--------|-------|
 | 1.0 | 2026-07-31 | PO-approved overview headings captured as BRD TOC | Platform PO |
+| 1.1 | 2026-09-28 | Linked September 2026 detailed BRDs; annotated Forgot Password removal and open conflicts | Platform PO (pack) / BA ingest |
 
 Any addition, rename, or removal of a top-level section requires **PO approval** and an update to this table.

@@ -1,0 +1,110 @@
+[
+  {
+    "source": "Create_Pitch_Deck_BRD_Detailed.docx",
+    "source_sha256": "fc0001fabeb6b4648146bea055dd6d1557edfc6e417402ead165df40bc3f1e5e",
+    "context_file": "Create_Pitch_Deck_BRD_Detailed_CONTEXT.md",
+    "context_sha256": "0e3e670349e0bcf5429612b0763a5d7b0a3a6453e1c02c8fae1029a925d02dbb",
+    "source_blocks": 248,
+    "retained_nonempty_paragraphs": 201,
+    "source_tables": 23,
+    "comments": 0,
+    "tracked_changes": 0,
+    "embedded_workbooks": 0
+  },
+  {
+    "source": "Customer_Buying_Journey_BRD_V1.2.docx",
+    "source_sha256": "b8293c30679d1728955c1402a93cc441ca6cf60acfa4673a1015bceac2174bef",
+    "context_file": "Customer_Buying_Journey_BRD_V1.2_CONTEXT.md",
+    "context_sha256": "6e17a87e6eb0603cf603a91c111eeae35a23bfc8ad61738dec62d2626dc4b413",
+    "source_blocks": 533,
+    "retained_nonempty_paragraphs": 441,
+    "source_tables": 54,
+    "comments": 0,
+    "tracked_changes": 0,
+    "embedded_workbooks": 0
+  },
+  {
+    "source": "Exception_Handling_BRD_V1.0.docx",
+    "source_sha256": "48fbec480bc31067b7d0897dfae72d6985fb1caa63e54b7b51d17d4be084aef4",
+    "context_file": "Exception_Handling_BRD_V1.0_CONTEXT.md",
+    "context_sha256": "c2a3e228b067f3e3f8cdc64eb6c17c76d3ec0063804cf4e98860f85eebe4c91b",
+    "source_blocks": 201,
+    "retained_nonempty_paragraphs": 164,
+    "source_tables": 12,
+    "comments": 0,
+    "tracked_changes": 0,
+    "embedded_workbooks": 7
+  },
+  {
+    "source": "Lead_Module_BRD_Detailed.docx",
+    "source_sha256": "1a197e0dab54bbb65a5414458c9aeaad629e726befb6f1d8f30391b147fb6a32",
+    "context_file": "Lead_Module_BRD_Detailed_CONTEXT.md",
+    "context_sha256": "ed3f2113c2df34a63f15e58b62cf195376c188133e3727ea8a3810ae08b6fe8b",
+    "source_blocks": 311,
+    "retained_nonempty_paragraphs": 239,
+    "source_tables": 37,
+    "comments": 0,
+    "tracked_changes": 0,
+    "embedded_workbooks": 0
+  },
+  {
+    "source": "Login_Module_BRD_Detailed.docx",
+    "source_sha256": "6ac9339b60a4a921bb5484cad0c8f2266b7ee6667d876646034b790fe621c730",
+    "context_file": "Login_Module_BRD_Detailed_CONTEXT.md",
+    "context_sha256": "3071228fcad81b758d9adf85a0d70f2a739991a8ceaa48dda0a558b2ee7fc77c",
+    "source_blocks": 165,
+    "retained_nonempty_paragraphs": 119,
+    "source_tables": 23,
+    "comments": 0,
+    "tracked_changes": 0,
+    "embedded_workbooks": 0
+  },
+  {
+    "source": "Product_Details_Savings_Plan_BRD_Detailed.docx",
+    "source_sha256": "24c64700116fe99ce31b8900310f232f94a04474b6050458ee4e7d9f908ee20e",
+    "context_file": "Product_Details_Savings_Plan_BRD_Detailed_CONTEXT.md",
+    "context_sha256": "743633c040db61427cf89ba67bad5f9a64bfdfebd8f4325a21c0ac88b7ae563e",
+    "source_blocks": 277,
+    "retained_nonempty_paragraphs": 232,
+    "source_tables": 22,
+    "comments": 0,
+    "tracked_changes": 0,
+    "embedded_workbooks": 0
+  },
+  {
+    "source": "Quote_Finalisation_Riders_and_Final_BI_BRD_Detailed.docx",
+    "source_sha256": "a0d01945ac0b31a99a5140e8e4b4b999503a5afbcbeb4f8a9ca91e1c6db83497",
+    "context_file": "Quote_Finalisation_Riders_and_Final_BI_BRD_Detailed_CONTEXT.md",
+    "context_sha256": "d943136e0e9c7975509ad9771997723ad8f7fef6ed7618afbdb2aee82d38be7c",
+    "source_blocks": 301,
+    "retained_nonempty_paragraphs": 252,
+    "source_tables": 24,
+    "comments": 0,
+    "tracked_changes": 0,
+    "embedded_workbooks": 0
+  },
+  {
+    "source": "Savings_Listing_and_Compare_Plans_BRD_Detailed.docx",
+    "source_sha256": "41c641e2bd4e0aca74593396fbc057f0d077369538eaebd2dd0a8c440222bf18",
+    "context_file": "Savings_Listing_and_Compare_Plans_BRD_Detailed_CONTEXT.md",
+    "context_sha256": "cefff25a1625711f71fc0017e1762c25a56bb7130ec2361f4b6a1f65ea69cb94",
+    "source_blocks": 254,
+    "retained_nonempty_paragraphs": 203,
+    "source_tables": 25,
+    "comments": 0,
+    "tracked_changes": 0,
+    "embedded_workbooks": 0
+  },
+  {
+    "source": "Suitability_Module_BRD_Detailed.docx",
+    "source_sha256": "675ccb364643e609936c375ad8f6584e8b76d5849682468b477f7ada4b05c563",
+    "context_file": "Suitability_Module_BRD_Detailed_CONTEXT.md",
+    "context_sha256": "a661922014705a1ff5abdc7387189a4d59cac26ead3dc29a6215b78def32ad0b",
+    "source_blocks": 273,
+    "retained_nonempty_paragraphs": 225,
+    "source_tables": 24,
+    "comments": 0,
+    "tracked_changes": 0,
+    "embedded_workbooks": 0
+  }
+]

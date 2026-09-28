@@ -121,10 +121,18 @@ screen, exact actions, exact cadence. That is all you need to read.
 Multi-module Gradle (Kotlin DSL) monorepo for the **1SB insurance platform** — **Java 21**,
 **Spring Boot**, shared libs under `libs/`, services under `services/`.
 
+**Repository boundary (`DOC-006`):** this git repository holds Java services, shared libraries and
+docs only. Client application source (NIP-APP / Flutter) is **not** maintained here.
+[`ADR-015`](./docs/platform/architecture-review/08-architecture-decision-log.md) is not overturned —
+there is still one workforce client; it lives in a separate repository. Evaluate BFF contracts
+against [`docs/figma/`](./docs/figma/README.md) as the frontend reference. Behaviour SSOT remains
+the detailed BRDs (`DOC-005`); Figma is not behaviour SSOT (`D-012`).
+
 | Service | Port | Required? | Notes |
 |---|---|---|---|
 | `1sb-integration-service` | 8080 | Yes (Phase 1+) | Bank-facing 1SB adapter. **No datasource** — job store via HTTP to bank-persistence. Profiles `local`/`test`/`uat`/`prod`. |
 | `bank-persistence-service` | 8081 | Yes, for local job-store / audit HTTP | **Platform-common** persistence (Flyway + JPA + `/internal/v1`); owns the DB for all consumers. H2 (`MODE=PostgreSQL`) local/test, PostgreSQL uat/prod. |
+| `workforce-access-bff` | 8084 | Yes, for workforce login | Token-hiding BFF. NIP-APP is not in this repo; evaluate against Figma. |
 | `audit-consumer-service` | — | Future | Doc stub; will call `/internal/v1/audit-events` on bank-persistence — no second audit DB. |
 
 Architecture invariants enforced in code: bank apps never call 1SB or a database directly · 1SB

@@ -13,6 +13,7 @@ authority:
   canonical_authority: "docs/governance/PERSONA-AUTHORITY-MATRIX.md"
   precedence:
     - "docs/governance/"
+    - "docs/au-bank-insurance-platform/requirements/brd-detailed/"
     - "docs/au-bank-insurance-platform/07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md"
     - "docs/au-bank-insurance-platform/DECISION-LOG.md"
     - "docs/platform/"

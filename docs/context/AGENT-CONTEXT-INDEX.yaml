@@ -25,6 +25,7 @@ canonical_authority: "docs/governance/PERSONA-AUTHORITY-MATRIX.md"
 # Precedence when two loaded documents disagree. Mirrors context-manifest.yaml.
 precedence:
   - "docs/governance/"
+  - "docs/au-bank-insurance-platform/requirements/brd-detailed/"
   - "docs/au-bank-insurance-platform/07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md"
   - "docs/au-bank-insurance-platform/DECISION-LOG.md"
   - "docs/platform/"
@@ -328,6 +329,13 @@ doc_routing:
       persona: architecture
 
     # --- business SSOT: what we are building and why -----------------------
+    - match: ["docs/au-bank-insurance-platform/requirements/brd-detailed/**"]
+      bucket: business
+      authority: business-ssot
+      capsules: [business-analysis, product-decision]
+      persona: business-analysis
+      note: "2026-09 Rajal detailed module BRDs (SUG-20260928-brd / DOC-005). Module-behaviour SSOT. TBDs and cross-BRD conflicts stay open — see BRD-ALIGNMENT-2026-09-28.md."
+
     - match: ["docs/au-bank-insurance-platform/requirements/*", "docs/au-bank-insurance-platform/rule-packs/*"]
       bucket: business
       authority: business-ssot
@@ -424,7 +432,7 @@ doc_routing:
       authority: non-binding-context
       capsules: [product-decision, orient]
       persona: product
-      note: "Figma wireframe exports. Cite the derived journey, not the PNG."
+      note: "Figma wireframe exports. Frontend reference for BFF evaluation (DOC-006). Cite the BRD for behaviour; the PNG is not SSOT."
 
     # --- docs root ---------------------------------------------------------
     - match: ["docs/*"]
@@ -614,7 +622,7 @@ capsules:
       - path: "docs/context/personas/rajal-product.card.md"
         why: "Adopt Rajal. Owns / never / escalation."
       - path: "docs/au-bank-insurance-platform/07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md"
-        why: "The business MVP SSOT — the working decisions that are already made."
+        why: "Programme-level MVP decisions. Module behaviour for the 2026-09 pack is in requirements/brd-detailed/ (DOC-005)."
       - path: "docs/governance/11-REVIEW_GATES.md"
         anchor: "6-board-3--product"
         why: "The Board 3 contract."

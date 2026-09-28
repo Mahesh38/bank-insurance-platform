@@ -26,6 +26,9 @@
 | D-012 | 2026-07-31 | Figma = **reference only**, not SoT | Mixed MVP + concept + future | Business (draft) | Working | WD §15 |
 | D-013 | 2026-07-31 | Platform deps: SSO, bank notifications, AU Bank PG; Lead in-platform → Sampath later | Bank systems of record | Business (draft) | Working | WD §14 |
 | D-014 | 2026-07-31 | Until compliance validated, engineering uses **configurable policy-driven controls** | Avoid hard-coded regulatory assumptions | Business (draft) | Working | WD §16 |
+| D-015 | 2026-09-28 | Suitability lock, Eligible Lead and reassignment block occur on **successful final BI** | Rajal Q3 on the 2026-09 pack (C1/C2) | Rajal | Working | [alignment §8](./requirements/BRD-ALIGNMENT-2026-09-28.md#8-rajal-answers-2026-09-28) |
+| D-016 | 2026-09-28 | Insurance RM is selected at **lead creation**. Every Bank SP is an RM; not every RM is an SP | Rajal Q4. SP is a certification, not a second actor | Rajal | Working | [alignment §8](./requirements/BRD-ALIGNMENT-2026-09-28.md#8-rajal-answers-2026-09-28) |
+| D-017 | 2026-09-28 | Product intent: Compare/Buy of a product **outside** the suitable set is allowed | Rajal Q5. **Board 6 must confirm** before implementation; standing suitability gate stays until then | Rajal (intent) · Shailja (permissibility outstanding) | **Pending compliance** | [alignment §8](./requirements/BRD-ALIGNMENT-2026-09-28.md#8-rajal-answers-2026-09-28) |
 
 ---
 
@@ -37,6 +40,8 @@
 | DOC-002 | 2026-07-31 | Prefer bank-owned capabilities with pluggable integrations (opening stance) | Accepted | [PO opening](./06-po-opening-position.md) |
 | DOC-003 | 2026-07-31 | BRD overview headings (Login → Commission/MIS) are PO-approved chapter map | Accepted | [BRD Overview](./requirements/BRD-OVERVIEW.md) |
 | DOC-004 | 2026-07-31 | Working Decisions Draft v1 adopted as **working** SSOT for MVP scope (pending formal sponsor validation) | Working | [Working Decisions](./07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md) |
+| DOC-005 | 2026-09-28 | September 2026 Rajal detailed module BRD pack is the **working module-behaviour SSOT** for the chapters it covers. Programme `D-xxx` in Working Decisions stand until Rajal overturns them. TBDs and cross-BRD conflicts stay open — [alignment](./requirements/BRD-ALIGNMENT-2026-09-28.md). Application code not started. | Working | [brd-detailed/](./requirements/brd-detailed/README.md) · `SUG-20260928-brd` |
+| DOC-006 | 2026-09-28 | **This git repository is Java + docs only.** Client application source (NIP-APP / Flutter) is not maintained here. `ADR-015` is **not** overturned — one workforce client still exists; its source lives elsewhere. BFF contracts are evaluated against [`docs/figma/`](../figma/README.md) as the frontend reference. Figma remains not behaviour SSOT (`D-012`). Login first-module work continues on `workforce-access-bff`, not an in-repo app. | Working | `SUG-20260928-jvo` · [Login BFF vs Figma](./requirements/LOGIN-BFF-FIGMA-EVALUATION.md) |
 
 ---
 

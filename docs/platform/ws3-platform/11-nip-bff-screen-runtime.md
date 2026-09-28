@@ -7,6 +7,7 @@
 
 File 10 is the **wire** Flutter speaks. This file is the **runtime**: where a screen is stored,
 who validates it, which **command** a submit runs, and where the values live afterwards.
+[`12-nip-bff-screen-authoring.md`](./12-nip-bff-screen-authoring.md) is the **cookbook** for seeding a new screen.
 
 The BFF still **does not hold a domain decision**
 ([`07` §2](./07-nip-bff-lead-phase-api-lld.md#2-actors-edge-and-what-the-bff-may-never-do)).

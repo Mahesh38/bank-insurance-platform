@@ -76,6 +76,10 @@ acceptance_criteria:
     given: "GET /screens/{screenId}"
     when: "a ScreenDocument is read"
     then: "submission.href and submission.body are present; body.values lists every writable field with a blank token; READONLY names are omitted; client POSTs that object without inventing keys"
+  - id: AC-10
+    given: "file 12"
+    when: "an author seeds a new screen"
+    then: "GET/POST, every widget, value tokens, operators, validation, optionsUrl, bindings and the seed checklist are specified without a Flutter change"
 
 out_of_scope:
   - "Flutter / iOS / Android / Web renderer implementation"
@@ -118,6 +122,7 @@ risks: []
 evidence:
   - "docs/platform/ws3-platform/10-nip-bff-screen-descriptor.md"
   - "docs/platform/ws3-platform/11-nip-bff-screen-runtime.md"
+  - "docs/platform/ws3-platform/12-nip-bff-screen-authoring.md"
   - "docs/platform/ws3-platform/nip-bff-screen-descriptor.openapi.yaml"
   - "docs/platform/architecture-review/ADR-021-nip-screen-descriptor.md"
   - "docs/governance/plans/PLAN-006-nip-bff-screen-descriptor.md"

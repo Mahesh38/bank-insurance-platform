@@ -23,7 +23,8 @@ problem: >
 
 proposed_solution: >
   Publish ADR-021, 10-nip-bff-screen-descriptor.md (wire),
-  11-nip-bff-screen-runtime.md (store / L1+L2 / action bind / capture) and
+  11-nip-bff-screen-runtime.md (store / L1+L2 / action bind / capture),
+  12-nip-bff-screen-authoring.md (cookbook to seed any form) and
   nip-bff-screen-descriptor.openapi.yaml. Closed widget and surface enums;
   sibling fields only (no reveals); SCREEN_DOCUMENT + SCREEN_ACTION in Configuration #19;
   submit actionId maps to a closed command. Do not implement Flutter or BFF
@@ -46,6 +47,7 @@ affected_components:
 files_expected:
   - docs/platform/ws3-platform/10-nip-bff-screen-descriptor.md
   - docs/platform/ws3-platform/11-nip-bff-screen-runtime.md
+  - docs/platform/ws3-platform/12-nip-bff-screen-authoring.md
   - docs/platform/ws3-platform/nip-bff-screen-descriptor.openapi.yaml
   - docs/platform/architecture-review/ADR-021-nip-screen-descriptor.md
   - docs/platform/ws3-platform/ARCH-026.work-item.yaml
@@ -91,6 +93,7 @@ acceptance_criteria:
   - "AC-5 No Flutter or BFF runtime code"
   - "AC-6 File 11 names SCREEN_DOCUMENT / SCREEN_ACTION in Configuration #19, L1+L2, closed command catalogue, and screen_submission capture"
   - "AC-7 ScreenSubmission requires actionId; Flutter does not send command"
+  - "AC-8 File 12 authoring cookbook covers GET/POST, every widget, value tokens, operators, validation, optionsUrl and seed checklist"
 
 out_of_scope:
   - "Flutter / iOS / Android / Web renderer"

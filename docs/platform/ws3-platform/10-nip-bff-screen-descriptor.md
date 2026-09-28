@@ -5,7 +5,8 @@
 **Status:** `AI-DRAFTED` · T3 · human Board 1 / 4 signatures outstanding  
 **Origin:** `SUG-20260923-sdu` · `ARCH-026` · `PLAN-006` · `ADR-021`  
 **Machine contract:** [`nip-bff-screen-descriptor.openapi.yaml`](./nip-bff-screen-descriptor.openapi.yaml)  
-**Runtime (store, L1/L2 validate, action bind, persist):** [`11-nip-bff-screen-runtime.md`](./11-nip-bff-screen-runtime.md)
+**Runtime (store, L1/L2 validate, action bind, persist):** [`11-nip-bff-screen-runtime.md`](./11-nip-bff-screen-runtime.md)  
+**Authoring cookbook (how to create a form):** [`12-nip-bff-screen-authoring.md`](./12-nip-bff-screen-authoring.md)
 
 This file is the **single** frontend contract for server-driven **surfaces**. NIP-APP (web, iOS,
 Android) renders from it so a new field, option, icon or validation rule that uses an

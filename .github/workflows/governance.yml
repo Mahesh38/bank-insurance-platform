@@ -20,6 +20,7 @@ on:
       - "scripts/context/**"
       - "scripts/lifecycle/**"
       - ".github/workflows/governance.yml"
+      - ".github/workflows/governance-daily.yml"
       - "AGENTS.md"
   push:
     branches: [main]
@@ -93,6 +94,9 @@ jobs:
 
       - name: Autopilot safety tests
         run: python3 scripts/governance/test_autopilot.py
+
+      - name: Daily sign-off report tests
+        run: python3 scripts/governance/test_daily_governance_report.py
 
       - name: S08-G9 pipeline feedback measurement tests
         run: python3 scripts/governance/test_measure_pipeline_feedback.py

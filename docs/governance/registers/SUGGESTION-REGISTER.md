@@ -43,6 +43,9 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20260929-dbr | 2026-09-29 | human:repository-owner | Daily sign-off PR must also give, for every pending human sign-off, an AIGEM suggested decision (approve / approve with conditions / approve after validation / reject / defer) with context, justification and reasons both ways | SF5 | SC1 | SHOULD | GOV | P3 / P2 | ADMITTED | [generator](../../../scripts/governance/decision_briefs.py) · [detail](#sug-20260929-dbr--decision-briefs-on-the-daily-sign-off-pr) |
+| SUG-20260929-jdb | 2026-09-29 | scan:trivy | CVE-2026-68497 (HIGH) on jackson-databind 2.21.4 from the Spring Boot 3.5.16 BOM fails SCA and all three image scans; pin jackson-bom 2.21.7 | SF0 | SC1 | MUST | SEC | P1 / P1 | ADMITTED | [build.gradle.kts](../../../build.gradle.kts) · [detail](#sug-20260929-jdb--jackson-databind-cve-2026-68497) |
+| SUG-20260929-dsp | 2026-09-29 | human:repository-owner | Schedule a daily governance + freshness check and generated-state refresh; AIGEM seats must unanimously concur; open a PR each day for human review and sign-off that highlights every pending human decision and approval | SF5 | SC1 | SHOULD | GOV | P3 / P2 | ADMITTED | [workflow](../../../.github/workflows/governance-daily.yml) · [report](../autopilot/DAILY-SIGNOFF.md) · [detail](#sug-20260929-dsp--daily-aigem-sign-off-pr) |
 | SUG-20260928-jvo | 2026-09-28 | human:stakeholder | This repository holds Java code only; no client app source; evaluate BFF against Figma as the frontend reference | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [DOC-006](../../au-bank-insurance-platform/DECISION-LOG.md) · [Figma](../../figma/README.md) · [Login BFF vs Figma](../../au-bank-insurance-platform/requirements/LOGIN-BFF-FIGMA-EVALUATION.md) · [detail](#sug-20260928-jvo--java-only-repository-bff-vs-figma) |
 | SUG-20260928-brd | 2026-09-28 | human:Rajal | Treat September 2026 detailed module BRD pack as source of truth; realign repo docs; do not assume TBDs or silent conflict resolution | SF1 | SC0 | MUST | DOC | P2 / P1 | ADMITTED | [DOC-005](../../au-bank-insurance-platform/DECISION-LOG.md) · [pack](../../au-bank-insurance-platform/requirements/brd-detailed/README.md) · [alignment](../../au-bank-insurance-platform/requirements/BRD-ALIGNMENT-2026-09-28.md) · [detail](#sug-20260928-brd--rajal-detailed-brd-pack-as-module-ssot) |
 | SUG-20260923-scs | 2026-09-23 | human:architect | NIP BFF SCR-03 search-customer contract: Customer ID / PAN / mobile; lead-first then CBS via Apigee; one stakeholder+dev doc | SF1 | SC0 | SHOULD | ARCH | P2 / P1 | ADMITTED | [ARCH-025](../../platform/ws3-platform/ARCH-025.work-item.yaml) · [PLAN-005](../plans/PLAN-005-nip-bff-customer-search-contract.md) · [contract](../../platform/ws3-platform/09-nip-bff-customer-search-contract.md) · [detail](#sug-20260923-scs--scr-03-customer-search-unified-contract) |
@@ -123,6 +126,322 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20260929-dbr · Decision briefs on the daily sign-off PR
+
+```yaml
+# schema: triage-record
+id: SUG-20260929-dbr
+raised_at: "2026-09-29"
+raised_by: "human:repository-owner"
+source: "Claude Code session, follow-up on PR #125"
+input: >
+  include one more thing in this PR that the AI gem has done the governance and while doing the
+  governance they must have found all the human sign off and uh, things pending they also should
+  give a suggestion on those sign off what action to be taken next like for example there is a
+  task a needs sign off that something needs to be performed now human sign off can be yes
+  approve yes approve with xyz conditions yes approve with this validation reject or whatever the
+  sign off should have details suggestion as well that help a uh, human to take a decision and
+  the justification as well so that it will be a uh, easier on human sign off they have the
+  context and they have the reason to approve and they have reason to reject or reason to say
+  okay except with conditions
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  state_as_of: "2026-09-13"
+  state_provisional: false
+  active_work_item: SUG-20260929-dsp
+
+stage_fit:
+  code: SF5
+  lane: "governance-automation (Kalpana / R12 reviews the output)"
+  rationale: >
+    Extends the in-flight SUG-20260929-dsp on the same lane and in the same PR. Output is a
+    report section, and no gate criterion, trust boundary or state field changes.
+  parallel_test:
+    off_critical_path: true
+    dependency_safe: true
+    in_scope: true
+    standing_constraint_clean: true
+    separate_lane: "governance-automation"
+    no_silent_trust_boundary_change: true
+
+scope:
+  code: SC1
+  serves: ["RUNBOOK section 3 Daily", "PERSONA-AUTHORITY-MATRIX: agents draft reasoning, humans sign"]
+  failure_without_it: >
+    The sign-off PR lists 25 pending items with no context. Each human must rediscover what is
+    being asked, what the drafted board positions already say, and what the conditions are.
+  minimal: true
+
+necessity:
+  now: SHOULD
+  failure_without_it: "human decisions stay slow because the reasoning is scattered across CR files and verdict packs"
+  evidence_tier: E2
+  evidence:
+    - "DAILY-SIGNOFF.md 2026-09-29 lists 25 human actions"
+    - "CR-010, CR-012 and CR-015 verdict packs already hold drafted positions and 63 numbered conditions that no summary surfaces"
+  confidence: C4
+  assumptions: []
+
+action: ADMIT
+action_rationale: >
+  Admit, with the boundary that makes it lawful. Every suggestion is labelled a draft, is derived
+  from recorded evidence by a stated rule, and cites that evidence. The human's tick on the PR is
+  a decision signal. The binding signature is still filed by that human in the canonical file the
+  brief names (CR file, GATE-EVIDENCE approvals with reviewer_type HUMAN, or register row). An
+  agent never files it.
+duplicate_of: null
+conflicts: []
+
+classification:
+  type: GOV
+  breakdown: STORY
+  risk_tier: T2
+  destination: "scripts/governance/decision_briefs.py, used by daily-governance-report.py"
+
+priority:
+  now: P3
+  at_target: P2
+  rationale: "Improves decision latency on the existing sign-off PR; not a hard-P1 class"
+
+dependencies:
+  edges:
+    - type: TECHNICAL
+      target: SUG-20260929-dsp
+      relation: requires
+      state: IN-FLIGHT
+  state: READY
+  enablement_count: 0
+  earliest_start: "2026-09-29"
+  cycles: none
+
+breakdown:
+  children: []
+  completion_definition: >
+    Every pending item in the daily report carries a decision brief: context, the AIGEM
+    suggestion, justification, reasons to approve, reasons to reject or hold, conditions or
+    validation, evidence links, where the human records the signature, and tick-box options.
+    The rules are tested.
+  not_included:
+    - "Filing any approval, verdict or signature on a human's behalf"
+    - "LLM-generated free-text reasoning (the scheduled workflow is deterministic)"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: null
+  status: ADMITTED
+
+resumed: "SUG-20260929-dsp — daily sign-off PR #125, same branch."
+```
+
+### SUG-20260929-jdb · jackson-databind CVE-2026-68497
+
+```yaml
+# schema: triage-record
+id: SUG-20260929-jdb
+raised_at: "2026-09-29"
+raised_by: "scan:trivy"
+source: "Security Scanning on PR #125 — SCA and image scans for all three images"
+input: >
+  HIGH CVE-2026-68497 com.fasterxml.jackson.core:jackson-databind 2.21.4 -> 2.18.10, 2.21.6,
+  2.22.2 (CPU denial of service via unbounded numeric parsing).
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  state_as_of: "2026-09-13"
+  state_provisional: false
+  active_work_item: SUG-20260929-dsp
+
+stage_fit:
+  code: SF0
+  rationale: >
+    A fixable HIGH finding fails the S08-G5 security gate on every branch, including main. It
+    is a prerequisite for any merge.
+
+scope:
+  code: SC1
+  serves: ["S08-G5 dependency and image scanning"]
+  failure_without_it: "no branch can merge while the scan gate is red"
+  minimal: true
+
+necessity:
+  now: MUST
+  evidence_tier: E4
+  evidence:
+    - "Trivy 0.53.0 SCA and image scans, run 36593671450: 1 fixable HIGH, identical in all four jobs"
+  failure_without_it: "every PR and main stay red on S08-G5; the shipped jar keeps a known DoS"
+  confidence: C5
+  assumptions: []
+
+action: ADMIT
+action_rationale: >
+  Remediate, don't suppress (.trivyignore rule 2). Follow the existing BOM-override pattern
+  used for Netty, PostgreSQL and Tomcat: one patch bump within the 2.21 minor line. Remove it
+  once Spring Boot pins 2.21.6 or later.
+
+classification:
+  type: SEC
+  breakdown: TASK
+  risk_tier: T2
+  destination: "build.gradle.kts extra[\"jackson-bom.version\"]"
+
+priority:
+  now: P1
+  at_target: P1
+  overrides_applied: [O1, O7]
+  override_evidence:
+    - "O1: Security Scanning run 36593671450 red — SCA plus three image-scan jobs fail on this CVE"
+    - "O7: blocks PR #125 (SUG-20260929-dsp), the item in flight"
+  rationale: "O2 not claimed — no reachability analysis recorded; the gate failure alone makes it P1"
+
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 1
+  earliest_start: "2026-09-29"
+  cycles: none
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: null
+  status: ADMITTED
+
+resumed: "SUG-20260929-dsp — daily sign-off PR #125."
+```
+
+### SUG-20260929-dsp · Daily AIGEM sign-off PR
+
+```yaml
+# schema: triage-record
+id: SUG-20260929-dsp
+raised_at: "2026-09-29"
+raised_by: "human:repository-owner"
+source: "Claude Code session request"
+input: >
+  I want to schedule the governance and freshness check and current state update on the
+  daily basis for the repository, aigem must unanimously conclude and the governance and the
+  things needed to update on repository on daily basis and create the PR for the same so the
+  human can review and approve with sign off. If any action items pending for human signoffs
+  and humen decision or approval that also will be highlighted in this and the human can move
+  that ahead. It is the human signoff pr .
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-13"
+  state_provisional: false
+  active_work_item: null
+
+stage_fit:
+  code: SF5
+  lane: "governance-automation (Kalpana / R12 reviews the output)"
+  rationale: >
+    FreshnessCheck 2026-09-29 exit 1 (state_as_of 16 days old; DEPENDENCY-REGISTER 15d)
+    disclosed. This is governance tooling that automates the RUNBOOK section 3 Daily and
+    Governance Sync checks. It is off the critical path, touches no product code, trust boundary
+    or gate criterion, and runs on its own lane.
+  parallel_test:
+    off_critical_path: true
+    dependency_safe: true
+    in_scope: true
+    standing_constraint_clean: true
+    separate_lane: "governance-automation"
+    no_silent_trust_boundary_change: true
+
+scope:
+  code: SC1
+  business_scope: "derived — keeps the governance state that every workstream triages against current"
+  serves: ["RUNBOOK section 3 Daily and Weekly cadence", "Rule CS-1 freshness", "Rule DEP-3 dependency ageing"]
+  failure_without_it: >
+    Staleness and overdue human decisions surface only when someone runs the check. On
+    2026-09-29 the state was 16 days old, four external dependencies were 11 days overdue, and
+    GATE-S08 sat at CANDIDATE with five human verdicts owed. None of this was flagged to anyone.
+  minimal: true
+  authority: "repository-owner instruction 2026-09-29"
+
+necessity:
+  now: SHOULD
+  future_necessity: MUST
+  target_stage: "S08 — Engineering Foundation"
+  binds_when: "the programme runs more than one gate at CANDIDATE or has overdue external dependencies"
+  failure_without_it: "human decisions age silently between weekly syncs"
+  evidence_tier: E2
+  evidence:
+    - "FreshnessCheck 2026-09-29 exit 1"
+    - "DEPENDENCY-REGISTER section 2: DEP-002, DEP-010, DEP-20260824-dx1 and DEP-20260824-eip past 2026-09-18"
+    - "GATE-EVIDENCE.yaml: GATE-S08 CANDIDATE with approvals []"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT
+action_rationale: >
+  Admit as SF5 on the governance-automation lane. Automated seat concurrence is a consistency
+  verdict and is labelled as such. It never stands in for a board verdict or a T4 human
+  sign-off. The workflow never approves, never merges, and never edits CURRENT-STATE.yaml
+  (including state_as_of), GATE-EVIDENCE.yaml, registers or change requests. It regenerates
+  derived views only. One-time setup is owed by the repository owner: enable "Allow GitHub
+  Actions to create and approve pull requests" (optionally add GOVERNANCE_BOT_TOKEN).
+duplicate_of: null
+conflicts: []
+
+classification:
+  type: GOV
+  also: [OPS]
+  breakdown: STORY
+  epic: null
+  risk_tier: T2
+  destination: ".github/workflows/governance-daily.yml + scripts/governance/daily-governance-report.py"
+
+priority:
+  now: P3
+  at_target: P2
+  factors: { N: 1, S: 1, B: 1, R: 1, D: 1, E: 1 }
+  score: 8
+  matrix_default: P3
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "Useful hygiene automation; not a hard-P1 class"
+
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 0
+  earliest_start: "2026-09-29"
+  cycles: none
+
+breakdown:
+  children: []
+  completion_definition: >
+    A daily scheduled workflow runs every governance check, refreshes the generated views and
+    opens or refreshes one human-signoff PR. The PR lists every pending human action with its
+    owner and shows a per-seat CONCUR or DISSENT. Parser tests run in governance CI.
+  not_included:
+    - "Bumping state_as_of or any stage field automatically"
+    - "Any automated approval, merge or waiver"
+    - "LLM-run seven-board review of the daily PR (possible later as a Claude routine)"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: null
+  plan_id: null
+  status: ADMITTED
+  closed_reason: null
+
+resumed: "No prior work item was in flight; this session opened with this input."
+```
 
 ### SUG-20260928-brd · Rajal detailed BRD pack as module SSOT
 

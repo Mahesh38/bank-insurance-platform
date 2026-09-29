@@ -39,6 +39,11 @@ subprojects {
     // release pins 10.1.58 or later.
     extra["tomcat.version"] = "10.1.59"
 
+    // Same pattern: 3.5.16 pins Jackson 2.21.4; Trivy 2026-09-29 flags CVE-2026-68497
+    // on jackson-databind (HIGH, CPU DoS via unbounded numeric parsing; fixed in
+    // 2.21.6). Remove once a Spring Boot release pins 2.21.6 or later.
+    extra["jackson-bom.version"] = "2.21.7"
+
     configure<io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension> {
         imports {
             mavenBom("org.springframework.boot:spring-boot-dependencies:3.5.16")

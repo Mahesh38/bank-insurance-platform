@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20260929-dbr | 2026-09-29 | human:repository-owner | Daily sign-off PR must also give, for every pending human sign-off, an AIGEM suggested decision (approve / approve with conditions / approve after validation / reject / defer) with context, justification and reasons both ways | SF5 | SC1 | SHOULD | GOV | P3 / P2 | ADMITTED | [generator](../../../scripts/governance/decision_briefs.py) · [detail](#sug-20260929-dbr--decision-briefs-on-the-daily-sign-off-pr) |
 | SUG-20260929-jdb | 2026-09-29 | scan:trivy | CVE-2026-68497 (HIGH) on jackson-databind 2.21.4 from the Spring Boot 3.5.16 BOM fails SCA and all three image scans; pin jackson-bom 2.21.7 | SF0 | SC1 | MUST | SEC | P1 / P1 | ADMITTED | [build.gradle.kts](../../../build.gradle.kts) · [detail](#sug-20260929-jdb--jackson-databind-cve-2026-68497) |
 | SUG-20260929-dsp | 2026-09-29 | human:repository-owner | Schedule a daily governance + freshness check and generated-state refresh; AIGEM seats must unanimously concur; open a PR each day for human review and sign-off that highlights every pending human decision and approval | SF5 | SC1 | SHOULD | GOV | P3 / P2 | ADMITTED | [workflow](../../../.github/workflows/governance-daily.yml) · [report](../autopilot/DAILY-SIGNOFF.md) · [detail](#sug-20260929-dsp--daily-aigem-sign-off-pr) |
 | SUG-20260928-jvo | 2026-09-28 | human:stakeholder | This repository holds Java code only; no client app source; evaluate BFF against Figma as the frontend reference | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [DOC-006](../../au-bank-insurance-platform/DECISION-LOG.md) · [Figma](../../figma/README.md) · [Login BFF vs Figma](../../au-bank-insurance-platform/requirements/LOGIN-BFF-FIGMA-EVALUATION.md) · [detail](#sug-20260928-jvo--java-only-repository-bff-vs-figma) |
@@ -125,6 +126,116 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20260929-dbr · Decision briefs on the daily sign-off PR
+
+```yaml
+# schema: triage-record
+id: SUG-20260929-dbr
+raised_at: "2026-09-29"
+raised_by: "human:repository-owner"
+source: "Claude Code session, follow-up on PR #125"
+input: >
+  include one more thing in this PR that the AI gem has done the governance and while doing the
+  governance they must have found all the human sign off and uh, things pending they also should
+  give a suggestion on those sign off what action to be taken next like for example there is a
+  task a needs sign off that something needs to be performed now human sign off can be yes
+  approve yes approve with xyz conditions yes approve with this validation reject or whatever the
+  sign off should have details suggestion as well that help a uh, human to take a decision and
+  the justification as well so that it will be a uh, easier on human sign off they have the
+  context and they have the reason to approve and they have reason to reject or reason to say
+  okay except with conditions
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  state_as_of: "2026-09-13"
+  state_provisional: false
+  active_work_item: SUG-20260929-dsp
+
+stage_fit:
+  code: SF5
+  lane: "governance-automation (Kalpana / R12 reviews the output)"
+  rationale: >
+    Extends the in-flight SUG-20260929-dsp on the same lane and in the same PR. Output is a
+    report section, and no gate criterion, trust boundary or state field changes.
+  parallel_test:
+    off_critical_path: true
+    dependency_safe: true
+    in_scope: true
+    standing_constraint_clean: true
+    separate_lane: "governance-automation"
+    no_silent_trust_boundary_change: true
+
+scope:
+  code: SC1
+  serves: ["RUNBOOK section 3 Daily", "PERSONA-AUTHORITY-MATRIX: agents draft reasoning, humans sign"]
+  failure_without_it: >
+    The sign-off PR lists 25 pending items with no context. Each human must rediscover what is
+    being asked, what the drafted board positions already say, and what the conditions are.
+  minimal: true
+
+necessity:
+  now: SHOULD
+  failure_without_it: "human decisions stay slow because the reasoning is scattered across CR files and verdict packs"
+  evidence_tier: E2
+  evidence:
+    - "DAILY-SIGNOFF.md 2026-09-29 lists 25 human actions"
+    - "CR-010, CR-012 and CR-015 verdict packs already hold drafted positions and 63 numbered conditions that no summary surfaces"
+  confidence: C4
+  assumptions: []
+
+action: ADMIT
+action_rationale: >
+  Admit, with the boundary that makes it lawful. Every suggestion is labelled a draft, is derived
+  from recorded evidence by a stated rule, and cites that evidence. The human's tick on the PR is
+  a decision signal. The binding signature is still filed by that human in the canonical file the
+  brief names (CR file, GATE-EVIDENCE approvals with reviewer_type HUMAN, or register row). An
+  agent never files it.
+duplicate_of: null
+conflicts: []
+
+classification:
+  type: GOV
+  breakdown: STORY
+  risk_tier: T2
+  destination: "scripts/governance/decision_briefs.py, used by daily-governance-report.py"
+
+priority:
+  now: P3
+  at_target: P2
+  rationale: "Improves decision latency on the existing sign-off PR; not a hard-P1 class"
+
+dependencies:
+  edges:
+    - type: TECHNICAL
+      target: SUG-20260929-dsp
+      relation: requires
+      state: IN-FLIGHT
+  state: READY
+  enablement_count: 0
+  earliest_start: "2026-09-29"
+  cycles: none
+
+breakdown:
+  children: []
+  completion_definition: >
+    Every pending item in the daily report carries a decision brief: context, the AIGEM
+    suggestion, justification, reasons to approve, reasons to reject or hold, conditions or
+    validation, evidence links, where the human records the signature, and tick-box options.
+    The rules are tested.
+  not_included:
+    - "Filing any approval, verdict or signature on a human's behalf"
+    - "LLM-generated free-text reasoning (the scheduled workflow is deterministic)"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: null
+  status: ADMITTED
+
+resumed: "SUG-20260929-dsp — daily sign-off PR #125, same branch."
+```
 
 ### SUG-20260929-jdb · jackson-databind CVE-2026-68497
 

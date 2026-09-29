@@ -15,7 +15,8 @@
 The reviewer ticks these on the pull request, then approves and merges it.
 
 - [ ] I read section 2 and every item there has an owner who knows it is theirs today
-- [ ] Any dissent in section 3 is understood, and either fixed or raised as a `SUG-` row
+- [ ] Every decision brief in section 3 has a ticked decision, or a named owner who will decide by a date
+- [ ] Any dissent in section 4 is understood, and either fixed or raised as a `SUG-` row
 - [ ] Regenerated views in the diff (`BOOT.md`, `DOC-MAP.yaml`, lifecycle backlog) match the state file
 - [ ] **Kalpana / R12** — freshness verdict noted; if `WARN`/`HALT`, the Governance Sync is scheduled
 
@@ -81,7 +82,727 @@ Rule DEP-3: a past follow-up date is a hope, not a tracked dependency — re-dat
 
 _None._
 
-## 3. AIGEM board concurrence (automated)
+## 3. Decision briefs — an AIGEM suggestion for every item in section 2
+
+Each brief gives the context, a suggested decision, why, reasons both ways, and the conditions a yes should carry. **Suggestions are drafts, not signatures.** Tick your decision in the brief. Then file the binding signature where the brief says: that step is yours, and no agent or workflow performs it.
+
+| Suggestion | Items |
+|---|---|
+| ESCALATE | 8 |
+| RATIFY WITH CONDITIONS | 6 |
+| APPROVE WITH CONDITIONS | 4 |
+| COUNTER-SIGN | 2 |
+| RE-DATE | 1 |
+| RE-CONFIRM WITH CONDITIONS | 1 |
+| REVIEW AND TOUCH | 1 |
+
+### Stage gates
+
+<details><summary><b>GATE-S08</b> · WS-3 stage gate: S08 — Engineering Foundation → S09 — Platform & Environment Foundation → AIGEM suggests <b>APPROVE WITH CONDITIONS</b> · owed by: Engineering, QA, Architect, Security, Operations</summary>
+
+**Context.** `GATE-S08` is at CANDIDATE. Human verdicts are owed by Engineering, QA, Architect, Security, Operations. What each authority should check: **Engineering (Amit)**: check S08-G1, S08-G2, S08-G4, S08-G8, S08-G10; **QA (Swapnali)**: check S08-G3, S08-G6; **Architect (Mahesh)**: no criterion owned; review the whole gate; **Security (Deepali)**: check S08-G5, S08-G7; **Operations (Shivanshi)**: check S08-G9.
+
+**AIGEM suggestion (draft): APPROVE WITH CONDITIONS.** Rule: every criterion MET with evidence gives APPROVE. Evidence below E4, or approaching the 30-day expiry, adds conditions. Missing or expired evidence means validate first. Result here: APPROVE WITH CONDITIONS.
+
+**Reasons to approve / act:**
+- 10 of 10 exit criteria are MET or WAIVED, 7 of them verified by CI.
+- Every criterion carries recorded evidence.
+- No criterion is waived; nothing is being accepted on a promise.
+
+**Reasons to reject, hold or be careful:**
+- The oldest verification is 16 days old (2026-09-13).
+- Approving opens S09 — Platform & Environment Foundation, but its entry is blocked by DEP-20260824-cst. The approval is still valid; the next stage cannot start until that clears.
+
+**Conditions or validation to attach to a yes:**
+1. Sign by **2026-10-13** (30 days after the oldest verification, RG-8), or re-run the verifiers first.
+2. Read the evidence lines yourself for the criteria verified by human review or below E4: S08-G2 (E4, human-review), S08-G8 (E2, document), S08-G10 (E3, human-review).
+
+**Evidence:** [GATE-EVIDENCE.yaml](../state/GATE-EVIDENCE.yaml) · [04-STAGE_GATES.md](../04-STAGE_GATES.md)
+
+**Your decision** (Engineering, QA, Architect, Security, Operations). Tick one, and add your name:
+
+- [ ] Approve
+- [ ] Approve with conditions: …
+- [ ] Approve after validation: …
+- [ ] Reject — reason: …
+- [ ] Defer to (date): …
+
+**File the signature in:** each approver's entry under `approvals` in `GATE-EVIDENCE.yaml` (`reviewer_type: HUMAN`), then a row in DECISION-REGISTER §4.
+
+</details>
+
+### Change requests
+
+<details><summary><b>CR-001</b> · Add exit criterion 4.7 (coverage gates green; QA-001 closed or waived with expiry) to the… → AIGEM suggests <b>COUNTER-SIGN</b> · owed by: Swapnali (QA Lead), Rajal (PO)</summary>
+
+**Context.** Raised 2026-08-10 (50 days ago). Current status: APPROVED 2026-08-10. Owed: Mahesh (Solution Architect) — PO + QA Lead counter-signature outstanding
+
+**AIGEM suggestion (draft): COUNTER-SIGN.** The decision is already APPROVED and in force; only the counter-signature is missing. An approval missing a required counter-signature leaves the record ambiguous for every later gate that cites it.
+
+**Reasons to approve / act:**
+- In force since 2026-08-10 (50 days) with no recorded objection.
+
+**Reasons to reject, hold or be careful:**
+- Withhold only if you disagree with the substance. In that case raise a CR to reverse it; declining to sign does not undo a decision already in force.
+
+**Conditions or validation to attach to a yes:**
+1. RG-8: this context is 50 days old. Before signing, confirm nothing it depends on has changed since 2026-08-10.
+
+**Evidence:** [DECISION-REGISTER §3](../registers/DECISION-REGISTER.md)
+
+**Your decision** (Swapnali (QA Lead), Rajal (PO)). Tick one, and add your name:
+
+- [ ] Counter-sign
+- [ ] Decline, and raise a CR to reverse it — reason: …
+
+**File the signature in:** its row in DECISION-REGISTER §3 (there is no separate CR file), by the signer.
+
+</details>
+
+<details><summary><b>CR-002</b> · Make Mahesh the single Principal Insurance Platform Architect persona; modularize his aut… → AIGEM suggests <b>RATIFY WITH CONDITIONS</b> · owed by: Rajal (Product Owner)</summary>
+
+**Context.** Raised 2026-08-14 (46 days ago). Current status: PENDING RATIFICATION. Owed: Mahesh approved preparation on review branch — Product Owner pending
+
+**AIGEM suggestion (draft): RATIFY WITH CONDITIONS.** The change is already how the repository operates (in use, cited by 9 documents) and nothing on record rejects it. Leaving it unratified is the worst outcome: agents follow it while every gate that cites it rests on an unsigned change. Ratify it, with each owed authority confirming its own part.
+
+**Reasons to approve / act:**
+- In use for 46 days, cited by 9 documents, with no recorded REJECT.
+- Reverting later costs more the longer it stays in use.
+
+**Reasons to reject, hold or be careful:**
+- No drafted board verdicts exist, so the signer has no independent assessment on file.
+
+**Conditions or validation to attach to a yes:**
+1. Each owed authority (Rajal (Product Owner)) confirms the part in its own domain before the ratification is recorded.
+2. If any of them objects, reject and revert through a CR. Do not leave the change half-ratified.
+3. RG-8: this context is 46 days old. Before signing, confirm nothing it depends on has changed since 2026-08-14.
+
+**Evidence:** [CR-002-principal-architect-persona-integration.md](../change-requests/CR-002-principal-architect-persona-integration.md) · [DECISION-REGISTER §3](../registers/DECISION-REGISTER.md)
+
+**Your decision** (Rajal (Product Owner)). Tick one, and add your name:
+
+- [ ] Ratify
+- [ ] Ratify with conditions: …
+- [ ] Reject and revert — reason: …
+- [ ] Defer to (date): …
+
+**File the signature in:** the CR file's Status line and its row in DECISION-REGISTER §3, by the signer.
+
+</details>
+
+<details><summary><b>CR-008</b> · Name Shivanshi as existing R10 / Board 7 Operations persona and mature SRE with insurance… → AIGEM suggests <b>RATIFY WITH CONDITIONS</b> · owed by: Mahesh (Architecture), Rajal (Product)</summary>
+
+**Context.** Raised 2026-08-14 (46 days ago). Current status: PENDING RATIFICATION. Owed: Prepared on Mahesh/user direction — Architecture + Product and any other required governance ratification pending
+
+**AIGEM suggestion (draft): RATIFY WITH CONDITIONS.** The change is already how the repository operates (in use, cited by 14 documents) and nothing on record rejects it. Leaving it unratified is the worst outcome: agents follow it while every gate that cites it rests on an unsigned change. Ratify it, with each owed authority confirming its own part.
+
+**Reasons to approve / act:**
+- In use for 46 days, cited by 14 documents, with no recorded REJECT.
+- Reverting later costs more the longer it stays in use.
+
+**Reasons to reject, hold or be careful:**
+- No drafted board verdicts exist, so the signer has no independent assessment on file.
+
+**Conditions or validation to attach to a yes:**
+1. Each owed authority (Mahesh (Architecture), Rajal (Product)) confirms the part in its own domain before the ratification is recorded.
+2. If any of them objects, reject and revert through a CR. Do not leave the change half-ratified.
+3. RG-8: this context is 46 days old. Before signing, confirm nothing it depends on has changed since 2026-08-14.
+
+**Evidence:** [CR-008-add-shivanshi-sre-persona.md](../change-requests/CR-008-add-shivanshi-sre-persona.md) · [DECISION-REGISTER §3](../registers/DECISION-REGISTER.md)
+
+**Your decision** (Mahesh (Architecture), Rajal (Product)). Tick one, and add your name:
+
+- [ ] Ratify
+- [ ] Ratify with conditions: …
+- [ ] Reject and revert — reason: …
+- [ ] Defer to (date): …
+
+**File the signature in:** the CR file's Status line and its row in DECISION-REGISTER §3, by the signer.
+
+</details>
+
+<details><summary><b>CR-010</b> · Portable context module, workstream-aware routing, semantic validation, application CI an… → AIGEM suggests <b>APPROVE WITH CONDITIONS</b> · owed by: Rajal (Product)</summary>
+
+**Context.** Raised 2026-08-16 (44 days ago). Current status: CANDIDATE. Owed: Implementation authorised by Mahesh/repository owner; formal Product and affected specialist verdicts pending
+
+**AIGEM suggestion (draft): APPROVE WITH CONDITIONS.** 9 drafted board positions, none REJECT (Mahesh (Architecture): APPROVE-WITH-MODIFICATION; Rajal (Product): APPROVE-WITH-MODIFICATION; Deepali (Security): APPROVE-WITH-MODIFICATION; Swapnali (QA): APPROVE-WITH-MODIFICATION; Shailja (Compliance): APPROVE-WITH-MODIFICATION; Shivanshi (Operations): APPROVE-WITH-MODIFICATION; Aarti (Database): APPROVE-WITH-MODIFICATION; Kalpana (Delivery): APPROVE-WITH-MODIFICATION; Amit (Engineering): APPROVE-WITH-MODIFICATION). Every draft attaches conditions, so the suggestion carries them.
+
+**Reasons to approve / act:**
+- Independent drafted review exists for 9 seats, and none rejects.
+
+**Reasons to reject, hold or be careful:**
+- Each draft is AI-authored, simulating the seat. It is a position to adopt, amend or reject, not that person's verdict.
+- 42 conditions in total. A yes means owning them with dates.
+
+**Conditions or validation to attach to a yes:**
+1. **Deepali (Security)**: SEC-C1: Constrain autopilot.py --output to a proposals directory;
+2. **Deepali (Security)**: SEC-C2: Add CODEOWNERS covering docs/governance/state/, docs/governance/change-requests/ and .github/workflows/.
+3. **Swapnali (QA)**: Q-C2: S08-G1 closes only on a green application-CI run over all libs/ and services/ on a pull request, with a run ID recorded in GATE-EVIDENCE.yaml
+4. **Swapnali (QA)**: Q-C3: SUIT-R40 gains a structural test.
+5. **Shailja (Compliance)**: R-C1: The CR-010 §2 boundary gains a detection mechanism, not only a prohibition.
+6. **Shailja (Compliance)**: R-C2: The absent suitability gate on the delivered quote path is entered in RISK-REGISTER.md with a named human risk owner, likelihood, impact, treatment and review date — before CR-010 ratificat…
+7. **Shivanshi (Operations)**: OPS-C1: Route failures of the scheduled governance workflow to a named recipient — issue creation, notification, or an equivalent that produces an owned action.
+8. **Shivanshi (Operations)**: OPS-C2: Add two runbook entries:
+9. **Aarti (Database)**: DB-C1: Add prior_state, new_state, consent_ref, suitability_ref, event_schema_version, retain_until and a database-generated sequence_no (unique per journey_id) to audit_event, before any regulate…
+10. **Aarti (Database)**: DB-C2: Replace the immutability comment with an explicit role model:
+11. **Kalpana (Delivery)**: K-C2: The 19 enablers are sized and dependency-mapped, and a critical path is drawn with no cycles (S04-VT-05)
+12. **Kalpana (Delivery)**: K-C3: The services/ feature freeze is published with the §3.6 permitted/not-permitted definition and a named adjudicator, effective at CR-010 ratification
+13. …and 30 more drafted conditions in the verdict pack.
+14. RG-8: this context is 44 days old. Before signing, confirm nothing it depends on has changed since 2026-08-16.
+
+**Evidence:** [CR-010-context-module-and-safe-autopilot.md](../change-requests/CR-010-context-module-and-safe-autopilot.md) · [DECISION-REGISTER §3](../registers/DECISION-REGISTER.md) · [verdict pack](../change-requests/CR-010/verdicts/README.md)
+
+**Your decision** (Rajal (Product)). Tick one, and add your name:
+
+- [ ] Approve
+- [ ] Approve with conditions: …
+- [ ] Approve after validation: …
+- [ ] Reject — reason: …
+- [ ] Defer to (date): …
+
+**File the signature in:** the CR file's Status line and its row in DECISION-REGISTER §3, by the signer.
+
+</details>
+
+<details><summary><b>CR-011</b> · Mahesh target-state / North Star architecture doctrine: nine persona modules (09–17), the… → AIGEM suggests <b>RATIFY WITH CONDITIONS</b> · owed by: Mahesh (Architecture), Rajal (Product)</summary>
+
+**Context.** Raised 2026-08-20 (40 days ago). Current status: PENDING RATIFICATION. Owed: Prepared on repository-owner direction — Architecture and Product ratification pending. Indexed here on 2026-08-24; the file existed from 2026-08-20 without a register row
+
+**AIGEM suggestion (draft): RATIFY WITH CONDITIONS.** The change is already how the repository operates (in use, cited by 7 documents) and nothing on record rejects it. Leaving it unratified is the worst outcome: agents follow it while every gate that cites it rests on an unsigned change. Ratify it, with each owed authority confirming its own part.
+
+**Reasons to approve / act:**
+- In use for 40 days, cited by 7 documents, with no recorded REJECT.
+- Reverting later costs more the longer it stays in use.
+
+**Reasons to reject, hold or be careful:**
+- No drafted board verdicts exist, so the signer has no independent assessment on file.
+
+**Conditions or validation to attach to a yes:**
+1. Each owed authority (Mahesh (Architecture), Rajal (Product)) confirms the part in its own domain before the ratification is recorded.
+2. If any of them objects, reject and revert through a CR. Do not leave the change half-ratified.
+3. RG-8: this context is 40 days old. Before signing, confirm nothing it depends on has changed since 2026-08-20.
+
+**Evidence:** [CR-011-mahesh-target-state-north-star-doctrine.md](../change-requests/CR-011-mahesh-target-state-north-star-doctrine.md) · [DECISION-REGISTER §3](../registers/DECISION-REGISTER.md)
+
+**Your decision** (Mahesh (Architecture), Rajal (Product)). Tick one, and add your name:
+
+- [ ] Ratify
+- [ ] Ratify with conditions: …
+- [ ] Reject and revert — reason: …
+- [ ] Defer to (date): …
+
+**File the signature in:** the CR file's Status line and its row in DECISION-REGISTER §3, by the signer.
+
+</details>
+
+<details><summary><b>CR-012</b> · R0 platform robustness: admit hybrid bank connectivity, centralised egress inspection, a… → AIGEM suggests <b>APPROVE WITH CONDITIONS</b> · owed by: Deepali (Security), Shailja (Compliance), Shivanshi (SRE), Aarti (Database), Kalpana (Delivery), Mahesh (Architecture)</summary>
+
+**Context.** Raised 2026-08-24 (36 days ago). Current status: PENDING RATIFICATION. Owed: Raised on repository-owner direction. Security acceptance (Deepali), Compliance (Shailja), SRE (Shivanshi), Database (Aarti) and Delivery (Kalpana) are required and outstanding; drafts in CR-012/verdicts/. Mandatory human T4 Architecture signature outstanding
+
+**AIGEM suggestion (draft): APPROVE WITH CONDITIONS.** 5 drafted board positions, none REJECT (Deepali (Security): APPROVE-WITH-MODIFICATION; Shailja (Compliance): APPROVE-WITH-MODIFICATION; Shivanshi (Operations): APPROVE-WITH-MODIFICATION; Aarti (Database): APPROVE-WITH-MODIFICATION; Kalpana (Delivery): APPROVE-WITH-MODIFICATION). Every draft attaches conditions, so the suggestion carries them.
+
+**Reasons to approve / act:**
+- Independent drafted review exists for 5 seats, and none rejects.
+
+**Reasons to reject, hold or be careful:**
+- Each draft is AI-authored, simulating the seat. It is a position to adopt, amend or reject, not that person's verdict.
+- 33 conditions in total. A yes means owning them with dates.
+
+**Conditions or validation to attach to a yes:**
+1. **Deepali (Security)**: SEC-OPEN-7 carries a date, not a stage.
+2. **Deepali (Security)**: SEC-OPEN-8 is scoped to destinations, not to a pattern.
+3. **Shailja (Compliance)**: The two sentences in §1 are standing constraints, not ADR prose.
+4. **Shailja (Compliance)**: FF-26 and FF-28 are gate evidence for GATE-S09, and a red result blocks.
+5. **Shivanshi (Operations)**: A runbook per tier before it reaches uat.
+6. **Shivanshi (Operations)**: The three drills are scheduled at the start of the S09 build, not the end.
+7. **Aarti (Database)**: The outbox table's physical design is mine, before the first migration:
+8. **Aarti (Database)**: NFR-THR-06 is recomputed with the publisher and consumers included, at their KEDA maximum, not their steady state.
+9. **Kalpana (Delivery)**: DEP-20260824-dx1 gets a bank-side contact and a first response date by 2026-08-28, and is reported at every Governance Sync until the VPN half is confirmed.
+10. **Kalpana (Delivery)**: The Elastic IP list is re-published and confirmed in writing before any UAT date is communicated (NFR-NET-03).
+11. …and 23 more drafted conditions in the verdict pack.
+12. RG-8: this context is 36 days old. Before signing, confirm nothing it depends on has changed since 2026-08-24.
+
+**Evidence:** [CR-012-r0-platform-robustness.md](../change-requests/CR-012-r0-platform-robustness.md) · [DECISION-REGISTER §3](../registers/DECISION-REGISTER.md) · [verdict pack](../change-requests/CR-012/verdicts/README.md)
+
+**Your decision** (Deepali (Security), Shailja (Compliance), Shivanshi (SRE), Aarti (Database), Ka…). Tick one, and add your name:
+
+- [ ] Approve
+- [ ] Approve with conditions: …
+- [ ] Approve after validation: …
+- [ ] Reject — reason: …
+- [ ] Defer to (date): …
+
+**File the signature in:** the CR file's Status line and its row in DECISION-REGISTER §3, by the signer.
+
+</details>
+
+<details><summary><b>CR-013</b> · Stakeholder pull: Lead language, lifecycle/archive, off-platform ingest, admin/MIS, issua… → AIGEM suggests <b>RATIFY WITH CONDITIONS</b> · owed by: Mahesh (Architecture), Deepali (Security), Shailja (Compliance)</summary>
+
+**Context.** Raised 2026-08-25 (35 days ago). Current status: CANDIDATE — transcribed into scope artefacts. Owed: Human T4 Architecture / Security / Compliance outstanding. Compliance conditions in CR-013 §5
+
+**AIGEM suggestion (draft): RATIFY WITH CONDITIONS.** The change is already how the repository operates (transcribed into artefacts, cited by 30 documents) and nothing on record rejects it. Leaving it unratified is the worst outcome: agents follow it while every gate that cites it rests on an unsigned change. Ratify it, with each owed authority confirming its own part.
+
+**Reasons to approve / act:**
+- In use for 35 days, cited by 30 documents, with no recorded REJECT.
+- Reverting later costs more the longer it stays in use.
+
+**Reasons to reject, hold or be careful:**
+- No drafted board verdicts exist, so the signer has no independent assessment on file.
+
+**Conditions or validation to attach to a yes:**
+1. Each owed authority (Mahesh (Architecture), Deepali (Security), Shailja (Compliance)) confirms the part in its own domain before the ratification is recorded.
+2. If any of them objects, reject and revert through a CR. Do not leave the change half-ratified.
+3. RG-8: this context is 35 days old. Before signing, confirm nothing it depends on has changed since 2026-08-25.
+
+**Evidence:** [CR-013-r0-lead-mis-admin-scope.md](../change-requests/CR-013-r0-lead-mis-admin-scope.md) · [DECISION-REGISTER §3](../registers/DECISION-REGISTER.md)
+
+**Your decision** (Mahesh (Architecture), Deepali (Security), Shailja (Compliance)). Tick one, and add your name:
+
+- [ ] Ratify
+- [ ] Ratify with conditions: …
+- [ ] Reject and revert — reason: …
+- [ ] Defer to (date): …
+
+**File the signature in:** the CR file's Status line and its row in DECISION-REGISTER §3, by the signer.
+
+</details>
+
+<details><summary><b>CR-014</b> · Stakeholder pull: WS-1 Life LOB adapter (Term+Savings+ULIP), bank-model extraction, typed… → AIGEM suggests <b>RATIFY WITH CONDITIONS</b> · owed by: Mahesh (Architecture), Deepali (Security), Shailja (Compliance), Shivanshi (Operations)</summary>
+
+**Context.** Raised 2026-09-03 (26 days ago). Current status: CANDIDATE — transcribed into WS-1 scope artefacts. Owed: Human T4 Architecture / Security / Compliance / Operations outstanding. WS-3 R0 catalogue/journey for Savings/ULIP is CR-015. CR-014
+
+**AIGEM suggestion (draft): RATIFY WITH CONDITIONS.** The change is already how the repository operates (transcribed into artefacts, cited by 23 documents) and nothing on record rejects it. Leaving it unratified is the worst outcome: agents follow it while every gate that cites it rests on an unsigned change. Ratify it, with each owed authority confirming its own part.
+
+**Reasons to approve / act:**
+- In use for 26 days, cited by 23 documents, with no recorded REJECT.
+- Reverting later costs more the longer it stays in use.
+
+**Reasons to reject, hold or be careful:**
+- No drafted board verdicts exist, so the signer has no independent assessment on file.
+
+**Conditions or validation to attach to a yes:**
+1. Each owed authority (Mahesh (Architecture), Deepali (Security), Shailja (Compliance), Shivanshi (Operations)) confirms the part in its own domain before the ratification is recorded.
+2. If any of them objects, reject and revert through a CR. Do not leave the change half-ratified.
+
+**Evidence:** [CR-014-ws1-life-lob-adapter-standards.md](../change-requests/CR-014-ws1-life-lob-adapter-standards.md) · [DECISION-REGISTER §3](../registers/DECISION-REGISTER.md)
+
+**Your decision** (Mahesh (Architecture), Deepali (Security), Shailja (Compliance), Shivanshi (Ope…). Tick one, and add your name:
+
+- [ ] Ratify
+- [ ] Ratify with conditions: …
+- [ ] Reject and revert — reason: …
+- [ ] Defer to (date): …
+
+**File the signature in:** the CR file's Status line and its row in DECISION-REGISTER §3, by the signer.
+
+</details>
+
+<details><summary><b>CR-015</b> · Stakeholder: complete R0 assisted Life journey (Term + Saving/ULIP e2e) — EPIC-004 → AIGEM suggests <b>APPROVE WITH CONDITIONS</b> · owed by: Rajal, Mahesh</summary>
+
+**Context.** Raised 2026-09-12 (17 days ago). Current status: CANDIDATE — transcribed into WS-3 scope artefacts under ADM…. Owed: Rajal (R1) + Mahesh (R2) HUMAN verdicts outstanding. Listing them as approvers is not a signature. CR-015 · origin SUG-20260911-uls
+
+**AIGEM suggestion (draft): APPROVE WITH CONDITIONS.** 2 drafted board positions, none REJECT (Mahesh (Architecture): APPROVE-WITH-CONDITIONS; Rajal (Product): APPROVE-WITH-CONDITIONS). Every draft attaches conditions, so the suggestion carries them.
+
+**Reasons to approve / act:**
+- Independent drafted review exists for 2 seats, and none rejects.
+
+**Reasons to reject, hold or be careful:**
+- Each draft is AI-authored, simulating the seat. It is a position to adopt, amend or reject, not that person's verdict.
+- 10 conditions in total. A yes means owning them with dates.
+
+**Conditions or validation to attach to a yes:**
+1. **Mahesh (Architecture)**: Human T4 Architecture signature required before production use of Savings/ULIP sales.
+2. **Mahesh (Architecture)**: No stage-field edits.
+3. **Mahesh (Architecture)**: Provider traffic still routes only through the Integration Hub.
+4. **Mahesh (Architecture)**: Deepali / Shailja sit before production if the Savings/ULIP journey adds PII or suitability surfaces beyond the Term pack — Architecture does not waive those boards.
+5. **Mahesh (Architecture)**: EPIC-004 documentation-complete at S08 does not authorise S11 screen implementation.
+6. **Rajal (Product)**: CR-015 stays CANDIDATE until a HUMAN Product verdict is filed here with reviewer_type:
+7. **Rajal (Product)**: C5 — GAP-006 / GAP-007 — remains non-waivable for S11.
+8. **Rajal (Product)**: DIY, hybrid, Health, Group B, Customer BFF, and SUG-20260904-eng stay parked.
+9. **Rajal (Product)**: GATE-P4 Term UAT criteria are not replaced.
+10. **Rajal (Product)**: No Flutter / BFF / catalogue runtime until HUMAN APPROVED and S11 is entered lawfully.
+
+**Evidence:** [CR-015-ws3-r0-savings-ulip-journey.md](../change-requests/CR-015-ws3-r0-savings-ulip-journey.md) · [DECISION-REGISTER §3](../registers/DECISION-REGISTER.md) · [verdict pack](../change-requests/CR-015/verdicts/README.md)
+
+**Your decision** (Rajal, Mahesh). Tick one, and add your name:
+
+- [ ] Approve
+- [ ] Approve with conditions: …
+- [ ] Approve after validation: …
+- [ ] Reject — reason: …
+- [ ] Defer to (date): …
+
+**File the signature in:** the CR file's Status line and its row in DECISION-REGISTER §3, by the signer.
+
+</details>
+
+<details><summary><b>CR-016</b> · Parallel lanes (SF5), evidence-based unpark, SG-2 CANDIDATE, RG-9 evidenced-blocker T4 re… → AIGEM suggests <b>RATIFY WITH CONDITIONS</b> · owed by: Mahesh (Architecture), Rajal (Product), Deepali (Security), Shailja (Compliance)</summary>
+
+**Context.** Raised 2026-09-23 (6 days ago). Current status: CANDIDATE — L1 files transcribed under ADMIT-BYPASS. Owed: Architecture + Product (+ Security/Compliance on RG-9) human ratification outstanding. CR-016 · origin SUG-20260923-par
+
+**AIGEM suggestion (draft): RATIFY WITH CONDITIONS.** The change is already how the repository operates (transcribed into artefacts, cited by 13 documents) and nothing on record rejects it. Leaving it unratified is the worst outcome: agents follow it while every gate that cites it rests on an unsigned change. Ratify it, with each owed authority confirming its own part.
+
+**Reasons to approve / act:**
+- In use for 6 days, cited by 13 documents, with no recorded REJECT.
+- Reverting later costs more the longer it stays in use.
+
+**Reasons to reject, hold or be careful:**
+- No drafted board verdicts exist, so the signer has no independent assessment on file.
+
+**Conditions or validation to attach to a yes:**
+1. Each owed authority (Mahesh (Architecture), Rajal (Product), Deepali (Security), Shailja (Compliance)) confirms the part in its own domain before the ratification is recorded.
+2. If any of them objects, reject and revert through a CR. Do not leave the change half-ratified.
+
+**Evidence:** [CR-016-parallel-lanes-evidence-unpark.md](../change-requests/CR-016-parallel-lanes-evidence-unpark.md) · [DECISION-REGISTER §3](../registers/DECISION-REGISTER.md)
+
+**Your decision** (Mahesh (Architecture), Rajal (Product), Deepali (Security), Shailja (Compliance)). Tick one, and add your name:
+
+- [ ] Ratify
+- [ ] Ratify with conditions: …
+- [ ] Reject and revert — reason: …
+- [ ] Defer to (date): …
+
+**File the signature in:** the CR file's Status line and its row in DECISION-REGISTER §3, by the signer.
+
+</details>
+
+### External dependencies
+
+<details><summary><b>DEP-002</b> · Bank app team UAT integration slot → AIGEM suggests <b>ESCALATE</b> · owed by: Rajal / Product</summary>
+
+**Context.** Required by 2026-09-18, now **11 days** overdue. Chase owner: Rajal / Product.
+
+**AIGEM suggestion (draft): ESCALATE.** Rule DEP-3: a past date is a hope, not a tracked dependency. Up to 7 days overdue, re-date it with the owner. Past that, a second date without escalation repeats the miss, so R12 forces a decision (CR-009). Result here: ESCALATE.
+
+**Reasons to approve / act:**
+- Impact if late: Phase 4 gate criterion 4.3 cannot close. What is owed by the date is a named slot or a stated refusal — R12 cannot shorten the bank app team's calendar, but silence is not an outcome
+
+**Reasons to reject, hold or be careful:**
+- Escalation spends goodwill with an external party; do it with the owner, not around them.
+
+**Conditions or validation to attach to a yes:**
+1. Whatever you choose, write the new date and a named counterpart into the row.
+
+**Evidence:** [DEPENDENCY-REGISTER §2](../registers/DEPENDENCY-REGISTER.md)
+
+**Your decision** (Rajal / Product). Tick one, and add your name:
+
+- [ ] Re-date to (date), confirmed with the owner: …
+- [ ] Escalate to: …
+- [ ] Record the refusal and re-plan
+- [ ] Resolved — evidence: …
+
+**File the signature in:** the row in DEPENDENCY-REGISTER §1 and §2, by the chase owner.
+
+</details>
+
+<details><summary><b>DEP-010</b> · Bank AD technology confirmation → AIGEM suggests <b>ESCALATE</b> · owed by: Mahesh / Architecture</summary>
+
+**Context.** Required by 2026-09-18, now **11 days** overdue. Chase owner: Mahesh / Architecture.
+
+**AIGEM suggestion (draft): ESCALATE.** Rule DEP-3: a past date is a hope, not a tracked dependency. Up to 7 days overdue, re-date it with the owner. Past that, a second date without escalation repeats the miss, so R12 forces a decision (CR-009). Result here: ESCALATE.
+
+**Reasons to approve / act:**
+- Impact if late: WS-2 Phase 2 design cannot start. WS-2 has had no movement for a month; this is one reason why
+
+**Reasons to reject, hold or be careful:**
+- Escalation spends goodwill with an external party; do it with the owner, not around them.
+
+**Conditions or validation to attach to a yes:**
+1. Whatever you choose, write the new date and a named counterpart into the row.
+
+**Evidence:** [DEPENDENCY-REGISTER §2](../registers/DEPENDENCY-REGISTER.md)
+
+**Your decision** (Mahesh / Architecture). Tick one, and add your name:
+
+- [ ] Re-date to (date), confirmed with the owner: …
+- [ ] Escalate to: …
+- [ ] Record the refusal and re-plan
+- [ ] Resolved — evidence: …
+
+**File the signature in:** the row in DEPENDENCY-REGISTER §1 and §2, by the chase owner.
+
+</details>
+
+<details><summary><b>DEP-20260824-dx1</b> · Bank-side VPN termination, prefixes, firewall change, DX order → AIGEM suggests <b>ESCALATE</b> · owed by: Shivanshi / SRE + bank network</summary>
+
+**Context.** Required by 2026-09-18, now **11 days** overdue. Chase owner: Shivanshi / SRE + bank network.
+
+**AIGEM suggestion (draft): ESCALATE.** Rule DEP-3: a past date is a hope, not a tracked dependency. Up to 7 days overdue, re-date it with the owner. Past that, a second date without escalation repeats the miss, so R12 forces a decision (CR-009). Result here: ESCALATE.
+
+**Reasons to approve / act:**
+- Impact if late: uat and prod keep running against CBS/AD stubs, so #4 Customer and WS-2 Phase 2 cannot be evidenced. The one item on the programme that working harder cannot accelerate — which is exactly why a lapsed follow-up on it is the most expensive one in this table
+
+**Reasons to reject, hold or be careful:**
+- Escalation spends goodwill with an external party; do it with the owner, not around them.
+
+**Conditions or validation to attach to a yes:**
+1. Whatever you choose, write the new date and a named counterpart into the row.
+
+**Evidence:** [DEPENDENCY-REGISTER §2](../registers/DEPENDENCY-REGISTER.md)
+
+**Your decision** (Shivanshi / SRE + bank network). Tick one, and add your name:
+
+- [ ] Re-date to (date), confirmed with the owner: …
+- [ ] Escalate to: …
+- [ ] Record the refusal and re-plan
+- [ ] Resolved — evidence: …
+
+**File the signature in:** the row in DEPENDENCY-REGISTER §1 and §2, by the chase owner.
+
+</details>
+
+<details><summary><b>DEP-20260824-eip</b> · 1SB and AU Bank PG allowlist the inspection-VPC Elastic IPs → AIGEM suggests <b>ESCALATE</b> · owed by: Shivanshi / SRE</summary>
+
+**Context.** Required by 2026-09-18, now **11 days** overdue. Chase owner: Shivanshi / SRE.
+
+**AIGEM suggestion (draft): ESCALATE.** Rule DEP-3: a past date is a hope, not a tracked dependency. Up to 7 days overdue, re-date it with the owner. Past that, a second date without escalation repeats the miss, so R12 forces a decision (CR-009). Result here: ESCALATE.
+
+**Reasons to approve / act:**
+- Impact if late: W2 quotes and W3 payments fail in UAT regardless of code readiness
+
+**Reasons to reject, hold or be careful:**
+- Escalation spends goodwill with an external party; do it with the owner, not around them.
+
+**Conditions or validation to attach to a yes:**
+1. Whatever you choose, write the new date and a named counterpart into the row.
+
+**Evidence:** [DEPENDENCY-REGISTER §2](../registers/DEPENDENCY-REGISTER.md)
+
+**Your decision** (Shivanshi / SRE). Tick one, and add your name:
+
+- [ ] Re-date to (date), confirmed with the owner: …
+- [ ] Escalate to: …
+- [ ] Record the refusal and re-plan
+- [ ] Resolved — evidence: …
+
+**File the signature in:** the row in DEPENDENCY-REGISTER §1 and §2, by the chase owner.
+
+</details>
+
+<details><summary><b>DEP-20260824-cst</b> · Cost envelope for the five 2026-08-24 layers (RISK-012, NFR-OPEN-6) → AIGEM suggests <b>RE-DATE</b> · owed by: Shivanshi / SRE + Kalpana / Delivery</summary>
+
+**Context.** Required by 2026-09-25, now **4 days** overdue. Chase owner: Shivanshi / SRE + Kalpana / Delivery.
+
+**AIGEM suggestion (draft): RE-DATE.** Rule DEP-3: a past date is a hope, not a tracked dependency. Up to 7 days overdue, re-date it with the owner. Past that, a second date without escalation repeats the miss, so R12 forces a decision (CR-009). Result here: RE-DATE.
+
+**Reasons to approve / act:**
+- Impact if late: GATE-S09 entry needs an approved cost envelope. Three stateful services, a sixth account, an inspection VPC per environment and two circuits are inside the S09 budget line and none of it is priced. WS-3 cannot enter S09 on an unpriced plan, and S09 is the next stage
+
+**Reasons to reject, hold or be careful:**
+- A re-date without a named contact on the other side is still a hope.
+
+**Conditions or validation to attach to a yes:**
+1. Whatever you choose, write the new date and a named counterpart into the row.
+
+**Evidence:** [DEPENDENCY-REGISTER §2](../registers/DEPENDENCY-REGISTER.md)
+
+**Your decision** (Shivanshi / SRE + Kalpana / Delivery). Tick one, and add your name:
+
+- [ ] Re-date to (date), confirmed with the owner: …
+- [ ] Escalate to: …
+- [ ] Record the refusal and re-plan
+- [ ] Resolved — evidence: …
+
+**File the signature in:** the row in DEPENDENCY-REGISTER §1 and §2, by the chase owner.
+
+</details>
+
+### Gate-criterion blockers
+
+<details><summary><b>GATE-P4 4.1 · GATE-4.1-SANDBOX-E2E</b> · Sandbox E2E suite for the Term path runs in CI or gated nightly. → AIGEM suggests <b>ESCALATE</b> · owed by: Amit / Engineering</summary>
+
+**Context.** Blocker `GATE-4.1-SANDBOX-E2E` (ENVIRONMENT) on criterion 4.1. Follow-up was 2026-09-15, now **14 days** late.
+
+**AIGEM suggestion (draft): ESCALATE.** The criterion is P1 and enables 3 others. A P1 blocker more than 7 days late is escalated rather than re-dated. Result here: ESCALATE.
+
+**Reasons to approve / act:**
+- Clearing it unblocks 3 further criteria.
+
+**Reasons to reject, hold or be careful:**
+- If the blocker is external, escalation still cannot make the answer arrive sooner. It makes the wait visible and owned.
+
+**Conditions or validation to attach to a yes:**
+1. Set a new follow-up date and a named owner on the blocker entry.
+
+**Evidence:** [GATE-EVIDENCE.yaml](../state/GATE-EVIDENCE.yaml)
+
+**Your decision** (Amit / Engineering). Tick one, and add your name:
+
+- [ ] Re-date to (date), confirmed with the owner: …
+- [ ] Escalate to: …
+- [ ] Record the refusal and re-plan
+- [ ] Resolved — evidence: …
+
+**File the signature in:** the blocker's `follow_up` and `owner` in GATE-EVIDENCE.yaml, by the criterion owner.
+
+</details>
+
+<details><summary><b>GATE-P4 4.3 · DEP-001</b> · At least one bank caller exercises quote and proposal against UAT. → AIGEM suggests <b>ESCALATE</b> · owed by: Amit / Engineering</summary>
+
+**Context.** Blocker `DEP-001` (HARD) on criterion 4.3. Follow-up was 2026-09-15, now **14 days** late.
+
+**AIGEM suggestion (draft): ESCALATE.** The criterion is P2 and enables 0 others. A P2 blocker more than 7 days late is escalated rather than re-dated. Result here: ESCALATE.
+
+**Reasons to approve / act:**
+- Clearing it unblocks 0 further criteria.
+
+**Reasons to reject, hold or be careful:**
+- If the blocker is external, escalation still cannot make the answer arrive sooner. It makes the wait visible and owned.
+
+**Conditions or validation to attach to a yes:**
+1. Set a new follow-up date and a named owner on the blocker entry.
+
+**Evidence:** [GATE-EVIDENCE.yaml](../state/GATE-EVIDENCE.yaml)
+
+**Your decision** (Amit / Engineering). Tick one, and add your name:
+
+- [ ] Re-date to (date), confirmed with the owner: …
+- [ ] Escalate to: …
+- [ ] Record the refusal and re-plan
+- [ ] Resolved — evidence: …
+
+**File the signature in:** the blocker's `follow_up` and `owner` in GATE-EVIDENCE.yaml, by the criterion owner.
+
+</details>
+
+<details><summary><b>GATE-P4 4.3 · DEP-002</b> · At least one bank caller exercises quote and proposal against UAT. → AIGEM suggests <b>ESCALATE</b> · owed by: Rajal / Product</summary>
+
+**Context.** Blocker `DEP-002` (EXTERNAL) on criterion 4.3. Follow-up was 2026-09-18, now **11 days** late.
+
+**AIGEM suggestion (draft): ESCALATE.** The criterion is P2 and enables 0 others. A P2 blocker more than 7 days late is escalated rather than re-dated. Result here: ESCALATE.
+
+**Reasons to approve / act:**
+- Clearing it unblocks 0 further criteria.
+
+**Reasons to reject, hold or be careful:**
+- If the blocker is external, escalation still cannot make the answer arrive sooner. It makes the wait visible and owned.
+
+**Conditions or validation to attach to a yes:**
+1. Set a new follow-up date and a named owner on the blocker entry.
+
+**Evidence:** [GATE-EVIDENCE.yaml](../state/GATE-EVIDENCE.yaml)
+
+**Your decision** (Rajal / Product). Tick one, and add your name:
+
+- [ ] Re-date to (date), confirmed with the owner: …
+- [ ] Escalate to: …
+- [ ] Record the refusal and re-plan
+- [ ] Resolved — evidence: …
+
+**File the signature in:** the blocker's `follow_up` and `owner` in GATE-EVIDENCE.yaml, by the criterion owner.
+
+</details>
+
+<details><summary><b>GATE-P4 4.6 · DEP-003</b> · Performance smoke measures p95 quote latency under nominal concurrency. → AIGEM suggests <b>ESCALATE</b> · owed by: Amit / Engineering</summary>
+
+**Context.** Blocker `DEP-003` (SOFT) on criterion 4.6. Follow-up was 2026-09-18, now **11 days** late.
+
+**AIGEM suggestion (draft): ESCALATE.** The criterion is P2 and enables 0 others. A P2 blocker more than 7 days late is escalated rather than re-dated. Result here: ESCALATE.
+
+**Reasons to approve / act:**
+- Clearing it unblocks 0 further criteria.
+
+**Reasons to reject, hold or be careful:**
+- If the blocker is external, escalation still cannot make the answer arrive sooner. It makes the wait visible and owned.
+
+**Conditions or validation to attach to a yes:**
+1. Set a new follow-up date and a named owner on the blocker entry.
+
+**Evidence:** [GATE-EVIDENCE.yaml](../state/GATE-EVIDENCE.yaml)
+
+**Your decision** (Amit / Engineering). Tick one, and add your name:
+
+- [ ] Re-date to (date), confirmed with the owner: …
+- [ ] Escalate to: …
+- [ ] Record the refusal and re-plan
+- [ ] Resolved — evidence: …
+
+**File the signature in:** the blocker's `follow_up` and `owner` in GATE-EVIDENCE.yaml, by the criterion owner.
+
+</details>
+
+### State file, ratification and stale artefacts
+
+<details><summary><b>CURRENT-STATE.yaml</b> · Re-confirm the governing state → AIGEM suggests <b>RE-CONFIRM WITH CONDITIONS</b> · owed by: Kalpana / R12 (stage fields: Architect + PO)</summary>
+
+**Context.** `state_as_of` is 2026-09-13 (16 days). `review_due` is 2026-10-11 (12 days).
+
+**AIGEM suggestion (draft): RE-CONFIRM WITH CONDITIONS.** The weekly Governance Sync re-confirms the state. Change requests raised after `state_as_of` may have moved scope, so they are named as conditions. Result here: RE-CONFIRM WITH CONDITIONS.
+
+**Reasons to approve / act:**
+- Agents keep admitting work only while the state is fresh (Rule CS-1). Re-confirming protects throughput.
+
+**Reasons to reject, hold or be careful:**
+- These change requests post-date the state and may have changed scope: CR-016 (2026-09-23)
+
+**Conditions or validation to attach to a yes:**
+1. Walk CR-016 (2026-09-23) against `current_scope` before re-confirming.
+2. Stage fields (`current_phase`, `stage_status`) change only with Architect + PO; a refresh does not move them.
+
+**Evidence:** [CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) · [RUNBOOK §3 Weekly](../RUNBOOK.md)
+
+**Your decision** (Kalpana / R12 (stage fields: Architect + PO)). Tick one, and add your name:
+
+- [ ] Re-confirm unchanged
+- [ ] Re-confirm with these changes: …
+- [ ] Hold the Governance Sync on (date): …
+
+**File the signature in:** `state_as_of` (and `review_due` when re-ratifying) in CURRENT-STATE.yaml, by R12.
+
+</details>
+
+<details><summary><b>PO counter-signature</b> · Counter-sign the state ratification → AIGEM suggests <b>COUNTER-SIGN</b> · owed by: Rajal / Product</summary>
+
+**Context.** Ratified by: Mahesh (Solution Architect), 2026-08-10 — PO counter-signature outstanding; stage, scope and objective values re-confirmed unchanged at the 2026-09-11 R12 refresh
+
+**AIGEM suggestion (draft): COUNTER-SIGN.** Architecture ratified the state and has re-confirmed it since. Only Product's counter-signature is missing, and every stage, scope and objective value it covers has been re-confirmed unchanged.
+
+**Reasons to approve / act:**
+- Outstanding since 2026-08-10 (50 days).
+
+**Reasons to reject, hold or be careful:**
+- Sign only if the objective and scope in BOOT.md section 5 are still the product you are accountable for. If not, amend first.
+
+**Evidence:** [CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) · [BOOT.md section 5](../../../docs/context/BOOT.md)
+
+**Your decision** (Rajal / Product). Tick one, and add your name:
+
+- [ ] Counter-sign
+- [ ] Decline, and raise a CR to reverse it — reason: …
+
+**File the signature in:** `ratified_by` in CURRENT-STATE.yaml, by Rajal.
+
+</details>
+
+<details><summary><b>docs/governance/registers/DEPENDENCY-REGISTER.md</b> · Stale artefact: docs/governance/registers/DEPENDENCY-REGISTER.md → AIGEM suggests <b>REVIEW AND TOUCH</b> · owed by: Tech Lead</summary>
+
+**Context.** docs/governance/registers/DEPENDENCY-REGISTER.md 15d (limit 14, owner: Tech Lead)
+
+**AIGEM suggestion (draft): REVIEW AND TOUCH.** Freshness limits exist so an agent never triages against a stale register. Review it: update what moved, or record that nothing did.
+
+**Reasons to approve / act:**
+- A reviewed-no-change commit clears the warning honestly (CR-009).
+
+**Reasons to reject, hold or be careful:**
+- Touching the file without reviewing it hides staleness instead of fixing it.
+
+**Conditions or validation to attach to a yes:**
+1. If this is DEPENDENCY-REGISTER.md, the dependency briefs below are the review.
+
+**Evidence:** [DEPENDENCY-REGISTER.md](../../../docs/governance/registers/DEPENDENCY-REGISTER.md)
+
+**Your decision** (Tech Lead). Tick one, and add your name:
+
+- [ ] Reviewed, updated
+- [ ] Reviewed, no change needed
+- [ ] Delegate to: …
+
+**File the signature in:** a commit to `docs/governance/registers/DEPENDENCY-REGISTER.md` by its owner.
+
+</details>
+
+## 4. AIGEM board concurrence (automated)
 
 Each seat concurs only when the checks in its own domain pass. One dissent blocks unanimity.
 
@@ -96,7 +817,7 @@ Each seat concurs only when the checks in its own domain pass. One dissent block
 | Shivanshi — Operations (Board 7) | CONCUR | every check executed on the runner | — |
 | Kalpana — Delivery (R12) | CONCUR | state is not at halt-class staleness | — |
 
-## 4. Checks run
+## 5. Checks run
 
 | Check | Command | Exit | Result |
 |---|---|---|---|
@@ -109,7 +830,7 @@ Each seat concurs only when the checks in its own domain pass. One dissent block
 | Autopilot status (proposal-only policy) | `python3 scripts/governance/autopilot.py status` | 0 | pass |
 | Daily report parser tests | `python3 scripts/governance/test_daily_governance_report.py` | 0 | pass |
 
-## 5. What this run changed, and what it may not
+## 6. What this run changed, and what it may not
 
 - **Changed:** this report, the generated `BOOT.md` block, `DOC-MAP.yaml` and the generated lifecycle backlog — all derived from the state file.
 - **Never changed:** `CURRENT-STATE.yaml` (including `state_as_of`), `GATE-EVIDENCE.yaml`, registers and change requests. Those are updated by their owners in their own pull requests.

@@ -151,5 +151,139 @@ class Concurrence(unittest.TestCase):
         self.assertNotIn("](../", body)
 
 
+briefs = daily.decision_briefs
+
+
+def criterion(cid, state="MET", level="E4", verifier="ci", verified="2026-09-20", evidence=("x",), owner="Amit"):
+    return {"id": cid, "state": state, "required_evidence_level": level, "verifier": verifier,
+            "last_verified_at": verified, "evidence": list(evidence), "owner": owner}
+
+
+def signoff(criteria, missing=("Architect",), to="S09 — Platform"):
+    return {"workstream": "WS-3", "gate": "GATE-S08", "from": "S08", "to": to,
+            "missing": list(missing), "stream": {"criteria": criteria}}
+
+
+class DecisionBriefs(unittest.TestCase):
+    def test_gate_all_met_recent_ci_is_approve_with_expiry_condition(self):
+        b = briefs.gate_brief(signoff([criterion("G1"), criterion("G2")]), TODAY, "")
+        self.assertEqual(b.suggestion, "APPROVE WITH CONDITIONS")  # RG-8 sign-by date is always stated
+        self.assertIn("2026-10-20", b.conditions[0])
+
+    def test_gate_weak_evidence_is_named(self):
+        b = briefs.gate_brief(signoff([criterion("G1"), criterion("G8", level="E2", verifier="document")]), TODAY, "")
+        self.assertIn("G8 (E2, document)", " ".join(b.conditions))
+
+    def test_gate_expired_or_missing_evidence_needs_validation(self):
+        old = briefs.gate_brief(signoff([criterion("G1", verified="2026-08-01")]), TODAY, "")
+        self.assertEqual(old.suggestion, "APPROVE AFTER VALIDATION")
+        bare = briefs.gate_brief(signoff([criterion("G1", evidence=())]), TODAY, "")
+        self.assertEqual(bare.suggestion, "APPROVE AFTER VALIDATION")
+
+    def test_gate_with_unmet_criterion_is_not_approvable(self):
+        b = briefs.gate_brief(signoff([criterion("G1"), criterion("G2", state="OPEN")]), TODAY, "")
+        self.assertEqual(b.suggestion, "DO NOT APPROVE YET")
+
+    def test_gate_names_what_blocks_the_next_stage(self):
+        deps = "| DEP-cst | `GATE-S09` entry | `blocked_by` | Cost envelope | DECISION | OPEN | x |"
+        b = briefs.gate_brief(signoff([criterion("G1")]), TODAY, deps)
+        self.assertIn("DEP-cst", " ".join(b.cons))
+
+    def test_gate_tells_each_authority_what_to_check(self):
+        b = briefs.gate_brief(signoff([criterion("G1", owner="Amit / Engineering")],
+                                      missing=("Engineering", "Architect")), TODAY, "")
+        self.assertIn("**Engineering (Amit)**: check G1", b.context)
+        self.assertIn("**Architect (Mahesh)**: no criterion owned", b.context)
+
+    def test_counter_signature_on_an_approved_cr(self):
+        cr = {"id": "CR-999", "date": "2026-08-10", "summary": "s", "decision": "APPROVED 2026-08-10",
+              "owed": "Mahesh (Solution Architect) — PO + QA Lead counter-signature outstanding"}
+        b = briefs.cr_brief(cr, TODAY)
+        self.assertEqual(b.suggestion, "COUNTER-SIGN")
+        self.assertEqual(b.owner, "Swapnali (QA Lead), Rajal (PO)")  # Mahesh already signed
+        self.assertIn("RG-8", " ".join(b.conditions))                  # 50 days old
+        self.assertIn("no separate CR file", b.record_in)
+
+    def test_transcribed_cr_leans_to_ratify_with_owed_authorities_as_conditions(self):
+        cr = {"id": "CR-999", "date": "2026-09-23", "summary": "s",
+              "decision": "CANDIDATE — L1 files transcribed under ADMIT-BYPASS",
+              "owed": "Architecture + Product human ratification outstanding"}
+        b = briefs.cr_brief(cr, TODAY)
+        self.assertEqual(b.suggestion, "RATIFY WITH CONDITIONS")
+        self.assertIn("Mahesh (Architecture), Rajal (Product)", b.conditions[0])
+
+    def test_unused_cr_without_drafts_is_validated_first(self):
+        cr = {"id": "CR-999", "date": "2026-09-25", "summary": "s", "decision": "PENDING RATIFICATION",
+              "owed": "Product pending"}
+        self.assertEqual(briefs.cr_brief(cr, TODAY).suggestion, "APPROVE AFTER VALIDATION")
+
+    def test_verdict_pack_positions_and_conditions_drive_the_cr_brief(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            pack = Path(tmp) / "CR-999" / "verdicts"
+            pack.mkdir(parents=True)
+            (pack / "board-4-security-deepali.md").write_text(
+                "# Draft\n> Draft: `APPROVE-WITH-MODIFICATION`\n\n## 5. Conditions\n\n"
+                "1. **Pin actions.** Pin to SHAs so a tag\n   cannot move under us.\n2. Rotate keys.\n\n## 6. End\n")
+            (pack / "board-6-compliance-shailja.md").write_text(
+                "Draft verdict: REJECT\n\n## Conditions\n\n| # | Condition |\n|---|---|\n"
+                "| **CMP-C1** | Retain seven years. More text here. |\n")
+            original = briefs.CR_DIR
+            briefs.CR_DIR = Path(tmp)
+            try:
+                drafts = briefs.verdict_pack("CR-999")
+                cr = {"id": "CR-999", "date": "2026-09-25", "summary": "s", "decision": "PENDING RATIFICATION",
+                      "owed": "Security and Compliance outstanding"}
+                b = briefs.cr_brief(cr, TODAY)
+            finally:
+                briefs.CR_DIR = original
+        self.assertEqual([d["seat"] for d in drafts], ["Deepali (Security)", "Shailja (Compliance)"])
+        self.assertEqual(drafts[0]["conditions"], ["Pin actions.", "Rotate keys."])
+        self.assertEqual(drafts[1]["conditions"], ["CMP-C1: Retain seven years."])
+        self.assertEqual(b.suggestion, "REJECT OR REWORK")  # one REJECT outweighs any number of approvals
+
+    def test_dependency_rule_redates_then_escalates(self):
+        dep = {"id": "DEP-1", "what": "w", "owner": "o", "due": "2026-09-25", "impact": "i"}
+        self.assertEqual(briefs.dependency_brief({**dep, "days": 4}).suggestion, "RE-DATE")
+        self.assertEqual(briefs.dependency_brief({**dep, "days": 11}).suggestion, "ESCALATE")
+
+    def test_state_briefs_name_newer_crs_and_the_counter_signature(self):
+        state = {"state_as_of": "2026-09-13", "review_due": "2026-10-11",
+                 "ratified_by": "Mahesh, 2026-08-10 — PO counter-signature outstanding"}
+        out = briefs.state_briefs(state, TODAY, [{"id": "CR-016", "date": "2026-09-23"}],
+                                  ["docs/x.md  15d  (limit 14, owner: Tech Lead)"])
+        self.assertEqual([b.suggestion for b in out],
+                         ["RE-CONFIRM WITH CONDITIONS", "COUNTER-SIGN", "REVIEW AND TOUCH"])
+        self.assertIn("CR-016 (2026-09-23)", " ".join(out[0].conditions))
+        self.assertEqual(out[2].owner, "Tech Lead")
+
+    def test_rendered_brief_is_a_draft_with_tick_boxes_and_a_filing_place(self):
+        b = briefs.dependency_brief({"id": "DEP-1", "what": "w", "owner": "o", "due": "2026-09-25",
+                                     "impact": "i", "days": 11})
+        text = "\n".join(briefs.render([b], "3"))
+        self.assertIn("Suggestions are drafts, not signatures", text)
+        self.assertIn("AIGEM suggestion (draft): ESCALATE", text)
+        self.assertIn("- [ ] Escalate to: …", text)
+        self.assertIn("**File the signature in:**", text)
+        self.assertNotRegex(text, r"(?i)\bapproved by aigem\b")
+
+
+    def test_pr_body_shrinks_only_when_it_must(self):
+        sizes = {"full": 70_000, "compact": 40_000, "omit": 10_000}
+        self.assertEqual(len(daily.fit_pr_body(lambda m: "x" * sizes[m])), 40_000)
+        self.assertEqual(len(daily.fit_pr_body(lambda m: "x" * {"full": 5, "compact": 3, "omit": 1}[m])), 5)
+        self.assertEqual(len(daily.fit_pr_body(lambda m: "x" * {"full": 90_000, "compact": 70_000, "omit": 1}[m])), 1)
+
+    def test_compact_briefs_keep_the_decision_and_point_to_the_full_text(self):
+        b = briefs.Brief("cr", "CR-1", "t", "Rajal (Product)", "COUNTER-SIGN", "context", "because",
+                         pros=["p"], cons=["c"], conditions=["k"], options=["Counter-sign"], record_in="here")
+        full = "\n".join(briefs.render([b] * 30, "3"))
+        compact = "\n".join(briefs.render([b] * 30, "3", compact=True))
+        self.assertLess(len(compact), len(full))
+        self.assertIn("- [ ] Counter-sign", compact)
+        self.assertIn("DAILY-SIGNOFF.md", compact)
+        self.assertNotIn("Reasons to reject", compact)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=1)

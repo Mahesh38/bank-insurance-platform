@@ -18,6 +18,10 @@ an action, never bumped. Board concurrence below is an automated consistency ver
 daily update; it is not a board approval and never satisfies a T4 human sign-off
 (09-AI_EXECUTION_RULES.md, AGENTS.md section 2).
 
+Every pending item also gets a decision brief (decision_briefs.py): context, an AIGEM suggestion
+drawn by a stated rule from recorded evidence, justification, reasons both ways, conditions, and
+where the human files the signature. A brief is a draft for the named human; it signs nothing.
+
 Workflow: .github/workflows/governance-daily.yml. Runbook: RUNBOOK.md section 3, Daily.
 """
 
@@ -38,6 +42,9 @@ except ImportError as exc:  # pragma: no cover
     print(f"daily-governance-report needs PyYAML: {exc}", file=sys.stderr)
     raise SystemExit(2)
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import decision_briefs  # noqa: E402  (sibling module; this script's own name is not importable)
+
 ROOT = Path(__file__).resolve().parents[2]
 STATE = ROOT / "docs/governance/state/CURRENT-STATE.yaml"
 EVIDENCE = ROOT / "docs/governance/state/GATE-EVIDENCE.yaml"
@@ -52,6 +59,7 @@ APPROVED = {"APPROVED", "APPROVED_WITH_CONDITIONS"}
 # Words in an approver cell that mean a signature is still owed, even on an APPROVED row.
 OUTSTANDING = re.compile(r"\b(outstanding|pending)\b", re.I)
 STATE_SYNC_DAYS = 7  # the weekly Governance Sync (RUNBOOK section 3)
+PR_BODY_LIMIT = 60_000  # GitHub rejects bodies over 65,536 characters; keep headroom
 
 
 # --------------------------------------------------------------------------- checks
@@ -149,15 +157,16 @@ def pending_change_requests(text: str) -> list[dict]:
     for row in table_rows(text, "## 3. Change requests"):
         if len(row) < 6:
             continue
-        cr_id, _, _, summary, decision, approvers = row[:6]
+        cr_id, date, _, summary, decision, approvers = row[:6]
         decision_plain = plain(decision)
         if decision_plain.upper().startswith("APPROVED") and not OUTSTANDING.search(approvers):
             continue
         out.append({
             "id": plain(cr_id),
+            "date": plain(date),
             "summary": shorten(plain(summary), 140),
             "decision": shorten(decision_plain, 60),
-            "owed": shorten(plain(approvers), 220),
+            "owed": plain(approvers),
         })
     return out
 
@@ -169,6 +178,7 @@ def overdue_external_dependencies(text: str, today: dt.date) -> list[dict]:
         if len(row) < 6:
             continue
         dep_id, what, owner, required_by, _, state = row[:6]
+        impact = row[6] if len(row) > 6 else ""
         match = DATE.search(required_by)
         if not match or plain(state).upper() not in {"OPEN", "BLOCKED", "IN-FLIGHT"}:
             continue
@@ -180,6 +190,7 @@ def overdue_external_dependencies(text: str, today: dt.date) -> list[dict]:
                 "owner": plain(owner),
                 "due": due.isoformat(),
                 "days": (today - due).days,
+                "impact": shorten(plain(impact), 400),
             })
     return out
 
@@ -205,6 +216,7 @@ def gate_actions(bundle: dict, today: dt.date) -> tuple[list[dict], list[dict]]:
                 "from": stream.get("current_stage", ""), "to": stream.get("next_stage", ""),
                 "missing": missing,
             })
+            signoffs[-1]["stream"] = stream
         for crit in stream.get("criteria", []):
             for blk in crit.get("blockers", []) or []:
                 follow = blk.get("follow_up")
@@ -213,6 +225,8 @@ def gate_actions(bundle: dict, today: dt.date) -> tuple[list[dict], list[dict]]:
                         "gate": stream["gate_id"], "criterion": crit["id"], "blocker": blk["id"],
                         "owner": blk.get("owner", crit.get("owner", "")),
                         "follow_up": str(follow), "days": (today - dt.date.fromisoformat(str(follow))).days,
+                        "priority": crit.get("priority", ""), "enables": crit.get("enables", 0),
+                        "description": crit.get("description", ""), "type": blk.get("type", ""),
                     })
     return signoffs, blockers
 
@@ -301,7 +315,8 @@ def concurrence(results: dict[str, Check], regen_failures: list[str], manufactur
 def render(today: dt.date, results: dict[str, Check], verdicts: list[Verdict], state: dict,
            signoffs: list[dict], blockers: list[dict], crs: list[dict], deps: list[dict],
            escalations: list[dict], regen_failures: list[str],
-           drifted: list[str] | None = None) -> tuple[str, str]:
+           drifted: list[str] | None = None,
+           briefs: list | None = None, briefs_mode: str = "full") -> tuple[str, str]:
     unanimous = all(v.concur for v in verdicts)
     fresh_code = results["freshness"].code
     halts, warns = freshness_findings(results["freshness"].output)
@@ -337,7 +352,8 @@ def render(today: dt.date, results: dict[str, Check], verdicts: list[Verdict], s
     add("The reviewer ticks these on the pull request, then approves and merges it.")
     add("")
     add("- [ ] I read section 2 and every item there has an owner who knows it is theirs today")
-    add("- [ ] Any dissent in section 3 is understood, and either fixed or raised as a `SUG-` row")
+    add("- [ ] Every decision brief in section 3 has a ticked decision, or a named owner who will decide by a date")
+    add("- [ ] Any dissent in section 4 is understood, and either fixed or raised as a `SUG-` row")
     add("- [ ] Regenerated views in the diff (`BOOT.md`, `DOC-MAP.yaml`, lifecycle backlog) match the state file")
     add("- [ ] **Kalpana / R12** — freshness verdict noted; if `WARN`/`HALT`, the Governance Sync is scheduled")
     add("")
@@ -366,7 +382,7 @@ def render(today: dt.date, results: dict[str, Check], verdicts: list[Verdict], s
         add("| CR | Summary | Decision | Owed |")
         add("|---|---|---|---|")
         for c in crs:
-            add(f"| {c['id']} | {cell(c['summary'])} | {cell(c['decision'])} | {cell(c['owed'])} |")
+            add(f"| {c['id']} | {cell(c['summary'])} | {cell(c['decision'])} | {cell(shorten(c['owed'], 220))} |")
         add("")
         add("Source: [`DECISION-REGISTER.md` §3](../registers/DECISION-REGISTER.md)")
     else:
@@ -409,7 +425,16 @@ def render(today: dt.date, results: dict[str, Check], verdicts: list[Verdict], s
     add("\n".join(f"- `{e['id']}` — {e['summary']}" for e in escalations) if escalations else "_None._")
     add("")
 
-    add("## 3. AIGEM board concurrence (automated)")
+    if briefs and briefs_mode == "omit":
+        add("## 3. Decision briefs")
+        add("")
+        add("This pull request body is over GitHub's size limit even in compact form. Every brief is in "
+            "`docs/governance/autopilot/DAILY-SIGNOFF.md` in this PR's Files tab.")
+        add("")
+    elif briefs:
+        L.extend(decision_briefs.render(briefs, "3", compact=briefs_mode == "compact"))
+
+    add("## 4. AIGEM board concurrence (automated)")
     add("")
     add("Each seat concurs only when the checks in its own domain pass. One dissent blocks unanimity.")
     add("")
@@ -420,7 +445,7 @@ def render(today: dt.date, results: dict[str, Check], verdicts: list[Verdict], s
             f"{cell('; '.join(v.reasons)) if v.reasons else '—'} |")
     add("")
 
-    add("## 4. Checks run")
+    add("## 5. Checks run")
     add("")
     add("| Check | Command | Exit | Result |")
     add("|---|---|---|---|")
@@ -433,7 +458,7 @@ def render(today: dt.date, results: dict[str, Check], verdicts: list[Verdict], s
         add("\n".join(f"- {f}" for f in regen_failures))
     add("")
 
-    add("## 5. What this run changed, and what it may not")
+    add("## 6. What this run changed, and what it may not")
     add("")
     add("- **Changed:** this report, the generated `BOOT.md` block, `DOC-MAP.yaml` and the generated "
         "lifecycle backlog — all derived from the state file.")
@@ -455,6 +480,18 @@ def pr_body(report: str, blob_url: str) -> str:
     body = report.replace("](../../../", f"]({blob_url}").replace("](../", f"]({blob_url}docs/governance/")
     return (body + "\n---\n_Opened by the scheduled `governance-daily` workflow. "
             "A human reviews, ticks section 1, approves and merges. The workflow never approves._\n")
+
+
+def fit_pr_body(body_for, limit: int = PR_BODY_LIMIT) -> str:
+    """The richest PR body under GitHub's limit: full briefs, then compact, then a pointer.
+
+    The report file always carries the full briefs; only the PR body shrinks, and only if it must.
+    """
+    for mode in ("full", "compact"):
+        body = body_for(mode)
+        if len(body) <= limit:
+            return body
+    return body_for("omit")
 
 
 def blob_url(state: dict) -> str:
@@ -484,14 +521,18 @@ def main(argv: list[str] | None = None) -> int:
     bundle = yaml.safe_load(EVIDENCE.read_text(encoding="utf-8"))
     signoffs, blockers = gate_actions(bundle, args.today)
     verdicts = concurrence(results, regen_failures, non_human_approvals(bundle))
-    title, report = render(
-        args.today, results, verdicts, state, signoffs, blockers,
-        pending_change_requests(DECISIONS.read_text(encoding="utf-8")),
-        overdue_external_dependencies(DEPENDENCIES.read_text(encoding="utf-8"), args.today),
-        escalated_suggestions(SUGGESTIONS.read_text(encoding="utf-8")),
-        regen_failures,
-        drifted,
-    )
+    crs = pending_change_requests(DECISIONS.read_text(encoding="utf-8"))
+    dependency_text = DEPENDENCIES.read_text(encoding="utf-8")
+    deps = overdue_external_dependencies(dependency_text, args.today)
+    _, warns = freshness_findings(results["freshness"].output)
+    briefs = decision_briefs.build(args.today, state, signoffs, crs, deps, blockers, warns, dependency_text)
+    escalations = escalated_suggestions(SUGGESTIONS.read_text(encoding="utf-8"))
+
+    def compose(mode: str) -> tuple[str, str]:
+        return render(args.today, results, verdicts, state, signoffs, blockers, crs, deps,
+                      escalations, regen_failures, drifted, briefs, mode)
+
+    title, report = compose("full")
 
     if args.write:
         REPORT.write_text(report + "\n", encoding="utf-8")
@@ -503,7 +544,8 @@ def main(argv: list[str] | None = None) -> int:
     else:
         print(report)
     if args.pr_body:
-        args.pr_body.write_text(pr_body(report, blob_url(state)), encoding="utf-8")
+        body = fit_pr_body(lambda mode: pr_body(compose(mode)[1], blob_url(state)))
+        args.pr_body.write_text(body, encoding="utf-8")
     if args.pr_title:
         args.pr_title.write_text(title + "\n", encoding="utf-8")
     print(title, file=sys.stderr)

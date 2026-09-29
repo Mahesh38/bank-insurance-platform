@@ -105,6 +105,7 @@ Everything anyone does, in one table. Find your role in the last column.
 
 | Action | Who | Output |
 |--------|-----|--------|
+| Review the **AIGEM daily sign-off PR** (`human-signoff` label, opened 06:47 IST by [`governance-daily`](../../.github/workflows/governance-daily.yml)): move every item in its section 2 to its named owner, then approve and merge. Merging records that a human read it — it approves none of the listed gates, CRs or dependencies | **Kalpana / R12** (reviewer); each listed owner acts on their own row | Merged report [`autopilot/DAILY-SIGNOFF.md`](./autopilot/DAILY-SIGNOFF.md) |
 | Confirm the item you are working on is still head of the ordered READY queue | Dev, TL, agent | — |
 | Register any suggestion raised yesterday that is not yet written down | everyone | `SUG-####` rows |
 | Check nothing is `IN-FLIGHT` and untouched for > 2 days | TL | Unblock or re-park |

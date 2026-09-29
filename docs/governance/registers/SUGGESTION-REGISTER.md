@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20260929-dsp | 2026-09-29 | human:repository-owner | Schedule a daily governance + freshness check and generated-state refresh; AIGEM seats must unanimously concur; open a PR each day for human review and sign-off that highlights every pending human decision and approval | SF5 | SC1 | SHOULD | GOV | P3 / P2 | ADMITTED | [workflow](../../../.github/workflows/governance-daily.yml) · [report](../autopilot/DAILY-SIGNOFF.md) · [detail](#sug-20260929-dsp--daily-aigem-sign-off-pr) |
 | SUG-20260928-jvo | 2026-09-28 | human:stakeholder | This repository holds Java code only; no client app source; evaluate BFF against Figma as the frontend reference | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [DOC-006](../../au-bank-insurance-platform/DECISION-LOG.md) · [Figma](../../figma/README.md) · [Login BFF vs Figma](../../au-bank-insurance-platform/requirements/LOGIN-BFF-FIGMA-EVALUATION.md) · [detail](#sug-20260928-jvo--java-only-repository-bff-vs-figma) |
 | SUG-20260928-brd | 2026-09-28 | human:Rajal | Treat September 2026 detailed module BRD pack as source of truth; realign repo docs; do not assume TBDs or silent conflict resolution | SF1 | SC0 | MUST | DOC | P2 / P1 | ADMITTED | [DOC-005](../../au-bank-insurance-platform/DECISION-LOG.md) · [pack](../../au-bank-insurance-platform/requirements/brd-detailed/README.md) · [alignment](../../au-bank-insurance-platform/requirements/BRD-ALIGNMENT-2026-09-28.md) · [detail](#sug-20260928-brd--rajal-detailed-brd-pack-as-module-ssot) |
 | SUG-20260923-scs | 2026-09-23 | human:architect | NIP BFF SCR-03 search-customer contract: Customer ID / PAN / mobile; lead-first then CBS via Apigee; one stakeholder+dev doc | SF1 | SC0 | SHOULD | ARCH | P2 / P1 | ADMITTED | [ARCH-025](../../platform/ws3-platform/ARCH-025.work-item.yaml) · [PLAN-005](../plans/PLAN-005-nip-bff-customer-search-contract.md) · [contract](../../platform/ws3-platform/09-nip-bff-customer-search-contract.md) · [detail](#sug-20260923-scs--scr-03-customer-search-unified-contract) |
@@ -123,6 +124,135 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20260929-dsp · Daily AIGEM sign-off PR
+
+```yaml
+# schema: triage-record
+id: SUG-20260929-dsp
+raised_at: "2026-09-29"
+raised_by: "human:repository-owner"
+source: "Claude Code session request"
+input: >
+  I want to schedule the governance and freshness check and current state update on the
+  daily basis for the repository, aigem must unanimously conclude and the governance and the
+  things needed to update on repository on daily basis and create the PR for the same so the
+  human can review and approve with sign off. If any action items pending for human signoffs
+  and humen decision or approval that also will be highlighted in this and the human can move
+  that ahead. It is the human signoff pr .
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-13"
+  state_provisional: false
+  active_work_item: null
+
+stage_fit:
+  code: SF5
+  lane: "governance-automation (Kalpana / R12 reviews the output)"
+  rationale: >
+    FreshnessCheck 2026-09-29 exit 1 (state_as_of 16 days old; DEPENDENCY-REGISTER 15d)
+    disclosed. This is governance tooling that automates the RUNBOOK section 3 Daily and
+    Governance Sync checks. It is off the critical path, touches no product code, trust boundary
+    or gate criterion, and runs on its own lane.
+  parallel_test:
+    off_critical_path: true
+    dependency_safe: true
+    in_scope: true
+    standing_constraint_clean: true
+    separate_lane: "governance-automation"
+    no_silent_trust_boundary_change: true
+
+scope:
+  code: SC1
+  business_scope: "derived — keeps the governance state that every workstream triages against current"
+  serves: ["RUNBOOK section 3 Daily and Weekly cadence", "Rule CS-1 freshness", "Rule DEP-3 dependency ageing"]
+  failure_without_it: >
+    Staleness and overdue human decisions surface only when someone runs the check. On
+    2026-09-29 the state was 16 days old, four external dependencies were 11 days overdue, and
+    GATE-S08 sat at CANDIDATE with five human verdicts owed. None of this was flagged to anyone.
+  minimal: true
+  authority: "repository-owner instruction 2026-09-29"
+
+necessity:
+  now: SHOULD
+  future_necessity: MUST
+  target_stage: "S08 — Engineering Foundation"
+  binds_when: "the programme runs more than one gate at CANDIDATE or has overdue external dependencies"
+  failure_without_it: "human decisions age silently between weekly syncs"
+  evidence_tier: E2
+  evidence:
+    - "FreshnessCheck 2026-09-29 exit 1"
+    - "DEPENDENCY-REGISTER section 2: DEP-002, DEP-010, DEP-20260824-dx1 and DEP-20260824-eip past 2026-09-18"
+    - "GATE-EVIDENCE.yaml: GATE-S08 CANDIDATE with approvals []"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT
+action_rationale: >
+  Admit as SF5 on the governance-automation lane. Automated seat concurrence is a consistency
+  verdict and is labelled as such. It never stands in for a board verdict or a T4 human
+  sign-off. The workflow never approves, never merges, and never edits CURRENT-STATE.yaml
+  (including state_as_of), GATE-EVIDENCE.yaml, registers or change requests. It regenerates
+  derived views only. One-time setup is owed by the repository owner: enable "Allow GitHub
+  Actions to create and approve pull requests" (optionally add GOVERNANCE_BOT_TOKEN).
+duplicate_of: null
+conflicts: []
+
+classification:
+  type: GOV
+  also: [OPS]
+  breakdown: STORY
+  epic: null
+  risk_tier: T2
+  destination: ".github/workflows/governance-daily.yml + scripts/governance/daily-governance-report.py"
+
+priority:
+  now: P3
+  at_target: P2
+  factors: { N: 1, S: 1, B: 1, R: 1, D: 1, E: 1 }
+  score: 8
+  matrix_default: P3
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "Useful hygiene automation; not a hard-P1 class"
+
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 0
+  earliest_start: "2026-09-29"
+  cycles: none
+
+breakdown:
+  children: []
+  completion_definition: >
+    A daily scheduled workflow runs every governance check, refreshes the generated views and
+    opens or refreshes one human-signoff PR. The PR lists every pending human action with its
+    owner and shows a per-seat CONCUR or DISSENT. Parser tests run in governance CI.
+  not_included:
+    - "Bumping state_as_of or any stage field automatically"
+    - "Any automated approval, merge or waiver"
+    - "LLM-run seven-board review of the daily PR (possible later as a Claude routine)"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: null
+  plan_id: null
+  status: ADMITTED
+  closed_reason: null
+
+resumed: "No prior work item was in flight; this session opened with this input."
+```
 
 ### SUG-20260928-brd · Rajal detailed BRD pack as module SSOT
 

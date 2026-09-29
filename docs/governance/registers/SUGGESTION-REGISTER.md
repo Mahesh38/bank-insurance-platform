@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20260929-jdb | 2026-09-29 | scan:trivy | CVE-2026-68497 (HIGH) on jackson-databind 2.21.4 from the Spring Boot 3.5.16 BOM fails SCA and all three image scans; pin jackson-bom 2.21.7 | SF0 | SC1 | MUST | SEC | P1 / P1 | ADMITTED | [build.gradle.kts](../../../build.gradle.kts) · [detail](#sug-20260929-jdb--jackson-databind-cve-2026-68497) |
 | SUG-20260929-dsp | 2026-09-29 | human:repository-owner | Schedule a daily governance + freshness check and generated-state refresh; AIGEM seats must unanimously concur; open a PR each day for human review and sign-off that highlights every pending human decision and approval | SF5 | SC1 | SHOULD | GOV | P3 / P2 | ADMITTED | [workflow](../../../.github/workflows/governance-daily.yml) · [report](../autopilot/DAILY-SIGNOFF.md) · [detail](#sug-20260929-dsp--daily-aigem-sign-off-pr) |
 | SUG-20260928-jvo | 2026-09-28 | human:stakeholder | This repository holds Java code only; no client app source; evaluate BFF against Figma as the frontend reference | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [DOC-006](../../au-bank-insurance-platform/DECISION-LOG.md) · [Figma](../../figma/README.md) · [Login BFF vs Figma](../../au-bank-insurance-platform/requirements/LOGIN-BFF-FIGMA-EVALUATION.md) · [detail](#sug-20260928-jvo--java-only-repository-bff-vs-figma) |
 | SUG-20260928-brd | 2026-09-28 | human:Rajal | Treat September 2026 detailed module BRD pack as source of truth; realign repo docs; do not assume TBDs or silent conflict resolution | SF1 | SC0 | MUST | DOC | P2 / P1 | ADMITTED | [DOC-005](../../au-bank-insurance-platform/DECISION-LOG.md) · [pack](../../au-bank-insurance-platform/requirements/brd-detailed/README.md) · [alignment](../../au-bank-insurance-platform/requirements/BRD-ALIGNMENT-2026-09-28.md) · [detail](#sug-20260928-brd--rajal-detailed-brd-pack-as-module-ssot) |
@@ -124,6 +125,83 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20260929-jdb · jackson-databind CVE-2026-68497
+
+```yaml
+# schema: triage-record
+id: SUG-20260929-jdb
+raised_at: "2026-09-29"
+raised_by: "scan:trivy"
+source: "Security Scanning on PR #125 — SCA and image scans for all three images"
+input: >
+  HIGH CVE-2026-68497 com.fasterxml.jackson.core:jackson-databind 2.21.4 -> 2.18.10, 2.21.6,
+  2.22.2 (CPU denial of service via unbounded numeric parsing).
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  state_as_of: "2026-09-13"
+  state_provisional: false
+  active_work_item: SUG-20260929-dsp
+
+stage_fit:
+  code: SF0
+  rationale: >
+    A fixable HIGH finding fails the S08-G5 security gate on every branch, including main. It
+    is a prerequisite for any merge.
+
+scope:
+  code: SC1
+  serves: ["S08-G5 dependency and image scanning"]
+  failure_without_it: "no branch can merge while the scan gate is red"
+  minimal: true
+
+necessity:
+  now: MUST
+  evidence_tier: E4
+  evidence:
+    - "Trivy 0.53.0 SCA and image scans, run 36593671450: 1 fixable HIGH, identical in all four jobs"
+  failure_without_it: "every PR and main stay red on S08-G5; the shipped jar keeps a known DoS"
+  confidence: C5
+  assumptions: []
+
+action: ADMIT
+action_rationale: >
+  Remediate, don't suppress (.trivyignore rule 2). Follow the existing BOM-override pattern
+  used for Netty, PostgreSQL and Tomcat: one patch bump within the 2.21 minor line. Remove it
+  once Spring Boot pins 2.21.6 or later.
+
+classification:
+  type: SEC
+  breakdown: TASK
+  risk_tier: T2
+  destination: "build.gradle.kts extra[\"jackson-bom.version\"]"
+
+priority:
+  now: P1
+  at_target: P1
+  overrides_applied: [O1, O7]
+  override_evidence:
+    - "O1: Security Scanning run 36593671450 red — SCA plus three image-scan jobs fail on this CVE"
+    - "O7: blocks PR #125 (SUG-20260929-dsp), the item in flight"
+  rationale: "O2 not claimed — no reachability analysis recorded; the gate failure alone makes it P1"
+
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 1
+  earliest_start: "2026-09-29"
+  cycles: none
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: null
+  status: ADMITTED
+
+resumed: "SUG-20260929-dsp — daily sign-off PR #125."
+```
 
 ### SUG-20260929-dsp · Daily AIGEM sign-off PR
 

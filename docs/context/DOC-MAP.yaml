@@ -19,7 +19,7 @@ schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
 document_count: 606
-total_bytes: 20895033
+total_bytes: 20904013
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -3989,7 +3989,7 @@ documents:
     persona: null
     title: "Decision Register"
     answers: "Index of decisions that constrain future work: ADRs, change requests, stage transitions, and"
-    bytes: 40256
+    bytes: 40983
   - path: docs/governance/registers/DEPENDENCY-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -4101,7 +4101,7 @@ documents:
     persona: null
     title: "GATE EVIDENCE"
     answers: "YAML record; first key `schema_version`"
-    bytes: 26551
+    bytes: 34214
   - path: docs/governance/state/REVIEW-LOG.md
     bucket: governance
     authority: binding-process
@@ -4109,7 +4109,7 @@ documents:
     persona: null
     title: "Governance Artefact Review Log"
     answers: "Read by: scripts/governance/FreshnessCheck.java"
-    bytes: 9209
+    bytes: 9799
   - path: docs/governance/templates/ADR.md
     bucket: governance
     authority: binding-process

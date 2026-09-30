@@ -1,0 +1,22 @@
+S08-G2 verify — 2026-09-30T15:02Z — repo Mahesh38/bank-insurance-platform
+NOT a MET declaration — prints configuration gaps only.
+
+== Classic branch protection on main ==
+GET branches/main/protection → not readable (likely HTTP 403)
+
+== Repository rulesets ==
+— ruleset 20028494 'No force push allowed' enforcement=active
+— ruleset 23340894 'Require GATE-S08 CI checks' enforcement=active
+    check: Java 21 tests and coverage gates
+    check: Secret scanning (gitleaks)
+    check: SAST (CodeQL, Java)
+    check: SCA (Trivy dependency scan)
+
+== Required four vs active rulesets ==
+OK   Java 21 tests and coverage gates
+OK   Secret scanning (gitleaks)
+OK   SAST (CodeQL, Java)
+OK   SCA (Trivy dependency scan)
+
+RESULT: four required checks appear enforced via an active ruleset.
+Still need blocked-merge demo + human-review MET declaration (not performed by this script).

@@ -1,0 +1,152 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1900" height="1250" viewBox="0 0 1900 1250" font-family="Helvetica, Arial, sans-serif">
+<defs>
+<marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#334155"/></marker>
+<marker id="arrGray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/></marker>
+<marker id="arrRed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker>
+<marker id="arrGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker>
+</defs>
+<rect width="1900" height="1250" fill="#ffffff"/>
+<text x="950.0" y="36.0" font-size="25" fill="#0f172a" text-anchor="middle" font-weight="bold">AU Bank Insurance Distribution Platform — Trust Zones &amp; Boundary Controls</text>
+<text x="950.0" y="60.0" font-size="12.5" fill="#475569" text-anchor="middle">five zones · what may cross each boundary, which control enforces it, and what proves the control works · input to the S07-G3 threat model, not a substitute for it</text>
+<rect x="52.0" y="84.0" width="1796.0" height="50.0" rx="7" fill="#fff7ed" stroke="#ea580c" stroke-width="1.6"/>
+<text x="68.0" y="103.0" font-size="12" fill="#9a3412" font-weight="bold">This is a zone model, not a threat model</text>
+<text x="68.0" y="119.0" font-size="9.5" fill="#475569">S07-G3 requires a threat model per trust boundary with data-flow decomposition and residual-risk ratings, signed by Deepali as a human. This diagram gives that work its boundaries and its crossing rules — it does not discharge it.</text>
+<rect x="52.0" y="158.0" width="1796.0" height="1000.0" rx="12" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.8" stroke-dasharray="5 4"/>
+<text x="68.0" y="180.0" font-size="12.5" fill="#0f172a" font-weight="bold">Z0 · Untrusted</text>
+<text x="68.0" y="196.0" font-size="9.5" fill="#475569">the internet, the customer's own device, insurer networks</text>
+<rect x="352.0" y="246.0" width="1196.0" height="880.0" rx="12" fill="#fff7ed" stroke="#ea580c" stroke-width="1.8"/>
+<text x="368.0" y="268.0" font-size="12.5" fill="#0f172a" font-weight="bold">Z1 · Edge</text>
+<text x="368.0" y="284.0" font-size="9.5" fill="#475569">the single public entry point — WAF · CDN · API Gateway / ALB</text>
+<rect x="382.0" y="330.0" width="1136.0" height="690.0" rx="12" fill="#eff6ff" stroke="#2563eb" stroke-width="1.8"/>
+<text x="398.0" y="352.0" font-size="12.5" fill="#0f172a" font-weight="bold">Z2 · Private service</text>
+<text x="398.0" y="368.0" font-size="9.5" fill="#475569">EKS private subnets · no route from the internet</text>
+<rect x="412.0" y="690.0" width="1076.0" height="300.0" rx="12" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.8"/>
+<text x="428.0" y="712.0" font-size="12.5" fill="#0f172a" font-weight="bold">Z3 · Data</text>
+<text x="428.0" y="728.0" font-size="9.5" fill="#475569">one owner per store · encrypted · KMS CMK hierarchy</text>
+<rect x="72.0" y="210.0" width="250.0" height="96.0" rx="6" fill="#eef2ff" stroke="#4f46e5" stroke-width="1.4"/>
+<text x="197.0" y="230.0" font-size="10.5" fill="#0f172a" text-anchor="middle" font-weight="bold">Customer device</text>
+<text x="197.0" y="243.0" font-size="9" fill="#64748b" text-anchor="middle">consent OTP and premium payment happen HERE</text>
+<text x="197.0" y="254.0" font-size="9" fill="#64748b" text-anchor="middle">one-time link · short expiry · device-bound</text>
+<rect x="294.0" y="215.0" width="22.0" height="13.0" rx="6.5" fill="#dc2626"/>
+<text x="305.0" y="224.7" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">C4</text>
+<rect x="72.0" y="330.0" width="250.0" height="86.0" rx="6" fill="#f3e8ff" stroke="#9333ea" stroke-width="1.4"/>
+<text x="197.0" y="350.0" font-size="10.5" fill="#0f172a" text-anchor="middle" font-weight="bold">RM device (Flutter)</text>
+<text x="197.0" y="363.0" font-size="9" fill="#64748b" text-anchor="middle">opaque session only (S-01)</text>
+<text x="197.0" y="374.0" font-size="9" fill="#64748b" text-anchor="middle">no OAuth token ever reaches it</text>
+<text x="197.0" y="385.0" font-size="9" fill="#64748b" text-anchor="middle">no interface method can take an instrument</text>
+<rect x="78.0" y="335.0" width="19.0" height="13.0" rx="3" fill="#9333ea"/>
+<text x="87.5" y="344.7" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">W4</text>
+<rect x="1578.0" y="210.0" width="250.0" height="86.0" rx="6" fill="#ffffff" stroke="#94a3b8" stroke-width="1.4" stroke-dasharray="5 3"/>
+<text x="1703.0" y="230.0" font-size="10.5" fill="#0f172a" text-anchor="middle" font-weight="bold">Group A insurer / 1SB</text>
+<text x="1703.0" y="243.0" font-size="9" fill="#64748b" text-anchor="middle">reached only from the egress path</text>
+<text x="1703.0" y="254.0" font-size="9" fill="#64748b" text-anchor="middle">mTLS · fixed outbound route</text>
+<rect x="1578.0" y="320.0" width="250.0" height="86.0" rx="6" fill="#ffffff" stroke="#94a3b8" stroke-width="1.4" stroke-dasharray="5 3"/>
+<text x="1703.0" y="340.0" font-size="10.5" fill="#0f172a" text-anchor="middle" font-weight="bold">AU Bank PG</text>
+<text x="1703.0" y="353.0" font-size="9" fill="#64748b" text-anchor="middle">3-D Secure on the customer device</text>
+<text x="1703.0" y="364.0" font-size="9" fill="#64748b" text-anchor="middle">signed callback + T+1 settlement</text>
+<rect x="1578.0" y="430.0" width="250.0" height="86.0" rx="6" fill="#ffffff" stroke="#94a3b8" stroke-width="1.4" stroke-dasharray="5 3"/>
+<text x="1703.0" y="450.0" font-size="10.5" fill="#0f172a" text-anchor="middle" font-weight="bold">Bank IdP / CBS</text>
+<text x="1703.0" y="463.0" font-size="9" fill="#64748b" text-anchor="middle">federation (IF-2) · read-only CIF lookup</text>
+<text x="1703.0" y="474.0" font-size="9" fill="#64748b" text-anchor="middle">fail closed if unavailable</text>
+<rect x="382.0" y="268.0" width="1136.0" height="46.0" rx="6" fill="#fff7ed" stroke="#ea580c" stroke-width="1.4"/>
+<text x="950.0" y="288.0" font-size="11.5" fill="#0f172a" text-anchor="middle" font-weight="bold">Edge — WAF · CDN · API Gateway / ALB</text>
+<text x="950.0" y="301.0" font-size="9" fill="#64748b" text-anchor="middle">the ONLY public entry point · TLS terminated here · rate limits and bot controls · session validated before anything reaches a service</text>
+<rect x="402.0" y="390.0" width="262.0" height="76.0" rx="6" fill="#f3e8ff" stroke="#9333ea" stroke-width="1.4"/>
+<text x="533.0" y="410.0" font-size="10" fill="#0f172a" text-anchor="middle" font-weight="bold">#2 RM Workspace BFF</text>
+<text x="533.0" y="423.0" font-size="9" fill="#64748b" text-anchor="middle">holds the session; Flutter never sees a token</text>
+<rect x="688.0" y="390.0" width="262.0" height="76.0" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.4"/>
+<text x="819.0" y="410.0" font-size="10" fill="#0f172a" text-anchor="middle" font-weight="bold">Identity + PDP</text>
+<text x="819.0" y="423.0" font-size="9" fill="#64748b" text-anchor="middle">default deny · 300 ms · no retry · FAIL CLOSED (S-02)</text>
+<rect x="974.0" y="390.0" width="262.0" height="76.0" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.4"/>
+<text x="1105.0" y="410.0" font-size="10" fill="#0f172a" text-anchor="middle" font-weight="bold">#9 Journey</text>
+<text x="1105.0" y="423.0" font-size="9" fill="#64748b" text-anchor="middle">stage + references; no other context's decision</text>
+<rect x="1260.0" y="390.0" width="262.0" height="76.0" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.4"/>
+<text x="1391.0" y="410.0" font-size="10" fill="#0f172a" text-anchor="middle" font-weight="bold">#6 · #7 Consent · Suitability</text>
+<text x="1391.0" y="423.0" font-size="9" fill="#64748b" text-anchor="middle">C1 and C2 enforced here, not at the edge</text>
+<rect x="402.0" y="480.0" width="262.0" height="76.0" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.4"/>
+<text x="533.0" y="500.0" font-size="10" fill="#0f172a" text-anchor="middle" font-weight="bold">#10 · #11 Quote · Proposal</text>
+<text x="533.0" y="513.0" font-size="9" fill="#64748b" text-anchor="middle">canonical shapes only</text>
+<rect x="688.0" y="480.0" width="262.0" height="76.0" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="1.4"/>
+<text x="819.0" y="500.0" font-size="10" fill="#0f172a" text-anchor="middle" font-weight="bold">#12 · #13 Payment · Policy</text>
+<text x="819.0" y="513.0" font-size="9" fill="#64748b" text-anchor="middle">money path; reconciliation decides</text>
+<rect x="974.0" y="480.0" width="262.0" height="76.0" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="1.4"/>
+<text x="1105.0" y="500.0" font-size="10" fill="#0f172a" text-anchor="middle" font-weight="bold">#16 Audit</text>
+<text x="1105.0" y="513.0" font-size="9" fill="#64748b" text-anchor="middle">insert-only path; no update verb is exposed</text>
+<rect x="1260.0" y="480.0" width="262.0" height="76.0" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.4"/>
+<text x="1391.0" y="500.0" font-size="10" fill="#0f172a" text-anchor="middle" font-weight="bold">#14 Integration Hub</text>
+<text x="1391.0" y="513.0" font-size="9" fill="#64748b" text-anchor="middle">the only egress to a provider</text>
+<path d="M442.0,749 a121.0,9 0 0 1 242.0,0 v66 a121.0,9 0 0 1 -242.0,0 z" fill="#ffffff" stroke="#16a34a" stroke-width="1.4"/>
+<ellipse cx="563.0" cy="749" rx="121.0" ry="9" fill="#ffffff" stroke="#16a34a" stroke-width="1.4"/>
+<text x="563.0" y="776.0" font-size="10" fill="#0f172a" text-anchor="middle" font-weight="bold">Aurora PostgreSQL</text>
+<text x="563.0" y="790.0" font-size="8.8" fill="#64748b" text-anchor="middle">one store per service · Multi-AZ · PITR</text>
+<path d="M708.0,749 a121.0,9 0 0 1 242.0,0 v66 a121.0,9 0 0 1 -242.0,0 z" fill="#ffffff" stroke="#16a34a" stroke-width="1.4"/>
+<ellipse cx="829.0" cy="749" rx="121.0" ry="9" fill="#ffffff" stroke="#16a34a" stroke-width="1.4"/>
+<text x="829.0" y="776.0" font-size="10" fill="#0f172a" text-anchor="middle" font-weight="bold">DynamoDB</text>
+<text x="829.0" y="790.0" font-size="8.8" fill="#64748b" text-anchor="middle">journey state · quote jobs · PITR</text>
+<path d="M974.0,749 a121.0,9 0 0 1 242.0,0 v66 a121.0,9 0 0 1 -242.0,0 z" fill="#ffffff" stroke="#16a34a" stroke-width="1.4"/>
+<ellipse cx="1095.0" cy="749" rx="121.0" ry="9" fill="#ffffff" stroke="#16a34a" stroke-width="1.4"/>
+<text x="1095.0" y="776.0" font-size="10" fill="#0f172a" text-anchor="middle" font-weight="bold">S3 + Object Lock</text>
+<text x="1095.0" y="790.0" font-size="8.8" fill="#64748b" text-anchor="middle">raw payloads · policy docs · 7-yr WORM · replicated</text>
+<text x="1095.0" y="800.0" font-size="8.8" fill="#64748b" text-anchor="middle">ap-south-2</text>
+<path d="M1240.0,749 a121.0,9 0 0 1 242.0,0 v66 a121.0,9 0 0 1 -242.0,0 z" fill="#ffffff" stroke="#16a34a" stroke-width="1.4"/>
+<ellipse cx="1361.0" cy="749" rx="121.0" ry="9" fill="#ffffff" stroke="#16a34a" stroke-width="1.4"/>
+<text x="1361.0" y="776.0" font-size="10" fill="#0f172a" text-anchor="middle" font-weight="bold">Secrets Manager + KMS</text>
+<text x="1361.0" y="790.0" font-size="8.8" fill="#64748b" text-anchor="middle">per-service credentials · CMK hierarchy · rotation</text>
+<text x="442.0" y="852.0" font-size="9.5" fill="#065f46" font-weight="bold">No cross-service database access. ArchUnit asserts it in the build; IAM denies it at runtime; the S09 IaC scan proves the policy is deployed (ARCH-004).</text>
+<text x="442.0" y="900.0" font-size="9.5" fill="#475569">Lower environments never receive live customer data — generated or masked only. Personal data, backups, logs and archives stay in ap-south-1 / ap-south-2.</text>
+<text x="52.0" y="1010.0" font-size="10" fill="#64748b" font-weight="bold" letter-spacing="1">BOUNDARY CROSSINGS — THE ONLY WAYS IN, AND WHAT PROVES EACH CONTROL</text>
+<rect x="52.0" y="1024.0" width="1796.0" height="25.0" rx="4" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+<text x="60.0" y="1039.9" font-size="9" fill="#0f172a" font-weight="bold">Boundary</text>
+<text x="200.0" y="1039.9" font-size="9" fill="#0f172a" font-weight="bold">What may cross</text>
+<text x="530.0" y="1039.9" font-size="9" fill="#0f172a" font-weight="bold">Control that enforces it</text>
+<text x="1020.0" y="1039.9" font-size="9" fill="#0f172a" font-weight="bold">What proves it works</text>
+<text x="1500.0" y="1039.9" font-size="9" fill="#0f172a" font-weight="bold">Human sign-off</text>
+<text x="60.0" y="1064.9" font-size="9" fill="#0f172a" font-weight="bold">Z0 → Z1</text>
+<text x="200.0" y="1064.9" font-size="9" fill="#334155">customer / RM HTTPS request</text>
+<text x="530.0" y="1064.9" font-size="9" fill="#334155">TLS · WAF · rate limit · opaque session (S-01)</text>
+<text x="1020.0" y="1064.9" font-size="9" fill="#334155">session-forgery and rate-limit tests</text>
+<text x="1500.0" y="1064.9" font-size="9" fill="#b45309" font-weight="bold">Pending — Deepali</text>
+<line x1="52.0" y1="1074.0" x2="1848.0" y2="1074.0" stroke="#cbd5e1" stroke-width="0.8"/>
+<rect x="52.0" y="1074.0" width="1796.0" height="25.0" rx="0" fill="#f8fafc"/>
+<text x="60.0" y="1089.9" font-size="9" fill="#0f172a" font-weight="bold">Z1 → Z2</text>
+<text x="200.0" y="1089.9" font-size="9" fill="#334155">authenticated, authorised request only</text>
+<text x="530.0" y="1089.9" font-size="9" fill="#334155">PDP decision required; the owning service re-checks (default deny)</text>
+<text x="1020.0" y="1089.9" font-size="9" fill="#334155">FF-01 · negative access tests per role and branch</text>
+<text x="1500.0" y="1089.9" font-size="9" fill="#b45309" font-weight="bold">Pending — Deepali</text>
+<line x1="52.0" y1="1099.0" x2="1848.0" y2="1099.0" stroke="#cbd5e1" stroke-width="0.8"/>
+<text x="60.0" y="1114.9" font-size="9" fill="#0f172a" font-weight="bold">Z2 → Z2</text>
+<text x="200.0" y="1114.9" font-size="9" fill="#334155">service-to-service call</text>
+<text x="530.0" y="1114.9" font-size="9" fill="#334155">distinct service identity, least privilege, mTLS</text>
+<text x="1020.0" y="1114.9" font-size="9" fill="#334155">IAM policy test; ArchUnit boundary rules</text>
+<text x="1500.0" y="1114.9" font-size="9" fill="#b45309" font-weight="bold">Pending</text>
+<line x1="52.0" y1="1124.0" x2="1848.0" y2="1124.0" stroke="#cbd5e1" stroke-width="0.8"/>
+<rect x="52.0" y="1124.0" width="1796.0" height="25.0" rx="0" fill="#f8fafc"/>
+<text x="60.0" y="1139.9" font-size="9" fill="#0f172a" font-weight="bold">Z2 → Z3</text>
+<text x="200.0" y="1139.9" font-size="9" fill="#334155">a service reaching ONLY its own store</text>
+<text x="530.0" y="1139.9" font-size="9" fill="#334155">per-service credentials from KMS; no shared account</text>
+<text x="1020.0" y="1139.9" font-size="9" fill="#334155">cross-store access attempt must fail (ARCH-004)</text>
+<text x="1500.0" y="1139.9" font-size="9" fill="#b45309" font-weight="bold">Pending — Aarti</text>
+<line x1="52.0" y1="1149.0" x2="1848.0" y2="1149.0" stroke="#cbd5e1" stroke-width="0.8"/>
+<text x="60.0" y="1164.9" font-size="9" fill="#0f172a" font-weight="bold">Z2 → Z0 egress</text>
+<text x="200.0" y="1164.9" font-size="9" fill="#334155">provider traffic, from #14 only</text>
+<text x="530.0" y="1164.9" font-size="9" fill="#334155">fixed outbound route · mTLS · credential rotation with emergency removal</text>
+<text x="1020.0" y="1164.9" font-size="9" fill="#334155">rotation exercise; egress allow-list test</text>
+<text x="1500.0" y="1164.9" font-size="9" fill="#b45309" font-weight="bold">Pending — SEC-03</text>
+<line x1="52.0" y1="1174.0" x2="1848.0" y2="1174.0" stroke="#cbd5e1" stroke-width="0.8"/>
+<rect x="52.0" y="1174.0" width="1796.0" height="25.0" rx="0" fill="#f8fafc"/>
+<text x="60.0" y="1189.9" font-size="9" fill="#0f172a" font-weight="bold">Z0 → Z2 callback</text>
+<text x="200.0" y="1189.9" font-size="9" fill="#334155">PG payment callback</text>
+<text x="530.0" y="1189.9" font-size="9" fill="#334155">signature + transaction match + replay window (S-14)</text>
+<text x="1020.0" y="1189.9" font-size="9" fill="#334155">forged, replayed and delayed callback tests</text>
+<text x="1500.0" y="1189.9" font-size="9" fill="#b45309" font-weight="bold">Pending — SEC-05</text>
+<line x1="52.0" y1="1199.0" x2="1848.0" y2="1199.0" stroke="#cbd5e1" stroke-width="0.8"/>
+<text x="60.0" y="1214.9" font-size="9" fill="#0f172a" font-weight="bold">Any → Z3 audit</text>
+<text x="200.0" y="1214.9" font-size="9" fill="#334155">evidence write</text>
+<text x="530.0" y="1214.9" font-size="9" fill="#334155">insert-only; UPDATE and DELETE rejected at the store</text>
+<text x="1020.0" y="1214.9" font-size="9" fill="#334155">FF-10 deletion-refusal test, evidence retained</text>
+<text x="1500.0" y="1214.9" font-size="9" fill="#b45309" font-weight="bold">Pending — SEC-06</text>
+<line x1="52.0" y1="1224.0" x2="1848.0" y2="1224.0" stroke="#cbd5e1" stroke-width="0.8"/>
+<rect x="52.0" y="1024.0" width="1796.0" height="200.0" rx="4" fill="none" stroke="#cbd5e1" stroke-width="1"/>
+<text x="52.0" y="1228.0" font-size="9.5" fill="#64748b" font-weight="bold">DRAFT FOR REVIEW · v0.2 · not approved, not authorised for development · AI-drafted; no human signature</text>
+<text x="1848.0" y="1228.0" font-size="9.5" fill="#64748b" text-anchor="end">WS-3 · AU Bank Insurance Distribution Platform · R0</text>
+</svg>

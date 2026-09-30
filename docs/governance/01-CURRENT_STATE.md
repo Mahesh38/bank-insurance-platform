@@ -43,9 +43,9 @@ the agent believed at decision time — a decision that was correct against a st
 | Field | Value |
 |-------|-------|
 | Project | Bank Insurance Platform (`mahesh38/bank-insurance-platform`) |
-| State as of | **2026-09-11** — refreshed by R12 (Delivery Lead seat) |
-| Review due | 2026-10-11 |
-| Ratified by | **Mahesh (Solution Architect), 2026-08-10** (GOV-004) — PO counter-signature outstanding; stage, scope and objective values re-confirmed unchanged on 2026-09-11 |
+| State as of | **2026-09-30** — reconfirmed by R12 seat (agent-executed AIGEM signoff implementation) |
+| Review due | 2026-10-28 |
+| Ratified by | **Mahesh (Solution Architect), 2026-08-10** (GOV-004) — PO counter-signature outstanding; stage, scope and objective values re-confirmed unchanged on 2026-09-11 and again on 2026-09-30 |
 | Active workstreams | **3** (see §4) — WS-3 is primary |
 | Governance version | AIGEM 1.5 |
 
@@ -79,6 +79,12 @@ the agent believed at decision time — a decision that was correct against a st
 > **2026-09-13 — S08-G9 closed.** SRE (Shivanshi seat) declared `S08-G9` `MET` after measuring
 > Application CI feedback p95 ≈ 2.8 min (≥20 PR runs) and flake rate 0.00% (≥50 concluded runs).
 > `GATE-S08` remains `OPEN`. No stage advanced.
+>
+> **2026-09-30 — AIGEM signoff implementation (dates only).** `state_as_of` advanced to
+> 2026-09-30 and `review_due` to 2026-10-28 after walking CR-016 against `current_scope`.
+> **No stage advanced. No gate marked `PASSED`. No human signature fabricated.**
+> Two CR-012 evidence exclusions were added to `standing_constraints`. Pack:
+> [`signoff/2026-09-30/STATE-RECONFIRMATION.md`](./signoff/2026-09-30/STATE-RECONFIRMATION.md).
 
 ---
 
@@ -133,7 +139,7 @@ LOB, lead contract) is real, and none of it was gate-closing work.
 | **Deliverable** | Application CI with enforced quality, security and architecture gates (S08); IaC, environments, secrets, observability and 7-year write-once retention in ap-south-1 (S09); consent and suitability rule packs, R0 acceptance criteria, product matrix and service blueprint in parallel |
 | **Delivered so far** | Application CI and security scanning pipelines; 21 services and 6 libraries scaffolded with ArchUnit boundary tests; EPIC-001 error contract; EPIC-003 lead API contract |
 | **Not yet started** | All of S09 — IaC, environments, secrets management, the ap-south-1 retention path |
-| **Gate** | `GATE-S08` · `OPEN` · 8 of 10 criteria MET (G1, G3–G9), 0 PARTIAL, 2 OPEN (G2, G10) |
+| **Gate** | `GATE-S08` · `CANDIDATE` · 10 of 10 criteria MET — Architect + PO human PASS outstanding; S09 entry blocked by `DEP-20260824-cst` |
 | **Next stage** | S09 — Platform & Environment Foundation |
 | **Authority** | [WS-3 charter](./workstreams/WS-3-PLATFORM-CHARTER.md) · [architecture registration](../platform/ws3-platform/00-WS3-ARCHITECTURE-REGISTRATION.md) |
 | **Entry condition on S11** | Non-waivable (Rajal condition C5): no WS-3 stage enters S11 while GAP-006 (consent) or GAP-007 (suitability) is open |
@@ -144,7 +150,7 @@ LOB, lead contract) is real, and none of it was gate-closing work.
 | # | Exit criterion | State | Owner |
 |---|----------------|-------|-------|
 | S08-G1 | CI builds and tests every module on every PR | ✅ MET — Engineering declared 2026-09-13 on ci verifier (392 runs; tip 34768713603) | Amit |
-| S08-G2 | Merge to main impossible without a green pipeline | ❌ Open — branch protection is a repo-admin setting, not a file here | Amit |
+| S08-G2 | Merge to main impossible without a green pipeline | ✅ MET — ruleset 23340894; verify 2026-09-14 | Amit |
 | S08-G3 | Coverage thresholds enforced; QA-001 closed | ✅ MET — Phase-1 at 90/70; scaffold floor ratified; QA-001 Closed → QA-014 (2026-09-13) | Swapnali |
 | S08-G4 | ArchUnit and static analysis enforced | ✅ MET — Checkstyle + Spotless in `check`/CI; ArchUnit unchanged (2026-09-13) | Amit |
 | S08-G5 | Secret, SAST, SCA and image scanning in the pipeline | ✅ MET — Trivy image-scan job on Phase 1 + combined images (2026-09-13) | Deepali |
@@ -152,7 +158,7 @@ LOB, lead contract) is real, and none of it was gate-closing work.
 | S08-G7 | No PII in logs, proven by automated test | ✅ MET — LogPiiScrubber + NoPiiInEmittedLogsTest (S08-VT-06) (2026-09-13) | Deepali |
 | S08-G8 | Engineering and secure coding standards published | ✅ MET — standards + PR checklist + PR template (2026-09-13) | Amit |
 | S08-G9 | Pipeline feedback < 10 min p95; flake < 1% | ✅ MET — p95 ≈ 2.8 min; flake 0.00% over ≥50 runs (2026-09-13) | Shivanshi |
-| S08-G10 | A new engineer can build, test and ship in under a week | ❌ Open — onboarding pack ready; needs named attestation | Amit |
+| S08-G10 | A new engineer can build, test and ship in under a week | ✅ MET — recorded in CURRENT-STATE.yaml (2026-09-23 CANDIDATE promotion) | Amit |
 
 ### WS-1 · 1SB Insurance Integration
 
@@ -222,6 +228,10 @@ These are stable facts an agent must not re-derive or re-litigate:
    Hub. Hub masters are bank-owned language; 1SB Get Master Details is a provider feed
    behind the adapter (`SUG-20260913-acl`). A suggestion that puts 1SB master `entityIds`
    on the RM app or BFF is **SF4 / REJECT**.
+10. **No regulatory evidence exists only in a topic.** The audit event store and the S3 WORM
+    archive are the record (`ADR-012` / `FF-26` / CR-012).
+11. **The OpenSearch domain holds no regulatory evidence.** No gate, audit or regulatory
+    query is answered from it (`ADR-013` / `FF-28` / CR-012).
 
 A suggestion that violates a standing constraint is **SF4 / REJECT** unless it arrives as a
 formal change request under [14](./14-CHANGE_CONTROL.md).
@@ -277,19 +287,24 @@ Security / Risk & Compliance verdicts remain outstanding.
 | Declare a stage transition | ❌ No — human only ([04 §5](./04-STAGE_GATES.md#5-who-may-declare-a-transition)) |
 | Edit `current_phase` / `stage_status` | ❌ No — human only |
 
-**Outstanding, with required-by dates set by R12 on 2026-09-11:**
+**The 2026-09-30 refresh did not re-ratify it either.** It re-confirmed stage, scope and
+objective values, walked CR-016 against `current_scope`, and advanced `state_as_of` /
+`review_due` so agents are not halted on a stale date. PO counter-signature on GOV-004
+remains outstanding. See [`signoff/2026-09-30/STATE-RECONFIRMATION.md`](./signoff/2026-09-30/STATE-RECONFIRMATION.md).
+
+**Outstanding, with required-by dates set by R12 on 2026-09-11 and still owed on 2026-09-30:**
 
 | Owed | Owner | Required by | If it does not arrive |
 |------|-------|-------------|-----------------------|
-| PO counter-signature on GOV-004 and CR-001 | Rajal / Product | 2026-09-18 | Recorded as OVERDUE against Product at the next Governance Sync. It does not revert this file to provisional. |
-| `review_due` re-ratification of the stage values | Mahesh / Architecture + Rajal / Product | 2026-10-11 | Agents lose ADMIT again on 2026-10-12 under Rule CS-1 |
+| PO counter-signature on GOV-004 and CR-001 | Rajal / Product | 2026-09-18 (**OVERDUE**; still outstanding 2026-09-30) | Recorded as OVERDUE against Product at the next Governance Sync. It does not revert this file to provisional. |
+| `review_due` re-ratification of the stage values | Mahesh / Architecture + Rajal / Product | 2026-10-28 | Agents lose ADMIT again the day after `review_due` under Rule CS-1 |
 
 R12 sets these dates and names the owner. R12 does not decide either matter, and neither date is a
 default answer standing in for a signature. If the PO disagrees with any stage or scope value, that
 is a `CR` against this file — not a reversion to provisional.
 
 **Re-ratification** is required whenever a stage transitions, and at every `review_due`
-(now 2026-10-11).
+(now 2026-10-28).
 
 ---
 

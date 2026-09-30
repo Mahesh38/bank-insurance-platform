@@ -57,4 +57,18 @@ class ServiceArchitectureTest {
 
         rule.check(importedClasses);
     }
+
+    /**
+     * SUIT-R40 / CR-010 Q-C3. A type whose name advertises a suitability-gate
+     * bypass is a control defect, not a helper.
+     */
+    @Test
+    void noTypeMayBeNamedAsASuitabilityBypass() {
+        ArchRule rule = noClasses()
+            .that().resideInAPackage(BASE_PACKAGE + "..")
+            .should().haveSimpleNameContaining("Bypass")
+            .as("SUIT-R40: no class may encode a suitability-gate bypass");
+
+        rule.check(importedClasses);
+    }
 }

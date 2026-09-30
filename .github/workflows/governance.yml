@@ -41,6 +41,11 @@ on:
 permissions:
   contents: read
 
+# CR-010 OPS-C3 / E-04: fix the queue before buying capacity.
+concurrency:
+  group: governance-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   freshness:
     name: State freshness (JDK baseline)
@@ -114,3 +119,16 @@ jobs:
         run: |
           python3 scripts/lifecycle/generate-backlog.py
           git diff --exit-code -- docs/application-lifecycle-bible/backlog/
+
+  alarm-on-failure:
+    name: Named-recipient alarm (OPS-C1)
+    if: always() && (needs.freshness.result == 'failure' || needs.ci-checks.result == 'failure')
+    needs: [freshness, ci-checks]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Route governance workflow failure
+        run: |
+          echo "::error::Governance workflow failed. Named recipient: Shivanshi / SRE (Board 7). Escalate to Kalpana / R12 if unacknowledged within one business day. Runbook: docs/governance/runbooks/GOVERNANCE-WORKFLOW-FAILURE-RUNBOOK.md"
+          echo "freshness=${{ needs.freshness.result }} ci-checks=${{ needs.ci-checks.result }}"
+          exit 1
+

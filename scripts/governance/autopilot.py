@@ -7,6 +7,7 @@ import argparse
 import json
 import sys
 from copy import deepcopy
+from datetime import datetime, timezone
 from pathlib import Path
 
 try:
@@ -19,6 +20,12 @@ except ImportError as exc:  # pragma: no cover
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_EVIDENCE = ROOT / "docs/governance/state/GATE-EVIDENCE.yaml"
 DEFAULT_SCHEMA = ROOT / "docs/governance/schemas/gate-evidence.schema.json"
+PROPOSALS_DIR = ROOT / "docs/governance/autopilot/proposals"
+ALARM_LOG = PROPOSALS_DIR / "alarms.jsonl"
+PROTECTED_PREFIXES = (
+    ROOT / "docs/governance/state",
+    ROOT / "docs/governance/change-requests",
+)
 PRIORITY = {"P1": 1, "P2": 2, "P3": 3, "P4": 4, "P5": 5}
 EFFORT = {"XS": 1, "S": 2, "M": 3, "L": 4, "XL": 5}
 
@@ -115,6 +122,65 @@ def candidate_proposal(bundle: dict, workstream_id: str) -> dict:
     }
 
 
+def _alarm(kind: str, detail: str, **extra: object) -> None:
+    """Durable, attributable record of a forbidden or proposed autopilot write (CR-010 R-C1)."""
+    PROPOSALS_DIR.mkdir(parents=True, exist_ok=True)
+    record = {
+        "ts": datetime.now(timezone.utc).isoformat(),
+        "kind": kind,
+        "detail": detail,
+        "actor": "autopilot.py",
+        "alarm": kind != "proposal_written",
+        **extra,
+    }
+    with ALARM_LOG.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(record) + "\n")
+    if record["alarm"]:
+        print(f"GOVERNANCE ALARM: {kind} {detail}", file=sys.stderr)
+
+
+def resolve_proposal_output(path: Path) -> Path:
+    """Constrain --output to the proposals directory; refuse escapes and protected trees.
+
+    CR-010 SEC-C1 / E-01: reject `..`, symlink escapes, and any path under
+    `docs/governance/state/**` or `docs/governance/change-requests/**`.
+    """
+    raw = str(path)
+    if ".." in Path(raw).parts or ".." in raw:
+        _alarm("path_escape", raw)
+        raise AutopilotRefusal(f"output path refuses '..' escape: {path}")
+    if path.is_symlink():
+        _alarm("symlink", raw)
+        raise AutopilotRefusal(f"output path refuses symlink: {path}")
+
+    candidate = path if path.is_absolute() else (Path.cwd() / path)
+    resolved = candidate.resolve(strict=False)
+    if resolved.exists() and resolved.is_symlink():
+        _alarm("symlink", str(resolved))
+        raise AutopilotRefusal(f"output path refuses symlink: {path}")
+
+    proposals = PROPOSALS_DIR.resolve()
+    try:
+        resolved.relative_to(proposals)
+    except ValueError:
+        _alarm("outside_proposals", str(resolved), requested=raw)
+        raise AutopilotRefusal(
+            f"output must be under {PROPOSALS_DIR.relative_to(ROOT)} (got {resolved})"
+        ) from None
+
+    for prefix in PROTECTED_PREFIXES:
+        forbidden = prefix.resolve()
+        try:
+            resolved.relative_to(forbidden)
+        except ValueError:
+            continue
+        _alarm("protected_path", str(resolved), prefix=str(prefix.relative_to(ROOT)))
+        raise AutopilotRefusal(
+            f"output refuses protected path {prefix.relative_to(ROOT)}"
+        )
+    return resolved
+
+
 def print_status(bundle: dict) -> None:
     for stream in bundle["workstreams"]:
         counts: dict[str, int] = {}
@@ -153,8 +219,21 @@ def main() -> int:
             result = candidate_proposal(bundle, args.workstream)
             rendered = yaml.safe_dump(result, sort_keys=False)
             if args.output:
-                args.output.write_text(rendered, encoding="utf-8")
-                print(f"wrote candidate proposal: {args.output}")
+                target = resolve_proposal_output(args.output)
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_text(rendered, encoding="utf-8")
+                _alarm(
+                    "proposal_written",
+                    str(target.relative_to(ROOT)),
+                    workstream=result.get("workstream"),
+                    gate_id=result.get("gate_id"),
+                    proposed_state=result.get("state"),
+                    may_mark_passed=result.get("may_mark_passed"),
+                    evidence_cited=[
+                        item.get("id") for item in result.get("criteria", [])
+                    ],
+                )
+                print(f"wrote candidate proposal: {target}")
             else:
                 print(rendered.strip())
     except (AutopilotRefusal, jsonschema.ValidationError) as exc:

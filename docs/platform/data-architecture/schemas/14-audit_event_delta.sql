@@ -16,7 +16,8 @@ ALTER TABLE audit_event
     ADD COLUMN IF NOT EXISTS acting_capacity        VARCHAR(20),
     ADD COLUMN IF NOT EXISTS actor_insurer_id       VARCHAR(64),
     ADD COLUMN IF NOT EXISTS assisted_actor_id      VARCHAR(64),
-    ADD COLUMN IF NOT EXISTS config_version_ref     VARCHAR(64);
+    ADD COLUMN IF NOT EXISTS config_version_ref     VARCHAR(64),
+    ADD COLUMN IF NOT EXISTS retain_until           TIMESTAMPTZ;
 
 ALTER TABLE audit_event
     ADD CONSTRAINT ck_audit_capacity

@@ -84,7 +84,7 @@ Full table with the wrong-instinct column:
 
 > Generated from [`CURRENT-STATE.yaml`](../governance/state/CURRENT-STATE.yaml) by `scripts/context/build-boot-capsule.py`. Do not hand-edit this block.
 
-**AIGEM 1.5** · state as of **2026-09-13** · review due **2026-10-11** · provisional: **no**
+**AIGEM 1.5** · state as of **2026-09-30** · review due **2026-10-28** · provisional: **no**
 
 > **Fact 9 — freshness.** Past `review_due`, an agent may park and reject but **must not admit new work** (Rule CS-1). Run `java scripts/governance/FreshnessCheck.java` and act on the exit code: `0` fresh · `1` warn, disclose it · `2` do not admit.
 
@@ -206,6 +206,8 @@ Full table with the wrong-instinct column:
 - UI and BFF never receive 1SB or insurer wire codes; they speak bank/Hub language only. Hop is UI → BFF → Integration Hub. 1SB master lookup is a provider feed behind the adapter, not a frontend contract
 - Journey Orchestration holds stage and references only, never another context's business decision
 - Render.com is dev-preview only and is never a data path for PII or production-like data
+- No regulatory evidence exists only in a topic; the audit event store and the S3 WORM archive are the record (ADR-012 / FF-26)
+- The OpenSearch domain holds no regulatory evidence; no gate, audit or regulatory query is answered from it (ADR-013 / FF-28)
 
 ### Known open debt — **fact 7: do not re-report these**
 

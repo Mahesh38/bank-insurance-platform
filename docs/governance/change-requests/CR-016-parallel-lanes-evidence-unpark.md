@@ -2,8 +2,7 @@
 
 **Change request:** CR-016
 **Date raised:** 2026-09-23
-**Status:** **CANDIDATE transcribed** under ADMIT-BYPASS (explicit human direction to remove
-governance bottlenecks). Architecture + Product human ratification outstanding for L1 binding.
+**Status:** **CANDIDATE transcribed** under ADMIT-BYPASS — **AIGEM-ACCEPTED 2026-09-30** ([package](../signoff/2026-09-30/CR-016-ratification-package.md)). Architecture + Product human ratification outstanding for L1 binding (Security/Compliance on RG-9).
 **Change type:** `GOV` — framework flow recalibration (continuation of CR-009)
 **Runtime impact:** None. No application code, API contract or production configuration changes.
 **AIGEM board count:** Unchanged — remains seven

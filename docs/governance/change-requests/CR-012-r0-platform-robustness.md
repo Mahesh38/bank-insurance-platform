@@ -5,8 +5,7 @@
 **Raised by:** Repository owner → Mahesh — Architecture owner (Board 1)
 **Workstream:** WS-3 — AU Bank Insurance Distribution Platform
 **Stage:** S08 — Engineering Foundation, with S09 overlapped
-**Decision:** **PENDING RATIFICATION.** Nothing in this CR, and nothing in `ADR-009` … `ADR-013`,
-is an approval to provision. See §8.
+**Decision:** **PENDING RATIFICATION — AIGEM-ACCEPTED 2026-09-30** (internally achievable conditions implemented; [closure](../signoff/2026-09-30/CR-012-condition-closure.md)). Human T4 Security/Compliance/SRE/DBA/Delivery/Architecture outstanding. External deps remain OPEN. Nothing in `ADR-009` … `ADR-013` is a human signature or an approval to provision. See §8.
 **Suggestions:** `SUG-20260824-gp1` … `SUG-20260824-gp5`
 **Decisions:** [`ADR-009` … `ADR-013`](../../platform/architecture-review/08-architecture-decision-log.md)
 

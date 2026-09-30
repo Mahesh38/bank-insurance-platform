@@ -50,18 +50,20 @@ loudest warnings, because Board 6 holds a binding veto that no simulation may ex
 
 ## 3. Human-signature status
 
-| Board / role | Persona | Human signature required | Binding veto | Status |
-|---|---|---|---|---|
-| Board 1 — Architecture | Mahesh | Yes, to ratify | No — overridable only by a recorded ADR where AIGEM permits | ❌ **OUTSTANDING** |
-| Board 2 / R3 — Technical | Amit | Yes, to ratify | No | ❌ **OUTSTANDING** |
-| Board 3 — Product | Rajal | Yes, to ratify | No | ❌ **OUTSTANDING** |
-| **Board 4 — Security** | **Deepali** | **Yes — T4 mandatory, no AI substitution** | **Yes, binding** | ❌ **OUTSTANDING** |
-| Board 5 — QA | Swapnali | Yes, to ratify | Blocks within jurisdiction | ❌ **OUTSTANDING** |
-| **Board 6 — Risk & Compliance** | **Shailja** | **Yes — T4 mandatory, no AI substitution** | **Yes, binding** | ❌ **OUTSTANDING** |
-| Board 7 — Operations | Shivanshi | Yes, to ratify | Blocks on operational readiness | ❌ **OUTSTANDING** |
-| Database | Aarti | Yes, to ratify | Blocks on physical data integrity | ❌ **OUTSTANDING** |
-| R12 — Delivery | Kalpana | Yes, to ratify | No — timing authority only (Rule PA-1) | ❌ **OUTSTANDING** |
-| **Executive Sponsor** | **unnamed — GAP-010** | **Yes, to fund `FRI-001`** | — | ❌ **NO NAMED PERSON EXISTS** |
+| Board / role | Persona | Human signature required | Binding veto | Status | Required-by (K-C4) |
+|---|---|---|---|---|---|
+| Board 1 — Architecture | Mahesh | Yes, to ratify | No — overridable only by a recorded ADR where AIGEM permits | ❌ **OUTSTANDING** | **2026-10-14** |
+| Board 2 / R3 — Technical | Amit | Yes, to ratify | No | ❌ **OUTSTANDING** | **2026-10-14** |
+| Board 3 — Product | Rajal | Yes, to ratify | No | ❌ **OUTSTANDING** | **2026-10-14** |
+| **Board 4 — Security** | **Deepali** | **Yes — T4 mandatory, no AI substitution** | **Yes, binding** | ❌ **OUTSTANDING** | **2026-10-14** |
+| Board 5 — QA | Swapnali | Yes, to ratify | Blocks within jurisdiction | ❌ **OUTSTANDING** | **2026-10-14** |
+| **Board 6 — Risk & Compliance** | **Shailja** | **Yes — T4 mandatory, no AI substitution** | **Yes, binding** | ❌ **OUTSTANDING** | **2026-10-14** |
+| Board 7 — Operations | Shivanshi | Yes, to ratify | Blocks on operational readiness | ❌ **OUTSTANDING** | **2026-10-14** |
+| Database | Aarti | Yes, to ratify | Blocks on physical data integrity | ❌ **OUTSTANDING** | **2026-10-14** |
+| R12 — Delivery | Kalpana | Yes, to ratify | No — timing authority only (Rule PA-1) | ❌ **OUTSTANDING** | **2026-10-14** |
+| **Executive Sponsor** | **unnamed — GAP-010** | **Yes, to fund `FRI-001`** | — | ❌ **NO NAMED PERSON EXISTS** | blocked on GAP-010 |
+
+Clock started 2026-09-30 (K-C4). Non-response after 2026-10-14 is recorded as `NO_RESPONSE` against the named persona and escalates (RG-7). Silence is not approval.
 
 **Nine of nine outstanding, plus a sponsor who does not yet exist.**
 

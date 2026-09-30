@@ -5,7 +5,7 @@
 **Raised by:** Stakeholder decision → recorded by Mahesh (Board 1) under human override  
 **Workstream:** WS-3  
 **Stage:** S08 — Engineering Foundation  
-**Decision:** **CANDIDATE — transcribed into scope artefacts. Human T4 Architecture / Security / Risk & Compliance signatures outstanding.**  
+**Decision:** **CANDIDATE — transcribed into scope artefacts. AIGEM-ACCEPTED 2026-09-30** ([package](../signoff/2026-09-30/CR-013-ratification-package.md)). Human T4 Architecture / Security / Risk & Compliance signatures outstanding.  
 **Origin:** `SUG-20260825-r0s` `ADMIT-BYPASS`  
 **Design file:** [`DEC-20260825-01`](../DEC-20260825-01-lead-domain-decisions.md) (timing superseded: build is R0, not parked)  
 **Architecture:** `ADR-014`

@@ -1,0 +1,23 @@
+# CODEOWNERS — protected governance and automation paths
+#
+# CR-010 SEC-C2 / E-01: GitHub requires a named reviewer on pull requests that
+# touch these trees. This file is a merge-protection control, not a persona
+# substitute: T4 Architecture, Security and Risk & Compliance signatures stay
+# human and are never satisfied by a CODEOWNERS approval.
+#
+# Repository owner is the fallback reviewer because specialist GitHub handles
+# are not uniformly registered. Persona ownership of the *content* is recorded
+# in docs/governance/controls/SECURITY-CONTROLS.md.
+
+# Machine-readable lifecycle state — agents never mark PASSED or edit stage fields.
+/docs/governance/state/ @Mahesh38
+
+# Change requests and board verdicts — silence is not approval.
+/docs/governance/change-requests/ @Mahesh38
+
+# Workflows that can open PRs, run gates, or fail silently.
+/.github/workflows/ @Mahesh38
+
+# Autopilot controller and its proposal-only output.
+/scripts/governance/autopilot.py @Mahesh38
+/docs/governance/autopilot/ @Mahesh38

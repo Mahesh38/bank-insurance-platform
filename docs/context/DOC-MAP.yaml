@@ -19,7 +19,7 @@ schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
 document_count: 642
-total_bytes: 20996234
+total_bytes: 20999250
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -4141,7 +4141,7 @@ documents:
     persona: null
     title: "Suggestion Register"
     answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 296984
+    bytes: 299852
   - path: docs/governance/runbooks/AUTOPILOT-FAILURE-RUNBOOK.md
     bucket: governance
     authority: binding-process
@@ -4621,7 +4621,7 @@ documents:
     persona: null
     title: "Current State Dashboard"
     answers: "Generated, committed view. CI regenerates this file from governance/state/CURRENT-STATE.yaml and fails if it drifts. The YAML remains authoritative."
-    bytes: 5174
+    bytes: 5322
   - path: docs/knowledge-base/generated/decision-index.md
     bucket: root
     authority: navigation

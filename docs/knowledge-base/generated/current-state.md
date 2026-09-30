@@ -3,9 +3,9 @@
 > **Generated, committed view.** CI regenerates this file from `governance/state/CURRENT-STATE.yaml` and fails if it drifts. The YAML remains authoritative.
 
 **Governance:** AIGEM 1.5  
-**State as of:** 2026-09-13  
-**Review due:** 2026-10-11  
-**Ratified by:** Mahesh (Solution Architect), 2026-08-10 — PO counter-signature outstanding; stage, scope and objective values re-confirmed unchanged at the 2026-09-11 R12 refresh
+**State as of:** 2026-09-30  
+**Review due:** 2026-10-28  
+**Ratified by:** Mahesh (Solution Architect), 2026-08-10 — PO counter-signature outstanding; stage, scope and objective values re-confirmed unchanged at the 2026-09-11 R12 refresh and again at the 2026-09-30 AIGEM signoff implementation (CR-016 walked against current_scope; no stage-field change). Not a T4 human re-signature.
 
 Authority: [CURRENT-STATE.yaml](../../governance/state/CURRENT-STATE.yaml)
 

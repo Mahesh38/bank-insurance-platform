@@ -179,5 +179,29 @@ class ModuleInventoryTests(unittest.TestCase):
         self.assertGreaterEqual(len(MODULES), 20)
 
 
+class WorkflowFailClosedTests(unittest.TestCase):
+    """PLAN-006: cancelled classify must not fail required checks (PR #130 race)."""
+
+    def test_required_jobs_fail_closed_only_on_classify_failure(self) -> None:
+        for rel in (
+            ".github/workflows/application-ci.yml",
+            ".github/workflows/security-scanning.yml",
+        ):
+            text = (ROOT / rel).read_text(encoding="utf-8")
+            self.assertNotIn(
+                "needs.classify.result != 'success'",
+                text,
+                f"{rel} still fail-closes on cancelled/skipped classify",
+            )
+            self.assertIn("needs.classify.result == 'failure'", text)
+
+    def test_image_scan_requires_successful_classify(self) -> None:
+        text = (ROOT / ".github/workflows/security-scanning.yml").read_text(encoding="utf-8")
+        self.assertIn(
+            "needs.classify.result == 'success' && needs.classify.outputs.run_image_scan == 'true'",
+            text,
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

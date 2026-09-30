@@ -2,7 +2,7 @@
 
 **Change request:** CR-010  
 **Date raised:** 2026-08-16  
-**Status:** APPROVED-WITH-MODIFICATION (verdicts drafted) — all seven required boards plus Delivery and the DBA have returned a verdict; none rejected. **Not yet binding:** the T4 human signatures for Architecture, Security and Compliance remain outstanding. See [§4](#4-ratification) and the [verdict pack](./CR-010/verdicts/README.md).  
+**Status:** APPROVED-WITH-MODIFICATION (verdicts drafted) — **AIGEM-ACCEPTED 2026-09-30**: internally achievable conditions implemented ([closure report](../signoff/2026-09-30/CR-010-conditions-closure.md)). **Not yet binding:** the T4 human signatures for Architecture, Security and Compliance remain outstanding. See [§4](#4-ratification) and the [verdict pack](./CR-010/verdicts/README.md).  
 **Origin:** SUG-20260816-ap1  
 **Plan:** PLAN-001  
 **Change type:** GOV / DOC / INFRA / QA  

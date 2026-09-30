@@ -38,7 +38,10 @@ RUN chmod +x gradlew && \
         --no-daemon -x test
 
 FROM eclipse-temurin:21-jre-jammy
-RUN apt-get update && apt-get install -y --no-install-recommends curl \
+# CVE-2026-84782: jammy-security openssl 3.0.2-0ubuntu1.30. The Temurin
+# snapshot still ships 3.0.2-0ubuntu1.29; install the packages so apt
+# upgrades them with curl.
+RUN apt-get update && apt-get install -y --no-install-recommends curl openssl libssl3 \
     && rm -rf /var/lib/apt/lists/*
 RUN useradd --system --create-home --shell /usr/sbin/nologin appuser
 

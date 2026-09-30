@@ -4,7 +4,7 @@
 **Type:** GOV  
 **Raised by:** Mahesh — Architecture owner  
 **Branch:** `agent/principal-insurance-platform-architect`  
-**Decision:** PENDING RATIFICATION
+**Status:** PENDING RATIFICATION — **AIGEM-ACCEPTED 2026-09-30** (conditions implemented; human Product signature outstanding; not fabricated). Pack: [`../signoff/2026-09-30/CR-002-ratification-record.md`](../signoff/2026-09-30/CR-002-ratification-record.md)
 
 ## 1. Current position
 

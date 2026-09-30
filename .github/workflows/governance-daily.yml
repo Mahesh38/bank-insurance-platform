@@ -119,3 +119,9 @@ jobs:
         if: always()
         run: |
           if [ -f "$RUNNER_TEMP/pr-body.md" ]; then cat "$RUNNER_TEMP/pr-body.md" >> "$GITHUB_STEP_SUMMARY"; fi
+
+      - name: Named-recipient alarm (OPS-C1)
+        if: failure()
+        run: |
+          echo "::error::governance-daily failed. Named recipient: Shivanshi / SRE (Board 7). Escalate to Kalpana / R12 if unacknowledged within one business day. Runbook: docs/governance/runbooks/GOVERNANCE-WORKFLOW-FAILURE-RUNBOOK.md"
+          exit 1

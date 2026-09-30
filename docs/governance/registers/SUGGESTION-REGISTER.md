@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20260930-osl | 2026-09-30 | scan:trivy | CVE-2026-84782 (HIGH) on openssl/libssl3 3.0.2-0ubuntu1.29 in eclipse-temurin:21-jre-jammy fails Phase-1 image scans; upgrade to 3.0.2-0ubuntu1.30 | SF0 | SC1 | MUST | SEC | P1 / P1 | ADMITTED | [persistence Dockerfile](../../../services/bank-persistence-service/Dockerfile) · [combined Dockerfile](../../../Dockerfile) · [detail](#sug-20260930-osl--openssl-cve-2026-84782) |
 | SUG-20260930-cif | 2026-09-30 | human:repository-owner | Make CI change-specific: docs-only must not trigger CodeQL Java or container scans; heavy jobs before merge, not every push | SF5 | SC1 | SHOULD | INFRA | P3 / P2 | ADMITTED | [PLAN-006](../plans/PLAN-006-ci-change-specific-triggers.md) · [detail](#sug-20260930-cif--change-specific-ci-triggers) |
 | SUG-20260929-dbr | 2026-09-29 | human:repository-owner | Daily sign-off PR must also give, for every pending human sign-off, an AIGEM suggested decision (approve / approve with conditions / approve after validation / reject / defer) with context, justification and reasons both ways | SF5 | SC1 | SHOULD | GOV | P3 / P2 | ADMITTED | [generator](../../../scripts/governance/decision_briefs.py) · [detail](#sug-20260929-dbr--decision-briefs-on-the-daily-sign-off-pr) |
 | SUG-20260929-jdb | 2026-09-29 | scan:trivy | CVE-2026-68497 (HIGH) on jackson-databind 2.21.4 from the Spring Boot 3.5.16 BOM fails SCA and all three image scans; pin jackson-bom 2.21.7 | SF0 | SC1 | MUST | SEC | P1 / P1 | ADMITTED | [build.gradle.kts](../../../build.gradle.kts) · [detail](#sug-20260929-jdb--jackson-databind-cve-2026-68497) |
@@ -127,6 +128,84 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20260930-osl · openssl CVE-2026-84782
+
+```yaml
+# schema: triage-record
+id: SUG-20260930-osl
+raised_at: "2026-09-30"
+raised_by: "scan:trivy"
+source: "Security Scanning on PR #130 — image scans for bank-persistence-service and bank-insurance-combined"
+input: >
+  HIGH CVE-2026-84782 openssl/libssl3 3.0.2-0ubuntu1.29 -> 3.0.2-0ubuntu1.30
+  (information disclosure via DTLS handshake retransmission).
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: SUG-20260930-osl
+
+stage_fit:
+  code: SF0
+  rationale: >
+    A fixable HIGH finding fails the S08-G5 image-scan gate on this PR. It is a
+    prerequisite for merge; the published Ubuntu jammy-security package is the
+    remediation, not a .trivyignore waiver.
+
+scope:
+  code: SC1
+  serves: ["S08-G5 dependency and image scanning"]
+  failure_without_it: "no branch that rebuilds a Phase-1 image can merge while the scan gate is red"
+  minimal: true
+
+necessity:
+  now: MUST
+  evidence_tier: E4
+  evidence:
+    - "Trivy 0.53.0 image scans, run 36749109289: 2 fixable HIGH (openssl + libssl3), identical in both failing jobs"
+  failure_without_it: "PR #130 and any later Phase-1 image rebuild stay red on S08-G5"
+  confidence: C5
+  assumptions: []
+
+action: ADMIT
+action_rationale: >
+  Remediate, don't suppress (.trivyignore rule 2). apt-get install openssl libssl3
+  on the jammy runtime stage so the image picks up 3.0.2-0ubuntu1.30. Applied to
+  the three Phase-1 Dockerfiles that image-scan can select.
+
+classification:
+  type: SEC
+  breakdown: TASK
+  risk_tier: T2
+  destination: "Phase-1 Dockerfiles (persistence, 1sb-integration, combined)"
+
+priority:
+  now: P1
+  at_target: P1
+  overrides_applied: [O1, O7]
+  override_evidence:
+    - "O1: Security Scanning run 36749109289 red — two image-scan jobs fail on this CVE"
+    - "O7: blocks PR #130 (AIGEM 2026-09-30 signoff), the item in flight"
+  rationale: "O2 not claimed — no reachability analysis recorded; the gate failure alone makes it P1"
+
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 1
+  earliest_start: "2026-09-30"
+  cycles: none
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: null
+  status: ADMITTED
+
+resumed: "PR #130 CI failures — Spotless, Knowledge Hub, two Trivy image scans."
+```
 
 ### SUG-20260930-cif · Change-specific CI triggers
 

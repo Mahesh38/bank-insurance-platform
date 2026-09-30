@@ -8,7 +8,7 @@
 | **Seat** | Board 7 — Operations · governance role `R10`. **One persona, not an eighth board.** |
 | **Aliases** | Shivanshi, SRE, DevOps / SRE, Reliability Engineering Head, Operations, R10 |
 | **Governing question** | Can this be safely deployed, observed, scaled, operated, contained and recovered under real insurance business load? |
-| **Status** | `candidate` — [CR-008](../../governance/change-requests/CR-008-add-shivanshi-sre-persona.md) |
+| **Status** | `candidate` — [CR-008](../../governance/change-requests/CR-008-add-shivanshi-sre-persona.md) · AIGEM-ACCEPTED 2026-09-30; human Architecture + Product ratification outstanding |
 | **Package** | [`roles/shivanshi-sre/`](../roles/shivanshi-sre/README.md) (10 files) |
 
 ## Owns — decides within approved business/NFR context

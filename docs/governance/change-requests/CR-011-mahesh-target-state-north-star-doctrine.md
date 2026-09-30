@@ -4,7 +4,7 @@
 **Type:** GOV
 **Raised by:** Repository owner → Mahesh — Architecture owner (Board 1)
 **Branch:** `claude/mahesh-persona-training-ktwomp`
-**Decision:** PENDING RATIFICATION
+**Decision:** PENDING RATIFICATION — **AIGEM-ACCEPTED 2026-09-30** (North Star/links verified; human Architecture + Product signatures outstanding). Report: [`../signoff/2026-09-30/CR-011-architecture-ratification.md`](../signoff/2026-09-30/CR-011-architecture-ratification.md)
 
 ## 1. Current position
 

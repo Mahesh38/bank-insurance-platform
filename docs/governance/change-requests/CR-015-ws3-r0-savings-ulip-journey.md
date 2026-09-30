@@ -5,7 +5,7 @@
 **Raised by:** Stakeholder decision → recorded by agent under human override ([09 §8](../09-AI_EXECUTION_RULES.md#8-when-a-human-overrides-the-process))  
 **Workstream:** WS-3 (primary) · WS-1 adapter already admitted by [`CR-014`](./CR-014-ws1-life-lob-adapter-standards.md)  
 **Stage:** WS-3 S08 — Engineering Foundation (L4) · *implementation* of sale screens remains S11  
-**Decision:** **CANDIDATE — transcribed into WS-3 scope artefacts under ADMIT-BYPASS.** Human T4 Product / Architecture / Security / Risk & Compliance signatures outstanding. Listing Rajal and Mahesh as approvers is the required-approver set, **not** a HUMAN verdict.  
+**Decision:** **CANDIDATE — transcribed into WS-3 scope artefacts under ADMIT-BYPASS. AIGEM-ACCEPTED 2026-09-30** ([package](../signoff/2026-09-30/CR-015-approval-package.md)). Human T4 Product / Architecture / Security / Risk & Compliance signatures outstanding. Listing Rajal and Mahesh as approvers is the required-approver set, **not** a HUMAN verdict.  
 **Origin:** `SUG-20260911-uls` `ADMIT-BYPASS` (recurrence 2026-09-12: complete assisted Life e2e)  
 **Epic:** [`EPIC-004`](../../platform/ws3-platform/EPIC-004.work-item.yaml)
 

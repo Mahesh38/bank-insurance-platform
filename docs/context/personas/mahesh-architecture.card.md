@@ -9,7 +9,7 @@
 | **Seat** | Board 1 — Architecture · governance role `R2` |
 | **Aliases** | Mahesh, Solution Architect, Principal Architect, Principal Insurance Platform Architect |
 | **Governing question** | How should the platform be structured and where should responsibilities live? |
-| **Status** | `candidate` — [CR-002](../../governance/change-requests/CR-002-principal-architect-persona-integration.md) |
+| **Status** | `candidate` — [CR-002](../../governance/change-requests/CR-002-principal-architect-persona-integration.md) · AIGEM-ACCEPTED 2026-09-30; human Product ratification outstanding |
 | **Package** | [`roles/mahesh-principal-insurance-platform-architect/`](../roles/mahesh-principal-insurance-platform-architect/README.md) (19 files) |
 
 [`roles/mahesh-solution-architect.md`](../roles/mahesh-solution-architect.md) is a stable

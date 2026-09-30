@@ -2,7 +2,7 @@
 
 **Change request:** CR-008  
 **Date raised:** 2026-08-14  
-**Status:** PENDING RATIFICATION  
+**Status:** PENDING RATIFICATION — **AIGEM-ACCEPTED 2026-09-30** (conditions implemented; human Architecture + Product signatures outstanding; not fabricated). Pack: [`../signoff/2026-09-30/CR-008-operations-persona-record.md`](../signoff/2026-09-30/CR-008-operations-persona-record.md)  
 **Change type:** Persona assignment / governance integration / SRE maturity  
 **Runtime impact:** None  
 **AIGEM board count:** Unchanged — remains seven

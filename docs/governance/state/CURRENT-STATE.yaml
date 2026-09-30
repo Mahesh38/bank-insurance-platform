@@ -14,29 +14,27 @@ project:
   name: "Bank Insurance Platform"
   repository: "mahesh38/bank-insurance-platform"
 
-# R12 freshness refresh, 2026-09-11 — Delivery Lead (Kalpana) seat, agent-executed.
-#
-# Cleared a HALT: state_as_of was 32 days old (limit 30) and review_due passed on 2026-09-09,
-# so every agent was barred from admitting work (Rule CS-1). This is a real review sweep, not a
-# date bump: the 2026-08-10 → 2026-09-11 delta was read out of git history, the CI and security
-# workflows, the module list, the registers and the GitHub Actions run history, and the findings
-# are recorded per criterion below and in GATE-EVIDENCE.yaml.
+# R12 freshness refresh, 2026-09-30 — Delivery Lead (Kalpana) seat, agent-executed
+# under the 2026-09-30 AIGEM daily sign-off instruction. This is a real review
+# sweep, not a date bump: CR-016 was walked against current_scope (GOV flow only;
+# no product-scope change); external dependencies were reviewed and left OPEN;
+# repository-owned CR conditions were implemented. Findings are in
+# docs/governance/signoff/2026-09-30/.
 #
 # WHAT THIS REFRESH DID NOT TOUCH, and cannot:
 #   * current_phase and stage_status — human only (04 section 5). Unchanged in all 3 workstreams.
-#   * gate `state` (OPEN / CANDIDATE / PASSED / BLOCKED) — unchanged. No gate was marked CANDIDATE.
-#   * criterion state MET or WAIVED — never set by an agent. Criteria that now carry assembled
-#     E4 evidence are recorded PARTIAL; declaring one MET is the named owner's call.
-#   * ratification. `ratified_by` still records Mahesh's 2026-08-10 signature. The stage, scope
-#     and objective values he ratified are unchanged, so this refresh re-confirms them rather
-#     than re-ratifying them — see 01-CURRENT_STATE.md section 7.
+#   * gate `state` (OPEN / CANDIDATE / PASSED / BLOCKED) — unchanged.
+#   * criterion state MET or WAIVED — unchanged.
+#   * human signatures. `ratified_by` still records Mahesh's 2026-08-10 signature.
+#     PO counter-signature remains outstanding. Stage, scope and objective values
+#     he ratified, plus CR-015/CR-016 transcriptions already in this file, are
+#     re-confirmed unchanged.
 #
-# OVERLAP: PR #94 (branch cursor/gitlab-ce-repo-plan-c1db, open) carries a pure FR-1 date bump of
-# these same two fields to 2026-09-10 / 2026-10-10 and explicitly deferred the content review to
-# R12. This block supersedes it on merge; the content review is the part that was deferred.
-state_as_of: "2026-09-13" # quoted so the file validates directly against current-state.schema.json
-review_due: "2026-10-11"
-ratified_by: "Mahesh (Solution Architect), 2026-08-10 — PO counter-signature outstanding; stage, scope and objective values re-confirmed unchanged at the 2026-09-11 R12 refresh"
+# Previous refresh (2026-09-11 / state_as_of 2026-09-13) remains the prior
+# evidence trail; this block supersedes the dates only.
+state_as_of: "2026-09-30" # quoted so the file validates directly against current-state.schema.json
+review_due: "2026-10-28"
+ratified_by: "Mahesh (Solution Architect), 2026-08-10 — PO counter-signature outstanding; stage, scope and objective values re-confirmed unchanged at the 2026-09-11 R12 refresh and again at the 2026-09-30 AIGEM signoff implementation (CR-016 walked against current_scope; no stage-field change). Not a T4 human re-signature."
 provisional: false # ratified 2026-08-10; stage/scope values unchanged since; agents run the full pipeline
 
 # ---------------------------------------------------------------------------
@@ -520,6 +518,9 @@ standing_constraints:
   - "UI and BFF never receive 1SB or insurer wire codes; they speak bank/Hub language only. Hop is UI → BFF → Integration Hub. 1SB master lookup is a provider feed behind the adapter, not a frontend contract"
   - "Journey Orchestration holds stage and references only, never another context's business decision"
   - "Render.com is dev-preview only and is never a data path for PII or production-like data"
+  # --- CR-012 Board 6 conditions (2026-09-30): standing constraints, not ADR prose ---
+  - "No regulatory evidence exists only in a topic; the audit event store and the S3 WORM archive are the record (ADR-012 / FF-26)"
+  - "The OpenSearch domain holds no regulatory evidence; no gate, audit or regulatory query is answered from it (ADR-013 / FF-28)"
 
 # ---------------------------------------------------------------------------
 # Routing — where ADMITTED work goes (08 §3)
@@ -660,7 +661,7 @@ id_allocation:
     # while CR-011 was in use; it is now indexed in the decision register and the counter clears
     # both it and CR-012.
     CR: 17        # CR-001..016 in use (016 = parallel lanes / evidence unpark / RG-9, SUG-20260923-par, CANDIDATE transcribed 2026-09-23 under ADMIT-BYPASS; HUMAN Architecture+Product ratification outstanding); next unused is 17
-    RISK: 16      # RISK-001..015 in use (012..015 added by CR-012)
+    RISK: 21      # RISK-001..020 in use (016..020 added 2026-09-30 AIGEM signoff: suitability, autopilot, approval automation, missing human signoff, operational dependency)
     ASM: 20       # ASM-001..014, 015..019 in use (013 invalidated 2026-09-14; 015 = Apigee outbound / API Gateway inbound; 016 = private Apigee for internal APIs; 017 = dev-inside-UAT; 018 = no CUG at R0; 019 = AD-verify API + partner IdP + Fireframe UI). ID-allocation only. No stage field touched.
     EPIC: 5       # EPIC-001..004 in use (004 = WS-3 R0 assisted Life Term+Savings+ULIP, CR-015 / SUG-20260911-uls, minted 2026-09-12). Next unused is 5. ID-allocation only.
     SPIKE: 2       # SPIKE-001 in use (Apigee vs Amazon API Gateway, SUG-20260831-apg). ID-allocation only.

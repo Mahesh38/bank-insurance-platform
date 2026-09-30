@@ -54,6 +54,32 @@ class AutopilotSafetyTests(unittest.TestCase):
         with self.assertRaises(autopilot.AutopilotRefusal):
             autopilot.validate_policy(unsafe["policy"])
 
+    def test_output_refuses_state_tree(self) -> None:
+        with self.assertRaises(autopilot.AutopilotRefusal) as ctx:
+            autopilot.resolve_proposal_output(
+                autopilot.ROOT / "docs/governance/state/CURRENT-STATE.yaml"
+            )
+        self.assertIn("output must be under", str(ctx.exception))
+
+    def test_output_refuses_change_requests_tree(self) -> None:
+        with self.assertRaises(autopilot.AutopilotRefusal) as ctx:
+            autopilot.resolve_proposal_output(
+                autopilot.ROOT / "docs/governance/change-requests/CR-010-context-module-and-safe-autopilot.md"
+            )
+        self.assertIn("output must be under", str(ctx.exception))
+
+    def test_output_refuses_parent_directory_escape(self) -> None:
+        sneaky = autopilot.PROPOSALS_DIR / ".." / "state" / "CURRENT-STATE.yaml"
+        with self.assertRaises(autopilot.AutopilotRefusal) as ctx:
+            autopilot.resolve_proposal_output(sneaky)
+        self.assertIn("..", str(ctx.exception))
+
+    def test_output_accepts_proposals_directory(self) -> None:
+        target = autopilot.PROPOSALS_DIR / "candidate-ws3.yaml"
+        resolved = autopilot.resolve_proposal_output(target)
+        self.assertEqual(resolved, target.resolve())
+        self.assertTrue(str(resolved).startswith(str(autopilot.PROPOSALS_DIR.resolve())))
+
 
 if __name__ == "__main__":
     unittest.main()

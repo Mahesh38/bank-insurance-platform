@@ -5,7 +5,7 @@
 **Raised by:** Stakeholder decision → recorded by agent under human override ([09 §8](../09-AI_EXECUTION_RULES.md#8-when-a-human-overrides-the-process))  
 **Workstream:** WS-1 (primary) · WS-3 catalogue/journey surfaces **unchanged**  
 **Stage:** WS-1 Phase 4 — Hardening & consumer enablement (L7)  
-**Decision:** **CANDIDATE — transcribed into WS-1 scope artefacts. Human T4 Architecture / Security / Risk & Compliance / Product signatures outstanding.**  
+**Decision:** **CANDIDATE — transcribed into WS-1 scope artefacts. AIGEM-ACCEPTED 2026-09-30** ([package](../signoff/2026-09-30/CR-014-ratification-package.md)). Human T4 Architecture / Security / Risk & Compliance / Operations signatures outstanding.  
 **Origin:** `SUG-20260903-lif` `ADMIT-BYPASS`  
 **Epic:** [`EPIC-002`](../../1sb-insurance-integration/service-ssot/work-items/EPIC-002.work-item.yaml)
 

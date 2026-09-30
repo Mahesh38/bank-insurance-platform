@@ -8,6 +8,13 @@ recorded once and reused by every later ordering computation.
 **Follow-up dates:** Delivery Lead (R12) — she sets and publishes the date and names the owner; she
 never supplies the answer (Rule PA-1)
 
+> **2026-09-30 — Tech Lead review (REVIEW AND TOUCH).** Freshness limit 14d was exceeded (16d).
+> Every row below was re-read against the 2026-09-30 AIGEM daily sign-off. **Nothing was closed,
+> resolved, or assumed.** External dependencies DEP-002, DEP-010, DEP-20260824-dx1,
+> DEP-20260824-eip and DEP-20260824-cst remain OPEN. AIGEM suggested ESCALATE (or RE-DATE for
+> `cst`); those are owner actions, not agent actions, and no new required-by date has been
+> invented. Full note: [`signoff/2026-09-30/DEPENDENCY-REGISTER-REVIEW.md`](../signoff/2026-09-30/DEPENDENCY-REGISTER-REVIEW.md).
+
 > **2026-09-11 — R12 ageing sweep.** Every follow-up date in this register had passed: the four
 > external rows by 14–21 days, and the cost-envelope decision had no date at all. A follow-up date
 > in the past is not a tracked dependency, it is a hope (Rule DEP-3), and four hopes had been
@@ -46,11 +53,11 @@ for (Rule DEP-3).
 
 | ID | Dependency | Owner | Required by | Age | State | Impact if late |
 |----|------------|-------|-------------|-----|-------|----------------|
-| → [DEP-002](#1-edges) | Bank app team UAT integration slot | Rajal / Product | **2026-09-18** | **OVERDUE 21d** (was 2026-08-21) | OPEN | Phase 4 gate criterion 4.3 cannot close. What is owed by the date is a named slot or a stated refusal — R12 cannot shorten the bank app team's calendar, but silence is not an outcome |
-| → [DEP-010](#1-edges) | Bank AD technology confirmation | Mahesh / Architecture | **2026-09-18** | **OVERDUE 21d** (was 2026-08-21) | OPEN | WS-2 Phase 2 design cannot start. WS-2 has had no movement for a month; this is one reason why |
-| → [DEP-20260824-dx1](#1-edges) | Bank-side VPN termination, prefixes, firewall change, DX order | Shivanshi / SRE + bank network | **2026-09-18** | **OVERDUE 14d** (was 2026-08-28) | OPEN | `uat` and `prod` keep running against CBS/AD stubs, so `#4` Customer and WS-2 Phase 2 cannot be evidenced. **The one item on the programme that working harder cannot accelerate** — which is exactly why a lapsed follow-up on it is the most expensive one in this table |
-| → [DEP-20260824-eip](#1-edges) | 1SB and AU Bank PG allowlist the inspection-VPC Elastic IPs | Shivanshi / SRE | **2026-09-18** | **OVERDUE 14d** (was 2026-08-28) | OPEN | W2 quotes and W3 payments fail in UAT regardless of code readiness |
-| → [DEP-20260824-cst](#1-edges) | Cost envelope for the five 2026-08-24 layers (`RISK-012`, `NFR-OPEN-6`) | Shivanshi / SRE + Kalpana / Delivery | **2026-09-25** | **no date was ever set** | OPEN | `GATE-S09` entry needs an approved cost envelope. Three stateful services, a sixth account, an inspection VPC per environment and two circuits are inside the S09 budget line and none of it is priced. WS-3 cannot enter S09 on an unpriced plan, and S09 is the next stage |
+| → [DEP-002](#1-edges) | Bank app team UAT integration slot | Rajal / Product | **2026-09-18** | **OVERDUE — reviewed 2026-09-30, still OPEN.** AIGEM suggested ESCALATE. No new date fabricated. | OPEN | Phase 4 gate criterion 4.3 cannot close. What is owed by the date is a named slot or a stated refusal — R12 cannot shorten the bank app team's calendar, but silence is not an outcome |
+| → [DEP-010](#1-edges) | Bank AD technology confirmation | Mahesh / Architecture | **2026-09-18** | **OVERDUE — reviewed 2026-09-30, still OPEN.** AIGEM suggested ESCALATE. No new date fabricated. | OPEN | WS-2 Phase 2 design cannot start. WS-2 has had no movement for a month; this is one reason why |
+| → [DEP-20260824-dx1](#1-edges) | Bank-side VPN termination, prefixes, firewall change, DX order | Shivanshi / SRE + bank network | **2026-09-18** | **OVERDUE — reviewed 2026-09-30, still OPEN.** AIGEM suggested ESCALATE. Bank-side contact still unnamed. | OPEN | `uat` and `prod` keep running against CBS/AD stubs, so `#4` Customer and WS-2 Phase 2 cannot be evidenced. **The one item on the programme that working harder cannot accelerate** — which is exactly why a lapsed follow-up on it is the most expensive one in this table |
+| → [DEP-20260824-eip](#1-edges) | 1SB and AU Bank PG allowlist the **correct** egress IPs (working belief: Apigee, `ASM-015`, not spoke NAT EIPs) | Shivanshi / SRE | **2026-09-18** | **OVERDUE — reviewed 2026-09-30, still OPEN.** AIGEM suggested ESCALATE. Written confirmations from 1SB / AU Bank PG have not arrived. | OPEN | W2 quotes and W3 payments fail in UAT regardless of code readiness |
+| → [DEP-20260824-cst](#1-edges) | Cost envelope for the five 2026-08-24 layers (`RISK-012`, `NFR-OPEN-6`) | Shivanshi / SRE + Kalpana / Delivery | **2026-09-25** | **OVERDUE 5d at the 2026-09-30 review.** AIGEM suggested RE-DATE. No owner-confirmed new date is on file, so the row is not re-dated here. | OPEN | `GATE-S09` entry needs an approved cost envelope. Three stateful services, a sixth account, an inspection VPC per environment and two circuits are inside the S09 budget line and none of it is priced. WS-3 cannot enter S09 on an unpriced plan, and S09 is the next stage |
 
 > Every external dependency has an accountable chase owner and date. The dependency remains
 > external; assignment makes the chase schedulable and does not pretend the answer is available.

@@ -150,7 +150,7 @@ workstreams:
       - id: "4.5"
         description: "Operations runbook covers secrets rotation, allowlisting and 1SB incidents."
         state: OPEN
-        owner: "R10 / Operations"
+        owner: "Shivanshi / SRE"
         execution_mode: AUTOMATABLE
         priority: P3
         effort: S
@@ -163,7 +163,7 @@ workstreams:
       - id: "4.6"
         description: "Performance smoke measures p95 quote latency under nominal concurrency."
         state: BLOCKED
-        owner: "Amit / Engineering + R10 / Operations"
+        owner: "Amit / Engineering + Shivanshi / SRE"
         execution_mode: AUTOMATABLE
         priority: P2
         effort: M

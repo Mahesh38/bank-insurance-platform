@@ -137,10 +137,12 @@ dependencies:
     - "OPEN-D1"
   external: []
   decision_dependency:
-    - "OPEN-LEAD-ACTOR"
+    - "D-018" # OPEN-LEAD-ACTOR closed
+    - "OPEN-COMP-LEAD-IPR-CREATE"
     - "OPEN-LEAD-STAGE"
     - "OPEN-LEAD-DUP"
     - "OPEN-D1"
+    - "ADR-021"
 
 plan: PLAN-007
 estimate: L

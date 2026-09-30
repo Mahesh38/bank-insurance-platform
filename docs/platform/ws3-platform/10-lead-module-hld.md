@@ -28,7 +28,7 @@ algorithms the BFF must call.
 ## 2. Governing outcomes (from BRD §2–§3, platform-aligned)
 
 1. One Lead record per Life sales opportunity on-platform (`AC-8`).
-2. Collaborative visibility between Bank SP and Insurance RM **as Product decides** — see `OPEN-LEAD-ACTOR`.
+2. Collaborative visibility between Bank SP and Insurance RM; create by workforce creators with mandatory certified-SP RM assignee (`D-018`).
 3. Prevent the same creating principal from holding two unfinished leads for the same customer + product type (`BR-DEDUPE-*`, `OPEN-LEAD-DUP`).
 4. Save for later or continue into suitability; insurer/plan unknown at create (`BR-LEAD-005`).
 5. Reporting eligibility (Diary → Eligible) only after first successful BI (`BR-BI-*`).
@@ -72,7 +72,7 @@ Standing constraints that apply: bank apps never call DB or 1SB directly; Flutte
 | Customer search Cust ID / mobile / PAN | **IN** (BFF — EPIC-003 / ARCH-025) | EPIC-003 |
 | Customer confirm with masked mobile/email | **IN** (BFF) | EPIC-003 |
 | Product need: Term / Savings / ULIP | **IN** (Term + Savings/ULIP per CR-015) | CR-015 / EPIC-004 |
-| Role-specific assignment RM / SP / Non-SP | **PARTIAL** — document all; **create actor = BANK_RM until OPEN-LEAD-ACTOR closes** | INV-LED-04 vs BRD §8 |
+| Role-specific assignment RM / SP / Non-SP | **IN** — create by Bank SP / Non-SP / Insurance RM; must assign certified-SP Bank RM (`D-018`) | `ADR-021`, INV-LED-04/10; IPR runtime gated Board 6 |
 | Platform Lead ID | **IN** (ULID `leadId`, ID-01) | ADR-014; OPEN-LEAD-DISPLAY closed as omit sequential labels |
 | Dedupe user+customer+product | **IN** (algorithm DOC-023) | BR-DEDUPE; OPEN-LEAD-DUP |
 | Save & Close / continue to suitability | **IN** | BR-LEAD-003/004 |
@@ -110,7 +110,7 @@ Canonical fields (logical — physical DDL is Aarti's pack):
 | `fulfillerPrincipalId` | Current fulfiller (SP or RM per Product) |
 | `assignedRmId` / `assignedSpId` | Working owners |
 | `branchId` | Branch context |
-| `accountableSpId` | Immutable SP at origination (`INV-ACT-03`) — **only if creator path admits it** |
+| `accountableSpId` | Immutable certified Bank RM assigned at create (`INV-ACT-03`, `D-018`) — not necessarily `createdBy` |
 | `state` | Domain machine: NEW → … → CONVERTED / DISQUALIFIED / EXPIRED → ARCHIVED |
 | `activityStatus` | Configurable disposition before BI (`BRD §14.2`) |
 | `biGenerated` | Boolean; first successful BI |
@@ -138,9 +138,10 @@ Events (from domain catalogue): `OpportunityCreated` / Lead created, assignment 
 
 ## 7. Open conflicts (must not be silently resolved)
 
-| ID | Conflict | Owner | Interim design |
+| ID | Conflict | Owner | Design |
 |---|---|---|---|
-| **OPEN-LEAD-ACTOR** | BRD §5/§8: Insurance RM, Bank SP, Bank Non-SP may create. `INV-LED-04` / DEC-20260825-01: only `BANK_RM` may originate | Rajal + Shailja + Mahesh | R0 contracts admit **BANK_RM create only**; other BRD flows documented as deferred pending Product decision |
+| **OPEN-LEAD-ACTOR** | **CLOSED 2026-09-30 — `D-018` / `ADR-021`.** Workforce creators (Bank SP, Non-SP, Insurance RM) may create; must assign certified-SP Bank RM | Rajal (closed) · Mahesh (structure) | INV-LED-04/10 amended; see §4 R0 cut |
+| **OPEN-COMP-LEAD-IPR-CREATE** | May Insurance RM (IPR) invoke create, or is that solicitation? | Shailja (Board 6) | Contracts include IPR create; **runtime enablement blocked** until Board 6 confirms |
 | **OPEN-LEAD-STAGE** | BRD §14 ladder vs domain Lead machine + Journey refs | Rajal + BA + Mahesh | Lead owns pre-BI + QUALIFIED + terminal; post-quote labels are projections from Journey/Proposal/Policy |
 | **OPEN-LEAD-DUP** | Force-duplicate / “update and continue” in wireframes | Rajal | No force flag; `409` + resume (`07` LLD) |
 | **OPEN-LEAD-XRM** | Visibility of another RM’s active lead | Rajal + Shailja | Absent for caller (EPIC-003) |

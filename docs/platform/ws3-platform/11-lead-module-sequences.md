@@ -2,9 +2,8 @@
 
 **Status:** `AI-DRAFTED` · T3 · human Board 1 outstanding  
 **Origin:** `SUG-20260930-lmd` · `EPIC-005` · `ARCH-027` · `PLAN-007`  
-**Companion:** [`10-lead-module-hld.md`](./10-lead-module-hld.md) · [`07-nip-bff-lead-phase-api-lld.md`](./07-nip-bff-lead-phase-api-lld.md)
-
-R0 default actor for create: **Bank RM** (`INV-LED-04`). BRD SP / Non-SP / Insurance RM create paths are illustrated only as *future* variants under `OPEN-LEAD-ACTOR`.
+**Companion:** [`10-lead-module-hld.md`](./10-lead-module-hld.md) · [`07-nip-bff-lead-phase-api-lld.md`](./07-nip-bff-lead-phase-api-lld.md)  
+**Actors (`D-018`):** Bank SP, Bank Non-SP, or Insurance RM may create; every create **must** assign a certified-SP Bank RM. IPR create is design-complete but runtime-gated (`OPEN-COMP-LEAD-IPR-CREATE`).
 
 ---
 
@@ -13,41 +12,39 @@ R0 default actor for create: **Bank RM** (`INV-LED-04`). BRD SP / Non-SP / Insur
 ```mermaid
 sequenceDiagram
   autonumber
-  actor RM as Bank RM
+  actor User as Workforce user
   participant APP as NIP-APP
   participant BFF as NIP BFF
   participant LED as Lead #5
-  participant AUD as Audit
 
-  RM->>APP: Open assisted workspace
+  User->>APP: Open assisted workspace
   APP->>BFF: GET /workspace/pipeline?cursor&limit
   BFF->>LED: GET /internal/v1/leads?owner=me&states=working
   LED-->>BFF: page of LeadSummary
   BFF-->>APP: masked pipeline page
-  Note over BFF,AUD: list access audited without PII payloads
 ```
 
-Sync. Cursor pagination. No nested full Lead (EPIC-003 §5).
+Sync. Cursor pagination. Visibility is book/role-scoped (SP and current Insurance RM per BR-OWN-001).
 
 ---
 
-## 2. Search → confirm → product → create (SCR-03…05)
+## 2. Search → confirm → product → create with SP assignee (SCR-03…05)
 
 ```mermaid
 sequenceDiagram
   autonumber
-  actor RM as Bank RM
+  actor User as Creator (SP / Non-SP / Insurance RM)
   participant APP as NIP-APP
   participant BFF as NIP BFF
   participant LED as Lead #5
   participant CUST as Customer #4
   participant CBS as CBS via Apigee
   participant JRN as Journey #6
-  participant AUD as Audit
+  participant PDP as AuthZ PDP
 
-  RM->>APP: Search by CUSTOMER_ID|MOBILE|PAN
+  User->>APP: Search by CUSTOMER_ID|MOBILE|PAN
   APP->>BFF: GET /customers:search
-  BFF->>LED: active-leads for caller book (lead-first)
+  BFF->>LED: active-leads for caller scope (lead-first)
   LED-->>BFF: optional existingLead summary
   alt need CBS
     BFF->>CUST: resolve / search
@@ -55,20 +52,22 @@ sequenceDiagram
     CBS-->>CUST: customer card(s)
     CUST-->>BFF: bank-language projection
   end
-  BFF-->>APP: masked cards (+ existingLead if caller-owned)
+  BFF-->>APP: masked cards
 
-  RM->>APP: Confirm customer + productClass
-  APP->>BFF: POST /leads (Idempotency-Key)
+  User->>APP: Confirm customer + productClass + assign certified SP RM
+  Note over User,APP: Bank SP may self-assign. Non-SP and Insurance RM must select SP (BRD §8, D-016/D-018)
+  APP->>BFF: POST /leads (Idempotency-Key, assignedRmId)
+  BFF->>PDP: opportunity.create for creator
+  PDP-->>BFF: allow / deny
   BFF->>LED: POST /internal/v1/leads
-  LED->>LED: ALG-DEDUPE
+  LED->>LED: ALG-DEDUPE(creator) + INV-LED-10 assignee SP check
   alt unfinished duplicate
     LED-->>BFF: 409 CONFLICT + existing leadId
     BFF-->>APP: resume existing
   else create
-    LED->>LED: mint leadId, state=NEW
+    LED->>LED: mint leadId; createdBy=creator; accountableSpId=assignedRmId; state=ASSIGNED
     LED->>JRN: create journey ref (sync)
     JRN-->>LED: journeyId
-    LED->>AUD: LeadCreated
     LED-->>BFF: 201 leadId + journeyId
     BFF-->>APP: success
   end
@@ -80,6 +79,7 @@ Rules:
 - Idempotency-Key on create (S-20).
 - Insurer/plan absent at create (`BR-LEAD-005`).
 - `productClass` immutable (`BR-LEAD-006`).
+- Missing / uncertified assignee → `422 ASSIGNEE_SP_REQUIRED` / `422 RM_NOT_CERTIFIED`.
 
 ---
 
@@ -91,26 +91,36 @@ sequenceDiagram
   participant LED as Lead #5
 
   BFF->>LED: POST /internal/v1/leads
-  LED->>LED: key = principalId + customerId + productClass
+  LED->>LED: key = creatorPrincipalId + customerId + productClass
   Note over LED: unfinished = not terminal AND biGenerated=false
   LED-->>BFF: 409 + existingLead {leadId, journeyId, state}
 ```
 
-After `biGenerated=true`, same key may create a **new** lead (`BR-DEDUPE` table). Another principal’s unfinished lead does not block this principal (`BR-DEDUPE` row “another user”); cross-RM **visibility** remains `OPEN-LEAD-XRM` (absent).
+After `biGenerated=true`, same key may create a **new** lead (`BR-DEDUPE`). Another principal’s unfinished lead does not block this principal. Cross-RM **visibility** remains `OPEN-LEAD-XRM` (absent).
 
 ---
 
-## 4. Resume Save & Close
+## 4. Role-specific create (BRD §8)
+
+| Creator | Assignment at create | Sequence note |
+|---|---|---|
+| Bank SP (RM + SP cert) | May self-assign as `assignedRmId` | Happy path above |
+| Bank Non-SP | Must select certified SP (and Insurance RM per BRD / `D-016`) | Same `POST /leads` with required assignee fields |
+| Insurance RM / FLS | Selects branch + SP (`D-016`) | Same API; **runtime** blocked until `OPEN-COMP-LEAD-IPR-CREATE` closes |
+
+---
+
+## 5. Resume Save & Close
 
 ```mermaid
 sequenceDiagram
-  actor RM as Bank RM
+  actor User as Workforce user
   participant APP as NIP-APP
   participant BFF as NIP BFF
   participant LED as Lead #5
   participant JRN as Journey #6
 
-  RM->>APP: Open lead from pipeline
+  User->>APP: Open lead from pipeline
   APP->>BFF: GET /leads/{leadId}
   BFF->>LED: GET /internal/v1/leads/{leadId}
   LED-->>BFF: Lead + journeyId
@@ -119,99 +129,79 @@ sequenceDiagram
   BFF-->>APP: prefilled resume payload
 ```
 
-`BR-LEAD-004`: resume from last applicable journey point with stored data prefilled — Journey owns the point; Lead owns the inbox row.
+`BR-LEAD-004`. Regulated next steps still require the certified SP (`INV-ACT-01`).
 
 ---
 
-## 5. Assignment / reassignment (pre-BI)
+## 6. Assignment / reassignment (pre-BI)
 
 ```mermaid
 sequenceDiagram
-  actor RM as Bank RM
+  actor User as Authorised user
   participant BFF as NIP BFF
   participant LED as Lead #5
   participant PDP as AuthZ PDP
-  participant AUD as Audit
 
-  RM->>BFF: POST /leads/{id}/assignments
+  User->>BFF: POST /leads/{id}/assignments
   BFF->>LED: POST /internal/v1/leads/{id}/assignments
   LED->>PDP: may assign? target certified?
   PDP-->>LED: allow / deny
   alt biGenerated
     LED-->>BFF: 422 REASSIGN_AFTER_BI (VAL-016)
   else
-    LED->>LED: append assignment history
-    LED->>AUD: AssignmentChanged
+    LED->>LED: append history; update working owners
+    Note over LED: accountableSpId stays immutable (INV-ACT-03)
     LED-->>BFF: 200 Lead
   end
 ```
 
-`OPEN-D1` still owns SLA reset and conversion credit semantics; storage always keeps history (`BR-OWN-002/003`).
+`OPEN-D1` still owns SLA reset and conversion credit semantics.
 
 ---
 
-## 6. First BI → Eligible / QUALIFIED
+## 7. First BI → Eligible / QUALIFIED
 
 ```mermaid
 sequenceDiagram
   participant QTE as Quotation #10
   participant LED as Lead #5
-  participant AUD as Audit
 
-  QTE->>LED: POST /internal/v1/leads/{id}/bi-generated (or event)
+  QTE->>LED: POST /internal/v1/leads/{id}/bi-generated
   Note over QTE,LED: Only after successful BI response (BR-BI-001/002)
   LED->>LED: if first: biGenerated=true, reportingClass=ELIGIBLE, state→QUALIFIED
-  LED->>AUD: LeadQualified
   LED-->>QTE: 204
 ```
 
-Multiple BIs stay on Quote; Lead does not mint a new `leadId` (`BR-BI-003/005`).
-
 ---
 
-## 7. Convert → archive (ADR-014)
+## 8. Convert → archive (ADR-014)
 
 ```mermaid
 sequenceDiagram
   participant JRN as Journey #6
   participant LED as Lead #5
-  participant AUD as Audit
 
   JRN->>LED: JourneySold (payment RECONCILED + policy ACTIVE)
   LED->>LED: QUALIFIED → CONVERTED (INV-LED-02)
   LED->>LED: archiveWorkingInbox → ARCHIVED
-  LED->>AUD: LeadConverted + LeadArchived
 ```
-
-Off-platform MIS policy ingest never calls lead create (`INV-LED-09`).
 
 ---
 
-## 8. Close (pre-conversion)
+## 9. Close (pre-conversion)
 
 ```mermaid
 sequenceDiagram
-  actor RM as Bank RM
+  actor User as Authorised user
   participant BFF as NIP BFF
   participant LED as Lead #5
 
-  RM->>BFF: POST /leads/{id}/close {reason, remarks?}
+  User->>BFF: POST /leads/{id}/close {reason, remarks?}
   BFF->>LED: POST /internal/v1/leads/{id}/close
-  LED->>LED: → DISQUALIFIED/Closed terminal
-  Note over LED: BR-CLOSE-001 — no reopen; new lead needs fresh create + dedupe
+  LED->>LED: → DISQUALIFIED terminal
+  Note over LED: BR-CLOSE-001 — no reopen
   LED-->>BFF: 200
 ```
-
----
-
-## 9. Deferred — BRD role variants (`OPEN-LEAD-ACTOR`)
-
-| BRD flow | Sequence status |
-|---|---|
-| §8.1 Insurance RM creates (picks branch + SP) | Documented in BRD only; **not** R0 API until Product overturns INV-LED-04 |
-| §8.2 Bank SP creates (picks Insurance RM) | Same |
-| §8.3 Bank Non-SP creates (picks SP; RM derived) | Same |
-| Meeting schedule + SMS/email | Parked `SUG-20260907-fig` / BOOT notification scope |
 
 ---
 
@@ -223,12 +213,12 @@ sequenceDiagram
 | BI mark from Quote | Sync command or durable event — same idempotent handler |
 | JourneySold | Event (async) with idempotent convert |
 | Assignment notification | Async outbox → Notification (R0 thin) |
-| Meeting customer SMS/email | Deferred |
+| Meeting customer SMS/email | Deferred (`SUG-20260907-fig`) |
 
 ---
 
 ## 11. Done for this document
 
-- [x] Core R0 sequences
-- [x] Explicit deferral of BRD multi-actor create
+- [x] Multi-actor create with mandatory SP assignee (`D-018`)
+- [x] IPR create marked Board-6 gated
 - [ ] Human Board 1 signature

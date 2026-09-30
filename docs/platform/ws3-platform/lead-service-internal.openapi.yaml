@@ -8,7 +8,9 @@ info:
     Flutter and public internet never call these paths.
     Public consumer edge remains nip-bff-lead-phase.openapi.yaml (EPIC-003).
     Status: AI-DRAFTED — human Board 1 / Security signatures outstanding.
-    Interim create actor: BANK_RM only (INV-LED-04). OPEN-LEAD-ACTOR may widen later.
+    Create actors per D-018 / ADR-021: Bank SP, Bank Non-SP, Insurance RM.
+    Every create requires assignedRmId = Bank RM with valid SP cert (INV-LED-10).
+    Insurance RM create is design-complete; runtime gated on OPEN-COMP-LEAD-IPR-CREATE.
 servers:
   - url: http://lead-service.platform.svc.cluster.local
     description: Cluster DNS (illustrative)
@@ -75,8 +77,9 @@ paths:
       operationId: createLead
       summary: Create a Lead and spawn a Journey reference
       description: |
-        Mints leadId (ULID), runs ALG-DEDUPE, enforces INV-LED-04/05, spawns Journey.
-        Idempotent via Idempotency-Key. Insurer/plan are not accepted on create (BR-LEAD-005).
+        Mints leadId (ULID), runs ALG-DEDUPE, enforces INV-LED-04/05/10 (workforce creator +
+        mandatory certified-SP assignee), spawns Journey. Idempotent via Idempotency-Key.
+        Insurer/plan are not accepted on create (BR-LEAD-005).
       parameters:
         - $ref: '#/components/parameters/IdempotencyKey'
       requestBody:
@@ -93,7 +96,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Lead'
         '403':
-          description: ORIGINATION_RM_ONLY or PDP deny
+          description: ORIGINATION_ACTOR_DENIED, IPR create gated, or PDP deny
           content:
             application/problem+json:
               schema:
@@ -321,7 +324,7 @@ components:
       enum: [DIARY, ELIGIBLE]
     CreateLeadRequest:
       type: object
-      required: [customerId, lob, productClass, branchId]
+      required: [customerId, lob, productClass, branchId, assignedRmId]
       properties:
         customerId:
           type: string
@@ -333,9 +336,14 @@ components:
         branchId:
           type: string
           description: Branch context for ownership and reporting.
+        assignedRmId:
+          type: string
+          description: |
+            Mandatory certified-SP Bank RM (D-018 / INV-LED-10). Bank SP creators may
+            pass their own principal id. Non-SP and Insurance RM must select one.
         assignedSpId:
           type: string
-          description: Optional until OPEN-LEAD-ACTOR; R0 may omit.
+          description: When the role flow distinguishes SP from RM fulfiller (BRD §15).
         correlationId:
           type: string
           description: End-to-end correlation for audit.

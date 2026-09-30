@@ -62,15 +62,15 @@ Create Lead + spawn Journey ref.
   "lob": "LIFE",
   "productClass": "TERM",
   "branchId": "BR…",
-  "assignedSpId": "optional-until-OPEN-LEAD-ACTOR",
-  "assignedRmId": "principal-of-caller-for-R0",
+  "assignedRmId": "certified-SP-Bank-RM",
+  "assignedSpId": "when-required-by-role-flow",
   "correlationId": "…"
 }
 ```
 
-**Guards:** `INV-LED-04/05`, ALG-DEDUPE, PDP `opportunity.create`.
+**Guards:** `INV-LED-04/05/10`, ALG-DEDUPE, PDP `opportunity.create`, assignee SP cert.
 
-**Responses:** `201` LeadCreated · `409` duplicate · `403` ORIGINATION_RM_ONLY · `422` validation.
+**Responses:** `201` LeadCreated · `409` duplicate · `403` ORIGINATION_ACTOR_DENIED · `422` ASSIGNEE_SP_REQUIRED / validation.
 
 ### 4.2 `GET /internal/v1/leads/{leadId}`
 
@@ -110,7 +110,8 @@ Set configurable disposition while stage remains pre-BI (`BRD §14.2`). `CUSTOME
 
 | Code | HTTP | BRD / INV |
 |---|---|---|
-| `ORIGINATION_RM_ONLY` | 403 | INV-LED-04 |
+| `ORIGINATION_ACTOR_DENIED` | 403 | INV-LED-04 / INV-LED-09 |
+| `ASSIGNEE_SP_REQUIRED` | 422 | INV-LED-10 / `D-018` |
 | `CUSTOMER_NOT_IN_BOOK` | 422 | INV-LED-05 |
 | `LOB_NOT_CERTIFIED` | 422 | INV-LED-05 |
 | `RM_NOT_CERTIFIED` | 422 | INV-LED-03 |

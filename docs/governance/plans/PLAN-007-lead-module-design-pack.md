@@ -88,8 +88,8 @@ dependencies:
   - ADR-017
 assumptions: []
 risks:
-  - risk: "OPEN-LEAD-ACTOR unresolved blocks full BRD role flows at S11"
-    mitigation: "R0 design defaults to INV-LED-04 BANK_RM create; SP/Non-SP/IRM create documented as OPEN for Rajal"
+  - risk: "Insurance RM create may be solicitation (ADR-005 prior rejection)"
+    mitigation: "D-018 / ADR-021 admit design; OPEN-COMP-LEAD-IPR-CREATE blocks IPR runtime until Board 6"
   - risk: "BRD stage names diverge from domain state machine"
     mitigation: "OPEN-LEAD-STAGE mapping table; Journey owns post-quote progression facts"
 

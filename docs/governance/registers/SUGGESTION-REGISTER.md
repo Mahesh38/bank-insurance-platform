@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20260930-ola | 2026-09-30 | human:Rajal | OPEN-LEAD-ACTOR: Lead may be created by anyone (workforce); post-create must assign certified-SP RM | SF2 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [D-018](../../au-bank-insurance-platform/DECISION-LOG.md) · [ADR-021](../../platform/architecture-review/08-architecture-decision-log.md) · [EPIC-005](../../platform/ws3-platform/EPIC-005.work-item.yaml) · [detail](#sug-20260930-ola--lead-create-by-workforce--mandatory-sp-assignee) |
 | SUG-20260930-lmd | 2026-09-30 | human:architect | Create complete Lead module design docs (HLD, sequences, API, flows, algorithms) from Lead BRD | SF5 | SC0 | SHOULD | ARCH | P3 / P1 | ADMITTED | [EPIC-005](../../platform/ws3-platform/EPIC-005.work-item.yaml) · [PLAN-007](../plans/PLAN-007-lead-module-design-pack.md) · [HLD](../../platform/ws3-platform/10-lead-module-hld.md) · [detail](#sug-20260930-lmd--lead-module-design-pack-from-brd) |
 | SUG-20260930-osl | 2026-09-30 | scan:trivy | CVE-2026-84782 (HIGH) on openssl/libssl3 3.0.2-0ubuntu1.29 in eclipse-temurin:21-jre-jammy fails Phase-1 image scans; upgrade to 3.0.2-0ubuntu1.30 | SF0 | SC1 | MUST | SEC | P1 / P1 | ADMITTED | [persistence Dockerfile](../../../services/bank-persistence-service/Dockerfile) · [combined Dockerfile](../../../Dockerfile) · [detail](#sug-20260930-osl--openssl-cve-2026-84782) |
 | SUG-20260930-cif | 2026-09-30 | human:repository-owner | Make CI change-specific: docs-only must not trigger CodeQL Java or container scans; heavy jobs before merge, not every push | SF5 | SC1 | SHOULD | INFRA | P3 / P2 | ADMITTED | [PLAN-006](../plans/PLAN-006-ci-change-specific-triggers.md) · [detail](#sug-20260930-cif--change-specific-ci-triggers) |
@@ -206,6 +207,92 @@ outcome:
   status: ADMITTED
 
 resumed: "PR #130 CI failures — Spotless, Knowledge Hub, two Trivy image scans."
+```
+
+### SUG-20260930-ola · Lead create by workforce + mandatory SP assignee
+
+```yaml
+# schema: triage-record
+id: SUG-20260930-ola
+raised_at: "2026-09-30"
+raised_by: "human:Rajal"
+source: "Product decision on OPEN-LEAD-ACTOR during EPIC-005"
+input: >
+  OPEN-LEAD-ACTOR — BRD allows Insurance RM / Bank SP / Non-SP create; ratified INV-LED-04
+  allows BANK_RM only. R0 contracts stay BANK_RM until Rajal decides.
+  This is product(Rajal) decision that lead can be created by anyone, post creation it must
+  be assigned to the RM who is certified SP.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "One RM sells a complete Life insurance policy through a real interface"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: EPIC-005
+
+stage_fit:
+  code: SF2
+  absorption_test:
+    small: true
+    no_new_dependency: true
+    no_new_decision: false  # Product decision itself; absorbed into EPIC-005 design pack
+    gate_neutral: true
+  rationale: >
+    Closes OPEN-LEAD-ACTOR on the in-flight EPIC-005 Lead design pack. Amends INV-LED-04 /
+    ADR-005 create-actor clause via ADR-021. Does not delay GATE-S08.
+
+scope:
+  code: SC0
+  business_scope: "Lead BRD §5/§8 create roles; CURRENT-STATE Lead #5"
+  serves: ["EPIC-005", "S11-E02"]
+  failure_without_it: "Lead contracts contradict Product behaviour SSOT (DOC-005)"
+  minimal: true
+  authority: "Rajal Product · Lead BRD · D-018"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  evidence_tier: E1
+  evidence:
+    - "Human Product decision in chat 2026-09-30"
+    - "Lead_Module_BRD_Detailed §5/§8"
+  confidence: C5
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT
+action_rationale: >
+  Product owns WHO may create. Architecture absorbs into EPIC-005: amend INV-LED-04/10,
+  draft ADR-021, update design pack. Interpret "anyone" as BRD workforce creators (not DIY/MIS).
+  Escalate Insurance RM create permissibility to Board 6 (OPEN-COMP-LEAD-IPR-CREATE) — do not
+  waive Compliance. Score: N=4 S=1 B=1 R=2 D=2 E=1 → 16 → P2 (matrix SF2+MUST absorb → ADMIT).
+duplicate_of: null
+conflicts:
+  - "ADR-005 previously rejected IPR-create-then-adopt as solicitation → OPEN-COMP-LEAD-IPR-CREATE"
+  - "'Anyone' vs DIY → interpreted as Lead BRD §5 workforce roles only"
+
+classification:
+  type: ARCH
+  also: [COMP]
+  breakdown: STORY
+  risk_tier: T3
+
+priority:
+  score: 16
+  factors: {N: 4, S: 1, B: 1, R: 2, D: 2, E: 1}
+  priority_now: P2
+  priority_at_target: P1
+
+work_item_id: EPIC-005
+plan: PLAN-007
+product_decision: D-018
+architecture_decision: ADR-021
+compliance_open: OPEN-COMP-LEAD-IPR-CREATE
 ```
 
 ### SUG-20260930-lmd · Lead module design pack from BRD

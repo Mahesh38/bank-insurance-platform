@@ -6,16 +6,22 @@
 
 ---
 
-## 1. ALG-CREATE — lead creation
+## 1. ALG-CREATE — lead creation (`D-018` / `ADR-021`)
 
 ```
 function createLead(cmd, principal):
-  require principal.actorType == BANK_RM            # INV-LED-04; OPEN-LEAD-ACTOR
-  require principal.hasSpCert(cmd.lob)              # INV-LED-05
-  require customerInEtbBook(principal, cmd.customerId)
+  require isAllowedWorkforceCreator(principal)      # INV-LED-04 — Bank SP, Non-SP, Insurance RM
+  # IPR create: design allowed; runtime requires OPEN-COMP-LEAD-IPR-CREATE closed
+  if principal.actorType == INSURER_PARTNER_REP:
+    require featureFlag.iprLeadCreateEnabled        # Board 6 gate
+  require cmd.assignedRmId present                  # INV-LED-10
+  assignee = loadPrincipal(cmd.assignedRmId)
+  require assignee.actorType == BANK_RM
+  require assignee.hasSpCert(cmd.lob)               # INV-LED-03/10
+  require customerInEtbBook(assignee, cmd.customerId)  # INV-LED-05 — book of accountable SP
   require cmd.lob == LIFE
   require cmd.productClass in {TERM, SAVINGS, ULIP}
-  require cmd.productClass coveredByCert(principal)
+  require cmd.productClass coveredByCert(assignee)
 
   dup = ALG_DEDUPE(principal.id, cmd.customerId, cmd.productClass)
   if dup.blocked:
@@ -27,13 +33,14 @@ function createLead(cmd, principal):
     customerId = cmd.customerId,
     lob = LIFE,
     productClass = cmd.productClass,               # BR-LEAD-006 immutable
-    createdBy = principal.id,                       # BR-OWN-002
-    leadGenerator = principal.id,                   # R0 interim
-    fulfiller = principal.id,                       # R0 interim
-    assignedRmId = principal.id,
+    createdBy = principal.id,                       # BR-OWN-002 — actual originator
+    leadGenerator = resolveGenerator(principal, cmd),  # BRD §15 / BR-OWN
+    fulfiller = resolveFulfiller(principal, cmd),
+    assignedRmId = assignee.id,
+    assignedSpId = cmd.assignedSpId,                # when distinct per BRD
     branchId = cmd.branchId,
-    accountableSpId = principal.id,                 # INV-ACT-03
-    state = NEW,
+    accountableSpId = assignee.id,                  # INV-ACT-03 — certified SP at create
+    state = ASSIGNED,                               # create always assigns SP
     activityStatus = null,
     biGenerated = false,
     reportingClass = DIARY,                         # BRD §6.4
@@ -48,7 +55,7 @@ function createLead(cmd, principal):
   return Created(lead)
 ```
 
-**BRD:** `BR-LEAD-001`…`006`, `BR-OWN-002`.
+**BRD:** `BR-LEAD-001`…`006`, `BR-OWN-002`, §8 role flows. **Product:** `D-018`.
 
 ---
 
@@ -221,7 +228,7 @@ Implementers must not add Lead transitions for insurer UW queue states.
 |---|---|
 | VAL-001…005 | Customer search (EPIC-003 / ARCH-025) |
 | VAL-006 | create missing productClass |
-| VAL-007…011 | assignment mapping (OPEN-LEAD-ACTOR dependent) |
+| VAL-007…011 | assignment mapping at create (mandatory SP / RM per BRD §8, `D-018`) |
 | VAL-012 | ALG-DEDUPE |
 | VAL-013…015 | Meeting — deferred |
 | VAL-016 | ALG-ASSIGN biGenerated guard |
@@ -234,4 +241,5 @@ Implementers must not add Lead transitions for insurer UW queue states.
 
 - [x] Deterministic algorithms with BR-* trace
 - [x] OPEN conflicts untouched as decisions
-- [ ] Product confirmation of OPEN-LEAD-ACTOR / OPEN-LEAD-STAGE / OPEN-D1
+- [x] OPEN-LEAD-ACTOR closed (`D-018`); IPR runtime gated (`OPEN-COMP-LEAD-IPR-CREATE`)
+- [ ] Product confirmation of OPEN-LEAD-STAGE / OPEN-D1

@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 606
-total_bytes: 20895033
+document_count: 607
+total_bytes: 20905712
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -2213,7 +2213,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 214819
+    bytes: 215244
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -3966,6 +3966,14 @@ documents:
     title: "PLAN-005 — NIP BFF SCR-03 customer search unified contract"
     answers: "objective: After this change every seat implements or reviews SCR-03 from one written contract: lead-first search by Customer ID / PAN / mobile, else…"
     bytes: 5134
+  - path: docs/governance/plans/PLAN-006-ci-change-specific-triggers.md
+    bucket: governance
+    authority: binding-process
+    capsules: [delivery-planning, plan-work]
+    persona: delivery
+    title: "PLAN-006 — Change-specific CI triggers"
+    answers: "objective: A documentation-only change no longer compiles Java, runs CodeQL, or builds container images; each CI job runs only for the files it…"
+    bytes: 5362
   - path: docs/governance/plans/PLAN-EPIC-002-life-lob-adapter.md
     bucket: governance
     authority: binding-process
@@ -4021,7 +4029,7 @@ documents:
     persona: null
     title: "Suggestion Register"
     answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 292092
+    bytes: 296984
   - path: docs/governance/schemas/README.md
     bucket: governance
     authority: binding-process

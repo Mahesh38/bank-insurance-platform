@@ -83,8 +83,8 @@ assumptions:
   - "Branch protection still requires the four named checks; this plan does not rename them."
   - "Image scan and SBOM are not required status checks today; job-level skip is therefore T-F01-safe."
 risks:
-  - risk: "A required check is skipped instead of short-circuiting, reopening T-F01."
-    mitigation: "No workflow-level paths: on application-ci or security-scanning. Required jobs use if: always() and report success or failure explicitly."
+  - risk: "Concurrency cancel-in-progress makes classify cancelled; fail-closed steps that treat any non-success as T-F01 failure red required checks on the superseded run (PR #130, 6bdfca8)."
+    mitigation: "Required jobs fail-closed only when classify result is failure. cancelled/skipped no-op; successor run is the reporter. Image-scan/SBOM require classify success before expanding the matrix."
   - risk: "CodeQL or image scan omitted on a Java change."
     mitigation: "Classifier tests pin docs-only skip AND Java/persistence image mapping; libs/ and root Gradle fan out to full."
   - risk: "Module-scoped Gradle misses a shared-lib regression."

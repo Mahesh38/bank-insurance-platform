@@ -104,11 +104,22 @@ jobs:
     needs: classify
     if: always()
     steps:
+      # T-F01 fail-closed is for a *failed* classify job. `cancelled` means
+      # concurrency superseded this run; the successor reports the same check
+      # name. Treating cancelled as failure reds required checks on a dead run
+      # (seen on PR #130: push + PR-body update cancelled classify, then this
+      # step failed SAST/SCA/Java).
       - name: Fail if classification failed
-        if: needs.classify.result != 'success'
+        if: needs.classify.result == 'failure'
         run: |
           echo "::error::Path classification failed; refusing to skip or green-run the required test check (T-F01)."
           exit 1
+
+      - name: Classification cancelled or skipped
+        if: needs.classify.result == 'cancelled' || needs.classify.result == 'skipped'
+        run: |
+          echo "Classify result is ${{ needs.classify.result }} (concurrency supersede or skipped)."
+          echo "Successor run on this ref reports this required check. Not a T-F01 skip of the gate."
 
       - name: Skip Gradle — no Java/build change
         if: needs.classify.result == 'success' && needs.classify.outputs.run_tests != 'true'

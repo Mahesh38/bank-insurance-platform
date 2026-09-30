@@ -229,11 +229,19 @@ jobs:
     needs: classify
     if: always()
     steps:
+      # T-F01 fail-closed is for a *failed* classify job. `cancelled` is a
+      # concurrency supersede; the successor run reports this check name.
       - name: Fail if classification failed
-        if: needs.classify.result != 'success'
+        if: needs.classify.result == 'failure'
         run: |
           echo "::error::Path classification failed; refusing to skip the required CodeQL check (T-F01)."
           exit 1
+
+      - name: Classification cancelled or skipped
+        if: needs.classify.result == 'cancelled' || needs.classify.result == 'skipped'
+        run: |
+          echo "Classify result is ${{ needs.classify.result }} (concurrency supersede or skipped)."
+          echo "Successor run on this ref reports this required check. Not a T-F01 skip of the gate."
 
       - name: Skip CodeQL — no Java to analyse
         if: needs.classify.result == 'success' && needs.classify.outputs.run_codeql != 'true'
@@ -330,10 +338,16 @@ jobs:
     if: always()
     steps:
       - name: Fail if classification failed
-        if: needs.classify.result != 'success'
+        if: needs.classify.result == 'failure'
         run: |
           echo "::error::Path classification failed; refusing to skip the required SCA check (T-F01)."
           exit 1
+
+      - name: Classification cancelled or skipped
+        if: needs.classify.result == 'cancelled' || needs.classify.result == 'skipped'
+        run: |
+          echo "Classify result is ${{ needs.classify.result }} (concurrency supersede or skipped)."
+          echo "Successor run on this ref reports this required check. Not a T-F01 skip of the gate."
 
       - name: Skip SCA — no dependency/build-file change
         if: needs.classify.result == 'success' && needs.classify.outputs.run_sca != 'true'
@@ -467,7 +481,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     needs: classify
-    if: needs.classify.outputs.run_image_scan == 'true'
+    if: needs.classify.result == 'success' && needs.classify.outputs.run_image_scan == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -569,7 +583,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs: classify
-    if: needs.classify.outputs.run_sbom == 'true'
+    if: needs.classify.result == 'success' && needs.classify.outputs.run_sbom == 'true'
     steps:
       - uses: actions/checkout@v4
 

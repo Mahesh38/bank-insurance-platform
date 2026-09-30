@@ -19,7 +19,7 @@ schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
 document_count: 642
-total_bytes: 20999250
+total_bytes: 20999409
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -4085,7 +4085,7 @@ documents:
     persona: delivery
     title: "PLAN-006 — Change-specific CI triggers"
     answers: "objective: A documentation-only change no longer compiles Java, runs CodeQL, or builds container images; each CI job runs only for the files it…"
-    bytes: 5362
+    bytes: 5521
   - path: docs/governance/plans/PLAN-EPIC-002-life-lob-adapter.md
     bucket: governance
     authority: binding-process

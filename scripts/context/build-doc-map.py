@@ -308,7 +308,21 @@ def main() -> int:
         print(f"DOC-MAP current — {content.count('- path:')} documents routed")
         return 0
 
-    OUT.write_text(content, encoding="utf-8")
+    # DOC-MAP.yaml is itself a routed document, so rewriting it changes `bytes`
+    # and `total_bytes`. One write is not a fixed point; iterate until it is.
+    for _ in range(4):
+        OUT.write_text(content, encoding="utf-8")
+        next_content, next_unrouted = build()
+        if next_unrouted:
+            print(f"{len(next_unrouted)} document(s) match no doc_routing rule:", file=sys.stderr)
+            return 1
+        if next_content == content:
+            break
+        content = next_content
+    else:
+        print("docs/context/DOC-MAP.yaml did not stabilize after rewrite", file=sys.stderr)
+        return 1
+
     print(f"wrote {OUT.relative_to(ROOT)} — {content.count('- path:')} documents routed")
     return 0
 

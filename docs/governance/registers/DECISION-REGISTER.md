@@ -213,6 +213,7 @@ next_check:        First GM-1 INTERVENE check falls due 2026-08-28 (two weeks fr
 |------|------------|------|----|--------------|---------|-----------|
 | — | WS-1 | Phase 3 | Phase 4 | Term vertical slice delivered (FUNC-001…007, FUNC-009) | — | Recorded retrospectively from `phase-4/STATUS.md`; not gate-reviewed under AIGEM |
 | 2026-08-10 | Both | *(provisional)* | *(ratified)* | State snapshot accepted as the governing context — see GOV-004 | — | Mahesh (Solution Architect) |
+| 2026-09-30 | WS-3 | S08 — Engineering Foundation | S09 — Platform & Environment Foundation *(not entered)* | GATE-S08 10/10 MET; HUMAN `APPROVED_WITH_CONDITIONS`. Verifiers re-run 2026-09-30 ([transcript](../../../scripts/governance/evidence/S08-2026-09-30-verifier-rerun.md)). `CURRENT-STATE.yaml` `current_phase` / `stage_status` **not** edited (agents never mark `PASSED`; Architect + PO joint PASS is a separate state PR — [`04-STAGE_GATES.md` §5](../04-STAGE_GATES.md#5-who-may-declare-a-transition)). S09 entry remains blocked by `DEP-20260824-cst`. | none | Engineering, QA, Architect, Security, Operations — **Mahesh Narkar** (`reviewer_type: HUMAN`) in [`GATE-EVIDENCE.yaml`](../state/GATE-EVIDENCE.yaml) |
 
 ## 5. Board escalations
 

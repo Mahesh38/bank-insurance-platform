@@ -17,11 +17,23 @@ name: Security Scanning
 # Severity policy: docs/application-lifecycle-bible/07-SECURITY-COMPLIANCE-CANON.md section 4.
 # Remediation SLA (S0 immediate / S1 next release / S2 two releases / S3 backlog):
 # same file, and findings route to docs/governance/registers/RISK-REGISTER.md.
+#
+# INFRA-001 / PLAN-006 — change-specific triggers. Workflow-level `paths:` filters
+# are still forbidden on the required jobs (T-F01 / A-F05): skipped required checks
+# never report. Classification is in-job.
+#   * Secret scanning always runs on PR / main — secrets live in markdown too.
+#   * CodeQL Java and SCA report the same check names always, but skip the
+#     compile/scan when the diff has no Java / no dependency manifests.
+#   * Container image scan and SBOM are not required checks; they only run when
+#     the affected image/deps changed, and only on non-draft PRs, merge_group,
+#     main, schedule, or workflow_dispatch — not on every feature-branch push.
+# Feature-branch `push` is gone (it doubled PR runs). Push is `main` only.
 
 on:
   pull_request:
+  merge_group:
   push:
-    branches: ["**"]
+    branches: [main]
   schedule:
     # Weekly re-scan: a dependency that was clean on merge does not stay clean.
     # New CVEs are published against code nobody has touched.
@@ -48,9 +60,61 @@ env:
   TRIVY_VERSION: "0.53.0"
 
 jobs:
+  classify:
+    name: Classify changed paths
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      docs_only: ${{ steps.classify.outputs.docs_only }}
+      run_codeql: ${{ steps.classify.outputs.run_codeql }}
+      run_sca: ${{ steps.classify.outputs.run_sca }}
+      run_image_scan: ${{ steps.classify.outputs.run_image_scan }}
+      run_sbom: ${{ steps.classify.outputs.run_sbom }}
+      codeql_tasks: ${{ steps.classify.outputs.codeql_tasks }}
+      assemble_tasks: ${{ steps.classify.outputs.assemble_tasks }}
+      image_matrix: ${{ steps.classify.outputs.image_matrix }}
+      reason: ${{ steps.classify.outputs.reason }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Classify diff
+        id: classify
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          IS_DRAFT: ${{ github.event.pull_request.draft || false }}
+        run: |
+          set -euo pipefail
+          python3 scripts/ci/test_classify_changes.py
+          extra=()
+          if [ "${EVENT_NAME}" = "schedule" ] || [ "${EVENT_NAME}" = "workflow_dispatch" ] || [ "${EVENT_NAME}" = "merge_group" ]; then
+            extra+=(--force-all)
+          else
+            extra+=(--base "${{ github.event.pull_request.base.sha || github.event.before || '' }}")
+            extra+=(--head "${{ github.sha }}")
+          fi
+          heavy=true
+          if [ "${EVENT_NAME}" = "pull_request" ] && [ "${IS_DRAFT}" = "true" ]; then
+            heavy=false
+          fi
+          extra+=(--heavy "${heavy}")
+          python3 scripts/ci/classify-changes.py --github-output "${extra[@]}" | tee classify.out
+          while IFS= read -r line; do
+            echo "${line}" >> "${GITHUB_OUTPUT}"
+          done < classify.out
+          {
+            echo "### Security classification"
+            echo ""
+            echo '```'
+            cat classify.out
+            echo '```'
+          } >> "${GITHUB_STEP_SUMMARY}"
+
   # ---------------------------------------------------------------------------
   # S08-E04-S01 — secret scanning. Working tree and full history.
   # S08-VT-04: a PR containing a credential in a realistic format must fail.
+  # Always runs: secrets are as likely in markdown as in Java.
   # ---------------------------------------------------------------------------
   secret-scan:
     name: Secret scanning (gitleaks)
@@ -162,17 +226,40 @@ jobs:
     name: SAST (CodeQL, Java)
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    needs: classify
+    if: always()
     steps:
+      - name: Fail if classification failed
+        if: needs.classify.result != 'success'
+        run: |
+          echo "::error::Path classification failed; refusing to skip the required CodeQL check (T-F01)."
+          exit 1
+
+      - name: Skip CodeQL — no Java to analyse
+        if: needs.classify.result == 'success' && needs.classify.outputs.run_codeql != 'true'
+        run: |
+          echo "Skipping CodeQL Java: ${{ needs.classify.outputs.reason }}"
+          echo "Required check still reports success so S08-G2 is not blocked (T-F01 / A-F05)."
+          {
+            echo "### SAST (CodeQL, Java) — skipped"
+            echo ""
+            echo "${{ needs.classify.outputs.reason }}"
+          } >> "${GITHUB_STEP_SUMMARY}"
+
       - uses: actions/checkout@v4
+        if: needs.classify.result == 'success' && needs.classify.outputs.run_codeql == 'true'
 
       - uses: actions/setup-java@v4
+        if: needs.classify.result == 'success' && needs.classify.outputs.run_codeql == 'true'
         with:
           distribution: temurin
           java-version: "21"
 
       - uses: gradle/actions/setup-gradle@v4
+        if: needs.classify.result == 'success' && needs.classify.outputs.run_codeql == 'true'
 
       - name: Initialize CodeQL
+        if: needs.classify.result == 'success' && needs.classify.outputs.run_codeql == 'true'
         uses: github/codeql-action/init@v3
         with:
           languages: java-kotlin
@@ -186,12 +273,17 @@ jobs:
       # with "could not process any of the files with the following extensions: java, kt".
       # --rerun-tasks forces real javac so extraction has bytecode to analyze.
       - name: Build for analysis
+        if: needs.classify.result == 'success' && needs.classify.outputs.run_codeql == 'true'
+        env:
+          CODEQL_TASKS: ${{ needs.classify.outputs.codeql_tasks }}
         run: |
           chmod +x gradlew
-          ./gradlew --no-daemon classes testClasses --rerun-tasks
+          # shellcheck disable=SC2086
+          ./gradlew --no-daemon ${CODEQL_TASKS} --rerun-tasks
 
       - name: Perform CodeQL analysis
         id: codeql
+        if: needs.classify.result == 'success' && needs.classify.outputs.run_codeql == 'true'
         uses: github/codeql-action/analyze@v3
         with:
           category: "/language:java-kotlin"
@@ -203,7 +295,7 @@ jobs:
       # gate bite. A pipeline that reports findings but never blocks is
       # gate-shaped configuration, not a gate (ADR-003).
       - name: Fail on critical or high CodeQL findings
-        if: always()
+        if: always() && needs.classify.result == 'success' && needs.classify.outputs.run_codeql == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -234,24 +326,50 @@ jobs:
     name: SCA (Trivy dependency scan)
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    needs: classify
+    if: always()
     steps:
+      - name: Fail if classification failed
+        if: needs.classify.result != 'success'
+        run: |
+          echo "::error::Path classification failed; refusing to skip the required SCA check (T-F01)."
+          exit 1
+
+      - name: Skip SCA — no dependency/build-file change
+        if: needs.classify.result == 'success' && needs.classify.outputs.run_sca != 'true'
+        run: |
+          echo "Skipping SCA: ${{ needs.classify.outputs.reason }}"
+          echo "Required check still reports success so S08-G2 is not blocked (T-F01 / A-F05)."
+          {
+            echo "### SCA — skipped"
+            echo ""
+            echo "${{ needs.classify.outputs.reason }}"
+          } >> "${GITHUB_STEP_SUMMARY}"
+
       - uses: actions/checkout@v4
+        if: needs.classify.outputs.run_sca == 'true'
 
       - uses: actions/setup-java@v4
+        if: needs.classify.outputs.run_sca == 'true'
         with:
           distribution: temurin
           java-version: "21"
 
       - uses: gradle/actions/setup-gradle@v4
+        if: needs.classify.outputs.run_sca == 'true'
 
       # Trivy's Java analyzer resolves coordinates from the packaged jars, so the
       # scan must run against a built artefact, not against build files. Scanning
       # build files alone would miss every transitive dependency, which is where
       # the reachable CVEs actually live.
       - name: Assemble artefacts for scanning
+        if: needs.classify.outputs.run_sca == 'true'
+        env:
+          ASSEMBLE_TASKS: ${{ needs.classify.outputs.assemble_tasks }}
         run: |
           chmod +x gradlew
-          ./gradlew --no-daemon assemble
+          # shellcheck disable=SC2086
+          ./gradlew --no-daemon ${ASSEMBLE_TASKS}
 
       # Trivy runs from its published container image rather than from a release
       # tarball or a marketplace action. Both of those were tried and both failed:
@@ -260,6 +378,7 @@ jobs:
       # The image tag aquasec/trivy:<version> is the tool's own stable contract and
       # needs no GitHub asset or action to resolve. Docker is present on the runner.
       - name: Scan dependencies — CRITICAL and HIGH fail the build
+        if: needs.classify.outputs.run_sca == 'true'
         run: |
           set -euo pipefail
           docker run --rm \
@@ -275,7 +394,7 @@ jobs:
             --ignorefile .trivyignore
 
       - name: Full severity report (non-blocking, for the risk register)
-        if: always()
+        if: always() && needs.classify.outputs.run_sca == 'true'
         run: |
           set -euo pipefail
           docker run --rm \
@@ -294,7 +413,7 @@ jobs:
       # the log and the run summary, so the next action is visible without opening
       # an artefact.
       - name: Summarise blocking findings
-        if: always()
+        if: always() && needs.classify.outputs.run_sca == 'true'
         run: |
           set -euo pipefail
           [ -f trivy-full.json ] || { echo "no report produced"; exit 0; }
@@ -324,7 +443,7 @@ jobs:
           cat blocking.tsv
 
       - name: Upload SCA report
-        if: always()
+        if: always() && needs.classify.outputs.run_sca == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: sca-report
@@ -347,16 +466,12 @@ jobs:
     name: Container image scan (Trivy) — ${{ matrix.image }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    needs: classify
+    if: needs.classify.outputs.run_image_scan == 'true'
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - image: bank-persistence-service
-            dockerfile: services/bank-persistence-service/Dockerfile
-          - image: 1sb-integration-service
-            dockerfile: services/1sb-integration-service/Dockerfile
-          - image: bank-insurance-combined
-            dockerfile: Dockerfile
+        include: ${{ fromJson(needs.classify.outputs.image_matrix) }}
     steps:
       - uses: actions/checkout@v4
 
@@ -453,6 +568,8 @@ jobs:
     name: SBOM (CycloneDX)
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    needs: classify
+    if: needs.classify.outputs.run_sbom == 'true'
     steps:
       - uses: actions/checkout@v4
 
@@ -464,9 +581,12 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Assemble artefacts
+        env:
+          ASSEMBLE_TASKS: ${{ needs.classify.outputs.assemble_tasks }}
         run: |
           chmod +x gradlew
-          ./gradlew --no-daemon assemble
+          # shellcheck disable=SC2086
+          ./gradlew --no-daemon ${ASSEMBLE_TASKS}
 
       - name: Generate CycloneDX SBOM
         run: |

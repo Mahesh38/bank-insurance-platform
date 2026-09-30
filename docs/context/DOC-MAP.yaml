@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 606
-total_bytes: 20911202
+document_count: 642
+total_bytes: 20996234
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -2213,7 +2213,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 214821
+    bytes: 226960
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -3654,6 +3654,30 @@ documents:
     title: "Safe Autopilot Operating Mode"
     answers: "Autopilot is a work-conserving scheduler and evidence assembler, not an approval substitute."
     bytes: 4480
+  - path: docs/governance/autopilot/proposals/.gitignore
+    bucket: governance
+    authority: binding-process
+    capsules: [delivery-planning, plan-work]
+    persona: delivery
+    title: ".gitignore"
+    answers: "Binary artefact"
+    bytes: 35
+  - path: docs/governance/autopilot/proposals/.gitkeep
+    bucket: governance
+    authority: binding-process
+    capsules: [delivery-planning, plan-work]
+    persona: delivery
+    title: ".gitkeep"
+    answers: "Binary artefact"
+    bytes: 0
+  - path: docs/governance/autopilot/proposals/README.md
+    bucket: governance
+    authority: binding-process
+    capsules: [delivery-planning, plan-work]
+    persona: delivery
+    title: "Autopilot proposals directory"
+    answers: "Control: CR-010 SEC-C1 / E-01 / R-C1"
+    bytes: 1003
   - path: docs/governance/change-requests/CR-002-principal-architect-persona-integration.md
     bucket: governance
     authority: binding-process
@@ -3926,6 +3950,94 @@ documents:
     title: "CR-016 — Parallel lanes, evidence-based unpark, evidenced-blocker T4 relief"
     answers: "Change request: CR-016"
     bytes: 6038
+  - path: docs/governance/controls/AUDIT-STRUCTURE.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "Audit structure (CR-010 DB-C1 / DB-C2)"
+    answers: "signaturestatus: AI-DRAFTED — schema landed; role model documented; no regulated journey writes yet"
+    bytes: 1449
+  - path: docs/governance/controls/AUTOPILOT-BOUNDARIES.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "Autopilot boundaries (CR-010 §2)"
+    answers: "signaturestatus: AI-DRAFTED"
+    bytes: 669
+  - path: docs/governance/controls/CI-EVIDENCE.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "CI evidence and GATE-S09 fitness-function references"
+    answers: "signaturestatus: AI-DRAFTED"
+    bytes: 1087
+  - path: docs/governance/controls/COST-ASSUMPTIONS.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "Cost assumption notes (CR-012 / RISK-012 / NFR-OPEN-6)"
+    answers: "signaturestatus: AI-DRAFTED — assumptions, not an approved envelope. DEP-20260824-cst remains OPEN."
+    bytes: 1001
+  - path: docs/governance/controls/CRITICAL-PATH.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "Critical path and enabler map (CR-010 K-C2)"
+    answers: "signaturestatus: AI-DRAFTED — sizing is Delivery's; this is the acyclic map, not FRI-001 funding"
+    bytes: 2064
+  - path: docs/governance/controls/DISASTER-RECOVERY.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "Disaster recovery references (CR-012)"
+    answers: "signaturestatus: AI-DRAFTED — references only; no DR test executed"
+    bytes: 922
+  - path: docs/governance/controls/FEATURE-FREEZE.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "`services/` feature freeze (CR-010 K-C3)"
+    answers: "Effective: 2026-09-30 (AIGEM-ACCEPTED; human CR-010 ratification outstanding)"
+    bytes: 1535
+  - path: docs/governance/controls/JOURNEY-ARCHITECTURE-CONSTRAINTS.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "Life / Term / Savings / ULIP journey architecture constraints (CR-015)"
+    answers: "signaturestatus: AI-DRAFTED — not a production authorisation"
+    bytes: 1509
+  - path: docs/governance/controls/OUTBOX-PHYSICAL-DESIGN.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "Outbox physical design (CR-012 Aarti condition 1)"
+    answers: "signaturestatus: AI-DRAFTED — design record; first platform-wide migration not applied. identity.outboxevent already exists."
+    bytes: 1605
+  - path: docs/governance/controls/SCALABILITY-NFR-THR-06.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "NFR-THR-06 recomputation (CR-012 Aarti condition 2)"
+    answers: "signaturestatus: AI-DRAFTED — spreadsheet, not a production measurement"
+    bytes: 1277
+  - path: docs/governance/controls/SECURITY-CONTROLS.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "Security controls (CR-010 / CR-012)"
+    answers: "signaturestatus: AI-DRAFTED — T4 outstanding; no residual risk accepted"
+    bytes: 1124
   - path: docs/governance/plans/PLAN-001-context-module-and-safe-autopilot.md
     bucket: governance
     authority: binding-process
@@ -3966,6 +4078,14 @@ documents:
     title: "PLAN-005 — NIP BFF SCR-03 customer search unified contract"
     answers: "objective: After this change every seat implements or reviews SCR-03 from one written contract: lead-first search by Customer ID / PAN / mobile, else…"
     bytes: 5134
+  - path: docs/governance/plans/PLAN-006-ci-change-specific-triggers.md
+    bucket: governance
+    authority: binding-process
+    capsules: [delivery-planning, plan-work]
+    persona: delivery
+    title: "PLAN-006 — Change-specific CI triggers"
+    answers: "objective: A documentation-only change no longer compiles Java, runs CodeQL, or builds container images; each CI job runs only for the files it…"
+    bytes: 5362
   - path: docs/governance/plans/PLAN-EPIC-002-life-lob-adapter.md
     bucket: governance
     authority: binding-process
@@ -4021,7 +4141,55 @@ documents:
     persona: null
     title: "Suggestion Register"
     answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 292092
+    bytes: 296984
+  - path: docs/governance/runbooks/AUTOPILOT-FAILURE-RUNBOOK.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "Autopilot Failure Runbook"
+    answers: "CR-010 SEC-C1 / R-C1"
+    bytes: 1074
+  - path: docs/governance/runbooks/EVIDENCE-COLLECTION-RUNBOOK.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "Evidence Collection Runbook"
+    answers: "CR-010 Q-C1 / OPS-C9"
+    bytes: 1025
+  - path: docs/governance/runbooks/GOVERNANCE-FAILURE-RUNBOOK.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "Governance Failure Runbook"
+    answers: "CR-010 OPS-C2"
+    bytes: 1025
+  - path: docs/governance/runbooks/GOVERNANCE-WORKFLOW-FAILURE-RUNBOOK.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "Governance Workflow Failure Runbook"
+    answers: "Escalate if unacknowledged in one business day: Kalpana / R12"
+    bytes: 1041
+  - path: docs/governance/runbooks/OPERATIONAL-RUNBOOK.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "Operational Runbook"
+    answers: "CR: CR-010 OPS-C2, CR-012 Board 7 condition 1, WS-1 criterion 4.5"
+    bytes: 2322
+  - path: docs/governance/runbooks/README.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "Operational runbooks index"
+    answers: "Adjudicator for services/ freeze: Kalpana, on Amit's technical read"
+    bytes: 920
   - path: docs/governance/schemas/README.md
     bucket: governance
     authority: binding-process
@@ -4086,6 +4254,126 @@ documents:
     title: "work item.schema"
     answers: "\"title\": \"AIGEM Work Item\""
     bytes: 11647
+  - path: docs/governance/signoff/2026-09-30/CR-001-countersign-package.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "CR-001 — validation, counter-sign preparation, impact"
+    answers: "Change request: add Phase 4 exit criterion 4.7 (coverage gates; QA-001 closed or waived)."
+    bytes: 2448
+  - path: docs/governance/signoff/2026-09-30/CR-002-ratification-record.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "CR-002 — ratification record (AIGEM-ACCEPTED 2026-09-30)"
+    answers: "Change request: CR-002-principal-architect-persona-integration.md"
+    bytes: 2989
+  - path: docs/governance/signoff/2026-09-30/CR-008-operations-persona-record.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "CR-008 — operations persona governance record (AIGEM-ACCEPTED 2026-09-30)"
+    answers: "Change request: CR-008-add-shivanshi-sre-persona.md"
+    bytes: 1942
+  - path: docs/governance/signoff/2026-09-30/CR-010-conditions-closure.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "CR-010 — Conditions Closure Report (AIGEM-ACCEPTED 2026-09-30)"
+    answers: "Change request: CR-010-context-module-and-safe-autopilot.md"
+    bytes: 5021
+  - path: docs/governance/signoff/2026-09-30/CR-011-architecture-ratification.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "CR-011 — Architecture Ratification Report (AIGEM-ACCEPTED 2026-09-30)"
+    answers: "Change request: CR-011-mahesh-target-state-north-star-doctrine.md"
+    bytes: 1864
+  - path: docs/governance/signoff/2026-09-30/CR-012-condition-closure.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "CR-012 — Condition Closure Report (AIGEM-ACCEPTED 2026-09-30)"
+    answers: "Change request: CR-012-r0-platform-robustness.md"
+    bytes: 3394
+  - path: docs/governance/signoff/2026-09-30/CR-013-ratification-package.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "CR-013 — Ratification Package (AIGEM-ACCEPTED 2026-09-30)"
+    answers: "Change request: CR-013-r0-lead-mis-admin-scope.md · ADR-014"
+    bytes: 1918
+  - path: docs/governance/signoff/2026-09-30/CR-014-ratification-package.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "CR-014 — Ratification Package (AIGEM-ACCEPTED 2026-09-30)"
+    answers: "Change request: CR-014-ws1-life-lob-adapter-standards.md · EPIC-002"
+    bytes: 1649
+  - path: docs/governance/signoff/2026-09-30/CR-015-approval-package.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "CR-015 — Approval Package (AIGEM-ACCEPTED 2026-09-30)"
+    answers: "Change request: CR-015-ws3-r0-savings-ulip-journey.md · EPIC-004"
+    bytes: 2304
+  - path: docs/governance/signoff/2026-09-30/CR-016-ratification-package.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "CR-016 — Ratification Package (AIGEM-ACCEPTED 2026-09-30)"
+    answers: "Change request: CR-016-parallel-lanes-evidence-unpark.md"
+    bytes: 1884
+  - path: docs/governance/signoff/2026-09-30/DEPENDENCY-REGISTER-REVIEW.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "Dependency Register Review Note — 2026-09-30"
+    answers: "AIGEM suggestion: REVIEW AND TOUCH (Tech Lead)."
+    bytes: 2065
+  - path: docs/governance/signoff/2026-09-30/QA-GOVERNANCE-VALIDATION.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "Governance Validation Report — QA (2026-09-30)"
+    answers: "Board: Swapnali / R7 — drafted."
+    bytes: 2434
+  - path: docs/governance/signoff/2026-09-30/README.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "AIGEM sign-off implementation — 2026-09-30"
+    answers: "Instruction: treat the AIGEM daily sign-off of 2026-09-30 as accepted."
+    bytes: 6031
+  - path: docs/governance/signoff/2026-09-30/SECURITY-COMPLIANCE-VALIDATION.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "Security Compliance Validation Report — 2026-09-30"
+    answers: "Boards: Deepali (R8), Shailja (R9) — drafted for their review."
+    bytes: 2252
+  - path: docs/governance/signoff/2026-09-30/STATE-RECONFIRMATION.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "State Reconfirmation Note — 2026-09-30"
+    answers: "AIGEM suggestion: RE-CONFIRM WITH CONDITIONS (Kalpana / R12; stage fields: Architect + PO)."
+    bytes: 1757
   - path: docs/governance/state/CURRENT-STATE.yaml
     bucket: governance
     authority: binding-process

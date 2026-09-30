@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20260930-cif | 2026-09-30 | human:repository-owner | Make CI change-specific: docs-only must not trigger CodeQL Java or container scans; heavy jobs before merge, not every push | SF5 | SC1 | SHOULD | INFRA | P3 / P2 | ADMITTED | [PLAN-006](../plans/PLAN-006-ci-change-specific-triggers.md) · [detail](#sug-20260930-cif--change-specific-ci-triggers) |
 | SUG-20260929-dbr | 2026-09-29 | human:repository-owner | Daily sign-off PR must also give, for every pending human sign-off, an AIGEM suggested decision (approve / approve with conditions / approve after validation / reject / defer) with context, justification and reasons both ways | SF5 | SC1 | SHOULD | GOV | P3 / P2 | ADMITTED | [generator](../../../scripts/governance/decision_briefs.py) · [detail](#sug-20260929-dbr--decision-briefs-on-the-daily-sign-off-pr) |
 | SUG-20260929-jdb | 2026-09-29 | scan:trivy | CVE-2026-68497 (HIGH) on jackson-databind 2.21.4 from the Spring Boot 3.5.16 BOM fails SCA and all three image scans; pin jackson-bom 2.21.7 | SF0 | SC1 | MUST | SEC | P1 / P1 | ADMITTED | [build.gradle.kts](../../../build.gradle.kts) · [detail](#sug-20260929-jdb--jackson-databind-cve-2026-68497) |
 | SUG-20260929-dsp | 2026-09-29 | human:repository-owner | Schedule a daily governance + freshness check and generated-state refresh; AIGEM seats must unanimously concur; open a PR each day for human review and sign-off that highlights every pending human decision and approval | SF5 | SC1 | SHOULD | GOV | P3 / P2 | ADMITTED | [workflow](../../../.github/workflows/governance-daily.yml) · [report](../autopilot/DAILY-SIGNOFF.md) · [detail](#sug-20260929-dsp--daily-aigem-sign-off-pr) |
@@ -126,6 +127,131 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20260930-cif · Change-specific CI triggers
+
+```yaml
+# schema: triage-record
+id: SUG-20260930-cif
+raised_at: "2026-09-30"
+raised_by: "human:repository-owner"
+source: "Cloud agent task — CI time consumption on docs and every push"
+input: >
+  Update CI in a way that based on the changes CI should trigger, if i did document
+  update then container security should not get triggered, and codeQL for java should
+  not trigger. make all CI change specific as we dont need complete build on everything,
+  this is creating lot of time consumtion, some CI should only get triggered before
+  merge, not on every push, we need to be presice on this
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "One RM sells a complete Life insurance policy through a real interface"
+  state_as_of: "2026-09-13"
+  state_provisional: false
+  active_work_item: INFRA-001
+
+stage_fit:
+  code: SF5
+  lane: "SRE / CI platform (Shivanshi) with Engineering (Amit) on application Gradle"
+  rationale: >
+    CI trigger precision is foundation work (L4 / S08) and off the WS-1 P4 critical
+    path. It does not delay GATE-P4. GATE-S08 is already CANDIDATE with S08-G1/G2/G5/G9
+    MET; this change preserves those check names while cutting toil.
+  parallel_test:
+    off_critical_path: true
+    dependency_safe: true
+    in_scope: true
+    standing_constraint_clean: true
+    separate_lane: "SRE / CI platform"
+    no_silent_trust_boundary_change: true
+
+scope:
+  code: SC1
+  serves: ["S08-G9 pipeline feedback", "S08-G1 application CI", "S08-G5 security in pipeline"]
+  failure_without_it: >
+    Every docs commit still compiles 27 modules, runs CodeQL Java, and builds three
+    images, twice (push + pull_request). Feedback stays slow and runner capacity is
+    spent on work the diff cannot affect.
+  minimal: true
+  authority: "S08-G1/G2/G5/G9; T-F01 / A-F05; Shivanshi owns CI/CD mechanics"
+
+necessity:
+  now: SHOULD
+  future_necessity: MUST
+  target_stage: "S08 — Engineering Foundation"
+  binds_when: "CI is used as the daily delivery path"
+  failure_without_it: "docs PRs keep paying a full Java and container-security tax"
+  evidence_tier: E2
+  evidence:
+    - ".github/workflows/application-ci.yml push branches ** and unfiltered pull_request"
+    - ".github/workflows/security-scanning.yml CodeQL + 3-image Trivy on every push"
+    - "T-F01 / A-F05 forbid workflow-level paths filters on required checks"
+  confidence: C5
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT
+action_rationale: >
+  Directed human request, SF5 parallel on the SRE CI lane, SC1 derived from S08 CI
+  gates. Does not remove SAST/SCA/image fail-closed behaviour; it stops running them
+  against artefacts the diff cannot change. Required check names stay so S08-G2 holds.
+duplicate_of: null
+conflicts:
+  - "application-ci.yml previously dropped paths filters for T-F01 — resolved by in-job short-circuit, not by restoring paths:"
+
+classification:
+  type: INFRA
+  also: [OPS]
+  breakdown: STORY
+  risk_tier: T2
+  rationale: >
+    Pipeline trigger change. RG-5 G10 considered (regulator-evidenced scan control)
+    and did not fire: gitleaks still runs on every PR; CodeQL/SCA still fail-closed
+    on Java/dependency diffs; image scan still fail-closed when a Phase-1 image
+    changed, plus weekly schedule. Working inside the scan jobs without changing
+    the control. T2; Board 4 invited, not T4.
+  destination: ".github/workflows/application-ci.yml, security-scanning.yml, scripts/ci/"
+
+priority:
+  now: P3
+  at_target: P2
+  factors: {N: 2, S: 2, B: 0, R: 2, D: 1, E: 0}
+  score: 13
+  matrix_default: P3
+  consistency: OK
+  rationale: "SF5 SHOULD; observed CI toil; not a hard-P1 class"
+
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 0
+  earliest_start: "2026-09-30"
+  cycles: none
+
+breakdown:
+  children: []
+  completion_definition: >
+    Docs-only diffs skip CodeQL and image scan; required checks still report;
+    feature-branch push no longer doubles the suite.
+  not_included:
+    - "Renaming required GitHub checks"
+    - "Scanning every service Dockerfile"
+    - "Marking GATE-S08 PASSED"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: INFRA-001
+  plan_id: PLAN-006
+  status: ADMITTED
+
+resumed: "INFRA-001 — this is the in-flight item for this lane."
+```
 
 ### SUG-20260929-dbr · Decision briefs on the daily sign-off PR
 

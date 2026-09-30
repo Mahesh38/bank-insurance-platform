@@ -1,21 +1,22 @@
 name: Application CI
 
-# GATE-S08 criteria S08-G1 (build and test every module on every PR) and
-# S08-G2 (merge to main impossible without a green pipeline).
+# GATE-S08 criteria S08-G1 (build and test affected modules on every application PR)
+# and S08-G2 (merge to main impossible without a green pipeline).
 #
-# TRIGGER DESIGN — two deliberate changes from the original version.
+# INFRA-001 / SUG-20260930-cif / PLAN-006 — change-specific triggers.
 #
-# 1. Runs on push to ANY branch, not only main. S08-G1 requires evidence at level
-#    E4: a run history. With PR-only triggers there was no run to point at until
-#    someone opened a PR, so the criterion could not be evidenced on a working
-#    branch at all.
-#
-# 2. The `paths:` filter is GONE from `pull_request`. It has to be, for S08-G2:
-#    a required status check that is skipped by a path filter never reports a
-#    conclusion, and GitHub then either blocks the PR indefinitely or allows the
-#    merge with no check. Both defeat the gate. The build is small; the compute
-#    the filter saved is worth less than a gate mechanism that works.
-#    (Board 1 finding A-F05 / Engineering finding T-F01.)
+# TRIGGER DESIGN
+# 1. pull_request and merge_group remain unfiltered at workflow level. S08-G2
+#    required checks that are skipped by a `paths:` filter never report a
+#    conclusion (Board 1 A-F05 / Engineering T-F01). Classification is in-job:
+#    the check name always reports; expensive Gradle is skipped when the diff
+#    has no Java/build files.
+# 2. Feature-branch `push` is gone. Push + pull_request on the same commit was
+#    doubling the suite. Push now runs only on `main` (post-merge confirmation).
+#    workflow_dispatch remains for a manual full run.
+# 3. Documentation-only diffs (docs/**, *.md, AGENTS.md, …) skip compile/test.
+#    A single service change builds that module; libs/ or root Gradle still
+#    fan out to every module.
 #
 # BRANCH PROTECTION — required to close S08-G2, and NOT configurable from this file.
 # A repository administrator must, on `main` (ruleset preferred):
@@ -34,8 +35,9 @@ name: Application CI
 
 on:
   pull_request:
+  merge_group:
   push:
-    branches: ["**"]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -49,42 +51,111 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test-and-coverage:
-    name: Java 21 tests and coverage gates
+  classify:
+    name: Classify changed paths
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 5
+    outputs:
+      docs_only: ${{ steps.classify.outputs.docs_only }}
+      run_tests: ${{ steps.classify.outputs.run_tests }}
+      scope: ${{ steps.classify.outputs.scope }}
+      modules: ${{ steps.classify.outputs.modules }}
+      gradle_tasks: ${{ steps.classify.outputs.gradle_tasks }}
+      reason: ${{ steps.classify.outputs.reason }}
     steps:
-      # fetch-depth: 0 so Spotless ratchetFrom("origin/main") can resolve the baseline
-      # commit. A shallow clone makes spotlessCheck fail with "No such reference
-      # 'origin/main'" before any formatting rule runs (seen on run 34779413538).
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
+      - name: Classify diff
+        id: classify
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+          python3 scripts/ci/test_classify_changes.py
+          force_all=false
+          if [ "${EVENT_NAME}" = "workflow_dispatch" ] || [ "${EVENT_NAME}" = "merge_group" ]; then
+            force_all=true
+          fi
+          extra=()
+          if [ "${force_all}" = "true" ]; then
+            extra+=(--force-all)
+          else
+            extra+=(--base "${{ github.event.pull_request.base.sha || github.event.before || '' }}")
+            extra+=(--head "${{ github.sha }}")
+          fi
+          python3 scripts/ci/classify-changes.py --github-output "${extra[@]}" | tee classify.out
+          while IFS= read -r line; do
+            echo "${line}" >> "${GITHUB_OUTPUT}"
+          done < classify.out
+          {
+            echo "### Application CI classification"
+            echo ""
+            echo '```'
+            cat classify.out
+            echo '```'
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+  test-and-coverage:
+    name: Java 21 tests and coverage gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: classify
+    if: always()
+    steps:
+      - name: Fail if classification failed
+        if: needs.classify.result != 'success'
+        run: |
+          echo "::error::Path classification failed; refusing to skip or green-run the required test check (T-F01)."
+          exit 1
+
+      - name: Skip Gradle — no Java/build change
+        if: needs.classify.result == 'success' && needs.classify.outputs.run_tests != 'true'
+        run: |
+          echo "Skipping compile/test: ${{ needs.classify.outputs.reason }}"
+          echo "Required check still reports success so S08-G2 is not blocked (T-F01 / A-F05)."
+          {
+            echo "### Java 21 tests — skipped"
+            echo ""
+            echo "${{ needs.classify.outputs.reason }}"
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+      # fetch-depth: 0 so Spotless ratchetFrom("origin/main") can resolve the baseline
+      # commit. A shallow clone makes spotlessCheck fail with "No such reference
+      # 'origin/main'" before any formatting rule runs (seen on run 34779413538).
+      - uses: actions/checkout@v4
+        if: needs.classify.result == 'success' && needs.classify.outputs.run_tests == 'true'
+        with:
+          fetch-depth: 0
+
       - name: Ensure origin/main exists for Spotless ratchet
+        if: needs.classify.result == 'success' && needs.classify.outputs.run_tests == 'true'
         run: git rev-parse --verify origin/main || git fetch --no-tags origin main:refs/remotes/origin/main
 
       - uses: actions/setup-java@v4
+        if: needs.classify.result == 'success' && needs.classify.outputs.run_tests == 'true'
         with:
           distribution: temurin
           java-version: "21"
 
       - uses: gradle/actions/setup-gradle@v4
+        if: needs.classify.result == 'success' && needs.classify.outputs.run_tests == 'true'
 
-      # `build` compiles main and test sources for every module and runs `check`,
-      # which the root build script wires to jacocoTestCoverageVerification,
-      # checkstyleMain/checkstyleTest (S08-G4), and spotlessCheck (S08-G4). The
-      # verification tasks are named explicitly as well so that a future change to
-      # that wiring cannot silently drop the coverage or static-analysis gates from CI.
       - name: Build, test and verify coverage gates
+        if: needs.classify.result == 'success' && needs.classify.outputs.run_tests == 'true'
+        env:
+          SCOPE: ${{ needs.classify.outputs.scope }}
+          GRADLE_TASKS: ${{ needs.classify.outputs.gradle_tasks }}
         run: |
+          set -euo pipefail
           chmod +x gradlew
-          ./gradlew --no-daemon build test jacocoTestReport jacocoTestCoverageVerification
+          echo "scope=${SCOPE} tasks=${GRADLE_TASKS}"
+          # shellcheck disable=SC2086
+          ./gradlew --no-daemon ${GRADLE_TASKS}
 
-      # S08-G4 — static analysis half. `build` already ran these via `check`; naming
-      # them here keeps a regression readable in the job summary and fails loudly if
-      # a future rewiring drops them from `check`.
       - name: Static analysis (Checkstyle + Spotless)
+        if: needs.classify.result == 'success' && needs.classify.outputs.run_tests == 'true' && needs.classify.outputs.scope == 'all'
         run: |
           ./gradlew --no-daemon checkstyleMain checkstyleTest spotlessCheck
 
@@ -92,21 +163,37 @@ jobs:
       # `test` above. Surfacing them separately makes an architecture regression
       # readable in the run summary instead of buried in a 350-test report.
       - name: Architecture fitness summary
-        if: always()
+        if: always() && needs.classify.result == 'success' && needs.classify.outputs.run_tests == 'true'
+        env:
+          SCOPE: ${{ needs.classify.outputs.scope }}
+          MODULES: ${{ needs.classify.outputs.modules }}
         run: |
           set -uo pipefail
           shopt -s nullglob
-          reports=(services/*/build/test-results/test/TEST-*rchitecture*.xml)
+          reports=()
+          if [ "${SCOPE}" = "all" ]; then
+            reports=(services/*/build/test-results/test/TEST-*rchitecture*.xml)
+          else
+            IFS=',' read -ra mods <<< "${MODULES}"
+            for m in "${mods[@]}"; do
+              dir="${m//://}"
+              reports+=("${dir}"/build/test-results/test/TEST-*rchitecture*.xml)
+            done
+          fi
           if [ ${#reports[@]} -eq 0 ]; then
-            echo "::error::No ArchUnit test results found — the architecture rules did not run."
-            exit 1
+            if [ "${SCOPE}" = "all" ]; then
+              echo "::error::No ArchUnit test results found — the architecture rules did not run."
+              exit 1
+            fi
+            echo "No ArchUnit results for scoped modules ${MODULES}; not a full-tree run."
+            exit 0
           fi
           for f in "${reports[@]}"; do
             python3 -c "import sys, xml.etree.ElementTree as ET; r = ET.parse(sys.argv[1]).getroot(); print('{}: tests={} failures={} errors={}'.format(r.get('name','?').split('.')[-1], r.get('tests'), r.get('failures'), r.get('errors')))" "$f"
           done
 
       - name: Upload test and coverage reports
-        if: always()
+        if: always() && needs.classify.result == 'success' && needs.classify.outputs.run_tests == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: application-test-reports

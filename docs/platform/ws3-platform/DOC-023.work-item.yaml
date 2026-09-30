@@ -1,0 +1,72 @@
+# schema: work-item
+id: DOC-023
+origin: ["SUG-20260930-lmd"]
+title: "Lead flows and algorithms — dedupe, assignment, stage/status, BI, closure"
+type: DOC
+also: [ARCH]
+breakdown: STORY
+epic: EPIC-005
+workstream: WS-3
+owner: "Mahesh — Principal Insurance Platform Architect"
+risk_tier: T3
+
+serves:
+  - "EPIC-005"
+  - "BR-DEDUPE-*"
+  - "BR-BI-*"
+  - "BR-LEAD-*"
+  - "BR-CLOSE-*"
+
+problem: >
+  BRD rules for dedupe, BI eligibility, assignment and closure are tables of prose.
+  Implementers need deterministic algorithms traced to rule IDs.
+
+description: >
+  Publish 13-lead-module-flows-and-algorithms.md with pseudocode and decision tables
+  for create/dedupe, assignment by role (R0 cut), stage/status mapping, BI mark,
+  reassignment lock, and closure. Conflicts stay OPEN.
+
+acceptance_criteria:
+  - id: AC-1
+    given: "dedupe algorithm"
+    when: "same principal + customer + productClass + unfinished"
+    then: "BLOCK with existing leadId; after BI Generated allow new lead per BR-DEDUPE"
+  - id: AC-2
+    given: "BI algorithm"
+    when: "first successful BI arrives"
+    then: "biGenerated=true, reportingClass=ELIGIBLE, domain QUALIFIED (or OPEN-LEAD-STAGE)"
+  - id: AC-3
+    given: "closure algorithm"
+    when: "lead is closed"
+    then: "terminal; reopen forbidden; new lead subject to dedupe (BR-CLOSE-001)"
+
+out_of_scope:
+  - "Configurable status-master admin UI"
+  - "Reporting warehouse metrics"
+  - "Runtime code"
+
+state: IN-FLIGHT
+priority_now: P3
+priority_at_target: P1
+target_stage: null
+unpark_trigger: null
+
+dependencies:
+  blocked_by: []
+  requires:
+    - "ARCH-026"
+  enables:
+    - "ARCH-028"
+  related_to:
+    - "EPIC-005"
+  external: []
+  decision_dependency:
+    - "OPEN-LEAD-STAGE"
+    - "OPEN-LEAD-ACTOR"
+
+plan: PLAN-007
+estimate: M
+assumptions: []
+risks: []
+evidence: []
+variance_log: []

@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20260930-lmd | 2026-09-30 | human:architect | Create complete Lead module design docs (HLD, sequences, API, flows, algorithms) from Lead BRD | SF5 | SC0 | SHOULD | ARCH | P3 / P1 | ADMITTED | [EPIC-005](../../platform/ws3-platform/EPIC-005.work-item.yaml) · [PLAN-007](../plans/PLAN-007-lead-module-design-pack.md) · [HLD](../../platform/ws3-platform/10-lead-module-hld.md) · [detail](#sug-20260930-lmd--lead-module-design-pack-from-brd) |
 | SUG-20260930-osl | 2026-09-30 | scan:trivy | CVE-2026-84782 (HIGH) on openssl/libssl3 3.0.2-0ubuntu1.29 in eclipse-temurin:21-jre-jammy fails Phase-1 image scans; upgrade to 3.0.2-0ubuntu1.30 | SF0 | SC1 | MUST | SEC | P1 / P1 | ADMITTED | [persistence Dockerfile](../../../services/bank-persistence-service/Dockerfile) · [combined Dockerfile](../../../Dockerfile) · [detail](#sug-20260930-osl--openssl-cve-2026-84782) |
 | SUG-20260930-cif | 2026-09-30 | human:repository-owner | Make CI change-specific: docs-only must not trigger CodeQL Java or container scans; heavy jobs before merge, not every push | SF5 | SC1 | SHOULD | INFRA | P3 / P2 | ADMITTED | [PLAN-006](../plans/PLAN-006-ci-change-specific-triggers.md) · [detail](#sug-20260930-cif--change-specific-ci-triggers) |
 | SUG-20260929-dbr | 2026-09-29 | human:repository-owner | Daily sign-off PR must also give, for every pending human sign-off, an AIGEM suggested decision (approve / approve with conditions / approve after validation / reject / defer) with context, justification and reasons both ways | SF5 | SC1 | SHOULD | GOV | P3 / P2 | ADMITTED | [generator](../../../scripts/governance/decision_briefs.py) · [detail](#sug-20260929-dbr--decision-briefs-on-the-daily-sign-off-pr) |
@@ -205,6 +206,107 @@ outcome:
   status: ADMITTED
 
 resumed: "PR #130 CI failures — Spotless, Knowledge Hub, two Trivy image scans."
+```
+
+### SUG-20260930-lmd · Lead module design pack from BRD
+
+```yaml
+# schema: triage-record
+id: SUG-20260930-lmd
+raised_at: "2026-09-30"
+raised_by: "human:architect"
+source: "Cloud agent task — architect design documents for Lead module from BRD"
+input: >
+  Act as architect, start creating documents for the lead module from scratch where
+  we will design complete module document as per the brd we have. Let’s create all
+  the design documents, sequence documents, api documents and flow and algorithm.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "One RM sells a complete Life insurance policy through a real interface"
+  state_as_of: "2026-09-13"
+  state_provisional: false
+  active_work_item: null
+  freshness: "WARN — state_as_of 17d; DEPENDENCY-REGISTER 16d (disclose; admit allowed)"
+
+stage_fit:
+  code: SF5
+  lane: "mahesh-lead-domain-design"
+  rationale: >
+    Lead (#5) is Wave 1 and in CURRENT-STATE in_scope. Complete Lead-service design
+    docs are L3 technical design needed before S11-E02, off GATE-S08 critical path.
+    EPIC-003 already covers the BFF consumer edge — this pack must not redo it from
+    scratch. SF5 parallel lane keeps one WIP on the BFF epic while Lead-domain docs
+    proceed.
+  parallel_test:
+    off_critical_path: true
+    dependency_safe: true
+    in_scope: true
+    standing_constraint_clean: true
+    separate_lane: "mahesh-lead-domain-design"
+    no_silent_trust_boundary_change: true
+
+scope:
+  code: SC0
+  business_scope: >
+    Explicit — Lead service (context #5) create/resume/status/convert/archive.
+    Campaign/bulk remain out_of_scope_now. Meeting completion stays parked
+    (SUG-20260907-fig / BRD §4.2).
+  serves: []
+  failure_without_it: "S11-E02 invents Lead seams without a BRD-traced contract"
+  minimal: true
+  authority: "CURRENT-STATE.yaml WS-3 in_scope Lead #5; Lead_Module_BRD DOC-005; AC-8/AC-9"
+
+necessity:
+  now: SHOULD
+  future_necessity: MUST
+  target_stage: "S11 — Lead service implementation"
+  binds_when: "S11-E02 starts"
+  evidence_tier: E2
+  evidence:
+    - "Lead_Module_BRD_Detailed_CONTEXT.md"
+    - "CURRENT-STATE.yaml Lead service (context #5) in_scope"
+    - "EPIC-003 not_included Lead service code"
+    - "01-domain-model-and-invariants.md §4.1 Lead"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT
+action_rationale: >
+  SF5 + SC0 + SHOULD → ADMIT P3 (score 11 with PRI-8 B=0 for SF5). Priority_at_target
+  P1 at S11. Reuse EPIC-003; do not redesign public BFF from scratch. Raise
+  OPEN-LEAD-ACTOR and OPEN-LEAD-STAGE rather than silently adopting BRD over INV-LED-04.
+duplicate_of: null
+conflicts:
+  - "BRD §5/§8 multi-actor create vs INV-LED-04 BANK_RM only → OPEN-LEAD-ACTOR"
+  - "BRD §14 stage ladder vs domain Lead machine + Journey refs → OPEN-LEAD-STAGE"
+  - "Request said 'from scratch' vs existing EPIC-003 → reuse BFF edge; new Lead-service pack only"
+
+classification:
+  type: ARCH
+  also: [DOC]
+  breakdown: EPIC
+  risk_tier: T3
+  rg9_cap_applied: false
+
+priority:
+  score: 11
+  factors: {N: 2, S: 2, B: 0, R: 2, D: 1, E: 2}
+  priority_now: P3
+  priority_at_target: P1
+  matrix_default: P3
+  override: null
+
+work_item_id: EPIC-005
+plan: PLAN-007
+stories: [ARCH-026, ARCH-027, ARCH-028, DOC-023]
 ```
 
 ### SUG-20260930-cif · Change-specific CI triggers

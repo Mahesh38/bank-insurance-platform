@@ -1,0 +1,67 @@
+# schema: work-item
+id: ARCH-027
+origin: ["SUG-20260930-lmd"]
+title: "Lead sequences and end-to-end flows"
+type: ARCH
+also: [DOC]
+breakdown: STORY
+epic: EPIC-005
+workstream: WS-3
+owner: "Mahesh — Principal Insurance Platform Architect"
+risk_tier: T3
+
+serves:
+  - "EPIC-005"
+  - "S11-E02"
+
+problem: >
+  BRD role flows and screen order are not yet expressed as platform sequence diagrams
+  that name BFF → Lead → Customer → Journey → Quote hops.
+
+description: >
+  Publish 11-lead-module-sequences.md covering R0 create (RM path), dedupe conflict,
+  resume, assignment/reassignment (pre-BI), first BI → QUALIFIED, convert, archive.
+
+acceptance_criteria:
+  - id: AC-1
+    given: "11-lead-module-sequences.md"
+    when: "happy-path create is read"
+    then: "NIP BFF, Lead #5, Customer #4, Journey #6 and Audit appear with sync/async"
+  - id: AC-2
+    given: "dedupe sequence"
+    when: "an unfinished same-user same-product lead exists"
+    then: "409 + resume payload is shown; no second leadId"
+  - id: AC-3
+    given: "convert sequence"
+    when: "JourneySold arrives"
+    then: "Lead reaches CONVERTED then ARCHIVED per ADR-014"
+
+out_of_scope:
+  - "Meeting SMS/email sequences beyond optional stub"
+  - "Campaign sequences"
+  - "Runtime code"
+
+state: IN-FLIGHT
+priority_now: P3
+priority_at_target: P1
+target_stage: null
+unpark_trigger: null
+
+dependencies:
+  blocked_by: []
+  requires:
+    - "ARCH-026"
+    - "EPIC-003"
+  enables:
+    - "ARCH-028"
+  related_to:
+    - "EPIC-005"
+  external: []
+  decision_dependency: []
+
+plan: PLAN-007
+estimate: M
+assumptions: []
+risks: []
+evidence: []
+variance_log: []

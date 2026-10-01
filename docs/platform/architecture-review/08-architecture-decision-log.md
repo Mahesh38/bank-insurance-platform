@@ -1359,8 +1359,8 @@ decision: >
   Off-platform sales are Policy ingest (source=OFF_PLATFORM), never lead.create.
   Administration UI and Reporting/MIS are in R0 W4 and must not use the Lead writer (C-ISO-1).
   issuanceMode STP|NON_STP|INSTA is mandatory on Proposal/Policy (C-ISS-1).
-  ADR-005 RM-only origination stands. ADR-007 configuration layer stands; its UI deferral
-  is withdrawn.
+  ADR-005 single-funnel origination stands; the create-actor clause is amended by ADR-021
+  (D-018). ADR-007 configuration layer stands; its UI deferral is withdrawn.
 authority_class: A3_JOINT_REVIEW
 origin: CR-013
 ```
@@ -1626,3 +1626,55 @@ amends: [ADR-010, ADR-018]
 Human T4 Architecture sign-off outstanding. Deepali owns remaining spoke-firewall acceptance
 and the AD-password ceremony. Shivanshi owns Apigee product onboarding and the UAT-account
 vending pack. This ADR does not manufacture those signatures.
+
+---
+
+## ADR-021 — Lead create by workforce creators; mandatory certified-SP RM assignee
+
+```yaml
+id: ADR-021
+status: PROPOSED
+problem: >
+  ADR-005 / INV-LED-04 restricted lead.create to BANK_RM with SP certification. Lead BRD §5/§8
+  and Rajal D-018 require Bank SP, Bank Non-SP and Insurance RM to create leads, with the Lead
+  then assigned to a certified-SP Bank RM. Leaving INV-LED-04 unchanged forces EPIC-005 to
+  contradict Product behaviour SSOT (DOC-005).
+context_stage: "WS-3 S08; EPIC-005 Lead design pack; OPEN-LEAD-ACTOR"
+decision: >
+  Amend the ADR-005 create-actor clause only. Single on-platform funnel (Lead #5) and the ban
+  on DIY / MIS / admin / BFF-implicit / Policy-factory lead.create stand.
+
+  Allowed creators (workforce): BANK_RM with SP certification (Bank SP), BANK_RM without SP
+  certification (Bank Non-SP), and INSURER_PARTNER_REP (Insurance RM / FLS) — Lead BRD §5.
+  "Anyone" in Product wording is interpreted as these workforce creators, not retail DIY.
+
+  On every successful create, assignedRmId and accountableSpId MUST identify a BANK_RM whose
+  SP certification is ACTIVE, unexpired and covers the Lead's lob (INV-LED-10, INV-ACT-03).
+  createdByPrincipalId records the actual creator (BR-OWN-002). Regulated sales actions after
+  create remain INV-ACT-01 (certified SP only).
+
+  Insurance RM (IPR) create is designed in contracts but runtime-gated until Board 6 confirms
+  solicitation permissibility (OPEN-COMP-LEAD-IPR-CREATE) — same pattern as D-017.
+authority_class: A3_JOINT_REVIEW
+origin: SUG-20260930-ola
+also: [D-018, EPIC-005, ADR-005, ADR-014]
+amends: [ADR-005]
+compliance_impact: >
+  Accountable SP remains a certified Bank RM written at create (INV-ACT-03). IPR create needs
+  Shailja confirmation before enablement — ADR-005 previously rejected IPR-create-then-adopt
+  as solicitation.
+security_impact: >
+  Widens opportunity.create PDP grants; default-deny for DIY/MIS/SERVICE remains.
+reversibility: MEDIUM
+revisit_trigger: >
+  Board 6 rejects IPR create → remove INSURER_PARTNER_REP from allowed creators and keep
+  Bank SP / Non-SP create with mandatory SP assignee.
+approvals:
+  - "Rajal / Product — D-018 recorded 2026-09-30"
+  - "Mahesh / Architecture — AI-DRAFTED structure; human T4 outstanding"
+  - "Shailja / Compliance — required before IPR create is runtime-enabled"
+  - "Deepali / Security — notify (PDP grant widening)"
+```
+
+**Drafted:** agent, for Mahesh — Principal Insurance Platform Architect (Board 1 / R2) · 2026-09-30.
+Does not manufacture Board 6 or T4 Architecture signatures.

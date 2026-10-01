@@ -53,8 +53,11 @@ Opportunity remains the durable-demand alias only. Identifiers stay `leadId` / `
 | No PII in logs | Search values (PAN, mobile, CIF) are not logged; correlation id only |
 | Bank apps never call a database | List/search are HTTP to `#5` / `#4`, never JDBC |
 
-IPR principals: pipeline and search are RM book queries. Create is `403 ORIGINATION_RM_ONLY`
-(`INV-LED-04`, `S-20`). Out-of-scope rows are **absent**, never a `403` on a named id
+IPR principals: pipeline and search remain book-scoped. **Create actors widened by `D-018` /
+`ADR-021` (2026-09-30):** Bank SP / Non-SP / Insurance RM may create when `assignedRmId` is a
+certified-SP Bank RM. EPIC-003 OpenAPI still documents the Term RM happy path; full multi-actor
+request fields are specified on the Lead-service contract (`EPIC-005` / `12-lead-module-api-lld.md`).
+IPR create is runtime-gated (`OPEN-COMP-LEAD-IPR-CREATE`). Out-of-scope rows are **absent**, never a `403` on a named id
 (`INV-LED-07`).
 
 ### 2.1 Platform conventions this pack inherits
@@ -359,7 +362,7 @@ return together (`AC-LEAD-010-1`). This **supersedes** the HLD sketch’s
 already require `journeyId` at create. QUALIFIED remains a later Lead state on the journey,
 not a precondition to open it.
 
-**Guards:** `INV-LED-04` RM-only · `INV-LED-05` in-book ETB · SP cert covers `LIFE`
+**Guards:** `INV-LED-04` workforce creator · `INV-LED-10` certified-SP assignee · `INV-LED-05` in-book ETB of assignee · SP cert covers `LIFE` (`D-018` / `ADR-021`)
 (`RM_NOT_CERTIFIED` / `SP_CERTIFICATION_REQUIRED`).
 
 Audit: lead create is a material action ([BR-SEC-030](../../au-bank-insurance-platform/requirements/BRD-P0-CAPABILITIES.md)).

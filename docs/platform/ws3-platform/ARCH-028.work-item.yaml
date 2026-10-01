@@ -1,0 +1,70 @@
+# schema: work-item
+id: ARCH-028
+origin: ["SUG-20260930-lmd"]
+title: "Lead service API LLD + cluster-private OpenAPI"
+type: ARCH
+also: [DOC]
+breakdown: STORY
+epic: EPIC-005
+workstream: WS-3
+owner: "Mahesh — Principal Insurance Platform Architect"
+risk_tier: T3
+
+serves:
+  - "EPIC-005"
+  - "S11-E02"
+  - "S-20 BFF → Lead"
+
+problem: >
+  EPIC-003 documents public BFF /leads. The cluster-private Lead service contract that
+  the BFF and Journey call is not written.
+
+description: >
+  Publish 12-lead-module-api-lld.md and lead-service-internal.openapi.yaml for Lead #5
+  internal resources. Public paths stay on NIP BFF (EPIC-003).
+
+acceptance_criteria:
+  - id: AC-1
+    given: "lead-service-internal.openapi.yaml"
+    when: "operations are listed"
+    then: "POST /internal/v1/leads, GET by id, list, assign, close, mark-bi, convert, archive exist"
+  - id: AC-2
+    given: "the LLD"
+    when: "BFF mapping is read"
+    then: "each EPIC-003 public operation maps to one Lead-service call or Customer/CBS hop"
+  - id: AC-3
+    given: "ADR-017"
+    when: "errors are defined"
+    then: "problem+json with category; no success envelope"
+
+out_of_scope:
+  - "Public BFF OpenAPI changes (EPIC-003 owns those)"
+  - "Persistence DDL"
+  - "Runtime code"
+
+state: IN-FLIGHT
+priority_now: P3
+priority_at_target: P1
+target_stage: null
+unpark_trigger: null
+
+dependencies:
+  blocked_by: []
+  requires:
+    - "ARCH-026"
+    - "ARCH-027"
+    - "ADR-017"
+    - "EPIC-003"
+  enables:
+    - "S11-E02"
+  related_to:
+    - "EPIC-005"
+  external: []
+  decision_dependency: []
+
+plan: PLAN-007
+estimate: M
+assumptions: []
+risks: []
+evidence: []
+variance_log: []

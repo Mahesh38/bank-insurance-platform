@@ -663,7 +663,7 @@ id_allocation:
     CR: 17        # CR-001..016 in use (016 = parallel lanes / evidence unpark / RG-9, SUG-20260923-par, CANDIDATE transcribed 2026-09-23 under ADMIT-BYPASS; HUMAN Architecture+Product ratification outstanding); next unused is 17
     RISK: 21      # RISK-001..020 in use (016..020 added 2026-09-30 AIGEM signoff: suitability, autopilot, approval automation, missing human signoff, operational dependency)
     ASM: 20       # ASM-001..014, 015..019 in use (013 invalidated 2026-09-14; 015 = Apigee outbound / API Gateway inbound; 016 = private Apigee for internal APIs; 017 = dev-inside-UAT; 018 = no CUG at R0; 019 = AD-verify API + partner IdP + Fireframe UI). ID-allocation only. No stage field touched.
-    EPIC: 5       # EPIC-001..004 in use (004 = WS-3 R0 assisted Life Term+Savings+ULIP, CR-015 / SUG-20260911-uls, minted 2026-09-12). Next unused is 5. ID-allocation only.
+    EPIC: 6       # EPIC-001..005 in use (005 = Lead module #5 R0 design pack, SUG-20260930-lmd, minted 2026-09-30). Next unused is 6. ID-allocation only.
     SPIKE: 2       # SPIKE-001 in use (Apigee vs Amazon API Gateway, SUG-20260831-apg). ID-allocation only.
     # ADR-001..003 were written into architecture-review/08 under CR-010 while this counter still
     # read 1; that file carries a standing note asking for the advance. ADR-004..007 were added by
@@ -676,4 +676,4 @@ id_allocation:
     # ADR-017 was added by the 2026-08-27 platform error contract round (SUG-20260827-err), and
     # EPIC-001 by the same round. ID-allocation correction only. No stage, scope or gate field is
     # touched by it; those remain human-owned (04 section 5).
-    ADR: 21        # ADR-001..018 in use; ADR-019 = backend microservice skeleton scaffold (file 2026-09-02, indexed 2026-09-14); ADR-020 = split API plane (Apigee outbound / API Gateway inbound). Next unused is 21. ID-allocation only.
+    ADR: 22        # ADR-001..020 in use; ADR-021 = Lead create by workforce creators with mandatory certified-SP RM assignee (D-018 / SUG-20260930-ola, 2026-09-30). Next unused is 22. ID-allocation only.

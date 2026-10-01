@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20261001-vcp | 2026-10-01 | human:Rajal | Standalone Confluence Lead Management build specification for bank and vendor developers who must not receive repository or governance documentation | SF5 | SC1 | MUST | DOC | P2 / P2 | ADMITTED | [handoff page](../../../handoff/confluence/Lead-Management-Build-Specification.md) · [detail](#sug-20261001-vcp--vendor-lead-confluence-pack) |
 | SUG-20260930-osl | 2026-09-30 | scan:trivy | CVE-2026-84782 (HIGH) on openssl/libssl3 3.0.2-0ubuntu1.29 in eclipse-temurin:21-jre-jammy fails Phase-1 image scans; upgrade to 3.0.2-0ubuntu1.30 | SF0 | SC1 | MUST | SEC | P1 / P1 | ADMITTED | [persistence Dockerfile](../../../services/bank-persistence-service/Dockerfile) · [combined Dockerfile](../../../Dockerfile) · [detail](#sug-20260930-osl--openssl-cve-2026-84782) |
 | SUG-20260930-cif | 2026-09-30 | human:repository-owner | Make CI change-specific: docs-only must not trigger CodeQL Java or container scans; heavy jobs before merge, not every push | SF5 | SC1 | SHOULD | INFRA | P3 / P2 | ADMITTED | [PLAN-006](../plans/PLAN-006-ci-change-specific-triggers.md) · [detail](#sug-20260930-cif--change-specific-ci-triggers) |
 | SUG-20260929-dbr | 2026-09-29 | human:repository-owner | Daily sign-off PR must also give, for every pending human sign-off, an AIGEM suggested decision (approve / approve with conditions / approve after validation / reject / defer) with context, justification and reasons both ways | SF5 | SC1 | SHOULD | GOV | P3 / P2 | ADMITTED | [generator](../../../scripts/governance/decision_briefs.py) · [detail](#sug-20260929-dbr--decision-briefs-on-the-daily-sign-off-pr) |
@@ -128,6 +129,85 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20261001-vcp · vendor Lead Confluence pack
+
+```yaml
+# schema: triage-record
+id: SUG-20261001-vcp
+raised_at: "2026-10-01"
+raised_by: "human:Rajal"
+source: "Product + Architecture request after 2026-09-30 signoff"
+input: >
+  Act as Rajal and Mahesh. Dev team and vendor developers do not have
+  repository access and must not receive repository terminologies or the
+  complete documentation. Create one Confluence page with no relation to
+  this repository that holds complete details for lead modules, screens,
+  diagrams, flows, HLD and LLD so they can start building the application
+  end to end.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: SUG-20261001-vcp
+
+stage_fit:
+  code: SF5
+  rationale: >
+    Client/vendor hand-out is off the S08 hardening critical path, does not
+    change stage or gate state, and is dependency-safe. It restates already
+    admitted Lead BRD and contracted L1 BFF behaviour in bank language.
+  parallel_test:
+    off_critical_path: true
+    dependency_safe: true
+    standing_constraint_clean: true
+    separate_lane: true
+    no_silent_gate_change: true
+  lane: vendor-handoff
+
+scope:
+  code: SC1
+  serves: ["EPIC-003 Lead landing/create", "vendor/client implementation of Lead"]
+  failure_without_it: "bank and vendor teams cannot start the workforce app without repo access"
+  minimal: true
+
+necessity:
+  now: MUST
+  evidence_tier: E2
+  evidence:
+    - "Lead Module BRD 1.0 (04-Sep-2026) is module behaviour SSOT"
+    - "NIP BFF lead-phase LLD + OpenAPI are the contracted L1 consumer surface"
+    - "Human Product request: shareable page, no repo relation"
+  confidence: C5
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT
+action_rationale: >
+  SF5 PARALLEL documentation lane. Page lives under handoff/confluence/ so it
+  is not binding governance SSOT and contains no AIGEM/CR/GATE vocabulary.
+  Product owns behaviour; Architecture owns HLD/LLD contracts. L1 vs full
+  Lead gap is stated, not hidden. No stage edit, no T4 signature, no
+  fabricated external evidence.
+
+classification:
+  type: DOC
+  risk_tier: T2
+
+priority:
+  now: P2
+  at_target: P2
+  score_notes: "Delivery-blocking for vendor start; not a production-incident P1"
+
+dependencies: []
+```
 
 ### SUG-20260930-osl · openssl CVE-2026-84782
 

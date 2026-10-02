@@ -21,6 +21,8 @@
 
 This document is the single source of truth for workforce authentication and authorization in the bank-insurance platform. Implementations, tests, deployment manifests, and future architecture discussions must preserve the decisions and invariants recorded here unless an Architecture Decision Record explicitly supersedes them.
 
+**Implementation LLD (Confluence pack):** [`AUTHN-AUTHZ-LLD.md`](./AUTHN-AUTHZ-LLD.md) — justification for keeping `identity-provider-adapter-service` and the PDP even though Keycloak is present (`ADR-022`), plus OpenAPI and GATE-IAM-P1 slices. Invariants stay in this README; the LLD does not relax them.
+
 ## 1. Accepted decisions
 
 1. Flutter communicates only with a workforce BFF. Keycloak, Cognito, Active Directory, and internal identity services are never exposed directly to Flutter.

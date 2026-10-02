@@ -1,0 +1,91 @@
+# schema: work-item
+id: ARCH-029
+origin: ["SUG-20261002-iap"]
+title: "Workforce authn/authz LLD — adapter + PDP justification and implementation pack"
+type: ARCH
+also: [DOC]
+breakdown: STORY
+epic: null
+workstream: WS-2
+owner: "Mahesh — Principal Insurance Platform Architect"
+risk_tier: T3
+
+serves:
+  - "GATE-IAM-P1 A.2"
+  - "GATE-IAM-P1 A.3"
+  - "IAM-P1"
+  - "ARCH-018"
+  - "ARCH-021"
+
+problem: >
+  GATE-IAM-P1 A.2/A.3 are OPEN and the three identity services are scaffolds. The
+  team asked whether Keycloak already being present means identity-provider-adapter-service
+  and identity-authorization-service can be removed. Without a written LLD that answers
+  that question with options, trade-offs and an implementation-ready contract, Phase 1
+  implementation will either invent Keycloak-shaped BFF/PDP coupling or stall.
+
+description: >
+  Publish a Confluence-ready LLD plus three OpenAPI files and ADR-022. Restate
+  ARCH-018/020/021: keep the adapter and the PDP; reject collapsing them into
+  Keycloak. Map current Java packages to the target contract, list GATE A.1–A.6
+  slices, and name remaining gaps (credential-actions, UC-05 reason codes,
+  ACCESS_ALL, PARTNER_SR selling seed). No runtime code in this change. Human
+  Board 1 / Board 4 signatures are not manufactured.
+
+acceptance_criteria:
+  - id: AC-1
+    given: "AUTHN-AUTHZ-LLD.md §0 and §2"
+    when: "the Keycloak-only question is read"
+    then: "adapter and PDP are MUST; collapse options B/C/D are REJECT with how-to-remove and why it is not good practice"
+  - id: AC-2
+    given: "the three OpenAPI files"
+    when: "operations are listed"
+    then: "BFF /api/v1/auth/*, adapter /internal/v1/auth/* and identities, PDP /authorization/decisions plus partner admin paths exist"
+  - id: AC-3
+    given: "LLD §10"
+    when: "a developer starts Phase 1"
+    then: "slices A.1–A.6 map 1:1 to GATE-IAM-P1 and name existing classes plus gaps"
+  - id: AC-4
+    given: "ADR-022"
+    when: "triage cites it"
+    then: "it forbids treating Keycloak as business authorization SoT and forbids BFF→Keycloak"
+
+out_of_scope:
+  - "Runtime Java changes (those are GATE slices after this pack)"
+  - "Human T4 Architecture or Security signatures"
+  - "Production IdP product selection"
+  - "Password-in-NIP ceremony (ID-11)"
+  - "Retail-customer identity"
+  - "Fixing PARTNER_SR seed in this change (SUG-20261002-psr, slice A.3)"
+
+state: IN-FLIGHT
+priority_now: P2
+priority_at_target: P1
+target_stage: null
+unpark_trigger: null
+
+dependencies:
+  blocked_by: []
+  requires:
+    - "docs/platform/authentication-authorization/README.md"
+    - "ARCH-018"
+    - "ARCH-019"
+    - "ARCH-020"
+    - "ARCH-021"
+    - "ADR-020"
+    - "UC-05"
+  enables:
+    - "GATE-IAM-P1 A.1–A.6 implementation"
+  related_to:
+    - "SUG-20260914-idp"
+    - "SUG-20261002-psr"
+  external: []
+  decision_dependency:
+    - "ID-11 password-in-NIP vs Fireframe SSO (Deepali) — does not block this LLD"
+
+plan: PLAN-008
+estimate: L
+assumptions: []
+risks: []
+evidence: []
+variance_log: []

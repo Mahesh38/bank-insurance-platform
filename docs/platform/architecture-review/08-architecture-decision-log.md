@@ -19,7 +19,7 @@
 | ARCH-018 | Workforce authentication is isolated behind a provider-neutral adapter; **private Keycloak is the initial implementation**, while Cognito or another standards-compliant IdP remains replaceable | Accepted | The bank AD protocol and final provider are not yet confirmed; OIDC/SAML/LDAP differences must not leak into Flutter, BFF contracts, or business authorization | Supersedes the Cognito-specific recommendation in [04](./04-aws-infrastructure-architecture.md) and [06](./06-security-compliance-and-nfrs.md) |
 | ARCH-019 | Flutter uses a **token-hiding BFF** and never receives provider access or refresh tokens | Accepted | Server-side session custody reduces token exfiltration risk and isolates Flutter from provider migration | See `docs/platform/authentication-authorization/README.md` |
 | ARCH-020 | Authorization uses **default-deny RBAC + ABAC + relationship rules** with suspension and explicit denial taking precedence over grants | Accepted | Roles alone cannot safely express insurer tenancy, multi-branch scope, hierarchy, assignment, sharing, or certification gates | See `docs/platform/authentication-authorization/README.md` |
-| ARCH-021 | Phase 1 workforce identity comprises three custom services: `workforce-access-bff`, `identity-provider-adapter-service`, and `identity-authorization-service`; Keycloak is a separate infrastructure workload | Accepted | Separates public session handling, provider-specific integration, and business authorization/data ownership | See `docs/platform/authentication-authorization/README.md` |
+| ARCH-021 | Phase 1 workforce identity comprises three custom services: `workforce-access-bff`, `identity-provider-adapter-service`, and `identity-authorization-service`; Keycloak is a separate infrastructure workload | Accepted | Separates public session handling, provider-specific integration, and business authorization/data ownership | See `docs/platform/authentication-authorization/README.md` · collapse into Keycloak forbidden by **ADR-022** |
 | ARCH-022 | Partner identities are created in Identity & Access and provisioned to the IdP after maker-checker approval; RM certification is sourced from AD, while insurer-representative certification is optional and admin-uploaded in Phase 1 | Accepted | Preserves a provider-independent business source of truth and supports later mandatory partner qualification without redesign | See `docs/platform/authentication-authorization/README.md` |
 | ARCH-023 | R0 has **two** on-platform actors — Bank RM and Insurance Partner Representative. **Specified Person is a certification attribute on the RM principal**, not an actor type and not a channel; the R0 actor-type vocabulary is closed at `BANK_RM`, `INSURER_PARTNER_REP`, `SERVICE` | Proposed | A certification modelled as an actor produces two principals and two audit trails for one human, and makes "may assist but may not sell" inexpressible | Promoted to **ADR-004**; supersedes the `CERTIFIED_SP` actor type in `15 §4` |
 | ARCH-024 | The **opportunity is the single origination point**, creatable only by a `BANK_RM`; every downstream module consumes it. Context #5 moves from deferred-to-S13 into R0 Wave 1 | Proposed | Reconciles the architecture document with `CURRENT-STATE.yaml` `in_scope`, and removes the second funnel entry a customer-lookup start would have created | Promoted to **ADR-005**; amends the build order in `ws3-platform/03 §3` |
@@ -1678,3 +1678,64 @@ approvals:
 
 **Drafted:** agent, for Mahesh — Principal Insurance Platform Architect (Board 1 / R2) · 2026-09-30.
 Does not manufacture Board 6 or T4 Architecture signatures.
+
+---
+
+## ADR-022 — Keep the identity adapter and the PDP; do not collapse them into Keycloak
+
+```yaml
+id: ADR-022
+status: PROPOSED
+problem: >
+  Keycloak is the Phase 1 IdP product. The delivery question is whether that makes
+  identity-provider-adapter-service and identity-authorization-service unnecessary.
+  Collapsing either into Keycloak would couple a replaceable vendor to BFF contracts
+  and to regulated business authorization, and would pre-empt the Phase 2 production
+  IdP decision that ARCH-018 deliberately deferred behind the adapter.
+context_stage: "WS-2 L4/L6 Phase 1 — Foundation implementation; GATE-IAM-P1 A.2/A.3"
+decision: >
+  We will keep three custom deployables — workforce-access-bff, identity-provider-adapter-service,
+  identity-authorization-service — with Keycloak as a separately deployed IdP product, not as
+  the architecture.
+
+  The adapter is the anti-corruption layer for Keycloak OIDC/Admin, bank AD-verify via Apigee
+  private (ADR-020), and any later Cognito or standards-compliant provider. BFF and business
+  services never call an IdP.
+
+  identity-authorization-service is the only business source of truth for authorization
+  (RBAC + ABAC + relationship, default-deny, fail-closed, policyVersion). Keycloak owns
+  credentials, ceremonies, MFA and token issuance only.
+
+  Forbidden: Flutter or BFF talking to Keycloak; OAuth tokens on the device; treating IdP
+  roles or token claims as business grants; LDAP from EKS to AD; putting Keycloak admin
+  credentials in the BFF; encoding branch/insurer/certification/journey-stage policy in
+  a realm.
+authority_class: A3_JOINT_REVIEW
+origin: SUG-20261002-iap
+also: [ARCH-018, ARCH-019, ARCH-020, ARCH-021, ARCH-022, ADR-020, GATE-IAM-P1]
+confirms: [ARCH-018, ARCH-020, ARCH-021]
+forbids:
+  - "Deleting identity-provider-adapter-service because Keycloak is present"
+  - "Deleting identity-authorization-service because Keycloak has roles or Authorization Services"
+  - "BFF or Flutter calling Keycloak Admin/OIDC directly"
+  - "Using IdP claims as the business authorization decision"
+compliance_impact: >
+  Certification, tenancy, maker-checker and 7-year decision replay stay in the PDP.
+  Weakening that is A4_HUMAN_REQUIRED (ID doctrine §8) and a Board 6 matter.
+security_impact: >
+  Trust boundary unchanged from the accepted SSOT. Collapse option C (PDP into Keycloak)
+  would be S0; collapse option B (adapter into BFF) would be S1. Draft only — Deepali signs.
+reversibility: MEDIUM
+revisit_trigger: >
+  Bank mandates an enterprise PDP that already evaluates certification, branch intersection,
+  insurer tenancy and journey stage with fail-closed SLO and audit replay, and Deepali
+  accepts it as the same security outcome; OR production IdP is irrevocably Keycloak AND
+  a different structural control keeps admin credentials off the public path.
+approvals:
+  - "Mahesh / Architecture — AI-DRAFTED structure; human T4 outstanding"
+  - "Deepali / Security — A3_JOINT_REVIEW required (ID-11 / authn-authz trust boundary)"
+  - "Shailja / Compliance — notify (authorization SoT and retention stay on the PDP)"
+```
+
+**Drafted:** agent, for Mahesh — Principal Insurance Platform Architect (Board 1 / R2) · 2026-10-02.
+Does not manufacture Board 4 or T4 Architecture signatures. LLD: [`AUTHN-AUTHZ-LLD.md`](../authentication-authorization/AUTHN-AUTHZ-LLD.md).

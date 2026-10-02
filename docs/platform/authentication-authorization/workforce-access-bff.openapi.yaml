@@ -1,0 +1,240 @@
+openapi: 3.0.3
+info:
+  title: Workforce Access BFF — public authentication API
+  version: 0.1.0-ai-drafted
+  description: |
+    Public (Gateway) contract for NIP-APP. Flutter never receives OAuth tokens.
+    NIP-APP source is not in this repository (DOC-006). Behaviour SSOT is the Login BRD.
+    Status: AI-DRAFTED — ARCH-029 / PLAN-008. Human Board 1 / 4 signatures outstanding.
+servers:
+  - url: https://api.{env}.example.bank/workforce
+    description: Public Gateway base (illustrative)
+    variables:
+      env:
+        default: uat
+tags:
+  - name: Auth
+    description: Token-hiding login, session, logout
+paths:
+  /api/v1/auth/csrf:
+    get:
+      tags: [Auth]
+      operationId: getCsrfToken
+      summary: Issue CSRF token for browser POSTs
+      responses:
+        '200':
+          description: CSRF token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CsrfResponse'
+  /api/v1/auth/login:
+    post:
+      tags: [Auth]
+      operationId: beginLogin
+      summary: Start PKCE login; returns a provider authorization URI only
+      description: |
+        Does not accept a password. IdentitySource selects BANK_AD vs PARTNER_IDP.
+        returnUri must be on the BFF allow-list. Browser callers send the CSRF header.
+      parameters:
+        - $ref: '#/components/parameters/CsrfHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Authorization URI for the client to open
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          $ref: '#/components/responses/Problem'
+  /api/v1/auth/callback:
+    get:
+      tags: [Auth]
+      operationId: loginCallback
+      summary: Provider redirect; exchanges code; sets HttpOnly cookie (web) or native completion
+      parameters:
+        - name: code
+          in: query
+          required: true
+          schema: { type: string }
+        - name: state
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        '302':
+          description: Redirect to allow-listed returnUri. Web Set-Cookie WORKFORCE_SESSION (HttpOnly, Secure, SameSite=Strict). Native returnUri receives completionCode. Never contains provider tokens.
+          headers:
+            Location:
+              schema: { type: string, format: uri }
+            Set-Cookie:
+              schema: { type: string }
+        '400':
+          $ref: '#/components/responses/Problem'
+  /api/v1/auth/native-session:
+    post:
+      tags: [Auth]
+      operationId: exchangeNativeCompletion
+      summary: One-time completion code → opaque session handle
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NativeSessionRequest'
+      responses:
+        '200':
+          description: Opaque handle for Keychain/Keystore. Not a JWT. Not an OAuth token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NativeSessionResponse'
+        '400':
+          $ref: '#/components/responses/Problem'
+  /api/v1/auth/session:
+    get:
+      tags: [Auth]
+      operationId: getSession
+      summary: Session status. Body never includes provider tokens.
+      parameters:
+        - $ref: '#/components/parameters/SessionHandle'
+      responses:
+        '200':
+          description: Business identity snapshot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '401':
+          $ref: '#/components/responses/Problem'
+  /api/v1/auth/logout:
+    post:
+      tags: [Auth]
+      operationId: logout
+      summary: Destroy platform session and revoke provider refresh token
+      parameters:
+        - $ref: '#/components/parameters/CsrfHeader'
+        - $ref: '#/components/parameters/SessionHandle'
+      responses:
+        '204':
+          description: Session deleted; cookie expired
+        '401':
+          $ref: '#/components/responses/Problem'
+components:
+  parameters:
+    CsrfHeader:
+      name: X-CSRF-TOKEN
+      in: header
+      required: false
+      description: Required for browser cookie-authenticated POSTs. Obtain from GET /csrf.
+      schema: { type: string }
+    SessionHandle:
+      name: X-Session-Handle
+      in: header
+      required: false
+      description: Native opaque handle. Browser uses WORKFORCE_SESSION cookie instead.
+      schema: { type: string }
+  schemas:
+    ClientType:
+      type: string
+      enum: [WEB, NATIVE]
+    IdentitySource:
+      type: string
+      enum: [BANK_AD, PARTNER_IDP]
+    LoginRequest:
+      type: object
+      required: [clientType, identitySource, returnUri]
+      additionalProperties: false
+      properties:
+        clientType:
+          $ref: '#/components/schemas/ClientType'
+        identitySource:
+          $ref: '#/components/schemas/IdentitySource'
+        returnUri:
+          type: string
+          format: uri
+        loginHint:
+          type: string
+    LoginResponse:
+      type: object
+      required: [authorizationUri, expiresInSeconds]
+      additionalProperties: false
+      properties:
+        authorizationUri:
+          type: string
+          format: uri
+        expiresInSeconds:
+          type: integer
+          format: int64
+    NativeSessionRequest:
+      type: object
+      required: [completionCode]
+      additionalProperties: false
+      properties:
+        completionCode:
+          type: string
+    NativeSessionResponse:
+      type: object
+      required: [sessionHandle, expiresInSeconds]
+      additionalProperties: false
+      properties:
+        sessionHandle:
+          type: string
+          description: Opaque. Not a JWT.
+        expiresInSeconds:
+          type: integer
+          format: int64
+    CsrfResponse:
+      type: object
+      required: [headerName, token]
+      additionalProperties: false
+      properties:
+        headerName: { type: string }
+        token: { type: string }
+    SessionResponse:
+      type: object
+      required: [businessUserId, username, userType, status, policyVersion]
+      additionalProperties: false
+      properties:
+        businessUserId:
+          type: string
+          format: uuid
+        username:
+          type: string
+        userType:
+          type: string
+          enum: [BANK_EMPLOYEE, INSURER_REPRESENTATIVE]
+        status:
+          type: string
+          enum: [PENDING, ACTIVE, SUSPENDED, DISABLED, EXPIRED]
+        policyVersion:
+          type: integer
+          format: int64
+        insurerCode:
+          type: string
+          nullable: true
+    ServiceErrorResponse:
+      type: object
+      required: [type, title, status, detail, category, code]
+      properties:
+        type: { type: string, format: uri }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        category: { type: string, description: ADR-017 category }
+        code: { type: string }
+        correlationId: { type: string }
+      additionalProperties: false
+  responses:
+    Problem:
+      description: RFC 7807 problem+json (ADR-017)
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ServiceErrorResponse'

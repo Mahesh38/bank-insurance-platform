@@ -1,0 +1,277 @@
+openapi: 3.0.3
+info:
+  title: Identity provider adapter — cluster-private API
+  version: 0.1.0-ai-drafted
+  description: |
+    Provider-neutral port in front of Keycloak (Phase 1) and AD-verify / Cognito (later).
+    Cluster-private. Flutter, API Gateway and business services never call these paths.
+    Provider tokens appear here because the BFF is the only caller of token operations;
+    they must never be forwarded to a device.
+    Status: AI-DRAFTED — ARCH-029 / PLAN-008.
+servers:
+  - url: http://identity-provider-adapter-service.platform.svc.cluster.local:8082
+    description: Cluster DNS (illustrative)
+tags:
+  - name: Auth
+  - name: Identities
+paths:
+  /internal/v1/auth/authorization-uri:
+    post:
+      tags: [Auth]
+      operationId: beginAuthorization
+      summary: Build the provider authorization URI (PKCE S256)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthorizationUriRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorizationUriResponse'
+          description: URI for the user agent
+        '400':
+          $ref: '#/components/responses/Problem'
+  /internal/v1/auth/token-exchange:
+    post:
+      tags: [Auth]
+      operationId: exchangeCode
+      summary: Authorization code → provider session; verifies nonce and audience
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenExchangeRequest'
+      responses:
+        '200':
+          description: Provider session including tokens (BFF vault only)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProviderSessionResponse'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+  /internal/v1/auth/refresh:
+    post:
+      tags: [Auth]
+      operationId: refreshSession
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+      responses:
+        '200':
+          description: Rotated provider session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProviderSessionResponse'
+        '401':
+          $ref: '#/components/responses/Problem'
+  /internal/v1/auth/revoke:
+    post:
+      tags: [Auth]
+      operationId: revokeSession
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+      responses:
+        '204':
+          description: Provider session ended
+        '400':
+          $ref: '#/components/responses/Problem'
+  /internal/v1/identities:
+    post:
+      tags: [Identities]
+      operationId: provisionIdentity
+      summary: Provision a partner identity at the IdP after PDP checker approval
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProvisionIdentityRequest'
+      responses:
+        '201':
+          description: Created or idempotent match on business_user_id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProvisionedIdentityResponse'
+        '409':
+          $ref: '#/components/responses/Problem'
+  /internal/v1/identities/{providerSubjectId}/status:
+    patch:
+      tags: [Identities]
+      operationId: setIdentityStatus
+      parameters:
+        - name: providerSubjectId
+          in: path
+          required: true
+          schema: { type: string }
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IdentityStatusRequest'
+      responses:
+        '204':
+          description: Enabled flag updated
+        '404':
+          $ref: '#/components/responses/Problem'
+  /internal/v1/identities/{providerSubjectId}/credential-actions:
+    post:
+      tags: [Identities]
+      operationId: requestCredentialAction
+      summary: Ask the IdP to run a required action (e.g. UPDATE_PASSWORD). Missing in runtime today — slice A.2.
+      parameters:
+        - name: providerSubjectId
+          in: path
+          required: true
+          schema: { type: string }
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CredentialActionRequest'
+      responses:
+        '204':
+          description: Action requested
+        '404':
+          $ref: '#/components/responses/Problem'
+components:
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema: { type: string }
+    CorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: true
+      schema: { type: string }
+  schemas:
+    IdentitySource:
+      type: string
+      enum: [BANK_AD, PARTNER_IDP]
+    AuthorizationUriRequest:
+      type: object
+      required: [state, nonce, codeChallenge, identitySource]
+      additionalProperties: false
+      properties:
+        state: { type: string }
+        nonce: { type: string }
+        codeChallenge: { type: string }
+        loginHint: { type: string }
+        identitySource:
+          $ref: '#/components/schemas/IdentitySource'
+    AuthorizationUriResponse:
+      type: object
+      required: [authorizationUri]
+      additionalProperties: false
+      properties:
+        authorizationUri:
+          type: string
+          format: uri
+    TokenExchangeRequest:
+      type: object
+      required: [code, codeVerifier, expectedNonce]
+      additionalProperties: false
+      properties:
+        code: { type: string }
+        codeVerifier: { type: string }
+        expectedNonce: { type: string }
+    RefreshRequest:
+      type: object
+      required: [refreshToken]
+      additionalProperties: false
+      properties:
+        refreshToken: { type: string }
+    ProviderSessionResponse:
+      type: object
+      required: [providerSubjectId]
+      additionalProperties: false
+      description: Internal only. BFF must vault tokens before any client response.
+      properties:
+        providerSubjectId: { type: string }
+        username: { type: string }
+        email: { type: string }
+        accessToken: { type: string }
+        refreshToken: { type: string }
+        idToken: { type: string }
+        accessTokenExpiresAt: { type: string, format: date-time }
+        claims:
+          type: object
+          additionalProperties: true
+    ProvisionIdentityRequest:
+      type: object
+      required: [businessUserId, username, email, enabled]
+      additionalProperties: false
+      properties:
+        businessUserId: { type: string }
+        username: { type: string }
+        email: { type: string, format: email }
+        firstName: { type: string }
+        lastName: { type: string }
+        insurerCode: { type: string }
+        enabled: { type: boolean }
+    ProvisionedIdentityResponse:
+      type: object
+      required: [providerSubjectId]
+      additionalProperties: false
+      properties:
+        providerSubjectId: { type: string }
+    IdentityStatusRequest:
+      type: object
+      required: [enabled]
+      additionalProperties: false
+      properties:
+        enabled: { type: boolean }
+    CredentialActionRequest:
+      type: object
+      required: [action]
+      additionalProperties: false
+      properties:
+        action:
+          type: string
+          enum: [UPDATE_PASSWORD, VERIFY_EMAIL, CONFIGURE_TOTP]
+    ServiceErrorResponse:
+      type: object
+      required: [type, title, status, detail, category, code]
+      properties:
+        type: { type: string, format: uri }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        category: { type: string }
+        code: { type: string }
+        correlationId: { type: string }
+      additionalProperties: false
+  responses:
+    Problem:
+      description: RFC 7807 problem+json (ADR-017)
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ServiceErrorResponse'

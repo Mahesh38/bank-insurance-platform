@@ -563,6 +563,8 @@ capsules:
         capsule: "target-state-vision"
       - condition: "persistence, schema, migration or recovery is materially affected"
         capsule: "database-review"
+      - condition: "the question is workforce authentication, Keycloak, the identity adapter, or the authorization PDP"
+        path: "docs/platform/authentication-authorization/AUTHN-AUTHZ-LLD.md"
       - condition: "the R0 platform design is the subject"
         path: "docs/platform/ws3-platform/03-solution-architecture-r0.md"
       - condition: "a developer wants an end-to-end teaching walkthrough of each hop"
@@ -672,6 +674,8 @@ capsules:
         anchor: "7-board-4--security"
         why: "The Board 4 contract and the mandatory human sign-off."
     then_only_if:
+      - condition: "the question is workforce authentication, Keycloak, the identity adapter, or the authorization PDP"
+        path: "docs/platform/authentication-authorization/AUTHN-AUTHZ-LLD.md"
       - condition: "the question is exposure, zoning or topology"
         path: "docs/context/roles/deepali-principal-security-architect/04-network-and-trust-boundary-policy.md"
       - condition: "the question is keys, crypto or secrets"

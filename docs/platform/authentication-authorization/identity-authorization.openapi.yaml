@@ -1,0 +1,341 @@
+openapi: 3.0.3
+info:
+  title: Identity authorization service — PDP and administration API
+  version: 0.1.0-ai-drafted
+  description: |
+    Business source of truth for workforce authorization. Cluster-private.
+    Keycloak is not a caller and not a substitute. PEPs are the BFF and each domain service.
+    Timeout budget for /authorization/decisions is 300 ms with no retry (UC-05 / S-02).
+    Status: AI-DRAFTED — ARCH-029 / PLAN-008. Reason codes are UC-05 normative names.
+servers:
+  - url: http://identity-authorization-service.platform.svc.cluster.local:8083
+    description: Cluster DNS (illustrative)
+tags:
+  - name: Decisions
+  - name: Identities
+  - name: Administration
+paths:
+  /internal/v1/authorization/decisions:
+    post:
+      tags: [Decisions]
+      operationId: decide
+      summary: Policy decision. Fail closed. Default deny.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DecisionRequest'
+      responses:
+        '200':
+          description: A decision was reached (ALLOW or DENY). HTTP 200 is not an allow.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DecisionResponse'
+        '400':
+          $ref: '#/components/responses/Problem'
+  /internal/v1/identities/resolve:
+    post:
+      tags: [Identities]
+      operationId: resolveIdentity
+      summary: Map provider subject to a business identity after authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResolveIdentityRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResolvedIdentityResponse'
+          description: Business identity
+        '404':
+          $ref: '#/components/responses/Problem'
+  /internal/v1/partner-users:
+    post:
+      tags: [Administration]
+      operationId: submitPartnerUser
+      summary: Maker submits a partner business identity (PENDING until checker)
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/ActorId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePartnerUserRequest'
+      responses:
+        '202':
+          description: Pending checker
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmittedPartnerUserResponse'
+        '409':
+          $ref: '#/components/responses/Problem'
+  /internal/v1/partner-user-imports:
+    post:
+      tags: [Administration]
+      operationId: submitPartnerUserImport
+      summary: Maker submits a bulk partner import (slice A.4)
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/ActorId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkImportRequest'
+      responses:
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BulkImportResponse'
+          description: Import staged
+  /internal/v1/approval-requests/{approvalId}/approve:
+    post:
+      tags: [Administration]
+      operationId: approveRequest
+      summary: Checker approve. Maker cannot approve their own request.
+      parameters:
+        - name: approvalId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/ActorId'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApprovalResponse'
+          description: Approved; provisioning outbox written
+        '400':
+          $ref: '#/components/responses/Problem'
+  /internal/v1/approval-requests/{approvalId}/reject:
+    post:
+      tags: [Administration]
+      operationId: rejectRequest
+      summary: Checker reject (slice A.4 — missing in runtime today)
+      parameters:
+        - name: approvalId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/ActorId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RejectRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApprovalResponse'
+          description: Rejected; no IdP provision
+        '400':
+          $ref: '#/components/responses/Problem'
+components:
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema: { type: string }
+    CorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: true
+      schema: { type: string }
+    ActorId:
+      name: X-Actor-Id
+      in: header
+      required: true
+      description: Authenticated maker or checker businessUserId. Never taken from the body.
+      schema: { type: string }
+  schemas:
+    Lob:
+      type: string
+      enum: [LIFE, HEALTH, GENERAL]
+    DecisionRequest:
+      type: object
+      required: [subjectId, action, resource, context]
+      additionalProperties: false
+      properties:
+        subjectId:
+          type: string
+          format: uuid
+        action:
+          type: string
+          description: Business permission, never a URL (e.g. proposal.submit)
+        resource:
+          $ref: '#/components/schemas/Resource'
+        context:
+          $ref: '#/components/schemas/DecisionContext'
+    Resource:
+      type: object
+      required: [type]
+      additionalProperties: false
+      properties:
+        type: { type: string }
+        id: { type: string }
+        branchCode: { type: string }
+        insurerCode: { type: string }
+        ownerId: { type: string }
+        assignedUserIds:
+          type: array
+          items: { type: string }
+        sharedWithPartner:
+          type: boolean
+          default: false
+        regulatedAction:
+          type: boolean
+          default: false
+    DecisionContext:
+      type: object
+      required: [lob, correlationId]
+      additionalProperties: false
+      properties:
+        channel: { type: string }
+        correlationId: { type: string }
+        lob:
+          $ref: '#/components/schemas/Lob'
+        journeyStage: { type: string }
+    DecisionResponse:
+      type: object
+      required: [effect, reasonCode, matchedPolicy, policyVersion]
+      additionalProperties: false
+      properties:
+        effect:
+          type: string
+          enum: [ALLOW, DENY]
+        reasonCode:
+          type: string
+          description: UC-05 catalogue (ROLE_GRANT, DEFAULT_DENY, ASSIST_ONLY_ACTOR, …)
+        matchedPolicy: { type: string }
+        policyVersion:
+          type: integer
+          format: int64
+    ResolveIdentityRequest:
+      type: object
+      required: [provider, providerSubject, userType, username]
+      additionalProperties: false
+      properties:
+        provider: { type: string }
+        providerSubject: { type: string }
+        userType:
+          type: string
+          enum: [BANK_EMPLOYEE, INSURER_REPRESENTATIVE]
+        username: { type: string }
+        email: { type: string }
+        employeeId: { type: string }
+    ResolvedIdentityResponse:
+      type: object
+      required: [businessUserId, status, policyVersion, userType]
+      additionalProperties: false
+      properties:
+        businessUserId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [PENDING, ACTIVE, SUSPENDED, DISABLED, EXPIRED]
+        policyVersion:
+          type: integer
+          format: int64
+        userType:
+          type: string
+          enum: [BANK_EMPLOYEE, INSURER_REPRESENTATIVE]
+        insurerCode:
+          type: string
+          nullable: true
+    CreatePartnerUserRequest:
+      type: object
+      required: [username, email, insurerCode]
+      additionalProperties: false
+      properties:
+        username: { type: string }
+        email: { type: string, format: email }
+        firstName: { type: string }
+        lastName: { type: string }
+        insurerCode: { type: string }
+    SubmittedPartnerUserResponse:
+      type: object
+      required: [businessUserId, approvalId, status]
+      additionalProperties: false
+      properties:
+        businessUserId:
+          type: string
+          format: uuid
+        approvalId:
+          type: string
+          format: uuid
+        status: { type: string }
+    BulkImportRequest:
+      type: object
+      required: [insurerCode, objectKey, checksum]
+      additionalProperties: false
+      properties:
+        insurerCode: { type: string }
+        objectKey: { type: string }
+        checksum: { type: string }
+    BulkImportResponse:
+      type: object
+      required: [importId, approvalId, status]
+      additionalProperties: false
+      properties:
+        importId:
+          type: string
+          format: uuid
+        approvalId:
+          type: string
+          format: uuid
+        status: { type: string }
+    RejectRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        reason: { type: string }
+    ApprovalResponse:
+      type: object
+      required: [approvalId, targetStatus]
+      additionalProperties: false
+      properties:
+        approvalId:
+          type: string
+          format: uuid
+        targetStatus: { type: string }
+    ServiceErrorResponse:
+      type: object
+      required: [type, title, status, detail, category, code]
+      properties:
+        type: { type: string, format: uri }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        category: { type: string }
+        code: { type: string }
+        correlationId: { type: string }
+      additionalProperties: false
+  responses:
+    Problem:
+      description: RFC 7807 problem+json (ADR-017)
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ServiceErrorResponse'

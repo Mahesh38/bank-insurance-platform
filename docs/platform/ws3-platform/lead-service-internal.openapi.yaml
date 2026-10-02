@@ -8,9 +8,10 @@ info:
     Flutter and public internet never call these paths.
     Public consumer edge remains nip-bff-lead-phase.openapi.yaml (EPIC-003).
     Status: AI-DRAFTED — human Board 1 / Security signatures outstanding.
-    Create actors per D-018 / ADR-021: Bank SP, Bank Non-SP, Insurance RM.
-    Every create requires assignedRmId = Bank RM with valid SP cert (INV-LED-10).
-    Insurance RM create is design-complete; runtime gated on OPEN-COMP-LEAD-IPR-CREATE.
+    Create actors per D-018 / ADR-021: Bank SP, Bank Non-SP, Insurance RM (etc.).
+    D-019 sequence: create first (SP optional), then POST .../assignments with mandatory
+    certified-SP AU Bank RM + optional meeting. Validation engine outcomes: PASS / BLOCK /
+    APPROVAL_REQUIRED (exceptionHold). OPEN-LEAD-DUP-DELETE and OPEN-LEAD-VAL-TIMING open.
 servers:
   - url: http://lead-service.platform.svc.cluster.local
     description: Cluster DNS (illustrative)
@@ -77,9 +78,9 @@ paths:
       operationId: createLead
       summary: Create a Lead and spawn a Journey reference
       description: |
-        Mints leadId (ULID), runs ALG-DEDUPE, enforces INV-LED-04/05/10 (workforce creator +
-        mandatory certified-SP assignee), spawns Journey. Idempotent via Idempotency-Key.
-        Insurer/plan are not accepted on create (BR-LEAD-005).
+        Mints leadId (ULID), runs ALG-DEDUPE, optional exception evaluation, spawns Journey.
+        SP assignee is NOT required here (D-019) — use POST .../assignments next.
+        Idempotent via Idempotency-Key. Insurer/plan are not accepted on create (BR-LEAD-005).
       parameters:
         - $ref: '#/components/parameters/IdempotencyKey'
       requestBody:
@@ -90,7 +91,7 @@ paths:
               $ref: '#/components/schemas/CreateLeadRequest'
       responses:
         '201':
-          description: Lead created
+          description: Lead created (check exceptionHold)
           content:
             application/json:
               schema:
@@ -132,10 +133,11 @@ paths:
     post:
       tags: [Leads]
       operationId: assignLead
-      summary: Assign or reassign ownership before BI
+      summary: Assign certified-SP AU Bank RM (and optional meeting) after create
       description: |
-        Rejected after biGenerated (BR-REASSIGN-001 / VAL-016).
-        Attribution/SLA semantics remain OPEN-D1; history is always appended.
+        D-019 / INV-LED-10. Required before suitability / process-further.
+        Optional meeting intent: Online|In-person, date, time, link (Lead BRD Screen 7).
+        accountableSpId written once on first successful assignment (INV-ACT-03).
       parameters:
         - $ref: '#/components/parameters/LeadId'
       requestBody:
@@ -324,7 +326,7 @@ components:
       enum: [DIARY, ELIGIBLE]
     CreateLeadRequest:
       type: object
-      required: [customerId, lob, productClass, branchId, assignedRmId]
+      required: [customerId, lob, productClass, branchId]
       properties:
         customerId:
           type: string
@@ -336,14 +338,19 @@ components:
         branchId:
           type: string
           description: Branch context for ownership and reporting.
-        assignedRmId:
+        resumeExisting:
+          type: boolean
+          default: false
+          description: When dedupe conflicts, resume the existing lead instead of creating.
+        replaceExistingLeadId:
           type: string
           description: |
-            Mandatory certified-SP Bank RM (D-018 / INV-LED-10). Bank SP creators may
-            pass their own principal id. Non-SP and Insurance RM must select one.
-        assignedSpId:
-          type: string
-          description: When the role flow distinguishes SP from RM fulfiller (BRD §15).
+            Product intent (D-019) — close existing unfinished lead and create new.
+            Gated by OPEN-LEAD-DUP-DELETE (Lead BRD Table 18 currently forbids this when BI absent).
+        evaluateExceptions:
+          type: boolean
+          default: true
+          description: Run validation/exception engine (OPEN-LEAD-VAL-TIMING).
         correlationId:
           type: string
           description: End-to-end correlation for audit.
@@ -354,13 +361,35 @@ components:
       properties:
         assignedRmId:
           type: string
+          description: Mandatory certified-SP AU Bank RM (IRDAI Specified Person).
         assignedSpId:
           type: string
+          description: When role flow distinguishes SP from fulfiller (BRD §15).
         branchId:
           type: string
         note:
           type: string
           maxLength: 250
+        meeting:
+          $ref: '#/components/schemas/MeetingIntent'
+      additionalProperties: false
+    MeetingIntent:
+      type: object
+      description: Optional post-create meeting capture (Lead BRD Screen 7). Not meeting completion.
+      properties:
+        type:
+          type: string
+          enum: [ONLINE, IN_PERSON]
+        date:
+          type: string
+          format: date
+        time:
+          type: string
+          description: Local time; must be within 08:00–20:00 when present.
+        link:
+          type: string
+          format: uri
+          description: Required when type=ONLINE.
       additionalProperties: false
     CloseLeadRequest:
       type: object
@@ -474,20 +503,33 @@ components:
           type: string
         assignedRmId:
           type: string
+          nullable: true
+          description: Null after create until assignment screen completes (D-019).
         assignedSpId:
           type: string
           nullable: true
         accountableSpId:
           type: string
+          nullable: true
+          description: Set once on first successful SP assignment (INV-ACT-03).
         state:
           $ref: '#/components/schemas/LeadState'
         activityStatus:
           type: string
           nullable: true
+        exceptionHold:
+          type: boolean
+          description: True when validation engine required approval (AUBIMA hold).
+        exceptionRuleIds:
+          type: array
+          items:
+            type: string
         biGenerated:
           type: boolean
         reportingClass:
           $ref: '#/components/schemas/ReportingClass'
+        meetingIntent:
+          $ref: '#/components/schemas/MeetingIntent'
         journeyId:
           type: string
           nullable: true

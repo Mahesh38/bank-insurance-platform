@@ -137,8 +137,11 @@ dependencies:
     - "OPEN-D1"
   external: []
   decision_dependency:
-    - "D-018" # OPEN-LEAD-ACTOR closed
+    - "D-018"
+    - "D-019"
     - "OPEN-COMP-LEAD-IPR-CREATE"
+    - "OPEN-LEAD-DUP-DELETE"
+    - "OPEN-LEAD-VAL-TIMING"
     - "OPEN-LEAD-STAGE"
     - "OPEN-LEAD-DUP"
     - "OPEN-D1"

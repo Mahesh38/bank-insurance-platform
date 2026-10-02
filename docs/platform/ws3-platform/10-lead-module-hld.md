@@ -11,7 +11,8 @@
 
 Design the **Lead Management module** as bounded context **#5** for R0, traced from
 [`Lead_Module_BRD_Detailed_CONTEXT.md`](../../au-bank-insurance-platform/requirements/brd-detailed/Lead_Module_BRD_Detailed_CONTEXT.md),
-without treating the request as a greenfield rewrite of already-admitted artefacts.
+refined by Product `D-018` / `D-019`, without treating the request as a greenfield rewrite of
+already-admitted artefacts.
 
 | Artefact | Role in this pack |
 |---|---|
@@ -28,11 +29,28 @@ algorithms the BFF must call.
 ## 2. Governing outcomes (from BRD §2–§3, platform-aligned)
 
 1. One Lead record per Life sales opportunity on-platform (`AC-8`).
-2. Collaborative visibility between Bank SP and Insurance RM; create by workforce creators with mandatory certified-SP RM assignee (`D-018`).
-3. Prevent the same creating principal from holding two unfinished leads for the same customer + product type (`BR-DEDUPE-*`, `OPEN-LEAD-DUP`).
+2. Collaborative visibility between Bank SP and Insurance RM; workforce create then **mandatory** certified-SP assignment (`D-018` / `D-019`).
+3. Prevent unfinished same-creator + customer + productClass duplicates (`BR-DEDUPE-*`); Product vs BRD delete option is `OPEN-LEAD-DUP-DELETE`.
 4. Save for later or continue into suitability; insurer/plan unknown at create (`BR-LEAD-005`).
 5. Reporting eligibility (Diary → Eligible) only after first successful BI (`BR-BI-*`).
 6. Complete audit history; no PII in logs (standing constraint).
+
+### 2.1 Canonical R0 sequence (`D-019`)
+
+```text
+Search ETB customer → select productClass
+        → ALG-DEDUPE (creator bucket)
+        → Validation / Exception engine (Block | Hold-for-approval | Pass)  [OPEN-LEAD-VAL-TIMING]
+        → CREATE Lead (leadId minted; SP may still be unset)
+        → ASSIGNMENT screen: mandatory certified-SP AU Bank RM
+              + optional meeting (type / date / time / link)  [Lead BRD Screen 7 capture]
+        → Save & Close  OR  Proceed (only AU SP or Insurance RM/FLS may process further)
+```
+
+| Capability | Who |
+|---|---|
+| Create Lead + run dedupe/validation + assign SP (+ optional meeting) | Any allowed workforce role (RM / SM / FLS / Bank SP / Non-SP / Insurance RM) per `D-018` |
+| Process further (suitability → …) | **AU employee with IRDAI SP certification** **or** Insurance company RM/FLS (`INV-ACT-01` / assist rules; IPR regulated actions still Board-6 aware) |
 
 ---
 
@@ -72,7 +90,9 @@ Standing constraints that apply: bank apps never call DB or 1SB directly; Flutte
 | Customer search Cust ID / mobile / PAN | **IN** (BFF — EPIC-003 / ARCH-025) | EPIC-003 |
 | Customer confirm with masked mobile/email | **IN** (BFF) | EPIC-003 |
 | Product need: Term / Savings / ULIP | **IN** (Term + Savings/ULIP per CR-015) | CR-015 / EPIC-004 |
-| Role-specific assignment RM / SP / Non-SP | **IN** — create by Bank SP / Non-SP / Insurance RM; must assign certified-SP Bank RM (`D-018`) | `ADR-021`, INV-LED-04/10; IPR runtime gated Board 6 |
+| Role-specific assignment RM / SP / Non-SP | **IN** — create first, then assign certified-SP AU Bank RM (`D-019`) | `ADR-021`, INV-LED-04/10 |
+| Optional meeting capture (type/date/time/link) | **IN** (Lead BRD Screen 7; no SMS delivery) | BRD §9.9; SMS stays BOOT-deferred |
+| Exception / validation engine (CASA, policy counts, …) | **IN as seam** to Exception Handling (AUBIMA); outcomes Block or Hold-for-approval | Exception BRD; `OPEN-LEAD-VAL-TIMING` |
 | Platform Lead ID | **IN** (ULID `leadId`, ID-01) | ADR-014; OPEN-LEAD-DISPLAY closed as omit sequential labels |
 | Dedupe user+customer+product | **IN** (algorithm DOC-023) | BR-DEDUPE; OPEN-LEAD-DUP |
 | Save & Close / continue to suitability | **IN** | BR-LEAD-003/004 |
@@ -108,10 +128,11 @@ Canonical fields (logical — physical DDL is Aarti's pack):
 | `createdByPrincipalId` | Actual originator (`BR-OWN-002`) |
 | `leadGeneratorPrincipalId` | Reporting generator (may differ for Non-SP if admitted) |
 | `fulfillerPrincipalId` | Current fulfiller (SP or RM per Product) |
-| `assignedRmId` / `assignedSpId` | Working owners |
+| `assignedRmId` / `assignedSpId` | Working owners — **required before further processing** (`INV-LED-10`); may be null briefly after create until assignment completes |
 | `branchId` | Branch context |
-| `accountableSpId` | Immutable certified Bank RM assigned at create (`INV-ACT-03`, `D-018`) — not necessarily `createdBy` |
-| `state` | Domain machine: NEW → … → CONVERTED / DISQUALIFIED / EXPIRED → ARCHIVED |
+| `accountableSpId` | Immutable certified AU Bank SP RM set when assignment completes (`INV-ACT-03`, `D-019`) |
+| `state` | Domain machine including hold for exception approval |
+| `exceptionHold` | When validation returns approval-required: lead exists but journey locked until AUBIMA final approve |
 | `activityStatus` | Configurable disposition before BI (`BRD §14.2`) |
 | `biGenerated` | Boolean; first successful BI |
 | `reportingClass` | `DIARY` \| `ELIGIBLE` |
@@ -140,9 +161,11 @@ Events (from domain catalogue): `OpportunityCreated` / Lead created, assignment 
 
 | ID | Conflict | Owner | Design |
 |---|---|---|---|
-| **OPEN-LEAD-ACTOR** | **CLOSED 2026-09-30 — `D-018` / `ADR-021`.** Workforce creators (Bank SP, Non-SP, Insurance RM) may create; must assign certified-SP Bank RM | Rajal (closed) · Mahesh (structure) | INV-LED-04/10 amended; see §4 R0 cut |
-| **OPEN-COMP-LEAD-IPR-CREATE** | May Insurance RM (IPR) invoke create, or is that solicitation? | Shailja (Board 6) | Contracts include IPR create; **runtime enablement blocked** until Board 6 confirms |
-| **OPEN-LEAD-STAGE** | BRD §14 ladder vs domain Lead machine + Journey refs | Rajal + BA + Mahesh | Lead owns pre-BI + QUALIFIED + terminal; post-quote labels are projections from Journey/Proposal/Policy |
+| **OPEN-LEAD-ACTOR** | **CLOSED** — `D-018` / `ADR-021` | Rajal | Workforce create; SP assignee required before process-further |
+| **OPEN-LEAD-DUP-DELETE** | Product (`D-019`): allow **delete existing + create new** or continue. Lead BRD Screen 6 Table 18: when BI absent, **Continue or Cancel only** — Delete must not be available | Rajal must confirm which wins | Interim design docs show **both options** labelled Product-intent; implementers must not ship Delete until this OPEN closes |
+| **OPEN-LEAD-VAL-TIMING** | Product: run validation engine at create/dedupe. Exception BRD §6.2: **Save does not evaluate**; Start Onboarding does | Rajal + BA (Exception) | Design a Lead→AUBIMA evaluation port; default wiring TBD until OPEN closes. Rule catalogue (CASA 30d, policy counts) stays in Exception BRD / config — not hard-coded in Lead |
+| **OPEN-COMP-LEAD-IPR-CREATE** | IPR create vs solicitation | Shailja | Runtime gated |
+| **OPEN-LEAD-STAGE** | BRD §14 ladder vs domain Lead machine | Rajal + BA + Mahesh | Lead owns pre-BI + QUALIFIED + terminal; post-quote projections |
 | **OPEN-LEAD-DUP** | Force-duplicate / “update and continue” in wireframes | Rajal | No force flag; `409` + resume (`07` LLD) |
 | **OPEN-LEAD-XRM** | Visibility of another RM’s active lead | Rajal + Shailja | Absent for caller (EPIC-003) |
 | **OPEN-D1** | Reassignment: SLA reset + conversion attribution | Rajal + BA | Store history; attribution follows current generator per BR-OWN-003 *provisionally* until OPEN-D1 closes |
@@ -160,7 +183,7 @@ Events (from domain catalogue): `OpportunityCreated` / Lead created, assignment 
 | Lead Service | **This pack** — Lead #5 |
 | Quote API | Quotation #10 via Hub; BI success callback/event into Lead |
 | Insurance Status API | Proposal/Policy + Hub — not Lead writer for insurer codes |
-| Notification Service | R0: assignment events only; meeting SMS/email deferred |
+| Exception Handling (AUBIMA) | Validation / exception engine — Block or approval hold; Lead does not own rule config |
 | Audit / Logging | Audit #16; no PII |
 
 ---

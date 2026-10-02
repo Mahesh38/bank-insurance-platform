@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20261002-lfs | 2026-10-02 | human:Rajal | Lead flow: create then assign SP+meeting; dedupe continue/delete; validation engine block-or-approve; process further = AU SP or Insurance RM/FLS | SF2 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [D-019](../../au-bank-insurance-platform/DECISION-LOG.md) · [EPIC-005](../../platform/ws3-platform/EPIC-005.work-item.yaml) · [detail](#sug-20261002-lfs--lead-create-dedupe-validation-assign-meeting) |
 | SUG-20260930-ola | 2026-09-30 | human:Rajal | OPEN-LEAD-ACTOR: Lead may be created by anyone (workforce); post-create must assign certified-SP RM | SF2 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [D-018](../../au-bank-insurance-platform/DECISION-LOG.md) · [ADR-021](../../platform/architecture-review/08-architecture-decision-log.md) · [EPIC-005](../../platform/ws3-platform/EPIC-005.work-item.yaml) · [detail](#sug-20260930-ola--lead-create-by-workforce--mandatory-sp-assignee) |
 | SUG-20260930-lmd | 2026-09-30 | human:architect | Create complete Lead module design docs (HLD, sequences, API, flows, algorithms) from Lead BRD | SF5 | SC0 | SHOULD | ARCH | P3 / P1 | ADMITTED | [EPIC-005](../../platform/ws3-platform/EPIC-005.work-item.yaml) · [PLAN-007](../plans/PLAN-007-lead-module-design-pack.md) · [HLD](../../platform/ws3-platform/10-lead-module-hld.md) · [detail](#sug-20260930-lmd--lead-module-design-pack-from-brd) |
 | SUG-20260930-osl | 2026-09-30 | scan:trivy | CVE-2026-84782 (HIGH) on openssl/libssl3 3.0.2-0ubuntu1.29 in eclipse-temurin:21-jre-jammy fails Phase-1 image scans; upgrade to 3.0.2-0ubuntu1.30 | SF0 | SC1 | MUST | SEC | P1 / P1 | ADMITTED | [persistence Dockerfile](../../../services/bank-persistence-service/Dockerfile) · [combined Dockerfile](../../../Dockerfile) · [detail](#sug-20260930-osl--openssl-cve-2026-84782) |
@@ -207,6 +208,80 @@ outcome:
   status: ADMITTED
 
 resumed: "PR #130 CI failures — Spotless, Knowledge Hub, two Trivy image scans."
+```
+
+### SUG-20261002-lfs · Lead create → dedupe/validation → assign SP + meeting
+
+```yaml
+# schema: triage-record
+id: SUG-20261002-lfs
+raised_at: "2026-10-02"
+raised_by: "human:Rajal"
+source: "Product review of EPIC-005 Lead design pack vs BRD/Figma"
+input: >
+  As per BRD and Figma lead creation happens first and then lead is assigned to the SP.
+  When RM/SP search for customer and select product class, dedup runs in same person's
+  bucket; if exist popup: delete existing and create new OR continue with existing.
+  At dedup time validation engine also runs (e.g. new CASA in 30 days, >5 policies) —
+  block or create-and-hold for manager/team approval; RM/SP can proceed via those options.
+  After successful create, assign SP (AU employee IRDAI certified); assignment also allows
+  meeting date, in-person/online, meeting link per Figma. Anyone RM/SM/FLS can create and
+  assign to SP; further processing requires AU employee SP or Insurance company RM/FLS.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  active_work_item: EPIC-005
+  state_as_of: "2026-09-30"
+
+stage_fit:
+  code: SF2
+  absorption_test:
+    small: true
+    no_new_dependency: false  # Exception Handling / AUBIMA seam named
+    no_new_decision: false    # D-019 + two OPEN conflicts
+    gate_neutral: true
+  rationale: "Refines in-flight EPIC-005 / D-018 sequence and seams; no GATE-S08 delay."
+
+scope:
+  code: SC0
+  authority: "Lead BRD DOC-005 · Exception Handling BRD · D-018 · Figma reference D-012"
+  serves: ["EPIC-005", "S11-E02"]
+
+necessity:
+  now: MUST
+  evidence_tier: E1
+  evidence:
+    - "Human Product clarification 2026-10-02"
+    - "Lead BRD §9.8–9.9, §11"
+    - "Exception Handling BRD §6–7 (CASA / policy integrations EH-INT-001/004)"
+  confidence: C4
+
+action: ADMIT
+action_rationale: >
+  Absorb into EPIC-005. Record D-019 for sequence and process-role split. Raise
+  OPEN-LEAD-DUP-DELETE (Product delete option vs Lead BRD Table 18 confirmed rule) and
+  OPEN-LEAD-VAL-TIMING (Product evaluate-at-create vs Exception BRD save-does-not-evaluate).
+  Optional meeting *capture* admitted from Lead BRD Screen 7; SMS delivery stays deferred;
+  SUG-20260907-fig Health/ULIP tabs remain parked.
+duplicate_of: null
+conflicts:
+  - "Lead BRD Screen 6 Table 18: no Delete when BI absent — Product asks delete-or-continue → OPEN-LEAD-DUP-DELETE"
+  - "Exception BRD §6.2: Save does not evaluate; Start Onboarding does — Product asks evaluate at create/dedupe → OPEN-LEAD-VAL-TIMING"
+  - "BOOT/PARKED meeting scheduler vs Lead BRD optional meeting capture → carve capture into EPIC-005; keep SMS out"
+
+classification:
+  type: ARCH
+  also: [FUNC, COMP]
+  risk_tier: T3
+
+priority:
+  priority_now: P2
+  priority_at_target: P1
+
+work_item_id: EPIC-005
+product_decision: D-019
+opens: [OPEN-LEAD-DUP-DELETE, OPEN-LEAD-VAL-TIMING]
 ```
 
 ### SUG-20260930-ola · Lead create by workforce + mandatory SP assignee

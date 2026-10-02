@@ -52,7 +52,7 @@ Catalogue product-classes stay on BFF → Catalogue; not Lead.
 
 ### 4.1 `POST /internal/v1/leads`
 
-Create Lead + spawn Journey ref.
+Create Lead after dedupe resolution. **Does not require SP assignee** (`D-019`) — assignment is a follow-on call.
 
 **Request (logical):**
 
@@ -62,15 +62,16 @@ Create Lead + spawn Journey ref.
   "lob": "LIFE",
   "productClass": "TERM",
   "branchId": "BR…",
-  "assignedRmId": "certified-SP-Bank-RM",
-  "assignedSpId": "when-required-by-role-flow",
+  "resumeExisting": false,
+  "replaceExistingLeadId": null,
+  "evaluateExceptions": true,
   "correlationId": "…"
 }
 ```
 
-**Guards:** `INV-LED-04/05/10`, ALG-DEDUPE, PDP `opportunity.create`, assignee SP cert.
+**Guards:** `INV-LED-04`, ALG-DEDUPE, ValidationEngine (timing `OPEN-LEAD-VAL-TIMING`).
 
-**Responses:** `201` LeadCreated · `409` duplicate · `403` ORIGINATION_ACTOR_DENIED · `422` ASSIGNEE_SP_REQUIRED / validation.
+**Responses:** `201` LeadCreated (possibly `exceptionHold`) · `409` duplicate · `422` VALIDATION_BLOCKED · `403` ORIGINATION_ACTOR_DENIED.
 
 ### 4.2 `GET /internal/v1/leads/{leadId}`
 
@@ -78,31 +79,39 @@ Returns Lead; `404` if outside caller visibility (`INV-LED-07` / book scope) —
 
 ### 4.3 `GET /internal/v1/leads`
 
-Query: `owner`, `customerId`, `productClass`, `unfinished`, `states`, `cursor`, `limit`.
+Query: `owner`, `customerId`, `productClass`, `unfinished`, `exceptionHold`, `states`, `cursor`, `limit`.
 
-### 4.4 `POST /internal/v1/leads/{leadId}/assignments`
+### 4.4 `POST /internal/v1/leads:evaluate`
 
-Body: target SP/RM/branch. Reject if `biGenerated` (`VAL-016` / `BR-REASSIGN-001`).
+Optional probe — runs validation engine without minting a lead.
 
-### 4.5 `POST /internal/v1/leads/{leadId}/close`
+### 4.5 `POST /internal/v1/leads/{leadId}/assignments`
+
+Mandatory certified-SP AU Bank RM (`INV-LED-10`). Optional meeting intent (type/date/time/link). Sets `accountableSpId` once (`INV-ACT-03`). Reject reassignment after BI (`VAL-016`).
+
+### 4.6 `POST /internal/v1/leads/{leadId}/close`
 
 Body: `reasonCode`, `remarks?` (max 250). Terminal. No reopen.
 
-### 4.6 `POST /internal/v1/leads/{leadId}/bi-generated`
+### 4.7 `POST /internal/v1/leads/{leadId}/bi-generated`
 
 Body: `biReference`, `occurredAt`. Idempotent first-BI transition.
 
-### 4.7 `POST /internal/v1/leads/{leadId}/convert`
+### 4.8 `POST /internal/v1/leads/{leadId}/convert`
 
 Body: `journeyId`, `policyId`, `paymentId`. Guard `INV-LED-02`.
 
-### 4.8 `POST /internal/v1/leads/{leadId}/archive`
+### 4.9 `POST /internal/v1/leads/{leadId}/archive`
 
 Explicit archive when already terminal; may be combined with convert handler.
 
-### 4.9 `POST /internal/v1/leads/{leadId}/activity-status`
+### 4.10 `POST /internal/v1/leads/{leadId}/activity-status`
 
 Set configurable disposition while stage remains pre-BI (`BRD §14.2`). `CUSTOMER_NOT_INTERESTED` triggers close path.
+
+### 4.11 Exception hold release (event)
+
+`POST /internal/v1/leads/{leadId}/exception-hold` from AUBIMA — `{ action: RELEASE|REJECT, ruleIds }` — clears or hard-blocks held leads.
 
 ---
 
@@ -111,7 +120,9 @@ Set configurable disposition while stage remains pre-BI (`BRD §14.2`). `CUSTOME
 | Code | HTTP | BRD / INV |
 |---|---|---|
 | `ORIGINATION_ACTOR_DENIED` | 403 | INV-LED-04 / INV-LED-09 |
-| `ASSIGNEE_SP_REQUIRED` | 422 | INV-LED-10 / `D-018` |
+| `ASSIGNEE_SP_REQUIRED` | 422 | INV-LED-10 / `D-019` (process-further or incomplete assignment) |
+| `VALIDATION_BLOCKED` | 422 | Exception engine direct block |
+| `EXCEPTION_HOLD_ACTIVE` | 409 | Held lead cannot process further |
 | `CUSTOMER_NOT_IN_BOOK` | 422 | INV-LED-05 |
 | `LOB_NOT_CERTIFIED` | 422 | INV-LED-05 |
 | `RM_NOT_CERTIFIED` | 422 | INV-LED-03 |

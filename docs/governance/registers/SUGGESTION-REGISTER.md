@@ -43,6 +43,8 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20261002-iap | 2026-10-02 | human:Mahesh | Design LLD + Confluence pack for workforce authn/authz: justify identity-provider-adapter-service and PDP vs Keycloak-only; implementation-ready process | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [ARCH-029](../../platform/authentication-authorization/ARCH-029.work-item.yaml) · [PLAN-008](../plans/PLAN-008-authn-authz-lld.md) · [LLD](../../platform/authentication-authorization/AUTHN-AUTHZ-LLD.md) · [ADR-022](../../platform/architecture-review/08-architecture-decision-log.md) · [detail](#sug-20261002-iap--authnauthz-lld-adapter-and-pdp-vs-keycloak) |
+| SUG-20261002-psr | 2026-10-02 | agent:cursor (persona: Mahesh) | PARTNER_SR seed grants proposal.create and proposal.submit, contradicting IPR assist-only (ID-15b / VR-041) | SF1 | SC0 | MUST | BUG | P2 / P1 | ADMITTED | slice A.3 of [ARCH-029](../../platform/authentication-authorization/ARCH-029.work-item.yaml) · [detail](#sug-20261002-psr--partner_sr-seed-must-not-grant-regulated-sales) |
 | SUG-20260930-ola | 2026-09-30 | human:Rajal | OPEN-LEAD-ACTOR: Lead may be created by anyone (workforce); post-create must assign certified-SP RM | SF2 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [D-018](../../au-bank-insurance-platform/DECISION-LOG.md) · [ADR-021](../../platform/architecture-review/08-architecture-decision-log.md) · [EPIC-005](../../platform/ws3-platform/EPIC-005.work-item.yaml) · [detail](#sug-20260930-ola--lead-create-by-workforce--mandatory-sp-assignee) |
 | SUG-20260930-lmd | 2026-09-30 | human:architect | Create complete Lead module design docs (HLD, sequences, API, flows, algorithms) from Lead BRD | SF5 | SC0 | SHOULD | ARCH | P3 / P1 | ADMITTED | [EPIC-005](../../platform/ws3-platform/EPIC-005.work-item.yaml) · [PLAN-007](../plans/PLAN-007-lead-module-design-pack.md) · [HLD](../../platform/ws3-platform/10-lead-module-hld.md) · [detail](#sug-20260930-lmd--lead-module-design-pack-from-brd) |
 | SUG-20260930-osl | 2026-09-30 | scan:trivy | CVE-2026-84782 (HIGH) on openssl/libssl3 3.0.2-0ubuntu1.29 in eclipse-temurin:21-jre-jammy fails Phase-1 image scans; upgrade to 3.0.2-0ubuntu1.30 | SF0 | SC1 | MUST | SEC | P1 / P1 | ADMITTED | [persistence Dockerfile](../../../services/bank-persistence-service/Dockerfile) · [combined Dockerfile](../../../Dockerfile) · [detail](#sug-20260930-osl--openssl-cve-2026-84782) |
@@ -130,6 +132,223 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20261002-iap · authn/authz LLD, adapter and PDP vs Keycloak
+
+```yaml
+# schema: triage-record
+id: SUG-20261002-iap
+raised_at: "2026-10-02"
+raised_by: "human:Mahesh"
+source: "Act as Mahesh: start LLD and documentation of authentication and authorisation"
+input: >
+  Start working on the design LLD and documentation of authentication and
+  authorisation. Documents must justify the need for identity-provider-adapter-service
+  and the authorisation PDP. Is it needed if Keycloak is there? If yes, why.
+  If we can remove them, how, and is it good practice? Confluence-ready document
+  that gives the dev team a 100% implementation-ready process.
+
+context:
+  workstream: WS-2
+  current_phase: "Phase 1 — Foundation implementation"
+  canonical_stage: "L4/L6 — Foundation into first vertical slice"
+  current_objective: "IAM-P1"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: ARCH-029
+
+stage_fit:
+  code: SF1
+  rationale: >
+    WS-2 is on L4/L6 Foundation into first vertical slice. An implementation-ready
+    LLD for the adapter and PDP is on-stage for GATE-IAM-P1 A.2/A.3. Not Phase 2
+    IdP product selection. FreshnessCheck 2026-10-02 exit 0.
+
+scope:
+  code: SC0
+  business_scope: >
+    Explicit WS-2 in_scope: provider-neutral adapter, token-hiding BFF, PDP default-deny.
+  serves: ["GATE-IAM-P1 A.2", "GATE-IAM-P1 A.3", "IAM-P1"]
+  failure_without_it: >
+    Implementers either collapse into Keycloak (standing-constraint violation) or
+    invent contracts that Flutter/BFF cannot consume.
+  minimal: true
+  authority: "CURRENT-STATE WS-2 · authentication-authorization/README.md · ARCH-018..021"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "WS-2 Phase 1 GATE-IAM-P1"
+  binds_when: "A.2 Keycloak isolated behind adapter; A.3 PDP default-deny verified"
+  failure_without_it: >
+    Implementers collapse into Keycloak or invent BFF/PDP contracts that violate
+    standing constraints and cannot evidence GATE-IAM-P1 A.2/A.3.
+  evidence_tier: E2
+  evidence:
+    - "BOOT WS-2 objective and standing constraint Keycloak is not business authz SoT"
+    - "ARCH-018, ARCH-020, ARCH-021 accepted"
+    - "GATE-IAM-P1 A.2 and A.3 OPEN"
+    - "UC-05 PDP algorithm"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT
+action_rationale: >
+  SF1 x MUST = ADMIT. Score 2N+2S+2B+2R+D-E = 4+4+2+2+1-1 = 12 → P2 (band P2–P3).
+  Not a duplicate of SUG-20260914-idp (AD-verify / Fireframe chrome) or
+  SUG-20260818-4c3 (WS-3 justification pack). Documents only; RG-9 considered
+  (serves OPEN gate, no G1–G10 delta) — still T3 because it publishes an ADR
+  that forbids collapse. G1 considered, did not fire (RG-6).
+duplicate_of: null
+conflicts: []
+
+classification:
+  type: ARCH
+  also: [DOC]
+  breakdown: STORY
+  epic: null
+  risk_tier: T3
+  destination: "docs/platform/authentication-authorization/ARCH-029.work-item.yaml"
+
+priority:
+  now: P2
+  at_target: P1
+  factors: { N: 2, S: 2, B: 1, R: 1, D: 1, E: 1 }
+  score: 12
+  matrix_default: P2
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "GATE-IAM-P1 cannot be evidenced without a written adapter/PDP contract"
+
+dependencies:
+  edges:
+    - { type: ARCHITECTURAL, target: ARCH-018, relation: requires, state: DONE }
+    - { type: ARCHITECTURAL, target: ARCH-021, relation: requires, state: DONE }
+    - { type: DECISION, target: ADR-020, relation: requires, state: OPEN }
+  state: READY
+  enablement_count: 1
+  earliest_start: "now"
+  cycles: none
+
+breakdown:
+  children: ["SUG-20261002-psr"]
+  completion_definition: "LLD + OpenAPI + ADR-022 drafted; runtime is later GATE slices"
+  not_included:
+    - "Runtime Java"
+    - "Human T4 signatures"
+    - "Production IdP selection"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: ARCH-029
+  plan_id: PLAN-008
+  status: ADMITTED
+  closed_reason: null
+
+resumed: "ARCH-029 — this intake is the work item for the lane."
+```
+
+### SUG-20261002-psr · PARTNER_SR seed must not grant regulated sales
+
+```yaml
+# schema: triage-record
+id: SUG-20261002-psr
+raised_at: "2026-10-02"
+raised_by: "agent:cursor (persona: Mahesh)"
+source: "Found while writing ARCH-029 LLD against V2__seed_role_permission_catalog.sql"
+input: >
+  PARTNER_SR role_permission rows grant proposal.create and proposal.submit.
+  ID-15b / VR-041 / ADR-004 say IPR is assist-only and must never receive a
+  regulated sales action.
+
+context:
+  workstream: WS-2
+  current_phase: "Phase 1 — Foundation implementation"
+  canonical_stage: "L4/L6 — Foundation into first vertical slice"
+  current_objective: "IAM-P1"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: ARCH-029
+
+stage_fit:
+  code: SF1
+  rationale: "Default-deny / assist-only is GATE-IAM-P1 A.3. Seed is on-stage."
+
+scope:
+  code: SC0
+  business_scope: "WS-2 authorization model; IPR must not sell"
+  serves: ["GATE-IAM-P1 A.3", "ID-15b", "VR-041"]
+  failure_without_it: "A passing PDP test against seed would allow IPR proposal.submit"
+  minimal: true
+  authority: "ADR-004 · UC-05 VR-041 · AUTHN-AUTHZ-LLD §7.7"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "WS-2 Phase 1 slice A.3"
+  binds_when: "PDP default-deny verification"
+  failure_without_it: "A passing PDP test against seed would allow IPR proposal.submit"
+  evidence_tier: E2
+  evidence:
+    - "services/identity-authorization-service/.../V2__seed_role_permission_catalog.sql PARTNER_SR rows"
+    - "UC-05 outcome 8 ASSIST_ONLY_ACTOR"
+  confidence: C5
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT
+action_rationale: >
+  Real seed defect. Do not fix in the LLD turn (suggestion not implemented when
+  raised). Schedule as ARCH-029 slice A.3. Score 2*2+2*2+2*1+2*1+1-0 = 13 → P2.
+duplicate_of: null
+conflicts: []
+
+classification:
+  type: BUG
+  also: []
+  breakdown: TASK
+  epic: null
+  risk_tier: T3
+  destination: "AUTHN-AUTHZ-LLD.md §10.4 slice A.3"
+
+priority:
+  now: P2
+  at_target: P1
+  factors: { N: 2, S: 2, B: 1, R: 1, D: 1, E: 0 }
+  score: 13
+  matrix_default: P2
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "Violates assist-only; GATE A.3 cannot be green while seed grants selling"
+
+dependencies:
+  edges:
+    - { type: ARCHITECTURAL, target: ARCH-029, relation: related_to, state: IN-FLIGHT }
+  state: READY
+  enablement_count: 0
+  earliest_start: "after ARCH-029 LLD merged; implement in A.3"
+  cycles: none
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: ARCH-029
+  plan_id: PLAN-008
+  status: ADMITTED
+  closed_reason: null
+
+resumed: "ARCH-029 — seed fix is slice A.3, not this documentation change."
+```
 
 ### SUG-20260930-osl · openssl CVE-2026-84782
 
@@ -255,6 +474,7 @@ necessity:
   now: MUST
   future_necessity: MUST
   evidence_tier: E1
+  failure_without_it: "Lead contracts contradict Product behaviour SSOT (DOC-005)"
   evidence:
     - "Human Product decision in chat 2026-09-30"
     - "Lead_Module_BRD_Detailed §5/§8"
@@ -283,16 +503,23 @@ classification:
   risk_tier: T3
 
 priority:
+  now: P2
+  at_target: P1
   score: 16
   factors: {N: 4, S: 1, B: 1, R: 2, D: 2, E: 1}
-  priority_now: P2
-  priority_at_target: P1
 
-work_item_id: EPIC-005
-plan: PLAN-007
-product_decision: D-018
-architecture_decision: ADR-021
-compliance_open: OPEN-COMP-LEAD-IPR-CREATE
+dependencies:
+  edges:
+    - { type: ARCHITECTURAL, target: EPIC-005, relation: related_to, state: IN-FLIGHT }
+  state: READY
+  enablement_count: 0
+  earliest_start: "now"
+  cycles: none
+
+outcome:
+  work_item_id: EPIC-005
+  plan_id: PLAN-007
+  status: ADMITTED
 ```
 
 ### SUG-20260930-lmd · Lead module design pack from BRD
@@ -316,7 +543,6 @@ context:
   state_as_of: "2026-09-13"
   state_provisional: false
   active_work_item: null
-  freshness: "WARN — state_as_of 17d; DEPENDENCY-REGISTER 16d (disclose; admit allowed)"
 
 stage_fit:
   code: SF5
@@ -381,19 +607,26 @@ classification:
   also: [DOC]
   breakdown: EPIC
   risk_tier: T3
-  rg9_cap_applied: false
 
 priority:
+  now: P3
+  at_target: P1
   score: 11
   factors: {N: 2, S: 2, B: 0, R: 2, D: 1, E: 2}
-  priority_now: P3
-  priority_at_target: P1
   matrix_default: P3
-  override: null
 
-work_item_id: EPIC-005
-plan: PLAN-007
-stories: [ARCH-026, ARCH-027, ARCH-028, DOC-023]
+dependencies:
+  edges:
+    - { type: ARCHITECTURAL, target: EPIC-003, relation: related_to, state: IN-FLIGHT }
+  state: READY
+  enablement_count: 0
+  earliest_start: "now"
+  cycles: none
+
+outcome:
+  work_item_id: EPIC-005
+  plan_id: PLAN-007
+  status: ADMITTED
 ```
 
 ### SUG-20260930-cif · Change-specific CI triggers

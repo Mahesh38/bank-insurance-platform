@@ -676,4 +676,4 @@ id_allocation:
     # ADR-017 was added by the 2026-08-27 platform error contract round (SUG-20260827-err), and
     # EPIC-001 by the same round. ID-allocation correction only. No stage, scope or gate field is
     # touched by it; those remain human-owned (04 section 5).
-    ADR: 22        # ADR-001..020 in use; ADR-021 = Lead create by workforce creators with mandatory certified-SP RM assignee (D-018 / SUG-20260930-ola, 2026-09-30). Next unused is 22. ID-allocation only.
+    ADR: 23        # ADR-001..022 in use; ADR-022 = keep identity adapter + PDP, do not collapse into Keycloak (SUG-20261002-iap, 2026-10-02). Next unused is 23. ID-allocation only.

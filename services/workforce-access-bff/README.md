@@ -9,7 +9,7 @@ Evaluate this contract against [`docs/figma/`](../../docs/figma/README.md) and t
 [Login BFF vs Figma evaluation](../../docs/au-bank-insurance-platform/requirements/LOGIN-BFF-FIGMA-EVALUATION.md).
 Behaviour SSOT is the [Login BRD](../../docs/au-bank-insurance-platform/requirements/brd-detailed/Login_Module_BRD_Detailed_CONTEXT.md).
 
-See [`docs/platform/authentication-authorization/README.md`](../../docs/platform/authentication-authorization/README.md).
+See [`docs/platform/authentication-authorization/README.md`](../../docs/platform/authentication-authorization/README.md) and the [LLD pack](../../docs/platform/authentication-authorization/AUTHN-AUTHZ-LLD.md).
 
 ```bash
 ./gradlew :services:workforce-access-bff:test

@@ -258,6 +258,7 @@ necessity:
     - "Human Product clarification 2026-10-02"
     - "Lead BRD §9.8–9.9, §11"
     - "Exception Handling BRD §6–7 (CASA / policy integrations EH-INT-001/004)"
+  failure_without_it: "EPIC-005 Lead create/dedupe/assign sequence contradicts Product clarification and Exception Handling BRD"
   confidence: C4
 
 action: ADMIT
@@ -276,15 +277,22 @@ conflicts:
 classification:
   type: ARCH
   also: [FUNC, COMP]
+  breakdown: STORY
   risk_tier: T3
 
 priority:
-  priority_now: P2
-  priority_at_target: P1
+  now: P2
+  at_target: P1
 
-work_item_id: EPIC-005
-product_decision: D-019
-opens: [OPEN-LEAD-DUP-DELETE, OPEN-LEAD-VAL-TIMING]
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 1
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: EPIC-005
+  status: ADMITTED
 ```
 
 Amended 2026-10-03 by [`SUG-20261003-brf`](#sug-20261003-brf--brd-wins-dedupe-exception-timing--sequence):
@@ -322,13 +330,24 @@ scope:
 necessity:
   now: MUST
   evidence_tier: E2
+  failure_without_it: "UAT cannot exercise Term/ULIP/Savings without fail-before-1SB validation"
   confidence: C4
 action: ADMIT
 classification:
   type: FUNC
+  breakdown: STORY
+  risk_tier: T2
 priority:
   now: P2
   at_target: P1
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 1
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: FUNC-028
+  status: ADMITTED
 ```
 
 Work item: FUNC-028. Fail-closed remainder implemented on the same item. Items that need 1SB working configuration or a product-form engine were split to `SUG-20261003-svg`.
@@ -373,9 +392,25 @@ action: PARK
 action_rationale: "Do not invent a complete proposal payload or hard-code questionnaire groups; FUNC-028 already closed fail-closed hub gaps"
 classification:
   type: FUNC
+  breakdown: STORY
+  risk_tier: T2
 priority:
   now: P4
   at_target: P1
+dependencies:
+  edges:
+    - type: EXTERNAL
+      target: "1SB demo complete Saving proposal + Gate Criteria POST"
+      relation: blocked_by
+      state: PARKED
+      owner: "1SB"
+      follow_up: "2026-10-31"
+  state: PARKED-DEPENDENT
+  parked_because: "Guide evidence boundary — complete proposal and Gate POST unverified"
+outcome:
+  registered_in: "registers/PARKED-BACKLOG.md"
+  work_item_id: null
+  status: PARKED
 ```
 
 Related: `SUG-20260913-hms` (hub masters), `SUG-20260913-fnd` (ULIP funds 404). Do not re-propose those.
@@ -423,6 +458,7 @@ necessity:
     - "Human Product clarification 2026-10-03 — BRD is correct"
     - "Lead BRD Screen 6 Table 18; §11 dedupe key"
     - "Exception Handling BRD — Save does not evaluate; Start Onboarding does"
+  failure_without_it: "EPIC-005 would keep OPEN-LEAD-DUP-DELETE and OPEN-LEAD-VAL-TIMING against DOC-005"
   confidence: C5
 
 action: ADMIT
@@ -436,15 +472,22 @@ conflicts: []
 classification:
   type: ARCH
   also: [DOC]
+  breakdown: STORY
   risk_tier: T3
 
 priority:
-  priority_now: P2
-  priority_at_target: P1
+  now: P2
+  at_target: P1
 
-work_item_id: EPIC-005
-product_decision: D-019
-closes: [OPEN-LEAD-DUP-DELETE, OPEN-LEAD-VAL-TIMING]
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 1
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: EPIC-005
+  status: ADMITTED
 ```
 
 ### SUG-20260930-ola · Lead create by workforce + mandatory SP assignee
@@ -496,6 +539,7 @@ necessity:
   evidence:
     - "Human Product decision in chat 2026-09-30"
     - "Lead_Module_BRD_Detailed §5/§8"
+  failure_without_it: "Lead contracts contradict Product behaviour SSOT (DOC-005)"
   confidence: C5
   anti_over_engineering:
     X1_named_consumer: true
@@ -509,6 +553,7 @@ action_rationale: >
   draft ADR-021, update design pack. Interpret "anyone" as BRD workforce creators (not DIY/MIS).
   Escalate Insurance RM create permissibility to Board 6 (OPEN-COMP-LEAD-IPR-CREATE) — do not
   waive Compliance. Score: N=4 S=1 B=1 R=2 D=2 E=1 → 16 → P2 (matrix SF2+MUST absorb → ADMIT).
+  Product decision D-018; architecture decision ADR-021.
 duplicate_of: null
 conflicts:
   - "ADR-005 previously rejected IPR-create-then-adopt as solicitation → OPEN-COMP-LEAD-IPR-CREATE"
@@ -523,14 +568,19 @@ classification:
 priority:
   score: 16
   factors: {N: 4, S: 1, B: 1, R: 2, D: 2, E: 1}
-  priority_now: P2
-  priority_at_target: P1
+  now: P2
+  at_target: P1
 
-work_item_id: EPIC-005
-plan: PLAN-007
-product_decision: D-018
-architecture_decision: ADR-021
-compliance_open: OPEN-COMP-LEAD-IPR-CREATE
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 1
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: EPIC-005
+  plan_id: PLAN-007
+  status: ADMITTED
 ```
 
 ### SUG-20260930-lmd · Lead module design pack from BRD
@@ -554,7 +604,6 @@ context:
   state_as_of: "2026-09-13"
   state_provisional: false
   active_work_item: null
-  freshness: "WARN — state_as_of 17d; DEPENDENCY-REGISTER 16d (disclose; admit allowed)"
 
 stage_fit:
   code: SF5
@@ -619,19 +668,28 @@ classification:
   also: [DOC]
   breakdown: EPIC
   risk_tier: T3
-  rg9_cap_applied: false
 
 priority:
   score: 11
   factors: {N: 2, S: 2, B: 0, R: 2, D: 1, E: 2}
-  priority_now: P3
-  priority_at_target: P1
+  now: P3
+  at_target: P1
   matrix_default: P3
-  override: null
 
-work_item_id: EPIC-005
-plan: PLAN-007
-stories: [ARCH-026, ARCH-027, ARCH-028, DOC-023]
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 1
+
+breakdown:
+  children: [ARCH-026, ARCH-027, ARCH-028, DOC-023]
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: EPIC-005
+  plan_id: PLAN-007
+  status: ADMITTED
+
 recurrence_count: 2
 ```
 

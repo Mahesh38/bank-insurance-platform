@@ -8,9 +8,11 @@ info:
     Flutter and public internet never call these paths.
     Public consumer edge remains nip-bff-lead-phase.openapi.yaml (EPIC-003).
     Status: AI-DRAFTED — human Board 1 / Security signatures outstanding.
-    Create actors per D-018 / ADR-021: Bank SP, Bank Non-SP, Insurance RM.
-    Every create requires assignedRmId = Bank RM with valid SP cert (INV-LED-10).
-    Insurance RM create is design-complete; runtime gated on OPEN-COMP-LEAD-IPR-CREATE.
+    Create actors per D-018 / ADR-021: Bank SP, Bank Non-SP, Insurance RM (etc.).
+    D-019 (BRD-aligned): dedupe → Save/create (no exception eval) → Start Onboarding
+    (PASS / BLOCK / APPROVAL_REQUIRED) → assignments (mandatory certified-SP AU Bank RM
+    + optional meeting). Dedupe when BI absent: Continue | Cancel only (Table 18).
+    OPEN-LEAD-DUP-DELETE and OPEN-LEAD-VAL-TIMING CLOSED in favour of BRDs.
 servers:
   - url: http://lead-service.platform.svc.cluster.local
     description: Cluster DNS (illustrative)
@@ -48,6 +50,11 @@ paths:
           description: When true, only leads with biGenerated=false and non-terminal state.
           schema:
             type: boolean
+        - name: exceptionHold
+          in: query
+          description: When true, only leads awaiting Exception / AUBIMA approval release.
+          schema:
+            type: boolean
         - name: cursor
           in: query
           description: Opaque continuation token from a previous page.
@@ -75,11 +82,13 @@ paths:
     post:
       tags: [Leads]
       operationId: createLead
-      summary: Create a Lead and spawn a Journey reference
+      summary: Save a Lead (no exception evaluation)
       description: |
-        Mints leadId (ULID), runs ALG-DEDUPE, enforces INV-LED-04/05/10 (workforce creator +
-        mandatory certified-SP assignee), spawns Journey. Idempotent via Idempotency-Key.
-        Insurer/plan are not accepted on create (BR-LEAD-005).
+        Mints leadId (ULID), runs ALG-DEDUPE, spawns Journey reference.
+        Exception BRD: Save does NOT evaluate rules — call start-onboarding next.
+        SP assignee is NOT required here — call assignments after exception clear.
+        Idempotent via Idempotency-Key. Insurer/plan are not accepted on create (BR-LEAD-005).
+        Dedupe conflict: Continue existing or Cancel — no replace/soft-delete (Table 18).
       parameters:
         - $ref: '#/components/parameters/IdempotencyKey'
       requestBody:
@@ -90,7 +99,7 @@ paths:
               $ref: '#/components/schemas/CreateLeadRequest'
       responses:
         '201':
-          description: Lead created
+          description: Lead saved — Start Onboarding next
           content:
             application/json:
               schema:
@@ -102,7 +111,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ServiceErrorResponse'
         '409':
-          description: LEAD_DUPLICATE_UNFINISHED — resume existing
+          description: LEAD_DUPLICATE_UNFINISHED — Continue existing or Cancel
           content:
             application/problem+json:
               schema:
@@ -132,10 +141,12 @@ paths:
     post:
       tags: [Leads]
       operationId: assignLead
-      summary: Assign or reassign ownership before BI
+      summary: Assign certified-SP AU Bank RM (and optional meeting) after exception clear
       description: |
-        Rejected after biGenerated (BR-REASSIGN-001 / VAL-016).
-        Attribution/SLA semantics remain OPEN-D1; history is always appended.
+        D-019 / INV-LED-10. Requires Start Onboarding evaluated and exceptionHold=false.
+        Required before suitability / process-further.
+        Optional meeting intent: Online|In-person, date, time, link (Lead BRD Screen 7).
+        accountableSpId written once on first successful assignment (INV-ACT-03).
       parameters:
         - $ref: '#/components/parameters/LeadId'
       requestBody:
@@ -151,6 +162,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Lead'
+        '409':
+          description: EXCEPTION_HOLD_ACTIVE or ONBOARDING_NOT_STARTED
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ServiceErrorResponse'
         '422':
           description: REASSIGN_AFTER_BI or certification failure
           content:
@@ -273,6 +290,89 @@ paths:
                 $ref: '#/components/schemas/Lead'
         '409':
           $ref: '#/components/responses/Problem'
+  /internal/v1/leads/{leadId}:start-onboarding:
+    post:
+      tags: [Leads]
+      operationId: startOnboarding
+      summary: Start Onboarding — run Exception / validation engine
+      description: |
+        Exception BRD: evaluation runs here, not on Save. Outcomes PASS | BLOCK |
+        APPROVAL_REQUIRED (sets exceptionHold). Assignment and Suitability gated
+        until PASS or hold RELEASE.
+      parameters:
+        - $ref: '#/components/parameters/LeadId'
+      responses:
+        '200':
+          description: Cleared or held Lead
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Lead'
+        '422':
+          description: VALIDATION_BLOCKED
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ServiceErrorResponse'
+        '409':
+          $ref: '#/components/responses/Problem'
+  /internal/v1/leads:evaluate:
+    post:
+      tags: [Leads]
+      operationId: evaluateLeadExceptions
+      summary: Probe Exception / validation engine without mutating a lead
+      description: |
+        Optional diagnostic probe (same rule catalogue as Start Onboarding).
+        Returns PASS | BLOCK | APPROVAL_REQUIRED with ruleIds. Does not persist hold.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [customerId, productClass]
+              properties:
+                customerId:
+                  type: string
+                productClass:
+                  $ref: '#/components/schemas/ProductClass'
+                lob:
+                  $ref: '#/components/schemas/Lob'
+              additionalProperties: false
+      responses:
+        '200':
+          description: Validation verdict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationVerdict'
+        '422':
+          $ref: '#/components/responses/Problem'
+  /internal/v1/leads/{leadId}/exception-hold:
+    post:
+      tags: [Leads]
+      operationId: applyExceptionHold
+      summary: Release or reject an exception hold (AUBIMA callback)
+      description: |
+        Cluster-private callback from Exception Handling. RELEASE clears hold;
+        REJECT hard-blocks / closes the held treatment. Lead does not own approver hierarchy.
+      parameters:
+        - $ref: '#/components/parameters/LeadId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExceptionHoldRequest'
+      responses:
+        '200':
+          description: Updated Lead
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Lead'
+        '409':
+          $ref: '#/components/responses/Problem'
 components:
   parameters:
     LeadId:
@@ -324,7 +424,7 @@ components:
       enum: [DIARY, ELIGIBLE]
     CreateLeadRequest:
       type: object
-      required: [customerId, lob, productClass, branchId, assignedRmId]
+      required: [customerId, lob, productClass, branchId]
       properties:
         customerId:
           type: string
@@ -336,14 +436,10 @@ components:
         branchId:
           type: string
           description: Branch context for ownership and reporting.
-        assignedRmId:
-          type: string
-          description: |
-            Mandatory certified-SP Bank RM (D-018 / INV-LED-10). Bank SP creators may
-            pass their own principal id. Non-SP and Insurance RM must select one.
-        assignedSpId:
-          type: string
-          description: When the role flow distinguishes SP from RM fulfiller (BRD §15).
+        resumeExisting:
+          type: boolean
+          default: false
+          description: When dedupe conflicts, resume the existing lead instead of creating.
         correlationId:
           type: string
           description: End-to-end correlation for audit.
@@ -354,13 +450,35 @@ components:
       properties:
         assignedRmId:
           type: string
+          description: Mandatory certified-SP AU Bank RM (IRDAI Specified Person).
         assignedSpId:
           type: string
+          description: When role flow distinguishes SP from fulfiller (BRD §15).
         branchId:
           type: string
         note:
           type: string
           maxLength: 250
+        meeting:
+          $ref: '#/components/schemas/MeetingIntent'
+      additionalProperties: false
+    MeetingIntent:
+      type: object
+      description: Optional post-create meeting capture (Lead BRD Screen 7). Not meeting completion.
+      properties:
+        type:
+          type: string
+          enum: [ONLINE, IN_PERSON]
+        date:
+          type: string
+          format: date
+        time:
+          type: string
+          description: Local time; must be within 08:00–20:00 when present.
+        link:
+          type: string
+          format: uri
+          description: Required when type=ONLINE.
       additionalProperties: false
     CloseLeadRequest:
       type: object
@@ -474,20 +592,36 @@ components:
           type: string
         assignedRmId:
           type: string
+          nullable: true
+          description: Null after create until assignment screen completes (D-019).
         assignedSpId:
           type: string
           nullable: true
         accountableSpId:
           type: string
+          nullable: true
+          description: Set once on first successful SP assignment (INV-ACT-03).
         state:
           $ref: '#/components/schemas/LeadState'
         activityStatus:
           type: string
           nullable: true
+        exceptionEvaluated:
+          type: boolean
+          description: True after Start Onboarding has run Exception evaluation.
+        exceptionHold:
+          type: boolean
+          description: True when Start Onboarding required approval (AUBIMA hold).
+        exceptionRuleIds:
+          type: array
+          items:
+            type: string
         biGenerated:
           type: boolean
         reportingClass:
           $ref: '#/components/schemas/ReportingClass'
+        meetingIntent:
+          $ref: '#/components/schemas/MeetingIntent'
         journeyId:
           type: string
           nullable: true
@@ -503,6 +637,34 @@ components:
         updatedAt:
           type: string
           format: date-time
+      additionalProperties: false
+    ValidationVerdict:
+      type: object
+      required: [outcome]
+      properties:
+        outcome:
+          type: string
+          enum: [PASS, BLOCK, APPROVAL_REQUIRED]
+        ruleIds:
+          type: array
+          items:
+            type: string
+          description: Triggered Exception Handling rule identifiers.
+      additionalProperties: false
+    ExceptionHoldRequest:
+      type: object
+      required: [action]
+      properties:
+        action:
+          type: string
+          enum: [RELEASE, REJECT]
+        ruleIds:
+          type: array
+          items:
+            type: string
+        remarks:
+          type: string
+          maxLength: 250
       additionalProperties: false
     ServiceErrorResponse:
       type: object

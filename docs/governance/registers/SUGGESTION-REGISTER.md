@@ -43,15 +43,17 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20261003-brf | 2026-10-03 | human:Rajal | BRD wins: dedupe key user+customer+productType+BI; no delete when BI absent; Save does not evaluate — Start Onboarding does; flow dedupe→create→exception→assign SP | SF2 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [D-019](../../au-bank-insurance-platform/DECISION-LOG.md) · [EPIC-005](../../platform/ws3-platform/EPIC-005.work-item.yaml) · [detail](#sug-20261003-brf--brd-wins-dedupe-exception-timing--sequence) |
+| SUG-20261002-lfs | 2026-10-02 | human:Rajal | Lead flow: create then assign SP+meeting; dedupe continue/delete; validation engine block-or-approve; process further = AU SP or Insurance RM/FLS | SF2 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [D-019](../../au-bank-insurance-platform/DECISION-LOG.md) · [EPIC-005](../../platform/ws3-platform/EPIC-005.work-item.yaml) · [detail](#sug-20261002-lfs--lead-create-dedupe-validation-assign-meeting) · amended by [SUG-20261003-brf](#sug-20261003-brf--brd-wins-dedupe-exception-timing--sequence) |
 | SUG-20260930-ola | 2026-09-30 | human:Rajal | OPEN-LEAD-ACTOR: Lead may be created by anyone (workforce); post-create must assign certified-SP RM | SF2 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [D-018](../../au-bank-insurance-platform/DECISION-LOG.md) · [ADR-021](../../platform/architecture-review/08-architecture-decision-log.md) · [EPIC-005](../../platform/ws3-platform/EPIC-005.work-item.yaml) · [detail](#sug-20260930-ola--lead-create-by-workforce--mandatory-sp-assignee) |
-| SUG-20260930-lmd | 2026-09-30 | human:architect | Create complete Lead module design docs (HLD, sequences, API, flows, algorithms) from Lead BRD | SF5 | SC0 | SHOULD | ARCH | P3 / P1 | ADMITTED | [EPIC-005](../../platform/ws3-platform/EPIC-005.work-item.yaml) · [PLAN-007](../plans/PLAN-007-lead-module-design-pack.md) · [HLD](../../platform/ws3-platform/10-lead-module-hld.md) · [detail](#sug-20260930-lmd--lead-module-design-pack-from-brd) |
+| SUG-20260930-lmd | 2026-09-30 | human:architect | Create complete Lead module design docs (HLD, sequences, API, flows, algorithms) from Lead BRD | SF5 | SC0 | SHOULD | ARCH | P3 / P1 | ADMITTED | [EPIC-005](../../platform/ws3-platform/EPIC-005.work-item.yaml) · [PLAN-007](../plans/PLAN-007-lead-module-design-pack.md) · [HLD](../../platform/ws3-platform/10-lead-module-hld.md) · [detail](#sug-20260930-lmd--lead-module-design-pack-from-brd) · recurrence_count 2 (2026-10-03: same ask — pack exists; deepen BI/close/convert; do not restart from scratch) |
 | SUG-20260930-osl | 2026-09-30 | scan:trivy | CVE-2026-84782 (HIGH) on openssl/libssl3 3.0.2-0ubuntu1.29 in eclipse-temurin:21-jre-jammy fails Phase-1 image scans; upgrade to 3.0.2-0ubuntu1.30 | SF0 | SC1 | MUST | SEC | P1 / P1 | ADMITTED | [persistence Dockerfile](../../../services/bank-persistence-service/Dockerfile) · [combined Dockerfile](../../../Dockerfile) · [detail](#sug-20260930-osl--openssl-cve-2026-84782) |
 | SUG-20260930-cif | 2026-09-30 | human:repository-owner | Make CI change-specific: docs-only must not trigger CodeQL Java or container scans; heavy jobs before merge, not every push | SF5 | SC1 | SHOULD | INFRA | P3 / P2 | ADMITTED | [PLAN-006](../plans/PLAN-006-ci-change-specific-triggers.md) · [detail](#sug-20260930-cif--change-specific-ci-triggers) |
 | SUG-20260929-dbr | 2026-09-29 | human:repository-owner | Daily sign-off PR must also give, for every pending human sign-off, an AIGEM suggested decision (approve / approve with conditions / approve after validation / reject / defer) with context, justification and reasons both ways | SF5 | SC1 | SHOULD | GOV | P3 / P2 | ADMITTED | [generator](../../../scripts/governance/decision_briefs.py) · [detail](#sug-20260929-dbr--decision-briefs-on-the-daily-sign-off-pr) |
 | SUG-20260929-jdb | 2026-09-29 | scan:trivy | CVE-2026-68497 (HIGH) on jackson-databind 2.21.4 from the Spring Boot 3.5.16 BOM fails SCA and all three image scans; pin jackson-bom 2.21.7 | SF0 | SC1 | MUST | SEC | P1 / P1 | ADMITTED | [build.gradle.kts](../../../build.gradle.kts) · [detail](#sug-20260929-jdb--jackson-databind-cve-2026-68497) |
 | SUG-20260929-dsp | 2026-09-29 | human:repository-owner | Schedule a daily governance + freshness check and generated-state refresh; AIGEM seats must unanimously concur; open a PR each day for human review and sign-off that highlights every pending human decision and approval | SF5 | SC1 | SHOULD | GOV | P3 / P2 | ADMITTED | [workflow](../../../.github/workflows/governance-daily.yml) · [report](../autopilot/DAILY-SIGNOFF.md) · [detail](#sug-20260929-dsp--daily-aigem-sign-off-pr) |
 | SUG-20260928-jvo | 2026-09-28 | human:stakeholder | This repository holds Java code only; no client app source; evaluate BFF against Figma as the frontend reference | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [DOC-006](../../au-bank-insurance-platform/DECISION-LOG.md) · [Figma](../../figma/README.md) · [Login BFF vs Figma](../../au-bank-insurance-platform/requirements/LOGIN-BFF-FIGMA-EVALUATION.md) · [detail](#sug-20260928-jvo--java-only-repository-bff-vs-figma) |
-| SUG-20260928-brd | 2026-09-28 | human:Rajal | Treat September 2026 detailed module BRD pack as source of truth; realign repo docs; do not assume TBDs or silent conflict resolution | SF1 | SC0 | MUST | DOC | P2 / P1 | ADMITTED | [DOC-005](../../au-bank-insurance-platform/DECISION-LOG.md) · [pack](../../au-bank-insurance-platform/requirements/brd-detailed/README.md) · [alignment](../../au-bank-insurance-platform/requirements/BRD-ALIGNMENT-2026-09-28.md) · [detail](#sug-20260928-brd--rajal-detailed-brd-pack-as-module-ssot) |
+| SUG-20260928-brd | 2026-09-28 | human:Rajal | Treat September 2026 detailed module BRD pack as source of truth; realign repo docs; do not assume TBDs or silent conflict resolution | SF1 | SC0 | MUST | DOC | P2 / P1 | ADMITTED | [DOC-005](../../au-bank-insurance-platform/DECISION-LOG.md) · [pack](../../au-bank-insurance-platform/requirements/brd-detailed/README.md) · [alignment](../../au-bank-insurance-platform/requirements/BRD-ALIGNMENT-2026-09-28.md) · [detail](#sug-20260928-brd--rajal-detailed-brd-pack-as-module-ssot) · recurrence_count 2 (2026-10-03 re-upload: nine CONTEXT files byte-identical; Lead/Exception opens closed by `SUG-20261003-brf`, not by re-upload) |
 | SUG-20260923-scs | 2026-09-23 | human:architect | NIP BFF SCR-03 search-customer contract: Customer ID / PAN / mobile; lead-first then CBS via Apigee; one stakeholder+dev doc | SF1 | SC0 | SHOULD | ARCH | P2 / P1 | ADMITTED | [ARCH-025](../../platform/ws3-platform/ARCH-025.work-item.yaml) · [PLAN-005](../plans/PLAN-005-nip-bff-customer-search-contract.md) · [contract](../../platform/ws3-platform/09-nip-bff-customer-search-contract.md) · [detail](#sug-20260923-scs--scr-03-customer-search-unified-contract) |
 | SUG-20260923-par | 2026-09-23 | human:stakeholder | Remove governance over-serialization: SF5 parallel lanes, evidence-based unpark, SG-2 CANDIDATE, RG-9 evidenced-blocker T4 relief, DEP-4 soft-default | SF1 | SC1 | MUST | GOV | P1 / P1 | ADMIT-BYPASS | [CR-016](../change-requests/CR-016-parallel-lanes-evidence-unpark.md) · [detail](#sug-20260923-par--parallel-lanes-and-evidence-unpark) |
 | SUG-20260915-pic | 2026-09-15 | human:Mahesh | First-review deck must be illustrated (RM, suitability, quote, proposal, pay, policy), with AWS/external service map and stack/saga — still a Dev/UAT design sitting, production evidence after UAT | SF1 | SC1 | MUST | DOC | P1 / P1 | ADMITTED | [WHAT-TO-SEND](../../architecture/arb-prerequisites/exports/WHAT-TO-SEND.md) · [detail](#sug-20260915-pic--illustrated-journey-and-stack) |
@@ -207,6 +209,151 @@ outcome:
   status: ADMITTED
 
 resumed: "PR #130 CI failures — Spotless, Knowledge Hub, two Trivy image scans."
+```
+
+### SUG-20261002-lfs · Lead create dedupe validation assign meeting
+
+```yaml
+# schema: triage-record
+id: SUG-20261002-lfs
+raised_at: "2026-10-02"
+raised_by: "human:Rajal"
+source: "Product review of EPIC-005 Lead design pack vs BRD/Figma"
+input: >
+  As per BRD and Figma lead creation happens first and then lead is assigned to the SP.
+  When RM/SP search for customer and select product class, dedup runs in same person's
+  bucket; if exist popup: delete existing and create new OR continue with existing.
+  At dedup time validation engine also runs (e.g. new CASA in 30 days, >5 policies) —
+  block or create-and-hold for manager/team approval; RM/SP can proceed via those options.
+  After successful create, assign SP (AU employee IRDAI certified); assignment also allows
+  meeting date, in-person/online, meeting link per Figma. Anyone RM/SM/FLS can create and
+  assign to SP; further processing requires AU employee SP or Insurance company RM/FLS.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  active_work_item: EPIC-005
+  state_as_of: "2026-09-30"
+
+stage_fit:
+  code: SF2
+  absorption_test:
+    small: true
+    no_new_dependency: false  # Exception Handling / AUBIMA seam named
+    no_new_decision: false    # D-019 + two OPEN conflicts
+    gate_neutral: true
+  rationale: "Refines in-flight EPIC-005 / D-018 sequence and seams; no GATE-S08 delay."
+
+scope:
+  code: SC0
+  authority: "Lead BRD DOC-005 · Exception Handling BRD · D-018 · Figma reference D-012"
+  serves: ["EPIC-005", "S11-E02"]
+
+necessity:
+  now: MUST
+  evidence_tier: E1
+  evidence:
+    - "Human Product clarification 2026-10-02"
+    - "Lead BRD §9.8–9.9, §11"
+    - "Exception Handling BRD §6–7 (CASA / policy integrations EH-INT-001/004)"
+  confidence: C4
+
+action: ADMIT
+action_rationale: >
+  Absorb into EPIC-005. Record D-019 for sequence and process-role split. Raise
+  OPEN-LEAD-DUP-DELETE (Product delete option vs Lead BRD Table 18 confirmed rule) and
+  OPEN-LEAD-VAL-TIMING (Product evaluate-at-create vs Exception BRD save-does-not-evaluate).
+  Optional meeting *capture* admitted from Lead BRD Screen 7; SMS delivery stays deferred;
+  SUG-20260907-fig Health/ULIP tabs remain parked.
+duplicate_of: null
+conflicts:
+  - "Lead BRD Screen 6 Table 18: no Delete when BI absent — Product asks delete-or-continue → OPEN-LEAD-DUP-DELETE"
+  - "Exception BRD §6.2: Save does not evaluate; Start Onboarding does — Product asks evaluate at create/dedupe → OPEN-LEAD-VAL-TIMING"
+  - "BOOT/PARKED meeting scheduler vs Lead BRD optional meeting capture → carve capture into EPIC-005; keep SMS out"
+
+classification:
+  type: ARCH
+  also: [FUNC, COMP]
+  risk_tier: T3
+
+priority:
+  priority_now: P2
+  priority_at_target: P1
+
+work_item_id: EPIC-005
+product_decision: D-019
+opens: [OPEN-LEAD-DUP-DELETE, OPEN-LEAD-VAL-TIMING]
+```
+
+Amended 2026-10-03 by [`SUG-20261003-brf`](#sug-20261003-brf--brd-wins-dedupe-exception-timing--sequence):
+both opens **CLOSED** in favour of Lead BRD Table 18 and Exception BRD Save-does-not-evaluate.
+Sequence becomes dedupe → create/Save → Start Onboarding (exception) → assign SP.
+
+### SUG-20261003-brf · BRD wins dedupe exception timing & sequence
+
+```yaml
+# schema: triage-record
+id: SUG-20261003-brf
+raised_at: "2026-10-03"
+raised_by: "human:Rajal"
+source: "Product clarification — do not override BRD; Exception BRD timing is correct"
+input: >
+  Dont override the BRD logic, BRD is correct.
+  1. BRD key is logged-in user + Customer ID + product type (TERM / SAVINGS / ULIP),
+     with BI as the release condition.
+  2. Exception BRD says Save does not evaluate; Start Onboarding does —
+     that timing conflict is OPEN-LEAD-VAL-TIMING.
+  so flow is dedupe → create → validation/exception → assign SP (+ optional meeting).
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  active_work_item: EPIC-005
+  state_as_of: "2026-09-30"
+
+stage_fit:
+  code: SF2
+  absorption_test:
+    small: true
+    no_new_dependency: true
+    no_new_decision: false  # closes two OPENs; amends D-019 sequence order
+    gate_neutral: true
+  rationale: "Closes OPEN conflicts on in-flight EPIC-005 by preferring DOC-005 BRDs."
+
+scope:
+  code: SC0
+  authority: "Lead BRD DOC-005 Table 18 / §11 · Exception Handling BRD §6.2 · D-019"
+  serves: ["EPIC-005", "S11-E02"]
+
+necessity:
+  now: MUST
+  evidence_tier: E1
+  evidence:
+    - "Human Product clarification 2026-10-03 — BRD is correct"
+    - "Lead BRD Screen 6 Table 18; §11 dedupe key"
+    - "Exception Handling BRD — Save does not evaluate; Start Onboarding does"
+  confidence: C5
+
+action: ADMIT
+action_rationale: >
+  Absorb into EPIC-005. Amend D-019 to dedupe → create/Save → Start Onboarding
+  (exception) → assign SP. Close OPEN-LEAD-DUP-DELETE (Table 18 — Continue|Cancel only)
+  and OPEN-LEAD-VAL-TIMING (Exception BRD wins). No soft-delete; no exception on Save.
+duplicate_of: null
+conflicts: []
+
+classification:
+  type: ARCH
+  also: [DOC]
+  risk_tier: T3
+
+priority:
+  priority_now: P2
+  priority_at_target: P1
+
+work_item_id: EPIC-005
+product_decision: D-019
+closes: [OPEN-LEAD-DUP-DELETE, OPEN-LEAD-VAL-TIMING]
 ```
 
 ### SUG-20260930-ola · Lead create by workforce + mandatory SP assignee
@@ -394,7 +541,14 @@ priority:
 work_item_id: EPIC-005
 plan: PLAN-007
 stories: [ARCH-026, ARCH-027, ARCH-028, DOC-023]
+recurrence_count: 2
 ```
+
+Recurrence 2026-10-03 (CS-2, not a new row): same architect ask as the original input.
+Design pack already admitted under `EPIC-005` / `PLAN-007` (PR #132 merged; PR #135 D-019 open).
+"From scratch" does **not** mean redesign EPIC-003 — continue the Lead-service pack only.
+Action: restore BI/close/convert/resume sequences and algorithms stubbed by the D-019 rewrite;
+add evaluate + exception-hold OpenAPI; keep OPEN Product conflicts for Rajal.
 
 ### SUG-20260930-cif · Change-specific CI triggers
 
@@ -954,7 +1108,15 @@ outcome:
   closed_reason: null
 
 resumed: "SUG-20260928-brd — no prior work item was in flight; this session opened with this input."
+recurrence_count: 2
 ```
+
+Recurrence 2026-10-03 (CS-2, not a new row): user re-uploaded the DOC-005 BRD Context Pack
+(9 CONTEXT + manifest + README + qa_report). All nine CONTEXT files are **byte-identical** to
+`docs/au-bank-insurance-platform/requirements/brd-detailed/` (same `source_sha256` /
+`context_sha256`). No BRD overwrite. The upload did **not** reopen Lead/Exception conflicts —
+`OPEN-LEAD-DUP-DELETE` and `OPEN-LEAD-VAL-TIMING` are **CLOSED** by `SUG-20261003-brf` /
+amended `D-019` (BRD wins) on the Lead design pack. Continuing with `EPIC-005`.
 
 ### SUG-20260928-jvo · Java-only repository; BFF vs Figma
 

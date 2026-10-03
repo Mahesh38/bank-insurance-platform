@@ -1,120 +1,169 @@
 # 13 — Lead flows and algorithms (R0)
 
-**Status:** `AI-DRAFTED` · T3 · human Board 1 / Product outstanding  
-**Origin:** `SUG-20260930-lmd` · `EPIC-005` · `DOC-023` · `PLAN-007`  
-**Rule fidelity:** BRD rule IDs cited. Conflicts → OPEN ids. Do not invent Product decisions.
+**Status:** `AI-DRAFTED` · T3 · human Board 1 outstanding  
+**Origin:** `SUG-20260930-lmd` · `SUG-20261002-lfs` · `SUG-20261003-brf` · `EPIC-005` · `DOC-023` · `D-019`  
+**Rule fidelity:** Lead BRD + Exception BRD win. Do not invent Product overrides of confirmed BRD rules.
 
 ---
 
-## 1. ALG-CREATE — lead creation (`D-018` / `ADR-021`)
+## 1. ALG-CREATE — Save Lead (no exception evaluation)
 
 ```
 function createLead(cmd, principal):
-  require isAllowedWorkforceCreator(principal)      # INV-LED-04 — Bank SP, Non-SP, Insurance RM
-  # IPR create: design allowed; runtime requires OPEN-COMP-LEAD-IPR-CREATE closed
+  require isAllowedWorkforceCreator(principal)      # INV-LED-04
   if principal.actorType == INSURER_PARTNER_REP:
-    require featureFlag.iprLeadCreateEnabled        # Board 6 gate
-  require cmd.assignedRmId present                  # INV-LED-10
-  assignee = loadPrincipal(cmd.assignedRmId)
-  require assignee.actorType == BANK_RM
-  require assignee.hasSpCert(cmd.lob)               # INV-LED-03/10
-  require customerInEtbBook(assignee, cmd.customerId)  # INV-LED-05 — book of accountable SP
+    require featureFlag.iprLeadCreateEnabled        # OPEN-COMP-LEAD-IPR-CREATE
   require cmd.lob == LIFE
   require cmd.productClass in {TERM, SAVINGS, ULIP}
-  require cmd.productClass coveredByCert(assignee)
 
+  # --- Dedupe (creator bucket) — Lead BRD §11 ---
   dup = ALG_DEDUPE(principal.id, cmd.customerId, cmd.productClass)
   if dup.blocked:
-    return Conflict(dup.existingLead)
+    if cmd.resumeExisting:
+      return Resume(dup.existingLead)
+    return Conflict(dup.existingLead)               # Continue | Cancel only (Table 18)
+    # replaceExisting / soft-delete: FORBIDDEN — OPEN-LEAD-DUP-DELETE CLOSED
 
+  # Exception BRD: Saving a lead does NOT evaluate rules
   leadId = newUlid()
   lead = Lead(
     leadId,
     customerId = cmd.customerId,
     lob = LIFE,
-    productClass = cmd.productClass,               # BR-LEAD-006 immutable
-    createdBy = principal.id,                       # BR-OWN-002 — actual originator
-    leadGenerator = resolveGenerator(principal, cmd),  # BRD §15 / BR-OWN
-    fulfiller = resolveFulfiller(principal, cmd),
-    assignedRmId = assignee.id,
-    assignedSpId = cmd.assignedSpId,                # when distinct per BRD
-    branchId = cmd.branchId,
-    accountableSpId = assignee.id,                  # INV-ACT-03 — certified SP at create
-    state = ASSIGNED,                               # create always assigns SP
-    activityStatus = null,
+    productClass = cmd.productClass,
+    createdBy = principal.id,                       # BR-OWN-002
+    leadGenerator = resolveGenerator(principal, cmd),
+    assignedRmId = null,                            # assign after exception clear
+    accountableSpId = null,
+    state = NEW,
+    exceptionHold = false,
+    exceptionEvaluated = false,
     biGenerated = false,
-    reportingClass = DIARY,                         # BRD §6.4
-    insurerId = null,                               # BR-LEAD-005
-    planId = null
+    reportingClass = DIARY,
+    insurerId = null
   )
-  journeyId = Journey.startFromLead(leadId)         # AC-8
+  journeyId = Journey.startFromLead(leadId)         # inert until Start Onboarding
   lead.journeyId = journeyId
   persist(lead)
   emit LeadCreated(...)
-  audit(LEAD_CREATED without PII)
-  return Created(lead)
+  return Created(lead)                              # next: Start Onboarding
 ```
-
-**BRD:** `BR-LEAD-001`…`006`, `BR-OWN-002`, §8 role flows. **Product:** `D-018`.
 
 ---
 
-## 2. ALG-DEDUPE — unfinished same principal + customer + product
-
-Key (BRD §11.1): `(userId, customerId, productType)` where `userId` = creating principal.
+## 2. ALG-DEDUPE — unfinished same creator + customer + product type
 
 ```
 function ALG_DEDUPE(userId, customerId, productClass):
-  candidates = findLeads(
-    createdOrOwnedBy = userId,
+  unfinished = findLeads(
+    createdOrOwnedBy = userId,                      # logged-in user — not system-wide
     customerId = customerId,
-    productClass = productClass,
+    productClass = productClass,                    # TERM | SAVINGS | ULIP — not Product ID
+    biGenerated = false,
     state not in TERMINAL_CLOSED_SET
   )
-  unfinished = [l for l in candidates if l.biGenerated == false]
   if unfinished is not empty:
-    return Blocked(existingLead = newest(unfinished))   # VAL-012
-  # biGenerated true → allow new lead (BR-DEDUPE table row 3)
+    return Blocked(existingLead = newest(unfinished))
   return Allow
 ```
 
-| Situation | Outcome | Source |
+| UI option | Lead BRD Screen 6 Table 18 | Status |
 |---|---|---|
-| Same user + customer + TERM + BI=No | Block + show existing | BRD §11 |
-| Same user + customer + TERM + BI=Yes | Allow new | BRD §11 |
-| Same user + customer + different productClass | Allow | BR-DEDUPE-001 |
-| Another user same customer + product | Allow create | BRD §11 |
-| Closed lead same key | Allow (still run unfinished check) | BRD §11 |
+| Continue with existing | Allowed | **Ship** |
+| Cancel / Close | Allowed | **Ship** |
+| Delete existing and create new | **Forbidden** when BI not generated | **CLOSED** — do not ship |
 
-Cross-RM **visibility** of the other user’s leadId to this caller: `OPEN-LEAD-XRM` (absent on search). Dedupe does not require seeing it.
-
-Force override: **not supported** (`OPEN-LEAD-DUP`).
+After `biGenerated=true`, dedupe does not block a fresh lead (`BR-DEDUPE`).
 
 ---
 
-## 3. ALG-ASSIGN — assignment / reassignment
+## 3. ALG-START-ONBOARDING — Exception / validation (after Save)
 
 ```
-function assign(leadId, target, actor):
+function startOnboarding(leadId, principal):
   lead = load(leadId)
   require not lead.isTerminal()
-  if lead.biGenerated:
-    reject REASSIGN_AFTER_BI                    # BR-REASSIGN-001, VAL-016
-  require PDP.allows(actor, assign, lead)
-  require targetHasValidSpCert(target, lead.lob)  # INV-LED-03 when target is RM/SP fulfiller
-  history.append(old → new, actor, ts)
-  applyOwnership(lead, target)                  # updates generator/fulfiller per Product
-  # OPEN-D1: whether SLA resets / who gets conversion credit — provisional:
-  # reporting credit follows current leadGenerator (BR-OWN-003)
-  emit AssignmentChanged
-  audit(ASSIGNMENT)
+  # Exception BRD: evaluation runs at Start Onboarding, not on Save
+  verdict = ValidationEngine.evaluate(
+    lead.customerId, lead.productClass, principal)
+  # verdict ∈ PASS | BLOCK | APPROVAL_REQUIRED {ruleIds}
+  # Examples (config, not hard-coded): new CASA within 30d (EH-INT-001);
+  #   policy count thresholds (EH-INT-004). Catalogue owned by Exception BRD.
+  lead.exceptionEvaluated = true
+  if verdict == BLOCK:
+    lead.exceptionHold = false
+    persist(lead)
+    return Blocked(verdict.ruleIds)                 # progression locked
+  if verdict == APPROVAL_REQUIRED:
+    lead.exceptionHold = true
+    lead.exceptionRuleIds = verdict.ruleIds
+    persist(lead)
+    emit LeadHeldForException(...)
+    return Held(lead)                               # assign + Suitability gated
+  lead.exceptionHold = false
+  lead.exceptionRuleIds = []
+  persist(lead)
+  return Cleared(lead)                              # proceed to Assignment
 ```
 
-R0 create path typically self-assigns the creating RM (NEW may skip ASSIGNED or auto-transition NEW→ASSIGNED).
+Lead stores hold; **approver hierarchy and remarks** are Exception Handling — not Lead.
 
 ---
 
-## 4. ALG-BI — first Benefit Illustration
+## 4. ALG-ASSIGN — after exception clear / release (+ optional meeting)
+
+```
+function assign(leadId, targetSpRmId, meeting?, actor):
+  lead = load(leadId)
+  require not lead.isTerminal()
+  require lead.exceptionEvaluated                   # Start Onboarding must have run
+  if lead.exceptionHold:
+    reject EXCEPTION_HOLD_ACTIVE                    # assign after release
+  if lead.biGenerated:
+    reject REASSIGN_AFTER_BI                        # BR-REASSIGN-001, VAL-016
+  require PDP.allows(actor, assign, lead)
+  assignee = loadPrincipal(targetSpRmId)
+  require assignee.actorType == BANK_RM
+  require assignee.hasSpCert(lead.lob)              # INV-LED-03/10 / IRDAI SP
+  require customerInEtbBook(assignee, lead.customerId)  # INV-LED-05
+  history.append(old → new, actor, ts)
+  lead.assignedRmId = assignee.id
+  # OPEN-D1: SLA reset / conversion credit — provisional BR-OWN-003 (current ownership)
+  if lead.accountableSpId is null:
+    lead.accountableSpId = assignee.id              # INV-ACT-03 write-once
+  lead.state = ASSIGNED
+  if meeting:
+    require meeting.type in {ONLINE, IN_PERSON}     # VAL-013…015
+    require meeting.date >= today
+    require meeting.time in [08:00, 20:00]
+    if meeting.type == ONLINE: require meeting.link
+    lead.meetingIntent = meeting                    # optional; BR-LEAD-003 allows omit
+  emit AssignmentChanged
+  audit(ASSIGNMENT)
+  return lead
+```
+
+All leads **must** receive this SP assignment before Suitability / regulated processing (`D-019`).
+
+---
+
+## 5. ALG-PROCESS-FURTHER gate
+
+```
+function mayProcessFurther(principal, lead):
+  if not lead.exceptionEvaluated: return false
+  if lead.exceptionHold: return false
+  if lead.assignedRmId is null or lead.accountableSpId is null: return false
+  if principal.actorType == BANK_RM and principal.hasSpCert(lead.lob): return true
+  if principal.actorType == INSURER_PARTNER_REP: return true  # assist path; regulated acts still INV-ACT-01/02
+  return false
+```
+
+Creators who are Non-SP may create/Save, Start Onboarding, assign, and Save & Close but cannot run Suitability themselves.
+
+---
+
+## 6. ALG-BI — first Benefit Illustration
 
 Handler for `POST /internal/v1/leads/{leadId}/bi-generated` (and the equivalent durable event).
 
@@ -122,13 +171,14 @@ Handler for `POST /internal/v1/leads/{leadId}/bi-generated` (and the equivalent 
 function markBiGenerated(leadId, biReference, occurredAt):
   lead = load(leadId)
   require not lead.isTerminal()
+  require not lead.exceptionHold                    # held leads cannot become Eligible
   if lead.biGenerated:
-    linkBi(leadId, biReference)                 # BR-BI-003/005 — no new lead
+    linkBi(leadId, biReference)                     # BR-BI-003/005 — no new lead
     return IdempotentOk
   # Only successful BI counts (BR-BI-001/002)
   lead.biGenerated = true
-  lead.reportingClass = ELIGIBLE                # BR-BI-004 Diary→Eligible
-  transition(lead, QUALIFIED)                   # domain; OPEN-LEAD-STAGE vs BRD "Quote Generated"
+  lead.reportingClass = ELIGIBLE                    # BR-BI-004 Diary→Eligible
+  transition(lead, QUALIFIED)                       # domain; OPEN-LEAD-STAGE vs BRD "Quote Generated"
   emit LeadQualified
   audit(BI_GENERATED)
 ```
@@ -137,7 +187,7 @@ Reaching quote screen without BI response: **no** change (`BR-BI-002`).
 
 ---
 
-## 5. ALG-ACTIVITY — disposition before BI
+## 7. ALG-ACTIVITY — disposition before BI
 
 ```
 function setActivityStatus(leadId, statusCode, actor):
@@ -154,17 +204,17 @@ Master is configuration (`#19`), not code deploy (`BRD §14.2`).
 
 ---
 
-## 6. ALG-CLOSE
+## 8. ALG-CLOSE
 
 ```
 function close(leadId, reasonCode, remarks, actor):
-  require reasonCode present                    # VAL-017
+  require reasonCode present                        # VAL-017
   if reasonCode == OTHER:
-    require remarks non-empty                   # VAL-018
-  require length(remarks) <= 250                # VAL-019
+    require remarks non-empty                       # VAL-018
+  require length(remarks) <= 250                    # VAL-019
   lead = load(leadId)
   require not lead.isTerminal()
-  transition(lead, DISQUALIFIED)                # or CLOSED label in projection
+  transition(lead, DISQUALIFIED)                    # or CLOSED label in projection
   lead.closedReason = reasonCode
   lead.remarks = remarks
   emit LeadClosed
@@ -173,34 +223,34 @@ function close(leadId, reasonCode, remarks, actor):
 
 ---
 
-## 7. ALG-CONVERT / ALG-ARCHIVE
+## 9. ALG-CONVERT / ALG-ARCHIVE
 
 ```
 function onJourneySold(leadId, journeyId, paymentId, policyId):
   lead = load(leadId)
   if lead.state == CONVERTED and lead.convertingJourneyId == journeyId:
-    return IdempotentOk                         # INV-LED-02
+    return IdempotentOk                             # INV-LED-02
   if lead.state == CONVERTED and journeyId differs:
     alert Integrity
     reject
   require lead.state == QUALIFIED
   lead.convertingJourneyId = journeyId
   transition(lead, CONVERTED)
-  archiveWorkingInbox(lead)                     # ADR-014 → ARCHIVED
+  archiveWorkingInbox(lead)                         # ADR-014 → ARCHIVED
   emit LeadConverted, LeadArchived
 ```
 
-Working columns become eligible for working-lead retention; attribution fields retain 7 years.
+Working columns become eligible for working-lead retention; attribution fields retain 7 years (`C-RET-1`).
 
 ---
 
-## 8. ALG-RESUME
+## 10. ALG-RESUME
 
 ```
 function resume(leadId, principal):
   lead = loadVisible(leadId, principal)
   require not lead.state in {ARCHIVED} for inbox actions
-  point = Journey.resumePoint(lead.journeyId)   # Journey owns stage
+  point = Journey.resumePoint(lead.journeyId)       # Journey owns stage
   return ResumePayload(lead, point, prefills)
 ```
 
@@ -208,7 +258,7 @@ function resume(leadId, principal):
 
 ---
 
-## 9. Stage / status projection (`OPEN-LEAD-STAGE`)
+## 11. Stage / status projection (`OPEN-LEAD-STAGE`)
 
 | Dashboard label (BRD) | System of record | Lead field |
 |---|---|---|
@@ -222,24 +272,29 @@ Implementers must not add Lead transitions for insurer UW queue states.
 
 ---
 
-## 10. Validation → platform errors
+## 12. Validation → platform errors
 
-| VAL | Algorithm / API |
+| Case / VAL | Algorithm / API |
 |---|---|
 | VAL-001…005 | Customer search (EPIC-003 / ARCH-025) |
 | VAL-006 | create missing productClass |
-| VAL-007…011 | assignment mapping at create (mandatory SP / RM per BRD §8, `D-018`) |
-| VAL-012 | ALG-DEDUPE |
-| VAL-013…015 | Meeting — deferred |
-| VAL-016 | ALG-ASSIGN biGenerated guard |
+| VAL-007…011 | assignment SP / cert checks (`D-018`/`D-019`, ALG-ASSIGN) |
+| VAL-012 / `409 LEAD_DUPLICATE_UNFINISHED` | ALG-DEDUPE — Continue \| Cancel only |
+| VAL-013…015 | Meeting intent fields on ALG-ASSIGN (optional) |
+| VAL-016 / `422 REASSIGN_AFTER_BI` | ALG-ASSIGN after BI |
 | VAL-017…019 | ALG-CLOSE |
 | VAL-020 | create failed — no orphan leadId (transactional create) |
+| `422 VALIDATION_BLOCKED` | Start Onboarding direct block |
+| `409 EXCEPTION_HOLD_ACTIVE` | assign / Suitability while held |
+| `422 ASSIGNEE_SP_REQUIRED` | ALG-PROCESS-FURTHER missing SP |
+| `422 ONBOARDING_NOT_STARTED` | assign before Start Onboarding evaluate |
 
 ---
 
-## 11. Done for this document
+## 13. Done for this document
 
-- [x] Deterministic algorithms with BR-* trace
-- [x] OPEN conflicts untouched as decisions
-- [x] OPEN-LEAD-ACTOR closed (`D-018`); IPR runtime gated (`OPEN-COMP-LEAD-IPR-CREATE`)
+- [x] BRD-aligned create (Save) without exception eval
+- [x] Dedupe key + Table 18 Continue\|Cancel (no delete)
+- [x] Start Onboarding → exception → assign algorithms
+- [x] ALG-BI / ACTIVITY / CLOSE / CONVERT / ARCHIVE / RESUME with BR-* trace
 - [ ] Product confirmation of OPEN-LEAD-STAGE / OPEN-D1

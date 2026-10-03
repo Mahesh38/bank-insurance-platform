@@ -5,7 +5,7 @@ type: ARCH
 also: [DOC]
 breakdown: EPIC
 workstream: WS-3
-origin: ["SUG-20260930-lmd"]
+origin: ["SUG-20260930-lmd", "SUG-20261002-lfs", "SUG-20261003-brf"]
 owner: "Mahesh — Principal Insurance Platform Architect (R2); lane mahesh-lead-domain-design"
 risk_tier: T3
 state: IN-FLIGHT
@@ -137,12 +137,14 @@ dependencies:
     - "OPEN-D1"
   external: []
   decision_dependency:
-    - "D-018" # OPEN-LEAD-ACTOR closed
+    - "D-018"
+    - "D-019"
     - "OPEN-COMP-LEAD-IPR-CREATE"
     - "OPEN-LEAD-STAGE"
     - "OPEN-LEAD-DUP"
     - "OPEN-D1"
     - "ADR-021"
+    # CLOSED 2026-10-03 (SUG-20261003-brf / BRD wins): OPEN-LEAD-DUP-DELETE, OPEN-LEAD-VAL-TIMING
 
 plan: PLAN-007
 estimate: L
@@ -155,4 +157,13 @@ progress:
   stories_total: 4
   stories_done: 0
   completion_definition_met: false
-  evidence: []
+  evidence:
+    - "docs/platform/ws3-platform/10-lead-module-hld.md"
+    - "docs/platform/ws3-platform/11-lead-module-sequences.md"
+    - "docs/platform/ws3-platform/12-lead-module-api-lld.md"
+    - "docs/platform/ws3-platform/13-lead-module-flows-and-algorithms.md"
+    - "docs/platform/ws3-platform/lead-service-internal.openapi.yaml"
+  notes: >
+    2026-10-03 recurrence of SUG-20260930-lmd: pack artefacts exist (AI-DRAFTED).
+    Documentation deepening in progress (BI/close/convert restored under D-019).
+    Stories remain IN-FLIGHT until human Board 1/3/4/6 review; agents do not claim Done.

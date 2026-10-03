@@ -1648,10 +1648,14 @@ decision: >
   certification (Bank Non-SP), and INSURER_PARTNER_REP (Insurance RM / FLS) — Lead BRD §5.
   "Anyone" in Product wording is interpreted as these workforce creators, not retail DIY.
 
-  On every successful create, assignedRmId and accountableSpId MUST identify a BANK_RM whose
-  SP certification is ACTIVE, unexpired and covers the Lead's lob (INV-LED-10, INV-ACT-03).
-  createdByPrincipalId records the actual creator (BR-OWN-002). Regulated sales actions after
-  create remain INV-ACT-01 (certified SP only).
+  On successful create, SP assignee may still be unset (`D-019`). Before suitability /
+  regulated process-further, assignedRmId and accountableSpId MUST identify a BANK_RM
+  whose SP certification is ACTIVE, unexpired and covers the Lead's lob (INV-LED-10).
+  createdByPrincipalId records the actual creator (BR-OWN-002). Regulated sales actions
+  remain INV-ACT-01 (certified SP); Insurance RM/FLS may assist per AC-6.
+
+  Optional meeting capture (type/date/time/link) is part of the post-create assignment
+  screen (Lead BRD Screen 7); meeting SMS delivery and meeting-completion workflow stay out.
 
   Insurance RM (IPR) create is designed in contracts but runtime-gated until Board 6 confirms
   solicitation permissibility (OPEN-COMP-LEAD-IPR-CREATE) — same pattern as D-017.

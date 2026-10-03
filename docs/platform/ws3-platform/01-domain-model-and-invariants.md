@@ -250,30 +250,32 @@ that omits it cannot be written rather than being caught in review (`FF-17`). Th
 `ID-17` applied to reads: a control that lives in the presentation tier is one HTTP client away
 from absent.
 
-**Rule AC-6 — assist-only is a permission set, and the RM stays the accountable SP.** The
-accountable Specified Person on a record is the originating RM. It is set at origination and is
-immutable for the life of the record; no IPR action, assignment or handover moves it. An IPR is
-granted no regulated-sales action at any journey stage:
+**Rule AC-6 — assist-only is a permission set, and the accountable SP stays a certified Bank RM.**
+The accountable Specified Person on a record is the **certified Bank RM assigned at Lead create**
+(`D-018`, `ADR-021`, INV-ACT-03). It is written once at origination and is immutable for the life
+of the record; no IPR action or later working reassignment moves `accountableSpId`. An IPR is
+granted no **regulated-sales** action at any journey stage. Lead **create** is a workforce
+origination right (see table), not a regulated-sales action:
 
-| Action | `BANK_RM` (SP-certified) | `INSURER_PARTNER_REP` |
-|---|---|---|
-| `opportunity.create` | ✅ **sole right** | ❌ |
-| `needanalysis.submit` · `suitability.submit` | ✅ | ❌ |
-| `consent.capture` | ✅ (customer device OTP) | ❌ |
-| `quote.request` · `offer.select` | ✅ | ❌ |
-| `proposal.submit` | ✅ | ❌ |
-| `payment.issueLink` | ✅ | ❌ |
-| `product.view` · `product.select` | ✅ | ✅ **own insurer only** |
-| `journey.view` | ✅ | ✅ **gated + own insurer only** (`AC-4`) |
-| `assistance.annotate` | ✅ | ✅ |
+| Action | `BANK_RM` (SP-certified) | `BANK_RM` (Non-SP) | `INSURER_PARTNER_REP` |
+|---|---|---|---|
+| `opportunity.create` | ✅ (may self-assign as SP) | ✅ (must assign certified SP RM) | ✅ **design** — runtime gated on Board 6 (`OPEN-COMP-LEAD-IPR-CREATE`) |
+| `needanalysis.submit` · `suitability.submit` | ✅ | ❌ | ❌ |
+| `consent.capture` | ✅ (customer device OTP) | ❌ | ❌ |
+| `quote.request` · `offer.select` | ✅ | ❌ | ❌ |
+| `proposal.submit` | ✅ | ❌ | ❌ |
+| `payment.issueLink` | ✅ | ❌ | ❌ |
+| `product.view` · `product.select` | ✅ | ✅ | ✅ **own insurer only** |
+| `journey.view` | ✅ | ✅ (book-scoped) | ✅ **gated + own insurer only** (`AC-4`) |
+| `assistance.annotate` | ✅ | ✅ | ✅ |
 
 > **Compliance point, stated in the HLD because it must not be discovered in build.** The IPR is
 > **not** a Specified Person. Their presence on a journey must never become solicitation or advice.
-> The architecture therefore (a) grants them no regulated action, (b) keeps the accountable SP
-> immutable and always an RM, and (c) attributes every IPR action separately in the audit trail so
-> the solicitation record produced for IRDAI is unambiguous about who did what. **Which actions
-> require which certification remains Shailja's determination, not mine** (`ID-21`, `JS-09`) —
-> recorded as OPEN-D9.
+> The architecture therefore (a) grants them no regulated-sales action, (b) keeps the accountable
+> SP immutable and always a certified Bank RM assigned at create, and (c) attributes every IPR
+> action separately in the audit trail. **Whether IPR may press create at all is Shailja's
+> determination** (`OPEN-COMP-LEAD-IPR-CREATE`, formerly the rejected alternative in ADR-005).
+> **Which later actions require which certification remains OPEN-D9** (`ID-21`, `JS-09`).
 
 **Rule AC-7 — every action is audited with its actor's capacity.** `AuditEvent` carries
 `actorType`, `actorInsurerId` (IPR only), `actingCapacity` (`SP_ACCOUNTABLE` | `ASSIST_ONLY`) and
@@ -281,9 +283,10 @@ granted no regulated-sales action at any journey stage:
 occurred on this journey" without recording *in what capacity* cannot answer the only question a
 mis-selling review asks.
 
-#### 2.4.2 Origination is RM-only, and the opportunity is the single origination point
+#### 2.4.2 Origination is workforce-create with certified-SP assignee; Lead is the single funnel
 
-R0 is **ETB-only**. Only the RM sees the ETB customer base, and only the RM may originate.
+R0 is **ETB-only**. Workforce creators may originate a Lead; the accountable Specified Person on
+that Lead is always a certified Bank RM assigned at create (`D-018`, `ADR-021`).
 
 **Rule AC-8 — context #5 is the single on-platform origination point.** Its aggregate is the
 **Lead**: the working inbox that answers *why are we contacting this person*. Every **on-platform**
@@ -435,7 +438,8 @@ and must be rejected by the aggregate, not by the caller. Terminal states are ma
 
 ### 4.1 Lead
 
-The **on-platform** origination record. Created **only** by an SP-certified Bank RM (`AC-8`, INV-LED-04).
+The **on-platform** origination record. Created by an allowed workforce principal with a mandatory
+certified-SP Bank RM assignee (`AC-8`, `D-018`, `ADR-021`, INV-LED-04, INV-LED-10).
 Spoken name is Lead. After `CONVERTED` (Journey sold = Payment `RECONCILED` and Policy `ACTIVE`) the
 working inbox archives. Off-platform Policy ingest does not enter this machine.
 
@@ -461,8 +465,8 @@ stateDiagram-v2
 
 | Transition | Trigger | Guard |
 |---|---|---|
-| `[*] → NEW` | `opportunity.create` by a `BANK_RM` principal | Creator is `BANK_RM` **and** holds a valid SP certification covering the opportunity's `lob` (INV-LED-04, INV-LED-05). An `INSURER_PARTNER_REP` is refused — there is no code path that admits one |
-| `NEW → ASSIGNED` | RM assignment or auto-allocation | Target RM holds a valid SP certificate for the `lob` (INV-LED-03) |
+| `[*] → NEW` | `opportunity.create` / Save by an allowed workforce creator | Creator allowed (INV-LED-04); SP assignee **not** required yet (`D-019`). DIY / MIS / SERVICE refused. Save does **not** run exception evaluation (Exception BRD) |
+| `NEW → ASSIGNED` | Post–Start Onboarding assignment of certified-SP AU Bank RM | Exception evaluated and not held; target RM holds valid SP certificate for `lob` (INV-LED-03/10). Optional meeting intent may be stored |
 | `ASSIGNED → ASSIGNED` | Reassignment | Previous owner retained in assignment history; SLA restart is a Product decision, recorded as OPEN-D1 |
 | `* → EXPIRED` | Ageing job | Configurable ageing horizon; no journey in a non-terminal stage references this lead |
 | `QUALIFIED → CONVERTED` | `JourneySold` event | Exactly one journey may convert a lead (INV-LED-02). Journey is `SOLD` only when Payment is `RECONCILED` and Policy is `ACTIVE` (INV-JRN-05) |
@@ -766,7 +770,7 @@ enforces it, and what happens when it is violated (S06-E03-S03: *per invariant, 
 | INV-PAY-01 | A payment link is bound to a customer-device channel (SMS/email to the customer's registered contact, or a QR presented for scan). No API path issues a payment link into an RM session, and no RM principal may complete authorisation | `PaymentService.issueLink()` and the PG redirect handler | Reject with `403 PAYMENT_DEVICE_ISOLATION`; emit a security event | **C4** |
 | INV-ACT-01 | A regulated action is executed only by a principal whose `actorType = BANK_RM` **and** whose SP certification is `ACTIVE`, unexpired and covers the resource's `lob`, evaluated **at the instant of the action**, not at login | PDP decision (`ID-20`) re-checked by the owning domain service (`ID-08`) | Reject with `403 SP_CERTIFICATION_REQUIRED`; emit a compliance event | **C3** |
 | INV-ACT-02 | An `INSURER_PARTNER_REP` principal is granted no regulated-sales action at any journey stage (`AC-6`). The permitted set is view, product view/select and assistance annotation, all insurer-scoped | PDP grant model, sourced from configuration (`CF-2`); default deny | Reject with `403 ASSIST_ONLY_ACTOR`; emit a compliance event | **C3** |
-| INV-ACT-03 | The accountable Specified Person on a record is the originating RM. It is written once at origination and no subsequent action, assignment or handover changes it | Lead aggregate at creation; column is immutable at the store | Write rejected at the store; emit an integrity alert | **C3** |
+| INV-ACT-03 | The accountable Specified Person on a record is the **certified AU Bank RM assigned on the first completed assignment** (`accountableSpId`). It is written once then and no subsequent working reassignment or IPR handover changes it (`D-018`, `D-019`, `ADR-021`) | Lead assignment command; column is immutable at the store | Write rejected at the store; emit an integrity alert | **C3** |
 | INV-ACT-04 | Every audit event carries `actorType`, `actingCapacity` (`SP_ACCOUNTABLE` \| `ASSIST_ONLY`), and — for an `INSURER_PARTNER_REP` — `actorInsurerId` and `assistedActorId` | Audit ingestion schema validation | Event rejected at ingestion; the emitting transaction is retried by the outbox | **C8** |
 | INV-LOG-01 | No log record at any level contains a value matching the regulated field patterns (PAN, Aadhaar, mobile, email, DOB, income, health answer) | Logging framework converter + a CI log-scan test | Build fails; at runtime the converter masks | **C5** |
 | INV-DAT-01 | Every persisted store, backup, log destination and archive resolves to an AWS India region | IaC policy check pre-apply + a residency attestation job | `terraform apply` blocked; running drift raises an O0 | **C6** |
@@ -780,12 +784,13 @@ enforces it, and what happens when it is violated (S06-E03-S03: *per invariant, 
 | INV-LED-01 | A `Lead` in a terminal state accepts no further transitions | `Lead` aggregate | `409 ILLEGAL_TRANSITION` |
 | INV-LED-02 | At most one `Journey` may drive a `Lead` to `CONVERTED` | `Lead` aggregate, on the conversion event | Second event is idempotently ignored; a differing `journeyId` raises an integrity alert |
 | INV-LED-03 | A `Lead` may only be assigned to a principal holding a currently valid SP certification for the LOB | Lead assignment, reading WS-2 certification metadata | `422 RM_NOT_CERTIFIED` |
-| INV-LED-04 | A `Lead` may be created **only** by a principal with `actorType = BANK_RM` (`AC-8`). No other actor type, no BFF path and no service-to-service path may originate one | Lead aggregate factory + PDP `opportunity.create` grant | `403 ORIGINATION_RM_ONLY`; emit a compliance event |
-| INV-LED-05 | A `Lead` is created only for a customer inside the creating RM's ETB book, and carries a non-null `lob` covered by the creator's SP certification | Lead aggregate at creation | `422 CUSTOMER_NOT_IN_BOOK` / `422 LOB_NOT_CERTIFIED` |
+| INV-LED-04 | A `Lead` may be created by an allowed **workforce** principal: `BANK_RM` (SP or Non-SP) or `INSURER_PARTNER_REP` (Insurance RM / FLS) per `D-018` / `ADR-021`. DIY customer, anonymous, MIS, admin, Policy factory, SERVICE and BFF-implicit mint are refused (`INV-LED-09`) | Lead aggregate factory + PDP `opportunity.create` grant | `403 ORIGINATION_ACTOR_DENIED`; emit a compliance event |
+| INV-LED-05 | A `Lead` is created only for a customer inside the **accountable SP RM's** ETB book, and carries a non-null `lob` covered by that SP's certification (not necessarily the creator's) | Lead aggregate at creation | `422 CUSTOMER_NOT_IN_BOOK` / `422 LOB_NOT_CERTIFIED` |
 | INV-LED-06 | Every **on-platform** `Journey`, `SuitabilityAssessment`, `Consent`, `Quote`, `Proposal`, `Payment` and `Policy` references exactly one `leadId` (`AC-8`, ID-06). Exception: `source=OFF_PLATFORM` Policy (and its ingest payment facts) have a null `leadId` (INV-POL-05) | Each on-platform factory + NOT NULL foreign reference; Policy ingest omits it | `422 OPPORTUNITY_REQUIRED` on on-platform create; ingest rejected if an OFF_PLATFORM row supplies a `leadId` |
 | INV-LED-07 | A `Lead` and everything reachable from it is returned to an `INSURER_PARTNER_REP` principal only when `AC-4`'s visibility predicate holds; otherwise the record does not appear in any result set | Persistence-layer mandatory predicate (`AC-5`), not a service filter | Row is absent — never a `403` that confirms existence |
 | INV-LED-08 | An `ARCHIVED` Lead is excluded from the RM working inbox query; `leadId` remains resolvable for audit and for every downstream reference | Lead list vs get-by-id | Inbox omit; get-by-id still returns attribution fields |
-| INV-LED-09 | `lead.create` is never invoked by MIS ingest, admin, or a Policy factory | Policy ingest and Lead factory | `403 ORIGINATION_RM_ONLY` |
+| INV-LED-09 | `lead.create` is never invoked by MIS ingest, admin, or a Policy factory | Policy ingest and Lead factory | `403 ORIGINATION_ACTOR_DENIED` |
+| INV-LED-10 | A Lead may not enter suitability / regulated process-further until `assignedRmId` and `accountableSpId` identify a `BANK_RM` whose SP certification is ACTIVE, unexpired and covers the Lead's `lob` (`D-018`/`D-019`). Create may temporarily leave these null until the assignment screen completes | Lead process-further gate + assignment command | `422 ASSIGNEE_SP_REQUIRED` / `422 RM_NOT_CERTIFIED` |
 | INV-POL-04 | Every Policy persists an append-only `stateHistory[]` entry on each legal transition | Policy aggregate | Write rejected |
 | INV-POL-05 | `source=OFF_PLATFORM` Policies have a null `leadId` and a non-null MIS ingest audit; they do not increment on-platform conversion | Policy factory + Reporting | Ingest rejected / metric excluded |
 | INV-PRP-06 | `issuanceMode` is mandatory and one of `STP`, `NON_STP`, `INSTA`; no mode bypasses INV-SUI-*, INV-CNS-*, INV-PAY-01, INV-POL-01 | Proposal aggregate | `422 ISSUANCE_MODE_INVALID` |
@@ -917,7 +922,7 @@ New or sharpened terms this document introduces. It supplements — does not rep
 | **Specified Person (SP)** | A certification attribute held by a Bank RM: certificate number, LOB scope, validity window, status (`AC-1`) | An actor, a role name, or a channel |
 | **Accountable SP** | The originating RM recorded on a record and immutable for its life (INV-ACT-03) | Whoever most recently touched the journey |
 | **IPR** | Insurance Partner Representative — an insurer's employee, assist-only, insurer-scoped, never an SP (`AC-6`) | A bank employee; a certified seller; a second RM |
-| **Lead** | The on-platform origination record, context #5, created only by an RM; the working inbox and the single entry to the on-platform funnel (`AC-8`, D1) | A journey; a quote; a campaign list; an off-platform Policy |
+| **Lead** | The on-platform origination record, context #5, created by an allowed workforce creator with a mandatory certified-SP RM assignee; the working inbox and the single entry to the on-platform funnel (`AC-8`, `D-018`, D1) | A journey; a quote; a campaign list; an off-platform Policy |
 | **Opportunity** | Durable-demand alias for Lead (`CAP-102`). A renewal or lapse mints a new Lead, it does not reopen an archived inbox (`ADR-005`, `ADR-014`) | The working inbox row; a campaign list |
 | **LOB** | `LIFE`, `HEALTH` or `GENERAL` — an isolation and partition dimension present from release 1 (`LB-1`, `LB-2`) | A product class such as `TERM` (`LB-3`) |
 | **Configuration version** | The append-only, effective-dated version of a rule that governed a business record (`CF-3`) | A deployment; a feature flag toggle |
@@ -931,6 +936,7 @@ Recorded honestly, with an owner and a target. None of these is claimed closed.
 | ID | Open item | Why it is not mine to close | Owner | Target |
 |---|---|---|---|---|
 | OPEN-D1 | Lead reassignment: does SLA reset, and who receives conversion attribution? | Business rule, not architecture (Aarti raises the same question in her operating contract §5) | Rajal + BA | Before S11 entry |
+| OPEN-COMP-LEAD-IPR-CREATE | May an `INSURER_PARTNER_REP` invoke `opportunity.create` (with mandatory certified-SP RM assignee), or is that solicitation? | Product `D-018` admits the behaviour; ADR-005 previously rejected IPR-create-then-adopt | Shailja (Board 6) | Before IPR create is runtime-enabled |
 | OPEN-D2 | Suitability override: who may override, and may an override unblock quote? | Regulatory permissibility — blocked behind GAP-007 | Shailja + Rajal | Before S11 entry |
 | OPEN-D3 | Consent statement set, versioning and sequencing | Blocked behind GAP-006; D-011 is open in the business decision log | Shailja + Rajal | Before S11 entry |
 | OPEN-D4 | Quote validity window, assessment validity window, payment link TTL, requirement SLA — the actual numbers | Product/Compliance parameters. The state machines are correct without them; the guards are configuration | Rajal + Shailja | Before S11 entry |

@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 642
-total_bytes: 20999409
+document_count: 653
+total_bytes: 21104749
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -1405,7 +1405,7 @@ documents:
     persona: architecture
     title: "Architecture diagrams"
     answers: "Two diagrams, deliberately. They answer different questions and neither replaces the other."
-    bytes: 31888
+    bytes: 32864
   - path: docs/architecture/arb-prerequisites/CIS-CLASSIFICATION-PROPOSAL.md
     bucket: platform
     authority: ai-drafted
@@ -1741,7 +1741,7 @@ documents:
     persona: product
     title: "Decision log — AU Bank Insurance Platform"
     answers: "Canonical ID scheme: D-xxx = business / scope decisions (aligns to Session template + Working Decisions mapping)."
-    bytes: 6801
+    bytes: 8400
   - path: docs/au-bank-insurance-platform/README.md
     bucket: business
     authority: business-ssot
@@ -2029,7 +2029,7 @@ documents:
     persona: business-analysis
     title: "BRD alignment — Rajal pack 2026-09-28"
     answers: "Work item: SUG-20260928-brd · DOC-005"
-    bytes: 17312
+    bytes: 18234
   - path: docs/au-bank-insurance-platform/requirements/BRD-OVERVIEW-CHECKLIST.md
     bucket: business
     authority: business-ssot
@@ -2213,7 +2213,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 226960
+    bytes: 230519
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -4086,6 +4086,14 @@ documents:
     title: "PLAN-006 — Change-specific CI triggers"
     answers: "objective: A documentation-only change no longer compiles Java, runs CodeQL, or builds container images; each CI job runs only for the files it…"
     bytes: 5521
+  - path: docs/governance/plans/PLAN-007-lead-module-design-pack.md
+    bucket: governance
+    authority: binding-process
+    capsules: [delivery-planning, plan-work]
+    persona: delivery
+    title: "PLAN-007 — Lead module (#5) R0 design pack"
+    answers: "Sections: Board notes (agent self-review — not T4)"
+    bytes: 5396
   - path: docs/governance/plans/PLAN-EPIC-002-life-lob-adapter.md
     bucket: governance
     authority: binding-process
@@ -4109,7 +4117,7 @@ documents:
     persona: null
     title: "Decision Register"
     answers: "Index of decisions that constrain future work: ADRs, change requests, stage transitions, and"
-    bytes: 43195
+    bytes: 43654
   - path: docs/governance/registers/DEPENDENCY-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -4125,7 +4133,7 @@ documents:
     persona: null
     title: "Parked Backlog"
     answers: "Parked is not deleted. Every entry names the stage that unparks it and the observable"
-    bytes: 15467
+    bytes: 15616
   - path: docs/governance/registers/RISK-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -4141,7 +4149,7 @@ documents:
     persona: null
     title: "Suggestion Register"
     answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 299852
+    bytes: 313927
   - path: docs/governance/runbooks/AUTOPILOT-FAILURE-RUNBOOK.md
     bucket: governance
     authority: binding-process
@@ -4381,7 +4389,7 @@ documents:
     persona: null
     title: "CURRENT STATE"
     answers: "AIGEM — Machine-readable current state"
-    bytes: 42308
+    bytes: 42258
   - path: docs/governance/state/GATE-EVIDENCE.yaml
     bucket: governance
     authority: binding-process
@@ -4765,7 +4773,7 @@ documents:
     persona: architecture
     title: "08 — Architecture Decision Log (this review)"
     answers: "ID scheme: ARCH-xxx — deliberately distinct from the business/scope D-xxx and process DOC-xxx IDs in docs/au-bank-insurance-platform/DECISION-LOG.md,…"
-    bytes: 118062
+    bytes: 120978
   - path: docs/platform/architecture-review/ADR-019-microservice-skeleton-scaffold.md
     bucket: platform
     authority: approved-spec
@@ -5045,7 +5053,7 @@ documents:
     persona: architecture
     title: "WS-3 — Platform Domain Model, State Machines and Invariants"
     answers: "Co-owner for the logical data model: Aarti — Principal Insurance Data & Database Architect"
-    bytes: 69078
+    bytes: 70826
   - path: docs/platform/ws3-platform/02-information-model.md
     bucket: platform
     authority: approved-spec
@@ -5093,7 +5101,7 @@ documents:
     persona: architecture
     title: "07 — NIP BFF lead landing & create API LLD (R0)"
     answers: "Origin: SUG-20260907-ldc · EPIC-003 · ARCH-023 · PLAN-004"
-    bytes: 29849
+    bytes: 30258
   - path: docs/platform/ws3-platform/08-nip-bff-lead-phase-java-records.md
     bucket: platform
     authority: approved-spec
@@ -5110,6 +5118,38 @@ documents:
     title: "09 — NIP BFF customer search (SCR-03) — unified contract"
     answers: "Origin: SUG-20260923-scs · ARCH-025 · PLAN-005 · EPIC-003"
     bytes: 46192
+  - path: docs/platform/ws3-platform/10-lead-module-hld.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, code-change]
+    persona: architecture
+    title: "10 — Lead module HLD (context #5, R0)"
+    answers: "Origin: SUG-20260930-lmd · EPIC-005 · ARCH-026 · PLAN-007"
+    bytes: 12654
+  - path: docs/platform/ws3-platform/11-lead-module-sequences.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, code-change]
+    persona: architecture
+    title: "11 — Lead module sequences (R0)"
+    answers: "Origin: SUG-20260930-lmd · SUG-20261002-lfs · SUG-20261003-brf · EPIC-005 · ARCH-027 · D-019"
+    bytes: 8354
+  - path: docs/platform/ws3-platform/12-lead-module-api-lld.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, code-change]
+    persona: architecture
+    title: "12 — Lead service API LLD (cluster-private, R0)"
+    answers: "Origin: SUG-20260930-lmd · EPIC-005 · ARCH-028 · PLAN-007"
+    bytes: 6073
+  - path: docs/platform/ws3-platform/13-lead-module-flows-and-algorithms.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, code-change]
+    persona: architecture
+    title: "13 — Lead flows and algorithms (R0)"
+    answers: "Origin: SUG-20260930-lmd · SUG-20261002-lfs · SUG-20261003-brf · EPIC-005 · DOC-023 · D-019"
+    bytes: 10666
   - path: docs/platform/ws3-platform/ARCH-023.work-item.yaml
     bucket: platform
     authority: approved-spec
@@ -5126,6 +5166,30 @@ documents:
     title: "ARCH 025.work item"
     answers: "schema: work-item"
     bytes: 3097
+  - path: docs/platform/ws3-platform/ARCH-026.work-item.yaml
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, code-change]
+    persona: architecture
+    title: "ARCH 026.work item"
+    answers: "schema: work-item"
+    bytes: 1757
+  - path: docs/platform/ws3-platform/ARCH-027.work-item.yaml
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, code-change]
+    persona: architecture
+    title: "ARCH 027.work item"
+    answers: "schema: work-item"
+    bytes: 1615
+  - path: docs/platform/ws3-platform/ARCH-028.work-item.yaml
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, code-change]
+    persona: architecture
+    title: "ARCH 028.work item"
+    answers: "schema: work-item"
+    bytes: 1638
   - path: docs/platform/ws3-platform/DOC-021.work-item.yaml
     bucket: platform
     authority: approved-spec
@@ -5134,6 +5198,14 @@ documents:
     title: "DOC 021.work item"
     answers: "schema: work-item"
     bytes: 1483
+  - path: docs/platform/ws3-platform/DOC-023.work-item.yaml
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, code-change]
+    persona: architecture
+    title: "DOC 023.work item"
+    answers: "schema: work-item"
+    bytes: 1820
   - path: docs/platform/ws3-platform/EPIC-003.work-item.yaml
     bucket: platform
     authority: approved-spec
@@ -5150,6 +5222,22 @@ documents:
     title: "EPIC 004.work item"
     answers: "schema: work-item"
     bytes: 5715
+  - path: docs/platform/ws3-platform/EPIC-005.work-item.yaml
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, code-change]
+    persona: architecture
+    title: "EPIC 005.work item"
+    answers: "schema: work-item"
+    bytes: 6246
+  - path: docs/platform/ws3-platform/lead-service-internal.openapi.yaml
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, code-change]
+    persona: architecture
+    title: "lead service internal.openapi"
+    answers: "YAML record; first key `openapi`"
+    bytes: 22359
   - path: docs/platform/ws3-platform/nip-bff-lead-phase.openapi.yaml
     bucket: platform
     authority: approved-spec

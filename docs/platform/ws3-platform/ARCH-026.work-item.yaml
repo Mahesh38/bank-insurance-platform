@@ -1,0 +1,73 @@
+# schema: work-item
+id: ARCH-026
+origin: ["SUG-20260930-lmd"]
+title: "Lead module HLD — boundaries, R0 cut, BRD→architecture map"
+type: ARCH
+also: [DOC]
+breakdown: STORY
+epic: EPIC-005
+workstream: WS-3
+owner: "Mahesh — Principal Insurance Platform Architect"
+risk_tier: T3
+
+serves:
+  - "EPIC-005"
+  - "S11-E02"
+  - "AC-8"
+  - "AC-9"
+
+problem: >
+  Lead BRD describes a module; platform architecture already has Lead #5 invariants.
+  Without an HLD that maps BRD→R0 cut and names conflicts, implementers invent scope.
+
+description: >
+  Publish 10-lead-module-hld.md: context boundaries, aggregate ownership, R0 in/out
+  from the Lead BRD, integration map, and OPEN conflicts (actors, stages) for Rajal.
+
+acceptance_criteria:
+  - id: AC-1
+    given: "10-lead-module-hld.md"
+    when: "BRD §4.1 in-scope rows are read"
+    then: "each row is IN-R0-DESIGN, DEFER, or OPEN with owner"
+  - id: AC-2
+    given: "the HLD"
+    when: "campaign/bulk is mentioned"
+    then: "it is explicitly out and cites BOOT / ADR-005"
+  - id: AC-3
+    given: "INV-LED-04 vs BRD Bank SP / Non-SP / Insurance RM create"
+    when: "the conflict is examined"
+    then: "OPEN-LEAD-ACTOR is recorded; no silent resolution"
+
+out_of_scope:
+  - "Service implementation"
+  - "Human T4 signature"
+  - "Rewriting EPIC-003"
+
+state: IN-FLIGHT
+priority_now: P3
+priority_at_target: P1
+target_stage: null
+unpark_trigger: null
+
+dependencies:
+  blocked_by: []
+  requires:
+    - "ADR-014"
+    - "01-domain-model-and-invariants.md"
+  enables:
+    - "ARCH-027"
+    - "ARCH-028"
+    - "DOC-023"
+  related_to:
+    - "EPIC-005"
+  external: []
+  decision_dependency:
+    - "OPEN-LEAD-ACTOR"
+    - "OPEN-LEAD-STAGE"
+
+plan: PLAN-007
+estimate: M
+assumptions: []
+risks: []
+evidence: []
+variance_log: []

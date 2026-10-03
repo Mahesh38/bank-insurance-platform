@@ -1,0 +1,169 @@
+# schema: work-item
+id: EPIC-005
+title: "Lead module (#5) R0 design pack — HLD, sequences, API, flows & algorithms"
+type: ARCH
+also: [DOC]
+breakdown: EPIC
+workstream: WS-3
+origin: ["SUG-20260930-lmd", "SUG-20261002-lfs", "SUG-20261003-brf"]
+owner: "Mahesh — Principal Insurance Platform Architect (R2); lane mahesh-lead-domain-design"
+risk_tier: T3
+state: IN-FLIGHT
+priority_now: P3
+priority_at_target: P1
+target_stage: "S08 contract (this pack) / S11-E02 Lead service implementation"
+unpark_trigger: null
+
+outcome: >
+  Lead bounded context #5 has a BRD-traced, R0-cut design pack (module HLD, sequences,
+  Lead-service API LLD + OpenAPI, flows and algorithms) that engineers can implement
+  against without treating Figma or the BRD prose as the runtime contract. Public BFF
+  edge remains EPIC-003; this pack owns the Lead service and its seams.
+
+epic_triggers_met:
+  - multiple_stories
+  - multiple_components
+  - multiple_acceptance_outcomes
+  - multiple_dependencies
+
+completion_definition: >
+  HLD, sequences, API LLD, OpenAPI and algorithms agree with each other and with
+  ADR-005 / ADR-014 / INV-LED-* / EPIC-003 public paths; every BRD in-scope R0 rule is
+  traced or explicitly OPEN for Rajal; campaign/bulk and meeting-completion stay out;
+  human Board 1 / 4 / 6 signatures outstanding and not claimed. No Lead service code
+  is required for documentation-complete.
+
+not_included:
+  - "Implementing Lead (#5), NIP BFF, Customer (#4), Journey (#6) or Flutter (S11)"
+  - "Rewriting EPIC-003 BFF consumer contract (reuse, do not fork)"
+  - "Campaign / bulk lead origination (BOOT out_of_scope_now; ADR-005)"
+  - "Meeting completion / outcome workflow (BRD §4.2 out; SUG-20260907-fig)"
+  - "Notification breadth beyond assignment events (BOOT out_of_scope_now)"
+  - "Resolving OPEN-LEAD-ACTOR / OPEN-LEAD-STAGE / OPEN-D1 without Rajal"
+  - "Human T4 Architecture / Security / Compliance signatures"
+  - "Physical schema / Flyway (Aarti DATA pack owns persistence shape)"
+
+stories:
+  - id: ARCH-026
+    title: "Lead module HLD — boundaries, R0 cut, BRD→architecture map, open conflicts"
+    state: IN-FLIGHT
+    priority_now: P3
+    priority_at_target: P1
+  - id: ARCH-027
+    title: "Lead sequences and end-to-end flows (create, dedupe, assign, resume, convert, archive)"
+    state: IN-FLIGHT
+    priority_now: P3
+    priority_at_target: P1
+  - id: ARCH-028
+    title: "Lead service API LLD + cluster-private OpenAPI"
+    state: IN-FLIGHT
+    priority_now: P3
+    priority_at_target: P1
+  - id: DOC-023
+    title: "Lead flows and algorithms (dedupe, assignment, stage/status, BI eligibility, closure)"
+    state: IN-FLIGHT
+    priority_now: P3
+    priority_at_target: P1
+
+story_order:
+  - ARCH-026
+  - ARCH-027
+  - ARCH-028
+  - DOC-023
+
+serves:
+  - "CURRENT-STATE.yaml WS-3 in_scope Lead service (context #5)"
+  - "AC-8 / AC-9 single on-platform origination"
+  - "S11-E02 create / resume / status Lead"
+  - "Lead_Module_BRD_Detailed (DOC-005) R0-cut design"
+  - "FF-15 downstream of EPIC-003"
+
+problem: >
+  EPIC-003 published the NIP BFF consumer edge for SCR-02..SCR-05. The Lead BRD
+  (DOC-005) describes the full Lead Management module — ownership, dedupe, stages,
+  assignment, dashboard, integrations — but there is no Lead-service (#5) design pack
+  that maps BRD rules onto ratified invariants, sequences and internal APIs. S11 cannot
+  implement Lead without inventing those seams.
+
+description: >
+  Admit and publish the R0-constrained Lead module design pack under a separate SF5
+  lane so GATE-S08 / EPIC-003 critical path is not delayed. Build on EPIC-003; do not
+  redesign the public BFF from scratch. Raise BRD↔domain conflicts as OPEN items.
+
+acceptance_criteria:
+  - id: AC-1
+    given: "an engineer opens 10-lead-module-hld.md"
+    when: "they ask what Lead owns vs Journey / Customer / BFF"
+    then: "boundaries, R0 in/out cut and named OPEN conflicts are explicit"
+  - id: AC-2
+    given: "ARCH-027 sequences"
+    when: "create → dedupe → assign → resume → first BI → convert → archive is walked"
+    then: "each hop names the owning context and sync vs async"
+  - id: AC-3
+    given: "lead-service-internal.openapi.yaml"
+    when: "a contract test generator reads it"
+    then: "create, get, list, assign, close, mark-bi, convert and archive operations exist"
+  - id: AC-4
+    given: "DOC-023 algorithms"
+    when: "dedupe and BI-eligibility are implemented"
+    then: "pseudocode matches BR-DEDUPE-* and BR-BI-* or cites an OPEN id"
+  - id: AC-5
+    given: "CURRENT-STATE.yaml"
+    when: "this change lands"
+    then: "only the EPIC id counter advances; no stage field is edited"
+
+out_of_scope:
+  - "Runtime services and Flutter"
+  - "Campaign / bulk / meeting-completion"
+  - "Editing GATE-S08 / current_phase"
+
+dependencies:
+  blocked_by: []
+  requires:
+    - "EPIC-003 (BFF public edge — soft reuse, not hard block)"
+    - "ADR-005"
+    - "ADR-014"
+    - "ADR-017"
+    - "docs/platform/ws3-platform/01-domain-model-and-invariants.md"
+    - "Lead_Module_BRD_Detailed_CONTEXT.md"
+  enables:
+    - "S11-E02"
+    - "Lead service scaffold"
+  related_to:
+    - "EPIC-003"
+    - "EPIC-004"
+    - "SUG-20260907-fig"
+    - "CR-013"
+    - "OPEN-D1"
+  external: []
+  decision_dependency:
+    - "D-018"
+    - "D-019"
+    - "OPEN-COMP-LEAD-IPR-CREATE"
+    - "OPEN-LEAD-STAGE"
+    - "OPEN-LEAD-DUP"
+    - "OPEN-D1"
+    - "ADR-021"
+    # CLOSED 2026-10-03 (SUG-20261003-brf / BRD wins): OPEN-LEAD-DUP-DELETE, OPEN-LEAD-VAL-TIMING
+
+plan: PLAN-007
+estimate: L
+assumptions: []
+risks: []
+evidence: []
+variance_log: []
+
+progress:
+  stories_total: 4
+  stories_done: 0
+  completion_definition_met: false
+  evidence:
+    - "docs/platform/ws3-platform/10-lead-module-hld.md"
+    - "docs/platform/ws3-platform/11-lead-module-sequences.md"
+    - "docs/platform/ws3-platform/12-lead-module-api-lld.md"
+    - "docs/platform/ws3-platform/13-lead-module-flows-and-algorithms.md"
+    - "docs/platform/ws3-platform/lead-service-internal.openapi.yaml"
+  notes: >
+    2026-10-03 recurrence of SUG-20260930-lmd: pack artefacts exist (AI-DRAFTED).
+    Documentation deepening in progress (BI/close/convert restored under D-019).
+    Stories remain IN-FLIGHT until human Board 1/3/4/6 review; agents do not claim Done.

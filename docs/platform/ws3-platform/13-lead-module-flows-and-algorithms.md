@@ -117,26 +117,28 @@ Lead stores hold; **approver hierarchy and remarks** are Exception Handling — 
 function assign(leadId, targetSpRmId, meeting?, actor):
   lead = load(leadId)
   require not lead.isTerminal()
-  if lead.exceptionHold:
-    reject EXCEPTION_HOLD_ACTIVE                    # assign UI may still open; process-further blocked
+  # exceptionHold does NOT block assignment — only process-further (see ALG-PROCESS-FURTHER)
   if lead.biGenerated:
-    reject REASSIGN_AFTER_BI                        # VAL-016 for reassignment
+    reject REASSIGN_AFTER_BI                        # BR-REASSIGN-001, VAL-016
+  require PDP.allows(actor, assign, lead)
   assignee = loadPrincipal(targetSpRmId)
   require assignee.actorType == BANK_RM
-  require assignee.hasSpCert(lead.lob)              # INV-LED-10 / IRDAI SP
+  require assignee.hasSpCert(lead.lob)              # INV-LED-03/10 / IRDAI SP
   require customerInEtbBook(assignee, lead.customerId)  # INV-LED-05
-  history.append(...)
+  history.append(old → new, actor, ts)
   lead.assignedRmId = assignee.id
+  # OPEN-D1: SLA reset / conversion credit — provisional BR-OWN-003 (current ownership)
   if lead.accountableSpId is null:
     lead.accountableSpId = assignee.id              # INV-ACT-03 write-once
   lead.state = ASSIGNED
   if meeting:
-    require meeting.type in {ONLINE, IN_PERSON}
+    require meeting.type in {ONLINE, IN_PERSON}     # VAL-013…015
     require meeting.date >= today
     require meeting.time in [08:00, 20:00]
     if meeting.type == ONLINE: require meeting.link
     lead.meetingIntent = meeting                    # optional; BR-LEAD-003 allows omit
   emit AssignmentChanged
+  audit(ASSIGNMENT)
   return lead
 ```
 
@@ -159,27 +161,138 @@ Creators who are Non-SP may create/assign/Save & Close but cannot run suitabilit
 
 ---
 
-## 6. ALG-BI / ALG-CLOSE / ALG-CONVERT
+## 6. ALG-BI — first Benefit Illustration
 
-Unchanged in intent from prior revision (`BR-BI-*`, `BR-CLOSE-*`, `ADR-014`). BI mark, close, convert still refuse terminal / held leads as appropriate.
+Handler for `POST /internal/v1/leads/{leadId}/bi-generated` (and the equivalent durable event).
+
+```
+function markBiGenerated(leadId, biReference, occurredAt):
+  lead = load(leadId)
+  require not lead.isTerminal()
+  require not lead.exceptionHold                    # held leads cannot become Eligible
+  if lead.biGenerated:
+    linkBi(leadId, biReference)                     # BR-BI-003/005 — no new lead
+    return IdempotentOk
+  # Only successful BI counts (BR-BI-001/002)
+  lead.biGenerated = true
+  lead.reportingClass = ELIGIBLE                    # BR-BI-004 Diary→Eligible
+  transition(lead, QUALIFIED)                       # domain; OPEN-LEAD-STAGE vs BRD "Quote Generated"
+  emit LeadQualified
+  audit(BI_GENERATED)
+```
+
+Reaching quote screen without BI response: **no** change (`BR-BI-002`).
 
 ---
 
-## 7. Validation → platform errors
+## 7. ALG-ACTIVITY — disposition before BI
 
-| Case | Code |
+```
+function setActivityStatus(leadId, statusCode, actor):
+  lead = load(leadId)
+  require lead.biGenerated == false
+  require statusCode in ConfigurableStatusMaster
+  lead.activityStatus = statusCode
+  if statusCode == CUSTOMER_NOT_INTERESTED:
+    return close(leadId, reason=NOT_INTERESTED, actor)
+  audit(STATUS_CHANGE)
+```
+
+Master is configuration (`#19`), not code deploy (`BRD §14.2`).
+
+---
+
+## 8. ALG-CLOSE
+
+```
+function close(leadId, reasonCode, remarks, actor):
+  require reasonCode present                        # VAL-017
+  if reasonCode == OTHER:
+    require remarks non-empty                       # VAL-018
+  require length(remarks) <= 250                    # VAL-019
+  lead = load(leadId)
+  require not lead.isTerminal()
+  transition(lead, DISQUALIFIED)                    # or CLOSED label in projection
+  lead.closedReason = reasonCode
+  lead.remarks = remarks
+  emit LeadClosed
+  # BR-CLOSE-001: cannot reopen
+```
+
+---
+
+## 9. ALG-CONVERT / ALG-ARCHIVE
+
+```
+function onJourneySold(leadId, journeyId, paymentId, policyId):
+  lead = load(leadId)
+  if lead.state == CONVERTED and lead.convertingJourneyId == journeyId:
+    return IdempotentOk                             # INV-LED-02
+  if lead.state == CONVERTED and journeyId differs:
+    alert Integrity
+    reject
+  require lead.state == QUALIFIED
+  lead.convertingJourneyId = journeyId
+  transition(lead, CONVERTED)
+  archiveWorkingInbox(lead)                         # ADR-014 → ARCHIVED
+  emit LeadConverted, LeadArchived
+```
+
+Working columns become eligible for working-lead retention; attribution fields retain 7 years (`C-RET-1`).
+
+---
+
+## 10. ALG-RESUME
+
+```
+function resume(leadId, principal):
+  lead = loadVisible(leadId, principal)
+  require not lead.state in {ARCHIVED} for inbox actions
+  point = Journey.resumePoint(lead.journeyId)       # Journey owns stage
+  return ResumePayload(lead, point, prefills)
+```
+
+`BR-LEAD-004`.
+
+---
+
+## 11. Stage / status projection (`OPEN-LEAD-STAGE`)
+
+| Dashboard label (BRD) | System of record | Lead field |
+|---|---|---|
+| New | Lead | state ∈ {NEW,ASSIGNED,CONTACTED} + activityStatus |
+| Quote Generated | Lead | QUALIFIED / biGenerated |
+| Proposal Form Pending … Policy Declined | Journey / Proposal / Policy | optional **read model** only — not Lead transitions |
+| Closed | Lead | DISQUALIFIED terminal |
+| Policy Issued (outcome) | Policy + JourneySold | then Lead CONVERTED/ARCHIVED |
+
+Implementers must not add Lead transitions for insurer UW queue states.
+
+---
+
+## 12. Validation → platform errors
+
+| Case / VAL | Algorithm / API |
 |---|---|
-| Dedupe unfinished | `409 LEAD_DUPLICATE_UNFINISHED` |
-| Validation direct block | `422 VALIDATION_BLOCKED` |
-| Held for approval | `201` + `exceptionHold=true` (or `409 EXCEPTION_HOLD` on process-further) |
-| Missing SP on process-further | `422 ASSIGNEE_SP_REQUIRED` |
-| Meeting field errors | VAL-013…015 |
+| VAL-001…005 | Customer search (EPIC-003 / ARCH-025) |
+| VAL-006 | create missing productClass |
+| VAL-007…011 | assignment SP / cert checks (`D-018`/`D-019`, ALG-ASSIGN) |
+| VAL-012 / `409 LEAD_DUPLICATE_UNFINISHED` | ALG-DEDUPE |
+| VAL-013…015 | Meeting intent fields on ALG-ASSIGN (optional) |
+| VAL-016 / `422 REASSIGN_AFTER_BI` | ALG-ASSIGN after BI |
+| VAL-017…019 | ALG-CLOSE |
+| VAL-020 | create failed — no orphan leadId (transactional create) |
+| `422 VALIDATION_BLOCKED` | Exception engine direct block |
+| `201` + `exceptionHold=true` | APPROVAL_REQUIRED at create |
+| `409 EXCEPTION_HOLD_ACTIVE` | process-further / BI while held |
+| `422 ASSIGNEE_SP_REQUIRED` | ALG-PROCESS-FURTHER missing SP |
 
 ---
 
-## 8. Done for this document
+## 13. Done for this document
 
 - [x] Create-then-assign algorithms (`D-019`)
 - [x] Dedupe / validation / process-further gates
+- [x] ALG-BI / ACTIVITY / CLOSE / CONVERT / ARCHIVE / RESUME with BR-* trace
 - [x] OPEN-LEAD-DUP-DELETE and OPEN-LEAD-VAL-TIMING explicit
-- [ ] Rajal closes those two OPENs
+- [ ] Rajal closes those two OPENs (+ OPEN-LEAD-STAGE / OPEN-D1)

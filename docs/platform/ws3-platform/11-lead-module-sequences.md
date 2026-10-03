@@ -133,20 +133,121 @@ Lead does not implement hierarchy files; it stores hold state and reacts to AUBI
 
 ---
 
-## 6. Sync vs async
+## 6. Resume Save & Close
 
-| Interaction | Mode |
-|---|---|
-| Search, dedupe probe, create, assign, meeting capture | Sync |
-| Validation engine | Sync evaluate; approval workflow async |
-| Exception release / reject | Event into Lead |
-| Meeting SMS/email | Deferred |
+```mermaid
+sequenceDiagram
+  actor User as Workforce user
+  participant APP as NIP-APP
+  participant BFF as NIP BFF
+  participant LED as Lead #5
+  participant JRN as Journey #6
+
+  User->>APP: Open lead from pipeline
+  APP->>BFF: GET /leads/{leadId}
+  BFF->>LED: GET /internal/v1/leads/{leadId}
+  LED-->>BFF: Lead + journeyId
+  BFF->>JRN: GET journey stage refs
+  JRN-->>BFF: resume point
+  BFF-->>APP: prefilled resume payload
+```
+
+`BR-LEAD-004`. Regulated next steps still require certified SP / allowed process-further actor (`INV-ACT-01`, `D-019`).
 
 ---
 
-## 7. Done for this document
+## 7. Reassignment (pre-BI)
+
+```mermaid
+sequenceDiagram
+  actor User as Authorised user
+  participant BFF as NIP BFF
+  participant LED as Lead #5
+  participant PDP as AuthZ PDP
+
+  User->>BFF: POST /leads/{id}/assignments
+  BFF->>LED: POST /internal/v1/leads/{id}/assignments
+  LED->>PDP: may assign? target certified?
+  PDP-->>LED: allow / deny
+  alt biGenerated
+    LED-->>BFF: 422 REASSIGN_AFTER_BI (VAL-016 / BR-REASSIGN-001)
+  else
+    LED->>LED: append history; update working owners
+    Note over LED: accountableSpId stays immutable (INV-ACT-03)
+    LED-->>BFF: 200 Lead
+  end
+```
+
+`OPEN-D1` still owns SLA reset and conversion credit semantics. Provisional design follows `BR-OWN-003` (credit follows current ownership).
+
+---
+
+## 8. First BI → Eligible / QUALIFIED
+
+```mermaid
+sequenceDiagram
+  participant QTE as Quotation #10
+  participant LED as Lead #5
+
+  QTE->>LED: POST /internal/v1/leads/{id}/bi-generated
+  Note over QTE,LED: Only after successful BI response (BR-BI-001/002)
+  LED->>LED: if first: biGenerated=true, reportingClass=ELIGIBLE, state→QUALIFIED
+  LED-->>QTE: 204
+```
+
+Subsequent BIs link to the same `leadId` without minting a new lead (`BR-BI-003/005`).
+
+---
+
+## 9. Convert → archive (ADR-014)
+
+```mermaid
+sequenceDiagram
+  participant JRN as Journey #6
+  participant LED as Lead #5
+
+  JRN->>LED: JourneySold (payment RECONCILED + policy ACTIVE)
+  LED->>LED: QUALIFIED → CONVERTED (INV-LED-02)
+  LED->>LED: archiveWorkingInbox → ARCHIVED
+```
+
+---
+
+## 10. Close (pre-conversion)
+
+```mermaid
+sequenceDiagram
+  actor User as Authorised user
+  participant BFF as NIP BFF
+  participant LED as Lead #5
+
+  User->>BFF: POST /leads/{id}/close {reason, remarks?}
+  BFF->>LED: POST /internal/v1/leads/{id}/close
+  LED->>LED: → DISQUALIFIED terminal
+  Note over LED: BR-CLOSE-001 — no reopen
+  LED-->>BFF: 200
+```
+
+---
+
+## 11. Sync vs async
+
+| Interaction | Mode |
+|---|---|
+| Pipeline, search, dedupe probe, create, assign, meeting capture, close | Sync |
+| Validation engine | Sync evaluate; approval workflow async |
+| Exception release / reject | Event into Lead |
+| BI mark from Quote | Sync command or durable event — same idempotent handler |
+| JourneySold | Event (async) with idempotent convert |
+| Assignment notification | Async outbox → Notification (R0 thin) |
+| Meeting customer SMS/email | Deferred (`SUG-20260907-fig`) |
+
+---
+
+## 12. Done for this document
 
 - [x] `D-019` create-then-assign sequence
 - [x] Dedupe + validation + assignment + process-further roles
+- [x] Resume, reassignment, BI, convert/archive, close sequences
 - [x] OPEN conflicts named (delete; validation timing)
 - [ ] Human Board 1 signature

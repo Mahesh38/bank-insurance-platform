@@ -45,7 +45,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
 | SUG-20261002-lfs | 2026-10-02 | human:Rajal | Lead flow: create then assign SP+meeting; dedupe continue/delete; validation engine block-or-approve; process further = AU SP or Insurance RM/FLS | SF2 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [D-019](../../au-bank-insurance-platform/DECISION-LOG.md) · [EPIC-005](../../platform/ws3-platform/EPIC-005.work-item.yaml) · [detail](#sug-20261002-lfs--lead-create-dedupe-validation-assign-meeting) |
 | SUG-20260930-ola | 2026-09-30 | human:Rajal | OPEN-LEAD-ACTOR: Lead may be created by anyone (workforce); post-create must assign certified-SP RM | SF2 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [D-018](../../au-bank-insurance-platform/DECISION-LOG.md) · [ADR-021](../../platform/architecture-review/08-architecture-decision-log.md) · [EPIC-005](../../platform/ws3-platform/EPIC-005.work-item.yaml) · [detail](#sug-20260930-ola--lead-create-by-workforce--mandatory-sp-assignee) |
-| SUG-20260930-lmd | 2026-09-30 | human:architect | Create complete Lead module design docs (HLD, sequences, API, flows, algorithms) from Lead BRD | SF5 | SC0 | SHOULD | ARCH | P3 / P1 | ADMITTED | [EPIC-005](../../platform/ws3-platform/EPIC-005.work-item.yaml) · [PLAN-007](../plans/PLAN-007-lead-module-design-pack.md) · [HLD](../../platform/ws3-platform/10-lead-module-hld.md) · [detail](#sug-20260930-lmd--lead-module-design-pack-from-brd) |
+| SUG-20260930-lmd | 2026-09-30 | human:architect | Create complete Lead module design docs (HLD, sequences, API, flows, algorithms) from Lead BRD | SF5 | SC0 | SHOULD | ARCH | P3 / P1 | ADMITTED | [EPIC-005](../../platform/ws3-platform/EPIC-005.work-item.yaml) · [PLAN-007](../plans/PLAN-007-lead-module-design-pack.md) · [HLD](../../platform/ws3-platform/10-lead-module-hld.md) · [detail](#sug-20260930-lmd--lead-module-design-pack-from-brd) · recurrence_count 2 (2026-10-03: same ask — pack exists; deepen BI/close/convert; do not restart from scratch) |
 | SUG-20260930-osl | 2026-09-30 | scan:trivy | CVE-2026-84782 (HIGH) on openssl/libssl3 3.0.2-0ubuntu1.29 in eclipse-temurin:21-jre-jammy fails Phase-1 image scans; upgrade to 3.0.2-0ubuntu1.30 | SF0 | SC1 | MUST | SEC | P1 / P1 | ADMITTED | [persistence Dockerfile](../../../services/bank-persistence-service/Dockerfile) · [combined Dockerfile](../../../Dockerfile) · [detail](#sug-20260930-osl--openssl-cve-2026-84782) |
 | SUG-20260930-cif | 2026-09-30 | human:repository-owner | Make CI change-specific: docs-only must not trigger CodeQL Java or container scans; heavy jobs before merge, not every push | SF5 | SC1 | SHOULD | INFRA | P3 / P2 | ADMITTED | [PLAN-006](../plans/PLAN-006-ci-change-specific-triggers.md) · [detail](#sug-20260930-cif--change-specific-ci-triggers) |
 | SUG-20260929-dbr | 2026-09-29 | human:repository-owner | Daily sign-off PR must also give, for every pending human sign-off, an AIGEM suggested decision (approve / approve with conditions / approve after validation / reject / defer) with context, justification and reasons both ways | SF5 | SC1 | SHOULD | GOV | P3 / P2 | ADMITTED | [generator](../../../scripts/governance/decision_briefs.py) · [detail](#sug-20260929-dbr--decision-briefs-on-the-daily-sign-off-pr) |
@@ -210,7 +210,7 @@ outcome:
 resumed: "PR #130 CI failures — Spotless, Knowledge Hub, two Trivy image scans."
 ```
 
-### SUG-20261002-lfs · Lead create → dedupe/validation → assign SP + meeting
+### SUG-20261002-lfs · Lead create dedupe validation assign meeting
 
 ```yaml
 # schema: triage-record
@@ -469,7 +469,14 @@ priority:
 work_item_id: EPIC-005
 plan: PLAN-007
 stories: [ARCH-026, ARCH-027, ARCH-028, DOC-023]
+recurrence_count: 2
 ```
+
+Recurrence 2026-10-03 (CS-2, not a new row): same architect ask as the original input.
+Design pack already admitted under `EPIC-005` / `PLAN-007` (PR #132 merged; PR #135 D-019 open).
+"From scratch" does **not** mean redesign EPIC-003 — continue the Lead-service pack only.
+Action: restore BI/close/convert/resume sequences and algorithms stubbed by the D-019 rewrite;
+add evaluate + exception-hold OpenAPI; keep OPEN Product conflicts for Rajal.
 
 ### SUG-20260930-cif · Change-specific CI triggers
 

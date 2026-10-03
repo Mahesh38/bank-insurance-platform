@@ -49,6 +49,11 @@ paths:
           description: When true, only leads with biGenerated=false and non-terminal state.
           schema:
             type: boolean
+        - name: exceptionHold
+          in: query
+          description: When true, only leads awaiting Exception / AUBIMA approval release.
+          schema:
+            type: boolean
         - name: cursor
           in: query
           description: Opaque continuation token from a previous page.
@@ -269,6 +274,63 @@ paths:
       responses:
         '200':
           description: Archived Lead
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Lead'
+        '409':
+          $ref: '#/components/responses/Problem'
+  /internal/v1/leads:evaluate:
+    post:
+      tags: [Leads]
+      operationId: evaluateLeadExceptions
+      summary: Probe Exception / validation engine without minting a lead
+      description: |
+        Optional pre-create probe (OPEN-LEAD-VAL-TIMING). Returns PASS | BLOCK |
+        APPROVAL_REQUIRED with ruleIds. Does not persist a Lead.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [customerId, productClass]
+              properties:
+                customerId:
+                  type: string
+                productClass:
+                  $ref: '#/components/schemas/ProductClass'
+                lob:
+                  $ref: '#/components/schemas/Lob'
+              additionalProperties: false
+      responses:
+        '200':
+          description: Validation verdict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationVerdict'
+        '422':
+          $ref: '#/components/responses/Problem'
+  /internal/v1/leads/{leadId}/exception-hold:
+    post:
+      tags: [Leads]
+      operationId: applyExceptionHold
+      summary: Release or reject an exception hold (AUBIMA callback)
+      description: |
+        Cluster-private callback from Exception Handling. RELEASE clears hold;
+        REJECT hard-blocks / closes the held treatment. Lead does not own approver hierarchy.
+      parameters:
+        - $ref: '#/components/parameters/LeadId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExceptionHoldRequest'
+      responses:
+        '200':
+          description: Updated Lead
           content:
             application/json:
               schema:
@@ -545,6 +607,34 @@ components:
         updatedAt:
           type: string
           format: date-time
+      additionalProperties: false
+    ValidationVerdict:
+      type: object
+      required: [outcome]
+      properties:
+        outcome:
+          type: string
+          enum: [PASS, BLOCK, APPROVAL_REQUIRED]
+        ruleIds:
+          type: array
+          items:
+            type: string
+          description: Triggered Exception Handling rule identifiers.
+      additionalProperties: false
+    ExceptionHoldRequest:
+      type: object
+      required: [action]
+      properties:
+        action:
+          type: string
+          enum: [RELEASE, REJECT]
+        ruleIds:
+          type: array
+          items:
+            type: string
+        remarks:
+          type: string
+          maxLength: 250
       additionalProperties: false
     ServiceErrorResponse:
       type: object

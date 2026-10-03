@@ -91,13 +91,13 @@ Standing constraints that apply: bank apps never call DB or 1SB directly; Flutte
 | Customer confirm with masked mobile/email | **IN** (BFF) | EPIC-003 |
 | Product need: Term / Savings / ULIP | **IN** (Term + Savings/ULIP per CR-015) | CR-015 / EPIC-004 |
 | Role-specific assignment RM / SP / Non-SP | **IN** — create first, then assign certified-SP AU Bank RM (`D-019`) | `ADR-021`, INV-LED-04/10 |
-| Optional meeting capture (type/date/time/link) | **IN** (Lead BRD Screen 7; no SMS delivery) | BRD §9.9; SMS stays BOOT-deferred |
+| Optional meeting **capture** (type/date/time/link) | **IN** on assignment screen (Lead BRD Screen 7); fields optional (`BR-LEAD-003`) | BRD §9.9; `D-019` |
+| Meeting **completion** / outcome workflow | **OUT** (BRD §4.2) | BRD §4.2 |
+| SMS/email meeting communication | **OUT now** — parked `SUG-20260907-fig` | BOOT notification breadth |
 | Exception / validation engine (CASA, policy counts, …) | **IN as seam** to Exception Handling (AUBIMA); outcomes Block or Hold-for-approval | Exception BRD; `OPEN-LEAD-VAL-TIMING` |
 | Platform Lead ID | **IN** (ULID `leadId`, ID-01) | ADR-014; OPEN-LEAD-DISPLAY closed as omit sequential labels |
 | Dedupe user+customer+product | **IN** (algorithm DOC-023) | BR-DEDUPE; OPEN-LEAD-DUP |
 | Save & Close / continue to suitability | **IN** | BR-LEAD-003/004 |
-| Optional meeting scheduling | **DEFER UI/API** — parked `SUG-20260907-fig`; optional fields not required for create | BOOT; BRD meeting not mandatory |
-| SMS/email meeting communication | **OUT now** | BOOT notification breadth |
 | Reassignment before BI | **IN** (algorithm + API); SLA/attribution **OPEN-D1** | BR-REASSIGN; OPEN-D1 |
 | Closure + remarks | **IN** | BR-CLOSE-* |
 | Dashboard visibility/actions | **IN** as inbox list fields (pipeline API); not full UX widgets | BRD §4.2 out for detailed UX |

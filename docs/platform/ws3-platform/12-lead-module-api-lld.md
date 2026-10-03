@@ -148,5 +148,5 @@ User-facing copy for BFF mapping uses VAL-* strings from BRD §23 where applicab
 ## 7. Done for this document
 
 - [x] BFF mapping table
-- [x] Internal operation set aligned to OpenAPI
+- [x] Internal operation set aligned to OpenAPI (incl. evaluate + exception-hold)
 - [ ] Human Board 1 / Security signatures

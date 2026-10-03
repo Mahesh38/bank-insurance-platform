@@ -176,6 +176,189 @@ class LifeQuoteValidatorTest {
         .anyMatch(e -> ErrorCodes.UNSUPPORTED_LOB.equals(e.code()));
   }
 
+  @Test
+  void rejectsNullCommandNullLobUnknownModeAndCategory() {
+    assertThat(LifeQuoteValidator.validate(null))
+        .anyMatch(e -> ErrorCodes.MISSING_REQUIRED_FIELD.equals(e.code()));
+
+    CreateQuoteCommand noLob =
+        new CreateQuoteCommand(
+            null,
+            "UNKNOWN",
+            "LUMPSUM",
+            new BigDecimal("5000000"),
+            null,
+            List.of(
+                new CreateQuoteCommand.MemberDetail(
+                    "LIFE_ASSURED",
+                    1,
+                    "1990-01-15",
+                    "M",
+                    false,
+                    new BigDecimal("1000000"),
+                    "400001")),
+            null,
+            new CreateQuoteCommand.DistributionContext(null, "109337", "B2B"),
+            "j-1",
+            null,
+            "idem",
+            "actor");
+
+    assertThat(LifeQuoteValidator.validate(noLob))
+        .anyMatch(e -> "lob".equals(e.field()))
+        .anyMatch(e -> "mode".equals(e.field()))
+        .anyMatch(e -> "category".equals(e.field()));
+  }
+
+  @Test
+  void rejectsMissingAndNonPositiveMoneyAndEmptyMembers() {
+    CreateQuoteCommand command =
+        new CreateQuoteCommand(
+            Lob.TERM,
+            "MULTI",
+            "PREMIUM",
+            new BigDecimal("-1"),
+            new BigDecimal("0"),
+            List.of(),
+            null,
+            new CreateQuoteCommand.DistributionContext(null, "109337", "B2B"),
+            "j-1",
+            null,
+            "idem",
+            "actor");
+
+    assertThat(LifeQuoteValidator.validate(command))
+        .anyMatch(e -> "sumAssured".equals(e.field()))
+        .anyMatch(e -> "premiumAmount".equals(e.field()))
+        .anyMatch(e -> "members".equals(e.field()));
+
+    CreateQuoteCommand missingSum =
+        new CreateQuoteCommand(
+            Lob.TERM,
+            "MULTI",
+            "PREMIUM",
+            null,
+            null,
+            List.of(
+                new CreateQuoteCommand.MemberDetail(
+                    "LIFE_ASSURED",
+                    1,
+                    "1990-01-15",
+                    "M",
+                    false,
+                    new BigDecimal("1000000"),
+                    "400001")),
+            null,
+            new CreateQuoteCommand.DistributionContext(null, "109337", "B2B"),
+            "j-1",
+            null,
+            "idem",
+            "actor");
+
+    assertThat(LifeQuoteValidator.validate(missingSum))
+        .anyMatch(e -> "sumAssured".equals(e.field()))
+        .anyMatch(e -> "premiumAmount".equals(e.field()));
+  }
+
+  @Test
+  void rejectsMemberRoleIncomePincodeAgeAndUnparseableDob() {
+    CreateQuoteCommand command =
+        new CreateQuoteCommand(
+            Lob.TERM,
+            "SINGLE",
+            "SUM_ASSURED",
+            new BigDecimal("5000000"),
+            null,
+            List.of(
+                new CreateQuoteCommand.MemberDetail(
+                    "DEPENDENT",
+                    1,
+                    "2010-01-15",
+                    "M",
+                    false,
+                    new BigDecimal("0"),
+                    "000001",
+                    "Child"),
+                new CreateQuoteCommand.MemberDetail(
+                    "PROPOSER", 2, "not-a-date", "F", false, null, "40000", null)),
+            null,
+            new CreateQuoteCommand.DistributionContext("E1", null, "WEB"),
+            "j-1",
+            null,
+            "idem",
+            "actor",
+            new CreateQuoteCommand.ProductSelection(
+                "BALIC", List.of("345"), null, null, null, 90, 2, "M", "1"));
+
+    assertThat(LifeQuoteValidator.validate(command))
+        .anyMatch(e -> e.field().contains("role"))
+        .anyMatch(e -> e.field().contains("annualIncome"))
+        .anyMatch(e -> e.field().contains("pincode"))
+        .anyMatch(e -> e.field().contains("dob"))
+        .anyMatch(e -> e.field().contains("relationship"))
+        .anyMatch(e -> e.field().contains("policyTerm"))
+        .anyMatch(e -> e.field().contains("channelType"));
+  }
+
+  @Test
+  void rejectsEmptySavingsListAndAcceptsAliasModes() {
+    CreateQuoteCommand emptyList =
+        new CreateQuoteCommand(
+            Lob.SAVING,
+            "MQ",
+            "SUM_ASSURED",
+            new BigDecimal("5000000"),
+            null,
+            List.of(
+                new CreateQuoteCommand.MemberDetail(
+                    "LIFE_ASSURED",
+                    1,
+                    "1990-01-15",
+                    "M",
+                    false,
+                    new BigDecimal("1000000"),
+                    "400001")),
+            Map.of("savingsProductType", List.of()),
+            new CreateQuoteCommand.DistributionContext(null, "109337", "B2B"),
+            "j-1",
+            null,
+            "idem",
+            "actor");
+
+    assertThat(LifeQuoteValidator.validate(emptyList))
+        .anyMatch(e -> e.field().contains("savingsProductType"));
+
+    CreateQuoteCommand listInvalid =
+        new CreateQuoteCommand(
+            Lob.SAVING,
+            "MULTI",
+            "SUM_ASSURED",
+            new BigDecimal("5000000"),
+            null,
+            List.of(
+                new CreateQuoteCommand.MemberDetail(
+                    "LIFE_ASSURED",
+                    1,
+                    "1990-01-15",
+                    "M",
+                    false,
+                    new BigDecimal("1000000"),
+                    "400001")),
+            Map.of("savingsProductType", java.util.Arrays.asList("Endowment", null)),
+            new CreateQuoteCommand.DistributionContext(null, "109337", "B2B"),
+            "j-1",
+            null,
+            "idem",
+            "actor");
+
+    assertThat(LifeQuoteValidator.validate(listInvalid))
+        .anyMatch(e -> e.field().contains("savingsProductType"));
+
+    assertThat(LifeQuoteValidator.isSingleQuote("SINGLE_QUOTE")).isTrue();
+    assertThat(LifeQuoteValidator.isSingleQuote("sq")).isTrue();
+    assertThat(LifeQuoteValidator.isSingleQuote("  ")).isFalse();
+  }
+
   private static CreateQuoteCommand base(Lob lob) {
     return new CreateQuoteCommand(
         lob,

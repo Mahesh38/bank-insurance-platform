@@ -126,4 +126,64 @@ class SavingQuoteHandlerTest {
     LifeQuoteRequest payload = handler.buildSubmitPayload(command);
     assertThat(payload.product().savingsProductType()).containsExactly("Participating");
   }
+
+  @Test
+  void preferencesListMapsKnownTypesAndDropsUnknown() {
+    CreateQuoteCommand command =
+        new CreateQuoteCommand(
+            Lob.SAVING,
+            "MULTI",
+            "SUM_ASSURED",
+            new BigDecimal("1000000"),
+            null,
+            List.of(
+                new CreateQuoteCommand.MemberDetail(
+                    "LIFE_ASSURED",
+                    1,
+                    "1985-06-01",
+                    "F",
+                    false,
+                    new BigDecimal("900000"),
+                    "560001")),
+            java.util.Map.of(
+                "savingsProductType",
+                java.util.Arrays.asList("nonParticipating", null, "junk", "ULIP")),
+            new CreateQuoteCommand.DistributionContext(null, "A1", "B2B"),
+            "j-s",
+            null,
+            "idem",
+            "actor");
+
+    LifeQuoteRequest payload = handler.buildSubmitPayload(command);
+    assertThat(payload.product().savingsProductType()).containsExactly("nonParticipating", "ULIP");
+  }
+
+  @Test
+  void unknownStringPreferenceDefaultsToUlip() {
+    CreateQuoteCommand command =
+        new CreateQuoteCommand(
+            Lob.SAVING,
+            "MULTI",
+            "SUM_ASSURED",
+            new BigDecimal("1000000"),
+            null,
+            List.of(
+                new CreateQuoteCommand.MemberDetail(
+                    "LIFE_ASSURED",
+                    1,
+                    "1985-06-01",
+                    "F",
+                    false,
+                    new BigDecimal("900000"),
+                    "560001")),
+            java.util.Map.of("savingsProductType", "Endowment"),
+            new CreateQuoteCommand.DistributionContext(null, "A1", "B2B"),
+            "j-s",
+            null,
+            "idem",
+            "actor");
+
+    assertThat(handler.buildSubmitPayload(command).product().savingsProductType())
+        .containsExactly("ULIP");
+  }
 }

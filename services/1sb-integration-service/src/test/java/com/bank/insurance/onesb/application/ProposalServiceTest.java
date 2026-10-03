@@ -69,6 +69,75 @@ class ProposalServiceTest {
   }
 
   @Test
+  @Tag("FUNC-028")
+  void getSchema_nullLob_throwsValidation() {
+    assertThatThrownBy(() -> proposalService.getSchema(null, "T1", "HDFC", "1", null))
+        .isInstanceOf(ServiceException.class)
+        .satisfies(
+            ex ->
+                assertThat(((ServiceException) ex).getErrorResponse().getCode())
+                    .isEqualTo(ErrorCodes.VALIDATION_ERROR));
+  }
+
+  @Test
+  @Tag("FUNC-028")
+  void submit_nullLob_throwsValidation() {
+    SubmitProposalCommand command =
+        new SubmitProposalCommand(
+            null,
+            "scm-1",
+            "off-1",
+            "T1",
+            "HDFC",
+            "1",
+            Map.of("ok", true),
+            "consent-1",
+            "109337",
+            null,
+            "j-1",
+            null,
+            "idem-1",
+            "actor-1");
+
+    assertThatThrownBy(() -> proposalService.submit(command))
+        .isInstanceOf(ServiceException.class)
+        .satisfies(
+            ex ->
+                assertThat(((ServiceException) ex).getErrorResponse().getCode())
+                    .isEqualTo(ErrorCodes.VALIDATION_ERROR));
+    verify(proposalPort, never()).submit(any(), any(), any());
+  }
+
+  @Test
+  @Tag("FUNC-028")
+  void submit_missingProductIdentity_throwsWithoutCallingOneSb() {
+    SubmitProposalCommand command =
+        new SubmitProposalCommand(
+            Lob.TERM,
+            "scm-1",
+            "off-1",
+            "  ",
+            null,
+            "1",
+            Map.of("ok", true),
+            "consent-1",
+            "109337",
+            new SubmitProposalCommand.DistributionContext("E1", null, "B2B"),
+            "j-1",
+            null,
+            "idem-1",
+            "actor-1");
+
+    assertThatThrownBy(() -> proposalService.submit(command))
+        .isInstanceOf(ServiceException.class)
+        .satisfies(
+            ex ->
+                assertThat(((ServiceException) ex).getErrorResponse().getCode())
+                    .isEqualTo(ErrorCodes.VALIDATION_ERROR));
+    verify(proposalPort, never()).submit(any(), any(), any());
+  }
+
+  @Test
   @Tag("FUNC-004")
   void getSchema_delegatesToHandlerAndPort() {
     when(handlerRegistry.get(Lob.TERM)).thenReturn(handler);

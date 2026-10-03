@@ -168,7 +168,7 @@ public class OneSbHttpClient {
         }
         if (contentType != null
                 && !com.bank.insurance.onesb.application.validation.UpstreamResponseGuard.isJson(contentType)
-                && (body == null || !(body instanceof Map || body instanceof java.util.List))) {
+                && (body == null || !(body instanceof java.util.Map || body instanceof java.util.List))) {
             throw com.bank.insurance.onesb.application.validation.UpstreamResponseGuard
                     .bad(serviceErrors, operation, "1SB returned non-JSON content type: " + contentType);
         }

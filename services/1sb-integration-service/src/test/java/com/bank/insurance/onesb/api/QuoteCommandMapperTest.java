@@ -19,7 +19,7 @@ class QuoteCommandMapperTest {
         CreateQuoteRequest request = new CreateQuoteRequest(
                 Lob.ULIP, "SINGLE", "SUM_ASSURED", new BigDecimal("500000"), null,
                 List.of(new CreateQuoteRequest.MemberRequest(
-                        "LA", null, "1990-01-15", "M", true, new BigDecimal("1"), "400001")),
+                        "LA", null, "1990-01-15", "M", true, new BigDecimal("1"), "400001", "Self")),
                 null,
                 new CreateQuoteRequest.DistributionRequest("E1", "109337", "B2B"),
                 "j-1", "s-1",
@@ -32,6 +32,7 @@ class QuoteCommandMapperTest {
         assertThat(command.members()).hasSize(1);
         assertThat(command.members().get(0).sequenceNumber()).isZero();
         assertThat(command.members().get(0).tobacco()).isTrue();
+        assertThat(command.members().get(0).relationship()).isEqualTo("Self");
         assertThat(command.distribution().agentId()).isEqualTo("109337");
         assertThat(command.selection().insurerCode()).isEqualTo("BALIC");
         assertThat(command.actorId()).isEqualTo("rm-1");

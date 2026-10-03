@@ -34,7 +34,18 @@ public record CreateQuoteRequest(
             BigDecimal annualIncome,
             String pincode,
             String relationship
-    ) {}
+    ) {
+        public MemberRequest(
+                String role,
+                Integer sequenceNumber,
+                String dob,
+                String gender,
+                Boolean tobacco,
+                BigDecimal annualIncome,
+                String pincode) {
+            this(role, sequenceNumber, dob, gender, tobacco, annualIncome, pincode, null);
+        }
+    }
 
     public record DistributionRequest(
             String rmEmployeeId,

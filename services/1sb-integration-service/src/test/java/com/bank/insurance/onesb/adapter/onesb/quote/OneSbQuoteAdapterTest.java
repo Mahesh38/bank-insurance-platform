@@ -2,6 +2,8 @@ package com.bank.insurance.onesb.adapter.onesb.quote;
 
 import com.bank.insurance.onesb.TestErrors;
 
+import com.bank.common.error.ErrorCodes;
+import com.bank.common.error.ServiceException;
 import com.bank.common.secrets.SecretProvider;
 import com.bank.insurance.onesb.adapter.onesb.client.OneSbHttpClient;
 import com.bank.insurance.onesb.domain.command.CreateQuoteCommand;
@@ -31,6 +33,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -212,14 +215,18 @@ class OneSbQuoteAdapterTest {
     }
 
     @Test
-    void isPollComplete_malformedBody_returnsFalse() {
+    @Tag("FUNC-028")
+    void isPollComplete_malformedBody_rejectsAsUpstreamBadResponse() {
         wireMock.stubFor(get(urlEqualTo("/insurance/lifeterm/v1/quote/poll/REQ-4"))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
                         .withBody("not-json")));
 
-        assertThat(adapter.isPollComplete("job-1", "REQ-4", "TERM")).isFalse();
+        assertThatThrownBy(() -> adapter.isPollComplete("job-1", "REQ-4", "TERM"))
+                .isInstanceOf(ServiceException.class)
+                .satisfies(ex -> assertThat(((ServiceException) ex).getErrorResponse().getCode())
+                        .isEqualTo(ErrorCodes.UPSTREAM_BAD_RESPONSE));
     }
 
     @Test

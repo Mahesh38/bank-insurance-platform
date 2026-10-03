@@ -3,9 +3,9 @@
 **Audience:** Bank development team, vendor development team, client product and QA  
 **Product:** Digital Insurance Platform — Assisted Life Insurance  
 **Module:** Lead Management (plus the login entry and the modules Lead hands off to)  
-**Version:** 1.0  
-**Date:** 01 October 2026  
-**Status:** Ready to build  
+**Version:** 1.1  
+**Date:** 03 October 2026  
+**Status:** Ready to build — sequence aligned to latest Product rules  
 **Visual prototype (layout only):** [Client review prototype](https://www.figma.com/proto/JyLGAaO88ELjnyVF2FQ3Bx/For-Client-Review?node-id=208-9666&page-id=208%3A2982)
 
 This is a **standalone** specification. Recipients do not need any other document, repository or internal glossary to start building. If the visual prototype and this page disagree, **this page wins**. Text labelled “open”, “to be confirmed” or “not in the first increment” is not a licence to invent a different rule — raise it to Product / Architecture before coding a workaround.
@@ -35,8 +35,10 @@ A Lead is the single sales opportunity record. It is created once, given a perma
 
 - One Lead per Life Insurance sales opportunity.
 - Bank salesperson and Insurance Relationship Manager work the same Lead together.
-- The same logged-in user cannot open two unfinished Leads for the same customer and the same product type.
-- A Lead can be saved for later or continued immediately into suitability.
+- The same logged-in user cannot open two unfinished Leads for the same customer and the same product type. When a Benefit Illustration is **not** yet generated, the only choices are **Continue** the existing Lead or **Cancel** — never delete or replace.
+- Save stores the Lead and does **not** run exception / validation rules. **Start Onboarding** runs those rules.
+- After Start Onboarding clears (or an approval hold is released), a **certified Specified Person (SP) Bank RM** must be assigned before suitability.
+- A Lead can be saved for later or continued into suitability. Only an AU Bank employee who holds a current SP certification, or an Insurance RM / FLS, may process further.
 - The Lead is counted as an **Eligible** business Lead only after a Benefit Illustration is successfully returned.
 - Every material action is audited.
 
@@ -69,16 +71,17 @@ Line of business is **Life only**. Do not store `lob = TERM`. Correct pair: `lob
 - Search by Customer ID, registered mobile, PAN
 - Confirm customer with masked mobile and email
 - Product need: Term, Savings, ULIP
-- Role-specific assignment (Insurance RM, Bank SP, Bank Non-SP)
+- Role-specific assignment of a certified-SP Bank RM **after** Save and Start Onboarding (Insurance RM, Bank SP, Bank Non-SP may create)
 - Platform-generated Lead ID
-- User-level dedupe
-- Save & Close and continue to suitability
-- Optional online / in-person meeting + SMS / email
+- User-level dedupe (Continue or Cancel only when BI is absent)
+- Save without exception evaluation; Start Onboarding runs Block / Hold-for-approval / Pass
+- Save & Close and continue to suitability (suitability only by AU SP or Insurance RM / FLS)
+- Optional online / in-person meeting capture on the assignment screen
 - Reassignment before BI
 - Closure and remarks
 - Dashboard visibility and actions
 - Stage, status, reporting and audit
-- Integrations: Customer 360, user/branch mapping, Lead store, Quote, Insurance Status, notifications, audit
+- Integrations: Customer 360, user/branch mapping, Lead store, exception / validation engine, Quote, Insurance Status, notifications, audit
 
 **Out**
 
@@ -86,6 +89,7 @@ Line of business is **Life only**. Do not store `lob = TERM`. Correct pair: `lob
 - Detailed dashboard widget visual design (minimum fields and actions **are** in)
 - RM-to-branch / department mapping administration screens
 - Meeting completion / meeting-outcome workflow
+- Meeting customer SMS / email in this increment (capture the meeting; do not send customer comms yet)
 - Separate follow-up task module
 - Bulk upload and campaign Leads
 - Health Insurance on the picker
@@ -99,9 +103,9 @@ Product behaviour below is the **full Lead module**. Architecture has already co
 | Increment | Who | Product | What the user can do | API surface |
 |---|---|---|---|---|
 | **L0 — Access** | Bank RM and Insurance Partner RM | — | Login, OTP, lock / unlock | Workforce session APIs (outline in §13) |
-| **L1 — Lead landing and create** | Insurance RM (logged-in creator is auto-assigned) | Term | See own inbox, search ETB customer, confirm, create or resume, receive `leadId` + `journeyId` | §16 — **specified now** |
-| **L2 — Full Lead module** | Insurance RM, Bank SP, Bank Non-SP | Term, Savings, ULIP | Assignment screens, meetings, dashboard grid, remarks, reassign, close | §17 — **target contract** so UI and API can be built together |
-| **L3 — Sale completion** | Current SP and current Insurance RM, then the customer on their device | Same Lead ID | Suitability → suitable products → quote / BI → proposal → consent → PIVC → payment → issuance | §14 — journey HLD and module hand-offs |
+| **L1 — Lead landing and Save** | Any allowed workforce creator | Term | See own inbox, search ETB customer, confirm, Save or resume, Start Onboarding, assign a certified-SP Bank RM, receive `leadId` + `journeyId` | §16 — **specified now** |
+| **L2 — Full Lead module** | Insurance RM, Bank SP, Bank Non-SP | Term, Savings, ULIP | Role-specific assignment, optional meeting capture, dashboard grid, remarks, reassign, close | §17 — **target contract** so UI and API can be built together |
+| **L3 — Sale completion** | Current SP and current Insurance RM / FLS, then the customer on their device | Same Lead ID | Suitability → suitable products → quote / BI → proposal → consent → PIVC → payment → issuance | §14 — journey HLD and module hand-offs |
 
 **L1 is not a different product.** It is the first vertical slice of the same Lead. Do not build a second Lead object for L2.
 
@@ -117,10 +121,11 @@ Login (OTP)
    → Search existing bank customer
    → Confirm identity (masked)
    → Select product need (Term / Savings / ULIP)
-   → Role-specific assignment
-   → Dedupe (resume or create)
-   → Lead created (optional meeting)
-   → Save & Close  OR  Suitability
+   → Dedupe (Continue existing | Cancel — no delete when BI is absent)
+   → Save Lead (Lead ID minted; SP not yet assigned; no exception evaluation)
+   → Start Onboarding → exception engine (Block | Hold-for-approval | Pass)
+   → Assignment: mandatory certified-SP Bank RM + optional meeting
+   → Save & Close  OR  Suitability (AU SP or Insurance RM / FLS only)
    → Suitable products / quote / Benefit Illustration   ← first successful BI = Eligible
    → Final BI (locks suitability; locks reassignment)
    → Proposal form (seller), then customer review on customer device
@@ -137,13 +142,16 @@ flowchart LR
   B --> C[Search customer]
   C --> D[Confirm]
   D --> E[Product need]
-  E --> F[Assign owners]
-  F --> G{Unfinished same product?}
-  G -->|Yes| H[Resume existing Lead]
-  G -->|No| I[Create Lead ID]
-  H --> J[Created / meeting]
-  I --> J
-  J --> K{Continue?}
+  E --> G{Unfinished same product and no BI?}
+  G -->|Yes| H[Continue existing or Cancel]
+  G -->|No| I[Save Lead ID]
+  H --> B
+  I --> SO[Start Onboarding]
+  SO -->|Block| X[Progression locked]
+  SO -->|Hold| Y[Await approval]
+  SO -->|Pass| F[Assign certified SP + optional meeting]
+  Y -->|Released| F
+  F --> K{Continue?}
   K -->|Save and Close| B
   K -->|Suitability| L[Need analysis]
   L --> M[Quote and BI]
@@ -244,31 +252,32 @@ flowchart TB
 | Bank RM / Bank SP / Bank Non-SP | Employee ID + **existing bank password** | Bank directory. This platform does **not** reset or change it. |
 | Insurance Partner RM / FLS | Corporate email + **platform password** | Created / reset only through Unlock User. Expires in 60 days. |
 
-**Specified Person (SP)** is a **certification on a Bank RM**, evaluated at the moment of a regulated action, not a second login type. A Bank user without SP certification can still **identify** an opportunity (Non-SP create) but cannot fulfil suitability / quote / proposal.
+**Specified Person (SP)** is a **certification on a Bank RM**, evaluated at assignment and again at every regulated action, not a second login type. A Bank user without SP certification can **Save** a Lead, run Start Onboarding, assign an SP, and Save & Close, but cannot fulfil suitability / quote / proposal.
 
-Insurance Partner users never originate a Lead. If they call create, the API returns `403 ORIGINATION_RM_ONLY`. Records they are not allowed to see are **absent** from lists — never a `403` that names the id.
+Any allowed workforce creator (Bank SP, Bank Non-SP, Insurance RM / FLS) may Save a Lead. Insurance RM create may be switched off at runtime until Compliance confirms it; the API then returns `403 ORIGINATION_ACTOR_DENIED`. Records a caller is not allowed to see are **absent** from lists — never a `403` that names the id.
 
 ---
 
 ## 4. Users and access (Lead)
 
-| Role | Who | During create | After create |
+| Role | Who | During Save | After assignment |
 |---|---|---|---|
-| **Insurance RM / FLS** | Insurer representative mapped to one or more branches | Selects **branch** then **SP** | Sees and actions the Lead; can fulfil the journey |
-| **Bank SP** | Bank salesperson mapped to **one** home branch; holds SP certification | Does **not** pick branch (derived). Selects **Insurance RM** | Sees and actions the Lead; can fulfil the journey |
-| **Bank Non-SP** | Bank employee who can spot an opportunity | Selects **branch** then **SP**. Insurance RM is **system-derived** | Lead **does not** appear on the Non-SP dashboard after allocation |
+| **Insurance RM / FLS** | Insurer representative mapped to one or more branches | Search, confirm, product, Save, Start Onboarding. Then selects **branch** and a **certified-SP Bank RM** | Sees and actions the Lead; can fulfil the journey |
+| **Bank SP** | Bank salesperson mapped to **one** home branch; holds SP certification | Search, confirm, product, Save, Start Onboarding. May **self-assign** as the certified SP | Sees and actions the Lead; can fulfil the journey |
+| **Bank Non-SP** | Bank employee who can spot an opportunity | Search, confirm, product, Save, Start Onboarding. Then selects **branch** and a **certified-SP Bank RM** | Lead **does not** appear on the Non-SP dashboard after allocation; Non-SP cannot process further |
 
 ### 4.1 Action matrix
 
 | Action | Insurance RM | Bank SP | Bank Non-SP |
 |---|---|---|---|
 | Search and select customer | Yes | Yes | Yes |
-| Create Lead | Yes | Yes | Yes |
-| Select branch during create | Yes | No — home branch derived | Yes |
-| Select SP during create | Yes | No | Yes |
-| Select Insurance RM during create | No — logged-in RM applies | Yes | No — system-derived |
+| Save Lead | Yes | Yes | Yes |
+| Start Onboarding | Yes | Yes | Yes |
+| Assign certified-SP Bank RM | Yes | Yes (may self-assign) | Yes |
+| Capture optional meeting | Yes | Yes | Yes |
+| Select branch on assignment | Yes | No — home branch derived | Yes |
 | View created / assigned Lead | Yes | Yes | **No** after allocation |
-| Continue suitability / BI | Yes | Yes | No |
+| Continue suitability / BI | Yes | Yes | **No** |
 | Dashboard remarks | Yes | Yes | No |
 | Reassign before BI | Yes, if current owner | Yes, if current owner | No |
 | Close Lead | Yes | Yes | No |
@@ -277,9 +286,10 @@ Insurance Partner users never originate a Lead. If they call create, the API ret
 
 | Attribute | Meaning | Initial value |
 |---|---|---|
-| **Lead Generator (LG)** | Who is credited with generating the Lead | RM when RM creates; SP when SP creates; **selected SP** when Non-SP creates |
-| **Lead Fulfiller (LF)** | Who progresses the buying journey | Selected SP when RM creates; selected / derived Insurance RM when SP or Non-SP creates |
-| **Created By** | The actual user who clicked create | Always the logged-in user (needed when Non-SP creates) |
+| **Lead Generator (LG)** | Who is credited with generating the Lead | Creator when they are the SP; **assigned SP** when Non-SP or Insurance RM Saves |
+| **Lead Fulfiller (LF)** | Who progresses the buying journey | Assigned certified-SP Bank RM (and current Insurance RM on a joint path) |
+| **Created By** | The actual user who clicked Save | Always the logged-in user (needed when Non-SP Saves) |
+| **Accountable SP** | Certified Bank RM written once on the first completed assignment | Never changes on later working reassignment |
 
 Current Bank SP **and** current Insurance RM both see and action the Lead. LG and LF stay stored separately for attribution.
 
@@ -296,7 +306,7 @@ Reaching the quote screen or clicking Generate Quote **without** a successful BI
 
 ## 5. Lead creation flows
 
-### 5.1 Common path
+### 5.1 Common path (closed sequence)
 
 1. Open Lead Creation.
 2. Search existing bank customer (Customer ID **or** mobile **or** PAN).
@@ -304,61 +314,63 @@ Reaching the quote screen or clicking Generate Quote **without** a successful BI
 4. User selects and confirms the customer (masked fields).
 5. User selects exactly one product type.
 6. System runs **user-level** dedupe (same user + same customer + same product + no BI).
-7. Role-specific ownership is captured and the Lead is assigned.
-8. Platform generates Lead ID and shows the Lead Created screen.
-9. User may optionally schedule a meeting.
-10. User proceeds to Suitability **or** Save & Close.
-11. Saved Lead stays **New** / Diary on both current owners’ dashboards.
-12. First successful BI → Eligible and stage **Quote Generated**.
-13. Same Lead ID continues through proposal and insurer status.
+7. If unfinished and BI absent: show **Continue** or **Cancel** only. Do **not** offer delete or replace.
+8. **Save** the Lead. Platform mints Lead ID. State is **New**. Certified SP is **not** assigned yet. Exception rules do **not** run.
+9. User clicks **Start Onboarding**. Exception / validation engine returns **Pass**, **Block**, or **Hold-for-approval**.
+10. On Pass (or after an approval hold is released): assignment screen — user must select a **certified-SP Bank RM** and may optionally capture a meeting.
+11. User proceeds to Suitability **only if** they are an AU SP or Insurance RM / FLS — **or** Save & Close.
+12. Saved Lead stays **New** / Diary. After assignment it is visible to the current SP (and current Insurance RM).
+13. First successful BI → Eligible and stage **Quote Generated**.
+14. Same Lead ID continues through proposal and insurer status.
 
-Insurer and plan are **unknown** at create. They are filled later from quote / BI.
+Insurer and plan are **unknown** at Save. They are filled later from quote / BI.
 
-### 5.2 Insurance RM creates
+### 5.2 Insurance RM Saves then assigns
 
 ```text
-Search → Confirm → Product
+Search → Confirm → Product → Dedupe → Save
+   → Start Onboarding (Pass | Block | Hold)
    → Branch (only branches mapped to this RM)
-   → Active SPs in that branch
-   → Create
-LG = logged-in RM
-LF = selected Bank SP
+   → Active certified-SP Bank RMs in that branch
+   → Optional meeting → Save & Close or Suitability
+Created By / LG = logged-in RM
+Accountable SP / LF = selected Bank SP
 Visible to current RM and current SP
 ```
 
-### 5.3 Bank SP creates
+### 5.3 Bank SP Saves then assigns
 
 ```text
-Search → Confirm → Product
+Search → Confirm → Product → Dedupe → Save
+   → Start Onboarding (Pass | Block | Hold)
    → Branch = home branch (not editable)
-   → Active Insurance RMs mapped to that branch (a branch may have many RMs)
-   → Create
-LG = logged-in SP
-LF = selected Insurance RM
-Visible to current SP and current RM
+   → Certified SP = self (or another active SP on the home branch)
+   → Optional meeting → Save & Close or Suitability
+Created By / LG = logged-in SP
+Accountable SP = assigned Bank SP
+Visible to current SP and current Insurance RM
 ```
 
-### 5.4 Bank Non-SP creates
+### 5.4 Bank Non-SP Saves then assigns
 
 ```text
-Search → Confirm → Product
+Search → Confirm → Product → Dedupe → Save
+   → Start Onboarding (Pass | Block | Hold)
    → Branch (own or another)
-   → Active SPs in that branch
-   → Insurance RM derived from branch mapping (not a dropdown)
-   → Create
+   → Active certified-SP Bank RMs in that branch
+   → Optional meeting → Save & Close only (no Suitability)
 Created By = Non-SP
-LG = selected SP
-LF = derived Insurance RM
-Visible to current SP and current RM — NOT to the Non-SP after allocation
+LG / Accountable SP = selected SP
+Visible to current SP and current Insurance RM — NOT to the Non-SP after allocation
 ```
 
-If no RM can be derived, block create: *“Insurance RM could not be assigned for the selected branch. Please contact support.”*
+If no certified SP is available in the branch, block assignment: *“No active SP is available for the selected branch.”*
 
 **Wireframe note:** some Insurance RM screens show a **Vertical** dropdown. Confirmed flow is Branch → SP. If Vertical is kept, it is a bank-master filter between Branch and SP. Mandatory status is **open** — do not hard-code it.
 
 ### 5.5 Assignment timing (closed)
 
-Assignment of Insurance RM / SP happens **at Lead creation**, not after final BI. Later quote / proposal notes that said “assign after BI” are **not** followed.
+Assignment of the certified-SP Bank RM happens **after Start Onboarding clears**, not on Save and not after final BI. Later quote / proposal notes that said “assign after BI” are **not** followed. Save never evaluates exceptions.
 
 ---
 
@@ -445,50 +457,26 @@ Additional CBS fields may be fetched for later journey steps. **Do not display**
 
 Exactly one selection. Continue enabled only after a choice. Product type is **immutable** after create — another product needs a new Lead.
 
-**First API increment:** the catalogue resource returns only Term as selectable. The app should still render the three product cards for L2, but L1 create must send `TERM` or the API returns `422 UNSUPPORTED_LOB`.
+**First API increment:** the catalogue resource returns only Term as selectable. The app should still render the three product cards for L2, but L1 Save must send `TERM` or the API returns `422 UNSUPPORTED_LOB`.
 
-### 6.5 Screen 5A — Insurance RM assignment
+### 6.5 Screen 5 — Existing Lead / dedupe
 
-| Field | Type | Mandatory | Logic |
-|---|---|---|---|
-| Branch | Dropdown | Yes | Branches available to the logged-in RM |
-| Vertical | Dropdown if retained | Open | Bank master; filters SP list if kept |
-| SP | Dropdown | Yes | Active SPs in selected branch (and vertical if used). Empty-state if none |
-| Continue | Primary | — | Block without Branch + SP |
-
-### 6.6 Screen 5B — Bank SP assignment
-
-| Field | Type | Mandatory | Logic |
-|---|---|---|---|
-| Branch | Derived | — | Home branch, not editable |
-| Insurance RM | Dropdown | Yes | Active RMs mapped to the SP branch |
-| Continue | Primary | — | Block without RM |
-
-### 6.7 Screen 5C — Bank Non-SP assignment
-
-| Field | Type | Mandatory | Logic |
-|---|---|---|---|
-| Branch | Dropdown | Yes | Own or another branch |
-| SP | Dropdown | Yes | Active SPs in that branch |
-| Insurance RM | Derived | — | From branch mapping. Not selectable |
-| Continue | Primary | — | Fail if RM mapping missing |
-
-### 6.8 Screen 6 — Existing Lead / dedupe
-
-Shown when the **logged-in user** already has a Lead for the same Customer ID and same product type **and** that Lead has **no** BI.
+Shown **after product selection** when the **logged-in user** already has a Lead for the same Customer ID and same product type **and** that Lead has **no** BI.
 
 | Show | Action |
 |---|---|
 | Lead ID, creation date, product type | Read-only |
 | Continue with existing Lead | Open at the last resumable step |
-| Cancel | Close; do not create |
+| Cancel | Close; do not Save a new Lead |
 | Delete and create new | **Not available** when BI is not generated (ignore that wireframe label) |
 
 When BI **has** been generated, dedupe does **not** block a fresh Lead.
 
-Dedupe is **not** system-wide. Another user may create the same product Lead for the same customer.
+Dedupe is **not** system-wide. Another user may Save the same product Lead for the same customer.
 
-### 6.9 Screen 7 — Lead created and optional meeting
+### 6.6 Screen 6 — Lead saved
+
+Shown after a successful Save. Exception rules have **not** run.
 
 | Field | Type | Mandatory | Rule |
 |---|---|---|---|
@@ -496,15 +484,65 @@ Dedupe is **not** system-wide. Another user may create the same product Lead for
 | Customer name | Read-only | Yes | |
 | Customer ID | Masked | Yes | |
 | Lead ID | Read-only | Yes | Platform-generated, permanent |
+| Start Onboarding | Primary | — | Runs exception / validation. Required before assignment |
+| Save & Close | Secondary | — | Diary Lead. Returns to inbox. Assignment still required before suitability |
+
+### 6.7 Screen 6B — Start Onboarding outcome
+
+| Outcome | What the user sees | Next |
+|---|---|---|
+| **Pass** | Cleared. Continue to assignment | Screen 7 |
+| **Block** | Progression locked. Show the rule outcome from the exception service — do not invent copy | Lead exists; assignment and suitability are disabled |
+| **Hold-for-approval** | Lead held. Assignment and suitability gated until an approver releases the hold | Resume assignment after release |
+
+Do **not** implement approver hierarchy or exception remarks in the Lead screens. Those belong to the exception / approval module.
+
+### 6.8 Screen 7 — Assignment and optional meeting
+
+Shown only when Start Onboarding has **Passed** or a hold has been **released**. The certified-SP Bank RM is **mandatory**. Meeting is optional.
+
+**7A — Insurance RM / FLS assigns**
+
+| Field | Type | Mandatory | Logic |
+|---|---|---|---|
+| Branch | Dropdown | Yes | Branches available to the logged-in RM |
+| Vertical | Dropdown if retained | Open | Bank master; filters SP list if kept |
+| Certified SP | Dropdown | Yes | Active SP-certified Bank RMs in selected branch. Empty-state if none |
+| Meeting fields | See below | No | |
+| Proceed to Suitability | Primary | — | Allowed for Insurance RM / FLS after SP is assigned |
+| Save & Close | Secondary | — | Diary Lead |
+
+**7B — Bank SP assigns**
+
+| Field | Type | Mandatory | Logic |
+|---|---|---|---|
+| Branch | Derived | — | Home branch, not editable |
+| Certified SP | Dropdown | Yes | Defaults to self. May pick another active SP on the home branch |
+| Meeting fields | See below | No | |
+| Proceed to Suitability | Primary | — | Allowed — caller is SP-certified |
+| Save & Close | Secondary | — | |
+
+**7C — Bank Non-SP assigns**
+
+| Field | Type | Mandatory | Logic |
+|---|---|---|---|
+| Branch | Dropdown | Yes | Own or another branch |
+| Certified SP | Dropdown | Yes | Active SP-certified Bank RMs in that branch |
+| Meeting fields | See below | No | |
+| Proceed to Suitability | Hidden / disabled | — | Non-SP cannot process further |
+| Save & Close | Primary | — | Only allowed next step |
+
+**Optional meeting (all 7A–7C)**
+
+| Field | Type | Mandatory | Rule |
+|---|---|---|---|
 | Schedule meeting | Section | No | Entirely optional |
 | Meeting type | Online / In-person | If scheduling | |
 | Meeting date | Date | If scheduling | Not in the past |
 | Meeting time | Time | If scheduling | **08:00–20:00** only |
 | Meeting link | URL | If Online | Hidden / disabled for In-person |
-| Proceed to Suitability | Primary | — | Same Lead ID. Meeting not required |
-| Save & Close | Secondary | — | Diary Lead. Meeting and remarks not required |
 
-Meeting completion / outcome is **out of scope**.
+Meeting completion / outcome is **out of scope**. Customer SMS / email for the meeting is **not** in this increment.
 
 ### 6.10 Lead dashboard (minimum — layout later)
 
@@ -617,10 +655,10 @@ Optional. Online requires a link. Date not past. Time 08:00–20:00. No completi
 |---|---|---|
 | Initial assignment | Assigned user | In-app |
 | Reassignment | Newly assigned user | In-app |
-| Meeting scheduled | Customer | SMS to registered mobile **and** email to registered email |
-| Customer comms outside 08:00–20:00 | Customer | Queue until the next window |
+| Meeting scheduled | Customer | **Deferred** — capture the meeting; do not send SMS / email in this increment |
+| Customer comms outside 08:00–20:00 | Customer | When comms are later enabled, queue until the next window |
 
-Record delivery success / failure. Never send customer SMS/email outside the window.
+Do not send customer SMS / email for meetings in this increment. When that channel is later enabled, never send outside 08:00–20:00.
 
 ### 9.3 Reporting
 
@@ -642,20 +680,23 @@ Attribution = current LG / owner after reassignment. Store actor, role, branch, 
 | Field | Notes |
 |---|---|
 | `leadId` | Unique, immutable. Recommended 26-character ULID. Not a CIF. |
-| `journeyId` | Opened at create. Same sale. |
+| `journeyId` | Opened at Save. Same sale. Inert until Start Onboarding. |
 | `customerId` | Platform id from search (not the raw CIF) |
 | `lob` | `LIFE` |
 | `productClass` | `TERM` \| `SAVINGS` \| `ULIP` — immutable |
 | `createdByUserId` / role | Actual clicker |
 | `leadGeneratorUserId` | Attribution |
 | `leadFulfillerUserId` | Journey owner |
-| `currentSpUserId` / `currentRmUserId` | Dashboard visibility |
+| `currentSpUserId` / `currentRmUserId` | Dashboard visibility — **null** until assignment completes |
+| `accountableSpUserId` | Certified Bank RM written once on first assignment; immutable after that |
 | `branchId` | Current branch |
 | `source` | `RM` for assisted create |
-| `state` / `stage` / activity status | See §8 |
+| `state` / `stage` / activity status | See §8. After Save: `NEW`. After assignment: `ASSIGNED` |
+| `exceptionEvaluated` | True after Start Onboarding has run |
+| `exceptionHold` | True while awaiting exception approval |
 | `biGenerated` | True only after successful BI |
 | `needAnalysisState` | `NOT_STARTED` \| `IN_PROGRESS` \| `COMPLETED` |
-| Meeting fields | Optional |
+| Meeting fields | Optional; captured on assignment |
 | Closure reason / remarks | If closed |
 | Created / updated timestamps | UTC |
 
@@ -686,9 +727,13 @@ Do **not** store PAN or full mobile on the Lead as a search directory. Customer 
 | VAL-017 | No closure reason | Please select a closure reason. |
 | VAL-018 | Other without remarks | Please enter closure remarks. |
 | VAL-019 | Remarks too long | Remarks cannot exceed 250 characters. |
-| VAL-020 | Create failed | We could not create the lead. Please try again. |
+| VAL-020 | Save failed | We could not save the lead. Please try again. |
+| VAL-021 | Start Onboarding blocked | This lead cannot proceed. Review the exception outcome. |
+| VAL-022 | Exception hold active | This lead is waiting for approval. Assignment and suitability are not available. |
+| VAL-023 | Onboarding not started | Start Onboarding before assigning an SP. |
+| VAL-024 | Certified SP required | Select a certified Specified Person before continuing. |
 
-Create must be **transactional and idempotent**. A double-click must not mint two Lead IDs.
+Save must be **transactional and idempotent**. A double-click must not mint two Lead IDs. Exception evaluation is a separate Start Onboarding call.
 
 ---
 
@@ -792,7 +837,7 @@ Bank-owned catalogue. Group A insurers quoted inside the platform through the In
 
 ### 13.3 Pitch deck
 
-Seller can share a product-first pitch. If that share creates a Diary Lead, it does **not** assign SP / Insurance RM by itself — assignment still follows Lead create rules when the Lead is fully created.
+Seller can share a product-first pitch. If that share creates a Diary Lead, it does **not** assign the certified SP by itself — assignment still follows the Save → Start Onboarding → assign sequence.
 
 ### 13.4 Customer buying journey (after final BI)
 
@@ -815,7 +860,7 @@ Seller can share a product-first pitch. If that share creates a Diary Lead, it d
 
 ### 13.5 Exception / approval rules
 
-Configurable block / approval rules may fire on journey events. **Saving a Diary Lead does not run those rules.** If any fired rule is Block, the Lead is blocked. Do not invent rule outcomes in the app — they come from the rules service.
+Configurable block / approval rules fire when the user clicks **Start Onboarding** (or later Resume Journey), **not** when the Lead is Saved. Outcomes are **Pass**, **Block**, or **Hold-for-approval**. If any fired rule is Block, the Lead is blocked. A hold gates assignment and suitability until an approver releases it. Do not invent rule outcomes in the app — they come from the exception / validation service.
 
 ### 13.6 Hard gates (must be unbypassable in code, not only hidden in UI)
 
@@ -857,10 +902,12 @@ Configurable block / approval rules may fire on journey events. **Saving a Diary
 | Search | Find ETB customer | `GET /customers:search` | Masked card; product chip if own Lead exists |
 | Confirm | Identity | Reuse search hit, or `GET /customers/{customerId}` | Name, masked mobile, masked email, masked CIF |
 | Product | Term (L1) | `GET /catalogue/product-classes?lob=LIFE` | L1: one selectable `TERM` |
-| Dedupe | Own active Term? | `GET /customers/{customerId}/active-leads?productClass=TERM` | Existing `leadId` or empty |
-| Create | New Lead | `POST /leads` | `leadId`, `journeyId`, `outcome=CREATED` |
+| Dedupe | Own unfinished Term? | `GET /customers/{customerId}/active-leads?productClass=TERM` | Existing `leadId` or empty. UI: Continue \| Cancel |
+| Save | New Lead | `POST /leads` | `leadId`, `journeyId`, `state=NEW`, `outcome=CREATED`. No SP yet |
 | Resume | Continue | `POST /leads` with `resumeLeadId` | Same body, `outcome=RESUMED` |
-| Row tap | Open from inbox | `GET /leads/{leadId}` | Sparse status + `needAnalysisState` |
+| Start Onboarding | Evaluate exceptions | `POST /leads/{leadId}:start-onboarding` | `PASS` / `BLOCK` / `APPROVAL_REQUIRED` |
+| Assign SP | Mandatory certified SP + optional meeting | `POST /leads/{leadId}/assignments` | `state=ASSIGNED`, `accountableSpUserId` set |
+| Row tap | Open from inbox | `GET /leads/{leadId}` | Sparse status + `needAnalysisState` + hold flags |
 
 Wireframe tabs “Recent leads / Recent prospects / ULIP leads” collapse to **one** pipeline with `inbox`. There is no separate Prospect object. ULIP-only tab is not served in L1.
 
@@ -870,8 +917,10 @@ Wireframe tabs “Recent leads / Recent prospects / ULIP leads” collapse to **
 2. `GET /customers:search`
 3. Optional `GET /customers/{customerId}` if the search hit was dropped
 4. `GET /customers/{id}/active-leads` **in parallel with** catalogue if cache miss
-5. `POST /leads` — slice ends when `leadId` + `journeyId` return
-6. `GET /leads/{leadId}` only for an inbox row tap, not after a successful POST
+5. `POST /leads` — Save returns `leadId` + `journeyId` with `state=NEW`
+6. `POST /leads/{leadId}:start-onboarding` — do not skip
+7. On Pass: `POST /leads/{leadId}/assignments` with certified-SP Bank RM
+8. `GET /leads/{leadId}` only for an inbox row tap, not after a successful POST
 
 **No polling** on this slice. After create, invalidate the inbox cache and navigate with `journeyId`.
 
@@ -1013,7 +1062,7 @@ Prefer the search hit when the user has not left search → confirm.
 
 **Query:** `productClass` required. L1: `TERM`.
 
-Active = state not in `{ CONVERTED, DISQUALIFIED, EXPIRED, ARCHIVED }` **and** assigned to the caller.
+Active / unfinished for dedupe = created or owned by the caller, `biGenerated=false`, and state not in `{ CONVERTED, DISQUALIFIED, EXPIRED, ARCHIVED }`. Assignment is not required for this check.
 
 No paging. Hard cap 20. If more, `hasMore=true` and the app resumes by known id.
 
@@ -1059,7 +1108,7 @@ This is **not** the post-suitability offering list. Cache in the session. Empty 
 
 **Headers:** `Idempotency-Key` (required), `X-Correlation-Id`.
 
-**Create**
+**Save** (does **not** assign an SP and does **not** run exception rules)
 
 ```json
 {
@@ -1081,8 +1130,9 @@ This is **not** the post-suitability offering list. Cache in the session. Empty 
 | `lob` | Must be `LIFE` |
 | `productClass` | Must be `TERM` in L1 |
 | `resumeLeadId` | If set, ignore create fields; return the Lead if still owned by caller and not terminal |
+| `assignedRmUserId` / `assignedSpUserId` | **Not accepted on Save** — use `POST /leads/{id}/assignments` after Start Onboarding |
 | `distributorId` | **Forbidden** → `400 ATTRIBUTION_NOT_CALLER_SUPPLIED` |
-| `forceDuplicate` | **Does not exist** |
+| `forceDuplicate` / `replaceExisting` | **Do not exist** |
 
 **201** new Lead (`outcome=CREATED`). **200** idempotent replay or resume (`outcome=RESUMED`).
 
@@ -1093,27 +1143,70 @@ This is **not** the post-suitability offering list. Cache in the session. Empty 
   "customerId": "01JQX4K7R8M2N3P4Q5S6T7V8X1",
   "lob": "LIFE",
   "productClass": "TERM",
-  "state": "ASSIGNED",
+  "state": "NEW",
+  "assignedRmUserId": null,
+  "exceptionEvaluated": false,
+  "exceptionHold": false,
   "createdAt": "2026-09-07T11:15:00Z",
   "outcome": "CREATED"
 }
 ```
 
-Create lands the Lead as `ASSIGNED` to the creating RM in one transaction. Journey opens `INITIATED`. Both ids return together.
+Save lands the Lead as `NEW` with no certified SP. Journey opens `INITIATED` but stays inert until Start Onboarding. Both ids return together.
 
-**409 CONFLICT** when an active own Term Lead exists and `resumeLeadId` was omitted:
+**409 LEAD_DUPLICATE_UNFINISHED** when an unfinished own Term Lead (no BI) exists and `resumeLeadId` was omitted:
 
-- `code=CONFLICT`
+- `code=LEAD_DUPLICATE_UNFINISHED`
+- App shows **Continue** or **Cancel** only (VAL-012)
 - `errors[].field=leadId`
 - `errors[].message` = the existing Lead ID only (no name, no CIF)
 
-Guards: caller must be allowed to originate; customer must be in-book ETB; SP certification must cover Life (`403 RM_NOT_CERTIFIED` / `SP_CERTIFICATION_REQUIRED`).
+Guards: caller must be an allowed workforce creator (`403 ORIGINATION_ACTOR_DENIED`). Customer must be in-book ETB. SP certification is **not** required to Save.
 
 ### 16.7 `GET /leads/{leadId}`
 
-Inbox row tap. Same visibility as pipeline. If the caller must not see it, the row is **absent** (`404`), not a named deny. Returns the create envelope plus `needAnalysisState` and `journeyStage`. No follow-up dump.
+Inbox row tap. Same visibility as pipeline. If the caller must not see it, the row is **absent** (`404`), not a named deny. Returns the Save envelope plus `needAnalysisState`, `journeyStage`, `exceptionEvaluated` and `exceptionHold`. No follow-up dump.
 
-### 16.8 L1 create sequence
+### 16.8 `POST /leads/{leadId}:start-onboarding`
+
+Runs the exception / validation engine. Required after Save, before assignment.
+
+**200 Pass**
+
+```json
+{ "leadId": "01JQX4K7R8M2N3P4Q5S6T7V8W9", "outcome": "PASS", "exceptionHold": false }
+```
+
+**200 Hold**
+
+```json
+{ "leadId": "01JQX4K7R8M2N3P4Q5S6T7V8W9", "outcome": "APPROVAL_REQUIRED", "exceptionHold": true, "ruleIds": ["EH-INT-001"] }
+```
+
+**422 VALIDATION_BLOCKED** — Lead exists; progression locked (VAL-021).
+
+### 16.9 `POST /leads/{leadId}/assignments`
+
+**After** Start Onboarding has Passed or a hold has been released.
+
+```json
+{
+  "assignedRmUserId": "01JQX4K7R8M2N3P4Q5S6T7V8SP",
+  "meeting": {
+    "type": "ONLINE",
+    "date": "2026-10-12",
+    "time": "10:30",
+    "meetingUrl": "https://meet.example/abc"
+  }
+}
+```
+
+`meeting` may be omitted. On success: `state=ASSIGNED`, `accountableSpUserId` written once.
+
+**409 EXCEPTION_HOLD_ACTIVE** or **409 ONBOARDING_NOT_STARTED**.  
+**422 RM_NOT_CERTIFIED** / **422 ASSIGNEE_SP_REQUIRED** when the target is not a certified-SP Bank RM.
+
+### 16.10 L1 Save → assign sequence
 
 ```mermaid
 sequenceDiagram
@@ -1121,43 +1214,57 @@ sequenceDiagram
     participant App as Workforce app
     participant API as Workforce API
     participant Lead as Lead service
+    participant Val as Exception engine
     participant Jrn as Journey
 
-    alt active own Term Lead
-        App->>API: POST /leads { resumeLeadId } + Idempotency-Key
-        API-->>App: 200 outcome=RESUMED
-    else no active Term Lead
+    alt unfinished own Term Lead and no BI
+        App->>API: GET active-leads
+        API-->>App: existing leadId
+        Note over App: Continue or Cancel only
+    else no unfinished Term Lead
         App->>API: POST /leads { customerId, LIFE, TERM } + Idempotency-Key
-        API->>Lead: create
+        API->>Lead: Save — no exception eval, no SP
         Lead->>Jrn: open INITIATED
-        API-->>App: 201 outcome=CREATED
+        API-->>App: 201 state=NEW
+        App->>API: POST /leads/{id}:start-onboarding
+        API->>Lead: start
+        Lead->>Val: evaluate
+        alt PASS
+            App->>API: POST /leads/{id}/assignments
+            API-->>App: 200 state=ASSIGNED
+        else BLOCK or HOLD
+            API-->>App: locked or held
+        end
     end
 ```
 
-Create target: **≤ 2 seconds** on the wait path. Audit is asynchronous.
+Save target: **≤ 2 seconds** on the wait path. Audit is asynchronous.
 
-### 16.9 Caching and parallelism
+### 16.11 Caching and parallelism
 
 | Resource | App cache | Server cache |
 |---|---|---|
 | Product classes | Memory for the session | Short TTL |
-| Pipeline | Invalidate after create / reassign / close | Do not cache inbox |
+| Pipeline | Invalidate after Save / assign / reassign / close | Do not cache inbox |
 | Search | **No** cache of PAN / mobile / CIF queries | **No** cache of CBS hits |
 
 Allowed in parallel: pipeline + catalogue; active-leads + catalogue. Never prefetch a full customer snapshot. Never one “give me everything” bulk API.
 
-### 16.10 L1 API errors
+### 16.12 L1 API errors
 
 | HTTP | `code` | App behaviour |
 |---|---|---|
 | 200 empty list | — | Empty inbox / empty search copy |
 | 400 | `VALIDATION_ERROR` / `MISSING_IDEMPOTENCY_KEY` | Field error; Search stays usable |
 | 401 | `SESSION_INVALID` / `SESSION_EXPIRED` | Return to login |
-| 403 | `ORIGINATION_RM_ONLY` | Partner / unauthorised cannot create |
+| 403 | `ORIGINATION_ACTOR_DENIED` | Caller is not an allowed workforce creator, or Insurance RM create is switched off |
 | 403 | `DEFAULT_DENY` | Generic deny; do not name the resource |
-| 403 | `RM_NOT_CERTIFIED` / `SP_CERTIFICATION_REQUIRED` | Certification copy |
-| 409 | `CONFLICT` | Resume CTA (VAL-012) |
+| 409 | `LEAD_DUPLICATE_UNFINISHED` | Continue or Cancel only (VAL-012) |
 | 409 | `IDEMPOTENCY_CONFLICT` | Same key, different body |
+| 409 | `EXCEPTION_HOLD_ACTIVE` | Assignment / suitability gated (VAL-022) |
+| 409 | `ONBOARDING_NOT_STARTED` | Call Start Onboarding first (VAL-023) |
+| 422 | `VALIDATION_BLOCKED` | Exception Block (VAL-021) |
+| 422 | `ASSIGNEE_SP_REQUIRED` / `RM_NOT_CERTIFIED` | Pick a certified-SP Bank RM (VAL-024) |
 | 422 | `CUSTOMER_NOT_IN_BOOK` | Rare if search was used |
 | 422 | `UNSUPPORTED_LOB` | Non-LIFE or (in L1) non-TERM |
 | 503 | `UPSTREAM_UNAVAILABLE` | Do not proceed |
@@ -1174,28 +1281,27 @@ Implement these so SP / Non-SP, Savings / ULIP, meetings and dashboard actions w
 
 `POST /leads` accepts `productClass` of `TERM` | `SAVINGS` | `ULIP`. Dedupe key uses that class.
 
-### 17.2 Create with assignment
+### 17.2 Save stays assignment-free
 
-Extend `POST /leads`:
+`POST /leads` still accepts only `customerId`, `lob`, `productClass` (and optional `branchId` as context). Do **not** put assignee fields on Save.
+
+Assignment is always `POST /leads/{leadId}/assignments` after Start Onboarding:
 
 ```json
 {
-  "customerId": "01JQX4K7R8M2N3P4Q5S6T7V8X1",
-  "lob": "LIFE",
-  "productClass": "SAVINGS",
+  "assignedRmUserId": "01J...",
   "branchId": "BR-114",
-  "assignedSpUserId": "01J...",
-  "assignedRmUserId": "01J..."
+  "meeting": { "type": "IN_PERSON", "date": "2026-10-12", "time": "10:30" }
 }
 ```
 
-| Caller | Sends | Server derives |
+| Caller | Sends on assignment | Server derives |
 |---|---|---|
-| Insurance RM | `branchId`, `assignedSpUserId` | `assignedRmUserId` = caller; LG = RM; LF = SP |
-| Bank SP | `assignedRmUserId` | `branchId` = home branch; LG = SP; LF = RM |
-| Bank Non-SP | `branchId`, `assignedSpUserId` | RM from mapping; Created By = caller; LG = SP; LF = RM |
+| Insurance RM | `branchId`, `assignedRmUserId` (certified-SP Bank RM) | LG = RM; accountable SP = selected SP |
+| Bank SP | `assignedRmUserId` (self or another SP) | `branchId` = home branch; LG = SP |
+| Bank Non-SP | `branchId`, `assignedRmUserId` (certified-SP Bank RM) | Created By = caller; LG = selected SP |
 
-Reject combinations that violate §4. After Non-SP create, pipeline queries for that Non-SP return **no** row.
+Reject combinations that violate §4. After Non-SP assignment, pipeline queries for that Non-SP return **no** row. Non-SP cannot call suitability.
 
 ### 17.3 Masters
 
@@ -1221,7 +1327,7 @@ Empty SP / RM lists map to VAL-010 / VAL-011.
 }
 ```
 
-Validate VAL-013–015. On success, enqueue customer SMS + email inside 08:00–20:00.
+Validate VAL-013–015. Prefer sending meeting on the assignment call. A later `POST /leads/{id}/meetings` may update the captured intent. Do **not** enqueue customer SMS / email in this increment.
 
 ### 17.5 Dashboard actions
 
@@ -1244,7 +1350,8 @@ Workforce API → services as HTTP. Representative private paths:
 | Customer | `GET /internal/v1/customers:lookup` | CBS snapshot via outbound bank API. Timeout ~2 s. Does not write CBS |
 | Lead | `GET|POST /internal/v1/leads` | Visibility predicate in the store. Idempotency stored on Lead, not in a cache |
 | Catalogue | `GET /internal/v1/product-classes` | Cached |
-| Journey | Opened **by Lead** on create | Workforce API does not mint `journeyId` itself |
+| Journey | Opened **by Lead** on Save; inert until Start Onboarding | Workforce API does not mint `journeyId` itself |
+| Exception | `POST /internal/v1/leads/{id}:start-onboarding` | Lead stores hold; rules live in the exception service |
 | Audit | Outbox | Never on the wait path |
 
 ---
@@ -1271,7 +1378,8 @@ Workforce API → services as HTTP. Representative private paths:
 |---|---|
 | Customer search | Type, protected / hashed reference, user, role, time, result count, source |
 | Customer selection | Customer reference, user, time |
-| Lead create | Lead ID, Created By, LG, LF, branch, product, time |
+| Lead Save | Lead ID, Created By, product, time (SP may still be empty) |
+| Start Onboarding | Lead ID, outcome (Pass / Block / Hold), rule ids, time |
 | Assignment / reassignment | Old and new SP, RM, branch; initiated by; time |
 | Meeting create / update | Old/new type, date, time, link-present flag; notification result |
 | Stage / status | Old, new, source, time |
@@ -1294,15 +1402,15 @@ Retain per bank record-retention policy. Mask sensitive data in UI and protect i
 | AC-004 | Customer not in Customer 360 cannot proceed |
 | AC-005 | Mobile and email shown masked only |
 | AC-006 | Only Term, Savings, ULIP on the picker (Health absent) |
-| AC-007 | Insurance RM selects branch and an active SP |
-| AC-008 | Bank SP does not select branch; selects an RM on the home branch |
-| AC-009 | Non-SP selects branch and SP; RM is derived |
+| AC-007 | Insurance RM assigns a certified-SP Bank RM after Start Onboarding (branch then SP) |
+| AC-008 | Bank SP may self-assign on the home branch after Start Onboarding |
+| AC-009 | Non-SP assigns a certified-SP Bank RM after Start Onboarding; cannot start suitability |
 | AC-010 | Non-SP does not see the Lead after allocation |
-| AC-011 | Unique Lead ID generated once and reused for the whole sale |
+| AC-011 | Unique Lead ID generated once on Save and reused for the whole sale |
 | AC-012 | Save & Close works without meeting or remarks |
-| AC-013 | Diary Lead is on owner dashboards and is not Eligible |
-| AC-014 | Same user cannot create a second unfinished same-product Lead |
-| AC-015 | Dedupe popup continues the existing Lead |
+| AC-013 | Diary Lead is on owner dashboards after assignment and is not Eligible |
+| AC-014 | Same user cannot Save a second unfinished same-product Lead |
+| AC-015 | Dedupe popup offers Continue or Cancel only; no delete when BI is absent |
 | AC-016 | Same user may create a different product Lead for the same customer |
 | AC-017 | Another user may create the same product Lead for the same customer |
 | AC-018 | First successful BI → Eligible + Quote Generated |
@@ -1311,7 +1419,7 @@ Retain per bank record-retention policy. Mask sensitive data in UI and protect i
 | AC-021 | Meeting is optional |
 | AC-022 | Online meeting cannot save without a link |
 | AC-023 | Meeting time outside 08:00–20:00 is blocked |
-| AC-024 | Meeting SMS and email go to registered contacts inside the window |
+| AC-024 | Meeting is captured on assignment; customer SMS / email is not sent in this increment |
 | AC-025 | Current SP and RM both see and action the Lead |
 | AC-026 | Reassignment only while New and no BI |
 | AC-027 | Same-branch SP reassignment keeps the RM |
@@ -1327,7 +1435,12 @@ Retain per bank record-retention policy. Mask sensitive data in UI and protect i
 | AC-SEARCH-1 | Own Lead for the key → card without a CBS hop; product chip shown |
 | AC-SEARCH-2 | No Lead → CBS via Customer 360; no product chip |
 | AC-SEARCH-3 | App never calls CBS, insurer or a database |
-| AC-CREATE-1 | Successful create returns `leadId` and `journeyId` together |
+| AC-CREATE-1 | Successful Save returns `leadId` and `journeyId` together with `state=NEW` and no SP |
+| AC-CREATE-2 | Save does not run exception evaluation |
+| AC-ONB-1 | Start Onboarding returns Pass, Block, or Hold-for-approval |
+| AC-ONB-2 | Assignment is rejected while onboarding has not run or a hold is active |
+| AC-ASGN-1 | Certified-SP Bank RM is mandatory before suitability |
+| AC-PROC-1 | Only AU SP or Insurance RM / FLS may process further |
 | AC-EXC-CBS | CBS down and no local Lead → do not proceed; do not fabricate |
 
 ### 20.1 Login acceptance (minimum)
@@ -1350,7 +1463,7 @@ Retain per bank record-retention policy. Mask sensitive data in UI and protect i
 | Vertical on Insurance RM assignment | Optional filter only if the bank supplies the master. Do not make it up. |
 | Human-readable Lead number (e.g. `RR 2024-001`) | **Not** identity. Use the platform Lead ID. A display label may be added later. |
 | Name search | **Off** the search dropdown. |
-| Second active same-product Lead for the same user | **No** until BI exists. Resume, do not overwrite. |
+| Second active same-product Lead for the same user | **No** until BI exists. Continue or Cancel only. Do not delete or overwrite. |
 | Another user’s Lead on the same customer | **Invisible** to this user. |
 | Term suitability questions | Not specified. Do not reuse the Savings/ULIP set. |
 | Tentative premium / PPT / term masters | Capture the fields; final formula is still to be confirmed. |
@@ -1365,16 +1478,16 @@ Retain per bank record-retention policy. Mask sensitive data in UI and protect i
 2. Session handling (opaque session, CSRF, correlation id).
 3. Inbox + empty states.
 4. Search → confirm (masking, empty, CBS-down, not-ETB).
-5. Term create / resume + idempotency + 409 resume.
-6. Lead Created screen (Save & Close).
-7. Product cards for Savings / ULIP + assignment screens (hook to L2 APIs).
-8. Meeting (optional) + notification enqueue.
+5. Term product + dedupe (Continue \| Cancel) + Save + idempotency + 409 unfinished.
+6. Start Onboarding (Pass / Block / Hold) then assignment of a certified-SP Bank RM.
+7. Lead saved / assignment screen (Save & Close; optional meeting capture).
+8. Product cards for Savings / ULIP (same Save → Start Onboarding → assign sequence).
 9. Dashboard grid, remarks, reassign, close.
-10. Suitability (Savings/ULIP) using the same Lead ID.
+10. Suitability (Savings/ULIP) using the same Lead ID — AU SP or Insurance RM / FLS only.
 11. Quote / BI lock.
 12. Proposal → customer handoff → payment on customer device → issuance status.
 
-Do not start insurer quote work until Lead create returns a real `leadId` and `journeyId`. Do not start payment on the seller device. Do not add Health. Do not add bulk / campaign. Do not add a second client app for web vs mobile — one workforce application, role-based screens.
+Do not start insurer quote work until Save returns a real `leadId` and `journeyId`. Do not start payment on the seller device. Do not add Health. Do not add bulk / campaign. Do not add a second client app for web vs mobile — one workforce application, role-based screens. Do not evaluate exceptions on Save. Do not send meeting SMS / email in this increment.
 
 ---
 
@@ -1383,20 +1496,22 @@ Do not start insurer quote work until Lead create returns a real `leadId` and `j
 1. Only existing bank customers.
 2. Search by Customer ID, mobile or PAN only.
 3. Products: Term, Savings, ULIP.
-4. Every Lead has Created By, Lead Generator and Lead Fulfiller.
-5. Current SP and Insurance RM both own the dashboard row.
+4. Every Lead has Created By. Lead Generator, Lead Fulfiller and Accountable SP are written on assignment.
+5. Current SP and Insurance RM both own the dashboard row after assignment.
 6. Lead ID never changes.
-7. Save & Close = Diary; no meeting or remarks required.
-8. Eligible only after a successful BI.
-9. Many BIs, one Lead ID.
-10. Dedupe = this user + this customer + this product + no BI.
-11. Meeting optional; online link mandatory.
-12. Meetings and customer messages only 08:00–20:00.
-13. Reassign only before BI.
-14. Same-branch reassign keeps RM; cross-branch derives the new RM.
-15. Credit follows current owner.
-16. Product type cannot change.
-17. Closed means closed.
-18. Remarks ≤ 250 characters, append-only.
-19. Backend audit is mandatory.
-20. The app never talks to Core Banking, insurers or a database.
+7. Save stores the Lead without running exceptions. Start Onboarding evaluates Block / Hold / Pass.
+8. Certified-SP Bank RM is assigned after Start Onboarding clears — not on Save.
+9. Only AU SP or Insurance RM / FLS may process further (suitability onward).
+10. Save & Close = Diary; no meeting or remarks required.
+11. Eligible only after a successful BI.
+12. Many BIs, one Lead ID.
+13. Dedupe = this user + this customer + this product + no BI. Continue or Cancel only.
+14. Meeting optional; online link mandatory if scheduled. Customer SMS / email deferred.
+15. Reassign only before BI.
+16. Same-branch reassign keeps RM; cross-branch derives the new RM.
+17. Credit follows current owner. Accountable SP never changes.
+18. Product type cannot change.
+19. Closed means closed.
+20. Remarks ≤ 250 characters, append-only.
+21. Backend audit is mandatory.
+22. The app never talks to Core Banking, insurers or a database.

@@ -32,7 +32,7 @@ Do **not** attach or link any other project documentation when you share this pa
 
 ## What recipients can do with this page
 
-They can start building the workforce application and the Lead APIs end to end: login, customer search, lead create/resume, ownership, dashboard, then the hand-off into suitability, quote, proposal, payment and issuance.
+They can start building the workforce application and the Lead APIs end to end: login, customer search, Save / resume, Start Onboarding, certified-SP assignment, dashboard, then the hand-off into suitability, quote, proposal, payment and issuance.
 
 Visual layout may follow the client prototype:
 

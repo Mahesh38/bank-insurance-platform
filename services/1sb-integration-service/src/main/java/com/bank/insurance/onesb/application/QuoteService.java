@@ -4,7 +4,6 @@ import com.bank.common.audit.AuditActions;
 import com.bank.common.audit.AuditEvent;
 import com.bank.common.audit.AuditEventPublisher;
 import com.bank.common.audit.AuditOutcomes;
-import com.bank.common.domain.Lob;
 import com.bank.common.domain.QuoteJob;
 import com.bank.common.error.ErrorCodes;
 import com.bank.common.error.ServiceError;

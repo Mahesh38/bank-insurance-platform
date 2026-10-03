@@ -6,7 +6,6 @@ import com.bank.common.error.ServiceError;
 import com.bank.insurance.onesb.domain.command.CreateQuoteCommand;
 import org.springframework.util.StringUtils;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;

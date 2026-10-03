@@ -57,11 +57,15 @@ public class OneSbErrorNormaliser {
           .build();
     }
     if (httpStatus >= 500) {
+      String reason = "1SB returned " + httpStatus;
+      if (responseBody != null && responseBody.contains("eligibilityMapping")) {
+        reason = "1SB provider defect: eligibilityMapping KeyError — not customer ineligibility";
+      }
       return serviceErrors
           .error(ErrorCodes.UPSTREAM_UNAVAILABLE)
           .component("OneSbErrorNormaliser")
           .upstream(UPSTREAM, null, httpStatus)
-          .reason("1SB returned " + httpStatus)
+          .reason(reason)
           .build();
     }
     if (httpStatus >= 400) {

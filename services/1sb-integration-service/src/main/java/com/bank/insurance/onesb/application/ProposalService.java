@@ -14,6 +14,7 @@ import com.bank.common.error.ServiceError;
 import com.bank.common.error.ServiceErrors;
 import com.bank.common.error.ServiceException;
 import com.bank.common.secrets.SecretProvider;
+import com.bank.insurance.onesb.application.validation.DynamicFormValidator;
 import com.bank.insurance.onesb.domain.command.SubmitProposalCommand;
 import com.bank.insurance.onesb.domain.model.OneSbProposalSubmitResult;
 import com.bank.insurance.onesb.domain.port.inbound.ProposalUseCase;
@@ -33,7 +34,8 @@ import org.springframework.util.StringUtils;
  *
  * <ul>
  *   <li>FUNC-004 schema: optional quote expiry → LOB path → 1SB GET
- *   <li>FUNC-005 submit: agentId gate → consent WARN → job → LOB payload → 1SB POST
+ *   <li>FUNC-005 / FUNC-028 submit: agentId gate → consentRef required → form check → job → LOB
+ *       payload → 1SB POST
  * </ul>
  */
 @Service
@@ -76,7 +78,18 @@ public class ProposalService implements ProposalUseCase {
 
     LobProposalHandler handler = handlerRegistry.get(lob);
     String path = handler.schemaPath(productCode, manufacturerId, version);
-    return proposalPort.getSchema(lob, productCode, manufacturerId, version, path);
+    ProposalSchema schema = proposalPort.getSchema(lob, productCode, manufacturerId, version, path);
+    List<ServiceError> usability = DynamicFormValidator.usabilityErrors(schema);
+    if (!usability.isEmpty()) {
+      throw serviceErrors
+          .error(ErrorCodes.SCHEMA_INVALID)
+          .component("ProposalService")
+          .operation("getSchema")
+          .reason("proposal form is unusable: " + usability.size() + " defect(s)")
+          .errors(usability)
+          .build();
+    }
+    return schema;
   }
 
   @Override
@@ -104,9 +117,20 @@ public class ProposalService implements ProposalUseCase {
 
     if (!StringUtils.hasText(command.consentRef())) {
       publishConsentRefMissing(command, actorId, agentId, distributorId);
+      throw serviceErrors
+          .error(ErrorCodes.CONSENT_REQUIRED)
+          .component("ProposalService")
+          .operation("submit")
+          .reason("consentRef is required before proposal submit")
+          .errors(
+              List.of(
+                  ServiceError.ofField(
+                      ErrorCodes.CONSENT_REQUIRED, "consentRef is required", "consentRef")))
+          .build();
     }
 
     rejectIncompleteForm(command);
+    assertSelectedQuote(command);
 
     LobProposalHandler handler = handlerRegistry.get(command.lob());
     String jobId =
@@ -162,7 +186,7 @@ public class ProposalService implements ProposalUseCase {
                     .build());
   }
 
-  private void assertQuoteUsable(String quoteJobId) {
+  private QuoteJob assertQuoteUsable(String quoteJobId) {
     Optional<QuoteJob> found = jobStore.findQuoteJob(quoteJobId);
     if (found.isEmpty()) {
       throw quoteExpired("Quote job not found or expired: " + quoteJobId);
@@ -176,6 +200,7 @@ public class ProposalService implements ProposalUseCase {
         && (job.offers() == null || job.offers().isEmpty())) {
       throw quoteExpired("Quote job has no offers: " + quoteJobId);
     }
+    return job;
   }
 
   /**
@@ -199,41 +224,77 @@ public class ProposalService implements ProposalUseCase {
     }
     if (!StringUtils.hasText(command.productCode())
         || !StringUtils.hasText(command.manufacturerId())) {
+      throw serviceErrors
+          .error(ErrorCodes.VALIDATION_ERROR)
+          .component("ProposalService")
+          .operation("submit")
+          .reason("productCode and manufacturerId are required")
+          .errors(
+              List.of(
+                  ServiceError.ofField(
+                      ErrorCodes.MISSING_REQUIRED_FIELD, "productCode is required", "productCode"),
+                  ServiceError.ofField(
+                      ErrorCodes.MISSING_REQUIRED_FIELD,
+                      "manufacturerId is required",
+                      "manufacturerId")))
+          .build();
+    }
+    ProposalSchema schema =
+        getSchema(
+            command.lob(),
+            command.productCode(),
+            command.manufacturerId(),
+            command.version(),
+            null);
+    // Visibility-aware answers only — do not demand hidden mandatory fields (FUNC-028).
+    List<ServiceError> fieldErrors = DynamicFormValidator.answerErrors(schema, command.values());
+    if (!fieldErrors.isEmpty()) {
+      throw serviceErrors
+          .error(ErrorCodes.VALIDATION_ERROR)
+          .component("ProposalService")
+          .operation("submit")
+          .reason("proposal form failed pre-submit validation")
+          .errors(fieldErrors)
+          .build();
+    }
+  }
+
+  /**
+   * When the bank binds a quote job, product identity must match a selectable offer. FUNC-028 — do
+   * not submit a proposal against a different manufacturer/product.
+   */
+  private void assertSelectedQuote(SubmitProposalCommand command) {
+    if (!StringUtils.hasText(command.quoteJobId())) {
       return;
     }
-    try {
-      ProposalSchema schema =
-          getSchema(
-              command.lob(),
-              command.productCode(),
-              command.manufacturerId(),
-              command.version(),
-              null);
-      List<String> missing = ProposalFormValidator.missingMandatory(schema, command.values());
-      if (!missing.isEmpty()) {
-        List<ServiceError> fieldErrors =
-            missing.stream()
-                .map(
-                    name ->
-                        ServiceError.ofField(
-                            ErrorCodes.MISSING_REQUIRED_FIELD,
-                            "mandatory proposal field missing: " + name,
-                            "values." + name))
-                .toList();
-        throw serviceErrors
-            .error(ErrorCodes.VALIDATION_ERROR)
-            .component("ProposalService")
-            .operation("submit")
-            .reason("proposal form is missing " + missing.size() + " mandatory field(s)")
-            .errors(fieldErrors)
-            .build();
-      }
-    } catch (ServiceException ex) {
-      if (ErrorCodes.VALIDATION_ERROR.equals(ex.getErrorResponse().getCode())
-          || ErrorCodes.MISSING_REQUIRED_FIELD.equals(ex.getErrorResponse().getCode())) {
-        throw ex;
-      }
-      // Schema fetch failed (404 / upstream) — let 1SB validate on POST.
+    QuoteJob job = assertQuoteUsable(command.quoteJobId());
+    JobStatus status = job.status();
+    if (status != JobStatus.COMPLETED && status != JobStatus.PARTIAL) {
+      throw quoteExpired("Quote job is not ready for proposal: " + command.quoteJobId());
+    }
+    boolean match =
+        job.offers() != null
+            && job.offers().stream()
+                .anyMatch(
+                    offer ->
+                        (offer.errorSummary() == null || offer.errorSummary().isBlank())
+                            && StringUtils.hasText(offer.productCode())
+                            && offer.productCode().equals(command.productCode())
+                            && StringUtils.hasText(offer.insurerCode())
+                            && offer.insurerCode().equalsIgnoreCase(command.manufacturerId()));
+    if (!match) {
+      throw serviceErrors
+          .error(ErrorCodes.VALIDATION_ERROR)
+          .component("ProposalService")
+          .operation("submit")
+          .reason("productCode/manufacturerId do not match a selectable offer on the quote job")
+          .errors(
+              List.of(
+                  ServiceError.ofField(
+                      ErrorCodes.VALIDATION_ERROR,
+                      "product identity must match the selected quote",
+                      "productCode")))
+          .build();
     }
   }
 

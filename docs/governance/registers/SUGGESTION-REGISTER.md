@@ -43,6 +43,8 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20261003-svg | 2026-10-03 | human:stakeholder | Remaining Saving readiness beyond fail-closed hub validation: Product UI bands, questionnaire engine, enum inventory/master refresh, live Gate POST + complete Proposal POST/poll | SF3 | SC0 | MUST | FUNC | P4 / P1 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [detail](#sug-20261003-svg--saving-readiness-blocked-on-1sb-config) |
+| SUG-20261003-lvr | 2026-10-03 | human:stakeholder | Make 1sb-integration-service UAT-ready to validate Term/ULIP/Savings Life journeys (fail-before-1SB + response contract) | SF1 | SC0 | MUST | FUNC | P2 / P1 | ADMITTED | [FUNC-028](../../1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md) · [detail](#sug-20261003-lvr--life-journey-validation-uat) |
 | SUG-20261003-brf | 2026-10-03 | human:Rajal | BRD wins: dedupe key user+customer+productType+BI; no delete when BI absent; Save does not evaluate — Start Onboarding does; flow dedupe→create→exception→assign SP | SF2 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [D-019](../../au-bank-insurance-platform/DECISION-LOG.md) · [EPIC-005](../../platform/ws3-platform/EPIC-005.work-item.yaml) · [detail](#sug-20261003-brf--brd-wins-dedupe-exception-timing--sequence) |
 | SUG-20261002-lfs | 2026-10-02 | human:Rajal | Lead flow: create then assign SP+meeting; dedupe continue/delete; validation engine block-or-approve; process further = AU SP or Insurance RM/FLS | SF2 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [D-019](../../au-bank-insurance-platform/DECISION-LOG.md) · [EPIC-005](../../platform/ws3-platform/EPIC-005.work-item.yaml) · [detail](#sug-20261002-lfs--lead-create-dedupe-validation-assign-meeting) · amended by [SUG-20261003-brf](#sug-20261003-brf--brd-wins-dedupe-exception-timing--sequence) |
 | SUG-20260930-ola | 2026-09-30 | human:Rajal | OPEN-LEAD-ACTOR: Lead may be created by anyone (workforce); post-create must assign certified-SP RM | SF2 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [D-018](../../au-bank-insurance-platform/DECISION-LOG.md) · [ADR-021](../../platform/architecture-review/08-architecture-decision-log.md) · [EPIC-005](../../platform/ws3-platform/EPIC-005.work-item.yaml) · [detail](#sug-20260930-ola--lead-create-by-workforce--mandatory-sp-assignee) |
@@ -256,6 +258,7 @@ necessity:
     - "Human Product clarification 2026-10-02"
     - "Lead BRD §9.8–9.9, §11"
     - "Exception Handling BRD §6–7 (CASA / policy integrations EH-INT-001/004)"
+  failure_without_it: "EPIC-005 Lead create/dedupe/assign sequence contradicts Product clarification and Exception Handling BRD"
   confidence: C4
 
 action: ADMIT
@@ -274,20 +277,143 @@ conflicts:
 classification:
   type: ARCH
   also: [FUNC, COMP]
+  breakdown: STORY
   risk_tier: T3
 
 priority:
-  priority_now: P2
-  priority_at_target: P1
+  now: P2
+  at_target: P1
 
-work_item_id: EPIC-005
-product_decision: D-019
-opens: [OPEN-LEAD-DUP-DELETE, OPEN-LEAD-VAL-TIMING]
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 1
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: EPIC-005
+  status: ADMITTED
 ```
 
 Amended 2026-10-03 by [`SUG-20261003-brf`](#sug-20261003-brf--brd-wins-dedupe-exception-timing--sequence):
 both opens **CLOSED** in favour of Lead BRD Table 18 and Exception BRD Save-does-not-evaluate.
 Sequence becomes dedupe → create/Save → Start Onboarding (exception) → assign SP.
+
+### SUG-20261003-lvr · Life journey validation UAT
+
+```yaml
+# schema: triage-record
+id: SUG-20261003-lvr
+raised_at: "2026-10-03"
+raised_by: "human:stakeholder"
+source: "Make 1sb-integration-service UAT-ready against 1SB Insurance Gateway for Term/ULIP/Savings"
+input: >
+  We need to make this service validation ready. Reference
+  https://docs.1silverbullet.tech/docs/insurance/retail/apiDocs/insurance-gateway-api
+  Make this service UAT ready to validate life insurance journey using products
+  like term, ulip and savings.
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "L4/L5 foundation + connectivity; R0 Life includes Term and Savings/ULIP (CR-015)"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: FUNC-028
+stage_fit:
+  code: SF1
+  rationale: "R0 already includes Term and Savings/ULIP assisted sale; local fail-before-1SB validation is required to exercise those journeys in UAT"
+scope:
+  code: SC0
+  business_scope: "in scope — R0 assisted Life sale"
+  authority: "CR-015 / BOOT.md WS-3 objective"
+necessity:
+  now: MUST
+  evidence_tier: E2
+  failure_without_it: "UAT cannot exercise Term/ULIP/Savings without fail-before-1SB validation"
+  confidence: C4
+action: ADMIT
+classification:
+  type: FUNC
+  breakdown: STORY
+  risk_tier: T2
+priority:
+  now: P2
+  at_target: P1
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 1
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: FUNC-028
+  status: ADMITTED
+```
+
+Work item: FUNC-028. Fail-closed remainder implemented on the same item. Items that need 1SB working configuration or a product-form engine were split to `SUG-20261003-svg`.
+
+### SUG-20261003-svg · Saving readiness blocked on 1SB config
+
+```yaml
+# schema: triage-record
+id: SUG-20261003-svg
+raised_at: "2026-10-03"
+raised_by: "human:stakeholder"
+source: "Work on what is still missing from the Saving Service Readiness guide"
+input: >
+  Can we work on what is still missing? (after the Saving readiness score:
+  Product UI bands, questionnaire groups, enum inventory, live Gate POST
+  and complete Proposal submit/poll)
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "L4/L5 foundation + connectivity; R0 Life includes Term and Savings/ULIP (CR-015)"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: FUNC-028
+stage_fit:
+  code: SF3
+  rationale: "Needs 1SB working product configuration and a complete valid proposal payload — the guide's own evidence boundary"
+  target_stage: "S09 / UAT evidence"
+  unpark_trigger: "1SB demo accepts a complete Saving proposal payload and Gate Criteria POST returns a recognized eligibility status for a configured product"
+scope:
+  code: SC0
+  business_scope: "in scope — R0 assisted Life sale"
+  authority: "CR-015 / Saving Service Readiness guide evidence boundary"
+necessity:
+  now: NOT-NOW
+  future_necessity: MUST
+  target_stage: "S09 / UAT evidence"
+  binds_when: "1SB supplies working Saving configuration"
+  evidence_tier: E2
+  confidence: C4
+action: PARK
+action_rationale: "Do not invent a complete proposal payload or hard-code questionnaire groups; FUNC-028 already closed fail-closed hub gaps"
+classification:
+  type: FUNC
+  breakdown: STORY
+  risk_tier: T2
+priority:
+  now: P4
+  at_target: P1
+dependencies:
+  edges:
+    - type: EXTERNAL
+      target: "1SB demo complete Saving proposal + Gate Criteria POST"
+      relation: blocked_by
+      state: PARKED
+      owner: "1SB"
+      follow_up: "2026-10-31"
+  state: PARKED-DEPENDENT
+  parked_because: "Guide evidence boundary — complete proposal and Gate POST unverified"
+outcome:
+  registered_in: "registers/PARKED-BACKLOG.md"
+  work_item_id: null
+  status: PARKED
+```
+
+Related: `SUG-20260913-hms` (hub masters), `SUG-20260913-fnd` (ULIP funds 404). Do not re-propose those.
 
 ### SUG-20261003-brf · BRD wins dedupe exception timing & sequence
 
@@ -332,6 +458,7 @@ necessity:
     - "Human Product clarification 2026-10-03 — BRD is correct"
     - "Lead BRD Screen 6 Table 18; §11 dedupe key"
     - "Exception Handling BRD — Save does not evaluate; Start Onboarding does"
+  failure_without_it: "EPIC-005 would keep OPEN-LEAD-DUP-DELETE and OPEN-LEAD-VAL-TIMING against DOC-005"
   confidence: C5
 
 action: ADMIT
@@ -345,15 +472,22 @@ conflicts: []
 classification:
   type: ARCH
   also: [DOC]
+  breakdown: STORY
   risk_tier: T3
 
 priority:
-  priority_now: P2
-  priority_at_target: P1
+  now: P2
+  at_target: P1
 
-work_item_id: EPIC-005
-product_decision: D-019
-closes: [OPEN-LEAD-DUP-DELETE, OPEN-LEAD-VAL-TIMING]
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 1
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: EPIC-005
+  status: ADMITTED
 ```
 
 ### SUG-20260930-ola · Lead create by workforce + mandatory SP assignee
@@ -405,6 +539,7 @@ necessity:
   evidence:
     - "Human Product decision in chat 2026-09-30"
     - "Lead_Module_BRD_Detailed §5/§8"
+  failure_without_it: "Lead contracts contradict Product behaviour SSOT (DOC-005)"
   confidence: C5
   anti_over_engineering:
     X1_named_consumer: true
@@ -418,6 +553,7 @@ action_rationale: >
   draft ADR-021, update design pack. Interpret "anyone" as BRD workforce creators (not DIY/MIS).
   Escalate Insurance RM create permissibility to Board 6 (OPEN-COMP-LEAD-IPR-CREATE) — do not
   waive Compliance. Score: N=4 S=1 B=1 R=2 D=2 E=1 → 16 → P2 (matrix SF2+MUST absorb → ADMIT).
+  Product decision D-018; architecture decision ADR-021.
 duplicate_of: null
 conflicts:
   - "ADR-005 previously rejected IPR-create-then-adopt as solicitation → OPEN-COMP-LEAD-IPR-CREATE"
@@ -432,14 +568,19 @@ classification:
 priority:
   score: 16
   factors: {N: 4, S: 1, B: 1, R: 2, D: 2, E: 1}
-  priority_now: P2
-  priority_at_target: P1
+  now: P2
+  at_target: P1
 
-work_item_id: EPIC-005
-plan: PLAN-007
-product_decision: D-018
-architecture_decision: ADR-021
-compliance_open: OPEN-COMP-LEAD-IPR-CREATE
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 1
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: EPIC-005
+  plan_id: PLAN-007
+  status: ADMITTED
 ```
 
 ### SUG-20260930-lmd · Lead module design pack from BRD
@@ -463,7 +604,6 @@ context:
   state_as_of: "2026-09-13"
   state_provisional: false
   active_work_item: null
-  freshness: "WARN — state_as_of 17d; DEPENDENCY-REGISTER 16d (disclose; admit allowed)"
 
 stage_fit:
   code: SF5
@@ -528,19 +668,28 @@ classification:
   also: [DOC]
   breakdown: EPIC
   risk_tier: T3
-  rg9_cap_applied: false
 
 priority:
   score: 11
   factors: {N: 2, S: 2, B: 0, R: 2, D: 1, E: 2}
-  priority_now: P3
-  priority_at_target: P1
+  now: P3
+  at_target: P1
   matrix_default: P3
-  override: null
 
-work_item_id: EPIC-005
-plan: PLAN-007
-stories: [ARCH-026, ARCH-027, ARCH-028, DOC-023]
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 1
+
+breakdown:
+  children: [ARCH-026, ARCH-027, ARCH-028, DOC-023]
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: EPIC-005
+  plan_id: PLAN-007
+  status: ADMITTED
+
 recurrence_count: 2
 ```
 

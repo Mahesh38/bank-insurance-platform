@@ -6,39 +6,51 @@ import com.bank.common.error.ServiceErrors;
 import com.bank.insurance.onesb.domain.model.ProductUiData;
 import com.bank.insurance.onesb.domain.port.inbound.ProductUiDataUseCase;
 import com.bank.insurance.onesb.domain.port.outbound.OneSbProductUiDataPort;
+import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.util.List;
-
-/**
- * Term Product UI Data orchestration — FUNC-027.
- */
+/** Term Product UI Data orchestration — FUNC-027. */
 @Service
 public class ProductUiDataService implements ProductUiDataUseCase {
 
-    private final OneSbProductUiDataPort productUiDataPort;
-    private final ServiceErrors serviceErrors;
+  private final OneSbProductUiDataPort productUiDataPort;
+  private final ServiceErrors serviceErrors;
 
-    public ProductUiDataService(OneSbProductUiDataPort productUiDataPort, ServiceErrors serviceErrors) {
-        this.productUiDataPort = productUiDataPort;
-        this.serviceErrors = serviceErrors;
-    }
+  public ProductUiDataService(
+      OneSbProductUiDataPort productUiDataPort, ServiceErrors serviceErrors) {
+    this.productUiDataPort = productUiDataPort;
+    this.serviceErrors = serviceErrors;
+  }
 
-    @Override
-    public ProductUiData getProductUiData(String productId, String manufacturerId) {
-        if (!StringUtils.hasText(productId) || !StringUtils.hasText(manufacturerId)) {
-            throw serviceErrors.error(ErrorCodes.VALIDATION_ERROR)
-                    .component("ProductUiDataService")
-                    .operation("getProductUiData")
-                    .reason("productId and manufacturerId are required")
-                    .errors(List.of(
-                            ServiceError.ofField(ErrorCodes.MISSING_REQUIRED_FIELD,
-                                    "productId is required", "productId"),
-                            ServiceError.ofField(ErrorCodes.MISSING_REQUIRED_FIELD,
-                                    "manufacturerId is required", "manufacturerId")))
-                    .build();
-        }
-        return productUiDataPort.getProductUiData(productId.trim(), manufacturerId.trim());
+  @Override
+  public ProductUiData getProductUiData(String productId, String manufacturerId) {
+    if (!StringUtils.hasText(productId) || !StringUtils.hasText(manufacturerId)) {
+      throw serviceErrors
+          .error(ErrorCodes.VALIDATION_ERROR)
+          .component("ProductUiDataService")
+          .operation("getProductUiData")
+          .reason("productId and manufacturerId are required")
+          .errors(
+              List.of(
+                  ServiceError.ofField(
+                      ErrorCodes.MISSING_REQUIRED_FIELD, "productId is required", "productId"),
+                  ServiceError.ofField(
+                      ErrorCodes.MISSING_REQUIRED_FIELD,
+                      "manufacturerId is required",
+                      "manufacturerId")))
+          .build();
     }
+    ProductUiData result =
+        productUiDataPort.getProductUiData(productId.trim(), manufacturerId.trim());
+    if (result == null || result.data() == null || result.data().isEmpty()) {
+      throw serviceErrors
+          .error(ErrorCodes.UPSTREAM_BAD_RESPONSE)
+          .component("ProductUiDataService")
+          .operation("getProductUiData")
+          .reason("Product UI Data is empty for productId/manufacturerId")
+          .build();
+    }
+    return result;
+  }
 }

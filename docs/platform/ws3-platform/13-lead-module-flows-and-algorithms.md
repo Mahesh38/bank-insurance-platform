@@ -1,12 +1,12 @@
 # 13 — Lead flows and algorithms (R0)
 
-**Status:** `AI-DRAFTED` · T3 · human Board 1 / Product outstanding  
-**Origin:** `SUG-20260930-lmd` · `SUG-20261002-lfs` · `EPIC-005` · `DOC-023` · `D-019`  
-**Rule fidelity:** BRD rule IDs cited. Conflicts → OPEN ids. Do not invent Product decisions.
+**Status:** `AI-DRAFTED` · T3 · human Board 1 outstanding  
+**Origin:** `SUG-20260930-lmd` · `SUG-20261002-lfs` · `SUG-20261003-brf` · `EPIC-005` · `DOC-023` · `D-019`  
+**Rule fidelity:** Lead BRD + Exception BRD win. Do not invent Product overrides of confirmed BRD rules.
 
 ---
 
-## 1. ALG-CREATE — create Lead (`D-019`: SP assignment is a later step)
+## 1. ALG-CREATE — Save Lead (no exception evaluation)
 
 ```
 function createLead(cmd, principal):
@@ -16,27 +16,15 @@ function createLead(cmd, principal):
   require cmd.lob == LIFE
   require cmd.productClass in {TERM, SAVINGS, ULIP}
 
-  # --- Dedupe (creator bucket) ---
+  # --- Dedupe (creator bucket) — Lead BRD §11 ---
   dup = ALG_DEDUPE(principal.id, cmd.customerId, cmd.productClass)
   if dup.blocked:
     if cmd.resumeExisting:
       return Resume(dup.existingLead)
-    if cmd.replaceExisting:                         # OPEN-LEAD-DUP-DELETE
-      require OPEN_LEAD_DUP_DELETE_ENABLED
-      closeOrArchive(dup.existingLead, reason=REPLACED_BY_CREATOR)
-    else:
-      return Conflict(dup.existingLead)             # Continue | Cancel UI
+    return Conflict(dup.existingLead)               # Continue | Cancel only (Table 18)
+    # replaceExisting / soft-delete: FORBIDDEN — OPEN-LEAD-DUP-DELETE CLOSED
 
-  # --- Validation / Exception engine ---
-  # OPEN-LEAD-VAL-TIMING: Product wants this at create; Exception BRD prefers Start Onboarding
-  verdict = ValidationEngine.evaluate(customerId, productClass, principal)
-  # verdict ∈ PASS | BLOCK | APPROVAL_REQUIRED {ruleIds}
-  # Examples (config, not hard-coded): new CASA within 30d (EH-INT-001);
-  #   policy count thresholds (EH-INT-004). Catalogue owned by Exception BRD.
-  if verdict == BLOCK:
-    return Blocked(verdict.ruleIds)                 # no leadId minted
-  # APPROVAL_REQUIRED → still mint lead, mark hold
-
+  # Exception BRD: Saving a lead does NOT evaluate rules
   leadId = newUlid()
   lead = Lead(
     leadId,
@@ -45,35 +33,32 @@ function createLead(cmd, principal):
     productClass = cmd.productClass,
     createdBy = principal.id,                       # BR-OWN-002
     leadGenerator = resolveGenerator(principal, cmd),
-    assignedRmId = null,                            # D-019 — assign on next screen
+    assignedRmId = null,                            # assign after exception clear
     accountableSpId = null,
     state = NEW,
-    exceptionHold = (verdict == APPROVAL_REQUIRED),
-    exceptionRuleIds = verdict.ruleIds or [],
+    exceptionHold = false,
+    exceptionEvaluated = false,
     biGenerated = false,
     reportingClass = DIARY,
     insurerId = null
   )
-  journeyId = Journey.startFromLead(leadId)         # may be inert while held
+  journeyId = Journey.startFromLead(leadId)         # inert until Start Onboarding
   lead.journeyId = journeyId
   persist(lead)
-  if lead.exceptionHold:
-    emit LeadHeldForException(...)
-  else:
-    emit LeadCreated(...)
-  return Created(lead)                              # client → Assignment screen
+  emit LeadCreated(...)
+  return Created(lead)                              # next: Start Onboarding
 ```
 
 ---
 
-## 2. ALG-DEDUPE — unfinished same creator + customer + product
+## 2. ALG-DEDUPE — unfinished same creator + customer + product type
 
 ```
 function ALG_DEDUPE(userId, customerId, productClass):
   unfinished = findLeads(
-    createdOrOwnedBy = userId,
+    createdOrOwnedBy = userId,                      # logged-in user — not system-wide
     customerId = customerId,
-    productClass = productClass,
+    productClass = productClass,                    # TERM | SAVINGS | ULIP — not Product ID
     biGenerated = false,
     state not in TERMINAL_CLOSED_SET
   )
@@ -82,42 +67,58 @@ function ALG_DEDUPE(userId, customerId, productClass):
   return Allow
 ```
 
-| UI option (Product `D-019`) | Lead BRD Screen 6 Table 18 | Status |
+| UI option | Lead BRD Screen 6 Table 18 | Status |
 |---|---|---|
 | Continue with existing | Allowed | **Ship** |
 | Cancel / Close | Allowed | **Ship** |
-| Delete existing and create new | **Forbidden** when BI not generated | `OPEN-LEAD-DUP-DELETE` — do not ship until Rajal confirms override |
+| Delete existing and create new | **Forbidden** when BI not generated | **CLOSED** — do not ship |
 
 After `biGenerated=true`, dedupe does not block a fresh lead (`BR-DEDUPE`).
 
 ---
 
-## 3. ALG-VALIDATE — Exception / validation outcomes
+## 3. ALG-START-ONBOARDING — Exception / validation (after Save)
 
 ```
-function applyValidation(customerId, productClass, principal):
-  rules = ExceptionConfig.activeRules(lob=LIFE)     # AUBIMA owns catalogue
-  triggered = []
-  for r in rules where inputsAvailable(r, customerId):
-    if r.breached(customerId):
-      triggered.append(r)
-  if triggered empty: return PASS
-  if any DirectBlock: return BLOCK(triggered)
-  if any ApprovalEnabled: return APPROVAL_REQUIRED(triggered)
-  return BLOCK(triggered)                           # fail closed if misconfigured
+function startOnboarding(leadId, principal):
+  lead = load(leadId)
+  require not lead.isTerminal()
+  # Exception BRD: evaluation runs at Start Onboarding, not on Save
+  verdict = ValidationEngine.evaluate(
+    lead.customerId, lead.productClass, principal)
+  # verdict ∈ PASS | BLOCK | APPROVAL_REQUIRED {ruleIds}
+  # Examples (config, not hard-coded): new CASA within 30d (EH-INT-001);
+  #   policy count thresholds (EH-INT-004). Catalogue owned by Exception BRD.
+  lead.exceptionEvaluated = true
+  if verdict == BLOCK:
+    lead.exceptionHold = false
+    persist(lead)
+    return Blocked(verdict.ruleIds)                 # progression locked
+  if verdict == APPROVAL_REQUIRED:
+    lead.exceptionHold = true
+    lead.exceptionRuleIds = verdict.ruleIds
+    persist(lead)
+    emit LeadHeldForException(...)
+    return Held(lead)                               # assign + Suitability gated
+  lead.exceptionHold = false
+  lead.exceptionRuleIds = []
+  persist(lead)
+  return Cleared(lead)                              # proceed to Assignment
 ```
 
 Lead stores hold; **approver hierarchy and remarks** are Exception Handling — not Lead.
 
 ---
 
-## 4. ALG-ASSIGN — post-create mandatory SP (+ optional meeting)
+## 4. ALG-ASSIGN — after exception clear / release (+ optional meeting)
 
 ```
 function assign(leadId, targetSpRmId, meeting?, actor):
   lead = load(leadId)
   require not lead.isTerminal()
-  # exceptionHold does NOT block assignment — only process-further (see ALG-PROCESS-FURTHER)
+  require lead.exceptionEvaluated                   # Start Onboarding must have run
+  if lead.exceptionHold:
+    reject EXCEPTION_HOLD_ACTIVE                    # assign after release
   if lead.biGenerated:
     reject REASSIGN_AFTER_BI                        # BR-REASSIGN-001, VAL-016
   require PDP.allows(actor, assign, lead)
@@ -142,7 +143,7 @@ function assign(leadId, targetSpRmId, meeting?, actor):
   return lead
 ```
 
-All leads **must** receive this SP assignment before suitability / regulated processing (`D-019`).
+All leads **must** receive this SP assignment before Suitability / regulated processing (`D-019`).
 
 ---
 
@@ -150,6 +151,7 @@ All leads **must** receive this SP assignment before suitability / regulated pro
 
 ```
 function mayProcessFurther(principal, lead):
+  if not lead.exceptionEvaluated: return false
   if lead.exceptionHold: return false
   if lead.assignedRmId is null or lead.accountableSpId is null: return false
   if principal.actorType == BANK_RM and principal.hasSpCert(lead.lob): return true
@@ -157,7 +159,7 @@ function mayProcessFurther(principal, lead):
   return false
 ```
 
-Creators who are Non-SP may create/assign/Save & Close but cannot run suitability themselves.
+Creators who are Non-SP may create/Save, Start Onboarding, assign, and Save & Close but cannot run Suitability themselves.
 
 ---
 
@@ -277,22 +279,22 @@ Implementers must not add Lead transitions for insurer UW queue states.
 | VAL-001…005 | Customer search (EPIC-003 / ARCH-025) |
 | VAL-006 | create missing productClass |
 | VAL-007…011 | assignment SP / cert checks (`D-018`/`D-019`, ALG-ASSIGN) |
-| VAL-012 / `409 LEAD_DUPLICATE_UNFINISHED` | ALG-DEDUPE |
+| VAL-012 / `409 LEAD_DUPLICATE_UNFINISHED` | ALG-DEDUPE — Continue \| Cancel only |
 | VAL-013…015 | Meeting intent fields on ALG-ASSIGN (optional) |
 | VAL-016 / `422 REASSIGN_AFTER_BI` | ALG-ASSIGN after BI |
 | VAL-017…019 | ALG-CLOSE |
 | VAL-020 | create failed — no orphan leadId (transactional create) |
-| `422 VALIDATION_BLOCKED` | Exception engine direct block |
-| `201` + `exceptionHold=true` | APPROVAL_REQUIRED at create |
-| `409 EXCEPTION_HOLD_ACTIVE` | process-further / BI while held |
+| `422 VALIDATION_BLOCKED` | Start Onboarding direct block |
+| `409 EXCEPTION_HOLD_ACTIVE` | assign / Suitability while held |
 | `422 ASSIGNEE_SP_REQUIRED` | ALG-PROCESS-FURTHER missing SP |
+| `422 ONBOARDING_NOT_STARTED` | assign before Start Onboarding evaluate |
 
 ---
 
 ## 13. Done for this document
 
-- [x] Create-then-assign algorithms (`D-019`)
-- [x] Dedupe / validation / process-further gates
+- [x] BRD-aligned create (Save) without exception eval
+- [x] Dedupe key + Table 18 Continue\|Cancel (no delete)
+- [x] Start Onboarding → exception → assign algorithms
 - [x] ALG-BI / ACTIVITY / CLOSE / CONVERT / ARCHIVE / RESUME with BR-* trace
-- [x] OPEN-LEAD-DUP-DELETE and OPEN-LEAD-VAL-TIMING explicit
-- [ ] Rajal closes those two OPENs (+ OPEN-LEAD-STAGE / OPEN-D1)
+- [ ] Product confirmation of OPEN-LEAD-STAGE / OPEN-D1

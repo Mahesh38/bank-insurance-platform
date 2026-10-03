@@ -5,7 +5,7 @@ type: ARCH
 also: [DOC]
 breakdown: EPIC
 workstream: WS-3
-origin: ["SUG-20260930-lmd"]
+origin: ["SUG-20260930-lmd", "SUG-20261002-lfs", "SUG-20261003-brf"]
 owner: "Mahesh — Principal Insurance Platform Architect (R2); lane mahesh-lead-domain-design"
 risk_tier: T3
 state: IN-FLIGHT
@@ -140,12 +140,11 @@ dependencies:
     - "D-018"
     - "D-019"
     - "OPEN-COMP-LEAD-IPR-CREATE"
-    - "OPEN-LEAD-DUP-DELETE"
-    - "OPEN-LEAD-VAL-TIMING"
     - "OPEN-LEAD-STAGE"
     - "OPEN-LEAD-DUP"
     - "OPEN-D1"
     - "ADR-021"
+    # CLOSED 2026-10-03 (SUG-20261003-brf / BRD wins): OPEN-LEAD-DUP-DELETE, OPEN-LEAD-VAL-TIMING
 
 plan: PLAN-007
 estimate: L

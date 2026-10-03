@@ -465,8 +465,8 @@ stateDiagram-v2
 
 | Transition | Trigger | Guard |
 |---|---|---|
-| `[*] → NEW` | `opportunity.create` by an allowed workforce creator | Creator allowed (INV-LED-04); SP assignee **not** required yet (`D-019`). DIY / MIS / SERVICE refused. Validation may set exceptionHold |
-| `NEW → ASSIGNED` | Post-create assignment of certified-SP AU Bank RM | Target RM holds valid SP certificate for `lob` (INV-LED-03/10). Optional meeting intent may be stored |
+| `[*] → NEW` | `opportunity.create` / Save by an allowed workforce creator | Creator allowed (INV-LED-04); SP assignee **not** required yet (`D-019`). DIY / MIS / SERVICE refused. Save does **not** run exception evaluation (Exception BRD) |
+| `NEW → ASSIGNED` | Post–Start Onboarding assignment of certified-SP AU Bank RM | Exception evaluated and not held; target RM holds valid SP certificate for `lob` (INV-LED-03/10). Optional meeting intent may be stored |
 | `ASSIGNED → ASSIGNED` | Reassignment | Previous owner retained in assignment history; SLA restart is a Product decision, recorded as OPEN-D1 |
 | `* → EXPIRED` | Ageing job | Configurable ageing horizon; no journey in a non-terminal stage references this lead |
 | `QUALIFIED → CONVERTED` | `JourneySold` event | Exactly one journey may convert a lead (INV-LED-02). Journey is `SOLD` only when Payment is `RECONCILED` and Policy is `ACTIVE` (INV-JRN-05) |

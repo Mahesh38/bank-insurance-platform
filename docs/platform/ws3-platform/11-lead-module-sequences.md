@@ -1,10 +1,10 @@
 # 11 — Lead module sequences (R0)
 
 **Status:** `AI-DRAFTED` · T3 · human Board 1 outstanding  
-**Origin:** `SUG-20260930-lmd` · `SUG-20261002-lfs` · `EPIC-005` · `ARCH-027` · `D-019`  
+**Origin:** `SUG-20260930-lmd` · `SUG-20261002-lfs` · `SUG-20261003-brf` · `EPIC-005` · `ARCH-027` · `D-019`  
 **Companion:** [`10-lead-module-hld.md`](./10-lead-module-hld.md) · Exception Handling BRD (AUBIMA)
 
-Canonical sequence (`D-019`): **product → dedupe → validation → create → assign SP (+ optional meeting) → process-further (SP or Insurance RM/FLS only)**.
+Canonical sequence (`D-019`, BRD-aligned): **product → dedupe → create/Save → Start Onboarding (exception) → assign SP (+ optional meeting) → Suitability (SP or Insurance RM/FLS only)**.
 
 ---
 
@@ -14,7 +14,7 @@ Unchanged in shape: cursor-paginated `GET /internal/v1/leads?owner=me`.
 
 ---
 
-## 2. Search → product → dedupe → validation → create
+## 2. Search → product → dedupe → create (Save)
 
 ```mermaid
 sequenceDiagram
@@ -23,48 +23,66 @@ sequenceDiagram
   participant APP as NIP-APP
   participant BFF as NIP BFF
   participant LED as Lead #5
-  participant VAL as Exception / Validation engine
-  participant CUST as Customer #4
 
   User->>APP: Search customer + select productClass
   APP->>BFF: GET /customers:search (lead-first)
   BFF->>LED: active unfinished for creator+customer+productClass
   alt unfinished duplicate (BI not generated)
     BFF-->>APP: DedupeConflict {leadId, createdAt, productClass}
-    Note over APP: Popup — Continue existing | Cancel<br/>Delete+Create shown only if OPEN-LEAD-DUP-DELETE closes YES
+    Note over APP: Popup — Continue existing | Cancel only<br/>(Lead BRD Table 18 — no Delete)
     alt Continue
       APP->>BFF: GET /leads/{existingId} resume
-    else Delete+Create (OPEN)
-      APP->>BFF: POST /leads {replaceLeadId?} 
+    else Cancel
+      APP-->>User: stay on create screen — no new lead
     end
   else no unfinished duplicate
-    APP->>BFF: POST /leads:preview-validation (or create with evaluate=true)
-    BFF->>VAL: evaluate(customerId, productClass, context)
-    VAL-->>BFF: PASS | BLOCK | APPROVAL_REQUIRED {ruleIds}
-    alt BLOCK
-      BFF-->>APP: 422 VALIDATION_BLOCKED — no leadId
-    else APPROVAL_REQUIRED
-      BFF->>LED: create Lead + exceptionHold=true
-      LED-->>BFF: 201 leadId (held)
-      BFF-->>APP: held — raise exception / await manager approval
-    else PASS
-      BFF->>LED: POST /internal/v1/leads (no SP yet)
-      LED->>LED: mint leadId; state=NEW; assignedRmId=null
-      LED-->>BFF: 201 leadId
-      BFF-->>APP: navigate to Assignment screen
-    end
+    APP->>BFF: POST /leads
+    BFF->>LED: POST /internal/v1/leads (Save — no exception eval)
+    LED->>LED: mint leadId; state=NEW; assignedRmId=null
+    LED-->>BFF: 201 leadId
+    BFF-->>APP: Lead saved — Start Onboarding next
   end
 ```
 
 Notes:
 
-- Dedupe key remains `(creatorPrincipalId, customerId, productClass)` with `biGenerated=false` unfinished (`BR-DEDUPE`).
-- Validation examples (CASA opened last 30 days, policy-count thresholds) live in **Exception Handling config / DWH feeds** (`EH-INT-001`, `EH-INT-004`) — Lead only consumes outcomes.
-- `OPEN-LEAD-VAL-TIMING`: Exception BRD says Save does not evaluate; Product asks evaluate here — wiring gated on that OPEN.
+- Dedupe key: `(loggedInUserId, customerId, productClass)` with `biGenerated=false` unfinished (`BR-DEDUPE`, Lead BRD §11).
+- **Save does not evaluate** exception rules (Exception BRD).
 
 ---
 
-## 3. Post-create assignment + optional meeting (`D-019`)
+## 3. Start Onboarding → exception evaluation (`D-019` / Exception BRD)
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor User as Creator
+  participant APP as NIP-APP
+  participant BFF as NIP BFF
+  participant LED as Lead #5
+  participant VAL as Exception / Validation engine
+
+  User->>APP: Start Onboarding (post-Save)
+  APP->>BFF: POST /leads/{id}:start-onboarding
+  BFF->>LED: POST /internal/v1/leads/{id}:start-onboarding
+  LED->>VAL: evaluate(customerId, productClass, context)
+  VAL-->>LED: PASS | BLOCK | APPROVAL_REQUIRED {ruleIds}
+  alt BLOCK
+    LED-->>BFF: 422 VALIDATION_BLOCKED — lead exists; progression locked
+  else APPROVAL_REQUIRED
+    LED->>LED: exceptionHold=true
+    LED-->>BFF: 200 held — raise exception / await approval
+    Note over APP: Assignment and Suitability gated until release
+  else PASS
+    LED-->>BFF: 200 cleared — proceed to Assignment
+  end
+```
+
+Validation examples (CASA 30d, policy-count thresholds) live in Exception Handling config / DWH (`EH-INT-001`, `EH-INT-004`) — Lead only consumes outcomes.
+
+---
+
+## 4. Assignment + optional meeting (after exception clear / release)
 
 ```mermaid
 sequenceDiagram
@@ -81,16 +99,20 @@ sequenceDiagram
   end
   APP->>BFF: POST /leads/{id}/assignments + optional meeting
   BFF->>LED: POST /internal/v1/leads/{id}/assignments
-  LED->>PDP: target has SP cert for LIFE?
-  PDP-->>LED: allow / deny
-  LED->>LED: assignedRmId + accountableSpId = SP; state→ASSIGNED
-  opt meeting present
-    LED->>LED: store MeetingIntent (not completion workflow)
+  alt exceptionHold
+    LED-->>BFF: 409 EXCEPTION_HOLD_ACTIVE
+  else
+    LED->>PDP: target has SP cert for LIFE?
+    PDP-->>LED: allow / deny
+    LED->>LED: assignedRmId + accountableSpId = SP; state→ASSIGNED
+    opt meeting present
+      LED->>LED: store MeetingIntent (not completion workflow)
+    end
+    LED-->>BFF: 200 Lead
   end
-  LED-->>BFF: 200 Lead
   alt Proceed to suitability
     Note over APP: Only AU SP or Insurance RM/FLS may continue (D-019)
-    APP->>BFF: start onboarding / suitability
+    APP->>BFF: suitability
   else Save & Close
     APP->>BFF: return to pipeline (Diary Lead)
   end
@@ -100,7 +122,7 @@ Meeting capture is Lead BRD Screen 7 (optional). Meeting **SMS/email** remains d
 
 ---
 
-## 4. Exception hold → approval → resume
+## 5. Exception hold → approval → resume
 
 ```mermaid
 sequenceDiagram
@@ -114,7 +136,7 @@ sequenceDiagram
   Mgr->>VAL: Approve / Reject
   alt Final Approve
     VAL->>LED: releaseHold(leadId)
-    LED-->>User: may complete assignment / resume
+    LED-->>User: may assign SP / resume Suitability
   else Reject
     VAL->>LED: mark blocked / rejected treatment
   end
@@ -124,16 +146,16 @@ Lead does not implement hierarchy files; it stores hold state and reacts to AUBI
 
 ---
 
-## 5. Process-further gate
+## 6. Process-further gate
 
 | Step | Allowed actors |
 |---|---|
-| Create, dedupe choice, validation raise, assign SP, optional meeting, Save & Close | Any allowed workforce creator |
-| Suitability and downstream regulated path | AU employee **SP-certified** Bank RM **or** Insurance RM/FLS (assist rules + `INV-ACT-01`) |
+| Create/Save, dedupe Continue\|Cancel, Start Onboarding, assign SP, optional meeting, Save & Close | Any allowed workforce creator |
+| Suitability and downstream regulated path | AU employee **SP-certified** Bank RM **or** Insurance RM/FLS (assist rules + `INV-ACT-01`); requires exception cleared |
 
 ---
 
-## 6. Resume Save & Close
+## 7. Resume Save & Close
 
 ```mermaid
 sequenceDiagram
@@ -156,7 +178,7 @@ sequenceDiagram
 
 ---
 
-## 7. Reassignment (pre-BI)
+## 8. Reassignment (pre-BI)
 
 ```mermaid
 sequenceDiagram
@@ -182,7 +204,7 @@ sequenceDiagram
 
 ---
 
-## 8. First BI → Eligible / QUALIFIED
+## 9. First BI → Eligible / QUALIFIED
 
 ```mermaid
 sequenceDiagram
@@ -199,7 +221,7 @@ Subsequent BIs link to the same `leadId` without minting a new lead (`BR-BI-003/
 
 ---
 
-## 9. Convert → archive (ADR-014)
+## 10. Convert → archive (ADR-014)
 
 ```mermaid
 sequenceDiagram
@@ -213,7 +235,7 @@ sequenceDiagram
 
 ---
 
-## 10. Close (pre-conversion)
+## 11. Close (pre-conversion)
 
 ```mermaid
 sequenceDiagram
@@ -230,12 +252,12 @@ sequenceDiagram
 
 ---
 
-## 11. Sync vs async
+## 12. Sync vs async
 
 | Interaction | Mode |
 |---|---|
-| Pipeline, search, dedupe probe, create, assign, meeting capture, close | Sync |
-| Validation engine | Sync evaluate; approval workflow async |
+| Pipeline, search, dedupe probe, create/Save, start-onboarding evaluate, assign, meeting capture, close | Sync |
+| Validation engine | Sync evaluate at Start Onboarding; approval workflow async |
 | Exception release / reject | Event into Lead |
 | BI mark from Quote | Sync command or durable event — same idempotent handler |
 | JourneySold | Event (async) with idempotent convert |
@@ -244,10 +266,9 @@ sequenceDiagram
 
 ---
 
-## 12. Done for this document
+## 13. Done for this document
 
-- [x] `D-019` create-then-assign sequence
-- [x] Dedupe + validation + assignment + process-further roles
+- [x] BRD-aligned `D-019`: dedupe → create → exception → assign
+- [x] Table 18 Continue\|Cancel only; Save does not evaluate
 - [x] Resume, reassignment, BI, convert/archive, close sequences
-- [x] OPEN conflicts named (delete; validation timing)
 - [ ] Human Board 1 signature

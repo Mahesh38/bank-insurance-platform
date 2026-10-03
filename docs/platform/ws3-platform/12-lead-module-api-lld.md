@@ -52,7 +52,7 @@ Catalogue product-classes stay on BFF → Catalogue; not Lead.
 
 ### 4.1 `POST /internal/v1/leads`
 
-Create Lead after dedupe resolution. **Does not require SP assignee** (`D-019`) — assignment is a follow-on call.
+**Save** Lead after dedupe resolution. **Does not** run exception evaluation (Exception BRD). **Does not** require SP assignee — assignment follows Start Onboarding.
 
 **Request (logical):**
 
@@ -63,15 +63,13 @@ Create Lead after dedupe resolution. **Does not require SP assignee** (`D-019`) 
   "productClass": "TERM",
   "branchId": "BR…",
   "resumeExisting": false,
-  "replaceExistingLeadId": null,
-  "evaluateExceptions": true,
   "correlationId": "…"
 }
 ```
 
-**Guards:** `INV-LED-04`, ALG-DEDUPE, ValidationEngine (timing `OPEN-LEAD-VAL-TIMING`).
+**Guards:** `INV-LED-04`, ALG-DEDUPE (Continue \| Cancel only — no replace/soft-delete).
 
-**Responses:** `201` LeadCreated (possibly `exceptionHold`) · `409` duplicate · `422` VALIDATION_BLOCKED · `403` ORIGINATION_ACTOR_DENIED.
+**Responses:** `201` LeadCreated · `409` LEAD_DUPLICATE_UNFINISHED · `403` ORIGINATION_ACTOR_DENIED.
 
 ### 4.2 `GET /internal/v1/leads/{leadId}`
 
@@ -81,35 +79,39 @@ Returns Lead; `404` if outside caller visibility (`INV-LED-07` / book scope) —
 
 Query: `owner`, `customerId`, `productClass`, `unfinished`, `exceptionHold`, `states`, `cursor`, `limit`.
 
-### 4.4 `POST /internal/v1/leads:evaluate`
+### 4.4 `POST /internal/v1/leads/{leadId}:start-onboarding`
 
-Optional probe — runs validation engine without minting a lead.
+**Start Onboarding** — runs Exception / validation engine for the saved lead. Outcomes: PASS · BLOCK · APPROVAL_REQUIRED (`exceptionHold`).
 
-### 4.5 `POST /internal/v1/leads/{leadId}/assignments`
+### 4.5 `POST /internal/v1/leads:evaluate`
 
-Mandatory certified-SP AU Bank RM (`INV-LED-10`). Optional meeting intent (type/date/time/link). Sets `accountableSpId` once (`INV-ACT-03`). Reject reassignment after BI (`VAL-016`).
+Optional probe — same rules as Start Onboarding without mutating hold state (diagnostics only).
 
-### 4.6 `POST /internal/v1/leads/{leadId}/close`
+### 4.6 `POST /internal/v1/leads/{leadId}/assignments`
+
+Mandatory certified-SP AU Bank RM (`INV-LED-10`) **after** Start Onboarding cleared or hold released. Optional meeting intent (type/date/time/link). Sets `accountableSpId` once (`INV-ACT-03`). Reject if `exceptionHold` or not yet evaluated; reject reassignment after BI (`VAL-016`).
+
+### 4.7 `POST /internal/v1/leads/{leadId}/close`
 
 Body: `reasonCode`, `remarks?` (max 250). Terminal. No reopen.
 
-### 4.7 `POST /internal/v1/leads/{leadId}/bi-generated`
+### 4.8 `POST /internal/v1/leads/{leadId}/bi-generated`
 
 Body: `biReference`, `occurredAt`. Idempotent first-BI transition.
 
-### 4.8 `POST /internal/v1/leads/{leadId}/convert`
+### 4.9 `POST /internal/v1/leads/{leadId}/convert`
 
 Body: `journeyId`, `policyId`, `paymentId`. Guard `INV-LED-02`.
 
-### 4.9 `POST /internal/v1/leads/{leadId}/archive`
+### 4.10 `POST /internal/v1/leads/{leadId}/archive`
 
 Explicit archive when already terminal; may be combined with convert handler.
 
-### 4.10 `POST /internal/v1/leads/{leadId}/activity-status`
+### 4.11 `POST /internal/v1/leads/{leadId}/activity-status`
 
 Set configurable disposition while stage remains pre-BI (`BRD §14.2`). `CUSTOMER_NOT_INTERESTED` triggers close path.
 
-### 4.11 Exception hold release (event)
+### 4.12 Exception hold release (event)
 
 `POST /internal/v1/leads/{leadId}/exception-hold` from AUBIMA — `{ action: RELEASE|REJECT, ruleIds }` — clears or hard-blocks held leads.
 
@@ -142,6 +144,8 @@ User-facing copy for BFF mapping uses VAL-* strings from BRD §23 where applicab
 - Campaign/bulk create endpoints.
 - Meeting schedule resource (parked).
 - Force-duplicate flag (`OPEN-LEAD-DUP`).
+- Soft-delete / replace-existing on unfinished BI-absent leads (Lead BRD Table 18).
+- Exception evaluation on Save/create (Exception BRD — Start Onboarding only).
 
 ---
 

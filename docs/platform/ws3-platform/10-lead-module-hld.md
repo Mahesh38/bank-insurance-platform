@@ -30,21 +30,23 @@ algorithms the BFF must call.
 
 1. One Lead record per Life sales opportunity on-platform (`AC-8`).
 2. Collaborative visibility between Bank SP and Insurance RM; workforce create then **mandatory** certified-SP assignment (`D-018` / `D-019`).
-3. Prevent unfinished same-creator + customer + productClass duplicates (`BR-DEDUPE-*`); Product vs BRD delete option is `OPEN-LEAD-DUP-DELETE`.
-4. Save for later or continue into suitability; insurer/plan unknown at create (`BR-LEAD-005`).
+3. Prevent unfinished same-creator + customer + productClass duplicates (`BR-DEDUPE-*`); when BI absent, Continue \| Cancel only (Lead BRD Table 18 — **no** delete/replace).
+4. Save for later or continue into suitability; insurer/plan unknown at create (`BR-LEAD-005`). Save does **not** run exception evaluation (Exception BRD).
 5. Reporting eligibility (Diary → Eligible) only after first successful BI (`BR-BI-*`).
 6. Complete audit history; no PII in logs (standing constraint).
 
-### 2.1 Canonical R0 sequence (`D-019`)
+### 2.1 Canonical R0 sequence (`D-019`, BRD-aligned)
 
 ```text
 Search ETB customer → select productClass
-        → ALG-DEDUPE (creator bucket)
-        → Validation / Exception engine (Block | Hold-for-approval | Pass)  [OPEN-LEAD-VAL-TIMING]
-        → CREATE Lead (leadId minted; SP may still be unset)
+        → ALG-DEDUPE (logged-in user + Customer ID + product type; BI release)
+        → CREATE / Save Lead (leadId minted; SP unset; NO exception evaluation)
+        → Start Onboarding → Validation / Exception engine
+              (Block | Hold-for-approval | Pass)     [Exception BRD]
         → ASSIGNMENT screen: mandatory certified-SP AU Bank RM
-              + optional meeting (type / date / time / link)  [Lead BRD Screen 7 capture]
-        → Save & Close  OR  Proceed (only AU SP or Insurance RM/FLS may process further)
+              + optional meeting (type / date / time / link)  [Lead BRD Screen 7]
+        → Save & Close  OR  Proceed to Suitability
+              (only AU SP or Insurance RM/FLS may process further)
 ```
 
 | Capability | Who |
@@ -94,9 +96,9 @@ Standing constraints that apply: bank apps never call DB or 1SB directly; Flutte
 | Optional meeting **capture** (type/date/time/link) | **IN** on assignment screen (Lead BRD Screen 7); fields optional (`BR-LEAD-003`) | BRD §9.9; `D-019` |
 | Meeting **completion** / outcome workflow | **OUT** (BRD §4.2) | BRD §4.2 |
 | SMS/email meeting communication | **OUT now** — parked `SUG-20260907-fig` | BOOT notification breadth |
-| Exception / validation engine (CASA, policy counts, …) | **IN as seam** to Exception Handling (AUBIMA); outcomes Block or Hold-for-approval | Exception BRD; `OPEN-LEAD-VAL-TIMING` |
+| Exception / validation engine (CASA, policy counts, …) | **IN as seam** to Exception Handling (AUBIMA); runs at **Start Onboarding** after Save, before assign | Exception BRD (Save does not evaluate) |
 | Platform Lead ID | **IN** (ULID `leadId`, ID-01) | ADR-014; OPEN-LEAD-DISPLAY closed as omit sequential labels |
-| Dedupe user+customer+product | **IN** (algorithm DOC-023) | BR-DEDUPE; OPEN-LEAD-DUP |
+| Dedupe user+customer+product type | **IN** (algorithm DOC-023); BI absent → Continue \| Cancel only | BR-DEDUPE; Lead BRD Table 18 |
 | Save & Close / continue to suitability | **IN** | BR-LEAD-003/004 |
 | Reassignment before BI | **IN** (algorithm + API); SLA/attribution **OPEN-D1** | BR-REASSIGN; OPEN-D1 |
 | Closure + remarks | **IN** | BR-CLOSE-* |
@@ -162,8 +164,8 @@ Events (from domain catalogue): `OpportunityCreated` / Lead created, assignment 
 | ID | Conflict | Owner | Design |
 |---|---|---|---|
 | **OPEN-LEAD-ACTOR** | **CLOSED** — `D-018` / `ADR-021` | Rajal | Workforce create; SP assignee required before process-further |
-| **OPEN-LEAD-DUP-DELETE** | Product (`D-019`): allow **delete existing + create new** or continue. Lead BRD Screen 6 Table 18: when BI absent, **Continue or Cancel only** — Delete must not be available | Rajal must confirm which wins | Interim design docs show **both options** labelled Product-intent; implementers must not ship Delete until this OPEN closes |
-| **OPEN-LEAD-VAL-TIMING** | Product: run validation engine at create/dedupe. Exception BRD §6.2: **Save does not evaluate**; Start Onboarding does | Rajal + BA (Exception) | Design a Lead→AUBIMA evaluation port; default wiring TBD until OPEN closes. Rule catalogue (CASA 30d, policy counts) stays in Exception BRD / config — not hard-coded in Lead |
+| **OPEN-LEAD-DUP-DELETE** | **CLOSED** — Lead BRD Table 18 wins (`SUG-20261003-brf`) | Rajal | When BI absent: Continue \| Cancel only. No delete/replace/soft-delete |
+| **OPEN-LEAD-VAL-TIMING** | **CLOSED** — Exception BRD wins (`SUG-20261003-brf`) | Rajal | Save/create does not evaluate; Start Onboarding (after create, before assign) evaluates. Rule catalogue stays in Exception BRD / config |
 | **OPEN-COMP-LEAD-IPR-CREATE** | IPR create vs solicitation | Shailja | Runtime gated |
 | **OPEN-LEAD-STAGE** | BRD §14 ladder vs domain Lead machine | Rajal + BA + Mahesh | Lead owns pre-BI + QUALIFIED + terminal; post-quote projections |
 | **OPEN-LEAD-DUP** | Force-duplicate / “update and continue” in wireframes | Rajal | No force flag; `409` + resume (`07` LLD) |

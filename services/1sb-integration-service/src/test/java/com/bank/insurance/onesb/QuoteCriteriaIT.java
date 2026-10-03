@@ -114,7 +114,7 @@ class QuoteCriteriaIT {
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
-                        .withBody("{\"reqId\":\"REQ-GATE\"}")));
+                        .withBody("{\"reqId\":\"REQ-GATE\",\"eligible\":true}")));
 
         mockMvc.perform(MockMvcRequestBuilders.post("/v1/quotes/criteria")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -130,6 +130,7 @@ class QuoteCriteriaIT {
                         .content(submitBody()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accepted", is(true)))
+                .andExpect(jsonPath("$.status", is("ELIGIBLE")))
                 .andExpect(jsonPath("$.reqId", is("REQ-GATE")));
 
         ONESB.verify(exactly(1), postRequestedFor(urlPathEqualTo(GATE_PATH))

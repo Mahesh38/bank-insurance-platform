@@ -61,7 +61,8 @@ public record LifeQuoteRequest(
             String tobacco,
             BigDecimal annualIncome,
             String zipCode,
-            BigDecimal quoteAmount
+            BigDecimal quoteAmount,
+            String relationWithFirstLifeAssured
     ) {}
 
     /**

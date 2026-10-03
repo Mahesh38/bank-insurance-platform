@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20261003-lvr | 2026-10-03 | human:stakeholder | Make 1sb-integration-service UAT-ready to validate Term/ULIP/Savings Life journeys (fail-before-1SB + response contract) | SF1 | SC0 | MUST | FUNC | P2 / P1 | ADMITTED | [FUNC-028](../../1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md) · [detail](#sug-20261003-lvr--life-journey-validation-uat) |
 | SUG-20261003-brf | 2026-10-03 | human:Rajal | BRD wins: dedupe key user+customer+productType+BI; no delete when BI absent; Save does not evaluate — Start Onboarding does; flow dedupe→create→exception→assign SP | SF2 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [D-019](../../au-bank-insurance-platform/DECISION-LOG.md) · [EPIC-005](../../platform/ws3-platform/EPIC-005.work-item.yaml) · [detail](#sug-20261003-brf--brd-wins-dedupe-exception-timing--sequence) |
 | SUG-20261002-lfs | 2026-10-02 | human:Rajal | Lead flow: create then assign SP+meeting; dedupe continue/delete; validation engine block-or-approve; process further = AU SP or Insurance RM/FLS | SF2 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [D-019](../../au-bank-insurance-platform/DECISION-LOG.md) · [EPIC-005](../../platform/ws3-platform/EPIC-005.work-item.yaml) · [detail](#sug-20261002-lfs--lead-create-dedupe-validation-assign-meeting) · amended by [SUG-20261003-brf](#sug-20261003-brf--brd-wins-dedupe-exception-timing--sequence) |
 | SUG-20260930-ola | 2026-09-30 | human:Rajal | OPEN-LEAD-ACTOR: Lead may be created by anyone (workforce); post-create must assign certified-SP RM | SF2 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [D-018](../../au-bank-insurance-platform/DECISION-LOG.md) · [ADR-021](../../platform/architecture-review/08-architecture-decision-log.md) · [EPIC-005](../../platform/ws3-platform/EPIC-005.work-item.yaml) · [detail](#sug-20260930-ola--lead-create-by-workforce--mandatory-sp-assignee) |
@@ -288,6 +289,48 @@ opens: [OPEN-LEAD-DUP-DELETE, OPEN-LEAD-VAL-TIMING]
 Amended 2026-10-03 by [`SUG-20261003-brf`](#sug-20261003-brf--brd-wins-dedupe-exception-timing--sequence):
 both opens **CLOSED** in favour of Lead BRD Table 18 and Exception BRD Save-does-not-evaluate.
 Sequence becomes dedupe → create/Save → Start Onboarding (exception) → assign SP.
+
+### SUG-20261003-lvr · Life journey validation UAT
+
+```yaml
+# schema: triage-record
+id: SUG-20261003-lvr
+raised_at: "2026-10-03"
+raised_by: "human:stakeholder"
+source: "Make 1sb-integration-service UAT-ready against 1SB Insurance Gateway for Term/ULIP/Savings"
+input: >
+  We need to make this service validation ready. Reference
+  https://docs.1silverbullet.tech/docs/insurance/retail/apiDocs/insurance-gateway-api
+  Make this service UAT ready to validate life insurance journey using products
+  like term, ulip and savings.
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "L4/L5 foundation + connectivity; R0 Life includes Term and Savings/ULIP (CR-015)"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: FUNC-028
+stage_fit:
+  code: SF1
+  rationale: "R0 already includes Term and Savings/ULIP assisted sale; local fail-before-1SB validation is required to exercise those journeys in UAT"
+scope:
+  code: SC0
+  business_scope: "in scope — R0 assisted Life sale"
+  authority: "CR-015 / BOOT.md WS-3 objective"
+necessity:
+  now: MUST
+  evidence_tier: E2
+  confidence: C4
+action: ADMIT
+classification:
+  type: FUNC
+priority:
+  now: P2
+  at_target: P1
+```
+
+Work item: FUNC-028.
 
 ### SUG-20261003-brf · BRD wins dedupe exception timing & sequence
 

@@ -43,6 +43,17 @@ class ProductUiDataServiceTest {
     }
 
     @Test
+    void getProductUiData_emptyPayload_throwsBadResponse() {
+        when(port.getProductUiData("345", "BALIC"))
+                .thenReturn(new ProductUiData("345", "BALIC", "REQ-UI", Map.of()));
+
+        assertThatThrownBy(() -> service.getProductUiData("345", "BALIC"))
+                .isInstanceOf(ServiceException.class)
+                .satisfies(ex -> assertThat(((ServiceException) ex).getErrorResponse().getCode())
+                        .isEqualTo(ErrorCodes.UPSTREAM_BAD_RESPONSE));
+    }
+
+    @Test
     void getProductUiData_blankManufacturer_throws422_noUpstream() {
         assertThatThrownBy(() -> service.getProductUiData("345", " "))
                 .isInstanceOf(ServiceException.class)

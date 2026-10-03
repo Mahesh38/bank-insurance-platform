@@ -11,6 +11,7 @@ import com.bank.insurance.onesb.domain.port.inbound.EligibilityUseCase;
 import com.bank.insurance.onesb.domain.port.outbound.OneSbEligibilityPort;
 import com.bank.insurance.onesb.lob.LobQuoteHandler;
 import com.bank.insurance.onesb.lob.LobQuoteHandlerRegistry;
+import com.bank.insurance.onesb.application.validation.DynamicFormValidator;
 import com.bank.insurance.onesb.lob.life.payload.LifeGateCriteriaSubmitBody;
 import com.bank.insurance.onesb.lob.life.payload.LifeQuoteRequest;
 import org.springframework.stereotype.Service;
@@ -44,7 +45,17 @@ public class EligibilityService implements EligibilityUseCase {
     @Override
     public ProposalSchema getCriteria(Lob lob, String productCode, String manufacturerId) {
         String path = requirePath(lob, productCode, manufacturerId, "getCriteria");
-        return eligibilityPort.getCriteria(lob, productCode, manufacturerId, path);
+        ProposalSchema schema = eligibilityPort.getCriteria(lob, productCode, manufacturerId, path);
+        List<ServiceError> usability = DynamicFormValidator.usabilityErrors(schema);
+        if (!usability.isEmpty()) {
+            throw serviceErrors.error(ErrorCodes.SCHEMA_INVALID)
+                    .component("EligibilityService")
+                    .operation("getCriteria")
+                    .reason("gate criteria form is unusable: " + usability.size() + " defect(s)")
+                    .errors(usability)
+                    .build();
+        }
+        return schema;
     }
 
     @Override
@@ -57,6 +68,16 @@ public class EligibilityService implements EligibilityUseCase {
             String channelType,
             String actorId) {
         String path = requirePath(lob, productCode, manufacturerId, "submitCriteria");
+        ProposalSchema schema = eligibilityPort.getCriteria(lob, productCode, manufacturerId, path);
+        List<ServiceError> answerErrors = DynamicFormValidator.answerErrors(schema, values);
+        if (!answerErrors.isEmpty()) {
+            throw serviceErrors.error(ErrorCodes.VALIDATION_ERROR)
+                    .component("EligibilityService")
+                    .operation("submitCriteria")
+                    .reason("gate criteria answers failed validation")
+                    .errors(answerErrors)
+                    .build();
+        }
         LifeQuoteRequest.Distributor distributor = new LifeQuoteRequest.Distributor(
                 secretProvider.getDistributorId(),
                 StringUtils.hasText(agentId) ? agentId.trim() : "",

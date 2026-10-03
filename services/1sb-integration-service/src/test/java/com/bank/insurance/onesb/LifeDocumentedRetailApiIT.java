@@ -171,7 +171,7 @@ class LifeDocumentedRetailApiIT {
                 {
                   "lob": "ULIP",
                   "sumAssured": 500000,
-                  "members": [{ "dob": "1990-01-15", "gender": "M", "annualIncome": 1000000 }],
+                  "members": [{ "dob": "1990-01-15", "gender": "M", "annualIncome": 1000000, "pincode": "400001" }],
                   "distribution": { "agentId": "109337" }
                 }
                 """;
@@ -182,7 +182,7 @@ class LifeDocumentedRetailApiIT {
                 {
                   "lob": "ULIP",
                   "sumAssured": 500000,
-                  "members": [{ "dob": "1990-01-15", "gender": "M", "annualIncome": 1000000 }],
+                  "members": [{ "dob": "1990-01-15", "gender": "M", "annualIncome": 1000000, "pincode": "400001" }],
                   "distribution": { "agentId": "109337" },
                   "selection": { "insurerCode": "BALIC", "productCodes": ["345"] }
                 }

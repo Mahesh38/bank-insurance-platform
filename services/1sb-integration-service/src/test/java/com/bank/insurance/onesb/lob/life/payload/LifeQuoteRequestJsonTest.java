@@ -27,7 +27,7 @@ class LifeQuoteRequestJsonTest {
                 new LifeQuoteRequest.PersonalInformation(List.of(
                         new LifeQuoteRequest.IndividualDetail(
                                 "Life Assured", 1, "Male", "1990-04-12", "No",
-                                new BigDecimal("1500000"), "400001", new BigDecimal("100000")))),
+                                new BigDecimal("1500000"), "400001", new BigDecimal("100000"), "Self"))),
                 LifeQuoteRequest.Product.saving("LifeSave", List.of("ULIP"))
         );
 
@@ -54,7 +54,7 @@ class LifeQuoteRequestJsonTest {
                 new LifeQuoteRequest.PersonalInformation(List.of(
                         new LifeQuoteRequest.IndividualDetail(
                                 "Life Assured", 1, "Male", "1990-04-12", "No",
-                                new BigDecimal("1500000"), "400001", new BigDecimal("5000000")))),
+                                new BigDecimal("1500000"), "400001", new BigDecimal("5000000"), "Self"))),
                 LifeQuoteRequest.Product.term("LifeTerm").withPin(
                         List.of(new LifeQuoteRequest.InsuranceAndProduct("BALIC", List.of("345"))),
                         null, null, null, 20, 15, "Y", null)

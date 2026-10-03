@@ -36,11 +36,12 @@ public final class LifeQuotePayloadFactory {
                     member.role() != null ? mapMemberType(member.role()) : "Life Assured",
                     member.sequenceNumber() > 0 ? member.sequenceNumber() : seq,
                     mapGender(member.gender()),
-                    member.dob(),
+                    member.dob() == null ? null : member.dob().trim(),
                     member.tobacco() ? "Yes" : "No",
                     member.annualIncome(),
                     blankToNull(member.pincode()),
-                    quoteAmount
+                    quoteAmount,
+                    resolveRelationship(command, member)
             ));
             seq++;
         }
@@ -96,7 +97,9 @@ public final class LifeQuotePayloadFactory {
                 option(selection.deathBenefitOption()),
                 selection.policyTerm(),
                 selection.premiumPaymentTerm(),
-                blankToNull(selection.premiumFrequency()),
+                com.bank.insurance.onesb.application.validation.LifeContractCatalog
+                        .frequencyWire(selection.premiumFrequency())
+                        .orElse(blankToNull(selection.premiumFrequency())),
                 blankToNull(selection.premiumPaymentOption())
         );
     }
@@ -112,7 +115,8 @@ public final class LifeQuotePayloadFactory {
         return switch (command.category().trim().toUpperCase().replace(' ', '_')) {
             case "PREMIUM" -> "Premium";
             case "INCOME" -> "Income";
-            default -> "Sum Assured";
+            case "SUM_ASSURED", "SUMASSURED" -> "Sum Assured";
+            default -> command.category().trim();
         };
     }
 
@@ -143,13 +147,20 @@ public final class LifeQuotePayloadFactory {
     }
 
     private static String mapGender(String gender) {
-        if (gender == null) {
-            return "Male";
+        return com.bank.insurance.onesb.application.validation.LifeContractCatalog
+                .genderWire(gender)
+                .orElse(gender == null ? null : gender.trim());
+    }
+
+    private static String resolveRelationship(CreateQuoteCommand command, CreateQuoteCommand.MemberDetail member) {
+        if (member.relationship() != null && !member.relationship().isBlank()) {
+            return member.relationship().trim();
         }
-        return switch (gender.trim().toUpperCase()) {
-            case "F", "FEMALE" -> "Female";
-            default -> "Male";
-        };
+        if (isSingleQuote(command.mode()) && member.role() != null
+                && "PROPOSER".equalsIgnoreCase(member.role().trim())) {
+            return null;
+        }
+        return isSingleQuote(command.mode()) ? "Self" : null;
     }
 
     private static String mapMemberType(String role) {

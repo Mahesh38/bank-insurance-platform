@@ -391,7 +391,7 @@ class LifeLobJourneyCaptureIT {
                       "category": "SUM_ASSURED",
                       "journeyId": "j-capture",
                       "sumAssured": 5000000,
-                      "members": [{ "dob": "1990-01-15", "gender": "M", "pincode": "400001" }],
+                      "members": [{ "dob": "1990-01-15", "gender": "M", "annualIncome": 1000000, "pincode": "400001" }],
                       "distribution": { "agentId": "109337", "channelType": "B2B" },
                       "selection": { "insurerCode": "MFG", "productCodes": ["P1"] }
                     }
@@ -404,7 +404,7 @@ class LifeLobJourneyCaptureIT {
                   "category": "SUM_ASSURED",
                   "journeyId": "j-capture",
                   "sumAssured": 5000000,
-                  "members": [{ "dob": "1990-01-15", "gender": "M", "pincode": "400001" }],
+                  "members": [{ "dob": "1990-01-15", "gender": "M", "annualIncome": 1000000, "pincode": "400001" }],
                   "distribution": { "agentId": "109337", "channelType": "B2B" }
                 }
                 """.formatted(lob);

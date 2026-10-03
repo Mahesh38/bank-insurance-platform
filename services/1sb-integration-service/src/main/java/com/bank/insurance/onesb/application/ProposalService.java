@@ -20,6 +20,7 @@ import com.bank.insurance.onesb.domain.port.inbound.ProposalUseCase;
 import com.bank.insurance.onesb.domain.port.outbound.JobPollSchedulerPort;
 import com.bank.insurance.onesb.domain.port.outbound.JobStorePort;
 import com.bank.insurance.onesb.domain.port.outbound.OneSbProposalPort;
+import com.bank.insurance.onesb.application.validation.DynamicFormValidator;
 import com.bank.insurance.onesb.lob.LobProposalHandler;
 import com.bank.insurance.onesb.lob.LobProposalHandlerRegistry;
 import com.bank.insurance.onesb.lob.life.LifeProposalSupport;
@@ -33,7 +34,7 @@ import org.springframework.util.StringUtils;
  *
  * <ul>
  *   <li>FUNC-004 schema: optional quote expiry → LOB path → 1SB GET
- *   <li>FUNC-005 submit: agentId gate → consent WARN → job → LOB payload → 1SB POST
+ *   <li>FUNC-005 / FUNC-028 submit: agentId gate → consentRef required → form check → job → LOB payload → 1SB POST
  * </ul>
  */
 @Service
@@ -104,6 +105,16 @@ public class ProposalService implements ProposalUseCase {
 
     if (!StringUtils.hasText(command.consentRef())) {
       publishConsentRefMissing(command, actorId, agentId, distributorId);
+      throw serviceErrors
+          .error(ErrorCodes.CONSENT_REQUIRED)
+          .component("ProposalService")
+          .operation("submit")
+          .reason("consentRef is required before proposal submit")
+          .errors(
+              List.of(
+                  ServiceError.ofField(
+                      ErrorCodes.CONSENT_REQUIRED, "consentRef is required", "consentRef")))
+          .build();
     }
 
     rejectIncompleteForm(command);
@@ -199,7 +210,22 @@ public class ProposalService implements ProposalUseCase {
     }
     if (!StringUtils.hasText(command.productCode())
         || !StringUtils.hasText(command.manufacturerId())) {
-      return;
+      throw serviceErrors
+          .error(ErrorCodes.VALIDATION_ERROR)
+          .component("ProposalService")
+          .operation("submit")
+          .reason("productCode and manufacturerId are required")
+          .errors(
+              List.of(
+                  ServiceError.ofField(
+                      ErrorCodes.MISSING_REQUIRED_FIELD,
+                      "productCode is required",
+                      "productCode"),
+                  ServiceError.ofField(
+                      ErrorCodes.MISSING_REQUIRED_FIELD,
+                      "manufacturerId is required",
+                      "manufacturerId")))
+          .build();
     }
     try {
       ProposalSchema schema =
@@ -209,28 +235,41 @@ public class ProposalService implements ProposalUseCase {
               command.manufacturerId(),
               command.version(),
               null);
+      List<ServiceError> usability = DynamicFormValidator.usabilityErrors(schema);
+      if (!usability.isEmpty()) {
+        throw serviceErrors
+            .error(ErrorCodes.SCHEMA_INVALID)
+            .component("ProposalService")
+            .operation("submit")
+            .reason("proposal form is unusable")
+            .errors(usability)
+            .build();
+      }
       List<String> missing = ProposalFormValidator.missingMandatory(schema, command.values());
-      if (!missing.isEmpty()) {
-        List<ServiceError> fieldErrors =
-            missing.stream()
-                .map(
-                    name ->
-                        ServiceError.ofField(
-                            ErrorCodes.MISSING_REQUIRED_FIELD,
-                            "mandatory proposal field missing: " + name,
-                            "values." + name))
-                .toList();
+      List<ServiceError> fieldErrors = new java.util.ArrayList<>(
+          missing.stream()
+              .map(
+                  name ->
+                      ServiceError.ofField(
+                          ErrorCodes.MISSING_REQUIRED_FIELD,
+                          "mandatory proposal field missing: " + name,
+                          "values." + name))
+              .toList());
+      fieldErrors.addAll(DynamicFormValidator.answerErrors(schema, command.values()));
+      if (!fieldErrors.isEmpty()) {
         throw serviceErrors
             .error(ErrorCodes.VALIDATION_ERROR)
             .component("ProposalService")
             .operation("submit")
-            .reason("proposal form is missing " + missing.size() + " mandatory field(s)")
+            .reason("proposal form failed pre-submit validation")
             .errors(fieldErrors)
             .build();
       }
     } catch (ServiceException ex) {
       if (ErrorCodes.VALIDATION_ERROR.equals(ex.getErrorResponse().getCode())
-          || ErrorCodes.MISSING_REQUIRED_FIELD.equals(ex.getErrorResponse().getCode())) {
+          || ErrorCodes.MISSING_REQUIRED_FIELD.equals(ex.getErrorResponse().getCode())
+          || ErrorCodes.SCHEMA_INVALID.equals(ex.getErrorResponse().getCode())
+          || ErrorCodes.CONSENT_REQUIRED.equals(ex.getErrorResponse().getCode())) {
         throw ex;
       }
       // Schema fetch failed (404 / upstream) — let 1SB validate on POST.

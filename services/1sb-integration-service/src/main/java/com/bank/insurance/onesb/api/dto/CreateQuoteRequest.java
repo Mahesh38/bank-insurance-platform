@@ -32,7 +32,8 @@ public record CreateQuoteRequest(
             @NotNull String gender,
             Boolean tobacco,
             BigDecimal annualIncome,
-            String pincode
+            String pincode,
+            String relationship
     ) {}
 
     public record DistributionRequest(

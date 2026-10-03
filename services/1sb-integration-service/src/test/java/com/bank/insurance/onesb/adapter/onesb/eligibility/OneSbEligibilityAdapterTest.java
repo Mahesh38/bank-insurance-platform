@@ -16,6 +16,7 @@ import org.springframework.web.client.RestClient;
 
 import java.net.http.HttpClient;
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
@@ -93,9 +94,21 @@ class OneSbEligibilityAdapterTest {
         EligibilitySubmitResult result = adapter.submit(PATH, body);
 
         assertThat(result.accepted()).isTrue();
+        assertThat(result.status()).isEqualTo("ACCEPTED");
         assertThat(result.reqId()).isEqualTo("REQ-C1");
         wireMock.verify(postRequestedFor(urlEqualTo(PATH))
                 .withRequestBody(matchingJsonPath("$.distributor.distributorID", equalTo("BCIBL")))
                 .withRequestBody(matchingJsonPath("$.occupation", equalTo("SALARIED"))));
+    }
+
+    @Test
+    void classify_distinguishesEligibleIneligibleAndProviderDefect() {
+        assertThat(OneSbEligibilityAdapter.classify(Map.of("eligible", true), "R1").status())
+                .isEqualTo("ELIGIBLE");
+        assertThat(OneSbEligibilityAdapter.classify(Map.of("eligible", false), "R1").accepted())
+                .isFalse();
+        assertThat(OneSbEligibilityAdapter.classify(
+                Map.of("errors", List.of("KeyError('eligibilityMapping')")), "R1").status())
+                .isEqualTo("PROVIDER_FAILURE");
     }
 }

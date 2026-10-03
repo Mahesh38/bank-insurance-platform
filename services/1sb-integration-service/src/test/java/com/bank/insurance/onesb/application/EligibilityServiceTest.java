@@ -73,6 +73,8 @@ class EligibilityServiceTest {
                 .thenReturn("/insurance/lifeterm/v1/quote/gateCriteria?productId=345&manufacturerId=BALIC");
         when(secretProvider.getDistributorId()).thenReturn("BCIBL");
         EligibilitySubmitResult result = new EligibilitySubmitResult(true, "REQ-C", "ACCEPTED");
+        when(eligibilityPort.getCriteria(eq(Lob.TERM), eq("345"), eq("BALIC"), any()))
+                .thenReturn(new ProposalSchema(Lob.TERM, "345", "BALIC", null, Map.of("ok", true)));
         when(eligibilityPort.submit(any(), any())).thenReturn(result);
 
         EligibilitySubmitResult out = service.submitCriteria(

@@ -39,6 +39,14 @@ public class ProductUiDataService implements ProductUiDataUseCase {
                                     "manufacturerId is required", "manufacturerId")))
                     .build();
         }
-        return productUiDataPort.getProductUiData(productId.trim(), manufacturerId.trim());
+        ProductUiData result = productUiDataPort.getProductUiData(productId.trim(), manufacturerId.trim());
+        if (result == null || result.data() == null || result.data().isEmpty()) {
+            throw serviceErrors.error(ErrorCodes.UPSTREAM_BAD_RESPONSE)
+                    .component("ProductUiDataService")
+                    .operation("getProductUiData")
+                    .reason("Product UI Data is empty for productId/manufacturerId")
+                    .build();
+        }
+        return result;
     }
 }

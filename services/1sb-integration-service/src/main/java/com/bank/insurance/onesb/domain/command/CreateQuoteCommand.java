@@ -50,8 +50,20 @@ public record CreateQuoteCommand(
             String gender,
             boolean tobacco,
             BigDecimal annualIncome,
-            String pincode
-    ) {}
+            String pincode,
+            String relationship
+    ) {
+        public MemberDetail(
+                String role,
+                int sequenceNumber,
+                String dob,
+                String gender,
+                boolean tobacco,
+                BigDecimal annualIncome,
+                String pincode) {
+            this(role, sequenceNumber, dob, gender, tobacco, annualIncome, pincode, null);
+        }
+    }
 
     public record DistributionContext(
             String rmEmployeeId,

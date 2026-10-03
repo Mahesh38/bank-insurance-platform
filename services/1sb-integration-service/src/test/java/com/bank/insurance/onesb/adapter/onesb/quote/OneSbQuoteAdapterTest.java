@@ -266,7 +266,8 @@ class OneSbQuoteAdapterTest {
         assertThat(offer.insurerCode()).isEqualTo("SBI");
         assertThat(offer.premiumAmount()).isEqualByComparingTo("4500");
         assertThat(offer.outOfBound()).isTrue();
-        assertThat(offer.offerStatus()).isEqualTo("QUOTED");
+        assertThat(offer.offerStatus()).isEqualTo("ERROR");
+        assertThat(offer.errorSummary()).contains("unrecognized offer status");
     }
 
     @Test
@@ -302,7 +303,7 @@ class OneSbQuoteAdapterTest {
         List<QuoteOffer> offers = adapter.parseOffers("""
                 {
                   "data": {
-                    "quote": [{"offerId": "off-1", "insurerCode": "HDFC", "premiumAmount": 100}],
+                    "quote": [{"offerId": "off-1", "insurerCode": "HDFC", "productCode": "T1", "premiumAmount": 100}],
                     "errors": [{"manufacturerId": "HDFC", "message": "Partial reject"}]
                   }
                 }
@@ -333,6 +334,7 @@ class OneSbQuoteAdapterTest {
                     "quote": [{
                       "offerId": "off-x",
                       "insurerCode": "ICICI",
+                      "productCode": "T1",
                       "errors": [{"message": "nested reject"}]
                     }]
                   }
@@ -348,7 +350,7 @@ class OneSbQuoteAdapterTest {
         List<QuoteOffer> offers = adapter.parseOffers("""
                 {
                   "data": {
-                    "quote": [{"offerId": "off-y", "insurerCode": "ICICI", "premiumAmount": "not-a-number"}]
+                    "quote": [{"offerId": "off-y", "insurerCode": "ICICI", "productCode": "T1", "sumAssured": 5000000, "premiumAmount": "not-a-number"}]
                   }
                 }
                 """);

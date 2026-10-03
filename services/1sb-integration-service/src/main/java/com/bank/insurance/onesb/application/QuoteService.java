@@ -14,10 +14,9 @@ import com.bank.insurance.onesb.domain.port.inbound.QuoteUseCase;
 import com.bank.insurance.onesb.domain.port.outbound.JobPollSchedulerPort;
 import com.bank.insurance.onesb.domain.port.outbound.JobStorePort;
 import com.bank.insurance.onesb.domain.port.outbound.OneSbQuotePort;
+import com.bank.insurance.onesb.application.validation.LifeQuoteValidator;
 import com.bank.insurance.onesb.lob.LobQuoteHandler;
 import com.bank.insurance.onesb.lob.LobQuoteHandlerRegistry;
-import com.bank.insurance.onesb.lob.life.LifeQuotePayloadFactory;
-import java.util.ArrayList;
 import java.util.List;
 import org.springframework.stereotype.Service;
 
@@ -90,67 +89,7 @@ public class QuoteService implements QuoteUseCase {
   }
 
   private void validate(CreateQuoteCommand command) {
-    List<ServiceError> errors = new ArrayList<>();
-    if (command.lob() == null) {
-      errors.add(ServiceError.ofField(ErrorCodes.MISSING_REQUIRED_FIELD, "lob is required", "lob"));
-    } else if (!isSupportedLifeQuoteLob(command.lob())) {
-      // EPIC-002 / FUNC-015 / FUNC-019: Term + Savings + ULIP; others → UNSUPPORTED_LOB
-      // (registry also rejects missing handlers — keep early clear 422 for non-Life)
-      errors.add(
-          ServiceError.ofField(
-              ErrorCodes.UNSUPPORTED_LOB,
-              "Unsupported lob for quote create: " + command.lob(),
-              "lob"));
-    }
-    if (command.sumAssured() == null) {
-      errors.add(
-          ServiceError.ofField(
-              ErrorCodes.MISSING_REQUIRED_FIELD, "sumAssured is required", "sumAssured"));
-    }
-    if (command.members() == null || command.members().isEmpty()) {
-      errors.add(
-          ServiceError.ofField(
-              ErrorCodes.MISSING_REQUIRED_FIELD, "members must be non-empty", "members"));
-    } else {
-      for (int i = 0; i < command.members().size(); i++) {
-        CreateQuoteCommand.MemberDetail m = command.members().get(i);
-        if (m.dob() == null || m.dob().isBlank()) {
-          errors.add(
-              ServiceError.ofField(
-                  ErrorCodes.MISSING_REQUIRED_FIELD,
-                  "members[" + i + "].dob is required",
-                  "members[" + i + "].dob"));
-        }
-        if (m.gender() == null || m.gender().isBlank()) {
-          errors.add(
-              ServiceError.ofField(
-                  ErrorCodes.MISSING_REQUIRED_FIELD,
-                  "members[" + i + "].gender is required",
-                  "members[" + i + "].gender"));
-        }
-      }
-    }
-    if (LifeQuotePayloadFactory.isSingleQuote(command.mode())) {
-      CreateQuoteCommand.ProductSelection selection = command.selection();
-      if (selection == null
-          || selection.insurerCode() == null
-          || selection.insurerCode().isBlank()) {
-        errors.add(
-            ServiceError.ofField(
-                ErrorCodes.MISSING_REQUIRED_FIELD,
-                "selection.insurerCode is required for Single Quote",
-                "selection.insurerCode"));
-      }
-      if (selection == null
-          || selection.productCodes() == null
-          || selection.productCodes().stream().noneMatch(c -> c != null && !c.isBlank())) {
-        errors.add(
-            ServiceError.ofField(
-                ErrorCodes.MISSING_REQUIRED_FIELD,
-                "selection.productCodes is required for Single Quote",
-                "selection.productCodes"));
-      }
-    }
+    List<ServiceError> errors = LifeQuoteValidator.validate(command);
     if (!errors.isEmpty()) {
       String code =
           errors.stream().anyMatch(e -> ErrorCodes.UNSUPPORTED_LOB.equals(e.code()))
@@ -164,10 +103,6 @@ public class QuoteService implements QuoteUseCase {
           .errors(errors)
           .build();
     }
-  }
-
-  private static boolean isSupportedLifeQuoteLob(Lob lob) {
-    return lob == Lob.TERM || lob == Lob.SAVING || lob == Lob.ULIP;
   }
 
   private void publishQuoteCreated(CreateQuoteCommand command, String jobId, String actorId) {

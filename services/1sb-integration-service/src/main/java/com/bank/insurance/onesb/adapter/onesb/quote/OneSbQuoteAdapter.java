@@ -241,26 +241,44 @@ public class OneSbQuoteAdapter implements OneSbQuotePort {
         JsonNode productDetails = node.path("productDetails");
         if (productDetails.isArray() && !productDetails.isEmpty()) {
             for (JsonNode pd : productDetails) {
-                offers.add(mapOffer(pd, node));
+                addOffer(offers, mapOffer(pd, node));
             }
             return;
         }
-        offers.add(mapOffer(node, null));
+        addOffer(offers, mapOffer(node, null));
     }
 
     private void expandProductDetails(List<QuoteOffer> offers, JsonNode companyOrProduct, JsonNode parent) {
         JsonNode productDetails = companyOrProduct.path("productDetails");
         if (productDetails.isArray() && !productDetails.isEmpty()) {
             for (JsonNode pd : productDetails) {
-                offers.add(mapOffer(pd, companyOrProduct));
+                addOffer(offers, mapOffer(pd, companyOrProduct));
             }
             return;
         }
         if (productDetails.isObject() && !productDetails.isEmpty()) {
-            offers.add(mapOffer(productDetails, companyOrProduct));
+            addOffer(offers, mapOffer(productDetails, companyOrProduct));
             return;
         }
-        offers.add(mapOffer(companyOrProduct, parent));
+        addOffer(offers, mapOffer(companyOrProduct, parent));
+    }
+
+    private static void addOffer(List<QuoteOffer> offers, QuoteOffer offer) {
+        if (offer == null) {
+            return;
+        }
+        boolean dup = offers.stream().anyMatch(existing -> sameOffer(existing, offer));
+        if (!dup) {
+            offers.add(offer);
+        }
+    }
+
+    private static boolean sameOffer(QuoteOffer a, QuoteOffer b) {
+        return java.util.Objects.equals(a.offerId(), b.offerId())
+                && java.util.Objects.equals(a.insurerCode(), b.insurerCode())
+                && java.util.Objects.equals(a.productCode(), b.productCode())
+                && java.util.Objects.equals(a.premiumAmount(), b.premiumAmount())
+                && java.util.Objects.equals(a.sumAssured(), b.sumAssured());
     }
 
     private QuoteOffer mapOffer(JsonNode node, JsonNode parent) {
@@ -295,12 +313,25 @@ public class OneSbQuoteAdapter implements OneSbQuotePort {
             freq = text(parent.path("productDetails"), "premiumPaymentFrequency", "freq", "frequency");
         }
 
+        String offerId = firstText(node, parent, "offerId", "quoteId", "id");
+        String insurer = firstText(node, parent, "insurerCode", "manufacturerId", "manufacturerCode",
+                "insuranceCompanyCode");
+        String productCode = firstText(node, parent, "productCode", "productId");
+        if (!com.bank.insurance.onesb.application.validation.LifeContractCatalog.isKnownOfferStatus(offerStatus)
+                && (errorSummary == null || errorSummary.isBlank())) {
+            errorSummary = "unrecognized offer status: " + offerStatus;
+            offerStatus = "ERROR";
+        }
+        boolean selectableError = errorSummary != null && !errorSummary.isBlank();
+        if (!selectableError && (insurer == null || productCode == null
+                || (premium == null && sumAssured == null))) {
+            return null;
+        }
         return new QuoteOffer(
-                firstText(node, parent, "offerId", "quoteId", "id"),
-                firstText(node, parent, "insurerCode", "manufacturerId", "manufacturerCode",
-                        "insuranceCompanyCode"),
+                offerId,
+                insurer,
                 firstText(node, parent, "insurerName", "manufacturerName", "insuranceCompanyName"),
-                firstText(node, parent, "productCode", "productId"),
+                productCode,
                 firstText(node, parent, "productName", "product"),
                 premium,
                 freq,

@@ -72,4 +72,20 @@ class SavingQuoteHandlerTest {
         assertThat(payload.personalInformation().individualDetails().getFirst().quoteAmount())
                 .isEqualByComparingTo("100000");
     }
+
+    @Test
+    void preferencesCanSelectParticipatingSavingsType() {
+        CreateQuoteCommand command = new CreateQuoteCommand(
+                Lob.SAVING, "MULTI", "SUM_ASSURED", new BigDecimal("1000000"), null,
+                List.of(new CreateQuoteCommand.MemberDetail(
+                        "LIFE_ASSURED", 1, "1985-06-01", "F", false,
+                        new BigDecimal("900000"), "560001")),
+                java.util.Map.of("savingsProductType", "Participating"),
+                new CreateQuoteCommand.DistributionContext(null, "A1", "B2B"),
+                "j-s", null, "idem", "actor"
+        );
+
+        LifeQuoteRequest payload = handler.buildSubmitPayload(command);
+        assertThat(payload.product().savingsProductType()).containsExactly("Participating");
+    }
 }

@@ -33,6 +33,9 @@ public class OneSbHttpClientPollAdapter implements OneSbPollPort {
             ParsedPoll parsed = parse(body);
             return PollResult.of(parsed.complete(), 200, List.of(), parsed.applicationNumber());
         } catch (ServiceException ex) {
+            if (com.bank.common.error.ErrorCodes.UPSTREAM_BAD_RESPONSE.equals(ex.getErrorResponse().getCode())) {
+                throw ex;
+            }
             return new PollResult(false, ex.getHttpStatus(), ex.getMessage(), List.of());
         } catch (Exception ex) {
             return PollResult.transportError(ex.getMessage());

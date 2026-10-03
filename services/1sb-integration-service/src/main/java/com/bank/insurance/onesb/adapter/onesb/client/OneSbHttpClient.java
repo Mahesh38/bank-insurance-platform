@@ -124,6 +124,7 @@ public class OneSbHttpClient {
                     })
                     .toEntity(responseType);
             upstreamStatus = entity.getStatusCode().value();
+            rejectNonJsonSuccess(entity, method + " " + path);
             outcome = AuditOutcomes.SUCCESS;
             circuitBreaker.recordSuccess();
             return entity.getBody();
@@ -154,6 +155,22 @@ public class OneSbHttpClient {
         } finally {
             long latencyMs = Math.max(0L, (System.nanoTime() - started) / 1_000_000L);
             publishAudit(method, path, body, latencyMs, upstreamStatus, outcome);
+        }
+    }
+
+    private <T> void rejectNonJsonSuccess(ResponseEntity<T> entity, String operation) {
+        MediaType contentType = entity.getHeaders().getContentType();
+        T body = entity.getBody();
+        if (body instanceof String s) {
+            com.bank.insurance.onesb.application.validation.UpstreamResponseGuard
+                    .requireJson(s, contentType, operation, serviceErrors);
+            return;
+        }
+        if (contentType != null
+                && !com.bank.insurance.onesb.application.validation.UpstreamResponseGuard.isJson(contentType)
+                && (body == null || !(body instanceof Map || body instanceof java.util.List))) {
+            throw com.bank.insurance.onesb.application.validation.UpstreamResponseGuard
+                    .bad(serviceErrors, operation, "1SB returned non-JSON content type: " + contentType);
         }
     }
 

@@ -209,6 +209,15 @@ public class AsyncJobPoller implements JobPollSchedulerPort {
                 if (complete) {
                     offers = quotePort.pollQuoteResult(jobId, externalReqId, lob);
                 }
+            } catch (com.bank.common.error.ServiceException ex) {
+                if (com.bank.common.error.ErrorCodes.UPSTREAM_BAD_RESPONSE.equals(
+                        ex.getErrorResponse().getCode())) {
+                    jobStore.failJob(jobId, "UPSTREAM_BAD_RESPONSE");
+                    return new PollOutcome(JobStatus.FAILED, attempts.get() + 1);
+                }
+                complete = false;
+                httpStatus = 0;
+                errorMessage = ex.getMessage();
             } catch (Exception ex) {
                 complete = false;
                 httpStatus = 0;

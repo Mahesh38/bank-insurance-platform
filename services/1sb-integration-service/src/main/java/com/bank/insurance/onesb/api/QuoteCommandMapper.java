@@ -24,7 +24,8 @@ public final class QuoteCommandMapper {
                         m.gender(),
                         Boolean.TRUE.equals(m.tobacco()),
                         m.annualIncome(),
-                        m.pincode()
+                        m.pincode(),
+                        m.relationship()
                 ))
                 .toList();
 

@@ -100,6 +100,16 @@ class QuoteCriteriaIT {
 
     @Test
     void postCriteria_requiresIdempotencyKey_andPostsToOneSb() throws Exception {
+        ONESB.stubFor(get(urlPathEqualTo(GATE_PATH))
+                .withQueryParam("productId", equalTo("345"))
+                .withQueryParam("manufacturerId", equalTo("BALIC"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("""
+                                {"fieldGroups":[{"fields":[{"id":"occupation","mandatory":true,
+                                "type":"select","options":[{"code":"SALARIED","label":"Salaried"}]}]}]}
+                                """)));
         ONESB.stubFor(post(urlPathEqualTo(GATE_PATH))
                 .willReturn(aResponse()
                         .withStatus(200)

@@ -121,7 +121,7 @@ class QuoteCreateIT {
                                   "lob": "TERM",
                                   "mode": "SINGLE",
                                   "sumAssured": 5000000,
-                                  "members": [{ "dob": "1990-01-15", "gender": "M" }],
+                                  "members": [{ "dob": "1990-01-15", "gender": "M", "annualIncome": 1000000, "pincode": "400001" }],
                                   "distribution": { "agentId": "109337" }
                                 }
                                 """))
@@ -153,7 +153,7 @@ class QuoteCreateIT {
                                   "mode": "SINGLE",
                                   "journeyId": "j-sq",
                                   "sumAssured": 5000000,
-                                  "members": [{ "dob": "1990-01-15", "gender": "M" }],
+                                  "members": [{ "dob": "1990-01-15", "gender": "M", "annualIncome": 1000000, "pincode": "400001" }],
                                   "distribution": { "agentId": "109337" },
                                   "selection": {
                                     "insurerCode": "BALIC",
@@ -289,7 +289,7 @@ class QuoteCreateIT {
                   "lob": "TERM",
                   "journeyId": "j-it-1",
                   "sumAssured": 5000000,
-                  "members": [{ "dob": "1990-01-15", "gender": "M" }],
+                  "members": [{ "dob": "1990-01-15", "gender": "M", "annualIncome": 1000000, "pincode": "400001" }],
                   "distribution": { "agentId": "109337" }
                 }
                 """;

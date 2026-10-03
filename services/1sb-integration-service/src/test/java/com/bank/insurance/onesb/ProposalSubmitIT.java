@@ -42,7 +42,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * FUNC-005 IT: {@code POST /v1/proposals} — agent attribution, consent WARN,
+ * FUNC-005 IT: {@code POST /v1/proposals} — agent attribution, consent required,
  * success 201, idempotency, business reject.
  */
 @SpringBootTest
@@ -137,24 +137,14 @@ class ProposalSubmitIT {
     }
 
     @Test
-    void ac2_missingConsentRef_auditsWarn_andStillSubmits() throws Exception {
-        String jobId = "job-ac2-" + UUID.randomUUID();
-        stubPersistenceHappyPath(jobId);
-        ONESB.stubFor(post(urlEqualTo(TERM_PROPOSAL_PATH))
-                .willReturn(aResponse()
-                        .withStatus(200)
-                        .withHeader("Content-Type", "application/json")
-                        .withBody("{\"reqId\":\"REQ-AC2\",\"data\":{}}")));
-        stubOneSbProposalPoll("REQ-AC2");
-
+    void ac2_missingConsentRef_returns403_andNeverCallsOneSb() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.post("/v1/proposals")
                         .header("Idempotency-Key", "idem-ac2-" + UUID.randomUUID())
                         .header("X-Actor-Id", "rm-ac2")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(validBodyWithoutConsent()))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.proposalJobId", is(jobId)))
-                .andExpect(jsonPath("$.status", is("PENDING")));
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code", is(ErrorCodes.CONSENT_REQUIRED)));
 
         ArgumentCaptor<AuditEvent> captor = ArgumentCaptor.forClass(AuditEvent.class);
         verify(auditEventPublisher, atLeastOnce()).publish(captor.capture());
@@ -162,9 +152,8 @@ class ProposalSubmitIT {
                 .anyMatch(e -> AuditActions.CONSENT_REF_MISSING.equals(e.getAction())
                         && AuditOutcomes.WARN.equals(e.getOutcome()));
 
-        ONESB.verify(exactly(1), postRequestedFor(urlEqualTo(TERM_PROPOSAL_PATH))
-                .withRequestBody(matchingJsonPath("$.distributor.distributorID",
-                        containing("TEST_DIST"))));
+        ONESB.verify(0, postRequestedFor(urlEqualTo(TERM_PROPOSAL_PATH)));
+        PERSISTENCE.verify(0, postRequestedFor(urlEqualTo("/internal/v1/jobs")));
     }
 
     @Test

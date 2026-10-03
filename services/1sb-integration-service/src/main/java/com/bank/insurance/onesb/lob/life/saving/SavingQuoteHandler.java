@@ -45,7 +45,30 @@ public class SavingQuoteHandler implements LobQuoteHandler {
         return LifeQuotePayloadFactory.build(
                 command,
                 secretProvider,
-                LifeQuoteRequest.Product.saving(PRODUCT_TYPE, List.of("ULIP")));
+                LifeQuoteRequest.Product.saving(PRODUCT_TYPE, savingsTypes(command)));
+    }
+
+    static List<String> savingsTypes(CreateQuoteCommand command) {
+        if (command.preferences() != null) {
+            Object raw = command.preferences().get("savingsProductType");
+            if (raw instanceof List<?> list && !list.isEmpty()) {
+                List<String> mapped = list.stream()
+                        .map(v -> v == null ? null : v.toString())
+                        .map(v -> com.bank.insurance.onesb.application.validation.LifeContractCatalog
+                                .savingsProductTypeWire(v).orElse(null))
+                        .filter(java.util.Objects::nonNull)
+                        .toList();
+                if (!mapped.isEmpty()) {
+                    return mapped;
+                }
+            } else if (raw instanceof String s) {
+                return com.bank.insurance.onesb.application.validation.LifeContractCatalog
+                        .savingsProductTypeWire(s)
+                        .map(List::of)
+                        .orElse(List.of("ULIP"));
+            }
+        }
+        return List.of("ULIP");
     }
 
     @Override

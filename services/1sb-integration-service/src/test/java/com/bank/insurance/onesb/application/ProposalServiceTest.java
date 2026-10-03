@@ -171,30 +171,19 @@ class ProposalServiceTest {
 
     @Test
     @Tag("FUNC-005")
-    void submit_missingConsentRef_auditsWarn_andSucceeds() {
+    void submit_missingConsentRef_auditsAndBlocks() {
         when(secretProvider.getDistributorId()).thenReturn("BCIBL");
-        when(handlerRegistry.get(Lob.TERM)).thenReturn(handler);
-        when(handler.buildSubmitPayload(any())).thenReturn(Map.of("ok", true));
-        when(handler.submitPath()).thenReturn("/insurance/lifeterm/v1/proposal");
-        when(handler.pollPath("REQ-1")).thenReturn("/insurance/lifeterm/v1/proposal/poll/REQ-1");
-        when(jobStore.createJob("TERM", "PROPOSAL", "j-1", "idem-1", "actor-1"))
-                .thenReturn("job-p1");
-        when(proposalPort.submit(eq("job-p1"), any(), any()))
-                .thenReturn(new OneSbProposalSubmitResult("REQ-1", null, false));
 
-        SubmitProposalCommand command = baseCommand("109337", null, null);
-        ProposalSubmitResult result = proposalService.submit(command);
+        assertThatThrownBy(() -> proposalService.submit(baseCommand("109337", null, null)))
+                .isInstanceOf(ServiceException.class)
+                .satisfies(ex -> assertThat(((ServiceException) ex).getErrorResponse().getCode())
+                        .isEqualTo(ErrorCodes.CONSENT_REQUIRED));
 
-        assertThat(result.proposalJobId()).isEqualTo("job-p1");
-        assertThat(result.status()).isEqualTo(JobStatus.PENDING);
-        verify(jobStore).updateJobPolling("job-p1", "REQ-1");
-        verify(pollScheduler).schedulePoll("job-p1", "/insurance/lifeterm/v1/proposal/poll/REQ-1");
-
+        verify(proposalPort, never()).submit(any(), any(), any());
+        verify(jobStore, never()).createJob(any(), any(), any(), any(), any());
         ArgumentCaptor<AuditEvent> captor = ArgumentCaptor.forClass(AuditEvent.class);
-        verify(auditEventPublisher, org.mockito.Mockito.atLeastOnce()).publish(captor.capture());
-        assertThat(captor.getAllValues())
-                .anyMatch(e -> AuditActions.CONSENT_REF_MISSING.equals(e.getAction())
-                        && AuditOutcomes.WARN.equals(e.getOutcome()));
+        verify(auditEventPublisher).publish(captor.capture());
+        assertThat(captor.getValue().getAction()).isEqualTo(AuditActions.CONSENT_REF_MISSING);
     }
 
     @Test
@@ -205,6 +194,9 @@ class ProposalServiceTest {
         when(handler.buildSubmitPayload(any())).thenReturn(Map.of("ok", true));
         when(handler.submitPath()).thenReturn("/insurance/lifeterm/v1/proposal");
         when(jobStore.createJob(any(), any(), any(), any(), any())).thenReturn("job-done");
+        when(handler.schemaPath(any(), any(), any())).thenReturn("/insurance/lifeterm/v1/proposal");
+        when(proposalPort.getSchema(any(), any(), any(), any(), any()))
+                .thenReturn(new ProposalSchema(Lob.TERM, "T1", "HDFC", "1", Map.of("ok", true)));
         when(proposalPort.submit(eq("job-done"), any(), any()))
                 .thenReturn(new OneSbProposalSubmitResult(null, "APP-99", true));
 
@@ -250,6 +242,9 @@ class ProposalServiceTest {
         when(handler.buildSubmitPayload(any())).thenReturn(Map.of("ok", true));
         when(handler.submitPath()).thenReturn("/insurance/lifeterm/v1/proposal");
         when(jobStore.createJob(any(), any(), any(), any(), any())).thenReturn("job-rej");
+        when(handler.schemaPath(any(), any(), any())).thenReturn("/insurance/lifeterm/v1/proposal");
+        when(proposalPort.getSchema(any(), any(), any(), any(), any()))
+                .thenReturn(new ProposalSchema(Lob.TERM, "T1", "HDFC", "1", Map.of("ok", true)));
         when(proposalPort.submit(any(), any(), any()))
                 .thenThrow(new ServiceException(ServiceErrorResponse.builder()
                         .title("Proposal Rejected")

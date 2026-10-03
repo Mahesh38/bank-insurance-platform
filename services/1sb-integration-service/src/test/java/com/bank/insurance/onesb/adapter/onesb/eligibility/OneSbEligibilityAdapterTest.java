@@ -93,8 +93,8 @@ class OneSbEligibilityAdapterTest {
 
         EligibilitySubmitResult result = adapter.submit(PATH, body);
 
-        assertThat(result.accepted()).isTrue();
-        assertThat(result.status()).isEqualTo("ACCEPTED");
+        assertThat(result.accepted()).isFalse();
+        assertThat(result.status()).isEqualTo("UNRECOGNIZED_STATUS");
         assertThat(result.reqId()).isEqualTo("REQ-C1");
         wireMock.verify(postRequestedFor(urlEqualTo(PATH))
                 .withRequestBody(matchingJsonPath("$.distributor.distributorID", equalTo("BCIBL")))
@@ -110,5 +110,7 @@ class OneSbEligibilityAdapterTest {
         assertThat(OneSbEligibilityAdapter.classify(
                 Map.of("errors", List.of("KeyError('eligibilityMapping')")), "R1").status())
                 .isEqualTo("PROVIDER_FAILURE");
+        assertThat(OneSbEligibilityAdapter.classify(Map.of("reqId", "R1"), "R1").status())
+                .isEqualTo("UNRECOGNIZED_STATUS");
     }
 }

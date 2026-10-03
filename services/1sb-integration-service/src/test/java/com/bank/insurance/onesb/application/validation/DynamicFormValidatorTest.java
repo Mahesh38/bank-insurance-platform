@@ -51,5 +51,9 @@ class DynamicFormValidatorTest {
                 "age", 40,
                 "child", "ok")))
                 .isEmpty();
+
+        assertThat(DynamicFormValidator.answerErrors(schema, Map.of("age", 40)))
+                .anyMatch(e -> e.field().contains("occupation"))
+                .noneMatch(e -> e.field() != null && e.field().contains("child"));
     }
 }

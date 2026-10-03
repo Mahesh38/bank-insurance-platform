@@ -2,9 +2,11 @@ package com.bank.insurance.onesb.support;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.exactly;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -109,6 +111,23 @@ class SharedHarnessProposalSmokeIT {
                         .withHeader("Content-Type", "application/json")
                         .withBody("{\"jobId\":\"%s\",\"status\":\"COMPLETED\"}".formatted(jobId))));
 
+    HARNESS
+        .onesb()
+        .stubFor(
+            get(urlPathEqualTo(TERM_PROPOSAL_PATH))
+                .willReturn(
+                    aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(
+                            """
+                                {
+                                  "fieldGroups": [
+                                    {"name":"personal","fields":[{"id":"proposer.panNumber","type":"string"}]}
+                                  ],
+                                  "version": "1"
+                                }
+                                """)));
     HARNESS
         .onesb()
         .stubFor(

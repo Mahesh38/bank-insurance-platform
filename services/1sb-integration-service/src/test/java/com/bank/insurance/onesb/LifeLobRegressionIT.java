@@ -161,6 +161,7 @@ class LifeLobRegressionIT {
     void savingProposal_postsToLifesaveProposal() throws Exception {
         String jobId = "job-sp-" + UUID.randomUUID();
         stubPersistenceJob(jobId, "PROPOSAL", "SAVING");
+        stubUsableProposalSchema(LIFESAVE_PROPOSAL);
         ONESB.stubFor(post(urlEqualTo(LIFESAVE_PROPOSAL))
                 .willReturn(aResponse()
                         .withStatus(200)
@@ -186,6 +187,7 @@ class LifeLobRegressionIT {
     void ulipProposal_postsToLifesaveProposal() throws Exception {
         String jobId = "job-up-" + UUID.randomUUID();
         stubPersistenceJob(jobId, "PROPOSAL", "ULIP");
+        stubUsableProposalSchema(LIFESAVE_PROPOSAL);
         ONESB.stubFor(post(urlEqualTo(LIFESAVE_PROPOSAL))
                 .willReturn(aResponse()
                         .withStatus(200)
@@ -244,16 +246,37 @@ class LifeLobRegressionIT {
         PERSISTENCE.verify(0, postRequestedFor(urlEqualTo("/internal/v1/jobs")));
     }
 
+    private static void stubUsableProposalSchema(String path) {
+        ONESB.stubFor(get(urlPathEqualTo(path))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("""
+                                {
+                                  "fieldGroups": [
+                                    {"name":"personal","fields":[{"id":"proposer.panNumber","type":"string"}]}
+                                  ],
+                                  "version": "1"
+                                }
+                                """)));
+    }
+
     private static String quoteBody(String lob) {
+        String preferences = "SAVING".equals(lob)
+                ? """
+                  "preferences": { "savingsProductType": "ULIP" },
+                """
+                : "";
         return """
                 {
                   "lob": "%s",
                   "journeyId": "j-qa-012",
                   "sumAssured": 5000000,
                   "members": [{ "dob": "1990-01-15", "gender": "M", "annualIncome": 1000000, "pincode": "400001" }],
+                  %s
                   "distribution": { "agentId": "109337" }
                 }
-                """.formatted(lob);
+                """.formatted(lob, preferences);
     }
 
     private static String proposalBody(String lob) {

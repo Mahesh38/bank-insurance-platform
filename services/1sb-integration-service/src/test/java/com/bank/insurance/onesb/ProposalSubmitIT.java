@@ -27,11 +27,13 @@ import java.util.UUID;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.containing;
 import static com.github.tomakehurst.wiremock.client.WireMock.exactly;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath;
 import static com.github.tomakehurst.wiremock.client.WireMock.patch;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -160,6 +162,7 @@ class ProposalSubmitIT {
     void ac3_success_returns201_withJobIdAndStatus() throws Exception {
         String jobId = "job-ac3-" + UUID.randomUUID();
         stubPersistenceHappyPath(jobId);
+        stubUsableProposalSchema();
         ONESB.stubFor(post(urlEqualTo(TERM_PROPOSAL_PATH))
                 .willReturn(aResponse()
                         .withStatus(200)
@@ -185,6 +188,7 @@ class ProposalSubmitIT {
         String jobId = "job-replay-" + UUID.randomUUID();
         String key = "idem-replay-" + UUID.randomUUID();
         stubPersistenceHappyPath(jobId);
+        stubUsableProposalSchema();
         ONESB.stubFor(post(urlEqualTo(TERM_PROPOSAL_PATH))
                 .willReturn(aResponse()
                         .withStatus(200)
@@ -227,6 +231,7 @@ class ProposalSubmitIT {
     void ac5_businessReject_returns422_proposalRejected_andAudits() throws Exception {
         String jobId = "job-rej-" + UUID.randomUUID();
         stubPersistenceHappyPath(jobId);
+        stubUsableProposalSchema();
         ONESB.stubFor(post(urlEqualTo(TERM_PROPOSAL_PATH))
                 .willReturn(aResponse()
                         .withStatus(422)
@@ -287,6 +292,21 @@ class ProposalSubmitIT {
                   "distribution": { "rmEmployeeId": "E123" }
                 }
                 """;
+    }
+
+    private static void stubUsableProposalSchema() {
+        ONESB.stubFor(get(urlPathEqualTo(TERM_PROPOSAL_PATH))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("""
+                                {
+                                  "fieldGroups": [
+                                    {"name":"personal","fields":[{"id":"proposer.panNumber","type":"string"}]}
+                                  ],
+                                  "version": "1"
+                                }
+                                """)));
     }
 
     private static void stubPersistenceHappyPath(String jobId) {

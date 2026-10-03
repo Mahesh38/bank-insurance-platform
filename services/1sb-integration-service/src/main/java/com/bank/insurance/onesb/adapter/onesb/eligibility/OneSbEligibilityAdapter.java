@@ -77,7 +77,7 @@ public class OneSbEligibilityAdapter implements OneSbEligibilityPort {
                 default -> new EligibilitySubmitResult(false, reqId, "UNRECOGNIZED_STATUS");
             };
         }
-        return new EligibilitySubmitResult(true, reqId, "ACCEPTED");
+        return new EligibilitySubmitResult(false, reqId, "UNRECOGNIZED_STATUS");
     }
 
     private static Object first(Map<String, Object> map, String... keys) {

@@ -259,11 +259,17 @@ public final class LifeQuoteValidator {
     }
 
     private static void validateSavingsFilter(CreateQuoteCommand command, List<ServiceError> errors) {
-        if (command.lob() != Lob.SAVING || command.preferences() == null) {
+        if (command.lob() != Lob.SAVING) {
             return;
         }
-        Object raw = command.preferences().get("savingsProductType");
-        if (raw == null) {
+        Object raw = command.preferences() == null ? null : command.preferences().get("savingsProductType");
+        if (raw == null
+                || (raw instanceof String s && !StringUtils.hasText(s))
+                || (raw instanceof List<?> list && list.isEmpty())) {
+            errors.add(ServiceError.ofField(
+                    ErrorCodes.MISSING_REQUIRED_FIELD,
+                    "savingsProductType is required for Saving quotes",
+                    "preferences.savingsProductType"));
             return;
         }
         List<?> values = raw instanceof List<?> list ? list : List.of(raw);

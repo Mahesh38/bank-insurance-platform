@@ -383,6 +383,11 @@ class LifeLobJourneyCaptureIT {
     }
 
     private static String quoteBody(String lob, boolean single) {
+        String preferences = "SAVING".equals(lob)
+                ? """
+                      "preferences": { "savingsProductType": "ULIP" },
+                """
+                : "";
         if (single) {
             return """
                     {
@@ -392,10 +397,11 @@ class LifeLobJourneyCaptureIT {
                       "journeyId": "j-capture",
                       "sumAssured": 5000000,
                       "members": [{ "dob": "1990-01-15", "gender": "M", "annualIncome": 1000000, "pincode": "400001" }],
+                      %s
                       "distribution": { "agentId": "109337", "channelType": "B2B" },
                       "selection": { "insurerCode": "MFG", "productCodes": ["P1"] }
                     }
-                    """.formatted(lob);
+                    """.formatted(lob, preferences);
         }
         return """
                 {
@@ -405,9 +411,10 @@ class LifeLobJourneyCaptureIT {
                   "journeyId": "j-capture",
                   "sumAssured": 5000000,
                   "members": [{ "dob": "1990-01-15", "gender": "M", "annualIncome": 1000000, "pincode": "400001" }],
+                  %s
                   "distribution": { "agentId": "109337", "channelType": "B2B" }
                 }
-                """.formatted(lob);
+                """.formatted(lob, preferences);
     }
 
     private static String proposalBody(String lob) {

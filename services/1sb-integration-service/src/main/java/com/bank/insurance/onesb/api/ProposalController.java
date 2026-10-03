@@ -123,7 +123,8 @@ public class ProposalController {
                 request.journeyId(),
                 request.sessionId(),
                 idempotencyKey,
-                StringUtils.hasText(actorId) ? actorId : "system"
+                StringUtils.hasText(actorId) ? actorId : "system",
+                request.quoteJobId()
         );
     }
 }

@@ -22,7 +22,8 @@ public record SubmitProposalRequest(
         String agentId,
         DistributionRequest distribution,
         String journeyId,
-        String sessionId
+        String sessionId,
+        String quoteJobId
 ) {
     public record DistributionRequest(
             String rmEmployeeId,

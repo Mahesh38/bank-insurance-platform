@@ -47,7 +47,7 @@ class LifeQuoteValidatorTest {
                 List.of(new CreateQuoteCommand.MemberDetail(
                         "PROPOSER", 1, "1990-01-15", "F", false,
                         new BigDecimal("1000000"), "400001", "Spouse")),
-                null,
+                Map.of("savingsProductType", "ULIP"),
                 new CreateQuoteCommand.DistributionContext(null, "109337", "B2B"),
                 "j-1", null, "idem", "actor",
                 new CreateQuoteCommand.ProductSelection(
@@ -76,6 +76,21 @@ class LifeQuoteValidatorTest {
     }
 
     @Test
+    void rejectsOmittedSavingsProductTypeOnSaving() {
+        CreateQuoteCommand command = new CreateQuoteCommand(
+                Lob.SAVING, "MULTI", "PREMIUM", new BigDecimal("5000000"), new BigDecimal("12000"),
+                List.of(new CreateQuoteCommand.MemberDetail(
+                        "LIFE_ASSURED", 1, "1990-01-15", "M", false,
+                        new BigDecimal("1000000"), "400001")),
+                null,
+                new CreateQuoteCommand.DistributionContext(null, "109337", "B2C"),
+                "j-1", null, "idem", "actor");
+
+        assertThat(LifeQuoteValidator.validate(command))
+                .anyMatch(e -> e.field().contains("savingsProductType"));
+    }
+
+    @Test
     void healthIsUnsupported() {
         CreateQuoteCommand command = new CreateQuoteCommand(
                 Lob.HEALTH, null, null, new BigDecimal("1"), null,
@@ -96,7 +111,7 @@ class LifeQuoteValidatorTest {
                 List.of(new CreateQuoteCommand.MemberDetail(
                         "LIFE_ASSURED", 1, "1990-01-15", "M", false,
                         new BigDecimal("1000000"), "400001")),
-                null,
+                lob == Lob.SAVING ? Map.of("savingsProductType", "ULIP") : null,
                 new CreateQuoteCommand.DistributionContext(null, "109337", "B2B"),
                 "j-1", null, "idem", "actor");
     }

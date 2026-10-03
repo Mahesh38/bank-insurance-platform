@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20261003-svg | 2026-10-03 | human:stakeholder | Remaining Saving readiness beyond fail-closed hub validation: Product UI bands, questionnaire engine, enum inventory/master refresh, live Gate POST + complete Proposal POST/poll | SF3 | SC0 | MUST | FUNC | P4 / P1 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [detail](#sug-20261003-svg--saving-readiness-blocked-on-1sb-config) |
 | SUG-20261003-lvr | 2026-10-03 | human:stakeholder | Make 1sb-integration-service UAT-ready to validate Term/ULIP/Savings Life journeys (fail-before-1SB + response contract) | SF1 | SC0 | MUST | FUNC | P2 / P1 | ADMITTED | [FUNC-028](../../1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md) · [detail](#sug-20261003-lvr--life-journey-validation-uat) |
 | SUG-20261003-brf | 2026-10-03 | human:Rajal | BRD wins: dedupe key user+customer+productType+BI; no delete when BI absent; Save does not evaluate — Start Onboarding does; flow dedupe→create→exception→assign SP | SF2 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [D-019](../../au-bank-insurance-platform/DECISION-LOG.md) · [EPIC-005](../../platform/ws3-platform/EPIC-005.work-item.yaml) · [detail](#sug-20261003-brf--brd-wins-dedupe-exception-timing--sequence) |
 | SUG-20261002-lfs | 2026-10-02 | human:Rajal | Lead flow: create then assign SP+meeting; dedupe continue/delete; validation engine block-or-approve; process further = AU SP or Insurance RM/FLS | SF2 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [D-019](../../au-bank-insurance-platform/DECISION-LOG.md) · [EPIC-005](../../platform/ws3-platform/EPIC-005.work-item.yaml) · [detail](#sug-20261002-lfs--lead-create-dedupe-validation-assign-meeting) · amended by [SUG-20261003-brf](#sug-20261003-brf--brd-wins-dedupe-exception-timing--sequence) |
@@ -330,7 +331,54 @@ priority:
   at_target: P1
 ```
 
-Work item: FUNC-028.
+Work item: FUNC-028. Fail-closed remainder implemented on the same item. Items that need 1SB working configuration or a product-form engine were split to `SUG-20261003-svg`.
+
+### SUG-20261003-svg · Saving readiness blocked on 1SB config
+
+```yaml
+# schema: triage-record
+id: SUG-20261003-svg
+raised_at: "2026-10-03"
+raised_by: "human:stakeholder"
+source: "Work on what is still missing from the Saving Service Readiness guide"
+input: >
+  Can we work on what is still missing? (after the Saving readiness score:
+  Product UI bands, questionnaire groups, enum inventory, live Gate POST
+  and complete Proposal submit/poll)
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "L4/L5 foundation + connectivity; R0 Life includes Term and Savings/ULIP (CR-015)"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: FUNC-028
+stage_fit:
+  code: SF3
+  rationale: "Needs 1SB working product configuration and a complete valid proposal payload — the guide's own evidence boundary"
+  target_stage: "S09 / UAT evidence"
+  unpark_trigger: "1SB demo accepts a complete Saving proposal payload and Gate Criteria POST returns a recognized eligibility status for a configured product"
+scope:
+  code: SC0
+  business_scope: "in scope — R0 assisted Life sale"
+  authority: "CR-015 / Saving Service Readiness guide evidence boundary"
+necessity:
+  now: NOT-NOW
+  future_necessity: MUST
+  target_stage: "S09 / UAT evidence"
+  binds_when: "1SB supplies working Saving configuration"
+  evidence_tier: E2
+  confidence: C4
+action: PARK
+action_rationale: "Do not invent a complete proposal payload or hard-code questionnaire groups; FUNC-028 already closed fail-closed hub gaps"
+classification:
+  type: FUNC
+priority:
+  now: P4
+  at_target: P1
+```
+
+Related: `SUG-20260913-hms` (hub masters), `SUG-20260913-fnd` (ULIP funds 404). Do not re-propose those.
 
 ### SUG-20261003-brf · BRD wins dedupe exception timing & sequence
 

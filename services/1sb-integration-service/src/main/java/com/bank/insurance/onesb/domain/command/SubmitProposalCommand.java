@@ -25,8 +25,29 @@ public record SubmitProposalCommand(
         String journeyId,
         String sessionId,
         String idempotencyKey,
-        String actorId
+        String actorId,
+        String quoteJobId
 ) {
+    /** Compatibility constructor when the caller does not bind a quote job. */
+    public SubmitProposalCommand(
+            Lob lob,
+            String schemaId,
+            String offerId,
+            String productCode,
+            String manufacturerId,
+            String version,
+            Map<String, Object> values,
+            String consentRef,
+            String agentId,
+            DistributionContext distribution,
+            String journeyId,
+            String sessionId,
+            String idempotencyKey,
+            String actorId) {
+        this(lob, schemaId, offerId, productCode, manufacturerId, version, values, consentRef,
+                agentId, distribution, journeyId, sessionId, idempotencyKey, actorId, null);
+    }
+
     public record DistributionContext(
             String rmEmployeeId,
             String agentId,

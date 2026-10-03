@@ -53,7 +53,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | SUG-20260929-jdb | 2026-09-29 | scan:trivy | CVE-2026-68497 (HIGH) on jackson-databind 2.21.4 from the Spring Boot 3.5.16 BOM fails SCA and all three image scans; pin jackson-bom 2.21.7 | SF0 | SC1 | MUST | SEC | P1 / P1 | ADMITTED | [build.gradle.kts](../../../build.gradle.kts) · [detail](#sug-20260929-jdb--jackson-databind-cve-2026-68497) |
 | SUG-20260929-dsp | 2026-09-29 | human:repository-owner | Schedule a daily governance + freshness check and generated-state refresh; AIGEM seats must unanimously concur; open a PR each day for human review and sign-off that highlights every pending human decision and approval | SF5 | SC1 | SHOULD | GOV | P3 / P2 | ADMITTED | [workflow](../../../.github/workflows/governance-daily.yml) · [report](../autopilot/DAILY-SIGNOFF.md) · [detail](#sug-20260929-dsp--daily-aigem-sign-off-pr) |
 | SUG-20260928-jvo | 2026-09-28 | human:stakeholder | This repository holds Java code only; no client app source; evaluate BFF against Figma as the frontend reference | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [DOC-006](../../au-bank-insurance-platform/DECISION-LOG.md) · [Figma](../../figma/README.md) · [Login BFF vs Figma](../../au-bank-insurance-platform/requirements/LOGIN-BFF-FIGMA-EVALUATION.md) · [detail](#sug-20260928-jvo--java-only-repository-bff-vs-figma) |
-| SUG-20260928-brd | 2026-09-28 | human:Rajal | Treat September 2026 detailed module BRD pack as source of truth; realign repo docs; do not assume TBDs or silent conflict resolution | SF1 | SC0 | MUST | DOC | P2 / P1 | ADMITTED | [DOC-005](../../au-bank-insurance-platform/DECISION-LOG.md) · [pack](../../au-bank-insurance-platform/requirements/brd-detailed/README.md) · [alignment](../../au-bank-insurance-platform/requirements/BRD-ALIGNMENT-2026-09-28.md) · [detail](#sug-20260928-brd--rajal-detailed-brd-pack-as-module-ssot) |
+| SUG-20260928-brd | 2026-09-28 | human:Rajal | Treat September 2026 detailed module BRD pack as source of truth; realign repo docs; do not assume TBDs or silent conflict resolution | SF1 | SC0 | MUST | DOC | P2 / P1 | ADMITTED | [DOC-005](../../au-bank-insurance-platform/DECISION-LOG.md) · [pack](../../au-bank-insurance-platform/requirements/brd-detailed/README.md) · [alignment](../../au-bank-insurance-platform/requirements/BRD-ALIGNMENT-2026-09-28.md) · [detail](#sug-20260928-brd--rajal-detailed-brd-pack-as-module-ssot) · recurrence_count 2 (2026-10-03 re-upload: nine CONTEXT files byte-identical; Lead/Exception opens closed by `SUG-20261003-brf`, not by re-upload) |
 | SUG-20260923-scs | 2026-09-23 | human:architect | NIP BFF SCR-03 search-customer contract: Customer ID / PAN / mobile; lead-first then CBS via Apigee; one stakeholder+dev doc | SF1 | SC0 | SHOULD | ARCH | P2 / P1 | ADMITTED | [ARCH-025](../../platform/ws3-platform/ARCH-025.work-item.yaml) · [PLAN-005](../plans/PLAN-005-nip-bff-customer-search-contract.md) · [contract](../../platform/ws3-platform/09-nip-bff-customer-search-contract.md) · [detail](#sug-20260923-scs--scr-03-customer-search-unified-contract) |
 | SUG-20260923-par | 2026-09-23 | human:stakeholder | Remove governance over-serialization: SF5 parallel lanes, evidence-based unpark, SG-2 CANDIDATE, RG-9 evidenced-blocker T4 relief, DEP-4 soft-default | SF1 | SC1 | MUST | GOV | P1 / P1 | ADMIT-BYPASS | [CR-016](../change-requests/CR-016-parallel-lanes-evidence-unpark.md) · [detail](#sug-20260923-par--parallel-lanes-and-evidence-unpark) |
 | SUG-20260915-pic | 2026-09-15 | human:Mahesh | First-review deck must be illustrated (RM, suitability, quote, proposal, pay, policy), with AWS/external service map and stack/saga — still a Dev/UAT design sitting, production evidence after UAT | SF1 | SC1 | MUST | DOC | P1 / P1 | ADMITTED | [WHAT-TO-SEND](../../architecture/arb-prerequisites/exports/WHAT-TO-SEND.md) · [detail](#sug-20260915-pic--illustrated-journey-and-stack) |
@@ -1108,7 +1108,15 @@ outcome:
   closed_reason: null
 
 resumed: "SUG-20260928-brd — no prior work item was in flight; this session opened with this input."
+recurrence_count: 2
 ```
+
+Recurrence 2026-10-03 (CS-2, not a new row): user re-uploaded the DOC-005 BRD Context Pack
+(9 CONTEXT + manifest + README + qa_report). All nine CONTEXT files are **byte-identical** to
+`docs/au-bank-insurance-platform/requirements/brd-detailed/` (same `source_sha256` /
+`context_sha256`). No BRD overwrite. The upload did **not** reopen Lead/Exception conflicts —
+`OPEN-LEAD-DUP-DELETE` and `OPEN-LEAD-VAL-TIMING` are **CLOSED** by `SUG-20261003-brf` /
+amended `D-019` (BRD wins) on the Lead design pack. Continuing with `EPIC-005`.
 
 ### SUG-20260928-jvo · Java-only repository; BFF vs Figma
 

@@ -45,6 +45,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
 | SUG-20261003-brf | 2026-10-03 | human:Rajal | BRD wins: dedupe key user+customer+productType+BI; no delete when BI absent; Save does not evaluate — Start Onboarding does; flow dedupe→create→exception→assign SP | SF2 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [D-019](../../au-bank-insurance-platform/DECISION-LOG.md) · [EPIC-005](../../platform/ws3-platform/EPIC-005.work-item.yaml) · [detail](#sug-20261003-brf--brd-wins-dedupe-exception-timing--sequence) |
 | SUG-20261002-lfs | 2026-10-02 | human:Rajal | Lead flow: create then assign SP+meeting; dedupe continue/delete; validation engine block-or-approve; process further = AU SP or Insurance RM/FLS | SF2 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [D-019](../../au-bank-insurance-platform/DECISION-LOG.md) · [EPIC-005](../../platform/ws3-platform/EPIC-005.work-item.yaml) · [detail](#sug-20261002-lfs--lead-create-dedupe-validation-assign-meeting) · amended by [SUG-20261003-brf](#sug-20261003-brf--brd-wins-dedupe-exception-timing--sequence) |
+| SUG-20261001-vcp | 2026-10-01 | human:Rajal | Standalone Confluence Lead Management build specification for bank and vendor developers who must not receive repository or governance documentation | SF5 | SC1 | MUST | DOC | P2 / P2 | ADMITTED | [handoff page](../../../handoff/confluence/Lead-Management-Build-Specification.md) · [detail](#sug-20261001-vcp--vendor-lead-confluence-pack) · refreshed 2026-10-03 against `D-019` / `SUG-20261003-brf` |
 | SUG-20260930-ola | 2026-09-30 | human:Rajal | OPEN-LEAD-ACTOR: Lead may be created by anyone (workforce); post-create must assign certified-SP RM | SF2 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [D-018](../../au-bank-insurance-platform/DECISION-LOG.md) · [ADR-021](../../platform/architecture-review/08-architecture-decision-log.md) · [EPIC-005](../../platform/ws3-platform/EPIC-005.work-item.yaml) · [detail](#sug-20260930-ola--lead-create-by-workforce--mandatory-sp-assignee) |
 | SUG-20260930-lmd | 2026-09-30 | human:architect | Create complete Lead module design docs (HLD, sequences, API, flows, algorithms) from Lead BRD | SF5 | SC0 | SHOULD | ARCH | P3 / P1 | ADMITTED | [EPIC-005](../../platform/ws3-platform/EPIC-005.work-item.yaml) · [PLAN-007](../plans/PLAN-007-lead-module-design-pack.md) · [HLD](../../platform/ws3-platform/10-lead-module-hld.md) · [detail](#sug-20260930-lmd--lead-module-design-pack-from-brd) · recurrence_count 2 (2026-10-03: same ask — pack exists; deepen BI/close/convert; do not restart from scratch) |
 | SUG-20260930-osl | 2026-09-30 | scan:trivy | CVE-2026-84782 (HIGH) on openssl/libssl3 3.0.2-0ubuntu1.29 in eclipse-temurin:21-jre-jammy fails Phase-1 image scans; upgrade to 3.0.2-0ubuntu1.30 | SF0 | SC1 | MUST | SEC | P1 / P1 | ADMITTED | [persistence Dockerfile](../../../services/bank-persistence-service/Dockerfile) · [combined Dockerfile](../../../Dockerfile) · [detail](#sug-20260930-osl--openssl-cve-2026-84782) |
@@ -132,6 +133,100 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20261001-vcp · vendor Lead Confluence pack
+
+```yaml
+# schema: triage-record
+id: SUG-20261001-vcp
+raised_at: "2026-10-01"
+raised_by: "human:Rajal"
+source: "Product + Architecture request after 2026-09-30 signoff; refreshed 2026-10-03 against D-019 / SUG-20261003-brf"
+input: >
+  Act as Rajal and Mahesh. Dev team and vendor developers do not have
+  repository access and must not receive repository terminologies or the
+  complete documentation. Create one Confluence page with no relation to
+  this repository that holds complete details for lead modules, screens,
+  diagrams, flows, HLD and LLD so they can start building the application
+  end to end.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: SUG-20261001-vcp
+
+stage_fit:
+  code: SF5
+  rationale: >
+    Client/vendor hand-out is off the S08 hardening critical path, does not
+    change stage or gate state, and is dependency-safe. It restates already
+    admitted Lead BRD and contracted L1 BFF behaviour in bank language.
+  parallel_test:
+    off_critical_path: true
+    dependency_safe: true
+    standing_constraint_clean: true
+    separate_lane: "vendor-handoff"
+    no_silent_trust_boundary_change: true
+  lane: vendor-handoff
+
+scope:
+  code: SC1
+  serves: ["EPIC-003 Lead landing/create", "vendor/client implementation of Lead"]
+  failure_without_it: "bank and vendor teams cannot start the workforce app without repo access"
+  minimal: true
+
+necessity:
+  now: MUST
+  evidence_tier: E2
+  evidence:
+    - "Lead Module BRD 1.0 (04-Sep-2026) is module behaviour SSOT"
+    - "NIP BFF lead-phase LLD + OpenAPI are the contracted L1 consumer surface"
+    - "Human Product request: shareable page, no repo relation"
+  failure_without_it: "bank and vendor teams cannot start the workforce app without repo access"
+  confidence: C5
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT
+action_rationale: >
+  SF5 PARALLEL documentation lane. Page lives under handoff/confluence/ so it
+  is not binding governance SSOT and contains no AIGEM/CR/GATE vocabulary.
+  Product owns behaviour; Architecture owns HLD/LLD contracts. L1 vs full
+  Lead gap is stated, not hidden. No stage edit, no T4 signature, no
+  fabricated external evidence. 2026-10-03 refresh restates the page against
+  D-019 / SUG-20261003-brf (BRD wins): product → Continue|Cancel dedupe →
+  Save (no exception eval) → Start Onboarding → assign certified-SP AU Bank
+  RM + optional meeting → Suitability (AU SP or Insurance RM/FLS only).
+
+classification:
+  type: DOC
+  breakdown: TASK
+  risk_tier: T2
+
+priority:
+  now: P2
+  at_target: P2
+  rationale: "Delivery-blocking for vendor start; not a production-incident P1"
+
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 1
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: SUG-20261001-vcp
+  status: ADMITTED
+
+resumed: SUG-20261001-vcp
+```
 
 ### SUG-20260930-osl · openssl CVE-2026-84782
 
@@ -256,6 +351,7 @@ necessity:
     - "Human Product clarification 2026-10-02"
     - "Lead BRD §9.8–9.9, §11"
     - "Exception Handling BRD §6–7 (CASA / policy integrations EH-INT-001/004)"
+  failure_without_it: "Lead create/assign sequence contradicts Product and BRD"
   confidence: C4
 
 action: ADMIT
@@ -264,7 +360,7 @@ action_rationale: >
   OPEN-LEAD-DUP-DELETE (Product delete option vs Lead BRD Table 18 confirmed rule) and
   OPEN-LEAD-VAL-TIMING (Product evaluate-at-create vs Exception BRD save-does-not-evaluate).
   Optional meeting *capture* admitted from Lead BRD Screen 7; SMS delivery stays deferred;
-  SUG-20260907-fig Health/ULIP tabs remain parked.
+  SUG-20260907-fig Health/ULIP tabs remain parked. Product decision: D-019.
 duplicate_of: null
 conflicts:
   - "Lead BRD Screen 6 Table 18: no Delete when BI absent — Product asks delete-or-continue → OPEN-LEAD-DUP-DELETE"
@@ -274,15 +370,22 @@ conflicts:
 classification:
   type: ARCH
   also: [FUNC, COMP]
+  breakdown: STORY
   risk_tier: T3
 
 priority:
-  priority_now: P2
-  priority_at_target: P1
+  now: P2
+  at_target: P1
 
-work_item_id: EPIC-005
-product_decision: D-019
-opens: [OPEN-LEAD-DUP-DELETE, OPEN-LEAD-VAL-TIMING]
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 1
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: EPIC-005
+  status: ADMITTED
 ```
 
 Amended 2026-10-03 by [`SUG-20261003-brf`](#sug-20261003-brf--brd-wins-dedupe-exception-timing--sequence):
@@ -332,6 +435,7 @@ necessity:
     - "Human Product clarification 2026-10-03 — BRD is correct"
     - "Lead BRD Screen 6 Table 18; §11 dedupe key"
     - "Exception Handling BRD — Save does not evaluate; Start Onboarding does"
+  failure_without_it: "Lead pack would ship a Product override of the BRD"
   confidence: C5
 
 action: ADMIT
@@ -339,21 +443,29 @@ action_rationale: >
   Absorb into EPIC-005. Amend D-019 to dedupe → create/Save → Start Onboarding
   (exception) → assign SP. Close OPEN-LEAD-DUP-DELETE (Table 18 — Continue|Cancel only)
   and OPEN-LEAD-VAL-TIMING (Exception BRD wins). No soft-delete; no exception on Save.
+  Product decision: D-019.
 duplicate_of: null
 conflicts: []
 
 classification:
   type: ARCH
   also: [DOC]
+  breakdown: STORY
   risk_tier: T3
 
 priority:
-  priority_now: P2
-  priority_at_target: P1
+  now: P2
+  at_target: P1
 
-work_item_id: EPIC-005
-product_decision: D-019
-closes: [OPEN-LEAD-DUP-DELETE, OPEN-LEAD-VAL-TIMING]
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 1
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: EPIC-005
+  status: ADMITTED
 ```
 
 ### SUG-20260930-ola · Lead create by workforce + mandatory SP assignee
@@ -405,6 +517,7 @@ necessity:
   evidence:
     - "Human Product decision in chat 2026-09-30"
     - "Lead_Module_BRD_Detailed §5/§8"
+  failure_without_it: "Lead contracts contradict Product behaviour SSOT (DOC-005)"
   confidence: C5
   anti_over_engineering:
     X1_named_consumer: true
@@ -418,6 +531,7 @@ action_rationale: >
   draft ADR-021, update design pack. Interpret "anyone" as BRD workforce creators (not DIY/MIS).
   Escalate Insurance RM create permissibility to Board 6 (OPEN-COMP-LEAD-IPR-CREATE) — do not
   waive Compliance. Score: N=4 S=1 B=1 R=2 D=2 E=1 → 16 → P2 (matrix SF2+MUST absorb → ADMIT).
+  Product decision D-018; architecture ADR-021; plan PLAN-007.
 duplicate_of: null
 conflicts:
   - "ADR-005 previously rejected IPR-create-then-adopt as solicitation → OPEN-COMP-LEAD-IPR-CREATE"
@@ -430,16 +544,21 @@ classification:
   risk_tier: T3
 
 priority:
+  now: P2
+  at_target: P1
   score: 16
   factors: {N: 4, S: 1, B: 1, R: 2, D: 2, E: 1}
-  priority_now: P2
-  priority_at_target: P1
 
-work_item_id: EPIC-005
-plan: PLAN-007
-product_decision: D-018
-architecture_decision: ADR-021
-compliance_open: OPEN-COMP-LEAD-IPR-CREATE
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 1
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: EPIC-005
+  plan_id: PLAN-007
+  status: ADMITTED
 ```
 
 ### SUG-20260930-lmd · Lead module design pack from BRD
@@ -463,7 +582,6 @@ context:
   state_as_of: "2026-09-13"
   state_provisional: false
   active_work_item: null
-  freshness: "WARN — state_as_of 17d; DEPENDENCY-REGISTER 16d (disclose; admit allowed)"
 
 stage_fit:
   code: SF5
@@ -528,19 +646,28 @@ classification:
   also: [DOC]
   breakdown: EPIC
   risk_tier: T3
-  rg9_cap_applied: false
 
 priority:
+  now: P3
+  at_target: P1
   score: 11
   factors: {N: 2, S: 2, B: 0, R: 2, D: 1, E: 2}
-  priority_now: P3
-  priority_at_target: P1
   matrix_default: P3
-  override: null
 
-work_item_id: EPIC-005
-plan: PLAN-007
-stories: [ARCH-026, ARCH-027, ARCH-028, DOC-023]
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 1
+
+breakdown:
+  children: [ARCH-026, ARCH-027, ARCH-028, DOC-023]
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: EPIC-005
+  plan_id: PLAN-007
+  status: ADMITTED
+
 recurrence_count: 2
 ```
 

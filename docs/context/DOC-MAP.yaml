@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 653
-total_bytes: 21112723
+document_count: 655
+total_bytes: 21143451
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -894,6 +894,14 @@ documents:
     title: "Phase 3 — FUNC-006 Review Log"
     answers: "AC acceptance: AC-1…AC-3 accepted."
     bytes: 1272
+  - path: docs/1sb-insurance-integration/service-ssot/phase-3/FUNC-028-REVIEW.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "FUNC-028 — AIGEM seven-board review (PLAN-008)"
+    answers: "Work item: FUNC-028 · Origin: SUG-20261003-lvr · Tier: T2"
+    bytes: 13796
   - path: docs/1sb-insurance-integration/service-ssot/phase-3/README.md
     bucket: module-1sb
     authority: engineering-ssot
@@ -4094,6 +4102,14 @@ documents:
     title: "PLAN-007 — Lead module (#5) R0 design pack"
     answers: "Sections: Board notes (agent self-review — not T4)"
     bytes: 5396
+  - path: docs/governance/plans/PLAN-008-func-028-life-journey-validation.md
+    bucket: governance
+    authority: binding-process
+    capsules: [delivery-planning, plan-work]
+    persona: delivery
+    title: "PLAN-008 — FUNC-028 Life journey fail-before-1SB validation"
+    answers: "As-built plan for the seven-board review. FUNC-028 was admitted under"
+    bytes: 16932
   - path: docs/governance/plans/PLAN-EPIC-002-life-lob-adapter.md
     bucket: governance
     authority: binding-process

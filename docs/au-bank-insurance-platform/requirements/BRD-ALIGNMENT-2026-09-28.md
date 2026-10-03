@@ -256,3 +256,4 @@ Rajal asked that cases like C7 be called out rather than decided here.
 | 0.1 | 2026-09-28 | Ingest pack, record conflicts, ask Rajal. No application code. | Agent (BA analysis) / Rajal (intent) |
 | 0.2 | 2026-09-28 | Rajal answers Q1–Q7 recorded. Login UI alignment started. C7 and Q5 not implemented. | Rajal / BA |
 | 0.3 | 2026-09-28 | `DOC-006`: no client app source in this repository. Flutter Login UI withdrawn. Login continues as BFF vs Figma. | Stakeholder / BA |
+| 0.4 | 2026-10-03 | Re-uploaded BRD Context Pack compared to `brd-detailed/`: nine CONTEXT files byte-identical (`SUG-20260928-brd` recurrence 2). No overwrite. Q4c Lead/Exception opens remain **CLOSED** by `SUG-20261003-brf` / amended `D-019` — re-upload did not reopen them. | Agent (BA verify) / Rajal (BRD-wins verdict on parent pack) |

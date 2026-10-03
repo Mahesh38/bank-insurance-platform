@@ -14,13 +14,13 @@ import com.bank.common.error.ServiceError;
 import com.bank.common.error.ServiceErrors;
 import com.bank.common.error.ServiceException;
 import com.bank.common.secrets.SecretProvider;
+import com.bank.insurance.onesb.application.validation.DynamicFormValidator;
 import com.bank.insurance.onesb.domain.command.SubmitProposalCommand;
 import com.bank.insurance.onesb.domain.model.OneSbProposalSubmitResult;
 import com.bank.insurance.onesb.domain.port.inbound.ProposalUseCase;
 import com.bank.insurance.onesb.domain.port.outbound.JobPollSchedulerPort;
 import com.bank.insurance.onesb.domain.port.outbound.JobStorePort;
 import com.bank.insurance.onesb.domain.port.outbound.OneSbProposalPort;
-import com.bank.insurance.onesb.application.validation.DynamicFormValidator;
 import com.bank.insurance.onesb.lob.LobProposalHandler;
 import com.bank.insurance.onesb.lob.LobProposalHandlerRegistry;
 import com.bank.insurance.onesb.lob.life.LifeProposalSupport;
@@ -34,7 +34,8 @@ import org.springframework.util.StringUtils;
  *
  * <ul>
  *   <li>FUNC-004 schema: optional quote expiry → LOB path → 1SB GET
- *   <li>FUNC-005 / FUNC-028 submit: agentId gate → consentRef required → form check → job → LOB payload → 1SB POST
+ *   <li>FUNC-005 / FUNC-028 submit: agentId gate → consentRef required → form check → job → LOB
+ *       payload → 1SB POST
  * </ul>
  */
 @Service
@@ -231,9 +232,7 @@ public class ProposalService implements ProposalUseCase {
           .errors(
               List.of(
                   ServiceError.ofField(
-                      ErrorCodes.MISSING_REQUIRED_FIELD,
-                      "productCode is required",
-                      "productCode"),
+                      ErrorCodes.MISSING_REQUIRED_FIELD, "productCode is required", "productCode"),
                   ServiceError.ofField(
                       ErrorCodes.MISSING_REQUIRED_FIELD,
                       "manufacturerId is required",
@@ -261,8 +260,8 @@ public class ProposalService implements ProposalUseCase {
   }
 
   /**
-   * When the bank binds a quote job, product identity must match a selectable offer.
-   * FUNC-028 — do not submit a proposal against a different manufacturer/product.
+   * When the bank binds a quote job, product identity must match a selectable offer. FUNC-028 — do
+   * not submit a proposal against a different manufacturer/product.
    */
   private void assertSelectedQuote(SubmitProposalCommand command) {
     if (!StringUtils.hasText(command.quoteJobId())) {

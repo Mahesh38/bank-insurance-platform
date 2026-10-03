@@ -7,82 +7,84 @@ import com.bank.insurance.onesb.lob.LobQuoteHandler;
 import com.bank.insurance.onesb.lob.life.LifeEligibilitySupport;
 import com.bank.insurance.onesb.lob.life.LifeQuotePayloadFactory;
 import com.bank.insurance.onesb.lob.life.payload.LifeQuoteRequest;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
+import org.springframework.stereotype.Component;
 
 /**
  * Life Savings quote handler ({@code FUNC-015}).
- * <p>
- * Portal-confirmed path: {@code POST /insurance/lifesave/v1/quote}
- * ({@code SOURCE-LINKS.md}, api-catalog §4, saving-consumer-request).
- * Product type {@code LifeSave}. Demo catalog for {@code BCIBL} is ULIP-only;
- * {@code savingsProductType=["ULIP"]} is the working Multi-Quote filter.
- * There is no separate {@code /lifeulip} quote API — ULIP is this same path.
+ *
+ * <p>Portal-confirmed path: {@code POST /insurance/lifesave/v1/quote} ({@code SOURCE-LINKS.md},
+ * api-catalog §4, saving-consumer-request). Product type {@code LifeSave}. Demo catalog for {@code
+ * BCIBL} is ULIP-only; {@code savingsProductType=["ULIP"]} is the working Multi-Quote filter. There
+ * is no separate {@code /lifeulip} quote API — ULIP is this same path.
  */
 @Component
 public class SavingQuoteHandler implements LobQuoteHandler {
 
-    static final String SUBMIT_PATH = "/insurance/lifesave/v1/quote";
-    static final String POLL_PATH_PREFIX = "/insurance/lifesave/v1/quote/poll/";
-    static final String PRODUCT_TYPE = "LifeSave";
+  static final String SUBMIT_PATH = "/insurance/lifesave/v1/quote";
+  static final String POLL_PATH_PREFIX = "/insurance/lifesave/v1/quote/poll/";
+  static final String PRODUCT_TYPE = "LifeSave";
 
-    private final SecretProvider secretProvider;
+  private final SecretProvider secretProvider;
 
-    public SavingQuoteHandler(SecretProvider secretProvider) {
-        this.secretProvider = secretProvider;
-    }
+  public SavingQuoteHandler(SecretProvider secretProvider) {
+    this.secretProvider = secretProvider;
+  }
 
-    @Override
-    public Lob supportedLob() {
-        return Lob.SAVING;
-    }
+  @Override
+  public Lob supportedLob() {
+    return Lob.SAVING;
+  }
 
-    @Override
-    public LifeQuoteRequest buildSubmitPayload(CreateQuoteCommand command) {
-        // Demo Saving catalog is ULIP-only. nonParticipating/Participating remain valid
-        // 1SB enum values but return INSGW_NO_VALID_PRODUCT_FOUND for BCIBL today.
-        return LifeQuotePayloadFactory.build(
-                command,
-                secretProvider,
-                LifeQuoteRequest.Product.saving(PRODUCT_TYPE, savingsTypes(command)));
-    }
+  @Override
+  public LifeQuoteRequest buildSubmitPayload(CreateQuoteCommand command) {
+    // Demo Saving catalog is ULIP-only. nonParticipating/Participating remain valid
+    // 1SB enum values but return INSGW_NO_VALID_PRODUCT_FOUND for BCIBL today.
+    return LifeQuotePayloadFactory.build(
+        command,
+        secretProvider,
+        LifeQuoteRequest.Product.saving(PRODUCT_TYPE, savingsTypes(command)));
+  }
 
-    static List<String> savingsTypes(CreateQuoteCommand command) {
-        if (command.preferences() != null) {
-            Object raw = command.preferences().get("savingsProductType");
-            if (raw instanceof List<?> list && !list.isEmpty()) {
-                List<String> mapped = list.stream()
-                        .map(v -> v == null ? null : v.toString())
-                        .map(v -> com.bank.insurance.onesb.application.validation.LifeContractCatalog
-                                .savingsProductTypeWire(v).orElse(null))
-                        .filter(java.util.Objects::nonNull)
-                        .toList();
-                if (!mapped.isEmpty()) {
-                    return mapped;
-                }
-            } else if (raw instanceof String s) {
-                return com.bank.insurance.onesb.application.validation.LifeContractCatalog
-                        .savingsProductTypeWire(s)
-                        .map(List::of)
-                        .orElse(List.of("ULIP"));
-            }
+  static List<String> savingsTypes(CreateQuoteCommand command) {
+    if (command.preferences() != null) {
+      Object raw = command.preferences().get("savingsProductType");
+      if (raw instanceof List<?> list && !list.isEmpty()) {
+        List<String> mapped =
+            list.stream()
+                .map(v -> v == null ? null : v.toString())
+                .map(
+                    v ->
+                        com.bank.insurance.onesb.application.validation.LifeContractCatalog
+                            .savingsProductTypeWire(v)
+                            .orElse(null))
+                .filter(java.util.Objects::nonNull)
+                .toList();
+        if (!mapped.isEmpty()) {
+          return mapped;
         }
-        return List.of("ULIP");
+      } else if (raw instanceof String s) {
+        return com.bank.insurance.onesb.application.validation.LifeContractCatalog
+            .savingsProductTypeWire(s)
+            .map(List::of)
+            .orElse(List.of("ULIP"));
+      }
     }
+    return List.of("ULIP");
+  }
 
-    @Override
-    public String submitPath() {
-        return SUBMIT_PATH;
-    }
+  @Override
+  public String submitPath() {
+    return SUBMIT_PATH;
+  }
 
-    @Override
-    public String pollPath(String externalReqId) {
-        return POLL_PATH_PREFIX + externalReqId;
-    }
+  @Override
+  public String pollPath(String externalReqId) {
+    return POLL_PATH_PREFIX + externalReqId;
+  }
 
-    @Override
-    public String criteriaPath(String productCode, String manufacturerId) {
-        return LifeEligibilitySupport.criteriaPath(SUBMIT_PATH, productCode, manufacturerId);
-    }
+  @Override
+  public String criteriaPath(String productCode, String manufacturerId) {
+    return LifeEligibilitySupport.criteriaPath(SUBMIT_PATH, productCode, manufacturerId);
+  }
 }

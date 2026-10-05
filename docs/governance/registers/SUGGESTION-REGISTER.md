@@ -43,6 +43,8 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20261005-uld | 2026-10-05 | agent:AIGEM-review | EPIC-006 should-fix: share Ulid with StubLeadGateway; add BFF MockMvc for UNCERTIFIED assignee | SF3 | SC0 | COULD | QA | P4 / P3 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [EPIC-006-REVIEW](../../platform/ws3-platform/EPIC-006-REVIEW.md) · [detail](#sug-20261005-uld--lead-stub-ulid-and-uncertified-test) |
+| SUG-20261005-sdn | 2026-10-05 | agent:AIGEM-review | Fold BFF Lead session into Spring Security default-deny (SEC-C4) instead of permitAll + MVC interceptor | SF3 | SC0 | SHOULD | SEC | P4 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [EPIC-006-REVIEW](../../platform/ws3-platform/EPIC-006-REVIEW.md) · [detail](#sug-20261005-sdn--bff-session-default-deny) |
 | SUG-20261005-lbf | 2026-10-05 | human:stakeholder | Finish Lead-module BFF: REST naming, Rajal leadId + stages, country-codes, branch/vertical/RM, assign+exception, CBS search without token race | SF5 | SC0 | MUST | FUNC | P3 / P1 | ADMITTED | [EPIC-006](../../platform/ws3-platform/EPIC-006.work-item.yaml) · [PLAN-009](../plans/PLAN-009-nip-bff-lead-module-runtime.md) · [D-020](../../au-bank-insurance-platform/DECISION-LOG.md) · [D-021](../../au-bank-insurance-platform/DECISION-LOG.md) · [detail](#sug-20261005-lbf--bff-lead-module-runtime) |
 | SUG-20261003-svg | 2026-10-03 | human:stakeholder | Remaining Saving readiness beyond fail-closed hub validation: Product UI bands, questionnaire engine, enum inventory/master refresh, live Gate POST + complete Proposal POST/poll | SF3 | SC0 | MUST | FUNC | P4 / P1 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [detail](#sug-20261003-svg--saving-readiness-blocked-on-1sb-config) |
 | SUG-20261003-lvr | 2026-10-03 | human:stakeholder | Make 1sb-integration-service UAT-ready to validate Term/ULIP/Savings Life journeys (fail-before-1SB + response contract) | SF1 | SC0 | MUST | FUNC | P2 / P1 | ADMITTED | [FUNC-028](../../1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md) · [detail](#sug-20261003-lvr--life-journey-validation-uat) |
@@ -278,6 +280,214 @@ outcome:
   work_item_id: EPIC-006
   plan_id: PLAN-009
   status: ADMITTED
+  closed_reason: null
+
+resumed: EPIC-006
+```
+
+### SUG-20261005-sdn · BFF session default-deny
+
+```yaml
+# schema: triage-record
+id: SUG-20261005-sdn
+raised_at: "2026-10-05"
+raised_by: "agent:AIGEM-review"
+source: "Board 4 should_fix on PLAN-009 / EPIC-006-REVIEW"
+input: >
+  Replace Spring Security permitAll on /api/v1/** with default-deny plus an
+  authenticated session filter (SEC-C4) so Lead paths cannot go anonymous if
+  the MVC interceptor is unregistered.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: EPIC-006
+
+stage_fit:
+  code: SF3
+  rationale: >
+    Compensating interceptor already fail-closes unauthenticated Lead calls.
+    Folding into Spring Security is hardening before public promotion, not
+    an S08 gate criterion.
+  target_stage: "S11 — Lead service / BFF implementation"
+  unpark_trigger: "Human Board 4 sits EPIC-006, or Lead /api/v1 is proposed for a non-stub environment"
+
+scope:
+  code: SC0
+  business_scope: "in scope — RM Workspace BFF session enforcement"
+  serves: ["EPIC-006", "SEC-C4"]
+  failure_without_it: "a future interceptor miss would publish Lead APIs anonymously"
+  minimal: true
+  authority: "ENGINEERING-AND-SECURE-CODING-STANDARDS SEC-C4; ADR-015"
+
+necessity:
+  now: SHOULD
+  future_necessity: MUST
+  target_stage: "S11 — Vertical slice"
+  binds_when: "Lead BFF paths leave stub/local"
+  evidence_tier: E2
+  evidence:
+    - "BffSecurityConfig permitAll /api/v1/**"
+    - "BffSessionInterceptor path /api/v1/**"
+    - "EPIC-006-REVIEW Board 4 S1/S10"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: true
+    X5_stage_necessity: false
+    X9_problem_observed: false
+
+action: PARK
+action_rationale: >
+  Interceptor is registered and tested. SEC-C4 hardening waits for S11 promotion
+  or an explicit Board 4 instruction. Not implemented in the review turn.
+duplicate_of: null
+conflicts: []
+
+classification:
+  type: SEC
+  also: []
+  breakdown: TASK
+  epic: EPIC-006
+  risk_tier: T3
+  destination: "registers/PARKED-BACKLOG.md"
+
+priority:
+  now: P4
+  at_target: P2
+  factors: { N: 2, S: 3, B: 0, R: 2, D: 1, E: 2 }
+  score: 11
+  matrix_default: P4
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "SHOULD at S08; MUST before non-stub BFF"
+
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 0
+  earliest_start: "S11 or Board 4 instruction"
+  cycles: none
+
+breakdown:
+  children: []
+  completion_definition: null
+  not_included:
+    - "PDP object-level grants"
+
+outcome:
+  registered_in: "registers/PARKED-BACKLOG.md"
+  work_item_id: null
+  plan_id: PLAN-009
+  status: PARKED
+  closed_reason: null
+
+resumed: EPIC-006
+```
+
+### SUG-20261005-uld · Lead stub ULID and UNCERTIFIED test
+
+```yaml
+# schema: triage-record
+id: SUG-20261005-uld
+raised_at: "2026-10-05"
+raised_by: "agent:AIGEM-review"
+source: "Board 2 / Board 5 should_fix on PLAN-009 / EPIC-006-REVIEW"
+input: >
+  StubLeadGateway mints its own Crockford buffer instead of sharing lead-service
+  Ulid. Add BFF MockMvc for UNCERTIFIED assignee (SP_CERTIFICATION_REQUIRED).
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: EPIC-006
+
+stage_fit:
+  code: SF3
+  rationale: >
+    Lead-service already mints ULID and rejects UNCERTIFIED. BFF stub duplication
+    and extra MockMvc are quality hardening, not a missing AC for the admitted slice.
+  target_stage: "S11 — Lead service / BFF implementation"
+  unpark_trigger: "LEAD_DOWNSTREAM_MODE=http is enabled in a shared environment, or Board 5 raises Q0 on stub identity drift"
+
+scope:
+  code: SC0
+  business_scope: "in scope — Lead identity and SP certification tests"
+  serves: ["EPIC-006", "D-020"]
+  minimal: true
+  authority: "PLAN-009 testing; Lead BRD SP certification"
+
+necessity:
+  now: COULD
+  future_necessity: SHOULD
+  target_stage: "S11 — Vertical slice"
+  binds_when: "BFF stub is still the NIP-APP integration path"
+  evidence_tier: E3
+  evidence:
+    - "StubLeadGateway.mintUlid"
+    - "LeadApplicationServiceTest.uncertifiedAssigneeIsRejected"
+    - "EPIC-006-REVIEW Board 2 T6 / Board 5 Q3"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: true
+    X5_stage_necessity: false
+    X9_problem_observed: false
+
+action: PARK
+action_rationale: >
+  AC-4 is proven in lead-service. Stub ULID is test-only. Not implemented in
+  the review turn.
+duplicate_of: null
+conflicts: []
+
+classification:
+  type: QA
+  also: [REFACTOR]
+  breakdown: TASK
+  epic: EPIC-006
+  risk_tier: T1
+  destination: "registers/PARKED-BACKLOG.md"
+
+priority:
+  now: P4
+  at_target: P3
+  factors: { N: 1, S: 1, B: 0, R: 0, D: 0, E: 2 }
+  score: 2
+  matrix_default: P4
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "COULD at S08"
+
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 0
+  earliest_start: "S11 stub-still-in-use review"
+  cycles: none
+
+breakdown:
+  children: []
+  completion_definition: null
+  not_included: []
+
+outcome:
+  registered_in: "registers/PARKED-BACKLOG.md"
+  work_item_id: null
+  plan_id: PLAN-009
+  status: PARKED
   closed_reason: null
 
 resumed: EPIC-006

@@ -48,11 +48,16 @@ files_expected:
   - services/workforce-access-bff/src/main/java/com/bank/workforce/bff/api/LeadModuleController.java
   - services/workforce-access-bff/src/main/java/com/bank/workforce/bff/api/OrganisationController.java
   - services/workforce-access-bff/src/main/java/com/bank/workforce/bff/api/ReferenceDataController.java
+  - services/workforce-access-bff/src/main/java/com/bank/workforce/bff/api/CustomerLookupController.java
+  - services/workforce-access-bff/src/main/java/com/bank/workforce/bff/api/BffSessionInterceptor.java
   - services/lead-service/src/main/java/com/bank/platform/lead/domain/Ulid.java
   - services/lead-service/src/main/java/com/bank/platform/lead/application/LeadApplicationService.java
+  - services/lead-service/src/main/java/com/bank/platform/lead/config/LeadClockConfig.java
   - services/customer-service/src/main/java/com/bank/platform/customer/adapter/apigee/ApigeeAccessTokenHolder.java
+  - services/workforce-access-bff/src/test/java/com/bank/workforce/bff/api/LeadModuleApiTest.java
   - docs/platform/ws3-platform/nip-bff-lead-phase.openapi.yaml
   - docs/platform/ws3-platform/EPIC-006.work-item.yaml
+  - docs/platform/ws3-platform/EPIC-006-REVIEW.md
   - docs/governance/plans/PLAN-009-nip-bff-lead-module-runtime.md
   - docs/governance/registers/SUGGESTION-REGISTER.md
   - docs/au-bank-insurance-platform/DECISION-LOG.md
@@ -106,6 +111,8 @@ acceptance_criteria:
   - "AC-4 leadId is ULID; dashboardStage NEW on create"
   - "AC-5 Apigee token fetch is single-flight"
   - "AC-6 GET /customers/{id} confirm sheet and /customers/{id}/active-leads duplicate check"
+  - "AC-7 (board, pending human close) Unauthenticated Lead/reference APIs remain 401"
+  - "AC-8 (board, pending human close) Stub/in-memory is not SoR, audit, or IRDAI evidence"
 
 out_of_scope:
   - "Live CBS / Apigee onboarding"
@@ -116,17 +123,23 @@ out_of_scope:
   - "GATE-S08 stage field edits"
 
 estimate: L
-variance_log: []
+variance_log:
+  - date: "2026-10-05"
+    change: "Seven-board review recorded; AC-7/AC-8 added as pending-human conditions"
+    reason: "T3 self-review cannot close APPROVED without a human board (11 §2)"
+    re_review: "docs/platform/ws3-platform/EPIC-006-REVIEW.md round 1"
 ```
 
 ## Board notes (agent self-review — not T4)
 
+Seven-board review: [`EPIC-006-REVIEW.md`](../../platform/ws3-platform/EPIC-006-REVIEW.md). Gate **ESCALATED** for T3 human Board 4. No T4 signature.
+
 | Board | Provisional | Note |
 |---|---|---|
-| Architecture | self_review | Reuses EPIC-003; BFF does not hold CBS tokens; REST nesting |
-| Product | self_review | D-020 / D-021 recorded as Rajal behaviour, not technology |
-| Technical | self_review | Java 21, ports, tests in the same change |
-| Security | needed at T3 human | New public endpoints; session interceptor; no token to Flutter |
-| Compliance | advisory | Attribution fields retained; IPR create still gated |
-| QA | advisory | MockMvc + unit evidence; live CBS not claimed |
-| SRE | N/A | Stub default; no new runtime platform |
+| Architecture | APPROVED_WITH_CONDITIONS | In-memory/stub not SoR |
+| Product | APPROVED_WITH_CONDITIONS | Human countersign D-020/D-021 |
+| Technical | APPROVED_WITH_CONDITIONS | files_expected updated to as-built |
+| Security | APPROVED_WITH_CONDITIONS | Human Board 4 required; 401 fail-closed |
+| Compliance | APPROVED_WITH_CONDITIONS | Stub is not IRDAI/audit evidence |
+| QA | APPROVED_WITH_CONDITIONS | Stub tests only |
+| SRE | APPROVED_WITH_CONDITIONS | http mode is not a promotion |

@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20261005-cfl | 2026-10-05 | human:architect | Publish standalone Confluence pages for authentication and authorisation that a new joiner or stakeholder can read without repository identifiers | SF1 | SC0 | MUST | DOC | P2 / P1 | ADMITTED | [DOC-025](../../platform/authentication-authorization/DOC-025.work-item.yaml) · [start here](../../platform/authentication-authorization/confluence/00-start-here.md) · [detail](#sug-20261005-cfl--standalone-confluence-pages-for-signin-and-access) |
 | SUG-20261005-amp | 2026-10-05 | human:architect | Create complete authentication and authorisation module design docs (HLD, sequences, API, flows, algorithms) from the Login BRD | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [EPIC-006](../../platform/authentication-authorization/EPIC-006.work-item.yaml) · [PLAN-009](../plans/PLAN-009-auth-module-design-pack.md) · [HLD](../../platform/authentication-authorization/20-auth-module-hld.md) · [detail](#sug-20261005-amp--auth-module-design-pack-from-login-brd) |
 | SUG-20261002-iap | 2026-10-02 | human:Mahesh | Design LLD + Confluence pack for workforce authn/authz: justify identity-provider-adapter-service and PDP vs Keycloak-only; implementation-ready process | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [ARCH-029](../../platform/authentication-authorization/ARCH-029.work-item.yaml) · [PLAN-008](../plans/PLAN-008-authn-authz-lld.md) · [LLD](../../platform/authentication-authorization/AUTHN-AUTHZ-LLD.md) · [ADR-022](../../platform/architecture-review/08-architecture-decision-log.md) · [detail](#sug-20261002-iap--authnauthz-lld-adapter-and-pdp-vs-keycloak) |
 | SUG-20261002-psr | 2026-10-02 | agent:cursor (persona: Mahesh) | PARTNER_SR seed grants proposal.create and proposal.submit, contradicting IPR assist-only (ID-15b / VR-041) | SF1 | SC0 | MUST | BUG | P2 / P1 | ADMITTED | slice A.3 of [ARCH-029](../../platform/authentication-authorization/ARCH-029.work-item.yaml) · [detail](#sug-20261002-psr--partner_sr-seed-must-not-grant-regulated-sales) |
@@ -133,6 +134,120 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20261005-cfl · standalone confluence pages for signin and access
+
+```yaml
+# schema: triage-record
+id: SUG-20261005-cfl
+raised_at: "2026-10-05"
+raised_by: "human:architect"
+source: "Cloud agent follow-up — Confluence pages without repository terminology"
+input: >
+  we need to add this document as standalone confluence pages which doesn't have
+  access to this repository and terminologies, there we cant use R0, NIP, section x,
+  sug- and etc. So make sure this documents will be helpfull for any one new joing
+  team, any stakeholder trying to understand the application authentication and
+  authorisation.
+
+context:
+  workstream: WS-2
+  current_phase: "Phase 1 — Foundation implementation"
+  canonical_stage: "L4/L6 — Foundation into first vertical slice"
+  current_objective: "IAM-P1"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: EPIC-006
+
+stage_fit:
+  code: SF1
+  rationale: >
+    Same WS-2 login design increment. Stakeholder-readable Confluence pages are
+    the missing delivery of the already-admitted module pack. FreshnessCheck
+    2026-10-05 exit 0.
+
+scope:
+  code: SC0
+  business_scope: >
+    Explicit — workforce sign-in and access control documentation for IAM-P1.
+  serves: ["EPIC-006", "GATE-IAM-P1 A.1"]
+  failure_without_it: >
+    Confluence readers cannot understand sign-in or access control because the
+    engineering pack depends on repository identifiers.
+  minimal: true
+  authority: "Login BRD behaviour SSOT; EPIC-006 already admitted"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "WS-2 Phase 1 GATE-IAM-P1"
+  binds_when: "stakeholders and new joiners review the login design on Confluence"
+  failure_without_it: >
+    The module pack cannot be used as Confluence pages, which was a stated
+    delivery need of the design work.
+  evidence_tier: E2
+  evidence:
+    - "User follow-up on EPIC-006: Confluence readers have no repository"
+    - "Login_Module_BRD_Detailed_CONTEXT.md"
+    - "confluence pages must not use R0, NIP, section x, SUG-"
+  confidence: C5
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT
+action_rationale: >
+  SF1 x MUST = ADMIT into EPIC-006 as DOC-025. Score 12 → P2. Not a duplicate of
+  SUG-20261005-amp (engineering pack). Documents only. Does not close ID-11.
+duplicate_of: null
+conflicts: []
+
+classification:
+  type: DOC
+  also: [ARCH]
+  breakdown: STORY
+  epic: EPIC-006
+  risk_tier: T3
+  destination: "docs/platform/authentication-authorization/DOC-025.work-item.yaml"
+
+priority:
+  now: P2
+  at_target: P1
+  factors: { N: 2, S: 2, B: 1, R: 1, D: 1, E: 1 }
+  score: 12
+  matrix_default: P2
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "Same gate as the Login BRD pack; Confluence is the stakeholder channel"
+
+dependencies:
+  edges:
+    - { type: ARCHITECTURAL, target: EPIC-006, relation: requires, state: IN-FLIGHT }
+  state: READY
+  enablement_count: 0
+  earliest_start: "now"
+  cycles: none
+
+breakdown:
+  children: []
+  completion_definition: null
+  not_included:
+    - "Rewriting engineering 20-23"
+    - "Human T4 signatures"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: DOC-025
+  plan_id: PLAN-009
+  status: ADMITTED
+  closed_reason: null
+
+resumed: "EPIC-006 / DOC-025"
+```
 
 ### SUG-20261005-amp · auth module design pack from Login BRD
 

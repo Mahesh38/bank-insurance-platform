@@ -5,7 +5,7 @@ type: ARCH
 also: [DOC]
 breakdown: EPIC
 workstream: WS-2
-origin: ["SUG-20261005-amp"]
+origin: ["SUG-20261005-amp", "SUG-20261005-cfl"]
 owner: "Mahesh — Principal Insurance Platform Architect (R2)"
 risk_tier: T3
 state: IN-FLIGHT
@@ -71,6 +71,11 @@ stories:
     state: IN-FLIGHT
     priority_now: P2
     priority_at_target: P1
+  - id: DOC-025
+    title: "Standalone Confluence pages for workforce sign-in and access control"
+    state: IN-FLIGHT
+    priority_now: P2
+    priority_at_target: P1
 
 story_order:
   - ARCH-029
@@ -78,6 +83,7 @@ story_order:
   - ARCH-031
   - ARCH-032
   - DOC-024
+  - DOC-025
 
 serves:
   - "GATE-IAM-P1 A.1"
@@ -156,7 +162,7 @@ evidence: []
 variance_log: []
 
 progress:
-  stories_total: 5
+  stories_total: 6
   stories_done: 0
   completion_definition_met: false
   evidence: []

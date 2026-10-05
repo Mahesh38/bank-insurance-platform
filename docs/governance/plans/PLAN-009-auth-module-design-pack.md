@@ -60,6 +60,13 @@ files_expected:
   - docs/platform/authentication-authorization/ARCH-031.work-item.yaml
   - docs/platform/authentication-authorization/ARCH-032.work-item.yaml
   - docs/platform/authentication-authorization/DOC-024.work-item.yaml
+  - docs/platform/authentication-authorization/DOC-025.work-item.yaml
+  - docs/platform/authentication-authorization/confluence/00-start-here.md
+  - docs/platform/authentication-authorization/confluence/01-how-the-pieces-fit.md
+  - docs/platform/authentication-authorization/confluence/02-journeys.md
+  - docs/platform/authentication-authorization/confluence/03-what-the-app-asks.md
+  - docs/platform/authentication-authorization/confluence/04-rules-the-system-follows.md
+  - docs/platform/authentication-authorization/confluence/06-decisions-still-open.md
   - docs/governance/plans/PLAN-009-auth-module-design-pack.md
   - docs/governance/registers/SUGGESTION-REGISTER.md
   - docs/architecture/README.md
@@ -117,7 +124,10 @@ out_of_scope:
 estimate: L
 
 reviews: []
-variance_log: []
+variance_log:
+  - date: "2026-10-05"
+    change: "Add Confluence-standalone page set and DOC-025 under this plan"
+    reason: "Stakeholder and new-joiner pages must not depend on repository identifiers"
 ```
 
 ## Board notes (agent self-review — not T4)

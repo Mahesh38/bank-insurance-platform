@@ -25,6 +25,8 @@ This document is the single source of truth for workforce authentication and aut
 
 **Login BRD module pack (`EPIC-006`):** [`20-auth-module-hld.md`](./20-auth-module-hld.md) · [`21-auth-module-sequences.md`](./21-auth-module-sequences.md) · [`22-auth-module-api-lld.md`](./22-auth-module-api-lld.md) · [`23-auth-module-flows-and-algorithms.md`](./23-auth-module-flows-and-algorithms.md). Behaviour SSOT is the Login BRD (`DOC-005`). Does not add a public login-password body (`ID-11`).
 
+**Confluence / stakeholder pages (`DOC-025`):** [`confluence/00-start-here.md`](./confluence/00-start-here.md) — standalone, no repository identifiers. Paste into Confluence; do not paste the engineering 20–23 files.
+
 ## 1. Accepted decisions
 
 1. Flutter communicates only with a workforce BFF. Keycloak, Cognito, Active Directory, and internal identity services are never exposed directly to Flutter.

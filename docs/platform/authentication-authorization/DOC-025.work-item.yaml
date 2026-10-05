@@ -1,0 +1,71 @@
+# schema: work-item
+id: DOC-025
+origin: ["SUG-20261005-cfl"]
+title: "Standalone Confluence pages for workforce sign-in and access control"
+type: DOC
+also: [ARCH]
+breakdown: STORY
+epic: EPIC-006
+workstream: WS-2
+owner: "Mahesh — Principal Insurance Platform Architect"
+risk_tier: T3
+
+serves:
+  - "EPIC-006"
+  - "Login BRD stakeholder understanding"
+  - "Onboarding without repository access"
+
+problem: >
+  The engineering design pack uses repository identifiers and abbreviations that
+  Confluence readers cannot follow. Stakeholders and new joiners need standalone
+  pages that explain sign-in and access control in ordinary language.
+
+description: >
+  Publish a Confluence-ready page set under authentication-authorization/confluence
+  with no repository ticket codes, no internal abbreviations, and terms defined
+  on first use. Engineering files 20–23 stay as the implementer specification.
+
+acceptance_criteria:
+  - id: AC-1
+    given: "the confluence folder"
+    when: "a reader has no repository access"
+    then: "six pages explain who signs in, the moving parts, journeys, requests, rules, and open questions"
+  - id: AC-2
+    given: "the same pages"
+    when: "searched for repository ticket codes and insider abbreviations"
+    then: "they are absent from the pages intended for Confluence paste"
+  - id: AC-3
+    given: "a new joiner"
+    when: "they read start here"
+    then: "authentication and authorisation are distinguished, and both user types are described"
+
+out_of_scope:
+  - "Rewriting the engineering 20–23 files"
+  - "Human T4 signature"
+  - "Closing open security questions"
+
+state: IN-FLIGHT
+priority_now: P2
+priority_at_target: P1
+target_stage: null
+unpark_trigger: null
+
+dependencies:
+  blocked_by: []
+  requires:
+    - "ARCH-030"
+    - "ARCH-031"
+    - "ARCH-032"
+    - "DOC-024"
+  enables: []
+  related_to:
+    - "EPIC-006"
+  external: []
+  decision_dependency: []
+
+plan: PLAN-009
+estimate: M
+assumptions: []
+risks: []
+evidence: []
+variance_log: []

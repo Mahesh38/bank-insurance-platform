@@ -1,5 +1,6 @@
 package com.bank.workforce.bff.config;
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
@@ -10,5 +11,9 @@ import java.net.URI;
 @ConfigurationProperties("workforce.downstream")
 public record DownstreamProperties(
     @NotNull URI providerAdapterBaseUrl,
-    @NotNull URI authorizationServiceBaseUrl
+    @NotNull URI authorizationServiceBaseUrl,
+    @NotNull URI leadServiceBaseUrl,
+    @NotNull URI customerServiceBaseUrl,
+    @NotBlank String leadMode,
+    @NotBlank String customerMode
 ) {}

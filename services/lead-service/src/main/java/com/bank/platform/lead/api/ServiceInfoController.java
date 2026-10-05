@@ -20,7 +20,7 @@ public class ServiceInfoController {
         return ResponseEntity.ok(Map.of(
             "service", "lead-service",
             "boundedContext", "5",
-            "status", "SKELETON"
+            "status", "LEAD_SLICE"
         ));
     }
 }

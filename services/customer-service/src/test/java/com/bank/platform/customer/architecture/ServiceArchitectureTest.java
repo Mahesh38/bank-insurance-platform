@@ -40,7 +40,6 @@ class ServiceArchitectureTest {
             .that().resideInAPackage("..application..")
             .should().dependOnClassesThat()
             .resideInAPackage("..adapter..")
-            .allowEmptyShould(true)
             .as("Application layer depends on domain ports, not adapters");
 
         rule.check(importedClasses);
@@ -52,7 +51,6 @@ class ServiceArchitectureTest {
             .that().resideInAPackage("..domain..")
             .should().dependOnClassesThat()
             .resideInAPackage("org.springframework..")
-            .allowEmptyShould(true)
             .as("Domain layer is pure Java");
 
         rule.check(importedClasses);

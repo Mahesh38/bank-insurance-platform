@@ -15,9 +15,12 @@ public class BffSecurityConfig {
         csrf.setCookieName("WORKFORCE-XSRF");
         csrf.setHeaderName("X-XSRF-TOKEN");
         return http
-            .csrf(configurer -> configurer.csrfTokenRepository(csrf))
+            .csrf(configurer -> configurer
+                .csrfTokenRepository(csrf)
+                .ignoringRequestMatchers(request -> request.getHeader("Authorization") != null
+                    || request.getHeader("X-Session-Handle") != null))
             .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/api/v1/auth/**", "/actuator/health/**").permitAll()
+                .requestMatchers("/api/v1/**", "/actuator/health/**").permitAll()
                 .anyRequest().denyAll())
             .requestCache(cache -> cache.disable())
             .formLogin(login -> login.disable())

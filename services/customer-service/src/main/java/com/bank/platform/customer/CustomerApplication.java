@@ -5,10 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 
 /**
- * Skeleton entry point for bounded context #4 — Customer.
- *
- * <p>Business logic is intentionally absent. This module exists so engineers, CI and GitLab group
- * policies can align to the target microservices topology before feature work begins.
+ * Bounded context #4 — Customer. ETB search via Apigee token holder ({@code EPIC-006}).
  */
 @SpringBootApplication
 @ConfigurationPropertiesScan

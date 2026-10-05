@@ -11,7 +11,9 @@ Operations marked *not extracted* exist on the 1SB portal but have no local copy
 them from the portal and add an extraction if you need one.
 
 **Related:** [field-guides/](../field-guides/README.md) (which fields, when, why) ·
-[SOURCE-LINKS.md](../reference/SOURCE-LINKS.md) (portal URLs)
+[SOURCE-LINKS.md](../reference/SOURCE-LINKS.md) (portal URLs) ·
+**[Apigee reverse-proxy pack](./APIGEE-1SB-REVERSE-PROXY.md)** (21 R0 1SB operations for the bank API platform) ·
+[cover email](../service-ssot/phase-0/EMAIL-DRAFT-APIGEE-1SB-PROXY.md)
 
 ---
 

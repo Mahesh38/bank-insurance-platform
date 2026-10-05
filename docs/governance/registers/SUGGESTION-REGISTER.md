@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20261005-apx | 2026-10-05 | human:stakeholder | API document + email for Apigee team to reverse-proxy 1SB Insurance Gateway paths (Wave 1 Life, 21 operations) | SF1 | SC1 | MUST | DOC | P2 / P1 | ADMITTED | [pack](../../1sb-insurance-integration/api-catalog/APIGEE-1SB-REVERSE-PROXY.md) · [email](../../1sb-insurance-integration/service-ssot/phase-0/EMAIL-DRAFT-APIGEE-1SB-PROXY.md) · [DEP-20260914-apg](./DEPENDENCY-REGISTER.md) · [detail](#sug-20261005-apx--apigee-1sb-reverse-proxy-pack) |
 | SUG-20261003-svg | 2026-10-03 | human:stakeholder | Remaining Saving readiness beyond fail-closed hub validation: Product UI bands, questionnaire engine, enum inventory/master refresh, live Gate POST + complete Proposal POST/poll | SF3 | SC0 | MUST | FUNC | P4 / P1 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [detail](#sug-20261003-svg--saving-readiness-blocked-on-1sb-config) |
 | SUG-20261003-lvr | 2026-10-03 | human:stakeholder | Make 1sb-integration-service UAT-ready to validate Term/ULIP/Savings Life journeys (fail-before-1SB + response contract) | SF1 | SC0 | MUST | FUNC | P2 / P1 | ADMITTED | [FUNC-028](../../1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md) · [detail](#sug-20261003-lvr--life-journey-validation-uat) |
 | SUG-20261003-brf | 2026-10-03 | human:Rajal | BRD wins: dedupe key user+customer+productType+BI; no delete when BI absent; Save does not evaluate — Start Onboarding does; flow dedupe→create→exception→assign SP | SF2 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [D-019](../../au-bank-insurance-platform/DECISION-LOG.md) · [EPIC-005](../../platform/ws3-platform/EPIC-005.work-item.yaml) · [detail](#sug-20261003-brf--brd-wins-dedupe-exception-timing--sequence) |
@@ -134,6 +135,82 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20261005-apx · Apigee 1SB reverse-proxy pack
+
+```yaml
+# schema: triage-record
+id: SUG-20261005-apx
+raised_at: "2026-10-05"
+raised_by: "human:stakeholder"
+source: "work on the API document to be shared with APIGEE team over email to configure the 1SB API at there end as they will work as reverse proxy from our side to 1SB"
+input: >
+  work on the API document to be shared with APIGEE team over email to configure
+  the 1SB API at there end as they will work as reverse proxy from our side to 1SB
+
+context:
+  workstream: WS-1
+  current_phase: "Phase 4 — Hardening & consumer enablement"
+  canonical_stage: "L7 — Hardening"
+  current_objective: "Term path signed off for UAT; adapter base URL must be Apigee, not 1SB origin"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: DEP-20260914-apg
+
+stage_fit:
+  code: SF1
+  rationale: >
+    SPIKE-001 remaining answer 4 is the per-1SB-path onboard ticket. ADR-020
+    already draws the hop. This pack is that ticket, not a new integration.
+
+scope:
+  code: SC1
+  serves: ["DEP-20260914-apg", "ADR-020", "SPIKE-001", "GATE-P4 4.3 UAT caller path"]
+  failure_without_it: "Apigee cannot open the right 1SB surface; adapter keeps calling the origin host"
+  minimal: true
+  authority: "ADR-020 / DEP-20260914-apg"
+
+necessity:
+  now: MUST
+  evidence_tier: E2
+  evidence:
+    - "ADR-020 outbound Apigee; adapter never calls *.1silverbullet.tech from EKS"
+    - "Adapter-wired Term/Saving/ULIP/status/payment-URL/fund paths"
+    - "BOOT R0 Life only; Health/Motor/FUNC-008 out"
+  failure_without_it: "W2 quotes have no bank-approved egress path; 1SB would see the wrong caller IP"
+  confidence: C4
+  assumptions: ["ASM-015"]
+
+action: ADMIT
+action_rationale: >
+  Write the Wave-1 path list and cover email from the adapter-wired 1SB
+  operations. Do not onboard Health/Motor or transform payloads on Apigee.
+
+classification:
+  type: DOC
+  breakdown: TASK
+  risk_tier: T2
+  destination: "docs/1sb-insurance-integration/api-catalog/APIGEE-1SB-REVERSE-PROXY.md"
+
+priority:
+  now: P2
+  at_target: P1
+  rationale: "Unblocks DEP-20260914-apg written product list; Apigee team still owns IPs and edition"
+
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 1
+  earliest_start: "2026-10-05"
+  cycles: none
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: SUG-20261005-apx
+  status: ADMITTED
+
+resumed: "SUG-20261005-apx — Apigee 1SB reverse-proxy pack"
+```
 
 ### SUG-20260930-osl · openssl CVE-2026-84782
 

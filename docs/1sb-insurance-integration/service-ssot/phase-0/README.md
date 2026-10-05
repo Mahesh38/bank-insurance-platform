@@ -14,6 +14,8 @@
 | **[PHASE-0-DATA-AND-GAPS.md](./PHASE-0-DATA-AND-GAPS.md)** | What we have vs still required |
 | **[PO-DEV-ENV-REQUIREMENTS.md](./PO-DEV-ENV-REQUIREMENTS.md)** | PO↔Dev ack + Dev/UAT/Prod needs from 1SB |
 | **[EMAIL-DRAFT-1SB-ONBOARDING-REQUEST.md](./EMAIL-DRAFT-1SB-ONBOARDING-REQUEST.md)** | Mail for Product → 1SB |
+| **[EMAIL-DRAFT-APIGEE-1SB-PROXY.md](./EMAIL-DRAFT-APIGEE-1SB-PROXY.md)** | Mail for Platform → Apigee (1SB reverse proxy) |
+| **[Apigee 1SB reverse-proxy pack](../../api-catalog/APIGEE-1SB-REVERSE-PROXY.md)** | 21 Wave-1 1SB paths + proxy rules (`DEP-20260914-apg`) |
 | [TODO-TRACKER.md](./TODO-TRACKER.md) | Open/blocked list |
 | [CONFIRM-01-onesb-access.md](./CONFIRM-01-onesb-access.md) | Access checklist |
 | [CONFIRM-02-term-products.md](./CONFIRM-02-term-products.md) | Multi insurer/product catalog |

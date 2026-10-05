@@ -44,6 +44,7 @@ This package turns the scattered 1SB OpenAPI pages into:
 | 3 | [canonical-model/contexts.md](./canonical-model/contexts.md) | Domain contexts and bounded contexts |
 | 4 | [journeys/universal-lob-journey.md](./journeys/universal-lob-journey.md) | Universal journey + LOB deltas |
 | 5 | [api-catalog/README.md](./api-catalog/README.md) | Endpoint catalog by LOB and building blocks |
+| 5a | [api-catalog/APIGEE-1SB-REVERSE-PROXY.md](./api-catalog/APIGEE-1SB-REVERSE-PROXY.md) | Apigee outbound reverse-proxy pack (21 R0 1SB operations) |
 | 6 | [field-guides/README.md](./field-guides/README.md) | Mandatory fields, when, why |
 | 7 | [02-rm-assisted-bank-checklist.md](./02-rm-assisted-bank-checklist.md) | Practical build checklist |
 | 8 | [reference/](./reference/) | Extracted schemas & source links |

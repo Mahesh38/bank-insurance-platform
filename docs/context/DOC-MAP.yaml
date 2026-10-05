@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 655
-total_bytes: 21147771
+document_count: 657
+total_bytes: 21167475
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -46,6 +46,14 @@ documents:
     title: "1Silverbullet (1SB) Insurance Integration Guide"
     answers: "Demo base URL: https://demo.api.1silverbullet.tech"
     bytes: 5463
+  - path: docs/1sb-insurance-integration/api-catalog/APIGEE-1SB-REVERSE-PROXY.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change]
+    persona: engineering
+    title: "Apigee reverse-proxy pack — 1SB Insurance Gateway (R0)"
+    answers: "From: NIP / 1sb-integration-service (WS-1)"
+    bytes: 14109
   - path: docs/1sb-insurance-integration/api-catalog/README.md
     bucket: module-1sb
     authority: engineering-ssot
@@ -654,6 +662,14 @@ documents:
     title: "Email draft — Bank PO → 1SB (Pune visit agenda)"
     answers: "From: Bank Product / Bancassurance"
     bytes: 1824
+  - path: docs/1sb-insurance-integration/service-ssot/phase-0/EMAIL-DRAFT-APIGEE-1SB-PROXY.md
+    bucket: module-1sb
+    authority: engineering-ssot
+    capsules: [1sb-integration-change, code-change]
+    persona: engineering
+    title: "Email draft — Platform → Apigee / bank API platform (1SB reverse proxy)"
+    answers: "From: Bank Platform / Bancassurance"
+    bytes: 4868
   - path: docs/1sb-insurance-integration/service-ssot/phase-0/PHASE-0-DATA-AND-GAPS.md
     bucket: module-1sb
     authority: engineering-ssot
@@ -2221,7 +2237,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 231301
+    bytes: 232028
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context

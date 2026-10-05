@@ -434,6 +434,13 @@ doc_routing:
       persona: product
       note: "Figma wireframe exports. Frontend reference for BFF evaluation (DOC-006). Cite the BRD for behaviour; the PNG is not SSOT."
 
+    - match: ["docs/confluence/**"]
+      bucket: context
+      authority: non-binding-context
+      capsules: [orient]
+      persona: null
+      note: "Confluence teaching pack (SUG-20261005-cfp). Not SSOT. HA-02: BRD/HLD/ADR win."
+
     # --- docs root ---------------------------------------------------------
     - match: ["docs/*"]
       bucket: root

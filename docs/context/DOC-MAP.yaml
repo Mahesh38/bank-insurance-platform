@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 655
-total_bytes: 21144193
+document_count: 709
+total_bytes: 23508503
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -981,7 +981,7 @@ documents:
     persona: null
     title: "Documentation — Master Index"
     answers: "Programme: AU Small Finance Bank — Insurance Distribution Platform"
-    bytes: 16366
+    bytes: 16777
   - path: docs/application-lifecycle-bible/00-HOW-TO-USE.md
     bucket: lifecycle
     authority: proposed-cr-010
@@ -2198,6 +2198,438 @@ documents:
     title: "Suitability Rule Pack v1 — AU Bank Insurance Distribution Platform"
     answers: "Pack ID: SUITABILITY-PACK-v1.0 · Algorithm ID: SUIT-ALGO-LIFE-v1.0"
     bytes: 25477
+  - path: docs/confluence/README.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "Confluence communication packs"
+    answers: "If a page here disagrees with a BRD, HLD, ADR, decision log or"
+    bytes: 720
+  - path: docs/confluence/onboarding/HOW-TO-PUBLISH.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "How to publish this pack to Confluence"
+    answers: "You cannot push these files into Confluence from git automatically. Create the pages once, then re-attach pictures if a diagram regenerates."
+    bytes: 3757
+  - path: docs/confluence/onboarding/PAGE-TREE.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "PAGE TREE — how to nest the Confluence pages"
+    answers: "Main page = the gold bar. Everything else hangs from it."
+    bytes: 3536
+  - path: docs/confluence/onboarding/README.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "Onboarding pack — AU Bank Insurance Platform"
+    answers: "Work item: SUG-20261005-cfp"
+    bytes: 3327
+  - path: docs/confluence/onboarding/diagrams/00-page-tree.png
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "00 page tree"
+    answers: "Image artefact"
+    bytes: 176421
+  - path: docs/confluence/onboarding/diagrams/00-page-tree.svg
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "00 page tree"
+    answers: "Rendered diagram — read the companion .md for the binding text"
+    bytes: 12128
+  - path: docs/confluence/onboarding/diagrams/01-as-is-vs-target.png
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "01 as is vs target"
+    answers: "Image artefact"
+    bytes: 127641
+  - path: docs/confluence/onboarding/diagrams/01-as-is-vs-target.svg
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "01 as is vs target"
+    answers: "Rendered diagram — read the companion .md for the binding text"
+    bytes: 6777
+  - path: docs/confluence/onboarding/diagrams/02-r0-outcome.png
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "02 r0 outcome"
+    answers: "Image artefact"
+    bytes: 100038
+  - path: docs/confluence/onboarding/diagrams/02-r0-outcome.svg
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "02 r0 outcome"
+    answers: "Rendered diagram — read the companion .md for the binding text"
+    bytes: 11478
+  - path: docs/confluence/onboarding/diagrams/03-actors.png
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "03 actors"
+    answers: "Image artefact"
+    bytes: 162296
+  - path: docs/confluence/onboarding/diagrams/03-actors.svg
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "03 actors"
+    answers: "Rendered diagram — read the companion .md for the binding text"
+    bytes: 7924
+  - path: docs/confluence/onboarding/diagrams/04-sale-journey.png
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "04 sale journey"
+    answers: "Image artefact"
+    bytes: 171372
+  - path: docs/confluence/onboarding/diagrams/04-sale-journey.svg
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "04 sale journey"
+    answers: "Rendered diagram — read the companion .md for the binding text"
+    bytes: 14445
+  - path: docs/confluence/onboarding/diagrams/05-hop-architecture.png
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "05 hop architecture"
+    answers: "Image artefact"
+    bytes: 138466
+  - path: docs/confluence/onboarding/diagrams/05-hop-architecture.svg
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "05 hop architecture"
+    answers: "Rendered diagram — read the companion .md for the binding text"
+    bytes: 7948
+  - path: docs/confluence/onboarding/diagrams/06-bounded-contexts.png
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "06 bounded contexts"
+    answers: "Image artefact"
+    bytes: 141923
+  - path: docs/confluence/onboarding/diagrams/06-bounded-contexts.svg
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "06 bounded contexts"
+    answers: "Rendered diagram — read the companion .md for the binding text"
+    bytes: 15776
+  - path: docs/confluence/onboarding/diagrams/07-workstreams.png
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "07 workstreams"
+    answers: "Image artefact"
+    bytes: 105404
+  - path: docs/confluence/onboarding/diagrams/07-workstreams.svg
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "07 workstreams"
+    answers: "Rendered diagram — read the companion .md for the binding text"
+    bytes: 7408
+  - path: docs/confluence/onboarding/diagrams/08-hard-gates.png
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "08 hard gates"
+    answers: "Image artefact"
+    bytes: 122945
+  - path: docs/confluence/onboarding/diagrams/08-hard-gates.svg
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "08 hard gates"
+    answers: "Rendered diagram — read the companion .md for the binding text"
+    bytes: 9603
+  - path: docs/confluence/onboarding/diagrams/09-policy-sold.png
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "09 policy sold"
+    answers: "Image artefact"
+    bytes: 64467
+  - path: docs/confluence/onboarding/diagrams/09-policy-sold.svg
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "09 policy sold"
+    answers: "Rendered diagram — read the companion .md for the binding text"
+    bytes: 5887
+  - path: docs/confluence/onboarding/diagrams/10-seq-rm-login.png
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "10 seq rm login"
+    answers: "Image artefact"
+    bytes: 127554
+  - path: docs/confluence/onboarding/diagrams/10-seq-rm-login.svg
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "10 seq rm login"
+    answers: "Rendered diagram — read the companion .md for the binding text"
+    bytes: 10053
+  - path: docs/confluence/onboarding/diagrams/11-seq-lead.png
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "11 seq lead"
+    answers: "Image artefact"
+    bytes: 154959
+  - path: docs/confluence/onboarding/diagrams/11-seq-lead.svg
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "11 seq lead"
+    answers: "Rendered diagram — read the companion .md for the binding text"
+    bytes: 10776
+  - path: docs/confluence/onboarding/diagrams/12-seq-quote.png
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "12 seq quote"
+    answers: "Image artefact"
+    bytes: 133053
+  - path: docs/confluence/onboarding/diagrams/12-seq-quote.svg
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "12 seq quote"
+    answers: "Rendered diagram — read the companion .md for the binding text"
+    bytes: 10699
+  - path: docs/confluence/onboarding/diagrams/13-seq-payment.png
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "13 seq payment"
+    answers: "Image artefact"
+    bytes: 153158
+  - path: docs/confluence/onboarding/diagrams/13-seq-payment.svg
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "13 seq payment"
+    answers: "Rendered diagram — read the companion .md for the binding text"
+    bytes: 10617
+  - path: docs/confluence/onboarding/diagrams/14-repo-boundary.png
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "14 repo boundary"
+    answers: "Image artefact"
+    bytes: 109435
+  - path: docs/confluence/onboarding/diagrams/14-repo-boundary.svg
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "14 repo boundary"
+    answers: "Rendered diagram — read the companion .md for the binding text"
+    bytes: 5618
+  - path: docs/confluence/onboarding/diagrams/15-use-cases.png
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "15 use cases"
+    answers: "Image artefact"
+    bytes: 141825
+  - path: docs/confluence/onboarding/diagrams/15-use-cases.svg
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "15 use cases"
+    answers: "Rendered diagram — read the companion .md for the binding text"
+    bytes: 11325
+  - path: docs/confluence/onboarding/diagrams/README.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "Onboarding diagrams"
+    answers: "Generated by scripts/confluence/renderonboardingdiagrams.py."
+    bytes: 395
+  - path: docs/confluence/onboarding/pages/00-home.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "AU Bank Insurance Platform — Start here"
+    answers: "Teaching pack · SUG-20261005-cfp · not a source of truth."
+    bytes: 4183
+  - path: docs/confluence/onboarding/pages/01-why.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "Why we are building this"
+    answers: "Teaching pack · SUG-20261005-cfp · not a source of truth."
+    bytes: 3037
+  - path: docs/confluence/onboarding/pages/02-what.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "What we are building now (R0)"
+    answers: "Teaching pack · SUG-20261005-cfp · not a source of truth."
+    bytes: 2795
+  - path: docs/confluence/onboarding/pages/03-who.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "Who uses it"
+    answers: "Teaching pack · SUG-20261005-cfp · not a source of truth."
+    bytes: 2115
+  - path: docs/confluence/onboarding/pages/04-use-cases.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "Use cases"
+    answers: "Teaching pack · SUG-20261005-cfp · not a source of truth."
+    bytes: 3437
+  - path: docs/confluence/onboarding/pages/05-sale-journey.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "The assisted Life sale journey"
+    answers: "Teaching pack · SUG-20261005-cfp · not a source of truth."
+    bytes: 2674
+  - path: docs/confluence/onboarding/pages/06-architecture.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "Architecture"
+    answers: "Teaching pack · SUG-20261005-cfp · not a source of truth."
+    bytes: 2951
+  - path: docs/confluence/onboarding/pages/06a-hops.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "How a request travels"
+    answers: "Teaching pack · SUG-20261005-cfp · not a source of truth."
+    bytes: 2655
+  - path: docs/confluence/onboarding/pages/06b-contexts.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "Bounded contexts and services"
+    answers: "Teaching pack · SUG-20261005-cfp · not a source of truth."
+    bytes: 2556
+  - path: docs/confluence/onboarding/pages/07-sequences.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "Sequence diagrams"
+    answers: "Teaching pack · SUG-20261005-cfp · not a source of truth."
+    bytes: 1390
+  - path: docs/confluence/onboarding/pages/07a-login.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "Sequence — RM login"
+    answers: "Teaching pack · SUG-20261005-cfp · not a source of truth."
+    bytes: 2618
+  - path: docs/confluence/onboarding/pages/07b-lead.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "Sequence — Lead create and assign"
+    answers: "Teaching pack · SUG-20261005-cfp · not a source of truth."
+    bytes: 2197
+  - path: docs/confluence/onboarding/pages/07c-quote.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "Sequence — Quote via 1SB"
+    answers: "Teaching pack · SUG-20261005-cfp · not a source of truth."
+    bytes: 2129
+  - path: docs/confluence/onboarding/pages/07d-payment.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "Sequence — Payment and issuance"
+    answers: "Teaching pack · SUG-20261005-cfp · not a source of truth."
+    bytes: 2178
+  - path: docs/confluence/onboarding/pages/08-hard-rules.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "Rules you must never break"
+    answers: "Teaching pack · SUG-20261005-cfp · not a source of truth."
+    bytes: 2559
+  - path: docs/confluence/onboarding/pages/09-this-repo.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "What lives in this repository"
+    answers: "Teaching pack · SUG-20261005-cfp · not a source of truth."
+    bytes: 2521
+  - path: docs/confluence/onboarding/pages/10-read-next.md
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient]
+    persona: null
+    title: "Where to read next"
+    answers: "Teaching pack · SUG-20261005-cfp · not a source of truth."
+    bytes: 2964
   - path: docs/context/AGENT-CONTEXT-INDEX.yaml
     bucket: context
     authority: non-binding-context
@@ -2205,7 +2637,7 @@ documents:
     persona: null
     title: "AGENT CONTEXT INDEX"
     answers: "============================================================================="
-    bytes: 49750
+    bytes: 49984
   - path: docs/context/BOOT.md
     bucket: context
     authority: non-binding-context
@@ -2221,7 +2653,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 231301
+    bytes: 245946
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -4165,7 +4597,7 @@ documents:
     persona: null
     title: "Suggestion Register"
     answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 319979
+    bytes: 322886
   - path: docs/governance/runbooks/AUTOPILOT-FAILURE-RUNBOOK.md
     bucket: governance
     authority: binding-process

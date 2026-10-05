@@ -11,7 +11,7 @@ lives, start here.
 ## How this folder is organised
 
 Documents are separated by **what kind of authority they carry**, not by who wrote them.
-There are six buckets, and each answers a different question:
+There are six authority buckets, plus a communication pack that teaches them:
 
 | Bucket | Question it answers | Scope | Binding? |
 |--------|--------------------|-------|----------|
@@ -21,6 +21,7 @@ There are six buckets, and each answers a different question:
 | **[`platform/`](./platform/README.md)** | *How should the whole platform be built?* | Cross-cutting, applies to **every** service | ⚠️ Recommendation / approved spec (see each doc) |
 | **[`au-bank-insurance-platform/`](./au-bank-insurance-platform/README.md)** | *What are we building and why?* | Business & product SSOT for the programme | ✅ Business SSOT |
 | **[`1sb-insurance-integration/`](./1sb-insurance-integration/README.md)** | *How is the 1SB adapter built?* | One module — the 1SB integration service | ✅ Engineering SSOT (module) |
+| **[`confluence/`](./confluence/README.md)** | *How do I explain this to a new person?* | Confluence-ready onboarding pages and diagrams | ❌ Non-binding communication |
 
 `governance/` sits across the other four: it governs **how work enters and leaves** them,
 while they hold **what is true**. The remaining four split like this:
@@ -57,6 +58,9 @@ docs/
 │   ├── R0-HLD.md                          Stakeholder HLD — domain, boundaries, APIs, waves
 │   ├── R0-LLD.md                          S09 AWS pack — VPC, proxy, PVC, DB, cache BOM
 │   └── r0-lld.svg                         R0 LLD rendering (trust zones, EKS, data, do-not-provision)
+│
+├── confluence/                        COMMUNICATION — Confluence-ready teaching pack
+│   └── onboarding/                        New-joiner pages, diagrams, page tree (SUG-20261005-cfp)
 │
 ├── governance/                        PROCESS — how work is admitted, gated & recorded
 │   ├── RUNBOOK.md                         Operating manual — role cards, cadences
@@ -121,7 +125,7 @@ docs/
 | **Acting as a persona (any board)** | [`context/personas/`](./context/personas/README.md) — a card, not a package |
 | **Selecting safe non-blocked work** | [`governance/autopilot/README.md`](./governance/autopilot/README.md) + [`governance/state/GATE-EVIDENCE.yaml`](./governance/state/GATE-EVIDENCE.yaml) |
 | **Reusing context for another project/domain** | [`context/framework/README.md`](./context/framework/README.md) — scaffold, replace the project overlay, validate |
-| **New to the programme** | [`context/business-problem-statement.md`](./context/business-problem-statement.md) → [`au-bank-insurance-platform/README.md`](./au-bank-insurance-platform/README.md) |
+| **New to the programme** | [`confluence/onboarding/README.md`](./confluence/onboarding/README.md) — Confluence page tree, then [`context/business-problem-statement.md`](./context/business-problem-statement.md) |
 | **Asking "what stage are we in, and what does it require?"** | [`application-lifecycle-bible/README.md`](./application-lifecycle-bible/README.md) — position banner, then the current stage file |
 | **Product Owner / BA** | [`au-bank-insurance-platform/07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md`](./au-bank-insurance-platform/07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md) — the business MVP SSOT |
 | **Solution Architect** | [`platform/architecture-review/README.md`](./platform/architecture-review/README.md) — target-state platform architecture |

@@ -202,6 +202,7 @@ necessity:
   future_necessity: MUST
   target_stage: "S11 — Vertical slice"
   binds_when: "NIP-APP Lead screens and S11-E02"
+  failure_without_it: "NIP-APP cannot complete Lead Screens 1–7"
   evidence_tier: E2
   evidence:
     - "Lead BRD Screens 1, 5, 7 and §14.1"
@@ -242,7 +243,23 @@ priority:
   rationale: "SF5 MUST → matrix P2–P3; PRI-8 B=0; score 14 is P3"
 
 dependencies:
-  edges: ["EPIC-003", "EPIC-005", "D-018", "D-019"]
+  edges:
+    - type: ARCHITECTURAL
+      target: EPIC-003
+      relation: requires
+      state: DONE
+    - type: ARCHITECTURAL
+      target: EPIC-005
+      relation: requires
+      state: DONE
+    - type: DECISION
+      target: D-018
+      relation: decision_dependency
+      state: DONE
+    - type: DECISION
+      target: D-019
+      relation: decision_dependency
+      state: DONE
   state: READY
   enablement_count: 1
   earliest_start: "2026-10-05"

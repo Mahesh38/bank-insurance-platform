@@ -5,7 +5,7 @@ title: "Workforce authn/authz LLD — adapter + PDP justification and implementa
 type: ARCH
 also: [DOC]
 breakdown: STORY
-epic: null
+epic: EPIC-006
 workstream: WS-2
 owner: "Mahesh — Principal Insurance Platform Architect"
 risk_tier: T3

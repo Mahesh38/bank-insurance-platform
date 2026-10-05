@@ -1,0 +1,71 @@
+# schema: work-item
+id: ARCH-032
+origin: ["SUG-20261005-amp"]
+title: "Auth module API LLD + OpenAPI extensions (no login-password body)"
+type: ARCH
+also: [DOC]
+breakdown: STORY
+epic: EPIC-006
+workstream: WS-2
+owner: "Mahesh — Principal Insurance Platform Architect"
+risk_tier: T3
+
+serves:
+  - "EPIC-006"
+  - "GATE-IAM-P1 A.1"
+  - "Login BRD VAL-001..022"
+
+problem: >
+  ARCH-029 OpenAPI covers OIDC login/callback/session/logout. The Login BRD
+  catalogue (Captcha, OTP, Unlock User, partner password, VAL copy) is missing
+  from the wire contracts.
+
+description: >
+  Publish 22-auth-module-api-lld.md and extend the three existing OpenAPI files
+  with captcha, OTP, unlock, partner password and account-state. Do not add
+  POST /credentials on the BFF.
+
+acceptance_criteria:
+  - id: AC-1
+    given: "workforce-access-bff.openapi.yaml"
+    when: "paths are listed"
+    then: "captcha, otp verify/resend, unlock, partner password, help exist"
+  - id: AC-2
+    given: "the same file"
+    when: "login is inspected"
+    then: "the body still has no password field"
+  - id: AC-3
+    given: "22 §7"
+    when: "VAL-008 is mapped"
+    then: "HTTP 423 and the approved locked-account copy are present"
+
+out_of_scope:
+  - "Public login-password / ROPC"
+  - "Forgot Password / mPIN"
+  - "Runtime controllers"
+
+state: IN-FLIGHT
+priority_now: P2
+priority_at_target: P1
+target_stage: null
+unpark_trigger: null
+
+dependencies:
+  blocked_by: []
+  requires:
+    - "ARCH-030"
+    - "ARCH-029 OpenAPI"
+  enables:
+    - "GATE-IAM-P1 A.1 scaffold"
+  related_to:
+    - "EPIC-006"
+  external: []
+  decision_dependency:
+    - "OPEN-AUTH-CEREMONY"
+
+plan: PLAN-009
+estimate: M
+assumptions: []
+risks: []
+evidence: []
+variance_log: []

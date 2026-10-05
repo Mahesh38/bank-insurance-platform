@@ -1,0 +1,72 @@
+# schema: work-item
+id: DOC-024
+origin: ["SUG-20261005-amp"]
+title: "Auth flows and algorithms — captcha, OTP, lock, unlock, password policy"
+type: DOC
+also: [ARCH]
+breakdown: STORY
+epic: EPIC-006
+workstream: WS-2
+owner: "Mahesh — Principal Insurance Platform Architect"
+risk_tier: T3
+
+serves:
+  - "EPIC-006"
+  - "BR-LOGIN-*"
+  - "BR-UNLOCK-*"
+  - "BR-PWD-*"
+  - "KBR-01"
+  - "KBR-14"
+
+problem: >
+  Login BRD rules for OTP, lock and Unlock User are tables of prose.
+  Implementers need deterministic algorithms traced to rule IDs.
+
+description: >
+  Publish 23-auth-module-flows-and-algorithms.md with pseudocode for captcha,
+  credential verify (host-agnostic), password failure/lock, OTP issue/verify/resend,
+  unlock outcome matrix, and partner password policy. Conflicts stay OPEN.
+
+acceptance_criteria:
+  - id: AC-1
+    given: "OTP algorithm"
+    when: "five incorrect attempts occur"
+    then: "the OTP session ends and the account is not locked"
+  - id: AC-2
+    given: "lock algorithm"
+    when: "the third consecutive wrong password arrives"
+    then: "VAL-008 and Unlock User are required"
+  - id: AC-3
+    given: "set-password algorithm"
+    when: "it succeeds"
+    then: "the user is not authenticated (BR-PWD-002)"
+
+out_of_scope:
+  - "InfoSec numeric session timeouts"
+  - "Runtime code"
+
+state: IN-FLIGHT
+priority_now: P2
+priority_at_target: P1
+target_stage: null
+unpark_trigger: null
+
+dependencies:
+  blocked_by: []
+  requires:
+    - "ARCH-030"
+  enables:
+    - "ARCH-032"
+  related_to:
+    - "EPIC-006"
+  external: []
+  decision_dependency:
+    - "OPEN-AUTH-CAPTCHA"
+    - "OPEN-AUTH-BANK-LOCK"
+
+plan: PLAN-009
+estimate: M
+assumptions: []
+risks: []
+evidence: []
+variance_log: []

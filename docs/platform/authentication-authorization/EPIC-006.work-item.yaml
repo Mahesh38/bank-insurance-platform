@@ -1,0 +1,162 @@
+# schema: work-item
+id: EPIC-006
+title: "Authn/authz module design pack from Login BRD — HLD, sequences, API, algorithms"
+type: ARCH
+also: [DOC]
+breakdown: EPIC
+workstream: WS-2
+origin: ["SUG-20261005-amp"]
+owner: "Mahesh — Principal Insurance Platform Architect (R2)"
+risk_tier: T3
+state: IN-FLIGHT
+priority_now: P2
+priority_at_target: P1
+target_stage: "WS-2 Phase 1 GATE-IAM-P1 / login BRD catalogue"
+unpark_trigger: null
+
+outcome: >
+  Workforce login, OTP, lock, Unlock User and partner password have a BRD-traced
+  design pack (module HLD, sequences, API LLD + extended OpenAPI, flows and
+  algorithms) that engineers can implement against without treating Figma as
+  behaviour SSOT and without collapsing adapter/PDP into Keycloak.
+
+epic_triggers_met:
+  - multiple_stories
+  - multiple_components
+  - multiple_acceptance_outcomes
+  - multiple_dependencies
+
+completion_definition: >
+  HLD, sequences, API LLD, OpenAPI and algorithms agree with each other and with
+  the Login BRD, auth SSOT README, ADR-020/022 and ARCH-029 public login paths;
+  every BRD §4.1 row is IN / DEFER / OPEN; login-password on the BFF stays unpublished
+  (OPEN-AUTH-CEREMONY); Forgot Password / mPIN stay absent; human Board 1 / 4 / 6
+  signatures outstanding and not claimed. No runtime Java is required for
+  documentation-complete.
+
+not_included:
+  - "Runtime BFF / adapter / PDP / Flutter code"
+  - "Adding a public login-password API (ID-11 / OPEN-AUTH-CEREMONY)"
+  - "Rewriting ARCH-029 LLD or reversing ADR-022"
+  - "Forgot Password, mPIN, Bank RM password reset"
+  - "User-master onboarding (PDP maker-checker remains the partner create path)"
+  - "Resolving OPEN-AUTH-* without the named owner"
+  - "Human T4 Architecture / Security / Compliance signatures"
+  - "Retail-customer identity"
+  - "Fixing PARTNER_SR seed (SUG-20261002-psr)"
+
+stories:
+  - id: ARCH-029
+    title: "Workforce authn/authz LLD — adapter + PDP justification"
+    state: IN-FLIGHT
+    priority_now: P2
+    priority_at_target: P1
+  - id: ARCH-030
+    title: "Auth module HLD — boundaries, R0 cut, BRD map, open conflicts"
+    state: IN-FLIGHT
+    priority_now: P2
+    priority_at_target: P1
+  - id: ARCH-031
+    title: "Auth sequences — login OTP, lock, unlock, partner password"
+    state: IN-FLIGHT
+    priority_now: P2
+    priority_at_target: P1
+  - id: ARCH-032
+    title: "Auth module API LLD + OpenAPI extensions (no login-password body)"
+    state: IN-FLIGHT
+    priority_now: P2
+    priority_at_target: P1
+  - id: DOC-024
+    title: "Auth flows and algorithms (captcha, OTP, lock, unlock, password policy)"
+    state: IN-FLIGHT
+    priority_now: P2
+    priority_at_target: P1
+
+story_order:
+  - ARCH-029
+  - ARCH-030
+  - ARCH-031
+  - ARCH-032
+  - DOC-024
+
+serves:
+  - "GATE-IAM-P1 A.1"
+  - "IAM-P1"
+  - "Login_Module_BRD_Detailed (DOC-005)"
+  - "ARCH-029"
+  - "ADR-022"
+
+problem: >
+  ARCH-029 answered Keycloak-collapse and published OIDC/token-hiding contracts.
+  The Login BRD still has no module pack that maps Captcha, platform OTP, lock,
+  Unlock User and partner password onto those contracts. GATE-IAM-P1 A.1 would
+  invent Product semantics or add a forbidden BFF password field.
+
+description: >
+  Admit EPIC-006 on the WS-2 Mahesh lane. Publish 20..23 plus OpenAPI extensions.
+  Reuse ARCH-029 / ADR-022. Classify every BRD §4.1 row IN / DEFER / OPEN.
+  Do not implement services. Do not claim T4. Do not close ID-11.
+
+acceptance_criteria:
+  - id: AC-1
+    given: "20-auth-module-hld.md"
+    when: "BRD §4.1 rows are read"
+    then: "each row is IN, DEFER or OPEN with owner"
+  - id: AC-2
+    given: "ARCH-031 sequences"
+    when: "login OTP, lock, Bank RM unlock, partner set-password are walked"
+    then: "each hop names the owning deployable and OPEN-AUTH-CEREMONY is not treated as decided"
+  - id: AC-3
+    given: "workforce-access-bff.openapi.yaml"
+    when: "paths are listed"
+    then: "unlock, otp verify/resend, captcha, partner password exist AND no login-password body"
+  - id: AC-4
+    given: "DOC-024 algorithms"
+    when: "OTP and lock are implemented"
+    then: "pseudocode matches KBR-03/04/10 or cites an OPEN id"
+  - id: AC-5
+    given: "CURRENT-STATE.yaml"
+    when: "this change lands"
+    then: "only the EPIC id counter advances; no stage field is edited"
+
+out_of_scope:
+  - "Runtime services and Flutter"
+  - "Public login-password API"
+  - "Editing GATE-IAM-P1 / current_phase"
+
+dependencies:
+  blocked_by: []
+  requires:
+    - "docs/platform/authentication-authorization/README.md"
+    - "ARCH-029"
+    - "ADR-020"
+    - "ADR-022"
+    - "Login_Module_BRD_Detailed_CONTEXT.md"
+  enables:
+    - "GATE-IAM-P1 A.1 implementation"
+  related_to:
+    - "SUG-20261002-iap"
+    - "SUG-20260914-idp"
+    - "SUG-20260928-jvo"
+    - "SUG-20260928-brd"
+  external: []
+  decision_dependency:
+    - "OPEN-AUTH-CEREMONY"
+    - "OPEN-AUTH-MFA-STEPUP"
+    - "OPEN-AUTH-CAPTCHA"
+    - "OPEN-AUTH-SESSION"
+    - "OPEN-AUTH-BANK-LOCK"
+    - "ID-11"
+
+plan: PLAN-009
+estimate: L
+assumptions: []
+risks: []
+evidence: []
+variance_log: []
+
+progress:
+  stories_total: 5
+  stories_done: 0
+  completion_definition_met: false
+  evidence: []

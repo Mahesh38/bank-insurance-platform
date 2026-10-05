@@ -1,0 +1,71 @@
+# schema: work-item
+id: ARCH-031
+origin: ["SUG-20261005-amp"]
+title: "Auth sequences — login OTP, lock, unlock, partner password"
+type: ARCH
+also: [DOC]
+breakdown: STORY
+epic: EPIC-006
+workstream: WS-2
+owner: "Mahesh — Principal Insurance Platform Architect"
+risk_tier: T3
+
+serves:
+  - "EPIC-006"
+  - "BR-LOGIN-*"
+  - "BR-UNLOCK-*"
+  - "AC-001"
+  - "AC-010"
+
+problem: >
+  UC-01 describes OIDC hops that mint a session at callback. The Login BRD requires
+  Captcha, dual-channel OTP, lock and Unlock User. Without sequences, those hops
+  are invented per service.
+
+description: >
+  Publish 21-auth-module-sequences.md covering option A (admitted), option B
+  (OPEN), password lock, OTP, Bank RM unlock, partner set-password, logout and PEP.
+
+acceptance_criteria:
+  - id: AC-1
+    given: "sequence §1"
+    when: "callback completes"
+    then: "the client receives PENDING_OTP, not an authenticated dashboard session"
+  - id: AC-2
+    given: "sequence §2"
+    when: "option B is drawn"
+    then: "it is labelled OPEN-AUTH-CEREMONY and not on the public contract"
+  - id: AC-3
+    given: "Bank RM unlock"
+    when: "OTP succeeds"
+    then: "password is unchanged and the user returns to login"
+
+out_of_scope:
+  - "Runtime sequence changes"
+  - "Human T4 signature"
+
+state: IN-FLIGHT
+priority_now: P2
+priority_at_target: P1
+target_stage: null
+unpark_trigger: null
+
+dependencies:
+  blocked_by: []
+  requires:
+    - "ARCH-030"
+  enables:
+    - "ARCH-032"
+  related_to:
+    - "EPIC-006"
+    - "UC-01"
+  external: []
+  decision_dependency:
+    - "OPEN-AUTH-CEREMONY"
+
+plan: PLAN-009
+estimate: M
+assumptions: []
+risks: []
+evidence: []
+variance_log: []

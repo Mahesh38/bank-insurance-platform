@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20261005-amp | 2026-10-05 | human:architect | Create complete authentication and authorisation module design docs (HLD, sequences, API, flows, algorithms) from the Login BRD | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [EPIC-006](../../platform/authentication-authorization/EPIC-006.work-item.yaml) · [PLAN-009](../plans/PLAN-009-auth-module-design-pack.md) · [HLD](../../platform/authentication-authorization/20-auth-module-hld.md) · [detail](#sug-20261005-amp--auth-module-design-pack-from-login-brd) |
 | SUG-20261002-iap | 2026-10-02 | human:Mahesh | Design LLD + Confluence pack for workforce authn/authz: justify identity-provider-adapter-service and PDP vs Keycloak-only; implementation-ready process | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [ARCH-029](../../platform/authentication-authorization/ARCH-029.work-item.yaml) · [PLAN-008](../plans/PLAN-008-authn-authz-lld.md) · [LLD](../../platform/authentication-authorization/AUTHN-AUTHZ-LLD.md) · [ADR-022](../../platform/architecture-review/08-architecture-decision-log.md) · [detail](#sug-20261002-iap--authnauthz-lld-adapter-and-pdp-vs-keycloak) |
 | SUG-20261002-psr | 2026-10-02 | agent:cursor (persona: Mahesh) | PARTNER_SR seed grants proposal.create and proposal.submit, contradicting IPR assist-only (ID-15b / VR-041) | SF1 | SC0 | MUST | BUG | P2 / P1 | ADMITTED | slice A.3 of [ARCH-029](../../platform/authentication-authorization/ARCH-029.work-item.yaml) · [detail](#sug-20261002-psr--partner_sr-seed-must-not-grant-regulated-sales) |
 | SUG-20260930-ola | 2026-09-30 | human:Rajal | OPEN-LEAD-ACTOR: Lead may be created by anyone (workforce); post-create must assign certified-SP RM | SF2 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [D-018](../../au-bank-insurance-platform/DECISION-LOG.md) · [ADR-021](../../platform/architecture-review/08-architecture-decision-log.md) · [EPIC-005](../../platform/ws3-platform/EPIC-005.work-item.yaml) · [detail](#sug-20260930-ola--lead-create-by-workforce--mandatory-sp-assignee) |
@@ -132,6 +133,131 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20261005-amp · auth module design pack from Login BRD
+
+```yaml
+# schema: triage-record
+id: SUG-20261005-amp
+raised_at: "2026-10-05"
+raised_by: "human:architect"
+source: "Cloud agent task — architect design documents for authentication and authorisation from Login BRD"
+input: >
+  Act as architect , start creating documents for the authentication and
+  authorisation module from scratch where we will design complete module
+  document as per the brd we have. Let’s create all the design documents,
+  sequence documents, api documents and flow and algorithm.
+
+context:
+  workstream: WS-2
+  current_phase: "Phase 1 — Foundation implementation"
+  canonical_stage: "L4/L6 — Foundation into first vertical slice"
+  current_objective: "IAM-P1"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: ARCH-029
+
+stage_fit:
+  code: SF1
+  rationale: >
+    WS-2 is on L4/L6 Foundation into first vertical slice. A BRD-traced Login
+    module pack (HLD, sequences, API, algorithms) is on-stage for GATE-IAM-P1
+    A.1. Not Phase 2 IdP product selection. Not a rewrite of ARCH-029.
+    FreshnessCheck 2026-10-05 exit 0.
+
+scope:
+  code: SC0
+  business_scope: >
+    Explicit WS-2 in_scope: token-hiding BFF, provider-neutral adapter, PDP,
+    workforce + partner login. Login BRD is DOC-005 behaviour SSOT.
+  serves: ["GATE-IAM-P1 A.1", "IAM-P1", "ARCH-029"]
+  failure_without_it: >
+    GATE-IAM-P1 A.1 invents Captcha/OTP/Unlock User or adds a forbidden BFF
+    login-password field contrary to ID-11.
+  minimal: true
+  authority: "CURRENT-STATE WS-2 · Login_Module_BRD_Detailed · authentication-authorization/README.md"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "WS-2 Phase 1 GATE-IAM-P1"
+  binds_when: "A.1 token-hiding login plus Login BRD OTP / lock / Unlock User"
+  failure_without_it: >
+    Implementers invent BRD catalogue behaviour or collapse ceremony into a
+    public password API that violates ID-11 and standing token-hiding.
+  evidence_tier: E2
+  evidence:
+    - "Login_Module_BRD_Detailed_CONTEXT.md"
+    - "LOGIN-BFF-FIGMA-EVALUATION.md §4"
+    - "BOOT WS-2 IAM-P1 and standing constraints"
+    - "ARCH-029 / ADR-022 already published; BRD catalogue still unmapped"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT
+action_rationale: >
+  SF1 x MUST = ADMIT. Score 2N+2S+2B+2R+D-E = 4+4+2+2+1-1 = 12 → P2.
+  Not a duplicate of SUG-20261002-iap (Keycloak-collapse LLD) or
+  SUG-20260914-idp (AD-verify / Fireframe chrome). Request said "from scratch"
+  vs existing ARCH-029 → reuse LLD/OpenAPI/ADR-022; new BRD module pack only.
+  Documents only. G1 considered, did not fire (RG-6).
+duplicate_of: null
+conflicts:
+  - "Request said from scratch vs ARCH-029 / ADR-022 → reuse, do not delete"
+  - "UC-01 callback mints AUTHENTICATED vs BRD OTP-before-dashboard → named UC-01 delta"
+  - "ID-11 A vs B login-password host → OPEN-AUTH-CEREMONY"
+
+classification:
+  type: ARCH
+  also: [DOC]
+  breakdown: EPIC
+  epic: EPIC-006
+  risk_tier: T3
+  destination: "docs/platform/authentication-authorization/EPIC-006.work-item.yaml"
+
+priority:
+  now: P2
+  at_target: P1
+  factors: { N: 2, S: 2, B: 1, R: 1, D: 1, E: 1 }
+  score: 12
+  matrix_default: P2
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "GATE-IAM-P1 A.1 cannot be evidenced without a BRD-traced login pack"
+
+dependencies:
+  edges:
+    - { type: ARCHITECTURAL, target: ARCH-029, relation: requires, state: IN-FLIGHT }
+    - { type: DECISION, target: ADR-022, relation: requires, state: OPEN }
+    - { type: DECISION, target: ID-11, relation: related_to, state: OPEN }
+  state: READY
+  enablement_count: 1
+  earliest_start: "now"
+  cycles: none
+
+breakdown:
+  children: ["ARCH-030", "ARCH-031", "ARCH-032", "DOC-024"]
+  completion_definition: "HLD + sequences + API + algorithms drafted; runtime is later GATE slices"
+  not_included:
+    - "Runtime Java"
+    - "Public login-password API"
+    - "Human T4 signatures"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: EPIC-006
+  plan_id: PLAN-009
+  status: ADMITTED
+  closed_reason: null
+
+resumed: "EPIC-006 — this intake is the work item for the lane."
+```
 
 ### SUG-20261002-iap · authn/authz LLD, adapter and PDP vs Keycloak
 

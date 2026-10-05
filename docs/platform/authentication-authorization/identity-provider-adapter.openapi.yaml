@@ -7,13 +7,16 @@ info:
     Cluster-private. Flutter, API Gateway and business services never call these paths.
     Provider tokens appear here because the BFF is the only caller of token operations;
     they must never be forwarded to a device.
-    Status: AI-DRAFTED — ARCH-029 / PLAN-008.
+    Status: AI-DRAFTED — ARCH-029 / EPIC-006 / PLAN-009.
+    Additive captcha, OTP and AD-verify paths. AD-verify is BFF-private; public login-password remains OPEN-AUTH-CEREMONY.
 servers:
   - url: http://identity-provider-adapter-service.platform.svc.cluster.local:8082
     description: Cluster DNS (illustrative)
 tags:
   - name: Auth
   - name: Identities
+  - name: Challenges
+  - name: Otp
 paths:
   /internal/v1/auth/authorization-uri:
     post:
@@ -159,6 +162,123 @@ paths:
           description: Action requested
         '404':
           $ref: '#/components/responses/Problem'
+  /internal/v1/captcha/challenges:
+    post:
+      tags: [Challenges]
+      operationId: issueCaptchaChallenge
+      summary: Create a one-time captcha challenge
+      responses:
+        '201':
+          description: Challenge
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaptchaChallenge'
+        '503':
+          $ref: '#/components/responses/Problem'
+  "/internal/v1/captcha/challenges/{captchaId}:verify":
+    post:
+      tags: [Challenges]
+      operationId: verifyCaptchaChallenge
+      parameters:
+        - name: captchaId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CaptchaVerifyRequest'
+      responses:
+        '204':
+          description: Consumed and matched
+        '400':
+          $ref: '#/components/responses/Problem'
+  /internal/v1/otp/sessions:
+    post:
+      tags: [Otp]
+      operationId: issueOtpSession
+      summary: Generate a 6-digit OTP, hash it, send the same value to mobile and email
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OtpIssueRequest'
+      responses:
+        '201':
+          description: OTP session. Value is never returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OtpIssueResponse'
+        '503':
+          $ref: '#/components/responses/Problem'
+  "/internal/v1/otp/sessions/{otpSessionId}:verify":
+    post:
+      tags: [Otp]
+      operationId: verifyOtpSession
+      parameters:
+        - name: otpSessionId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OtpVerifyRequest'
+      responses:
+        '204':
+          description: Consumed
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+  "/internal/v1/otp/sessions/{otpSessionId}:resend":
+    post:
+      tags: [Otp]
+      operationId: resendOtpSession
+      parameters:
+        - name: otpSessionId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '204':
+          description: Previous OTP invalid; new OTP sent
+        '429':
+          $ref: '#/components/responses/Problem'
+  /internal/v1/auth/ad-verify:
+    post:
+      tags: [Auth]
+      operationId: adVerify
+      summary: Verify Bank RM credentials via Apigee AD-verify. BFF-private. Not a public BFF path (OPEN-AUTH-CEREMONY).
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdVerifyRequest'
+      responses:
+        '200':
+          description: Verification result. Password is never echoed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdVerifyResponse'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '423':
+          $ref: '#/components/responses/Problem'
 components:
   parameters:
     IdempotencyKey:
@@ -256,6 +376,72 @@ components:
         action:
           type: string
           enum: [UPDATE_PASSWORD, VERIFY_EMAIL, CONFIGURE_TOTP]
+        newPassword:
+          type: string
+          description: Partner set-password only. Never logged. Omit for VERIFY_EMAIL / CONFIGURE_TOTP.
+    CaptchaChallenge:
+      type: object
+      required: [captchaId, imageMediaType, imageBase64, expiresInSeconds]
+      additionalProperties: false
+      properties:
+        captchaId: { type: string }
+        imageMediaType: { type: string }
+        imageBase64: { type: string }
+        expiresInSeconds: { type: integer, format: int64 }
+    CaptchaVerifyRequest:
+      type: object
+      required: [answer]
+      additionalProperties: false
+      properties:
+        answer: { type: string }
+    OtpIssueRequest:
+      type: object
+      required: [purpose, businessUserId]
+      additionalProperties: false
+      properties:
+        purpose:
+          type: string
+          enum: [LOGIN, UNLOCK]
+        businessUserId:
+          type: string
+          format: uuid
+        parentSessionId: { type: string }
+    OtpIssueResponse:
+      type: object
+      required: [otpSessionId, maskedMobile, maskedEmail, expiresInSeconds]
+      additionalProperties: false
+      properties:
+        otpSessionId: { type: string }
+        maskedMobile: { type: string }
+        maskedEmail: { type: string }
+        expiresInSeconds: { type: integer, format: int64 }
+    OtpVerifyRequest:
+      type: object
+      required: [otp]
+      additionalProperties: false
+      properties:
+        otp:
+          type: string
+          pattern: '^[0-9]{6}$'
+    AdVerifyRequest:
+      type: object
+      required: [employeeId, password]
+      additionalProperties: false
+      description: Cluster-private. Password never logged or persisted.
+      properties:
+        employeeId: { type: string }
+        password: { type: string }
+    AdVerifyResponse:
+      type: object
+      required: [result]
+      additionalProperties: false
+      properties:
+        result:
+          type: string
+          enum: [AUTHENTICATED, DENIED, LOCKED, INACTIVE]
+        remainingPasswordAttempts:
+          type: integer
+          nullable: true
     ServiceErrorResponse:
       type: object
       required: [type, title, status, detail, category, code]

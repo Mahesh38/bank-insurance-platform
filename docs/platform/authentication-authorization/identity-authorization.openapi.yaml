@@ -6,7 +6,8 @@ info:
     Business source of truth for workforce authorization. Cluster-private.
     Keycloak is not a caller and not a substitute. PEPs are the BFF and each domain service.
     Timeout budget for /authorization/decisions is 300 ms with no retry (UC-05 / S-02).
-    Status: AI-DRAFTED — ARCH-029 / PLAN-008. Reason codes are UC-05 normative names.
+    Status: AI-DRAFTED — ARCH-029 / EPIC-006 / PLAN-009. Reason codes are UC-05 normative names.
+    Additive account-state / lock / password-metadata for the Login BRD. Passwords are never stored here.
 servers:
   - url: http://identity-authorization-service.platform.svc.cluster.local:8083
     description: Cluster DNS (illustrative)
@@ -53,6 +54,94 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResolvedIdentityResponse'
           description: Business identity
+        '404':
+          $ref: '#/components/responses/Problem'
+  /internal/v1/identities/{identityId}/account-state:
+    get:
+      tags: [Identities]
+      operationId: getAccountState
+      summary: Lock overlay, last login, password metadata — never the password
+      parameters:
+        - name: identityId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountState'
+          description: Account state
+        '404':
+          $ref: '#/components/responses/Problem'
+  /internal/v1/identities/{identityId}/password-failures:
+    post:
+      tags: [Identities]
+      operationId: recordPasswordFailure
+      summary: Increment consecutive incorrect password count; lock at 3
+      parameters:
+        - name: identityId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountState'
+          description: Updated counters
+        '404':
+          $ref: '#/components/responses/Problem'
+  /internal/v1/identities/{identityId}/unlock:
+    post:
+      tags: [Identities]
+      operationId: unlockIdentity
+      summary: Clear FAILED_PASSWORD / INACTIVITY overlay after Unlock User OTP
+      parameters:
+        - name: identityId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UnlockIdentityRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountState'
+          description: Unlocked
+        '403':
+          $ref: '#/components/responses/Problem'
+  /internal/v1/identities/{identityId}/password-metadata:
+    post:
+      tags: [Identities]
+      operationId: setPasswordMetadata
+      summary: Record partner passwordExists and 60-day expiry. Never accepts the password.
+      parameters:
+        - name: identityId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordMetadataRequest'
+      responses:
+        '204':
+          description: Metadata updated
         '404':
           $ref: '#/components/responses/Problem'
   /internal/v1/partner-users:
@@ -320,6 +409,53 @@ components:
           type: string
           format: uuid
         targetStatus: { type: string }
+    AccountState:
+      type: object
+      required: [identityId, lock, consecutiveIncorrectPassword, passwordExists]
+      additionalProperties: false
+      properties:
+        identityId:
+          type: string
+          format: uuid
+        lock:
+          type: string
+          enum: [NONE, FAILED_PASSWORD, INACTIVITY]
+        lockedAt:
+          type: string
+          format: date-time
+          nullable: true
+        consecutiveIncorrectPassword:
+          type: integer
+        lastSuccessfulLoginAt:
+          type: string
+          format: date-time
+          nullable: true
+        passwordExists:
+          type: boolean
+        passwordExpiresAt:
+          type: string
+          format: date-time
+          nullable: true
+        remainingPasswordAttempts:
+          type: integer
+    UnlockIdentityRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        reasons:
+          type: array
+          items:
+            type: string
+            enum: [FAILED_PASSWORD, INACTIVITY, EXPIRED_PASSWORD]
+    PasswordMetadataRequest:
+      type: object
+      required: [passwordExists]
+      additionalProperties: false
+      properties:
+        passwordExists: { type: boolean }
+        expiresAt:
+          type: string
+          format: date-time
     ServiceErrorResponse:
       type: object
       required: [type, title, status, detail, category, code]

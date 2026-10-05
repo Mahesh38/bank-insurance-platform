@@ -5,7 +5,9 @@ info:
   description: |
     Public (Gateway) contract for NIP-APP. Flutter never receives OAuth tokens.
     NIP-APP source is not in this repository (DOC-006). Behaviour SSOT is the Login BRD.
-    Status: AI-DRAFTED — ARCH-029 / PLAN-008. Human Board 1 / 4 signatures outstanding.
+    Status: AI-DRAFTED — ARCH-029 / EPIC-006 / PLAN-009. Human Board 1 / 4 signatures outstanding.
+    Login BRD catalogue (captcha, OTP, unlock, partner password) is additive.
+    LoginRequest still has no password field (OPEN-AUTH-CEREMONY / ID-11).
 servers:
   - url: https://api.{env}.example.bank/workforce
     description: Public Gateway base (illustrative)
@@ -126,6 +128,157 @@ paths:
           description: Session deleted; cookie expired
         '401':
           $ref: '#/components/responses/Problem'
+  /api/v1/auth/captcha:
+    post:
+      tags: [Auth]
+      operationId: issueCaptcha
+      summary: Issue a one-time captcha challenge (Login BRD §7.1)
+      responses:
+        '200':
+          description: Challenge image and id. Answer is never logged.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaptchaChallenge'
+        '503':
+          $ref: '#/components/responses/Problem'
+  "/api/v1/auth/otp:verify":
+    post:
+      tags: [Auth]
+      operationId: verifyLoginOtp
+      summary: Verify login OTP and upgrade PENDING_OTP to AUTHENTICATED
+      parameters:
+        - $ref: '#/components/parameters/CsrfHeader'
+        - $ref: '#/components/parameters/SessionHandle'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OtpVerifyRequest'
+      responses:
+        '200':
+          description: Authenticated session. No provider tokens in the body.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+  "/api/v1/auth/otp:resend":
+    post:
+      tags: [Auth]
+      operationId: resendLoginOtp
+      summary: Resend login OTP after two minutes; max three per session
+      parameters:
+        - $ref: '#/components/parameters/CsrfHeader'
+        - $ref: '#/components/parameters/SessionHandle'
+      responses:
+        '204':
+          description: New OTP sent to registered mobile and email
+        '429':
+          $ref: '#/components/responses/Problem'
+  /api/v1/auth/unlock:
+    post:
+      tags: [Auth]
+      operationId: startUnlock
+      summary: Start Unlock User — identifier + captcha, no password
+      parameters:
+        - $ref: '#/components/parameters/CsrfHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UnlockRequest'
+      responses:
+        '200':
+          description: PENDING_UNLOCK; masked destinations only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnlockChallengeResponse'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+  "/api/v1/auth/unlock/otp:verify":
+    post:
+      tags: [Auth]
+      operationId: verifyUnlockOtp
+      summary: Complete unlock OTP; may require partner password next
+      parameters:
+        - $ref: '#/components/parameters/CsrfHeader'
+        - $ref: '#/components/parameters/SessionHandle'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OtpVerifyRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnlockCompleteResponse'
+          description: Return-to-login or SET_PASSWORD
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+  /api/v1/auth/partner/password:
+    post:
+      tags: [Auth]
+      operationId: setPartnerPassword
+      summary: Partner-only password create/reset after unlock OTP (BR-PWD-001). Does not log the caller in.
+      parameters:
+        - $ref: '#/components/parameters/CsrfHeader'
+        - $ref: '#/components/parameters/SessionHandle'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartnerPasswordRequest'
+      responses:
+        '204':
+          description: Password set; unlock session destroyed; user must log in
+        '400':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+  /api/v1/auth/help:
+    get:
+      tags: [Auth]
+      operationId: getHelp
+      summary: Platform support contact (OPEN-AUTH-HELP)
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HelpResponse'
+          description: IT-supplied copy
+        '503':
+          $ref: '#/components/responses/Problem'
+  /api/v1/auth/unlock-guide:
+    get:
+      tags: [Auth]
+      operationId: getUnlockGuide
+      summary: Downloadable Unlock User guide PDF (OPEN-AUTH-HELP)
+      responses:
+        '200':
+          description: PDF bytes
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '503':
+          $ref: '#/components/responses/Problem'
 components:
   parameters:
     CsrfHeader:
@@ -210,6 +363,10 @@ components:
         userType:
           type: string
           enum: [BANK_EMPLOYEE, INSURER_REPRESENTATIVE]
+        sessionState:
+          type: string
+          enum: [PENDING_OTP, AUTHENTICATED]
+          description: Callback yields PENDING_OTP; OTP verify yields AUTHENTICATED (Login BRD SEC-006).
         status:
           type: string
           enum: [PENDING, ACTIVE, SUSPENDED, DISABLED, EXPIRED]
@@ -219,6 +376,77 @@ components:
         insurerCode:
           type: string
           nullable: true
+        maskedMobile:
+          type: string
+          nullable: true
+        maskedEmail:
+          type: string
+          nullable: true
+    CaptchaChallenge:
+      type: object
+      required: [captchaId, imageMediaType, imageBase64, expiresInSeconds]
+      additionalProperties: false
+      properties:
+        captchaId: { type: string }
+        imageMediaType: { type: string }
+        imageBase64: { type: string }
+        expiresInSeconds: { type: integer, format: int64 }
+    OtpVerifyRequest:
+      type: object
+      required: [otp]
+      additionalProperties: false
+      properties:
+        otp:
+          type: string
+          pattern: '^[0-9]{6}$'
+    UnlockRequest:
+      type: object
+      required: [userType, loginId, captchaId, captchaAnswer]
+      additionalProperties: false
+      properties:
+        userType:
+          type: string
+          enum: [BANK_RM, PARTNER]
+        loginId: { type: string }
+        captchaId: { type: string }
+        captchaAnswer: { type: string }
+        intent:
+          type: string
+          enum: [UNLOCK, RESET_PASSWORD]
+          description: Partner only. Table 14 — UX may infer from account state.
+    UnlockChallengeResponse:
+      type: object
+      required: [unlockSessionId, maskedMobile, maskedEmail, expiresInSeconds]
+      additionalProperties: false
+      properties:
+        unlockSessionId: { type: string }
+        maskedMobile: { type: string }
+        maskedEmail: { type: string }
+        expiresInSeconds: { type: integer, format: int64 }
+    UnlockCompleteResponse:
+      type: object
+      required: [next, message]
+      additionalProperties: false
+      properties:
+        next:
+          type: string
+          enum: [RETURN_TO_LOGIN, SET_PASSWORD]
+        message: { type: string }
+    PartnerPasswordRequest:
+      type: object
+      required: [newPassword, confirmPassword]
+      additionalProperties: false
+      description: Partner only. Never logged. Bank RM callers receive 403.
+      properties:
+        newPassword: { type: string, minLength: 8, maxLength: 20 }
+        confirmPassword: { type: string, minLength: 8, maxLength: 20 }
+    HelpResponse:
+      type: object
+      required: [supportContact]
+      additionalProperties: false
+      properties:
+        supportContact: { type: string }
+        supportHours: { type: string }
     ServiceErrorResponse:
       type: object
       required: [type, title, status, detail, category, code]

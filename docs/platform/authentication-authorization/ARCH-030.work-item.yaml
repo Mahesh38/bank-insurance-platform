@@ -1,0 +1,74 @@
+# schema: work-item
+id: ARCH-030
+origin: ["SUG-20261005-amp"]
+title: "Auth module HLD — boundaries, R0 cut, BRD→architecture map"
+type: ARCH
+also: [DOC]
+breakdown: STORY
+epic: EPIC-006
+workstream: WS-2
+owner: "Mahesh — Principal Insurance Platform Architect"
+risk_tier: T3
+
+serves:
+  - "EPIC-006"
+  - "GATE-IAM-P1 A.1"
+  - "Login_Module_BRD_Detailed"
+
+problem: >
+  Login BRD describes a module; platform architecture already has token-hiding BFF,
+  adapter and PDP. Without an HLD that maps BRD→R0 cut and names ceremony conflicts,
+  implementers invent a BFF password API or skip Unlock User.
+
+description: >
+  Publish 20-auth-module-hld.md: context boundaries, session states, R0 in/out from
+  the Login BRD, integration map, and OPEN-AUTH-* conflicts. Reuse ARCH-029 / ADR-022.
+
+acceptance_criteria:
+  - id: AC-1
+    given: "20-auth-module-hld.md"
+    when: "BRD §4.1 in-scope rows are read"
+    then: "each row is IN, DEFER or OPEN with owner"
+  - id: AC-2
+    given: "the HLD"
+    when: "Forgot Password or mPIN is mentioned"
+    then: "it is explicitly out and cites the Login BRD / D-012"
+  - id: AC-3
+    given: "ID-11 A vs B"
+    when: "the conflict is examined"
+    then: "OPEN-AUTH-CEREMONY is recorded; no silent resolution"
+
+out_of_scope:
+  - "Service implementation"
+  - "Human T4 signature"
+  - "Rewriting ADR-022"
+
+state: IN-FLIGHT
+priority_now: P2
+priority_at_target: P1
+target_stage: null
+unpark_trigger: null
+
+dependencies:
+  blocked_by: []
+  requires:
+    - "ARCH-029"
+    - "ADR-022"
+    - "Login_Module_BRD_Detailed_CONTEXT.md"
+  enables:
+    - "ARCH-031"
+    - "ARCH-032"
+    - "DOC-024"
+  related_to:
+    - "EPIC-006"
+  external: []
+  decision_dependency:
+    - "OPEN-AUTH-CEREMONY"
+    - "ID-11"
+
+plan: PLAN-009
+estimate: M
+assumptions: []
+risks: []
+evidence: []
+variance_log: []

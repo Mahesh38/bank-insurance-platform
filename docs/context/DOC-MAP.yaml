@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 653
-total_bytes: 21095358
+document_count: 659
+total_bytes: 21204939
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -1405,7 +1405,7 @@ documents:
     persona: architecture
     title: "Architecture diagrams"
     answers: "Two diagrams, deliberately. They answer different questions and neither replaces the other."
-    bytes: 32900
+    bytes: 33974
   - path: docs/architecture/arb-prerequisites/CIS-CLASSIFICATION-PROPOSAL.md
     bucket: platform
     authority: ai-drafted
@@ -2197,7 +2197,7 @@ documents:
     persona: null
     title: "AGENT CONTEXT INDEX"
     answers: "============================================================================="
-    bytes: 50146
+    bytes: 50528
   - path: docs/context/BOOT.md
     bucket: context
     authority: non-binding-context
@@ -2213,7 +2213,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 230484
+    bytes: 232526
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -4094,6 +4094,14 @@ documents:
     title: "PLAN-007 — Lead module (#5) R0 design pack"
     answers: "Sections: Board notes (agent self-review — not T4)"
     bytes: 5396
+  - path: docs/governance/plans/PLAN-008-authn-authz-lld.md
+    bucket: governance
+    authority: binding-process
+    capsules: [delivery-planning, plan-work]
+    persona: delivery
+    title: "PLAN-008 — Workforce authn/authz LLD and Keycloak-collapse decision"
+    answers: "Sections: Board notes (agent self-review — not T4)"
+    bytes: 6325
   - path: docs/governance/plans/PLAN-EPIC-002-life-lob-adapter.md
     bucket: governance
     authority: binding-process
@@ -4149,7 +4157,7 @@ documents:
     persona: null
     title: "Suggestion Register"
     answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 315215
+    bytes: 320054
   - path: docs/governance/runbooks/AUTOPILOT-FAILURE-RUNBOOK.md
     bucket: governance
     authority: binding-process
@@ -4389,7 +4397,7 @@ documents:
     persona: null
     title: "CURRENT STATE"
     answers: "AIGEM — Machine-readable current state"
-    bytes: 42235
+    bytes: 42239
   - path: docs/governance/state/GATE-EVIDENCE.yaml
     bucket: governance
     authority: binding-process
@@ -4709,7 +4717,7 @@ documents:
     persona: architecture
     title: "Platform — cross-cutting architecture & specifications"
     answers: "A document belongs in platform/ when it is true of the platform as a whole — service"
-    bytes: 4537
+    bytes: 4672
   - path: docs/platform/architecture-review/01-executive-summary-and-approach.md
     bucket: platform
     authority: approved-spec
@@ -4790,6 +4798,22 @@ documents:
     title: "Architecture Review — AU Bank Insurance Distribution Platform"
     answers: "Role: Solution Architect independent review"
     bytes: 5013
+  - path: docs/platform/authentication-authorization/ARCH-029.work-item.yaml
+    bucket: platform
+    authority: approved-spec
+    capsules: [security-review, architecture-review, code-change]
+    persona: security
+    title: "ARCH 029.work item"
+    answers: "schema: work-item"
+    bytes: 3030
+  - path: docs/platform/authentication-authorization/AUTHN-AUTHZ-LLD.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [security-review, architecture-review, code-change]
+    persona: security
+    title: "Workforce Authentication & Authorization — LLD and implementation pack"
+    answers: "Origin: SUG-20261002-iap · ARCH-029 · PLAN-008 · ADR-022"
+    bytes: 46629
   - path: docs/platform/authentication-authorization/README.md
     bucket: platform
     authority: approved-spec
@@ -4797,7 +4821,31 @@ documents:
     persona: security
     title: "Workforce Authentication and Authorization — Service SSOT"
     answers: "Primary identity provider for development: Keycloak (partners; workforce AD-verify is the bank API)"
-    bytes: 20667
+    bytes: 21074
+  - path: docs/platform/authentication-authorization/identity-authorization.openapi.yaml
+    bucket: platform
+    authority: approved-spec
+    capsules: [security-review, architecture-review, code-change]
+    persona: security
+    title: "identity authorization.openapi"
+    answers: "YAML record; first key `openapi`"
+    bytes: 15053
+  - path: docs/platform/authentication-authorization/identity-provider-adapter.openapi.yaml
+    bucket: platform
+    authority: approved-spec
+    capsules: [security-review, architecture-review, code-change]
+    persona: security
+    title: "identity provider adapter.openapi"
+    answers: "YAML record; first key `openapi`"
+    bytes: 14605
+  - path: docs/platform/authentication-authorization/workforce-access-bff.openapi.yaml
+    bucket: platform
+    authority: approved-spec
+    capsules: [security-review, architecture-review, code-change]
+    persona: security
+    title: "workforce access bff.openapi"
+    answers: "YAML record; first key `openapi`"
+    bytes: 15056
   - path: docs/platform/data-architecture/00-design-rules.md
     bucket: platform
     authority: ai-drafted

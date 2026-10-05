@@ -23,6 +23,8 @@ This document is the single source of truth for workforce authentication and aut
 
 **Implementation LLD (Confluence pack):** [`AUTHN-AUTHZ-LLD.md`](./AUTHN-AUTHZ-LLD.md) — justification for keeping `identity-provider-adapter-service` and the PDP even though Keycloak is present (`ADR-022`), plus OpenAPI and GATE-IAM-P1 slices. Invariants stay in this README; the LLD does not relax them.
 
+**Login BRD module pack (`EPIC-006`):** [`20-auth-module-hld.md`](./20-auth-module-hld.md) · [`21-auth-module-sequences.md`](./21-auth-module-sequences.md) · [`22-auth-module-api-lld.md`](./22-auth-module-api-lld.md) · [`23-auth-module-flows-and-algorithms.md`](./23-auth-module-flows-and-algorithms.md). Behaviour SSOT is the Login BRD (`DOC-005`). Does not add a public login-password body (`ID-11`).
+
 ## 1. Accepted decisions
 
 1. Flutter communicates only with a workforce BFF. Keycloak, Cognito, Active Directory, and internal identity services are never exposed directly to Flutter.

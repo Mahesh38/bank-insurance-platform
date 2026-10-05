@@ -1,0 +1,146 @@
+# schema: work-item
+id: EPIC-006
+title: "NIP BFF Lead module runtime slice — REST APIs, org lookups, assign+exception, CBS token holder"
+type: FUNC
+also: [ARCH]
+breakdown: EPIC
+workstream: WS-3
+origin: ["SUG-20261005-lbf"]
+owner: "Amit — Technical Head (R3); lane amit-nip-bff-lead"
+risk_tier: T3
+state: IN-FLIGHT
+priority_now: P3
+priority_at_target: P1
+target_stage: "S08 contract + SF5 runtime scaffold / S11-E02 live CBS and PDP"
+unpark_trigger: null
+
+outcome: >
+  Workforce BFF exposes REST Lead-module APIs NIP-APP needs for search, country-code
+  mobile validation, branch/vertical/SP/RM lookup, create, pipeline and assign
+  (with exceptionRequired). Lead service mints ULID leadIds (D-020) and projects
+  dashboard stages (D-021). Customer service shares one Apigee token (no fetch stampede).
+  Live CBS/Apigee and PDP grants stay out.
+
+epic_triggers_met:
+  - multiple_stories
+  - multiple_components
+  - multiple_acceptance_outcomes
+  - multiple_dependencies
+
+completion_definition: >
+  BFF OpenAPI contains country-codes, organisation lookups and assignment;
+  BFF, lead-service and customer-service tests prove create/assign/search/token
+  single-flight; D-020 and D-021 recorded. Human Board 1/4 signatures outstanding
+  and not claimed.
+
+not_included:
+  - "Live Apigee client-credentials against bank CBS (S09 / DEP-20260914-apg)"
+  - "Physical Flyway Lead schema (SUG-20260825-db1 / S09)"
+  - "Campaign / bulk origination"
+  - "Meeting SMS / completion"
+  - "IPR create runtime (OPEN-COMP-LEAD-IPR-CREATE)"
+  - "Quote, proposal, payment, suitability APIs"
+  - "PDP object-level grants beyond session presence (WS-2 A.3)"
+  - "Human T4 Architecture / Security / Compliance signatures"
+  - "Editing GATE-S08 / current_phase"
+
+stories:
+  - id: FUNC-029
+    title: "NIP BFF Lead REST APIs — country-codes, organisation, pipeline, create, assign"
+    state: IN-FLIGHT
+    priority_now: P3
+    priority_at_target: P1
+  - id: FUNC-030
+    title: "Lead service create / onboard / assign with ULID identity and stage projection"
+    state: IN-FLIGHT
+    priority_now: P3
+    priority_at_target: P1
+  - id: FUNC-031
+    title: "Customer search stub + single-flight Apigee token holder"
+    state: IN-FLIGHT
+    priority_now: P3
+    priority_at_target: P1
+
+story_order:
+  - FUNC-030
+  - FUNC-031
+  - FUNC-029
+
+serves:
+  - "CURRENT-STATE.yaml WS-3 in_scope Lead service (context #5) and RM Workspace BFF (context #2)"
+  - "Lead_Module_BRD_Detailed Screens 1–7"
+  - "S11-E02"
+  - "EPIC-003 public edge"
+  - "EPIC-005 internal seams"
+
+problem: >
+  EPIC-003/005 published contracts. workforce-access-bff still only served login.
+  NIP-APP cannot complete Lead without country-code validation, org lookups,
+  assign+exception, and a CBS search hop that does not race on tokens.
+
+description: >
+  Admit as SF5 on lane amit-nip-bff-lead so GATE-S08 is not delayed. Implement
+  REST BFF paths, thin Lead and Customer services with in-memory/stub adapters,
+  and a lock-guarded Apigee token holder. Reuse EPIC-003 naming; do not wrap
+  success bodies. Record D-020 / D-021 as Rajal product closures.
+
+acceptance_criteria:
+  - id: AC-1
+    given: "an authenticated BFF session"
+    when: "GET /api/v1/country-codes"
+    then: "India +91 with min/max 10 and regex ^[6-9]\\d{9}$ is returned"
+  - id: AC-2
+    given: "branch BR-MUM-001"
+    when: "GET /api/v1/branches/{id}/verticals and /specified-persons"
+    then: "nested collections are returned; unknown branch is 404"
+  - id: AC-3
+    given: "a saved lead"
+    when: "POST /api/v1/leads/{id}/assignment"
+    then: "the body includes exceptionRequired and does not assign on APPROVAL_REQUIRED"
+  - id: AC-4
+    given: "Lead.create"
+    when: "a lead is minted"
+    then: "leadId is a 26-char Crockford ULID and dashboardStage is NEW"
+  - id: AC-5
+    given: "16 threads requesting an expired Apigee token"
+    when: "currentAccessToken is called"
+    then: "the token client is invoked once"
+
+out_of_scope:
+  - "Live CBS / Apigee product onboarding"
+  - "Physical schema / Flyway Lead tables"
+  - "Flutter source"
+  - "Editing GATE-S08 stage fields"
+
+dependencies:
+  blocked_by: []
+  requires:
+    - "EPIC-003"
+    - "EPIC-005"
+    - "D-018"
+    - "D-019"
+    - "D-020"
+    - "D-021"
+    - "ADR-015"
+    - "ADR-017"
+    - "ADR-020"
+  enables:
+    - "S11-E02"
+    - "NIP-APP Lead screens"
+  related_to:
+    - "EPIC-003"
+    - "EPIC-005"
+    - "SUG-20260907-std"
+  external: []
+  decision_dependency:
+    - "D-020"
+    - "D-021"
+    - "OPEN-COMP-LEAD-IPR-CREATE"
+    - "OPEN-D1"
+
+plan: PLAN-009
+estimate: L
+assumptions: []
+risks: []
+evidence: []
+variance_log: []

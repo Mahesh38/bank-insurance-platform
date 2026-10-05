@@ -1,0 +1,64 @@
+# schema: work-item
+id: FUNC-031
+origin: SUG-20261005-lbf
+title: "Customer search stub + single-flight Apigee token holder"
+type: FUNC
+also: [NFR]
+breakdown: STORY
+epic: EPIC-006
+workstream: WS-3
+owner: "Amit — Technical Head (R3); lane amit-nip-bff-lead"
+risk_tier: T3
+
+serves:
+  - "EPIC-006"
+  - "ARCH-025"
+  - "Lead BRD Screen 1"
+
+problem: >
+  Customer search needs a CBS hop via Apigee. If every API fetches and stores
+  its own access token, concurrent calls race and start failing.
+
+description: >
+  Customer #4 owns a lock-guarded ApigeeAccessTokenHolder. All CBS inquiry
+  calls reuse one token. Local/test uses a stub token client and stub
+  directory. The BFF never holds CBS tokens.
+
+acceptance_criteria:
+  - id: AC-1
+    given: "16 concurrent callers and an empty cache"
+    when: "currentAccessToken is invoked"
+    then: "the token client fetches once"
+  - id: AC-2
+    given: "search by MOBILE"
+    when: "a hit is returned"
+    then: "mobile and CIF are masked; full values are not logged"
+
+out_of_scope:
+  - "Live Apigee /token and CBS inquiry URLs"
+  - "BFF-held CBS credentials"
+
+state: IN-FLIGHT
+priority_now: P3
+priority_at_target: P1
+target_stage: null
+unpark_trigger: null
+
+dependencies:
+  blocked_by: []
+  requires:
+    - "ADR-020"
+  enables:
+    - "FUNC-029"
+  related_to:
+    - "ARCH-025"
+  external:
+    - "DEP-20260914-apg"
+  decision_dependency: []
+
+plan: PLAN-009
+estimate: S
+assumptions: []
+risks: []
+evidence: []
+variance_log: []

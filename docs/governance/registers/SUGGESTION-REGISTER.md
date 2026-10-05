@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20261005-lbf | 2026-10-05 | human:stakeholder | Finish Lead-module BFF: REST naming, Rajal leadId + stages, country-codes, branch/vertical/RM, assign+exception, CBS search without token race | SF5 | SC0 | MUST | FUNC | P3 / P1 | ADMITTED | [EPIC-006](../../platform/ws3-platform/EPIC-006.work-item.yaml) · [PLAN-009](../plans/PLAN-009-nip-bff-lead-module-runtime.md) · [D-020](../../au-bank-insurance-platform/DECISION-LOG.md) · [D-021](../../au-bank-insurance-platform/DECISION-LOG.md) · [detail](#sug-20261005-lbf--bff-lead-module-runtime) |
 | SUG-20261003-svg | 2026-10-03 | human:stakeholder | Remaining Saving readiness beyond fail-closed hub validation: Product UI bands, questionnaire engine, enum inventory/master refresh, live Gate POST + complete Proposal POST/poll | SF3 | SC0 | MUST | FUNC | P4 / P1 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [detail](#sug-20261003-svg--saving-readiness-blocked-on-1sb-config) |
 | SUG-20261003-lvr | 2026-10-03 | human:stakeholder | Make 1sb-integration-service UAT-ready to validate Term/ULIP/Savings Life journeys (fail-before-1SB + response contract) | SF1 | SC0 | MUST | FUNC | P2 / P1 | ADMITTED | [FUNC-028](../../1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md) · [detail](#sug-20261003-lvr--life-journey-validation-uat) |
 | SUG-20261003-brf | 2026-10-03 | human:Rajal | BRD wins: dedupe key user+customer+productType+BI; no delete when BI absent; Save does not evaluate — Start Onboarding does; flow dedupe→create→exception→assign SP | SF2 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [D-019](../../au-bank-insurance-platform/DECISION-LOG.md) · [EPIC-005](../../platform/ws3-platform/EPIC-005.work-item.yaml) · [detail](#sug-20261003-brf--brd-wins-dedupe-exception-timing--sequence) |
@@ -134,6 +135,136 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20261005-lbf · BFF Lead module runtime
+
+```yaml
+# schema: triage-record
+id: SUG-20261005-lbf
+raised_at: "2026-10-05"
+raised_by: "human:stakeholder"
+source: "Stakeholder request to finish the Lead module on the BFF"
+input: >
+  On the BFF service we have lots of changes, one important change that we need
+  to follow the HTTP rest API standards correctly, need to follow simple and
+  clear namming convention, on the BFF we will make sure java and all coding
+  best practices are followed. Lead id generation logic should we have any
+  specific logic for lead id generation which will help us in future, get this
+  confirmation from Rajal and solve this. verify jurnery stages with rajal.
+  We will need one API to fetch the country codes which will also hold the
+  validation logic to check entered mobile number. We will need APIs for
+  branch, vertical, SP/RM. We need Assign Lead API which will assign lead and
+  also do the validation for exception required or not. check the complete
+  lead BRD, We need all the BFF API's to comple the lead module. Dependent
+  services (customer search / APIGEE). CBS token race if every API authenticates.
+  start working on all the details provided. we need to finish the lead module
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: EPIC-006
+
+stage_fit:
+  code: SF5
+  rationale: >
+    Runtime of EPIC-003/005 belongs to S11, but GATE-S08 is CANDIDATE and the
+    work is off that gate, contract-first, and dependency-safe with stubs.
+  parallel_test:
+    off_critical_path: true
+    dependency_safe: true
+    in_scope: true
+    standing_constraint_clean: true
+    separate_lane: "amit-nip-bff-lead"
+    no_silent_trust_boundary_change: true
+  lane: "amit-nip-bff-lead"
+  target_stage: "S11 — Lead service / BFF implementation"
+  unpark_trigger: null
+  absorption_test:
+    small: null
+    no_new_dependency: null
+    no_new_decision: false
+    gate_neutral: true
+
+scope:
+  code: SC0
+  business_scope: "in scope — Lead service (context #5) and RM Workspace BFF (context #2)"
+  serves: ["EPIC-003", "EPIC-005", "S11-E02"]
+  failure_without_it: "NIP-APP cannot complete Lead Screens 1–7"
+  minimal: true
+  authority: "CURRENT-STATE.yaml WS-3 in_scope; Lead_Module_BRD_Detailed DOC-005"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S11 — Vertical slice"
+  binds_when: "NIP-APP Lead screens and S11-E02"
+  evidence_tier: E2
+  evidence:
+    - "Lead BRD Screens 1, 5, 7 and §14.1"
+    - "EPIC-003 / EPIC-005 contracts"
+    - "D-018 / D-019"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT
+action_rationale: >
+  SF5 + SC0 + MUST → ADMIT on a separate engineering lane. Product closures
+  D-020 / D-021 recorded. Live CBS/Apigee and Flyway Lead DDL stay out.
+duplicate_of: null
+conflicts: []
+
+classification:
+  type: FUNC
+  also: [ARCH]
+  breakdown: EPIC
+  epic: EPIC-006
+  risk_tier: T3
+  destination: "docs/platform/ws3-platform/EPIC-006.work-item.yaml"
+
+priority:
+  now: P3
+  at_target: P1
+  factors: { N: 4, S: 2, B: 0, R: 2, D: 1, E: 3 }
+  score: 14
+  matrix_default: P3
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "SF5 MUST → matrix P2–P3; PRI-8 B=0; score 14 is P3"
+
+dependencies:
+  edges: ["EPIC-003", "EPIC-005", "D-018", "D-019"]
+  state: READY
+  enablement_count: 1
+  earliest_start: "2026-10-05"
+  cycles: none
+
+breakdown:
+  children: ["FUNC-029", "FUNC-030", "FUNC-031"]
+  completion_definition: "BFF REST Lead slice + ULID + token single-flight + D-020/D-021"
+  not_included:
+    - "Live CBS / Apigee"
+    - "Flyway Lead schema"
+    - "Quote / proposal / payment"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: EPIC-006
+  plan_id: PLAN-009
+  status: ADMITTED
+  closed_reason: null
+
+resumed: EPIC-006
+```
 
 ### SUG-20260930-osl · openssl CVE-2026-84782
 

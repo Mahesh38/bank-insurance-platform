@@ -1,0 +1,70 @@
+# schema: work-item
+id: FUNC-029
+origin: SUG-20261005-lbf
+title: "NIP BFF Lead REST APIs — country-codes, organisation, pipeline, create, assign"
+type: FUNC
+also: []
+breakdown: STORY
+epic: EPIC-006
+workstream: WS-3
+owner: "Amit — Technical Head (R3); lane amit-nip-bff-lead"
+risk_tier: T3
+
+serves:
+  - "EPIC-006"
+  - "Lead BRD Screens 1, 5, 7"
+  - "EPIC-003"
+
+problem: >
+  workforce-access-bff denied every path except auth. NIP-APP has no REST
+  surface for country codes, org lookups, pipeline, create or assign.
+
+description: >
+  Add session-gated REST collections on /api/v1. Plural nouns, nested
+  sub-resources, no rm-list verb, no success wrapper. Assign orchestrates
+  exception evaluation (D-019) and returns exceptionRequired.
+
+acceptance_criteria:
+  - id: AC-1
+    given: "a valid BFF session"
+    when: "GET /api/v1/country-codes"
+    then: "an array of country objects with regex is returned"
+  - id: AC-2
+    given: "no session"
+    when: "GET /api/v1/country-codes"
+    then: "401 SESSION_INVALID"
+  - id: AC-3
+    given: "a created lead for a PASS customer"
+    when: "POST /api/v1/leads/{id}/assignment"
+    then: "state is ASSIGNED and exceptionRequired is false"
+
+out_of_scope:
+  - "Live PDP grants"
+  - "Flutter"
+
+state: IN-FLIGHT
+priority_now: P3
+priority_at_target: P1
+target_stage: null
+unpark_trigger: null
+
+dependencies:
+  blocked_by: []
+  requires:
+    - "FUNC-030"
+    - "FUNC-031"
+  enables:
+    - "NIP-APP Lead screens"
+  related_to:
+    - "EPIC-003"
+  external: []
+  decision_dependency:
+    - "D-020"
+    - "D-021"
+
+plan: PLAN-009
+estimate: M
+assumptions: []
+risks: []
+evidence: []
+variance_log: []

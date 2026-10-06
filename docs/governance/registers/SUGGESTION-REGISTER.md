@@ -43,7 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
-| SUG-20261006-atk | 2026-10-06 | human:stakeholder | One AU-Bima-Platform Apigee app: one mint owner + shared cache; not a wall-clock cron; not the workforce identity adapter. 24h TTL, no refresh grant (`ASM-020`) | SF3 | SC1 | SHOULD | ARCH | P4 / P3 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [ASM-020](./ASSUMPTION-REGISTER.md) · [ADR-020](../../platform/architecture-review/08-architecture-decision-log.md) · [FUNC-031](../../platform/ws3-platform/FUNC-031.work-item.yaml) · [detail](#sug-20261006-atk--one-token-owner-per-apigee-app) · recurrence_count 3 (2026-10-06: 24h TTL, cron+ElastiCache vs identity-provider-adapter — re-evaluated, stay PARKED) |
+| SUG-20261006-atk | 2026-10-06 | human:stakeholder | One AU-Bima-Platform token for R0 Apigee egress: `customer-service` (CBS) **and** `1sb-integration-service` (ARB). Shared access-token cache at first live `/token`; not a wall-clock cron; not the workforce IdP | SF3 | SC1 | SHOULD | ARCH | P4 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [ASM-020](./ASSUMPTION-REGISTER.md) · [ADR-020](../../platform/architecture-review/08-architecture-decision-log.md) · [FUNC-031](../../platform/ws3-platform/FUNC-031.work-item.yaml) · [detail](#sug-20261006-atk--one-token-owner-per-apigee-app) · recurrence_count 4 (2026-10-06: 1sb-integration-service is a second R0 Apigee consumer — ARB) |
 | SUG-20261005-uld | 2026-10-05 | agent:AIGEM-review | EPIC-006 should-fix: share Ulid with StubLeadGateway; add BFF MockMvc for UNCERTIFIED assignee | SF3 | SC0 | COULD | QA | P4 / P3 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [EPIC-006-REVIEW](../../platform/ws3-platform/EPIC-006-REVIEW.md) · [detail](#sug-20261005-uld--lead-stub-ulid-and-uncertified-test) |
 | SUG-20261005-sdn | 2026-10-05 | agent:AIGEM-review | Fold BFF Lead session into Spring Security default-deny (SEC-C4) instead of permitAll + MVC interceptor | SF3 | SC0 | SHOULD | SEC | P4 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [EPIC-006-REVIEW](../../platform/ws3-platform/EPIC-006-REVIEW.md) · [detail](#sug-20261005-sdn--bff-session-default-deny) |
 | SUG-20261005-lbf | 2026-10-05 | human:stakeholder | Finish Lead-module BFF: REST naming, Rajal leadId + stages, country-codes, branch/vertical/RM, assign+exception, CBS search without token race | SF5 | SC0 | MUST | FUNC | P3 / P1 | ADMITTED | [EPIC-006](../../platform/ws3-platform/EPIC-006.work-item.yaml) · [PLAN-009](../plans/PLAN-009-nip-bff-lead-module-runtime.md) · [D-020](../../au-bank-insurance-platform/DECISION-LOG.md) · [D-021](../../au-bank-insurance-platform/DECISION-LOG.md) · [detail](#sug-20261005-lbf--bff-lead-module-runtime) |
@@ -170,42 +170,43 @@ context:
 stage_fit:
   code: SF3
   rationale: >
-    FUNC-031 already owns a single-JVM lock for CBS tokens. ASM-020 closed
-    exclusivity (concurrent tokens; mint does not revoke). A cluster cache
-    or token service still needs a second live consumer. Live Apigee remains
-    out of EPIC-006 (DEP-20260914-apg). SF5 fails: new shared state,
-    credential trust-boundary. SF2 absorption fails: still a later-stage
-    extract.
-  target_stage: "S09 — first live Apigee call / S11 second consumer"
+    Two R0 consumers are now named: customer-service (CBS) and
+    1sb-integration-service (ARB / ADR-020). Shared cache is justified
+    (SC-03) at first live /token, not in the S08 stub slice. ElastiCache
+    is S09 and needs an ADR-011 amendment. SF5 fails: credential
+    trust-boundary. SF2 fails: not absorbable into EPIC-006.
+  target_stage: "S09 — first live Apigee call from customer-service or 1sb-integration-service"
   unpark_trigger: >
-    A second service or a second customer-service pod starts live /token
-    against AU-Bima-Platform, or /token rate-limit / stampede is observed
+    Either customer-service or 1sb-integration-service starts live /token
+    against AU-Bima-Platform (first of the two), or /token stampede is observed
 
 scope:
   code: SC1
   business_scope: "derived — outbound Apigee hop and Customer #4 token ownership"
-  serves: ["ADR-020", "FUNC-031", "DEP-20260914-apg"]
+  serves: ["ADR-020", "FUNC-031", "DEP-20260914-apg", "1sb-integration-service"]
   failure_without_it: >
-    a second live mint against AU-Bima-Platform stampedes /token and copies
-    the client secret into every consumer (tokens themselves stay valid)
+    customer-service and 1sb-integration-service each mint AU-Bima-Platform
+    tokens and copy the client secret into two runtimes
   minimal: true
-  authority: "ADR-020 outbound; FUNC-031 Customer #4 owns the token; ID-12 service plane"
+  authority: "ADR-020 outbound; ARB R0 Apigee hop; FUNC-031; ID-12 service plane"
 
 necessity:
   now: SHOULD
-  future_necessity: SHOULD
+  future_necessity: MUST
   target_stage: "S09 — first live Apigee call"
-  binds_when: "second live /token consumer against AU-Bima-Platform"
+  binds_when: "first live /token from customer-service or 1sb-integration-service"
   failure_without_it: >
-    concurrent mints stampede Apigee /token and copy the client secret;
-    in-flight CBS calls stay valid under ASM-020
-  evidence_tier: E5
+    two R0 services mint independently against one app: secret copied twice,
+    /token stampede under load; in-flight calls stay valid under ASM-020
+  evidence_tier: E2
   evidence:
-    - "ApigeeAccessTokenHolder is a process ReentrantLock only"
+    - "Stakeholder 2026-10-06: 1sb-integration-service is an R0 ARB Apigee caller using the same token"
+    - "ADR-020 outbound: 1sb-integration-service, Customer/EBS, AD-verify, Notification, Payment session-create"
+    - "ApigeeAccessTokenHolder is a process ReentrantLock only (customer-service)"
     - "EPIC-006-REVIEW Board 7 O4: token holder is not a cluster lock"
-    - "14-shared-capability-doctrine SC-03: second consumer is the extract trigger"
+    - "14-shared-capability-doctrine SC-03: two named R0 consumers justify extract at first live mint"
     - "15-actor-identity ID-12: service plane never a shared credential"
-    - "ASM-020 validated 2026-10-06: mint does not revoke prior tokens; 24h TTL; no refresh grant"
+    - "ASM-020: concurrent 24h tokens, no refresh grant"
     - "ADR-011 permitted Valkey uses are a closed list — Apigee access-token cache needs an amendment"
     - "identity-provider-adapter-service is workforce/partner IdP, not M2M Apigee mint (auth SSOT §4.2, ID-12)"
     - "ASM-015 / DEP-20260914-apg: private path and IPs still OPEN"
@@ -219,12 +220,11 @@ necessity:
 
 action: PARK
 action_rationale: >
-  Recurrence 3 (08 BR-5): 24h TTL, no refresh grant, cron 08:00/20:00 into
-  ElastiCache, or mint in identity-provider-adapter. Re-evaluated: stay PARKED.
-  Shared cache of the ACCESS TOKEN is the right later form (amend ADR-011).
-  Primary refresh is lazy near-expiry plus 401 remint, not a wall-clock cron.
-  Workforce identity-provider-adapter is the wrong plane (ID-12). Do not
-  implement this turn. Customer #4 in-process holder remains the S08 slice.
+  Recurrence 4: 1sb-integration-service named as second R0 consumer (ARB).
+  One mint owner + shared ACCESS-TOKEN cache is MUST at first live /token.
+  Stay PARKED at S08. Do not have 1sb-integration call customer-service for
+  a token. Do not mint inside adapter.onesb or the workforce IdP. Do not
+  implement Valkey/cron this turn.
 duplicate_of: null
 conflicts: []
 
@@ -238,14 +238,14 @@ classification:
 
 priority:
   now: P4
-  at_target: P3
-  factors: { N: 2, S: 0, B: 0, R: 1, D: 1, E: 2 }
-  score: 5
+  at_target: P2
+  factors: { N: 2, S: 0, B: 0, R: 2, D: 1, E: 2 }
+  score: 7
   matrix_default: P4
   consistency: OK
   overrides_applied: []
   caps_applied: []
-  rationale: "SHOULD at S08 stubs; SHOULD (not MUST) before a second live mint now that tokens are concurrent"
+  rationale: "SHOULD at S08 stubs; MUST at first live /token now that two R0 consumers are named"
 
 dependencies:
   edges:
@@ -256,6 +256,10 @@ dependencies:
       owner: "Shivanshi + bank API platform"
       follow_up: "2026-09-18"
     - type: ARCHITECTURAL
+      target: ADR-020
+      relation: requires
+      state: IN-FLIGHT
+    - type: ARCHITECTURAL
       target: ADR-011
       relation: related_to
       state: IN-FLIGHT
@@ -263,10 +267,14 @@ dependencies:
       target: FUNC-031
       relation: related_to
       state: IN-FLIGHT
+    - type: TECHNICAL
+      target: 1sb-integration-service
+      relation: related_to
+      state: IN-FLIGHT
   state: BLOCKED
   enablement_count: 0
-  earliest_start: "second live /token consumer or observed /token stampede"
-  parked_because: "ASM-020 closed exclusivity; cluster cache still later-stage"
+  earliest_start: "first live /token from customer-service or 1sb-integration-service"
+  parked_because: "two R0 consumers named; ElastiCache and live Apigee are S09"
   cycles: none
 
 breakdown:
@@ -278,6 +286,8 @@ breakdown:
     - "Storing AU-Bima-Platform client key or secret in git"
     - "Wall-clock cron (08:00/20:00) as the primary remint"
     - "Minting AU-Bima-Platform client-credentials inside identity-provider-adapter-service"
+    - "1sb-integration-service calling customer-service to fetch a token"
+    - "Mint logic inside adapter.onesb.* (Apigee token is not a 1SB type)"
     - "Client secret in Valkey — cache holds the access token only"
 
 outcome:

@@ -36,6 +36,7 @@ false**, so invalidation triggers a known action instead of a debate.
 | ID | Assumption | Validated | Evidence |
 |----|------------|-----------|----------|
 | ASM-001 | WS-1 is in Phase 4 (Hardening); Phases 0–3 are complete | 2026-08-10 | Ratified by the Solution Architect — GOV-004 in the [decision register](./DECISION-REGISTER.md#2-governance-decisions) |
+| ASM-020 | Apigee app `AU-Bima-Platform` may hold **multiple concurrent** client-credentials access tokens. Minting a new token does **not** revoke or expire a prior token for the same client key. Client-credentials still typically issues no refresh token. | 2026-10-06 | Stakeholder report of Apigee-team confirmation the same day. Re-validated `SUG-20261006-atk` ([16 §7](../16-DECISION_MODEL.md#7-revalidation-triggers)). Written product note still owed on `DEP-20260914-apg` (does not reopen exclusivity). If invalidated: cluster single-flight becomes correctness, not only rate-limit; `SUG-20261006-atk` future necessity returns to MUST |
 
 ## 3. Invalidated
 

@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20261006-atk | 2026-10-06 | human:stakeholder | One AU-Bima-Platform Apigee app: do not mint client-credentials per service/pod; one token owner per app; confirm exclusivity before a cluster cache | SF3 | SC1 | SHOULD | ARCH | P4 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [ADR-020](../../platform/architecture-review/08-architecture-decision-log.md) · [FUNC-031](../../platform/ws3-platform/FUNC-031.work-item.yaml) · [detail](#sug-20261006-atk--one-token-owner-per-apigee-app) |
 | SUG-20261005-uld | 2026-10-05 | agent:AIGEM-review | EPIC-006 should-fix: share Ulid with StubLeadGateway; add BFF MockMvc for UNCERTIFIED assignee | SF3 | SC0 | COULD | QA | P4 / P3 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [EPIC-006-REVIEW](../../platform/ws3-platform/EPIC-006-REVIEW.md) · [detail](#sug-20261005-uld--lead-stub-ulid-and-uncertified-test) |
 | SUG-20261005-sdn | 2026-10-05 | agent:AIGEM-review | Fold BFF Lead session into Spring Security default-deny (SEC-C4) instead of permitAll + MVC interceptor | SF3 | SC0 | SHOULD | SEC | P4 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [EPIC-006-REVIEW](../../platform/ws3-platform/EPIC-006-REVIEW.md) · [detail](#sug-20261005-sdn--bff-session-default-deny) |
 | SUG-20261005-lbf | 2026-10-05 | human:stakeholder | Finish Lead-module BFF: REST naming, Rajal leadId + stages, country-codes, branch/vertical/RM, assign+exception, CBS search without token race | SF5 | SC0 | MUST | FUNC | P3 / P1 | ADMITTED | [EPIC-006](../../platform/ws3-platform/EPIC-006.work-item.yaml) · [PLAN-009](../plans/PLAN-009-nip-bff-lead-module-runtime.md) · [D-020](../../au-bank-insurance-platform/DECISION-LOG.md) · [D-021](../../au-bank-insurance-platform/DECISION-LOG.md) · [detail](#sug-20261005-lbf--bff-lead-module-runtime) |
@@ -137,6 +138,148 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20261006-atk · One token owner per Apigee app
+
+```yaml
+# schema: triage-record
+id: SUG-20261006-atk
+raised_at: "2026-10-06"
+raised_by: "human:stakeholder"
+source: "Stakeholder question on AU-Bima-Platform client key/secret shared across services and pods"
+input: >
+  APIGEE has onboarded us as channel App Name AU-Bima-Platform with Client key
+  and Client Secret. Multiple services will interact with Apigee and use this
+  key and secret to generate the access token. If we keep logic in the service
+  then when the service scales with multiple pods and multiple services also
+  use the same creds to generate the access token and refresh token, multiple
+  services generating access tokens at the same time get different access
+  tokens and one token might have expired as we have generated a new one
+  against the same key and secrets. Correct me if I am wrong. How can we
+  handle it better.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: EPIC-006
+
+stage_fit:
+  code: SF3
+  rationale: >
+    FUNC-031 already owns a single-JVM lock for CBS tokens. A cluster-wide
+    cache or a new token service needs a written Apigee exclusivity answer
+    and a second live consumer. Live Apigee is out of EPIC-006
+    (DEP-20260914-apg). SF5 fails: missing decision, new shared state,
+    credential trust-boundary. SF2 absorption fails: new decision.
+  target_stage: "S09 — first live Apigee call / S11 second consumer"
+  unpark_trigger: >
+    Apigee team writes whether AU-Bima-Platform client-credentials tokens are
+    exclusive, OR a second service or a second customer-service pod starts
+    live /token against the same app
+
+scope:
+  code: SC1
+  business_scope: "derived — outbound Apigee hop and Customer #4 token ownership"
+  serves: ["ADR-020", "FUNC-031", "DEP-20260914-apg"]
+  failure_without_it: >
+    a second live mint against AU-Bima-Platform races the Customer #4 holder
+    and copies the client secret into every consumer
+  minimal: true
+  authority: "ADR-020 outbound; FUNC-031 Customer #4 owns the token; ID-12 service plane"
+
+necessity:
+  now: SHOULD
+  future_necessity: MUST
+  target_stage: "S09 — first live Apigee call"
+  binds_when: "second live /token consumer against AU-Bima-Platform"
+  failure_without_it: >
+    concurrent mints stampede Apigee /token; if tokens are exclusive, in-flight
+    CBS calls fail with 401
+  evidence_tier: E5
+  evidence:
+    - "ApigeeAccessTokenHolder is a process ReentrantLock only"
+    - "EPIC-006-REVIEW Board 7 O4: token holder is not a cluster lock"
+    - "14-shared-capability-doctrine SC-03: second consumer is the extract trigger"
+    - "15-actor-identity ID-12: service plane never a shared credential"
+    - "ASM-015 / DEP-20260914-apg: live Apigee product answers still OPEN"
+  confidence: C3
+  assumptions: ["ASM-015"]
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: true
+    X5_stage_necessity: false
+    X9_problem_observed: false
+
+action: PARK
+action_rationale: >
+  Analysis only this turn (AE-1). Do not implement a token service or a
+  Valkey cache. Do not store the client key or secret in the repo. Design
+  constraint stands: one mint owner per Apigee app; Customer #4 for CBS;
+  BFF never holds the CBS token.
+duplicate_of: null
+conflicts: []
+
+classification:
+  type: ARCH
+  also: [SEC]
+  breakdown: SPIKE
+  epic: EPIC-006
+  risk_tier: T3
+  destination: "registers/PARKED-BACKLOG.md"
+
+priority:
+  now: P4
+  at_target: P2
+  factors: { N: 2, S: 0, B: 0, R: 2, D: 1, E: 2 }
+  score: 7
+  matrix_default: P4
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "SHOULD at S08 stubs; MUST before a second live mint"
+
+dependencies:
+  edges:
+    - type: EXTERNAL
+      target: DEP-20260914-apg
+      relation: blocked_by
+      state: OPEN
+      owner: "Shivanshi + bank API platform"
+      follow_up: "2026-09-18"
+    - type: ARCHITECTURAL
+      target: ADR-020
+      relation: requires
+      state: IN-FLIGHT
+    - type: TECHNICAL
+      target: FUNC-031
+      relation: related_to
+      state: IN-FLIGHT
+  state: BLOCKED
+  enablement_count: 0
+  earliest_start: "written Apigee exclusivity or second live consumer"
+  cycles: none
+
+breakdown:
+  children: []
+  completion_definition: null
+  not_included:
+    - "New token microservice"
+    - "Live Apigee /token client"
+    - "Storing AU-Bima-Platform client key or secret in git"
+
+outcome:
+  registered_in: "registers/PARKED-BACKLOG.md"
+  work_item_id: null
+  plan_id: PLAN-009
+  status: PARKED
+  closed_reason: null
+
+resumed: EPIC-006
+```
 
 ### SUG-20261005-lbf · BFF Lead module runtime
 

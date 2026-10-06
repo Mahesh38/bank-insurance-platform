@@ -1682,3 +1682,75 @@ approvals:
 
 **Drafted:** agent, for Mahesh — Principal Insurance Platform Architect (Board 1 / R2) · 2026-09-30.
 Does not manufacture Board 6 or T4 Architecture signatures.
+
+---
+
+## ADR-022 — Inbound Amazon API Gateway is not replaceable by Istio at R0
+
+```yaml
+id: ADR-022
+status: PROPOSED
+problem: >
+  Platform / landing-zone discussions are treating Istio (or a public load balancer plus
+  Istio Ingress Gateway) as a drop-in replacement for Amazon API Gateway on the north-south
+  path. That conflates east-west mesh concerns with inbound API governance. R0 already binds
+  inbound to API Gateway (ADR-018 / ADR-020) and refuses a service mesh (CR-012 §3). Without
+  a clarifying ADR, Terraform and meeting notes can silently reopen the External ALB pattern
+  ADR-018 withdrew.
+context_stage: "WS-3 S08/S09 overlapped; platform-team challenge 2026-10-06; CR-017"
+decision: >
+  1. REAFFIRM ADR-018 and ADR-020 inbound clauses: north-south ingress remains
+     Cloudflare (SaaS) → F5-XC (SaaS) → Amazon API Gateway → VPC Link → Internal ALB.
+     Amazon API Gateway remains Proxy 1 (first AWS hop). Internal ALB remains the only
+     load balancer inside the VPC.
+
+  2. Istio / AWS App Mesh remains OUT of R0. East-west mTLS, retries and circuit breaking
+     stay with NetworkPolicy + IRSA + in-app timeouts/breakers. ADR-010 egress inspection
+     is not a mesh and does not replace inbound API Gateway. Mesh revisit remains an S14
+     conversation unless a later CR overturns CR-012 §3 with Board 1 + Board 4 acceptance.
+
+  3. FORBIDDEN without a new ADR that explicitly amends ADR-018:
+     - Omitting Amazon API Gateway from the R0 BOM
+     - Provisioning an External / public ALB (or public NLB) as the AWS entry in place of
+       API Gateway
+     - Drawing Istio Ingress Gateway (or any mesh ingress) as the substitute for API Gateway
+     - Putting Apigee on the RM/mobile front door outside SPIKE-001 written answers
+       (ADR-020 / human direction 2026-09-14)
+
+  4. If the platform team formally refuses API Gateway, the path is CR-017 Option B:
+     complete the control-mapping table, obtain Deepali's security outcome, then raise a
+     *new* ADR amending ADR-018. Do not treat this ADR as that amendment.
+
+  5. This ADR does not change outbound Apigee (ADR-020), PG-callback TB-6 semantics
+     (still a separate inbound route on API Gateway under Option A), or application
+     authn/authz placement (BFF + PDP).
+authority_class: A3_JOINT_REVIEW
+origin: SUG-20261006-apg
+also: [CR-017, ADR-018, ADR-020, CR-012]
+amends: []
+reaffirms: [ADR-018, ADR-020]
+forbids: >
+  Silent BOM edits that drop API Gateway; Istio-as-API-Gateway substitution at R0;
+  reintroduction of a public ALB without amending ADR-018.
+security_impact: >
+  Preserves the current trust-boundary posture (TB perimeter + private EKS). Any Option B
+  substitute widens public AWS exposure and requires Deepali acceptance — not granted here.
+compliance_impact: >
+  Edge access-log and callback allowlist evidence paths remain as designed under Option A.
+  Option B must re-evidence regulator-askable edge controls (G10) before go-live claims.
+reversibility: HIGH while still Proposed; LOW after production hostnames and partner
+  allowlists bind to a different front door.
+revisit_trigger: >
+  Written platform refusal of API Gateway with a complete CR-017 §5 mapping accepted by
+  Deepali; or bank standard mandating a different inbound product with Architecture
+  amendment of ADR-018; or S14 mesh admission that still leaves inbound Proxy 1 named.
+approvals:
+  - "Mahesh / Architecture — AI-DRAFTED; human T4 outstanding"
+  - "Deepali / Security — joint on perimeter outcome; required before any Option B"
+  - "Shivanshi / SRE — landing-zone request must match this ADR while Proposed→Accepted"
+```
+
+**Drafted:** agent, for Mahesh — Principal Insurance Platform Architect (Board 1 / R2) · 2026-10-06.
+Evidence pack: [`CR-017`](../../governance/change-requests/CR-017-inbound-api-gateway-vs-istio.md) ·
+[`platform-team note`](../../architecture/2026-10-06-PLATFORM-TEAM-NOTE-API-GATEWAY-VS-ISTIO.md).
+Does not manufacture T4 Architecture or Security signatures. Does not edit stage state.

@@ -38,7 +38,8 @@ class HolderAccessTokenPortTest {
         .satisfies(
             thrown -> {
               ServiceException ex = (ServiceException) thrown;
-              assertThat(ex.getErrorResponse().getCode()).isEqualTo(ErrorCodes.UPSTREAM_UNAVAILABLE);
+              assertThat(ex.getErrorResponse().getCode())
+                  .isEqualTo(ErrorCodes.UPSTREAM_UNAVAILABLE);
               assertThat(ex.getMessage()).doesNotContain("super-secret");
               assertThat(ex.getMessage()).doesNotContain("access_token=");
               assertThat(ex.getDiagnostic().getReason()).isEqualTo("Apigee token mint failed");

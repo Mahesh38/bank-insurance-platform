@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 661
-total_bytes: 21256401
+document_count: 662
+total_bytes: 21266730
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -2221,7 +2221,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 233188
+    bytes: 233489
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -3582,6 +3582,14 @@ documents:
     title: "19 — Porting AIGEM to Another Repository"
     answers: "Purpose: install this framework in a new repo in under an hour"
     bytes: 6888
+  - path: docs/governance/CODE-REVIEW-STANDARD.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "Code review standard — coverage, structure, logging"
+    answers: "Adoption: PR-REVIEW-CHECKLIST.md · .github/pullrequesttemplate.md"
+    bytes: 9118
   - path: docs/governance/DEC-20260825-01-lead-domain-decisions.md
     bucket: governance
     authority: binding-process
@@ -4173,7 +4181,7 @@ documents:
     persona: null
     title: "Suggestion Register"
     answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 349184
+    bytes: 350041
   - path: docs/governance/runbooks/AUTOPILOT-FAILURE-RUNBOOK.md
     bucket: governance
     authority: binding-process
@@ -5261,7 +5269,7 @@ documents:
     persona: architecture
     title: "EPIC-006 — AIGEM seven-board review (PLAN-009)"
     answers: "Work item: EPIC-006 · Origin: SUG-20261005-lbf · Tier: T3"
-    bytes: 38120
+    bytes: 38173
   - path: docs/platform/ws3-platform/EPIC-006.work-item.yaml
     bucket: platform
     authority: approved-spec

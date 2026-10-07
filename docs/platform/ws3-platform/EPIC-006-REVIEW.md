@@ -33,7 +33,7 @@ As-built evidence: 62 module tests green; Jacoco lead 81.6% line / customer 75.0
 
 | Aspect | Verdict | Notes |
 |---|---|---|
-| Coverage on push (§1) | HOLD for measured numbers in this round's evidence log | Floors: libs 80/70; 1SB 90/70; BFF/customer 50% line, branch ungated. Author must publish measured % (PR template). |
+| Coverage on push (§1) | PASS | SHA after OBS wrap: apigee 15 tests **100% / 100%** (floor 80/70); customer 19 tests **79.49% / 61.36%** (floor 50% line); BFF 47 tests **61.89% / 54.63%** (floor 50% line); 1SB 359 tests **91.37% / 72.46%** (floor 90/70). All `jacocoTestCoverageVerification` green. |
 | Structure / ENG-1–3 | PASS | Apigee holder in `libs/bank-common-apigee`; CBS in customer adapter; 1SB token stays stub until `DEP-20260914-apg`. |
 | SEC-C2 / C3 / C4 / C9 | PASS | CBS translate has no `q`/URI; `findById` encode+URI; BFF `/api/v1/**` `authenticated()`; session handle not in credentials. |
 | OBS-1 / OBS-9 (must) | PASS after this round | Token mint `IllegalStateException` is wrapped to `UPSTREAM_UNAVAILABLE` at `HolderAccessTokenPort`. HTTP still uses auto-config `PlatformErrorAdvice` + `ErrorRecorder`. BFF session invalid/expired already `ServiceErrors` → `BffExceptionHandler`. |
@@ -44,7 +44,7 @@ As-built evidence: 62 module tests green; Jacoco lead 81.6% line / customer 75.0
 
 **Must-fix opened this round:** wrap Apigee mint failure as catalogue `UPSTREAM_UNAVAILABLE` (OBS-1/OBS-9) — **done in the same change**.  
 **Should-fix:** none new. Parked remain: `DEP-20260914-apg` credentials/Bearer mapping; `SUG-20261007-ird` IRDAI SoR; `SUG-atk` Valkey cluster cache.  
-**Verdict:** `CHANGES_REQUESTED` until Jacoco numbers for this SHA are pasted; then `APPROVE` as implementation review **if** floors hold. Not Deepali T4. Not Board 7 production readiness.
+**Verdict:** `APPROVE` as implementation review against CODE-REVIEW-STANDARD. Floors hold. Not Deepali T4. Not Board 7 production readiness.
 
 ---
 

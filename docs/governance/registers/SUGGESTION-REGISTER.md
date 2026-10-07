@@ -186,6 +186,7 @@ necessity:
   future_necessity: MUST
   target_stage: "S08 — Engineering Foundation"
   binds_when: "every production-code PR"
+  failure_without_it: "PRs merge without a stated coverage bar or logging contract; reviews drift"
   evidence_tier: E2
   evidence:
     - "Owner directed creation of the review/coverage/logging standard"
@@ -208,16 +209,44 @@ conflicts: []
 
 classification:
   type: GOV
+  also: [QA, NFR]
+  breakdown: TASK
+  epic: EPIC-006
   risk_tier: T2
+  destination: "docs/governance/CODE-REVIEW-STANDARD.md"
   rationale: "Docs + checklist + index routing; one adapter wrap so token mint failures hit ErrorRecorder"
 
 priority:
-  score_now: null
-  priority_now: P2
-  priority_at_target: P2
+  now: P2
+  at_target: P2
+  factors: { N: 3, S: 2, B: 1, R: 1, D: 1, E: 1 }
+  score: 14
+  matrix_default: P2
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
   rationale: "Blocks consistent review of the in-flight EPIC-006 PR and every later PR"
 
-bypass_authorised_by: null
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 0
+  earliest_start: "this PR"
+  cycles: none
+
+breakdown:
+  children: []
+  completion_definition: "CODE-REVIEW-STANDARD published; PR checklist and template cite OBS and push-time coverage; EPIC-006 re-reviewed; token mint wrapped to UPSTREAM_UNAVAILABLE"
+  not_included: ["Phase 6 dashboards, alerts, SLOs", "package-level Jacoco QA-014"]
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: EPIC-006
+  plan_id: PLAN-009
+  status: ADMITTED
+  closed_reason: null
+
+resumed: EPIC-006
 ```
 
 ### SUG-20261007-srp · Lead BFF SRP and KISS cleanups

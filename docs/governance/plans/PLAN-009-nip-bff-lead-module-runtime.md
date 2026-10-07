@@ -50,11 +50,26 @@ files_expected:
   - services/workforce-access-bff/src/main/java/com/bank/workforce/bff/api/ReferenceDataController.java
   - services/workforce-access-bff/src/main/java/com/bank/workforce/bff/api/CustomerLookupController.java
   - services/workforce-access-bff/src/main/java/com/bank/workforce/bff/api/BffSessionInterceptor.java
+  - services/workforce-access-bff/src/main/java/com/bank/workforce/bff/api/BffWebMvcConfig.java
+  - services/workforce-access-bff/src/main/java/com/bank/workforce/bff/application/LeadFacade.java
+  - services/workforce-access-bff/src/main/java/com/bank/workforce/bff/application/CountryCodeCatalog.java
+  - services/workforce-access-bff/src/main/java/com/bank/workforce/bff/application/OrganisationDirectory.java
+  - services/workforce-access-bff/src/main/java/com/bank/workforce/bff/lead/LeadGateway.java
+  - services/workforce-access-bff/src/main/java/com/bank/workforce/bff/lead/HttpLeadGateway.java
+  - services/workforce-access-bff/src/main/java/com/bank/workforce/bff/lead/StubLeadGateway.java
+  - services/workforce-access-bff/src/main/java/com/bank/workforce/bff/customer/CustomerGateway.java
+  - services/workforce-access-bff/src/main/java/com/bank/workforce/bff/customer/HttpCustomerGateway.java
+  - services/workforce-access-bff/src/main/java/com/bank/workforce/bff/customer/StubCustomerGateway.java
   - services/lead-service/src/main/java/com/bank/platform/lead/domain/Ulid.java
   - services/lead-service/src/main/java/com/bank/platform/lead/application/LeadApplicationService.java
   - services/lead-service/src/main/java/com/bank/platform/lead/config/LeadClockConfig.java
   - services/customer-service/src/main/java/com/bank/platform/customer/adapter/apigee/ApigeeAccessTokenHolder.java
   - services/workforce-access-bff/src/test/java/com/bank/workforce/bff/api/LeadModuleApiTest.java
+  - services/workforce-access-bff/src/test/java/com/bank/workforce/bff/application/LeadFacadeTest.java
+  - services/workforce-access-bff/src/test/java/com/bank/workforce/bff/application/CountryCodeCatalogTest.java
+  - services/lead-service/src/test/java/com/bank/platform/lead/application/LeadApplicationServiceTest.java
+  - services/lead-service/src/test/java/com/bank/platform/lead/api/LeadControllerTest.java
+  - services/customer-service/src/test/java/com/bank/platform/customer/adapter/apigee/ApigeeAccessTokenHolderTest.java
   - docs/platform/ws3-platform/nip-bff-lead-phase.openapi.yaml
   - docs/platform/ws3-platform/EPIC-006.work-item.yaml
   - docs/platform/ws3-platform/EPIC-006-REVIEW.md
@@ -128,6 +143,10 @@ variance_log:
     change: "Seven-board review recorded; AC-7/AC-8 added as pending-human conditions"
     reason: "T3 self-review cannot close APPROVED without a human board (11 §2)"
     re_review: "docs/platform/ws3-platform/EPIC-006-REVIEW.md round 1"
+  - date: "2026-10-07"
+    change: "files_expected lists as-built gateways, facade, catalogues and AC test classes; Spotless applied"
+    reason: "Round-1 TECHNICAL condition plus ENG-6 merge bar"
+    re_review: "docs/platform/ws3-platform/EPIC-006-REVIEW.md round 2"
 ```
 
 ## Board notes (agent self-review — not T4)

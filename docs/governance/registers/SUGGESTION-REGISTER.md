@@ -43,8 +43,9 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20261007-srp | 2026-10-07 | agent:AIGEM-review | EPIC-006 should-fix: move product-classes off CustomerLookupController; compile country regex once; drop duplicate SEARCH_BY | SF3 | SC0 | COULD | REFACTOR | P4 / P3 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [EPIC-006-REVIEW](../../platform/ws3-platform/EPIC-006-REVIEW.md) · [detail](#sug-20261007-srp--lead-bff-srp-and-kiss-cleanups) |
 | SUG-20261006-atk | 2026-10-06 | human:stakeholder | One AU-Bima-Platform token for R0 Apigee egress: `customer-service` (CBS) **and** `1sb-integration-service` (ARB). Shared access-token cache at first live `/token`; not a wall-clock cron; not the workforce IdP | SF3 | SC1 | SHOULD | ARCH | P4 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [ASM-020](./ASSUMPTION-REGISTER.md) · [ADR-020](../../platform/architecture-review/08-architecture-decision-log.md) · [FUNC-031](../../platform/ws3-platform/FUNC-031.work-item.yaml) · [detail](#sug-20261006-atk--one-token-owner-per-apigee-app) · recurrence_count 4 (2026-10-06: 1sb-integration-service is a second R0 Apigee consumer — ARB) |
-| SUG-20261005-uld | 2026-10-05 | agent:AIGEM-review | EPIC-006 should-fix: share Ulid with StubLeadGateway; add BFF MockMvc for UNCERTIFIED assignee | SF3 | SC0 | COULD | QA | P4 / P3 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [EPIC-006-REVIEW](../../platform/ws3-platform/EPIC-006-REVIEW.md) · [detail](#sug-20261005-uld--lead-stub-ulid-and-uncertified-test) |
+| SUG-20261005-uld | 2026-10-05 | agent:AIGEM-review | EPIC-006 should-fix: share Ulid with StubLeadGateway; add BFF MockMvc for UNCERTIFIED assignee | SF3 | SC0 | COULD | QA | P4 / P3 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [EPIC-006-REVIEW](../../platform/ws3-platform/EPIC-006-REVIEW.md) · [detail](#sug-20261005-uld--lead-stub-ulid-and-uncertified-test) · recurrence_count 2 (2026-10-07: stub `principal()` is a no-op; createdBy lost after assign) |
 | SUG-20261005-sdn | 2026-10-05 | agent:AIGEM-review | Fold BFF Lead session into Spring Security default-deny (SEC-C4) instead of permitAll + MVC interceptor | SF3 | SC0 | SHOULD | SEC | P4 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [EPIC-006-REVIEW](../../platform/ws3-platform/EPIC-006-REVIEW.md) · [detail](#sug-20261005-sdn--bff-session-default-deny) |
 | SUG-20261005-lbf | 2026-10-05 | human:stakeholder | Finish Lead-module BFF: REST naming, Rajal leadId + stages, country-codes, branch/vertical/RM, assign+exception, CBS search without token race | SF5 | SC0 | MUST | FUNC | P3 / P1 | ADMITTED | [EPIC-006](../../platform/ws3-platform/EPIC-006.work-item.yaml) · [PLAN-009](../plans/PLAN-009-nip-bff-lead-module-runtime.md) · [D-020](../../au-bank-insurance-platform/DECISION-LOG.md) · [D-021](../../au-bank-insurance-platform/DECISION-LOG.md) · [detail](#sug-20261005-lbf--bff-lead-module-runtime) |
 | SUG-20261003-svg | 2026-10-03 | human:stakeholder | Remaining Saving readiness beyond fail-closed hub validation: Product UI bands, questionnaire engine, enum inventory/master refresh, live Gate POST + complete Proposal POST/poll | SF3 | SC0 | MUST | FUNC | P4 / P1 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [detail](#sug-20261003-svg--saving-readiness-blocked-on-1sb-config) |
@@ -138,6 +139,113 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20261007-srp · Lead BFF SRP and KISS cleanups
+
+```yaml
+# schema: triage-record
+id: SUG-20261007-srp
+raised_at: "2026-10-07"
+raised_by: "agent:AIGEM-review"
+source: "EPIC-006-REVIEW round 2 — coding practices (SOLID / KISS / DRY)"
+input: >
+  Move product-classes off CustomerLookupController onto ReferenceDataController.
+  Compile CountryCodeCatalog regex once. Drop the duplicate SEARCH_BY set
+  between the BFF lookup controller and CustomerSearchService.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: EPIC-006
+
+stage_fit:
+  code: SF3
+  rationale: >
+    Catalogue placement and a compiled Pattern are readability cleanups.
+    AC-1 and product-class listing already work. Not required to close
+    the admitted stub slice.
+  target_stage: "S11 — Lead service / BFF implementation"
+  unpark_trigger: >
+    NIP-APP wires the product-class catalogue from a dedicated reference-data
+    owner, or Board 2 asks for the SRP cleanup
+
+scope:
+  code: SC0
+  business_scope: "in scope — existing BFF reference-data and customer search"
+  serves: ["EPIC-006", "PLAN-009"]
+  minimal: true
+  authority: "ORG-STANDARDS AP-1 SOLID+DRY+KISS; ROLE-GUIDELINES-AND-DOD §3.1"
+
+necessity:
+  now: COULD
+  future_necessity: SHOULD
+  target_stage: "S11 — Vertical slice"
+  binds_when: "a second country or a second search caller lands"
+  evidence_tier: E3
+  evidence:
+    - "CustomerLookupController.productClasses"
+    - "CustomerLookupController.SEARCH_BY and CustomerSearchService.SEARCH_BY"
+    - "CountryCodeCatalog.validate compiles Pattern per call"
+    - "EPIC-006-REVIEW round 2 Board 2 T5/T6"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: true
+    X5_stage_necessity: false
+    X9_problem_observed: false
+
+action: PARK
+action_rationale: >
+  Found on the coding-practices re-review. Not implemented in the review
+  turn. ACs still hold. Parked as should_fix.
+duplicate_of: null
+conflicts: []
+
+classification:
+  type: REFACTOR
+  also: [QA]
+  breakdown: TASK
+  epic: EPIC-006
+  risk_tier: T1
+  destination: "registers/PARKED-BACKLOG.md"
+
+priority:
+  now: P4
+  at_target: P3
+  factors: { N: 1, S: 1, B: 0, R: 0, D: 0, E: 2 }
+  score: 2
+  matrix_default: P4
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "COULD at S08 stub slice"
+
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 0
+  earliest_start: "S11 catalogue-owner review"
+  cycles: none
+
+breakdown:
+  children: []
+  completion_definition: null
+  not_included: []
+
+outcome:
+  registered_in: "registers/PARKED-BACKLOG.md"
+  work_item_id: null
+  plan_id: PLAN-009
+  status: PARKED
+  closed_reason: null
+
+resumed: EPIC-006
+```
 
 ### SUG-20261006-atk · One token owner per Apigee app
 
@@ -564,6 +672,11 @@ source: "Board 2 / Board 5 should_fix on PLAN-009 / EPIC-006-REVIEW"
 input: >
   StubLeadGateway mints its own Crockford buffer instead of sharing lead-service
   Ulid. Add BFF MockMvc for UNCERTIFIED assignee (SP_CERTIFICATION_REQUIRED).
+  Recurrence 2026-10-07: StubLeadGateway.principal() returns assignedRmId, so
+  createdBy is lost after assign (book visibility and unfinished dedupe diverge
+  from lead-service). Add WireMock for HttpLeadGateway / HttpCustomerGateway
+  when http mode is first used.
+recurrence_count: 2
 
 context:
   workstream: WS-3
@@ -609,8 +722,9 @@ necessity:
 
 action: PARK
 action_rationale: >
-  AC-4 is proven in lead-service. Stub ULID is test-only. Not implemented in
-  the review turn.
+  Recurrence 2: stub book identity still drifts from lead-service. AC-4 is
+  proven in lead-service. Stub ULID and createdBy are test-only while default
+  mode is stub. Not implemented in the review turn.
 duplicate_of: null
 conflicts: []
 

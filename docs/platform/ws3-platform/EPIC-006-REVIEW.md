@@ -388,3 +388,335 @@ human_signoffs: []
 **Gate result:** `ESCALATED` (T3 self-review). Named humans to sit: **Deepali (Board 4)** required; **Mahesh (Board 1)** and **Rajal (D-020/D-021)** recommended. No agent `APPROVED` the gate. No T4 signature is manufactured.
 
 **Not claimed:** live CBS · PDP grants · Flyway Lead schema · IRDAI SP evidence · GATE-S08 PASS.
+
+---
+
+## Round 2 — 2026-10-07 coding-practices re-review
+
+**Ask:** re-review as-built Java against AIGEM seven boards plus ENG/SEC, SOLID, KISS, naming, and formatting before merge.  
+**Freshness:** FRESH 2026-10-07 ([BOOT.md](../../context/BOOT.md) §5; `state_as_of` 2026-09-30).  
+**Capsules:** `board-review` ([11 §3](../../governance/11-REVIEW_GATES.md#3-proportionality--which-boards-are-mandatory), [11 §15](../../governance/11-REVIEW_GATES.md#15-running-the-board-as-a-single-agent), [AUTHORITY-QUICK-CARD.md](../../context/personas/AUTHORITY-QUICK-CARD.md)) and `code-change` ([amit-engineering.card.md](../../context/personas/amit-engineering.card.md), [ROLE-GUIDELINES-AND-DOD.md](../../1sb-insurance-integration/service-ssot/ROLE-GUIDELINES-AND-DOD.md), [TESTING-RULES.md](../../1sb-insurance-integration/service-ssot/TESTING-RULES.md)). Standards: [ENGINEERING-AND-SECURE-CODING-STANDARDS.md](../../governance/ENGINEERING-AND-SECURE-CODING-STANDARDS.md), [PR-REVIEW-CHECKLIST.md](../../governance/PR-REVIEW-CHECKLIST.md), [ORG-STANDARDS.md](../../governance/ORG-STANDARDS.md) AP-1.  
+**Self-review:** `self_review: true`. T3 still needs a human board. No T4 signature is manufactured. RG-5 walk from round 1 is unchanged.
+
+**Must-fix applied this round:** Spotless ratchet (ENG-6) on the new Lead / Customer / BFF types — 2-space Google style. Behaviour unchanged. Checkstyle Main green after apply.
+
+**Evidence this round:** 62 tests green (lead 15 · customer 10 · BFF 37); Jacoco lead 85% line / customer 81% / BFF 61% (service floor 50%); `spotlessCheck` + `checkstyleMain` green on the three modules.
+
+---
+
+### Board 1 — Architecture (Mahesh)
+
+```yaml
+# schema: review-verdict
+board: ARCHITECTURE
+plan: PLAN-009
+work_item: EPIC-006
+reviewer: "Mahesh — Principal Insurance Platform Architect (agent)"
+reviewer_type: AGENT
+self_review: true
+round: 2
+date: "2026-10-07"
+decision: APPROVED_WITH_CONDITIONS
+must_fix: []
+conditions:
+  - "Do not treat in-memory Lead or stub CBS/HR as the system of record; Flyway Lead DDL stays SUG-20260825-db1; live CBS stays S09/S11"
+should_fix:
+  - "Fold session enforcement into Spring Security default-deny (SEC-C4) — SUG-20261005-sdn"
+evidence:
+  - "A1: hexagonal ports held — LeadGateway/CustomerGateway/AccessTokenPort/CustomerInquiryPort; adapters ConditionalOnProperty; no BFF JDBC; no 1SB types"
+  - "A2: Lead aggregate and exception rules stay in lead-service; BFF LeadFacade only orchestrates evaluate-then-assign (D-019)"
+  - "A3: coupling is directional HTTP; stub adapters are the default so Flutter can integrate without live CBS"
+  - "A4: standing constraints held — no PII log statements in new types; Flutter still never receives Apigee OAuth"
+  - "A5: no new ADR; D-020/D-021 remain Product working decisions"
+  - "A6: no new broker, cache, or database"
+  - "A7: in-memory discard on restart; stub createdBy drift is identity-test debt (SUG-20261005-uld), not a migration of stub data"
+  - "A8: SF5 scaffold at S08; quote/proposal/payment still absent"
+  - "A9: one BFF + two existing skeletons; no eighth service"
+  - "A10: replace interceptors/stubs without changing public resource names"
+notes: >
+  Hexagonal shape is the right pattern for this slice. Authority class remains
+  A2_NOTIFY. This agent verdict is not the human Board 1 signature.
+```
+
+---
+
+### Board 2 — Technical (Amit)
+
+```yaml
+# schema: review-verdict
+board: TECHNICAL
+plan: PLAN-009
+work_item: EPIC-006
+reviewer: "Amit — Technical Head (agent)"
+reviewer_type: AGENT
+self_review: true
+round: 2
+date: "2026-10-07"
+decision: APPROVED_WITH_CONDITIONS
+must_fix: []
+conditions:
+  - "ENG-6 Spotless/Checkstyle stay green on the three modules (applied this round)"
+should_fix:
+  - "Share Ulid and persist createdBy on StubLeadGateway; WireMock Http*Gateway — SUG-20261005-uld recurrence 2"
+  - "Move product-classes off CustomerLookupController; compile country regex once; drop duplicate SEARCH_BY — SUG-20261007-srp"
+evidence:
+  - "T1: Java 21 / Spring Boot; single-constructor services; Clock injected (LeadClockConfig, ApigeeClientConfig)"
+  - "T2: RFC 7807 via ServiceErrors; SESSION_INVALID / RESOURCE_NOT_FOUND / SP_CERTIFICATION_REQUIRED / CONFLICT / ILLEGAL_TRANSITION"
+  - "T3: ApigeeAccessTokenHolder lock + 30s skew; InMemoryLeadRepository ConcurrentHashMap; 16-thread token test"
+  - "T4: login paths unchanged; Lead paths additive"
+  - "T5: KISS held — in-process catalogues, stub default, no second framework. CountryCodeCatalog compiles Pattern per call (parked)"
+  - "T6: DRY mostly held; SEARCH_BY duplicated; StubLeadGateway re-implements Ulid and book rules (parked). LeadFacade does not duplicate exception evaluation"
+  - "T7: PLAN-009 files_expected now names gateways, facade, catalogues and AC test classes"
+  - "T8: revert is sufficient; in-memory holds no durable customer data"
+  - "ENG-1..ENG-10: module layout, ports, OpenAPI, tests, Spotless/Checkstyle, no new floating dep, TODOs carry ids"
+  - "SOLID: S — Lead vs Customer vs reference catalogues (product-classes SRP slip parked); O — ports + ConditionalOnProperty; L — Http/Stub honour the same gateway; I — narrow AccessTokenPort/CustomerInquiryPort/LeadGateway; D — application depends on ports"
+  - "Naming: Java types PascalCase; REST collections plural on public BFF except stakeholder Assign POST /leads/{id}/assignment; internal /assignments"
+  - "Formatting: Spotless 2-space ratchet applied; checkstyleMain green"
+notes: >
+  No merge-blocking design defect after Spotless. AP-1 tie-break (KISS over
+  speculative reuse) is why stub/Ulid sharing stays parked.
+```
+
+---
+
+### Board 3 — Product (Rajal)
+
+```yaml
+# schema: review-verdict
+board: PRODUCT
+plan: PLAN-009
+work_item: EPIC-006
+reviewer: "Rajal — Product Owner (agent)"
+reviewer_type: AGENT
+self_review: true
+round: 2
+date: "2026-10-07"
+decision: APPROVED_WITH_CONDITIONS
+must_fix: []
+conditions:
+  - "Human Product owner countersigns D-020 (ULID identity) and D-021 (Lead-owned dashboard stages; vertical optional; India +91 mobile rule)"
+should_fix: []
+evidence:
+  - "P1-P12 from round 1 still hold against the as-built controllers and LeadModuleApiTest"
+  - "P3/P6: quote/proposal/payment/campaign still absent"
+  - "P4: AC-1..AC-6 observable; AC-7/AC-8 remain pending-human"
+  - "P9: public bodies stay bank names (maskedMobile, productClass TERM/SAVINGS/ULIP)"
+notes: >
+  Formatting and parked SRP cleanups do not change Product behaviour.
+```
+
+---
+
+### Board 4 — Security (Deepali)
+
+```yaml
+# schema: review-verdict
+board: SECURITY
+plan: PLAN-009
+work_item: EPIC-006
+reviewer: "Deepali — Security Architect (agent)"
+reviewer_type: AGENT
+self_review: true
+round: 2
+date: "2026-10-07"
+decision: APPROVED_WITH_CONDITIONS
+must_fix: []
+conditions:
+  - "Human Board 4 must sit before any promotion of Lead /api/v1 paths beyond stub/local; this AGENT verdict does not satisfy T3's required human board (11 §2) nor a T4 signature"
+  - "Unauthenticated Lead/reference calls must remain 401; LeadModuleApiTest.unauthenticatedLeadApisAreRejected is the fail-closed bar"
+  - "Do not set CUSTOMER_DOWNSTREAM_MODE=http or LEAD_DOWNSTREAM_MODE=http against live CBS until PDP object-level grants exist"
+should_fix:
+  - "Replace Spring Security permitAll on /api/v1/** with default-deny plus authenticated session filter (SEC-C4) — SUG-20261005-sdn"
+evidence:
+  - "S1-S12 from round 1 re-walked against BffSecurityConfig, BffSessionInterceptor, LeadApplicationService.visibleTo, CustomerSearchService"
+  - "SEC-C1: no secrets in new source; stub token is stub-apigee-token"
+  - "SEC-C2: no phone/PAN/email log statements in new types; confirm/search stay masked"
+  - "SEC-C3: countryCode/nationalNumber/productClass/by validated; unknown by is INVALID_REQUEST"
+  - "SEC-C4: interceptor 401s; filter-chain permitAll remains parked debt"
+  - "SEC-C9: Apigee token never on BFF; Flutter still sees only the opaque session"
+  - "SEC-C10: no new crypto; TokenVaultCipher unchanged"
+notes: >
+  Binding veto is not exercised. Spotless did not change the trust boundary.
+```
+
+---
+
+### Board 5 — QA (Swapnali)
+
+```yaml
+# schema: review-verdict
+board: QA
+plan: PLAN-009
+work_item: EPIC-006
+reviewer: "Swapnali — QA Lead (agent)"
+reviewer_type: AGENT
+self_review: true
+round: 2
+date: "2026-10-07"
+decision: APPROVED_WITH_CONDITIONS
+must_fix: []
+conditions:
+  - "Do not treat 62 green tests as live CBS, PDP, or assisted-sale evidence; they prove the stub slice only"
+should_fix:
+  - "Add BFF MockMvc for UNCERTIFIED assignee and WireMock for Http*Gateway — SUG-20261005-uld"
+evidence:
+  - "Q1: AC-1..AC-6 still mapped to tests after format"
+  - "Q2: unit + MockMvc; Http gateways remain untested (http mode is not the default)"
+  - "Q3: 401, unknown customer 404, HOLD short-circuit, BLOCK onboarding, unfinished CONFLICT"
+  - "Q4: Jacoco 2026-10-07 — lead 85% line, customer 81%, BFF 61% (floor 50%)"
+  - "Q5: login / TokenVault tests still in the 37 BFF tests"
+  - "Q6: fixtures CUST-3210 / synthetic mobiles; no real PAN"
+  - "Q8: @Tag FUNC-029/030/031; R2 same-PR tests present for application and api packages"
+notes: >
+  Q0 hold is not raised on a stub SF5 slice. Unexecuted live CBS is not passed.
+```
+
+---
+
+### Board 6 — Risk & Compliance (Shailja S)
+
+```yaml
+# schema: review-verdict
+board: RISK_COMPLIANCE
+plan: PLAN-009
+work_item: EPIC-006
+reviewer: "Shailja S — Compliance & Risk (agent)"
+reviewer_type: AGENT
+self_review: true
+round: 2
+date: "2026-10-07"
+decision: APPROVED_WITH_CONDITIONS
+must_fix: []
+conditions:
+  - "In-memory Lead and stub SP-certification are not the audit or IRDAI record; create/assign attribution to bank-persistence remains S11"
+should_fix: []
+evidence:
+  - "R1-R8 from round 1 unchanged — no consent, payment, or new retention store"
+  - "Formatting and parked SRP items do not create a disclosure obligation"
+notes: >
+  T4 Risk & Compliance human sign-off is not claimed.
+```
+
+---
+
+### Board 7 — Operations (Shivanshi)
+
+```yaml
+# schema: review-verdict
+board: OPERATIONS
+plan: PLAN-009
+work_item: EPIC-006
+reviewer: "Shivanshi — SRE / Operations (agent)"
+reviewer_type: AGENT
+self_review: true
+round: 2
+date: "2026-10-07"
+decision: APPROVED_WITH_CONDITIONS
+must_fix: []
+conditions:
+  - "LEAD_DOWNSTREAM_MODE=http and CUSTOMER_DOWNSTREAM_MODE=http are not a production promotion; no new alert, SLO, or runbook is claimed"
+should_fix: []
+evidence:
+  - "O1-O8 from round 1 unchanged — stub default; in-memory loss on restart; token holder is process-local"
+  - "O6: no business-load change measured; no pod-count advice"
+notes: >
+  Style-only Java rewrite does not change deployability.
+```
+
+---
+
+### Aggregation (round 2)
+
+T3 self-review **still cannot** close as `APPROVED` without a human board ([11 §2](../../governance/11-REVIEW_GATES.md#2-who-may-sit-on-a-board)). No board returned `REWORK` or `REJECTED`. The only merge-blocking engineering finding (ENG-6 Spotless) was fixed. Remaining findings are parked should_fix.
+
+```yaml
+# schema: approval-gate
+plan: PLAN-009
+work_item: EPIC-006
+risk_tier: T3
+round: 2
+verdicts:
+  ARCHITECTURE:
+    decision: APPROVED_WITH_CONDITIONS
+    reviewer_type: AGENT
+    reviewer: "Mahesh — Principal Insurance Platform Architect (agent)"
+    self_review: true
+    conditions:
+      - "Do not treat in-memory Lead or stub CBS/HR as the system of record"
+    evidence:
+      - "A1-A10 re-walked against as-built ports; T4 Architecture signature not manufactured"
+  TECHNICAL:
+    decision: APPROVED_WITH_CONDITIONS
+    reviewer_type: AGENT
+    reviewer: "Amit — Technical Head (agent)"
+    self_review: true
+    conditions:
+      - "ENG-6 Spotless/Checkstyle stay green on the three modules"
+    evidence:
+      - "T1-T8; SOLID/KISS/naming; 62 tests; Spotless applied"
+  PRODUCT:
+    decision: APPROVED_WITH_CONDITIONS
+    reviewer_type: AGENT
+    reviewer: "Rajal — Product Owner (agent)"
+    self_review: true
+    conditions:
+      - "Human Product owner countersigns D-020 and D-021"
+    evidence:
+      - "P1-P12 unchanged; no Product behaviour change this round"
+  SECURITY:
+    decision: APPROVED_WITH_CONDITIONS
+    reviewer_type: AGENT
+    reviewer: "Deepali — Security Architect (agent)"
+    self_review: true
+    conditions:
+      - "Human Board 4 must sit before promoting Lead /api/v1 beyond stub"
+      - "Unauthenticated Lead APIs remain 401"
+      - "No live CBS http mode until PDP"
+    evidence:
+      - "S1-S12 and SEC-C1..C10 re-walked; T4 not claimed"
+  QA:
+    decision: APPROVED_WITH_CONDITIONS
+    reviewer_type: AGENT
+    reviewer: "Swapnali — QA Lead (agent)"
+    self_review: true
+    conditions:
+      - "Tests are stub evidence only"
+    evidence:
+      - "Q1-Q8; 62 green; Jacoco floors held after format"
+  RISK_COMPLIANCE:
+    decision: APPROVED_WITH_CONDITIONS
+    reviewer_type: AGENT
+    reviewer: "Shailja S — Compliance & Risk (agent)"
+    self_review: true
+    conditions:
+      - "In-memory is not the audit/IRDAI record"
+    evidence:
+      - "R1-R8 unchanged; T4 not claimed"
+  OPERATIONS:
+    decision: APPROVED_WITH_CONDITIONS
+    reviewer_type: AGENT
+    reviewer: "Shivanshi — SRE / Operations (agent)"
+    self_review: true
+    conditions:
+      - "http downstream mode is not a production promotion"
+    evidence:
+      - "O1-O8 unchanged; no scale advice"
+result: ESCALATED
+conditions_folded_into_ac:
+  - "In-memory Lead / stub CBS are not SoR (ARCHITECTURE)"
+  - "ENG-6 Spotless/Checkstyle green (TECHNICAL)"
+  - "Human Product countersign D-020 and D-021 (PRODUCT)"
+  - "Human Board 4 sits before promoting Lead /api/v1 beyond stub (SECURITY)"
+  - "Unauthenticated Lead APIs remain 401 (SECURITY)"
+  - "No live CBS http mode until PDP (SECURITY)"
+  - "Tests are stub evidence only (QA)"
+  - "In-memory is not the audit/IRDAI record (RISK_COMPLIANCE)"
+  - "http downstream mode is not a production promotion (OPERATIONS)"
+should_fix_registered_as: ["SUG-20261005-sdn", "SUG-20261005-uld", "SUG-20261007-srp"]
+vetoes: none
+human_signoffs: []
+```
+
+**Gate result (round 2):** `ESCALATED` (T3 self-review). Named humans to sit: **Deepali (Board 4)** required; **Mahesh (Board 1)** and **Rajal (D-020/D-021)** recommended. Agent does not approve the merge. No T4 signature is manufactured.
+
+**Coding-practices summary (not a board):** hexagonal ports are in place; SOLID holds with one parked SRP slip; KISS wins over sharing Ulid into the BFF stub; REST/Java names match ADR-017 plus the stakeholder Assign path; formatting now matches the Spotless ratchet.

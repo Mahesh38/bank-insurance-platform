@@ -19,7 +19,7 @@ schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
 document_count: 661
-total_bytes: 21234919
+total_bytes: 21237416
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -5269,7 +5269,7 @@ documents:
     persona: architecture
     title: "EPIC 006.work item"
     answers: "schema: work-item"
-    bytes: 4615
+    bytes: 5764
   - path: docs/platform/ws3-platform/FUNC-029.work-item.yaml
     bucket: platform
     authority: approved-spec
@@ -5277,7 +5277,7 @@ documents:
     persona: architecture
     title: "FUNC 029.work item"
     answers: "schema: work-item"
-    bytes: 1634
+    bytes: 2132
   - path: docs/platform/ws3-platform/FUNC-030.work-item.yaml
     bucket: platform
     authority: approved-spec
@@ -5285,7 +5285,7 @@ documents:
     persona: architecture
     title: "FUNC 030.work item"
     answers: "schema: work-item"
-    bytes: 1578
+    bytes: 1986
   - path: docs/platform/ws3-platform/FUNC-031.work-item.yaml
     bucket: platform
     authority: approved-spec
@@ -5293,7 +5293,7 @@ documents:
     persona: architecture
     title: "FUNC 031.work item"
     answers: "schema: work-item"
-    bytes: 1464
+    bytes: 1906
   - path: docs/platform/ws3-platform/lead-service-internal.openapi.yaml
     bucket: platform
     authority: approved-spec

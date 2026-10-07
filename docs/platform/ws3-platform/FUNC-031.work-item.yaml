@@ -38,7 +38,7 @@ out_of_scope:
   - "Live Apigee /token and CBS inquiry URLs"
   - "BFF-held CBS credentials"
 
-state: IN-FLIGHT
+state: IN-REVIEW
 priority_now: P3
 priority_at_target: P1
 target_stage: null
@@ -60,5 +60,11 @@ plan: PLAN-009
 estimate: S
 assumptions: []
 risks: []
-evidence: []
-variance_log: []
+evidence:
+  - "ApigeeAccessTokenHolderTest.concurrentExpiredRefreshFetchesOnce — one fetch under 16 threads"
+  - "CustomerSearchServiceTest.mobileSearchReturnsMaskedEtbHit — maskedMobile, no full mobile on the record"
+  - "LeadModuleApiTest.customerSearchMasksIdentityAndCreateAssignsWithExceptionFlag — XXXXXX3210"
+variance_log:
+  - date: "2026-10-07"
+    change: "IN-REVIEW with token and mask evidence; live Apigee stays parked"
+    reason: "ROLE-GUIDELINES D-8"

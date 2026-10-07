@@ -8,7 +8,7 @@ workstream: WS-3
 origin: ["SUG-20261005-lbf"]
 owner: "Amit — Technical Head (R3); lane amit-nip-bff-lead"
 risk_tier: T3
-state: IN-FLIGHT
+state: IN-REVIEW
 priority_now: P3
 priority_at_target: P1
 target_stage: "S08 contract + SF5 runtime scaffold / S11-E02 live CBS and PDP"
@@ -47,17 +47,17 @@ not_included:
 stories:
   - id: FUNC-029
     title: "NIP BFF Lead REST APIs — country-codes, organisation, pipeline, create, assign"
-    state: IN-FLIGHT
+    state: IN-REVIEW
     priority_now: P3
     priority_at_target: P1
   - id: FUNC-030
     title: "Lead service create / onboard / assign with ULID identity and stage projection"
-    state: IN-FLIGHT
+    state: IN-REVIEW
     priority_now: P3
     priority_at_target: P1
   - id: FUNC-031
     title: "Customer search stub + single-flight Apigee token holder"
-    state: IN-FLIGHT
+    state: IN-REVIEW
     priority_now: P3
     priority_at_target: P1
 
@@ -105,6 +105,10 @@ acceptance_criteria:
     given: "16 threads requesting an expired Apigee token"
     when: "currentAccessToken is called"
     then: "the token client is invoked once"
+  - id: AC-6
+    given: "an authenticated BFF session and a created TERM lead"
+    when: "GET /api/v1/customers/{id} and /customers/{id}/active-leads"
+    then: "confirm returns a masked ETB sheet and active-leads lists the unfinished lead"
 
 out_of_scope:
   - "Live CBS / Apigee product onboarding"
@@ -142,5 +146,16 @@ plan: PLAN-009
 estimate: L
 assumptions: []
 risks: []
-evidence: []
-variance_log: []
+evidence:
+  - "LeadModuleApiTest.countryCodesIncludeIndiaValidationRule — AC-1"
+  - "LeadModuleApiTest.organisationLookupsFollowResourceNesting + unknownOrganisationIdsAreAbsent — AC-2"
+  - "LeadModuleApiTest.assignHoldCustomerReturnsExceptionRequired — AC-3"
+  - "LeadApplicationServiceTest.createMintsUlidAndDoesNotEvaluateException — AC-4"
+  - "ApigeeAccessTokenHolderTest.concurrentExpiredRefreshFetchesOnce — AC-5"
+  - "LeadModuleApiTest.customerSearchMasksIdentityAndCreateAssignsWithExceptionFlag — AC-6"
+  - "LeadModuleApiTest.unauthenticatedLeadApisAreRejected asserts SESSION_INVALID — PLAN-009 AC-7"
+  - "docs/platform/ws3-platform/EPIC-006-REVIEW.md round 2 — gate ESCALATED; human Board 4 outstanding"
+variance_log:
+  - date: "2026-10-07"
+    change: "Stories moved IN-REVIEW; AC-6 recorded; AC-2 unknown-branch 404 test added"
+    reason: "Admitted slice is evidence-ready; T3 human boards still block Done"

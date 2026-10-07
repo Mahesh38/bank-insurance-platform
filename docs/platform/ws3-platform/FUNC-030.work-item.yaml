@@ -43,7 +43,7 @@ out_of_scope:
   - "Flyway physical model"
   - "Journey UW-queue transitions"
 
-state: IN-FLIGHT
+state: IN-REVIEW
 priority_now: P3
 priority_at_target: P1
 target_stage: null
@@ -66,5 +66,11 @@ plan: PLAN-009
 estimate: M
 assumptions: []
 risks: []
-evidence: []
-variance_log: []
+evidence:
+  - "LeadApplicationServiceTest.createMintsUlidAndDoesNotEvaluateException"
+  - "LeadApplicationServiceTest.assignRequiresOnboardingAndCertifiedSp — ILLEGAL_TRANSITION before onboard"
+  - "DashboardStageTest — QUALIFIED projects QUOTE_GENERATED, not UNDERWRITING_QUEUE"
+variance_log:
+  - date: "2026-10-07"
+    change: "IN-REVIEW with unit evidence; Flyway remains parked SUG-20260825-db1"
+    reason: "ROLE-GUIDELINES D-8"

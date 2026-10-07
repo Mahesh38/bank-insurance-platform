@@ -42,7 +42,7 @@ out_of_scope:
   - "Live PDP grants"
   - "Flutter"
 
-state: IN-FLIGHT
+state: IN-REVIEW
 priority_now: P3
 priority_at_target: P1
 target_stage: null
@@ -66,5 +66,12 @@ plan: PLAN-009
 estimate: M
 assumptions: []
 risks: []
-evidence: []
-variance_log: []
+evidence:
+  - "LeadModuleApiTest.countryCodesIncludeIndiaValidationRule"
+  - "LeadModuleApiTest.unauthenticatedLeadApisAreRejected — 401 SESSION_INVALID"
+  - "LeadModuleApiTest.customerSearchMasksIdentityAndCreateAssignsWithExceptionFlag — ASSIGNED, exceptionRequired false"
+  - "LeadModuleApiTest.unknownOrganisationIdsAreAbsent — RESOURCE_NOT_FOUND"
+variance_log:
+  - date: "2026-10-07"
+    change: "IN-REVIEW with MockMvc evidence; not Done — human Board 4 / TL approve outstanding"
+    reason: "ROLE-GUIDELINES D-8"

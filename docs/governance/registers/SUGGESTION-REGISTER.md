@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20261006-apg | 2026-10-06 | human:stakeholder | Platform team may refuse Amazon API Gateway inbound; Istio / External LB offered as substitute — need justification pack + CR/ADR escalation (keep ADR-018 vs Option B) | SF1 | SC0 | MUST | ARCH | P2 / P1 | ESCALATED | [CR-017](../change-requests/CR-017-inbound-api-gateway-vs-istio.md) · [ADR-022](../../platform/architecture-review/08-architecture-decision-log.md) · [note](../../architecture/2026-10-06-PLATFORM-TEAM-NOTE-API-GATEWAY-VS-ISTIO.md) · [detail](#sug-20261006-apg--api-gateway-vs-istio-platform-challenge) |
 | SUG-20261003-svg | 2026-10-03 | human:stakeholder | Remaining Saving readiness beyond fail-closed hub validation: Product UI bands, questionnaire engine, enum inventory/master refresh, live Gate POST + complete Proposal POST/poll | SF3 | SC0 | MUST | FUNC | P4 / P1 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [detail](#sug-20261003-svg--saving-readiness-blocked-on-1sb-config) |
 | SUG-20261003-lvr | 2026-10-03 | human:stakeholder | Make 1sb-integration-service UAT-ready to validate Term/ULIP/Savings Life journeys (fail-before-1SB + response contract) | SF1 | SC0 | MUST | FUNC | P2 / P1 | ADMITTED | [FUNC-028](../../1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md) · [detail](#sug-20261003-lvr--life-journey-validation-uat) |
 | SUG-20261003-brf | 2026-10-03 | human:Rajal | BRD wins: dedupe key user+customer+productType+BI; no delete when BI absent; Save does not evaluate — Start Onboarding does; flow dedupe→create→exception→assign SP | SF2 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [D-019](../../au-bank-insurance-platform/DECISION-LOG.md) · [EPIC-005](../../platform/ws3-platform/EPIC-005.work-item.yaml) · [detail](#sug-20261003-brf--brd-wins-dedupe-exception-timing--sequence) |
@@ -134,6 +135,121 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20261006-apg · API Gateway vs Istio platform challenge
+
+```yaml
+# schema: triage-record
+id: SUG-20261006-apg
+raised_at: "2026-10-06"
+raised_by: "human:stakeholder"
+source: "Follow-up to architecture Q&A: platform team may not use AWS API Gateway; Istio / External LB suggested"
+input: >
+  Do we have Istio in the plan? If platform will not use AWS API Gateway, how does
+  architecture change and what is the security/compliance impact? Need guidelines to
+  justify API Gateway to the platform team; if Istio is fine, how to modify architecture
+  (stakeholder believes an external load balancer is needed). Draft one-pager + CR/ADR.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: "analysis-then-CR-017-escalation-pack"
+
+stage_fit:
+  code: SF1
+  rationale: >
+    S09 platform / edge foundation is on-stage (overlapped). Clarifying the inbound AWS
+    product is required for a correct landing-zone request. Implementing a mesh or public
+    ALB substitute would be premature until boards accept CR-017 Option B.
+
+scope:
+  code: SC0
+  business_scope: "in scope — S09 platform foundation / R0 perimeter already in R0-LLD"
+  failure_without_it: "S09 edge provision either violates ADR-018 or stalls on an unresolved platform refusal"
+  minimal: true
+  authority: "ADR-018 · ADR-020 · R0-LLD §3 · CR-012 §3"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S09 — Platform & Environment Foundation (edge P4)"
+  binds_when: "platform team commits the inbound product for vpc-dev / vpc-uat"
+  failure_without_it: >
+    S09 edge provision either violates ADR-018 or stalls on an unresolved platform
+    refusal of Amazon API Gateway with no Board-accepted substitute
+  evidence_tier: E2
+  evidence:
+    - "ADR-018 / ADR-020 binding inbound API Gateway"
+    - "CR-012 §3 service mesh not admitted to R0"
+    - "Human direction 2026-09-14: keep AWS API Gateway as first AWS hop"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ESCALATE
+action_rationale: >
+  Topology / public-exposure change requires human Architecture + Security (+ SRE for
+  landing-zone). Draft CR-017, ADR-022 (reaffirm), and platform one-pager as the evidence
+  pack. Do not implement Option B or edit the live BOM in this turn.
+duplicate_of: null
+conflicts:
+  - "Target-state 04/06 name Istio for mTLS; R0 refuses mesh — resolved by horizon: target vs R0"
+  - "vs SUG-20260914-egr (keep inbound API Gateway) — this row escalates a challenge to that decision; does not supersede it"
+
+classification:
+  type: ARCH
+  breakdown: ADR
+  risk_tier: T4
+  destination: "CR-017 · ADR-022 · architecture one-pager"
+  rationale: >
+    Clarifying ADR reaffirming inbound API Gateway; Option B would be a later amending ADR
+    if boards accept a substitute.
+
+priority:
+  now: P2
+  at_target: P1
+  overrides_applied: []
+  rationale: "Blocks correct S09 edge product selection; not a hard P1 until platform issues a written refusal on the critical path"
+
+dependencies:
+  edges:
+    - id: DEP-20261006-igw
+      type: EXTERNAL
+      target: "Bank platform written inbound product commitment (API Gateway or Board-accepted substitute)"
+      relation: external
+      state: OPEN
+      owner: "Shivanshi / SRE + bank platform team"
+      follow_up: "2026-10-20"
+    - type: DECISION
+      target: ADR-018
+      relation: related_to
+      state: OPEN
+    - type: DECISION
+      target: ADR-020
+      relation: related_to
+      state: OPEN
+      # Apigee outbound (DEP-20260914-apg) remains a separate external edge
+  state: BLOCKED
+  enablement_count: 0
+  earliest_start: "2026-10-06"
+  cycles: none
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: CR-017
+  plan_id: null
+  status: ESCALATED
+  closed_reason: null
+```
+
+Related: does not reopen `SUG-20260914-egr` (Apigee outbound / API Gateway inbound). That decision stands; this escalation answers a later platform challenge to the inbound half. Evidence pack: `docs/architecture/2026-10-06-PLATFORM-TEAM-NOTE-API-GATEWAY-VS-ISTIO.md`, `ADR-022`.
 
 ### SUG-20260930-osl · openssl CVE-2026-84782
 

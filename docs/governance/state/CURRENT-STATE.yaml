@@ -660,7 +660,7 @@ id_allocation:
     # CR-011 existed as a file from 2026-08-20 without a register row, so the counter read 11
     # while CR-011 was in use; it is now indexed in the decision register and the counter clears
     # both it and CR-012.
-    CR: 17        # CR-001..016 in use (016 = parallel lanes / evidence unpark / RG-9, SUG-20260923-par, CANDIDATE transcribed 2026-09-23 under ADMIT-BYPASS; HUMAN Architecture+Product ratification outstanding); next unused is 17
+    CR: 18        # CR-001..017 in use (017 = inbound API Gateway vs Istio escalation pack, SUG-20261006-apg, DRAFT/ESCALATED 2026-10-06; HUMAN Architecture+Security+SRE outstanding); next unused is 18
     RISK: 21      # RISK-001..020 in use (016..020 added 2026-09-30 AIGEM signoff: suitability, autopilot, approval automation, missing human signoff, operational dependency)
     ASM: 20       # ASM-001..014, 015..019 in use (013 invalidated 2026-09-14; 015 = Apigee outbound / API Gateway inbound; 016 = private Apigee for internal APIs; 017 = dev-inside-UAT; 018 = no CUG at R0; 019 = AD-verify API + partner IdP + Fireframe UI). ID-allocation only. No stage field touched.
     EPIC: 6       # EPIC-001..005 in use (005 = Lead module #5 R0 design pack, SUG-20260930-lmd, minted 2026-09-30). Next unused is 6. ID-allocation only.
@@ -676,4 +676,4 @@ id_allocation:
     # ADR-017 was added by the 2026-08-27 platform error contract round (SUG-20260827-err), and
     # EPIC-001 by the same round. ID-allocation correction only. No stage, scope or gate field is
     # touched by it; those remain human-owned (04 section 5).
-    ADR: 22        # ADR-001..020 in use; ADR-021 = Lead create by workforce creators with mandatory certified-SP RM assignee (D-018 / SUG-20260930-ola, 2026-09-30). Next unused is 22. ID-allocation only.
+    ADR: 23        # ADR-001..021 in use; ADR-022 = inbound API Gateway not replaceable by Istio at R0 (reaffirms ADR-018/020; CR-017 / SUG-20261006-apg, 2026-10-06). Next unused is 23. ID-allocation only.

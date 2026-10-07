@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.bank.common.error.ErrorCodes;
 import com.bank.workforce.bff.config.WorkforceSessionProperties;
 import com.bank.workforce.bff.session.SessionModels.WorkforceSession;
 import com.bank.workforce.bff.session.SessionStore;
@@ -112,6 +113,28 @@ class LeadModuleApiTest {
   }
 
   @Test
+  void unknownOrganisationIdsAreAbsent() throws Exception {
+    mockMvc
+        .perform(get("/api/v1/branches/BR-UNKNOWN/verticals").header("X-Session-Handle", SESSION))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.code").value(ErrorCodes.RESOURCE_NOT_FOUND));
+
+    mockMvc
+        .perform(
+            get("/api/v1/branches/BR-UNKNOWN/specified-persons")
+                .header("X-Session-Handle", SESSION))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.code").value(ErrorCodes.RESOURCE_NOT_FOUND));
+
+    mockMvc
+        .perform(
+            get("/api/v1/verticals/VERT-UNKNOWN/relationship-managers")
+                .header("X-Session-Handle", SESSION))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.code").value(ErrorCodes.RESOURCE_NOT_FOUND));
+  }
+
+  @Test
   void customerSearchMasksIdentityAndCreateAssignsWithExceptionFlag() throws Exception {
     mockMvc
         .perform(
@@ -194,13 +217,17 @@ class LeadModuleApiTest {
 
   @Test
   void unauthenticatedLeadApisAreRejected() throws Exception {
-    mockMvc.perform(get("/api/v1/country-codes")).andExpect(status().isUnauthorized());
+    mockMvc
+        .perform(get("/api/v1/country-codes"))
+        .andExpect(status().isUnauthorized())
+        .andExpect(jsonPath("$.code").value(ErrorCodes.SESSION_INVALID));
   }
 
   @Test
   void unknownCustomerIsAbsent() throws Exception {
     mockMvc
         .perform(get("/api/v1/customers/UNKNOWN").header("X-Session-Handle", SESSION))
-        .andExpect(status().isNotFound());
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.code").value(ErrorCodes.RESOURCE_NOT_FOUND));
   }
 }

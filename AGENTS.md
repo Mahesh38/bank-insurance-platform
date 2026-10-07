@@ -169,7 +169,7 @@ migrations and no JPA · no PII in logs.
 
 # Local: persistence first (8081), then integration (8080)
 ./gradlew :services:bank-persistence-service:bootRun --args='--spring.profiles.active=local'
-./gradlew :services:1sb-integration-service:bootRun --args='--spring.profiles.active=local'
+./gradlew :services:1sb-integration-service:bootRun  --args='--spring.profiles.active=local'
 # Integration job-store calls need persistence on http://localhost:8081
 # (override with BANK_PERSISTENCE_BASE_URL / bank.persistence.base-url)
 

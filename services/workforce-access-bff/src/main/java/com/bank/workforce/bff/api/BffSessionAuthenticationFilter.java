@@ -19,8 +19,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 
 /**
- * Binds the opaque BFF session into Spring Security so {@code /api/v1/**} is default-deny
- * (SEC-C4) rather than {@code permitAll} plus an MVC interceptor.
+ * Binds the opaque BFF session into Spring Security so {@code /api/v1/**} is default-deny (SEC-C4)
+ * rather than {@code permitAll} plus an MVC interceptor.
  */
 @Component
 public class BffSessionAuthenticationFilter extends OncePerRequestFilter {
@@ -44,7 +44,9 @@ public class BffSessionAuthenticationFilter extends OncePerRequestFilter {
   @Override
   protected boolean shouldNotFilter(HttpServletRequest request) {
     String path = request.getRequestURI();
-    return path.startsWith("/api/v1/auth") || path.startsWith("/actuator") || path.startsWith("/error");
+    return path.startsWith("/api/v1/auth")
+        || path.startsWith("/actuator")
+        || path.startsWith("/error");
   }
 
   @Override

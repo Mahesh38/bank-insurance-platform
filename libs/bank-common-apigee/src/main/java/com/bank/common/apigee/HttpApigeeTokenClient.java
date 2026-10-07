@@ -53,8 +53,7 @@ public final class HttpApigeeTokenClient implements ApigeeTokenClient {
               : Duration.ofSeconds(body.expiresIn());
       return new IssuedToken(body.accessToken(), clock.instant().plus(ttl));
     } catch (RestClientResponseException ex) {
-      throw new IllegalStateException(
-          "Apigee /token rejected the client-credentials grant", ex);
+      throw new IllegalStateException("Apigee /token rejected the client-credentials grant", ex);
     }
   }
 

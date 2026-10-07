@@ -49,7 +49,8 @@ class HttpApigeeTokenClientTest {
     restClient =
         RestClient.builder()
             .requestFactory(factory)
-            .messageConverters(converters -> converters.add(new MappingJackson2HttpMessageConverter()))
+            .messageConverters(
+                converters -> converters.add(new MappingJackson2HttpMessageConverter()))
             .build();
   }
 
@@ -88,6 +89,16 @@ class HttpApigeeTokenClientTest {
   }
 
   @Test
+  void rejectsNullClientIdWithoutCallingApigee() {
+    assertThatThrownBy(
+            () ->
+                new HttpApigeeTokenClient(
+                    restClient, URI.create(wireMock.baseUrl() + "/token"), null, "secret", clock))
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessageContaining("APIGEE_CLIENT_ID");
+  }
+
+  @Test
   void tokenHttpFailureDoesNotIncludeSecret() {
     wireMock.stubFor(post("/token").willReturn(aResponse().withStatus(401).withBody("denied")));
     HttpApigeeTokenClient client =
@@ -97,5 +108,71 @@ class HttpApigeeTokenClientTest {
     assertThatThrownBy(client::fetchClientCredentials)
         .isInstanceOf(IllegalStateException.class)
         .hasMessageNotContaining("super-secret");
+  }
+
+  @Test
+  void emptyBodyOmitsAccessToken() {
+    wireMock.stubFor(
+        post("/token")
+            .willReturn(
+                aResponse().withStatus(200).withHeader("Content-Type", "application/json")));
+    HttpApigeeTokenClient client = liveClient();
+
+    assertThatThrownBy(client::fetchClientCredentials)
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessageContaining("omitted access_token");
+  }
+
+  @Test
+  void jsonWithoutAccessTokenIsRejected() {
+    stubTokenBody("{\"expires_in\":3600}");
+    HttpApigeeTokenClient client = liveClient();
+
+    assertThatThrownBy(client::fetchClientCredentials)
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessageContaining("omitted access_token");
+  }
+
+  @Test
+  void blankAccessTokenIsRejected() {
+    stubTokenBody("{\"access_token\":\"  \",\"expires_in\":3600}");
+    HttpApigeeTokenClient client = liveClient();
+
+    assertThatThrownBy(client::fetchClientCredentials)
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessageContaining("omitted access_token");
+  }
+
+  @Test
+  void omittedExpiresInUsesDefaultTtl() {
+    stubTokenBody("{\"access_token\":\"no-ttl\"}");
+    HttpApigeeTokenClient client = liveClient();
+
+    IssuedToken issued = client.fetchClientCredentials();
+
+    assertThat(issued.value()).isEqualTo("no-ttl");
+    assertThat(issued.expiresAt()).isEqualTo(clock.instant().plus(Duration.ofHours(1)));
+  }
+
+  @Test
+  void nonPositiveExpiresInUsesDefaultTtl() {
+    stubTokenBody("{\"access_token\":\"zero-ttl\",\"expires_in\":0}");
+    HttpApigeeTokenClient client = liveClient();
+
+    IssuedToken issued = client.fetchClientCredentials();
+
+    assertThat(issued.value()).isEqualTo("zero-ttl");
+    assertThat(issued.expiresAt()).isEqualTo(clock.instant().plus(Duration.ofHours(1)));
+  }
+
+  private HttpApigeeTokenClient liveClient() {
+    return new HttpApigeeTokenClient(
+        restClient, URI.create(wireMock.baseUrl() + "/token"), "id", "secret", clock);
+  }
+
+  private void stubTokenBody(String json) {
+    wireMock.stubFor(
+        post("/token")
+            .willReturn(aResponse().withHeader("Content-Type", "application/json").withBody(json)));
   }
 }

@@ -11,8 +11,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 /**
- * Backup session bind for MVC. Spring Security default-deny ({@code BffSessionAuthenticationFilter})
- * is the primary control (SEC-C4).
+ * Backup session bind for MVC. Spring Security default-deny ({@code
+ * BffSessionAuthenticationFilter}) is the primary control (SEC-C4).
  */
 @Component
 public class BffSessionInterceptor implements HandlerInterceptor {

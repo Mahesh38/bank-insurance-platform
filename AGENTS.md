@@ -25,8 +25,10 @@ is safe to trust and cheap to read.
 
 - **A suggestion is never implemented in the turn it is raised.** Triage it
   ([`aigem-triage`](./.claude/skills/aigem-triage/SKILL.md)), record it, schedule it — then go back
-  to the work item you were on. **Exception:** analysis/questions are not triage (`AE-1`);
-  dependency-safe off-path work admits as **SF5 PARALLEL** under a separate lane (LC-2 / CR-016).
+  to the work item you were on. **Exceptions:** analysis/questions are not triage (`AE-1`);
+  dependency-safe off-path work admits as **SF5 PARALLEL** under a separate lane (LC-2 / CR-016);
+  and an explicit repository-owner override under [`09 §8`](./docs/governance/09-AI_EXECUTION_RULES.md#8-when-a-human-overrides-the-process)
+  may be recorded as `ADMIT-BYPASS` and executed without waiting for the normal schedule.
 - **Exactly one work item in flight per agent/owner lane.** Independent, dependency-safe owners and
   SF5 lanes may progress in parallel; a blocked item is recorded with owner and date and releases
   the lane. Only the [hard `P1` overrides](./docs/governance/05-PRIORITY_MODEL.md#3-hard-p1-overrides) interrupt.
@@ -37,11 +39,28 @@ is safe to trust and cheap to read.
 - **Do not re-report known debt** — `BOOT.md` section 5, detail in
   [`01 §6`](./docs/governance/01-CURRENT_STATE.md#6-known-open-debt-affecting-triage).
 - Every `TODO` carries a work item ID. Nothing is Done without evidence.
-- Agents never edit stage state, never approve change requests, and never self-approve a board
+- Agents never edit stage state, never manufacture an approval, and never self-approve a board
   that requires a human. **T4 Architecture, Security and Risk & Compliance sign-offs stay human** —
-  an agent may draft the reasoning and assemble the evidence, never the signature.
+  an agent may draft the reasoning and assemble the evidence, never invent the signature.
+- **Solo-owner authority profile for this repository:** `Mahesh38` / Mahesh is the repository's
+  sole human owner unless an actual additional human is explicitly identified. Rajal, Amit,
+  Deepali, Aarti, Swapnali, Shailja S, Shivanshi, Kalpana and the other named personas are AI
+  reasoning roles, not independent human approvers. When Mahesh explicitly says `I approve`,
+  `go ahead`, `unpark and do it`, `override the recommendation`, or equivalent for a specific
+  work item, treat that statement as the required **human owner ratification**. Keep every AI
+  persona verdict as `reviewer_type: AGENT`; record Mahesh separately as `reviewer_type: HUMAN`
+  with authority `repository_owner`. Do **not** wait for an AI persona to provide a second human
+  signature.
+- **Owner override changes the action, not the evidence.** If governance recommends PARK,
+  REJECT, ESCALATE or APPROVE-WITH-CONDITIONS and Mahesh explicitly directs execution, preserve
+  the recommendation/risk in the record, change the executable action to `ADMIT-BYPASS`, record
+  `bypass_authorised_by`, and proceed. Do not ask for the same approval again. An owner decision
+  may accept sequencing/process/architecture/product/security risk, but it cannot fabricate a
+  test result, external bank approval, regulatory fact, legal permission, production credential,
+  or other evidence that does not exist.
 - **No persona silently crosses its authority boundary.** `Not Authorised` is binding on AI
-  behaviour, and expertise is not authority.
+  behaviour, and expertise is not authority. AI personas advise; the sole human owner makes the
+  final repository decision when he explicitly chooses to override or ratify.
 - **Do not scale blindly.** Name the business load, the transaction amplification, the *actual*
   bottleneck, the next downstream limit, the safe range and the recovery behaviour. More pods are
   not a diagnosis of an insurer, 1SB, DB, Kafka, cache or payment-system bottleneck.
@@ -85,8 +104,9 @@ the protocol for the domain in play:
 [delivery](./docs/context/roles/shared/delivery-cross-persona-decision-protocol.md) ·
 [architecture ↔ compliance](./docs/context/roles/shared/architect-compliance-decision-protocol.md) ·
 [product ↔ architecture ↔ compliance](./docs/context/roles/shared/product-architecture-compliance-decision-protocol.md).
-Unresolved material conflict escalates to the accountable humans — it is never averaged, defaulted
-or silently resolved.
+Unresolved material conflict escalates to the accountable human owner; it is never averaged,
+defaulted or silently resolved. In this repository that accountable human is Mahesh unless an
+additional real human is explicitly identified.
 
 **Aliases resolve to one persona.** `Solution Architect`/`Principal Architect` → Mahesh ·
 `DevOps / SRE`/`Reliability Engineering Head`/`Operations`/`R10` → Shivanshi ·
@@ -149,7 +169,7 @@ migrations and no JPA · no PII in logs.
 
 # Local: persistence first (8081), then integration (8080)
 ./gradlew :services:bank-persistence-service:bootRun --args='--spring.profiles.active=local'
-./gradlew :services:1sb-integration-service:bootRun  --args='--spring.profiles.active=local'
+./gradlew :services:1sb-integration-service:bootRun --args='--spring.profiles.active=local'
 # Integration job-store calls need persistence on http://localhost:8081
 # (override with BANK_PERSISTENCE_BASE_URL / bank.persistence.base-url)
 

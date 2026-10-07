@@ -13,6 +13,14 @@ Binding agent contract: [`09-AI_EXECUTION_RULES.md`](../../../docs/governance/09
 **A suggestion is never implemented in the turn it is raised.** Triage it, record it, schedule
 it, then return to the work item you were on. Only the P1 override classes interrupt.
 
+**Repository-owner exception.** This repository has one human owner: Mahesh (`Mahesh38`). The
+other named Product, Engineering, Security, DBA, QA, Compliance, SRE and Delivery personas are AI
+reasoning personas unless an actual additional human is explicitly identified. If Mahesh explicitly
+says `I approve`, `go ahead`, `unpark and do it`, `override the recommendation`, `do it now`, or
+equivalent for a specific item, that is a governance §8 human override. Preserve the normal triage
+recommendation and risks, record `ADMIT-BYPASS` / `bypass_authorised_by`, and continue with the
+owner-directed work instead of waiting for the parked stage or a second "human" persona approval.
+
 ## Before anything: know where you are
 
 Operating manual: [`RUNBOOK.md`](../../../docs/governance/RUNBOOK.md).
@@ -57,9 +65,13 @@ STEP 4  Necessity  → 16-DECISION_MODEL.md §2
         Run the anti-over-engineering tests (§6) for anything adding structure.
 
 STEP 5  Action matrix → 00-GOVERNANCE.md §6 → ADMIT | PARK | REJECT | ESCALATE
-        PARK/REJECT/ESCALATE: write the register line and STOP.
+        Normal path: PARK/REJECT/ESCALATE writes the register line and STOPs.
+        Owner-override path: if Mahesh explicitly directs this specific item to proceed despite
+        that recommendation, preserve the recommendation/rationale, set executable action to
+        ADMIT-BYPASS, set bypass_authorised_by to Mahesh/repository_owner, name the risk, and
+        continue. Do not ask for the same approval again.
 
-── ADMIT only, from here ──
+── ADMIT or owner-authorised ADMIT-BYPASS only, from here ──
 
 STEP 6  Classify   → 06-WORK_CLASSIFICATION.md §2–§3 (type + risk tier T1–T4)
         Apply RG-9: SF0 / gate-blocker work with E2+ unchanged-control evidence caps at T3
@@ -75,11 +87,27 @@ STEP 9  Break down → 06 §5. One owner + one acceptance outcome = story.
 STEP 10 Plan       → 10-IMPLEMENTATION_PLAN_TEMPLATE.md (T2+; files_expected and
         out_of_scope are the drift contract)
 STEP 11 Review     → 11-REVIEW_GATES.md, boards mandatory for the tier, in role,
-        one at a time, evidence per verdict
+        one at a time, evidence per verdict. Named personas remain reviewer_type: AGENT.
+        If a human-only sign-off is outstanding and Mahesh explicitly ratifies this specific
+        item, record a separate owner ratification as reviewer_type: HUMAN with authority
+        repository_owner. That satisfies the repository's human-signature requirement; do not
+        wait for an AI persona to provide a second human signature.
 STEP 12 Gate → READY (12-DEFINITION_OF_READY.md) → order (07 §5) → implement
 STEP 13 Drift checks throughout → 17-DRIFT_CONTROL.md
 STEP 14 Done only with evidence → 13-DEFINITION_OF_DONE.md, then close the registers
 ```
+
+### What owner ratification does and does not do
+
+Owner ratification may override **repo-local process, sequencing, PARK/REJECT/ESCALATE
+recommendations, AI-persona veto/rework recommendations, or a pending human-signature gate** for a
+specific work item. It does not rewrite the persona's analysis: keep the AI verdict and risk visible.
+
+Owner ratification cannot make missing evidence exist. Never convert an absent test result, external
+bank decision, regulator/legal requirement, credential, production dependency, third-party answer or
+other objective fact into "approved" merely because the owner wants the work to proceed. If such a
+fact is a real execution dependency, proceed only up to the point that dependency allows and record
+the remaining blocker precisely.
 
 ## Reply shape
 
@@ -98,6 +126,15 @@ Continuing with FUNC-011.
 
 Five facts and a return to the task. The last line is not optional.
 
+When the owner explicitly overrides the recommendation, make the distinction visible:
+
+```text
+Recommendation: PARK → Phase 5 (reason recorded)
+Owner decision:  ADMIT-BYPASS — Mahesh approved execution now
+Risk retained:   <one-line risk/condition>
+Next:            proceeding with <work item>; no further persona-human approval required
+```
+
 ## Templates and schemas
 
 | Need | File |
@@ -112,10 +149,13 @@ Five facts and a return to the task. The last line is not optional.
 
 ## Never
 
-- Implement a suggestion in the turn it is raised
+- Implement a suggestion in the turn it is raised **unless the repository owner explicitly invokes the governance §8 override for that item**
 - Hold more than one work item in flight
 - Park without a target stage and an unpark trigger
 - Claim a P1 override without naming its evidence
-- Edit stage fields in `CURRENT-STATE.yaml`, or approve a change request
+- Edit stage fields in `CURRENT-STATE.yaml`, or manufacture an approval
+- Treat an AI persona as an additional human approver; AI persona reviews stay `AGENT`
+- Ignore an explicit Mahesh owner ratification and keep the item blocked solely on repo-local human sign-off
+- Fabricate external evidence, regulatory/legal permission, bank approval, credentials or test results
 - Delete a parked or rejected register entry
 - Mark anything Done without evidence

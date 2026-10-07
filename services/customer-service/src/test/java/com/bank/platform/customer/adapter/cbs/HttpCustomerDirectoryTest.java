@@ -3,11 +3,17 @@ package com.bank.platform.customer.adapter.cbs;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.bank.common.error.ErrorCodes;
+import com.bank.common.error.PlatformLayer;
+import com.bank.common.error.ServiceErrors;
+import com.bank.common.error.ServiceException;
 import com.bank.platform.customer.domain.CustomerInquiryPort.CustomerHit;
 import com.bank.platform.customer.domain.CustomerInquiryPort.SearchQuery;
 import com.bank.platform.customer.domain.CustomerInquiryUnauthorizedException;
@@ -52,7 +58,8 @@ class HttpCustomerDirectoryTest {
         new HttpCustomerDirectory(
             restClient,
             new CbsInquiryProperties(
-                "http", wireMock.baseUrl(), "/customers/search", "/customers/{customerId}"));
+                "http", wireMock.baseUrl(), "/customers/search", "/customers/{customerId}"),
+            ServiceErrors.of("customer", PlatformLayer.L5));
   }
 
   @Test
@@ -82,5 +89,65 @@ class HttpCustomerDirectoryTest {
     assertThatThrownBy(
             () -> directory.search(new SearchQuery("MOBILE", "9876543210", "IN"), "stale"))
         .isInstanceOf(CustomerInquiryUnauthorizedException.class);
+  }
+
+  @Test
+  void serverErrorIsUpstreamUnavailableWithoutQueryInMessage() {
+    wireMock.stubFor(
+        get(urlPathEqualTo("/customers/search")).willReturn(aResponse().withStatus(503)));
+    String mobile = "9876543210";
+
+    assertThatThrownBy(() -> directory.search(new SearchQuery("MOBILE", mobile, "IN"), "token"))
+        .isInstanceOf(ServiceException.class)
+        .satisfies(
+            thrown -> {
+              ServiceException ex = (ServiceException) thrown;
+              assertThat(ex.getErrorResponse().getCode())
+                  .isEqualTo(ErrorCodes.UPSTREAM_UNAVAILABLE);
+              assertThat(ex.getMessage()).doesNotContain(mobile);
+              assertThat(ex.getDiagnostic().getReason()).doesNotContain(mobile);
+              assertThat(ex.getDiagnostic().getReason()).contains("HTTP 503");
+              assertThat(ex.getCause()).isNull();
+            });
+  }
+
+  @Test
+  void clientErrorIsUpstreamBadResponseWithoutQueryInMessage() {
+    wireMock.stubFor(
+        get(urlPathEqualTo("/customers/search")).willReturn(aResponse().withStatus(400)));
+    String pan = "ABCDE1234F";
+
+    assertThatThrownBy(() -> directory.search(new SearchQuery("PAN", pan, "IN"), "token"))
+        .isInstanceOf(ServiceException.class)
+        .satisfies(
+            thrown -> {
+              ServiceException ex = (ServiceException) thrown;
+              assertThat(ex.getErrorResponse().getCode())
+                  .isEqualTo(ErrorCodes.UPSTREAM_BAD_RESPONSE);
+              assertThat(ex.getMessage()).doesNotContain(pan);
+              assertThat(ex.getDiagnostic().getReason()).doesNotContain(pan);
+            });
+  }
+
+  @Test
+  void findByIdEncodesPathSegments() {
+    wireMock.stubFor(
+        get(urlEqualTo("/customers/CUST%2F3210"))
+            .willReturn(
+                aResponse()
+                    .withHeader("Content-Type", "application/json")
+                    .withBody(
+                        "{\"customerId\":\"CUST/3210\",\"displayName\":\"A U Customer\",\"initials\":\"AU\",\"maskedCif\":\"XXXXX3210\",\"maskedMobile\":\"XXXXXX3210\",\"eligibility\":\"ETB\",\"source\":\"CBS\"}")));
+
+    assertThat(directory.findById("CUST/3210", "live-token")).isPresent();
+    wireMock.verify(getRequestedFor(urlEqualTo("/customers/CUST%2F3210")));
+  }
+
+  @Test
+  void findByIdTreats404AsAbsent() {
+    wireMock.stubFor(
+        get(urlPathEqualTo("/customers/MISSING")).willReturn(aResponse().withStatus(404)));
+
+    assertThat(directory.findById("MISSING", "live-token")).isEmpty();
   }
 }

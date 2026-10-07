@@ -4,12 +4,14 @@ import com.bank.common.apigee.ApigeeAccessTokenHolder;
 import com.bank.common.apigee.ApigeeTokenClient;
 import com.bank.common.apigee.HttpApigeeTokenClient;
 import com.bank.common.apigee.IssuedToken;
+import java.net.http.HttpClient;
 import java.time.Clock;
 import java.time.Duration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 
 /**
@@ -35,11 +37,24 @@ public class ApigeeTokenConfig {
   @ConditionalOnProperty(name = "apigee.token-mode", havingValue = "http")
   ApigeeTokenClient httpApigeeTokenClient(
       RestClient.Builder builder, ApigeeTokenProperties properties, Clock clock) {
+    JdkClientHttpRequestFactory factory =
+        timedFactory(properties.connectTimeoutMs(), properties.readTimeoutMs());
     return new HttpApigeeTokenClient(
-        builder.build(),
+        builder.requestFactory(factory).build(),
         properties.tokenUri(),
         properties.clientId(),
         properties.clientSecret(),
         clock);
+  }
+
+  static JdkClientHttpRequestFactory timedFactory(int connectTimeoutMs, int readTimeoutMs) {
+    HttpClient httpClient =
+        HttpClient.newBuilder()
+            .version(HttpClient.Version.HTTP_1_1)
+            .connectTimeout(Duration.ofMillis(connectTimeoutMs))
+            .build();
+    JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(httpClient);
+    factory.setReadTimeout(Duration.ofMillis(readTimeoutMs));
+    return factory;
   }
 }

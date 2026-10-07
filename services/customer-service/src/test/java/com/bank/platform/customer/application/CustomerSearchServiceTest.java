@@ -102,4 +102,41 @@ class CustomerSearchServiceTest {
     assertThat(calls.get()).isEqualTo(2);
     assertThat(invalidations.get()).isEqualTo(1);
   }
+
+  @Test
+  void persistentUnauthorizedAfterRetryIsUpstreamUnavailable() {
+    CustomerInquiryPort inquiry =
+        new CustomerInquiryPort() {
+          @Override
+          public List<CustomerHit> search(SearchQuery query, String accessToken) {
+            throw new CustomerInquiryUnauthorizedException();
+          }
+
+          @Override
+          public java.util.Optional<CustomerHit> findById(String customerId, String accessToken) {
+            return java.util.Optional.empty();
+          }
+        };
+    AtomicInteger invalidations = new AtomicInteger();
+    AccessTokenPort tokens =
+        new AccessTokenPort() {
+          @Override
+          public String currentAccessToken() {
+            return "stale";
+          }
+
+          @Override
+          public void invalidate() {
+            invalidations.incrementAndGet();
+          }
+        };
+    CustomerSearchService retrying =
+        new CustomerSearchService(inquiry, tokens, ServiceErrors.of("customer", PlatformLayer.L5));
+
+    assertThatThrownBy(() -> retrying.search("MOBILE", "9876543210", "IN"))
+        .isInstanceOf(ServiceException.class)
+        .extracting(ex -> ((ServiceException) ex).getErrorResponse().getCode())
+        .isEqualTo(ErrorCodes.UPSTREAM_UNAVAILABLE);
+    assertThat(invalidations.get()).isEqualTo(1);
+  }
 }

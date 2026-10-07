@@ -2,10 +2,16 @@ package com.bank.insurance.onesb.apigee;
 
 import java.net.URI;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.bind.DefaultValue;
 
 @ConfigurationProperties("apigee")
 public record ApigeeTokenProperties(
-    String tokenMode, String tokenUrl, String clientId, String clientSecret) {
+    String tokenMode,
+    String tokenUrl,
+    String clientId,
+    String clientSecret,
+    @DefaultValue("3000") int connectTimeoutMs,
+    @DefaultValue("30000") int readTimeoutMs) {
 
   URI tokenUri() {
     if (tokenUrl == null || tokenUrl.isBlank()) {

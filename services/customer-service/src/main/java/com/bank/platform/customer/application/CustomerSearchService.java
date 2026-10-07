@@ -76,7 +76,16 @@ public class CustomerSearchService {
       return call.apply(tokens.currentAccessToken());
     } catch (CustomerInquiryUnauthorizedException unauthorized) {
       tokens.invalidate();
-      return call.apply(tokens.currentAccessToken());
+      try {
+        return call.apply(tokens.currentAccessToken());
+      } catch (CustomerInquiryUnauthorizedException reminted) {
+        throw errors
+            .error(ErrorCodes.UPSTREAM_UNAVAILABLE)
+            .component("CustomerSearchService")
+            .operation("withToken")
+            .reason("CBS rejected the reminted access token")
+            .build();
+      }
     }
   }
 }

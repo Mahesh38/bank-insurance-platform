@@ -1,5 +1,8 @@
 package com.bank.platform.customer.adapter.cbs;
 
+import com.bank.common.error.ErrorCodes;
+import com.bank.common.error.ServiceErrors;
+import com.bank.common.error.ServiceException;
 import com.bank.platform.customer.domain.CustomerInquiryPort;
 import com.bank.platform.customer.domain.CustomerInquiryUnauthorizedException;
 import java.util.List;
@@ -7,6 +10,7 @@ import java.util.Optional;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
@@ -15,6 +19,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 /**
  * Live CBS inquiry via Apigee. The JSON shape is this adapter's contract until the bank publishes
  * the CBS OpenAPI ({@code DEP-20260914-apg}). Credentials and host stay in environment variables.
+ * Failures become catalogue {@code UPSTREAM_*} codes — the request URI (and {@code q}) never enter
+ * the exception message (SEC-C2).
  */
 @Component
 @ConditionalOnProperty(name = "customer.cbs.inquiry-mode", havingValue = "http")
@@ -22,10 +28,13 @@ public class HttpCustomerDirectory implements CustomerInquiryPort {
 
   private final RestClient client;
   private final CbsInquiryProperties properties;
+  private final ServiceErrors errors;
 
-  public HttpCustomerDirectory(RestClient restClient, CbsInquiryProperties properties) {
+  public HttpCustomerDirectory(
+      RestClient restClient, CbsInquiryProperties properties, ServiceErrors errors) {
     this.client = restClient.mutate().baseUrl(properties.baseUri().toString()).build();
     this.properties = properties;
+    this.errors = errors;
   }
 
   @Override
@@ -43,18 +52,17 @@ public class HttpCustomerDirectory implements CustomerInquiryPort {
 
   @Override
   public Optional<CustomerHit> findById(String customerId, String accessToken) {
+    String path =
+        UriComponentsBuilder.fromPath(properties.getPath())
+            .buildAndExpand(customerId)
+            .toUriString();
     try {
-      CustomerHit hit =
-          get(
-              properties.getPath().replace("{customerId}", customerId),
-              accessToken,
-              CustomerHit.class);
-      return Optional.ofNullable(hit);
-    } catch (RestClientResponseException ex) {
-      if (ex.getStatusCode() == HttpStatus.NOT_FOUND) {
+      return Optional.ofNullable(get(path, accessToken, CustomerHit.class));
+    } catch (ServiceException ex) {
+      if (ErrorCodes.RESOURCE_NOT_FOUND.equals(ex.getErrorResponse().getCode())) {
         return Optional.empty();
       }
-      throw translate(ex);
+      throw ex;
     }
   }
 
@@ -72,10 +80,28 @@ public class HttpCustomerDirectory implements CustomerInquiryPort {
   }
 
   private RuntimeException translate(RestClientResponseException ex) {
-    if (ex.getStatusCode() == HttpStatus.UNAUTHORIZED) {
+    HttpStatusCode status = ex.getStatusCode();
+    if (status == HttpStatus.UNAUTHORIZED) {
       return new CustomerInquiryUnauthorizedException();
     }
-    return ex;
+    if (status == HttpStatus.NOT_FOUND) {
+      return errors
+          .error(ErrorCodes.RESOURCE_NOT_FOUND)
+          .component("HttpCustomerDirectory")
+          .operation("inquiry")
+          .reason("CBS inquiry returned HTTP 404")
+          .build();
+    }
+    String code =
+        status.is5xxServerError()
+            ? ErrorCodes.UPSTREAM_UNAVAILABLE
+            : ErrorCodes.UPSTREAM_BAD_RESPONSE;
+    return errors
+        .error(code)
+        .component("HttpCustomerDirectory")
+        .operation("inquiry")
+        .reason("CBS inquiry returned HTTP " + status.value())
+        .build();
   }
 
   public record SearchPage(List<CustomerHit> items) {}

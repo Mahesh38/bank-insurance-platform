@@ -51,6 +51,8 @@ apigee:
   token-url: ${APIGEE_TOKEN_URL:}
   client-id: ${APIGEE_CLIENT_ID:}
   client-secret: ${APIGEE_CLIENT_SECRET:}
+  connect-timeout-ms: ${APIGEE_CONNECT_TIMEOUT_MS:3000}
+  read-timeout-ms: ${APIGEE_READ_TIMEOUT_MS:30000}
 
 # 1SB outbound client configuration
 onesb:

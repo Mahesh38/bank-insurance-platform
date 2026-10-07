@@ -5,11 +5,12 @@ import java.util.Optional;
 
 public interface LeadRepository {
 
-    void save(Lead lead);
+  void save(Lead lead);
 
-    Optional<Lead> findById(String leadId);
+  Optional<Lead> findById(String leadId);
 
-    List<Lead> findVisibleTo(String principalId);
+  List<Lead> findVisibleTo(String principalId);
 
-    Optional<Lead> findUnfinished(String creatorPrincipalId, String customerId, ProductClass productClass);
+  Optional<Lead> findUnfinished(
+      String creatorPrincipalId, String customerId, ProductClass productClass);
 }

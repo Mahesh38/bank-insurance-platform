@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20261005-cfp | 2026-10-05 | human:stakeholder | Standalone Confluence onboarding pages with flow and sequence diagrams for new joiners (what/why/use cases/architecture) | SF5 | SC1 | SHOULD | DOC | P3 / P3 | ADMITTED | [pack](../../confluence/onboarding/README.md) · [detail](#sug-20261005-cfp--confluence-onboarding-pack) |
 | SUG-20261003-svg | 2026-10-03 | human:stakeholder | Remaining Saving readiness beyond fail-closed hub validation: Product UI bands, questionnaire engine, enum inventory/master refresh, live Gate POST + complete Proposal POST/poll | SF3 | SC0 | MUST | FUNC | P4 / P1 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [detail](#sug-20261003-svg--saving-readiness-blocked-on-1sb-config) |
 | SUG-20261003-lvr | 2026-10-03 | human:stakeholder | Make 1sb-integration-service UAT-ready to validate Term/ULIP/Savings Life journeys (fail-before-1SB + response contract) | SF1 | SC0 | MUST | FUNC | P2 / P1 | ADMITTED | [FUNC-028](../../1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md) · [detail](#sug-20261003-lvr--life-journey-validation-uat) |
 | SUG-20261003-brf | 2026-10-03 | human:Rajal | BRD wins: dedupe key user+customer+productType+BI; no delete when BI absent; Save does not evaluate — Start Onboarding does; flow dedupe→create→exception→assign SP | SF2 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [D-019](../../au-bank-insurance-platform/DECISION-LOG.md) · [EPIC-005](../../platform/ws3-platform/EPIC-005.work-item.yaml) · [detail](#sug-20261003-brf--brd-wins-dedupe-exception-timing--sequence) |
@@ -134,6 +135,94 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20261005-cfp · Confluence onboarding pack
+
+```yaml
+# schema: triage-record
+id: SUG-20261005-cfp
+raised_at: "2026-10-05"
+raised_by: "human:stakeholder"
+source: "request for standalone Confluence pages with images, flow and sequence diagrams"
+input: >
+  Create standalone Confluence pages with images and flow diagrams and sequence
+  diagrams which will help any new person understand what we are building, why
+  we are building, use cases, architecture, sequence diagrams and so on. Say
+  which page is the main page, which are sub-topic pages, and how to nest them.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: SUG-20261005-cfp
+
+stage_fit:
+  code: SF5
+  rationale: >
+    Off the critical path of GATE-S08 / GATE-P4 / GATE-IAM-P1. Derives existing
+    admitted R0 facts into a teaching pack. No stage field, no new decision,
+    no silent G1-G10 change.
+  parallel_test:
+    off_critical_path: true
+    dependency_safe: true
+    in_scope: true
+    standing_constraint_clean: true
+    separate_lane: "docs-onboarding"
+    no_silent_trust_boundary_change: true
+  lane: docs-onboarding
+
+scope:
+  code: SC1
+  serves: ["human onboarding of admitted R0 scope"]
+  failure_without_it: "new joiners must reconstruct the programme from ~4 MB of SSOT"
+  minimal: true
+  authority: "derived from business-problem-statement, R0-HLD, journey-execution, BOOT.md"
+
+necessity:
+  now: SHOULD
+  evidence_tier: E2
+  evidence:
+    - "docs/context/business-problem-statement.md"
+    - "docs/architecture/R0-HLD.md"
+    - "docs/journey-execution/02-ACTOR-AND-USE-CASE-CATALOGUE.md"
+  confidence: C4
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: true
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT
+action_rationale: >
+  SF5 PARALLEL on lane docs-onboarding. Communication artefact only; HA-02
+  still holds — BRD/HLD/ADR remain SSOT. Does not delay any open gate.
+
+classification:
+  type: DOC
+  breakdown: STORY
+  risk_tier: T1
+  destination: "docs/confluence/onboarding/"
+
+priority:
+  now: P3
+  at_target: P3
+  factors: { N: 1, S: 1, B: 1, R: 0, D: 1, E: 1 }
+  score: 6
+  rationale: "Onboarding value now; still communication at every later stage"
+
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 0
+  cycles: none
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: SUG-20261005-cfp
+  status: ADMITTED
+```
 
 ### SUG-20260930-osl · openssl CVE-2026-84782
 

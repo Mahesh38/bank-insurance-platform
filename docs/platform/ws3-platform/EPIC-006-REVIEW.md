@@ -25,6 +25,29 @@ As-built evidence: 62 module tests green; Jacoco lead 81.6% line / customer 75.0
 
 ---
 
+## Round 3 — implementation re-review against CODE-REVIEW-STANDARD (2026-10-07)
+
+**Standard:** [CODE-REVIEW-STANDARD.md](../../governance/CODE-REVIEW-STANDARD.md) · **Work:** `SUG-20261007-crs`  
+**Reviewer:** Amit / Engineering (agent) · **Type:** implementation review, not T4  
+**SHA reviewed:** post-should-fix `87eac30` plus this round's OBS wrap (`HolderAccessTokenPort`)
+
+| Aspect | Verdict | Notes |
+|---|---|---|
+| Coverage on push (§1) | HOLD for measured numbers in this round's evidence log | Floors: libs 80/70; 1SB 90/70; BFF/customer 50% line, branch ungated. Author must publish measured % (PR template). |
+| Structure / ENG-1–3 | PASS | Apigee holder in `libs/bank-common-apigee`; CBS in customer adapter; 1SB token stays stub until `DEP-20260914-apg`. |
+| SEC-C2 / C3 / C4 / C9 | PASS | CBS translate has no `q`/URI; `findById` encode+URI; BFF `/api/v1/**` `authenticated()`; session handle not in credentials. |
+| OBS-1 / OBS-9 (must) | PASS after this round | Token mint `IllegalStateException` is wrapped to `UPSTREAM_UNAVAILABLE` at `HolderAccessTokenPort`. HTTP still uses auto-config `PlatformErrorAdvice` + `ErrorRecorder`. BFF session invalid/expired already `ServiceErrors` → `BffExceptionHandler`. |
+| OBS-2 / OBS-4 / OBS-10 | PASS | 401/400 CBS tests assert no `q`; Apigee 401 message asserts no secret/body/URI. |
+| OBS-3 / SEC-C8 | PASS for this stage | `SESSION_INVALID` / `SESSION_EXPIRED` / remint `UPSTREAM_UNAVAILABLE` are the auditable events. No second audit topic (ADR-012 store is not this PR). |
+| OBS-8 dashboards | N/A (correctly not now) | BOOT.md WS-1: dashboards/SLOs Phase 6. `bank.error.count` is the metric bar. |
+| G1/G3 (round 1 text) | Stale vs this SHA | Round 1 said `permitAll` and “Apigee token stays in customer-service” only. This SHA: default-deny filter + live customer `/token`; 1SB `token-mode=http` refused until mapping. |
+
+**Must-fix opened this round:** wrap Apigee mint failure as catalogue `UPSTREAM_UNAVAILABLE` (OBS-1/OBS-9) — **done in the same change**.  
+**Should-fix:** none new. Parked remain: `DEP-20260914-apg` credentials/Bearer mapping; `SUG-20261007-ird` IRDAI SoR; `SUG-atk` Valkey cluster cache.  
+**Verdict:** `CHANGES_REQUESTED` until Jacoco numbers for this SHA are pasted; then `APPROVE` as implementation review **if** floors hold. Not Deepali T4. Not Board 7 production readiness.
+
+---
+
 ## Board 1 — Architecture (Mahesh)
 
 **Question:** Does this belong here, shaped like this?  

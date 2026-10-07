@@ -24,6 +24,27 @@ Examples:
 - `libs/bank-common-error/build/reports/jacoco/test/html/index.html`
 - `services/1sb-integration-service/build/reports/jacoco/test/jacocoTestReport.xml`
 
+## Push-time / PR evidence (on the branch)
+
+Floors below are the **merge bar**. They apply to **touched modules on the branch being pushed**,
+not to “the repo as a whole later”. Process and reviewer duties:
+[CODE-REVIEW-STANDARD.md](../../governance/CODE-REVIEW-STANDARD.md) §1.
+
+Before push / in the PR body the author publishes, for each touched module:
+
+| Field | Required |
+|-------|----------|
+| Test count | JUnit summary |
+| Line % | Jacoco `COVEREDRATIO` (measured, not claimed) |
+| Branch % | Measured even when the module has no branch gate |
+| Command | `./gradlew :<module>:test jacocoTestCoverageVerification` |
+
+`./gradlew test` alone does **not** fail floors. CI must run `jacocoTestCoverageVerification`
+(or `check` / `build`). A PR without these numbers is not ready for review.
+
+Same-PR tests for new/changed behaviour remain [TESTING-RULES.md](./TESTING-RULES.md) R2 — a
+green module floor does not excuse an untested security or error branch on the diff.
+
 ## Thresholds (enforced)
 
 | Module group | Line | Branch | Notes |

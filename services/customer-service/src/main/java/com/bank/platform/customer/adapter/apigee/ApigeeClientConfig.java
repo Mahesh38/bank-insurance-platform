@@ -2,6 +2,7 @@ package com.bank.platform.customer.adapter.apigee;
 
 import com.bank.common.apigee.ApigeeAccessTokenHolder;
 import com.bank.common.apigee.ApigeeTokenClient;
+import com.bank.common.error.ServiceErrors;
 import com.bank.platform.customer.domain.AccessTokenPort;
 import java.net.http.HttpClient;
 import java.time.Clock;
@@ -40,18 +41,7 @@ public class ApigeeClientConfig {
   }
 
   @Bean
-  AccessTokenPort accessTokenPort(ApigeeTokenClient client, Clock clock) {
-    ApigeeAccessTokenHolder holder = new ApigeeAccessTokenHolder(client, clock);
-    return new AccessTokenPort() {
-      @Override
-      public String currentAccessToken() {
-        return holder.currentAccessToken();
-      }
-
-      @Override
-      public void invalidate() {
-        holder.invalidate();
-      }
-    };
+  AccessTokenPort accessTokenPort(ApigeeTokenClient client, Clock clock, ServiceErrors errors) {
+    return new HolderAccessTokenPort(new ApigeeAccessTokenHolder(client, clock), errors);
   }
 }

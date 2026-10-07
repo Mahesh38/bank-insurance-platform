@@ -5,6 +5,8 @@ import java.net.URI;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.Objects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
@@ -15,6 +17,7 @@ import org.springframework.web.client.RestClientResponseException;
  */
 public final class HttpApigeeTokenClient implements ApigeeTokenClient {
 
+  private static final Logger log = LoggerFactory.getLogger(HttpApigeeTokenClient.class);
   private static final Duration DEFAULT_TTL = Duration.ofHours(1);
 
   private final RestClient client;
@@ -45,6 +48,7 @@ public final class HttpApigeeTokenClient implements ApigeeTokenClient {
               .retrieve()
               .body(TokenResponse.class);
       if (body == null || body.accessToken() == null || body.accessToken().isBlank()) {
+        log.warn("event=APIGEE_TOKEN_INVALID_RESPONSE operation=token reason=omitted_access_token");
         throw new IllegalStateException("Apigee token response omitted access_token");
       }
       Duration ttl =
@@ -53,6 +57,8 @@ public final class HttpApigeeTokenClient implements ApigeeTokenClient {
               : Duration.ofSeconds(body.expiresIn());
       return new IssuedToken(body.accessToken(), clock.instant().plus(ttl));
     } catch (RestClientResponseException ex) {
+      log.warn(
+          "event=APIGEE_TOKEN_REJECTED operation=token status={}", ex.getStatusCode().value());
       throw new IllegalStateException("Apigee /token rejected the client-credentials grant", ex);
     }
   }

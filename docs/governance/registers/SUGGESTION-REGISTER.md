@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20261007-crs | 2026-10-07 | human:Mahesh | Standing code-review standard: coverage on the branch at push, review aspects/how/mandatory, logging and monitoring alignment; re-review EPIC-006 against it | SF1 | SC0 | MUST | GOV | P2 / P2 | ADMITTED | [CODE-REVIEW-STANDARD.md](../CODE-REVIEW-STANDARD.md) · [detail](#sug-20261007-crs--standing-code-review-coverage-and-logging-bar) · EPIC-006 lane |
 | SUG-20261007-ird | 2026-10-07 | human:Mahesh | IRDAI Specified Person certification as control evidence for Lead assign | SF3 | SC0 | MUST | COMP | P4 / P1 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [detail](#sug-20261007-ird--irdai-sp-register-as-certification-sor) · fixture port shipped under EPIC-006; SoR still missing |
 | SUG-20261007-srp | 2026-10-07 | agent:AIGEM-review | EPIC-006 should-fix: move product-classes off CustomerLookupController; compile country regex once; drop duplicate SEARCH_BY | SF3 | SC0 | COULD | REFACTOR | P4 / P3 | ADMIT-BYPASS | [EPIC-006](../../platform/ws3-platform/EPIC-006.work-item.yaml) · [EPIC-006-REVIEW](../../platform/ws3-platform/EPIC-006-REVIEW.md) · [detail](#sug-20261007-srp--lead-bff-srp-and-kiss-cleanups) |
 | SUG-20261006-atk | 2026-10-06 | human:stakeholder | One AU-Bima-Platform token for R0 Apigee egress: `customer-service` (CBS) **and** `1sb-integration-service` (ARB). Shared access-token cache at first live `/token`; not a wall-clock cron; not the workforce IdP | SF3 | SC1 | SHOULD | ARCH | P4 / P2 | ADMIT-BYPASS | [ASM-020](./ASSUMPTION-REGISTER.md) · [ADR-020](../../platform/architecture-review/08-architecture-decision-log.md) · [FUNC-031](../../platform/ws3-platform/FUNC-031.work-item.yaml) · [detail](#sug-20261006-atk--one-token-owner-per-apigee-app) · recurrence_count 5 (2026-10-07: owner unpark HTTP `/token` + CBS inquiry; cluster Valkey remainder parked) |
@@ -140,6 +141,84 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20261007-crs · Standing code-review, coverage and logging bar
+
+```yaml
+# schema: triage-record
+id: SUG-20261007-crs
+raised_at: "2026-10-07"
+raised_by: "human:Mahesh"
+source: "Owner request on EPIC-006 PR — review all changes; set push-time coverage; define review criteria especially logging/monitoring; create the standards and re-review against them"
+input: >
+  Review the code once again, all the changes, and set the expectation when we push any code:
+  how much test / line / branch coverage must be on the branch. What are the criteria for a
+  review? What aspects, how we review, what is mandatory especially logging and monitoring?
+  Create those standards, review the changes with the same, and make sure henceforth any code
+  review has those checks in place.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: EPIC-006
+
+stage_fit:
+  code: SF1
+  rationale: >
+    S08-G8 already MET (standards + checklist + template, 2026-09-13). The checklist was too
+    thin for coverage-on-push and logging/monitoring. Completing the adoption mechanism is
+    on-stage Foundation work, not a new gate or a Phase 6 dashboard programme.
+
+scope:
+  code: SC0
+  business_scope: "in scope — S08-G8 engineering/secure-coding adoption"
+  serves: []
+  failure_without_it: "PRs merge without a stated coverage bar or logging contract; reviews drift"
+  minimal: true
+  authority: "ENGINEERING-AND-SECURE-CODING-STANDARDS.md · PR-REVIEW-CHECKLIST.md · COVERAGE.md"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S08 — Engineering Foundation"
+  binds_when: "every production-code PR"
+  evidence_tier: E2
+  evidence:
+    - "Owner directed creation of the review/coverage/logging standard"
+    - "Existing ENG/SEC ids and Jacoco floors already enforced; OBS and push-time evidence were missing"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT
+action_rationale: >
+  Owner asked to create the standards and re-review EPIC-006 against them in this turn.
+  Recommendation matches execution: SF1 on-stage, no ADMIT-BYPASS required. Dashboards/SLOs
+  stay Phase 6 and are explicitly out of the merge bar.
+duplicate_of: null
+conflicts: []
+
+classification:
+  type: GOV
+  risk_tier: T2
+  rationale: "Docs + checklist + index routing; one adapter wrap so token mint failures hit ErrorRecorder"
+
+priority:
+  score_now: null
+  priority_now: P2
+  priority_at_target: P2
+  rationale: "Blocks consistent review of the in-flight EPIC-006 PR and every later PR"
+
+bypass_authorised_by: null
+```
 
 ### SUG-20261007-srp · Lead BFF SRP and KISS cleanups
 

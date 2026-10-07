@@ -107,7 +107,9 @@ class HttpApigeeTokenClientTest {
 
     assertThatThrownBy(client::fetchClientCredentials)
         .isInstanceOf(IllegalStateException.class)
-        .hasMessageNotContaining("super-secret");
+        .hasMessageNotContaining("super-secret")
+        .hasMessageNotContaining("denied")
+        .hasMessageNotContaining(wireMock.baseUrl());
   }
 
   @Test

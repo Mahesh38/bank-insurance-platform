@@ -8,7 +8,9 @@ dependencies {
     compileOnly("org.springframework:spring-web")
     compileOnly("com.fasterxml.jackson.core:jackson-databind")
     compileOnly("com.fasterxml.jackson.core:jackson-annotations")
+    compileOnly("org.slf4j:slf4j-api")
 
+    testImplementation("org.slf4j:slf4j-api")
     testImplementation("org.springframework:spring-web")
     testImplementation("org.springframework:spring-core")
     testImplementation("com.fasterxml.jackson.core:jackson-databind")

@@ -132,6 +132,9 @@ resolve L3 first.** See [01-CURRENT_STATE.md](./01-CURRENT_STATE.md).
 
 | File | Use |
 |------|-----|
+| [CODE-REVIEW-STANDARD.md](./CODE-REVIEW-STANDARD.md) | **Implementation review bar** — coverage on the branch at push, what/how we review, mandatory logging/monitoring (OBS). Every production-code PR. Not a T4 signature. |
+| [PR-REVIEW-CHECKLIST.md](./PR-REVIEW-CHECKLIST.md) | Tick-box adoption of ENG / SEC / OBS for S08-G8 |
+| [ENGINEERING-AND-SECURE-CODING-STANDARDS.md](./ENGINEERING-AND-SECURE-CODING-STANDARDS.md) | ENG-1–10, SEC-C1–C10, OBS-1–10 ids |
 | [templates/TRIAGE-RECORD.md](./templates/TRIAGE-RECORD.md) | Emitted for **every** new input — the pipeline's output |
 | [templates/WORK-ITEM.md](./templates/WORK-ITEM.md) | Story / task / bug / spike card |
 | [templates/EPIC.md](./templates/EPIC.md) | Epic with story index and completion definition |

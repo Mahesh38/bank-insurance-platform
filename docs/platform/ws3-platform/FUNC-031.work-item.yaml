@@ -20,9 +20,9 @@ problem: >
   its own access token, concurrent calls race and start failing.
 
 description: >
-  Customer #4 owns a lock-guarded ApigeeAccessTokenHolder. All CBS inquiry
-  calls reuse one token. Local/test uses a stub token client and stub
-  directory. The BFF never holds CBS tokens.
+  Shared ApigeeAccessTokenHolder lives in bank-common-apigee. Customer #4 and
+  1sb-integration-service both wire it. HTTP /token and CBS inquiry clients
+  exist behind env flags; default remains stub. The BFF never holds CBS tokens.
 
 acceptance_criteria:
   - id: AC-1
@@ -35,7 +35,8 @@ acceptance_criteria:
     then: "mobile and CIF are masked; full values are not logged"
 
 out_of_scope:
-  - "Live Apigee /token and CBS inquiry URLs"
+  - "Live Apigee host/credential values in git (env APIGEE_* / CBS_INQUIRY_*; DEP-20260914-apg)"
+  - "Cluster Valkey access-token cache (ADR-011 remainder of SUG-20261006-atk)"
   - "BFF-held CBS credentials"
 
 state: IN-REVIEW
@@ -64,7 +65,12 @@ evidence:
   - "ApigeeAccessTokenHolderTest.concurrentExpiredRefreshFetchesOnce — one fetch under 16 threads"
   - "CustomerSearchServiceTest.mobileSearchReturnsMaskedEtbHit — maskedMobile, no full mobile on the record"
   - "LeadModuleApiTest.customerSearchMasksIdentityAndCreateAssignsWithExceptionFlag — XXXXXX3210"
+  - "HttpApigeeTokenClientTest.mintsAccessTokenFromClientCredentialsGrant"
+  - "HttpCustomerDirectoryTest.searchSendsBearerAndMapsMaskedHits"
 variance_log:
   - date: "2026-10-07"
     change: "IN-REVIEW with token and mask evidence; live Apigee stays parked"
     reason: "ROLE-GUIDELINES D-8"
+  - date: "2026-10-07"
+    change: "HTTP /token + CBS inquiry clients added (env secrets); shared holder extracted to bank-common-apigee"
+    reason: "Owner ADMIT-BYPASS SUG-20261006-atk; credentials and cluster Valkey still not fabricated"

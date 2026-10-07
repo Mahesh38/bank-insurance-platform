@@ -7,6 +7,7 @@ import com.bank.common.error.ErrorCodes;
 import com.bank.common.error.PlatformLayer;
 import com.bank.common.error.ServiceErrors;
 import com.bank.common.error.ServiceException;
+import com.bank.platform.lead.adapter.certification.FixtureSpCertification;
 import com.bank.platform.lead.adapter.memory.InMemoryLeadRepository;
 import com.bank.platform.lead.application.LeadApplicationService.AssignLeadCommand;
 import com.bank.platform.lead.application.LeadApplicationService.CreateLeadCommand;
@@ -31,7 +32,8 @@ class LeadApplicationServiceTest {
         new LeadApplicationService(
             new InMemoryLeadRepository(),
             ServiceErrors.of("lead", PlatformLayer.L5),
-            Clock.systemUTC());
+            Clock.systemUTC(),
+            new FixtureSpCertification());
   }
 
   @Test
@@ -60,15 +62,16 @@ class LeadApplicationServiceTest {
     Lead lead = service.create(new CreateLeadCommand("cust-1", "LIFE", "TERM", "BR-1", "rm-1"));
 
     assertThatThrownBy(
-            () -> service.assign(new AssignLeadCommand(lead.leadId(), "sp-1", null, "rm-1")))
+            () -> service.assign(new AssignLeadCommand(lead.leadId(), "SP-1001", null, "rm-1")))
         .isInstanceOf(ServiceException.class)
         .extracting(ex -> ((ServiceException) ex).getErrorResponse().getCode())
         .isEqualTo(ErrorCodes.ILLEGAL_TRANSITION);
 
     service.startOnboarding(lead.leadId(), "rm-1");
-    Lead assigned = service.assign(new AssignLeadCommand(lead.leadId(), "sp-1", "sp-1", "rm-1"));
+    Lead assigned =
+        service.assign(new AssignLeadCommand(lead.leadId(), "SP-1001", "SP-1001", "rm-1"));
     assertThat(assigned.state()).isEqualTo(LeadState.ASSIGNED);
-    assertThat(assigned.accountableSpId()).isEqualTo("sp-1");
+    assertThat(assigned.accountableSpId()).isEqualTo("SP-1001");
     assertThat(assigned.exceptionOutcome()).isEqualTo(ExceptionOutcome.PASS);
   }
 
@@ -90,6 +93,12 @@ class LeadApplicationServiceTest {
 
     assertThatThrownBy(
             () -> service.assign(new AssignLeadCommand(lead.leadId(), "UNCERTIFIED", null, "rm-1")))
+        .isInstanceOf(ServiceException.class)
+        .extracting(ex -> ((ServiceException) ex).getErrorResponse().getCode())
+        .isEqualTo(ErrorCodes.SP_CERTIFICATION_REQUIRED);
+
+    assertThatThrownBy(
+            () -> service.assign(new AssignLeadCommand(lead.leadId(), "sp-1", null, "rm-1")))
         .isInstanceOf(ServiceException.class)
         .extracting(ex -> ((ServiceException) ex).getErrorResponse().getCode())
         .isEqualTo(ErrorCodes.SP_CERTIFICATION_REQUIRED);

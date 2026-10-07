@@ -34,7 +34,9 @@ completion_definition: >
   and not claimed.
 
 not_included:
-  - "Live Apigee client-credentials against bank CBS (S09 / DEP-20260914-apg)"
+  - "Live Apigee host/credential values (DEP-20260914-apg); HTTP clients exist, default remains stub"
+  - "Cluster Valkey access-token cache (SUG-20261006-atk remainder)"
+  - "IRDAI/bank SP register SoR (SUG-20261007-ird); fixture is fail-closed only"
   - "Physical Flyway Lead schema (SUG-20260825-db1 / S09)"
   - "Campaign / bulk origination"
   - "Meeting SMS / completion"
@@ -155,7 +157,12 @@ evidence:
   - "LeadModuleApiTest.customerSearchMasksIdentityAndCreateAssignsWithExceptionFlag — AC-6"
   - "LeadModuleApiTest.unauthenticatedLeadApisAreRejected asserts SESSION_INVALID — PLAN-009 AC-7"
   - "docs/platform/ws3-platform/EPIC-006-REVIEW.md round 2 — gate ESCALATED; human Board 4 outstanding"
+  - "LeadModuleApiTest.unauthenticatedLeadApisAreRejected + expiredSessionHandleIsRejected — SEC-C4 default-deny"
+  - "FixtureSpCertificationTest.listedSpecifiedPersonsAreCertifiedAndUnknownIdsFailClosed"
 variance_log:
   - date: "2026-10-07"
     change: "Stories moved IN-REVIEW; AC-6 recorded; AC-2 unknown-branch 404 test added"
     reason: "Admitted slice is evidence-ready; T3 human boards still block Done"
+  - date: "2026-10-07"
+    change: "Owner ADMIT-BYPASS — SEC-C4, SRP, HTTP Apigee/CBS, fail-closed SP-cert; Board 4 human seat ratifies the sit-before-promotion condition"
+    reason: "Mahesh repository_owner; T4 not claimed; IRDAI SoR and live credentials remain blockers"

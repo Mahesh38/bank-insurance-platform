@@ -36,6 +36,20 @@ public class ReferenceDataController {
     return countryCodes.validate(body.countryCode(), body.nationalNumber());
   }
 
+  @GetMapping("/catalogue/product-classes")
+  public ProductClassPage productClasses(HttpServletRequest request) {
+    BffSessionInterceptor.requireSession(request);
+    return new ProductClassPage(
+        List.of(
+            new ProductClass("LIFE", "TERM", "Term Life"),
+            new ProductClass("LIFE", "SAVINGS", "Savings / ULIP-adjacent savings"),
+            new ProductClass("LIFE", "ULIP", "ULIP")));
+  }
+
   public record MobileValidationRequest(
       @NotBlank String countryCode, @NotBlank String nationalNumber) {}
+
+  public record ProductClassPage(List<ProductClass> items) {}
+
+  public record ProductClass(String lob, String productClass, String name) {}
 }

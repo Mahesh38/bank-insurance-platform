@@ -720,3 +720,42 @@ human_signoffs: []
 **Gate result (round 2):** `ESCALATED` (T3 self-review). Named humans to sit: **Deepali (Board 4)** required; **Mahesh (Board 1)** and **Rajal (D-020/D-021)** recommended. Agent does not approve the merge. No T4 signature is manufactured.
 
 **Coding-practices summary (not a board):** hexagonal ports are in place; SOLID holds with one parked SRP slip; KISS wins over sharing Ulid into the BFF stub; REST/Java names match ADR-017 plus the stakeholder Assign path; formatting now matches the Spotless ratchet.
+
+---
+
+## Owner ratification — 2026-10-07 (not a third agent round)
+
+Mahesh (`repository_owner`) directed: Board 4 "sit before Lead `/api/v1` promotion beyond stub/local" **Approved**; SEC-C4 default-deny **approved**; SUG-srp **unparked**; SUG-atk **unpark**; add live Apigee `/token` and CBS inquiry; IRDAI SP-cert as control evidence is needed.
+
+This is a governance §8 human override. It does **not** manufacture a Deepali T4 signature, live Apigee credentials, or an IRDAI register. The round-2 AGENT Security verdict stays on the record. The gate remains `ESCALATED` (Board 1 / Product countersign still recommended; T4 not claimed). Remaining blockers: `DEP-20260914-apg` host/credentials; `SUG-20261007-ird` IRDAI SoR; `SUG-20261006-atk` Valkey remainder.
+
+```yaml
+# schema: review-verdict
+board: SECURITY
+plan: PLAN-009
+work_item: EPIC-006
+reviewer: "Mahesh — repository owner (HUMAN); not Deepali"
+reviewer_type: HUMAN
+self_review: false
+date: "2026-10-07"
+decision: APPROVED_WITH_CONDITIONS
+must_fix: []
+conditions:
+  - "Lead /api/v1 stays stub/local until live CBS credentials and PDP exist; this ratification is not a promotion"
+  - "Unauthenticated Lead/reference calls must remain 401"
+  - "Do not store AU-Bima-Platform client secret in git or in Valkey"
+  - "FixtureSpCertification is not IRDAI control evidence (SUG-20261007-ird remains parked)"
+should_fix:
+  - "Cluster Valkey access-token cache after ADR-011 amendment (SUG-20261006-atk remainder)"
+evidence:
+  - "Owner 2026-10-07: Sit before any Lead /api/v1 promotion beyond stub/local -- Approved"
+  - "Owner 2026-10-07: Spring Security default-deny on /api/v1/** (SEC-C4) approved"
+  - "BffSecurityConfig authenticated /api/v1/** except /auth and health"
+  - "HttpApigeeTokenClient reads APIGEE_CLIENT_ID/SECRET from env"
+  - "SpCertificationPort fail-closed fixture; IRDAI SoR not fabricated"
+notes: >
+  Satisfies T3's required human board for this item as repository_owner.
+  Does not satisfy T4 Security sign-off. Does not convert missing credentials
+  or IRDAI evidence into approved facts.
+```
+

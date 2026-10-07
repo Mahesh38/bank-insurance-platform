@@ -5,15 +5,14 @@ import com.bank.common.error.ServiceErrors;
 import com.bank.workforce.bff.config.WorkforceSessionProperties;
 import com.bank.workforce.bff.session.SessionModels.WorkforceSession;
 import com.bank.workforce.bff.session.SessionStore;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 /**
- * Opaque BFF session is the only credential Flutter may present ({@code ADR-015}). Lead and
- * reference APIs refuse the call when that handle is missing or expired.
+ * Backup session bind for MVC. Spring Security default-deny ({@code BffSessionAuthenticationFilter})
+ * is the primary control (SEC-C4).
  */
 @Component
 public class BffSessionInterceptor implements HandlerInterceptor {
@@ -34,6 +33,9 @@ public class BffSessionInterceptor implements HandlerInterceptor {
   @Override
   public boolean preHandle(
       HttpServletRequest request, HttpServletResponse response, Object handler) {
+    if (request.getAttribute(SESSION_ATTR) instanceof WorkforceSession) {
+      return true;
+    }
     String path = request.getRequestURI();
     if (path.startsWith("/api/v1/auth") || path.startsWith("/actuator")) {
       return true;
@@ -41,7 +43,7 @@ public class BffSessionInterceptor implements HandlerInterceptor {
     if (!path.startsWith("/api/v1/")) {
       return true;
     }
-    String handle = sessionHandle(request);
+    String handle = BffSessionCredentials.handle(request, properties);
     if (handle == null) {
       throw errors
           .error(ErrorCodes.SESSION_INVALID)
@@ -71,28 +73,5 @@ public class BffSessionInterceptor implements HandlerInterceptor {
       return session;
     }
     throw new IllegalStateException("BFF session was not bound");
-  }
-
-  private String sessionHandle(HttpServletRequest request) {
-    String header = request.getHeader("X-Session-Handle");
-    if (header != null && !header.isBlank()) {
-      return header;
-    }
-    String authorization = request.getHeader("Authorization");
-    if (authorization != null && authorization.regionMatches(true, 0, "Bearer ", 0, 7)) {
-      return authorization.substring(7).trim();
-    }
-    Cookie[] cookies = request.getCookies();
-    if (cookies == null) {
-      return null;
-    }
-    for (Cookie cookie : cookies) {
-      if (properties.cookieName().equals(cookie.getName())
-          && cookie.getValue() != null
-          && !cookie.getValue().isBlank()) {
-        return cookie.getValue();
-      }
-    }
-    return null;
   }
 }

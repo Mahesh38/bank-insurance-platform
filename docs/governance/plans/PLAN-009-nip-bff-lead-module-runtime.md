@@ -63,13 +63,17 @@ files_expected:
   - services/lead-service/src/main/java/com/bank/platform/lead/domain/Ulid.java
   - services/lead-service/src/main/java/com/bank/platform/lead/application/LeadApplicationService.java
   - services/lead-service/src/main/java/com/bank/platform/lead/config/LeadClockConfig.java
-  - services/customer-service/src/main/java/com/bank/platform/customer/adapter/apigee/ApigeeAccessTokenHolder.java
+  - libs/bank-common-apigee/src/main/java/com/bank/common/apigee/ApigeeAccessTokenHolder.java
+  - libs/bank-common-apigee/src/main/java/com/bank/common/apigee/HttpApigeeTokenClient.java
+  - services/workforce-access-bff/src/main/java/com/bank/workforce/bff/api/BffSessionAuthenticationFilter.java
+  - services/lead-service/src/main/java/com/bank/platform/lead/domain/SpCertificationPort.java
+  - services/customer-service/src/main/java/com/bank/platform/customer/adapter/cbs/HttpCustomerDirectory.java
   - services/workforce-access-bff/src/test/java/com/bank/workforce/bff/api/LeadModuleApiTest.java
   - services/workforce-access-bff/src/test/java/com/bank/workforce/bff/application/LeadFacadeTest.java
   - services/workforce-access-bff/src/test/java/com/bank/workforce/bff/application/CountryCodeCatalogTest.java
   - services/lead-service/src/test/java/com/bank/platform/lead/application/LeadApplicationServiceTest.java
   - services/lead-service/src/test/java/com/bank/platform/lead/api/LeadControllerTest.java
-  - services/customer-service/src/test/java/com/bank/platform/customer/adapter/apigee/ApigeeAccessTokenHolderTest.java
+  - libs/bank-common-apigee/src/test/java/com/bank/common/apigee/ApigeeAccessTokenHolderTest.java
   - docs/platform/ws3-platform/nip-bff-lead-phase.openapi.yaml
   - docs/platform/ws3-platform/EPIC-006.work-item.yaml
   - docs/platform/ws3-platform/EPIC-006-REVIEW.md
@@ -130,12 +134,15 @@ acceptance_criteria:
   - "AC-8 (board, pending human close) Stub/in-memory is not SoR, audit, or IRDAI evidence"
 
 out_of_scope:
-  - "Live CBS / Apigee onboarding"
+  - "Live Apigee host/credential values in git (env only; DEP-20260914-apg still supplies them)"
+  - "Cluster Valkey access-token cache (ADR-011 amendment + ElastiCache)"
+  - "IRDAI/bank SP register SoR (SUG-20261007-ird)"
   - "Flyway Lead physical schema"
   - "Campaign / bulk / meeting SMS"
   - "Quote / proposal / payment"
   - "Human T4 signatures"
   - "GATE-S08 stage field edits"
+  - "Promotion of Lead /api/v1 beyond stub/local"
 
 estimate: L
 variance_log:
@@ -147,6 +154,10 @@ variance_log:
     change: "files_expected lists as-built gateways, facade, catalogues and AC test classes; Spotless applied"
     reason: "Round-1 TECHNICAL condition plus ENG-6 merge bar"
     re_review: "docs/platform/ws3-platform/EPIC-006-REVIEW.md round 2"
+  - date: "2026-10-07"
+    change: "Owner ADMIT-BYPASS — SEC-C4 default-deny, SRP cleanups, HTTP Apigee/CBS clients, fail-closed SP-cert port"
+    reason: "Mahesh repository_owner unpark/approve 2026-10-07; live URLs/creds and IRDAI SoR still not fabricated"
+    re_review: "docs/platform/ws3-platform/EPIC-006-REVIEW.md owner ratification"
 ```
 
 ## Board notes (agent self-review — not T4)

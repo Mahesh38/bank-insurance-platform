@@ -4,14 +4,18 @@ import com.bank.platform.customer.domain.CustomerInquiryPort;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 /**
- * Local/test CBS directory. Live Apigee → CBS inquiry is S09/S11 wiring ({@code ASM-015}, {@code
- * DEP-20260914-apg}); this stub lets the BFF complete the Lead search screen without fabricating a
- * customer the bank does not have.
+ * Local/test CBS directory. Live Apigee → CBS inquiry is {@code customer.cbs.inquiry-mode=http}
+ * ({@code DEP-20260914-apg} still supplies the host and credentials).
  */
 @Component
+@ConditionalOnProperty(
+    name = "customer.cbs.inquiry-mode",
+    havingValue = "stub",
+    matchIfMissing = true)
 public class StubCustomerDirectory implements CustomerInquiryPort {
 
   @Override

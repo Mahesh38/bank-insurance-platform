@@ -54,7 +54,7 @@ class LeadControllerTest {
             post("/internal/v1/leads/" + leadId + "/assignments")
                 .header("X-Actor-Id", "rm-1")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"assignedRmId\":\"SP-1\"}"))
+                .content("{\"assignedRmId\":\"SP-1001\"}"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.state").value("ASSIGNED"))
         .andExpect(jsonPath("$.exceptionRequired").value(false));

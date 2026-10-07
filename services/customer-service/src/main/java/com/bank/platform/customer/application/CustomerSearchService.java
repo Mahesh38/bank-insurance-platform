@@ -6,8 +6,10 @@ import com.bank.platform.customer.domain.AccessTokenPort;
 import com.bank.platform.customer.domain.CustomerInquiryPort;
 import com.bank.platform.customer.domain.CustomerInquiryPort.CustomerHit;
 import com.bank.platform.customer.domain.CustomerInquiryPort.SearchQuery;
+import com.bank.platform.customer.domain.CustomerInquiryUnauthorizedException;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -43,8 +45,7 @@ public class CustomerSearchService {
           .reason("q is required")
           .build();
     }
-    String token = tokens.currentAccessToken();
-    return inquiry.search(new SearchQuery(by, value, countryCode), token);
+    return withToken(token -> inquiry.search(new SearchQuery(by, value, countryCode), token));
   }
 
   public CustomerHit get(String customerId) {
@@ -56,16 +57,26 @@ public class CustomerSearchService {
           .reason("customerId is required")
           .build();
     }
-    String token = tokens.currentAccessToken();
-    return inquiry
-        .findById(customerId, token)
-        .orElseThrow(
-            () ->
-                errors
-                    .error(ErrorCodes.RESOURCE_NOT_FOUND)
-                    .component("CustomerSearchService")
-                    .operation("get")
-                    .reason("customer is absent from this book")
-                    .build());
+    return withToken(
+        token ->
+            inquiry
+                .findById(customerId, token)
+                .orElseThrow(
+                    () ->
+                        errors
+                            .error(ErrorCodes.RESOURCE_NOT_FOUND)
+                            .component("CustomerSearchService")
+                            .operation("get")
+                            .reason("customer is absent from this book")
+                            .build()));
+  }
+
+  private <T> T withToken(Function<String, T> call) {
+    try {
+      return call.apply(tokens.currentAccessToken());
+    } catch (CustomerInquiryUnauthorizedException unauthorized) {
+      tokens.invalidate();
+      return call.apply(tokens.currentAccessToken());
+    }
   }
 }

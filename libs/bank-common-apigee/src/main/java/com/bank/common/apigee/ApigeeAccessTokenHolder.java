@@ -1,6 +1,5 @@
-package com.bank.platform.customer.adapter.apigee;
+package com.bank.common.apigee;
 
-import com.bank.platform.customer.domain.AccessTokenPort;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -10,11 +9,11 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * Single-flight Apigee client-credentials holder.
  *
- * <p>Every CBS / Customer-360 call shares one access token. Concurrent callers never stampede
- * {@code /token}: an expired or missing token is refreshed under a lock, and waiters reuse the same
- * result. The BFF never holds this token ({@code ADR-015}, {@code ADR-020}).
+ * <p>Every caller in one process shares one access token. Concurrent callers never stampede {@code
+ * /token}: an expired, missing, or invalidated token is refreshed under a lock. This is not a
+ * cluster cache — Valkey remains an ADR-011 amendment ({@code SUG-20261006-atk} remainder).
  */
-public final class ApigeeAccessTokenHolder implements AccessTokenPort {
+public final class ApigeeAccessTokenHolder {
 
   private static final Duration EXPIRY_SKEW = Duration.ofSeconds(30);
 
@@ -50,7 +49,14 @@ public final class ApigeeAccessTokenHolder implements AccessTokenPort {
     }
   }
 
-  public record IssuedToken(String value, Instant expiresAt) {}
+  public void invalidate() {
+    lock.lock();
+    try {
+      cached = null;
+    } finally {
+      lock.unlock();
+    }
+  }
 
   private record CachedToken(String value, Instant refreshAfter) {
     boolean usableAt(Instant now) {

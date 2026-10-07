@@ -1,6 +1,7 @@
 package com.bank.workforce.bff.application;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import org.springframework.stereotype.Service;
@@ -12,8 +13,12 @@ import org.springframework.stereotype.Service;
 @Service
 public class CountryCodeCatalog {
 
+  private static final String INDIA_REGEX = "^[6-9]\\d{9}$";
+  private static final Pattern INDIA_MOBILE = Pattern.compile(INDIA_REGEX);
+  private static final Map<String, Pattern> PATTERNS = Map.of("IN", INDIA_MOBILE);
+
   private static final List<CountryCode> CODES =
-      List.of(new CountryCode("IN", "India", "+91", "Indian", 10, 10, "^[6-9]\\d{9}$"));
+      List.of(new CountryCode("IN", "India", "+91", "Indian", 10, 10, INDIA_REGEX));
 
   public List<CountryCode> list() {
     return CODES;
@@ -39,7 +44,8 @@ public class CountryCodeCatalog {
     if (nationalNumber.length() < spec.minLength() || nationalNumber.length() > spec.maxLength()) {
       return new MobileValidationResult(false, "LENGTH");
     }
-    if (!Pattern.compile(spec.regex()).matcher(nationalNumber).matches()) {
+    Pattern pattern = PATTERNS.get(spec.countryCode());
+    if (pattern == null || !pattern.matcher(nationalNumber).matches()) {
       return new MobileValidationResult(false, "PATTERN");
     }
     return new MobileValidationResult(true, null);

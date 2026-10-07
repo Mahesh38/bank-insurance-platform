@@ -1,4 +1,4 @@
-package com.bank.platform.customer.adapter.apigee;
+package com.bank.common.apigee;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -22,8 +22,7 @@ class ApigeeAccessTokenHolderTest {
     ApigeeTokenClient client =
         () -> {
           fetches.incrementAndGet();
-          return new ApigeeAccessTokenHolder.IssuedToken(
-              "token-" + fetches.get(), clock.instant().plus(Duration.ofMinutes(5)));
+          return new IssuedToken("token-" + fetches.get(), clock.instant().plus(Duration.ofMinutes(5)));
         };
     ApigeeAccessTokenHolder holder = new ApigeeAccessTokenHolder(client, clock);
 
@@ -64,13 +63,30 @@ class ApigeeAccessTokenHolderTest {
         new ApigeeAccessTokenHolder(
             () -> {
               fetches.incrementAndGet();
-              return new ApigeeAccessTokenHolder.IssuedToken(
-                  "cached", clock.instant().plus(Duration.ofMinutes(5)));
+              return new IssuedToken("cached", clock.instant().plus(Duration.ofMinutes(5)));
             },
             clock);
 
     holder.currentAccessToken();
     holder.currentAccessToken();
     assertThat(fetches.get()).isEqualTo(1);
+  }
+
+  @Test
+  void invalidateForcesRemint() {
+    AtomicInteger fetches = new AtomicInteger();
+    Clock clock = Clock.fixed(Instant.parse("2026-10-05T12:00:00Z"), ZoneOffset.UTC);
+    ApigeeAccessTokenHolder holder =
+        new ApigeeAccessTokenHolder(
+            () -> {
+              int n = fetches.incrementAndGet();
+              return new IssuedToken("token-" + n, clock.instant().plus(Duration.ofMinutes(5)));
+            },
+            clock);
+
+    assertThat(holder.currentAccessToken()).isEqualTo("token-1");
+    holder.invalidate();
+    assertThat(holder.currentAccessToken()).isEqualTo("token-2");
+    assertThat(fetches.get()).isEqualTo(2);
   }
 }

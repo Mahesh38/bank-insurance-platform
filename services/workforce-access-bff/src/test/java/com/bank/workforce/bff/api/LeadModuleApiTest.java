@@ -224,6 +224,23 @@ class LeadModuleApiTest {
   }
 
   @Test
+  void expiredSessionHandleIsRejected() throws Exception {
+    mockMvc
+        .perform(get("/api/v1/country-codes").header("X-Session-Handle", "missing-session"))
+        .andExpect(status().isUnauthorized())
+        .andExpect(jsonPath("$.code").value(ErrorCodes.SESSION_EXPIRED));
+  }
+
+  @Test
+  void productClassesLiveOnReferenceData() throws Exception {
+    mockMvc
+        .perform(get("/api/v1/catalogue/product-classes").header("X-Session-Handle", SESSION))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.items[0].productClass").value("TERM"))
+        .andExpect(jsonPath("$.items[2].productClass").value("ULIP"));
+  }
+
+  @Test
   void unknownCustomerIsAbsent() throws Exception {
     mockMvc
         .perform(get("/api/v1/customers/UNKNOWN").header("X-Session-Handle", SESSION))

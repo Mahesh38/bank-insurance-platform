@@ -43,10 +43,11 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
-| SUG-20261007-srp | 2026-10-07 | agent:AIGEM-review | EPIC-006 should-fix: move product-classes off CustomerLookupController; compile country regex once; drop duplicate SEARCH_BY | SF3 | SC0 | COULD | REFACTOR | P4 / P3 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [EPIC-006-REVIEW](../../platform/ws3-platform/EPIC-006-REVIEW.md) · [detail](#sug-20261007-srp--lead-bff-srp-and-kiss-cleanups) |
-| SUG-20261006-atk | 2026-10-06 | human:stakeholder | One AU-Bima-Platform token for R0 Apigee egress: `customer-service` (CBS) **and** `1sb-integration-service` (ARB). Shared access-token cache at first live `/token`; not a wall-clock cron; not the workforce IdP | SF3 | SC1 | SHOULD | ARCH | P4 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [ASM-020](./ASSUMPTION-REGISTER.md) · [ADR-020](../../platform/architecture-review/08-architecture-decision-log.md) · [FUNC-031](../../platform/ws3-platform/FUNC-031.work-item.yaml) · [detail](#sug-20261006-atk--one-token-owner-per-apigee-app) · recurrence_count 4 (2026-10-06: 1sb-integration-service is a second R0 Apigee consumer — ARB) |
+| SUG-20261007-ird | 2026-10-07 | human:Mahesh | IRDAI Specified Person certification as control evidence for Lead assign | SF3 | SC0 | MUST | COMP | P4 / P1 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [detail](#sug-20261007-ird--irdai-sp-register-as-certification-sor) · fixture port shipped under EPIC-006; SoR still missing |
+| SUG-20261007-srp | 2026-10-07 | agent:AIGEM-review | EPIC-006 should-fix: move product-classes off CustomerLookupController; compile country regex once; drop duplicate SEARCH_BY | SF3 | SC0 | COULD | REFACTOR | P4 / P3 | ADMIT-BYPASS | [EPIC-006](../../platform/ws3-platform/EPIC-006.work-item.yaml) · [EPIC-006-REVIEW](../../platform/ws3-platform/EPIC-006-REVIEW.md) · [detail](#sug-20261007-srp--lead-bff-srp-and-kiss-cleanups) |
+| SUG-20261006-atk | 2026-10-06 | human:stakeholder | One AU-Bima-Platform token for R0 Apigee egress: `customer-service` (CBS) **and** `1sb-integration-service` (ARB). Shared access-token cache at first live `/token`; not a wall-clock cron; not the workforce IdP | SF3 | SC1 | SHOULD | ARCH | P4 / P2 | ADMIT-BYPASS | [ASM-020](./ASSUMPTION-REGISTER.md) · [ADR-020](../../platform/architecture-review/08-architecture-decision-log.md) · [FUNC-031](../../platform/ws3-platform/FUNC-031.work-item.yaml) · [detail](#sug-20261006-atk--one-token-owner-per-apigee-app) · recurrence_count 5 (2026-10-07: owner unpark HTTP `/token` + CBS inquiry; cluster Valkey remainder parked) |
 | SUG-20261005-uld | 2026-10-05 | agent:AIGEM-review | EPIC-006 should-fix: share Ulid with StubLeadGateway; add BFF MockMvc for UNCERTIFIED assignee | SF3 | SC0 | COULD | QA | P4 / P3 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [EPIC-006-REVIEW](../../platform/ws3-platform/EPIC-006-REVIEW.md) · [detail](#sug-20261005-uld--lead-stub-ulid-and-uncertified-test) · recurrence_count 2 (2026-10-07: stub `principal()` is a no-op; createdBy lost after assign) |
-| SUG-20261005-sdn | 2026-10-05 | agent:AIGEM-review | Fold BFF Lead session into Spring Security default-deny (SEC-C4) instead of permitAll + MVC interceptor | SF3 | SC0 | SHOULD | SEC | P4 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [EPIC-006-REVIEW](../../platform/ws3-platform/EPIC-006-REVIEW.md) · [detail](#sug-20261005-sdn--bff-session-default-deny) |
+| SUG-20261005-sdn | 2026-10-05 | agent:AIGEM-review | Fold BFF Lead session into Spring Security default-deny (SEC-C4) instead of permitAll + MVC interceptor | SF3 | SC0 | SHOULD | SEC | P4 / P2 | ADMIT-BYPASS | [EPIC-006](../../platform/ws3-platform/EPIC-006.work-item.yaml) · [EPIC-006-REVIEW](../../platform/ws3-platform/EPIC-006-REVIEW.md) · [detail](#sug-20261005-sdn--bff-session-default-deny) |
 | SUG-20261005-lbf | 2026-10-05 | human:stakeholder | Finish Lead-module BFF: REST naming, Rajal leadId + stages, country-codes, branch/vertical/RM, assign+exception, CBS search without token race | SF5 | SC0 | MUST | FUNC | P3 / P1 | ADMITTED | [EPIC-006](../../platform/ws3-platform/EPIC-006.work-item.yaml) · [PLAN-009](../plans/PLAN-009-nip-bff-lead-module-runtime.md) · [D-020](../../au-bank-insurance-platform/DECISION-LOG.md) · [D-021](../../au-bank-insurance-platform/DECISION-LOG.md) · [detail](#sug-20261005-lbf--bff-lead-module-runtime) |
 | SUG-20261003-svg | 2026-10-03 | human:stakeholder | Remaining Saving readiness beyond fail-closed hub validation: Product UI bands, questionnaire engine, enum inventory/master refresh, live Gate POST + complete Proposal POST/poll | SF3 | SC0 | MUST | FUNC | P4 / P1 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [detail](#sug-20261003-svg--saving-readiness-blocked-on-1sb-config) |
 | SUG-20261003-lvr | 2026-10-03 | human:stakeholder | Make 1sb-integration-service UAT-ready to validate Term/ULIP/Savings Life journeys (fail-before-1SB + response contract) | SF1 | SC0 | MUST | FUNC | P2 / P1 | ADMITTED | [FUNC-028](../../1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md) · [detail](#sug-20261003-lvr--life-journey-validation-uat) |
@@ -199,12 +200,13 @@ necessity:
     X5_stage_necessity: false
     X9_problem_observed: false
 
-action: PARK
+action: ADMIT-BYPASS
 action_rationale: >
-  Found on the coding-practices re-review. Not implemented in the review
-  turn. ACs still hold. Parked as should_fix.
+  Recommendation remains PARK (readability cleanup, not an AC miss). Owner
+  unparked 2026-10-07 and directed execution now.
 duplicate_of: null
 conflicts: []
+bypass_authorised_by: "human:Mahesh/repository_owner 2026-10-07 (explicit: unparked)"
 
 classification:
   type: REFACTOR
@@ -212,7 +214,7 @@ classification:
   breakdown: TASK
   epic: EPIC-006
   risk_tier: T1
-  destination: "registers/PARKED-BACKLOG.md"
+  destination: "docs/platform/ws3-platform/EPIC-006.work-item.yaml"
 
 priority:
   now: P4
@@ -223,7 +225,7 @@ priority:
   consistency: OK
   overrides_applied: []
   caps_applied: []
-  rationale: "COULD at S08 stub slice"
+  rationale: "COULD at S08 stub slice — owner unparked into EPIC-006"
 
 dependencies:
   edges: []
@@ -236,6 +238,114 @@ breakdown:
   children: []
   completion_definition: null
   not_included: []
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: EPIC-006
+  plan_id: PLAN-009
+  status: ADMIT-BYPASS
+  closed_reason: null
+
+resumed: EPIC-006
+```
+
+### SUG-20261007-ird · IRDAI SP register as certification SoR
+
+```yaml
+# schema: triage-record
+id: SUG-20261007-ird
+raised_at: "2026-10-07"
+raised_by: "human:Mahesh"
+source: "Owner: IRDAI SP-cert as control evidence this is needed"
+input: >
+  IRDAI SP-cert as control evidence this is needed
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: EPIC-006
+
+stage_fit:
+  code: SF3
+  rationale: >
+    Assign already fail-closes on uncertified empIds. Binding IRDAI evidence
+    requires a named bank/IRDAI register. A fixture is not that register.
+  target_stage: "S11 — Lead service / BFF implementation"
+  unpark_trigger: >
+    Bank/IRDAI SP register API or feed is named and a sample certified-empId
+    set is evidenced
+
+scope:
+  code: SC0
+  business_scope: "in scope — Lead assign SP certification (D-018 / OPEN-LEAD-ACTOR)"
+  serves: ["EPIC-006", "FUNC-030"]
+  failure_without_it: "assignment can mark an RM certified without IRDAI evidence"
+  minimal: true
+  authority: "Lead BRD SP certification; D-018"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S11 — Vertical slice"
+  binds_when: "Lead assign is used against real workforce identities"
+  failure_without_it: "assignment can mark an RM certified without IRDAI evidence"
+  evidence_tier: E2
+  evidence:
+    - "Owner 2026-10-07: IRDAI SP-cert as control evidence this is needed"
+    - "EPIC-006-REVIEW G10: SP-cert stub is not IRDAI evidence"
+    - "FixtureSpCertification lists SP-1001/1002/2001 only"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: false
+    X9_problem_observed: true
+
+action: PARK
+action_rationale: >
+  Fail-closed SpCertificationPort shipped under EPIC-006 (owner ADMIT-BYPASS of
+  the control). The IRDAI/bank register SoR is still missing and must not be
+  fabricated. Park the SoR wiring.
+duplicate_of: null
+conflicts: []
+
+classification:
+  type: COMP
+  also: [SEC]
+  breakdown: STORY
+  epic: EPIC-006
+  risk_tier: T3
+  destination: "registers/PARKED-BACKLOG.md"
+
+priority:
+  now: P4
+  at_target: P1
+  factors: { N: 4, S: 2, B: 0, R: 2, D: 1, E: 2 }
+  score: 13
+  matrix_default: P4
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "MUST at live assign; fixture is not evidence"
+
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 0
+  earliest_start: "named IRDAI/bank SP register"
+  cycles: none
+
+breakdown:
+  children: []
+  completion_definition: null
+  not_included:
+    - "Fabricated IRDAI certificates"
+    - "Treating FixtureSpCertification as control evidence"
 
 outcome:
   registered_in: "registers/PARKED-BACKLOG.md"
@@ -254,6 +364,7 @@ resumed: EPIC-006
 id: SUG-20261006-atk
 raised_at: "2026-10-06"
 raised_by: "human:stakeholder"
+recurrence_count: 5
 source: "Stakeholder question on AU-Bima-Platform client key/secret shared across services and pods"
 input: >
   APIGEE has onboarded us as channel App Name AU-Bima-Platform with Client key
@@ -326,15 +437,14 @@ necessity:
     X5_stage_necessity: false
     X9_problem_observed: false
 
-action: PARK
+action: ADMIT-BYPASS
 action_rationale: >
-  Recurrence 4: 1sb-integration-service named as second R0 consumer (ARB).
-  One mint owner + shared ACCESS-TOKEN cache is MUST at first live /token.
-  Stay PARKED at S08. Do not have 1sb-integration call customer-service for
-  a token. Do not mint inside adapter.onesb or the workforce IdP. Do not
-  implement Valkey/cron this turn.
+  Recommendation remains PARK for the cluster Valkey cache (ADR-011 closed
+  list; ElastiCache is S09). Owner unparked 2026-10-07: implement HTTP /token
+  clients plus the shared holder type now. Cluster cache remainder stays parked.
 duplicate_of: null
 conflicts: []
+bypass_authorised_by: "human:Mahesh/repository_owner 2026-10-07 (explicit: unpark; add live Apigee /token and CBS inquiry)"
 
 classification:
   type: ARCH
@@ -342,7 +452,7 @@ classification:
   breakdown: SPIKE
   epic: EPIC-006
   risk_tier: T3
-  destination: "registers/PARKED-BACKLOG.md"
+  destination: "docs/platform/ws3-platform/FUNC-031.work-item.yaml"
 
 priority:
   now: P4
@@ -390,19 +500,20 @@ breakdown:
   completion_definition: null
   not_included:
     - "New token microservice"
-    - "Live Apigee /token client"
     - "Storing AU-Bima-Platform client key or secret in git"
     - "Wall-clock cron (08:00/20:00) as the primary remint"
     - "Minting AU-Bima-Platform client-credentials inside identity-provider-adapter-service"
     - "1sb-integration-service calling customer-service to fetch a token"
     - "Mint logic inside adapter.onesb.* (Apigee token is not a 1SB type)"
     - "Client secret in Valkey — cache holds the access token only"
+    - "Cluster Valkey cache until ADR-011 is amended and ElastiCache exists"
+    - "Attaching Apigee Bearer to OneSbHttpClient until Apigee product mapping is written"
 
 outcome:
-  registered_in: "registers/PARKED-BACKLOG.md"
-  work_item_id: null
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: FUNC-031
   plan_id: PLAN-009
-  status: PARKED
+  status: ADMIT-BYPASS
   closed_reason: null
 
 resumed: EPIC-006
@@ -612,12 +723,13 @@ necessity:
     X5_stage_necessity: false
     X9_problem_observed: false
 
-action: PARK
+action: ADMIT-BYPASS
 action_rationale: >
-  Interceptor is registered and tested. SEC-C4 hardening waits for S11 promotion
-  or an explicit Board 4 instruction. Not implemented in the review turn.
+  Recommendation remains PARK until S11 promotion. Owner approved SEC-C4
+  default-deny 2026-10-07 and sat the Board 4 condition as repository_owner.
 duplicate_of: null
 conflicts: []
+bypass_authorised_by: "human:Mahesh/repository_owner 2026-10-07 (explicit: approved)"
 
 classification:
   type: SEC
@@ -625,7 +737,7 @@ classification:
   breakdown: TASK
   epic: EPIC-006
   risk_tier: T3
-  destination: "registers/PARKED-BACKLOG.md"
+  destination: "docs/platform/ws3-platform/EPIC-006.work-item.yaml"
 
 priority:
   now: P4
@@ -636,7 +748,7 @@ priority:
   consistency: OK
   overrides_applied: []
   caps_applied: []
-  rationale: "SHOULD at S08; MUST before non-stub BFF"
+  rationale: "SHOULD at S08; MUST before non-stub BFF — owner approved now"
 
 dependencies:
   edges: []
@@ -650,12 +762,13 @@ breakdown:
   completion_definition: null
   not_included:
     - "PDP object-level grants"
+    - "Promotion of Lead /api/v1 beyond stub/local"
 
 outcome:
-  registered_in: "registers/PARKED-BACKLOG.md"
-  work_item_id: null
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: EPIC-006
   plan_id: PLAN-009
-  status: PARKED
+  status: ADMIT-BYPASS
   closed_reason: null
 
 resumed: EPIC-006

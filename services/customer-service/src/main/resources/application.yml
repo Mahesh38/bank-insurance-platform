@@ -40,3 +40,15 @@ bank:
     service-id: customer
     layer: L5
     boundary: INTERNAL
+
+customer:
+  apigee:
+    token-mode: ${CUSTOMER_APIGEE_TOKEN_MODE:stub}
+    token-url: ${APIGEE_TOKEN_URL:}
+    client-id: ${APIGEE_CLIENT_ID:}
+    client-secret: ${APIGEE_CLIENT_SECRET:}
+  cbs:
+    inquiry-mode: ${CUSTOMER_CBS_INQUIRY_MODE:stub}
+    base-url: ${CBS_INQUIRY_BASE_URL:}
+    search-path: ${CBS_INQUIRY_SEARCH_PATH:/customers/search}
+    get-path: ${CBS_INQUIRY_GET_PATH:/customers/{customerId}}

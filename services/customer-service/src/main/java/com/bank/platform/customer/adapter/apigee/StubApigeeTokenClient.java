@@ -1,5 +1,7 @@
 package com.bank.platform.customer.adapter.apigee;
 
+import com.bank.common.apigee.ApigeeTokenClient;
+import com.bank.common.apigee.IssuedToken;
 import java.time.Clock;
 import java.time.Duration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -19,8 +21,7 @@ public class StubApigeeTokenClient implements ApigeeTokenClient {
   }
 
   @Override
-  public ApigeeAccessTokenHolder.IssuedToken fetchClientCredentials() {
-    return new ApigeeAccessTokenHolder.IssuedToken(
-        "stub-apigee-token", clock.instant().plus(Duration.ofMinutes(5)));
+  public IssuedToken fetchClientCredentials() {
+    return new IssuedToken("stub-apigee-token", clock.instant().plus(Duration.ofMinutes(5)));
   }
 }

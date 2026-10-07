@@ -7,6 +7,7 @@ import com.bank.platform.lead.domain.Lead;
 import com.bank.platform.lead.domain.LeadRepository;
 import com.bank.platform.lead.domain.LeadState;
 import com.bank.platform.lead.domain.ProductClass;
+import com.bank.platform.lead.domain.SpCertificationPort;
 import com.bank.platform.lead.domain.Ulid;
 import java.time.Clock;
 import java.time.Instant;
@@ -23,16 +24,17 @@ import org.springframework.stereotype.Service;
 @Service
 public class LeadApplicationService {
 
-  static final String UNCERTIFIED_RM = "UNCERTIFIED";
-
   private final LeadRepository leads;
   private final ServiceErrors errors;
   private final Clock clock;
+  private final SpCertificationPort certification;
 
-  public LeadApplicationService(LeadRepository leads, ServiceErrors errors, Clock clock) {
+  public LeadApplicationService(
+      LeadRepository leads, ServiceErrors errors, Clock clock, SpCertificationPort certification) {
     this.leads = leads;
     this.errors = errors;
     this.clock = clock;
+    this.certification = certification;
   }
 
   public Lead create(CreateLeadCommand command) {
@@ -137,7 +139,7 @@ public class LeadApplicationService {
           .build();
     }
     require(command.assignedRmId(), "assignedRmId");
-    if (UNCERTIFIED_RM.equalsIgnoreCase(command.assignedRmId())) {
+    if (!certification.holdsValidCertification(command.assignedRmId())) {
       throw errors
           .error(ErrorCodes.SP_CERTIFICATION_REQUIRED)
           .component("LeadApplicationService")

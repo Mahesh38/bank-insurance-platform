@@ -8,8 +8,13 @@ import com.bank.common.error.PlatformLayer;
 import com.bank.common.error.ServiceErrors;
 import com.bank.common.error.ServiceException;
 import com.bank.platform.customer.adapter.cbs.StubCustomerDirectory;
+import com.bank.platform.customer.domain.AccessTokenPort;
+import com.bank.platform.customer.domain.CustomerInquiryPort;
 import com.bank.platform.customer.domain.CustomerInquiryPort.CustomerHit;
+import com.bank.platform.customer.domain.CustomerInquiryPort.SearchQuery;
+import com.bank.platform.customer.domain.CustomerInquiryUnauthorizedException;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
@@ -55,5 +60,46 @@ class CustomerSearchServiceTest {
         .isInstanceOf(ServiceException.class)
         .extracting(ex -> ((ServiceException) ex).getErrorResponse().getCode())
         .isEqualTo(ErrorCodes.RESOURCE_NOT_FOUND);
+  }
+
+  @Test
+  void unauthorizedInquiryInvalidatesAndRetriesOnce() {
+    AtomicInteger calls = new AtomicInteger();
+    AtomicInteger invalidations = new AtomicInteger();
+    CustomerInquiryPort inquiry =
+        new CustomerInquiryPort() {
+          @Override
+          public List<CustomerHit> search(SearchQuery query, String accessToken) {
+            if (calls.incrementAndGet() == 1) {
+              throw new CustomerInquiryUnauthorizedException();
+            }
+            return new StubCustomerDirectory().search(query, accessToken);
+          }
+
+          @Override
+          public java.util.Optional<CustomerHit> findById(String customerId, String accessToken) {
+            return java.util.Optional.empty();
+          }
+        };
+    AccessTokenPort tokens =
+        new AccessTokenPort() {
+          @Override
+          public String currentAccessToken() {
+            return "access-token";
+          }
+
+          @Override
+          public void invalidate() {
+            invalidations.incrementAndGet();
+          }
+        };
+    CustomerSearchService retrying =
+        new CustomerSearchService(inquiry, tokens, ServiceErrors.of("customer", PlatformLayer.L5));
+
+    List<CustomerHit> hits = retrying.search("MOBILE", "9876543210", "IN");
+
+    assertThat(hits).hasSize(1);
+    assertThat(calls.get()).isEqualTo(2);
+    assertThat(invalidations.get()).isEqualTo(1);
   }
 }

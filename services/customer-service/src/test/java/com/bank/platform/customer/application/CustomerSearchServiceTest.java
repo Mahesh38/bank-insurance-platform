@@ -25,7 +25,7 @@ class CustomerSearchServiceTest {
   private final CustomerSearchService service =
       new CustomerSearchService(
           new StubCustomerDirectory(),
-          () -> "access-token",
+          stubTokens("access-token"),
           ServiceErrors.of("customer", PlatformLayer.L5));
 
   @Test
@@ -138,5 +138,17 @@ class CustomerSearchServiceTest {
         .extracting(ex -> ((ServiceException) ex).getErrorResponse().getCode())
         .isEqualTo(ErrorCodes.UPSTREAM_UNAVAILABLE);
     assertThat(invalidations.get()).isEqualTo(1);
+  }
+
+  private static AccessTokenPort stubTokens(String token) {
+    return new AccessTokenPort() {
+      @Override
+      public String currentAccessToken() {
+        return token;
+      }
+
+      @Override
+      public void invalidate() {}
+    };
   }
 }

@@ -2,6 +2,7 @@ package com.bank.workforce.bff.config;
 
 import com.bank.workforce.bff.api.BffSessionAuthenticationEntryPoint;
 import com.bank.workforce.bff.api.BffSessionAuthenticationFilter;
+import com.bank.workforce.bff.api.BffSessionCredentials;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,10 +36,7 @@ public class BffSecurityConfig {
             configurer ->
                 configurer
                     .csrfTokenRepository(csrf)
-                    .ignoringRequestMatchers(
-                        request ->
-                            request.getHeader("Authorization") != null
-                                || request.getHeader("X-Session-Handle") != null))
+                    .ignoringRequestMatchers(BffSessionCredentials::skipsCsrf))
         .exceptionHandling(handling -> handling.authenticationEntryPoint(entryPoint))
         .authorizeHttpRequests(
             authorize ->

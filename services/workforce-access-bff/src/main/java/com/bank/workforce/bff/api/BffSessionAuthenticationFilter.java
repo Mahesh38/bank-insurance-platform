@@ -80,7 +80,7 @@ public class BffSessionAuthenticationFilter extends OncePerRequestFilter {
     request.setAttribute(BffSessionInterceptor.SESSION_ATTR, session);
     UsernamePasswordAuthenticationToken authentication =
         UsernamePasswordAuthenticationToken.authenticated(
-            session.businessUserId().toString(), handle, List.of());
+            session.businessUserId().toString(), null, List.of());
     SecurityContextHolder.getContext().setAuthentication(authentication);
     try {
       filterChain.doFilter(request, response);

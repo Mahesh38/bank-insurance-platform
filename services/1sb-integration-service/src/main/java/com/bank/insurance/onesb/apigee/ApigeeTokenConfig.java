@@ -2,25 +2,27 @@ package com.bank.insurance.onesb.apigee;
 
 import com.bank.common.apigee.ApigeeAccessTokenHolder;
 import com.bank.common.apigee.ApigeeTokenClient;
-import com.bank.common.apigee.HttpApigeeTokenClient;
 import com.bank.common.apigee.IssuedToken;
-import java.net.http.HttpClient;
 import java.time.Clock;
 import java.time.Duration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.client.JdkClientHttpRequestFactory;
-import org.springframework.web.client.RestClient;
 
 /**
- * AU-Bima-Platform client-credentials mint for 1sb-integration-service. Lives outside {@code
+ * AU-Bima-Platform client-credentials holder for 1sb-integration-service. Lives outside {@code
  * adapter.onesb} because an Apigee token is not a 1SB type (INV-ACL-01, {@code SUG-20261006-atk}).
+ *
+ * <p>{@code token-mode=http} is refused until Bearer attachment exists ({@code DEP-20260914-apg}).
  */
 @Configuration
 @EnableConfigurationProperties(ApigeeTokenProperties.class)
 public class ApigeeTokenConfig {
+
+  public ApigeeTokenConfig(ApigeeTokenProperties properties) {
+    rejectHttpModeUntilMapping(properties.tokenMode());
+  }
 
   @Bean
   ApigeeAccessTokenHolder apigeeAccessTokenHolder(ApigeeTokenClient client, Clock clock) {
@@ -33,28 +35,10 @@ public class ApigeeTokenConfig {
     return () -> new IssuedToken("stub-apigee-token", clock.instant().plus(Duration.ofHours(24)));
   }
 
-  @Bean
-  @ConditionalOnProperty(name = "apigee.token-mode", havingValue = "http")
-  ApigeeTokenClient httpApigeeTokenClient(
-      RestClient.Builder builder, ApigeeTokenProperties properties, Clock clock) {
-    JdkClientHttpRequestFactory factory =
-        timedFactory(properties.connectTimeoutMs(), properties.readTimeoutMs());
-    return new HttpApigeeTokenClient(
-        builder.requestFactory(factory).build(),
-        properties.tokenUri(),
-        properties.clientId(),
-        properties.clientSecret(),
-        clock);
-  }
-
-  static JdkClientHttpRequestFactory timedFactory(int connectTimeoutMs, int readTimeoutMs) {
-    HttpClient httpClient =
-        HttpClient.newBuilder()
-            .version(HttpClient.Version.HTTP_1_1)
-            .connectTimeout(Duration.ofMillis(connectTimeoutMs))
-            .build();
-    JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(httpClient);
-    factory.setReadTimeout(Duration.ofMillis(readTimeoutMs));
-    return factory;
+  static void rejectHttpModeUntilMapping(String tokenMode) {
+    if (tokenMode != null && "http".equalsIgnoreCase(tokenMode.strip())) {
+      throw new IllegalStateException(
+          "ONESB_APIGEE_TOKEN_MODE=http is refused until Bearer attachment exists (DEP-20260914-apg)");
+    }
   }
 }

@@ -44,8 +44,8 @@ bank:
   persistence:
     base-url: ${BANK_PERSISTENCE_BASE_URL:http://localhost:8081}
 
-# AU-Bima-Platform client-credentials (shared env names with customer-service).
-# Bearer attachment to 1SB calls waits for Apigee product mapping (DEP-20260914-apg).
+# AU-Bima-Platform client-credentials stay stub until Bearer attachment exists
+# (DEP-20260914-apg). token-mode=http fails startup on purpose.
 apigee:
   token-mode: ${ONESB_APIGEE_TOKEN_MODE:stub}
   token-url: ${APIGEE_TOKEN_URL:}

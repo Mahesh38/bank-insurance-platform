@@ -12,6 +12,7 @@ import com.bank.workforce.bff.session.SessionModels.WorkforceSession;
 import com.bank.workforce.bff.session.SessionStore;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.Cookie;
 import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
@@ -213,6 +214,16 @@ class LeadModuleApiTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.exceptionRequired").value(true))
         .andExpect(jsonPath("$.exceptionOutcome").value("APPROVAL_REQUIRED"));
+  }
+
+  @Test
+  void cookieSessionIsAcceptedOnGet() throws Exception {
+    mockMvc
+        .perform(
+            get("/api/v1/country-codes")
+                .cookie(new Cookie(sessionProperties.cookieName(), SESSION)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].countryCode").value("IN"));
   }
 
   @Test

@@ -19,7 +19,7 @@ schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
 document_count: 663
-total_bytes: 21287934
+total_bytes: 21288551
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -4589,7 +4589,7 @@ documents:
     persona: engineering
     title: "UC-01 — RM login"
     answers: "Actor: Bank RM (BANKRM) · Entry: POST /api/v1/auth/login (IAM-001 credential + AD-verify)"
-    bytes: 12942
+    bytes: 12972
   - path: docs/journey-execution/flows/UC-02-ipr-login.md
     bucket: platform
     authority: ai-drafted
@@ -4829,7 +4829,7 @@ documents:
     persona: security
     title: "IAM 001.work item"
     answers: "schema: work-item"
-    bytes: 2977
+    bytes: 3265
   - path: docs/platform/authentication-authorization/README.md
     bucket: platform
     authority: approved-spec
@@ -4837,7 +4837,7 @@ documents:
     persona: security
     title: "Workforce Authentication and Authorization — Service SSOT"
     answers: "Primary identity provider for development: Keycloak (partners; workforce AD-verify is the bank API)"
-    bytes: 20686
+    bytes: 20985
   - path: docs/platform/data-architecture/00-design-rules.md
     bucket: platform
     authority: ai-drafted

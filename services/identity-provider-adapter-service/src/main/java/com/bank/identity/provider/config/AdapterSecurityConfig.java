@@ -27,7 +27,8 @@ public class AdapterSecurityConfig {
       InternalServiceAuthFilter internalServiceAuthFilter,
       AdapterInternalAuthenticationEntryPoint entryPoint)
       throws Exception {
-    return http.csrf(csrf -> csrf.disable())
+    return http.csrf(
+            csrf -> csrf.ignoringRequestMatchers("/internal/v1/**", "/actuator/**", "/error"))
         .exceptionHandling(handling -> handling.authenticationEntryPoint(entryPoint))
         .authorizeHttpRequests(
             authorize ->

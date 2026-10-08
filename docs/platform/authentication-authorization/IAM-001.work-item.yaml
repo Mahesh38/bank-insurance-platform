@@ -45,6 +45,10 @@ acceptance_criteria:
     given: "identitySource=PARTNER"
     when: "POST /api/v1/auth/login"
     then: "the OIDC authorization-uri path still runs and AD-verify is not called"
+  - id: AC-5
+    given: "POST /internal/v1/auth/ad-verify (or any /internal/v1 adapter path) without a matching X-Internal-Service-Key"
+    when: "the request is presented"
+    then: "401 UNAUTHORIZED; the password is not echoed; BFF calls send the shared key (SEC-C10 service identity)"
 
 out_of_scope:
   - "Captcha, platform OTP, lock-after-3, Unlock User (SUG-20261008-otp)"

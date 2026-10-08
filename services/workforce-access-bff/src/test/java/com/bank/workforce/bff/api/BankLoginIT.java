@@ -2,6 +2,7 @@ package com.bank.workforce.bff.api;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.containing;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.exactly;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
@@ -15,6 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.bank.workforce.bff.config.DownstreamProperties;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import org.junit.jupiter.api.AfterAll;
@@ -101,6 +103,9 @@ class BankLoginIT {
 
     ADAPTER.verify(
         postRequestedFor(urlEqualTo("/internal/v1/auth/ad-verify"))
+            .withHeader(
+                DownstreamProperties.PROVIDER_ADAPTER_INTERNAL_KEY_HEADER,
+                equalTo("local-idp-adapter-internal-key"))
             .withRequestBody(
                 equalToJson(
                     """
@@ -211,6 +216,11 @@ class BankLoginIT {
         .andExpect(jsonPath("$.authorizationUri").value("https://idp.example.test/authorize"));
 
     ADAPTER.verify(exactly(0), postRequestedFor(urlEqualTo("/internal/v1/auth/ad-verify")));
+    ADAPTER.verify(
+        postRequestedFor(urlEqualTo("/internal/v1/auth/authorization-uri"))
+            .withHeader(
+                DownstreamProperties.PROVIDER_ADAPTER_INTERNAL_KEY_HEADER,
+                equalTo("local-idp-adapter-internal-key")));
   }
 
   private static void stubAd(boolean authenticated, boolean accountActive) {

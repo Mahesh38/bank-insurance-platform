@@ -6,7 +6,7 @@
 
 > **`IAM-001` delta.** Bank RM login no longer starts the OIDC authorization-code ceremony.
 > NIP-APP posts Employee ID + password to the BFF. The BFF calls
-> `identity-provider-adapter-service` `POST /internal/v1/auth/ad-verify`. The adapter calls the
+> `identity-provider-adapter-service` `POST /internal/v1/auth/ad-verify` with `X-Internal-Service-Key`. The adapter calls the
 > existing bank AD-verify API (boolean active-employee result) via Apigee private — never LDAP.
 > On `true` and an `ACTIVE` `BANK_EMPLOYEE` identity, the BFF issues an opaque session. Partner
 > login (`UC-02`) still uses callback + PKCE. The hop tables below still describe the OIDC

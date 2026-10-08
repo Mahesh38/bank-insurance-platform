@@ -24,6 +24,7 @@ spring:
 identity:
   provider-adapter:
     base-url: ${IDENTITY_PROVIDER_ADAPTER_BASE_URL:http://localhost:8082}
+    internal-key: ${IDENTITY_ADAPTER_INTERNAL_SHARED_SECRET:local-idp-adapter-internal-key}
   provisioning:
     enabled: ${IDENTITY_PROVISIONING_ENABLED:false}
     poll-interval: ${IDENTITY_PROVISIONING_POLL_INTERVAL:5000}

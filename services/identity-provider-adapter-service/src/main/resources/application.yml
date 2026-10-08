@@ -9,6 +9,8 @@ spring:
       enabled: true
 
 identity:
+  internal-auth:
+    shared-secret: ${IDENTITY_ADAPTER_INTERNAL_SHARED_SECRET:local-idp-adapter-internal-key}
   ad-verify:
     mode: ${BANK_AD_VERIFY_MODE:stub}
     connect-timeout: 3s

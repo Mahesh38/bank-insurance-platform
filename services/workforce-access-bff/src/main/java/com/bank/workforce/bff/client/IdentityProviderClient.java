@@ -30,7 +30,13 @@ public class IdentityProviderClient {
       ProblemJsonReader problemJsonReader,
       ServiceErrors serviceErrors) {
     this.client =
-        restClient.mutate().baseUrl(properties.providerAdapterBaseUrl().toString()).build();
+        restClient
+            .mutate()
+            .baseUrl(properties.providerAdapterBaseUrl().toString())
+            .defaultHeader(
+                DownstreamProperties.PROVIDER_ADAPTER_INTERNAL_KEY_HEADER,
+                properties.providerAdapterInternalKey())
+            .build();
     this.problemJsonReader = problemJsonReader;
     this.serviceErrors = serviceErrors;
   }

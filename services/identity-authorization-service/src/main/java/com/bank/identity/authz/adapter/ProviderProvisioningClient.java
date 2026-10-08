@@ -8,35 +8,49 @@ import org.springframework.web.client.RestClient;
 @Component
 public class ProviderProvisioningClient {
 
-    private final RestClient client;
+  private final RestClient client;
 
-    public ProviderProvisioningClient(RestClient restClient, ProviderAdapterProperties properties) {
-        this.client = restClient.mutate().baseUrl(properties.baseUrl().toString()).build();
-    }
+  public ProviderProvisioningClient(RestClient restClient, ProviderAdapterProperties properties) {
+    this.client =
+        restClient
+            .mutate()
+            .baseUrl(properties.baseUrl().toString())
+            .defaultHeader("X-Internal-Service-Key", properties.internalKey())
+            .build();
+  }
 
-    public String provision(BusinessUserEntity user) {
-        var response = client.post()
+  public String provision(BusinessUserEntity user) {
+    var response =
+        client
+            .post()
             .uri("/internal/v1/identities")
-            .body(new ProvisionIdentityRequest(
-                user.getId().toString(), user.getUsername(), user.getEmail(), user.getFirstName(), user.getLastName(),
-                user.getInsurerCode(), true))
+            .body(
+                new ProvisionIdentityRequest(
+                    user.getId().toString(),
+                    user.getUsername(),
+                    user.getEmail(),
+                    user.getFirstName(),
+                    user.getLastName(),
+                    user.getInsurerCode(),
+                    true))
             .retrieve()
             .body(ProvisionIdentityResponse.class);
-        if (response == null || response.providerSubjectId() == null || response.providerSubjectId().isBlank()) {
-            throw new IllegalStateException("Identity provider returned no subject identifier");
-        }
-        return response.providerSubjectId();
+    if (response == null
+        || response.providerSubjectId() == null
+        || response.providerSubjectId().isBlank()) {
+      throw new IllegalStateException("Identity provider returned no subject identifier");
     }
+    return response.providerSubjectId();
+  }
 
-    private record ProvisionIdentityRequest(
-        String businessUserId,
-        String username,
-        String email,
-        String firstName,
-        String lastName,
-        String insurerCode,
-        boolean enabled
-    ) {}
+  private record ProvisionIdentityRequest(
+      String businessUserId,
+      String username,
+      String email,
+      String firstName,
+      String lastName,
+      String insurerCode,
+      boolean enabled) {}
 
-    private record ProvisionIdentityResponse(String providerSubjectId) {}
+  private record ProvisionIdentityResponse(String providerSubjectId) {}
 }

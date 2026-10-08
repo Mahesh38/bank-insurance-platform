@@ -124,7 +124,7 @@ Keycloak is a separately deployed product, not one of the three custom Spring se
 `IAM-001` (2026-10-08). Owner selected option B for `BANK_AD`: NIP-APP collects Employee ID + password and the BFF forwards them to the adapter. Captcha / OTP / lock remain parked (`SUG-20261008-otp`).
 
 1. Flutter calls `POST /api/v1/auth/login` with `identitySource=BANK_AD`, Employee ID and password. No OAuth token is returned.
-2. The BFF does **not** validate the password itself and does **not** persist it. It calls `identity-provider-adapter-service` `POST /internal/v1/auth/ad-verify`.
+2. The BFF does **not** validate the password itself and does **not** persist it. It calls `identity-provider-adapter-service` `POST /internal/v1/auth/ad-verify` with `X-Internal-Service-Key` (shared service identity; network location is not trust). The adapter refuses `/internal/v1/**` without that key (`401 UNAUTHORIZED`). Production has no default secret.
 3. The adapter calls the **existing bank AD-verify API** through Apigee private (`ADR-020`) — or a local stub in `dev`/`test`. The bank API returns **true or false** for an active bank employee. LDAP from EKS is not used.
 4. On `false`, the BFF returns generic `401 AUTHENTICATION_FAILED`. On `true`, it resolves a `BANK_EMPLOYEE` business identity in `identity-authorization-service`.
 5. Login succeeds only when that identity is `ACTIVE`. The BFF stores an opaque platform session (web: HttpOnly cookie; native: opaque handle). No AD password and no OAuth token is stored for this path.
@@ -278,7 +278,7 @@ Keycloak owns a separate database managed only by Keycloak. No business service 
 
 ### Private provider adapter
 
-- `POST /internal/v1/auth/ad-verify` — bank-employee credentials; returns `authenticated` / `accountActive` (never to Flutter)
+- `POST /internal/v1/auth/ad-verify` — bank-employee credentials; returns `authenticated` / `accountActive` (never to Flutter). Requires `X-Internal-Service-Key`. All `/internal/v1/**` on this adapter are service-authenticated.
 - `POST /internal/v1/auth/authorization-uri`
 - `POST /internal/v1/auth/token-exchange`
 - `POST /internal/v1/auth/refresh`

@@ -24,6 +24,7 @@ public class ProviderClientConfig {
     @Qualifier("adVerifyRestClient")
     RestClient adVerifyRestClient(BankAdVerifyProperties properties) {
         HttpClient httpClient = HttpClient.newBuilder()
+            .version(HttpClient.Version.HTTP_1_1)
             .connectTimeout(properties.connectTimeout())
             .build();
         JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(httpClient);

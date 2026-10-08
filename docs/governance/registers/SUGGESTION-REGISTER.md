@@ -162,8 +162,7 @@ context:
   canonical_stage: "L4/L6 — Foundation into first vertical slice"
   current_objective: "IAM-P1 token-hiding BFF session; adapter; PDP"
   state_as_of: "2026-09-30"
-  freshness: WARN
-  freshness_note: "04-STAGE_GATES.md 15d vs 14d limit; proceed with disclosure"
+  state_provisional: false
   active_work_item: "none in this lane — this request is the work"
 
 stage_fit:
@@ -186,6 +185,7 @@ necessity:
   future_necessity: MUST
   target_stage: "WS-2 adapter + NIP login"
   binds_when: "First workforce login story"
+  failure_without_it: "Bank RMs cannot sign in to NIP-APP against AD."
   evidence_tier: E5
   confidence: C4
   assumptions: [ASM-019, ASM-016]
@@ -196,11 +196,11 @@ necessity:
 
 action: ADMIT
 action_rationale: >
-  Executes the already-admitted SUG-20260914-idp story "Adapter calls bank
-  AD-verify API". Owner named the ceremony: boolean AD-verify for active bank
-  employees. Captcha/OTP/lock are split to SUG-20261008-otp (parked). Live
-  Apigee hostname remains DEP-20260914-apg — Java uses a configurable URL and
-  a local stub.
+  Freshness WARN (04-STAGE_GATES.md 15d vs 14d). Executes the already-admitted
+  SUG-20260914-idp story "Adapter calls bank AD-verify API". Owner named the
+  ceremony: boolean AD-verify for active bank employees. Captcha/OTP/lock are
+  split to SUG-20261008-otp (parked). Live Apigee hostname remains
+  DEP-20260914-apg — Java uses a configurable URL and a local stub.
 
 classification:
   type: FUNC
@@ -268,12 +268,14 @@ context:
   canonical_stage: "L4/L6 — Foundation into first vertical slice"
   current_objective: "IAM-P1"
   state_as_of: "2026-09-30"
-  freshness: WARN
+  state_provisional: false
   active_work_item: IAM-001
 
 stage_fit:
   code: SF2
   rationale: "Login BRD catalogue beyond credential+session. Infosec owns Captcha/OTP gateway (SEC-009)."
+  target_stage: "WS-2 login hardening / Infosec OTP gateway"
+  unpark_trigger: "IAM-001 bank AD-verify login evidenced and Infosec names the Captcha/OTP gateway contract (SEC-009)"
   absorption_test:
     small: false
     no_new_dependency: false
@@ -327,7 +329,8 @@ priority:
 
 dependencies:
   edges: []
-  state: PARKED
+  state: PARKED-DEPENDENT
+  parked_because: "Captcha/OTP/lock wait on IAM-001 evidence and Infosec OTP/Captcha contract"
   enablement_count: 0
   earliest_start: "after IAM-001 evidence and Infosec OTP/Captcha contract"
   cycles: none

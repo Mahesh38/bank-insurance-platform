@@ -1,5 +1,6 @@
 package com.bank.workforce.bff.client;
 
+import com.bank.common.error.ErrorCodes;
 import com.bank.common.error.ErrorPropagation;
 import com.bank.common.error.PlatformLayer;
 import com.bank.common.error.ProblemJsonReader;
@@ -7,6 +8,7 @@ import com.bank.common.error.ServiceErrors;
 import com.bank.workforce.bff.config.DownstreamProperties;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 
 import java.net.URI;
@@ -73,6 +75,13 @@ public class IdentityProviderClient {
                 .calling(DOWNSTREAM, operation)
                 .causedBy(ex)
                 .toException();
+        } catch (RestClientException ex) {
+            throw serviceErrors.error(ErrorCodes.IDENTITY_PROVIDER_UNAVAILABLE)
+                .component("IdentityProviderClient")
+                .operation(operation)
+                .reason("Identity provider adapter is unavailable")
+                .cause(ex)
+                .build();
         }
     }
 

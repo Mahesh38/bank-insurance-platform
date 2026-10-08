@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 669
-total_bytes: 22521907
+document_count: 663
+total_bytes: 21287934
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -2221,23 +2221,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 233489
-  - path: docs/context/DOC-MAP.yaml
-    bucket: context
-    authority: non-binding-context
-    capsules: [orient, docs-navigation]
-    persona: null
-    title: "DOC MAP"
-    answers: "============================================================================="
-    bytes: 233489
-  - path: docs/context/DOC-MAP.yaml
-    bucket: context
-    authority: non-binding-context
-    capsules: [orient, docs-navigation]
-    persona: null
-    title: "DOC MAP"
-    answers: "============================================================================="
-    bytes: 233489
+    bytes: 233786
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -4182,22 +4166,6 @@ documents:
     title: "Parked Backlog"
     answers: "Parked is not deleted. Every entry names the stage that unparks it and the observable"
     bytes: 18800
-  - path: docs/governance/registers/PARKED-BACKLOG.md
-    bucket: governance
-    authority: binding-process
-    capsules: [triage, plan-work, delivery-planning]
-    persona: null
-    title: "Parked Backlog"
-    answers: "Parked is not deleted. Every entry names the stage that unparks it and the observable"
-    bytes: 18800
-  - path: docs/governance/registers/PARKED-BACKLOG.md
-    bucket: governance
-    authority: binding-process
-    capsules: [triage, plan-work, delivery-planning]
-    persona: null
-    title: "Parked Backlog"
-    answers: "Parked is not deleted. Every entry names the stage that unparks it and the observable"
-    bytes: 18800
   - path: docs/governance/registers/RISK-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -4206,22 +4174,6 @@ documents:
     title: "Risk Register"
     answers: "Open risks with owners, triggers, and responses. A risk is not a problem — it is a problem"
     bytes: 10916
-  - path: docs/governance/registers/SUGGESTION-REGISTER.md
-    bucket: governance
-    authority: binding-process
-    capsules: [triage, plan-work, delivery-planning]
-    persona: null
-    title: "Suggestion Register"
-    answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 364846
-  - path: docs/governance/registers/SUGGESTION-REGISTER.md
-    bucket: governance
-    authority: binding-process
-    capsules: [triage, plan-work, delivery-planning]
-    persona: null
-    title: "Suggestion Register"
-    answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 364846
   - path: docs/governance/registers/SUGGESTION-REGISTER.md
     bucket: governance
     authority: binding-process

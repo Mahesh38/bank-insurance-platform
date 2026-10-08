@@ -1,11 +1,10 @@
 package com.bank.platform.lead.api;
 
+import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Map;
 
 /**
  * Minimal scaffold endpoint proving the service boots and exposes a bank-canonical route prefix.
@@ -15,12 +14,12 @@ import java.util.Map;
 @RequestMapping("/internal/v1/lead")
 public class ServiceInfoController {
 
-    @GetMapping("/info")
-    public ResponseEntity<Map<String, String>> info() {
-        return ResponseEntity.ok(Map.of(
+  @GetMapping("/info")
+  public ResponseEntity<Map<String, String>> info() {
+    return ResponseEntity.ok(
+        Map.of(
             "service", "lead-service",
             "boundedContext", "5",
-            "status", "SKELETON"
-        ));
-    }
+            "status", "LEAD_SLICE"));
+  }
 }

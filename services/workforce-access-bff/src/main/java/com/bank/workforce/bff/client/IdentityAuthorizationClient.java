@@ -64,7 +64,8 @@ public class IdentityAuthorizationClient {
           .causedBy(ex)
           .toException();
     } catch (RestClientException ex) {
-      throw serviceErrors.error(ErrorCodes.IDENTITY_PROVIDER_UNAVAILABLE)
+      throw serviceErrors
+          .error(ErrorCodes.IDENTITY_PROVIDER_UNAVAILABLE)
           .component("IdentityAuthorizationClient")
           .operation("resolveIdentity")
           .reason("Authorization service is unavailable")

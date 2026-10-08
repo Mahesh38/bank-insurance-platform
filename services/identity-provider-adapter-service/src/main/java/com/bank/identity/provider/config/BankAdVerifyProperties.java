@@ -15,34 +15,23 @@ public record BankAdVerifyProperties(
     @NotNull Duration connectTimeout,
     @NotNull Duration readTimeout,
     Http http,
-    Stub stub
-) {
-    public boolean stubMode() {
-        return "stub".equalsIgnoreCase(mode);
+    Stub stub) {
+  public boolean stubMode() {
+    return "stub".equalsIgnoreCase(mode);
+  }
+
+  public List<StubUser> stubUsers() {
+    return stub == null || stub.users() == null ? List.of() : stub.users();
+  }
+
+  public record Http(URI baseUrl, @NotBlank String path, String apiKey, String apiKeyHeader) {
+    public String apiKeyHeaderName() {
+      return apiKeyHeader == null || apiKeyHeader.isBlank() ? "X-API-Key" : apiKeyHeader;
     }
+  }
 
-    public List<StubUser> stubUsers() {
-        return stub == null || stub.users() == null ? List.of() : stub.users();
-    }
+  public record Stub(List<StubUser> users) {}
 
-    public record Http(
-        URI baseUrl,
-        @NotBlank String path,
-        String apiKey,
-        String apiKeyHeader
-    ) {
-        public String apiKeyHeaderName() {
-            return apiKeyHeader == null || apiKeyHeader.isBlank() ? "X-API-Key" : apiKeyHeader;
-        }
-    }
-
-    public record Stub(List<StubUser> users) {}
-
-    public record StubUser(
-        String employeeId,
-        String password,
-        boolean active,
-        String email,
-        String username
-    ) {}
+  public record StubUser(
+      String employeeId, String password, boolean active, String email, String username) {}
 }

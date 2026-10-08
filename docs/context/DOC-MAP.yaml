@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 656
-total_bytes: 21156137
+document_count: 669
+total_bytes: 22521907
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -493,7 +493,7 @@ documents:
     persona: engineering
     title: "Coverage (JaCoCo) — QA-001"
     answers: "check also depends on jacocoTestCoverageVerification."
-    bytes: 3751
+    bytes: 4734
   - path: docs/1sb-insurance-integration/service-ssot/FUNCTIONAL-NFR-COMPLIANCE-MAP.md
     bucket: module-1sb
     authority: engineering-ssot
@@ -573,7 +573,7 @@ documents:
     persona: engineering
     title: "Testing Rules (Enforceable)"
     answers: "Branch policy: Applies from next commit on cursor/phase1-foundations-c259 onward"
-    bytes: 3359
+    bytes: 3565
   - path: docs/1sb-insurance-integration/service-ssot/WORK-SEQUENCE.md
     bucket: module-1sb
     authority: engineering-ssot
@@ -1413,7 +1413,7 @@ documents:
     persona: architecture
     title: "Architecture diagrams"
     answers: "Two diagrams, deliberately. They answer different questions and neither replaces the other."
-    bytes: 32864
+    bytes: 33138
   - path: docs/architecture/arb-prerequisites/CIS-CLASSIFICATION-PROPOSAL.md
     bucket: platform
     authority: ai-drafted
@@ -1749,7 +1749,7 @@ documents:
     persona: product
     title: "Decision log — AU Bank Insurance Platform"
     answers: "Canonical ID scheme: D-xxx = business / scope decisions (aligns to Session template + Working Decisions mapping)."
-    bytes: 8400
+    bytes: 10002
   - path: docs/au-bank-insurance-platform/README.md
     bucket: business
     authority: business-ssot
@@ -2205,7 +2205,7 @@ documents:
     persona: null
     title: "AGENT CONTEXT INDEX"
     answers: "============================================================================="
-    bytes: 49750
+    bytes: 50363
   - path: docs/context/BOOT.md
     bucket: context
     authority: non-binding-context
@@ -2221,7 +2221,23 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 231598
+    bytes: 233489
+  - path: docs/context/DOC-MAP.yaml
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient, docs-navigation]
+    persona: null
+    title: "DOC MAP"
+    answers: "============================================================================="
+    bytes: 233489
+  - path: docs/context/DOC-MAP.yaml
+    bucket: context
+    authority: non-binding-context
+    capsules: [orient, docs-navigation]
+    persona: null
+    title: "DOC MAP"
+    answers: "============================================================================="
+    bytes: 233489
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -3582,6 +3598,14 @@ documents:
     title: "19 — Porting AIGEM to Another Repository"
     answers: "Purpose: install this framework in a new repo in under an hour"
     bytes: 6888
+  - path: docs/governance/CODE-REVIEW-STANDARD.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "Code review standard — coverage, structure, logging"
+    answers: "Adoption: PR-REVIEW-CHECKLIST.md · .github/pullrequesttemplate.md"
+    bytes: 9118
   - path: docs/governance/DEC-20260825-01-lead-domain-decisions.md
     bucket: governance
     authority: binding-process
@@ -3604,8 +3628,8 @@ documents:
     capsules: [triage, plan-work, board-review]
     persona: null
     title: "Engineering and Secure Coding Standards"
-    answers: "Adoption mechanism: PR-REVIEW-CHECKLIST.md and .github/pullrequesttemplate.md"
-    bytes: 3927
+    answers: "Adoption mechanism: PR-REVIEW-CHECKLIST.md,"
+    bytes: 5838
   - path: docs/governance/ORG-STANDARDS.md
     bucket: governance
     authority: binding-process
@@ -3629,7 +3653,7 @@ documents:
     persona: null
     title: "Pull request review checklist"
     answers: "Cites: ENGINEERING-AND-SECURE-CODING-STANDARDS.md"
-    bytes: 1595
+    bytes: 3014
   - path: docs/governance/README.md
     bucket: governance
     authority: binding-process
@@ -3637,7 +3661,7 @@ documents:
     persona: null
     title: "AIGEM — AI Governance & Execution Model"
     answers: "Custodian: Platform / Solution Architect"
-    bytes: 19827
+    bytes: 20297
   - path: docs/governance/RUNBOOK.md
     bucket: governance
     authority: binding-process
@@ -4110,6 +4134,14 @@ documents:
     title: "PLAN-008 — FUNC-028 Life journey fail-before-1SB validation"
     answers: "As-built plan for the seven-board review. FUNC-028 was admitted under"
     bytes: 16932
+  - path: docs/governance/plans/PLAN-009-nip-bff-lead-module-runtime.md
+    bucket: governance
+    authority: binding-process
+    capsules: [delivery-planning, plan-work]
+    persona: delivery
+    title: "PLAN-009 — NIP BFF Lead module runtime slice"
+    answers: "Seven-board review: EPIC-006-REVIEW.md. Gate ESCALATED for T3 human Board 4. No T4 signature."
+    bytes: 9852
   - path: docs/governance/plans/PLAN-EPIC-002-life-lob-adapter.md
     bucket: governance
     authority: binding-process
@@ -4125,7 +4157,7 @@ documents:
     persona: null
     title: "Assumption Register"
     answers: "Beliefs the plan rests on that have not been verified. Every assumption has an expiry, a"
-    bytes: 10073
+    bytes: 10985
   - path: docs/governance/registers/DECISION-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -4141,7 +4173,7 @@ documents:
     persona: null
     title: "Dependency Register"
     answers: "Edges of the dependency graph. Edges outlive the items that discovered them, so they are"
-    bytes: 10219
+    bytes: 10641
   - path: docs/governance/registers/PARKED-BACKLOG.md
     bucket: governance
     authority: binding-process
@@ -4149,7 +4181,23 @@ documents:
     persona: null
     title: "Parked Backlog"
     answers: "Parked is not deleted. Every entry names the stage that unparks it and the observable"
-    bytes: 16853
+    bytes: 18800
+  - path: docs/governance/registers/PARKED-BACKLOG.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, delivery-planning]
+    persona: null
+    title: "Parked Backlog"
+    answers: "Parked is not deleted. Every entry names the stage that unparks it and the observable"
+    bytes: 18800
+  - path: docs/governance/registers/PARKED-BACKLOG.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, delivery-planning]
+    persona: null
+    title: "Parked Backlog"
+    answers: "Parked is not deleted. Every entry names the stage that unparks it and the observable"
+    bytes: 18800
   - path: docs/governance/registers/RISK-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -4157,7 +4205,7 @@ documents:
     persona: null
     title: "Risk Register"
     answers: "Open risks with owners, triggers, and responses. A risk is not a problem — it is a problem"
-    bytes: 10224
+    bytes: 10916
   - path: docs/governance/registers/SUGGESTION-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -4165,7 +4213,23 @@ documents:
     persona: null
     title: "Suggestion Register"
     answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 327192
+    bytes: 364846
+  - path: docs/governance/registers/SUGGESTION-REGISTER.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, delivery-planning]
+    persona: null
+    title: "Suggestion Register"
+    answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
+    bytes: 364846
+  - path: docs/governance/registers/SUGGESTION-REGISTER.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, delivery-planning]
+    persona: null
+    title: "Suggestion Register"
+    answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
+    bytes: 364846
   - path: docs/governance/runbooks/AUTOPILOT-FAILURE-RUNBOOK.md
     bucket: governance
     authority: binding-process
@@ -4405,7 +4469,7 @@ documents:
     persona: null
     title: "CURRENT STATE"
     answers: "AIGEM — Machine-readable current state"
-    bytes: 42258
+    bytes: 42366
   - path: docs/governance/state/GATE-EVIDENCE.yaml
     bucket: governance
     authority: binding-process
@@ -4661,7 +4725,7 @@ documents:
     persona: null
     title: "Module & Service Inventory"
     answers: "Generated, committed view. CI regenerates this file from settings.gradle.kts and fails if it drifts. A registered module is not proof that its…"
-    bytes: 2946
+    bytes: 3005
   - path: docs/knowledge-base/glossary.md
     bucket: root
     authority: navigation
@@ -5125,7 +5189,7 @@ documents:
     persona: architecture
     title: "07 — NIP BFF lead landing & create API LLD (R0)"
     answers: "Origin: SUG-20260907-ldc · EPIC-003 · ARCH-023 · PLAN-004"
-    bytes: 30258
+    bytes: 30738
   - path: docs/platform/ws3-platform/08-nip-bff-lead-phase-java-records.md
     bucket: platform
     authority: approved-spec
@@ -5149,7 +5213,7 @@ documents:
     persona: architecture
     title: "10 — Lead module HLD (context #5, R0)"
     answers: "Origin: SUG-20260930-lmd · EPIC-005 · ARCH-026 · PLAN-007"
-    bytes: 12654
+    bytes: 12659
   - path: docs/platform/ws3-platform/11-lead-module-sequences.md
     bucket: platform
     authority: approved-spec
@@ -5173,7 +5237,7 @@ documents:
     persona: architecture
     title: "13 — Lead flows and algorithms (R0)"
     answers: "Origin: SUG-20260930-lmd · SUG-20261002-lfs · SUG-20261003-brf · EPIC-005 · DOC-023 · D-019"
-    bytes: 10666
+    bytes: 10744
   - path: docs/platform/ws3-platform/ARCH-023.work-item.yaml
     bucket: platform
     authority: approved-spec
@@ -5254,6 +5318,46 @@ documents:
     title: "EPIC 005.work item"
     answers: "schema: work-item"
     bytes: 6246
+  - path: docs/platform/ws3-platform/EPIC-006-REVIEW.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, code-change]
+    persona: architecture
+    title: "EPIC-006 — AIGEM seven-board review (PLAN-009)"
+    answers: "Work item: EPIC-006 · Origin: SUG-20261005-lbf · Tier: T3"
+    bytes: 38173
+  - path: docs/platform/ws3-platform/EPIC-006.work-item.yaml
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, code-change]
+    persona: architecture
+    title: "EPIC 006.work item"
+    answers: "schema: work-item"
+    bytes: 6420
+  - path: docs/platform/ws3-platform/FUNC-029.work-item.yaml
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, code-change]
+    persona: architecture
+    title: "FUNC 029.work item"
+    answers: "schema: work-item"
+    bytes: 2132
+  - path: docs/platform/ws3-platform/FUNC-030.work-item.yaml
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, code-change]
+    persona: architecture
+    title: "FUNC 030.work item"
+    answers: "schema: work-item"
+    bytes: 1986
+  - path: docs/platform/ws3-platform/FUNC-031.work-item.yaml
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, code-change]
+    persona: architecture
+    title: "FUNC 031.work item"
+    answers: "schema: work-item"
+    bytes: 2464
   - path: docs/platform/ws3-platform/lead-service-internal.openapi.yaml
     bucket: platform
     authority: approved-spec
@@ -5269,4 +5373,4 @@ documents:
     persona: architecture
     title: "nip bff lead phase.openapi"
     answers: "YAML record; first key `openapi`"
-    bytes: 50495
+    bytes: 60124

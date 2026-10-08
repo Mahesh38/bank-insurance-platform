@@ -92,6 +92,9 @@ to nest `data.items` and would leak a second error shape past `toPublic()`.
 | `SCR-05` | Duplicate check | `GET /customers/{customerId}/active-leads?productClass=TERM` | Active own leads only |
 | `SCR-05` | Create | `POST /leads` | `leadId`, `journeyId`, `state`, `createdAt` |
 | `SCR-05` | Resume existing | `POST /leads` with `resumeLeadId` **or** `GET /leads/{leadId}` | Same create envelope, `outcome=RESUMED` |
+| Assignment | Country / mobile check | `GET /country-codes`, `POST /mobile-numbers:validate` | India +91 rule (`D-020` companion) |
+| Assignment | Branch / vertical / SP / RM | `GET /branches`, `/branches/{id}/verticals`, `/branches/{id}/specified-persons`, `/verticals/{id}/relationship-managers` | Nested collections (`D-021` vertical optional) |
+| Assignment | Assign + exception flag | `POST /leads/{leadId}/assignment` | `exceptionRequired` + `exceptionOutcome` (`D-019`) |
 | Success | Stay / close | none extra | Render create response. “Proceed to add other details” navigates with `journeyId` into `SCR-06` (next pack) |
 
 Wireframe tabs “Recent leads / Recent prospects / ULIP leads” collapse to **one** pipeline

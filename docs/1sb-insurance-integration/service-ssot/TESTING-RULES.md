@@ -67,6 +67,7 @@ src/test/resources/fixtures/            # JSON payloads (masked)
 ## R7 — Coverage gate (after QA-001)
 
 - `./gradlew test jacocoTestReport jacocoTestCoverageVerification` must pass in CI.
+- Push-time: publish measured line % and branch % for **touched modules on this branch** in the PR ([CODE-REVIEW-STANDARD.md](../../governance/CODE-REVIEW-STANDARD.md) §1 · [COVERAGE.md](./COVERAGE.md)).
 - Waivers: add TECH-DEBT id + expiry; TL+QA Lead co-approve.
 
 ## R8 — AI / agent contributions

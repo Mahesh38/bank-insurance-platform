@@ -40,3 +40,18 @@ bank:
     service-id: customer
     layer: L5
     boundary: INTERNAL
+
+customer:
+  apigee:
+    token-mode: ${CUSTOMER_APIGEE_TOKEN_MODE:stub}
+    # UAT host is known (DEP-20260914-apg, 2026-10-08). Secrets stay in env. Default remains stub.
+    token-url: ${APIGEE_TOKEN_URL:}
+    client-id: ${APIGEE_CLIENT_ID:}
+    client-secret: ${APIGEE_CLIENT_SECRET:}
+    connect-timeout-ms: ${APIGEE_CONNECT_TIMEOUT_MS:3000}
+    read-timeout-ms: ${APIGEE_READ_TIMEOUT_MS:30000}
+  cbs:
+    inquiry-mode: ${CUSTOMER_CBS_INQUIRY_MODE:stub}
+    base-url: ${CBS_INQUIRY_BASE_URL:}
+    search-path: ${CBS_INQUIRY_SEARCH_PATH:/customers/search}
+    get-path: ${CBS_INQUIRY_GET_PATH:/customers/{customerId}}

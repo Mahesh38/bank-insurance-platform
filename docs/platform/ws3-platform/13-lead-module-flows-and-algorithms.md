@@ -297,4 +297,4 @@ Implementers must not add Lead transitions for insurer UW queue states.
 - [x] Dedupe key + Table 18 Continue\|Cancel (no delete)
 - [x] Start Onboarding → exception → assign algorithms
 - [x] ALG-BI / ACTIVITY / CLOSE / CONVERT / ARCHIVE / RESUME with BR-* trace
-- [ ] Product confirmation of OPEN-LEAD-STAGE / OPEN-D1
+- [x] Product confirmation of OPEN-LEAD-STAGE / OPEN-D1 — **OPEN-LEAD-STAGE closed as `D-021` (2026-10-05). OPEN-D1 remains open.**

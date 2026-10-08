@@ -16,6 +16,10 @@ workforce:
   downstream:
     provider-adapter-base-url: ${IDENTITY_PROVIDER_ADAPTER_BASE_URL:http://localhost:8082}
     authorization-service-base-url: ${IDENTITY_AUTHORIZATION_BASE_URL:http://localhost:8083}
+    lead-service-base-url: ${LEAD_SERVICE_BASE_URL:http://localhost:8091}
+    customer-service-base-url: ${CUSTOMER_SERVICE_BASE_URL:http://localhost:8090}
+    lead-mode: ${LEAD_DOWNSTREAM_MODE:stub}
+    customer-mode: ${CUSTOMER_DOWNSTREAM_MODE:stub}
   session:
     store: ${WORKFORCE_SESSION_STORE:memory}
     cookie-name: WORKFORCE_SESSION

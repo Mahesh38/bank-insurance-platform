@@ -10,6 +10,10 @@ bank:
   persistence:
     base-url: ${BANK_PERSISTENCE_BASE_URL}
 
+# UAT token host is known. 1SB http mode stays refused until Bearer mapping exists.
+apigee:
+  token-url: ${APIGEE_TOKEN_URL:https://api.aubankuat.in/oauth/accesstoken}
+
 logging:
   level:
     com.bank.insurance: INFO

@@ -14,28 +14,29 @@ import org.springframework.web.client.RestClient;
 @Configuration
 public class ProviderClientConfig {
 
-    @Bean
-    @Primary
-    RestClient providerRestClient(RestClient.Builder builder) {
-        return builder.build();
-    }
+  @Bean
+  @Primary
+  RestClient providerRestClient(RestClient.Builder builder) {
+    return builder.build();
+  }
 
-    @Bean
-    @Qualifier("adVerifyRestClient")
-    RestClient adVerifyRestClient(BankAdVerifyProperties properties) {
-        HttpClient httpClient = HttpClient.newBuilder()
+  @Bean
+  @Qualifier("adVerifyRestClient")
+  RestClient adVerifyRestClient(BankAdVerifyProperties properties) {
+    HttpClient httpClient =
+        HttpClient.newBuilder()
             .version(HttpClient.Version.HTTP_1_1)
             .connectTimeout(properties.connectTimeout())
             .build();
-        JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(httpClient);
-        factory.setReadTimeout(properties.readTimeout());
-        return RestClient.builder().requestFactory(factory).build();
-    }
+    JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(httpClient);
+    factory.setReadTimeout(properties.readTimeout());
+    return RestClient.builder().requestFactory(factory).build();
+  }
 
-    @Bean
-    JwtDecoder keycloakJwtDecoder(KeycloakProperties properties) {
-        NimbusJwtDecoder decoder = NimbusJwtDecoder.withJwkSetUri(properties.jwkSetUri()).build();
-        decoder.setJwtValidator(JwtValidators.createDefaultWithIssuer(properties.issuer()));
-        return decoder;
-    }
+  @Bean
+  JwtDecoder keycloakJwtDecoder(KeycloakProperties properties) {
+    NimbusJwtDecoder decoder = NimbusJwtDecoder.withJwkSetUri(properties.jwkSetUri()).build();
+    decoder.setJwtValidator(JwtValidators.createDefaultWithIssuer(properties.issuer()));
+    return decoder;
+  }
 }

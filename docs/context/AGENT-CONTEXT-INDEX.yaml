@@ -728,6 +728,8 @@ capsules:
         path: "docs/1sb-insurance-integration/service-ssot/QA-LEAD-TESTING-STRATEGY.md"
       - condition: "a critical journey or a non-bypassable gate is involved"
         path: "docs/context/roles/swapnali-qa-lead/05-critical-journeys-and-non-bypassable-gates.md"
+      - condition: "the review criteria or coverage-on-push contract is in question"
+        path: "docs/governance/CODE-REVIEW-STANDARD.md"
     output: "Quality verdict + evidence sufficiency + named gaps. Unexecuted is never passed."
     never: ["Assume a result. Waive a non-waivable Security or Compliance conclusion."]
 
@@ -829,13 +831,15 @@ capsules:
       - "Escalate past the domain owner to a more agreeable authority."
 
   - id: code-change
-    intent: "Write or change Java/Spring code in this repository."
-    triggers: ["implement", "fix the bug", "write the code", "refactor", "add the endpoint", "failing test", "build failure", "compile error", "archunit"]
+    intent: "Write or change Java/Spring code in this repository, or review a PR against the engineering bar."
+    triggers: ["implement", "fix the bug", "write the code", "refactor", "add the endpoint", "failing test", "build failure", "compile error", "archunit", "code review", "review the PR", "review the changes"]
     persona: engineering
     budget_bytes: 45000
     load:
       - path: "docs/context/personas/amit-engineering.card.md"
         why: "Adopt Amit. The ArchUnit-enforced boundaries and the coverage gates."
+      - path: "docs/governance/CODE-REVIEW-STANDARD.md"
+        why: "Coverage on push, what/how we review, mandatory logging and monitoring."
       - path: "docs/1sb-insurance-integration/service-ssot/ROLE-GUIDELINES-AND-DOD.md"
         why: "What Done means here, and who owns which layer."
       - path: "docs/1sb-insurance-integration/service-ssot/TESTING-RULES.md"
@@ -849,11 +853,14 @@ capsules:
         capsule: "security-review"
       - condition: "you are about to report a defect that may already be known"
         path: "docs/1sb-insurance-integration/service-ssot/TECH-DEBT.md"
-    output: "Change + tests + evidence + the work item ID on every TODO."
+      - condition: "ticking the PR checklist or citing ENG/SEC/OBS ids"
+        path: "docs/governance/PR-REVIEW-CHECKLIST.md"
+    output: "Change + tests + coverage numbers + evidence + the work item ID on every TODO."
     never:
       - "Start without an admitted work item — triage first."
       - "Put 1SB specifics outside `adapter.onesb.*`, or PII in logs."
       - "Add Flyway or JPA to `1sb-integration-service`."
+      - "Approve a PR without coverage numbers and OBS rows for a behaviour change."
 
   - id: 1sb-integration-change
     intent: "Change the 1SB adapter, a provider contract, a field mapping or a journey call."

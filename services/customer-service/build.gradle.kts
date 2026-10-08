@@ -6,6 +6,7 @@ plugins {
 
 dependencies {
     implementation(project(":libs:bank-common-error"))
+    implementation(project(":libs:bank-common-apigee"))
     implementation(project(":libs:bank-common-audit"))
     implementation(project(":libs:bank-common-observability"))
 
@@ -21,6 +22,7 @@ dependencies {
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("com.tngtech.archunit:archunit-junit5:1.3.0")
+    testImplementation("org.wiremock:wiremock-standalone:3.9.1")
 }
 
 tasks.bootJar {

@@ -3,11 +3,13 @@
 **Authority for GATE-S08 criterion S08-G8**  
 **Owner:** Amit / Engineering · **Security co-owner:** Deepali / Security  
 **Status:** Published 2026-09-13 · **Layer:** L3 — this repository (builds on [ORG-STANDARDS.md](./ORG-STANDARDS.md) L2)  
-**Adoption mechanism:** [PR-REVIEW-CHECKLIST.md](./PR-REVIEW-CHECKLIST.md) and `.github/pull_request_template.md`
+**Adoption mechanism:** [PR-REVIEW-CHECKLIST.md](./PR-REVIEW-CHECKLIST.md),
+[CODE-REVIEW-STANDARD.md](./CODE-REVIEW-STANDARD.md), and `.github/pull_request_template.md`
 
 This document is the engineering and secure-coding standard the S08-G8 criterion asked for.
 ORG-STANDARDS.md remains organisational policy; this file is what reviewers and authors cite on
-every change.
+every change. How a PR is reviewed, what coverage must already be true on the branch at push, and
+the logging/monitoring merge bar live in CODE-REVIEW-STANDARD.md — do not fork those here.
 
 ---
 
@@ -43,17 +45,37 @@ These tighten ORG-STANDARDS SEC-1…SEC-9 for day-to-day code review.
 | SEC-C9 | OAuth / IdP tokens never reach Flutter or browser storage; BFF holds them | Review checklist (WS-2) |
 | SEC-C10 | New trust-boundary or crypto choices need Deepali review before merge | Review checklist |
 
-## 3. Definition of done (change-level)
+## 3. Observability standards (OBS)
+
+Application logging and `bank.error.count` are in scope now. Dashboards, page alerts and SLOs stay
+Phase 6 (BOOT.md WS-1 out of scope). Full review contract:
+[CODE-REVIEW-STANDARD.md](./CODE-REVIEW-STANDARD.md) §3.
+
+| ID | Rule | How it is enforced |
+|----|------|--------------------|
+| OBS-1 | HTTP failures go through `ServiceErrors` → `PlatformErrorHandler` → `ErrorRecorder` | Review checklist; handler tests |
+| OBS-2 | No PAN/Aadhaar/phone/email/health/token/secret/URI-with-q in logs or exception messages | SEC-C2 tests; review |
+| OBS-3 | Security-relevant outcomes emit catalogue codes (session, authz, token mint) — the stage-appropriate audit event | Review checklist (SEC-C8) |
+| OBS-4 | Upstream failures log status class + operation + code only | Review; WireMock tests |
+| OBS-5 | `correlationId` from `RequestDiagnosticFilter`; do not swallow before the handler | Review |
+| OBS-6 | Client-caused WARN without stack; platform/upstream ERROR with stack | `Slf4jErrorRecorder` |
+| OBS-7 | Non-error operational events DEBUG; never print tokens | Review |
+| OBS-8 | `bank.error.count` is the current metric bar; no parallel counter without SRE reason | Review |
+| OBS-9 | New HTTP clients have timeouts and catalogue translation — no bare `IllegalStateException` 500 | Review; tests |
+| OBS-10 | Tests assert error **codes** and absence of secrets/`q` in messages | TESTING-RULES R5 |
+
+## 4. Definition of done (change-level)
 
 A change is Done only when:
 
-1. Tests and coverage verification are green for touched modules.
+1. Tests and coverage verification are green for touched modules (floors: [COVERAGE.md](../1sb-insurance-integration/service-ssot/COVERAGE.md); process: [CODE-REVIEW-STANDARD.md](./CODE-REVIEW-STANDARD.md) §1).
 2. Checkstyle, Spotless, and ArchUnit are green.
 3. Security scanning jobs applicable to the change are green.
-4. The PR checklist in `.github/pull_request_template.md` is completed and cites ENG/SEC ids where relevant.
-5. GATE or story evidence is updated when the change closes a criterion or debt item.
+4. The PR checklist in `.github/pull_request_template.md` is completed and cites ENG/SEC/OBS ids where relevant.
+5. Logging/monitoring must-rows (OBS-1–OBS-6, OBS-9, OBS-10) hold for the diff.
+6. GATE or story evidence is updated when the change closes a criterion or debt item.
 
-## 4. Exceptions
+## 5. Exceptions
 
 Temporary exceptions require: owner, expiry date, compensating control, and a TECH-DEBT or RISK id.
 An exception with no expiry is a scope change and is not permitted (see gate waiver rules).

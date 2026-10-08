@@ -2,7 +2,7 @@
 
 > **Generated, committed view.** CI regenerates this file from `settings.gradle.kts` and fails if it drifts. A registered module is not proof that its feature or lifecycle stage is complete.
 
-**Registered modules:** 28 · **Services:** 21 · **Shared libraries:** 7
+**Registered modules:** 29 · **Services:** 21 · **Shared libraries:** 8
 
 ## Services
 
@@ -36,6 +36,7 @@
 |---|---|
 | `libs:bank-common-error` | `libs/bank-common-error/` |
 | `libs:bank-common-domain` | `libs/bank-common-domain/` |
+| `libs:bank-common-apigee` | `libs/bank-common-apigee/` |
 | `libs:bank-common-security` | `libs/bank-common-security/` |
 | `libs:bank-common-audit` | `libs/bank-common-audit/` |
 | `libs:bank-common-observability` | `libs/bank-common-observability/` |

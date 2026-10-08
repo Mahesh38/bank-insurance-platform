@@ -8,6 +8,7 @@
 **Freshness note:** `docs/governance/04-STAGE_GATES.md` was past its 14-day artefact window at drafting (WARN). Stage posture still comes from BOOT / `CURRENT-STATE.yaml`; this POC does not change stage state.
 
 **One-screen companion:** [`2026-10-06-PLATFORM-TEAM-NOTE-API-GATEWAY-VS-ISTIO.md`](./2026-10-06-PLATFORM-TEAM-NOTE-API-GATEWAY-VS-ISTIO.md)  
+**Rebuttal to ALB+Istio superiority claim:** [`2026-10-08-REBUTTAL-ALB-ISTIO-VS-API-GATEWAY.md`](./2026-10-08-REBUTTAL-ALB-ISTIO-VS-API-GATEWAY.md)  
 **Canonical BOM / hops:** [`R0-LLD.md`](./R0-LLD.md) §1.1, §1.3, §3  
 **Identity SSOT:** [`docs/platform/authentication-authorization/README.md`](../platform/authentication-authorization/README.md)  
 **Binding ADRs:** `ADR-018` · `ADR-020` · `ADR-022` (Proposed) · `ARCH-018`/`ARCH-019` · `CR-012` §3

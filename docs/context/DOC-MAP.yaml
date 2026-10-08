@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 658
-total_bytes: 21195640
+document_count: 659
+total_bytes: 21212254
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -1374,6 +1374,14 @@ documents:
     title: "Infra POC / justification pack — Amazon API Gateway, Keycloak, and why Istio / External ALB are not substitutes (R0)"
     answers: "Purpose: Detailed written justification for the R0 inbound edge and identity stack — suitable for an infra design review or landing-zone challenge."
     bytes: 23014
+  - path: docs/architecture/2026-10-08-REBUTTAL-ALB-ISTIO-VS-API-GATEWAY.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, orient]
+    persona: architecture
+    title: "Justification / rebuttal — Why External ALB/NLB + Istio Ingress is **not** the superior choice for this R0 architecture"
+    answers: "Purpose: Written response to the claim that “For your specific architecture, an External ALB/NLB paired with Istio Ingress Gateway inside EKS is the…"
+    bytes: 15542
   - path: docs/architecture/ARB-ARCHITECTURE-DOSSIER.md
     bucket: platform
     authority: approved-spec
@@ -2237,7 +2245,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 232134
+    bytes: 233206
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context

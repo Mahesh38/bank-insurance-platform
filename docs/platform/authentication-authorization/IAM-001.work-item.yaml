@@ -1,0 +1,84 @@
+# schema: work-item
+id: IAM-001
+origin: ["SUG-20261008-bnk", "SUG-20260914-idp"]
+title: "Bank RM login via AD-verify API (true/false) and token-hiding session"
+type: FUNC
+also: [SEC]
+breakdown: STORY
+epic: null
+workstream: WS-2
+owner: "Amit — Technical Head (R3); lane workforce-login"
+risk_tier: T3
+
+serves:
+  - "GATE-IAM-P1 A.1"
+  - "BR-LOGIN-001"
+  - "SUG-20260914-idp"
+  - "ASM-019"
+
+problem: >
+  Workforce BFF login only started an OIDC ceremony. Bank RM login must use the existing
+  bank AD-verify API (boolean active-employee result), never LDAP, and must still hide
+  provider tokens from NIP-APP.
+
+description: >
+  NIP-APP posts Employee ID + password to workforce-access-bff. The BFF forwards credentials
+  to identity-provider-adapter-service, which calls the bank AD-verify API (or a local stub)
+  and returns true only for an active bank employee. On success the BFF resolves a BANK_EMPLOYEE
+  business identity and issues an opaque HttpOnly session (web) or session handle (native).
+  Partner login remains the OIDC PKCE path.
+
+acceptance_criteria:
+  - id: AC-1
+    given: "an active bank employee known to AD-verify"
+    when: "POST /api/v1/auth/login with identitySource=BANK_AD, employeeId and password"
+    then: "200 with authenticated=true, HttpOnly session cookie (web) or opaque sessionHandle (native), and GET /api/v1/auth/session returns BANK_EMPLOYEE ACTIVE"
+  - id: AC-2
+    given: "AD-verify returns false, or the directory account is inactive, or the business identity is not ACTIVE"
+    when: "the same login is submitted"
+    then: "401 AUTHENTICATION_FAILED with the generic catalogue detail; no session cookie; callers cannot tell the cases apart"
+  - id: AC-3
+    given: "any bank login attempt"
+    when: "logs, session records and JSON responses are inspected"
+    then: "no password, no OAuth access/refresh token, and no AD-verify URL leak to the client"
+  - id: AC-4
+    given: "identitySource=PARTNER"
+    when: "POST /api/v1/auth/login"
+    then: "the OIDC authorization-uri path still runs and AD-verify is not called"
+
+out_of_scope:
+  - "Captcha, platform OTP, lock-after-3, Unlock User (SUG-20261008-otp)"
+  - "Partner password collection on the BFF"
+  - "Live bank AD-verify hostname (DEP-20260914-apg / DEP-010); Java uses a configurable URL + local stub"
+  - "Human T4 Security signature beyond repository-owner ratification of option B"
+  - "NIP-APP / Flutter source (DOC-006)"
+
+state: IN-FLIGHT
+priority_now: P2
+priority_at_target: P1
+target_stage: "WS-2 adapter + NIP login"
+unpark_trigger: null
+
+dependencies:
+  blocked_by: []
+  requires:
+    - "ADR-020"
+    - "ASM-019"
+  enables:
+    - "GATE-IAM-P1 A.1"
+  related_to:
+    - "SUG-20260914-idp"
+    - "ID-11"
+  external:
+    - "DEP-20260914-apg"
+  decision_dependency:
+    - "ID-11 password-in-NIP vs Fireframe SSO — owner selected BFF credential collection for BANK_AD"
+
+plan: null
+estimate: M
+assumptions:
+  - ASM-019
+  - ASM-016
+risks: []
+evidence: []
+variance_log: []

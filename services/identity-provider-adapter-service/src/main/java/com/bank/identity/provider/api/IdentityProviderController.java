@@ -1,6 +1,7 @@
 package com.bank.identity.provider.api;
 
 import com.bank.identity.provider.domain.IdentityProviderPort;
+import com.bank.identity.provider.domain.WorkforceCredentialVerifier;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -23,9 +24,11 @@ import java.util.Map;
 public class IdentityProviderController {
 
     private final IdentityProviderPort provider;
+    private final WorkforceCredentialVerifier adVerify;
 
-    public IdentityProviderController(IdentityProviderPort provider) {
+    public IdentityProviderController(IdentityProviderPort provider, WorkforceCredentialVerifier adVerify) {
         this.provider = provider;
+        this.adVerify = adVerify;
     }
 
     @PostMapping("/auth/authorization-uri")
@@ -33,6 +36,18 @@ public class IdentityProviderController {
         var result = provider.beginAuthorization(new IdentityProviderPort.AuthorizationCommand(
             request.state(), request.nonce(), request.codeChallenge(), request.loginHint(), request.identitySource()));
         return new AuthorizationUriResponse(result.authorizationUri());
+    }
+
+    @PostMapping("/auth/ad-verify")
+    public AdVerifyResponse verifyAd(@Valid @RequestBody AdVerifyRequest request) {
+        var result = adVerify.verify(new WorkforceCredentialVerifier.AdVerifyCommand(
+            request.employeeId(), request.password()));
+        return new AdVerifyResponse(
+            result.authenticated(),
+            result.accountActive(),
+            result.employeeId(),
+            result.username(),
+            result.email());
     }
 
     @PostMapping("/auth/token-exchange")
@@ -115,4 +130,19 @@ public class IdentityProviderController {
     public record ProvisionedIdentityResponse(String providerSubjectId) {}
 
     public record IdentityStatusRequest(@NotNull Boolean enabled) {}
+
+    public record AdVerifyRequest(@NotBlank String employeeId, @NotBlank String password) {
+        @Override
+        public String toString() {
+            return "AdVerifyRequest[employeeId-present=" + (employeeId != null && !employeeId.isBlank()) + "]";
+        }
+    }
+
+    public record AdVerifyResponse(
+        boolean authenticated,
+        boolean accountActive,
+        String employeeId,
+        String username,
+        String email
+    ) {}
 }

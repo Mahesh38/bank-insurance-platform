@@ -53,6 +53,77 @@ class LoginServiceTest {
     }
 
     @Test
+    void bankAdLoginCreatesOpaqueSessionWithoutStoringPasswordOrProviderTokens() {
+        when(provider.verifyAd("EMP001", "local-stub-password"))
+            .thenReturn(new IdentityProviderClient.AdVerifyResult(
+                true, true, "EMP001", "EMP001", "emp001@example.test"));
+        when(authorization.resolve(eq(IdentitySource.BANK_AD), any())).thenReturn(activeIdentity());
+
+        var result = service.authenticateBank(new LoginService.BankLoginCommand(
+            ClientType.WEB, "EMP001", "local-stub-password"));
+
+        assertThat(result.authenticated()).isTrue();
+        assertThat(result.browserSessionId()).isNotBlank();
+        assertThat(result.nativeSessionHandle()).isNull();
+        ArgumentCaptor<WorkforceSession> session = ArgumentCaptor.forClass(WorkforceSession.class);
+        verify(sessions).putSession(session.capture(), any());
+        assertThat(session.getValue().accessToken()).isNull();
+        assertThat(session.getValue().refreshToken()).isNull();
+        assertThat(session.getValue().username()).isEqualTo("EMP001");
+        assertThat(session.getValue().toString()).doesNotContain("local-stub-password");
+        assertThat(new LoginService.BankLoginCommand(ClientType.WEB, "EMP001", "local-stub-password")
+            .toString()).doesNotContain("local-stub-password");
+    }
+
+    @Test
+    void bankAdLoginRejectsFalseAndInactiveDirectoryAccountsWithoutCreatingASession() {
+        when(provider.verifyAd("EMP001", "wrong"))
+            .thenReturn(new IdentityProviderClient.AdVerifyResult(false, false, "EMP001", null, null));
+
+        assertThatThrownBy(() -> service.authenticateBank(new LoginService.BankLoginCommand(
+            ClientType.WEB, "EMP001", "wrong")))
+            .isInstanceOf(IllegalStateException.class);
+        verify(authorization, never()).resolve(any(), any());
+        verify(sessions, never()).putSession(any(), any());
+
+        when(provider.verifyAd("EMP002", "local-stub-password"))
+            .thenReturn(new IdentityProviderClient.AdVerifyResult(true, false, "EMP002", "EMP002", null));
+        assertThatThrownBy(() -> service.authenticateBank(new LoginService.BankLoginCommand(
+            ClientType.WEB, "EMP002", "local-stub-password")))
+            .isInstanceOf(IllegalStateException.class);
+        verify(sessions, never()).putSession(any(), any());
+    }
+
+    @Test
+    void bankAdLoginRejectsInactiveBusinessIdentity() {
+        when(provider.verifyAd("EMP001", "local-stub-password"))
+            .thenReturn(new IdentityProviderClient.AdVerifyResult(
+                true, true, "EMP001", "EMP001", "emp001@example.test"));
+        when(authorization.resolve(eq(IdentitySource.BANK_AD), any()))
+            .thenReturn(new IdentityAuthorizationClient.ResolvedIdentity(
+                UUID.randomUUID(), "SUSPENDED", 4, "BANK_EMPLOYEE", null));
+
+        assertThatThrownBy(() -> service.authenticateBank(new LoginService.BankLoginCommand(
+            ClientType.NATIVE, "EMP001", "local-stub-password")))
+            .isInstanceOf(IllegalStateException.class);
+        verify(sessions, never()).putSession(any(), any());
+    }
+
+    @Test
+    void bankAdNativeLoginReturnsSessionHandleInsteadOfCookieId() {
+        when(provider.verifyAd("EMP001", "local-stub-password"))
+            .thenReturn(new IdentityProviderClient.AdVerifyResult(
+                true, true, "EMP001", "EMP001", "emp001@example.test"));
+        when(authorization.resolve(eq(IdentitySource.BANK_AD), any())).thenReturn(activeIdentity());
+
+        var result = service.authenticateBank(new LoginService.BankLoginCommand(
+            ClientType.NATIVE, "EMP001", "local-stub-password"));
+
+        assertThat(result.browserSessionId()).isNull();
+        assertThat(result.nativeSessionHandle()).isNotBlank();
+    }
+
+    @Test
     void beginsPkceLoginOnlyForAllowListedReturnUri() {
         URI authorizationUri = URI.create("https://idp.example.test/authorize");
         when(provider.authorizationUri(any())).thenReturn(authorizationUri);

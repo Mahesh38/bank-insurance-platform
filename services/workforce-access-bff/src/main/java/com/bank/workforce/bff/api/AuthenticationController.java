@@ -44,10 +44,26 @@ public class AuthenticationController {
     }
 
     @PostMapping("/login")
-    public LoginResponse login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
+        if (request.identitySource() == IdentitySource.BANK_AD) {
+            var result = loginService.authenticateBank(new LoginService.BankLoginCommand(
+                request.clientType(), request.employeeId(), request.password()));
+            ResponseEntity.BodyBuilder response = ResponseEntity.ok();
+            if (result.clientType() == ClientType.WEB) {
+                response.header(HttpHeaders.SET_COOKIE, sessionCookie(result.browserSessionId()).toString());
+            }
+            return response.body(new BankLoginResponse(
+                true,
+                result.businessUserId(),
+                result.userType(),
+                result.status(),
+                result.policyVersion(),
+                result.nativeSessionHandle(),
+                result.expiresInSeconds()));
+        }
         var result = loginService.begin(new LoginService.BeginLoginCommand(
             request.clientType(), request.identitySource(), request.returnUri(), request.loginHint()));
-        return new LoginResponse(result.authorizationUri(), result.expiresInSeconds());
+        return ResponseEntity.ok(new LoginResponse(result.authorizationUri(), result.expiresInSeconds()));
     }
 
     @GetMapping("/callback")
@@ -126,11 +142,28 @@ public class AuthenticationController {
     public record LoginRequest(
         @NotNull ClientType clientType,
         @NotNull IdentitySource identitySource,
-        @NotBlank String returnUri,
-        String loginHint
-    ) {}
+        String returnUri,
+        String loginHint,
+        String employeeId,
+        String password
+    ) {
+        @Override
+        public String toString() {
+            return "LoginRequest[clientType=" + clientType + ", identitySource=" + identitySource + "]";
+        }
+    }
 
     public record LoginResponse(URI authorizationUri, long expiresInSeconds) {}
+
+    public record BankLoginResponse(
+        boolean authenticated,
+        UUID businessUserId,
+        String userType,
+        String status,
+        long policyVersion,
+        String sessionHandle,
+        long expiresInSeconds
+    ) {}
     public record NativeSessionRequest(@NotBlank String completionCode) {}
     public record NativeSessionResponse(String sessionHandle, long expiresInSeconds) {}
     public record CsrfResponse(String headerName, String token) {}

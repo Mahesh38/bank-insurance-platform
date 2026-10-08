@@ -121,16 +121,15 @@ Keycloak is a separately deployed product, not one of the three custom Spring se
 
 ### 5.1 Bank employee
 
-1. Flutter calls the BFF login endpoint without an authenticated session.
-2. The BFF creates a short-lived pending-login transaction containing state, nonce, PKCE verifier, client type, and an allow-listed return location.
-3. The provider adapter returns the provider authorization URI.
-4. The user completes the bank-controlled authentication ceremony. Workforce credentials are checked by the **existing bank AD-verify API** through Apigee private (`ADR-020`). LDAP from EKS is not used. NIP-APP / Fireframe is the UI chrome; Keycloak admin console is not shown to bank users.
-5. The provider redirects only to the BFF callback.
-6. The BFF verifies state and exchanges the one-time code through the provider adapter.
-7. The BFF resolves the provider subject to a business identity and confirms account, employment, branch mapping, and required certification state.
-8. The BFF stores provider tokens server-side and returns only an opaque platform session.
+`IAM-001` (2026-10-08). Owner selected option B for `BANK_AD`: NIP-APP collects Employee ID + password and the BFF forwards them to the adapter. Captcha / OTP / lock remain parked (`SUG-20261008-otp`).
 
-The architecture does not replay an AD username/password through Keycloak LDAP. Direct credential forwarding to AD from EKS is forbidden (`ADR-020`). Password-in-NIP vs Fireframe SSO is Deepali's `ID-11` joint review.
+1. Flutter calls `POST /api/v1/auth/login` with `identitySource=BANK_AD`, Employee ID and password. No OAuth token is returned.
+2. The BFF does **not** validate the password itself and does **not** persist it. It calls `identity-provider-adapter-service` `POST /internal/v1/auth/ad-verify`.
+3. The adapter calls the **existing bank AD-verify API** through Apigee private (`ADR-020`) — or a local stub in `dev`/`test`. The bank API returns **true or false** for an active bank employee. LDAP from EKS is not used.
+4. On `false`, the BFF returns generic `401 AUTHENTICATION_FAILED`. On `true`, it resolves a `BANK_EMPLOYEE` business identity in `identity-authorization-service`.
+5. Login succeeds only when that identity is `ACTIVE`. The BFF stores an opaque platform session (web: HttpOnly cookie; native: opaque handle). No AD password and no OAuth token is stored for this path.
+
+NIP-APP / Fireframe remains the UI chrome. Partner login stays on the authorization-code + PKCE path in §5.2. Direct credential forwarding to AD from EKS is still forbidden.
 
 ### 5.2 Insurer representative
 
@@ -272,13 +271,14 @@ Keycloak owns a separate database managed only by Keycloak. No business service 
 
 ### Public BFF
 
-- `POST /api/v1/auth/login`
+- `POST /api/v1/auth/login` — `BANK_AD`: Employee ID + password → `{ authenticated }` + opaque session. `PARTNER`: authorization URI only.
 - `GET /api/v1/auth/callback`
 - `GET /api/v1/auth/session`
 - `POST /api/v1/auth/logout`
 
 ### Private provider adapter
 
+- `POST /internal/v1/auth/ad-verify` — bank-employee credentials; returns `authenticated` / `accountActive` (never to Flutter)
 - `POST /internal/v1/auth/authorization-uri`
 - `POST /internal/v1/auth/token-exchange`
 - `POST /internal/v1/auth/refresh`

@@ -1,8 +1,17 @@
 # UC-01 — RM login
 
-**Actor:** Bank RM (`BANK_RM`) · **Entry:** `POST /api/v1/auth/login` → `GET /api/v1/auth/callback`
+**Actor:** Bank RM (`BANK_RM`) · **Entry:** `POST /api/v1/auth/login` (`IAM-001` credential + AD-verify)
 **Trust boundaries crossed:** `TB-1` Internet→Edge · `TB-2` Edge→Application · `TB-3` Application→Identity
-**Status:** `AI-DRAFTED` · Security review required · Slice 1
+**Status:** `AI-DRAFTED` · Security review required · Slice 1 · **Delta 2026-10-08 `IAM-001`**
+
+> **`IAM-001` delta.** Bank RM login no longer starts the OIDC authorization-code ceremony.
+> NIP-APP posts Employee ID + password to the BFF. The BFF calls
+> `identity-provider-adapter-service` `POST /internal/v1/auth/ad-verify`. The adapter calls the
+> existing bank AD-verify API (boolean active-employee result) via Apigee private — never LDAP.
+> On `true` and an `ACTIVE` `BANK_EMPLOYEE` identity, the BFF issues an opaque session. Partner
+> login (`UC-02`) still uses callback + PKCE. The hop tables below still describe the OIDC
+> partner-shaped path; treat this boxed delta as the Bank RM execution path until UC-01 is
+> rewritten.
 
 Assumes [`01-REQUEST-LIFECYCLE-STANDARD`](../01-REQUEST-LIFECYCLE-STANDARD.md). Only deltas are stated.
 

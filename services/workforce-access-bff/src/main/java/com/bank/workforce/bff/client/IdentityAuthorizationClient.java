@@ -35,9 +35,10 @@ public class IdentityAuthorizationClient {
   public ResolvedIdentity resolve(
       IdentitySource source, IdentityProviderClient.ProviderSession providerSession) {
     String employeeId = claim(providerSession.claims(), "employee_id", "emp_id");
+    String provider = source == IdentitySource.BANK_AD ? "BANK_AD" : "KEYCLOAK";
     var request =
         new ResolveIdentityRequest(
-            "KEYCLOAK",
+            provider,
             providerSession.providerSubjectId(),
             source == IdentitySource.BANK_AD ? "BANK_EMPLOYEE" : "INSURER_REPRESENTATIVE",
             providerSession.username(),

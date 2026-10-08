@@ -46,6 +46,22 @@ class IdentityLifecycleIntegrationTest {
     }
 
     @Test
+    void bankEmployeeFromAdVerifyIsCreatedAgainstBankAdProvider() {
+        var first = identities.resolve(new IdentityResolutionService.ResolveIdentityCommand(
+            "BANK_AD", "EMP001", UserType.BANK_EMPLOYEE, "EMP001",
+            "emp001@example.test", "EMP001"));
+        var second = identities.resolve(new IdentityResolutionService.ResolveIdentityCommand(
+            "BANK_AD", "EMP001", UserType.BANK_EMPLOYEE, "EMP001",
+            "emp001.updated@example.test", "EMP001"));
+
+        assertThat(second.getId()).isEqualTo(first.getId());
+        assertThat(second.getProvider()).isEqualTo("BANK_AD");
+        assertThat(second.getStatus().name()).isEqualTo("ACTIVE");
+        assertThat(second.getUserType()).isEqualTo(UserType.BANK_EMPLOYEE);
+        assertThat(second.getEmail()).isEqualTo("emp001.updated@example.test");
+    }
+
+    @Test
     void bankEmployeeIsCreatedJustInTimeAndThenRefreshedByStableProviderSubject() {
         var first = identities.resolve(new IdentityResolutionService.ResolveIdentityCommand(
             "KEYCLOAK", "bank-subject-1", UserType.BANK_EMPLOYEE, "rm.lifecycle",

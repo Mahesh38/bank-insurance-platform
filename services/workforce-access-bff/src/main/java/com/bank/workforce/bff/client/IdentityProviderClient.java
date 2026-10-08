@@ -37,6 +37,13 @@ public class IdentityProviderClient {
                 .body(AuthorizationUriResponse.class).authorizationUri());
     }
 
+    public AdVerifyResult verifyAd(String employeeId, String password) {
+        return propagating("adVerify", () ->
+            client.post().uri("/internal/v1/auth/ad-verify")
+                .body(new AdVerifyRequest(employeeId, password)).retrieve()
+                .body(AdVerifyResult.class));
+    }
+
     public ProviderSession exchange(String code, String verifier, String expectedNonce) {
         return propagating("tokenExchange", () ->
             client.post().uri("/internal/v1/auth/token-exchange")
@@ -80,6 +87,24 @@ public class IdentityProviderClient {
     private record AuthorizationUriResponse(URI authorizationUri) {}
     private record TokenExchangeRequest(String code, String codeVerifier, String expectedNonce) {}
     private record RefreshRequest(String refreshToken) {}
+    private record AdVerifyRequest(String employeeId, String password) {
+        @Override
+        public String toString() {
+            return "AdVerifyRequest[redacted]";
+        }
+    }
+
+    public record AdVerifyResult(
+        boolean authenticated,
+        boolean accountActive,
+        String employeeId,
+        String username,
+        String email
+    ) {
+        public boolean accepted() {
+            return authenticated && accountActive;
+        }
+    }
 
     public record ProviderSession(
         String providerSubjectId,

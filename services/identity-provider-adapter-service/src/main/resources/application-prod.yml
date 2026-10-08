@@ -1,0 +1,3 @@
+identity:
+  ad-verify:
+    mode: http

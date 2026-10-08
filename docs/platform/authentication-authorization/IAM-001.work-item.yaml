@@ -57,7 +57,7 @@ out_of_scope:
   - "Human T4 Security signature beyond repository-owner ratification of option B"
   - "NIP-APP / Flutter source (DOC-006)"
 
-state: IN-FLIGHT
+state: IN-REVIEW
 priority_now: P2
 priority_at_target: P1
 target_stage: "WS-2 adapter + NIP login"
@@ -84,5 +84,17 @@ assumptions:
   - ASM-019
   - ASM-016
 risks: []
-evidence: []
-variance_log: []
+evidence:
+  - "BankLoginIT.bankEmployeeLoginIssuesHttpOnlySessionAndSessionEndpointReadsIt — AC-1"
+  - "BankLoginIT.falseFromAdAndInactiveIdentityReturnTheSameGenericUnauthorized — AC-2"
+  - "BankLoginIT.nativeBankLoginReturnsOpaqueHandleAndNeverAnOauthToken — AC-3"
+  - "BankLoginIT.partnerLoginStillStartsOidcAndDoesNotCallAdVerify — AC-4"
+  - "AdVerifyControllerTest.missingInternalKeyIsUnauthorizedAndDoesNotEchoPassword — AC-5"
+  - "GATE-S08 on 32b669f: Java 21 tests, gitleaks, SAST (CodeQL, Java), native CodeQL, Trivy SCA SUCCESS"
+variance_log:
+  - date: "2026-10-08"
+    change: "SEC-C10: X-Internal-Service-Key on adapter /internal/v1; CSRF ignored not disabled"
+    reason: "Unauthenticated ad-verify was a trust-boundary change (Deepali 04 §1/§8); CodeQL flagged csrf.disable()"
+  - date: "2026-10-08"
+    change: "IN-REVIEW with AC-1–5 evidence; T4 Security signature not claimed"
+    reason: "ROLE-GUIDELINES D-8; owner HUMAN residual is password-in-BFF option B"

@@ -27,6 +27,7 @@ This CR:
 Companion artefacts (same suggestion):
 
 - One-pager: [`docs/architecture/2026-10-06-PLATFORM-TEAM-NOTE-API-GATEWAY-VS-ISTIO.md`](../../architecture/2026-10-06-PLATFORM-TEAM-NOTE-API-GATEWAY-VS-ISTIO.md)
+- **Infra POC (detailed, Keycloak + change checklist):** [`docs/architecture/2026-10-08-INFRA-POC-API-GATEWAY-KEYCLOAK-ISTIO.md`](../../architecture/2026-10-08-INFRA-POC-API-GATEWAY-KEYCLOAK-ISTIO.md)
 - Clarifying ADR draft: `ADR-022` in [`08-architecture-decision-log.md`](../../platform/architecture-review/08-architecture-decision-log.md)
 
 ---
@@ -142,6 +143,7 @@ Empty Option B cells = **not ready to amend ADRs**.
 | File | Role |
 |------|------|
 | `docs/architecture/2026-10-06-PLATFORM-TEAM-NOTE-API-GATEWAY-VS-ISTIO.md` | One-pager for the meeting |
+| `docs/architecture/2026-10-08-INFRA-POC-API-GATEWAY-KEYCLOAK-ISTIO.md` | Detailed Infra Head POC: Gateway vs Istio/ELB, Keycloak complementarity, Option B checklist |
 | `docs/platform/architecture-review/08-architecture-decision-log.md` (`ADR-022`) | Clarifying ADR draft (Option A) |
 | `docs/governance/registers/SUGGESTION-REGISTER.md` (`SUG-20261006-apg`) | Triage record |
 | `docs/governance/registers/DECISION-REGISTER.md` | ADR-022 index row |

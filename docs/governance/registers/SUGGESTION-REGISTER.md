@@ -43,7 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
-| SUG-20261006-apg | 2026-10-06 | human:stakeholder | Platform team may refuse Amazon API Gateway inbound; Istio / External LB offered as substitute — need justification pack + CR/ADR escalation (keep ADR-018 vs Option B) | SF1 | SC0 | MUST | ARCH | P2 / P1 | ESCALATED | [CR-017](../change-requests/CR-017-inbound-api-gateway-vs-istio.md) · [ADR-022](../../platform/architecture-review/08-architecture-decision-log.md) · [note](../../architecture/2026-10-06-PLATFORM-TEAM-NOTE-API-GATEWAY-VS-ISTIO.md) · [detail](#sug-20261006-apg--api-gateway-vs-istio-platform-challenge) |
+| SUG-20261006-apg | 2026-10-06 | human:stakeholder | Platform team may refuse Amazon API Gateway inbound; Istio / External LB offered as substitute — need justification pack + CR/ADR escalation (keep ADR-018 vs Option B) | SF1 | SC0 | MUST | ARCH | P2 / P1 | ESCALATED | [CR-017](../change-requests/CR-017-inbound-api-gateway-vs-istio.md) · [ADR-022](../../platform/architecture-review/08-architecture-decision-log.md) · [note](../../architecture/2026-10-06-PLATFORM-TEAM-NOTE-API-GATEWAY-VS-ISTIO.md) · [infra POC](../../architecture/2026-10-08-INFRA-POC-API-GATEWAY-KEYCLOAK-ISTIO.md) · [detail](#sug-20261006-apg--api-gateway-vs-istio-platform-challenge) · recurrence_count 2 (2026-10-08: detailed infra POC + Keycloak complementarity) |
 | SUG-20261003-svg | 2026-10-03 | human:stakeholder | Remaining Saving readiness beyond fail-closed hub validation: Product UI bands, questionnaire engine, enum inventory/master refresh, live Gate POST + complete Proposal POST/poll | SF3 | SC0 | MUST | FUNC | P4 / P1 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [detail](#sug-20261003-svg--saving-readiness-blocked-on-1sb-config) |
 | SUG-20261003-lvr | 2026-10-03 | human:stakeholder | Make 1sb-integration-service UAT-ready to validate Term/ULIP/Savings Life journeys (fail-before-1SB + response contract) | SF1 | SC0 | MUST | FUNC | P2 / P1 | ADMITTED | [FUNC-028](../../1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md) · [detail](#sug-20261003-lvr--life-journey-validation-uat) |
 | SUG-20261003-brf | 2026-10-03 | human:Rajal | BRD wins: dedupe key user+customer+productType+BI; no delete when BI absent; Save does not evaluate — Start Onboarding does; flow dedupe→create→exception→assign SP | SF2 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [D-019](../../au-bank-insurance-platform/DECISION-LOG.md) · [EPIC-005](../../platform/ws3-platform/EPIC-005.work-item.yaml) · [detail](#sug-20261003-brf--brd-wins-dedupe-exception-timing--sequence) |
@@ -144,11 +144,13 @@ id: SUG-20261006-apg
 raised_at: "2026-10-06"
 raised_by: "human:stakeholder"
 source: "Follow-up to architecture Q&A: platform team may not use AWS API Gateway; Istio / External LB suggested"
+recurrence_count: 2
 input: >
   Do we have Istio in the plan? If platform will not use AWS API Gateway, how does
   architecture change and what is the security/compliance impact? Need guidelines to
   justify API Gateway to the platform team; if Istio is fine, how to modify architecture
   (stakeholder believes an external load balancer is needed). Draft one-pager + CR/ADR.
+  Recurrence 2026-10-08: detailed infra POC for Infra Head covering Keycloak complementarity.
 
 context:
   workstream: WS-3
@@ -250,6 +252,8 @@ outcome:
 ```
 
 Related: does not reopen `SUG-20260914-egr` (Apigee outbound / API Gateway inbound). That decision stands; this escalation answers a later platform challenge to the inbound half. Evidence pack: `docs/architecture/2026-10-06-PLATFORM-TEAM-NOTE-API-GATEWAY-VS-ISTIO.md`, `ADR-022`.
+
+**Recurrence 2026-10-08** (`recurrence_count: 2`): stakeholder asked for a detailed infra POC for Infra Head — why API Gateway, why not Istio/External ALB, why Keycloak, why Gateway is still needed when Keycloak exists, impact of swapping Gateway for Istio, and the change checklist. Delivered as [`2026-10-08-INFRA-POC-API-GATEWAY-KEYCLOAK-ISTIO.md`](../../architecture/2026-10-08-INFRA-POC-API-GATEWAY-KEYCLOAK-ISTIO.md). Same escalation (`CR-017`); do not mint a second SUG; do not implement Option B.
 
 ### SUG-20260930-osl · openssl CVE-2026-84782
 

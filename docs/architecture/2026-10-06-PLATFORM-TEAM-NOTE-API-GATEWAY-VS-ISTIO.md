@@ -79,4 +79,7 @@ A control-mapping table with Deepali acceptance is mandatory before any alternat
 
 **Owners to close:** Mahesh (structure) · Deepali (security outcome) · Shivanshi (landing-zone request) · bank platform team (provisioning commitment).
 
+**Detailed Infra Head POC (Keycloak + full change checklist):**
+[`2026-10-08-INFRA-POC-API-GATEWAY-KEYCLOAK-ISTIO.md`](./2026-10-08-INFRA-POC-API-GATEWAY-KEYCLOAK-ISTIO.md)
+
 **Refs:** `R0-LLD` · `03-solution-architecture-r0` deployment properties · `2026-09-14-HUMAN-DIRECTION-APIGEE-EGRESS-IDP.md` · `CR-017` · `ADR-022`.

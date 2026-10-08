@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 662
-total_bytes: 21275990
+document_count: 663
+total_bytes: 21289513
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -2069,7 +2069,7 @@ documents:
     persona: business-analysis
     title: "Login — BFF evaluated against Figma (not an in-repo app)"
     answers: "Work item: DOC-006 + Login first module (Q7)"
-    bytes: 7386
+    bytes: 7302
   - path: docs/au-bank-insurance-platform/requirements/PRD-R0-DISTRIBUTION-PLATFORM.md
     bucket: business
     authority: business-ssot
@@ -2221,7 +2221,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 233489
+    bytes: 233786
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -4165,7 +4165,7 @@ documents:
     persona: null
     title: "Parked Backlog"
     answers: "Parked is not deleted. Every entry names the stage that unparks it and the observable"
-    bytes: 18267
+    bytes: 18800
   - path: docs/governance/registers/RISK-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -4181,7 +4181,7 @@ documents:
     persona: null
     title: "Suggestion Register"
     answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 357633
+    bytes: 364846
   - path: docs/governance/runbooks/AUTOPILOT-FAILURE-RUNBOOK.md
     bucket: governance
     authority: binding-process
@@ -4588,8 +4588,8 @@ documents:
     capsules: [code-change, architecture-review, security-review]
     persona: engineering
     title: "UC-01 — RM login"
-    answers: "Actor: Bank RM (BANKRM) · Entry: POST /api/v1/auth/login → GET /api/v1/auth/callback"
-    bytes: 12262
+    answers: "Actor: Bank RM (BANKRM) · Entry: POST /api/v1/auth/login (IAM-001 credential + AD-verify)"
+    bytes: 12972
   - path: docs/journey-execution/flows/UC-02-ipr-login.md
     bucket: platform
     authority: ai-drafted
@@ -4822,6 +4822,14 @@ documents:
     title: "Architecture Review — AU Bank Insurance Distribution Platform"
     answers: "Role: Solution Architect independent review"
     bytes: 5013
+  - path: docs/platform/authentication-authorization/IAM-001.work-item.yaml
+    bucket: platform
+    authority: approved-spec
+    capsules: [security-review, architecture-review, code-change]
+    persona: security
+    title: "IAM 001.work item"
+    answers: "schema: work-item"
+    bytes: 4227
   - path: docs/platform/authentication-authorization/README.md
     bucket: platform
     authority: approved-spec
@@ -4829,7 +4837,7 @@ documents:
     persona: security
     title: "Workforce Authentication and Authorization — Service SSOT"
     answers: "Primary identity provider for development: Keycloak (partners; workforce AD-verify is the bank API)"
-    bytes: 20358
+    bytes: 20985
   - path: docs/platform/data-architecture/00-design-rules.md
     bucket: platform
     authority: ai-drafted

@@ -43,6 +43,8 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20261008-bnk | 2026-10-08 | human:repository-owner | Complete bank-user login/auth e2e using the bank AD login API that hits AD internally and returns true/false for an active bank employee | SF1 | SC0 | MUST | FUNC | P2 / P1 | ADMITTED | [IAM-001](../../platform/authentication-authorization/IAM-001.work-item.yaml) · [detail](#sug-20261008-bnk--bank-rm-ad-verify-login-e2e) |
+| SUG-20261008-otp | 2026-10-08 | agent:cursor | Login BRD remainder after IAM-001: Captcha, mandatory OTP to mobile+email, lock after 3 password failures / 30-day inactivity, Unlock User | SF2 | SC0 | MUST | FUNC | P4 / P1 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [detail](#sug-20261008-otp--login-brd-captcha-otp-lock) |
 | SUG-20261008-sb4 | 2026-10-08 | scan:trivy | Upgrade Spring Boot 3.5.16 → Boot 4 / Framework 7.0.9 to close CVE-2026-47884 on spring-webmvc (only public OSS fix; 6.2.20 is enterprise-only) | SF3 | SC1 | MUST | SEC | P4 / P1 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [detail](#sug-20261008-sb4--spring-boot-4-for-cve-2026-47884) · RISK-021 |
 | SUG-20261008-xsl | 2026-10-08 | scan:trivy | Time-box `.trivyignore` for CVE-2026-47884 (XsltView unused; no OSS 6.2 patch) so SCA can merge; not a T4 waiver | SF0 | SC1 | MUST | SEC | P1 / P1 | ADMIT-BYPASS | [.trivyignore](../../../.trivyignore) · [RISK-021](./RISK-REGISTER.md) · [detail](#sug-20261008-xsl--time-box-cve-2026-47884) |
 | SUG-20261007-crs | 2026-10-07 | human:Mahesh | Standing code-review standard: coverage on the branch at push, review aspects/how/mandatory, logging and monitoring alignment; re-review EPIC-006 against it | SF1 | SC0 | MUST | GOV | P2 / P2 | ADMITTED | [CODE-REVIEW-STANDARD.md](../CODE-REVIEW-STANDARD.md) · [detail](#sug-20261007-crs--standing-code-review-coverage-and-logging-bar) · EPIC-006 lane |
@@ -143,6 +145,214 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20261008-bnk · Bank RM AD-verify login e2e
+
+```yaml
+# schema: triage-record
+id: SUG-20261008-bnk
+raised_at: "2026-10-08"
+raised_by: "human:repository-owner"
+source: "Complete login and authentication module e2e for bank users"
+input: >
+  this is the login API we are going to use for bank RM login which will hit the AD
+  internally and return true of false so we can authenticate user who are bank
+  employee and has active account. lets complete login and authentication module
+  e2e for bank users, this should validate and test as well.
+
+duplicate_of: null
+conflicts:
+  - "LOGIN-BFF-FIGMA-EVALUATION §4 A vs B — owner selected B (BFF collects credentials, adapter calls AD-verify) for BANK_AD"
+  - "UC-01 OIDC ceremony for RM login — retained for PARTNER; BANK_AD uses credential+AD-verify"
+
+context:
+  workstream: WS-2
+  current_phase: "Phase 1 — Foundation implementation"
+  canonical_stage: "L4/L6 — Foundation into first vertical slice"
+  current_objective: "IAM-P1 token-hiding BFF session; adapter; PDP"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: "none in this lane — this request is the work"
+
+stage_fit:
+  code: SF1
+  rationale: >
+    GATE-IAM-P1 A.1 is open (BFF token-hiding proven). SUG-20260914-idp already
+    admitted the AD-verify adapter story. This is that story's first executable
+    increment, not Phase 2 LDAP/OIDC/SAML federation.
+
+scope:
+  code: SC0
+  business_scope: "WS-2 workforce identity; Login BRD BR-LOGIN-001"
+  serves: ["GATE-IAM-P1 A.1", "BR-LOGIN-001", "SUG-20260914-idp"]
+  failure_without_it: "Bank RMs cannot sign in to NIP-APP against AD."
+  minimal: true
+  authority: "Login BRD; auth SSOT §5.1 / ADR-020; owner direction 2026-10-08"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "WS-2 adapter + NIP login"
+  binds_when: "First workforce login story"
+  failure_without_it: "Bank RMs cannot sign in to NIP-APP against AD."
+  evidence_tier: E5
+  confidence: C4
+  assumptions: [ASM-019, ASM-016]
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: true
+    X5_stage_necessity: true
+
+action: ADMIT
+action_rationale: >
+  Freshness WARN (04-STAGE_GATES.md 15d vs 14d). Executes the already-admitted
+  SUG-20260914-idp story "Adapter calls bank AD-verify API". Owner named the
+  ceremony: boolean AD-verify for active bank employees. Captcha/OTP/lock are
+  split to SUG-20261008-otp (parked). Live Apigee hostname remains
+  DEP-20260914-apg — Java uses a configurable URL and a local stub.
+
+classification:
+  type: FUNC
+  also: [SEC]
+  breakdown: STORY
+  epic: null
+  risk_tier: T3
+  destination: "docs/platform/authentication-authorization/IAM-001.work-item.yaml"
+
+priority:
+  now: P2
+  at_target: P1
+  factors: { N: 3, S: 2, B: 3, R: 2, D: 2, E: 1 }
+  score: 16
+  matrix_default: P2
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "On-stage login for GATE-IAM-P1 A.1; token-hiding still required"
+
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 1
+  earliest_start: "immediately — stub AD-verify unblocks tests; live API is config"
+  cycles: none
+
+breakdown:
+  children: [IAM-001]
+  completion_definition: >
+    Bank RM can obtain a token-hiding session when AD-verify returns true and
+    the business identity is an ACTIVE BANK_EMPLOYEE, proven by unit + WireMock
+    tests. Partner OIDC path unchanged. Passwords never logged or persisted.
+  not_included:
+    - "Captcha / OTP / lock / Unlock User"
+    - "Partner password on the BFF"
+    - "Live bank API onboarding"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: IAM-001
+  plan_id: null
+  status: ADMITTED
+  closed_reason: null
+
+resumed: "IAM-001 — this request is the in-flight work item."
+```
+
+### SUG-20261008-otp · Login BRD Captcha, OTP, lock
+
+```yaml
+# schema: triage-record
+id: SUG-20261008-otp
+raised_at: "2026-10-08"
+raised_by: "agent:cursor"
+source: "Remainder of Login BRD after IAM-001 bank AD-verify login"
+input: >
+  Captcha on the credential step; mandatory OTP to registered mobile and email
+  on every successful credential check; lock after 3 consecutive password
+  failures or 30 days inactivity; Unlock User.
+
+context:
+  workstream: WS-2
+  current_phase: "Phase 1 — Foundation implementation"
+  canonical_stage: "L4/L6 — Foundation into first vertical slice"
+  current_objective: "IAM-P1"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: IAM-001
+
+stage_fit:
+  code: SF2
+  rationale: "Login BRD catalogue beyond credential+session. Infosec owns Captcha/OTP gateway (SEC-009)."
+  target_stage: "WS-2 login hardening / Infosec OTP gateway"
+  unpark_trigger: "IAM-001 bank AD-verify login evidenced and Infosec names the Captcha/OTP gateway contract (SEC-009)"
+  absorption_test:
+    small: false
+    no_new_dependency: false
+    no_new_decision: false
+    gate_neutral: true
+
+scope:
+  code: SC0
+  business_scope: "Login BRD Captcha/OTP/lock"
+  serves: ["BR-LOGIN-006", "BR-LOGIN-007", "SEC-009"]
+  failure_without_it: "Login BRD MFA and lock rules are unmet after IAM-001."
+  minimal: true
+  authority: "Login_Module_BRD_Detailed_CONTEXT.md"
+
+necessity:
+  now: SHOULD
+  future_necessity: MUST
+  target_stage: "WS-2 login hardening / Infosec OTP gateway"
+  binds_when: "Production workforce MFA"
+  evidence_tier: E2
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: true
+    X5_stage_necessity: false
+
+action: PARK
+action_rationale: >
+  IAM-001 delivers credential verify + session. Captcha, OTP and lock need
+  Infosec/OTP gateway decisions and would expand this increment past the
+  owner-stated AD true/false path.
+
+classification:
+  type: FUNC
+  also: [SEC]
+  breakdown: STORY
+  risk_tier: T3
+  destination: "PARKED-BACKLOG.md"
+
+priority:
+  now: P4
+  at_target: P1
+  factors: { N: 1, S: 2, B: 1, R: 2, D: 1, E: 1 }
+  score: 8
+  matrix_default: P4
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "Required by Login BRD before production MFA; not required to prove AD-verify login"
+
+dependencies:
+  edges: []
+  state: PARKED-DEPENDENT
+  parked_because: "Captcha/OTP/lock wait on IAM-001 evidence and Infosec OTP/Captcha contract"
+  enablement_count: 0
+  earliest_start: "after IAM-001 evidence and Infosec OTP/Captcha contract"
+  cycles: none
+
+outcome:
+  registered_in: "registers/PARKED-BACKLOG.md"
+  work_item_id: null
+  plan_id: null
+  status: PARKED
+  closed_reason: null
+
+resumed: IAM-001
+```
 
 ### SUG-20261008-xsl · Time-box CVE-2026-47884
 

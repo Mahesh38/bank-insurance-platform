@@ -1,5 +1,6 @@
 package com.bank.workforce.bff.client;
 
+import com.bank.common.error.ErrorCodes;
 import com.bank.common.error.ErrorPropagation;
 import com.bank.common.error.PlatformLayer;
 import com.bank.common.error.ProblemJsonReader;
@@ -10,6 +11,7 @@ import java.util.Map;
 import java.util.UUID;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 
 @Component
@@ -35,9 +37,10 @@ public class IdentityAuthorizationClient {
   public ResolvedIdentity resolve(
       IdentitySource source, IdentityProviderClient.ProviderSession providerSession) {
     String employeeId = claim(providerSession.claims(), "employee_id", "emp_id");
+    String provider = source == IdentitySource.BANK_AD ? "BANK_AD" : "KEYCLOAK";
     var request =
         new ResolveIdentityRequest(
-            "KEYCLOAK",
+            provider,
             providerSession.providerSubjectId(),
             source == IdentitySource.BANK_AD ? "BANK_EMPLOYEE" : "INSURER_REPRESENTATIVE",
             providerSession.username(),
@@ -60,6 +63,14 @@ public class IdentityAuthorizationClient {
           .calling(DOWNSTREAM, "resolveIdentity")
           .causedBy(ex)
           .toException();
+    } catch (RestClientException ex) {
+      throw serviceErrors
+          .error(ErrorCodes.IDENTITY_PROVIDER_UNAVAILABLE)
+          .component("IdentityAuthorizationClient")
+          .operation("resolveIdentity")
+          .reason("Authorization service is unavailable")
+          .cause(ex)
+          .build();
     }
   }
 

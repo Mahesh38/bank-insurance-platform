@@ -9,6 +9,29 @@ spring:
       enabled: true
 
 identity:
+  internal-auth:
+    shared-secret: ${IDENTITY_ADAPTER_INTERNAL_SHARED_SECRET:local-idp-adapter-internal-key}
+  ad-verify:
+    mode: ${BANK_AD_VERIFY_MODE:stub}
+    connect-timeout: 3s
+    read-timeout: 5s
+    http:
+      base-url: ${BANK_AD_VERIFY_BASE_URL:http://127.0.0.1:9}
+      path: ${BANK_AD_VERIFY_PATH:/ad/authenticate}
+      api-key: ${BANK_AD_VERIFY_API_KEY:}
+      api-key-header: ${BANK_AD_VERIFY_API_KEY_HEADER:X-API-Key}
+    stub:
+      users:
+        - employee-id: EMP001
+          password: local-stub-password
+          active: true
+          email: emp001@example.test
+          username: EMP001
+        - employee-id: EMP002
+          password: local-stub-password
+          active: false
+          email: emp002@example.test
+          username: EMP002
   provider:
     keycloak:
       public-base-url: ${KEYCLOAK_PUBLIC_BASE_URL:http://localhost:8085}

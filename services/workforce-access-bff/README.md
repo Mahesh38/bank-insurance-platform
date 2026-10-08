@@ -17,3 +17,12 @@ See [`docs/platform/authentication-authorization/README.md`](../../docs/platform
 ```
 
 The service listens on port `8084`. Obtain a CSRF token from `GET /api/v1/auth/csrf` before POST requests. Local tests use the in-memory encrypted store; the identity Compose stack sets `WORKFORCE_SESSION_STORE=redis`.
+
+Bank RM login (`IAM-001`):
+
+```http
+POST /api/v1/auth/login
+{"clientType":"WEB","identitySource":"BANK_AD","employeeId":"EMP001","password":"local-stub-password"}
+```
+
+Local AD-verify is stubbed in `identity-provider-adapter-service` (`EMP001` / `local-stub-password` is active). The BFF forwards credentials on `POST /internal/v1/auth/ad-verify` with `X-Internal-Service-Key` (`IDENTITY_ADAPTER_INTERNAL_SHARED_SECRET`; production has no default). It never persists the password and never returns an OAuth token. The BFF returns `{ "authenticated": true }` and an HttpOnly `WORKFORCE_SESSION` cookie. Native clients receive `sessionHandle` instead of a cookie. Partner login still returns an authorization URI.

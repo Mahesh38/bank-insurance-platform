@@ -661,7 +661,7 @@ id_allocation:
     # while CR-011 was in use; it is now indexed in the decision register and the counter clears
     # both it and CR-012.
     CR: 17        # CR-001..016 in use (016 = parallel lanes / evidence unpark / RG-9, SUG-20260923-par, CANDIDATE transcribed 2026-09-23 under ADMIT-BYPASS; HUMAN Architecture+Product ratification outstanding); next unused is 17
-    RISK: 21      # RISK-001..020 in use (016..020 added 2026-09-30 AIGEM signoff: suitability, autopilot, approval automation, missing human signoff, operational dependency)
+    RISK: 22      # RISK-001..021 in use (021 = CVE-2026-47884 spring-webmvc 6.2.19 / no OSS 6.2 patch, 2026-10-08). ID-allocation only. No stage field touched.
     ASM: 21       # ASM-001..014, 015..020 in use (013 invalidated 2026-09-14; 015 = Apigee outbound / API Gateway inbound; 016 = private Apigee for internal APIs; 017 = dev-inside-UAT; 018 = no CUG at R0; 019 = AD-verify API + partner IdP + Fireframe UI; 020 = AU-Bima-Platform tokens are concurrent, mint does not revoke — validated 2026-10-06). ID-allocation only. No stage field touched.
     EPIC: 7        # EPIC-001..006 in use (006 = NIP BFF + Lead/Customer runtime slice for the Lead module, SUG-20261005-lbf, minted 2026-10-05). Next unused is 7. ID-allocation only.
     SPIKE: 2       # SPIKE-001 in use (Apigee vs Amazon API Gateway, SUG-20260831-apg). ID-allocation only.

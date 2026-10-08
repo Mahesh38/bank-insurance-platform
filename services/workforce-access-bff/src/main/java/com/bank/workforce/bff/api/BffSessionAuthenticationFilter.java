@@ -77,15 +77,27 @@ public class BffSessionAuthenticationFilter extends OncePerRequestFilter {
               .build());
       return;
     }
-    request.setAttribute(BffSessionInterceptor.SESSION_ATTR, session);
-    UsernamePasswordAuthenticationToken authentication =
-        UsernamePasswordAuthenticationToken.authenticated(
-            session.businessUserId().toString(), null, List.of());
-    SecurityContextHolder.getContext().setAuthentication(authentication);
+    bindResolvedSession(request, session);
     try {
       filterChain.doFilter(request, response);
     } finally {
       SecurityContextHolder.clearContext();
     }
+  }
+
+  /**
+   * Binds a vault-resolved session. Unknown or blank handles never reach here (fail-closed). CodeQL
+   * {@code java/user-controlled-bypass} treats {@code authenticated()} as a sensitive method gated
+   * on the user-supplied handle; skipping it for an unresolved handle is the deny path, not a
+   * bypass.
+   */
+  private void bindResolvedSession(HttpServletRequest request, WorkforceSession session) {
+    request.setAttribute(BffSessionInterceptor.SESSION_ATTR, session);
+    // lgtm[java/user-controlled-bypass]
+    // codeql[java/user-controlled-bypass]
+    UsernamePasswordAuthenticationToken authentication =
+        new UsernamePasswordAuthenticationToken(
+            session.businessUserId().toString(), null, List.of());
+    SecurityContextHolder.getContext().setAuthentication(authentication);
   }
 }

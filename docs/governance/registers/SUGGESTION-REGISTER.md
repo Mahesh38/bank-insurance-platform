@@ -43,6 +43,8 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20261008-sb4 | 2026-10-08 | scan:trivy | Upgrade Spring Boot 3.5.16 → Boot 4 / Framework 7.0.9 to close CVE-2026-47884 on spring-webmvc (only public OSS fix; 6.2.20 is enterprise-only) | SF3 | SC1 | MUST | SEC | P4 / P1 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [detail](#sug-20261008-sb4--spring-boot-4-for-cve-2026-47884) · RISK-021 |
+| SUG-20261008-xsl | 2026-10-08 | scan:trivy | Time-box `.trivyignore` for CVE-2026-47884 (XsltView unused; no OSS 6.2 patch) so SCA can merge; not a T4 waiver | SF0 | SC1 | MUST | SEC | P1 / P1 | ADMIT-BYPASS | [.trivyignore](../../../.trivyignore) · [RISK-021](./RISK-REGISTER.md) · [detail](#sug-20261008-xsl--time-box-cve-2026-47884) |
 | SUG-20261007-crs | 2026-10-07 | human:Mahesh | Standing code-review standard: coverage on the branch at push, review aspects/how/mandatory, logging and monitoring alignment; re-review EPIC-006 against it | SF1 | SC0 | MUST | GOV | P2 / P2 | ADMITTED | [CODE-REVIEW-STANDARD.md](../CODE-REVIEW-STANDARD.md) · [detail](#sug-20261007-crs--standing-code-review-coverage-and-logging-bar) · EPIC-006 lane |
 | SUG-20261007-ird | 2026-10-07 | human:Mahesh | IRDAI Specified Person certification as control evidence for Lead assign | SF3 | SC0 | MUST | COMP | P4 / P1 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [detail](#sug-20261007-ird--irdai-sp-register-as-certification-sor) · fixture port shipped under EPIC-006; SoR still missing |
 | SUG-20261007-srp | 2026-10-07 | agent:AIGEM-review | EPIC-006 should-fix: move product-classes off CustomerLookupController; compile country regex once; drop duplicate SEARCH_BY | SF3 | SC0 | COULD | REFACTOR | P4 / P3 | ADMIT-BYPASS | [EPIC-006](../../platform/ws3-platform/EPIC-006.work-item.yaml) · [EPIC-006-REVIEW](../../platform/ws3-platform/EPIC-006-REVIEW.md) · [detail](#sug-20261007-srp--lead-bff-srp-and-kiss-cleanups) |
@@ -141,6 +143,222 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20261008-xsl · Time-box CVE-2026-47884
+
+```yaml
+# schema: triage-record
+id: SUG-20261008-xsl
+raised_at: "2026-10-08"
+raised_by: "scan:trivy"
+source: "Security Scanning on PR #143 — SCA (Trivy dependency scan) run 37724860651"
+input: >
+  CRITICAL CVE-2026-47884 org.springframework:spring-webmvc 6.2.19 -> 7.0.9
+  (XsltView improper path limitation; SSRF/RCE if "/**" view-name rendering).
+  Owner: fix ci failure to merge.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: EPIC-006
+
+stage_fit:
+  code: SF0
+  rationale: >
+    A finding Trivy treats as fixable CRITICAL fails S08-G5 on this PR. Unblocking
+    the gate is a merge prerequisite. The real OSS remediations (Boot 4) are SF3.
+
+scope:
+  code: SC1
+  serves: ["S08-G5 dependency and image scanning", "PR #143"]
+  failure_without_it: "PR #143 stays red on SCA; no OSS 6.2 patch exists to pin"
+  minimal: true
+  authority: ".trivyignore rules 1–4 · spring.io/security/cve-2026-47884"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S08 — Engineering Foundation"
+  binds_when: "every SCA run until Boot 4 or ignore expiry"
+  failure_without_it: "PR #143 cannot merge; S08-G5 stays red on a CVE with no 6.2 OSS fix"
+  evidence_tier: E2
+  evidence:
+    - "Trivy 0.53.0 SCA run 37724860651: spring-webmvc 6.2.19 -> 7.0.9"
+    - "Maven Central 404 for spring-webmvc 6.2.20; 200 for 7.0.9"
+    - "Spring Boot 3.5.16 is the last 3.5.x; Boot 4.0.0+ exists separately"
+    - "spring.io/security/cve-2026-47884: 6.2.20 Enterprise Support Only"
+  confidence: C5
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT-BYPASS
+bypass_authorised_by: "human:Mahesh/repository_owner 2026-10-08 (explicit: fix ci failure to merge)"
+action_rationale: >
+  Recommendation would be PARK the Boot 4 upgrade and leave SCA red until that
+  migration is admitted. Owner directed the CI failure to be fixed so this PR
+  can merge. Time-boxed .trivyignore + RISK-021 is the smallest gate-honest
+  path: XsltView is unused, 6.2.20 is not public, Boot 4 is SUG-20261008-sb4.
+  Not a T4 Deepali signature.
+duplicate_of: null
+conflicts: []
+
+classification:
+  type: SEC
+  also: [INFRA]
+  breakdown: TASK
+  epic: EPIC-006
+  risk_tier: T3
+  destination: ".trivyignore · registers/RISK-REGISTER.md RISK-021"
+  rationale: "RG-9: scan-gate blocker with E2 unused-XsltView evidence; ignore expires 2026-11-08"
+
+priority:
+  now: P1
+  at_target: P1
+  factors: { N: 3, S: 2, B: 0, R: 2, D: 1, E: 1 }
+  score: 14
+  matrix_default: P2
+  consistency: OK
+  overrides_applied: [O1, O7]
+  override_evidence:
+    - "O1: SCA job 113140645052 red — CVE-2026-47884 blocks PR #143"
+    - "O7: blocks EPIC-006 PR #143, the item in flight"
+  caps_applied: []
+  rationale: "Pipeline red on a CVE with no same-minor OSS patch"
+
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 0
+  earliest_start: "this PR"
+  cycles: none
+
+breakdown:
+  children: []
+  completion_definition: ".trivyignore entry with owner+expiry; RISK-021 row; Boot 4 not implemented"
+  not_included: ["Spring Boot 4 migration", "T4 Security signature", "pinning spring-webmvc 7.0.9 under Boot 3.5"]
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md · registers/RISK-REGISTER.md · .trivyignore"
+  work_item_id: EPIC-006
+  plan_id: PLAN-009
+  status: ADMIT-BYPASS
+  closed_reason: null
+
+resumed: EPIC-006
+```
+
+### SUG-20261008-sb4 · Spring Boot 4 for CVE-2026-47884
+
+```yaml
+# schema: triage-record
+id: SUG-20261008-sb4
+raised_at: "2026-10-08"
+raised_by: "scan:trivy"
+source: "Security Scanning on PR #143 — SCA reports spring-webmvc 6.2.19 fixed in 7.0.9"
+input: >
+  Upgrade org.springframework:spring-webmvc from 6.2.19 to 7.0.9 to close
+  CVE-2026-47884. That upgrade is Spring Framework 7 / Spring Boot 4.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: EPIC-006
+
+stage_fit:
+  code: SF3
+  rationale: >
+    Boot 4 is a platform major-version migration (Jakarta/Security/BOM). It is
+    not a same-minor pin like Netty/Jackson. S08 is foundation recovery, not a
+    framework rewrite. Time-boxed ignore (SUG-20261008-xsl) holds the gate.
+  target_stage: "S09 — Platform & Environment Foundation"
+  unpark_trigger: "Architecture admits a Boot 4 migration spike with a compatibility matrix, or .trivyignore for CVE-2026-47884 expires (2026-11-08)"
+
+scope:
+  code: SC1
+  serves: ["S08-G5 dependency and image scanning", "RISK-021"]
+  failure_without_it: "the only public OSS remediations for CVE-2026-47884 never land"
+  minimal: true
+  authority: "spring.io/security/cve-2026-47884 · Spring Boot 3.5.16 last 3.5.x"
+
+necessity:
+  now: NOT-NOW
+  future_necessity: MUST
+  target_stage: "S09 — Platform & Environment Foundation"
+  binds_when: "ignore expiry 2026-11-08, or a service uses XsltView"
+  failure_without_it: "CVE-2026-47884 remains in every Boot 3.5 lockfile after the waiver lapses"
+  evidence_tier: E2
+  evidence:
+    - "Fixed versions: 7.0.9 OSS; 6.2.20 Enterprise Support Only"
+    - "Maven Central has 7.0.9 and not 6.2.20"
+  confidence: C5
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: true
+    X5_stage_necessity: false
+    X9_problem_observed: true
+
+action: PARK
+action_rationale: >
+  Real remediations, wrong blast radius for EPIC-006. Do not pin Framework 7
+  under Boot 3.5. Re-triage when Architecture opens a Boot 4 spike or when
+  the 2026-11-08 ignore expires.
+duplicate_of: null
+conflicts: []
+
+classification:
+  type: SEC
+  also: [ARCH, MIGRATION]
+  breakdown: SPIKE
+  epic: null
+  risk_tier: T4
+  destination: "registers/PARKED-BACKLOG.md"
+  rationale: "Major framework upgrade changes the runtime trust surface; T4 when unparked"
+
+priority:
+  now: P4
+  at_target: P1
+  factors: { N: 0, S: 2, B: 1, R: 2, D: 1, E: 2 }
+  score: 9
+  matrix_default: P4
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "NOT-NOW at S08; MUST when the time-boxed ignore expires"
+
+dependencies:
+  edges: []
+  state: PARKED-DEPENDENT
+  enablement_count: 0
+  earliest_start: "S09 Boot 4 spike or 2026-11-08"
+  cycles: none
+
+breakdown:
+  children: []
+  completion_definition: null
+  not_included: ["this PR's time-boxed ignore", "pinning 7.0.9 under Boot 3.5"]
+
+outcome:
+  registered_in: "registers/PARKED-BACKLOG.md"
+  work_item_id: null
+  plan_id: null
+  status: PARKED
+  closed_reason: null
+
+resumed: EPIC-006
+```
 
 ### SUG-20261007-crs · Standing code-review, coverage and logging bar
 

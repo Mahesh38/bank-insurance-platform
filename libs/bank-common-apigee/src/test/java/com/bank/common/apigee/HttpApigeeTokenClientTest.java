@@ -1,11 +1,10 @@
 package com.bank.common.apigee;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.containing;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -29,6 +28,8 @@ import org.springframework.web.client.RestClient;
 @Tag("unit")
 @Tag("FUNC-031")
 class HttpApigeeTokenClientTest {
+
+  private static final String TOKEN_PATH = "/oauth/accesstoken";
 
   @RegisterExtension
   static WireMockExtension wireMock =
@@ -55,35 +56,58 @@ class HttpApigeeTokenClientTest {
   }
 
   @Test
+  void appendsGrantTypeWhenUriOmitsIt() {
+    URI minted =
+        HttpApigeeTokenClient.withClientCredentialsGrant(
+            URI.create("https://api.aubankuat.in/oauth/accesstoken"));
+    assertThat(minted.toString())
+        .isEqualTo("https://api.aubankuat.in/oauth/accesstoken?grant_type=client_credentials");
+  }
+
+  @Test
+  void doesNotDuplicateGrantTypeAlreadyOnUri() {
+    URI supplied =
+        URI.create("https://api.aubankuat.in/oauth/accesstoken?grant_type=client_credentials");
+    assertThat(HttpApigeeTokenClient.withClientCredentialsGrant(supplied)).isEqualTo(supplied);
+  }
+
+  @Test
+  void appendsGrantTypeWithAmpersandWhenQueryExists() {
+    URI minted =
+        HttpApigeeTokenClient.withClientCredentialsGrant(
+            URI.create("https://api.aubankuat.in/oauth/accesstoken?env=uat"));
+    assertThat(minted.toString())
+        .isEqualTo(
+            "https://api.aubankuat.in/oauth/accesstoken?env=uat&grant_type=client_credentials");
+  }
+
+  @Test
   void mintsAccessTokenFromClientCredentialsGrant() {
     wireMock.stubFor(
-        post("/token")
+        stubTokenPath()
             .withHeader(
                 "Authorization",
                 equalTo("Basic " + Base64.getEncoder().encodeToString("id:secret".getBytes())))
-            .withHeader("Content-Type", containing("application/x-www-form-urlencoded"))
             .willReturn(
                 aResponse()
                     .withHeader("Content-Type", "application/json")
                     .withBody("{\"access_token\":\"live-token\",\"expires_in\":86400}")));
 
     HttpApigeeTokenClient client =
-        new HttpApigeeTokenClient(
-            restClient, URI.create(wireMock.baseUrl() + "/token"), "id", "secret", clock);
+        new HttpApigeeTokenClient(restClient, tokenUri(), "id", "secret", clock);
 
     IssuedToken issued = client.fetchClientCredentials();
 
     assertThat(issued.value()).isEqualTo("live-token");
     assertThat(issued.expiresAt()).isEqualTo(clock.instant().plusSeconds(86400));
-    wireMock.verify(postRequestedFor(urlEqualTo("/token")));
+    wireMock.verify(
+        postRequestedFor(urlPathEqualTo(TOKEN_PATH))
+            .withQueryParam("grant_type", equalTo("client_credentials")));
   }
 
   @Test
   void rejectsBlankSecretsWithoutCallingApigee() {
-    assertThatThrownBy(
-            () ->
-                new HttpApigeeTokenClient(
-                    restClient, URI.create(wireMock.baseUrl() + "/token"), "id", " ", clock))
+    assertThatThrownBy(() -> new HttpApigeeTokenClient(restClient, tokenUri(), "id", " ", clock))
         .isInstanceOf(IllegalStateException.class)
         .hasMessageContaining("APIGEE_CLIENT_SECRET");
   }
@@ -91,31 +115,29 @@ class HttpApigeeTokenClientTest {
   @Test
   void rejectsNullClientIdWithoutCallingApigee() {
     assertThatThrownBy(
-            () ->
-                new HttpApigeeTokenClient(
-                    restClient, URI.create(wireMock.baseUrl() + "/token"), null, "secret", clock))
+            () -> new HttpApigeeTokenClient(restClient, tokenUri(), null, "secret", clock))
         .isInstanceOf(IllegalStateException.class)
         .hasMessageContaining("APIGEE_CLIENT_ID");
   }
 
   @Test
   void tokenHttpFailureDoesNotIncludeSecret() {
-    wireMock.stubFor(post("/token").willReturn(aResponse().withStatus(401).withBody("denied")));
+    wireMock.stubFor(stubTokenPath().willReturn(aResponse().withStatus(401).withBody("denied")));
     HttpApigeeTokenClient client =
-        new HttpApigeeTokenClient(
-            restClient, URI.create(wireMock.baseUrl() + "/token"), "id", "super-secret", clock);
+        new HttpApigeeTokenClient(restClient, tokenUri(), "id", "super-secret", clock);
 
     assertThatThrownBy(client::fetchClientCredentials)
         .isInstanceOf(IllegalStateException.class)
         .hasMessageNotContaining("super-secret")
         .hasMessageNotContaining("denied")
-        .hasMessageNotContaining(wireMock.baseUrl());
+        .hasMessageNotContaining(wireMock.baseUrl())
+        .hasMessageNotContaining("aubankuat");
   }
 
   @Test
   void emptyBodyOmitsAccessToken() {
     wireMock.stubFor(
-        post("/token")
+        stubTokenPath()
             .willReturn(
                 aResponse().withStatus(200).withHeader("Content-Type", "application/json")));
     HttpApigeeTokenClient client = liveClient();
@@ -167,14 +189,22 @@ class HttpApigeeTokenClientTest {
     assertThat(issued.expiresAt()).isEqualTo(clock.instant().plus(Duration.ofHours(1)));
   }
 
+  private URI tokenUri() {
+    return URI.create(wireMock.baseUrl() + TOKEN_PATH);
+  }
+
   private HttpApigeeTokenClient liveClient() {
-    return new HttpApigeeTokenClient(
-        restClient, URI.create(wireMock.baseUrl() + "/token"), "id", "secret", clock);
+    return new HttpApigeeTokenClient(restClient, tokenUri(), "id", "secret", clock);
+  }
+
+  private com.github.tomakehurst.wiremock.client.MappingBuilder stubTokenPath() {
+    return post(urlPathEqualTo(TOKEN_PATH))
+        .withQueryParam("grant_type", equalTo("client_credentials"));
   }
 
   private void stubTokenBody(String json) {
     wireMock.stubFor(
-        post("/token")
+        stubTokenPath()
             .willReturn(aResponse().withHeader("Content-Type", "application/json").withBody(json)));
   }
 }

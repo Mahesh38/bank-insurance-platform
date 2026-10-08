@@ -7,13 +7,16 @@ import java.time.Duration;
 import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.MediaType;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
 
 /**
- * Live Apigee {@code POST /token} client-credentials mint. Client id and secret are constructor
- * arguments from environment or a secret provider — never from git.
+ * Live AU Bank Apigee client-credentials mint.
+ *
+ * <p>UAT contract (owner 2026-10-08): {@code POST
+ * https://api.aubankuat.in/oauth/accesstoken?grant_type=client_credentials} with HTTP Basic. The
+ * configured URI may omit {@code grant_type}; this client appends it. Client id and secret are
+ * constructor arguments from environment — never from git. The request URI is not logged (OBS-4).
  */
 public final class HttpApigeeTokenClient implements ApigeeTokenClient {
 
@@ -41,10 +44,8 @@ public final class HttpApigeeTokenClient implements ApigeeTokenClient {
       TokenResponse body =
           client
               .post()
-              .uri(tokenUri)
-              .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+              .uri(withClientCredentialsGrant(tokenUri))
               .headers(headers -> headers.setBasicAuth(clientId, clientSecret))
-              .body("grant_type=client_credentials")
               .retrieve()
               .body(TokenResponse.class);
       if (body == null || body.accessToken() == null || body.accessToken().isBlank()) {
@@ -60,6 +61,17 @@ public final class HttpApigeeTokenClient implements ApigeeTokenClient {
       log.warn("event=APIGEE_TOKEN_REJECTED operation=token status={}", ex.getStatusCode().value());
       throw new IllegalStateException("Apigee /token rejected the client-credentials grant", ex);
     }
+  }
+
+  /** AU Bank UAT puts {@code grant_type} on the query string, not in a form body. */
+  static URI withClientCredentialsGrant(URI tokenUri) {
+    String query = tokenUri.getRawQuery();
+    if (query != null && query.contains("grant_type=")) {
+      return tokenUri;
+    }
+    String raw = tokenUri.toString();
+    String sep = raw.contains("?") ? "&" : "?";
+    return URI.create(raw + sep + "grant_type=client_credentials");
   }
 
   private static String requireSecret(String value, String name) {

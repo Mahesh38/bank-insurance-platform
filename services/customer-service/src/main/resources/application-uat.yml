@@ -1,0 +1,4 @@
+# UAT token host (owner 2026-10-08). Does not turn on http mode and does not embed credentials.
+customer:
+  apigee:
+    token-url: ${APIGEE_TOKEN_URL:https://api.aubankuat.in/oauth/accesstoken}

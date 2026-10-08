@@ -44,6 +44,7 @@ bank:
 customer:
   apigee:
     token-mode: ${CUSTOMER_APIGEE_TOKEN_MODE:stub}
+    # UAT host is known (DEP-20260914-apg, 2026-10-08). Secrets stay in env. Default remains stub.
     token-url: ${APIGEE_TOKEN_URL:}
     client-id: ${APIGEE_CLIENT_ID:}
     client-secret: ${APIGEE_CLIENT_SECRET:}

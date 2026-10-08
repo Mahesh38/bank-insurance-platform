@@ -45,7 +45,8 @@ bank:
     base-url: ${BANK_PERSISTENCE_BASE_URL:http://localhost:8081}
 
 # AU-Bima-Platform client-credentials stay stub until Bearer attachment exists
-# (DEP-20260914-apg). token-mode=http fails startup on purpose.
+# (DEP-20260914-apg). token-mode=http fails startup on purpose. UAT token URL is
+# https://api.aubankuat.in/oauth/accesstoken (owner 2026-10-08); secrets stay in env.
 apigee:
   token-mode: ${ONESB_APIGEE_TOKEN_MODE:stub}
   token-url: ${APIGEE_TOKEN_URL:}

@@ -133,7 +133,7 @@ def topology():
     c = Canvas(3560, 2500,
                "R0 on AWS — what runs where",
                "ap-south-1 (Mumbai) · five Control Tower accounts · UAT hosts vpc-dev + vpc-uat · "
-               "inbound API Gateway · outbound Apigee · 1SB never called from EKS")
+               "inbound NLB + Istio · outbound Apigee · 1SB never called from EKS · ADR-023")
 
     # ---- devices ---------------------------------------------------------
     dev = c.group("DEVICES", 40, 200, 560, 170, stroke=Z["dev"][0], fill=Z["dev"][1],
@@ -150,23 +150,25 @@ def topology():
     cf = c.node(I["cf"], 180, 510, ["Cloudflare", "Enterprise CDN · DDoS", "SaaS · not AWS"])
     waf = c.node(I["waf"], 420, 510, ["F5-XC / WAF", "Distributed Cloud", "SaaS · not in VPC"])
 
-    # ---- region and AWS-managed edge -------------------------------------------------
+    # ---- region -------------------------------------------------
     c.group("AWS REGION · ap-south-1", 620, 200, 2160, 2220, stroke=Z["vpc"][0],
             fill="#ffffff", dash="10 7", label_size=17, width=2.2)
-    edge = c.group("AWS MANAGED EDGE — not in the VPC", 660, 240, 1610, 280,
+    edge = c.group("PUBLIC / DMZ — ingress NLB only", 660, 240, 1610, 280,
                    stroke=Z["edge"][0], fill=Z["edge"][1],
-                   sub="API Gateway is the first AWS hop · no public / External ALB",
+                   sub="NLB SG = F5/CF CIDRs · F5 shared-secret/mTLS · ADR-023",
                    label_size=16)
-    agw = c.node(I["apigw"], 900, 400, ["API Gateway", "PROXY 1 of 2", "first AWS hop"])
-    pgcb = c.node(I["apigw"], 1250, 400, ["PG-callback route", "SEPARATE · IP-allowlisted"])
-    c.node(I["r53"], 1680, 400, ["Route 53", "public + private zones", "a lookup, not a hop"])
+    nlb = c.node(I["alb"], 900, 400, ["Ingress NLB", "first AWS hop", "SG locked to F5"])
+    c.node(I["r53"], 1400, 400, ["Route 53", "public + private zones", "a lookup, not a hop"])
+    c.node(I["deploy"], 1680, 400, ["API Gateway", "WITHDRAWN", "ADR-023"])
 
     # ---- vpc -------------------------------------------------------------
     c.group("VPC · 10.{env}.0.0/16 · 3 Availability Zones", 660, 560, 1610, 1640,
             stroke=Z["vpc"][0], fill=Z["vpc"][1], label_size=17)
     c.group("PRIVATE-APP SUBNETS  /20 × 3 AZ", 700, 600, 1090, 1570, stroke=Z["app"][0],
-            fill=Z["app"][1], sub="stateless pods · no PersistentVolumeClaim", label_size=15)
-    alb = c.node(I["alb"], COL[2], 668, ["Internal ALB", "PROXY 2 of 2 — the only one in the VPC"])
+            fill=Z["app"][1], sub="Istio Ingress + sidecars · no PVC · Keycloak not public",
+            label_size=15)
+    istio = c.node(I["deploy"], COL[2], 668,
+                   ["Istio Ingress", "/* · /api/* · /callbacks/pg/*", "mesh mTLS"])
     eks = c.group("Amazon EKS", 720, 760, 1050, 1380, stroke=Z["app"][0],
                   fill="#ffffff", label_size=15, opacity=0.55)
 
@@ -295,11 +297,11 @@ def topology():
     # ---- connectors, all axis-aligned ------------------------------------
     c.link(dev.port("B", at=180), cf.port("T"), color=REQ, width=3.0)
     c.link(cf.port("R"), waf.port("L"), color=REQ, width=3.0)
-    c.link(waf.port("R"), agw.port("L"), color=REQ, width=3.0,
-           label="SaaS → AWS", label_at=0.55, label_dx=8, label_anchor="start")
-    c.link(agw.port("B"), alb.port("T"), color=REQ, width=3.0,
-           label="VPC link", label_at=0.62, label_dx=9, label_anchor="start")
-    c.link(alb.port("B"), bff.port("T"), color=REQ, width=3.0,
+    c.link(waf.port("R"), nlb.port("L"), color=REQ, width=3.0,
+           label="SaaS → NLB", label_at=0.55, label_dx=8, label_anchor="start")
+    c.link(nlb.port("B"), istio.port("T"), color=REQ, width=3.0,
+           label="NLB → Istio Ingress", label_at=0.62, label_dx=9, label_anchor="start")
+    c.link(istio.port("B"), bff.port("T"), color=REQ, width=3.0,
            label="GET /* → nip-web  ·  /api/* → NIP BFF", label_at=0.45, label_dx=8,
            label_anchor="start")
     c.link(bff.port("B"), pdp.port("T"), color=AUTH, width=2.8)
@@ -331,14 +333,16 @@ def topology():
            label="private", label_size=11.5)
     c.link(apigee.port("T"), cbs.port("L"), color=AUTH, width=2.4, dash="9 6",
            label="private EBS", label_size=11.5)
-    c.link(pg.port("T"), pgcb.port("T"), color=MONEY, width=2.8, dash="9 6", lane=170,
-           label="C4 payment callback — see the payment view")
+    c.link(pg.port("T"), istio.port("T"), color=MONEY, width=2.8, dash="9 6", lane=170,
+           label="C4 PG callback → /callbacks/pg/*")
 
     c.group("NOT IN R0 — do not provision", 3140, 1010, 360, 300,
             stroke="#94a3b8", fill="#ffffff", label_size=14,
             sub="each of these is a decision, not an omission")
     c.lines(3320, 1095, [
-        "Service mesh — NetworkPolicy + IRSA is enough",
+        "Amazon API Gateway / VPC Link — ADR-023",
+        "Internal ALB as path-router — Istio owns it",
+        "AWS App Mesh — bank standard is Istio",
         "A cluster per service — ADR-008 says one",
         "Glue ETL · Athena · Redshift · QuickSight",
         "  (#18 MIS is in R0 — this is the warehouse)",
@@ -347,10 +351,8 @@ def topology():
         "OpenSearch as the audit store — ADR-013",
         "A second live region — DR is warm standby",
         "Cognito — Keycloak is the R0 IdP",
+        "Public Keycloak on Istio Ingress — S5",
         "A second TGW or a second Direct Connect",
-        "Public VPC + IGW + peering (the current app)",
-        "IGW on the workload VPC",
-        "A separate Control Tower dev or CUG account",
         "LDAP from EKS to Bank AD",
         "Apigee on the RM/mobile front door",
     ], size=12, color=MUTE)
@@ -364,10 +366,10 @@ def topology():
     ])
     c.text(3320, 1680, "SaaS inbound. Apigee outbound. One way out.", size=14, color=INK, bold=True)
     c.lines(3320, 1708, ["Cloudflare and F5-XC are SaaS — not AWS,",
-                         "not in any VPC. API Gateway is inbound.",
+                         "not in any VPC. NLB+Istio is inbound (ADR-023).",
                          "Apigee is the loading dock (ADR-020).",
                          "1SB allowlists Apigee IPs, not our NAT.",
-                         "Internal Apigee targets stay private.",
+                         "Keycloak stays private. PDP is not mesh authZ.",
                          "Anything else on the path is a defect."], size=12.5, color=MUTE)
     return c.save(os.path.join(OUT, "r0-platform-topology.svg"))
 
@@ -413,7 +415,7 @@ def az():
                 fill="#ffffff", label_size=13, radius=11, width=1.6)
         tail = "≥ 3 in uat/prod" if mode == "full" else "prod only"
         c.node(I["eks"], cx - 180, 765, ["EKS nodes", tail], size=56)
-        c.node(I["alb"], cx, 765, ["Internal ALB", "one node here" if mode == "full" else "prod only"], size=56)
+        c.node(I["alb"], cx, 765, ["Ingress NLB", "one node here" if mode == "full" else "prod only"], size=56)
         if mode == "full":
             c.node(I["deploy"], cx + 180, 765, ["sale-path pods", "zone spread + PDB"], size=56)
         else:
@@ -550,12 +552,12 @@ def sequence():
           (I["cache"], ["Valkey", "ACL user per service"]),
           (I["msk"], ["MSK + schema registry", "needed at W1, not W3"]))),
         ("P4", "EDGE + PROXY", "", "#b45309", "#fffaf0",
-         ((I["alb"], ["Internal ALB"]),
-          (I["apigw"], ["API Gateway inbound", "+ PG callback — needed at W3"]),
-          (I["cf"], ["Cloudflare + F5-XC", "SaaS · no public ALB"]),
+         ((I["alb"], ["Ingress NLB", "SG = F5/CF CIDRs"]),
+          (I["deploy"], ["Istio Ingress", "+ /callbacks/pg/* at W3"]),
+          (I["cf"], ["Cloudflare + F5-XC", "SaaS perimeter"]),
           (I["apigee"], ["Apigee outbound", "onboard · not ingress"]))),
         ("P5", "IDENTITY", "WS-2", "#059669", "#f0fdf7",
-         ((I["deploy"], ["Keycloak + PDP", "AD-verify via Apigee", "never LDAP"]),
+         ((I["deploy"], ["Keycloak private", "NOT on public Ingress", "PDP · never LDAP"]),
           (I["secret"], ["Secrets Manager", "rotation exercised once"]))),
         ("P6", "OBSERVABILITY + SEARCH", "", "#7e22ce", "#faf5ff",
          ((I["amp"], ["AMP + AMG"]),
@@ -609,7 +611,7 @@ def payment():
     pay = c.node(I["pod"], 540, 300, ["#12 Payment", "verifies the PG signature"])
     aur = c.node(I["aurora"], 400, 480, ["payment schema"], size=54)
     s3 = c.node(I["s3"], 830, 480, ["raw payload", "7-year WORM"], size=54)
-    alb = c.node(I["alb"], 250, 700, ["Internal ALB"], size=56)
+    istio_cb = c.node(I["deploy"], 250, 700, ["Istio", "/callbacks/pg/*"], size=56)
     rec = c.node(I["cron"], 540, 920, ["payment-reconcile", "S-15 · never auto-resolves"])
     pol = c.node(I["pod"], 860, 920, ["#13 Policy", "issues iff RECONCILED"])
 
@@ -626,9 +628,9 @@ def payment():
             stroke=Z["ext"][0], fill="#fff7ed", label_size=14)
     apigee_pay = c.node(I["apigee"], 1800, 560, ["Apigee", "PG session-create outbound"], size=52)
 
-    c.group("OUR EDGE — a SEPARATE route from RM traffic (TB-6)", 1100, 580, 400, 240,
+    c.group("OUR EDGE — a SEPARATE route from RM traffic (TB-6 / ADR-023 S8)", 1100, 580, 400, 240,
             stroke=Z["edge"][0], fill=Z["edge"][1], label_size=14)
-    cb = c.node(I["apigw"], 1300, 700, ["PG-callback route", "IP-allowlisted to the PG"])
+    cb = c.node(I["alb"], 1300, 700, ["Ingress NLB", "PG IP allowlist"])
 
     c.link(pay.port("R"), cust.port("L"), color=MONEY, width=3.0,
            label="1   pay-link to the CUSTOMER device")
@@ -639,9 +641,9 @@ def payment():
            label="2   the RM never sees this URL")
     c.link(pg.port("B"), cb.port("T"), color=MONEY, width=3.0, lane=530,
            label="3   signed callback", label_seg=1)
-    c.link(cb.port("L"), alb.port("R"), color=MONEY, width=3.0,
-           label="4   never on the RM session")
-    c.link(alb.port("T"), pay.port("L"), color=MONEY, width=3.0,
+    c.link(cb.port("L"), istio_cb.port("R"), color=MONEY, width=3.0,
+           label="4   never on the RM session VS")
+    c.link(istio_cb.port("T"), pay.port("L"), color=MONEY, width=3.0,
            label="5   verify the signature", label_seg=0, label_at=0.42)
     c.link(settle.port("B"), rec.port("T"), color=EGR, width=2.8, dash="9 6", lane=860,
            label="6   settlement, out-of-band", label_seg=1)
@@ -654,7 +656,7 @@ def payment():
         "Four things on this path are routinely got wrong:",
         "session-create leaves via Apigee (ADR-020), not a 1SB-style origin URL;",
         "the pay-link goes to the CUSTOMER, not the RM device;",
-        "the callback arrives on its own IP-allowlisted API Gateway route, not Apigee;",
+        "the callback arrives on Istio /callbacks/pg/* (IP allowlist), not Apigee;",
         "and a policy is issued only after RECONCILED — never on the callback alone.",
     ], size=13, color=MUTE)
     return c.save(os.path.join(OUT, "r0-platform-payment.svg"))

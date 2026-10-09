@@ -29,6 +29,7 @@ Companion artefacts (same suggestion):
 - One-pager: [`docs/architecture/2026-10-06-PLATFORM-TEAM-NOTE-API-GATEWAY-VS-ISTIO.md`](../../architecture/2026-10-06-PLATFORM-TEAM-NOTE-API-GATEWAY-VS-ISTIO.md)
 - **Infra POC (detailed, Keycloak + change checklist):** [`docs/architecture/2026-10-08-INFRA-POC-API-GATEWAY-KEYCLOAK-ISTIO.md`](../../architecture/2026-10-08-INFRA-POC-API-GATEWAY-KEYCLOAK-ISTIO.md)
 - **Rebuttal to ALB+Istio superiority claim:** [`docs/architecture/2026-10-08-REBUTTAL-ALB-ISTIO-VS-API-GATEWAY.md`](../../architecture/2026-10-08-REBUTTAL-ALB-ISTIO-VS-API-GATEWAY.md)
+- **Mahesh contemplation (bank-standard ELB+Istio — not ADR yet):** [`docs/architecture/2026-10-09-MAHESH-CONTEMPLATION-BANK-STANDARD-ELB-ISTIO.md`](../../architecture/2026-10-09-MAHESH-CONTEMPLATION-BANK-STANDARD-ELB-ISTIO.md)
 - Clarifying ADR draft: `ADR-022` in [`08-architecture-decision-log.md`](../../platform/architecture-review/08-architecture-decision-log.md)
 
 ---
@@ -146,7 +147,8 @@ Empty Option B cells = **not ready to amend ADRs**.
 | `docs/architecture/2026-10-06-PLATFORM-TEAM-NOTE-API-GATEWAY-VS-ISTIO.md` | One-pager for the meeting |
 | `docs/architecture/2026-10-08-INFRA-POC-API-GATEWAY-KEYCLOAK-ISTIO.md` | Detailed Infra Head POC: Gateway vs Istio/ELB, Keycloak complementarity, Option B checklist |
 | `docs/architecture/2026-10-08-REBUTTAL-ALB-ISTIO-VS-API-GATEWAY.md` | Point-by-point rebuttal of “ALB/NLB+Istio superior to API Gateway” claim |
-| `docs/platform/architecture-review/08-architecture-decision-log.md` (`ADR-022`) | Clarifying ADR draft (Option A) |
+| `docs/architecture/2026-10-09-MAHESH-CONTEMPLATION-BANK-STANDARD-ELB-ISTIO.md` | If Mahesh adapts to bank ELB+Istio: process, SPIKE, ADR, full cascade beyond LB+mesh |
+| `docs/platform/architecture-review/08-architecture-decision-log.md` (`ADR-022`) | Clarifying ADR draft (Option A) — superseded if Mahesh Accepts amending ADR |
 | `docs/governance/registers/SUGGESTION-REGISTER.md` (`SUG-20261006-apg`) | Triage record |
 | `docs/governance/registers/DECISION-REGISTER.md` | ADR-022 index row |
 | `docs/governance/registers/DEPENDENCY-REGISTER.md` (`DEP-20261006-igw`) | External: platform written commitment |

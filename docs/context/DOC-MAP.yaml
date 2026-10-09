@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 663
-total_bytes: 21289513
+document_count: 666
+total_bytes: 21338368
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -1413,7 +1413,7 @@ documents:
     persona: architecture
     title: "Architecture diagrams"
     answers: "Two diagrams, deliberately. They answer different questions and neither replaces the other."
-    bytes: 33138
+    bytes: 33381
   - path: docs/architecture/arb-prerequisites/CIS-CLASSIFICATION-PROPOSAL.md
     bucket: platform
     authority: ai-drafted
@@ -2205,7 +2205,7 @@ documents:
     persona: null
     title: "AGENT CONTEXT INDEX"
     answers: "============================================================================="
-    bytes: 50363
+    bytes: 50527
   - path: docs/context/BOOT.md
     bucket: context
     authority: non-binding-context
@@ -2221,7 +2221,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 233786
+    bytes: 234825
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -4126,6 +4126,14 @@ documents:
     title: "PLAN-009 — NIP BFF Lead module runtime slice"
     answers: "Seven-board review: EPIC-006-REVIEW.md. Gate ESCALATED for T3 human Board 4. No T4 signature."
     bytes: 9852
+  - path: docs/governance/plans/PLAN-010-lead-suitability-e2e-schema.md
+    bucket: governance
+    authority: binding-process
+    capsules: [delivery-planning, plan-work]
+    persona: delivery
+    title: "PLAN-010 — Lead + Suitability e2e physical schema"
+    answers: "objective: After this change engineers have an ER diagram and design DDL for the R0 Lead → Suitability e2e path, traced from the module BRDs and…"
+    bytes: 4814
   - path: docs/governance/plans/PLAN-EPIC-002-life-lob-adapter.md
     bucket: governance
     authority: binding-process
@@ -4181,7 +4189,7 @@ documents:
     persona: null
     title: "Suggestion Register"
     answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 364846
+    bytes: 373004
   - path: docs/governance/runbooks/AUTOPILOT-FAILURE-RUNBOOK.md
     bucket: governance
     authority: binding-process
@@ -4853,7 +4861,7 @@ documents:
     persona: database
     title: "01 — Physical design: topology, tables, relationships, indexes, routines"
     answers: "Companion DDL: schemas/"
-    bytes: 13775
+    bytes: 15045
   - path: docs/platform/data-architecture/02-operations-and-troubleshooting.md
     bucket: platform
     authority: ai-drafted
@@ -4862,6 +4870,14 @@ documents:
     title: "02 — Operations: migration, encryption, backup, retention, troubleshooting"
     answers: "Design only. Restore, Object Lock and residency attestation are proven at S09"
     bytes: 10971
+  - path: docs/platform/data-architecture/03-lead-suitability-e2e.md
+    bucket: platform
+    authority: ai-drafted
+    capsules: [database-review, architecture-review]
+    persona: database
+    title: "03 — Lead + Suitability e2e physical schema (R0)"
+    answers: "Work item: DATA-003 · origin SUG-20261009-lss"
+    bytes: 22344
   - path: docs/platform/data-architecture/DATA-001.work-item.yaml
     bucket: platform
     authority: ai-drafted
@@ -4877,7 +4893,7 @@ documents:
     persona: database
     title: "DATA-002 — Alignment of the R0 physical pack with CR-013"
     answers: "Persona: Aarti — Principal Insurance Data & Database Architect"
-    bytes: 11972
+    bytes: 12398
   - path: docs/platform/data-architecture/DATA-002.work-item.yaml
     bucket: platform
     authority: ai-drafted
@@ -4885,7 +4901,15 @@ documents:
     persona: database
     title: "DATA 002.work item"
     answers: "schema: work-item"
-    bytes: 3993
+    bytes: 3995
+  - path: docs/platform/data-architecture/DATA-003.work-item.yaml
+    bucket: platform
+    authority: ai-drafted
+    capsules: [database-review, architecture-review]
+    persona: database
+    title: "DATA 003.work item"
+    answers: "schema: work-item"
+    bytes: 4354
   - path: docs/platform/data-architecture/DB-DEC-0001-r0-physical-model.md
     bucket: platform
     authority: ai-drafted
@@ -4901,7 +4925,7 @@ documents:
     persona: database
     title: "DB-DEC-0002 — CR-013 alignment of the DATA-001 physical pack"
     answers: "Draft Aarti decision record. Format:"
-    bytes: 6360
+    bytes: 6357
   - path: docs/platform/data-architecture/README.md
     bucket: platform
     authority: ai-drafted
@@ -4909,7 +4933,7 @@ documents:
     persona: database
     title: "R0 Physical Data Architecture — Aarti pack"
     answers: "Work item: DATA-001 · origin SUG-20260825-db1"
-    bytes: 6314
+    bytes: 6522
   - path: docs/platform/data-architecture/schemas/00-cluster-bootstrap.sql
     bucket: platform
     authority: ai-drafted
@@ -4917,7 +4941,7 @@ documents:
     persona: database
     title: "00 cluster bootstrap"
     answers: "SQL artefact"
-    bytes: 2169
+    bytes: 2302
   - path: docs/platform/data-architecture/schemas/01-identity.sql
     bucket: platform
     authority: ai-drafted
@@ -4949,7 +4973,7 @@ documents:
     persona: database
     title: "04 opportunity"
     answers: "SQL artefact"
-    bytes: 3877
+    bytes: 0
   - path: docs/platform/data-architecture/schemas/05-consent.sql
     bucket: platform
     authority: ai-drafted
@@ -4965,7 +4989,7 @@ documents:
     persona: database
     title: "06 suitability"
     answers: "SQL artefact"
-    bytes: 2729
+    bytes: 7652
   - path: docs/platform/data-architecture/schemas/07-catalogue.sql
     bucket: platform
     authority: ai-drafted
@@ -5037,7 +5061,7 @@ documents:
     persona: database
     title: "90 routines"
     answers: "SQL artefact"
-    bytes: 5054
+    bytes: 7917
   - path: docs/platform/data-architecture/schemas/91-grants.sql
     bucket: platform
     authority: ai-drafted
@@ -5045,7 +5069,7 @@ documents:
     persona: database
     title: "91 grants"
     answers: "SQL artefact"
-    bytes: 2867
+    bytes: 4510
   - path: docs/platform/data-architecture/schemas/README.md
     bucket: platform
     authority: ai-drafted
@@ -5053,7 +5077,7 @@ documents:
     persona: database
     title: "R0 design DDL"
     answers: "PostgreSQL scripts that implement 01-physical-design.md."
-    bytes: 1597
+    bytes: 1748
   - path: docs/platform/engineering/GITLAB-REPO-STRUCTURE.md
     bucket: platform
     authority: approved-spec

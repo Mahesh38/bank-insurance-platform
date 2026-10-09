@@ -1,0 +1,112 @@
+# schema: work-item
+id: DATA-003
+origin: SUG-20261009-lss
+title: "Lead + Suitability e2e ER diagram and physical schema (R0 design DDL)"
+type: ARCH
+also: [DOC]
+breakdown: STORY
+epic: null
+workstream: WS-3
+owner: "Aarti — Principal Insurance Data & Database Architect"
+risk_tier: T3
+
+serves:
+  - "S07-E04-S02 physical schema (Lead #5 + Suitability slice)"
+  - "S11-E02 Lead service persistence contract"
+  - "EPIC-005 Lead design pack (physical schema was out of PLAN-007)"
+  - "DATA-002 W1 Lead archive columns"
+  - "Lead BRD / Suitability BRD (DOC-005) persistence"
+
+problem: >
+  DATA-001 opportunity/suitability DDL cannot persist the Lead BRD e2e path
+  (workforce create, delayed SP assignment, meeting capture, exception hold,
+  diary/eligible, archive) or the Suitability BRD path (versioned answers,
+  mapping runs, resume, lock after final BI). PLAN-007 left physical schema
+  out of scope. S11 would invent tables.
+
+description: >
+  Publish an Aarti e2e pack: ER diagram, table/column sheets, and design DDL
+  for lead_lms (table lead) and suitability, including DATA-002 W1 ARCHIVED
+  columns and ADR-012 outbox on those two schemas only. Do not apply Flyway.
+  Do not pick an archive-table mechanism (joint Mahesh). Do not implement
+  issuance_mode, off-platform ingest, or MIS reader (remain DATA-002).
+  Do not mark S07-G5 PASSED.
+
+acceptance_criteria:
+  - id: AC-1
+    given: "Lead BRD Screens 1–7 and INV-LED-04/10"
+    when: "lead_lms.lead DDL is read"
+    then: "workforce creator, nullable accountable_sp_id until assignment, product_class TERM|SAVINGS|ULIP, meeting child, exception_state, bi_generated/reporting_class exist"
+  - id: AC-2
+    given: "Lead BRD Table 20"
+    when: "lead_lms indexes are read"
+    then: "a partial unique open-lead key on creator+customer+product_class exists"
+  - id: AC-3
+    given: "CR-013 C-RET-1 / DATA-002 W1"
+    when: "lead_lms.lead DDL is read"
+    then: "ARCHIVED is a legal state, archived_at exists, and RET-7Y attribution columns are named"
+  - id: AC-4
+    given: "Suitability BRD §10–15"
+    when: "suitability DDL is read"
+    then: "versioned encrypted answer sets, mapping runs, resume screen, edit lock, and LOCKED-after-BI columns exist; Term is not forced"
+  - id: AC-5
+    given: "an engineer implementing S11"
+    when: "03-lead-suitability-e2e.md is opened"
+    then: "an ER diagram names LEAD (schema lead_lms) and every table on the Lead→Suitability path and marks cross-schema refs as logical"
+  - id: AC-6
+    given: "CURRENT-STATE.yaml and GATE-S07"
+    when: "this change lands"
+    then: "no stage field is edited and S07-G5 remains OPEN awaiting the human signature"
+
+out_of_scope:
+  - "Flyway apply / owning-service runtime"
+  - "DATA-002 W3 issuance_mode and off-platform Policy ingest"
+  - "DATA-002 W4 isolated MIS reader path"
+  - "outbox_event on schemas other than lead_lms and suitability"
+  - "Term questionnaire"
+  - "Campaign / bulk Lead create / meeting completion / meeting SMS"
+  - "Seller override of mapping"
+  - "Choosing partition vs archive table vs dump without Mahesh"
+  - "Human S07-G5 / T3 Board signatures"
+  - "Changing CURRENT-STATE.yaml stage fields"
+
+state: IN-FLIGHT
+priority_now: P2
+priority_at_target: P1
+target_stage: "S08 design delta / S11 Lead+Suitability runtime / S09 apply"
+unpark_trigger: null
+
+dependencies:
+  blocked_by: []
+  requires:
+    - "DATA-001 pack"
+    - "EPIC-005 Lead HLD"
+    - "Lead_Module_BRD_Detailed_CONTEXT.md"
+    - "Suitability_Module_BRD_Detailed_CONTEXT.md"
+  enables:
+    - "S11 Lead service persistence"
+    - "S11 Suitability service persistence"
+    - "DATA-002 W1 (archive columns)"
+  related_to:
+    - "DATA-001"
+    - "DATA-002"
+    - "EPIC-005"
+    - "PLAN-007"
+    - "ADR-012"
+    - "ADR-014"
+    - "ADR-021"
+  external: []
+  decision_dependency:
+    - "OPEN-SUI-IMMUTABLE — Rajal / Shailja (BRD same-id edit vs INV-SUI-01 new row)"
+    - "W1 archive mechanism — joint Aarti/Mahesh (same-table ARCHIVED used until then)"
+    - "SUG-20261009-lms — physical schema lead_lms / table lead (ADR-014 D1 option closed)"
+
+plan: PLAN-010
+estimate: M
+assumptions: []
+risks: []
+evidence:
+  - "docs/platform/data-architecture/03-lead-suitability-e2e.md"
+  - "docs/platform/data-architecture/schemas/04-lead_lms.sql"
+  - "docs/platform/data-architecture/schemas/06-suitability.sql"
+variance_log: []

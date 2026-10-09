@@ -43,6 +43,8 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20261009-lms | 2026-10-09 | human:stakeholder | Do not name the Lead store OPPORTUNITY — schema lead_lms, table lead | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [DATA-003](../../platform/data-architecture/DATA-003.work-item.yaml) · [ER](../../platform/data-architecture/03-lead-suitability-e2e.md) · [DDL](../../platform/data-architecture/schemas/04-lead_lms.sql) · [detail](#sug-20261009-lms--lead-lms-schema-and-lead-table) |
+| SUG-20261009-lss | 2026-10-09 | human:stakeholder | Generate ER diagram and table schema required for the Lead and Suitability module e2e | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [DATA-003](../../platform/data-architecture/DATA-003.work-item.yaml) · [PLAN-010](../plans/PLAN-010-lead-suitability-e2e-schema.md) · [ER](../../platform/data-architecture/03-lead-suitability-e2e.md) · [detail](#sug-20261009-lss--lead-and-suitability-e2e-schema) |
 | SUG-20261008-bnk | 2026-10-08 | human:repository-owner | Complete bank-user login/auth e2e using the bank AD login API that hits AD internally and returns true/false for an active bank employee | SF1 | SC0 | MUST | FUNC | P2 / P1 | ADMITTED | [IAM-001](../../platform/authentication-authorization/IAM-001.work-item.yaml) · [detail](#sug-20261008-bnk--bank-rm-ad-verify-login-e2e) |
 | SUG-20261008-otp | 2026-10-08 | agent:cursor | Login BRD remainder after IAM-001: Captcha, mandatory OTP to mobile+email, lock after 3 password failures / 30-day inactivity, Unlock User | SF2 | SC0 | MUST | FUNC | P4 / P1 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [detail](#sug-20261008-otp--login-brd-captcha-otp-lock) |
 | SUG-20261008-sb4 | 2026-10-08 | scan:trivy | Upgrade Spring Boot 3.5.16 → Boot 4 / Framework 7.0.9 to close CVE-2026-47884 on spring-webmvc (only public OSS fix; 6.2.20 is enterprise-only) | SF3 | SC1 | MUST | SEC | P4 / P1 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [detail](#sug-20261008-sb4--spring-boot-4-for-cve-2026-47884) · RISK-021 |
@@ -145,6 +147,259 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20261009-lms · Lead LMS schema and lead table
+
+```yaml
+# schema: triage-record
+id: SUG-20261009-lms
+raised_at: "2026-10-09"
+raised_by: "human:stakeholder"
+source: "Follow-up on DATA-003 ER/schema: do not call it OPPORTUNITY"
+input: >
+  dont call it OPPORTUNITY call it lead_lms as schema and table also we will
+  call lead not OPPORTUNITY
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: DATA-003
+
+stage_fit:
+  code: SF1
+  rationale: >
+    Naming of the in-flight DATA-003 physical pack. ADR-014 D1 left the schema
+    name as a joint Aarti/Mahesh choice; this input takes lead_lms / lead.
+  target_stage: null
+  unpark_trigger: null
+  absorption_test:
+    small: null
+    no_new_dependency: null
+    no_new_decision: null
+    gate_neutral: null
+
+scope:
+  code: SC0
+  business_scope: "in scope — Lead #5 physical store name"
+  serves: ["DATA-003"]
+  failure_without_it: "S11 would persist Lead under the rejected OPPORTUNITY name"
+  minimal: true
+  authority: "Owner direction on DATA-003; ADR-014 D1 naming option"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S11 — Vertical slice"
+  binds_when: "Lead service Flyway copies this design DDL"
+  failure_without_it: "S11 would persist Lead under the rejected OPPORTUNITY name"
+  evidence_tier: E2
+  evidence:
+    - "Stakeholder follow-up on DATA-003"
+    - "ADR-014 D1 — schema name was optional; now chosen"
+  confidence: C5
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT
+action_rationale: >
+  Absorb into in-flight DATA-003. Keep lead_id / INV-LED-*. Do not rewrite
+  historical ADR prose that used Opportunity as a domain alias.
+duplicate_of: null
+conflicts:
+  - "ADR-014 D1 allowed schema opportunity — owner now chooses lead_lms"
+
+classification:
+  type: ARCH
+  also: [DOC]
+  breakdown: STORY
+  epic: null
+  risk_tier: T3
+  destination: "docs/platform/data-architecture/"
+
+priority:
+  now: P2
+  at_target: P1
+  factors: { N: 2, S: 1, B: 1, R: 1, D: 1, E: 2 }
+  score: 8
+  matrix_default: P2
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "Must land with DATA-003 before S11 copies the wrong schema name"
+
+dependencies:
+  edges:
+    - type: ARCHITECTURAL
+      target: DATA-003
+      relation: requires
+      state: IN-FLIGHT
+  state: READY
+  enablement_count: 1
+  earliest_start: immediately
+  cycles: none
+
+breakdown:
+  children: []
+  completion_definition: >
+    Design DDL and ER use schema lead_lms and table lead. No OPPORTUNITY entity
+    name on the e2e diagram.
+  not_included:
+    - "Renaming PDP grant opportunity.create"
+    - "Rewriting historical ADR/HLD Opportunity alias"
+    - "Flyway apply"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: DATA-003
+  plan_id: PLAN-010
+  status: ADMITTED
+  closed_reason: null
+
+resumed: DATA-003
+```
+
+### SUG-20261009-lss · Lead and Suitability e2e schema
+
+```yaml
+# schema: triage-record
+id: SUG-20261009-lss
+raised_at: "2026-10-09"
+raised_by: "human:stakeholder"
+source: "Cloud-agent request to generate Lead and Suitability e2e ER + schema"
+input: >
+  generate the ER diagramd and table, schemma we required for the lead and
+  suitability module e2e.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: DATA-003
+
+stage_fit:
+  code: SF1
+  rationale: >
+    Physical schema design is S07-E04 leftover / S08 design delta. GATE-S08 is
+    CANDIDATE and this artefact does not reopen it. Apply stays S09. PLAN-007
+    explicitly deferred physical schema; this closes that gap for the requested
+    slice only.
+  target_stage: "S11 Lead/Suitability runtime; S09 Flyway apply"
+  unpark_trigger: null
+  absorption_test:
+    small: null
+    no_new_dependency: null
+    no_new_decision: null
+    gate_neutral: null
+
+scope:
+  code: SC0
+  business_scope: "in scope — Lead #5 and Suitability on the assisted Life path"
+  serves: ["EPIC-005", "S11-E02", "DATA-002 W1"]
+  failure_without_it: "S11 invents Lead/Suitability tables off the BRD"
+  minimal: true
+  authority: "CURRENT-STATE.yaml WS-3 in_scope; DOC-005 Lead + Suitability BRDs"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S11 — Vertical slice"
+  binds_when: "Lead Screens 1–7 and Savings/ULIP suitability persistence"
+  failure_without_it: "S11 invents Lead/Suitability tables off the BRD"
+  evidence_tier: E2
+  evidence:
+    - "Lead_Module_BRD_Detailed_CONTEXT.md"
+    - "Suitability_Module_BRD_Detailed_CONTEXT.md"
+    - "10-lead-module-hld.md (physical schema out of PLAN-007)"
+    - "schemas/04-opportunity.sql and 06-suitability.sql pre-D-018 gaps"
+    - "DATA-002 §4.1 W1 archive columns still missing"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT
+action_rationale: >
+  On-stage design DDL for an in-scope R0 slice. Duplicate of DATA-001/002? No —
+  DATA-001 is the thin pre-BRD pack; DATA-002 remainder is issuance/ingest/MIS.
+  This item absorbs only DATA-002 W1 archive columns for Lead.
+duplicate_of: null
+conflicts:
+  - "02-information-model §4.2 BANK_RM-only create vs INV-LED-04 / D-018 — DDL follows D-018"
+  - "INV-SUI-01 new suitability_id vs Suitability BRD same-id edit — OPEN-SUI-IMMUTABLE"
+
+classification:
+  type: ARCH
+  also: [DOC]
+  breakdown: STORY
+  epic: null
+  risk_tier: T3
+  destination: "docs/platform/data-architecture/"
+
+priority:
+  now: P2
+  at_target: P1
+  factors: { N: 2, S: 1, B: 1, R: 1, D: 1, E: 1 }
+  score: 10
+  matrix_default: P2
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "MUST for S11 persistence; GATE-S08 already CANDIDATE so not a hard P1 interrupt"
+
+dependencies:
+  edges:
+    - type: ARCHITECTURAL
+      target: DATA-001
+      relation: requires
+      state: IN-FLIGHT
+    - type: ARCHITECTURAL
+      target: EPIC-005
+      relation: requires
+      state: IN-FLIGHT
+    - type: TECHNICAL
+      target: DATA-002
+      relation: related_to
+      state: READY
+  state: READY
+  enablement_count: 2
+  earliest_start: immediately
+  cycles: none
+
+breakdown:
+  children: []
+  completion_definition: >
+    ER + column sheets published; opportunity and suitability design DDL express
+    Lead BRD create/assign/meeting/dedupe/archive and Suitability BRD
+    save/resume/map/lock; no Flyway apply; no stage-field edit.
+  not_included:
+    - "Flyway apply"
+    - "DATA-002 W3/W4"
+    - "Term questionnaire"
+    - "Human signatures"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: DATA-003
+  plan_id: PLAN-010
+  status: ADMITTED
+  closed_reason: null
+
+resumed: "DATA-003 — no prior in-flight item on this agent lane; DATA-001 pack already drafted."
+```
 
 ### SUG-20261008-bnk · Bank RM AD-verify login e2e
 

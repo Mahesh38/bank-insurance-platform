@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 659
-total_bytes: 21213912
+document_count: 660
+total_bytes: 21227878
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -1382,6 +1382,14 @@ documents:
     title: "Justification / rebuttal — Why External ALB/NLB + Istio Ingress is **not** the superior choice for this R0 architecture"
     answers: "Purpose: Written response to the claim that “For your specific architecture, an External ALB/NLB paired with Istio Ingress Gateway inside EKS is the…"
     bytes: 15542
+  - path: docs/architecture/2026-10-09-MAHESH-CONTEMPLATION-BANK-STANDARD-ELB-ISTIO.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, orient]
+    persona: architecture
+    title: "Mahesh contemplation guide — Aligning R0 inbound to bank-standard External LB + Istio"
+    answers: "Standing: AI-drafted decision-prep under CR-017 / SUG-20261006-apg. Agents do not sign as Mahesh. If Mahesh later accepts a change, he records it in…"
+    bytes: 13452
   - path: docs/architecture/ARB-ARCHITECTURE-DOSSIER.md
     bucket: platform
     authority: approved-spec
@@ -2245,7 +2253,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 233206
+    bytes: 233720
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context

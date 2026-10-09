@@ -1513,9 +1513,14 @@ metric tag set (§7). Contract: [`07-PLATFORM-ERROR-CONTRACT.md`](../../journey-
 
 ## ADR-018 — North-south ingress is SaaS Cloudflare → SaaS F5-XC → API Gateway → Internal ALB (no public ALB)
 
+> **SUPERSEDED 2026-10-09 by [`ADR-023`](#adr-023--north-south-ingress-aligns-to-bank-standard-cloudflare--f5-xc--external-nlb--istio-ingress-api-gateway-withdrawn).**
+> Mahesh (Architecture owner) accepted bank-standard External LB + Istio for inbound.
+> Cloudflare / F5-XC SaaS perimeter and Apigee outbound (`ADR-020`) stand.
+
 ```yaml
 id: ADR-018
-status: PROPOSED
+status: SUPERSEDED
+superseded_by: ADR-023
 problem: >
   ADR-016 hop 1 and the 2026-08-25/27 diagrams assumed an External / public ALB in front of
   Amazon API Gateway, and drew Cloudflare and F5 as if they sat on AWS or in a platform VPC.
@@ -1566,24 +1571,31 @@ Evidence: existing AU Bank application architecture v1.4 (Atul Singh, reviewed M
 
 ---
 
-## ADR-020 — Split API plane: inbound Amazon API Gateway; outbound Apigee; 1SB never called from EKS
+## ADR-020 — Split API plane: inbound (amended by ADR-023) + outbound Apigee; 1SB never called from EKS
+
+> **Inbound clauses amended 2026-10-09 by [`ADR-023`](#adr-023--north-south-ingress-aligns-to-bank-standard-cloudflare--f5-xc--external-nlb--istio-ingress-api-gateway-withdrawn).**
+> Outbound Apigee, allowlist, private targets, identity, and env-model clauses stand.
 
 ```yaml
 id: ADR-020
 status: PROPOSED
+amended_by: ADR-023
 problem: >
   SPIKE-001 / ASM-013 treated Apigee as a possible replacement for Amazon API Gateway on
-  every hop. Human Architecture owner 2026-09-14 split the plane: RM/mobile ingress stays
-  on AWS API Gateway; every call that leaves the building (1SB, SMS, bank internal APIs)
+  every hop. Human Architecture owner 2026-09-14 split the plane: ingress and egress are
+  different products; every call that leaves the building (1SB, SMS, bank internal APIs)
   goes via Apigee. 1SB IP-whitelists the caller it sees — that caller is Apigee, not our
   NAT Elastic IPs. Publishing ADR-010 inspection-VPC EIPs to 1SB would allowlist the wrong
   host. Internal APIs must not hairpin Cloudflare/F5. Dev cost and bank onboarding default
   require Dev-inside-UAT and no CUG at R0. Workforce AD must not be bound over LDAP from EKS.
-context_stage: "WS-3 S08/S09; implements SUG-20260914-egr / uat / idp"
+  (Original inbound product was Amazon API Gateway per ADR-018; ADR-023 later replaced
+  inbound with NLB + Istio while keeping this outbound split.)
+context_stage: "WS-3 S08/S09; implements SUG-20260914-egr / uat / idp; inbound amended ADR-023"
 decision: >
-  INBOUND (front door). Unchanged from ADR-018 clauses 1–6: device → Cloudflare (SaaS) →
-  F5-XC (SaaS) → Amazon API Gateway → VPC Link → Internal ALB → nip-web / NIP BFF.
-  PG callbacks stay a separate API Gateway route (TB-6). Flutter never calls Apigee.
+  INBOUND (front door). As amended by ADR-023: device → Cloudflare (SaaS) →
+  F5-XC (SaaS) → Ingress NLB → Istio Ingress Gateway → nip-web / NIP BFF.
+  PG callbacks: Istio /callbacks/pg/* with PG IP allowlist (TB-6 / ADR-023 S8).
+  Flutter never calls Apigee. Amazon API Gateway is not on this path.
 
   OUTBOUND (loading dock). 1sb-integration-service, Notification, Payment session-create,
   Customer/EBS lookups and the workforce AD-verify call leave the cluster through the bank
@@ -1687,9 +1699,13 @@ Does not manufacture Board 6 or T4 Architecture signatures.
 
 ## ADR-022 — Inbound Amazon API Gateway is not replaceable by Istio at R0
 
+> **SUPERSEDED 2026-10-09 by [`ADR-023`](#adr-023--north-south-ingress-aligns-to-bank-standard-cloudflare--f5-xc--external-nlb--istio-ingress-api-gateway-withdrawn).**
+> Written as Option A defence; Architecture owner then accepted bank-standard LB+Istio.
+
 ```yaml
 id: ADR-022
-status: PROPOSED
+status: SUPERSEDED
+superseded_by: ADR-023
 problem: >
   Platform / landing-zone discussions are treating Istio (or a public load balancer plus
   Istio Ingress Gateway) as a drop-in replacement for Amazon API Gateway on the north-south
@@ -1753,4 +1769,102 @@ approvals:
 **Drafted:** agent, for Mahesh — Principal Insurance Platform Architect (Board 1 / R2) · 2026-10-06.
 Evidence pack: [`CR-017`](../../governance/change-requests/CR-017-inbound-api-gateway-vs-istio.md) ·
 [`platform-team note`](../../architecture/2026-10-06-PLATFORM-TEAM-NOTE-API-GATEWAY-VS-ISTIO.md).
-Does not manufacture T4 Architecture or Security signatures. Does not edit stage state.
+**Superseded:** 2026-10-09 by `ADR-023` (Mahesh Architecture-owner decision to align inbound to bank LB+Istio).
+
+---
+
+## ADR-023 — North-south ingress aligns to bank standard: Cloudflare → F5-XC → External NLB → Istio Ingress; API Gateway withdrawn
+
+```yaml
+id: ADR-023
+status: ACCEPTED
+problem: >
+  Bank infra standard and skill centre on External load balancer + Istio for service
+  ingress. Amazon API Gateway is non-standard in the bank estate and expertise is scarce,
+  creating S09 delivery and operability risk. ADR-018 / ADR-022 bound inbound to API Gateway;
+  Architecture owner Mahesh has now decided to align R0 inbound to the bank pattern while
+  preserving defence-in-depth security controls (private Keycloak, token-hiding BFF, F5
+  perimeter, PG-callback isolation, private workloads).
+context_stage: "WS-3 S08/S09 overlapped; CR-017 Option B accepted by Architecture owner 2026-10-09"
+decision: >
+  INBOUND (front door) — REPLACES ADR-018 clauses 1–6 for RM/mobile/partner/PG-callback:
+
+  1. North-south path is exactly:
+     device -> Cloudflare Enterprise (SaaS, not AWS, not in any VPC)
+            -> F5 Distributed Cloud / F5-XC (SaaS WAF, not AWS, not in any VPC)
+            -> Internet-facing Network Load Balancer (NLB) in public/DMZ subnets
+            -> Istio Ingress Gateway pods (private-app subnets)
+            -> nip-web (GET /*) | NIP BFF / workforce-access-bff (/api/*)
+     ALB may substitute for NLB only if bank platform standard requires ACM-at-LB;
+     security controls below still apply.
+
+  2. Amazon API Gateway is WITHDRAWN from R0 inbound (including PG-callback). Do not
+     provision API Gateway or VPC Link for this platform's north-south path.
+
+  3. Internal ALB is WITHDRAWN as the required path-routing Proxy 2. Path split lives on
+     Istio Gateway / VirtualService. Do not keep a second reverse-proxy hop "for habit."
+
+  4. Istio is ADMITTED to R0 (overturns CR-012 §3 mesh refusal for the scopes below):
+     - Istio Ingress Gateway (mandatory)
+     - Sidecar injection for application namespaces that carry business traffic
+       (ns:edge, core-sales, fulfilment, integration, platform as applicable)
+     - PeerAuthentication: PERMISSIVE only for a dated cutover window, then STRICT
+     - Retries/timeouts at mesh must not double-fire with Resilience4j business retries
+
+  5. SECURITY CONTROLS — NON-NEGOTIABLE (do not trade these for the LB+Istio swap):
+     S1. Cloudflare + F5-XC SaaS perimeter remains in front of the AWS LB.
+     S2. NLB/ALB Security Groups allow ONLY F5-XC (and Cloudflare if required) egress
+         CIDR pools; owner + refresh cadence recorded. No 0.0.0.0/0 to the LB.
+     S3. F5→origin MUST add a shared-secret header AND/OR mTLS so raw internet cannot
+         bypass F5 even if a CIDR is wrong.
+     S4. Workload pods, Keycloak, Aurora, Valkey, MSK, OpenSearch stay in private subnets.
+         No public Service for domain pods. EKS API endpoint remains private.
+     S5. Keycloak MUST NOT be exposed on Istio Ingress Gateway public routes. Flutter
+         never calls Keycloak or Apigee (ARCH-019 / ADR-020 identity clauses stand).
+     S6. Token-hiding BFF + Valkey session vault (ADR-011) unchanged. Istio must NOT
+         validate Flutter end-user JWTs as a substitute for BFF session + PDP.
+     S7. Business authZ remains identity-authorization-service (PDP). Istio
+         AuthorizationPolicy may enforce service identity / namespace rules only.
+     S8. PG callbacks (TB-6): dedicated Istio route (e.g. /callbacks/pg/*) with source
+         IP allowlist for AU Bank PG + signature verification in Payment service.
+         Not on the RM session VirtualService.
+     S9. Envoy request size limits + rate limits; per-principal counters stay on Valkey.
+     S10. Access logs: NLB/ALB flow + Envoy access logs feed ADR-013 operational pipe
+          (replacing API Gateway access logs). Logs are not regulatory evidence.
+     S11. NetworkPolicy retained as defence-in-depth alongside mesh mTLS (do not delete
+          on day one of STRICT).
+
+  6. OUTBOUND unchanged: Apigee remains the loading dock (ADR-020). 1SB never called
+     from EKS origins; Flutter never calls Apigee.
+
+  7. Cloudflare and F5 remain SaaS outside every VPC (ADR-018 drawing rules 3 stand).
+
+  8. This supersedes ADR-018 and ADR-022. Amends ADR-016 hop 1 and ADR-020 inbound
+     clauses. Does not amend Apigee outbound, identity planes, or data topology ADRs.
+authority_class: A3_JOINT_REVIEW
+origin: SUG-20261006-apg
+also: [CR-017, ADR-018, ADR-020, ADR-022, CR-012]
+supersedes: [ADR-018, ADR-022]
+amends: [ADR-016, ADR-020]
+security_impact: >
+  Public AWS entry moves from managed API Gateway to NLB+Istio. Compensating controls
+  S1–S11 are mandatory. Residual risk (mesh ops maturity, CIDR drift on F5 allowlists)
+  accepted by Architecture owner with platform-team operational ownership.
+compliance_impact: >
+  Edge evidence path changes from API Gateway logs to LB+Envoy logs — ADR-013 ingest
+  updated. PG-callback allowlist re-homed; signature verify unchanged.
+reversibility: LOW after F5 origins and PG allowlists bind to the NLB.
+revisit_trigger: >
+  Bank adopts API Gateway as standard; STRICT mTLS blocks a mandatory flow; mesh ops
+  cost exceeds envelope; F5 CIDR bypass incident.
+approvals:
+  - "Mahesh / Architecture — ACCEPTED 2026-10-09 (Architecture-owner decision; bank-standard align)"
+  - "Deepali / Security — AI-drafted compensating controls S1–S11; no separate human Security officer in-repo — residual risk recorded under Architecture owner"
+  - "Shivanshi / SRE — landing-zone request must ask for NLB+Istio, not API Gateway"
+```
+
+**Drafted:** agent, for Mahesh — Principal Insurance Platform Architect (Board 1 / R2) · 2026-10-09.  
+**Accepted:** Mahesh Architecture-owner decision 2026-10-09 (stakeholder instruction: switch to Istio + LB).  
+Companions: [`CR-017`](../../governance/change-requests/CR-017-inbound-api-gateway-vs-istio.md) ·
+[`contemplation guide`](../../architecture/2026-10-09-MAHESH-CONTEMPLATION-BANK-STANDARD-ELB-ISTIO.md) ·
+[`security cascade`](../../architecture/2026-10-09-ADR-023-SECURITY-CONTROL-MAP.md).

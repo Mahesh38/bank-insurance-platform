@@ -75,8 +75,14 @@ Kalpana sequence from `DEC-20260825-01` §11: S08 floor → W0b config layer →
 
 ### 4.1 W1 — Lead archive (D2, C-RET-1, INV-LED-08)
 
-**Today** (`schemas/04-opportunity.sql`): `state` CHECK is
-`NEW|ASSIGNED|CONTACTED|QUALIFIED|CONVERTED|DISQUALIFIED|EXPIRED`. No `ARCHIVED`. No `archived_at`.
+**2026-10-09:** archive **columns** (`ARCHIVED`, `archived_at`, named RET-7Y attribution) are in
+[`DATA-003`](./DATA-003.work-item.yaml) / [`04-opportunity.sql`](./schemas/04-opportunity.sql).
+The archive **mechanism** (partition vs archive table vs dump) remains joint Aarti/Mahesh
+(`DEC` §12). This item's W3/W4 remainder is unchanged.
+
+**Today** (`schemas/04-opportunity.sql` as of DATA-003): `state` CHECK includes `ARCHIVED` and
+`archived_at` is present. Pre-DATA-003 the CHECK was
+`NEW|ASSIGNED|CONTACTED|QUALIFIED|CONVERTED|DISQUALIFIED|EXPIRED` with no `archived_at`.
 
 **Need:**
 

@@ -48,10 +48,13 @@ not a document store problem. Revisit when a measured access pattern says otherw
 
 ```text
 opportunity.lead_id
+    ├── opportunity_assignment / opportunity_meeting / opportunity_follow_up
     └── journey.lead_id
             ├── customer.customer_snapshot.journey_id
             ├── consent.lead_id / journey_id
             ├── suitability.lead_id / journey_id
+            │       ├── suitability_answer_set (⚑ ciphertext)
+            │       └── suitability_mapping_run (INSERT-only evidence)
             ├── quotation.quote.journey_id ── offer.quote_id
             ├── proposal.proposal.quote_id / offer_id / journey_id
             │       └── payment.payment.proposal_id
@@ -64,7 +67,9 @@ administration.config      ──referenced as config version on originating row
 bank_persistence.audit_event.journey_id / resource_id   (append-only evidence)
 ```
 
-**Physical FK** exists only inside one schema (offer→quote, attempt→payment, assignment→opportunity).
+Lead + Suitability e2e ER and column sheets: [`03-lead-suitability-e2e.md`](./03-lead-suitability-e2e.md).
+
+**Physical FK** exists only inside one schema (offer→quote, attempt→payment, assignment/meeting/follow-up→opportunity, answer-set/mapping-run→suitability).
 A `journey_id CHAR(26)` on another schema is a **logical** reference. The owning service validates
 it exists via API before insert.
 
@@ -140,9 +145,9 @@ DDL: [`14-audit_event_delta.sql`](./schemas/14-audit_event_delta.sql). Apply as 
 | Schema | Tables | Immutable? |
 |---|---|---|
 | `customer` | `customer`, `customer_snapshot` | Snapshot write-once |
-| `opportunity` | `opportunity`, `opportunity_assignment`, `opportunity_follow_up`, `idempotency_record` | `accountable_sp_id` immutable; assignment append-only |
+| `opportunity` | `opportunity`, `opportunity_assignment`, `opportunity_meeting`, `opportunity_follow_up`, `idempotency_record`, `outbox_event` | First write of `accountable_sp_id` then immutable; assignment/meeting/follow-up append-only; `ARCHIVED` is a state not a delete. Column sheet: [`03-lead-suitability-e2e.md`](./03-lead-suitability-e2e.md) |
 | `consent` | `consent` | Evidence columns write-once; state may move to WITHDRAWN/EXPIRED |
-| `suitability` | `suitability`, `suitability_answer_enc` | COMPLETED row not updated (new row supersedes) |
+| `suitability` | `suitability`, `suitability_answer_set`, `suitability_mapping_run`, `idempotency_record`, `outbox_event` | Header mutable until `LOCKED`; answer sets INSERT-only; mapping `run_state` may move CURRENT→INVALID. Term has no row |
 | `catalogue` | `insurer`, `product`, `eligibility_band` | Effective-dated; no in-place replace of an active version |
 | `quotation` | `quote`, `offer`, `idempotency_record` | Offer selection is one transaction (INV-QUO-05) |
 | `proposal` | `proposal`, `uw_requirement`, `uw_document_ref`, `idempotency_record` | Form values are a ref only (INV-PRP-05) |
@@ -169,9 +174,9 @@ Idempotency is a small table **inside** each mutating schema (`key`, `request_ha
 | bank_persistence | `ux_audit_journey_sequence` **(add with delta)** | Gap detection |
 | customer | `ux_customer_cif_hash` | ETB lookup without indexing CIF |
 | customer | `ix_snapshot_journey` | Frozen profile by journey |
-| opportunity | `ix_opp_customer_lob`, `ix_opp_state_expires`, `ix_opp_insurer_visible` | Book, ageing, IPR predicate |
+| opportunity | `ix_opp_customer_lob`, `ix_opp_state_expires`, `ix_opp_insurer_visible`, `ix_opp_inbox_sp`, `ix_opp_inbox_ipr`, `ux_opp_dedupe_open` | Book, ageing, IPR predicate, working inbox, creator+customer+productClass dedupe |
 | consent | `ix_consent_customer_state`, `ix_consent_journey` | INV-PRP-01 lookup |
-| suitability | `ix_suit_customer_lob_state` | INV-QUO-01 lookup |
+| suitability | `ix_suit_customer_lob_state`, `ux_suit_lead_current`, `ux_suit_map_current` | INV-QUO-01 lookup; one current assessment per lead; one CURRENT mapping |
 | catalogue | `ix_product_effective`, `ix_elig_product` | Read path + cache fill |
 | quotation | `ix_quote_journey`, `ix_offer_quote_state` | Selection / conversion |
 | proposal | `ix_proposal_journey`, `ux_proposal_application` | Status + insurer number |
@@ -216,7 +221,10 @@ CRUD stored procedures are **refused** (`DR-SP-01`).
 |---|---|---|---|
 | `fn_prevent_update_delete` | trigger fn | With each immutable table | Reject `UPDATE`/`DELETE` |
 | `fn_protect_consent_evidence` | trigger fn | Consent | Allow state/withdrawal columns only |
-| `fn_accountable_sp_immutable` | trigger fn | Opportunity (and copies) | INV-ACT-03 |
+| `fn_accountable_sp_immutable` | trigger fn | Opportunity (and copies) | INV-ACT-03 — first NULL→value allowed |
+| `fn_lead_origination_immutable` | trigger fn | Opportunity | `lead_id` / `lob` / `product_class` / creator / `source` frozen |
+| `fn_protect_answer_set` | trigger fn | Suitability | Answer ciphertext INSERT-only |
+| `fn_protect_mapping_run` | trigger fn | Suitability | Mapping evidence frozen; `run_state` may change |
 | `fn_next_audit_sequence` | function | With audit delta | Allocate `sequence_no` per `journey_id` |
 | `fn_ipr_visible` | function | Opportunity / journey | Documents the `AC-4` SQL predicate |
 | `sp_retention_sweep` | procedure | **S09** | Selects rows past `retain_until` for the owning job; does not cross schemas |
@@ -228,8 +236,8 @@ Bodies: [`90-routines.sql`](./schemas/90-routines.sql).
 
 ## 7. Load, bottleneck, safe range
 
-R0 business load: one RM, one ETB customer, one Term Life policy, one Group A insurer
-([`BOOT.md` WS-3 objective](../../context/BOOT.md)).
+R0 business load: one RM, one ETB customer, one Life policy (Term or Savings/ULIP per CR-015),
+one Group A insurer ([`BOOT.md` WS-3 objective](../../context/BOOT.md)).
 
 | Amplification | Path |
 |---|---|

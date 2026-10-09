@@ -706,6 +706,8 @@ capsules:
         path: "docs/platform/data-architecture/README.md"
       - condition: "alignment of the physical pack with CR-013 / Lead archive / MIS / issuanceMode"
         path: "docs/platform/data-architecture/DATA-002-cr013-alignment.md"
+      - condition: "Lead or Suitability e2e tables, ER or R0 DDL for those two contexts"
+        path: "docs/platform/data-architecture/03-lead-suitability-e2e.md"
     output: "DB verdict + severity `D0`–`D3` + integrity/recovery guarantees the platform may rely on."
     never:
       - "Let application scaling override a DB limit."

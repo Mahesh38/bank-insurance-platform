@@ -1,9 +1,9 @@
 # Mahesh contemplation guide — Aligning R0 inbound to bank-standard External LB + Istio
 
 **Audience:** Mahesh (Architecture owner — the only real human decision-maker for topology in this programme’s current operating model)  
-**Status:** **Thinking / contemplation — not an ADR, not an acceptance.**  
+**Status:** **SUPERSEDED as contemplation — decision taken 2026-10-09.** Binding outcome is [`ADR-023`](../platform/architecture-review/08-architecture-decision-log.md) (Accepted). This file remains as process evidence.  
 **Date:** 2026-10-09  
-**Standing:** AI-drafted decision-prep under [`CR-017`](../governance/change-requests/CR-017-inbound-api-gateway-vs-istio.md) / `SUG-20261006-apg`. Agents do not sign as Mahesh. If Mahesh later **accepts** a change, he records it in an ADR; diagrams follow the ADR (`HA-02`), never the reverse.
+**Standing:** AI-drafted decision-prep under [`CR-017`](../governance/change-requests/CR-017-inbound-api-gateway-vs-istio.md) / `SUG-20261006-apg`. Architecture owner subsequently accepted Option B; cascade follows ADR-023 + S1–S11 (`HA-02`).
 
 **Context Mahesh is weighing**
 

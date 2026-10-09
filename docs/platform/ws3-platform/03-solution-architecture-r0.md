@@ -30,8 +30,12 @@ adds the three new dependency classes; §7 adds FF-22…FF-28; §8 adds the tier
 gates, the actor model, one Aurora cluster (`ADR-008`), and every fail-closed rule.
 
 **Revision 2026-09-14 — split API plane** (`ADR-020`): §4 component view and deployment properties
-draw **Apigee on egress only**. Inbound stays Amazon API Gateway (`ADR-018`). 1SB allowlists
-Apigee IPs. Internal bank APIs (AD-verify, EBS) use Apigee private targets.
+draw **Apigee on egress only**. 1SB allowlists Apigee IPs. Internal bank APIs (AD-verify, EBS)
+use Apigee private targets.
+
+**Revision 2026-10-09 — bank-standard inbound** (`ADR-023`): Inbound is Cloudflare → F5-XC →
+**ingress NLB** → **Istio Ingress Gateway**. Amazon API Gateway and Internal ALB-as-Proxy-2 are
+withdrawn. Security controls S1–S11 are mandatory. Apigee outbound unchanged.
 
 **Companions:** [`04-security-architecture.md`](./04-security-architecture.md) ·
 [`05-nfr-catalogue.md`](./05-nfr-catalogue.md) ·
@@ -178,12 +182,12 @@ graph TB
         F5["F5 Distributed Cloud / F5-XC (WAF)"]
     end
 
-    subgraph Edge["AWS managed edge — not in the VPC"]
-        APIGW["API Gateway"]
+    subgraph Edge["AWS edge — public/DMZ"]
+        NLB["Ingress NLB<br/>SG = F5/CF CIDRs only"]
     end
 
-    subgraph EKS["EKS — ap-south-1, private subnets"]
-        IALB["Internal ALB<br/>only load balancer · only hop in the VPC"]
+    subgraph EKS["EKS — ap-south-1, private subnets + Istio"]
+        ISTIO["Istio Ingress Gateway<br/>path split · mesh mTLS"]
         NIPW["nip-web<br/>Flutter web, image-baked"]
         BFF["NIP BFF #2"]
         subgraph WS2["WS-2 identity enabler"]
@@ -225,9 +229,9 @@ graph TB
         AD["Bank AD-verify API"]
     end
 
-    FL --> CF --> F5 --> APIGW --> IALB
-    IALB --> NIPW
-    IALB --> BFF
+    FL --> CF --> F5 --> NLB --> ISTIO
+    ISTIO --> NIPW
+    ISTIO --> BFF
     CDEV -->|"payment link only"| PG_BANK
     BFF --> IDPA
     BFF --> AUTHZ
@@ -268,16 +272,16 @@ graph TB
 |---|---|
 | Region | `ap-south-1`; DR `ap-south-2`. Non-negotiable — control C6 |
 | Compute | EKS, per ARCH-002. Every service stateless at pod level |
-| Perimeter & Edge Ingress | **Cloudflare Enterprise (SaaS, not AWS, not in any VPC)** → **F5 Distributed Cloud / F5-XC (SaaS WAF, not AWS, not in any VPC)** → **Amazon API Gateway** (inbound Proxy 1 of 2; first AWS hop) → **Internal ALB** (Proxy 2 of 2; the only load balancer, and the only hop inside the VPC). **No public / External ALB.** **Apigee is outbound only** (`ADR-020`) — not on the RM/mobile front door. Every service, datastore, cache node, broker and search domain is in a private subnet |
+| Perimeter & Edge Ingress | **Cloudflare Enterprise (SaaS)** → **F5-XC (SaaS WAF)** → **internet-facing NLB** (SG = F5/CF CIDRs; F5 shared-secret and/or mTLS) → **Istio Ingress Gateway** (path split to nip-web / BFF / PG-callback). Amazon API Gateway **withdrawn** (`ADR-023`). **Apigee is outbound only** (`ADR-020`) — not on the RM/mobile front door. Keycloak, domain pods, datastores stay private (S4–S5). Mesh authZ ≠ insurance PDP (S7) |
 | **Bank connectivity** (`ADR-009`) | **EBS APIs (CBS / CIF)** and Bank AD are reached by **attaching as a spoke** to the existing `AU-CTO-NETWORK` Transit Gateway — not a second hub. Site-to-Site VPN from day one; Direct Connect via the **existing** DX Gateway. `dev` may stub them; **`uat` and `prod` may not**. A journey evidenced against a stub is not evidence. Workload VPCs have **no IGW** |
-| **Egress** (`ADR-010` + `ADR-020`) | 100% of egress and inter-VPC traffic is inspected on the hop **pod → Apigee**: TGW → AWS Network Firewall → **Apigee**. Domain allowlist, drop-by-default. **1SB allowlists Apigee IPs, not spoke NAT EIPs.** Internal Apigee targets stay private (no Cloudflare/F5 hairpin). The 1SB mTLS session is passed intact rather than decrypted. This is not a mesh and does not replace `NetworkPolicy` |
+| **Egress** (`ADR-010` + `ADR-020`) | 100% of egress and inter-VPC traffic is inspected on the hop **pod → Apigee**: TGW → AWS Network Firewall → **Apigee**. Domain allowlist, drop-by-default. **1SB allowlists Apigee IPs, not spoke NAT EIPs.** Internal Apigee targets stay private (no Cloudflare/F5 hairpin). The 1SB mTLS session is passed intact rather than decrypted. East–west uses Istio STRICT mTLS **plus** retained `NetworkPolicy` (`ADR-023` S11) |
 | **Cache** (`ADR-011`) | One ElastiCache for Valkey replication group per environment: BFF sessions, an L2 read-through layer behind the in-process L1, and per-principal rate-limit counters. Per-service ACL user and key prefix. **Never** idempotency, a system of record, or a way to serve configuration past TTL |
 | **Event backbone** (`ADR-012`) | Amazon MSK, 3 brokers, SASL/IAM per topic, fed by the **transactional outbox, which remains the source of truth**. No regulatory evidence exists only in a topic |
 | **Operational search** (`ADR-013`) | One VPC-only OpenSearch domain per environment for application, firewall, flow and broker logs, 30 d hot → delete at 90 d. It holds no evidence and satisfies no gate |
 | Customer device | Reaches the **payment gateway only**, never a platform service. That is what makes C4 an architecture property rather than a UI convention |
 | Database | **Ownership per context, one cluster at R0** (`ADR-008`, amending `ARCH-004`). Each context owns its own schema with its own credential and its own migration history, and no service reads another's tables — that half is invariant. The physical topology is not: R0 runs **one Aurora cluster with a schema per context**, and the first physical split follows the **LOB-cell / shared-platform seam**, not the service boundary. The existing shared `bank-persistence-service` stays scoped to the integration job/correlation store and audit ingestion — it is **not** extended to the R0 business contexts |
 | Render.com | Dev preview only. Never a PII data path. See ADR-001 in [`../architecture-review/08-architecture-decision-log.md`](../architecture-review/08-architecture-decision-log.md) |
-| **Partner (IPR) exposure** | The partner surface enters through the **same** API Gateway and the same BFF contract as the RM surface. There is no partner-specific service and no partner-specific journey path (`AC-3`); the difference is entirely the PDP decision and the query-layer scope (`AC-5`) |
+| **Partner (IPR) exposure** | The partner surface enters through the **same** NLB + Istio Ingress and the same BFF contract as the RM surface. There is no partner-specific service and no partner-specific journey path (`AC-3`); the difference is entirely the PDP decision and the query-layer scope (`AC-5`) |
 | **Actor scoping** | Every read on behalf of an `INSURER_PARTNER_REP` principal is constrained at the persistence layer by `insurer_id` **and** the `AC-4` visibility predicate. A repository method that can be called without them does not exist (`FF-17`) |
 | **LOB** | `lob` is a non-null column on every business and configuration table from the first migration (`LB-1`). Physical partitioning at R0 is an index prefix, not a partition key (`DATA-001` / OPEN-I6); the logical dimension is not negotiable |
 | **Configuration** | One store, LOB-partitioned, append-only versioned, effective-dated, seeded from source-controlled artefacts. Services resolve through a port and cache to the resolution TTL; no service embeds a rule (`CF-1`…`CF-4`) |

@@ -4,19 +4,19 @@
 **Owner:** Mahesh — Principal Insurance Platform Architect (Board 1)
 **Consumers:** CTO; AWS platform / landing-zone team; **Shivanshi** (SRE, Board 7 — provisions and operates); **Deepali** (Security — trust boundaries, IAM, KMS); **Aarti** (Database — Aurora/DynamoDB/S3 physical design)
 **Status:** `AI-DRAFTED`. This file is the S09 *requirements pack*. It is **not** an approval to apply Terraform. Mandatory reviews before first `apply` to a non-dev account: Architecture (human T4), Security (human), Database, SRE, Compliance (residency and WORM).
-**Date:** 2026-08-20 · **revised** 2026-08-24 · **revised** 2026-08-25 (`ADR-014`, `ADR-015`) · **revised** 2026-08-31 (`ADR-018`, attach to existing `AU-CTO-NETWORK`) · **revised** 2026-09-14 (`ADR-020` split API plane)
-**Origin:** `SUG-20260820-hl1` · **revision** `SUG-20260824-gp1` … `gp5` ([`CR-012`](../governance/change-requests/CR-012-r0-platform-robustness.md)) · **revision** `SUG-20260825-ll1` · **revision** `ADR-015` (one NIP-APP; `ns:edge` is nip-web + #2 NIP BFF only)
+**Date:** 2026-08-20 · **revised** 2026-08-24 · **revised** 2026-08-25 (`ADR-014`, `ADR-015`) · **revised** 2026-08-31 (`ADR-018`, attach to existing `AU-CTO-NETWORK`) · **revised** 2026-09-14 (`ADR-020` split API plane) · **revised** 2026-10-09 (`ADR-023` NLB + Istio; API Gateway withdrawn)
+**Origin:** `SUG-20260820-hl1` · **revision** `SUG-20260824-gp1` … `gp5` ([`CR-012`](../governance/change-requests/CR-012-r0-platform-robustness.md)) · **revision** `SUG-20260825-ll1` · **revision** `ADR-015` (one NIP-APP; `ns:edge` is nip-web + #2 NIP BFF only) · **revision** `ADR-023` / `CR-017` Option B
 
 > **Revision 2026-08-24 — R0 robustness round.** Five layers that were deferred are now **in R0**,
 > under `ADR-009` … `ADR-013`: hybrid bank connectivity (**attach** to the existing `AU-CTO-NETWORK`
 > Transit Gateway + VPN now, Direct Connect via the **existing** DX Gateway), centralised egress inspection (AWS Network Firewall), a managed cache
 > tier (ElastiCache for Valkey), an event backbone (Amazon MSK, **with the transactional outbox
 > retained as its source of truth**) and an operational search pipe (Amazon OpenSearch). What did
-> **not** change: the service mesh stays out, the analytics warehouse stays out, one Aurora cluster
+> **not** change at that revision: analytics warehouse stays out, one Aurora cluster
 > stays (`ADR-008`), idempotency stays in the owning service's store, configuration still fails
 > closed, and no regulatory evidence lives in a topic or an index. §1.4 states the per-environment
 > shapes, because the cheapest way to make this set unaffordable is to build production three
-> times.
+> times. *(Mesh deferral from this revision is **overturned** by `ADR-023` — see 2026-10-09.)*
 >
 > **Revision 2026-08-25 — ADR-015 NIP-APP.** One Flutter enterprise client (web + APK + IPA).
 > RM, IPR, admin and ops are **roles**, not applications. `ns:edge` holds **nip-web** and
@@ -24,11 +24,17 @@
 > on the App Store. `#18` Reporting & MIS stays R0 W4 on the isolated read path (`C-ISO-1`).
 > Glue/Athena/Redshift/QuickSight stay **out**.
 >
-> **Revision 2026-09-14 — ADR-020 split API plane.** Inbound stays Cloudflare → F5-XC →
-> Amazon API Gateway (`ADR-018`). Outbound (1SB, SMS, bank internal APIs, AD-verify) leaves
-> via **Apigee**; 1SB allowlists **Apigee IPs**, not spoke NAT EIPs. Five Control Tower
-> accounts (`dev` is a VPC inside the UAT account). No CUG at R0. Workforce AD-verify is
-> the existing bank API via Apigee private — never LDAP from EKS.
+> **Revision 2026-09-14 — ADR-020 split API plane.** Outbound (1SB, SMS, bank internal APIs,
+> AD-verify) leaves via **Apigee**; 1SB allowlists **Apigee IPs**, not spoke NAT EIPs. Five
+> Control Tower accounts (`dev` is a VPC inside the UAT account). No CUG at R0. Workforce
+> AD-verify is the existing bank API via Apigee private — never LDAP from EKS. *(Inbound
+> clause of this revision is **amended** by `ADR-023` — see below.)*
+>
+> **Revision 2026-10-09 — ADR-023 bank-standard inbound.** Inbound is Cloudflare → F5-XC →
+> **internet-facing NLB** → **Istio Ingress Gateway** (path split to nip-web / BFF /
+> PG-callback). Amazon API Gateway and Internal ALB-as-Proxy-2 are **withdrawn**. Security
+> controls S1–S11 are non-negotiable (`2026-10-09-ADR-023-SECURITY-CONTROL-MAP.md`). Apigee
+> outbound (`ADR-020`) and private Keycloak / token-hiding BFF / PDP stand unchanged.
 **Picture this document walks:** [`r0-lld.svg`](./r0-lld.svg)
 **Platform-team deployment views** (generated — see [`diagrams/`](./diagrams/README.md)): [`topology`](./r0-platform-topology.svg) · [`availability zones`](./r0-platform-az.svg) · [`DR`](./r0-platform-dr.svg) · [`sequence`](./r0-platform-sequence.svg) · [`payment path`](./r0-platform-payment.svg)
 **Companion HLD:** [`R0-HLD.md`](./R0-HLD.md) · [`r0-reference-architecture.svg`](./r0-reference-architecture.svg)
@@ -76,13 +82,14 @@ Aurora connection budget).
 | 2 | **Amazon VPC** × environment | Network | 3 AZs, public + private-app + private-data subnets. See §2 |
 | 3 | **NAT Gateway** × AZ, **in the egress VPC** | Spoke egress with **fixed Elastic IPs** | Remaining internet destinations (toward Apigee / other allowlisted hosts). **Not** the 1SB allowlist — 1SB allowlists **Apigee egress IPs** (`ADR-020`). Do not publish these EIPs to 1SB. **Moved** out of the workload VPCs by `ADR-010` — see §2.3 |
 | 4 | **Amazon Route 53** | Public and private DNS | Hosted zone per env; no latency-based DR routing in R0 |
-| 5 | **Cloudflare Enterprise (CDN & DDoS)** — **SaaS, not AWS, not in any VPC** | Edge CDN in front of the API **and** the RM/admin web UIs | Bank standard, matching the existing AU Bank application perimeter. TLS 1.3; origin = F5-XC (SaaS) → API Gateway (which VPC-links to the internal ALB). Static Flutter/admin assets are served from `nip-web` through that same chain — **not** a public S3 website and **not** a PVC. Logs stay in `ap-south-1`. Authenticated JSON is **never** cached |
-| 6 | **F5 Distributed Cloud / F5-XC (Advanced WAF)** — **SaaS, not AWS, not in any VPC** | Bank standard L7 Web Application Firewall | Same product the existing banking application already uses on the north-south path. Enforces InfoSec policy, OWASP Top 10, bot protection, and layer-7 rate limits. **Not** an F5 BIG-IP appliance we place in AWS or in a platform VPC (`ADR-018`) |
-| 7 | **External / public ALB** | — | **WITHDRAWN (`ADR-018`).** Do not provision. The current banking application's Public ALB is that application's AWS entry; this platform's AWS entry is API Gateway |
-| 8 | **Amazon API Gateway** (REST or HTTP API) | Managed **inbound** API governance proxy | Request validation, throttling, payload inspection, no business logic. VPC Link to internal ALB. **Ingress only** (`ADR-018`, `ADR-020`). Flutter never calls Apigee |
-| 8a | **Apigee (bank outbound API plane)** — **not AWS, not Terraform** | Loading dock for every call that leaves the building | Onboard NIP as an Apigee product (`DEP-20260914-apg`). Adapter HTTP base URL = Apigee proxy, never a 1SB origin. Internal targets (AD-verify, EBS) stay **private** — no Cloudflare/F5 hairpin. 1SB allowlists **Apigee IPs** |
-| 9 | **Application Load Balancer** (internal) | Reverse proxy **inside** the VPC: Gateway → EKS | Internal scheme. Public ALB is **not** used directly for internal services |
-| 9 | **Amazon EKS** × environment | All microservices | Kubernetes 1.30+ (platform current). Private API endpoint. See §3 |
+| 5 | **Cloudflare Enterprise (CDN & DDoS)** — **SaaS, not AWS, not in any VPC** | Edge CDN in front of the API **and** the RM/admin web UIs | Bank standard. TLS 1.3; origin = F5-XC (SaaS) → **internet-facing NLB** → **Istio Ingress Gateway** (`ADR-023`). Static Flutter/admin assets from `nip-web` on that chain — **not** a public S3 website and **not** a PVC. Authenticated JSON is **never** cached |
+| 6 | **F5 Distributed Cloud / F5-XC (Advanced WAF)** — **SaaS, not AWS, not in any VPC** | Bank standard L7 Web Application Firewall | OWASP Top 10, bot protection, L7 rate limits. **Not** an in-VPC F5 BIG-IP. Must present shared-secret header and/or mTLS to origin (`ADR-023` S3) |
+| 7 | **Internet-facing Network Load Balancer (NLB)** | First **AWS** hop (bank-standard entry) | Public/DMZ subnets. Targets Istio Ingress Gateway pods. **SG allowlist = F5 (+ Cloudflare) egress CIDRs only** — never 0.0.0.0/0 (`ADR-023`). ALB variant only if bank ACM-at-LB standard requires it |
+| 8 | **Istio** (Ingress Gateway + sidecars) | Cluster ingress + east–west mTLS | Ingress Gateway does path split (`/*` → nip-web, `/api/*` → BFF, `/callbacks/pg/*` → PG callback). Sidecars in app namespaces; PeerAuthentication → **STRICT** after dated PERMISSIVE cutover. **Admitted by `ADR-023`** (overturns prior mesh deferral) |
+| 8a | **Apigee (bank outbound API plane)** — **not AWS, not Terraform** | Loading dock for every call that leaves the building | Unchanged (`ADR-020`). Adapter base URL = Apigee proxy. 1SB allowlists **Apigee IPs**. Flutter never calls Apigee |
+| 8b | **Amazon API Gateway** | — | **WITHDRAWN (`ADR-023`).** Do not provision for inbound or PG-callback |
+| 8c | **Internal ALB** (path-routing Proxy 2) | — | **WITHDRAWN as required hop (`ADR-023`).** Path routing is Istio’s job |
+| 9 | **Amazon EKS** × environment | All microservices + Istio | Kubernetes 1.30+ (platform current). Private API endpoint. See §3 |
 | 10 | **Amazon ECR** | Images | Immutable tags; scan on push; replicate to `ap-south-2` for DR images |
 | 11 | **Amazon Aurora PostgreSQL** | **One** cluster, schema per bounded context | Multi-AZ writer + reader. See §5. **ADR-008** |
 | 12 | **Amazon DynamoDB** | Journey state, quote/proposal jobs, audit event store, BFF session option | PITR on; encryption with CMK |
@@ -99,7 +106,7 @@ Aurora connection budget).
 | 21 | **Amazon SNS** + **Amazon SQS** (optional, thin) | Outbox worker wake-up / notification send queue | Not an event bus. Do **not** introduce MSK because SQS exists |
 | 22 | **AWS Backup** | Aurora, DynamoDB, EBS (if any) | Meeting `NFR-DR-02` RPO ≤ 5 min for transactional core |
 | 23 | **VPC endpoints** | S3, DynamoDB, Secrets Manager, ECR, STS, Logs | Stop Secrets and ECR pulling via NAT |
-| 24 | **AWS Certificate Manager** | Public certs for API Gateway; private for internal ALB if used | |
+| 24 | **AWS Certificate Manager** | Public/private certs for Istio Gateway TLS (or ALB if ALB variant); mesh trust anchors per platform standard | |
 
 #### Added by the 2026-08-24 robustness round
 
@@ -131,9 +138,11 @@ Shorter than it was, and the survivors are here on their own reasoning rather th
 | AWS service | Why it appears in target-state docs | Why it is out of R0 |
 |---|---|---|
 | **Second / per-service Aurora clusters** | Misreading of `ARCH-004` | `ADR-008` — one cluster, schema per context |
-| **Public RDS / public ALB to a service / public EKS / public OpenSearch** | Convenience | Standing constraint: only API Gateway is public. The search domain is VPC-only (`ADR-013`) |
+| **Public RDS / public Service on domain pods / public EKS API / public OpenSearch** | Convenience | Standing constraint (`ADR-023`): only the **ingress NLB** (and bank SaaS) are internet-facing. Pods and data plane stay private. Search domain VPC-only (`ADR-013`) |
 | **Amazon Cognito as the R0 IdP** | Older review text | `ARCH-018` — Keycloak first, adapter-neutral |
-| **Istio / AWS App Mesh** | Target mesh | Still out. R0: NetworkPolicy + IRSA + in-app timeouts/breakers, now with L7 **egress** inspection (`ADR-010`) — which is not a mesh and does not pretend to be. Mesh is an S14 conversation |
+| **Amazon API Gateway** (inbound or PG-callback) | Former `ADR-018` | **Withdrawn** — `ADR-023`. Bank standard is NLB + Istio |
+| **Internal ALB as north–south path router** | Former Proxy 2 | **Withdrawn** — Istio Ingress owns path split (`ADR-023`) |
+| **AWS App Mesh** (instead of Istio) | AWS mesh product | Bank standard is **Istio**; do not run two meshes |
 | **AWS Glue ETL / Athena / Redshift / QuickSight** | Analytics warehouse | **Still out of R0.** `#18` Reporting & MIS **is** in R0 (`ADR-014`) as an isolated **read path** (events / replica / extract consumed from `ns:jobs`) — that is not a warehouse. Glue **Schema Registry** (#32) is in; Glue ETL is not |
 | **MSK Replicator / MirrorMaker to `ap-south-2`** | Target cross-region backbone | `ADR-012`: the outbox is in Aurora and Aurora is replicated, so events are reproducible by replay. A broker replica is a second copy of something already recoverable |
 | **ElastiCache as an idempotency or evidence store** | Target cache tier names it | `ADR-011` refuses it. Idempotency must be atomic with the business write (`INV-IDM-01`, `INV-PAY-04`); a cache cannot be |
@@ -144,9 +153,10 @@ Shorter than it was, and the survivors are here on their own reasoning rather th
 | **Customer-facing CloudFront distribution for DIY** | `#1` Customer BFF | R1 |
 | **Render.com as an environment** | Existing `render.yaml` | Dev-preview **only**. Never PII, never a gate artefact (`ADR-001`) |
 | **Any resource outside `ap-south-1` except DR replicas in `ap-south-2`** | — | Control C6, `FF-08` |
-| **Apigee as an R0 AWS / Terraform resource** | Bank API plane (`SUG-20260831-apg`) | **Not provisioned in our accounts.** Onboard as a bank product (`ADR-020`, BOM #8a). Drawn on **egress only**. Amazon API Gateway remains inbound Proxy 1 |
-| **A second Transit Gateway, a second Direct Connect, a Public VPC + IGW + VPC peering copied from the existing banking app** | The live estate already has `AU-CTO-NETWORK` TGW, DX Gateway, EDGE VPC | Attach as a **spoke**. Do not clone the current app's Public VPC / Public ALB / peering pattern (`ADR-009` as amended 2026-08-31) |
-| **Internet Gateway on a workload VPC** | Convenience for a public ALB | Workload VPCs have **no IGW**. The only IGW is on the inspection / EDGE path |
+| **Apigee as an R0 AWS / Terraform resource** | Bank API plane (`SUG-20260831-apg`) | **Not provisioned in our accounts.** Onboard as a bank product (`ADR-020`, BOM #8a). Drawn on **egress only** |
+| **A second Transit Gateway, a second Direct Connect, or cloning EDGE as a second hub** | The live estate already has `AU-CTO-NETWORK` TGW, DX Gateway, EDGE VPC | Attach as a **spoke** (`ADR-009`) |
+| **Internet Gateway on private-app / private-data subnet route tables** | Convenience | Pods stay private. Public/DMZ subnets for the **ingress NLB only** (`ADR-023`); do not give domain pods public IPs |
+| **Public Istio routes to Keycloak / data plane** | Misuse of Gateway | Forbidden (`ADR-023` S5, S4) |
 
 ### 1.4 Per-environment shapes — the reason this set is affordable
 
@@ -196,23 +206,24 @@ TRANSIT GATEWAY — attach to the existing `AU-CTO-NETWORK` hub (`ADR-009`)  (§
 └── route table: dr       ap-south-2 attachment for the warm standby (D16)
 ```
 
-The workload VPCs keep their public subnets **reserved and empty**: subnets cannot be added later
-without renumbering, and holding three /24s costs nothing. What they no longer hold is a NAT
-gateway **or an Internet Gateway** — egress is centralised (`ADR-010`), and ingress is Cloudflare
-→ F5-XC (SaaS) → Amazon API Gateway (`ADR-018`). Do not copy the existing banking application's
-Public VPC + IGW + Public ALB + VPC-peering pattern.
+Workload VPC **public/DMZ subnets** hold the **internet-facing NLB only** (`ADR-023`). They are
+not a place for NAT, domain pods, or a public ALB in front of every service. Private-app and
+private-data route tables still have **no** Internet Gateway and **no** local NAT — egress is
+centralised (`ADR-010`). Do not copy the existing banking application's Public VPC + IGW +
+Public ALB + VPC-peering pattern as the *whole* app front door; the NLB is a narrow, CIDR-locked
+entry that targets Istio Ingress Gateway pods only.
 
 | Control | Requirement |
 |---|---|
-| Internet-facing | Cloudflare + F5-XC (SaaS) + API Gateway only. **No** public NLB/ALB onto EKS. No public OpenSearch endpoint, no public broker listener |
+| Internet-facing | Cloudflare + F5-XC (SaaS) + **ingress NLB** (SG = F5/CF CIDRs only; F5 shared-secret and/or mTLS — `ADR-023` S1–S3). **No** public Service/NodePort on domain pods. No public OpenSearch endpoint, no public broker listener. Keycloak never on public Istio routes (S5) |
 | EKS API | Private endpoint; `publicAccess = false` in prod |
 | Data subnets | No 0.0.0.0/0 route. Aurora, ElastiCache, MSK and OpenSearch cannot initiate internet traffic |
-| Egress | Default route is the **Transit Gateway**, never a local NAT. Provider and leaving-the-building HTTPS: TGW → **Network Firewall** (Deepali still accepts this hop on **pod → Apigee**) → Apigee → target (`ADR-020`). **1SB allowlists Apigee IPs, not these NAT EIPs.** Do not publish the inspection-VPC EIP list to 1SB |
+| Egress | Default route from private-app/data is the **Transit Gateway**, never a local NAT. Provider and leaving-the-building HTTPS: TGW → **Network Firewall** (Deepali still accepts this hop on **pod → Apigee**) → Apigee → target (`ADR-020`). **1SB allowlists Apigee IPs, not these NAT EIPs.** Do not publish the inspection-VPC EIP list to 1SB |
 | Bank-directed | CBS/CIF and AD-verify reachable **via Apigee private targets** (`ADR-020`), not by hairpinning Cloudflare/F5, and not by LDAP from EKS to AD. Stubs in `dev` only |
-| East-west, in cluster | Kubernetes `NetworkPolicy` default-deny per namespace; allow only documented seams. Unchanged by `ADR-010` — the firewall inspects north-south and inter-VPC, not pod-to-pod |
+| East-west, in cluster | Istio PeerAuthentication → **STRICT** after dated PERMISSIVE cutover **plus** Kubernetes `NetworkPolicy` default-deny (`ADR-023` S11). Firewall still does not replace pod-to-pod controls |
 | East-west, inter-VPC | No VPC peering. Everything transits the TGW, so it is inspected and logged |
-| DNS | Private hosted zone for `*.svc.cluster.local` plus `internal.{env}.insurance.aubank.local` for the internal ALB. Bank zones resolved by inbound Route 53 Resolver endpoints over the TGW |
-| Flow logs | VPC, TGW and firewall flow/alert logs to CloudWatch and to OpenSearch (`ADR-013`), `RET-OPERATIONAL` |
+| DNS | Private hosted zone for `*.svc.cluster.local` plus mesh/internal DNS for Istio Gateway. Bank zones resolved by inbound Route 53 Resolver endpoints over the TGW |
+| Flow logs | VPC, TGW, firewall, **NLB and Envoy** access/flow logs to CloudWatch and to OpenSearch (`ADR-013`, `ADR-023` S10), `RET-OPERATIONAL` |
 
 **CBS and Bank AD are bank-internal, and R0 now provisions the path to them rather than deferring
 it** (`ADR-009`, §2.2). The previous position — "either Direct Connect / VPN or a bank-hosted
@@ -238,14 +249,15 @@ separated. Pin AZ **IDs** (`aps1-az1…`), or let the module take the first thre
 
 | Resource | AZ-A | AZ-B | AZ-C | Placement rule | Why this number |
 |---|---|---|---|---|---|
-| Public subnet | ✅ | ✅ | ✅ | One /24 per AZ | An ALB cannot exist in an AZ with no subnet. Cheap to create, expensive to retrofit. In the workload VPCs these are now **reserved and empty** (§2) |
+| Public / DMZ subnet | ✅ | ✅ | ✅ | One /24 per AZ | Holds the **ingress NLB** (`ADR-023`). Not for NAT or domain pods. Cheap to create, expensive to retrofit |
 | Private-app subnet | ✅ | ✅ | ✅ | One /20 per AZ | EKS nodes; the /20 is for pod IPs (VPC CNI), not node count |
 | Private-data subnet | ✅ | ✅ | ✅ | One /24 per AZ | Aurora needs a subnet group spanning ≥ 2; the third keeps failover choice open. Now also holds ElastiCache, MSK and OpenSearch |
 | **TGW attachment subnet** | ✅ | ✅ | ✅ | One /28 per AZ, every VPC | An attachment ENI missing from one AZ silently sends that AZ's egress across an AZ boundary, or nowhere |
 | **NAT Gateway + EIP** *(inspection VPC only)* | ✅ | ✅ **prod/uat** | ⬜ *(prod)* | **prod: per AZ. dev: one** | A single NAT is an AZ-wide egress SPOF on the hop **pod → Apigee**. Every NAT adds an EIP — **do not publish that list to 1SB** (`ADR-020`). 1SB allowlists Apigee IPs (§2.3, §8) |
 | **Network Firewall endpoint** | ✅ | ✅ **prod/uat** | ⬜ *(prod)* | One per AZ that has a NAT | The endpoint is the egress path. One endpoint for three AZs means an AZ event or a firewall maintenance window is a **total egress outage**, and the quote path notices first |
 | Internet Gateway | — regional — | | | One per VPC, **inspection VPC only** | Not AZ-bound. The workload VPCs have none |
-| **Internal ALB** | ✅ | ✅ | ✅ | Subnets in all three; ALB places a node per enabled AZ | The only in-VPC reverse proxy (§3). Losing it loses every RM session |
+| **Ingress NLB** | ✅ | ✅ | ✅ | Public/DMZ subnets in all three AZs | First AWS hop (`ADR-023`). Losing it loses every RM session and PG callback |
+| **Istio Ingress Gateway** | ✅ | ✅ | ✅ | Pods in private-app; spread across AZs | Path split + TLS terminate toward mesh (§3). Targets of the NLB |
 | **EKS control plane** | — AWS-managed, multi-AZ — | | | Private endpoint, `publicAccess = false` in prod | AWS spreads it; we do not choose |
 | **EKS managed node group** (sale path) | ✅ | ✅ | ⬜ *(prod: yes)* | **UAT: ≥ 3 nodes across ≥ 2 AZs. prod: across 3** | §4.2. Two AZs is the floor at which a `PodDisruptionBudget` of `minAvailable: 1` can still drain a node. Three removes the "lose an AZ, lose half the capacity" arithmetic |
 | Sale-path pods | ✅ | ✅ | ⬜ | `minReplicas: 2`, `topologySpreadConstraints` across `topology.kubernetes.io/zone`, `PDB minAvailable: 1` | Two pods on one node in one AZ satisfies `min 2` and survives nothing. The spread constraint is the control, not the replica count |
@@ -259,8 +271,9 @@ separated. Pin AZ **IDs** (`aps1-az1…`), or let the module take the first thre
 | **MSK brokers** *(required — `ADR-012`)* | ✅ | ✅ | ✅ | **One broker per AZ, 3 AZs.** Replication factor 3, `min.insync.replicas` 2 | Three brokers is the **availability** floor at which a broker can be lost or patched without stopping the publisher. It is not a throughput calculation — R0 is tens of messages a minute |
 | **OpenSearch data nodes** *(required — `ADR-013`)* | ✅ | ✅ | ✅ *(prod)* | Data nodes across every AZ in use; **3 dedicated masters** in `uat`/`prod` | Dedicated masters across 3 AZs are what prevent a split brain from becoming a lost index. `dev` runs one node and no dedicated master, on purpose |
 
-**Two AZs or three?** Three for subnets, endpoints, TGW attachments and the internal ALB — they
-cost nothing per AZ and cannot be added later without renumbering. Two is acceptable for *paid*
+**Two AZs or three?** Three for subnets, endpoints, TGW attachments, the ingress NLB and Istio
+Gateway pods — they cost nothing per AZ (subnets) relative to retrofit risk, and cannot be added
+later without renumbering. Two is acceptable for *paid*
 capacity (nodes, NAT, firewall endpoints, Aurora reader, cache replica) in `uat`, three in `prod`.
 **Three is not optional for the MSK brokers and the OpenSearch masters** in `uat` and `prod`:
 quorum-based services degrade differently from stateless ones, and two of three is the difference
@@ -334,7 +347,7 @@ FORBIDDEN: Java ─► https://*.1silverbullet.tech
 | TLS inspection | Enabled for destinations we terminate normally. **Not** on the 1SB mTLS session — a man-in-the-middle on a mutually authenticated channel is an outage, not a control. Those flows are matched on SNI and destination and passed intact |
 | Rule-set ownership | The allowlist is versioned configuration. A new egress destination arrives as a pull request in the same change as the code that needs it — a rule set nobody curates decays to permit-any within two incidents |
 | Failure posture | Firewall unavailable = **no egress**. That is correct and it is also an outage: endpoints per AZ (§2.1) and a named runbook, because the quote path is the first thing to notice |
-| What it is not | Not ingress inspection for public traffic — that is Cloudflare + F5-XC (SaaS) + API Gateway. Not a service mesh. Not a replacement for `NetworkPolicy` |
+| What it is not | Not ingress inspection for public traffic — that is Cloudflare + F5-XC (SaaS) + NLB SG + Istio (`ADR-023`). Not a replacement for Istio mTLS or `NetworkPolicy` |
 
 #### The Elastic IP list is no longer the 1SB allowlist — read this before publishing anything
 
@@ -343,7 +356,7 @@ FORBIDDEN: Java ─► https://*.1silverbullet.tech
 | Where the EIPs live | Inspection VPC of that environment | Unchanged — they still exist for spoke→Apigee / remaining internet |
 | How many | One per AZ per environment, and stable | Unchanged |
 | Who 1SB allowlists | Those NAT EIPs | **Apigee egress IPs** (`DEP-20260914-apg`). **Do not publish spoke NAT EIPs to 1SB** |
-| Who the PG allowlists for **callbacks** | PG source IPs on our API Gateway route | Unchanged (`ADR-018` / TB-6). Outbound PG **session-create** goes via Apigee |
+| Who the PG allowlists for **callbacks** | PG source IPs on our callback Gateway route | **Re-homed to Istio** `/callbacks/pg/*` + IP allowlist + signature verify (`ADR-023` S8 / TB-6). Outbound PG **session-create** goes via Apigee |
 
 The list is still smaller and more stable than the pre-`ADR-010` design. Publishing it to 1SB is
 now the defect: 1SB would allowlist the wrong host. Re-base any 1SB conversation onto Apigee IPs
@@ -351,9 +364,12 @@ now the defect: 1SB would allowlist the wrong host. Re-base any 1SB conversation
 
 ---
 
-## 3. Reverse proxy — external and internal (required)
+## 3. Reverse proxy — SaaS perimeter + NLB + Istio (required)
 
-R0 uses a **two-hop reverse proxy**. There is no extra Nginx/Envoy sidecar estate.
+R0 inbound is **bank SaaS perimeter → internet-facing NLB → Istio Ingress Gateway**. Path
+routing lives on Istio Gateway / VirtualService. Amazon API Gateway and Internal ALB-as-Proxy-2
+are **withdrawn** (`ADR-023`). East–west Envoy sidecars are **in scope** for application
+namespaces (see BOM #8); they are not a substitute for BFF session or PDP.
 
 ```text
 NIP-APP (web / APK / IPA)
@@ -363,30 +379,30 @@ Cloudflare Enterprise     ← SaaS · NOT AWS · NOT in any VPC
     │
     ▼
 F5 Distributed Cloud / F5-XC   ← SaaS WAF · NOT AWS · NOT in any VPC
+    │  shared-secret header and/or mTLS to origin (ADR-023 S3)
+    ▼
+Internet-facing NLB       ← FIRST AWS hop (public/DMZ) · SG = F5(+CF) CIDRs only
     │
     ▼
-API Gateway               ← THE external reverse proxy (first AWS hop)
-    │  private integration / VPC link
+Istio Ingress Gateway     ← path split · TLS toward mesh (private-app)
+    │  GET /* → nip-web · /api/* → #2 NIP BFF · /callbacks/pg/* → #12
     ▼
-Internal ALB              ← THE internal reverse proxy (the only ALB)
-    │  GET /* → nip-web · /api/* → #2 NIP BFF
-    ▼
-#2 NIP BFF                (and, same listener, WS-2 workforce-access-bff
+#2 NIP BFF                (and, same mesh, WS-2 workforce-access-bff
                             if they remain separate deployables — see note)
-    │  cluster-private
+    │  mesh mTLS + NetworkPolicy
     ▼
-Domain services (never published)
+Domain services (never published on Ingress)
 ```
 
 | Hop | Terminates TLS? | AuthN? | AuthZ? | Business logic? |
 |---|---|---|---|---|
 | Cloudflare / F5-XC (SaaS) | Yes (bank edge) | No | No | No — CDN / DDoS / WAF / bot / rate only |
-| API Gateway | Yes | Optional API key **not** used as auth | No | Request size, schema, throttle |
-| Internal ALB | Yes (internal cert) | No | No | Path routing to BFF |
-| BFF | Re-encrypts outbound | **Session** | Calls PDP (`S-02`) | Aggregation only |
-| Domain service | mTLS-or-IRSA | Service identity | Re-checks PDP on regulated actions | Yes |
+| Ingress NLB | Pass-through or TLS (ACM if ALB variant) | No | No | SG allowlist only (S2) |
+| Istio Ingress Gateway | Yes (Gateway TLS) | Service / namespace rules only | Mesh AuthorizationPolicy ≠ insurance PDP (S7) | Path routing; Envoy size/throttle (S9) |
+| BFF | Re-encrypts outbound | **Session** (token-hiding) | Calls PDP (`S-02`) | Aggregation only |
+| Domain service | Mesh mTLS + IRSA | Service identity | Re-checks PDP on regulated actions | Yes |
 
-**Note on two BFFs.** WS-2 already specifies `workforce-access-bff` (token-hiding). WS-3 specifies `#2` NIP BFF (journey + admin/MIS aggregation). R0 may deploy them as **one process** or **two**. That is Amit's packaging choice inside an approved boundary (`A1`). The edge contract does not change: NIP-APP talks to one public hostname and never receives OAuth tokens. There is **no** Admin BFF (`ADR-015`).
+**Note on two BFFs.** WS-2 already specifies `workforce-access-bff` (token-hiding). WS-3 specifies `#2` NIP BFF (journey + admin/MIS aggregation). R0 may deploy them as **one process** or **two**. That is Amit's packaging choice inside an approved boundary (`A1`). The edge contract does not change: NIP-APP talks to one public hostname and never receives OAuth tokens. There is **no** Admin BFF (`ADR-015`). Istio must **not** validate Flutter end-user JWTs as a substitute for BFF session + PDP (`ADR-023` S6).
 
 ### 3.1 Where NIP-APP actually runs
 
@@ -400,33 +416,31 @@ NIP-APP  (one Flutter project · role-based views)
   roles   →  BANK_RM · INSURER_PARTNER_REP · BANK_EMPLOYEE (admin/ops)
         │  TLS 1.3   one hostname
         ▼
-Cloudflare (SaaS)  ──►  F5-XC (SaaS)  ──►  API Gateway     PROXY 1 of 2
-        │  VPC link                                         (first AWS hop · no public ALB)
+Cloudflare (SaaS)  ──►  F5-XC (SaaS)  ──►  Ingress NLB     first AWS hop
+        │  F5 CIDR SG + shared-secret / mTLS
         ▼
-Internal ALB                                   PROXY 2 of 2  ·  host/path rules
+Istio Ingress Gateway                              path rules (no Internal ALB hop)
         ├──  GET  /*            →  nip-web     Flutter web BAKED INTO THE IMAGE
-        └──  /api/*             →  #2 NIP BFF  tokens, session, aggregation
-                │                              admin/MIS routes here too (C-ISO-1)
+        ├──  /api/*             →  #2 NIP BFF  session, aggregation (admin/MIS too · C-ISO-1)
+        └──  /callbacks/pg/*    →  #12 Payment  PG IP allowlist + signature (TB-6)
+                │
                 ▼
-        Domain services (never published)
+        Domain services (never published on Ingress; Keycloak never on public routes)
 ```
 
-**Why it sits in EKS with the BFF.** The web UI is workforce-facing. Baking the Flutter web build into `nip-web` in `ns:edge` keeps it on the private-app subnets, behind the same two proxies, with no public S3 website and **no PVC**. Cloudflare may cache those static files; it must **not** cache authenticated JSON.
+**Why it sits in EKS with the BFF.** The web UI is workforce-facing. Baking the Flutter web build into `nip-web` in `ns:edge` keeps it on the private-app subnets, behind the same SaaS + NLB + Istio chain, with no public S3 website and **no PVC**. Cloudflare may cache those static files; it must **not** cache authenticated JSON.
 
 **What it is not.** A StatefulSet. A second CloudFront for DIY (`#1` is R1). A public bucket website. A separate admin-web, admin.{env}, or Admin BFF. Serving the SPA from the BFF process itself is allowed — that is Amit packaging the same boundary as one pod instead of two.
 
 Admin / operations (R0 W4, `ADR-014`) are **roles on NIP-APP**. They read `#19` and `#18`. They **NEVER** use the Lead writer (`C-ISO-1`). They never call `lead.create`. Admin/ops are `BANK_EMPLOYEE` on Bank AD.
 
-**Ingress controller:** AWS Load Balancer Controller. One internal ALB, host/path rules, not an ALB per microservice.
+**Ingress:** Istio Ingress Gateway (mandatory under `ADR-023`). NLB (or bank-standard ALB) targets Gateway pods. Do **not** keep an Internal ALB solely for path routing. Do **not** provision Amazon API Gateway for inbound or PG-callback.
 
-**Do we need an additional "external proxy" product (Kong, Nginx Plus, in-VPC F5 BIG-IP, public ALB)?** No for R0. Cloudflare + F5-XC are the **existing bank SaaS perimeter**; API Gateway is the AWS reverse proxy. Adding a public ALB in front of API Gateway, or placing F5 as an appliance in our VPC, adds a hop the existing estate does not use for this platform (`ADR-018`).
+**Do we need Kong, Nginx Plus, or an in-VPC F5 BIG-IP?** No for R0. Cloudflare + F5-XC are the **existing bank SaaS perimeter**; NLB + Istio is the bank-standard AWS entry (`ADR-023`). Do not add a second public reverse-proxy product in front of the NLB.
 
-**Is the Network Firewall a third proxy?** No, and the distinction matters when someone counts
-hops. `ADR-010`'s firewall sits on the **egress** path (§2.3) and on inter-VPC traffic. It
-terminates no inbound client session, routes no request to a service and makes no authorisation
-decision. Inbound remains exactly two proxies: API Gateway, then the internal ALB.
+**Is the Network Firewall a third inbound proxy?** No. `ADR-010`'s firewall sits on the **egress** path (§2.3) and on inter-VPC traffic. It terminates no inbound client session and makes no authorisation decision. Inbound AWS hops are NLB then Istio Ingress.
 
-**Customer payment traffic does not enter this chain.** It goes device → AU Bank PG. PG callbacks enter via a **separate** API Gateway route, IP-allowlisted to the PG, signature-verified in `#12`, never on the RM session path (TB-6).
+**Customer payment traffic does not enter the RM session VirtualService.** It goes device → AU Bank PG. PG callbacks enter via **`/callbacks/pg/*`** on Istio, IP-allowlisted to the PG, signature-verified in `#12` (TB-6 / `ADR-023` S8).
 
 ---
 
@@ -603,7 +617,7 @@ change on a retry.
 |---|---|
 | Placement | **VPC-only** domain in private-data subnets. No public endpoint, ever |
 | Ingest | Fluent Bit → Amazon Data Firehose → OpenSearch, with an S3 failed-delivery bucket |
-| Indexed | Application logs (PII-masked at emission), Network Firewall alert/flow logs, VPC and TGW flow logs, MSK broker/consumer logs, ALB and API Gateway access logs |
+| Indexed | Application logs (PII-masked at emission), Network Firewall alert/flow logs, VPC and TGW flow logs, MSK broker/consumer logs, **NLB and Envoy (Istio) access logs** (`ADR-023` S10) |
 | Retention | ISM: 30 days hot → delete at `RET-OPERATIONAL` (90 days), with a disposal record (`NFR-DAT-07`) |
 | Access | Fine-grained access control, IAM-mapped roles, human access audited |
 | PII | Masked at emission (`FF-05`) **and** checked at the index (`FF-27`). A log pipeline is the most common way a restricted attribute reaches a store nobody classified |
@@ -625,13 +639,13 @@ Z0 Internet
   roles                   BANK_RM · INSURER_PARTNER_REP · BANK_EMPLOYEE (admin/ops)
   Customer device         (OTP SMS / PG hosted page) ──► AU Bank PG   [not our VPC]
 
-Z1 Edge (public)
-  Route 53 → Cloudflare (SaaS) → F5-XC (SaaS) → API Gateway
-  PG-callback API Gateway route (IP allowlist)
+Z1 Edge (public / DMZ + SaaS)
+  Route 53 → Cloudflare (SaaS) → F5-XC (SaaS) → Ingress NLB (SG = F5/CF CIDRs)
+  Istio Ingress Gateway (private-app): /* · /api/* · /callbacks/pg/* (PG IP allowlist)
 
-Z2 Application (private-app subnets, EKS)
+Z2 Application (private-app subnets, EKS + Istio sidecars)
   edge:        nip-web, #2 NIP BFF  [both stateless, no PVC · nothing RM-named or admin-named]
-  identity:    identity-provider-adapter, identity-authorization (PDP), keycloak
+  identity:    identity-provider-adapter, identity-authorization (PDP), keycloak  [Keycloak NOT on public Ingress]
   shared:      lead (#5), customer (#4), consent (#6), suitability (#7),
                catalogue (#8), journey (#9), payment (#12), policy (#13),
                audit (#16), notification (#17), configuration (#19)
@@ -639,7 +653,7 @@ Z2 Application (private-app subnets, EKS)
   integration: integration-hub (#14), 1sb-integration-service (#15)
   jobs:        outbox-publisher, MSK consumers (audit, notification, #18 MIS),
                payment-reconcile (CronJob), issuance-recheck
-  platform:    Fluent Bit, ADOT collector, KEDA, admission controller
+  platform:    Istio (ingress + sidecars), Fluent Bit, ADOT collector, KEDA, admission controller
 
 Z3 Network / inspection (the `network` account — §2.2, §2.3)
   Transit Gateway                     per-environment route tables
@@ -682,7 +696,7 @@ Existing repo services that **map onto** this:
 |---|---|---|---|---|
 | 1SB APIs | Egress | HTTPS mTLS | **Apigee proxy**; 1SB allowlists **Apigee IPs** (`ADR-020`, §2.3). Adapter never calls a `*.1silverbullet.tech` origin. Firewall may inspect **pod → Apigee**; payload to 1SB is **not decrypted** | WS-1 / Shivanshi + Apigee team |
 | AU Bank PG session | Egress | HTTPS | Via **Apigee** (outbound session-create). Do not publish spoke NAT EIPs as the PG allowlist for this hop | Payments + Shivanshi |
-| AU Bank PG callback | Ingress | HTTPS | **PG source IPs only** on the callback Gateway. Not on the firewall path — the edge is Cloudflare / F5-XC / API Gateway | Deepali + Payments |
+| AU Bank PG callback | Ingress | HTTPS | **PG source IPs only** on Istio `/callbacks/pg/*` + signature verify in `#12` (`ADR-023` S8). Not on the RM session VirtualService. Edge remains Cloudflare / F5-XC / NLB | Deepali + Payments |
 | AU Bank PG settlement | Ingress or S3 drop | File | Separate from the API path | Aarti + Finance |
 | CBS / CIF | Egress | Bank standard (often HTTPS or MQ) | **TGW → VPN, then DX** (`ADR-009`). Stubs in `dev` only | Bank network + `#4` |
 | Bank AD | Egress | HTTPS to existing AD-verify API | **Apigee private target** (`ADR-020`). Never LDAP from EKS. `dev` may run Keycloak-local users | WS-2 + bank API platform |
@@ -759,7 +773,7 @@ platform team can provision from. **Everything below is `ap-south-2`. Nothing el
 | D7 | **Secrets Manager replica secrets** | **Yes** | Replica of DB, 1SB, PG and IdP secrets. A restored Aurora with no credential is not a restored service | Precondition for D8 |
 | D8 | **EKS cluster** | **No — created at failover, or scaled from zero** | Node groups at desired-count `0` if the cluster exists. This is what "warm" means: images and data are ready, compute is not paid for | `NFR-DR-01` RTO ≤ 1 h |
 | D9 | **Route 53 failover** | **No — manual in R0** | BOM #4: no latency-based or health-check DR routing. Failover is a deliberate, recorded human action, not an automatic flip | R0 posture |
-| D10 | **API Gateway + Cloudflare origin re-point** | **No — part of the runbook** | The edge is re-pointed at the DR API Gateway / internal ALB during failover. Document it as a step, not as automation | R0 posture |
+| D10 | **NLB + Istio + Cloudflare/F5 origin re-point** | **No — part of the runbook** | The edge is re-pointed at the DR ingress NLB / Istio Gateway during failover. Document it as a step, not as automation | R0 posture |
 | D11 | **DR runbook + measured exercise** | **Yes — the artefact is the deliverable** | Declaration → restore → verify → serve, wall-clock timed. `S09-G7` accepts the *record*, not the design | `NFR-DR-04`, `S09-G7` |
 | D12 | **Rollback drill in UAT** | **Yes** | Not cross-region, but the same family of proof: a deliberately broken release rolled back, data intact, timed | `NFR-DR-05`, `S09-G4` |
 | **D13** | **ElastiCache in DR** | **No — and this is a decision** | Sessions are re-established by re-authentication and the L2 cache is rebuilt on first miss. Replicating a cache to protect data that is by definition reconstructible is cost without recovery value | `ADR-011` |
@@ -839,9 +853,9 @@ critical path and no business service starts before them
 |---|---|---|---|---|---|
 | **P0** Guardrails | Organizations + **5 accounts** (`shared-services`, `security`, `network`, **`uat`**, `prod` — **no separate `dev`, no CUG**; UAT account hosts `vpc-dev` + `vpc-uat`) · SCP region-pin to India · Terraform remote state + locking · `security` account (CloudTrail, Config, GuardDuty, Security Hub) · **KMS CMK hierarchy** · policy-as-code in the pipeline | `E01-S01/S02/S06/S07` · `E04-S03` | Shivanshi + Deepali | Everything | Every resource built before the region SCP has to be re-verified by hand for `S09-G9` residency attestation |
 | **P1** Network | VPC × 3 envs · public / private-app / private-data / TGW-attachment × 3 AZs (§2.1) · **no IGW on the workload VPC** · **attach to existing `AU-CTO-NETWORK` TGW** + per-environment route tables · **inspection VPC × env with Network Firewall** (or share EDGE — `ASM-012`) · **NAT Gateway + Elastic IPs (now in the inspection VPC)** · **Site-to-Site VPN** · **attach to existing DX Gateway** · security groups · **VPC endpoints** · Route 53 private zone + Resolver endpoints · ACM certs · flow logs | `E01-S03` (network foundation) · `E07-S01` (segmentation) | Shivanshi + Deepali + bank network | P2 | **Still the longest external lead time, and now it has two external parties instead of one.** The EIP list is **not** published to 1SB (`ADR-020` — 1SB allowlists Apigee IPs; `DEP-20260914-apg`). The bank must terminate the VPN and accept our prefixes on the existing DXGW (`DEP-20260824-dx1`). Late here blocks W1 CBS lookups, W2 quotes and W3 payments regardless of code readiness |
-| **P2** Compute | EKS × 3 envs, private endpoint · managed node groups (§2.1) · add-ons (VPC CNI, CoreDNS, kube-proxy, EBS CSI, AWS LB Controller, ExternalDNS, Secrets Store CSI, **Fluent Bit, ADOT, KEDA**) · **Kyverno/Gatekeeper admission** · NetworkPolicy default-deny · Karpenter (thin, uat/prod) | `E01-S04` · `E07-S01/S03` | Shivanshi + Deepali | P4, P5 | Admission policy retro-fitted onto running workloads is a migration, not a control |
+| **P2** Compute | EKS × 3 envs, private endpoint · managed node groups (§2.1) · add-ons (VPC CNI, CoreDNS, kube-proxy, EBS CSI, ExternalDNS, Secrets Store CSI, **Istio**, **Fluent Bit, ADOT, KEDA**) · **Kyverno/Gatekeeper admission** · NetworkPolicy default-deny · Karpenter (thin, uat/prod) | `E01-S04` · `E07-S01/S03` | Shivanshi + Deepali | P4, P5 | Admission / mesh retro-fitted onto running workloads is a migration, not a control |
 | **P3** Data & messaging | **One** Aurora cluster + schemas + per-schema roles · DynamoDB tables + PITR · S3 buckets + **Object Lock** + Block Public Access · **ElastiCache for Valkey + per-service ACL users** · **MSK 3 brokers + per-topic IAM + Glue Schema Registry** · AWS Backup plans · **`ap-south-2` replication (D1–D3, D6, D7, D16)** | `E01-S05` (data foundation) · `E06-S01/S03/S05` | Aarti + Shivanshi | W0b | Object Lock **cannot be applied retroactively** to objects already written. The broker and cache are needed at W0b–W1, not W3: `#19` resolves configuration through the L2 cache and the first journey emits audit events, so a "messaging comes later" plan means writing the audit path twice |
-| **P4** Edge & proxy | **Internal ALB** (the in-VPC reverse proxy) · **API Gateway** (inbound only; **no public ALB**) · **Cloudflare + F5-XC SaaS** · **Apigee outbound onboard** (`ADR-020` — not Terraform in our accounts) · Route 53 public zone · **separate PG-callback route, IP-allowlisted** | `E07-S05` | Shivanshi + Deepali + bank API platform | W2 (Apigee/1SB) · W3 (callback) · W4 (RM traffic) | Apigee product onboard is on the **quote** critical path. The PG-callback route is needed at **W3**, earlier than the RM edge at W4. Treating "the edge" as one deliverable delays the money path by a wave |
+| **P4** Edge & proxy | **Ingress NLB** (or bank-standard ALB) · **Istio Ingress Gateway + mesh** · **Cloudflare + F5-XC SaaS** · F5 CIDR SG + shared-secret/mTLS (`ADR-023` S1–S3) · **Apigee outbound onboard** (`ADR-020` — not Terraform in our accounts) · Route 53 public zone · **Istio `/callbacks/pg/*` IP-allowlisted** · **no Amazon API Gateway** | `E07-S05` | Shivanshi + Deepali + bank platform (Istio) | W2 (Apigee/1SB) · W3 (callback) · W4 (RM traffic) | Apigee product onboard is on the **quote** critical path. The PG-callback route is needed at **W3**, earlier than the RM edge at W4. Treating "the edge" as one deliverable delays the money path by a wave |
 | **P5** Identity (WS-2) | Keycloak on EKS + Aurora `keycloak`/`identity` schemas · **AD-verify via Apigee private** (never LDAP) · Fireframe / NIP-APP as the only UI chrome · Secrets Manager + rotation · **IRSA role per deployable** · Secrets Store CSI → tmpfs · **session vault on the P3 cache tier** | `E04-S01/S04/S06` | Deepali + WS-2 | W0b | The PDP fails closed by design (`S-02`). No identity means no service can authorise anything — this is not a "later" item |
 | **P6** Observability & search | CloudWatch Logs/Metrics with PII masking · AMP + AMG · X-Ray *or* ADOT · **OpenSearch domain + Firehose + Fluent Bit + ISM policy** (`E05-S02` log aggregation — the story already existed; `ADR-013` decides what it aggregates *into*) · **audit pipe separated from the operational pipe** (`E05-S06`) · baseline dashboards + alert routing | `E05-S01…S06` | Shivanshi | W1 | Debugging the first end-to-end journey without correlated traces is where schedules are actually lost. The firewall, flow and broker logs from P1 and P3 are unqueryable until this band lands, which is most of why `ADR-013` is in R0 |
 | **P7** Delivery & IaC | ECR + immutable tags + scan-on-push · GitLab CI/CD → ECR · **GitLab Runner** · **Terraform IaC** · promote-by-digest · migration job in the deploy path | `E02-S01…S06` · `E03-S01…S06` | Shivanshi + Amit | W0b | Rebuilding per environment breaks `S09-E02-S02` and makes every UAT result unattributable |
@@ -863,8 +877,8 @@ the service backlog rather than delivered as one lump:
 | **W0b** | `#19` Configuration | P0 · P1 · P2 · P3 (incl. **cache tier** — `#19` resolves through L2) · P5 · P7 |
 | **W1** | `#5` `#9` `#14` `#4` `#8` | + **CBS reachable over the TGW** (VPN is sufficient; `#4` cannot be evidenced against a stub outside `dev`) · **MSK topics + schema registry** (the first journey emits events) · P6 |
 | **W2** | `#6` `#7` `#10` | + **Apigee product onboarded; 1SB allowlists Apigee IPs** (`ADR-020`, §2.3) · firewall domain allowlist carries **Apigee** · S3 `raw` bucket locked |
-| **W3** | `#11` `#12` `#13` `#16` | + **PG-callback API Gateway route** · PG settlement drop path · S3 `docs` + `audit-archive` locked · DR replication live (D3) · **audit consumer group + DLQ** |
-| **W4** | `#2` NIP BFF · `nip-web` · NIP-APP APK (Play) · NIP-APP IPA (App Store) · `#17` · `#18` MIS consumers | + Cloudflare + F5-XC (SaaS) + public API Gateway · internal ALB path rules (`GET /*` → `nip-web`, `/api/*` → `#2`) · **session vault on the cache tier** · SMS/email gateway in the firewall allowlist · **no** second hostname · **no** public ALB |
+| **W3** | `#11` `#12` `#13` `#16` | + **Istio `/callbacks/pg/*` + PG IP allowlist** · PG settlement drop path · S3 `docs` + `audit-archive` locked · DR replication live (D3) · **audit consumer group + DLQ** |
+| **W4** | `#2` NIP BFF · `nip-web` · NIP-APP APK (Play) · NIP-APP IPA (App Store) · `#17` · `#18` MIS consumers | + Cloudflare + F5-XC (SaaS) + ingress NLB + Istio path rules (`GET /*` → `nip-web`, `/api/*` → `#2`) · **session vault on the cache tier** · SMS/email gateway in the firewall allowlist · **no** second hostname · **no** Amazon API Gateway · Keycloak not on public Ingress |
 
 **The two items with an external lead time are P1's EIP publication and the bank-side
 connectivity work.** Both depend on parties outside this programme, and the robustness round made
@@ -885,8 +899,8 @@ Region: ap-south-1 (Mumbai). DR: ap-south-2 (Hyderabad) replicas only.
 Accounts: shared-services, security, network, uat, prod.   <-- 5, `network` added 2026-08-24; `dev` is a VPC inside `uat` (ADR-020); no CUG
 
 NETWORK
-- 1 workload VPC per env, 3 AZs: public (reserved, empty, NO IGW, NO NAT) / private-app /
-  private-data / TGW-attachment
+- 1 workload VPC per env, 3 AZs: public/DMZ (ingress NLB only — ADR-023) / private-app /
+  private-data / TGW-attachment. Private-app/data: NO local NAT. Egress via TGW.
 - ATTACH to the existing AU-CTO-NETWORK Transit Gateway. Do NOT provision a second TGW.
   ONE ROUTE TABLE PER ENVIRONMENT plus one for DR. No VPC peering.
 - Inspection/egress VPC PER ENVIRONMENT in `network` (or share the existing EDGE VPC —
@@ -896,13 +910,15 @@ NETWORK
 - CBS/CIF and AD-verify are reachable via Apigee **private** targets (ADR-020). Stubs permitted in dev ONLY. Never LDAP from EKS. Never hairpin Cloudflare/F5
 - VPC endpoints: S3, DynamoDB, Secrets Manager, ECR, STS, CloudWatch Logs
 - Route 53 Resolver inbound/outbound endpoints for bank zones
-- No public load balancer onto compute. No public database, broker or search endpoint.
-- Do NOT copy the existing banking app's Public VPC + IGW + Public ALB + VPC-peering pattern
+- Public/DMZ subnets: ingress NLB only (ADR-023). No public Service on domain pods.
+  No public database, broker or search endpoint. Keycloak never on public Istio routes.
+- Do NOT copy the existing banking app's Public VPC + IGW + Public ALB + VPC-peering as the whole front door
 - DRAW Apigee on the **egress** path only (ADR-020). Do NOT put Apigee on the RM/mobile front door.
-  Amazon API Gateway remains the first AWS inbound hop (ADR-018). Do NOT Terraform Apigee in our accounts.
+  First AWS inbound hop is the ingress NLB → Istio Ingress (ADR-023). Do NOT provision Amazon API Gateway.
+  Do NOT Terraform Apigee in our accounts.
 
 AVAILABILITY ZONES  (full table: LLD §2.1)
-- Subnets, interface VPC endpoints, TGW attachments and the internal ALB: all 3 AZs, every env
+- Subnets, interface VPC endpoints, TGW attachments, ingress NLB and Istio Gateway: all 3 AZs, every env
 - Paid capacity (EKS nodes, NAT, firewall endpoints, Aurora reader, cache replica):
   >= 2 AZs in uat, 3 in prod, 1 in dev
 - Aurora reader MUST be in a different AZ from the writer - assert this in IaC
@@ -911,23 +927,28 @@ AVAILABILITY ZONES  (full table: LLD §2.1)
 - Sale-path pods: minReplicas 2 + topologySpreadConstraints over topology.kubernetes.io/zone + PDB minAvailable 1
 - Pin AZ IDs (aps1-azN), NOT AZ names - a name maps to a different physical AZ per account
 
-EDGE (external reverse proxy)
-- Cloudflare Enterprise (SaaS) + F5-XC (SaaS WAF) + Route 53 + API Gateway
-- Cloudflare and F5-XC are NOT AWS and NOT in any VPC (ADR-018)
-- Internal ALB (AWS LB Controller) as the only in-VPC reverse proxy — the only ALB
-- ONE public hostname. GET /* → nip-web; /api/* → #2 NIP BFF. No admin.{env}
+EDGE (SaaS perimeter + NLB + Istio — ADR-023)
+- Cloudflare Enterprise (SaaS) + F5-XC (SaaS WAF) + Route 53 + internet-facing NLB
+- Cloudflare and F5-XC are NOT AWS and NOT in any VPC
+- NLB Security Group = F5-XC (+ Cloudflare if required) egress CIDRs ONLY — never 0.0.0.0/0
+- F5→origin MUST present shared-secret header AND/OR mTLS
+- Istio Ingress Gateway does path split: GET /* → nip-web; /api/* → #2 NIP BFF;
+  /callbacks/pg/* → Payment (#12) with PG IP allowlist + signature verify
+- ONE public hostname. No admin.{env}
 - ns:edge holds nip-web + #2 NIP BFF only — nothing RM-named or admin-named (ADR-015)
-- Separate API Gateway route for AU Bank PG callbacks, IP-allowlisted
 - Network Firewall is on the EGRESS path (pod → Apigee) - it is not a third inbound proxy
-- DRAW Apigee outbound (ADR-020). Amazon API Gateway stays inbound. Flutter never calls Apigee
-- Do NOT provision Kong/Nginx Plus, an in-VPC F5 BIG-IP, Istio, or a public / External ALB
+- DRAW Apigee outbound (ADR-020). Flutter never calls Apigee or Keycloak
+- Do NOT provision Amazon API Gateway, VPC Link, Internal ALB-as-path-router,
+  Kong/Nginx Plus, or an in-VPC F5 BIG-IP
+- Istio IS in R0 (Ingress + sidecars; PeerAuthentication → STRICT after dated cutover)
+- Retain NetworkPolicy alongside mesh mTLS (S11). Mesh authZ ≠ insurance PDP (S7)
 
 COMPUTE
 - 1 private EKS cluster per env; sale-path min 2 pods, 2 AZs, PDBs
 - Namespaces: edge, identity, shared-platform, life-cell, integration, jobs, platform
 - Stateless workloads: NO PersistentVolumeClaims for business services
-- Keycloak uses Aurora, not a PVC
-- Add-ons incl. Fluent Bit, ADOT, KEDA (KEDA on MSK consumer lag ONLY, never CPU)
+- Keycloak uses Aurora, not a PVC; Keycloak NOT exposed on public Ingress
+- Add-ons incl. Istio, Fluent Bit, ADOT, KEDA (KEDA on MSK consumer lag ONLY, never CPU)
 - Do NOT run Kafka, Redis/Valkey, OpenSearch or Prometheus as StatefulSets here
 
 DATA · CACHE · MESSAGING · SEARCH
@@ -986,10 +1007,10 @@ P1 network (VPC, 3 AZs, TGW + per-env route tables, inspection VPC + Network Fir
 P2 compute (EKS, node groups, add-ons incl. Fluent Bit/ADOT/KEDA, admission, NetworkPolicy)
 P3 data & messaging (Aurora, DynamoDB, S3 + Object Lock, ElastiCache, MSK + schema registry,
    AWS Backup, ap-south-2 replication)
-P4 edge (internal ALB, inbound API Gateway, Cloudflare + F5-XC SaaS, Apigee outbound onboard;
-   PG-callback route needed at W3, before W4)
-P5 identity (Keycloak behind Fireframe/NIP-APP UI, AD-verify via Apigee private, never LDAP,
-   Secrets Manager, IRSA, Secrets Store CSI, session vault on the cache)
+P4 edge (ingress NLB + Istio, Cloudflare + F5-XC SaaS, Apigee outbound onboard;
+   PG-callback Istio route needed at W3, before W4; no Amazon API Gateway)
+P5 identity (Keycloak private — NOT on public Ingress; AD-verify via Apigee private, never LDAP,
+   Secrets Manager, IRSA, Secrets Store CSI, session vault on the cache; BFF token-hiding stands)
 P6 observability & search (CloudWatch, AMP/AMG, tracing, OpenSearch + Firehose + ISM,
    separated audit pipe)
 P7 delivery (ECR, GitOps, promote-by-digest, migration job)
@@ -1008,11 +1029,13 @@ dev is deliberately NOT production-shaped: single-node cache, MSK Serverless or 
 Building production three times is the cheapest way to make this set unaffordable.
 
 OUT OF SCOPE FOR THIS REQUEST
-Customer DIY stack, insurer webhook ingress, service mesh, per-service database clusters,
+Customer DIY stack, insurer webhook ingress, Amazon API Gateway / VPC Link,
+Internal ALB-as-path-router, AWS App Mesh, per-service database clusters,
 ElastiCache-as-idempotency, OpenSearch-as-audit-store, MSK Replicator, third-party NGFW
 appliance, self-managed Kafka/Redis/ELK, reporting warehouse (Glue ETL/Athena/
 Redshift/QuickSight), a PVC for nip-web, a second admin/ops Flutter app, admin.{env},
-RM-named or admin-named pods in ns:edge, Render.com as a data path.
+RM-named or admin-named pods in ns:edge, public Keycloak routes, Render.com as a data path.
+(Istio Ingress + sidecars ARE in scope per ADR-023 — do not omit them.)
 ```
 
 ---

@@ -1,28 +1,36 @@
-# Platform team note — Why Amazon API Gateway, and why Istio is not a substitute (R0)
+# Platform team note — Inbound edge (historical Option A pack; superseded by ADR-023)
 
 **Audience:** AWS / bank platform team · CTO landing-zone reviewers  
-**Purpose:** One-screen justification for the inbound edge in the R0 BOM; talking points if API Gateway is challenged or Istio is offered instead.  
-**Standing:** AI-drafted evidence pack under [`CR-017`](../governance/change-requests/CR-017-inbound-api-gateway-vs-istio.md) / [`ADR-022`](../platform/architecture-review/08-architecture-decision-log.md) (Proposed). Does **not** manufacture Architecture or Security sign-off. If this note disagrees with an ADR, the ADR wins (`HA-02`).
+**Purpose:** Historical one-screen for the former API Gateway ask.  
+**Standing:** **SUPERSEDED 2026-10-09** for inbound product by [`ADR-023`](../platform/architecture-review/08-architecture-decision-log.md). Keep for audit trail of the Option A defence. If this note disagrees with an ADR, the ADR wins (`HA-02`).
 
-**Canonical BOM:** [`R0-LLD.md`](./R0-LLD.md) §1.1 #7–#9, §1.3, §3  
-**Binding ADRs:** `ADR-018` (ingress) · `ADR-020` (split API plane) · `CR-012` §3 (mesh refused for R0)
+**Canonical BOM now:** [`R0-LLD.md`](./R0-LLD.md) §1.1 #7–#9, §1.3, §3 · **security:** [`2026-10-09-ADR-023-SECURITY-CONTROL-MAP.md`](./2026-10-09-ADR-023-SECURITY-CONTROL-MAP.md)  
+**Binding ADRs now:** `ADR-023` (ingress NLB+Istio) · `ADR-020` (outbound Apigee) · S1–S11 mandatory
 
 ---
 
-## 1. Ask of the platform team
+## 1. Ask of the platform team (**current — ADR-023**)
 
 Provision **exactly** this north–south path for R0:
 
 ```text
 device → Cloudflare Enterprise (SaaS) → F5-XC (SaaS WAF)
-      → Amazon API Gateway          ← first AWS hop (Proxy 1)
-      → VPC Link → Internal ALB     ← only load balancer inside the VPC (Proxy 2)
+      → Ingress NLB                 ← first AWS hop (SG = F5/CF CIDRs only)
+      → Istio Ingress Gateway       ← path split (/* · /api/* · /callbacks/pg/*)
       → nip-web / NIP BFF
 ```
 
-Separately (not this meeting’s inbound topic): **Apigee is outbound only** — 1SB, SMS, AD-verify, EBS leave via Apigee (`ADR-020`). Flutter never calls Apigee.
+Separately: **Apigee is outbound only** — 1SB, SMS, AD-verify, EBS leave via Apigee (`ADR-020`). Flutter never calls Apigee or Keycloak.
 
-**Do not provision:** External / public ALB · Istio / App Mesh · Kong / Nginx Plus · in-VPC F5 BIG-IP as a substitute for API Gateway.
+**Do not provision:** Amazon API Gateway · VPC Link · Internal ALB-as-path-router · AWS App Mesh · Kong / Nginx Plus · in-VPC F5 BIG-IP · public Keycloak routes · NLB SG 0.0.0.0/0.
+
+<details><summary>Historical Option A ask (superseded)</summary>
+
+```text
+device → Cloudflare → F5-XC → Amazon API Gateway → VPC Link → Internal ALB → nip-web / NIP BFF
+```
+
+</details>
 
 ---
 

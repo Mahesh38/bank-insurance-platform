@@ -72,7 +72,7 @@ graph TB
   - **KEDA** for Kafka-consumer services (Audit, Notification, Reporting) — scale consumer pods on MSK consumer-group lag, not on CPU, so a backlog after an outage drains fast without over-provisioning steady-state.
   - **PodDisruptionBudgets** on every service to guarantee the existing 99.9% availability target (`1sb-integration-service-architecture.md` §7.1) survives node rotation/Karpenter consolidation.
 - **Service mesh:** Istio (or AWS App Mesh) for mTLS between pods, retries/timeouts/circuit-breaking at the mesh layer (keeps Resilience4j config in-app for business-level retry semantics, mesh-level for transport-level resilience — no conflict, different layers).
-- **Ingress:** AWS Load Balancer Controller provisioning ALBs per Ingress; Amazon API Gateway in front of the BFFs for the public edge (rate limiting, API key management for any future partner integrations, request validation before it ever reaches EKS).
+- **Ingress (R0 binding `ADR-023`):** Cloudflare + F5-XC SaaS → internet-facing NLB (CIDR-locked) → Istio Ingress Gateway path-routing to nip-web / BFF / PG-callback. Amazon API Gateway withdrawn for this platform’s north–south path. Target-state North Star may still discuss API management products; **R0 provisions NLB+Istio**.
 
 ## Full AWS service mapping
 
@@ -80,7 +80,7 @@ graph TB
 |---------|-------------|-------|
 | Compute (all microservices) | **Amazon EKS** | Per constraint; Fargate profiles as an option for the lowest-traffic platform services (Administration) to avoid managing nodes for near-idle workloads |
 | Event-driven glue | **AWS Lambda** | S3-triggered doc processing, scheduled reconciliation kick-offs, webhook receivers from AU Bank PG / insurers where a full service is overkill |
-| Public edge / API management | **Amazon API Gateway** | Customer & RM BFF public entry points; throttling, API keys, request validation |
+| Public edge / ingress | **NLB + Istio Ingress** (`ADR-023`) | RM/IPR/BFF entry; Envoy limits; PG-callback route; API Gateway withdrawn at R0 |
 | CDN / DDoS / WAF | **Amazon CloudFront + AWS WAF + AWS Shield** | Customer-facing web/mobile assets and API edge protection |
 | DNS | **Amazon Route 53** | Latency-based routing to primary/DR region |
 | Relational data | **Amazon Aurora PostgreSQL (Multi-AZ)** | Per-service databases — see [05](./05-data-architecture.md) |

@@ -5,6 +5,12 @@ Does **not** close `SPIKE-001` remaining written answers (edition, private URL, 
 IPs, per-API onboard). Does **not** manufacture T4 or Deepali acceptance. If this file
 disagrees with an ADR, the ADR wins (`HA-02`).
 
+> **AMENDED 2026-10-09 — inbound product only.** Architecture owner accepted bank-standard
+> **External NLB + Istio Ingress** (`ADR-023` / `CR-017` Option B). The **split-plane** rule
+> in this note still stands: Apigee remains **outbound only**; Flutter never calls Apigee;
+> private AD-verify / Keycloak placement unchanged. Historical “keep API Gateway” wording
+> below is **superseded for inbound** by `ADR-023` — do not re-apply it when provisioning.
+
 **Source:** human follow-up to the R0 E2E teaching open items.  
 **Triage:** `SUG-20260914-egr` · `SUG-20260914-uat` · `SUG-20260914-idp`.  
 **Assumptions:** `ASM-015`…`ASM-019` (and `ASM-013` invalidated as “all inbound **and** outbound”).
@@ -15,9 +21,9 @@ disagrees with an ADR, the ADR wins (`HA-02`).
 
 Two different “outsides” were being mixed:
 
-| Direction | Who initiates | What the bank actually uses | What R0 had drawn |
+| Direction | Who initiates | What the bank actually uses | What R0 draws now |
 |---|---|---|---|
-| **Inbound** (RM / mobile / PG **callback**) | The internet / customer device / PG | Cloudflare → F5-XC → **then AWS**. We **want Amazon API Gateway** as the first AWS hop | `ADR-018` — keep |
+| **Inbound** (RM / mobile / PG **callback**) | The internet / customer device / PG | Cloudflare → F5-XC → **then AWS** | `ADR-023` — NLB → Istio Ingress (API Gateway withdrawn) |
 | **Outbound** (1SB, SMS, bank internal APIs) | Our pod | **Apigee**, then the real target. 1SB allowlists **Apigee’s** IPs | `ADR-010` NAT EIPs — **contested**; do not publish our EIPs to 1SB |
 
 `1sb-integration-service` must **never** call `https://demo.api.1silverbullet.tech/...` (or the
@@ -31,14 +37,15 @@ out to the internet so they re-enter through Cloudflare + F5 is the latency and 
 defect to refuse.
 
 ```text
-Inbound (RM / NIP-APP)
-  device → Cloudflare → F5-XC → Amazon API Gateway → Internal ALB → nip-web / NIP BFF
+Inbound (RM / NIP-APP) — ADR-023
+  device → Cloudflare → F5-XC → Ingress NLB → Istio Ingress → nip-web / NIP BFF
+  PG callback: Istio /callbacks/pg/* (IP allowlist + signature) — not RM session VS
 
-Outbound — external partner (1SB)
+Outbound — external partner (1SB) — ADR-020 (unchanged)
   1sb-integration-service → Apigee (configured proxy) → 1SB
   1SB allowlist = Apigee egress IPs, not our NAT EIPs
 
-Outbound — internal bank API (AD verify, EBS/CBS, …)
+Outbound — internal bank API (AD verify, EBS/CBS, …) — ADR-020 (unchanged)
   our service → Apigee (private target) → bank API
   must NOT: our service → IGW → Cloudflare → F5 → bank API
 ```
@@ -63,13 +70,13 @@ URL, and the egress IP list per environment, **do not** send 1SB a list of our N
 `ADR-010` is **not** silently withdrawn. Deepali still owns whether a spoke firewall remains
 on the short hop **pod → Apigee**. That is a different control from “1SB sees our IP”.
 
-### 2.2 Apigee vs Amazon API Gateway
+### 2.2 Apigee vs inbound AWS entry
 
 **Split, do not swap.**
 
-- Ingress from RM / mobile: **keep AWS API Gateway** (`ADR-018`). Apigee might or might not
-  also sit on that path later; we do **not** redraw ingress until `SPIKE-001` written answers
-  exist. Do not call Apigee from Flutter.
+- Ingress from RM / mobile: **NLB + Istio** (`ADR-023`). Do **not** put Apigee on the front
+  door. Do not call Apigee from Flutter. (Historical 2026-09-14 “keep API Gateway” direction
+  for this hop is superseded by `ADR-023`.)
 - Egress from the building: **will** go via Apigee. Adapter HTTP clients get an Apigee base
   URL, not the 1SB origin.
 

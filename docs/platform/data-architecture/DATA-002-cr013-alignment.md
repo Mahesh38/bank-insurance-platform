@@ -76,11 +76,11 @@ Kalpana sequence from `DEC-20260825-01` §11: S08 floor → W0b config layer →
 ### 4.1 W1 — Lead archive (D2, C-RET-1, INV-LED-08)
 
 **2026-10-09:** archive **columns** (`ARCHIVED`, `archived_at`, named RET-7Y attribution) are in
-[`DATA-003`](./DATA-003.work-item.yaml) / [`04-opportunity.sql`](./schemas/04-opportunity.sql).
+[`DATA-003`](./DATA-003.work-item.yaml) / [`04-lead_lms.sql`](./schemas/04-lead_lms.sql).
 The archive **mechanism** (partition vs archive table vs dump) remains joint Aarti/Mahesh
 (`DEC` §12). This item's W3/W4 remainder is unchanged.
 
-**Today** (`schemas/04-opportunity.sql` as of DATA-003): `state` CHECK includes `ARCHIVED` and
+**Today** (`schemas/04-lead_lms.sql` as of DATA-003): `state` CHECK includes `ARCHIVED` and
 `archived_at` is present. Pre-DATA-003 the CHECK was
 `NEW|ASSIGNED|CONTACTED|QUALIFIED|CONVERTED|DISQUALIFIED|EXPIRED` with no `archived_at`.
 
@@ -98,9 +98,9 @@ The archive **mechanism** (partition vs archive table vs dump) remains joint Aar
 **Not decided here** (`DEC-20260825-01` §12): partition vs archive table vs dump. That is W1
 **joint Aarti / Mahesh**. Do not pick a mechanism in this check.
 
-**Spoken name (D1):** architecture primary text says Lead; schema may stay `opportunity` in R0
-to avoid identifier/Flyway churn. Renaming the schema to `lead` is a joint Aarti/Mahesh choice,
-not a must-do. Identifiers stay `lead_id`.
+**Spoken name (D1):** architecture primary text says Lead. Physical schema is `lead_lms`,
+aggregate table `lead` (`SUG-20261009-lms` / DATA-003). Identifiers stay `lead_id`.
+The earlier option to keep schema `opportunity` is closed for this pack.
 
 ### 4.2 W3 — `issuanceMode` (D6, C-ISS-1, INV-PRP-06)
 
@@ -154,7 +154,7 @@ reporting because it is out of R0.
 - Reporting indexes belong on the replica/extract, not as speculative writer indexes
   (`DR-IDX-01` rewrite: “do not index the writer in case reporting needs it”).
 - Grants: `app_administration` stays on `administration` config; MIS/admin **must not** receive
-  `opportunity` writer credentials. Add a replica/extract role; do not GRANT SELECT on
+  `lead_lms` writer credentials. Add a replica/extract role; do not GRANT SELECT on
   RESTRICTED ciphertext columns to a dashboard role.
 - No new isolation microservice in S08 (`DEC` D5 / `SUG-20260825-wl1` REJECTED).
 
@@ -163,7 +163,7 @@ reporting because it is out of R0.
 **Today:** only `identity.outbox_event` exists. Mutating business schemas have
 `idempotency_record` but **no** `outbox_event`. `bank_persistence` has none either.
 
-**Need:** `outbox_event` in every schema that publishes (customer, opportunity, consent,
+**Need:** `outbox_event` in every schema that publishes (customer, lead_lms, consent,
 suitability, catalogue, quotation, proposal, payment, policy, journey, administration, and
 the job/audit producer if it emits). Same-transaction as the business write. MSK is the
 backbone; the outbox remains the source of truth (`ADR-012`).
@@ -205,7 +205,7 @@ without a publish path.
 - `origin/main:docs/governance/change-requests/CR-013-r0-lead-mis-admin-scope.md` §§2, 3, 5
 - `origin/main:docs/governance/DEC-20260825-01-lead-domain-decisions.md` D1–D6, §11–§12
 - `ADR-014`, `ADR-012`, `ADR-008`, `ADR-005`, `ADR-007`, `ADR-011`
-- [`schemas/04-opportunity.sql`](./schemas/04-opportunity.sql) — no `ARCHIVED`
+- [`schemas/04-lead_lms.sql`](./schemas/04-lead_lms.sql) — `ARCHIVED` present (DATA-003)
 - [`schemas/09-proposal.sql`](./schemas/09-proposal.sql) — no `issuance_mode`
 - [`schemas/11-policy.sql`](./schemas/11-policy.sql) — `lead_id NOT NULL`; no `source`; no history
 - [`schemas/01-identity.sql`](./schemas/01-identity.sql) — only existing `outbox_event`

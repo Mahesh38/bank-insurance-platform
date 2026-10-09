@@ -2,7 +2,7 @@
 -- Replace <env> and rotate secrets. Never grant a human standing write on evidence.
 
 -- Example role names (create in 00 / IaC, not here):
---   app_identity, app_bank_persistence, app_customer, app_opportunity,
+--   app_identity, app_bank_persistence, app_customer, app_lead_lms,
 --   app_consent, app_suitability, app_catalogue, app_quotation,
 --   app_proposal, app_payment, app_policy, app_journey, app_administration,
 --   migrator_<schema>, job_retention, ro_breakglass
@@ -24,18 +24,18 @@ REVOKE UPDATE, DELETE ON bank_persistence.raw_payload FROM app_bank_persistence;
 REVOKE UPDATE, DELETE ON bank_persistence.audit_event FROM app_bank_persistence;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA bank_persistence TO app_bank_persistence;
 
-GRANT USAGE ON SCHEMA opportunity TO app_opportunity;
-GRANT SELECT, INSERT, UPDATE ON opportunity.opportunity TO app_opportunity;
-REVOKE DELETE ON opportunity.opportunity FROM app_opportunity;
-GRANT SELECT, INSERT ON opportunity.opportunity_assignment TO app_opportunity;
-GRANT SELECT, INSERT ON opportunity.opportunity_meeting TO app_opportunity;
-GRANT SELECT, INSERT ON opportunity.opportunity_follow_up TO app_opportunity;
-REVOKE UPDATE, DELETE ON opportunity.opportunity_assignment FROM app_opportunity;
-REVOKE UPDATE, DELETE ON opportunity.opportunity_meeting FROM app_opportunity;
-REVOKE UPDATE, DELETE ON opportunity.opportunity_follow_up FROM app_opportunity;
-GRANT SELECT, INSERT, UPDATE, DELETE ON opportunity.idempotency_record TO app_opportunity;
-GRANT SELECT, INSERT, UPDATE ON opportunity.outbox_event TO app_opportunity;
-REVOKE DELETE ON opportunity.outbox_event FROM app_opportunity;
+GRANT USAGE ON SCHEMA lead_lms TO app_lead_lms;
+GRANT SELECT, INSERT, UPDATE ON lead_lms.lead TO app_lead_lms;
+REVOKE DELETE ON lead_lms.lead FROM app_lead_lms;
+GRANT SELECT, INSERT ON lead_lms.lead_assignment TO app_lead_lms;
+GRANT SELECT, INSERT ON lead_lms.lead_meeting TO app_lead_lms;
+GRANT SELECT, INSERT ON lead_lms.lead_follow_up TO app_lead_lms;
+REVOKE UPDATE, DELETE ON lead_lms.lead_assignment FROM app_lead_lms;
+REVOKE UPDATE, DELETE ON lead_lms.lead_meeting FROM app_lead_lms;
+REVOKE UPDATE, DELETE ON lead_lms.lead_follow_up FROM app_lead_lms;
+GRANT SELECT, INSERT, UPDATE, DELETE ON lead_lms.idempotency_record TO app_lead_lms;
+GRANT SELECT, INSERT, UPDATE ON lead_lms.outbox_event TO app_lead_lms;
+REVOKE DELETE ON lead_lms.outbox_event FROM app_lead_lms;
 
 GRANT USAGE ON SCHEMA suitability TO app_suitability;
 GRANT SELECT, INSERT, UPDATE ON suitability.suitability TO app_suitability;
@@ -57,15 +57,15 @@ GRANT SELECT, INSERT ON administration.configuration_record TO app_administratio
 REVOKE UPDATE, DELETE ON administration.configuration_record FROM app_administration;
 
 -- job_retention: execute purge procedures only, no evidence DELETE.
-GRANT USAGE ON SCHEMA opportunity TO job_retention;
-GRANT EXECUTE ON PROCEDURE opportunity.sp_purge_operational() TO job_retention;
+GRANT USAGE ON SCHEMA lead_lms TO job_retention;
+GRANT EXECUTE ON PROCEDURE lead_lms.sp_purge_operational() TO job_retention;
 GRANT USAGE ON SCHEMA suitability TO job_retention;
 GRANT EXECUTE ON PROCEDURE suitability.sp_purge_operational() TO job_retention;
 GRANT USAGE ON SCHEMA bank_persistence TO job_retention;
 GRANT EXECUTE ON PROCEDURE bank_persistence.sp_retention_sweep() TO job_retention;
 
 -- Break-glass read: time-bound via IAM, not a decrypt grant.
-GRANT USAGE ON SCHEMA identity, bank_persistence, opportunity, journey TO ro_breakglass;
+GRANT USAGE ON SCHEMA identity, bank_persistence, lead_lms, journey TO ro_breakglass;
 GRANT SELECT ON ALL TABLES IN SCHEMA identity TO ro_breakglass;
 GRANT SELECT ON ALL TABLES IN SCHEMA bank_persistence TO ro_breakglass;
 -- Do not GRANT SELECT on customer.pii_enc / consent.contact_used_enc to ro_breakglass

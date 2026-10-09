@@ -52,7 +52,7 @@ One Aurora PostgreSQL cluster. One schema per bounded context. No cross-schema g
 | `identity` | Identity & Access (WS-2) | [`01-identity.sql`](./schemas/01-identity.sql) | Flyway on `identity-authorization-service` |
 | `bank_persistence` | 1SB Adapter job store + audit ingest | [`02-bank_persistence.sql`](./schemas/02-bank_persistence.sql) | Flyway on `bank-persistence-service` |
 | `customer` | Customer snapshot | [`03-customer.sql`](./schemas/03-customer.sql) | Design only |
-| `opportunity` | Lead / opportunity | [`04-opportunity.sql`](./schemas/04-opportunity.sql) · [e2e](./03-lead-suitability-e2e.md) | Design only |
+| `lead_lms` | Lead LMS (`lead` table) | [`04-lead_lms.sql`](./schemas/04-lead_lms.sql) · [e2e](./03-lead-suitability-e2e.md) | Design only |
 | `consent` | Consent evidence | [`05-consent.sql`](./schemas/05-consent.sql) | Design only |
 | `suitability` | Suitability assessment | [`06-suitability.sql`](./schemas/06-suitability.sql) · [e2e](./03-lead-suitability-e2e.md) | Design only |
 | `catalogue` | Product catalogue | [`07-catalogue.sql`](./schemas/07-catalogue.sql) | Design only |

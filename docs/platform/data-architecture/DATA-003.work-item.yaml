@@ -26,7 +26,7 @@ problem: >
 
 description: >
   Publish an Aarti e2e pack: ER diagram, table/column sheets, and design DDL
-  for opportunity (Lead) and suitability, including DATA-002 W1 ARCHIVED
+  for lead_lms (table lead) and suitability, including DATA-002 W1 ARCHIVED
   columns and ADR-012 outbox on those two schemas only. Do not apply Flyway.
   Do not pick an archive-table mechanism (joint Mahesh). Do not implement
   issuance_mode, off-platform ingest, or MIS reader (remain DATA-002).
@@ -35,15 +35,15 @@ description: >
 acceptance_criteria:
   - id: AC-1
     given: "Lead BRD Screens 1–7 and INV-LED-04/10"
-    when: "opportunity DDL is read"
+    when: "lead_lms.lead DDL is read"
     then: "workforce creator, nullable accountable_sp_id until assignment, product_class TERM|SAVINGS|ULIP, meeting child, exception_state, bi_generated/reporting_class exist"
   - id: AC-2
     given: "Lead BRD Table 20"
-    when: "opportunity indexes are read"
+    when: "lead_lms indexes are read"
     then: "a partial unique open-lead key on creator+customer+product_class exists"
   - id: AC-3
     given: "CR-013 C-RET-1 / DATA-002 W1"
-    when: "opportunity DDL is read"
+    when: "lead_lms.lead DDL is read"
     then: "ARCHIVED is a legal state, archived_at exists, and RET-7Y attribution columns are named"
   - id: AC-4
     given: "Suitability BRD §10–15"
@@ -52,7 +52,7 @@ acceptance_criteria:
   - id: AC-5
     given: "an engineer implementing S11"
     when: "03-lead-suitability-e2e.md is opened"
-    then: "an ER diagram names every table on the Lead→Suitability path and marks cross-schema refs as logical"
+    then: "an ER diagram names LEAD (schema lead_lms) and every table on the Lead→Suitability path and marks cross-schema refs as logical"
   - id: AC-6
     given: "CURRENT-STATE.yaml and GATE-S07"
     when: "this change lands"
@@ -62,7 +62,7 @@ out_of_scope:
   - "Flyway apply / owning-service runtime"
   - "DATA-002 W3 issuance_mode and off-platform Policy ingest"
   - "DATA-002 W4 isolated MIS reader path"
-  - "outbox_event on schemas other than opportunity and suitability"
+  - "outbox_event on schemas other than lead_lms and suitability"
   - "Term questionnaire"
   - "Campaign / bulk Lead create / meeting completion / meeting SMS"
   - "Seller override of mapping"
@@ -99,6 +99,7 @@ dependencies:
   decision_dependency:
     - "OPEN-SUI-IMMUTABLE — Rajal / Shailja (BRD same-id edit vs INV-SUI-01 new row)"
     - "W1 archive mechanism — joint Aarti/Mahesh (same-table ARCHIVED used until then)"
+    - "SUG-20261009-lms — physical schema lead_lms / table lead (ADR-014 D1 option closed)"
 
 plan: PLAN-010
 estimate: M
@@ -106,6 +107,6 @@ assumptions: []
 risks: []
 evidence:
   - "docs/platform/data-architecture/03-lead-suitability-e2e.md"
-  - "docs/platform/data-architecture/schemas/04-opportunity.sql"
+  - "docs/platform/data-architecture/schemas/04-lead_lms.sql"
   - "docs/platform/data-architecture/schemas/06-suitability.sql"
 variance_log: []

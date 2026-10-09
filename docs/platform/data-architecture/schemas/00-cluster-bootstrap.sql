@@ -10,7 +10,7 @@
 CREATE SCHEMA IF NOT EXISTS identity;
 CREATE SCHEMA IF NOT EXISTS bank_persistence;
 CREATE SCHEMA IF NOT EXISTS customer;
-CREATE SCHEMA IF NOT EXISTS opportunity;
+CREATE SCHEMA IF NOT EXISTS lead_lms;
 CREATE SCHEMA IF NOT EXISTS consent;
 CREATE SCHEMA IF NOT EXISTS suitability;
 CREATE SCHEMA IF NOT EXISTS catalogue;
@@ -24,7 +24,7 @@ CREATE SCHEMA IF NOT EXISTS administration;
 COMMENT ON SCHEMA identity IS 'WS-2 Identity & Access — roles, entitlements, certification. PDP SoR.';
 COMMENT ON SCHEMA bank_persistence IS '1SB adapter job/correlation store + audit ingestion. Not a business-context store.';
 COMMENT ON SCHEMA customer IS 'Customer profile snapshot SoR. CBS remains master for CIF.';
-COMMENT ON SCHEMA opportunity IS 'Lead / opportunity SoR. Workforce origination (INV-LED-04 / D-018); schema name unchanged (ADR-014 D1).';
+COMMENT ON SCHEMA lead_lms IS 'Lead LMS SoR (table lead). Workforce origination (INV-LED-04 / D-018). Schema name lead_lms per SUG-20261009-lms; identifiers stay lead_id.';
 COMMENT ON SCHEMA consent IS 'Consent evidence SoR. Append-only evidence columns.';
 COMMENT ON SCHEMA suitability IS 'Suitability assessment SoR. Header mutable until LOCKED; answer sets INSERT-only (BRD §14–15 / OPEN-SUI-IMMUTABLE).';
 COMMENT ON SCHEMA catalogue IS 'Product, insurer, eligibility SoR.';

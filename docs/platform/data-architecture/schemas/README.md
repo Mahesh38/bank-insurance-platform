@@ -11,7 +11,7 @@ this folder as a superuser against production (`DR-MIG-04`).
 | [`01-identity.sql`](./01-identity.sql) | WS-2 identity (wraps existing Flyway) |
 | [`02-bank_persistence.sql`](./02-bank_persistence.sql) | Job store + audit ingest (wraps existing Flyway) |
 | [`03-customer.sql`](./03-customer.sql) | Customer snapshot |
-| [`04-opportunity.sql`](./04-opportunity.sql) | Lead / opportunity — e2e sheet [`../03-lead-suitability-e2e.md`](../03-lead-suitability-e2e.md) |
+| [`04-lead_lms.sql`](./04-lead_lms.sql) | Lead LMS (`lead`) — e2e sheet [`../03-lead-suitability-e2e.md`](../03-lead-suitability-e2e.md) |
 | [`05-consent.sql`](./05-consent.sql) | Consent evidence |
 | [`06-suitability.sql`](./06-suitability.sql) | Suitability — e2e sheet [`../03-lead-suitability-e2e.md`](../03-lead-suitability-e2e.md) |
 | [`07-catalogue.sql`](./07-catalogue.sql) | Product catalogue |

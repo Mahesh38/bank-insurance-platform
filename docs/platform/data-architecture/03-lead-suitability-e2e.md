@@ -8,7 +8,7 @@
 **Status:** `AI-DRAFTED` — design DDL only. Human `S07-G5` / T3 signatures outstanding. Not a Flyway apply.  
 **Stage:** S08 design delta for S11 Lead / Suitability runtime. Apply remains S09.
 
-Spoken name is **Lead**. Physical schema stays `opportunity` (`DATA-002` / `ADR-014` D1 — no identifier churn). Identifiers stay `lead_id`.
+Spoken name is **Lead**. Physical schema is `lead_lms`; aggregate table is `lead` (`SUG-20261009-lms`). Identifiers stay `lead_id`. `ADR-014` D1 allowed keeping schema `opportunity`; that option is closed for this pack.
 
 ---
 
@@ -27,7 +27,7 @@ The e2e persistence contract for **one RM-assisted Life sale from Lead create th
 
 Companion DDL:
 
-- [`schemas/04-opportunity.sql`](./schemas/04-opportunity.sql)
+- [`schemas/04-lead_lms.sql`](./schemas/04-lead_lms.sql)
 - [`schemas/06-suitability.sql`](./schemas/06-suitability.sql)
 
 Neighbour schemas already designed (`customer`, `consent`, `journey`, `catalogue`, `quotation`) are **logical** references only. This pack does not add cross-schema `FOREIGN KEY` (`DR-OWN-08`).
@@ -55,12 +55,12 @@ Search ETB customer → CREATE Lead → Start Onboarding (exception hold)
 
 | Schema | Table | Role on the path |
 |---|---|---|
-| `opportunity` | `opportunity` | Lead aggregate / working inbox |
-| `opportunity` | `opportunity_assignment` | Append-only owner history |
-| `opportunity` | `opportunity_meeting` | Optional Screen-7 meeting intent |
-| `opportunity` | `opportunity_follow_up` | Free-text notes (⚑ encrypted) |
-| `opportunity` | `idempotency_record` | INV-IDM-01 |
-| `opportunity` | `outbox_event` | Same-transaction publish (`ADR-012`) |
+| `lead_lms` | `lead` | Lead aggregate / working inbox |
+| `lead_lms` | `lead_assignment` | Append-only owner history |
+| `lead_lms` | `lead_meeting` | Optional Screen-7 meeting intent |
+| `lead_lms` | `lead_follow_up` | Free-text notes (⚑ encrypted) |
+| `lead_lms` | `idempotency_record` | INV-IDM-01 |
+| `lead_lms` | `outbox_event` | Same-transaction publish (`ADR-012`) |
 | `suitability` | `suitability` | Assessment header (one current row per lead) |
 | `suitability` | `suitability_answer_set` | Versioned ⚑ ciphertext of answers |
 | `suitability` | `suitability_mapping_run` | INSERT-only mapping evidence |
@@ -80,27 +80,27 @@ Term leads: **no** `suitability` row (`BR-SUIT-002`). Absence means Not Started 
 
 ```mermaid
 erDiagram
-    OPPORTUNITY ||--o{ OPPORTUNITY_ASSIGNMENT : "lead_id"
-    OPPORTUNITY ||--o{ OPPORTUNITY_MEETING : "lead_id"
-    OPPORTUNITY ||--o{ OPPORTUNITY_FOLLOW_UP : "lead_id"
-    OPPORTUNITY ||--o{ OPPORTUNITY_IDEMPOTENCY : "owning schema"
-    OPPORTUNITY ||--o{ OPPORTUNITY_OUTBOX : "aggregate_id"
+    LEAD ||--o{ LEAD_ASSIGNMENT : "lead_id"
+    LEAD ||--o{ LEAD_MEETING : "lead_id"
+    LEAD ||--o{ LEAD_FOLLOW_UP : "lead_id"
+    LEAD ||--o{ LEAD_IDEMPOTENCY : "owning schema"
+    LEAD ||--o{ LEAD_OUTBOX : "aggregate_id"
 
     SUITABILITY ||--o{ SUITABILITY_ANSWER_SET : "suitability_id"
     SUITABILITY ||--o{ SUITABILITY_MAPPING_RUN : "suitability_id"
     SUITABILITY ||--o{ SUITABILITY_IDEMPOTENCY : "owning schema"
     SUITABILITY ||--o{ SUITABILITY_OUTBOX : "aggregate_id"
 
-    OPPORTUNITY }o..o| SUITABILITY : "lead_id (logical)"
-    OPPORTUNITY }o..o| CUSTOMER : "customer_id (logical)"
-    OPPORTUNITY }o..o| JOURNEY : "journey_id (logical)"
+    LEAD }o..o| SUITABILITY : "lead_id (logical)"
+    LEAD }o..o| CUSTOMER : "customer_id (logical)"
+    LEAD }o..o| JOURNEY : "journey_id (logical)"
     SUITABILITY }o..o| JOURNEY : "journey_id (logical)"
     SUITABILITY }o..o| CUSTOMER : "customer_id (logical)"
     SUITABILITY_MAPPING_RUN }o..o{ CATALOGUE_PRODUCT : "product_code[] (logical)"
     SUITABILITY }o..o| QUOTE : "locked_quote_id (logical)"
     JOURNEY ||--o{ JOURNEY_REF : "suitabilityId"
 
-    OPPORTUNITY {
+    LEAD {
         char lead_id PK
         char customer_id
         varchar state
@@ -146,14 +146,14 @@ erDiagram
     }
 ```
 
-**Physical FK** exists only inside `opportunity` and inside `suitability`.  
+**Physical FK** exists only inside `lead_lms` and inside `suitability`.  
 A `lead_id` / `journey_id` / `customer_id` on another schema is a **logical** reference. The owning service validates via API before insert (`DR-OWN-08`).
 
 ---
 
-## 4. Lead (`opportunity`) — table catalogue
+## 4. Lead (`lead_lms`) — table catalogue
 
-### 4.1 `opportunity.opportunity`
+### 4.1 `lead_lms.lead`
 
 Mutable aggregate. Optimistic `version`. `lead_id` is ULID, immutable (`BR-LEAD-001/002`).
 
@@ -203,9 +203,9 @@ Post-quote insurer labels (Proposal Form Pending … Policy Issued) are **not** 
 
 **Stale information-model note.** `02-information-model` §4.2 still says `createdByActorType` is always `BANK_RM` and `accountableSpId` is mandatory at origination. Domain §4.1 / `INV-LED-04` / `D-018` / `D-019` superseded that. This DDL follows the later Product decision. Do not "fix" Product behaviour in the store (`00-design-rules` §8).
 
-### 4.2 `opportunity.opportunity_assignment`
+### 4.2 `lead_lms.lead_assignment`
 
-Append-only. `DELETE`/`UPDATE` revoked. Physical FK → `opportunity.lead_id`.
+Append-only. `DELETE`/`UPDATE` revoked. Physical FK → `lead_lms.lead.lead_id`.
 
 | Column | Notes |
 |---|---|
@@ -218,7 +218,7 @@ Append-only. `DELETE`/`UPDATE` revoked. Physical FK → `opportunity.lead_id`.
 | `reason` | Reassignment reason; `OPEN-D1` SLA/attribution is Product, not a column default |
 | `assignment_kind` | `CREATE_ASSIGN` \| `REASSIGN` |
 
-### 4.3 `opportunity.opportunity_meeting`
+### 4.3 `lead_lms.lead_meeting`
 
 Optional meeting **capture** (Lead BRD Screen 7, `D-019`). Meeting **completion** is out of scope.
 
@@ -232,7 +232,7 @@ Optional meeting **capture** (Lead BRD Screen 7, `D-019`). Meeting **completion*
 | `encryption_key_id` | Required when link ciphertext is present |
 | `created_by` / `created_at` | |
 
-### 4.4 `opportunity.opportunity_follow_up`
+### 4.4 `lead_lms.lead_follow_up`
 
 Unchanged intent: encrypted free-text notes (`note_enc` + `encryption_key_id`).
 
@@ -240,15 +240,15 @@ Unchanged intent: encrypted free-text notes (`note_enc` + `encryption_key_id`).
 
 | Index | Why |
 |---|---|
-| `ux_opp_converted_journey` partial unique | INV-LED-02 |
-| `ux_opp_dedupe_open` partial unique on `(created_by_principal_id, customer_id, product_class)` where `bi_generated = false` and state not terminal | Lead BRD Table 20 / `BR-DEDUPE-*` |
-| `ix_opp_customer_lob` | Book lookup |
-| `ix_opp_state_expires` | Ageing job |
-| `ix_opp_inbox_sp` | RM inbox by `assigned_sp_id`, excluding `ARCHIVED` |
-| `ix_opp_inbox_ipr` | Insurance RM inbox by `assigned_ipr_id`, excluding `ARCHIVED` |
-| `ix_opp_insurer_visible` partial | `AC-4` predicate |
-| `ux_idempotency_key` | INV-IDM-01 |
-| `ix_outbox_unpublished` partial | `ADR-012` publisher |
+| `ux_lead_converted_journey` partial unique | INV-LED-02 |
+| `ux_lead_dedupe_open` partial unique on `(created_by_principal_id, customer_id, product_class)` where `bi_generated = false` and state not terminal | Lead BRD Table 20 / `BR-DEDUPE-*` |
+| `ix_lead_customer_lob` | Book lookup |
+| `ix_lead_state_expires` | Ageing job |
+| `ix_lead_inbox_sp` | RM inbox by `assigned_sp_id`, excluding `ARCHIVED` |
+| `ix_lead_inbox_ipr` | Insurance RM inbox by `assigned_ipr_id`, excluding `ARCHIVED` |
+| `ix_lead_insurer_visible` partial | `AC-4` predicate |
+| `idempotency_record.idempotency_key` PK | INV-IDM-01 |
+| `ix_lead_outbox_unpublished` partial | `ADR-012` publisher |
 
 Archive mechanism: **same table + `ARCHIVED` + `archived_at`**. Partition vs archive-table vs dump is still joint Aarti/Mahesh (`DEC-20260825-01` §12). This pack does not pick a second mechanism.
 
@@ -369,7 +369,7 @@ Domain machine extras kept for invariant compatibility, unused by the Savings/UL
 | `BR-DEDUPE-*` | Partial unique open-lead key |
 | `INV-SUI-02` override completeness | CHECK on `OVERRIDDEN` |
 | `INV-IDM-01` | Idempotency table in the owning schema |
-| `ADR-012` | `outbox_event` in `opportunity` and `suitability` |
+| `ADR-012` | `outbox_event` in `lead_lms` and `suitability` |
 | PII-01 | No plaintext ⚑ columns; no index on ciphertext |
 | `DR-OWN-08` | No cross-schema FK |
 
@@ -408,5 +408,5 @@ Cite: [`04-operating-and-review-contract.md` §4](../../context/roles/principal-
 |---|---|
 | §2–4 | Lead BRD §4, §6, §9.9, §10–11, §14, §17; HLD §4–6; `INV-LED-*`; `DATA-002` §4.1 |
 | §5 | Suitability BRD §4–16; information model §4.4; `INV-SUI-01/02` |
-| DDL | `schemas/04-opportunity.sql`, `schemas/06-suitability.sql`, `schemas/90-routines.sql` |
+| DDL | `schemas/04-lead_lms.sql`, `schemas/06-suitability.sql`, `schemas/90-routines.sql` |
 | Neighbours | `03-customer.sql`, `05-consent.sql`, `12-journey.sql`, `07-catalogue.sql` |

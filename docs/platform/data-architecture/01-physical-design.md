@@ -16,7 +16,7 @@
             │  PITR on · Multi-AZ · KMS at rest   │
             │                                     │
             │  identity          customer         │
-            │  bank_persistence  opportunity      │
+            │  bank_persistence  lead_lms         │
             │  consent           suitability      │
             │  catalogue         quotation        │
             │  proposal          payment          │
@@ -47,8 +47,8 @@ not a document store problem. Revisit when a measured access pattern says otherw
 ## 2. Relationships (logical, not cross-schema FK)
 
 ```text
-opportunity.lead_id
-    ├── opportunity_assignment / opportunity_meeting / opportunity_follow_up
+lead_lms.lead.lead_id
+    ├── lead_assignment / lead_meeting / lead_follow_up
     └── journey.lead_id
             ├── customer.customer_snapshot.journey_id
             ├── consent.lead_id / journey_id
@@ -69,13 +69,13 @@ bank_persistence.audit_event.journey_id / resource_id   (append-only evidence)
 
 Lead + Suitability e2e ER and column sheets: [`03-lead-suitability-e2e.md`](./03-lead-suitability-e2e.md).
 
-**Physical FK** exists only inside one schema (offer→quote, attempt→payment, assignment/meeting/follow-up→opportunity, answer-set/mapping-run→suitability).
+**Physical FK** exists only inside one schema (offer→quote, attempt→payment, assignment/meeting/follow-up→lead, answer-set/mapping-run→suitability).
 A `journey_id CHAR(26)` on another schema is a **logical** reference. The owning service validates
 it exists via API before insert.
 
 Partner visibility (`AC-4` / `AC-5`) is a **predicate** on the owning table
 (`insurer_id IS NOT NULL AND partner_visible_from IS NOT NULL AND need_analysis_state = 'COMPLETED'`
-on opportunity; journey materialises a copy for query). It is not a grant to the partner schema.
+on lead_lms.lead; journey materialises a copy for query). It is not a grant to the partner schema.
 
 ---
 
@@ -145,7 +145,7 @@ DDL: [`14-audit_event_delta.sql`](./schemas/14-audit_event_delta.sql). Apply as 
 | Schema | Tables | Immutable? |
 |---|---|---|
 | `customer` | `customer`, `customer_snapshot` | Snapshot write-once |
-| `opportunity` | `opportunity`, `opportunity_assignment`, `opportunity_meeting`, `opportunity_follow_up`, `idempotency_record`, `outbox_event` | First write of `accountable_sp_id` then immutable; assignment/meeting/follow-up append-only; `ARCHIVED` is a state not a delete. Column sheet: [`03-lead-suitability-e2e.md`](./03-lead-suitability-e2e.md) |
+| `lead_lms` | `lead`, `lead_assignment`, `lead_meeting`, `lead_follow_up`, `idempotency_record`, `outbox_event` | First write of `accountable_sp_id` then immutable; assignment/meeting/follow-up append-only; `ARCHIVED` is a state not a delete. Column sheet: [`03-lead-suitability-e2e.md`](./03-lead-suitability-e2e.md) |
 | `consent` | `consent` | Evidence columns write-once; state may move to WITHDRAWN/EXPIRED |
 | `suitability` | `suitability`, `suitability_answer_set`, `suitability_mapping_run`, `idempotency_record`, `outbox_event` | Header mutable until `LOCKED`; answer sets INSERT-only; mapping `run_state` may move CURRENT→INVALID. Term has no row |
 | `catalogue` | `insurer`, `product`, `eligibility_band` | Effective-dated; no in-place replace of an active version |
@@ -174,7 +174,7 @@ Idempotency is a small table **inside** each mutating schema (`key`, `request_ha
 | bank_persistence | `ux_audit_journey_sequence` **(add with delta)** | Gap detection |
 | customer | `ux_customer_cif_hash` | ETB lookup without indexing CIF |
 | customer | `ix_snapshot_journey` | Frozen profile by journey |
-| opportunity | `ix_opp_customer_lob`, `ix_opp_state_expires`, `ix_opp_insurer_visible`, `ix_opp_inbox_sp`, `ix_opp_inbox_ipr`, `ux_opp_dedupe_open` | Book, ageing, IPR predicate, working inbox, creator+customer+productClass dedupe |
+| lead_lms | `ix_lead_customer_lob`, `ix_lead_state_expires`, `ix_lead_insurer_visible`, `ix_lead_inbox_sp`, `ix_lead_inbox_ipr`, `ux_lead_dedupe_open` | Book, ageing, IPR predicate, working inbox, creator+customer+productClass dedupe |
 | consent | `ix_consent_customer_state`, `ix_consent_journey` | INV-PRP-01 lookup |
 | suitability | `ix_suit_customer_lob_state`, `ux_suit_lead_current`, `ux_suit_map_current` | INV-QUO-01 lookup; one current assessment per lead; one CURRENT mapping |
 | catalogue | `ix_product_effective`, `ix_elig_product` | Read path + cache fill |
@@ -221,12 +221,12 @@ CRUD stored procedures are **refused** (`DR-SP-01`).
 |---|---|---|---|
 | `fn_prevent_update_delete` | trigger fn | With each immutable table | Reject `UPDATE`/`DELETE` |
 | `fn_protect_consent_evidence` | trigger fn | Consent | Allow state/withdrawal columns only |
-| `fn_accountable_sp_immutable` | trigger fn | Opportunity (and copies) | INV-ACT-03 — first NULL→value allowed |
-| `fn_lead_origination_immutable` | trigger fn | Opportunity | `lead_id` / `lob` / `product_class` / creator / `source` frozen |
+| `fn_accountable_sp_immutable` | trigger fn | `lead_lms.lead` (and copies) | INV-ACT-03 — first NULL→value allowed |
+| `fn_lead_origination_immutable` | trigger fn | `lead_lms.lead` | `lead_id` / `lob` / `product_class` / creator / `source` frozen |
 | `fn_protect_answer_set` | trigger fn | Suitability | Answer ciphertext INSERT-only |
 | `fn_protect_mapping_run` | trigger fn | Suitability | Mapping evidence frozen; `run_state` may change |
 | `fn_next_audit_sequence` | function | With audit delta | Allocate `sequence_no` per `journey_id` |
-| `fn_ipr_visible` | function | Opportunity / journey | Documents the `AC-4` SQL predicate |
+| `fn_ipr_visible` | function | `lead_lms` / journey | Documents the `AC-4` SQL predicate |
 | `sp_retention_sweep` | procedure | **S09** | Selects rows past `retain_until` for the owning job; does not cross schemas |
 | `sp_purge_operational` | procedure | **S09** | Deletes `RET-OPERATIONAL` / expired idempotency keys |
 
@@ -241,7 +241,7 @@ one Group A insurer ([`BOOT.md` WS-3 objective](../../context/BOOT.md)).
 
 | Amplification | Path |
 |---|---|
-| ~1 opportunity → 1 journey → 1 suitability → 1 consent → 1 quote → N offers (N = in-scope insurers) → 1 proposal → 1 payment → 1 policy | Sequential, not fan-out at write |
+| ~1 lead → 1 journey → 1 suitability → 1 consent → 1 quote → N offers (N = in-scope insurers) → 1 proposal → 1 payment → 1 policy | Sequential, not fan-out at write |
 | Poll attempts | Adapter `job_poll_attempt` — already bounded by poll budget |
 | Audit | One event per aggregate transition (INV-AUD-02) — tens of rows per sale, not millions |
 

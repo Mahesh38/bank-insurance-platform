@@ -23,7 +23,7 @@ problem: >
   suitability against that pack.
 
 proposed_solution: >
-  Admit DATA-003 on the Aarti design lane. Extend 04-opportunity.sql and
+  Admit DATA-003 on the Aarti design lane. Extend 04-lead_lms.sql and
   06-suitability.sql; publish 03-lead-suitability-e2e.md (ER + column sheets);
   update physical-design catalogue, routines and grants. Absorb DATA-002 W1
   archive columns. Leave W3/W4 and other-schema outboxes on DATA-002.
@@ -34,8 +34,8 @@ alternatives:
     rejected_because: "AP-5 is contract-first; incorrect domain model at S11 is a hard P1 class."
   - option: "Implement the full DATA-002 pack (issuance, ingest, MIS) in this turn"
     rejected_because: "Requested slice is Lead+Suitability e2e; extra schemas would expand PLAN-010."
-  - option: "Rename schema opportunity to lead"
-    rejected_because: "DATA-002 / ADR-014 D1 — identifier churn is joint Aarti/Mahesh, not a must-do."
+  - option: "Keep schema name opportunity (ADR-014 D1 default)"
+    rejected_because: "Owner direction SUG-20261009-lms: schema lead_lms, table lead."
   - option: "Apply Flyway now"
     rejected_because: "DR-MIG-04; apply is S09; no owning Suitability service yet."
 
@@ -50,7 +50,7 @@ affected_components:
 files_expected:
   - docs/platform/data-architecture/03-lead-suitability-e2e.md
   - docs/platform/data-architecture/DATA-003.work-item.yaml
-  - docs/platform/data-architecture/schemas/04-opportunity.sql
+  - docs/platform/data-architecture/schemas/04-lead_lms.sql
   - docs/platform/data-architecture/schemas/06-suitability.sql
   - docs/platform/data-architecture/schemas/90-routines.sql
   - docs/platform/data-architecture/schemas/91-grants.sql
@@ -73,7 +73,7 @@ testing:
   unit: []
   integration: []
   other:
-    - "PostgreSQL parse of 04-opportunity.sql and 06-suitability.sql"
+    - "PostgreSQL parse of 04-lead_lms.sql and 06-suitability.sql"
     - "Cross-doc: HLD R0 cut ↔ ER tables ↔ DDL CHECKs"
     - "python3 scripts/context/build-doc-map.py after new docs"
     - "python3 scripts/context/context-load.py validate"
@@ -112,5 +112,9 @@ out_of_scope:
 estimate: M
 
 reviews: []
-variance_log: []
+variance_log:
+  - date: "2026-10-09"
+    change: "Physical schema renamed opportunity → lead_lms; aggregate table renamed to lead"
+    reason: "Owner direction SUG-20261009-lms. ADR-014 D1 allowed either name; this pack takes lead_lms. Identifiers stay lead_id."
+    re_review: "none — design DDL only; no T4 claim"
 ```

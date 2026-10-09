@@ -676,4 +676,4 @@ id_allocation:
     # ADR-017 was added by the 2026-08-27 platform error contract round (SUG-20260827-err), and
     # EPIC-001 by the same round. ID-allocation correction only. No stage, scope or gate field is
     # touched by it; those remain human-owned (04 section 5).
-    ADR: 23        # ADR-001..021 in use; ADR-022 = inbound API Gateway not replaceable by Istio at R0 (reaffirms ADR-018/020; CR-017 / SUG-20261006-apg, 2026-10-06). Next unused is 23. ID-allocation only.
+    ADR: 24        # ADR-001..023 in use; ADR-023 = NLB+Istio inbound (supersedes ADR-018/022; CR-017 Option B Accepted 2026-10-09). Next unused is 24. ID-allocation only.

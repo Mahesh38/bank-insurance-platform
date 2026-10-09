@@ -1,10 +1,10 @@
-# CR-017 — Inbound edge: keep Amazon API Gateway; Istio is not an R0 substitute
+# CR-017 — Inbound edge: bank-standard NLB + Istio (Option B accepted)
 
 **Change request:** CR-017  
 **Date raised:** 2026-10-06  
-**Status:** **DRAFT / ESCALATED** — awaiting human Architecture (Mahesh) + Security (Deepali) + SRE (Shivanshi) position. Not ratified. Agents must not treat this as approval to change the BOM.  
+**Status:** **ACCEPTED (Architecture owner)** — Mahesh accepted Option B 2026-10-09. Binding transcription is [`ADR-023`](../../platform/architecture-review/08-architecture-decision-log.md) + [`R0-LLD`](../../architecture/R0-LLD.md) cascade. Security controls S1–S11 are mandatory; residual mesh/CIDR risk recorded under Architecture owner (no separate human Security officer in-repo). Agents **do** update BOM/diagrams to match ADR-023; agents still **do not** edit stage state or manufacture T4 human signatures.  
 **Change type:** `ARCH` (with `INFRA` and `SEC` consequences)  
-**Runtime impact:** None until a human-accepted Option B/C is transcribed into ADRs and `R0-LLD`. This CR packages a **decision**, not a provision change.  
+**Runtime impact:** None until S09 Terraform apply — design/BOM now binds to NLB + Istio.  
 **Origin:** `SUG-20261006-apg` — human:stakeholder (platform-team challenge: may not use AWS API Gateway; Istio / External LB offered as alternative)  
 **Workstream:** WS-3 — AU Bank Insurance Distribution Platform  
 **Stage:** S08 — Engineering Foundation · S09 overlapped (Platform & Environment Foundation)
@@ -21,8 +21,8 @@ This CR:
 |---|------|----------|
 | A | Records the challenge and the binding baseline (`ADR-018`, `ADR-020`, `CR-012` §3) | Change stage state or mark any ADR Accepted |
 | B | Drafts talking points and a control-mapping table for the platform meeting | Provision Terraform or amend live BOM without human sign-off |
-| C | Recommends **Option A — keep API Gateway** | Impersonate Deepali’s security outcome or T4 Architecture signature |
-| D | Sketches Option B (Istio Ingress + public LB) only as a **conditional** path requiring a new ADR | Admit Istio into R0 by side effect |
+| C | Originally recommended Option A; **Architecture owner chose Option B** | Impersonate a separate Deepali human signature beyond Architecture-owner residual-risk acceptance |
+| D | Option B (Istio Ingress + public LB) admitted via **ADR-023** with S1–S11 | Drop security controls when swapping the product |
 
 Companion artefacts (same suggestion):
 
@@ -101,20 +101,21 @@ Deferred until `SPIKE-001` remaining written answers exist (edition, private pat
 
 ---
 
-## 5. Control mapping (Option B must fill every row)
+## 5. Control mapping (Option B — filled; binds ADR-023 S1–S11)
 
-| Control today (API Gateway) | Option A | Option B owner + mechanism | Deepali outcome |
-|-----------------------------|----------|----------------------------|-----------------|
-| First AWS HTTPS hop | Keep | Public LB / other | Pending |
-| Request validation / size limits | Keep | Envoy / WAF-only / other | Pending |
-| Throttling / abuse resistance before pods | Keep | … | Pending |
-| VPC Link / private EKS | Keep | … | Pending |
-| PG callback IP allowlist + separate route (TB-6) | Keep | … | Pending |
-| Edge access logs → operational search | Keep | … | Pending |
-| No public ALB (`ADR-018`) | Keep | Explicitly overturned | Pending |
-| Partner/IPR same front door | Keep | … | Pending |
+| Control formerly on API Gateway / identity ADRs | Option B home | Owner | Outcome |
+|-----------------------------|---------------|-------|---------|
+| First AWS HTTPS hop | Ingress NLB (or bank ALB) | Shivanshi / platform | Accepted |
+| Request size / schema limits | Envoy limits on Istio Gateway (S9) | Shivanshi + Amit | Accepted |
+| Throttling / abuse before pods | F5 + Envoy + Valkey per-principal (S9) | Deepali design / platform ops | Accepted |
+| Private EKS / no public domain Services | Private-app pods; private EKS API (S4) | Shivanshi | Accepted |
+| PG callback IP allowlist + separate route (TB-6) | Istio `/callbacks/pg/*` + signature (S8) | Deepali + Payments | Accepted |
+| Edge access logs → operational search | NLB + Envoy → ADR-013 (S10) | Shivanshi | Accepted |
+| No open public LB (`ADR-018` intent) | NLB SG = F5/CF CIDRs only + F5 secret/mTLS (S2–S3) | Deepali design / platform | Accepted (compensating) |
+| Partner/IPR same front door | Same NLB + Istio + BFF | Mahesh | Accepted |
+| Token-hiding / private Keycloak / PDP | Unchanged (S5–S7) | WS-2 | Accepted |
 
-Empty Option B cells = **not ready to amend ADRs**.
+Companion: [`2026-10-09-ADR-023-SECURITY-CONTROL-MAP.md`](../../architecture/2026-10-09-ADR-023-SECURITY-CONTROL-MAP.md).
 
 ---
 
@@ -156,26 +157,27 @@ Empty Option B cells = **not ready to amend ADRs**.
 
 ---
 
-## 9. Recommended human verdict (draft — not a signature)
+## 9. Verdict (Architecture owner — 2026-10-09)
 
 ```text
-Board 1 (Mahesh): APPROVED_WITH_CONDITIONS on Option A + ADR-022;
-                  REWORK on Option B until §5 table is complete.
-Board 4 (Deepali): Must accept residual risk for any Option B row;
-                   Option A preserves current TB posture.
-Board 7 (Shivanshi): Landing-zone request continues to ask for API Gateway
-                     + Internal ALB; no public ALB; no Istio in R0 BOM.
+Board 1 (Mahesh): ACCEPTED Option B → ADR-023 (NLB + Istio; API Gateway withdrawn).
+                  Conditions = mandatory S1–S11; Apigee outbound unchanged.
+Board 4 (Deepali): Compensating controls drafted as S1–S11; residual mesh/CIDR risk
+                   recorded under Architecture owner (no separate human Security
+                   officer in-repo for a second signature).
+Board 7 (Shivanshi): Landing-zone request asks for NLB + Istio, not API Gateway;
+                     operate F5 CIDR refresh + mesh STRICT cutover.
 ```
 
-Silence is not approval. Agents do not mark this CR Accepted.
+Binding ADR: `ADR-023`. Superseded clarifying draft: `ADR-022`. Superseded inbound hop: `ADR-018`.
 
 ---
 
-## 10. Unresolved owners / dates
+## 10. Remaining owners / dates
 
 | Item | Owner | Target |
 |------|-------|--------|
-| Platform written position (provision API Gateway **or** formal refuse + substitute) | Bank platform team · chased by Shivanshi | See `DEP-20261006-igw` |
-| Architecture human position on Option A vs B | Mahesh | Same chase window |
-| Security outcome on any Option B mapping | Deepali | Before any ADR amend |
-| S09 edge cost if Option B | Kalpana + Shivanshi | After Option B shape exists |
+| Platform implement NLB + Istio per ADR-023 | Bank platform · Shivanshi | S09 P4 (`DEP-20261006-igw` rebased) |
+| F5 egress CIDR list + refresh cadence (S2) | Bank platform + Deepali design | Before first non-dev apply |
+| PeerAuthentication PERMISSIVE→STRICT cutover date | Shivanshi + Amit | Dated cutover in runbook |
+| S09 edge cost delta vs API Gateway | Kalpana + Shivanshi | Cost envelope refresh |

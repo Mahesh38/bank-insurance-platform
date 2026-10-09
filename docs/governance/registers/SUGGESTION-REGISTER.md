@@ -43,7 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
-| SUG-20261006-apg | 2026-10-06 | human:stakeholder | Platform team may refuse Amazon API Gateway inbound; Istio / External LB offered as substitute — need justification pack + CR/ADR escalation (keep ADR-018 vs Option B) | SF1 | SC0 | MUST | ARCH | P2 / P1 | ESCALATED | [CR-017](../change-requests/CR-017-inbound-api-gateway-vs-istio.md) · [ADR-022](../../platform/architecture-review/08-architecture-decision-log.md) · [note](../../architecture/2026-10-06-PLATFORM-TEAM-NOTE-API-GATEWAY-VS-ISTIO.md) · [infra POC](../../architecture/2026-10-08-INFRA-POC-API-GATEWAY-KEYCLOAK-ISTIO.md) · [rebuttal](../../architecture/2026-10-08-REBUTTAL-ALB-ISTIO-VS-API-GATEWAY.md) · [Mahesh contemplation](../../architecture/2026-10-09-MAHESH-CONTEMPLATION-BANK-STANDARD-ELB-ISTIO.md) · [detail](#sug-20261006-apg--api-gateway-vs-istio-platform-challenge) · recurrence_count 4 (2026-10-09: Mahesh contemplating bank-standard ELB+Istio — process + cascade, not ADR yet) |
+| SUG-20261006-apg | 2026-10-06 | human:stakeholder | Platform team may refuse Amazon API Gateway inbound; Istio / External LB offered as substitute — need justification pack + CR/ADR escalation (keep ADR-018 vs Option B) | SF1 | SC0 | MUST | ARCH | P2 / P1 | **ADMITTED** (Option B) | [CR-017 Accepted](../change-requests/CR-017-inbound-api-gateway-vs-istio.md) · [ADR-023](../../platform/architecture-review/08-architecture-decision-log.md) · [security map](../../architecture/2026-10-09-ADR-023-SECURITY-CONTROL-MAP.md) · [detail](#sug-20261006-apg--api-gateway-vs-istio-platform-challenge) · recurrence_count 5 (2026-10-09b: Architecture owner Accepts Option B → ADR-023 cascade) |
 | SUG-20261003-svg | 2026-10-03 | human:stakeholder | Remaining Saving readiness beyond fail-closed hub validation: Product UI bands, questionnaire engine, enum inventory/master refresh, live Gate POST + complete Proposal POST/poll | SF3 | SC0 | MUST | FUNC | P4 / P1 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [detail](#sug-20261003-svg--saving-readiness-blocked-on-1sb-config) |
 | SUG-20261003-lvr | 2026-10-03 | human:stakeholder | Make 1sb-integration-service UAT-ready to validate Term/ULIP/Savings Life journeys (fail-before-1SB + response contract) | SF1 | SC0 | MUST | FUNC | P2 / P1 | ADMITTED | [FUNC-028](../../1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md) · [detail](#sug-20261003-lvr--life-journey-validation-uat) |
 | SUG-20261003-brf | 2026-10-03 | human:Rajal | BRD wins: dedupe key user+customer+productType+BI; no delete when BI absent; Save does not evaluate — Start Onboarding does; flow dedupe→create→exception→assign SP | SF2 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [D-019](../../au-bank-insurance-platform/DECISION-LOG.md) · [EPIC-005](../../platform/ws3-platform/EPIC-005.work-item.yaml) · [detail](#sug-20261003-brf--brd-wins-dedupe-exception-timing--sequence) |
@@ -144,7 +144,7 @@ id: SUG-20261006-apg
 raised_at: "2026-10-06"
 raised_by: "human:stakeholder"
 source: "Follow-up to architecture Q&A: platform team may not use AWS API Gateway; Istio / External LB suggested"
-recurrence_count: 4
+recurrence_count: 5
 input: >
   Do we have Istio in the plan? If platform will not use AWS API Gateway, how does
   architecture change and what is the security/compliance impact? Need guidelines to
@@ -156,6 +156,8 @@ input: >
   Recurrence 2026-10-09: only Mahesh is a real human Architecture owner; boards are AI
   personas; bank standard is ELB+Istio; Mahesh contemplating adapt — what process and what
   architecture changes beyond ELB+Istio (not an ADR confirmation yet).
+  Recurrence 2026-10-09b: Decision taken — switch to Istio + LB; cascade all architecture
+  safely without compromising security.
 
 context:
   workstream: WS-3
@@ -163,35 +165,33 @@ context:
   canonical_stage: "S08 — Engineering Foundation"
   state_as_of: "2026-09-30"
   state_provisional: false
-  active_work_item: "analysis-then-CR-017-escalation-pack"
+  active_work_item: "ADR-023-cascade-NLB-Istio"
 
 stage_fit:
   code: SF1
   rationale: >
-    S09 platform / edge foundation is on-stage (overlapped). Clarifying the inbound AWS
-    product is required for a correct landing-zone request. Implementing a mesh or public
-    ALB substitute would be premature until boards accept CR-017 Option B.
+    S09 platform / edge foundation is on-stage (overlapped). Architecture owner accepted
+    CR-017 Option B; cascade binds ADR-023 into BOM and diagrams.
 
 scope:
   code: SC0
   business_scope: "in scope — S09 platform foundation / R0 perimeter already in R0-LLD"
-  failure_without_it: "S09 edge provision either violates ADR-018 or stalls on an unresolved platform refusal"
+  failure_without_it: "S09 edge provision would still target withdrawn API Gateway"
   minimal: true
-  authority: "ADR-018 · ADR-020 · R0-LLD §3 · CR-012 §3"
+  authority: "ADR-023 · ADR-020 · R0-LLD §3 · CR-017"
 
 necessity:
   now: MUST
   future_necessity: MUST
   target_stage: "S09 — Platform & Environment Foundation (edge P4)"
-  binds_when: "platform team commits the inbound product for vpc-dev / vpc-uat"
+  binds_when: "platform team provisions NLB+Istio per ADR-023"
   failure_without_it: >
-    S09 edge provision either violates ADR-018 or stalls on an unresolved platform
-    refusal of Amazon API Gateway with no Board-accepted substitute
+    Landing-zone request and BOM disagree with Architecture-owner decision
   evidence_tier: E2
   evidence:
-    - "ADR-018 / ADR-020 binding inbound API Gateway"
-    - "CR-012 §3 service mesh not admitted to R0"
-    - "Human direction 2026-09-14: keep AWS API Gateway as first AWS hop"
+    - "ADR-023 Accepted 2026-10-09 (NLB + Istio; S1–S11)"
+    - "CR-017 Option B Accepted"
+    - "Security control map companion"
   confidence: C4
   assumptions: []
   anti_over_engineering:
@@ -200,24 +200,22 @@ necessity:
     X5_stage_necessity: true
     X9_problem_observed: true
 
-action: ESCALATE
+action: ADMIT
 action_rationale: >
-  Topology / public-exposure change requires human Architecture + Security (+ SRE for
-  landing-zone). Draft CR-017, ADR-022 (reaffirm), and platform one-pager as the evidence
-  pack. Do not implement Option B or edit the live BOM in this turn.
+  Architecture owner accepted Option B. ADR-023 + BOM/diagram cascade with mandatory
+  S1–S11. Apigee outbound unchanged. Do not drop Keycloak privacy, token-hiding BFF, or PDP.
 duplicate_of: null
 conflicts:
-  - "Target-state 04/06 name Istio for mTLS; R0 refuses mesh — resolved by horizon: target vs R0"
-  - "vs SUG-20260914-egr (keep inbound API Gateway) — this row escalates a challenge to that decision; does not supersede it"
+  - "Target-state 04/06 name Istio; former R0 mesh refusal overturned for admitted scope by ADR-023"
+  - "vs SUG-20260914-egr inbound API Gateway half — superseded for inbound by ADR-023; outbound Apigee stands"
 
 classification:
   type: ARCH
   breakdown: ADR
   risk_tier: T4
-  destination: "CR-017 · ADR-022 · architecture one-pager"
+  destination: "CR-017 · ADR-023 · R0-LLD cascade"
   rationale: >
-    Clarifying ADR reaffirming inbound API Gateway; Option B would be a later amending ADR
-    if boards accept a substitute.
+    Amending ADR superseding ADR-018/022; security controls re-homed not dropped.
 
 priority:
   now: P2
@@ -243,26 +241,28 @@ dependencies:
       relation: related_to
       state: OPEN
       # Apigee outbound (DEP-20260914-apg) remains a separate external edge
-  state: BLOCKED
+  state: READY
   enablement_count: 0
   earliest_start: "2026-10-06"
   cycles: none
 
 outcome:
   registered_in: "registers/SUGGESTION-REGISTER.md"
-  work_item_id: CR-017
+  work_item_id: ADR-023
   plan_id: null
-  status: ESCALATED
-  closed_reason: null
+  status: ADMITTED
+  closed_reason: "Architecture owner Accepted CR-017 Option B → ADR-023 (2026-10-09); cascade in progress"
 ```
 
-Related: does not reopen `SUG-20260914-egr` (Apigee outbound / API Gateway inbound). That decision stands; this escalation answers a later platform challenge to the inbound half. Evidence pack: `docs/architecture/2026-10-06-PLATFORM-TEAM-NOTE-API-GATEWAY-VS-ISTIO.md`, `ADR-022`.
+Related: Apigee **outbound** (`SUG-20260914-egr` / `ADR-020`) stands. Inbound API Gateway half of that direction is superseded by `ADR-023`. Evidence: `ADR-023`, security control map, CR-017 Accepted.
 
 **Recurrence 2026-10-08** (`recurrence_count: 2`): stakeholder asked for a detailed infra POC for Infra Head — why API Gateway, why not Istio/External ALB, why Keycloak, why Gateway is still needed when Keycloak exists, impact of swapping Gateway for Istio, and the change checklist. Delivered as [`2026-10-08-INFRA-POC-API-GATEWAY-KEYCLOAK-ISTIO.md`](../../architecture/2026-10-08-INFRA-POC-API-GATEWAY-KEYCLOAK-ISTIO.md). Same escalation (`CR-017`); do not mint a second SUG; do not implement Option B.
 
 **Recurrence 2026-10-08b** (`recurrence_count: 3`): stakeholder supplied a written superiority claim for External ALB/NLB + Istio Ingress over API Gateway (edge redundancy, VPC Link, JWT-at-edge, gRPC/WS, cost). Delivered point-by-point rebuttal [`2026-10-08-REBUTTAL-ALB-ISTIO-VS-API-GATEWAY.md`](../../architecture/2026-10-08-REBUTTAL-ALB-ISTIO-VS-API-GATEWAY.md). Verdict: agree on private Keycloak/BFF; reject swap for R0 (false mesh premise; `ADR-018`; CAP-A). Still do not implement Option B.
 
 **Recurrence 2026-10-09** (`recurrence_count: 4`): clarified that review boards in-repo are AI personas; Mahesh is the real Architecture owner; bank primary pattern is External LB+Istio; API Gateway skill scarce; Mahesh is *contemplating* adapt (not confirming an ADR). Delivered process + full cascade catalogue [`2026-10-09-MAHESH-CONTEMPLATION-BANK-STANDARD-ELB-ISTIO.md`](../../architecture/2026-10-09-MAHESH-CONTEMPLATION-BANK-STANDARD-ELB-ISTIO.md). Still not Accepted; no BOM/diagram flip until Mahesh Accepts amending ADR.
+
+**Recurrence 2026-10-09b** (`recurrence_count: 5`): Architecture owner decision — **switch to Istio + LB**. `ADR-023` Accepted; `ADR-018`/`ADR-022` SUPERSEDED; `CR-017` Option B Accepted; BOM/diagrams/auth cascade with mandatory S1–S11 ([`2026-10-09-ADR-023-SECURITY-CONTROL-MAP.md`](../../architecture/2026-10-09-ADR-023-SECURITY-CONTROL-MAP.md)). Suggestion disposition → **ADMITTED**.
 
 ### SUG-20260930-osl · openssl CVE-2026-84782
 

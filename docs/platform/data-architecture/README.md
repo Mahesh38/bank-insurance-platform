@@ -22,8 +22,11 @@ That document is explicit: it is **not** a physical schema
 |---|---|
 | [`00-design-rules.md`](./00-design-rules.md) | Binding persistence rules Aarti will not waive |
 | [`01-physical-design.md`](./01-physical-design.md) | Topology, datastore per context, tables, relationships, indexes, `OPEN-I6` |
+| [`04-store-segregation-and-roadmap.md`](./04-store-segregation-and-roadmap.md) | Postgres vs Dynamo vs other stores, service access, credentials, roadmap (`DATA-004`) |
+| [`05-e2e-er-and-field-map.md`](./05-e2e-er-and-field-map.md) | E2E ER, every column, physical FK vs logical ref (`DATA-004`) |
 | [`02-operations-and-troubleshooting.md`](./02-operations-and-troubleshooting.md) | Migration, encryption/access implementation, backup/PITR/RPO/RTO, retention/purge, troubleshooting |
 | [`DB-DEC-0001-r0-physical-model.md`](./DB-DEC-0001-r0-physical-model.md) | Formal `database_decision` for `ADR-008` / `S07-G5` (draft, unsigned) |
+| [`DB-DEC-0003-store-segregation.md`](./DB-DEC-0003-store-segregation.md) | Formal overlay: Dynamo empty at R0, one role per schema |
 | [`DATA-002-cr013-alignment.md`](./DATA-002-cr013-alignment.md) | Check vs `CR-013` / `ADR-014` — what to keep, what to create, what not to invent |
 | [`DB-DEC-0002-cr013-alignment-review.md`](./DB-DEC-0002-cr013-alignment-review.md) | Aarti verdict `CHANGES_REQUIRED` (`D1`) |
 | [`schemas/`](./schemas/) | PostgreSQL design DDL — one script per schema, plus routines and grants |

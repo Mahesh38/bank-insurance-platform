@@ -1,0 +1,109 @@
+# schema: work-item
+id: DATA-004
+origin:
+  - SUG-20261012-pdr
+  - SUG-20261012-erd
+title: "E2E store map, credentials, roadmap, and full ER / field pack"
+type: ARCH
+also: [DOC]
+breakdown: STORY
+epic: null
+workstream: WS-3
+owner: "Aarti — Principal Insurance Data & Database Architect"
+risk_tier: T3
+
+serves:
+  - "S07-E04-S01 datastore per context (service access overlay)"
+  - "S09 IaC role and secret inventory"
+  - "S11 owning-service Flyway apply list"
+  - "DB-DEC-0001 Dynamo rejection made operational"
+
+problem: >
+  DATA-001 decided one Aurora cluster and rejected Dynamo for Journey/Quote/Audit,
+  but engineers still read architecture-review/05 as if those services open Dynamo.
+  There is no single matrix of service → store → PostgreSQL role, and no roadmap
+  that says when Dynamo may be reconsidered.
+
+description: >
+  Publish an Aarti overlay: e2e store catalogue (Aurora / Dynamo empty / Valkey /
+  S3 / Keycloak / MSK / MIS), how segregation is enforced (schema + credential,
+  not engine), which deployable may open which store, one app_* role per owning
+  schema, a staged roadmap through S09 apply, S11 waves, LOB split and an
+  evidence-gated Dynamo revisit, plus e2e ER diagrams, column sheets and the
+  physical-vs-logical relationship map. Do not apply Flyway. Do not provision
+  Dynamo. Do not mark S07-G5 PASSED.
+
+acceptance_criteria:
+  - id: AC-1
+    given: "the R0 assisted Life path"
+    when: "04-store-segregation-and-roadmap.md is read"
+    then: "every transactional SoR is named on Aurora PostgreSQL and DynamoDB has an empty access list"
+  - id: AC-2
+    given: "a deployable in services/"
+    when: "section 4 is read"
+    then: "that service has exactly one store column — Aurora schema + role, or an explicit no-login reason"
+  - id: AC-3
+    given: "the question whether each service has a different DB user"
+    when: "section 4 is read"
+    then: "yes — one app_<schema> role per owning service; replicas share it; non-owners have no Aurora login"
+  - id: AC-4
+    given: "S09 IaC"
+    when: "the roadmap Phase B is followed"
+    then: "no Dynamo table or dynamodb:* task role is in the inventory"
+  - id: AC-5
+    given: "CURRENT-STATE.yaml and GATE-S07"
+    when: "this change lands"
+    then: "no stage field is edited and S07-G5 remains OPEN awaiting the human signature"
+  - id: AC-6
+    given: "the R0 design DDL in schemas/"
+    when: "05-e2e-er-and-field-map.md is read"
+    then: "every schema has an ER, every column is named, and every FK vs logical ref is listed"
+
+out_of_scope:
+  - "Flyway apply / owning-service runtime"
+  - "Creating AWS Aurora or DynamoDB resources"
+  - "Amending architecture-review/05 or 02 diagrams (Mahesh lane)"
+  - "DATA-002 W3 issuance_mode / off-platform ingest / W4 MIS reader implementation"
+  - "Human S07-G5 / T4 signatures"
+  - "Changing CURRENT-STATE.yaml stage fields"
+
+state: IN-FLIGHT
+priority_now: P2
+priority_at_target: P1
+target_stage: "S08 design delta / S09 apply / S11 service persistence"
+unpark_trigger: null
+
+dependencies:
+  blocked_by: []
+  requires:
+    - "DATA-001 pack"
+    - "DB-DEC-0001"
+    - "ADR-008"
+    - "ADR-011"
+  enables:
+    - "S09 per-schema role IaC"
+    - "S11 owning-service Flyway"
+  related_to:
+    - "DATA-001"
+    - "DATA-002"
+    - "ARCH-004"
+    - "ADR-012"
+    - "ADR-013"
+  external: []
+  decision_dependency:
+    - "ADR-008 Aarti/Mahesh/Deepali human approval"
+    - "Mahesh diagram overlay vs architecture-review/05 Dynamo rows"
+
+plan: PLAN-011
+estimate: M
+assumptions: []
+risks: []
+evidence:
+  - "docs/platform/data-architecture/04-store-segregation-and-roadmap.md"
+  - "docs/platform/data-architecture/DB-DEC-0003-store-segregation.md"
+  - "docs/platform/data-architecture/05-e2e-er-and-field-map.md"
+variance_log:
+  - date: "2026-10-12"
+    change: "Added 05-e2e-er-and-field-map.md — full ER, columns, relationship map"
+    reason: "Owner asked to include all ER diagrams with detailed fields and relationship mapping on the in-flight DATA-004 pack"
+    re_review: "none — design DDL projection; no T4 claim"

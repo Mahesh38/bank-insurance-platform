@@ -43,6 +43,8 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20261012-erd | 2026-10-12 | human:stakeholder | Include all ER diagrams with detailed fields and relationship mapping on the e2e DB pack | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [DATA-004](../../platform/data-architecture/DATA-004.work-item.yaml) · [ER](../../platform/data-architecture/05-e2e-er-and-field-map.md) · [detail](#sug-20261012-erd--e2e-er-diagrams-and-field-map) · absorbed into DATA-004 |
+| SUG-20261012-pdr | 2026-10-12 | human:stakeholder | Complete e2e DB design: Postgres vs DynamoDB segregation, service access, per-service DB users, roadmap | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [DATA-004](../../platform/data-architecture/DATA-004.work-item.yaml) · [PLAN-011](../plans/PLAN-011-store-segregation-roadmap.md) · [map](../../platform/data-architecture/04-store-segregation-and-roadmap.md) · [ER](../../platform/data-architecture/05-e2e-er-and-field-map.md) · [detail](#sug-20261012-pdr--e2e-postgres-vs-dynamodb-segregation) |
 | SUG-20261008-bnk | 2026-10-08 | human:repository-owner | Complete bank-user login/auth e2e using the bank AD login API that hits AD internally and returns true/false for an active bank employee | SF1 | SC0 | MUST | FUNC | P2 / P1 | ADMITTED | [IAM-001](../../platform/authentication-authorization/IAM-001.work-item.yaml) · [detail](#sug-20261008-bnk--bank-rm-ad-verify-login-e2e) |
 | SUG-20261008-otp | 2026-10-08 | agent:cursor | Login BRD remainder after IAM-001: Captcha, mandatory OTP to mobile+email, lock after 3 password failures / 30-day inactivity, Unlock User | SF2 | SC0 | MUST | FUNC | P4 / P1 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [detail](#sug-20261008-otp--login-brd-captcha-otp-lock) |
 | SUG-20261008-sb4 | 2026-10-08 | scan:trivy | Upgrade Spring Boot 3.5.16 → Boot 4 / Framework 7.0.9 to close CVE-2026-47884 on spring-webmvc (only public OSS fix; 6.2.20 is enterprise-only) | SF3 | SC1 | MUST | SEC | P4 / P1 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [detail](#sug-20261008-sb4--spring-boot-4-for-cve-2026-47884) · RISK-021 |
@@ -145,6 +147,237 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20261012-erd · E2E ER diagrams and field map
+
+```yaml
+# schema: triage-record
+id: SUG-20261012-erd
+raised_at: "2026-10-12"
+raised_by: "human:stakeholder"
+source: "Follow-up on DATA-004: include all ER diagrams with detailed fields and relationships"
+input: >
+  please include all the ER diagram with detailed fields and relationship mapping.
+
+duplicate_of: null
+conflicts: []
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: DATA-004
+
+stage_fit:
+  code: SF1
+  rationale: >
+    Completes the in-flight DATA-004 "complete e2e db" request. Physical
+    tables already exist as design DDL; the missing artefact is the ER and
+    column/relationship projection. Not a new engine and not Flyway.
+
+scope:
+  code: SC0
+  business_scope: "in scope — R0 physical schema already admitted as DATA-001/004"
+  serves: ["DATA-004", "S07-E04-S02", "S11 owning-service Flyway"]
+  failure_without_it: "S11 invents joins and columns from memory instead of the pack"
+  minimal: true
+  authority: "DATA-001 schemas/; DATA-004 in flight"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S11 — Vertical slice"
+  binds_when: "owning services write repositories against the design DDL"
+  failure_without_it: "S11 invents joins and columns from memory instead of the pack"
+  evidence_tier: E2
+  evidence:
+    - "DATA-004 asked for complete e2e DB and shipped store/credential map only"
+    - "schemas/01–13 already name every table and column"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT
+action_rationale: >
+  Absorbed into in-flight DATA-004. Same owner, same lane, same design pack.
+  Not a second work item.
+
+classification:
+  type: ARCH
+  also: [DOC]
+  breakdown: STORY
+  epic: null
+  risk_tier: T3
+  destination: "docs/platform/data-architecture/DATA-004.work-item.yaml"
+
+priority:
+  now: P2
+  at_target: P1
+  factors: { N: 3, S: 3, B: 2, R: 2, D: 1, E: 1 }
+  score: 20
+  matrix_default: P2
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "2(3)+2(3)+2(2)+2(2)+1-1 = 20, band P2. Completes the in-flight pack."
+
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 1
+  earliest_start: "immediately — projection of existing design DDL"
+  cycles: none
+
+breakdown:
+  children: [DATA-004]
+  completion_definition: >
+    05-e2e-er-and-field-map.md has an ER and field list for every R0 schema
+    and a complete physical-FK vs logical-ref map.
+  not_included:
+    - "Flyway apply"
+    - "Dynamo ER (no R0 tables)"
+    - "Rewriting DATA-003 lead_lms DDL on this branch"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: DATA-004
+  plan_id: PLAN-011
+  status: ADMITTED
+  closed_reason: null
+
+resumed: "DATA-004 — absorbed; this is the in-flight work item."
+```
+
+### SUG-20261012-pdr · E2E Postgres vs DynamoDB segregation
+
+```yaml
+# schema: triage-record
+id: SUG-20261012-pdr
+raised_at: "2026-10-12"
+raised_by: "human:stakeholder"
+source: "Cloud-agent request to act as DBA for complete e2e DB / Postgres vs Dynamo segregation"
+input: >
+  i want you to act as DBA, design complete db from e2e and segregate what all
+  things will go in the postgrss and what will go in dynomodb, how data
+  segrigation will happen, which services will have acess to the dynomo and
+  which will have the access on the postgress, for which service what database
+  will be used, will each service will have different user accessing the db?
+  define the complete roadmap.
+
+duplicate_of: null
+conflicts:
+  - "architecture-review/05 Dynamo rows for Journey/Quote/Audit vs DB-DEC-0001 rejection — this pack is the R0 overlay; Mahesh owns diagram amendment"
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: DATA-004
+
+stage_fit:
+  code: SF1
+  rationale: >
+    Completes S07-E04 datastore-per-context evidence that DATA-001 left
+    operationally incomplete (no service × store × role matrix). GATE-S08 is
+    CANDIDATE and this artefact does not reopen it. Apply and IAM roles stay
+    S09. Dynamo introduction is explicitly parked behind measured evidence.
+
+scope:
+  code: SC0
+  business_scope: "in scope — R0 persistence ownership and S09 apply inventory"
+  serves: ["S07-E04-S01", "S09 IaC roles", "S11 owning-service Flyway"]
+  failure_without_it: "S09 provisions Dynamo from architecture-review/05 by inertia"
+  minimal: true
+  authority: "ADR-008; DB-DEC-0001; CURRENT-STATE.yaml WS-3 persistence in scope"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S09 — Platform & Environment Foundation"
+  binds_when: "S09 IaC writes the first non-identity schema roles"
+  failure_without_it: "S09 provisions Dynamo from architecture-review/05 by inertia"
+  evidence_tier: E2
+  evidence:
+    - "DB-DEC-0001 alternatives_rejected Dynamo Journey/Quote/Audit"
+    - "architecture-review/05 Datastore choice per service still lists Dynamo"
+    - "91-grants.sql already names one app_* role per schema"
+    - "ADR-011 withdrew Dynamo sessions"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT
+action_rationale: >
+  Freshness WARN (04-STAGE_GATES.md past 14-day limit). On-stage design overlay
+  for an already-decided R0 topology. Not a new engine. Not Flyway. Duplicate
+  of DATA-001? No — DATA-001 decided the cluster; this names service access,
+  credentials and the Dynamo empty-set so S09 cannot drift.
+
+classification:
+  type: ARCH
+  also: [DOC]
+  breakdown: STORY
+  epic: null
+  risk_tier: T3
+  destination: "docs/platform/data-architecture/DATA-004.work-item.yaml"
+  rationale: >
+    G3 considered (credentials) and does not fire: the pack documents the
+    existing 91-grants pattern and creates no secret. RG-5 documentation
+    exception. T3 because it is a joint Aarti/Mahesh store overlay.
+
+priority:
+  now: P2
+  at_target: P1
+  factors: { N: 3, S: 3, B: 2, R: 2, D: 2, E: 2 }
+  score: 20
+  matrix_default: P2
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: >
+    2(3)+2(3)+2(2)+2(2)+2-2 = 20, band P2. P1 at S09 when IaC would otherwise
+    provision the wrong engine.
+
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 2
+  earliest_start: "immediately — design overlay only"
+  cycles: none
+
+breakdown:
+  children: [DATA-004]
+  completion_definition: >
+    04-store-segregation-and-roadmap.md names every R0 SoR on Aurora, an empty
+    Dynamo access list, one app_* role per owning schema, and Phases A–F.
+  not_included:
+    - "Flyway apply"
+    - "AWS Dynamo or Aurora provisioning"
+    - "Amending architecture-review/05"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: DATA-004
+  plan_id: PLAN-011
+  status: ADMITTED
+  closed_reason: null
+
+resumed: "DATA-004 — this request is the in-flight work item."
+```
 
 ### SUG-20261008-bnk · Bank RM AD-verify login e2e
 

@@ -708,6 +708,8 @@ capsules:
         path: "docs/platform/data-architecture/DATA-002-cr013-alignment.md"
       - condition: "Postgres vs DynamoDB segregation, which service opens which store, or DB credentials/roadmap"
         path: "docs/platform/data-architecture/04-store-segregation-and-roadmap.md"
+      - condition: "e2e ER diagrams, column sheets or physical vs logical relationship mapping"
+        path: "docs/platform/data-architecture/05-e2e-er-and-field-map.md"
     output: "DB verdict + severity `D0`–`D3` + integrity/recovery guarantees the platform may rely on."
     never:
       - "Let application scaling override a DB limit."

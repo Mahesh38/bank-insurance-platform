@@ -18,6 +18,8 @@ This document answers, for the R0 assisted Life path and the later evidence-led 
 4. **Which service** uses **which store**, and **which database user**.
 5. The **roadmap** from this design through S09 apply, S11 vertical slice, and a Dynamo revisit.
 
+ER diagrams, every column and the physical-vs-logical relationship map: [`05-e2e-er-and-field-map.md`](./05-e2e-er-and-field-map.md).
+
 Cite: [`DB-DEC-0001`](./DB-DEC-0001-r0-physical-model.md) · [`ADR-008`](../architecture-review/08-architecture-decision-log.md#adr-008--data-ownership-is-the-invariant-physical-cluster-topology-is-an-evidence-led-decision) · [`ADR-011`](../architecture-review/08-architecture-decision-log.md) · [`01-physical-design.md` §1](./01-physical-design.md#1-topology) · [`91-grants.sql`](./schemas/91-grants.sql) · [`05-data-architecture.md`](../architecture-review/05-data-architecture.md) · [`02-target-microservices-architecture.md`](../architecture-review/02-target-microservices-architecture.md) · [`03-solution-architecture-r0.md` §4](../ws3-platform/03-solution-architecture-r0.md).
 
 ---

@@ -54,6 +54,7 @@ files_expected:
   - docs/platform/data-architecture/04-store-segregation-and-roadmap.md
   - docs/platform/data-architecture/DB-DEC-0003-store-segregation.md
   - docs/platform/data-architecture/DATA-004.work-item.yaml
+  - docs/platform/data-architecture/05-e2e-er-and-field-map.md
   - docs/platform/data-architecture/01-physical-design.md
   - docs/platform/data-architecture/README.md
   - docs/governance/plans/PLAN-011-store-segregation-roadmap.md
@@ -101,6 +102,7 @@ acceptance_criteria:
   - "AC-3 one app_* role per owning schema"
   - "AC-4 S09 inventory has no Dynamo"
   - "AC-5 no stage-field edit"
+  - "AC-6 e2e ER, columns and relationship map"
 
 out_of_scope:
   - "Runtime service or Flyway apply"
@@ -111,5 +113,9 @@ out_of_scope:
 estimate: M
 
 reviews: []
-variance_log: []
+variance_log:
+  - date: "2026-10-12"
+    change: "Added 05-e2e-er-and-field-map.md with per-schema ER, columns and FK vs logical map"
+    reason: "Owner follow-up: include all ER diagrams with detailed fields and relationship mapping"
+    re_review: "none — design DDL projection"
 ```

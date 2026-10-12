@@ -44,6 +44,8 @@ not a document store problem. Revisit when a measured access pattern says otherw
 
 Service × store × credential matrix and the Dynamo empty-set: [`04-store-segregation-and-roadmap.md`](./04-store-segregation-and-roadmap.md) · [`DB-DEC-0003`](./DB-DEC-0003-store-segregation.md).
 
+Full e2e ER, columns and relationship map: [`05-e2e-er-and-field-map.md`](./05-e2e-er-and-field-map.md).
+
 ---
 
 ## 2. Relationships (logical, not cross-schema FK)

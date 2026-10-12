@@ -1,7 +1,9 @@
 # schema: work-item
 id: DATA-004
-origin: SUG-20261012-pdr
-title: "E2E store segregation — Postgres vs DynamoDB, service access, credentials, roadmap"
+origin:
+  - SUG-20261012-pdr
+  - SUG-20261012-erd
+title: "E2E store map, credentials, roadmap, and full ER / field pack"
 type: ARCH
 also: [DOC]
 breakdown: STORY
@@ -26,9 +28,10 @@ description: >
   Publish an Aarti overlay: e2e store catalogue (Aurora / Dynamo empty / Valkey /
   S3 / Keycloak / MSK / MIS), how segregation is enforced (schema + credential,
   not engine), which deployable may open which store, one app_* role per owning
-  schema, and a staged roadmap through S09 apply, S11 waves, LOB split and an
-  evidence-gated Dynamo revisit. Do not apply Flyway. Do not provision Dynamo.
-  Do not mark S07-G5 PASSED.
+  schema, a staged roadmap through S09 apply, S11 waves, LOB split and an
+  evidence-gated Dynamo revisit, plus e2e ER diagrams, column sheets and the
+  physical-vs-logical relationship map. Do not apply Flyway. Do not provision
+  Dynamo. Do not mark S07-G5 PASSED.
 
 acceptance_criteria:
   - id: AC-1
@@ -51,6 +54,10 @@ acceptance_criteria:
     given: "CURRENT-STATE.yaml and GATE-S07"
     when: "this change lands"
     then: "no stage field is edited and S07-G5 remains OPEN awaiting the human signature"
+  - id: AC-6
+    given: "the R0 design DDL in schemas/"
+    when: "05-e2e-er-and-field-map.md is read"
+    then: "every schema has an ER, every column is named, and every FK vs logical ref is listed"
 
 out_of_scope:
   - "Flyway apply / owning-service runtime"
@@ -94,4 +101,9 @@ risks: []
 evidence:
   - "docs/platform/data-architecture/04-store-segregation-and-roadmap.md"
   - "docs/platform/data-architecture/DB-DEC-0003-store-segregation.md"
-variance_log: []
+  - "docs/platform/data-architecture/05-e2e-er-and-field-map.md"
+variance_log:
+  - date: "2026-10-12"
+    change: "Added 05-e2e-er-and-field-map.md — full ER, columns, relationship map"
+    reason: "Owner asked to include all ER diagrams with detailed fields and relationship mapping on the in-flight DATA-004 pack"
+    re_review: "none — design DDL projection; no T4 claim"

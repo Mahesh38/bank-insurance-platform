@@ -323,3 +323,12 @@ BEGIN
      WHERE expires_at < now();
 END;
 $$;
+
+CREATE OR REPLACE PROCEDURE payment.sp_purge_operational()
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    DELETE FROM payment.idempotency_record
+     WHERE expires_at < now();
+END;
+$$;

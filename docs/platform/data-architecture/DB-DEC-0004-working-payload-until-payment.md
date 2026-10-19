@@ -107,6 +107,6 @@ database_decision:
 ### Observations (non-blocking for design review)
 
 1. **SoT timing, not ownership.** Structured `quote` / `offer` / `proposal` remain the sold-policy record. Working rows are a pre-payment envelope.
-2. **Payment stays structured.** `RECONCILED` is still the issuance gate (`INV-POL-01`). This pack does not put money on JSON.
+2. **Payment stays structured and independent.** It is on the journey (`PAYMENT_PENDING` → `PAYMENT_SETTLED`, `journey_ref.paymentId`) and is not a journey table. `app_journey` has no grant on `payment`. `RECONCILED` remains the issuance gate (`INV-POL-01`). This pack does not put money on JSON.
 3. **Journey service is a skeleton.** This pack is the persistence contract. Implementing `journey-orchestration-service` is a later S11 item, not this change.
 4. **Restore unproven.** Inherited from `DB-DEC-0001`. Severity stays `D1` for design.

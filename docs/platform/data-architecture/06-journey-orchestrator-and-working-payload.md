@@ -14,6 +14,7 @@ This pack answers:
 1. The **complete structure** of the Journey Orchestration service and the tables it may touch.
 2. How the **orchestrator layer** interacts with those tables — and what it must never write.
 3. How **quotes and proposals stay unstructured JSON** until payment is `RECONCILED`, then **materialize** into the existing structured tables.
+4. Where **Payment** sits: on the journey as a stage and a ref, and **independent** as its own structured SoR (not JSON, not a journey table).
 
 Cite: [`INV-JRN-02`](../ws3-platform/01-domain-model-and-invariants.md) · [`OR-01`](../../context/roles/mahesh-principal-insurance-platform-architect/13-orchestration-doctrine.md) (orchestrator coordinates, never decides) · [`SC-W3-6`](../ws3-platform/00-WS3-ARCHITECTURE-REGISTRATION.md) · [`03-solution-architecture-r0.md` §5](../ws3-platform/03-solution-architecture-r0.md) · [`12-journey.sql`](./schemas/12-journey.sql) · [`08-quotation.sql`](./schemas/08-quotation.sql) · [`09-proposal.sql`](./schemas/09-proposal.sql) · Aarti card joint-review list ([`aarti-database.card.md`](../../context/personas/aarti-database.card.md)).
 
@@ -27,8 +28,9 @@ Cite: [`INV-JRN-02`](../ws3-platform/01-domain-model-and-invariants.md) · [`OR-
 | **Severity** | `D1` — SoT *timing* changes; ownership does not |
 | **Orchestrator store** | Schema `journey` only: `journey`, `journey_ref`, `journey_transition`, `outbox_event`, `idempotency_record`. Role `app_journey`. |
 | **Quote / proposal before payment** | Encrypted JSON envelope in `quotation.quote_working` / `proposal.proposal_working`. Structured `quote` / `offer` / `proposal` / UW children are **empty** until materialize. |
+| **Payment** | On the journey (`PAYMENT_PENDING` → `PAYMENT_SETTLED`, `journey_ref.paymentId`) and **independent** (schema `payment`, `app_payment`, own outbox). Always structured. |
 | **Materialize trigger** | `Payment` reaches `RECONCILED`. Owning services consume that event and INSERT structured rows in their own schema. Journey only updates stage + `paymentId` / later `policyId`. |
-| **Never** | Quote or proposal JSON on `journey.journey`. Journey opening `quotation` or `proposal`. Orchestrator calling 1SB or a database it does not own. |
+| **Never** | Quote or proposal JSON on `journey.journey`. Journey opening `quotation`, `proposal` or `payment`. Orchestrator calling 1SB or a database it does not own. |
 
 Observation: this does **not** move Suitability, Consent, Payment or Policy onto JSON. Those stay structured from the first write — they are evidence or money.
 
@@ -174,9 +176,14 @@ sequenceDiagram
     BFF->>JO: Advance(PAYMENT)
     JO->>PAY: InitiatePayment(proposalId)
     PAY->>QS: GET selected premium (extracted cols, not JSON parse)
-    PAY->>PT: INSERT structured payment
+    PAY->>PT: INSERT structured payment + outbox PaymentLinkIssued
     PAY-->>JO: paymentId
     JO->>JT: ref paymentId, stage PAYMENT_PENDING
+
+    Note over PAY,PT: Payment's own clock — PG / customer device
+    PAY->>PT: AUTHORISED / CAPTURED / UNCERTAIN
+    PAY-->>JO: event PaymentCaptured
+    JO->>JT: transition EVENT — stage still PAYMENT_PENDING
 
     PAY-->>JO: event PaymentReconciled
     JO->>JT: stage PAYMENT_SETTLED
@@ -261,7 +268,120 @@ v1 proposal envelope: form answers, UW requirement list, document refs, counter-
 
 ---
 
-## 6. Stage × callee × table
+## 6. Payment — on the journey, and independent
+
+Payment **is** a journey step. It is **not** a journey table.
+
+The sale cannot finish without it (`INV-JRN-05`: `SOLD` requires payment `RECONCILED`). The orchestrator advances `PAYMENT_PENDING` → `PAYMENT_SETTLED` and stores `paymentId` on `journey_ref`. Money, device isolation, attempts and reconciliation live in schema `payment`, written only by `payment-service` / `app_payment`.
+
+That is the same ownership rule as Quotation and Proposal. The difference: Payment is **always structured**. There is no `payment_working` JSON envelope. Amount, state, `pg_txn_id` and `RECONCILED` are queryable from the first write because they are the issuance gate (`INV-PAY-05`, `INV-POL-01`), not a draft form.
+
+### 6.1 Independence (what “independent” means here)
+
+| Rule | Binding |
+|---|---|
+| Own schema, own credential | `payment` / `app_payment`. No grant to `app_journey` |
+| Own state machine | `INITIATED` → `LINK_ISSUED` → … → `RECONCILED` ([`01` §4.6](../ws3-platform/01-domain-model-and-invariants.md)) — not a journey stage |
+| Own outbox | `payment.outbox_event` in the same transaction as the payment write (`ADR-012`) |
+| Journey holds an id only | `journey_ref (paymentId)` + logical `payment.journey_id` / `proposal_id`. No cross-schema FK |
+| Journey does not write money | Advance calls `payment-service` HTTP. `app_journey` cannot INSERT `payment.payment` |
+| Payment does not write the saga | Payment never UPDATE `journey.*`. It emits `PaymentLinkIssued`, `PaymentAuthorised` / `PaymentCaptured`, `PaymentReconciled`, `PaymentReconciliationBreak` |
+| Amount comes from Quotation, not from Journey | `INV-PAY-03` via Quotation API `selected_*`. Payment never decrypts `quote_working` |
+| Device isolation | `INV-PAY-01`: `device_channel` is `SMS_LINK` \| `EMAIL_LINK` \| `QR_SCAN`. No API path issues a link into an RM session |
+| Adapter session is not this SoR | `bank_persistence.payment_session` is the 1SB link-session. Correlate on `application_number` / job id — not a FK |
+
+`R-10` already forbids coupling Payment directly to Policy. Journey is the saga; Payment stays a callee.
+
+### 6.2 Tables Payment owns
+
+```mermaid
+erDiagram
+    payment_payment {
+        char payment_id PK
+        char lead_id
+        char journey_id
+        char proposal_id
+        numeric amount
+        char currency
+        varchar state
+        varchar device_channel
+        bytea link_issued_to_enc
+        varchar pg_txn_id
+        timestamptz reconciled_at
+    }
+    payment_payment_attempt {
+        char attempt_id PK
+        char payment_id FK
+        varchar outcome
+        varchar pg_txn_id
+    }
+    payment_refund {
+        char refund_id PK
+        char payment_id FK
+        numeric amount
+    }
+    payment_outbox_event {
+        char event_id PK
+        char payment_id FK
+        varchar event_type
+    }
+    payment_payment ||--o{ payment_payment_attempt : "append-only"
+    payment_payment ||--o{ payment_refund : "maker-checker"
+    payment_payment ||--o{ payment_outbox_event : "publish"
+    journey_journey_ref ||--o| payment_payment : "LOGICAL paymentId"
+```
+
+| Table | Kind | Why structured from first write |
+|---|---|---|
+| `payment.payment` | transactional SoR | Amount, uniqueness (`INV-PAY-02`), device channel, `RECONCILED` gate |
+| `payment.payment_attempt` | append-only | Lost-PG-response / `UNCERTAIN` (`INV-PAY-04`) |
+| `payment.refund` | transactional | `INV-PAY-06` maker-checker; never auto above threshold |
+| `payment.outbox_event` | reliability | Payment publishes; Journey and Quotation/Proposal consume |
+| `payment.idempotency_record` | reliability | `INV-IDM-01` on initiate / reconcile |
+
+No cardholder data. `link_issued_to_enc` is the customer contact the link was sent to (⚑), not a PAN/CVV.
+
+### 6.3 How the orchestrator talks to Payment
+
+```text
+BFF → JO Advance(PAYMENT)
+  JO locks journey; requires proposalId (and selected offer via that proposal)
+  JO → payment-service InitiatePayment(proposalId, journeyId, leadId)
+    PAY → quotation-service GET selected premium (selected_* columns)
+    PAY rejects PREMIUM_MISMATCH (INV-PAY-03) or PAYMENT_ALREADY_IN_PROGRESS (INV-PAY-02)
+    PAY INSERT payment + outbox PaymentLinkIssued + idempotency
+    PAY issues the link on the customer-device channel (INV-PAY-01)
+  PAY → JO paymentId
+  JO local txn: ref paymentId, stage PAYMENT_PENDING, transition COMMAND, outbox
+
+later, Payment's own clock (not a BFF click):
+  PAY updates payment.state (AUTHORISED / CAPTURED / UNCERTAIN / …)
+  PAY outbox PaymentAuthorised / PaymentCaptured
+  JO may record the event on journey_transition; stage stays PAYMENT_PENDING
+    until RECONCILED — CAPTURED is not enough (INV-PAY-05 / INV-POL-01)
+
+  PAY matches pg_txn_id + amount → RECONCILED
+  PAY outbox PaymentReconciled
+  JO: stage PAYMENT_SETTLED, transition EVENT
+  QS / PS: materialize structured quote / proposal (section 5.3)
+```
+
+Journey **waits** on Payment. It does not reconcile, does not talk to the PG, and does not issue the link. If Payment is `UNCERTAIN`, Journey stays `PAYMENT_PENDING` — re-initiation is Payment's rejection (`INV-PAY-04`), not a Journey overwrite.
+
+### 6.4 Why Payment is not a working JSON
+
+| If Payment were JSON-until-issuance | What breaks |
+|---|---|
+| Amount only inside an envelope | `INV-PAY-03` / reconciliation cannot match paise without decrypt |
+| One open payment per proposal | `ux_payment_active_per_proposal` needs a column, not a blob |
+| `UNCERTAIN` vs `CAPTURED` vs `RECONCILED` | Issuance gate must be a CHECK-able state |
+| Device channel | `INV-PAY-01` is an access-control fact, not a form field |
+
+Quote and proposal can stay envelopes because they are **not** the issuance gate. Payment **is**.
+
+---
+
+## 7. Stage × callee × table
 
 | Journey stage after success | Callee | Callee store | Journey write |
 |---|---|---|---|
@@ -271,13 +391,14 @@ v1 proposal envelope: form answers, UW requirement list, document refs, counter-
 | `QUOTING` | Quotation | **`quote_working` only** | ref `quoteId` |
 | `QUOTE_SELECTED` | Quotation (select) | update `quote_working` selected_* | ref `offerId` |
 | `PROPOSAL_IN_PROGRESS` / `UNDERWRITING` | Proposal | **`proposal_working` only** | ref `proposalId` / `applicationNumber` |
-| `PAYMENT_PENDING` | Payment | `payment.payment` structured | ref `paymentId` |
-| `PAYMENT_SETTLED` | (event) | Quotation + Proposal **materialize** | stage only |
+| `PAYMENT_PENDING` | Payment (HTTP initiate) | **`payment.payment` structured** + outbox `PaymentLinkIssued` | ref `paymentId` |
+| `PAYMENT_PENDING` (still) | Payment events `Authorised` / `Captured` / `UNCERTAIN` | Payment updates its own row | transition EVENT; **stage unchanged** |
+| `PAYMENT_SETTLED` | Payment event `PaymentReconciled` | Quotation + Proposal **materialize** | stage only |
 | `ISSUANCE_PENDING` / `ISSUED` / `SOLD` | Policy | `policy.policy` structured | ref `policyId` / `policyNumber` |
 
 ---
 
-## 7. Credentials
+## 8. Credentials
 
 Unchanged rule: one role per schema. New tables inherit the owning role.
 
@@ -286,13 +407,13 @@ Unchanged rule: one role per schema. New tables inherit the owning role.
 | `journey-orchestration-service` | `app_journey` | `journey_transition` INSERT; `outbox_event` INSERT/UPDATE published_at |
 | `quotation-service` | `app_quotation` | `quote_working` DML until freeze; structured `quote`/`offer` INSERT after materialize |
 | `proposal-service` | `app_proposal` | same pattern |
-| `payment-service` | `app_payment` | no change — never reads `*_working` directly; calls Quotation/Proposal API |
+| `payment-service` | `app_payment` | `payment` / attempt / refund / outbox. Never reads `*_working`; never writes `journey.*`. Calls Quotation API for `selected_*` |
 
 `1sb-integration-service` still has no datasource. Adapter job rows stay in `bank_persistence` (already structured; they are not the bank quote SoR).
 
 ---
 
-## 8. ER — working vs structured
+## 9. ER — working vs structured
 
 ```mermaid
 erDiagram
@@ -302,20 +423,23 @@ erDiagram
     proposal_proposal_working ||--o| proposal_proposal : "materialize after RECONCILED"
     proposal_proposal ||--o{ proposal_uw_requirement : "physical FK"
     payment_payment ||--o{ payment_attempt : "always structured"
+    payment_payment ||--o{ payment_outbox_event : "PaymentReconciled"
     payment_payment ||--o| policy_policy : "LOGICAL after RECONCILED"
 ```
 
-Dashed ownership: Journey holds ids only. Working and structured quote/proposal live in their schemas.
+Dashed ownership: Journey holds ids only. Working and structured quote/proposal live in their schemas. Payment is a first-class independent SoR on the same saga.
 
 ---
 
-## 9. What this pack will not do
+## 10. What this pack will not do
 
 - Put working JSON on `journey` or in DynamoDB.
+- Fold Payment into the journey schema, or give `app_journey` a grant on `payment`.
+- Store Payment as a working JSON envelope.
 - Let Journey materialize another context’s rows.
 - Store quote/proposal PII as plaintext JSONB.
 - Apply Flyway or implement the skeleton service.
 - Edit `CURRENT-STATE.yaml` stage fields.
 - Mark `S07-G5` passed.
 
-DDL: [`12-journey.sql`](./schemas/12-journey.sql) (transition + outbox) · [`08-quotation.sql`](./schemas/08-quotation.sql) (`quote_working`) · [`09-proposal.sql`](./schemas/09-proposal.sql) (`proposal_working`) · [`91-grants.sql`](./schemas/91-grants.sql).
+DDL: [`12-journey.sql`](./schemas/12-journey.sql) (transition + outbox) · [`08-quotation.sql`](./schemas/08-quotation.sql) (`quote_working`) · [`09-proposal.sql`](./schemas/09-proposal.sql) (`proposal_working`) · [`10-payment.sql`](./schemas/10-payment.sql) (structured + outbox) · [`91-grants.sql`](./schemas/91-grants.sql).

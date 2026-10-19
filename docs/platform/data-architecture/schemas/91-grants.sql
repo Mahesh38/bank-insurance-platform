@@ -72,6 +72,17 @@ REVOKE UPDATE, DELETE ON proposal.uw_requirement FROM app_proposal;
 REVOKE UPDATE, DELETE ON proposal.uw_document_ref FROM app_proposal;
 GRANT SELECT, INSERT, UPDATE, DELETE ON proposal.idempotency_record TO app_proposal;
 
+GRANT USAGE ON SCHEMA payment TO app_payment;
+GRANT SELECT, INSERT, UPDATE ON payment.payment TO app_payment;
+REVOKE DELETE ON payment.payment FROM app_payment;
+GRANT SELECT, INSERT ON payment.payment_attempt TO app_payment;
+REVOKE UPDATE, DELETE ON payment.payment_attempt FROM app_payment;
+GRANT SELECT, INSERT, UPDATE ON payment.refund TO app_payment;
+REVOKE DELETE ON payment.refund FROM app_payment;
+GRANT SELECT, INSERT, UPDATE ON payment.outbox_event TO app_payment;
+REVOKE DELETE ON payment.outbox_event FROM app_payment;
+GRANT SELECT, INSERT, UPDATE, DELETE ON payment.idempotency_record TO app_payment;
+
 GRANT USAGE ON SCHEMA journey TO app_journey;
 GRANT SELECT, INSERT, UPDATE ON journey.journey TO app_journey;
 REVOKE DELETE ON journey.journey FROM app_journey;
@@ -99,6 +110,8 @@ GRANT USAGE ON SCHEMA proposal TO job_retention;
 GRANT EXECUTE ON PROCEDURE proposal.sp_purge_operational() TO job_retention;
 GRANT USAGE ON SCHEMA journey TO job_retention;
 GRANT EXECUTE ON PROCEDURE journey.sp_purge_operational() TO job_retention;
+GRANT USAGE ON SCHEMA payment TO job_retention;
+GRANT EXECUTE ON PROCEDURE payment.sp_purge_operational() TO job_retention;
 
 -- Break-glass read: time-bound via IAM, not a decrypt grant.
 GRANT USAGE ON SCHEMA identity, bank_persistence, lead_lms, journey TO ro_breakglass;

@@ -1,5 +1,10 @@
 -- DESIGN DDL — Payment SoR. Apply at S09 in the owning Payment service Flyway.
 -- No cardholder data. Attempts are append-only. RECONCILED is the issuance gate (INV-POL-01).
+--
+-- DATA-005: Payment is on the journey (stage PAYMENT_PENDING → PAYMENT_SETTLED,
+-- journey_ref.paymentId) and is an independent context. Journey never opens this
+-- schema. Always structured — never a working JSON envelope. Adapter link-session
+-- rows stay in bank_persistence.payment_session (not this SoR).
 
 CREATE TABLE payment.payment (
     payment_id          CHAR(26)                 PRIMARY KEY,
@@ -51,6 +56,21 @@ CREATE TABLE payment.payment_attempt (
 );
 
 CREATE INDEX ix_payment_attempt ON payment.payment_attempt (payment_id, attempted_at);
+
+CREATE TABLE payment.outbox_event (
+    event_id            CHAR(26)                 PRIMARY KEY,
+    payment_id          CHAR(26)                 NOT NULL REFERENCES payment.payment (payment_id),
+    event_type          VARCHAR(96)              NOT NULL,
+    payload             JSONB                    NOT NULL,
+    created_at          TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    published_at        TIMESTAMP WITH TIME ZONE,
+    attempts            INTEGER                  NOT NULL DEFAULT 0,
+    last_error          VARCHAR(1000)
+);
+
+CREATE INDEX ix_pay_outbox_unpublished
+    ON payment.outbox_event (published_at, created_at)
+    WHERE published_at IS NULL;
 
 CREATE TABLE payment.refund (
     refund_id           CHAR(26)                 PRIMARY KEY,

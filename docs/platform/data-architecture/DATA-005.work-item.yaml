@@ -1,6 +1,8 @@
 # schema: work-item
 id: DATA-005
-origin: SUG-20261019-jwp
+origin:
+  - SUG-20261019-jwp
+  - SUG-20261019-pay
 title: "Journey orchestrator structure + JSON-until-payment working payloads (R0 design DDL)"
 type: ARCH
 also: [DOC]
@@ -58,6 +60,10 @@ acceptance_criteria:
     given: "CURRENT-STATE.yaml and GATE-S07"
     when: "this change lands"
     then: "no stage field is edited and no T4 / S07-G5 signature is manufactured"
+  - id: AC-7
+    given: "Payment is on the journey and independent (SUG-20261019-pay)"
+    when: "06 §6 and 10-payment.sql / 91-grants.sql are read"
+    then: "Payment is always structured in schema payment; Journey stores paymentId only; app_journey has no grant on payment; Payment publishes via its own outbox; no payment_working JSON"
 
 out_of_scope:
   - "Flyway apply / owning-service runtime"
@@ -66,6 +72,7 @@ out_of_scope:
   - "Journey materializing quotation/proposal rows"
   - "Plaintext JSONB for members / nominee / form"
   - "JSON for payment, policy, consent or suitability"
+  - "Folding Payment into schema journey"
   - "Human S07-G5 / T3 Board signatures"
   - "Changing CURRENT-STATE.yaml stage fields"
 
@@ -107,4 +114,8 @@ evidence:
   - "docs/platform/data-architecture/schemas/08-quotation.sql"
   - "docs/platform/data-architecture/schemas/09-proposal.sql"
   - "docs/platform/data-architecture/schemas/12-journey.sql"
-variance_log: []
+  - "docs/platform/data-architecture/schemas/10-payment.sql"
+variance_log:
+  - date: "2026-10-19"
+    change: "Added 06 §6 Payment on-the-journey-and-independent; payment.outbox_event; app_payment grants; AC-7"
+    reason: "Owner: payment is also part of the journey though independent (SUG-20261019-pay). Absorbed into DATA-005 — not a new store, not JSON-until-issuance."

@@ -60,7 +60,7 @@ One Aurora PostgreSQL cluster. One schema per bounded context. No cross-schema g
 | `catalogue` | Product catalogue | [`07-catalogue.sql`](./schemas/07-catalogue.sql) | Design only |
 | `quotation` | Quote and offer — `quote_working` until payment, then structured | [`08-quotation.sql`](./schemas/08-quotation.sql) · [orchestrator](./06-journey-orchestrator-and-working-payload.md) | Design only |
 | `proposal` | Proposal & UW — `proposal_working` until payment, then structured | [`09-proposal.sql`](./schemas/09-proposal.sql) · [orchestrator](./06-journey-orchestrator-and-working-payload.md) | Design only |
-| `payment` | Payment | [`10-payment.sql`](./schemas/10-payment.sql) | Design only |
+| `payment` | Payment — always structured; on the journey, independent SoR | [`10-payment.sql`](./schemas/10-payment.sql) · [orchestrator §6](./06-journey-orchestrator-and-working-payload.md) | Design only |
 | `policy` | Policy & issuance | [`11-policy.sql`](./schemas/11-policy.sql) | Design only |
 | `journey` | Journey orchestration — stage + refs only | [`12-journey.sql`](./schemas/12-journey.sql) · [orchestrator](./06-journey-orchestrator-and-working-payload.md) | Design only |
 | `administration` | Versioned configuration | [`13-administration.sql`](./schemas/13-administration.sql) | Design only |

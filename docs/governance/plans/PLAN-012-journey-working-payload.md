@@ -57,6 +57,7 @@ files_expected:
   - docs/platform/data-architecture/DATA-005.work-item.yaml
   - docs/platform/data-architecture/schemas/08-quotation.sql
   - docs/platform/data-architecture/schemas/09-proposal.sql
+  - docs/platform/data-architecture/schemas/10-payment.sql
   - docs/platform/data-architecture/schemas/12-journey.sql
   - docs/platform/data-architecture/schemas/00-cluster-bootstrap.sql
   - docs/platform/data-architecture/schemas/90-routines.sql
@@ -81,7 +82,7 @@ testing:
   unit: []
   integration: []
   other:
-    - "PostgreSQL parse of 08-quotation.sql, 09-proposal.sql, 12-journey.sql, 90-routines.sql"
+    - "PostgreSQL parse of 08-quotation.sql, 09-proposal.sql, 10-payment.sql, 12-journey.sql, 90-routines.sql"
     - "Cross-doc: 06 sequence ↔ DDL tables ↔ grants ↔ freeze routine"
     - "python3 scripts/context/build-doc-map.py after new docs"
     - "python3 scripts/governance/ci-checks.py"
@@ -112,6 +113,7 @@ acceptance_criteria:
   - "AC-4 Materialize after RECONCILED freezes payload_enc"
   - "AC-5 selected_* control columns exist for payment"
   - "AC-6 no stage-field edit and no manufactured T4 signature"
+  - "AC-7 Payment is on the journey (stage + paymentId) and independent (own schema, own outbox, no JSON envelope)"
 
 out_of_scope:
   - "Runtime Journey / Quotation / Proposal / Payment code"
@@ -122,5 +124,9 @@ out_of_scope:
 estimate: M
 
 reviews: []
-variance_log: []
+variance_log:
+  - date: "2026-10-19"
+    change: "Added 06 §6 and payment.outbox_event + app_payment grants; files_expected now includes 10-payment.sql; AC-7"
+    reason: "Owner follow-up: payment is part of the journey though independent. Absorbed SUG-20261019-pay. Not a new decision — Payment was already structured; the pack now states the independence contract."
+    re_review: "none — design DDL only; no T4 claim"
 ```

@@ -55,10 +55,12 @@ lead_lms.lead.lead_id
             ├── suitability.lead_id / journey_id
             │       ├── suitability_answer_set (⚑ ciphertext)
             │       └── suitability_mapping_run (INSERT-only evidence)
-            ├── quotation.quote.journey_id ── offer.quote_id
-            ├── proposal.proposal.quote_id / offer_id / journey_id
-            │       └── payment.payment.proposal_id
-            │               └── policy.policy.payment_id / proposal_id
+            ├── quotation.quote_working.journey_id   (encrypted JSON until RECONCILED)
+            │       └── quotation.quote.journey_id ── offer.quote_id   (materialize)
+            ├── proposal.proposal_working.journey_id
+            │       └── proposal.proposal.quote_id / offer_id / journey_id
+            │               └── payment.payment.proposal_id
+            │                       └── policy.policy.payment_id / proposal_id
             └── bank_persistence.integration_job.journey_id   (adapter correlation)
 
 identity.business_user.id  ──referenced as actor ids (varchar), never joined
@@ -68,6 +70,7 @@ bank_persistence.audit_event.journey_id / resource_id   (append-only evidence)
 ```
 
 Lead + Suitability e2e ER and column sheets: [`03-lead-suitability-e2e.md`](./03-lead-suitability-e2e.md).
+Journey orchestrator + JSON-until-payment: [`06-journey-orchestrator-and-working-payload.md`](./06-journey-orchestrator-and-working-payload.md).
 
 **Physical FK** exists only inside one schema (offer→quote, attempt→payment, assignment/meeting/follow-up→lead, answer-set/mapping-run→suitability).
 A `journey_id CHAR(26)` on another schema is a **logical** reference. The owning service validates
@@ -149,11 +152,11 @@ DDL: [`14-audit_event_delta.sql`](./schemas/14-audit_event_delta.sql). Apply as 
 | `consent` | `consent` | Evidence columns write-once; state may move to WITHDRAWN/EXPIRED |
 | `suitability` | `suitability`, `suitability_answer_set`, `suitability_mapping_run`, `idempotency_record`, `outbox_event` | Header mutable until `LOCKED`; answer sets INSERT-only; mapping `run_state` may move CURRENT→INVALID. Term has no row |
 | `catalogue` | `insurer`, `product`, `eligibility_band` | Effective-dated; no in-place replace of an active version |
-| `quotation` | `quote`, `offer`, `idempotency_record` | Offer selection is one transaction (INV-QUO-05) |
-| `proposal` | `proposal`, `uw_requirement`, `uw_document_ref`, `idempotency_record` | Form values are a ref only (INV-PRP-05) |
-| `payment` | `payment`, `payment_attempt`, `refund`, `idempotency_record` | Attempts append-only; no card data |
+| `quotation` | `quote_working`, `quote`, `offer`, `idempotency_record` | Pre-payment write is `quote_working` (`payload_enc` + selected_*). Structured `quote`/`offer` INSERT after Payment RECONCILED (`DATA-005`) |
+| `proposal` | `proposal_working`, `proposal`, `uw_requirement`, `uw_document_ref`, `idempotency_record` | Same working-then-structured pattern; form/nominee stay inside `payload_enc` until materialize (INV-PRP-05) |
+| `payment` | `payment`, `payment_attempt`, `refund`, `idempotency_record` | Attempts append-only; no card data; always structured |
 | `policy` | `policy`, `policy_document_ref` | `policy_number` unique+immutable (INV-POL-02) |
-| `journey` | `journey`, `journey_ref`, `idempotency_record` | Stage + refs only |
+| `journey` | `journey`, `journey_ref`, `journey_transition`, `outbox_event`, `idempotency_record` | Stage + refs only (`INV-JRN-02`). Transition INSERT-only. Orchestrator never opens quotation/proposal |
 | `administration` | `configuration_record` | Versioned INSERT-only (INV-CFG-02) |
 
 Idempotency is a small table **inside** each mutating schema (`key`, `request_hash`, `response_ref`,
@@ -178,12 +181,12 @@ Idempotency is a small table **inside** each mutating schema (`key`, `request_ha
 | consent | `ix_consent_customer_state`, `ix_consent_journey` | INV-PRP-01 lookup |
 | suitability | `ix_suit_customer_lob_state`, `ux_suit_lead_current`, `ux_suit_map_current` | INV-QUO-01 lookup; one current assessment per lead; one CURRENT mapping |
 | catalogue | `ix_product_effective`, `ix_elig_product` | Read path + cache fill |
-| quotation | `ix_quote_journey`, `ix_offer_quote_state` | Selection / conversion |
-| proposal | `ix_proposal_journey`, `ux_proposal_application` | Status + insurer number |
+| quotation | `ix_qwork_journey`, `ix_qwork_state`, `ux_qwork_open_journey`, `ix_quote_journey`, `ix_offer_quote_state` | Working envelope by journey/state; structured selection / conversion |
+| proposal | `ix_pwork_journey`, `ux_pwork_open_journey`, `ux_pwork_application`, `ix_proposal_journey`, `ux_proposal_application` | Working envelope by journey; structured status + insurer number |
 | payment | `ux_payment_active_per_proposal` (partial) | INV-PAY-02 |
 | payment | `ix_payment_pg_txn` | Reconciliation |
 | policy | `ux_policy_insurer_number` | INV-POL-02 |
-| journey | `ix_journey_lead`, `ix_journey_stage_due` | Saga + inactivity (INV-JRN-03) |
+| journey | `ix_journey_lead`, `ix_journey_stage_due`, `ix_jrn_transition`, `ix_jrn_outbox_unpublished` | Saga + inactivity (INV-JRN-03); reconstruction; ADR-012 |
 | administration | `ux_config_version`, `ix_config_resolve` | Seed idempotence + effective-dated get |
 | all mutating | `ux_idempotency_key` | INV-IDM-01 |
 
@@ -227,8 +230,9 @@ CRUD stored procedures are **refused** (`DR-SP-01`).
 | `fn_protect_mapping_run` | trigger fn | Suitability | Mapping evidence frozen; `run_state` may change |
 | `fn_next_audit_sequence` | function | With audit delta | Allocate `sequence_no` per `journey_id` |
 | `fn_ipr_visible` | function | `lead_lms` / journey | Documents the `AC-4` SQL predicate |
+| `fn_freeze_working_payload` | trigger fn | `quotation.quote_working` / `proposal.proposal_working` | Reject `payload_enc` UPDATE after `materialized_at` (`DATA-005`) |
 | `sp_retention_sweep` | procedure | **S09** | Selects rows past `retain_until` for the owning job; does not cross schemas |
-| `sp_purge_operational` | procedure | **S09** | Deletes `RET-OPERATIONAL` / expired idempotency keys |
+| `sp_purge_operational` | procedure | **S09** | Deletes `RET-OPERATIONAL` / expired idempotency keys / aged working envelopes |
 
 Bodies: [`90-routines.sql`](./schemas/90-routines.sql).
 

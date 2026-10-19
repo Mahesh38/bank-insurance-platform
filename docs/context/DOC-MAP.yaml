@@ -19,7 +19,7 @@ schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
 document_count: 666
-total_bytes: 21338368
+total_bytes: 21369390
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -1413,7 +1413,7 @@ documents:
     persona: architecture
     title: "Architecture diagrams"
     answers: "Two diagrams, deliberately. They answer different questions and neither replaces the other."
-    bytes: 33381
+    bytes: 33741
   - path: docs/architecture/arb-prerequisites/CIS-CLASSIFICATION-PROPOSAL.md
     bucket: platform
     authority: ai-drafted
@@ -2205,7 +2205,7 @@ documents:
     persona: null
     title: "AGENT CONTEXT INDEX"
     answers: "============================================================================="
-    bytes: 50527
+    bytes: 50939
   - path: docs/context/BOOT.md
     bucket: context
     authority: non-binding-context
@@ -2221,7 +2221,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 234825
+    bytes: 234823
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -4189,7 +4189,7 @@ documents:
     persona: null
     title: "Suggestion Register"
     answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 373004
+    bytes: 378013
   - path: docs/governance/runbooks/AUTOPILOT-FAILURE-RUNBOOK.md
     bucket: governance
     authority: binding-process
@@ -4861,7 +4861,7 @@ documents:
     persona: database
     title: "01 — Physical design: topology, tables, relationships, indexes, routines"
     answers: "Companion DDL: schemas/"
-    bytes: 15045
+    bytes: 16219
   - path: docs/platform/data-architecture/02-operations-and-troubleshooting.md
     bucket: platform
     authority: ai-drafted
@@ -4933,7 +4933,7 @@ documents:
     persona: database
     title: "R0 Physical Data Architecture — Aarti pack"
     answers: "Work item: DATA-001 · origin SUG-20260825-db1"
-    bytes: 6522
+    bytes: 7273
   - path: docs/platform/data-architecture/schemas/00-cluster-bootstrap.sql
     bucket: platform
     authority: ai-drafted
@@ -4941,7 +4941,7 @@ documents:
     persona: database
     title: "00 cluster bootstrap"
     answers: "SQL artefact"
-    bytes: 2302
+    bytes: 2508
   - path: docs/platform/data-architecture/schemas/01-identity.sql
     bucket: platform
     authority: ai-drafted
@@ -4966,14 +4966,14 @@ documents:
     title: "03 customer"
     answers: "SQL artefact"
     bytes: 2517
-  - path: docs/platform/data-architecture/schemas/04-opportunity.sql
+  - path: docs/platform/data-architecture/schemas/04-lead_lms.sql
     bucket: platform
     authority: ai-drafted
     capsules: [database-review]
     persona: database
-    title: "04 opportunity"
+    title: "04 lead lms"
     answers: "SQL artefact"
-    bytes: 0
+    bytes: 9395
   - path: docs/platform/data-architecture/schemas/05-consent.sql
     bucket: platform
     authority: ai-drafted
@@ -5005,7 +5005,7 @@ documents:
     persona: database
     title: "08 quotation"
     answers: "SQL artefact"
-    bytes: 3551
+    bytes: 6652
   - path: docs/platform/data-architecture/schemas/09-proposal.sql
     bucket: platform
     authority: ai-drafted
@@ -5013,7 +5013,7 @@ documents:
     persona: database
     title: "09 proposal"
     answers: "SQL artefact"
-    bytes: 3442
+    bytes: 5957
   - path: docs/platform/data-architecture/schemas/10-payment.sql
     bucket: platform
     authority: ai-drafted
@@ -5037,7 +5037,7 @@ documents:
     persona: database
     title: "12 journey"
     answers: "SQL artefact"
-    bytes: 3450
+    bytes: 4952
   - path: docs/platform/data-architecture/schemas/13-administration.sql
     bucket: platform
     authority: ai-drafted
@@ -5061,7 +5061,7 @@ documents:
     persona: database
     title: "90 routines"
     answers: "SQL artefact"
-    bytes: 7917
+    bytes: 12392
   - path: docs/platform/data-architecture/schemas/91-grants.sql
     bucket: platform
     authority: ai-drafted
@@ -5069,7 +5069,7 @@ documents:
     persona: database
     title: "91 grants"
     answers: "SQL artefact"
-    bytes: 4510
+    bytes: 6634
   - path: docs/platform/data-architecture/schemas/README.md
     bucket: platform
     authority: ai-drafted

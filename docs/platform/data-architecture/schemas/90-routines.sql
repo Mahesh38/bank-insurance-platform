@@ -137,6 +137,84 @@ $$;
 --     FOR EACH ROW EXECUTE FUNCTION suitability.fn_protect_mapping_run();
 -- run_state may move CURRENT → INVALID / SUPERSEDED on a saved edit (Suitability BRD §14.2).
 
+-- DATA-005: working envelopes freeze after Payment RECONCILED materialize.
+-- payload_enc and extracted control columns must not change once materialized_at is set.
+
+CREATE OR REPLACE FUNCTION quotation.fn_freeze_working_payload()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF TG_OP = 'DELETE' THEN
+        IF OLD.materialized_at IS NOT NULL THEN
+            RAISE EXCEPTION 'IMMUTABLE_TABLE: quote_working is frozen after materialize'
+                USING ERRCODE = 'restrict_violation';
+        END IF;
+        RETURN OLD;
+    END IF;
+    IF TG_OP = 'UPDATE' AND OLD.materialized_at IS NOT NULL THEN
+        IF NEW.payload_enc IS DISTINCT FROM OLD.payload_enc
+           OR NEW.encryption_key_id IS DISTINCT FROM OLD.encryption_key_id
+           OR NEW.payload_schema_version IS DISTINCT FROM OLD.payload_schema_version
+           OR NEW.quote_id IS DISTINCT FROM OLD.quote_id
+           OR NEW.journey_id IS DISTINCT FROM OLD.journey_id
+           OR NEW.lead_id IS DISTINCT FROM OLD.lead_id
+           OR NEW.suitability_id IS DISTINCT FROM OLD.suitability_id
+           OR NEW.consent_id IS DISTINCT FROM OLD.consent_id
+           OR NEW.selected_offer_id IS DISTINCT FROM OLD.selected_offer_id
+           OR NEW.selected_premium_amount IS DISTINCT FROM OLD.selected_premium_amount
+           OR NEW.selected_tax_amount IS DISTINCT FROM OLD.selected_tax_amount
+           OR NEW.selected_sum_assured IS DISTINCT FROM OLD.selected_sum_assured
+           OR NEW.selected_insurer_code IS DISTINCT FROM OLD.selected_insurer_code
+           OR NEW.selected_product_code IS DISTINCT FROM OLD.selected_product_code
+           OR NEW.materialized_at IS DISTINCT FROM OLD.materialized_at THEN
+            RAISE EXCEPTION 'IMMUTABLE_COLUMNS: quote_working payload is frozen after materialize'
+                USING ERRCODE = 'restrict_violation';
+        END IF;
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+-- CREATE TRIGGER trg_qwork_freeze
+--     BEFORE UPDATE OR DELETE ON quotation.quote_working
+--     FOR EACH ROW EXECUTE FUNCTION quotation.fn_freeze_working_payload();
+
+CREATE OR REPLACE FUNCTION proposal.fn_freeze_working_payload()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF TG_OP = 'DELETE' THEN
+        IF OLD.materialized_at IS NOT NULL THEN
+            RAISE EXCEPTION 'IMMUTABLE_TABLE: proposal_working is frozen after materialize'
+                USING ERRCODE = 'restrict_violation';
+        END IF;
+        RETURN OLD;
+    END IF;
+    IF TG_OP = 'UPDATE' AND OLD.materialized_at IS NOT NULL THEN
+        IF NEW.payload_enc IS DISTINCT FROM OLD.payload_enc
+           OR NEW.encryption_key_id IS DISTINCT FROM OLD.encryption_key_id
+           OR NEW.payload_schema_version IS DISTINCT FROM OLD.payload_schema_version
+           OR NEW.proposal_id IS DISTINCT FROM OLD.proposal_id
+           OR NEW.journey_id IS DISTINCT FROM OLD.journey_id
+           OR NEW.quote_id IS DISTINCT FROM OLD.quote_id
+           OR NEW.offer_id IS DISTINCT FROM OLD.offer_id
+           OR NEW.consent_id IS DISTINCT FROM OLD.consent_id
+           OR NEW.application_number IS DISTINCT FROM OLD.application_number
+           OR NEW.materialized_at IS DISTINCT FROM OLD.materialized_at THEN
+            RAISE EXCEPTION 'IMMUTABLE_COLUMNS: proposal_working payload is frozen after materialize'
+                USING ERRCODE = 'restrict_violation';
+        END IF;
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+-- CREATE TRIGGER trg_pwork_freeze
+--     BEFORE UPDATE OR DELETE ON proposal.proposal_working
+--     FOR EACH ROW EXECUTE FUNCTION proposal.fn_freeze_working_payload();
+
 -- ---------------------------------------------------------------------------
 -- Audit sequence (OPEN-I3)
 -- ---------------------------------------------------------------------------
@@ -207,5 +285,41 @@ BEGIN
     -- operational rows only.
     DELETE FROM bank_persistence.job_poll_attempt
      WHERE attempted_at < now() - INTERVAL '90 days';
+END;
+$$;
+
+-- DATA-005: working envelopes are not the sold-policy record. Age them out after
+-- retain_until. Structured quote / offer / proposal / UW stay.
+
+CREATE OR REPLACE PROCEDURE quotation.sp_purge_operational()
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    DELETE FROM quotation.idempotency_record
+     WHERE expires_at < now();
+    DELETE FROM quotation.quote_working
+     WHERE retain_until IS NOT NULL
+       AND retain_until < CURRENT_DATE;
+END;
+$$;
+
+CREATE OR REPLACE PROCEDURE proposal.sp_purge_operational()
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    DELETE FROM proposal.idempotency_record
+     WHERE expires_at < now();
+    DELETE FROM proposal.proposal_working
+     WHERE retain_until IS NOT NULL
+       AND retain_until < CURRENT_DATE;
+END;
+$$;
+
+CREATE OR REPLACE PROCEDURE journey.sp_purge_operational()
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    DELETE FROM journey.idempotency_record
+     WHERE expires_at < now();
 END;
 $$;

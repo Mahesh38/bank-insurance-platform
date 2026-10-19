@@ -1,0 +1,110 @@
+# schema: work-item
+id: DATA-005
+origin: SUG-20261019-jwp
+title: "Journey orchestrator structure + JSON-until-payment working payloads (R0 design DDL)"
+type: ARCH
+also: [DOC]
+breakdown: STORY
+epic: null
+workstream: WS-3
+owner: "Aarti — Principal Insurance Data & Database Architect"
+risk_tier: T3
+
+serves:
+  - "S07-E04-S02 physical schema (Journey #12 + Quotation + Proposal)"
+  - "S11 Journey / Quotation / Proposal persistence contract"
+  - "INV-JRN-02 / OR-01 (orchestrator holds stage and refs only)"
+  - "INV-QUO-01 / INV-QUO-05 / INV-PAY-03 / INV-PRP-05"
+
+problem: >
+  DATA-001 quotation/proposal/journey DDL assumes structured quote/offer/proposal
+  rows from the first write. The owner directed that quotes and proposals stay
+  unstructured JSON until payment completes, then materialize structured. The
+  Journey service is a skeleton with no table-interaction contract. S11 would
+  invent either JSON-on-journey (INV-JRN-02) or a second store.
+
+description: >
+  Publish an Aarti pack: Journey hexagon and the five tables the orchestrator
+  may touch; the advance-command pattern (HTTP to owner, then one local
+  journey transaction); quotation.quote_working and proposal.proposal_working
+  encrypted envelopes with extracted control columns; materialize after
+  Payment RECONCILED into the existing structured tables; freeze + purge
+  routines; app_quotation / app_proposal / app_journey grants. Do not apply
+  Flyway. Do not implement the skeleton service. Do not put JSON on journey.
+  Do not edit CURRENT-STATE.yaml stage fields.
+
+acceptance_criteria:
+  - id: AC-1
+    given: "INV-JRN-02 / OR-01 / SC-W3-6"
+    when: "12-journey.sql and 06 §3 are read"
+    then: "Journey tables are journey, journey_ref, journey_transition, outbox_event, idempotency_record; no premium, eligibility, UW or form JSON columns"
+  - id: AC-2
+    given: "an Advance(QUOTING) command"
+    when: "06 §4 is read"
+    then: "Journey HTTP-calls quotation-service; quotation writes quote_working; Journey upserts ref quoteId in one local transaction; no 2PC"
+  - id: AC-3
+    given: "a quote or proposal before Payment RECONCILED"
+    when: "08-quotation.sql and 09-proposal.sql are read"
+    then: "the write path is quote_working / proposal_working with payload_enc BYTEA; structured quote/offer/proposal/UW have no pre-payment INSERT requirement"
+  - id: AC-4
+    given: "Payment reaches RECONCILED"
+    when: "06 §5.3 and 90-routines.sql are read"
+    then: "owning services INSERT structured rows, set materialized_at, and fn_freeze_working_payload rejects later payload_enc UPDATE"
+  - id: AC-5
+    given: "INV-PAY-03 / INV-QUO-05"
+    when: "quote_working columns are read"
+    then: "selected_* control columns exist so Payment does not decrypt the envelope"
+  - id: AC-6
+    given: "CURRENT-STATE.yaml and GATE-S07"
+    when: "this change lands"
+    then: "no stage field is edited and no T4 / S07-G5 signature is manufactured"
+
+out_of_scope:
+  - "Flyway apply / owning-service runtime"
+  - "Implementing journey-orchestration-service beyond the persistence contract"
+  - "JSON on journey or DynamoDB working documents"
+  - "Journey materializing quotation/proposal rows"
+  - "Plaintext JSONB for members / nominee / form"
+  - "JSON for payment, policy, consent or suitability"
+  - "Human S07-G5 / T3 Board signatures"
+  - "Changing CURRENT-STATE.yaml stage fields"
+
+state: IN-FLIGHT
+priority_now: P2
+priority_at_target: P1
+target_stage: "S08 design delta / S11 Journey+Quotation+Proposal runtime / S09 apply"
+unpark_trigger: null
+
+dependencies:
+  blocked_by: []
+  requires:
+    - "DATA-001 pack"
+    - "INV-JRN-02"
+    - "OR-01"
+    - "ADR-012"
+  enables:
+    - "S11 Journey service persistence"
+    - "S11 Quotation service persistence"
+    - "S11 Proposal service persistence"
+  related_to:
+    - "DATA-001"
+    - "DATA-003"
+    - "DB-DEC-0001"
+    - "ADR-008"
+    - "ADR-012"
+  external: []
+  decision_dependency:
+    - "DB-DEC-0004 — working payload until payment (this pack)"
+    - "CMK hierarchy for payload_enc — Deepali S09-E04-S03"
+
+plan: PLAN-012
+estimate: M
+assumptions: []
+risks: []
+evidence:
+  - "docs/platform/data-architecture/06-journey-orchestrator-and-working-payload.md"
+  - "docs/platform/data-architecture/DB-DEC-0004-working-payload-until-payment.md"
+  - "docs/platform/data-architecture/schemas/08-quotation.sql"
+  - "docs/platform/data-architecture/schemas/09-proposal.sql"
+  - "docs/platform/data-architecture/schemas/12-journey.sql"
+variance_log: []

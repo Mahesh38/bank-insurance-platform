@@ -53,6 +53,37 @@ CREATE TABLE journey.journey_ref (
         'applicationNumber', 'policyNumber', 'provider'))
 );
 
+-- Append-only stage history. Not a decision store (INV-JRN-02). DATA-005.
+CREATE TABLE journey.journey_transition (
+    transition_id       CHAR(26)                 PRIMARY KEY,
+    journey_id          CHAR(26)                 NOT NULL REFERENCES journey.journey (journey_id),
+    from_stage          VARCHAR(32)              NOT NULL,
+    to_stage            VARCHAR(32)              NOT NULL,
+    trigger_kind        VARCHAR(16)              NOT NULL,
+    trigger_type        VARCHAR(64)              NOT NULL,
+    actor_id            VARCHAR(64),
+    occurred_at         TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    correlation_id      VARCHAR(64),
+    CONSTRAINT ck_jrn_trig CHECK (trigger_kind IN ('COMMAND', 'EVENT'))
+);
+
+CREATE INDEX ix_jrn_transition ON journey.journey_transition (journey_id, occurred_at);
+
+CREATE TABLE journey.outbox_event (
+    event_id            CHAR(26)                 PRIMARY KEY,
+    journey_id          CHAR(26)                 NOT NULL REFERENCES journey.journey (journey_id),
+    event_type          VARCHAR(96)              NOT NULL,
+    payload             JSONB                    NOT NULL,
+    created_at          TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    published_at        TIMESTAMP WITH TIME ZONE,
+    attempts            INTEGER                  NOT NULL DEFAULT 0,
+    last_error          VARCHAR(1000)
+);
+
+CREATE INDEX ix_jrn_outbox_unpublished
+    ON journey.outbox_event (published_at, created_at)
+    WHERE published_at IS NULL;
+
 CREATE TABLE journey.idempotency_record (
     idempotency_key     VARCHAR(128)             PRIMARY KEY,
     request_hash        VARCHAR(64)              NOT NULL,

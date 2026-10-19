@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20261019-jwp | 2026-10-19 | human:stakeholder | Journey orchestrator table contract; quotes/proposals stay JSON until payment, then structured | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [DATA-005](../../platform/data-architecture/DATA-005.work-item.yaml) · [PLAN-012](../plans/PLAN-012-journey-working-payload.md) · [pack](../../platform/data-architecture/06-journey-orchestrator-and-working-payload.md) · [detail](#sug-20261019-jwp--journey-orchestrator-and-json-until-payment) |
 | SUG-20261009-lms | 2026-10-09 | human:stakeholder | Do not name the Lead store OPPORTUNITY — schema lead_lms, table lead | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [DATA-003](../../platform/data-architecture/DATA-003.work-item.yaml) · [ER](../../platform/data-architecture/03-lead-suitability-e2e.md) · [DDL](../../platform/data-architecture/schemas/04-lead_lms.sql) · [detail](#sug-20261009-lms--lead-lms-schema-and-lead-table) |
 | SUG-20261009-lss | 2026-10-09 | human:stakeholder | Generate ER diagram and table schema required for the Lead and Suitability module e2e | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [DATA-003](../../platform/data-architecture/DATA-003.work-item.yaml) · [PLAN-010](../plans/PLAN-010-lead-suitability-e2e-schema.md) · [ER](../../platform/data-architecture/03-lead-suitability-e2e.md) · [detail](#sug-20261009-lss--lead-and-suitability-e2e-schema) |
 | SUG-20261008-bnk | 2026-10-08 | human:repository-owner | Complete bank-user login/auth e2e using the bank AD login API that hits AD internally and returns true/false for an active bank employee | SF1 | SC0 | MUST | FUNC | P2 / P1 | ADMITTED | [IAM-001](../../platform/authentication-authorization/IAM-001.work-item.yaml) · [detail](#sug-20261008-bnk--bank-rm-ad-verify-login-e2e) |
@@ -147,6 +148,144 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20261019-jwp · Journey orchestrator and JSON until payment
+
+```yaml
+# schema: triage-record
+id: SUG-20261019-jwp
+raised_at: "2026-10-19"
+raised_by: "human:stakeholder"
+source: "Cloud-agent request for journey structure, orchestrator table interaction, JSON-until-payment"
+input: >
+  I want you to design the complete structure for our journey services are will,
+  how orchestrater layer will interact with journey tables, the quotes and
+  proposals will be stored unstructured like json until it completes the payment
+  once payment is done everything will be stored in structured form.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: DATA-005
+
+stage_fit:
+  code: SF1
+  rationale: >
+    Physical schema design is S07-E04 leftover / S08 design delta. GATE-S08 is
+    CANDIDATE and this artefact does not reopen it. Apply stays S09. Journey
+    runtime is S11. Owner asked for the persistence contract now so S11 does
+    not invent JSON-on-journey.
+  target_stage: "S11 Journey/Quotation/Proposal runtime; S09 Flyway apply"
+  unpark_trigger: null
+  absorption_test:
+    small: null
+    no_new_dependency: null
+    no_new_decision: null
+    gate_neutral: null
+
+scope:
+  code: SC0
+  business_scope: "in scope — Journey, Quotation, Proposal and Payment on the assisted Life path"
+  serves: ["S11-E02", "INV-JRN-02", "OR-01"]
+  failure_without_it: "S11 invents JSON on journey or a second quote/proposal store"
+  minimal: true
+  authority: "CURRENT-STATE.yaml WS-3 in_scope; INV-JRN-02; OR-01"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S11 — Vertical slice"
+  binds_when: "Journey / Quotation / Proposal persistence at S11"
+  failure_without_it: "S11 invents JSON on journey or a second quote/proposal store"
+  evidence_tier: E2
+  evidence:
+    - "INV-JRN-02 / SC-W3-6 — Journey holds stage and refs only"
+    - "13-orchestration-doctrine.md OR-01 — orchestrator coordinates, never decides"
+    - "schemas/08-quotation.sql and 09-proposal.sql pre-DATA-005 structured-from-first-write"
+    - "journey-orchestration-service is a skeleton"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT
+action_rationale: >
+  On-stage design DDL for an in-scope R0 slice. Not a duplicate of DATA-001
+  (thin structured-from-first-write pack) or DATA-003 (Lead+Suitability).
+  Freshness WARN (state_as_of 19d, 04-STAGE_GATES 26d, SUGGESTION-REGISTER 10d)
+  — disclosed; exit was 1 not 2.
+duplicate_of: null
+conflicts:
+  - "DATA-001 structured quote/offer/proposal from first write vs owner JSON-until-payment — this pack takes working envelopes in owning schemas"
+  - "architecture-review/05 DynamoDB Journey/Quote — remains rejected (DB-DEC-0001)"
+
+classification:
+  type: ARCH
+  also: [DOC]
+  breakdown: STORY
+  epic: null
+  risk_tier: T3
+  destination: "docs/platform/data-architecture/"
+
+priority:
+  now: P2
+  at_target: P1
+  factors: { N: 2, S: 1, B: 1, R: 1, D: 1, E: 1 }
+  score: 10
+  matrix_default: P2
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "MUST for S11 persistence; GATE-S08 already CANDIDATE so not a hard P1 interrupt"
+
+dependencies:
+  edges:
+    - type: ARCHITECTURAL
+      target: DATA-001
+      relation: requires
+      state: IN-FLIGHT
+    - type: DECISION
+      target: DB-DEC-0001
+      relation: requires
+      state: READY
+    - type: DECISION
+      target: ADR-012
+      relation: requires
+      state: DONE
+  state: READY
+  enablement_count: 3
+  earliest_start: immediately
+  cycles: none
+
+breakdown:
+  children: []
+  completion_definition: >
+    Journey table contract published; quote_working and proposal_working design
+    DDL exist with encrypted envelopes and control columns; materialize-after-
+    RECONCILED sequence is written; freeze routine exists; no Flyway apply;
+    no stage-field edit.
+  not_included:
+    - "Flyway apply"
+    - "Journey / Quotation / Proposal runtime"
+    - "JSON on journey"
+    - "Human signatures"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: DATA-005
+  plan_id: PLAN-012
+  status: ADMITTED
+  closed_reason: null
+
+resumed: "DATA-005 — this input is the work item for this agent lane."
+```
 
 ### SUG-20261009-lms · Lead LMS schema and lead table
 

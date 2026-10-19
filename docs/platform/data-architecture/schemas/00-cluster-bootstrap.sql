@@ -28,9 +28,9 @@ COMMENT ON SCHEMA lead_lms IS 'Lead LMS SoR (table lead). Workforce origination 
 COMMENT ON SCHEMA consent IS 'Consent evidence SoR. Append-only evidence columns.';
 COMMENT ON SCHEMA suitability IS 'Suitability assessment SoR. Header mutable until LOCKED; answer sets INSERT-only (BRD §14–15 / OPEN-SUI-IMMUTABLE).';
 COMMENT ON SCHEMA catalogue IS 'Product, insurer, eligibility SoR.';
-COMMENT ON SCHEMA quotation IS 'Quote and offer SoR. Adapter jobs stay in bank_persistence.';
-COMMENT ON SCHEMA proposal IS 'Proposal and underwriting case SoR. PII form values are references.';
+COMMENT ON SCHEMA quotation IS 'Quote and offer SoR. quote_working (encrypted JSON) until Payment RECONCILED, then structured quote/offer. Adapter jobs stay in bank_persistence.';
+COMMENT ON SCHEMA proposal IS 'Proposal and underwriting case SoR. proposal_working (encrypted JSON) until Payment RECONCILED, then structured. PII form values stay inside payload_enc.';
 COMMENT ON SCHEMA payment IS 'Payment SoR. No cardholder data. RECONCILED is the issuance gate.';
 COMMENT ON SCHEMA policy IS 'Policy and issuance SoR. Document bytes live in S3.';
-COMMENT ON SCHEMA journey IS 'Journey orchestration SoR. Stage and references only (INV-JRN-02).';
+COMMENT ON SCHEMA journey IS 'Journey orchestration SoR. Stage and references only (INV-JRN-02). Never stores quote/proposal JSON.';
 COMMENT ON SCHEMA administration IS 'Versioned configuration SoR. INSERT-only versions (INV-CFG-02).';

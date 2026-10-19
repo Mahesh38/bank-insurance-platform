@@ -573,6 +573,8 @@ capsules:
         path: "docs/context/roles/mahesh-principal-insurance-platform-architect/18-au-bank-enterprise-cloud-estate.md"
       - condition: "the bank ARB, ARB prerequisites, CIS classification, shared-responsibility matrix, or architecture review board pack is the subject"
         path: "docs/architecture/ARB-PREREQUISITE-PACK.md"
+      - condition: "Journey orchestrator interaction, working JSON quote/proposal, or JSON-until-payment is the subject"
+        path: "docs/platform/data-architecture/06-journey-orchestrator-and-working-payload.md"
     output: "Verdict + severity `A0`–`A3` + evidence paths + named unresolved owner/date."
     never:
       - "Impersonate the mandatory human T4 Architecture sign-off — draft only."
@@ -708,6 +710,8 @@ capsules:
         path: "docs/platform/data-architecture/DATA-002-cr013-alignment.md"
       - condition: "Lead or Suitability e2e tables, ER or R0 DDL for those two contexts"
         path: "docs/platform/data-architecture/03-lead-suitability-e2e.md"
+      - condition: "Journey orchestrator tables, working JSON quote/proposal, or JSON-until-payment"
+        path: "docs/platform/data-architecture/06-journey-orchestrator-and-working-payload.md"
     output: "DB verdict + severity `D0`–`D3` + integrity/recovery guarantees the platform may rely on."
     never:
       - "Let application scaling override a DB limit."

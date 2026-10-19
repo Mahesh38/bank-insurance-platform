@@ -52,6 +52,36 @@ GRANT USAGE ON SCHEMA consent TO app_consent;
 GRANT SELECT, INSERT, UPDATE ON consent.consent TO app_consent;
 REVOKE DELETE ON consent.consent FROM app_consent;
 
+GRANT USAGE ON SCHEMA quotation TO app_quotation;
+GRANT SELECT, INSERT, UPDATE ON quotation.quote_working TO app_quotation;
+REVOKE DELETE ON quotation.quote_working FROM app_quotation;
+GRANT SELECT, INSERT ON quotation.quote TO app_quotation;
+GRANT SELECT, INSERT ON quotation.offer TO app_quotation;
+REVOKE UPDATE, DELETE ON quotation.quote FROM app_quotation;
+REVOKE UPDATE, DELETE ON quotation.offer FROM app_quotation;
+GRANT SELECT, INSERT, UPDATE, DELETE ON quotation.idempotency_record TO app_quotation;
+
+GRANT USAGE ON SCHEMA proposal TO app_proposal;
+GRANT SELECT, INSERT, UPDATE ON proposal.proposal_working TO app_proposal;
+REVOKE DELETE ON proposal.proposal_working FROM app_proposal;
+GRANT SELECT, INSERT ON proposal.proposal TO app_proposal;
+GRANT SELECT, INSERT ON proposal.uw_requirement TO app_proposal;
+GRANT SELECT, INSERT ON proposal.uw_document_ref TO app_proposal;
+REVOKE UPDATE, DELETE ON proposal.proposal FROM app_proposal;
+REVOKE UPDATE, DELETE ON proposal.uw_requirement FROM app_proposal;
+REVOKE UPDATE, DELETE ON proposal.uw_document_ref FROM app_proposal;
+GRANT SELECT, INSERT, UPDATE, DELETE ON proposal.idempotency_record TO app_proposal;
+
+GRANT USAGE ON SCHEMA journey TO app_journey;
+GRANT SELECT, INSERT, UPDATE ON journey.journey TO app_journey;
+REVOKE DELETE ON journey.journey FROM app_journey;
+GRANT SELECT, INSERT, UPDATE ON journey.journey_ref TO app_journey;
+GRANT SELECT, INSERT ON journey.journey_transition TO app_journey;
+REVOKE UPDATE, DELETE ON journey.journey_transition FROM app_journey;
+GRANT SELECT, INSERT, UPDATE ON journey.outbox_event TO app_journey;
+REVOKE DELETE ON journey.outbox_event FROM app_journey;
+GRANT SELECT, INSERT, UPDATE, DELETE ON journey.idempotency_record TO app_journey;
+
 GRANT USAGE ON SCHEMA administration TO app_administration;
 GRANT SELECT, INSERT ON administration.configuration_record TO app_administration;
 REVOKE UPDATE, DELETE ON administration.configuration_record FROM app_administration;
@@ -63,6 +93,12 @@ GRANT USAGE ON SCHEMA suitability TO job_retention;
 GRANT EXECUTE ON PROCEDURE suitability.sp_purge_operational() TO job_retention;
 GRANT USAGE ON SCHEMA bank_persistence TO job_retention;
 GRANT EXECUTE ON PROCEDURE bank_persistence.sp_retention_sweep() TO job_retention;
+GRANT USAGE ON SCHEMA quotation TO job_retention;
+GRANT EXECUTE ON PROCEDURE quotation.sp_purge_operational() TO job_retention;
+GRANT USAGE ON SCHEMA proposal TO job_retention;
+GRANT EXECUTE ON PROCEDURE proposal.sp_purge_operational() TO job_retention;
+GRANT USAGE ON SCHEMA journey TO job_retention;
+GRANT EXECUTE ON PROCEDURE journey.sp_purge_operational() TO job_retention;
 
 -- Break-glass read: time-bound via IAM, not a decrypt grant.
 GRANT USAGE ON SCHEMA identity, bank_persistence, lead_lms, journey TO ro_breakglass;

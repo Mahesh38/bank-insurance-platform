@@ -1,6 +1,50 @@
 -- DESIGN DDL — Proposal & UW SoR. Apply at S09 in the owning Proposal service Flyway.
--- Form values are a reference to the encrypted payload store only (INV-PRP-05).
+-- Form values containing PII live only inside the encrypted working envelope (INV-PRP-05).
+--
+-- DATA-005: pre-payment writes go to proposal_working. Structured proposal / UW
+-- children are INSERT-only after Payment RECONCILED. Journey never opens this schema.
 
+CREATE TABLE proposal.proposal_working (
+    proposal_id             CHAR(26)                 PRIMARY KEY,
+    lead_id                 CHAR(26)                 NOT NULL,
+    journey_id              CHAR(26)                 NOT NULL,
+    quote_id                CHAR(26)                 NOT NULL,
+    offer_id                CHAR(26)                 NOT NULL,
+    consent_id              CHAR(26)                 NOT NULL,
+    customer_id             CHAR(26)                 NOT NULL,
+    lob                     VARCHAR(16)              NOT NULL,
+    application_number      VARCHAR(50),
+    schema_id               VARCHAR(64)              NOT NULL,
+    schema_version          VARCHAR(20)              NOT NULL,
+    state                   VARCHAR(24)              NOT NULL,
+    underwriting_state      VARCHAR(24),
+    payload_enc             BYTEA                    NOT NULL,
+    encryption_key_id       VARCHAR(50)              NOT NULL,
+    payload_schema_version  SMALLINT                 NOT NULL DEFAULT 1,
+    config_version_ref      VARCHAR(64)              NOT NULL,
+    materialized_at         TIMESTAMP WITH TIME ZONE,
+    retain_until            DATE,
+    created_at              TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    updated_at              TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    version                 BIGINT                   NOT NULL DEFAULT 0,
+    CONSTRAINT ck_pwork_lob CHECK (lob IN ('LIFE', 'HEALTH', 'GENERAL')),
+    CONSTRAINT ck_pwork_state CHECK (state IN (
+        'DRAFT', 'SUBMITTED', 'SUBMISSION_FAILED', 'UNDER_WRITING',
+        'REQUIREMENTS_PENDING', 'UW_APPROVED', 'UW_COUNTER_OFFER', 'UW_DECLINED',
+        'CUSTOMER_DECLINED', 'AWAITING_PAYMENT', 'PAID', 'CONVERTED',
+        'ISSUANCE_FAILED', 'REFUND_REQUIRED', 'WITHDRAWN', 'EXPIRED', 'ABANDONED'))
+);
+
+CREATE UNIQUE INDEX ux_pwork_application
+    ON proposal.proposal_working (application_number)
+    WHERE application_number IS NOT NULL;
+CREATE INDEX ix_pwork_journey ON proposal.proposal_working (journey_id);
+CREATE UNIQUE INDEX ux_pwork_open_journey
+    ON proposal.proposal_working (journey_id)
+    WHERE state NOT IN ('CONVERTED', 'WITHDRAWN', 'EXPIRED', 'ABANDONED', 'CUSTOMER_DECLINED')
+      AND materialized_at IS NULL;
+
+-- Structured SoR — populated only by materialize after Payment RECONCILED.
 CREATE TABLE proposal.proposal (
     proposal_id         CHAR(26)                 PRIMARY KEY,
     lead_id             CHAR(26)                 NOT NULL,

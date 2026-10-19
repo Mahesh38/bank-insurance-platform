@@ -18,6 +18,8 @@ CREATE TABLE journey.journey (
     next_action_due_at              TIMESTAMP WITH TIME ZONE NOT NULL,
     compensation                    JSONB,
     config_version_ref              VARCHAR(64)              NOT NULL,
+    retain_until                    DATE,
+    archived_at                     TIMESTAMP WITH TIME ZONE,
     created_at                      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     updated_at                      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     version                         BIGINT                   NOT NULL DEFAULT 0,
@@ -40,6 +42,10 @@ CREATE INDEX ix_journey_stage_due ON journey.journey (stage, next_action_due_at)
 CREATE INDEX ix_journey_partner
     ON journey.journey (partner_insurer_id, partner_visible_from)
     WHERE partner_insurer_id IS NOT NULL;
+-- Unconverted journeys (no paymentId) leave OLTP after retain_until (DATA-005 / SUG-20261019-txn).
+CREATE INDEX ix_journey_archive_due
+    ON journey.journey (retain_until)
+    WHERE archived_at IS NOT NULL;
 
 -- External and domain refs as rows so INV-JRN-02 stays a schema assertion (no decision columns).
 CREATE TABLE journey.journey_ref (

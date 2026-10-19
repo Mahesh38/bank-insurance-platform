@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20261019-txn | 2026-10-19 | human:stakeholder | How transactions work on unstructured quote/proposal; Dynamo vs Postgres JSON; archive anything that did not reach payment — do not keep all leads/journeys 7–10 years | SF2 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [DATA-005](../../platform/data-architecture/DATA-005.work-item.yaml) · [06 §10](../../platform/data-architecture/06-journey-orchestrator-and-working-payload.md) · [detail](#sug-20261019-txn--postgres-transactions-not-dynamo-archive-unless-paid) |
 | SUG-20261019-pay | 2026-10-19 | human:stakeholder | Payment is also part of the journey though it is independent | SF2 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [DATA-005](../../platform/data-architecture/DATA-005.work-item.yaml) · [06 §6](../../platform/data-architecture/06-journey-orchestrator-and-working-payload.md) · [detail](#sug-20261019-pay--payment-on-the-journey-and-independent) |
 | SUG-20261019-jwp | 2026-10-19 | human:stakeholder | Journey orchestrator table contract; quotes/proposals stay JSON until payment, then structured | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [DATA-005](../../platform/data-architecture/DATA-005.work-item.yaml) · [PLAN-012](../plans/PLAN-012-journey-working-payload.md) · [pack](../../platform/data-architecture/06-journey-orchestrator-and-working-payload.md) · [detail](#sug-20261019-jwp--journey-orchestrator-and-json-until-payment) |
 | SUG-20261009-lms | 2026-10-09 | human:stakeholder | Do not name the Lead store OPPORTUNITY — schema lead_lms, table lead | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [DATA-003](../../platform/data-architecture/DATA-003.work-item.yaml) · [ER](../../platform/data-architecture/03-lead-suitability-e2e.md) · [DDL](../../platform/data-architecture/schemas/04-lead_lms.sql) · [detail](#sug-20261009-lms--lead-lms-schema-and-lead-table) |
@@ -149,6 +150,138 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20261019-txn · Postgres transactions not Dynamo, archive unless paid
+
+```yaml
+# schema: triage-record
+id: SUG-20261019-txn
+raised_at: "2026-10-19"
+raised_by: "human:stakeholder"
+source: "Follow-up on DATA-005: transactions, Dynamo vs Postgres, 7-10y retention"
+input: >
+  How the transaction will work on this unstructured data of qoute and proposals,
+  are we going to use dynomodb for this or we will use Postgres json keep in mind
+  this data is bulk also one important thing, we don’t want to store the records
+  for the all the leads and its journey for 7-10 years as per compliance we need
+  to store only the once which got converted into payments, anything which has
+  not reached payment will get archived
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: DATA-005
+
+stage_fit:
+  code: SF2
+  rationale: >
+    Completes in-flight DATA-005. Store choice is already DB-DEC-0001/0004
+    (Postgres, not Dynamo). Retention split is the new physical contract:
+    RET-WORKING vs RET-7Y on the converted path. Absorption test passes —
+    no new engine, no new service, gate-neutral.
+  target_stage: "S11 owning-service runtime; S09 purge apply"
+  unpark_trigger: null
+  absorption_test:
+    small: true
+    no_new_dependency: true
+    no_new_decision: true
+    gate_neutral: true
+
+scope:
+  code: SC0
+  business_scope: "in scope — Journey / Quotation / Proposal / Payment persistence"
+  serves: ["DATA-005", "DB-DEC-0001", "C-RET-1"]
+  failure_without_it: "S11 puts working JSON on Dynamo or keeps every abandoned journey 7 years in Aurora"
+  minimal: true
+  authority: "DB-DEC-0001; 02-operations §4; C-RET-1; OPEN-I4"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S11 — Vertical slice"
+  binds_when: "working-payload writes and unconverted purge"
+  failure_without_it: "S11 puts working JSON on Dynamo or keeps every abandoned journey 7 years in Aurora"
+  evidence_tier: E2
+  evidence:
+    - "DB-DEC-0001 Dynamo rejected at R0"
+    - "DR-PII-01 / INV-PRP-05 — no plaintext JSONB"
+    - "C-RET-1 lead attribution stays RET-7Y as a stub"
+    - "Owner: only payment-converted stays 7-10 years"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT
+action_rationale: >
+  SF2 absorption into DATA-005. Dynamo stays rejected. Transactions are
+  local Postgres ACID per schema. Unconverted path is RET-WORKING.
+  C-RET-1 / consent on unsold path flagged OPEN for Shailja — not purged here.
+duplicate_of: null
+conflicts:
+  - "Information model marks quote/journey RET-7Y — this pack applies that class to the sold path; unconverted is RET-WORKING"
+  - "C-RET-1 vs owner do-not-keep-all-leads-7y — stub stays until Shailja (OPEN-RET-LEAD-STUB)"
+
+classification:
+  type: ARCH
+  also: [COMP]
+  breakdown: STORY
+  epic: null
+  risk_tier: T3
+  destination: "docs/platform/data-architecture/"
+
+priority:
+  now: P2
+  at_target: P1
+  factors: { N: 2, S: 1, B: 1, R: 1, D: 1, E: 1 }
+  score: 10
+  matrix_default: P2
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "Absorbed into DATA-005; same score as SUG-20261019-jwp"
+
+dependencies:
+  edges:
+    - type: ARCHITECTURAL
+      target: DATA-005
+      relation: related_to
+      state: IN-FLIGHT
+    - type: DECISION
+      target: DB-DEC-0001
+      relation: requires
+      state: READY
+  state: READY
+  enablement_count: 0
+  earliest_start: immediately
+  cycles: none
+
+breakdown:
+  children: []
+  completion_definition: >
+    06 §10 states Postgres BYTEA transactions, Dynamo rejected, RET-WORKING
+    purge of unconverted journeys without paymentId; C-RET-1 stub not deleted.
+  not_included:
+    - "DynamoDB table"
+    - "Purge of consent / C-RET-1 without Shailja"
+    - "S3 archive mechanism (still joint W1)"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: DATA-005
+  plan_id: PLAN-012
+  status: ADMITTED
+  closed_reason: null
+
+resumed: "DATA-005"
+```
 
 ### SUG-20261019-pay · Payment on the journey and independent
 

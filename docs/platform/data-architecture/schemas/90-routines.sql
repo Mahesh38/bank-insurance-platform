@@ -297,6 +297,7 @@ AS $$
 BEGIN
     DELETE FROM quotation.idempotency_record
      WHERE expires_at < now();
+    -- Working envelopes only. Structured quote/offer (post-RECONCILED) stay.
     DELETE FROM quotation.quote_working
      WHERE retain_until IS NOT NULL
        AND retain_until < CURRENT_DATE;
@@ -309,6 +310,7 @@ AS $$
 BEGIN
     DELETE FROM proposal.idempotency_record
      WHERE expires_at < now();
+    -- Working envelopes only. Structured proposal/UW (post-RECONCILED) stay.
     DELETE FROM proposal.proposal_working
      WHERE retain_until IS NOT NULL
        AND retain_until < CURRENT_DATE;
@@ -321,6 +323,46 @@ AS $$
 BEGIN
     DELETE FROM journey.idempotency_record
      WHERE expires_at < now();
+
+    -- Unconverted only: never reached payment. Converted / paid journeys are
+    -- RET-7Y and are not deleted here (SUG-20261019-txn).
+    DELETE FROM journey.outbox_event o
+     USING journey.journey j
+     WHERE o.journey_id = j.journey_id
+       AND j.archived_at IS NOT NULL
+       AND j.retain_until IS NOT NULL
+       AND j.retain_until < CURRENT_DATE
+       AND NOT EXISTS (
+           SELECT 1 FROM journey.journey_ref r
+            WHERE r.journey_id = j.journey_id AND r.ref_type = 'paymentId');
+
+    DELETE FROM journey.journey_transition t
+     USING journey.journey j
+     WHERE t.journey_id = j.journey_id
+       AND j.archived_at IS NOT NULL
+       AND j.retain_until IS NOT NULL
+       AND j.retain_until < CURRENT_DATE
+       AND NOT EXISTS (
+           SELECT 1 FROM journey.journey_ref r
+            WHERE r.journey_id = j.journey_id AND r.ref_type = 'paymentId');
+
+    DELETE FROM journey.journey_ref r
+     USING journey.journey j
+     WHERE r.journey_id = j.journey_id
+       AND j.archived_at IS NOT NULL
+       AND j.retain_until IS NOT NULL
+       AND j.retain_until < CURRENT_DATE
+       AND NOT EXISTS (
+           SELECT 1 FROM journey.journey_ref p
+            WHERE p.journey_id = j.journey_id AND p.ref_type = 'paymentId');
+
+    DELETE FROM journey.journey j
+     WHERE j.archived_at IS NOT NULL
+       AND j.retain_until IS NOT NULL
+       AND j.retain_until < CURRENT_DATE
+       AND NOT EXISTS (
+           SELECT 1 FROM journey.journey_ref r
+            WHERE r.journey_id = j.journey_id AND r.ref_type = 'paymentId');
 END;
 $$;
 

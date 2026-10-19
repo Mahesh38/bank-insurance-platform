@@ -3,6 +3,7 @@ id: DATA-005
 origin:
   - SUG-20261019-jwp
   - SUG-20261019-pay
+  - SUG-20261019-txn
 title: "Journey orchestrator structure + JSON-until-payment working payloads (R0 design DDL)"
 type: ARCH
 also: [DOC]
@@ -64,6 +65,10 @@ acceptance_criteria:
     given: "Payment is on the journey and independent (SUG-20261019-pay)"
     when: "06 §6 and 10-payment.sql / 91-grants.sql are read"
     then: "Payment is always structured in schema payment; Journey stores paymentId only; app_journey has no grant on payment; Payment publishes via its own outbox; no payment_working JSON"
+  - id: AC-8
+    given: "SUG-20261019-txn store + retention"
+    when: "06 §10 and journey.sp_purge_operational are read"
+    then: "store is Postgres BYTEA not Dynamo/JSONB; one ACID txn per owning schema; unconverted journeys without paymentId purge after retain_until; structured sold rows and payment rows are not deleted"
 
 out_of_scope:
   - "Flyway apply / owning-service runtime"
@@ -119,3 +124,6 @@ variance_log:
   - date: "2026-10-19"
     change: "Added 06 §6 Payment on-the-journey-and-independent; payment.outbox_event; app_payment grants; AC-7"
     reason: "Owner: payment is also part of the journey though independent (SUG-20261019-pay). Absorbed into DATA-005 — not a new store, not JSON-until-issuance."
+  - date: "2026-10-19"
+    change: "Added 06 §10 transactions/store/retention; journey retain_until/archived_at; purge skips paid journeys; AC-8"
+    reason: "Owner: how do transactions work on unstructured quote/proposal; Dynamo vs Postgres; do not keep unconverted leads/journeys 7-10 years (SUG-20261019-txn)."

@@ -63,6 +63,7 @@ files_expected:
   - docs/platform/data-architecture/schemas/90-routines.sql
   - docs/platform/data-architecture/schemas/91-grants.sql
   - docs/platform/data-architecture/01-physical-design.md
+  - docs/platform/data-architecture/02-operations-and-troubleshooting.md
   - docs/platform/data-architecture/README.md
   - docs/governance/plans/PLAN-012-journey-working-payload.md
   - docs/governance/registers/SUGGESTION-REGISTER.md
@@ -114,6 +115,7 @@ acceptance_criteria:
   - "AC-5 selected_* control columns exist for payment"
   - "AC-6 no stage-field edit and no manufactured T4 signature"
   - "AC-7 Payment is on the journey (stage + paymentId) and independent (own schema, own outbox, no JSON envelope)"
+  - "AC-8 Postgres BYTEA transactions not Dynamo; unconverted purge; sold path is 7y"
 
 out_of_scope:
   - "Runtime Journey / Quotation / Proposal / Payment code"
@@ -129,4 +131,8 @@ variance_log:
     change: "Added 06 §6 and payment.outbox_event + app_payment grants; files_expected now includes 10-payment.sql; AC-7"
     reason: "Owner follow-up: payment is part of the journey though independent. Absorbed SUG-20261019-pay. Not a new decision — Payment was already structured; the pack now states the independence contract."
     re_review: "none — design DDL only; no T4 claim"
+  - date: "2026-10-19"
+    change: "Added 06 §10 transaction/store/retention; journey.retain_until/archived_at; purge does not delete paid journeys; AC-8"
+    reason: "Owner follow-up SUG-20261019-txn. Dynamo remains rejected (DB-DEC-0001). Unconverted path is RET-WORKING."
+    re_review: "none — design DDL only; Shailja still owns OPEN-RET-LEAD-STUB"
 ```

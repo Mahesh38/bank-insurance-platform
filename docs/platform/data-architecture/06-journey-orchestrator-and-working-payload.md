@@ -3,7 +3,7 @@
 **Workstream:** WS-3 · **Work item:** [`DATA-005`](./DATA-005.work-item.yaml) · origin [`SUG-20261019-jwp`](../../governance/registers/SUGGESTION-REGISTER.md#sug-20261019-jwp--journey-orchestrator-and-json-until-payment)
 **Decision:** [`DB-DEC-0004`](./DB-DEC-0004-working-payload-until-payment.md)
 **Owner:** Aarti — Principal Insurance Data & Database Architect
-**Joint review:** Mahesh (orchestrator boundary, INV-JRN-02) · Deepali (encrypted working payloads)
+**Joint review:** Mahesh (orchestrator boundary, INV-JRN-02) · Deepali (encrypted working payloads) · Shailja (retention class of unconverted vs paid)
 **Status:** `AI-DRAFTED` · design only · not Flyway · not a T4 signature
 **Stage:** S08 design delta. Apply stays S09 / S11 owning-service Flyway.
 
@@ -15,6 +15,7 @@ This pack answers:
 2. How the **orchestrator layer** interacts with those tables — and what it must never write.
 3. How **quotes and proposals stay unstructured JSON** until payment is `RECONCILED`, then **materialize** into the existing structured tables.
 4. Where **Payment** sits: on the journey as a stage and a ref, and **independent** as its own structured SoR (not JSON, not a journey table).
+5. How **transactions** run on the working envelopes, why the store is **Postgres not DynamoDB**, and why only **payment-converted** rows stay as 7-year OLTP evidence.
 
 Cite: [`INV-JRN-02`](../ws3-platform/01-domain-model-and-invariants.md) · [`OR-01`](../../context/roles/mahesh-principal-insurance-platform-architect/13-orchestration-doctrine.md) (orchestrator coordinates, never decides) · [`SC-W3-6`](../ws3-platform/00-WS3-ARCHITECTURE-REGISTRATION.md) · [`03-solution-architecture-r0.md` §5](../ws3-platform/03-solution-architecture-r0.md) · [`12-journey.sql`](./schemas/12-journey.sql) · [`08-quotation.sql`](./schemas/08-quotation.sql) · [`09-proposal.sql`](./schemas/09-proposal.sql) · Aarti card joint-review list ([`aarti-database.card.md`](../../context/personas/aarti-database.card.md)).
 
@@ -30,7 +31,9 @@ Cite: [`INV-JRN-02`](../ws3-platform/01-domain-model-and-invariants.md) · [`OR-
 | **Quote / proposal before payment** | Encrypted JSON envelope in `quotation.quote_working` / `proposal.proposal_working`. Structured `quote` / `offer` / `proposal` / UW children are **empty** until materialize. |
 | **Payment** | On the journey (`PAYMENT_PENDING` → `PAYMENT_SETTLED`, `journey_ref.paymentId`) and **independent** (schema `payment`, `app_payment`, own outbox). Always structured. |
 | **Materialize trigger** | `Payment` reaches `RECONCILED`. Owning services consume that event and INSERT structured rows in their own schema. Journey only updates stage + `paymentId` / later `policyId`. |
-| **Never** | Quote or proposal JSON on `journey.journey`. Journey opening `quotation`, `proposal` or `payment`. Orchestrator calling 1SB or a database it does not own. |
+| **Store** | Aurora PostgreSQL. Encrypted `BYTEA` working envelopes — **not** DynamoDB, **not** plaintext JSONB. One working row per open journey (offers live inside the envelope). |
+| **Retention** | `RET-WORKING` until Payment `RECONCILED`, then archive/purge from OLTP. `RET-7Y` / `RET-7Y-IMMUTABLE` only on the converted path (structured quote/proposal + payment + policy). |
+| **Never** | Quote or proposal JSON on `journey.journey`. Journey opening `quotation`, `proposal` or `payment`. Orchestrator calling 1SB or a database it does not own. Dynamo as a second SoR. |
 
 Observation: this does **not** move Suitability, Consent, Payment or Policy onto JSON. Those stay structured from the first write — they are evidence or money.
 
@@ -431,15 +434,94 @@ Dashed ownership: Journey holds ids only. Working and structured quote/proposal 
 
 ---
 
-## 10. What this pack will not do
+## 10. Transactions, store, bulk, and archive-unless-paid
+
+Owner follow-up [`SUG-20261019-txn`](../../governance/registers/SUGGESTION-REGISTER.md#sug-20261019-txn--postgres-transactions-not-dynamo-archive-unless-paid): how a transaction works on the unstructured quote/proposal; Dynamo vs Postgres JSON; bulk; do not keep every lead/journey for 7–10 years — only the payment-converted path.
+
+Cite: [`DB-DEC-0001`](./DB-DEC-0001-r0-physical-model.md) (Dynamo rejected at R0) · [`02` §4](./02-operations-and-troubleshooting.md#4-retention-and-purge-s07-e04-s06) · [`DR-REC-05`](./00-design-rules.md) · `C-RET-1` / `OPEN-I4` · Aarti cannot waive Shailja's retention class.
+
+### 10.1 Transaction — Postgres ACID on the envelope row, not on the JSON
+
+The working payload is **not** a document database and is **not** queried with `JSONB` operators. The unit of transaction is the **row**.
+
+```text
+Quotation-service — ONE local Postgres transaction (schema quotation, app_quotation)
+  INSERT or UPDATE quote_working
+      control columns  (state, selected_*, suitability_id, …)
+      payload_enc      (BYTEA ciphertext of the whole quote + offers)
+  INSERT/hit idempotency_record
+  COMMIT
+  -- then return quoteId to Journey
+
+Journey-service — a LATER, separate transaction (schema journey)
+  UPDATE journey.stage + version
+  UPSERT journey_ref.quoteId
+  INSERT journey_transition
+  INSERT outbox_event
+  COMMIT
+```
+
+Same shape for Proposal. Same shape for Payment (structured `payment` + outbox).
+
+| Property | How it is true |
+|---|---|
+| Atomic select | `selected_*` and `payload_enc` update in **one** quotation transaction (`INV-QUO-05`) |
+| No 2PC | Journey commits after the callee has committed. Retry is idempotent |
+| No decrypt in SQL | Gates and Payment read control columns / Quotation API. `payload_enc` is opaque |
+| Isolation | `SELECT … FOR UPDATE` / `version` on the working row. Partial unique `ux_qwork_open_journey` |
+| Bulk offers | N insurer offers sit **inside** one envelope. Not N quote rows, not N Dynamo items |
+| After `RECONCILED` | A later quotation transaction INSERTs structured `quote` + `offer` and freezes the envelope |
+
+There is no transaction that “opens the JSON”, edits one offer, and writes it back as a SQL `jsonb_set`. The service decrypts in process, applies the change, encrypts, writes the row.
+
+### 10.2 Store — Postgres, not DynamoDB, not plaintext JSONB
+
+| Option | Verdict | Why |
+|---|---|---|
+| **Aurora PostgreSQL `BYTEA` + control columns** | **Taken** | Same cluster, same credential model, same-transaction idempotency, TOAST for large envelopes. `DB-DEC-0001` / `DB-DEC-0004` |
+| DynamoDB document per quote/proposal | **Rejected** | Second SoR, no FK/CHECK/`INV-PAY-02` uniqueness, splits the already-shipping audit/job store, no R0 volume evidence. Revisit only on a **measured** access pattern |
+| Postgres `JSONB` (plaintext) | **Rejected** | Members / nominee / form become queryable (`DR-PII-01`, `INV-PRP-05`) |
+| JSON on `journey` | **Rejected** | `INV-JRN-02` / `OR-01` |
+
+**Bulk.** R0 write amplification is one working row per open journey, not one row per insurer. Offers fan out to structured `offer` rows only after `RECONCILED`. Abandoned bulk never materializes. The next limit is still provider latency, not Aurora (`01` §7). Partitioning stays deferred (`OPEN-I6`).
+
+### 10.3 Retention — only payment-converted stays as 7-year OLTP evidence
+
+The information model marks quote/journey attributes `RET-7Y`. That class applies to the **sold** record. Keeping every abandoned lead and working envelope in Aurora for 7–10 years is refused.
+
+| Path | What stays in Aurora | Class | What happens at `retain_until` |
+|---|---|---|---|
+| **Never reached payment** (no `journey_ref.paymentId`) | Nothing after archive | `RET-WORKING` (operational window, default 90 days — config, `OPEN-I4` may move the number) | Owning job sets `archived_at`, optional S3 dump, then `sp_purge_operational` deletes working envelopes and the journey tree |
+| **Reached payment, not `RECONCILED`** (declined / expired / `UNCERTAIN` resolved to no capture) | `payment.payment` + attempts | Payment is `RET-7Y-IMMUTABLE` (money). Working quote/proposal and the journey header follow `RET-WORKING` | Working envelopes and unconverted journey archive; the payment row stays |
+| **`RECONCILED`** | Structured `quote` / `offer` / `proposal` / UW, `payment`, later `policy`, journey header | `RET-7Y` / `RET-7Y-IMMUTABLE` / `RET-POLICY+7Y` | Working envelope may still age out (structured copy is the record). Structured rows are **not** in the purge |
+
+```text
+retain_until is set by the owning service from configuration (not a hardcoded 7 in a CHECK).
+  quote_working / proposal_working : valid_until or operational window at INSERT
+  journey                         : operational window at INSERT;
+                                    on PaymentReconciled → RET-7Y close date (OPEN-I4)
+  payment                         : always RET-7Y-IMMUTABLE from INSERT
+```
+
+**Lead inbox.** `lead_lms.lead` already has `ARCHIVED` + `archived_at` (`DATA-003`). An unconverted lead leaves the working inbox. **`C-RET-1` attribution columns** (`lead_id`, `accountable_sp_id`, cert ref, `lob`, `converted_journey_id`) stay `RET-7Y` until Shailja says otherwise — that is a thin stub, not the full journey. Named `OPEN-RET-LEAD-STUB`.
+
+**Consent / suitability** on an unconverted path stay `RET-7Y` / `RET-7Y-IMMUTABLE` in the information model (they are regulatory evidence even if no sale). This pack does **not** purge them. Named `OPEN-RET-UNCONVERTED-EVIDENCE` for Shailja. Aarti will not delete consent to save disk.
+
+Archive is **out of OLTP**, not “keep the hot row and flip a flag for seven years”. Mechanism (S3 dump vs archive table vs partition) stays the joint Aarti/Mahesh item already open on Lead W1 (`DEC-20260825-01` §12). Until that lands, `archived_at` + `retain_until` + purge of unconverted working/journey rows is the contract.
+
+---
+
+## 11. What this pack will not do
 
 - Put working JSON on `journey` or in DynamoDB.
+- Use plaintext Postgres `JSONB` for quote/proposal envelopes.
 - Fold Payment into the journey schema, or give `app_journey` a grant on `payment`.
 - Store Payment as a working JSON envelope.
 - Let Journey materialize another context’s rows.
-- Store quote/proposal PII as plaintext JSONB.
+- Keep every unconverted lead/journey working envelope in Aurora for 7–10 years.
+- Purge `C-RET-1` lead attribution or consent evidence without Shailja.
 - Apply Flyway or implement the skeleton service.
 - Edit `CURRENT-STATE.yaml` stage fields.
 - Mark `S07-G5` passed.
 
-DDL: [`12-journey.sql`](./schemas/12-journey.sql) (transition + outbox) · [`08-quotation.sql`](./schemas/08-quotation.sql) (`quote_working`) · [`09-proposal.sql`](./schemas/09-proposal.sql) (`proposal_working`) · [`10-payment.sql`](./schemas/10-payment.sql) (structured + outbox) · [`91-grants.sql`](./schemas/91-grants.sql).
+DDL: [`12-journey.sql`](./schemas/12-journey.sql) (transition + outbox + `retain_until` / `archived_at`) · [`08-quotation.sql`](./schemas/08-quotation.sql) (`quote_working`) · [`09-proposal.sql`](./schemas/09-proposal.sql) (`proposal_working`) · [`10-payment.sql`](./schemas/10-payment.sql) (structured + outbox) · [`90-routines.sql`](./schemas/90-routines.sql) (purge skips paid journeys) · [`91-grants.sql`](./schemas/91-grants.sql).

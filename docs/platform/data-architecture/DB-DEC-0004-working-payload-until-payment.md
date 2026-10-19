@@ -26,6 +26,10 @@ database_decision:
     structured quote/offer/proposal/UW rows and freeze the envelope.
     Payment, policy, consent and suitability stay structured from the first write.
     Journey never stores the JSON and never materializes another context's rows.
+    Store is Aurora PostgreSQL BYTEA + control columns — not DynamoDB, not
+    plaintext JSONB. Transactions are one local ACID txn per owning schema.
+    RET-WORKING unconverted rows archive then leave OLTP; RET-7Y applies to
+    the payment-converted structured path only.
   status: APPROVED_WITH_OBSERVATIONS
   database_severity: D1
   rationale: >
@@ -61,8 +65,9 @@ database_decision:
   security_lifecycle_implications: >
     payload_enc BYTEA + encryption_key_id. Deepali owns the CMK hierarchy
     (S09-E04-S03). This pack specifies ciphertext placement, not key policy.
-    job_retention may purge working rows past retain_until; it cannot DELETE
-    structured sold-policy rows.
+    job_retention may purge RET-WORKING rows past retain_until (unconverted
+    journey tree and working envelopes). It cannot DELETE structured sold-policy
+    rows or payment rows. C-RET-1 lead stubs and consent are not purged here.
   availability_recovery_implications: >
     Same Aurora cluster as DB-DEC-0001. Working rows are reconstructible from
     the owning service + outbox; they are not the issuance gate. Restore
@@ -82,12 +87,15 @@ database_decision:
     - "Plaintext JSONB working column — DR-PII-01 / INV-PRP-05"
     - "2PC across journey + quotation + proposal — ADR-012 outbox; INV-IDM-01 retry"
     - "JSON for payment / policy / consent / suitability — those are money or evidence"
+    - "Keep every unconverted lead/journey in Aurora for 7–10 years — OLTP bloat; sold path is the 7y record"
+    - "Query payload_enc with JSONB operators — ciphertext is opaque; control columns only"
   required_actions:
     - "Human Aarti signs this pack + DB-DEC-0004 (design only; not S07-G5 close)"
     - "Mahesh joint-reviews orchestrator boundary and SoT timing"
     - "Deepali reviews payload_enc placement vs CMK plan"
     - "Amit implements repositories + Flyway at S09/S11 from the design scripts (parked)"
     - "Shivanshi consumes unchanged RPO/RTO; no new restore class"
+    - "Shailja confirms OPEN-RET-LEAD-STUB and OPEN-RET-UNCONVERTED-EVIDENCE (consent/suitability on unsold path)"
   human_approval_required: true
   revisit_trigger: >
     A measured need to query inside the working envelope before payment;
@@ -110,3 +118,4 @@ database_decision:
 2. **Payment stays structured and independent.** It is on the journey (`PAYMENT_PENDING` → `PAYMENT_SETTLED`, `journey_ref.paymentId`) and is not a journey table. `app_journey` has no grant on `payment`. `RECONCILED` remains the issuance gate (`INV-POL-01`). This pack does not put money on JSON.
 3. **Journey service is a skeleton.** This pack is the persistence contract. Implementing `journey-orchestration-service` is a later S11 item, not this change.
 4. **Restore unproven.** Inherited from `DB-DEC-0001`. Severity stays `D1` for design.
+5. **Unconverted ≠ 7-year OLTP.** Working envelopes and journeys without `paymentId` are `RET-WORKING` and leave Aurora after `retain_until`. `C-RET-1` lead attribution stubs and consent/suitability on an unsold path are `OPEN-RET-LEAD-STUB` / `OPEN-RET-UNCONVERTED-EVIDENCE` — Shailja, not Aarti.

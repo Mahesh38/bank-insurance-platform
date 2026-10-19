@@ -156,7 +156,7 @@ DDL: [`14-audit_event_delta.sql`](./schemas/14-audit_event_delta.sql). Apply as 
 | `proposal` | `proposal_working`, `proposal`, `uw_requirement`, `uw_document_ref`, `idempotency_record` | Same working-then-structured pattern; form/nominee stay inside `payload_enc` until materialize (INV-PRP-05) |
 | `payment` | `payment`, `payment_attempt`, `refund`, `outbox_event`, `idempotency_record` | Always structured (money path). On the journey as `paymentId` + stages `PAYMENT_*`; independent schema — Journey never writes it (`DATA-005` §6) |
 | `policy` | `policy`, `policy_document_ref` | `policy_number` unique+immutable (INV-POL-02) |
-| `journey` | `journey`, `journey_ref`, `journey_transition`, `outbox_event`, `idempotency_record` | Stage + refs only (`INV-JRN-02`). Transition INSERT-only. Orchestrator never opens quotation/proposal |
+| `journey` | `journey`, `journey_ref`, `journey_transition`, `outbox_event`, `idempotency_record` | Stage + refs only (`INV-JRN-02`). `retain_until` / `archived_at`: unconverted (no `paymentId`) purge after operational window; paid path is `RET-7Y` |
 | `administration` | `configuration_record` | Versioned INSERT-only (INV-CFG-02) |
 
 Idempotency is a small table **inside** each mutating schema (`key`, `request_hash`, `response_ref`,
@@ -186,7 +186,7 @@ Idempotency is a small table **inside** each mutating schema (`key`, `request_ha
 | payment | `ux_payment_active_per_proposal` (partial) | INV-PAY-02 |
 | payment | `ix_payment_pg_txn`, `ix_payment_journey`, `ix_pay_outbox_unpublished` | Reconciliation; saga lookup; ADR-012 |
 | policy | `ux_policy_insurer_number` | INV-POL-02 |
-| journey | `ix_journey_lead`, `ix_journey_stage_due`, `ix_jrn_transition`, `ix_jrn_outbox_unpublished` | Saga + inactivity (INV-JRN-03); reconstruction; ADR-012 |
+| journey | `ix_journey_lead`, `ix_journey_stage_due`, `ix_journey_archive_due`, `ix_jrn_transition`, `ix_jrn_outbox_unpublished` | Saga + inactivity (INV-JRN-03); unconverted archive; reconstruction; ADR-012 |
 | administration | `ux_config_version`, `ix_config_resolve` | Seed idempotence + effective-dated get |
 | all mutating | `ux_idempotency_key` | INV-IDM-01 |
 

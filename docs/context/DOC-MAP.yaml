@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 683
-total_bytes: 22900759
+document_count: 675
+total_bytes: 21523240
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -2206,22 +2206,6 @@ documents:
     title: "AGENT CONTEXT INDEX"
     answers: "============================================================================="
     bytes: 51332
-  - path: docs/context/AGENT-CONTEXT-INDEX.yaml
-    bucket: context
-    authority: non-binding-context
-    capsules: [orient, docs-navigation]
-    persona: null
-    title: "AGENT CONTEXT INDEX"
-    answers: "============================================================================="
-    bytes: 51332
-  - path: docs/context/AGENT-CONTEXT-INDEX.yaml
-    bucket: context
-    authority: non-binding-context
-    capsules: [orient, docs-navigation]
-    persona: null
-    title: "AGENT CONTEXT INDEX"
-    answers: "============================================================================="
-    bytes: 51332
   - path: docs/context/BOOT.md
     bucket: context
     authority: non-binding-context
@@ -2237,23 +2221,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 236218
-  - path: docs/context/DOC-MAP.yaml
-    bucket: context
-    authority: non-binding-context
-    capsules: [orient, docs-navigation]
-    persona: null
-    title: "DOC MAP"
-    answers: "============================================================================="
-    bytes: 236218
-  - path: docs/context/DOC-MAP.yaml
-    bucket: context
-    authority: non-binding-context
-    capsules: [orient, docs-navigation]
-    persona: null
-    title: "DOC MAP"
-    answers: "============================================================================="
-    bytes: 236218
+    bytes: 237989
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -4238,22 +4206,6 @@ documents:
     title: "Suggestion Register"
     answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
     bytes: 394869
-  - path: docs/governance/registers/SUGGESTION-REGISTER.md
-    bucket: governance
-    authority: binding-process
-    capsules: [triage, plan-work, delivery-planning]
-    persona: null
-    title: "Suggestion Register"
-    answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 394869
-  - path: docs/governance/registers/SUGGESTION-REGISTER.md
-    bucket: governance
-    authority: binding-process
-    capsules: [triage, plan-work, delivery-planning]
-    persona: null
-    title: "Suggestion Register"
-    answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 394869
   - path: docs/governance/runbooks/AUTOPILOT-FAILURE-RUNBOOK.md
     bucket: governance
     authority: binding-process
@@ -4957,7 +4909,7 @@ documents:
     persona: database
     title: "05 — E2E ER diagrams, fields and relationship map"
     answers: "Companion: store / credential / roadmap in 04-store-segregation-and-roadmap.md"
-    bytes: 37548
+    bytes: 38766
   - path: docs/platform/data-architecture/06-journey-orchestrator-and-working-payload.md
     bucket: platform
     authority: ai-drafted
@@ -5046,22 +4998,6 @@ documents:
     title: "DB-DEC-0004 — Working payload until payment, then structured"
     answers: "Draft Aarti decision record. Format:"
     bytes: 8449
-  - path: docs/platform/data-architecture/README.md
-    bucket: platform
-    authority: ai-drafted
-    capsules: [database-review, architecture-review]
-    persona: database
-    title: "R0 Physical Data Architecture — Aarti pack"
-    answers: "Work item: DATA-001 · origin SUG-20260825-db1"
-    bytes: 7835
-  - path: docs/platform/data-architecture/README.md
-    bucket: platform
-    authority: ai-drafted
-    capsules: [database-review, architecture-review]
-    persona: database
-    title: "R0 Physical Data Architecture — Aarti pack"
-    answers: "Work item: DATA-001 · origin SUG-20260825-db1"
-    bytes: 7835
   - path: docs/platform/data-architecture/README.md
     bucket: platform
     authority: ai-drafted

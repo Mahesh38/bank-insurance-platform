@@ -54,7 +54,8 @@ erDiagram
     JOURNEY_journey ||--o{ JOURNEY_outbox : "has"
     LEAD_LMS_lead ||--o{ CONSENT_consent : "LOGICAL lead_id"
     LEAD_LMS_lead ||--o{ SUITABILITY_suitability : "LOGICAL lead_id"
-    SUITABILITY_suitability ||--|| SUITABILITY_answer_enc : "has"
+    SUITABILITY_suitability ||--o{ SUITABILITY_answer_set : "has"
+    SUITABILITY_suitability ||--o{ SUITABILITY_mapping_run : "has"
     CATALOGUE_insurer ||--o{ CATALOGUE_product : "has"
     CATALOGUE_product ||--o{ CATALOGUE_eligibility_band : "has"
     SUITABILITY_suitability ||--o{ QUOTATION_quote_working : "LOGICAL suitability_id"
@@ -112,7 +113,8 @@ erDiagram
 | `lead_lms.lead_follow_up.lead_id` | `lead_lms.lead.lead_id` | N:1 | ⚑ note |
 | `journey.journey_transition.journey_id` | `journey.journey.journey_id` | N:1 | INSERT-only |
 | `journey.outbox_event.journey_id` | `journey.journey.journey_id` | N:1 | ADR-012 |
-| `suitability.suitability_answer_enc.suitability_id` | `suitability.suitability.suitability_id` | 1:1 | ⚑ answers |
+| `suitability.suitability_answer_set.suitability_id` | `suitability.suitability.suitability_id` | N:1 | ⚑ answers, INSERT-only |
+| `suitability.suitability_mapping_run.suitability_id` | `suitability.suitability.suitability_id` | N:1 | INSERT-only |
 | `catalogue.product.insurer_id` | `catalogue.insurer.insurer_id` | N:1 | |
 | `catalogue.eligibility_band.product_id` | `catalogue.product.product_id` | N:1 | |
 | `quotation.offer.quote_id` | `quotation.quote.quote_id` | N:1 | one SELECTED (`INV-QUO-05`) |
@@ -592,6 +594,8 @@ erDiagram
 
 ## 9. `suitability`
 
+Savings/ULIP questionnaire only (`BR-SUIT-001`). Term leads have no row (`BR-SUIT-002`). Column sheet: [`03-lead-suitability-e2e.md`](./03-lead-suitability-e2e.md).
+
 ```mermaid
 erDiagram
     suitability_suitability {
@@ -600,12 +604,16 @@ erDiagram
         char journey_id "LOGICAL"
         char customer_id "LOGICAL"
         varchar lob
+        varchar product_class
         varchar questionnaire_version
+        varchar mapping_rule_version
         varchar outcome
-        text_array recommended_products
-        timestamptz evaluated_at
-        timestamptz valid_until
         varchar state
+        int current_answer_set_version
+        char current_mapping_run_id
+        varchar selected_product_code
+        timestamptz bi_locked_at
+        char locked_quote_id
         varchar override_actor_id
         varchar override_reason
         timestamptz override_at
@@ -615,19 +623,37 @@ erDiagram
         timestamptz updated_at
         bigint version
     }
-    suitability_answer_enc {
-        char suitability_id PK_FK
+    suitability_answer_set {
+        char answer_set_id PK
+        char suitability_id FK
+        int answer_set_version
         bytea answers_enc "flag"
         varchar encryption_key_id
+        varchar last_screen_id
+        varchar created_by
+        timestamptz created_at
     }
-    suitability_suitability ||--|| suitability_answer_enc : "suitability_id"
+    suitability_mapping_run {
+        char mapping_run_id PK
+        char suitability_id FK
+        int answer_set_version
+        varchar mapping_rule_version
+        varchar mapping_result
+        text_array recommended_products
+        varchar run_state
+        timestamptz evaluated_at
+    }
+    suitability_suitability ||--o{ suitability_answer_set : "suitability_id"
+    suitability_suitability ||--o{ suitability_mapping_run : "suitability_id"
 ```
 
 | | |
 |---|---|
-| `state` | `IN_PROGRESS` \| `COMPLETED` \| `OVERRIDDEN` \| `SUPERSEDED` \| `EXPIRED` \| `ABANDONED` |
+| `state` | `IN_PROGRESS` \| `COMPLETED` \| `NO_PRODUCT_FOUND` \| `LOCKED` \| `OVERRIDDEN` \| `SUPERSEDED` \| `EXPIRED` \| `ABANDONED` |
 | `outcome` | null \| `ELIGIBLE` \| `NOT_ELIGIBLE` |
-| INV-SUI-01 on this branch | COMPLETED is not updated; correction = new row |
+| `product_class` | `SAVINGS` \| `ULIP` — Term has no suitability row |
+| Answers | `suitability_answer_set.answers_enc` INSERT-only ⚑ JSON ciphertext |
+| Mapping | `suitability_mapping_run` INSERT-only; one `CURRENT` per assessment |
 | Override | `OVERRIDDEN` requires actor + reason + timestamp |
 
 ---

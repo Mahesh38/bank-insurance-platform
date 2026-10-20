@@ -691,7 +691,7 @@ capsules:
 
   - id: database-review
     intent: "Persistence, schema, integrity, migration, capacity, backup and recovery decisions."
-    triggers: ["database", "schema", "migration", "flyway", "index", "partition", "persistence", "backup", "restore", "data model", "jpa"]
+    triggers: ["database", "schema", "migration", "flyway", "index", "partition", "persistence", "backup", "restore", "data model", "jpa", "dynamodb", "postgres"]
     persona: database
     budget_bytes: 40000
     load:
@@ -710,6 +710,10 @@ capsules:
         path: "docs/platform/data-architecture/DATA-002-cr013-alignment.md"
       - condition: "Lead or Suitability e2e tables, ER or R0 DDL for those two contexts"
         path: "docs/platform/data-architecture/03-lead-suitability-e2e.md"
+      - condition: "Postgres vs DynamoDB segregation, which service opens which store, or DB credentials/roadmap"
+        path: "docs/platform/data-architecture/04-store-segregation-and-roadmap.md"
+      - condition: "e2e ER diagrams, column sheets or physical vs logical relationship mapping"
+        path: "docs/platform/data-architecture/05-e2e-er-and-field-map.md"
       - condition: "Journey orchestrator tables, working JSON quote/proposal, or JSON-until-payment"
         path: "docs/platform/data-architecture/06-journey-orchestrator-and-working-payload.md"
     output: "DB verdict + severity `D0`–`D3` + integrity/recovery guarantees the platform may rely on."

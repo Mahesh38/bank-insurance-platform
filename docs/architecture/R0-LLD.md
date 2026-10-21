@@ -442,6 +442,13 @@ Admin / operations (R0 W4, `ADR-014`) are **roles on NIP-APP**. They read `#19` 
 
 **Customer payment traffic does not enter the RM session VirtualService.** It goes device → AU Bank PG. PG callbacks enter via **`/callbacks/pg/*`** on Istio, IP-allowlisted to the PG, signature-verified in `#12` (TB-6 / `ADR-023` S8).
 
+### 3.2 Istio ops constraints
+
+Injection labels, PERMISSIVE→STRICT cutover, probe pattern, DestinationRule vs Resilience4j,
+observability, DR origin re-point, and remaining bank SPIKE answers (edition/operator) are in
+[`2026-10-09-ISTIO-OPS-ADDENDUM.md`](./2026-10-09-ISTIO-OPS-ADDENDUM.md). Security verify checklist:
+[`2026-10-09-ADR-023-SECURITY-CONTROL-MAP.md`](./2026-10-09-ADR-023-SECURITY-CONTROL-MAP.md).
+
 ---
 
 ## 4. Kubernetes — PVC, nodes, namespaces

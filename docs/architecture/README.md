@@ -18,14 +18,16 @@ Two diagrams, deliberately. They answer different questions and **neither replac
 | [`ARB-ARCHITECTURE-DOSSIER.md`](./ARB-ARCHITECTURE-DOSSIER.md) | Narrative ARB dossier | AI-drafted; human sign-offs pending |
 | [`ARB-PREREQUISITE-PACK.md`](./ARB-PREREQUISITE-PACK.md) | *Bank ARB 19-item prerequisite cover: readiness, CIS proposal, integration matrix, shared responsibility, SBOM, lifecycle/exit* | `SUG-20260914-arb`. Evidence pack, not an approval |
 | [`arb-prerequisites/exports/WHAT-TO-SEND.md`](./arb-prerequisites/exports/WHAT-TO-SEND.md) | *What to put in front of ARB: first-review PPT + script + FAQ; 19-row leave-behind — not Markdown* | `SUG-20260914-1st` / `SUG-20260914-xpt`. Generated; `build_arb_first_review.py` then `build_arb_reviewer_pack.py` |
-| [`2026-09-14-HUMAN-DIRECTION-APIGEE-EGRESS-IDP.md`](./2026-09-14-HUMAN-DIRECTION-APIGEE-EGRESS-IDP.md) | *Apigee outbound vs API Gateway inbound, Dev-inside-UAT, no CUG, AD-verify API, Keycloak behind Fireframe UI* | Human direction record. Not an ADR |
-| [`2026-10-06-PLATFORM-TEAM-NOTE-API-GATEWAY-VS-ISTIO.md`](./2026-10-06-PLATFORM-TEAM-NOTE-API-GATEWAY-VS-ISTIO.md) | *Why API Gateway on inbound; why Istio is not a substitute; what must be remapped if platform refuses* | Platform-team one-pager. `CR-017` / `ADR-022` / `SUG-20261006-apg`. Not an approval |
-| [`2026-10-08-INFRA-POC-API-GATEWAY-KEYCLOAK-ISTIO.md`](./2026-10-08-INFRA-POC-API-GATEWAY-KEYCLOAK-ISTIO.md) | *Detailed infra POC: Gateway vs Istio/External ALB; why Keycloak; why Gateway still needed with Keycloak; Option B impact + checklist* | Infra Head justification pack. `CR-017` / `SUG-20261006-apg` recurrence. Not an approval |
-| [`2026-10-08-REBUTTAL-ALB-ISTIO-VS-API-GATEWAY.md`](./2026-10-08-REBUTTAL-ALB-ISTIO-VS-API-GATEWAY.md) | *Point-by-point rebuttal: External ALB/NLB + Istio Ingress is not superior to API Gateway for this R0* | Response to infra superiority claim. `CR-017` / `SUG-20261006-apg`. Not an approval |
-| [`2026-10-09-MAHESH-CONTEMPLATION-BANK-STANDARD-ELB-ISTIO.md`](./2026-10-09-MAHESH-CONTEMPLATION-BANK-STANDARD-ELB-ISTIO.md) | *Mahesh contemplating bank-standard External LB+Istio: process, SPIKE, ADR, cascade beyond LB+mesh* | Contemplation only — not Accepted. `CR-017` / `SUG-20261006-apg` |
+| [`2026-09-14-HUMAN-DIRECTION-APIGEE-EGRESS-IDP.md`](./2026-09-14-HUMAN-DIRECTION-APIGEE-EGRESS-IDP.md) | *Apigee outbound; inbound amended by ADR-023 to NLB+Istio; Dev-inside-UAT; AD-verify* | Human direction record (inbound half superseded). Not an ADR |
+| [`2026-10-09-ADR-023-SECURITY-CONTROL-MAP.md`](./2026-10-09-ADR-023-SECURITY-CONTROL-MAP.md) | *S1–S11: every former Gateway control re-homed under NLB+Istio* | Binding companion to `ADR-023` |
+| [`2026-10-09-ISTIO-OPS-ADDENDUM.md`](./2026-10-09-ISTIO-OPS-ADDENDUM.md) | *Injection, STRICT cutover, retries, observability, DR, SPIKE answers* | Binding ops companion to `ADR-023` |
+| [`2026-10-06-PLATFORM-TEAM-NOTE-API-GATEWAY-VS-ISTIO.md`](./2026-10-06-PLATFORM-TEAM-NOTE-API-GATEWAY-VS-ISTIO.md) | *Historical Option A pack — superseded for inbound by ADR-023* | Archive / audit trail |
+| [`2026-10-08-INFRA-POC-API-GATEWAY-KEYCLOAK-ISTIO.md`](./2026-10-08-INFRA-POC-API-GATEWAY-KEYCLOAK-ISTIO.md) | *Historical Option A infra POC* | Archive / audit trail |
+| [`2026-10-08-REBUTTAL-ALB-ISTIO-VS-API-GATEWAY.md`](./2026-10-08-REBUTTAL-ALB-ISTIO-VS-API-GATEWAY.md) | *Historical Option A rebuttal* | Archive / audit trail |
+| [`2026-10-09-MAHESH-CONTEMPLATION-BANK-STANDARD-ELB-ISTIO.md`](./2026-10-09-MAHESH-CONTEMPLATION-BANK-STANDARD-ELB-ISTIO.md) | *Process evidence before ADR-023 Accepted* | Superseded as contemplation; decision is `ADR-023` |
 | [`BOARD-1-REREVIEW-VIN003-ESTATE-2026-09-14.md`](./BOARD-1-REREVIEW-VIN003-ESTATE-2026-09-14.md) | *VIN-003: attach to Control Tower, do not clone; five accounts, no CUG* | Board 1 re-review. `SUG-20260914-est` |
 | [`r0-lld.svg`](./r0-lld.svg) | *Where does each R0 service sit on AWS, and what must not be provisioned?* | Rendering of `R0-LLD.md`. Owns nothing (`HA-02`) |
-| [`r0-platform-topology.svg`](./r0-platform-topology.svg) | *What runs where — zones, subnets, namespaces, the two-hop proxy?* | Rendering of `R0-LLD.md`. **Generated** from [`diagrams/`](./diagrams/README.md). Owns nothing (`HA-02`) |
+| [`r0-platform-topology.svg`](./r0-platform-topology.svg) | *What runs where — zones, subnets, namespaces, NLB + Istio?* | Rendering of `R0-LLD.md`. **Generated** from [`diagrams/`](./diagrams/README.md). Owns nothing (`HA-02`) |
 | [`r0-platform-az.svg`](./r0-platform-az.svg) | *Which availability zone does each resource sit in?* | Rendering of `R0-LLD.md` §2.1 |
 | [`r0-platform-dr.svg`](./r0-platform-dr.svg) | *What exists in `ap-south-2`, and what deliberately does not?* | Rendering of `R0-LLD.md` §11.1 |
 | [`r0-platform-sequence.svg`](./r0-platform-sequence.svg) | *In what order does the platform team build it?* | Rendering of `R0-LLD.md` §12.1 |
@@ -362,7 +364,7 @@ Two assumptions in the 2026-08-25/27 perimeter were wrong against the existing A
 
 | Correction | Was | Is |
 |---|---|---|
-| Public / External ALB in front of API Gateway | Drawn as a hop | **Withdrawn.** API Gateway is the first AWS hop. The only ALB is the Internal ALB. |
+| Public / External ALB in front of API Gateway | Drawn as a hop | **Withdrawn (`ADR-018`).** Later `ADR-023` admits CIDR-locked ingress NLB + Istio (not an open public ALB in front of Gateway). |
 | Cloudflare and F5 placement | Drawn as if on AWS / in a VPC | **Bank-enterprise SaaS.** Outside the AWS Cloud box, outside every VPC. F5 is F5-XC (Distributed Cloud), not an in-VPC BIG-IP. |
 
 | File | What changed |
@@ -372,9 +374,21 @@ Two assumptions in the 2026-08-25/27 perimeter were wrong against the existing A
 | [`R0-HLD.md`](./R0-HLD.md) · [`R0-LLD.md`](./R0-LLD.md) · [`ARB-ARCHITECTURE-DOSSIER.md`](./ARB-ARCHITECTURE-DOSSIER.md) | Ingress hop and BOM #7 / #29 aligned to `ADR-018`. |
 | [`r0-reference-architecture.svg`](./r0-reference-architecture.svg) · [`../hdl.svg`](../hdl.svg) | Edge band labels. |
 
+## Revision — 2026-10-09 bank-standard inbound (`ADR-023`, `CR-017` Option B)
+
+Architecture owner Accepted: inbound = Cloudflare → F5-XC → **Ingress NLB** → **Istio Ingress** (+ sidecars). Amazon API Gateway and Internal ALB-as-path-router **withdrawn**. Security S1–S11 mandatory. Apigee outbound unchanged.
+
+| File | What changed |
+|---|---|
+| [`08-architecture-decision-log.md`](../platform/architecture-review/08-architecture-decision-log.md) | `ADR-023` Accepted; `ADR-018`/`ADR-022` SUPERSEDED |
+| [`R0-LLD.md`](./R0-LLD.md) · [`R0-HLD.md`](./R0-HLD.md) · [`R0-E2E-FOR-DEVELOPERS.md`](./R0-E2E-FOR-DEVELOPERS.md) | Hop chain, BOM, teaching walkthrough |
+| [`ARB-ARCHITECTURE-DOSSIER.md`](./ARB-ARCHITECTURE-DOSSIER.md) · arb-prerequisites | ARB pack aligned |
+| [`2026-10-09-ADR-023-SECURITY-CONTROL-MAP.md`](./2026-10-09-ADR-023-SECURITY-CONTROL-MAP.md) · [`2026-10-09-ISTIO-OPS-ADDENDUM.md`](./2026-10-09-ISTIO-OPS-ADDENDUM.md) | Security + ops companions |
+| generated set | Topology, sequence, payment re-rendered |
+
 ## Revision — 2026-09-14 split API plane (`ADR-020`, `SUG-20260914-egr`)
 
-Human Architecture owner: **inbound** stays Amazon API Gateway (`ADR-018`). **Outbound** (1SB, SMS, bank internal APIs, AD-verify) is **Apigee**, drawn on the loading-dock path. 1SB allowlists Apigee IPs. Five Control Tower accounts; `dev` is a VPC inside UAT; no CUG. Workforce AD-verify is the bank API, never LDAP.
+Human Architecture owner (2026-09-14): **Outbound** (1SB, SMS, bank internal APIs, AD-verify) is **Apigee**. 1SB allowlists Apigee IPs. Five Control Tower accounts; `dev` is a VPC inside UAT; no CUG. Workforce AD-verify is the bank API, never LDAP. **Inbound** later amended by `ADR-023` (2026-10-09) to NLB + Istio — see that ADR, not the historical “keep API Gateway” sentence.
 
 | File | What changed |
 |---|---|
@@ -386,7 +400,7 @@ Human Architecture owner: **inbound** stays Amazon API Gateway (`ADR-018`). **Ou
 
 ## Revision — 2026-08-31 attach to existing bank network; Apigee stays off the pictures (`SUG-20260831-apg`)
 
-Human Architecture owner: keep Apigee **off every diagram** until `SPIKE-001` returns. Amazon API Gateway remains. Network pack attaches to the existing `AU-CTO-NETWORK` TGW / DX Gateway; do not clone Public VPC + IGW + peering.
+Historical (pre-`ADR-020` draw): keep Apigee off diagrams until SPIKE answers. **Superseded for draw:** outbound Apigee is drawn (`ADR-020`); inbound is NLB+Istio (`ADR-023`). Network pack attaches to the existing `AU-CTO-NETWORK` TGW / DX Gateway.
 
 | File | What changed |
 |---|---|

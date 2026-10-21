@@ -18,6 +18,8 @@ CREATE TABLE journey.journey (
     next_action_due_at              TIMESTAMP WITH TIME ZONE NOT NULL,
     compensation                    JSONB,
     config_version_ref              VARCHAR(64)              NOT NULL,
+    retain_until                    DATE,
+    archived_at                     TIMESTAMP WITH TIME ZONE,
     created_at                      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     updated_at                      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     version                         BIGINT                   NOT NULL DEFAULT 0,
@@ -40,6 +42,10 @@ CREATE INDEX ix_journey_stage_due ON journey.journey (stage, next_action_due_at)
 CREATE INDEX ix_journey_partner
     ON journey.journey (partner_insurer_id, partner_visible_from)
     WHERE partner_insurer_id IS NOT NULL;
+-- Unconverted journeys (no paymentId) leave OLTP after retain_until (DATA-005 / SUG-20261019-txn).
+CREATE INDEX ix_journey_archive_due
+    ON journey.journey (retain_until)
+    WHERE archived_at IS NOT NULL;
 
 -- External and domain refs as rows so INV-JRN-02 stays a schema assertion (no decision columns).
 CREATE TABLE journey.journey_ref (
@@ -52,6 +58,37 @@ CREATE TABLE journey.journey_ref (
         'proposalId', 'paymentId', 'policyId',
         'applicationNumber', 'policyNumber', 'provider'))
 );
+
+-- Append-only stage history. Not a decision store (INV-JRN-02). DATA-005.
+CREATE TABLE journey.journey_transition (
+    transition_id       CHAR(26)                 PRIMARY KEY,
+    journey_id          CHAR(26)                 NOT NULL REFERENCES journey.journey (journey_id),
+    from_stage          VARCHAR(32)              NOT NULL,
+    to_stage            VARCHAR(32)              NOT NULL,
+    trigger_kind        VARCHAR(16)              NOT NULL,
+    trigger_type        VARCHAR(64)              NOT NULL,
+    actor_id            VARCHAR(64),
+    occurred_at         TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    correlation_id      VARCHAR(64),
+    CONSTRAINT ck_jrn_trig CHECK (trigger_kind IN ('COMMAND', 'EVENT'))
+);
+
+CREATE INDEX ix_jrn_transition ON journey.journey_transition (journey_id, occurred_at);
+
+CREATE TABLE journey.outbox_event (
+    event_id            CHAR(26)                 PRIMARY KEY,
+    journey_id          CHAR(26)                 NOT NULL REFERENCES journey.journey (journey_id),
+    event_type          VARCHAR(96)              NOT NULL,
+    payload             JSONB                    NOT NULL,
+    created_at          TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    published_at        TIMESTAMP WITH TIME ZONE,
+    attempts            INTEGER                  NOT NULL DEFAULT 0,
+    last_error          VARCHAR(1000)
+);
+
+CREATE INDEX ix_jrn_outbox_unpublished
+    ON journey.outbox_event (published_at, created_at)
+    WHERE published_at IS NULL;
 
 CREATE TABLE journey.idempotency_record (
     idempotency_key     VARCHAR(128)             PRIMARY KEY,

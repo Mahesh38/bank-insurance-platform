@@ -37,7 +37,7 @@ description: >
 acceptance_criteria:
   - id: AC-1
     given: "CR-013 C-RET-1 and DEC D2"
-    when: "opportunity DDL is read"
+    when: "lead_lms.lead DDL is read"
     then: "ARCHIVED is a legal state, archived_at exists, and RET-7Y attribution columns are named"
   - id: AC-2
     given: "DEC D6 / C-ISS-1"

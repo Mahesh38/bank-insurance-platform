@@ -93,7 +93,7 @@ database_decision:
     - "origin/main:docs/governance/change-requests/CR-013-r0-lead-mis-admin-scope.md"
     - "origin/main:docs/governance/DEC-20260825-01-lead-domain-decisions.md"
     - "origin/main ADR-014"
-    - "schemas/04-opportunity.sql, 09-proposal.sql, 11-policy.sql, 01-identity.sql"
+    - "schemas/04-lead_lms.sql, 09-proposal.sql, 11-policy.sql, 01-identity.sql"
 ```
 
 **Status:** `AI-DRAFTED`. This is not a human Aarti signature and not a `S07-G5` pass.

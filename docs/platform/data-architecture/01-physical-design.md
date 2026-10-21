@@ -16,7 +16,7 @@
             │  PITR on · Multi-AZ · KMS at rest   │
             │                                     │
             │  identity          customer         │
-            │  bank_persistence  opportunity      │
+            │  bank_persistence  lead_lms         │
             │  consent           suitability      │
             │  catalogue         quotation        │
             │  proposal          payment          │
@@ -42,20 +42,29 @@ in [`DB-DEC-0001`](./DB-DEC-0001-r0-physical-model.md): no volume evidence, woul
 already-shipping `audit_event` / job store, and Journey is a thin stage+refs row (INV-JRN-02),
 not a document store problem. Revisit when a measured access pattern says otherwise.
 
+Service × store × credential matrix and the Dynamo empty-set: [`04-store-segregation-and-roadmap.md`](./04-store-segregation-and-roadmap.md) · [`DB-DEC-0003`](./DB-DEC-0003-store-segregation.md).
+
+Full e2e ER, columns and relationship map: [`05-e2e-er-and-field-map.md`](./05-e2e-er-and-field-map.md).
+
 ---
 
 ## 2. Relationships (logical, not cross-schema FK)
 
 ```text
-opportunity.lead_id
+lead_lms.lead.lead_id
+    ├── lead_assignment / lead_meeting / lead_follow_up
     └── journey.lead_id
             ├── customer.customer_snapshot.journey_id
             ├── consent.lead_id / journey_id
             ├── suitability.lead_id / journey_id
-            ├── quotation.quote.journey_id ── offer.quote_id
-            ├── proposal.proposal.quote_id / offer_id / journey_id
-            │       └── payment.payment.proposal_id
-            │               └── policy.policy.payment_id / proposal_id
+            │       ├── suitability_answer_set (⚑ ciphertext)
+            │       └── suitability_mapping_run (INSERT-only evidence)
+            ├── quotation.quote_working.journey_id   (encrypted JSON until RECONCILED)
+            │       └── quotation.quote.journey_id ── offer.quote_id   (materialize)
+            ├── proposal.proposal_working.journey_id
+            │       └── proposal.proposal.quote_id / offer_id / journey_id
+            │               └── payment.payment.proposal_id
+            │                       └── policy.policy.payment_id / proposal_id
             └── bank_persistence.integration_job.journey_id   (adapter correlation)
 
 identity.business_user.id  ──referenced as actor ids (varchar), never joined
@@ -64,13 +73,16 @@ administration.config      ──referenced as config version on originating row
 bank_persistence.audit_event.journey_id / resource_id   (append-only evidence)
 ```
 
-**Physical FK** exists only inside one schema (offer→quote, attempt→payment, assignment→opportunity).
+Lead + Suitability e2e ER and column sheets: [`03-lead-suitability-e2e.md`](./03-lead-suitability-e2e.md).
+Journey orchestrator + JSON-until-payment: [`06-journey-orchestrator-and-working-payload.md`](./06-journey-orchestrator-and-working-payload.md).
+
+**Physical FK** exists only inside one schema (offer→quote, attempt→payment, assignment/meeting/follow-up→lead, answer-set/mapping-run→suitability).
 A `journey_id CHAR(26)` on another schema is a **logical** reference. The owning service validates
 it exists via API before insert.
 
 Partner visibility (`AC-4` / `AC-5`) is a **predicate** on the owning table
 (`insurer_id IS NOT NULL AND partner_visible_from IS NOT NULL AND need_analysis_state = 'COMPLETED'`
-on opportunity; journey materialises a copy for query). It is not a grant to the partner schema.
+on lead_lms.lead; journey materialises a copy for query). It is not a grant to the partner schema.
 
 ---
 
@@ -140,15 +152,15 @@ DDL: [`14-audit_event_delta.sql`](./schemas/14-audit_event_delta.sql). Apply as 
 | Schema | Tables | Immutable? |
 |---|---|---|
 | `customer` | `customer`, `customer_snapshot` | Snapshot write-once |
-| `opportunity` | `opportunity`, `opportunity_assignment`, `opportunity_follow_up`, `idempotency_record` | `accountable_sp_id` immutable; assignment append-only |
+| `lead_lms` | `lead`, `lead_assignment`, `lead_meeting`, `lead_follow_up`, `idempotency_record`, `outbox_event` | First write of `accountable_sp_id` then immutable; assignment/meeting/follow-up append-only; `ARCHIVED` is a state not a delete. Column sheet: [`03-lead-suitability-e2e.md`](./03-lead-suitability-e2e.md) |
 | `consent` | `consent` | Evidence columns write-once; state may move to WITHDRAWN/EXPIRED |
-| `suitability` | `suitability`, `suitability_answer_enc` | COMPLETED row not updated (new row supersedes) |
+| `suitability` | `suitability`, `suitability_answer_set`, `suitability_mapping_run`, `idempotency_record`, `outbox_event` | Header mutable until `LOCKED`; answer sets INSERT-only; mapping `run_state` may move CURRENT→INVALID. Term has no row |
 | `catalogue` | `insurer`, `product`, `eligibility_band` | Effective-dated; no in-place replace of an active version |
-| `quotation` | `quote`, `offer`, `idempotency_record` | Offer selection is one transaction (INV-QUO-05) |
-| `proposal` | `proposal`, `uw_requirement`, `uw_document_ref`, `idempotency_record` | Form values are a ref only (INV-PRP-05) |
-| `payment` | `payment`, `payment_attempt`, `refund`, `idempotency_record` | Attempts append-only; no card data |
+| `quotation` | `quote_working`, `quote`, `offer`, `idempotency_record` | Pre-payment write is `quote_working` (`payload_enc` + selected_*). Structured `quote`/`offer` INSERT after Payment RECONCILED (`DATA-005`) |
+| `proposal` | `proposal_working`, `proposal`, `uw_requirement`, `uw_document_ref`, `idempotency_record` | Same working-then-structured pattern; form/nominee stay inside `payload_enc` until materialize (INV-PRP-05) |
+| `payment` | `payment`, `payment_attempt`, `refund`, `outbox_event`, `idempotency_record` | Always structured (money path). On the journey as `paymentId` + stages `PAYMENT_*`; independent schema — Journey never writes it (`DATA-005` §6) |
 | `policy` | `policy`, `policy_document_ref` | `policy_number` unique+immutable (INV-POL-02) |
-| `journey` | `journey`, `journey_ref`, `idempotency_record` | Stage + refs only |
+| `journey` | `journey`, `journey_ref`, `journey_transition`, `outbox_event`, `idempotency_record` | Stage + refs only (`INV-JRN-02`). `retain_until` / `archived_at`: unconverted (no `paymentId`) purge after operational window; paid path is `RET-7Y` |
 | `administration` | `configuration_record` | Versioned INSERT-only (INV-CFG-02) |
 
 Idempotency is a small table **inside** each mutating schema (`key`, `request_hash`, `response_ref`,
@@ -169,16 +181,16 @@ Idempotency is a small table **inside** each mutating schema (`key`, `request_ha
 | bank_persistence | `ux_audit_journey_sequence` **(add with delta)** | Gap detection |
 | customer | `ux_customer_cif_hash` | ETB lookup without indexing CIF |
 | customer | `ix_snapshot_journey` | Frozen profile by journey |
-| opportunity | `ix_opp_customer_lob`, `ix_opp_state_expires`, `ix_opp_insurer_visible` | Book, ageing, IPR predicate |
+| lead_lms | `ix_lead_customer_lob`, `ix_lead_state_expires`, `ix_lead_insurer_visible`, `ix_lead_inbox_sp`, `ix_lead_inbox_ipr`, `ux_lead_dedupe_open` | Book, ageing, IPR predicate, working inbox, creator+customer+productClass dedupe |
 | consent | `ix_consent_customer_state`, `ix_consent_journey` | INV-PRP-01 lookup |
-| suitability | `ix_suit_customer_lob_state` | INV-QUO-01 lookup |
+| suitability | `ix_suit_customer_lob_state`, `ux_suit_lead_current`, `ux_suit_map_current` | INV-QUO-01 lookup; one current assessment per lead; one CURRENT mapping |
 | catalogue | `ix_product_effective`, `ix_elig_product` | Read path + cache fill |
-| quotation | `ix_quote_journey`, `ix_offer_quote_state` | Selection / conversion |
-| proposal | `ix_proposal_journey`, `ux_proposal_application` | Status + insurer number |
+| quotation | `ix_qwork_journey`, `ix_qwork_state`, `ux_qwork_open_journey`, `ix_quote_journey`, `ix_offer_quote_state` | Working envelope by journey/state; structured selection / conversion |
+| proposal | `ix_pwork_journey`, `ux_pwork_open_journey`, `ux_pwork_application`, `ix_proposal_journey`, `ux_proposal_application` | Working envelope by journey; structured status + insurer number |
 | payment | `ux_payment_active_per_proposal` (partial) | INV-PAY-02 |
-| payment | `ix_payment_pg_txn` | Reconciliation |
+| payment | `ix_payment_pg_txn`, `ix_payment_journey`, `ix_pay_outbox_unpublished` | Reconciliation; saga lookup; ADR-012 |
 | policy | `ux_policy_insurer_number` | INV-POL-02 |
-| journey | `ix_journey_lead`, `ix_journey_stage_due` | Saga + inactivity (INV-JRN-03) |
+| journey | `ix_journey_lead`, `ix_journey_stage_due`, `ix_journey_archive_due`, `ix_jrn_transition`, `ix_jrn_outbox_unpublished` | Saga + inactivity (INV-JRN-03); unconverted archive; reconstruction; ADR-012 |
 | administration | `ux_config_version`, `ix_config_resolve` | Seed idempotence + effective-dated get |
 | all mutating | `ux_idempotency_key` | INV-IDM-01 |
 
@@ -216,11 +228,15 @@ CRUD stored procedures are **refused** (`DR-SP-01`).
 |---|---|---|---|
 | `fn_prevent_update_delete` | trigger fn | With each immutable table | Reject `UPDATE`/`DELETE` |
 | `fn_protect_consent_evidence` | trigger fn | Consent | Allow state/withdrawal columns only |
-| `fn_accountable_sp_immutable` | trigger fn | Opportunity (and copies) | INV-ACT-03 |
+| `fn_accountable_sp_immutable` | trigger fn | `lead_lms.lead` (and copies) | INV-ACT-03 — first NULL→value allowed |
+| `fn_lead_origination_immutable` | trigger fn | `lead_lms.lead` | `lead_id` / `lob` / `product_class` / creator / `source` frozen |
+| `fn_protect_answer_set` | trigger fn | Suitability | Answer ciphertext INSERT-only |
+| `fn_protect_mapping_run` | trigger fn | Suitability | Mapping evidence frozen; `run_state` may change |
 | `fn_next_audit_sequence` | function | With audit delta | Allocate `sequence_no` per `journey_id` |
-| `fn_ipr_visible` | function | Opportunity / journey | Documents the `AC-4` SQL predicate |
+| `fn_ipr_visible` | function | `lead_lms` / journey | Documents the `AC-4` SQL predicate |
+| `fn_freeze_working_payload` | trigger fn | `quotation.quote_working` / `proposal.proposal_working` | Reject `payload_enc` UPDATE after `materialized_at` (`DATA-005`) |
 | `sp_retention_sweep` | procedure | **S09** | Selects rows past `retain_until` for the owning job; does not cross schemas |
-| `sp_purge_operational` | procedure | **S09** | Deletes `RET-OPERATIONAL` / expired idempotency keys |
+| `sp_purge_operational` | procedure | **S09** | Deletes `RET-OPERATIONAL` / expired idempotency keys / aged working envelopes |
 
 Bodies: [`90-routines.sql`](./schemas/90-routines.sql).
 
@@ -228,12 +244,12 @@ Bodies: [`90-routines.sql`](./schemas/90-routines.sql).
 
 ## 7. Load, bottleneck, safe range
 
-R0 business load: one RM, one ETB customer, one Term Life policy, one Group A insurer
-([`BOOT.md` WS-3 objective](../../context/BOOT.md)).
+R0 business load: one RM, one ETB customer, one Life policy (Term or Savings/ULIP per CR-015),
+one Group A insurer ([`BOOT.md` WS-3 objective](../../context/BOOT.md)).
 
 | Amplification | Path |
 |---|---|
-| ~1 opportunity → 1 journey → 1 suitability → 1 consent → 1 quote → N offers (N = in-scope insurers) → 1 proposal → 1 payment → 1 policy | Sequential, not fan-out at write |
+| ~1 lead → 1 journey → 1 suitability → 1 consent → 1 quote → N offers (N = in-scope insurers) → 1 proposal → 1 payment → 1 policy | Sequential, not fan-out at write |
 | Poll attempts | Adapter `job_poll_attempt` — already bounded by poll budget |
 | Audit | One event per aggregate transition (INV-AUD-02) — tens of rows per sale, not millions |
 

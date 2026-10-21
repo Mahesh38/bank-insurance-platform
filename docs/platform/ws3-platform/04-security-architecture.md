@@ -35,7 +35,7 @@ verdict.
 
 **Revision 2026-09-14 — `ADR-020`:** TB-5 and TB-7 now show **Apigee** as the outbound plane
 (1SB never called from EKS; AD-verify / EBS stay on private Apigee targets). TB-6 splits
-session-create (Apigee out) from callback (API Gateway in). This is a diagram alignment with the
+session-create (Apigee out) from callback (Istio `/callbacks/pg/*` in). This is a diagram alignment with the
 already-admitted ADR, not a new Security verdict.
 
 ---
@@ -75,18 +75,18 @@ graph TB
         F5["F5 Distributed Cloud / F5-XC (WAF)"]
     end
 
-    subgraph Z1["Z1b — AWS managed edge (not in the VPC)"]
-        GW["API Gateway → Internal ALB"]
+    subgraph Z1["Z1b — AWS edge (public/DMZ + private Ingress)"]
+        GW["Ingress NLB → Istio Ingress<br/>ADR-023 · SG locked to F5"]
     end
 
-    subgraph Z2["Z2 — Application (private)"]
+    subgraph Z2["Z2 — Application (private + Istio sidecars)"]
         BFF["RM Workspace BFF<br/>session custody"]
         SVCS["WS-3 domain services"]
         HUB["Integration Hub"]
         ADPT["1SB Adapter"]
     end
 
-    subgraph Z3["Z3 — Identity (private)"]
+    subgraph Z3["Z3 — Identity (private — NOT on public Ingress)"]
         IDPA["IdP adapter"]
         PDP["Authorization service (PDP)"]
         KC["Keycloak"]
@@ -142,7 +142,7 @@ graph TB
 | **TB-3** | Application → Identity | Authorization query (subject, action, resource, context) | Business data; any request that assumes an allow on PDP failure |
 | **TB-4** | Application → Data | Least-privilege, per-service credential, TLS. **From 2026-08-24 this boundary also covers the session vault, the event topics and the search domain** — per-service Valkey ACL user with a key prefix, per-topic MSK IAM policy, and no workload write access to OpenSearch | Cross-service database access; a service account with UPDATE/DELETE on audit; a consumer group reading a topic it was not granted; a cache key prefix reachable by another service; evidence living only in a topic or an index |
 | **TB-5** | Application → Provider (1SB) | Bank-canonical payload translated at the adapter, then **Apigee** (`ADR-020`). Spoke NFW may inspect **pod → Apigee**. 1SB allowlists **Apigee IPs**, not spoke NAT EIPs. The mTLS session to 1SB is passed intact, not decrypted | Java calling a 1SB origin; publishing spoke NAT EIPs to 1SB; provider types leaking inward; secrets in payloads or logs |
-| **TB-6** | Application/Customer → Payment Gateway | Session-create **outbound via Apigee**; customer 3-DS on the hosted page; **callback inbound** on a separate API Gateway route | Card or account data into the platform; an RM principal on the authorisation path; callback on the RM session |
+| **TB-6** | Application/Customer → Payment Gateway | Session-create **outbound via Apigee**; customer 3-DS on the hosted page; **callback inbound** on Istio `/callbacks/pg/*` with PG IP allowlist + signature (`ADR-023` S8) | Card or account data into the platform; an RM principal on the authorisation path; callback on the RM session VirtualService |
 | **TB-7** | Platform → Bank internal | CIF and AD-verify over **Apigee private** targets (`ADR-020`), reached via the spoke TGW. **TLS on the application flow regardless of the private path**. Never LDAP from EKS. Never Cloudflare/F5 hairpin | Traffic between environments over the shared hub; a bank prefix advertised into the wrong route table; treating a private circuit as authentication or encryption |
 
 **Boundary rule.** Every boundary is default-deny and every boundary re-authenticates. Being inside

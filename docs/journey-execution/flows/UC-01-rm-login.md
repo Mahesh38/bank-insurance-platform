@@ -61,9 +61,9 @@ be deferred without touching a BFF or authorization contract.
 |---|---|---|---|---|---|---|
 | A1 | RM device → CloudFront | L0→L1 | TLS 1.3 | sync | — | TLS terminated at ACM cert |
 | A2 | CloudFront → WAF | L1 | — | sync | — | Bot, rate, OWASP managed rules. **No authN, no authZ** |
-| A3 | WAF → API Gateway | L1→L2 | HTTPS | sync | — | Request size, route schema, throttle |
-| A4 | API Gateway → Internal ALB | L2→L3 | private integration / VPC link | sync | — | No public NLB/ALB onto EKS |
-| A5 | Internal ALB → `workforce-access-bff` | L3→L4 | HTTPS internal cert | sync | 5 s edge | Host/path route |
+| A3 | F5-XC → Ingress NLB | L1→L2 | HTTPS | sync | — | SG = F5 CIDRs; F5 secret/mTLS (`ADR-023` S2–S3) |
+| A4 | NLB → Istio Ingress | L2→L3 | HTTPS | sync | — | Envoy size/throttle; path split |
+| A5 | Istio Ingress → `workforce-access-bff` | L3→L4 | mesh mTLS | sync | 5 s edge | `/api/*` VirtualService |
 | A6 | BFF → session vault | L4 | — | sync | — | Store the pending-login transaction, keyed by `state` |
 | A7 | BFF → `identity-provider-adapter-service` | L4→L5 | private API, service identity | sync | — | `POST /internal/v1/auth/authorization-uri` |
 | A8 | adapter → Keycloak | L5 | private | sync | — | Build the provider authorization URI |

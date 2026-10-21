@@ -51,8 +51,8 @@ This document is the single source of truth for workforce authentication and aut
 
 ```mermaid
 flowchart LR
-    NipApp[NIP-APP] -->|TLS; opaque session only| Gateway[AWS API Gateway + WAF]
-    Gateway --> BFF[workforce-access-bff]
+    NipApp[NIP-APP] -->|TLS; opaque session only| Edge[Cloudflare + F5-XC → NLB → Istio Ingress]
+    Edge --> BFF[workforce-access-bff]
     BFF -->|private API| Adapter[identity-provider-adapter-service]
     BFF -->|authorize action| Authz[identity-authorization-service]
     BFF -->|authorized request| Domain[Business services]
@@ -68,7 +68,7 @@ flowchart LR
     Authz --> Events[Audit/event backbone]
 ```
 
-Only API Gateway and the BFF are in the public request path. The adapter, authorization service, Keycloak, databases, Redis, and business services run in private subnets and are restricted by Kubernetes NetworkPolicy and service-to-service authentication.
+Only the SaaS perimeter, the ingress NLB, Istio Ingress Gateway, and the BFF are on the public request path (`ADR-023`). The adapter, authorization service, Keycloak, databases, Valkey, and business services run in private subnets. Keycloak must **not** be exposed on public Istio routes (S5). Flutter never receives OAuth tokens (S6). Business authZ remains the PDP — Istio AuthorizationPolicy is not a substitute (S7). Restricted by mesh mTLS plus Kubernetes NetworkPolicy (S11).
 
 > **Session store decided, 2026-08-24.** The vault above is **Amazon ElastiCache for Valkey**, per
 > [`ADR-011`](../architecture-review/08-architecture-decision-log.md) under

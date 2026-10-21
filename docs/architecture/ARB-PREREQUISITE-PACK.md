@@ -78,7 +78,7 @@ Legend: **READY** = source exists and is internally consistent, still AI-drafted
 | 14 | IAM / PAM design | **PARTIAL** | AuthN/AuthZ SSOT · LLD IRSA · `ADR-020` AD-verify · bank IAM Identity Center (estate `18`) | Application IAM is designed. **Privileged Access Management** for AWS console / break-glass is bank PAM + Deepali; not a second IdP we invent. |
 | 15 | Logging and monitoring design | **READY** (unsigned) | LLD P6 · `ADR-013` OpenSearch · CloudTrail vs CloudWatch (dossier §9.3) · NFR-OBS | Operational logs `RET-OPERATIONAL` 90 d. Audit is **not** logging (`TI-07`). |
 | 16 | Third-party and subcontractor details | **READY** (compiled) | [matrix §2](./arb-prerequisites/INTEGRATION-AND-DEPENDENCY-MATRIX.md#2-third-parties-and-subcontractors) | 1SB is a **provider route**, not a domain dependency (`TI-04`). Insurers underwrite (`TI-03`). |
-| 17 | Cloud architecture and shared-responsibility matrix | **READY** (compiled) | [matrix](./arb-prerequisites/CLOUD-SHARED-RESPONSIBILITY.md) · LLD · `ADR-018`/`ADR-020` · estate `18` | Attach to `AU-CTO-NETWORK`; five Control Tower accounts; no CUG. |
+| 17 | Cloud architecture and shared-responsibility matrix | **READY** (compiled) | [matrix](./arb-prerequisites/CLOUD-SHARED-RESPONSIBILITY.md) · LLD · `ADR-020`/`ADR-023` · estate `18` | Attach to `AU-CTO-NETWORK`; five Control Tower accounts; no CUG. |
 | 18 | Technology lifecycle and end-of-support assessment | **READY** (compiled) | [lifecycle](./arb-prerequisites/TECHNOLOGY-LIFECYCLE-AND-EXIT.md) | Java 21 and Spring Boot 3.5 are in support. Keycloak / Flutter / EKS pin to be confirmed by Amit + Shivanshi at S09. |
 | 19 | Exit, portability and decommissioning strategy | **READY** (compiled) | [same paper §2](./arb-prerequisites/TECHNOLOGY-LIFECYCLE-AND-EXIT.md#2-exit-portability-and-decommissioning) | 1SB replaceable at the adapter. Data exits as Aurora + S3 WORM in India. Kubernetes PVC is not a SoR. |
 
@@ -110,10 +110,10 @@ See the dashboard. Current-state is **H0/R0 as designed** (not “as running in 
 
 | Flow | Picture |
 |---|---|
-| RM / NIP-APP inbound | Cloudflare → F5-XC → API Gateway → Internal ALB → nip-web / NIP BFF (`ADR-018`) |
+| RM / NIP-APP inbound | Cloudflare → F5-XC → Ingress NLB → Istio Ingress → nip-web / NIP BFF (`ADR-023`) |
 | Provider outbound | Hub → `#15` adapter → Apigee → 1SB (`ADR-020`). 1SB allowlists **Apigee IPs**. |
 | Internal bank API | Adapter / Customer → Apigee **private** → AD-verify / EBS. Forbidden: Cloudflare/F5 hairpin. |
-| Payment | Session-create **out** via Apigee; customer 3-DS on own device; callback **in** on a separate API Gateway route (`TB-6`). |
+| Payment | Session-create **out** via Apigee; customer 3-DS on own device; callback **in** on Istio `/callbacks/pg/*` (`TB-6` / `ADR-023` S8). |
 | Trust boundaries | TB-1…TB-7 in [`04-security-architecture.md`](../platform/ws3-platform/04-security-architecture.md) §2 |
 
 ---

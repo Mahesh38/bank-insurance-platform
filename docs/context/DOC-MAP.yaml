@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 675
-total_bytes: 21523240
+document_count: 682
+total_bytes: 21666764
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -1357,7 +1357,55 @@ documents:
     persona: architecture
     title: "Human architecture direction — Apigee egress, env model, identity (2026-09-14)"
     answers: "Standing: Record of human Architecture-owner direction that ADR-020 now binds."
-    bytes: 8198
+    bytes: 8795
+  - path: docs/architecture/2026-10-06-PLATFORM-TEAM-NOTE-API-GATEWAY-VS-ISTIO.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, orient]
+    persona: architecture
+    title: "Platform team note — Inbound edge (historical Option A pack; superseded by ADR-023)"
+    answers: "Purpose: One-screen for the current R0 inbound ask (ADR-023), plus collapsed Option A audit trail."
+    bytes: 7701
+  - path: docs/architecture/2026-10-08-INFRA-POC-API-GATEWAY-KEYCLOAK-ISTIO.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, orient]
+    persona: architecture
+    title: "Infra POC / justification pack — Amazon API Gateway, Keycloak, and why Istio / External ALB are not substitutes (R0)"
+    answers: "SUPERSEDED 2026-10-09 for inbound product. Architecture owner Accepted ADR-023 (NLB + Istio; API Gateway withdrawn). This pack remains as Option A…"
+    bytes: 23283
+  - path: docs/architecture/2026-10-08-REBUTTAL-ALB-ISTIO-VS-API-GATEWAY.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, orient]
+    persona: architecture
+    title: "Justification / rebuttal — Why External ALB/NLB + Istio Ingress is **not** the superior choice for this R0 architecture"
+    answers: "SUPERSEDED 2026-10-09 for inbound product. Architecture owner Accepted ADR-023 (bank-standard NLB + Istio). This rebuttal remains as Option A…"
+    bytes: 15775
+  - path: docs/architecture/2026-10-09-ADR-023-SECURITY-CONTROL-MAP.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, orient]
+    persona: architecture
+    title: "ADR-023 security control map — External NLB + Istio without weakening posture"
+    answers: "Purpose: Prove every control formerly on API Gateway (or required by identity ADRs) is re-homed, not dropped."
+    bytes: 2212
+  - path: docs/architecture/2026-10-09-ISTIO-OPS-ADDENDUM.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, orient]
+    persona: architecture
+    title: "Istio ops addendum — R0 provision constraints (`ADR-023`)"
+    answers: "Purpose: Close the ops gaps that the inbound product ADR does not size — enough to provision without inventing mesh policy at apply time."
+    bytes: 4323
+  - path: docs/architecture/2026-10-09-MAHESH-CONTEMPLATION-BANK-STANDARD-ELB-ISTIO.md
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, orient]
+    persona: architecture
+    title: "Mahesh contemplation guide — Aligning R0 inbound to bank-standard External LB + Istio"
+    answers: "Standing: AI-drafted decision-prep under CR-017 / SUG-20261006-apg. Architecture owner subsequently accepted Option B; cascade follows ADR-023 +…"
+    bytes: 13548
   - path: docs/architecture/ARB-ARCHITECTURE-DOSSIER.md
     bucket: platform
     authority: approved-spec
@@ -1365,7 +1413,7 @@ documents:
     persona: architecture
     title: "AU Bank Insurance Distribution Platform (NIP / 1SB) — Architecture Review Board (ARB) Dossier"
     answers: "Document Reference: ARB-DOSSIER-2026-R0"
-    bytes: 51362
+    bytes: 51395
   - path: docs/architecture/ARB-PREREQUISITE-PACK.md
     bucket: platform
     authority: ai-drafted
@@ -1373,7 +1421,7 @@ documents:
     persona: architecture
     title: "ARB prerequisite pack — R0 Insurance Distribution Platform (NIP)"
     answers: "Document: ARB-PRE-2026-09-14"
-    bytes: 16793
+    bytes: 16804
   - path: docs/architecture/BOARD-1-REREVIEW-VIN003-ESTATE-2026-09-14.md
     bucket: platform
     authority: ai-drafted
@@ -1381,7 +1429,7 @@ documents:
     persona: architecture
     title: "Board 1 — Architecture rereview of R0 against the live AU bank cloud estate"
     answers: "Decision id: ARCH-DEC-VIN003-B1"
-    bytes: 19312
+    bytes: 19704
   - path: docs/architecture/R0-E2E-FOR-DEVELOPERS.md
     bucket: platform
     authority: approved-spec
@@ -1389,7 +1437,7 @@ documents:
     persona: architecture
     title: "R0 architecture for developers — end to end, every box, every refusal"
     answers: "Walk one RM sale through every hop: why that hop exists, whether it matches the AU bank estate, and what we refused."
-    bytes: 27336
+    bytes: 27423
   - path: docs/architecture/R0-HLD.md
     bucket: platform
     authority: approved-spec
@@ -1397,7 +1445,7 @@ documents:
     persona: architecture
     title: "R0 High-Level Design — AU Bank Insurance Distribution Platform"
     answers: "Horizon: H0 — R0 as designed"
-    bytes: 43542
+    bytes: 43862
   - path: docs/architecture/R0-LLD.md
     bucket: platform
     authority: approved-spec
@@ -1405,7 +1453,7 @@ documents:
     persona: architecture
     title: "R0 Low-Level Design — AWS platform pack for the CTO and AWS platform team"
     answers: "Consumers: CTO; AWS platform / landing-zone team; Shivanshi (SRE, Board 7 — provisions and operates); Deepali (Security — trust boundaries, IAM,…"
-    bytes: 96388
+    bytes: 99780
   - path: docs/architecture/README.md
     bucket: platform
     authority: approved-spec
@@ -1413,7 +1461,7 @@ documents:
     persona: architecture
     title: "Architecture diagrams"
     answers: "Two diagrams, deliberately. They answer different questions and neither replaces the other."
-    bytes: 34319
+    bytes: 36646
   - path: docs/architecture/arb-prerequisites/CIS-CLASSIFICATION-PROPOSAL.md
     bucket: platform
     authority: ai-drafted
@@ -1421,7 +1469,7 @@ documents:
     persona: architecture
     title: "Critical Information System classification — proposal (not a register entry)"
     answers: "Pack: ARB-PREREQUISITE-PACK.md row 2"
-    bytes: 3019
+    bytes: 3056
   - path: docs/architecture/arb-prerequisites/CLOUD-SHARED-RESPONSIBILITY.md
     bucket: platform
     authority: ai-drafted
@@ -1429,7 +1477,7 @@ documents:
     persona: architecture
     title: "Cloud architecture and shared-responsibility matrix — R0"
     answers: "Pack: ARB-PREREQUISITE-PACK.md row 17"
-    bytes: 4664
+    bytes: 4683
   - path: docs/architecture/arb-prerequisites/INTEGRATION-AND-DEPENDENCY-MATRIX.md
     bucket: platform
     authority: ai-drafted
@@ -1437,7 +1485,7 @@ documents:
     persona: architecture
     title: "Integration and dependency matrix — R0"
     answers: "Pack: ARB-PREREQUISITE-PACK.md rows 6 and 16"
-    bytes: 6163
+    bytes: 6238
   - path: docs/architecture/arb-prerequisites/README.md
     bucket: platform
     authority: ai-drafted
@@ -1461,7 +1509,7 @@ documents:
     persona: architecture
     title: "Technology lifecycle, end-of-support, exit and decommissioning — R0"
     answers: "Pack: ARB-PREREQUISITE-PACK.md rows 18 and 19"
-    bytes: 6590
+    bytes: 7071
   - path: docs/architecture/arb-prerequisites/exports/AU-NIP-R0-ARB-First-Review-DEV-UAT-2026-09-14.pptx
     bucket: platform
     authority: ai-drafted
@@ -1565,7 +1613,7 @@ documents:
     persona: architecture
     title: "r0 platform views"
     answers: "PY artefact"
-    bytes: 39274
+    bytes: 39363
   - path: docs/architecture/diagrams/requirements.txt
     bucket: platform
     authority: approved-spec
@@ -1589,7 +1637,7 @@ documents:
     persona: architecture
     title: "r0 lld"
     answers: "Rendered diagram — read the companion .md for the binding text"
-    bytes: 56162
+    bytes: 56167
   - path: docs/architecture/r0-platform-az.png
     bucket: platform
     authority: approved-spec
@@ -1597,7 +1645,7 @@ documents:
     persona: architecture
     title: "r0 platform az"
     answers: "Image artefact"
-    bytes: 335156
+    bytes: 335273
   - path: docs/architecture/r0-platform-az.svg
     bucket: platform
     authority: approved-spec
@@ -1605,7 +1653,7 @@ documents:
     persona: architecture
     title: "r0 platform az"
     answers: "Rendered diagram — read the companion .md for the binding text"
-    bytes: 805871
+    bytes: 805868
   - path: docs/architecture/r0-platform-dr.png
     bucket: platform
     authority: approved-spec
@@ -1629,7 +1677,7 @@ documents:
     persona: architecture
     title: "r0 platform payment"
     answers: "Image artefact"
-    bytes: 184708
+    bytes: 185681
   - path: docs/architecture/r0-platform-payment.svg
     bucket: platform
     authority: approved-spec
@@ -1637,7 +1685,7 @@ documents:
     persona: architecture
     title: "r0 platform payment"
     answers: "Rendered diagram — read the companion .md for the binding text"
-    bytes: 186089
+    bytes: 193230
   - path: docs/architecture/r0-platform-sequence.png
     bucket: platform
     authority: approved-spec
@@ -1645,7 +1693,7 @@ documents:
     persona: architecture
     title: "r0 platform sequence"
     answers: "Image artefact"
-    bytes: 200493
+    bytes: 200568
   - path: docs/architecture/r0-platform-sequence.svg
     bucket: platform
     authority: approved-spec
@@ -1653,7 +1701,7 @@ documents:
     persona: architecture
     title: "r0 platform sequence"
     answers: "Rendered diagram — read the companion .md for the binding text"
-    bytes: 700400
+    bytes: 707542
   - path: docs/architecture/r0-platform-topology.png
     bucket: platform
     authority: approved-spec
@@ -1661,7 +1709,7 @@ documents:
     persona: architecture
     title: "r0 platform topology"
     answers: "Image artefact"
-    bytes: 467166
+    bytes: 470220
   - path: docs/architecture/r0-platform-topology.svg
     bucket: platform
     authority: approved-spec
@@ -1669,7 +1717,7 @@ documents:
     persona: architecture
     title: "r0 platform topology"
     answers: "Rendered diagram — read the companion .md for the binding text"
-    bytes: 1156289
+    bytes: 1170599
   - path: docs/architecture/r0-reference-architecture.svg
     bucket: platform
     authority: approved-spec
@@ -1677,7 +1725,7 @@ documents:
     persona: architecture
     title: "r0 reference architecture"
     answers: "Rendered diagram — read the companion .md for the binding text"
-    bytes: 68293
+    bytes: 68282
   - path: docs/au-bank-insurance-platform/00-project-charter.md
     bucket: business
     authority: business-ssot
@@ -2221,7 +2269,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 237989
+    bytes: 241234
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -3861,7 +3909,7 @@ documents:
     persona: null
     title: "CR-012 — R0 platform robustness: admit five deferred infrastructure layers"
     answers: "Type: ARCH (with INFRA, SEC and COMP consequences)"
-    bytes: 13688
+    bytes: 13815
   - path: docs/governance/change-requests/CR-012/verdicts/README.md
     bucket: governance
     authority: binding-process
@@ -3966,6 +4014,14 @@ documents:
     title: "CR-016 — Parallel lanes, evidence-based unpark, evidenced-blocker T4 relief"
     answers: "Change request: CR-016"
     bytes: 6038
+  - path: docs/governance/change-requests/CR-017-inbound-api-gateway-vs-istio.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, board-review]
+    persona: null
+    title: "CR-017 — Inbound edge: bank-standard NLB + Istio (Option B accepted)"
+    answers: "Change request: CR-017"
+    bytes: 11774
   - path: docs/governance/controls/AUDIT-STRUCTURE.md
     bucket: governance
     authority: binding-process
@@ -4165,7 +4221,7 @@ documents:
     persona: null
     title: "Assumption Register"
     answers: "Beliefs the plan rests on that have not been verified. Every assumption has an expiry, a"
-    bytes: 10985
+    bytes: 10974
   - path: docs/governance/registers/DECISION-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -4173,7 +4229,7 @@ documents:
     persona: null
     title: "Decision Register"
     answers: "Index of decisions that constrain future work: ADRs, change requests, stage transitions, and"
-    bytes: 43654
+    bytes: 43985
   - path: docs/governance/registers/DEPENDENCY-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -4181,7 +4237,7 @@ documents:
     persona: null
     title: "Dependency Register"
     answers: "Edges of the dependency graph. Edges outlive the items that discovered them, so they are"
-    bytes: 10641
+    bytes: 11387
   - path: docs/governance/registers/PARKED-BACKLOG.md
     bucket: governance
     authority: binding-process
@@ -4189,7 +4245,7 @@ documents:
     persona: null
     title: "Parked Backlog"
     answers: "Parked is not deleted. Every entry names the stage that unparks it and the observable"
-    bytes: 18800
+    bytes: 18874
   - path: docs/governance/registers/RISK-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -4197,7 +4253,7 @@ documents:
     persona: null
     title: "Risk Register"
     answers: "Open risks with owners, triggers, and responses. A risk is not a problem — it is a problem"
-    bytes: 10916
+    bytes: 11006
   - path: docs/governance/registers/SUGGESTION-REGISTER.md
     bucket: governance
     authority: binding-process
@@ -4205,7 +4261,7 @@ documents:
     persona: null
     title: "Suggestion Register"
     answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 394869
+    bytes: 402056
   - path: docs/governance/runbooks/AUTOPILOT-FAILURE-RUNBOOK.md
     bucket: governance
     authority: binding-process
@@ -4445,7 +4501,7 @@ documents:
     persona: null
     title: "CURRENT STATE"
     answers: "AIGEM — Machine-readable current state"
-    bytes: 42366
+    bytes: 42298
   - path: docs/governance/state/GATE-EVIDENCE.yaml
     bucket: governance
     authority: binding-process
@@ -4533,7 +4589,7 @@ documents:
     persona: null
     title: "hdl"
     answers: "Rendered diagram — read the companion .md for the binding text"
-    bytes: 141260
+    bytes: 141200
   - path: docs/journey-execution/01-REQUEST-LIFECYCLE-STANDARD.md
     bucket: platform
     authority: ai-drafted
@@ -4541,7 +4597,7 @@ documents:
     persona: engineering
     title: "01 — Request Lifecycle Standard"
     answers: "The ladder every request climbs, stated once. Each flow file records only what differs from it."
-    bytes: 14146
+    bytes: 14365
   - path: docs/journey-execution/02-ACTOR-AND-USE-CASE-CATALOGUE.md
     bucket: platform
     authority: ai-drafted
@@ -4573,7 +4629,7 @@ documents:
     persona: engineering
     title: "05 — External Call Catalogue"
     answers: "Every call that leaves the VPC: who makes it, how it authenticates, what it costs, and what"
-    bytes: 11318
+    bytes: 11328
   - path: docs/journey-execution/06-TRACEABILITY.md
     bucket: platform
     authority: ai-drafted
@@ -4605,7 +4661,7 @@ documents:
     persona: engineering
     title: "Journey Execution Specification — R0"
     answers: "How a request actually travels: every actor use case, every hop, the validation performed at"
-    bytes: 6084
+    bytes: 6089
   - path: docs/journey-execution/flows/UC-01-rm-login.md
     bucket: platform
     authority: ai-drafted
@@ -4613,7 +4669,7 @@ documents:
     persona: engineering
     title: "UC-01 — RM login"
     answers: "Actor: Bank RM (BANKRM) · Entry: POST /api/v1/auth/login (IAM-001 credential + AD-verify)"
-    bytes: 12972
+    bytes: 12959
   - path: docs/journey-execution/flows/UC-02-ipr-login.md
     bucket: platform
     authority: ai-drafted
@@ -4797,7 +4853,7 @@ documents:
     persona: architecture
     title: "04 — AWS Infrastructure Architecture"
     answers: "Constraint honored throughout: AWS-only, Kubernetes (Amazon EKS) as the compute substrate, elastic by design."
-    bytes: 10228
+    bytes: 10316
   - path: docs/platform/architecture-review/05-data-architecture.md
     bucket: platform
     authority: approved-spec
@@ -4829,7 +4885,7 @@ documents:
     persona: architecture
     title: "08 — Architecture Decision Log (this review)"
     answers: "ID scheme: ARCH-xxx — deliberately distinct from the business/scope D-xxx and process DOC-xxx IDs in docs/au-bank-insurance-platform/DECISION-LOG.md,…"
-    bytes: 120978
+    bytes: 132527
   - path: docs/platform/architecture-review/ADR-019-microservice-skeleton-scaffold.md
     bucket: platform
     authority: approved-spec
@@ -4861,7 +4917,7 @@ documents:
     persona: security
     title: "Workforce Authentication and Authorization — Service SSOT"
     answers: "Primary identity provider for development: Keycloak (partners; workforce AD-verify is the bank API)"
-    bytes: 20985
+    bytes: 21230
   - path: docs/platform/data-architecture/00-design-rules.md
     bucket: platform
     authority: ai-drafted
@@ -5205,7 +5261,7 @@ documents:
     persona: architecture
     title: "WS-3 — Ratified Solution Architecture for the R0 Slice"
     answers: "security sign-off (S07-G3/G4) and Aarti's data sign-off (S07-G5) are mandatory and separate."
-    bytes: 46993
+    bytes: 47217
   - path: docs/platform/ws3-platform/04-security-architecture.md
     bucket: platform
     authority: approved-spec
@@ -5213,7 +5269,7 @@ documents:
     persona: architecture
     title: "WS-3 — Security Architecture for the R0 Slice"
     answers: "Jurisdiction: S07-E03 is Deepali's epic. Deepali owns the security property, the residual"
-    bytes: 34117
+    bytes: 34268
   - path: docs/platform/ws3-platform/05-nfr-catalogue.md
     bucket: platform
     authority: approved-spec
@@ -5229,7 +5285,7 @@ documents:
     persona: architecture
     title: "WS-3 — Architecture Justification & Review Answers"
     answers: "Persona: Mahesh — Principal Insurance Platform Architect (Board 1)"
-    bytes: 56035
+    bytes: 56141
   - path: docs/platform/ws3-platform/07-nip-bff-lead-phase-api-lld.md
     bucket: platform
     authority: approved-spec

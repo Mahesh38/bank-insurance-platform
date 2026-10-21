@@ -58,6 +58,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | SUG-20261007-ird | 2026-10-07 | human:Mahesh | IRDAI Specified Person certification as control evidence for Lead assign | SF3 | SC0 | MUST | COMP | P4 / P1 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [detail](#sug-20261007-ird--irdai-sp-register-as-certification-sor) · fixture port shipped under EPIC-006; SoR still missing |
 | SUG-20261007-srp | 2026-10-07 | agent:AIGEM-review | EPIC-006 should-fix: move product-classes off CustomerLookupController; compile country regex once; drop duplicate SEARCH_BY | SF3 | SC0 | COULD | REFACTOR | P4 / P3 | ADMIT-BYPASS | [EPIC-006](../../platform/ws3-platform/EPIC-006.work-item.yaml) · [EPIC-006-REVIEW](../../platform/ws3-platform/EPIC-006-REVIEW.md) · [detail](#sug-20261007-srp--lead-bff-srp-and-kiss-cleanups) |
 | SUG-20261006-atk | 2026-10-06 | human:stakeholder | One AU-Bima-Platform token for R0 Apigee egress: `customer-service` (CBS) **and** `1sb-integration-service` (ARB). Shared access-token cache at first live `/token`; not a wall-clock cron; not the workforce IdP | SF3 | SC1 | SHOULD | ARCH | P4 / P2 | ADMIT-BYPASS | [ASM-020](./ASSUMPTION-REGISTER.md) · [ADR-020](../../platform/architecture-review/08-architecture-decision-log.md) · [FUNC-031](../../platform/ws3-platform/FUNC-031.work-item.yaml) · [detail](#sug-20261006-atk--one-token-owner-per-apigee-app) · recurrence_count 5 (2026-10-07: owner unpark HTTP `/token` + CBS inquiry; cluster Valkey remainder parked) |
+| SUG-20261006-apg | 2026-10-06 | human:stakeholder | Platform team may refuse Amazon API Gateway inbound; Istio / External LB offered as substitute — need justification pack + CR/ADR escalation (keep ADR-018 vs Option B) | SF1 | SC0 | MUST | ARCH | P2 / P1 | **ADMITTED** (Option B) | [CR-017 Accepted](../change-requests/CR-017-inbound-api-gateway-vs-istio.md) · [ADR-023](../../platform/architecture-review/08-architecture-decision-log.md) · [security map](../../architecture/2026-10-09-ADR-023-SECURITY-CONTROL-MAP.md) · [detail](#sug-20261006-apg--api-gateway-vs-istio-platform-challenge) · recurrence_count 5 (2026-10-09b: Architecture owner Accepts Option B → ADR-023 cascade) |
 | SUG-20261005-uld | 2026-10-05 | agent:AIGEM-review | EPIC-006 should-fix: share Ulid with StubLeadGateway; add BFF MockMvc for UNCERTIFIED assignee | SF3 | SC0 | COULD | QA | P4 / P3 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [EPIC-006-REVIEW](../../platform/ws3-platform/EPIC-006-REVIEW.md) · [detail](#sug-20261005-uld--lead-stub-ulid-and-uncertified-test) · recurrence_count 2 (2026-10-07: stub `principal()` is a no-op; createdBy lost after assign) |
 | SUG-20261005-sdn | 2026-10-05 | agent:AIGEM-review | Fold BFF Lead session into Spring Security default-deny (SEC-C4) instead of permitAll + MVC interceptor | SF3 | SC0 | SHOULD | SEC | P4 / P2 | ADMIT-BYPASS | [EPIC-006](../../platform/ws3-platform/EPIC-006.work-item.yaml) · [EPIC-006-REVIEW](../../platform/ws3-platform/EPIC-006-REVIEW.md) · [detail](#sug-20261005-sdn--bff-session-default-deny) |
 | SUG-20261005-lbf | 2026-10-05 | human:stakeholder | Finish Lead-module BFF: REST naming, Rajal leadId + stages, country-codes, branch/vertical/RM, assign+exception, CBS search without token race | SF5 | SC0 | MUST | FUNC | P3 / P1 | ADMITTED | [EPIC-006](../../platform/ws3-platform/EPIC-006.work-item.yaml) · [PLAN-009](../plans/PLAN-009-nip-bff-lead-module-runtime.md) · [D-020](../../au-bank-insurance-platform/DECISION-LOG.md) · [D-021](../../au-bank-insurance-platform/DECISION-LOG.md) · [detail](#sug-20261005-lbf--bff-lead-module-runtime) |
@@ -152,6 +153,134 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20261006-apg · API Gateway vs Istio platform challenge
+
+```yaml
+# schema: triage-record
+id: SUG-20261006-apg
+raised_at: "2026-10-06"
+raised_by: "human:stakeholder"
+source: "Follow-up to architecture Q&A: platform team may not use AWS API Gateway; Istio / External LB suggested"
+recurrence_count: 5
+input: >
+  Do we have Istio in the plan? If platform will not use AWS API Gateway, how does
+  architecture change and what is the security/compliance impact? Need guidelines to
+  justify API Gateway to the platform team; if Istio is fine, how to modify architecture
+  (stakeholder believes an external load balancer is needed). Draft one-pager + CR/ADR.
+  Recurrence 2026-10-08: detailed infra POC for Infra Head covering Keycloak complementarity.
+  Recurrence 2026-10-08b: rebut written claim that External ALB/NLB + Istio Ingress is
+  superior to API Gateway for this architecture.
+  Recurrence 2026-10-09: only Mahesh is a real human Architecture owner; boards are AI
+  personas; bank standard is ELB+Istio; Mahesh contemplating adapt — what process and what
+  architecture changes beyond ELB+Istio (not an ADR confirmation yet).
+  Recurrence 2026-10-09b: Decision taken — switch to Istio + LB; cascade all architecture
+  safely without compromising security.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: "ADR-023-cascade-NLB-Istio"
+
+stage_fit:
+  code: SF1
+  rationale: >
+    S09 platform / edge foundation is on-stage (overlapped). Architecture owner accepted
+    CR-017 Option B; cascade binds ADR-023 into BOM and diagrams.
+
+scope:
+  code: SC0
+  business_scope: "in scope — S09 platform foundation / R0 perimeter already in R0-LLD"
+  failure_without_it: "S09 edge provision would still target withdrawn API Gateway"
+  minimal: true
+  authority: "ADR-023 · ADR-020 · R0-LLD §3 · CR-017"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S09 — Platform & Environment Foundation (edge P4)"
+  binds_when: "platform team provisions NLB+Istio per ADR-023"
+  failure_without_it: >
+    Landing-zone request and BOM disagree with Architecture-owner decision
+  evidence_tier: E2
+  evidence:
+    - "ADR-023 Accepted 2026-10-09 (NLB + Istio; S1–S11)"
+    - "CR-017 Option B Accepted"
+    - "Security control map companion"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT
+action_rationale: >
+  Architecture owner accepted Option B. ADR-023 + BOM/diagram cascade with mandatory
+  S1–S11. Apigee outbound unchanged. Do not drop Keycloak privacy, token-hiding BFF, or PDP.
+duplicate_of: null
+conflicts:
+  - "Target-state 04/06 name Istio; former R0 mesh refusal overturned for admitted scope by ADR-023"
+  - "vs SUG-20260914-egr inbound API Gateway half — superseded for inbound by ADR-023; outbound Apigee stands"
+
+classification:
+  type: ARCH
+  breakdown: ADR
+  risk_tier: T4
+  destination: "CR-017 · ADR-023 · R0-LLD cascade"
+  rationale: >
+    Amending ADR superseding ADR-018/022; security controls re-homed not dropped.
+
+priority:
+  now: P2
+  at_target: P1
+  overrides_applied: []
+  rationale: "Blocks correct S09 edge product selection; not a hard P1 until platform issues a written refusal on the critical path"
+
+dependencies:
+  edges:
+    - id: DEP-20261006-igw
+      type: EXTERNAL
+      target: "Bank platform written inbound product commitment (API Gateway or Board-accepted substitute)"
+      relation: external
+      state: OPEN
+      owner: "Shivanshi / SRE + bank platform team"
+      follow_up: "2026-10-20"
+    - type: DECISION
+      target: ADR-018
+      relation: related_to
+      state: OPEN
+    - type: DECISION
+      target: ADR-020
+      relation: related_to
+      state: OPEN
+      # Apigee outbound (DEP-20260914-apg) remains a separate external edge
+  state: READY
+  enablement_count: 0
+  earliest_start: "2026-10-06"
+  cycles: none
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: ADR-023
+  plan_id: null
+  status: ADMITTED
+  closed_reason: "Architecture owner Accepted CR-017 Option B → ADR-023 (2026-10-09); cascade in progress"
+```
+
+Related: Apigee **outbound** (`SUG-20260914-egr` / `ADR-020`) stands. Inbound API Gateway half of that direction is superseded by `ADR-023`. Evidence: `ADR-023`, security control map, CR-017 Accepted.
+
+**Recurrence 2026-10-08** (`recurrence_count: 2`): stakeholder asked for a detailed infra POC for Infra Head — why API Gateway, why not Istio/External ALB, why Keycloak, why Gateway is still needed when Keycloak exists, impact of swapping Gateway for Istio, and the change checklist. Delivered as [`2026-10-08-INFRA-POC-API-GATEWAY-KEYCLOAK-ISTIO.md`](../../architecture/2026-10-08-INFRA-POC-API-GATEWAY-KEYCLOAK-ISTIO.md). Same escalation (`CR-017`); do not mint a second SUG; do not implement Option B.
+
+**Recurrence 2026-10-08b** (`recurrence_count: 3`): stakeholder supplied a written superiority claim for External ALB/NLB + Istio Ingress over API Gateway (edge redundancy, VPC Link, JWT-at-edge, gRPC/WS, cost). Delivered point-by-point rebuttal [`2026-10-08-REBUTTAL-ALB-ISTIO-VS-API-GATEWAY.md`](../../architecture/2026-10-08-REBUTTAL-ALB-ISTIO-VS-API-GATEWAY.md). Verdict: agree on private Keycloak/BFF; reject swap for R0 (false mesh premise; `ADR-018`; CAP-A). Still do not implement Option B.
+
+**Recurrence 2026-10-09** (`recurrence_count: 4`): clarified that review boards in-repo are AI personas; Mahesh is the real Architecture owner; bank primary pattern is External LB+Istio; API Gateway skill scarce; Mahesh is *contemplating* adapt (not confirming an ADR). Delivered process + full cascade catalogue [`2026-10-09-MAHESH-CONTEMPLATION-BANK-STANDARD-ELB-ISTIO.md`](../../architecture/2026-10-09-MAHESH-CONTEMPLATION-BANK-STANDARD-ELB-ISTIO.md). Still not Accepted; no BOM/diagram flip until Mahesh Accepts amending ADR.
+
+**Recurrence 2026-10-09b** (`recurrence_count: 5`): Architecture owner decision — **switch to Istio + LB**. `ADR-023` Accepted; `ADR-018`/`ADR-022` SUPERSEDED; `CR-017` Option B Accepted; BOM/diagrams/auth cascade with mandatory S1–S11 ([`2026-10-09-ADR-023-SECURITY-CONTROL-MAP.md`](../../architecture/2026-10-09-ADR-023-SECURITY-CONTROL-MAP.md)). Suggestion disposition → **ADMITTED**.
 
 ### SUG-20261019-txn · Postgres transactions not Dynamo, archive unless paid
 

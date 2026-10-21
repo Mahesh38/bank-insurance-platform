@@ -1,7 +1,7 @@
 # Integration and dependency matrix — R0
 
 **Pack:** [`ARB-PREREQUISITE-PACK.md`](../ARB-PREREQUISITE-PACK.md) rows 6 and 16  
-**Status:** `AI-DRAFTED` compilation of LLD §8, `ADR-018`/`ADR-020`, and [`DEPENDENCY-REGISTER.md`](../../governance/registers/DEPENDENCY-REGISTER.md).  
+**Status:** `AI-DRAFTED` compilation of LLD §8, `ADR-020`/`ADR-023`, and [`DEPENDENCY-REGISTER.md`](../../governance/registers/DEPENDENCY-REGISTER.md).  
 **Rule:** a row here does not create a new integration. If it disagrees with an ADR or the LLD, those win.
 
 ---
@@ -10,11 +10,11 @@
 
 | # | Counterpart | Direction | Protocol | Path (R0) | Data on the wire | Owner | R0 status |
 |---|---|---|---|---|---|---|---|
-| I-01 | NIP-APP (Flutter web/APK/IPA) | Inbound | HTTPS TLS 1.3 | Device → Cloudflare → F5-XC → Amazon API Gateway → Internal ALB → nip-web / `#2` NIP BFF | Opaque session only. **No OAuth tokens on the device.** | Amit + WS-2 | Designed. App not in this repo. |
-| I-02 | Amazon API Gateway (inbound) | Inbound | HTTPS | First AWS hop. Separate **PG-callback** route, IP-allowlisted (`TB-6`) | Request schema, throttle. No business logic. | Shivanshi | `ADR-018`. Not provisioned. |
+| I-01 | NIP-APP (Flutter web/APK/IPA) | Inbound | HTTPS TLS 1.3 | Device → Cloudflare → F5-XC → Ingress NLB → Istio Ingress → nip-web / `#2` NIP BFF | Opaque session only. **No OAuth tokens on the device.** | Amit + WS-2 | Designed. App not in this repo. |
+| I-02 | Ingress NLB + Istio Ingress | Inbound | HTTPS | First AWS hop (`ADR-023`). Path split incl. **PG-callback** `/callbacks/pg/*` (`TB-6` / S8) | Envoy size/throttle; SG = F5 CIDRs; no business logic. | Shivanshi + bank platform | `ADR-023`. Not yet provisioned. |
 | I-03 | 1SilverBullet | Outbound | HTTPS mTLS | `#14` Hub → `#15` adapter → **Apigee** → 1SB. Adapter base URL = Apigee proxy. **Never** `*.1silverbullet.tech` from EKS | Bank-canonical in; 1SB JSON terminates in `adapter.onesb.*` | WS-1 / Shivanshi + Apigee team | Code exists. Path `ADR-020`. IPs `DEP-20260914-apg` **OPEN**. |
 | I-04 | AU Bank Payment Gateway | Outbound session-create | HTTPS | `#12` Payment → **Apigee** → PG | Payment session, no PAN on RM device | Payments + Shivanshi | Designed. |
-| I-05 | AU Bank Payment Gateway | Inbound callback | HTTPS | PG → **API Gateway callback route** (not Apigee, not RM session) | Signed callback; `#12` verifies | Deepali + Payments | Designed (`TB-6`). |
+| I-05 | AU Bank Payment Gateway | Inbound callback | HTTPS | PG → Istio `/callbacks/pg/*` (not Apigee, not RM session VS) | Signed callback; `#12` verifies; PG IP allowlist | Deepali + Payments | Designed (`TB-6` / `ADR-023` S8). |
 | I-06 | AU Bank PG settlement | Inbound / file | File or S3 drop | Out-of-band from the API path | Settlement; reconcile never auto-resolves | Aarti + Finance | Designed. |
 | I-07 | EBS / CBS / CIF | Outbound | Bank HTTPS via EBS | `#4` Customer → **Apigee private** → EBS. Stubs in `dev` only | CIF snapshot. No production CIF in UAT | Bank network + `#4` | Path designed. VPN/DX `DEP-20260824-dx1` **OPEN**. |
 | I-08 | Bank AD-verify API | Outbound | HTTPS | Identity adapter → **Apigee private** → existing AD-verify. **Never LDAP from EKS** | Workforce credential verify. AD remains SoR (`TI-01`) | WS-2 + bank API platform | `ADR-020`. `DEP-010` AD technology confirmation **OPEN** (overdue). |
@@ -39,7 +39,7 @@
 |---|---|---|---|---|
 | **1SilverBullet** | Insurance aggregator (provider route) | Quote/proposal payloads required to underwrite; not bank SoR | Bank–1SB commercial + IP allowlist of **Apigee** | Replace adapter; Hub contract unchanged (`TI-04`) |
 | **Group A insurers** | Underwriters | Via 1SB in R0 | Insurer terms; bank does not underwrite | Catalogue row + adapter route |
-| **Cloudflare, Inc.** | Edge CDN / DDoS (SaaS) | TLS at edge; authenticated JSON **not** cached | Bank enterprise already in use | `ADR-018` hop 1; not in our VPC |
+| **Cloudflare, Inc.** | Edge CDN / DDoS (SaaS) | TLS at edge; authenticated JSON **not** cached | Bank enterprise already in use | `ADR-023` SaaS hop; not in our VPC |
 | **F5 (Distributed Cloud / XC)** | Edge WAF (SaaS) | HTTP at WAF | Bank enterprise already in use | Not an in-VPC BIG-IP |
 | **Google (Apigee)** *or bank-operated Apigee* | Outbound API plane | 1SB and internal API calls as proxy | Bank API platform product (`DEP-20260914-apg`) | Adapter base URL change |
 | **Amazon Web Services** | IaaS/PaaS India | All hosted data, encrypted with bank CMKs | Bank Control Tower already exists (`BE-01`) | See exit paper |

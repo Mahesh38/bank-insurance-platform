@@ -5,7 +5,7 @@
 **Owner:** Mahesh — Principal Insurance Platform Architect (Board 1)
 **Audience:** Product, Architecture, Engineering, SRE, Security, Database, Compliance, Delivery, CTO
 **Status:** `AI-DRAFTED` in the Architecture lane. **Mandatory human T4 Architecture sign-off outstanding.** Deepali (Security), Aarti (Database) and Shivanshi (SRE) reviews are required before this pack is cited as S09 input.
-**Date:** 2026-08-20 · **revised** 2026-08-24 · **revised** 2026-08-31 (`ADR-018`, attach to existing TGW) · **revised** 2026-09-14 (`ADR-020` split API plane)
+**Date:** 2026-08-20 · **revised** 2026-08-24 · **revised** 2026-08-31 (`ADR-018`, attach to existing TGW) · **revised** 2026-09-14 (`ADR-020` split API plane) · **revised** 2026-10-09 (`ADR-023` NLB + Istio)
 **Origin:** `SUG-20260820-hl1` · **revision** `SUG-20260824-gp1` … `gp5` ([`CR-012`](../governance/change-requests/CR-012-r0-platform-robustness.md))
 
 > **Revision 2026-08-24 — R0 robustness round.** Five deferred infrastructure layers move into R0
@@ -185,7 +185,7 @@ The SVG and the North Star (`docs/hdl.svg`) use the same bands (`LY-1`). A thin 
 
 **Owns:** TLS termination, WAF, throttling, request validation.
 **Does not own:** business logic, authorization decisions.
-**R0 contains:** Route 53 · Cloudflare Enterprise (SaaS, not AWS, not in any VPC) · F5 Distributed Cloud / F5-XC (SaaS WAF, not AWS, not in any VPC) · **inbound** API Gateway · internal ALB. **No public / External ALB** (`ADR-018`). **Outbound** bank API plane is **Apigee** (`ADR-020`) — drawn on the loading-dock path only; Flutter never calls it. SPIKE-001 remaining written answers: edition, private URL, per-env IPs, per-API onboard.
+**R0 contains:** Route 53 · Cloudflare Enterprise (SaaS, not AWS, not in any VPC) · F5 Distributed Cloud / F5-XC (SaaS WAF, not AWS, not in any VPC) · **inbound** internet-facing NLB → **Istio Ingress Gateway** (+ sidecars; `ADR-023`). Amazon API Gateway and Internal ALB-as-path-router are **withdrawn**. NLB SG = F5/CF CIDRs only; Keycloak never on public Ingress. **Outbound** bank API plane is **Apigee** (`ADR-020`) — loading-dock path only; Flutter never calls it. SPIKE-001 remaining Apigee answers: edition, private URL, per-env IPs, per-API onboard.
 **Greyed:** insurer callback ingress (R1). R0 **polls** providers instead (`S-11`).
 **Rule:** no workload, database or cache is internet-reachable.
 
@@ -410,7 +410,7 @@ That split is control **C4** as architecture, not as a UI convention.
 
 ### 5.3 Internal service APIs (cluster-private)
 
-Called by `#2` or `#9` over mTLS or mesh-equivalent later; R0 uses IRSA + NetworkPolicy + service identity. Not published.
+Called by `#2` or `#9` over Istio STRICT mTLS (`ADR-023`) plus IRSA + NetworkPolicy + service identity. Not published on Ingress.
 
 | Service | Representative resources | Notes |
 |---|---|---|
@@ -530,7 +530,7 @@ The R0 → R1 → R2 *dependency map* (which target component is a prerequisite 
 
 A short operating picture for anyone picking up work:
 
-1. **Do not admit a second LOB, a Customer BFF, a service mesh, Redis-for-idempotency, or an analytics warehouse on the Lead writer.** Those are recorded deferrals or refusals with triggers. The admin UI and R0 MIS slice were pulled into R0 on 2026-08-25 under `ADR-014` and **must stay off the Lead writer**. The event backbone, cache tier, search pipe, bank connectivity and egress inspection were admitted on 2026-08-24 under `ADR-009` … `ADR-013`.
+1. **Do not admit a second LOB, a Customer BFF, Redis-for-idempotency, or an analytics warehouse on the Lead writer.** Those are recorded deferrals or refusals with triggers. **Istio is admitted** for Ingress + sidecars under `ADR-023` (overturns the earlier mesh deferral in `CR-012` §3 for that scope — AWS App Mesh stays out). The admin UI and R0 MIS slice were pulled into R0 on 2026-08-25 under `ADR-014` and **must stay off the Lead writer**. The event backbone, cache tier, search pipe, bank connectivity and egress inspection were admitted on 2026-08-24 under `ADR-009` … `ADR-013`.
 2. **Close GATE-S08.** Amit, Swapnali, Deepali, Shivanshi, Mahesh. Fitness functions FF-01…FF-28 are the architecture half of that gate — `FF-22` … `FF-28` arrived with the robustness round and are mostly IaC and infrastructure checks, so they land in the S09 lane rather than adding to the application backlog.
 3. **Feed S09 from [`R0-LLD.md`](./R0-LLD.md).** Shivanshi provisions; Deepali signs the trust-boundary realisation; Aarti signs the Aurora/DynamoDB/S3 design. Restore is executed and timed (`S09-G7`).
 4. **Seed `#19` in W0b** the moment environments exist — consent rule pack and suitability rule pack are Product/Compliance artefacts (GAP-006, GAP-007) and **block S11** until Shailja signs them at evidence level E2.

@@ -32,7 +32,7 @@ three ways. That is what this pack removes.
 | Which layer enforces a rule, and in what order | [`01-domain-model §6.3`](../platform/ws3-platform/01-domain-model-and-invariants.md) placement summary |
 | The algorithm a validation follows | Derived from the invariant assertion; pseudocode is this pack's contribution |
 | The hop sequence and its timeouts | [`03-solution-architecture-r0 §5`](../platform/ws3-platform/03-solution-architecture-r0.md#5-seam-catalogue--synchronous-vs-asynchronous-with-semantics) seam catalogue |
-| The proxy chain | [`R0-LLD §3`](../architecture/R0-LLD.md#3-reverse-proxy--external-and-internal-required) |
+| The proxy chain | [`R0-LLD §3`](../architecture/R0-LLD.md#3-reverse-proxy--saas-perimeter--nlb--istio-required) |
 | The error a caller receives | [`R0-HLD §5.4`](../architecture/R0-HLD.md#54-typical-error-codes-stable) |
 | Trust-boundary crossing rules | [`04-security-architecture §2`](../platform/ws3-platform/04-security-architecture.md#2-trust-boundaries) |
 | Identity and session behaviour | [`authentication-authorization`](../platform/authentication-authorization/README.md) |

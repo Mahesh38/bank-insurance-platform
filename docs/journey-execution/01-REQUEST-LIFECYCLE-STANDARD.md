@@ -8,22 +8,22 @@ Status: `AI-DRAFTED` · Owner: Mahesh (Board 1) · Origin: `SUG-20260821-jx1`
 
 ## 1. The eight layers
 
-Derived from the two-hop reverse proxy in
-[`R0-LLD §3`](../architecture/R0-LLD.md#3-reverse-proxy--external-and-internal-required) and the
-invariant placement summary in
+Derived from the SaaS + NLB + Istio inbound chain in
+[`R0-LLD §3`](../architecture/R0-LLD.md#3-reverse-proxy--saas-perimeter--nlb--istio-required)
+(`ADR-023`) and the invariant placement summary in
 [`01-domain-model §6.3`](../platform/ws3-platform/01-domain-model-and-invariants.md).
 
 ```text
 L0  Device            Flutter RM app · IPR browser · (customer device — never on this path)
      │ TLS 1.3
-L1  CloudFront + WAF  TLS termination · bot · rate · OWASP managed rules          [TB-1]
+L1  Cloudflare + F5   TLS · CDN/DDoS · bot · rate · OWASP WAF (SaaS)               [TB-1]
+     │ F5 shared-secret / mTLS to origin
+L2  Ingress NLB       First AWS hop · SG = F5/CF CIDRs only                        ADR-023 S2
      │
-L2  API Gateway       Request size · schema · throttle · route                     THE external reverse proxy
-     │ private integration / VPC link
-L3  Internal ALB      Host/path routing to a BFF target group                      THE internal reverse proxy
-     │
+L3  Istio Ingress     Path split · Envoy size/throttle · mesh entry                THE cluster reverse proxy
+     │  /* → nip-web · /api/* → BFF · /callbacks/pg/* → Payment
 L4  BFF               Session authN · CSRF · PEP call to PDP · aggregation         [TB-2, TB-3]
-     │ cluster-private, service identity
+     │ mesh mTLS + NetworkPolicy, service identity
 L5  Domain service    Service identity · PDP re-check on regulated actions ·
      │                 cross-aggregate business validation · orchestration
 L6  Aggregate         Domain invariants, in one transaction                        ← most gates live here
@@ -47,15 +47,15 @@ the caller learns.
 
 | Layer | Never |
 |---|---|
-| L1 CloudFront / WAF | Authenticate · authorize · cache an authenticated JSON response |
-| L2 API Gateway | Use an API key as authentication · hold business logic |
-| L3 Internal ALB | Terminate a business decision · exist per microservice |
+| L1 Cloudflare / F5-XC | Authenticate · authorize · cache an authenticated JSON response |
+| L2 Ingress NLB | Open SG to 0.0.0.0/0 · hold business logic · replace F5 |
+| L3 Istio Ingress | Validate Flutter end-user JWTs as authN · replace PDP for insurance rules · expose Keycloak publicly |
 | L4 BFF | Return an OAuth access or refresh token to L0 · be the only enforcer of any rule · accept `distributorId` |
 | L5 Domain service | Call a provider adapter directly · read another context's database · assume PDP allowed on timeout |
 | L6 Aggregate | Permit a transition not drawn in the state machine · hold another context's business decision |
 | L7 Store | Expose `UPDATE`/`DELETE` on consent, suitability or audit · allow a nullable `lob` |
 
-Sources: [`R0-LLD §3`](../architecture/R0-LLD.md#3-reverse-proxy--external-and-internal-required) ·
+Sources: [`R0-LLD §3`](../architecture/R0-LLD.md#3-reverse-proxy--saas-perimeter--nlb--istio-required) ·
 [`R0-HLD §3`](../architecture/R0-HLD.md#3-ten-boundaries) ·
 [`04-security-architecture §2`](../platform/ws3-platform/04-security-architecture.md#2-trust-boundaries) ·
 [`BOOT.md §5`](../context/BOOT.md) standing constraints.
@@ -75,9 +75,9 @@ ALGORITHM  standard_request(http_request)
         → 403 at the edge. Never reaches the VPC. No platform audit event exists.
         (This is the one refusal class with no application-side record — see §6.)
 
- L2  API Gateway
- 2   IF body size > route limit                    → 413
- 3   IF request does not match the route schema    → 400  (shape only, never semantics)
+ L2–L3  NLB + Istio Ingress (Envoy)
+ 2   IF F5 shared-secret / mTLS missing at Gateway → 403  (bypass resistance · ADR-023 S3)
+ 3   IF body size > Envoy route limit              → 413
  4   IF throttle bucket for the route exhausted    → 429  + Retry-After
 
  L4  BFF — authentication
@@ -237,8 +237,8 @@ RULE T-5  Clock skew is not a defence. A guard must never widen a window to abso
 
 | Refused at | HTTP | Platform audit event? | RM sees | Ops sees |
 |---|---|---|---|---|
-| L1 WAF | 403 | **No** — never entered the VPC | Generic network error | WAF logs only |
-| L2 API Gateway | 400 / 413 / 429 | No | Typed client error | Gateway metrics |
+| L1 Cloudflare / F5 | 403 | **No** — never entered the VPC | Generic network error | SaaS WAF logs only |
+| L2–L3 NLB + Istio | 403 / 413 / 429 | No | Typed client error | NLB + Envoy access logs (`ADR-023` S10) |
 | L4 session | 401 | `LoginFailed` / `SessionRevoked` | Re-authenticate prompt | Auth event stream |
 | L4 PDP deny | 403 + reason code | Yes — authorization event | The reason, in business terms | PDP decision log |
 | L4 PDP unavailable | 403 `AUTHORIZATION_UNAVAILABLE` | Yes | "Temporarily unavailable" | **Alert** — fail-closed denials are an incident signal |

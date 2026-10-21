@@ -14,7 +14,7 @@
 | Proposed class | **Critical Information System (CIS)** |
 | Why not “High” or below | The platform stores and processes CIF-derived customer identity, PAN and other KYC identifiers, health/suitability attributes, payment orchestration state, and **7-year immutable audit**. A confidentiality, integrity or availability failure is a regulatory and customer-harm event, not only an operational inconvenience. |
 | R0 processing location | AWS `ap-south-1` (Mumbai). DR replicas `ap-south-2` (Hyderabad) only. No regulated data outside India (`TI-08`, `FF-08`). |
-| Internet exposure | Inbound: Cloudflare → F5-XC → Amazon API Gateway only (`ADR-018`). No public ALB, no public datastore. Outbound: Apigee (`ADR-020`). |
+| Internet exposure | Inbound: Cloudflare → F5-XC → Ingress NLB (CIDR-locked) → Istio Ingress (`ADR-023`). No public datastore; Keycloak not on public Ingress. Outbound: Apigee (`ADR-020`). |
 | Privileged access | IRSA per deployable; bank IAM Identity Center / PAM for humans; Keycloak admin console is not a bank-user UI. |
 
 This matches the handling already designed for `RESTRICTED` attributes in

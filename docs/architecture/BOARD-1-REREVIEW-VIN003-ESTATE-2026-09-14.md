@@ -13,6 +13,11 @@ organisation standard
 **Authority class:** `A3_JOINT_REVIEW` on remaining conditions · `A4_HUMAN_REQUIRED` for the
 mandatory T4 Architecture signature
 
+> **AMENDED 2026-10-09 — inbound hop only.** `ADR-023` Accepted: north–south AWS entry is now
+> Ingress NLB + Istio (API Gateway withdrawn). Spoke-not-clone, Apigee outbound, five-account,
+> and `ADR-009`/`ADR-010` conclusions in this rereview **stand**. Historical “keep ADR-018 /
+> API Gateway” rows below are **superseded for inbound** — do not re-apply them when provisioning.
+
 > ## Verdict: `APPROVED_WITH_CONDITIONS`
 > **Architecture severity:** `A1` — one major open structural question (whether R0 still owns a
 > per-environment AWS Network Firewall when the hub FortiGate already inspects), plus environment

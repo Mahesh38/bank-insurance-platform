@@ -23,9 +23,11 @@
 | Terraform | Bank IaC standard | Pin in modules; no console drift | Shivanshi | Provider major |
 | GitLab | Bank CI | Bank-owned lifecycle | Bank DevOps | — |
 | Cloudflare / F5-XC / Apigee | Bank SaaS | Bank-owned lifecycle. We consume. | Bank edge / API platform | Hostname and product re-onboard |
+| Istio (Ingress + sidecars) | Bank platform standard version (`ADR-023`) | Bank-operated mesh. Pin via SPIKE answers (edition/operator). Ambient not assumed. | Shivanshi + bank platform | Control-plane major; revision canary; STRICT cutover dated |
+| Ingress NLB | AWS NLB (or bank ALB variant) | AWS managed LB lifecycle | Shivanshi | SG CIDR refresh with F5; ACM renewal if ALB variant |
 | 1SilverBullet APIs | Versioned paths behind adapter | Provider route. Breaking 1SB change is an adapter change, not a domain change | WS-1 | Provider EOS → second adapter or insurer-direct (R1+) |
 
-**Not in R0 (so not in this lifecycle):** Istio, per-service Aurora, Redshift/Athena warehouse, Cognito as IdP, MSK Replicator, self-managed Redis/Kafka/ELK.
+**Not in R0 (so not in this lifecycle):** Amazon API Gateway (withdrawn `ADR-023`), AWS App Mesh, per-service Aurora, Redshift/Athena warehouse, Cognito as IdP, MSK Replicator, self-managed Redis/Kafka/ELK.
 
 **CVE process already in the repo:** BOM property overrides in `build.gradle.kts` with a comment naming the CVE and the removal trigger (“remove once Spring Boot pins …”). That is the lifecycle mechanism for transitive Java, not a spreadsheet.
 
@@ -70,7 +72,7 @@ Three different exits are routinely mixed. They are not the same change.
 2. Stop outbound Apigee products for 1SB and PG session-create.
 3. Drain EKS; retain Aurora + S3 + KMS + CloudTrail.
 4. Run retention / disposal with a disposal audit row (parked `SUG-20260825-db1` purge — **not done**).
-5. Revoke IRSA, Apigee products, API Gateway APIs, GitLab deploy keys.
+5. Revoke IRSA, Apigee products, Istio Gateway routes / mesh trust material, NLB listeners, GitLab deploy keys.
 6. Detach TGW; delete inspection VPC last so the deny-egress story is still true on the way out.
 
 ARB is not being asked to approve a decommission. It is being shown that **exit is a designed property of R0**, not a future project.

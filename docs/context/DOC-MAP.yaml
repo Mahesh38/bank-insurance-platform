@@ -19,7 +19,7 @@ schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
 document_count: 662
-total_bytes: 21284229
+total_bytes: 21287724
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -1364,8 +1364,8 @@ documents:
     capsules: [architecture-review, target-state-vision, orient]
     persona: architecture
     title: "Platform team note — Inbound edge (historical Option A pack; superseded by ADR-023)"
-    answers: "Purpose: Historical one-screen for the former API Gateway ask."
-    bytes: 5372
+    answers: "Purpose: One-screen for the current R0 inbound ask (ADR-023), plus collapsed Option A audit trail."
+    bytes: 7701
   - path: docs/architecture/2026-10-08-INFRA-POC-API-GATEWAY-KEYCLOAK-ISTIO.md
     bucket: platform
     authority: approved-spec
@@ -2269,7 +2269,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 234510
+    bytes: 234546
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -4013,7 +4013,7 @@ documents:
     persona: null
     title: "CR-017 — Inbound edge: bank-standard NLB + Istio (Option B accepted)"
     answers: "Change request: CR-017"
-    bytes: 10940
+    bytes: 11774
   - path: docs/governance/controls/AUDIT-STRUCTURE.md
     bucket: governance
     authority: binding-process
@@ -4845,7 +4845,7 @@ documents:
     persona: architecture
     title: "08 — Architecture Decision Log (this review)"
     answers: "ID scheme: ARCH-xxx — deliberately distinct from the business/scope D-xxx and process DOC-xxx IDs in docs/au-bank-insurance-platform/DECISION-LOG.md,…"
-    bytes: 132231
+    bytes: 132527
   - path: docs/platform/architecture-review/ADR-019-microservice-skeleton-scaffold.md
     bucket: platform
     authority: approved-spec

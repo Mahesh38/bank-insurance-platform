@@ -26,56 +26,64 @@ This CR:
 
 Companion artefacts (same suggestion):
 
-- One-pager: [`docs/architecture/2026-10-06-PLATFORM-TEAM-NOTE-API-GATEWAY-VS-ISTIO.md`](../../architecture/2026-10-06-PLATFORM-TEAM-NOTE-API-GATEWAY-VS-ISTIO.md)
-- **Infra POC (detailed, Keycloak + change checklist):** [`docs/architecture/2026-10-08-INFRA-POC-API-GATEWAY-KEYCLOAK-ISTIO.md`](../../architecture/2026-10-08-INFRA-POC-API-GATEWAY-KEYCLOAK-ISTIO.md)
-- **Rebuttal to ALB+Istio superiority claim:** [`docs/architecture/2026-10-08-REBUTTAL-ALB-ISTIO-VS-API-GATEWAY.md`](../../architecture/2026-10-08-REBUTTAL-ALB-ISTIO-VS-API-GATEWAY.md)
-- **Mahesh contemplation (bank-standard ELB+Istio — not ADR yet):** [`docs/architecture/2026-10-09-MAHESH-CONTEMPLATION-BANK-STANDARD-ELB-ISTIO.md`](../../architecture/2026-10-09-MAHESH-CONTEMPLATION-BANK-STANDARD-ELB-ISTIO.md)
-- Clarifying ADR draft: `ADR-022` in [`08-architecture-decision-log.md`](../../platform/architecture-review/08-architecture-decision-log.md)
+- One-pager (**current ask = ADR-023**): [`docs/architecture/2026-10-06-PLATFORM-TEAM-NOTE-API-GATEWAY-VS-ISTIO.md`](../../architecture/2026-10-06-PLATFORM-TEAM-NOTE-API-GATEWAY-VS-ISTIO.md)
+- **Infra POC (SUPERSEDED Option A archive):** [`docs/architecture/2026-10-08-INFRA-POC-API-GATEWAY-KEYCLOAK-ISTIO.md`](../../architecture/2026-10-08-INFRA-POC-API-GATEWAY-KEYCLOAK-ISTIO.md)
+- **Rebuttal (SUPERSEDED Option A archive):** [`docs/architecture/2026-10-08-REBUTTAL-ALB-ISTIO-VS-API-GATEWAY.md`](../../architecture/2026-10-08-REBUTTAL-ALB-ISTIO-VS-API-GATEWAY.md)
+- **Mahesh contemplation (SUPERSEDED as contemplation — decision is `ADR-023`):** [`docs/architecture/2026-10-09-MAHESH-CONTEMPLATION-BANK-STANDARD-ELB-ISTIO.md`](../../architecture/2026-10-09-MAHESH-CONTEMPLATION-BANK-STANDARD-ELB-ISTIO.md)
+- Binding ADR: `ADR-023` in [`08-architecture-decision-log.md`](../../platform/architecture-review/08-architecture-decision-log.md) · SUPERSEDED clarifying draft: `ADR-022`
 
 ---
 
 ## 2. Problem being solved
 
-Platform / landing-zone conversations are mixing **three** different products:
+At raise (2026-10-06), platform / landing-zone conversations were mixing **three** different products:
 
-1. **Amazon API Gateway** — R0 **inbound** Proxy 1 (`ADR-018`, human direction 2026-09-14).  
-2. **Apigee** — R0 **outbound** bank API plane (`ADR-020`).  
-3. **Istio / App Mesh** — **target-state** east–west mesh; **explicitly refused for R0** (`CR-012` §3; `R0-LLD` §1.3).
+1. **Amazon API Gateway** — then the R0 **inbound** Proxy 1 (`ADR-018`, human direction 2026-09-14).  
+2. **Apigee** — R0 **outbound** bank API plane (`ADR-020`) — **unchanged**.  
+3. **Istio / App Mesh** — then framed as target-state east–west only; mesh was refused for R0 under `CR-012` §3.
 
-If the platform team refuses API Gateway without a control-for-control substitute, S09 edge provisioning (P4 band in `R0-LLD`) cannot proceed without either:
+Without a written board answer, S09 edge provisioning risked either violating standing ADRs or inventing a public ALB / Istio design without a control map.
 
-- violating standing ADRs, or  
-- inventing a public ALB / Istio Ingress design that reopens trust boundaries Deepali has not accepted.
-
-The programme needs a single escalation package the stakeholder can take into that meeting — not an ad-hoc BOM edit.
+**Outcome (2026-10-09):** Architecture owner Accepted **Option B** → [`ADR-023`](../../platform/architecture-review/08-architecture-decision-log.md). Inbound is NLB + Istio Ingress (+ sidecars); Amazon API Gateway withdrawn; S1–S11 mandatory. Apigee stays outbound. AWS App Mesh stays out.
 
 ---
 
-## 3. Current binding baseline (do not silently overturn)
+## 3. Binding baseline (**current — do not silently overturn**)
 
 ```text
-Inbound:  device → Cloudflare (SaaS) → F5-XC (SaaS) → Amazon API Gateway → VPC Link → Internal ALB → BFF
+Inbound:  device → Cloudflare (SaaS) → F5-XC (SaaS) → Ingress NLB → Istio Ingress → BFF / nip-web
+Outbound: pod → (inspection) → Apigee → 1SB / bank APIs
+Mesh:     Istio Ingress + sidecars in R0 (ADR-023); NetworkPolicy retained (S11); App Mesh OUT
+Amazon API Gateway / Internal ALB-as-path-router: WITHDRAWN (ADR-023)
+Open public ALB (0.0.0.0/0): FORBIDDEN — NLB SG = F5/CF CIDRs only (S2)
+```
+
+Evidence: `ADR-023`, `ADR-020`, `R0-LLD` §1.1 #7–#9 / §1.3 / §3, `03-solution-architecture-r0`, security control map S1–S11, `CR-012` §3 amended for Istio (App Mesh refusal stands).
+
+<details><summary>Baseline at CR raise (2026-10-06 — historical)</summary>
+
+```text
+Inbound:  device → Cloudflare → F5-XC → Amazon API Gateway → VPC Link → Internal ALB → BFF
 Outbound: pod → (inspection) → Apigee → 1SB / bank APIs
 Mesh:     NOT R0 — NetworkPolicy + IRSA + Resilience4j; mesh = S14
 Public ALB: WITHDRAWN (ADR-018)
 ```
 
-Evidence: `ADR-018`, `ADR-020`, `R0-LLD` §3, `03-solution-architecture-r0` deployment properties, `2026-09-14-HUMAN-DIRECTION-APIGEE-EGRESS-IDP.md` §2.2, `CR-012` §3.
-
+</details>
 ---
 
 ## 4. Options
 
-### Option A — Keep Amazon API Gateway (recommended)
+### Option A — Keep Amazon API Gateway (original recommendation; not chosen)
 
 - Platform provisions API Gateway + VPC Link + Internal ALB per `R0-LLD` BOM #8–#9.  
 - Istio stays out of R0.  
 - `ADR-022` records the clarification that mesh ≠ inbound gateway.  
 - **Severity if ignored:** S09 edge blocked or non-compliant with ADRs (`A1` structural).
 
-### Option B — Replace API Gateway with public LB + Istio Ingress Gateway
+### Option B — Replace API Gateway with public LB + Istio Ingress Gateway (**Accepted → ADR-023**)
 
-Only if **all** of the following are written and accepted:
+Accepted 2026-10-09 after the following were written (S1–S11 / control map). At raise, Option B required **all** of:
 
 1. Control mapping (table in §5) complete with Deepali acceptance of residual risk.  
 2. New ADR **amending** `ADR-018` (and touching `ADR-016` / `ADR-020` inbound clauses as needed).  
@@ -145,14 +153,15 @@ Companion: [`2026-10-09-ADR-023-SECURITY-CONTROL-MAP.md`](../../architecture/202
 
 | File | Role |
 |------|------|
-| `docs/architecture/2026-10-06-PLATFORM-TEAM-NOTE-API-GATEWAY-VS-ISTIO.md` | One-pager for the meeting |
-| `docs/architecture/2026-10-08-INFRA-POC-API-GATEWAY-KEYCLOAK-ISTIO.md` | Detailed Infra Head POC: Gateway vs Istio/ELB, Keycloak complementarity, Option B checklist |
-| `docs/architecture/2026-10-08-REBUTTAL-ALB-ISTIO-VS-API-GATEWAY.md` | Point-by-point rebuttal of “ALB/NLB+Istio superior to API Gateway” claim |
-| `docs/architecture/2026-10-09-MAHESH-CONTEMPLATION-BANK-STANDARD-ELB-ISTIO.md` | If Mahesh adapts to bank ELB+Istio: process, SPIKE, ADR, full cascade beyond LB+mesh |
-| `docs/platform/architecture-review/08-architecture-decision-log.md` (`ADR-022`) | Clarifying ADR draft (Option A) — superseded if Mahesh Accepts amending ADR |
+| `docs/architecture/2026-10-06-PLATFORM-TEAM-NOTE-API-GATEWAY-VS-ISTIO.md` | One-pager — **current** ADR-023 ask (+ collapsed Option A trail) |
+| `docs/architecture/2026-10-08-INFRA-POC-API-GATEWAY-KEYCLOAK-ISTIO.md` | SUPERSEDED Option A Infra POC / audit trail |
+| `docs/architecture/2026-10-08-REBUTTAL-ALB-ISTIO-VS-API-GATEWAY.md` | SUPERSEDED Option A rebuttal / audit trail |
+| `docs/architecture/2026-10-09-MAHESH-CONTEMPLATION-BANK-STANDARD-ELB-ISTIO.md` | SUPERSEDED as contemplation — decision transcribed as `ADR-023` |
+| `docs/platform/architecture-review/08-architecture-decision-log.md` (`ADR-023`) | Binding Accepted ADR (NLB + Istio) |
+| `docs/platform/architecture-review/08-architecture-decision-log.md` (`ADR-022`) | SUPERSEDED Option A clarifying draft |
 | `docs/governance/registers/SUGGESTION-REGISTER.md` (`SUG-20261006-apg`) | Triage record |
-| `docs/governance/registers/DECISION-REGISTER.md` | ADR-022 index row |
-| `docs/governance/registers/DEPENDENCY-REGISTER.md` (`DEP-20261006-igw`) | External: platform written commitment |
+| `docs/governance/registers/DECISION-REGISTER.md` | ADR-022 / ADR-023 index rows |
+| `docs/governance/registers/DEPENDENCY-REGISTER.md` (`DEP-20261006-igw`) | External: platform written commitment (rebased to NLB+Istio) |
 | `docs/architecture/README.md` | Navigation row |
 
 ---

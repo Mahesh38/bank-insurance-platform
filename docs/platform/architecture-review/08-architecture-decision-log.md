@@ -817,7 +817,7 @@ approvals:
   - "Kalpana / Delivery — REQUIRED. This adds an external dependency to the S09 critical path and it is the one item that cannot be recovered by working harder"
 ```
 
-**Amended 2026-08-31 (`SUG-20260831-apg`):** the live estate already has the `AU-CTO-NETWORK` Transit Gateway and Direct Connect Gateway (Central Network Account Architecture V1). The topology clause above is **attach as a spoke**, not "provision a second hub". The revisit trigger "existing enterprise TGW we attach to instead of owning" has fired as the default. Shivanshi confirms RAM-share vs spoke-attachment with bank network before Terraform. Amazon API Gateway remains the first AWS hop (`ADR-018`); Apigee is drawn on **egress only** (`ADR-020`). SPIKE-001 remaining written answers: edition, private URL, per-env IPs, per-API onboard.
+**Amended 2026-08-31 (`SUG-20260831-apg`):** the live estate already has the `AU-CTO-NETWORK` Transit Gateway and Direct Connect Gateway (Central Network Account Architecture V1). The topology clause above is **attach as a spoke**, not "provision a second hub". The revisit trigger "existing enterprise TGW we attach to instead of owning" has fired as the default. Shivanshi confirms RAM-share vs spoke-attachment with bank network before Terraform. At that amendment, Amazon API Gateway was still described as the first AWS hop (`ADR-018`); Apigee is drawn on **egress only** (`ADR-020`). **Later superseded for inbound (2026-10-09):** first AWS hop is Ingress NLB → Istio Ingress under [`ADR-023`](#adr-023--north-south-ingress-aligns-to-bank-standard-cloudflare--f5-xc--external-nlb--istio-ingress-api-gateway-withdrawn); `ADR-018` is SUPERSEDED. SPIKE-001 remaining written answers: edition, private URL, per-env IPs, per-API onboard.
 
 ---
 

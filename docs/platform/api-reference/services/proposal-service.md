@@ -10,7 +10,7 @@
 | **Callers** | Journey (create, submit) · BFF (status reads, form schema) · Payment (payable check) |
 | **Calls out** | Consent (C2 gate) · Quotation (selected offer) · Integration Hub (form schema, submit S-12 async-poll **no retry on submit**, status/requirements) · Configuration (`issuanceMode`, field rules) |
 | **Owns data** | **DynamoDB `{env}-proposal-working`** — working proposal (form answers, nominee, UW requirements in a client-side-encrypted envelope) until payment (`DB-DEC-0005`) · Aurora schema **`proposal`** — `proposal`, `uw_requirement`, `uw_document_ref` structured after `RECONCILED`, `idempotency_record` · role `app_proposal` |
-| **Code status** | **SKELETON**. Paths CONTRACTED (HLD §5.3); bodies **PROPOSED** |
+| **Code status** | **PARTIAL — persistence only** (`SUG-20261021-lft`): DynamoDB working-state store, envelope encryption (AES-GCM, KMS data key), materialiser into structured Aurora rows, `POST /internal/v1/events/payment-reconciled`; tested against embedded DynamoDB Local. Public command API not built. Paths CONTRACTED (HLD §5.3); bodies **PROPOSED** |
 
 ---
 

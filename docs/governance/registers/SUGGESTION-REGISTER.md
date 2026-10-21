@@ -214,11 +214,11 @@ outcome:
     - "lead-service: PdpLeadAuthorizationAdapter re-checks lead.create / lead.assign (300 ms, fail closed, INV-ACT-01)"
     - "lead-service: Flyway V3 lead_assignment, lead_meeting, lead_follow_up, idempotency_record, outbox_event; written in the lead transaction; note / meeting link AES-GCM"
     - "BFF: per-downstream clients — lead 2 s, customer 4 s, resolve 2 s, IdP 6 s, PDP 300 ms; forwards Idempotency-Key, note and meeting"
-  in_progress:
-    - "quotation-service / proposal-service DynamoDB working state + materialise (DB-DEC-0005)"
+    - "quotation-service / proposal-service: DynamoDB working-state stores, AES-GCM envelope with KMS data key, materialiser into structured Aurora rows (idempotent, frozen item), 63 tests on embedded DynamoDB Local; deviations listed in schemas/20 §6"
   remaining:
     - "No outbox publisher (no MSK in R0 code); rows wait unpublished"
     - "NIP-APP does not send Idempotency-Key yet"
+    - "proposal form_values_ref has no durable home after the frozen item expires (schemas/20 §6 #4) — decision needed"
 
 resumed: "SUG-20261021-apr follow-up."
 ```

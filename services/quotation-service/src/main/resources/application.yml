@@ -4,9 +4,36 @@ server:
 spring:
   application:
     name: quotation-service
+  datasource:
+    url: ${QUOTATION_SERVICE_DATASOURCE_URL:jdbc:h2:mem:quotation_service;MODE=PostgreSQL;DB_CLOSE_DELAY=-1}
+    driver-class-name: ${QUOTATION_SERVICE_DATASOURCE_DRIVER:org.h2.Driver}
+    username: ${QUOTATION_SERVICE_DATASOURCE_USERNAME:sa}
+    password: ${QUOTATION_SERVICE_DATASOURCE_PASSWORD:}
+  flyway:
+    enabled: true
+    # {vendor}: partial unique indexes on PostgreSQL, an H2 equivalent locally.
+    locations: classpath:db/migration,classpath:db/vendor/{vendor}
+    validate-on-migrate: true
   threads:
     virtual:
       enabled: true
+
+# DB-DEC-0005 — working quote in DynamoDB until payment (schemas/20-dynamodb-working-payload.md).
+quotation:
+  working-store:
+    table-name: ${QUOTATION_WORKING_TABLE:local-quotation-working}
+    region: ${AWS_REGION:ap-south-1}
+    # Only honoured in the local / test profiles (schemas/20 §5).
+    endpoint-override: ${AWS_DYNAMODB_ENDPOINT:}
+    retention-working: ${QUOTATION_RET_WORKING:90d}
+    retention-after-materialize: 30d
+    idempotency-ttl: 24h
+    outbox-ttl: 7d
+  envelope:
+    # kms everywhere real; local (static key) only in the local / test profiles.
+    provider: ${QUOTATION_ENVELOPE_PROVIDER:kms}
+    kms-key-id: ${QUOTATION_ENVELOPE_KMS_KEY_ID:alias/local-quotation-working}
+    data-key-cache-ttl: 5m
 
 management:
   endpoints:

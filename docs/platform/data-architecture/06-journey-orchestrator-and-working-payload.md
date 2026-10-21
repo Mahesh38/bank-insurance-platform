@@ -481,16 +481,16 @@ Same shape for Proposal. Same shape for Payment (structured `payment` + outbox).
 
 There is no transaction that “opens the JSON”, edits one offer, and writes it back as a SQL `jsonb_set`. The service decrypts in process, applies the change, encrypts, writes the row.
 
-### 10.2 Store — Postgres, not DynamoDB, not plaintext JSONB
+### 10.2 Store — DynamoDB until payment (`DB-DEC-0005`), structured Postgres after; never plaintext JSONB
 
 | Option | Verdict | Why |
 |---|---|---|
-| **Aurora PostgreSQL `BYTEA` + control columns** | Superseded by `DB-DEC-0005` | Same cluster, same credential model, same-transaction idempotency, TOAST for large envelopes. `DB-DEC-0001` / `DB-DEC-0004` |
-| DynamoDB item per quote/proposal (control attributes + encrypted envelope) | **Taken — `DB-DEC-0005`** (owner decision 2026-10-21) | Second SoR, no FK/CHECK/`INV-PAY-02` uniqueness, splits the already-shipping audit/job store, no R0 volume evidence. Revisit only on a **measured** access pattern |
+| Aurora PostgreSQL `BYTEA` + control columns | Superseded by `DB-DEC-0005` | Was the `DB-DEC-0004` design (same cluster, same-transaction idempotency) |
+| **DynamoDB item per quote/proposal (control attributes + encrypted envelope)** | **Taken — `DB-DEC-0005`** (owner decision 2026-10-21) | Single-key, document-shaped, high-churn, mostly abandoned data; TTL ageing; keeps churn off Aurora. The costs the earlier verdict named (second store, no FK/CHECK) are contained: gates, money and evidence stay relational, and the record after `RECONCILED` is structured Aurora. Built in `quotation-service` / `proposal-service` (`SUG-20261021-lft`) |
 | Postgres `JSONB` (plaintext) | **Rejected** | Members / nominee / form become queryable (`DR-PII-01`, `INV-PRP-05`) |
 | JSON on `journey` | **Rejected** | `INV-JRN-02` / `OR-01` |
 
-**Bulk.** R0 write amplification is one working row per open journey, not one row per insurer. Offers fan out to structured `offer` rows only after `RECONCILED`. Abandoned bulk never materializes. The next limit is still provider latency, not Aurora (`01` §7). Partitioning stays deferred (`OPEN-I6`).
+**Bulk.** R0 write amplification is one working DynamoDB item per open journey, not one row per insurer. Offers fan out to structured `offer` rows only after `RECONCILED`. Abandoned bulk never materializes. The next limit is still provider latency, not Aurora (`01` §7). Partitioning stays deferred (`OPEN-I6`).
 
 ### 10.3 Retention — only payment-converted stays as 7-year OLTP evidence
 
@@ -520,7 +520,7 @@ Archive is **out of OLTP**, not “keep the hot row and flip a flag for seven ye
 
 ## 11. What this pack will not do
 
-- Put working JSON on `journey` or in DynamoDB.
+- Put working JSON on `journey`, or put anything other than the pre-payment quote / proposal working state in DynamoDB (`DB-DEC-0005`).
 - Use plaintext Postgres `JSONB` for quote/proposal envelopes.
 - Fold Payment into the journey schema, or give `app_journey` a grant on `payment`.
 - Store Payment as a working JSON envelope.
@@ -531,4 +531,4 @@ Archive is **out of OLTP**, not “keep the hot row and flip a flag for seven ye
 - Edit `CURRENT-STATE.yaml` stage fields.
 - Mark `S07-G5` passed.
 
-DDL: [`12-journey.sql`](./schemas/12-journey.sql) (transition + outbox + `retain_until` / `archived_at`) · [`08-quotation.sql`](./schemas/08-quotation.sql) (`quote_working`) · [`09-proposal.sql`](./schemas/09-proposal.sql) (`proposal_working`) · [`10-payment.sql`](./schemas/10-payment.sql) (structured + outbox) · [`90-routines.sql`](./schemas/90-routines.sql) (purge skips paid journeys) · [`91-grants.sql`](./schemas/91-grants.sql).
+DDL: [`12-journey.sql`](./schemas/12-journey.sql) (transition + outbox + `retain_until` / `archived_at`) · [`08-quotation.sql`](./schemas/08-quotation.sql) / [`09-proposal.sql`](./schemas/09-proposal.sql) (structured, after `RECONCILED`) · [`20-dynamodb-working-payload.md`](./schemas/20-dynamodb-working-payload.md) (working state) · [`10-payment.sql`](./schemas/10-payment.sql) (structured + outbox) · [`90-routines.sql`](./schemas/90-routines.sql) (purge skips paid journeys) · [`91-grants.sql`](./schemas/91-grants.sql).

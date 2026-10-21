@@ -10,7 +10,7 @@
 | **Callers** | Journey (create, select) · BFF (poll reads) · Payment (selected premium read, `INV-PAY-03`) |
 | **Calls out** | Suitability (S-08 gate, 500 ms, fail closed) · Integration Hub (S-09 create, async-poll, **no retry on submit**) · Lead (`bi-generated` on first successful BI) · Catalogue (offer eligibility) · Configuration (validity window) |
 | **Owns data** | **DynamoDB `{env}-quotation-working`** — working quote (control attributes + client-side-encrypted envelope) until payment (`DB-DEC-0005`) · Aurora schema **`quotation`** — `quote` + `offer` structured after `RECONCILED`, `idempotency_record` · role `app_quotation` |
-| **Code status** | **SKELETON**. Paths CONTRACTED (HLD §5.1/§5.3); bodies **PROPOSED** from the domain model, DDL and the IF-1 adapter contract |
+| **Code status** | **PARTIAL — persistence only** (`SUG-20261021-lft`): DynamoDB working-state store, envelope encryption (AES-GCM, KMS data key), materialiser into structured Aurora rows, `POST /internal/v1/events/payment-reconciled`, `GET /internal/v1/quotes/{quoteId}/selected`; tested against embedded DynamoDB Local. Public command API not built. Paths CONTRACTED (HLD §5.1/§5.3); bodies **PROPOSED** from the domain model, DDL and the IF-1 adapter contract |
 
 ---
 

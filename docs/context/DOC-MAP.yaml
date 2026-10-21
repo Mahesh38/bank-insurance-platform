@@ -19,7 +19,7 @@ schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
 document_count: 740
-total_bytes: 22095120
+total_bytes: 22098040
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -4261,7 +4261,7 @@ documents:
     persona: null
     title: "Suggestion Register"
     answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 419585
+    bytes: 419851
   - path: docs/governance/runbooks/AUTOPILOT-FAILURE-RUNBOOK.md
     bucket: governance
     authority: binding-process
@@ -5237,7 +5237,7 @@ documents:
     persona: engineering
     title: "proposal-service — Proposal and underwriting tracking, Life cell (#11)"
     answers: "← API reference home"
-    bytes: 6911
+    bytes: 7186
   - path: docs/platform/api-reference/services/quotation-service.md
     bucket: platform
     authority: ai-drafted
@@ -5245,7 +5245,7 @@ documents:
     persona: engineering
     title: "quotation-service — Quotation, Life cell (#10)"
     answers: "← API reference home"
-    bytes: 8234
+    bytes: 8555
   - path: docs/platform/api-reference/services/reporting-mis-service.md
     bucket: platform
     authority: ai-drafted
@@ -5421,7 +5421,7 @@ documents:
     persona: database
     title: "06 — Journey orchestrator structure and JSON-until-payment"
     answers: "Decision: DB-DEC-0004"
-    bytes: 30431
+    bytes: 30799
   - path: docs/platform/data-architecture/DATA-001.work-item.yaml
     bucket: platform
     authority: ai-drafted
@@ -5645,7 +5645,7 @@ documents:
     persona: database
     title: "20 — DynamoDB working-payload tables (quotation, proposal)"
     answers: "Design artefact for DB-DEC-0005. Provisioned by"
-    bytes: 7721
+    bytes: 9411
   - path: docs/platform/data-architecture/schemas/90-routines.sql
     bucket: platform
     authority: ai-drafted

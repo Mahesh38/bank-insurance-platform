@@ -139,3 +139,18 @@ service's own keys. Journey, Payment and every other service: **no DynamoDB perm
 DynamoDB Local (or LocalStack) container in compose; tables created by a test fixture mirroring
 the Terraform definition. Integration tests use Testcontainers. Endpoint override via
 `AWS_DYNAMODB_ENDPOINT` only in `local`/`test` profiles.
+
+## 6. As built (`SUG-20261021-lft`) — deviations to resolve
+
+Code: `services/quotation-service`, `services/proposal-service` (`adapter.dynamodb`, `adapter.crypto`,
+`application.*Materializer`). Tested against embedded DynamoDB Local 2.6.1.
+
+| # | Deviation | Why | Decision needed |
+|---|---|---|---|
+| 1 | Materialise uses `ON CONFLICT DO NOTHING` without a conflict target | H2 (PostgreSQL mode) rejects the targeted form | Also swallows a `ux_offer_selected` violation on Postgres; the domain prevents two selected offers. Aarti to accept or ask for Postgres-only SQL |
+| 2 | Partial unique indexes (`ux_offer_selected`, `ux_proposal_application`) live in Postgres-only vendor migrations (`db/vendor/postgresql`); H2 gets an equivalent | Portability | — |
+| 3 | `INVALID` offers with non-positive premium / sum assured get no `quotation.offer` row | `ck_offer_positive` in 08 conflicts with "one row per envelope offer" | Aarti / Product: relax the CHECK for `INVALID`, or accept |
+| 4 | `proposal.form_values_ref` (NOT NULL) points at the frozen DynamoDB item, which expires 30 days after materialise | No durable evidence store for form values yet | **Open — needs a decision**: S3 evidence object (recommended) or longer frozen-item TTL |
+| 5 | Proposal materialises to `PAID`, not `CONVERTED` | `proposal-service.md` §3.5 | Align §3.4 wording |
+| 6 | The encrypted data key is packed inside `payloadEnc`; AAD binds ciphertext to the item key; outbox items `ttl` = write + 7 days | Simpler item shape | — |
+| 7 | Not built: stream outbox publisher, GSI1 queries, daily repair sweep, a Payment read for proposals, `paymentEnded` endpoint | No MSK / Payment code yet | S11 |

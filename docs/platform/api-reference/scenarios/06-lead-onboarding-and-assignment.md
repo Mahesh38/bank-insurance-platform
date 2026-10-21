@@ -17,12 +17,15 @@ sequenceDiagram
     autonumber
     participant App as NIP-APP
     participant BFF as BFF (LeadFacade)
+    participant PDP as identity-authorization (PDP)
     participant LS as lead-service
     participant EX as Exception engine (stub today; AUBIMA target)
     participant SP as SP certification (fixture today; IRDAI / bank register target)
     App->>BFF: GET /api/v1/branches · /branches/{b}/specified-persons · /verticals/{v}/relationship-managers
     BFF-->>App: assignment pickers (fixture directory)
     App->>BFF: POST /api/v1/leads/{leadId}/assignment {assignedRmId: "SP-1001", assignedSpId?}
+    BFF->>PDP: decide lead.assign (300 ms, fail closed)
+    PDP-->>BFF: allowed (deny → 403 mapped code, nothing below runs)
     BFF->>LS: GET /internal/v1/leads/{leadId}
     alt exceptionOutcome = NOT_EVALUATED
         BFF->>LS: POST /internal/v1/leads/{leadId}/onboarding

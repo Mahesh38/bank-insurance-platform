@@ -43,7 +43,7 @@ hub_dispatch(canonical_request, principal):
 ## 3. How the three ids relate
 
 ```text
-quotation.quote_working.quote_id  (bank, ULID)            ← the RM's handle
+quotation-working QUOTE#{quoteId}  (bank, ULID, DynamoDB) ← the RM's handle
         └─ provider_job_id ──────► bank_persistence.integration_job.job_id   (adapter, UUID)
                                          └─ external_req_id ──► 1SB reqId   (provider — never returned upward)
         journey_id is stored on both the quote and the adapter job for tracing

@@ -59,8 +59,8 @@ Decision record: `ADR-008` (ownership is invariant, one Aurora cluster at R0), `
 | `suitability-service` | `suitability` | `app_suitability` / `migrator_suitability` | `suitability`, `suitability_answer_set` (encrypted answers), `suitability_mapping_run`, `idempotency_record`, `outbox_event` | — |
 | `product-catalogue-service` | `catalogue` | `app_catalogue` / `migrator_catalogue` | `insurer`, `product`, `eligibility_band` | Valkey prefix `catalogue:` |
 | `journey-orchestration-service` | `journey` | `app_journey` / `migrator_journey` | `journey`, `journey_ref`, `journey_transition`, `outbox_event`, `idempotency_record` | — |
-| `quotation-service` | `quotation` | `app_quotation` / `migrator_quotation` | `quote_working` (encrypted JSON envelope until payment), `quote`, `offer` (structured after `RECONCILED`), `idempotency_record` | — |
-| `proposal-service` | `proposal` | `app_proposal` / `migrator_proposal` | `proposal_working`, `proposal`, `uw_requirement`, `uw_document_ref`, `idempotency_record` | — |
+| `quotation-service` | `quotation` | `app_quotation` / `migrator_quotation` | `quote`, `offer` (structured after `RECONCILED`), `idempotency_record` | **DynamoDB `{env}-quotation-working`** — pre-payment working quote (`DB-DEC-0005`) |
+| `proposal-service` | `proposal` | `app_proposal` / `migrator_proposal` | `proposal`, `uw_requirement`, `uw_document_ref` (structured after `RECONCILED`), `idempotency_record` | **DynamoDB `{env}-proposal-working`** — pre-payment working proposal (`DB-DEC-0005`) |
 | `payment-service` | `payment` | `app_payment` / `migrator_payment` | `payment`, `payment_attempt`, `refund`, `outbox_event`, `idempotency_record` | — |
 | `policy-issuance-service` | `policy` | `app_policy` / `migrator_policy` | `policy`, `policy_document_ref`, `idempotency_record` | S3 prefix for policy PDFs |
 | `administration-config-service` | `administration` | `app_administration` / `migrator_administration` | `configuration_record` (INSERT-only, versioned, effective-dated) | — |
@@ -70,6 +70,8 @@ procedures, never deletes evidence) and `ro_breakglass` (time-bound human read, 
 **No human holds a standing write on an evidence table.**
 
 ### 2.2 Services that must not open Aurora (or DynamoDB)
+
+(DynamoDB is open only to `quotation-service` and `proposal-service`, each on its own table.)
 
 | Service | What it uses instead | Why |
 |---|---|---|
@@ -82,13 +84,23 @@ procedures, never deletes evidence) and `ro_breakglass` (time-bound human read, 
 | `reporting-mis-service` | Isolated reader / S3 + Athena extract | Never the Lead or Payment writer (`C-ISO-1`) |
 | `direct-insurer-adapter-service` | Out of R0; when admitted, same pattern as 1SB | Must sit behind the Hub |
 
-### 2.3 DynamoDB — the R0 list is empty
+### 2.3 DynamoDB — quote and proposal working state only (`DB-DEC-0005`)
 
-Older diagrams (HLD Boundary 8, `architecture-review/05`) put journey state, quote jobs and audit
-events in DynamoDB. **The R0 DBA ruling rejects all of them** ([04 §3.2](../../data-architecture/04-store-segregation-and-roadmap.md#32-dynamodb--r0-access-list-is-empty)):
-no Dynamo tables, no Dynamo IAM grants, no principals. Treat any `dynamodb:*` grant to a platform
-service as a defect. A later introduction is a source-of-truth change needing a joint Aarti +
-Mahesh decision on measured evidence.
+**Owner decision, 2026-10-21 (Mahesh, HUMAN ratification):** DynamoDB is used **where it is
+required — the pre-payment working state of quotes and proposals**. Once the payment is
+`RECONCILED`, the owning service moves the data into **structured Aurora rows** and Aurora is the
+record ([payload storage §3](./payload-storage-and-transactions.md#3-working-state--dynamodb-until-payment-db-dec-0005-owner-decision-2026-10-21)).
+
+| DynamoDB table | Owner (only principal) | Holds | Never holds |
+|---|---|---|---|
+| `{env}-quotation-working` | `quotation-service` | Quote request, all insurer offers, selection — until materialised | The sold quote (that is `quotation.quote` / `offer`) |
+| `{env}-proposal-working` | `proposal-service` | Form answers, nominee, UW requirements — until materialised | The sold proposal (that is `proposal.*`) |
+
+Still **not** in DynamoDB: journey, payment, policy, consent, suitability, lead, customer,
+catalogue, identity, configuration, audit, adapter jobs. Any other `dynamodb:*` grant is a defect.
+Design: [`20-dynamodb-working-payload.md`](../../data-architecture/schemas/20-dynamodb-working-payload.md) ·
+decision: [`DB-DEC-0005`](../../data-architecture/DB-DEC-0005-dynamodb-working-payload.md) ·
+store map: [04 §3.2](../../data-architecture/04-store-segregation-and-roadmap.md#32-dynamodb--r0-access-list-amended-by-db-dec-0005).
 
 ---
 
@@ -126,9 +138,9 @@ journey-orchestration  [journey]           stage + refs only
 consent-service        [consent]           OTP evidence, write-once
 suitability-service    [suitability]       encrypted answers + mapping run
 product-catalogue      [catalogue]+Valkey  products, eligibility bands
-quotation-service      [quotation]         quote_working (encrypted JSON) → quote/offer after RECONCILED
+quotation-service      [Dynamo → quotation] working item (encrypted) → quote/offer in Aurora after RECONCILED
    └─ via integration-hub (no DB) → 1sb-integration-service (no DB) → bank-persistence [bank_persistence + S3]
-proposal-service       [proposal]          proposal_working → proposal/UW after RECONCILED
+proposal-service       [Dynamo → proposal]  working item → proposal/UW in Aurora after RECONCILED
 payment-service        [payment]           always structured; RECONCILED is the issuance gate
 policy-issuance        [policy] + S3 PDF   created only after RECONCILED
 audit-compliance       (no DB) → bank-persistence.audit_event (INSERT-only) → S3 WORM

@@ -52,7 +52,7 @@ uses `TERM`, `SAVING`, `ULIP`; Health and Motor are Phase 5.
 | Submit retries | **None.** Quote / proposal submits are never retried automatically — 1SB may have processed them. Recover by polling the `reqId` |
 | Polling | `AsyncJobPoller` on a dedicated `pollingExecutor`: base 1 s × 2, cap 30 s, max 20 attempts; each attempt recorded; exhaustion → job `TIMEOUT` (`POLL_TIMEOUT`); unexpected poll error → `FAILED` (`POLL_ERROR` / `UPSTREAM_BAD_RESPONSE`) |
 | Circuit breaker | Enabled: opens after 5 failures, 30 s open, 1 half-open success |
-| Raw payloads | REQ and RES bodies of quote, proposal and payment calls are sent to `bank-persistence-service` (encrypted there, 7 years). **Best effort** — a failed store logs a warning and does not fail the call |
+| Raw payloads | REQ and RES bodies of quote, proposal and payment calls are sent to `bank-persistence-service` (encrypted there, 7 years). **Proposal-submit and payment-link REQUESTS are evidence:** stored before the call, retried once, and if still failing the call is **not made** (`503 UPSTREAM_UNAVAILABLE`; a proposal job is marked `FAILED`). Quote traffic and all RESPONSES stay best effort (logged at ERROR as `RAW_PAYLOAD_CAPTURE_FAILED`) — after 1SB answered, failing would only invite a duplicate submit (`SUG-20261021-gap`) |
 | Audit | `AuditEventPublisher` emits e.g. `QUOTE_CREATED` (`PENDING`) with job id, lob, journey id, agent id. Audit failure never breaks the create path |
 | Errors | Platform `problem+json`; provider business errors normalised (`UPSTREAM_BUSINESS_ERROR`, `PROPOSAL_REJECTED`), never raw 1SB text |
 

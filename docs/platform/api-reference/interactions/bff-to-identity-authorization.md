@@ -8,7 +8,7 @@
 | **Style** | Synchronous HTTP |
 | **Budget** | Decisions: **300 ms, no retry, fail closed** (S-02). Resolve: login path |
 | **Data behind it** | Aurora `identity` schema (business users, roles, entitlements, branches, certifications) |
-| **Code status** | Resolve **IMPLEMENTED** and called at every login. Decision endpoint **IMPLEMENTED** in the PDP but **not yet called** by the BFF or domain services |
+| **Code status** | Resolve **IMPLEMENTED** and called at every login. Decisions **IMPLEMENTED** and called by the BFF before lead create and lead assign (`PolicyDecisionClient`, `SUG-20261021-gap`); not yet called for other actions or re-checked by domain services |
 
 ## 1. Two questions, two endpoints
 
@@ -37,7 +37,7 @@ PDP: find by `(provider, providerSubject)` → refresh profile; else create **ba
 `userType = BANK_EMPLOYEE`) before minting a session. The resolved `businessUserId`,
 `policyVersion` and `insurerCode` are stored in the session and become `X-Actor-Id` downstream.
 
-## 3. Decide (target wiring)
+## 3. Decide (wired for lead create / assign)
 
 ```text
 BFF action handler:
@@ -50,8 +50,14 @@ BFF action handler:
                                                SP_CERTIFICATION_REQUIRED | AUTHORIZATION_UNAVAILABLE)
   allowed                                 →  call the domain service
 Domain service (regulated actions): re-check the same decision itself — a BFF allow is not trusted
-across the hop (INV-ACT-01)
+across the hop (INV-ACT-01)  ← target
 ```
+
+As built (`PolicyDecisionClient`): own JDK HTTP client, connect + read **300 ms**
+(`workforce.authorization.decision-timeout`), no retry; `lead.create` sends
+`{type: "lead", branchCode: body.branchId, insurerCode: session.insurerCode, partnerVisible: true}`;
+`lead.assign` sends `{type: "lead", id: leadId}`. `regulatedAction` is `false` for both (the
+permission catalogue does not mark them regulated).
 
 The response's `policyVersion` lets a caller detect that the user's grants changed since login.
 Evaluation order and reason codes: [PDP page §2.2](../services/identity-authorization-service.md#22-post-internalv1authorizationdecisions).
@@ -62,9 +68,11 @@ Evaluation order and reason codes: [PDP page §2.2](../services/identity-authori
 |---|---|
 | PDP returns problem+json | `ErrorPropagation` keeps incident id + origin; the refusal reaches the RM as the PDP's code |
 | PDP unreachable | `503 IDENTITY_PROVIDER_UNAVAILABLE` at login; for decisions: **deny** (`403 AUTHORIZATION_UNAVAILABLE`) |
-| Partner not yet approved | Today a 500 from the PDP (unmapped) → upstream failure at login (known gap) |
+| Partner not yet approved | `403 FORBIDDEN` from resolve, propagated to the app |
+| Subject unknown to the PDP | `allowed: false`, `UNKNOWN_SUBJECT` → `403 DEFAULT_DENY` |
 
 ## 5. Sources
 
 - `services/workforce-access-bff/src/main/java/com/bank/workforce/bff/client/IdentityAuthorizationClient.java`
+- `services/workforce-access-bff/src/main/java/com/bank/workforce/bff/client/PolicyDecisionClient.java`
 - [identity-authorization-service](../services/identity-authorization-service.md) · [WS-3 registration IF-2](../../ws3-platform/00-WS3-ARCHITECTURE-REGISTRATION.md)

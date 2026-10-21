@@ -18,7 +18,7 @@ the failure this rule exists to prevent ([HLD §4.1](../../../architecture/R0-HL
 |---|---|
 | Header | `Idempotency-Key`, **required on every mutating platform API** |
 | Who supplies it | The client at the edge (NIP-APP generates a UUID per user action). **Server-derived** on internal hops from owning aggregate id + operation, e.g. `quote:{quoteId}:submit` — so a retried internal call cannot invent a new key |
-| Where it is stored | A row in the **owning service's own schema** (`<schema>.idempotency_record`), written in the **same database transaction** as the business change |
+| Where it is stored | In the **owning service's own store**, written in the **same transaction** as the business change: a `<schema>.idempotency_record` row in Aurora, or an `IDEM#{key}` item in the same `TransactWriteItems` for the DynamoDB working tables (`DB-DEC-0005`) |
 | Never stored in | Valkey / ElastiCache (`ADR-011` refuses this by name — a cache eviction would allow a double proposal or a double charge) |
 | Retention | 24 hours |
 | Same key, same body | Return the stored response with its original status |
@@ -91,8 +91,11 @@ Source: [`03-solution-architecture-r0.md` §5](../../ws3-platform/03-solution-ar
 | `1sb-integration-service` | `onesb.circuit-breaker.failure-threshold` / `open-wait-ms` / `half-open-success-threshold` | 5 / 30000 / 1 |
 | `workforce-access-bff` | `workforce.session.pending-login-ttl` / `completion-code-ttl` / `session-ttl` | 5 min / 1 min / 8 h |
 
-> The BFF's `RestClient` calls to the IdP adapter, PDP, lead and customer services do not set the
-> 300 ms / 2 s budgets above yet. That is a known gap against S-02 and S-20, not a decision.
+> **BFF budgets in code.** PDP decisions use a dedicated client with the **300 ms** S-02 budget
+> (`workforce.authorization.decision-timeout`) and fail closed. The IdP adapter, identity resolve,
+> lead and customer calls still share one client (connect 3 s, read 5 s) — the S-20 2 s budget is
+> not applied yet. A lead/customer call that gets no HTTP answer is now a typed
+> `503 UPSTREAM_UNAVAILABLE` (`SUG-20261021-gap`).
 
 ---
 

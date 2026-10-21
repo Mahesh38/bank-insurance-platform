@@ -37,7 +37,7 @@
 | Keycloak | Vendor database | Out of this pack; never the business PDP SoR |
 | Reporting | Not provisioned in R0 | Must not share this cluster |
 
-`architecture-review/05` proposed DynamoDB for Journey, Quotation and Audit. **Rejected for R0**
+`architecture-review/05` proposed DynamoDB for Journey, Quotation and Audit. **Journey and Audit stay rejected for R0; pre-payment quote/proposal working state is now DynamoDB (`DB-DEC-0005`, 2026-10-21)** — the original R0 ruling read: **Rejected for R0**
 in [`DB-DEC-0001`](./DB-DEC-0001-r0-physical-model.md): no volume evidence, would fork the
 already-shipping `audit_event` / job store, and Journey is a thin stage+refs row (INV-JRN-02),
 not a document store problem. Revisit when a measured access pattern says otherwise.
@@ -59,9 +59,9 @@ lead_lms.lead.lead_id
             ├── suitability.lead_id / journey_id
             │       ├── suitability_answer_set (⚑ ciphertext)
             │       └── suitability_mapping_run (INSERT-only evidence)
-            ├── quotation.quote_working.journey_id   (encrypted JSON until RECONCILED)
+            ├── DynamoDB quotation-working  QUOTE#id/META.journeyId (until RECONCILED, DB-DEC-0005)
             │       └── quotation.quote.journey_id ── offer.quote_id   (materialize)
-            ├── proposal.proposal_working.journey_id
+            ├── DynamoDB proposal-working   PROPOSAL#id/META.journeyId
             │       └── proposal.proposal.quote_id / offer_id / journey_id
             │               └── payment.payment.proposal_id
             │                       └── policy.policy.payment_id / proposal_id
@@ -156,8 +156,8 @@ DDL: [`14-audit_event_delta.sql`](./schemas/14-audit_event_delta.sql). Apply as 
 | `consent` | `consent` | Evidence columns write-once; state may move to WITHDRAWN/EXPIRED |
 | `suitability` | `suitability`, `suitability_answer_set`, `suitability_mapping_run`, `idempotency_record`, `outbox_event` | Header mutable until `LOCKED`; answer sets INSERT-only; mapping `run_state` may move CURRENT→INVALID. Term has no row |
 | `catalogue` | `insurer`, `product`, `eligibility_band` | Effective-dated; no in-place replace of an active version |
-| `quotation` | `quote_working`, `quote`, `offer`, `idempotency_record` | Pre-payment write is `quote_working` (`payload_enc` + selected_*). Structured `quote`/`offer` INSERT after Payment RECONCILED (`DATA-005`) |
-| `proposal` | `proposal_working`, `proposal`, `uw_requirement`, `uw_document_ref`, `idempotency_record` | Same working-then-structured pattern; form/nominee stay inside `payload_enc` until materialize (INV-PRP-05) |
+| `quotation` | `quote`, `offer`, `idempotency_record` | Pre-payment state is the DynamoDB item (`DB-DEC-0005`). Structured `quote`/`offer` INSERT after Payment RECONCILED; `idempotency_record` dedupes materialize events |
+| `proposal` | `proposal`, `uw_requirement`, `uw_document_ref`, `idempotency_record` | Pre-payment state in DynamoDB (`DB-DEC-0005`); form/nominee encrypted in the item until materialize (INV-PRP-05) |
 | `payment` | `payment`, `payment_attempt`, `refund`, `outbox_event`, `idempotency_record` | Always structured (money path). On the journey as `paymentId` + stages `PAYMENT_*`; independent schema — Journey never writes it (`DATA-005` §6) |
 | `policy` | `policy`, `policy_document_ref` | `policy_number` unique+immutable (INV-POL-02) |
 | `journey` | `journey`, `journey_ref`, `journey_transition`, `outbox_event`, `idempotency_record` | Stage + refs only (`INV-JRN-02`). `retain_until` / `archived_at`: unconverted (no `paymentId`) purge after operational window; paid path is `RET-7Y` |
@@ -234,7 +234,7 @@ CRUD stored procedures are **refused** (`DR-SP-01`).
 | `fn_protect_mapping_run` | trigger fn | Suitability | Mapping evidence frozen; `run_state` may change |
 | `fn_next_audit_sequence` | function | With audit delta | Allocate `sequence_no` per `journey_id` |
 | `fn_ipr_visible` | function | `lead_lms` / journey | Documents the `AC-4` SQL predicate |
-| `fn_freeze_working_payload` | trigger fn | `quotation.quote_working` / `proposal.proposal_working` | Reject `payload_enc` UPDATE after `materialized_at` (`DATA-005`) |
+| ~~`fn_freeze_working_payload`~~ | removed | — | Replaced by DynamoDB `ConditionExpression attribute_not_exists(materializedAt)` (`DB-DEC-0005`) |
 | `sp_retention_sweep` | procedure | **S09** | Selects rows past `retain_until` for the owning job; does not cross schemas |
 | `sp_purge_operational` | procedure | **S09** | Deletes `RET-OPERATIONAL` / expired idempotency keys / aged working envelopes |
 

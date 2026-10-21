@@ -22,5 +22,6 @@ this folder as a superuser against production (`DR-MIG-04`).
 | [`12-journey.sql`](./12-journey.sql) | Journey orchestration |
 | [`13-administration.sql`](./13-administration.sql) | Versioned configuration |
 | [`14-audit_event_delta.sql`](./14-audit_event_delta.sql) | OPEN-I3 / OPEN-I5 columns |
+| [`20-dynamodb-working-payload.md`](./20-dynamodb-working-payload.md) | DynamoDB tables for pre-payment quote and proposal state (`DB-DEC-0005`) — not PostgreSQL |
 | [`90-routines.sql`](./90-routines.sql) | Triggers, sequence, visibility, S09 purge |
 | [`91-grants.sql`](./91-grants.sql) | Least-privilege grants |

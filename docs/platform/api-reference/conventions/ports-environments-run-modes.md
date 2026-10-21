@@ -16,7 +16,7 @@ response, log line and metric tag (`bank.error.service-id`).
 | `workforce-access-bff` | 8084 | `bff` | L4 | **PUBLIC** (redacts) | Valkey/Redis or in-memory |
 | Keycloak (compose) | 8085 | — | — | — | Keycloak DB |
 | `customer-service` | 8090 | `customer` | L5 | INTERNAL | H2 (Flyway V1 placeholder) |
-| `lead-service` | 8091 | `lead` | L5 | INTERNAL | In-memory `LeadRepository` (H2 + placeholder Flyway V1 configured, not used for leads) |
+| `lead-service` | 8091 | `lead` | L5 | INTERNAL | `JdbcLeadRepository` → `lead_lms.lead` (H2 locally, Flyway `V2`); `lead.store=memory` for the in-memory repository |
 | `consent-service` | 8092 | `consent` | L5 | INTERNAL | Skeleton |
 | `suitability-service` | 8093 | `suitability` | L5 | INTERNAL | Skeleton |
 | `product-catalogue-service` | 8094 | `catalogue` | L5 | INTERNAL | Skeleton |

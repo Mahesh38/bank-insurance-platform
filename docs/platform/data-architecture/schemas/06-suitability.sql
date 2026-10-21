@@ -33,7 +33,7 @@ CREATE TABLE suitability.suitability (
     updated_at                  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     version                     BIGINT                   NOT NULL DEFAULT 0,
     CONSTRAINT ck_suit_lob CHECK (lob IN ('LIFE', 'HEALTH', 'GENERAL')),
-    CONSTRAINT ck_suit_product CHECK (product_class IN ('SAVINGS', 'ULIP')),
+    CONSTRAINT ck_suit_product CHECK (product_class IN ('TERM', 'SAVINGS', 'ULIP')),  -- D-022: Term has its own protection question set
     CONSTRAINT ck_suit_state CHECK (state IN (
         'IN_PROGRESS', 'COMPLETED', 'NO_PRODUCT_FOUND', 'LOCKED',
         'OVERRIDDEN', 'SUPERSEDED', 'EXPIRED', 'ABANDONED')),

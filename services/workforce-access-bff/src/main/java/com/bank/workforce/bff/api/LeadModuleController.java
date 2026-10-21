@@ -2,6 +2,7 @@ package com.bank.workforce.bff.api;
 
 import com.bank.workforce.bff.application.LeadFacade;
 import com.bank.workforce.bff.application.LeadFacade.ActiveLeadPage;
+import com.bank.workforce.bff.client.PolicyDecisionClient;
 import com.bank.workforce.bff.lead.LeadGateway.CreateLeadCommand;
 import com.bank.workforce.bff.lead.LeadGateway.LeadRecord;
 import com.bank.workforce.bff.session.SessionModels.WorkforceSession;
@@ -25,9 +26,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class LeadModuleController {
 
   private final LeadFacade leads;
+  private final PolicyDecisionClient authorization;
 
-  public LeadModuleController(LeadFacade leads) {
+  public LeadModuleController(LeadFacade leads, PolicyDecisionClient authorization) {
     this.leads = leads;
+    this.authorization = authorization;
   }
 
   @GetMapping("/workspace/pipeline")
@@ -41,6 +44,7 @@ public class LeadModuleController {
   public ResponseEntity<LeadRecord> create(
       HttpServletRequest request, @Valid @RequestBody CreateLeadRequest body) {
     WorkforceSession session = BffSessionInterceptor.requireSession(request);
+    authorization.require(session, "lead.create", "lead", null, body.branchId(), false);
     LeadRecord created =
         leads.create(
             new CreateLeadCommand(
@@ -73,6 +77,7 @@ public class LeadModuleController {
       @PathVariable String leadId,
       @Valid @RequestBody AssignLeadRequest body) {
     WorkforceSession session = BffSessionInterceptor.requireSession(request);
+    authorization.require(session, "lead.assign", "lead", leadId, null, false);
     return leads.assign(leadId, body.assignedRmId(), body.assignedSpId(), actorId(session));
   }
 

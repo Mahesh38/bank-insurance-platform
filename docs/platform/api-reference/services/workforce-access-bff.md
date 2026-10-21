@@ -206,7 +206,7 @@ session **including encrypted provider tokens** → `WEB`: `302` to `returnUri` 
 | 302 | — | Success |
 | 400 | `SCHEMA_INVALID` | State unknown / expired / already used |
 | 401 | `AUTHENTICATION_FAILED` | Business identity resolved but not `ACTIVE` (refresh token is revoked first) |
-| 5xx (upstream) | propagated | Partner has no approved business user yet: authz throws an unmapped `IllegalStateException` ("Partner identity must be approved before first login"), which reaches the BFF as a 500 and is surfaced as an upstream failure — **known gap**, target is a typed `403` |
+| 403 | `FORBIDDEN` (propagated from authz) | Partner has no approved business user yet ("Partner identity must be approved before first login"). Was an unmapped 500 until `SUG-20261021-gap` |
 | 503 | `IDENTITY_PROVIDER_UNAVAILABLE` | Adapter or PDP down |
 
 ### 2.4 `POST /api/v1/auth/native-session`
@@ -250,9 +250,16 @@ All require a valid session (`401 SESSION_INVALID` / `401 SESSION_EXPIRED` other
 **always** `session.businessUserId` (fallback `username`), forwarded as `X-Actor-Id`. No body field
 can change it.
 
-> **Gap — PDP not yet called on these routes.** HLD `S-02` says the BFF calls the PDP before
-> regulated actions. Today the BFF relies on the session and on lead-service's book scoping. Adding
-> `POST /internal/v1/authorization/decisions` before `POST /leads` and assignment is target work.
+> **PDP gate (S-02, `SUG-20261021-gap`).** Before forwarding `POST /api/v1/leads` and
+> `POST /api/v1/leads/{leadId}/assignment`, the BFF's `PolicyDecisionClient` calls
+> `POST /internal/v1/authorization/decisions` (`lead.create` with the body's `branchId`;
+> `lead.assign` with the lead id). It has its **own** HTTP client with a **300 ms** connect + read
+> budget (`workforce.authorization.decision-timeout`), no retry, and **fails closed**: timeout or
+> transport error → `403 AUTHORIZATION_UNAVAILABLE`; a deny → the mapped code
+> (`OUT_OF_BRANCH_SCOPE`, `DEFAULT_DENY`, … — see the [PDP page](./identity-authorization-service.md#22-post-internalv1authorizationdecisions)).
+> A session without a `businessUserId` is `DEFAULT_DENY` without a call. Reads (pipeline, get,
+> active-leads) still rely on lead-service's book scoping. Lead-service does not yet re-check the
+> decision itself (`INV-ACT-01`, target).
 
 ### 3.1 `GET /api/v1/workspace/pipeline`
 

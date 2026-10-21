@@ -3,6 +3,10 @@ package com.bank.identity.authz.application;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.bank.common.error.ErrorCodes;
+import com.bank.common.error.ServiceException;
+import com.bank.identity.authz.domain.AuthorizationModels.DecisionRequest;
+import com.bank.identity.authz.domain.AuthorizationModels.Resource;
 import com.bank.identity.authz.domain.IdentityTypes.UserType;
 import com.bank.identity.authz.persistence.BusinessUserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,6 +24,7 @@ class IdentityLifecycleIntegrationTest {
   @Autowired IdentityResolutionService identities;
   @Autowired BusinessUserRepository users;
   @Autowired JdbcClient jdbc;
+  @Autowired AuthorizationDecisionService decisions;
 
   @BeforeEach
   void insurerExists() {
@@ -42,8 +47,11 @@ class IdentityLifecycleIntegrationTest {
 
     assertThat(submitted.status()).isEqualTo("PENDING");
     assertThatThrownBy(() -> partnerUsers.approve(submitted.approvalId(), "maker-1"))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("Maker cannot approve");
+        .isInstanceOf(ServiceException.class)
+        .satisfies(
+            ex ->
+                assertThat(((ServiceException) ex).getErrorResponse().getCode())
+                    .isEqualTo(ErrorCodes.FORBIDDEN));
 
     String status = partnerUsers.approve(submitted.approvalId(), "checker-2");
 
@@ -123,7 +131,23 @@ class IdentityLifecycleIntegrationTest {
                         "unknown.partner",
                         "unknown@example.test",
                         null)))
-        .isInstanceOf(IllegalStateException.class)
-        .hasMessageContaining("must be approved");
+        .isInstanceOf(ServiceException.class)
+        .satisfies(
+            ex ->
+                assertThat(((ServiceException) ex).getErrorResponse().getCode())
+                    .isEqualTo(ErrorCodes.FORBIDDEN));
+  }
+
+  @Test
+  void unknownSubjectIsDeniedNotAServerError() {
+    var decision =
+        decisions.decide(
+            new DecisionRequest(
+                java.util.UUID.randomUUID(),
+                "lead.create",
+                new Resource("lead", null, null, null, null, null, true, false)));
+
+    assertThat(decision.allowed()).isFalse();
+    assertThat(decision.reasonCode()).isEqualTo("UNKNOWN_SUBJECT");
   }
 }

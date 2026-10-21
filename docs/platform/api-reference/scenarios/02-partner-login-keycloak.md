@@ -81,7 +81,7 @@ sequenceDiagram
 | Login | `returnUri` exactly in the allow-list (`WORKFORCE_WEB_RETURN_URI`, `WORKFORCE_NATIVE_RETURN_URI`) | `400 SCHEMA_INVALID` |
 | Callback | `state` exists and unused (5 min) | `400 SCHEMA_INVALID` ("Login transaction is invalid or expired") |
 | Token exchange | PKCE verifier matches; id-token audience, nonce, subject | Keycloak `400` or adapter failure → upstream error |
-| Resolve | Partner exists (approved) | Unknown partner → PDP 500 today (known gap) → upstream error |
+| Resolve | Partner exists (approved) | Unknown partner → `403 FORBIDDEN` ("must be approved before first login") |
 | Activation | `status = ACTIVE` | Refresh token **revoked**, then `401 AUTHENTICATION_FAILED` |
 | Native exchange | Completion code exists and unused (1 min) | `400 SCHEMA_INVALID` |
 

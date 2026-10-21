@@ -1,14 +1,17 @@
 package com.bank.workforce.bff.customer;
 
+import com.bank.common.error.ErrorCodes;
 import com.bank.common.error.ErrorPropagation;
 import com.bank.common.error.PlatformLayer;
 import com.bank.common.error.ProblemJsonReader;
 import com.bank.common.error.ServiceErrors;
+import com.bank.common.error.ServiceException;
 import com.bank.workforce.bff.config.DownstreamProperties;
 import java.util.List;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -50,6 +53,8 @@ public class HttpCustomerGateway implements CustomerGateway {
           .calling("customer", "search")
           .causedBy(ex)
           .toException();
+    } catch (RestClientException ex) {
+      throw unavailable(ex, "search");
     }
   }
 
@@ -68,7 +73,20 @@ public class HttpCustomerGateway implements CustomerGateway {
           .calling("customer", "get")
           .causedBy(ex)
           .toException();
+    } catch (RestClientException ex) {
+      throw unavailable(ex, "get");
     }
+  }
+
+  // No HTTP answer at all (refused, reset, timed out): a typed 503 the RM can retry, not a 500.
+  private ServiceException unavailable(RestClientException ex, String operation) {
+    return serviceErrors
+        .error(ErrorCodes.UPSTREAM_UNAVAILABLE)
+        .component("HttpCustomerGateway")
+        .operation(operation)
+        .reason("Customer service is unavailable")
+        .cause(ex)
+        .build();
   }
 
   public record SearchPage(List<CustomerHit> items) {}

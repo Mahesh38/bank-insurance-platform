@@ -24,7 +24,7 @@ The portal has five kinds of page. Start wherever your question is.
 | What happens, end to end, when a user does X | [Scenarios](#5-scenarios--what-happens-behind-the-scenes) | "What happens when an RM logs in?" |
 | Every endpoint one service exposes, with contract, validation and errors | [Service pages](#3-service-catalogue) | "What does `POST /internal/v1/leads` validate?" |
 | How service A talks to service B (protocol, auth, timeout, failure) | [Interaction pages](#4-interactions--how-services-talk-to-each-other) | "How does the BFF call the identity adapter?" |
-| Which database, schema, table or cache a service uses | [Data pages](#6-data--where-every-byte-lives) | "Who owns the `quote_working` table?" |
+| Which database, schema, table or cache a service uses | [Data pages](#6-data--where-every-byte-lives) | "Where does a quote live before payment?" |
 | The rules every API follows (headers, errors, idempotency) | [Conventions](#2-conventions-every-api-follows) | "Which header carries the session?" |
 
 ### 1.1 Status labels — read these before you write code
@@ -161,7 +161,7 @@ data it owns.
 | Service | Context | Code status | Owns data in | Page |
 |---|---|---|---|---|
 | `customer-service` | #4 Customer | **Implemented-partial** (CBS search/get via Apigee; no snapshot store yet) | Aurora `customer` (target) | [Customer](./services/customer-service.md) |
-| `lead-service` | #5 Lead | **Implemented-partial** (create, list, get, onboarding, assign, close; in-memory store) | Aurora `lead_lms` (target) | [Lead](./services/lead-service.md) |
+| `lead-service` | #5 Lead | **Implemented-partial** (create, list, get, onboarding, assign, close; `lead_lms.lead` persisted) | Aurora `lead_lms` | [Lead](./services/lead-service.md) |
 | `consent-service` | #6 Consent | Skeleton | Aurora `consent` | [Consent](./services/consent-service.md) |
 | `suitability-service` | #7 Suitability | Skeleton | Aurora `suitability` | [Suitability](./services/suitability-service.md) |
 | `product-catalogue-service` | #8 Catalogue | Skeleton | Aurora `catalogue` + Valkey `catalogue:` | [Product catalogue](./services/product-catalogue-service.md) |
@@ -177,8 +177,8 @@ data it owns.
 
 | Service | Context | Code status | Owns data in | Page |
 |---|---|---|---|---|
-| `quotation-service` | #10 Quotation | Skeleton | Aurora `quotation` | [Quotation](./services/quotation-service.md) |
-| `proposal-service` | #11 Proposal & UW | Skeleton | Aurora `proposal` | [Proposal](./services/proposal-service.md) |
+| `quotation-service` | #10 Quotation | Skeleton | DynamoDB working item → Aurora `quotation` after payment | [Quotation](./services/quotation-service.md) |
+| `proposal-service` | #11 Proposal & UW | Skeleton | DynamoDB working item → Aurora `proposal` after payment | [Proposal](./services/proposal-service.md) |
 
 ### 3.4 Integration
 
@@ -255,14 +255,14 @@ These are recorded so nobody "fixes" the wrong one. Owners named; this portal do
 
 | # | Topic | Older source says | Newer decision says | Portal follows | Owner |
 |---|---|---|---|---|---|
-| K-1 | DynamoDB in R0 | HLD Boundary 8 and `architecture-review/05`: journey, quote jobs and audit in DynamoDB | `DB-DEC-0003` / [`04-store-segregation`](../data-architecture/04-store-segregation-and-roadmap.md) §3.2: **no Dynamo principals, no tables at R0**; all in Aurora | Newer (Aurora) | Aarti + Mahesh |
+| K-1 | DynamoDB in R0 | HLD Boundary 8: journey, quote jobs and audit in DynamoDB · `DB-DEC-0003`: no DynamoDB at all | **Resolved 2026-10-21 by owner decision `DB-DEC-0005`:** DynamoDB for pre-payment quote and proposal working state only; structured Aurora after `RECONCILED`; journey and audit stay Aurora | `DB-DEC-0005` | Mahesh (decided) |
 | K-2 | Public login path | HLD §5.1: `POST /sessions`, `DELETE /sessions/current`, `GET /me` | Code: `POST /api/v1/auth/login`, `POST /api/v1/auth/logout`, `GET /api/v1/auth/session` | Code (implemented) | Mahesh (Board 1) |
 | K-3 | Bank AD path | `05-EXTERNAL-CALL-CATALOGUE` §1: AD reached by Keycloak only | 2026-09-14 human direction + `IAM-001`: AD-verify is a bank API called by `identity-provider-adapter-service` via Apigee private | Newer (AD-verify) | Deepali / Mahesh |
 | K-4 | 1SB egress allowlist | External call catalogue: our NAT EIPs | `ADR-020`: 1SB allowlists **Apigee** egress IPs | Newer (Apigee) | Mahesh |
 | K-5 | Idempotency store in the 1SB adapter | 1SB architecture §7.4: Redis, 24 h | Platform standard: owning service's database, never the cache. Code today: in-memory (`InMemoryIdempotencyStore`); multi-instance store is parked (Phase 5.4) | Code today, platform standard as target | Amit / Aarti |
 | K-6 | Lead create response | HLD §5.1: returns `leadId` **and** `journeyId` | Lead LLD 12 + code: create is Save only (`state NEW`); code sets `journeyId` = `leadId` as an inert placeholder until Journey #9 mints a real id | Code + LLD 12 | Mahesh / Rajal |
 | K-7 | 1SB proposal submit status | 1SB architecture §5.2: `202 Accepted` | Code: `201 Created` with `{proposalJobId, status}` | Code | Amit |
-| K-9 | Suitability on the Term path | Suitability BRD `BR-SUIT-002`: Term leads skip the Savings/ULIP questionnaire ("no row") | C1 / `INV-QUO-01`: no quote of any kind without an `ELIGIBLE` assessment | Neither — flagged as open; do not build an answer | Rajal / Shailja |
+| K-9 | Suitability on the Term path | Suitability BRD `BR-SUIT-002`: Term skips the Savings/ULIP question set; "a separate Term question set will be documented later" | C1 / `INV-QUO-01`: no quote without an assessment | **Resolved 2026-10-21 by owner decision `D-022` (rule pack v1.1 §2.3):** every product class has its own question set and matrix; Term uses the protection set (no horizon / risk questions); C1 applies to all | Mahesh (decided); bank Compliance content sign-off outstanding |
 | K-8 | Customer search internals | Contract 09: lead-first, `customers:resolve` + `customers:lookup` | Code: BFF calls `GET /internal/v1/customers/search` (CBS directly, no lead-first step yet) | Both shown; contract is the target | Mahesh / Amit |
 
 ---

@@ -26,6 +26,7 @@ public final class Lead {
   private ReportingClass reportingClass;
   private String journeyId;
   private Instant updatedAt;
+  private long version;
 
   public Lead(
       String leadId,
@@ -47,6 +48,87 @@ public final class Lead {
     this.exceptionOutcome = ExceptionOutcome.NOT_EVALUATED;
     this.reportingClass = ReportingClass.DIARY;
     this.journeyId = leadId; // inert journey reference until Journey context owns a real id
+  }
+
+  /**
+   * Rebuilds a stored lead. Only persistence adapters call this; every business transition still
+   * goes through the command methods below.
+   */
+  public static Lead restore(Snapshot snapshot) {
+    Lead lead =
+        new Lead(
+            snapshot.leadId(),
+            snapshot.customerId(),
+            snapshot.lob(),
+            snapshot.productClass(),
+            snapshot.branchId(),
+            snapshot.createdByPrincipalId(),
+            snapshot.createdAt());
+    lead.state = Objects.requireNonNull(snapshot.state());
+    lead.assignedRmId = snapshot.assignedRmId();
+    lead.assignedSpId = snapshot.assignedSpId();
+    lead.accountableSpId = snapshot.accountableSpId();
+    lead.exceptionHold = snapshot.exceptionHold();
+    lead.exceptionOutcome = Objects.requireNonNull(snapshot.exceptionOutcome());
+    lead.biGenerated = snapshot.biGenerated();
+    lead.reportingClass = Objects.requireNonNull(snapshot.reportingClass());
+    lead.journeyId = snapshot.journeyId();
+    lead.updatedAt = Objects.requireNonNull(snapshot.updatedAt());
+    lead.version = snapshot.version();
+    return lead;
+  }
+
+  /** Every persisted field, in one value — the shape a repository reads and writes. */
+  public record Snapshot(
+      String leadId,
+      String customerId,
+      String lob,
+      ProductClass productClass,
+      String branchId,
+      String createdByPrincipalId,
+      Instant createdAt,
+      LeadState state,
+      String assignedRmId,
+      String assignedSpId,
+      String accountableSpId,
+      boolean exceptionHold,
+      ExceptionOutcome exceptionOutcome,
+      boolean biGenerated,
+      ReportingClass reportingClass,
+      String journeyId,
+      Instant updatedAt,
+      long version) {}
+
+  public Snapshot snapshot() {
+    return new Snapshot(
+        leadId,
+        customerId,
+        lob,
+        productClass,
+        branchId,
+        createdByPrincipalId,
+        createdAt,
+        state,
+        assignedRmId,
+        assignedSpId,
+        accountableSpId,
+        exceptionHold,
+        exceptionOutcome,
+        biGenerated,
+        reportingClass,
+        journeyId,
+        updatedAt,
+        version);
+  }
+
+  /** Version of the stored row this instance was read from; 0 for a lead never saved. */
+  public long version() {
+    return version;
+  }
+
+  /** Called by a repository after a successful write. */
+  public void markPersisted(long newVersion) {
+    this.version = newVersion;
   }
 
   public String leadId() {

@@ -30,11 +30,11 @@ sequenceDiagram
     JO->>QS: POST /internal/v1/quotes {refs from journey_ref: suitabilityId, consentId}
     QS->>SU: GET …/validity?customerId&lob (500 ms, no retry)
     alt not usable / timeout
-        QS->>QS: quote_working REJECTED · outbox QuoteRejectedNoSuitability
+        QS->>QS: DynamoDB item REJECTED · outbox QuoteRejectedNoSuitability
         QS-->>JO: 403 SUITABILITY_REQUIRED
         JO-->>BFF: 403 (stage unchanged)
     end
-    QS->>QS: INSERT quote_working REQUESTED (encrypted request) + idempotency + outbox QuoteRequested
+    QS->>QS: DynamoDB TransactWriteItems: META REQUESTED (encrypted request) + IDEM + OPEN_QUOTE + OUTBOX QuoteRequested
     QS->>HUB: POST /internal/v1/provider-requests {QUOTE, MULTI} (key quote:{qid}:submit)
     HUB->>HUB: route LIFE/TERM → ONE_SB · inject distributor/agent · bulkhead
     HUB->>A: POST /v1/quotes (Idempotency-Key)
@@ -46,7 +46,7 @@ sequenceDiagram
     A->>P: raw RES · PATCH status RUNNING + externalReqId
     A-->>HUB: 202 {jobId, PENDING}
     HUB-->>QS: 202 {providerRequestId}
-    QS->>QS: quote_working IN_PROGRESS, provider_job_id
+    QS->>QS: UpdateItem IN_PROGRESS, providerJobId
     QS-->>JO: 202 {quoteId}
     JO->>JO: stage QUOTING · ref quoteId
     BFF-->>App: 202 {quoteId}
@@ -113,13 +113,13 @@ references, the Hub supplies attribution.
 
 | Data | Store |
 |---|---|
-| Bank quote (request + all offers) | `quotation.quote_working.payload_enc` (encrypted), control columns |
+| Bank quote (request + all offers) | DynamoDB `{env}-quotation-working`, item `QUOTE#{quoteId}/META`: `payloadEnc` (encrypted) + control attributes (`DB-DEC-0005`) |
 | Adapter job, offers, poll attempts | `bank_persistence.integration_job`, `integration_job_offer`, `job_poll_attempt` |
 | Exact 1SB request / response JSON | `bank_persistence.raw_payload` (AES-GCM, 7 years) |
 | Journey stage and `quoteId` / `offerId` | `journey.journey`, `journey_ref`, `journey_transition` |
 | Lead BI flag | `lead_lms.lead` (`bi_generated`, `reporting_class = ELIGIBLE`, `QUALIFIED`) |
 | Evidence | Outbox → MSK → audit: `QuoteRequested`, `QuoteCompleted`, `OfferSelected` (+ adapter `QUOTE_CREATED`) |
-| Structured `quote` / `offer` | **Only after** `PaymentReconciled` (materialisation) |
+| Structured `quote` / `offer` | Aurora `quotation`, **only after** `PaymentReconciled` (materialisation) |
 
 ## 5. Errors
 

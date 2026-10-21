@@ -20,8 +20,9 @@ flowchart TD
     C -->|no / valid| CTL[Controller → downstream with X-Actor-Id = businessUserId]
 ```
 
-Cost per call: one Valkey round trip + one AES-GCM decrypt. No IdP call, no PDP call (the PDP
-decision per regulated action is target work — see [BFF to PDP](../interactions/bff-to-identity-authorization.md)).
+Cost per call: one Valkey round trip + one AES-GCM decrypt. No IdP call and no PDP call for the
+session check itself; lead create and assign additionally ask the PDP (300 ms, fail closed) — see
+[BFF to PDP](../interactions/bff-to-identity-authorization.md).
 
 ## 2. `GET /api/v1/auth/session` — who am I
 

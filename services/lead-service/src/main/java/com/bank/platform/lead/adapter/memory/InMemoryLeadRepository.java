@@ -7,9 +7,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
+/** Test and local-only store. Selected with {@code lead.store=memory}; data is lost on restart. */
 @Repository
+@ConditionalOnProperty(name = "lead.store", havingValue = "memory")
 public class InMemoryLeadRepository implements LeadRepository {
 
   private final ConcurrentHashMap<String, Lead> byId = new ConcurrentHashMap<>();
@@ -17,6 +20,7 @@ public class InMemoryLeadRepository implements LeadRepository {
   @Override
   public void save(Lead lead) {
     byId.put(lead.leadId(), lead);
+    lead.markPersisted(lead.version() + 1);
   }
 
   @Override

@@ -2,8 +2,8 @@
 
 [← API reference home](../README.md) · Prev: [04](./04-customer-search.md) · Next: [06](./06-lead-onboarding-and-assignment.md)
 
-**Screens:** `SCR-05` product class → create. **Status:** IMPLEMENTED-PARTIAL (in-memory store; no
-idempotency key enforcement; no PDP call; no outbox yet).
+**Screens:** `SCR-05` product class → create. **Status:** IMPLEMENTED-PARTIAL (persisted in `lead_lms.lead`; BFF asks the PDP for
+`lead.create`; no idempotency key enforcement; no outbox yet).
 
 **Canonical order (`D-019`):** search → pick product class → **dedupe** → **Save** (this scenario)
 → Start Onboarding (exception rules) → assign SP → suitability. **Save never runs exception rules
@@ -16,8 +16,9 @@ sequenceDiagram
     autonumber
     participant App as NIP-APP
     participant BFF as BFF
+    participant PDP as identity-authorization (PDP)
     participant LS as lead-service
-    participant DB as lead_lms (target; in-memory today)
+    participant DB as lead_lms.lead
     App->>BFF: GET /api/v1/catalogue/product-classes
     BFF-->>App: LIFE/TERM, LIFE/SAVINGS, LIFE/ULIP (static today)
     App->>BFF: GET /api/v1/customers/{customerId}/active-leads?productClass=TERM
@@ -30,6 +31,8 @@ sequenceDiagram
     else none
         App->>BFF: POST /api/v1/leads {customerId, lob: LIFE, productClass: TERM, branchId}
         BFF->>BFF: @NotBlank customerId, lob, productClass
+        BFF->>PDP: decide lead.create {branchCode: branchId} — 300 ms, fail closed
+        PDP-->>BFF: allowed (deny → 403 OUT_OF_BRANCH_SCOPE / DEFAULT_DENY …)
         BFF->>LS: POST /internal/v1/leads (X-Actor-Id = businessUserId)
         LS->>LS: customerId/actor present · lob == LIFE · productClass ∈ TERM|SAVINGS|ULIP
         LS->>DB: find unfinished (creator, customer, class)

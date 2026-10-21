@@ -21,7 +21,7 @@ sequenceDiagram
     App->>BFF: POST /api/v1/journeys/{jid}/proposals
     BFF->>JO: create proposal (stage QUOTE_SELECTED)
     JO->>PS: POST /internal/v1/proposals {quoteId, offerId, consentId}
-    PS->>PS: offer is the SELECTED one · issuanceMode resolved · INSERT proposal_working DRAFT
+    PS->>PS: offer is the SELECTED one · issuanceMode resolved · DynamoDB PROPOSAL#id/META DRAFT
     JO->>JO: stage PROPOSAL_IN_PROGRESS · ref proposalId
     App->>BFF: GET form schema
     BFF->>PS: form-schema
@@ -72,11 +72,11 @@ sequenceDiagram
 
 ## 3. Where data goes
 
-`proposal.proposal_working` (form answers, nominee, requirements — encrypted; control columns
+DynamoDB `{env}-proposal-working` item (form answers, nominee, requirements — encrypted; control attributes
 `application_number`, `state`, `underwriting_state`, `schema_id`); adapter job + raw payloads in
 `bank_persistence`; journey refs `proposalId`, `applicationNumber`; outbox `ProposalSubmitted`,
-`UnderwritingDecision`. Structured `proposal`, `uw_requirement`, `uw_document_ref` appear only after
-payment reconciles.
+`UnderwritingDecision`. Structured `proposal`, `uw_requirement`, `uw_document_ref` appear in Aurora only after
+payment reconciles (`DB-DEC-0005`).
 
 ## 4. Pages
 

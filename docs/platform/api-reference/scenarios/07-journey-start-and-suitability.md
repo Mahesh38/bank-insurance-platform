@@ -6,8 +6,9 @@
 Paths follow HLD §5.1/§5.3; bodies are the PROPOSED shapes on the
 [suitability page](../services/suitability-service.md).
 
-> **Open (K-9):** the Suitability BRD skips the questionnaire for Term; C1 requires an `ELIGIBLE`
-> assessment before any quote. Rajal / Shailja to decide how Term satisfies C1.
+> **Per-class suitability (`D-022`):** the question set and matrix follow the lead's product class.
+> A Term journey asks the protection set — no investment horizon, no risk attitude. C1 applies to all
+> classes. See the [suitability page](../services/suitability-service.md).
 
 ## 1. Sequence
 
@@ -31,7 +32,7 @@ sequenceDiagram
     App->>BFF: POST /api/v1/journeys/{journeyId}/need-analysis {screen answers}
     BFF->>JO: need-analysis
     JO->>SU: POST /internal/v1/assessments (start / resume; edit lock)
-    SU->>CFG: questionnaire version (S-21, fail closed)
+    SU->>CFG: question set for (LIFE, productClass) + version (S-21, fail closed)
     JO->>SU: PUT …/answers (new encrypted answer-set version per screen)
     JO->>JO: stage NEED_ANALYSIS · ref suitabilityId
     App->>BFF: POST /api/v1/journeys/{journeyId}/suitability (evaluate)

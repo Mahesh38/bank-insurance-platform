@@ -53,8 +53,7 @@ GRANT SELECT, INSERT, UPDATE ON consent.consent TO app_consent;
 REVOKE DELETE ON consent.consent FROM app_consent;
 
 GRANT USAGE ON SCHEMA quotation TO app_quotation;
-GRANT SELECT, INSERT, UPDATE ON quotation.quote_working TO app_quotation;
-REVOKE DELETE ON quotation.quote_working FROM app_quotation;
+-- quote working state: DynamoDB {env}-quotation-working, IAM via IRSA (DB-DEC-0005)
 GRANT SELECT, INSERT ON quotation.quote TO app_quotation;
 GRANT SELECT, INSERT ON quotation.offer TO app_quotation;
 REVOKE UPDATE, DELETE ON quotation.quote FROM app_quotation;
@@ -62,8 +61,7 @@ REVOKE UPDATE, DELETE ON quotation.offer FROM app_quotation;
 GRANT SELECT, INSERT, UPDATE, DELETE ON quotation.idempotency_record TO app_quotation;
 
 GRANT USAGE ON SCHEMA proposal TO app_proposal;
-GRANT SELECT, INSERT, UPDATE ON proposal.proposal_working TO app_proposal;
-REVOKE DELETE ON proposal.proposal_working FROM app_proposal;
+-- proposal working state: DynamoDB {env}-proposal-working, IAM via IRSA (DB-DEC-0005)
 GRANT SELECT, INSERT ON proposal.proposal TO app_proposal;
 GRANT SELECT, INSERT ON proposal.uw_requirement TO app_proposal;
 GRANT SELECT, INSERT ON proposal.uw_document_ref TO app_proposal;

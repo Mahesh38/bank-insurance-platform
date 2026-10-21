@@ -12,7 +12,7 @@ quote and proposal jobs by the adapter, application / UW / issuance status by sc
 | Loop | Who runs it | Cadence | Writes | Ends when |
 |---|---|---|---|---|
 | **Job poll** (quote, proposal) | 1SB adapter `AsyncJobPoller` on `pollingExecutor` | 1 s × 2 → 30 s cap, ≤ 20 attempts | `job_poll_attempt` per try; final status + offers / application number on the job | `isPollComplete`, or `TIMEOUT` / `FAILED` |
-| **Result pull** (adapter → domain) | Quotation / Proposal via the Hub | On RM poll (S-11/S-12 budgets) or a scheduled sweep | Domain aggregate (`quote_working`, `proposal_working`) | Terminal canonical state |
+| **Result pull** (adapter → domain) | Quotation / Proposal via the Hub | On RM poll (S-11/S-12 budgets) or a scheduled sweep | Domain working item (DynamoDB `quotation-working`, `proposal-working`) | Terminal canonical state |
 | **Application status sync** (UW, requirements, issuance) | Proposal (UW) and Policy (issuance) via Hub `APPLICATION_STATUS` → adapter `GET /v1/status/{applicationNumber}` | Scheduled while non-terminal (S-16 re-check) | Proposal UW state + `uw_requirement`; Policy state | `UW_APPROVED`/`DECLINED`; `ISSUED`/`CONFIRMED`; SLA breach → overdue / disputed |
 
 ## 2. Status normalisation

@@ -14,6 +14,14 @@ Lead physical name on this stacked pack is schema `lead_lms` / table `lead` (`DA
 
 ---
 
+
+> **Superseded in part by [`DB-DEC-0005`](./DB-DEC-0005-dynamodb-working-payload.md) (2026-10-21, owner HUMAN ratification).**
+> Pre-payment quote and proposal working state now lives in **DynamoDB** (`{env}-quotation-working`,
+> `{env}-proposal-working`), not in Aurora `quote_working` / `proposal_working`. Wherever this document says
+> `quote_working` or `proposal_working`, read the DynamoDB item `QUOTE#{id}/META` / `PROPOSAL#{id}/META`
+> ([table design](./schemas/20-dynamodb-working-payload.md)). Ownership, JSON-until-payment, materialise on
+> `RECONCILED`, and everything about Journey and Payment are **unchanged**.
+
 ## 1. How to read the diagrams
 
 | Mark | Meaning |
@@ -594,7 +602,7 @@ erDiagram
 
 ## 9. `suitability`
 
-Savings/ULIP questionnaire only (`BR-SUIT-001`). Term leads have no row (`BR-SUIT-002`). Column sheet: [`03-lead-suitability-e2e.md`](./03-lead-suitability-e2e.md).
+Per-product-class question sets (`D-022`): Term protection set, Savings set, ULIP set; every class writes a row. Column sheet: [`03-lead-suitability-e2e.md`](./03-lead-suitability-e2e.md).
 
 ```mermaid
 erDiagram

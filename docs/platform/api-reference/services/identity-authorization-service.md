@@ -58,12 +58,14 @@ Response `200`:
 3. Not found and `userType = BANK_EMPLOYEE` → `INSERT business_user` with `status = ACTIVE`
    (just-in-time provisioning: AD already proved the person is an active employee).
 4. Not found and `INSURER_REPRESENTATIVE` → refused: partners must be created and approved first
-   (§2.3–§2.4). Today this is an unmapped `IllegalStateException` → **500** (known gap; target a
-   typed `403`).
+   (§2.3–§2.4). Returns **`403 FORBIDDEN`** ("Partner identity must be approved before first
+   login") — fixed under `SUG-20261021-gap`; it used to be an unmapped 500.
 
 > A freshly created bank employee has **no roles**. Every decision for them is `DEFAULT_DENY`
 > until a `user_role` row (and, for regulated actions, a valid `certification`) exists. Seeding
-> or syncing roles from bank HR is open WS-2 work.
+> or syncing roles from bank HR is open WS-2 work. Locally, grant a test RM a role and branch with
+> [`scripts/local/grant-local-rm.sql`](../../../../scripts/local/grant-local-rm.sql) after the first
+> login — since the BFF now asks the PDP before lead create/assign, an ungranted user gets `403`.
 
 ### 2.2 `POST /internal/v1/authorization/decisions`
 
@@ -111,10 +113,22 @@ Response `200` (a deny is a `200` with `allowed: false` — the caller converts 
 Facts are loaded per call from `business_user`, `user_role` ⨝ `role_permission`, `entitlement`,
 `user_branch_assignment` and `certification` — each filtered by `valid_from <= now < valid_until`.
 
+A `subjectId` that is not a known business user is answered **`allowed: false`,
+`reasonCode: UNKNOWN_SUBJECT`** (it used to be an unmapped 500).
+
 **Caller contract (S-02):** 300 ms, **no retry**, **fail closed** — a timeout or error is a deny
-(`403 AUTHORIZATION_UNAVAILABLE`), never a degraded allow. Map deny reasons to the registry:
-`DEFAULT_DENY`, `EXPLICIT_DENY`, `ACCOUNT_SUSPENDED`, `CROSS_INSURER_DENIED`,
-`OUT_OF_BRANCH_SCOPE`, `SP_CERTIFICATION_REQUIRED`.
+(`403 AUTHORIZATION_UNAVAILABLE`), never a degraded allow. The BFF's `PolicyDecisionClient` maps
+reason codes to the registry:
+
+| `reasonCode` | Error code returned to the app |
+|---|---|
+| `ACCOUNT_NOT_ACTIVE` | `ACCOUNT_SUSPENDED` |
+| `CROSS_INSURER_ACCESS` | `CROSS_INSURER_DENIED` |
+| `EXPLICIT_DENY` | `EXPLICIT_DENY` |
+| `BRANCH_OUT_OF_SCOPE` | `OUT_OF_BRANCH_SCOPE` |
+| `RESOURCE_NOT_SHARED_WITH_PARTNER` | `RESOURCE_NOT_FOUND` (do not confirm the resource exists) |
+| `MANDATORY_CERTIFICATION_INVALID` | `SP_CERTIFICATION_REQUIRED` |
+| `DEFAULT_DENY`, `UNKNOWN_SUBJECT`, anything else | `DEFAULT_DENY` |
 
 ### 2.3 `POST /internal/v1/partner-users` (maker)
 

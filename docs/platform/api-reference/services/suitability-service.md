@@ -12,12 +12,24 @@
 | **Owns data** | Aurora schema **`suitability`** · role `app_suitability` |
 | **Code status** | **SKELETON** (`GET /internal/v1/suitability/info`). All business endpoints below are CONTRACTED (paths, HLD §5.3) with **PROPOSED** bodies drafted from the Suitability BRD, the domain model and the DDL |
 
-> **Open item (K-9).** The Suitability BRD says Term leads **skip** the Savings/ULIP questionnaire
-> (`BR-SUIT-002`, "a Term lead has no row"), while C1 / `INV-QUO-01` require an `ELIGIBLE`
-> assessment before **any** quote. How Term satisfies C1 (a lighter Term need-analysis assessment, or
-> a Compliance ruling) is undecided — owners Rajal (Product) and Shailja (Compliance). Do not build
-> either answer without that decision. A second open item, `OPEN-SUI-IMMUTABLE`, is whether a saved
-> edit of a completed assessment keeps the same id (BRD) or mints a new one (`INV-SUI-01`).
+> **Per-product-class suitability (decided 2026-10-21, `D-022`).** Each product class has its **own
+> question set and matrix**, resolved from configuration by `(lob, productClass)` — the seller
+> never picks it. **Term** asks the protection set (income, dependants, existing cover,
+> liabilities, premium, tobacco, occupation, prior decline, replacement) and **does not ask
+> investment horizon or risk attitude**; Savings adds objective and horizon; ULIP adds objective,
+> horizon and risk attitude. C1 still applies to every class: a Term quote needs a Term evaluation
+> that permits Term. A Term evaluation can never authorise a ULIP quote (`SUIT-R01c`). Rules:
+> [rule pack §2.3](../../../au-bank-insurance-platform/rule-packs/suitability-rule-pack.md#23-question-sets-by-product-class-v11-amendment--d-022).
+> Still open: `OPEN-SUI-IMMUTABLE` (same id vs new id on a saved edit) and Compliance sign-off of
+> each set's content (`OPEN-SUIT-01`).
+
+### Question sets at a glance
+
+| Class | Asked (besides 4 derived CBS inputs) | Not asked | Outcome rules |
+|---|---|---|---|
+| `TERM` | SQ-01 income, SQ-02 dependants, SQ-03 existing cover, SQ-04 liabilities, SQ-08 premium, SQ-09 tobacco, SQ-10 occupation, SQ-11 prior decline, SQ-12 replacement | objective, horizon, risk attitude | SUIT-R09–R12: protection gap + affordability |
+| `SAVINGS` | Term set + SQ-05 objective, SQ-06 horizon | risk attitude | SUIT-R13–R15 |
+| `ULIP` | SQ-01, SQ-05, SQ-06, SQ-07 risk attitude, SQ-08–SQ-12 | dependants, existing cover, liabilities | SUIT-R16–R19 |
 
 ---
 
@@ -42,14 +54,14 @@
 Headers: `X-Actor-Id`, `Idempotency-Key` (server-derived: `journey:{journeyId}:suitability`).
 
 ```json
-{ "leadId": "01JQ…", "journeyId": "01JQ…", "customerId": "CUST-0433", "lob": "LIFE", "productClass": "ULIP" }
+{ "leadId": "01JQ…", "journeyId": "01JQ…", "customerId": "CUST-0433", "lob": "LIFE", "productClass": "TERM" }
 ```
 
-Validation: all ids present; `lob = LIFE`; `productClass` ∈ `SAVINGS` | `ULIP` (and Term per K-9);
+Validation: all ids present; `lob = LIFE`; `productClass` ∈ `TERM` | `SAVINGS` | `ULIP` (taken from the lead, never from the client);
 actor must be the lead's accountable SP or an allowed process-further actor (`INV-ACT-01`,
 `D-019`) — PDP `suitability.perform`; lead not on exception hold.
 
-Behind the scenes: resolve the questionnaire version from configuration (fail closed if
+Behind the scenes: resolve **the question set for this product class** and its version from configuration (fail closed if
 unresolvable → `422 CONFIGURATION_UNRESOLVABLE`); one current assessment per lead (partial unique on
 `lead_id` for non-`SUPERSEDED`/`ABANDONED`) — an existing one is returned (resume) rather than a
 second created; set `edit_lock_actor_id` / `edit_lock_until`; `INSERT suitability` +
@@ -58,7 +70,7 @@ second created; set `edit_lock_actor_id` / `edit_lock_until`; `INSERT suitabilit
 Response `201`:
 
 ```json
-{ "suitabilityId": "01JR…", "state": "IN_PROGRESS", "questionnaireVersion": "LIFE-ULIP-v3",
+{ "suitabilityId": "01JR…", "state": "IN_PROGRESS", "productClass": "TERM", "questionnaireVersion": "LIFE-TERM-PROTECTION-v1.0",
   "currentAnswerSetVersion": 0, "lastScreenId": null, "editLockUntil": "2026-10-21T10:30:00Z" }
 ```
 
@@ -67,12 +79,22 @@ CONFLICT` (exception hold), `422 CONFIGURATION_UNRESOLVABLE`.
 
 ### 2.2 `PUT /internal/v1/assessments/{suitabilityId}/answers`
 
+Term (protection set — no horizon, no risk attitude):
+
 ```json
-{ "screenId": "S6", "answers": { "policyFor": "SELF", "lifeStage": "MARRIED_WITH_CHILDREN",
-  "riskPreference": "MODERATE", "primaryGoal": "WEALTH_CREATION", "occupation": "SALARIED",
-  "annualIncomeInr": 1500000, "tobacco": false, "existingLifeCover": true,
-  "premiumAmountInr": 100000, "premiumFrequency": "ANNUAL", "premiumPayingTerm": 10, "policyTerm": 20 } }
+{ "screenId": "TERM-1", "answers": { "SQ-01": 1500000, "SQ-02": 2, "SQ-03": 500000, "SQ-04": 3000000,
+  "SQ-08": 25000, "SQ-09": false, "SQ-10": "SALARIED", "SQ-11": "NO", "SQ-12": false } }
 ```
+
+ULIP (adds objective, horizon, risk attitude):
+
+```json
+{ "screenId": "ULIP-2", "answers": { "SQ-01": 1500000, "SQ-05": "WEALTH_GROWTH", "SQ-06": "Y10_20",
+  "SQ-07": "MODERATE", "SQ-08": 100000, "SQ-09": false, "SQ-10": "SALARIED", "SQ-11": "NO", "SQ-12": false } }
+```
+
+An answer outside the class's set is rejected (`422 VALIDATION_ERROR`); a missing one is reported
+by `evaluate` as `422 SUITABILITY_INCOMPLETE`.
 
 Behind the scenes: caller must hold the edit lock; validate against the questionnaire version;
 encrypt the whole answer document (⚑ RESTRICTED); `INSERT suitability_answer_set` (version + 1);
@@ -86,8 +108,8 @@ returned in plaintext by any read endpoint.**
 Behind the scenes (`S-07`, 3 s):
 
 1. Load latest answer set; decrypt in process.
-2. Resolve the mapping rule pack (version) for `(lob, productClass)` from configuration — fail
-   closed.
+2. Resolve the matrix for `(lob, productClass)` from configuration — fail closed. Every input of
+   that class's set must be present (`SUIT-R01a`).
 3. Derive `proposer_age_years` (age, not DOB) and the non-PII mapping inputs.
 4. Ask product-catalogue for eligible products in the matrix (Group A insurer, R0 classes).
 5. `INSERT suitability_mapping_run` (`run_state = CURRENT`, `mapping_result` `PRODUCTS` | `NONE`,

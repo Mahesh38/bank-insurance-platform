@@ -6,6 +6,7 @@
 **Author:** Rajal — Principal Insurance Platform Product Owner (Board 3 / R1)
 **Date:** 2026-08-16
 **Scope of this version:** R0 — Life LOB (Term, Savings/Endowment, ULIP), ETB customers, RM-assisted
+**Amended:** v1.1 (2026-10-21) — question sets by product class, §2.3 (`D-022`, owner direction)
 
 > **Authority boundary.** The suitability *hard-gate* is already a locked decision
 > ([D-005](../DECISION-LOG.md), [WD §8](../07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md#8-suitability--need-analysis)):
@@ -38,7 +39,8 @@ pack exists to make that sentence executable.
 
 ## 2. The need-analysis question set
 
-Twelve inputs. Four are derived from CBS and never asked; eight are asked. A questionnaire longer
+Twelve inputs in the master list. Four are derived from CBS and never asked; up to eight are asked.
+**Which ones are asked depends on the product class — see §2.3 (v1.1).** A questionnaire longer
 than this in an RM-assisted branch conversation is completed dishonestly, which defeats its
 purpose.
 
@@ -74,6 +76,49 @@ purpose.
 | **SUIT-R02** | Answers MUST be stored verbatim alongside the outcome, with the questionnaire version. | Retrieve an evaluation; all 12 raw answers and `questionnaireVersion` are present. |
 | **SUIT-R03** | Where a self-declared value (`SQ-03`, `SQ-04`) is lower than the bank-known value (`SQ-D03`, `SQ-D04`), the **higher** value MUST be used and the discrepancy recorded. | Set `SQ-03` = 0 with `SQ-D03` = 500000. Computation uses 500000; `dataInconsistencyFlags` contains `EXISTING_COVER_UNDERSTATED`. |
 | **SUIT-R04** | `SQ-11 = YES` or `DONT_KNOW` MUST set `underwritingRiskFlag = true` on the evaluation. It does not by itself change the outcome. | Answer `YES`; flag set; outcome computed by §4 unchanged. |
+
+### 2.3 Question sets by product class (v1.1 amendment — `D-022`)
+
+> **Owner direction, 2026-10-21 (Mahesh, repository owner — HUMAN).** Different product classes get
+> **different question sets and different matrices**. Questions that do not inform the outcome for a
+> class are not asked for that class — investment horizon and risk attitude are **not** asked for
+> Term. The C1 gate is unchanged: **every** quote, Term included, needs an evaluation whose outcome
+> for the requested class permits it (SUIT-R20). This completes Suitability BRD `BR-SUIT-002`
+> ("A separate Term question set will be documented later"). Compliance confirmation that each set
+> discharges the IRDAI obligation for its class remains outstanding (`OPEN-SUIT-01`); this amendment
+> does not manufacture it.
+
+Each set is exactly the inputs consumed by that class's outcome rules in §4 plus the four common
+underwriting / disclosure inputs. Nothing else is asked.
+
+| Input | Question | TERM (protection) | SAVINGS | ULIP | Consumed by |
+|---|---|---|---|---|---|
+| `SQ-D01`…`SQ-D04` | Derived from CBS / policy service | ✅ derived | ✅ derived | ✅ derived | §3, SUIT-R08 |
+| `SQ-01` | Annual income | ✅ | ✅ | ✅ | affordability, income band |
+| `SQ-02` | Financially dependent persons | ✅ | ✅ | — | `protectionGap` (R09/R10, R15) |
+| `SQ-03` | Existing life cover, all insurers | ✅ | ✅ | — | `protectionGap` |
+| `SQ-04` | Outstanding liabilities | ✅ | ✅ | — | `protectionGap` |
+| `SQ-05` | Primary financial objective | — | ✅ | ✅ | R13, R15, R16 |
+| `SQ-06` | Investment horizon | — **not asked** | ✅ | ✅ | R13, R14, R16, R18 |
+| `SQ-07` | Attitude to investment risk | — **not asked** | — | ✅ | R16, R17, R19 |
+| `SQ-08` | Premium comfortable committing | ✅ | ✅ | ✅ | `affordabilityRatio` |
+| `SQ-09` | Tobacco use | ✅ | ✅ | ✅ | underwriting / disclosure |
+| `SQ-10` | Occupation category | ✅ | ✅ | ✅ | underwriting |
+| `SQ-11` | Declined / rated before | ✅ | ✅ | ✅ | SUIT-R04 |
+| `SQ-12` | Replacing an existing policy | ✅ | ✅ | ✅ | SUIT-R46 |
+| | **Questions asked** | **9** | **11** | **9** | |
+
+| Rule | Statement | Test |
+|---|---|---|
+| **SUIT-R01a** | *(amends SUIT-R01)* An evaluation is computed for a **product class** from **that class's question set**. All inputs of that set MUST be present; inputs outside the set are neither asked nor required. | Term evaluation with `SQ-01–04, 08–12` and no `SQ-05–07` → computed. Same with `SQ-08` missing → `422 SUITABILITY_INCOMPLETE` listing `SQ-08`. |
+| **SUIT-R01b** | The question set is derived from the Lead's product class (`BR-SUIT-003`). The seller cannot pick a set. | Term lead → Term set rendered; no API accepts a set id from the client. |
+| **SUIT-R01c** | An evaluation carries outcomes **only** for classes whose set was fully answered. Any other class is `INSUFFICIENT_DATA` and cannot be quoted (SUIT-R39). A Term evaluation can never authorise a ULIP quote. | Term evaluation, request a ULIP quote → `403 SUITABILITY_INSUFFICIENT_DATA`. |
+| **SUIT-R01d** | Question sets and matrices are **versioned configuration** keyed by `(lob, productClass)` (domain `SUITABILITY_QUESTIONNAIRE` / `SUITABILITY_MAPPING`, `#19`). A new class (e.g. Health) is a new set + matrix, not code. Both versions are recorded on the evaluation (SUIT-R07). | Publish a Term set v1.1; new evaluations record it; existing ones keep v1.0. |
+| **SUIT-R01e** | *(amends SUIT-R02 / SUIT-R22)* The evaluation stores and the PDF shows **the set that was asked**, with the set id and version — not twelve answers with blanks. | Term PDF shows nine answers and the Term set version. |
+
+`OPEN-SUIT-06` — the Savings/ULIP BRD screens (life stage, risk preference, primary goal, …) and
+the `SQ-*` ids here are two vocabularies for overlapping questions; Product owns the mapping. The
+Term set above has no such conflict because the BRD never specified it.
 
 ---
 
@@ -363,6 +408,7 @@ remedy operates on the population.
 | OPEN-SUIT-02 | Whether `NOT_SUITABLE` may ever be overridden with senior authorisation in a later release (R0 position: never) | Shailja + Sponsor | R1 |
 | OPEN-SUIT-03 | Exact approved disclosure wording for §7.2 and §7.4 | Shailja + Legal | S05 copy deck |
 | OPEN-SUIT-04 | Whether the 30-day validity window is regulator-acceptable | Shailja | S11 entry |
+| OPEN-SUIT-06 | Mapping between the Savings/ULIP BRD screen questions and `SQ-*` ids (§2.3) | Rajal | S11 entry |
 | OPEN-SUIT-05 | Insurer-specific suitability requirements that exceed this model (Group A panel) | Bancassurance + Shailja | S10 — research input filed at [`references/2026-09-04-universal-insurance-suitability-specification.md`](../references/2026-09-04-universal-insurance-suitability-specification.md); not adopted |
 
 **None of these blocks building the Suitability service.** All five are calibration or wording

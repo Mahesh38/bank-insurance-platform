@@ -27,8 +27,10 @@
 
 - Status is patched **before** offers are posted on completion. A reader that sees `COMPLETED`
   immediately may briefly see fewer offers than will exist; `GET /v1/quotes/{jobId}` reads both.
-- Raw-payload and audit writes are **best effort** from the adapter's point of view — a failure is
-  logged (no body) and the provider call continues.
+- Audit writes and quote / response raw payloads are **best effort** — a failure is logged (no
+  body) and the provider call continues. The **request** of a proposal submit or payment-link call
+  is required evidence: stored first (one retry), else the call is not made (`503`,
+  `SUG-20261021-gap`).
 - `integration_job.idempotency_key` is UNIQUE, so a duplicate create cannot produce two jobs even
   across pods (the in-memory idempotency filter is per pod).
 - Optimistic locking (`version`) and `owned_by_instance` exist on the table for multi-instance poll

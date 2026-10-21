@@ -9,6 +9,13 @@
 
 Freshness: `state_as_of` 19d · `04-STAGE_GATES.md` 26d · suggestion register 10d (WARN). No stage field is edited.
 
+> **Superseded in part by [`DB-DEC-0005`](./DB-DEC-0005-dynamodb-working-payload.md) (2026-10-21, owner HUMAN ratification).**
+> Pre-payment quote and proposal working state now lives in **DynamoDB** (`{env}-quotation-working`,
+> `{env}-proposal-working`), not in Aurora `quote_working` / `proposal_working`. Wherever this document says
+> `quote_working` or `proposal_working`, read the DynamoDB item `QUOTE#{id}/META` / `PROPOSAL#{id}/META`
+> ([table design](./schemas/20-dynamodb-working-payload.md)). Ownership, JSON-until-payment, materialise on
+> `RECONCILED`, and everything about Journey and Payment are **unchanged**.
+
 This pack answers:
 
 1. The **complete structure** of the Journey Orchestration service and the tables it may touch.
@@ -31,7 +38,7 @@ Cite: [`INV-JRN-02`](../ws3-platform/01-domain-model-and-invariants.md) · [`OR-
 | **Quote / proposal before payment** | Encrypted JSON envelope in `quotation.quote_working` / `proposal.proposal_working`. Structured `quote` / `offer` / `proposal` / UW children are **empty** until materialize. |
 | **Payment** | On the journey (`PAYMENT_PENDING` → `PAYMENT_SETTLED`, `journey_ref.paymentId`) and **independent** (schema `payment`, `app_payment`, own outbox). Always structured. |
 | **Materialize trigger** | `Payment` reaches `RECONCILED`. Owning services consume that event and INSERT structured rows in their own schema. Journey only updates stage + `paymentId` / later `policyId`. |
-| **Store** | Aurora PostgreSQL. Encrypted `BYTEA` working envelopes — **not** DynamoDB, **not** plaintext JSONB. One working row per open journey (offers live inside the envelope). |
+| **Store** | ~~Aurora `BYTEA` working envelopes~~ → **DynamoDB** working items with a client-side-encrypted envelope attribute (`DB-DEC-0005`). Not plaintext JSON. One working item per open journey (offers live inside the envelope). Structured rows stay Aurora. |
 | **Retention** | `RET-WORKING` until Payment `RECONCILED`, then archive/purge from OLTP. `RET-7Y` / `RET-7Y-IMMUTABLE` only on the converted path (structured quote/proposal + payment + policy). |
 | **Never** | Quote or proposal JSON on `journey.journey`. Journey opening `quotation`, `proposal` or `payment`. Orchestrator calling 1SB or a database it does not own. Dynamo as a second SoR. |
 
@@ -478,8 +485,8 @@ There is no transaction that “opens the JSON”, edits one offer, and writes i
 
 | Option | Verdict | Why |
 |---|---|---|
-| **Aurora PostgreSQL `BYTEA` + control columns** | **Taken** | Same cluster, same credential model, same-transaction idempotency, TOAST for large envelopes. `DB-DEC-0001` / `DB-DEC-0004` |
-| DynamoDB document per quote/proposal | **Rejected** | Second SoR, no FK/CHECK/`INV-PAY-02` uniqueness, splits the already-shipping audit/job store, no R0 volume evidence. Revisit only on a **measured** access pattern |
+| **Aurora PostgreSQL `BYTEA` + control columns** | Superseded by `DB-DEC-0005` | Same cluster, same credential model, same-transaction idempotency, TOAST for large envelopes. `DB-DEC-0001` / `DB-DEC-0004` |
+| DynamoDB item per quote/proposal (control attributes + encrypted envelope) | **Taken — `DB-DEC-0005`** (owner decision 2026-10-21) | Second SoR, no FK/CHECK/`INV-PAY-02` uniqueness, splits the already-shipping audit/job store, no R0 volume evidence. Revisit only on a **measured** access pattern |
 | Postgres `JSONB` (plaintext) | **Rejected** | Members / nominee / form become queryable (`DR-PII-01`, `INV-PRP-05`) |
 | JSON on `journey` | **Rejected** | `INV-JRN-02` / `OR-01` |
 

@@ -29,7 +29,8 @@ That document is explicit: it is **not** a physical schema
 | [`DB-DEC-0004-working-payload-until-payment.md`](./DB-DEC-0004-working-payload-until-payment.md) | Aarti verdict `APPROVED_WITH_OBSERVATIONS` (`D1`) — working JSON in owning schemas, not on journey |
 | [`02-operations-and-troubleshooting.md`](./02-operations-and-troubleshooting.md) | Migration, encryption/access implementation, backup/PITR/RPO/RTO, retention/purge, troubleshooting |
 | [`DB-DEC-0001-r0-physical-model.md`](./DB-DEC-0001-r0-physical-model.md) | Formal `database_decision` for `ADR-008` / `S07-G5` (draft, unsigned) |
-| [`DB-DEC-0003-store-segregation.md`](./DB-DEC-0003-store-segregation.md) | Formal overlay: Dynamo empty at R0, one role per schema |
+| [`DB-DEC-0003-store-segregation.md`](./DB-DEC-0003-store-segregation.md) | Formal overlay: one role per schema; Dynamo empty at R0 (amended by `DB-DEC-0005`) |
+| [`DB-DEC-0005-dynamodb-working-payload.md`](./DB-DEC-0005-dynamodb-working-payload.md) | **Owner decision 2026-10-21:** DynamoDB for pre-payment quote and proposal state; structured Aurora after `RECONCILED` |
 | [`DATA-002-cr013-alignment.md`](./DATA-002-cr013-alignment.md) | Check vs `CR-013` / `ADR-014` — what to keep, what to create, what not to invent |
 | [`DB-DEC-0002-cr013-alignment-review.md`](./DB-DEC-0002-cr013-alignment-review.md) | Aarti verdict `CHANGES_REQUIRED` (`D1`) |
 | [`schemas/`](./schemas/) | PostgreSQL design DDL — one script per schema, plus routines and grants |
@@ -61,8 +62,8 @@ One Aurora PostgreSQL cluster. One schema per bounded context. No cross-schema g
 | `consent` | Consent evidence | [`05-consent.sql`](./schemas/05-consent.sql) | Design only |
 | `suitability` | Suitability assessment | [`06-suitability.sql`](./schemas/06-suitability.sql) · [e2e](./03-lead-suitability-e2e.md) | Design only |
 | `catalogue` | Product catalogue | [`07-catalogue.sql`](./schemas/07-catalogue.sql) | Design only |
-| `quotation` | Quote and offer — `quote_working` until payment, then structured | [`08-quotation.sql`](./schemas/08-quotation.sql) · [orchestrator](./06-journey-orchestrator-and-working-payload.md) | Design only |
-| `proposal` | Proposal & UW — `proposal_working` until payment, then structured | [`09-proposal.sql`](./schemas/09-proposal.sql) · [orchestrator](./06-journey-orchestrator-and-working-payload.md) | Design only |
+| `quotation` | Quote and offer — DynamoDB working item until payment (`DB-DEC-0005`), then structured | [`08-quotation.sql`](./schemas/08-quotation.sql) · [orchestrator](./06-journey-orchestrator-and-working-payload.md) | Design only |
+| `proposal` | Proposal & UW — DynamoDB working item until payment (`DB-DEC-0005`), then structured | [`09-proposal.sql`](./schemas/09-proposal.sql) · [orchestrator](./06-journey-orchestrator-and-working-payload.md) | Design only |
 | `payment` | Payment — always structured; on the journey, independent SoR | [`10-payment.sql`](./schemas/10-payment.sql) · [orchestrator §6](./06-journey-orchestrator-and-working-payload.md) | Design only |
 | `policy` | Policy & issuance | [`11-policy.sql`](./schemas/11-policy.sql) | Design only |
 | `journey` | Journey orchestration — stage + refs only | [`12-journey.sql`](./schemas/12-journey.sql) · [orchestrator](./06-journey-orchestrator-and-working-payload.md) | Design only |

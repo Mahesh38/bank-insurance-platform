@@ -9,7 +9,7 @@
 | **Base path** | `/internal/v1/quotes` (HLD §5.3) |
 | **Callers** | Journey (create, select) · BFF (poll reads) · Payment (selected premium read, `INV-PAY-03`) |
 | **Calls out** | Suitability (S-08 gate, 500 ms, fail closed) · Integration Hub (S-09 create, async-poll, **no retry on submit**) · Lead (`bi-generated` on first successful BI) · Catalogue (offer eligibility) · Configuration (validity window) |
-| **Owns data** | Aurora schema **`quotation`** — `quote_working` (encrypted JSON envelope until payment), `quote` + `offer` (structured after `RECONCILED`), `idempotency_record` · role `app_quotation` |
+| **Owns data** | **DynamoDB `{env}-quotation-working`** — working quote (control attributes + client-side-encrypted envelope) until payment (`DB-DEC-0005`) · Aurora schema **`quotation`** — `quote` + `offer` structured after `RECONCILED`, `idempotency_record` · role `app_quotation` |
 | **Code status** | **SKELETON**. Paths CONTRACTED (HLD §5.1/§5.3); bodies **PROPOSED** from the domain model, DDL and the IF-1 adapter contract |
 
 ---
@@ -60,17 +60,17 @@ gender; no `distributorId` / agent fields (`422 ATTRIBUTION_NOT_CALLER_SUPPLIED`
 
 ```text
 1  C1 gate: GET suitability /assessments/{suitabilityId}/validity?customerId&lob   (500 ms, no retry)
-     not usable / timeout / error → INSERT quote_working state REJECTED
+     not usable / timeout / error → PutItem QUOTE#id/META state REJECTED
                                     outbox QuoteRejectedNoSuitability (Audit mandatory)
                                     → 403 SUITABILITY_REQUIRED
 2  Resolve validity window and product matrix from configuration (fail closed)
-3  ONE quotation transaction:
-     INSERT quote_working (state REQUESTED, control cols, payload_enc = encrypted request)
-     INSERT idempotency_record ; INSERT outbox QuoteRequested
+3  ONE DynamoDB TransactWriteItems (quotation-working):
+     Put QUOTE#{quoteId}/META   (state REQUESTED, control attributes, payloadEnc = encrypted request, ttl)
+     Put IDEM#{key}/IDEM ; Put JOURNEY#{journeyId}/OPEN_QUOTE ; Put QUOTE#{quoteId}/OUTBOX#{evt} QuoteRequested
 4  POST Hub /internal/v1/provider-requests {operation: QUOTE, canonical body}
      Idempotency-Key = quote:{quoteId}:submit     ← no automatic retry on submit
    → providerRequestId (Hub) ; Hub → 1SB adapter POST /v1/quotes → jobId
-5  UPDATE quote_working state IN_PROGRESS, provider, provider_job_id
+5  UpdateItem META state IN_PROGRESS, provider, providerJobId (CONDITION version)
 6  202 { quoteId, state: IN_PROGRESS }
 ```
 
@@ -102,7 +102,7 @@ Response:
 }
 ```
 
-Offers live **inside the encrypted envelope** until payment; the response is built in process.
+Offers live **inside the encrypted envelope of the DynamoDB item** until payment; the response is built in process.
 
 ### 3.3 `POST /internal/v1/quotes/{quoteId}/selection`
 
@@ -110,7 +110,7 @@ Offers live **inside the encrypted envelope** until payment; the response is bui
 { "offerId": "01JU…" }
 ```
 
-One transaction: lock `quote_working`; state must be `QUOTED`/`PARTIALLY_QUOTED`; `now <
+One conditional `UpdateItem` on `QUOTE#{quoteId}/META` (strongly consistent read first); state must be `QUOTED`/`PARTIALLY_QUOTED`; `now <
 valid_until` (else `409 QUOTE_EXPIRED`, `INV-QUO-04`); offer must be `AVAILABLE`; write
 `selected_offer_id`, `selected_premium_amount`, `selected_tax_amount`, `selected_sum_assured`,
 `selected_insurer_code`, `selected_product_code` **and** rewrite `payload_enc` marking every sibling
@@ -120,14 +120,13 @@ Response `200 { quoteId, state: "SELECTED", selectedOfferId }`.
 ### 3.4 `GET /internal/v1/quotes/{quoteId}/selected`
 
 For Payment only: `{ quoteId, offerId, premiumAmount, taxAmount, sumAssured, insurerCode, productCode, currency: "INR" }`
-from control columns — Payment never decrypts the envelope.
+from control attributes — Payment never decrypts the envelope. This read also sets `paymentInFlight = true` and removes the item's `ttl` so it cannot expire while money is moving.
 
 ### 3.5 On `PaymentReconciled`
 
-Idempotent consumer: lock `quote_working WHERE materialized_at IS NULL` → INSERT `quotation.quote`
-+ one `quotation.offer` per envelope offer (selected = `SELECTED`, others `NOT_SELECTED`) → set
-`materialized_at` (envelope frozen by trigger). See
-[payload storage](../data/payload-storage-and-transactions.md#33-materialisation-after-reconciled).
+Idempotent consumer: read the DynamoDB item → ONE Aurora transaction INSERT `quotation.quote`
++ one `quotation.offer` per envelope offer (`ON CONFLICT DO NOTHING`; selected = `SELECTED`, others `NOT_SELECTED`) → then DynamoDB `SET materializedAt` with `attribute_not_exists(materializedAt)` (item frozen, short TTL). See
+[payload storage](../data/payload-storage-and-transactions.md#33-materialisation-into-aurora-after-reconciled).
 
 ## 4. Errors
 
@@ -137,4 +136,4 @@ IDEMPOTENCY_CONFLICT` · `422 ATTRIBUTION_NOT_CALLER_SUPPLIED` · `422 CONFIGURA
 
 ## 5. Sources
 
-- [Domain model §4.4, §6](../../ws3-platform/01-domain-model-and-invariants.md) · [`08-quotation.sql`](../../data-architecture/schemas/08-quotation.sql) · [06 working payload](../../data-architecture/06-journey-orchestrator-and-working-payload.md) · [External call catalogue §2.2](../../../journey-execution/05-EXTERNAL-CALL-CATALOGUE.md) · [R0 solution architecture §5](../../ws3-platform/03-solution-architecture-r0.md)
+- [Domain model §4.4, §6](../../ws3-platform/01-domain-model-and-invariants.md) · [`DB-DEC-0005`](../../data-architecture/DB-DEC-0005-dynamodb-working-payload.md) · [DynamoDB design](../../data-architecture/schemas/20-dynamodb-working-payload.md) · [`08-quotation.sql`](../../data-architecture/schemas/08-quotation.sql) · [06 working payload](../../data-architecture/06-journey-orchestrator-and-working-payload.md) · [External call catalogue §2.2](../../../journey-execution/05-EXTERNAL-CALL-CATALOGUE.md) · [R0 solution architecture §5](../../ws3-platform/03-solution-architecture-r0.md)

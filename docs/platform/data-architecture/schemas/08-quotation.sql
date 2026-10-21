@@ -1,58 +1,11 @@
 -- DESIGN DDL — Quotation SoR. Apply at S09 in the owning Quotation service Flyway.
 -- Adapter job/poll rows stay in bank_persistence. This schema is the bank-owned quote/offer.
 --
--- DATA-005: pre-payment writes go to quote_working (encrypted JSON envelope +
--- extracted control columns). Structured quote/offer rows are INSERT-only after
--- Payment RECONCILED (materialize). Journey never opens this schema.
-
--- Working envelope — the only quote write path until materialized_at is set.
-CREATE TABLE quotation.quote_working (
-    quote_id                    CHAR(26)                 PRIMARY KEY,
-    lead_id                     CHAR(26)                 NOT NULL,
-    journey_id                  CHAR(26)                 NOT NULL,
-    customer_id                 CHAR(26)                 NOT NULL,
-    suitability_id              CHAR(26)                 NOT NULL,
-    consent_id                  CHAR(26)                 NOT NULL,
-    lob                         VARCHAR(16)              NOT NULL,
-    mode                        VARCHAR(16)              NOT NULL,
-    category                    VARCHAR(32)              NOT NULL,
-    state                       VARCHAR(24)              NOT NULL,
-    valid_until                 TIMESTAMP WITH TIME ZONE,
-    provider                    VARCHAR(20),
-    provider_job_id             VARCHAR(36),
-    selected_offer_id           CHAR(26),
-    selected_premium_amount     NUMERIC(15, 2),
-    selected_tax_amount         NUMERIC(15, 2),
-    selected_sum_assured        NUMERIC(15, 2),
-    selected_insurer_code       VARCHAR(50),
-    selected_product_code       VARCHAR(100),
-    payload_enc                 BYTEA                    NOT NULL,
-    encryption_key_id           VARCHAR(50)              NOT NULL,
-    payload_schema_version      SMALLINT                 NOT NULL DEFAULT 1,
-    config_version_ref          VARCHAR(64)              NOT NULL,
-    materialized_at             TIMESTAMP WITH TIME ZONE,
-    retain_until                DATE,
-    created_at                  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-    updated_at                  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-    version                     BIGINT                   NOT NULL DEFAULT 0,
-    CONSTRAINT ck_qwork_lob CHECK (lob IN ('LIFE', 'HEALTH', 'GENERAL')),
-    CONSTRAINT ck_qwork_mode CHECK (mode IN ('SINGLE', 'MULTI')),
-    CONSTRAINT ck_qwork_state CHECK (state IN (
-        'REQUESTED', 'IN_PROGRESS', 'QUOTED', 'PARTIALLY_QUOTED', 'SELECTED',
-        'CONVERTED', 'EXPIRED', 'FAILED', 'TIMED_OUT', 'REJECTED')),
-    CONSTRAINT ck_qwork_selected CHECK (
-        selected_offer_id IS NULL
-        OR (selected_premium_amount > 0 AND selected_sum_assured > 0
-            AND selected_insurer_code IS NOT NULL AND selected_product_code IS NOT NULL))
-);
-
-CREATE INDEX ix_qwork_journey ON quotation.quote_working (journey_id);
-CREATE INDEX ix_qwork_state ON quotation.quote_working (state, valid_until)
-    WHERE materialized_at IS NULL;
-CREATE UNIQUE INDEX ux_qwork_open_journey
-    ON quotation.quote_working (journey_id)
-    WHERE state NOT IN ('CONVERTED', 'EXPIRED', 'FAILED', 'TIMED_OUT', 'REJECTED')
-      AND materialized_at IS NULL;
+-- DB-DEC-0005 (supersedes the DB-DEC-0004 store): pre-payment quote state lives in the
+-- DynamoDB table {env}-quotation-working (see 20-dynamodb-working-payload.md). Structured
+-- quote/offer rows below are INSERT-only after Payment RECONCILED (materialize, ON CONFLICT
+-- DO NOTHING). idempotency_record here dedupes materialize events by eventId.
+-- Journey never opens this schema.
 
 -- Structured SoR — populated only by materialize after Payment RECONCILED.
 CREATE TABLE quotation.quote (

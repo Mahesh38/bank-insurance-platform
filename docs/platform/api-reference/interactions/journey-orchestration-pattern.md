@@ -17,9 +17,9 @@
 | `INITIATED` | start (after assignment) | Customer snapshot (S-04) | `customer.customer_snapshot` | `journey` + `party_snapshot_ref` |
 | `NEED_ANALYSIS` → `SUITABILITY_COMPLETE` | `/need-analysis`, `/suitability` | Suitability (S-07) | `suitability.*` (structured) | ref `suitabilityId` |
 | `CONSENT_CAPTURED` | `/consent/challenge`, `/consent/verify` | Consent (S-06) | `consent.consent` (write-once) | ref `consentId` |
-| `QUOTING` | `/quotes` | Quotation (→ Hub, S-09) | `quotation.quote_working` | ref `quoteId` |
-| `QUOTE_SELECTED` | `/quotes/{id}/selection` | Quotation | `quote_working.selected_*` | ref `offerId` |
-| `PROPOSAL_IN_PROGRESS` → `UNDERWRITING` | `/proposals`, `/proposals/{id}/submit` | Proposal (→ Hub, S-12) | `proposal.proposal_working` | refs `proposalId`, `applicationNumber` |
+| `QUOTING` | `/quotes` | Quotation (→ Hub, S-09) | DynamoDB `quotation-working` item | ref `quoteId` |
+| `QUOTE_SELECTED` | `/quotes/{id}/selection` | Quotation | DynamoDB item `selected*` attributes | ref `offerId` |
+| `PROPOSAL_IN_PROGRESS` → `UNDERWRITING` | `/proposals`, `/proposals/{id}/submit` | Proposal (→ Hub, S-12) | DynamoDB `proposal-working` item | refs `proposalId`, `applicationNumber` |
 | `PAYMENT_PENDING` | `/payments` | Payment (→ PG, S-13) | `payment.payment` (structured) | ref `paymentId` |
 | `PAYMENT_SETTLED` | — (event `PaymentReconciled`) | — | Quotation/Proposal materialise | stage only |
 | `ISSUANCE_PENDING` → `ISSUED` → `SOLD` | — (events) | Policy (→ Hub, S-16) | `policy.policy` + S3 | refs `policyId`, `policyNumber` |

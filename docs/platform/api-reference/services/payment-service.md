@@ -109,7 +109,7 @@ approve (`INV-PAY-06`); `refund` rows record initiator, approver, decision time.
 | `outbox_event`, `idempotency_record` | Platform pattern |
 
 Retention `RET-7Y-IMMUTABLE` from the first write. Payment never writes `journey.*`, never reads
-`*_working` envelopes. DDL [`10-payment.sql`](../../data-architecture/schemas/10-payment.sql).
+the quote/proposal working items in DynamoDB (no DynamoDB permission at all). DDL [`10-payment.sql`](../../data-architecture/schemas/10-payment.sql).
 
 ## 5. Sources
 

@@ -51,9 +51,10 @@ sequenceDiagram
 Lead's problem+json is parsed by `ProblemJsonReader`; `ErrorPropagation` keeps the incident id and
 `origin = lead`, and the BFF re-emits the same code when the RM can act on it (`CONFLICT`,
 `ILLEGAL_TRANSITION`, `SP_CERTIFICATION_REQUIRED`, `RESOURCE_NOT_FOUND`, `UNSUPPORTED_LOB`).
-Note: unlike the identity clients, the lead gateway does not catch a pure transport failure
-(`RestClientException` with no response); a lead-service outage therefore surfaces as the BFF's
-generic failure rather than a typed `503` — a known gap against S-20.
+A pure transport failure (`RestClientException` with no HTTP response: refused, reset, timed out)
+is mapped to **`503 UPSTREAM_UNAVAILABLE`** (retryable) by `HttpLeadGateway` and
+`HttpCustomerGateway` (`SUG-20261021-gap`); before that it surfaced as a generic 500. Create and
+assign are preceded by a PDP decision — see [BFF to PDP](./bff-to-identity-authorization.md).
 
 ## 4. Sources
 

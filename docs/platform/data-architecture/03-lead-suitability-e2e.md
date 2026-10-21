@@ -36,7 +36,7 @@ Neighbour schemas already designed (`customer`, `consent`, `journey`, `catalogue
 
 - Flyway applied to a running service (`DR-MIG-04`).
 - Campaign / bulk Lead create, meeting-completion workflow, meeting SMS (`BOOT` / Lead BRD §4.2).
-- Term questionnaire (`BR-SUIT-002` — Term skips this set).
+- ~~Term questionnaire~~ — **amended 2026-10-21 (`D-022`):** Term now has its own protection question set and matrix ([rule pack §2.3](../../au-bank-insurance-platform/rule-packs/suitability-rule-pack.md#23-question-sets-by-product-class-v11-amendment--d-022)); it writes a `suitability` row with `product_class = TERM` like the other classes.
 - Seller override of mapping (`Suitability BRD` §4.2). Mapping rules live in Administration / Catalogue, not duplicated here.
 - DATA-002 remainder: `issuance_mode`, off-platform Policy ingest, MIS reader path, outbox on every other schema.
 - A human signature on `S07-G5`, Board 4 or Board 6.
@@ -72,7 +72,7 @@ Search ETB customer → CREATE Lead → Start Onboarding (exception hold)
 | `catalogue` | `product` | Mapping output codes (logical) |
 | `quotation` | `quote` | Final-BI lock target (logical) |
 
-Term leads: **no** `suitability` row (`BR-SUIT-002`). Absence means Not Started / not applicable.
+Term leads: ~~no `suitability` row~~ — **amended by `D-022`:** a Term lead gets a `suitability` row (`product_class = TERM`) evaluated with the Term protection set; the answer set JSON holds only the questions that set asks.
 
 ---
 
@@ -258,7 +258,7 @@ Archive mechanism: **same table + `ARCHIVED` + `archived_at`**. Partition vs arc
 
 ### 5.1 Header `suitability.suitability`
 
-One **current** assessment per lead (`BR-SUIT-005`). A Term lead has no row.
+One **current** assessment per lead (`BR-SUIT-005`). Every product class, Term included, has a row (`D-022`).
 
 | Column | Type | Req | Notes |
 |---|---|---|---|
@@ -267,7 +267,7 @@ One **current** assessment per lead (`BR-SUIT-005`). A Term lead has no row.
 | `journey_id` | `CHAR(26)` | ⭘ | Logical |
 | `customer_id` | `CHAR(26)` | ✅ | Proposer = bank customer on the Lead |
 | `lob` | `VARCHAR(16)` | ✅ | Inherited; immutable |
-| `product_class` | `VARCHAR(16)` | ✅ | `SAVINGS` \| `ULIP` on this questionnaire (`BR-SUIT-001`) |
+| `product_class` | `VARCHAR(16)` | ✅ | `TERM` \| `SAVINGS` \| `ULIP` — selects the question set and matrix (`D-022`) |
 | `questionnaire_version` | `VARCHAR(20)` | ✅ | Rule-pack version (`GAP-007`) |
 | `mapping_rule_version` | `VARCHAR(20)` | ⭘ | Set on first mapping run |
 | `state` | `VARCHAR(24)` | ✅ | See §5.4 |

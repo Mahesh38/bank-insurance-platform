@@ -2,6 +2,8 @@ package com.bank.platform.lead.application;
 
 import com.bank.common.error.ErrorCodes;
 import com.bank.common.error.ServiceErrors;
+import com.bank.common.error.ServiceException;
+import com.bank.platform.lead.domain.ConcurrentLeadUpdateException;
 import com.bank.platform.lead.domain.ExceptionOutcome;
 import com.bank.platform.lead.domain.Lead;
 import com.bank.platform.lead.domain.LeadRepository;
@@ -14,12 +16,14 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Lead commands for the R0 assisted slice ({@code D-019}, {@code D-020}, {@code D-021}).
  *
- * <p>Persistence is an in-memory port implementation until Aarti's physical pack is applied ({@code
- * SUG-20260825-db1} parked at S09).
+ * <p>Persistence is {@code lead_lms.lead} through {@link LeadRepository} (JDBC adapter, Flyway V2 —
+ * {@code SUG-20261021-gap}). Each command is one local transaction; a concurrent change to the same
+ * lead is a {@code 409 CONFLICT}, not a lost update.
  */
 @Service
 public class LeadApplicationService {
@@ -37,6 +41,7 @@ public class LeadApplicationService {
     this.certification = certification;
   }
 
+  @Transactional
   public Lead create(CreateLeadCommand command) {
     require(command.customerId(), "customerId");
     require(command.createdByPrincipalId(), "createdByPrincipalId");
@@ -70,7 +75,7 @@ public class LeadApplicationService {
             command.branchId(),
             command.createdByPrincipalId(),
             now);
-    leads.save(lead);
+    persist(lead);
     return lead;
   }
 
@@ -96,11 +101,12 @@ public class LeadApplicationService {
   }
 
   /** Start Onboarding evaluates exception rules. Save/create never does ({@code D-019}). */
+  @Transactional(noRollbackFor = ServiceException.class) // a BLOCK outcome is saved, then refused
   public Lead startOnboarding(String leadId, String principalId) {
     Lead lead = getVisible(leadId, principalId);
     ExceptionOutcome outcome = evaluate(lead.customerId());
     lead.applyExceptionOutcome(outcome, clock.instant());
-    leads.save(lead);
+    persist(lead);
     if (outcome == ExceptionOutcome.BLOCK) {
       throw errors
           .error(ErrorCodes.ILLEGAL_TRANSITION)
@@ -112,6 +118,7 @@ public class LeadApplicationService {
     return lead;
   }
 
+  @Transactional
   public Lead assign(AssignLeadCommand command) {
     Lead lead = getVisible(command.leadId(), command.actorPrincipalId());
     if (lead.biGenerated()) {
@@ -148,10 +155,11 @@ public class LeadApplicationService {
           .build();
     }
     lead.assign(command.assignedRmId(), command.assignedSpId(), clock.instant());
-    leads.save(lead);
+    persist(lead);
     return lead;
   }
 
+  @Transactional
   public Lead close(String leadId, String principalId) {
     Lead lead = getVisible(leadId, principalId);
     if (lead.state() == LeadState.QUALIFIED || lead.biGenerated()) {
@@ -163,7 +171,7 @@ public class LeadApplicationService {
           .build();
     }
     lead.close(clock.instant());
-    leads.save(lead);
+    persist(lead);
     return lead;
   }
 
@@ -191,6 +199,20 @@ public class LeadApplicationService {
           .component("LeadApplicationService")
           .operation("create")
           .reason("product class is not TERM, SAVINGS or ULIP")
+          .cause(ex)
+          .build();
+    }
+  }
+
+  private void persist(Lead lead) {
+    try {
+      leads.save(lead);
+    } catch (ConcurrentLeadUpdateException ex) {
+      throw errors
+          .error(ErrorCodes.CONFLICT)
+          .component("LeadApplicationService")
+          .operation("persist")
+          .reason("lead was changed by another request; re-read and retry")
           .cause(ex)
           .build();
     }

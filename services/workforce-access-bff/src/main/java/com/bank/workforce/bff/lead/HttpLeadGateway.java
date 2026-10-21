@@ -1,5 +1,6 @@
 package com.bank.workforce.bff.lead;
 
+import com.bank.common.error.ErrorCodes;
 import com.bank.common.error.ErrorPropagation;
 import com.bank.common.error.PlatformLayer;
 import com.bank.common.error.ProblemJsonReader;
@@ -10,6 +11,7 @@ import java.util.List;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 
 @Component
@@ -42,6 +44,8 @@ public class HttpLeadGateway implements LeadGateway {
           .body(LeadRecord.class);
     } catch (RestClientResponseException ex) {
       throw propagate(ex, "createLead");
+    } catch (RestClientException ex) {
+      throw unavailable(ex, "createLead");
     }
   }
 
@@ -56,6 +60,8 @@ public class HttpLeadGateway implements LeadGateway {
           .body(LeadRecord.class);
     } catch (RestClientResponseException ex) {
       throw propagate(ex, "getLead");
+    } catch (RestClientException ex) {
+      throw unavailable(ex, "getLead");
     }
   }
 
@@ -72,6 +78,8 @@ public class HttpLeadGateway implements LeadGateway {
       return page == null || page.items() == null ? List.of() : page.items();
     } catch (RestClientResponseException ex) {
       throw propagate(ex, "listLeads");
+    } catch (RestClientException ex) {
+      throw unavailable(ex, "listLeads");
     }
   }
 
@@ -86,6 +94,8 @@ public class HttpLeadGateway implements LeadGateway {
           .body(LeadRecord.class);
     } catch (RestClientResponseException ex) {
       throw propagate(ex, "startOnboarding");
+    } catch (RestClientException ex) {
+      throw unavailable(ex, "startOnboarding");
     }
   }
 
@@ -101,6 +111,8 @@ public class HttpLeadGateway implements LeadGateway {
           .body(LeadRecord.class);
     } catch (RestClientResponseException ex) {
       throw propagate(ex, "assignLead");
+    } catch (RestClientException ex) {
+      throw unavailable(ex, "assignLead");
     }
   }
 
@@ -111,6 +123,17 @@ public class HttpLeadGateway implements LeadGateway {
         .calling("lead", operation)
         .causedBy(ex)
         .toException();
+  }
+
+  // No HTTP answer at all (refused, reset, timed out): a typed 503 the RM can retry, not a 500.
+  private ServiceException unavailable(RestClientException ex, String operation) {
+    return serviceErrors
+        .error(ErrorCodes.UPSTREAM_UNAVAILABLE)
+        .component("HttpLeadGateway")
+        .operation(operation)
+        .reason("Lead service is unavailable")
+        .cause(ex)
+        .build();
   }
 
   public record LeadPage(List<LeadRecord> items) {}

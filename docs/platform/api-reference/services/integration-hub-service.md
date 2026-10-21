@@ -9,7 +9,7 @@
 | **Base path** | `/internal/v1/provider-requests` (HLD §5.3) |
 | **Callers** | Quotation, Proposal, Payment (adapter capabilities only), Policy — **and nothing else**. The BFF and Flutter never call it; for reference data the BFF goes through the owning domain service |
 | **Calls out** | `1sb-integration-service` `/v1/*` · `direct-insurer-adapter-service` (when admitted) · administration-config (routing policy, distributor/agent resolution, S-21) |
-| **Owns data** | **None.** No schema, no Dynamo. Routing policy is versioned configuration in `administration`. Provider job state lives in `bank_persistence` (adapter-owned) |
+| **Owns data** | **None.** No schema, no DynamoDB table. Routing policy is versioned configuration in `administration`. Provider job state lives in `bank_persistence` (adapter-owned) |
 | **Code status** | **SKELETON** (`GET /internal/v1/integration-hub/info`). Contract **CONTRACTED** at the level of `IF-1` + HLD §5.3; request/response bodies below are **PROPOSED** from the IF-1 rules, the adapter's implemented contract and [replaceable middleware](../../../1sb-insurance-integration/architecture/replaceable-middleware.md) |
 
 ---
@@ -114,7 +114,7 @@ operation; **reject** any `distributorId`, `agentId`, `spLicenceId`, `distributi
 ```
 
 > The Hub owns no table, so the durable link between `quoteId` and the adapter `jobId` is held by
-> the **caller** (`quote_working.provider_job_id`) and by the **adapter job** (`journey_id`). If
+> the **caller** (the quote's DynamoDB item, attribute `providerJobId`) and by the **adapter job** (`journey_id`). If
 > the Hub ever needs its own correlation store, that is a new schema and an ADR — not a silent
 > Dynamo table (store-ownership §2.3).
 

@@ -9,7 +9,7 @@
 | **Base path** | `/internal/v1/leads` — cluster-private |
 | **Callers** | BFF (all RM actions) · target: Quotation (`bi-generated`), Journey (`convert` on `JourneySold`), AUBIMA exception engine (`exception-hold`) |
 | **Calls out** | `SpCertificationPort` (fixture today; IRDAI / bank SP register is parked, `SUG-20261007-ird`) · target: PDP, exception / validation engine |
-| **Owns data** | Target: Aurora schema **`lead_lms`** (`lead`, `lead_assignment`, `lead_meeting`, `lead_follow_up`, `idempotency_record`, `outbox_event`) · role `app_lead_lms`. **Today: in-memory repository** — data is lost on restart |
+| **Owns data** | Target: Aurora schema **`lead_lms`** (`lead`, `lead_assignment`, `lead_meeting`, `lead_follow_up`, `idempotency_record`, `outbox_event`) · role `app_lead_lms`. **Implemented for `lead`:** `JdbcLeadRepository` on `lead_lms.lead` (Flyway `V2__lead_lms_lead.sql`, optimistic lock on `version`; a lost race is `409 CONFLICT`). `lead.store=memory` keeps the old in-memory repository for throw-away runs. Assignment history, meetings, follow-ups, idempotency and outbox tables are still target |
 | **Code status** | **IMPLEMENTED-PARTIAL** — create, list, get, onboarding, assign, close. Exception rules are a deterministic stub; BI, convert, archive, activity status, evaluate and exception-hold are CONTRACTED |
 | **Contracts** | [Lead API LLD](../../ws3-platform/12-lead-module-api-lld.md) · [internal OpenAPI](../../ws3-platform/lead-service-internal.openapi.yaml) · [sequences](../../ws3-platform/11-lead-module-sequences.md) · [flows and algorithms](../../ws3-platform/13-lead-module-flows-and-algorithms.md) |
 
@@ -131,7 +131,7 @@ Response `201`:
 | `unfinished` | `false` | `true` → only unfinished leads |
 
 Response `{ "items": [Lead…], "nextCursor": null }`. Archived leads are excluded from the inbox
-(`INV-LED-08`) — target behaviour; the in-memory store has no archive yet.
+(`INV-LED-08`) — target behaviour; there is no archive job yet.
 
 ### 3.3 `GET /internal/v1/leads/{leadId}`
 

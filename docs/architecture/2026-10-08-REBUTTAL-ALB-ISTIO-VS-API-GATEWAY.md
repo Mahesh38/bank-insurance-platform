@@ -1,9 +1,11 @@
 # Justification / rebuttal — Why External ALB/NLB + Istio Ingress is **not** the superior choice for this R0 architecture
 
+> **SUPERSEDED 2026-10-09 for inbound product.** Architecture owner Accepted [`ADR-023`](../platform/architecture-review/08-architecture-decision-log.md) (bank-standard NLB + Istio). This rebuttal remains as **Option A challenge material / audit trail** only. Do **not** use it to block Istio provisioning. Binding hop and controls: `ADR-023` S1–S11. Identity conclusions (private Keycloak, token-hiding BFF, PDP) still stand.
+
 **Audience:** Infra Head · bank platform / infra team · Architecture (Mahesh) · Security (Deepali) · SRE (Shivanshi)  
-**Purpose:** Written response to the claim that *“For your specific architecture, an External ALB/NLB paired with Istio Ingress Gateway inside EKS is the superior and cleaner choice over AWS API Gateway.”*  
+**Purpose:** Historical response to the ALB/NLB+Istio superiority claim (Option A defence).  
 **Date:** 2026-10-08  
-**Standing:** AI-drafted under [`CR-017`](../governance/change-requests/CR-017-inbound-api-gateway-vs-istio.md) / [`ADR-022`](../platform/architecture-review/08-architecture-decision-log.md) / `SUG-20261006-apg`. Does **not** manufacture human sign-off. ADRs win on conflict (`HA-02`).
+**Standing:** **SUPERSEDED for inbound** by `ADR-023`. AI-drafted under [`CR-017`](../governance/change-requests/CR-017-inbound-api-gateway-vs-istio.md) / `SUG-20261006-apg`. ADRs win on conflict (`HA-02`).
 
 **Related pack**
 

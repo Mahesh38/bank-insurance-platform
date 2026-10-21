@@ -123,11 +123,11 @@ Companion: [`2026-10-09-ADR-023-SECURITY-CONTROL-MAP.md`](../../architecture/202
 
 | Lens | Code | Rationale |
 |------|------|-----------|
-| Stage fit | **SF1** | S09 platform foundation / edge is on-stage (overlapped). Clarifying the inbound product is prerequisite to a correct landing-zone request. Implementing Option B mesh breadth would be SF3 relative to `CR-012` unless boards overturn. |
+| Stage fit | **SF1** | S09 platform foundation / edge is on-stage (overlapped). Option B admitted by `ADR-023`; BOM/diagrams cascade is on-stage. |
 | Scope fit | **SC0** | WS-3 in_scope includes S09 platform foundation; perimeter is already in `R0-LLD`. |
-| Necessity | **MUST** (decision) / **NOT-NOW** (Option B implement) | A written platform + Architecture + Security position is MUST before S09 edge apply. Building Istio now is NOT-NOW without that position. |
-| Risk tier if Option B admitted | **T4** | G8 production topology / public exposure; G1/G10 may also fire depending on authz and regulator-evidenced edge controls. |
-| Priority | **P2 now · P1 at S09 edge provision** | Blocks correct P4 edge deliverable if unresolved; not a soft-P1 override until platform issues a hard refusal on the critical path. |
+| Necessity | **MUST** (execute Option B per `ADR-023`) | Architecture owner Accepted Option B 2026-10-09. Docs cascade is MUST; Terraform apply waits on bank SPIKE answers (`DEP-20261006-igw`) and S1–S11 verify — not on another product decision. |
+| Risk tier | **T4** | G8 production topology / public exposure; compensating controls S1–S11 mandatory; residual mesh/CIDR risk under Architecture owner. |
+| Priority | **P1 at S09 edge provision** | Landing-zone request and P4 edge must ask for NLB+Istio, not API Gateway. |
 
 ---
 

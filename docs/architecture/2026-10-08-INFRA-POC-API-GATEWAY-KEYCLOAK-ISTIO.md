@@ -1,9 +1,11 @@
 # Infra POC / justification pack — Amazon API Gateway, Keycloak, and why Istio / External ALB are not substitutes (R0)
 
+> **SUPERSEDED 2026-10-09 for inbound product.** Architecture owner Accepted [`ADR-023`](../platform/architecture-review/08-architecture-decision-log.md) (NLB + Istio; API Gateway withdrawn). This pack remains as **Option A defence / audit trail** only. Do **not** use it to provision API Gateway or to refuse Istio. Binding: `ADR-023` + S1–S11 + [`2026-10-09-ISTIO-OPS-ADDENDUM.md`](./2026-10-09-ISTIO-OPS-ADDENDUM.md). Apigee outbound and private Keycloak/BFF/PDP conclusions still stand.
+
 **Audience:** Infra Head · AWS / bank platform (infra) team · SRE (Shivanshi) · Security (Deepali) · Architecture (Mahesh)  
-**Purpose:** Detailed written justification for the R0 inbound edge and identity stack — suitable for an infra design review or landing-zone challenge.  
+**Purpose:** Historical detailed justification for the former R0 inbound edge (Option A).  
 **Date:** 2026-10-08  
-**Standing:** AI-drafted evidence under [`CR-017`](../governance/change-requests/CR-017-inbound-api-gateway-vs-istio.md) / [`ADR-022`](../platform/architecture-review/08-architecture-decision-log.md) / `SUG-20261006-apg` (recurrence). Does **not** manufacture Architecture, Security, or Infra Head sign-off. If this file disagrees with an ADR, the ADR wins (`HA-02`).
+**Standing:** **SUPERSEDED for inbound** by `ADR-023`. AI-drafted under [`CR-017`](../governance/change-requests/CR-017-inbound-api-gateway-vs-istio.md) / `SUG-20261006-apg`. ADRs win on conflict (`HA-02`).
 
 **Freshness note:** `docs/governance/04-STAGE_GATES.md` was past its 14-day artefact window at drafting (WARN). Stage posture still comes from BOOT / `CURRENT-STATE.yaml`; this POC does not change stage state.
 

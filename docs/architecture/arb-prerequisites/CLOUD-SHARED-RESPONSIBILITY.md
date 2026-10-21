@@ -1,7 +1,7 @@
 # Cloud architecture and shared-responsibility matrix — R0
 
 **Pack:** [`ARB-PREREQUISITE-PACK.md`](../ARB-PREREQUISITE-PACK.md) row 17  
-**Status:** `AI-DRAFTED`. Aligns `ADR-001`, `ADR-009`, `ADR-010`, `ADR-018`, `ADR-020`, LLD, and estate paper `18` (`BE-01`).  
+**Status:** `AI-DRAFTED`. Aligns `ADR-001`, `ADR-009`, `ADR-010`, `ADR-020`, `ADR-023`, LLD, and estate paper `18` (`BE-01`).  
 **Cloud:** AWS, regions `ap-south-1` (primary) and `ap-south-2` (DR replicas only).
 
 ---
@@ -14,7 +14,7 @@ The insurance platform **attaches as a spoke** to the existing AU bank cloud est
 |---|---|---|
 | Org / SSO | Control Tower, IAM Identity Center, SCPs pinning India | Five accounts: `shared-services`, `security`, `network`, `uat`, `prod`. **No separate `dev` account. No CUG.** UAT account hosts `vpc-dev` + `vpc-uat` (`ADR-020`) |
 | Network hub | `AU-CTO-NETWORK` TGW, DX Gateway, EDGE FortiGate | Spoke attachment, per-environment route tables, per-environment inspection VPC (or share EDGE — `ASM-012`, Deepali) |
-| North-south SaaS | Cloudflare Enterprise, F5-XC | Configuration of **this** hostname. AWS entry = API Gateway (`ADR-018`) |
+| North-south SaaS | Cloudflare Enterprise, F5-XC | Configuration of **this** hostname. AWS entry = NLB + Istio (`ADR-023`) |
 | Outbound API plane | Apigee | NIP product + proxies (`DEP-20260914-apg`). Not Terraform in our accounts |
 | Delivery | GitLab, Terraform standard | This repo’s pipelines and modules |
 
@@ -33,7 +33,7 @@ R = Responsible (does the work) · A = Accountable (the named owner ARB can call
 | KMS CMK policy, rotation | C | C (key admin pattern) | **A/R** (Deepali + Shivanshi) | — | — |
 | Encryption in transit / at rest configuration | C | I | **A/R** | TLS on proxies | mTLS as they require |
 | Inbound WAF / DDoS | — | **A/R** (Cloudflare, F5-XC) | C (hostname, origin) | — | — |
-| Inbound AWS API Gateway + Internal ALB | C | I | **A/R** | — | — |
+| Inbound AWS NLB + Istio Ingress | C | I | **A/R** (platform operates Istio) | — | — |
 | Outbound 1SB and bank APIs | — | C (private path) | R (adapter base URL) | **A** (product, IPs, private target) | R (their origin + allowlist of **Apigee IPs**) |
 | Egress inspection pod→Apigee | C (NFW) | C (FortiGate hub) | **A** design; **Deepali accepts** remainder | I | — |
 | CBS/CIF correctness | — | **A/R** (EBS/CBS) | R (consume snapshot) | C (private proxy) | — |

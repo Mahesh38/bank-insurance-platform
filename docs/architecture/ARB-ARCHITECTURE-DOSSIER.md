@@ -40,8 +40,8 @@ The AU Bank Insurance Distribution Platform (National Insurance Platform - NIP) 
 
 ### 3. Key Architectural Tenets Defended at ARB
 1. **Capability before Service, Ownership before Deployment:** Every service owns one bounded context write-model. No cross-service database access.
-2. **Enterprise Bank Perimeter Ingress:** Edge access traverses **Cloudflare Enterprise (SaaS, not AWS, not in any VPC)** → **F5 Distributed Cloud / F5-XC (SaaS WAF, not AWS, not in any VPC)** → **Amazon API Gateway** → **Internal ALB**. **No public / External ALB** (`ADR-018`).
-3. **Split API plane (`ADR-020`):** inbound stays Cloudflare → F5-XC → Amazon API Gateway; **outbound** (1SB, SMS, bank internal APIs, AD-verify) leaves via **Apigee**. 1SB allowlists **Apigee IPs**, not spoke NAT EIPs. AWS Network Firewall may still inspect **pod → Apigee**.
+2. **Enterprise Bank Perimeter Ingress (`ADR-023`):** Edge access traverses **Cloudflare Enterprise (SaaS)** → **F5-XC (SaaS WAF)** → **Ingress NLB** (SG = F5/CF CIDRs; F5 shared-secret and/or mTLS) → **Istio Ingress Gateway**. Amazon API Gateway and Internal ALB-as-path-router are **withdrawn**.
+3. **Split API plane (`ADR-020`, inbound amended by `ADR-023`):** inbound is NLB + Istio; **outbound** (1SB, SMS, bank internal APIs, AD-verify) leaves via **Apigee**. 1SB allowlists **Apigee IPs**, not spoke NAT EIPs. AWS Network Firewall may still inspect **pod → Apigee**.
 4. **Hard Regulatory Controls Enforced in Services, Not UI:** Suitability (**C1**), Consent (**C2**), Customer-Device Payment Isolation (**C4**), and Audit-before-Sold (**C7/C8**) cannot be bypassed by any API client.
 5. **Replaceable Provider Boundary:** Domain services communicate only in bank-canonical contracts through an Integration Hub. 1SilverBullet (1SB) or direct insurers are pluggable adapters.
 6. **Core Banking via EBS (Enterprise Service Bus):** Customer profile retrieval and CIF lookups integrate via bank **EBS (Enterprise Service Bus) APIs** over private Transit Gateway hybrid connectivity.
@@ -146,25 +146,26 @@ For each tier and component in the architecture, this section articulates:
   - *F5 BIG-IP appliance in a VPC:* Contradicts the existing estate. F5 on this network is SaaS; east-west / egress inspection is the central EDGE VPC (FortiGate) plus `ADR-010` Network Firewall (`ASM-012`).
 - **Why Best Suited:** Matches the live bank north-south path; consistent InfoSec policy without inventing an in-VPC appliance.
 
-#### 1.3 External / public Application Load Balancer — WITHDRAWN
-- **What it was:** A public-facing AWS ALB drawn in front of API Gateway in the 2026-08-25 ARB pack (`SUG-20260825-arb`).
-- **Why withdrawn (`ADR-018`):** The hop was an assumption. The existing banking application's Public ALB is *that* application's AWS entry. This platform's AWS entry is Amazon API Gateway. A public ALB in front of API Gateway adds a PCI/PII surface and an S09 resource the Architecture owner has now removed.
-- **Do not provision.** The only ALB is the Internal ALB behind the API Gateway VPC Link.
+#### 1.3 Amazon API Gateway + Internal ALB-as-path-router — WITHDRAWN (`ADR-023`)
+- **What they were:** Former R0 inbound Proxy 1 (API Gateway + VPC Link) and Proxy 2 (Internal ALB path split), bound by `ADR-018`.
+- **Why withdrawn:** Bank-standard ingress is External LB + Istio; API Gateway skill is scarce on the estate. Architecture owner accepted Option B 2026-10-09 (`CR-017` / `ADR-023`).
+- **Do not provision** Amazon API Gateway, VPC Link, or an Internal ALB solely for north–south path routing.
 
-#### 1.4 Amazon API Gateway (Proxy 1 of 2)
-- **What it is & What it does:** Managed REST API Gateway enforcing request parameter validation, client throttling, API keys, and routing requests via private VPC Link to the internal ALB.
-- **Why Required:** Acts as the primary API governance boundary, preventing unvalidated requests from entering workload subnets.
+#### 1.4 Internet-facing Network Load Balancer (first AWS hop)
+- **What it is & What it does:** NLB in public/DMZ subnets targeting Istio Ingress Gateway pods. Security Group allows **only** F5-XC (+ Cloudflare if required) egress CIDRs. ALB may substitute if bank ACM-at-LB standard requires it.
+- **Why Required:** Bank-standard AWS entry; preserves source IP for PG-callback allowlists.
 - **Alternatives Considered:**
-  - *Direct ALB to Pod routing:* Bypasses API Gateway throttling and managed request schema validation.
-  - *Self-hosted Kong on EKS:* Adds extra operational burden and state management on Kubernetes in R0.
-- **Why Best Suited:** Serverless, highly scalable, Multi-AZ gateway providing seamless private VPC Link connectivity.
+  - *Amazon API Gateway:* Withdrawn — non-standard on this estate (`ADR-023`).
+  - *Open public SG (`0.0.0.0/0`):* Forbidden (S2).
+- **Why Best Suited:** Matches bank platform skill centre; compensates exposure with S1–S3 (SaaS perimeter + CIDR SG + F5 secret/mTLS).
 
-#### 1.5 Internal Application Load Balancer (Proxy 2 of 2)
-- **What it is & What it does:** Private L7 load balancer in internal app subnets, receiving traffic from API Gateway VPC Link and load-balancing to EKS ingress controller pods.
-- **Why Required:** Decouples API Gateway routing from dynamic Kubernetes pod IP churn; provides target-group level health checking and zero-downtime rolling deployment routing.
+#### 1.5 Istio Ingress Gateway + sidecars
+- **What it is & What it does:** Cluster ingress with VirtualService path split (`/*` → nip-web, `/api/*` → BFF, `/callbacks/pg/*` → Payment). Sidecars in application namespaces; PeerAuthentication → STRICT after dated PERMISSIVE cutover. Envoy size/throttle (S9).
+- **Why Required:** Bank mesh standard; owns path routing formerly on Internal ALB; east–west mTLS with retained NetworkPolicy (S11).
 - **Alternatives Considered:**
-  - *NLB (Network Load Balancer):* Lacks L7 path-based routing and internal HTTP header inspection.
-- **Why Best Suited:** Clean L7 internal boundary with private ACM TLS termination.
+  - *AWS App Mesh:* Forbidden — do not run two meshes.
+  - *Ingress-only without sidecars:* Rejected for R0 once Istio admitted — east–west STRICT is in scope.
+- **Security non-negotiables:** Keycloak never on public Ingress (S5); mesh authZ ≠ insurance PDP (S7); no Flutter JWT validation as BFF substitute (S6).
 
 #### 1.6 Transit Gateway (TGW) & Inspection / Egress VPC (`ADR-009`, `ADR-010`)
 - **What it is & What it does:** Workload VPCs **attach as spokes** to the existing `AU-CTO-NETWORK` Transit Gateway (Central Network Account Architecture V1). Do **not** provision a second TGW. The hub already connects on-premises bank DCs (via the existing DX Gateway) and the EDGE / inspection path. This programme adds a per-environment inspection/egress VPC (or shares EDGE — `ASM-012`) containing AWS Network Firewall and NAT Gateways.
@@ -454,9 +455,9 @@ The platform enforces the following hard invariants across all codebases and inf
 
 ## ARB Presentation Defense Script & Anticipated Q&A
 
-### Question 1: "Why use Cloudflare and F5-XC instead of standard AWS edge services — and why is there no public ALB?"
+### Question 1: "Why use Cloudflare and F5-XC — and why NLB + Istio instead of API Gateway?"
 **Defense Answer:**
-> "We reuse the **existing AU Bank north-south perimeter**, not a new AWS edge stack. **Cloudflare Enterprise** and **F5 Distributed Cloud (F5-XC)** are bank-enterprise **SaaS** — they sit outside AWS and outside every VPC, exactly as the current banking application already does. Traffic then enters AWS at **Amazon API Gateway**; there is **no public ALB** in front of it. The current banking app's Public ALB is that application's AWS entry. Ours is API Gateway, then a VPC Link to the Internal ALB. Drawing Cloudflare or F5 inside AWS, or putting an F5 BIG-IP in our VPC, would invent a hop the estate does not have."
+> "We reuse the **existing AU Bank north-south SaaS perimeter**. **Cloudflare Enterprise** and **F5-XC** sit outside AWS and outside every VPC. Traffic then enters AWS at an **internet-facing NLB** locked to F5/CF CIDRs, with F5 shared-secret and/or mTLS to origin, then **Istio Ingress Gateway** for path split and mesh mTLS (`ADR-023`). Amazon API Gateway is withdrawn because the bank standard and skill centre are LB+Istio. Drawing Cloudflare or F5 inside AWS, or putting an F5 BIG-IP in our VPC, would invent a hop the estate does not have. Keycloak stays private; the PDP remains business authZ."
 
 ### Question 2: "How does the platform integrate with Core Banking (CBS)?"
 **Defense Answer:**

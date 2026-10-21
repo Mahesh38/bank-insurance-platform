@@ -21,7 +21,7 @@ correctness-constrained workload and was thin in exactly the places that are inv
 | Layer | Position before this CR | Where it was recorded |
 |---|---|---|
 | Bank connectivity (CBS, Bank AD) | "Direct Connect / VPN / bank proxy — decided at S09 entry", stubs permitted in `dev` | `R0-LLD` §14 open decisions |
-| Egress inspection | Security groups + Kubernetes `NetworkPolicy` only. "Service mesh — NetworkPolicy is enough" | `r0_platform_views.py`, `R0-LLD` §2 |
+| Egress inspection | Security groups + Kubernetes `NetworkPolicy` (later + Istio east–west under `ADR-023`) | `r0_platform_views.py`, `R0-LLD` §2 |
 | Shared cache tier | Not in the BOM. In-process caches only; sessions "prefer DynamoDB" | `R0-LLD` §1.3, §6 |
 | Event backbone | `DO NOT PROVISION`. Transactional outbox is the async mechanism | `R0-LLD` §1.3, `03-solution-architecture-r0` §5.1 |
 | Operational search | CloudWatch Logs only; analytics deferred to S13 | `R0-LLD` BOM #17 |
@@ -69,7 +69,7 @@ The same comparison surfaced three more layers. Admitting five is not a reason t
 
 | Not admitted | Why |
 |---|---|
-| **Service mesh (Istio / App Mesh)** | An Envoy sidecar per pod for mTLS and retries that `NetworkPolicy` + IRSA + Resilience4j already provide at this scale. `ADR-010` covers **egress** inspection and does not pretend to be a mesh. S14 conversation |
+| **~~Service mesh (Istio / App Mesh)~~** | **Amended 2026-10-09 by `ADR-023`:** **Istio** (Ingress Gateway + sidecars; PeerAuthentication → STRICT after dated cutover) is **admitted** to R0. AWS App Mesh remains out. Mesh retries must not double-fire with Resilience4j. NetworkPolicy retained (S11). Original CR-012 refusal stands only for App Mesh / unbounded mesh gold-plating. |
 | **Per-service database clusters** | `ADR-008` stands. One cluster, schema per context, first split along the LOB-cell seam |
 | **Analytics warehouse (Glue ETL, Athena, Redshift, QuickSight)** | `#18` Reporting & MIS is S13. `ADR-013` provisions operational search, which is a different thing. The Glue **Schema Registry** is in; Glue ETL is not |
 | **ElastiCache as an idempotency store** | Named in the target-state review and **rejected by name** in `ADR-011`. Idempotency must be atomic with the business write |

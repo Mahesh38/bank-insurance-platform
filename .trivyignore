@@ -22,13 +22,16 @@
 #
 # Format:
 #   CVE-YYYY-NNNNN  # owner: <persona> | expires: YYYY-MM-DD | reason: <why>
-#
+
 # ---------------------------------------------------------------------------
-# CURRENTLY EMPTY — no vulnerability is suppressed.
-#
-# This is deliberate and it is the correct starting state. The first scan has
-# not yet run in CI, so nothing has been triaged. If the first run produces
-# findings, they are triaged into the risk register and remediated; they are
-# not added here to make the build green. A newly-installed control that is
-# immediately suppressed has not been installed.
+# CVE-2026-47884 — Spring Framework XsltView path limitation
+# spring.io/security/cve-2026-47884 (MEDIUM). Trivy rates CRITICAL because the
+# only public OSS fix is spring-webmvc 7.0.9 (Spring Framework 7 / Boot 4).
+# 6.2.20 is Enterprise Support Only and is not on Maven Central. Boot 3.5.16
+# is the last 3.5.x OSS line and pins 6.2.19. Jumping this monorepo to Boot 4
+# is SUG-20261008-sb4 (parked), not a patch bump.
+# Reachability: no service uses XsltView or a "/**" view-name rendering mapping;
+# APIs are JSON RestControllers. RISK-021. Owner ADMIT-BYPASS 2026-10-08 to
+# unblock PR #143; not a T4 Deepali signature.
 # ---------------------------------------------------------------------------
+CVE-2026-47884  # owner: Mahesh/repository_owner | expires: 2026-11-08 | reason: no OSS 6.2 patch; XsltView unused; Boot 4 parked as SUG-20261008-sb4; RISK-021

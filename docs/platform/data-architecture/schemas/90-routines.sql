@@ -52,12 +52,14 @@ $$;
 --     BEFORE UPDATE OR DELETE ON consent.consent
 --     FOR EACH ROW EXECUTE FUNCTION consent.fn_protect_consent_evidence();
 
-CREATE OR REPLACE FUNCTION opportunity.fn_accountable_sp_immutable()
+CREATE OR REPLACE FUNCTION lead_lms.fn_accountable_sp_immutable()
 RETURNS trigger
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    IF NEW.accountable_sp_id IS DISTINCT FROM OLD.accountable_sp_id THEN
+    -- First assignment may write NULL → value. After that the column is frozen (INV-ACT-03 / D-019).
+    IF OLD.accountable_sp_id IS NOT NULL
+       AND NEW.accountable_sp_id IS DISTINCT FROM OLD.accountable_sp_id THEN
         RAISE EXCEPTION 'INV-ACT-03: accountable_sp_id is immutable'
             USING ERRCODE = 'restrict_violation';
     END IF;
@@ -66,9 +68,152 @@ END;
 $$;
 
 -- CREATE TRIGGER trg_accountable_sp_immutable
---     BEFORE UPDATE ON opportunity.opportunity
---     FOR EACH ROW EXECUTE FUNCTION opportunity.fn_accountable_sp_immutable();
+--     BEFORE UPDATE ON lead_lms.lead
+--     FOR EACH ROW EXECUTE FUNCTION lead_lms.fn_accountable_sp_immutable();
 -- Repeat the same function body in journey if that service copies the column.
+
+CREATE OR REPLACE FUNCTION lead_lms.fn_lead_origination_immutable()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF NEW.lead_id IS DISTINCT FROM OLD.lead_id
+       OR NEW.lob IS DISTINCT FROM OLD.lob
+       OR NEW.product_class IS DISTINCT FROM OLD.product_class
+       OR NEW.created_by_principal_id IS DISTINCT FROM OLD.created_by_principal_id
+       OR NEW.created_by_actor_type IS DISTINCT FROM OLD.created_by_actor_type
+       OR NEW.source IS DISTINCT FROM OLD.source THEN
+        RAISE EXCEPTION 'IMMUTABLE_COLUMNS: lead origination columns cannot change'
+            USING ERRCODE = 'restrict_violation';
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+-- CREATE TRIGGER trg_lead_origination_immutable
+--     BEFORE UPDATE ON lead_lms.lead
+--     FOR EACH ROW EXECUTE FUNCTION lead_lms.fn_lead_origination_immutable();
+
+CREATE OR REPLACE FUNCTION suitability.fn_protect_answer_set()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RAISE EXCEPTION 'IMMUTABLE_TABLE: suitability_answer_set does not permit %', TG_OP
+        USING ERRCODE = 'restrict_violation';
+END;
+$$;
+
+-- CREATE TRIGGER trg_suit_answer_set_immutable
+--     BEFORE UPDATE OR DELETE ON suitability.suitability_answer_set
+--     FOR EACH ROW EXECUTE FUNCTION suitability.fn_protect_answer_set();
+
+CREATE OR REPLACE FUNCTION suitability.fn_protect_mapping_run()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF TG_OP = 'DELETE' THEN
+        RAISE EXCEPTION 'IMMUTABLE_TABLE: suitability_mapping_run cannot be deleted'
+            USING ERRCODE = 'restrict_violation';
+    END IF;
+    IF NEW.suitability_id IS DISTINCT FROM OLD.suitability_id
+       OR NEW.answer_set_version IS DISTINCT FROM OLD.answer_set_version
+       OR NEW.mapping_rule_version IS DISTINCT FROM OLD.mapping_rule_version
+       OR NEW.mapping_result IS DISTINCT FROM OLD.mapping_result
+       OR NEW.recommended_products IS DISTINCT FROM OLD.recommended_products
+       OR NEW.evaluated_at IS DISTINCT FROM OLD.evaluated_at
+       OR NEW.evaluated_by IS DISTINCT FROM OLD.evaluated_by
+       OR NEW.proposer_age_years IS DISTINCT FROM OLD.proposer_age_years THEN
+        RAISE EXCEPTION 'IMMUTABLE_COLUMNS: mapping run evidence cannot change'
+            USING ERRCODE = 'restrict_violation';
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+-- CREATE TRIGGER trg_suit_mapping_run_protect
+--     BEFORE UPDATE OR DELETE ON suitability.suitability_mapping_run
+--     FOR EACH ROW EXECUTE FUNCTION suitability.fn_protect_mapping_run();
+-- run_state may move CURRENT → INVALID / SUPERSEDED on a saved edit (Suitability BRD §14.2).
+
+-- DATA-005: working envelopes freeze after Payment RECONCILED materialize.
+-- payload_enc and extracted control columns must not change once materialized_at is set.
+
+CREATE OR REPLACE FUNCTION quotation.fn_freeze_working_payload()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF TG_OP = 'DELETE' THEN
+        IF OLD.materialized_at IS NOT NULL THEN
+            RAISE EXCEPTION 'IMMUTABLE_TABLE: quote_working is frozen after materialize'
+                USING ERRCODE = 'restrict_violation';
+        END IF;
+        RETURN OLD;
+    END IF;
+    IF TG_OP = 'UPDATE' AND OLD.materialized_at IS NOT NULL THEN
+        IF NEW.payload_enc IS DISTINCT FROM OLD.payload_enc
+           OR NEW.encryption_key_id IS DISTINCT FROM OLD.encryption_key_id
+           OR NEW.payload_schema_version IS DISTINCT FROM OLD.payload_schema_version
+           OR NEW.quote_id IS DISTINCT FROM OLD.quote_id
+           OR NEW.journey_id IS DISTINCT FROM OLD.journey_id
+           OR NEW.lead_id IS DISTINCT FROM OLD.lead_id
+           OR NEW.suitability_id IS DISTINCT FROM OLD.suitability_id
+           OR NEW.consent_id IS DISTINCT FROM OLD.consent_id
+           OR NEW.selected_offer_id IS DISTINCT FROM OLD.selected_offer_id
+           OR NEW.selected_premium_amount IS DISTINCT FROM OLD.selected_premium_amount
+           OR NEW.selected_tax_amount IS DISTINCT FROM OLD.selected_tax_amount
+           OR NEW.selected_sum_assured IS DISTINCT FROM OLD.selected_sum_assured
+           OR NEW.selected_insurer_code IS DISTINCT FROM OLD.selected_insurer_code
+           OR NEW.selected_product_code IS DISTINCT FROM OLD.selected_product_code
+           OR NEW.materialized_at IS DISTINCT FROM OLD.materialized_at THEN
+            RAISE EXCEPTION 'IMMUTABLE_COLUMNS: quote_working payload is frozen after materialize'
+                USING ERRCODE = 'restrict_violation';
+        END IF;
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+-- CREATE TRIGGER trg_qwork_freeze
+--     BEFORE UPDATE OR DELETE ON quotation.quote_working
+--     FOR EACH ROW EXECUTE FUNCTION quotation.fn_freeze_working_payload();
+
+CREATE OR REPLACE FUNCTION proposal.fn_freeze_working_payload()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF TG_OP = 'DELETE' THEN
+        IF OLD.materialized_at IS NOT NULL THEN
+            RAISE EXCEPTION 'IMMUTABLE_TABLE: proposal_working is frozen after materialize'
+                USING ERRCODE = 'restrict_violation';
+        END IF;
+        RETURN OLD;
+    END IF;
+    IF TG_OP = 'UPDATE' AND OLD.materialized_at IS NOT NULL THEN
+        IF NEW.payload_enc IS DISTINCT FROM OLD.payload_enc
+           OR NEW.encryption_key_id IS DISTINCT FROM OLD.encryption_key_id
+           OR NEW.payload_schema_version IS DISTINCT FROM OLD.payload_schema_version
+           OR NEW.proposal_id IS DISTINCT FROM OLD.proposal_id
+           OR NEW.journey_id IS DISTINCT FROM OLD.journey_id
+           OR NEW.quote_id IS DISTINCT FROM OLD.quote_id
+           OR NEW.offer_id IS DISTINCT FROM OLD.offer_id
+           OR NEW.consent_id IS DISTINCT FROM OLD.consent_id
+           OR NEW.application_number IS DISTINCT FROM OLD.application_number
+           OR NEW.materialized_at IS DISTINCT FROM OLD.materialized_at THEN
+            RAISE EXCEPTION 'IMMUTABLE_COLUMNS: proposal_working payload is frozen after materialize'
+                USING ERRCODE = 'restrict_violation';
+        END IF;
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+-- CREATE TRIGGER trg_pwork_freeze
+--     BEFORE UPDATE OR DELETE ON proposal.proposal_working
+--     FOR EACH ROW EXECUTE FUNCTION proposal.fn_freeze_working_payload();
 
 -- ---------------------------------------------------------------------------
 -- Audit sequence (OPEN-I3)
@@ -90,7 +235,7 @@ $$;
 -- IPR visibility predicate (AC-4 / PII-07) — documentation as SQL
 -- ---------------------------------------------------------------------------
 
-CREATE OR REPLACE FUNCTION opportunity.fn_ipr_visible(
+CREATE OR REPLACE FUNCTION lead_lms.fn_ipr_visible(
     p_need_analysis_state VARCHAR,
     p_insurer_id VARCHAR,
     p_partner_visible_from TIMESTAMP WITH TIME ZONE,
@@ -105,18 +250,27 @@ AS $$
        AND p_insurer_id = p_principal_insurer_id;
 $$;
 
--- Repositories MUST include AND opportunity.fn_ipr_visible(...) when the
+-- Repositories MUST include AND lead_lms.fn_ipr_visible(...) when the
 -- principal is INSURER_PARTNER_REP. A method without that predicate must not exist (FF-17).
 
 -- ---------------------------------------------------------------------------
 -- S09 purge — designed, not scheduled
 -- ---------------------------------------------------------------------------
 
-CREATE OR REPLACE PROCEDURE opportunity.sp_purge_operational()
+CREATE OR REPLACE PROCEDURE lead_lms.sp_purge_operational()
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    DELETE FROM opportunity.idempotency_record
+    DELETE FROM lead_lms.idempotency_record
+     WHERE expires_at < now();
+END;
+$$;
+
+CREATE OR REPLACE PROCEDURE suitability.sp_purge_operational()
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    DELETE FROM suitability.idempotency_record
      WHERE expires_at < now();
 END;
 $$;
@@ -131,5 +285,92 @@ BEGIN
     -- operational rows only.
     DELETE FROM bank_persistence.job_poll_attempt
      WHERE attempted_at < now() - INTERVAL '90 days';
+END;
+$$;
+
+-- DATA-005: working envelopes are not the sold-policy record. Age them out after
+-- retain_until. Structured quote / offer / proposal / UW stay.
+
+CREATE OR REPLACE PROCEDURE quotation.sp_purge_operational()
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    DELETE FROM quotation.idempotency_record
+     WHERE expires_at < now();
+    -- Working envelopes only. Structured quote/offer (post-RECONCILED) stay.
+    DELETE FROM quotation.quote_working
+     WHERE retain_until IS NOT NULL
+       AND retain_until < CURRENT_DATE;
+END;
+$$;
+
+CREATE OR REPLACE PROCEDURE proposal.sp_purge_operational()
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    DELETE FROM proposal.idempotency_record
+     WHERE expires_at < now();
+    -- Working envelopes only. Structured proposal/UW (post-RECONCILED) stay.
+    DELETE FROM proposal.proposal_working
+     WHERE retain_until IS NOT NULL
+       AND retain_until < CURRENT_DATE;
+END;
+$$;
+
+CREATE OR REPLACE PROCEDURE journey.sp_purge_operational()
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    DELETE FROM journey.idempotency_record
+     WHERE expires_at < now();
+
+    -- Unconverted only: never reached payment. Converted / paid journeys are
+    -- RET-7Y and are not deleted here (SUG-20261019-txn).
+    DELETE FROM journey.outbox_event o
+     USING journey.journey j
+     WHERE o.journey_id = j.journey_id
+       AND j.archived_at IS NOT NULL
+       AND j.retain_until IS NOT NULL
+       AND j.retain_until < CURRENT_DATE
+       AND NOT EXISTS (
+           SELECT 1 FROM journey.journey_ref r
+            WHERE r.journey_id = j.journey_id AND r.ref_type = 'paymentId');
+
+    DELETE FROM journey.journey_transition t
+     USING journey.journey j
+     WHERE t.journey_id = j.journey_id
+       AND j.archived_at IS NOT NULL
+       AND j.retain_until IS NOT NULL
+       AND j.retain_until < CURRENT_DATE
+       AND NOT EXISTS (
+           SELECT 1 FROM journey.journey_ref r
+            WHERE r.journey_id = j.journey_id AND r.ref_type = 'paymentId');
+
+    DELETE FROM journey.journey_ref r
+     USING journey.journey j
+     WHERE r.journey_id = j.journey_id
+       AND j.archived_at IS NOT NULL
+       AND j.retain_until IS NOT NULL
+       AND j.retain_until < CURRENT_DATE
+       AND NOT EXISTS (
+           SELECT 1 FROM journey.journey_ref p
+            WHERE p.journey_id = j.journey_id AND p.ref_type = 'paymentId');
+
+    DELETE FROM journey.journey j
+     WHERE j.archived_at IS NOT NULL
+       AND j.retain_until IS NOT NULL
+       AND j.retain_until < CURRENT_DATE
+       AND NOT EXISTS (
+           SELECT 1 FROM journey.journey_ref r
+            WHERE r.journey_id = j.journey_id AND r.ref_type = 'paymentId');
+END;
+$$;
+
+CREATE OR REPLACE PROCEDURE payment.sp_purge_operational()
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    DELETE FROM payment.idempotency_record
+     WHERE expires_at < now();
 END;
 $$;

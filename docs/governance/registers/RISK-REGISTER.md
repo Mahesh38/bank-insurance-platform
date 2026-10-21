@@ -49,6 +49,7 @@ with a probability**. Risks feed the `R` factor in priority scoring
 | RISK-018 | **Approval automation risk.** An agent or workflow treats silence as approval, marks a gate `PASSED`, or populates a T4 signature. | Both | 2 | 3 | 6 | Deepali / Security + Mahesh / Architecture | MITIGATE: proposal-only policy (`silence_approves: false`); `may_mark_passed: false`; R-C1 alarm log; CR-010 §2 boundary unchanged. Review **2026-10-28** | A register row that cites an AI verdict as a human approval |
 | RISK-019 | **Missing human signoff risk.** AIGEM-accepted CRs (001, 002, 008, 010–016) operate in the repository while T4/PO/QA signatures remain outstanding, so later gates cite unsigned change. | Both | 3 | 2 | 6 | Kalpana / R12 (clock) · named signers per CR | MITIGATE: remaining-signature checklist in the 2026-09-30 signoff pack; K-C4 board response clock (required-by 2026-10-14); silence recorded as `NO_RESPONSE`, never approval. Review **2026-10-14** | A gate PASS that cites an AIGEM-ACCEPTED CR as if it were human-ratified |
 | RISK-020 | **Operational dependency risk.** Overdue external work (UAT slot, Bank AD, VPN/firewall, Elastic-IP/Apigee allowlist, S09 cost envelope) remains OPEN, so UAT and S09 entry cannot be evidenced no matter how much in-repo work lands. | WS-1 / WS-3 | 3 | 3 | 9 | Shivanshi / SRE (connectivity/cost) · Rajal / Product (UAT slot) · Mahesh / Architecture (AD) | MITIGATE: keep rows OPEN; AIGEM 2026-09-30 recommended ESCALATE (DEP-002/010/dx1/eip) and RE-DATE (cst); no evidence fabricated. Review **2026-10-07** | A UAT or S09 date announced while any of DEP-002, DEP-010, DEP-20260824-dx1, DEP-20260824-eip, DEP-20260824-cst is still OPEN |
+| RISK-021 | **CVE-2026-47884** on `spring-webmvc` 6.2.19 (XsltView path limitation). Trivy fails SCA because the only public OSS fix is 7.0.9 (Spring Framework 7 / Boot 4). 6.2.20 is Enterprise-only and not on Maven Central. No service uses `XsltView`. Time-boxed `.trivyignore` until 2026-11-08. | WS-3 | 1 | 2 | 2 | Mahesh / Architecture (Boot 4 decision) · Deepali / Security (waiver review) | MITIGATE: ignore with expiry; park Boot 4 as `SUG-20261008-sb4`. Do not treat this as T4 acceptance. Review **2026-11-08** | Ignore expires, a service adds `XsltView` / a `"/**"` view-name mapping, or Boot 4 is admitted |
 
 ## 3. Accepted risks
 
@@ -59,10 +60,11 @@ Risks knowingly carried, with the acceptance recorded so they are not re-raised 
 | → [RISK-004](#2-open-risks) | In-memory idempotency | Tech Lead | Phase 5.4 | Single instance in UAT; scale-out is gated. **Unchanged by the platform cache tier** — `ADR-011` keeps idempotency in the owning store, so a shared cache existing does not close this |
 | → [RISK-010](#2-open-risks) | Forward-only governance adoption | Delivery Lead | — | Backfilling costs days and changes no shipped code |
 
-> `RISK-012` … `RISK-020` are **not** accepted. They are open against a decision set that is
+> `RISK-012` … `RISK-021` are **not** accepted. They are open against a decision set that is
 > AI-DRAFTED or AIGEM-ACCEPTED, and each names the human who has to accept or reject it. An agent
 > recording a risk against its own proposal does not thereby carry it. `RISK-016` is owned by a
-> **named human** (Shailja S) per CR-010 R-C2; no agent may close or accept it.
+> **named human** (Shailja S) per CR-010 R-C2; no agent may close or accept it. `RISK-021` is a
+> time-boxed scan waiver, not a T4 Security signature.
 
 ## 4. Closed risks
 

@@ -43,7 +43,25 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20261019-txn | 2026-10-19 | human:stakeholder | How transactions work on unstructured quote/proposal; Dynamo vs Postgres JSON; archive anything that did not reach payment — do not keep all leads/journeys 7–10 years | SF2 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [DATA-005](../../platform/data-architecture/DATA-005.work-item.yaml) · [06 §10](../../platform/data-architecture/06-journey-orchestrator-and-working-payload.md) · [detail](#sug-20261019-txn--postgres-transactions-not-dynamo-archive-unless-paid) |
+| SUG-20261019-pay | 2026-10-19 | human:stakeholder | Payment is also part of the journey though it is independent | SF2 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [DATA-005](../../platform/data-architecture/DATA-005.work-item.yaml) · [06 §6](../../platform/data-architecture/06-journey-orchestrator-and-working-payload.md) · [detail](#sug-20261019-pay--payment-on-the-journey-and-independent) |
+| SUG-20261019-jwp | 2026-10-19 | human:stakeholder | Journey orchestrator table contract; quotes/proposals stay JSON until payment, then structured | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [DATA-005](../../platform/data-architecture/DATA-005.work-item.yaml) · [PLAN-012](../plans/PLAN-012-journey-working-payload.md) · [pack](../../platform/data-architecture/06-journey-orchestrator-and-working-payload.md) · [detail](#sug-20261019-jwp--journey-orchestrator-and-json-until-payment) |
+| SUG-20261012-erd | 2026-10-12 | human:stakeholder | Include all ER diagrams with detailed fields and relationship mapping on the e2e DB pack | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [DATA-004](../../platform/data-architecture/DATA-004.work-item.yaml) · [ER](../../platform/data-architecture/05-e2e-er-and-field-map.md) · [detail](#sug-20261012-erd--e2e-er-diagrams-and-field-map) · absorbed into DATA-004 |
+| SUG-20261012-pdr | 2026-10-12 | human:stakeholder | Complete e2e DB design: Postgres vs DynamoDB segregation, service access, per-service DB users, roadmap | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [DATA-004](../../platform/data-architecture/DATA-004.work-item.yaml) · [PLAN-011](../plans/PLAN-011-store-segregation-roadmap.md) · [map](../../platform/data-architecture/04-store-segregation-and-roadmap.md) · [ER](../../platform/data-architecture/05-e2e-er-and-field-map.md) · [detail](#sug-20261012-pdr--e2e-postgres-vs-dynamodb-segregation) |
+| SUG-20261009-lms | 2026-10-09 | human:stakeholder | Do not name the Lead store OPPORTUNITY — schema lead_lms, table lead | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [DATA-003](../../platform/data-architecture/DATA-003.work-item.yaml) · [ER](../../platform/data-architecture/03-lead-suitability-e2e.md) · [DDL](../../platform/data-architecture/schemas/04-lead_lms.sql) · [detail](#sug-20261009-lms--lead-lms-schema-and-lead-table) |
+| SUG-20261009-lss | 2026-10-09 | human:stakeholder | Generate ER diagram and table schema required for the Lead and Suitability module e2e | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [DATA-003](../../platform/data-architecture/DATA-003.work-item.yaml) · [PLAN-010](../plans/PLAN-010-lead-suitability-e2e-schema.md) · [ER](../../platform/data-architecture/03-lead-suitability-e2e.md) · [detail](#sug-20261009-lss--lead-and-suitability-e2e-schema) |
+| SUG-20261008-bnk | 2026-10-08 | human:repository-owner | Complete bank-user login/auth e2e using the bank AD login API that hits AD internally and returns true/false for an active bank employee | SF1 | SC0 | MUST | FUNC | P2 / P1 | ADMITTED | [IAM-001](../../platform/authentication-authorization/IAM-001.work-item.yaml) · [detail](#sug-20261008-bnk--bank-rm-ad-verify-login-e2e) |
+| SUG-20261008-otp | 2026-10-08 | agent:cursor | Login BRD remainder after IAM-001: Captcha, mandatory OTP to mobile+email, lock after 3 password failures / 30-day inactivity, Unlock User | SF2 | SC0 | MUST | FUNC | P4 / P1 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [detail](#sug-20261008-otp--login-brd-captcha-otp-lock) |
+| SUG-20261008-sb4 | 2026-10-08 | scan:trivy | Upgrade Spring Boot 3.5.16 → Boot 4 / Framework 7.0.9 to close CVE-2026-47884 on spring-webmvc (only public OSS fix; 6.2.20 is enterprise-only) | SF3 | SC1 | MUST | SEC | P4 / P1 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [detail](#sug-20261008-sb4--spring-boot-4-for-cve-2026-47884) · RISK-021 |
+| SUG-20261008-xsl | 2026-10-08 | scan:trivy | Time-box `.trivyignore` for CVE-2026-47884 (XsltView unused; no OSS 6.2 patch) so SCA can merge; not a T4 waiver | SF0 | SC1 | MUST | SEC | P1 / P1 | ADMIT-BYPASS | [.trivyignore](../../../.trivyignore) · [RISK-021](./RISK-REGISTER.md) · [detail](#sug-20261008-xsl--time-box-cve-2026-47884) |
+| SUG-20261007-crs | 2026-10-07 | human:Mahesh | Standing code-review standard: coverage on the branch at push, review aspects/how/mandatory, logging and monitoring alignment; re-review EPIC-006 against it | SF1 | SC0 | MUST | GOV | P2 / P2 | ADMITTED | [CODE-REVIEW-STANDARD.md](../CODE-REVIEW-STANDARD.md) · [detail](#sug-20261007-crs--standing-code-review-coverage-and-logging-bar) · EPIC-006 lane |
+| SUG-20261007-ird | 2026-10-07 | human:Mahesh | IRDAI Specified Person certification as control evidence for Lead assign | SF3 | SC0 | MUST | COMP | P4 / P1 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [detail](#sug-20261007-ird--irdai-sp-register-as-certification-sor) · fixture port shipped under EPIC-006; SoR still missing |
+| SUG-20261007-srp | 2026-10-07 | agent:AIGEM-review | EPIC-006 should-fix: move product-classes off CustomerLookupController; compile country regex once; drop duplicate SEARCH_BY | SF3 | SC0 | COULD | REFACTOR | P4 / P3 | ADMIT-BYPASS | [EPIC-006](../../platform/ws3-platform/EPIC-006.work-item.yaml) · [EPIC-006-REVIEW](../../platform/ws3-platform/EPIC-006-REVIEW.md) · [detail](#sug-20261007-srp--lead-bff-srp-and-kiss-cleanups) |
+| SUG-20261006-atk | 2026-10-06 | human:stakeholder | One AU-Bima-Platform token for R0 Apigee egress: `customer-service` (CBS) **and** `1sb-integration-service` (ARB). Shared access-token cache at first live `/token`; not a wall-clock cron; not the workforce IdP | SF3 | SC1 | SHOULD | ARCH | P4 / P2 | ADMIT-BYPASS | [ASM-020](./ASSUMPTION-REGISTER.md) · [ADR-020](../../platform/architecture-review/08-architecture-decision-log.md) · [FUNC-031](../../platform/ws3-platform/FUNC-031.work-item.yaml) · [detail](#sug-20261006-atk--one-token-owner-per-apigee-app) · recurrence_count 5 (2026-10-07: owner unpark HTTP `/token` + CBS inquiry; cluster Valkey remainder parked) |
 | SUG-20261006-apg | 2026-10-06 | human:stakeholder | Platform team may refuse Amazon API Gateway inbound; Istio / External LB offered as substitute — need justification pack + CR/ADR escalation (keep ADR-018 vs Option B) | SF1 | SC0 | MUST | ARCH | P2 / P1 | **ADMITTED** (Option B) | [CR-017 Accepted](../change-requests/CR-017-inbound-api-gateway-vs-istio.md) · [ADR-023](../../platform/architecture-review/08-architecture-decision-log.md) · [security map](../../architecture/2026-10-09-ADR-023-SECURITY-CONTROL-MAP.md) · [detail](#sug-20261006-apg--api-gateway-vs-istio-platform-challenge) · recurrence_count 5 (2026-10-09b: Architecture owner Accepts Option B → ADR-023 cascade) |
+| SUG-20261005-uld | 2026-10-05 | agent:AIGEM-review | EPIC-006 should-fix: share Ulid with StubLeadGateway; add BFF MockMvc for UNCERTIFIED assignee | SF3 | SC0 | COULD | QA | P4 / P3 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [EPIC-006-REVIEW](../../platform/ws3-platform/EPIC-006-REVIEW.md) · [detail](#sug-20261005-uld--lead-stub-ulid-and-uncertified-test) · recurrence_count 2 (2026-10-07: stub `principal()` is a no-op; createdBy lost after assign) |
+| SUG-20261005-sdn | 2026-10-05 | agent:AIGEM-review | Fold BFF Lead session into Spring Security default-deny (SEC-C4) instead of permitAll + MVC interceptor | SF3 | SC0 | SHOULD | SEC | P4 / P2 | ADMIT-BYPASS | [EPIC-006](../../platform/ws3-platform/EPIC-006.work-item.yaml) · [EPIC-006-REVIEW](../../platform/ws3-platform/EPIC-006-REVIEW.md) · [detail](#sug-20261005-sdn--bff-session-default-deny) |
+| SUG-20261005-lbf | 2026-10-05 | human:stakeholder | Finish Lead-module BFF: REST naming, Rajal leadId + stages, country-codes, branch/vertical/RM, assign+exception, CBS search without token race | SF5 | SC0 | MUST | FUNC | P3 / P1 | ADMITTED | [EPIC-006](../../platform/ws3-platform/EPIC-006.work-item.yaml) · [PLAN-009](../plans/PLAN-009-nip-bff-lead-module-runtime.md) · [D-020](../../au-bank-insurance-platform/DECISION-LOG.md) · [D-021](../../au-bank-insurance-platform/DECISION-LOG.md) · [detail](#sug-20261005-lbf--bff-lead-module-runtime) |
 | SUG-20261003-svg | 2026-10-03 | human:stakeholder | Remaining Saving readiness beyond fail-closed hub validation: Product UI bands, questionnaire engine, enum inventory/master refresh, live Gate POST + complete Proposal POST/poll | SF3 | SC0 | MUST | FUNC | P4 / P1 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [detail](#sug-20261003-svg--saving-readiness-blocked-on-1sb-config) |
 | SUG-20261003-lvr | 2026-10-03 | human:stakeholder | Make 1sb-integration-service UAT-ready to validate Term/ULIP/Savings Life journeys (fail-before-1SB + response contract) | SF1 | SC0 | MUST | FUNC | P2 / P1 | ADMITTED | [FUNC-028](../../1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md) · [detail](#sug-20261003-lvr--life-journey-validation-uat) |
 | SUG-20261003-brf | 2026-10-03 | human:Rajal | BRD wins: dedupe key user+customer+productType+BI; no delete when BI absent; Save does not evaluate — Start Onboarding does; flow dedupe→create→exception→assign SP | SF2 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [D-019](../../au-bank-insurance-platform/DECISION-LOG.md) · [EPIC-005](../../platform/ws3-platform/EPIC-005.work-item.yaml) · [detail](#sug-20261003-brf--brd-wins-dedupe-exception-timing--sequence) |
@@ -263,6 +281,2151 @@ Related: Apigee **outbound** (`SUG-20260914-egr` / `ADR-020`) stands. Inbound AP
 **Recurrence 2026-10-09** (`recurrence_count: 4`): clarified that review boards in-repo are AI personas; Mahesh is the real Architecture owner; bank primary pattern is External LB+Istio; API Gateway skill scarce; Mahesh is *contemplating* adapt (not confirming an ADR). Delivered process + full cascade catalogue [`2026-10-09-MAHESH-CONTEMPLATION-BANK-STANDARD-ELB-ISTIO.md`](../../architecture/2026-10-09-MAHESH-CONTEMPLATION-BANK-STANDARD-ELB-ISTIO.md). Still not Accepted; no BOM/diagram flip until Mahesh Accepts amending ADR.
 
 **Recurrence 2026-10-09b** (`recurrence_count: 5`): Architecture owner decision — **switch to Istio + LB**. `ADR-023` Accepted; `ADR-018`/`ADR-022` SUPERSEDED; `CR-017` Option B Accepted; BOM/diagrams/auth cascade with mandatory S1–S11 ([`2026-10-09-ADR-023-SECURITY-CONTROL-MAP.md`](../../architecture/2026-10-09-ADR-023-SECURITY-CONTROL-MAP.md)). Suggestion disposition → **ADMITTED**.
+
+### SUG-20261019-txn · Postgres transactions not Dynamo, archive unless paid
+
+```yaml
+# schema: triage-record
+id: SUG-20261019-txn
+raised_at: "2026-10-19"
+raised_by: "human:stakeholder"
+source: "Follow-up on DATA-005: transactions, Dynamo vs Postgres, 7-10y retention"
+input: >
+  How the transaction will work on this unstructured data of qoute and proposals,
+  are we going to use dynomodb for this or we will use Postgres json keep in mind
+  this data is bulk also one important thing, we don’t want to store the records
+  for the all the leads and its journey for 7-10 years as per compliance we need
+  to store only the once which got converted into payments, anything which has
+  not reached payment will get archived
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: DATA-005
+
+stage_fit:
+  code: SF2
+  rationale: >
+    Completes in-flight DATA-005. Store choice is already DB-DEC-0001/0004
+    (Postgres, not Dynamo). Retention split is the new physical contract:
+    RET-WORKING vs RET-7Y on the converted path. Absorption test passes —
+    no new engine, no new service, gate-neutral.
+  target_stage: "S11 owning-service runtime; S09 purge apply"
+  unpark_trigger: null
+  absorption_test:
+    small: true
+    no_new_dependency: true
+    no_new_decision: true
+    gate_neutral: true
+
+scope:
+  code: SC0
+  business_scope: "in scope — Journey / Quotation / Proposal / Payment persistence"
+  serves: ["DATA-005", "DB-DEC-0001", "C-RET-1"]
+  failure_without_it: "S11 puts working JSON on Dynamo or keeps every abandoned journey 7 years in Aurora"
+  minimal: true
+  authority: "DB-DEC-0001; 02-operations §4; C-RET-1; OPEN-I4"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S11 — Vertical slice"
+  binds_when: "working-payload writes and unconverted purge"
+  failure_without_it: "S11 puts working JSON on Dynamo or keeps every abandoned journey 7 years in Aurora"
+  evidence_tier: E2
+  evidence:
+    - "DB-DEC-0001 Dynamo rejected at R0"
+    - "DR-PII-01 / INV-PRP-05 — no plaintext JSONB"
+    - "C-RET-1 lead attribution stays RET-7Y as a stub"
+    - "Owner: only payment-converted stays 7-10 years"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT
+action_rationale: >
+  SF2 absorption into DATA-005. Dynamo stays rejected. Transactions are
+  local Postgres ACID per schema. Unconverted path is RET-WORKING.
+  C-RET-1 / consent on unsold path flagged OPEN for Shailja — not purged here.
+duplicate_of: null
+conflicts:
+  - "Information model marks quote/journey RET-7Y — this pack applies that class to the sold path; unconverted is RET-WORKING"
+  - "C-RET-1 vs owner do-not-keep-all-leads-7y — stub stays until Shailja (OPEN-RET-LEAD-STUB)"
+
+classification:
+  type: ARCH
+  also: [COMP]
+  breakdown: STORY
+  epic: null
+  risk_tier: T3
+  destination: "docs/platform/data-architecture/"
+
+priority:
+  now: P2
+  at_target: P1
+  factors: { N: 2, S: 1, B: 1, R: 1, D: 1, E: 1 }
+  score: 10
+  matrix_default: P2
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "Absorbed into DATA-005; same score as SUG-20261019-jwp"
+
+dependencies:
+  edges:
+    - type: ARCHITECTURAL
+      target: DATA-005
+      relation: related_to
+      state: IN-FLIGHT
+    - type: DECISION
+      target: DB-DEC-0001
+      relation: requires
+      state: READY
+  state: READY
+  enablement_count: 0
+  earliest_start: immediately
+  cycles: none
+
+breakdown:
+  children: []
+  completion_definition: >
+    06 §10 states Postgres BYTEA transactions, Dynamo rejected, RET-WORKING
+    purge of unconverted journeys without paymentId; C-RET-1 stub not deleted.
+  not_included:
+    - "DynamoDB table"
+    - "Purge of consent / C-RET-1 without Shailja"
+    - "S3 archive mechanism (still joint W1)"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: DATA-005
+  plan_id: PLAN-012
+  status: ADMITTED
+  closed_reason: null
+
+resumed: "DATA-005"
+```
+
+### SUG-20261019-pay · Payment on the journey and independent
+
+```yaml
+# schema: triage-record
+id: SUG-20261019-pay
+raised_at: "2026-10-19"
+raised_by: "human:stakeholder"
+source: "Follow-up on DATA-005: where is payment"
+input: >
+  Where is payment, payment is also part of journey though its independent
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: DATA-005
+
+stage_fit:
+  code: SF2
+  rationale: >
+    Completes the in-flight DATA-005 pack. Payment was already the materialize
+    trigger and a journey stage; the owner asked for the independence contract
+    to be written, not a new store.
+  target_stage: "S11 Payment runtime; S09 Flyway apply"
+  unpark_trigger: null
+  absorption_test:
+    small: true
+    no_new_dependency: true
+    no_new_decision: true
+    gate_neutral: true
+
+scope:
+  code: SC0
+  business_scope: "in scope — Payment on the assisted Life path"
+  serves: ["DATA-005", "INV-PAY-01", "INV-JRN-05"]
+  failure_without_it: "S11 puts payment rows on journey or invents payment_working JSON"
+  minimal: true
+  authority: "INV-PAY-01..06; R-10; OR-01; DATA-005"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S11 — Vertical slice"
+  binds_when: "Journey Advance(PAYMENT) and PaymentReconciled materialize"
+  failure_without_it: "S11 puts payment rows on journey or invents payment_working JSON"
+  evidence_tier: E2
+  evidence:
+    - "INV-PAY-01 device isolation; INV-PAY-02/03/05 money constraints"
+    - "INV-JRN-05 SOLD requires payment RECONCILED"
+    - "R-10 Payment not coupled directly to Policy"
+    - "91-grants.sql had no app_payment grants"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT
+action_rationale: >
+  SF2 absorption into in-flight DATA-005. Same lane, same pack. Adds 06 §6,
+  payment.outbox_event, app_payment grants. Does not put Payment on JSON.
+duplicate_of: null
+conflicts: []
+
+classification:
+  type: ARCH
+  also: [DOC]
+  breakdown: STORY
+  epic: null
+  risk_tier: T3
+  destination: "docs/platform/data-architecture/"
+
+priority:
+  now: P2
+  at_target: P1
+  factors: { N: 2, S: 1, B: 1, R: 1, D: 1, E: 1 }
+  score: 10
+  matrix_default: P2
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "Absorbed into DATA-005; same score as SUG-20261019-jwp"
+
+dependencies:
+  edges:
+    - type: ARCHITECTURAL
+      target: DATA-005
+      relation: related_to
+      state: IN-FLIGHT
+  state: READY
+  enablement_count: 0
+  earliest_start: immediately
+  cycles: none
+
+breakdown:
+  children: []
+  completion_definition: >
+    06 states Payment is on the journey and independent; payment outbox and
+    app_payment grants exist; no payment_working table; no grant to app_journey.
+  not_included:
+    - "Payment runtime"
+    - "PG integration"
+    - "JSON envelope for payment"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: DATA-005
+  plan_id: PLAN-012
+  status: ADMITTED
+  closed_reason: null
+
+resumed: "DATA-005"
+```
+
+### SUG-20261019-jwp · Journey orchestrator and JSON until payment
+
+```yaml
+# schema: triage-record
+id: SUG-20261019-jwp
+raised_at: "2026-10-19"
+raised_by: "human:stakeholder"
+source: "Cloud-agent request for journey structure, orchestrator table interaction, JSON-until-payment"
+input: >
+  I want you to design the complete structure for our journey services are will,
+  how orchestrater layer will interact with journey tables, the quotes and
+  proposals will be stored unstructured like json until it completes the payment
+  once payment is done everything will be stored in structured form.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: DATA-005
+
+stage_fit:
+  code: SF1
+  rationale: >
+    Physical schema design is S07-E04 leftover / S08 design delta. GATE-S08 is
+    CANDIDATE and this artefact does not reopen it. Apply stays S09. Journey
+    runtime is S11. Owner asked for the persistence contract now so S11 does
+    not invent JSON-on-journey.
+  target_stage: "S11 Journey/Quotation/Proposal runtime; S09 Flyway apply"
+  unpark_trigger: null
+  absorption_test:
+    small: null
+    no_new_dependency: null
+    no_new_decision: null
+    gate_neutral: null
+
+scope:
+  code: SC0
+  business_scope: "in scope — Journey, Quotation, Proposal and Payment on the assisted Life path"
+  serves: ["S11-E02", "INV-JRN-02", "OR-01"]
+  failure_without_it: "S11 invents JSON on journey or a second quote/proposal store"
+  minimal: true
+  authority: "CURRENT-STATE.yaml WS-3 in_scope; INV-JRN-02; OR-01"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S11 — Vertical slice"
+  binds_when: "Journey / Quotation / Proposal persistence at S11"
+  failure_without_it: "S11 invents JSON on journey or a second quote/proposal store"
+  evidence_tier: E2
+  evidence:
+    - "INV-JRN-02 / SC-W3-6 — Journey holds stage and refs only"
+    - "13-orchestration-doctrine.md OR-01 — orchestrator coordinates, never decides"
+    - "schemas/08-quotation.sql and 09-proposal.sql pre-DATA-005 structured-from-first-write"
+    - "journey-orchestration-service is a skeleton"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT
+action_rationale: >
+  On-stage design DDL for an in-scope R0 slice. Not a duplicate of DATA-001
+  (thin structured-from-first-write pack) or DATA-003 (Lead+Suitability).
+  Freshness WARN (state_as_of 19d, 04-STAGE_GATES 26d, SUGGESTION-REGISTER 10d)
+  — disclosed; exit was 1 not 2.
+duplicate_of: null
+conflicts:
+  - "DATA-001 structured quote/offer/proposal from first write vs owner JSON-until-payment — this pack takes working envelopes in owning schemas"
+  - "architecture-review/05 DynamoDB Journey/Quote — remains rejected (DB-DEC-0001)"
+
+classification:
+  type: ARCH
+  also: [DOC]
+  breakdown: STORY
+  epic: null
+  risk_tier: T3
+  destination: "docs/platform/data-architecture/"
+
+priority:
+  now: P2
+  at_target: P1
+  factors: { N: 2, S: 1, B: 1, R: 1, D: 1, E: 1 }
+  score: 10
+  matrix_default: P2
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "MUST for S11 persistence; GATE-S08 already CANDIDATE so not a hard P1 interrupt"
+
+dependencies:
+  edges:
+    - type: ARCHITECTURAL
+      target: DATA-001
+      relation: requires
+      state: IN-FLIGHT
+    - type: DECISION
+      target: DB-DEC-0001
+      relation: requires
+      state: READY
+    - type: DECISION
+      target: ADR-012
+      relation: requires
+      state: DONE
+  state: READY
+  enablement_count: 3
+  earliest_start: immediately
+  cycles: none
+
+breakdown:
+  children: []
+  completion_definition: >
+    Journey table contract published; quote_working and proposal_working design
+    DDL exist with encrypted envelopes and control columns; materialize-after-
+    RECONCILED sequence is written; freeze routine exists; no Flyway apply;
+    no stage-field edit.
+  not_included:
+    - "Flyway apply"
+    - "Journey / Quotation / Proposal runtime"
+    - "JSON on journey"
+    - "Human signatures"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: DATA-005
+  plan_id: PLAN-012
+  status: ADMITTED
+  closed_reason: null
+
+resumed: "DATA-005 — this input is the work item for this agent lane."
+```
+
+### SUG-20261012-erd · E2E ER diagrams and field map
+
+```yaml
+# schema: triage-record
+id: SUG-20261012-erd
+raised_at: "2026-10-12"
+raised_by: "human:stakeholder"
+source: "Follow-up on DATA-004: include all ER diagrams with detailed fields and relationships"
+input: >
+  please include all the ER diagram with detailed fields and relationship mapping.
+
+duplicate_of: null
+conflicts: []
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: DATA-004
+
+stage_fit:
+  code: SF1
+  rationale: >
+    Completes the in-flight DATA-004 "complete e2e db" request. Physical
+    tables already exist as design DDL; the missing artefact is the ER and
+    column/relationship projection. Not a new engine and not Flyway.
+
+scope:
+  code: SC0
+  business_scope: "in scope — R0 physical schema already admitted as DATA-001/004"
+  serves: ["DATA-004", "S07-E04-S02", "S11 owning-service Flyway"]
+  failure_without_it: "S11 invents joins and columns from memory instead of the pack"
+  minimal: true
+  authority: "DATA-001 schemas/; DATA-004 in flight"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S11 — Vertical slice"
+  binds_when: "owning services write repositories against the design DDL"
+  failure_without_it: "S11 invents joins and columns from memory instead of the pack"
+  evidence_tier: E2
+  evidence:
+    - "DATA-004 asked for complete e2e DB and shipped store/credential map only"
+    - "schemas/01–13 already name every table and column"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT
+action_rationale: >
+  Absorbed into in-flight DATA-004. Same owner, same lane, same design pack.
+  Not a second work item.
+
+classification:
+  type: ARCH
+  also: [DOC]
+  breakdown: STORY
+  epic: null
+  risk_tier: T3
+  destination: "docs/platform/data-architecture/DATA-004.work-item.yaml"
+
+priority:
+  now: P2
+  at_target: P1
+  factors: { N: 3, S: 3, B: 2, R: 2, D: 1, E: 1 }
+  score: 20
+  matrix_default: P2
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "2(3)+2(3)+2(2)+2(2)+1-1 = 20, band P2. Completes the in-flight pack."
+
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 1
+  earliest_start: "immediately — projection of existing design DDL"
+  cycles: none
+
+breakdown:
+  children: [DATA-004]
+  completion_definition: >
+    05-e2e-er-and-field-map.md has an ER and field list for every R0 schema
+    and a complete physical-FK vs logical-ref map.
+  not_included:
+    - "Flyway apply"
+    - "Dynamo ER (no R0 tables)"
+    - "Rewriting DATA-003 lead_lms DDL on this branch"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: DATA-004
+  plan_id: PLAN-011
+  status: ADMITTED
+  closed_reason: null
+
+resumed: "DATA-004 — absorbed; this is the in-flight work item."
+```
+
+### SUG-20261012-pdr · E2E Postgres vs DynamoDB segregation
+
+```yaml
+# schema: triage-record
+id: SUG-20261012-pdr
+raised_at: "2026-10-12"
+raised_by: "human:stakeholder"
+source: "Cloud-agent request to act as DBA for complete e2e DB / Postgres vs Dynamo segregation"
+input: >
+  i want you to act as DBA, design complete db from e2e and segregate what all
+  things will go in the postgrss and what will go in dynomodb, how data
+  segrigation will happen, which services will have acess to the dynomo and
+  which will have the access on the postgress, for which service what database
+  will be used, will each service will have different user accessing the db?
+  define the complete roadmap.
+
+duplicate_of: null
+conflicts:
+  - "architecture-review/05 Dynamo rows for Journey/Quote/Audit vs DB-DEC-0001 rejection — this pack is the R0 overlay; Mahesh owns diagram amendment"
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: DATA-004
+
+stage_fit:
+  code: SF1
+  rationale: >
+    Completes S07-E04 datastore-per-context evidence that DATA-001 left
+    operationally incomplete (no service × store × role matrix). GATE-S08 is
+    CANDIDATE and this artefact does not reopen it. Apply and IAM roles stay
+    S09. Dynamo introduction is explicitly parked behind measured evidence.
+
+scope:
+  code: SC0
+  business_scope: "in scope — R0 persistence ownership and S09 apply inventory"
+  serves: ["S07-E04-S01", "S09 IaC roles", "S11 owning-service Flyway"]
+  failure_without_it: "S09 provisions Dynamo from architecture-review/05 by inertia"
+  minimal: true
+  authority: "ADR-008; DB-DEC-0001; CURRENT-STATE.yaml WS-3 persistence in scope"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S09 — Platform & Environment Foundation"
+  binds_when: "S09 IaC writes the first non-identity schema roles"
+  failure_without_it: "S09 provisions Dynamo from architecture-review/05 by inertia"
+  evidence_tier: E2
+  evidence:
+    - "DB-DEC-0001 alternatives_rejected Dynamo Journey/Quote/Audit"
+    - "architecture-review/05 Datastore choice per service still lists Dynamo"
+    - "91-grants.sql already names one app_* role per schema"
+    - "ADR-011 withdrew Dynamo sessions"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT
+action_rationale: >
+  Freshness WARN (04-STAGE_GATES.md past 14-day limit). On-stage design overlay
+  for an already-decided R0 topology. Not a new engine. Not Flyway. Duplicate
+  of DATA-001? No — DATA-001 decided the cluster; this names service access,
+  credentials and the Dynamo empty-set so S09 cannot drift.
+
+classification:
+  type: ARCH
+  also: [DOC]
+  breakdown: STORY
+  epic: null
+  risk_tier: T3
+  destination: "docs/platform/data-architecture/DATA-004.work-item.yaml"
+  rationale: >
+    G3 considered (credentials) and does not fire: the pack documents the
+    existing 91-grants pattern and creates no secret. RG-5 documentation
+    exception. T3 because it is a joint Aarti/Mahesh store overlay.
+
+priority:
+  now: P2
+  at_target: P1
+  factors: { N: 3, S: 3, B: 2, R: 2, D: 2, E: 2 }
+  score: 20
+  matrix_default: P2
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: >
+    2(3)+2(3)+2(2)+2(2)+2-2 = 20, band P2. P1 at S09 when IaC would otherwise
+    provision the wrong engine.
+
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 2
+  earliest_start: "immediately — design overlay only"
+  cycles: none
+
+breakdown:
+  children: [DATA-004]
+  completion_definition: >
+    04-store-segregation-and-roadmap.md names every R0 SoR on Aurora, an empty
+    Dynamo access list, one app_* role per owning schema, and Phases A–F.
+  not_included:
+    - "Flyway apply"
+    - "AWS Dynamo or Aurora provisioning"
+    - "Amending architecture-review/05"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: DATA-004
+  plan_id: PLAN-011
+  status: ADMITTED
+  closed_reason: null
+
+resumed: "DATA-004 — this request is the in-flight work item."
+```
+
+### SUG-20261009-lms · Lead LMS schema and lead table
+
+```yaml
+# schema: triage-record
+id: SUG-20261009-lms
+raised_at: "2026-10-09"
+raised_by: "human:stakeholder"
+source: "Follow-up on DATA-003 ER/schema: do not call it OPPORTUNITY"
+input: >
+  dont call it OPPORTUNITY call it lead_lms as schema and table also we will
+  call lead not OPPORTUNITY
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: DATA-003
+
+stage_fit:
+  code: SF1
+  rationale: >
+    Naming of the in-flight DATA-003 physical pack. ADR-014 D1 left the schema
+    name as a joint Aarti/Mahesh choice; this input takes lead_lms / lead.
+  target_stage: null
+  unpark_trigger: null
+  absorption_test:
+    small: null
+    no_new_dependency: null
+    no_new_decision: null
+    gate_neutral: null
+
+scope:
+  code: SC0
+  business_scope: "in scope — Lead #5 physical store name"
+  serves: ["DATA-003"]
+  failure_without_it: "S11 would persist Lead under the rejected OPPORTUNITY name"
+  minimal: true
+  authority: "Owner direction on DATA-003; ADR-014 D1 naming option"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S11 — Vertical slice"
+  binds_when: "Lead service Flyway copies this design DDL"
+  failure_without_it: "S11 would persist Lead under the rejected OPPORTUNITY name"
+  evidence_tier: E2
+  evidence:
+    - "Stakeholder follow-up on DATA-003"
+    - "ADR-014 D1 — schema name was optional; now chosen"
+  confidence: C5
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT
+action_rationale: >
+  Absorb into in-flight DATA-003. Keep lead_id / INV-LED-*. Do not rewrite
+  historical ADR prose that used Opportunity as a domain alias.
+duplicate_of: null
+conflicts:
+  - "ADR-014 D1 allowed schema opportunity — owner now chooses lead_lms"
+
+classification:
+  type: ARCH
+  also: [DOC]
+  breakdown: STORY
+  epic: null
+  risk_tier: T3
+  destination: "docs/platform/data-architecture/"
+
+priority:
+  now: P2
+  at_target: P1
+  factors: { N: 2, S: 1, B: 1, R: 1, D: 1, E: 2 }
+  score: 8
+  matrix_default: P2
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "Must land with DATA-003 before S11 copies the wrong schema name"
+
+dependencies:
+  edges:
+    - type: ARCHITECTURAL
+      target: DATA-003
+      relation: requires
+      state: IN-FLIGHT
+  state: READY
+  enablement_count: 1
+  earliest_start: immediately
+  cycles: none
+
+breakdown:
+  children: []
+  completion_definition: >
+    Design DDL and ER use schema lead_lms and table lead. No OPPORTUNITY entity
+    name on the e2e diagram.
+  not_included:
+    - "Renaming PDP grant opportunity.create"
+    - "Rewriting historical ADR/HLD Opportunity alias"
+    - "Flyway apply"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: DATA-003
+  plan_id: PLAN-010
+  status: ADMITTED
+  closed_reason: null
+
+resumed: DATA-003
+```
+
+### SUG-20261009-lss · Lead and Suitability e2e schema
+
+```yaml
+# schema: triage-record
+id: SUG-20261009-lss
+raised_at: "2026-10-09"
+raised_by: "human:stakeholder"
+source: "Cloud-agent request to generate Lead and Suitability e2e ER + schema"
+input: >
+  generate the ER diagramd and table, schemma we required for the lead and
+  suitability module e2e.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: DATA-003
+
+stage_fit:
+  code: SF1
+  rationale: >
+    Physical schema design is S07-E04 leftover / S08 design delta. GATE-S08 is
+    CANDIDATE and this artefact does not reopen it. Apply stays S09. PLAN-007
+    explicitly deferred physical schema; this closes that gap for the requested
+    slice only.
+  target_stage: "S11 Lead/Suitability runtime; S09 Flyway apply"
+  unpark_trigger: null
+  absorption_test:
+    small: null
+    no_new_dependency: null
+    no_new_decision: null
+    gate_neutral: null
+
+scope:
+  code: SC0
+  business_scope: "in scope — Lead #5 and Suitability on the assisted Life path"
+  serves: ["EPIC-005", "S11-E02", "DATA-002 W1"]
+  failure_without_it: "S11 invents Lead/Suitability tables off the BRD"
+  minimal: true
+  authority: "CURRENT-STATE.yaml WS-3 in_scope; DOC-005 Lead + Suitability BRDs"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S11 — Vertical slice"
+  binds_when: "Lead Screens 1–7 and Savings/ULIP suitability persistence"
+  failure_without_it: "S11 invents Lead/Suitability tables off the BRD"
+  evidence_tier: E2
+  evidence:
+    - "Lead_Module_BRD_Detailed_CONTEXT.md"
+    - "Suitability_Module_BRD_Detailed_CONTEXT.md"
+    - "10-lead-module-hld.md (physical schema out of PLAN-007)"
+    - "schemas/04-opportunity.sql and 06-suitability.sql pre-D-018 gaps"
+    - "DATA-002 §4.1 W1 archive columns still missing"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT
+action_rationale: >
+  On-stage design DDL for an in-scope R0 slice. Duplicate of DATA-001/002? No —
+  DATA-001 is the thin pre-BRD pack; DATA-002 remainder is issuance/ingest/MIS.
+  This item absorbs only DATA-002 W1 archive columns for Lead.
+duplicate_of: null
+conflicts:
+  - "02-information-model §4.2 BANK_RM-only create vs INV-LED-04 / D-018 — DDL follows D-018"
+  - "INV-SUI-01 new suitability_id vs Suitability BRD same-id edit — OPEN-SUI-IMMUTABLE"
+
+classification:
+  type: ARCH
+  also: [DOC]
+  breakdown: STORY
+  epic: null
+  risk_tier: T3
+  destination: "docs/platform/data-architecture/"
+
+priority:
+  now: P2
+  at_target: P1
+  factors: { N: 2, S: 1, B: 1, R: 1, D: 1, E: 1 }
+  score: 10
+  matrix_default: P2
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "MUST for S11 persistence; GATE-S08 already CANDIDATE so not a hard P1 interrupt"
+
+dependencies:
+  edges:
+    - type: ARCHITECTURAL
+      target: DATA-001
+      relation: requires
+      state: IN-FLIGHT
+    - type: ARCHITECTURAL
+      target: EPIC-005
+      relation: requires
+      state: IN-FLIGHT
+    - type: TECHNICAL
+      target: DATA-002
+      relation: related_to
+      state: READY
+  state: READY
+  enablement_count: 2
+  earliest_start: immediately
+  cycles: none
+
+breakdown:
+  children: []
+  completion_definition: >
+    ER + column sheets published; opportunity and suitability design DDL express
+    Lead BRD create/assign/meeting/dedupe/archive and Suitability BRD
+    save/resume/map/lock; no Flyway apply; no stage-field edit.
+  not_included:
+    - "Flyway apply"
+    - "DATA-002 W3/W4"
+    - "Term questionnaire"
+    - "Human signatures"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: DATA-003
+  plan_id: PLAN-010
+  status: ADMITTED
+  closed_reason: null
+
+resumed: "DATA-003 — no prior in-flight item on this agent lane; DATA-001 pack already drafted."
+```
+
+### SUG-20261008-bnk · Bank RM AD-verify login e2e
+
+```yaml
+# schema: triage-record
+id: SUG-20261008-bnk
+raised_at: "2026-10-08"
+raised_by: "human:repository-owner"
+source: "Complete login and authentication module e2e for bank users"
+input: >
+  this is the login API we are going to use for bank RM login which will hit the AD
+  internally and return true of false so we can authenticate user who are bank
+  employee and has active account. lets complete login and authentication module
+  e2e for bank users, this should validate and test as well.
+
+duplicate_of: null
+conflicts:
+  - "LOGIN-BFF-FIGMA-EVALUATION §4 A vs B — owner selected B (BFF collects credentials, adapter calls AD-verify) for BANK_AD"
+  - "UC-01 OIDC ceremony for RM login — retained for PARTNER; BANK_AD uses credential+AD-verify"
+
+context:
+  workstream: WS-2
+  current_phase: "Phase 1 — Foundation implementation"
+  canonical_stage: "L4/L6 — Foundation into first vertical slice"
+  current_objective: "IAM-P1 token-hiding BFF session; adapter; PDP"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: "none in this lane — this request is the work"
+
+stage_fit:
+  code: SF1
+  rationale: >
+    GATE-IAM-P1 A.1 is open (BFF token-hiding proven). SUG-20260914-idp already
+    admitted the AD-verify adapter story. This is that story's first executable
+    increment, not Phase 2 LDAP/OIDC/SAML federation.
+
+scope:
+  code: SC0
+  business_scope: "WS-2 workforce identity; Login BRD BR-LOGIN-001"
+  serves: ["GATE-IAM-P1 A.1", "BR-LOGIN-001", "SUG-20260914-idp"]
+  failure_without_it: "Bank RMs cannot sign in to NIP-APP against AD."
+  minimal: true
+  authority: "Login BRD; auth SSOT §5.1 / ADR-020; owner direction 2026-10-08"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "WS-2 adapter + NIP login"
+  binds_when: "First workforce login story"
+  failure_without_it: "Bank RMs cannot sign in to NIP-APP against AD."
+  evidence_tier: E5
+  confidence: C4
+  assumptions: [ASM-019, ASM-016]
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: true
+    X5_stage_necessity: true
+
+action: ADMIT
+action_rationale: >
+  Freshness WARN (04-STAGE_GATES.md 15d vs 14d). Executes the already-admitted
+  SUG-20260914-idp story "Adapter calls bank AD-verify API". Owner named the
+  ceremony: boolean AD-verify for active bank employees. Captcha/OTP/lock are
+  split to SUG-20261008-otp (parked). Live Apigee hostname remains
+  DEP-20260914-apg — Java uses a configurable URL and a local stub.
+
+classification:
+  type: FUNC
+  also: [SEC]
+  breakdown: STORY
+  epic: null
+  risk_tier: T3
+  destination: "docs/platform/authentication-authorization/IAM-001.work-item.yaml"
+
+priority:
+  now: P2
+  at_target: P1
+  factors: { N: 3, S: 2, B: 3, R: 2, D: 2, E: 1 }
+  score: 16
+  matrix_default: P2
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "On-stage login for GATE-IAM-P1 A.1; token-hiding still required"
+
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 1
+  earliest_start: "immediately — stub AD-verify unblocks tests; live API is config"
+  cycles: none
+
+breakdown:
+  children: [IAM-001]
+  completion_definition: >
+    Bank RM can obtain a token-hiding session when AD-verify returns true and
+    the business identity is an ACTIVE BANK_EMPLOYEE, proven by unit + WireMock
+    tests. Partner OIDC path unchanged. Passwords never logged or persisted.
+  not_included:
+    - "Captcha / OTP / lock / Unlock User"
+    - "Partner password on the BFF"
+    - "Live bank API onboarding"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: IAM-001
+  plan_id: null
+  status: ADMITTED
+  closed_reason: null
+
+resumed: "IAM-001 — this request is the in-flight work item."
+```
+
+### SUG-20261008-otp · Login BRD Captcha, OTP, lock
+
+```yaml
+# schema: triage-record
+id: SUG-20261008-otp
+raised_at: "2026-10-08"
+raised_by: "agent:cursor"
+source: "Remainder of Login BRD after IAM-001 bank AD-verify login"
+input: >
+  Captcha on the credential step; mandatory OTP to registered mobile and email
+  on every successful credential check; lock after 3 consecutive password
+  failures or 30 days inactivity; Unlock User.
+
+context:
+  workstream: WS-2
+  current_phase: "Phase 1 — Foundation implementation"
+  canonical_stage: "L4/L6 — Foundation into first vertical slice"
+  current_objective: "IAM-P1"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: IAM-001
+
+stage_fit:
+  code: SF2
+  rationale: "Login BRD catalogue beyond credential+session. Infosec owns Captcha/OTP gateway (SEC-009)."
+  target_stage: "WS-2 login hardening / Infosec OTP gateway"
+  unpark_trigger: "IAM-001 bank AD-verify login evidenced and Infosec names the Captcha/OTP gateway contract (SEC-009)"
+  absorption_test:
+    small: false
+    no_new_dependency: false
+    no_new_decision: false
+    gate_neutral: true
+
+scope:
+  code: SC0
+  business_scope: "Login BRD Captcha/OTP/lock"
+  serves: ["BR-LOGIN-006", "BR-LOGIN-007", "SEC-009"]
+  failure_without_it: "Login BRD MFA and lock rules are unmet after IAM-001."
+  minimal: true
+  authority: "Login_Module_BRD_Detailed_CONTEXT.md"
+
+necessity:
+  now: SHOULD
+  future_necessity: MUST
+  target_stage: "WS-2 login hardening / Infosec OTP gateway"
+  binds_when: "Production workforce MFA"
+  evidence_tier: E2
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: true
+    X5_stage_necessity: false
+
+action: PARK
+action_rationale: >
+  IAM-001 delivers credential verify + session. Captcha, OTP and lock need
+  Infosec/OTP gateway decisions and would expand this increment past the
+  owner-stated AD true/false path.
+
+classification:
+  type: FUNC
+  also: [SEC]
+  breakdown: STORY
+  risk_tier: T3
+  destination: "PARKED-BACKLOG.md"
+
+priority:
+  now: P4
+  at_target: P1
+  factors: { N: 1, S: 2, B: 1, R: 2, D: 1, E: 1 }
+  score: 8
+  matrix_default: P4
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "Required by Login BRD before production MFA; not required to prove AD-verify login"
+
+dependencies:
+  edges: []
+  state: PARKED-DEPENDENT
+  parked_because: "Captcha/OTP/lock wait on IAM-001 evidence and Infosec OTP/Captcha contract"
+  enablement_count: 0
+  earliest_start: "after IAM-001 evidence and Infosec OTP/Captcha contract"
+  cycles: none
+
+outcome:
+  registered_in: "registers/PARKED-BACKLOG.md"
+  work_item_id: null
+  plan_id: null
+  status: PARKED
+  closed_reason: null
+
+resumed: IAM-001
+```
+
+### SUG-20261008-xsl · Time-box CVE-2026-47884
+
+```yaml
+# schema: triage-record
+id: SUG-20261008-xsl
+raised_at: "2026-10-08"
+raised_by: "scan:trivy"
+source: "Security Scanning on PR #143 — SCA (Trivy dependency scan) run 37724860651"
+input: >
+  CRITICAL CVE-2026-47884 org.springframework:spring-webmvc 6.2.19 -> 7.0.9
+  (XsltView improper path limitation; SSRF/RCE if "/**" view-name rendering).
+  Owner: fix ci failure to merge.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: EPIC-006
+
+stage_fit:
+  code: SF0
+  rationale: >
+    A finding Trivy treats as fixable CRITICAL fails S08-G5 on this PR. Unblocking
+    the gate is a merge prerequisite. The real OSS remediations (Boot 4) are SF3.
+
+scope:
+  code: SC1
+  serves: ["S08-G5 dependency and image scanning", "PR #143"]
+  failure_without_it: "PR #143 stays red on SCA; no OSS 6.2 patch exists to pin"
+  minimal: true
+  authority: ".trivyignore rules 1–4 · spring.io/security/cve-2026-47884"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S08 — Engineering Foundation"
+  binds_when: "every SCA run until Boot 4 or ignore expiry"
+  failure_without_it: "PR #143 cannot merge; S08-G5 stays red on a CVE with no 6.2 OSS fix"
+  evidence_tier: E2
+  evidence:
+    - "Trivy 0.53.0 SCA run 37724860651: spring-webmvc 6.2.19 -> 7.0.9"
+    - "Maven Central 404 for spring-webmvc 6.2.20; 200 for 7.0.9"
+    - "Spring Boot 3.5.16 is the last 3.5.x; Boot 4.0.0+ exists separately"
+    - "spring.io/security/cve-2026-47884: 6.2.20 Enterprise Support Only"
+  confidence: C5
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT-BYPASS
+bypass_authorised_by: "human:Mahesh/repository_owner 2026-10-08 (explicit: fix ci failure to merge)"
+action_rationale: >
+  Recommendation would be PARK the Boot 4 upgrade and leave SCA red until that
+  migration is admitted. Owner directed the CI failure to be fixed so this PR
+  can merge. Time-boxed .trivyignore + RISK-021 is the smallest gate-honest
+  path: XsltView is unused, 6.2.20 is not public, Boot 4 is SUG-20261008-sb4.
+  Not a T4 Deepali signature.
+duplicate_of: null
+conflicts: []
+
+classification:
+  type: SEC
+  also: [INFRA]
+  breakdown: TASK
+  epic: EPIC-006
+  risk_tier: T3
+  destination: ".trivyignore · registers/RISK-REGISTER.md RISK-021"
+  rationale: "RG-9: scan-gate blocker with E2 unused-XsltView evidence; ignore expires 2026-11-08"
+
+priority:
+  now: P1
+  at_target: P1
+  factors: { N: 3, S: 2, B: 0, R: 2, D: 1, E: 1 }
+  score: 14
+  matrix_default: P2
+  consistency: OK
+  overrides_applied: [O1, O7]
+  override_evidence:
+    - "O1: SCA job 113140645052 red — CVE-2026-47884 blocks PR #143"
+    - "O7: blocks EPIC-006 PR #143, the item in flight"
+  caps_applied: []
+  rationale: "Pipeline red on a CVE with no same-minor OSS patch"
+
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 0
+  earliest_start: "this PR"
+  cycles: none
+
+breakdown:
+  children: []
+  completion_definition: ".trivyignore entry with owner+expiry; RISK-021 row; Boot 4 not implemented"
+  not_included: ["Spring Boot 4 migration", "T4 Security signature", "pinning spring-webmvc 7.0.9 under Boot 3.5"]
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md · registers/RISK-REGISTER.md · .trivyignore"
+  work_item_id: EPIC-006
+  plan_id: PLAN-009
+  status: ADMIT-BYPASS
+  closed_reason: null
+
+resumed: EPIC-006
+```
+
+### SUG-20261008-sb4 · Spring Boot 4 for CVE-2026-47884
+
+```yaml
+# schema: triage-record
+id: SUG-20261008-sb4
+raised_at: "2026-10-08"
+raised_by: "scan:trivy"
+source: "Security Scanning on PR #143 — SCA reports spring-webmvc 6.2.19 fixed in 7.0.9"
+input: >
+  Upgrade org.springframework:spring-webmvc from 6.2.19 to 7.0.9 to close
+  CVE-2026-47884. That upgrade is Spring Framework 7 / Spring Boot 4.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: EPIC-006
+
+stage_fit:
+  code: SF3
+  rationale: >
+    Boot 4 is a platform major-version migration (Jakarta/Security/BOM). It is
+    not a same-minor pin like Netty/Jackson. S08 is foundation recovery, not a
+    framework rewrite. Time-boxed ignore (SUG-20261008-xsl) holds the gate.
+  target_stage: "S09 — Platform & Environment Foundation"
+  unpark_trigger: "Architecture admits a Boot 4 migration spike with a compatibility matrix, or .trivyignore for CVE-2026-47884 expires (2026-11-08)"
+
+scope:
+  code: SC1
+  serves: ["S08-G5 dependency and image scanning", "RISK-021"]
+  failure_without_it: "the only public OSS remediations for CVE-2026-47884 never land"
+  minimal: true
+  authority: "spring.io/security/cve-2026-47884 · Spring Boot 3.5.16 last 3.5.x"
+
+necessity:
+  now: NOT-NOW
+  future_necessity: MUST
+  target_stage: "S09 — Platform & Environment Foundation"
+  binds_when: "ignore expiry 2026-11-08, or a service uses XsltView"
+  failure_without_it: "CVE-2026-47884 remains in every Boot 3.5 lockfile after the waiver lapses"
+  evidence_tier: E2
+  evidence:
+    - "Fixed versions: 7.0.9 OSS; 6.2.20 Enterprise Support Only"
+    - "Maven Central has 7.0.9 and not 6.2.20"
+  confidence: C5
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: true
+    X5_stage_necessity: false
+    X9_problem_observed: true
+
+action: PARK
+action_rationale: >
+  Real remediations, wrong blast radius for EPIC-006. Do not pin Framework 7
+  under Boot 3.5. Re-triage when Architecture opens a Boot 4 spike or when
+  the 2026-11-08 ignore expires.
+duplicate_of: null
+conflicts: []
+
+classification:
+  type: SEC
+  also: [ARCH, MIGRATION]
+  breakdown: SPIKE
+  epic: null
+  risk_tier: T4
+  destination: "registers/PARKED-BACKLOG.md"
+  rationale: "Major framework upgrade changes the runtime trust surface; T4 when unparked"
+
+priority:
+  now: P4
+  at_target: P1
+  factors: { N: 0, S: 2, B: 1, R: 2, D: 1, E: 2 }
+  score: 9
+  matrix_default: P4
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "NOT-NOW at S08; MUST when the time-boxed ignore expires"
+
+dependencies:
+  edges: []
+  state: PARKED-DEPENDENT
+  enablement_count: 0
+  earliest_start: "S09 Boot 4 spike or 2026-11-08"
+  cycles: none
+
+breakdown:
+  children: []
+  completion_definition: null
+  not_included: ["this PR's time-boxed ignore", "pinning 7.0.9 under Boot 3.5"]
+
+outcome:
+  registered_in: "registers/PARKED-BACKLOG.md"
+  work_item_id: null
+  plan_id: null
+  status: PARKED
+  closed_reason: null
+
+resumed: EPIC-006
+```
+
+### SUG-20261007-crs · Standing code-review, coverage and logging bar
+
+```yaml
+# schema: triage-record
+id: SUG-20261007-crs
+raised_at: "2026-10-07"
+raised_by: "human:Mahesh"
+source: "Owner request on EPIC-006 PR — review all changes; set push-time coverage; define review criteria especially logging/monitoring; create the standards and re-review against them"
+input: >
+  Review the code once again, all the changes, and set the expectation when we push any code:
+  how much test / line / branch coverage must be on the branch. What are the criteria for a
+  review? What aspects, how we review, what is mandatory especially logging and monitoring?
+  Create those standards, review the changes with the same, and make sure henceforth any code
+  review has those checks in place.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: EPIC-006
+
+stage_fit:
+  code: SF1
+  rationale: >
+    S08-G8 already MET (standards + checklist + template, 2026-09-13). The checklist was too
+    thin for coverage-on-push and logging/monitoring. Completing the adoption mechanism is
+    on-stage Foundation work, not a new gate or a Phase 6 dashboard programme.
+
+scope:
+  code: SC0
+  business_scope: "in scope — S08-G8 engineering/secure-coding adoption"
+  serves: []
+  failure_without_it: "PRs merge without a stated coverage bar or logging contract; reviews drift"
+  minimal: true
+  authority: "ENGINEERING-AND-SECURE-CODING-STANDARDS.md · PR-REVIEW-CHECKLIST.md · COVERAGE.md"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S08 — Engineering Foundation"
+  binds_when: "every production-code PR"
+  failure_without_it: "PRs merge without a stated coverage bar or logging contract; reviews drift"
+  evidence_tier: E2
+  evidence:
+    - "Owner directed creation of the review/coverage/logging standard"
+    - "Existing ENG/SEC ids and Jacoco floors already enforced; OBS and push-time evidence were missing"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT
+action_rationale: >
+  Owner asked to create the standards and re-review EPIC-006 against them in this turn.
+  Recommendation matches execution: SF1 on-stage, no ADMIT-BYPASS required. Dashboards/SLOs
+  stay Phase 6 and are explicitly out of the merge bar.
+duplicate_of: null
+conflicts: []
+
+classification:
+  type: GOV
+  also: [QA, NFR]
+  breakdown: TASK
+  epic: EPIC-006
+  risk_tier: T2
+  destination: "docs/governance/CODE-REVIEW-STANDARD.md"
+  rationale: "Docs + checklist + index routing; one adapter wrap so token mint failures hit ErrorRecorder"
+
+priority:
+  now: P2
+  at_target: P2
+  factors: { N: 3, S: 2, B: 1, R: 1, D: 1, E: 1 }
+  score: 14
+  matrix_default: P2
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "Blocks consistent review of the in-flight EPIC-006 PR and every later PR"
+
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 0
+  earliest_start: "this PR"
+  cycles: none
+
+breakdown:
+  children: []
+  completion_definition: "CODE-REVIEW-STANDARD published; PR checklist and template cite OBS and push-time coverage; EPIC-006 re-reviewed; token mint wrapped to UPSTREAM_UNAVAILABLE"
+  not_included: ["Phase 6 dashboards, alerts, SLOs", "package-level Jacoco QA-014"]
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: EPIC-006
+  plan_id: PLAN-009
+  status: ADMITTED
+  closed_reason: null
+
+resumed: EPIC-006
+```
+
+### SUG-20261007-srp · Lead BFF SRP and KISS cleanups
+
+```yaml
+# schema: triage-record
+id: SUG-20261007-srp
+raised_at: "2026-10-07"
+raised_by: "agent:AIGEM-review"
+source: "EPIC-006-REVIEW round 2 — coding practices (SOLID / KISS / DRY)"
+input: >
+  Move product-classes off CustomerLookupController onto ReferenceDataController.
+  Compile CountryCodeCatalog regex once. Drop the duplicate SEARCH_BY set
+  between the BFF lookup controller and CustomerSearchService.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: EPIC-006
+
+stage_fit:
+  code: SF3
+  rationale: >
+    Catalogue placement and a compiled Pattern are readability cleanups.
+    AC-1 and product-class listing already work. Not required to close
+    the admitted stub slice.
+  target_stage: "S11 — Lead service / BFF implementation"
+  unpark_trigger: >
+    NIP-APP wires the product-class catalogue from a dedicated reference-data
+    owner, or Board 2 asks for the SRP cleanup
+
+scope:
+  code: SC0
+  business_scope: "in scope — existing BFF reference-data and customer search"
+  serves: ["EPIC-006", "PLAN-009"]
+  minimal: true
+  authority: "ORG-STANDARDS AP-1 SOLID+DRY+KISS; ROLE-GUIDELINES-AND-DOD §3.1"
+
+necessity:
+  now: COULD
+  future_necessity: SHOULD
+  target_stage: "S11 — Vertical slice"
+  binds_when: "a second country or a second search caller lands"
+  evidence_tier: E3
+  evidence:
+    - "CustomerLookupController.productClasses"
+    - "CustomerLookupController.SEARCH_BY and CustomerSearchService.SEARCH_BY"
+    - "CountryCodeCatalog.validate compiles Pattern per call"
+    - "EPIC-006-REVIEW round 2 Board 2 T5/T6"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: true
+    X5_stage_necessity: false
+    X9_problem_observed: false
+
+action: ADMIT-BYPASS
+action_rationale: >
+  Recommendation remains PARK (readability cleanup, not an AC miss). Owner
+  unparked 2026-10-07 and directed execution now.
+duplicate_of: null
+conflicts: []
+bypass_authorised_by: "human:Mahesh/repository_owner 2026-10-07 (explicit: unparked)"
+
+classification:
+  type: REFACTOR
+  also: [QA]
+  breakdown: TASK
+  epic: EPIC-006
+  risk_tier: T1
+  destination: "docs/platform/ws3-platform/EPIC-006.work-item.yaml"
+
+priority:
+  now: P4
+  at_target: P3
+  factors: { N: 1, S: 1, B: 0, R: 0, D: 0, E: 2 }
+  score: 2
+  matrix_default: P4
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "COULD at S08 stub slice — owner unparked into EPIC-006"
+
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 0
+  earliest_start: "S11 catalogue-owner review"
+  cycles: none
+
+breakdown:
+  children: []
+  completion_definition: null
+  not_included: []
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: EPIC-006
+  plan_id: PLAN-009
+  status: ADMIT-BYPASS
+  closed_reason: null
+
+resumed: EPIC-006
+```
+
+### SUG-20261007-ird · IRDAI SP register as certification SoR
+
+```yaml
+# schema: triage-record
+id: SUG-20261007-ird
+raised_at: "2026-10-07"
+raised_by: "human:Mahesh"
+source: "Owner: IRDAI SP-cert as control evidence this is needed"
+input: >
+  IRDAI SP-cert as control evidence this is needed
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: EPIC-006
+
+stage_fit:
+  code: SF3
+  rationale: >
+    Assign already fail-closes on uncertified empIds. Binding IRDAI evidence
+    requires a named bank/IRDAI register. A fixture is not that register.
+  target_stage: "S11 — Lead service / BFF implementation"
+  unpark_trigger: >
+    Bank/IRDAI SP register API or feed is named and a sample certified-empId
+    set is evidenced
+
+scope:
+  code: SC0
+  business_scope: "in scope — Lead assign SP certification (D-018 / OPEN-LEAD-ACTOR)"
+  serves: ["EPIC-006", "FUNC-030"]
+  failure_without_it: "assignment can mark an RM certified without IRDAI evidence"
+  minimal: true
+  authority: "Lead BRD SP certification; D-018"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S11 — Vertical slice"
+  binds_when: "Lead assign is used against real workforce identities"
+  failure_without_it: "assignment can mark an RM certified without IRDAI evidence"
+  evidence_tier: E2
+  evidence:
+    - "Owner 2026-10-07: IRDAI SP-cert as control evidence this is needed"
+    - "EPIC-006-REVIEW G10: SP-cert stub is not IRDAI evidence"
+    - "FixtureSpCertification lists SP-1001/1002/2001 only"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: false
+    X9_problem_observed: true
+
+action: PARK
+action_rationale: >
+  Fail-closed SpCertificationPort shipped under EPIC-006 (owner ADMIT-BYPASS of
+  the control). The IRDAI/bank register SoR is still missing and must not be
+  fabricated. Park the SoR wiring.
+duplicate_of: null
+conflicts: []
+
+classification:
+  type: COMP
+  also: [SEC]
+  breakdown: STORY
+  epic: EPIC-006
+  risk_tier: T3
+  destination: "registers/PARKED-BACKLOG.md"
+
+priority:
+  now: P4
+  at_target: P1
+  factors: { N: 4, S: 2, B: 0, R: 2, D: 1, E: 2 }
+  score: 13
+  matrix_default: P4
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "MUST at live assign; fixture is not evidence"
+
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 0
+  earliest_start: "named IRDAI/bank SP register"
+  cycles: none
+
+breakdown:
+  children: []
+  completion_definition: null
+  not_included:
+    - "Fabricated IRDAI certificates"
+    - "Treating FixtureSpCertification as control evidence"
+
+outcome:
+  registered_in: "registers/PARKED-BACKLOG.md"
+  work_item_id: null
+  plan_id: PLAN-009
+  status: PARKED
+  closed_reason: null
+
+resumed: EPIC-006
+```
+
+### SUG-20261006-atk · One token owner per Apigee app
+
+```yaml
+# schema: triage-record
+id: SUG-20261006-atk
+raised_at: "2026-10-06"
+raised_by: "human:stakeholder"
+recurrence_count: 5
+source: "Stakeholder question on AU-Bima-Platform client key/secret shared across services and pods"
+input: >
+  APIGEE has onboarded us as channel App Name AU-Bima-Platform with Client key
+  and Client Secret. Multiple services will interact with Apigee and use this
+  key and secret to generate the access token. If we keep logic in the service
+  then when the service scales with multiple pods and multiple services also
+  use the same creds to generate the access token and refresh token, multiple
+  services generating access tokens at the same time get different access
+  tokens and one token might have expired as we have generated a new one
+  against the same key and secrets. Correct me if I am wrong. How can we
+  handle it better.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: EPIC-006
+
+stage_fit:
+  code: SF3
+  rationale: >
+    Two R0 consumers are now named: customer-service (CBS) and
+    1sb-integration-service (ARB / ADR-020). Shared cache is justified
+    (SC-03) at first live /token, not in the S08 stub slice. ElastiCache
+    is S09 and needs an ADR-011 amendment. SF5 fails: credential
+    trust-boundary. SF2 fails: not absorbable into EPIC-006.
+  target_stage: "S09 — first live Apigee call from customer-service or 1sb-integration-service"
+  unpark_trigger: >
+    Either customer-service or 1sb-integration-service starts live /token
+    against AU-Bima-Platform (first of the two), or /token stampede is observed
+
+scope:
+  code: SC1
+  business_scope: "derived — outbound Apigee hop and Customer #4 token ownership"
+  serves: ["ADR-020", "FUNC-031", "DEP-20260914-apg", "1sb-integration-service"]
+  failure_without_it: >
+    customer-service and 1sb-integration-service each mint AU-Bima-Platform
+    tokens and copy the client secret into two runtimes
+  minimal: true
+  authority: "ADR-020 outbound; ARB R0 Apigee hop; FUNC-031; ID-12 service plane"
+
+necessity:
+  now: SHOULD
+  future_necessity: MUST
+  target_stage: "S09 — first live Apigee call"
+  binds_when: "first live /token from customer-service or 1sb-integration-service"
+  failure_without_it: >
+    two R0 services mint independently against one app: secret copied twice,
+    /token stampede under load; in-flight calls stay valid under ASM-020
+  evidence_tier: E2
+  evidence:
+    - "Stakeholder 2026-10-06: 1sb-integration-service is an R0 ARB Apigee caller using the same token"
+    - "ADR-020 outbound: 1sb-integration-service, Customer/EBS, AD-verify, Notification, Payment session-create"
+    - "ApigeeAccessTokenHolder is a process ReentrantLock only (customer-service)"
+    - "EPIC-006-REVIEW Board 7 O4: token holder is not a cluster lock"
+    - "14-shared-capability-doctrine SC-03: two named R0 consumers justify extract at first live mint"
+    - "15-actor-identity ID-12: service plane never a shared credential"
+    - "ASM-020: concurrent 24h tokens, no refresh grant"
+    - "ADR-011 permitted Valkey uses are a closed list — Apigee access-token cache needs an amendment"
+    - "identity-provider-adapter-service is workforce/partner IdP, not M2M Apigee mint (auth SSOT §4.2, ID-12)"
+    - "ASM-015 / DEP-20260914-apg: private path and IPs still OPEN"
+  confidence: C4
+  assumptions: ["ASM-015", "ASM-020"]
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: true
+    X5_stage_necessity: false
+    X9_problem_observed: false
+
+action: ADMIT-BYPASS
+action_rationale: >
+  Recommendation remains PARK for the cluster Valkey cache (ADR-011 closed
+  list; ElastiCache is S09). Owner unparked 2026-10-07: implement HTTP /token
+  clients plus the shared holder type now. Cluster cache remainder stays parked.
+duplicate_of: null
+conflicts: []
+bypass_authorised_by: "human:Mahesh/repository_owner 2026-10-07 (explicit: unpark; add live Apigee /token and CBS inquiry)"
+
+classification:
+  type: ARCH
+  also: [SEC]
+  breakdown: SPIKE
+  epic: EPIC-006
+  risk_tier: T3
+  destination: "docs/platform/ws3-platform/FUNC-031.work-item.yaml"
+
+priority:
+  now: P4
+  at_target: P2
+  factors: { N: 2, S: 0, B: 0, R: 2, D: 1, E: 2 }
+  score: 7
+  matrix_default: P4
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "SHOULD at S08 stubs; MUST at first live /token now that two R0 consumers are named"
+
+dependencies:
+  edges:
+    - type: EXTERNAL
+      target: DEP-20260914-apg
+      relation: blocked_by
+      state: OPEN
+      owner: "Shivanshi + bank API platform"
+      follow_up: "2026-09-18"
+    - type: ARCHITECTURAL
+      target: ADR-020
+      relation: requires
+      state: IN-FLIGHT
+    - type: ARCHITECTURAL
+      target: ADR-011
+      relation: related_to
+      state: IN-FLIGHT
+    - type: TECHNICAL
+      target: FUNC-031
+      relation: related_to
+      state: IN-FLIGHT
+    - type: TECHNICAL
+      target: 1sb-integration-service
+      relation: related_to
+      state: IN-FLIGHT
+  state: BLOCKED
+  enablement_count: 0
+  earliest_start: "first live /token from customer-service or 1sb-integration-service"
+  parked_because: "two R0 consumers named; ElastiCache and live Apigee are S09"
+  cycles: none
+
+breakdown:
+  children: []
+  completion_definition: null
+  not_included:
+    - "New token microservice"
+    - "Storing AU-Bima-Platform client key or secret in git"
+    - "Wall-clock cron (08:00/20:00) as the primary remint"
+    - "Minting AU-Bima-Platform client-credentials inside identity-provider-adapter-service"
+    - "1sb-integration-service calling customer-service to fetch a token"
+    - "Mint logic inside adapter.onesb.* (Apigee token is not a 1SB type)"
+    - "Client secret in Valkey — cache holds the access token only"
+    - "Cluster Valkey cache until ADR-011 is amended and ElastiCache exists"
+    - "Attaching Apigee Bearer to OneSbHttpClient until Apigee product mapping is written"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: FUNC-031
+  plan_id: PLAN-009
+  status: ADMIT-BYPASS
+  closed_reason: null
+
+resumed: EPIC-006
+```
+
+### SUG-20261005-lbf · BFF Lead module runtime
+
+```yaml
+# schema: triage-record
+id: SUG-20261005-lbf
+raised_at: "2026-10-05"
+raised_by: "human:stakeholder"
+source: "Stakeholder request to finish the Lead module on the BFF"
+input: >
+  On the BFF service we have lots of changes, one important change that we need
+  to follow the HTTP rest API standards correctly, need to follow simple and
+  clear namming convention, on the BFF we will make sure java and all coding
+  best practices are followed. Lead id generation logic should we have any
+  specific logic for lead id generation which will help us in future, get this
+  confirmation from Rajal and solve this. verify jurnery stages with rajal.
+  We will need one API to fetch the country codes which will also hold the
+  validation logic to check entered mobile number. We will need APIs for
+  branch, vertical, SP/RM. We need Assign Lead API which will assign lead and
+  also do the validation for exception required or not. check the complete
+  lead BRD, We need all the BFF API's to comple the lead module. Dependent
+  services (customer search / APIGEE). CBS token race if every API authenticates.
+  start working on all the details provided. we need to finish the lead module
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: EPIC-006
+
+stage_fit:
+  code: SF5
+  rationale: >
+    Runtime of EPIC-003/005 belongs to S11, but GATE-S08 is CANDIDATE and the
+    work is off that gate, contract-first, and dependency-safe with stubs.
+  parallel_test:
+    off_critical_path: true
+    dependency_safe: true
+    in_scope: true
+    standing_constraint_clean: true
+    separate_lane: "amit-nip-bff-lead"
+    no_silent_trust_boundary_change: true
+  lane: "amit-nip-bff-lead"
+  target_stage: "S11 — Lead service / BFF implementation"
+  unpark_trigger: null
+  absorption_test:
+    small: null
+    no_new_dependency: null
+    no_new_decision: false
+    gate_neutral: true
+
+scope:
+  code: SC0
+  business_scope: "in scope — Lead service (context #5) and RM Workspace BFF (context #2)"
+  serves: ["EPIC-003", "EPIC-005", "S11-E02"]
+  failure_without_it: "NIP-APP cannot complete Lead Screens 1–7"
+  minimal: true
+  authority: "CURRENT-STATE.yaml WS-3 in_scope; Lead_Module_BRD_Detailed DOC-005"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S11 — Vertical slice"
+  binds_when: "NIP-APP Lead screens and S11-E02"
+  failure_without_it: "NIP-APP cannot complete Lead Screens 1–7"
+  evidence_tier: E2
+  evidence:
+    - "Lead BRD Screens 1, 5, 7 and §14.1"
+    - "EPIC-003 / EPIC-005 contracts"
+    - "D-018 / D-019"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT
+action_rationale: >
+  SF5 + SC0 + MUST → ADMIT on a separate engineering lane. Product closures
+  D-020 / D-021 recorded. Live CBS/Apigee and Flyway Lead DDL stay out.
+duplicate_of: null
+conflicts: []
+
+classification:
+  type: FUNC
+  also: [ARCH]
+  breakdown: EPIC
+  epic: EPIC-006
+  risk_tier: T3
+  destination: "docs/platform/ws3-platform/EPIC-006.work-item.yaml"
+
+priority:
+  now: P3
+  at_target: P1
+  factors: { N: 4, S: 2, B: 0, R: 2, D: 1, E: 3 }
+  score: 14
+  matrix_default: P3
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "SF5 MUST → matrix P2–P3; PRI-8 B=0; score 14 is P3"
+
+dependencies:
+  edges:
+    - type: ARCHITECTURAL
+      target: EPIC-003
+      relation: requires
+      state: DONE
+    - type: ARCHITECTURAL
+      target: EPIC-005
+      relation: requires
+      state: DONE
+    - type: DECISION
+      target: D-018
+      relation: decision_dependency
+      state: DONE
+    - type: DECISION
+      target: D-019
+      relation: decision_dependency
+      state: DONE
+  state: READY
+  enablement_count: 1
+  earliest_start: "2026-10-05"
+  cycles: none
+
+breakdown:
+  children: ["FUNC-029", "FUNC-030", "FUNC-031"]
+  completion_definition: "BFF REST Lead slice + ULID + token single-flight + D-020/D-021"
+  not_included:
+    - "Live CBS / Apigee"
+    - "Flyway Lead schema"
+    - "Quote / proposal / payment"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: EPIC-006
+  plan_id: PLAN-009
+  status: ADMITTED
+  closed_reason: null
+
+resumed: EPIC-006
+```
+
+### SUG-20261005-sdn · BFF session default-deny
+
+```yaml
+# schema: triage-record
+id: SUG-20261005-sdn
+raised_at: "2026-10-05"
+raised_by: "agent:AIGEM-review"
+source: "Board 4 should_fix on PLAN-009 / EPIC-006-REVIEW"
+input: >
+  Replace Spring Security permitAll on /api/v1/** with default-deny plus an
+  authenticated session filter (SEC-C4) so Lead paths cannot go anonymous if
+  the MVC interceptor is unregistered.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: EPIC-006
+
+stage_fit:
+  code: SF3
+  rationale: >
+    Compensating interceptor already fail-closes unauthenticated Lead calls.
+    Folding into Spring Security is hardening before public promotion, not
+    an S08 gate criterion.
+  target_stage: "S11 — Lead service / BFF implementation"
+  unpark_trigger: "Human Board 4 sits EPIC-006, or Lead /api/v1 is proposed for a non-stub environment"
+
+scope:
+  code: SC0
+  business_scope: "in scope — RM Workspace BFF session enforcement"
+  serves: ["EPIC-006", "SEC-C4"]
+  failure_without_it: "a future interceptor miss would publish Lead APIs anonymously"
+  minimal: true
+  authority: "ENGINEERING-AND-SECURE-CODING-STANDARDS SEC-C4; ADR-015"
+
+necessity:
+  now: SHOULD
+  future_necessity: MUST
+  target_stage: "S11 — Vertical slice"
+  binds_when: "Lead BFF paths leave stub/local"
+  evidence_tier: E2
+  evidence:
+    - "BffSecurityConfig permitAll /api/v1/**"
+    - "BffSessionInterceptor path /api/v1/**"
+    - "EPIC-006-REVIEW Board 4 S1/S10"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: true
+    X5_stage_necessity: false
+    X9_problem_observed: false
+
+action: ADMIT-BYPASS
+action_rationale: >
+  Recommendation remains PARK until S11 promotion. Owner approved SEC-C4
+  default-deny 2026-10-07 and sat the Board 4 condition as repository_owner.
+duplicate_of: null
+conflicts: []
+bypass_authorised_by: "human:Mahesh/repository_owner 2026-10-07 (explicit: approved)"
+
+classification:
+  type: SEC
+  also: []
+  breakdown: TASK
+  epic: EPIC-006
+  risk_tier: T3
+  destination: "docs/platform/ws3-platform/EPIC-006.work-item.yaml"
+
+priority:
+  now: P4
+  at_target: P2
+  factors: { N: 2, S: 3, B: 0, R: 2, D: 1, E: 2 }
+  score: 11
+  matrix_default: P4
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "SHOULD at S08; MUST before non-stub BFF — owner approved now"
+
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 0
+  earliest_start: "S11 or Board 4 instruction"
+  cycles: none
+
+breakdown:
+  children: []
+  completion_definition: null
+  not_included:
+    - "PDP object-level grants"
+    - "Promotion of Lead /api/v1 beyond stub/local"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: EPIC-006
+  plan_id: PLAN-009
+  status: ADMIT-BYPASS
+  closed_reason: null
+
+resumed: EPIC-006
+```
+
+### SUG-20261005-uld · Lead stub ULID and UNCERTIFIED test
+
+```yaml
+# schema: triage-record
+id: SUG-20261005-uld
+raised_at: "2026-10-05"
+raised_by: "agent:AIGEM-review"
+source: "Board 2 / Board 5 should_fix on PLAN-009 / EPIC-006-REVIEW"
+input: >
+  StubLeadGateway mints its own Crockford buffer instead of sharing lead-service
+  Ulid. Add BFF MockMvc for UNCERTIFIED assignee (SP_CERTIFICATION_REQUIRED).
+  Recurrence 2026-10-07: StubLeadGateway.principal() returns assignedRmId, so
+  createdBy is lost after assign (book visibility and unfinished dedupe diverge
+  from lead-service). Add WireMock for HttpLeadGateway / HttpCustomerGateway
+  when http mode is first used.
+recurrence_count: 2
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: EPIC-006
+
+stage_fit:
+  code: SF3
+  rationale: >
+    Lead-service already mints ULID and rejects UNCERTIFIED. BFF stub duplication
+    and extra MockMvc are quality hardening, not a missing AC for the admitted slice.
+  target_stage: "S11 — Lead service / BFF implementation"
+  unpark_trigger: "LEAD_DOWNSTREAM_MODE=http is enabled in a shared environment, or Board 5 raises Q0 on stub identity drift"
+
+scope:
+  code: SC0
+  business_scope: "in scope — Lead identity and SP certification tests"
+  serves: ["EPIC-006", "D-020"]
+  minimal: true
+  authority: "PLAN-009 testing; Lead BRD SP certification"
+
+necessity:
+  now: COULD
+  future_necessity: SHOULD
+  target_stage: "S11 — Vertical slice"
+  binds_when: "BFF stub is still the NIP-APP integration path"
+  evidence_tier: E3
+  evidence:
+    - "StubLeadGateway.mintUlid"
+    - "LeadApplicationServiceTest.uncertifiedAssigneeIsRejected"
+    - "EPIC-006-REVIEW Board 2 T6 / Board 5 Q3"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: true
+    X5_stage_necessity: false
+    X9_problem_observed: false
+
+action: PARK
+action_rationale: >
+  Recurrence 2: stub book identity still drifts from lead-service. AC-4 is
+  proven in lead-service. Stub ULID and createdBy are test-only while default
+  mode is stub. Not implemented in the review turn.
+duplicate_of: null
+conflicts: []
+
+classification:
+  type: QA
+  also: [REFACTOR]
+  breakdown: TASK
+  epic: EPIC-006
+  risk_tier: T1
+  destination: "registers/PARKED-BACKLOG.md"
+
+priority:
+  now: P4
+  at_target: P3
+  factors: { N: 1, S: 1, B: 0, R: 0, D: 0, E: 2 }
+  score: 2
+  matrix_default: P4
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "COULD at S08"
+
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 0
+  earliest_start: "S11 stub-still-in-use review"
+  cycles: none
+
+breakdown:
+  children: []
+  completion_definition: null
+  not_included: []
+
+outcome:
+  registered_in: "registers/PARKED-BACKLOG.md"
+  work_item_id: null
+  plan_id: PLAN-009
+  status: PARKED
+  closed_reason: null
+
+resumed: EPIC-006
+```
 
 ### SUG-20260930-osl · openssl CVE-2026-84782
 

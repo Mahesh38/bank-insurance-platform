@@ -9,4 +9,4 @@ See [`docs/platform/authentication-authorization/README.md`](../../docs/platform
 ./gradlew :services:identity-authorization-service:bootRun
 ```
 
-The service listens on port `8083` and uses H2 in PostgreSQL compatibility mode by default. Deployed profiles must supply a dedicated PostgreSQL datasource.
+The service listens on port `8083` and uses H2 in PostgreSQL compatibility mode by default. Deployed profiles must supply a dedicated PostgreSQL datasource. Provider provisioning calls `identity-provider-adapter-service` with `X-Internal-Service-Key` (`IDENTITY_ADAPTER_INTERNAL_SHARED_SECRET`; production has no default).

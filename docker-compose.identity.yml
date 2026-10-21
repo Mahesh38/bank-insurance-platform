@@ -84,6 +84,7 @@ services:
       KEYCLOAK_ADMIN_CLIENT_ID: identity-provider-adapter
       KEYCLOAK_ADMIN_CLIENT_SECRET: ${KEYCLOAK_PROVIDER_ADAPTER_SECRET:-local-provider-adapter-secret}
       WORKFORCE_LOGIN_CALLBACK: http://localhost:8084/api/v1/auth/callback
+      IDENTITY_ADAPTER_INTERNAL_SHARED_SECRET: ${IDENTITY_ADAPTER_INTERNAL_SHARED_SECRET:-local-idp-adapter-internal-key}
     depends_on:
       - keycloak
 
@@ -99,6 +100,7 @@ services:
       AUTHZ_DATASOURCE_USERNAME: identity_authorization
       AUTHZ_DATASOURCE_PASSWORD: ${AUTHZ_DB_PASSWORD:-authz_local_only}
       IDENTITY_PROVIDER_ADAPTER_BASE_URL: http://identity-provider-adapter-service:8082
+      IDENTITY_ADAPTER_INTERNAL_SHARED_SECRET: ${IDENTITY_ADAPTER_INTERNAL_SHARED_SECRET:-local-idp-adapter-internal-key}
       IDENTITY_PROVISIONING_ENABLED: "true"
     depends_on:
       authorization-db:
@@ -117,6 +119,7 @@ services:
       SPRING_DATA_REDIS_PORT: 6379
       SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD:-redis_local_only}
       IDENTITY_PROVIDER_ADAPTER_BASE_URL: http://identity-provider-adapter-service:8082
+      IDENTITY_ADAPTER_INTERNAL_SHARED_SECRET: ${IDENTITY_ADAPTER_INTERNAL_SHARED_SECRET:-local-idp-adapter-internal-key}
       IDENTITY_AUTHORIZATION_BASE_URL: http://identity-authorization-service:8083
       WORKFORCE_WEB_RETURN_URI: http://localhost:3000/auth/complete
       WORKFORCE_NATIVE_RETURN_URI: bankinsurance://auth-complete

@@ -22,8 +22,14 @@ That document is explicit: it is **not** a physical schema
 |---|---|
 | [`00-design-rules.md`](./00-design-rules.md) | Binding persistence rules Aarti will not waive |
 | [`01-physical-design.md`](./01-physical-design.md) | Topology, datastore per context, tables, relationships, indexes, `OPEN-I6` |
+| [`03-lead-suitability-e2e.md`](./03-lead-suitability-e2e.md) | Lead + Suitability e2e ER, column sheets, BRD mapping (`DATA-003`) |
+| [`04-store-segregation-and-roadmap.md`](./04-store-segregation-and-roadmap.md) | Postgres vs Dynamo vs other stores, service access, credentials, roadmap (`DATA-004`) |
+| [`05-e2e-er-and-field-map.md`](./05-e2e-er-and-field-map.md) | E2E ER, every column, physical FK vs logical ref (`DATA-004`) |
+| [`06-journey-orchestrator-and-working-payload.md`](./06-journey-orchestrator-and-working-payload.md) | Journey tables the orchestrator may touch; JSON-until-payment working envelopes (`DATA-005` / `DB-DEC-0004`) |
+| [`DB-DEC-0004-working-payload-until-payment.md`](./DB-DEC-0004-working-payload-until-payment.md) | Aarti verdict `APPROVED_WITH_OBSERVATIONS` (`D1`) — working JSON in owning schemas, not on journey |
 | [`02-operations-and-troubleshooting.md`](./02-operations-and-troubleshooting.md) | Migration, encryption/access implementation, backup/PITR/RPO/RTO, retention/purge, troubleshooting |
 | [`DB-DEC-0001-r0-physical-model.md`](./DB-DEC-0001-r0-physical-model.md) | Formal `database_decision` for `ADR-008` / `S07-G5` (draft, unsigned) |
+| [`DB-DEC-0003-store-segregation.md`](./DB-DEC-0003-store-segregation.md) | Formal overlay: Dynamo empty at R0, one role per schema |
 | [`DATA-002-cr013-alignment.md`](./DATA-002-cr013-alignment.md) | Check vs `CR-013` / `ADR-014` — what to keep, what to create, what not to invent |
 | [`DB-DEC-0002-cr013-alignment-review.md`](./DB-DEC-0002-cr013-alignment-review.md) | Aarti verdict `CHANGES_REQUIRED` (`D1`) |
 | [`schemas/`](./schemas/) | PostgreSQL design DDL — one script per schema, plus routines and grants |
@@ -51,15 +57,15 @@ One Aurora PostgreSQL cluster. One schema per bounded context. No cross-schema g
 | `identity` | Identity & Access (WS-2) | [`01-identity.sql`](./schemas/01-identity.sql) | Flyway on `identity-authorization-service` |
 | `bank_persistence` | 1SB Adapter job store + audit ingest | [`02-bank_persistence.sql`](./schemas/02-bank_persistence.sql) | Flyway on `bank-persistence-service` |
 | `customer` | Customer snapshot | [`03-customer.sql`](./schemas/03-customer.sql) | Design only |
-| `opportunity` | Lead / opportunity | [`04-opportunity.sql`](./schemas/04-opportunity.sql) | Design only |
+| `lead_lms` | Lead LMS (`lead` table) | [`04-lead_lms.sql`](./schemas/04-lead_lms.sql) · [e2e](./03-lead-suitability-e2e.md) | Design only |
 | `consent` | Consent evidence | [`05-consent.sql`](./schemas/05-consent.sql) | Design only |
-| `suitability` | Suitability assessment | [`06-suitability.sql`](./schemas/06-suitability.sql) | Design only |
+| `suitability` | Suitability assessment | [`06-suitability.sql`](./schemas/06-suitability.sql) · [e2e](./03-lead-suitability-e2e.md) | Design only |
 | `catalogue` | Product catalogue | [`07-catalogue.sql`](./schemas/07-catalogue.sql) | Design only |
-| `quotation` | Quote and offer | [`08-quotation.sql`](./schemas/08-quotation.sql) | Design only |
-| `proposal` | Proposal & UW | [`09-proposal.sql`](./schemas/09-proposal.sql) | Design only |
-| `payment` | Payment | [`10-payment.sql`](./schemas/10-payment.sql) | Design only |
+| `quotation` | Quote and offer — `quote_working` until payment, then structured | [`08-quotation.sql`](./schemas/08-quotation.sql) · [orchestrator](./06-journey-orchestrator-and-working-payload.md) | Design only |
+| `proposal` | Proposal & UW — `proposal_working` until payment, then structured | [`09-proposal.sql`](./schemas/09-proposal.sql) · [orchestrator](./06-journey-orchestrator-and-working-payload.md) | Design only |
+| `payment` | Payment — always structured; on the journey, independent SoR | [`10-payment.sql`](./schemas/10-payment.sql) · [orchestrator §6](./06-journey-orchestrator-and-working-payload.md) | Design only |
 | `policy` | Policy & issuance | [`11-policy.sql`](./schemas/11-policy.sql) | Design only |
-| `journey` | Journey orchestration | [`12-journey.sql`](./schemas/12-journey.sql) | Design only |
+| `journey` | Journey orchestration — stage + refs only | [`12-journey.sql`](./schemas/12-journey.sql) · [orchestrator](./06-journey-orchestrator-and-working-payload.md) | Design only |
 | `administration` | Versioned configuration | [`13-administration.sql`](./schemas/13-administration.sql) | Design only |
 
 Shared cluster objects: [`00-cluster-bootstrap.sql`](./schemas/00-cluster-bootstrap.sql),

@@ -36,6 +36,7 @@ false**, so invalidation triggers a known action instead of a debate.
 | ID | Assumption | Validated | Evidence |
 |----|------------|-----------|----------|
 | ASM-001 | WS-1 is in Phase 4 (Hardening); Phases 0–3 are complete | 2026-08-10 | Ratified by the Solution Architect — GOV-004 in the [decision register](./DECISION-REGISTER.md#2-governance-decisions) |
+| ASM-020 | Apigee app `AU-Bima-Platform` may hold **multiple concurrent** client-credentials access tokens. Minting a new token does **not** revoke or expire a prior token for the same client key. Access token TTL is **24 hours**. There is **no refresh token**; remint is a new `/token` call. **R0 consumers of this one app:** `customer-service` (CBS/EBS) and `1sb-integration-service` (1SB via Apigee proxy) — ARB / `ADR-020`. **UAT mint URL (2026-10-08):** `POST https://api.aubankuat.in/oauth/accesstoken?grant_type=client_credentials` with HTTP Basic. Credentials were not supplied. | 2026-10-06 | Stakeholder: Apigee-team concurrency; 24h TTL / no refresh; 1sb-integration-service is an R0 ARB caller of the same token. `SUG-20261006-atk` recurrence 4. `DEP-20260914-apg` UAT host now known; secrets, CBS host, 1SB Bearer, IPs still owed. If exclusive tokens: cluster single-flight becomes correctness |
 
 ## 3. Invalidated
 

@@ -72,8 +72,12 @@ tags:
       only. This is not the post-suitability offering matrix (GET /catalogue/offerings).
   - name: Leads
     description: |
-      Create, resume, duplicate-check and sparse status for a Term Life lead
-      (SCR-05 and SCR-02 row tap). Spoken name is Lead (ADR-014); paths are /leads.
+      Create, resume, duplicate-check, assign and sparse status for a Life lead
+      (SCR-05, assignment screens, SCR-02 row tap). Spoken name is Lead (ADR-014); paths are /leads.
+  - name: Reference
+    description: Country calling codes and mobile validation rules for Lead Screen 1.
+  - name: Organisation
+    description: Branch, vertical, Specified Person and RM lookups for assignment screens.
 security:
   - sessionCookie: []
   - sessionHandle: []
@@ -591,6 +595,213 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
+  /country-codes:
+    get:
+      tags: [Reference]
+      operationId: listCountryCodes
+      summary: List country calling codes and mobile validation rules
+      description: |
+        Powers Lead Screen 1 mobile search. R0 returns India only (`D-020` companion).
+        The `regex` / min / max fields are the client-side validation source of truth;
+        POST /mobile-numbers:validate re-checks the same rule on the BFF.
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Country calling-code catalogue
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CountryCode'
+              example:
+                - countryCode: IN
+                  countryName: India
+                  phoneCode: '+91'
+                  nationality: Indian
+                  minLength: 10
+                  maxLength: 10
+                  regex: '^[6-9]\d{9}$'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /mobile-numbers:validate:
+    post:
+      tags: [Reference]
+      operationId: validateMobileNumber
+      summary: Validate a national mobile number against the country catalogue
+      description: |
+        Server-side counterpart of the regex on GET /country-codes. Does not search CBS.
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [countryCode, nationalNumber]
+              additionalProperties: false
+              properties:
+                countryCode:
+                  type: string
+                  example: IN
+                nationalNumber:
+                  type: string
+                  example: '9876543210'
+      responses:
+        '200':
+          description: Validation result. HTTP 200 with valid=false is a failed check, not an error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MobileValidationResult'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /branches:
+    get:
+      tags: [Organisation]
+      operationId: listBranches
+      summary: List branches available to the caller
+      description: |
+        Lead BRD Screen 5A/5C. R0 fixture until bank HR mapping is onboarded.
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Branch collection
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Branch'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /branches/{branchId}/verticals:
+    get:
+      tags: [Organisation]
+      operationId: listVerticalsForBranch
+      summary: List verticals under a branch
+      description: |
+        Optional bank-master filter between Branch and SP (`D-021`, Lead BRD Table 9).
+        Not mandatory for R0 assignment when Branch→SP mapping is complete.
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - name: branchId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Vertical collection for the branch
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Vertical'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /branches/{branchId}/specified-persons:
+    get:
+      tags: [Organisation]
+      operationId: listSpecifiedPersonsForBranch
+      summary: List active Specified Persons in a branch
+      description: Lead BRD Screen 5A / 5C — SP list after branch selection.
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - name: branchId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Specified Person collection
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EmployeeRef'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /verticals/{verticalId}/relationship-managers:
+    get:
+      tags: [Organisation]
+      operationId: listRelationshipManagersForVertical
+      summary: List relationship managers for a vertical
+      description: |
+        REST name for the requested `rm-list`. Insurance RM list for SP-created leads
+        is also available via specified-persons on the home branch (Lead BRD §8.2).
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - name: verticalId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: RM collection
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EmployeeRef'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /leads/{leadId}/assignment:
+    post:
+      tags: [Leads]
+      operationId: assignLead
+      summary: Assign a certified-SP RM and return whether an exception is required
+      description: |
+        BFF orchestration of D-019 steps 4–5. If Start Onboarding has not run, this
+        call evaluates exception rules first, then assigns when the outcome is PASS.
+        APPROVAL_REQUIRED / BLOCK returns exceptionRequired=true and does not complete
+        assignment. Idempotency-Key required.
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/LeadId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [assignedRmId]
+              additionalProperties: false
+              properties:
+                assignedRmId:
+                  type: string
+                assignedSpId:
+                  type: string
+      responses:
+        '200':
+          description: Assignment result including exceptionRequired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeadAssignment'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
 components:
   securitySchemes:
     sessionCookie:
@@ -1213,6 +1424,72 @@ components:
           - code: CONFLICT
             field: leadId
             message: 01JQX4K7R8M2N3P4Q5S6T7V8W9
+    CountryCode:
+      type: object
+      additionalProperties: false
+      required: [countryCode, countryName, phoneCode, nationality, minLength, maxLength, regex]
+      properties:
+        countryCode: { type: string, example: IN }
+        countryName: { type: string, example: India }
+        phoneCode: { type: string, example: '+91' }
+        nationality: { type: string, example: Indian }
+        minLength: { type: integer, example: 10 }
+        maxLength: { type: integer, example: 10 }
+        regex: { type: string, example: '^[6-9]\d{9}$' }
+    MobileValidationResult:
+      type: object
+      additionalProperties: false
+      required: [valid]
+      properties:
+        valid: { type: boolean }
+        reason: { type: string, nullable: true }
+    Branch:
+      type: object
+      additionalProperties: false
+      required: [branchId, branchName, branchCode]
+      properties:
+        branchId: { type: string }
+        branchName: { type: string }
+        branchCode: { type: string }
+    Vertical:
+      type: object
+      additionalProperties: false
+      required: [verticalId, verticalName]
+      properties:
+        verticalId: { type: string }
+        verticalName: { type: string }
+        branchId: { type: string }
+    EmployeeRef:
+      type: object
+      additionalProperties: false
+      required: [empId, empName]
+      properties:
+        empId: { type: string }
+        empName: { type: string }
+    LeadAssignment:
+      type: object
+      description: POST /leads/{leadId}/assignment result. exceptionRequired is true when AUBIMA approval or a block still applies.
+      required: [leadId, state, exceptionRequired, exceptionOutcome]
+      properties:
+        leadId:
+          $ref: '#/components/schemas/Ulid'
+        state:
+          $ref: '#/components/schemas/LeadState'
+        dashboardStage:
+          type: string
+        assignedRmId:
+          type: string
+        assignedSpId:
+          type: string
+        exceptionHold:
+          type: boolean
+        exceptionOutcome:
+          type: string
+          enum: [NOT_EVALUATED, PASS, BLOCK, APPROVAL_REQUIRED]
+        exceptionRequired:
+          type: boolean
+        journeyId:
+          $ref: '#/components/schemas/Ulid'
   responses:
     BadRequest:
       description: |

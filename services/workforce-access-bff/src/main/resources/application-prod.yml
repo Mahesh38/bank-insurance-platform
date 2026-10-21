@@ -1,0 +1,3 @@
+workforce:
+  downstream:
+    provider-adapter-internal-key: ${IDENTITY_ADAPTER_INTERNAL_SHARED_SECRET}

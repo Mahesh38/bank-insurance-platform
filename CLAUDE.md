@@ -22,12 +22,19 @@ files has a routed row in [`DOC-MAP.yaml`](./docs/context/DOC-MAP.yaml), so `fin
 
 1. **Triage before implementing.** A suggestion is never implemented in the turn it is raised —
    use the [`aigem-triage`](./.claude/skills/aigem-triage/SKILL.md) skill, record it, then return to
-   the work item you were on and say so out loud.
+   the work item you were on and say so out loud. **Exception:** an explicit Mahesh repository-owner
+   override under governance §8 is recorded as `ADMIT-BYPASS` and may execute without waiting for
+   the normal parked schedule or another persona approval.
 2. **Load a persona card, not a persona package.** Cards are 3–6 KB and live in
    [`docs/context/personas/`](./docs/context/personas/README.md); packages reach 244 KB. Open a
    package file only when a card's *Load deeper* row matches.
 3. **Never manufacture an approval.** Agents do not edit stage state, approve change requests, or
-   satisfy a mandatory human T4 sign-off. Draft the reasoning and assemble the evidence instead.
+   invent a mandatory human T4 sign-off. In this single-human repository, however, Mahesh's explicit
+   approval of a specific item **is** the human owner ratification. Record it separately as
+   `reviewer_type: HUMAN` / `authority: repository_owner`; keep Rajal, Deepali, Shailja and every
+   other AI-persona verdict marked `AGENT`. Do not wait for an AI persona to become a second human.
+   Owner ratification can override governance scheduling/recommendations; it cannot fabricate
+   external evidence, legal permission, bank approval, credentials or test results.
 4. **Cite what you read**, by path and anchor. An uncited conclusion is an assumption.
 
 ## Skills

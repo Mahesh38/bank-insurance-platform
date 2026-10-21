@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-28  
 **Work item:** `DOC-006` + Login first module (`Q7`)  
-**Status:** Working evaluation. No NIP-APP source in this repository. No new password-collection API in this change.
+**Status:** Working evaluation. No NIP-APP source in this repository. `IAM-001` (2026-10-08) added Bank RM password collection on the BFF for AD-verify. Captcha / OTP / Unlock User are still not in this change (`SUG-20261008-otp`).
 
 | Source | Role |
 |--------|------|
@@ -68,7 +68,7 @@ Code: `services/workforce-access-bff/src/main/java/com/bank/workforce/bff/api/Au
 | Method | Path | What it does | Login BRD fit |
 |--------|------|----------------|---------------|
 | `GET` | `/api/v1/auth/csrf` | CSRF token for POSTs | Keep. Browser NIP-APP needs this. |
-| `POST` | `/api/v1/auth/login` | Body: `clientType`, `identitySource`, `returnUri`, optional `loginHint`. Returns **authorization URI only**. No password. | Partial. Distinguishes identity source (Bank vs Partner). Does **not** accept Employee ID / email / password / Captcha. |
+| `POST` | `/api/v1/auth/login` | `BANK_AD`: `employeeId` + `password` → `{ authenticated }` + HttpOnly cookie / native handle. `PARTNER`: authorization URI only. | Bank RM credential check is `IAM-001`. Captcha / OTP still absent. |
 | `GET` | `/api/v1/auth/callback` | OIDC `code` + `state` → HttpOnly cookie (web) or native completion | Fits token-hiding (`BOOT` standing constraint). Not a BRD OTP field. |
 | `POST` | `/api/v1/auth/native-session` | One-time completion code → opaque session handle | Needed for native NIP-APP (`ADR-015` APK/IPA). No tokens on device. |
 | `GET` | `/api/v1/auth/session` | Session status from cookie / `X-Session-Handle` | Keep. |
@@ -84,7 +84,7 @@ Covered by Slice 1 / JES, **not** by the Login BRD catalogue: PKCE, return-URI a
 
 | BRD / Figma need | On BFF today | Why it is not implemented in this change |
 |------------------|--------------|------------------------------------------|
-| Identifier + password fields on the BFF | No. Login starts OIDC | UC-01 and Fireframe/IdP ceremony (`SUG-20260914-idp`) already own the password step. Changing that is **Mahesh + Deepali**, not a Flutter fake. |
+| Identifier + password fields on the BFF | **Met for Bank RM** (`IAM-001`). Partner still OIDC | Owner selected option B for `BANK_AD` on 2026-10-08. Partner password collection is not in `IAM-001`. |
 | Captcha | No endpoint | Login BRD: Infosec owns Captcha admin (`SEC-009`). |
 | Platform OTP after credentials | No. UC-01 places MFA at the IdP | Whether OTP is IdP MFA or a platform resource is a trust-boundary decision. |
 | Lock after 3 password failures / 30-day inactivity | Not in BFF | Account state belongs with identity / IdP, not a client fake directory. |
@@ -95,10 +95,10 @@ Covered by Slice 1 / JES, **not** by the Login BRD catalogue: PKCE, return-URI a
 
 How should NIP-APP collect Employee ID / Corporate Email + password + Captcha **without** sending OAuth tokens to the client?
 
-- **A — IdP chrome (current UC-01):** BFF returns an authorization URI; Fireframe/IdP hosts credential + MFA screens. NIP-APP login tabs are entry chrome (`identitySource` + `loginHint`). Closest to code today.
-- **B — BFF collects credentials and calls AD-verify / partner IdP:** closer to the Login BRD field catalogue; passwords still must not be logged; tokens still must not return to the client. Needs Deepali on credential handling and Mahesh on whether this replaces UC-01.
+- **A — IdP chrome:** BFF returns an authorization URI; Fireframe/IdP hosts credential + MFA screens. **Still the partner path.**
+- **B — BFF collects credentials and calls AD-verify:** closer to the Login BRD field catalogue; passwords still must not be logged; tokens still must not return to the client.
 
-This evaluation does **not** pick A or B.
+**Decision 2026-10-08 (`IAM-001`):** **B for Bank RM.** Partner remains A. Captcha / OTP / lock stay parked (`SUG-20261008-otp`).
 
 ---
 
@@ -112,4 +112,4 @@ This evaluation does **not** pick A or B.
 | Figma Forgot Password / mPIN | **Correctly absent** from BFF (do not add) |
 | In-repo Flutter Login UI | **Removed** (`DOC-006`) |
 
-Next Login implementation increment (Java only): wait for Mahesh on §4 A vs B, then add OpenAPI + tests on `workforce-access-bff` (and identity services if B). Infosec still owns Captcha/OTP gateway and session timeout.
+Next Login implementation increment (Java only): `SUG-20261008-otp` — Captcha, OTP, lock, Unlock User. Infosec still owns Captcha/OTP gateway and session timeout.

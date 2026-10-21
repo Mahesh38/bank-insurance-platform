@@ -1,0 +1,76 @@
+# schema: work-item
+id: FUNC-030
+origin: SUG-20261005-lbf
+title: "Lead service create / onboard / assign with ULID identity and stage projection"
+type: FUNC
+also: []
+breakdown: STORY
+epic: EPIC-006
+workstream: WS-3
+owner: "Amit — Technical Head (R3); lane amit-nip-bff-lead"
+risk_tier: T3
+
+serves:
+  - "EPIC-006"
+  - "D-020"
+  - "D-021"
+  - "EPIC-005 internal OpenAPI"
+
+problem: >
+  lead-service was a skeleton. Without minting and assignment, the BFF cannot
+  complete Lead create/assign.
+
+description: >
+  In-memory Lead aggregate: ULID mint, create without exception eval, start
+  onboarding, assign certified-SP RM, dashboard stage projection. Physical
+  Flyway stays parked (SUG-20260825-db1).
+
+acceptance_criteria:
+  - id: AC-1
+    given: "create LIFE/TERM"
+    when: "the command succeeds"
+    then: "leadId is a valid 26-char ULID and exceptionOutcome is NOT_EVALUATED"
+  - id: AC-2
+    given: "assign before onboarding"
+    when: "assign is called"
+    then: "ILLEGAL_TRANSITION"
+  - id: AC-3
+    given: "LeadState QUALIFIED"
+    when: "dashboardStage is projected"
+    then: "QUOTE_GENERATED — not UNDERWRITING_QUEUE"
+
+out_of_scope:
+  - "Flyway physical model"
+  - "Journey UW-queue transitions"
+
+state: IN-REVIEW
+priority_now: P3
+priority_at_target: P1
+target_stage: null
+unpark_trigger: null
+
+dependencies:
+  blocked_by: []
+  requires:
+    - "EPIC-005"
+  enables:
+    - "FUNC-029"
+  related_to: []
+  external: []
+  decision_dependency:
+    - "D-020"
+    - "D-021"
+    - "D-019"
+
+plan: PLAN-009
+estimate: M
+assumptions: []
+risks: []
+evidence:
+  - "LeadApplicationServiceTest.createMintsUlidAndDoesNotEvaluateException"
+  - "LeadApplicationServiceTest.assignRequiresOnboardingAndCertifiedSp — ILLEGAL_TRANSITION before onboard"
+  - "DashboardStageTest — QUALIFIED projects QUOTE_GENERATED, not UNDERWRITING_QUEUE"
+variance_log:
+  - date: "2026-10-07"
+    change: "IN-REVIEW with unit evidence; Flyway remains parked SUG-20260825-db1"
+    reason: "ROLE-GUIDELINES D-8"

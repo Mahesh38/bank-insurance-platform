@@ -167,7 +167,7 @@ Events (from domain catalogue): `OpportunityCreated` / Lead created, assignment 
 | **OPEN-LEAD-DUP-DELETE** | **CLOSED** — Lead BRD Table 18 wins (`SUG-20261003-brf`) | Rajal | When BI absent: Continue \| Cancel only. No delete/replace/soft-delete |
 | **OPEN-LEAD-VAL-TIMING** | **CLOSED** — Exception BRD wins (`SUG-20261003-brf`) | Rajal | Save/create does not evaluate; Start Onboarding (after create, before assign) evaluates. Rule catalogue stays in Exception BRD / config |
 | **OPEN-COMP-LEAD-IPR-CREATE** | IPR create vs solicitation | Shailja | Runtime gated |
-| **OPEN-LEAD-STAGE** | BRD §14 ladder vs domain Lead machine | Rajal + BA + Mahesh | Lead owns pre-BI + QUALIFIED + terminal; post-quote projections |
+| **OPEN-LEAD-STAGE** | **CLOSED** — `D-021` | Rajal | Lead owns pre-BI + QUALIFIED + terminal; post-quote labels are Journey/Proposal/Policy projections |
 | **OPEN-LEAD-DUP** | Force-duplicate / “update and continue” in wireframes | Rajal | No force flag; `409` + resume (`07` LLD) |
 | **OPEN-LEAD-XRM** | Visibility of another RM’s active lead | Rajal + Shailja | Absent for caller (EPIC-003) |
 | **OPEN-D1** | Reassignment: SLA reset + conversion attribution | Rajal + BA | Store history; attribution follows current generator per BR-OWN-003 *provisionally* until OPEN-D1 closes |

@@ -238,17 +238,18 @@ pack, and the honest answer is that `CR-012` admitted them deliberately.
 | Layer | What R0 provisions | The line it may not cross |
 |---|---|---|
 | **Bank connectivity** (`ADR-009`) | **Attach as a spoke** to the existing `AU-CTO-NETWORK` Transit Gateway (do not provision a second hub). Connects to bank **EBS (Enterprise Service Bus) APIs for CBS / CIF** and Bank AD; Site-to-Site VPN from day one; Direct Connect via the **existing** DX Gateway | `dev` may stub EBS/CBS and Bank AD; **`uat` and `prod` may not**. A journey evidenced against a stub is not evidence. Workload VPCs have **no IGW** |
-| **Perimeter & Edge Ingress** | **Cloudflare Enterprise (SaaS)** → **F5-XC (SaaS WAF)** → **Amazon API Gateway** (inbound Proxy 1 of 2) → **Internal ALB** (Proxy 2 of 2). No public ALB. Cloudflare and F5 are not AWS and not in any VPC (`ADR-018`). **Apigee is outbound only** (`ADR-020`) | Bank enterprise security standard. Edge TLS termination, L7 policy and rate limiting; no business logic |
+| **Perimeter & Edge Ingress** | **Cloudflare Enterprise (SaaS)** → **F5-XC (SaaS WAF)** → **Ingress NLB** (SG = F5/CF CIDRs; F5 secret/mTLS) → **Istio Ingress** (path split + sidecars). Amazon API Gateway withdrawn (`ADR-023`). **Apigee is outbound only** (`ADR-020`) | Bank-standard LB+Istio. Edge TLS/WAF at SaaS; Envoy size/throttle; Keycloak private; PDP remains business authZ |
 | **Delivery & IaC** | **GitLab CI/CD** for multi-stage pipelines and **Terraform** for Infrastructure as Code (IaC) across environments | Standard bank pipeline and multi-environment provisioning baseline |
 | **Governance & Logs** | **AWS CloudTrail** (account management and security audit trail) alongside **Amazon CloudWatch** (operational logs/metrics) | CloudTrail satisfies RBI management auditability; CloudWatch provides runtime telemetry |
-| **Egress inspection** (`ADR-010` + `ADR-020`) | Inspection VPC per environment, AWS Network Firewall on **pod → Apigee**; **Apigee** is the caller 1SB sees. Do not publish spoke NAT EIPs to 1SB | It is **not a mesh** and does not replace `NetworkPolicy`. The 1SB mTLS session is passed intact, not decrypted. Internal Apigee targets stay private |
+| **Egress inspection** (`ADR-010` + `ADR-020`) | Inspection VPC per environment, AWS Network Firewall on **pod → Apigee**; **Apigee** is the caller 1SB sees. Do not publish spoke NAT EIPs to 1SB | East–west uses Istio STRICT mTLS **plus** retained `NetworkPolicy` (`ADR-023` S11). The 1SB mTLS session is passed intact, not decrypted. Internal Apigee targets stay private |
 | **Cache tier** (`ADR-011`) | One ElastiCache for Valkey replication group per environment: BFF sessions, an L2 read-through behind the in-process L1, per-principal rate-limit counters. Per-service ACL user and key prefix | **Never** idempotency, never a system of record, never a way to serve configuration past TTL. A miss is a read, never an error (`S-25`) |
 | **Event backbone** (`ADR-012`) | Amazon MSK, 3 brokers, SASL/IAM per topic, Glue Schema Registry | The **transactional outbox remains the source of truth**. No regulatory evidence exists only in a topic (`FF-26`) |
 | **Operational search** (`ADR-013`) | One VPC-only OpenSearch domain per environment; application, firewall, flow and broker logs; 30 d hot → delete at 90 d | It holds **no evidence** and satisfies **no gate**. The log pipeline has no permission on the audit store (`FF-28`) |
 
-Three things were **not** admitted alongside them, and the distinction is the point: no service
-mesh, no per-service database clusters, and no analytics warehouse. Each is a recorded rejection in
-[`CR-012 §3`](../../governance/change-requests/CR-012-r0-platform-robustness.md), not an oversight.
+Two things were **not** admitted alongside the 2026-08-24 robustness layers: no per-service database
+clusters, and no analytics warehouse ([`CR-012 §3`](../../governance/change-requests/CR-012-r0-platform-robustness.md)).
+**Istio** (Ingress + sidecars) was later **admitted** by [`ADR-023`](../architecture-review/08-architecture-decision-log.md)
+(2026-10-09) — AWS App Mesh stays out.
 
 ---
 
@@ -573,7 +574,7 @@ deployable services plus one app**, against a nineteen-context target.
 ## 9. One-screen answers for live review
 
 **Q: Why use Cloudflare and F5-XC instead of AWS CloudFront and AWS WAF?**  
-A: Adopting **Cloudflare Enterprise** and **F5 Distributed Cloud (F5-XC)** aligns our platform with the existing AU Bank application perimeter (architecture v1.4). Both are **bank-enterprise SaaS** — they are not AWS services and they are not placed in any platform VPC. Traffic then enters AWS at **Amazon API Gateway** (no public / External ALB) and reaches workloads through a **VPC Link** to the **Internal ALB**. The current banking app's Public ALB is that application's AWS entry; this platform's AWS entry is API Gateway (`ADR-018`).
+A: Adopting **Cloudflare Enterprise** and **F5 Distributed Cloud (F5-XC)** aligns our platform with the existing AU Bank application perimeter (architecture v1.4). Both are **bank-enterprise SaaS** — they are not AWS services and they are not placed in any platform VPC. Traffic then enters AWS at an **internet-facing NLB** (SG locked to F5/CF CIDRs; F5 shared-secret and/or mTLS) and reaches workloads through **Istio Ingress Gateway** (`ADR-023`). Amazon API Gateway is withdrawn. Keycloak stays private; business authZ stays on the PDP.
 
 **Q: How do we connect to Core Banking (CBS)?**  
 A: All customer lookups and CIF queries route through `#4 Customer Service` calling standard bank **EBS (Enterprise Service Bus) APIs** over private Transit Gateway links, adhering to bank enterprise architecture standards and protecting the core mainframe.

@@ -41,10 +41,11 @@ Forget boxes. Follow one RM named Priya selling a Term policy to an ETB customer
 Priya's laptop / phone
     │  HTTPS  (no OAuth token on the device — opaque session cookie/header)
     ▼
-Cloudflare  →  F5-XC WAF  →  Amazon API Gateway  →  Internal ALB
+Cloudflare  →  F5-XC WAF  →  Ingress NLB  →  Istio Ingress Gateway
     │
     ├─ static Flutter web  →  nip-web pod
-    └─ /api/*              →  NIP BFF (#2)
+    ├─ /api/*              →  NIP BFF (#2)
+    └─ /callbacks/pg/*     →  Payment #12  (PG IP allowlist · not RM session)
                               │
                               ├─ "who is Priya and may she do this?"
                               │     identity-provider-adapter  →  Keycloak (later Bank AD)
@@ -115,25 +116,25 @@ Think of this as **servlet filters you do not write**, in a fixed order.
 | **Bank standard?** | **Yes.** Live apps: Cloudflare → F5-XC → then AWS. |
 | **Not chosen** | F5 **BIG-IP appliance in our VPC** (a 2026-08-27 diagram mistake; retracted `ADR-018`). AWS WAF as a substitute for F5-XC — would skip the bank's WAF operators. AWS Network Firewall — that is **egress**, not this hop. |
 
-### Amazon API Gateway
+### Ingress NLB (first AWS hop)
 
 | | |
 |---|---|
-| **Use** | First **AWS** hop. Request size, schema, throttle. **No business logic.** VPC Link into the internal ALB. |
-| **Bank standard?** | **Partial on ingress.** Existing banking apps enter AWS on a **Public ALB**. We deliberately did **not** copy that (`ADR-018`, Board 1 rereview F-06). **Outbound** uses the bank **Apigee** plane (`ADR-020`); API Gateway stays inbound Proxy 1. Flutter never calls Apigee. |
-| **Not chosen** | Public ALB in front of API Gateway (extra hop, extra attack surface). Exposing EKS with a public NLB. Letting Flutter hit pods. |
+| **Use** | First **AWS** hop in public/DMZ subnets. Targets Istio Ingress Gateway pods. **SG = F5 (+ Cloudflare) egress CIDRs only** — never `0.0.0.0/0`. |
+| **Bank standard?** | **Yes** for this estate — External LB + Istio (`ADR-023`). Amazon API Gateway is **withdrawn**. |
+| **Not chosen** | Amazon API Gateway + VPC Link. Opening the NLB to the world. Letting Flutter hit domain pods. |
 
-### Internal Application Load Balancer
+### Istio Ingress Gateway (+ sidecars)
 
 | | |
 |---|---|
-| **Use** | The **only** load balancer **inside** the VPC. `GET /*` → nip-web; `/api/*` → BFF. |
-| **Bank standard?** | Bank apps also use ALB, often **public**. Ours is **internal** because API Gateway already took the public contract. |
-| **Not chosen** | Nginx/Envoy sidecar farm; Kubernetes `LoadBalancer` with a public IP; second "admin ALB". |
+| **Use** | Path split: `GET /*` → nip-web; `/api/*` → BFF; `/callbacks/pg/*` → Payment. Envoy size/throttle. East–west STRICT mTLS after dated PERMISSIVE cutover. |
+| **Bank standard?** | **Yes.** Sidecars in application namespaces; NetworkPolicy retained (S11). |
+| **Not chosen** | Internal ALB as a second reverse-proxy hop. AWS App Mesh. Public Istio routes to Keycloak. Replacing the PDP with mesh `AuthorizationPolicy` for insurance rules. |
 
 ### What we refuse at this layer
 
-Workload VPCs have **no Internet Gateway**. You cannot `curl` a pod from the internet. That matches Zero Trust language on the bank landing-zone slide, even though the **neighbour** app still has a Public VPC + IGW.
+Domain pods stay in private-app subnets with **no** public Service. You cannot `curl` Keycloak or Aurora from the internet. The NLB is a narrow, CIDR-locked entry — not a copy of the neighbour app's open Public VPC + IGW pattern.
 
 ---
 
@@ -310,7 +311,7 @@ Internal bank APIs that go via Apigee must stay on a **private** target (`ASM-01
 Payment service → AU Bank PG "create session"
 Notification → payment URL → customer's phone
 Customer pays on PG (3-D Secure)
-PG callback → our API Gateway (separate route, TB-6)
+PG callback → Istio `/callbacks/pg/*` (IP allowlist + signature, TB-6 / ADR-023 S8)
 Payment service → RECONCILED only after settlement file, not after "success" JSON
 Policy service → issue
 ```
@@ -375,7 +376,7 @@ That is **direction**, bound by `ADR-020`. Human T4 Architecture sign-off is sti
 | Item | Direction | Still not closed until |
 |---|---|---|
 | **1SB / egress IPs** | `1sb-integration-service` **never** calls the 1SB origin from EKS. It calls **Apigee**. 1SB allowlists **Apigee’s** IPs, not our NAT EIPs | Apigee team writes product + IPs (`ASM-015`, `DEP-20260914-apg`). Do not publish spoke EIPs |
-| **Apigee vs API Gateway** | **Split.** Inbound RM/mobile: **keep AWS API Gateway**. Outbound from the building: **Apigee**. Internal APIs via Apigee must **not** hairpin Cloudflare/F5 | Written private path + per-API onboarding (`SPIKE-001` remaining). **Outbound Apigee is drawn** (`ADR-020`) |
+| **Apigee vs inbound AWS entry** | **Split.** Inbound RM/mobile: **NLB + Istio** (`ADR-023`). Outbound from the building: **Apigee**. Internal APIs via Apigee must **not** hairpin Cloudflare/F5 | Written private path + per-API onboarding (`SPIKE-001` remaining). **Outbound Apigee is drawn** (`ADR-020`) |
 | **Dev vs UAT** | `dev` lives **inside** the UAT account, isolated (two VPCs, namespaces, schemas, prefixes) | Cloud vending of the two VPCs (`ASM-017`) |
 | **CUG** | **Not needed for R0** — waiver, do not provision | Onboarding waiver (`ASM-018`) |
 | **Keycloak vs IdP** | AD-verify is an **existing bank API** (never LDAP from EKS). Partners are created in the IdP. Keycloak is fine **if** bank Fireframe / NIP-APP is the UI for look-and-feel, users, roles, permissions | Deepali on password-in-NIP vs Fireframe SSO (`ASM-019`, `ID-11`) |

@@ -101,7 +101,7 @@ ALGORITHM  ingest_quote_offers(provider_response)              ← INV-QUO-02 / 
 
 ```text
 ALGORITHM  handle_pg_callback(request)                         ← S-14; UC-24
- 1  Arrives on a SEPARATE API Gateway route, IP-allowlisted to the PG.
+ 1  Arrives on Istio `/callbacks/pg/*`, IP-allowlisted to the PG (`ADR-023` S8).
     It is NEVER on the RM session path and carries no RM principal.     [TB-6]
  2  IF source IP ∉ PG allowlist                → drop at the edge
  3  signature_valid := verify(request.body, request.signature, pg_public_key)

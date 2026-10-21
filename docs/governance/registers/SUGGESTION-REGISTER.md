@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20261021-apr | 2026-10-21 | human:repository-owner | Detailed, linked developer API documentation: every API, how services talk, which DB each uses, and scenario-by-scenario behind-the-scenes flows (login, customer search, lead create/assign, suitability, multi-quote, Integration Hub / 1SB, sync, events, payload storage and transactions) for the dev team | SF2 | SC0 | SHOULD | DOC | P3 / P2 | ADMIT-BYPASS | [portal](../../platform/api-reference/README.md) · [detail](#sug-20261021-apr--linked-developer-api-reference-portal) |
 | SUG-20261019-txn | 2026-10-19 | human:stakeholder | How transactions work on unstructured quote/proposal; Dynamo vs Postgres JSON; archive anything that did not reach payment — do not keep all leads/journeys 7–10 years | SF2 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [DATA-005](../../platform/data-architecture/DATA-005.work-item.yaml) · [06 §10](../../platform/data-architecture/06-journey-orchestrator-and-working-payload.md) · [detail](#sug-20261019-txn--postgres-transactions-not-dynamo-archive-unless-paid) |
 | SUG-20261019-pay | 2026-10-19 | human:stakeholder | Payment is also part of the journey though it is independent | SF2 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [DATA-005](../../platform/data-architecture/DATA-005.work-item.yaml) · [06 §6](../../platform/data-architecture/06-journey-orchestrator-and-working-payload.md) · [detail](#sug-20261019-pay--payment-on-the-journey-and-independent) |
 | SUG-20261019-jwp | 2026-10-19 | human:stakeholder | Journey orchestrator table contract; quotes/proposals stay JSON until payment, then structured | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [DATA-005](../../platform/data-architecture/DATA-005.work-item.yaml) · [PLAN-012](../plans/PLAN-012-journey-working-payload.md) · [pack](../../platform/data-architecture/06-journey-orchestrator-and-working-payload.md) · [detail](#sug-20261019-jwp--journey-orchestrator-and-json-until-payment) |
@@ -153,6 +154,98 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20261021-apr · Linked developer API reference portal
+
+```yaml
+id: SUG-20261021-apr
+raised_at: "2026-10-21"
+raised_by: "human:repository-owner"
+source: "Mahesh session request: detailed API documentation for the dev team"
+input: >
+  Create detailed documentation on each and every API in the application and how
+  APIs communicate with one another, scenario by scenario (e.g. /login through the
+  BFF, authentication service, AD or Keycloak, session in the key-value cache,
+  opaque string back to the user; then customer search, lead creation, lead
+  assignment, suitability, multi-quote, the Integration Hub over 1SB and direct
+  insurers, synchronisation, events, payload storage and transactions). Linked
+  Markdown pages, not one flat file; to be shared with the dev team.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  freshness: "WARN — state_as_of 21 days old; 04-STAGE_GATES.md 28d vs 14d limit"
+  active_work_item: "SUG-20261021-apr — this session's assigned work"
+
+stage_fit:
+  code: SF2
+  rationale: >
+    Documentation compiled from the code on main and ratified design documents.
+    No new service, dependency, ADR or stage change. Labels every API
+    IMPLEMENTED / IMPLEMENTED-PARTIAL / CONTRACTED / PROPOSED / DEFERRED so a
+    reader cannot mistake a design for running code.
+  absorption_test:
+    small: false
+    no_new_dependency: true
+    no_new_decision: true
+    gate_neutral: true
+
+scope:
+  code: SC0
+  business_scope: "in scope — R0 assisted Life sale developer enablement"
+  serves: ["R0-ASSISTED-LIFE-SALE", "GATE-P4 4.2 consumer collection (partial)"]
+  failure_without_it: "developers rediscover hop rules, gates and store ownership from 400+ documents"
+  minimal: false
+  authority: "Owner request; compilation only — code, ADRs, HLD and 03 win on conflict"
+
+necessity:
+  now: SHOULD
+  future_necessity: MUST
+  target_stage: "S11 — Vertical slice"
+  binds_when: "W1–W3 services are built against these contracts"
+  evidence_tier: E2
+  confidence: C4
+  evidence:
+    - "21 service modules; 5 implemented, 16 skeletons with contracts spread over HLD, LLDs and DBA packs"
+    - "Known source disagreements recorded as K-1…K-9 in the portal"
+
+action: ADMIT-BYPASS
+bypass_authorised_by: "Mahesh / repository_owner (explicit session instruction: do not stop until complete)"
+action_rationale: >
+  Owner-directed documentation work executed in the same turn (CLAUDE.md rule 1
+  exception). Bypass risk: a PROPOSED request/response shape drafted in the
+  portal is built as if ratified. Mitigation: status label on every API, PROPOSED
+  bodies marked as drafts needing owner confirmation, ai-drafted DOC-MAP routing,
+  and the K-list of open disagreements (owners named, nothing decided here).
+duplicate_of: null
+conflicts:
+  - "K-1 Dynamo in R0 (HLD) vs DB-DEC-0003 (none) — portal follows DB-DEC-0003"
+  - "K-9 Term suitability (BR-SUIT-002) vs C1 — left open for Rajal / Shailja"
+
+classification:
+  type: DOC
+  also: []
+  breakdown: TASK
+  risk_tier: T1
+  destination: "docs/platform/api-reference/"
+
+priority:
+  now: P3
+  at_target: P2
+  rationale: "Developer enablement; becomes P2 when S11 services are built against it"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: SUG-20261021-apr
+  status: ADMIT-BYPASS
+  closed_reason: "Portal filed at docs/platform/api-reference/ (README, 4 conventions, 2 data, 21 services, 13 interactions, 15 scenarios)"
+
+resumed: "SUG-20261021-apr — this session's assigned work; no prior item in flight."
+```
 
 ### SUG-20261006-apg · API Gateway vs Istio platform challenge
 

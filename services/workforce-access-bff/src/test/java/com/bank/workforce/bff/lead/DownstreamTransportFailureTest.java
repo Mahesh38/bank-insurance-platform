@@ -8,11 +8,16 @@ import com.bank.common.error.PlatformLayer;
 import com.bank.common.error.ProblemJsonReader;
 import com.bank.common.error.ServiceErrors;
 import com.bank.common.error.ServiceException;
+import com.bank.workforce.bff.config.BffClientConfig;
 import com.bank.workforce.bff.config.DownstreamProperties;
+import com.bank.workforce.bff.config.DownstreamTimeouts;
 import com.bank.workforce.bff.customer.HttpCustomerGateway;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sun.net.httpserver.HttpServer;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.URI;
+import java.time.Duration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -57,6 +62,51 @@ class DownstreamTransportFailureTest {
                   .isEqualTo(ErrorCodes.UPSTREAM_UNAVAILABLE);
               assertThat(se.getHttpStatus()).isEqualTo(503);
             });
+  }
+
+  @Test
+  void slowLeadServiceIsCutAtItsBudget() throws Exception {
+    HttpServer slow = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+    slow.createContext(
+        "/",
+        exchange -> {
+          try {
+            Thread.sleep(2_000);
+          } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+          }
+          exchange.sendResponseHeaders(200, -1);
+          exchange.close();
+        });
+    slow.start();
+    try {
+      URI base = URI.create("http://127.0.0.1:" + slow.getAddress().getPort());
+      var props =
+          new DownstreamProperties(
+              URI.create("http://adapter.example.test"),
+              "local-idp-adapter-internal-key",
+              base,
+              base,
+              base,
+              "http",
+              "http");
+      var budget = new DownstreamTimeouts.Budget(Duration.ofMillis(200), Duration.ofMillis(300));
+      var gateway =
+          new HttpLeadGateway(
+              BffClientConfig.restClient(RestClient.builder(), budget), props, reader, errors);
+
+      long started = System.nanoTime();
+      assertThatThrownBy(() -> gateway.get("L1", "rm-1"))
+          .isInstanceOf(ServiceException.class)
+          .satisfies(
+              ex ->
+                  assertThat(((ServiceException) ex).getErrorResponse().getCode())
+                      .isEqualTo(ErrorCodes.UPSTREAM_UNAVAILABLE));
+      assertThat(Duration.ofNanos(System.nanoTime() - started))
+          .isLessThan(Duration.ofMillis(1_500));
+    } finally {
+      slow.stop(0);
+    }
   }
 
   @Test

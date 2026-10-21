@@ -8,8 +8,8 @@
 | **Module** | `services/lead-service` · port 8091 · `service-id: lead` · layer L5 · INTERNAL |
 | **Base path** | `/internal/v1/leads` — cluster-private |
 | **Callers** | BFF (all RM actions) · target: Quotation (`bi-generated`), Journey (`convert` on `JourneySold`), AUBIMA exception engine (`exception-hold`) |
-| **Calls out** | `SpCertificationPort` (fixture today; IRDAI / bank SP register is parked, `SUG-20261007-ird`) · target: PDP, exception / validation engine |
-| **Owns data** | Target: Aurora schema **`lead_lms`** (`lead`, `lead_assignment`, `lead_meeting`, `lead_follow_up`, `idempotency_record`, `outbox_event`) · role `app_lead_lms`. **Implemented for `lead`:** `JdbcLeadRepository` on `lead_lms.lead` (Flyway `V2__lead_lms_lead.sql`, optimistic lock on `version`; a lost race is `409 CONFLICT`). `lead.store=memory` keeps the old in-memory repository for throw-away runs. Assignment history, meetings, follow-ups, idempotency and outbox tables are still target |
+| **Calls out** | **PDP** `POST /internal/v1/authorization/decisions` before create and assign (own re-check, `INV-ACT-01`; 300 ms, fail closed — `SUG-20261021-lft`) · `SpCertificationPort` (fixture today; IRDAI / bank SP register is parked, `SUG-20261007-ird`) · target: exception / validation engine |
+| **Owns data** | Target: Aurora schema **`lead_lms`** (`lead`, `lead_assignment`, `lead_meeting`, `lead_follow_up`, `idempotency_record`, `outbox_event`) · role `app_lead_lms`. **Implemented for `lead`:** `JdbcLeadRepository` on `lead_lms.lead` (Flyway `V2__lead_lms_lead.sql`, optimistic lock on `version`; a lost race is `409 CONFLICT`). `lead.store=memory` keeps the old in-memory repository for throw-away runs. Flyway `V3__lead_lms_activity.sql` adds `lead_assignment`, `lead_meeting`, `lead_follow_up`, `idempotency_record` and `outbox_event`, written in the same transaction as the lead row (`SUG-20261021-lft`). Meeting link and note are AES-256-GCM encrypted (`lead.crypto.*`). Nothing publishes the outbox yet (no MSK in R0 code) |
 | **Code status** | **IMPLEMENTED-PARTIAL** — create, list, get, onboarding, assign, close. Exception rules are a deterministic stub; BI, convert, archive, activity status, evaluate and exception-hold are CONTRACTED |
 | **Contracts** | [Lead API LLD](../../ws3-platform/12-lead-module-api-lld.md) · [internal OpenAPI](../../ws3-platform/lead-service-internal.openapi.yaml) · [sequences](../../ws3-platform/11-lead-module-sequences.md) · [flows and algorithms](../../ws3-platform/13-lead-module-flows-and-algorithms.md) |
 
@@ -77,8 +77,16 @@ Side attributes: `exceptionOutcome` (`NOT_EVALUATED` → `PASS` | `BLOCK` | `APP
 | `branchId` | string | optional |
 | header `X-Actor-Id` | string | required; becomes `createdByPrincipalId` |
 
-Contracted extras (OpenAPI): `Idempotency-Key` header; `resumeExisting`; insurer / plan **not**
-accepted on create (`BR-LEAD-005`); `distributorId` → `ATTRIBUTION_NOT_CALLER_SUPPLIED`.
+Header **`Idempotency-Key`** (8–128 chars) is honoured when present: same key + same request
+(customer, LOB, class, branch, actor) returns the lead the first call created; same key with a
+different request is `409 IDEMPOTENCY_CONFLICT`; records live 24 h in `lead_lms.idempotency_record`.
+The contract makes it mandatory; it stays optional until NIP-APP sends it (the BFF forwards it when
+the app does). Before anything else, Lead asks the PDP for `lead.create` (`branchCode = branchId`):
+deny → mapped `403` (`OUT_OF_BRANCH_SCOPE`, `DEFAULT_DENY`, …), no answer →
+`403 AUTHORIZATION_UNAVAILABLE`; an `X-Actor-Id` that is not a business-user UUID is denied.
+
+Still contracted only: `resumeExisting`; insurer / plan **not** accepted on create
+(`BR-LEAD-005`); `distributorId` → `ATTRIBUTION_NOT_CALLER_SUPPLIED`.
 
 Response `201`:
 
@@ -116,8 +124,9 @@ Response `201`:
    product class**. Found → `409 CONFLICT` ("unfinished lead exists…"). The app offers
    **Continue existing** or **Cancel** only — never replace or soft-delete (Lead BRD Table 18).
 4. Mint a ULID; state `NEW`; outcome `NOT_EVALUATED`; save.
-5. Target (same `lead_lms` transaction): `INSERT lead` + `idempotency_record` + `outbox_event
-   OpportunityCreated {leadId, customerId, rmId, lob, accountableSpId}`.
+5. Same `lead_lms` transaction: `INSERT lead` + `idempotency_record` (when a key was sent) +
+   `outbox_event LeadCreated {state, productClass, exceptionOutcome, journeyId}` — ids and states
+   only, no customer PII. (The HLD name `OpportunityCreated` is the same event.)
 
 **Save never evaluates exception rules** (Exception Handling BRD, `D-019`).
 
@@ -159,8 +168,10 @@ No body. Runs the exception / validation rules for the saved lead and records th
 |---|---|
 | `assignedRmId` | `@NotBlank` — the certified SP-holding AU Bank RM |
 | `assignedSpId` | optional |
+| `note` | optional, ≤ 250 chars → stored encrypted in `lead_follow_up` |
+| `meeting` | optional `{type: ONLINE\|IN_PERSON, date: yyyy-MM-dd, time: HH:mm, link}` — bank time (Asia/Kolkata), 08:00–20:00, not in the past; `ONLINE` needs `link`, `IN_PERSON` must not have one → else `422 VALIDATION_ERROR`. Link stored encrypted in `lead_meeting` |
 
-Guards, in order:
+Guards, in order (the PDP check for `lead.assign` runs right after #1; deny / no answer → `403`):
 
 | # | Check | Failure |
 |---|---|---|
@@ -173,8 +184,9 @@ Guards, in order:
 
 Effect: `assignedRmId`, `assignedSpId` set; **`accountableSpId` written once** on the first
 successful assignment and never changed by reassignment (`INV-ACT-03`); state → `ASSIGNED`.
-Target: append `lead_assignment` history, optional `lead_meeting` (Online / In-person, date, time,
-link), outbox `LeadAssigned` → Notification (thin in R0).
+Same transaction: `lead_assignment` row (`CREATE_ASSIGN` the first time, `REASSIGN` after), the
+optional `lead_meeting` and `lead_follow_up` rows, and outbox `LeadAssigned`. Onboarding writes
+`LeadExceptionEvaluated`, close writes `LeadClosed`.
 
 > **Fixture today:** only `SP-1001`, `SP-1002`, `SP-2001` are treated as certified
 > (`FixtureSpCertification`, fail-closed). This is not IRDAI control evidence.
@@ -198,15 +210,15 @@ Else → `DISQUALIFIED` (terminal, no reopen, `BR-CLOSE-001`).
 
 ---
 
-## 4. Data — schema `lead_lms` (target)
+## 4. Data — schema `lead_lms`
 
 | Table | Purpose / key columns |
 |---|---|
 | `lead` | `lead_id` CHAR(26) PK, `customer_id`, `state` (CHECK), `lob` (CHECK `LIFE`·`HEALTH`·`GENERAL`, immutable), `product_class` (CHECK `TERM`·`SAVINGS`·`ULIP`), `source` (`RM`·`IPR`), `created_by_actor_type`, `created_by_principal_id`, `assigned_sp_id`, `accountable_sp_id` + `accountable_sp_cert_ref` (required together), `exception_state`, `bi_generated`, `reporting_class`, `journey_id`, `converted_journey_id` (partial unique), `closed_reason`, `closed_remarks_enc`, `config_versions`, `expires_at`, `archived_at`, `retain_until`, `version` |
-| `lead_assignment` | Append-only assignment history |
+| `lead_assignment` | Append-only assignment history (V3; adds `assigned_sp_id` — the R0 lead holds RM and SP separately) |
 | `lead_meeting` | Optional meeting intent from the assignment screen |
-| `lead_follow_up` | RM follow-ups |
-| `idempotency_record`, `outbox_event` | Platform pattern |
+| `lead_follow_up` | RM notes (the assignment `note` today), `note_enc` AES-GCM |
+| `idempotency_record`, `outbox_event` | Platform pattern (V3; outbox `payload` is JSON text, not `JSONB`, so the same migration runs on H2) |
 
 Constraints worth knowing: `QUALIFIED` / `ELIGIBLE` require `bi_generated = true`; any progressing
 state requires `accountable_sp_id`; `ARCHIVED` ⇔ `archived_at` set. DDL:

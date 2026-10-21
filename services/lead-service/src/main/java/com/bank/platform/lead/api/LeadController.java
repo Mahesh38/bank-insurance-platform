@@ -5,10 +5,14 @@ import com.bank.common.error.ServiceErrors;
 import com.bank.platform.lead.application.LeadApplicationService;
 import com.bank.platform.lead.application.LeadApplicationService.AssignLeadCommand;
 import com.bank.platform.lead.application.LeadApplicationService.CreateLeadCommand;
+import com.bank.platform.lead.application.LeadApplicationService.MeetingIntent;
 import com.bank.platform.lead.domain.ExceptionOutcome;
 import com.bank.platform.lead.domain.Lead;
+import com.bank.platform.lead.domain.LeadActivityPort.MeetingType;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.time.Instant;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -36,7 +40,9 @@ public class LeadController {
 
   @PostMapping
   public ResponseEntity<LeadResponse> create(
-      @RequestHeader("X-Actor-Id") String actorId, @Valid @RequestBody CreateLeadRequest request) {
+      @RequestHeader("X-Actor-Id") String actorId,
+      @RequestHeader(name = "Idempotency-Key", required = false) String idempotencyKey,
+      @Valid @RequestBody CreateLeadRequest request) {
     Lead lead =
         leads.create(
             new CreateLeadCommand(
@@ -44,7 +50,8 @@ public class LeadController {
                 request.lob(),
                 request.productClass(),
                 request.branchId(),
-                actorId));
+                actorId),
+            idempotencyKey);
     return ResponseEntity.status(HttpStatus.CREATED).body(LeadResponse.from(lead));
   }
 
@@ -90,7 +97,12 @@ public class LeadController {
     return LeadResponse.from(
         leads.assign(
             new AssignLeadCommand(
-                leadId, request.assignedRmId(), request.assignedSpId(), actorId)));
+                leadId,
+                request.assignedRmId(),
+                request.assignedSpId(),
+                actorId,
+                request.note(),
+                request.meeting() == null ? null : request.meeting().toIntent())));
   }
 
   @PostMapping("/{leadId}/close")
@@ -105,7 +117,19 @@ public class LeadController {
       @NotBlank String productClass,
       String branchId) {}
 
-  public record AssignLeadRequest(@NotBlank String assignedRmId, String assignedSpId) {}
+  public record AssignLeadRequest(
+      @NotBlank String assignedRmId,
+      String assignedSpId,
+      @Size(max = 250) String note,
+      @Valid MeetingRequest meeting) {}
+
+  /** Lead BRD Screen 7 meeting capture; date {@code yyyy-MM-dd}, time {@code HH:mm} bank time. */
+  public record MeetingRequest(
+      @NotNull MeetingType type, @NotBlank String date, @NotBlank String time, String link) {
+    MeetingIntent toIntent() {
+      return new MeetingIntent(type, date, time, link);
+    }
+  }
 
   public record LeadPageResponse(List<LeadResponse> items, String nextCursor) {}
 

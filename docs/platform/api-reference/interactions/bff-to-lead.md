@@ -5,9 +5,10 @@
 | | |
 |---|---|
 | **From → to** | `workforce-access-bff` (`HttpLeadGateway`, `LeadFacade`) → `lead-service` `/internal/v1/leads` |
-| **Style** | Synchronous; target 2 s |
+| **Style** | Synchronous; **2 s** read / 500 ms connect (`workforce.downstream.timeouts.lead`) |
 | **Principal** | `X-Actor-Id: <session.businessUserId>` on **every** call — the only source of the actor |
-| **Idempotency** | Contract: client `Idempotency-Key` on create; not enforced yet. Duplicate business create is blocked by the unfinished-lead rule |
+| **Idempotency** | The app's `Idempotency-Key` on create is forwarded as a header; lead-service enforces it (`lead_lms.idempotency_record`). Optional until NIP-APP sends it. Duplicate business create is also blocked by the unfinished-lead rule |
+| **Authorization** | BFF asks the PDP, and lead-service asks again itself (`INV-ACT-01`) before create and assign |
 | **Mode switch** | `LEAD_DOWNSTREAM_MODE=stub` (default, in-BFF stub) or `http` |
 | **Code status** | **IMPLEMENTED** |
 

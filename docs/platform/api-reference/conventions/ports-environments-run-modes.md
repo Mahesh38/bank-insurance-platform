@@ -16,7 +16,7 @@ response, log line and metric tag (`bank.error.service-id`).
 | `workforce-access-bff` | 8084 | `bff` | L4 | **PUBLIC** (redacts) | Valkey/Redis or in-memory |
 | Keycloak (compose) | 8085 | — | — | — | Keycloak DB |
 | `customer-service` | 8090 | `customer` | L5 | INTERNAL | H2 (Flyway V1 placeholder) |
-| `lead-service` | 8091 | `lead` | L5 | INTERNAL | `JdbcLeadRepository` → `lead_lms.lead` (H2 locally, Flyway `V2`); `lead.store=memory` for the in-memory repository |
+| `lead-service` | 8091 | `lead` | L5 | INTERNAL | `JdbcLeadRepository` → `lead_lms.lead` + activity / idempotency / outbox tables (H2 locally, Flyway `V2`–`V3`); `lead.store=memory` for the in-memory stores |
 | `consent-service` | 8092 | `consent` | L5 | INTERNAL | Skeleton |
 | `suitability-service` | 8093 | `suitability` | L5 | INTERNAL | Skeleton |
 | `product-catalogue-service` | 8094 | `catalogue` | L5 | INTERNAL | Skeleton |
@@ -66,6 +66,13 @@ to test the "account not active" path).
 | `workforce.downstream.customer-service-base-url` | `CUSTOMER_SERVICE_BASE_URL` | `http://localhost:8090` |
 | `workforce.session.encryption-key` | `WORKFORCE_SESSION_ENCRYPTION_KEY` | 32 zero bytes (**dev only**; prod injects a KMS-managed random key) |
 | `spring.data.redis.host` / `port` | `REDIS_HOST` / `REDIS_PORT` | `localhost:6379` |
+| `workforce.downstream.timeouts.{lead,customer,authorization,identity-provider}.{connect,read}` | — | 500ms/2s · 500ms/4s · 500ms/2s · 1s/6s |
+| `workforce.authorization.decision-timeout` | — | `300ms` (S-02) |
+
+lead-service: `lead.authorization.base-url` (`IDENTITY_AUTHORIZATION_BASE_URL`, default
+`http://localhost:8083`), `lead.authorization.decision-timeout` (`300ms`), `lead.crypto.field-key`
+/ `key-id` (`LEAD_FIELD_KEY` / `LEAD_FIELD_KEY_ID`; 32 zero bytes **dev only**). Lead create and
+assign need a reachable PDP and a granted user — locally see `scripts/local/grant-local-rm.sql`.
 
 Other services: `BANK_PERSISTENCE_BASE_URL` (1SB adapter → persistence, default
 `http://localhost:8081`), `ONESB_BASE_URL` (default the 1SB demo host; in UAT/prod this becomes the

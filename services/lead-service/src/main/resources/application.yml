@@ -35,6 +35,16 @@ logging:
   level:
     com.bank.platform.lead: INFO
 
+lead:
+  authorization:
+    # INV-ACT-01: Lead re-asks the PDP before create / assign. S-02 budget, fail closed.
+    base-url: ${IDENTITY_AUTHORIZATION_BASE_URL:http://localhost:8083}
+    decision-timeout: 300ms
+  crypto:
+    # Development-only default: 32 zero bytes. Shared environments inject a KMS-managed key.
+    field-key: ${LEAD_FIELD_KEY:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=}
+    key-id: ${LEAD_FIELD_KEY_ID:local-dev}
+
 bank:
   error:
     service-id: lead

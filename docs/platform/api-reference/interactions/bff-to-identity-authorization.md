@@ -8,7 +8,7 @@
 | **Style** | Synchronous HTTP |
 | **Budget** | Decisions: **300 ms, no retry, fail closed** (S-02). Resolve: login path |
 | **Data behind it** | Aurora `identity` schema (business users, roles, entitlements, branches, certifications) |
-| **Code status** | Resolve **IMPLEMENTED** and called at every login. Decisions **IMPLEMENTED** and called by the BFF before lead create and lead assign (`PolicyDecisionClient`, `SUG-20261021-gap`); not yet called for other actions or re-checked by domain services |
+| **Code status** | Resolve **IMPLEMENTED** and called at every login. Decisions **IMPLEMENTED** and called by the BFF before lead create and lead assign (`PolicyDecisionClient`, `SUG-20261021-gap`); lead-service re-checks create and assign itself (`PdpLeadAuthorizationAdapter`, `INV-ACT-01`); not yet called for other actions |
 
 ## 1. Two questions, two endpoints
 
@@ -50,7 +50,7 @@ BFF action handler:
                                                SP_CERTIFICATION_REQUIRED | AUTHORIZATION_UNAVAILABLE)
   allowed                                 →  call the domain service
 Domain service (regulated actions): re-check the same decision itself — a BFF allow is not trusted
-across the hop (INV-ACT-01)  ← target
+across the hop (INV-ACT-01)  ← implemented in lead-service; target for the other domain services
 ```
 
 As built (`PolicyDecisionClient`): own JDK HTTP client, connect + read **300 ms**

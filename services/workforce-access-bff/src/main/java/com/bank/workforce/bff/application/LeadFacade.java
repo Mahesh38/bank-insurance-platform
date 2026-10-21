@@ -4,6 +4,7 @@ import com.bank.workforce.bff.lead.LeadGateway;
 import com.bank.workforce.bff.lead.LeadGateway.AssignLeadCommand;
 import com.bank.workforce.bff.lead.LeadGateway.CreateLeadCommand;
 import com.bank.workforce.bff.lead.LeadGateway.LeadRecord;
+import com.bank.workforce.bff.lead.LeadGateway.Meeting;
 import java.util.List;
 import org.springframework.stereotype.Service;
 
@@ -46,6 +47,16 @@ public class LeadFacade {
 
   public LeadRecord assign(
       String leadId, String assignedRmId, String assignedSpId, String actorId) {
+    return assign(leadId, assignedRmId, assignedSpId, actorId, null, null);
+  }
+
+  public LeadRecord assign(
+      String leadId,
+      String assignedRmId,
+      String assignedSpId,
+      String actorId,
+      String note,
+      Meeting meeting) {
     LeadRecord current = leads.get(leadId, actorId);
     if ("NOT_EVALUATED".equals(current.exceptionOutcome())) {
       current = leads.startOnboarding(leadId, actorId);
@@ -56,7 +67,8 @@ public class LeadFacade {
         || "BLOCK".equals(current.exceptionOutcome())) {
       return current;
     }
-    return leads.assign(new AssignLeadCommand(leadId, assignedRmId, assignedSpId, actorId));
+    return leads.assign(
+        new AssignLeadCommand(leadId, assignedRmId, assignedSpId, actorId, note, meeting));
   }
 
   private static boolean active(LeadRecord lead) {

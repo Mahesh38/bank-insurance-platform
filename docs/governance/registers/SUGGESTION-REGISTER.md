@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20261021-lft | 2026-10-21 | human:repository-owner | Build the "code left for later": domain services re-check the PDP; BFF per-seam timeouts (2 s target); lead assignment history, meetings, follow-ups, idempotency and outbox tables; DynamoDB code in quotation and proposal services | SF2 | SC0 | MUST | BUG | P2 / P1 | ADMIT-BYPASS | [lead-service](../../platform/api-reference/services/lead-service.md) · [budgets](../../platform/api-reference/conventions/idempotency-timeouts-retries.md) · [detail](#sug-20261021-lft--build-the-code-left-for-later) |
 | SUG-20261021-ddb | 2026-10-21 | human:repository-owner | Override "no DynamoDB in R0": quote and proposal working state lives in DynamoDB until payment; after payment it moves to Postgres as structured rows, not JSON | SF2 | SC0 | MUST | ARCH | P2 / P1 | ADMIT-BYPASS | [DB-DEC-0005](../../platform/data-architecture/DB-DEC-0005-dynamodb-working-payload.md) · [table design](../../platform/data-architecture/schemas/20-dynamodb-working-payload.md) · [detail](#sug-20261021-ddb--dynamodb-for-quote-and-proposal-working-state) |
 | SUG-20261021-sui | 2026-10-21 | human:repository-owner | Different suitability question sets and matrices per product class — Term does not ask investment horizon or risk attitude | SF2 | SC0 | MUST | ARCH | P2 / P1 | ADMIT-BYPASS | [rule pack §2.3](../../au-bank-insurance-platform/rule-packs/suitability-rule-pack.md) · [D-022](../../au-bank-insurance-platform/DECISION-LOG.md) · [detail](#sug-20261021-sui--suitability-question-sets-by-product-class) |
 | SUG-20261021-gap | 2026-10-21 | human:repository-owner | "Work on the gaps identified": BFF calls the PDP before lead create/assign (300 ms, fail closed); lead persisted in `lead_lms.lead`; authz typed errors instead of 500; BFF transport failures → 503; 1SB proposal/payment request evidence required | SF2 | SC0 | MUST | BUG | P2 / P1 | ADMIT-BYPASS | [BFF to PDP](../../platform/api-reference/interactions/bff-to-identity-authorization.md) · [detail](#sug-20261021-gap--close-runtime-gaps-found-by-the-api-reference) |
@@ -157,6 +158,70 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20261021-lft · Build the code left for later
+
+```yaml
+id: SUG-20261021-lft
+raised_at: "2026-10-21"
+raised_by: "human:repository-owner"
+source: "Mahesh session message quoting the 'Code left for later' list from SUG-20261021-gap"
+input: >
+  Code left for later: domain services don't yet repeat the permission check; the
+  other BFF calls use 3 s / 5 s instead of the 2 s target; lead assignment history,
+  meetings, follow-ups, idempotency and event-outbox tables aren't built; the
+  DynamoDB code belongs with the quotation and proposal services.
+
+stage_fit:
+  code: SF2
+  rationale: "Completes ratified seams (S-02, S-20, INV-ACT-01) and DB-DEC-0005 in existing modules"
+
+scope:
+  code: SC0
+  business_scope: "in scope — R0 lead module and quote / proposal working state"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S08 → S11"
+  evidence_tier: E3
+  confidence: C4
+
+action: ADMIT-BYPASS
+bypass_authorised_by: "Mahesh / repository_owner (explicit session instruction)"
+reviewer_type: HUMAN
+authority: repository_owner
+action_rationale: >
+  Owner-directed. Behaviour callers must know: lead-service now asks the PDP itself
+  and refuses with 403 when it cannot (lead-service needs a reachable PDP);
+  Idempotency-Key is honoured when present but stays optional until NIP-APP sends it.
+
+classification:
+  type: BUG
+  also: [SEC, ARCH]
+  breakdown: TASK
+  risk_tier: T2
+
+priority:
+  now: P2
+  at_target: P1
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: SUG-20261021-lft
+  status: ADMIT-BYPASS
+  done:
+    - "lead-service: PdpLeadAuthorizationAdapter re-checks lead.create / lead.assign (300 ms, fail closed, INV-ACT-01)"
+    - "lead-service: Flyway V3 lead_assignment, lead_meeting, lead_follow_up, idempotency_record, outbox_event; written in the lead transaction; note / meeting link AES-GCM"
+    - "BFF: per-downstream clients — lead 2 s, customer 4 s, resolve 2 s, IdP 6 s, PDP 300 ms; forwards Idempotency-Key, note and meeting"
+  in_progress:
+    - "quotation-service / proposal-service DynamoDB working state + materialise (DB-DEC-0005)"
+  remaining:
+    - "No outbox publisher (no MSK in R0 code); rows wait unpublished"
+    - "NIP-APP does not send Idempotency-Key yet"
+
+resumed: "SUG-20261021-apr follow-up."
+```
 
 ### SUG-20261021-ddb · DynamoDB for quote and proposal working state
 

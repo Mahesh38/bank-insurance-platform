@@ -8,6 +8,7 @@ import com.bank.common.error.ServiceErrors;
 import com.bank.common.error.ServiceException;
 import com.bank.workforce.bff.config.DownstreamProperties;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -24,7 +25,7 @@ public class HttpCustomerGateway implements CustomerGateway {
   private final ServiceErrors serviceErrors;
 
   public HttpCustomerGateway(
-      RestClient restClient,
+      @Qualifier("customerRestClient") RestClient restClient,
       DownstreamProperties properties,
       ProblemJsonReader problemJsonReader,
       ServiceErrors serviceErrors) {

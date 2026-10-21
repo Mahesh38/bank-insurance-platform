@@ -1,18 +1,24 @@
 package com.bank.platform.lead.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.bank.platform.lead.domain.LeadAuthorizationPort;
+import com.bank.platform.lead.domain.LeadAuthorizationPort.AuthorizationDecision;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -24,6 +30,15 @@ class LeadControllerTest {
   @Autowired MockMvc mockMvc;
 
   @Autowired ObjectMapper objectMapper;
+
+  // The PDP is another service; Lead's re-check is pinned to allow here (deny paths: unit tests).
+  @MockitoBean LeadAuthorizationPort authorization;
+
+  @BeforeEach
+  void pdpAllows() {
+    when(authorization.decide(any(), any(), any(), any()))
+        .thenReturn(AuthorizationDecision.allow("ROLE_GRANT"));
+  }
 
   @Test
   void createOnboardAndAssignHappyPath() throws Exception {

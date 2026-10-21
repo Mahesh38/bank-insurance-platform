@@ -8,6 +8,7 @@ import com.bank.common.error.ServiceErrors;
 import com.bank.common.error.ServiceException;
 import com.bank.workforce.bff.config.DownstreamProperties;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -23,7 +24,7 @@ public class HttpLeadGateway implements LeadGateway {
   private final ServiceErrors serviceErrors;
 
   public HttpLeadGateway(
-      RestClient restClient,
+      @Qualifier("leadRestClient") RestClient restClient,
       DownstreamProperties properties,
       ProblemJsonReader problemJsonReader,
       ServiceErrors serviceErrors) {
@@ -39,6 +40,12 @@ public class HttpLeadGateway implements LeadGateway {
           .post()
           .uri("/internal/v1/leads")
           .header("X-Actor-Id", command.actorId())
+          .headers(
+              h -> {
+                if (command.idempotencyKey() != null) {
+                  h.set("Idempotency-Key", command.idempotencyKey());
+                }
+              })
           .body(command)
           .retrieve()
           .body(LeadRecord.class);

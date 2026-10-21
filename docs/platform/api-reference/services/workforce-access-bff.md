@@ -258,8 +258,10 @@ can change it.
 > transport error → `403 AUTHORIZATION_UNAVAILABLE`; a deny → the mapped code
 > (`OUT_OF_BRANCH_SCOPE`, `DEFAULT_DENY`, … — see the [PDP page](./identity-authorization-service.md#22-post-internalv1authorizationdecisions)).
 > A session without a `businessUserId` is `DEFAULT_DENY` without a call. Reads (pipeline, get,
-> active-leads) still rely on lead-service's book scoping. Lead-service does not yet re-check the
-> decision itself (`INV-ACT-01`, target).
+> active-leads) still rely on lead-service's book scoping. Lead-service re-checks create and assign
+> with the PDP itself (`INV-ACT-01`). `POST /api/v1/leads` forwards the app's `Idempotency-Key`;
+> the assignment body also accepts `note` (≤ 250) and `meeting {type, date, time, link}`, passed
+> through to lead-service.
 
 ### 3.1 `GET /api/v1/workspace/pipeline`
 

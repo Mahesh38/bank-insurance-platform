@@ -21,6 +21,14 @@ workforce:
     customer-service-base-url: ${CUSTOMER_SERVICE_BASE_URL:http://localhost:8090}
     lead-mode: ${LEAD_DOWNSTREAM_MODE:stub}
     customer-mode: ${CUSTOMER_DOWNSTREAM_MODE:stub}
+    # Seam budgets (03 §5). Defaults live in DownstreamTimeouts; listed here so they are visible.
+    timeouts:
+      lead: { connect: 500ms, read: 2s }              # S-20
+      customer: { connect: 500ms, read: 4s }          # CBS S-05 inside the S-01 edge budget
+      authorization: { connect: 500ms, read: 2s }     # identity resolve
+      identity-provider: { connect: 1s, read: 6s }    # login path, adapter waits on AD (S-26)
+  authorization:
+    decision-timeout: 300ms                           # S-02 PDP, fail closed
   session:
     store: ${WORKFORCE_SESSION_STORE:memory}
     cookie-name: WORKFORCE_SESSION

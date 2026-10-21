@@ -32,8 +32,8 @@ the failure this rule exists to prevent ([HLD §4.1](../../../architecture/R0-HL
 | Service | Enforcement | Store | Gap |
 |---|---|---|---|
 | `1sb-integration-service` | `IdempotencyFilter` on every `POST`/`PUT`/`PATCH` under `/v1/**` except `/v1/master-data/**`. SHA-256 of the body is the fingerprint. Responses with status `< 500` are cached; 5xx are not (so the caller may retry) | `InMemoryIdempotencyStore` (per pod) **and** `integration_job.idempotency_key UNIQUE` in `bank_persistence` | Per-pod memory; multi-instance store parked (Phase 5.4, BOOT WS-1 out-of-scope) |
-| `workforce-access-bff` | Not enforced yet | — | Contracted (HLD §4.3) |
-| `lead-service` | Not enforced; duplicate *business* create is caught by the unfinished-lead rule (`409 CONFLICT`) | — | Table `lead_lms.idempotency_record` designed |
+| `workforce-access-bff` | Forwards the app's `Idempotency-Key` on lead create to lead-service | — (lead-service stores it) | Other mutations: contracted (HLD §4.3) |
+| `lead-service` | Create honours `Idempotency-Key` when present (replay → same lead; other body → `409 IDEMPOTENCY_CONFLICT`); duplicate *business* create is also caught by the unfinished-lead rule (`409 CONFLICT`) | `lead_lms.idempotency_record`, 24 h | Header optional until NIP-APP sends it |
 | Domain skeletons | — | `<schema>.idempotency_record` designed in every DDL | Built with each service |
 
 ### 1.3 Idempotency record shape (DDL, every owning schema)
@@ -91,11 +91,19 @@ Source: [`03-solution-architecture-r0.md` §5](../../ws3-platform/03-solution-ar
 | `1sb-integration-service` | `onesb.circuit-breaker.failure-threshold` / `open-wait-ms` / `half-open-success-threshold` | 5 / 30000 / 1 |
 | `workforce-access-bff` | `workforce.session.pending-login-ttl` / `completion-code-ttl` / `session-ttl` | 5 min / 1 min / 8 h |
 
-> **BFF budgets in code.** PDP decisions use a dedicated client with the **300 ms** S-02 budget
-> (`workforce.authorization.decision-timeout`) and fail closed. The IdP adapter, identity resolve,
-> lead and customer calls still share one client (connect 3 s, read 5 s) — the S-20 2 s budget is
-> not applied yet. A lead/customer call that gets no HTTP answer is now a typed
-> `503 UPSTREAM_UNAVAILABLE` (`SUG-20261021-gap`).
+> **BFF budgets in code (`SUG-20261021-lft`).** Each downstream has its own client
+> (`workforce.downstream.timeouts.*`, `DownstreamTimeouts`):
+>
+> | Downstream | Connect / read | Why |
+> |---|---|---|
+> | PDP decisions | 300 ms / 300 ms (`workforce.authorization.decision-timeout`) | S-02, fail closed |
+> | lead-service | 500 ms / **2 s** | S-20 |
+> | customer-service | 500 ms / 4 s | customer search reaches CBS (S-05: 3 s + 1 retry) — 4 s stays inside the 5 s edge budget (S-01) |
+> | identity resolve | 500 ms / 2 s | local lookup in the PDP's store |
+> | IdP adapter | 1 s / 6 s | login path; the adapter itself waits up to 5 s on AD verify (S-26) |
+>
+> A call that gets no HTTP answer in budget is a typed `503 UPSTREAM_UNAVAILABLE`.
+> lead-service's own PDP re-check uses `lead.authorization.decision-timeout` (300 ms).
 
 ---
 

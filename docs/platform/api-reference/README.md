@@ -15,6 +15,9 @@ or the code, **those win**. Raise the difference as a defect against this portal
 
 ---
 
+> **Before you build:** read the [readiness review (2026-10-21)](./READINESS-REVIEW.md) — per-service
+> scorecard, open design decisions and the gate that still blocks S11.
+
 ## 1. How to read this portal
 
 The portal has five kinds of page. Start wherever your question is.
@@ -244,7 +247,7 @@ Read them in order the first time — they follow one sale.
 
 | Page | Covers |
 |---|---|
-| [Store ownership](./data/store-ownership.md) | Service → Aurora schema → database role → tables; Valkey prefixes; S3 prefixes; why there is no DynamoDB in R0; who may never open a database |
+| [Store ownership](./data/store-ownership.md) | Service → Aurora schema → database role → tables; Valkey prefixes; S3 prefixes; which data is in DynamoDB (only pre-payment quote / proposal working state, `DB-DEC-0005`); who may never open a database |
 | [Payload storage and transactions](./data/payload-storage-and-transactions.md) | Raw provider payloads (encrypted, 7 years), JSON-until-payment working envelopes, the transaction boundary of every write, outbox rows, idempotency rows, retention and archive |
 
 ---

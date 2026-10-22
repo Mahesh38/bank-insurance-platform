@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.bank.internal/events/NotificationSent.v1.json",
+  "title": "NotificationSent v1 - data",
+  "description": "A message was accepted by the channel provider (E3 notification schema: SENT). Never carries the recipient or the rendered text. Producer: notification. Status: CONTRACTED. The `data` member of event-envelope/v1 (ADR-025): ids and states only, never customer PII.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "notificationId",
+    "templateId",
+    "channel"
+  ],
+  "properties": {
+    "notificationId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "templateId": {
+      "type": "string",
+      "maxLength": 64
+    },
+    "channel": {
+      "type": "string",
+      "enum": [
+        "SMS",
+        "EMAIL",
+        "WHATSAPP"
+      ]
+    },
+    "triggerEventId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "journeyId": {
+      "$ref": "#/$defs/ulid"
+    }
+  },
+  "$defs": {
+    "ulid": {
+      "type": "string",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+    }
+  }
+}

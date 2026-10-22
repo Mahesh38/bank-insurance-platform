@@ -13,8 +13,11 @@ info:
       (`hitPolicy: PRIORITY`, `collectReasonCodes: ALL_FIRED`). Nothing is compiled in.
     * The **per-class outcome record** is canonical (D4): one evaluation, one outcome row per
       product class with every fired reason code in rule order, derived values, rule-set id+version.
-    * Gate policy (allowed outcomes, caution acknowledgement, validity days) is rule set
-      `SUITABILITY.GATE`.
+    * Gate policy (allowed outcomes, caution acknowledgement and its modes, validity days) is rule
+      set `SUITABILITY.GATE`. Strict seeds (DECISIONS-2026-10-22): C5 — `SUITABLE`, and
+      `SUITABLE_WITH_CAUTION` only with the customer's acknowledgement on their own device; C6 —
+      `INSUFFICIENT_DATA` (incl. the Savings/ULIP rule-pack gaps) never quotes. C1 — Journey has
+      checked `CNS-DP` + `CNS-SOL` before an assessment is created.
     * A `COMPLETED` assessment is immutable (INV-SUI-01); a correction is a new assessment that
       supersedes it.
     * Gate refusal = `403 SUITABILITY_REQUIRED`. Service unavailable = `503` — the caller
@@ -290,7 +293,9 @@ paths:
       summary: C1 gate read (S-08) — the usable evaluation for this customer, lob and class, or 403.
       description: |
         Caller contract: quotation, **500 ms, no retry**. `200` = quote permitted for this class.
-        `403 SUITABILITY_REQUIRED` = refused; `refusalReason` extension names why (rule pack §6.2
+        Refused: `403 SUITABILITY_REQUIRED`, `422 SUITABILITY_INCOMPLETE` (insufficient data — C6 — or a
+        caution not acknowledged on the customer's own device — C5) or `403
+        REPLACEMENT_DISCLOSURE_REQUIRED`; the `refusalReason` extension names why (rule pack §6.2
         vocabulary). Timeout / `5xx` / connection failure = the caller refuses with
         `503 UPSTREAM_UNAVAILABLE`, records the quote `REJECTED`, and produces no quote (SUIT-R26).
         A cache miss is a refusal, never an allow. The gate cannot be disabled (SUIT-R40).
@@ -327,13 +332,17 @@ paths:
               schema:
                 $ref: '#/components/schemas/GateDecision'
         '403':
-          description: 'SUITABILITY_REQUIRED, with extension `refusalReason` (see GateRefusal).'
+          description: 'SUITABILITY_REQUIRED or REPLACEMENT_DISCLOSURE_REQUIRED, with extension `refusalReason` (see GateRefusal).'
           content:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/GateRefusal'
         '422':
-          $ref: '#/components/responses/Validation'
+          description: 'SUITABILITY_INCOMPLETE with `refusalReason` SUITABILITY_INSUFFICIENT_DATA or CAUTION_NOT_ACKNOWLEDGED (C5/C6); or VALIDATION_ERROR for malformed parameters.'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/GateRefusal'
         '503':
           $ref: '#/components/responses/Unavailable'
 components:
@@ -612,7 +621,7 @@ components:
         verificationMode:
           type: string
           enum: [CUSTOMER_DEVICE, RM_RELAYED]
-          description: Same policy and open Compliance item as consent CNS-R13 (SUIT-R42).
+          description: 'Must be in SUITABILITY.GATE.cautionAcknowledgementModes — strict seed C5 is [CUSTOMER_DEVICE] (SUIT-R42); RM_RELAYED → 403 FORBIDDEN.'
     Acknowledgement:
       type: object
       required: [acknowledgementId, evaluationId, kind, productClass, reasonCodes, acknowledgedAt]
@@ -671,7 +680,7 @@ components:
                 - SUITABILITY_EVALUATION_INVALID
                 - CAUTION_NOT_ACKNOWLEDGED
                 - REPLACEMENT_DISCLOSURE_REQUIRED
-              description: Rule-pack §6.2 vocabulary carried as a reason, not as separate error codes.
+              description: 'Rule-pack §6.2 vocabulary carried as a reason. The code is SUITABILITY_INCOMPLETE (422) for SUITABILITY_INSUFFICIENT_DATA and CAUTION_NOT_ACKNOWLEDGED, REPLACEMENT_DISCLOSURE_REQUIRED (403) for that reason, else SUITABILITY_REQUIRED (403).'
     Problem:
       type: object
       description: Platform problem+json (conventions/error-model.md).
@@ -710,7 +719,7 @@ components:
           type: object
   responses:
     Validation:
-      description: 'VALIDATION_ERROR, MISSING_REQUIRED_FIELD, UNSUPPORTED_LOB, SUITABILITY_INCOMPLETE (NEW — lists missing question ids in errors[]), CONFIGURATION_UNRESOLVABLE (rule set cannot be resolved — fail closed).'
+      description: 'VALIDATION_ERROR, MISSING_REQUIRED_FIELD, UNSUPPORTED_LOB, SUITABILITY_INCOMPLETE (registered — lists missing question ids in errors[]), CONFIGURATION_UNRESOLVABLE (rule set cannot be resolved — fail closed).'
       content:
         application/problem+json:
           schema:

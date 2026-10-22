@@ -16,7 +16,7 @@ CATALOGUE = ROOT / "libs/bank-common-error/src/main/java/com/bank/common/error/E
 OUT = ROOT / "docs/journey-execution/08-SUPPORT-RUNBOOK.md"
 
 PUT = re.compile(
-    r'put\(m,\s*ErrorCodes\.(\w+),\s*ErrorCategory\.(\w+),\s*(\d+),\s*'
+    r'put\(\s*m,\s*ErrorCodes\.(\w+),\s*ErrorCategory\.(\w+),\s*(\d+),\s*'
     r'(?:Retryability\.(\w+),\s*)?"((?:[^"\\]|\\.)*)",\s*"((?:[^"\\]|\\.)*)",\s*'
     r'(?:AuditDisposition\.(\w+),\s*Propagation\.(\w+),\s*)?"([^"]*)"\)'
 )
@@ -220,6 +220,56 @@ OVERRIDES = {
         "Capture the incident id and escalate. There is no RM action.",
         "Escalate immediately. Treat any occurrence as a client defect or an intrusion attempt.",
         "Never ask the RM to change anything. They cannot cause or fix this.",
+    ),
+    "SUITABILITY_INCOMPLETE": (
+        "A suitability evaluation exists, but its outcome for this product class cannot quote: "
+        "data is insufficient, or a caution has not been acknowledged by the customer on their "
+        "own device (DECISIONS-2026-10-22 C5).",
+        "No. This is the suitability gate working correctly.",
+        "Tell the RM which step is outstanding (the response's reason codes name it) and let them "
+        "complete it with the customer.",
+        "Escalate only if the RM has completed the step and the gate still refuses.",
+        "**Never acknowledge a caution on the customer's behalf, and never override.**",
+    ),
+    "CONSENT_STATEMENT_NOT_APPROVED": (
+        "The consent wording for this purpose has not been approved by Compliance, so the "
+        "platform will not capture it (DECISIONS-2026-10-22 C7).",
+        "No. It is configuration awaiting Compliance approval.",
+        "Tell the RM this step is unavailable for now. There is no RM remedy.",
+        "Escalate to the Compliance configuration owner: the statement needs approval in "
+        "administration-config.",
+        "**Never ask an engineer to mark a statement approved.** Only Compliance approves wording.",
+    ),
+    "JOURNEY_HALTED_CONSENT_WITHDRAWN": (
+        "The customer withdrew a consent the journey depends on; the journey is halted "
+        "(DECISIONS-2026-10-22 E4).",
+        "No. It is the customer exercising a statutory right.",
+        "Tell the RM the journey cannot continue. A new journey needs fresh consent from the "
+        "customer on their own device.",
+        "Escalate only if the customer says they did not withdraw consent.",
+        "**Never resume a halted journey or re-capture consent without the customer.**",
+    ),
+    "CONSENT_SUBJECT_MISMATCH": (
+        "A consent was presented for a different customer than the one in the journey.",
+        "Possibly a client defect; treat as a security event.",
+        "Capture the incident id and escalate. Ask the RM to reopen the customer from their list.",
+        "Escalate to security on any occurrence.",
+        "**Never reuse one customer's consent for another.**",
+    ),
+    "OTP_ATTEMPTS_EXCEEDED": (
+        "The customer entered a wrong verification code too many times on their own device.",
+        "No. It is the brute-force guard.",
+        "Ask the RM to wait the configured period, then let the customer request a new code on "
+        "their own device.",
+        "Escalate if a customer is locked out repeatedly with correct entries.",
+        "**Never ask for the code, never read one out, and never enter it for the customer.**",
+    ),
+    "MAKER_CHECKER_VIOLATION": (
+        "The person approving a configuration change is the person who made it.",
+        "No. Maker-checker is the control (ADR-024 section 5).",
+        "Ask a second, authorised approver to review the change.",
+        "Escalate if no eligible approver exists for the classification.",
+        "**Never approve under another person's account.**",
     ),
     "SERVICE_IDENTITY_REJECTED": (
         "An internal endpoint was called by something that is not a permitted service.",

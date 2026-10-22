@@ -11,7 +11,7 @@
   "effectiveTo": null,
   "classification": "COMPLIANCE",
   "pinning": "NONE",
-  "description": "SUIT-R20 quote gate policy: which per-class outcomes permit a quote, caution acknowledgement, validity window. The gate itself is code and cannot be disabled (SUIT-R40).",
+  "description": "SUIT-R20 quote gate policy: which per-class outcomes permit a quote, caution acknowledgement (on the customer's own device, C5), validity window. The gate itself is code and cannot be disabled (SUIT-R40).",
   "source": {
     "document": "docs/au-bank-insurance-platform/rule-packs/suitability-rule-pack.md",
     "sections": [
@@ -23,7 +23,9 @@
     "decisions": [
       "ADR-024 section 7",
       "DECISIONS-2026-10-21 D3 (customerId replaces CIF)",
-      "D4 (allowedOutcomes)"
+      "D4 (allowedOutcomes)",
+      "DECISIONS-2026-10-22 C5 (SUITABLE; SUITABLE_WITH_CAUTION only with the customer's acknowledgement on their own device)",
+      "DECISIONS-2026-10-22 C6 (INSUFFICIENT_DATA never quotes)"
     ]
   },
   "governance": {
@@ -33,9 +35,10 @@
       "Shailja / bank Compliance"
     ],
     "approverRole": "COMPLIANCE_APPROVER",
-    "seededBy": "SUG-20261021-rul (owner-directed build, ADMIT-BYPASS)",
+    "seededBy": "SUG-20261021-rul; strict defaults SUG-20261022-rdy (owner-directed build, ADMIT-BYPASS)",
     "openItems": [
-      "OPEN-SUIT-04 30-day validity regulator-acceptable"
+      "OPEN-SUIT-04 30-day validity regulator-acceptable",
+      "C5: adding an acknowledgement mode other than CUSTOMER_DEVICE to cautionAcknowledgementModes needs Compliance approval"
     ]
   },
   "inputs": [
@@ -106,6 +109,16 @@
       "name": "cautionAcknowledged",
       "type": "BOOLEAN",
       "required": false
+    },
+    {
+      "name": "cautionAcknowledgedVia",
+      "type": "ENUM",
+      "required": false,
+      "values": [
+        "CUSTOMER_DEVICE",
+        "RM_ASSISTED"
+      ],
+      "description": "Channel the caution acknowledgement was captured on (C5); null is treated as not acknowledged"
     }
   ],
   "decision": {
@@ -324,13 +337,29 @@
             "op": "not",
             "args": [
               {
-                "op": "eq",
+                "op": "all",
                 "args": [
                   {
-                    "var": "cautionAcknowledged"
+                    "op": "eq",
+                    "args": [
+                      {
+                        "var": "cautionAcknowledged"
+                      },
+                      {
+                        "const": true
+                      }
+                    ]
                   },
                   {
-                    "const": true
+                    "op": "in",
+                    "args": [
+                      {
+                        "var": "cautionAcknowledgedVia"
+                      },
+                      {
+                        "param": "cautionAcknowledgementModes"
+                      }
+                    ]
                   }
                 ]
               }
@@ -342,7 +371,7 @@
         "outcome": "DENY",
         "reasonCode": "SUITABILITY_CAUTION_NOT_ACKNOWLEDGED"
       },
-      "sourceRef": "section 7.2 SUIT-R41/R42"
+      "sourceRef": "section 7.2 SUIT-R41/R42; DECISIONS-2026-10-22 C5 (customer's own device only)"
     },
     {
       "ruleId": "GATE-09",
@@ -461,7 +490,10 @@
       "SUITABLE_WITH_CAUTION"
     ],
     "cautionAcknowledgementRequired": true,
-    "validityDays": 30
+    "validityDays": 30,
+    "cautionAcknowledgementModes": [
+      "CUSTOMER_DEVICE"
+    ]
   },
   "reasonCodes": {
     "RULE_INPUT_MISSING": {
@@ -511,7 +543,7 @@
     },
     "SUITABILITY_CAUTION_NOT_ACKNOWLEDGED": {
       "severity": "BLOCK",
-      "rmText": "Caution disclosure not yet acknowledged on the customer's device (SUIT-R41/R42).",
+      "rmText": "Caution disclosure not yet acknowledged by the customer on their own device (SUIT-R41/R42, C5).",
       "customerText": "Please read and acknowledge the caution before continuing."
     },
     "PRODUCT_CLASS_NOT_PERMITTED": {
@@ -712,7 +744,7 @@
       }
     },
     {
-      "name": "SUIT-R41-caution-acknowledged",
+      "name": "C5-caution-acknowledged-on-customer-device",
       "inputs": {
         "asOf": "2026-11-20",
         "productClass": "TERM",
@@ -723,7 +755,8 @@
         "evaluatedAt": "2026-11-10T10:00:00+05:30",
         "evaluationCustomerId": "01JCUST0000000000000000001",
         "outcomeForClass": "SUITABLE_WITH_CAUTION",
-        "cautionAcknowledged": true
+        "cautionAcknowledged": true,
+        "cautionAcknowledgedVia": "CUSTOMER_DEVICE"
       },
       "expect": {
         "outcome": "ALLOW"
@@ -745,6 +778,49 @@
         "outcome": "DENY",
         "reasonCodes": [
           "RULE_INPUT_MISSING"
+        ]
+      }
+    },
+    {
+      "name": "C5-caution-acknowledged-via-RM-denied",
+      "inputs": {
+        "asOf": "2026-11-20",
+        "productClass": "TERM",
+        "requestCustomerId": "01JCUST0000000000000000001",
+        "evaluationId": "01JEVAL0000000000000000001",
+        "evaluationFound": true,
+        "evaluationStatus": "ACTIVE",
+        "evaluatedAt": "2026-11-10T10:00:00+05:30",
+        "evaluationCustomerId": "01JCUST0000000000000000001",
+        "outcomeForClass": "SUITABLE_WITH_CAUTION",
+        "cautionAcknowledged": true,
+        "cautionAcknowledgedVia": "RM_ASSISTED"
+      },
+      "expect": {
+        "outcome": "DENY",
+        "reasonCodes": [
+          "SUITABILITY_CAUTION_NOT_ACKNOWLEDGED"
+        ]
+      }
+    },
+    {
+      "name": "C5-caution-acknowledged-channel-unknown-denied",
+      "inputs": {
+        "asOf": "2026-11-20",
+        "productClass": "TERM",
+        "requestCustomerId": "01JCUST0000000000000000001",
+        "evaluationId": "01JEVAL0000000000000000001",
+        "evaluationFound": true,
+        "evaluationStatus": "ACTIVE",
+        "evaluatedAt": "2026-11-10T10:00:00+05:30",
+        "evaluationCustomerId": "01JCUST0000000000000000001",
+        "outcomeForClass": "SUITABLE_WITH_CAUTION",
+        "cautionAcknowledged": true
+      },
+      "expect": {
+        "outcome": "DENY",
+        "reasonCodes": [
+          "SUITABILITY_CAUTION_NOT_ACKNOWLEDGED"
         ]
       }
     }

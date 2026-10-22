@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 855
-total_bytes: 23454691
+document_count: 873
+total_bytes: 23485872
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -2277,7 +2277,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 298539
+    bytes: 303844
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -5580,8 +5580,8 @@ documents:
     capsules: [architecture-review]
     persona: architecture
     title: "customer-service — Low-level design (contract companion)"
-    answers: "(architecture) and Aarti (data) review. The wire contract is openapi.yaml."
-    bytes: 14040
+    answers: "DECISIONS-2026-10-22 (E7 CUSTOMER.POLICY; engineering"
+    bytes: 14999
   - path: docs/platform/contracts/customer-service/openapi.yaml
     bucket: platform
     authority: approved-spec
@@ -5589,7 +5589,7 @@ documents:
     persona: architecture
     title: "openapi"
     answers: "YAML record; first key `openapi`"
-    bytes: 18216
+    bytes: 18604
   - path: docs/platform/contracts/direct-insurer-adapter-service/BUILD-BRIEF.md
     bucket: platform
     authority: approved-spec
@@ -5654,6 +5654,14 @@ documents:
     title: "IssuanceTatEscalated.v1"
     answers: "\"title\": \"IssuanceTatEscalated v1 - data\""
     bytes: 1371
+  - path: docs/platform/contracts/events/schemas/IssuanceTrackingStarted.v1.json
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review]
+    persona: architecture
+    title: "IssuanceTrackingStarted.v1"
+    answers: "\"title\": \"IssuanceTrackingStarted v1 - data\""
+    bytes: 1439
   - path: docs/platform/contracts/events/schemas/JourneyCompensating.v1.json
     bucket: platform
     authority: approved-spec
@@ -5694,6 +5702,14 @@ documents:
     title: "LeadCreated.v1"
     answers: "\"title\": \"LeadCreated v1 - data\""
     bytes: 1438
+  - path: docs/platform/contracts/events/schemas/LeadExceptionApproved.v1.json
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review]
+    persona: architecture
+    title: "LeadExceptionApproved.v1"
+    answers: "\"title\": \"LeadExceptionApproved v1 - data\""
+    bytes: 1007
   - path: docs/platform/contracts/events/schemas/LeadExceptionEvaluated.v1.json
     bucket: platform
     authority: approved-spec
@@ -5702,6 +5718,22 @@ documents:
     title: "LeadExceptionEvaluated.v1"
     answers: "\"title\": \"LeadExceptionEvaluated v1 - data\""
     bytes: 1635
+  - path: docs/platform/contracts/events/schemas/LeadExceptionRejected.v1.json
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review]
+    persona: architecture
+    title: "LeadExceptionRejected.v1"
+    answers: "\"title\": \"LeadExceptionRejected v1 - data\""
+    bytes: 1129
+  - path: docs/platform/contracts/events/schemas/LeadExpired.v1.json
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review]
+    persona: architecture
+    title: "LeadExpired.v1"
+    answers: "\"title\": \"LeadExpired v1 - data\""
+    bytes: 936
   - path: docs/platform/contracts/events/schemas/LeadQualified.v1.json
     bucket: platform
     authority: approved-spec
@@ -5710,6 +5742,22 @@ documents:
     title: "LeadQualified.v1"
     answers: "\"title\": \"LeadQualified v1 - data\""
     bytes: 1364
+  - path: docs/platform/contracts/events/schemas/NotificationFailed.v1.json
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review]
+    persona: architecture
+    title: "NotificationFailed.v1"
+    answers: "\"title\": \"NotificationFailed v1 - data\""
+    bytes: 1323
+  - path: docs/platform/contracts/events/schemas/NotificationSent.v1.json
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review]
+    persona: architecture
+    title: "NotificationSent.v1"
+    answers: "\"title\": \"NotificationSent v1 - data\""
+    bytes: 1092
   - path: docs/platform/contracts/events/schemas/OfferSelected.v1.json
     bucket: platform
     authority: approved-spec
@@ -5718,6 +5766,14 @@ documents:
     title: "OfferSelected.v1"
     answers: "\"title\": \"OfferSelected v1 - data\""
     bytes: 1087
+  - path: docs/platform/contracts/events/schemas/PartnerUserCreated.v1.json
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review]
+    persona: architecture
+    title: "PartnerUserCreated.v1"
+    answers: "\"title\": \"PartnerUserCreated v1 - data\""
+    bytes: 1177
   - path: docs/platform/contracts/events/schemas/PaymentAuthorised.v1.json
     bucket: platform
     authority: approved-spec
@@ -5774,6 +5830,38 @@ documents:
     title: "PaymentReconciliationBreak.v1"
     answers: "\"title\": \"PaymentReconciliationBreak v1 - data\""
     bytes: 1443
+  - path: docs/platform/contracts/events/schemas/PaymentRefunded.v1.json
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review]
+    persona: architecture
+    title: "PaymentRefunded.v1"
+    answers: "\"title\": \"PaymentRefunded v1 - data\""
+    bytes: 1238
+  - path: docs/platform/contracts/events/schemas/PaymentRejected.v1.json
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review]
+    persona: architecture
+    title: "PaymentRejected.v1"
+    answers: "\"title\": \"PaymentRejected v1 - data\""
+    bytes: 1014
+  - path: docs/platform/contracts/events/schemas/PaymentUncertain.v1.json
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review]
+    persona: architecture
+    title: "PaymentUncertain.v1"
+    answers: "\"title\": \"PaymentUncertain v1 - data\""
+    bytes: 1018
+  - path: docs/platform/contracts/events/schemas/PolicyClosed.v1.json
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review]
+    persona: architecture
+    title: "PolicyClosed.v1"
+    answers: "\"title\": \"PolicyClosed v1 - data\""
+    bytes: 1063
   - path: docs/platform/contracts/events/schemas/PolicyIssuanceFailed.v1.json
     bucket: platform
     authority: approved-spec
@@ -5798,6 +5886,14 @@ documents:
     title: "PolicyStatusChanged.v1"
     answers: "\"title\": \"PolicyStatusChanged v1 - data\""
     bytes: 1737
+  - path: docs/platform/contracts/events/schemas/ProductVersionPublished.v1.json
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review]
+    persona: architecture
+    title: "ProductVersionPublished.v1"
+    answers: "\"title\": \"ProductVersionPublished v1 - data\""
+    bytes: 1239
   - path: docs/platform/contracts/events/schemas/ProposalAcknowledged.v1.json
     bucket: platform
     authority: approved-spec
@@ -5806,6 +5902,14 @@ documents:
     title: "ProposalAcknowledged.v1"
     answers: "\"title\": \"ProposalAcknowledged v1 - data\""
     bytes: 1246
+  - path: docs/platform/contracts/events/schemas/ProposalBlockedNoConsent.v1.json
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review]
+    persona: architecture
+    title: "ProposalBlockedNoConsent.v1"
+    answers: "\"title\": \"ProposalBlockedNoConsent v1 - data\""
+    bytes: 1627
   - path: docs/platform/contracts/events/schemas/ProposalCreated.v1.json
     bucket: platform
     authority: approved-spec
@@ -5822,6 +5926,14 @@ documents:
     title: "ProposalDeclined.v1"
     answers: "\"title\": \"ProposalDeclined v1 - data\""
     bytes: 1346
+  - path: docs/platform/contracts/events/schemas/ProposalExpired.v1.json
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review]
+    persona: architecture
+    title: "ProposalExpired.v1"
+    answers: "\"title\": \"ProposalExpired v1 - data\""
+    bytes: 1020
   - path: docs/platform/contracts/events/schemas/ProposalMaterialised.v1.json
     bucket: platform
     authority: approved-spec
@@ -5830,6 +5942,14 @@ documents:
     title: "ProposalMaterialised.v1"
     answers: "\"title\": \"ProposalMaterialised v1 - data\""
     bytes: 1162
+  - path: docs/platform/contracts/events/schemas/ProposalStatusChanged.v1.json
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review]
+    persona: architecture
+    title: "ProposalStatusChanged.v1"
+    answers: "\"title\": \"ProposalStatusChanged v1 - data\""
+    bytes: 1158
   - path: docs/platform/contracts/events/schemas/ProposalSubmitted.v1.json
     bucket: platform
     authority: approved-spec
@@ -5862,6 +5982,14 @@ documents:
     title: "QuoteConverted.v1"
     answers: "\"title\": \"QuoteConverted v1 - data\""
     bytes: 919
+  - path: docs/platform/contracts/events/schemas/QuoteExpired.v1.json
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review]
+    persona: architecture
+    title: "QuoteExpired.v1"
+    answers: "\"title\": \"QuoteExpired v1 - data\""
+    bytes: 940
   - path: docs/platform/contracts/events/schemas/QuoteFailed.v1.json
     bucket: platform
     authority: approved-spec
@@ -5886,6 +6014,22 @@ documents:
     title: "QuoteRequested.v1"
     answers: "\"title\": \"QuoteRequested v1 - data\""
     bytes: 918
+  - path: docs/platform/contracts/events/schemas/RefundInitiated.v1.json
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review]
+    persona: architecture
+    title: "RefundInitiated.v1"
+    answers: "\"title\": \"RefundInitiated v1 - data\""
+    bytes: 1271
+  - path: docs/platform/contracts/events/schemas/RuleSetPublished.v1.json
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review]
+    persona: architecture
+    title: "RuleSetPublished.v1"
+    answers: "\"title\": \"RuleSetPublished v1 - data\""
+    bytes: 2020
   - path: docs/platform/contracts/events/schemas/SuitabilityCompleted.v1.json
     bucket: platform
     authority: approved-spec
@@ -6229,7 +6373,7 @@ documents:
     persona: architecture
     title: "suitability-service — Low-level design (contract companion)"
     answers: "awaiting Mahesh (architecture), Rajal (behaviour) and Shailja (Compliance) review. Rule content"
-    bytes: 18960
+    bytes: 20705
   - path: docs/platform/contracts/suitability-service/openapi.yaml
     bucket: platform
     authority: approved-spec
@@ -6237,7 +6381,7 @@ documents:
     persona: architecture
     title: "openapi"
     answers: "YAML record; first key `openapi`"
-    bytes: 26248
+    bytes: 27321
   - path: docs/platform/contracts/workforce-access-bff/BUILD-BRIEF.md
     bucket: platform
     authority: approved-spec

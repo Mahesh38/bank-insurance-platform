@@ -48,8 +48,9 @@ R0 has no override path; `OPEN-D2` stays open for R1).
 | Single `ELIGIBLE/NOT_ELIGIBLE` (DDL, INV-QUO-01) vs per-class outcomes (rule pack §4) | Per-class record canonical; `INV-QUO-01` reads "outcome for class X ∈ `SUITABILITY.GATE.allowedOutcomes`" | D4 |
 | Gate failure: S-08 "timeout ⇒ 403 SUITABILITY_REQUIRED" vs SUIT-R26 "unavailable ⇒ 503" | A *decision* to refuse = `403 SUITABILITY_REQUIRED` (with `refusalReason`). *Cannot decide* (timeout, 5xx, unreachable) = quotation returns `503 UPSTREAM_UNAVAILABLE`. Both fail closed, no quote, quote recorded `REJECTED` | Owner brief |
 | Rule pack §6.2 seven distinct 403 codes vs one registered `SUITABILITY_REQUIRED` | One code; the seven become `refusalReason` values on the problem body | Keeps the catalogue small; evidence keeps the detail (SUIT-R28) |
-| SUIT-R21 (evaluation needs `CNS-SOL` first) vs D5 (consent after suitability) | Suitability does **not** check consent. Journey calls `consents:check` at `BEFORE_SUITABILITY` before `createAssessment`; that checkpoint is **empty in the seed `CONSENT.POLICY`**. If Compliance refuses D5, publishing `CNS-DP`/`CNS-SOL` at `BEFORE_SUITABILITY` restores SUIT-R21 without code. `consent_id_sol` is recorded when one exists | D5 |
-| `SUITABILITY_INCOMPLETE` named in rule pack, absent from the catalogue | Registered as **NEW** (`422`, VALIDATION) | Readiness review §3.3 |
+| SUIT-R21 (evaluation needs `CNS-SOL` first) vs D5 (consent after suitability) | **Decided strict (C1, 2026-10-22):** the seed `CONSENT.POLICY` requires `CNS-DP` + `CNS-SOL` at `BEFORE_SUITABILITY`, which Journey checks before `createAssessment` — SUIT-R21 holds. Suitability itself still does not call consent; `consent_id_sol` is recorded from the journey's ref | C1 |
+| `SUITABILITY_INCOMPLETE` named in rule pack, absent from the catalogue | **Registered** 2026-10-22 (`422`, COMPLIANCE_GATE, retry AFTER_REMEDIATION, compliance event) | Readiness review §3.3; error-model §3.9 |
+| Which outcomes may quote | `SUITABLE`; `SUITABLE_WITH_CAUTION` only with the customer's acknowledgement **on their own device** (`SUITABILITY.GATE.cautionAcknowledgementModes = [CUSTOMER_DEVICE]`); `INSUFFICIENT_DATA` — including the Savings/ULIP rule-pack gaps (affordability > 0.20, Savings + `WEALTH_GROWTH`) — never quotes until Compliance adds the rule as a new version | C5, C6 |
 
 ## 4. Flows
 
@@ -103,7 +104,8 @@ sequenceDiagram
 3. For each LIFE class (TERM, SAVINGS, ULIP) evaluate its rule set on the same inputs. Classes whose
    set was not answered resolve to `INSUFFICIENT_DATA` through `missingInputOutcome` (SUIT-R01c).
 4. `SUITABILITY.GATE` gives `validityDays` (seed 30), `allowedOutcomes` (seed `SUITABLE`,
-   `SUITABLE_WITH_CAUTION`), `cautionRequiresAcknowledgement` (seed true). `valid_until =
+   `SUITABLE_WITH_CAUTION`), `cautionAcknowledgementRequired` (seed true) and
+   `cautionAcknowledgementModes` (seed `[CUSTOMER_DEVICE]`, C5). `valid_until =
    evaluated_at + validityDays`.
 5. `underwritingRiskFlag` (SUIT-R04) and `dataInconsistencyFlags` (SUIT-R03) are rule-set outputs
    recorded on the evaluation; `replacementDisclosureRequired = (SQ-12 = true)`.
@@ -122,12 +124,17 @@ Given `evaluationId`, `customerId`, `lob`, `productClass` — checked in this or
 | 2 | `customer_id` = query `customerId` (else also a **security event**, SUIT-R36) | `SUITABILITY_SUBJECT_MISMATCH` |
 | 3 | status `ACTIVE` or `LOCKED` | `SUITABILITY_EVALUATION_INVALID` |
 | 4 | `now < valid_until` (unless `LOCKED`, SUIT-R34) | `SUITABILITY_EVALUATION_EXPIRED` |
-| 5 | outcome for class ≠ `INSUFFICIENT_DATA` | `SUITABILITY_INSUFFICIENT_DATA` |
+| 5 | outcome for class ≠ `INSUFFICIENT_DATA` (C6) | `SUITABILITY_INSUFFICIENT_DATA` |
 | 6 | outcome for class ∈ `SUITABILITY.GATE.allowedOutcomes` | `PRODUCT_CLASS_NOT_SUITABLE` |
-| 7 | caution → acknowledgement row exists for the class's reason codes | `CAUTION_NOT_ACKNOWLEDGED` |
+| 7 | caution → acknowledgement row exists for the class's reason codes **with `verification_mode` ∈ `cautionAcknowledgementModes`** (C5) | `CAUTION_NOT_ACKNOWLEDGED` |
 | 8 | `SQ-12 = true` → `REPLACEMENT` acknowledgement exists (SUIT-R46) | `REPLACEMENT_DISCLOSURE_REQUIRED` |
 
-All pass → `200 GateDecision`; any fail → `403 SUITABILITY_REQUIRED` + outbox
+The checks are the `SUITABILITY.GATE` rule set evaluated by the engine (inputs incl.
+`cautionAcknowledged` and `cautionAcknowledgedVia`); this table is its reading order. All pass →
+`200 GateDecision`. A failure answers with the code whose remedy matches (error-model §3.9):
+checks 5 and 7 → **`422 SUITABILITY_INCOMPLETE`** (finish the assessment / have the customer
+acknowledge on their own device); check 8 → **`403 REPLACEMENT_DISCLOSURE_REQUIRED`**; every
+other check → `403 SUITABILITY_REQUIRED`. Each carries `refusalReason` and adds an outbox
 `SuitabilityGateRefused` (SUIT-R28; the quotation's own `QuoteRejectedNoSuitability` remains the
 mandatory audit event). Budget: answer within 500 ms; reads only the primary (no cache that could
 allow on a miss). The gate code holds 100 % branch coverage (SUIT-R27).
@@ -137,9 +144,10 @@ allow on a miss). The gate code holds 100 % branch coverage (SUIT-R27).
 1. Evaluation `ACTIVE`; class outcome `SUITABLE_WITH_CAUTION` (kind `CAUTION`) or
    `replacementDisclosureRequired` (kind `REPLACEMENT`); `reasonCodes` must equal the class's
    caution reason codes (else `422 VALIDATION_ERROR`).
-2. Verify `otpTxnId` is a verified OTP transaction for this customer with the OTP provider
-   (same provider and `verificationModes` policy as consent; RM entry of a customer-device OTP is
-   barred by SUIT-R42 unless Compliance enables `RM_RELAYED`).
+2. Verify `otpTxnId` is a verified OTP transaction for this customer with the OTP provider.
+   `verificationMode` must be in `SUITABILITY.GATE.cautionAcknowledgementModes` (strict seed C5:
+   `CUSTOMER_DEVICE` only, SUIT-R42) else `403 FORBIDDEN`; an RM-relayed acknowledgement is never
+   recorded as one that permits a quote.
 3. `INSERT disclosure_acknowledgement` (append-only), outbox `SuitabilityDisclosureAcknowledged`.
 
 ### 4.6 Expiry and invalidation
@@ -157,7 +165,11 @@ Gate correctness uses `valid_until` at read time. A sweeper appends status chang
 | `SUITABILITY.LIFE.TERM` | `PRIORITY`, `collectReasonCodes: ALL_FIRED` | `NOT_SUITABLE > INSUFFICIENT_DATA > SUITABLE_WITH_CAUTION > SUITABLE` | SUIT-R08–R12; inputs SQ-01–04, 08–12 + derived; `noMatchOutcome`/`missingInputOutcome` = `INSUFFICIENT_DATA` |
 | `SUITABILITY.LIFE.SAVINGS` | same | same | SUIT-R13–R15 (rule-pack arithmetic model seeded; BRD insurer grid would be a new version — D4) |
 | `SUITABILITY.LIFE.ULIP` | same | same | SUIT-R16–R19; **`protectionGap` not derived** (no SQ-02/03/04, D4) |
-| `SUITABILITY.GATE` | parameters only | — | `allowedOutcomes`, `cautionRequiresAcknowledgement`, `validityDays`, `editLockMinutes` (value not in any source — unset, O-5) |
+| `SUITABILITY.GATE` | `PRIORITY` (`DENY > ALLOW`) | — | `allowedOutcomes`, `cautionAcknowledgementRequired`, `cautionAcknowledgementModes` (`[CUSTOMER_DEVICE]`, C5), `validityDays`; `editLockMinutes` is not a seed parameter (value not in any source — unset, O-5) |
+
+C6: the Savings / ULIP rule-pack gaps evaluate to `INSUFFICIENT_DATA` / `NO_RULE_MATCHED` (seed test
+cases `GAP-…` and `C6-wealth-growth-objective-no-rule`), so those classes cannot be quoted until
+Compliance publishes a version that covers them.
 
 Thresholds (0.15, 0.30, 0.20, income bands, age factors) are rule-set `parameters`/`tables` seeded
 from the rule pack §3–§4 and **await Shailja's approval**; the seed rule-set files are owned by the
@@ -177,7 +189,8 @@ rule-engine work, not this LLD.
 | `SQ-03`, `SQ-04` | ≥ 0 | `422 VALIDATION_ERROR` |
 | `SQ-05` / `SQ-06` / `SQ-07` / `SQ-10` / `SQ-11` | rule-pack §2.2 enums (`SQ-06` is the enum `LT_5Y…GT_20Y`, not a band) | `422 VALIDATION_ERROR` |
 | `SQ-09`, `SQ-12` | boolean | `422 VALIDATION_ERROR` |
-| own set complete at evaluate | SUIT-R01a | `422 SUITABILITY_INCOMPLETE` (NEW) |
+| own set complete at evaluate | SUIT-R01a | `422 SUITABILITY_INCOMPLETE` |
+| acknowledgement `verificationMode` | C5 — in `cautionAcknowledgementModes` | `403 FORBIDDEN` |
 | `answerSetVersion` | = current | `409 CONFLICT` |
 | state for save | `IN_PROGRESS` | `409 ASSESSMENT_IMMUTABLE` |
 | edit lock | held by actor | `409 CONFLICT` |
@@ -239,7 +252,7 @@ Consumed: `ConsentWithdrawn` (SUIT-R30), `RuleSetPublished` (cache + SUIT-R32).
 | Aspect | Value |
 |---|---|
 | Keys | `journey:{journeyId}:suitability:create[:{supersedes}]`, `suitability:{id}:answers:{screenId}:{n}`, `suitability:{id}:evaluate:{answerSetVersion}`, `evaluation:{id}:ack:{kind}:{class}` — `suitability.idempotency_record` |
-| Inbound | S-07 3 s from Journey (see journey LLD O-3 on the S-03 budget); S-08 500 ms from Quotation |
+| Inbound | S-07 3 s from Journey inside an async journey command (`ED-R2-01`, journey LLD §4); S-08 500 ms from Quotation |
 | customer-service snapshot read | 500 ms, 1 retry → `503 UPSTREAM_UNAVAILABLE` |
 | Configuration | 300 ms, cached to TTL (60 s), fail closed |
 | Evaluation write failure | nothing committed; Journey stage unchanged |
@@ -253,5 +266,6 @@ Consumed: `ConsentWithdrawn` (SUIT-R30), `RuleSetPublished` (cache + SUIT-R32).
 | O-3 | Where the BRD "recommended product set" lives now that `mapping_run` is superseded (catalogue at quote time is proposed) | Rajal |
 | O-4 | Suitability PDF generation path and store (SUIT-R22) | Mahesh |
 | O-5 | Edit-lock duration — no source value; left unset | Rajal |
-| O-6 | `CNS-SOL` before suitability (SUIT-R21) vs D5 | **Shailja** |
+| O-6 | ~~`CNS-SOL` before suitability (SUIT-R21) vs D5~~ — **decided strict (C1)**; relaxation is Compliance's | Shailja (relaxation only) |
+| O-8 | Savings/ULIP rule-pack gaps (C6) — no quote for those inputs until rules are added | **Shailja** |
 | O-7 | OTP for disclosure acknowledgement: reuse consent-service challenges or call the OTP provider directly | Mahesh |

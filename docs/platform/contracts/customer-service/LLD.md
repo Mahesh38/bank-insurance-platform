@@ -1,6 +1,8 @@
 # customer-service — Low-level design (contract companion)
 
-**Status:** AI-DRAFTED 2026-10-22 from owner decision D3 (`D-023`) and ADR-027, awaiting Mahesh
+**Status:** AI-DRAFTED 2026-10-22 from owner decision D3 (`D-023`), ADR-027 and
+[DECISIONS-2026-10-22](../../architecture-review/DECISIONS-2026-10-22.md) (E7 `CUSTOMER.POLICY`; engineering
+decision `ED-R2-01`, nested budgets), awaiting Mahesh
 (architecture) and Aarti (data) review. The wire contract is [`openapi.yaml`](./openapi.yaml).
 
 Sources: [DECISIONS-2026-10-21 §D3](../../architecture-review/DECISIONS-2026-10-21.md) ·
@@ -56,7 +58,8 @@ and by `search` (which already performs the CBS lookup).
 
 1. Validate `by` and `q` (§5). `q` is normalised (trim, PAN upper-cased, mobile digits-only) and is
    never logged.
-2. CBS inquiry through Apigee (§7: 3 s, 1 retry on 5xx/connect; 401 → re-mint token once).
+2. CBS inquiry through Apigee (§7: **one** attempt of 3 s — no retry for interactive search, so it
+   fits the BFF's 4 s read (`ED-R2-01`); 401 → re-mint token once).
 3. Anti-corruption mapping: each CBS record → domain `CbsCustomer` (cif, name, mobile, email, dob,
    eligibility). Unknown CBS fields are dropped here.
 4. For each `ETB` record: `resolve(cif)` (§3.2 steps 2–4, without a second CBS call).
@@ -94,14 +97,17 @@ sequenceDiagram
 ### 3.3 Snapshot (S-04)
 
 1. Replay check: a snapshot with this `journeyId` exists → `200` with it.
-2. Resolve the freshness window from configuration `CUSTOMER.SNAPSHOT.freshnessMinutes`
-   (ADR-024 parameter; **no default is set here** — unresolvable → fail closed
-   `422 CONFIGURATION_UNRESOLVABLE`, see open item O-3).
+2. Resolve rule set **`CUSTOMER.POLICY`** (E7; seed `snapshotFreshnessMinutes = 1440`, 24 h, the
+   engineering default of 2026-10-22, awaiting Rajal) through `libs/bank-rule-engine` (S-21, 300 ms,
+   cached to TTL). Outcome `RESOLVED` → window = derived `snapshotFreshnessMinutes`;
+   `CONFIG_MISSING` (unset or non-positive) or unresolvable → fail closed
+   `422 CONFIGURATION_UNRESOLVABLE`; never a compiled-in value.
 3. CBS inquiry by the decrypted CIF (§7).
 4. Success → `INSERT customer_snapshot` (`cbs_as_of = now`, `fresh_until = now + window`,
    `payload_hash`, `servedFrom = CBS`), refresh `customer.pii_enc` / `snapshot_taken_at` if
    `payload_hash` changed, outbox `CustomerSnapshotTaken {customerId, snapshotId, journeyId}`.
-5. CBS failed → newest snapshot of this customer with `fresh_until > now()` → copy into a new row
+5. CBS failed → newest snapshot of this customer that is still fresh (`fresh_until > now()`, which
+   equals `CUSTOMER.POLICY` outcome `FRESH` for `snapshotAgeMinutes = now − cbs_as_of`) → copy into a new row
    for this journey keeping the original `cbs_as_of` / `fresh_until` (`servedFrom = FRESH_COPY`).
    None → `503 UPSTREAM_UNAVAILABLE`. Journey then holds at `INITIATED` (see journey LLD §3.1).
 6. `derived` values (`ageNextBirthday`, `relationshipTenureMonths`, `knownLoanLiabilityInr`) are
@@ -156,12 +162,14 @@ Contract 09 states `400 VALIDATION_ERROR`; the error catalogue registers `VALIDA
 | Hop | Budget | Retry | Failure → |
 |---|---|---|---|
 | Apigee token | connect 3 s / read 3 s | single-flight re-mint on CBS 401, once | second 401 → `503 UPSTREAM_UNAVAILABLE` |
-| CBS inquiry (S-05) | connect 1 s / read **3 s** | **1** retry on 5xx or connect/read failure, 200 ms jitter | `503 UPSTREAM_UNAVAILABLE`; other 4xx → `502 UPSTREAM_BAD_RESPONSE`; 404 → empty search / `404` |
-| Inbound from BFF (S-01 → 4 s client budget) | fits: 3 s + retry is bounded by the BFF's 4 s read timeout | — | — |
-| Inbound from Journey (S-04: 2 s, 1 retry) | **conflict**: S-04 (2 s) is shorter than S-05 (3 s + retry). Snapshot falls back to a fresh copy when CBS is slow, but Journey may time out first → open item O-2 | — | Journey holds at `INITIATED` |
+| CBS inquiry (S-05) | **3 s per attempt** (connect ≤ 1 s inside it) | snapshot and resolve: **1** retry on 5xx or connect/read failure, 200 ms jitter (worst 6.2 s); **search: none** | `503 UPSTREAM_UNAVAILABLE`; other 4xx → `502 UPSTREAM_BAD_RESPONSE`; 404 → empty search / `404` |
+| Inbound from BFF — search (4 s read) | one 3 s attempt fits | — | — |
+| Inbound from Journey — snapshot (S-04: **7 s**, no retry at journey, inside an async journey command) | fits: 6.2 s worst case < 7 s (`ED-R2-01`, [conventions §2.2](../../api-reference/conventions/idempotency-timeouts-retries.md#22-nested-budgets--engineering-decision-ed-r2-01-2026-10-22)) | — | Journey holds at `INITIATED` |
 
-Configuration keys (target): `customer.cbs.connect-timeout-ms=1000`, `customer.cbs.read-timeout-ms=3000`,
-`customer.cbs.retries=1`; breaker per CBS dependency (resilience table, conventions §3).
+Configuration keys (target): `customer.cbs.connect-timeout-ms=1000`, `customer.cbs.attempt-timeout-ms=3000`,
+`customer.cbs.retries=1`, `customer.cbs.search.retry-enabled=false`; breaker per CBS dependency
+(resilience table, conventions §3). Technical timeouts are Spring properties; the freshness window is
+business configuration (`CUSTOMER.POLICY`).
 
 ## 8. DTO → domain → table mapping
 
@@ -213,8 +221,8 @@ Topic `{env}.customer.customer.v1`, key `customerId` (search events keyed by `ac
 | # | Item | Owner |
 |---|---|---|
 | O-1 | CBS inquiry contract (bank OpenAPI) — the adapter shape is ours until published (`DEP-20260914-apg`) | Bank / Aarti |
-| O-2 | S-04 (2 s) < S-05 (3 s + 1 retry): raise S-04 to 4 s or accept fresh-copy fallback only | Mahesh |
-| O-3 | Freshness window value for `CUSTOMER.SNAPSHOT` (no value invented) | Rajal + Shailja |
+| O-2 | ~~S-04 (2 s) < S-05 (3 s + 1 retry)~~ — **resolved by `ED-R2-01`**: S-04 7 s inside an async journey command, no journey retry; search makes one CBS attempt | Mahesh (confirm) |
+| O-3 | Freshness window — **seeded** in `CUSTOMER.POLICY` as 1440 minutes (engineering default, E7); Rajal confirms, Compliance may shorten it | Rajal + Shailja |
 | O-4 | Caller authentication for `registered-contact` before mesh mTLS (ADR-023) | Deepali |
 | O-5 | Whether `NOT_ETB` hits may be resolved (R0 is ETB-only) | Rajal |
 | O-6 | Prefill read (PAN/DOB/address after `CNS-DP`, `SCR-07`) — not in this contract | Mahesh + Rajal |

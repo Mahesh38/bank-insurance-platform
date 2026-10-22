@@ -185,28 +185,38 @@ The lead-service code currently raises the nearest registered code instead
 (`CONFLICT`, `ILLEGAL_TRANSITION`, `SP_CERTIFICATION_REQUIRED`). Adding them is a registry change
 (`ErrorDefinitionProvider` in `lead-service`), not a free-text code at a throw site.
 
-### 3.9 Codes the 2026-10-21 decisions rely on
+### 3.9 Codes the 2026-10-21 and 2026-10-22 decisions rely on
 
-Checked against `libs/bank-common-error/src/main/java/com/bank/common/error/ErrorCodes.java` on
-2026-10-22. **Registered** = constant exists today. **Added with `<service>`** = not yet in the
-registry; the named service adds it (to `ErrorCodes` + `ErrorCatalogue`, or its own
-`ErrorDefinitionProvider`) when it implements the decision. Until then no throw site may use it.
+Checked against `libs/bank-common-error/src/main/java/com/bank/common/error/ErrorCodes.java` and `ErrorCatalogue`
+on 2026-10-22 (work item `SUG-20261022-rdy`). **Every code below now exists** in the shared registry, with its
+category, status, retryability, audit disposition and fixed public text, and has a support page in
+[`08-SUPPORT-RUNBOOK.md`](../../../journey-execution/08-SUPPORT-RUNBOOK.md) (`CatalogueParityTest`). Services
+throw them through `ServiceErrors`; none needs its own `ErrorDefinitionProvider`. The three rule-set codes
+were moved out of administration-config-service's local provider, which is deleted.
 
-| Code | HTTP (target) | Decision | Status |
-|---|---|---|---|
-| `CONSENT_REQUIRED` | 403 | D5 — no valid consent for the checkpoint (`consents:check`) | Registered |
-| `CONSENT_EXPIRED` | 403 | D5 — consent exists but `valid_until` passed | Added with `consent-service` |
-| `CONSENT_SCOPE_MISMATCH` | 403 | D5 — `NAMED_INSURER` consent (`CNS-SHR`) for a different insurer, or purposes missing | Added with `consent-service` |
-| `SUITABILITY_REQUIRED` | 403 | D4 — no usable evaluation for the class (`SUIT-R20`) | Registered |
-| `SUITABILITY_INCOMPLETE` | 422 | D4 — outcome `INSUFFICIENT_DATA`, or `SUITABLE_WITH_CAUTION` without `caution_ack` | Added with `suitability-service` |
-| `CONFIGURATION_UNRESOLVABLE` | 503 per ADR-024 §5.4 | ADR-024 — rule set cannot be resolved → fail closed | Registered **as 422** (`ErrorCatalogue`); the 503 in ADR-024 is a registry change for `administration-config-service` / `libs/bank-rule-engine` to make |
-| `RULE_SET_TEST_FAILED` | 422 | ADR-024 §5.3 — publish refused because a `testCase` failed | Added with `administration-config-service` |
-| `IDEMPOTENCY_CONFLICT` | 409 | All writes; DynamoDB `IDEM#` mismatch (`DB-DEC-0005`) | Registered |
-| `UPSTREAM_UNAVAILABLE` | 503 | Any dependency down (CBS, 1SB, config) | Registered |
-| `AUTHORIZATION_UNAVAILABLE` | 403 | PDP unreachable → fail closed | Registered |
-| `SUITABILITY_SERVICE_UNAVAILABLE` | 503 | `SUIT-R26` — gate fails closed when suitability is down (rule pack name) | Added with `quotation-service` — or reuse `UPSTREAM_UNAVAILABLE`; owner to choose |
-| `REPLACEMENT_DISCLOSURE_REQUIRED` | 403 | `SUIT-R46` — replacing a policy without acknowledgement | Added with `quotation-service` |
-| `ISSUANCE_MODE_INVALID` | 422 | `INV-PRP-06` — `issuance_mode` not `STP` / `NON_STP` / `INSTA` | Added with `proposal-service` |
+| Code | HTTP | Category · retry · audit | Decision | Status |
+|---|---|---|---|---|
+| `CONSENT_REQUIRED` | 403 | COMPLIANCE_GATE · AFTER_REMEDIATION · COMPLIANCE_EVENT | D5 — no valid consent for the checkpoint (`consents:check`) | Registered |
+| `CONSENT_EXPIRED` | 403 | COMPLIANCE_GATE · AFTER_REMEDIATION · COMPLIANCE_EVENT | D5 — consent exists but `valid_until` passed | **Registered 2026-10-22** |
+| `CONSENT_SCOPE_MISMATCH` | 403 | COMPLIANCE_GATE · AFTER_REMEDIATION · COMPLIANCE_EVENT | D5 — `NAMED_INSURER` consent (`CNS-SHR`) for a different insurer, or purposes missing | **Registered 2026-10-22** |
+| `CONSENT_SUBJECT_MISMATCH` | 403 | COMPLIANCE_GATE · NO · SECURITY_EVENT | D5 — consent presented for a different `customerId` (treated like `SUIT-R36`) | **Registered 2026-10-22** |
+| `CONSENT_STATEMENT_NOT_APPROVED` | 403 | COMPLIANCE_GATE · AFTER_REMEDIATION · COMPLIANCE_EVENT | **C7** — the purpose's statement is not `APPROVED` (`CONSENT.POLICY` outcome `CAPTURE_BLOCKED`) | **Registered 2026-10-22** |
+| `OTP_EXPIRED` | 409 | CONFLICT · AFTER_REMEDIATION · AUDIT | **C2** — verification code on the customer's device expired | **Registered 2026-10-22** |
+| `OTP_ATTEMPTS_EXCEEDED` | 429 | RATE_LIMIT · AFTER_REMEDIATION · SECURITY_EVENT | **C2** — too many wrong codes; never auto-retried (each retry burns an attempt) | **Registered 2026-10-22** |
+| `OTP_ISSUE_RATE_EXCEEDED` | 429 | RATE_LIMIT · AFTER_REMEDIATION · SECURITY_EVENT | **C2** — too many codes requested; never auto-retried (each retry messages the customer) | **Registered 2026-10-22** |
+| `JOURNEY_HALTED_CONSENT_WITHDRAWN` | 403 | COMPLIANCE_GATE · NO · COMPLIANCE_EVENT | **E4** — any command on a journey in `HALTED_CONSENT_WITHDRAWN` | **Registered 2026-10-22** |
+| `SUITABILITY_REQUIRED` | 403 | COMPLIANCE_GATE · AFTER_REMEDIATION · COMPLIANCE_EVENT | D4 — no usable evaluation for the class (`SUIT-R20`) | Registered |
+| `SUITABILITY_INCOMPLETE` | 422 | COMPLIANCE_GATE · AFTER_REMEDIATION · COMPLIANCE_EVENT | D4 / **C5 / C6** — outcome `INSUFFICIENT_DATA`, or `SUITABLE_WITH_CAUTION` without the customer's own-device acknowledgement | **Registered 2026-10-22** |
+| `REPLACEMENT_DISCLOSURE_REQUIRED` | 403 | COMPLIANCE_GATE · AFTER_REMEDIATION · COMPLIANCE_EVENT | `SUIT-R46` — replacing a policy without acknowledgement | **Registered 2026-10-22** |
+| `ISSUANCE_MODE_INVALID` | 422 | VALIDATION · (default) · NONE | `INV-PRP-06` — `issuance_mode` not `STP` / `NON_STP` / `INSTA` | **Registered 2026-10-22** |
+| `RULE_SET_INVALID` | 422 | VALIDATION · (default) · NONE | ADR-024 §2 — document is not a valid `rule-set/v1` | **Registered 2026-10-22** (moved from administration-config-service) |
+| `RULE_SET_TEST_FAILED` | 422 | VALIDATION · (default) · NONE | ADR-024 §5.3 — publish refused because a `testCase` failed | **Registered 2026-10-22** (moved) |
+| `MAKER_CHECKER_VIOLATION` | 403 | AUTHORIZATION · NO · AUDIT | ADR-024 §5.2 — checker is the maker | **Registered 2026-10-22** (moved) |
+| `CONFIGURATION_UNRESOLVABLE` | 503 per ADR-024 §5.4 | CONFIG · NO · NONE | ADR-024 — rule set cannot be resolved → fail closed | Registered **as 422** (`ErrorCatalogue`); the 503 in ADR-024 is still an open registry change (not made here — partner-consumed status changes need the owner) |
+| `IDEMPOTENCY_CONFLICT` | 409 | CONFLICT · NO · AUDIT | All writes; DynamoDB `IDEM#` mismatch (`DB-DEC-0005`) | Registered |
+| `UPSTREAM_UNAVAILABLE` | 503 | UPSTREAM · YES · NONE | Any dependency down (CBS, 1SB, config) | Registered |
+| `AUTHORIZATION_UNAVAILABLE` | 403 | AUTHORIZATION · YES · AUDIT | PDP unreachable → fail closed | Registered |
+| `SUITABILITY_SERVICE_UNAVAILABLE` | — | — | `SUIT-R26` — rule-pack name for "gate fails closed when suitability is down" | **Not registered**: quotation uses `UPSTREAM_UNAVAILABLE` (one code per condition) |
 
 `EH-CONFIG-MISSING` (D2) is a **reason code** of rule set `LEAD.EXCEPTION`, not an error code: the
 lead evaluates to `BLOCK` and the API answers with the existing `ILLEGAL_TRANSITION` plus the reason

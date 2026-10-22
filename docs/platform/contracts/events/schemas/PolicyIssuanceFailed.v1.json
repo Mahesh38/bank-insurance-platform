@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://contracts.bank.internal/events/PolicyIssuanceFailed.v1.json",
   "title": "PolicyIssuanceFailed v1 - data",
-  "description": "Issuance could not complete - journey compensates. Producer: policy. Status: CONTRACTED. The `data` member of event-envelope/v1 (ADR-025): ids and states only, never customer PII.",
+  "description": "The insurer did not issue after payment: it declined (failureKind INSURER_DECLINED) or issuance could not complete (ISSUANCE_ERROR, TAT_EXHAUSTED). The single post-payment non-issuance event: it supersedes ProposalDeclined (catalogue section 2.1). Journey compensates; payment starts the refund when refundRequired. Producer: policy. Status: CONTRACTED. The `data` member of event-envelope/v1 (ADR-025): ids and states only, never customer PII.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -26,6 +26,24 @@
     },
     "journeyId": {
       "$ref": "#/$defs/ulid"
+    },
+    "failureKind": {
+      "type": "string",
+      "enum": [
+        "INSURER_DECLINED",
+        "ISSUANCE_ERROR",
+        "TAT_EXHAUSTED"
+      ],
+      "description": "Why no policy was issued (additive; absent = ISSUANCE_ERROR)"
+    },
+    "applicationNumber": {
+      "type": "string",
+      "maxLength": 64,
+      "description": "Insurer application number (insurer-issued reference, not customer data)"
+    },
+    "refundRequired": {
+      "type": "boolean",
+      "description": "true when captured funds must be returned (payment.refund consumer)"
     }
   },
   "$defs": {

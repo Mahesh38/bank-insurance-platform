@@ -27,7 +27,7 @@
       "Mahesh (repository owner)"
     ],
     "approverRole": "CONFIG_APPROVER",
-    "seededBy": "SUG-20261021-rul (owner-directed build, ADMIT-BYPASS)",
+    "seededBy": "SUG-20261021-rul; strict defaults SUG-20261022-rdy (owner-directed build, ADMIT-BYPASS)",
     "openItems": [
       "Direct-insurer routes arrive as new rules ahead of R0-LIFE-ONE_SB when an adapter is admitted"
     ]

@@ -106,7 +106,7 @@ class RuleSetControllerTest {
                 "SELECT COUNT(*) FROM administration.rule_set_version WHERE maker = ?",
                 Integer.class,
                 SeedImportService.SEED_MAKER))
-        .isEqualTo(8);
+        .isEqualTo(RuleSetSeeds.all().size());
     assertThat(
             jdbc.queryForObject(
                 "SELECT COUNT(*) FROM administration.rule_set_version"

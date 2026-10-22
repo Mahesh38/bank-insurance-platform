@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.bank.internal/events/RuleSetPublished.v1.json",
+  "title": "RuleSetPublished v1 - data",
+  "description": "A rule-set version was approved and published; deciding services invalidate their L1 cache (ADR-024 section 5.4). Payload as built by RuleSetPublishedEvent. Producer: admin-config. Status: IMPLEMENTED (envelope). The `data` member of event-envelope/v1 (ADR-025): ids and states only, never customer PII.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "ruleSetId",
+    "version",
+    "versionId",
+    "domain",
+    "classification",
+    "effectiveFrom",
+    "documentSha256"
+  ],
+  "properties": {
+    "ruleSetId": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_.]{1,95}$"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "versionId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "domain": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z_]*$"
+    },
+    "scopeLob": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 32
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "scopeProductClass": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 32
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "classification": {
+      "type": "string",
+      "enum": [
+        "COMPLIANCE",
+        "PRODUCT",
+        "OPERATIONAL"
+      ]
+    },
+    "effectiveFrom": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "effectiveTo": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "documentSha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$|^sha256:[0-9a-f]{64}$"
+    }
+  },
+  "$defs": {
+    "ulid": {
+      "type": "string",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+    }
+  }
+}

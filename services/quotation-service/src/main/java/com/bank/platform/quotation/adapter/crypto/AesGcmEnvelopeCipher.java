@@ -37,9 +37,16 @@ public class AesGcmEnvelopeCipher implements EnvelopeCipher {
     byte[] iv = new byte[IV_BYTES];
     random.nextBytes(iv);
     byte[] ciphertext = crypt(Cipher.ENCRYPT_MODE, key.plaintext(), iv, context, plaintext);
-    ByteBuffer out =
-        ByteBuffer.allocate(1 + 2 + key.encrypted().length + IV_BYTES + ciphertext.length);
-    out.put(FORMAT).putShort((short) key.encrypted().length).put(key.encrypted());
+    byte[] encryptedKey = key.encrypted();
+    if (encryptedKey.length > Short.MAX_VALUE) {
+      throw new IllegalStateException("encrypted data key exceeds envelope length field");
+    }
+    // Math.addExact: lengths come from cipher / key material — CodeQL flags plain int sum.
+    int size =
+        Math.addExact(
+            Math.addExact(Math.addExact(1 + 2, encryptedKey.length), IV_BYTES), ciphertext.length);
+    ByteBuffer out = ByteBuffer.allocate(size);
+    out.put(FORMAT).putShort((short) encryptedKey.length).put(encryptedKey);
     out.put(iv).put(ciphertext);
     return new SealedPayload(out.array(), key.masterKeyId());
   }

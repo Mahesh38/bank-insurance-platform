@@ -13,15 +13,15 @@
 
 ## Purpose
 
-Placeholder module for the **Administration & Config** bounded context from the target microservices
-architecture ([`02-target-microservices-architecture.md`](../../docs/platform/architecture-review/02-target-microservices-architecture.md)).
-Created ahead of the GitHub → GitLab migration so repository groups, CI policies and team
-ownership can be assigned per service.
+R0 **rule-set store** for the **Administration & Config** bounded context
+([`02-target-microservices-architecture.md`](../../docs/platform/architecture-review/02-target-microservices-architecture.md),
+ADR-024). Versions, maker-checker publish, resolve and seed import are implemented; outbox relay
+and PDP-gated approve remain open (see the build brief).
 
 ## Package layout
 
 ```text
-com.bank.com/bank/platform/adminconfig
+com.bank.platform.adminconfig
 ├── api/           HTTP controllers (bank-canonical API)
 ├── application/   use cases / orchestration
 ├── domain/        aggregates, ports, invariants

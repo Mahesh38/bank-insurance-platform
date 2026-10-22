@@ -78,7 +78,7 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/CsrfResponse' }
-              example: { headerName: X-XSRF-TOKEN, token: 3f2c9b1e-6a3d-4f1c-9b7e-1d2a3c4b5e6f }
+              example: { headerName: X-XSRF-TOKEN, token: example-csrf-token-not-a-secret }
 
   /auth/login:
     post:

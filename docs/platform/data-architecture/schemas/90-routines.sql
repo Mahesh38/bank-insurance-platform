@@ -212,9 +212,14 @@ $$;
 -- ---------------------------------------------------------------------------
 -- S09 purge — designed, not scheduled
 -- ---------------------------------------------------------------------------
+-- 2026-10-22 (PG16 validation): procedures are SECURITY DEFINER with a pinned search_path. As
+-- SECURITY INVOKER (the default) job_retention, which holds EXECUTE only and never DELETE
+-- (91-grants.sql), failed with "permission denied". EXECUTE is revoked from PUBLIC in 91-grants.sql.
 
 CREATE OR REPLACE PROCEDURE lead_lms.sp_purge_operational()
 LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, pg_temp
 AS $$
 BEGIN
     DELETE FROM lead_lms.idempotency_record
@@ -224,6 +229,8 @@ $$;
 
 CREATE OR REPLACE PROCEDURE suitability.sp_purge_operational()
 LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, pg_temp
 AS $$
 BEGIN
     DELETE FROM suitability.idempotency_record
@@ -233,6 +240,8 @@ $$;
 
 CREATE OR REPLACE PROCEDURE bank_persistence.sp_retention_sweep()
 LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, pg_temp
 AS $$
 BEGIN
     -- Returns nothing and deletes nothing on evidence tables.
@@ -249,6 +258,8 @@ $$;
 
 CREATE OR REPLACE PROCEDURE quotation.sp_purge_operational()
 LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, pg_temp
 AS $$
 BEGIN
     DELETE FROM quotation.idempotency_record
@@ -258,6 +269,8 @@ $$;
 
 CREATE OR REPLACE PROCEDURE proposal.sp_purge_operational()
 LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, pg_temp
 AS $$
 BEGIN
     DELETE FROM proposal.idempotency_record
@@ -267,6 +280,8 @@ $$;
 
 CREATE OR REPLACE PROCEDURE journey.sp_purge_operational()
 LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, pg_temp
 AS $$
 BEGIN
     DELETE FROM journey.idempotency_record
@@ -316,6 +331,8 @@ $$;
 
 CREATE OR REPLACE PROCEDURE consent.sp_purge_operational()
 LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, pg_temp
 AS $$
 BEGIN
     DELETE FROM consent.idempotency_record WHERE expires_at < now();
@@ -324,6 +341,8 @@ $$;
 
 CREATE OR REPLACE PROCEDURE policy.sp_purge_operational()
 LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, pg_temp
 AS $$
 BEGIN
     DELETE FROM policy.idempotency_record WHERE expires_at < now();
@@ -332,6 +351,8 @@ $$;
 
 CREATE OR REPLACE PROCEDURE payment.sp_purge_operational()
 LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, pg_temp
 AS $$
 BEGIN
     DELETE FROM payment.idempotency_record

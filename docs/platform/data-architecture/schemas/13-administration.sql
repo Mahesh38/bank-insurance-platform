@@ -93,9 +93,11 @@ CREATE TABLE administration.rule_set_version (
         status NOT IN ('PUBLISHED', 'SUPERSEDED')
         OR (checker_id IS NOT NULL AND checker_id <> maker_id AND decided_at IS NOT NULL
             AND checker_role IS NOT NULL)),
-    -- §5.3: publish refused unless every test case passed.
+    -- §5.3: publish refused unless every test case passed. IS TRUE, not = true: test_run_passed is
+    -- nullable and a NULL CHECK result passes, so "= true" let a never-tested version publish
+    -- (found by tests/10-invariants.sql on PostgreSQL 16, 2026-10-22).
     CONSTRAINT ck_rsv_tests CHECK (
-        status NOT IN ('PUBLISHED', 'SUPERSEDED') OR test_run_passed = true),
+        status NOT IN ('PUBLISHED', 'SUPERSEDED') OR test_run_passed IS TRUE),
     CONSTRAINT ck_rsv_rejected_remarks CHECK (
         status <> 'REJECTED' OR decision_remarks IS NOT NULL),
     CONSTRAINT ux_rsv_version UNIQUE (rule_set_id, version)

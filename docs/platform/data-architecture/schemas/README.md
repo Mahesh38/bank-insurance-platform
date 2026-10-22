@@ -34,3 +34,30 @@ with its decision id in the SQL.
 | [`20-dynamodb-working-payload.md`](./20-dynamodb-working-payload.md) | DynamoDB tables for pre-payment quote and proposal state (`DB-DEC-0005`) — not PostgreSQL |
 | [`90-routines.sql`](./90-routines.sql) | Triggers, sequence, visibility, S09 purge |
 | [`91-grants.sql`](./91-grants.sql) | Least-privilege grants |
+
+## Validating on PostgreSQL
+
+[`scripts/db/validate-postgres.sh`](../../../../scripts/db/validate-postgres.sh) checks this pack and
+every service's Flyway migrations against a real PostgreSQL 16. It creates its own throw-away
+databases and drops them on exit (`--keep` leaves them for inspection).
+
+```bash
+scripts/db/validate-postgres.sh                      # pack + services, host /tmp, port 55432, user postgres
+scripts/db/validate-postgres.sh --host db --port 5432 --user postgres pack
+scripts/db/validate-postgres.sh services             # Flyway V*.sql of db/migration + db/vendor/postgresql
+```
+
+- **Pack order:** `00`…`15`, `90-routines.sql`, then
+  [`tests/00-test-roles.sql`](./tests/00-test-roles.sql) (test-only NOLOGIN roles that IaC creates
+  in real environments), then `91-grants.sql`.
+- **Invariants:** [`tests/10-invariants.sql`](./tests/10-invariants.sql) attaches the triggers
+  `90-routines.sql` leaves commented for the owning Flyway, then asserts the designed behaviour by
+  SQLSTATE: INSERT-only tables refuse UPDATE/DELETE (trigger and grant), partial unique indexes,
+  CHECK constraints, the consent supersede chain, the audit hash chain and uniques, `rule_set_version`
+  publish immutability and maker-checker, and that `job_retention` can run purges but not delete
+  evidence.
+- **Services:** the script reads `spring.flyway.locations` and adds `db/vendor/postgresql` only when
+  the service configures `db/vendor/{vendor}`. It merges both directories in Flyway version order
+  and applies each file in a single transaction.
+- **Exit codes:** `0` means all green, `1` means a pack, invariant or service failed, and `2` means
+  bad usage or the server could not be reached.

@@ -178,6 +178,17 @@ REVOKE DELETE ON administration.outbox_event FROM app_administration;
 -- REVOKE UPDATE, DELETE, TRUNCATE ON audit.archive_export FROM app_audit;
 
 -- job_retention: execute purge procedures only, no evidence DELETE.
+-- The procedures are SECURITY DEFINER (90-routines.sql), so PostgreSQL's default EXECUTE-to-PUBLIC
+-- must be revoked first or any role could run a purge with the owner's rights.
+REVOKE EXECUTE ON PROCEDURE lead_lms.sp_purge_operational() FROM PUBLIC;
+REVOKE EXECUTE ON PROCEDURE suitability.sp_purge_operational() FROM PUBLIC;
+REVOKE EXECUTE ON PROCEDURE bank_persistence.sp_retention_sweep() FROM PUBLIC;
+REVOKE EXECUTE ON PROCEDURE quotation.sp_purge_operational() FROM PUBLIC;
+REVOKE EXECUTE ON PROCEDURE proposal.sp_purge_operational() FROM PUBLIC;
+REVOKE EXECUTE ON PROCEDURE journey.sp_purge_operational() FROM PUBLIC;
+REVOKE EXECUTE ON PROCEDURE payment.sp_purge_operational() FROM PUBLIC;
+REVOKE EXECUTE ON PROCEDURE consent.sp_purge_operational() FROM PUBLIC;
+REVOKE EXECUTE ON PROCEDURE policy.sp_purge_operational() FROM PUBLIC;
 GRANT USAGE ON SCHEMA lead_lms TO job_retention;
 GRANT EXECUTE ON PROCEDURE lead_lms.sp_purge_operational() TO job_retention;
 GRANT USAGE ON SCHEMA suitability TO job_retention;

@@ -9,10 +9,17 @@ spring:
     driver-class-name: ${CONSENT_SERVICE_DATASOURCE_DRIVER:org.h2.Driver}
     username: ${CONSENT_SERVICE_DATASOURCE_USERNAME:sa}
     password: ${CONSENT_SERVICE_DATASOURCE_PASSWORD:}
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
   jpa:
     hibernate:
       ddl-auto: validate
     open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
   flyway:
     enabled: true
     locations: classpath:db/migration
@@ -40,3 +47,9 @@ bank:
     service-id: consent
     layer: L5
     boundary: INTERNAL
+
+consent:
+  distributor-id: ${CONSENT_DISTRIBUTOR_ID:dist-local}
+  field-key: ${CONSENT_FIELD_KEY:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=}
+  key-id: ${CONSENT_FIELD_KEY_ID:local-dev}
+  otp-pepper: ${CONSENT_OTP_PEPPER:local-otp-pepper}

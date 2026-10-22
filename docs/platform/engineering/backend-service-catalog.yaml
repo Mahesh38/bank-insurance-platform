@@ -113,7 +113,7 @@ services:
     gitlab_group: ws3-domain
     layer: L5
     datastore: Aurora PostgreSQL (append-only)
-    status: skeleton
+    status: implemented
 
   - context_id: "7"
     name: Suitability & Recommendation

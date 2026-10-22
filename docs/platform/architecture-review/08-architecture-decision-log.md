@@ -1877,7 +1877,7 @@ Full text in separate files; summary here so the log stays complete.
 |---|---|---|
 | [ADR-024](./ADR-024-configuration-driven-rule-engine.md) | Rules as configuration: versioned rule sets, one deterministic engine, configurable precedence and reason codes, maker-checker with test cases | Accepted |
 | [ADR-025](./ADR-025-event-specification-and-publisher.md) | Event envelope, topics, DLQ, outbox relay library | Accepted |
-| [ADR-026](./ADR-026-audit-store-and-transport.md) | Business audit via events into an append-only hash-chained store + WORM archive | Proposed |
+| [ADR-026](./ADR-026-audit-store-and-transport.md) | Business audit via events into an append-only hash-chained store + WORM archive | Accepted 2026-10-22 |
 | [ADR-027](./ADR-027-openapi-contract-authority.md) | Checked-in OpenAPI is authoritative; conformance test | Accepted |
 
 Decision record: [DECISIONS-2026-10-21.md](./DECISIONS-2026-10-21.md).

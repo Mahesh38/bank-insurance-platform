@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20261022-rdy | 2026-10-22 | human:repository-owner | Build readiness for all 21 services: payment after UW approval; ADR-026 + hub/notification/audit schemas accepted; admin-created partner users; bank-only exception approvals; every business value configurable per line of business; strict compliance posture; finish all remaining code; per-service build briefs so 21 agents can build in parallel | SF2 | SC0 | MUST | ARCH | P1 / P1 | ADMIT-BYPASS | [round 2 decisions](../../platform/architecture-review/DECISIONS-2026-10-22.md) · [detail](#sug-20261022-rdy--build-readiness-for-all-21-services) |
 | SUG-20261021-rul | 2026-10-21 | human:repository-owner | Close the design gaps behind the S11 gate: configuration-driven rule engine (precedence, reason codes, thresholds on the fly), decisions D1–D9, missing OpenAPI + LLD contracts, event specification, review fixes; prepare GAP-006/007 for Compliance signature | SF2 | SC0 | MUST | ARCH | P1 / P1 | ADMIT-BYPASS | [decisions](../../platform/architecture-review/DECISIONS-2026-10-21.md) · [ADR-024](../../platform/architecture-review/ADR-024-configuration-driven-rule-engine.md) · [sign-off packet](../../au-bank-insurance-platform/rule-packs/SIGNOFF-PACKET-GAP-006-007.md) · [detail](#sug-20261021-rul--configuration-driven-rule-engine-and-the-nine-open-decisions) |
 | SUG-20261021-lft | 2026-10-21 | human:repository-owner | Build the "code left for later": domain services re-check the PDP; BFF per-seam timeouts (2 s target); lead assignment history, meetings, follow-ups, idempotency and outbox tables; DynamoDB code in quotation and proposal services | SF2 | SC0 | MUST | BUG | P2 / P1 | ADMIT-BYPASS | [lead-service](../../platform/api-reference/services/lead-service.md) · [budgets](../../platform/api-reference/conventions/idempotency-timeouts-retries.md) · [detail](#sug-20261021-lft--build-the-code-left-for-later) |
 | SUG-20261021-ddb | 2026-10-21 | human:repository-owner | Override "no DynamoDB in R0": quote and proposal working state lives in DynamoDB until payment; after payment it moves to Postgres as structured rows, not JSON | SF2 | SC0 | MUST | ARCH | P2 / P1 | ADMIT-BYPASS | [DB-DEC-0005](../../platform/data-architecture/DB-DEC-0005-dynamodb-working-payload.md) · [table design](../../platform/data-architecture/schemas/20-dynamodb-working-payload.md) · [detail](#sug-20261021-ddb--dynamodb-for-quote-and-proposal-working-state) |
@@ -159,6 +160,39 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20261022-rdy · Build readiness for all 21 services
+
+```yaml
+id: SUG-20261022-rdy
+raised_at: "2026-10-22"
+raised_by: "human:repository-owner"
+source: "Mahesh answers to SUG-20261021-rul open items"
+input: >
+  Payment only after insurer underwriting approval. ADR-026 yes; new schemas yes; new journey stage
+  yes. Partner users are created by the admin (no approver); exception approvals for partner-created
+  leads follow the bank SP hierarchy — only bank admins / approvers approve. Timeouts, lead expiry
+  (per line of business), exception thresholds, snapshot window — all configuration. Be strict on
+  compliance: take the decision, record it, cross nothing, and list what needs confirmation. Finish
+  everything not done so developers (or 21 AI agents) can build all services at once.
+stage_fit: { code: SF2, rationale: "S08 completion; no stage edit" }
+scope: { code: SC0, business_scope: "R0 assisted Life sale, all 21 services" }
+necessity: { now: MUST, future_necessity: MUST, target_stage: "S11 entry", evidence_tier: E2, confidence: C3 }
+action: ADMIT-BYPASS
+bypass_authorised_by: "Mahesh / repository_owner (explicit session instruction)"
+reviewer_type: HUMAN
+authority: repository_owner
+action_rationale: >
+  Owner-directed. Compliance-strict decisions (C1–C8 in DECISIONS-2026-10-22.md) are configuration
+  defaults Compliance may relax; GAP-006/007 stay OPEN until the human Compliance signature.
+classification: { type: ARCH, also: [SEC, DOC, BUG], breakdown: EPIC, risk_tier: T3 }
+priority: { now: P1, at_target: P1 }
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: SUG-20261022-rdy
+  status: ADMIT-BYPASS
+resumed: "SUG-20261021-rul follow-up."
+```
 
 ### SUG-20261021-rul · Configuration-driven rule engine and the nine open decisions
 

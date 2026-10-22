@@ -1,7 +1,7 @@
 # ADR-026 — Business audit: events into an append-only audit store, archived to WORM
 
-**Status:** **Proposed** — recommendation to the owner (Mahesh asked for guidance on 2026-10-21).
-Becomes Accepted on the owner's explicit yes; Shailja (retention) and Deepali (tamper evidence) review.
+**Status:** **Accepted** — owner yes on 2026-10-22 ([round 2 E2](./DECISIONS-2026-10-22.md#owner-decisions)).
+Shailja (retention) and Deepali (tamper evidence) review the details.
 **Date:** 2026-10-21
 **Origin:** [`SUG-20261021-rul`](../../governance/registers/SUGGESTION-REGISTER.md#sug-20261021-rul--configuration-driven-rule-engine-and-the-nine-open-decisions) — review decision D7.
 
@@ -22,7 +22,7 @@ Database-level audit (triggers, pgaudit) answers the second well and the first b
 changes, not intent, actor capacity, reads (a customer search is a read), cross-service sequence,
 or the rule version that decided.
 
-## Recommendation (the decision if accepted)
+## Decision
 
 1. **Business audit is an event stream.** Every service writes an `AuditRecorded` event (envelope
    `ADR-025`, `data` = action, resource, outcome, `actingCapacity`, `priorState`/`newState`, rule-set

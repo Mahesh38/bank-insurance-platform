@@ -18,7 +18,7 @@ IRDAI confirmations; those are named per decision.
 | D4 | Suitability outcome record and Savings/ULIP model | **Accepted** (record); Savings/ULIP content needs Compliance | §D4 |
 | D5 | Consent after suitability, checked/captured before multi-quote, valid 90 days (configurable) | **Accepted** — Compliance must confirm DPDP position | §D5, `D-024` |
 | D6 | Event envelope, topics, DLQ, publisher library | **Accepted** | [`ADR-025`](./ADR-025-event-specification-and-publisher.md) |
-| D7 | Business audit as events into an append-only, hash-chained audit store + WORM archive | **Proposed** — awaits owner yes | [`ADR-026`](./ADR-026-audit-store-and-transport.md) |
+| D7 | Business audit as events into an append-only, hash-chained audit store + WORM archive | **Accepted** 2026-10-22 | [`ADR-026`](./ADR-026-audit-store-and-transport.md) |
 | D8 | Payment → structured Postgres record, then appended statuses until issuance; IRDAI TAT tracked | **Accepted** | §D8, `D-025` |
 | D9 | Checked-in OpenAPI per service is authoritative; conformance test | **Accepted** | [`ADR-027`](./ADR-027-openapi-contract-authority.md) |
 
@@ -112,6 +112,8 @@ is a rule-set version, not code. The journey asks consent-service
 > `BEFORE_SUITABILITY`).
 
 ## D8 — Payment, issuance tracking and the long-term record (`D-025`)
+
+> **Amended 2026-10-22 ([round 2 E1](./DECISIONS-2026-10-22.md#owner-decisions)):** payment happens only after the insurer's underwriting approval (`UW_APPROVED → AWAITING_PAYMENT`). Read the sequence below with the payment link generated after UW approval.
 
 **Owner direction, as decided:**
 

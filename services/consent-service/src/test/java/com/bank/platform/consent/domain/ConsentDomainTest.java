@@ -315,11 +315,23 @@ class ConsentDomainTest {
   @Test
   void scrubberAndUlids_doNotKeepACustomerAttribute() {
     String raw =
-        "mail a@b.co pan ABCDE1234F aadhaar 1234 5678 9012 mobile 9876543210 ip 203.0.113.10";
+        "mail a@b.co alias user%name@example.com pan ABCDE1234F aadhaar 1234 5678 9012 mobile 9876543210 ip 203.0.113.10";
     String scrubbed = SensitiveText.scrub(raw);
     assertThat(scrubbed)
-        .doesNotContain("a@b.co", "ABCDE1234F", "1234 5678 9012", "9876543210", "203.0.113.10");
+        .doesNotContain(
+            "a@b.co",
+            "user%name@example.com",
+            "ABCDE1234F",
+            "1234 5678 9012",
+            "9876543210",
+            "203.0.113.10");
     assertThat(SensitiveText.scrub(null)).isNull();
+    assertThat(SensitiveText.scrub("")).isEmpty();
+    assertThat(
+            SensitiveText.scrub(
+                "see @ and a@b.c and a+b_c@d.co and n@example.c1 and n@example.abcdefghijklmnopqrstuvwxy"))
+        .contains("a@b.c", "n@example.c1", "n@example.abcdefghijklmnopqrstuvwxy")
+        .doesNotContain("a+b_c@d.co");
     String ulid = Ulids.mint(java.time.Clock.fixed(T0, java.time.ZoneOffset.UTC));
     assertThat(ulid).hasSize(26).matches("[0-9A-HJKMNP-TV-Z]{26}");
     assertThat(ulid).doesNotContain("9876543210");

@@ -7,6 +7,7 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import com.bank.platform.consent.adapter.otp.LoggingOtpDispatch;
+import com.bank.platform.consent.adapter.security.LoggingSecurityEventSink;
 import com.bank.platform.consent.config.ConsentConfiguration;
 import com.bank.platform.consent.domain.ConsentCodes;
 import com.bank.platform.consent.domain.ConsentRefusal;
@@ -47,8 +48,9 @@ class FieldProtectionTest {
   }
 
   @Test
-  void dispatchLog_namesTheChallengeOnly() {
-    Logger logger = (Logger) LoggerFactory.getLogger(LoggingOtpDispatch.class);
+  void dispatchLog_isAConstant() {
+    Logger logger =
+        (Logger) LoggerFactory.getLogger("com.bank.platform.consent.adapter.otp.DispatchTrace");
     ListAppender<ILoggingEvent> appender = new ListAppender<>();
     appender.start();
     logger.addAppender(appender);
@@ -56,7 +58,35 @@ class FieldProtectionTest {
       new LoggingOtpDispatch().send("challenge-1", new byte[] {1}, "135790");
       assertThat(appender.list).hasSize(1);
       assertThat(appender.list.get(0).getFormattedMessage())
-          .isEqualTo("otp dispatched challenge=challenge-1");
+          .isEqualTo("consent code dispatch accepted")
+          .doesNotContain("135790", "challenge-1");
+    } finally {
+      logger.detachAppender(appender);
+    }
+  }
+
+  @Test
+  void dispatch_rejectsABlankCode() {
+    assertThatThrownBy(() -> new LoggingOtpDispatch().send("challenge-1", new byte[] {1}, " "))
+        .isInstanceOf(IllegalArgumentException.class);
+  }
+
+  @Test
+  void securityEvent_stripsLineBreaks() {
+    Logger logger = (Logger) LoggerFactory.getLogger(LoggingSecurityEventSink.class);
+    ListAppender<ILoggingEvent> appender = new ListAppender<>();
+    appender.start();
+    logger.addAppender(appender);
+    try {
+      new LoggingSecurityEventSink().subjectMismatch("rm\n1", "jour\rney", "consent");
+      assertThat(appender.list).hasSize(1);
+      assertThat(appender.list.get(0).getFormattedMessage())
+          .isEqualTo(
+              "security_event=CONSENT_SUBJECT_MISMATCH actor=rm1 journey=journey consent=consent")
+          .doesNotContain("\n", "\r");
+      new LoggingSecurityEventSink().subjectMismatch(" ", null, "");
+      assertThat(appender.list.get(1).getFormattedMessage())
+          .isEqualTo("security_event=CONSENT_SUBJECT_MISMATCH actor=- journey=- consent=-");
     } finally {
       logger.detachAppender(appender);
     }

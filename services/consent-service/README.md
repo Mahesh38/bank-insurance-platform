@@ -92,7 +92,7 @@ In-service controls from the rule pack that this module enforces:
 - S3 Object Lock / compliance-mode retention of documents. This service stores the anchor instant only.
 - Database `GRANT INSERT` for the evidence role. The store has no update or delete API. Privilege grants are an infrastructure item.
 - Journey execution of `HALT_JOURNEY`. This service returns the effect.
-- SMS delivery and the CBS registered-contact lookup. `OtpDispatch` is a port. The default adapter logs the challenge id only.
+- SMS delivery and the CBS registered-contact lookup. `OtpDispatch` is a port. The default adapter writes a constant acceptance line and does not log the code, the contact, or the challenge id.
 - DPDP Consent Manager interoperability.
 - The distributor id is stored in this service's database and is omitted from responses and logs. It is not separately encrypted.
 

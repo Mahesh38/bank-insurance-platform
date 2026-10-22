@@ -75,6 +75,9 @@ public final class AesFieldCipher implements FieldCipher {
       byte[] iv = new byte[IV_LENGTH];
       System.arraycopy(ciphertext, 0, iv, 0, IV_LENGTH);
       Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+      // Nonce recovered from this ciphertext. Decrypt must not mint a fresh one.
+      // lgtm[java/static-initialization-vector]
+      // codeql[java/static-initialization-vector]
       cipher.init(
           Cipher.DECRYPT_MODE, new SecretKeySpec(key, "AES"), new GCMParameterSpec(TAG_BITS, iv));
       byte[] plain = cipher.doFinal(ciphertext, IV_LENGTH, ciphertext.length - IV_LENGTH);

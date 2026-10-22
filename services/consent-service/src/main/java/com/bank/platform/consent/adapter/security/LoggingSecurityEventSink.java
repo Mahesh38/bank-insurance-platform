@@ -14,8 +14,17 @@ public final class LoggingSecurityEventSink implements SecurityEventSink {
   public void subjectMismatch(String actorId, String journeyId, String consentId) {
     log.warn(
         "security_event=CONSENT_SUBJECT_MISMATCH actor={} journey={} consent={}",
-        SensitiveText.scrub(actorId),
-        SensitiveText.scrub(journeyId),
-        consentId);
+        oneLine(actorId),
+        oneLine(journeyId),
+        oneLine(consentId));
+  }
+
+  /** Drops line breaks so a caller cannot forge a second log record. */
+  private static String oneLine(String value) {
+    String scrubbed = SensitiveText.scrub(value == null ? "" : value);
+    if (scrubbed == null || scrubbed.isBlank()) {
+      return "-";
+    }
+    return scrubbed.replace("\r", "").replace("\n", "");
   }
 }

@@ -8,6 +8,8 @@ dependencies {
     implementation(project(":libs:bank-common-error"))
     implementation(project(":libs:bank-common-audit"))
     implementation(project(":libs:bank-common-observability"))
+    // ADR-024: LEAD.EXCEPTION and LEAD.POLICY are evaluated by the shared engine.
+    implementation(project(":libs:bank-rule-engine"))
 
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-actuator")

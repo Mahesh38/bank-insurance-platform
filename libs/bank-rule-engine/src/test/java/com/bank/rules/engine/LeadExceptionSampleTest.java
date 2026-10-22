@@ -42,5 +42,20 @@ class LeadExceptionSampleTest {
 
     assertThat(report.failed()).isEmpty();
     assertThat(sample.testCases()).allMatch(RuleSet.TestCase::sample);
+
+    // E6: the evaluation evidence carries who may approve each fired rule, so the approval
+    // endpoint checks the roles of the version that decided, not of whatever is in force later.
+    RuleSet.TestCase age =
+        sample.testCases().stream()
+            .filter(t -> t.name().equals("SAMPLE-age-routes-to-approval"))
+            .findFirst()
+            .orElseThrow();
+    EvaluationResult r = RuleEngine.evaluate(sample, age.inputs());
+    assertThat(r.fired())
+        .singleElement()
+        .satisfies(
+            f ->
+                assertThat(f.params().get("approverRoles"))
+                    .isEqualTo(java.util.List.of("BANK_ADMIN", "BRANCH_MANAGER")));
   }
 }

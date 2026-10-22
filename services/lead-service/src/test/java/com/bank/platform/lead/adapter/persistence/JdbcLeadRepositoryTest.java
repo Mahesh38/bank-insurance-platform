@@ -28,7 +28,8 @@ class JdbcLeadRepositoryTest {
   @BeforeEach
   void clean() {
     for (String table :
-        new String[] {"lead_assignment", "lead_meeting", "lead_follow_up", "outbox_event"}) {
+        new String[] {
+          "lead_exception_decision", "lead_exception_evaluation", "lead_assignment", "lead_meeting", "lead_follow_up", "outbox_event"}) {
       jdbc.update("DELETE FROM lead_lms." + table);
     }
     jdbc.update("DELETE FROM lead_lms.lead");

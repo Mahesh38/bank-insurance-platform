@@ -12,8 +12,8 @@
 | **Pattern** | **Transactional outbox in front of a broker** (`ADR-012`, `ADR-025`). The outbox row is the source of truth and the replay log. Amazon MSK is transport and fan-out |
 | **Envelope** | `event-envelope/v1`, one per message: [schema](../../contracts/events/schemas/event-envelope.v1.json) |
 | **Topics** | `{env}.{context}.{aggregate}.v{n}`, keyed by `aggregateId`; 6 partitions, retention 7 days, `min.insync.replicas=2`. Retry topic `{env}.retry.{consumerGroup}` (backoff 1 s / 10 s / 60 s), DLQ `{env}.dlq.{consumerGroup}` |
-| **Producers** | Every service that owns a schema and changes state: Lead, Suitability, Consent, Journey, Quotation, Proposal, Payment, Policy. Identity's provisioning outbox is internal and is not published |
-| **Consumers** | Audit (#16, mandatory), Notification (#17), Journey (stage moves), Quotation / Proposal (materialise on `PaymentReconciled`), Policy (issuance tracking), Lead (`JourneySold`), Reporting (#18, S13+) |
+| **Producers** | Every service that owns a schema and changes state: Lead, Suitability, Consent, Journey, Quotation, Proposal, Payment, Policy, Notification, Product catalogue, Identity (`PartnerUserCreated`), Administration-config (`RuleSetPublished`). Identity's provisioning outbox is internal and is not published |
+| **Consumers** | Audit (#16, mandatory), Notification (#17), Journey (stage moves), Quotation / Proposal (materialise on `PaymentReconciled`), Policy (issuance tracking), Payment (refund on `PolicyIssuanceFailed`), Lead (`JourneySold`), every deciding service (rule cache on `RuleSetPublished`), Reporting (#18, S13+) |
 | **Guarantee** | At-least-once. Consumers **must** dedupe on `eventId` (`IdempotentEventHandler` + `processed_event`) and tolerate replay |
 | **Code status** | `libs/bank-common-events` **IMPLEMENTED**: envelope, `OutboxWriter`, `JdbcOutboxRelay`, `EventPublisher`, Kafka adapter, `IdempotentEventHandler`. Lead, quotation and proposal write outbox rows today but with attribute-map payloads; moving them to the envelope is pending. No service runs a relay yet, and MSK topics are provisioned in S09 |
 
@@ -26,8 +26,8 @@ database.
 
 **Rule that cannot be traded:** no regulatory evidence exists only in a topic. Audit consumes the topic and writes
 its own evidence store, and **that write** is what lets a journey reach `SOLD` (`INV-JRN-05`, `FF-26`). The
-evidence-store design is [`ADR-026`](../../architecture-review/ADR-026-audit-store-and-transport.md), which is
-*proposed*: an `AuditRecorded` event into an append-only, hash-chained `audit.audit_event`.
+evidence-store design is [`ADR-026`](../../architecture-review/ADR-026-audit-store-and-transport.md), **accepted** by
+owner decision E2 (2026-10-22): an `AuditRecorded` event into an append-only, hash-chained `audit.audit_event`.
 
 ## 2. Flow
 
@@ -65,27 +65,32 @@ Full DDL and indexes: [catalogue §6.1](../../contracts/events/CATALOGUE.md#61-p
 
 ## 4. Event catalogue
 
-This section is now a **summary**. The complete list (≈36 events, each with producer, topic, key, consumers,
+This section is now a **summary**. The complete list (≈54 events, each with producer, topic, key, consumers,
 schema, status and notes) is in [`CATALOGUE.md` §2](../../contracts/events/CATALOGUE.md#2-events).
 
 | Event | Producer | Key payload (see schema) | Consumers |
 |---|---|---|---|
-| `LeadCreated` / `LeadExceptionEvaluated` / `LeadAssigned` / `LeadQualified` / `LeadClosed` | Lead | leadId, state, productClass, exceptionOutcome | Journey, Audit, Reporting |
+| `LeadCreated` / `LeadExceptionEvaluated` / `LeadAssigned` / `LeadQualified` / `LeadClosed` / `LeadExpired` / `LeadExceptionApproved` / `LeadExceptionRejected` | Lead | leadId, state, productClass, exceptionOutcome (+ reasonCodes, approverRole) | Journey, Audit, Reporting |
 | `ConsentGranted` / `ConsentWithdrawn` | Consent | consentId, customerId, **purpose** (incl. new `CNS-QSH`), checkpoint, validUntil | Journey, Audit (+ Notification on withdraw) |
 | `SuitabilityCompleted` / `SuitabilityOverridden` | Suitability | evaluationId, customerId, **outcomes per product class** (D4), ruleSetVersion | Journey, Quotation gate, Audit, Reporting |
-| `QuoteRequested` / `QuoteCompleted` / `QuoteFailed` / `OfferSelected` / `QuoteConverted` | Quotation | quoteId, state (+ journeyId, offerId) | Journey, Audit, Reporting |
+| `QuoteRequested` / `QuoteCompleted` / `QuoteFailed` / `OfferSelected` / `QuoteConverted` / `QuoteExpired` | Quotation | quoteId, state (+ journeyId, offerId) | Journey, Audit, Reporting |
 | `QuoteRejectedNoSuitability` | Quotation | quoteId, customerId, productClass, reasonCode | **Audit (mandatory)**, Reporting |
-| `ProposalCreated` / `ProposalSubmitted` / `ProposalAcknowledged` / `UnderwritingDecision` / `ProposalWithdrawn` / `ProposalMaterialised` | Proposal | proposalId, state, journeyId (+ applicationNumber) | Journey, Policy, Audit, Notification |
-| `PaymentLinkIssued` / `PaymentAuthorised` / `PaymentCaptured` / `PaymentDeclined` / `PaymentExpired` | Payment | paymentId (+ pgTxnId, amount, currency) | Journey, Quotation / Proposal (end in-flight), Audit, Notification |
+| `ProposalCreated` / `ProposalSubmitted` / `ProposalAcknowledged` / `UnderwritingDecision` / `ProposalWithdrawn` / `ProposalMaterialised` / `ProposalStatusChanged` / `ProposalExpired` | Proposal | proposalId, state, journeyId (+ applicationNumber) | Journey, Policy, Audit, Notification |
+| `ProposalBlockedNoConsent` | Proposal | proposalId, checkpoint, missingPurposes, reasonCode | **Audit (mandatory)**, Journey |
+| `PaymentLinkIssued` / `PaymentAuthorised` / `PaymentCaptured` / `PaymentDeclined` / `PaymentExpired` / `PaymentRejected` / `PaymentUncertain` / `RefundInitiated` / `PaymentRefunded` | Payment | paymentId (+ pgTxnId, amount, currency) | Journey, Quotation / Proposal (end in-flight), Audit, Notification |
 | `PaymentReconciled` | Payment | **paymentId, quoteId, proposalId, journeyId, applicationNumber**, settlementRef, method, paidAt, reconciledAt, amount, currency (D8) | Journey, **Quotation, Proposal (materialise)**, Policy (start TAT clock), Audit, Reporting |
 | `PaymentReconciliationBreak` | Payment | paymentId, expectedAmount, observedAmount, breakCode | **Audit, Operations alert** |
 | `PolicyStatusChanged` | Policy | policyId, proposalId, applicationNumber, status (`APPLICATION_RECEIVED` … `REFUNDED`), statusSource (D8) | Journey, Notification, Audit, Reporting |
-| `PolicyIssued` / `ProposalDeclined` | Policy | policyId, policyNumber / reasonCode, proposalId, journeyId | Journey, Notification, Payment (refund on decline), Audit |
-| `PolicyIssuanceFailed` | Policy | proposalId, paymentId, reasonCode | **Journey (→ COMPENSATING)**, Audit, Operations |
+| `IssuanceTrackingStarted` / `PolicyIssued` / `PolicyClosed` | Policy | policyId, proposalId, applicationNumber, journeyId (+ clockStartedAt, finalState) | Journey, Notification, Audit, Reporting |
+| `PolicyIssuanceFailed` | Policy | proposalId, paymentId, reasonCode, **failureKind** (`INSURER_DECLINED` / `ISSUANCE_ERROR` / `TAT_EXHAUSTED`), refundRequired | **Journey (→ COMPENSATING)**, **Payment (refund)**, Notification, Audit, Operations. Replaces `ProposalDeclined` (superseded, [catalogue §2.1](../../contracts/events/CATALOGUE.md#21-one-post-payment-non-issuance-event-policyissuancefailed-not-proposaldeclined)) |
 | `IssuanceTatEscalated` | Policy | proposalId, level (`WARNING` / `BREACHED`), decisionDays (D8, `PROPOSAL.TAT`) | Operations alert, Notification, Audit |
 | `JourneySold` | Journey | journeyId, policyId, paymentId, leadId | **Lead (convert/archive)**, Audit, Reporting |
 | `JourneyCompensating` | Journey | journeyId, failurePoint | Operations alert, Audit |
-| `AuditRecorded` *(proposed, ADR-026)* | every service | action, resourceType, resourceId, outcome, prior/new state | audit-compliance-service |
+| `RuleSetPublished` | Administration-config | ruleSetId, version, domain, scope, documentSha256 | every deciding service (cache), Audit |
+| `ProductVersionPublished` | Product catalogue | productId, productVersion, insurerCode, productClass | Quotation, Audit |
+| `NotificationSent` / `NotificationFailed` | Notification | notificationId, templateId, channel (+ reasonCode, attempts) — never the recipient | Audit, Operations |
+| `PartnerUserCreated` | Identity | partnerUserId, insurerCode, roles, approvalRequired (E5) | Audit |
+| `AuditRecorded` *(ADR-026, accepted E2)* | every service | action, resourceType, resourceId, outcome, prior/new state | audit-compliance-service |
 
 Identity's `IDENTITY_PROVISIONING_REQUESTED` stays an internal outbox drained by identity's own dispatcher. It is
 not a bus event.
@@ -100,6 +105,6 @@ not a bus event.
 
 ## 5. Sources
 
-- [ADR-025](../../architecture-review/ADR-025-event-specification-and-publisher.md) · [Decisions 2026-10-21 §D5, §D8](../../architecture-review/DECISIONS-2026-10-21.md) · [ADR-026 (proposed)](../../architecture-review/ADR-026-audit-store-and-transport.md)
+- [ADR-025](../../architecture-review/ADR-025-event-specification-and-publisher.md) · [Decisions 2026-10-21 §D5, §D8](../../architecture-review/DECISIONS-2026-10-21.md) · [Decisions 2026-10-22](../../architecture-review/DECISIONS-2026-10-22.md) · [ADR-026 (accepted, E2)](../../architecture-review/ADR-026-audit-store-and-transport.md)
 - [R0 HLD Boundary 9](../../../architecture/R0-HLD.md#boundary-9--event-and-messaging) · [R0 solution architecture §5.1](../../ws3-platform/03-solution-architecture-r0.md#51-the-event-backbone-and-why-the-outbox-stays-in-front-of-it--s07-e02-s03) · [Domain model §7](../../ws3-platform/01-domain-model-and-invariants.md)
 - `libs/bank-common-events` · `services/identity-authorization-service/src/main/java/com/bank/identity/authz/application/ProvisioningOutboxDispatcher.java`

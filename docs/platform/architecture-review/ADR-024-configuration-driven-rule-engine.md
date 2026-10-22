@@ -173,10 +173,14 @@ The engine is pure: same inputs + same rule-set version → byte-identical resul
 | `ruleSetId` | Domain | Seed source | Content approver |
 |---|---|---|---|
 | `SUITABILITY.LIFE.TERM` / `.SAVINGS` / `.ULIP` | Suitability | Suitability rule pack §2–§4 (`D-022`) | Shailja / Compliance (permissibility), Rajal (behaviour) |
-| `SUITABILITY.GATE` | Gate policy: outcomes that permit a quote, caution-acknowledgement requirement, validity days | Rule pack §6 | Shailja |
-| `CONSENT.POLICY` | Checkpoints, purposes per checkpoint, validity days, reuse | Consent rule pack §2, §6; owner decision `D-024` | Shailja |
+| `SUITABILITY.GATE` | Gate policy: outcomes that permit a quote, caution-acknowledgement requirement and modes, validity days | Rule pack §6; [C5](./DECISIONS-2026-10-22.md#compliance-strict-decisions-taken-under-e9) (caution only with the customer's own-device acknowledgement) | Shailja |
+| `CONSENT.POLICY` | Checkpoints, purposes per checkpoint, validity days, reuse; `verificationModes`, `separateActions`, `requiredStatementStatus` | Consent rule pack §2, §6; owner decision `D-024`; strict seeds [C1–C3, C7](./DECISIONS-2026-10-22.md#compliance-strict-decisions-taken-under-e9) (`CNS-DP` + `CNS-SOL` at `BEFORE_SUITABILITY`) | Shailja |
 | `LEAD.EXCEPTION` | `EH-BR-RULE-001…015` | Exception Handling BRD §24.3 / §24.5 — thresholds **TBC** | Exception BRD owner |
-| `PROPOSAL.TAT` | Insurer decision turnaround, escalation | IRDAI Master Circular 2024 (7 days) — `D-025` | Shailja |
+| `PROPOSAL.TAT` | Insurer decision turnaround (7 calendar days from `PROPOSAL_RECEIVED`), poll interval (4 h), warning (day 5) | IRDAI Master Circular 2024 (7 days) — `D-025`; [C4 and engineering defaults](./DECISIONS-2026-10-22.md#engineering-defaults-chosen-all-configuration-change-without-code) | Shailja |
+| `LEAD.POLICY` | Lead periods per `lob` (`expiryDays`; LIFE 90) | [E7](./DECISIONS-2026-10-22.md#owner-decisions); Lead BRD | Rajal |
+| `CUSTOMER.POLICY` | Customer snapshot freshness (`snapshotFreshnessMinutes`, default 1440) | [E7 and engineering defaults](./DECISIONS-2026-10-22.md#engineering-defaults-chosen-all-configuration-change-without-code) | Rajal |
+| `CATALOGUE.ELIGIBILITY` | Whether the bank sells a product to an applicant (age, sum assured, term bands), hit policy `FIRST` — *contracted, no seed yet* | [product-catalogue LLD §5](../contracts/product-catalogue-service/LLD.md#5-eligibility--two-sources-one-precedence) | Rajal |
+| `AUDIT.SOLD.COMPLETENESS` | Audit steps that must exist before a journey may reach `SOLD` (`INV-JRN-05`) — *contracted, no seed yet* | [audit-compliance LLD](../contracts/audit-compliance-service/LLD.md); ADR-026 (accepted, E2) | Shailja |
 | `HUB.ROUTING` | Provider per (lob, productClass, insurer) | Integration Hub page §3 | Mahesh |
 
 ## Alternatives considered

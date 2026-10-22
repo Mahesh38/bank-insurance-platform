@@ -6,21 +6,24 @@
     "lob": "LIFE",
     "productClass": null
   },
-  "version": "1.0.0",
+  "version": "1.1.0",
   "effectiveFrom": "2026-11-01T00:00:00+05:30",
   "effectiveTo": null,
   "classification": "PRODUCT",
   "pinning": "NONE",
-  "description": "Lead exception rules EH-BR-RULE-001..015 evaluated at Start Onboarding (and 012-013 at premium capture). Thresholds and per-rule action are UNSET: every lead routes to BLOCK / EH-CONFIG-MISSING until the BRD owner configures them (DECISIONS D2).",
+  "description": "Lead exception rules EH-BR-RULE-001..015 evaluated at Start Onboarding (and 012-013 at premium capture). Thresholds and per-rule action (parameters.actions.<ruleId>: BLOCK | APPROVAL_REQUIRED) are UNSET: every lead routes to BLOCK / EH-CONFIG-MISSING until the BRD owner configures them (DECISIONS D2, E7). Who may approve an APPROVAL_REQUIRED breach is parameters.approverRoles.<ruleId> - bank roles only (E6); strict seed [BANK_ADMIN] (E9).",
   "source": {
     "document": "docs/au-bank-insurance-platform/requirements/brd-detailed/Exception_Handling_BRD_V1.0_CONTEXT.md",
     "sections": [
       "24.3 rules and rule definitions (column I: block where required configuration is unavailable; column J: remarks mandatory)",
       "24.5 error messages EH-ERR-RULE-001..015 (verbatim, including source spelling)",
-      "24.3 EH-BR-MULTI-002 (highest configured treatment wins)"
+      "24.3 EH-BR-MULTI-002 (highest configured treatment wins)",
+      "12 approval hierarchy (bank employee hierarchy; block if approver unavailable)",
+      "5.2 / 5.3 roles: only the Exception Approver approves or rejects, with mandatory remarks"
     ],
     "decisions": [
       "DECISIONS-2026-10-21 D2",
+      "DECISIONS-2026-10-22 E6, E7, E9",
       "ADR-024"
     ]
   },
@@ -31,9 +34,11 @@
       "Exception Handling BRD owner"
     ],
     "approverRole": "PRODUCT_APPROVER",
-    "seededBy": "SUG-20261021-rul (owner-directed build, ADMIT-BYPASS)",
+    "seededBy": "SUG-20261021-rul; approverRoles SUG-20261022-rdy (owner-directed build, ADMIT-BYPASS)",
     "openItems": [
       "D2 owner action: threshold values and per-rule action (BLOCK | APPROVAL_REQUIRED) - all unset, none invented",
+      "E6: approverRoles per rule is configuration. Strict seed [BANK_ADMIN] for every rule (E9); which hierarchy level (e.g. BRANCH_MANAGER, BRD section 12 Branch Banking / Banca / Persistency columns) approves which rule awaits the BRD owner. Insurer partner roles must never be listed",
+      "BRD section 12 multi-level (ordered) approval and hierarchy-workbook routing are not modelled: one decision by a holder of an approver role releases or rejects the hold",
       "Data sources EH-INT-001..005 (CBS, Equifax, DWH, insurer policy data) behind the inputs",
       "Classification PRODUCT is provisional; owner to confirm whether Compliance must also approve"
     ]
@@ -189,6 +194,9 @@
         "params": {
           "AGE": {
             "param": "maxProposerAge"
+          },
+          "approverRoles": {
+            "param": "approverRoles.EH-BR-RULE-001"
           }
         },
         "actions": [
@@ -217,7 +225,11 @@
           "param": "actions.EH-BR-RULE-002"
         },
         "reasonCode": "EH-ERR-RULE-002",
-        "params": {},
+        "params": {
+          "approverRoles": {
+            "param": "approverRoles.EH-BR-RULE-002"
+          }
+        },
         "actions": [
           "REMARKS_MANDATORY_ON_DECISION"
         ]
@@ -247,6 +259,9 @@
         "params": {
           "Equifaxscore": {
             "param": "minEquifaxScore"
+          },
+          "approverRoles": {
+            "param": "approverRoles.EH-BR-RULE-003"
           }
         },
         "actions": [
@@ -297,6 +312,9 @@
           },
           "noofmonths": {
             "param": "lapseWindowMonths"
+          },
+          "approverRoles": {
+            "param": "approverRoles.EH-BR-RULE-004"
           }
         },
         "actions": [
@@ -328,6 +346,9 @@
         "params": {
           "surrendered_Time": {
             "param": "terminationCoolingMonths"
+          },
+          "approverRoles": {
+            "param": "approverRoles.EH-BR-RULE-005"
           }
         },
         "actions": [
@@ -362,6 +383,9 @@
           },
           "inforcedpolicy_time": {
             "param": "activePolicyWindowDays"
+          },
+          "approverRoles": {
+            "param": "approverRoles.EH-BR-RULE-006"
           }
         },
         "actions": [
@@ -401,6 +425,9 @@
         "params": {
           "CASA_ACCOUNT_AGE": {
             "param": "minCasaAccountAgeDays"
+          },
+          "approverRoles": {
+            "param": "approverRoles.EH-BR-RULE-007"
           }
         },
         "actions": [
@@ -440,6 +467,9 @@
         "params": {
           "NoOfDays": {
             "param": "assetCoolingDays"
+          },
+          "approverRoles": {
+            "param": "approverRoles.EH-BR-RULE-008"
           }
         },
         "actions": [
@@ -468,7 +498,11 @@
           "param": "actions.EH-BR-RULE-009"
         },
         "reasonCode": "EH-ERR-RULE-009",
-        "params": {},
+        "params": {
+          "approverRoles": {
+            "param": "approverRoles.EH-BR-RULE-009"
+          }
+        },
         "actions": [
           "REMARKS_MANDATORY_ON_DECISION"
         ]
@@ -495,7 +529,11 @@
           "param": "actions.EH-BR-RULE-010"
         },
         "reasonCode": "EH-ERR-RULE-010",
-        "params": {},
+        "params": {
+          "approverRoles": {
+            "param": "approverRoles.EH-BR-RULE-010"
+          }
+        },
         "actions": [
           "REMARKS_MANDATORY_ON_DECISION"
         ]
@@ -554,7 +592,11 @@
           "param": "actions.EH-BR-RULE-011"
         },
         "reasonCode": "EH-ERR-RULE-011",
-        "params": {},
+        "params": {
+          "approverRoles": {
+            "param": "approverRoles.EH-BR-RULE-011"
+          }
+        },
         "actions": [
           "REMARKS_MANDATORY_ON_DECISION"
         ]
@@ -616,6 +658,9 @@
         "params": {
           "PremiumdueRenewal": {
             "param": "unpaidRenewalWindowYears"
+          },
+          "approverRoles": {
+            "param": "approverRoles.EH-BR-RULE-012"
           }
         },
         "actions": [
@@ -663,6 +708,9 @@
         "params": {
           "PremiumAmount": {
             "var": "annualPremium"
+          },
+          "approverRoles": {
+            "param": "approverRoles.EH-BR-RULE-013"
           }
         },
         "actions": [
@@ -691,7 +739,11 @@
           "param": "actions.EH-BR-RULE-014"
         },
         "reasonCode": "EH-ERR-RULE-014",
-        "params": {},
+        "params": {
+          "approverRoles": {
+            "param": "approverRoles.EH-BR-RULE-014"
+          }
+        },
         "actions": [
           "REMARKS_MANDATORY_ON_DECISION"
         ]
@@ -718,7 +770,11 @@
           "param": "actions.EH-BR-RULE-015"
         },
         "reasonCode": "EH-ERR-RULE-015",
-        "params": {},
+        "params": {
+          "approverRoles": {
+            "param": "approverRoles.EH-BR-RULE-015"
+          }
+        },
         "actions": [
           "REMARKS_MANDATORY_ON_DECISION"
         ]
@@ -754,6 +810,53 @@
       "EH-BR-RULE-013": null,
       "EH-BR-RULE-014": null,
       "EH-BR-RULE-015": null
+    },
+    "approverRoles": {
+      "EH-BR-RULE-001": [
+        "BANK_ADMIN"
+      ],
+      "EH-BR-RULE-002": [
+        "BANK_ADMIN"
+      ],
+      "EH-BR-RULE-003": [
+        "BANK_ADMIN"
+      ],
+      "EH-BR-RULE-004": [
+        "BANK_ADMIN"
+      ],
+      "EH-BR-RULE-005": [
+        "BANK_ADMIN"
+      ],
+      "EH-BR-RULE-006": [
+        "BANK_ADMIN"
+      ],
+      "EH-BR-RULE-007": [
+        "BANK_ADMIN"
+      ],
+      "EH-BR-RULE-008": [
+        "BANK_ADMIN"
+      ],
+      "EH-BR-RULE-009": [
+        "BANK_ADMIN"
+      ],
+      "EH-BR-RULE-010": [
+        "BANK_ADMIN"
+      ],
+      "EH-BR-RULE-011": [
+        "BANK_ADMIN"
+      ],
+      "EH-BR-RULE-012": [
+        "BANK_ADMIN"
+      ],
+      "EH-BR-RULE-013": [
+        "BANK_ADMIN"
+      ],
+      "EH-BR-RULE-014": [
+        "BANK_ADMIN"
+      ],
+      "EH-BR-RULE-015": [
+        "BANK_ADMIN"
+      ]
     }
   },
   "reasonCodes": {

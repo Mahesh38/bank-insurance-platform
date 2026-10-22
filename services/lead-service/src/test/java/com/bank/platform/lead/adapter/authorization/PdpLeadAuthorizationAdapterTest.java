@@ -73,6 +73,17 @@ class PdpLeadAuthorizationAdapterTest {
   }
 
   @Test
+  void exceptionApprovalIsBranchScopedAndNeverPartnerVisible() {
+    answer.set(decision(true, "ROLE_GRANT"));
+    adapter.decide(SUBJECT, "lead.exception.approve", "L1", "BR-7");
+
+    assertThat(lastRequest.get())
+        .contains("\"action\":\"lead.exception.approve\"")
+        .contains("\"branchCode\":\"BR-7\"")
+        .contains("\"partnerVisible\":false");
+  }
+
+  @Test
   void presentsTheServiceKeyToThePdp() {
     answer.set(decision(true, "ROLE_GRANT"));
     adapter.decide(SUBJECT, "lead.read", "L1", null);

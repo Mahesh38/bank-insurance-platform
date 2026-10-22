@@ -28,6 +28,7 @@ public class PdpLeadAuthorizationAdapter implements LeadAuthorizationPort {
   private static final Logger log = LoggerFactory.getLogger(PdpLeadAuthorizationAdapter.class);
 
   static final String INTERNAL_KEY_HEADER = "X-Internal-Service-Key";
+  static final String EXCEPTION_ACTION_PREFIX = "lead.exception.";
 
   private final RestClient client;
 
@@ -61,11 +62,15 @@ public class PdpLeadAuthorizationAdapter implements LeadAuthorizationPort {
     } catch (IllegalArgumentException | NullPointerException ex) {
       return AuthorizationDecision.deny("UNKNOWN_SUBJECT");
     }
+    // partnerVisible=false is what makes the PDP refuse an insurer representative on an existing
+    // lead (RESOURCE_NOT_SHARED_WITH_PARTNER) — and on an exception decision always (E6), so a
+    // partner can never approve even if a role grant were misconfigured.
+    boolean partnerVisible = leadId == null && !action.startsWith(EXCEPTION_ACTION_PREFIX);
     var request =
         new DecisionRequest(
             subjectId,
             action,
-            new Resource("lead", leadId, branchId, null, null, Set.of(), leadId == null, false));
+            new Resource("lead", leadId, branchId, null, null, Set.of(), partnerVisible, false));
     try {
       Decision decision =
           client

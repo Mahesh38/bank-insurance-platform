@@ -4,8 +4,8 @@ import com.bank.common.error.ErrorCodes;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.TreeMap;
 
 /**
  * The proposal while the sale is open: plaintext control attributes (schemas/20 §2) plus the
@@ -31,6 +31,7 @@ public final class WorkingProposal {
       String issuanceMode,
       String configVersionRef,
       boolean paymentInFlight,
+      String heldByPaymentId,
       Instant materializedAt,
       long version,
       Instant createdAt,
@@ -55,6 +56,7 @@ public final class WorkingProposal {
   private ProposalState state;
   private String underwritingState;
   private boolean paymentInFlight;
+  private String heldByPaymentId;
   private Instant materializedAt;
   private long version;
   private Instant updatedAt;
@@ -81,6 +83,7 @@ public final class WorkingProposal {
     this.state = s.state();
     this.underwritingState = s.underwritingState();
     this.paymentInFlight = s.paymentInFlight();
+    this.heldByPaymentId = s.heldByPaymentId();
     this.materializedAt = s.materializedAt();
     this.version = s.version();
     this.updatedAt = s.updatedAt();
@@ -110,6 +113,7 @@ public final class WorkingProposal {
             request.configVersionRef(),
             false,
             null,
+            null,
             0,
             at,
             at,
@@ -121,20 +125,34 @@ public final class WorkingProposal {
     return new WorkingProposal(snapshot);
   }
 
-  /** Page-by-page form save; answers and nominee only ever enter the envelope (INV-PRP-05). */
-  public void saveAnswers(Map<String, String> values, Nominee nominee, Instant now) {
+  /**
+   * Page-by-page form save; answers and nominee only ever enter the envelope (INV-PRP-05). Each
+   * answer carries the question text and schema version shown (D8): a re-answered question keeps
+   * its place, a new one is appended, so the envelope order is the order shown.
+   */
+  public void saveAnswers(List<ProposalAnswer> answers, Nominee nominee, Instant now) {
     requireOpen();
     requireState(ProposalState.DRAFT);
-    Map<String, String> merged = new TreeMap<>(envelope.formValues());
-    if (values != null) {
-      merged.putAll(values);
+    Map<String, ProposalAnswer> merged = new LinkedHashMap<>();
+    envelope.answers().forEach(a -> merged.put(a.questionId(), a));
+    for (ProposalAnswer answer : answers == null ? List.<ProposalAnswer>of() : answers) {
+      if (answer.questionId() == null || answer.questionId().isBlank()) {
+        throw new ProposalRuleException(ErrorCodes.VALIDATION_ERROR, "questionId is required");
+      }
+      if (!answer.isEvidenceComplete()) {
+        throw new ProposalRuleException(
+            ErrorCodes.VALIDATION_ERROR,
+            "answer to " + answer.questionId() + " needs the question text and schema version shown");
+      }
+      merged.put(answer.questionId(), answer);
     }
     this.envelope =
         new ProposalEnvelope(
-            merged,
+            List.copyOf(merged.values()),
             nominee == null ? envelope.nominee() : nominee,
             envelope.requirements(),
-            envelope.documents());
+            envelope.documents(),
+            envelope.counterOffer());
     touch(now);
   }
 
@@ -167,6 +185,20 @@ public final class WorkingProposal {
       List<UwRequirement> requirements,
       List<DocumentRef> documents,
       Instant now) {
+    recordUnderwriting(next, insurerUnderwritingState, requirements, documents, null, now);
+  }
+
+  /**
+   * As above; a {@code UW_COUNTER_OFFER} carries the insurer's counter-offer, kept in the envelope
+   * and materialised to {@code counter_offer} (LLD §4.4).
+   */
+  public void recordUnderwriting(
+      ProposalState next,
+      String insurerUnderwritingState,
+      List<UwRequirement> requirements,
+      List<DocumentRef> documents,
+      CounterOffer counterOffer,
+      Instant now) {
     requireOpen();
     if (state != ProposalState.UNDER_WRITING && state != ProposalState.REQUIREMENTS_PENDING) {
       throw illegal("record underwriting");
@@ -178,10 +210,11 @@ public final class WorkingProposal {
     this.underwritingState = insurerUnderwritingState;
     this.envelope =
         new ProposalEnvelope(
-            envelope.formValues(),
+            envelope.answers(),
             envelope.nominee(),
             requirements == null ? envelope.requirements() : requirements,
-            documents == null ? envelope.documents() : documents);
+            documents == null ? envelope.documents() : documents,
+            counterOffer == null ? envelope.counterOffer() : counterOffer);
     touch(now);
   }
 
@@ -193,7 +226,52 @@ public final class WorkingProposal {
     touch(now);
   }
 
-  /** Payment started: the item must not expire while money moves (schemas/20 §3.3). */
+  /**
+   * {@code POST …/payment-hold} (LLD §4.5): payable only in {@code AWAITING_PAYMENT}, which E1
+   * makes reachable only from {@code UW_APPROVED}. The same payment again changes nothing; any
+   * other payment is refused while held.
+   *
+   * @return true when the hold is new and must be written
+   */
+  public boolean holdForPayment(String paymentId, Instant now) {
+    requireOpen();
+    if (state != ProposalState.AWAITING_PAYMENT) {
+      throw new ProposalRuleException(
+          ErrorCodes.PROPOSAL_NOT_PAYABLE,
+          "proposal " + proposalId + " is " + state + ", not AWAITING_PAYMENT");
+    }
+    if (paymentId.equals(heldByPaymentId)) {
+      return false;
+    }
+    if (paymentInFlight) {
+      throw new ProposalRuleException(
+          ErrorCodes.PAYMENT_ALREADY_IN_PROGRESS,
+          "proposal " + proposalId + " is held by another payment");
+    }
+    this.paymentInFlight = true;
+    this.heldByPaymentId = paymentId;
+    touch(now);
+    return true;
+  }
+
+  /**
+   * {@code POST …/payment-release}: only the holding payment releases; a stale or repeated release
+   * and a materialised proposal are no-ops. The proposal stays {@code AWAITING_PAYMENT}.
+   *
+   * @return true when the hold was released and must be written
+   */
+  public boolean releasePaymentHold(String paymentId, Instant now) {
+    if (materializedAt != null || paymentId == null || !paymentId.equals(heldByPaymentId)) {
+      return false;
+    }
+    requireState(ProposalState.AWAITING_PAYMENT);
+    this.paymentInFlight = false;
+    this.heldByPaymentId = null;
+    touch(now);
+    return true;
+  }
+
+  /** Payment started without a payment id (as first built): no expiry while money moves. */
   public void markPaymentInFlight(Instant now) {
     requireOpen();
     requireState(ProposalState.AWAITING_PAYMENT);
@@ -201,11 +279,12 @@ public final class WorkingProposal {
     touch(now);
   }
 
-  /** Payment declined / expired: expiry applies again. */
+  /** Clears any hold: expiry applies again. */
   public void paymentEnded(Instant now) {
     requireOpen();
     requireState(ProposalState.AWAITING_PAYMENT);
     this.paymentInFlight = false;
+    this.heldByPaymentId = null;
     touch(now);
   }
 
@@ -231,6 +310,7 @@ public final class WorkingProposal {
     Instant at = truncate(now);
     this.state = ProposalState.PAID;
     this.paymentInFlight = false;
+    this.heldByPaymentId = null;
     this.materializedAt = at;
     this.updatedAt = at;
   }
@@ -269,6 +349,7 @@ public final class WorkingProposal {
         issuanceMode,
         configVersionRef,
         paymentInFlight,
+        heldByPaymentId,
         materializedAt,
         version,
         createdAt,
@@ -295,6 +376,42 @@ public final class WorkingProposal {
 
   public boolean paymentInFlight() {
     return paymentInFlight;
+  }
+
+  public String heldByPaymentId() {
+    return heldByPaymentId;
+  }
+
+  public String leadId() {
+    return leadId;
+  }
+
+  public String customerId() {
+    return customerId;
+  }
+
+  public String quoteId() {
+    return quoteId;
+  }
+
+  public String offerId() {
+    return offerId;
+  }
+
+  public String lob() {
+    return lob;
+  }
+
+  public String issuanceMode() {
+    return issuanceMode;
+  }
+
+  public String configVersionRef() {
+    return configVersionRef;
+  }
+
+  public String underwritingState() {
+    return underwritingState;
   }
 
   public Instant materializedAt() {

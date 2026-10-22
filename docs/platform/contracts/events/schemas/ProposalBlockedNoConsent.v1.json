@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.bank.internal/events/ProposalBlockedNoConsent.v1.json",
+  "title": "ProposalBlockedNoConsent v1 - data",
+  "description": "Proposal submit refused because consent for BEFORE_PROPOSAL_SUBMIT is missing, expired, for another insurer or not capturable (C7). Mandatory audit evidence. Producer: proposal. Status: CONTRACTED. The `data` member of event-envelope/v1 (ADR-025): ids and states only, never customer PII.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "proposalId",
+    "checkpoint",
+    "missingPurposes",
+    "reasonCode"
+  ],
+  "properties": {
+    "proposalId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "journeyId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "checkpoint": {
+      "type": "string",
+      "enum": [
+        "BEFORE_SUITABILITY",
+        "BEFORE_MULTI_QUOTE",
+        "BEFORE_PROPOSAL_SUBMIT",
+        "BEFORE_FIRST_COMMUNICATION"
+      ]
+    },
+    "missingPurposes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "CNS-DP",
+          "CNS-SOL",
+          "CNS-QSH",
+          "CNS-SHR",
+          "CNS-COM"
+        ]
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "reasonCode": {
+      "type": "string",
+      "enum": [
+        "CONSENT_REQUIRED",
+        "CONSENT_EXPIRED",
+        "CONSENT_SCOPE_MISMATCH",
+        "CONSENT_SUBJECT_MISMATCH",
+        "CONSENT_STATEMENT_NOT_APPROVED"
+      ]
+    }
+  },
+  "$defs": {
+    "ulid": {
+      "type": "string",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+    }
+  }
+}

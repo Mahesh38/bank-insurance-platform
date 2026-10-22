@@ -1,6 +1,7 @@
 # consent-service — Low-level design (contract companion)
 
-**Status:** AI-DRAFTED 2026-10-22 from owner decisions D5 (`D-024`), D3 and ADR-024/025/027,
+**Status:** AI-DRAFTED 2026-10-22 from owner decisions D5 (`D-024`), D3, ADR-024/025/027 and the
+compliance-strict decisions C1–C3, C7 ([DECISIONS-2026-10-22](../../architecture-review/DECISIONS-2026-10-22.md)),
 awaiting Mahesh (architecture) and Shailja (Compliance) review. Consent rule pack content is
 "ratification pending" (GAP-006); nothing here substitutes for Shailja's E2 signature.
 Wire contract: [`openapi.yaml`](./openapi.yaml).
@@ -22,11 +23,19 @@ purposes this checkpoint needs?* — and captures what is missing with an OTP on
 registered mobile. It does **not** decide where in the journey a checkpoint sits (journey), nor
 which purposes a checkpoint needs or for how long (rule set `CONSENT.POLICY`, approved by Compliance).
 
-Ordering (D5, owner): suitability → **consent check/capture at `BEFORE_MULTI_QUOTE`** → quoting;
-`CNS-SHR` at `BEFORE_PROPOSAL_SUBMIT`; `CNS-COM` at `BEFORE_FIRST_COMMUNICATION`. This replaces the
-rule pack's "`CNS-DP`/`CNS-SOL` before the questionnaire" (§2) **pending Compliance's DPDP
-confirmation**; if refused, the fix is a `CONSENT.POLICY` version moving them to
-`BEFORE_SUITABILITY` — no code change (journey already calls that checkpoint, see journey LLD §3.2).
+Ordering (**C1, compliance-strict**, seed `CONSENT.POLICY`): **`CNS-DP` + `CNS-SOL` at
+`BEFORE_SUITABILITY`** (suitability collects income, dependants and liabilities, so DPDP consent
+comes first, as the rule pack §2 says) → suitability → **`BEFORE_MULTI_QUOTE`: `CNS-QSH` plus a
+re-check that `CNS-DP`/`CNS-SOL` are still valid** (90-day reuse; only what is missing is captured —
+the owner's D5 flow) → quoting; `CNS-SHR` at `BEFORE_PROPOSAL_SUBMIT`; `CNS-COM` at
+`BEFORE_FIRST_COMMUNICATION`. If Compliance confirms the owner's order (consent after the
+questionnaire) is permissible, the relaxation is a `CONSENT.POLICY` version that removes
+`CNS-DP`/`CNS-SOL` from `BEFORE_SUITABILITY` — no code change.
+
+Further strict seeds: **C2** verification only on the customer's own device
+(`verificationModes = [CUSTOMER_DEVICE]`); **C3** each purpose is a separate affirmative action
+(`separateActions = true`); **C7** a purpose whose statement is not `APPROVED` cannot be captured
+(`requiredStatementStatus = APPROVED`).
 
 ## 2. API summary
 
@@ -53,15 +62,19 @@ separately recorded consents (rule pack §2 "one acknowledgement screen, three r
 2. Resolve `CONSENT.POLICY` (pinned version for `journeyId` if the rule set says
    `"pinning": "JOURNEY"`, else in force) through the configuration port (S-21, 300 ms, cached to
    TTL, fail closed). Unknown checkpoint → `422 CONFIGURATION_UNRESOLVABLE`.
-3. Engine evaluation, `hitPolicy: COLLECT`: input `{checkpoint, lob}` → required
-   `{purpose, validityDays, scope}` list (parameters per D5).
+3. Engine evaluation, `hitPolicy: COLLECT`. Inputs: `asOf`, `checkpoint`, the grant date of the
+   head `GRANTED` row per purpose (`dpGrantedOn` … `comGrantedOn`), `shrInsurerCode`,
+   `targetInsurerCode`, and the current statement status per purpose (`dpStatementStatus` …).
+   Outcome `NO_CAPTURE_REQUIRED` / `CAPTURE_REQUIRED` (reason codes `CAPTURE_CNS_*` name the missing
+   purposes) / **`CAPTURE_BLOCKED`** (C7 — a missing purpose's statement is not `APPROVED`; reason
+   `CNS_*_STATEMENT_NOT_APPROVED`). A missing statement status counts as not approved (fail closed).
 4. For each required purpose, read the **head row** of the newest chain for
    `(customer_id, purpose[, insurer_code])` (`ix_consent_customer_purpose`).
 5. Classify: head `GRANTED` and `valid_until > now` (or `NULL`) and scope matches and its
    statement's MAJOR version is current (CNS-R05, unless the journey is past this checkpoint) →
    `valid`; else `missing` with reason `ABSENT | EXPIRED | WITHDRAWN | SUPERSEDED |
    STATEMENT_MAJOR_CHANGE | SCOPE_MISMATCH`.
-6. `satisfied = missing.isEmpty()`. Reuse across journeys is allowed when
+6. `satisfied = missing.isEmpty()`; `captureBlocked = (outcome == CAPTURE_BLOCKED)`. Reuse across journeys is allowed when
    `reuseAcrossJourneys = true` (CNS-R25); `bindTo = customerId` (CNS-R24 restated for D3).
 
 ### 3.2 Capture
@@ -89,7 +102,10 @@ sequenceDiagram
 
 1. Validate request (§5). Purposes must be a subset of the checkpoint's required purposes
    (a caller cannot capture an unrelated consent through a checkpoint).
-2. Resolve statements — text is stored **verbatim** with its SHA-256 (CNS-R01, CNS-R04).
+2. Resolve statements — text is stored **verbatim** with its SHA-256 (CNS-R01, CNS-R04). **C7:** any
+   statement whose status is not `requiredStatementStatus` (`APPROVED`) → `403
+   CONSENT_STATEMENT_NOT_APPROVED`, no challenge, compliance event. Every statement is a draft until
+   Compliance approves it, so capture is refused end to end until then — by design.
 3. Resolve the CBS-registered mobile (never from the body). Customer-service down → `503`.
 4. `INSERT consent_challenge` (state `OTP_PENDING`, attempts 0, `otp_issue_count` +1, expiry 10 min).
    Rate limit: >5 issues per purpose per customer per 24 h → `429 OTP_ISSUE_RATE_EXCEEDED`.
@@ -97,8 +113,12 @@ sequenceDiagram
 6. **Verify:** challenge must be `OTP_PENDING` (else `409 ILLEGAL_TRANSITION`, INV-CNS-02); not
    expired (`409 OTP_EXPIRED`); attempt ≤ 3 (4th → `429 OTP_ATTEMPTS_EXCEEDED`, challenge
    `LOCKED`); wrong OTP → `422 VALIDATION_ERROR` with `attemptsRemaining`.
-   `verificationMode` must be in `CONSENT.POLICY.parameters.verificationModes` (seed:
-   `["CUSTOMER_DEVICE"]` — see §11 O-1) else `403 FORBIDDEN`.
+   `verificationMode` must be in `CONSENT.POLICY.parameters.verificationModes` (strict seed C2:
+   `["CUSTOMER_DEVICE"]`) else `403 FORBIDDEN`. **C3:** with `separateActions = true` the body's
+   `affirmations[]` must contain one entry per purpose of the challenge, each naming the statement
+   rendered for it; one acknowledgement can never grant `CNS-DP` and `CNS-SOL` together — otherwise
+   `422 VALIDATION_ERROR` and nothing is written. The single OTP authenticates the customer; the
+   affirmations are the consents.
 7. One transaction: per purpose `INSERT consent` (`record_version = 1`, `state = GRANTED`,
    `valid_from = otp_verified_at`, `valid_until = valid_from + validityDays` or `NULL`,
    `supersedes_consent_id` = previous chain head for the same purpose/scope if any) and, for that
@@ -128,7 +148,10 @@ Pending challenges older than their expiry + 24 h → `ABANDONED`.
 
 | Rule set | Hit policy | Inputs | Output used |
 |---|---|---|---|
-| `CONSENT.POLICY` | `COLLECT` | `checkpoint`, `lob` | required purposes, `validityDays`, `scope`; parameters `reuseAcrossJourneys`, `bindTo`, `verificationModes`, `otp.validityMinutes` (10), `otp.maxAttempts` (3), `otp.maxIssuesPer24h` (5) |
+| `CONSENT.POLICY` | `COLLECT` (`outcomeRank`: `CAPTURE_BLOCKED` > `CAPTURE_REQUIRED` > `NO_CAPTURE_REQUIRED`) | §3.1 step 3 | outcome + `CAPTURE_CNS_*` / `CNS_*_STATEMENT_NOT_APPROVED` reason codes; parameters `checkpoints.<cp>.{purposes, validityDays, scope}`, `verificationModes` (`[CUSTOMER_DEVICE]`, C2), `separateActions` (`true`, C3), `requiredStatementStatus` (`APPROVED`, C7), `reuseAcrossJourneys`, `bindTo` |
+
+OTP limits are seed parameters too (E7 — no compiled-in values): `otp.validityMinutes` 10
+(CNS-R14), `otp.maxAttempts` 3 and `otp.maxIssuesPer24h` 5 (CNS-R15).
 
 The OTP limits are seeded from CNS-R14/R15 as parameters; the statement texts are configuration
 domain `CONSENT_STATEMENT` (CNS-R02/R03, Compliance-classified MAJOR/MINOR). The rule-set document
@@ -145,7 +168,9 @@ format and the engine are owned by `libs/bank-rule-engine` (ADR-024 §2).
 | `channel` | `RM_ASSISTED` \| `SELF_SERVICE` \| `HYBRID` (DDL vocabulary; the rule pack's `ASSISTED/DIY` maps to these) | `422 VALIDATION_ERROR` |
 | `language` | `en-IN` (R0) | `422 VALIDATION_ERROR` |
 | `otp` | 4–8 digits; correct | `422 VALIDATION_ERROR` |
-| `verificationMode` | permitted by policy | `403 FORBIDDEN` |
+| `verificationMode` | permitted by policy (`CUSTOMER_DEVICE` only, C2) | `403 FORBIDDEN` |
+| `affirmations` | one per purpose of the challenge, statement matches (C3) | `422 VALIDATION_ERROR` |
+| statement status per purpose | `APPROVED` (C7) | `403 CONSENT_STATEMENT_NOT_APPROVED` |
 | `customerId` query on `getConsent` | equals the consent's subject | `403 CONSENT_SUBJECT_MISMATCH` + security event (CNS-R38) |
 | challenge state / OTP age / attempts | §3.2 step 6 | `409 ILLEGAL_TRANSITION`, `409 OTP_EXPIRED`, `429 OTP_ATTEMPTS_EXCEEDED`, `429 OTP_ISSUE_RATE_EXCEEDED` |
 
@@ -184,7 +209,9 @@ on `consent_challenge`.
 | INV-CNS-02 `GRANTED` only from a verified OTP | `ConsentChallenge.verify` |
 | CNS-R10 no consent without verified OTP | No code path inserts `consent` outside `verify` |
 | CNS-R11 OTP to CBS-registered mobile | contact resolved server-side only |
-| CNS-R13 RM cannot enter a customer-device OTP | `verificationModes` policy; RM surface shows status only — **open with Compliance when `RM_RELAYED` is enabled** |
+| CNS-R13 RM cannot enter a customer-device OTP | `verificationModes = [CUSTOMER_DEVICE]` (C2); RM surface shows status only |
+| OPEN-CNS-01 separate affirmative actions | `separateActions = true` (C3); `verifyChallenge` checks `affirmations[]` |
+| C7 no capture of an unapproved statement | `startCapture` step 2; `consents:check` returns `captureBlocked` |
 | CNS-R18 one head per chain | PK `(consent_id, record_version)`; next version computed under row lock of the head |
 | CNS-R24 bound to one subject | `customer_id` immutable; mismatch → `403 CONSENT_SUBJECT_MISMATCH` |
 | CNS-R37 fail closed | single transaction; any failure → caller's step fails |
@@ -225,10 +252,10 @@ Consumed: `RuleSetPublished` (cache invalidation, ADR-024 §5).
 
 | # | Item | Owner |
 |---|---|---|
-| O-1 | **CNS-R13 vs R0-HLD §5.2**: the HLD lets the customer read the OTP to the RM and the RM session post it; CNS-R13 forbids RM entry of a customer-device OTP. Seed `verificationModes = ["CUSTOMER_DEVICE"]` (rule pack wins until Compliance decides); `RM_RELAYED` is a configuration change if Compliance allows it | **Shailja** |
+| O-1 | **Decided strict (C2)**: `verificationModes = ["CUSTOMER_DEVICE"]`; R0-HLD §5.2's RM read-back is refused. `RM_RELAYED` is a Compliance-approved configuration change only | Shailja (relaxation only) |
 | O-2 | The customer-device confirmation surface (SMS link page / bank app) is not designed; until it exists `CUSTOMER_DEVICE` cannot be exercised end to end | Mahesh + Rajal |
-| O-3 | DPDP permissibility of consent **after** the suitability questionnaire (D5) | **Shailja** |
-| O-4 | Statement wording for all purposes incl. new `CNS-QSH` (OPEN-CNS-02) | Shailja + Legal |
+| O-3 | **Decided strict (C1)**: `CNS-DP`/`CNS-SOL` before suitability. Compliance may confirm the owner's order to relax it (configuration) | Shailja (relaxation only) |
+| O-4 | Statement wording for all purposes incl. new `CNS-QSH` (OPEN-CNS-02) — **blocking (C7)**: no capture until approved | Shailja + Legal |
 | O-5 | 90 / 30-day windows regulator-acceptable (OPEN-CNS-03) | Shailja |
 | O-6 | `CONFIGURATION_UNRESOLVABLE` is 422 in `ErrorCatalogue`, ADR-024 §5 says 503 | Mahesh |
-| O-7 | Journey halt stage/code for CNS-R29 (`HALTED_CONSENT_WITHDRAWN`) — proposed in journey LLD | Mahesh |
+| O-7 | ~~Journey halt stage/code for CNS-R29~~ — **accepted (E4)**: stage `HALTED_CONSENT_WITHDRAWN`, error `JOURNEY_HALTED_CONSENT_WITHDRAWN` (registered) | closed |

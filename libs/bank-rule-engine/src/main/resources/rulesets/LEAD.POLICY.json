@@ -1,0 +1,185 @@
+{
+  "format": "rule-set/v1",
+  "ruleSetId": "LEAD.POLICY",
+  "domain": "LEAD_POLICY",
+  "scope": {
+    "lob": "LIFE",
+    "productClass": null
+  },
+  "version": "1.0.0",
+  "effectiveFrom": "2026-11-01T00:00:00+05:30",
+  "effectiveTo": null,
+  "classification": "PRODUCT",
+  "pinning": "NONE",
+  "description": "Lead periods per line of business (E7). lead-service resolves this rule set when a lead is created and sets expires_at = createdAt + expiryDays; an unset or non-positive expiryDays refuses the create (fail closed). Resolved by domain LEAD_POLICY and the lead's lob: another line of business (e.g. MOTOR 30/60 days, E7) is its own document (ruleSetId LEAD.POLICY.<LOB>, same domain, scope.lob set); a lob with no document in force refuses the create.",
+  "source": {
+    "document": "docs/platform/architecture-review/DECISIONS-2026-10-22.md",
+    "sections": [
+      "E7 every business value is configuration; LEAD.POLICY per lob: expiryDays",
+      "Engineering defaults: lead expiry LIFE 90 days (owner's ideal)"
+    ],
+    "requirements": [
+      "docs/au-bank-insurance-platform/requirements/BRD-P0-CAPABILITIES.md BR-LEAD-020 AC 2 (expiry = configurable - confirm TTL)",
+      "docs/au-bank-insurance-platform/requirements/brd-detailed/Exception_Handling_BRD_V1.0_CONTEXT.md section 8.8 and 24.7 row 7 (delete the rejected lead after five days as configured; audit retention to be confirmed)"
+    ],
+    "decisions": [
+      "DECISIONS-2026-10-22 E7, E9",
+      "ADR-024"
+    ]
+  },
+  "governance": {
+    "status": "DRAFT-awaiting-approval",
+    "signatureStatus": "AI-DRAFTED - mandatory content-owner approval outstanding (ADR-024 section 7)",
+    "contentApprovers": [
+      "Rajal (product behaviour)"
+    ],
+    "approverRole": "PRODUCT_APPROVER",
+    "seededBy": "SUG-20261022-rdy (owner-directed build, ADMIT-BYPASS)",
+    "openItems": [
+      "expiryDays 90 for LIFE is the owner's stated ideal (E7); Rajal to confirm whether it counts from creation or from the last activity (implemented: from creation)",
+      "rejectedLeadDeletionDays is UNSET although Exception BRD section 8.8 says five days: section 24.7 row 7 leaves audit retention to be confirmed and lead_id is RET-7Y attribution (04-lead_lms.sql). Strict default (E9): nothing is deleted until Compliance and the DBA confirm retention",
+      "The Lead BRD (Lead_Module_BRD_Detailed_CONTEXT.md) names no other configurable lead period; the meeting window 08:00-20:00 (Table 22) is stated as fixed, not configurable"
+    ]
+  },
+  "inputs": [
+    {
+      "name": "lob",
+      "type": "ENUM",
+      "required": true,
+      "values": [
+        "LIFE",
+        "HEALTH",
+        "GENERAL"
+      ],
+      "description": "The lead's line of business; the resolver has already selected this document by scope"
+    }
+  ],
+  "derive": [
+    {
+      "name": "expiryDays",
+      "expr": {
+        "param": "expiryDays"
+      }
+    }
+  ],
+  "decision": {
+    "hitPolicy": "PRIORITY",
+    "outcomeRank": [
+      "CONFIG_MISSING",
+      "RESOLVED"
+    ],
+    "noMatchOutcome": "CONFIG_MISSING",
+    "noMatchReasonCode": "LEAD_POLICY_INVALID",
+    "missingInputOutcome": "CONFIG_MISSING",
+    "missingConfigOutcome": "CONFIG_MISSING",
+    "missingConfigReasonCode": "LEAD_POLICY_CONFIG_MISSING",
+    "collectReasonCodes": "ALL_FIRED"
+  },
+  "rules": [
+    {
+      "ruleId": "LEAD-POL-EXPIRY-INVALID",
+      "priority": 1,
+      "description": "A non-positive expiry would expire a lead the moment it is created",
+      "when": {
+        "op": "lte",
+        "args": [
+          {
+            "var": "expiryDays"
+          },
+          {
+            "const": 0
+          }
+        ]
+      },
+      "then": {
+        "outcome": "CONFIG_MISSING",
+        "reasonCode": "LEAD_POLICY_INVALID",
+        "params": {
+          "expiryDays": {
+            "var": "expiryDays"
+          }
+        }
+      }
+    },
+    {
+      "ruleId": "LEAD-POL-EXPIRY",
+      "priority": 2,
+      "description": "expires_at = createdAt + expiryDays days",
+      "sourceRef": "DECISIONS-2026-10-22 E7",
+      "when": {
+        "op": "gt",
+        "args": [
+          {
+            "var": "expiryDays"
+          },
+          {
+            "const": 0
+          }
+        ]
+      },
+      "then": {
+        "outcome": "RESOLVED",
+        "reasonCode": null,
+        "params": {
+          "expiryDays": {
+            "var": "expiryDays"
+          }
+        }
+      }
+    }
+  ],
+  "parameters": {
+    "expiryDays": 90,
+    "rejectedLeadDeletionDays": null
+  },
+  "reasonCodes": {
+    "LEAD_POLICY_CONFIG_MISSING": {
+      "severity": "BLOCK",
+      "rmText": "Lead policy configuration is incomplete (@missingParameters).",
+      "customerText": null
+    },
+    "LEAD_POLICY_INVALID": {
+      "severity": "BLOCK",
+      "rmText": "Lead policy expiryDays must be a positive number of days.",
+      "customerText": null
+    },
+    "RULE_INPUT_MISSING": {
+      "severity": "BLOCK",
+      "rmText": "Lead policy inputs missing: @missing.",
+      "customerText": null
+    },
+    "RULE_INPUT_INVALID": {
+      "severity": "BLOCK",
+      "rmText": "Lead policy inputs not in the expected form: @missing.",
+      "customerText": null
+    }
+  },
+  "testCases": [
+    {
+      "name": "E7-life-expiry-90-days",
+      "inputs": {
+        "lob": "LIFE"
+      },
+      "expect": {
+        "outcome": "RESOLVED",
+        "reasonCodes": [],
+        "fired": [
+          "LEAD-POL-EXPIRY"
+        ],
+        "derived": {
+          "expiryDays": 90
+        }
+      }
+    },
+    {
+      "name": "missing-lob-fails-closed",
+      "inputs": {},
+      "expect": {
+        "outcome": "CONFIG_MISSING",
+        "reasonCodes": [
+          "RULE_INPUT_MISSING"
+        ]
+      }
+    }
+  ]
+}

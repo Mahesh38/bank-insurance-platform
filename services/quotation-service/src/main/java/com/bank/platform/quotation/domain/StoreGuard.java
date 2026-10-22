@@ -9,5 +9,7 @@ public enum StoreGuard {
   /** {@code state IN (QUOTED, PARTIALLY_QUOTED) AND validUntil > :now}. */
   SELECTABLE,
   /** {@code state = SELECTED}. */
-  SELECTED
+  SELECTED,
+  /** {@code state = SELECTED AND validUntil > :now} — a new payment hold (LLD §4.4). */
+  HOLDABLE
 }

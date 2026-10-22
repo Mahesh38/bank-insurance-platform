@@ -140,4 +140,52 @@ class WorkingQuoteTest {
     assertThatThrownBy(() -> quote.recordOffers(List.of(), List.of(), VALID_UNTIL, NOW))
         .isInstanceOf(QuoteRuleException.class);
   }
+
+  @Test
+  void holdIsIdempotentPerPaymentAndExclusive() {
+    WorkingQuote quote = quoted();
+    quote.select(cheap.offerId(), NOW);
+
+    assertThat(quote.holdForPayment("P1", cheap.offerId(), NOW)).isTrue();
+    assertThat(quote.holdForPayment("P1", cheap.offerId(), NOW)).isFalse();
+    assertThat(quote.heldByPaymentId()).isEqualTo("P1");
+    assertThatThrownBy(() -> quote.holdForPayment("P2", cheap.offerId(), NOW))
+        .extracting(e -> ((QuoteRuleException) e).code())
+        .isEqualTo(ErrorCodes.PAYMENT_ALREADY_IN_PROGRESS);
+    assertThatThrownBy(() -> quote.holdForPayment("P1", dear.offerId(), NOW))
+        .extracting(e -> ((QuoteRuleException) e).code())
+        .isEqualTo(ErrorCodes.INVALID_OFFER_REFERENCE);
+    // held: never expires, even past validUntil
+    assertThat(quote.expireIfDue(VALID_UNTIL.plusSeconds(1))).isFalse();
+
+    assertThat(quote.releasePaymentHold("P2", NOW)).isFalse();
+    assertThat(quote.releasePaymentHold("P1", NOW)).isTrue();
+    assertThat(quote.releasePaymentHold("P1", NOW)).isFalse();
+    assertThat(quote.paymentInFlight()).isFalse();
+    assertThat(quote.state()).isEqualTo(QuoteState.SELECTED);
+
+    assertThatThrownBy(() -> quote.holdForPayment("P3", cheap.offerId(), VALID_UNTIL))
+        .extracting(e -> ((QuoteRuleException) e).code())
+        .isEqualTo(ErrorCodes.QUOTE_EXPIRED);
+    assertThat(quote.expireIfDue(VALID_UNTIL)).isTrue();
+    assertThat(quote.state()).isEqualTo(QuoteState.EXPIRED);
+    assertThat(quote.expireIfDue(VALID_UNTIL)).isFalse();
+  }
+
+  @Test
+  void holdNeedsASelectedQuoteAndMaterialiseClearsTheHold() {
+    WorkingQuote quote = quoted();
+    assertThatThrownBy(() -> quote.holdForPayment("P1", cheap.offerId(), NOW))
+        .extracting(e -> ((QuoteRuleException) e).code())
+        .isEqualTo(ErrorCodes.ILLEGAL_TRANSITION);
+    assertThat(quote.expireIfDue(NOW)).isFalse();
+
+    quote.select(cheap.offerId(), NOW);
+    quote.holdForPayment("P1", cheap.offerId(), NOW);
+    quote.materialize(NOW);
+
+    assertThat(quote.heldByPaymentId()).isNull();
+    assertThat(quote.releasePaymentHold("P1", NOW)).isFalse();
+    assertThat(quote.expireIfDue(VALID_UNTIL.plusSeconds(1))).isFalse();
+  }
 }

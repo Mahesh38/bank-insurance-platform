@@ -55,11 +55,11 @@ Source: [`03-solution-architecture-r0.md` §5](../../ws3-platform/03-solution-ar
 |---|---|---|---|---|
 | S-01 | NIP-APP → BFF | Sync | 5 s edge budget | Typed error; journey stage unchanged |
 | S-02 | BFF → PDP | Sync | **300 ms, no retry** | **Fail closed — deny** |
-| S-03 | BFF → Journey | Sync | 3 s | No partial stage advance |
-| S-04 | Journey → Customer | Sync | 2 s, 1 retry | Journey holds at `INITIATED` |
-| S-05 | Customer → CBS (via Apigee) | Sync | 3 s, 1 retry on 5xx/connect | Snapshot inside freshness window, else fail. Never stale-unbounded identity |
-| S-06 | Journey → Consent | Sync | 2 s | Fail closed; cannot advance |
-| S-07 | Journey → Suitability | Sync | 3 s | Fail closed; quote refused |
+| S-03 | BFF → Journey | Sync (single-call commands) / **202 + command poll** (chained commands) | **4 s** read (was 3 s; §2.2) | No partial stage advance |
+| S-04 | Journey → Customer (snapshot) | Sync, inside an **async journey command** | **7 s, no retry at journey** (was 2 s + 1 retry; §2.2) | Journey holds at `INITIATED` |
+| S-05 | Customer → CBS (via Apigee) | Sync | **3 s per attempt** (connect ≤ 1 s inside it); 1 retry on 5xx/connect **for snapshots only**, none for interactive search (§2.2) | Snapshot inside the `CUSTOMER.POLICY.snapshotFreshnessMinutes` window (1440), else fail. Never stale-unbounded identity |
+| S-06 | Journey → Consent | Sync, inside an async journey command | check **2 s**; capture **3 s**; no retry | Fail closed; cannot advance |
+| S-07 | Journey → Suitability | Sync, inside an async journey command | 3 s, no retry | Fail closed; quote refused |
 | S-08 | Quotation → Suitability (gate read) | Sync | **500 ms, no retry** | **Fail closed** — `403 SUITABILITY_REQUIRED` |
 | S-09 | Quotation → Hub (create) | Async-poll | 3 s connect / 30 s read, **no retry on submit** | Poll the external reference to recover |
 | S-10 | Hub → 1SB adapter | Async-poll | Adapter `onesb.client.*` budgets | `PARTIAL` is success; zero offers → `FAILED` |
@@ -107,6 +107,48 @@ Source: [`03-solution-architecture-r0.md` §5](../../ws3-platform/03-solution-ar
 > A call that gets no HTTP answer in budget is a typed `503 UPSTREAM_UNAVAILABLE`.
 > lead-service's own PDP re-check uses `lead.authorization.decision-timeout` (300 ms).
 
+### 2.2 Nested budgets — engineering decision `ED-R2-01` (2026-10-22)
+
+**Status:** engineering decision taken under `SUG-20261022-rdy` (AI-DRAFTED), awaiting Mahesh's
+review. Technical timeouts are Spring properties (E7 allows that for pure technical values); no
+business value is involved.
+
+**Problem.** The seam table had two contradictions. (1) S-03 gave BFF → Journey 3 s, yet one journey
+command chains PDP (0.3 s) + consent check (2 s) + consent capture or Suitability (3 s) or Quotation,
+and S-07 alone is 3 s. (2) S-04 gave Journey → Customer 2 s with a retry, yet Customer → CBS (S-05)
+is 3 s **plus** a retry — Journey would time out while Customer was still legitimately waiting,
+and both levels retrying multiplies load on CBS.
+
+**Rules (all seams).**
+
+1. **An outer budget covers the sum of its inner worst cases plus 10 %.** A synchronous hop never
+   contains an async-poll step or a chain whose worst case exceeds it.
+2. **Retry at exactly one level** — the service that owns the external dependency (customer for CBS,
+   the Hub for providers). Its callers never retry the same hop inside their own budget.
+3. **A human-facing synchronous path stays inside S-01 (5 s).** Anything longer is accepted
+   (`202 Accepted`) and completed by a worker; the client polls.
+
+**What changes.**
+
+| Path | Before | After | Worst case inside |
+|---|---|---|---|
+| S-01 NIP-APP → BFF | 5 s | 5 s (unchanged) | BFF ≤ 0.5 s + PDP 0.3 s + S-03 4 s |
+| S-03 BFF → Journey | 3 s | **4 s** read; Journey's own synchronous deadline **3.5 s** | PDP 0.3 s + **one** owning call ≤ 2 s + local transaction |
+| Journey **chained** commands — `startNeedAnalysis`, `evaluateSuitability`, `checkOrCaptureConsent`, `requestQuote`, `submitProposal`, `initiatePayment`, `retryPartySnapshot` and the party snapshot of `startJourney` | sync, 3 s | **`202 Accepted` + `JourneyCommand`** (`GET /journeys/{id}/commands/{commandId}`); worker deadline `journey.command.deadline.<command>` | see next rows |
+| S-04 Journey → Customer snapshot | 2 s, 1 retry | **7 s, no retry** (async) | S-05: 2 attempts × 3 s + 200 ms jitter = 6.2 s |
+| S-05 Customer → CBS | 3 s, 1 retry | 3 s **per attempt**; retry for snapshots only | — |
+| BFF → Customer search (interactive) | 4 s read; CBS 3 s + retry = 6.2 s (conflict) | 4 s read; customer-service makes **one** CBS attempt for search (`customer.cbs.search.retry-enabled=false`) | 3 s |
+| S-06 Journey → Consent | 2 s | check 2 s; capture 3 s | capture = configuration 0.3 s + customer contact 1 s + OTP dispatch 1 s |
+| Command deadlines (defaults) | — | `startNeedAnalysis` / `checkOrCaptureConsent` / `requestQuote` / `submitProposal` **8 s**; `retryPartySnapshot` / snapshot of `startJourney` **8 s**; `initiatePayment` **20 s** (S-13 3 s / 15 s inside) | PDP 0.3 + check 2 + capture/suitability/create 3 s = 5.3 s (+ margin) |
+
+**Alternatives rejected.** Raising S-03 to 7 s breaks S-01 (5 s), and a 7 s spinner on an RM tablet
+is the failure the async rule exists to avoid. Shrinking the consent re-check to 1 s leaves the
+CBS conflict unsolved and gives the compliance gate the thinnest budget in the chain.
+
+**Consequences.** NIP-APP and the BFF poll a command (or the journey) for chained steps; idempotency
+keys are unchanged (the command is the idempotent unit: same key → same `commandId`). A timed-out
+command is `FAILED` with `UPSTREAM_TIMEOUT` and the stage unchanged — never a partial advance.
+
 ---
 
 ## 3. Resilience per dependency class
@@ -114,7 +156,7 @@ Source: [`03-solution-architecture-r0.md` §5](../../ws3-platform/03-solution-ar
 | Dependency | Timeout | Retry | Breaker | Bulkhead | Degraded mode |
 |---|---|---|---|---|---|
 | PDP | 300 ms | none | none | shared | **None — fail closed** |
-| CBS | 3 s | 1 on 5xx/connect | yes | per dependency | Snapshot within freshness window |
+| CBS | 3 s per attempt | 1 on 5xx/connect (snapshot only; none for interactive search, §2.2) | yes | per dependency | Snapshot within `CUSTOMER.POLICY.snapshotFreshnessMinutes` |
 | Product catalogue | 500 ms | 1 | yes | shared | Read cache |
 | Hub → adapter | per adapter | **none on submit**, bounded on poll | **per provider** | **per provider** | Partial-quote success |
 | AU Bank PG | 3 s / 15 s | none | yes | dedicated | **None on the money path** |
@@ -128,6 +170,7 @@ connection budget that makes every other insurer look down.
 
 ## 4. Sources
 
+- [Decisions 2026-10-22](../../architecture-review/DECISIONS-2026-10-22.md) (E7, E8; `ED-R2-01` above)
 - [R0 solution architecture §5](../../ws3-platform/03-solution-architecture-r0.md#5-seam-catalogue--synchronous-vs-asynchronous-with-semantics) · [HLD §4](../../../architecture/R0-HLD.md#4-communication)
 - `services/1sb-integration-service/src/main/java/com/bank/insurance/onesb/adapter/idempotency/IdempotencyFilter.java` · `src/main/resources/application.yml`
 - [1SB resilience policy](../../../1sb-insurance-integration/service-ssot/RESILIENCE-POLICY.md)

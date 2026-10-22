@@ -11,11 +11,15 @@
   "effectiveTo": null,
   "classification": "COMPLIANCE",
   "pinning": "NONE",
-  "description": "Insurer decision turnaround: IRDAI requires the insurer's decision within 7 days of proposal receipt (DECISIONS D8 / D-025).",
+  "description": "Insurer decision turnaround: IRDAI requires the insurer's decision within 7 calendar days of proposal receipt (C4). The policy tracker polls every pollIntervalHours and escalates at warningAtDays.",
   "source": {
-    "document": "docs/platform/architecture-review/DECISIONS-2026-10-21.md",
+    "document": "docs/platform/architecture-review/DECISIONS-2026-10-22.md",
     "sections": [
-      "D8 (turnaround time)"
+      "C4 (7 calendar days from proposal receipt)",
+      "Engineering defaults (poll every 4 hours, warning at day 5)"
+    ],
+    "related": [
+      "docs/platform/architecture-review/DECISIONS-2026-10-21.md D8 (turnaround time)"
     ],
     "regulation": "IRDAI Master Circular on Protection of Policyholders' Interests, 5 Sep 2024 (7 days, previously 15)"
   },
@@ -26,10 +30,11 @@
       "Shailja / bank Compliance"
     ],
     "approverRole": "COMPLIANCE_APPROVER",
-    "seededBy": "SUG-20261021-rul (owner-directed build, ADMIT-BYPASS)",
+    "seededBy": "SUG-20261021-rul; strict defaults SUG-20261022-rdy (owner-directed build, ADMIT-BYPASS)",
     "openItems": [
-      "D8: Shailja confirms decisionDays = 7 and the start event (proposal receipt vs payment)",
-      "warningAtDays is unset: no value was given; WARNING never fires until it is configured (breach still detected)"
+      "C4: Shailja confirms decisionDays = 7, basis CALENDAR and startEvent PROPOSAL_RECEIVED",
+      "pollIntervalHours = 4 and warningAtDays = 5 are engineering defaults (DECISIONS-2026-10-22); Operations may tune them",
+      "basis is CALENDAR only: the engine counts calendar days; a BUSINESS basis needs an engine operator (release) and fails closed until then (TAT-BASIS)"
     ]
   },
   "inputs": [
@@ -81,6 +86,36 @@
     "collectReasonCodes": "WINNING_ONLY"
   },
   "rules": [
+    {
+      "ruleId": "TAT-BASIS",
+      "priority": 0,
+      "sourceRef": "C4: calendar days; any other basis is unsupported and fails closed",
+      "when": {
+        "op": "not",
+        "args": [
+          {
+            "op": "eq",
+            "args": [
+              {
+                "param": "basis"
+              },
+              {
+                "const": "CALENDAR"
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "outcome": "BREACHED",
+        "reasonCode": "PROPOSAL_TAT_BASIS_UNSUPPORTED",
+        "params": {
+          "basis": {
+            "param": "basis"
+          }
+        }
+      }
+    },
     {
       "ruleId": "TAT-BREACH",
       "priority": 1,
@@ -255,8 +290,10 @@
   ],
   "parameters": {
     "decisionDays": 7,
-    "warningAtDays": null,
-    "startEvent": "PROPOSAL_RECEIPT_BY_INSURER"
+    "basis": "CALENDAR",
+    "startEvent": "PROPOSAL_RECEIVED",
+    "pollIntervalHours": 4,
+    "warningAtDays": 5
   },
   "reasonCodes": {
     "RULE_INPUT_MISSING": {
@@ -283,11 +320,16 @@
       "severity": "BLOCK",
       "rmText": "TAT configuration incomplete (@missingParameters).",
       "customerText": null
+    },
+    "PROPOSAL_TAT_BASIS_UNSUPPORTED": {
+      "severity": "BLOCK",
+      "rmText": "TAT basis @basis is not supported by this engine version; treated as breached.",
+      "customerText": null
     }
   },
   "testCases": [
     {
-      "name": "D8-day-3-within",
+      "name": "C4-day-3-within",
       "inputs": {
         "asOf": "2026-11-04",
         "clockStartedOn": "2026-11-01",
@@ -301,18 +343,21 @@
       }
     },
     {
-      "name": "D8-day-7-within",
+      "name": "C4-day-7-warning-still-within-limit",
       "inputs": {
         "asOf": "2026-11-08",
         "clockStartedOn": "2026-11-01",
         "decisionCommunicated": false
       },
       "expect": {
-        "outcome": "WITHIN_TAT"
+        "outcome": "WARNING",
+        "reasonCodes": [
+          "PROPOSAL_TAT_WARNING"
+        ]
       }
     },
     {
-      "name": "D8-day-8-breached",
+      "name": "C4-day-8-breached",
       "inputs": {
         "asOf": "2026-11-09",
         "clockStartedOn": "2026-11-01",
@@ -329,7 +374,7 @@
       }
     },
     {
-      "name": "D8-decided",
+      "name": "C4-decided",
       "inputs": {
         "asOf": "2026-11-21",
         "clockStartedOn": "2026-11-01",
@@ -340,9 +385,9 @@
       }
     },
     {
-      "name": "D8-warning-unset-no-warning",
+      "name": "C4-day-4-within-no-warning",
       "inputs": {
-        "asOf": "2026-11-07",
+        "asOf": "2026-11-05",
         "clockStartedOn": "2026-11-01",
         "decisionCommunicated": false
       },
@@ -351,6 +396,38 @@
         "fired": [
           "TAT-WITHIN"
         ]
+      }
+    },
+    {
+      "name": "C4-day-5-warning",
+      "inputs": {
+        "asOf": "2026-11-06",
+        "clockStartedOn": "2026-11-01",
+        "decisionCommunicated": false
+      },
+      "expect": {
+        "outcome": "WARNING",
+        "reasonCodes": [
+          "PROPOSAL_TAT_WARNING"
+        ],
+        "messages": [
+          "Insurer decision pending for 5 of 7 days."
+        ]
+      }
+    },
+    {
+      "name": "C4-calendar-days-span-weekend",
+      "description": "Calendar basis: Sat 2026-11-07 to Sun 2026-11-15 is 8 days -> breached",
+      "inputs": {
+        "asOf": "2026-11-15",
+        "clockStartedOn": "2026-11-07",
+        "decisionCommunicated": false
+      },
+      "expect": {
+        "outcome": "BREACHED",
+        "derived": {
+          "elapsedDays": 8
+        }
       }
     }
   ]

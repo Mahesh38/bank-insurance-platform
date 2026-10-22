@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.bank.internal/events/LeadExpired.v1.json",
+  "title": "LeadExpired v1 - data",
+  "description": "Lead reached LEAD.POLICY expiryDays without progressing (E7). configVersionRef names the LEAD.POLICY version. Producer: lead. Status: CONTRACTED. The `data` member of event-envelope/v1 (ADR-025): ids and states only, never customer PII.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "leadId",
+    "previousState",
+    "expiresAt"
+  ],
+  "properties": {
+    "leadId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "previousState": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z_]*$"
+    },
+    "expiresAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "RFC 3339 UTC"
+    }
+  },
+  "$defs": {
+    "ulid": {
+      "type": "string",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+    }
+  }
+}

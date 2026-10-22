@@ -28,7 +28,22 @@ quotation:
     retention-working: ${QUOTATION_RET_WORKING:90d}
     retention-after-materialize: 30d
     idempotency-ttl: 24h
+    # ADR-025 §3: an OUTBOX item has no ttl until published; then publish + outbox-ttl.
     outbox-ttl: 7d
+    # Partitions of the sparse GSI_OUTBOX_PENDING index the sweeper queries (no Scan).
+    outbox-pending-shards: 4
+  # ADR-025 §3, §5 — publishing the DynamoDB OUTBOX items. none = items wait unpublished.
+  outbox:
+    publisher: ${QUOTATION_EVENT_PUBLISHER:none}
+    sweeper:
+      enabled: ${QUOTATION_OUTBOX_SWEEPER_ENABLED:false}
+      interval: 1m
+      min-age: 5m
+      batch-size: 100
+    kafka:
+      bootstrap-servers: ${QUOTATION_KAFKA_BOOTSTRAP_SERVERS:}
+      env: ${PLATFORM_ENV:local}
+      ack-timeout: 10s
   envelope:
     # kms everywhere real; local (static key) only in the local / test profiles.
     provider: ${QUOTATION_ENVELOPE_PROVIDER:kms}

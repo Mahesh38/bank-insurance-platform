@@ -22,7 +22,8 @@
     ],
     "decisions": [
       "ADR-024",
-      "DECISIONS-2026-10-21 D4"
+      "DECISIONS-2026-10-21 D4",
+      "DECISIONS-2026-10-22 C5/C6 (gaps evaluate to INSUFFICIENT_DATA -> no quote until Compliance adds the rule)"
     ]
   },
   "governance": {
@@ -33,12 +34,12 @@
       "Rajal (product behaviour)"
     ],
     "approverRole": "COMPLIANCE_APPROVER",
-    "seededBy": "SUG-20261021-rul (owner-directed build, ADMIT-BYPASS)",
+    "seededBy": "SUG-20261021-rul; strict defaults SUG-20261022-rdy (owner-directed build, ADMIT-BYPASS)",
     "openItems": [
       "OPEN-SUIT-01 model discharges IRDAI obligation",
       "OPEN-SUIT-03 disclosure / customer wording is draft",
       "OPEN-SUIT-06 Savings/ULIP BRD vocabulary mapping",
-      "GAP: no section 4.3 rule covers ratio > 0.20 or objective WEALTH_GROWTH; evaluates to INSUFFICIENT_DATA / NO_RULE_MATCHED"
+      "GAP (C6): no section 4.3 rule covers ratio > 0.20 or objective WEALTH_GROWTH; evaluates to INSUFFICIENT_DATA / NO_RULE_MATCHED -> no Savings quote until Compliance adds the rule as a new version"
     ]
   },
   "inputs": [
@@ -819,7 +820,7 @@
     },
     {
       "name": "GAP-affordability-above-0.20-no-rule",
-      "description": "Rule pack section 4.3 has no rule for a savings objective with ratio > 0.20; documented gap -> INSUFFICIENT_DATA / NO_RULE_MATCHED until Product adds one",
+      "description": "C6: Rule pack section 4.3 has no rule for a savings objective with ratio > 0.20; documented gap -> INSUFFICIENT_DATA / NO_RULE_MATCHED until Product adds one",
       "inputs": {
         "ageNextBirthday": 38,
         "annualIncome": 1200000,
@@ -862,6 +863,30 @@
           "RULE_INPUT_MISSING"
         ]
       }
+    },
+    {
+      "name": "C6-wealth-growth-objective-no-rule",
+      "inputs": {
+        "ageNextBirthday": 38,
+        "annualIncome": 1200000,
+        "declaredPremium": 25000,
+        "tobaccoUse": false,
+        "occupationCategory": "SALARIED",
+        "declinedOrRated": "NO",
+        "replacingExistingPolicy": false,
+        "dependants": 2,
+        "declaredExistingCover": 500000,
+        "declaredLiabilities": 3000000,
+        "primaryObjective": "WEALTH_GROWTH",
+        "investmentHorizon": "Y10_20"
+      },
+      "expect": {
+        "outcome": "INSUFFICIENT_DATA",
+        "reasonCodes": [
+          "NO_RULE_MATCHED"
+        ]
+      },
+      "description": "C6: Savings + WEALTH_GROWTH has no rule in section 4.3 -> INSUFFICIENT_DATA, so SUITABILITY.GATE denies the quote"
     }
   ]
 }

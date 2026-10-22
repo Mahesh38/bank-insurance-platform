@@ -35,7 +35,7 @@ public class JdbcLeadRepository implements LeadRepository {
   private static final String COLUMNS =
       "lead_id, customer_id, lob, product_class, branch_id, created_by_principal_id, state,"
           + " assigned_rm_id, assigned_sp_id, accountable_sp_id, exception_hold, exception_outcome,"
-          + " bi_generated, reporting_class, journey_id, created_at, updated_at, expires_at, version";
+          + " exception_evaluation_id, bi_generated, reporting_class, journey_id, created_at, updated_at, expires_at, version";
 
   private final NamedParameterJdbcTemplate jdbc;
 
@@ -54,7 +54,7 @@ public class JdbcLeadRepository implements LeadRepository {
                 + COLUMNS
                 + ") VALUES (:leadId, :customerId, :lob,"
                 + " :productClass, :branchId, :createdBy, :state, :assignedRmId, :assignedSpId,"
-                + " :accountableSpId, :exceptionHold, :exceptionOutcome, :biGenerated,"
+                + " :accountableSpId, :exceptionHold, :exceptionOutcome, :evaluationId, :biGenerated,"
                 + " :reportingClass, :journeyId, :createdAt, :updatedAt, :expiresAt, 1)",
             params);
       } catch (DuplicateKeyException ex) {
@@ -69,7 +69,7 @@ public class JdbcLeadRepository implements LeadRepository {
             "UPDATE lead_lms.lead SET state = :state, assigned_rm_id = :assignedRmId,"
                 + " assigned_sp_id = :assignedSpId, accountable_sp_id = :accountableSpId,"
                 + " exception_hold = :exceptionHold, exception_outcome = :exceptionOutcome,"
-                + " bi_generated = :biGenerated, reporting_class = :reportingClass,"
+                + " exception_evaluation_id = :evaluationId, bi_generated = :biGenerated, reporting_class = :reportingClass,"
                 + " journey_id = :journeyId, updated_at = :updatedAt, version = version + 1"
                 + " WHERE lead_id = :leadId AND version = :version",
             params.addValue("version", s.version()));
@@ -121,6 +121,20 @@ public class JdbcLeadRepository implements LeadRepository {
         .findFirst();
   }
 
+  // Same predicate as Lead.overdue / Lead.unfinished. SKIP LOCKED: concurrent sweepers (one per
+  // replica) take disjoint rows; the optimistic version check on save is the second guard.
+  @Override
+  public List<Lead> lockOverdue(Instant now, int limit) {
+    return jdbc.query(
+        "SELECT "
+            + COLUMNS
+            + " FROM lead_lms.lead WHERE expires_at <= :now AND bi_generated = FALSE"
+            + " AND state NOT IN ('DISQUALIFIED', 'CONVERTED', 'ARCHIVED', 'EXPIRED')"
+            + " ORDER BY expires_at, lead_id FETCH FIRST :limit ROWS ONLY FOR UPDATE SKIP LOCKED",
+        new MapSqlParameterSource("now", Timestamp.from(now)).addValue("limit", limit),
+        JdbcLeadRepository::map);
+  }
+
   private static MapSqlParameterSource params(Lead.Snapshot s) {
     return new MapSqlParameterSource()
         .addValue("leadId", s.leadId())
@@ -135,6 +149,7 @@ public class JdbcLeadRepository implements LeadRepository {
         .addValue("accountableSpId", s.accountableSpId())
         .addValue("exceptionHold", s.exceptionHold())
         .addValue("exceptionOutcome", s.exceptionOutcome().name())
+        .addValue("evaluationId", s.exceptionEvaluationId())
         .addValue("biGenerated", s.biGenerated())
         .addValue("reportingClass", s.reportingClass().name())
         .addValue("journeyId", s.journeyId())
@@ -162,6 +177,7 @@ public class JdbcLeadRepository implements LeadRepository {
             rs.getString("accountable_sp_id"),
             rs.getBoolean("exception_hold"),
             ExceptionOutcome.valueOf(rs.getString("exception_outcome")),
+            trimmed(rs.getString("exception_evaluation_id")),
             rs.getBoolean("bi_generated"),
             ReportingClass.valueOf(rs.getString("reporting_class")),
             trimmed(rs.getString("journey_id")),

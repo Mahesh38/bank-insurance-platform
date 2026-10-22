@@ -1,0 +1,303 @@
+{
+  "format": "rule-set/v1",
+  "ruleSetId": "CUSTOMER.POLICY",
+  "domain": "CUSTOMER_POLICY",
+  "scope": {
+    "lob": null,
+    "productClass": null
+  },
+  "version": "1.0.0",
+  "effectiveFrom": "2026-11-01T00:00:00+05:30",
+  "effectiveTo": null,
+  "classification": "PRODUCT",
+  "pinning": "NONE",
+  "description": "Customer snapshot policy (E7). customer-service resolves this rule set to decide whether the stored CBS snapshot may be served or must be refreshed: a snapshot older than snapshotFreshnessMinutes is REFRESH_REQUIRED. Without snapshotAgeMinutes the set only resolves the window (RESOLVED). An unset or non-positive window fails closed (CONFIG_MISSING -> refresh from CBS, never serve the stored copy).",
+  "source": {
+    "document": "docs/platform/architecture-review/DECISIONS-2026-10-22.md",
+    "sections": [
+      "E7 (customer snapshot freshness window is configuration; CUSTOMER.POLICY)",
+      "Engineering defaults (customer snapshot freshness 24 hours)"
+    ],
+    "decisions": [
+      "DECISIONS-2026-10-22 E7, E9",
+      "DECISIONS-2026-10-21 D3 (customerId is the platform ULID)",
+      "ADR-024"
+    ]
+  },
+  "governance": {
+    "status": "DRAFT-awaiting-approval",
+    "signatureStatus": "AI-DRAFTED - mandatory content-owner approval outstanding (ADR-024 section 7)",
+    "contentApprovers": [
+      "Rajal (product behaviour)"
+    ],
+    "approverRole": "PRODUCT_APPROVER",
+    "seededBy": "SUG-20261022-rdy (owner-directed build, ADMIT-BYPASS)",
+    "openItems": [
+      "snapshotFreshnessMinutes = 1440 (24 hours) is the engineering default of DECISIONS-2026-10-22; Rajal confirms, Compliance may ask for shorter (data accuracy)",
+      "A negative age (clock skew) is treated as stale (E9 strict)"
+    ]
+  },
+  "inputs": [
+    {
+      "name": "snapshotAgeMinutes",
+      "type": "INTEGER",
+      "required": false,
+      "description": "Minutes since the stored snapshot was fetched from CBS (caller's clock); omit to resolve the window only"
+    }
+  ],
+  "derive": [
+    {
+      "name": "snapshotFreshnessMinutes",
+      "expr": {
+        "param": "snapshotFreshnessMinutes"
+      }
+    }
+  ],
+  "decision": {
+    "hitPolicy": "PRIORITY",
+    "outcomeRank": [
+      "CONFIG_MISSING",
+      "REFRESH_REQUIRED",
+      "FRESH",
+      "RESOLVED"
+    ],
+    "noMatchOutcome": "CONFIG_MISSING",
+    "noMatchReasonCode": "CUSTOMER_POLICY_INVALID",
+    "missingInputOutcome": "REFRESH_REQUIRED",
+    "missingConfigOutcome": "CONFIG_MISSING",
+    "missingConfigReasonCode": "CUSTOMER_POLICY_CONFIG_MISSING",
+    "collectReasonCodes": "WINNING_ONLY"
+  },
+  "rules": [
+    {
+      "ruleId": "CUST-POL-WINDOW-INVALID",
+      "priority": 1,
+      "description": "A non-positive window would make every snapshot stale and hide the configuration error",
+      "when": {
+        "op": "lte",
+        "args": [
+          {
+            "var": "snapshotFreshnessMinutes"
+          },
+          {
+            "const": 0
+          }
+        ]
+      },
+      "then": {
+        "outcome": "CONFIG_MISSING",
+        "reasonCode": "CUSTOMER_POLICY_INVALID"
+      }
+    },
+    {
+      "ruleId": "CUST-POL-STALE",
+      "priority": 2,
+      "sourceRef": "DECISIONS-2026-10-22 E7",
+      "when": {
+        "op": "any",
+        "args": [
+          {
+            "op": "gt",
+            "args": [
+              {
+                "var": "snapshotAgeMinutes"
+              },
+              {
+                "var": "snapshotFreshnessMinutes"
+              }
+            ]
+          },
+          {
+            "op": "lt",
+            "args": [
+              {
+                "var": "snapshotAgeMinutes"
+              },
+              {
+                "const": 0
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "outcome": "REFRESH_REQUIRED",
+        "reasonCode": "CUSTOMER_SNAPSHOT_STALE",
+        "params": {
+          "ageMinutes": {
+            "var": "snapshotAgeMinutes"
+          },
+          "windowMinutes": {
+            "var": "snapshotFreshnessMinutes"
+          }
+        }
+      }
+    },
+    {
+      "ruleId": "CUST-POL-FRESH",
+      "priority": 3,
+      "when": {
+        "op": "all",
+        "args": [
+          {
+            "op": "gte",
+            "args": [
+              {
+                "var": "snapshotAgeMinutes"
+              },
+              {
+                "const": 0
+              }
+            ]
+          },
+          {
+            "op": "lte",
+            "args": [
+              {
+                "var": "snapshotAgeMinutes"
+              },
+              {
+                "var": "snapshotFreshnessMinutes"
+              }
+            ]
+          },
+          {
+            "op": "gt",
+            "args": [
+              {
+                "var": "snapshotFreshnessMinutes"
+              },
+              {
+                "const": 0
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "outcome": "FRESH",
+        "reasonCode": null
+      }
+    },
+    {
+      "ruleId": "CUST-POL-RESOLVED",
+      "priority": 4,
+      "when": {
+        "op": "gt",
+        "args": [
+          {
+            "var": "snapshotFreshnessMinutes"
+          },
+          {
+            "const": 0
+          }
+        ]
+      },
+      "then": {
+        "outcome": "RESOLVED",
+        "reasonCode": null
+      }
+    }
+  ],
+  "parameters": {
+    "snapshotFreshnessMinutes": 1440
+  },
+  "reasonCodes": {
+    "RULE_INPUT_MISSING": {
+      "severity": "BLOCK",
+      "rmText": "Customer policy inputs missing: @missing.",
+      "customerText": null
+    },
+    "RULE_INPUT_INVALID": {
+      "severity": "BLOCK",
+      "rmText": "Customer policy inputs not in the expected form: @missing.",
+      "customerText": null
+    },
+    "CUSTOMER_SNAPSHOT_STALE": {
+      "severity": "CAUTION",
+      "rmText": "Customer details are @ageMinutes minutes old (limit @windowMinutes); refreshing from the bank's records.",
+      "customerText": null
+    },
+    "CUSTOMER_POLICY_INVALID": {
+      "severity": "BLOCK",
+      "rmText": "Customer policy snapshotFreshnessMinutes must be a positive number of minutes.",
+      "customerText": null
+    },
+    "CUSTOMER_POLICY_CONFIG_MISSING": {
+      "severity": "BLOCK",
+      "rmText": "Customer policy configuration is incomplete (@missingParameters).",
+      "customerText": null
+    }
+  },
+  "testCases": [
+    {
+      "name": "E7-resolve-window-24h",
+      "inputs": {},
+      "expect": {
+        "outcome": "RESOLVED",
+        "reasonCodes": [],
+        "derived": {
+          "snapshotFreshnessMinutes": 1440
+        }
+      }
+    },
+    {
+      "name": "E7-just-fetched-fresh",
+      "inputs": {
+        "snapshotAgeMinutes": 0
+      },
+      "expect": {
+        "outcome": "FRESH",
+        "reasonCodes": []
+      }
+    },
+    {
+      "name": "E7-boundary-1440-fresh",
+      "inputs": {
+        "snapshotAgeMinutes": 1440
+      },
+      "expect": {
+        "outcome": "FRESH"
+      }
+    },
+    {
+      "name": "E7-1441-refresh",
+      "inputs": {
+        "snapshotAgeMinutes": 1441
+      },
+      "expect": {
+        "outcome": "REFRESH_REQUIRED",
+        "reasonCodes": [
+          "CUSTOMER_SNAPSHOT_STALE"
+        ],
+        "messages": [
+          "Customer details are 1441 minutes old (limit 1440); refreshing from the bank's records."
+        ]
+      }
+    },
+    {
+      "name": "E9-negative-age-refresh",
+      "inputs": {
+        "snapshotAgeMinutes": -5
+      },
+      "expect": {
+        "outcome": "REFRESH_REQUIRED",
+        "reasonCodes": [
+          "CUSTOMER_SNAPSHOT_STALE"
+        ]
+      }
+    },
+    {
+      "name": "invalid-age-type-refresh",
+      "inputs": {
+        "snapshotAgeMinutes": "old"
+      },
+      "expect": {
+        "outcome": "REFRESH_REQUIRED",
+        "reasonCodes": [
+          "RULE_INPUT_INVALID"
+        ]
+      }
+    }
+  ]
+}

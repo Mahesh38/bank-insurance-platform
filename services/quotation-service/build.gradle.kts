@@ -16,6 +16,9 @@ dependencies {
     implementation(project(":libs:bank-common-error"))
     implementation(project(":libs:bank-common-audit"))
     implementation(project(":libs:bank-common-observability"))
+    // ADR-025: event envelope + EventPublisher port; Kafka adapter used only when configured.
+    implementation(project(":libs:bank-common-events"))
+    implementation("org.apache.kafka:kafka-clients")
 
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
@@ -41,6 +44,8 @@ dependencies {
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("com.tngtech.archunit:archunit-junit5:1.3.0")
+    // Outbox payloads are validated against docs/platform/contracts/events/schemas.
+    testImplementation("com.networknt:json-schema-validator:1.5.6")
     testImplementation("com.amazonaws:DynamoDBLocal:$dynamoDbLocalVersion")
     sqlite4javaNative("com.almworks.sqlite4java:libsqlite4java-linux-amd64:$sqlite4javaVersion@so")
     sqlite4javaNative("com.almworks.sqlite4java:libsqlite4java-osx:$sqlite4javaVersion@dylib")
@@ -62,6 +67,13 @@ tasks.test {
     doFirst { dynamoDbLocalWorkDir.get().asFile.mkdirs() }
     workingDir = dynamoDbLocalWorkDir.get().asFile
     systemProperty("sqlite4java.library.path", sqlite4javaDir.get().asFile.absolutePath)
+    val eventSchemas = rootProject.file("docs/platform/contracts/events/schemas")
+    inputs.dir(eventSchemas).withPropertyName("eventSchemas")
+    systemProperty("events.schemaDir", eventSchemas.absolutePath)
+    // -Dpg.it=true (+ optional -Dpg.url=...) runs the PostgreSQL integration test.
+    for (name in listOf("pg.it", "pg.url", "pg.user")) {
+        System.getProperty(name)?.let { systemProperty(name, it) }
+    }
 }
 
 tasks.bootJar {

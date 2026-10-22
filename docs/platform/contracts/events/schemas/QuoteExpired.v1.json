@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.bank.internal/events/QuoteExpired.v1.json",
+  "title": "QuoteExpired v1 - data",
+  "description": "Quote passed its validity window without conversion (INV-QUO-04). Producer: quotation. Status: CONTRACTED. The `data` member of event-envelope/v1 (ADR-025): ids and states only, never customer PII.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "quoteId",
+    "state",
+    "expiredAt"
+  ],
+  "properties": {
+    "quoteId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "state": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z_]*$"
+    },
+    "expiredAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "RFC 3339 UTC"
+    },
+    "journeyId": {
+      "$ref": "#/$defs/ulid"
+    }
+  },
+  "$defs": {
+    "ulid": {
+      "type": "string",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+    }
+  }
+}

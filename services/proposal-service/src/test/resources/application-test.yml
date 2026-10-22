@@ -1,6 +1,8 @@
 proposal:
   working-store:
     table-name: test-proposal-working
+  outbox:
+    publisher: in-memory
   envelope:
     provider: local
     # Fixed test-only AES-256 key — never reuse outside tests.

@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.bank.internal/events/RefundInitiated.v1.json",
+  "title": "RefundInitiated v1 - data",
+  "description": "A refund was requested at the gateway (insurer did not issue after payment, or duplicate capture). Producer: payment. Status: CONTRACTED. The `data` member of event-envelope/v1 (ADR-025): ids and states only, never customer PII.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "paymentId",
+    "refundId",
+    "amount",
+    "currency",
+    "reasonCode"
+  ],
+  "properties": {
+    "paymentId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "refundId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "proposalId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "amount": {
+      "type": "string",
+      "pattern": "^[0-9]{1,13}(\\.[0-9]{1,2})?$",
+      "description": "Decimal string; reconciliation only"
+    },
+    "currency": {
+      "type": "string",
+      "enum": [
+        "INR"
+      ]
+    },
+    "reasonCode": {
+      "type": "string",
+      "pattern": "^[A-Z0-9][A-Z0-9_.-]{0,63}$"
+    },
+    "journeyId": {
+      "$ref": "#/$defs/ulid"
+    }
+  },
+  "$defs": {
+    "ulid": {
+      "type": "string",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+    }
+  }
+}

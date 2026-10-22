@@ -4,22 +4,36 @@ info:
   version: 1.0.0-draft
   summary: 'Journey (#9) — the sale saga: stage machine, references, commands to exactly one owning service each.'
   description: |
-    **Status:** AI-DRAFTED 2026-10-22 under owner decisions D3, D4, D5 (`D-024`), ADR-024/025/027,
-    awaiting Mahesh (architecture) and Rajal (journey behaviour) review. Code status: SKELETON.
+    **Status:** AI-DRAFTED 2026-10-22 under owner decisions D3, D4, D5 (`D-024`), ADR-024/025/027 and
+    DECISIONS-2026-10-22 (E1, E4, C1, C2, C5, engineering decision `ED-R2-01`), awaiting Mahesh
+    (architecture) and Rajal (journey behaviour) review. Code status: SKELETON.
 
+    * C1 (strict): at `INITIATED` the checkpoint `BEFORE_SUITABILITY` (`CNS-DP` + `CNS-SOL`) must be
+      satisfied before `startNeedAnalysis`; capture runs through `checkOrCaptureConsent`.
     * Stage order (owner, D5): `INITIATED → NEED_ANALYSIS → SUITABILITY_COMPLETE →` consent check /
-      capture at checkpoint `BEFORE_MULTI_QUOTE` (purposes from `CONSENT.POLICY`) `→ CONSENT_CAPTURED
+      capture at checkpoint `BEFORE_MULTI_QUOTE` (`CNS-QSH` + re-check of DP/SOL, from `CONSENT.POLICY`) `→ CONSENT_CAPTURED
       → QUOTING → QUOTE_SELECTED → PROPOSAL_IN_PROGRESS →` (`BEFORE_PROPOSAL_SUBMIT`) `UNDERWRITING →
       PAYMENT_PENDING → PAYMENT_SETTLED → ISSUANCE_PENDING → ISSUED → SOLD`.
     * Journey coordinates, it never decides (INV-JRN-02): no outcome, price or UW decision is stored.
       Refs to other contexts live in `journey_ref`; downstream calls take refs from there, never from
       the request body.
-    * Every command: BFF → Journey (S-03, 3 s) → one owning service with a server-derived
+    * Every command: BFF → Journey (S-03, **4 s** read) → owning service(s) with a server-derived
       `Idempotency-Key` `journey:{journeyId}:{command}[:{n}]`; callee commits first, then one local
       transaction (stage + ref + transition + outbox + idempotency). No 2PC.
-    * If customer-service is down at start the journey **is created** at `INITIATED` with
-      `partySnapshotRef = null` and `nextAction = RETRY_PARTY_SNAPSHOT` (R0-HLD S-04 "hold at
-      INITIATED"); it cannot leave `INITIATED` until the snapshot exists.
+    * **Nested budgets (`ED-R2-01`, conventions/idempotency-timeouts-retries.md §2.2):** a command
+      that makes one owning call answers synchronously (deadline 3.5 s). A command that chains calls
+      (`startNeedAnalysis`, `evaluateSuitability`, `checkOrCaptureConsent`, `requestQuote`,
+      `submitProposal`, `initiatePayment`, `retryPartySnapshot`) answers **`202 Accepted`** with a
+      `JourneyCommand` and `Location: /internal/v1/journeys/{journeyId}/commands/{commandId}`; a
+      worker completes it within `journey.command.deadline.<command>`. Same `Idempotency-Key` → same
+      `commandId`. A command that misses its deadline is `FAILED` (`UPSTREAM_TIMEOUT`) with the stage
+      unchanged.
+    * `startJourney` creates the journey synchronously (PDP + Lead read) at `INITIATED` with
+      `partySnapshotRef = null` and starts the party snapshot (S-04, 7 s, no retry at journey) as a
+      command; `nextAction = AWAIT_PARTY_SNAPSHOT`, then `RETRY_PARTY_SNAPSHOT` if it fails (R0-HLD
+      S-04 "hold at INITIATED"); the journey cannot leave `INITIATED` until the snapshot exists.
+    * E4: a journey in `HALTED_CONSENT_WITHDRAWN` refuses every command with
+      `403 JOURNEY_HALTED_CONSENT_WITHDRAWN`.
 servers:
   - url: http://journey-orchestration-service:8095
     description: Cluster-private (INTERNAL, layer L6).
@@ -52,7 +66,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Journey'
         '201':
-          description: Created (with or without party snapshot — see nextAction).
+          description: Created at INITIATED; the party snapshot runs as a command (`pendingCommandId`, nextAction AWAIT_PARTY_SNAPSHOT).
           content:
             application/json:
               schema:
@@ -85,6 +99,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Journey'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /internal/v1/journeys/{journeyId}/commands/{commandId}:
+    get:
+      tags: [journey]
+      operationId: getJourneyCommand
+      summary: Status of an accepted (202) chained command — PENDING, SUCCEEDED (with the result) or FAILED (with the problem).
+      description: |
+        `ED-R2-01`: the client polls this (or `getJourney`) after a `202`. Retained for the
+        idempotency window (24 h).
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/JourneyId'
+        - name: commandId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Ulid'
+      responses:
+        '200':
+          description: Command status.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JourneyCommand'
         '404':
           $ref: '#/components/responses/NotFound'
   /internal/v1/journeys/{journeyId}/transitions:
@@ -132,8 +172,8 @@ paths:
         - $ref: '#/components/parameters/IdempotencyKey'
         - $ref: '#/components/parameters/JourneyId'
       responses:
-        '200':
-          $ref: '#/components/responses/JourneyOk'
+        '202':
+          $ref: '#/components/responses/CommandAccepted'
         '409':
           $ref: '#/components/responses/Conflict'
         '503':
@@ -142,15 +182,20 @@ paths:
     post:
       tags: [need-analysis]
       operationId: startNeedAnalysis
-      summary: INITIATED → NEED_ANALYSIS. Checks checkpoint BEFORE_SUITABILITY (empty in seed policy), then Suitability create (S-07).
+      summary: INITIATED → NEED_ANALYSIS. Requires checkpoint BEFORE_SUITABILITY satisfied (CNS-DP + CNS-SOL, C1), then Suitability create (S-07). Chained → 202.
+      description: |
+        C1 (strict seed of `CONSENT.POLICY`): suitability collects income, dependants and liabilities,
+        so data-processing and suitability consent must already be held. Not satisfied →
+        `403 CONSENT_REQUIRED` (or `CONSENT_EXPIRED`), `nextAction = CAPTURE_CONSENT`; the RM runs
+        `checkOrCaptureConsent` at `INITIATED`. Statement not approved → `403 CONSENT_STATEMENT_NOT_APPROVED` (C7).
       parameters:
         - $ref: '#/components/parameters/ActorId'
         - $ref: '#/components/parameters/CorrelationId'
         - $ref: '#/components/parameters/IdempotencyKey'
         - $ref: '#/components/parameters/JourneyId'
       responses:
-        '200':
-          $ref: '#/components/responses/JourneyOk'
+        '202':
+          $ref: '#/components/responses/CommandAccepted'
         '403':
           $ref: '#/components/responses/Forbidden'
         '409':
@@ -224,8 +269,8 @@ paths:
                   default: false
                   description: true = start a superseding assessment (INV-SUI-01); stage returns to NEED_ANALYSIS.
       responses:
-        '200':
-          $ref: '#/components/responses/JourneyOk'
+        '202':
+          $ref: '#/components/responses/CommandAccepted'
         '409':
           $ref: '#/components/responses/Conflict'
         '422':
@@ -285,27 +330,26 @@ paths:
       operationId: checkOrCaptureConsent
       summary: Check the stage's consent checkpoint; advance when satisfied, else start capture of the missing purposes only.
       description: |
-        Checkpoint is derived from the stage, never chosen by the client: `SUITABILITY_COMPLETE` →
-        `BEFORE_MULTI_QUOTE`; `PROPOSAL_IN_PROGRESS` → `BEFORE_PROPOSAL_SUBMIT` (named insurer from
-        the selected offer). Consent `GET consents:check` (S-06, 2 s, fail closed).
-        `satisfied` → refs `consent:<purpose>` upserted; at `BEFORE_MULTI_QUOTE` the stage moves to
-        `CONSENT_CAPTURED` (`200`). Missing → Consent `POST /consents` for the missing purposes →
-        `201` with the challenge; stage unchanged until `ConsentGranted` (customer device) or the
-        verify command below, after which the check is re-run.
+        Checkpoint is derived from the stage, never chosen by the client: `INITIATED` (snapshot
+        present) → `BEFORE_SUITABILITY` (C1); `SUITABILITY_COMPLETE` → `BEFORE_MULTI_QUOTE`;
+        `PROPOSAL_IN_PROGRESS` → `BEFORE_PROPOSAL_SUBMIT` (named insurer from the selected offer).
+        Chained (check 2 s + capture 3 s) → `202` with a `JourneyCommand` (`ED-R2-01`); its `result`
+        is the `Journey` when satisfied (at `BEFORE_MULTI_QUOTE` the stage moves to `CONSENT_CAPTURED`;
+        at `BEFORE_SUITABILITY` the stage stays `INITIATED` with `nextAction = START_NEED_ANALYSIS`)
+        or `ConsentCaptureStarted` when a capture of the missing purposes began; the stage is unchanged
+        until `ConsentGranted` (customer device only, C2) re-runs the check.
+        `captureBlocked` from Consent (a statement not `APPROVED`, C7) → command `FAILED` with
+        `403 CONSENT_STATEMENT_NOT_APPROVED`; no capture is started.
       parameters:
         - $ref: '#/components/parameters/ActorId'
         - $ref: '#/components/parameters/CorrelationId'
         - $ref: '#/components/parameters/IdempotencyKey'
         - $ref: '#/components/parameters/JourneyId'
       responses:
-        '200':
-          $ref: '#/components/responses/JourneyOk'
-        '201':
-          description: Capture started for the missing purposes.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ConsentCaptureStarted'
+        '202':
+          $ref: '#/components/responses/CommandAccepted'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '409':
           $ref: '#/components/responses/Conflict'
         '422':
@@ -318,7 +362,7 @@ paths:
     post:
       tags: [consent]
       operationId: verifyConsentRelayed
-      summary: RM-relayed OTP verification — only when CONSENT.POLICY permits RM_RELAYED (CNS-R13 open with Compliance).
+      summary: RM-relayed OTP verification — refused (403 FORBIDDEN) under the strict seed (C2, verificationModes = [CUSTOMER_DEVICE]); kept only for a Compliance-approved relaxation.
       parameters:
         - $ref: '#/components/parameters/ActorId'
         - $ref: '#/components/parameters/CorrelationId'
@@ -364,8 +408,11 @@ paths:
       summary: CONSENT_CAPTURED (or QUOTING, re-quote) → QUOTING. Re-checks BEFORE_MULTI_QUOTE immediately before calling Quotation.
       description: |
         Owner D5: "before calling the multi-quote API the platform checks for a valid consent". A
-        consent that expired or was withdrawn since `CONSENT_CAPTURED` → `403 CONSENT_REQUIRED`, stage
-        unchanged. Quotation receives `evaluationId` and consent refs **from journey_ref**.
+        consent that expired or was withdrawn since `CONSENT_CAPTURED` → `403 CONSENT_REQUIRED` /
+        `CONSENT_EXPIRED`, stage unchanged. Quotation receives `evaluationId` and consent refs **from
+        journey_ref**; its gate (`SUITABILITY.GATE`, C5) answers `403 SUITABILITY_REQUIRED` or
+        `422 SUITABILITY_INCOMPLETE` (insufficient data, or a caution not acknowledged on the
+        customer's own device), propagated. Chained → `202` command.
       parameters:
         - $ref: '#/components/parameters/ActorId'
         - $ref: '#/components/parameters/CorrelationId'
@@ -379,7 +426,7 @@ paths:
               $ref: '#/components/schemas/QuoteCommand'
       responses:
         '202':
-          $ref: '#/components/responses/JourneyAccepted'
+          $ref: '#/components/responses/CommandAccepted'
         '403':
           $ref: '#/components/responses/Forbidden'
         '409':
@@ -454,7 +501,7 @@ paths:
             $ref: '#/components/schemas/Ulid'
       responses:
         '202':
-          $ref: '#/components/responses/JourneyAccepted'
+          $ref: '#/components/responses/CommandAccepted'
         '403':
           $ref: '#/components/responses/Forbidden'
         '409':
@@ -465,15 +512,15 @@ paths:
     post:
       tags: [quote-to-pay]
       operationId: initiatePayment
-      summary: UNDERWRITING (UW approved) → PAYMENT_PENDING (Payment initiate; link to the customer device, C4).
+      summary: UNDERWRITING (UW approved, E1) → PAYMENT_PENDING (Payment initiate; link to the customer device). 202 command — the gateway session (S-13, up to 15 s) is outside the S-03 budget.
       parameters:
         - $ref: '#/components/parameters/ActorId'
         - $ref: '#/components/parameters/CorrelationId'
         - $ref: '#/components/parameters/IdempotencyKey'
         - $ref: '#/components/parameters/JourneyId'
       responses:
-        '201':
-          $ref: '#/components/responses/JourneyCreated'
+        '202':
+          $ref: '#/components/responses/CommandAccepted'
         '403':
           $ref: '#/components/responses/Forbidden'
         '409':
@@ -545,6 +592,7 @@ components:
     NextAction:
       type: string
       enum:
+        - AWAIT_PARTY_SNAPSHOT
         - RETRY_PARTY_SNAPSHOT
         - START_NEED_ANALYSIS
         - COMPLETE_NEED_ANALYSIS
@@ -615,6 +663,9 @@ components:
             type: string
         pendingConsentChallengeId:
           type: ['string', 'null']
+        pendingCommandId:
+          type: ['string', 'null']
+          description: The accepted chained command still running for this journey (ED-R2-01), if any.
         compensation:
           type: ['object', 'null']
           properties:
@@ -646,6 +697,41 @@ components:
           format: date-time
         maskedContact:
           type: string
+    JourneyCommand:
+      type: object
+      required: [commandId, journeyId, command, status, acceptedAt, deadlineAt]
+      description: 'ED-R2-01 — a chained command accepted with 202 and completed by a worker within its deadline.'
+      properties:
+        commandId:
+          $ref: '#/components/schemas/Ulid'
+        journeyId:
+          $ref: '#/components/schemas/Ulid'
+        command:
+          type: string
+          enum: [partySnapshot, startNeedAnalysis, evaluateSuitability, checkOrCaptureConsent, requestQuote, submitProposal, initiatePayment]
+        status:
+          type: string
+          enum: [PENDING, SUCCEEDED, FAILED]
+        acceptedAt:
+          type: string
+          format: date-time
+        deadlineAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: ['string', 'null']
+          format: date-time
+        result:
+          description: On SUCCEEDED — the journey after the command, or ConsentCaptureStarted for a consent capture.
+          oneOf:
+            - $ref: '#/components/schemas/Journey'
+            - $ref: '#/components/schemas/ConsentCaptureStarted'
+            - type: 'null'
+        error:
+          description: On FAILED — the propagated problem (stage unchanged).
+          oneOf:
+            - $ref: '#/components/schemas/Problem'
+            - type: 'null'
     QuoteCommand:
       type: object
       additionalProperties: false
@@ -716,14 +802,19 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Journey'
-    JourneyAccepted:
-      description: Async-poll step accepted by the owning service; journey after the command.
+    CommandAccepted:
+      description: 'Chained command accepted (ED-R2-01). Poll the Location (getJourneyCommand). A replay with the same Idempotency-Key returns the same commandId.'
+      headers:
+        Location:
+          description: /internal/v1/journeys/{journeyId}/commands/{commandId}
+          schema:
+            type: string
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Journey'
+            $ref: '#/components/schemas/JourneyCommand'
     Validation:
-      description: 'VALIDATION_ERROR, MISSING_REQUIRED_FIELD, UNSUPPORTED_LOB, CONFIGURATION_UNRESOLVABLE; propagated SUITABILITY_INCOMPLETE (NEW).'
+      description: 'VALIDATION_ERROR, MISSING_REQUIRED_FIELD, UNSUPPORTED_LOB, CONFIGURATION_UNRESOLVABLE; propagated SUITABILITY_INCOMPLETE (C5/C6).'
       content:
         application/problem+json:
           schema:
@@ -735,19 +826,19 @@ components:
           schema:
             $ref: '#/components/schemas/Problem'
     Forbidden:
-      description: 'DEFAULT_DENY / EXPLICIT_DENY / AUTHORIZATION_UNAVAILABLE (PDP, fail closed), SP_CERTIFICATION_REQUIRED, ASSIST_ONLY_ACTOR, CONSENT_REQUIRED, SUITABILITY_REQUIRED (propagated from Quotation), JOURNEY_HALTED_CONSENT_WITHDRAWN (NEW), FORBIDDEN.'
+      description: 'DEFAULT_DENY / EXPLICIT_DENY / AUTHORIZATION_UNAVAILABLE (PDP, fail closed), SP_CERTIFICATION_REQUIRED, ASSIST_ONLY_ACTOR, CONSENT_REQUIRED, CONSENT_EXPIRED, CONSENT_SCOPE_MISMATCH, CONSENT_STATEMENT_NOT_APPROVED (C7), SUITABILITY_REQUIRED (propagated from Quotation), JOURNEY_HALTED_CONSENT_WITHDRAWN (E4 — every command on a halted journey), FORBIDDEN (RM_RELAYED verification under C2).'
       content:
         application/problem+json:
           schema:
             $ref: '#/components/schemas/Problem'
     Conflict:
-      description: 'ILLEGAL_TRANSITION (stage does not allow the command; INV-JRN-01), CONFLICT (stale expectedVersion; lead on exception hold), IDEMPOTENCY_CONFLICT, REQUEST_IN_PROGRESS, ASSESSMENT_IMMUTABLE, QUOTE_EXPIRED, OTP_EXPIRED (NEW) — propagated.'
+      description: 'ILLEGAL_TRANSITION (stage does not allow the command; INV-JRN-01), CONFLICT (stale expectedVersion; lead on exception hold), IDEMPOTENCY_CONFLICT, REQUEST_IN_PROGRESS, ASSESSMENT_IMMUTABLE, QUOTE_EXPIRED, OTP_EXPIRED — propagated.'
       content:
         application/problem+json:
           schema:
             $ref: '#/components/schemas/Problem'
     RateLimited:
-      description: 'OTP_ATTEMPTS_EXCEEDED, OTP_ISSUE_RATE_EXCEEDED (NEW) — propagated from Consent.'
+      description: 'OTP_ATTEMPTS_EXCEEDED, OTP_ISSUE_RATE_EXCEEDED — propagated from Consent.'
       content:
         application/problem+json:
           schema:
@@ -759,7 +850,7 @@ components:
           schema:
             $ref: '#/components/schemas/Problem'
     Unavailable:
-      description: 'UPSTREAM_UNAVAILABLE — owning service timed out / unreachable; stage unchanged; retry with the same key.'
+      description: 'UPSTREAM_UNAVAILABLE — owning service unreachable on a synchronous command; stage unchanged; retry with the same key. A chained command reports UPSTREAM_TIMEOUT / UPSTREAM_UNAVAILABLE in JourneyCommand.error instead.'
       content:
         application/problem+json:
           schema:

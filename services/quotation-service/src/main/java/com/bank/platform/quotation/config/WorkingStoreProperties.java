@@ -12,7 +12,8 @@ public record WorkingStoreProperties(
     Duration retentionWorking,
     Duration retentionAfterMaterialize,
     Duration idempotencyTtl,
-    Duration outboxTtl) {
+    Duration outboxTtl,
+    int outboxPendingShards) {
 
   public WorkingStoreProperties {
     tableName = tableName == null || tableName.isBlank() ? "local-quotation-working" : tableName;
@@ -22,5 +23,6 @@ public record WorkingStoreProperties(
         retentionAfterMaterialize == null ? Duration.ofDays(30) : retentionAfterMaterialize;
     idempotencyTtl = idempotencyTtl == null ? Duration.ofHours(24) : idempotencyTtl;
     outboxTtl = outboxTtl == null ? Duration.ofDays(7) : outboxTtl;
+    outboxPendingShards = outboxPendingShards <= 0 ? 4 : outboxPendingShards;
   }
 }

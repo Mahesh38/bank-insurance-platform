@@ -8,13 +8,13 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 /**
- * TEMPORARY (D2, DECISIONS-2026-10-21): deterministic stand-in for rule set {@code LEAD.EXCEPTION}
- * until {@code libs/bank-rule-engine} is wired as the adapter behind {@link ExceptionRulesPort}.
- * Tokens are synthetic test customer ids, never logged. Refused under {@code prod} / {@code uat} by
- * {@code ProductionSafetyGuard}: it would pass every real customer.
+ * TEST ONLY (moved out of the service jar, SUG-20261022-rdy): deterministic stand-in for rule set
+ * {@code LEAD.EXCEPTION}, selected with {@code lead.exception-rules=stub} in Spring tests that need
+ * a PASS without configuring thresholds. Tokens are synthetic test customer ids. Production wiring
+ * is {@code EngineExceptionRules}; {@code ProductionSafetyGuard} refuses anything else.
  */
 @Component
-@ConditionalOnProperty(name = "lead.exception-rules", havingValue = "stub", matchIfMissing = true)
+@ConditionalOnProperty(name = "lead.exception-rules", havingValue = "stub")
 public class StubExceptionRules implements ExceptionRulesPort {
 
   static final String STUB_REASON = "STUB-NOT-A-RULE";

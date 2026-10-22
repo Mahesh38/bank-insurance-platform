@@ -4,14 +4,21 @@ info:
   version: 1.0.0-draft
   summary: Consent (#6) — checkpoint check, OTP-verified capture, append-only evidence, withdrawal.
   description: |
-    **Status:** AI-DRAFTED 2026-10-22 under owner decision D5 (`D-024`), D3 and ADR-024/025/027,
-    awaiting Mahesh (architecture) and Shailja (Compliance — DPDP position, statement wording,
-    validity windows, CNS-R13) review. Code status: SKELETON (no business endpoint exists).
+    **Status:** AI-DRAFTED 2026-10-22 under owner decision D5 (`D-024`), D3, ADR-024/025/027 and the
+    compliance-strict decisions C1–C3, C7 of DECISIONS-2026-10-22, awaiting Mahesh (architecture)
+    and Shailja (Compliance — DPDP position, statement wording, validity windows, CNS-R13) review.
+    Code status: SKELETON (no business endpoint exists). GAP-006 stays OPEN (C8).
 
     * Which purposes a checkpoint needs, and how long each stays valid, come from rule set
-      `CONSENT.POLICY` (ADR-024, `hitPolicy: COLLECT`). Seed (D5): `BEFORE_MULTI_QUOTE` →
-      `CNS-DP`, `CNS-SOL`, `CNS-QSH`, 90 days; `BEFORE_PROPOSAL_SUBMIT` → `CNS-SHR`, 30 days,
-      named insurer; `BEFORE_FIRST_COMMUNICATION` → `CNS-COM`, no expiry. Never compiled in.
+      `CONSENT.POLICY` (ADR-024, `hitPolicy: COLLECT`). Strict seed (C1): `BEFORE_SUITABILITY` →
+      `CNS-DP`, `CNS-SOL`, 90 days; `BEFORE_MULTI_QUOTE` → `CNS-QSH` plus a re-check that
+      `CNS-DP`/`CNS-SOL` are still valid (90-day reuse; only what is missing is captured);
+      `BEFORE_PROPOSAL_SUBMIT` → `CNS-SHR`, 30 days, named insurer; `BEFORE_FIRST_COMMUNICATION` →
+      `CNS-COM`, no expiry. Never compiled in.
+    * C2: verification only on the customer's own device (`verificationModes = [CUSTOMER_DEVICE]`).
+    * C3: every purpose is a separate affirmative action (`separateActions = true`).
+    * C7: a purpose whose statement is not `APPROVED` cannot be captured
+      (`403 CONSENT_STATEMENT_NOT_APPROVED`; rule-set outcome `CAPTURE_BLOCKED`).
     * Consent is bound to `customerId` (ULID, D3) — never to a CIF.
     * Evidence is append-only: a state change is a new row (CNS-R16/R17); withdrawal is a new row.
 servers:
@@ -32,7 +39,10 @@ paths:
         Read-only. Resolves `CONSENT.POLICY` in force (or the version pinned to the journey), reads the
         head row of every consent chain of this customer, and returns the covering consents plus the
         missing purposes with a reason. Callers (journey, proposal) refuse their own step with
-        `403 CONSENT_REQUIRED` when `satisfied=false`. Unresolvable policy → fail closed.
+        `403 CONSENT_REQUIRED` (`CONSENT_EXPIRED` / `CONSENT_SCOPE_MISMATCH` when that is the only
+        reason) when `satisfied=false`. `captureBlocked=true` (rule-set outcome `CAPTURE_BLOCKED`)
+        means a missing purpose's statement is not `APPROVED` (C7): the caller refuses with
+        `403 CONSENT_STATEMENT_NOT_APPROVED` and does not start a capture. Unresolvable policy → fail closed.
       parameters:
         - $ref: '#/components/parameters/ActorId'
         - $ref: '#/components/parameters/CorrelationId'
@@ -85,6 +95,11 @@ paths:
         the customer's CBS-registered mobile from customer-service (CNS-R11 — never from the body),
         creates a challenge in `OTP_PENDING` and dispatches one OTP (10 min, CNS-R14).
         No evidence row is written until verification succeeds.
+        C7: every requested purpose's statement must have status `APPROVED`
+        (`CONSENT.POLICY.parameters.requiredStatementStatus`), else `403 CONSENT_STATEMENT_NOT_APPROVED`
+        and no challenge is created. C3: with `separateActions=true` each purpose is rendered as its own
+        statement with its own affirmative action on the customer's device; the OTP authenticates the
+        customer, it is not the consent.
       parameters:
         - $ref: '#/components/parameters/ActorId'
         - $ref: '#/components/parameters/CorrelationId'
@@ -104,6 +119,8 @@ paths:
                 $ref: '#/components/schemas/Challenge'
         '400':
           $ref: '#/components/responses/MissingIdempotencyKey'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '409':
           $ref: '#/components/responses/Conflict'
         '422':
@@ -170,10 +187,13 @@ paths:
       description: |
         `verificationMode=CUSTOMER_DEVICE`: the customer entered the OTP on their own device; the
         verification arrives from the customer-device confirmation surface / OTP provider (surface
-        not yet designed, see LLD O-2). `verificationMode=RM_RELAYED`: the customer reads the OTP to
-        the RM and the RM session posts it (R0-HLD §5.2). **RM_RELAYED conflicts with CNS-R13** and is
-        accepted only when `CONSENT.POLICY.parameters.verificationModes` contains it — open
-        Compliance item (Shailja); otherwise `403 FORBIDDEN`.
+        not yet designed, see LLD O-2). `verificationMode=RM_RELAYED` (customer reads the OTP to the
+        RM, R0-HLD §5.2) is **refused with `403 FORBIDDEN`** under the strict seed (C2,
+        `verificationModes = [CUSTOMER_DEVICE]`, CNS-R13); enabling it is a Compliance-approved
+        `CONSENT.POLICY` version, not code.
+        C3 (`separateActions=true`): `affirmations` must hold one entry per purpose of the challenge,
+        each matching the statement rendered for it; a purpose without its own affirmation is not
+        granted and the verify is refused (`422 VALIDATION_ERROR`, nothing written).
         Max 3 attempts per OTP (CNS-R15). Evidence write failure → the step fails (CNS-R37).
       parameters:
         - $ref: '#/components/parameters/ActorId'
@@ -345,10 +365,11 @@ components:
       enum: [RM_ASSISTED, SELF_SERVICE, HYBRID]
     MissingReason:
       type: string
-      enum: [ABSENT, EXPIRED, WITHDRAWN, SUPERSEDED, STATEMENT_MAJOR_CHANGE, SCOPE_MISMATCH]
+      enum: [ABSENT, EXPIRED, WITHDRAWN, SUPERSEDED, STATEMENT_MAJOR_CHANGE, SCOPE_MISMATCH, STATEMENT_NOT_APPROVED]
+      description: '`STATEMENT_NOT_APPROVED` (C7) — the purpose is missing and cannot be captured until Compliance approves its statement.'
     CheckResult:
       type: object
-      required: [customerId, checkpoint, satisfied, policyRuleSetId, policyVersion, valid, missing]
+      required: [customerId, checkpoint, satisfied, captureBlocked, policyRuleSetId, policyVersion, valid, missing]
       properties:
         customerId:
           $ref: '#/components/schemas/Ulid'
@@ -356,6 +377,9 @@ components:
           $ref: '#/components/schemas/Checkpoint'
         satisfied:
           type: boolean
+        captureBlocked:
+          type: boolean
+          description: 'True when the rule-set outcome is `CAPTURE_BLOCKED` (C7): at least one missing purpose has no `APPROVED` statement, so no capture may start.'
         policyRuleSetId:
           type: string
           const: CONSENT.POLICY
@@ -478,8 +502,28 @@ components:
     VerifyRequest:
       type: object
       additionalProperties: false
-      required: [otpTxnId, otp, verificationMode]
+      required: [otpTxnId, otp, verificationMode, affirmations]
       properties:
+        affirmations:
+          type: array
+          minItems: 1
+          description: 'C3 — one separate affirmative action per purpose, taken on the customer''s device.'
+          items:
+            type: object
+            additionalProperties: false
+            required: [purpose, statementId, statementVersion, affirmedAt]
+            properties:
+              purpose:
+                $ref: '#/components/schemas/Purpose'
+              statementId:
+                type: string
+                maxLength: 64
+              statementVersion:
+                type: string
+                maxLength: 32
+              affirmedAt:
+                type: string
+                format: date-time
         otpTxnId:
           type: string
           maxLength: 64
@@ -619,19 +663,19 @@ components:
           schema:
             $ref: '#/components/schemas/Problem'
     Conflict:
-      description: 'ILLEGAL_TRANSITION (challenge not OTP_PENDING; consent not GRANTED), OTP_EXPIRED (NEW), IDEMPOTENCY_CONFLICT, REQUEST_IN_PROGRESS.'
+      description: 'ILLEGAL_TRANSITION (challenge not OTP_PENDING; consent not GRANTED), OTP_EXPIRED, IDEMPOTENCY_CONFLICT, REQUEST_IN_PROGRESS.'
       content:
         application/problem+json:
           schema:
             $ref: '#/components/schemas/Problem'
     RateLimited:
-      description: 'OTP_ATTEMPTS_EXCEEDED (NEW, 4th verify), OTP_ISSUE_RATE_EXCEEDED (NEW, 6th issue in 24 h).'
+      description: 'OTP_ATTEMPTS_EXCEEDED (4th verify), OTP_ISSUE_RATE_EXCEEDED (6th issue in 24 h). Never auto-retried.'
       content:
         application/problem+json:
           schema:
             $ref: '#/components/schemas/Problem'
     Forbidden:
-      description: 'FORBIDDEN (verification mode not permitted by CONSENT.POLICY), CONSENT_SUBJECT_MISMATCH (NEW; security event).'
+      description: 'FORBIDDEN (verification mode not permitted by CONSENT.POLICY — RM_RELAYED under the strict seed, C2), CONSENT_SUBJECT_MISMATCH (security event), CONSENT_STATEMENT_NOT_APPROVED (C7 — statement not APPROVED; no challenge created).'
       content:
         application/problem+json:
           schema:

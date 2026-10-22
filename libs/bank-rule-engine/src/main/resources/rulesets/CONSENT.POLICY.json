@@ -11,13 +11,18 @@
   "effectiveTo": null,
   "classification": "COMPLIANCE",
   "pinning": "JOURNEY",
-  "description": "Which consents must be captured at a checkpoint, given what the customer already holds (DECISIONS D5 / D-024). COLLECT: every missing purpose is returned.",
+  "description": "Which consents must be captured at a checkpoint, given what the customer already holds, and whether capture is allowed at all (DECISIONS D5, C1-C3, C7). COLLECT: every missing purpose is returned; CAPTURE_BLOCKED outranks CAPTURE_REQUIRED when a needed statement is not APPROVED. verificationModes, separateActions and requiredStatementStatus are policy values the consent-service reads directly.",
   "source": {
-    "document": "docs/platform/architecture-review/DECISIONS-2026-10-21.md",
+    "document": "docs/platform/architecture-review/DECISIONS-2026-10-22.md",
     "sections": [
-      "D5 (checkpoints, purposes, validity days, reuse, bindTo)"
+      "C1 (CNS-DP + CNS-SOL at BEFORE_SUITABILITY; CNS-QSH + re-check at BEFORE_MULTI_QUOTE)",
+      "C2 (verification on the customer's own device, CNS-R13)",
+      "C3 (separate affirmative actions, OPEN-CNS-01)",
+      "consent rule pack CNS-R14 (OTP valid 10 minutes), CNS-R15 (3 attempts, 5 issues per 24 hours)",
+      "C7 (statement status must be APPROVED)"
     ],
     "related": [
+      "docs/platform/architecture-review/DECISIONS-2026-10-21.md D5 (checkpoints, purposes, validity days, reuse, bindTo)",
       "docs/au-bank-insurance-platform/rule-packs/consent-rule-pack.md sections 2, 6"
     ]
   },
@@ -28,9 +33,12 @@
       "Shailja / bank Compliance"
     ],
     "approverRole": "COMPLIANCE_APPROVER",
-    "seededBy": "SUG-20261021-rul (owner-directed build, ADMIT-BYPASS)",
+    "seededBy": "SUG-20261021-rul; strict defaults SUG-20261022-rdy (owner-directed build, ADMIT-BYPASS)",
     "openItems": [
-      "D5: Compliance must confirm DPDP position of taking CNS-DP/CNS-SOL after the questionnaire; the fix is moving them to BEFORE_SUITABILITY (new parameters + rules, no code)"
+      "C1: Compliance may confirm the owner's order (consent after the questionnaire) is permissible; the relaxation is moving CNS-DP/CNS-SOL from checkpoints.BEFORE_SUITABILITY to BEFORE_MULTI_QUOTE only (configuration, no code)",
+      "C2: verificationModes = [CUSTOMER_DEVICE]; adding RM_READ_BACK needs Compliance approval",
+      "C3: separateActions = true (OPEN-CNS-01); false needs Compliance approval",
+      "C7: every statement (incl. CNS-QSH) is a draft until Compliance approves it; until then capture is CAPTURE_BLOCKED"
     ]
   },
   "inputs": [
@@ -54,22 +62,25 @@
       "name": "dpGrantedOn",
       "type": "DATE",
       "required": false,
-      "description": "Latest valid (not withdrawn) CNS-DP for the customerId; null if none"
+      "description": "Grant date of the latest valid (not withdrawn) CNS-DP held for the customerId; null if none"
     },
     {
       "name": "solGrantedOn",
       "type": "DATE",
-      "required": false
+      "required": false,
+      "description": "Grant date of the latest valid (not withdrawn) CNS-SOL held for the customerId; null if none"
     },
     {
       "name": "qshGrantedOn",
       "type": "DATE",
-      "required": false
+      "required": false,
+      "description": "Grant date of the latest valid (not withdrawn) CNS-QSH held for the customerId; null if none"
     },
     {
       "name": "shrGrantedOn",
       "type": "DATE",
-      "required": false
+      "required": false,
+      "description": "Grant date of the latest valid (not withdrawn) CNS-SHR held for the customerId; null if none"
     },
     {
       "name": "shrInsurerCode",
@@ -86,25 +97,427 @@
     {
       "name": "comGrantedOn",
       "type": "DATE",
-      "required": false
+      "required": false,
+      "description": "Grant date of the latest valid (not withdrawn) CNS-COM held for the customerId; null if none"
+    },
+    {
+      "name": "dpStatementStatus",
+      "type": "ENUM",
+      "required": false,
+      "values": [
+        "DRAFT",
+        "PENDING_APPROVAL",
+        "APPROVED",
+        "RETIRED"
+      ],
+      "description": "Status of the current consent statement for CNS-DP (C7); null is treated as not approved"
+    },
+    {
+      "name": "solStatementStatus",
+      "type": "ENUM",
+      "required": false,
+      "values": [
+        "DRAFT",
+        "PENDING_APPROVAL",
+        "APPROVED",
+        "RETIRED"
+      ],
+      "description": "Status of the current consent statement for CNS-SOL (C7); null is treated as not approved"
+    },
+    {
+      "name": "qshStatementStatus",
+      "type": "ENUM",
+      "required": false,
+      "values": [
+        "DRAFT",
+        "PENDING_APPROVAL",
+        "APPROVED",
+        "RETIRED"
+      ],
+      "description": "Status of the current consent statement for CNS-QSH (C7); null is treated as not approved"
+    },
+    {
+      "name": "shrStatementStatus",
+      "type": "ENUM",
+      "required": false,
+      "values": [
+        "DRAFT",
+        "PENDING_APPROVAL",
+        "APPROVED",
+        "RETIRED"
+      ],
+      "description": "Status of the current consent statement for CNS-SHR (C7); null is treated as not approved"
+    },
+    {
+      "name": "comStatementStatus",
+      "type": "ENUM",
+      "required": false,
+      "values": [
+        "DRAFT",
+        "PENDING_APPROVAL",
+        "APPROVED",
+        "RETIRED"
+      ],
+      "description": "Status of the current consent statement for CNS-COM (C7); null is treated as not approved"
     }
   ],
   "decision": {
     "hitPolicy": "COLLECT",
     "outcomeRank": [
+      "CAPTURE_BLOCKED",
       "CAPTURE_REQUIRED",
       "NO_CAPTURE_REQUIRED"
     ],
     "noMatchOutcome": "NO_CAPTURE_REQUIRED",
     "missingInputOutcome": "CAPTURE_REQUIRED",
-    "missingConfigOutcome": "CAPTURE_REQUIRED",
+    "missingConfigOutcome": "CAPTURE_BLOCKED",
     "missingConfigReasonCode": "CONSENT_CONFIG_MISSING",
     "collectReasonCodes": "ALL_FIRED"
   },
   "rules": [
     {
-      "ruleId": "CNS-MQ-DP",
+      "ruleId": "CNS-SU-DP",
       "priority": 10,
+      "when": {
+        "op": "all",
+        "args": [
+          {
+            "op": "eq",
+            "args": [
+              {
+                "var": "checkpoint"
+              },
+              {
+                "const": "BEFORE_SUITABILITY"
+              }
+            ]
+          },
+          {
+            "op": "in",
+            "args": [
+              {
+                "const": "CNS-DP"
+              },
+              {
+                "param": "checkpoints.BEFORE_SUITABILITY.purposes"
+              }
+            ]
+          },
+          {
+            "op": "any",
+            "args": [
+              {
+                "op": "isNull",
+                "args": [
+                  {
+                    "var": "dpGrantedOn"
+                  }
+                ]
+              },
+              {
+                "op": "gt",
+                "args": [
+                  {
+                    "op": "daysBetween",
+                    "args": [
+                      {
+                        "var": "dpGrantedOn"
+                      },
+                      {
+                        "var": "asOf"
+                      }
+                    ]
+                  },
+                  {
+                    "param": "checkpoints.BEFORE_SUITABILITY.validityDays"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "outcome": "CAPTURE_REQUIRED",
+        "reasonCode": "CAPTURE_CNS_DP",
+        "params": {
+          "purpose": {
+            "const": "CNS-DP"
+          },
+          "checkpoint": {
+            "var": "checkpoint"
+          }
+        }
+      }
+    },
+    {
+      "ruleId": "CNS-SU-DP-STMT",
+      "priority": 15,
+      "sourceRef": "DECISIONS-2026-10-22 C7",
+      "when": {
+        "op": "all",
+        "args": [
+          {
+            "op": "eq",
+            "args": [
+              {
+                "var": "checkpoint"
+              },
+              {
+                "const": "BEFORE_SUITABILITY"
+              }
+            ]
+          },
+          {
+            "op": "in",
+            "args": [
+              {
+                "const": "CNS-DP"
+              },
+              {
+                "param": "checkpoints.BEFORE_SUITABILITY.purposes"
+              }
+            ]
+          },
+          {
+            "op": "any",
+            "args": [
+              {
+                "op": "isNull",
+                "args": [
+                  {
+                    "var": "dpGrantedOn"
+                  }
+                ]
+              },
+              {
+                "op": "gt",
+                "args": [
+                  {
+                    "op": "daysBetween",
+                    "args": [
+                      {
+                        "var": "dpGrantedOn"
+                      },
+                      {
+                        "var": "asOf"
+                      }
+                    ]
+                  },
+                  {
+                    "param": "checkpoints.BEFORE_SUITABILITY.validityDays"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "not",
+            "args": [
+              {
+                "op": "eq",
+                "args": [
+                  {
+                    "var": "dpStatementStatus"
+                  },
+                  {
+                    "param": "requiredStatementStatus"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "outcome": "CAPTURE_BLOCKED",
+        "reasonCode": "CNS_DP_STATEMENT_NOT_APPROVED",
+        "params": {
+          "purpose": {
+            "const": "CNS-DP"
+          },
+          "checkpoint": {
+            "var": "checkpoint"
+          }
+        },
+        "actions": [
+          "REFUSE_CONSENT_STATEMENT_NOT_APPROVED"
+        ]
+      }
+    },
+    {
+      "ruleId": "CNS-SU-SOL",
+      "priority": 11,
+      "when": {
+        "op": "all",
+        "args": [
+          {
+            "op": "eq",
+            "args": [
+              {
+                "var": "checkpoint"
+              },
+              {
+                "const": "BEFORE_SUITABILITY"
+              }
+            ]
+          },
+          {
+            "op": "in",
+            "args": [
+              {
+                "const": "CNS-SOL"
+              },
+              {
+                "param": "checkpoints.BEFORE_SUITABILITY.purposes"
+              }
+            ]
+          },
+          {
+            "op": "any",
+            "args": [
+              {
+                "op": "isNull",
+                "args": [
+                  {
+                    "var": "solGrantedOn"
+                  }
+                ]
+              },
+              {
+                "op": "gt",
+                "args": [
+                  {
+                    "op": "daysBetween",
+                    "args": [
+                      {
+                        "var": "solGrantedOn"
+                      },
+                      {
+                        "var": "asOf"
+                      }
+                    ]
+                  },
+                  {
+                    "param": "checkpoints.BEFORE_SUITABILITY.validityDays"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "outcome": "CAPTURE_REQUIRED",
+        "reasonCode": "CAPTURE_CNS_SOL",
+        "params": {
+          "purpose": {
+            "const": "CNS-SOL"
+          },
+          "checkpoint": {
+            "var": "checkpoint"
+          }
+        }
+      }
+    },
+    {
+      "ruleId": "CNS-SU-SOL-STMT",
+      "priority": 16,
+      "sourceRef": "DECISIONS-2026-10-22 C7",
+      "when": {
+        "op": "all",
+        "args": [
+          {
+            "op": "eq",
+            "args": [
+              {
+                "var": "checkpoint"
+              },
+              {
+                "const": "BEFORE_SUITABILITY"
+              }
+            ]
+          },
+          {
+            "op": "in",
+            "args": [
+              {
+                "const": "CNS-SOL"
+              },
+              {
+                "param": "checkpoints.BEFORE_SUITABILITY.purposes"
+              }
+            ]
+          },
+          {
+            "op": "any",
+            "args": [
+              {
+                "op": "isNull",
+                "args": [
+                  {
+                    "var": "solGrantedOn"
+                  }
+                ]
+              },
+              {
+                "op": "gt",
+                "args": [
+                  {
+                    "op": "daysBetween",
+                    "args": [
+                      {
+                        "var": "solGrantedOn"
+                      },
+                      {
+                        "var": "asOf"
+                      }
+                    ]
+                  },
+                  {
+                    "param": "checkpoints.BEFORE_SUITABILITY.validityDays"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "not",
+            "args": [
+              {
+                "op": "eq",
+                "args": [
+                  {
+                    "var": "solStatementStatus"
+                  },
+                  {
+                    "param": "requiredStatementStatus"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "outcome": "CAPTURE_BLOCKED",
+        "reasonCode": "CNS_SOL_STATEMENT_NOT_APPROVED",
+        "params": {
+          "purpose": {
+            "const": "CNS-SOL"
+          },
+          "checkpoint": {
+            "var": "checkpoint"
+          }
+        },
+        "actions": [
+          "REFUSE_CONSENT_STATEMENT_NOT_APPROVED"
+        ]
+      }
+    },
+    {
+      "ruleId": "CNS-MQ-DP",
+      "priority": 20,
       "when": {
         "op": "all",
         "args": [
@@ -178,8 +591,103 @@
       }
     },
     {
+      "ruleId": "CNS-MQ-DP-STMT",
+      "priority": 25,
+      "sourceRef": "DECISIONS-2026-10-22 C7",
+      "when": {
+        "op": "all",
+        "args": [
+          {
+            "op": "eq",
+            "args": [
+              {
+                "var": "checkpoint"
+              },
+              {
+                "const": "BEFORE_MULTI_QUOTE"
+              }
+            ]
+          },
+          {
+            "op": "in",
+            "args": [
+              {
+                "const": "CNS-DP"
+              },
+              {
+                "param": "checkpoints.BEFORE_MULTI_QUOTE.purposes"
+              }
+            ]
+          },
+          {
+            "op": "any",
+            "args": [
+              {
+                "op": "isNull",
+                "args": [
+                  {
+                    "var": "dpGrantedOn"
+                  }
+                ]
+              },
+              {
+                "op": "gt",
+                "args": [
+                  {
+                    "op": "daysBetween",
+                    "args": [
+                      {
+                        "var": "dpGrantedOn"
+                      },
+                      {
+                        "var": "asOf"
+                      }
+                    ]
+                  },
+                  {
+                    "param": "checkpoints.BEFORE_MULTI_QUOTE.validityDays"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "not",
+            "args": [
+              {
+                "op": "eq",
+                "args": [
+                  {
+                    "var": "dpStatementStatus"
+                  },
+                  {
+                    "param": "requiredStatementStatus"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "outcome": "CAPTURE_BLOCKED",
+        "reasonCode": "CNS_DP_STATEMENT_NOT_APPROVED",
+        "params": {
+          "purpose": {
+            "const": "CNS-DP"
+          },
+          "checkpoint": {
+            "var": "checkpoint"
+          }
+        },
+        "actions": [
+          "REFUSE_CONSENT_STATEMENT_NOT_APPROVED"
+        ]
+      }
+    },
+    {
       "ruleId": "CNS-MQ-SOL",
-      "priority": 11,
+      "priority": 21,
       "when": {
         "op": "all",
         "args": [
@@ -253,8 +761,103 @@
       }
     },
     {
+      "ruleId": "CNS-MQ-SOL-STMT",
+      "priority": 26,
+      "sourceRef": "DECISIONS-2026-10-22 C7",
+      "when": {
+        "op": "all",
+        "args": [
+          {
+            "op": "eq",
+            "args": [
+              {
+                "var": "checkpoint"
+              },
+              {
+                "const": "BEFORE_MULTI_QUOTE"
+              }
+            ]
+          },
+          {
+            "op": "in",
+            "args": [
+              {
+                "const": "CNS-SOL"
+              },
+              {
+                "param": "checkpoints.BEFORE_MULTI_QUOTE.purposes"
+              }
+            ]
+          },
+          {
+            "op": "any",
+            "args": [
+              {
+                "op": "isNull",
+                "args": [
+                  {
+                    "var": "solGrantedOn"
+                  }
+                ]
+              },
+              {
+                "op": "gt",
+                "args": [
+                  {
+                    "op": "daysBetween",
+                    "args": [
+                      {
+                        "var": "solGrantedOn"
+                      },
+                      {
+                        "var": "asOf"
+                      }
+                    ]
+                  },
+                  {
+                    "param": "checkpoints.BEFORE_MULTI_QUOTE.validityDays"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "not",
+            "args": [
+              {
+                "op": "eq",
+                "args": [
+                  {
+                    "var": "solStatementStatus"
+                  },
+                  {
+                    "param": "requiredStatementStatus"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "outcome": "CAPTURE_BLOCKED",
+        "reasonCode": "CNS_SOL_STATEMENT_NOT_APPROVED",
+        "params": {
+          "purpose": {
+            "const": "CNS-SOL"
+          },
+          "checkpoint": {
+            "var": "checkpoint"
+          }
+        },
+        "actions": [
+          "REFUSE_CONSENT_STATEMENT_NOT_APPROVED"
+        ]
+      }
+    },
+    {
       "ruleId": "CNS-MQ-QSH",
-      "priority": 12,
+      "priority": 22,
       "when": {
         "op": "all",
         "args": [
@@ -328,8 +931,103 @@
       }
     },
     {
+      "ruleId": "CNS-MQ-QSH-STMT",
+      "priority": 27,
+      "sourceRef": "DECISIONS-2026-10-22 C7",
+      "when": {
+        "op": "all",
+        "args": [
+          {
+            "op": "eq",
+            "args": [
+              {
+                "var": "checkpoint"
+              },
+              {
+                "const": "BEFORE_MULTI_QUOTE"
+              }
+            ]
+          },
+          {
+            "op": "in",
+            "args": [
+              {
+                "const": "CNS-QSH"
+              },
+              {
+                "param": "checkpoints.BEFORE_MULTI_QUOTE.purposes"
+              }
+            ]
+          },
+          {
+            "op": "any",
+            "args": [
+              {
+                "op": "isNull",
+                "args": [
+                  {
+                    "var": "qshGrantedOn"
+                  }
+                ]
+              },
+              {
+                "op": "gt",
+                "args": [
+                  {
+                    "op": "daysBetween",
+                    "args": [
+                      {
+                        "var": "qshGrantedOn"
+                      },
+                      {
+                        "var": "asOf"
+                      }
+                    ]
+                  },
+                  {
+                    "param": "checkpoints.BEFORE_MULTI_QUOTE.validityDays"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "not",
+            "args": [
+              {
+                "op": "eq",
+                "args": [
+                  {
+                    "var": "qshStatementStatus"
+                  },
+                  {
+                    "param": "requiredStatementStatus"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "outcome": "CAPTURE_BLOCKED",
+        "reasonCode": "CNS_QSH_STATEMENT_NOT_APPROVED",
+        "params": {
+          "purpose": {
+            "const": "CNS-QSH"
+          },
+          "checkpoint": {
+            "var": "checkpoint"
+          }
+        },
+        "actions": [
+          "REFUSE_CONSENT_STATEMENT_NOT_APPROVED"
+        ]
+      }
+    },
+    {
       "ruleId": "CNS-PS-SHR",
-      "priority": 20,
+      "priority": 30,
       "when": {
         "op": "all",
         "args": [
@@ -400,13 +1098,34 @@
                     ]
                   },
                   {
-                    "op": "ne",
+                    "op": "any",
                     "args": [
                       {
-                        "var": "shrInsurerCode"
+                        "op": "isNull",
+                        "args": [
+                          {
+                            "var": "shrInsurerCode"
+                          }
+                        ]
                       },
                       {
-                        "var": "targetInsurerCode"
+                        "op": "isNull",
+                        "args": [
+                          {
+                            "var": "targetInsurerCode"
+                          }
+                        ]
+                      },
+                      {
+                        "op": "ne",
+                        "args": [
+                          {
+                            "var": "shrInsurerCode"
+                          },
+                          {
+                            "var": "targetInsurerCode"
+                          }
+                        ]
                       }
                     ]
                   }
@@ -430,8 +1149,151 @@
       }
     },
     {
+      "ruleId": "CNS-PS-SHR-STMT",
+      "priority": 35,
+      "sourceRef": "DECISIONS-2026-10-22 C7",
+      "when": {
+        "op": "all",
+        "args": [
+          {
+            "op": "eq",
+            "args": [
+              {
+                "var": "checkpoint"
+              },
+              {
+                "const": "BEFORE_PROPOSAL_SUBMIT"
+              }
+            ]
+          },
+          {
+            "op": "in",
+            "args": [
+              {
+                "const": "CNS-SHR"
+              },
+              {
+                "param": "checkpoints.BEFORE_PROPOSAL_SUBMIT.purposes"
+              }
+            ]
+          },
+          {
+            "op": "any",
+            "args": [
+              {
+                "op": "isNull",
+                "args": [
+                  {
+                    "var": "shrGrantedOn"
+                  }
+                ]
+              },
+              {
+                "op": "gt",
+                "args": [
+                  {
+                    "op": "daysBetween",
+                    "args": [
+                      {
+                        "var": "shrGrantedOn"
+                      },
+                      {
+                        "var": "asOf"
+                      }
+                    ]
+                  },
+                  {
+                    "param": "checkpoints.BEFORE_PROPOSAL_SUBMIT.validityDays"
+                  }
+                ]
+              },
+              {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "eq",
+                    "args": [
+                      {
+                        "param": "checkpoints.BEFORE_PROPOSAL_SUBMIT.scope"
+                      },
+                      {
+                        "const": "NAMED_INSURER"
+                      }
+                    ]
+                  },
+                  {
+                    "op": "any",
+                    "args": [
+                      {
+                        "op": "isNull",
+                        "args": [
+                          {
+                            "var": "shrInsurerCode"
+                          }
+                        ]
+                      },
+                      {
+                        "op": "isNull",
+                        "args": [
+                          {
+                            "var": "targetInsurerCode"
+                          }
+                        ]
+                      },
+                      {
+                        "op": "ne",
+                        "args": [
+                          {
+                            "var": "shrInsurerCode"
+                          },
+                          {
+                            "var": "targetInsurerCode"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "not",
+            "args": [
+              {
+                "op": "eq",
+                "args": [
+                  {
+                    "var": "shrStatementStatus"
+                  },
+                  {
+                    "param": "requiredStatementStatus"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "outcome": "CAPTURE_BLOCKED",
+        "reasonCode": "CNS_SHR_STATEMENT_NOT_APPROVED",
+        "params": {
+          "purpose": {
+            "const": "CNS-SHR"
+          },
+          "checkpoint": {
+            "var": "checkpoint"
+          }
+        },
+        "actions": [
+          "REFUSE_CONSENT_STATEMENT_NOT_APPROVED"
+        ]
+      }
+    },
+    {
       "ruleId": "CNS-FC-COM",
-      "priority": 30,
+      "priority": 40,
       "when": {
         "op": "all",
         "args": [
@@ -508,10 +1370,117 @@
           }
         }
       }
+    },
+    {
+      "ruleId": "CNS-FC-COM-STMT",
+      "priority": 45,
+      "sourceRef": "DECISIONS-2026-10-22 C7",
+      "when": {
+        "op": "all",
+        "args": [
+          {
+            "op": "eq",
+            "args": [
+              {
+                "var": "checkpoint"
+              },
+              {
+                "const": "BEFORE_FIRST_COMMUNICATION"
+              }
+            ]
+          },
+          {
+            "op": "in",
+            "args": [
+              {
+                "const": "CNS-COM"
+              },
+              {
+                "param": "checkpoints.BEFORE_FIRST_COMMUNICATION.purposes"
+              }
+            ]
+          },
+          {
+            "op": "any",
+            "args": [
+              {
+                "op": "isNull",
+                "args": [
+                  {
+                    "var": "comGrantedOn"
+                  }
+                ]
+              },
+              {
+                "op": "gt",
+                "args": [
+                  {
+                    "op": "daysBetween",
+                    "args": [
+                      {
+                        "var": "comGrantedOn"
+                      },
+                      {
+                        "var": "asOf"
+                      }
+                    ]
+                  },
+                  {
+                    "op": "coalesce",
+                    "args": [
+                      {
+                        "param": "checkpoints.BEFORE_FIRST_COMMUNICATION.validityDays"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "not",
+            "args": [
+              {
+                "op": "eq",
+                "args": [
+                  {
+                    "var": "comStatementStatus"
+                  },
+                  {
+                    "param": "requiredStatementStatus"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "outcome": "CAPTURE_BLOCKED",
+        "reasonCode": "CNS_COM_STATEMENT_NOT_APPROVED",
+        "params": {
+          "purpose": {
+            "const": "CNS-COM"
+          },
+          "checkpoint": {
+            "var": "checkpoint"
+          }
+        },
+        "actions": [
+          "REFUSE_CONSENT_STATEMENT_NOT_APPROVED"
+        ]
+      }
     }
   ],
   "parameters": {
     "checkpoints": {
+      "BEFORE_SUITABILITY": {
+        "purposes": [
+          "CNS-DP",
+          "CNS-SOL"
+        ],
+        "validityDays": 90
+      },
       "BEFORE_MULTI_QUOTE": {
         "purposes": [
           "CNS-DP",
@@ -533,6 +1502,16 @@
         ],
         "validityDays": null
       }
+    },
+    "verificationModes": [
+      "CUSTOMER_DEVICE"
+    ],
+    "separateActions": true,
+    "requiredStatementStatus": "APPROVED",
+    "otp": {
+      "validityMinutes": 10,
+      "maxAttempts": 3,
+      "maxIssuesPer24h": 5
     },
     "reuseAcrossJourneys": true,
     "bindTo": "customerId"
@@ -573,6 +1552,31 @@
       "rmText": "Consent CNS-COM (send you communications) must be captured at @checkpoint.",
       "customerText": "We need your consent to send you communications before we continue."
     },
+    "CNS_DP_STATEMENT_NOT_APPROVED": {
+      "severity": "BLOCK",
+      "rmText": "Consent CNS-DP cannot be captured at @checkpoint: its statement is not approved by Compliance (C7).",
+      "customerText": null
+    },
+    "CNS_SOL_STATEMENT_NOT_APPROVED": {
+      "severity": "BLOCK",
+      "rmText": "Consent CNS-SOL cannot be captured at @checkpoint: its statement is not approved by Compliance (C7).",
+      "customerText": null
+    },
+    "CNS_QSH_STATEMENT_NOT_APPROVED": {
+      "severity": "BLOCK",
+      "rmText": "Consent CNS-QSH cannot be captured at @checkpoint: its statement is not approved by Compliance (C7).",
+      "customerText": null
+    },
+    "CNS_SHR_STATEMENT_NOT_APPROVED": {
+      "severity": "BLOCK",
+      "rmText": "Consent CNS-SHR cannot be captured at @checkpoint: its statement is not approved by Compliance (C7).",
+      "customerText": null
+    },
+    "CNS_COM_STATEMENT_NOT_APPROVED": {
+      "severity": "BLOCK",
+      "rmText": "Consent CNS-COM cannot be captured at @checkpoint: its statement is not approved by Compliance (C7).",
+      "customerText": null
+    },
     "CONSENT_CONFIG_MISSING": {
       "severity": "BLOCK",
       "rmText": "Consent policy configuration incomplete for @ruleId (@missingParameters).",
@@ -581,13 +1585,45 @@
   },
   "testCases": [
     {
-      "name": "D5-valid-day-90-no-capture",
+      "name": "C1-before-suitability-nothing-held",
+      "description": "C1: suitability collects income, dependants and liabilities, so CNS-DP and CNS-SOL come first",
       "inputs": {
-        "asOf": "2027-01-30",
-        "checkpoint": "BEFORE_MULTI_QUOTE",
-        "dpGrantedOn": "2026-11-01",
-        "solGrantedOn": "2026-11-01",
-        "qshGrantedOn": "2026-11-01"
+        "asOf": "2026-11-01",
+        "checkpoint": "BEFORE_SUITABILITY",
+        "dpStatementStatus": "APPROVED",
+        "solStatementStatus": "APPROVED",
+        "qshStatementStatus": "APPROVED",
+        "shrStatementStatus": "APPROVED",
+        "comStatementStatus": "APPROVED"
+      },
+      "expect": {
+        "outcome": "CAPTURE_REQUIRED",
+        "reasonCodes": [
+          "CAPTURE_CNS_DP",
+          "CAPTURE_CNS_SOL"
+        ],
+        "fired": [
+          "CNS-SU-DP",
+          "CNS-SU-SOL"
+        ],
+        "messages": [
+          "Consent CNS-DP (process your personal data) must be captured at BEFORE_SUITABILITY.",
+          "Consent CNS-SOL (use your answers for suitability) must be captured at BEFORE_SUITABILITY."
+        ]
+      }
+    },
+    {
+      "name": "C1-before-suitability-does-not-ask-QSH-or-SHR",
+      "inputs": {
+        "asOf": "2026-11-01",
+        "checkpoint": "BEFORE_SUITABILITY",
+        "dpGrantedOn": "2026-10-01",
+        "solGrantedOn": "2026-10-01",
+        "dpStatementStatus": "APPROVED",
+        "solStatementStatus": "APPROVED",
+        "qshStatementStatus": "APPROVED",
+        "shrStatementStatus": "APPROVED",
+        "comStatementStatus": "APPROVED"
       },
       "expect": {
         "outcome": "NO_CAPTURE_REQUIRED",
@@ -596,13 +1632,59 @@
       }
     },
     {
-      "name": "D5-day-91-capture-all-three",
+      "name": "C1-before-suitability-day-91-recapture",
+      "inputs": {
+        "asOf": "2027-01-31",
+        "checkpoint": "BEFORE_SUITABILITY",
+        "dpGrantedOn": "2026-11-01",
+        "solGrantedOn": "2026-11-01",
+        "dpStatementStatus": "APPROVED",
+        "solStatementStatus": "APPROVED",
+        "qshStatementStatus": "APPROVED",
+        "shrStatementStatus": "APPROVED",
+        "comStatementStatus": "APPROVED"
+      },
+      "expect": {
+        "outcome": "CAPTURE_REQUIRED",
+        "reasonCodes": [
+          "CAPTURE_CNS_DP",
+          "CAPTURE_CNS_SOL"
+        ]
+      }
+    },
+    {
+      "name": "C1-multi-quote-valid-day-90-no-capture",
+      "inputs": {
+        "asOf": "2027-01-30",
+        "checkpoint": "BEFORE_MULTI_QUOTE",
+        "dpGrantedOn": "2026-11-01",
+        "solGrantedOn": "2026-11-01",
+        "qshGrantedOn": "2026-11-01",
+        "dpStatementStatus": "APPROVED",
+        "solStatementStatus": "APPROVED",
+        "qshStatementStatus": "APPROVED",
+        "shrStatementStatus": "APPROVED",
+        "comStatementStatus": "APPROVED"
+      },
+      "expect": {
+        "outcome": "NO_CAPTURE_REQUIRED",
+        "reasonCodes": [],
+        "fired": []
+      }
+    },
+    {
+      "name": "C1-multi-quote-day-91-recheck-captures-all-three",
       "inputs": {
         "asOf": "2027-01-31",
         "checkpoint": "BEFORE_MULTI_QUOTE",
         "dpGrantedOn": "2026-11-01",
         "solGrantedOn": "2026-11-01",
-        "qshGrantedOn": "2026-11-01"
+        "qshGrantedOn": "2026-11-01",
+        "dpStatementStatus": "APPROVED",
+        "solStatementStatus": "APPROVED",
+        "qshStatementStatus": "APPROVED",
+        "shrStatementStatus": "APPROVED",
+        "comStatementStatus": "APPROVED"
       },
       "expect": {
         "outcome": "CAPTURE_REQUIRED",
@@ -614,48 +1696,45 @@
       }
     },
     {
-      "name": "D5-first-journey-nothing-held",
+      "name": "C1-multi-quote-only-QSH-missing",
+      "description": "The owner's flow: at multi-quote only what is missing is captured",
       "inputs": {
-        "asOf": "2027-01-30",
-        "checkpoint": "BEFORE_MULTI_QUOTE"
+        "asOf": "2026-11-20",
+        "checkpoint": "BEFORE_MULTI_QUOTE",
+        "dpGrantedOn": "2026-11-01",
+        "solGrantedOn": "2026-11-01",
+        "dpStatementStatus": "APPROVED",
+        "solStatementStatus": "APPROVED",
+        "qshStatementStatus": "APPROVED",
+        "shrStatementStatus": "APPROVED",
+        "comStatementStatus": "APPROVED"
       },
       "expect": {
         "outcome": "CAPTURE_REQUIRED",
         "reasonCodes": [
-          "CAPTURE_CNS_DP",
-          "CAPTURE_CNS_SOL",
           "CAPTURE_CNS_QSH"
         ],
+        "fired": [
+          "CNS-MQ-QSH"
+        ],
         "messages": [
-          "Consent CNS-DP (process your personal data) must be captured at BEFORE_MULTI_QUOTE.",
-          "Consent CNS-SOL (use your answers for suitability) must be captured at BEFORE_MULTI_QUOTE.",
           "Consent CNS-QSH (share your quote details with the insurers being quoted) must be captured at BEFORE_MULTI_QUOTE."
         ]
       }
     },
     {
-      "name": "D5-only-missing-purpose-captured",
+      "name": "C1-multi-quote-does-not-ask-SHR",
       "inputs": {
-        "asOf": "2027-01-30",
-        "checkpoint": "BEFORE_MULTI_QUOTE",
-        "dpGrantedOn": "2026-11-01",
-        "solGrantedOn": "2026-11-01"
-      },
-      "expect": {
-        "outcome": "CAPTURE_REQUIRED",
-        "reasonCodes": [
-          "CAPTURE_CNS_QSH"
-        ]
-      }
-    },
-    {
-      "name": "D5-multi-quote-does-not-ask-SHR",
-      "inputs": {
-        "asOf": "2027-01-30",
+        "asOf": "2026-11-20",
         "checkpoint": "BEFORE_MULTI_QUOTE",
         "dpGrantedOn": "2026-11-01",
         "solGrantedOn": "2026-11-01",
-        "qshGrantedOn": "2026-11-01"
+        "qshGrantedOn": "2026-11-01",
+        "dpStatementStatus": "APPROVED",
+        "solStatementStatus": "APPROVED",
+        "qshStatementStatus": "APPROVED",
+        "shrStatementStatus": "APPROVED",
+        "comStatementStatus": "APPROVED"
       },
       "expect": {
         "outcome": "NO_CAPTURE_REQUIRED"
@@ -668,7 +1747,12 @@
         "checkpoint": "BEFORE_PROPOSAL_SUBMIT",
         "shrGrantedOn": "2026-11-01",
         "shrInsurerCode": "INS01",
-        "targetInsurerCode": "INS01"
+        "targetInsurerCode": "INS01",
+        "dpStatementStatus": "APPROVED",
+        "solStatementStatus": "APPROVED",
+        "qshStatementStatus": "APPROVED",
+        "shrStatementStatus": "APPROVED",
+        "comStatementStatus": "APPROVED"
       },
       "expect": {
         "outcome": "NO_CAPTURE_REQUIRED"
@@ -681,7 +1765,12 @@
         "checkpoint": "BEFORE_PROPOSAL_SUBMIT",
         "shrGrantedOn": "2026-11-01",
         "shrInsurerCode": "INS01",
-        "targetInsurerCode": "INS01"
+        "targetInsurerCode": "INS01",
+        "dpStatementStatus": "APPROVED",
+        "solStatementStatus": "APPROVED",
+        "qshStatementStatus": "APPROVED",
+        "shrStatementStatus": "APPROVED",
+        "comStatementStatus": "APPROVED"
       },
       "expect": {
         "outcome": "CAPTURE_REQUIRED",
@@ -697,7 +1786,33 @@
         "checkpoint": "BEFORE_PROPOSAL_SUBMIT",
         "shrGrantedOn": "2026-11-01",
         "shrInsurerCode": "INS01",
-        "targetInsurerCode": "INS02"
+        "targetInsurerCode": "INS02",
+        "dpStatementStatus": "APPROVED",
+        "solStatementStatus": "APPROVED",
+        "qshStatementStatus": "APPROVED",
+        "shrStatementStatus": "APPROVED",
+        "comStatementStatus": "APPROVED"
+      },
+      "expect": {
+        "outcome": "CAPTURE_REQUIRED",
+        "reasonCodes": [
+          "CAPTURE_CNS_SHR"
+        ]
+      }
+    },
+    {
+      "name": "D5-SHR-unknown-target-insurer-strict",
+      "description": "E9 strict: a named-insurer consent cannot be matched without the target insurer",
+      "inputs": {
+        "asOf": "2026-12-01",
+        "checkpoint": "BEFORE_PROPOSAL_SUBMIT",
+        "shrGrantedOn": "2026-11-01",
+        "shrInsurerCode": "INS01",
+        "dpStatementStatus": "APPROVED",
+        "solStatementStatus": "APPROVED",
+        "qshStatementStatus": "APPROVED",
+        "shrStatementStatus": "APPROVED",
+        "comStatementStatus": "APPROVED"
       },
       "expect": {
         "outcome": "CAPTURE_REQUIRED",
@@ -711,7 +1826,12 @@
       "inputs": {
         "asOf": "2030-01-01",
         "checkpoint": "BEFORE_FIRST_COMMUNICATION",
-        "comGrantedOn": "2026-11-01"
+        "comGrantedOn": "2026-11-01",
+        "dpStatementStatus": "APPROVED",
+        "solStatementStatus": "APPROVED",
+        "qshStatementStatus": "APPROVED",
+        "shrStatementStatus": "APPROVED",
+        "comStatementStatus": "APPROVED"
       },
       "expect": {
         "outcome": "NO_CAPTURE_REQUIRED"
@@ -721,13 +1841,75 @@
       "name": "D5-COM-absent",
       "inputs": {
         "asOf": "2026-11-01",
-        "checkpoint": "BEFORE_FIRST_COMMUNICATION"
+        "checkpoint": "BEFORE_FIRST_COMMUNICATION",
+        "dpStatementStatus": "APPROVED",
+        "solStatementStatus": "APPROVED",
+        "qshStatementStatus": "APPROVED",
+        "shrStatementStatus": "APPROVED",
+        "comStatementStatus": "APPROVED"
       },
       "expect": {
         "outcome": "CAPTURE_REQUIRED",
         "reasonCodes": [
           "CAPTURE_CNS_COM"
         ]
+      }
+    },
+    {
+      "name": "C7-QSH-statement-draft-blocks-capture",
+      "inputs": {
+        "asOf": "2026-11-20",
+        "checkpoint": "BEFORE_MULTI_QUOTE",
+        "dpGrantedOn": "2026-11-01",
+        "solGrantedOn": "2026-11-01",
+        "dpStatementStatus": "APPROVED",
+        "solStatementStatus": "APPROVED",
+        "qshStatementStatus": "DRAFT",
+        "shrStatementStatus": "APPROVED",
+        "comStatementStatus": "APPROVED"
+      },
+      "expect": {
+        "outcome": "CAPTURE_BLOCKED",
+        "reasonCodes": [
+          "CAPTURE_CNS_QSH",
+          "CNS_QSH_STATEMENT_NOT_APPROVED"
+        ],
+        "fired": [
+          "CNS-MQ-QSH",
+          "CNS-MQ-QSH-STMT"
+        ]
+      }
+    },
+    {
+      "name": "C7-statement-status-unknown-fails-closed",
+      "inputs": {
+        "asOf": "2026-11-01",
+        "checkpoint": "BEFORE_SUITABILITY"
+      },
+      "expect": {
+        "outcome": "CAPTURE_BLOCKED",
+        "reasonCodes": [
+          "CAPTURE_CNS_DP",
+          "CAPTURE_CNS_SOL",
+          "CNS_DP_STATEMENT_NOT_APPROVED",
+          "CNS_SOL_STATEMENT_NOT_APPROVED"
+        ]
+      }
+    },
+    {
+      "name": "C7-unapproved-statement-irrelevant-when-consent-held",
+      "description": "A valid held consent is reused (reuseAcrossJourneys); only a new capture needs an approved statement",
+      "inputs": {
+        "asOf": "2026-11-20",
+        "checkpoint": "BEFORE_MULTI_QUOTE",
+        "dpGrantedOn": "2026-11-01",
+        "solGrantedOn": "2026-11-01",
+        "qshGrantedOn": "2026-11-01",
+        "qshStatementStatus": "RETIRED"
+      },
+      "expect": {
+        "outcome": "NO_CAPTURE_REQUIRED",
+        "fired": []
       }
     },
     {

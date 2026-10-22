@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.bank.internal/events/PaymentUncertain.v1.json",
+  "title": "PaymentUncertain v1 - data",
+  "description": "The gateway outcome is unknown (timeout after authorisation request); no new attempt is allowed until reconciliation resolves it (INV-PAY-04). Producer: payment. Status: CONTRACTED. The `data` member of event-envelope/v1 (ADR-025): ids and states only, never customer PII.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "paymentId",
+    "proposalId",
+    "uncertainSince"
+  ],
+  "properties": {
+    "paymentId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "proposalId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "uncertainSince": {
+      "type": "string",
+      "format": "date-time",
+      "description": "RFC 3339 UTC"
+    },
+    "journeyId": {
+      "$ref": "#/$defs/ulid"
+    }
+  },
+  "$defs": {
+    "ulid": {
+      "type": "string",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+    }
+  }
+}

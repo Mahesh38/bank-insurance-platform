@@ -11,7 +11,11 @@ info:
       customer id (CIF) never leaves this service except towards CBS / 1SB adapters.
     * Masking is owned by this service (formats in LLD §6). No PAN, DOB, address or income is ever
       returned by an endpoint in this file.
-    * CBS is reached through Apigee: 3 s timeout, 1 retry on 5xx / connect failure (S-05).
+    * CBS is reached through Apigee: 3 s per attempt; snapshot and resolve retry once on 5xx /
+      connect failure (S-05); interactive search makes one attempt so it fits the BFF's 4 s read
+      (engineering decision ED-R2-01, conventions/idempotency-timeouts-retries.md §2.2).
+    * Snapshot freshness comes from rule set `CUSTOMER.POLICY` (E7; seed
+      `snapshotFreshnessMinutes = 1440`), never from code.
     * Operations marked `x-code-status: IMPLEMENTED` exist in `services/customer-service` today;
       `x-code-status: TARGET` operations do not. See LLD §2 for the deltas.
   contact:
@@ -161,7 +165,7 @@ paths:
       summary: Freeze a journey-scoped snapshot of what CBS says now (S-04 from Journey).
       description: |
         Reads CBS (S-05). On CBS failure, copies the newest snapshot for this customer whose
-        `fresh_until > now()` (freshness window from configuration `CUSTOMER.SNAPSHOT`); with none,
+        `fresh_until > now()` (freshness window from rule set `CUSTOMER.POLICY`, `snapshotFreshnessMinutes`); with none,
         `503 UPSTREAM_UNAVAILABLE`. Never an unbounded stale identity. One snapshot per journey:
         a replay for the same `journeyId` returns the existing snapshot (`200`).
       parameters:
@@ -514,7 +518,7 @@ components:
           schema:
             $ref: '#/components/schemas/Problem'
     UpstreamUnavailable:
-      description: 'UPSTREAM_UNAVAILABLE — CBS 5xx / timeout / connect failure after 1 retry, or reminted token rejected. Hop not disclosed.'
+      description: 'UPSTREAM_UNAVAILABLE — CBS 5xx / timeout / connect failure (after 1 retry for snapshot/resolve; no retry for search), or reminted token rejected. Hop not disclosed.'
       content:
         application/problem+json:
           schema:

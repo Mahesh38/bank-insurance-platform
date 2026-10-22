@@ -11,8 +11,9 @@ import org.springframework.stereotype.Component;
 /**
  * Refuses to start under {@code prod} / {@code uat} with a development default that would reach a
  * real environment by omission (READINESS-REVIEW §3.7, fail-closed security): the all-zero field
- * key, the in-memory lead store, an H2 datasource, or the temporary {@code LEAD.EXCEPTION} stub
- * (D2) that passes every customer.
+ * key, the in-memory lead store, an H2 datasource, an exception evaluator other than the rule
+ * engine (D2), or rule sets read from the classpath seeds instead of the published versions in
+ * administration-config-service (ADR-024: seeds are unapproved drafts).
  */
 @Component
 public class ProductionSafetyGuard {
@@ -42,8 +43,13 @@ public class ProductionSafetyGuard {
     if (url.toLowerCase(Locale.ROOT).startsWith("jdbc:h2:")) {
       violations.add("the datasource is H2");
     }
-    if ("stub".equalsIgnoreCase(environment.getProperty("lead.exception-rules", "stub"))) {
-      violations.add("lead.exception-rules=stub (temporary, D2)");
+    String rules = environment.getProperty("lead.exception-rules", "engine");
+    if (!"engine".equalsIgnoreCase(rules)) {
+      violations.add("lead.exception-rules=" + rules + " (only the rule engine may decide, D2)");
+    }
+    String source = environment.getProperty("lead.rule-sets.source", "classpath");
+    if (!"http".equalsIgnoreCase(source)) {
+      violations.add("lead.rule-sets.source=" + source + " (unapproved seed rule sets)");
     }
     return violations;
   }

@@ -37,15 +37,15 @@ you retrieve it.
 | Category | What it means for support | Codes |
 |---|---|---|
 | **AUTHENTICATION** | Identity not established | [`UNAUTHORIZED`](#rb-unauthorized) · [`SESSION_INVALID`](#rb-session_invalid) · [`SESSION_EXPIRED`](#rb-session_expired) · [`SESSION_REVOKED`](#rb-session_revoked) · [`AUTHENTICATION_FAILED`](#rb-authentication_failed) · [`STEP_UP_REQUIRED`](#rb-step_up_required) · [`INVALID_STATE`](#rb-invalid_state) · [`CODE_ALREADY_CONSUMED`](#rb-code_already_consumed) · [`RETURN_LOCATION_NOT_ALLOWED`](#rb-return_location_not_allowed) |
-| **AUTHORIZATION** | Known caller, not permitted | [`FORBIDDEN`](#rb-forbidden) · [`CSRF_REJECTED`](#rb-csrf_rejected) · [`DEFAULT_DENY`](#rb-default_deny) · [`EXPLICIT_DENY`](#rb-explicit_deny) · [`ACCOUNT_SUSPENDED`](#rb-account_suspended) · [`ORIGINATION_RM_ONLY`](#rb-origination_rm_only) · [`ASSIST_ONLY_ACTOR`](#rb-assist_only_actor) · [`CROSS_INSURER_DENIED`](#rb-cross_insurer_denied) · [`OUT_OF_BRANCH_SCOPE`](#rb-out_of_branch_scope) · [`BREAK_GLASS_INVALID`](#rb-break_glass_invalid) · [`AUTHORIZATION_UNAVAILABLE`](#rb-authorization_unavailable) · [`SERVICE_IDENTITY_REJECTED`](#rb-service_identity_rejected) · [`CUSTOMER_NOT_IN_BOOK`](#rb-customer_not_in_book) |
-| **COMPLIANCE_GATE** | A regulator-mandated refusal — never override | [`SP_CERTIFICATION_REQUIRED`](#rb-sp_certification_required) · [`SUITABILITY_REQUIRED`](#rb-suitability_required) · [`CONSENT_REQUIRED`](#rb-consent_required) · [`ATTRIBUTION_NOT_CALLER_SUPPLIED`](#rb-attribution_not_caller_supplied) · [`PAYMENT_DEVICE_ISOLATION`](#rb-payment_device_isolation) · [`PAYMENT_NOT_RECONCILED`](#rb-payment_not_reconciled) · [`RM_NOT_CERTIFIED`](#rb-rm_not_certified) |
+| **AUTHORIZATION** | Known caller, not permitted | [`FORBIDDEN`](#rb-forbidden) · [`CSRF_REJECTED`](#rb-csrf_rejected) · [`DEFAULT_DENY`](#rb-default_deny) · [`EXPLICIT_DENY`](#rb-explicit_deny) · [`ACCOUNT_SUSPENDED`](#rb-account_suspended) · [`ORIGINATION_RM_ONLY`](#rb-origination_rm_only) · [`ASSIST_ONLY_ACTOR`](#rb-assist_only_actor) · [`CROSS_INSURER_DENIED`](#rb-cross_insurer_denied) · [`OUT_OF_BRANCH_SCOPE`](#rb-out_of_branch_scope) · [`BREAK_GLASS_INVALID`](#rb-break_glass_invalid) · [`AUTHORIZATION_UNAVAILABLE`](#rb-authorization_unavailable) · [`SERVICE_IDENTITY_REJECTED`](#rb-service_identity_rejected) · [`CUSTOMER_NOT_IN_BOOK`](#rb-customer_not_in_book) · [`MAKER_CHECKER_VIOLATION`](#rb-maker_checker_violation) |
+| **COMPLIANCE_GATE** | A regulator-mandated refusal — never override | [`SP_CERTIFICATION_REQUIRED`](#rb-sp_certification_required) · [`SUITABILITY_REQUIRED`](#rb-suitability_required) · [`CONSENT_REQUIRED`](#rb-consent_required) · [`ATTRIBUTION_NOT_CALLER_SUPPLIED`](#rb-attribution_not_caller_supplied) · [`PAYMENT_DEVICE_ISOLATION`](#rb-payment_device_isolation) · [`PAYMENT_NOT_RECONCILED`](#rb-payment_not_reconciled) · [`RM_NOT_CERTIFIED`](#rb-rm_not_certified) · [`SUITABILITY_INCOMPLETE`](#rb-suitability_incomplete) · [`REPLACEMENT_DISCLOSURE_REQUIRED`](#rb-replacement_disclosure_required) · [`CONSENT_EXPIRED`](#rb-consent_expired) · [`CONSENT_SCOPE_MISMATCH`](#rb-consent_scope_mismatch) · [`CONSENT_SUBJECT_MISMATCH`](#rb-consent_subject_mismatch) · [`CONSENT_STATEMENT_NOT_APPROVED`](#rb-consent_statement_not_approved) · [`JOURNEY_HALTED_CONSENT_WITHDRAWN`](#rb-journey_halted_consent_withdrawn) |
 | **CONFIG** | Platform could not configure itself — fail closed | [`CONFIG_VERSION_REQUIRED`](#rb-config_version_required) · [`CONFIGURATION_UNRESOLVABLE`](#rb-configuration_unresolvable) |
-| **CONFLICT** | State disagrees | [`QUOTE_EXPIRED`](#rb-quote_expired) · [`PROPOSAL_NOT_PAYABLE`](#rb-proposal_not_payable) · [`CONFLICT`](#rb-conflict) · [`IDEMPOTENCY_CONFLICT`](#rb-idempotency_conflict) · [`REQUEST_IN_PROGRESS`](#rb-request_in_progress) · [`ILLEGAL_TRANSITION`](#rb-illegal_transition) · [`ASSESSMENT_IMMUTABLE`](#rb-assessment_immutable) · [`WITHDRAWAL_NOT_PERMITTED`](#rb-withdrawal_not_permitted) · [`PAYMENT_ALREADY_IN_PROGRESS`](#rb-payment_already_in_progress) · [`PAYMENT_STATE_UNCERTAIN`](#rb-payment_state_uncertain) · [`PREMIUM_MISMATCH`](#rb-premium_mismatch) |
+| **CONFLICT** | State disagrees | [`QUOTE_EXPIRED`](#rb-quote_expired) · [`PROPOSAL_NOT_PAYABLE`](#rb-proposal_not_payable) · [`CONFLICT`](#rb-conflict) · [`IDEMPOTENCY_CONFLICT`](#rb-idempotency_conflict) · [`REQUEST_IN_PROGRESS`](#rb-request_in_progress) · [`ILLEGAL_TRANSITION`](#rb-illegal_transition) · [`ASSESSMENT_IMMUTABLE`](#rb-assessment_immutable) · [`WITHDRAWAL_NOT_PERMITTED`](#rb-withdrawal_not_permitted) · [`PAYMENT_ALREADY_IN_PROGRESS`](#rb-payment_already_in_progress) · [`PAYMENT_STATE_UNCERTAIN`](#rb-payment_state_uncertain) · [`PREMIUM_MISMATCH`](#rb-premium_mismatch) · [`OTP_EXPIRED`](#rb-otp_expired) |
 | **INTERNAL** | Our defect | [`INTERNAL_ERROR`](#rb-internal_error) |
 | **NOT_FOUND** | No such record for this caller | [`RESOURCE_NOT_FOUND`](#rb-resource_not_found) |
-| **RATE_LIMIT** | Throttled | [`RATE_LIMITED`](#rb-rate_limited) |
+| **RATE_LIMIT** | Throttled | [`RATE_LIMITED`](#rb-rate_limited) · [`OTP_ATTEMPTS_EXCEEDED`](#rb-otp_attempts_exceeded) · [`OTP_ISSUE_RATE_EXCEEDED`](#rb-otp_issue_rate_exceeded) |
 | **UPSTREAM** | A dependency failed | [`UPSTREAM_BUSINESS_ERROR`](#rb-upstream_business_error) · [`UPSTREAM_AUTH_FAILURE`](#rb-upstream_auth_failure) · [`UPSTREAM_UNAVAILABLE`](#rb-upstream_unavailable) · [`UPSTREAM_TIMEOUT`](#rb-upstream_timeout) · [`UPSTREAM_BAD_RESPONSE`](#rb-upstream_bad_response) · [`QUOTE_TIMEOUT`](#rb-quote_timeout) · [`PROPOSAL_REJECTED`](#rb-proposal_rejected) · [`IDENTITY_PROVIDER_UNAVAILABLE`](#rb-identity_provider_unavailable) |
-| **VALIDATION** | The caller sent something invalid | [`VALIDATION_ERROR`](#rb-validation_error) · [`INVALID_REQUEST`](#rb-invalid_request) · [`MISSING_REQUIRED_FIELD`](#rb-missing_required_field) · [`MISSING_IDEMPOTENCY_KEY`](#rb-missing_idempotency_key) · [`UNSUPPORTED_LOB`](#rb-unsupported_lob) · [`AGENT_ATTRIBUTION_MISSING`](#rb-agent_attribution_missing) · [`PAYLOAD_TOO_LARGE`](#rb-payload_too_large) · [`SCHEMA_INVALID`](#rb-schema_invalid) · [`LOB_REQUIRED`](#rb-lob_required) · [`OPPORTUNITY_REQUIRED`](#rb-opportunity_required) · [`INVALID_OFFER_REFERENCE`](#rb-invalid_offer_reference) |
+| **VALIDATION** | The caller sent something invalid | [`VALIDATION_ERROR`](#rb-validation_error) · [`INVALID_REQUEST`](#rb-invalid_request) · [`MISSING_REQUIRED_FIELD`](#rb-missing_required_field) · [`MISSING_IDEMPOTENCY_KEY`](#rb-missing_idempotency_key) · [`UNSUPPORTED_LOB`](#rb-unsupported_lob) · [`AGENT_ATTRIBUTION_MISSING`](#rb-agent_attribution_missing) · [`PAYLOAD_TOO_LARGE`](#rb-payload_too_large) · [`SCHEMA_INVALID`](#rb-schema_invalid) · [`LOB_REQUIRED`](#rb-lob_required) · [`OPPORTUNITY_REQUIRED`](#rb-opportunity_required) · [`INVALID_OFFER_REFERENCE`](#rb-invalid_offer_reference) · [`ISSUANCE_MODE_INVALID`](#rb-issuance_mode_invalid) · [`RULE_SET_INVALID`](#rb-rule_set_invalid) · [`RULE_SET_TEST_FAILED`](#rb-rule_set_test_failed) |
 
 ---
 
@@ -317,6 +317,20 @@ you retrieve it.
 | **L2 escalation** | Escalate if the RM should have access by their role and does not — that is an entitlement or policy defect. |
 | **Never** | Never work around it, and never ask an engineer to grant access directly. |
 
+### RB-MAKER_CHECKER_VIOLATION
+
+`MAKER_CHECKER_VIOLATION` · **HTTP 403** · AUTHORIZATION · retry: NO · AUDIT · source: ADR-024 section 5
+
+> The caller sees: **Not permitted** — The approver must be a different person from the author.
+
+| | |
+|---|---|
+| **What it means** | The person approving a configuration change is the person who made it. |
+| **Is it a defect?** | No. Maker-checker is the control (ADR-024 section 5). |
+| **L1 action** | Ask a second, authorised approver to review the change. |
+| **L2 escalation** | Escalate if no eligible approver exists for the classification. |
+| **Never** | **Never approve under another person's account.** |
+
 ### RB-ORIGINATION_RM_ONLY
 
 `ORIGINATION_RM_ONLY` · **HTTP 403** · AUTHORIZATION · retry: NO · COMPLIANCE_EVENT · source: 04 section 4
@@ -373,6 +387,20 @@ you retrieve it.
 | **L2 escalation** | Escalate immediately. Treat any occurrence as a client defect or an intrusion attempt. |
 | **Never** | Never ask the RM to change anything. They cannot cause or fix this. |
 
+### RB-CONSENT_EXPIRED
+
+`CONSENT_EXPIRED` · **HTTP 403** · COMPLIANCE_GATE · retry: AFTER_REMEDIATION · COMPLIANCE_EVENT · source: DECISIONS-2026-10-21 D5
+
+> The caller sees: **Customer consent expired** — The customer's consent is no longer valid and must be given again on their own device.
+
+| | |
+|---|---|
+| **What it means** | A regulator-mandated gate refused this. The refusal is itself the evidence a regulator can ask us to produce. |
+| **Is it a defect?** | No. This is a hard control working correctly. |
+| **L1 action** | Tell the RM which step is missing and let them complete it. The response names the gate. |
+| **L2 escalation** | Escalate only if the RM has demonstrably completed the missing step and the gate still refuses. |
+| **Never** | **Never override, never bypass, and never ask an engineer to.** A compliance gate cleared by support is an audit finding. |
+
 ### RB-CONSENT_REQUIRED
 
 `CONSENT_REQUIRED` · **HTTP 403** · COMPLIANCE_GATE · retry: AFTER_REMEDIATION · COMPLIANCE_EVENT · source: 04 section 5
@@ -386,6 +414,62 @@ you retrieve it.
 | **L1 action** | Ask the RM to re-run the consent step. The OTP goes to the customer's device, never the RM's. |
 | **L2 escalation** | Escalate if the customer confirms they completed consent and the gate still refuses. |
 | **Never** | **Never capture consent on the RM's device, and never accept the RM's word for it.** |
+
+### RB-CONSENT_SCOPE_MISMATCH
+
+`CONSENT_SCOPE_MISMATCH` · **HTTP 403** · COMPLIANCE_GATE · retry: AFTER_REMEDIATION · COMPLIANCE_EVENT · source: DECISIONS-2026-10-21 D5
+
+> The caller sees: **Consent does not cover this step** — The customer's consent does not cover this step and must be given for it on their own device.
+
+| | |
+|---|---|
+| **What it means** | A regulator-mandated gate refused this. The refusal is itself the evidence a regulator can ask us to produce. |
+| **Is it a defect?** | No. This is a hard control working correctly. |
+| **L1 action** | Tell the RM which step is missing and let them complete it. The response names the gate. |
+| **L2 escalation** | Escalate only if the RM has demonstrably completed the missing step and the gate still refuses. |
+| **Never** | **Never override, never bypass, and never ask an engineer to.** A compliance gate cleared by support is an audit finding. |
+
+### RB-CONSENT_STATEMENT_NOT_APPROVED
+
+`CONSENT_STATEMENT_NOT_APPROVED` · **HTTP 403** · COMPLIANCE_GATE · retry: AFTER_REMEDIATION · COMPLIANCE_EVENT · source: DECISIONS-2026-10-22 C7
+
+> The caller sees: **Consent wording not yet approved** — This consent cannot be captured until its wording is approved.
+
+| | |
+|---|---|
+| **What it means** | The consent wording for this purpose has not been approved by Compliance, so the platform will not capture it (DECISIONS-2026-10-22 C7). |
+| **Is it a defect?** | No. It is configuration awaiting Compliance approval. |
+| **L1 action** | Tell the RM this step is unavailable for now. There is no RM remedy. |
+| **L2 escalation** | Escalate to the Compliance configuration owner: the statement needs approval in administration-config. |
+| **Never** | **Never ask an engineer to mark a statement approved.** Only Compliance approves wording. |
+
+### RB-CONSENT_SUBJECT_MISMATCH
+
+`CONSENT_SUBJECT_MISMATCH` · **HTTP 403** · COMPLIANCE_GATE · retry: NO · SECURITY_EVENT · source: DECISIONS-2026-10-21 D5
+
+> The caller sees: **Customer consent required** — The customer must give consent on their own device before this can continue.
+
+| | |
+|---|---|
+| **What it means** | A consent was presented for a different customer than the one in the journey. |
+| **Is it a defect?** | Possibly a client defect; treat as a security event. |
+| **L1 action** | Capture the incident id and escalate. Ask the RM to reopen the customer from their list. |
+| **L2 escalation** | Escalate to security on any occurrence. |
+| **Never** | **Never reuse one customer's consent for another.** |
+
+### RB-JOURNEY_HALTED_CONSENT_WITHDRAWN
+
+`JOURNEY_HALTED_CONSENT_WITHDRAWN` · **HTTP 403** · COMPLIANCE_GATE · retry: NO · COMPLIANCE_EVENT · source: DECISIONS-2026-10-22 E4
+
+> The caller sees: **Journey stopped** — The customer withdrew consent, so this journey cannot continue.
+
+| | |
+|---|---|
+| **What it means** | The customer withdrew a consent the journey depends on; the journey is halted (DECISIONS-2026-10-22 E4). |
+| **Is it a defect?** | No. It is the customer exercising a statutory right. |
+| **L1 action** | Tell the RM the journey cannot continue. A new journey needs fresh consent from the customer on their own device. |
+| **L2 escalation** | Escalate only if the customer says they did not withdraw consent. |
+| **Never** | **Never resume a halted journey or re-capture consent without the customer.** |
 
 ### RB-PAYMENT_DEVICE_ISOLATION
 
@@ -415,6 +499,20 @@ you retrieve it.
 | **L2 escalation** | Escalate if reconciliation has not completed well past its normal window — that is an operations task, not a support one. |
 | **Never** | **Never override to issue the policy.** A policy issued against an unreconciled payment is a financial-control failure. |
 
+### RB-REPLACEMENT_DISCLOSURE_REQUIRED
+
+`REPLACEMENT_DISCLOSURE_REQUIRED` · **HTTP 403** · COMPLIANCE_GATE · retry: AFTER_REMEDIATION · COMPLIANCE_EVENT · source: DECISIONS-2026-10-21 D4 / SUIT-R46
+
+> The caller sees: **Replacement disclosure required** — The customer must acknowledge the replacement disclosure on their own device before this can continue.
+
+| | |
+|---|---|
+| **What it means** | A regulator-mandated gate refused this. The refusal is itself the evidence a regulator can ask us to produce. |
+| **Is it a defect?** | No. This is a hard control working correctly. |
+| **L1 action** | Tell the RM which step is missing and let them complete it. The response names the gate. |
+| **L2 escalation** | Escalate only if the RM has demonstrably completed the missing step and the gate still refuses. |
+| **Never** | **Never override, never bypass, and never ask an engineer to.** A compliance gate cleared by support is an audit finding. |
+
 ### RB-RM_NOT_CERTIFIED
 
 `RM_NOT_CERTIFIED` · **HTTP 422** · COMPLIANCE_GATE · retry: AFTER_REMEDIATION · COMPLIANCE_EVENT · source: 04 section 6
@@ -442,6 +540,20 @@ you retrieve it.
 | **L1 action** | Tell the RM which certification and line of business, and point them at renewal. Non-selling work stays available to them. |
 | **L2 escalation** | Escalate if the certification is current in the source system but still refused. |
 | **Never** | **Never let an uncertified RM sell.** Reassign to a certified RM instead. |
+
+### RB-SUITABILITY_INCOMPLETE
+
+`SUITABILITY_INCOMPLETE` · **HTTP 422** · COMPLIANCE_GATE · retry: AFTER_REMEDIATION · COMPLIANCE_EVENT · source: DECISIONS-2026-10-22 C5 / D4
+
+> The caller sees: **Suitability assessment incomplete** — The suitability assessment cannot support a quote yet. Please complete the outstanding steps.
+
+| | |
+|---|---|
+| **What it means** | A suitability evaluation exists, but its outcome for this product class cannot quote: data is insufficient, or a caution has not been acknowledged by the customer on their own device (DECISIONS-2026-10-22 C5). |
+| **Is it a defect?** | No. This is the suitability gate working correctly. |
+| **L1 action** | Tell the RM which step is outstanding (the response's reason codes name it) and let them complete it with the customer. |
+| **L2 escalation** | Escalate only if the RM has completed the step and the gate still refuses. |
+| **Never** | **Never acknowledge a caution on the customer's behalf, and never override.** |
 
 ### RB-SUITABILITY_REQUIRED
 
@@ -532,6 +644,20 @@ you retrieve it.
 `ILLEGAL_TRANSITION` · **HTTP 409** · CONFLICT · retry: AFTER_FIX · AUDIT · source: 04 section 6
 
 > The caller sees: **Out of date** — This view is out of date. Please refresh and try again.
+
+| | |
+|---|---|
+| **What it means** | The request disagrees with the current state of the record. |
+| **Is it a defect?** | No. It is the platform refusing to apply a change that no longer makes sense. |
+| **L1 action** | Ask the RM to refresh the screen and read the current state before retrying. |
+| **L2 escalation** | Escalate if the state shown to the RM and the state in the response keep disagreeing after a refresh. |
+| **Never** | Never retry blindly, and never advise a second attempt on anything touching money. |
+
+### RB-OTP_EXPIRED
+
+`OTP_EXPIRED` · **HTTP 409** · CONFLICT · retry: AFTER_REMEDIATION · AUDIT · source: DECISIONS-2026-10-22 C2 / D5
+
+> The caller sees: **Verification code expired** — The verification code is no longer valid. Please request a new one.
 
 | | |
 |---|---|
@@ -666,6 +792,34 @@ you retrieve it.
 | **L1 action** | Confirm the id the RM used and that the record belongs to their book. Ask them to re-open the record from the list rather than a saved link. |
 | **L2 escalation** | Escalate if the record demonstrably exists and is in scope for that RM. |
 | **Never** | Never infer that missing means deleted. A visibility rule and an absent row look identical from here, deliberately. |
+
+### RB-OTP_ATTEMPTS_EXCEEDED
+
+`OTP_ATTEMPTS_EXCEEDED` · **HTTP 429** · RATE_LIMIT · retry: AFTER_REMEDIATION · SECURITY_EVENT · source: DECISIONS-2026-10-22 C2 / D5
+
+> The caller sees: **Too many attempts** — Too many incorrect verification attempts. Please request a new code later.
+
+| | |
+|---|---|
+| **What it means** | The customer entered a wrong verification code too many times on their own device. |
+| **Is it a defect?** | No. It is the brute-force guard. |
+| **L1 action** | Ask the RM to wait the configured period, then let the customer request a new code on their own device. |
+| **L2 escalation** | Escalate if a customer is locked out repeatedly with correct entries. |
+| **Never** | **Never ask for the code, never read one out, and never enter it for the customer.** |
+
+### RB-OTP_ISSUE_RATE_EXCEEDED
+
+`OTP_ISSUE_RATE_EXCEEDED` · **HTTP 429** · RATE_LIMIT · retry: AFTER_REMEDIATION · SECURITY_EVENT · source: DECISIONS-2026-10-22 C2 / D5
+
+> The caller sees: **Too many requests** — Please wait before requesting another verification code.
+
+| | |
+|---|---|
+| **What it means** | The caller sent more requests than the route allows. |
+| **Is it a defect?** | No. |
+| **L1 action** | Ask the RM to wait and retry once. Repeated rapid retries extend the block. |
+| **L2 escalation** | Escalate if a normal working pattern triggers it — that is a limit set too low. |
+| **Never** | Never advise retrying in a tight loop. |
 
 ### RB-RATE_LIMITED
 
@@ -835,6 +989,20 @@ you retrieve it.
 | **L2 escalation** | Only if `errors[]` names a field the RM cannot see or cannot change on their screen. That is a UI defect, not a data-entry problem. |
 | **Never** | Never advise retrying the identical request. It will fail identically. |
 
+### RB-ISSUANCE_MODE_INVALID
+
+`ISSUANCE_MODE_INVALID` · **HTTP 422** · VALIDATION · source: DECISIONS-2026-10-21 / INV-PRP-06
+
+> The caller sees: **Issuance mode not valid** — The issuance mode supplied is not one the platform accepts.
+
+| | |
+|---|---|
+| **What it means** | The request was rejected before any business rule ran. The caller sent something the API does not accept. |
+| **Is it a defect?** | No. This is the API refusing malformed input, which is what it is for. |
+| **L1 action** | Read `errors[]` in the response — it names the field. Ask the RM to correct that field and retry. |
+| **L2 escalation** | Only if `errors[]` names a field the RM cannot see or cannot change on their screen. That is a UI defect, not a data-entry problem. |
+| **Never** | Never advise retrying the identical request. It will fail identically. |
+
 ### RB-LOB_REQUIRED
 
 `LOB_REQUIRED` · **HTTP 422** · VALIDATION · source: 04 section 2
@@ -896,6 +1064,34 @@ you retrieve it.
 `PAYLOAD_TOO_LARGE` · **HTTP 413** · VALIDATION · source: 04 section 2
 
 > The caller sees: **Request too large** — The request is larger than allowed.
+
+| | |
+|---|---|
+| **What it means** | The request was rejected before any business rule ran. The caller sent something the API does not accept. |
+| **Is it a defect?** | No. This is the API refusing malformed input, which is what it is for. |
+| **L1 action** | Read `errors[]` in the response — it names the field. Ask the RM to correct that field and retry. |
+| **L2 escalation** | Only if `errors[]` names a field the RM cannot see or cannot change on their screen. That is a UI defect, not a data-entry problem. |
+| **Never** | Never advise retrying the identical request. It will fail identically. |
+
+### RB-RULE_SET_INVALID
+
+`RULE_SET_INVALID` · **HTTP 422** · VALIDATION · source: ADR-024 section 2
+
+> The caller sees: **Rule set not valid** — The rule set document has errors; see the error list.
+
+| | |
+|---|---|
+| **What it means** | The request was rejected before any business rule ran. The caller sent something the API does not accept. |
+| **Is it a defect?** | No. This is the API refusing malformed input, which is what it is for. |
+| **L1 action** | Read `errors[]` in the response — it names the field. Ask the RM to correct that field and retry. |
+| **L2 escalation** | Only if `errors[]` names a field the RM cannot see or cannot change on their screen. That is a UI defect, not a data-entry problem. |
+| **Never** | Never advise retrying the identical request. It will fail identically. |
+
+### RB-RULE_SET_TEST_FAILED
+
+`RULE_SET_TEST_FAILED` · **HTTP 422** · VALIDATION · source: ADR-024 section 5
+
+> The caller sees: **Test cases failed** — The rule set cannot be published until every test case passes.
 
 | | |
 |---|---|

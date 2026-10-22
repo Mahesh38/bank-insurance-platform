@@ -676,4 +676,4 @@ id_allocation:
     # ADR-017 was added by the 2026-08-27 platform error contract round (SUG-20260827-err), and
     # EPIC-001 by the same round. ID-allocation correction only. No stage, scope or gate field is
     # touched by it; those remain human-owned (04 section 5).
-    ADR: 24        # ADR-001..023 in use; ADR-023 = NLB+Istio inbound (supersedes ADR-018/022; CR-017 Option B Accepted 2026-10-09). Next unused is 24. ID-allocation only.
+    ADR: 28        # ADR-001..027 in use; ADR-023 = NLB+Istio inbound. Next unused is 28. Advanced 2026-10-22: ADR-024..027 minted by SUG-20261021-rul. ID-allocation only.

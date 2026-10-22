@@ -7,8 +7,8 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * Picks the version in force (ADR-024 section 5 point 4) among published versions of one domain.
- * A scope value of null on a version means "any"; a version scoped exactly to the requested lob /
+ * Picks the version in force (ADR-024 section 5 point 4) among published versions of one domain. A
+ * scope value of null on a version means "any"; a version scoped exactly to the requested lob /
  * productClass beats a wildcard one. Among equally specific candidates the latest {@code
  * effectiveFrom} wins, then the latest approval — so publishing a new version with a later start
  * supersedes the old one without touching the old (immutable) row.

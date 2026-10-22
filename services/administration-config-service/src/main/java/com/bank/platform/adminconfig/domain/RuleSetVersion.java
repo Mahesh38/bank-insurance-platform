@@ -60,10 +60,23 @@ public final class RuleSetVersion {
     Objects.requireNonNull(maker, "maker");
     return new RuleSetVersion(
         new Snapshot(
-            id, parsed.ruleSetId(), parsed.version(), parsed.domain(), parsed.scope().lob(),
-            parsed.scope().productClass(), parsed.classification(), RuleSetVersionStatus.DRAFT,
-            documentJson, parsed.documentSha256(), parsed.effectiveFrom(), parsed.effectiveTo(),
-            maker, null, null, null, now));
+            id,
+            parsed.ruleSetId(),
+            parsed.version(),
+            parsed.domain(),
+            parsed.scope().lob(),
+            parsed.scope().productClass(),
+            parsed.classification(),
+            RuleSetVersionStatus.DRAFT,
+            documentJson,
+            parsed.documentSha256(),
+            parsed.effectiveFrom(),
+            parsed.effectiveTo(),
+            maker,
+            null,
+            null,
+            null,
+            now));
   }
 
   public static RuleSetVersion restore(Snapshot s) {
@@ -148,9 +161,23 @@ public final class RuleSetVersion {
 
   public Snapshot snapshot() {
     return new Snapshot(
-        id, ruleSetId, version, domain, scopeLob, scopeProductClass, classification, status,
-        document, documentSha256, effectiveFrom, effectiveTo, maker, checker, approvedAt,
-        decisionRemarks, createdAt);
+        id,
+        ruleSetId,
+        version,
+        domain,
+        scopeLob,
+        scopeProductClass,
+        classification,
+        status,
+        document,
+        documentSha256,
+        effectiveFrom,
+        effectiveTo,
+        maker,
+        checker,
+        approvedAt,
+        decisionRemarks,
+        createdAt);
   }
 
   public String id() {

@@ -1,6 +1,6 @@
 # Administration & Config Service
 
-**Status:** SKELETON — scaffold only; no business logic yet.
+**Status:** R0 slice — rule-set store (ADR-024): versions, maker-checker publish, resolve, seed import as DRAFT. Contract: [`openapi.yaml`](../../docs/platform/contracts/administration-config-service/openapi.yaml) · design: [`LLD.md`](../../docs/platform/contracts/administration-config-service/LLD.md).
 
 | Field | Value |
 |---|---|

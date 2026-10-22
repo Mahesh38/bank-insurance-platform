@@ -8,6 +8,14 @@ journey & decisioning · quote-to-policy · integration & events · cross-cuttin
 service on the same ten dimensions; the serious findings below were re-checked by hand. Freshness:
 `FreshnessCheck` = **WARN** (`state_as_of` 21 days old; `04-STAGE_GATES.md` 28 d vs a 14 d limit).
 
+> **Update 2026-10-22 (`SUG-20261021-rul`).** Decisions D1–D9 are taken
+> ([decision record](../architecture-review/DECISIONS-2026-10-21.md); D7 audit is *Proposed*); every
+> service has a checked-in OpenAPI + LLD ([contracts](../contracts/rule-engine/LLD.md) folder); the
+> configuration-driven rule engine, the events library and the review's code fixes are built and
+> green. **Still blocking S11:** the human Compliance signature on GAP-006/007
+> ([sign-off packet](../../au-bank-insurance-platform/rule-packs/SIGNOFF-PACKET-GAP-006-007.md)),
+> GATE-S08 approval and S09 infrastructure. The scorecard below is the 2026-10-21 baseline.
+
 ## 1. Verdict
 
 **No — we are not 100 % ready to start developing all services, flows and business logic.**

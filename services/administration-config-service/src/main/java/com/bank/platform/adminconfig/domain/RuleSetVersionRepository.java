@@ -6,7 +6,10 @@ import java.util.Optional;
 /** Store of {@link RuleSetVersion}s, schema {@code administration}. */
 public interface RuleSetVersionRepository {
 
-  /** Inserts a new version; a duplicate (ruleSetId, version) throws {@link DuplicateVersionException}. */
+  /**
+   * Inserts a new version; a duplicate (ruleSetId, version) throws {@link
+   * DuplicateVersionException}.
+   */
   void insert(RuleSetVersion version);
 
   /**

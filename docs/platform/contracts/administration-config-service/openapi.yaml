@@ -1,0 +1,488 @@
+openapi: 3.1.0
+info:
+  title: administration-config-service — rule sets (#19) cluster-private API
+  version: 1.0.0-r0
+  summary: Versioned, effective-dated, maker-checker rule sets (rule-set/v1) and their resolution.
+  description: |
+    **Status:** AI-DRAFTED from code (ADR-027), awaiting Mahesh (architecture), Deepali (security —
+    the `X-Actor-Roles` interim) and Shailja (Compliance approval flow) review.
+
+    Authoritative wire contract for the rule-set part of `services/administration-config-service`
+    (port 8104, `service-id: admin-config`, layer L5, boundary INTERNAL), derived from
+    `com.bank.platform.adminconfig.api.RuleSetController`. Specification:
+    `docs/platform/architecture-review/ADR-024-configuration-driven-rule-engine.md`; authoring guide:
+    `docs/platform/contracts/rule-engine/LLD.md`; design: `LLD.md` beside this file.
+
+    **Lifecycle.** `DRAFT → PENDING_APPROVAL → PUBLISHED`, or `→ REJECTED → (edit) → DRAFT`.
+    Approval *is* publication; it is refused unless the checker differs from the maker, holds the
+    role the document's `classification` names (`COMPLIANCE_APPROVER`, `PRODUCT_APPROVER`,
+    `CONFIG_APPROVER`) and every `testCases` entry passes. A published version never changes.
+
+    **Interim authorization.** Checker roles are read from `X-Actor-Roles` (comma-separated) until
+    the PDP decides `rule-set.approve` (open item). An approve / reject without that header is
+    `403 FORBIDDEN`: `X-Actor-Id` alone is never trusted for a checker decision. The header must be
+    set by the trusted caller (admin BFF), never forwarded from a browser.
+
+    **Idempotency.** Creating a draft is naturally idempotent on `(ruleSetId, version)` — a repeat
+    is `409 CONFLICT`; `Idempotency-Key` is accepted and ignored. Lifecycle steps are guarded by the
+    expected prior status, so a repeat is `409 ILLEGAL_TRANSITION`.
+servers:
+  - url: http://administration-config-service:8104
+    description: Cluster-private
+  - url: http://localhost:8104
+    description: Local
+tags:
+  - name: Rule sets
+  - name: Resolution
+
+paths:
+  /internal/v1/rule-sets/{ruleSetId}/versions:
+    parameters:
+      - $ref: '#/components/parameters/RuleSetId'
+    post:
+      tags: [Rule sets]
+      operationId: createRuleSetDraft
+      summary: Create a DRAFT version from a rule-set/v1 document (maker).
+      description: |
+        1. Path `ruleSetId` must equal the document's (`422 INVALID_REQUEST`).
+        2. Full validation (`RuleSetValidator`): structure, closed operator set, known vars / params /
+           tables, no derive cycle, defined reason codes and outcomes (`422 RULE_SET_INVALID`, one
+           `errors[]` entry per finding with the JSON path in `field`).
+        3. Insert `administration.rule_set_version` as DRAFT with `maker = X-Actor-Id`, the canonical
+           document and its SHA-256 (`409 CONFLICT` if the version exists).
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RuleSetDocument' }
+      responses:
+        '201':
+          description: Draft created.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RuleSetVersion' }
+        '400': { $ref: '#/components/responses/MissingActor' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/Invalid' }
+    get:
+      tags: [Rule sets]
+      operationId: listRuleSetVersions
+      summary: Every version of a rule set, oldest first, without documents.
+      responses:
+        '200':
+          description: Versions (possibly empty).
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/RuleSetVersion' }
+
+  /internal/v1/rule-sets/{ruleSetId}/versions/{version}:
+    parameters:
+      - $ref: '#/components/parameters/RuleSetId'
+      - $ref: '#/components/parameters/Version'
+    get:
+      tags: [Rule sets]
+      operationId: getRuleSetVersion
+      summary: One version with its document (any status). Used by pinned journeys (`pinning = JOURNEY`).
+      responses:
+        '200':
+          description: The version.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RuleSetVersion' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    put:
+      tags: [Rule sets]
+      operationId: replaceRuleSetDraft
+      summary: Replace the document of a DRAFT or REJECTED version; it becomes DRAFT, maker = actor.
+      description: |
+        `ruleSetId` and `version` inside the document must not change. Any other status — in
+        particular PUBLISHED — is `409 ILLEGAL_TRANSITION` (SUIT-R07; a change is a new version).
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RuleSetDocument' }
+      responses:
+        '200':
+          description: Replaced.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RuleSetVersion' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/Invalid' }
+
+  /internal/v1/rule-sets/{ruleSetId}/versions/{version}:submit:
+    parameters:
+      - $ref: '#/components/parameters/RuleSetId'
+      - $ref: '#/components/parameters/Version'
+    post:
+      tags: [Rule sets]
+      operationId: submitRuleSetVersion
+      summary: DRAFT → PENDING_APPROVAL.
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+      responses:
+        '200':
+          description: Submitted.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RuleSetVersion' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /internal/v1/rule-sets/{ruleSetId}/versions/{version}:approve:
+    parameters:
+      - $ref: '#/components/parameters/RuleSetId'
+      - $ref: '#/components/parameters/Version'
+    post:
+      tags: [Rule sets]
+      operationId: approveRuleSetVersion
+      summary: Checker approval — publishes the version (PENDING_APPROVAL → PUBLISHED).
+      description: |
+        Order (one transaction):
+        1. Load; run every test case of the stored document.
+        2. Status must be PENDING_APPROVAL (`409 ILLEGAL_TRANSITION`).
+        3. Checker ≠ maker (`403 MAKER_CHECKER_VIOLATION`); `X-Actor-Roles` present and holding the
+           classification's approver role (`403 FORBIDDEN`).
+        4. Any failing test case → `422 RULE_SET_TEST_FAILED`, one `errors[]` entry per failed case
+           (`field: testCases.<name>`); the version stays PENDING_APPROVAL.
+        5. Update the row (`PUBLISHED`, `checker`, `approved_at`, `decision_remarks`) guarded by the
+           prior status; append `RuleSetPublished` to `administration.outbox_event`.
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/ActorRoles'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DecisionRequest' }
+      responses:
+        '200':
+          description: Published.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RuleSetVersion' }
+        '403': { $ref: '#/components/responses/CheckerRefused' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422':
+          description: A test case failed; publication refused.
+          x-error-codes: [RULE_SET_TEST_FAILED]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+
+  /internal/v1/rule-sets/{ruleSetId}/versions/{version}:reject:
+    parameters:
+      - $ref: '#/components/parameters/RuleSetId'
+      - $ref: '#/components/parameters/Version'
+    post:
+      tags: [Rule sets]
+      operationId: rejectRuleSetVersion
+      summary: Checker rejection (PENDING_APPROVAL → REJECTED). Remarks are mandatory.
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/ActorRoles'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DecisionRequest' }
+      responses:
+        '200':
+          description: Rejected.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RuleSetVersion' }
+        '403': { $ref: '#/components/responses/CheckerRefused' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422':
+          description: Remarks missing.
+          x-error-codes: [MISSING_REQUIRED_FIELD]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+
+  /internal/v1/rule-sets/{ruleSetId}/versions/{version}:simulate:
+    parameters:
+      - $ref: '#/components/parameters/RuleSetId'
+      - $ref: '#/components/parameters/Version'
+    post:
+      tags: [Rule sets]
+      operationId: simulateRuleSetVersion
+      summary: Evaluate any inputs and run every test case against a version in any status. Changes nothing.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                inputs:
+                  type: [object, 'null']
+                  additionalProperties: true
+                  description: Inputs by name, as the rule set's `inputs` declare them. Omit to run test cases only.
+      responses:
+        '200':
+          description: Evaluation (if inputs were given) and the test report.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SimulationResponse' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /internal/v1/rule-sets:resolve:
+    get:
+      tags: [Resolution]
+      operationId: resolveRuleSet
+      summary: The PUBLISHED version in force for (domain, lob, productClass) at `asOf` (S-21).
+      description: |
+        Among PUBLISHED versions of `domain` whose `[effectiveFrom, effectiveTo)` contains `asOf`
+        and whose scope matches (a null scope value matches anything): the most specific scope wins,
+        then the latest `effectiveFrom`, then the latest approval. None → `422
+        CONFIGURATION_UNRESOLVABLE` (no compiled-in default anywhere). Callers use
+        `libs/bank-rule-engine` `HttpRuleSetResolver` (300 ms, no retry, fail closed) behind the
+        `CachingRuleSetResolver` L1 cache (TTL 60 s, invalidated by `RuleSetPublished`), and verify
+        `documentSha256` against the document.
+      parameters:
+        - name: domain
+          in: query
+          required: true
+          schema: { type: string, examples: [SUITABILITY, SUITABILITY_GATE, CONSENT, LEAD_EXCEPTION, PROPOSAL_TAT, HUB_ROUTING] }
+        - name: lob
+          in: query
+          required: false
+          schema: { type: string, examples: [LIFE] }
+        - name: productClass
+          in: query
+          required: false
+          schema: { type: string, examples: [TERM] }
+        - name: asOf
+          in: query
+          required: false
+          description: RFC 3339 date-time; default now.
+          schema: { type: string, format: date-time }
+      responses:
+        '200':
+          description: The version in force, with its document.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RuleSetVersion' }
+        '422':
+          description: Nothing in force.
+          x-error-codes: [CONFIGURATION_UNRESOLVABLE]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+
+components:
+  parameters:
+    RuleSetId:
+      name: ruleSetId
+      in: path
+      required: true
+      schema: { type: string, pattern: '^[A-Z][A-Z0-9_]*(\.[A-Z0-9_]+)*$', examples: [SUITABILITY.LIFE.TERM] }
+    Version:
+      name: version
+      in: path
+      required: true
+      schema: { type: string, pattern: '^\d+\.\d+\.\d+$', examples: [1.0.0] }
+    ActorId:
+      name: X-Actor-Id
+      in: header
+      required: true
+      description: Acting principal, set by the trusted caller (admin BFF) from the session.
+      schema: { type: string, minLength: 1, maxLength: 64 }
+    ActorRoles:
+      name: X-Actor-Roles
+      in: header
+      required: true
+      description: |
+        Comma-separated roles of the checker. **Interim** — replaced by a PDP decision
+        (`rule-set.approve`). Absent → `403 FORBIDDEN`.
+      schema: { type: string, examples: ['COMPLIANCE_APPROVER'] }
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      description: Accepted and ignored — create is idempotent on (ruleSetId, version).
+      schema: { type: string, maxLength: 128 }
+    CorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: false
+      description: Copied into the `RuleSetPublished` envelope.
+      schema: { type: string, maxLength: 128 }
+
+  responses:
+    MissingActor:
+      description: '`X-Actor-Id` missing — Spring `MissingRequestHeaderException`, default 400.'
+    NotFound:
+      description: No such rule set version.
+      x-error-codes: [RESOURCE_NOT_FOUND]
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Conflict:
+      description: Version exists, or the step is not allowed from the current status (includes any change to a PUBLISHED version).
+      x-error-codes: [CONFLICT, ILLEGAL_TRANSITION]
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Invalid:
+      description: Document invalid or path / document mismatch.
+      x-error-codes: [RULE_SET_INVALID, INVALID_REQUEST]
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    CheckerRefused:
+      description: Checker is the maker, lacks the classification's role, or sent no `X-Actor-Roles`.
+      x-error-codes: [MAKER_CHECKER_VIOLATION, FORBIDDEN]
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+
+  schemas:
+    Ulid:
+      type: string
+      pattern: '^[0-9A-HJKMNP-TV-Z]{26}$'
+    RuleSetDocument:
+      type: object
+      description: |
+        A rule-set/v1 document. Full JSON-Schema:
+        `libs/bank-rule-engine/src/main/resources/schema/rule-set-v1.schema.json`.
+      required: [format, ruleSetId, domain, scope, version, effectiveFrom, classification, inputs, decision, rules, reasonCodes, testCases]
+      properties:
+        format: { const: rule-set/v1 }
+        ruleSetId: { type: string }
+        domain: { type: string }
+        version: { type: string }
+        classification: { type: string, enum: [COMPLIANCE, PRODUCT, OPERATIONAL] }
+      additionalProperties: true
+    DecisionRequest:
+      type: object
+      properties:
+        remarks: { type: [string, 'null'], maxLength: 1000, description: Mandatory on reject. }
+    RuleSetVersion:
+      type: object
+      required: [id, ruleSetId, version, domain, scope, classification, status, documentSha256, effectiveFrom, maker, createdAt]
+      properties:
+        id: { $ref: '#/components/schemas/Ulid' }
+        ruleSetId: { type: string }
+        version: { type: string }
+        domain: { type: string }
+        scope:
+          type: object
+          properties:
+            lob: { type: [string, 'null'] }
+            productClass: { type: [string, 'null'] }
+        classification: { type: string, enum: [COMPLIANCE, PRODUCT, OPERATIONAL] }
+        status: { type: string, enum: [DRAFT, PENDING_APPROVAL, PUBLISHED, REJECTED, RETIRED] }
+        documentSha256: { type: string, pattern: '^[0-9a-f]{64}$', description: SHA-256 of the canonical document (sorted keys, normalised numbers). }
+        effectiveFrom: { type: string, format: date-time }
+        effectiveTo: { type: [string, 'null'], format: date-time }
+        maker: { type: string }
+        checker: { type: [string, 'null'] }
+        approvedAt: { type: [string, 'null'], format: date-time }
+        decisionRemarks: { type: [string, 'null'] }
+        createdAt: { type: string, format: date-time }
+        document:
+          description: The canonical rule-set document; null in list responses and lifecycle step responses.
+          oneOf:
+            - $ref: '#/components/schemas/RuleSetDocument'
+            - type: 'null'
+    SimulationResponse:
+      type: object
+      required: [ruleSetId, version, status, allTestCasesPassed, testCases]
+      properties:
+        ruleSetId: { type: string }
+        version: { type: string }
+        status: { type: string }
+        evaluation:
+          description: ADR-024 section 6 evaluation result, or null when no inputs were sent.
+          oneOf:
+            - $ref: '#/components/schemas/EvaluationResult'
+            - type: 'null'
+        allTestCasesPassed: { type: boolean }
+        testCases:
+          type: array
+          items:
+            type: object
+            properties:
+              name: { type: string }
+              passed: { type: boolean }
+              failures: { type: array, items: { type: string } }
+              actual: { $ref: '#/components/schemas/EvaluationResult' }
+    EvaluationResult:
+      type: object
+      required: [ruleSetId, version, engineVersion, inputsHash, derived, outcome, fired, reasonCodes, messages, missingInputs]
+      properties:
+        ruleSetId: { type: string }
+        version: { type: string }
+        engineVersion: { type: string }
+        inputsHash: { type: string, pattern: '^sha256:[0-9a-f]{64}$' }
+        derived: { type: object, additionalProperties: true }
+        outcome: { type: [string, 'null'] }
+        fired:
+          type: array
+          items:
+            type: object
+            properties:
+              ruleId: { type: string }
+              outcome: { type: [string, 'null'] }
+              reasonCode: { type: [string, 'null'] }
+              params: { type: object, additionalProperties: true }
+              actions: { type: array, items: { type: string } }
+              configMissing: { type: array, items: { type: string } }
+        reasonCodes: { type: array, items: { type: string } }
+        messages:
+          type: array
+          items:
+            type: object
+            properties:
+              reasonCode: { type: string }
+              severity: { type: string, enum: [INFO, CAUTION, APPROVAL, BLOCK] }
+              rmText: { type: string }
+              customerText: { type: [string, 'null'] }
+        missingInputs: { type: array, items: { type: string } }
+        evaluatedAt: { type: [string, 'null'] }
+    Problem:
+      type: object
+      description: Platform problem+json, internal rendering (conventions/error-model.md).
+      required: [type, title, status, code]
+      properties:
+        type: { type: string, default: about:blank }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        code: { type: string }
+        category: { type: string }
+        retryable: { type: boolean }
+        incidentId: { type: string }
+        correlationId: { type: [string, 'null'] }
+        service: { type: string, examples: [admin-config] }
+        timestamp: { type: string, format: date-time }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              code: { type: string }
+              message: { type: string }
+              field: { type: [string, 'null'] }
+        origin: { type: [object, 'null'], additionalProperties: true }
+        diagnostic: { type: [object, 'null'], additionalProperties: true }

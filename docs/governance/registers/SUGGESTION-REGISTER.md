@@ -216,6 +216,13 @@ outcome:
   work_item_id: SUG-20261021-rul
   status: ADMIT-BYPASS
   decisions: ["ADR-024", "ADR-025", "ADR-026 (Proposed)", "ADR-027", "D-023", "D-024", "D-025"]
+  delivered:
+    - "libs/bank-rule-engine: rule-set/v1 engine, schema, validator, 8 seed rule sets with test cases (47 tests)"
+    - "administration-config-service: versioned rule sets, maker-checker by classification, simulate, publish refused on failing test case, resolve, outbox (16 tests)"
+    - "libs/bank-common-events + event envelope, 36 schemas, catalogue (42 tests)"
+    - "OpenAPI 3.1 + LLD for all 21 services + rule engine under docs/platform/contracts/"
+    - "Design DDL for D-023/D-024/D-025, D4 outcome record, rule sets, audit (proposed); stale statements corrected"
+    - "Review fixes in identity, BFF, authz, lead, customer, bank-persistence, 1SB (check green)"
   external_pending:
     - "Risk & Compliance human E2 signature — GAP-006/007 (S02-G3/G4)"
     - "Compliance: DPDP permissibility of consent after suitability (OPEN-CNS-DPDP)"

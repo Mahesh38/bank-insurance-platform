@@ -1,11 +1,15 @@
 package com.bank.platform.adminconfig.domain;
 
-/** A lifecycle rule of ADR-024 section 5 refused the change. The API maps {@link Kind} to a code. */
+/**
+ * A lifecycle rule of ADR-024 section 5 refused the change. The API maps {@link Kind} to a code.
+ */
 public class RuleSetLifecycleException extends RuntimeException {
 
   /** Why the change was refused. */
   public enum Kind {
-    /** The version is not in a status that allows this step (includes any change once PUBLISHED). */
+    /**
+     * The version is not in a status that allows this step (includes any change once PUBLISHED).
+     */
     ILLEGAL_TRANSITION,
     /** The checker is the maker (section 5 point 2). */
     MAKER_CHECKER,

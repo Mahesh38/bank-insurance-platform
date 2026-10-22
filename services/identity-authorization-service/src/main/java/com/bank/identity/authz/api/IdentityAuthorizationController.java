@@ -67,23 +67,28 @@ public class IdentityAuthorizationController {
         user.getInsurerCode());
   }
 
+  /**
+   * E5: a bank admin creates the partner user; provisioning is queued in the same transaction, so
+   * the answer is {@code 202} with status {@code PENDING} until the provider account exists.
+   */
   @PostMapping("/partner-users")
   @ResponseStatus(HttpStatus.ACCEPTED)
-  public PartnerUserAdministrationService.SubmittedPartnerUser createPartnerUser(
+  public PartnerUserAdministrationService.CreatedPartnerUser createPartnerUser(
       @Valid @RequestBody CreatePartnerUserRequest request,
       @RequestAttribute(InternalServiceAuthFilter.CALLER_ATTRIBUTE) String caller,
       @RequestHeader(value = "X-Actor-Id", required = false) String actorHeader) {
-    UUID makerId = actors.requireActor(caller, actorHeader, "createPartnerUser");
-    return partnerUsers.submit(
+    UUID creatorId = actors.requireActor(caller, actorHeader, "createPartnerUser");
+    return partnerUsers.create(
         new PartnerUserAdministrationService.CreatePartnerUserCommand(
             request.username(),
             request.email(),
             request.firstName(),
             request.lastName(),
             request.insurerCode()),
-        makerId);
+        creatorId);
   }
 
+  /** Only when {@code identity.partner-onboarding.approval-required=true}; otherwise 409. */
   @PostMapping("/approval-requests/{approvalId}/approve")
   public ApprovalResponse approve(
       @PathVariable UUID approvalId,

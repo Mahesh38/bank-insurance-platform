@@ -7,9 +7,9 @@
 | **Role** | Puts every identity provider behind one internal API so the BFF never knows which IdP it is talking to. Today: **bank AD-verify API** for bank RMs, **Keycloak** (private IdP) for partner users and provisioning. Swapping Keycloak for another IdP changes only this service (`ADR-015`, WS-2 out-of-scope "production IdP selection") |
 | **Module** | `services/identity-provider-adapter-service` · port 8082 · `service-id: idp-adapter` · layer L5 · INTERNAL |
 | **Base path** | `/internal/v1` — cluster-private |
-| **Callers** | `workforce-access-bff` (auth) · `identity-authorization-service` (provisioning, after maker-checker approval) |
+| **Callers** | `workforce-access-bff` (auth) · `identity-authorization-service` (provisioning, queued when a bank admin creates a partner — E5) |
 | **Caller authentication** | `X-Internal-Service-Key` header on **every** `/internal/v1/**` call, compared by `InternalServiceAuthFilter`. Missing / wrong → `401 UNAUTHORIZED` |
-| **Calls out** | Bank AD-verify API (UAT/prod: Apigee **private** target; never LDAP from EKS) · Keycloak OIDC endpoints, JWKS and admin REST API — every outbound client bounded at connect 1 s / read 3 s (`identity.ad-verify.*-timeout`, `identity.provider.keycloak.connect-timeout` / `read-timeout`), nesting inside the BFF's 4.5 s budget |
+| **Calls out** | Bank AD-verify API (UAT/prod: Apigee **private** target; never LDAP from EKS) · Keycloak OIDC endpoints, JWKS and admin REST API — every outbound client bounded at **connect 1 s / read 3 s** ([E8](../../architecture-review/DECISIONS-2026-10-22.md#owner-decisions); `identity.ad-verify.*-timeout` ← env `BANK_AD_VERIFY_CONNECT_TIMEOUT` / `BANK_AD_VERIFY_READ_TIMEOUT`, `identity.provider.keycloak.*-timeout` ← env `KEYCLOAK_CONNECT_TIMEOUT` / `KEYCLOAK_READ_TIMEOUT`); the BFF's 4.5 s budget stays above the 3 s read |
 | **ID-token failures** | Signature, audience, nonce or subject mismatch on token exchange / refresh → typed `401 AUTHENTICATION_FAILED` (was an unmapped `500`) |
 | **Owns data** | None. Keycloak's realm DB belongs to Keycloak |
 | **Code status** | **IMPLEMENTED** — all 7 endpoints |
@@ -26,7 +26,7 @@
 | `POST` | `/internal/v1/auth/token-exchange` | IMPLEMENTED | BFF | Exchange authorization code → tokens + verified claims |
 | `POST` | `/internal/v1/auth/refresh` | IMPLEMENTED | BFF (not yet wired) | Refresh provider tokens |
 | `POST` | `/internal/v1/auth/revoke` | IMPLEMENTED | BFF on logout / failed login | Revoke a refresh token |
-| `POST` | `/internal/v1/identities` | IMPLEMENTED | Authz provisioning outbox | Create (or find) a Keycloak user for an approved partner |
+| `POST` | `/internal/v1/identities` | IMPLEMENTED | Authz provisioning outbox | Create (or find) a Keycloak user for a partner created by a bank admin |
 | `PATCH` | `/internal/v1/identities/{providerSubjectId}/status` | IMPLEMENTED | Authz | Enable / disable a Keycloak user |
 
 ---
@@ -62,8 +62,9 @@ The BFF accepts the login only when `authenticated && accountActive`.
    `stub` **refuses to start under the `prod` profile**.
 3. **Mode `http`**: `POST {BANK_AD_VERIFY_BASE_URL}{BANK_AD_VERIFY_PATH}` (default path
    `/ad/authenticate`) with body `{employeeId, password}` and API key header
-   (`X-API-Key` by default). Timeouts 1 s connect / 3 s read (were 3 s / 5 s, which no longer fit
-   inside the BFF's 4.5 s identity-provider budget).
+   (`X-API-Key` by default). Timeouts 1 s connect / 3 s read ([E8](../../architecture-review/DECISIONS-2026-10-22.md#owner-decisions); env `BANK_AD_VERIFY_CONNECT_TIMEOUT` /
+   `BANK_AD_VERIFY_READ_TIMEOUT`). The 3 s read stays inside the BFF's 4.5 s identity-provider
+   budget; connect + read (4 s worst case) nests inside the BFF budget.
 4. Response parsing is tolerant because the bank has not published its schema
    (`DEP-20260914-apg`): a bare `true`/`false`, a JSON boolean, a quoted boolean, or an object with
    `authenticated` | `success` | `isAuthenticated` and optional `accountActive` / `active`,

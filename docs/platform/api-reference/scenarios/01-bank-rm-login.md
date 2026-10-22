@@ -120,7 +120,7 @@ response, or any internal error detail.
 | 422 | `VALIDATION_ERROR` | Malformed request (client bug) | Fix the client |
 | 400 | `SCHEMA_INVALID` | Missing employee id / password | Inline field error |
 | 403 | `CSRF_REJECTED` | Missing/stale CSRF token (web) | Re-fetch `/auth/csrf`, retry once |
-| 503 | `IDENTITY_PROVIDER_UNAVAILABLE` | AD-verify, Apigee, adapter or PDP down | "Login is temporarily unavailable"; show `incidentId` |
+| 503 | `IDENTITY_PROVIDER_UNAVAILABLE` | AD-verify, Apigee, adapter or PDP down, or too slow — adapter → AD-verify connect 2 s / read 3 s ([E8](../../architecture-review/DECISIONS-2026-10-22.md#owner-decisions), env `BANK_AD_VERIFY_CONNECT_TIMEOUT` / `BANK_AD_VERIFY_READ_TIMEOUT`), BFF → adapter 4.5 s | "Login is temporarily unavailable"; show `incidentId` |
 
 ## 7. Data written
 

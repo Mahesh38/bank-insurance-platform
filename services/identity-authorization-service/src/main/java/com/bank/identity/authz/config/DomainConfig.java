@@ -9,7 +9,8 @@ import org.springframework.context.annotation.Configuration;
 public class DomainConfig {
 
   @Bean
-  AuthorizationPolicyEvaluator authorizationPolicyEvaluator() {
-    return new AuthorizationPolicyEvaluator();
+  AuthorizationPolicyEvaluator authorizationPolicyEvaluator(
+      PartnerRepresentativeRestrictionProperties partnerRestriction) {
+    return new AuthorizationPolicyEvaluator(partnerRestriction.toRestriction());
   }
 }

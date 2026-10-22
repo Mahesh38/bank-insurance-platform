@@ -214,7 +214,7 @@ paths:
             application/problem+json:
               schema: { $ref: '#/components/schemas/Problem' }
         '403':
-          description: Partner has no approved business user yet (propagated from identity-authorization).
+          description: Partner has no provisioned business user yet — not created by a bank admin, or provisioning still pending (propagated from identity-authorization).
           x-error-codes: [FORBIDDEN]
           content:
             application/problem+json:

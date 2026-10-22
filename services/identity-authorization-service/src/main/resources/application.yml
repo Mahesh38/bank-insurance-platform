@@ -36,6 +36,19 @@ identity:
     internal-key: ${IDENTITY_ADAPTER_INTERNAL_SHARED_SECRET:local-idp-adapter-internal-key}
     connect-timeout: ${IDENTITY_PROVIDER_ADAPTER_CONNECT_TIMEOUT:1s}
     read-timeout: ${IDENTITY_PROVIDER_ADAPTER_READ_TIMEOUT:3s}
+  # E5 (DECISIONS-2026-10-22): a bank admin creates a partner user directly and it is provisioned
+  # at creation. The retired maker-checker step can be re-enabled without code.
+  partner-onboarding:
+    approval-required: ${IDENTITY_PARTNER_ONBOARDING_APPROVAL_REQUIRED:false}
+  authorization:
+    # E5 / E6: actions an INSURER_REPRESENTATIVE can never hold, whatever roles or entitlements say.
+    # Strict seed (E9); extend here, never shorten without Deepali (security) sign-off.
+    partner-representative:
+      prohibited-actions:
+        - partner_user.create
+        - partner_user.bulk_import
+      prohibited-action-suffixes:
+        - .approve
   provisioning:
     enabled: ${IDENTITY_PROVISIONING_ENABLED:false}
     poll-interval: ${IDENTITY_PROVISIONING_POLL_INTERVAL:5000}

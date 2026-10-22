@@ -18,3 +18,6 @@ identity:
       lead-service: ${IDENTITY_AUTHZ_LEAD_INTERNAL_KEY}
   provider-adapter:
     internal-key: ${IDENTITY_ADAPTER_INTERNAL_SHARED_SECRET}
+  # E5: partners are provisioned at creation, so production drains the provisioning outbox.
+  provisioning:
+    enabled: ${IDENTITY_PROVISIONING_ENABLED:true}

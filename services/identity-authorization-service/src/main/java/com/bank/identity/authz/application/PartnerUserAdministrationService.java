@@ -8,54 +8,74 @@ import com.bank.identity.authz.domain.AuthorizationModels.DecisionRequest;
 import com.bank.identity.authz.domain.AuthorizationModels.Resource;
 import com.bank.identity.authz.persistence.BusinessUserEntity;
 import com.bank.identity.authz.persistence.BusinessUserRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Maker / checker administration of partner users.
+ * Administration of partner (insurer representative) users.
  *
- * <p>Both actors are authenticated business users (the BFF asserts them from a session; see {@code
- * ActorPrincipalResolver}) and both are PDP-checked — {@code partner_user.create} for the maker,
- * {@code partner_user.approve} for the checker — scoped to the partner's insurer, so the tenant
- * boundary applies to an insurer's own administrator (READINESS-REVIEW §3.7).
+ * <p>DECISIONS-2026-10-22 E5: a bank admin holding {@code partner_user.create} creates the partner
+ * user directly and provisioning into the identity provider is queued in the same transaction
+ * (outbox {@code IDENTITY_PROVISIONING_REQUESTED}). The user stays {@code PENDING} until {@link
+ * ProvisioningOutboxProcessor} has created the provider account, then becomes {@code ACTIVE}.
  *
- * <p>Approval does <em>not</em> activate the partner: the user stays {@code PENDING} until the
- * provider identity is provisioned by the outbox ({@link ProvisioningOutboxProcessor}).
+ * <p>The retired maker-checker step is kept behind {@code
+ * identity.partner-onboarding.approval-required} (default {@code false}). When it is on, creation
+ * opens an {@code approval_request} instead and provisioning is queued only on approval by a
+ * different actor holding {@code partner_user.approve}. When it is off, approve answers {@code 409
+ * ILLEGAL_TRANSITION}.
+ *
+ * <p>Actors are authenticated business users (the BFF asserts them from a session; see {@code
+ * ActorPrincipalResolver}) and every action is PDP-checked, scoped to the partner's insurer
+ * (READINESS-REVIEW §3.7). The PDP never grants these actions to a partner representative.
  */
 @Service
 public class PartnerUserAdministrationService {
 
   static final String CREATE_PERMISSION = "partner_user.create";
   static final String APPROVE_PERMISSION = "partner_user.approve";
+  static final String PROVISIONING_REQUESTED = "IDENTITY_PROVISIONING_REQUESTED";
+  static final String PARTNER_USER_CREATED = "PARTNER_USER_CREATED";
 
   private final BusinessUserRepository users;
   private final JdbcClient jdbc;
   private final ServiceErrors errors;
   private final AuthorizationDecisionService decisions;
+  private final ObjectMapper json;
+  private final boolean approvalRequired;
 
   public PartnerUserAdministrationService(
       BusinessUserRepository users,
       JdbcClient jdbc,
       ServiceErrors errors,
-      AuthorizationDecisionService decisions) {
+      AuthorizationDecisionService decisions,
+      ObjectMapper json,
+      @Value("${identity.partner-onboarding.approval-required:false}") boolean approvalRequired) {
     this.users = users;
     this.jdbc = jdbc;
     this.errors = errors;
     this.decisions = decisions;
+    this.json = json;
+    this.approvalRequired = approvalRequired;
   }
 
   @Transactional
-  public SubmittedPartnerUser submit(CreatePartnerUserCommand command, UUID makerId) {
-    requirePermission(makerId, CREATE_PERMISSION, null, command.insurerCode(), "submit");
+  public CreatedPartnerUser create(CreatePartnerUserCommand command, UUID creatorId) {
+    requirePermission(creatorId, CREATE_PERMISSION, null, command.insurerCode(), "create");
     if (users.existsByUsername(command.username())) {
       throw errors
           .error(ErrorCodes.CONFLICT)
           .component("PartnerUserAdministrationService")
-          .operation("submit")
+          .operation("create")
           .reason("Username already exists")
           .build();
     }
@@ -66,24 +86,51 @@ public class PartnerUserAdministrationService {
                 command.email(),
                 command.firstName(),
                 command.lastName(),
-                command.insurerCode()));
-    UUID approvalId = UUID.randomUUID();
-    jdbc.sql(
-            """
-                insert into approval_request
-                    (id, request_type, target_id, status, maker_id, requested_at)
-                values (:id, 'PARTNER_USER_CREATE', :targetId, 'PENDING', :makerId, :now)
-                """)
-        .param("id", approvalId)
-        .param("targetId", user.getId())
-        .param("makerId", makerId.toString())
-        .param("now", Instant.now())
-        .update();
-    return new SubmittedPartnerUser(user.getId(), approvalId, user.getStatus().name());
+                command.insurerCode(),
+                creatorId.toString()));
+    UUID approvalId = null;
+    if (approvalRequired) {
+      approvalId = UUID.randomUUID();
+      jdbc.sql(
+              """
+                  insert into approval_request
+                      (id, request_type, target_id, status, maker_id, requested_at)
+                  values (:id, 'PARTNER_USER_CREATE', :targetId, 'PENDING', :makerId, :now)
+                  """)
+          .param("id", approvalId)
+          .param("targetId", user.getId())
+          .param("makerId", creatorId.toString())
+          .param("now", Instant.now())
+          .update();
+    } else {
+      enqueueProvisioning(user, creatorId);
+    }
+    // ADR-026 / E2: business audit travels as an outbox event (who created whom, and how).
+    insertOutbox(
+        user.getId(),
+        PARTNER_USER_CREATED,
+        payload(
+            "businessUserId", user.getId(),
+            "insurerCode", user.getInsurerCode(),
+            "createdBy", creatorId,
+            "approvalRequired", approvalRequired,
+            "approvalId", approvalId));
+    return new CreatedPartnerUser(
+        user.getId(), approvalId, user.getStatus().name(), approvalRequired);
   }
 
   @Transactional
   public String approve(UUID approvalId, UUID checkerId) {
+    if (!approvalRequired) {
+      throw errors
+          .error(ErrorCodes.ILLEGAL_TRANSITION)
+          .component("PartnerUserAdministrationService")
+          .operation("approve")
+          .reason(
+              "Partner-user approval is not required"
+                  + " (identity.partner-onboarding.approval-required=false)")
+          .build();
+    }
     Approval approval =
         jdbc.sql(
                 """
@@ -148,18 +195,43 @@ public class PartnerUserAdministrationService {
         .param("now", Instant.now())
         .param("id", approvalId)
         .update();
+    enqueueProvisioning(user, checkerId);
+    return user.getStatus().name();
+  }
+
+  private void enqueueProvisioning(BusinessUserEntity user, UUID requestedBy) {
+    insertOutbox(
+        user.getId(),
+        PROVISIONING_REQUESTED,
+        payload("businessUserId", user.getId(), "requestedBy", requestedBy));
+  }
+
+  private void insertOutbox(UUID aggregateId, String eventType, String payload) {
     jdbc.sql(
             """
                 insert into outbox_event
                     (id, aggregate_type, aggregate_id, event_type, payload, created_at)
-                values (:id, 'BUSINESS_USER', :aggregateId, 'IDENTITY_PROVISIONING_REQUESTED', :payload, :now)
+                values (:id, 'BUSINESS_USER', :aggregateId, :eventType, :payload, :now)
                 """)
         .param("id", UUID.randomUUID())
-        .param("aggregateId", user.getId())
-        .param("payload", "{\"businessUserId\":\"" + user.getId() + "\"}")
+        .param("aggregateId", aggregateId)
+        .param("eventType", eventType)
+        .param("payload", payload)
         .param("now", Instant.now())
         .update();
-    return user.getStatus().name();
+  }
+
+  private String payload(Object... keyValues) {
+    Map<String, Object> body = new LinkedHashMap<>();
+    for (int i = 0; i < keyValues.length; i += 2) {
+      Object value = keyValues[i + 1];
+      body.put((String) keyValues[i], value instanceof UUID ? value.toString() : value);
+    }
+    try {
+      return json.writeValueAsString(body);
+    } catch (JsonProcessingException exception) {
+      throw new IllegalStateException("Cannot serialise outbox payload", exception);
+    }
   }
 
   private void requirePermission(
@@ -182,6 +254,7 @@ public class PartnerUserAdministrationService {
           case "ACCOUNT_NOT_ACTIVE" -> ErrorCodes.ACCOUNT_SUSPENDED;
           case "CROSS_INSURER_ACCESS" -> ErrorCodes.CROSS_INSURER_DENIED;
           case "EXPLICIT_DENY" -> ErrorCodes.EXPLICIT_DENY;
+          case "PARTNER_ACTION_PROHIBITED" -> ErrorCodes.FORBIDDEN;
           default -> ErrorCodes.DEFAULT_DENY;
         };
     return errors
@@ -195,7 +268,9 @@ public class PartnerUserAdministrationService {
   public record CreatePartnerUserCommand(
       String username, String email, String firstName, String lastName, String insurerCode) {}
 
-  public record SubmittedPartnerUser(UUID userId, UUID approvalId, String status) {}
+  /** {@code approvalId} is null unless the maker-checker step is configured on. */
+  public record CreatedPartnerUser(
+      UUID userId, UUID approvalId, String status, boolean approvalRequired) {}
 
   private record Approval(UUID targetId, String makerId, String status) {}
 }

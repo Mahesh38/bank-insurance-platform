@@ -38,7 +38,7 @@ public class IdentityResolutionService {
           .error(ErrorCodes.FORBIDDEN)
           .component("IdentityResolutionService")
           .operation("resolve")
-          .reason("Partner identity must be approved before first login")
+          .reason("Partner identity must be created and provisioned before first login")
           .build();
     }
     return users.save(

@@ -126,8 +126,17 @@ No table — the service owns no data.
 - **Events:** none produced or consumed.
 - **Idempotency:** provision is idempotent by `business_user_id`; revoke and status are naturally
   idempotent at Keycloak; the auth calls are not mutating platform state.
-- **Timeouts:** AD-verify client per `BankAdVerifyProperties` (the BFF waits up to 6 s, S-26).
-  Keycloak clients have **no explicit timeout** (readiness review §3.7).
+- **Timeouts ([E8](../../architecture-review/DECISIONS-2026-10-22.md#owner-decisions)):** every outbound client defaults to **connect 1 s / read 3 s**, each
+  overridable by environment variable:
+
+  | Client | Properties | Env | Default |
+  |---|---|---|---|
+  | Bank AD verify | `identity.ad-verify.connect-timeout` / `read-timeout` | `BANK_AD_VERIFY_CONNECT_TIMEOUT` / `BANK_AD_VERIFY_READ_TIMEOUT` | 1 s / 3 s |
+  | Keycloak token, user-info, admin, JWKS | `identity.provider.keycloak.connect-timeout` / `read-timeout` | `KEYCLOAK_CONNECT_TIMEOUT` / `KEYCLOAK_READ_TIMEOUT` | 1 s / 3 s |
+
+  The BFF's identity-provider read budget (4.5 s, `WORKFORCE_IDP_READ_TIMEOUT`) stays above the
+  3 s read, and the worst case (1 s connect + 3 s read = 4 s) nests inside it; if the BFF ever cuts
+  first the result is `503 IDENTITY_PROVIDER_UNAVAILABLE` (fail closed).
 - **Failure modes:** AD failures → `503 IDENTITY_PROVIDER_UNAVAILABLE`; Keycloak failures →
   generic `500` today.
 
@@ -136,6 +145,7 @@ No table — the service owns no data.
 | # | Item | Owner |
 |---|---|---|
 | 1 | Keycloak and token-verification failures are unmapped (`IllegalStateException`, `RestClientResponseException` → Spring 500 without the platform envelope). Proposed: `UPSTREAM_UNAVAILABLE` / `UPSTREAM_AUTH_FAILURE` / `AUTHENTICATION_FAILED` by cause — a reviewed contract change | Engineering / Deepali |
-| 2 | Keycloak clients lack timeouts | Engineering |
+| 2 | ~~Keycloak clients lack timeouts~~ — done (E8: 1 s / 3 s, env-overridable) | Engineering |
 | 3 | Shared-secret caller auth is the interim control; target is Istio STRICT mTLS (`ADR-023`) | Shivanshi (S09/S11) |
 | 4 | No ArchUnit test in this module | Engineering |
+| 3 | ~~E8 worst case exceeded the BFF budget~~ — resolved 2026-10-22: connect default lowered to 1 s, so connect + read (4 s) nests inside the BFF's 4.5 s | — |

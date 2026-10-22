@@ -21,8 +21,8 @@ public record KeycloakProperties(
     String bankIdentityProviderHint,
     Duration connectTimeout,
     Duration readTimeout) {
-  // READINESS-REVIEW §3.7: the Keycloak client had no timeout. Defaults nest inside the BFF's
-  // 4.5 s identity-provider read budget (idempotency-timeouts-retries.md §2.1).
+  // READINESS-REVIEW §3.7: the Keycloak client had no timeout. E8 (DECISIONS-2026-10-22): connect
+  // 2 s / read 3 s; env KEYCLOAK_CONNECT_TIMEOUT / KEYCLOAK_READ_TIMEOUT override them.
   public static final Duration DEFAULT_CONNECT_TIMEOUT = Duration.ofSeconds(1);
   public static final Duration DEFAULT_READ_TIMEOUT = Duration.ofSeconds(3);
 

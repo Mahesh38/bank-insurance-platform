@@ -13,7 +13,8 @@ identity:
     shared-secret: ${IDENTITY_ADAPTER_INTERNAL_SHARED_SECRET:local-idp-adapter-internal-key}
   ad-verify:
     mode: ${BANK_AD_VERIFY_MODE:stub}
-    # Nested inside the BFF's 4.5 s identity-provider read budget (READINESS-REVIEW §3.7).
+    # E8 (DECISIONS-2026-10-22): industry-standard connect 2 s / read 3 s, overridable per
+    # environment. The BFF's identity-provider read budget (4.5 s) stays above the 3 s read.
     connect-timeout: ${BANK_AD_VERIFY_CONNECT_TIMEOUT:1s}
     read-timeout: ${BANK_AD_VERIFY_READ_TIMEOUT:3s}
     http:
@@ -45,6 +46,7 @@ identity:
       admin-client-secret: ${KEYCLOAK_ADMIN_CLIENT_SECRET:local-provider-adapter-secret}
       bank-identity-provider-hint: ${KEYCLOAK_BANK_IDP_HINT:}
       # Keycloak token / user-info / admin / JWKS calls (READINESS-REVIEW §3.7: had no timeout).
+      # E8: connect 2 s / read 3 s, overridable per environment.
       connect-timeout: ${KEYCLOAK_CONNECT_TIMEOUT:1s}
       read-timeout: ${KEYCLOAK_READ_TIMEOUT:3s}
 

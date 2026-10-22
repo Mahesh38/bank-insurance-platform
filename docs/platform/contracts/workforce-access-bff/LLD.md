@@ -237,7 +237,9 @@ evaluated by lead-service.
   The contract target is **required** on every mutation (`INV-IDM-01`); the app does not send it
   yet, so it stays optional in this version. Other mutations carry no key today.
 - **Timeouts** (`DownstreamTimeouts`, `03 §5`): lead 500 ms / 2 s (S-20); customer 500 ms / 4 s;
-  authz resolve 500 ms / 2 s; idp-adapter 1 s / 6 s (S-26); PDP 300 ms (S-02). No retries.
+  authz resolve 500 ms / 2 s; idp-adapter 1 s / **4.5 s** (`WORKFORCE_IDP_CONNECT_TIMEOUT` /
+  `WORKFORCE_IDP_READ_TIMEOUT`; above the adapter's 3 s AD-verify / Keycloak read, E8); PDP 300 ms
+  (S-02). No retries.
 - **Failure modes:** downstream problem+json → propagated code with original `incidentId`; no HTTP
   answer → `503 UPSTREAM_UNAVAILABLE` (lead, customer) or `503 IDENTITY_PROVIDER_UNAVAILABLE`
   (identity clients); PDP silence → `403 AUTHORIZATION_UNAVAILABLE`.

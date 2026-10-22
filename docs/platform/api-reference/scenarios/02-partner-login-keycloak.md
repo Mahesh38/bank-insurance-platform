@@ -2,41 +2,44 @@
 
 [← API reference home](../README.md) · Prev: [01](./01-bank-rm-login.md) · Next: [03](./03-session-lifecycle-and-logout.md)
 
-**Status: IMPLEMENTED** (BFF, adapter, PDP). Partner users must first be created by a bank admin
-(maker) and approved by a second admin (checker); approval queues provisioning into Keycloak, and
-the partner stays `PENDING` until that provisioning succeeds — only then is it `ACTIVE` and able to
-log in.
+**Status: IMPLEMENTED** (BFF, adapter, PDP). Partner users are created **directly by a bank admin**
+holding `partner_user.create` — no approval step ([E5](../../architecture-review/DECISIONS-2026-10-22.md#owner-decisions)); creation queues provisioning into
+Keycloak in the same transaction, and the partner stays `PENDING` until that provisioning succeeds —
+only then is it `ACTIVE` and able to log in. An insurer partner can never create partner users or
+approve anything (the PDP refuses `partner_user.create` and every `*.approve` action to partner
+representatives).
 
 **In one sentence:** the BFF starts an OIDC authorization-code flow with PKCE against the private
 Keycloak, the browser logs in at Keycloak, Keycloak redirects back to the BFF callback, the BFF
-exchanges the code for tokens through the adapter, resolves the approved partner in the PDP, and
+exchanges the code for tokens through the adapter, resolves the provisioned partner in the PDP, and
 keeps the tokens **encrypted in the vault** — the app again gets only an opaque handle.
 
-## 0. Before the first login — partner onboarding (maker-checker)
+## 0. Before the first login — partner onboarding by a bank admin (E5)
 
 ```mermaid
 sequenceDiagram
-    participant Maker as Bank admin (maker)
-    participant Checker as Bank admin (checker)
+    participant Admin as Bank admin (BANK_ADMIN)
     participant AZ as identity-authorization
     participant DB as Aurora identity
     participant D as ProvisioningOutboxDispatcher (poll-interval, default 5 s)
     participant IDPA as identity-provider-adapter
     participant KC as Keycloak admin API
-    Maker->>AZ: POST /internal/v1/partner-users {username, email, insurerCode} (X-Internal-Service-Key BFF, X-Actor-Id maker)
-    AZ->>AZ: PDP: maker allowed partner_user.create on insurerCode?
-    AZ->>DB: INSERT business_user (INSURER_REPRESENTATIVE, PENDING) + approval_request (PENDING)
-    AZ-->>Maker: 202 {userId, approvalId, status: PENDING}
-    Checker->>AZ: POST /internal/v1/approval-requests/{approvalId}/approve (X-Internal-Service-Key BFF, X-Actor-Id checker ≠ maker)
-    AZ->>AZ: PDP: checker allowed partner_user.approve on the partner's insurer?
-    AZ->>DB: approval APPROVED · user stays PENDING (policy_version+1) · INSERT outbox_event IDENTITY_PROVISIONING_REQUESTED (one txn)
-    AZ-->>Checker: 200 {approvalId, targetStatus: PENDING}
+    Admin->>AZ: POST /internal/v1/partner-users {username, email, insurerCode} (X-Internal-Service-Key BFF, X-Actor-Id admin)
+    AZ->>AZ: PDP: admin allowed partner_user.create on insurerCode? (partner representatives: always FORBIDDEN)
+    AZ->>DB: INSERT business_user (INSURER_REPRESENTATIVE, PENDING, created_by) + outbox IDENTITY_PROVISIONING_REQUESTED + outbox PARTNER_USER_CREATED (one txn)
+    AZ-->>Admin: 202 {userId, approvalId: null, status: PENDING, approvalRequired: false}
     D->>DB: claim due rows FOR UPDATE SKIP LOCKED · set claimed_until (lease)
     D->>IDPA: POST /internal/v1/identities {businessUserId, username, email, insurerCode, enabled}
     IDPA->>KC: client_credentials token · search username · create user (attrs business_user_id, insurer_code; UPDATE_PASSWORD)
     IDPA-->>D: 201 {providerSubjectId}
     D->>DB: business_user.provider_subject = …, status ACTIVE · outbox published_at
 ```
+
+**Maker-checker, if re-enabled.** With `identity.partner-onboarding.approval-required=true`
+(env `IDENTITY_PARTNER_ONBOARDING_APPROVAL_REQUIRED`, default `false`) the create call opens an
+`approval_request` instead of queuing provisioning, and a second bank admin (≠ creator, holding
+`partner_user.approve`) calls `POST /internal/v1/approval-requests/{approvalId}/approve`, which
+queues it. With the default, that endpoint answers `409 ILLEGAL_TRANSITION`.
 
 A provisioning failure releases the lease and retries; after `identity.provisioning.max-attempts`
 (default 10) the row is dead-lettered (`dead_lettered_at`, `ERROR` log) and the partner stays
@@ -91,7 +94,7 @@ sequenceDiagram
 | Login | `returnUri` exactly in the allow-list (`WORKFORCE_WEB_RETURN_URI`, `WORKFORCE_NATIVE_RETURN_URI`) | `400 SCHEMA_INVALID` |
 | Callback | `state` exists and unused (5 min) | `400 SCHEMA_INVALID` ("Login transaction is invalid or expired") |
 | Token exchange | PKCE verifier matches; id-token signature, audience, nonce, subject | Keycloak `400` → upstream error; id-token check failure → adapter `401 AUTHENTICATION_FAILED` (was a `500`), relayed by the BFF |
-| Resolve | Partner exists (approved) | Unknown partner → `403 FORBIDDEN` ("must be approved before first login") |
+| Resolve | Partner exists (created by a bank admin and provisioned) | Unknown partner → `403 FORBIDDEN` ("must be created and provisioned before first login") |
 | Activation | `status = ACTIVE` | Refresh token **revoked**, then `401 AUTHENTICATION_FAILED` |
 | Native exchange | Completion code exists and unused (1 min) | `400 SCHEMA_INVALID` |
 
@@ -100,8 +103,10 @@ sequenceDiagram
 - **PKCE + nonce + state** — the code is useless without the verifier only the BFF holds; replay
   and CSRF on the callback are blocked; state is single use (`GETDEL`).
 - **Tokens stay server-side** — the app could not leak what it never received.
-- **Partners exist only after maker-checker** — the IdP account is created by the platform from
-  an approved business user, never the other way round; Keycloak is not the source of truth.
+- **Partners exist only when a bank admin creates them** — the IdP account is created by the
+  platform from that business user, never the other way round; Keycloak is not the source of truth.
+  Who created whom is kept on `business_user.created_by` and in the `PARTNER_USER_CREATED` outbox
+  event (E5).
 - **Partner access is insurer-scoped** — the session carries `insurerCode`; the PDP denies
   cross-insurer access and anything not partner-visible (`INV-ACT-02`, `INV-LED-07`).
 

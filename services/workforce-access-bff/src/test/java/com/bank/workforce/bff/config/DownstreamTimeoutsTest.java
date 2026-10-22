@@ -40,6 +40,16 @@ class DownstreamTimeoutsTest {
   }
 
   @Test
+  void identityProviderBudgetStaysAboveTheAdapterReadTimeout() {
+    // E8: adapter AD verify / Keycloak read 3 s (identity-provider-adapter application.yml).
+    Duration adapterRead = Duration.ofSeconds(3);
+
+    assertThat(bind(Map.of()).identityProvider().read())
+        .isEqualTo(Duration.ofMillis(4500))
+        .isGreaterThan(adapterRead);
+  }
+
+  @Test
   void eachBudgetIsOverridable() {
     DownstreamTimeouts timeouts = bind(Map.of("workforce.downstream.timeouts.lead.read", "750ms"));
 

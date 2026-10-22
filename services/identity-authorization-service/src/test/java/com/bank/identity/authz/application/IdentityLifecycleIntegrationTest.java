@@ -28,82 +28,88 @@ class IdentityLifecycleIntegrationTest {
   @Autowired JdbcClient jdbc;
   @Autowired AuthorizationDecisionService decisions;
 
-  UUID maker;
-  UUID checker;
+  UUID admin;
 
   @BeforeEach
-  void insurerAndAdministratorsExist() {
+  void insurerAndAdministratorExist() {
     AuthzFixtures.insurer(jdbc, "ICICI_PRU");
     AuthzFixtures.insurer(jdbc, "HDFC_LIFE");
-    maker = AuthzFixtures.activeUser(jdbc, "bank.admin.1", "BANK_EMPLOYEE", null, "BANK_ADMIN");
-    checker = AuthzFixtures.activeUser(jdbc, "bank.admin.2", "BANK_EMPLOYEE", null, "BANK_ADMIN");
+    admin = AuthzFixtures.activeUser(jdbc, "bank.admin.1", "BANK_EMPLOYEE", null, "BANK_ADMIN");
   }
 
   @Test
-  void partnerUserRequiresDifferentCheckerAndCreatesProvisioningOutboxEvent() {
-    var submitted = partnerUsers.submit(command("partner.lifecycle", "ICICI_PRU"), maker);
+  void bankAdminCreatesPartnerDirectlyAndProvisioningIsQueuedAtCreation() {
+    var created = partnerUsers.create(command("partner.lifecycle", "ICICI_PRU"), admin);
 
-    assertThat(submitted.status()).isEqualTo("PENDING");
-    assertDenied(() -> partnerUsers.approve(submitted.approvalId(), maker), ErrorCodes.FORBIDDEN);
-
-    String status = partnerUsers.approve(submitted.approvalId(), checker);
-
-    // Approval does not activate the partner: it stays PENDING until provisioning completes.
-    assertThat(status).isEqualTo("PENDING");
+    // E5: no approval step; the user stays PENDING until the provider account exists.
+    assertThat(created.status()).isEqualTo("PENDING");
+    assertThat(created.approvalRequired()).isFalse();
+    assertThat(created.approvalId()).isNull();
+    assertThat(eventTypes(created.userId()))
+        .containsExactlyInAnyOrder("IDENTITY_PROVISIONING_REQUESTED", "PARTNER_USER_CREATED");
     assertThat(
-            jdbc.sql("select count(*) from outbox_event where aggregate_id = :userId")
-                .param("userId", submitted.userId())
+            jdbc.sql("select count(*) from approval_request where target_id = :userId")
+                .param("userId", created.userId())
                 .query(Long.class)
                 .single())
-        .isEqualTo(1);
-    assertThat(users.findById(submitted.userId()).orElseThrow().getProviderSubject()).isNull();
+        .isZero();
+    var user = users.findById(created.userId()).orElseThrow();
+    assertThat(user.getCreatedBy()).isEqualTo(admin.toString());
+    assertThat(user.getProviderSubject()).isNull();
+    assertThat(payload(created.userId(), "PARTNER_USER_CREATED"))
+        .contains("\"createdBy\":\"" + admin + "\"")
+        .contains("\"insurerCode\":\"ICICI_PRU\"")
+        .contains("\"approvalRequired\":false");
+    assertThat(payload(created.userId(), "IDENTITY_PROVISIONING_REQUESTED"))
+        .contains("\"businessUserId\":\"" + created.userId() + "\"");
   }
 
   @Test
-  void makerWithoutPartnerUserCreateIsDenied() {
+  void approveIsRefusedWhenApprovalIsNotRequired() {
+    assertDenied(
+        () -> partnerUsers.approve(UUID.randomUUID(), admin), ErrorCodes.ILLEGAL_TRANSITION);
+  }
+
+  @Test
+  void duplicateUsernameIsAConflict() {
+    partnerUsers.create(command("partner.duplicate", "ICICI_PRU"), admin);
+
+    assertDenied(
+        () -> partnerUsers.create(command("partner.duplicate", "ICICI_PRU"), admin),
+        ErrorCodes.CONFLICT);
+  }
+
+  @Test
+  void creatorWithoutPartnerUserCreateIsDenied() {
     UUID rm =
         AuthzFixtures.activeUser(jdbc, "rm.plain", "BANK_EMPLOYEE", null, "RELATIONSHIP_MANAGER");
 
     assertDenied(
-        () -> partnerUsers.submit(command("partner.denied", "ICICI_PRU"), rm),
+        () -> partnerUsers.create(command("partner.denied", "ICICI_PRU"), rm),
         ErrorCodes.DEFAULT_DENY);
   }
 
   @Test
-  void unknownMakerIsDenied() {
+  void unknownCreatorIsDenied() {
     assertDenied(
-        () -> partnerUsers.submit(command("partner.unknown", "ICICI_PRU"), UUID.randomUUID()),
+        () -> partnerUsers.create(command("partner.unknown", "ICICI_PRU"), UUID.randomUUID()),
         ErrorCodes.DEFAULT_DENY);
   }
 
   @Test
-  void checkerWithoutPartnerUserApproveIsDenied() {
-    var submitted = partnerUsers.submit(command("partner.no.approve", "ICICI_PRU"), maker);
-    UUID operations =
-        AuthzFixtures.activeUser(jdbc, "ops.user", "BANK_EMPLOYEE", null, "OPERATIONS");
-
-    assertDenied(
-        () -> partnerUsers.approve(submitted.approvalId(), operations), ErrorCodes.DEFAULT_DENY);
-  }
-
-  @Test
-  void partnerAdministratorIsHeldToTheirOwnInsurer() {
+  void insurerAdministratorCanNoLongerCreatePartnerUsers() {
     UUID iciciAdmin =
         AuthzFixtures.activeUser(
             jdbc, "icici.admin", "INSURER_REPRESENTATIVE", "ICICI_PRU", "PARTNER_ADMIN");
-    UUID hdfcAdmin =
-        AuthzFixtures.activeUser(
-            jdbc, "hdfc.admin", "INSURER_REPRESENTATIVE", "HDFC_LIFE", "PARTNER_ADMIN");
 
+    // Tenant boundary still answers first for another insurer ...
     assertDenied(
-        () -> partnerUsers.submit(command("partner.cross", "HDFC_LIFE"), iciciAdmin),
+        () -> partnerUsers.create(command("partner.cross", "HDFC_LIFE"), iciciAdmin),
         ErrorCodes.CROSS_INSURER_DENIED);
-
-    var submitted = partnerUsers.submit(command("partner.own", "ICICI_PRU"), iciciAdmin);
+    // ... and for its own insurer the PDP refuses the action to any partner representative (E5).
     assertDenied(
-        () -> partnerUsers.approve(submitted.approvalId(), hdfcAdmin),
-        ErrorCodes.CROSS_INSURER_DENIED);
-    assertThat(partnerUsers.approve(submitted.approvalId(), checker)).isEqualTo("PENDING");
+        () -> partnerUsers.create(command("partner.own", "ICICI_PRU"), iciciAdmin),
+        ErrorCodes.FORBIDDEN);
   }
 
   @Test
@@ -192,13 +198,29 @@ class IdentityLifecycleIntegrationTest {
     assertThat(decision.reasonCode()).isEqualTo("UNKNOWN_SUBJECT");
   }
 
-  private static PartnerUserAdministrationService.CreatePartnerUserCommand command(
+  private java.util.List<String> eventTypes(UUID userId) {
+    return jdbc.sql("select event_type from outbox_event where aggregate_id = :userId")
+        .param("userId", userId)
+        .query(String.class)
+        .list();
+  }
+
+  private String payload(UUID userId, String eventType) {
+    return jdbc.sql(
+            "select payload from outbox_event where aggregate_id = :userId and event_type = :type")
+        .param("userId", userId)
+        .param("type", eventType)
+        .query(String.class)
+        .single();
+  }
+
+  static PartnerUserAdministrationService.CreatePartnerUserCommand command(
       String username, String insurer) {
     return new PartnerUserAdministrationService.CreatePartnerUserCommand(
         username, username + "@example.test", "Partner", "User", insurer);
   }
 
-  private static void assertDenied(
+  static void assertDenied(
       org.assertj.core.api.ThrowableAssert.ThrowingCallable call, String code) {
     assertThatThrownBy(call)
         .isInstanceOf(ServiceException.class)

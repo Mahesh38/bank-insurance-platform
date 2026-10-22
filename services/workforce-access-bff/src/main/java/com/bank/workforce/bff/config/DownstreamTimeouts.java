@@ -24,7 +24,8 @@ public record DownstreamTimeouts(
     // Identity resolve is a local lookup in the PDP's store.
     authorization = Budget.orDefault(authorization, INTERNAL_CONNECT, Duration.ofSeconds(2));
     // Login path. Must stay inside the 5 s edge budget (S-01) — it was 6 s (READINESS-REVIEW
-    // §3.7). The adapter's own AD-verify / Keycloak budgets (1 s + 3 s) nest inside this.
+    // §3.7). E8 (DECISIONS-2026-10-22): it stays above the adapter's AD-verify / Keycloak read
+    // timeout (3 s; connect 2 s). Env WORKFORCE_IDP_CONNECT_TIMEOUT / WORKFORCE_IDP_READ_TIMEOUT.
     identityProvider =
         Budget.orDefault(identityProvider, Duration.ofSeconds(1), Duration.ofMillis(4500));
   }

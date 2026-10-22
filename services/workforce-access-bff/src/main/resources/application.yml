@@ -28,7 +28,11 @@ workforce:
       lead: { connect: 500ms, read: 2s }              # S-20
       customer: { connect: 500ms, read: 4s }          # CBS S-05 inside the S-01 edge budget
       authorization: { connect: 500ms, read: 2s }     # identity resolve
-      identity-provider: { connect: 1s, read: 4500ms } # login path, inside the 5 s edge (S-01)
+      # Login path, inside the 5 s edge (S-01). E8: stays above the adapter's AD-verify / Keycloak
+      # read timeout (3 s); the adapter's connect 2 s + read 3 s worst case is cut off here first.
+      identity-provider:
+        connect: ${WORKFORCE_IDP_CONNECT_TIMEOUT:1s}
+        read: ${WORKFORCE_IDP_READ_TIMEOUT:4500ms}
   authorization:
     decision-timeout: 300ms                           # S-02 PDP, fail closed
   session:

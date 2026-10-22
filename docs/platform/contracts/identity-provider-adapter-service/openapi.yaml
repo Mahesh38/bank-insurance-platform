@@ -177,7 +177,7 @@ paths:
     post:
       tags: [Provisioning]
       operationId: provisionIdentity
-      summary: Create a partner user in Keycloak (after maker-checker approval).
+      summary: Create a partner user in Keycloak (queued when a bank admin creates the partner — E5; after approval only if maker-checker is configured on).
       description: |
         Admin client-credentials token → search users by exact `username`.
         - A user exists **with the same `business_user_id` attribute** → return its id (`201`,

@@ -9,8 +9,8 @@
 | **Public base path** | `/api/v1` behind Cloudflare → F5-XC → NLB → Istio Ingress (`/api/*`) |
 | **Owns data** | Valkey session vault only (`workforce:pending:*`, `workforce:session:*`, `workforce:completion:*`). **No Aurora, no Dynamo** |
 | **Calls** | [identity-provider-adapter](./identity-provider-adapter-service.md) · [identity-authorization](./identity-authorization-service.md) · [lead](./lead-service.md) · [customer](./customer-service.md) · target: [journey-orchestration](./journey-orchestration-service.md), [product-catalogue](./product-catalogue-service.md), [administration-config](./administration-config-service.md) |
-| **Caller keys it presents** | `X-Internal-Service-Key` — `IDENTITY_ADAPTER_INTERNAL_SHARED_SECRET` to the IdP adapter; `IDENTITY_AUTHZ_BFF_INTERNAL_KEY` to identity-authorization (resolve and PDP decisions). The BFF is the **only** caller identity-authorization lets set `X-Actor-Id` (maker / checker), taken from the vault-resolved session |
-| **Downstream budgets** | lead 500 ms / 2 s · customer 500 ms / 4 s · identity resolve 500 ms / 2 s · IdP adapter 1 s / **4.5 s** (was 6 s, beyond the 5 s edge) · PDP 300 ms — see [timeouts](../conventions/idempotency-timeouts-retries.md#21-budgets-configured-in-code-today) |
+| **Caller keys it presents** | `X-Internal-Service-Key` — `IDENTITY_ADAPTER_INTERNAL_SHARED_SECRET` to the IdP adapter; `IDENTITY_AUTHZ_BFF_INTERNAL_KEY` to identity-authorization (resolve and PDP decisions). The BFF is the **only** caller identity-authorization lets set `X-Actor-Id` (partner-user creator, and checker when configured), taken from the vault-resolved session |
+| **Downstream budgets** | lead 500 ms / 2 s · customer 500 ms / 4 s · identity resolve 500 ms / 2 s · IdP adapter 1 s / **4.5 s** (was 6 s, beyond the 5 s edge; env `WORKFORCE_IDP_CONNECT_TIMEOUT` / `WORKFORCE_IDP_READ_TIMEOUT`; above the adapter's 3 s read, E8) · PDP 300 ms — see [timeouts](../conventions/idempotency-timeouts-retries.md#21-budgets-configured-in-code-today) |
 | **Startup guard** | `ProductionSafetyGuard` refuses to start under `prod` / `uat` when `workforce.session.store=memory`, the session key is the all-zero development key, or `lead-mode` / `customer-mode` is `stub`; the message names each offending setting. `application-prod.yml` sets `redis` / `http` and takes the key from `WORKFORCE_SESSION_ENCRYPTION_KEY` with no default |
 | **Never calls** | 1SB, the Integration Hub, any provider adapter, any database, Apigee |
 | **Code status** | Auth, customer lookup, lead module and reference data **IMPLEMENTED**. Journey, quote, proposal, payment, policy routes **CONTRACTED** (HLD §5.1) |
@@ -210,7 +210,7 @@ session **including encrypted provider tokens** → `WEB`: `302` to `returnUri` 
 | 302 | — | Success |
 | 400 | `SCHEMA_INVALID` | State unknown / expired / already used |
 | 401 | `AUTHENTICATION_FAILED` | Business identity resolved but not `ACTIVE` (refresh token is revoked first) |
-| 403 | `FORBIDDEN` (propagated from authz) | Partner has no approved business user yet ("Partner identity must be approved before first login"). Was an unmapped 500 until `SUG-20261021-gap` |
+| 403 | `FORBIDDEN` (propagated from authz) | Partner has no provisioned business user yet — not created by a bank admin, or provisioning still pending ("Partner identity must be created and provisioned before first login"). Was an unmapped 500 until `SUG-20261021-gap` |
 | 503 | `IDENTITY_PROVIDER_UNAVAILABLE` | Adapter or PDP down |
 
 ### 2.4 `POST /api/v1/auth/native-session`

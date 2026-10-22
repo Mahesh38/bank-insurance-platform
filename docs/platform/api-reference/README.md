@@ -157,7 +157,7 @@ data it owns.
 |---|---|---|---|---|
 | `workforce-access-bff` | #2 NIP BFF | **Implemented** (auth, lead, customer, reference data) | Valkey session vault only | [BFF](./services/workforce-access-bff.md) |
 | `identity-provider-adapter-service` | #3 (WS-2) | **Implemented** (AD-verify + Keycloak) | None (Keycloak owns its realm DB) | [IdP adapter](./services/identity-provider-adapter-service.md) |
-| `identity-authorization-service` | #3 PDP | **Implemented** (resolve, decide, partner maker-checker) | Aurora `identity` | [Authorization / PDP](./services/identity-authorization-service.md) |
+| `identity-authorization-service` | #3 PDP | **Implemented** (resolve, decide, admin-created partner users — `D-027`) | Aurora `identity` | [Authorization / PDP](./services/identity-authorization-service.md) |
 
 ### 3.2 Shared platform (every LOB uses these)
 

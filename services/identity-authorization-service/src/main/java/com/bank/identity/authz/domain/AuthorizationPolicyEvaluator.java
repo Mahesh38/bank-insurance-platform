@@ -4,14 +4,24 @@ import com.bank.identity.authz.domain.AuthorizationModels.Decision;
 import com.bank.identity.authz.domain.AuthorizationModels.DecisionRequest;
 import com.bank.identity.authz.domain.AuthorizationModels.Entitlement;
 import com.bank.identity.authz.domain.AuthorizationModels.Facts;
+import com.bank.identity.authz.domain.AuthorizationModels.PartnerActionRestriction;
 import com.bank.identity.authz.domain.AuthorizationModels.Resource;
 import com.bank.identity.authz.domain.IdentityTypes.EntitlementEffect;
 import com.bank.identity.authz.domain.IdentityTypes.ScopeType;
 import com.bank.identity.authz.domain.IdentityTypes.UserStatus;
 import com.bank.identity.authz.domain.IdentityTypes.UserType;
 import java.time.Instant;
+import java.util.Objects;
 
 public class AuthorizationPolicyEvaluator {
+
+  private final PartnerActionRestriction partnerRestriction;
+
+  public AuthorizationPolicyEvaluator(PartnerActionRestriction partnerRestriction) {
+    // Required, never defaulted to "no restriction": a missing configuration must fail start-up.
+    this.partnerRestriction =
+        Objects.requireNonNull(partnerRestriction, "partner action restriction is required");
+  }
 
   public Decision evaluate(Facts facts, DecisionRequest request, Instant now) {
     long version = facts.subject().policyVersion();
@@ -26,6 +36,14 @@ public class AuthorizationPolicyEvaluator {
         && hasText(resource.insurerCode())
         && !resource.insurerCode().equals(facts.subject().insurerCode())) {
       return Decision.deny("CROSS_INSURER_ACCESS", "tenant-boundary", version);
+    }
+
+    // E5 / E6 (DECISIONS-2026-10-22): approvals and partner-user creation belong to the bank's SP
+    // hierarchy. Checked before any grant, so neither a role, an explicit entitlement nor a `*`
+    // grant can give a partner representative these actions.
+    if (facts.subject().userType() == UserType.INSURER_REPRESENTATIVE
+        && partnerRestriction.prohibits(request.action())) {
+      return Decision.deny("PARTNER_ACTION_PROHIBITED", "partner-prohibited-action", version);
     }
 
     Entitlement explicitDeny =

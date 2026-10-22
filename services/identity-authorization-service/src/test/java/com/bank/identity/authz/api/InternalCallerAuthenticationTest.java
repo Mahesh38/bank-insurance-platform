@@ -116,33 +116,48 @@ class InternalCallerAuthenticationTest {
   }
 
   @Test
-  void bffMakerWithPermissionSubmitsAndUnprivilegedCheckerIsDenied() throws Exception {
+  void bankAdminCreatesPartnerDirectlyAndApproveIsRefusedWhenApprovalIsNotRequired()
+      throws Exception {
     AuthzFixtures.insurer(jdbc, "ICICI_PRU");
-    UUID maker = AuthzFixtures.activeUser(jdbc, "web.admin", "BANK_EMPLOYEE", null, "BANK_ADMIN");
-    UUID rm =
-        AuthzFixtures.activeUser(jdbc, "web.rm", "BANK_EMPLOYEE", null, "RELATIONSHIP_MANAGER");
-
-    String body =
-        mockMvc
-            .perform(
-                post("/internal/v1/partner-users")
-                    .header(HEADER, BFF_KEY)
-                    .header("X-Actor-Id", maker.toString())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(PARTNER))
-            .andExpect(status().isAccepted())
-            .andExpect(jsonPath("$.status").value("PENDING"))
-            .andReturn()
-            .getResponse()
-            .getContentAsString();
-    String approvalId = body.replaceAll(".*\"approvalId\":\"([^\"]+)\".*", "$1");
+    UUID admin = AuthzFixtures.activeUser(jdbc, "web.admin", "BANK_EMPLOYEE", null, "BANK_ADMIN");
 
     mockMvc
         .perform(
-            post("/internal/v1/approval-requests/{id}/approve", approvalId)
+            post("/internal/v1/partner-users")
                 .header(HEADER, BFF_KEY)
-                .header("X-Actor-Id", rm.toString()))
+                .header("X-Actor-Id", admin.toString())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(PARTNER))
+        .andExpect(status().isAccepted())
+        .andExpect(jsonPath("$.status").value("PENDING"))
+        .andExpect(jsonPath("$.approvalRequired").value(false))
+        .andExpect(jsonPath("$.approvalId").doesNotExist());
+
+    // E5: the maker-checker step is configured off, so there is nothing to approve.
+    mockMvc
+        .perform(
+            post("/internal/v1/approval-requests/{id}/approve", UUID.randomUUID())
+                .header(HEADER, BFF_KEY)
+                .header("X-Actor-Id", admin.toString()))
+        .andExpect(status().isConflict())
+        .andExpect(jsonPath("$.code").value("ILLEGAL_TRANSITION"));
+  }
+
+  @Test
+  void insurerAdministratorCannotCreatePartnerUsers() throws Exception {
+    AuthzFixtures.insurer(jdbc, "ICICI_PRU");
+    UUID partnerAdmin =
+        AuthzFixtures.activeUser(
+            jdbc, "web.partner.admin", "INSURER_REPRESENTATIVE", "ICICI_PRU", "PARTNER_ADMIN");
+
+    mockMvc
+        .perform(
+            post("/internal/v1/partner-users")
+                .header(HEADER, BFF_KEY)
+                .header("X-Actor-Id", partnerAdmin.toString())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(PARTNER))
         .andExpect(status().isForbidden())
-        .andExpect(jsonPath("$.code").value("DEFAULT_DENY"));
+        .andExpect(jsonPath("$.code").value("FORBIDDEN"));
   }
 }

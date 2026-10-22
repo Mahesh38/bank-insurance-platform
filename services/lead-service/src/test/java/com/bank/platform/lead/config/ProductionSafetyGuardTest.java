@@ -10,6 +10,7 @@ import org.springframework.mock.env.MockEnvironment;
 class ProductionSafetyGuardTest {
 
   private static final String ZERO_KEY = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+
   /** 32 non-zero bytes built in-process — not a committed credential literal. */
   private static final String REAL_KEY =
       Base64.getEncoder()

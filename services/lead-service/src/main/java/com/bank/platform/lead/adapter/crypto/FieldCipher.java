@@ -51,7 +51,8 @@ public class FieldCipher {
       Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
       cipher.init(Cipher.ENCRYPT_MODE, key, new GCMParameterSpec(TAG_BITS, iv));
       byte[] sealed = cipher.doFinal(plaintext.getBytes(StandardCharsets.UTF_8));
-      // Math.addExact: sealed.length is cipher output — CodeQL flags plain int sum as overflow risk.
+      // Math.addExact: sealed.length is cipher output — CodeQL flags plain int sum as overflow
+      // risk.
       int size = Math.addExact(iv.length, sealed.length);
       return ByteBuffer.allocate(size).put(iv).put(sealed).array();
     } catch (GeneralSecurityException ex) {

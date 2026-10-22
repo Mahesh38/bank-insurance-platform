@@ -6,6 +6,9 @@ import com.sun.net.httpserver.HttpServer;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,16 +21,29 @@ class PdpLeadAuthorizationAdapterTest {
 
   private static final String SUBJECT = "11111111-1111-1111-1111-111111111111";
 
+  /**
+   * Happy-path budget: generous so CI load does not turn a live loopback into
+   * ResourceAccessException.
+   */
+  private static final Duration HAPPY_PATH_TIMEOUT = Duration.ofSeconds(2);
+
+  /** Production S-02 budget under test for the slow-PDP case. */
+  private static final Duration PRODUCTION_TIMEOUT = Duration.ofMillis(300);
+
   private HttpServer pdp;
+  private ExecutorService pdpExecutor;
   private final AtomicReference<String> answer = new AtomicReference<>();
   private final AtomicReference<String> lastRequest = new AtomicReference<>();
   private final AtomicReference<String> lastKey = new AtomicReference<>();
   private volatile long delayMillis;
-  private PdpLeadAuthorizationAdapter adapter;
+  private String baseUrl;
 
   @BeforeEach
   void startPdp() throws Exception {
     pdp = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+    // Own executor: the default single shared thread starves under parallel Gradle CI.
+    pdpExecutor = Executors.newCachedThreadPool();
+    pdp.setExecutor(pdpExecutor);
     pdp.createContext(
         "/internal/v1/authorization/decisions",
         exchange -> {
@@ -46,21 +62,23 @@ class PdpLeadAuthorizationAdapterTest {
           exchange.close();
         });
     pdp.start();
-    adapter =
-        new PdpLeadAuthorizationAdapter(
-            RestClient.builder(),
-            "http://127.0.0.1:" + pdp.getAddress().getPort(),
-            Duration.ofMillis(300),
-            "lead-test-internal-key");
+    baseUrl = "http://127.0.0.1:" + pdp.getAddress().getPort();
   }
 
   @AfterEach
   void stopPdp() {
     pdp.stop(0);
+    pdpExecutor.shutdownNow();
+    try {
+      pdpExecutor.awaitTermination(2, TimeUnit.SECONDS);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+    }
   }
 
   @Test
   void allowAndDenyAreRelayed() {
+    var adapter = adapter(HAPPY_PATH_TIMEOUT);
     answer.set(decision(true, "ROLE_GRANT"));
     assertThat(adapter.decide(SUBJECT, "lead.assign", "L1", "BR-1").allowed()).isTrue();
     assertThat(lastRequest.get()).contains("\"action\":\"lead.assign\"").contains("\"id\":\"L1\"");
@@ -74,6 +92,7 @@ class PdpLeadAuthorizationAdapterTest {
 
   @Test
   void presentsTheServiceKeyToThePdp() {
+    var adapter = adapter(HAPPY_PATH_TIMEOUT);
     answer.set(decision(true, "ROLE_GRANT"));
     adapter.decide(SUBJECT, "lead.read", "L1", null);
 
@@ -82,6 +101,7 @@ class PdpLeadAuthorizationAdapterTest {
 
   @Test
   void slowPdpIsUnavailableNotAllow() {
+    var adapter = adapter(PRODUCTION_TIMEOUT);
     answer.set(decision(true, "ROLE_GRANT"));
     delayMillis = 1_500;
 
@@ -92,11 +112,17 @@ class PdpLeadAuthorizationAdapterTest {
 
   @Test
   void nonUuidPrincipalIsDeniedWithoutACall() {
+    var adapter = adapter(HAPPY_PATH_TIMEOUT);
     var decision = adapter.decide("rm.username", "lead.create", null, "BR-1");
 
     assertThat(decision.allowed()).isFalse();
     assertThat(decision.reasonCode()).isEqualTo("UNKNOWN_SUBJECT");
     assertThat(lastRequest.get()).isNull();
+  }
+
+  private PdpLeadAuthorizationAdapter adapter(Duration timeout) {
+    return new PdpLeadAuthorizationAdapter(
+        RestClient.builder(), baseUrl, timeout, "lead-test-internal-key");
   }
 
   private static String decision(boolean allowed, String reason) {

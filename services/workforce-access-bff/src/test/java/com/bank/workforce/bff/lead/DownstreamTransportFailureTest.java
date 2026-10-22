@@ -115,7 +115,7 @@ class DownstreamTransportFailureTest {
   void customerServiceDownIsUpstreamUnavailable() {
     var gateway = new HttpCustomerGateway(RestClient.create(), properties, reader, errors);
 
-    assertThatThrownBy(() -> gateway.search("MOBILE", "9876543210", "IN"))
+    assertThatThrownBy(() -> gateway.search("MOBILE", "9876543210", "IN", "rm-1"))
         .isInstanceOf(ServiceException.class)
         .satisfies(
             ex ->

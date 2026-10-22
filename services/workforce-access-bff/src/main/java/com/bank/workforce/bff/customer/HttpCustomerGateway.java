@@ -36,7 +36,7 @@ public class HttpCustomerGateway implements CustomerGateway {
   }
 
   @Override
-  public List<CustomerHit> search(String by, String query, String countryCode) {
+  public List<CustomerHit> search(String by, String query, String countryCode, String actorId) {
     try {
       String uri =
           UriComponentsBuilder.fromPath("/internal/v1/customers/search")
@@ -45,7 +45,8 @@ public class HttpCustomerGateway implements CustomerGateway {
               .queryParam("countryCode", countryCode)
               .build(true)
               .toUriString();
-      SearchPage page = client.get().uri(uri).retrieve().body(SearchPage.class);
+      SearchPage page =
+          client.get().uri(uri).header("X-Actor-Id", actorId).retrieve().body(SearchPage.class);
       return page == null || page.items() == null ? List.of() : page.items();
     } catch (RestClientResponseException ex) {
       throw ErrorPropagation.from(
@@ -60,11 +61,12 @@ public class HttpCustomerGateway implements CustomerGateway {
   }
 
   @Override
-  public CustomerHit get(String customerId) {
+  public CustomerHit get(String customerId, String actorId) {
     try {
       return client
           .get()
           .uri("/internal/v1/customers/{customerId}", customerId)
+          .header("X-Actor-Id", actorId)
           .retrieve()
           .body(CustomerHit.class);
     } catch (RestClientResponseException ex) {

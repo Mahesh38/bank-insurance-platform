@@ -29,6 +29,7 @@ services:
       DATASOURCE_USERNAME: bank_persistence
       DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-changeme_local_only}
       RAW_PAYLOAD_ENCRYPTION_KEY: ${RAW_PAYLOAD_ENCRYPTION_KEY:?set a base64 32-byte AES-256 key}
+      PERSISTENCE_INTERNAL_SHARED_SECRET: ${PERSISTENCE_INTERNAL_KEY:-local-persistence-internal-key}
     depends_on:
       postgres:
         condition: service_healthy
@@ -53,6 +54,7 @@ services:
       ONESB_DISTRIBUTOR_ID: ${ONESB_DISTRIBUTOR_ID:?set your 1SB distributor id}
       ONESB_BASE_URL: ${ONESB_BASE_URL:-https://demo.api.1silverbullet.tech}
       BANK_PERSISTENCE_BASE_URL: http://bank-persistence-service:8081
+      BANK_PERSISTENCE_INTERNAL_KEY: ${PERSISTENCE_INTERNAL_KEY:-local-persistence-internal-key}
     depends_on:
       bank-persistence-service:
         condition: service_healthy

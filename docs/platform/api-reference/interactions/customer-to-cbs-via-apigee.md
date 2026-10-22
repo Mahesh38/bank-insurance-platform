@@ -6,7 +6,7 @@
 |---|---|
 | **From → to** | `workforce-access-bff` (`HttpCustomerGateway`) → `customer-service` → Apigee token endpoint + Apigee **private** proxy → CBS / EBS customer inquiry |
 | **Style** | Synchronous; RM is on screen |
-| **Budget** | S-05: 3 s, 1 retry on 5xx/connect, breaker; configured today: Apigee connect 3 s / read 30 s |
+| **Budget** | S-05: 3 s, 1 retry on 5xx/connect, breaker; configured today: Apigee connect 3 s / read 3 s, one retry on 5xx or connect failure; transport failure → `503 UPSTREAM_UNAVAILABLE` (`SUG-20261021-rul`) |
 | **Auth** | BFF → customer: mesh identity (target). Customer → Apigee: OAuth2 client-credentials bearer token |
 | **Code status** | **IMPLEMENTED** (search + get); lead-first / resolve / snapshot **CONTRACTED** |
 

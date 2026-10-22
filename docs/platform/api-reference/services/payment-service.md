@@ -10,7 +10,8 @@
 | **Callers** | Journey (initiate) · BFF (status read) · AU Bank PG (callback) · settlement-file job |
 | **Calls out** | Quotation (selected premium, `INV-PAY-03`) · Proposal (payable check) · AU Bank PG (session create, S-13, via Apigee where applicable) · Notification (payment link to customer, S-18) |
 | **Owns data** | Aurora schema **`payment`** — `payment`, `payment_attempt`, `refund`, `outbox_event`, `idempotency_record` · role `app_payment` · **always structured; never a JSON envelope; no cardholder data anywhere** |
-| **Code status** | **SKELETON**. Paths CONTRACTED (HLD §5.1/§5.3: `POST /payments`, `POST /payments/pg-callbacks`, `GET …/{id}`); bodies **PROPOSED** |
+| **Contract** | **Authoritative:** [`openapi.yaml`](../../contracts/payment-service/openapi.yaml) + [`LLD.md`](../../contracts/payment-service/LLD.md) (`ADR-027`, AI-DRAFTED, awaiting review; PG wire details await the S10 PG contract) |
+| **Code status** | **SKELETON** — nothing in the contract is built |
 
 ---
 
@@ -22,6 +23,7 @@
 | `GET` | `/internal/v1/payments/{paymentId}` | CONTRACTED | BFF, Journey | State incl. `UNCERTAIN` / `RECONCILED` — **never the payment URL** |
 | `POST` | `/internal/v1/payments/pg-callbacks` (edge: `/callbacks/pg/*`) | CONTRACTED | AU Bank PG | Authorisation result (signature-verified) |
 | `POST` | `/internal/v1/payments/reconciliations` | PROPOSED | Settlement job | Ingest settlement file / run match |
+| `GET` | `/internal/v1/payments?state=RECONCILED&since=` | CONTRACTED | Quotation, Proposal, Policy repair sweeps | Reconciled payments since a time (ids only) |
 | `POST` | `/internal/v1/payments/{paymentId}/refunds` | PROPOSED | Ops (maker) | Request refund (`REFUND_INITIATED`) |
 | `POST` | `/internal/v1/payments/refunds/{refundId}/approve` | PROPOSED | Ops (checker) | Maker-checker above threshold (`INV-PAY-06`) |
 
@@ -53,14 +55,16 @@ There is **no amount in the request** — Payment fetches it.
 
 ```text
 1  Proposal must be UW_APPROVED / AWAITING_PAYMENT          → else 409 PROPOSAL_NOT_PAYABLE
-2  Amount := Quotation GET /quotes/{quoteId}/selected → premium + tax, to the paise (INV-PAY-03)
+2  Proposal POST /proposals/{proposalId}/payment-hold {paymentId} → quoteId, offerId, applicationNumber
+   Amount := Quotation POST /quotes/{quoteId}/payment-hold {paymentId, proposalId, offerId}
+             → premium + tax, to the paise (INV-PAY-03); both holds remove the working items' TTL
 3  One non-terminal payment per proposal (ux_payment_active_per_proposal)
        → 409 PAYMENT_ALREADY_IN_PROGRESS (INV-PAY-02)
    prior attempt AUTHORISED or UNCERTAIN → 409 PAYMENT_STATE_UNCERTAIN (INV-PAY-04)
 4  deviceChannel ∈ SMS_LINK | EMAIL_LINK | QR_SCAN; target contact = customer's registered contact
    from Customer #4 — never an RM/employee contact    → else 403 PAYMENT_DEVICE_ISOLATION
 5  PG session create (S-13: 3 s / 15 s, NO retry) with a server-derived key from paymentId
-       PG rejects → REJECTED; proposal stays AWAITING_PAYMENT
+       PG rejects → REJECTED; proposal stays AWAITING_PAYMENT; both holds released (TTL restored)
 6  ONE payment transaction: INSERT payment (LINK_ISSUED, amount, currency, device_channel,
    link_issued_to_enc, link_expires_at) + payment_attempt + idempotency + outbox PaymentLinkIssued
 7  Notification (async, S-18) sends the PG URL to the customer's phone/email; failure never blocks
@@ -89,8 +93,11 @@ No URL, no PG token, no card data.
 ### 3.4 Reconciliation (S-15)
 
 Daily + on demand. Match each settlement record on **`pgTxnId` AND amount** (either alone is not a
-match) → `RECONCILED` + outbox **`PaymentReconciled`** (→ Journey `PAYMENT_SETTLED`, Quotation and
-Proposal materialise, Policy issues). Unmatched inside SLA → stays `CAPTURED`; past SLA →
+match) → `RECONCILED` + outbox **`PaymentReconciled`** carrying `paymentId`, `quoteId`, `proposalId`,
+`journeyId`, `applicationNumber` (D8) (→ Journey `PAYMENT_SETTLED`, Quotation and Proposal
+materialise, policy-issuance starts the insurer-decision clock). `DECLINED`, `EXPIRED`, `REJECTED`
+release the quote and proposal holds; `UNCERTAIN` and `RECONCILIATION_BREAK` keep them
+([LLD §3](../../contracts/payment-service/LLD.md#3-states-and-what-each-does-to-the-quote--proposal-holds)). Unmatched inside SLA → stays `CAPTURED`; past SLA →
 `RECONCILIATION_BREAK` + `PaymentReconciliationBreak` alert → Finance manual procedure (F-07).
 **No timeout ever resolves a money question.**
 
@@ -103,7 +110,7 @@ approve (`INV-PAY-06`); `refund` rows record initiator, approver, decision time.
 
 | Table | Content |
 |---|---|
-| `payment` | `payment_id`, `lead_id`, `journey_id`, `proposal_id`, `amount`, `currency`, `state`, `device_channel`, `link_issued_to_enc`, `link_expires_at`, `pg_txn_id`, `authorised_at`, `captured_at`, `settlement_ref`, `reconciled_at`, `lob`, `config_version_ref`, `version` |
+| `payment` | `payment_id`, `lead_id`, `journey_id`, `proposal_id`, `quote_id` (D8, DDL pending), `application_number`, `method`, `paid_at`, `amount`, `currency`, `state`, `device_channel`, `link_issued_to_enc`, `link_expires_at`, `pg_txn_id`, `authorised_at`, `captured_at`, `settlement_ref`, `reconciled_at`, `lob`, `config_version_ref`, `version` |
 | `payment_attempt` | Append-only: `outcome`, `pg_txn_id`, `detail` |
 | `refund` | Maker-checker |
 | `outbox_event`, `idempotency_record` | Platform pattern |

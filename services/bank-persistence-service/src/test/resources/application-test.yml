@@ -12,7 +12,11 @@ spring:
 
   flyway:
     enabled: true
-    locations: classpath:db/migration
+    locations: classpath:db/migration,classpath:db/vendor/{vendor}
+
+persistence:
+  internal-auth:
+    shared-secret: test-persistence-internal-key
 
 # Fixed test-only AES-256 key — never reuse outside tests.
 raw-payload:

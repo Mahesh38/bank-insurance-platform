@@ -6,10 +6,11 @@
 |---|---|
 | **Role** | Turns every regulated state change into **immutable evidence**: consumes domain events from MSK (fed by each service's outbox), validates attribution (`INV-ACT-04`), dedupes on `eventId`, and writes the evidence record. The journey **cannot reach `SOLD` until this write lands** (`INV-JRN-05`) — not when the topic accepts the message. Logs and OpenSearch are never evidence |
 | **Module** | `services/audit-compliance-service` · port 8101 · `service-id: audit` · layer L5 · INTERNAL |
+| **Contract** | [`openapi.yaml`](../../contracts/audit-compliance-service/openapi.yaml) · [LLD](../../contracts/audit-compliance-service/LLD.md) — authoritative per [ADR-027](../../architecture-review/ADR-027-openapi-contract-authority.md); **PROPOSED** pending the owner's yes on ADR-026: `AuditRecorded` ingest, hash chain, completeness, evidence queries, WORM export |
 | **Base path** | `/internal/v1/audit` |
 | **Callers** | MSK consumer group (S-24) · compliance query UI (target) · Journey (SOLD precondition check) |
 | **Calls out** | `bank-persistence-service` `POST /internal/v1/audit-events` (the record) · S3 Object Lock archive (7-year WORM) |
-| **Owns data** | **No database of its own** — no second audit DB, no Dynamo (`DR-OWN-04`). Evidence lives in `bank_persistence.audit_event` (INSERT-only) + S3 WORM |
+| **Owns data** | **PROPOSED by ADR-026 (D7, awaiting owner yes):** Aurora schema `audit` (`audit_event` INSERT-only, hash-chained; `chain_head`; `worm_export`) + S3 Object Lock; `bank_persistence.audit_event` retired after migration. Previous design: **No database of its own** — no second audit DB, no Dynamo (`DR-OWN-04`). Evidence lives in `bank_persistence.audit_event` (INSERT-only) + S3 WORM |
 | **Code status** | **SKELETON**. Ingest exists today as `bank-persistence-service` `POST /internal/v1/audit-events` (IMPLEMENTED); the 1SB adapter already publishes audit events there |
 
 ## 1. API index

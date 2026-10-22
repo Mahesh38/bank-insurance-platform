@@ -1,3 +1,11 @@
+# Production has no development defaults. ProductionSafetyGuard refuses to start under prod / uat
+# if the session store is in-memory, the session key is all zeros, or a downstream is stubbed.
 workforce:
   downstream:
     provider-adapter-internal-key: ${IDENTITY_ADAPTER_INTERNAL_SHARED_SECRET}
+    authorization-service-internal-key: ${IDENTITY_AUTHZ_BFF_INTERNAL_KEY}
+    lead-mode: http
+    customer-mode: http
+  session:
+    store: redis
+    encryption-key: ${WORKFORCE_SESSION_ENCRYPTION_KEY}

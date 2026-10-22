@@ -6,6 +6,7 @@
 |---|---|
 | **From → to** | `workforce-access-bff` (`IdentityAuthorizationClient`) → `identity-authorization-service` `/internal/v1/*`; target: also every service doing a regulated action (re-check, `ID-08`) |
 | **Style** | Synchronous HTTP |
+| **Caller auth** | `X-Internal-Service-Key` on every call — the BFF presents `IDENTITY_AUTHZ_BFF_INTERNAL_KEY` (`workforce.downstream.authorization-service-internal-key`), lead-service its own `LEAD_AUTHZ_INTERNAL_KEY` (`lead.authorization.internal-key`). Missing / wrong → `401 UNAUTHORIZED`. Only the BFF's key may carry `X-Actor-Id` (maker / checker) |
 | **Budget** | Decisions: **300 ms, no retry, fail closed** (S-02). Resolve: login path |
 | **Data behind it** | Aurora `identity` schema (business users, roles, entitlements, branches, certifications) |
 | **Code status** | Resolve **IMPLEMENTED** and called at every login. Decisions **IMPLEMENTED** and called by the BFF before lead create and lead assign (`PolicyDecisionClient`, `SUG-20261021-gap`); lead-service re-checks create and assign itself (`PdpLeadAuthorizationAdapter`, `INV-ACT-01`); not yet called for other actions |

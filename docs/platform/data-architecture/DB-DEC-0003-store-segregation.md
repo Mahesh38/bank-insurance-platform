@@ -1,5 +1,12 @@
 # DB-DEC-0003 — R0 store segregation and service credentials
 
+> **Amended by [`DB-DEC-0005`](./DB-DEC-0005-dynamodb-working-payload.md) (2026-10-21, owner HUMAN ratification).** The "Dynamo
+> empty-set / zero Dynamo IAM principals at R0" ruling no longer holds for exactly two tables:
+> quotation-service owns `{env}-quotation-working` and proposal-service owns `{env}-proposal-working`
+> (pre-payment working state only; IRSA role per service, own KMS key). Every other service — Journey,
+> Payment, Audit included — still has **no** DynamoDB permission; sessions stay on Valkey (ADR-011).
+> See [`04-store-segregation-and-roadmap.md` §3.2](./04-store-segregation-and-roadmap.md#32-dynamodb--r0-access-list-amended-by-db-dec-0005).
+
 Draft Aarti decision record. Format:
 [`04-operating-and-review-contract.md` §4](../../context/roles/principal-insurance-data-database-architect/04-operating-and-review-contract.md#4-standard-aarti--dba-decision-output).
 

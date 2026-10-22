@@ -1,0 +1,521 @@
+openapi: 3.1.0
+info:
+  title: customer-service internal API
+  version: 1.0.0-draft
+  summary: Customer (#4) — CBS inquiry, customerId resolution, journey snapshots.
+  description: |
+    **Status:** AI-DRAFTED 2026-10-22 under owner decision D3 / D-023 and ADR-027, awaiting Mahesh
+    (architecture) and Aarti (data) review. Authoritative on the wire once reviewed (ADR-027).
+
+    * `customerId` is the platform ULID minted by this service on first resolve (D3). The CBS
+      customer id (CIF) never leaves this service except towards CBS / 1SB adapters.
+    * Masking is owned by this service (formats in LLD §6). No PAN, DOB, address or income is ever
+      returned by an endpoint in this file.
+    * CBS is reached through Apigee: 3 s timeout, 1 retry on 5xx / connect failure (S-05).
+    * Operations marked `x-code-status: IMPLEMENTED` exist in `services/customer-service` today;
+      `x-code-status: TARGET` operations do not. See LLD §2 for the deltas.
+  contact:
+    name: Mahesh (repository owner)
+servers:
+  - url: http://customer-service:8090
+    description: Cluster-private (INTERNAL, layer L5). Not routed on the ingress gateway.
+tags:
+  - name: search
+  - name: identity
+  - name: snapshot
+paths:
+  /internal/v1/customers/search:
+    get:
+      tags: [search]
+      operationId: searchCustomers
+      x-code-status: IMPLEMENTED-PARTIAL
+      summary: Search CBS by CIF, mobile or PAN; return masked hits carrying the platform customerId.
+      description: |
+        Validates `q` per `by`, calls CBS inquiry (S-05), resolves every ETB hit to a `customerId`
+        (idempotent, same as `customers:resolve`), masks, and writes a `CustomerSearched` audit event
+        to the outbox. `q` is never logged, echoed or put into an error.
+        An empty CBS answer is `200 {items: []}` — never an invented customer.
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - name: by
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [CIF, MOBILE, PAN, CUSTOMER_ID]
+          description: |
+            `CUSTOMER_ID` is the value the code accepts today and means the CBS CIF; it is a
+            **deprecated alias of `CIF`** kept for one release (D3 reserves "customerId" for the ULID).
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 80
+          description: 'Validated per `by` (LLD §5). Never echoed, never logged.'
+        - name: countryCode
+          in: query
+          required: false
+          schema:
+            type: string
+            pattern: '^\+[0-9]{1,3}$'
+          description: Only for `by=MOBILE`. Default `+91`.
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 20
+            default: 20
+      responses:
+        '200':
+          description: Masked hits (possibly empty).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchPage'
+        '422':
+          $ref: '#/components/responses/Validation'
+        '502':
+          $ref: '#/components/responses/UpstreamBadResponse'
+        '503':
+          $ref: '#/components/responses/UpstreamUnavailable'
+  /internal/v1/customers:resolve:
+    post:
+      tags: [identity]
+      operationId: resolveCustomer
+      x-code-status: TARGET
+      summary: Map a CIF to its platform customerId, minting one on first sight (idempotent).
+      description: |
+        Looks up `customer.customer` by HMAC(CIF) (`cif_lookup_hash`). Found → `200` with the existing
+        id. Not found → CBS inquiry (S-05) to confirm the CIF is ETB, then INSERT customer + outbox
+        `CustomerResolved` → `201`. The same CIF always yields the same `customerId`
+        (`ux_customer_cif_hash`); a concurrent first resolve loses the unique race and re-reads.
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResolveRequest'
+      responses:
+        '200':
+          description: Already known.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResolveResponse'
+        '201':
+          description: First resolve; customerId minted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResolveResponse'
+        '400':
+          $ref: '#/components/responses/MissingIdempotencyKey'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyConflict'
+        '422':
+          $ref: '#/components/responses/Validation'
+        '502':
+          $ref: '#/components/responses/UpstreamBadResponse'
+        '503':
+          $ref: '#/components/responses/UpstreamUnavailable'
+  /internal/v1/customers/{customerId}:
+    get:
+      tags: [identity]
+      operationId: getCustomer
+      x-code-status: IMPLEMENTED-PARTIAL
+      summary: One masked customer by platform customerId (local store; no CBS call).
+      description: |
+        Today the code treats the path value as the CBS id and calls CBS. Target: the path value is
+        the ULID; the answer comes from `customer.customer` (decrypt + mask in process).
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/CustomerId'
+      responses:
+        '200':
+          description: Masked customer.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerView'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/Validation'
+  /internal/v1/customers/{customerId}/snapshots:
+    post:
+      tags: [snapshot]
+      operationId: takeSnapshot
+      x-code-status: TARGET
+      summary: Freeze a journey-scoped snapshot of what CBS says now (S-04 from Journey).
+      description: |
+        Reads CBS (S-05). On CBS failure, copies the newest snapshot for this customer whose
+        `fresh_until > now()` (freshness window from configuration `CUSTOMER.SNAPSHOT`); with none,
+        `503 UPSTREAM_UNAVAILABLE`. Never an unbounded stale identity. One snapshot per journey:
+        a replay for the same `journeyId` returns the existing snapshot (`200`).
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CustomerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SnapshotRequest'
+      responses:
+        '200':
+          description: Snapshot for this journey already existed (replay).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SnapshotView'
+        '201':
+          description: Snapshot written.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SnapshotView'
+        '400':
+          $ref: '#/components/responses/MissingIdempotencyKey'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyConflict'
+        '422':
+          $ref: '#/components/responses/ValidationOrConfig'
+        '503':
+          $ref: '#/components/responses/UpstreamUnavailable'
+  /internal/v1/customers/{customerId}/snapshots/{snapshotId}:
+    get:
+      tags: [snapshot]
+      operationId: getSnapshot
+      x-code-status: TARGET
+      summary: Snapshot metadata, masked identity and non-PII derived inputs (for suitability SQ-D01…D04).
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/CustomerId'
+        - name: snapshotId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Ulid'
+      responses:
+        '200':
+          description: Snapshot.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SnapshotView'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /internal/v1/customers/{customerId}/registered-contact:
+    get:
+      tags: [identity]
+      operationId: getRegisteredContact
+      x-code-status: TARGET
+      summary: CBS-registered mobile for OTP dispatch (consent-service and suitability-service only).
+      description: |
+        CNS-R11 — the OTP goes to the CBS number of record, never to a number typed in the journey.
+        Caller allow-list by mesh service identity (`consent`, `suitability`); any other caller →
+        `403 SERVICE_IDENTITY_REJECTED`. The full number is returned only on this cluster-private hop
+        and must not be logged by the caller.
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/CustomerId'
+      responses:
+        '200':
+          description: Contact.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisteredContact'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/UpstreamUnavailable'
+components:
+  parameters:
+    ActorId:
+      name: X-Actor-Id
+      in: header
+      required: true
+      description: Human principal, set by the BFF from the session (never from a body).
+      schema:
+        type: string
+        maxLength: 64
+    CorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: false
+      schema:
+        type: string
+        maxLength: 64
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: 'Server-derived on internal hops, e.g. `customer:resolve:{sha256(cif)}` or `journey:{journeyId}:snapshot`.'
+      schema:
+        type: string
+        maxLength: 128
+    CustomerId:
+      name: customerId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Ulid'
+  schemas:
+    Ulid:
+      type: string
+      pattern: '^[0-9A-HJKMNP-TV-Z]{26}$'
+    SearchPage:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          maxItems: 20
+          items:
+            $ref: '#/components/schemas/CustomerHit'
+    CustomerHit:
+      type: object
+      required: [customerId, displayName, initials, eligibility, source]
+      properties:
+        customerId:
+          $ref: '#/components/schemas/Ulid'
+        displayName:
+          type: string
+          description: Full name as CBS holds it (CONFIDENTIAL; shown to the RM, never logged).
+        initials:
+          type: string
+          maxLength: 2
+        maskedCif:
+          type: string
+          examples: [XXXXXX0433]
+        maskedMobile:
+          type: ['string', 'null']
+          examples: ['+91 933****412']
+        maskedEmail:
+          type: ['string', 'null']
+          examples: ['abh*****@gmail.com']
+        eligibility:
+          type: string
+          enum: [ETB, NOT_ETB]
+        source:
+          type: string
+          enum: [CBS, LOCAL]
+    ResolveRequest:
+      type: object
+      additionalProperties: false
+      required: [cif]
+      properties:
+        cif:
+          type: string
+          pattern: '^[A-Za-z0-9]{1,20}$'
+          description: CBS customer id. RESTRICTED in transit; never logged.
+    ResolveResponse:
+      type: object
+      required: [customerId, created]
+      properties:
+        customerId:
+          $ref: '#/components/schemas/Ulid'
+        created:
+          type: boolean
+    CustomerView:
+      type: object
+      required: [customerId, displayName, initials, eligibility, snapshotTakenAt]
+      properties:
+        customerId:
+          $ref: '#/components/schemas/Ulid'
+        displayName:
+          type: string
+        initials:
+          type: string
+        maskedCif:
+          type: string
+        maskedMobile:
+          type: ['string', 'null']
+        maskedEmail:
+          type: ['string', 'null']
+        eligibility:
+          type: string
+          enum: [ETB, NOT_ETB]
+        snapshotTakenAt:
+          type: string
+          format: date-time
+    SnapshotRequest:
+      type: object
+      additionalProperties: false
+      required: [journeyId, leadId, lob]
+      properties:
+        journeyId:
+          $ref: '#/components/schemas/Ulid'
+        leadId:
+          $ref: '#/components/schemas/Ulid'
+        lob:
+          type: string
+          enum: [LIFE, HEALTH, GENERAL]
+    SnapshotView:
+      type: object
+      required: [snapshotId, customerId, journeyId, lob, cbsAsOf, freshUntil, servedFrom, customer]
+      properties:
+        snapshotId:
+          $ref: '#/components/schemas/Ulid'
+        customerId:
+          $ref: '#/components/schemas/Ulid'
+        journeyId:
+          $ref: '#/components/schemas/Ulid'
+        lob:
+          type: string
+          enum: [LIFE, HEALTH, GENERAL]
+        cbsAsOf:
+          type: string
+          format: date-time
+        freshUntil:
+          type: string
+          format: date-time
+        servedFrom:
+          type: string
+          enum: [CBS, FRESH_COPY]
+          description: '`FRESH_COPY` = CBS was down and an in-window snapshot was copied (S-05).'
+        configVersionRef:
+          type: string
+        customer:
+          $ref: '#/components/schemas/CustomerView'
+        derived:
+          $ref: '#/components/schemas/DerivedInputs'
+    DerivedInputs:
+      type: object
+      description: Non-PII values computed in customer-service so DOB and loan detail never leave it.
+      properties:
+        ageNextBirthday:
+          type: ['integer', 'null']
+          description: SQ-D01. Null when CBS has no DOB (suitability → INSUFFICIENT_DATA).
+        relationshipTenureMonths:
+          type: ['integer', 'null']
+          description: SQ-D02.
+        knownLoanLiabilityInr:
+          type: ['number', 'null']
+          description: SQ-D04. Null → suitability records ASSUMED_ZERO.
+    RegisteredContact:
+      type: object
+      required: [mobileE164, maskedMobile, source]
+      properties:
+        mobileE164:
+          type: string
+          pattern: '^\+[1-9][0-9]{7,14}$'
+        maskedMobile:
+          type: string
+        source:
+          type: string
+          enum: [CBS]
+    Problem:
+      type: object
+      description: Platform problem+json (conventions/error-model.md). Internal hops also carry diagnostic and origin.
+      required: [title, status, code, category, retryable, incidentId, service, timestamp]
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        code:
+          type: string
+        category:
+          type: string
+          enum: [VALIDATION, AUTHENTICATION, AUTHORIZATION, NOT_FOUND, CONFLICT, COMPLIANCE_GATE, UPSTREAM, CONFIG, RATE_LIMIT, INTERNAL]
+        retryable:
+          type: [boolean, string]
+        incidentId:
+          type: string
+        correlationId:
+          type: string
+        service:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              code:
+                type: string
+              field:
+                type: string
+              message:
+                type: string
+        origin:
+          type: object
+        diagnostic:
+          type: object
+  responses:
+    Validation:
+      description: 'VALIDATION_ERROR (format of q per by, field errors), INVALID_REQUEST (unknown by), MISSING_REQUIRED_FIELD.'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    ValidationOrConfig:
+      description: 'VALIDATION_ERROR, MISSING_REQUIRED_FIELD, CONFIGURATION_UNRESOLVABLE (freshness window cannot be resolved — fail closed).'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    MissingIdempotencyKey:
+      description: MISSING_IDEMPOTENCY_KEY.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    IdempotencyConflict:
+      description: 'IDEMPOTENCY_CONFLICT (same key, different body) or REQUEST_IN_PROGRESS.'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    NotFound:
+      description: RESOURCE_NOT_FOUND — unknown customerId / snapshot, or CIF not known to CBS.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Forbidden:
+      description: SERVICE_IDENTITY_REJECTED.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    UpstreamBadResponse:
+      description: UPSTREAM_BAD_RESPONSE — CBS answered with a non-401/404 4xx.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    UpstreamUnavailable:
+      description: 'UPSTREAM_UNAVAILABLE — CBS 5xx / timeout / connect failure after 1 retry, or reminted token rejected. Hop not disclosed.'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'

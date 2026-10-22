@@ -4,13 +4,14 @@
 
 | | |
 |---|---|
-| **Role** | Holds the **C1 hard gate**: *no quote without a valid, unexpired, `ELIGIBLE` suitability assessment* (`INV-QUO-01`). Captures the need-analysis questionnaire (save / resume, single active editor), runs the product **mapping** against versioned rules, records the recommended product set, and locks the assessment at final BI. The framework is shared; the **rules are per LOB and come from configuration** (`#19`), never from `if` statements |
+| **Role** | Holds the **C1 hard gate**: *no quote for class X without a valid, unexpired evaluation whose outcome for X is allowed by `SUITABILITY.GATE`* (`INV-QUO-01` as amended by D4; the single `ELIGIBLE` outcome is superseded by the per-class record). Captures the need-analysis questionnaire (save / resume, single active editor), runs the product **mapping** against versioned rules, records the recommended product set, and locks the assessment at final BI. The framework is shared; the **rules are per LOB and come from configuration** (`#19`), never from `if` statements |
 | **Module** | `services/suitability-service` · port 8093 · `service-id: suitability` · layer L5 · INTERNAL |
 | **Base path** | `/internal/v1/assessments` (HLD §5.3) |
 | **Callers** | Journey (S-07 evaluate, 3 s) via the BFF · Quotation (S-08 gate read, **500 ms, no retry, fail closed**) |
 | **Calls out** | administration-config (questionnaire + mapping rule pack, S-21) · product-catalogue (eligible products, mapping output codes) |
 | **Owns data** | Aurora schema **`suitability`** · role `app_suitability` |
 | **Code status** | **SKELETON** (`GET /internal/v1/suitability/info`). All business endpoints below are CONTRACTED (paths, HLD §5.3) with **PROPOSED** bodies drafted from the Suitability BRD, the domain model and the DDL |
+| **Contract** | [`contracts/suitability-service/openapi.yaml`](../../contracts/suitability-service/openapi.yaml) + [LLD](../../contracts/suitability-service/LLD.md) — authoritative (ADR-027), supersedes §2 below: rule sets `SUITABILITY.LIFE.{TERM,SAVINGS,ULIP}` + `SUITABILITY.GATE` (ADR-024), per-class outcome record (D4), `COMPLETED` immutable — a correction is a new superseding assessment (INV-SUI-01 wins over §2.2), gate read `GET /internal/v1/evaluations:usable` (refusal `403 SUITABILITY_REQUIRED`, unavailable → caller `503`, fail closed) |
 
 > **Per-product-class suitability (decided 2026-10-21, `D-022`).** Each product class has its **own
 > question set and matrix**, resolved from configuration by `(lob, productClass)` — the seller

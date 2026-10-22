@@ -15,7 +15,8 @@ spring:
     open-in-view: false
   flyway:
     enabled: true
-    locations: classpath:db/migration
+    # {vendor}: ux_lead_dedupe_open is a partial unique index on PostgreSQL, an H2 equivalent locally.
+    locations: classpath:db/migration,classpath:db/vendor/{vendor}
     validate-on-migrate: true
   threads:
     virtual:
@@ -40,10 +41,17 @@ lead:
     # INV-ACT-01: Lead re-asks the PDP before create / assign. S-02 budget, fail closed.
     base-url: ${IDENTITY_AUTHORIZATION_BASE_URL:http://localhost:8083}
     decision-timeout: 300ms
+    # This service's key for identity-authorization-service /internal/v1 (caller "lead-service").
+    # Development-only default; shared environments inject LEAD_AUTHZ_INTERNAL_KEY.
+    internal-key: ${LEAD_AUTHZ_INTERNAL_KEY:local-authz-lead-internal-key}
   crypto:
     # Development-only default: 32 zero bytes. Shared environments inject a KMS-managed key.
     field-key: ${LEAD_FIELD_KEY:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=}
     key-id: ${LEAD_FIELD_KEY_ID:local-dev}
+  # Ageing horizon for expires_at, in days. Unset: no source states the value (OPEN-D4).
+  expiry-days: ${LEAD_EXPIRY_DAYS:}
+  # LEAD.EXCEPTION evaluator (D2). "stub" is temporary and refused under prod / uat.
+  exception-rules: ${LEAD_EXCEPTION_RULES:stub}
 
 bank:
   error:

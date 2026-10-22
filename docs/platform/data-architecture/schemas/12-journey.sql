@@ -1,5 +1,9 @@
 -- DESIGN DDL — Journey orchestration SoR. Apply at S09 in the owning Journey service Flyway.
 -- Stage and references only. No eligibility, premium or UW decision columns (INV-JRN-02).
+--
+-- 2026-10-21: customer_id is the customer-service ULID (D3 / D-023). party_snapshot_ref is NULL
+-- while the journey holds at INITIATED (READINESS-REVIEW §3.5) and required from NEED_ANALYSIS on.
+-- outbox_event moved to the ADR-025 shape (outbox_id, aggregate_*, schema_version, parked_at).
 
 CREATE TABLE journey.journey (
     journey_id                      CHAR(26)                 PRIMARY KEY,
@@ -14,7 +18,7 @@ CREATE TABLE journey.journey (
     current_assisting_actor_type    VARCHAR(32),
     partner_insurer_id              VARCHAR(64),
     partner_visible_from            TIMESTAMP WITH TIME ZONE,
-    party_snapshot_ref              CHAR(26)                 NOT NULL,
+    party_snapshot_ref              CHAR(26),                              -- NULL only at INITIATED
     next_action_due_at              TIMESTAMP WITH TIME ZONE NOT NULL,
     compensation                    JSONB,
     config_version_ref              VARCHAR(64)              NOT NULL,
@@ -24,6 +28,8 @@ CREATE TABLE journey.journey (
     updated_at                      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     version                         BIGINT                   NOT NULL DEFAULT 0,
     CONSTRAINT ck_journey_lob CHECK (lob IN ('LIFE', 'HEALTH', 'GENERAL')),
+    CONSTRAINT ck_journey_snapshot CHECK (
+        stage IN ('INITIATED', 'ABANDONED') OR party_snapshot_ref IS NOT NULL),
     CONSTRAINT ck_journey_channel CHECK (channel IN ('RM_ASSISTED', 'SELF_SERVICE', 'HYBRID')),
     CONSTRAINT ck_journey_stage CHECK (stage IN (
         'INITIATED', 'NEED_ANALYSIS', 'SUITABILITY_COMPLETE', 'CONSENT_CAPTURED',
@@ -75,20 +81,32 @@ CREATE TABLE journey.journey_transition (
 
 CREATE INDEX ix_jrn_transition ON journey.journey_transition (journey_id, occurred_at);
 
+-- ADR-025 §3 / §6 shape. aggregate_id = journey_id (aggregate_type 'Journey').
 CREATE TABLE journey.outbox_event (
-    event_id            CHAR(26)                 PRIMARY KEY,
-    journey_id          CHAR(26)                 NOT NULL REFERENCES journey.journey (journey_id),
+    outbox_id           CHAR(26)                 PRIMARY KEY,
+    aggregate_type      VARCHAR(64)              NOT NULL DEFAULT 'Journey',
+    aggregate_id        CHAR(26)                 NOT NULL REFERENCES journey.journey (journey_id),
     event_type          VARCHAR(96)              NOT NULL,
+    schema_version      SMALLINT                 NOT NULL DEFAULT 1,
     payload             JSONB                    NOT NULL,
     created_at          TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     published_at        TIMESTAMP WITH TIME ZONE,
     attempts            INTEGER                  NOT NULL DEFAULT 0,
-    last_error          VARCHAR(1000)
+    last_error          VARCHAR(1000),
+    parked_at           TIMESTAMP WITH TIME ZONE
 );
 
 CREATE INDEX ix_jrn_outbox_unpublished
-    ON journey.outbox_event (published_at, created_at)
-    WHERE published_at IS NULL;
+    ON journey.outbox_event (created_at)
+    WHERE published_at IS NULL AND parked_at IS NULL;
+CREATE INDEX ix_jrn_outbox_aggregate ON journey.outbox_event (aggregate_id);
+
+-- ADR-025 §4: consumer dedupe by eventId (journey consumes most context events).
+CREATE TABLE journey.processed_event (
+    event_id            CHAR(26)                 PRIMARY KEY,
+    consumer            VARCHAR(64)              NOT NULL,
+    processed_at        TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+);
 
 CREATE TABLE journey.idempotency_record (
     idempotency_key     VARCHAR(128)             PRIMARY KEY,

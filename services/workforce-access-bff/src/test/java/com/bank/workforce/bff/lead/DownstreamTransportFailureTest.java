@@ -46,7 +46,8 @@ class DownstreamTransportFailureTest {
             dead,
             dead,
             "http",
-            "http");
+            "http",
+            "local-authz-bff-internal-key");
   }
 
   @Test
@@ -89,7 +90,8 @@ class DownstreamTransportFailureTest {
               base,
               base,
               "http",
-              "http");
+              "http",
+              "local-authz-bff-internal-key");
       var budget = new DownstreamTimeouts.Budget(Duration.ofMillis(200), Duration.ofMillis(300));
       var gateway =
           new HttpLeadGateway(

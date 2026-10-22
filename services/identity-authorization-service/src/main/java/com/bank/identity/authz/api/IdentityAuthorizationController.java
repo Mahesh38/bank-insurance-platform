@@ -15,6 +15,7 @@ import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,14 +29,17 @@ public class IdentityAuthorizationController {
   private final AuthorizationDecisionService decisions;
   private final IdentityResolutionService identities;
   private final PartnerUserAdministrationService partnerUsers;
+  private final ActorPrincipalResolver actors;
 
   public IdentityAuthorizationController(
       AuthorizationDecisionService decisions,
       IdentityResolutionService identities,
-      PartnerUserAdministrationService partnerUsers) {
+      PartnerUserAdministrationService partnerUsers,
+      ActorPrincipalResolver actors) {
     this.decisions = decisions;
     this.identities = identities;
     this.partnerUsers = partnerUsers;
+    this.actors = actors;
   }
 
   @PostMapping("/authorization/decisions")
@@ -67,7 +71,9 @@ public class IdentityAuthorizationController {
   @ResponseStatus(HttpStatus.ACCEPTED)
   public PartnerUserAdministrationService.SubmittedPartnerUser createPartnerUser(
       @Valid @RequestBody CreatePartnerUserRequest request,
-      @RequestHeader("X-Actor-Id") String makerId) {
+      @RequestAttribute(InternalServiceAuthFilter.CALLER_ATTRIBUTE) String caller,
+      @RequestHeader(value = "X-Actor-Id", required = false) String actorHeader) {
+    UUID makerId = actors.requireActor(caller, actorHeader, "createPartnerUser");
     return partnerUsers.submit(
         new PartnerUserAdministrationService.CreatePartnerUserCommand(
             request.username(),
@@ -80,7 +86,10 @@ public class IdentityAuthorizationController {
 
   @PostMapping("/approval-requests/{approvalId}/approve")
   public ApprovalResponse approve(
-      @PathVariable UUID approvalId, @RequestHeader("X-Actor-Id") String checkerId) {
+      @PathVariable UUID approvalId,
+      @RequestAttribute(InternalServiceAuthFilter.CALLER_ATTRIBUTE) String caller,
+      @RequestHeader(value = "X-Actor-Id", required = false) String actorHeader) {
+    UUID checkerId = actors.requireActor(caller, actorHeader, "approvePartnerUser");
     return new ApprovalResponse(approvalId, partnerUsers.approve(approvalId, checkerId));
   }
 

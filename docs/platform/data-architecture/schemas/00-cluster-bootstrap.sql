@@ -20,17 +20,19 @@ CREATE SCHEMA IF NOT EXISTS payment;
 CREATE SCHEMA IF NOT EXISTS policy;
 CREATE SCHEMA IF NOT EXISTS journey;
 CREATE SCHEMA IF NOT EXISTS administration;
+-- PROPOSED (ADR-026, D7): created only if the owner accepts ADR-026 — see 15-audit.sql.
+-- CREATE SCHEMA IF NOT EXISTS audit;
 
 COMMENT ON SCHEMA identity IS 'WS-2 Identity & Access — roles, entitlements, certification. PDP SoR.';
-COMMENT ON SCHEMA bank_persistence IS '1SB adapter job/correlation store + audit ingestion. Not a business-context store.';
-COMMENT ON SCHEMA customer IS 'Customer profile snapshot SoR. CBS remains master for CIF.';
+COMMENT ON SCHEMA bank_persistence IS '1SB adapter job/correlation store + audit ingestion (audit moves to schema audit if ADR-026 is accepted). Not a business-context store.';
+COMMENT ON SCHEMA customer IS 'Customer profile snapshot SoR. Mints customer_id (ULID, D-023); CBS remains master for CIF (encrypted + HMAC here only).';
 COMMENT ON SCHEMA lead_lms IS 'Lead LMS SoR (table lead). Workforce origination (INV-LED-04 / D-018). Schema name lead_lms per SUG-20261009-lms; identifiers stay lead_id.';
-COMMENT ON SCHEMA consent IS 'Consent evidence SoR. Append-only evidence columns.';
-COMMENT ON SCHEMA suitability IS 'Suitability assessment SoR. Header mutable until LOCKED; answer sets INSERT-only (BRD §14–15 / OPEN-SUI-IMMUTABLE).';
+COMMENT ON SCHEMA consent IS 'Consent evidence SoR. consent_record is append-only; a state change is a new row (D-024).';
+COMMENT ON SCHEMA suitability IS 'Suitability assessment SoR. Header mutable until LOCKED; answer sets, evaluations and per-class outcomes INSERT-only (D4, SUIT-R23).';
 COMMENT ON SCHEMA catalogue IS 'Product, insurer, eligibility SoR.';
 COMMENT ON SCHEMA quotation IS 'Quote and offer SoR. Pre-payment state in DynamoDB quotation-working (DB-DEC-0005); structured quote/offer after Payment RECONCILED. Adapter jobs stay in bank_persistence.';
 COMMENT ON SCHEMA proposal IS 'Proposal and underwriting case SoR. Pre-payment state in DynamoDB proposal-working (DB-DEC-0005); structured after Payment RECONCILED. PII form values stay encrypted.';
 COMMENT ON SCHEMA payment IS 'Payment SoR. Always structured. On the journey as paymentId + PAYMENT_* stages; independent of schema journey. No cardholder data. RECONCILED is the issuance gate.';
 COMMENT ON SCHEMA policy IS 'Policy and issuance SoR. Document bytes live in S3.';
 COMMENT ON SCHEMA journey IS 'Journey orchestration SoR. Stage and references only (INV-JRN-02). Never stores quote/proposal JSON.';
-COMMENT ON SCHEMA administration IS 'Versioned configuration SoR. INSERT-only versions (INV-CFG-02).';
+COMMENT ON SCHEMA administration IS 'Versioned configuration and rule-set SoR (ADR-024). INSERT-only versions (INV-CFG-02).';

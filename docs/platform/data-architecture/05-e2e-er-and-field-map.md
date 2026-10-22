@@ -8,9 +8,11 @@
 
 Freshness: `04-STAGE_GATES.md` is past its 14-day limit (WARN). No stage field is edited.
 
-Every transactional table is on **Aurora PostgreSQL**. **DynamoDB has no entities at R0** — there is no Dynamo ER. Valkey, S3, Keycloak and MSK are not relational schemas.
+Every transactional **system of record** is on **Aurora PostgreSQL**. DynamoDB holds exactly two tables — **pre-payment** quote and proposal working state (`{env}-quotation-working`, `{env}-proposal-working`, [`DB-DEC-0005`](./DB-DEC-0005-dynamodb-working-payload.md)); they are key-value items, not relational entities, so they appear below only as a *working store* box and are designed in [`schemas/20-dynamodb-working-payload.md`](./schemas/20-dynamodb-working-payload.md). Journey, audit and sessions are **not** in DynamoDB. Valkey, S3, Keycloak and MSK are not relational schemas.
 
-Lead physical name on this stacked pack is schema `lead_lms` / table `lead` (`DATA-003`). Identifiers stay `lead_id`. Working quote/proposal envelopes (`DATA-005`) are in the owning schemas, not on journey.
+**2026-10-21 decisions reflected here:** `customer_id` ULID (`D-023`), lead exception vocabulary (D2), append-only `consent_record` (`D-024`), per-class suitability `evaluation` / `evaluation_outcome` (D4), `proposal_answer` / `proposal_status_history` / `policy_status_history` and payment `quote_id` (`D-025`), `rule_set_version` (ADR-024), ADR-025 outbox shape, and the **proposed** audit schema (ADR-026).
+
+Lead physical name on this stacked pack is schema `lead_lms` / table `lead` (`DATA-003`). Identifiers stay `lead_id`. Working quote/proposal envelopes (`DATA-005`) are owned by quotation / proposal in DynamoDB (`DB-DEC-0005`), never on journey.
 
 ---
 
@@ -37,15 +39,17 @@ Repeated satellite (not redrawn on every schema ER):
 
 ```text
 <schema>.idempotency_record (PK idempotency_key, request_hash, response_ref, created_at, expires_at)
+<schema>.outbox_event (PK outbox_id ULID, aggregate_type, aggregate_id, event_type, schema_version,
+                       payload event-envelope/v1, created_at, published_at, attempts, last_error, parked_at)   -- ADR-025
 ```
 
-Present on: `lead_lms`, `consent`, `suitability`, `quotation`, `proposal`, `payment`, `policy`, `journey`. Identity uses `identity.outbox_event` instead. `bank_persistence` uses `integration_job.idempotency_key`.
+`idempotency_record` present on: `customer`, `lead_lms`, `consent`, `suitability`, `quotation`, `proposal`, `payment`, `policy`, `journey`, `administration`. `outbox_event` (ADR-025 shape) on: `customer`, `lead_lms`, `consent`, `suitability`, `catalogue`, `payment`, `policy`, `journey`, `administration`; quotation / proposal use DynamoDB `OUTBOX#` items (`DB-DEC-0005`). Identity keeps its shipping `identity.outbox_event`. `bank_persistence` uses `integration_job.idempotency_key`.
 
 ---
 
 ## 2. E2E sale path — logical ER
 
-Solid lines are physical FKs inside one schema. All arrows that cross a box are **logical**.
+Solid lines are physical FKs inside one schema. All arrows that cross a box are **logical**. `DYNAMO_*` boxes are DynamoDB working items (`DB-DEC-0005`), not tables; `BANK_audit_event` moves to schema `audit` only if [`ADR-026`](../architecture-review/ADR-026-audit-store-and-transport.md) (proposed) is accepted.
 
 ```mermaid
 erDiagram
@@ -60,28 +64,34 @@ erDiagram
     JOURNEY_journey ||--o{ JOURNEY_journey_ref : "has"
     JOURNEY_journey ||--o{ JOURNEY_transition : "has"
     JOURNEY_journey ||--o{ JOURNEY_outbox : "has"
-    LEAD_LMS_lead ||--o{ CONSENT_consent : "LOGICAL lead_id"
+    LEAD_LMS_lead ||--o{ LEAD_LMS_exception_evaluation : "has (D2)"
+    CUSTOMER_customer ||--o{ CONSENT_consent_record : "LOGICAL customer_id (bindTo, D5)"
     LEAD_LMS_lead ||--o{ SUITABILITY_suitability : "LOGICAL lead_id"
     SUITABILITY_suitability ||--o{ SUITABILITY_answer_set : "has"
     SUITABILITY_suitability ||--o{ SUITABILITY_mapping_run : "has"
+    SUITABILITY_suitability ||--o{ SUITABILITY_evaluation : "has (D4)"
+    SUITABILITY_evaluation ||--o{ SUITABILITY_evaluation_outcome : "one per class"
     CATALOGUE_insurer ||--o{ CATALOGUE_product : "has"
     CATALOGUE_product ||--o{ CATALOGUE_eligibility_band : "has"
-    SUITABILITY_suitability ||--o{ QUOTATION_quote_working : "LOGICAL suitability_id"
-    CONSENT_consent ||--o{ QUOTATION_quote_working : "LOGICAL consent_id"
-    QUOTATION_quote_working ||--o{ QUOTATION_quote : "materialize after RECONCILED"
+    SUITABILITY_evaluation ||--o{ DYNAMO_quotation_working : "LOGICAL evaluation_id (gate)"
+    CONSENT_consent_record ||--o{ DYNAMO_quotation_working : "LOGICAL consent_id"
+    DYNAMO_quotation_working ||--o{ QUOTATION_quote : "materialize after RECONCILED"
     QUOTATION_quote ||--o{ QUOTATION_offer : "has"
-    QUOTATION_quote ||--o{ PROPOSAL_proposal_working : "LOGICAL quote_id"
-    QUOTATION_offer ||--o{ PROPOSAL_proposal_working : "LOGICAL offer_id"
-    CONSENT_consent ||--o{ PROPOSAL_proposal_working : "LOGICAL consent_id"
-    PROPOSAL_proposal_working ||--o{ PROPOSAL_proposal : "materialize after RECONCILED"
+    DYNAMO_quotation_working ||--o{ DYNAMO_proposal_working : "LOGICAL quote_id / offer_id"
+    CONSENT_consent_record ||--o{ DYNAMO_proposal_working : "LOGICAL consent_id"
+    DYNAMO_proposal_working ||--o{ PROPOSAL_proposal : "materialize after RECONCILED"
+    PROPOSAL_proposal ||--o{ PROPOSAL_proposal_answer : "has (D8)"
+    PROPOSAL_proposal ||--o{ PROPOSAL_status_history : "has (D8)"
     PROPOSAL_proposal ||--o{ PROPOSAL_uw_requirement : "has"
     PROPOSAL_proposal ||--o{ PROPOSAL_uw_document_ref : "has"
     PROPOSAL_proposal ||--o{ PAYMENT_payment : "LOGICAL proposal_id"
     PAYMENT_payment ||--o{ PAYMENT_attempt : "has"
     PAYMENT_payment ||--o{ PAYMENT_refund : "has"
+    QUOTATION_quote ||--o{ PAYMENT_payment : "LOGICAL quote_id (D8)"
     PAYMENT_payment ||--o{ POLICY_policy : "LOGICAL payment_id"
     PROPOSAL_proposal ||--o{ POLICY_policy : "LOGICAL proposal_id"
     POLICY_policy ||--o{ POLICY_document_ref : "has"
+    POLICY_policy ||--o{ POLICY_status_history : "has (D8)"
     JOURNEY_journey ||--o{ BANK_integration_job : "LOGICAL journey_id"
     BANK_integration_job ||--o{ BANK_job_offer : "has"
     BANK_integration_job ||--o{ BANK_poll_attempt : "has"
@@ -89,6 +99,7 @@ erDiagram
     BANK_integration_job ||--o{ BANK_raw_payload : "LOGICAL job_id"
     JOURNEY_journey ||--o{ BANK_audit_event : "LOGICAL journey_id"
     ADMINISTRATION_config ||--o{ JOURNEY_journey : "LOGICAL config_version_ref"
+    ADMINISTRATION_rule_set_version ||--o{ SUITABILITY_evaluation : "LOGICAL rule_set_id + version"
 ```
 
 ---
@@ -120,7 +131,17 @@ erDiagram
 | `lead_lms.lead_meeting.lead_id` | `lead_lms.lead.lead_id` | N:1 | ⚑ online link |
 | `lead_lms.lead_follow_up.lead_id` | `lead_lms.lead.lead_id` | N:1 | ⚑ note |
 | `journey.journey_transition.journey_id` | `journey.journey.journey_id` | N:1 | INSERT-only |
-| `journey.outbox_event.journey_id` | `journey.journey.journey_id` | N:1 | ADR-012 |
+| `journey.outbox_event.aggregate_id` | `journey.journey.journey_id` | N:1 | ADR-012 / ADR-025 shape |
+| `lead_lms.lead_exception_evaluation.lead_id` | `lead_lms.lead.lead_id` | N:1 | D2, INSERT-only |
+| `lead_lms.lead_exception_decision.evaluation_id` | `lead_lms.lead_exception_evaluation.evaluation_id` | 1:0..1 | D2, remarks mandatory |
+| `suitability.evaluation.suitability_id` | `suitability.suitability.suitability_id` | N:1 | D4, INSERT-only |
+| `suitability.evaluation_outcome.evaluation_id` | `suitability.evaluation.evaluation_id` | N:1 | PK `(evaluation_id, product_class)` |
+| `suitability.caution_ack.(evaluation_id, product_class)` | `suitability.evaluation_outcome` | 1:0..1 | `SUIT-R41…R43` |
+| `suitability.suitability_usage.evaluation_id` | `suitability.evaluation.evaluation_id` | N:1 | `SUIT-R37` |
+| `consent.consent_record.supersedes_consent_id` | `consent.consent_record.consent_id` | 1:0..1 | `D-024` append-only chain |
+| `proposal.proposal_answer.proposal_id` | `proposal.proposal.proposal_id` | N:1 | D8 |
+| `proposal.proposal_status_history.proposal_id` | `proposal.proposal.proposal_id` | N:1 | D8, append-only |
+| `policy.policy_status_history.policy_id` | `policy.policy.policy_id` | N:1 | D8, append-only |
 | `suitability.suitability_answer_set.suitability_id` | `suitability.suitability.suitability_id` | N:1 | ⚑ answers, INSERT-only |
 | `suitability.suitability_mapping_run.suitability_id` | `suitability.suitability.suitability_id` | N:1 | INSERT-only |
 | `catalogue.product.insurer_id` | `catalogue.insurer.insurer_id` | N:1 | |
@@ -143,14 +164,14 @@ erDiagram
 | `lead_lms.lead.converted_journey_id` | `journey.journey` | Unique when set |
 | `lead_lms.lead.accountable_sp_id` / actor ids | `identity.business_user.id` as varchar | Identity uses UUID; Lead stores opaque actor id |
 | `customer_snapshot.journey_id` / `lead_id` | `journey` / `lead_lms.lead` | Frozen copy keyed by journey |
-| `quotation.quote_working.*_id` | owning aggregates | Encrypted envelope until Payment `RECONCILED` |
-| `proposal.proposal_working.*_id` | owning aggregates | Encrypted envelope until Payment `RECONCILED` |
-| `consent.{lead,journey,customer}_id` | owning aggregates | Evidence must outlive a deleted transactional join |
+| DynamoDB `QUOTE#{id}/META` control attributes `*Id` | owning aggregates | Encrypted envelope until Payment `RECONCILED` (`DB-DEC-0005`) |
+| DynamoDB `PROPOSAL#{id}/META` control attributes `*Id` | owning aggregates | Same |
+| `consent.consent_record.{lead,journey,customer}_id` | owning aggregates | Evidence must outlive a deleted transactional join; bound to `customer_id` (D5) |
 | `suitability.{lead,journey,customer}_id` | owning aggregates | Same |
-| `quotation.{lead,journey,customer,suitability,consent}_id` | owning aggregates | Quote gate (`INV-QUO-01`) |
+| `quotation.{lead,journey,customer,suitability,evaluation,consent}_id` | owning aggregates | Quote gate (`INV-QUO-01` as amended by D4) |
 | `quotation.provider_job_id` | `bank_persistence.integration_job` | Adapter correlation |
 | `proposal.{lead,journey,quote,offer,consent,customer}_id` | owning aggregates | |
-| `payment.{lead,journey,proposal}_id` | owning aggregates | |
+| `payment.{lead,journey,customer,quote,proposal}_id` | owning aggregates | `quote_id` added (D8) so materialise can find the working items |
 | `policy.{lead,journey,customer,proposal,payment}_id` | owning aggregates | Issuance gate is `payment.RECONCILED` |
 | `journey.{lead,customer}_id` | owning aggregates | Stage + refs only (`INV-JRN-02`) |
 | `journey.party_snapshot_ref` | `customer.customer_snapshot` | |
@@ -158,6 +179,7 @@ erDiagram
 | `integration_job.journey_id` | `journey` | Adapter correlation |
 | `audit_event.{journey_id,consent_ref,suitability_ref,resource_id}` | owning aggregates | Reconstruction without assuming the row still exists |
 | `*.config_version_ref` | `administration.configuration_record` | Version in force (`INV-CFG-03`) |
+| `*.rule_set_id` + `rule_set_version` | `administration.rule_set_version` | Rule-set version that decided (ADR-024 §6) |
 | `quotation.offer.{insurer_code,product_code}` / `policy.{insurer_code,product_code}` | `catalogue` | Catalogue is effective-dated; offer/policy freeze codes |
 
 Actor ids (`rm_id`, `created_by`, `override_actor_id`, …) are **never** joined to `identity` from another schema.
@@ -459,8 +481,9 @@ erDiagram
 ```mermaid
 erDiagram
     customer_customer {
-        char customer_id PK
+        char customer_id PK "ULID D-023"
         bytea cif_lookup_hash UK "HMAC not CIF"
+        varchar lookup_key_id
         bytea cif_enc "flag"
         bytea pii_enc "flag"
         varchar encryption_key_id
@@ -473,19 +496,22 @@ erDiagram
     customer_customer_snapshot {
         char snapshot_id PK
         char customer_id FK
-        char journey_id "LOGICAL UK"
+        char journey_id "LOGICAL UK when set"
         char lead_id "LOGICAL"
         varchar lob
         bytea pii_enc "flag"
         varchar encryption_key_id
         timestamptz snapshot_taken_at
+        timestamptz cbs_as_of
+        timestamptz fresh_until
+        varchar payload_hash
         varchar source_system
         timestamptz created_at
     }
     customer_customer ||--o{ customer_customer_snapshot : "customer_id"
 ```
 
-`source_system` = `CBS`. Snapshot `lob` ∈ `LIFE|HEALTH|GENERAL`. Living `customer` has **no** `lob` (DB-DEC-0001 obs. 2). `pii_enc` bundle: fullName, dob, gender, mobile, email, address, annualIncome, tobaccoUse, pan, aadhaarRef.
+`source_system` = `CBS`. Snapshot `lob` ∈ `LIFE|HEALTH|GENERAL`. Living `customer` has **no** `lob` (DB-DEC-0001 obs. 2). `customer_id` is the platform ULID; the CIF exists only here, encrypted and as a UNIQUE HMAC (`D-023`). A snapshot is reused while `now() < fresh_until` (window from configuration); otherwise a new snapshot row is written. Customer also has `idempotency_record` and an ADR-025 `outbox_event`. `pii_enc` bundle: fullName, dob, gender, mobile, email, address, annualIncome, tobaccoUse, pan, aadhaarRef.
 
 ---
 
@@ -509,7 +535,10 @@ erDiagram
         varchar need_analysis_state
         varchar insurer_id
         timestamptz partner_visible_from
-        varchar exception_state
+        varchar assigned_rm_id
+        varchar exception_outcome "D2"
+        boolean exception_hold
+        char exception_evaluation_id
         boolean bi_generated
         varchar reporting_class
         jsonb config_versions
@@ -546,6 +575,26 @@ erDiagram
         varchar created_by
         timestamptz created_at
     }
+    lead_lms_exception_evaluation {
+        char evaluation_id PK
+        char lead_id FK
+        varchar checkpoint
+        varchar rule_set_id
+        varchar rule_set_version
+        varchar inputs_hash
+        varchar outcome
+        text_array reason_codes
+        timestamptz evaluated_at
+    }
+    lead_lms_exception_decision {
+        char decision_id PK
+        char evaluation_id FK
+        varchar decision
+        bytea remarks_enc "flag"
+        varchar decided_by
+    }
+    lead_lms_lead ||--o{ lead_lms_exception_evaluation : "lead_id"
+    lead_lms_exception_evaluation ||--o| lead_lms_exception_decision : "evaluation_id"
     lead_lms_lead ||--o{ lead_lms_assignment : "lead_id"
     lead_lms_lead ||--o{ lead_lms_meeting : "lead_id"
     lead_lms_lead ||--o{ lead_lms_follow_up : "lead_id"
@@ -557,6 +606,7 @@ erDiagram
 | `created_by_actor_type` | `BANK_RM` \| `INSURER_PARTNER_REP` (INV-LED-04 / D-018) |
 | `source` | `RM` \| `IPR` |
 | `need_analysis_state` | `NOT_STARTED` \| `IN_PROGRESS` \| `COMPLETED` |
+| `exception_outcome` | `NOT_EVALUATED` \| `PASS` \| `BLOCK` \| `APPROVAL_REQUIRED` (D2; replaces `exception_state`) — reconciliation with Flyway in [`03` §4.6](./03-lead-suitability-e2e.md#46-design-ddl-vs-as-built-flyway-v2v3--reconciliation-2026-10-21) |
 | `accountable_sp_id` | Immutable after first write (INV-ACT-03) |
 | Partner visibility | `insurer_id IS NOT NULL AND partner_visible_from IS NOT NULL AND need_analysis_state = 'COMPLETED'` |
 
@@ -564,39 +614,51 @@ erDiagram
 
 ## 8. `consent`
 
+Append-only since `D-024` (2026-10-21): a state change is a **new row** chained by
+`supersedes_consent_id`; withdrawal is a new `WITHDRAWN` row. `REQUESTED` rows carry no capture
+evidence yet. The old mutable `consent.consent` table is retired.
+
 ```mermaid
 erDiagram
-    consent_consent {
+    consent_consent_record {
         char consent_id PK
+        char supersedes_consent_id FK
+        char chain_id
+        char customer_id "LOGICAL ULID"
         char lead_id "LOGICAL"
         char journey_id "LOGICAL"
-        char customer_id "LOGICAL"
-        bytea cif_enc "flag"
-        varchar encryption_key_id
+        varchar checkpoint
         text_array purpose
+        varchar scope
+        varchar scope_insurer_id
         text statement_text
         varchar statement_version
         varchar channel
-        varchar otp_txn_id
-        timestamptz captured_at
+        varchar state
+        varchar otp_txn_id "null until captured"
+        timestamptz captured_at "null until captured"
         inet source_ip
         bytea contact_used_enc "flag"
-        varchar state
-        timestamptz withdrawn_at
-        varchar withdrawn_by
-        varchar withdrawal_reason
         timestamptz valid_until
-        varchar config_version_ref "LOGICAL"
+        varchar rule_set_id "CONSENT.POLICY"
+        varchar rule_set_version
         varchar lob
+        date retain_until
         timestamptz created_at
     }
+    consent_consent_record ||--o| consent_consent_record : "supersedes_consent_id"
 ```
 
 | | |
 |---|---|
 | `state` | `REQUESTED` \| `OTP_PENDING` \| `GRANTED` \| `WITHDRAWN` \| `EXPIRED` \| `ABANDONED` |
+| `checkpoint` | `BEFORE_SUITABILITY` \| `BEFORE_MULTI_QUOTE` \| `BEFORE_PROPOSAL_SUBMIT` \| `BEFORE_FIRST_COMMUNICATION` (rule set `CONSENT.POLICY`, D5) |
+| `purpose` | ⊆ `CNS-DP`, `CNS-SOL`, `CNS-QSH` (new, D5), `CNS-SHR`, `CNS-COM` |
 | `channel` | `RM_ASSISTED` \| `SELF_SERVICE` |
-| Evidence columns | Write-once. Only state / withdrawal columns may change |
+| Evidence | Whole row write-once; UPDATE / DELETE refused by trigger and grant. `GRANTED` requires OTP txn, capture time, IP, contact |
+| Validity | `valid_until` = capture + checkpoint `validityDays` (seed 90 / 30 / none) — configuration, not code |
+
+Also: `consent.idempotency_record`, `consent.outbox_event` (ADR-025).
 
 ---
 
@@ -613,9 +675,10 @@ erDiagram
         char customer_id "LOGICAL"
         varchar lob
         varchar product_class
+        varchar questionnaire_id
         varchar questionnaire_version
         varchar mapping_rule_version
-        varchar outcome
+        char current_evaluation_id "D4"
         varchar state
         int current_answer_set_version
         char current_mapping_run_id
@@ -651,15 +714,64 @@ erDiagram
         varchar run_state
         timestamptz evaluated_at
     }
+    suitability_evaluation {
+        char evaluation_id PK "gate id"
+        char suitability_id FK
+        int answer_set_version
+        char customer_id "LOGICAL ULID"
+        varchar rule_set_id
+        varchar rule_set_version
+        varchar engine_version
+        varchar inputs_hash
+        jsonb derived_values
+        char consent_id "LOGICAL nullable D5"
+        varchar pdf_artefact_ref
+        timestamptz evaluated_at
+        timestamptz valid_until
+        date retain_until
+    }
+    suitability_evaluation_outcome {
+        char evaluation_id PK_FK
+        varchar product_class PK
+        varchar outcome
+        text_array reason_codes
+        jsonb derived_values "optional per class"
+        varchar rule_set_version
+        boolean caution_ack_required
+    }
+    suitability_evaluation_status_event {
+        char status_event_id PK
+        char evaluation_id FK
+        varchar status
+        varchar reason
+    }
+    suitability_caution_ack {
+        char caution_ack_id PK
+        char evaluation_id FK
+        varchar product_class
+        varchar otp_txn_id
+    }
+    suitability_usage {
+        char usage_id PK
+        char evaluation_id FK
+        char journey_id "LOGICAL"
+        varchar used_for
+    }
     suitability_suitability ||--o{ suitability_answer_set : "suitability_id"
     suitability_suitability ||--o{ suitability_mapping_run : "suitability_id"
+    suitability_suitability ||--o{ suitability_evaluation : "suitability_id"
+    suitability_evaluation ||--o{ suitability_evaluation_outcome : "evaluation_id"
+    suitability_evaluation ||--o{ suitability_evaluation_status_event : "evaluation_id"
+    suitability_evaluation_outcome ||--o| suitability_caution_ack : "evaluation_id, product_class"
+    suitability_evaluation ||--o{ suitability_usage : "evaluation_id"
 ```
 
 | | |
 |---|---|
 | `state` | `IN_PROGRESS` \| `COMPLETED` \| `NO_PRODUCT_FOUND` \| `LOCKED` \| `OVERRIDDEN` \| `SUPERSEDED` \| `EXPIRED` \| `ABANDONED` |
-| `outcome` | null \| `ELIGIBLE` \| `NOT_ELIGIBLE` |
-| `product_class` | `SAVINGS` \| `ULIP` — Term has no suitability row |
+| `evaluation_outcome.outcome` | `SUITABLE` \| `SUITABLE_WITH_CAUTION` \| `NOT_SUITABLE` \| `INSUFFICIENT_DATA` per product class (D4). The header `ELIGIBLE` / `NOT_ELIGIBLE` outcome is retired |
+| `product_class` | `TERM` \| `SAVINGS` \| `ULIP` — every class has a row (`D-022`) |
+| Gate | `INV-QUO-01`: outcome for the quoted class ∈ `SUITABILITY.GATE.allowedOutcomes` (configured); caution needs `caution_ack` |
 | Answers | `suitability_answer_set.answers_enc` INSERT-only ⚑ JSON ciphertext |
 | Mapping | `suitability_mapping_run` INSERT-only; one `CURRENT` per assessment |
 | Override | `OVERRIDDEN` requires actor + reason + timestamp |
@@ -712,28 +824,23 @@ erDiagram
 
 ## 11. `quotation`
 
-Pre-payment SoR is `quote_working` (`payload_enc` + selected_*). Structured `quote` / `offer` are INSERT-only after Payment `RECONCILED` (`DATA-005`).
+Pre-payment state is the DynamoDB item `QUOTE#{quoteId}/META` in `{env}-quotation-working`
+([`DB-DEC-0005`](./DB-DEC-0005-dynamodb-working-payload.md), [table design](./schemas/20-dynamodb-working-payload.md));
+there is no Aurora `quote_working`. Structured `quote` + **every** `offer` are INSERT-only after
+Payment `RECONCILED` (`D-025`): selected = `SELECTED`, others `NOT_SELECTED`, invalid kept as `INVALID`;
+the quote is inserted `CONVERTED` with `selected_offer_id`.
 
 ```mermaid
 erDiagram
-    quotation_quote_working {
-        char quote_id PK
-        char journey_id "LOGICAL"
-        varchar state
-        varchar mode
-        numeric selected_premium_amount
-        bytea payload_enc "flag"
-        varchar encryption_key_id
-        timestamptz materialized_at
-        date retain_until
-    }
     quotation_quote {
         char quote_id PK
         char lead_id "LOGICAL"
         char journey_id "LOGICAL"
         char customer_id "LOGICAL"
         char suitability_id "LOGICAL"
+        char evaluation_id "LOGICAL D4"
         char consent_id "LOGICAL"
+        varchar product_class
         varchar lob
         varchar mode
         varchar category
@@ -741,9 +848,12 @@ erDiagram
         bytea members_enc "flag"
         varchar encryption_key_id
         varchar state
+        char selected_offer_id "D8"
         timestamptz valid_until
         varchar provider
         varchar provider_job_id "LOGICAL"
+        timestamptz materialized_at
+        date retain_until
         varchar config_version_ref "LOGICAL"
         timestamptz created_at
         timestamptz updated_at
@@ -766,18 +876,19 @@ erDiagram
         varchar error_summary
         timestamptz created_at
     }
-    quotation_quote_working ||--o{ quotation_quote : "same quote_id after RECONCILED"
     quotation_quote ||--o{ quotation_offer : "quote_id"
 ```
 
 | | |
 |---|---|
 | `mode` | `SINGLE` \| `MULTI` |
-| `quote_working` / `quote.state` | `REQUESTED` \| `IN_PROGRESS` \| `QUOTED` \| `PARTIALLY_QUOTED` \| `SELECTED` \| `CONVERTED` \| `EXPIRED` \| `FAILED` \| `TIMED_OUT` \| `REJECTED` |
+| `quote.state` (and the DynamoDB item `state`) | `REQUESTED` \| `IN_PROGRESS` \| `QUOTED` \| `PARTIALLY_QUOTED` \| `SELECTED` \| `CONVERTED` \| `EXPIRED` \| `FAILED` \| `TIMED_OUT` \| `REJECTED` |
 | `offer_state` | `QUOTED` \| `SELECTED` \| `NOT_SELECTED` \| `INVALID` |
 | `ux_offer_selected` | at most one `SELECTED` per `quote_id` |
-| Positive | `premium_amount > 0 AND sum_assured > 0` |
-| Envelope | `payload_enc BYTEA` — not plaintext `JSONB`. SQL never `jsonb_set`s it |
+| Positive | `offer_state = 'INVALID' OR (premium_amount > 0 AND sum_assured > 0)` — invalid offers are kept (D8) |
+| API `AVAILABLE` | Presentation value; stored as `QUOTED` (never a legal `offer_state`) |
+| Names | `premium_frequency` / `premium_paying_term` / `cover_term` are canonical; envelope/API `frequency` / `ppt` / `term` map onto them |
+| Envelope | DynamoDB `payloadEnc` (client-side encrypted) — never a Postgres column |
 
 Adapter poll rows stay in `bank_persistence`, not here.
 
@@ -785,22 +896,13 @@ Adapter poll rows stay in `bank_persistence`, not here.
 
 ## 12. `proposal`
 
-Pre-payment SoR is `proposal_working`. Structured `proposal` / UW children are INSERT-only after Payment `RECONCILED` (`DATA-005`).
+Pre-payment state is the DynamoDB item `PROPOSAL#{proposalId}/META` in `{env}-proposal-working`
+(`DB-DEC-0005`); there is no Aurora `proposal_working`. Structured rows are INSERT-only after Payment
+`RECONCILED`; every question and answer goes to `proposal_answer` and later changes to
+`proposal_status_history` (`D-025`).
 
 ```mermaid
 erDiagram
-    proposal_proposal_working {
-        char proposal_id PK
-        char journey_id "LOGICAL"
-        char quote_id "LOGICAL"
-        char offer_id "LOGICAL"
-        varchar application_number UK
-        varchar state
-        bytea payload_enc "flag"
-        varchar encryption_key_id
-        timestamptz materialized_at
-        date retain_until
-    }
     proposal_proposal {
         char proposal_id PK
         char lead_id "LOGICAL"
@@ -812,8 +914,10 @@ erDiagram
         varchar application_number UK
         varchar schema_id
         varchar schema_version
-        varchar form_values_ref
-        varchar state
+        varchar state "PAID at materialise"
+        varchar issuance_mode
+        timestamptz submitted_at
+        char payment_id "LOGICAL"
         bytea nominee_enc "flag"
         varchar encryption_key_id
         varchar underwriting_state
@@ -841,14 +945,31 @@ erDiagram
         varchar document_class
         timestamptz created_at
     }
-    proposal_proposal_working ||--o{ proposal_proposal : "same proposal_id after RECONCILED"
+    proposal_proposal_answer {
+        char proposal_id PK_FK
+        varchar question_id PK
+        int question_seq
+        text question_text "as shown"
+        varchar schema_version
+        bytea answer_enc "flag"
+    }
+    proposal_proposal_status_history {
+        char status_id PK
+        char proposal_id FK
+        varchar from_state
+        varchar to_state
+        char source_event_id
+        timestamptz occurred_at
+    }
+    proposal_proposal ||--o{ proposal_proposal_answer : "proposal_id"
+    proposal_proposal ||--o{ proposal_proposal_status_history : "proposal_id"
     proposal_proposal ||--o{ proposal_uw_requirement : "proposal_id"
     proposal_proposal ||--o{ proposal_uw_document_ref : "proposal_id"
 ```
 
 `state`: `DRAFT` \| `SUBMITTED` \| `SUBMISSION_FAILED` \| `UNDER_WRITING` \| `REQUIREMENTS_PENDING` \| `UW_APPROVED` \| `UW_COUNTER_OFFER` \| `UW_DECLINED` \| `CUSTOMER_DECLINED` \| `AWAITING_PAYMENT` \| `PAID` \| `CONVERTED` \| `ISSUANCE_FAILED` \| `REFUND_REQUIRED` \| `WITHDRAWN` \| `EXPIRED` \| `ABANDONED`.
 
-Working `payload_enc` holds form values until materialize (`INV-PRP-05`). Structured `form_values_ref` is an object-store pointer. Form JSON is not a plaintext column.
+The DynamoDB `payloadEnc` holds form values until materialise (`INV-PRP-05`). At materialise each question becomes a `proposal_answer` row with the encrypted answer; `form_values_ref` is removed (it pointed at the frozen item that expires). `issuance_mode` ∈ `STP` \| `NON_STP` \| `INSTA` (`INV-PRP-06`). Form JSON is never a plaintext column.
 
 ---
 
@@ -860,7 +981,11 @@ erDiagram
         char payment_id PK
         char lead_id "LOGICAL"
         char journey_id "LOGICAL"
+        char customer_id "LOGICAL"
+        char quote_id "LOGICAL D8"
         char proposal_id "LOGICAL"
+        varchar application_number
+        varchar method "D8"
         numeric amount
         char currency
         varchar state
@@ -871,6 +996,7 @@ erDiagram
         varchar pg_txn_id
         timestamptz authorised_at
         timestamptz captured_at
+        timestamptz paid_at "D8"
         varchar settlement_ref
         timestamptz reconciled_at
         varchar lob
@@ -907,6 +1033,8 @@ erDiagram
 | `state` | `INITIATED` \| `LINK_ISSUED` \| `AWAITING_AUTHORISATION` \| `AUTHORISED` \| `CAPTURED` \| `UNCERTAIN` \| `RECONCILED` \| `RECONCILIATION_BREAK` \| `REFUND_INITIATED` \| `REFUNDED` \| `DECLINED` \| `EXPIRED` \| `REJECTED` |
 | `ux_payment_active_per_proposal` | one non-terminal payment per proposal (`INV-PAY-02`) |
 | Card data | Never stored (`DR-PII-06`) |
+| `PaymentReconciled` | carries `paymentId`, `quoteId`, `proposalId`, `journeyId`, `applicationNumber` (`D-025`) |
+| Outbox | ADR-025 shape (`outbox_id`, `aggregate_*`, `schema_version`, `parked_at`) |
 
 ---
 
@@ -919,9 +1047,11 @@ erDiagram
         char lead_id "LOGICAL"
         char journey_id "LOGICAL"
         char customer_id "LOGICAL"
+        char quote_id "LOGICAL"
         char proposal_id "LOGICAL"
         char payment_id "LOGICAL"
-        varchar policy_number
+        varchar application_number
+        varchar policy_number "null until ISSUED"
         varchar insurer_code
         varchar product_code
         numeric sum_assured
@@ -933,6 +1063,9 @@ erDiagram
         timestamptz issued_at
         timestamptz confirmed_at
         timestamptz free_look_expires_at
+        timestamptz closed_at "D8"
+        timestamptz decision_due_at "D8 TAT"
+        timestamptz tat_breached_at
         varchar lob
         varchar product_class
         varchar config_version_ref "LOGICAL"
@@ -947,12 +1080,20 @@ erDiagram
         varchar document_type
         timestamptz created_at
     }
+    policy_status_history {
+        char status_id PK
+        char policy_id FK
+        varchar status
+        varchar source
+        timestamptz observed_at
+    }
     policy_policy ||--o{ policy_document_ref : "policy_id"
+    policy_policy ||--o{ policy_status_history : "policy_id"
 ```
 
 `state`: `PENDING_ISSUANCE` \| `ISSUED` \| `CONFIRMED` \| `CONFIRMATION_OVERDUE` \| `ACTIVE` \| `ISSUANCE_REJECTED` \| `ISSUANCE_DISPUTED` \| `FREE_LOOK_CANCELLED` \| `LAPSED` \| `SURRENDERED` \| `MATURED`.
 
-Unique `(insurer_code, policy_number)` — immutable (`INV-POL-02`). PDF bytes in S3 via `object_ref`.
+Unique `(insurer_code, policy_number)` when set — immutable (`INV-POL-02`). PDF bytes in S3 via `object_ref`. `policy_status_history.status` ∈ `APPLICATION_RECEIVED` \| `UNDER_REVIEW` \| `REQUIREMENT_RAISED` \| `ISSUED` \| `DECLINED` \| `REFUNDED` (append-only, `D-025`). Insurer decision TAT: `decision_due_at` from rule set `PROPOSAL.TAT` (seed 7 days, Shailja to confirm). Also `policy.outbox_event`, `processed_event`.
 
 ---
 
@@ -973,7 +1114,7 @@ erDiagram
         varchar current_assisting_actor_type
         varchar partner_insurer_id
         timestamptz partner_visible_from
-        char party_snapshot_ref "LOGICAL"
+        char party_snapshot_ref "LOGICAL null at INITIATED"
         timestamptz next_action_due_at
         jsonb compensation
         varchar config_version_ref "LOGICAL"
@@ -996,15 +1137,17 @@ erDiagram
         timestamptz occurred_at
     }
     journey_outbox_event {
-        char event_id PK
-        char journey_id FK
+        char outbox_id PK
+        char aggregate_id FK
         varchar event_type
+        smallint schema_version
         jsonb payload
         timestamptz published_at
+        timestamptz parked_at
     }
     journey_journey ||--o{ journey_journey_ref : "journey_id"
     journey_journey ||--o{ journey_journey_transition : "journey_id"
-    journey_journey ||--o{ journey_outbox_event : "journey_id"
+    journey_journey ||--o{ journey_outbox_event : "aggregate_id"
 ```
 
 | | |
@@ -1045,7 +1188,12 @@ erDiagram
     }
 ```
 
-`status` ∈ `DRAFT|ACTIVE|SUPERSEDED|WITHDRAWN`. INSERT-only (`INV-CFG-02`). Unique partition + `version` (COALESCE blanks). A different checksum at the same version is an error.
+Rule sets (ADR-024) live in `administration.rule_set_version`: `rule_set_id`, semver `version`,
+`document` (`rule-set/v1` JSONB), `checksum`, `status` ∈ `DRAFT|PENDING_APPROVAL|PUBLISHED|REJECTED|SUPERSEDED|WITHDRAWN`,
+`effective_from/to`, maker ≠ checker, `test_run_passed` required to publish; a published document is
+immutable (trigger). Also `administration.outbox_event` (`RuleSetPublished`).
+
+`configuration_record.status` ∈ `DRAFT|ACTIVE|SUPERSEDED|WITHDRAWN`. INSERT-only (`INV-CFG-02`). Unique partition + `version` (COALESCE blanks). A different checksum at the same version is an error.
 
 ---
 
@@ -1053,7 +1201,7 @@ erDiagram
 
 | Store | Why no entity diagram |
 |---|---|
-| DynamoDB | No R0 tables (`DB-DEC-0003`) |
+| DynamoDB | Two working tables, quote and proposal **pre-payment only** (`DB-DEC-0005`); key-value items, designed in [`schemas/20-dynamodb-working-payload.md`](./schemas/20-dynamodb-working-payload.md). Journey, audit, sessions are not in DynamoDB |
 | Valkey | Session / cache keys, TTL, not an SoR |
 | S3 | Bytes addressed by `object_ref` / `payload_id` |
 | Keycloak vendor DB | Out of this pack |
@@ -1067,12 +1215,12 @@ erDiagram
 ```text
 1 customer ──1 open lead── 1 journey ──1 snapshot
                 │
-                ├── 1..n consent (current GRANTED required for proposal)
-                ├── 0..n suitability (Term may have none; Savings/ULIP needs a valid one)
-                ├── 1 quote_working ──(after RECONCILED)── 1 quote ── 1..n offer (exactly one SELECTED)
-                ├── 1 proposal_working ──(after RECONCILED)── 1 proposal ── 0..n UW requirement / document
+                ├── 1..n consent_record rows per chain (bound to customer; reused while valid — D5)
+                ├── 1 suitability ── 1..n evaluation ── 1 outcome per class (every class, Term included)
+                ├── 1 DynamoDB working quote ──(after RECONCILED)── 1 quote ── 1..n offer (exactly one SELECTED)
+                ├── 1 DynamoDB working proposal ──(after RECONCILED)── 1 proposal ── 1..n answer · 0..n status history · UW
                 ├── 1 active payment ── 0..n attempt ── 0..1 refund
-                └── 1 policy ── 0..n document_ref
+                └── 1 policy ── 0..n document_ref · 1..n status history (D8)
 ```
 
 Cross-context integrity is the owning service’s contract plus events. A broken logical id is an application defect, not a database cascade.

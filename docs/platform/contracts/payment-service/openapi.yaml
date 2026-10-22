@@ -1,0 +1,444 @@
+openapi: 3.1.0
+info:
+  title: payment-service internal API
+  version: 1.0.0-draft
+  summary: Premium collection through the AU Bank Payment Gateway — session, callback, reconciliation, refund.
+  description: |
+    **Status:** AI-DRAFTED 2026-10-21 (ADR-027), awaiting Amit (engineering), Mahesh (architecture)
+    and Finance (refund threshold). PG wire details (signature scheme, callback body) await the S10
+    PG contract and are PROPOSED.
+
+    Service is a SKELETON: every operation is `x-implementation-status: PLANNED`.
+    Design: [LLD.md](./LLD.md). Never returns a payment URL into an RM session (C4, INV-PAY-01).
+servers:
+  - url: http://payment-service:8098
+    description: In-cluster only. PG callbacks reach `/internal/v1/payments/pg-callbacks` via the Istio route `/callbacks/pg/*` (IP-allowlisted).
+tags:
+  - name: payments
+  - name: pg
+  - name: reconciliation
+  - name: refunds
+paths:
+  /internal/v1/payments:
+    post:
+      tags: [payments]
+      operationId: createPaymentSession
+      x-implementation-status: PLANNED
+      summary: Create a payment for a proposal — holds proposal and quote, reads the premium via quotation payment-hold, opens a PG session, sends the link to the customer's device.
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreatePaymentRequest' }
+      responses:
+        '201':
+          description: '`LINK_ISSUED` (or idempotent replay). No URL in the body.'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PaymentCreated' }
+        '400': { $ref: '#/components/responses/MissingIdempotencyKey' }
+        '403':
+          description: '`PAYMENT_DEVICE_ISOLATION` (C4 — destination is not the customer''s registered contact).'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '409':
+          description: '`PROPOSAL_NOT_PAYABLE` · `PAYMENT_ALREADY_IN_PROGRESS` (INV-PAY-02) · `PAYMENT_STATE_UNCERTAIN` (INV-PAY-04) · `QUOTE_EXPIRED` · `IDEMPOTENCY_CONFLICT`.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '422':
+          description: '`PREMIUM_MISMATCH` (INV-PAY-03) · `INVALID_OFFER_REFERENCE` · `VALIDATION_ERROR` · `CONFIGURATION_UNRESOLVABLE`.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '503':
+          description: '`UPSTREAM_UNAVAILABLE` — proposal/quotation/PG unreachable; holds released when the PG call is known not to have happened.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+    get:
+      tags: [payments]
+      operationId: listPayments
+      x-implementation-status: PLANNED
+      summary: List payments by state since a time — the repair-sweep feed for quotation, proposal and policy-issuance.
+      parameters:
+        - name: state
+          in: query
+          required: true
+          schema: { $ref: '#/components/schemas/PaymentState' }
+        - name: since
+          in: query
+          required: true
+          description: Lower bound (inclusive) on the state's timestamp — `reconciled_at` for `RECONCILED`, `updated_at` otherwise.
+          schema: { type: string, format: date-time }
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 500, default: 200 }
+        - name: pageToken
+          in: query
+          description: Opaque cursor over `(timestamp, payment_id)`.
+          schema: { type: string }
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: One page, ordered by timestamp then id.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/PaymentSummary' }
+                  nextPageToken: { type: [string, 'null'] }
+        '422':
+          description: '`VALIDATION_ERROR` (since in the future, bad state).'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+  /internal/v1/payments/{paymentId}:
+    get:
+      tags: [payments]
+      operationId: getPayment
+      x-implementation-status: PLANNED
+      summary: Payment state — never the URL, a PG token or card data.
+      parameters:
+        - $ref: '#/components/parameters/PaymentId'
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: The payment.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Payment' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /internal/v1/payments/pg-callbacks:
+    post:
+      tags: [pg]
+      operationId: receivePgCallback
+      x-implementation-status: PLANNED
+      summary: PG authorisation / capture / decline callback (S-14). Signature-verified, replay-windowed, deduplicated on pgTxnId + callback type.
+      parameters:
+        - name: X-PG-Signature
+          in: header
+          required: true
+          description: PROPOSED name; scheme per S10 PG contract.
+          schema: { type: string }
+        - name: X-PG-Timestamp
+          in: header
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PgCallback' }
+      responses:
+        '200':
+          description: Applied, or a duplicate answered with the stored result.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [paymentId, state, duplicate]
+                properties:
+                  paymentId: { $ref: '#/components/schemas/Ulid' }
+                  state: { $ref: '#/components/schemas/PaymentState' }
+                  duplicate: { type: boolean }
+        '401':
+          description: '`UNAUTHORIZED` — bad signature or outside the replay window (security event).'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /internal/v1/payments/reconciliations:
+    post:
+      tags: [reconciliation]
+      operationId: startReconciliation
+      x-implementation-status: PLANNED
+      summary: Ingest a settlement file (S-15) and match on pgTxnId AND amount. Daily + on demand.
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [settlementFileRef, businessDate]
+              properties:
+                settlementFileRef: { type: string, maxLength: 512, description: S3 object reference of the PG settlement file. }
+                businessDate: { type: string, format: date }
+      responses:
+        '202':
+          description: Run accepted.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [runId, state]
+                properties:
+                  runId: { $ref: '#/components/schemas/Ulid' }
+                  state: { type: string, enum: [RUNNING] }
+        '409':
+          description: '`IDEMPOTENCY_CONFLICT` · `REQUEST_IN_PROGRESS`.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+  /internal/v1/payments/reconciliations/{runId}:
+    get:
+      tags: [reconciliation]
+      operationId: getReconciliationRun
+      x-implementation-status: PLANNED
+      summary: Reconciliation run result.
+      parameters:
+        - { name: runId, in: path, required: true, schema: { $ref: '#/components/schemas/Ulid' } }
+        - $ref: '#/components/parameters/ActorId'
+      responses:
+        '200':
+          description: Counts per outcome.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  runId: { $ref: '#/components/schemas/Ulid' }
+                  state: { type: string, enum: [RUNNING, COMPLETED, FAILED] }
+                  matched: { type: integer }
+                  unmatchedWithinSla: { type: integer }
+                  breaks: { type: integer }
+                  resolvedUncertain: { type: integer }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /internal/v1/payments/{paymentId}/refunds:
+    post:
+      tags: [refunds]
+      operationId: requestRefund
+      x-implementation-status: PLANNED
+      summary: Maker requests a refund (from RECONCILED or RECONCILIATION_BREAK).
+      parameters:
+        - $ref: '#/components/parameters/PaymentId'
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [amount, reasonCode, remarks]
+              properties:
+                amount: { $ref: '#/components/schemas/Money' }
+                reasonCode: { type: string, maxLength: 40, examples: [INSURER_DECLINED, RECONCILIATION_BREAK, FREE_LOOK] }
+                remarks: { type: string, minLength: 1, maxLength: 500 }
+      responses:
+        '201':
+          description: '`REFUND_INITIATED`; `PENDING_APPROVAL` unless below the configured threshold.'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Refund' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: '`ILLEGAL_TRANSITION` (payment not refundable) · `IDEMPOTENCY_CONFLICT`.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '422':
+          description: '`VALIDATION_ERROR` (amount > paid).'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+  /internal/v1/payments/refunds/{refundId}/approve:
+    post:
+      tags: [refunds]
+      operationId: approveRefund
+      x-implementation-status: PLANNED
+      summary: Checker approves or rejects (checker ≠ maker, INV-PAY-06).
+      parameters:
+        - { name: refundId, in: path, required: true, schema: { $ref: '#/components/schemas/Ulid' } }
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [decision, remarks]
+              properties:
+                decision: { type: string, enum: [APPROVE, REJECT] }
+                remarks: { type: string, minLength: 1, maxLength: 500 }
+      responses:
+        '200':
+          description: Decided; on APPROVE the PG refund is executed.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Refund' }
+        '403':
+          description: '`FORBIDDEN` — checker equals maker.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: '`ILLEGAL_TRANSITION` — already decided.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+components:
+  parameters:
+    PaymentId:
+      name: paymentId
+      in: path
+      required: true
+      schema: { $ref: '#/components/schemas/Ulid' }
+    ActorId:
+      name: X-Actor-Id
+      in: header
+      required: true
+      schema: { type: string, maxLength: 64 }
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: e.g. `proposal:{proposalId}:payment:{attempt}`.
+      schema: { type: string, maxLength: 128 }
+    CorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: false
+      schema: { type: string, format: uuid }
+  responses:
+    NotFound:
+      description: '`RESOURCE_NOT_FOUND`.'
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    MissingIdempotencyKey:
+      description: '`MISSING_IDEMPOTENCY_KEY`.'
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+  schemas:
+    Ulid:
+      type: string
+      pattern: '^[0-9A-HJKMNP-TV-Z]{26}$'
+    Money:
+      type: string
+      pattern: '^[0-9]{1,13}(\.[0-9]{1,2})?$'
+    PaymentState:
+      type: string
+      enum: [INITIATED, LINK_ISSUED, AWAITING_AUTHORISATION, AUTHORISED, CAPTURED, UNCERTAIN, RECONCILED, RECONCILIATION_BREAK, REFUND_INITIATED, REFUNDED, DECLINED, EXPIRED, REJECTED]
+    CreatePaymentRequest:
+      type: object
+      additionalProperties: false
+      required: [leadId, journeyId, proposalId, deviceChannel]
+      properties:
+        leadId: { $ref: '#/components/schemas/Ulid' }
+        journeyId: { $ref: '#/components/schemas/Ulid' }
+        proposalId: { $ref: '#/components/schemas/Ulid' }
+        deviceChannel: { type: string, enum: [SMS_LINK, EMAIL_LINK, QR_SCAN] }
+      description: No amount and no destination — Payment derives both (INV-PAY-03, C4).
+    PaymentCreated:
+      type: object
+      required: [paymentId, state, deviceChannel, linkExpiresAt, maskedDestination, amount, currency]
+      properties:
+        paymentId: { $ref: '#/components/schemas/Ulid' }
+        state: { $ref: '#/components/schemas/PaymentState' }
+        deviceChannel: { type: string }
+        linkExpiresAt: { type: string, format: date-time }
+        maskedDestination: { type: string, examples: ['+91******4321'] }
+        amount: { $ref: '#/components/schemas/Money' }
+        currency: { type: string, const: INR }
+    Payment:
+      type: object
+      required: [paymentId, proposalId, quoteId, journeyId, amount, currency, state, deviceChannel]
+      properties:
+        paymentId: { $ref: '#/components/schemas/Ulid' }
+        proposalId: { $ref: '#/components/schemas/Ulid' }
+        quoteId: { $ref: '#/components/schemas/Ulid' }
+        journeyId: { $ref: '#/components/schemas/Ulid' }
+        applicationNumber: { type: [string, 'null'] }
+        amount: { $ref: '#/components/schemas/Money' }
+        currency: { type: string, const: INR }
+        state: { $ref: '#/components/schemas/PaymentState' }
+        method: { type: [string, 'null'], description: 'Payment type reported by the PG (D8), e.g. UPI, CARD, NETBANKING.' }
+        deviceChannel: { type: string }
+        linkExpiresAt: { type: [string, 'null'], format: date-time }
+        authorisedAt: { type: [string, 'null'], format: date-time }
+        capturedAt: { type: [string, 'null'], format: date-time }
+        paidAt: { type: [string, 'null'], format: date-time }
+        reconciledAt: { type: [string, 'null'], format: date-time }
+    PaymentSummary:
+      type: object
+      required: [paymentId, quoteId, proposalId, journeyId, state]
+      properties:
+        paymentId: { $ref: '#/components/schemas/Ulid' }
+        quoteId: { $ref: '#/components/schemas/Ulid' }
+        proposalId: { $ref: '#/components/schemas/Ulid' }
+        journeyId: { $ref: '#/components/schemas/Ulid' }
+        applicationNumber: { type: [string, 'null'] }
+        state: { $ref: '#/components/schemas/PaymentState' }
+        amount: { $ref: '#/components/schemas/Money' }
+        reconciledAt: { type: [string, 'null'], format: date-time }
+        updatedAt: { type: string, format: date-time }
+    PgCallback:
+      type: object
+      description: PROPOSED canonical shape; the PG adapter maps the PG body to it (S10 contract outstanding).
+      required: [pgTxnId, paymentId, callbackType, amount, occurredAt]
+      properties:
+        pgTxnId: { type: string, maxLength: 100 }
+        paymentId: { $ref: '#/components/schemas/Ulid' }
+        callbackType: { type: string, enum: [AUTHORISED, CAPTURED, DECLINED] }
+        amount: { $ref: '#/components/schemas/Money' }
+        method: { type: string }
+        reasonCode: { type: string }
+        occurredAt: { type: string, format: date-time }
+    Refund:
+      type: object
+      properties:
+        refundId: { $ref: '#/components/schemas/Ulid' }
+        paymentId: { $ref: '#/components/schemas/Ulid' }
+        amount: { $ref: '#/components/schemas/Money' }
+        state: { type: string, enum: [PENDING_APPROVAL, APPROVED, REJECTED, EXECUTED, FAILED] }
+        initiatedBy: { type: string }
+        approvedBy: { type: [string, 'null'] }
+        decidedAt: { type: [string, 'null'], format: date-time }
+    Problem:
+      type: object
+      description: Platform problem+json (conventions/error-model.md).
+      required: [type, title, status, code, category, retryable, incidentId, service, timestamp]
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        code: { type: string }
+        category: { type: string }
+        retryable: { type: boolean }
+        incidentId: { type: string }
+        correlationId: { type: string }
+        service: { type: string }
+        timestamp: { type: string, format: date-time }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              code: { type: string }
+              field: { type: string }
+              message: { type: string }

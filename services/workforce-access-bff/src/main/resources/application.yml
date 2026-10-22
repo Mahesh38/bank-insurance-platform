@@ -21,12 +21,14 @@ workforce:
     customer-service-base-url: ${CUSTOMER_SERVICE_BASE_URL:http://localhost:8090}
     lead-mode: ${LEAD_DOWNSTREAM_MODE:stub}
     customer-mode: ${CUSTOMER_DOWNSTREAM_MODE:stub}
+    # Caller key for identity-authorization-service /internal/v1 (caller "workforce-access-bff").
+    authorization-service-internal-key: ${IDENTITY_AUTHZ_BFF_INTERNAL_KEY:local-authz-bff-internal-key}
     # Seam budgets (03 §5). Defaults live in DownstreamTimeouts; listed here so they are visible.
     timeouts:
       lead: { connect: 500ms, read: 2s }              # S-20
       customer: { connect: 500ms, read: 4s }          # CBS S-05 inside the S-01 edge budget
       authorization: { connect: 500ms, read: 2s }     # identity resolve
-      identity-provider: { connect: 1s, read: 6s }    # login path, adapter waits on AD (S-26)
+      identity-provider: { connect: 1s, read: 4500ms } # login path, inside the 5 s edge (S-01)
   authorization:
     decision-timeout: 300ms                           # S-02 PDP, fail closed
   session:

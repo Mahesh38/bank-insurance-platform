@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.bank.internal/events/ProposalMaterialised.v1.json",
+  "title": "ProposalMaterialised v1 - data",
+  "description": "Structured proposal + proposal_answer rows written on PaymentReconciled (D8). Producer: proposal. Status: NEW (D8). The `data` member of event-envelope/v1 (ADR-025): ids and states only, never customer PII.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "proposalId",
+    "paymentId",
+    "journeyId",
+    "applicationNumber"
+  ],
+  "properties": {
+    "proposalId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "paymentId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "journeyId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "applicationNumber": {
+      "type": "string",
+      "maxLength": 64,
+      "description": "Insurer application number (insurer-issued reference, not customer data)"
+    },
+    "quoteId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "answerCount": {
+      "type": "integer",
+      "minimum": 0
+    }
+  },
+  "$defs": {
+    "ulid": {
+      "type": "string",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+    }
+  }
+}

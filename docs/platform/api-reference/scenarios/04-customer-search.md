@@ -40,14 +40,24 @@ sequenceDiagram
     App->>BFF: GET /api/v1/customers:search?by&q
     BFF->>KV: session lookup (401 if invalid)
     BFF->>CS: GET /internal/v1/customers/search?by&q&countryCode
-    CS->>CS: by ∈ {CUSTOMER_ID, MOBILE, PAN}? q non-blank?
+    CS->>CS: X-Actor-Id present? (422 MISSING_REQUIRED_FIELD) — BFF does not send it yet
+    CS->>CS: by ∈ {CUSTOMER_ID, MOBILE, PAN}? q non-blank? q format per by? (422 VALIDATION_ERROR, field q)
     CS->>AT: client-credentials token (cached, single-flight)
-    CS->>AX: GET /customers/search?by&q  Bearer token
+    CS->>AX: GET /customers/search?by&q  Bearer token (connect 3 s / read 3 s)
     AX->>CBS: inquiry
+    alt 5xx or connect failure
+        CS->>AX: retry once (S-05)
+    end
     CBS-->>CS: {items:[{customerId, displayName, initials, maskedCif, maskedMobile, eligibility, source}]}
-    CS-->>BFF: 200 {items}
+    CS-->>BFF: 200 {items} (CBS empty or 404 → 200 {items: []}; transport failure → 503 UPSTREAM_UNAVAILABLE)
     BFF-->>App: 200 {items}
 ```
+
+Since 2026-10-22 customer-service itself enforces the `q` formats above, the S-05 budget
+(3 s / 3 s, one retry on 5xx / connect) and requires `X-Actor-Id`
+([customer-service §2.1](../services/customer-service.md#21-get-internalv1customerssearch)).
+The BFF's customer gateway must start sending `X-Actor-Id` — until it does, BFF → customer-service
+search answers `422`.
 
 ## 3. What the contract adds (target, contract 09)
 

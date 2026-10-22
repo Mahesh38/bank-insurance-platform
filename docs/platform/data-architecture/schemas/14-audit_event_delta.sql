@@ -2,6 +2,8 @@
 -- Apply as the next bank-persistence-service Flyway version (suggested name
 -- V3__audit_event_reconstruction_columns.sql). Do not edit V1.
 --
+-- ADR-026 (PROPOSED, D7): if accepted, business audit moves to schema audit (15-audit.sql) and
+-- bank_persistence.audit_event is retired after migration. Until then this delta stays current.
 -- H2 note: JSONB is not H2-safe. If CI still uses H2 for this module, store
 -- prior_state / new_state as TEXT (same compromise as metadata) and switch
 -- to JSONB when the module's tests move to PostgreSQL.

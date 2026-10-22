@@ -1,0 +1,357 @@
+openapi: 3.1.0
+info:
+  title: product-catalogue-service — offerings, products, eligibility
+  version: 1.0.0-draft
+  summary: Bank-controlled answer to "what may we sell, to whom, from which insurer".
+  description: |
+    **Status:** AI-DRAFTED 2026-10-21, awaiting Rajal (product) and Mahesh (architecture) review.
+    Authoritative wire contract per ADR-027; behaviour in `LLD.md`.
+
+    Eligibility has two sources and one precedence (LLD §5): the bank's catalogue eligibility rule
+    set (configuration, ADR-024) is evaluated **first**; the insurer's criteria (fetched through the
+    Integration Hub) second; **both must pass**. Which product classes need insurer criteria, and the
+    order, are rule-set parameters — configurable without a release.
+servers:
+  - url: http://product-catalogue-service:8094
+    description: Cluster-private (layer L5, INTERNAL)
+tags:
+  - name: offerings
+  - name: products
+  - name: eligibility
+paths:
+  /internal/v1/offerings:
+    get:
+      tags: [offerings]
+      operationId: listOfferings
+      summary: Eligible offerings for a LOB / product class (CONTRACTED path)
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/ActorIdOptional'
+        - name: lob
+          in: query
+          required: true
+          schema: { $ref: '#/components/schemas/Lob' }
+        - name: productClass
+          in: query
+          required: false
+          schema: { $ref: '#/components/schemas/ProductClass' }
+        - name: insurerId
+          in: query
+          required: false
+          description: Set by the BFF for partner reps (insurer-scoped view).
+          schema: { type: string, maxLength: 64 }
+        - name: at
+          in: query
+          required: false
+          description: Effective instant; default now.
+          schema: { type: string, format: date-time }
+      responses:
+        '200':
+          description: Offerings in force at `at`
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/Offering' }
+        '422':
+          $ref: '#/components/responses/Validation'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /internal/v1/product-classes:
+    get:
+      tags: [offerings]
+      operationId: listProductClasses
+      summary: Product classes sellable for a LOB (replaces the BFF static list)
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - name: lob
+          in: query
+          required: true
+          schema: { $ref: '#/components/schemas/Lob' }
+      responses:
+        '200':
+          description: Product classes
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      required: [productClass, label]
+                      properties:
+                        productClass: { $ref: '#/components/schemas/ProductClass' }
+                        label: { type: string }
+        '422':
+          $ref: '#/components/responses/Validation'
+  /internal/v1/products/{productCode}:
+    get:
+      tags: [products]
+      operationId: getProduct
+      summary: One product version in force
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - name: productCode
+          in: path
+          required: true
+          schema: { type: string, maxLength: 100 }
+        - name: insurerId
+          in: query
+          required: true
+          schema: { type: string, maxLength: 64 }
+        - name: at
+          in: query
+          required: false
+          schema: { type: string, format: date-time }
+      responses:
+        '200':
+          description: Product
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Product' }
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /internal/v1/products/{productCode}/insurer-criteria:
+    get:
+      tags: [eligibility]
+      operationId: getInsurerCriteriaForm
+      summary: Insurer eligibility-criteria form (fetched through the Integration Hub)
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/ActorId'
+        - name: productCode
+          in: path
+          required: true
+          schema: { type: string, maxLength: 100 }
+        - name: insurerId
+          in: query
+          required: true
+          schema: { type: string, maxLength: 64 }
+      responses:
+        '200':
+          description: Form definition (pages → sections → fields)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [productCode, insurerId, fields]
+                properties:
+                  productCode: { type: string }
+                  insurerId: { type: string }
+                  schemaVersion: { type: [string, 'null'] }
+                  fields: { type: object, additionalProperties: true }
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/Validation'
+        '502':
+          $ref: '#/components/responses/BadUpstream'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /internal/v1/eligibility:check:
+    post:
+      tags: [eligibility]
+      operationId: checkEligibility
+      summary: Evaluate catalogue eligibility, then (where configured) insurer criteria
+      description: |
+        Stage 1 — rule set `CATALOGUE.ELIGIBILITY` (FIRST). A `NOT_ELIGIBLE` here stops; the insurer is
+        not called. Stage 2 — only for product classes listed in the rule set parameter
+        `insurerCriteria.productClasses`: submit `insurerCriteriaValues` through the Hub
+        (`ELIGIBILITY_CRITERIA_SUBMIT`). If stage 2 is required and no values are supplied, the result is
+        `INSURER_CRITERIA_REQUIRED` (fetch the form with `GET …/insurer-criteria`). Not a mutation of
+        bank state; the evaluation is returned for the caller to persist.
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/JourneyId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EligibilityCheckRequest' }
+      responses:
+        '200':
+          description: Evaluation
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/EligibilityCheckResult' }
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          description: '`VALIDATION_ERROR`, `UNSUPPORTED_LOB`, `CONFIGURATION_UNRESOLVABLE` (rule set not resolvable — fail closed), `UPSTREAM_BUSINESS_ERROR`'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '502':
+          $ref: '#/components/responses/BadUpstream'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+components:
+  parameters:
+    CorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: true
+      schema: { type: string, format: uuid }
+    ActorId:
+      name: X-Actor-Id
+      in: header
+      required: true
+      schema: { type: string, minLength: 1, maxLength: 100 }
+    ActorIdOptional:
+      name: X-Actor-Id
+      in: header
+      required: false
+      schema: { type: string, minLength: 1, maxLength: 100 }
+    JourneyId:
+      name: X-Journey-Id
+      in: header
+      required: false
+      schema: { $ref: '#/components/schemas/Ulid' }
+  responses:
+    Validation:
+      description: '`VALIDATION_ERROR` / `UNSUPPORTED_LOB`'
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    NotFound:
+      description: '`RESOURCE_NOT_FOUND`'
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    BadUpstream:
+      description: '`UPSTREAM_BAD_RESPONSE` (Hub / insurer)'
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Unavailable:
+      description: '`UPSTREAM_UNAVAILABLE` (store, Hub) — degraded reads may be served from cache except for regulated decisions'
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+  schemas:
+    Ulid:
+      type: string
+      pattern: '^[0-9A-HJKMNP-TV-Z]{26}$'
+    Lob:
+      type: string
+      enum: [LIFE]
+    ProductClass:
+      type: string
+      enum: [TERM, SAVINGS, ULIP]
+    Offering:
+      type: object
+      required: [insurerId, insurerGroup, productCode, productName, lob, productClass, effectiveFrom]
+      properties:
+        insurerId: { type: string }
+        insurerName: { type: string }
+        insurerGroup: { type: string, enum: [A, B] }
+        productCode: { type: string }
+        productName: { type: string }
+        lob: { $ref: '#/components/schemas/Lob' }
+        productClass: { $ref: '#/components/schemas/ProductClass' }
+        version: { type: integer }
+        effectiveFrom: { type: string, format: date-time }
+        effectiveTo: { type: [string, 'null'], format: date-time }
+    Product:
+      allOf:
+        - $ref: '#/components/schemas/Offering'
+        - type: object
+          required: [productId]
+          properties:
+            productId: { $ref: '#/components/schemas/Ulid' }
+            attributes:
+              type: object
+              description: '`catalogue.product.payload` — bank product attributes (no eligibility thresholds; those are in the rule set).'
+              additionalProperties: true
+            eligibilityRuleSet:
+              type: object
+              description: The `CATALOGUE.ELIGIBILITY` version in force at `at`.
+              properties:
+                ruleSetId: { type: string }
+                version: { type: string }
+    EligibilityCheckRequest:
+      type: object
+      required: [lob, productClass, insurerId, productCode, applicant]
+      additionalProperties: false
+      properties:
+        lob: { $ref: '#/components/schemas/Lob' }
+        productClass: { $ref: '#/components/schemas/ProductClass' }
+        insurerId: { type: string, maxLength: 64 }
+        productCode: { type: string, maxLength: 100 }
+        at: { type: string, format: date-time }
+        applicant:
+          type: object
+          required: [ageNextBirthday]
+          additionalProperties: false
+          properties:
+            ageNextBirthday: { type: integer, minimum: 0, maximum: 120 }
+            sumAssured: { type: number, minimum: 0 }
+            annualIncome: { type: number, minimum: 0 }
+            occupationBand: { type: string, maxLength: 64 }
+            policyTerm: { type: integer, minimum: 1 }
+        insurerCriteriaValues:
+          type: object
+          description: Answers to the insurer criteria form (stage 2). Omit to evaluate stage 1 only.
+          additionalProperties: true
+    EligibilityCheckResult:
+      type: object
+      required: [outcome, stages]
+      properties:
+        outcome:
+          type: string
+          enum: [ELIGIBLE, NOT_ELIGIBLE, INSURER_CRITERIA_REQUIRED]
+        stages:
+          type: array
+          items:
+            type: object
+            required: [source, outcome]
+            properties:
+              source: { type: string, enum: [CATALOGUE, INSURER] }
+              outcome: { type: string, enum: [ELIGIBLE, NOT_ELIGIBLE, NOT_EVALUATED, INSURER_CRITERIA_REQUIRED] }
+              ruleSetId: { type: [string, 'null'] }
+              version: { type: [string, 'null'] }
+              inputsHash: { type: [string, 'null'] }
+              reasonCodes:
+                type: array
+                items: { type: string }
+              messages:
+                type: array
+                items: { type: string }
+              provider: { type: [string, 'null'] }
+        configVersionRef:
+          type: string
+          description: '`CATALOGUE.ELIGIBILITY@{version}` — the caller persists it with its decision.'
+    Problem:
+      type: object
+      description: Platform problem+json (conventions/error-model.md).
+      required: [type, title, status, code, category, retryable, incidentId, timestamp]
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        code: { type: string }
+        category: { type: string }
+        retryable: { type: boolean }
+        incidentId: { type: string }
+        correlationId: { type: string }
+        service: { type: string }
+        timestamp: { type: string, format: date-time }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              code: { type: string }
+              field: { type: string }
+              message: { type: string }
+        origin: { type: object, additionalProperties: true }
+        diagnostic: { type: object, additionalProperties: true }

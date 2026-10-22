@@ -1,0 +1,357 @@
+{
+  "format": "rule-set/v1",
+  "ruleSetId": "PROPOSAL.TAT",
+  "domain": "PROPOSAL_TAT",
+  "scope": {
+    "lob": "LIFE",
+    "productClass": null
+  },
+  "version": "1.0.0",
+  "effectiveFrom": "2026-11-01T00:00:00+05:30",
+  "effectiveTo": null,
+  "classification": "COMPLIANCE",
+  "pinning": "NONE",
+  "description": "Insurer decision turnaround: IRDAI requires the insurer's decision within 7 days of proposal receipt (DECISIONS D8 / D-025).",
+  "source": {
+    "document": "docs/platform/architecture-review/DECISIONS-2026-10-21.md",
+    "sections": [
+      "D8 (turnaround time)"
+    ],
+    "regulation": "IRDAI Master Circular on Protection of Policyholders' Interests, 5 Sep 2024 (7 days, previously 15)"
+  },
+  "governance": {
+    "status": "DRAFT-awaiting-approval",
+    "signatureStatus": "AI-DRAFTED - mandatory content-owner approval outstanding (ADR-024 section 7)",
+    "contentApprovers": [
+      "Shailja / bank Compliance"
+    ],
+    "approverRole": "COMPLIANCE_APPROVER",
+    "seededBy": "SUG-20261021-rul (owner-directed build, ADMIT-BYPASS)",
+    "openItems": [
+      "D8: Shailja confirms decisionDays = 7 and the start event (proposal receipt vs payment)",
+      "warningAtDays is unset: no value was given; WARNING never fires until it is configured (breach still detected)"
+    ]
+  },
+  "inputs": [
+    {
+      "name": "asOf",
+      "type": "DATE",
+      "required": true
+    },
+    {
+      "name": "clockStartedOn",
+      "type": "DATE",
+      "required": true,
+      "description": "Date of the configured startEvent"
+    },
+    {
+      "name": "decisionCommunicated",
+      "type": "BOOLEAN",
+      "required": true
+    }
+  ],
+  "derive": [
+    {
+      "name": "elapsedDays",
+      "expr": {
+        "op": "daysBetween",
+        "args": [
+          {
+            "var": "clockStartedOn"
+          },
+          {
+            "var": "asOf"
+          }
+        ]
+      }
+    }
+  ],
+  "decision": {
+    "hitPolicy": "PRIORITY",
+    "outcomeRank": [
+      "BREACHED",
+      "WARNING",
+      "WITHIN_TAT",
+      "DECIDED"
+    ],
+    "noMatchOutcome": "BREACHED",
+    "missingInputOutcome": "BREACHED",
+    "missingConfigOutcome": "BREACHED",
+    "missingConfigReasonCode": "PROPOSAL_TAT_CONFIG_MISSING",
+    "collectReasonCodes": "WINNING_ONLY"
+  },
+  "rules": [
+    {
+      "ruleId": "TAT-BREACH",
+      "priority": 1,
+      "when": {
+        "op": "all",
+        "args": [
+          {
+            "op": "eq",
+            "args": [
+              {
+                "var": "decisionCommunicated"
+              },
+              {
+                "const": false
+              }
+            ]
+          },
+          {
+            "op": "gt",
+            "args": [
+              {
+                "var": "elapsedDays"
+              },
+              {
+                "param": "decisionDays"
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "outcome": "BREACHED",
+        "reasonCode": "PROPOSAL_TAT_BREACHED",
+        "params": {
+          "decisionDays": {
+            "param": "decisionDays"
+          },
+          "elapsedDays": {
+            "var": "elapsedDays"
+          }
+        },
+        "actions": [
+          "ESCALATE",
+          "INFORM_CUSTOMER"
+        ]
+      }
+    },
+    {
+      "ruleId": "TAT-WARNING",
+      "priority": 2,
+      "when": {
+        "op": "all",
+        "args": [
+          {
+            "op": "eq",
+            "args": [
+              {
+                "var": "decisionCommunicated"
+              },
+              {
+                "const": false
+              }
+            ]
+          },
+          {
+            "op": "isPresent",
+            "args": [
+              {
+                "param": "warningAtDays"
+              }
+            ]
+          },
+          {
+            "op": "gte",
+            "args": [
+              {
+                "var": "elapsedDays"
+              },
+              {
+                "op": "coalesce",
+                "args": [
+                  {
+                    "param": "warningAtDays"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "lte",
+            "args": [
+              {
+                "var": "elapsedDays"
+              },
+              {
+                "param": "decisionDays"
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "outcome": "WARNING",
+        "reasonCode": "PROPOSAL_TAT_WARNING",
+        "params": {
+          "decisionDays": {
+            "param": "decisionDays"
+          },
+          "elapsedDays": {
+            "var": "elapsedDays"
+          }
+        },
+        "actions": [
+          "ESCALATE"
+        ]
+      }
+    },
+    {
+      "ruleId": "TAT-WITHIN",
+      "priority": 3,
+      "when": {
+        "op": "all",
+        "args": [
+          {
+            "op": "eq",
+            "args": [
+              {
+                "var": "decisionCommunicated"
+              },
+              {
+                "const": false
+              }
+            ]
+          },
+          {
+            "op": "lte",
+            "args": [
+              {
+                "var": "elapsedDays"
+              },
+              {
+                "param": "decisionDays"
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "outcome": "WITHIN_TAT",
+        "reasonCode": null
+      }
+    },
+    {
+      "ruleId": "TAT-DECIDED",
+      "priority": 4,
+      "when": {
+        "op": "eq",
+        "args": [
+          {
+            "var": "decisionCommunicated"
+          },
+          {
+            "const": true
+          }
+        ]
+      },
+      "then": {
+        "outcome": "DECIDED",
+        "reasonCode": null
+      }
+    }
+  ],
+  "parameters": {
+    "decisionDays": 7,
+    "warningAtDays": null,
+    "startEvent": "PROPOSAL_RECEIPT_BY_INSURER"
+  },
+  "reasonCodes": {
+    "RULE_INPUT_MISSING": {
+      "severity": "BLOCK",
+      "rmText": "Required inputs missing: @missing.",
+      "customerText": null
+    },
+    "RULE_INPUT_INVALID": {
+      "severity": "BLOCK",
+      "rmText": "Inputs not in the expected form: @missing.",
+      "customerText": null
+    },
+    "PROPOSAL_TAT_BREACHED": {
+      "severity": "BLOCK",
+      "rmText": "Insurer decision overdue: @elapsedDays days elapsed, limit @decisionDays.",
+      "customerText": null
+    },
+    "PROPOSAL_TAT_WARNING": {
+      "severity": "CAUTION",
+      "rmText": "Insurer decision pending for @elapsedDays of @decisionDays days.",
+      "customerText": null
+    },
+    "PROPOSAL_TAT_CONFIG_MISSING": {
+      "severity": "BLOCK",
+      "rmText": "TAT configuration incomplete (@missingParameters).",
+      "customerText": null
+    }
+  },
+  "testCases": [
+    {
+      "name": "D8-day-3-within",
+      "inputs": {
+        "asOf": "2026-11-04",
+        "clockStartedOn": "2026-11-01",
+        "decisionCommunicated": false
+      },
+      "expect": {
+        "outcome": "WITHIN_TAT",
+        "derived": {
+          "elapsedDays": 3
+        }
+      }
+    },
+    {
+      "name": "D8-day-7-within",
+      "inputs": {
+        "asOf": "2026-11-08",
+        "clockStartedOn": "2026-11-01",
+        "decisionCommunicated": false
+      },
+      "expect": {
+        "outcome": "WITHIN_TAT"
+      }
+    },
+    {
+      "name": "D8-day-8-breached",
+      "inputs": {
+        "asOf": "2026-11-09",
+        "clockStartedOn": "2026-11-01",
+        "decisionCommunicated": false
+      },
+      "expect": {
+        "outcome": "BREACHED",
+        "reasonCodes": [
+          "PROPOSAL_TAT_BREACHED"
+        ],
+        "messages": [
+          "Insurer decision overdue: 8 days elapsed, limit 7."
+        ]
+      }
+    },
+    {
+      "name": "D8-decided",
+      "inputs": {
+        "asOf": "2026-11-21",
+        "clockStartedOn": "2026-11-01",
+        "decisionCommunicated": true
+      },
+      "expect": {
+        "outcome": "DECIDED"
+      }
+    },
+    {
+      "name": "D8-warning-unset-no-warning",
+      "inputs": {
+        "asOf": "2026-11-07",
+        "clockStartedOn": "2026-11-01",
+        "decisionCommunicated": false
+      },
+      "expect": {
+        "outcome": "WITHIN_TAT",
+        "fired": [
+          "TAT-WITHIN"
+        ]
+      }
+    }
+  ]
+}

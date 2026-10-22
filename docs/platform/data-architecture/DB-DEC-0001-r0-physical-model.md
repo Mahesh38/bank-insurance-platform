@@ -1,5 +1,13 @@
 # DB-DEC-0001 — R0 physical model
 
+> **Amended by [`DB-DEC-0005`](./DB-DEC-0005-dynamodb-working-payload.md) (2026-10-21, owner HUMAN ratification).** The rejection
+> of DynamoDB below still holds for Journey, Audit, Payment and every other context, but **pre-payment
+> quote and proposal working state now lives in DynamoDB** (`{env}-quotation-working`,
+> `{env}-proposal-working`, [table design](./schemas/20-dynamodb-working-payload.md)); structured
+> Aurora rows are written after `RECONCILED`. Audit storage is the subject of
+> [`ADR-026`](../architecture-review/ADR-026-audit-store-and-transport.md) (**proposed**: Aurora schema
+> `audit`, not DynamoDB). Customer ids are ULIDs (`D-023`).
+
 Draft Aarti decision record. Format:
 [`04-operating-and-review-contract.md` §4](../../context/roles/principal-insurance-data-database-architect/04-operating-and-review-contract.md#4-standard-aarti--dba-decision-output).
 

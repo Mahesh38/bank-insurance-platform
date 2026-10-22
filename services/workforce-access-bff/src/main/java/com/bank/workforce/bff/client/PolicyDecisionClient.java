@@ -46,6 +46,9 @@ public class PolicyDecisionClient {
             .clone()
             .requestFactory(factory)
             .baseUrl(properties.authorizationServiceBaseUrl().toString())
+            .defaultHeader(
+                DownstreamProperties.AUTHORIZATION_INTERNAL_KEY_HEADER,
+                properties.authorizationServiceInternalKey())
             .build();
     this.serviceErrors = serviceErrors;
   }

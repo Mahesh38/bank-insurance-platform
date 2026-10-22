@@ -11,6 +11,7 @@
 | **Calls out** | Customer, Lead, Consent, Suitability, Catalogue, Quotation, Proposal, Payment, Policy, Administration-config — **never** the Integration Hub, never an adapter, never another schema |
 | **Owns data** | Aurora schema **`journey`** (`journey`, `journey_ref`, `journey_transition`, `outbox_event`, `idempotency_record`) · role `app_journey` |
 | **Code status** | **SKELETON**. Paths CONTRACTED (HLD §5.3 + BFF §5.1); command bodies **PROPOSED** from [06 journey and working payload](../../data-architecture/06-journey-orchestrator-and-working-payload.md) |
+| **Contract** | [`contracts/journey-orchestration-service/openapi.yaml`](../../contracts/journey-orchestration-service/openapi.yaml) + [LLD](../../contracts/journey-orchestration-service/LLD.md) — authoritative (ADR-027). **D5:** `CONSENT_CAPTURED` now means checkpoint `BEFORE_MULTI_QUOTE` (`CNS-DP`, `CNS-SOL`, `CNS-QSH` from `CONSENT.POLICY`) is satisfied — consent is checked and only missing purposes captured after suitability, and re-checked before the quote call; `CNS-SHR` is checked before proposal submit. Consent endpoints are `POST …/{journeyId}/consents` (+ relayed verify). `channel` uses the DDL vocabulary (`RM_ASSISTED`); `customerId` is the ULID (D3); Customer down at start → journey created at `INITIATED` with `party_snapshot_ref` NULL |
 
 ---
 

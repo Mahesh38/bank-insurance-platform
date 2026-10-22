@@ -21,6 +21,7 @@ class PdpLeadAuthorizationAdapterTest {
   private HttpServer pdp;
   private final AtomicReference<String> answer = new AtomicReference<>();
   private final AtomicReference<String> lastRequest = new AtomicReference<>();
+  private final AtomicReference<String> lastKey = new AtomicReference<>();
   private volatile long delayMillis;
   private PdpLeadAuthorizationAdapter adapter;
 
@@ -30,6 +31,7 @@ class PdpLeadAuthorizationAdapterTest {
     pdp.createContext(
         "/internal/v1/authorization/decisions",
         exchange -> {
+          lastKey.set(exchange.getRequestHeaders().getFirst("X-Internal-Service-Key"));
           lastRequest.set(
               new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
           try {
@@ -48,7 +50,8 @@ class PdpLeadAuthorizationAdapterTest {
         new PdpLeadAuthorizationAdapter(
             RestClient.builder(),
             "http://127.0.0.1:" + pdp.getAddress().getPort(),
-            Duration.ofMillis(300));
+            Duration.ofMillis(300),
+            "lead-test-internal-key");
   }
 
   @AfterEach
@@ -67,6 +70,14 @@ class PdpLeadAuthorizationAdapterTest {
     assertThat(denied.allowed()).isFalse();
     assertThat(denied.unavailable()).isFalse();
     assertThat(denied.reasonCode()).isEqualTo("BRANCH_OUT_OF_SCOPE");
+  }
+
+  @Test
+  void presentsTheServiceKeyToThePdp() {
+    answer.set(decision(true, "ROLE_GRANT"));
+    adapter.decide(SUBJECT, "lead.read", "L1", null);
+
+    assertThat(lastKey.get()).isEqualTo("lead-test-internal-key");
   }
 
   @Test

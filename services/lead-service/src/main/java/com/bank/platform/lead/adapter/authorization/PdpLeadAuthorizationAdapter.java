@@ -18,18 +18,24 @@ import org.springframework.web.client.RestClientException;
  * retry). Fail closed: a timeout, an error status or an empty body is {@code unavailable}, never an
  * allow. A principal that is not a business-user UUID (the BFF falls back to the username when a
  * session has none) is denied without a call.
+ *
+ * <p>The PDP authenticates its callers ({@code X-Internal-Service-Key}, READINESS-REVIEW §3.7);
+ * lead-service presents its own key from {@code lead.authorization.internal-key}.
  */
 @Component
 public class PdpLeadAuthorizationAdapter implements LeadAuthorizationPort {
 
   private static final Logger log = LoggerFactory.getLogger(PdpLeadAuthorizationAdapter.class);
 
+  static final String INTERNAL_KEY_HEADER = "X-Internal-Service-Key";
+
   private final RestClient client;
 
   public PdpLeadAuthorizationAdapter(
       RestClient.Builder builder,
       @Value("${lead.authorization.base-url}") String baseUrl,
-      @Value("${lead.authorization.decision-timeout:300ms}") Duration timeout) {
+      @Value("${lead.authorization.decision-timeout:300ms}") Duration timeout,
+      @Value("${lead.authorization.internal-key}") String internalKey) {
     HttpClient httpClient =
         HttpClient.newBuilder()
             .version(HttpClient.Version.HTTP_1_1)
@@ -37,7 +43,13 @@ public class PdpLeadAuthorizationAdapter implements LeadAuthorizationPort {
             .build();
     JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(httpClient);
     factory.setReadTimeout(timeout);
-    this.client = builder.clone().requestFactory(factory).baseUrl(baseUrl).build();
+    this.client =
+        builder
+            .clone()
+            .requestFactory(factory)
+            .baseUrl(baseUrl)
+            .defaultHeader(INTERNAL_KEY_HEADER, internalKey)
+            .build();
   }
 
   @Override

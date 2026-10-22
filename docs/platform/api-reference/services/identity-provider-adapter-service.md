@@ -9,9 +9,11 @@
 | **Base path** | `/internal/v1` — cluster-private |
 | **Callers** | `workforce-access-bff` (auth) · `identity-authorization-service` (provisioning, after maker-checker approval) |
 | **Caller authentication** | `X-Internal-Service-Key` header on **every** `/internal/v1/**` call, compared by `InternalServiceAuthFilter`. Missing / wrong → `401 UNAUTHORIZED` |
-| **Calls out** | Bank AD-verify API (UAT/prod: Apigee **private** target; never LDAP from EKS) · Keycloak OIDC endpoints and admin REST API |
+| **Calls out** | Bank AD-verify API (UAT/prod: Apigee **private** target; never LDAP from EKS) · Keycloak OIDC endpoints, JWKS and admin REST API — every outbound client bounded at connect 1 s / read 3 s (`identity.ad-verify.*-timeout`, `identity.provider.keycloak.connect-timeout` / `read-timeout`), nesting inside the BFF's 4.5 s budget |
+| **ID-token failures** | Signature, audience, nonce or subject mismatch on token exchange / refresh → typed `401 AUTHENTICATION_FAILED` (was an unmapped `500`) |
 | **Owns data** | None. Keycloak's realm DB belongs to Keycloak |
 | **Code status** | **IMPLEMENTED** — all 7 endpoints |
+| **Contract** | **Authoritative (ADR-027):** [`contracts/identity-provider-adapter-service/openapi.yaml`](../../contracts/identity-provider-adapter-service/openapi.yaml) · [LLD](../../contracts/identity-provider-adapter-service/LLD.md). Where this page and the contract differ, the contract wins. |
 
 ---
 
@@ -60,7 +62,8 @@ The BFF accepts the login only when `authenticated && accountActive`.
    `stub` **refuses to start under the `prod` profile**.
 3. **Mode `http`**: `POST {BANK_AD_VERIFY_BASE_URL}{BANK_AD_VERIFY_PATH}` (default path
    `/ad/authenticate`) with body `{employeeId, password}` and API key header
-   (`X-API-Key` by default). Timeouts 3 s connect / 5 s read.
+   (`X-API-Key` by default). Timeouts 1 s connect / 3 s read (were 3 s / 5 s, which no longer fit
+   inside the BFF's 4.5 s identity-provider budget).
 4. Response parsing is tolerant because the bank has not published its schema
    (`DEP-20260914-apg`): a bare `true`/`false`, a JSON boolean, a quoted boolean, or an object with
    `authenticated` | `success` | `isAuthenticated` and optional `accountActive` / `active`,

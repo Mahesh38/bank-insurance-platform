@@ -1,0 +1,196 @@
+{
+  "format": "rule-set/v1",
+  "ruleSetId": "HUB.ROUTING",
+  "domain": "HUB_ROUTING",
+  "scope": {
+    "lob": null,
+    "productClass": null
+  },
+  "version": "1.0.0",
+  "effectiveFrom": "2026-11-01T00:00:00+05:30",
+  "effectiveTo": null,
+  "classification": "OPERATIONAL",
+  "pinning": "NONE",
+  "description": "Integration Hub routing policy: which provider adapter serves (lob, productClass, insurer). FIRST match wins.",
+  "source": {
+    "document": "docs/platform/api-reference/services/integration-hub-service.md",
+    "sections": [
+      "2.1 canonical operations and how they route today",
+      "3.1 step 2 (routing policy, fail closed)",
+      "3.1 step 7 (provider ONE_SB)"
+    ]
+  },
+  "governance": {
+    "status": "DRAFT-awaiting-approval",
+    "signatureStatus": "AI-DRAFTED - mandatory content-owner approval outstanding (ADR-024 section 7)",
+    "contentApprovers": [
+      "Mahesh (repository owner)"
+    ],
+    "approverRole": "CONFIG_APPROVER",
+    "seededBy": "SUG-20261021-rul (owner-directed build, ADMIT-BYPASS)",
+    "openItems": [
+      "Direct-insurer routes arrive as new rules ahead of R0-LIFE-ONE_SB when an adapter is admitted"
+    ]
+  },
+  "inputs": [
+    {
+      "name": "lob",
+      "type": "ENUM",
+      "required": true,
+      "values": [
+        "LIFE",
+        "HEALTH",
+        "GENERAL"
+      ]
+    },
+    {
+      "name": "productClass",
+      "type": "STRING",
+      "required": true
+    },
+    {
+      "name": "insurerCode",
+      "type": "STRING",
+      "required": false
+    },
+    {
+      "name": "operation",
+      "type": "STRING",
+      "required": false
+    }
+  ],
+  "decision": {
+    "hitPolicy": "FIRST",
+    "noMatchOutcome": "NO_ROUTE",
+    "noMatchReasonCode": "NO_ROUTE_CONFIGURED",
+    "missingInputOutcome": "NO_ROUTE",
+    "missingConfigOutcome": "NO_ROUTE",
+    "missingConfigReasonCode": "HUB_ROUTING_CONFIG_MISSING",
+    "collectReasonCodes": "WINNING_ONLY"
+  },
+  "rules": [
+    {
+      "ruleId": "R0-LIFE-ONE_SB",
+      "priority": 100,
+      "when": {
+        "op": "all",
+        "args": [
+          {
+            "op": "eq",
+            "args": [
+              {
+                "var": "lob"
+              },
+              {
+                "const": "LIFE"
+              }
+            ]
+          },
+          {
+            "op": "in",
+            "args": [
+              {
+                "var": "productClass"
+              },
+              {
+                "param": "r0.lifeProductClasses"
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "outcome": {
+          "param": "r0.provider"
+        },
+        "reasonCode": "ROUTE_R0_ONE_SB"
+      }
+    }
+  ],
+  "parameters": {
+    "r0": {
+      "provider": "ONE_SB",
+      "lifeProductClasses": [
+        "TERM",
+        "SAVINGS",
+        "ULIP"
+      ]
+    }
+  },
+  "reasonCodes": {
+    "RULE_INPUT_MISSING": {
+      "severity": "BLOCK",
+      "rmText": "Required inputs missing: @missing.",
+      "customerText": null
+    },
+    "RULE_INPUT_INVALID": {
+      "severity": "BLOCK",
+      "rmText": "Inputs not in the expected form: @missing.",
+      "customerText": null
+    },
+    "ROUTE_R0_ONE_SB": {
+      "severity": "INFO",
+      "rmText": "Routed to 1SB (R0 policy).",
+      "customerText": null
+    },
+    "NO_ROUTE_CONFIGURED": {
+      "severity": "BLOCK",
+      "rmText": "No provider route configured; refuse with CONFIGURATION_UNRESOLVABLE.",
+      "customerText": null
+    },
+    "HUB_ROUTING_CONFIG_MISSING": {
+      "severity": "BLOCK",
+      "rmText": "Routing configuration incomplete (@missingParameters).",
+      "customerText": null
+    }
+  },
+  "testCases": [
+    {
+      "name": "R0-term",
+      "inputs": {
+        "lob": "LIFE",
+        "productClass": "TERM",
+        "insurerCode": "INS01"
+      },
+      "expect": {
+        "outcome": "ONE_SB",
+        "fired": [
+          "R0-LIFE-ONE_SB"
+        ]
+      }
+    },
+    {
+      "name": "R0-savings",
+      "inputs": {
+        "lob": "LIFE",
+        "productClass": "SAVINGS"
+      },
+      "expect": {
+        "outcome": "ONE_SB"
+      }
+    },
+    {
+      "name": "R0-ulip",
+      "inputs": {
+        "lob": "LIFE",
+        "productClass": "ULIP"
+      },
+      "expect": {
+        "outcome": "ONE_SB"
+      }
+    },
+    {
+      "name": "no-route-health",
+      "inputs": {
+        "lob": "HEALTH",
+        "productClass": "INDEMNITY"
+      },
+      "expect": {
+        "outcome": "NO_ROUTE",
+        "reasonCodes": [
+          "NO_ROUTE_CONFIGURED"
+        ]
+      }
+    }
+  ]
+}

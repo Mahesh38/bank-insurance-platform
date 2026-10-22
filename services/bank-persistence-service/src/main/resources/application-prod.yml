@@ -17,6 +17,10 @@ management:
     health:
       show-details: never
 
+persistence:
+  internal-auth:
+    shared-secret: ${PERSISTENCE_INTERNAL_SHARED_SECRET}
+
 logging:
   level:
     com.bank.persistence: INFO

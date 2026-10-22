@@ -53,8 +53,7 @@ public class BffSessionInterceptor implements HandlerInterceptor {
           .build();
     }
     WorkforceSession session =
-        sessions
-            .getSession(handle)
+        readable(handle)
             .orElseThrow(
                 () ->
                     errors
@@ -65,6 +64,15 @@ public class BffSessionInterceptor implements HandlerInterceptor {
                         .build());
     request.setAttribute(SESSION_ATTR, session);
     return true;
+  }
+
+  // Same rule as BffSessionAuthenticationFilter: an undecryptable session is an expired one.
+  private java.util.Optional<WorkforceSession> readable(String handle) {
+    try {
+      return sessions.getSession(handle);
+    } catch (IllegalStateException unreadable) {
+      return java.util.Optional.empty();
+    }
   }
 
   public static WorkforceSession requireSession(HttpServletRequest request) {

@@ -26,6 +26,7 @@ public final class Lead {
   private ReportingClass reportingClass;
   private String journeyId;
   private Instant updatedAt;
+  private Instant expiresAt;
   private long version;
 
   public Lead(
@@ -74,6 +75,7 @@ public final class Lead {
     lead.reportingClass = Objects.requireNonNull(snapshot.reportingClass());
     lead.journeyId = snapshot.journeyId();
     lead.updatedAt = Objects.requireNonNull(snapshot.updatedAt());
+    lead.expiresAt = snapshot.expiresAt();
     lead.version = snapshot.version();
     return lead;
   }
@@ -97,6 +99,7 @@ public final class Lead {
       ReportingClass reportingClass,
       String journeyId,
       Instant updatedAt,
+      Instant expiresAt,
       long version) {}
 
   public Snapshot snapshot() {
@@ -118,6 +121,7 @@ public final class Lead {
         reportingClass,
         journeyId,
         updatedAt,
+        expiresAt,
         version);
   }
 
@@ -199,25 +203,65 @@ public final class Lead {
     return updatedAt;
   }
 
+  /** Ageing horizon; null while {@code lead.expiry-days} is unset (value is OPEN-D4). */
+  public Instant expiresAt() {
+    return expiresAt;
+  }
+
+  /** Set once, at create, by the application service from configuration. */
+  public void expireAt(Instant at) {
+    if (version != 0) {
+      throw new IllegalLeadTransitionException("expiry is set when the lead is created");
+    }
+    this.expiresAt = at;
+  }
+
+  /** DISQUALIFIED (the close path), CONVERTED, EXPIRED and ARCHIVED admit no further command. */
+  public boolean terminal() {
+    return state == LeadState.DISQUALIFIED
+        || state == LeadState.CONVERTED
+        || state == LeadState.EXPIRED
+        || state == LeadState.ARCHIVED;
+  }
+
   public DashboardStage dashboardStage() {
     return DashboardStage.fromLead(state);
   }
 
   public boolean unfinished() {
-    return !biGenerated
-        && state != LeadState.DISQUALIFIED
-        && state != LeadState.CONVERTED
-        && state != LeadState.ARCHIVED
-        && state != LeadState.EXPIRED;
+    return !biGenerated && !terminal();
   }
 
+  /**
+   * Refuses re-evaluation on a terminal lead, while an {@code APPROVAL_REQUIRED} hold awaits AUBIMA
+   * (only the approval workflow releases it — Exception Handling BRD §4.2), and once the lead is
+   * {@code BLOCK}ed: a later {@code PASS} must not silently clear either (READINESS-REVIEW §3.6).
+   */
   public void applyExceptionOutcome(ExceptionOutcome outcome, Instant at) {
-    this.exceptionOutcome = Objects.requireNonNull(outcome);
+    Objects.requireNonNull(outcome);
+    if (outcome == ExceptionOutcome.NOT_EVALUATED) {
+      throw new IllegalArgumentException("NOT_EVALUATED is not an evaluation result");
+    }
+    requireEvaluable();
+    this.exceptionOutcome = outcome;
     this.exceptionHold = outcome == ExceptionOutcome.APPROVAL_REQUIRED;
     this.updatedAt = at;
   }
 
+  /** Throws unless Start Onboarding may (re-)evaluate the exception rules for this lead. */
+  public void requireEvaluable() {
+    requireNotTerminal("evaluate exception rules on");
+    if (exceptionHold) {
+      throw new IllegalLeadTransitionException("exception hold awaiting approval");
+    }
+    if (exceptionOutcome == ExceptionOutcome.BLOCK) {
+      throw new IllegalLeadTransitionException("exception rules blocked onboarding");
+    }
+  }
+
+  /** {@code BR-CLOSE-001}: a closed (or otherwise terminal) lead is never reassigned. */
   public void assign(String rmId, String spId, Instant at) {
+    requireNotTerminal("assign");
     this.assignedRmId = Objects.requireNonNull(rmId);
     this.assignedSpId = spId;
     if (this.accountableSpId == null) {
@@ -235,8 +279,15 @@ public final class Lead {
   }
 
   public void close(Instant at) {
+    requireNotTerminal("close");
     this.state = LeadState.DISQUALIFIED;
     this.updatedAt = at;
+  }
+
+  private void requireNotTerminal(String action) {
+    if (terminal()) {
+      throw new IllegalLeadTransitionException("cannot " + action + " a lead in state " + state);
+    }
   }
 
   public boolean visibleTo(String principalId) {

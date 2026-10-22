@@ -3,7 +3,9 @@
 [← API reference home](../README.md) · Prev: [01](./01-bank-rm-login.md) · Next: [03](./03-session-lifecycle-and-logout.md)
 
 **Status: IMPLEMENTED** (BFF, adapter, PDP). Partner users must first be created by a bank admin
-(maker) and approved by a second admin (checker); approval provisions them into Keycloak.
+(maker) and approved by a second admin (checker); approval queues provisioning into Keycloak, and
+the partner stays `PENDING` until that provisioning succeeds — only then is it `ACTIVE` and able to
+log in.
 
 **In one sentence:** the BFF starts an OIDC authorization-code flow with PKCE against the private
 Keycloak, the browser logs in at Keycloak, Keycloak redirects back to the BFF callback, the BFF
@@ -18,20 +20,28 @@ sequenceDiagram
     participant Checker as Bank admin (checker)
     participant AZ as identity-authorization
     participant DB as Aurora identity
-    participant D as ProvisioningOutboxDispatcher (every 5 s)
+    participant D as ProvisioningOutboxDispatcher (poll-interval, default 5 s)
     participant IDPA as identity-provider-adapter
     participant KC as Keycloak admin API
-    Maker->>AZ: POST /internal/v1/partner-users {username, email, insurerCode} (X-Actor-Id maker)
+    Maker->>AZ: POST /internal/v1/partner-users {username, email, insurerCode} (X-Internal-Service-Key BFF, X-Actor-Id maker)
+    AZ->>AZ: PDP: maker allowed partner_user.create on insurerCode?
     AZ->>DB: INSERT business_user (INSURER_REPRESENTATIVE, PENDING) + approval_request (PENDING)
     AZ-->>Maker: 202 {userId, approvalId, status: PENDING}
-    Checker->>AZ: POST /internal/v1/approval-requests/{approvalId}/approve (X-Actor-Id checker ≠ maker)
-    AZ->>DB: approval APPROVED · user ACTIVE · INSERT outbox_event IDENTITY_PROVISIONING_REQUESTED (one txn)
-    D->>DB: SELECT unpublished events (attempts < 10)
+    Checker->>AZ: POST /internal/v1/approval-requests/{approvalId}/approve (X-Internal-Service-Key BFF, X-Actor-Id checker ≠ maker)
+    AZ->>AZ: PDP: checker allowed partner_user.approve on the partner's insurer?
+    AZ->>DB: approval APPROVED · user stays PENDING (policy_version+1) · INSERT outbox_event IDENTITY_PROVISIONING_REQUESTED (one txn)
+    AZ-->>Checker: 200 {approvalId, targetStatus: PENDING}
+    D->>DB: claim due rows FOR UPDATE SKIP LOCKED · set claimed_until (lease)
     D->>IDPA: POST /internal/v1/identities {businessUserId, username, email, insurerCode, enabled}
     IDPA->>KC: client_credentials token · search username · create user (attrs business_user_id, insurer_code; UPDATE_PASSWORD)
     IDPA-->>D: 201 {providerSubjectId}
-    D->>DB: business_user.provider_subject = …, outbox published_at
+    D->>DB: business_user.provider_subject = …, status ACTIVE · outbox published_at
 ```
+
+A provisioning failure releases the lease and retries; after `identity.provisioning.max-attempts`
+(default 10) the row is dead-lettered (`dead_lettered_at`, `ERROR` log) and the partner stays
+`PENDING` until an operator acts. A login attempted while the partner is still `PENDING` fails the
+activation check below.
 
 ## 1. Login sequence
 
@@ -80,7 +90,7 @@ sequenceDiagram
 |---|---|---|
 | Login | `returnUri` exactly in the allow-list (`WORKFORCE_WEB_RETURN_URI`, `WORKFORCE_NATIVE_RETURN_URI`) | `400 SCHEMA_INVALID` |
 | Callback | `state` exists and unused (5 min) | `400 SCHEMA_INVALID` ("Login transaction is invalid or expired") |
-| Token exchange | PKCE verifier matches; id-token audience, nonce, subject | Keycloak `400` or adapter failure → upstream error |
+| Token exchange | PKCE verifier matches; id-token signature, audience, nonce, subject | Keycloak `400` → upstream error; id-token check failure → adapter `401 AUTHENTICATION_FAILED` (was a `500`), relayed by the BFF |
 | Resolve | Partner exists (approved) | Unknown partner → `403 FORBIDDEN` ("must be approved before first login") |
 | Activation | `status = ACTIVE` | Refresh token **revoked**, then `401 AUTHENTICATION_FAILED` |
 | Native exchange | Completion code exists and unused (1 min) | `400 SCHEMA_INVALID` |

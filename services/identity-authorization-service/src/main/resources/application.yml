@@ -22,12 +22,29 @@ spring:
       enabled: true
 
 identity:
+  # Caller authentication for /internal/v1/** (READINESS-REVIEW §3.7). One key per calling service;
+  # only actor-callers may set X-Actor-Id (maker / checker). Development-only defaults; production
+  # has none (application-prod.yml).
+  internal-auth:
+    callers:
+      workforce-access-bff: ${IDENTITY_AUTHZ_BFF_INTERNAL_KEY:local-authz-bff-internal-key}
+      lead-service: ${IDENTITY_AUTHZ_LEAD_INTERNAL_KEY:local-authz-lead-internal-key}
+    actor-callers:
+      - workforce-access-bff
   provider-adapter:
     base-url: ${IDENTITY_PROVIDER_ADAPTER_BASE_URL:http://localhost:8082}
     internal-key: ${IDENTITY_ADAPTER_INTERNAL_SHARED_SECRET:local-idp-adapter-internal-key}
+    connect-timeout: ${IDENTITY_PROVIDER_ADAPTER_CONNECT_TIMEOUT:1s}
+    read-timeout: ${IDENTITY_PROVIDER_ADAPTER_READ_TIMEOUT:3s}
   provisioning:
     enabled: ${IDENTITY_PROVISIONING_ENABLED:false}
     poll-interval: ${IDENTITY_PROVISIONING_POLL_INTERVAL:5000}
+    initial-delay: ${IDENTITY_PROVISIONING_INITIAL_DELAY:5000}
+    batch-size: 20
+    # Parked (dead_lettered_at) and logged at ERROR after this many failures.
+    max-attempts: ${IDENTITY_PROVISIONING_MAX_ATTEMPTS:10}
+    # In-flight lease; must exceed batch-size x (connect + read) so a slow batch is not re-claimed.
+    lease: 2m
 
 management:
   endpoints:

@@ -90,4 +90,32 @@ class LeadControllerTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.items[0].leadId").value(leadId));
   }
+
+  @Test
+  void dedupeConflictTellsTheAppWhichLeadToContinue() throws Exception {
+    String body =
+        "{\"customerId\":\"cust-dup\",\"lob\":\"LIFE\",\"productClass\":\"SAVINGS\",\"branchId\":\"BR-1\"}";
+    MvcResult created =
+        mockMvc
+            .perform(
+                post("/internal/v1/leads")
+                    .header("X-Actor-Id", "rm-dup")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(body))
+            .andExpect(status().isCreated())
+            .andReturn();
+    String leadId =
+        objectMapper.readTree(created.getResponse().getContentAsString()).get("leadId").asText();
+
+    mockMvc
+        .perform(
+            post("/internal/v1/leads")
+                .header("X-Actor-Id", "rm-dup")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body))
+        .andExpect(status().isConflict())
+        .andExpect(jsonPath("$.code").value("CONFLICT"))
+        .andExpect(jsonPath("$.errors[0].field").value("leadId"))
+        .andExpect(jsonPath("$.errors[0].message").value(leadId));
+  }
 }

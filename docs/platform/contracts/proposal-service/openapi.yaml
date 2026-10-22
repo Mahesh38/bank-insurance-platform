@@ -1,0 +1,629 @@
+openapi: 3.1.0
+info:
+  title: proposal-service internal API
+  version: 1.0.0-draft
+  summary: Insurer proposal form, submission through the Hub, UW tracking, payment hold, materialise and post-payment status history.
+  description: |
+    **Status:** AI-DRAFTED 2026-10-21 (ADR-027 contract authority), awaiting Amit (engineering) and
+    Mahesh (architecture) review; post-payment lifecycle per D8 awaits Aarti (DBA) on the DDL.
+
+    `x-implementation-status: BUILT` operations exist in `services/proposal-service`; `PLANNED`
+    ones are contracted but not built (the conformance test skips them). Design: [LLD.md](./LLD.md).
+  contact:
+    name: proposal-service owners (Amit, engineering)
+servers:
+  - url: http://proposal-service:8097
+    description: In-cluster only (mesh mTLS target).
+tags:
+  - name: proposals
+  - name: payment-hold
+  - name: events
+paths:
+  /internal/v1/proposals/form-schema:
+    get:
+      tags: [proposals]
+      operationId: getFormSchema
+      x-implementation-status: PLANNED
+      summary: Bank-envelope dynamic proposal form for the selected offer (Hub PROPOSAL_FORM_SCHEMA, cached).
+      parameters:
+        - { name: quoteId, in: query, required: true, schema: { $ref: '#/components/schemas/Ulid' } }
+        - { name: offerId, in: query, required: true, schema: { $ref: '#/components/schemas/Ulid' } }
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Form schema. `questionText` is what the customer is shown and is stored with each answer.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FormSchema' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422':
+          description: '`INVALID_OFFER_REFERENCE` (offer is not the selected offer of a `SELECTED` quote).'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '503':
+          description: '`UPSTREAM_UNAVAILABLE`.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+  /internal/v1/proposals:
+    post:
+      tags: [proposals]
+      operationId: createProposal
+      x-implementation-status: PLANNED
+      summary: Create a DRAFT for the selected offer. The quote stays SELECTED (D8).
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateProposalRequest' }
+      responses:
+        '201':
+          description: Created (or idempotent replay).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProposalCreated' }
+        '400': { $ref: '#/components/responses/MissingIdempotencyKey' }
+        '409':
+          description: '`IDEMPOTENCY_CONFLICT` · `REQUEST_IN_PROGRESS` · `CONFLICT` (an open proposal exists for the journey).'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '422':
+          description: '`INVALID_OFFER_REFERENCE` (INV-PRP-02) · `ISSUANCE_MODE_INVALID` (INV-PRP-06; NEW code) · `CONFIGURATION_UNRESOLVABLE` · `VALIDATION_ERROR` · `OPPORTUNITY_REQUIRED`.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+  /internal/v1/proposals/{proposalId}:
+    get:
+      tags: [proposals]
+      operationId: getProposal
+      x-implementation-status: PLANNED
+      summary: Proposal state (read-path switch — Aurora record + latest status history after materialise, else DynamoDB).
+      parameters:
+        - $ref: '#/components/parameters/ProposalId'
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: The proposal. Never returns answers, nominee or other form PII.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Proposal' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /internal/v1/proposals/{proposalId}/answers:
+    put:
+      tags: [proposals]
+      operationId: saveAnswers
+      x-implementation-status: PLANNED
+      summary: Save form answers (page by page) into the encrypted envelope. DRAFT only.
+      parameters:
+        - $ref: '#/components/parameters/ProposalId'
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SaveAnswersRequest' }
+      responses:
+        '200':
+          description: Saved.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [proposalId, state, missingMandatoryQuestions]
+                properties:
+                  proposalId: { $ref: '#/components/schemas/Ulid' }
+                  state: { $ref: '#/components/schemas/ProposalState' }
+                  missingMandatoryQuestions:
+                    type: array
+                    items: { type: string }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: '`ILLEGAL_TRANSITION` (not `DRAFT`, or frozen) · `IDEMPOTENCY_CONFLICT` · `CONFLICT` (stale version).'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '413':
+          description: '`PAYLOAD_TOO_LARGE` — envelope would exceed the 350 KB budget.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '422':
+          description: '`VALIDATION_ERROR` (field errors per question) · `SCHEMA_INVALID` is not used here.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+  /internal/v1/proposals/{proposalId}/submit:
+    post:
+      tags: [proposals]
+      operationId: submitProposal
+      x-implementation-status: PLANNED
+      summary: Gate C2 (consent checkpoint BEFORE_PROPOSAL_SUBMIT) then submit to the insurer via the Hub — no retry on submit.
+      parameters:
+        - $ref: '#/components/parameters/ProposalId'
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '202':
+          description: '`SUBMITTED`; the application number arrives asynchronously (`UNDER_WRITING`).'
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [proposalId, state]
+                properties:
+                  proposalId: { $ref: '#/components/schemas/Ulid' }
+                  state: { $ref: '#/components/schemas/ProposalState' }
+        '403':
+          description: '`CONSENT_REQUIRED` (C2; `missingPurposes`, e.g. `CNS-SHR` scoped to the named insurer). Proposal stays `DRAFT`.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ConsentRequiredProblem' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: '`ILLEGAL_TRANSITION` (not `DRAFT`) · `QUOTE_EXPIRED` (the quote left its window; journey back to QUOTING, F-03).'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '422':
+          description: '`VALIDATION_ERROR` (mandatory answers missing) · `AGENT_ATTRIBUTION_MISSING` (adapter) · `PROPOSAL_REJECTED` (insurer refused synchronously).'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '503':
+          description: '`UPSTREAM_UNAVAILABLE` — Hub down before dispatch; proposal stays `DRAFT`.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+  /internal/v1/proposals/{proposalId}/counter-offer-decision:
+    post:
+      tags: [proposals]
+      operationId: decideCounterOffer
+      x-implementation-status: PLANNED
+      summary: Record the customer's answer to an insurer counter-offer (UW_COUNTER_OFFER → UW_APPROVED | CUSTOMER_DECLINED).
+      parameters:
+        - $ref: '#/components/parameters/ProposalId'
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [counterOfferId, decision]
+              properties:
+                counterOfferId: { $ref: '#/components/schemas/Ulid' }
+                decision: { type: string, enum: [ACCEPT, DECLINE] }
+      responses:
+        '200':
+          description: Decision recorded and relayed to the insurer via the Hub.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [proposalId, state]
+                properties:
+                  proposalId: { $ref: '#/components/schemas/Ulid' }
+                  state: { $ref: '#/components/schemas/ProposalState' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: '`ILLEGAL_TRANSITION` (not `UW_COUNTER_OFFER`, or counter-offer id stale).'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+  /internal/v1/proposals/{proposalId}/withdraw:
+    post:
+      tags: [proposals]
+      operationId: withdrawProposal
+      x-implementation-status: PLANNED
+      summary: Withdraw before AWAITING_PAYMENT (INV-PRP-04).
+      parameters:
+        - $ref: '#/components/parameters/ProposalId'
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [reasonCode]
+              properties:
+                reasonCode: { type: string, maxLength: 40 }
+                remarks: { type: string, maxLength: 500 }
+      responses:
+        '200':
+          description: '`WITHDRAWN`; open-proposal marker released.'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  proposalId: { $ref: '#/components/schemas/Ulid' }
+                  state: { $ref: '#/components/schemas/ProposalState' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: '`WITHDRAWAL_NOT_PERMITTED` (at/after `AWAITING_PAYMENT`) · `ILLEGAL_TRANSITION`.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+  /internal/v1/proposals/{proposalId}/payment-hold:
+    post:
+      tags: [payment-hold]
+      operationId: holdProposalForPayment
+      x-implementation-status: PLANNED
+      summary: Payment-service only. Proposal must be AWAITING_PAYMENT; sets paymentInFlight, removes ttl, returns the ids Payment needs.
+      description: |
+        Conditional write `SET paymentInFlight = true, heldByPaymentId = :p REMOVE ttl` with
+        `state = AWAITING_PAYMENT AND attribute_not_exists(materializedAt) AND
+        (attribute_not_exists(heldByPaymentId) OR heldByPaymentId = :p)`. Same `paymentId` again →
+        same body, no write. Replaces the "payable check" read in the older reference.
+      parameters:
+        - $ref: '#/components/parameters/ProposalId'
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [paymentId]
+              properties:
+                paymentId: { $ref: '#/components/schemas/Ulid' }
+      responses:
+        '200':
+          description: Held.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProposalPaymentHold' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: '`PROPOSAL_NOT_PAYABLE` (not `AWAITING_PAYMENT`) · `PAYMENT_ALREADY_IN_PROGRESS` (held by another payment) · `ILLEGAL_TRANSITION` (frozen).'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+  /internal/v1/proposals/{proposalId}/payment-release:
+    post:
+      tags: [payment-hold]
+      operationId: releaseProposalPaymentHold
+      x-implementation-status: PLANNED
+      summary: Payment-service only. Payment ended without RECONCILED — clear paymentInFlight, restore ttl. Proposal stays AWAITING_PAYMENT.
+      parameters:
+        - $ref: '#/components/parameters/ProposalId'
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [paymentId, paymentState]
+              properties:
+                paymentId: { $ref: '#/components/schemas/Ulid' }
+                paymentState: { type: string, enum: [DECLINED, EXPIRED, REJECTED, REFUNDED] }
+      responses:
+        '200':
+          description: Released, or a no-op when held by another payment / already released / materialised.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [proposalId, state, released]
+                properties:
+                  proposalId: { $ref: '#/components/schemas/Ulid' }
+                  state: { $ref: '#/components/schemas/ProposalState' }
+                  released: { type: boolean }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /internal/v1/proposals/{proposalId}/status-history:
+    get:
+      tags: [proposals]
+      operationId: getProposalStatusHistory
+      x-implementation-status: PLANNED
+      summary: Append-only post-payment status history (proposal.proposal_status_history), oldest first.
+      parameters:
+        - $ref: '#/components/parameters/ProposalId'
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: History; empty before materialise.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [proposalId, entries]
+                properties:
+                  proposalId: { $ref: '#/components/schemas/Ulid' }
+                  entries:
+                    type: array
+                    items: { $ref: '#/components/schemas/StatusHistoryEntry' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /internal/v1/events/payment-reconciled:
+    post:
+      tags: [events]
+      operationId: onPaymentReconciled
+      x-implementation-status: BUILT
+      summary: Internal delivery of PaymentReconciled until MSK exists — materialise proposal, answers, UW rows; first history row PAID.
+      description: |
+        Idempotent (schemas/20 §3.4). As built the body needs `eventId`, `proposalId`, `paymentId`;
+        other fields are ignored. As built it writes `proposal`, `uw_requirement`, `uw_document_ref`;
+        `proposal_answer` and the `PAID` history row are PLANNED (D8, DDL pending).
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PaymentReconciledData' }
+      responses:
+        '200':
+          description: Acknowledged.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [eventId, proposalId, outcome]
+                properties:
+                  eventId: { $ref: '#/components/schemas/Ulid' }
+                  proposalId: { $ref: '#/components/schemas/Ulid' }
+                  outcome: { type: string, enum: [MATERIALIZED, ALREADY_MATERIALIZED] }
+        '404':
+          description: '`RESOURCE_NOT_FOUND` — working item gone; repair sweep alerts.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '409':
+          description: '`ILLEGAL_TRANSITION` — working proposal not `AWAITING_PAYMENT`.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '422':
+          description: '`VALIDATION_ERROR`.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+components:
+  parameters:
+    ProposalId:
+      name: proposalId
+      in: path
+      required: true
+      schema: { $ref: '#/components/schemas/Ulid' }
+    ActorId:
+      name: X-Actor-Id
+      in: header
+      required: true
+      schema: { type: string, maxLength: 64 }
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: Server-derived on internal hops, e.g. `journey:{journeyId}:proposal`, `proposal:{proposalId}:submit`, `payment:{paymentId}:proposal-hold`.
+      schema: { type: string, maxLength: 128 }
+    CorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: false
+      schema: { type: string, format: uuid }
+  responses:
+    NotFound:
+      description: '`RESOURCE_NOT_FOUND`.'
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    MissingIdempotencyKey:
+      description: '`MISSING_IDEMPOTENCY_KEY`.'
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+  schemas:
+    Ulid:
+      type: string
+      pattern: '^[0-9A-HJKMNP-TV-Z]{26}$'
+    Money:
+      type: string
+      pattern: '^-?[0-9]{1,13}(\.[0-9]{1,2})?$'
+    ProposalState:
+      type: string
+      enum: [DRAFT, SUBMITTED, SUBMISSION_FAILED, UNDER_WRITING, REQUIREMENTS_PENDING, UW_APPROVED, UW_COUNTER_OFFER, UW_DECLINED, CUSTOMER_DECLINED, AWAITING_PAYMENT, PAID, CONVERTED, ISSUANCE_FAILED, REFUND_REQUIRED, WITHDRAWN, EXPIRED, ABANDONED]
+    IssuanceMode:
+      type: string
+      enum: [STP, NON_STP, INSTA]
+    FormSchema:
+      type: object
+      required: [schemaId, schemaVersion, questions]
+      properties:
+        schemaId: { type: string, maxLength: 64 }
+        schemaVersion: { type: string, maxLength: 20 }
+        questions:
+          type: array
+          items:
+            type: object
+            required: [questionId, questionText, type, mandatory]
+            properties:
+              questionId: { type: string, maxLength: 128 }
+              questionText: { type: string, maxLength: 2000 }
+              section: { type: string }
+              type: { type: string, enum: [TEXT, NUMBER, DATE, BOOLEAN, ENUM, MULTI_ENUM] }
+              mandatory: { type: boolean }
+              pattern: { type: string }
+              options:
+                type: array
+                items: { type: object, properties: { code: { type: string }, label: { type: string } } }
+              visibleWhen: { type: object, description: Visibility rule as supplied by the insurer form. }
+    CreateProposalRequest:
+      type: object
+      additionalProperties: false
+      required: [leadId, journeyId, customerId, quoteId, offerId, lob]
+      properties:
+        leadId: { $ref: '#/components/schemas/Ulid' }
+        journeyId: { $ref: '#/components/schemas/Ulid' }
+        customerId: { $ref: '#/components/schemas/Ulid' }
+        quoteId: { $ref: '#/components/schemas/Ulid' }
+        offerId: { $ref: '#/components/schemas/Ulid' }
+        lob: { type: string, const: LIFE }
+      description: '`issuanceMode`, `schemaId/Version` and `configVersionRef` are resolved by the service, never caller-supplied. `consentId` is resolved at submit (C2).'
+    ProposalCreated:
+      type: object
+      required: [proposalId, state, schemaId, schemaVersion, issuanceMode]
+      properties:
+        proposalId: { $ref: '#/components/schemas/Ulid' }
+        state: { $ref: '#/components/schemas/ProposalState' }
+        schemaId: { type: string }
+        schemaVersion: { type: string }
+        issuanceMode: { $ref: '#/components/schemas/IssuanceMode' }
+    SaveAnswersRequest:
+      type: object
+      additionalProperties: false
+      required: [schemaId, schemaVersion, answers]
+      properties:
+        schemaId: { type: string, maxLength: 64 }
+        schemaVersion: { type: string, maxLength: 20 }
+        answers:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            additionalProperties: false
+            required: [questionId, value]
+            properties:
+              questionId: { type: string, maxLength: 128 }
+              value: { description: 'Typed per the form schema. Stored encrypted only.' }
+        nominee:
+          type: object
+          additionalProperties: false
+          required: [name, dateOfBirth, relationship, sharePercent]
+          properties:
+            name: { type: string, maxLength: 200 }
+            dateOfBirth: { type: string, format: date }
+            relationship: { type: string, maxLength: 40 }
+            sharePercent: { type: number, exclusiveMinimum: 0, maximum: 100 }
+      description: '`questionText` is NOT accepted from the caller; the service copies it from the schema version shown (D8 evidence).'
+    Requirement:
+      type: object
+      properties:
+        requirementId: { $ref: '#/components/schemas/Ulid' }
+        type: { type: string }
+        subType: { type: [string, 'null'] }
+        description: { type: [string, 'null'] }
+        status: { type: string }
+        dueDate: { type: [string, 'null'], format: date }
+    CounterOffer:
+      type: object
+      properties:
+        counterOfferId: { $ref: '#/components/schemas/Ulid' }
+        premiumAmount: { $ref: '#/components/schemas/Money' }
+        sumAssured: { $ref: '#/components/schemas/Money' }
+        reasonCode: { type: string }
+        expiresAt: { type: [string, 'null'], format: date-time }
+    StatusHistoryEntry:
+      type: object
+      required: [historyId, status, occurredAt, sourceEventId]
+      properties:
+        historyId: { $ref: '#/components/schemas/Ulid' }
+        status: { type: string, enum: [PAID, CONVERTED, UW_DECLINED, ISSUANCE_FAILED, REFUND_REQUIRED] }
+        reasonCode: { type: [string, 'null'] }
+        sourceEvent: { type: string, examples: [PaymentReconciled, PolicyIssued, ProposalDeclined, IssuanceTatEscalated, PaymentRefunded] }
+        sourceEventId: { $ref: '#/components/schemas/Ulid' }
+        occurredAt: { type: string, format: date-time }
+    Proposal:
+      type: object
+      required: [proposalId, journeyId, quoteId, offerId, state, issuanceMode, recordSource]
+      properties:
+        proposalId: { $ref: '#/components/schemas/Ulid' }
+        journeyId: { $ref: '#/components/schemas/Ulid' }
+        quoteId: { $ref: '#/components/schemas/Ulid' }
+        offerId: { $ref: '#/components/schemas/Ulid' }
+        state:
+          allOf: [{ $ref: '#/components/schemas/ProposalState' }]
+          description: After materialise = latest `proposal_status_history.status` (the INSERT-only row keeps `PAID`).
+        applicationNumber: { type: [string, 'null'] }
+        underwritingState: { type: [string, 'null'] }
+        issuanceMode: { $ref: '#/components/schemas/IssuanceMode' }
+        schemaId: { type: string }
+        schemaVersion: { type: string }
+        paymentInFlight: { type: boolean }
+        requirements:
+          type: array
+          items: { $ref: '#/components/schemas/Requirement' }
+        counterOffer: { oneOf: [{ $ref: '#/components/schemas/CounterOffer' }, { type: 'null' }] }
+        configVersionRef: { type: string }
+        recordSource: { type: string, enum: [WORKING, RECORD] }
+    ProposalPaymentHold:
+      type: object
+      required: [proposalId, quoteId, offerId, journeyId, leadId, customerId, lob, applicationNumber, issuanceMode]
+      properties:
+        proposalId: { $ref: '#/components/schemas/Ulid' }
+        quoteId: { $ref: '#/components/schemas/Ulid' }
+        offerId: { $ref: '#/components/schemas/Ulid' }
+        journeyId: { $ref: '#/components/schemas/Ulid' }
+        leadId: { $ref: '#/components/schemas/Ulid' }
+        customerId: { $ref: '#/components/schemas/Ulid' }
+        lob: { type: string }
+        applicationNumber: { type: string }
+        issuanceMode: { $ref: '#/components/schemas/IssuanceMode' }
+    PaymentReconciledData:
+      type: object
+      required: [eventId, paymentId, proposalId]
+      properties:
+        eventId: { $ref: '#/components/schemas/Ulid' }
+        paymentId: { $ref: '#/components/schemas/Ulid' }
+        quoteId: { $ref: '#/components/schemas/Ulid' }
+        proposalId: { $ref: '#/components/schemas/Ulid' }
+        journeyId: { $ref: '#/components/schemas/Ulid' }
+        applicationNumber: { type: string, maxLength: 50 }
+    Problem:
+      type: object
+      description: Platform problem+json (conventions/error-model.md).
+      required: [type, title, status, code, category, retryable, incidentId, service, timestamp]
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        code: { type: string }
+        category: { type: string }
+        retryable: { type: boolean }
+        incidentId: { type: string }
+        correlationId: { type: string }
+        service: { type: string }
+        timestamp: { type: string, format: date-time }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              code: { type: string }
+              field: { type: string }
+              message: { type: string }
+    ConsentRequiredProblem:
+      allOf:
+        - $ref: '#/components/schemas/Problem'
+        - type: object
+          properties:
+            checkpoint: { type: string, const: BEFORE_PROPOSAL_SUBMIT }
+            insurerCode: { type: string, description: 'Scope NAMED_INSURER: the consent must name this insurer.' }
+            missingPurposes:
+              type: array
+              items: { type: string, examples: [CNS-SHR] }

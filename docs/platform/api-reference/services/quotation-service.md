@@ -10,7 +10,8 @@
 | **Callers** | Journey (create, select) · BFF (poll reads) · Payment (selected premium read, `INV-PAY-03`) |
 | **Calls out** | Suitability (S-08 gate, 500 ms, fail closed) · Integration Hub (S-09 create, async-poll, **no retry on submit**) · Lead (`bi-generated` on first successful BI) · Catalogue (offer eligibility) · Configuration (validity window) |
 | **Owns data** | **DynamoDB `{env}-quotation-working`** — working quote (control attributes + client-side-encrypted envelope) until payment (`DB-DEC-0005`) · Aurora schema **`quotation`** — `quote` + `offer` structured after `RECONCILED`, `idempotency_record` · role `app_quotation` |
-| **Code status** | **PARTIAL — persistence only** (`SUG-20261021-lft`): DynamoDB working-state store, envelope encryption (AES-GCM, KMS data key), materialiser into structured Aurora rows, `POST /internal/v1/events/payment-reconciled`, `GET /internal/v1/quotes/{quoteId}/selected`; tested against embedded DynamoDB Local. Public command API not built. Paths CONTRACTED (HLD §5.1/§5.3); bodies **PROPOSED** from the domain model, DDL and the IF-1 adapter contract |
+| **Contract** | **Authoritative:** [`openapi.yaml`](../../contracts/quotation-service/openapi.yaml) + [`LLD.md`](../../contracts/quotation-service/LLD.md) (`ADR-027`, AI-DRAFTED, awaiting review). Where this page and the contract differ, the contract wins |
+| **Code status** | **PARTIAL — persistence only** (`SUG-20261021-lft`): DynamoDB working-state store, envelope encryption (AES-GCM, KMS data key), materialiser into structured Aurora rows, `POST /internal/v1/events/payment-reconciled`, `GET /internal/v1/quotes/{quoteId}/selected` (**deprecated** — side-effecting GET, replaced by `POST …/payment-hold`); tested against embedded DynamoDB Local. Public command API, `payment-hold` / `payment-release` not built |
 
 ---
 
@@ -21,7 +22,9 @@
 | `POST` | `/internal/v1/quotes` | CONTRACTED · body PROPOSED | Journey | Create quote (C1 gate) → dispatch to Hub; `202` |
 | `GET` | `/internal/v1/quotes/{quoteId}` | CONTRACTED | BFF (via journey route), Journey | Status + offers |
 | `POST` | `/internal/v1/quotes/{quoteId}/selection` | PROPOSED | Journey | Select one offer atomically |
-| `GET` | `/internal/v1/quotes/{quoteId}/selected` | PROPOSED | Payment | Selected premium, tax, sum assured, insurer, product (control columns only) |
+| `POST` | `/internal/v1/quotes/{quoteId}/payment-hold` | CONTRACTED | Payment | Hold the selected quote for `paymentId` (`paymentInFlight`, TTL removed) and return premium, tax, sum assured, insurer, product |
+| `POST` | `/internal/v1/quotes/{quoteId}/payment-release` | CONTRACTED | Payment | Payment ended `DECLINED`/`EXPIRED`/`REJECTED` (or refunded from a break): release, TTL restored |
+| `GET` | `/internal/v1/quotes/{quoteId}/selected` | BUILT · **DEPRECATED** | — | Side-effecting read; superseded by `payment-hold` |
 | (event) | consumes `PaymentReconciled` | PROPOSED | MSK | Materialise structured `quote` + `offer` |
 
 ---
@@ -29,7 +32,7 @@
 ## 2. State model
 
 `REQUESTED → IN_PROGRESS → QUOTED | PARTIALLY_QUOTED | FAILED | TIMED_OUT`; then
-`→ SELECTED → CONVERTED` (proposal created) or `→ EXPIRED`; `REQUESTED → REJECTED` when the
+`→ SELECTED → CONVERTED` (**at materialise on `PaymentReconciled`** — D8; the quote stays `SELECTED` through proposal and payment) or `→ EXPIRED` (set lazily by quotation-service on the next touch once `validUntil` passes and no payment holds it; frees the open-quote marker — [LLD §4.5](../../contracts/quotation-service/LLD.md#45-expiry--who-sets-expired)); `REQUESTED → REJECTED` when the
 suitability gate refuses (so the refusal is a **domain record**, not just a 403).
 `PARTIALLY_QUOTED` **is success** (`INV-QUO-02`).
 
@@ -96,7 +99,7 @@ Response:
   "offers": [
     { "offerId": "01JU…", "insurerCode": "INS01", "productCode": "TERM-PLUS", "productName": "Term Plus",
       "premiumAmount": 12300.00, "taxAmount": 2214.00, "premiumFrequency": "YEARLY",
-      "sumAssured": 10000000, "coverTerm": 30, "premiumPayingTerm": 30, "outOfBound": false, "offerState": "AVAILABLE" }
+      "sumAssured": 10000000, "coverTerm": 30, "premiumPayingTerm": 30, "outOfBound": false, "offerState": "QUOTED" }
   ],
   "partialErrors": [ { "insurerCode": "INS02", "code": "UPSTREAM_BUSINESS_ERROR" } ]
 }
@@ -111,21 +114,21 @@ Offers live **inside the encrypted envelope of the DynamoDB item** until payment
 ```
 
 One conditional `UpdateItem` on `QUOTE#{quoteId}/META` (strongly consistent read first); state must be `QUOTED`/`PARTIALLY_QUOTED`; `now <
-valid_until` (else `409 QUOTE_EXPIRED`, `INV-QUO-04`); offer must be `AVAILABLE`; write
+valid_until` (else `409 QUOTE_EXPIRED`, `INV-QUO-04`); offer must be `QUOTED` (offer states are the DDL's `QUOTED | SELECTED | NOT_SELECTED | INVALID` — there is no `AVAILABLE`); write
 `selected_offer_id`, `selected_premium_amount`, `selected_tax_amount`, `selected_sum_assured`,
 `selected_insurer_code`, `selected_product_code` **and** rewrite `payload_enc` marking every sibling
 `NOT_SELECTED` (`INV-QUO-05` — never two selected); state `SELECTED`; outbox `OfferSelected`.
 Response `200 { quoteId, state: "SELECTED", selectedOfferId }`.
 
-### 3.4 `GET /internal/v1/quotes/{quoteId}/selected`
+### 3.4 `POST /internal/v1/quotes/{quoteId}/payment-hold` (replaces `GET …/selected`)
 
-For Payment only: `{ quoteId, offerId, premiumAmount, taxAmount, sumAssured, insurerCode, productCode, currency: "INR" }`
-from control attributes — Payment never decrypts the envelope. This read also sets `paymentInFlight = true` and removes the item's `ttl` so it cannot expire while money is moving.
+For Payment only, body `{ paymentId, proposalId, offerId }`: returns `{ quoteId, offerId, premiumAmount, taxAmount, sumAssured, insurerCode, productCode, premiumFrequency, currency: "INR", validUntil }`
+from control attributes — Payment never decrypts the envelope — and sets `paymentInFlight = true`, `heldByPaymentId`, removing `ttl` so the item cannot expire while money is moving. `POST …/payment-release` undoes it when the payment ends `DECLINED`, `EXPIRED` or `REJECTED`; `UNCERTAIN` and `RECONCILIATION_BREAK` keep the hold. The built `GET …/selected` does the same without a payment id and is deprecated. Detail: [LLD §4.4](../../contracts/quotation-service/LLD.md#44-payment-hold-and-release).
 
 ### 3.5 On `PaymentReconciled`
 
 Idempotent consumer: read the DynamoDB item → ONE Aurora transaction INSERT `quotation.quote`
-+ one `quotation.offer` per envelope offer (`ON CONFLICT DO NOTHING`; selected = `SELECTED`, others `NOT_SELECTED`) → then DynamoDB `SET materializedAt` with `attribute_not_exists(materializedAt)` (item frozen, short TTL). See
++ one `quotation.offer` per envelope offer (`ON CONFLICT DO NOTHING`; selected = `SELECTED`, others `NOT_SELECTED`, `INVALID` kept once the DDL allows it) with quote state `CONVERTED` → then DynamoDB `SET materializedAt` with `attribute_not_exists(materializedAt)` (item frozen, short TTL). See
 [payload storage](../data/payload-storage-and-transactions.md#33-materialisation-into-aurora-after-reconciled).
 
 ## 4. Errors

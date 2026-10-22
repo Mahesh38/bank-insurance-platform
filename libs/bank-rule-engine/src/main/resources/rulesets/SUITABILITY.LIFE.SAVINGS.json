@@ -1,0 +1,867 @@
+{
+  "format": "rule-set/v1",
+  "ruleSetId": "SUITABILITY.LIFE.SAVINGS",
+  "domain": "SUITABILITY",
+  "scope": {
+    "lob": "LIFE",
+    "productClass": "SAVINGS"
+  },
+  "version": "1.0.0",
+  "effectiveFrom": "2026-11-01T00:00:00+05:30",
+  "effectiveTo": null,
+  "classification": "COMPLIANCE",
+  "pinning": "JOURNEY",
+  "scale": 6,
+  "description": "Suitability outcome for Life SAVINGS (SUIT-ALGO-LIFE-v1.0 expressed as rule-set/v1).",
+  "source": {
+    "document": "docs/au-bank-insurance-platform/rule-packs/suitability-rule-pack.md",
+    "sections": [
+      "2.3 (D-022 question set)",
+      "3 (bands, age factors, computation)",
+      "4 (outcomes, precedence)"
+    ],
+    "decisions": [
+      "ADR-024",
+      "DECISIONS-2026-10-21 D4"
+    ]
+  },
+  "governance": {
+    "status": "DRAFT-awaiting-approval",
+    "signatureStatus": "AI-DRAFTED - mandatory content-owner approval outstanding (ADR-024 section 7)",
+    "contentApprovers": [
+      "Shailja / bank Compliance (permissibility, OPEN-SUIT-01)",
+      "Rajal (product behaviour)"
+    ],
+    "approverRole": "COMPLIANCE_APPROVER",
+    "seededBy": "SUG-20261021-rul (owner-directed build, ADMIT-BYPASS)",
+    "openItems": [
+      "OPEN-SUIT-01 model discharges IRDAI obligation",
+      "OPEN-SUIT-03 disclosure / customer wording is draft",
+      "OPEN-SUIT-06 Savings/ULIP BRD vocabulary mapping",
+      "GAP: no section 4.3 rule covers ratio > 0.20 or objective WEALTH_GROWTH; evaluates to INSUFFICIENT_DATA / NO_RULE_MATCHED"
+    ]
+  },
+  "inputs": [
+    {
+      "name": "ageNextBirthday",
+      "type": "INTEGER",
+      "required": true,
+      "sourceRef": "SQ-D01",
+      "description": "Age at next birthday from CBS DOB; unavailable -> INSUFFICIENT_DATA"
+    },
+    {
+      "name": "bankKnownExistingCover",
+      "type": "DECIMAL",
+      "required": false,
+      "sourceRef": "SQ-D03",
+      "description": "AU-distributed life cover; absent = ASSUMED_ZERO"
+    },
+    {
+      "name": "bankKnownLiabilities",
+      "type": "DECIMAL",
+      "required": false,
+      "sourceRef": "SQ-D04",
+      "description": "Known AU loan liability; absent = ASSUMED_ZERO"
+    },
+    {
+      "name": "annualIncome",
+      "type": "DECIMAL",
+      "required": true,
+      "sourceRef": "SQ-01"
+    },
+    {
+      "name": "dependants",
+      "type": "INTEGER",
+      "required": true,
+      "sourceRef": "SQ-02"
+    },
+    {
+      "name": "declaredExistingCover",
+      "type": "DECIMAL",
+      "required": true,
+      "sourceRef": "SQ-03"
+    },
+    {
+      "name": "declaredLiabilities",
+      "type": "DECIMAL",
+      "required": true,
+      "sourceRef": "SQ-04"
+    },
+    {
+      "name": "primaryObjective",
+      "type": "ENUM",
+      "required": true,
+      "sourceRef": "SQ-05",
+      "values": [
+        "PROTECTION",
+        "SAVINGS_GOAL",
+        "RETIREMENT",
+        "WEALTH_GROWTH",
+        "TAX_PLANNING"
+      ]
+    },
+    {
+      "name": "investmentHorizon",
+      "type": "ENUM",
+      "required": true,
+      "sourceRef": "SQ-06",
+      "values": [
+        "LT_5Y",
+        "Y5_10",
+        "Y10_20",
+        "GT_20Y"
+      ]
+    },
+    {
+      "name": "declaredPremium",
+      "type": "DECIMAL",
+      "required": true,
+      "sourceRef": "SQ-08"
+    },
+    {
+      "name": "tobaccoUse",
+      "type": "BOOLEAN",
+      "required": true,
+      "sourceRef": "SQ-09"
+    },
+    {
+      "name": "occupationCategory",
+      "type": "ENUM",
+      "required": true,
+      "sourceRef": "SQ-10",
+      "values": [
+        "SALARIED",
+        "SELF_EMPLOYED_PROF",
+        "SELF_EMPLOYED_BUSINESS",
+        "AGRICULTURE",
+        "OTHER"
+      ]
+    },
+    {
+      "name": "declinedOrRated",
+      "type": "ENUM",
+      "required": true,
+      "sourceRef": "SQ-11",
+      "values": [
+        "NO",
+        "YES",
+        "DONT_KNOW"
+      ]
+    },
+    {
+      "name": "replacingExistingPolicy",
+      "type": "BOOLEAN",
+      "required": true,
+      "sourceRef": "SQ-12"
+    }
+  ],
+  "tables": {
+    "incomeMultiple": {
+      "type": "RANGE",
+      "key": "annualIncome",
+      "description": "Rule pack section 3.1; inclusive-lower, exclusive-upper",
+      "rows": [
+        {
+          "label": "B1",
+          "from": 0,
+          "to": 300000,
+          "value": 10
+        },
+        {
+          "label": "B2",
+          "from": 300000,
+          "to": 500000,
+          "value": 12
+        },
+        {
+          "label": "B3",
+          "from": 500000,
+          "to": 1000000,
+          "value": 15
+        },
+        {
+          "label": "B4",
+          "from": 1000000,
+          "to": 2000000,
+          "value": 18
+        },
+        {
+          "label": "B5",
+          "from": 2000000,
+          "to": 3500000,
+          "value": 20
+        },
+        {
+          "label": "B6",
+          "from": 3500000,
+          "to": 5000000,
+          "value": 20
+        },
+        {
+          "label": "B7",
+          "from": 5000000,
+          "to": 10000000,
+          "value": 18
+        },
+        {
+          "label": "B8",
+          "from": 10000000,
+          "to": null,
+          "value": 15
+        }
+      ]
+    },
+    "ageFactor": {
+      "type": "RANGE",
+      "key": "ageNextBirthday",
+      "description": "Rule pack section 3.2; outside 18-65 no row matches (SUIT-R08 decides)",
+      "rows": [
+        {
+          "label": "18-30",
+          "from": 18,
+          "to": 31,
+          "value": 1.1
+        },
+        {
+          "label": "31-40",
+          "from": 31,
+          "to": 41,
+          "value": 1.0
+        },
+        {
+          "label": "41-50",
+          "from": 41,
+          "to": 51,
+          "value": 0.85
+        },
+        {
+          "label": "51-60",
+          "from": 51,
+          "to": 61,
+          "value": 0.65
+        },
+        {
+          "label": "61-65",
+          "from": 61,
+          "to": 66,
+          "value": 0.45
+        }
+      ]
+    }
+  },
+  "derive": [
+    {
+      "name": "ageEligible",
+      "description": "SUIT-R08",
+      "expr": {
+        "op": "between",
+        "args": [
+          {
+            "var": "ageNextBirthday"
+          },
+          {
+            "param": "minAge"
+          },
+          {
+            "param": "maxAge"
+          }
+        ]
+      }
+    },
+    {
+      "name": "affordabilityRatio",
+      "description": "declaredPremium / annualIncome (section 3.3)",
+      "scale": 4,
+      "expr": {
+        "op": "div",
+        "args": [
+          {
+            "var": "declaredPremium"
+          },
+          {
+            "var": "annualIncome"
+          }
+        ]
+      }
+    },
+    {
+      "name": "underwritingRiskFlag",
+      "description": "SUIT-R04: does not change the outcome",
+      "expr": {
+        "op": "in",
+        "args": [
+          {
+            "var": "declinedOrRated"
+          },
+          {
+            "const": [
+              "YES",
+              "DONT_KNOW"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "existingCover",
+      "description": "SUIT-R03: higher of declared and bank-known",
+      "expr": {
+        "op": "max",
+        "args": [
+          {
+            "var": "declaredExistingCover"
+          },
+          {
+            "op": "coalesce",
+            "args": [
+              {
+                "var": "bankKnownExistingCover"
+              },
+              {
+                "const": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "liabilities",
+      "description": "SUIT-R03: higher of declared and bank-known",
+      "expr": {
+        "op": "max",
+        "args": [
+          {
+            "var": "declaredLiabilities"
+          },
+          {
+            "op": "coalesce",
+            "args": [
+              {
+                "var": "bankKnownLiabilities"
+              },
+              {
+                "const": 0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "existingCoverUnderstated",
+      "description": "SUIT-R03 flag EXISTING_COVER_UNDERSTATED",
+      "expr": {
+        "op": "gt",
+        "args": [
+          {
+            "op": "coalesce",
+            "args": [
+              {
+                "var": "bankKnownExistingCover"
+              },
+              {
+                "const": 0
+              }
+            ]
+          },
+          {
+            "var": "declaredExistingCover"
+          }
+        ]
+      }
+    },
+    {
+      "name": "liabilitiesUnderstated",
+      "description": "SUIT-R03 flag LIABILITIES_UNDERSTATED",
+      "expr": {
+        "op": "gt",
+        "args": [
+          {
+            "op": "coalesce",
+            "args": [
+              {
+                "var": "bankKnownLiabilities"
+              },
+              {
+                "const": 0
+              }
+            ]
+          },
+          {
+            "var": "declaredLiabilities"
+          }
+        ]
+      }
+    },
+    {
+      "name": "incomeMultiple",
+      "expr": {
+        "op": "lookup",
+        "args": [
+          {
+            "const": "incomeMultiple"
+          },
+          {
+            "var": "annualIncome"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ageFactor",
+      "expr": {
+        "op": "lookup",
+        "args": [
+          {
+            "const": "ageFactor"
+          },
+          {
+            "var": "ageNextBirthday"
+          }
+        ]
+      }
+    },
+    {
+      "name": "recommendedCover",
+      "description": "Section 3.3, ROUND_UP_TO_LAKH (SUIT-R06)",
+      "scale": 0,
+      "expr": {
+        "op": "roundUpTo",
+        "args": [
+          {
+            "op": "add",
+            "args": [
+              {
+                "op": "mul",
+                "args": [
+                  {
+                    "var": "annualIncome"
+                  },
+                  {
+                    "var": "incomeMultiple"
+                  },
+                  {
+                    "var": "ageFactor"
+                  }
+                ]
+              },
+              {
+                "var": "liabilities"
+              },
+              {
+                "op": "mul",
+                "args": [
+                  {
+                    "var": "dependants"
+                  },
+                  {
+                    "param": "coverPerDependant"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "param": "roundingUnit"
+          }
+        ]
+      }
+    },
+    {
+      "name": "protectionGap",
+      "description": "MAX(0, recommendedCover - existingCover)",
+      "scale": 0,
+      "expr": {
+        "op": "max",
+        "args": [
+          {
+            "const": 0
+          },
+          {
+            "op": "sub",
+            "args": [
+              {
+                "var": "recommendedCover"
+              },
+              {
+                "var": "existingCover"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "decision": {
+    "hitPolicy": "PRIORITY",
+    "outcomeRank": [
+      "NOT_SUITABLE",
+      "INSUFFICIENT_DATA",
+      "SUITABLE_WITH_CAUTION",
+      "SUITABLE"
+    ],
+    "noMatchOutcome": "INSUFFICIENT_DATA",
+    "noMatchReasonCode": "NO_RULE_MATCHED",
+    "missingInputOutcome": "INSUFFICIENT_DATA",
+    "missingConfigOutcome": "INSUFFICIENT_DATA",
+    "missingConfigReasonCode": "SUITABILITY_CONFIG_MISSING",
+    "collectReasonCodes": "ALL_FIRED"
+  },
+  "rules": [
+    {
+      "ruleId": "SUIT-R08",
+      "priority": 8,
+      "sourceRef": "docs/au-bank-insurance-platform/rule-packs/suitability-rule-pack.md section 3.3",
+      "when": {
+        "op": "not",
+        "args": [
+          {
+            "var": "ageEligible"
+          }
+        ]
+      },
+      "then": {
+        "outcome": "NOT_SUITABLE",
+        "reasonCode": "AGE_OUTSIDE_ELIGIBLE_RANGE",
+        "params": {
+          "age": {
+            "var": "ageNextBirthday"
+          },
+          "minAge": {
+            "param": "minAge"
+          },
+          "maxAge": {
+            "param": "maxAge"
+          }
+        }
+      }
+    },
+    {
+      "ruleId": "SUIT-R13",
+      "priority": 13,
+      "when": {
+        "op": "all",
+        "args": [
+          {
+            "op": "in",
+            "args": [
+              {
+                "var": "primaryObjective"
+              },
+              {
+                "param": "savingsObjectives"
+              }
+            ]
+          },
+          {
+            "op": "in",
+            "args": [
+              {
+                "var": "investmentHorizon"
+              },
+              {
+                "param": "savingsHorizons"
+              }
+            ]
+          },
+          {
+            "op": "lte",
+            "args": [
+              {
+                "var": "affordabilityRatio"
+              },
+              {
+                "param": "maxAffordabilityRatio"
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "outcome": "SUITABLE",
+        "reasonCode": null
+      }
+    },
+    {
+      "ruleId": "SUIT-R14",
+      "priority": 14,
+      "when": {
+        "op": "in",
+        "args": [
+          {
+            "var": "investmentHorizon"
+          },
+          {
+            "param": "tooShortHorizons"
+          }
+        ]
+      },
+      "then": {
+        "outcome": "NOT_SUITABLE",
+        "reasonCode": "HORIZON_TOO_SHORT_FOR_PRODUCT_CLASS"
+      }
+    },
+    {
+      "ruleId": "SUIT-R15",
+      "priority": 15,
+      "when": {
+        "op": "all",
+        "args": [
+          {
+            "op": "gt",
+            "args": [
+              {
+                "var": "protectionGap"
+              },
+              {
+                "const": 0
+              }
+            ]
+          },
+          {
+            "op": "eq",
+            "args": [
+              {
+                "var": "primaryObjective"
+              },
+              {
+                "const": "PROTECTION"
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "outcome": "SUITABLE_WITH_CAUTION",
+        "reasonCode": "PROTECTION_NEED_UNMET_BY_THIS_CLASS"
+      }
+    }
+  ],
+  "parameters": {
+    "minAge": 18,
+    "maxAge": 65,
+    "coverPerDependant": 500000,
+    "roundingUnit": 100000,
+    "savingsObjectives": [
+      "SAVINGS_GOAL",
+      "RETIREMENT",
+      "TAX_PLANNING"
+    ],
+    "savingsHorizons": [
+      "Y5_10",
+      "Y10_20",
+      "GT_20Y"
+    ],
+    "tooShortHorizons": [
+      "LT_5Y"
+    ],
+    "maxAffordabilityRatio": 0.2
+  },
+  "reasonCodes": {
+    "AGE_OUTSIDE_ELIGIBLE_RANGE": {
+      "severity": "BLOCK",
+      "rmText": "Age at next birthday @age is outside the eligible range @minAge-@maxAge.",
+      "customerText": "This product is not available at your age."
+    },
+    "NO_RULE_MATCHED": {
+      "severity": "BLOCK",
+      "rmText": "No suitability rule matched these answers; the class cannot be quoted. Raise with Product (rule pack gap).",
+      "customerText": "We cannot recommend this type of plan on the answers given."
+    },
+    "RULE_INPUT_MISSING": {
+      "severity": "BLOCK",
+      "rmText": "Required answers missing: @missing (SUIT-R01a).",
+      "customerText": "Some answers are missing."
+    },
+    "RULE_INPUT_INVALID": {
+      "severity": "BLOCK",
+      "rmText": "Answers not in the expected form: @missing.",
+      "customerText": "Some answers could not be read."
+    },
+    "SUITABILITY_CONFIG_MISSING": {
+      "severity": "BLOCK",
+      "rmText": "Suitability configuration incomplete for @ruleId (@missingParameters).",
+      "customerText": "We cannot complete the assessment right now."
+    },
+    "HORIZON_TOO_SHORT_FOR_PRODUCT_CLASS": {
+      "severity": "BLOCK",
+      "rmText": "Investment horizon is too short for this product class.",
+      "customerText": "This plan needs a longer time horizon than you have told us."
+    },
+    "PROTECTION_NEED_UNMET_BY_THIS_CLASS": {
+      "severity": "CAUTION",
+      "rmText": "Customer's objective is protection and a protection gap remains; a savings plan does not close it (SUIT-R15).",
+      "customerText": "A savings plan may not give your family the protection you said you need."
+    }
+  },
+  "testCases": [
+    {
+      "name": "SUIT-R13-suitable",
+      "inputs": {
+        "ageNextBirthday": 38,
+        "annualIncome": 1200000,
+        "declaredPremium": 25000,
+        "tobaccoUse": false,
+        "occupationCategory": "SALARIED",
+        "declinedOrRated": "NO",
+        "replacingExistingPolicy": false,
+        "dependants": 2,
+        "declaredExistingCover": 500000,
+        "declaredLiabilities": 3000000,
+        "primaryObjective": "SAVINGS_GOAL",
+        "investmentHorizon": "Y10_20"
+      },
+      "expect": {
+        "outcome": "SUITABLE",
+        "reasonCodes": [],
+        "fired": [
+          "SUIT-R13"
+        ],
+        "derived": {
+          "protectionGap": 25100000,
+          "affordabilityRatio": 0.0208
+        }
+      }
+    },
+    {
+      "name": "SUIT-R14-horizon-short",
+      "inputs": {
+        "ageNextBirthday": 38,
+        "annualIncome": 1200000,
+        "declaredPremium": 25000,
+        "tobaccoUse": false,
+        "occupationCategory": "SALARIED",
+        "declinedOrRated": "NO",
+        "replacingExistingPolicy": false,
+        "dependants": 2,
+        "declaredExistingCover": 500000,
+        "declaredLiabilities": 3000000,
+        "primaryObjective": "SAVINGS_GOAL",
+        "investmentHorizon": "LT_5Y"
+      },
+      "expect": {
+        "outcome": "NOT_SUITABLE",
+        "reasonCodes": [
+          "HORIZON_TOO_SHORT_FOR_PRODUCT_CLASS"
+        ]
+      }
+    },
+    {
+      "name": "SUIT-R15-protection-objective",
+      "inputs": {
+        "ageNextBirthday": 38,
+        "annualIncome": 1200000,
+        "declaredPremium": 25000,
+        "tobaccoUse": false,
+        "occupationCategory": "SALARIED",
+        "declinedOrRated": "NO",
+        "replacingExistingPolicy": false,
+        "dependants": 2,
+        "declaredExistingCover": 500000,
+        "declaredLiabilities": 3000000,
+        "primaryObjective": "PROTECTION",
+        "investmentHorizon": "Y10_20"
+      },
+      "expect": {
+        "outcome": "SUITABLE_WITH_CAUTION",
+        "reasonCodes": [
+          "PROTECTION_NEED_UNMET_BY_THIS_CLASS"
+        ]
+      }
+    },
+    {
+      "name": "SUIT-R19a-all-codes-most-restrictive",
+      "inputs": {
+        "ageNextBirthday": 38,
+        "annualIncome": 1200000,
+        "declaredPremium": 25000,
+        "tobaccoUse": false,
+        "occupationCategory": "SALARIED",
+        "declinedOrRated": "NO",
+        "replacingExistingPolicy": false,
+        "dependants": 2,
+        "declaredExistingCover": 500000,
+        "declaredLiabilities": 3000000,
+        "primaryObjective": "PROTECTION",
+        "investmentHorizon": "LT_5Y"
+      },
+      "expect": {
+        "outcome": "NOT_SUITABLE",
+        "reasonCodes": [
+          "HORIZON_TOO_SHORT_FOR_PRODUCT_CLASS",
+          "PROTECTION_NEED_UNMET_BY_THIS_CLASS"
+        ]
+      }
+    },
+    {
+      "name": "SUIT-R08-age-66",
+      "inputs": {
+        "ageNextBirthday": 66,
+        "annualIncome": 1200000,
+        "declaredPremium": 25000,
+        "tobaccoUse": false,
+        "occupationCategory": "SALARIED",
+        "declinedOrRated": "NO",
+        "replacingExistingPolicy": false,
+        "dependants": 2,
+        "declaredExistingCover": 500000,
+        "declaredLiabilities": 3000000,
+        "primaryObjective": "SAVINGS_GOAL",
+        "investmentHorizon": "Y10_20"
+      },
+      "expect": {
+        "outcome": "NOT_SUITABLE",
+        "reasonCodes": [
+          "AGE_OUTSIDE_ELIGIBLE_RANGE"
+        ]
+      }
+    },
+    {
+      "name": "GAP-affordability-above-0.20-no-rule",
+      "description": "Rule pack section 4.3 has no rule for a savings objective with ratio > 0.20; documented gap -> INSUFFICIENT_DATA / NO_RULE_MATCHED until Product adds one",
+      "inputs": {
+        "ageNextBirthday": 38,
+        "annualIncome": 1200000,
+        "declaredPremium": 300000,
+        "tobaccoUse": false,
+        "occupationCategory": "SALARIED",
+        "declinedOrRated": "NO",
+        "replacingExistingPolicy": false,
+        "dependants": 2,
+        "declaredExistingCover": 500000,
+        "declaredLiabilities": 3000000,
+        "primaryObjective": "SAVINGS_GOAL",
+        "investmentHorizon": "Y10_20"
+      },
+      "expect": {
+        "outcome": "INSUFFICIENT_DATA",
+        "reasonCodes": [
+          "NO_RULE_MATCHED"
+        ]
+      }
+    },
+    {
+      "name": "SUIT-R01a-missing-horizon",
+      "inputs": {
+        "ageNextBirthday": 38,
+        "annualIncome": 1200000,
+        "declaredPremium": 25000,
+        "tobaccoUse": false,
+        "occupationCategory": "SALARIED",
+        "declinedOrRated": "NO",
+        "replacingExistingPolicy": false,
+        "dependants": 2,
+        "declaredExistingCover": 500000,
+        "declaredLiabilities": 3000000,
+        "primaryObjective": "SAVINGS_GOAL"
+      },
+      "expect": {
+        "outcome": "INSUFFICIENT_DATA",
+        "reasonCodes": [
+          "RULE_INPUT_MISSING"
+        ]
+      }
+    }
+  ]
+}

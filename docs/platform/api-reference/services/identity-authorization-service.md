@@ -6,11 +6,13 @@
 |---|---|
 | **Role** | The **source of truth for business authorization**. Maps a provider login to a platform `businessUserId`; answers *"may this subject do this action on this resource, now?"* (Policy Decision Point, default-deny); runs maker-checker for partner-user creation and provisions approved partners into the IdP through an outbox |
 | **Module** | `services/identity-authorization-service` · port 8083 · `service-id: authz` · layer L5 · INTERNAL |
-| **Base path** | `/internal/v1` — cluster-private |
+| **Base path** | `/internal/v1` — cluster-private, and **caller-authenticated**: every request needs `X-Internal-Service-Key` (one key per calling service, `identity.internal-auth.callers`); missing or wrong key → `401 UNAUTHORIZED` (READINESS-REVIEW §3.7) |
 | **Callers** | BFF (resolve at login; decisions — target on every regulated action) · domain services (target: re-check regulated actions, `INV-ACT-01`) · admin surface via BFF (partner users) |
-| **Owns data** | Aurora schema **`identity`** (Flyway `V1__identity_authorization_schema.sql`, `V2__seed_role_permission_catalog.sql`) · role `app_identity` |
-| **Calls out** | `identity-provider-adapter-service` `POST /internal/v1/identities` (provisioning outbox) |
+| **Owns data** | Aurora schema **`identity`** (Flyway `V1__identity_authorization_schema.sql`, `V2__seed_role_permission_catalog.sql`, `V3__partner_user_approve_permission.sql`, `V4__outbox_claim_lease_and_dead_letter.sql`) · role `app_identity` |
+| **Calls out** | `identity-provider-adapter-service` `POST /internal/v1/identities` (provisioning outbox; connect 1 s / read 3 s, `identity.provider-adapter.connect-timeout` / `read-timeout`) |
+| **Startup guard** | Refuses to start under `prod` / `uat` with an H2 datasource (`ProductionDatasourceGuard`); `application-prod.yml` takes the PostgreSQL datasource from `AUTHZ_DATASOURCE_*` with no default |
 | **Code status** | **IMPLEMENTED** — resolve, decide, partner submit/approve, provisioning outbox |
+| **Contract** | **Authoritative (ADR-027):** [`contracts/identity-authorization-service/openapi.yaml`](../../contracts/identity-authorization-service/openapi.yaml) · [LLD](../../contracts/identity-authorization-service/LLD.md). Where this page and the contract differ, the contract wins. Approve returns `targetStatus: PENDING` (ACTIVE only after provisioning); HLD `/internal/v1/authorize` superseded. Fix-pending: per-caller `X-Internal-Service-Key`, maker/checker from the authenticated principal |
 | **Never** | Trust an IdP group or claim as a permission; allow on timeout |
 
 ---
@@ -22,12 +24,25 @@
 | `POST` | `/internal/v1/identities/resolve` | IMPLEMENTED | BFF at login | Provider identity → business user (creates bank employees on first login) |
 | `POST` | `/internal/v1/authorization/decisions` | IMPLEMENTED | BFF / domain services | Allow / deny with reason and matched policy |
 | `POST` | `/internal/v1/partner-users` | IMPLEMENTED | Admin (maker) via BFF | Submit a partner-user creation for approval |
-| `POST` | `/internal/v1/approval-requests/{approvalId}/approve` | IMPLEMENTED | Admin (checker) via BFF | Approve; activates the user and queues IdP provisioning |
+| `POST` | `/internal/v1/approval-requests/{approvalId}/approve` | IMPLEMENTED | Admin (checker) via BFF | Approve and queue IdP provisioning; the user stays `PENDING` until provisioning succeeds |
 | `POST` | `/internal/v1/authorize` | CONTRACTED (HLD §5.3 name) | — | Same intent as `/authorization/decisions`; code path wins |
 
 ---
 
 ## 2. Endpoints
+
+### 2.0 Caller authentication and the actor
+
+| Caller id | Key (env) | May call | May set `X-Actor-Id` |
+|---|---|---|---|
+| `workforce-access-bff` | `IDENTITY_AUTHZ_BFF_INTERNAL_KEY` | every endpoint | **yes** — the only caller allowed to, taking it from a vault-resolved session (`session.businessUserId`) |
+| `lead-service` | `IDENTITY_AUTHZ_LEAD_INTERNAL_KEY` | every endpoint (uses `/authorization/decisions`) | no → `403 FORBIDDEN` on maker/checker endpoints |
+
+`InternalServiceAuthFilter` compares the presented key in constant time with every configured key
+and binds the matching caller id. Production has no default keys (`application-prod.yml`). On the
+maker / checker endpoints `ActorPrincipalResolver` then requires the caller to be listed in
+`identity.internal-auth.actor-callers` and `X-Actor-Id` to be a business-user UUID — missing or
+not a UUID → `401 UNAUTHORIZED`.
 
 ### 2.1 `POST /internal/v1/identities/resolve`
 
@@ -132,24 +147,37 @@ reason codes to the registry:
 
 ### 2.3 `POST /internal/v1/partner-users` (maker)
 
-Headers: `X-Actor-Id` (maker, required). Body: `username` (`@NotBlank`), `email` (`@Email`),
-`firstName`, `lastName`, `insurerCode` (`@NotBlank`).
-Behind the scenes, one transaction: reject duplicate username → `INSERT business_user`
+Headers: `X-Internal-Service-Key` (BFF) and `X-Actor-Id` (maker business-user UUID, required — §2.0).
+Body: `username` (`@NotBlank`), `email` (`@Email`), `firstName`, `lastName`, `insurerCode` (`@NotBlank`).
+Behind the scenes, one transaction: **PDP check** — the maker must be allowed `partner_user.create`
+on a `partner_user` resource with the request's `insurerCode` (so an insurer's `PARTNER_ADMIN` is
+held to its own insurer; denial → `403` `DEFAULT_DENY` / `CROSS_INSURER_DENIED` / `EXPLICIT_DENY` /
+`ACCOUNT_SUSPENDED`) → reject duplicate username → `INSERT business_user`
 (`INSURER_REPRESENTATIVE`, `PENDING`) → `INSERT approval_request` (`PARTNER_USER_CREATE`, `PENDING`,
 maker). Response `202 { "userId", "approvalId", "status": "PENDING" }`.
 
 ### 2.4 `POST /internal/v1/approval-requests/{approvalId}/approve` (checker)
 
-Header `X-Actor-Id` (checker). One transaction:
-`SELECT … FOR UPDATE` the approval → must be `PENDING` → **checker ≠ maker** → user → `ACTIVE` →
-approval `APPROVED` → `INSERT outbox_event (IDENTITY_PROVISIONING_REQUESTED, {businessUserId})`.
-Response `200 { "approvalId", "targetStatus": "ACTIVE" }`.
+Headers `X-Internal-Service-Key` (BFF) and `X-Actor-Id` (checker UUID, §2.0). One transaction:
+`SELECT … FOR UPDATE` the approval → must be `PENDING` → **checker ≠ maker** (`403 FORBIDDEN`) →
+**PDP check** `partner_user.approve` on the target's insurer (same denial mapping as §2.3) →
+user `policy_version + 1`, **status stays `PENDING`** → approval `APPROVED` →
+`INSERT outbox_event (IDENTITY_PROVISIONING_REQUESTED, {businessUserId})`.
+Response `200 { "approvalId", "targetStatus": "PENDING" }`.
 
-Then, asynchronously, `ProvisioningOutboxDispatcher` (every 5 s, `identity.provisioning.enabled=true`)
-picks unpublished events with `attempts < 10`, calls
-`POST {idp-adapter}/internal/v1/identities`, stores the returned `provider_subject` on the user and
-sets `published_at`. A failure increments `attempts` and records `last_error` (retry, idempotent —
-the adapter finds an existing user by `business_user_id`). This is gate criterion `A.6`.
+`partner_user.approve` is seeded by `V3` for `PARTNER_ADMIN` and `BANK_ADMIN` (mirrors
+`partner_user.create`; AI-drafted role mapping, awaiting Rajal / Deepali review).
+
+The partner becomes **`ACTIVE` only when provisioning succeeds**: `ProvisioningOutboxDispatcher`
+(`identity.provisioning.enabled=true`, every `poll-interval`) **claims** up to `batch-size` due rows
+in a short transaction — `SELECT … FOR UPDATE SKIP LOCKED` on PostgreSQL, plain `FOR UPDATE` on H2 —
+and leases them (`claimed_until = now + lease`, default 2 min) so a second pod does not
+double-provision. It then calls `POST {idp-adapter}/internal/v1/identities` outside the lock, stores
+the returned `provider_subject`, sets the user `ACTIVE` and the row `published_at`. A failure
+increments `attempts`, records `last_error` and releases the lease (retry, idempotent — the adapter
+finds an existing user by `business_user_id`); after `max-attempts` (default 10) the row is
+**dead-lettered** (`dead_lettered_at`) and logged at `ERROR` for an operator. This is gate
+criterion `A.6`.
 
 ---
 
@@ -167,10 +195,10 @@ the adapter finds an existing user by `business_user_id`). This is gate criterio
 | `entitlement` | Scoped `GRANT` / `DENY` (`GLOBAL`·`BRANCH`·`INSURER`·`RESOURCE`) with reason and approver |
 | `approval_request` | Maker-checker |
 | `bulk_import`, `bulk_import_row` | Partner bulk onboarding (designed) |
-| `outbox_event` | Provisioning requests |
+| `outbox_event` | Provisioning requests; `claimed_until` (in-flight lease), `dead_lettered_at` (parked after `max-attempts`) — V4 |
 
 ## 4. Sources
 
 - `services/identity-authorization-service/src/main/java/com/bank/identity/authz/**`
-- `src/main/resources/db/migration/V1__identity_authorization_schema.sql` · `V2__seed_role_permission_catalog.sql`
+- `src/main/resources/db/migration/V1__identity_authorization_schema.sql` · `V2__seed_role_permission_catalog.sql` · `V3__partner_user_approve_permission.sql` · `V4__outbox_claim_lease_and_dead_letter.sql`
 - [Authentication & authorization](../../authentication-authorization/README.md) · [Security architecture](../../ws3-platform/04-security-architecture.md) · [`01-identity.sql`](../../data-architecture/schemas/01-identity.sql)

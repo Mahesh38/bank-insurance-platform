@@ -6,10 +6,11 @@
 |---|---|
 | **Role** | The bank-controlled answer to *"what may we sell, to whom, from which insurer"*: insurers (Group A / B), products, LOB and product class, effective-dated eligibility bands. Suitability (mapping output) and Quotation (offer eligibility) read the **same** matrix. It is bank configuration — **not** 1SB's product list leaking in |
 | **Module** | `services/product-catalogue-service` · port 8094 · `service-id: catalogue` · layer L5 · INTERNAL |
+| **Contract** | [`openapi.yaml`](../../contracts/product-catalogue-service/openapi.yaml) · [LLD](../../contracts/product-catalogue-service/LLD.md) — authoritative per [ADR-027](../../architecture-review/ADR-027-openapi-contract-authority.md); AI-DRAFTED; eligibility thresholds unset, awaiting Rajal |
 | **Base path** | `/internal/v1/offerings` (HLD §5.3) |
 | **Callers** | BFF (`/catalogue/product-classes`, `/catalogue/offerings`) · Suitability · Quotation |
 | **Calls out** | administration-config (seeded versions) · Valkey `catalogue:` L2 read-through |
-| **Owns data** | Aurora schema **`catalogue`** (`insurer`, `product`, `eligibility_band`) · role `app_catalogue` · Valkey ACL user + prefix `catalogue:` |
+| **Owns data** | Aurora schema **`catalogue`** (`insurer`, `product`; `eligibility_band` superseded by rule set `CATALOGUE.ELIGIBILITY` — DDL change pending) · role `app_catalogue` · Valkey ACL user + prefix `catalogue:` |
 | **Code status** | **SKELETON**. `GET /internal/v1/offerings` CONTRACTED; other shapes **PROPOSED**. Today the BFF serves product classes from a static list |
 
 ## 1. API index
@@ -19,7 +20,8 @@
 | `GET` | `/internal/v1/offerings?lob&productClass&insurerId&at` | CONTRACTED | Eligible offerings (R0: LIFE · Group A · TERM/SAVINGS/ULIP) |
 | `GET` | `/internal/v1/product-classes?lob` | PROPOSED | Replaces the BFF's static list (`SUG-20261007-srp`) |
 | `GET` | `/internal/v1/products/{productCode}` | PROPOSED | One product with eligibility bands |
-| `POST` | `/internal/v1/eligibility:check` | PROPOSED | `{productCode, ageYears, sumAssured, occupationBand}` → eligible / reasons |
+| `GET` | `/internal/v1/products/{productCode}/insurer-criteria?insurerId` | PROPOSED | Insurer criteria form, fetched through the Integration Hub |
+| `POST` | `/internal/v1/eligibility:check` | PROPOSED | Two stages: rule set `CATALOGUE.ELIGIBILITY` first, then insurer criteria via the Hub; both must pass; precedence configurable ([LLD §5](../../contracts/product-catalogue-service/LLD.md#5-eligibility--two-sources-one-precedence)) |
 
 ## 2. Behaviour
 

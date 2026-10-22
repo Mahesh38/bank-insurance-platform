@@ -6,6 +6,7 @@
 |---|---|
 | **Role** | Funnel, sold, on- vs off-platform and attribution reports — on an **isolated read path** (replica / S3 extract / Athena–Redshift read models built from events). It must never run MIS queries on the Lead or Payment writer: year-end reporting must not kill origination (`C-ISO-1`, `CR-013`) |
 | **Module** | `services/reporting-mis-service` · port 8103 · `service-id: reporting` · layer L5 · INTERNAL |
+| **Contract** | [`openapi.yaml`](../../contracts/reporting-mis-service/openapi.yaml) · [LLD](../../contracts/reporting-mis-service/LLD.md) — authoritative per [ADR-027](../../architecture-review/ADR-027-openapi-contract-authority.md); **NOT READY** — paths and inputs only; read-model store undecided |
 | **Callers** | BFF admin / MIS routes (R0 W4) |
 | **Calls out** | Its own reader store only |
 | **Owns data** | Isolated reader (replica or extract). **Never** granted `app_lead_lms`, `app_payment` or any writer role |

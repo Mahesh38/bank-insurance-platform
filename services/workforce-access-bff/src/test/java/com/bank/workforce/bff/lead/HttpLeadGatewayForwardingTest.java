@@ -60,7 +60,8 @@ class HttpLeadGatewayForwardingTest {
                 base,
                 base,
                 "http",
-                "http"),
+                "http",
+                "local-authz-bff-internal-key"),
             new ProblemJsonReader(new ObjectMapper()),
             ServiceErrors.of("workforce-access-bff", PlatformLayer.L4));
   }

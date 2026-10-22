@@ -132,8 +132,8 @@ Source: `ErrorCatalogue.platformDefinitions()` on `main`. A module may add codes
 |---|---|---|
 | `SP_CERTIFICATION_REQUIRED` | 403 | `lead` assign: assignee lacks valid SP certification (code today, fixture port); `INV-ACT-01` everywhere in target |
 | `RM_NOT_CERTIFIED` | 422 | `INV-LED-03` / `INV-LED-10` |
-| `SUITABILITY_REQUIRED` | 403 | **C1** — no quote without a valid, unexpired, `ELIGIBLE` assessment (`INV-QUO-01`) |
-| `CONSENT_REQUIRED` | 403 | **C2** — no proposal submit without a `GRANTED`, unexpired consent (`INV-PRP-01`) |
+| `SUITABILITY_REQUIRED` | 403 | **C1** — no quote for class X without a valid, unexpired evaluation whose outcome for X is in `SUITABILITY.GATE.allowedOutcomes` (`INV-QUO-01` as amended by D4) |
+| `CONSENT_REQUIRED` | 403 | **C2** — no multi-quote / proposal submit without a `GRANTED`, unexpired consent for the checkpoint's purposes (`INV-PRP-01`; checkpoints per `CONSENT.POLICY`, D5) |
 | `ATTRIBUTION_NOT_CALLER_SUPPLIED` | 422 | **C3** — caller sent `distributorId` / agent attribution (`INV-DIS-01`) |
 | `PAYMENT_DEVICE_ISOLATION` | 403 | **C4** — attempt to issue a payment link into an RM session (`INV-PAY-01`; HLD calls it `PAYMENT_DEVICE_VIOLATION`) |
 | `PAYMENT_NOT_RECONCILED` | 409 | No policy before `RECONCILED` (`INV-POL-01`) |
@@ -184,6 +184,33 @@ Lead LLD 12 §5 names `ORIGINATION_ACTOR_DENIED`, `ASSIGNEE_SP_REQUIRED`, `VALID
 The lead-service code currently raises the nearest registered code instead
 (`CONFLICT`, `ILLEGAL_TRANSITION`, `SP_CERTIFICATION_REQUIRED`). Adding them is a registry change
 (`ErrorDefinitionProvider` in `lead-service`), not a free-text code at a throw site.
+
+### 3.9 Codes the 2026-10-21 decisions rely on
+
+Checked against `libs/bank-common-error/src/main/java/com/bank/common/error/ErrorCodes.java` on
+2026-10-22. **Registered** = constant exists today. **Added with `<service>`** = not yet in the
+registry; the named service adds it (to `ErrorCodes` + `ErrorCatalogue`, or its own
+`ErrorDefinitionProvider`) when it implements the decision. Until then no throw site may use it.
+
+| Code | HTTP (target) | Decision | Status |
+|---|---|---|---|
+| `CONSENT_REQUIRED` | 403 | D5 — no valid consent for the checkpoint (`consents:check`) | Registered |
+| `CONSENT_EXPIRED` | 403 | D5 — consent exists but `valid_until` passed | Added with `consent-service` |
+| `CONSENT_SCOPE_MISMATCH` | 403 | D5 — `NAMED_INSURER` consent (`CNS-SHR`) for a different insurer, or purposes missing | Added with `consent-service` |
+| `SUITABILITY_REQUIRED` | 403 | D4 — no usable evaluation for the class (`SUIT-R20`) | Registered |
+| `SUITABILITY_INCOMPLETE` | 422 | D4 — outcome `INSUFFICIENT_DATA`, or `SUITABLE_WITH_CAUTION` without `caution_ack` | Added with `suitability-service` |
+| `CONFIGURATION_UNRESOLVABLE` | 503 per ADR-024 §5.4 | ADR-024 — rule set cannot be resolved → fail closed | Registered **as 422** (`ErrorCatalogue`); the 503 in ADR-024 is a registry change for `administration-config-service` / `libs/bank-rule-engine` to make |
+| `RULE_SET_TEST_FAILED` | 422 | ADR-024 §5.3 — publish refused because a `testCase` failed | Added with `administration-config-service` |
+| `IDEMPOTENCY_CONFLICT` | 409 | All writes; DynamoDB `IDEM#` mismatch (`DB-DEC-0005`) | Registered |
+| `UPSTREAM_UNAVAILABLE` | 503 | Any dependency down (CBS, 1SB, config) | Registered |
+| `AUTHORIZATION_UNAVAILABLE` | 403 | PDP unreachable → fail closed | Registered |
+| `SUITABILITY_SERVICE_UNAVAILABLE` | 503 | `SUIT-R26` — gate fails closed when suitability is down (rule pack name) | Added with `quotation-service` — or reuse `UPSTREAM_UNAVAILABLE`; owner to choose |
+| `REPLACEMENT_DISCLOSURE_REQUIRED` | 403 | `SUIT-R46` — replacing a policy without acknowledgement | Added with `quotation-service` |
+| `ISSUANCE_MODE_INVALID` | 422 | `INV-PRP-06` — `issuance_mode` not `STP` / `NON_STP` / `INSTA` | Added with `proposal-service` |
+
+`EH-CONFIG-MISSING` (D2) is a **reason code** of rule set `LEAD.EXCEPTION`, not an error code: the
+lead evaluates to `BLOCK` and the API answers with the existing `ILLEGAL_TRANSITION` plus the reason
+codes in the body.
 
 ---
 

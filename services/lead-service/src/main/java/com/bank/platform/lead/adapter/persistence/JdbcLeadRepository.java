@@ -10,10 +10,12 @@ import com.bank.platform.lead.domain.ReportingClass;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -33,7 +35,7 @@ public class JdbcLeadRepository implements LeadRepository {
   private static final String COLUMNS =
       "lead_id, customer_id, lob, product_class, branch_id, created_by_principal_id, state,"
           + " assigned_rm_id, assigned_sp_id, accountable_sp_id, exception_hold, exception_outcome,"
-          + " bi_generated, reporting_class, journey_id, created_at, updated_at, version";
+          + " bi_generated, reporting_class, journey_id, created_at, updated_at, expires_at, version";
 
   private final NamedParameterJdbcTemplate jdbc;
 
@@ -46,14 +48,19 @@ public class JdbcLeadRepository implements LeadRepository {
     Lead.Snapshot s = lead.snapshot();
     MapSqlParameterSource params = params(s);
     if (s.version() == 0) {
-      jdbc.update(
-          "INSERT INTO lead_lms.lead ("
-              + COLUMNS
-              + ") VALUES (:leadId, :customerId, :lob,"
-              + " :productClass, :branchId, :createdBy, :state, :assignedRmId, :assignedSpId,"
-              + " :accountableSpId, :exceptionHold, :exceptionOutcome, :biGenerated,"
-              + " :reportingClass, :journeyId, :createdAt, :updatedAt, 1)",
-          params);
+      try {
+        jdbc.update(
+            "INSERT INTO lead_lms.lead ("
+                + COLUMNS
+                + ") VALUES (:leadId, :customerId, :lob,"
+                + " :productClass, :branchId, :createdBy, :state, :assignedRmId, :assignedSpId,"
+                + " :accountableSpId, :exceptionHold, :exceptionOutcome, :biGenerated,"
+                + " :reportingClass, :journeyId, :createdAt, :updatedAt, :expiresAt, 1)",
+            params);
+      } catch (DuplicateKeyException ex) {
+        // ux_lead_dedupe_open (vendor V5): a concurrent create won the dedupe race.
+        throw new ConcurrentLeadUpdateException(s.leadId());
+      }
       lead.markPersisted(1);
       return;
     }
@@ -132,7 +139,11 @@ public class JdbcLeadRepository implements LeadRepository {
         .addValue("reportingClass", s.reportingClass().name())
         .addValue("journeyId", s.journeyId())
         .addValue("createdAt", Timestamp.from(s.createdAt()))
-        .addValue("updatedAt", Timestamp.from(s.updatedAt()));
+        .addValue("updatedAt", Timestamp.from(s.updatedAt()))
+        .addValue(
+            "expiresAt",
+            s.expiresAt() == null ? null : Timestamp.from(s.expiresAt()),
+            Types.TIMESTAMP);
   }
 
   private static Lead map(ResultSet rs, int row) throws SQLException {
@@ -155,11 +166,17 @@ public class JdbcLeadRepository implements LeadRepository {
             ReportingClass.valueOf(rs.getString("reporting_class")),
             trimmed(rs.getString("journey_id")),
             instant(rs, "updated_at"),
+            nullableInstant(rs, "expires_at"),
             rs.getLong("version")));
   }
 
   private static Instant instant(ResultSet rs, String column) throws SQLException {
     return rs.getTimestamp(column).toInstant();
+  }
+
+  private static Instant nullableInstant(ResultSet rs, String column) throws SQLException {
+    Timestamp value = rs.getTimestamp(column);
+    return value == null ? null : value.toInstant();
   }
 
   private static String trimmed(String value) {

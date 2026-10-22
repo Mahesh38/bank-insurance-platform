@@ -21,7 +21,22 @@ class DownstreamTimeoutsTest {
     assertThat(timeouts.lead().read()).isEqualTo(Duration.ofSeconds(2));
     assertThat(timeouts.customer().read()).isEqualTo(Duration.ofSeconds(4));
     assertThat(timeouts.authorization().read()).isEqualTo(Duration.ofSeconds(2));
-    assertThat(timeouts.identityProvider().read()).isEqualTo(Duration.ofSeconds(6));
+    assertThat(timeouts.identityProvider().read()).isEqualTo(Duration.ofMillis(4500));
+  }
+
+  @Test
+  void everyBudgetFitsInsideTheFiveSecondEdge() {
+    DownstreamTimeouts timeouts = bind(Map.of());
+    Duration edge = Duration.ofSeconds(5); // S-01
+
+    for (DownstreamTimeouts.Budget budget :
+        List.of(
+            timeouts.lead(),
+            timeouts.customer(),
+            timeouts.authorization(),
+            timeouts.identityProvider())) {
+      assertThat(budget.read()).isLessThan(edge);
+    }
   }
 
   @Test

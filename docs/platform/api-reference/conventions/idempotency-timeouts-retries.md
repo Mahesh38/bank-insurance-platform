@@ -84,7 +84,9 @@ Source: [`03-solution-architecture-r0.md` §5](../../ws3-platform/03-solution-ar
 
 | Service | Property | Value |
 |---|---|---|
-| `identity-provider-adapter-service` | `identity.ad-verify.connect-timeout` / `read-timeout` | 3 s / 5 s |
+| `identity-provider-adapter-service` | `identity.ad-verify.connect-timeout` / `read-timeout` | 1 s / 3 s |
+| `identity-provider-adapter-service` | `identity.provider.keycloak.connect-timeout` / `read-timeout` (token, user-info, admin, JWKS) | 1 s / 3 s |
+| `identity-authorization-service` | `identity.provider-adapter.connect-timeout` / `read-timeout` (provisioning) | 1 s / 3 s |
 | `customer-service` | `customer.apigee.connect-timeout-ms` / `read-timeout-ms` | 3000 / 30000 ms |
 | `1sb-integration-service` | `onesb.client.connect-timeout-ms` / `read-timeout-ms` | 3000 / 30000 ms |
 | `1sb-integration-service` | `onesb.poll.base-delay-ms` / `multiplier` / `max-delay-ms` / `max-attempts` | 1000 / 2.0 / 30000 / 20 |
@@ -100,7 +102,7 @@ Source: [`03-solution-architecture-r0.md` §5](../../ws3-platform/03-solution-ar
 > | lead-service | 500 ms / **2 s** | S-20 |
 > | customer-service | 500 ms / 4 s | customer search reaches CBS (S-05: 3 s + 1 retry) — 4 s stays inside the 5 s edge budget (S-01) |
 > | identity resolve | 500 ms / 2 s | local lookup in the PDP's store |
-> | IdP adapter | 1 s / 6 s | login path; the adapter itself waits up to 5 s on AD verify (S-26) |
+> | IdP adapter | 1 s / **4.5 s** | login path; inside the 5 s edge budget (S-01) — was 6 s. The adapter's own AD-verify / Keycloak calls are 1 s / 3 s, so it answers first |
 >
 > A call that gets no HTTP answer in budget is a typed `503 UPSTREAM_UNAVAILABLE`.
 > lead-service's own PDP re-check uses `lead.authorization.decision-timeout` (300 ms).

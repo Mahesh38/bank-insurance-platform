@@ -6,6 +6,17 @@
 **Status:** AI-DRAFTED architecture baseline. Human Architecture signature outstanding; Deepali's
 security sign-off (S07-G3/G4) and Aarti's data sign-off (S07-G5) are **mandatory and separate**.
 
+> **Data-store correction 2026-10-21** ([`DB-DEC-0005`](../data-architecture/DB-DEC-0005-dynamodb-working-payload.md),
+> [`ADR-026`](../architecture-review/ADR-026-audit-store-and-transport.md) **proposed**, readiness review
+> [§4](../api-reference/READINESS-REVIEW.md#4-postgres-vs-dynamodb--yes-it-is-decided)). DynamoDB at R0 holds **only**
+> pre-payment quote and proposal working state (`{env}-quotation-working`, `{env}-proposal-working`), owned by
+> quotation-service and proposal-service. **Journey, audit, idempotency, integration jobs and sessions are not in
+> DynamoDB**: journey and every other context are Aurora schemas; sessions are Valkey (`ADR-011`); adapter jobs stay in
+> `bank_persistence`; the business audit record is `bank_persistence.audit_event` today and, if the owner accepts
+> ADR-026, Aurora schema `audit` (hash-chained, INSERT-only) + S3 Object Lock. Wherever this file says
+> "DynamoDB journey-state / integration-jobs / audit-events", read that. Physical design:
+> [`data-architecture/`](../data-architecture/README.md).
+
 **Revision 2026-08-20 — HLD review round R0-actors/LOB/configuration** (`SUG-20260820-hr0`):
 §2.1 states the two-actor model and makes Specified Person a certification attribute; §2.2 adds the
 LOB and configuration dimensions; §3 brings Opportunity (#5) into Wave 1 and Configuration (#19)
@@ -213,7 +224,7 @@ graph TB
 
     subgraph Data["Data — private, encrypted, ap-south-1"]
         PG[("Aurora PostgreSQL<br/>one cluster, schema per context")]
-        KV[("DynamoDB<br/>journey, quote jobs, audit events")]
+        KV[("DynamoDB<br/>pre-payment quote + proposal<br/>working state only (DB-DEC-0005)")]
         OBJ[("S3 + Object Lock<br/>raw payloads, documents")]
         CACHE[("ElastiCache Valkey<br/>sessions · L2 cache · rate limits<br/>never a system of record")]
         BUS[["Amazon MSK<br/>outbox-fed transport<br/>never the audit record"]]
@@ -357,7 +368,7 @@ evidenced for a gate. That is the worst of the three available moments.
 > `outbox-publisher` (S-23) publishes; consumers (S-24) dedupe on `eventId` and tolerate replay.
 >
 > **The rule that cannot be traded:** no regulatory evidence exists only in a topic. `#16` Audit
-> writes DynamoDB and the S3 WORM archive, and *that write* satisfies INV-JRN-05 (`FF-26`).
+> writes the relational audit store (Aurora; ADR-026 proposed) and the S3 WORM archive, and *that write* satisfies INV-JRN-05 (`FF-26`).
 > Retention on a topic is an operational parameter; retention on evidence is a licence condition.
 >
 > **Revisit trigger, both directions.** Toward removal: R0 completing with one real consumer class
@@ -484,7 +495,7 @@ Closing the fourth S07 §6 open item. Numbers and verification methods are in
 |---|---|
 | Compute availability | Minimum 2 pods per service across ≥ 2 AZs; pod disruption budget prevents simultaneous drain |
 | Relational store | Aurora PostgreSQL Multi-AZ with automated failover; PITR enabled |
-| Key-value store | DynamoDB with point-in-time recovery |
+| Key-value store | DynamoDB with point-in-time recovery — pre-payment quote / proposal working state only (`DB-DEC-0005`) |
 | Object store | S3 with versioning, Object Lock on the 7-year classes, cross-region replication to `ap-south-2` |
 | Backup | Automated per store, encrypted with the store's CMK, retained per the retention class |
 | **Restore** | A restore is executed and timed at S09 (S09-G7). *A backup that has never been restored is a hypothesis* — the stage file's phrase, and it is correct |

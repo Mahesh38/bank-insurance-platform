@@ -9,9 +9,10 @@
 | **Base path** | `/internal/v1/leads` — cluster-private |
 | **Callers** | BFF (all RM actions) · target: Quotation (`bi-generated`), Journey (`convert` on `JourneySold`), AUBIMA exception engine (`exception-hold`) |
 | **Calls out** | **PDP** `POST /internal/v1/authorization/decisions` before create and assign (own re-check, `INV-ACT-01`; 300 ms, fail closed — `SUG-20261021-lft`) · `SpCertificationPort` (fixture today; IRDAI / bank SP register is parked, `SUG-20261007-ird`) · target: exception / validation engine |
-| **Owns data** | Target: Aurora schema **`lead_lms`** (`lead`, `lead_assignment`, `lead_meeting`, `lead_follow_up`, `idempotency_record`, `outbox_event`) · role `app_lead_lms`. **Implemented for `lead`:** `JdbcLeadRepository` on `lead_lms.lead` (Flyway `V2__lead_lms_lead.sql`, optimistic lock on `version`; a lost race is `409 CONFLICT`). `lead.store=memory` keeps the old in-memory repository for throw-away runs. Flyway `V3__lead_lms_activity.sql` adds `lead_assignment`, `lead_meeting`, `lead_follow_up`, `idempotency_record` and `outbox_event`, written in the same transaction as the lead row (`SUG-20261021-lft`). Meeting link and note are AES-256-GCM encrypted (`lead.crypto.*`). Nothing publishes the outbox yet (no MSK in R0 code) |
-| **Code status** | **IMPLEMENTED-PARTIAL** — create, list, get, onboarding, assign, close. Exception rules are a deterministic stub; BI, convert, archive, activity status, evaluate and exception-hold are CONTRACTED |
+| **Owns data** | Target: Aurora schema **`lead_lms`** (`lead`, `lead_assignment`, `lead_meeting`, `lead_follow_up`, `idempotency_record`, `outbox_event`) · role `app_lead_lms`. **Implemented for `lead`:** `JdbcLeadRepository` on `lead_lms.lead` (Flyway `V2__lead_lms_lead.sql`, optimistic lock on `version`; a lost race is `409 CONFLICT`). `lead.store=memory` keeps the old in-memory repository for throw-away runs. Flyway `V3__lead_lms_activity.sql` adds `lead_assignment`, `lead_meeting`, `lead_follow_up`, `idempotency_record` and `outbox_event`, written in the same transaction as the lead row (`SUG-20261021-lft`). Meeting link and note are AES-256-GCM encrypted (`lead.crypto.*`). Nothing publishes the outbox yet (no MSK in R0 code). Flyway `V4__lead_lms_design_alignment.sql` adds the design columns `source`, `created_by_actor_type`, `lead_generator_principal_id`, `config_versions`, `expires_at`, `accountable_sp_cert_ref`, `exception_ref` (all NULLable for now) and `ix_lead_state_expires`; `V5` in `db/vendor/{postgresql,h2}` adds `ux_lead_dedupe_open` |
+| **Code status** | **IMPLEMENTED-PARTIAL** — create, list, get, onboarding, assign, close. Exception rules sit behind `ExceptionRulesPort` (rule set `LEAD.EXCEPTION`, D2); the only adapter today is the temporary `StubExceptionRules`, refused under `prod` / `uat`; BI, convert, archive, activity status, evaluate and exception-hold are CONTRACTED |
 | **Contracts** | [Lead API LLD](../../ws3-platform/12-lead-module-api-lld.md) · [internal OpenAPI](../../ws3-platform/lead-service-internal.openapi.yaml) · [sequences](../../ws3-platform/11-lead-module-sequences.md) · [flows and algorithms](../../ws3-platform/13-lead-module-flows-and-algorithms.md) |
+| **Contract** | **Authoritative (ADR-027):** [`contracts/lead-service/openapi.yaml`](../../contracts/lead-service/openapi.yaml) · [LLD](../../contracts/lead-service/LLD.md). Where this page and the contract differ, the contract wins. Supersedes `ws3-platform/lead-service-internal.openapi.yaml`. Fix-pending: `LEAD.EXCEPTION` rule set (D2) replaces the stub; dedupe `409` names the existing lead in `errors[0]`; terminal / held leads refused |
 
 Every endpoint requires header **`X-Actor-Id`** (set by the BFF from the session). The actor's
 **book** — leads where they are creator, assigned RM or assigned SP — is the visibility boundary.
@@ -121,9 +122,17 @@ Response `201`:
 2. `lob == LIFE`, parse product class.
 3. **Dedupe (ALG-DEDUPE, `BR-DEDUPE`)**: find an *unfinished* lead (not BI-generated and not
    `DISQUALIFIED` / `CONVERTED` / `ARCHIVED` / `EXPIRED`) with the same **creator + customer +
-   product class**. Found → `409 CONFLICT` ("unfinished lead exists…"). The app offers
-   **Continue existing** or **Cancel** only — never replace or soft-delete (Lead BRD Table 18).
-4. Mint a ULID; state `NEW`; outcome `NOT_EVALUATED`; save.
+   product class**. Found → `409 CONFLICT` ("unfinished lead exists…") with
+   `errors: [{"code": "CONFLICT", "field": "leadId", "message": "<existing lead ULID>"}]` — the
+   message is the ULID only, so the app can offer **Continue existing** (`GET …/{leadId}`) or
+   **Cancel** — never replace or soft-delete (Lead BRD Table 18). A concurrent double create that
+   slips past the check is stopped by `ux_lead_dedupe_open` and is also `409 CONFLICT` (without
+   `errors[]`).
+4. Mint a ULID; state `NEW`; outcome `NOT_EVALUATED`; `expiresAt = now + lead.expiry-days` when
+   that is configured — it is **unset by default** because no source states the ageing horizon
+   (BRD-P0-CAPABILITIES "expiry = configurable — confirm TTL"; information model `expiresAt` "value
+   is configuration (OPEN-D4)"), so `expires_at` stays NULL and `EXPIRED` is still unreachable until
+   the owner sets it; save.
 5. Same `lead_lms` transaction: `INSERT lead` + `idempotency_record` (when a key was sent) +
    `outbox_event LeadCreated {state, productClass, exceptionOutcome, journeyId}` — ids and states
    only, no customer PII. (The HLD name `OpportunityCreated` is the same event.)
@@ -157,10 +166,23 @@ No body. Runs the exception / validation rules for the saved lead and records th
 | `APPROVAL_REQUIRED` | `exceptionHold = true` | `200 Lead` with `exceptionRequired = true` — raise an exception for approval in AUBIMA |
 | `BLOCK` | Outcome saved, then refused | `409 ILLEGAL_TRANSITION` ("exception rules blocked onboarding"); lead exists, progression locked |
 
-> **Stub today:** `LeadApplicationService.evaluate` returns `BLOCK` if the customer id contains
-> `BLOCK`, `APPROVAL_REQUIRED` if it contains `HOLD`, else `PASS`. Real rules (CASA 30 days,
-> policy-count thresholds) live in the AUBIMA Exception Handling configuration / DWH
-> (`EH-INT-001`, `EH-INT-004`); Lead only consumes outcomes.
+Re-running Start Onboarding is guarded **before** any rule is evaluated (`Lead.requireEvaluable`):
+
+| Lead is | Result |
+|---|---|
+| terminal (`DISQUALIFIED`, `CONVERTED`, `EXPIRED`, `ARCHIVED`) | `409 ILLEGAL_TRANSITION` |
+| on hold (`exceptionHold = true`, `APPROVAL_REQUIRED` awaiting AUBIMA) | `409 ILLEGAL_TRANSITION` ("exception hold awaiting approval") — only the approval workflow (`exception-hold`, contracted) may release it; a re-evaluated `PASS` never clears it (Exception Handling BRD §4.2) |
+| already `BLOCK` | `409 ILLEGAL_TRANSITION` ("exception rules blocked onboarding") — BLOCK stays BLOCK |
+| `PASS` | evaluated again; the new outcome is recorded |
+
+`LeadExceptionEvaluated` carries `exceptionReasonCodes` when the evaluator returns any.
+
+> **Stub today (temporary, D2):** `StubExceptionRules` (`lead.exception-rules=stub`, the default)
+> returns `BLOCK` if the customer id contains `BLOCK`, `APPROVAL_REQUIRED` if it contains `HOLD`,
+> else `PASS`. The target is rule set `LEAD.EXCEPTION` evaluated by `libs/bank-rule-engine`
+> (`hitPolicy: PRIORITY`, `outcomeRank: [BLOCK, APPROVAL_REQUIRED, PASS]`, a missing threshold →
+> `BLOCK` / `EH-CONFIG-MISSING`) as a second adapter behind the same port; thresholds are unset
+> until the BRD owner supplies them ([D2](../../architecture-review/DECISIONS-2026-10-21.md#d2--lead-exception-engine)).
 
 ### 3.5 `POST /internal/v1/leads/{leadId}/assignments`
 
@@ -176,6 +198,7 @@ Guards, in order (the PDP check for `lead.assign` runs right after #1; deny / no
 | # | Check | Failure |
 |---|---|---|
 | 1 | Lead visible to actor | `404 RESOURCE_NOT_FOUND` |
+| 1a | Lead not terminal (`DISQUALIFIED` — the close path —, `CONVERTED`, `EXPIRED`, `ARCHIVED`; `BR-CLOSE-001`) — also enforced inside `Lead.assign` | `409 ILLEGAL_TRANSITION` |
 | 2 | Not BI-generated (no reassignment after BI, `VAL-016`) | `409 ILLEGAL_TRANSITION` (LLD name `REASSIGN_AFTER_BI`) |
 | 3 | Onboarding evaluated | `409 ILLEGAL_TRANSITION` ("start onboarding before assignment") |
 | 4 | Not `BLOCK`, not on hold | `409 CONFLICT` (LLD name `EXCEPTION_HOLD_ACTIVE`) |
@@ -193,7 +216,8 @@ optional `lead_meeting` and `lead_follow_up` rows, and outbox `LeadAssigned`. On
 
 ### 3.6 `POST /internal/v1/leads/{leadId}/close`
 
-No body today (contract: `reasonCode`, `remarks` ≤ 250). Refused when the lead is `QUALIFIED` or
+No body today (contract: `reasonCode`, `remarks` ≤ 250). Refused when the lead is already terminal
+(`409 ILLEGAL_TRANSITION` — a closed lead is not closed again) or `QUALIFIED` /
 BI-generated (`409 ILLEGAL_TRANSITION` — eligible leads are not closed from the diary path).
 Else → `DISQUALIFIED` (terminal, no reopen, `BR-CLOSE-001`).
 
@@ -219,6 +243,22 @@ Else → `DISQUALIFIED` (terminal, no reopen, `BR-CLOSE-001`).
 | `lead_meeting` | Optional meeting intent from the assignment screen |
 | `lead_follow_up` | RM notes (the assignment `note` today), `note_enc` AES-GCM |
 | `idempotency_record`, `outbox_event` | Platform pattern (V3; outbox `payload` is JSON text, not `JSONB`, so the same migration runs on H2) |
+
+**Runtime vs design (after V4/V5):** `customer_id` is still `VARCHAR(64)` — it becomes `CHAR(26)`
+when customer-service mints ULID `customerId`s ([D3 / `D-023`](../../architecture-review/DECISIONS-2026-10-21.md#d3--customer-identity-d-023)).
+`config_versions` and `accountable_sp_cert_ref` are JSON **text** (`VARCHAR(4000)`), not `JSONB`,
+so the migration runs on H2. The V4 columns are NULLable and nothing writes `source`,
+`created_by_actor_type`, `lead_generator_principal_id`, `config_versions`,
+`accountable_sp_cert_ref` or `exception_ref` yet (no trustworthy value exists in the create
+contract); `ck_lead_cert_with_sp` is therefore not applied. `ux_lead_dedupe_open` is a partial
+unique index on PostgreSQL; on H2 a generated `dedupe_open_key` column (NULL unless open) carries a
+plain unique index — same guarantee, local / test only. Still missing vs design: `archived_at`,
+`exception_state`, `need_analysis_state`, IPR / insurer columns, `converted_journey_id`, closure
+fields, `retain_until`.
+
+**Production guard:** `ProductionSafetyGuard` refuses to start under `prod` / `uat` when
+`lead.crypto.field-key` is the all-zero development key (or missing), `lead.store=memory`, the
+datasource URL is H2, or `lead.exception-rules=stub`.
 
 Constraints worth knowing: `QUALIFIED` / `ELIGIBLE` require `bi_generated = true`; any progressing
 state requires `accountable_sp_id`; `ARCHIVED` ⇔ `archived_at` set. DDL:

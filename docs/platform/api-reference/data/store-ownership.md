@@ -9,14 +9,19 @@ that schema. There is no cross-schema `FOREIGN KEY`; cross-context links are opa
 owning service validates.
 
 Decision record: `ADR-008` (ownership is invariant, one Aurora cluster at R0), `DB-DEC-0003`
-(store segregation), `DB-DEC-0004` (working payload until payment). Full DBA pack:
+(store segregation), `DB-DEC-0004` / `DB-DEC-0005` (working payload until payment, DynamoDB), and the
+2026-10-21 owner decisions ([D2–D8](../../architecture-review/DECISIONS-2026-10-21.md),
+[`ADR-024`](../../architecture-review/ADR-024-configuration-driven-rule-engine.md) rule sets,
+[`ADR-025`](../../architecture-review/ADR-025-event-specification-and-publisher.md) outbox shape,
+[`ADR-026`](../../architecture-review/ADR-026-audit-store-and-transport.md) audit — **proposed**). Full DBA pack:
 [04 store segregation](../../data-architecture/04-store-segregation-and-roadmap.md) ·
 [05 ER and field map](../../data-architecture/05-e2e-er-and-field-map.md) ·
 [DDL](../../data-architecture/schemas/README.md).
 
 > **Status.** The physical design is `AI-DRAFTED`. Applied today: `identity` (Flyway V1–V2 in
 > `identity-authorization-service`) and `bank_persistence` (Flyway V1 in `bank-persistence-service`,
-> in the `public` schema). Every other schema is built by its owning service when that service is
+> in the `public` schema), plus the R0 slices of `lead_lms` (lead-service Flyway V1–V3), `quotation` and
+> `proposal` (structured tables). Every other schema is built by its owning service when that service is
 > built (waves W0b–W3). Human Aarti / Mahesh / Deepali signatures are outstanding.
 
 ---
@@ -33,6 +38,7 @@ Decision record: `ADR-008` (ownership is invariant, one Aurora cluster at R0), `
   Aurora PostgreSQL (ONE cluster, Multi-AZ, ap-south-1; DR ap-south-2)
        identity | bank_persistence | customer | lead_lms | consent | suitability
        catalogue | quotation | proposal | payment | policy | journey | administration
+       [audit — PROPOSED, ADR-026]
             │  no cross-schema GRANT · no cross-schema FK
   other contexts reached only by: sync API to the owner, or outbox → MSK → consumer
 ```
@@ -53,17 +59,18 @@ Decision record: `ADR-008` (ownership is invariant, one Aurora cluster at R0), `
 |---|---|---|---|---|
 | `identity-authorization-service` | `identity` | `app_identity` / `migrator_identity` | `insurer`, `branch`, `business_user`, `user_branch_assignment`, `organization_relationship`, `certification`, `role`, `permission`, `user_role`, `role_permission`, `entitlement`, `bulk_import`, `bulk_import_row`, `approval_request`, `outbox_event` | — |
 | `bank-persistence-service` | `bank_persistence` | `app_bank_persistence` / `migrator_bank_persistence` | `integration_job`, `integration_job_offer`, `job_poll_attempt`, `raw_payload`, `audit_event`, `payment_session` | S3 prefix for raw payload bytes |
-| `customer-service` | `customer` | `app_customer` / `migrator_customer` | `customer` (HMAC CIF lookup + encrypted CIF/PII), `customer_snapshot` (journey-scoped frozen copy) | — |
-| `lead-service` | `lead_lms` | `app_lead_lms` / `migrator_lead_lms` | `lead`, `lead_assignment`, `lead_meeting`, `lead_follow_up`, `idempotency_record`, `outbox_event` | — |
-| `consent-service` | `consent` | `app_consent` / `migrator_consent` | `consent` (write-once evidence), `idempotency_record` | — |
-| `suitability-service` | `suitability` | `app_suitability` / `migrator_suitability` | `suitability`, `suitability_answer_set` (encrypted answers), `suitability_mapping_run`, `idempotency_record`, `outbox_event` | — |
-| `product-catalogue-service` | `catalogue` | `app_catalogue` / `migrator_catalogue` | `insurer`, `product`, `eligibility_band` | Valkey prefix `catalogue:` |
-| `journey-orchestration-service` | `journey` | `app_journey` / `migrator_journey` | `journey`, `journey_ref`, `journey_transition`, `outbox_event`, `idempotency_record` | — |
-| `quotation-service` | `quotation` | `app_quotation` / `migrator_quotation` | `quote`, `offer` (structured after `RECONCILED`), `idempotency_record` | **DynamoDB `{env}-quotation-working`** — pre-payment working quote (`DB-DEC-0005`) |
-| `proposal-service` | `proposal` | `app_proposal` / `migrator_proposal` | `proposal`, `uw_requirement`, `uw_document_ref` (structured after `RECONCILED`), `idempotency_record` | **DynamoDB `{env}-proposal-working`** — pre-payment working proposal (`DB-DEC-0005`) |
-| `payment-service` | `payment` | `app_payment` / `migrator_payment` | `payment`, `payment_attempt`, `refund`, `outbox_event`, `idempotency_record` | — |
-| `policy-issuance-service` | `policy` | `app_policy` / `migrator_policy` | `policy`, `policy_document_ref`, `idempotency_record` | S3 prefix for policy PDFs |
-| `administration-config-service` | `administration` | `app_administration` / `migrator_administration` | `configuration_record` (INSERT-only, versioned, effective-dated) | — |
+| `customer-service` | `customer` | `app_customer` / `migrator_customer` | `customer` (`customer_id` ULID minted here, `D-023`; HMAC CIF lookup UNIQUE + encrypted CIF/PII), `customer_snapshot` (frozen copy with `fresh_until`), `idempotency_record`, `outbox_event` | — |
+| `lead-service` | `lead_lms` | `app_lead_lms` / `migrator_lead_lms` | `lead`, `lead_assignment`, `lead_meeting`, `lead_follow_up`, `lead_exception_evaluation` + `lead_exception_decision` (D2, INSERT-only), `idempotency_record`, `outbox_event` | — |
+| `consent-service` | `consent` | `app_consent` / `migrator_consent` | `consent_record` (append-only: state change = new row, `D-024`), `idempotency_record`, `outbox_event` | — |
+| `suitability-service` | `suitability` | `app_suitability` / `migrator_suitability` | `suitability`, `suitability_answer_set` (encrypted answers), `suitability_mapping_run`, `evaluation` + `evaluation_outcome` (per class, D4), `evaluation_status_event`, `caution_ack`, `suitability_usage`, `idempotency_record`, `outbox_event` | S3 prefix for suitability PDFs |
+| `product-catalogue-service` | `catalogue` | `app_catalogue` / `migrator_catalogue` | `insurer`, `product`, `eligibility_band`, `outbox_event` | Valkey prefix `catalogue:` |
+| `journey-orchestration-service` | `journey` | `app_journey` / `migrator_journey` | `journey`, `journey_ref`, `journey_transition`, `outbox_event`, `processed_event`, `idempotency_record` | — |
+| `quotation-service` | `quotation` | `app_quotation` / `migrator_quotation` | `quote` (`CONVERTED`, `selected_offer_id`), every `offer` incl. `INVALID` (structured after `RECONCILED`, `D-025`), `idempotency_record` | **DynamoDB `{env}-quotation-working`** — pre-payment working quote (`DB-DEC-0005`) |
+| `proposal-service` | `proposal` | `app_proposal` / `migrator_proposal` | `proposal`, `proposal_answer` (every question + encrypted answer), `proposal_status_history` (append-only), `uw_requirement`, `uw_document_ref` (structured after `RECONCILED`, `D-025`), `idempotency_record` | **DynamoDB `{env}-proposal-working`** — pre-payment working proposal (`DB-DEC-0005`) |
+| `payment-service` | `payment` | `app_payment` / `migrator_payment` | `payment` (with `quote_id`, `proposal_id`, `method`, `paid_at` — `D-025`), `payment_attempt`, `refund`, `outbox_event`, `idempotency_record` | — |
+| `policy-issuance-service` | `policy` | `app_policy` / `migrator_policy` | `policy` (dates + insurer-decision TAT), `policy_status_history` (append-only, `D-025`), `policy_document_ref`, `idempotency_record`, `processed_event`, `outbox_event` | S3 prefix for policy PDFs |
+| `administration-config-service` | `administration` | `app_administration` / `migrator_administration` | `configuration_record` (INSERT-only, versioned, effective-dated), `rule_set_version` (ADR-024; published = immutable), `idempotency_record`, `outbox_event` | — |
+| `audit-compliance-service` — **PROPOSED** | `audit` | `app_audit` | `audit_event` (hash-chained, INSERT-only), `archive_export` — only if ADR-026 is accepted | S3 Object Lock WORM archive |
 
 Two more roles exist on the cluster and belong to no service: `job_retention` (executes purge
 procedures, never deletes evidence) and `ro_breakglass` (time-bound human read, IAM-brokered).
@@ -76,7 +83,7 @@ procedures, never deletes evidence) and `ro_breakglass` (time-bound human read, 
 | Service | What it uses instead | Why |
 |---|---|---|
 | `1sb-integration-service` | HTTP to `bank-persistence-service` `/internal/v1/*` | Standing constraint: no Flyway, no JPA, no datasource; ArchUnit enforced |
-| `audit-compliance-service` | HTTP `POST /internal/v1/audit-events` on `bank-persistence-service` | No second audit database (`DR-OWN-04`) |
+| `audit-compliance-service` | HTTP `POST /internal/v1/audit-events` on `bank-persistence-service` **today** | No second audit database (`DR-OWN-04`). ADR-026 (proposed) would give it schema `audit` instead and retire `bank_persistence.audit_event` |
 | `workforce-access-bff` | Valkey session vault | Token-hiding edge; bank apps never open a database |
 | `identity-provider-adapter-service` | Keycloak admin API; bank AD-verify API | IdP isolation; PDP truth is `identity` |
 | `integration-hub-service` | Routing policy from `administration-config-service` API | No business data |
@@ -135,15 +142,15 @@ The DBA pack names the target prefix `bff:` with a dedicated ACL user. The code 
 lead-service           [lead_lms]          create / assign / BI / convert
 customer-service       [customer]          CIF lookup + journey snapshot
 journey-orchestration  [journey]           stage + refs only
-consent-service        [consent]           OTP evidence, write-once
-suitability-service    [suitability]       encrypted answers + mapping run
+consent-service        [consent]           consent_record, append-only; checked before multi-quote (D5)
+suitability-service    [suitability]       encrypted answers + per-class evaluation record (D4)
 product-catalogue      [catalogue]+Valkey  products, eligibility bands
 quotation-service      [Dynamo → quotation] working item (encrypted) → quote/offer in Aurora after RECONCILED
    └─ via integration-hub (no DB) → 1sb-integration-service (no DB) → bank-persistence [bank_persistence + S3]
-proposal-service       [Dynamo → proposal]  working item → proposal/UW in Aurora after RECONCILED
-payment-service        [payment]           always structured; RECONCILED is the issuance gate
-policy-issuance        [policy] + S3 PDF   created only after RECONCILED
-audit-compliance       (no DB) → bank-persistence.audit_event (INSERT-only) → S3 WORM
+proposal-service       [Dynamo → proposal]  working item → proposal + proposal_answer + UW in Aurora after RECONCILED
+payment-service        [payment]           always structured; RECONCILED is the issuance gate; event carries quoteId/proposalId
+policy-issuance        [policy] + S3 PDF   created after RECONCILED; status history + TAT until issued/declined
+audit-compliance       (no DB) → bank-persistence.audit_event (INSERT-only) → S3 WORM   [ADR-026 proposed: own schema audit]
 reporting-mis          [S3/Athena, later]  replica / extract, never the writer
 ```
 

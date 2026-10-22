@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.bank.internal/events/ProposalSubmitted.v1.json",
+  "title": "ProposalSubmitted v1 - data",
+  "description": "Proposal submitted to the insurer via 1SB. Producer: proposal. Status: IMPLEMENTED (DynamoDB OUTBOX item; envelope pending). The `data` member of event-envelope/v1 (ADR-025): ids and states only, never customer PII.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "proposalId",
+    "state",
+    "journeyId"
+  ],
+  "properties": {
+    "proposalId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "state": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z_]*$",
+      "description": "Aggregate state after the change"
+    },
+    "journeyId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "quoteId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "insurerCode": {
+      "type": "string",
+      "pattern": "^[A-Z0-9_]{2,32}$",
+      "description": "Insurer code from product-catalogue"
+    }
+  },
+  "$defs": {
+    "ulid": {
+      "type": "string",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+    }
+  }
+}

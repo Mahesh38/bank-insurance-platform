@@ -140,6 +140,41 @@ class CustomerSearchServiceTest {
     assertThat(invalidations.get()).isEqualTo(1);
   }
 
+  @Test
+  void formatsAreCheckedPerSearchModeWithoutEchoingQ() {
+    assertInvalidQ("MOBILE", "5876543210", "IN");
+    assertInvalidQ("MOBILE", "98765", null);
+    assertInvalidQ("PAN", "ABCD1234FF", null);
+    assertInvalidQ("CUSTOMER_ID", "CIF-12/34", null);
+    assertInvalidQ("CUSTOMER_ID", "123456789012345678901", null);
+  }
+
+  @Test
+  void normalisesPanAndIndianMobileBeforeAskingCbs() {
+    assertThat(service.normalise("PAN", "abcde1234f", null)).isEqualTo("ABCDE1234F");
+    assertThat(service.normalise("MOBILE", "+919876543210", "IN")).isEqualTo("9876543210");
+    assertThat(service.normalise("CUSTOMER_ID", "5600980433", null)).isEqualTo("5600980433");
+  }
+
+  @Test
+  void noMatchIsAnEmptyList() {
+    assertThat(service.search("CUSTOMER_ID", "NONE", null)).isEmpty();
+  }
+
+  private void assertInvalidQ(String by, String q, String countryCode) {
+    assertThatThrownBy(() -> service.search(by, q, countryCode))
+        .isInstanceOf(ServiceException.class)
+        .satisfies(
+            thrown -> {
+              ServiceException ex = (ServiceException) thrown;
+              assertThat(ex.getErrorResponse().getCode()).isEqualTo(ErrorCodes.VALIDATION_ERROR);
+              assertThat(ex.getErrorResponse().getErrors())
+                  .singleElement()
+                  .satisfies(e -> assertThat(e.field()).isEqualTo("q"));
+              assertThat(ex.getDiagnostic().getReason()).doesNotContain(q);
+            });
+  }
+
   private static AccessTokenPort stubTokens(String token) {
     return new AccessTokenPort() {
       @Override

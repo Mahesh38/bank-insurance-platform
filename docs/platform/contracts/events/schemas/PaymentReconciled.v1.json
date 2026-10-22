@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.bank.internal/events/PaymentReconciled.v1.json",
+  "title": "PaymentReconciled v1 - data",
+  "description": "Payment matched to settlement; triggers materialise in quotation and proposal and starts issuance tracking (D8). Producer: payment. Status: CONTRACTED (payload changed by D8). The `data` member of event-envelope/v1 (ADR-025): ids and states only, never customer PII.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "paymentId",
+    "quoteId",
+    "proposalId",
+    "journeyId",
+    "applicationNumber",
+    "settlementRef",
+    "method",
+    "paidAt",
+    "reconciledAt",
+    "amount",
+    "currency"
+  ],
+  "properties": {
+    "paymentId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "quoteId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "proposalId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "journeyId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "applicationNumber": {
+      "type": "string",
+      "maxLength": 64,
+      "description": "Insurer application number (insurer-issued reference, not customer data)"
+    },
+    "settlementRef": {
+      "type": "string",
+      "maxLength": 64
+    },
+    "method": {
+      "type": "string",
+      "pattern": "^[A-Z0-9][A-Z0-9_.-]{0,63}$"
+    },
+    "paidAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "RFC 3339 UTC"
+    },
+    "reconciledAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "RFC 3339 UTC"
+    },
+    "amount": {
+      "type": "string",
+      "pattern": "^\\d{1,13}(\\.\\d{1,2})?$",
+      "description": "Decimal amount as a string (no float rounding), rupees"
+    },
+    "currency": {
+      "type": "string",
+      "pattern": "^[A-Z]{3}$",
+      "description": "ISO 4217"
+    }
+  },
+  "$defs": {
+    "ulid": {
+      "type": "string",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+    }
+  }
+}

@@ -1,0 +1,746 @@
+{
+  "format": "rule-set/v1",
+  "ruleSetId": "CONSENT.POLICY",
+  "domain": "CONSENT",
+  "scope": {
+    "lob": null,
+    "productClass": null
+  },
+  "version": "1.0.0",
+  "effectiveFrom": "2026-11-01T00:00:00+05:30",
+  "effectiveTo": null,
+  "classification": "COMPLIANCE",
+  "pinning": "JOURNEY",
+  "description": "Which consents must be captured at a checkpoint, given what the customer already holds (DECISIONS D5 / D-024). COLLECT: every missing purpose is returned.",
+  "source": {
+    "document": "docs/platform/architecture-review/DECISIONS-2026-10-21.md",
+    "sections": [
+      "D5 (checkpoints, purposes, validity days, reuse, bindTo)"
+    ],
+    "related": [
+      "docs/au-bank-insurance-platform/rule-packs/consent-rule-pack.md sections 2, 6"
+    ]
+  },
+  "governance": {
+    "status": "DRAFT-awaiting-approval",
+    "signatureStatus": "AI-DRAFTED - mandatory content-owner approval outstanding (ADR-024 section 7)",
+    "contentApprovers": [
+      "Shailja / bank Compliance"
+    ],
+    "approverRole": "COMPLIANCE_APPROVER",
+    "seededBy": "SUG-20261021-rul (owner-directed build, ADMIT-BYPASS)",
+    "openItems": [
+      "D5: Compliance must confirm DPDP position of taking CNS-DP/CNS-SOL after the questionnaire; the fix is moving them to BEFORE_SUITABILITY (new parameters + rules, no code)"
+    ]
+  },
+  "inputs": [
+    {
+      "name": "asOf",
+      "type": "DATE",
+      "required": true
+    },
+    {
+      "name": "checkpoint",
+      "type": "ENUM",
+      "required": true,
+      "values": [
+        "BEFORE_SUITABILITY",
+        "BEFORE_MULTI_QUOTE",
+        "BEFORE_PROPOSAL_SUBMIT",
+        "BEFORE_FIRST_COMMUNICATION"
+      ]
+    },
+    {
+      "name": "dpGrantedOn",
+      "type": "DATE",
+      "required": false,
+      "description": "Latest valid (not withdrawn) CNS-DP for the customerId; null if none"
+    },
+    {
+      "name": "solGrantedOn",
+      "type": "DATE",
+      "required": false
+    },
+    {
+      "name": "qshGrantedOn",
+      "type": "DATE",
+      "required": false
+    },
+    {
+      "name": "shrGrantedOn",
+      "type": "DATE",
+      "required": false
+    },
+    {
+      "name": "shrInsurerCode",
+      "type": "STRING",
+      "required": false,
+      "description": "Insurer named on the held CNS-SHR"
+    },
+    {
+      "name": "targetInsurerCode",
+      "type": "STRING",
+      "required": false,
+      "description": "Insurer the proposal goes to"
+    },
+    {
+      "name": "comGrantedOn",
+      "type": "DATE",
+      "required": false
+    }
+  ],
+  "decision": {
+    "hitPolicy": "COLLECT",
+    "outcomeRank": [
+      "CAPTURE_REQUIRED",
+      "NO_CAPTURE_REQUIRED"
+    ],
+    "noMatchOutcome": "NO_CAPTURE_REQUIRED",
+    "missingInputOutcome": "CAPTURE_REQUIRED",
+    "missingConfigOutcome": "CAPTURE_REQUIRED",
+    "missingConfigReasonCode": "CONSENT_CONFIG_MISSING",
+    "collectReasonCodes": "ALL_FIRED"
+  },
+  "rules": [
+    {
+      "ruleId": "CNS-MQ-DP",
+      "priority": 10,
+      "when": {
+        "op": "all",
+        "args": [
+          {
+            "op": "eq",
+            "args": [
+              {
+                "var": "checkpoint"
+              },
+              {
+                "const": "BEFORE_MULTI_QUOTE"
+              }
+            ]
+          },
+          {
+            "op": "in",
+            "args": [
+              {
+                "const": "CNS-DP"
+              },
+              {
+                "param": "checkpoints.BEFORE_MULTI_QUOTE.purposes"
+              }
+            ]
+          },
+          {
+            "op": "any",
+            "args": [
+              {
+                "op": "isNull",
+                "args": [
+                  {
+                    "var": "dpGrantedOn"
+                  }
+                ]
+              },
+              {
+                "op": "gt",
+                "args": [
+                  {
+                    "op": "daysBetween",
+                    "args": [
+                      {
+                        "var": "dpGrantedOn"
+                      },
+                      {
+                        "var": "asOf"
+                      }
+                    ]
+                  },
+                  {
+                    "param": "checkpoints.BEFORE_MULTI_QUOTE.validityDays"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "outcome": "CAPTURE_REQUIRED",
+        "reasonCode": "CAPTURE_CNS_DP",
+        "params": {
+          "purpose": {
+            "const": "CNS-DP"
+          },
+          "checkpoint": {
+            "var": "checkpoint"
+          }
+        }
+      }
+    },
+    {
+      "ruleId": "CNS-MQ-SOL",
+      "priority": 11,
+      "when": {
+        "op": "all",
+        "args": [
+          {
+            "op": "eq",
+            "args": [
+              {
+                "var": "checkpoint"
+              },
+              {
+                "const": "BEFORE_MULTI_QUOTE"
+              }
+            ]
+          },
+          {
+            "op": "in",
+            "args": [
+              {
+                "const": "CNS-SOL"
+              },
+              {
+                "param": "checkpoints.BEFORE_MULTI_QUOTE.purposes"
+              }
+            ]
+          },
+          {
+            "op": "any",
+            "args": [
+              {
+                "op": "isNull",
+                "args": [
+                  {
+                    "var": "solGrantedOn"
+                  }
+                ]
+              },
+              {
+                "op": "gt",
+                "args": [
+                  {
+                    "op": "daysBetween",
+                    "args": [
+                      {
+                        "var": "solGrantedOn"
+                      },
+                      {
+                        "var": "asOf"
+                      }
+                    ]
+                  },
+                  {
+                    "param": "checkpoints.BEFORE_MULTI_QUOTE.validityDays"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "outcome": "CAPTURE_REQUIRED",
+        "reasonCode": "CAPTURE_CNS_SOL",
+        "params": {
+          "purpose": {
+            "const": "CNS-SOL"
+          },
+          "checkpoint": {
+            "var": "checkpoint"
+          }
+        }
+      }
+    },
+    {
+      "ruleId": "CNS-MQ-QSH",
+      "priority": 12,
+      "when": {
+        "op": "all",
+        "args": [
+          {
+            "op": "eq",
+            "args": [
+              {
+                "var": "checkpoint"
+              },
+              {
+                "const": "BEFORE_MULTI_QUOTE"
+              }
+            ]
+          },
+          {
+            "op": "in",
+            "args": [
+              {
+                "const": "CNS-QSH"
+              },
+              {
+                "param": "checkpoints.BEFORE_MULTI_QUOTE.purposes"
+              }
+            ]
+          },
+          {
+            "op": "any",
+            "args": [
+              {
+                "op": "isNull",
+                "args": [
+                  {
+                    "var": "qshGrantedOn"
+                  }
+                ]
+              },
+              {
+                "op": "gt",
+                "args": [
+                  {
+                    "op": "daysBetween",
+                    "args": [
+                      {
+                        "var": "qshGrantedOn"
+                      },
+                      {
+                        "var": "asOf"
+                      }
+                    ]
+                  },
+                  {
+                    "param": "checkpoints.BEFORE_MULTI_QUOTE.validityDays"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "outcome": "CAPTURE_REQUIRED",
+        "reasonCode": "CAPTURE_CNS_QSH",
+        "params": {
+          "purpose": {
+            "const": "CNS-QSH"
+          },
+          "checkpoint": {
+            "var": "checkpoint"
+          }
+        }
+      }
+    },
+    {
+      "ruleId": "CNS-PS-SHR",
+      "priority": 20,
+      "when": {
+        "op": "all",
+        "args": [
+          {
+            "op": "eq",
+            "args": [
+              {
+                "var": "checkpoint"
+              },
+              {
+                "const": "BEFORE_PROPOSAL_SUBMIT"
+              }
+            ]
+          },
+          {
+            "op": "in",
+            "args": [
+              {
+                "const": "CNS-SHR"
+              },
+              {
+                "param": "checkpoints.BEFORE_PROPOSAL_SUBMIT.purposes"
+              }
+            ]
+          },
+          {
+            "op": "any",
+            "args": [
+              {
+                "op": "isNull",
+                "args": [
+                  {
+                    "var": "shrGrantedOn"
+                  }
+                ]
+              },
+              {
+                "op": "gt",
+                "args": [
+                  {
+                    "op": "daysBetween",
+                    "args": [
+                      {
+                        "var": "shrGrantedOn"
+                      },
+                      {
+                        "var": "asOf"
+                      }
+                    ]
+                  },
+                  {
+                    "param": "checkpoints.BEFORE_PROPOSAL_SUBMIT.validityDays"
+                  }
+                ]
+              },
+              {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "eq",
+                    "args": [
+                      {
+                        "param": "checkpoints.BEFORE_PROPOSAL_SUBMIT.scope"
+                      },
+                      {
+                        "const": "NAMED_INSURER"
+                      }
+                    ]
+                  },
+                  {
+                    "op": "ne",
+                    "args": [
+                      {
+                        "var": "shrInsurerCode"
+                      },
+                      {
+                        "var": "targetInsurerCode"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "outcome": "CAPTURE_REQUIRED",
+        "reasonCode": "CAPTURE_CNS_SHR",
+        "params": {
+          "purpose": {
+            "const": "CNS-SHR"
+          },
+          "checkpoint": {
+            "var": "checkpoint"
+          }
+        }
+      }
+    },
+    {
+      "ruleId": "CNS-FC-COM",
+      "priority": 30,
+      "when": {
+        "op": "all",
+        "args": [
+          {
+            "op": "eq",
+            "args": [
+              {
+                "var": "checkpoint"
+              },
+              {
+                "const": "BEFORE_FIRST_COMMUNICATION"
+              }
+            ]
+          },
+          {
+            "op": "in",
+            "args": [
+              {
+                "const": "CNS-COM"
+              },
+              {
+                "param": "checkpoints.BEFORE_FIRST_COMMUNICATION.purposes"
+              }
+            ]
+          },
+          {
+            "op": "any",
+            "args": [
+              {
+                "op": "isNull",
+                "args": [
+                  {
+                    "var": "comGrantedOn"
+                  }
+                ]
+              },
+              {
+                "op": "gt",
+                "args": [
+                  {
+                    "op": "daysBetween",
+                    "args": [
+                      {
+                        "var": "comGrantedOn"
+                      },
+                      {
+                        "var": "asOf"
+                      }
+                    ]
+                  },
+                  {
+                    "op": "coalesce",
+                    "args": [
+                      {
+                        "param": "checkpoints.BEFORE_FIRST_COMMUNICATION.validityDays"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "outcome": "CAPTURE_REQUIRED",
+        "reasonCode": "CAPTURE_CNS_COM",
+        "params": {
+          "purpose": {
+            "const": "CNS-COM"
+          },
+          "checkpoint": {
+            "var": "checkpoint"
+          }
+        }
+      }
+    }
+  ],
+  "parameters": {
+    "checkpoints": {
+      "BEFORE_MULTI_QUOTE": {
+        "purposes": [
+          "CNS-DP",
+          "CNS-SOL",
+          "CNS-QSH"
+        ],
+        "validityDays": 90
+      },
+      "BEFORE_PROPOSAL_SUBMIT": {
+        "purposes": [
+          "CNS-SHR"
+        ],
+        "validityDays": 30,
+        "scope": "NAMED_INSURER"
+      },
+      "BEFORE_FIRST_COMMUNICATION": {
+        "purposes": [
+          "CNS-COM"
+        ],
+        "validityDays": null
+      }
+    },
+    "reuseAcrossJourneys": true,
+    "bindTo": "customerId"
+  },
+  "reasonCodes": {
+    "RULE_INPUT_MISSING": {
+      "severity": "BLOCK",
+      "rmText": "Required inputs missing: @missing.",
+      "customerText": null
+    },
+    "RULE_INPUT_INVALID": {
+      "severity": "BLOCK",
+      "rmText": "Inputs not in the expected form: @missing.",
+      "customerText": null
+    },
+    "CAPTURE_CNS_DP": {
+      "severity": "BLOCK",
+      "rmText": "Consent CNS-DP (process your personal data) must be captured at @checkpoint.",
+      "customerText": "We need your consent to process your personal data before we continue."
+    },
+    "CAPTURE_CNS_SOL": {
+      "severity": "BLOCK",
+      "rmText": "Consent CNS-SOL (use your answers for suitability) must be captured at @checkpoint.",
+      "customerText": "We need your consent to use your answers for suitability before we continue."
+    },
+    "CAPTURE_CNS_QSH": {
+      "severity": "BLOCK",
+      "rmText": "Consent CNS-QSH (share your quote details with the insurers being quoted) must be captured at @checkpoint.",
+      "customerText": "We need your consent to share your quote details with the insurers being quoted before we continue."
+    },
+    "CAPTURE_CNS_SHR": {
+      "severity": "BLOCK",
+      "rmText": "Consent CNS-SHR (share your proposal with the named insurer) must be captured at @checkpoint.",
+      "customerText": "We need your consent to share your proposal with the named insurer before we continue."
+    },
+    "CAPTURE_CNS_COM": {
+      "severity": "BLOCK",
+      "rmText": "Consent CNS-COM (send you communications) must be captured at @checkpoint.",
+      "customerText": "We need your consent to send you communications before we continue."
+    },
+    "CONSENT_CONFIG_MISSING": {
+      "severity": "BLOCK",
+      "rmText": "Consent policy configuration incomplete for @ruleId (@missingParameters).",
+      "customerText": null
+    }
+  },
+  "testCases": [
+    {
+      "name": "D5-valid-day-90-no-capture",
+      "inputs": {
+        "asOf": "2027-01-30",
+        "checkpoint": "BEFORE_MULTI_QUOTE",
+        "dpGrantedOn": "2026-11-01",
+        "solGrantedOn": "2026-11-01",
+        "qshGrantedOn": "2026-11-01"
+      },
+      "expect": {
+        "outcome": "NO_CAPTURE_REQUIRED",
+        "reasonCodes": [],
+        "fired": []
+      }
+    },
+    {
+      "name": "D5-day-91-capture-all-three",
+      "inputs": {
+        "asOf": "2027-01-31",
+        "checkpoint": "BEFORE_MULTI_QUOTE",
+        "dpGrantedOn": "2026-11-01",
+        "solGrantedOn": "2026-11-01",
+        "qshGrantedOn": "2026-11-01"
+      },
+      "expect": {
+        "outcome": "CAPTURE_REQUIRED",
+        "reasonCodes": [
+          "CAPTURE_CNS_DP",
+          "CAPTURE_CNS_SOL",
+          "CAPTURE_CNS_QSH"
+        ]
+      }
+    },
+    {
+      "name": "D5-first-journey-nothing-held",
+      "inputs": {
+        "asOf": "2027-01-30",
+        "checkpoint": "BEFORE_MULTI_QUOTE"
+      },
+      "expect": {
+        "outcome": "CAPTURE_REQUIRED",
+        "reasonCodes": [
+          "CAPTURE_CNS_DP",
+          "CAPTURE_CNS_SOL",
+          "CAPTURE_CNS_QSH"
+        ],
+        "messages": [
+          "Consent CNS-DP (process your personal data) must be captured at BEFORE_MULTI_QUOTE.",
+          "Consent CNS-SOL (use your answers for suitability) must be captured at BEFORE_MULTI_QUOTE.",
+          "Consent CNS-QSH (share your quote details with the insurers being quoted) must be captured at BEFORE_MULTI_QUOTE."
+        ]
+      }
+    },
+    {
+      "name": "D5-only-missing-purpose-captured",
+      "inputs": {
+        "asOf": "2027-01-30",
+        "checkpoint": "BEFORE_MULTI_QUOTE",
+        "dpGrantedOn": "2026-11-01",
+        "solGrantedOn": "2026-11-01"
+      },
+      "expect": {
+        "outcome": "CAPTURE_REQUIRED",
+        "reasonCodes": [
+          "CAPTURE_CNS_QSH"
+        ]
+      }
+    },
+    {
+      "name": "D5-multi-quote-does-not-ask-SHR",
+      "inputs": {
+        "asOf": "2027-01-30",
+        "checkpoint": "BEFORE_MULTI_QUOTE",
+        "dpGrantedOn": "2026-11-01",
+        "solGrantedOn": "2026-11-01",
+        "qshGrantedOn": "2026-11-01"
+      },
+      "expect": {
+        "outcome": "NO_CAPTURE_REQUIRED"
+      }
+    },
+    {
+      "name": "D5-SHR-valid-same-insurer",
+      "inputs": {
+        "asOf": "2026-12-01",
+        "checkpoint": "BEFORE_PROPOSAL_SUBMIT",
+        "shrGrantedOn": "2026-11-01",
+        "shrInsurerCode": "INS01",
+        "targetInsurerCode": "INS01"
+      },
+      "expect": {
+        "outcome": "NO_CAPTURE_REQUIRED"
+      }
+    },
+    {
+      "name": "D5-SHR-day-31",
+      "inputs": {
+        "asOf": "2026-12-02",
+        "checkpoint": "BEFORE_PROPOSAL_SUBMIT",
+        "shrGrantedOn": "2026-11-01",
+        "shrInsurerCode": "INS01",
+        "targetInsurerCode": "INS01"
+      },
+      "expect": {
+        "outcome": "CAPTURE_REQUIRED",
+        "reasonCodes": [
+          "CAPTURE_CNS_SHR"
+        ]
+      }
+    },
+    {
+      "name": "D5-SHR-other-insurer",
+      "inputs": {
+        "asOf": "2026-12-01",
+        "checkpoint": "BEFORE_PROPOSAL_SUBMIT",
+        "shrGrantedOn": "2026-11-01",
+        "shrInsurerCode": "INS01",
+        "targetInsurerCode": "INS02"
+      },
+      "expect": {
+        "outcome": "CAPTURE_REQUIRED",
+        "reasonCodes": [
+          "CAPTURE_CNS_SHR"
+        ]
+      }
+    },
+    {
+      "name": "D5-COM-no-expiry",
+      "inputs": {
+        "asOf": "2030-01-01",
+        "checkpoint": "BEFORE_FIRST_COMMUNICATION",
+        "comGrantedOn": "2026-11-01"
+      },
+      "expect": {
+        "outcome": "NO_CAPTURE_REQUIRED"
+      }
+    },
+    {
+      "name": "D5-COM-absent",
+      "inputs": {
+        "asOf": "2026-11-01",
+        "checkpoint": "BEFORE_FIRST_COMMUNICATION"
+      },
+      "expect": {
+        "outcome": "CAPTURE_REQUIRED",
+        "reasonCodes": [
+          "CAPTURE_CNS_COM"
+        ]
+      }
+    },
+    {
+      "name": "fail-closed-missing-checkpoint",
+      "inputs": {
+        "asOf": "2026-11-01"
+      },
+      "expect": {
+        "outcome": "CAPTURE_REQUIRED",
+        "reasonCodes": [
+          "RULE_INPUT_MISSING"
+        ]
+      }
+    }
+  ]
+}

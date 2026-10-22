@@ -6,10 +6,11 @@
 |---|---|
 | **Role** | The **only** door from platform domain services to insurance providers. Accepts a **bank-canonical** provider request, decides **which provider adapter** serves it (1SB today; a direct insurer or a bank aggregator later), injects attribution server-side, applies per-provider resilience, and returns bank-language results. Its whole purpose is that adding or replacing a provider is **a new adapter behind the routing policy — never a change to Quotation, Proposal, Payment or Policy** (`IF-1`, `S07-VT-08`, `TI-19`) |
 | **Module** | `services/integration-hub-service` · port 8100 · `service-id: integration-hub` · layer L5 · INTERNAL |
+| **Contract** | [`openapi.yaml`](../../contracts/integration-hub-service/openapi.yaml) · [LLD](../../contracts/integration-hub-service/LLD.md) — authoritative per [ADR-027](../../architecture-review/ADR-027-openapi-contract-authority.md); AI-DRAFTED; routing `HUB.ROUTING`, canonical ↔ adapter mapping and nested timeouts are defined there and supersede the PROPOSED bodies below |
 | **Base path** | `/internal/v1/provider-requests` (HLD §5.3) |
 | **Callers** | Quotation, Proposal, Payment (adapter capabilities only), Policy — **and nothing else**. The BFF and Flutter never call it; for reference data the BFF goes through the owning domain service |
 | **Calls out** | `1sb-integration-service` `/v1/*` · `direct-insurer-adapter-service` (when admitted) · administration-config (routing policy, distributor/agent resolution, S-21) |
-| **Owns data** | **None.** No schema, no DynamoDB table. Routing policy is versioned configuration in `administration`. Provider job state lives in `bank_persistence` (adapter-owned) |
+| **Owns data** | **PROPOSED (2026-10-21):** Aurora schema `hub` — `provider_request` (idempotency key UNIQUE, provider, adapter job id, routing version) + `outbox_event`; DDL addition and owner yes pending ([LLD §7](../../contracts/integration-hub-service/LLD.md#7-where-idempotency-and-correlation-live--decision-proposed)). Routing is rule set `HUB.ROUTING` (ADR-024, hit policy `FIRST`). Provider job state stays in `bank_persistence` (adapter-owned) |
 | **Code status** | **SKELETON** (`GET /internal/v1/integration-hub/info`). Contract **CONTRACTED** at the level of `IF-1` + HLD §5.3; request/response bodies below are **PROPOSED** from the IF-1 rules, the adapter's implemented contract and [replaceable middleware](../../../1sb-insurance-integration/architecture/replaceable-middleware.md) |
 
 ---
@@ -113,7 +114,7 @@ operation; **reject** any `distributorId`, `agentId`, `spLicenceId`, `distributi
 7  202 { providerRequestId, state: IN_PROGRESS, provider: "ONE_SB" }
 ```
 
-> The Hub owns no table, so the durable link between `quoteId` and the adapter `jobId` is held by
+> **Superseded 2026-10-21:** the contract now proposes `hub.provider_request` as the durable link (LLD §7). Previous text: the Hub owns no table, so the durable link between `quoteId` and the adapter `jobId` is held by
 > the **caller** (the quote's DynamoDB item, attribute `providerJobId`) and by the **adapter job** (`journey_id`). If
 > the Hub ever needs its own correlation store, that is a new schema and an ADR — not a silent
 > Dynamo table (store-ownership §2.3).

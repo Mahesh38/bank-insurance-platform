@@ -16,9 +16,16 @@ public record DownstreamProperties(
     @NotNull URI leadServiceBaseUrl,
     @NotNull URI customerServiceBaseUrl,
     @NotBlank String leadMode,
-    @NotBlank String customerMode) {
+    @NotBlank String customerMode,
+    @NotBlank @Size(min = 16) String authorizationServiceInternalKey) {
 
   public static final String PROVIDER_ADAPTER_INTERNAL_KEY_HEADER = "X-Internal-Service-Key";
+
+  /**
+   * Same header, different key: identity-authorization-service authenticates each caller by its own
+   * key, and only the BFF's key may assert {@code X-Actor-Id} (READINESS-REVIEW §3.7).
+   */
+  public static final String AUTHORIZATION_INTERNAL_KEY_HEADER = "X-Internal-Service-Key";
 
   @Override
   public String toString() {
@@ -34,6 +41,6 @@ public record DownstreamProperties(
         + leadMode
         + ", customerMode="
         + customerMode
-        + "]";
+        + ", authorizationServiceInternalKey=redacted]";
   }
 }

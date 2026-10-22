@@ -1,0 +1,766 @@
+openapi: 3.1.0
+info:
+  title: journey-orchestration-service internal API
+  version: 1.0.0-draft
+  summary: 'Journey (#9) — the sale saga: stage machine, references, commands to exactly one owning service each.'
+  description: |
+    **Status:** AI-DRAFTED 2026-10-22 under owner decisions D3, D4, D5 (`D-024`), ADR-024/025/027,
+    awaiting Mahesh (architecture) and Rajal (journey behaviour) review. Code status: SKELETON.
+
+    * Stage order (owner, D5): `INITIATED → NEED_ANALYSIS → SUITABILITY_COMPLETE →` consent check /
+      capture at checkpoint `BEFORE_MULTI_QUOTE` (purposes from `CONSENT.POLICY`) `→ CONSENT_CAPTURED
+      → QUOTING → QUOTE_SELECTED → PROPOSAL_IN_PROGRESS →` (`BEFORE_PROPOSAL_SUBMIT`) `UNDERWRITING →
+      PAYMENT_PENDING → PAYMENT_SETTLED → ISSUANCE_PENDING → ISSUED → SOLD`.
+    * Journey coordinates, it never decides (INV-JRN-02): no outcome, price or UW decision is stored.
+      Refs to other contexts live in `journey_ref`; downstream calls take refs from there, never from
+      the request body.
+    * Every command: BFF → Journey (S-03, 3 s) → one owning service with a server-derived
+      `Idempotency-Key` `journey:{journeyId}:{command}[:{n}]`; callee commits first, then one local
+      transaction (stage + ref + transition + outbox + idempotency). No 2PC.
+    * If customer-service is down at start the journey **is created** at `INITIATED` with
+      `partySnapshotRef = null` and `nextAction = RETRY_PARTY_SNAPSHOT` (R0-HLD S-04 "hold at
+      INITIATED"); it cannot leave `INITIATED` until the snapshot exists.
+servers:
+  - url: http://journey-orchestration-service:8095
+    description: Cluster-private (INTERNAL, layer L6).
+tags:
+  - name: journey
+  - name: need-analysis
+  - name: consent
+  - name: quote-to-pay
+paths:
+  /internal/v1/journeys:
+    post:
+      tags: [journey]
+      operationId: startJourney
+      summary: Start a journey for an assigned, exception-cleared lead → INITIATED.
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StartJourneyRequest'
+      responses:
+        '200':
+          description: An open journey already exists for this lead (ux_journey_lead_open) — returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Journey'
+        '201':
+          description: Created (with or without party snapshot — see nextAction).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Journey'
+        '400':
+          $ref: '#/components/responses/MissingIdempotencyKey'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Validation'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /internal/v1/journeys/{journeyId}:
+    get:
+      tags: [journey]
+      operationId: getJourney
+      summary: Stage, references and next action. Partner reps see a journey only when partner-visible (else 404).
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/JourneyId'
+      responses:
+        '200':
+          description: Journey.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Journey'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /internal/v1/journeys/{journeyId}/transitions:
+    post:
+      tags: [journey]
+      operationId: applyTransition
+      summary: Generic command endpoint (HLD §5.3) — R0 commands without an owning-service call.
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/JourneyId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [command, expectedVersion]
+              properties:
+                command:
+                  type: string
+                  enum: [ABANDON]
+                reasonCode:
+                  type: string
+                  maxLength: 40
+                expectedVersion:
+                  type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/JourneyOk'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Validation'
+  /internal/v1/journeys/{journeyId}/party-snapshot:
+    post:
+      tags: [journey]
+      operationId: retryPartySnapshot
+      summary: Retry S-04 for a journey held at INITIATED without a party snapshot.
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/JourneyId'
+      responses:
+        '200':
+          $ref: '#/components/responses/JourneyOk'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /internal/v1/journeys/{journeyId}/need-analysis:
+    post:
+      tags: [need-analysis]
+      operationId: startNeedAnalysis
+      summary: INITIATED → NEED_ANALYSIS. Checks checkpoint BEFORE_SUITABILITY (empty in seed policy), then Suitability create (S-07).
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/JourneyId'
+      responses:
+        '200':
+          $ref: '#/components/responses/JourneyOk'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Validation'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /internal/v1/journeys/{journeyId}/need-analysis/answers:
+    put:
+      tags: [need-analysis]
+      operationId: saveNeedAnalysisAnswers
+      summary: Forward a screen of answers to Suitability; stage stays NEED_ANALYSIS.
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/JourneyId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [screenId, answers]
+              properties:
+                screenId:
+                  type: string
+                  maxLength: 40
+                answers:
+                  type: object
+                  propertyNames:
+                    pattern: '^SQ-[0-9]{2}$'
+                  additionalProperties:
+                    type: [string, number, boolean]
+      responses:
+        '200':
+          $ref: '#/components/responses/JourneyOk'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Validation'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /internal/v1/journeys/{journeyId}/suitability:
+    post:
+      tags: [need-analysis]
+      operationId: evaluateSuitability
+      summary: NEED_ANALYSIS → SUITABILITY_COMPLETE (Suitability evaluate). Also used for a correction from SUITABILITY_COMPLETE / CONSENT_CAPTURED.
+      description: |
+        Records ref `suitabilityId` + `evaluationId` and calls Suitability `usages`. The stage moves on
+        a completed evaluation whatever its outcomes — the gate is enforced by Quotation (C1).
+        `nextAction` is `CAPTURE_CONSENT`, `ACKNOWLEDGE_DISCLOSURE` or `REVISE_NEED_ANALYSIS`, derived
+        from the evaluation response and not stored (INV-JRN-02).
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/JourneyId'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                correction:
+                  type: boolean
+                  default: false
+                  description: true = start a superseding assessment (INV-SUI-01); stage returns to NEED_ANALYSIS.
+      responses:
+        '200':
+          $ref: '#/components/responses/JourneyOk'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Validation'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /internal/v1/journeys/{journeyId}/suitability/acknowledgements:
+    post:
+      tags: [need-analysis]
+      operationId: acknowledgeSuitabilityDisclosure
+      summary: Forward an OTP-verified caution / replacement acknowledgement to Suitability. Stage unchanged.
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/JourneyId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [kind, productClass, reasonCodes, disclosureId, disclosureVersion, otpTxnId, verificationMode]
+              properties:
+                kind:
+                  type: string
+                  enum: [CAUTION, REPLACEMENT]
+                productClass:
+                  type: string
+                  enum: [TERM, SAVINGS, ULIP]
+                reasonCodes:
+                  type: array
+                  items:
+                    type: string
+                disclosureId:
+                  type: string
+                disclosureVersion:
+                  type: string
+                otpTxnId:
+                  type: string
+                verificationMode:
+                  type: string
+                  enum: [CUSTOMER_DEVICE, RM_RELAYED]
+      responses:
+        '200':
+          $ref: '#/components/responses/JourneyOk'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /internal/v1/journeys/{journeyId}/consents:
+    post:
+      tags: [consent]
+      operationId: checkOrCaptureConsent
+      summary: Check the stage's consent checkpoint; advance when satisfied, else start capture of the missing purposes only.
+      description: |
+        Checkpoint is derived from the stage, never chosen by the client: `SUITABILITY_COMPLETE` →
+        `BEFORE_MULTI_QUOTE`; `PROPOSAL_IN_PROGRESS` → `BEFORE_PROPOSAL_SUBMIT` (named insurer from
+        the selected offer). Consent `GET consents:check` (S-06, 2 s, fail closed).
+        `satisfied` → refs `consent:<purpose>` upserted; at `BEFORE_MULTI_QUOTE` the stage moves to
+        `CONSENT_CAPTURED` (`200`). Missing → Consent `POST /consents` for the missing purposes →
+        `201` with the challenge; stage unchanged until `ConsentGranted` (customer device) or the
+        verify command below, after which the check is re-run.
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/JourneyId'
+      responses:
+        '200':
+          $ref: '#/components/responses/JourneyOk'
+        '201':
+          description: Capture started for the missing purposes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsentCaptureStarted'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Validation'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /internal/v1/journeys/{journeyId}/consents/{challengeId}/verify:
+    post:
+      tags: [consent]
+      operationId: verifyConsentRelayed
+      summary: RM-relayed OTP verification — only when CONSENT.POLICY permits RM_RELAYED (CNS-R13 open with Compliance).
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/JourneyId'
+        - name: challengeId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Ulid'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [otpTxnId, otp]
+              properties:
+                otpTxnId:
+                  type: string
+                otp:
+                  type: string
+                  pattern: '^[0-9]{4,8}$'
+                  writeOnly: true
+      responses:
+        '200':
+          $ref: '#/components/responses/JourneyOk'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Validation'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /internal/v1/journeys/{journeyId}/quotes:
+    post:
+      tags: [quote-to-pay]
+      operationId: requestQuote
+      summary: CONSENT_CAPTURED (or QUOTING, re-quote) → QUOTING. Re-checks BEFORE_MULTI_QUOTE immediately before calling Quotation.
+      description: |
+        Owner D5: "before calling the multi-quote API the platform checks for a valid consent". A
+        consent that expired or was withdrawn since `CONSENT_CAPTURED` → `403 CONSENT_REQUIRED`, stage
+        unchanged. Quotation receives `evaluationId` and consent refs **from journey_ref**.
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/JourneyId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuoteCommand'
+      responses:
+        '202':
+          $ref: '#/components/responses/JourneyAccepted'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Validation'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /internal/v1/journeys/{journeyId}/quotes/{quoteId}/selection:
+    post:
+      tags: [quote-to-pay]
+      operationId: selectOffer
+      summary: QUOTING → QUOTE_SELECTED (Quotation select).
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/JourneyId'
+        - $ref: '#/components/parameters/QuoteId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [offerId]
+              properties:
+                offerId:
+                  $ref: '#/components/schemas/Ulid'
+                divergenceReasonCode:
+                  type: ['string', 'null']
+                  description: SUIT-R44 — when the selection is not the top-ranked offer.
+      responses:
+        '200':
+          $ref: '#/components/responses/JourneyOk'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /internal/v1/journeys/{journeyId}/proposals:
+    post:
+      tags: [quote-to-pay]
+      operationId: createProposal
+      summary: QUOTE_SELECTED → PROPOSAL_IN_PROGRESS (Proposal create from the selected offer ref).
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/JourneyId'
+      responses:
+        '201':
+          $ref: '#/components/responses/JourneyCreated'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /internal/v1/journeys/{journeyId}/proposals/{proposalId}/submit:
+    post:
+      tags: [quote-to-pay]
+      operationId: submitProposal
+      summary: PROPOSAL_IN_PROGRESS → UNDERWRITING. Requires BEFORE_PROPOSAL_SUBMIT satisfied (CNS-SHR for the named insurer).
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/JourneyId'
+        - name: proposalId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Ulid'
+      responses:
+        '202':
+          $ref: '#/components/responses/JourneyAccepted'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /internal/v1/journeys/{journeyId}/payments:
+    post:
+      tags: [quote-to-pay]
+      operationId: initiatePayment
+      summary: UNDERWRITING (UW approved) → PAYMENT_PENDING (Payment initiate; link to the customer device, C4).
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/JourneyId'
+      responses:
+        '201':
+          $ref: '#/components/responses/JourneyCreated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+components:
+  parameters:
+    ActorId:
+      name: X-Actor-Id
+      in: header
+      required: true
+      schema:
+        type: string
+        maxLength: 64
+    CorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: false
+      schema:
+        type: string
+        maxLength: 64
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: Client key from NIP-APP, forwarded by the BFF. Journey derives its own keys for the hops it makes.
+      schema:
+        type: string
+        maxLength: 128
+    JourneyId:
+      name: journeyId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Ulid'
+    QuoteId:
+      name: quoteId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Ulid'
+  schemas:
+    Ulid:
+      type: string
+      pattern: '^[0-9A-HJKMNP-TV-Z]{26}$'
+    Stage:
+      type: string
+      enum:
+        - INITIATED
+        - NEED_ANALYSIS
+        - SUITABILITY_COMPLETE
+        - CONSENT_CAPTURED
+        - QUOTING
+        - QUOTE_SELECTED
+        - PROPOSAL_IN_PROGRESS
+        - UNDERWRITING
+        - PAYMENT_PENDING
+        - PAYMENT_SETTLED
+        - ISSUANCE_PENDING
+        - ISSUED
+        - SOLD
+        - ABANDONED
+        - DECLINED
+        - HALTED_CONSENT_WITHDRAWN
+        - COMPENSATING
+        - COMPENSATED
+        - MANUAL_INTERVENTION
+    NextAction:
+      type: string
+      enum:
+        - RETRY_PARTY_SNAPSHOT
+        - START_NEED_ANALYSIS
+        - COMPLETE_NEED_ANALYSIS
+        - ACKNOWLEDGE_DISCLOSURE
+        - REVISE_NEED_ANALYSIS
+        - CAPTURE_CONSENT
+        - AWAIT_CONSENT_VERIFICATION
+        - REQUEST_QUOTE
+        - AWAIT_QUOTES
+        - SELECT_OFFER
+        - COMPLETE_PROPOSAL
+        - AWAIT_UNDERWRITING
+        - INITIATE_PAYMENT
+        - AWAIT_PAYMENT
+        - AWAIT_ISSUANCE
+        - OPERATIONS
+        - NONE
+    StartJourneyRequest:
+      type: object
+      additionalProperties: false
+      required: [leadId, customerId, lob, channel]
+      properties:
+        leadId:
+          $ref: '#/components/schemas/Ulid'
+        customerId:
+          $ref: '#/components/schemas/Ulid'
+          description: Platform customerId (D3). Must equal the lead's customerId.
+        lob:
+          type: string
+          enum: [LIFE]
+        channel:
+          type: string
+          enum: [RM_ASSISTED, SELF_SERVICE, HYBRID]
+          description: DDL vocabulary. R0 accepts RM_ASSISTED only; the earlier `ASSISTED` is not accepted.
+    Journey:
+      type: object
+      required: [journeyId, leadId, customerId, lob, productClass, channel, stage, nextAction, nextActionDueAt, refs, version]
+      properties:
+        journeyId:
+          $ref: '#/components/schemas/Ulid'
+        leadId:
+          $ref: '#/components/schemas/Ulid'
+        customerId:
+          $ref: '#/components/schemas/Ulid'
+        lob:
+          type: string
+        productClass:
+          type: string
+          enum: [TERM, SAVINGS, ULIP]
+          description: Copied from the lead at start (routing key for suitability, not a decision).
+        channel:
+          type: string
+        stage:
+          $ref: '#/components/schemas/Stage'
+        nextAction:
+          $ref: '#/components/schemas/NextAction'
+        nextActionDueAt:
+          type: string
+          format: date-time
+        partySnapshotRef:
+          oneOf:
+            - $ref: '#/components/schemas/Ulid'
+            - type: 'null'
+        refs:
+          type: object
+          description: 'journey_ref rows. Keys: suitabilityId, evaluationId, consent:CNS-DP, consent:CNS-SOL, consent:CNS-QSH, consent:CNS-SHR, consent:CNS-COM, consentChallengeId, quoteId, offerId, proposalId, paymentId, policyId, applicationNumber, policyNumber, provider.'
+          additionalProperties:
+            type: string
+        pendingConsentChallengeId:
+          type: ['string', 'null']
+        compensation:
+          type: ['object', 'null']
+          properties:
+            failurePoint:
+              type: string
+            attempts:
+              type: integer
+            ownerTaskId:
+              type: string
+        version:
+          type: integer
+    ConsentCaptureStarted:
+      type: object
+      required: [journey, challengeId, checkpoint, purposes, otpExpiresAt, maskedContact]
+      properties:
+        journey:
+          $ref: '#/components/schemas/Journey'
+        challengeId:
+          $ref: '#/components/schemas/Ulid'
+        checkpoint:
+          type: string
+        purposes:
+          type: array
+          items:
+            type: string
+            enum: [CNS-DP, CNS-SOL, CNS-QSH, CNS-SHR, CNS-COM]
+        otpExpiresAt:
+          type: string
+          format: date-time
+        maskedContact:
+          type: string
+    QuoteCommand:
+      type: object
+      additionalProperties: false
+      required: [mode, category, requestedCover, members]
+      description: Forwarded to Quotation unchanged except for refs added from journey_ref. Shape owned by the quotation contract.
+      properties:
+        mode:
+          type: string
+          enum: [MULTI, SINGLE]
+        category:
+          type: string
+        requestedCover:
+          type: number
+          exclusiveMinimum: 0
+        members:
+          type: array
+          minItems: 1
+          items:
+            type: object
+        preferences:
+          type: object
+    Problem:
+      type: object
+      description: Platform problem+json (conventions/error-model.md). Callee errors are propagated with origin preserved (error-model §4).
+      required: [title, status, code, category, retryable, incidentId, service, timestamp]
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        code:
+          type: string
+        category:
+          type: string
+        retryable:
+          type: [boolean, string]
+        incidentId:
+          type: string
+        correlationId:
+          type: string
+        service:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        errors:
+          type: array
+          items:
+            type: object
+        origin:
+          type: object
+        diagnostic:
+          type: object
+  responses:
+    JourneyOk:
+      description: Command applied (or replayed); journey after the command.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Journey'
+    JourneyCreated:
+      description: Owning-service resource created; journey after the command.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Journey'
+    JourneyAccepted:
+      description: Async-poll step accepted by the owning service; journey after the command.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Journey'
+    Validation:
+      description: 'VALIDATION_ERROR, MISSING_REQUIRED_FIELD, UNSUPPORTED_LOB, CONFIGURATION_UNRESOLVABLE; propagated SUITABILITY_INCOMPLETE (NEW).'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    MissingIdempotencyKey:
+      description: MISSING_IDEMPOTENCY_KEY.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Forbidden:
+      description: 'DEFAULT_DENY / EXPLICIT_DENY / AUTHORIZATION_UNAVAILABLE (PDP, fail closed), SP_CERTIFICATION_REQUIRED, ASSIST_ONLY_ACTOR, CONSENT_REQUIRED, SUITABILITY_REQUIRED (propagated from Quotation), JOURNEY_HALTED_CONSENT_WITHDRAWN (NEW), FORBIDDEN.'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Conflict:
+      description: 'ILLEGAL_TRANSITION (stage does not allow the command; INV-JRN-01), CONFLICT (stale expectedVersion; lead on exception hold), IDEMPOTENCY_CONFLICT, REQUEST_IN_PROGRESS, ASSESSMENT_IMMUTABLE, QUOTE_EXPIRED, OTP_EXPIRED (NEW) — propagated.'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    RateLimited:
+      description: 'OTP_ATTEMPTS_EXCEEDED, OTP_ISSUE_RATE_EXCEEDED (NEW) — propagated from Consent.'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    NotFound:
+      description: RESOURCE_NOT_FOUND (also for a journey outside the caller's scope).
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Unavailable:
+      description: 'UPSTREAM_UNAVAILABLE — owning service timed out / unreachable; stage unchanged; retry with the same key.'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'

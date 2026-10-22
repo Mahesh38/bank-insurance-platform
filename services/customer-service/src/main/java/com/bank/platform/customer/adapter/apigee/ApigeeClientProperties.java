@@ -11,7 +11,7 @@ public record ApigeeClientProperties(
     String clientId,
     String clientSecret,
     @DefaultValue("3000") int connectTimeoutMs,
-    @DefaultValue("30000") int readTimeoutMs) {
+    @DefaultValue("3000") int readTimeoutMs) {
 
   URI tokenUri() {
     if (tokenUrl == null || tokenUrl.isBlank()) {

@@ -12,6 +12,10 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
+persistence:
+  internal-auth:
+    shared-secret: ${PERSISTENCE_INTERNAL_SHARED_SECRET}
+
 logging:
   level:
     com.bank.persistence: INFO

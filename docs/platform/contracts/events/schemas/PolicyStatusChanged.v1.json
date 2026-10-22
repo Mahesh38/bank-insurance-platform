@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.bank.internal/events/PolicyStatusChanged.v1.json",
+  "title": "PolicyStatusChanged v1 - data",
+  "description": "One row appended to policy.policy_status_history (D8). Producer: policy. Status: NEW (D8). The `data` member of event-envelope/v1 (ADR-025): ids and states only, never customer PII.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "policyId",
+    "proposalId",
+    "applicationNumber",
+    "status",
+    "statusAt",
+    "statusSource"
+  ],
+  "properties": {
+    "policyId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "proposalId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "applicationNumber": {
+      "type": "string",
+      "maxLength": 64,
+      "description": "Insurer application number (insurer-issued reference, not customer data)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "APPLICATION_RECEIVED",
+        "UNDER_REVIEW",
+        "REQUIREMENT_RAISED",
+        "ISSUED",
+        "DECLINED",
+        "REFUNDED"
+      ]
+    },
+    "statusAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "RFC 3339 UTC"
+    },
+    "statusSource": {
+      "type": "string",
+      "enum": [
+        "POLL",
+        "CALLBACK"
+      ]
+    },
+    "previousStatus": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "APPLICATION_RECEIVED",
+        "UNDER_REVIEW",
+        "REQUIREMENT_RAISED",
+        "ISSUED",
+        "DECLINED",
+        "REFUNDED"
+      ]
+    },
+    "journeyId": {
+      "$ref": "#/$defs/ulid"
+    }
+  },
+  "$defs": {
+    "ulid": {
+      "type": "string",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+    }
+  }
+}

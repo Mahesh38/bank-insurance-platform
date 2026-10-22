@@ -1,0 +1,148 @@
+package com.bank.identity.authz.api;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.bank.identity.authz.support.AuthzFixtures;
+import java.util.UUID;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
+
+/** READINESS-REVIEW §3.7: identity-authorization had no caller authentication. */
+@SpringBootTest
+@AutoConfigureMockMvc
+@Transactional
+@Tag("IAM-001")
+@Tag("integration")
+class InternalCallerAuthenticationTest {
+
+  private static final String BFF_KEY = "local-authz-bff-internal-key";
+  private static final String LEAD_KEY = "local-authz-lead-internal-key";
+  private static final String HEADER = "X-Internal-Service-Key";
+  private static final String DECISION =
+      """
+      {"subjectId":"%s","action":"lead.read","resource":{"type":"lead"}}
+      """
+          .formatted(UUID.randomUUID());
+  private static final String PARTNER =
+      """
+      {"username":"partner.web","email":"partner.web@example.test","insurerCode":"ICICI_PRU"}
+      """;
+
+  @Autowired MockMvc mockMvc;
+  @Autowired JdbcClient jdbc;
+
+  @Test
+  void internalEndpointsRefuseACallerWithoutAKey() throws Exception {
+    mockMvc
+        .perform(
+            post("/internal/v1/authorization/decisions")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(DECISION))
+        .andExpect(status().isUnauthorized())
+        .andExpect(jsonPath("$.code").value("UNAUTHORIZED"));
+  }
+
+  @Test
+  void internalEndpointsRefuseAWrongKey() throws Exception {
+    mockMvc
+        .perform(
+            post("/internal/v1/identities/resolve")
+                .header(HEADER, "not-a-configured-internal-key")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}"))
+        .andExpect(status().isUnauthorized());
+  }
+
+  @Test
+  void bffAndLeadServiceMayAskForDecisions() throws Exception {
+    for (String key : new String[] {BFF_KEY, LEAD_KEY}) {
+      mockMvc
+          .perform(
+              post("/internal/v1/authorization/decisions")
+                  .header(HEADER, key)
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(DECISION))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.allowed").value(false))
+          .andExpect(jsonPath("$.reasonCode").value("UNKNOWN_SUBJECT"));
+    }
+  }
+
+  @Test
+  void healthProbeNeedsNoKey() throws Exception {
+    mockMvc.perform(get("/actuator/health")).andExpect(status().isOk());
+  }
+
+  @Test
+  void onlyTheBffMayAssertAMaker() throws Exception {
+    mockMvc
+        .perform(
+            post("/internal/v1/partner-users")
+                .header(HEADER, LEAD_KEY)
+                .header("X-Actor-Id", UUID.randomUUID().toString())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(PARTNER))
+        .andExpect(status().isForbidden())
+        .andExpect(jsonPath("$.code").value("FORBIDDEN"));
+  }
+
+  @Test
+  void makerMustBeAnAuthenticatedBusinessUser() throws Exception {
+    mockMvc
+        .perform(
+            post("/internal/v1/partner-users")
+                .header(HEADER, BFF_KEY)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(PARTNER))
+        .andExpect(status().isUnauthorized());
+    mockMvc
+        .perform(
+            post("/internal/v1/partner-users")
+                .header(HEADER, BFF_KEY)
+                .header("X-Actor-Id", "maker-1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(PARTNER))
+        .andExpect(status().isUnauthorized());
+  }
+
+  @Test
+  void bffMakerWithPermissionSubmitsAndUnprivilegedCheckerIsDenied() throws Exception {
+    AuthzFixtures.insurer(jdbc, "ICICI_PRU");
+    UUID maker = AuthzFixtures.activeUser(jdbc, "web.admin", "BANK_EMPLOYEE", null, "BANK_ADMIN");
+    UUID rm =
+        AuthzFixtures.activeUser(jdbc, "web.rm", "BANK_EMPLOYEE", null, "RELATIONSHIP_MANAGER");
+
+    String body =
+        mockMvc
+            .perform(
+                post("/internal/v1/partner-users")
+                    .header(HEADER, BFF_KEY)
+                    .header("X-Actor-Id", maker.toString())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(PARTNER))
+            .andExpect(status().isAccepted())
+            .andExpect(jsonPath("$.status").value("PENDING"))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+    String approvalId = body.replaceAll(".*\"approvalId\":\"([^\"]+)\".*", "$1");
+
+    mockMvc
+        .perform(
+            post("/internal/v1/approval-requests/{id}/approve", approvalId)
+                .header(HEADER, BFF_KEY)
+                .header("X-Actor-Id", rm.toString()))
+        .andExpect(status().isForbidden())
+        .andExpect(jsonPath("$.code").value("DEFAULT_DENY"));
+  }
+}

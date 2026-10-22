@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.bank.internal/events/LeadExceptionEvaluated.v1.json",
+  "title": "LeadExceptionEvaluated v1 - data",
+  "description": "Rule set LEAD.EXCEPTION evaluated at Start Onboarding or premium capture (D2). Producer: lead. Status: IMPLEMENTED (attribute payload; envelope pending). The `data` member of event-envelope/v1 (ADR-025): ids and states only, never customer PII.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "leadId",
+    "state",
+    "productClass",
+    "exceptionOutcome"
+  ],
+  "properties": {
+    "leadId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "state": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z_]*$",
+      "description": "Aggregate state after the change"
+    },
+    "productClass": {
+      "type": "string",
+      "enum": [
+        "TERM",
+        "SAVINGS",
+        "ULIP"
+      ]
+    },
+    "exceptionOutcome": {
+      "type": "string",
+      "enum": [
+        "NOT_EVALUATED",
+        "PASS",
+        "APPROVAL_REQUIRED",
+        "BLOCK"
+      ],
+      "description": "Lead exception outcome (D2, rule set LEAD.EXCEPTION)"
+    },
+    "assignedRmId": {
+      "type": "string",
+      "maxLength": 64,
+      "description": "Employee id of the assigned RM"
+    },
+    "journeyId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "exceptionReasonCodes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Z0-9][A-Z0-9_.-]{0,63}$"
+      }
+    }
+  },
+  "$defs": {
+    "ulid": {
+      "type": "string",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+    }
+  }
+}

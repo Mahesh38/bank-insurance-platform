@@ -1,0 +1,224 @@
+openapi: 3.1.0
+info:
+  title: notification-service — customer notifications
+  version: 1.0.0-draft
+  summary: Delivers configured customer messages (OTP, payment link, policy issued / declined) through a provider adapter.
+  description: |
+    **Status:** AI-DRAFTED 2026-10-21, awaiting Mahesh (architecture) review; customer-facing template
+    text awaits Shailja / bank Compliance approval.
+
+    R0 scope (resolves the conflict between the old service page "OTP and payment link only" and the
+    event catalogue, in favour of decision D8 — the customer must be informed on issuance):
+    `CONSENT_OTP`, `PAYMENT_LINK`, `POLICY_ISSUED`, `PROPOSAL_DECLINED`.
+
+    * Recipient is always a `customerId` (ULID, D3); contact points are resolved from customer-service.
+      A raw phone number or email from a caller is refused (C4 — a link can never be redirected to an
+      RM device).
+    * Templates are configuration (administration-config); no message text in code.
+    * Outcomes are published as `NotificationSent` / `NotificationFailed` (outbox). A failure never
+      blocks the journey; it raises an operations task.
+    * Logs never contain the OTP, URL, phone number or email.
+
+    Event-driven notifications (payment link, issued, declined) arrive by consuming `PaymentLinkIssued`,
+    `PolicyIssued` and `ProposalDeclined`; this HTTP API is for the synchronous OTP call and for
+    operations re-sends.
+servers:
+  - url: http://notification-service:8102
+    description: Cluster-private (layer L5, INTERNAL)
+paths:
+  /internal/v1/notifications:
+    post:
+      operationId: sendNotification
+      summary: Request a notification (synchronous delivery attempt for CONSENT_OTP, queued for others)
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/JourneyId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/NotificationRequest' }
+            examples:
+              otp:
+                value:
+                  template: CONSENT_OTP
+                  lob: LIFE
+                  recipient: { customerId: 01JR8Y2C3D4E5F6G7H8J9K0M1N }
+                  sourceRef: { context: consent, aggregateId: 01JS9Z1A2B3C4D5E6F7G8H9J0K }
+                  parameters: { otp: '******', expiresInSeconds: 300 }
+      responses:
+        '200':
+          description: CONSENT_OTP — provider accepted the message (status SENT) or replay of it
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Notification' }
+        '202':
+          description: Queued for asynchronous delivery (status QUEUED) or replay of it
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Notification' }
+        '400':
+          description: '`MISSING_IDEMPOTENCY_KEY`'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '403':
+          description: '`PAYMENT_DEVICE_ISOLATION` — caller tried to supply a raw contact point or a non-customer recipient'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '404':
+          description: '`RESOURCE_NOT_FOUND` — customer unknown or has no contact point for the template channel'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '409':
+          description: '`IDEMPOTENCY_CONFLICT` / `REQUEST_IN_PROGRESS`'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '422':
+          description: '`VALIDATION_ERROR` (unknown template, missing template parameter), `UNSUPPORTED_LOB`, `CONFIGURATION_UNRESOLVABLE` (template not published — fail closed)'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '503':
+          description: '`UPSTREAM_UNAVAILABLE` — CONSENT_OTP only: provider or customer-service unavailable (status FAILED, NotificationFailed published)'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '504':
+          description: '`UPSTREAM_TIMEOUT` — CONSENT_OTP only'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+  /internal/v1/notifications/{notificationId}:
+    get:
+      operationId: getNotification
+      summary: Delivery status (no message content, no contact data)
+      parameters:
+        - name: notificationId
+          in: path
+          required: true
+          schema: { $ref: '#/components/schemas/Ulid' }
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Status
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Notification' }
+        '404':
+          description: '`RESOURCE_NOT_FOUND`'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+components:
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: Server-derived, e.g. `consent:{consentId}:otp:{attempt}`; event-driven sends use the source eventId.
+      schema: { type: string, minLength: 1, maxLength: 128 }
+    ActorId:
+      name: X-Actor-Id
+      in: header
+      required: true
+      schema: { type: string, minLength: 1, maxLength: 100 }
+    CorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: true
+      schema: { type: string, format: uuid }
+    JourneyId:
+      name: X-Journey-Id
+      in: header
+      required: false
+      schema: { $ref: '#/components/schemas/Ulid' }
+  schemas:
+    Ulid:
+      type: string
+      pattern: '^[0-9A-HJKMNP-TV-Z]{26}$'
+    TemplateId:
+      type: string
+      enum: [CONSENT_OTP, PAYMENT_LINK, POLICY_ISSUED, PROPOSAL_DECLINED]
+    NotificationRequest:
+      type: object
+      required: [template, lob, recipient, sourceRef, parameters]
+      additionalProperties: false
+      properties:
+        template: { $ref: '#/components/schemas/TemplateId' }
+        lob: { type: string, enum: [LIFE] }
+        channels:
+          type: array
+          description: Optional narrowing of the template's configured channels; cannot add a channel.
+          items: { type: string, enum: [SMS, EMAIL] }
+        recipient:
+          type: object
+          required: [customerId]
+          additionalProperties: false
+          description: Only a customerId. Any phone / email / device field is refused.
+          properties:
+            customerId: { $ref: '#/components/schemas/Ulid' }
+        sourceRef:
+          type: object
+          required: [context, aggregateId]
+          additionalProperties: false
+          properties:
+            context: { type: string, enum: [consent, payment, policy, proposal] }
+            aggregateId: { $ref: '#/components/schemas/Ulid' }
+            eventId: { $ref: '#/components/schemas/Ulid' }
+        parameters:
+          type: object
+          description: Template placeholders. Sensitive values (otp, url) are never logged; otp is never persisted.
+          additionalProperties:
+            type: [string, number, boolean]
+    Notification:
+      type: object
+      required: [notificationId, template, status]
+      properties:
+        notificationId: { $ref: '#/components/schemas/Ulid' }
+        template: { $ref: '#/components/schemas/TemplateId' }
+        templateVersion: { type: [string, 'null'] }
+        status: { type: string, enum: [QUEUED, SENT, FAILED] }
+        deliveries:
+          type: array
+          items:
+            type: object
+            required: [channel, status]
+            properties:
+              channel: { type: string, enum: [SMS, EMAIL] }
+              status: { type: string, enum: [QUEUED, SENT, FAILED] }
+              maskedContact: { type: [string, 'null'], description: 'e.g. +91 98*****210' }
+              attempts: { type: integer }
+              failureCode: { type: [string, 'null'] }
+              sentAt: { type: [string, 'null'], format: date-time }
+    Problem:
+      type: object
+      description: Platform problem+json (conventions/error-model.md).
+      required: [type, title, status, code, category, retryable, incidentId, timestamp]
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        code: { type: string }
+        category: { type: string }
+        retryable: { type: boolean }
+        incidentId: { type: string }
+        correlationId: { type: string }
+        service: { type: string }
+        timestamp: { type: string, format: date-time }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              code: { type: string }
+              field: { type: string }
+              message: { type: string }
+        origin: { type: object, additionalProperties: true }
+        diagnostic: { type: object, additionalProperties: true }

@@ -1,16 +1,19 @@
 package com.bank.identity.authz.adapter;
 
+import com.bank.identity.authz.application.port.IdentityProvisioningPort;
 import com.bank.identity.authz.config.ProviderAdapterProperties;
-import com.bank.identity.authz.persistence.BusinessUserEntity;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
 @Component
-public class ProviderProvisioningClient {
+public class ProviderProvisioningClient implements IdentityProvisioningPort {
 
   private final RestClient client;
 
-  public ProviderProvisioningClient(RestClient restClient, ProviderAdapterProperties properties) {
+  public ProviderProvisioningClient(
+      @Qualifier("authorizationRestClient") RestClient restClient,
+      ProviderAdapterProperties properties) {
     this.client =
         restClient
             .mutate()
@@ -19,19 +22,20 @@ public class ProviderProvisioningClient {
             .build();
   }
 
-  public String provision(BusinessUserEntity user) {
+  @Override
+  public String provision(ProvisionRequest request) {
     var response =
         client
             .post()
             .uri("/internal/v1/identities")
             .body(
                 new ProvisionIdentityRequest(
-                    user.getId().toString(),
-                    user.getUsername(),
-                    user.getEmail(),
-                    user.getFirstName(),
-                    user.getLastName(),
-                    user.getInsurerCode(),
+                    request.businessUserId().toString(),
+                    request.username(),
+                    request.email(),
+                    request.firstName(),
+                    request.lastName(),
+                    request.insurerCode(),
                     true))
             .retrieve()
             .body(ProvisionIdentityResponse.class);

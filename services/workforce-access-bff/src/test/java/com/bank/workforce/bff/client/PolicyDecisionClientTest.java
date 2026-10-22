@@ -65,7 +65,8 @@ class PolicyDecisionClientTest {
                 URI.create("http://lead.example.test"),
                 URI.create("http://customer.example.test"),
                 "stub",
-                "stub"),
+                "stub",
+                "local-authz-bff-internal-key"),
             ServiceErrors.of("workforce-access-bff", PlatformLayer.L4),
             Duration.ofMillis(300));
   }

@@ -3,8 +3,10 @@
 [← API reference home](../README.md) · Prev: [05](./05-lead-creation-and-dedupe.md) · Next: [07](./07-journey-start-and-suitability.md)
 
 **Status:** IMPLEMENTED — one BFF call (`POST /api/v1/leads/{leadId}/assignment`) runs Start
-Onboarding if needed and then assigns. The exception engine is a deterministic stub and SP
-certification a fixture.
+Onboarding if needed and then assigns. The exception engine is a deterministic stub behind
+`ExceptionRulesPort` (temporary, D2 — rule set `LEAD.EXCEPTION` on `libs/bank-rule-engine` is the
+target) and SP certification a fixture. A terminal lead (`DISQUALIFIED`, `CONVERTED`, `EXPIRED`,
+`ARCHIVED`) can be neither re-onboarded, assigned nor closed again (`409 ILLEGAL_TRANSITION`).
 
 **Why it matters:** the regulated sale may only proceed under a **certified Specified Person**. The
 first completed assignment fixes the `accountableSpId` forever (`INV-ACT-03`) — that is who is
@@ -60,13 +62,15 @@ Held leads wait for the AUBIMA exception workflow: the raiser submits an excepti
 an approver approves or rejects, AUBIMA calls Lead
 `POST /internal/v1/leads/{leadId}/exception-hold {action: RELEASE|REJECT, ruleIds}` (CONTRACTED).
 After release the RM repeats the assignment call. Lead stores only the hold state; it does not
-implement approval hierarchies.
+implement approval hierarchies. Calling Start Onboarding again while the hold is active is
+`409 ILLEGAL_TRANSITION` ("exception hold awaiting approval") — a fresh `PASS` can never clear it —
+and a `BLOCK`ed lead stays `BLOCK` on any re-run.
 
 ## 3. Errors
 
 | HTTP | Code | When | App |
 |---|---|---|---|
-| 409 | `ILLEGAL_TRANSITION` | Onboarding blocked; assign before onboarding; reassign after BI | Show reason; no retry |
+| 409 | `ILLEGAL_TRANSITION` | Onboarding blocked; re-onboarding while on hold or blocked; assign before onboarding; reassign after BI; assign / close / onboard a terminal lead | Show reason; no retry |
 | 409 | `CONFLICT` | Exception hold active | Show "exception pending" |
 | 403 | `SP_CERTIFICATION_REQUIRED` | Assignee not a certified SP for Life | Pick another assignee |
 | 422 | `MISSING_REQUIRED_FIELD` / `VALIDATION_ERROR` | No `assignedRmId` | Inline |

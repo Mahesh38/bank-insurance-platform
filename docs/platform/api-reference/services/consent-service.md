@@ -11,6 +11,7 @@
 | **Calls out** | administration-config (statement text + version per purpose, S-21) · notification-service (OTP to the **customer's** registered contact) or an OTP gateway |
 | **Owns data** | Aurora schema **`consent`** · role `app_consent` · INSERT-only evidence |
 | **Code status** | **SKELETON**. Endpoints CONTRACTED (HLD §5.3: `POST /consents`, `POST …/{id}/verify`, `GET …/{id}`); bodies **PROPOSED** from the domain model and DDL |
+| **Contract** | [`contracts/consent-service/openapi.yaml`](../../contracts/consent-service/openapi.yaml) + [LLD](../../contracts/consent-service/LLD.md) — authoritative (ADR-027), supersedes §1–§4 below. **D5 (2026-10-21):** consent is checked/captured **after suitability, before multi-quote** via `GET /internal/v1/consents:check?customerId&checkpoint`; purposes and validity (90 days default) come from rule set `CONSENT.POLICY`; one row per purpose, append-only (withdrawal = new row); bound to `customerId` (ULID), no CIF. Compliance (Shailja) must confirm the DPDP position and CNS-R13 (RM-relayed OTP) |
 
 ---
 

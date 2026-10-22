@@ -10,7 +10,8 @@
 | **Callers** | Journey (create, submit) · BFF (status reads, form schema) · Payment (payable check) |
 | **Calls out** | Consent (C2 gate) · Quotation (selected offer) · Integration Hub (form schema, submit S-12 async-poll **no retry on submit**, status/requirements) · Configuration (`issuanceMode`, field rules) |
 | **Owns data** | **DynamoDB `{env}-proposal-working`** — working proposal (form answers, nominee, UW requirements in a client-side-encrypted envelope) until payment (`DB-DEC-0005`) · Aurora schema **`proposal`** — `proposal`, `uw_requirement`, `uw_document_ref` structured after `RECONCILED`, `idempotency_record` · role `app_proposal` |
-| **Code status** | **PARTIAL — persistence only** (`SUG-20261021-lft`): DynamoDB working-state store, envelope encryption (AES-GCM, KMS data key), materialiser into structured Aurora rows, `POST /internal/v1/events/payment-reconciled`; tested against embedded DynamoDB Local. Public command API not built. Paths CONTRACTED (HLD §5.3); bodies **PROPOSED** |
+| **Contract** | **Authoritative:** [`openapi.yaml`](../../contracts/proposal-service/openapi.yaml) + [`LLD.md`](../../contracts/proposal-service/LLD.md) (`ADR-027`, AI-DRAFTED, awaiting review). Where this page and the contract differ, the contract wins |
+| **Code status** | **PARTIAL — persistence only** (`SUG-20261021-lft`): DynamoDB working-state store, envelope encryption (AES-GCM, KMS data key), materialiser into structured Aurora rows (`proposal`, `uw_requirement`, `uw_document_ref`), `POST /internal/v1/events/payment-reconciled`; tested against embedded DynamoDB Local. Public command API, payment hold/release, `proposal_answer` and `proposal_status_history` (D8) not built |
 
 ---
 
@@ -24,6 +25,9 @@
 | `POST` | `/internal/v1/proposals/{proposalId}/submit` | CONTRACTED | Journey | C2 gate → submit through Hub; `202` |
 | `GET` | `/internal/v1/proposals/{proposalId}` | CONTRACTED | BFF, Payment | State, `applicationNumber`, UW state, requirements |
 | `POST` | `/internal/v1/proposals/{proposalId}/withdraw` | PROPOSED | Journey | Only before `AWAITING_PAYMENT` (`INV-PRP-04`) |
+| `POST` | `/internal/v1/proposals/{proposalId}/counter-offer-decision` | CONTRACTED | Journey | Customer accepts / declines an insurer counter-offer |
+| `POST` | `/internal/v1/proposals/{proposalId}/payment-hold` · `/payment-release` | CONTRACTED | Payment | Hold for `paymentId` while money moves (TTL removed) / release when the payment ends without `RECONCILED` |
+| `GET` | `/internal/v1/proposals/{proposalId}/status-history` | CONTRACTED | BFF, ops | Post-payment status history (append-only, D8) |
 
 ---
 
@@ -34,6 +38,8 @@ UW_DECLINED`; `UW_COUNTER_OFFER → UW_APPROVED | CUSTOMER_DECLINED`; `UW_APPROV
 AWAITING_PAYMENT → PAID → CONVERTED` (policy issued) or `→ ISSUANCE_FAILED → CONVERTED |
 REFUND_REQUIRED`. `SUBMITTED → SUBMISSION_FAILED` when the insurer never acknowledges. Withdrawal is
 refused at or after `AWAITING_PAYMENT`. Full diagram: [domain model §4.5](../../ws3-platform/01-domain-model-and-invariants.md).
+**From `PAID` on, every state change is a row in the append-only `proposal.proposal_status_history`
+(D8)** — the DynamoDB item is frozen and the `proposal` row is INSERT-only, both saying `PAID`.
 
 ---
 
@@ -48,7 +54,7 @@ refused at or after `AWAITING_PAYMENT`. Full diagram: [domain model §4.5](../..
 
 Guards: the offer's quote is `SELECTED` and this is that offer (`422 INVALID_OFFER_REFERENCE`,
 `INV-PRP-02`); `issuanceMode` resolved (`STP` | `NON_STP` | `INSTA`, `INV-PRP-06`).
-One DynamoDB `TransactWriteItems`: `PROPOSAL#{id}/META` (`DRAFT`, control attributes, empty encrypted envelope) + `IDEM` + `JOURNEY#{journeyId}/OPEN_PROPOSAL` marker. Quotation is told the quote is `CONVERTED`. Response `201 { proposalId, state: "DRAFT", schemaId, schemaVersion }`.
+One DynamoDB `TransactWriteItems`: `PROPOSAL#{id}/META` (`DRAFT`, control attributes, empty encrypted envelope) + `IDEM` + `JOURNEY#{journeyId}/OPEN_PROPOSAL` marker. The quote is **not** converted here — it stays `SELECTED` until materialise (D8). Response `201 { proposalId, state: "DRAFT", schemaId, schemaVersion }`.
 
 ### 3.2 `PUT /internal/v1/proposals/{proposalId}/answers`
 
@@ -89,7 +95,7 @@ Journey (`UW_APPROVED` → `PAYMENT_PENDING` path), Audit and Notification.
 
 ### 3.5 On `PaymentReconciled`
 
-Read the DynamoDB item, decrypt, and in ONE Aurora transaction insert `proposal.proposal` (with `nominee_enc`, `form_values_ref`), `uw_requirement`, `uw_document_ref` (`ON CONFLICT DO NOTHING`); then set `materializedAt` on the item; state `PAID`. Policy issuance follows.
+Read the DynamoDB item, decrypt, and in ONE Aurora transaction insert `proposal.proposal` (with `nominee_enc`, `issuance_mode`), one **`proposal.proposal_answer`** row per question asked (`question_id`, `question_text` as shown, `schema_version`, `answer_enc` — D8, replaces `form_values_ref`), `uw_requirement`, `uw_document_ref`, and the first `proposal_status_history` row `PAID` (`ON CONFLICT DO NOTHING`); then set `materializedAt` on the item; state `PAID`. Built today: `proposal`, `uw_requirement`, `uw_document_ref` only. Later states (`CONVERTED` on `PolicyIssued`, `UW_DECLINED`/`REFUND_REQUIRED` on `ProposalDeclined`) are appended to the history. Detail: [LLD §4.6–4.7](../../contracts/proposal-service/LLD.md#46-materialise-on-paymentreconciled).
 
 ## 4. Errors
 

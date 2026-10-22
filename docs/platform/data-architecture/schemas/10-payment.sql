@@ -5,12 +5,27 @@
 -- journey_ref.paymentId) and is an independent context. Journey never opens this
 -- schema. Always structured — never a working JSON envelope. Adapter link-session
 -- rows stay in bank_persistence.payment_session (not this SoR).
+--
+-- 2026-10-21 (D8 / D-025, ADR-025, READINESS-REVIEW §4 "materialisation contract has holes"):
+--   * quote_id added (proposal_id already present) so PaymentReconciled can carry
+--     {paymentId, quoteId, proposalId, journeyId, applicationNumber} and Quotation / Proposal can
+--     find their DynamoDB items.
+--   * method + paid_at added (D8: "payment type and time").
+--   * customer_id CHAR(26) ULID (D3); retain_until for evidence retention.
+--   * States REJECTED / UNCERTAIN / RECONCILIATION_BREAK were already designed (checked). TTL handling
+--     for them on the working items is in 20-dynamodb-working-payload.md §3.3.
+--   * outbox_event moved to the ADR-025 shape (outbox_id ULID, aggregate_*, schema_version,
+--     parked_at). ix_payment_state_reconciled serves the daily repair sweep (schemas/20 §3.4).
 
 CREATE TABLE payment.payment (
     payment_id          CHAR(26)                 PRIMARY KEY,
     lead_id             CHAR(26)                 NOT NULL,
     journey_id          CHAR(26)                 NOT NULL,
+    customer_id         CHAR(26)                 NOT NULL,      -- D3
+    quote_id            CHAR(26)                 NOT NULL,      -- D8
     proposal_id         CHAR(26)                 NOT NULL,
+    application_number  VARCHAR(50),                            -- D8: carried on PaymentReconciled
+    method              VARCHAR(24),                            -- D8: payment type (UPI, NETBANKING, CARD, …) from PG
     amount              NUMERIC(15, 2)           NOT NULL,
     currency            CHAR(3)                  NOT NULL DEFAULT 'INR',
     state               VARCHAR(28)              NOT NULL,
@@ -21,10 +36,12 @@ CREATE TABLE payment.payment (
     pg_txn_id           VARCHAR(100),
     authorised_at       TIMESTAMP WITH TIME ZONE,
     captured_at         TIMESTAMP WITH TIME ZONE,
+    paid_at             TIMESTAMP WITH TIME ZONE,               -- D8: time the customer paid (PG)
     settlement_ref      VARCHAR(100),
     reconciled_at       TIMESTAMP WITH TIME ZONE,
     lob                 VARCHAR(16)              NOT NULL,
     config_version_ref  VARCHAR(64)              NOT NULL,
+    retain_until        DATE,
     created_at          TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     updated_at          TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     version             BIGINT                   NOT NULL DEFAULT 0,
@@ -43,6 +60,9 @@ CREATE UNIQUE INDEX ux_payment_active_per_proposal
     WHERE state NOT IN ('RECONCILED', 'REFUNDED', 'DECLINED', 'EXPIRED', 'REJECTED');
 
 CREATE INDEX ix_payment_journey ON payment.payment (journey_id);
+CREATE INDEX ix_payment_quote ON payment.payment (quote_id);
+-- Repair sweep: RECONCILED payments whose quote/proposal rows are missing (schemas/20 §3.4).
+CREATE INDEX ix_payment_state_reconciled ON payment.payment (state, reconciled_at);
 CREATE INDEX ix_payment_pg_txn ON payment.payment (pg_txn_id)
     WHERE pg_txn_id IS NOT NULL;
 
@@ -57,20 +77,24 @@ CREATE TABLE payment.payment_attempt (
 
 CREATE INDEX ix_payment_attempt ON payment.payment_attempt (payment_id, attempted_at);
 
+-- ADR-025 §3 / §6: outbox shape shared by every Postgres service (was event_id + payment_id).
 CREATE TABLE payment.outbox_event (
-    event_id            CHAR(26)                 PRIMARY KEY,
-    payment_id          CHAR(26)                 NOT NULL REFERENCES payment.payment (payment_id),
+    outbox_id           CHAR(26)                 PRIMARY KEY,
+    aggregate_type      VARCHAR(64)              NOT NULL,      -- 'Payment'
+    aggregate_id        CHAR(26)                 NOT NULL,      -- payment_id
     event_type          VARCHAR(96)              NOT NULL,
-    payload             JSONB                    NOT NULL,
+    schema_version      SMALLINT                 NOT NULL DEFAULT 1,
+    payload             JSONB                    NOT NULL,      -- event-envelope/v1; ids and states only
     created_at          TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     published_at        TIMESTAMP WITH TIME ZONE,
     attempts            INTEGER                  NOT NULL DEFAULT 0,
-    last_error          VARCHAR(1000)
+    last_error          VARCHAR(1000),
+    parked_at           TIMESTAMP WITH TIME ZONE
 );
 
 CREATE INDEX ix_pay_outbox_unpublished
-    ON payment.outbox_event (published_at, created_at)
-    WHERE published_at IS NULL;
+    ON payment.outbox_event (created_at)
+    WHERE published_at IS NULL AND parked_at IS NULL;
 
 CREATE TABLE payment.refund (
     refund_id           CHAR(26)                 PRIMARY KEY,

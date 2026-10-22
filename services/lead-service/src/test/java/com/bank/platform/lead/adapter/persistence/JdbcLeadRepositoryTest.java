@@ -92,6 +92,37 @@ class JdbcLeadRepositoryTest {
         .isEqualTo(ExceptionOutcome.PASS);
   }
 
+  @Test
+  void expiresAtRoundTripsAndMayBeAbsent() {
+    Lead withExpiry = newLead("01JQX4K7R8M2N3P4Q5S6T7V8X4", "rm-4", "cust-5");
+    withExpiry.expireAt(T0.plus(30, ChronoUnit.DAYS));
+    repository.save(withExpiry);
+    Lead without = newLead("01JQX4K7R8M2N3P4Q5S6T7V8X5", "rm-4", "cust-6");
+    repository.save(without);
+
+    assertThat(repository.findById(withExpiry.leadId()).orElseThrow().expiresAt())
+        .isEqualTo(T0.plus(30, ChronoUnit.DAYS));
+    assertThat(repository.findById(without.leadId()).orElseThrow().expiresAt()).isNull();
+  }
+
+  @Test
+  void dedupeIndexRefusesASecondOpenLeadButNotAfterClose() {
+    Lead first = newLead("01JQX4K7R8M2N3P4Q5S6T7V8X6", "rm-5", "cust-7");
+    repository.save(first);
+
+    Lead racing = newLead("01JQX4K7R8M2N3P4Q5S6T7V8X7", "rm-5", "cust-7");
+    assertThatThrownBy(() -> repository.save(racing))
+        .isInstanceOf(ConcurrentLeadUpdateException.class);
+
+    first.close(T0.plusSeconds(1));
+    repository.save(first);
+    Lead afterClose = newLead("01JQX4K7R8M2N3P4Q5S6T7V8X8", "rm-5", "cust-7");
+    repository.save(afterClose);
+    assertThat(repository.findUnfinished("rm-5", "cust-7", ProductClass.TERM))
+        .map(Lead::leadId)
+        .contains(afterClose.leadId());
+  }
+
   private static Lead newLead(String id, String creator, String customer) {
     return new Lead(
         id,

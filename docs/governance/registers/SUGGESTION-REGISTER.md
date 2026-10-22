@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20261021-rul | 2026-10-21 | human:repository-owner | Close the design gaps behind the S11 gate: configuration-driven rule engine (precedence, reason codes, thresholds on the fly), decisions D1–D9, missing OpenAPI + LLD contracts, event specification, review fixes; prepare GAP-006/007 for Compliance signature | SF2 | SC0 | MUST | ARCH | P1 / P1 | ADMIT-BYPASS | [decisions](../../platform/architecture-review/DECISIONS-2026-10-21.md) · [ADR-024](../../platform/architecture-review/ADR-024-configuration-driven-rule-engine.md) · [sign-off packet](../../au-bank-insurance-platform/rule-packs/SIGNOFF-PACKET-GAP-006-007.md) · [detail](#sug-20261021-rul--configuration-driven-rule-engine-and-the-nine-open-decisions) |
 | SUG-20261021-lft | 2026-10-21 | human:repository-owner | Build the "code left for later": domain services re-check the PDP; BFF per-seam timeouts (2 s target); lead assignment history, meetings, follow-ups, idempotency and outbox tables; DynamoDB code in quotation and proposal services | SF2 | SC0 | MUST | BUG | P2 / P1 | ADMIT-BYPASS | [lead-service](../../platform/api-reference/services/lead-service.md) · [budgets](../../platform/api-reference/conventions/idempotency-timeouts-retries.md) · [detail](#sug-20261021-lft--build-the-code-left-for-later) |
 | SUG-20261021-ddb | 2026-10-21 | human:repository-owner | Override "no DynamoDB in R0": quote and proposal working state lives in DynamoDB until payment; after payment it moves to Postgres as structured rows, not JSON | SF2 | SC0 | MUST | ARCH | P2 / P1 | ADMIT-BYPASS | [DB-DEC-0005](../../platform/data-architecture/DB-DEC-0005-dynamodb-working-payload.md) · [table design](../../platform/data-architecture/schemas/20-dynamodb-working-payload.md) · [detail](#sug-20261021-ddb--dynamodb-for-quote-and-proposal-working-state) |
 | SUG-20261021-sui | 2026-10-21 | human:repository-owner | Different suitability question sets and matrices per product class — Term does not ask investment horizon or risk attitude | SF2 | SC0 | MUST | ARCH | P2 / P1 | ADMIT-BYPASS | [rule pack §2.3](../../au-bank-insurance-platform/rule-packs/suitability-rule-pack.md) · [D-022](../../au-bank-insurance-platform/DECISION-LOG.md) · [detail](#sug-20261021-sui--suitability-question-sets-by-product-class) |
@@ -158,6 +159,71 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20261021-rul · Configuration-driven rule engine and the nine open decisions
+
+```yaml
+id: SUG-20261021-rul
+raised_at: "2026-10-21"
+raised_by: "human:repository-owner"
+source: "Mahesh session instruction after the readiness review"
+input: >
+  Close the governance gate first (GAP-006/007); make every rule decision configurable so a
+  compliance change is configuration, not code — including precedence and reason codes on the
+  fly; create the missing OpenAPI + LLD contracts; take the nine open design decisions (customer
+  id = our key + CIF; consent after suitability, before multi-quote, 90 days configurable; event
+  envelope/schema/topic/DLQ/publisher library; audit guidance; post-payment structured record and
+  status tracking with IRDAI TAT; OpenAPI authoritative); fix everything the review found.
+
+stage_fit:
+  code: SF2
+  rationale: "S08 design completion + fixes in existing modules; no stage edit"
+
+scope:
+  code: SC0
+  business_scope: "in scope — R0 assisted Life sale"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S08 → S11 entry"
+  evidence_tier: E2
+  confidence: C3
+
+action: ADMIT-BYPASS
+bypass_authorised_by: "Mahesh / repository_owner (explicit session instruction)"
+reviewer_type: HUMAN
+authority: repository_owner
+action_rationale: >
+  Owner-directed. What this record does NOT do: close GAP-006/007. Their closure is bound by
+  DEC-20260816-06 (non-waivable by any authority) to the human Risk & Compliance E2 signature;
+  no agent or owner instruction can substitute it. The work prepares a one-document sign-off
+  (SIGNOFF-PACKET-GAP-006-007.md) and makes every later compliance change a configuration
+  approval. ADR-026 (audit) is Proposed until the owner says yes.
+
+classification:
+  type: ARCH
+  also: [SEC, DOC, BUG]
+  breakdown: EPIC
+  risk_tier: T3
+
+priority:
+  now: P1
+  at_target: P1
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: SUG-20261021-rul
+  status: ADMIT-BYPASS
+  decisions: ["ADR-024", "ADR-025", "ADR-026 (Proposed)", "ADR-027", "D-023", "D-024", "D-025"]
+  external_pending:
+    - "Risk & Compliance human E2 signature — GAP-006/007 (S02-G3/G4)"
+    - "Compliance: DPDP permissibility of consent after suitability (OPEN-CNS-DPDP)"
+    - "Compliance: TAT figure and start event (PROPOSAL.TAT)"
+    - "Exception BRD owner: EH-BR-RULE-001…015 threshold values"
+
+resumed: "SUG-20261021-apr follow-up."
+```
 
 ### SUG-20261021-lft · Build the code left for later
 

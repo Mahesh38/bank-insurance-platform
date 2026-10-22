@@ -1,0 +1,1092 @@
+openapi: 3.1.0
+info:
+  title: workforce-access-bff — NIP public edge API
+  version: 1.0.0-r0
+  summary: The only API NIP-APP (Flutter web / APK / IPA) calls.
+  description: |
+    **Status:** AI-DRAFTED from code (ADR-027), awaiting Deepali (security) and engineering review.
+
+    Authoritative wire contract for `services/workforce-access-bff` (port 8084, `service-id: bff`,
+    layer L4, error boundary **PUBLIC**). Derived from the controllers, request/response records and
+    bean validation in `services/workforce-access-bff/src/main/java/com/bank/workforce/bff/**`.
+    Supersedes `docs/platform/ws3-platform/nip-bff-lead-phase.openapi.yaml`.
+
+    Companion design: `docs/platform/contracts/workforce-access-bff/LLD.md`.
+
+    ## Session transport (`BffSessionCredentials.handle`, checked in this order)
+    1. `X-Session-Handle: <handle>` — native app; skips CSRF.
+    2. `Authorization: Bearer <handle>` — native app / tools; skips CSRF (`Basic` does **not** skip).
+    3. Cookie `WORKFORCE_SESSION=<handle>` — browser; **CSRF required**: every POST/PUT/PATCH/DELETE
+       carries `X-XSRF-TOKEN` echoing cookie `WORKFORCE-XSRF` (fetch with `GET /api/v1/auth/csrf`).
+
+    The handle is an opaque 32-byte random value (base64url, no padding), never an OAuth token.
+
+    ## Error envelope
+    Every error is `application/problem+json` in the **public** rendering (no `origin`,
+    no `diagnostic`; `title`/`detail` come from `ErrorCatalogue`). See
+    `docs/platform/api-reference/conventions/error-model.md`. Each response lists the codes it can
+    carry in `x-error-codes`. Downstream refusals (lead, customer, authz, idp-adapter) are
+    propagated with the **same code** and the original `incidentId` (`ErrorPropagation`).
+
+    ## Markers
+    - `x-status: fix-pending` + `x-review-finding` — the code is known to differ; the documented
+      behaviour is the decided one.
+    - `x-implementation-note` — a truthful note about today's code.
+  contact:
+    name: Platform engineering (owner Mahesh)
+servers:
+  - url: https://{host}/api/v1
+    description: Public edge (Cloudflare → F5-XC → NLB → Istio Ingress `/api/*`)
+    variables:
+      host:
+        default: nip.example.bank
+  - url: http://localhost:8084/api/v1
+    description: Local
+tags:
+  - name: Auth
+    description: Login, session and logout. `/api/v1/auth/**` is `permitAll` — no session required.
+  - name: Workspace
+  - name: Customers
+  - name: Leads
+  - name: Reference data
+  - name: Organisation
+security:
+  - sessionHeader: []
+  - sessionBearer: []
+  - sessionCookie: []
+
+paths:
+  /auth/csrf:
+    get:
+      tags: [Auth]
+      operationId: getCsrfToken
+      summary: Get the CSRF token for cookie-borne mutations (web).
+      description: |
+        Spring Security `CookieCsrfTokenRepository.withHttpOnlyFalse()` mints the token and sets
+        cookie `WORKFORCE-XSRF` (readable by JS by design). No downstream call, no store write.
+        A browser must call this before `POST /auth/login`.
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Token issued.
+          headers:
+            Set-Cookie:
+              description: '`WORKFORCE-XSRF=<token>; Path=/` (not HttpOnly).'
+              schema: { type: string }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CsrfResponse' }
+              example: { headerName: X-XSRF-TOKEN, token: 3f2c9b1e-6a3d-4f1c-9b7e-1d2a3c4b5e6f }
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      operationId: login
+      summary: Bank RM credential login (AD-verify) or start partner OIDC login.
+      description: |
+        Behaviour is selected by `identitySource`:
+        - `BANK_AD` → `LoginService.authenticateBank`: AD-verify via identity-provider-adapter,
+          resolve the business identity (created on first login), require `ACTIVE` +
+          `BANK_EMPLOYEE`, mint a session (TTL `workforce.session.session-ttl`, default 8 h).
+          `WEB` gets the cookie, `NATIVE` gets `sessionHandle` in the body.
+        - `PARTNER` → `LoginService.begin`: validate `returnUri` against the allow-list, mint
+          `state`/`nonce`/PKCE verifier, store the pending login (TTL 5 min), return the Keycloak
+          authorization URI.
+
+        `employeeId`, `password` (BANK_AD) and `returnUri` (PARTNER) are optional in the schema
+        and enforced in the service; a violation is `400 SCHEMA_INVALID`, not `422`.
+        The password is never logged and never stored (`toString` redacts).
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/XsrfTokenWhenCookie'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginRequest' }
+            examples:
+              bankRm:
+                value: { clientType: WEB, identitySource: BANK_AD, employeeId: EMP001, password: '••••••' }
+              partner:
+                value: { clientType: NATIVE, identitySource: PARTNER, returnUri: 'bankinsurance://auth-complete', loginHint: rep@insurer.example }
+      responses:
+        '200':
+          description: |
+            `BANK_AD` → `BankLoginResponse`; `PARTNER` → `PartnerLoginResponse`.
+            For `BANK_AD` + `WEB`, `Set-Cookie: WORKFORCE_SESSION=<handle>; HttpOnly; Secure;
+            SameSite=Strict; Path=/; Max-Age=28800` and `sessionHandle` is `null`.
+          headers:
+            Set-Cookie:
+              description: Session cookie, BANK_AD + WEB only.
+              schema: { type: string }
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/BankLoginResponse'
+                  - $ref: '#/components/schemas/PartnerLoginResponse'
+        '400':
+          $ref: '#/components/responses/AuthSchemaInvalid'
+        '401':
+          description: AD rejected the credentials; account inactive; business identity not an active bank employee.
+          x-error-codes: [AUTHENTICATION_FAILED]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '403':
+          $ref: '#/components/responses/CsrfRejected'
+        '422':
+          description: |
+            `clientType` / `identitySource` missing (`VALIDATION_ERROR`, field errors
+            `MISSING_REQUIRED_FIELD`) or body unparseable / enum value unknown (`INVALID_REQUEST`).
+          x-error-codes: [VALIDATION_ERROR, INVALID_REQUEST]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '503':
+          description: IdP adapter, bank AD-verify or the authorization service unreachable / unparseable.
+          x-error-codes: [IDENTITY_PROVIDER_UNAVAILABLE]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        default:
+          description: |
+            A downstream refusal propagated with its own code and status (e.g. the adapter's
+            `401 UNAUTHORIZED` when the BFF's internal key is wrong — a misconfiguration).
+          x-error-codes: [UNAUTHORIZED, FORBIDDEN]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+
+  /auth/callback:
+    get:
+      tags: [Auth]
+      operationId: oidcCallback
+      summary: OIDC redirect target after Keycloak login (browser, never the app directly).
+      description: |
+        Takes the pending login for `state` (single use), exchanges the code via the adapter
+        (`/internal/v1/auth/token-exchange`), resolves the business identity (provider `KEYCLOAK`,
+        user type `INSURER_REPRESENTATIVE`), requires `ACTIVE` (otherwise revokes the refresh
+        token first), stores the session **including encrypted provider tokens**.
+        `WEB` → `302` to `returnUri` with the session cookie. `NATIVE` → mints a completion code
+        (TTL 1 min) and `302` to `returnUri?code=<completionCode>` (or `&code=` when the URI
+        already has a query).
+      security: []
+      parameters:
+        - name: code
+          in: query
+          required: true
+          description: OIDC authorization code.
+          schema: { type: string }
+        - name: state
+          in: query
+          required: true
+          description: Must match a live pending login (taken with GETDEL — single use).
+          schema: { type: string }
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '302':
+          description: Login complete; redirect to the allow-listed `returnUri`.
+          headers:
+            Location:
+              schema: { type: string, format: uri }
+            Set-Cookie:
+              description: Session cookie, WEB only.
+              schema: { type: string }
+        '400':
+          description: |
+            `state` unknown / expired / already used (`SCHEMA_INVALID`). A missing `code` or
+            `state` query parameter is rejected by Spring before the controller
+            (`MissingServletRequestParameterException`) with a 400 that is not yet a platform
+            envelope.
+          x-error-codes: [SCHEMA_INVALID]
+          x-implementation-note: Target names `INVALID_STATE` exist in ErrorCodes; the code raises SCHEMA_INVALID today.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '401':
+          description: Business identity resolved but not `ACTIVE`; token nonce/audience/subject invalid at the adapter.
+          x-error-codes: [AUTHENTICATION_FAILED]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '403':
+          description: Partner has no approved business user yet (propagated from identity-authorization).
+          x-error-codes: [FORBIDDEN]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '503':
+          description: Adapter or authorization service unreachable.
+          x-error-codes: [IDENTITY_PROVIDER_UNAVAILABLE]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+
+  /auth/native-session:
+    post:
+      tags: [Auth]
+      operationId: exchangeNativeCompletion
+      summary: Native app swaps the one-time completion code for a session handle.
+      description: The code is taken with GETDEL (single use, 1 min TTL).
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/NativeSessionRequest' }
+      responses:
+        '200':
+          description: Session handle for `X-Session-Handle`.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/NativeSessionResponse' }
+        '400':
+          description: Completion code unknown, expired or reused.
+          x-error-codes: [SCHEMA_INVALID]
+          x-implementation-note: Target name `CODE_ALREADY_CONSUMED` exists in ErrorCodes; the code raises SCHEMA_INVALID today.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '422':
+          $ref: '#/components/responses/BeanValidation'
+
+  /auth/session:
+    get:
+      tags: [Auth]
+      operationId: getSession
+      summary: Who am I — read the session from the vault.
+      description: |
+        Reads the handle from `X-Session-Handle`, else the `WORKFORCE_SESSION` cookie (the
+        `Authorization: Bearer` transport is **not** read on this path). One vault GET + AES-GCM
+        decrypt; no downstream call. Because this sits under `/auth/**`, a missing or unknown
+        handle is `400 SCHEMA_INVALID`, not `401 SESSION_EXPIRED`.
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/SessionHandleHeader'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: The session's identity.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SessionResponse' }
+        '400':
+          description: Handle missing, unknown, expired or undecryptable.
+          x-error-codes: [SCHEMA_INVALID]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      operationId: logout
+      summary: Delete the session; revoke the provider refresh token (partner only).
+      description: |
+        Deletes the vault record **first**, then (partner sessions) calls the adapter's
+        `/internal/v1/auth/revoke`. A revoke failure is logged and does not fail the logout.
+        Handle from `X-Session-Handle`, else the cookie. Cookie-borne calls need `X-XSRF-TOKEN`.
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/SessionHandleHeader'
+        - $ref: '#/components/parameters/XsrfTokenWhenCookie'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '204':
+          description: Logged out. Always sends an expired cookie.
+          headers:
+            Set-Cookie:
+              description: '`WORKFORCE_SESSION=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0`'
+              schema: { type: string }
+        '400':
+          description: No handle supplied.
+          x-error-codes: [SCHEMA_INVALID]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '403':
+          $ref: '#/components/responses/CsrfRejected'
+
+  /workspace/pipeline:
+    get:
+      tags: [Workspace]
+      operationId: getPipeline
+      summary: RM working inbox — leads in the actor's book.
+      description: |
+        Downstream `GET /internal/v1/leads?owner=me` with `X-Actor-Id` = session
+        `businessUserId` (fallback `username`). Cursor pagination is contracted, not implemented:
+        `nextCursor` is always `null`.
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: The actor's leads.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PipelinePage' }
+        '401': { $ref: '#/components/responses/SessionRequired' }
+        '503': { $ref: '#/components/responses/LeadUnavailable' }
+
+  /customers:search:
+    get:
+      tags: [Customers]
+      operationId: searchCustomers
+      summary: ETB customer search by customer id, mobile or PAN.
+      description: |
+        Passes `by`, `q`, `countryCode` to customer-service `GET /internal/v1/customers/search`.
+        `q` is never logged and never echoed. The richer contract-09 response (`query`,
+        `existingLead`, `page`) is not implemented.
+      parameters:
+        - name: by
+          in: query
+          required: true
+          description: Validated by customer-service (`CUSTOMER_ID` | `PAN` | `MOBILE`); others → `422 INVALID_REQUEST`.
+          schema: { type: string, enum: [CUSTOMER_ID, PAN, MOBILE] }
+        - name: q
+          in: query
+          required: true
+          description: The search value. Blank → `422 MISSING_REQUIRED_FIELD` (customer-service).
+          schema: { type: string, maxLength: 80 }
+        - name: countryCode
+          in: query
+          required: false
+          description: For `MOBILE`, e.g. `IN`.
+          schema: { type: string }
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Hits (masked projection).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CustomerSearchPage' }
+        '401': { $ref: '#/components/responses/SessionRequired' }
+        '422':
+          description: Bad `by`, blank `q` (propagated from customer-service).
+          x-error-codes: [INVALID_REQUEST, MISSING_REQUIRED_FIELD]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '502':
+          description: CBS answered with an unexpected status.
+          x-error-codes: [UPSTREAM_BAD_RESPONSE]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '503':
+          description: Customer-service, Apigee or CBS unavailable — do not proceed (`AC-EXC-10`).
+          x-error-codes: [UPSTREAM_UNAVAILABLE]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+
+  /customers/{customerId}:
+    get:
+      tags: [Customers]
+      operationId: getCustomer
+      summary: Customer confirm card.
+      parameters:
+        - $ref: '#/components/parameters/CustomerIdPath'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Masked customer.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CustomerHit' }
+        '401': { $ref: '#/components/responses/SessionRequired' }
+        '404':
+          description: Unknown customer.
+          x-error-codes: [RESOURCE_NOT_FOUND]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '502':
+          description: CBS unexpected status.
+          x-error-codes: [UPSTREAM_BAD_RESPONSE]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '503':
+          description: Customer-service / CBS unavailable.
+          x-error-codes: [UPSTREAM_UNAVAILABLE]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+
+  /customers/{customerId}/active-leads:
+    get:
+      tags: [Customers, Leads]
+      operationId: getActiveLeads
+      summary: Duplicate check before create — the actor's non-terminal leads for this customer and product class.
+      description: |
+        `GET /internal/v1/leads?owner=me` then **filtered in the BFF** to `customerId`,
+        `productClass` and states other than `CONVERTED`, `DISQUALIFIED`, `EXPIRED`, `ARCHIVED`.
+        First 20 are returned; `hasMore` is true when more matched.
+      parameters:
+        - $ref: '#/components/parameters/CustomerIdPath'
+        - name: productClass
+          in: query
+          required: true
+          schema: { $ref: '#/components/schemas/ProductClass' }
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Matching leads.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ActiveLeadPage' }
+        '400':
+          description: '`productClass` missing — Spring `MissingServletRequestParameterException`, not yet a platform envelope.'
+        '401': { $ref: '#/components/responses/SessionRequired' }
+        '503': { $ref: '#/components/responses/LeadUnavailable' }
+
+  /leads:
+    post:
+      tags: [Leads]
+      operationId: createLead
+      summary: Create (Save) a Life lead.
+      description: |
+        1. Bean validation.
+        2. PDP `lead.create` (`PolicyDecisionClient`, 300 ms, fail closed) with the body's `branchId`.
+        3. `POST {lead}/internal/v1/leads` with `X-Actor-Id` and the app's `Idempotency-Key` (if sent).
+
+        Save does **not** run exception rules (that is Start Onboarding, `D-019`).
+        The created lead has `state=NEW`, `exceptionOutcome=NOT_EVALUATED` and an inert
+        `journeyId` equal to `leadId` until Journey mints a real id.
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: false
+          description: |
+            Contract target: **required** on every mutating platform API (`INV-IDM-01`). Optional
+            today because NIP-APP does not send it yet; when present it is forwarded to
+            lead-service, which replays the first result for the same key + body and answers
+            `409 IDEMPOTENCY_CONFLICT` for the same key with a different body. ≤ 128 chars.
+          x-implementation-note: The Flutter app does not send this header yet; making it required is a later, reviewed contract change.
+          schema: { type: string, maxLength: 128 }
+        - $ref: '#/components/parameters/XsrfTokenWhenCookie'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateLeadRequest' }
+            example: { customerId: 01JQX4K7R8M2N3P5Q6R7S8T9V0, lob: LIFE, productClass: TERM, branchId: BR-MUM-001 }
+      responses:
+        '201':
+          description: Lead created (or the replay of the first create for this `Idempotency-Key`).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LeadRecord' }
+        '401': { $ref: '#/components/responses/SessionRequired' }
+        '403':
+          description: |
+            CSRF (cookie transport) or a PDP deny (BFF or lead-service re-check), or the PDP did
+            not answer in 300 ms (`AUTHORIZATION_UNAVAILABLE`, fail closed).
+          x-error-codes: [CSRF_REJECTED, DEFAULT_DENY, EXPLICIT_DENY, ACCOUNT_SUSPENDED, CROSS_INSURER_DENIED, OUT_OF_BRANCH_SCOPE, SP_CERTIFICATION_REQUIRED, AUTHORIZATION_UNAVAILABLE]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '404':
+          description: PDP reason `RESOURCE_NOT_SHARED_WITH_PARTNER` is rendered as absent.
+          x-error-codes: [RESOURCE_NOT_FOUND]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '409':
+          description: |
+            `CONFLICT` — an unfinished lead exists for this creator + customer + product class
+            (the app offers Continue / Cancel), or a concurrent update / same key in flight.
+            `IDEMPOTENCY_CONFLICT` — same key, different body.
+          x-error-codes: [CONFLICT, IDEMPOTENCY_CONFLICT]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+              example:
+                type: about:blank
+                title: Conflict
+                status: 409
+                code: CONFLICT
+                category: CONFLICT
+                retryable: false
+                incidentId: 01JQ8F3K2M7Z9V4T6W8X0Y2Z4A
+                service: bff
+                errors:
+                  - code: CONFLICT
+                    field: leadId
+                    message: 01JQX4K7R8M2N3P5Q6R7S8T9V1
+          x-status: fix-pending
+          x-review-finding: "READINESS-REVIEW §3.2 — lead-service returns the duplicate's id in errors[0] (field leadId, message = the ULID) so the app can offer Continue; propagated unchanged by the BFF."
+        '422':
+          description: Missing field (BFF bean validation); `lob ≠ LIFE` or product class not TERM/SAVINGS/ULIP (lead-service).
+          x-error-codes: [VALIDATION_ERROR, INVALID_REQUEST, MISSING_REQUIRED_FIELD, UNSUPPORTED_LOB]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '503': { $ref: '#/components/responses/LeadUnavailable' }
+
+  /leads/{leadId}:
+    get:
+      tags: [Leads]
+      operationId: getLead
+      summary: Read / resume a lead in the actor's book.
+      description: A lead outside the actor's book is **absent** (`404`), never `403` (`INV-LED-07`).
+      parameters:
+        - $ref: '#/components/parameters/LeadIdPath'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: The lead.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LeadRecord' }
+        '401': { $ref: '#/components/responses/SessionRequired' }
+        '404':
+          description: Unknown or outside the book.
+          x-error-codes: [RESOURCE_NOT_FOUND]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '503': { $ref: '#/components/responses/LeadUnavailable' }
+
+  /leads/{leadId}/assignment:
+    post:
+      tags: [Leads]
+      operationId: assignLead
+      summary: Start Onboarding (if not yet evaluated) then assign to a certified SP RM, with optional note and meeting.
+      description: |
+        `LeadFacade.assign` (`D-019` ordering):
+        1. PDP `lead.assign` (300 ms, fail closed).
+        2. `GET /internal/v1/leads/{leadId}`.
+        3. If `exceptionOutcome = NOT_EVALUATED` → `POST /internal/v1/leads/{leadId}/onboarding`
+           (a `BLOCK` comes back as `409 ILLEGAL_TRANSITION`).
+        4. If the lead is on hold (`exceptionRequired`, `exceptionHold`, `APPROVAL_REQUIRED` or
+           `BLOCK`) → **return the lead unchanged with `200`**; the app shows "exception approval
+           needed". The caller must read `exceptionRequired`, not the status code.
+        5. Else `POST /internal/v1/leads/{leadId}/assignments` with `assignedRmId`,
+           `assignedSpId`, `note`, `meeting` passed through unchanged.
+      parameters:
+        - $ref: '#/components/parameters/LeadIdPath'
+        - $ref: '#/components/parameters/XsrfTokenWhenCookie'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AssignLeadRequest' }
+            example:
+              assignedRmId: RM-5001
+              assignedSpId: SP-1001
+              note: Customer prefers an evening call.
+              meeting: { type: ONLINE, date: '2026-10-24', time: '17:30', link: 'https://meet.example.bank/abc' }
+      responses:
+        '200':
+          description: Assigned lead, **or** the unchanged lead when an exception hold stops assignment.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LeadRecord' }
+        '401': { $ref: '#/components/responses/SessionRequired' }
+        '403':
+          description: CSRF; PDP deny / unavailable; assignee lacks SP certification (`SP_CERTIFICATION_REQUIRED`).
+          x-error-codes: [CSRF_REJECTED, DEFAULT_DENY, EXPLICIT_DENY, ACCOUNT_SUSPENDED, CROSS_INSURER_DENIED, OUT_OF_BRANCH_SCOPE, SP_CERTIFICATION_REQUIRED, AUTHORIZATION_UNAVAILABLE]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '404':
+          description: Lead unknown or outside the book.
+          x-error-codes: [RESOURCE_NOT_FOUND]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '409':
+          description: |
+            `ILLEGAL_TRANSITION` — onboarding blocked, assignment after BI, or the lead is in a
+            terminal state; `CONFLICT` — exception hold active or concurrent update.
+          x-error-codes: [ILLEGAL_TRANSITION, CONFLICT]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '422':
+          description: |
+            Bean validation (`assignedRmId` blank, `note` > 250) at the BFF; meeting rules at
+            lead-service (`type`/`date`/`time` required, `ONLINE` needs `link`, `IN_PERSON` has
+            none, 08:00–20:00 Asia/Kolkata, not in the past).
+          x-error-codes: [VALIDATION_ERROR, INVALID_REQUEST, MISSING_REQUIRED_FIELD]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '503': { $ref: '#/components/responses/LeadUnavailable' }
+
+  /country-codes:
+    get:
+      tags: [Reference data]
+      operationId: listCountryCodes
+      summary: Calling-code catalogue (R0 ships India only).
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Catalogue (in-process `CountryCodeCatalog`).
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/CountryCode' }
+        '401': { $ref: '#/components/responses/SessionRequired' }
+
+  /mobile-numbers:validate:
+    post:
+      tags: [Reference data]
+      operationId: validateMobileNumber
+      summary: Validate a national mobile number. A failed check is data (`200`, `valid=false`), not an error.
+      parameters:
+        - $ref: '#/components/parameters/XsrfTokenWhenCookie'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/MobileValidationRequest' }
+      responses:
+        '200':
+          description: Result.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MobileValidationResult' }
+        '401': { $ref: '#/components/responses/SessionRequired' }
+        '403': { $ref: '#/components/responses/CsrfRejected' }
+        '422': { $ref: '#/components/responses/BeanValidation' }
+
+  /catalogue/product-classes:
+    get:
+      tags: [Reference data]
+      operationId: listProductClasses
+      summary: Selectable R0 product classes (static in the controller today).
+      x-implementation-note: Target is BFF → product-catalogue-service (`SUG-20261007-srp`).
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Always TERM, SAVINGS, ULIP under LIFE.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProductClassPage' }
+        '401': { $ref: '#/components/responses/SessionRequired' }
+
+  /branches:
+    get:
+      tags: [Organisation]
+      operationId: listBranches
+      summary: Branch list (R0 fixture `OrganisationDirectory`; bank HR mapping is the system of record).
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Branches.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Branch' }
+        '401': { $ref: '#/components/responses/SessionRequired' }
+
+  /branches/{branchId}/verticals:
+    get:
+      tags: [Organisation]
+      operationId: listVerticals
+      summary: Verticals in a branch (`D-021`, optional filter between branch and SP).
+      parameters:
+        - $ref: '#/components/parameters/BranchIdPath'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Verticals.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Vertical' }
+        '401': { $ref: '#/components/responses/SessionRequired' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /branches/{branchId}/specified-persons:
+    get:
+      tags: [Organisation]
+      operationId: listSpecifiedPersons
+      summary: Specified Persons in a branch.
+      parameters:
+        - $ref: '#/components/parameters/BranchIdPath'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: SPs.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/SpecifiedPerson' }
+        '401': { $ref: '#/components/responses/SessionRequired' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /verticals/{verticalId}/relationship-managers:
+    get:
+      tags: [Organisation]
+      operationId: listRelationshipManagers
+      summary: RMs in a vertical.
+      parameters:
+        - name: verticalId
+          in: path
+          required: true
+          schema: { type: string, examples: [VERT-MUM-RET] }
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: RMs.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/RelationshipManager' }
+        '401': { $ref: '#/components/responses/SessionRequired' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+components:
+  securitySchemes:
+    sessionHeader:
+      type: apiKey
+      in: header
+      name: X-Session-Handle
+      description: Native app transport. Skips CSRF.
+    sessionBearer:
+      type: http
+      scheme: bearer
+      description: '`Authorization: Bearer <handle>` — the opaque BFF handle, not an OAuth token. Skips CSRF.'
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: WORKFORCE_SESSION
+      description: Browser transport (HttpOnly, Secure, SameSite=Strict, Path=/, Max-Age 8 h). Mutations need `X-XSRF-TOKEN`.
+
+  parameters:
+    CorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: false
+      description: UUID. Optional in code today (contract 09 makes it required). Propagated downstream and stamped into every error as `correlationId`.
+      schema: { type: string, format: uuid }
+    XsrfTokenWhenCookie:
+      name: X-XSRF-TOKEN
+      in: header
+      required: false
+      description: Required when the session travels in the `WORKFORCE_SESSION` cookie (and on `/auth/login` from a browser); echoes cookie `WORKFORCE-XSRF`. Missing / wrong → `403 CSRF_REJECTED`.
+      schema: { type: string }
+    SessionHandleHeader:
+      name: X-Session-Handle
+      in: header
+      required: false
+      description: Native transport. When absent the `WORKFORCE_SESSION` cookie is used.
+      schema: { type: string }
+    LeadIdPath:
+      name: leadId
+      in: path
+      required: true
+      schema: { $ref: '#/components/schemas/Ulid' }
+    CustomerIdPath:
+      name: customerId
+      in: path
+      required: true
+      description: Platform customer id (`D-023`, ULID). Today passed through as an opaque string.
+      schema: { type: string, maxLength: 64 }
+    BranchIdPath:
+      name: branchId
+      in: path
+      required: true
+      schema: { type: string, examples: [BR-MUM-001] }
+
+  responses:
+    SessionRequired:
+      description: |
+        `SESSION_INVALID` — protected path with no handle; `SESSION_EXPIRED` — handle unknown,
+        expired, deleted or undecryptable.
+      x-error-codes: [SESSION_INVALID, SESSION_EXPIRED]
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    CsrfRejected:
+      description: Cookie-borne mutation without a valid `X-XSRF-TOKEN`.
+      x-error-codes: [CSRF_REJECTED]
+      x-status: fix-pending
+      x-review-finding: |
+        Code: Spring Security's default `AccessDeniedHandler` answers a bare 403 without the
+        platform envelope (no `accessDeniedHandler` is configured in `BffSecurityConfig`).
+        Decided: `403 application/problem+json` with code `CSRF_REJECTED`.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    AuthSchemaInvalid:
+      description: |
+        Auth-path input refused (`IllegalArgumentException` → `SCHEMA_INVALID`): employee id or
+        password missing for `BANK_AD`; `returnUri` not exactly in
+        `workforce.session.allowed-return-uris` for `PARTNER`.
+      x-error-codes: [SCHEMA_INVALID]
+      x-implementation-note: Target name `RETURN_LOCATION_NOT_ALLOWED` exists in ErrorCodes; the code raises SCHEMA_INVALID today.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    BeanValidation:
+      description: Bean validation (`VALIDATION_ERROR` with per-field `MISSING_REQUIRED_FIELD`) or unparseable body (`INVALID_REQUEST`).
+      x-error-codes: [VALIDATION_ERROR, INVALID_REQUEST]
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    NotFound:
+      description: Unknown branch or vertical.
+      x-error-codes: [RESOURCE_NOT_FOUND]
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    LeadUnavailable:
+      description: Lead-service gave no HTTP answer (refused, reset, timed out — 2 s read budget).
+      x-error-codes: [UPSTREAM_UNAVAILABLE]
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+
+  schemas:
+    Ulid:
+      type: string
+      pattern: '^[0-9A-HJKMNP-TV-Z]{26}$'
+      examples: [01JQX4K7R8M2N3P5Q6R7S8T9V0]
+    ProductClass:
+      type: string
+      enum: [TERM, SAVINGS, ULIP]
+    Problem:
+      type: object
+      description: Platform problem+json, public rendering (`ServiceErrorResponse.toPublic()`).
+      required: [type, title, status, code]
+      properties:
+        type: { type: string, default: about:blank }
+        title: { type: string, description: 'From ErrorCatalogue — never from an exception or upstream body.' }
+        status: { type: integer }
+        detail: { type: string, description: 'Catalogue safe text.' }
+        code: { type: string, description: 'Registered code (ErrorCodes).' }
+        category:
+          type: string
+          enum: [VALIDATION, AUTHENTICATION, AUTHORIZATION, NOT_FOUND, CONFLICT, COMPLIANCE_GATE, UPSTREAM, CONFIG, RATE_LIMIT, INTERNAL]
+        retryable: { type: boolean }
+        upstreamCode: { type: [string, 'null'] }
+        incidentId: { type: string, description: 'This failure; preserved across hops.' }
+        correlationId: { type: [string, 'null'], description: 'This request.' }
+        service: { type: string, examples: [bff] }
+        timestamp: { type: string, format: date-time }
+        errors:
+          type: array
+          items: { $ref: '#/components/schemas/ProblemFieldError' }
+    ProblemFieldError:
+      type: object
+      properties:
+        code: { type: string }
+        message: { type: string }
+        field: { type: [string, 'null'] }
+        extensions:
+          type: [object, 'null']
+          additionalProperties: true
+
+    CsrfResponse:
+      type: object
+      required: [headerName, token]
+      properties:
+        headerName: { type: string, const: X-XSRF-TOKEN }
+        token: { type: string }
+    LoginRequest:
+      type: object
+      required: [clientType, identitySource]
+      properties:
+        clientType: { type: string, enum: [WEB, NATIVE], description: '@NotNull' }
+        identitySource: { type: string, enum: [BANK_AD, PARTNER], description: '@NotNull' }
+        returnUri: { type: string, description: 'PARTNER only; must exactly equal an allow-listed URI.' }
+        loginHint: { type: string, description: 'PARTNER only; passed to Keycloak as `login_hint`.' }
+        employeeId: { type: string, description: 'BANK_AD only; non-blank after trim.' }
+        password: { type: string, format: password, writeOnly: true, description: 'BANK_AD only; never logged or stored.' }
+    BankLoginResponse:
+      type: object
+      required: [authenticated, businessUserId, userType, status, policyVersion, expiresInSeconds]
+      properties:
+        authenticated: { type: boolean, const: true }
+        businessUserId: { type: string, format: uuid }
+        userType: { type: string, enum: [BANK_EMPLOYEE] }
+        status: { type: string, enum: [ACTIVE] }
+        policyVersion: { type: integer, format: int64 }
+        sessionHandle: { type: [string, 'null'], description: 'NATIVE only; null for WEB (cookie set instead).' }
+        expiresInSeconds: { type: integer, format: int64, examples: [28800] }
+    PartnerLoginResponse:
+      type: object
+      required: [authorizationUri, expiresInSeconds]
+      properties:
+        authorizationUri: { type: string, format: uri, description: 'Keycloak authorize URL (PKCE S256, scope `openid profile email`).' }
+        expiresInSeconds: { type: integer, format: int64, description: 'Pending-login TTL (default 300).' }
+    NativeSessionRequest:
+      type: object
+      required: [completionCode]
+      properties:
+        completionCode: { type: string, minLength: 1, description: '@NotBlank' }
+    NativeSessionResponse:
+      type: object
+      required: [sessionHandle, expiresInSeconds]
+      properties:
+        sessionHandle: { type: string }
+        expiresInSeconds: { type: integer, format: int64 }
+    SessionResponse:
+      type: object
+      properties:
+        businessUserId: { type: string, format: uuid }
+        username: { type: string }
+        userType: { type: string, enum: [BANK_EMPLOYEE, INSURER_REPRESENTATIVE] }
+        status: { type: string, enum: [PENDING, ACTIVE, SUSPENDED, DISABLED, EXPIRED] }
+        policyVersion: { type: integer, format: int64 }
+        insurerCode: { type: [string, 'null'] }
+
+    LeadRecord:
+      type: object
+      description: BFF projection of lead-service's `LeadResponse` (fields not listed here are dropped by the BFF).
+      required: [leadId, customerId, lob, productClass, state, dashboardStage, exceptionHold, exceptionOutcome, exceptionRequired, createdAt, updatedAt]
+      properties:
+        leadId: { $ref: '#/components/schemas/Ulid' }
+        customerId: { type: string }
+        lob: { type: string, enum: [LIFE] }
+        productClass: { $ref: '#/components/schemas/ProductClass' }
+        branchId: { type: [string, 'null'] }
+        state: { type: string, enum: [NEW, ASSIGNED, CONTACTED, QUALIFIED, CONVERTED, DISQUALIFIED, EXPIRED, ARCHIVED] }
+        dashboardStage: { type: string, enum: [NEW, QUOTE_GENERATED, PROPOSAL_FORM_PENDING, PROPOSAL_SUBMITTED, POLICY_PENDING, REQUIREMENTS_AWAITED, UNDERWRITING_QUEUE, POLICY_ISSUED, POLICY_DECLINED, CLOSED] }
+        assignedRmId: { type: [string, 'null'] }
+        assignedSpId: { type: [string, 'null'] }
+        exceptionHold: { type: boolean }
+        exceptionOutcome: { type: string, enum: [NOT_EVALUATED, PASS, BLOCK, APPROVAL_REQUIRED] }
+        exceptionRequired: { type: boolean, description: 'True when outcome is APPROVAL_REQUIRED or BLOCK, or a hold is active.' }
+        journeyId: { type: [string, 'null'], description: 'Inert placeholder equal to `leadId` until Journey mints a real id.' }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    PipelinePage:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/LeadRecord' } }
+        nextCursor: { type: [string, 'null'], description: 'Always null today.' }
+    ActiveLeadPage:
+      type: object
+      required: [items, hasMore]
+      properties:
+        items: { type: array, maxItems: 20, items: { $ref: '#/components/schemas/LeadRecord' } }
+        hasMore: { type: boolean }
+    CreateLeadRequest:
+      type: object
+      required: [customerId, lob, productClass]
+      properties:
+        customerId: { type: string, minLength: 1, description: '@NotBlank. Platform customerId (D-023).' }
+        lob: { type: string, minLength: 1, description: '@NotBlank at the BFF; lead-service accepts only `LIFE`.' }
+        productClass: { type: string, minLength: 1, description: '@NotBlank at the BFF; lead-service accepts TERM | SAVINGS | ULIP.' }
+        branchId: { type: [string, 'null'], description: 'Sent to the PDP as the branch scope.' }
+      additionalProperties: false
+    Meeting:
+      type: object
+      description: Lead BRD Screen 7. Passed through to lead-service, which enforces the rules.
+      required: [type, date, time]
+      properties:
+        type: { type: string, enum: [ONLINE, IN_PERSON] }
+        date: { type: string, format: date, description: 'yyyy-MM-dd, bank time (Asia/Kolkata).' }
+        time: { type: string, pattern: '^([01]\d|2[0-3]):[0-5]\d$', description: 'HH:mm, 08:00–20:00 bank time.' }
+        link: { type: [string, 'null'], description: 'Required for ONLINE; must be absent for IN_PERSON. Stored encrypted.' }
+    AssignLeadRequest:
+      type: object
+      required: [assignedRmId]
+      properties:
+        assignedRmId: { type: string, minLength: 1, description: '@NotBlank. Must hold a valid SP certification.' }
+        assignedSpId: { type: [string, 'null'] }
+        note: { type: [string, 'null'], maxLength: 250, description: 'Follow-up note; stored encrypted.' }
+        meeting:
+          oneOf:
+            - $ref: '#/components/schemas/Meeting'
+            - type: 'null'
+
+    CustomerHit:
+      type: object
+      description: Masked projection — never full CIF, PAN, DOB or address.
+      properties:
+        customerId: { type: string }
+        displayName: { type: string }
+        initials: { type: string }
+        maskedCif: { type: string }
+        maskedMobile: { type: string }
+        eligibility: { type: string }
+        source: { type: string }
+    CustomerSearchPage:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/CustomerHit' } }
+
+    CountryCode:
+      type: object
+      properties:
+        countryCode: { type: string, examples: [IN] }
+        countryName: { type: string }
+        phoneCode: { type: string, examples: ['+91'] }
+        nationality: { type: string }
+        minLength: { type: integer }
+        maxLength: { type: integer }
+        regex: { type: string, examples: ['^[6-9]\d{9}$'] }
+    MobileValidationRequest:
+      type: object
+      required: [countryCode, nationalNumber]
+      properties:
+        countryCode: { type: string, minLength: 1 }
+        nationalNumber: { type: string, minLength: 1 }
+    MobileValidationResult:
+      type: object
+      required: [valid]
+      properties:
+        valid: { type: boolean }
+        reason: { type: [string, 'null'], enum: [UNKNOWN_COUNTRY, MISSING_NUMBER, LENGTH, PATTERN, null] }
+    ProductClassPage:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              lob: { type: string, enum: [LIFE] }
+              productClass: { $ref: '#/components/schemas/ProductClass' }
+              name: { type: string }
+    Branch:
+      type: object
+      properties:
+        branchId: { type: string }
+        branchName: { type: string }
+        branchCode: { type: string }
+    Vertical:
+      type: object
+      properties:
+        verticalId: { type: string }
+        verticalName: { type: string }
+        branchId: { type: string }
+    SpecifiedPerson:
+      type: object
+      properties:
+        empId: { type: string }
+        empName: { type: string }
+        branchId: { type: string }
+        verticalId: { type: string }
+    RelationshipManager:
+      type: object
+      properties:
+        empId: { type: string }
+        empName: { type: string }
+        verticalId: { type: string }
+        branchId: { type: string }

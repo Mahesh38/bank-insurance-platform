@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.bank.internal/events/QuoteRejectedNoSuitability.v1.json",
+  "title": "QuoteRejectedNoSuitability v1 - data",
+  "description": "Quote refused by the suitability gate (INV-QUO-01, SUITABILITY.GATE). Producer: quotation. Status: CONTRACTED. The `data` member of event-envelope/v1 (ADR-025): ids and states only, never customer PII.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "quoteId",
+    "customerId",
+    "productClass",
+    "reasonCode"
+  ],
+  "properties": {
+    "quoteId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "customerId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "productClass": {
+      "type": "string",
+      "enum": [
+        "TERM",
+        "SAVINGS",
+        "ULIP"
+      ]
+    },
+    "reasonCode": {
+      "type": "string",
+      "pattern": "^[A-Z0-9][A-Z0-9_.-]{0,63}$"
+    },
+    "journeyId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "evaluationId": {
+      "$ref": "#/$defs/ulid"
+    }
+  },
+  "$defs": {
+    "ulid": {
+      "type": "string",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+    }
+  }
+}

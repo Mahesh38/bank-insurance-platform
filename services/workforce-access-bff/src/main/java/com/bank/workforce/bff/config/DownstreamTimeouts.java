@@ -23,9 +23,10 @@ public record DownstreamTimeouts(
     customer = Budget.orDefault(customer, INTERNAL_CONNECT, Duration.ofSeconds(4));
     // Identity resolve is a local lookup in the PDP's store.
     authorization = Budget.orDefault(authorization, INTERNAL_CONNECT, Duration.ofSeconds(2));
-    // Login path: the adapter itself waits up to 5 s on AD verify (S-26).
+    // Login path. Must stay inside the 5 s edge budget (S-01) — it was 6 s (READINESS-REVIEW
+    // §3.7). The adapter's own AD-verify / Keycloak budgets (1 s + 3 s) nest inside this.
     identityProvider =
-        Budget.orDefault(identityProvider, Duration.ofSeconds(1), Duration.ofSeconds(6));
+        Budget.orDefault(identityProvider, Duration.ofSeconds(1), Duration.ofMillis(4500));
   }
 
   public record Budget(Duration connect, Duration read) {

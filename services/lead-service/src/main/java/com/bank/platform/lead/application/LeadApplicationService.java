@@ -1,10 +1,14 @@
 package com.bank.platform.lead.application;
 
 import com.bank.common.error.ErrorCodes;
+import com.bank.common.error.ServiceError;
 import com.bank.common.error.ServiceErrors;
 import com.bank.common.error.ServiceException;
 import com.bank.platform.lead.domain.ConcurrentLeadUpdateException;
 import com.bank.platform.lead.domain.ExceptionOutcome;
+import com.bank.platform.lead.domain.ExceptionRulesPort;
+import com.bank.platform.lead.domain.ExceptionRulesPort.Evaluation;
+import com.bank.platform.lead.domain.IllegalLeadTransitionException;
 import com.bank.platform.lead.domain.Lead;
 import com.bank.platform.lead.domain.LeadActivityPort;
 import com.bank.platform.lead.domain.LeadActivityPort.Assignment;
@@ -35,7 +39,6 @@ import java.time.format.DateTimeParseException;
 import java.util.HexFormat;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
@@ -69,6 +72,8 @@ public class LeadApplicationService {
   private final LeadAuthorizationPort authorization;
   private final LeadActivityPort activity;
   private final LeadIdempotencyPort idempotency;
+  private final ExceptionRulesPort exceptionRules;
+  private final LeadSettings settings;
 
   public LeadApplicationService(
       LeadRepository leads,
@@ -77,7 +82,9 @@ public class LeadApplicationService {
       SpCertificationPort certification,
       LeadAuthorizationPort authorization,
       LeadActivityPort activity,
-      LeadIdempotencyPort idempotency) {
+      LeadIdempotencyPort idempotency,
+      ExceptionRulesPort exceptionRules,
+      LeadSettings settings) {
     this.leads = leads;
     this.errors = errors;
     this.clock = clock;
@@ -85,6 +92,8 @@ public class LeadApplicationService {
     this.authorization = authorization;
     this.activity = activity;
     this.idempotency = idempotency;
+    this.exceptionRules = exceptionRules;
+    this.settings = settings;
   }
 
   @Transactional
@@ -123,11 +132,16 @@ public class LeadApplicationService {
         .findUnfinished(command.createdByPrincipalId(), command.customerId(), productClass)
         .ifPresent(
             existing -> {
+              // errors[0].message is the existing ULID only, so the app can offer "Continue
+              // existing" (Lead BRD Table 18) without parsing prose.
               throw errors
                   .error(ErrorCodes.CONFLICT)
                   .component("LeadApplicationService")
                   .operation("create")
                   .reason("unfinished lead exists for this creator, customer and product class")
+                  .errors(
+                      List.of(
+                          ServiceError.ofField(ErrorCodes.CONFLICT, existing.leadId(), "leadId")))
                   .build();
             });
     Instant now = clock.instant();
@@ -140,6 +154,9 @@ public class LeadApplicationService {
             command.branchId(),
             command.createdByPrincipalId(),
             now);
+    if (settings.expiry() != null) {
+      lead.expireAt(now.plus(settings.expiry()));
+    }
     persist(lead);
     if (idempotencyKey != null && !idempotencyKey.isBlank()) {
       try {
@@ -185,11 +202,17 @@ public class LeadApplicationService {
   @Transactional(noRollbackFor = ServiceException.class) // a BLOCK outcome is saved, then refused
   public Lead startOnboarding(String leadId, String principalId) {
     Lead lead = getVisible(leadId, principalId);
-    ExceptionOutcome outcome = evaluate(lead.customerId());
+    // Guards first: a held, blocked or terminal lead is refused before any rule is evaluated.
     Instant now = clock.instant();
-    lead.applyExceptionOutcome(outcome, now);
+    transition("startOnboarding", lead::requireEvaluable);
+    Evaluation evaluation =
+        exceptionRules.evaluate(
+            new ExceptionRulesPort.Subject(
+                lead.leadId(), lead.customerId(), lead.lob(), lead.productClass()));
+    ExceptionOutcome outcome = evaluation.outcome();
+    transition("startOnboarding", () -> lead.applyExceptionOutcome(outcome, now));
     persist(lead);
-    event(lead, "LeadExceptionEvaluated", now);
+    event(lead, "LeadExceptionEvaluated", now, evaluation.reasonCodes());
     if (outcome == ExceptionOutcome.BLOCK) {
       throw errors
           .error(ErrorCodes.ILLEGAL_TRANSITION)
@@ -205,6 +228,9 @@ public class LeadApplicationService {
   public Lead assign(AssignLeadCommand command) {
     Lead lead = getVisible(command.leadId(), command.actorPrincipalId());
     authorize(command.actorPrincipalId(), "lead.assign", lead.leadId(), lead.branchId(), "assign");
+    if (lead.terminal()) {
+      throw illegal("assign", "cannot assign a lead in state " + lead.state());
+    }
     if (lead.biGenerated()) {
       throw errors
           .error(ErrorCodes.ILLEGAL_TRANSITION)
@@ -243,7 +269,7 @@ public class LeadApplicationService {
     Instant meetingAt = command.meeting() == null ? null : meetingTime(command.meeting(), now);
     AssignmentKind kind =
         lead.assignedRmId() == null ? AssignmentKind.CREATE_ASSIGN : AssignmentKind.REASSIGN;
-    lead.assign(command.assignedRmId(), command.assignedSpId(), now);
+    transition("assign", () -> lead.assign(command.assignedRmId(), command.assignedSpId(), now));
     persist(lead);
     activity.recordAssignment(
         new Assignment(
@@ -277,6 +303,9 @@ public class LeadApplicationService {
   @Transactional
   public Lead close(String leadId, String principalId) {
     Lead lead = getVisible(leadId, principalId);
+    if (lead.terminal()) {
+      throw illegal("close", "cannot close a lead in state " + lead.state());
+    }
     if (lead.state() == LeadState.QUALIFIED || lead.biGenerated()) {
       throw errors
           .error(ErrorCodes.ILLEGAL_TRANSITION)
@@ -286,25 +315,10 @@ public class LeadApplicationService {
           .build();
     }
     Instant now = clock.instant();
-    lead.close(now);
+    transition("close", () -> lead.close(now));
     persist(lead);
     event(lead, "LeadClosed", now);
     return lead;
-  }
-
-  /**
-   * Deterministic stub until Exception Handling / DWH rules are wired. Tokens are synthetic test
-   * customer ids, never logged.
-   */
-  static ExceptionOutcome evaluate(String customerId) {
-    String token = customerId == null ? "" : customerId.toUpperCase(Locale.ROOT);
-    if (token.contains("BLOCK")) {
-      return ExceptionOutcome.BLOCK;
-    }
-    if (token.contains("HOLD")) {
-      return ExceptionOutcome.APPROVAL_REQUIRED;
-    }
-    return ExceptionOutcome.PASS;
   }
 
   private ProductClass parseProductClass(String raw) {
@@ -391,6 +405,10 @@ public class LeadApplicationService {
   }
 
   private void event(Lead lead, String type, Instant at) {
+    event(lead, type, at, List.of());
+  }
+
+  private void event(Lead lead, String type, Instant at, List<String> reasonCodes) {
     Map<String, String> attributes = new LinkedHashMap<>();
     attributes.put("state", lead.state().name());
     attributes.put("productClass", lead.productClass().name());
@@ -400,6 +418,9 @@ public class LeadApplicationService {
     }
     if (lead.journeyId() != null) {
       attributes.put("journeyId", lead.journeyId());
+    }
+    if (!reasonCodes.isEmpty()) {
+      attributes.put("exceptionReasonCodes", String.join(",", reasonCodes));
     }
     activity.append(new LeadEvent(Ulid.mint(clock), lead.leadId(), type, attributes, at));
   }
@@ -437,6 +458,30 @@ public class LeadApplicationService {
       throw invalid("meeting cannot be in the past");
     }
     return at;
+  }
+
+  /** Runs a domain transition; a refusal by the aggregate is {@code 409 ILLEGAL_TRANSITION}. */
+  private void transition(String operation, Runnable change) {
+    try {
+      change.run();
+    } catch (IllegalLeadTransitionException ex) {
+      throw errors
+          .error(ErrorCodes.ILLEGAL_TRANSITION)
+          .component("LeadApplicationService")
+          .operation(operation)
+          .reason(ex.getMessage())
+          .cause(ex)
+          .build();
+    }
+  }
+
+  private ServiceException illegal(String operation, String reason) {
+    return errors
+        .error(ErrorCodes.ILLEGAL_TRANSITION)
+        .component("LeadApplicationService")
+        .operation(operation)
+        .reason(reason)
+        .build();
   }
 
   private ServiceException invalid(String reason) {

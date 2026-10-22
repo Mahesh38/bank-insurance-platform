@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.bank.internal/events/PolicyIssuanceFailed.v1.json",
+  "title": "PolicyIssuanceFailed v1 - data",
+  "description": "Issuance could not complete - journey compensates. Producer: policy. Status: CONTRACTED. The `data` member of event-envelope/v1 (ADR-025): ids and states only, never customer PII.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "proposalId",
+    "paymentId",
+    "reasonCode"
+  ],
+  "properties": {
+    "proposalId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "paymentId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "reasonCode": {
+      "type": "string",
+      "pattern": "^[A-Z0-9][A-Z0-9_.-]{0,63}$"
+    },
+    "policyId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "journeyId": {
+      "$ref": "#/$defs/ulid"
+    }
+  },
+  "$defs": {
+    "ulid": {
+      "type": "string",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+    }
+  }
+}

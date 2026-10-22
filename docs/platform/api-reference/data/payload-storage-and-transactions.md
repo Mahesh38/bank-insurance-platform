@@ -110,8 +110,10 @@ cluster, while every gate, every rupee and every piece of evidence stays relatio
 |---|---|---|
 | DynamoDB `{env}-quotation-working` | Working quote `QUOTE#{quoteId}/META`, its outbox items, idempotency items, one-open-quote-per-journey marker | `quotation-service` only |
 | DynamoDB `{env}-proposal-working` | Working proposal `PROPOSAL#{proposalId}/META`, outbox, idempotency, open-proposal and application-number markers | `proposal-service` only |
-| Aurora `quotation.quote` / `offer` | Structured quote after `RECONCILED` — the sold record | `quotation-service` |
-| Aurora `proposal.proposal` / `uw_requirement` / `uw_document_ref` | Structured proposal after `RECONCILED` | `proposal-service` |
+| Aurora `quotation.quote` / `offer` | Structured quote after `RECONCILED` — the sold record: **every** offer shown (`SELECTED` / `NOT_SELECTED` / `INVALID`), `quote.selected_offer_id`, quote `CONVERTED` (`D-025`) | `quotation-service` |
+| Aurora `proposal.proposal` / `proposal_answer` / `uw_requirement` / `uw_document_ref` | Structured proposal after `RECONCILED`; **every question asked and every answer** in `proposal_answer` (encrypted) | `proposal-service` |
+| Aurora `proposal.proposal_status_history` | Post-payment proposal changes (`CONVERTED`, `ISSUANCE_FAILED`, `REFUND_REQUIRED`), append-only — never the frozen item, never an UPDATE (`D-025`) | `proposal-service` |
+| Aurora `policy.policy_status_history` | Insurer decision progress polled from 1SB until `ISSUED` / `DECLINED` (`D-025`) | `policy-issuance-service` |
 
 Full table design, item types, IAM: [`schemas/20-dynamodb-working-payload.md`](../../data-architecture/schemas/20-dynamodb-working-payload.md).
 
@@ -123,7 +125,7 @@ Plaintext **control attributes** sit beside the encrypted envelope so gates and 
 |---|---|---|
 | Keys | `PK = QUOTE#{quoteId}`, `SK = META`, `GSI1PK = JOURNEY#{journeyId}` | Quotation |
 | Identity | `quoteId`, `leadId`, `journeyId`, `customerId`, `lob`, `productClass`, `mode`, `category` | Quotation |
-| Gate references | `suitabilityId`, `consentId` | Checked **before** the first write (C1) |
+| Gate references | `suitabilityId`, `evaluationId`, `consentId` | Checked **before** the first write (C1): outcome for `productClass` in `SUITABILITY.GATE.allowedOutcomes` (D4); consent valid for `BEFORE_MULTI_QUOTE` incl. `CNS-QSH` (D5) |
 | State | `state`, `validUntil`, `provider`, `providerJobId` | Quote state machine; adapter correlation |
 | Selection (atomic with the envelope) | `selectedOfferId`, `selectedPremiumAmount`, `selectedTaxAmount`, `selectedSumAssured`, `selectedInsurerCode`, `selectedProductCode` | Payment, **through the Quotation API** (`INV-PAY-03`) |
 | Envelope | `payloadEnc` (Binary, client-side encrypted with the service's KMS key), `encryptionKeyId`, `payloadSchemaVersion` | Quotation only |
@@ -138,9 +140,20 @@ Envelope v1 (inside `payloadEnc`):
   selectedOfferId }
 ```
 
+Envelope → column mapping at materialise (review §3.6):
+
+| Envelope / API | Column | Note |
+|---|---|---|
+| `frequency` | `offer.premium_frequency` | |
+| `ppt` | `offer.premium_paying_term` | |
+| `coverTerm` | `offer.cover_term` | |
+| `offerState = AVAILABLE` (API) | `offer.offer_state = QUOTED` → at materialise `SELECTED` / `NOT_SELECTED` | `AVAILABLE` is never stored |
+| `offerState = INVALID` | `offer.offer_state = INVALID` | Premium / sum assured may be null; `ck_offer_positive` exempts `INVALID` |
+| `selectedOfferId` | `quote.selected_offer_id` | |
+
 The working proposal item follows the same pattern: control attributes `quoteId`, `offerId`,
 `consentId`, `applicationNumber`, `state`, `underwritingState`, `schemaId`, `schemaVersion`,
-`issuanceMode`; the envelope holds form answers, UW requirements, document refs (bytes in S3), and
+`issuanceMode`, `configVersionRef` (both materialised to columns); the envelope holds form answers, UW requirements, document refs (bytes in S3), and
 the nominee (always encrypted — `INV-PRP-05`). Item size budget 350 KB.
 
 ### 3.3 Materialisation into Aurora after `RECONCILED`
@@ -154,14 +167,14 @@ sequenceDiagram
     participant PG as Aurora quotation
     participant PS as proposal-service
     PAY->>PAY: match pgTxnId + amount → RECONCILED (same txn: outbox PaymentReconciled)
-    PAY-->>BUS: PaymentReconciled {paymentId, quoteId, proposalId}
+    PAY-->>BUS: PaymentReconciled {paymentId, quoteId, proposalId, journeyId, applicationNumber}
     BUS-->>QS: PaymentReconciled
     QS->>DDB: GetItem QUOTE#id/META (strongly consistent)
     QS->>QS: decrypt envelope in process
-    QS->>PG: BEGIN · INSERT quote ON CONFLICT DO NOTHING · INSERT offer × n ON CONFLICT DO NOTHING<br/>(selected = SELECTED, others NOT_SELECTED) · INSERT idempotency(eventId) · COMMIT
+    QS->>PG: BEGIN · INSERT quote (CONVERTED, selected_offer_id) ON CONFLICT DO NOTHING · INSERT offer × n<br/>(SELECTED / NOT_SELECTED / INVALID) · INSERT idempotency(eventId) · COMMIT
     Note over PG: Aurora is now the record
     QS->>DDB: UpdateItem SET materializedAt, state CONVERTED, ttl = +30 d<br/>CONDITION attribute_not_exists(materializedAt)
-    BUS-->>PS: PaymentReconciled → same into proposal / uw_requirement / uw_document_ref
+    BUS-->>PS: PaymentReconciled → same into proposal (PAID) / proposal_answer × questions / uw_requirement / uw_document_ref
 ```
 
 | Failure | Recovery |
@@ -172,6 +185,10 @@ sequenceDiagram
 
 After `materializedAt` is set, every DynamoDB update carries
 `ConditionExpression attribute_not_exists(materializedAt)`, so the working item is frozen.
+The quote stays `SELECTED` through payment (Payment's `/selected` read requires it) and is
+`CONVERTED` only at materialise. Any later proposal change is a `proposal_status_history` row.
+TTL handling for `REJECTED` / `UNCERTAIN` / `RECONCILIATION_BREAK`:
+[`schemas/20` §3.3](../../data-architecture/schemas/20-dynamodb-working-payload.md#33-payment-in-flight).
 
 ### 3.4 Options considered
 
@@ -260,8 +277,14 @@ The 1SB adapter has no database. Its "transaction" is a sequence of idempotent H
 
 ## 5. Events and the outbox
 
-Every owning schema that publishes has an `outbox_event` table. A separate `outbox-publisher`
-reads unpublished rows, publishes to MSK, and sets `published_at`. Consumers dedupe on `eventId`.
+Every owning Postgres schema that publishes has an `outbox_event` table in the
+[`ADR-025`](../../architecture-review/ADR-025-event-specification-and-publisher.md) shape:
+`outbox_id` (ULID), `aggregate_type`, `aggregate_id`, `event_type`, `schema_version`, `payload`
+(event-envelope/v1), `created_at`, `published_at`, `attempts`, `last_error`, `parked_at`. The
+`JdbcOutboxRelay` claims rows with `FOR UPDATE SKIP LOCKED`, publishes, sets `published_at`, and
+parks a row after 10 failures. Consent, policy, catalogue, customer and administration now have one
+(DDL updated 2026-10-21). Quotation / proposal publish from DynamoDB `OUTBOX#` items with a
+5-minute sweeper. Consumers dedupe on `eventId` (`processed_event` or the owner's idempotency table).
 Payload rule: **identifiers, state and attribution only — never PII**, and money only as amount +
 currency where reconciliation needs it. Full detail and the event catalogue:
 [Outbox and events](../interactions/outbox-and-events.md).
@@ -277,9 +300,9 @@ currency where reconciliation needs it. Full detail and the event catalogue:
 | `RECONCILED` | Structured quote, offer, proposal, UW, payment, policy, journey header | `RET-7Y` / `RET-7Y-IMMUTABLE` / `RET-POLICY+7Y` | DynamoDB item expires 30 days after materialise; structured Aurora rows are never purged by the operational job |
 | Consent and suitability | Always | `RET-7Y` / `RET-7Y-IMMUTABLE` | Not purged even for unconverted journeys (`OPEN-RET-UNCONVERTED-EVIDENCE`, Shailja) |
 | Raw provider payloads | `bank_persistence.raw_payload` | 7 years | Purge job, with a deletion audit event |
-| Audit events | `bank_persistence.audit_event` (INSERT-only) + S3 Object Lock archive | 7 years WORM | Object Lock prevents deletion before expiry |
+| Audit events | `bank_persistence.audit_event` (INSERT-only) + S3 Object Lock archive today; Aurora schema `audit` (hash-chained) if [`ADR-026`](../../architecture-review/ADR-026-audit-store-and-transport.md) — **proposed** — is accepted | 7 years WORM | Object Lock prevents deletion before expiry |
 
-`retain_until` is set by the owning service **from configuration**, never a hard-coded 7 in a CHECK.
+`retain_until` is set by the owning service **from configuration**, never a hard-coded 7 in a CHECK. Since 2026-10-21 it exists on every evidence table: consent, suitability evaluation / caution ack, quote, proposal, payment, policy and policy status history (plus lead, journey, bank_persistence).
 
 ## 7. Sources
 

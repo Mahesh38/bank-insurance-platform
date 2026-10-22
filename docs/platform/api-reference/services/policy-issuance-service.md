@@ -10,7 +10,8 @@
 | **Callers** | Journey / event consumer (`PaymentReconciled`) · BFF (read, IPR gated) · MIS ingest (off-platform policies, `CR-013`) |
 | **Calls out** | Payment (state check) · Integration Hub (`ISSUANCE_CONFIRM`, `APPLICATION_STATUS`, document download) · S3 (policy PDFs) · Notification (policy issued) |
 | **Owns data** | Aurora schema **`policy`** (`policy`, `policy_document_ref`, `idempotency_record`) + S3 prefix for PDFs · role `app_policy` |
-| **Code status** | **SKELETON**. Paths CONTRACTED (`POST /policies`, `GET …/{id}`); bodies **PROPOSED** |
+| **Contract** | **Authoritative:** [`openapi.yaml`](../../contracts/policy-issuance-service/openapi.yaml) + [`LLD.md`](../../contracts/policy-issuance-service/LLD.md) (`ADR-027`, AI-DRAFTED, awaiting review; `PROPOSAL.TAT` figure awaits Shailja) |
+| **Code status** | **SKELETON** — nothing in the contract is built |
 
 ---
 
@@ -22,12 +23,24 @@
 | `GET` | `/internal/v1/policies/{policyId}` | CONTRACTED | BFF | Policy + document refs |
 | `GET` | `/internal/v1/policies/{policyId}/documents/{documentId}` | PROPOSED | BFF | Short-lived signed URL to the PDF (RM may view; never a payment artefact) |
 | `POST` | `/internal/v1/policies:ingest` | PROPOSED (`CR-013`) | MIS ingest | `source = OFF_PLATFORM`, `leadId` null (`INV-POL-05`) — never `lead.create` |
+| `GET` | `/internal/v1/policies/{policyId}/status-history` | CONTRACTED | BFF, ops | Append-only issuance status history (D8) |
+| `POST` | `/internal/v1/policies/status-callbacks` | CONTRACTED | Integration Hub | 1SB / insurer status callback; replaces polling where offered |
 
 ## 2. State model
 
 `PENDING_ISSUANCE → ISSUED → CONFIRMED → ACTIVE` (R0), plus `ISSUANCE_REJECTED`,
 `CONFIRMATION_OVERDUE → CONFIRMED | ISSUANCE_DISPUTED`, `FREE_LOOK_CANCELLED`. `LAPSED`,
 `SURRENDERED`, `MATURED` modelled, not built in R0.
+
+> **D8 (2026-10-21):** on `PaymentReconciled` the service starts the insurer-decision clock
+> (`PROPOSAL.TAT`, default 7 days — IRDAI Master Circular 2024, Compliance to confirm), polls the
+> 1SB application status (S-16) or receives a callback, appends every change to the new
+> `policy.policy_status_history` (`APPLICATION_RECEIVED`, `UNDER_REVIEW`, `REQUIREMENT_RAISED`,
+> `ISSUED`, `DECLINED`, `REFUNDED`), writes `issued_at`, `risk_commencement_date`, `maturity_date`
+> (and later `closed_at`) on `ISSUED`, and emits `PolicyIssued` / `ProposalDeclined` /
+> `IssuanceTatEscalated`. Insurer, product, premium and sum assured come from the quotation and
+> proposal APIs — never a cross-schema read. The flow below is superseded by
+> [LLD §4](../../contracts/policy-issuance-service/LLD.md#4-flows).
 
 ## 3. `POST /internal/v1/policies` (PROPOSED)
 

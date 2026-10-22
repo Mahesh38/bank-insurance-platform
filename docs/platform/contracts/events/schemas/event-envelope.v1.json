@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.bank.internal/events/event-envelope.v1.json",
+  "title": "event-envelope/v1",
+  "description": "The envelope every event on every topic carries (ADR-025 §1). CloudEvents-compatible names. `data` is validated separately against schemas/<eventType>.v<schemaVersion>.json. Ids and states only, never customer PII.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "eventId",
+    "eventType",
+    "schemaVersion",
+    "source",
+    "aggregateType",
+    "aggregateId",
+    "occurredAt",
+    "journeyId",
+    "leadId",
+    "actor",
+    "traceId",
+    "correlationId",
+    "configVersionRef",
+    "data"
+  ],
+  "properties": {
+    "eventId": {
+      "description": "ULID; unique; the consumer dedupe key. Equals the producer's outbox_id.",
+      "$ref": "#/$defs/ulid"
+    },
+    "eventType": {
+      "description": "PascalCase past tense, e.g. PaymentReconciled",
+      "type": "string",
+      "pattern": "^[A-Z][A-Za-z0-9]{2,95}$"
+    },
+    "schemaVersion": {
+      "description": "Major version of the data schema; increments only on a breaking change",
+      "type": "integer",
+      "minimum": 1
+    },
+    "source": {
+      "description": "Producing context / service id, e.g. payment. Also the {context} segment of the topic name.",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{1,47}$"
+    },
+    "aggregateType": {
+      "description": "UPPER_SNAKE entity name, e.g. PAYMENT. Lower-kebab form is the {aggregate} segment of the topic name.",
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]{1,63}$"
+    },
+    "aggregateId": {
+      "description": "Id of the entity the event is about; the Kafka partition key (ordering per aggregate)",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "occurredAt": {
+      "description": "RFC 3339 UTC instant the business fact happened",
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "journeyId": {
+      "description": "Correlation across contexts; null when the fact precedes a journey",
+      "oneOf": [{ "$ref": "#/$defs/ulid" }, { "type": "null" }]
+    },
+    "leadId": {
+      "description": "Correlation across contexts; null when not lead-originated",
+      "oneOf": [{ "$ref": "#/$defs/ulid" }, { "type": "null" }]
+    },
+    "actor": { "$ref": "#/$defs/actor" },
+    "traceId": {
+      "description": "Distributed trace id (W3C trace-id or platform trace)",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "correlationId": {
+      "description": "X-Correlation-Id of the request that caused the change",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "configVersionRef": {
+      "description": "Rule-set / config version that decided the change (ADR-024), e.g. CONSENT.POLICY@1.0.0; null when no configuration decided it",
+      "type": ["string", "null"],
+      "maxLength": 128
+    },
+    "data": {
+      "description": "Event payload; schema per eventType. Ids and states only — never customer PII.",
+      "type": "object"
+    }
+  },
+  "$defs": {
+    "ulid": {
+      "type": "string",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "actor": {
+      "description": "Who caused the change, in what capacity (INV-ACT-04). actorInsurerId and assistedActorId are required for an INSURER_PARTNER_REP.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "actingCapacity"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "type": {
+          "type": "string",
+          "description": "Principal type, e.g. BANK_RM, INSURER_PARTNER_REP, CUSTOMER, SYSTEM",
+          "pattern": "^[A-Z][A-Z_]{1,39}$"
+        },
+        "actingCapacity": {
+          "type": ["string", "null"],
+          "enum": ["SP_ACCOUNTABLE", "ASSIST_ONLY", null],
+          "description": "INV-ACT-04; null for SYSTEM and CUSTOMER actors"
+        },
+        "actorInsurerId": { "type": ["string", "null"], "maxLength": 32 },
+        "assistedActorId": { "type": ["string", "null"], "maxLength": 64 }
+      },
+      "if": { "properties": { "type": { "const": "INSURER_PARTNER_REP" } } },
+      "then": {
+        "required": ["actorInsurerId", "assistedActorId"],
+        "properties": {
+          "actorInsurerId": { "type": "string", "minLength": 1 },
+          "assistedActorId": { "type": "string", "minLength": 1 },
+          "actingCapacity": { "const": "ASSIST_ONLY" }
+        }
+      }
+    }
+  }
+}

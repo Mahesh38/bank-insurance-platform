@@ -9,6 +9,8 @@ import com.bank.identity.authz.domain.AuthorizationModels.DecisionRequest;
 import com.bank.identity.authz.domain.AuthorizationModels.Resource;
 import com.bank.identity.authz.domain.IdentityTypes.UserType;
 import com.bank.identity.authz.persistence.BusinessUserRepository;
+import com.bank.identity.authz.support.AuthzFixtures;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,35 +28,27 @@ class IdentityLifecycleIntegrationTest {
   @Autowired JdbcClient jdbc;
   @Autowired AuthorizationDecisionService decisions;
 
+  UUID maker;
+  UUID checker;
+
   @BeforeEach
-  void insurerExists() {
-    jdbc.sql(
-            "insert into insurer(code, name, active) values ('ICICI_PRU', 'ICICI Prudential', true)")
-        .update();
+  void insurerAndAdministratorsExist() {
+    AuthzFixtures.insurer(jdbc, "ICICI_PRU");
+    AuthzFixtures.insurer(jdbc, "HDFC_LIFE");
+    maker = AuthzFixtures.activeUser(jdbc, "bank.admin.1", "BANK_EMPLOYEE", null, "BANK_ADMIN");
+    checker = AuthzFixtures.activeUser(jdbc, "bank.admin.2", "BANK_EMPLOYEE", null, "BANK_ADMIN");
   }
 
   @Test
   void partnerUserRequiresDifferentCheckerAndCreatesProvisioningOutboxEvent() {
-    var submitted =
-        partnerUsers.submit(
-            new PartnerUserAdministrationService.CreatePartnerUserCommand(
-                "partner.lifecycle",
-                "partner.lifecycle@example.test",
-                "Partner",
-                "Lifecycle",
-                "ICICI_PRU"),
-            "maker-1");
+    var submitted = partnerUsers.submit(command("partner.lifecycle", "ICICI_PRU"), maker);
 
     assertThat(submitted.status()).isEqualTo("PENDING");
-    assertThatThrownBy(() -> partnerUsers.approve(submitted.approvalId(), "maker-1"))
-        .isInstanceOf(ServiceException.class)
-        .satisfies(
-            ex ->
-                assertThat(((ServiceException) ex).getErrorResponse().getCode())
-                    .isEqualTo(ErrorCodes.FORBIDDEN));
+    assertDenied(() -> partnerUsers.approve(submitted.approvalId(), maker), ErrorCodes.FORBIDDEN);
 
-    String status = partnerUsers.approve(submitted.approvalId(), "checker-2");
+    String status = partnerUsers.approve(submitted.approvalId(), checker);
 
+    // Approval does not activate the partner: it stays PENDING until provisioning completes.
     assertThat(status).isEqualTo("PENDING");
     assertThat(
             jdbc.sql("select count(*) from outbox_event where aggregate_id = :userId")
@@ -63,6 +57,53 @@ class IdentityLifecycleIntegrationTest {
                 .single())
         .isEqualTo(1);
     assertThat(users.findById(submitted.userId()).orElseThrow().getProviderSubject()).isNull();
+  }
+
+  @Test
+  void makerWithoutPartnerUserCreateIsDenied() {
+    UUID rm =
+        AuthzFixtures.activeUser(jdbc, "rm.plain", "BANK_EMPLOYEE", null, "RELATIONSHIP_MANAGER");
+
+    assertDenied(
+        () -> partnerUsers.submit(command("partner.denied", "ICICI_PRU"), rm),
+        ErrorCodes.DEFAULT_DENY);
+  }
+
+  @Test
+  void unknownMakerIsDenied() {
+    assertDenied(
+        () -> partnerUsers.submit(command("partner.unknown", "ICICI_PRU"), UUID.randomUUID()),
+        ErrorCodes.DEFAULT_DENY);
+  }
+
+  @Test
+  void checkerWithoutPartnerUserApproveIsDenied() {
+    var submitted = partnerUsers.submit(command("partner.no.approve", "ICICI_PRU"), maker);
+    UUID operations =
+        AuthzFixtures.activeUser(jdbc, "ops.user", "BANK_EMPLOYEE", null, "OPERATIONS");
+
+    assertDenied(
+        () -> partnerUsers.approve(submitted.approvalId(), operations), ErrorCodes.DEFAULT_DENY);
+  }
+
+  @Test
+  void partnerAdministratorIsHeldToTheirOwnInsurer() {
+    UUID iciciAdmin =
+        AuthzFixtures.activeUser(
+            jdbc, "icici.admin", "INSURER_REPRESENTATIVE", "ICICI_PRU", "PARTNER_ADMIN");
+    UUID hdfcAdmin =
+        AuthzFixtures.activeUser(
+            jdbc, "hdfc.admin", "INSURER_REPRESENTATIVE", "HDFC_LIFE", "PARTNER_ADMIN");
+
+    assertDenied(
+        () -> partnerUsers.submit(command("partner.cross", "HDFC_LIFE"), iciciAdmin),
+        ErrorCodes.CROSS_INSURER_DENIED);
+
+    var submitted = partnerUsers.submit(command("partner.own", "ICICI_PRU"), iciciAdmin);
+    assertDenied(
+        () -> partnerUsers.approve(submitted.approvalId(), hdfcAdmin),
+        ErrorCodes.CROSS_INSURER_DENIED);
+    assertThat(partnerUsers.approve(submitted.approvalId(), checker)).isEqualTo("PENDING");
   }
 
   @Test
@@ -149,5 +190,19 @@ class IdentityLifecycleIntegrationTest {
 
     assertThat(decision.allowed()).isFalse();
     assertThat(decision.reasonCode()).isEqualTo("UNKNOWN_SUBJECT");
+  }
+
+  private static PartnerUserAdministrationService.CreatePartnerUserCommand command(
+      String username, String insurer) {
+    return new PartnerUserAdministrationService.CreatePartnerUserCommand(
+        username, username + "@example.test", "Partner", "User", insurer);
+  }
+
+  private static void assertDenied(
+      org.assertj.core.api.ThrowableAssert.ThrowingCallable call, String code) {
+    assertThatThrownBy(call)
+        .isInstanceOf(ServiceException.class)
+        .satisfies(
+            ex -> assertThat(((ServiceException) ex).getErrorResponse().getCode()).isEqualTo(code));
   }
 }

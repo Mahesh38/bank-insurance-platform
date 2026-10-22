@@ -160,7 +160,7 @@ Mutable aggregate. Optimistic `version`. `lead_id` is ULID, immutable (`BR-LEAD-
 | Column | Type | Req | Class / ret | Notes |
 |---|---|---|---|---|
 | `lead_id` | `CHAR(26)` PK | ✅ | INTERNAL · **RET-7Y** | C-RET-1 — never working-lead class |
-| `customer_id` | `CHAR(26)` | ✅ | INTERNAL · RET-7Y | ETB only |
+| `customer_id` | `CHAR(26)` | ✅ | INTERNAL · RET-7Y | ETB only. customer-service ULID, never the CIF (D3 / `D-023`) |
 | `state` | `VARCHAR(20)` | ✅ | INTERNAL · RET-7Y | See §4.4 |
 | `lob` | `VARCHAR(16)` | ✅ | INTERNAL · **RET-7Y** | `LIFE` at R0; immutable |
 | `product_class` | `VARCHAR(16)` | ✅ | INTERNAL · RET-WORKING-LEAD | `TERM` \| `SAVINGS` \| `ULIP`; immutable (`BR-LEAD-006`) |
@@ -168,6 +168,7 @@ Mutable aggregate. Optimistic `version`. `lead_id` is ULID, immutable (`BR-LEAD-
 | `created_by_actor_type` | `VARCHAR(32)` | ✅ | INTERNAL · RET-7Y | `BANK_RM` \| `INSURER_PARTNER_REP` (`D-018` / `INV-LED-04`) |
 | `created_by_principal_id` | `VARCHAR(64)` | ✅ | INTERNAL · RET-7Y | Actual originator (`BR-OWN-002`) |
 | `lead_generator_principal_id` | `VARCHAR(64)` | ✅ | INTERNAL · RET-7Y | Reporting generator (may differ for Non-SP) |
+| `assigned_rm_id` | `VARCHAR(64)` | ⭘ | INTERNAL · RET-WORKING-LEAD | Adopted from Flyway V2 (§4.6): the RM working the lead |
 | `assigned_sp_id` | `VARCHAR(64)` | ⭘ | INTERNAL · RET-WORKING-LEAD | Certified AU Bank RM. Null until assignment |
 | `assigned_ipr_id` | `VARCHAR(64)` | ⭘ | INTERNAL · RET-WORKING-LEAD | Insurance RM / FLS when collaborating |
 | `fulfiller_principal_id` | `VARCHAR(64)` | ⭘ | INTERNAL · RET-WORKING-LEAD | Current working owner |
@@ -177,7 +178,9 @@ Mutable aggregate. Optimistic `version`. `lead_id` is ULID, immutable (`BR-LEAD-
 | `need_analysis_state` | `VARCHAR(20)` | ✅ | INTERNAL · RET-WORKING-LEAD | `NOT_STARTED` \| `IN_PROGRESS` \| `COMPLETED` (`AC-4`) |
 | `insurer_id` | `VARCHAR(64)` | ⭘ | INTERNAL · RET-WORKING-LEAD | Unknown at create (`BR-LEAD-005`) |
 | `partner_visible_from` | `TIMESTAMPTZ` | ⭘ | INTERNAL · RET-WORKING-LEAD | Set when `AC-4` first holds |
-| `exception_state` | `VARCHAR(24)` | ✅ | INTERNAL · RET-WORKING-LEAD | `NONE` \| `BLOCKED` \| `HOLD_FOR_APPROVAL` \| `PASSED` |
+| `exception_outcome` | `VARCHAR(24)` | ✅ | INTERNAL · RET-WORKING-LEAD | `NOT_EVALUATED` \| `PASS` \| `BLOCK` \| `APPROVAL_REQUIRED` — rule set `LEAD.EXCEPTION` (D2). Replaces `exception_state` (§4.6) |
+| `exception_hold` | `BOOLEAN` | ✅ | INTERNAL · RET-WORKING-LEAD | True only while `APPROVAL_REQUIRED` awaits AUBIMA |
+| `exception_evaluation_id` | `CHAR(26)` | ⭘ | INTERNAL · RET-7Y | Latest `lead_exception_evaluation` |
 | `exception_ref` | `VARCHAR(64)` | ⭘ | INTERNAL · RET-WORKING-LEAD | AUBIMA case id |
 | `activity_status` | `VARCHAR(40)` | ⭘ | INTERNAL · RET-WORKING-LEAD | Configurable disposition (Lead BRD §14.2). No closed CHECK |
 | `bi_generated` | `BOOLEAN` | ✅ | INTERNAL · RET-WORKING-LEAD | First successful BI |
@@ -250,6 +253,51 @@ Unchanged intent: encrypted free-text notes (`note_enc` + `encryption_key_id`).
 | `idempotency_record.idempotency_key` PK | INV-IDM-01 |
 | `ix_lead_outbox_unpublished` partial | `ADR-012` publisher |
 
+### 4.6 Design DDL vs as-built Flyway V2/V3 — reconciliation (2026-10-21)
+
+Source of drift: [`READINESS-REVIEW.md` §3.5](../api-reference/READINESS-REVIEW.md#35-db-design).
+As built: `services/lead-service/src/main/resources/db/migration/V2__lead_lms_lead.sql`,
+`V3__lead_lms_activity.sql`. Design: [`schemas/04-lead_lms.sql`](./schemas/04-lead_lms.sql).
+Verdict per column — **design** (keep the design, code must add it), **code** (adopt what the code
+has), **both** (design adopts the code column and keeps its own).
+
+| Column / object | Design (before) | Flyway V2/V3 | Verdict | Why |
+|---|---|---|---|---|
+| `customer_id` | `CHAR(26)` | `VARCHAR(64)` | **design** | D3 / `D-023`: ULID from customer-service |
+| `assigned_rm_id` | — | `VARCHAR(64)` | **code** | R0 lead holds RM and SP separately; book query "assigned to me" |
+| `assigned_sp_id` / `accountable_sp_id` | yes | yes | both match | — |
+| `exception_state` (`NONE`/`BLOCKED`/`HOLD_FOR_APPROVAL`/`PASSED`) | yes | — | **dropped** | D2 uses the engine vocabulary |
+| `exception_outcome` (`NOT_EVALUATED`/`PASS`/`BLOCK`/`APPROVAL_REQUIRED`) + `exception_hold` | — | yes | **code** | Matches `LEAD.EXCEPTION.outcomeRank` (D2); added `ck_lead_exception_hold` |
+| `exception_evaluation_id`, `lead_exception_evaluation`, `lead_exception_decision` | — | — | **new (D2)** | Evidence of every evaluation (rule-set version, reason codes) and of approval with mandatory remarks; stops a re-run `PASS` silently clearing a hold (review §3.6) |
+| `source`, `created_by_actor_type`, `lead_generator_principal_id` | yes | — | **design** | `D-018` / `INV-LED-04`; origination immutability trigger needs them |
+| `config_versions` | `JSONB NOT NULL` | — | **design** | `INV-CFG-03` |
+| `expires_at` | `NOT NULL` | — | **design** | Without it `EXPIRED` is unreachable |
+| `archived_at`, `retain_until` | yes | — | **design** | `INV-LED-08`, retention |
+| `accountable_sp_cert_ref`, `exception_ref` | yes | — | **design** | `INV-ACT-03` cert snapshot; AUBIMA case id |
+| `need_analysis_state`, `insurer_id`, `partner_visible_from`, `assigned_ipr_id`, `fulfiller_principal_id`, `activity_status`, `bi_generated_at`, `converted_journey_id`, `closed_*` | yes | — | **design, later** | Arrive with the IPR / activity / closure features (V5+), as V2's header says |
+| `ux_lead_dedupe_open` (partial unique) | yes | plain `ix_lead_creator` | **design** | Postgres-only vendor migration (as quotation does in `db/vendor/postgresql`); H2 keeps the plain index |
+| `ux_lead_converted_journey` (partial unique) | yes | — | **design, later** | With `converted_journey_id` |
+| `lead_assignment.assigned_sp_id` | — | yes | **code** | Same reason as `assigned_rm_id` |
+| `outbox_event.payload` | `JSONB` | `VARCHAR(4000)` | **both** | H2 compromise until Testcontainers PostgreSQL; JSONB in the Postgres vendor migration |
+| `outbox_event.schema_version`, `parked_at` | — | — | **new (ADR-025)** | Relay parks after 10 failures |
+| Timestamps without `DEFAULT now()` | default | none | **code** | Application clock is the source (`LeadClockConfig`) — harmless either way |
+
+**Flyway `V4` the lead-service code needs** (owned by the lead-service work; not edited here):
+
+1. `ALTER COLUMN customer_id` to `CHAR(26)` — existing rows must already be ULIDs; any non-ULID
+   test data is re-created, not converted.
+2. `ADD COLUMN source`, `created_by_actor_type`, `lead_generator_principal_id` (backfill
+   `created_by_principal_id`), `config_versions` (backfill `'{}'` then `NOT NULL`), `expires_at`
+   (backfill `created_at` + the configured ageing horizon, then `NOT NULL`), `archived_at`,
+   `retain_until`, `accountable_sp_cert_ref` (TEXT on H2), `exception_ref`,
+   `exception_evaluation_id`; add `ck_lead_source`, `ck_lead_actor`, `ck_lead_archived`,
+   `ck_lead_exception_hold`.
+3. `CREATE TABLE lead_exception_evaluation`, `lead_exception_decision` (§4.1 / D2).
+4. `outbox_event ADD schema_version, parked_at`.
+5. Postgres-only vendor migration: `ux_lead_dedupe_open`, `JSONB` for `config_versions`,
+   `accountable_sp_cert_ref`, `outbox_event.payload`; partial `ix_lead_outbox_unpublished`.
+6. Grants as [`schemas/91-grants.sql`](./schemas/91-grants.sql) (INSERT-only on the two new tables).
+
 Archive mechanism: **same table + `ARCHIVED` + `archived_at`**. Partition vs archive-table vs dump is still joint Aarti/Mahesh (`DEC-20260825-01` §12). This pack does not pick a second mechanism.
 
 ---
@@ -268,10 +316,11 @@ One **current** assessment per lead (`BR-SUIT-005`). Every product class, Term i
 | `customer_id` | `CHAR(26)` | ✅ | Proposer = bank customer on the Lead |
 | `lob` | `VARCHAR(16)` | ✅ | Inherited; immutable |
 | `product_class` | `VARCHAR(16)` | ✅ | `TERM` \| `SAVINGS` \| `ULIP` — selects the question set and matrix (`D-022`) |
-| `questionnaire_version` | `VARCHAR(20)` | ✅ | Rule-pack version (`GAP-007`) |
+| `questionnaire_id` | `VARCHAR(64)` | ✅ | Question set per `(lob, productClass)` (`SUIT-R01d`) |
+| `questionnaire_version` | `VARCHAR(32)` | ✅ | Rule-pack version (`GAP-007`); widened from 20 |
 | `mapping_rule_version` | `VARCHAR(20)` | ⭘ | Set on first mapping run |
 | `state` | `VARCHAR(24)` | ✅ | See §5.4 |
-| `outcome` | `VARCHAR(16)` | ⭘ | `ELIGIBLE` \| `NOT_ELIGIBLE` |
+| `current_evaluation_id` | `CHAR(26)` | ⭘ | D4: latest `suitability.evaluation`; replaces the retired `outcome` (`ELIGIBLE` \| `NOT_ELIGIBLE`) |
 | `current_answer_set_version` | `INTEGER` | ✅ | Points at latest saved ciphertext |
 | `current_mapping_run_id` | `CHAR(26)` | ⭘ | Latest CURRENT mapping |
 | `selected_product_code` | `VARCHAR(100)` | ⭘ | Cleared when a saved edit invalidates mapping |
@@ -338,13 +387,32 @@ Proposer DOB/age are **not** copied as a Suitability SoR (`DR-PII-04`). Age used
 
 A saved edit of a Completed assessment: application inserts a new answer set, marks prior mapping `INVALID`, sets header `state = IN_PROGRESS`, clears `selected_product_code` (Suitability BRD §14.2). Header `suitability_id` **does not change**.
 
+### 5.3a Canonical evaluation record (D4, 2026-10-21)
+
+[`DECISIONS-2026-10-21.md` §D4](../architecture-review/DECISIONS-2026-10-21.md#d4--suitability-outcome-record-and-the-savings--ulip-model-explained)
+makes the per-class outcome record canonical. All tables are INSERT-only (`SUIT-R23`); see
+[`schemas/06-suitability.sql`](./schemas/06-suitability.sql).
+
+| Table | Grain | Key columns |
+|---|---|---|
+| `suitability.evaluation` | one run of the rule sets over one answer-set version | `evaluation_id` (the id the quote gate checks, `SUIT-R20`), `customer_id` ULID, `questionnaire_id`/`version`, `rule_set_id`/`rule_set_version`, `engine_version`, `inputs_hash`, `derived_values`, `consent_id` (nullable — D5), `pdf_artefact_ref`, `valid_until`, `gate_rule_set_version`, `retain_until` |
+| `suitability.evaluation_outcome` | one row per product class | `outcome` ∈ `SUITABLE` \| `SUITABLE_WITH_CAUTION` \| `NOT_SUITABLE` \| `INSUFFICIENT_DATA`; `reason_codes` in rule order (`SUIT-R19a`); `fired_rules`; optional per-class `derived_values` (ULIP has no `protectionGap`); per-class rule set id/version; `caution_ack_required` |
+| `suitability.evaluation_status_event` | append-only status | `ACTIVE` / `EXPIRED` / `INVALIDATED` / `SUPERSEDED` (`SUIT-R29…R32`) |
+| `suitability.caution_ack` | one per (evaluation, class) | reason codes acknowledged, disclosure text + version, OTP txn (`SUIT-R41…R43`) |
+| `suitability.suitability_usage` | one per journey use | `SUIT-R37` reuse record |
+
+`INV-QUO-01` becomes: a quote for class X requires an evaluation whose `evaluation_outcome` for X is
+in `SUITABILITY.GATE.allowedOutcomes` (configured), not expired/invalidated, and — for
+`SUITABLE_WITH_CAUTION` — with a `caution_ack` row. The mapping run (§5.3) remains the BRD product
+recommendation list; it is not the gate.
+
 ### 5.4 Status mapping (BRD ↔ store)
 
 | BRD dashboard status | Store |
 |---|---|
-| Not Started | **No row** (or Term: never a row) |
+| Not Started | **No row** (every class, Term included, gets a row once started — `D-022`) |
 | In Progress | `state = IN_PROGRESS` |
-| Completed | `state = COMPLETED` and current mapping `PRODUCTS` |
+| Completed | `state = COMPLETED`, `current_evaluation_id` set, current mapping `PRODUCTS` |
 | No Suitable Product Found | `state = NO_PRODUCT_FOUND` (mapping `NONE`) |
 | Completed and Locked | `state = LOCKED` after `bi_locked_at` |
 
@@ -368,8 +436,10 @@ Domain machine extras kept for invariant compatibility, unused by the Savings/UL
 | `BR-LEAD-006` product class | CHECK + origination-immutability trigger |
 | `BR-DEDUPE-*` | Partial unique open-lead key |
 | `INV-SUI-02` override completeness | CHECK on `OVERRIDDEN` |
+| D2 lead exception evidence | `lead_exception_evaluation` / `lead_exception_decision` INSERT-only; `ck_lead_exception_hold` |
+| D4 per-class outcome | `evaluation_outcome` PK `(evaluation_id, product_class)` + outcome CHECK; caution ack FK; all INSERT-only (`SUIT-R23`) |
 | `INV-IDM-01` | Idempotency table in the owning schema |
-| `ADR-012` | `outbox_event` in `lead_lms` and `suitability` |
+| `ADR-012` / `ADR-025` | `outbox_event` (ULID, `schema_version`, `parked_at`) in `lead_lms` and `suitability` |
 | PII-01 | No plaintext ⚑ columns; no index on ciphertext |
 | `DR-OWN-08` | No cross-schema FK |
 

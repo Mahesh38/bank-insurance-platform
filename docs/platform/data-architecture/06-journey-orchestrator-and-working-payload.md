@@ -35,7 +35,7 @@ Cite: [`INV-JRN-02`](../ws3-platform/01-domain-model-and-invariants.md) · [`OR-
 | **Decision** | `APPROVED_WITH_OBSERVATIONS` — working-payload pattern **inside Quotation and Proposal**, not on Journey |
 | **Severity** | `D1` — SoT *timing* changes; ownership does not |
 | **Orchestrator store** | Schema `journey` only: `journey`, `journey_ref`, `journey_transition`, `outbox_event`, `idempotency_record`. Role `app_journey`. |
-| **Quote / proposal before payment** | Encrypted JSON envelope in `quotation.quote_working` / `proposal.proposal_working`. Structured `quote` / `offer` / `proposal` / UW children are **empty** until materialize. |
+| **Quote / proposal before payment** | Encrypted JSON envelope in the DynamoDB items `QUOTE#{id}/META` (`{env}-quotation-working`) / `PROPOSAL#{id}/META` (`{env}-proposal-working`) — `DB-DEC-0005`. Structured `quote` / `offer` / `proposal` / `proposal_answer` / UW children are **empty** until materialize. |
 | **Payment** | On the journey (`PAYMENT_PENDING` → `PAYMENT_SETTLED`, `journey_ref.paymentId`) and **independent** (schema `payment`, `app_payment`, own outbox). Always structured. |
 | **Materialize trigger** | `Payment` reaches `RECONCILED`. Owning services consume that event and INSERT structured rows in their own schema. Journey only updates stage + `paymentId` / later `policyId`. |
 | **Store** | ~~Aurora `BYTEA` working envelopes~~ → **DynamoDB** working items with a client-side-encrypted envelope attribute (`DB-DEC-0005`). Not plaintext JSON. One working item per open journey (offers live inside the envelope). Structured rows stay Aurora. |
@@ -164,16 +164,16 @@ sequenceDiagram
     participant JO as journey-orchestration
     participant JT as journey tables
     participant QS as quotation-service
-    participant QW as quotation.quote_working
+    participant QW as DynamoDB quotation-working
     participant PS as proposal-service
-    participant PW as proposal.proposal_working
+    participant PW as DynamoDB proposal-working
     participant PAY as payment-service
     participant PT as payment.payment
 
     BFF->>JO: Advance(QUOTING)
     JO->>JT: lock journey
     JO->>QS: RequestQuote(suitabilityId, consentId)
-    QS->>QW: INSERT working JSON + control cols
+    QS->>QW: TransactWriteItems META + IDEM + OUTBOX + OPEN_QUOTE marker
     QS-->>JO: quoteId
     JO->>JT: ref quoteId, stage QUOTING, transition, outbox
 
@@ -223,41 +223,54 @@ Journey **subscribes** to `PaymentReconciled` only to move stage. It does not ma
 
 ### 5.2 What is a working JSON envelope
 
-| Table | Owner | Until | Then |
+Store: **DynamoDB** since [`DB-DEC-0005`](./DB-DEC-0005-dynamodb-working-payload.md) (owner, 2026-10-21) —
+not Aurora `quote_working` / `proposal_working`. Full item design:
+[`schemas/20-dynamodb-working-payload.md`](./schemas/20-dynamodb-working-payload.md).
+
+| DynamoDB item | Owner | Until | Then |
 |---|---|---|---|
-| `quotation.quote_working` | `quotation-service` / `app_quotation` | `materialized_at IS NULL` | INSERT `quotation.quote` + `quotation.offer` |
-| `proposal.proposal_working` | `proposal-service` / `app_proposal` | `materialized_at IS NULL` | INSERT `proposal.proposal` + UW children |
+| `{env}-quotation-working` `QUOTE#{quoteId}/META` | `quotation-service` (IRSA, own table) | `materializedAt` absent | INSERT `quotation.quote` (`CONVERTED`, `selected_offer_id`) + **every** `quotation.offer` (`SELECTED` / `NOT_SELECTED` / `INVALID`) — `D-025` |
+| `{env}-proposal-working` `PROPOSAL#{proposalId}/META` | `proposal-service` (IRSA, own table) | `materializedAt` absent | INSERT `proposal.proposal` (`PAID`) + `proposal_answer` (one row per question) + UW children — `D-025` |
 
-The envelope is `payload_enc BYTEA` (⚑). Plaintext JSONB is refused — members, nominee and form PII must not be queryable (`DR-PII-01`, `INV-PRP-05`).
+The envelope is `payloadEnc` — client-side envelope-encrypted with the service's KMS key (⚑).
+Plaintext attributes are refused for members, nominee and form PII (`DR-PII-01`, `INV-PRP-05`).
 
-**Control columns** sit beside the envelope so gates and payment do not decrypt:
+**Plaintext control attributes** sit beside the envelope so gates and payment do not decrypt:
 
-| Extracted on `quote_working` | Why |
+| Control attributes on the quote item | Why |
 |---|---|
-| `suitability_id`, `consent_id` | `INV-QUO-01` / proposal consent gate — checked before INSERT |
-| `state`, `valid_until` | Quote state machine + `INV-QUO-04` |
-| `selected_offer_id`, `selected_premium_amount`, `selected_tax_amount`, `selected_sum_assured`, `selected_insurer_code`, `selected_product_code` | Written **atomically** on select (`INV-QUO-05` in the service). Payment reads these via Quotation API (`INV-PAY-03`) |
-| `provider_job_id` | Correlate adapter job |
+| `suitabilityId` / `evaluationId`, `consentId`, `productClass` | `INV-QUO-01` (per-class outcome, D4) / `CNS-QSH` consent (D5) — checked before the first put |
+| `state`, `validUntil` | Quote state machine + `INV-QUO-04` |
+| `selectedOfferId`, `selectedPremiumAmount`, `selectedTaxAmount`, `selectedSumAssured`, `selectedInsurerCode`, `selectedProductCode` | Written **atomically** with `payloadEnc` on select (`INV-QUO-05`). Payment reads these via the Quotation API (`INV-PAY-03`) |
+| `providerJobId`, `paymentInFlight`, `ttl` | Adapter correlation; TTL is removed while a payment is in flight |
 
-| Extracted on `proposal_working` | Why |
+| Control attributes on the proposal item | Why |
 |---|---|
-| `quote_id`, `offer_id`, `consent_id` | `INV-PRP-01/02` |
-| `application_number`, `state`, `underwriting_state` | Status without opening the envelope |
-| `schema_id`, `schema_version` | Form contract |
+| `quoteId`, `offerId`, `consentId` | `INV-PRP-01/02` |
+| `applicationNumber`, `state`, `underwritingState`, `issuanceMode`, `configVersionRef` | Status without opening the envelope; materialised to columns (review §3.6) |
+| `schemaId`, `schemaVersion` | Form contract; copied to every `proposal_answer` row |
 
-Selection still happens in **one Quotation transaction**: update extracted selected_* + rewrite `payload_enc` so the JSON and the columns cannot disagree.
+Selection is **one conditional `UpdateItem`** (version check, `attribute_not_exists(materializedAt)`)
+that sets `selected*` and rewrites `payloadEnc`, so the JSON and the attributes cannot disagree.
+The quote stays `SELECTED` through payment and becomes `CONVERTED` only at materialise (`D-025`).
 
 ### 5.3 Materialize (after `RECONCILED`)
 
-1. Payment service writes structured `payment` (always) and emits `PaymentReconciled`.
-2. `quotation-service` (idempotent consumer):
-   - lock `quote_working` where `quote_id` = ref and `materialized_at IS NULL`
-   - INSERT `quotation.quote` and one `quotation.offer` per offer in the envelope (selected offer `SELECTED`, others `NOT_SELECTED`)
-   - set `materialized_at = now()`
-3. `proposal-service` does the same into `proposal.proposal`, `uw_requirement`, `uw_document_ref`.
-4. Structured tables remain INSERT-only after that; working rows become frozen (`fn_freeze_working_payload` rejects `UPDATE` of `payload_enc` and extracted control columns when `materialized_at IS NOT NULL`).
+1. Payment writes structured `payment` (always) and emits `PaymentReconciled`
+   `{paymentId, quoteId, proposalId, journeyId, applicationNumber}` (`D-025`, ADR-025).
+2. `quotation-service` (idempotent consumer, dedupe by `eventId`):
+   - `GetItem QUOTE#{quoteId}/META` (strongly consistent); skip if `materializedAt` set and the row exists
+   - one Aurora transaction: INSERT `quotation.quote` and one `quotation.offer` per envelope offer
+     (`ON CONFLICT DO NOTHING`)
+   - then `UpdateItem` `SET materializedAt, state = CONVERTED, ttl = now + 30d` — the item is frozen
+3. `proposal-service` does the same into `proposal.proposal`, `proposal_answer`, `uw_requirement`,
+   `uw_document_ref`.
+4. Structured tables are INSERT-only. Post-payment proposal changes (`CONVERTED`, `ISSUANCE_FAILED`,
+   `REFUND_REQUIRED`) are appended to `proposal.proposal_status_history`; issuance progress to
+   `policy.policy_status_history` (`D-025`).
 
-Abandoned / expired / declined journeys **never materialize**. Working rows age out via `retain_until` + `job_retention`. They are not a sold-policy record.
+Abandoned / expired / declined journeys **never materialize**. Their working items age out by
+DynamoDB TTL (`RET-WORKING`). They are not a sold-policy record.
 
 ### 5.4 What the JSON may contain (schema versioned)
 
@@ -296,7 +309,7 @@ That is the same ownership rule as Quotation and Proposal. The difference: Payme
 | Journey holds an id only | `journey_ref (paymentId)` + logical `payment.journey_id` / `proposal_id`. No cross-schema FK |
 | Journey does not write money | Advance calls `payment-service` HTTP. `app_journey` cannot INSERT `payment.payment` |
 | Payment does not write the saga | Payment never UPDATE `journey.*`. It emits `PaymentLinkIssued`, `PaymentAuthorised` / `PaymentCaptured`, `PaymentReconciled`, `PaymentReconciliationBreak` |
-| Amount comes from Quotation, not from Journey | `INV-PAY-03` via Quotation API `selected_*`. Payment never decrypts `quote_working` |
+| Amount comes from Quotation, not from Journey | `INV-PAY-03` via Quotation API `selected_*`. Payment never decrypts the DynamoDB quote item (it has no DynamoDB permission) |
 | Device isolation | `INV-PAY-01`: `device_channel` is `SMS_LINK` \| `EMAIL_LINK` \| `QR_SCAN`. No API path issues a link into an RM session |
 | Adapter session is not this SoR | `bank_persistence.payment_session` is the 1SB link-session. Correlate on `application_number` / job id — not a FK |
 
@@ -397,10 +410,10 @@ Quote and proposal can stay envelopes because they are **not** the issuance gate
 |---|---|---|---|
 | `INITIATED` | Customer (snapshot) | `customer.customer_snapshot` | journey + `party_snapshot_ref` |
 | `NEED_ANALYSIS` / `SUITABILITY_COMPLETE` | Suitability | `suitability.*` structured | ref `suitabilityId` |
-| `CONSENT_CAPTURED` | Consent | `consent.consent` structured | ref `consentId` |
-| `QUOTING` | Quotation | **`quote_working` only** | ref `quoteId` |
-| `QUOTE_SELECTED` | Quotation (select) | update `quote_working` selected_* | ref `offerId` |
-| `PROPOSAL_IN_PROGRESS` / `UNDERWRITING` | Proposal | **`proposal_working` only** | ref `proposalId` / `applicationNumber` |
+| `CONSENT_CAPTURED` | Consent (`consents:check`, capture only what is missing — D5) | `consent.consent_record` append-only | ref `consentId` |
+| `QUOTING` | Quotation | **DynamoDB quote item only** | ref `quoteId` |
+| `QUOTE_SELECTED` | Quotation (select) | conditional update of the DynamoDB quote item `selected*` | ref `offerId` |
+| `PROPOSAL_IN_PROGRESS` / `UNDERWRITING` | Proposal | **DynamoDB proposal item only** | ref `proposalId` / `applicationNumber` |
 | `PAYMENT_PENDING` | Payment (HTTP initiate) | **`payment.payment` structured** + outbox `PaymentLinkIssued` | ref `paymentId` |
 | `PAYMENT_PENDING` (still) | Payment events `Authorised` / `Captured` / `UNCERTAIN` | Payment updates its own row | transition EVENT; **stage unchanged** |
 | `PAYMENT_SETTLED` | Payment event `PaymentReconciled` | Quotation + Proposal **materialize** | stage only |
@@ -415,9 +428,9 @@ Unchanged rule: one role per schema. New tables inherit the owning role.
 | Service | Role | New objects |
 |---|---|---|
 | `journey-orchestration-service` | `app_journey` | `journey_transition` INSERT; `outbox_event` INSERT/UPDATE published_at |
-| `quotation-service` | `app_quotation` | `quote_working` DML until freeze; structured `quote`/`offer` INSERT after materialize |
+| `quotation-service` | `app_quotation` + IRSA role on `{env}-quotation-working` | DynamoDB item writes until frozen; structured `quote`/`offer` INSERT after materialize |
 | `proposal-service` | `app_proposal` | same pattern |
-| `payment-service` | `app_payment` | `payment` / attempt / refund / outbox. Never reads `*_working`; never writes `journey.*`. Calls Quotation API for `selected_*` |
+| `payment-service` | `app_payment` | `payment` / attempt / refund / outbox. No DynamoDB permission; never writes `journey.*`. Calls Quotation API for `selected_*` |
 
 `1sb-integration-service` still has no datasource. Adapter job rows stay in `bank_persistence` (already structured; they are not the bank quote SoR).
 
@@ -428,9 +441,11 @@ Unchanged rule: one role per schema. New tables inherit the owning role.
 ```mermaid
 erDiagram
     journey_journey ||--o{ journey_journey_ref : "quoteId proposalId paymentId"
-    quotation_quote_working ||--o| quotation_quote : "materialize after RECONCILED"
+    DYNAMO_quote_item ||--o| quotation_quote : "materialize after RECONCILED"
     quotation_quote ||--o{ quotation_offer : "physical FK"
-    proposal_proposal_working ||--o| proposal_proposal : "materialize after RECONCILED"
+    DYNAMO_proposal_item ||--o| proposal_proposal : "materialize after RECONCILED"
+    proposal_proposal ||--o{ proposal_proposal_answer : "physical FK (D8)"
+    proposal_proposal ||--o{ proposal_proposal_status_history : "append-only (D8)"
     proposal_proposal ||--o{ proposal_uw_requirement : "physical FK"
     payment_payment ||--o{ payment_attempt : "always structured"
     payment_payment ||--o{ payment_outbox_event : "PaymentReconciled"
@@ -448,6 +463,11 @@ Owner follow-up [`SUG-20261019-txn`](../../governance/registers/SUGGESTION-REGIS
 Cite: [`DB-DEC-0001`](./DB-DEC-0001-r0-physical-model.md) (Dynamo rejected at R0) · [`02` §4](./02-operations-and-troubleshooting.md#4-retention-and-purge-s07-e04-s06) · [`DR-REC-05`](./00-design-rules.md) · `C-RET-1` / `OPEN-I4` · Aarti cannot waive Shailja's retention class.
 
 ### 10.1 Transaction — Postgres ACID on the envelope row, not on the JSON
+
+> **Superseded by `DB-DEC-0005` for the working store.** The pre-payment unit of transaction is now one
+> DynamoDB `TransactWriteItems` (business item + `IDEM` + `OUTBOX` + markers) — see
+> [`schemas/20` §3](./schemas/20-dynamodb-working-payload.md#3-write-patterns). The Postgres text below
+> still describes the structured tables, payment and journey; read "DynamoDB item" for `quote_working`.
 
 The working payload is **not** a document database and is **not** queried with `JSONB` operators. The unit of transaction is the **row**.
 
@@ -504,7 +524,7 @@ The information model marks quote/journey attributes `RET-7Y`. That class applie
 
 ```text
 retain_until is set by the owning service from configuration (not a hardcoded 7 in a CHECK).
-  quote_working / proposal_working : valid_until or operational window at INSERT
+  DynamoDB working items           : ttl attribute (RET-WORKING; removed while paymentInFlight)
   journey                         : operational window at INSERT;
                                     on PaymentReconciled → RET-7Y close date (OPEN-I4)
   payment                         : always RET-7Y-IMMUTABLE from INSERT

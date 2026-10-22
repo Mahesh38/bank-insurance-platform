@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.bank.internal/events/ProposalAcknowledged.v1.json",
+  "title": "ProposalAcknowledged v1 - data",
+  "description": "Insurer returned the application number. Producer: proposal. Status: IMPLEMENTED (DynamoDB OUTBOX item; envelope pending). The `data` member of event-envelope/v1 (ADR-025): ids and states only, never customer PII.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "proposalId",
+    "state",
+    "journeyId"
+  ],
+  "properties": {
+    "proposalId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "state": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z_]*$",
+      "description": "Aggregate state after the change"
+    },
+    "journeyId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "applicationNumber": {
+      "type": "string",
+      "maxLength": 64,
+      "description": "Insurer application number (insurer-issued reference, not customer data)"
+    },
+    "insurerCode": {
+      "type": "string",
+      "pattern": "^[A-Z0-9_]{2,32}$",
+      "description": "Insurer code from product-catalogue"
+    }
+  },
+  "$defs": {
+    "ulid": {
+      "type": "string",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+    }
+  }
+}

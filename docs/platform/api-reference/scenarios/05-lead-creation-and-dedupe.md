@@ -37,7 +37,7 @@ sequenceDiagram
         LS->>LS: customerId/actor present · lob == LIFE · productClass ∈ TERM|SAVINGS|ULIP
         LS->>DB: find unfinished (creator, customer, class)
         alt duplicate (race with another tab)
-            LS-->>BFF: 409 CONFLICT
+            LS-->>BFF: 409 CONFLICT errors[0] = {field: leadId, message: existing ULID}
             BFF-->>App: 409 → same popup
         else
             LS->>DB: INSERT lead (ULID, NEW, NOT_EVALUATED, DIARY) [+ idempotency + outbox OpportunityCreated — target]
@@ -71,7 +71,7 @@ X-XSRF-TOKEN: …          (web)
 | BFF | `customerId`, `lob`, `productClass` non-blank | `422 VALIDATION_ERROR` |
 | Lead | `lob = LIFE` (R0) | `422 UNSUPPORTED_LOB` |
 | Lead | product class `TERM` / `SAVINGS` / `ULIP` | `422 UNSUPPORTED_LOB` |
-| Lead | no unfinished lead for creator + customer + class | `409 CONFLICT` |
+| Lead | no unfinished lead for creator + customer + class | `409 CONFLICT`, `errors[0].field = leadId`, `errors[0].message` = the existing lead's ULID (Continue target); a race past the check hits `ux_lead_dedupe_open` → `409 CONFLICT` |
 | Target | actor allowed to originate (`INV-LED-04`; PDP `lead.create`) | `403 ORIGINATION_RM_ONLY` |
 | Target | customer in the accountable SP's ETB book (`INV-LED-05`) | `422 CUSTOMER_NOT_IN_BOOK` |
 | Target | `distributorId` / insurer / plan in body | `422 ATTRIBUTION_NOT_CALLER_SUPPLIED` / rejected |
@@ -79,7 +79,9 @@ X-XSRF-TOKEN: …          (web)
 
 ## 4. Data written (target)
 
-One `lead_lms` transaction: `lead` (+ `config_versions`, `expires_at`), `idempotency_record`,
+One `lead_lms` transaction: `lead` (+ `config_versions`, `expires_at`; today `expires_at` is set
+only when `lead.expiry-days` is configured — unset by default, the value is OPEN-D4 — and
+`config_versions` is not yet written), `idempotency_record`,
 `outbox_event OpportunityCreated` → Journey, Audit, Reporting. The lead is **not** a customer
 record: it stores `customer_id` only.
 

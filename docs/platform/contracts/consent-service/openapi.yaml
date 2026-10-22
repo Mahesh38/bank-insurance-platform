@@ -1,0 +1,650 @@
+openapi: 3.1.0
+info:
+  title: consent-service internal API
+  version: 1.0.0-draft
+  summary: Consent (#6) — checkpoint check, OTP-verified capture, append-only evidence, withdrawal.
+  description: |
+    **Status:** AI-DRAFTED 2026-10-22 under owner decision D5 (`D-024`), D3 and ADR-024/025/027,
+    awaiting Mahesh (architecture) and Shailja (Compliance — DPDP position, statement wording,
+    validity windows, CNS-R13) review. Code status: SKELETON (no business endpoint exists).
+
+    * Which purposes a checkpoint needs, and how long each stays valid, come from rule set
+      `CONSENT.POLICY` (ADR-024, `hitPolicy: COLLECT`). Seed (D5): `BEFORE_MULTI_QUOTE` →
+      `CNS-DP`, `CNS-SOL`, `CNS-QSH`, 90 days; `BEFORE_PROPOSAL_SUBMIT` → `CNS-SHR`, 30 days,
+      named insurer; `BEFORE_FIRST_COMMUNICATION` → `CNS-COM`, no expiry. Never compiled in.
+    * Consent is bound to `customerId` (ULID, D3) — never to a CIF.
+    * Evidence is append-only: a state change is a new row (CNS-R16/R17); withdrawal is a new row.
+servers:
+  - url: http://consent-service:8092
+    description: Cluster-private (INTERNAL, layer L5).
+tags:
+  - name: check
+  - name: capture
+  - name: evidence
+  - name: withdrawal
+paths:
+  /internal/v1/consents:check:
+    get:
+      tags: [check]
+      operationId: checkConsents
+      summary: Which purposes a checkpoint needs, which valid consents cover them, and what is missing.
+      description: |
+        Read-only. Resolves `CONSENT.POLICY` in force (or the version pinned to the journey), reads the
+        head row of every consent chain of this customer, and returns the covering consents plus the
+        missing purposes with a reason. Callers (journey, proposal) refuse their own step with
+        `403 CONSENT_REQUIRED` when `satisfied=false`. Unresolvable policy → fail closed.
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - name: customerId
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/Ulid'
+        - name: checkpoint
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/Checkpoint'
+        - name: lob
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/Lob'
+        - name: insurerCode
+          in: query
+          required: false
+          description: Required when the checkpoint's scope is `NAMED_INSURER` (`CNS-SHR`).
+          schema:
+            type: string
+            maxLength: 32
+        - name: journeyId
+          in: query
+          required: false
+          description: Selects the journey-pinned policy version and the CNS-R05 "past blocking point" rule.
+          schema:
+            $ref: '#/components/schemas/Ulid'
+      responses:
+        '200':
+          description: Result of the check.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckResult'
+        '422':
+          $ref: '#/components/responses/ValidationOrConfig'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /internal/v1/consents:
+    post:
+      tags: [capture]
+      operationId: startCapture
+      summary: Start capture of the missing purposes — one OTP challenge, one evidence row per purpose.
+      description: |
+        Resolves the statement (text, id, version, language) per purpose from administration-config,
+        the customer's CBS-registered mobile from customer-service (CNS-R11 — never from the body),
+        creates a challenge in `OTP_PENDING` and dispatches one OTP (10 min, CNS-R14).
+        No evidence row is written until verification succeeds.
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CaptureRequest'
+      responses:
+        '201':
+          description: Challenge created; OTP dispatched.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Challenge'
+        '400':
+          $ref: '#/components/responses/MissingIdempotencyKey'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationOrConfig'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+    get:
+      tags: [evidence]
+      operationId: listConsentChains
+      summary: Full evidence chains by customerId or journeyId (CNS-R19). Exactly one filter.
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - name: customerId
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Ulid'
+        - name: journeyId
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Ulid'
+      responses:
+        '200':
+          description: Chains, rows in recordVersion order.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ConsentChain'
+        '422':
+          $ref: '#/components/responses/ValidationOrConfig'
+  /internal/v1/consent-challenges/{challengeId}:
+    get:
+      tags: [capture]
+      operationId: getChallenge
+      summary: Challenge status (the RM surface polls this — pending / verified only, CNS-R13).
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/ChallengeId'
+      responses:
+        '200':
+          description: Challenge.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Challenge'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /internal/v1/consent-challenges/{challengeId}/verify:
+    post:
+      tags: [capture]
+      operationId: verifyChallenge
+      summary: Verify the OTP and write the evidence rows (GRANTED) — or the withdrawal row.
+      description: |
+        `verificationMode=CUSTOMER_DEVICE`: the customer entered the OTP on their own device; the
+        verification arrives from the customer-device confirmation surface / OTP provider (surface
+        not yet designed, see LLD O-2). `verificationMode=RM_RELAYED`: the customer reads the OTP to
+        the RM and the RM session posts it (R0-HLD §5.2). **RM_RELAYED conflicts with CNS-R13** and is
+        accepted only when `CONSENT.POLICY.parameters.verificationModes` contains it — open
+        Compliance item (Shailja); otherwise `403 FORBIDDEN`.
+        Max 3 attempts per OTP (CNS-R15). Evidence write failure → the step fails (CNS-R37).
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/ChallengeId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyRequest'
+      responses:
+        '200':
+          description: Verified; evidence rows written.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Challenge'
+        '400':
+          $ref: '#/components/responses/MissingIdempotencyKey'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationOrConfig'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /internal/v1/consent-challenges/{challengeId}/otp:resend:
+    post:
+      tags: [capture]
+      operationId: resendOtp
+      summary: Issue a fresh OTP for a pending or locked challenge (max 5 issues / purpose / 24 h).
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/ChallengeId'
+      responses:
+        '200':
+          description: New OTP dispatched.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Challenge'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /internal/v1/consents/{consentId}:
+    get:
+      tags: [evidence]
+      operationId: getConsent
+      summary: Head row of one consent chain (state, purpose, statement version, validity — no contact data).
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/ConsentId'
+        - name: customerId
+          in: query
+          required: false
+          description: When given and different from the consent's subject → 403 CONSENT_SUBJECT_MISMATCH + security event (CNS-R24, CNS-R38).
+          schema:
+            $ref: '#/components/schemas/Ulid'
+      responses:
+        '200':
+          description: Head row.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsentRecord'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /internal/v1/consents/{consentId}/withdrawals:
+    post:
+      tags: [withdrawal]
+      operationId: startWithdrawal
+      summary: Start a withdrawal — needs the same OTP verification as capture (CNS-R27).
+      description: Returns a challenge of kind `WITHDRAWAL`; verifying it appends a `WITHDRAWN` row and emits `ConsentWithdrawn`.
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/ConsentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WithdrawalRequest'
+      responses:
+        '201':
+          description: Withdrawal challenge created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Challenge'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+components:
+  parameters:
+    ActorId:
+      name: X-Actor-Id
+      in: header
+      required: true
+      schema:
+        type: string
+        maxLength: 64
+    CorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: false
+      schema:
+        type: string
+        maxLength: 64
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: 'Server-derived, e.g. `journey:{journeyId}:consent:{checkpoint}:{purposeSetHash}`, `challenge:{challengeId}:verify`.'
+      schema:
+        type: string
+        maxLength: 128
+    ChallengeId:
+      name: challengeId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Ulid'
+    ConsentId:
+      name: consentId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Ulid'
+  schemas:
+    Ulid:
+      type: string
+      pattern: '^[0-9A-HJKMNP-TV-Z]{26}$'
+    Lob:
+      type: string
+      enum: [LIFE, HEALTH, GENERAL]
+    Purpose:
+      type: string
+      enum: [CNS-DP, CNS-SOL, CNS-QSH, CNS-SHR, CNS-COM]
+      description: '`CNS-QSH` (new, D5) = share quote inputs with the insurers quoted through 1SB. `CNS-RDR` is R1.'
+    Checkpoint:
+      type: string
+      description: 'Checkpoint names are configuration (`CONSENT.POLICY`); seed values listed. An unknown name → 422 CONFIGURATION_UNRESOLVABLE.'
+      examples: [BEFORE_SUITABILITY, BEFORE_MULTI_QUOTE, BEFORE_PROPOSAL_SUBMIT, BEFORE_FIRST_COMMUNICATION]
+      pattern: '^[A-Z][A-Z_]{2,47}$'
+    Channel:
+      type: string
+      enum: [RM_ASSISTED, SELF_SERVICE, HYBRID]
+    MissingReason:
+      type: string
+      enum: [ABSENT, EXPIRED, WITHDRAWN, SUPERSEDED, STATEMENT_MAJOR_CHANGE, SCOPE_MISMATCH]
+    CheckResult:
+      type: object
+      required: [customerId, checkpoint, satisfied, policyRuleSetId, policyVersion, valid, missing]
+      properties:
+        customerId:
+          $ref: '#/components/schemas/Ulid'
+        checkpoint:
+          $ref: '#/components/schemas/Checkpoint'
+        satisfied:
+          type: boolean
+        policyRuleSetId:
+          type: string
+          const: CONSENT.POLICY
+        policyVersion:
+          type: string
+        valid:
+          type: array
+          items:
+            type: object
+            required: [consentId, purpose, statementVersion, validUntil]
+            properties:
+              consentId:
+                $ref: '#/components/schemas/Ulid'
+              purpose:
+                $ref: '#/components/schemas/Purpose'
+              statementId:
+                type: string
+              statementVersion:
+                type: string
+              insurerCode:
+                type: ['string', 'null']
+              validUntil:
+                type: ['string', 'null']
+                format: date-time
+                description: Null for a purpose with no expiry (`CNS-COM`).
+        missing:
+          type: array
+          items:
+            type: object
+            required: [purpose, reason, statementId, statementVersion]
+            properties:
+              purpose:
+                $ref: '#/components/schemas/Purpose'
+              reason:
+                $ref: '#/components/schemas/MissingReason'
+              statementId:
+                type: string
+                description: Statement the customer would be shown now, e.g. `CNS-DP-en-IN-v1.0`.
+              statementVersion:
+                type: string
+              lastConsentId:
+                type: ['string', 'null']
+    CaptureRequest:
+      type: object
+      additionalProperties: false
+      required: [customerId, leadId, lob, checkpoint, purposes, channel, language]
+      properties:
+        customerId:
+          $ref: '#/components/schemas/Ulid'
+        leadId:
+          $ref: '#/components/schemas/Ulid'
+        journeyId:
+          $ref: '#/components/schemas/Ulid'
+        lob:
+          $ref: '#/components/schemas/Lob'
+        checkpoint:
+          $ref: '#/components/schemas/Checkpoint'
+        purposes:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/Purpose'
+        insurerCode:
+          type: string
+          maxLength: 32
+          description: Mandatory with `CNS-SHR` (named-insurer scope, CNS-R22).
+        channel:
+          $ref: '#/components/schemas/Channel'
+        language:
+          type: string
+          enum: [en-IN]
+          description: R0 ships en-IN only (CNS-R08).
+    Challenge:
+      type: object
+      required: [challengeId, kind, state, customerId, purposes, otpExpiresAt, maskedContact, attemptsRemaining]
+      properties:
+        challengeId:
+          $ref: '#/components/schemas/Ulid'
+        kind:
+          type: string
+          enum: [CAPTURE, WITHDRAWAL]
+        state:
+          type: string
+          enum: [OTP_PENDING, LOCKED, VERIFIED, ABANDONED]
+        customerId:
+          $ref: '#/components/schemas/Ulid'
+        purposes:
+          type: array
+          items:
+            $ref: '#/components/schemas/Purpose'
+        statements:
+          type: array
+          description: The exact statements rendered (id, version, text hash). Text is fetched by the RM surface from configuration by id.
+          items:
+            type: object
+            properties:
+              purpose:
+                $ref: '#/components/schemas/Purpose'
+              statementId:
+                type: string
+              statementVersion:
+                type: string
+              statementTextHash:
+                type: string
+        otpExpiresAt:
+          type: string
+          format: date-time
+        maskedContact:
+          type: string
+          examples: ['+91 933****412']
+        attemptsRemaining:
+          type: integer
+          minimum: 0
+        consentIds:
+          type: array
+          description: Present once `state = VERIFIED` (one consent per purpose).
+          items:
+            $ref: '#/components/schemas/Ulid'
+    VerifyRequest:
+      type: object
+      additionalProperties: false
+      required: [otpTxnId, otp, verificationMode]
+      properties:
+        otpTxnId:
+          type: string
+          maxLength: 64
+        otp:
+          type: string
+          pattern: '^[0-9]{4,8}$'
+          writeOnly: true
+        verificationMode:
+          type: string
+          enum: [CUSTOMER_DEVICE, RM_RELAYED]
+        sourceIp:
+          type: string
+          description: IP of the device on which the OTP was entered (set by the receiving edge, not by the RM).
+    WithdrawalRequest:
+      type: object
+      additionalProperties: false
+      required: [channel]
+      properties:
+        channel:
+          $ref: '#/components/schemas/Channel'
+        reasonCode:
+          type: ['string', 'null']
+          maxLength: 40
+          description: Optional, customer-stated (CNS-R28).
+    ConsentRecord:
+      type: object
+      required: [consentId, recordVersion, customerId, purpose, state, statementId, statementVersion, capturedAt, validFrom, configVersionRef]
+      properties:
+        consentId:
+          $ref: '#/components/schemas/Ulid'
+        recordVersion:
+          type: integer
+          minimum: 1
+        customerId:
+          $ref: '#/components/schemas/Ulid'
+        leadId:
+          $ref: '#/components/schemas/Ulid'
+        journeyId:
+          $ref: '#/components/schemas/Ulid'
+        lob:
+          $ref: '#/components/schemas/Lob'
+        purpose:
+          $ref: '#/components/schemas/Purpose'
+        insurerCode:
+          type: ['string', 'null']
+        state:
+          type: string
+          enum: [GRANTED, WITHDRAWN, EXPIRED, SUPERSEDED]
+        statementId:
+          type: string
+        statementVersion:
+          type: string
+        statementTextHash:
+          type: string
+        language:
+          type: string
+        channel:
+          $ref: '#/components/schemas/Channel'
+        acknowledgementMethod:
+          type: string
+          enum: [OTP_SMS_CUSTOMER_DEVICE, OTP_RM_RELAYED, IN_APP_AFFIRMATIVE_PLUS_OTP]
+        checkpoint:
+          $ref: '#/components/schemas/Checkpoint'
+        capturedAt:
+          type: string
+          format: date-time
+        validFrom:
+          type: string
+          format: date-time
+        validUntil:
+          type: ['string', 'null']
+          format: date-time
+        supersedesConsentId:
+          type: ['string', 'null']
+        withdrawnAt:
+          type: ['string', 'null']
+          format: date-time
+        configVersionRef:
+          type: string
+    ConsentChain:
+      type: object
+      required: [consentId, rows]
+      properties:
+        consentId:
+          $ref: '#/components/schemas/Ulid'
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConsentRecord'
+    Problem:
+      type: object
+      description: Platform problem+json (conventions/error-model.md).
+      required: [title, status, code, category, retryable, incidentId, service, timestamp]
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        code:
+          type: string
+        category:
+          type: string
+        retryable:
+          type: [boolean, string]
+        incidentId:
+          type: string
+        correlationId:
+          type: string
+        service:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        errors:
+          type: array
+          items:
+            type: object
+        origin:
+          type: object
+        diagnostic:
+          type: object
+  responses:
+    ValidationOrConfig:
+      description: 'VALIDATION_ERROR (incl. wrong OTP, with attemptsRemaining), MISSING_REQUIRED_FIELD, CONFIGURATION_UNRESOLVABLE (CONSENT.POLICY or statement cannot be resolved — fail closed).'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    MissingIdempotencyKey:
+      description: MISSING_IDEMPOTENCY_KEY.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Conflict:
+      description: 'ILLEGAL_TRANSITION (challenge not OTP_PENDING; consent not GRANTED), OTP_EXPIRED (NEW), IDEMPOTENCY_CONFLICT, REQUEST_IN_PROGRESS.'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    RateLimited:
+      description: 'OTP_ATTEMPTS_EXCEEDED (NEW, 4th verify), OTP_ISSUE_RATE_EXCEEDED (NEW, 6th issue in 24 h).'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Forbidden:
+      description: 'FORBIDDEN (verification mode not permitted by CONSENT.POLICY), CONSENT_SUBJECT_MISMATCH (NEW; security event).'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    NotFound:
+      description: RESOURCE_NOT_FOUND.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Unavailable:
+      description: 'UPSTREAM_UNAVAILABLE — configuration, customer-service or the OTP provider unreachable; the step fails closed (CNS-R37).'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'

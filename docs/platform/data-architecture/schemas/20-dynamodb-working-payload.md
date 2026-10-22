@@ -92,8 +92,20 @@ Selection additionally requires `state IN (QUOTED, PARTIALLY_QUOTED)` and `valid
 ### 3.3 Payment in flight
 
 `GET /internal/v1/quotes/{quoteId}/selected` (called by Payment) performs
-`SET paymentInFlight = true REMOVE ttl` with condition `state = SELECTED`. A `PaymentDeclined` /
-`PaymentExpired` event sets `paymentInFlight = false` and restores `ttl`.
+`SET paymentInFlight = true REMOVE ttl` with condition `state = SELECTED`. The quote stays `SELECTED`
+through payment and becomes `CONVERTED` only at materialise (`D-025`). TTL handling per payment
+outcome (resolves [READINESS-REVIEW §4](../../api-reference/READINESS-REVIEW.md#4-postgres-vs-dynamodb--yes-it-is-decided)):
+
+| `payment.payment.state` (event, names per [events catalogue](../../contracts/events/schemas/)) | Working items |
+|---|---|
+| `DECLINED` (`PaymentDeclined`), `EXPIRED` (`PaymentExpired`), `REJECTED` (terminal, no money moved) | `paymentInFlight = false`, restore `ttl` |
+| `UNCERTAIN` (no event; payment-service resolves it) | Keep `paymentInFlight = true`, **no** `ttl` — money may have moved |
+| `RECONCILIATION_BREAK` (`PaymentReconciliationBreak`) | Keep `paymentInFlight = true`, **no** `ttl`; ops task. Restored only by a later terminal no-money outcome, or materialised by `PaymentReconciled` |
+| `RECONCILED` (`PaymentReconciled`) | Materialise (§3.4) |
+| `REFUNDED` after `RECONCILED` | Nothing here — the structured rows are the record; status goes to `proposal_status_history` |
+
+`REJECTED` has no event schema yet; the payment contract owner either adds one or reuses
+`PaymentDeclined` with a reason (open item for payment-service).
 
 ### 3.4 Materialize on `PaymentReconciled` (idempotent consumer)
 
@@ -102,8 +114,8 @@ Selection additionally requires `state IN (QUOTED, PARTIALLY_QUOTED)` and `valid
 2  If materializedAt is set → ensure quotation.quote exists → ack event
 3  Decrypt payloadEnc in process
 4  Aurora (app_quotation), ONE transaction:
-     INSERT INTO quotation.quote (...)  ON CONFLICT (quote_id) DO NOTHING
-     INSERT INTO quotation.offer (...)  ON CONFLICT (offer_id) DO NOTHING   -- selected = SELECTED, others NOT_SELECTED
+     INSERT INTO quotation.quote (... state='CONVERTED', selected_offer_id ...) ON CONFLICT (quote_id) DO NOTHING
+     INSERT INTO quotation.offer (...)  ON CONFLICT (offer_id) DO NOTHING   -- selected = SELECTED, others NOT_SELECTED, invalid kept as INVALID (D-025)
      INSERT INTO quotation.idempotency_record (eventId) ON CONFLICT DO NOTHING
    COMMIT                                         ← Aurora is now the record
 5  UpdateItem META SET materializedAt = :now, state = CONVERTED, ttl = :now + 30d
@@ -111,7 +123,14 @@ Selection additionally requires `state IN (QUOTED, PARTIALLY_QUOTED)` and `valid
 6  Delete JOURNEY#{journeyId}/OPEN_QUOTE
 ```
 
-Proposal is identical into `proposal.proposal`, `uw_requirement`, `uw_document_ref`.
+Proposal is identical into `proposal.proposal` (state `PAID`, `issuance_mode`, `config_version_ref`,
+`payment_id`), **`proposal.proposal_answer`** (one row per question: `question_id`, `question_text` as
+shown, `schema_version`, `answer_enc`), `uw_requirement`, `uw_document_ref`. Post-payment changes are
+appended to `proposal.proposal_status_history` (`D-025`) — never to the frozen item.
+
+**Stream outage:** DynamoDB Streams keep records 24 h. The OUTBOX item carries `published=false`; a
+sweeper republishes unpublished OUTBOX items older than 5 minutes (ADR-025 §3), so a longer outage
+loses nothing.
 
 **Repair sweep (daily):** for every `payment.payment` in `RECONCILED` (via Payment API / event
 replay) whose `quotation.quote` or `proposal.proposal` row is missing, re-drive step 1–6 and alert
@@ -149,8 +168,8 @@ Code: `services/quotation-service`, `services/proposal-service` (`adapter.dynamo
 |---|---|---|---|
 | 1 | Materialise uses `ON CONFLICT DO NOTHING` without a conflict target | H2 (PostgreSQL mode) rejects the targeted form | Also swallows a `ux_offer_selected` violation on Postgres; the domain prevents two selected offers. Aarti to accept or ask for Postgres-only SQL |
 | 2 | Partial unique indexes (`ux_offer_selected`, `ux_proposal_application`) live in Postgres-only vendor migrations (`db/vendor/postgresql`); H2 gets an equivalent | Portability | — |
-| 3 | `INVALID` offers with non-positive premium / sum assured get no `quotation.offer` row | `ck_offer_positive` in 08 conflicts with "one row per envelope offer" | Aarti / Product: relax the CHECK for `INVALID`, or accept |
-| 4 | `proposal.form_values_ref` (NOT NULL) points at the frozen DynamoDB item, which expires 30 days after materialise | No durable evidence store for form values yet | **Open — needs a decision**: S3 evidence object (recommended) or longer frozen-item TTL |
-| 5 | Proposal materialises to `PAID`, not `CONVERTED` | `proposal-service.md` §3.5 | Align §3.4 wording |
+| 3 | `INVALID` offers with non-positive premium / sum assured get no `quotation.offer` row | `ck_offer_positive` in 08 conflicts with "one row per envelope offer" | **Resolved 2026-10-21 (`D-025`)**: CHECK relaxed for `INVALID` in [`08-quotation.sql`](./08-quotation.sql); code must now write `INVALID` rows (quotation-service Flyway change) |
+| 4 | `proposal.form_values_ref` (NOT NULL) points at the frozen DynamoDB item, which expires 30 days after materialise | No durable evidence store for form values yet | **Resolved 2026-10-21 (`D-025`)**: `form_values_ref` removed; answers materialise into `proposal.proposal_answer` ([`09-proposal.sql`](./09-proposal.sql)); code needs a proposal-service Flyway change |
+| 5 | Proposal materialises to `PAID`, not `CONVERTED` | `proposal-service.md` §3.5 | **Resolved**: `PAID` at materialise; `CONVERTED` / `ISSUANCE_FAILED` / `REFUND_REQUIRED` appended to `proposal_status_history` |
 | 6 | The encrypted data key is packed inside `payloadEnc`; AAD binds ciphertext to the item key; outbox items `ttl` = write + 7 days | Simpler item shape | — |
 | 7 | Not built: stream outbox publisher, GSI1 queries, daily repair sweep, a Payment read for proposals, `paymentEnded` endpoint | No MSK / Payment code yet | S11 |

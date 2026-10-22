@@ -39,10 +39,11 @@ The password crosses exactly one internal hop (BFF → adapter) and one egress h
 | AD-verify down / odd status / unparseable | `503 IDENTITY_PROVIDER_UNAVAILABLE` (problem+json) | Propagated (incident id kept): `503` |
 | Adapter unreachable (no HTTP response) | `RestClientException` | `503 IDENTITY_PROVIDER_UNAVAILABLE` |
 | Wrong internal key (misconfiguration) | `401 UNAUTHORIZED` | Propagated per category — fix the secret |
-| ID token audience / nonce / subject mismatch | unmapped 500 from adapter | Upstream failure; login does not complete |
+| ID token signature / audience / nonce / subject mismatch | `401 AUTHENTICATION_FAILED` from the adapter | Propagated; login does not complete |
 
-Timeouts: AD-verify 3 s connect / 5 s read inside the adapter. The BFF's client has no explicit
-budget yet (gap vs S-26).
+Timeouts: the BFF's client is 1 s connect / **4.5 s** read (`workforce.downstream.timeouts.identity-provider`),
+inside the 5 s edge budget (S-01). Inside the adapter, AD-verify and Keycloak calls are each
+1 s connect / 3 s read, so the adapter answers before the BFF gives up.
 
 ## 4. Sources
 

@@ -11,6 +11,7 @@
 | **Calls out** | 1SB (`ONESB_BASE_URL`; UAT/prod via **Apigee**, `ADR-020`) with `Authorization: Basic apiKey:apiSecret` · `bank-persistence-service` `/internal/v1/*` for every durable write |
 | **Owns data** | **No datasource. No JPA. No Flyway.** All job, offer, poll, raw-payload, payment-session and audit rows live in `bank_persistence` through HTTP |
 | **Code status** | **IMPLEMENTED** — Life Term, Savings, ULIP: quote, eligibility criteria, proposal schema/submit/poll, payment URL, application status, master lookup, product UI data, ULIP funds |
+| **Contract** | **Authoritative (ADR-027):** [`contracts/1sb-integration-service/openapi.yaml`](../../contracts/1sb-integration-service/openapi.yaml) · [LLD](../../contracts/1sb-integration-service/LLD.md). Where this page and the contract differ, the contract wins. Quote `202`, proposal submit `201` even when `PENDING` |
 | **Inbound auth** | No application-level check in code; relies on cluster-private exposure (target: mesh mTLS; the WS-1 architecture also describes JWT / mTLS client certs) |
 
 ---

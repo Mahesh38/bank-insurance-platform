@@ -30,7 +30,13 @@ public class IdentityAuthorizationClient {
       ProblemJsonReader problemJsonReader,
       ServiceErrors serviceErrors) {
     this.client =
-        restClient.mutate().baseUrl(properties.authorizationServiceBaseUrl().toString()).build();
+        restClient
+            .mutate()
+            .baseUrl(properties.authorizationServiceBaseUrl().toString())
+            .defaultHeader(
+                DownstreamProperties.AUTHORIZATION_INTERNAL_KEY_HEADER,
+                properties.authorizationServiceInternalKey())
+            .build();
     this.problemJsonReader = problemJsonReader;
     this.serviceErrors = serviceErrors;
   }

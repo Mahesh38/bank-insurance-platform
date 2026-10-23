@@ -18,7 +18,7 @@ partner users, provisioned into the IdP through an outbox
 | Item | Value |
 |---|---|
 | Module | `services/identity-authorization-service`, port 8083, `service-id: authz`, layer L5, INTERNAL |
-| Owns data | Aurora schema `identity` (Flyway V1 schema, V2 role/permission seed, V3 `partner_user.approve`, V4 outbox lease, V5 E5/E6 seed + `business_user.created_by`), role `app_identity` |
+| Owns data | Aurora schema `identity` (Flyway V1 schema, V2 role/permission seed, V3 `partner_user.approve`, V4 outbox lease, V5 E5/E6 seed + `business_user.created_by`, V6 platform login account), role `app_identity` |
 | Callers | BFF (resolve at login; decisions before lead create/assign), lead-service (own re-check, `INV-ACT-01`), admin surface via BFF (partner users) |
 | Calls out | identity-provider-adapter `POST /internal/v1/identities` (provisioning, with `X-Internal-Service-Key`) |
 
@@ -32,6 +32,14 @@ Source: `services/identity-authorization-service/src/main/java/com/bank/identity
 | POST | `/internal/v1/authorization/decisions` | PDP decision (a deny is `200 allowed:false`) | 200 |
 | POST | `/internal/v1/partner-users` | Bank admin creates a partner user; provisioning queued at creation (E5) | 202 (`status: PENDING`, `approvalRequired: false`) |
 | POST | `/internal/v1/approval-requests/{approvalId}/approve` | Checker approves — **only** when `identity.partner-onboarding.approval-required=true`; otherwise `409 ILLEGAL_TRANSITION` | 200 (`targetStatus: PENDING`) |
+| POST | `/internal/v1/login/preview` | Login BRD v3.1 route before the password is counted: `UNKNOWN`, `INACTIVE`, `FIRST_TIME`, `LOCKED_PASSWORD`, `LOCKED_INACTIVITY`, `READY` | 200 |
+| POST | `/internal/v1/login/bank-password-result` | Record the adapter's true/false for a Bank RM. Does not store the network password | 200 |
+| POST | `/internal/v1/login/verify-platform-password` | Check the Insurance RM PBKDF2 password. Expiry does not increment the failure count | 200 |
+| POST | `/internal/v1/login/complete` | Successful login OTP: clear the failure count and set last successful login. Does not clear a first-login flag by itself | 200 |
+| POST | `/internal/v1/login/unlock/assess` | `UNLOCK_OK`, `NOT_REQUIRED`, `INACTIVE` or `UNKNOWN` | 200 |
+| POST | `/internal/v1/login/unlock/complete` | `ACTIVATED`, `UNLOCKED`, `SET_PASSWORD`, `NOT_REQUIRED` or `INACTIVE`. Does not log the user in | 200 |
+| POST | `/internal/v1/login/forgot/assess` | Insurance RM email only. `LOCKED` does not clear the lock | 200 |
+| POST | `/internal/v1/login/password` | Insurance RM password set. `FORGOT` while locked returns `LOCKED_UNCHANGED` | 200 |
 
 The HLD name `POST /internal/v1/authorize` is **superseded** by `/authorization/decisions`
 (ADR-027: the contract follows the code path; the HLD is amended, not the code).

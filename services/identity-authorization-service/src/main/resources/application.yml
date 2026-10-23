@@ -22,6 +22,10 @@ spring:
       enabled: true
 
 identity:
+  login:
+    max-password-failures: ${IDENTITY_LOGIN_MAX_PASSWORD_FAILURES:3}
+    inactivity-days: ${IDENTITY_LOGIN_INACTIVITY_DAYS:30}
+    password-expiry-days: ${IDENTITY_LOGIN_PASSWORD_EXPIRY_DAYS:60}
   # Caller authentication for /internal/v1/** (READINESS-REVIEW §3.7). One key per calling service;
   # only actor-callers may set X-Actor-Id (maker / checker). Development-only defaults; production
   # has none (application-prod.yml).

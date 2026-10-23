@@ -51,13 +51,17 @@
     "source": "Login_Module_BRD_Detailed.docx",
     "source_sha256": "6ac9339b60a4a921bb5484cad0c8f2266b7ee6667d876646034b790fe621c730",
     "context_file": "Login_Module_BRD_Detailed_CONTEXT.md",
-    "context_sha256": "3071228fcad81b758d9adf85a0d70f2a739991a8ceaa48dda0a558b2ee7fc77c",
+    "context_sha256": "309e85af42bfa61e0ae0dd75b7c2240ab131df023d68801b61472c0dd282f189",
     "source_blocks": 165,
     "retained_nonempty_paragraphs": 119,
     "source_tables": 23,
     "comments": 0,
     "tracked_changes": 0,
-    "embedded_workbooks": 0
+    "embedded_workbooks": 0,
+    "accepted_version": "3.1",
+    "accepted_on": "2026-10-23",
+    "message_ssot": "design-text",
+    "context_note": "Context is the owner-accepted BRD v3.1 text. source_sha256 remains the superseded v1.0 docx."
   },
   {
     "source": "Product_Details_Savings_Plan_BRD_Detailed.docx",

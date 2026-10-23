@@ -47,7 +47,7 @@ partner    → SET workforce:pending:{state} EX 300 → … → GETDEL on callba
 ```
 
 There is **no sliding expiry** today: the session ends 8 hours after login regardless of activity.
-Idle timeout and lockout policies from the Login BRD (`SUG-20261008-otp`) are parked.
+Idle timeout and lockout policies from Login BRD v3.1 (`SUG-20261008-otp`) are parked. The accepted BRD also adds Insurance RM Forgot Password and a 60-day platform-password expiry. Those are not in this vault.
 
 ## 5. Failure behaviour
 

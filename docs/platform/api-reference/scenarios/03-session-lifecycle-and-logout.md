@@ -58,7 +58,7 @@ sequenceDiagram
 | Pending partner login | 5 min | |
 | Native completion code | 1 min, single use | |
 | Provider token refresh | Adapter supports `/auth/refresh`; BFF does not call it yet | Partner sessions end with the BFF TTL |
-| Idle timeout, lockout, OTP step-up | Parked (`SUG-20261008-otp`) | Login BRD remainder |
+| Idle timeout, lockout, OTP step-up, Insurance RM Forgot Password, 60-day expiry | Parked (`SUG-20261008-otp`) | Login BRD v3.1 remainder. Design text is the user-visible copy. |
 
 After expiry the next call returns `401 SESSION_EXPIRED`; the app returns to login. Any in-flight
 mutation should be retried after re-login **with the same `Idempotency-Key`**.

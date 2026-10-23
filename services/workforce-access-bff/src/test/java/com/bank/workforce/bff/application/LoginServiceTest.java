@@ -85,6 +85,25 @@ class LoginServiceTest {
   }
 
   @Test
+  void sessionAfterLoginOtpDoesNotCallTheDirectoryOrStoreProviderTokens() {
+    UUID userId = UUID.randomUUID();
+    var result =
+        service.establishSession(
+            ClientType.WEB,
+            new LoginService.EstablishedIdentity(
+                userId, "BANK_EMPLOYEE", "ACTIVE", 1, null, "E100"));
+
+    assertThat(result.authenticated()).isTrue();
+    assertThat(result.browserSessionId()).isNotBlank();
+    ArgumentCaptor<WorkforceSession> session = ArgumentCaptor.forClass(WorkforceSession.class);
+    verify(sessions).putSession(session.capture(), any());
+    assertThat(session.getValue().accessToken()).isNull();
+    assertThat(session.getValue().refreshToken()).isNull();
+    verify(provider, never()).verifyAd(anyString(), anyString());
+    verify(authorization, never()).resolve(any(), any());
+  }
+
+  @Test
   void bankAdLoginRejectsFalseAndInactiveDirectoryAccountsWithoutCreatingASession() {
     when(provider.verifyAd("EMP001", "wrong"))
         .thenReturn(new IdentityProviderClient.AdVerifyResult(false, false, "EMP001", null, null));

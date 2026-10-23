@@ -20,7 +20,7 @@ Login evaluation: [`../au-bank-insurance-platform/requirements/LOGIN-BFF-FIGMA-E
 
 | Path | Journey | Notes vs BRD |
 |------|---------|--------------|
-| `wireframe/auth-login-2fa-forgot-password-mpin.png` | Login / OTP / recovery | Filename still shows Forgot Password and mPIN. Login BRD **removed** Forgot Password; mPIN is not in the Login BRD. OTP is mandatory every login. |
+| `wireframe/auth-login-2fa-forgot-password-mpin.png` | Login / OTP / recovery | Older wireframe. Login BRD v3.1 is the behaviour source. Insurance RM Forgot Password is in scope on its own screen. Bank RM has no Forgot Password. mPIN is not in the Login BRD. OTP is mandatory on every login. |
 | `wireframe/lead-creation-*.png` | Lead | Lead BRD is SSOT for assignment timing (`D-016`). |
 | `wireframe/product-listing-*.png` | Savings listing / compare | Listing BRD §21 still has TBDs. |
 | `wireframe/product-detail-page-savings-plan.png` | Product details | Toolkit / Sample BI lock superseded by `D-015` (final BI). |

@@ -13,7 +13,7 @@
 | Rule | Guidance |
 |------|----------|
 | Status | **Working decisions** — not yet board-signed; treat as default until overturned |
-| Conflicts | Programme-level decisions in this file (LOB, ETB, Sold, payment device, 1SB, consent principle) stand until Rajal overturns them. **Module behaviour** for Login, Lead, Suitability (Savings/ULIP), Savings listing/details/quote, Pitch Deck, Customer buying, and Exception Handling is owned by the [2026-09 detailed BRD pack](./requirements/brd-detailed/README.md) (`DOC-005`). Unresolved TBDs and cross-BRD conflicts: [BRD-ALIGNMENT-2026-09-28.md](./requirements/BRD-ALIGNMENT-2026-09-28.md) |
+| Conflicts | Programme-level decisions in this file (LOB, ETB, Sold, payment device, 1SB, consent principle) stand until Rajal overturns them. **Module behaviour** for Login, Lead, Suitability (Savings/ULIP), Savings listing/details/quote, Pitch Deck, Customer buying, and Exception Handling is owned by the [detailed BRD pack](./requirements/brd-detailed/README.md) (`DOC-005`). Login inside that pack is **v3.1** (design text accepted 23 October 2026). The other modules remain the September 2026 files. Unresolved TBDs and cross-BRD conflicts: [BRD-ALIGNMENT-2026-09-28.md](./requirements/BRD-ALIGNMENT-2026-09-28.md) |
 | Engineering | Prefer **configurable policy-driven controls** where §16 items are still pending |
 | Aggregator | 1SB is the **current integration layer**, not a temporary hack (§18) |
 

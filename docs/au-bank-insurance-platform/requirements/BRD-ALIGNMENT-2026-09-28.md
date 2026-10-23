@@ -5,7 +5,7 @@
 **Freshness:** `FreshnessCheck` 2026-09-28 exit 1 — `state_as_of` is 15 days old; disclosed, work still admissible.  
 **Verdict on application code this turn:** **not started**. Conflicts and TBDs are unresolved. The pack forbids silent resolution.
 
-This file is analysis, not a Product decision. Rajal must answer the questions in §5 before any module is implemented against this pack.
+This file is the 28 September 2026 analysis. It is not rewritten. **Login behaviour has since moved.** On 23 October 2026 the repository owner accepted Login BRD v3.1 and its design text (`SUG-20261023-l31`). Where this file says Forgot Password was removed for both users, that statement describes v1.0 only. The current rule is in [Login_Module_BRD_Detailed_CONTEXT.md](./brd-detailed/Login_Module_BRD_Detailed_CONTEXT.md): Insurance RM Forgot Password is in scope on its own screen; Bank RM still has none. The v1.0 contradiction between “first-time password through User Login” and Unlock User is closed by v3.1: Unlock, then Set New Password for a first-time Insurance RM.
 
 ---
 
@@ -257,3 +257,4 @@ Rajal asked that cases like C7 be called out rather than decided here.
 | 0.2 | 2026-09-28 | Rajal answers Q1–Q7 recorded. Login UI alignment started. C7 and Q5 not implemented. | Rajal / BA |
 | 0.3 | 2026-09-28 | `DOC-006`: no client app source in this repository. Flutter Login UI withdrawn. Login continues as BFF vs Figma. | Stakeholder / BA |
 | 0.4 | 2026-10-03 | Re-uploaded BRD Context Pack compared to `brd-detailed/`: nine CONTEXT files byte-identical (`SUG-20260928-brd` recurrence 2). No overwrite. Q4c Lead/Exception opens remain **CLOSED** by `SUG-20261003-brf` / amended `D-019` — re-upload did not reopen them. | Agent (BA verify) / Rajal (BRD-wins verdict on parent pack) |
+| 0.5 | 2026-10-23 | Login context replaced with v3.1. Design text is the user-visible copy. Historical rows above that say Forgot Password was removed describe v1.0. | Repository owner (`SUG-20261023-l31`) |

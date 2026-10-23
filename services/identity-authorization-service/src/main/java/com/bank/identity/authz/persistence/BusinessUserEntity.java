@@ -67,6 +67,34 @@ public class BusinessUserEntity {
   @Column(name = "updated_at", nullable = false)
   private Instant updatedAt;
 
+  @Column(name = "first_login", nullable = false)
+  private boolean firstLogin;
+
+  @Column(name = "failed_password_count", nullable = false)
+  private int failedPasswordCount;
+
+  @Column(name = "locked_reason")
+  private String lockedReason;
+
+  @Column(name = "locked_at")
+  private Instant lockedAt;
+
+  /** When a lock was cleared. Inactivity is measured from the later of this and the last login. */
+  @Column(name = "lock_cleared_at")
+  private Instant lockClearedAt;
+
+  @Column(name = "last_successful_login_at")
+  private Instant lastSuccessfulLoginAt;
+
+  @Column(name = "password_hash")
+  private String passwordHash;
+
+  @Column(name = "password_changed_at")
+  private Instant passwordChangedAt;
+
+  @Column(name = "mobile_number")
+  private String mobileNumber;
+
   @Version private long version;
 
   protected BusinessUserEntity() {}
@@ -119,6 +147,7 @@ public class BusinessUserEntity {
     user.validFrom = now;
     user.createdAt = now;
     user.updatedAt = now;
+    user.firstLogin = true;
     return user;
   }
 
@@ -199,5 +228,108 @@ public class BusinessUserEntity {
 
   public Instant getValidUntil() {
     return validUntil;
+  }
+
+  public boolean isFirstLogin() {
+    return firstLogin;
+  }
+
+  public int getFailedPasswordCount() {
+    return failedPasswordCount;
+  }
+
+  public String getLockedReason() {
+    return lockedReason;
+  }
+
+  public Instant getLastSuccessfulLoginAt() {
+    return lastSuccessfulLoginAt;
+  }
+
+  public Instant getPasswordChangedAt() {
+    return passwordChangedAt;
+  }
+
+  public String getPasswordHash() {
+    return passwordHash;
+  }
+
+  public String getMobileNumber() {
+    return mobileNumber;
+  }
+
+  public void assignMobileNumber(String mobileNumber) {
+    this.mobileNumber = mobileNumber;
+    this.updatedAt = Instant.now();
+  }
+
+  public void replacePasswordHash(String passwordHash, Instant changedAt) {
+    this.passwordHash = passwordHash;
+    this.passwordChangedAt = changedAt;
+    this.firstLogin = false;
+    if (this.userType == UserType.INSURER_REPRESENTATIVE && this.status == UserStatus.PENDING) {
+      this.status = UserStatus.ACTIVE;
+    }
+    this.updatedAt = changedAt;
+  }
+
+  /** v3.1 first-time Bank RM row. AD resolve does not set this; provisioning does. */
+  public void markFirstLoginForProvisioning() {
+    this.firstLogin = true;
+    this.updatedAt = Instant.now();
+  }
+
+  public void suspend() {
+    this.status = UserStatus.SUSPENDED;
+    this.updatedAt = Instant.now();
+  }
+
+  public boolean recordPasswordFailure(int maxFailures, Instant now) {
+    this.failedPasswordCount++;
+    this.updatedAt = now;
+    if (this.failedPasswordCount >= maxFailures) {
+      this.lockedReason = "PASSWORD";
+      this.lockedAt = now;
+      return true;
+    }
+    return false;
+  }
+
+  public void lockForInactivity(Instant now) {
+    this.lockedReason = "INACTIVITY";
+    this.lockedAt = now;
+    this.updatedAt = now;
+  }
+
+  public void clearLockAndFailures(Instant now) {
+    this.lockedReason = null;
+    this.lockedAt = null;
+    this.lockClearedAt = now;
+    this.failedPasswordCount = 0;
+    this.updatedAt = now;
+  }
+
+  public Instant getLockClearedAt() {
+    return lockClearedAt;
+  }
+
+  public void recordSuccessfulPlatformLogin(Instant now) {
+    this.failedPasswordCount = 0;
+    this.lockedReason = null;
+    this.lockedAt = null;
+    this.lastSuccessfulLoginAt = now;
+    this.updatedAt = now;
+  }
+
+  public void activateBankFirstLogin(Instant now) {
+    this.firstLogin = false;
+    this.status = UserStatus.ACTIVE;
+    clearLockAndFailures(now);
+  }
+
+  public void openInsurancePasswordSetup(Instant now) {
+    this.status = UserStatus.ACTIVE;
+    clearLockAndFailures(now);
+    this.firstLogin = true;
   }
 }

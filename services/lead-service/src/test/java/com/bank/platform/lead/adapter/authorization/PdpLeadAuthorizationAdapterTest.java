@@ -92,6 +92,7 @@ class PdpLeadAuthorizationAdapterTest {
 
   @Test
   void exceptionApprovalIsBranchScopedAndNeverPartnerVisible() {
+    var adapter = adapter(HAPPY_PATH_TIMEOUT);
     answer.set(decision(true, "ROLE_GRANT"));
     adapter.decide(SUBJECT, "lead.exception.approve", "L1", "BR-7");
 

@@ -444,6 +444,8 @@ components:
     Money:
       type: string
       pattern: '^-?[0-9]{1,13}(\.[0-9]{1,2})?$'
+      description: Exact decimal, INR, two places.
+      examples: ['25000.00', '25600000.00']
     ProposalState:
       type: string
       enum: [DRAFT, SUBMITTED, SUBMISSION_FAILED, UNDER_WRITING, REQUIREMENTS_PENDING, UW_APPROVED, UW_COUNTER_OFFER, UW_DECLINED, CUSTOMER_DECLINED, AWAITING_PAYMENT, PAID, CONVERTED, ISSUANCE_FAILED, REFUND_REQUIRED, WITHDRAWN, EXPIRED, ABANDONED]

@@ -44,7 +44,22 @@ sequenceDiagram
     BFF-->>App: {state: RECONCILED}
 ```
 
-## 2. The four money rules developers break
+## 2. Sample amounts (illustrative)
+
+Payment never accepts an amount from the caller. After `GET /quotes/{qid}/selected` (or
+payment-hold), the hold returns e.g.:
+
+| Field | Example (INR) | Source |
+|---|---|---|
+| `premiumAmount` | `"25000.00"` | Selected offer |
+| `taxAmount` | `"4500.00"` | Selected offer |
+| **Amount payable / PG session** | `"29500.00"` | `premiumAmount + taxAmount` to the paise |
+| `sumAssured` | `"25600000.00"` | Selected offer (control attribute) |
+
+Figures follow `SUIT-TC-REF-01` ([MISSING-PRICES.md](../../contracts/MISSING-PRICES.md)). A PG
+callback whose amount ≠ `"29500.00"` is `422 PREMIUM_MISMATCH`.
+
+## 3. The four money rules developers break
 
 | Rule | Why |
 |---|---|
@@ -53,18 +68,18 @@ sequenceDiagram
 | A lost callback means `UNCERTAIN`, not paid or unpaid | `F-08`; new attempts blocked (`409 PAYMENT_STATE_UNCERTAIN`) until reconciliation |
 | Issuance waits for `RECONCILED`, not `CAPTURED` | `INV-POL-01`; a reconciliation break never auto-resolves (`F-07`) |
 
-## 3. Errors
+## 4. Errors
 
 `409 PROPOSAL_NOT_PAYABLE` · `409 PAYMENT_ALREADY_IN_PROGRESS` · `409 PAYMENT_STATE_UNCERTAIN` ·
 `422 PREMIUM_MISMATCH` · `403 PAYMENT_DEVICE_ISOLATION` · PG reject → payment `REJECTED`, proposal
 stays `AWAITING_PAYMENT` · callback bad signature → `401` + security event.
 
-## 4. Data
+## 5. Data
 
 `payment.payment` (structured from the first write; `link_issued_to_enc` holds the customer contact,
 encrypted), `payment_attempt` (append-only), `outbox_event`, `idempotency_record`; journey stage +
 `paymentId`. **No cardholder data anywhere on the platform.** Retention `RET-7Y-IMMUTABLE`.
 
-## 5. Pages
+## 6. Pages
 
 [Payment service](../services/payment-service.md) · [Payment and the PG](../interactions/payment-to-payment-gateway.md) · [Failure and compensation](./15-failure-and-compensation.md)

@@ -179,7 +179,7 @@ The engine is pure: same inputs + same rule-set version → byte-identical resul
 | `PROPOSAL.TAT` | Insurer decision turnaround (7 calendar days from `PROPOSAL_RECEIVED`), poll interval (4 h), warning (day 5) | IRDAI Master Circular 2024 (7 days) — `D-025`; [C4 and engineering defaults](./DECISIONS-2026-10-22.md#engineering-defaults-chosen-all-configuration-change-without-code) | Shailja |
 | `LEAD.POLICY` | Lead periods per `lob` (`expiryDays`; LIFE 90) | [E7](./DECISIONS-2026-10-22.md#owner-decisions); Lead BRD | Rajal |
 | `CUSTOMER.POLICY` | Customer snapshot freshness (`snapshotFreshnessMinutes`, default 1440) | [E7 and engineering defaults](./DECISIONS-2026-10-22.md#engineering-defaults-chosen-all-configuration-change-without-code) | Rajal |
-| `CATALOGUE.ELIGIBILITY` | Whether the bank sells a product to an applicant (age, sum assured, term bands), hit policy `FIRST` — *contracted, no seed yet* | [product-catalogue LLD §5](../contracts/product-catalogue-service/LLD.md#5-eligibility--two-sources-one-precedence) | Rajal |
+| `CATALOGUE.ELIGIBILITY` | Whether the bank sells a product to an applicant (age, sum assured, term bands), hit policy `FIRST` — seed fail-closed (`CAT-ELIG-000`); band rows await Rajal | [product-catalogue LLD §5](../contracts/product-catalogue-service/LLD.md#5-eligibility--two-sources-one-precedence) · [MISSING-PRICES](../contracts/MISSING-PRICES.md) | Rajal |
 | `AUDIT.SOLD.COMPLETENESS` | Audit steps that must exist before a journey may reach `SOLD` (`INV-JRN-05`) — *contracted, no seed yet* | [audit-compliance LLD](../contracts/audit-compliance-service/LLD.md); ADR-026 (accepted, E2) | Shailja |
 | `HUB.ROUTING` | Provider per (lob, productClass, insurer) | Integration Hub page §3 | Mahesh |
 

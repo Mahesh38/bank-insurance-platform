@@ -266,6 +266,8 @@ components:
     Money:
       type: string
       pattern: '^[0-9]{1,13}(\.[0-9]{1,2})?$'
+      description: Exact decimal, INR, two places. Policy premium excludes tax (tax stays on payment).
+      examples: ['25000.00', '25600000.00']
     PolicyState:
       type: string
       description: DDL `ck_policy_state`; `ISSUANCE_REJECTED` is the policy state for an insurer DECLINED.

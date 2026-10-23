@@ -8,6 +8,7 @@ Every service has a checked-in **contract** (`openapi.yaml`, authoritative on th
 stub, and how to prove it. Start with the [build playbook](./BUILD-PLAYBOOK.md).
 
 Shared: [events catalogue](./events/CATALOGUE.md) · [rule engine guide](./rule-engine/LLD.md) ·
+[missing prices inventory](./MISSING-PRICES.md) ·
 [design DDL](../data-architecture/schemas/README.md) ·
 [owner decisions round 2](../architecture-review/DECISIONS-2026-10-22.md) (E1–E9, C1–C8) ·
 [round 1](../architecture-review/DECISIONS-2026-10-21.md) (D1–D9) ·
@@ -104,7 +105,7 @@ production); builders keep working around them with fail-closed behaviour and st
 | BFF has no routes for the sale journey | Contract | BFF, journey (RM app) | Mahesh |
 | Consent statements and notification templates: wording unapproved (C7) and storage not contracted | Content / contract | consent, notification | Shailja; Mahesh |
 | Customer-device OTP confirmation surface not designed (C2) | Design | consent, suitability acknowledgements | Mahesh + Rajal |
-| Rule-set seeds still missing: `JOURNEY.POLICY` (values unset), `CATALOGUE.ELIGIBILITY`, `AUDIT.SOLD.COMPLETENESS`, `NOTIFICATION.TEMPLATES`, quote validity, proposal issuance mode (`LEAD.POLICY` / `CUSTOMER.POLICY` / suitability / consent / hub / TAT / exception seeds are present under `libs/bank-rule-engine`) | Configuration | journey, catalogue, audit, notification, quotation, proposal | Rule-engine owner; content approvers |
+| Rule-set seeds still missing content: `JOURNEY.POLICY`, `AUDIT.SOLD.COMPLETENESS`, `NOTIFICATION.TEMPLATES`, quote validity, proposal issuance mode. `CATALOGUE.ELIGIBILITY` **seed exists** but band rows (`minSumAssured` / `maxSumAssured` …) are unset — every product `NOT_ELIGIBLE` until Rajal publishes ([MISSING-PRICES.md](./MISSING-PRICES.md)) | Configuration | journey, catalogue, audit, notification, quotation, proposal | Rule-engine owner; content approvers |
 | Insurer-decision TAT owner under E1 + C4 (clock runs before payment) | Design | proposal, policy-issuance | Mahesh, Shailja |
 | 1SB status callback availability (else polling at 4 h) | External | policy-issuance | Mahesh, 1SB |
 | AU Bank PG contract (S10), CBS inquiry API, SMS / email gateway, AD-verify prod endpoint | External (bank) | payment, customer, notification, idp-adapter | Bank |

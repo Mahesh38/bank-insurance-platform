@@ -344,6 +344,7 @@ components:
       type: string
       pattern: '^-?[0-9]{1,13}(\.[0-9]{1,2})?$'
       description: Exact decimal, INR, two places. Strings avoid binary floating point.
+      examples: ['25000.00', '25600000.00', '1200000.00']
     QuoteState:
       type: string
       enum: [REQUESTED, IN_PROGRESS, QUOTED, PARTIALLY_QUOTED, SELECTED, CONVERTED, EXPIRED, FAILED, TIMED_OUT, REJECTED]
@@ -467,6 +468,9 @@ components:
     SelectedPremium:
       type: object
       required: [quoteId, offerId, premiumAmount, taxAmount, sumAssured, insurerCode, productCode, currency]
+      description: >
+        Amounts from the selected offer. Illustrative example uses SUIT-TC-REF-01 figures
+        (see contracts/MISSING-PRICES.md) — not bank pricing policy.
       properties:
         quoteId: { $ref: '#/components/schemas/Ulid' }
         offerId: { $ref: '#/components/schemas/Ulid' }
@@ -478,6 +482,17 @@ components:
         premiumFrequency: { type: string, description: 'Added by payment-hold; the legacy GET does not return it.' }
         currency: { type: string, const: INR }
         validUntil: { type: string, format: date-time, description: 'Added by payment-hold.' }
+      example:
+        quoteId: 01HZXEXAMPLE00000000000001
+        offerId: 01HZXEXAMPLE00000000000002
+        premiumAmount: '25000.00'
+        taxAmount: '4500.00'
+        sumAssured: '25600000.00'
+        insurerCode: INS01
+        productCode: TERM-BASIC-01
+        premiumFrequency: YEARLY
+        currency: INR
+        validUntil: '2026-11-08T18:30:00+05:30'
     PaymentReconciledData:
       type: object
       description: '`data` of the `PaymentReconciled` event (ADR-025 envelope; D8 ids).'

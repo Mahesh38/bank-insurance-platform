@@ -340,6 +340,8 @@ components:
     Money:
       type: string
       pattern: '^[0-9]{1,13}(\.[0-9]{1,2})?$'
+      description: Exact decimal, INR, two places. Amount payable is always premiumAmount + taxAmount from quotation.
+      examples: ['29500.00', '25000.00', '4500.00']
     PaymentState:
       type: string
       enum: [INITIATED, LINK_ISSUED, AWAITING_AUTHORISATION, AUTHORISED, CAPTURED, UNCERTAIN, RECONCILED, RECONCILIATION_BREAK, REFUND_INITIATED, REFUNDED, DECLINED, EXPIRED, REJECTED]

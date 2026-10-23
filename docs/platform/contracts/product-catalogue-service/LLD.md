@@ -84,14 +84,15 @@ first and a final catch-all yields `ELIGIBLE`.
 |---|---|
 | `ruleSetId` / scope | `CATALOGUE.ELIGIBILITY`, scope `{lob, productClass}`; one table per product keyed by `productCode` |
 | Inputs | `productCode`, `insurerId`, `ageNextBirthday`, `sumAssured`, `annualIncome`, `occupationBand`, `policyTerm` |
-| `tables` | `minAge`, `maxAge`, `minSumAssured`, `maxSumAssured`, `allowedOccupationBands` per `productCode` — **rows unset in the seed** |
+| `tables` | Per-product EXACT/RANGE bands (`minAge`, `maxAge`, `minSumAssured`, `maxSumAssured`, …) — **omitted from the seed** until Rajal publishes (engine schema requires ≥1 row per table) |
 | `decision` | `hitPolicy: FIRST`, `noMatchOutcome: NOT_ELIGIBLE`, `missingInputOutcome: NOT_ELIGIBLE` |
-| Fail-closed rule | `CAT-ELIG-000` (priority 1): product has no band row → `NOT_ELIGIBLE`, reason `CAT-CONFIG-MISSING` (same pattern as `LEAD.EXCEPTION` `EH-CONFIG-MISSING`, D2) |
-| Refusals | `CAT-ELIG-010` age outside band → `AGE_OUT_OF_BAND`; `-020` sum assured outside band → `SUM_ASSURED_OUT_OF_BAND`; `-030` occupation not allowed → `OCCUPATION_NOT_ALLOWED` |
-| Catch-all | `CAT-ELIG-999` → `ELIGIBLE` |
+| Fail-closed rule | `CAT-ELIG-000` (priority 1): `parameters.bandsPublished` is null → `NOT_ELIGIBLE`, reason `CAT_CONFIG_MISSING` (same pattern as `LEAD.EXCEPTION` `EH-CONFIG-MISSING`, D2) |
+| Refusals (when bands published) | `CAT-ELIG-010` age outside band → `AGE_OUT_OF_BAND`; `-020` sum assured outside band → `SUM_ASSURED_OUT_OF_BAND`; `-030` occupation not allowed → `OCCUPATION_NOT_ALLOWED` |
+| Catch-all | `CAT-ELIG-999` → `ELIGIBLE` (unreachable while `CAT-ELIG-000` fires) |
 
-Because the band rows ship unset, **every product is `NOT_ELIGIBLE` until Rajal publishes values**.
-`CATALOGUE.ELIGIBILITY` is not yet in ADR-024 §7's table — adding it is open item C-1.
+Seed file: [`CATALOGUE.ELIGIBILITY.json`](../../../../libs/bank-rule-engine/src/main/resources/rulesets/CATALOGUE.ELIGIBILITY.json).
+Because the band rows ship unset, **every product is `NOT_ELIGIBLE` until Rajal publishes values**
+([MISSING-PRICES.md](../MISSING-PRICES.md) item 2).
 
 ### 5.2 `POST /eligibility:check` flow
 

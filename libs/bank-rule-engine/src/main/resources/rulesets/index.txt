@@ -1,4 +1,5 @@
 # Seed rule sets (ADR-024 section 7). Imported as DRAFT by administration-config-service; never auto-published.
+CATALOGUE.ELIGIBILITY.json
 CONSENT.POLICY.json
 CUSTOMER.POLICY.json
 HUB.ROUTING.json

@@ -1,9 +1,17 @@
 package com.bank.platform.consent.api;
 
-import com.bank.platform.consent.application.ConsentApplicationService;
-import com.bank.platform.consent.application.ConsentApplicationService.Affirmation;
-import com.bank.platform.consent.application.ConsentApplicationService.CaptureCommand;
-import com.bank.platform.consent.application.ConsentApplicationService.VerifyCommand;
+import com.bank.platform.consent.application.CaptureConsent;
+import com.bank.platform.consent.application.CheckConsent;
+import com.bank.platform.consent.application.ConsentTypes.Affirmation;
+import com.bank.platform.consent.application.ConsentTypes.CaptureCommand;
+import com.bank.platform.consent.application.ConsentTypes.ChainView;
+import com.bank.platform.consent.application.ConsentTypes.ChallengeView;
+import com.bank.platform.consent.application.ConsentTypes.CheckView;
+import com.bank.platform.consent.application.ConsentTypes.ConsentView;
+import com.bank.platform.consent.application.ConsentTypes.VerifyCommand;
+import com.bank.platform.consent.application.ReadConsent;
+import com.bank.platform.consent.application.VerifyConsent;
+import com.bank.platform.consent.application.WithdrawConsent;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -25,22 +33,36 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/internal/v1")
 public class ConsentController {
 
-  private final ConsentApplicationService consents;
+  private final CheckConsent checks;
+  private final CaptureConsent captures;
+  private final VerifyConsent verifications;
+  private final WithdrawConsent withdrawals;
+  private final ReadConsent reads;
   private final IdempotentExecutor idempotency;
 
-  public ConsentController(ConsentApplicationService consents, IdempotentExecutor idempotency) {
-    this.consents = consents;
+  public ConsentController(
+      CheckConsent checks,
+      CaptureConsent captures,
+      VerifyConsent verifications,
+      WithdrawConsent withdrawals,
+      ReadConsent reads,
+      IdempotentExecutor idempotency) {
+    this.checks = checks;
+    this.captures = captures;
+    this.verifications = verifications;
+    this.withdrawals = withdrawals;
+    this.reads = reads;
     this.idempotency = idempotency;
   }
 
   @GetMapping("/consents:check")
-  public ConsentApplicationService.CheckView check(
+  public CheckView check(
       @RequestParam String customerId,
       @RequestParam String checkpoint,
       @RequestParam String lob,
       @RequestParam(required = false) String insurerCode,
       @RequestParam(required = false) String journeyId) {
-    return consents.check(customerId, checkpoint, lob, insurerCode, journeyId);
+    return checks.check(customerId, checkpoint, lob, insurerCode, journeyId);
   }
 
   @PostMapping("/consents")
@@ -55,7 +77,7 @@ public class ConsentController {
         () ->
             ResponseEntity.status(HttpStatus.CREATED)
                 .body(
-                    consents.capture(
+                    captures.capture(
                         new CaptureCommand(
                             body.customerId(),
                             body.leadId(),
@@ -71,15 +93,15 @@ public class ConsentController {
   }
 
   @GetMapping("/consents")
-  public List<ConsentApplicationService.ChainView> list(
+  public List<ChainView> list(
       @RequestParam(required = false) String customerId,
       @RequestParam(required = false) String journeyId) {
-    return consents.list(customerId, journeyId);
+    return reads.list(customerId, journeyId);
   }
 
   @GetMapping("/consent-challenges/{challengeId}")
-  public ConsentApplicationService.ChallengeView challenge(@PathVariable String challengeId) {
-    return consents.getChallenge(challengeId);
+  public ChallengeView challenge(@PathVariable String challengeId) {
+    return verifications.getChallenge(challengeId);
   }
 
   @PostMapping("/consent-challenges/{challengeId}/verify")
@@ -94,7 +116,7 @@ public class ConsentController {
         body,
         () ->
             ResponseEntity.ok(
-                consents.verify(
+                verifications.verify(
                     new VerifyCommand(
                         challengeId,
                         body.otpTxnId(),
@@ -125,16 +147,16 @@ public class ConsentController {
     return idempotency.execute(
         key,
         challengeId,
-        () -> ResponseEntity.ok(consents.resend(challengeId, actorId, correlationId)));
+        () -> ResponseEntity.ok(verifications.resend(challengeId, actorId, correlationId)));
   }
 
   @GetMapping("/consents/{consentId}")
-  public ConsentApplicationService.ConsentView consent(
+  public ConsentView consent(
       @RequestHeader("X-Actor-Id") String actorId,
       @PathVariable String consentId,
       @RequestParam(required = false) String customerId,
       @RequestParam(required = false) String journeyId) {
-    return consents.getConsent(consentId, customerId, actorId, journeyId);
+    return reads.get(consentId, customerId, actorId, journeyId);
   }
 
   @PostMapping("/consents/{consentId}/withdrawals")
@@ -150,7 +172,7 @@ public class ConsentController {
         () ->
             ResponseEntity.status(HttpStatus.CREATED)
                 .body(
-                    consents.startWithdrawal(
+                    withdrawals.start(
                         consentId, body.channel(), body.reasonCode(), actorId, correlationId)));
   }
 

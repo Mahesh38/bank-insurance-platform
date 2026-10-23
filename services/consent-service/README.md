@@ -21,6 +21,8 @@ This is not an RBI, IRDAI or DPDP certificate. GAP-006 (the consent rule pack si
 | `getConsent` | `GET /internal/v1/consents/{consentId}` |
 | `startWithdrawal` | `POST /internal/v1/consents/{consentId}/withdrawals` |
 
+Each use case is its own class under `application`: `CheckConsent`, `CaptureConsent`, `VerifyConsent`, `WithdrawConsent`, `SweepConsent`, and `ReadConsent`. Commands and views are `ConsentTypes`. The HTTP controller depends on those classes.
+
 Evidence is insert-only. A withdrawal or a replacement grant appends a row. `EXPIRED` is visible at check time from `validUntil` and, when the sweeper runs, is also appended. The original `GRANTED` row is not rewritten.
 
 `verificationModes` is read from the policy. The seed allows `CUSTOMER_DEVICE` only, so `RM_RELAYED` is `403 FORBIDDEN`. `separateActions` refuses a capture that affirms more than one purpose in one challenge. A statement that is not `APPROVED` refuses capture and marks the check `captureBlocked`.
@@ -48,7 +50,7 @@ CIF is not stored. The subject is the customer ULID.
 
 `./gradlew :services:consent-service:test jacocoTestCoverageVerification`
 
-The API test is the build-brief set AT-CNS-01 through AT-CNS-14. Module line coverage on that run is 84.69% (1261/1489). The gate for this service is 50% line.
+The API test is the build-brief set AT-CNS-01 through AT-CNS-14. Module line coverage on that run is 85.12% (1310/1539). The gate for this service is 50% line.
 
 ## Still outside this module
 

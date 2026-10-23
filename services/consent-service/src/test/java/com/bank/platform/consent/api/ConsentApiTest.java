@@ -10,7 +10,8 @@ import com.bank.platform.consent.ConsentApplication;
 import com.bank.platform.consent.adapter.contact.StubRegisteredContact;
 import com.bank.platform.consent.adapter.persistence.JpaOutbox;
 import com.bank.platform.consent.adapter.policy.FixtureStatementSource;
-import com.bank.platform.consent.application.ConsentApplicationService;
+import com.bank.platform.consent.adapter.policy.StatementTestControl;
+import com.bank.platform.consent.application.SweepConsent;
 import com.bank.platform.consent.domain.ConsentPorts;
 import com.bank.platform.consent.domain.Ulids;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -47,16 +48,16 @@ class ConsentApiTest {
   @Autowired ConsentPorts.ChallengeStore challenges;
   @Autowired ConsentPorts.ConsentStore consents;
   @Autowired JpaOutbox outbox;
-  @Autowired ConsentApplicationService service;
+  @Autowired SweepConsent sweep;
 
   @BeforeEach
   void reset() {
     NOW.set(Instant.parse("2026-11-01T00:00:00Z"));
-    statements.setStatus("CNS-DP", "APPROVED");
-    statements.setStatus("CNS-SOL", "APPROVED");
-    statements.setStatus("CNS-QSH", "APPROVED");
-    statements.setStatus("CNS-SHR", "APPROVED");
-    statements.setStatus("CNS-COM", "APPROVED");
+    StatementTestControl.setStatus(statements, "CNS-DP", "APPROVED");
+    StatementTestControl.setStatus(statements, "CNS-SOL", "APPROVED");
+    StatementTestControl.setStatus(statements, "CNS-QSH", "APPROVED");
+    StatementTestControl.setStatus(statements, "CNS-SHR", "APPROVED");
+    StatementTestControl.setStatus(statements, "CNS-COM", "APPROVED");
     contacts.setUnavailable(false);
   }
 
@@ -118,7 +119,7 @@ class ConsentApiTest {
 
   @Test
   void atCns05_draftStatementIsNotCaptured() throws Exception {
-    statements.setStatus("CNS-DP", "DRAFT");
+    StatementTestControl.setStatus(statements, "CNS-DP", "DRAFT");
     String customer = ulid();
     mvc.perform(check(customer, "BEFORE_SUITABILITY", null))
         .andExpect(jsonPath("$.captureBlocked").value(true))
@@ -250,8 +251,8 @@ class ConsentApiTest {
     NOW.set(Instant.parse("2026-11-01T00:00:00Z").plus(91, ChronoUnit.DAYS));
     mvc.perform(check(customer, "BEFORE_SUITABILITY", null))
         .andExpect(jsonPath("$.missing[?(@.purpose=='CNS-DP')].reason").value("EXPIRED"));
-    assertThat(service.sweep()).isPositive();
-    int second = service.sweep();
+    assertThat(sweep.sweep()).isPositive();
+    int second = sweep.sweep();
     assertThat(second).isZero();
   }
 
@@ -358,7 +359,7 @@ class ConsentApiTest {
     String hash = challenges.find(challengeId).orElseThrow().otpHash();
     for (int i = 0; i <= 999999; i++) {
       String candidate = String.format("%06d", i);
-      if (new com.bank.platform.consent.adapter.crypto.HmacOtpHasher("local-otp-pepper")
+      if (new com.bank.platform.consent.adapter.otp.HmacOtpHasher("local-otp-pepper")
           .matches(candidate, hash)) {
         return candidate;
       }

@@ -22,17 +22,11 @@ public final class ConsentPorts {
 
   public interface StatementSource {
     StatementDoc current(String purpose, String language);
-
-    void setStatus(String purpose, String status);
   }
 
   public interface RegisteredContact {
     /** CBS mobile digits. Never taken from the request body. */
     String digits(String customerId);
-  }
-
-  public interface OtpVerifier {
-    boolean matches(String otp, String hash);
   }
 
   public interface ChallengeStore {

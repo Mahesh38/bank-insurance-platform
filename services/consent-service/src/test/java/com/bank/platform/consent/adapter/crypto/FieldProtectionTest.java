@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
+import com.bank.platform.consent.adapter.otp.HmacOtpHasher;
 import com.bank.platform.consent.adapter.otp.LoggingOtpDispatch;
 import com.bank.platform.consent.adapter.security.LoggingSecurityEventSink;
 import com.bank.platform.consent.config.ConsentConfiguration;

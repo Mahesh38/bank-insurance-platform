@@ -1,7 +1,7 @@
 package com.bank.platform.consent.config;
 
 import com.bank.platform.consent.adapter.crypto.AesFieldCipher;
-import com.bank.platform.consent.adapter.crypto.HmacOtpHasher;
+import com.bank.platform.consent.adapter.otp.HmacOtpHasher;
 import com.bank.platform.consent.adapter.otp.LoggingOtpDispatch;
 import com.bank.platform.consent.adapter.security.LoggingSecurityEventSink;
 import com.bank.platform.consent.domain.FieldCipher;

@@ -41,8 +41,10 @@ public class FixtureStatementSource implements ConsentPorts.StatementSource {
     return doc;
   }
 
-  @Override
-  public void setStatus(String purpose, String status) {
+  /**
+   * Test hook. Production capture reads {@link #current} and refuses a status other than APPROVED.
+   */
+  void setStatus(String purpose, String status) {
     StatementDoc current = statements.get(purpose);
     if (current == null) {
       throw new ConsentRefusal("CONFIGURATION_UNRESOLVABLE", "statement is not configured");

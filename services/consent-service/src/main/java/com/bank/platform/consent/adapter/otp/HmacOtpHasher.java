@@ -1,4 +1,4 @@
-package com.bank.platform.consent.adapter.crypto;
+package com.bank.platform.consent.adapter.otp;
 
 import com.bank.platform.consent.domain.OtpHasher;
 import java.nio.charset.StandardCharsets;

@@ -11,12 +11,20 @@ public final class LoggingSecurityEventSink implements SecurityEventSink {
   private static final Logger log = LoggerFactory.getLogger(LoggingSecurityEventSink.class);
 
   @Override
-  public void subjectMismatch(String actorId, String journeyId, String consentId) {
+  public void subjectMismatch(
+      String actorId,
+      String journeyId,
+      String consentId,
+      String requestedSubject,
+      String recordedSubject) {
     log.warn(
-        "security_event=CONSENT_SUBJECT_MISMATCH actor={} journey={} consent={}",
+        "security_event=CONSENT_SUBJECT_MISMATCH actor={} journey={} consent={}"
+            + " requestedSubject={} recordedSubject={}",
         oneLine(actorId),
         oneLine(journeyId),
-        oneLine(consentId));
+        oneLine(consentId),
+        oneLine(requestedSubject),
+        oneLine(recordedSubject));
   }
 
   /** Drops line breaks so a caller cannot forge a second log record. */

@@ -11,8 +11,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.stereotype.Component;
 
 /**
- * Stand-in for administration-config statement storage. Tests flip a purpose to {@code DRAFT} to
- * prove an unapproved statement cannot be captured.
+ * Stand-in for administration-config statement storage. Every purpose starts {@code DRAFT}. Capture
+ * stays refused until a test, or a future approved source, marks that purpose {@code APPROVED} (C7,
+ * LLD O-4). The placeholder sentence is not legal wording.
  */
 @Component
 public class FixtureStatementSource implements ConsentPorts.StatementSource {
@@ -24,7 +25,7 @@ public class FixtureStatementSource implements ConsentPorts.StatementSource {
 
   public FixtureStatementSource() {
     for (String purpose : PURPOSES) {
-      statements.put(purpose, approved(purpose));
+      statements.put(purpose, draft(purpose));
     }
   }
 
@@ -58,11 +59,11 @@ public class FixtureStatementSource implements ConsentPorts.StatementSource {
             current.language()));
   }
 
-  private static StatementDoc approved(String purpose) {
-    String text = "Approved " + purpose + " statement for the assisted journey.";
+  private static StatementDoc draft(String purpose) {
+    String text = "Draft " + purpose + " statement. Not approved for capture.";
     String version = "1.0";
     return new StatementDoc(
-        purpose, purpose + "-en-IN-v" + version, version, text, sha256(text), "APPROVED", "en-IN");
+        purpose, purpose + "-en-IN-v" + version, version, text, sha256(text), "DRAFT", "en-IN");
   }
 
   private static String sha256(String text) {

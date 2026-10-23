@@ -32,7 +32,7 @@ OTP limits (10 minutes, 3 attempts, 5 issues in 24 hours) are policy parameters.
 | Port | Until the real service exists |
 |---|---|
 | `CONSENT.POLICY` | Seed in `libs/bank-rule-engine` (`CONSENT.POLICY.json`). `RuleSetPublished` drops the cache. |
-| Statements | In-memory fixtures, `APPROVED`, language `en-IN`. A test can mark one `DRAFT`. |
+| Statements | In-memory fixtures, language `en-IN`, status `DRAFT` until a caller marks one `APPROVED`. The sentence is a placeholder, not approved wording. |
 | Registered contact | A fixed CBS-shaped number. The request body has no phone. Setting the stub unavailable returns `503` and writes nothing. |
 | OTP send / verify | Local hash compare. The provider named in CNS-2 is still open. |
 
@@ -48,7 +48,7 @@ CIF is not stored. The subject is the customer ULID.
 
 `./gradlew :services:consent-service:test jacocoTestCoverageVerification`
 
-The API test is the build-brief set AT-CNS-01 through AT-CNS-14. Module line coverage on that run is 84.59% (1257/1486). The gate for this service is 50% line.
+The API test is the build-brief set AT-CNS-01 through AT-CNS-14. Module line coverage on that run is 84.69% (1261/1489). The gate for this service is 50% line.
 
 ## Still outside this module
 

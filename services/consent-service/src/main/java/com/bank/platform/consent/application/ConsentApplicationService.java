@@ -366,7 +366,8 @@ public class ConsentApplicationService {
             .headOf(consentId)
             .orElseThrow(() -> new ConsentRefusal("RESOURCE_NOT_FOUND", "consent was not found"));
     if (customerId != null && !customerId.equals(head.customerId())) {
-      security.subjectMismatch(actorId, journeyId == null ? "-" : journeyId, consentId);
+      security.subjectMismatch(
+          actorId, journeyId == null ? "-" : journeyId, consentId, customerId, head.customerId());
       throw new ConsentRefusal("CONSENT_SUBJECT_MISMATCH", "consent subject does not match");
     }
     return consentView(head);

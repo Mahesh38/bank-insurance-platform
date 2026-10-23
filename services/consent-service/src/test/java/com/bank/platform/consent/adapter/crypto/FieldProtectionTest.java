@@ -78,15 +78,20 @@ class FieldProtectionTest {
     appender.start();
     logger.addAppender(appender);
     try {
-      new LoggingSecurityEventSink().subjectMismatch("rm\n1", "jour\rney", "consent");
+      new LoggingSecurityEventSink()
+          .subjectMismatch(
+              "rm\n1", "jour\rney", "consent", "01ARZ3NDEKTSV4RRFFQ69G5FAV", "9876543210");
       assertThat(appender.list).hasSize(1);
       assertThat(appender.list.get(0).getFormattedMessage())
           .isEqualTo(
-              "security_event=CONSENT_SUBJECT_MISMATCH actor=rm1 journey=journey consent=consent")
-          .doesNotContain("\n", "\r");
-      new LoggingSecurityEventSink().subjectMismatch(" ", null, "");
+              "security_event=CONSENT_SUBJECT_MISMATCH actor=rm1 journey=journey consent=consent"
+                  + " requestedSubject=01ARZ3NDEKTSV4RRFFQ69G5FAV recordedSubject=[redacted]")
+          .doesNotContain("\n", "\r", "9876543210");
+      new LoggingSecurityEventSink().subjectMismatch(" ", null, "", null, null);
       assertThat(appender.list.get(1).getFormattedMessage())
-          .isEqualTo("security_event=CONSENT_SUBJECT_MISMATCH actor=- journey=- consent=-");
+          .isEqualTo(
+              "security_event=CONSENT_SUBJECT_MISMATCH actor=- journey=- consent=-"
+                  + " requestedSubject=- recordedSubject=-");
     } finally {
       logger.detachAppender(appender);
     }

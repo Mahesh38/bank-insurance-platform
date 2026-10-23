@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20261023-dev | 2026-10-23 | human:repository-owner | Dev profile can complete Bank RM and Insurance RM/FLS login, unlock and password reset. FLS is the Insurance RM login. | SF1 | SC0 | MUST | FUNC | P2 / P2 | ADMITTED | [identity-authorization](../../../services/identity-authorization-service/README.md) · [detail](#sug-20261023-dev--dev-login-accounts) |
 | SUG-20261023-l31 | 2026-10-23 | human:repository-owner | Accept Login BRD v3.1 design text as the user-visible copy and replace the v1.0 login context everywhere it is still stated. Runtime Captcha/OTP/Forgot Password stays parked. | SF1 | SC0 | MUST | DOC | P2 / P1 | ADMITTED | [Login BRD v3.1](../../au-bank-insurance-platform/requirements/brd-detailed/Login_Module_BRD_Detailed_CONTEXT.md) · [detail](#sug-20261023-l31--login-brd-v31-design-text) |
 | SUG-20261022-sse | 2026-10-22 | scan:trivy | Time-box `.trivyignore` for CVE-2026-47890 (SSE + view fragments unused; no OSS 6.2 patch) so SCA/image scans can merge on PR #150; not a T4 waiver | SF0 | SC1 | MUST | SEC | P1 / P1 | ADMIT-BYPASS | [.trivyignore](../../../.trivyignore) · [RISK-022](./RISK-REGISTER.md) · [detail](#sug-20261022-sse--time-box-cve-2026-47890) |
 | SUG-20261022-rdy | 2026-10-22 | human:repository-owner | Build readiness for all 21 services: payment after UW approval; ADR-026 + hub/notification/audit schemas accepted; admin-created partner users; bank-only exception approvals; every business value configurable per line of business; strict compliance posture; finish all remaining code; per-service build briefs so 21 agents can build in parallel | SF2 | SC0 | MUST | ARCH | P1 / P1 | ADMIT-BYPASS | [round 2 decisions](../../platform/architecture-review/DECISIONS-2026-10-22.md) · [detail](#sug-20261022-rdy--build-readiness-for-all-21-services) |
@@ -162,6 +163,119 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20261023-dev · Dev login accounts
+
+```yaml
+# schema: triage-record
+id: SUG-20261023-dev
+raised_at: "2026-10-23"
+raised_by: "human:repository-owner"
+source: "Mahesh Narkar — develop the authentication flow so a user can be validated on the dev environment"
+input: >
+  Act as a developer. Interpret the documentation, use cases, BRD and sequence
+  diagrams into API contracts and Spring code. Complete the E2E authentication
+  flow so users can log in and reset passwords for the different use cases,
+  RM and FLS. Check whether that is already done. Develop the authentication
+  logic so a user can be validated on the dev environment without a flaw.
+
+context:
+  workstream: WS-2
+  current_phase: "Phase 1 — Foundation implementation"
+  canonical_stage: "L4/L6 — Foundation into first vertical slice"
+  current_objective: "IAM-P1"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: SUG-20261023-dev
+
+stage_fit:
+  code: SF1
+  rationale: "The v3.1 journey is on main. This makes the dev profile able to run it. It does not add a provider or a third login type."
+  target_stage: null
+  unpark_trigger: null
+
+scope:
+  code: SC0
+  business_scope: "Login, authentication and account recovery"
+  serves: ["DOC-005", "SUG-20261008-otp"]
+  failure_without_it: "A dev boot has no Bank RM or Insurance RM row, and the OTP is not known, so sign-in cannot be finished."
+  minimal: true
+  authority: "Login_Module_BRD_Detailed_CONTEXT.md sections 5 to 14"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "WS-2 Phase 1"
+  binds_when: "A developer validates login on the dev profile"
+  failure_without_it: "Dev sign-in stops at an unknown login id or an OTP nobody can read."
+  evidence_tier: E2
+  confidence: C4
+  evidence:
+    - "LoginJourneyController and PlatformLoginService already implement the v3.1 routes"
+    - "Lead BRD uses Insurance RM / FLS as one actor, not a third login type"
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: true
+    X5_stage_necessity: true
+
+action: ADMIT
+action_rationale: >
+  The owner directed the dev validation in this turn. The journey APIs stay as
+  they are. Dev profile seeds EMP001, a ready Insurance RM/FLS, and a first-time
+  Insurance RM/FLS, and pins the OTP. FreshnessCheck exit 1 is disclosed.
+  prod and uat still refuse the pin. No T4 signature is claimed. FLS is not a
+  new user type.
+
+classification:
+  type: FUNC
+  also: []
+  breakdown: STORY
+  risk_tier: T2
+  destination: "DevLoginAccountSeed and workforce-access-bff application-dev.yml"
+
+priority:
+  now: P2
+  at_target: P2
+  factors: { N: 2, S: 2, B: 1, R: 1, D: 1, E: 1 }
+  score: 12
+  matrix_default: P2
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "Dev cannot finish a login that the code already implements. The change does not alter prod."
+
+dependencies:
+  edges:
+    - type: DECISION
+      target: SUG-20261008-otp
+      relation: related_to
+      state: DONE
+  state: READY
+  enablement_count: 0
+  earliest_start: "2026-10-23"
+  cycles: none
+
+breakdown:
+  children: []
+  completion_definition: "With the dev profile, Bank RM EMP001 and Insurance RM/FLS fls.rm@example.test can sign in through captcha and OTP, and the first-time FLS can be unlocked. prod and uat do not load the accounts or the OTP pin."
+  not_included:
+    - "A third login user type named FLS"
+    - "SMS, email or image-Captcha provider"
+    - "Bank RM password reset"
+    - "Changing POST /api/v1/auth/login"
+    - "A T4 Security signature"
+    - "Editing current_phase or stage_status"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: SUG-20261023-dev
+  plan_id: null
+  status: ADMITTED
+  closed_reason: null
+
+resumed: "SUG-20261023-dev is the work of this turn. No T4 signature is claimed."
+```
 
 ### SUG-20261023-l31 · Login BRD v3.1 design text
 

@@ -263,6 +263,17 @@ public class BusinessUserEntity {
     this.updatedAt = Instant.now();
   }
 
+  public void assignName(String firstName, String lastName) {
+    this.firstName = firstName;
+    this.lastName = lastName;
+    this.updatedAt = Instant.now();
+  }
+
+  public void assignProviderSubject(String providerSubject) {
+    this.providerSubject = providerSubject;
+    this.updatedAt = Instant.now();
+  }
+
   public void replacePasswordHash(String passwordHash, Instant changedAt) {
     this.passwordHash = passwordHash;
     this.passwordChangedAt = changedAt;

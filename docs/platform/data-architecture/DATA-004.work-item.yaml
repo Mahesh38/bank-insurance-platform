@@ -1,3 +1,9 @@
+# AMENDED 2026-10-21 by DB-DEC-0005 (owner HUMAN ratification): DynamoDB is no longer an empty
+# access list. quotation-service / proposal-service each own one DynamoDB table for PRE-PAYMENT
+# working state ({env}-quotation-working, {env}-proposal-working). Journey, Audit, Payment and all
+# other contexts remain Aurora PostgreSQL. Acceptance criteria below that say "DynamoDB has an empty
+# access list" / "no Dynamo table in the inventory" read as "only the two DB-DEC-0005 tables".
+# See docs/platform/data-architecture/DB-DEC-0005-dynamodb-working-payload.md.
 # schema: work-item
 id: DATA-004
 origin:

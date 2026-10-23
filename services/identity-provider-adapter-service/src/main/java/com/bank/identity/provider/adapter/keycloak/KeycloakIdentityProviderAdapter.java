@@ -1,5 +1,8 @@
 package com.bank.identity.provider.adapter.keycloak;
 
+import com.bank.common.error.ErrorCodes;
+import com.bank.common.error.ServiceErrors;
+import com.bank.common.error.ServiceException;
 import com.bank.identity.provider.config.KeycloakProperties;
 import com.bank.identity.provider.domain.IdentityProviderPort;
 import java.net.URI;
@@ -13,6 +16,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -28,12 +32,17 @@ public class KeycloakIdentityProviderAdapter implements IdentityProviderPort {
   private final KeycloakProperties properties;
   private final RestClient restClient;
   private final JwtDecoder jwtDecoder;
+  private final ServiceErrors errors;
 
   public KeycloakIdentityProviderAdapter(
-      KeycloakProperties properties, RestClient restClient, JwtDecoder jwtDecoder) {
+      KeycloakProperties properties,
+      RestClient restClient,
+      JwtDecoder jwtDecoder,
+      ServiceErrors errors) {
     this.properties = properties;
     this.restClient = restClient;
     this.jwtDecoder = jwtDecoder;
+    this.errors = errors;
   }
 
   @Override
@@ -184,14 +193,14 @@ public class KeycloakIdentityProviderAdapter implements IdentityProviderPort {
   private ProviderSession sessionFromTokens(Map<String, Object> tokens, String expectedNonce) {
     String accessToken = string(tokens, "access_token");
     String idToken = optionalString(tokens, "id_token");
-    Jwt verifiedIdToken = idToken == null ? null : jwtDecoder.decode(idToken);
+    Jwt verifiedIdToken = idToken == null ? null : decodeIdToken(idToken);
     if (verifiedIdToken != null && !verifiedIdToken.getAudience().contains(properties.clientId())) {
-      throw new IllegalStateException("Provider ID token audience is invalid");
+      throw authenticationFailed("Provider ID token audience is invalid");
     }
     if (expectedNonce != null
         && (verifiedIdToken == null
             || !expectedNonce.equals(verifiedIdToken.getClaimAsString("nonce")))) {
-      throw new IllegalStateException("Provider ID token nonce is invalid");
+      throw authenticationFailed("Provider ID token nonce is invalid");
     }
     Map<String, Object> claims =
         Objects.requireNonNull(
@@ -203,7 +212,7 @@ public class KeycloakIdentityProviderAdapter implements IdentityProviderPort {
                 .body(MAP_TYPE),
             "Provider returned an empty user-info response");
     if (verifiedIdToken != null && !string(claims, "sub").equals(verifiedIdToken.getSubject())) {
-      throw new IllegalStateException("Provider subject mismatch");
+      throw authenticationFailed("Provider subject mismatch");
     }
     long expiresIn = ((Number) tokens.getOrDefault("expires_in", 300)).longValue();
     return new ProviderSession(
@@ -215,6 +224,33 @@ public class KeycloakIdentityProviderAdapter implements IdentityProviderPort {
         idToken,
         Instant.now().plusSeconds(expiresIn),
         Map.copyOf(claims));
+  }
+
+  private Jwt decodeIdToken(String idToken) {
+    try {
+      return jwtDecoder.decode(idToken);
+    } catch (JwtException exception) {
+      throw authenticationFailed("Provider ID token failed verification", exception);
+    }
+  }
+
+  // A token that fails audience, nonce, subject or signature checks is a rejected login (typed
+  // 401 the BFF relays), not a server fault (READINESS-REVIEW §3.7).
+  private ServiceException authenticationFailed(String reason) {
+    return authenticationFailed(reason, null);
+  }
+
+  private ServiceException authenticationFailed(String reason, Throwable cause) {
+    var builder =
+        errors
+            .error(ErrorCodes.AUTHENTICATION_FAILED)
+            .component("KeycloakIdentityProviderAdapter")
+            .operation("sessionFromTokens")
+            .reason(reason);
+    if (cause != null) {
+      builder = builder.cause(cause);
+    }
+    return builder.build();
   }
 
   private String adminAccessToken() {

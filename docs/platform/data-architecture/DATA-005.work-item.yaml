@@ -1,3 +1,9 @@
+# AMENDED 2026-10-21 by DB-DEC-0005 (owner HUMAN ratification): the working payload store is
+# DynamoDB ({env}-quotation-working / {env}-proposal-working), NOT Aurora quote_working /
+# proposal_working BYTEA. Wherever this item says quote_working / proposal_working / "Postgres BYTEA
+# not Dynamo", read the DynamoDB working item (schemas/20-dynamodb-working-payload.md). Ownership,
+# JSON-until-payment, materialise on RECONCILED and retention intent are unchanged; post-payment
+# answers / status changes are structured rows (D-025: proposal_answer, proposal_status_history).
 # schema: work-item
 id: DATA-005
 origin:

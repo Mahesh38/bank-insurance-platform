@@ -1,0 +1,433 @@
+openapi: 3.1.0
+info:
+  title: identity-authorization-service — business identity and Policy Decision Point
+  version: 1.0.0-r0
+  summary: Maps provider logins to business users, answers authorization decisions, creates partner users (bank admin, provisioned at creation).
+  description: |
+    **Status:** AI-DRAFTED from code (ADR-027), awaiting Deepali (security) and engineering review.
+
+    Authoritative wire contract for `services/identity-authorization-service` (port 8083,
+    `service-id: authz`, layer L5, boundary INTERNAL). Derived from
+    `com.bank.identity.authz.api.IdentityAuthorizationController` and the application services.
+    Companion design: `docs/platform/contracts/identity-authorization-service/LLD.md`.
+
+    **Path note.** The decision endpoint is `POST /internal/v1/authorization/decisions` (the code
+    path, called by the BFF and lead-service). The HLD name `POST /internal/v1/authorize`
+    (R0-HLD §5.3) is **superseded** by this contract and is not served.
+
+    **Caller authentication (fix-pending — change in progress).** Every `/internal/v1/**` call
+    must carry `X-Internal-Service-Key`. There is **one key per calling service**
+    (`identity.internal-auth.callers`: `workforce-access-bff` ← `IDENTITY_AUTHZ_BFF_INTERNAL_KEY`,
+    `lead-service` ← `IDENTITY_AUTHZ_LEAD_INTERNAL_KEY`; no defaults under prod); the key
+    identifies the caller. Missing or unknown key → `401 UNAUTHORIZED`
+    (READINESS-REVIEW §3.7 "identity-authorization has no caller authentication").
+
+    **Maker / checker from the authenticated principal.** `X-Actor-Id` is believed only when the
+    authenticated caller is an *actor-caller* (`identity.internal-auth.actor-callers`: the BFF,
+    which takes it from a vault-resolved session). Another authenticated caller asserting an
+    actor → `403 FORBIDDEN`; missing or non-UUID `X-Actor-Id` → `401 UNAUTHORIZED`. The creator
+    must hold `partner_user.create` (and, when the maker-checker step is configured on, the
+    checker `partner_user.approve`), PDP-checked and scoped to the partner's insurer.
+
+    **Partner onboarding (DECISIONS-2026-10-22 E5).** A bank admin creates the partner user
+    directly; provisioning into Keycloak is queued in the same transaction and the user becomes
+    `ACTIVE` once the provider account exists. The maker-checker step is retired as the default
+    and kept behind `identity.partner-onboarding.approval-required` (env
+    `IDENTITY_PARTNER_ONBOARDING_APPROVAL_REQUIRED`, default `false`). With it off, the approve
+    endpoint answers `409 ILLEGAL_TRANSITION` ("approval not required").
+
+    **Partner-representative prohibitions (E5 / E6).** The PDP refuses to any
+    `INSURER_REPRESENTATIVE` subject every action listed in
+    `identity.authorization.partner-representative.prohibited-actions` (seed:
+    `partner_user.create`, `partner_user.bulk_import`) or ending in a suffix from
+    `prohibited-action-suffixes` (seed: `.approve`) — before any role or entitlement is consulted,
+    so not even an explicit or `*` grant gives a partner an approval. Permission
+    `lead.exception.approve` (E6, Flyway V5) is seeded for `BANK_ADMIN` only.
+
+    Errors are platform problem+json, **internal** rendering (may carry `origin` and
+    `diagnostic`). Codes per response are in `x-error-codes`.
+servers:
+  - url: http://identity-authorization-service:8083/internal/v1
+    description: Cluster-private
+  - url: http://localhost:8083/internal/v1
+    description: Local
+tags:
+  - name: Identities
+  - name: Authorization
+  - name: Partner users
+security:
+  - internalServiceKey: []
+
+paths:
+  /identities/resolve:
+    post:
+      tags: [Identities]
+      operationId: resolveIdentity
+      summary: Provider identity → business user (creates a bank employee on first login).
+      description: |
+        One transaction on schema `identity`:
+        1. Find `business_user` by `(provider, provider_subject)`.
+        2. Found → refresh `username`, `email`, `employee_id`; status unchanged (a SUSPENDED user
+           stays suspended — the BFF refuses login).
+        3. Not found and `userType = BANK_EMPLOYEE` → insert with `status = ACTIVE`,
+           `policy_version = 1` (just-in-time; AD already proved an active employee). **No roles**
+           are granted — every decision is `DEFAULT_DENY` until roles exist.
+        4. Not found and `INSURER_REPRESENTATIVE` → `403 FORBIDDEN` (partners must be created by a
+           bank admin and provisioned first).
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ResolveIdentityRequest' }
+            example: { provider: BANK_AD, providerSubject: EMP001, userType: BANK_EMPLOYEE, username: EMP001, email: emp001@example.test, employeeId: EMP001 }
+      responses:
+        '200':
+          description: The business user.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ResolvedIdentityResponse' }
+        '401': { $ref: '#/components/responses/CallerUnauthenticated' }
+        '403':
+          description: Unknown partner identity — not created / provisioned before first login.
+          x-error-codes: [FORBIDDEN]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '422': { $ref: '#/components/responses/BeanValidation' }
+
+  /authorization/decisions:
+    post:
+      tags: [Authorization]
+      operationId: decide
+      summary: Allow / deny with reason and matched policy (the PDP).
+      description: |
+        A deny is **`200` with `allowed: false`** — the caller converts it to its own `403`.
+        Facts are loaded per call (`business_user`, `user_role`⨝`role_permission`, `entitlement`,
+        `user_branch_assignment`, `certification`, each filtered by validity window).
+
+        Evaluation order (`AuthorizationPolicyEvaluator`, first match wins):
+        | # | Check | reasonCode / matchedPolicy |
+        |---|---|---|
+        | 0 | Subject unknown | deny `UNKNOWN_SUBJECT` / `default-deny`, policyVersion 0 |
+        | 1 | Subject not ACTIVE or outside valid_from/valid_until | deny `ACCOUNT_NOT_ACTIVE` / `lifecycle` |
+        | 2 | Partner and resource.insurerCode ≠ subject's | deny `CROSS_INSURER_ACCESS` / `tenant-boundary` |
+        | 2a | Partner and action is prohibited for partner representatives (configured list / suffix, e.g. `*.approve`, `partner_user.create`) — E5 / E6 | deny `PARTNER_ACTION_PROHIBITED` / `partner-prohibited-action` |
+        | 3 | DENY entitlement matches action + scope | deny `EXPLICIT_DENY` / `entitlement:<scope>:<value>` |
+        | 4 | resource.branchCode not in subject's branches (unless GLOBAL `*` grant) | deny `BRANCH_OUT_OF_SCOPE` / `branch-boundary` |
+        | 5 | Partner on `lead.*` / `proposal.*` and not partnerVisible | deny `RESOURCE_NOT_SHARED_WITH_PARTNER` / `partner-sharing` |
+        | 6 | regulatedAction, bank employee, no valid mandatory certification | deny `MANDATORY_CERTIFICATION_INVALID` / `certification-gate` |
+        | 7 | GRANT entitlement matches | allow `DIRECT_SCOPED_GRANT` / `entitlement:<scope>:<value>` |
+        | 8 | Role grants the action (or `*`) | allow `ROLE_GRANT` / `role-permission` |
+        | 9 | Nothing matched | deny `DEFAULT_DENY` / `default-deny` |
+
+        Caller contract (S-02): 300 ms budget, no retry, fail closed.
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DecisionRequest' }
+            example:
+              subjectId: 7f0c2a6e-2d0b-4b8e-9a7d-3c1f5e2b9a10
+              action: lead.assign
+              resource: { type: lead, id: 01JQX4K7R8M2N3P5Q6R7S8T9V0, branchCode: BR-MUM-001, insurerCode: null, ownerId: null, assignedUserIds: [], partnerVisible: false, regulatedAction: false }
+      responses:
+        '200':
+          description: The decision (allow or deny).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Decision' }
+              example: { allowed: false, reasonCode: BRANCH_OUT_OF_SCOPE, matchedPolicy: branch-boundary, policyVersion: 3 }
+        '401': { $ref: '#/components/responses/CallerUnauthenticated' }
+        '422': { $ref: '#/components/responses/BeanValidation' }
+
+  /partner-users:
+    post:
+      tags: [Partner users]
+      operationId: createPartnerUser
+      summary: A bank admin creates a partner user; provisioning into Keycloak is queued at creation (E5).
+      x-decision: DECISIONS-2026-10-22 E5
+      description: |
+        Creator = authenticated actor (see API description). PDP `partner_user.create` with resource
+        insurer = `insurerCode` (deny → mapped 403; any `INSURER_REPRESENTATIVE` is refused with
+        `FORBIDDEN` — the action is prohibited for partners). Then one transaction:
+        1. Reject a duplicate `username` (`409 CONFLICT`).
+        2. Insert `business_user` (`INSURER_REPRESENTATIVE`, `PENDING`, policy_version 1,
+           `created_by` = the creator).
+        3. **Default (`identity.partner-onboarding.approval-required=false`):** insert
+           `outbox_event` `IDENTITY_PROVISIONING_REQUESTED {businessUserId, requestedBy}`; no
+           `approval_request`. The provisioning dispatcher creates the Keycloak account and sets
+           the user **`ACTIVE`**.
+           **Approval required (`true`):** insert `approval_request` (`PARTNER_USER_CREATE`,
+           `PENDING`, `maker_id` = creator) instead; provisioning is queued on approval.
+        4. Insert `outbox_event` `PARTNER_USER_CREATED {businessUserId, insurerCode, createdBy,
+           approvalRequired, approvalId}` — the business audit record of who created whom
+           (ADR-026 transport).
+
+        `202` because the provider account is created asynchronously: `status` is `PENDING` until
+        provisioning succeeds (with `identity.provisioning.enabled=false` the partner stays
+        `PENDING` and cannot log in).
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreatePartnerUserRequest' }
+      responses:
+        '202':
+          description: Created; provisioning queued (or, with approval required, awaiting a checker).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CreatedPartnerUser' }
+              examples:
+                direct:
+                  summary: Default — no approval step
+                  value: { userId: 3b1d6c2a-8f4e-4c1a-9e2b-7d5f0a1c3e9b, approvalId: null, status: PENDING, approvalRequired: false }
+                approvalRequired:
+                  summary: identity.partner-onboarding.approval-required=true
+                  value: { userId: 3b1d6c2a-8f4e-4c1a-9e2b-7d5f0a1c3e9b, approvalId: 9c2e4a7b-1d3f-4e6a-8b0c-2f5d7e9a1b3c, status: PENDING, approvalRequired: true }
+        '401': { $ref: '#/components/responses/ActorUnauthenticated' }
+        '403': { $ref: '#/components/responses/ActorForbidden' }
+        '409':
+          description: Username already exists.
+          x-error-codes: [CONFLICT]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '422': { $ref: '#/components/responses/BeanValidation' }
+
+  /approval-requests/{approvalId}/approve:
+    post:
+      tags: [Partner users]
+      operationId: approvePartnerUser
+      summary: Checker approves (only when the maker-checker step is configured on); queues IdP provisioning.
+      x-decision: DECISIONS-2026-10-22 E5 — disabled by default
+      description: |
+        **Disabled by default (E5).** With `identity.partner-onboarding.approval-required=false`
+        (the default) this endpoint answers **`409 ILLEGAL_TRANSITION`** ("approval not required")
+        before reading anything. With it `true`, one transaction: `SELECT … FOR UPDATE` the approval (unknown → `404`) → must be `PENDING`
+        (else `409 ILLEGAL_TRANSITION`) → **checker ≠ maker** (else `403 FORBIDDEN`) → user
+        `policy_version + 1` → approval `APPROVED` (`checker_id`, `decided_at`) → insert
+        `outbox_event` `IDENTITY_PROVISIONING_REQUESTED {businessUserId}`.
+
+        **The user's status is not changed here.** `targetStatus` in the response is the user's
+        status after approval, which is **`PENDING`**. The user becomes `ACTIVE` only when the
+        provisioning dispatcher (enabled by `identity.provisioning.enabled=true`, every 5 s, < 10
+        attempts) has created the Keycloak account and stored its `provider_subject`. With
+        provisioning disabled the partner stays `PENDING` and cannot log in.
+
+        Checker = authenticated actor; after the maker ≠ checker check the checker needs PDP
+        `partner_user.approve` on the target user scoped to its insurer (deny → mapped 403).
+      parameters:
+        - name: approvalId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Approved; provisioning queued.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApprovalResponse' }
+              example: { approvalId: 9c2e4a7b-1d3f-4e6a-8b0c-2f5d7e9a1b3c, targetStatus: PENDING }
+        '400':
+          description: '`approvalId` not a UUID — Spring default 400, not yet a platform envelope.'
+        '401': { $ref: '#/components/responses/ActorUnauthenticated' }
+        '403':
+          description: Maker cannot approve their own request (`FORBIDDEN`); caller may not assert an actor (`FORBIDDEN`); checker is a partner representative (`FORBIDDEN`, prohibited action) or lacks `partner_user.approve` (mapped PDP deny).
+          x-error-codes: [FORBIDDEN, DEFAULT_DENY, EXPLICIT_DENY, ACCOUNT_SUSPENDED, CROSS_INSURER_DENIED]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '404':
+          description: Unknown approval request, or its target user no longer exists.
+          x-error-codes: [RESOURCE_NOT_FOUND]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '409':
+          description: Approval is not required (`identity.partner-onboarding.approval-required=false`, the default), or the approval request is not `PENDING`.
+          x-error-codes: [ILLEGAL_TRANSITION]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+
+components:
+  securitySchemes:
+    internalServiceKey:
+      type: apiKey
+      in: header
+      name: X-Internal-Service-Key
+      description: Per-caller internal key (`identity.internal-auth.callers`); identifies the calling service. No default under the prod profile. Target transport identity is Istio STRICT mTLS (ADR-023).
+      x-status: fix-pending
+      x-review-finding: READINESS-REVIEW §3.7 — identity-authorization has no caller authentication; any in-cluster caller can resolve, create or approve partners with a free-text X-Actor-Id.
+
+  parameters:
+    CorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: false
+      schema: { type: string, format: uuid }
+    ActorId:
+      name: X-Actor-Id
+      in: header
+      required: false
+      description: Business user id (UUID) of the human maker / checker, asserted only by an actor-caller (the BFF, from the session). Never taken from a body. Absent / not a UUID → 401 UNAUTHORIZED.
+      schema: { type: string, format: uuid }
+
+  responses:
+    CallerUnauthenticated:
+      description: '`X-Internal-Service-Key` missing or wrong.'
+      x-error-codes: [UNAUTHORIZED]
+      x-status: fix-pending
+      x-review-finding: READINESS-REVIEW §3.7 (PDP caller auth) — filter being added; today every call is accepted.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    BeanValidation:
+      description: Bean validation (`VALIDATION_ERROR`, per-field `MISSING_REQUIRED_FIELD`) or unparseable body / unknown enum (`INVALID_REQUEST`).
+      x-error-codes: [VALIDATION_ERROR, INVALID_REQUEST]
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    ActorUnauthenticated:
+      description: '`X-Internal-Service-Key` missing / unknown, or `X-Actor-Id` missing / not a UUID.'
+      x-error-codes: [UNAUTHORIZED]
+      x-status: fix-pending
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    ActorForbidden:
+      description: The authenticated caller may not assert an actor (`FORBIDDEN`), the creator is a partner representative (`FORBIDDEN`, prohibited action — E5), or lacks `partner_user.create` (mapped PDP deny).
+      x-error-codes: [FORBIDDEN, DEFAULT_DENY, EXPLICIT_DENY, ACCOUNT_SUSPENDED, CROSS_INSURER_DENIED]
+      x-status: fix-pending
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+
+  schemas:
+    Problem:
+      type: object
+      description: Platform problem+json, internal rendering.
+      required: [type, title, status, code]
+      properties:
+        type: { type: string, default: about:blank }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        code: { type: string }
+        category: { type: string, enum: [VALIDATION, AUTHENTICATION, AUTHORIZATION, NOT_FOUND, CONFLICT, COMPLIANCE_GATE, UPSTREAM, CONFIG, RATE_LIMIT, INTERNAL] }
+        retryable: { type: boolean }
+        upstreamCode: { type: [string, 'null'] }
+        incidentId: { type: string }
+        correlationId: { type: [string, 'null'] }
+        service: { type: string, examples: [authz] }
+        timestamp: { type: string, format: date-time }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              code: { type: string }
+              message: { type: string }
+              field: { type: [string, 'null'] }
+              extensions: { type: [object, 'null'], additionalProperties: true }
+        origin:
+          type: [object, 'null']
+          properties:
+            service: { type: string }
+            code: { type: string }
+            layer: { type: string }
+        diagnostic:
+          type: [object, 'null']
+          additionalProperties: true
+
+    UserType:
+      type: string
+      enum: [BANK_EMPLOYEE, INSURER_REPRESENTATIVE]
+    UserStatus:
+      type: string
+      enum: [PENDING, ACTIVE, SUSPENDED, DISABLED, EXPIRED]
+
+    ResolveIdentityRequest:
+      type: object
+      required: [provider, providerSubject, userType, username]
+      properties:
+        provider: { type: string, minLength: 1, description: '`BANK_AD` or `KEYCLOAK` (set by the BFF).', examples: [BANK_AD, KEYCLOAK] }
+        providerSubject: { type: string, minLength: 1, description: 'Employee id for AD; Keycloak `sub` for partners.' }
+        userType: { $ref: '#/components/schemas/UserType' }
+        username: { type: string, minLength: 1 }
+        email: { type: [string, 'null'] }
+        employeeId: { type: [string, 'null'] }
+    ResolvedIdentityResponse:
+      type: object
+      required: [businessUserId, status, policyVersion, userType]
+      properties:
+        businessUserId: { type: string, format: uuid }
+        status: { $ref: '#/components/schemas/UserStatus' }
+        policyVersion: { type: integer, format: int64 }
+        userType: { $ref: '#/components/schemas/UserType' }
+        insurerCode: { type: [string, 'null'] }
+
+    Resource:
+      type: object
+      description: Nested fields are not bean-validated; absent values simply do not match scoped rules.
+      properties:
+        type: { type: [string, 'null'], description: 'e.g. `lead`, `proposal`. Used with `id` for RESOURCE-scoped entitlements (`type:id`).' }
+        id: { type: [string, 'null'], description: 'Null when the resource does not exist yet (create).' }
+        branchCode: { type: [string, 'null'], description: 'Branch boundary.' }
+        insurerCode: { type: [string, 'null'], description: 'Tenant boundary for partners.' }
+        ownerId: { type: [string, 'null'] }
+        assignedUserIds: { type: [array, 'null'], uniqueItems: true, items: { type: string } }
+        partnerVisible: { type: boolean, default: false }
+        regulatedAction: { type: boolean, default: false, description: 'Triggers the certification gate for bank employees.' }
+    DecisionRequest:
+      type: object
+      required: [subjectId, action, resource]
+      properties:
+        subjectId: { type: string, format: uuid, description: 'Business user id.' }
+        action: { type: string, minLength: 1, description: 'Permission code, e.g. `lead.create`, `lead.assign`, `lead.exception.approve` (E6: bank roles only, branch-scoped — send `branchCode`), `quote.create`, `proposal.submit`.' }
+        resource: { $ref: '#/components/schemas/Resource' }
+    Decision:
+      type: object
+      required: [allowed, reasonCode, matchedPolicy, policyVersion]
+      properties:
+        allowed: { type: boolean }
+        reasonCode:
+          type: string
+          enum: [UNKNOWN_SUBJECT, ACCOUNT_NOT_ACTIVE, CROSS_INSURER_ACCESS, PARTNER_ACTION_PROHIBITED, EXPLICIT_DENY, BRANCH_OUT_OF_SCOPE, RESOURCE_NOT_SHARED_WITH_PARTNER, MANDATORY_CERTIFICATION_INVALID, DIRECT_SCOPED_GRANT, ROLE_GRANT, DEFAULT_DENY]
+        matchedPolicy: { type: string, examples: [lifecycle, tenant-boundary, partner-prohibited-action, branch-boundary, partner-sharing, certification-gate, role-permission, default-deny, 'entitlement:BRANCH:BR-MUM-001'] }
+        policyVersion: { type: integer, format: int64, description: 'Subject''s policy version; 0 for UNKNOWN_SUBJECT.' }
+
+    CreatePartnerUserRequest:
+      type: object
+      required: [username, email, insurerCode]
+      properties:
+        username: { type: string, minLength: 1 }
+        email: { type: string, format: email, minLength: 1 }
+        firstName: { type: [string, 'null'] }
+        lastName: { type: [string, 'null'] }
+        insurerCode: { type: string, minLength: 1 }
+    CreatedPartnerUser:
+      type: object
+      required: [userId, approvalId, status, approvalRequired]
+      properties:
+        userId: { type: string, format: uuid }
+        approvalId: { type: [string, 'null'], format: uuid, description: 'Null unless the maker-checker step is configured on.' }
+        status: { type: string, const: PENDING, description: '`ACTIVE` follows asynchronously once provisioning succeeds.' }
+        approvalRequired: { type: boolean, description: 'Echoes `identity.partner-onboarding.approval-required`.' }
+    ApprovalResponse:
+      type: object
+      required: [approvalId, targetStatus]
+      properties:
+        approvalId: { type: string, format: uuid }
+        targetStatus:
+          $ref: '#/components/schemas/UserStatus'
+          description: The user's status after approval — `PENDING` until provisioning completes.

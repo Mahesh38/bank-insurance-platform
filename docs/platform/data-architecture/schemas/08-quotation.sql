@@ -1,67 +1,35 @@
 -- DESIGN DDL — Quotation SoR. Apply at S09 in the owning Quotation service Flyway.
 -- Adapter job/poll rows stay in bank_persistence. This schema is the bank-owned quote/offer.
 --
--- DATA-005: pre-payment writes go to quote_working (encrypted JSON envelope +
--- extracted control columns). Structured quote/offer rows are INSERT-only after
--- Payment RECONCILED (materialize). Journey never opens this schema.
-
--- Working envelope — the only quote write path until materialized_at is set.
-CREATE TABLE quotation.quote_working (
-    quote_id                    CHAR(26)                 PRIMARY KEY,
-    lead_id                     CHAR(26)                 NOT NULL,
-    journey_id                  CHAR(26)                 NOT NULL,
-    customer_id                 CHAR(26)                 NOT NULL,
-    suitability_id              CHAR(26)                 NOT NULL,
-    consent_id                  CHAR(26)                 NOT NULL,
-    lob                         VARCHAR(16)              NOT NULL,
-    mode                        VARCHAR(16)              NOT NULL,
-    category                    VARCHAR(32)              NOT NULL,
-    state                       VARCHAR(24)              NOT NULL,
-    valid_until                 TIMESTAMP WITH TIME ZONE,
-    provider                    VARCHAR(20),
-    provider_job_id             VARCHAR(36),
-    selected_offer_id           CHAR(26),
-    selected_premium_amount     NUMERIC(15, 2),
-    selected_tax_amount         NUMERIC(15, 2),
-    selected_sum_assured        NUMERIC(15, 2),
-    selected_insurer_code       VARCHAR(50),
-    selected_product_code       VARCHAR(100),
-    payload_enc                 BYTEA                    NOT NULL,
-    encryption_key_id           VARCHAR(50)              NOT NULL,
-    payload_schema_version      SMALLINT                 NOT NULL DEFAULT 1,
-    config_version_ref          VARCHAR(64)              NOT NULL,
-    materialized_at             TIMESTAMP WITH TIME ZONE,
-    retain_until                DATE,
-    created_at                  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-    updated_at                  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-    version                     BIGINT                   NOT NULL DEFAULT 0,
-    CONSTRAINT ck_qwork_lob CHECK (lob IN ('LIFE', 'HEALTH', 'GENERAL')),
-    CONSTRAINT ck_qwork_mode CHECK (mode IN ('SINGLE', 'MULTI')),
-    CONSTRAINT ck_qwork_state CHECK (state IN (
-        'REQUESTED', 'IN_PROGRESS', 'QUOTED', 'PARTIALLY_QUOTED', 'SELECTED',
-        'CONVERTED', 'EXPIRED', 'FAILED', 'TIMED_OUT', 'REJECTED')),
-    CONSTRAINT ck_qwork_selected CHECK (
-        selected_offer_id IS NULL
-        OR (selected_premium_amount > 0 AND selected_sum_assured > 0
-            AND selected_insurer_code IS NOT NULL AND selected_product_code IS NOT NULL))
-);
-
-CREATE INDEX ix_qwork_journey ON quotation.quote_working (journey_id);
-CREATE INDEX ix_qwork_state ON quotation.quote_working (state, valid_until)
-    WHERE materialized_at IS NULL;
-CREATE UNIQUE INDEX ux_qwork_open_journey
-    ON quotation.quote_working (journey_id)
-    WHERE state NOT IN ('CONVERTED', 'EXPIRED', 'FAILED', 'TIMED_OUT', 'REJECTED')
-      AND materialized_at IS NULL;
+-- DB-DEC-0005 (supersedes the DB-DEC-0004 store): pre-payment quote state lives in the
+-- DynamoDB table {env}-quotation-working (see 20-dynamodb-working-payload.md). Structured
+-- quote/offer rows below are INSERT-only after Payment RECONCILED (materialize, ON CONFLICT
+-- DO NOTHING). idempotency_record here dedupes materialize events by eventId.
+-- Journey never opens this schema.
+--
+-- 2026-10-21 (D8 / D-025, READINESS-REVIEW §3.6, schemas/20 §6 rows 3 and 5):
+--   * customer_id CHAR(26) ULID (D3).
+--   * selected_offer_id on quote (D8 "which one was selected").
+--   * Quote stays SELECTED through payment and becomes CONVERTED at materialise (D8): the row is
+--     inserted with state = 'CONVERTED'.
+--   * offer_state vocabulary is the STORE vocabulary: QUOTED | SELECTED | NOT_SELECTED | INVALID.
+--     The API value AVAILABLE is presentation only and maps to QUOTED before materialise; after
+--     materialise every offer is SELECTED, NOT_SELECTED or INVALID (D8: invalid offers are kept).
+--   * INVALID offers may carry NULL / non-positive premium or sum assured (ck_offer_positive relaxed).
+--   * Column names premium_frequency / premium_paying_term / cover_term are canonical; the envelope
+--     and API names frequency / ppt / term map onto them (mapping table in api-reference/data).
+--   * retain_until for evidence retention (RET-7Y from policy end / journey terminal).
 
 -- Structured SoR — populated only by materialize after Payment RECONCILED.
 CREATE TABLE quotation.quote (
     quote_id            CHAR(26)                 PRIMARY KEY,
     lead_id             CHAR(26)                 NOT NULL,
     journey_id          CHAR(26)                 NOT NULL,
-    customer_id         CHAR(26)                 NOT NULL,
+    customer_id         CHAR(26)                 NOT NULL,      -- D3: platform ULID
     suitability_id      CHAR(26)                 NOT NULL,
-    consent_id          CHAR(26)                 NOT NULL,
+    evaluation_id       CHAR(26)                 NOT NULL,      -- D4: suitability.evaluation used by the gate
+    consent_id          CHAR(26)                 NOT NULL,      -- D5: BEFORE_MULTI_QUOTE consent (CNS-QSH)
+    product_class       VARCHAR(16)              NOT NULL,      -- D4: class the gate checked
     lob                 VARCHAR(16)              NOT NULL,
     mode                VARCHAR(16)              NOT NULL,
     category            VARCHAR(32)              NOT NULL,
@@ -69,13 +37,21 @@ CREATE TABLE quotation.quote (
     members_enc         BYTEA                    NOT NULL,
     encryption_key_id   VARCHAR(50)              NOT NULL,
     state               VARCHAR(24)              NOT NULL,
+    selected_offer_id   CHAR(26),                               -- D8; logical FK to offer (inserted in same tx)
     valid_until         TIMESTAMP WITH TIME ZONE,
     provider            VARCHAR(20),
     provider_job_id     VARCHAR(36),
     config_version_ref  VARCHAR(64)              NOT NULL,
+    materialized_event_id CHAR(26),                             -- PaymentReconciled eventId (ADR-025)
+    materialized_at     TIMESTAMP WITH TIME ZONE,
+    retain_until        DATE,
     created_at          TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     updated_at          TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     version             BIGINT                   NOT NULL DEFAULT 0,
+    CONSTRAINT ck_quote_class CHECK (product_class IN ('TERM', 'SAVINGS', 'ULIP')),
+    -- D8: a materialised quote is CONVERTED and names its selected offer.
+    CONSTRAINT ck_quote_converted_selected CHECK (
+        state <> 'CONVERTED' OR selected_offer_id IS NOT NULL),
     CONSTRAINT ck_quote_lob CHECK (lob IN ('LIFE', 'HEALTH', 'GENERAL')),
     CONSTRAINT ck_quote_mode CHECK (mode IN ('SINGLE', 'MULTI')),
     CONSTRAINT ck_quote_state CHECK (state IN (
@@ -92,10 +68,10 @@ CREATE TABLE quotation.offer (
     insurer_code        VARCHAR(50)              NOT NULL,
     product_code        VARCHAR(100)             NOT NULL,
     product_name        VARCHAR(200)             NOT NULL,
-    premium_amount      NUMERIC(15, 2)           NOT NULL,
-    premium_frequency   VARCHAR(16)              NOT NULL,
+    premium_amount      NUMERIC(15, 2),                         -- NULL allowed only for INVALID
+    premium_frequency   VARCHAR(16),                            -- API/envelope 'frequency'
     tax_amount          NUMERIC(15, 2)           NOT NULL DEFAULT 0,
-    sum_assured         NUMERIC(15, 2)           NOT NULL,
+    sum_assured         NUMERIC(15, 2),                         -- NULL allowed only for INVALID
     cover_term          INTEGER,
     premium_paying_term INTEGER,
     out_of_bound        BOOLEAN                  NOT NULL DEFAULT false,
@@ -104,7 +80,11 @@ CREATE TABLE quotation.offer (
     created_at          TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     CONSTRAINT ck_offer_state CHECK (offer_state IN (
         'QUOTED', 'SELECTED', 'NOT_SELECTED', 'INVALID')),
-    CONSTRAINT ck_offer_positive CHECK (premium_amount > 0 AND sum_assured > 0)
+    -- READINESS-REVIEW §3.6 / schemas/20 §6 row 3: INVALID offers are kept (D8) with whatever the
+    -- insurer returned; every other state needs a positive premium, sum assured and frequency.
+    CONSTRAINT ck_offer_positive CHECK (
+        offer_state = 'INVALID'
+        OR (premium_amount > 0 AND sum_assured > 0 AND premium_frequency IS NOT NULL))
 );
 
 -- INV-QUO-05: at most one SELECTED offer per quote.

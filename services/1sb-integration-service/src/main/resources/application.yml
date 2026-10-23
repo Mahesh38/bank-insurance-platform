@@ -43,6 +43,8 @@ bank:
 
   persistence:
     base-url: ${BANK_PERSISTENCE_BASE_URL:http://localhost:8081}
+    # Must equal bank-persistence-service persistence.internal-auth.shared-secret. Dev default only.
+    internal-service-key: ${BANK_PERSISTENCE_INTERNAL_KEY:local-persistence-internal-key}
 
 # AU-Bima-Platform client-credentials stay stub until Bearer attachment exists
 # (DEP-20260914-apg). token-mode=http fails startup on purpose. UAT token URL is

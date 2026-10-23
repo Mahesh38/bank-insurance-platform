@@ -1,0 +1,63 @@
+# BFF → lead-service (seam S-20)
+
+[← API reference home](../README.md)
+
+| | |
+|---|---|
+| **From → to** | `workforce-access-bff` (`HttpLeadGateway`, `LeadFacade`) → `lead-service` `/internal/v1/leads` |
+| **Style** | Synchronous; **2 s** read / 500 ms connect (`workforce.downstream.timeouts.lead`) |
+| **Principal** | `X-Actor-Id: <session.businessUserId>` on **every** call — the only source of the actor |
+| **Idempotency** | The app's `Idempotency-Key` on create is forwarded as a header; lead-service enforces it (`lead_lms.idempotency_record`). Optional until NIP-APP sends it. Duplicate business create is also blocked by the unfinished-lead rule |
+| **Authorization** | BFF asks the PDP, and lead-service asks again itself (`INV-ACT-01`) before create and assign |
+| **Mode switch** | `LEAD_DOWNSTREAM_MODE=stub` (default, in-BFF stub) or `http` |
+| **Code status** | **IMPLEMENTED** |
+
+## 1. Mapping
+
+| Public BFF | Internal lead-service | Notes |
+|---|---|---|
+| `GET /api/v1/workspace/pipeline` | `GET /internal/v1/leads?owner=me` | Book = creator / assigned RM / assigned SP |
+| `GET /api/v1/customers/{id}/active-leads?productClass` | `GET /internal/v1/leads?owner=me` | Filtered **in the BFF** to customer, product class, non-terminal; first 20 |
+| `POST /api/v1/leads` | `POST /internal/v1/leads` | Save only |
+| `GET /api/v1/leads/{id}` | `GET /internal/v1/leads/{id}` | Absent → 404 |
+| `POST /api/v1/leads/{id}/assignment` | `GET …/{id}` → (if `NOT_EVALUATED`) `POST …/{id}/onboarding` → (if clear) `POST …/{id}/assignments` | Orchestrated in `LeadFacade.assign` |
+
+## 2. Assignment orchestration (`D-019`)
+
+```mermaid
+sequenceDiagram
+    participant BFF as BFF LeadFacade
+    participant L as lead-service
+    BFF->>L: GET /internal/v1/leads/{id}  (X-Actor-Id)
+    L-->>BFF: lead (exceptionOutcome)
+    alt exceptionOutcome = NOT_EVALUATED
+        BFF->>L: POST /internal/v1/leads/{id}/onboarding
+        alt BLOCK
+            L-->>BFF: 409 ILLEGAL_TRANSITION
+            Note over BFF: propagated to the app
+        else PASS / APPROVAL_REQUIRED
+            L-->>BFF: 200 lead
+        end
+    end
+    alt hold / APPROVAL_REQUIRED / BLOCK
+        Note over BFF: return the lead unchanged (200) — app shows "raise exception"
+    else clear
+        BFF->>L: POST /internal/v1/leads/{id}/assignments {assignedRmId, assignedSpId}
+        L-->>BFF: 200 lead (ASSIGNED, accountableSpId set once) | 403 SP_CERTIFICATION_REQUIRED | 409
+    end
+```
+
+## 3. Error propagation
+
+Lead's problem+json is parsed by `ProblemJsonReader`; `ErrorPropagation` keeps the incident id and
+`origin = lead`, and the BFF re-emits the same code when the RM can act on it (`CONFLICT`,
+`ILLEGAL_TRANSITION`, `SP_CERTIFICATION_REQUIRED`, `RESOURCE_NOT_FOUND`, `UNSUPPORTED_LOB`).
+A pure transport failure (`RestClientException` with no HTTP response: refused, reset, timed out)
+is mapped to **`503 UPSTREAM_UNAVAILABLE`** (retryable) by `HttpLeadGateway` and
+`HttpCustomerGateway` (`SUG-20261021-gap`); before that it surfaced as a generic 500. Create and
+assign are preceded by a PDP decision — see [BFF to PDP](./bff-to-identity-authorization.md).
+
+## 4. Sources
+
+- `services/workforce-access-bff/src/main/java/com/bank/workforce/bff/lead/HttpLeadGateway.java` · `application/LeadFacade.java`
+- [lead-service](../services/lead-service.md) · [Lead API LLD §3](../../ws3-platform/12-lead-module-api-lld.md)

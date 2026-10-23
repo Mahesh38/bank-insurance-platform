@@ -17,6 +17,7 @@ import com.bank.insurance.onesb.domain.port.inbound.PaymentUseCase;
 import com.bank.insurance.onesb.domain.port.outbound.JobStorePort;
 import com.bank.insurance.onesb.domain.port.outbound.OneSbPaymentPort;
 import com.bank.insurance.onesb.domain.port.outbound.PaymentSessionStorePort;
+import com.bank.insurance.onesb.domain.port.outbound.RawPayloadCaptureException;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
@@ -67,7 +68,19 @@ public class PaymentService implements PaymentUseCase {
 
     String actorId = StringUtils.hasText(command.actorId()) ? command.actorId() : "system";
 
-    OneSbPaymentUrlResult upstream = paymentPort.createPaymentUrl(command);
+    OneSbPaymentUrlResult upstream;
+    try {
+      upstream = paymentPort.createPaymentUrl(command);
+    } catch (RawPayloadCaptureException ex) {
+      // Nothing reached 1SB, so no payment link exists; a retry is safe.
+      throw serviceErrors
+          .error(ErrorCodes.UPSTREAM_UNAVAILABLE)
+          .component("PaymentService")
+          .operation("createPaymentUrl")
+          .reason("Request evidence could not be stored; payment link was not requested")
+          .cause(ex)
+          .build();
+    }
     if (!upstream.paymentUrl().toLowerCase(Locale.ROOT).startsWith("https://")) {
       throw serviceErrors
           .error(ErrorCodes.UPSTREAM_BAD_RESPONSE)

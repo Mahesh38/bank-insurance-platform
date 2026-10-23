@@ -5,10 +5,23 @@
 -- E2e column sheet: ../03-lead-suitability-e2e.md
 -- Created by workforce BANK_RM or INSURER_PARTNER_REP (INV-LED-04 / D-018).
 -- accountable_sp_id is written once at first completed assignment (INV-ACT-03 / D-019).
+--
+-- 2026-10-21 reconciliation with the as-built Flyway V2/V3 (services/lead-service/.../db/migration;
+-- READINESS-REVIEW §3.5). Per-column verdicts and the V4 the code needs are in
+-- ../03-lead-suitability-e2e.md §4.6. Summary:
+--   * customer_id CHAR(26) ULID (D3 / D-023) — code is VARCHAR(64), V4 narrows it.
+--   * assigned_rm_id — ADOPTED from code (R0 lead holds RM and SP separately).
+--   * exception_state (NONE|BLOCKED|HOLD_FOR_APPROVAL|PASSED) — REPLACED by the code / D2 vocabulary
+--     exception_outcome (NOT_EVALUATED|PASS|BLOCK|APPROVAL_REQUIRED) + exception_hold, plus the
+--     append-only lead_exception_evaluation / lead_exception_decision evidence (D2, ADR-024 §6).
+--   * source, created_by_actor_type, lead_generator_principal_id, config_versions, expires_at,
+--     archived_at, accountable_sp_cert_ref, exception_ref, ux_lead_dedupe_open — KEPT (design);
+--     V4 adds them (EXPIRED is unreachable without expires_at).
+--   * outbox_event gains schema_version + parked_at (ADR-025 §3).
 
 CREATE TABLE lead_lms.lead (
     lead_id                         CHAR(26)                 PRIMARY KEY,
-    customer_id                     CHAR(26)                 NOT NULL,
+    customer_id                     CHAR(26)                 NOT NULL,   -- D3 / D-023: platform ULID
     state                           VARCHAR(20)              NOT NULL,
     lob                             VARCHAR(16)              NOT NULL,
     product_class                   VARCHAR(16)              NOT NULL,
@@ -16,6 +29,7 @@ CREATE TABLE lead_lms.lead (
     created_by_actor_type           VARCHAR(32)              NOT NULL,
     created_by_principal_id         VARCHAR(64)              NOT NULL,
     lead_generator_principal_id     VARCHAR(64)              NOT NULL,
+    assigned_rm_id                  VARCHAR(64),                         -- adopted from Flyway V2
     assigned_sp_id                  VARCHAR(64),
     assigned_ipr_id                 VARCHAR(64),
     fulfiller_principal_id          VARCHAR(64),
@@ -25,8 +39,10 @@ CREATE TABLE lead_lms.lead (
     need_analysis_state             VARCHAR(20)              NOT NULL,
     insurer_id                      VARCHAR(64),
     partner_visible_from            TIMESTAMP WITH TIME ZONE,
-    exception_state                 VARCHAR(24)              NOT NULL DEFAULT 'NONE',
-    exception_ref                   VARCHAR(64),
+    exception_outcome               VARCHAR(24)              NOT NULL DEFAULT 'NOT_EVALUATED', -- D2 (code vocabulary)
+    exception_hold                  BOOLEAN                  NOT NULL DEFAULT false,           -- D2: APPROVAL_REQUIRED awaiting AUBIMA
+    exception_evaluation_id         CHAR(26),                                                  -- D2: latest lead_exception_evaluation
+    exception_ref                   VARCHAR(64),                                               -- AUBIMA case id
     activity_status                 VARCHAR(40),
     bi_generated                    BOOLEAN                  NOT NULL DEFAULT false,
     bi_generated_at                 TIMESTAMP WITH TIME ZONE,
@@ -53,8 +69,13 @@ CREATE TABLE lead_lms.lead (
         'BANK_RM', 'INSURER_PARTNER_REP')),
     CONSTRAINT ck_lead_need CHECK (need_analysis_state IN (
         'NOT_STARTED', 'IN_PROGRESS', 'COMPLETED')),
-    CONSTRAINT ck_lead_exception CHECK (exception_state IN (
-        'NONE', 'BLOCKED', 'HOLD_FOR_APPROVAL', 'PASSED')),
+    -- D2: outcomeRank [BLOCK, APPROVAL_REQUIRED, PASS] of rule set LEAD.EXCEPTION (ADR-024).
+    CONSTRAINT ck_lead_exception CHECK (exception_outcome IN (
+        'NOT_EVALUATED', 'PASS', 'BLOCK', 'APPROVAL_REQUIRED')),
+    -- D2 / BRD §4.2: a hold exists only for APPROVAL_REQUIRED; a later PASS must not clear it
+    -- without a lead_exception_decision (application guard; this CHECK keeps the pair coherent).
+    CONSTRAINT ck_lead_exception_hold CHECK (
+        exception_hold = false OR exception_outcome = 'APPROVAL_REQUIRED'),
     CONSTRAINT ck_lead_reporting CHECK (reporting_class IN ('DIARY', 'ELIGIBLE')),
     CONSTRAINT ck_lead_eligible CHECK (
         reporting_class <> 'ELIGIBLE' OR bi_generated = true),
@@ -76,6 +97,8 @@ COMMENT ON COLUMN lead_lms.lead.lead_id IS 'RET-7Y attribution (C-RET-1). Never 
 COMMENT ON COLUMN lead_lms.lead.accountable_sp_id IS 'RET-7Y. Written once at first completed assignment (INV-ACT-03).';
 COMMENT ON COLUMN lead_lms.lead.converted_journey_id IS 'RET-7Y. At most one converting journey (INV-LED-02).';
 COMMENT ON COLUMN lead_lms.lead.lob IS 'RET-7Y. Immutable after insert.';
+COMMENT ON COLUMN lead_lms.lead.customer_id IS 'D-023: customer-service ULID. Never the CIF.';
+COMMENT ON COLUMN lead_lms.lead.exception_outcome IS 'D2: winning outcome of rule set LEAD.EXCEPTION at the last evaluation. Missing threshold => BLOCK (EH-CONFIG-MISSING).';
 COMMENT ON COLUMN lead_lms.lead.closed_remarks_enc IS 'RESTRICTED ⚑. Present when closure reason requires remarks.';
 
 -- One journey may convert a lead (INV-LED-02). Partial unique allows many NULLs.
@@ -90,6 +113,8 @@ CREATE UNIQUE INDEX ux_lead_dedupe_open
       AND state NOT IN ('DISQUALIFIED', 'EXPIRED', 'CONVERTED', 'ARCHIVED');
 
 CREATE INDEX ix_lead_customer_lob ON lead_lms.lead (customer_id, lob);
+CREATE INDEX ix_lead_assigned_rm ON lead_lms.lead (assigned_rm_id)            -- adopted from V2
+    WHERE assigned_rm_id IS NOT NULL;
 CREATE INDEX ix_lead_state_expires ON lead_lms.lead (state, expires_at);
 CREATE INDEX ix_lead_inbox_sp
     ON lead_lms.lead (assigned_sp_id, state, updated_at)
@@ -107,6 +132,7 @@ CREATE TABLE lead_lms.lead_assignment (
     assignment_id       CHAR(26)                 PRIMARY KEY,
     lead_id             CHAR(26)                 NOT NULL REFERENCES lead_lms.lead (lead_id),
     rm_id               VARCHAR(64)              NOT NULL,
+    assigned_sp_id      VARCHAR(64),                                    -- adopted from Flyway V3
     assigned_ipr_id     VARCHAR(64),
     assigned_at         TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     assigned_by         VARCHAR(64)              NOT NULL,
@@ -147,6 +173,43 @@ CREATE TABLE lead_lms.lead_follow_up (
 
 CREATE INDEX ix_lead_follow_up_lead ON lead_lms.lead_follow_up (lead_id, created_at);
 
+-- D2 / ADR-024 §6: every LEAD.EXCEPTION evaluation is evidence. Append-only.
+-- checkpoint START_ONBOARDING (D-019) evaluates EH-BR-RULE-001…015; PREMIUM_CAPTURE re-runs 012–013.
+CREATE TABLE lead_lms.lead_exception_evaluation (
+    evaluation_id       CHAR(26)                 PRIMARY KEY,
+    lead_id             CHAR(26)                 NOT NULL REFERENCES lead_lms.lead (lead_id),
+    checkpoint          VARCHAR(24)              NOT NULL,
+    rule_set_id         VARCHAR(64)              NOT NULL,              -- 'LEAD.EXCEPTION'
+    rule_set_version    VARCHAR(20)              NOT NULL,
+    engine_version      VARCHAR(20)              NOT NULL,
+    inputs_hash         VARCHAR(71)              NOT NULL,              -- 'sha256:'+hex (ADR-024 §6)
+    outcome             VARCHAR(24)              NOT NULL,
+    reason_codes        TEXT[]                   NOT NULL DEFAULT '{}', -- in rule order (collectReasonCodes)
+    fired_rules         JSONB                    NOT NULL,              -- engine trace: [{ruleId,outcome,reasonCode}]
+    evaluated_by        VARCHAR(64)              NOT NULL,
+    evaluated_at        TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    CONSTRAINT ck_lead_exc_checkpoint CHECK (checkpoint IN ('START_ONBOARDING', 'PREMIUM_CAPTURE')),
+    CONSTRAINT ck_lead_exc_outcome CHECK (outcome IN ('PASS', 'BLOCK', 'APPROVAL_REQUIRED'))
+);
+
+CREATE INDEX ix_lead_exc_eval_lead ON lead_lms.lead_exception_evaluation (lead_id, evaluated_at);
+
+-- D2 / BRD §24.3 column J: approval or rejection of an APPROVAL_REQUIRED hold; remarks mandatory.
+CREATE TABLE lead_lms.lead_exception_decision (
+    decision_id         CHAR(26)                 PRIMARY KEY,
+    evaluation_id       CHAR(26)                 NOT NULL
+        REFERENCES lead_lms.lead_exception_evaluation (evaluation_id),
+    lead_id             CHAR(26)                 NOT NULL REFERENCES lead_lms.lead (lead_id),
+    decision            VARCHAR(16)              NOT NULL,
+    exception_ref       VARCHAR(64),                                    -- AUBIMA case id
+    remarks_enc         BYTEA                    NOT NULL,
+    encryption_key_id   VARCHAR(50)              NOT NULL,
+    decided_by          VARCHAR(64)              NOT NULL,
+    decided_at          TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    CONSTRAINT ck_lead_exc_decision CHECK (decision IN ('APPROVED', 'REJECTED')),
+    CONSTRAINT ux_lead_exc_decision_eval UNIQUE (evaluation_id)
+);
+
 CREATE TABLE lead_lms.idempotency_record (
     idempotency_key     VARCHAR(128)             PRIMARY KEY,
     request_hash        VARCHAR(64)              NOT NULL,
@@ -162,13 +225,15 @@ CREATE TABLE lead_lms.outbox_event (
     aggregate_type      VARCHAR(64)              NOT NULL,
     aggregate_id        CHAR(26)                 NOT NULL,
     event_type          VARCHAR(96)              NOT NULL,
-    payload             JSONB                    NOT NULL,
+    schema_version      SMALLINT                 NOT NULL DEFAULT 1,    -- ADR-025 §1
+    payload             JSONB                    NOT NULL,              -- event-envelope/v1; V3 uses VARCHAR(4000) for H2
     created_at          TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     published_at        TIMESTAMP WITH TIME ZONE,
     attempts            INTEGER                  NOT NULL DEFAULT 0,
-    last_error          VARCHAR(1000)
+    last_error          VARCHAR(1000),
+    parked_at           TIMESTAMP WITH TIME ZONE                         -- ADR-025 §3
 );
 
 CREATE INDEX ix_lead_outbox_unpublished
     ON lead_lms.outbox_event (created_at)
-    WHERE published_at IS NULL;
+    WHERE published_at IS NULL AND parked_at IS NULL;

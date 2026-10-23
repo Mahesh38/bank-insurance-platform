@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.bank.internal/events/ProductVersionPublished.v1.json",
+  "title": "ProductVersionPublished v1 - data",
+  "description": "A product version became available for quoting (effective-dated). Producer: catalogue. Status: CONTRACTED. The `data` member of event-envelope/v1 (ADR-025): ids and states only, never customer PII.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "productId",
+    "productVersion",
+    "insurerCode",
+    "lob",
+    "productClass",
+    "effectiveFrom"
+  ],
+  "properties": {
+    "productId": {
+      "type": "string",
+      "maxLength": 64
+    },
+    "productVersion": {
+      "type": "string",
+      "maxLength": 32
+    },
+    "insurerCode": {
+      "type": "string",
+      "maxLength": 32
+    },
+    "lob": {
+      "type": "string",
+      "enum": [
+        "LIFE"
+      ]
+    },
+    "productClass": {
+      "type": "string",
+      "enum": [
+        "TERM",
+        "SAVINGS",
+        "ULIP"
+      ]
+    },
+    "effectiveFrom": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "$defs": {
+    "ulid": {
+      "type": "string",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+    }
+  }
+}

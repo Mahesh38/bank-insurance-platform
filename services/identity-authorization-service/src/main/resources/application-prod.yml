@@ -1,3 +1,23 @@
+# Production has no development defaults: every secret and the datasource come from the
+# environment. ProductionDatasourceGuard refuses to start if the datasource is H2.
+spring:
+  datasource:
+    url: ${AUTHZ_DATASOURCE_URL}
+    driver-class-name: org.postgresql.Driver
+    username: ${AUTHZ_DATASOURCE_USERNAME}
+    password: ${AUTHZ_DATASOURCE_PASSWORD}
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
 identity:
+  internal-auth:
+    callers:
+      workforce-access-bff: ${IDENTITY_AUTHZ_BFF_INTERNAL_KEY}
+      lead-service: ${IDENTITY_AUTHZ_LEAD_INTERNAL_KEY}
   provider-adapter:
     internal-key: ${IDENTITY_ADAPTER_INTERNAL_SHARED_SECRET}
+  # E5: partners are provisioned at creation, so production drains the provisioning outbox.
+  provisioning:
+    enabled: ${IDENTITY_PROVISIONING_ENABLED:true}

@@ -2,12 +2,15 @@ package com.bank.workforce.bff.api;
 
 import com.bank.workforce.bff.application.LeadFacade;
 import com.bank.workforce.bff.application.LeadFacade.ActiveLeadPage;
+import com.bank.workforce.bff.client.PolicyDecisionClient;
 import com.bank.workforce.bff.lead.LeadGateway.CreateLeadCommand;
 import com.bank.workforce.bff.lead.LeadGateway.LeadRecord;
+import com.bank.workforce.bff.lead.LeadGateway.Meeting;
 import com.bank.workforce.bff.session.SessionModels.WorkforceSession;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
@@ -16,6 +19,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,9 +29,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class LeadModuleController {
 
   private final LeadFacade leads;
+  private final PolicyDecisionClient authorization;
 
-  public LeadModuleController(LeadFacade leads) {
+  public LeadModuleController(LeadFacade leads, PolicyDecisionClient authorization) {
     this.leads = leads;
+    this.authorization = authorization;
   }
 
   @GetMapping("/workspace/pipeline")
@@ -39,8 +45,11 @@ public class LeadModuleController {
 
   @PostMapping("/leads")
   public ResponseEntity<LeadRecord> create(
-      HttpServletRequest request, @Valid @RequestBody CreateLeadRequest body) {
+      HttpServletRequest request,
+      @RequestHeader(name = "Idempotency-Key", required = false) String idempotencyKey,
+      @Valid @RequestBody CreateLeadRequest body) {
     WorkforceSession session = BffSessionInterceptor.requireSession(request);
+    authorization.require(session, "lead.create", "lead", null, body.branchId(), false);
     LeadRecord created =
         leads.create(
             new CreateLeadCommand(
@@ -48,7 +57,8 @@ public class LeadModuleController {
                 body.lob(),
                 body.productClass(),
                 body.branchId(),
-                actorId(session)));
+                actorId(session),
+                idempotencyKey));
     return ResponseEntity.status(HttpStatus.CREATED).body(created);
   }
 
@@ -73,7 +83,14 @@ public class LeadModuleController {
       @PathVariable String leadId,
       @Valid @RequestBody AssignLeadRequest body) {
     WorkforceSession session = BffSessionInterceptor.requireSession(request);
-    return leads.assign(leadId, body.assignedRmId(), body.assignedSpId(), actorId(session));
+    authorization.require(session, "lead.assign", "lead", leadId, null, false);
+    return leads.assign(
+        leadId,
+        body.assignedRmId(),
+        body.assignedSpId(),
+        actorId(session),
+        body.note(),
+        body.meeting());
   }
 
   private static String actorId(WorkforceSession session) {
@@ -89,5 +106,9 @@ public class LeadModuleController {
       @NotBlank String productClass,
       String branchId) {}
 
-  public record AssignLeadRequest(@NotBlank String assignedRmId, String assignedSpId) {}
+  public record AssignLeadRequest(
+      @NotBlank String assignedRmId,
+      String assignedSpId,
+      @Size(max = 250) String note,
+      Meeting meeting) {}
 }

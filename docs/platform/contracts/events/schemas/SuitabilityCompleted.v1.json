@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.bank.internal/events/SuitabilityCompleted.v1.json",
+  "title": "SuitabilityCompleted v1 - data",
+  "description": "Per-class suitability outcome record (D4). Producer: suitability. Status: CONTRACTED. The `data` member of event-envelope/v1 (ADR-025): ids and states only, never customer PII.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "evaluationId",
+    "customerId",
+    "ruleSetId",
+    "ruleSetVersion",
+    "outcomes"
+  ],
+  "properties": {
+    "evaluationId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "customerId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "ruleSetId": {
+      "type": "string",
+      "maxLength": 64
+    },
+    "ruleSetVersion": {
+      "type": "string",
+      "maxLength": 32
+    },
+    "outcomes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "productClass",
+          "outcome",
+          "reasonCodes"
+        ],
+        "properties": {
+          "productClass": {
+            "type": "string",
+            "enum": [
+              "TERM",
+              "SAVINGS",
+              "ULIP"
+            ]
+          },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "SUITABLE",
+              "SUITABLE_WITH_CAUTION",
+              "NOT_SUITABLE",
+              "INSUFFICIENT_DATA"
+            ]
+          },
+          "reasonCodes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Z0-9][A-Z0-9_.-]{0,63}$"
+            }
+          }
+        }
+      }
+    },
+    "leadId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "journeyId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "validUntil": {
+      "type": "string",
+      "format": "date-time",
+      "description": "RFC 3339 UTC"
+    }
+  },
+  "$defs": {
+    "ulid": {
+      "type": "string",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+    }
+  }
+}

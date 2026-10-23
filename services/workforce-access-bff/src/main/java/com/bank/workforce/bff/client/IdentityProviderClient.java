@@ -10,6 +10,7 @@ import java.net.URI;
 import java.time.Instant;
 import java.util.Map;
 import java.util.function.Supplier;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
@@ -25,7 +26,7 @@ public class IdentityProviderClient {
   private final ServiceErrors serviceErrors;
 
   public IdentityProviderClient(
-      RestClient restClient,
+      @Qualifier("identityProviderRestClient") RestClient restClient,
       DownstreamProperties properties,
       ProblemJsonReader problemJsonReader,
       ServiceErrors serviceErrors) {

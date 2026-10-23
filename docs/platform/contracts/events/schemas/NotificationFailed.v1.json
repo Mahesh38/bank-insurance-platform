@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.bank.internal/events/NotificationFailed.v1.json",
+  "title": "NotificationFailed v1 - data",
+  "description": "Delivery to the channel provider failed (E3: FAILED). terminal=true after the last retry. Producer: notification. Status: CONTRACTED. The `data` member of event-envelope/v1 (ADR-025): ids and states only, never customer PII.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "notificationId",
+    "templateId",
+    "channel",
+    "reasonCode",
+    "attempts",
+    "terminal"
+  ],
+  "properties": {
+    "notificationId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "templateId": {
+      "type": "string",
+      "maxLength": 64
+    },
+    "channel": {
+      "type": "string",
+      "enum": [
+        "SMS",
+        "EMAIL",
+        "WHATSAPP"
+      ]
+    },
+    "reasonCode": {
+      "type": "string",
+      "pattern": "^[A-Z0-9][A-Z0-9_.-]{0,63}$"
+    },
+    "attempts": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "terminal": {
+      "type": "boolean"
+    },
+    "triggerEventId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "journeyId": {
+      "$ref": "#/$defs/ulid"
+    }
+  },
+  "$defs": {
+    "ulid": {
+      "type": "string",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+    }
+  }
+}

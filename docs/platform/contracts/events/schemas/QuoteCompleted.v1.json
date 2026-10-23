@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.bank.internal/events/QuoteCompleted.v1.json",
+  "title": "QuoteCompleted v1 - data",
+  "description": "Offers recorded; at least one valid. Producer: quotation. Status: IMPLEMENTED (DynamoDB OUTBOX item; envelope pending). The `data` member of event-envelope/v1 (ADR-025): ids and states only, never customer PII.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "quoteId",
+    "state"
+  ],
+  "properties": {
+    "quoteId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "state": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z_]*$",
+      "description": "Aggregate state after the change"
+    },
+    "journeyId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "offerCount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "partialErrorCount": {
+      "type": "integer",
+      "minimum": 0
+    }
+  },
+  "$defs": {
+    "ulid": {
+      "type": "string",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+    }
+  }
+}

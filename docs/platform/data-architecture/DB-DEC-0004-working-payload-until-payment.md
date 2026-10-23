@@ -1,5 +1,12 @@
 # DB-DEC-0004 — Working payload until payment, then structured
 
+> **Superseded in part by [`DB-DEC-0005`](./DB-DEC-0005-dynamodb-working-payload.md) (2026-10-21, owner HUMAN ratification).**
+> Pre-payment quote and proposal working state now lives in **DynamoDB** (`{env}-quotation-working`,
+> `{env}-proposal-working`), not in Aurora `quote_working` / `proposal_working`. Wherever this document says
+> `quote_working` or `proposal_working`, read the DynamoDB item `QUOTE#{id}/META` / `PROPOSAL#{id}/META`
+> ([table design](./schemas/20-dynamodb-working-payload.md)). Ownership, JSON-until-payment, materialise on
+> `RECONCILED`, and everything about Journey and Payment are **unchanged**.
+
 Draft Aarti decision record. Format:
 [`04-operating-and-review-contract.md` §4](../../context/roles/principal-insurance-data-database-architect/04-operating-and-review-contract.md#4-standard-aarti--dba-decision-output).
 

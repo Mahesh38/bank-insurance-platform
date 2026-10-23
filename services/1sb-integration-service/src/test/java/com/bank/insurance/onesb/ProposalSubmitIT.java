@@ -194,6 +194,29 @@ class ProposalSubmitIT {
   }
 
   @Test
+  void evidenceStoreDown_returns503_andNeverCallsOneSb() throws Exception {
+    String jobId = "job-noevidence-" + UUID.randomUUID();
+    stubPersistenceHappyPath(jobId);
+    stubUsableProposalSchema();
+    PERSISTENCE.stubFor(
+        post(urlEqualTo("/internal/v1/raw-payloads")).willReturn(aResponse().withStatus(503)));
+
+    mockMvc
+        .perform(
+            MockMvcRequestBuilders.post("/v1/proposals")
+                .header("Idempotency-Key", "idem-noevidence-" + UUID.randomUUID())
+                .header("X-Actor-Id", "rm-noevidence")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(validBody()))
+        .andExpect(status().isServiceUnavailable())
+        .andExpect(jsonPath("$.code", is(ErrorCodes.UPSTREAM_UNAVAILABLE)));
+
+    ONESB.verify(0, postRequestedFor(urlEqualTo(TERM_PROPOSAL_PATH)));
+    // Required evidence is retried once before giving up.
+    PERSISTENCE.verify(exactly(2), postRequestedFor(urlEqualTo("/internal/v1/raw-payloads")));
+  }
+
+  @Test
   void ac4_idempotentReplay_doesNotReinvokeOneSb() throws Exception {
     String jobId = "job-replay-" + UUID.randomUUID();
     String key = "idem-replay-" + UUID.randomUUID();
@@ -368,6 +391,11 @@ class ProposalSubmitIT {
                     .withStatus(200)
                     .withHeader("Content-Type", "application/json")
                     .withBody("{\"jobId\":\"" + jobId + "\",\"status\":\"RUNNING\"}")));
+
+    // Request evidence is stored before any proposal/payment call (SUG-20261021-gap).
+
+    PERSISTENCE.stubFor(
+        post(urlEqualTo("/internal/v1/raw-payloads")).willReturn(aResponse().withStatus(201)));
 
     PERSISTENCE.stubFor(
         post(urlPathMatching("/internal/v1/jobs/.*/poll-attempts"))

@@ -44,3 +44,23 @@ CREATE TABLE catalogue.eligibility_band (
 );
 
 CREATE INDEX ix_elig_product ON catalogue.eligibility_band (product_id, effective_from);
+
+-- ADR-025 §3 (READINESS-REVIEW §3.7: catalogue emits ProductPublished / EligibilityChanged and had
+-- no outbox). Payload = event-envelope/v1.
+CREATE TABLE catalogue.outbox_event (
+    outbox_id           CHAR(26)                 PRIMARY KEY,
+    aggregate_type      VARCHAR(64)              NOT NULL,
+    aggregate_id        VARCHAR(64)              NOT NULL,      -- product_id or insurer_id
+    event_type          VARCHAR(96)              NOT NULL,
+    schema_version      SMALLINT                 NOT NULL DEFAULT 1,
+    payload             JSONB                    NOT NULL,
+    created_at          TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    published_at        TIMESTAMP WITH TIME ZONE,
+    attempts            INTEGER                  NOT NULL DEFAULT 0,
+    last_error          VARCHAR(1000),
+    parked_at           TIMESTAMP WITH TIME ZONE
+);
+
+CREATE INDEX ix_catalogue_outbox_unpublished
+    ON catalogue.outbox_event (created_at)
+    WHERE published_at IS NULL AND parked_at IS NULL;

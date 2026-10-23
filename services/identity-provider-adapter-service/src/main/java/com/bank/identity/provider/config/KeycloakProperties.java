@@ -2,10 +2,10 @@ package com.bank.identity.provider.config;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import java.net.URI;
+import java.time.Duration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
-
-import java.net.URI;
 
 @Validated
 @ConfigurationProperties("identity.provider.keycloak")
@@ -18,37 +18,50 @@ public record KeycloakProperties(
     @NotNull URI redirectUri,
     @NotBlank String adminClientId,
     @NotBlank String adminClientSecret,
-    String bankIdentityProviderHint
-) {
-    public URI realmUri() {
-        return publicBaseUrl.resolve("/realms/" + realm);
-    }
+    String bankIdentityProviderHint,
+    Duration connectTimeout,
+    Duration readTimeout) {
+  // READINESS-REVIEW §3.7: the Keycloak client had no timeout. E8 (DECISIONS-2026-10-22): connect
+  // 2 s / read 3 s; env KEYCLOAK_CONNECT_TIMEOUT / KEYCLOAK_READ_TIMEOUT override them.
+  public static final Duration DEFAULT_CONNECT_TIMEOUT = Duration.ofSeconds(1);
+  public static final Duration DEFAULT_READ_TIMEOUT = Duration.ofSeconds(3);
 
-    public URI tokenUri() {
-        return backchannelBaseUrl.resolve("/realms/" + realm + "/protocol/openid-connect/token");
-    }
+  public KeycloakProperties {
+    connectTimeout = connectTimeout != null ? connectTimeout : DEFAULT_CONNECT_TIMEOUT;
+    readTimeout = readTimeout != null ? readTimeout : DEFAULT_READ_TIMEOUT;
+  }
 
-    public URI authorizationUri() {
-        return publicBaseUrl.resolve("/realms/" + realm + "/protocol/openid-connect/auth");
-    }
+  public URI realmUri() {
+    return publicBaseUrl.resolve("/realms/" + realm);
+  }
 
-    public URI userInfoUri() {
-        return backchannelBaseUrl.resolve("/realms/" + realm + "/protocol/openid-connect/userinfo");
-    }
+  public URI tokenUri() {
+    return backchannelBaseUrl.resolve("/realms/" + realm + "/protocol/openid-connect/token");
+  }
 
-    public String issuer() {
-        return realmUri().toString();
-    }
+  public URI authorizationUri() {
+    return publicBaseUrl.resolve("/realms/" + realm + "/protocol/openid-connect/auth");
+  }
 
-    public String jwkSetUri() {
-        return backchannelBaseUrl.resolve("/realms/" + realm + "/protocol/openid-connect/certs").toString();
-    }
+  public URI userInfoUri() {
+    return backchannelBaseUrl.resolve("/realms/" + realm + "/protocol/openid-connect/userinfo");
+  }
 
-    public URI revokeUri() {
-        return backchannelBaseUrl.resolve("/realms/" + realm + "/protocol/openid-connect/revoke");
-    }
+  public String issuer() {
+    return realmUri().toString();
+  }
 
-    public URI adminUsersUri() {
-        return backchannelBaseUrl.resolve("/admin/realms/" + realm + "/users");
-    }
+  public String jwkSetUri() {
+    return backchannelBaseUrl
+        .resolve("/realms/" + realm + "/protocol/openid-connect/certs")
+        .toString();
+  }
+
+  public URI revokeUri() {
+    return backchannelBaseUrl.resolve("/realms/" + realm + "/protocol/openid-connect/revoke");
+  }
+
+  public URI adminUsersUri() {
+    return backchannelBaseUrl.resolve("/admin/realms/" + realm + "/users");
+  }
 }

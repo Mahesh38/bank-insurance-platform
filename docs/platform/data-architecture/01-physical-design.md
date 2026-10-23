@@ -37,7 +37,7 @@
 | Keycloak | Vendor database | Out of this pack; never the business PDP SoR |
 | Reporting | Not provisioned in R0 | Must not share this cluster |
 
-`architecture-review/05` proposed DynamoDB for Journey, Quotation and Audit. **Rejected for R0**
+`architecture-review/05` proposed DynamoDB for Journey, Quotation and Audit. **Journey and Audit stay rejected for R0; pre-payment quote/proposal working state is now DynamoDB (`DB-DEC-0005`, 2026-10-21)** — the original R0 ruling read: **Rejected for R0**
 in [`DB-DEC-0001`](./DB-DEC-0001-r0-physical-model.md): no volume evidence, would fork the
 already-shipping `audit_event` / job store, and Journey is a thin stage+refs row (INV-JRN-02),
 not a document store problem. Revisit when a measured access pattern says otherwise.
@@ -59,9 +59,9 @@ lead_lms.lead.lead_id
             ├── suitability.lead_id / journey_id
             │       ├── suitability_answer_set (⚑ ciphertext)
             │       └── suitability_mapping_run (INSERT-only evidence)
-            ├── quotation.quote_working.journey_id   (encrypted JSON until RECONCILED)
+            ├── DynamoDB quotation-working  QUOTE#id/META.journeyId (until RECONCILED, DB-DEC-0005)
             │       └── quotation.quote.journey_id ── offer.quote_id   (materialize)
-            ├── proposal.proposal_working.journey_id
+            ├── DynamoDB proposal-working   PROPOSAL#id/META.journeyId
             │       └── proposal.proposal.quote_id / offer_id / journey_id
             │               └── payment.payment.proposal_id
             │                       └── policy.policy.payment_id / proposal_id
@@ -151,17 +151,18 @@ DDL: [`14-audit_event_delta.sql`](./schemas/14-audit_event_delta.sql). Apply as 
 
 | Schema | Tables | Immutable? |
 |---|---|---|
-| `customer` | `customer`, `customer_snapshot` | Snapshot write-once |
-| `lead_lms` | `lead`, `lead_assignment`, `lead_meeting`, `lead_follow_up`, `idempotency_record`, `outbox_event` | First write of `accountable_sp_id` then immutable; assignment/meeting/follow-up append-only; `ARCHIVED` is a state not a delete. Column sheet: [`03-lead-suitability-e2e.md`](./03-lead-suitability-e2e.md) |
-| `consent` | `consent` | Evidence columns write-once; state may move to WITHDRAWN/EXPIRED |
-| `suitability` | `suitability`, `suitability_answer_set`, `suitability_mapping_run`, `idempotency_record`, `outbox_event` | Header mutable until `LOCKED`; answer sets INSERT-only; mapping `run_state` may move CURRENT→INVALID. Term has no row |
-| `catalogue` | `insurer`, `product`, `eligibility_band` | Effective-dated; no in-place replace of an active version |
-| `quotation` | `quote_working`, `quote`, `offer`, `idempotency_record` | Pre-payment write is `quote_working` (`payload_enc` + selected_*). Structured `quote`/`offer` INSERT after Payment RECONCILED (`DATA-005`) |
-| `proposal` | `proposal_working`, `proposal`, `uw_requirement`, `uw_document_ref`, `idempotency_record` | Same working-then-structured pattern; form/nominee stay inside `payload_enc` until materialize (INV-PRP-05) |
-| `payment` | `payment`, `payment_attempt`, `refund`, `outbox_event`, `idempotency_record` | Always structured (money path). On the journey as `paymentId` + stages `PAYMENT_*`; independent schema — Journey never writes it (`DATA-005` §6) |
-| `policy` | `policy`, `policy_document_ref` | `policy_number` unique+immutable (INV-POL-02) |
+| `customer` | `customer`, `customer_snapshot`, `idempotency_record`, `outbox_event` | `customer_id` ULID, CIF encrypted + HMAC UNIQUE (`D-023`); snapshot write-once except one-time `journey_id` bind; `fresh_until` freshness |
+| `lead_lms` | `lead`, `lead_assignment`, `lead_meeting`, `lead_follow_up`, `lead_exception_evaluation`, `lead_exception_decision` (D2), `idempotency_record`, `outbox_event` | First write of `accountable_sp_id` then immutable; assignment/meeting/follow-up append-only; `ARCHIVED` is a state not a delete. Column sheet: [`03-lead-suitability-e2e.md`](./03-lead-suitability-e2e.md) |
+| `consent` | `consent_record`, `idempotency_record`, `outbox_event` | Append-only: state change = new row via `supersedes_consent_id` (`D-024`); `CNS-QSH` purpose (D5) |
+| `suitability` | `suitability`, `suitability_answer_set`, `suitability_mapping_run`, `evaluation`, `evaluation_outcome`, `evaluation_status_event`, `caution_ack`, `suitability_usage`, `idempotency_record`, `outbox_event` | Header mutable until `LOCKED`; answer sets and the D4 evaluation record INSERT-only; mapping `run_state` may move CURRENT→INVALID. Every class, Term included, has a row (`D-022`) |
+| `catalogue` | `insurer`, `product`, `eligibility_band`, `outbox_event` | Effective-dated; no in-place replace of an active version |
+| `quotation` | `quote`, `offer`, `idempotency_record` | Pre-payment state is the DynamoDB item (`DB-DEC-0005`). Structured `quote` (`CONVERTED`, `selected_offer_id`) + every `offer` incl. `INVALID` INSERT after Payment RECONCILED (`D-025`); `idempotency_record` dedupes materialize events |
+| `proposal` | `proposal`, `proposal_answer`, `proposal_status_history`, `uw_requirement`, `uw_document_ref`, `idempotency_record` | Pre-payment state in DynamoDB (`DB-DEC-0005`); at materialize every question/answer → `proposal_answer` (encrypted), later changes → append-only `proposal_status_history` (`D-025`) |
+| `payment` | `payment`, `payment_attempt`, `refund`, `outbox_event`, `idempotency_record` | Always structured (money path); carries `quote_id` + `proposal_id` (`D-025`). On the journey as `paymentId` + stages `PAYMENT_*`; independent schema — Journey never writes it (`DATA-005` §6) |
+| `policy` | `policy`, `policy_status_history`, `policy_document_ref`, `idempotency_record`, `processed_event`, `outbox_event` | `policy_number` unique+immutable once issued (INV-POL-02); issuance status append-only; insurer-decision TAT columns (`D-025`) |
 | `journey` | `journey`, `journey_ref`, `journey_transition`, `outbox_event`, `idempotency_record` | Stage + refs only (`INV-JRN-02`). `retain_until` / `archived_at`: unconverted (no `paymentId`) purge after operational window; paid path is `RET-7Y` |
-| `administration` | `configuration_record` | Versioned INSERT-only (INV-CFG-02) |
+| `administration` | `configuration_record`, `rule_set_version`, `idempotency_record`, `outbox_event` | Versioned INSERT-only (INV-CFG-02); published rule sets immutable, maker ≠ checker (ADR-024) |
+| `audit` — **PROPOSED** | `audit_event`, `archive_export` | Only if ADR-026 is accepted: INSERT-only, hash chain, UNIQUE `event_id`, UNIQUE `(journey_id, sequence_no)` ([`15-audit.sql`](./schemas/15-audit.sql)) |
 
 Idempotency is a small table **inside** each mutating schema (`key`, `request_hash`, `response_ref`,
 `created_at`, `expires_at`) so INV-IDM-01 is mechanically true.
@@ -227,14 +228,16 @@ CRUD stored procedures are **refused** (`DR-SP-01`).
 | Routine | Type | When applied | Purpose |
 |---|---|---|---|
 | `fn_prevent_update_delete` | trigger fn | With each immutable table | Reject `UPDATE`/`DELETE` |
-| `fn_protect_consent_evidence` | trigger fn | Consent | Allow state/withdrawal columns only |
+| `consent.fn_prevent_update_delete` | trigger fn | `consent.consent_record` | Whole row immutable — withdrawal is a new row (`D-024`; replaces `fn_protect_consent_evidence`) |
+| `administration.fn_protect_rule_set_version` | trigger fn | `administration.rule_set_version` | Published rule-set document immutable (ADR-024 §5.1) |
+| `audit.fn_chain_hash` | trigger fn | `audit.audit_event` — **PROPOSED** (ADR-026) | Hash chain `row_hash = sha256(prev_hash ‖ row)` |
 | `fn_accountable_sp_immutable` | trigger fn | `lead_lms.lead` (and copies) | INV-ACT-03 — first NULL→value allowed |
 | `fn_lead_origination_immutable` | trigger fn | `lead_lms.lead` | `lead_id` / `lob` / `product_class` / creator / `source` frozen |
 | `fn_protect_answer_set` | trigger fn | Suitability | Answer ciphertext INSERT-only |
 | `fn_protect_mapping_run` | trigger fn | Suitability | Mapping evidence frozen; `run_state` may change |
 | `fn_next_audit_sequence` | function | With audit delta | Allocate `sequence_no` per `journey_id` |
 | `fn_ipr_visible` | function | `lead_lms` / journey | Documents the `AC-4` SQL predicate |
-| `fn_freeze_working_payload` | trigger fn | `quotation.quote_working` / `proposal.proposal_working` | Reject `payload_enc` UPDATE after `materialized_at` (`DATA-005`) |
+| ~~`fn_freeze_working_payload`~~ | removed | — | Replaced by DynamoDB `ConditionExpression attribute_not_exists(materializedAt)` (`DB-DEC-0005`) |
 | `sp_retention_sweep` | procedure | **S09** | Selects rows past `retain_until` for the owning job; does not cross schemas |
 | `sp_purge_operational` | procedure | **S09** | Deletes `RET-OPERATIONAL` / expired idempotency keys / aged working envelopes |
 

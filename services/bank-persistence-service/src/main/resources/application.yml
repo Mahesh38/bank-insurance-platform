@@ -19,7 +19,8 @@ spring:
 
   flyway:
     enabled: true
-    locations: classpath:db/migration
+    # {vendor}: partial unique index + immutability trigger on PostgreSQL, H2 equivalent locally.
+    locations: classpath:db/migration,classpath:db/vendor/{vendor}
     baseline-on-migrate: false
     validate-on-migrate: true
 
@@ -51,6 +52,12 @@ raw-payload:
     key: ${RAW_PAYLOAD_ENCRYPTION_KEY:}
   retention:
     years: ${RAW_PAYLOAD_RETENTION_YEARS:7}
+
+# Shared internal service key required on every /internal/v1/** call (InternalServiceAuthFilter).
+# The default is development-only; uat / prod have no default and must inject it.
+persistence:
+  internal-auth:
+    shared-secret: ${PERSISTENCE_INTERNAL_SHARED_SECRET:local-persistence-internal-key}
 
 logging:
   level:

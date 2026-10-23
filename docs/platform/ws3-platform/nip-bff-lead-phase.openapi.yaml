@@ -1,3 +1,6 @@
+# SUPERSEDED by docs/platform/contracts/workforce-access-bff/openapi.yaml (ADR-027)
+# Kept for history only. Do not build against this file: it predates the code and disagrees with it
+# (no /auth/** paths, cookie NIPSESSION and header X-CSRF-Token instead of WORKFORCE_SESSION / X-XSRF-TOKEN).
 openapi: 3.0.3
 info:
   title: NIP BFF — R0 lead landing and create

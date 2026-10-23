@@ -288,6 +288,13 @@ doc_routing:
       capsules: [architecture-review, target-state-vision, code-change]
       persona: architecture
 
+    - match: ["docs/platform/api-reference/**"]
+      bucket: platform
+      authority: ai-drafted
+      capsules: [code-change, architecture-review, orient]
+      persona: engineering
+      note: "Developer API portal (SUG-20261021-apr). Compilation, not source of truth: code, ADRs, HLD and 03 win. Each API carries an IMPLEMENTED/CONTRACTED/PROPOSED label."
+
     - match: ["docs/platform/*"]
       bucket: platform
       authority: approved-spec

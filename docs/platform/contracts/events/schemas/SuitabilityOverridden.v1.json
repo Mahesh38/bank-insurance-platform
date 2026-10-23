@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.bank.internal/events/SuitabilityOverridden.v1.json",
+  "title": "SuitabilityOverridden v1 - data",
+  "description": "An authorised override of one class outcome. Producer: suitability. Status: CONTRACTED. The `data` member of event-envelope/v1 (ADR-025): ids and states only, never customer PII.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "evaluationId",
+    "customerId",
+    "productClass",
+    "fromOutcome",
+    "toOutcome",
+    "reasonCode",
+    "approverId"
+  ],
+  "properties": {
+    "evaluationId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "customerId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "productClass": {
+      "type": "string",
+      "enum": [
+        "TERM",
+        "SAVINGS",
+        "ULIP"
+      ]
+    },
+    "fromOutcome": {
+      "type": "string",
+      "enum": [
+        "SUITABLE",
+        "SUITABLE_WITH_CAUTION",
+        "NOT_SUITABLE",
+        "INSUFFICIENT_DATA"
+      ]
+    },
+    "toOutcome": {
+      "type": "string",
+      "enum": [
+        "SUITABLE",
+        "SUITABLE_WITH_CAUTION",
+        "NOT_SUITABLE",
+        "INSUFFICIENT_DATA"
+      ]
+    },
+    "reasonCode": {
+      "type": "string",
+      "pattern": "^[A-Z0-9][A-Z0-9_.-]{0,63}$"
+    },
+    "approverId": {
+      "type": "string",
+      "maxLength": 64,
+      "description": "Employee id"
+    },
+    "journeyId": {
+      "$ref": "#/$defs/ulid"
+    }
+  },
+  "$defs": {
+    "ulid": {
+      "type": "string",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+    }
+  }
+}

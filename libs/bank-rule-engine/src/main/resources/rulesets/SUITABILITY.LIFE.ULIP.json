@@ -1,0 +1,634 @@
+{
+  "format": "rule-set/v1",
+  "ruleSetId": "SUITABILITY.LIFE.ULIP",
+  "domain": "SUITABILITY",
+  "scope": {
+    "lob": "LIFE",
+    "productClass": "ULIP"
+  },
+  "version": "1.0.0",
+  "effectiveFrom": "2026-11-01T00:00:00+05:30",
+  "effectiveTo": null,
+  "classification": "COMPLIANCE",
+  "pinning": "JOURNEY",
+  "scale": 6,
+  "description": "Suitability outcome for Life ULIP (SUIT-ALGO-LIFE-v1.0 expressed as rule-set/v1).",
+  "source": {
+    "document": "docs/au-bank-insurance-platform/rule-packs/suitability-rule-pack.md",
+    "sections": [
+      "2.3 (D-022 question set)",
+      "3 (bands, age factors, computation)",
+      "4 (outcomes, precedence)"
+    ],
+    "decisions": [
+      "ADR-024",
+      "DECISIONS-2026-10-21 D4",
+      "DECISIONS-2026-10-22 C5/C6 (gaps evaluate to INSUFFICIENT_DATA -> no quote until Compliance adds the rule)"
+    ]
+  },
+  "governance": {
+    "status": "DRAFT-awaiting-approval",
+    "signatureStatus": "AI-DRAFTED - mandatory content-owner approval outstanding (ADR-024 section 7)",
+    "contentApprovers": [
+      "Shailja / bank Compliance (permissibility, OPEN-SUIT-01)",
+      "Rajal (product behaviour)"
+    ],
+    "approverRole": "COMPLIANCE_APPROVER",
+    "seededBy": "SUG-20261021-rul; strict defaults SUG-20261022-rdy (owner-directed build, ADMIT-BYPASS)",
+    "openItems": [
+      "OPEN-SUIT-01 model discharges IRDAI obligation",
+      "OPEN-SUIT-03 disclosure / customer wording is draft",
+      "OPEN-SUIT-06 Savings/ULIP BRD vocabulary mapping",
+      "GAP (C6): ratio > 0.20 with otherwise suitable answers matches no section 4.4 rule -> INSUFFICIENT_DATA / NO_RULE_MATCHED -> no ULIP quote until Compliance adds the rule as a new version"
+    ]
+  },
+  "inputs": [
+    {
+      "name": "ageNextBirthday",
+      "type": "INTEGER",
+      "required": true,
+      "sourceRef": "SQ-D01",
+      "description": "Age at next birthday from CBS DOB; unavailable -> INSUFFICIENT_DATA"
+    },
+    {
+      "name": "annualIncome",
+      "type": "DECIMAL",
+      "required": true,
+      "sourceRef": "SQ-01"
+    },
+    {
+      "name": "primaryObjective",
+      "type": "ENUM",
+      "required": true,
+      "sourceRef": "SQ-05",
+      "values": [
+        "PROTECTION",
+        "SAVINGS_GOAL",
+        "RETIREMENT",
+        "WEALTH_GROWTH",
+        "TAX_PLANNING"
+      ]
+    },
+    {
+      "name": "investmentHorizon",
+      "type": "ENUM",
+      "required": true,
+      "sourceRef": "SQ-06",
+      "values": [
+        "LT_5Y",
+        "Y5_10",
+        "Y10_20",
+        "GT_20Y"
+      ]
+    },
+    {
+      "name": "riskAttitude",
+      "type": "ENUM",
+      "required": true,
+      "sourceRef": "SQ-07",
+      "values": [
+        "CAPITAL_PROTECTION",
+        "LOW",
+        "MODERATE",
+        "HIGH"
+      ]
+    },
+    {
+      "name": "declaredPremium",
+      "type": "DECIMAL",
+      "required": true,
+      "sourceRef": "SQ-08"
+    },
+    {
+      "name": "tobaccoUse",
+      "type": "BOOLEAN",
+      "required": true,
+      "sourceRef": "SQ-09"
+    },
+    {
+      "name": "occupationCategory",
+      "type": "ENUM",
+      "required": true,
+      "sourceRef": "SQ-10",
+      "values": [
+        "SALARIED",
+        "SELF_EMPLOYED_PROF",
+        "SELF_EMPLOYED_BUSINESS",
+        "AGRICULTURE",
+        "OTHER"
+      ]
+    },
+    {
+      "name": "declinedOrRated",
+      "type": "ENUM",
+      "required": true,
+      "sourceRef": "SQ-11",
+      "values": [
+        "NO",
+        "YES",
+        "DONT_KNOW"
+      ]
+    },
+    {
+      "name": "replacingExistingPolicy",
+      "type": "BOOLEAN",
+      "required": true,
+      "sourceRef": "SQ-12"
+    }
+  ],
+  "derive": [
+    {
+      "name": "ageEligible",
+      "description": "SUIT-R08",
+      "expr": {
+        "op": "between",
+        "args": [
+          {
+            "var": "ageNextBirthday"
+          },
+          {
+            "param": "minAge"
+          },
+          {
+            "param": "maxAge"
+          }
+        ]
+      }
+    },
+    {
+      "name": "affordabilityRatio",
+      "description": "declaredPremium / annualIncome (section 3.3)",
+      "scale": 4,
+      "expr": {
+        "op": "div",
+        "args": [
+          {
+            "var": "declaredPremium"
+          },
+          {
+            "var": "annualIncome"
+          }
+        ]
+      }
+    },
+    {
+      "name": "underwritingRiskFlag",
+      "description": "SUIT-R04: does not change the outcome",
+      "expr": {
+        "op": "in",
+        "args": [
+          {
+            "var": "declinedOrRated"
+          },
+          {
+            "const": [
+              "YES",
+              "DONT_KNOW"
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "decision": {
+    "hitPolicy": "PRIORITY",
+    "outcomeRank": [
+      "NOT_SUITABLE",
+      "INSUFFICIENT_DATA",
+      "SUITABLE_WITH_CAUTION",
+      "SUITABLE"
+    ],
+    "noMatchOutcome": "INSUFFICIENT_DATA",
+    "noMatchReasonCode": "NO_RULE_MATCHED",
+    "missingInputOutcome": "INSUFFICIENT_DATA",
+    "missingConfigOutcome": "INSUFFICIENT_DATA",
+    "missingConfigReasonCode": "SUITABILITY_CONFIG_MISSING",
+    "collectReasonCodes": "ALL_FIRED"
+  },
+  "rules": [
+    {
+      "ruleId": "SUIT-R08",
+      "priority": 8,
+      "sourceRef": "docs/au-bank-insurance-platform/rule-packs/suitability-rule-pack.md section 3.3",
+      "when": {
+        "op": "not",
+        "args": [
+          {
+            "var": "ageEligible"
+          }
+        ]
+      },
+      "then": {
+        "outcome": "NOT_SUITABLE",
+        "reasonCode": "AGE_OUTSIDE_ELIGIBLE_RANGE",
+        "params": {
+          "age": {
+            "var": "ageNextBirthday"
+          },
+          "minAge": {
+            "param": "minAge"
+          },
+          "maxAge": {
+            "param": "maxAge"
+          }
+        }
+      }
+    },
+    {
+      "ruleId": "SUIT-R16",
+      "priority": 16,
+      "when": {
+        "op": "all",
+        "args": [
+          {
+            "op": "in",
+            "args": [
+              {
+                "var": "riskAttitude"
+              },
+              {
+                "param": "ulipRiskAttitudes"
+              }
+            ]
+          },
+          {
+            "op": "in",
+            "args": [
+              {
+                "var": "investmentHorizon"
+              },
+              {
+                "param": "ulipHorizons"
+              }
+            ]
+          },
+          {
+            "op": "in",
+            "args": [
+              {
+                "var": "primaryObjective"
+              },
+              {
+                "param": "ulipObjectives"
+              }
+            ]
+          },
+          {
+            "op": "lte",
+            "args": [
+              {
+                "var": "affordabilityRatio"
+              },
+              {
+                "param": "maxAffordabilityRatio"
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "outcome": "SUITABLE",
+        "reasonCode": null
+      }
+    },
+    {
+      "ruleId": "SUIT-R17",
+      "priority": 17,
+      "when": {
+        "op": "in",
+        "args": [
+          {
+            "var": "riskAttitude"
+          },
+          {
+            "param": "incompatibleRiskAttitudes"
+          }
+        ]
+      },
+      "then": {
+        "outcome": "NOT_SUITABLE",
+        "reasonCode": "RISK_ATTITUDE_INCOMPATIBLE"
+      }
+    },
+    {
+      "ruleId": "SUIT-R18",
+      "priority": 18,
+      "when": {
+        "op": "in",
+        "args": [
+          {
+            "var": "investmentHorizon"
+          },
+          {
+            "param": "tooShortHorizons"
+          }
+        ]
+      },
+      "then": {
+        "outcome": "NOT_SUITABLE",
+        "reasonCode": "HORIZON_TOO_SHORT_FOR_PRODUCT_CLASS"
+      }
+    },
+    {
+      "ruleId": "SUIT-R19",
+      "priority": 19,
+      "when": {
+        "op": "all",
+        "args": [
+          {
+            "op": "in",
+            "args": [
+              {
+                "var": "riskAttitude"
+              },
+              {
+                "param": "cautionRiskAttitudes"
+              }
+            ]
+          },
+          {
+            "op": "in",
+            "args": [
+              {
+                "var": "investmentHorizon"
+              },
+              {
+                "param": "ulipHorizons"
+              }
+            ]
+          },
+          {
+            "op": "in",
+            "args": [
+              {
+                "var": "primaryObjective"
+              },
+              {
+                "param": "ulipObjectives"
+              }
+            ]
+          },
+          {
+            "op": "lte",
+            "args": [
+              {
+                "var": "affordabilityRatio"
+              },
+              {
+                "param": "maxAffordabilityRatio"
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "outcome": "SUITABLE_WITH_CAUTION",
+        "reasonCode": "RISK_ATTITUDE_BELOW_PRODUCT_PROFILE"
+      }
+    }
+  ],
+  "parameters": {
+    "minAge": 18,
+    "maxAge": 65,
+    "ulipRiskAttitudes": [
+      "MODERATE",
+      "HIGH"
+    ],
+    "cautionRiskAttitudes": [
+      "LOW"
+    ],
+    "incompatibleRiskAttitudes": [
+      "CAPITAL_PROTECTION"
+    ],
+    "ulipHorizons": [
+      "Y10_20",
+      "GT_20Y"
+    ],
+    "tooShortHorizons": [
+      "LT_5Y",
+      "Y5_10"
+    ],
+    "ulipObjectives": [
+      "WEALTH_GROWTH",
+      "RETIREMENT"
+    ],
+    "maxAffordabilityRatio": 0.2
+  },
+  "reasonCodes": {
+    "AGE_OUTSIDE_ELIGIBLE_RANGE": {
+      "severity": "BLOCK",
+      "rmText": "Age at next birthday @age is outside the eligible range @minAge-@maxAge.",
+      "customerText": "This product is not available at your age."
+    },
+    "NO_RULE_MATCHED": {
+      "severity": "BLOCK",
+      "rmText": "No suitability rule matched these answers; the class cannot be quoted. Raise with Product (rule pack gap).",
+      "customerText": "We cannot recommend this type of plan on the answers given."
+    },
+    "RULE_INPUT_MISSING": {
+      "severity": "BLOCK",
+      "rmText": "Required answers missing: @missing (SUIT-R01a).",
+      "customerText": "Some answers are missing."
+    },
+    "RULE_INPUT_INVALID": {
+      "severity": "BLOCK",
+      "rmText": "Answers not in the expected form: @missing.",
+      "customerText": "Some answers could not be read."
+    },
+    "SUITABILITY_CONFIG_MISSING": {
+      "severity": "BLOCK",
+      "rmText": "Suitability configuration incomplete for @ruleId (@missingParameters).",
+      "customerText": "We cannot complete the assessment right now."
+    },
+    "HORIZON_TOO_SHORT_FOR_PRODUCT_CLASS": {
+      "severity": "BLOCK",
+      "rmText": "Investment horizon is too short for this product class.",
+      "customerText": "This plan needs a longer time horizon than you have told us."
+    },
+    "RISK_ATTITUDE_INCOMPATIBLE": {
+      "severity": "BLOCK",
+      "rmText": "Capital-protection risk attitude is incompatible with a ULIP (SUIT-R17).",
+      "customerText": "A market-linked plan does not match your wish to protect your capital."
+    },
+    "RISK_ATTITUDE_BELOW_PRODUCT_PROFILE": {
+      "severity": "CAUTION",
+      "rmText": "Low risk attitude is below the ULIP risk profile (SUIT-R19).",
+      "customerText": "This plan carries more investment risk than you said you are comfortable with."
+    }
+  },
+  "testCases": [
+    {
+      "name": "SUIT-R16-suitable",
+      "inputs": {
+        "ageNextBirthday": 38,
+        "annualIncome": 1200000,
+        "declaredPremium": 25000,
+        "tobaccoUse": false,
+        "occupationCategory": "SALARIED",
+        "declinedOrRated": "NO",
+        "replacingExistingPolicy": false,
+        "primaryObjective": "WEALTH_GROWTH",
+        "investmentHorizon": "GT_20Y",
+        "riskAttitude": "HIGH"
+      },
+      "expect": {
+        "outcome": "SUITABLE",
+        "fired": [
+          "SUIT-R16"
+        ],
+        "derived": {
+          "affordabilityRatio": 0.0208
+        }
+      }
+    },
+    {
+      "name": "D4-no-protectionGap",
+      "description": "ULIP asks no dependants / cover / liabilities; protectionGap is not derived (DECISIONS D4)",
+      "inputs": {
+        "ageNextBirthday": 38,
+        "annualIncome": 1200000,
+        "declaredPremium": 25000,
+        "tobaccoUse": false,
+        "occupationCategory": "SALARIED",
+        "declinedOrRated": "NO",
+        "replacingExistingPolicy": false,
+        "primaryObjective": "WEALTH_GROWTH",
+        "investmentHorizon": "GT_20Y",
+        "riskAttitude": "HIGH"
+      },
+      "expect": {
+        "derived": {
+          "protectionGap": null,
+          "recommendedCover": null
+        }
+      }
+    },
+    {
+      "name": "SUIT-R17-capital-protection",
+      "inputs": {
+        "ageNextBirthday": 38,
+        "annualIncome": 1200000,
+        "declaredPremium": 25000,
+        "tobaccoUse": false,
+        "occupationCategory": "SALARIED",
+        "declinedOrRated": "NO",
+        "replacingExistingPolicy": false,
+        "primaryObjective": "WEALTH_GROWTH",
+        "investmentHorizon": "GT_20Y",
+        "riskAttitude": "CAPITAL_PROTECTION"
+      },
+      "expect": {
+        "outcome": "NOT_SUITABLE",
+        "reasonCodes": [
+          "RISK_ATTITUDE_INCOMPATIBLE"
+        ]
+      }
+    },
+    {
+      "name": "SUIT-R18-horizon-short",
+      "inputs": {
+        "ageNextBirthday": 38,
+        "annualIncome": 1200000,
+        "declaredPremium": 25000,
+        "tobaccoUse": false,
+        "occupationCategory": "SALARIED",
+        "declinedOrRated": "NO",
+        "replacingExistingPolicy": false,
+        "primaryObjective": "WEALTH_GROWTH",
+        "investmentHorizon": "Y5_10",
+        "riskAttitude": "HIGH"
+      },
+      "expect": {
+        "outcome": "NOT_SUITABLE",
+        "reasonCodes": [
+          "HORIZON_TOO_SHORT_FOR_PRODUCT_CLASS"
+        ]
+      }
+    },
+    {
+      "name": "SUIT-R19-low-risk-caution",
+      "inputs": {
+        "ageNextBirthday": 38,
+        "annualIncome": 1200000,
+        "declaredPremium": 25000,
+        "tobaccoUse": false,
+        "occupationCategory": "SALARIED",
+        "declinedOrRated": "NO",
+        "replacingExistingPolicy": false,
+        "primaryObjective": "WEALTH_GROWTH",
+        "investmentHorizon": "GT_20Y",
+        "riskAttitude": "LOW"
+      },
+      "expect": {
+        "outcome": "SUITABLE_WITH_CAUTION",
+        "reasonCodes": [
+          "RISK_ATTITUDE_BELOW_PRODUCT_PROFILE"
+        ]
+      }
+    },
+    {
+      "name": "SUIT-R19a-R17-and-R18",
+      "inputs": {
+        "ageNextBirthday": 38,
+        "annualIncome": 1200000,
+        "declaredPremium": 25000,
+        "tobaccoUse": false,
+        "occupationCategory": "SALARIED",
+        "declinedOrRated": "NO",
+        "replacingExistingPolicy": false,
+        "primaryObjective": "WEALTH_GROWTH",
+        "investmentHorizon": "LT_5Y",
+        "riskAttitude": "CAPITAL_PROTECTION"
+      },
+      "expect": {
+        "outcome": "NOT_SUITABLE",
+        "reasonCodes": [
+          "RISK_ATTITUDE_INCOMPATIBLE",
+          "HORIZON_TOO_SHORT_FOR_PRODUCT_CLASS"
+        ]
+      }
+    },
+    {
+      "name": "SUIT-R08-age-17",
+      "inputs": {
+        "ageNextBirthday": 17,
+        "annualIncome": 1200000,
+        "declaredPremium": 25000,
+        "tobaccoUse": false,
+        "occupationCategory": "SALARIED",
+        "declinedOrRated": "NO",
+        "replacingExistingPolicy": false,
+        "primaryObjective": "WEALTH_GROWTH",
+        "investmentHorizon": "GT_20Y",
+        "riskAttitude": "HIGH"
+      },
+      "expect": {
+        "outcome": "NOT_SUITABLE",
+        "reasonCodes": [
+          "AGE_OUTSIDE_ELIGIBLE_RANGE"
+        ]
+      }
+    },
+    {
+      "name": "GAP-affordability-above-0.20-no-rule",
+      "inputs": {
+        "ageNextBirthday": 38,
+        "annualIncome": 1200000,
+        "declaredPremium": 300000,
+        "tobaccoUse": false,
+        "occupationCategory": "SALARIED",
+        "declinedOrRated": "NO",
+        "replacingExistingPolicy": false,
+        "primaryObjective": "WEALTH_GROWTH",
+        "investmentHorizon": "GT_20Y",
+        "riskAttitude": "HIGH"
+      },
+      "expect": {
+        "outcome": "INSUFFICIENT_DATA",
+        "reasonCodes": [
+          "NO_RULE_MATCHED"
+        ]
+      }
+    }
+  ]
+}

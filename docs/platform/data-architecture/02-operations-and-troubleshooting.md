@@ -85,7 +85,7 @@ and is therefore already in the PITR window.
 | `RET-7Y-IMMUTABLE` | `retain_until = created_at::date + 7 years`; INSERT-only role; S3 Object Lock for archives |
 | `RET-7Y` | `retain_until` on close + 7 years; mutable in life. **Sold path only** for quote/proposal/journey (`DATA-005` §10) |
 | `RET-POLICY+7Y` | `retain_until` on policy terminal + 7 years |
-| `RET-WORKING` | Operational window (default 90 days, config) on `quote_working` / `proposal_working` / unconverted `journey`. Archive then purge — not 7-year OLTP |
+| `RET-WORKING` | Operational window (default 90 days, config) on DynamoDB quote/proposal working items (TTL, `DB-DEC-0005`) and unconverted `journey` (archive then purge) — not 7-year OLTP |
 | `RET-OPERATIONAL` | 90 days — poll attempts, unpublished-outbox tombstones after success |
 | `RET-TRANSIENT` | `idempotency_record.expires_at` ≤ 24h |
 

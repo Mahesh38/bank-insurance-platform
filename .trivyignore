@@ -35,3 +35,14 @@
 # unblock PR #143; not a T4 Deepali signature.
 # ---------------------------------------------------------------------------
 CVE-2026-47884  # owner: Mahesh/repository_owner | expires: 2026-11-08 | reason: no OSS 6.2 patch; XsltView unused; Boot 4 parked as SUG-20261008-sb4; RISK-021
+
+# ---------------------------------------------------------------------------
+# CVE-2026-47890 — Spring Framework SSE + view-fragment stream corruption
+# spring.io/security advisory (Trivy CRITICAL). Same fix-line as CVE-2026-47884:
+# only public OSS fix is spring-webmvc 7.0.9 (Boot 4); 6.2.20 is Enterprise-only
+# and not on Maven Central. Boot 3.5.x stays on 6.2.19 (SUG-20261008-sb4 parked).
+# Reachability: no service uses Server-Sent Events, SseEmitter, TEXT_EVENT_STREAM
+# or view fragments — APIs are JSON RestControllers. RISK-022. Recorded under
+# PR #150 completion (owner-directed); not a T4 Deepali signature.
+# ---------------------------------------------------------------------------
+CVE-2026-47890  # owner: Mahesh/repository_owner | expires: 2026-11-08 | reason: no OSS 6.2 patch; SSE/view-fragments unused; Boot 4 parked as SUG-20261008-sb4; RISK-022

@@ -31,7 +31,7 @@ Cite: [`DB-DEC-0001`](./DB-DEC-0001-r0-physical-model.md) · [`ADR-008`](../arch
 | **Decision** | `APPROVED_WITH_OBSERVATIONS` as a draft overlay on `DB-DEC-0001` |
 | **Severity** | `D1` — store map is decided; restore, IAM roles and connection-pool caps are unproven until S09 |
 | **R0 transactional SoR** | One Aurora PostgreSQL cluster. One schema per bounded context. One application role per schema. No cross-schema `GRANT`. |
-| **DynamoDB at R0** | **No transactional system of record. No service is granted Dynamo access.** The Journey / Quotation / Audit proposal in [`architecture-review/05`](../architecture-review/05-data-architecture.md) stays **rejected** until a measured revisit (`DB-DEC-0001`). Sessions are **not** Dynamo (`ADR-011`). |
+| **DynamoDB at R0** | **Amended 2026-10-21 by `DB-DEC-0005` (owner):** pre-payment quote and proposal working state only, two tables, two owning services. Not a system of record for anything sold, paid or evidenced. Journey and Audit in DynamoDB stay **rejected**; sessions are **not** Dynamo (`ADR-011`). |
 | **Segregation mechanism** | Ownership + credential, not a second engine. A service that needs another context's fact calls that service's API or consumes its event. It never opens that schema. |
 | **Credential rule** | Yes — **each owning service uses a different PostgreSQL role**. Replicas of the same service share that role. Services that own no schema have **no** Aurora login. |
 
@@ -108,27 +108,35 @@ One cluster, Multi-AZ, PITR, KMS at rest. Design target RPO 5 min / RTO 30 min �
 | `journey` | Journey Orchestration (#9) | `journey-orchestration-service` | Thin stage + refs row — relational, not a document-store problem at R0 load |
 | `administration` | Administration & Config (#19) | `administration-config-service` | Versioned INSERT-only configuration |
 
-Audit **events** are rows in `bank_persistence.audit_event` (INSERT-only). `audit-compliance-service` does **not** get its own audit database and does **not** get Dynamo. It writes through `POST /internal/v1/audit-events` on `bank-persistence-service` (`DR-OWN-04`).
+Audit **events** are rows in `bank_persistence.audit_event` (INSERT-only) **today**. `audit-compliance-service` does **not** get Dynamo. It writes through `POST /internal/v1/audit-events` on `bank-persistence-service` (`DR-OWN-04`). **Proposed change ([`ADR-026`](../architecture-review/ADR-026-audit-store-and-transport.md), awaiting the owner's yes):** services emit `AuditRecorded` through their outbox and `audit-compliance-service` owns Aurora schema `audit` (hash-chained, INSERT-only, daily WORM export — [`schemas/15-audit.sql`](./schemas/15-audit.sql)); `bank_persistence.audit_event` is retired after migration. Still Aurora, still not DynamoDB.
 
 Idempotency is a table **inside the owning schema**, written in the same transaction as the business change (`DR-INT-06`). It is not Dynamo and not the `ADR-011` cache.
 
-### 3.2 DynamoDB — R0 access list is empty
+### 3.2 DynamoDB — R0 access list (amended by DB-DEC-0005)
 
-| Proposed in `architecture-review/05` | R0 DBA ruling | Revisit only when |
+**2026-10-21 owner decision ([`DB-DEC-0005`](./DB-DEC-0005-dynamodb-working-payload.md), Mahesh, HUMAN):** DynamoDB holds
+the **pre-payment working state of quotes and proposals**. Once Payment is `RECONCILED` the owning
+service materialises structured rows into Aurora and Aurora is the record. Everything else in the
+original ruling stands.
+
+| Candidate | R0 ruling | Store |
 |---|---|---|
-| Journey state machine | **Rejected.** Lives in `journey` on Aurora | Measured single-key QPS / size that Aurora cannot meet without harming neighbours (`ADR-008` revisit) |
-| Quotation job / poll records | **Rejected.** Lives in `quotation` on Aurora. Adapter jobs already live in `bank_persistence.integration_job` | Same, plus a proven quote-fan-out profile that is no longer sequential |
-| Audit hot store | **Rejected.** `audit_event` already ships on Aurora. A second audit SoR is forbidden | Volume evidence **and** a joint Aarti/Mahesh SoT change. Never a silent second audit DB |
-| Identity sessions | **Withdrawn by `ADR-011`.** Sessions are Valkey | Do not reopen Dynamo sessions without withdrawing `ADR-011` |
-| Integration Hub routing | **Rejected at R0.** Routing policy is versioned configuration in `administration` (or a later Hub-owned Aurora schema if the Hub becomes a data owner). No business data | Hub has a distinct write volume and its own schema extract |
-| Notification delivery log | **Not a Dynamo table at R0.** R0 notification is OTP + payment-link delivery; evidence is the audit event. A `notification` Aurora schema may be added when delivery state itself is an SoR | Delivery-log QPS or TTL-only access is measured |
-| Reporting | Never Dynamo. Never this OLTP cluster | Analytical store is S3 + Athena / Redshift (`architecture-review/05`) |
+| Quote working state (request, all offers, selection) before payment | **Admitted — `DB-DEC-0005`** | DynamoDB `{env}-quotation-working`, owner `quotation-service` |
+| Proposal working state (form answers, nominee, UW requirements) before payment | **Admitted — `DB-DEC-0005`** | DynamoDB `{env}-proposal-working`, owner `proposal-service` |
+| Structured quote / offer / proposal / UW after `RECONCILED` | Unchanged | Aurora `quotation` / `proposal` |
+| Journey state machine | **Rejected** — stage + refs, relational | Aurora `journey` |
+| Quotation job / poll records | **Rejected** — adapter jobs stay | Aurora `bank_persistence.integration_job` |
+| Audit hot store | **Rejected** — no second audit SoR | Aurora `bank_persistence.audit_event` + S3 WORM |
+| Identity sessions | **Withdrawn by `ADR-011`** | Valkey |
+| Integration Hub routing | **Rejected** — versioned configuration | Aurora `administration` |
+| Notification delivery log | Not a table at R0 | Audit event |
+| Reporting | Never Dynamo, never this OLTP cluster | S3 + Athena / Redshift |
+| Payment, policy, consent, suitability | **Never** — money and evidence | Aurora |
 
-**R0 Dynamo principals:** none.
-**R0 Dynamo tables:** none.
-**R0 IAM policies granting `dynamodb:*` to a platform service:** none — treat any such grant as a defect.
-
-A later Dynamo introduction is a **source-of-truth change**. Mandatory joint Aarti + Mahesh review ([Aarti card](../../context/personas/aarti-database.card.md) — strategic DB technology). Deepali reviews the new IAM surface. It is not an S08 or S09 task.
+**R0 Dynamo principals:** `quotation-service` (own table only), `proposal-service` (own table only).
+**R0 Dynamo tables:** `{env}-quotation-working`, `{env}-proposal-working`.
+**Any other `dynamodb:*` grant to a platform service is a defect.** Table design, IAM and write
+patterns: [`schemas/20-dynamodb-working-payload.md`](./schemas/20-dynamodb-working-payload.md).
 
 ### 3.3 Stores that are not PostgreSQL and not Dynamo
 
@@ -171,8 +179,8 @@ Human standing write on evidence tables is forbidden.
 | `suitability-service` | `suitability` | `app_suitability` | `migrator_suitability` | — |
 | `product-catalogue-service` | `catalogue` | `app_catalogue` | `migrator_catalogue` | Valkey prefix `catalogue:` (read cache) |
 | `journey-orchestration-service` | `journey` | `app_journey` | `migrator_journey` | — |
-| `quotation-service` | `quotation` | `app_quotation` | `migrator_quotation` | — |
-| `proposal-service` | `proposal` | `app_proposal` | `migrator_proposal` | — |
+| `quotation-service` | `quotation` | `app_quotation` | `migrator_quotation` | DynamoDB `{env}-quotation-working` (`DB-DEC-0005`) |
+| `proposal-service` | `proposal` | `app_proposal` | `migrator_proposal` | DynamoDB `{env}-proposal-working` (`DB-DEC-0005`) |
 | `payment-service` | `payment` | `app_payment` | `migrator_payment` | — |
 | `policy-issuance-service` | `policy` | `app_policy` | `migrator_policy` | S3 prefix for policy PDFs |
 | `administration-config-service` | `administration` | `app_administration` | `migrator_administration` | — |
@@ -214,10 +222,10 @@ journey-orch        [Aurora journey]                stage + refs only
 consent-service     [Aurora consent]                OTP evidence (immutable columns)
 suitability-service [Aurora suitability]            answers_enc + mapping (Savings/ULIP)
 catalogue-service   [Aurora catalogue] + Valkey     product / eligibility
-quotation-service   [Aurora quotation]              quote + selected offer
+quotation-service   [Dynamo working → Aurora quotation after RECONCILED]  quote + selected offer
         │  via Integration Hub HTTP
 1sb-integration     [no DB] ──HTTP──► bank-persistence [Aurora job + raw_payload + S3]
-proposal-service    [Aurora proposal]
+proposal-service    [Dynamo working → Aurora proposal after RECONCILED]
 payment-service     [Aurora payment]                customer device → PG
 policy-issuance     [Aurora policy] + S3 PDF
 audit-compliance    [no DB] ──HTTP──► bank-persistence.audit_event
@@ -230,7 +238,7 @@ Every hop that must be atomic **inside one context** is one Aurora transaction (
 
 ## 6. Roadmap
 
-This is a **technical sequence**, not a calendar. Each row is a gate-shaped increment. Dynamo is a **later revisit**, not a parallel R0 build.
+This is a **technical sequence**, not a calendar. Each row is a gate-shaped increment. DynamoDB at R0 is limited to the two `DB-DEC-0005` working tables (quote / proposal before payment); any **other** DynamoDB use is a later, evidence-gated revisit (Phase F), not a parallel R0 build.
 
 ### Phase A — Design close (now · S08)
 
@@ -238,10 +246,10 @@ This is a **technical sequence**, not a calendar. Each row is a gate-shaped incr
 |---|---|---|
 | This pack + `DB-DEC-0003` | Aarti | Service × store × role matrix is the cited R0 apply list |
 | Human Aarti on `S07-G5` / `DB-DEC-0001` + this overlay | Human Aarti | Signature exists (agent does not invent it) |
-| Mahesh joint review: ownership + "no Dynamo SoR at R0" | Human Mahesh | Joint note; diagrams in `05` / `02` marked superseded for R0 or amended by Mahesh |
+| Mahesh joint review: ownership + "no Dynamo **SoR** at R0" (working state only, `DB-DEC-0005`) | Human Mahesh | Done for the store question on 2026-10-21 (`DB-DEC-0005`); diagrams in `05` / `02` still to be marked superseded for R0 or amended by Mahesh |
 | Deepali: per-schema secret + no standing human write | Deepali | Credential lifecycle accepted |
 
-**Do not:** create Dynamo tables, IAM roles for Dynamo, or a second cluster.
+**Do not:** create Dynamo tables other than the two `DB-DEC-0005` tables, IAM roles for any other service, or a second cluster.
 
 ### Phase B — Platform apply (S09 · parked)
 
@@ -252,7 +260,7 @@ This is a **technical sequence**, not a calendar. Each row is a gate-shaped incr
 | Connection-pool cap per service | Shivanshi | One context cannot exhaust the cluster (`ADR-008` mitigation) |
 | Timed restore drill | Shivanshi consumes Aarti's RPO/RTO | `S09-E06-S04` / `S09-VT-07` measured |
 | Valkey ACL users + prefixes | Shivanshi | `FF-24` negative cross-prefix test |
-| **No Dynamo resource** in the S09 inventory | Shivanshi | Absence is the evidence |
+| **Only the two `DB-DEC-0005` Dynamo tables** in the S09 inventory (PITR, CMK, TTL, VPC endpoint policy) | Shivanshi | Inventory diff is the evidence |
 
 New business schemas are **not** applied from a shared admin session (`DR-MIG-04`). Each owning service applies its own history when that service is built.
 
@@ -296,7 +304,7 @@ Split axis: **LOB-cell / shared-platform**, not one cluster per service. Shared 
 
 ### Phase F — Dynamo revisit (parked · evidence-gated)
 
-Unpark **only** when all of the following exist:
+Applies to any DynamoDB use **beyond** the two `DB-DEC-0005` working tables. Unpark **only** when all of the following exist:
 
 1. A named table and access pattern (partition key, item size, measured QPS, p95).
 2. Evidence that Aurora on that pattern is the **actual** bottleneck — not provider latency and not the payment device path ([`01` §7](./01-physical-design.md#7-load-bottleneck-safe-range)).
@@ -304,7 +312,7 @@ Unpark **only** when all of the following exist:
 4. Joint Aarti + Mahesh decision; Deepali IAM review; Shailja if evidence class moves.
 5. Explicit "not a second audit database" if the candidate is audit.
 
-Until then, any story that "adds Dynamo for Journey/Quote/Audit" is a **duplicate of the rejected alternative** in `DB-DEC-0001` and is not re-admitted as new scope.
+Until then, any story that "adds Dynamo for Journey / Audit / Payment / the sold quote or proposal record" is a **duplicate of the rejected alternative** in `DB-DEC-0001` / `DB-DEC-0005` and is not re-admitted as new scope. (Pre-payment quote and proposal working state **is** in DynamoDB since `DB-DEC-0005`.)
 
 ---
 

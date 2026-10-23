@@ -44,6 +44,12 @@ subprojects {
     // 2.21.6). Remove once a Spring Boot release pins 2.21.6 or later.
     extra["jackson-bom.version"] = "2.21.7"
 
+    // kafka-clients 3.9.2 (Boot 3.5.16) pulls at.yawk.lz4:lz4-java:1.10.1, exposed to
+    // CVE-2026-106451 (native extract race in shared tmpdir; fixed in 1.11.4). Not a
+    // Boot BOM property — constrain the transitive on runtimeClasspath. Remove once
+    // kafka-clients pins ≥1.11.4.
+    extra["lz4.java.version"] = "1.11.4"
+
     configure<io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension> {
         imports {
             mavenBom("org.springframework.boot:spring-boot-dependencies:3.5.16")
@@ -76,6 +82,12 @@ subprojects {
     }
     configurations.matching { it.name == "runtimeClasspath" }.configureEach {
         resolutionStrategy.activateDependencyLocking()
+        resolutionStrategy.eachDependency {
+            if (requested.group == "at.yawk.lz4" && requested.name == "lz4-java") {
+                useVersion(extra["lz4.java.version"] as String)
+                because("CVE-2026-106451; fixed in lz4-java 1.11.4")
+            }
+        }
     }
 
     // Writes every lockfile in one invocation: ./gradlew resolveAndLockAll --write-locks

@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.bank.internal/events/PaymentRefunded.v1.json",
+  "title": "PaymentRefunded v1 - data",
+  "description": "The gateway confirmed the refund. Producer: payment. Status: CONTRACTED. The `data` member of event-envelope/v1 (ADR-025): ids and states only, never customer PII.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "paymentId",
+    "refundId",
+    "amount",
+    "currency"
+  ],
+  "properties": {
+    "paymentId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "refundId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "amount": {
+      "type": "string",
+      "pattern": "^[0-9]{1,13}(\\.[0-9]{1,2})?$",
+      "description": "Decimal string; reconciliation only"
+    },
+    "currency": {
+      "type": "string",
+      "enum": [
+        "INR"
+      ]
+    },
+    "gatewayRefundRef": {
+      "type": "string",
+      "maxLength": 64,
+      "description": "Gateway refund reference (not customer data)"
+    },
+    "proposalId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "journeyId": {
+      "$ref": "#/$defs/ulid"
+    }
+  },
+  "$defs": {
+    "ulid": {
+      "type": "string",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+    }
+  }
+}

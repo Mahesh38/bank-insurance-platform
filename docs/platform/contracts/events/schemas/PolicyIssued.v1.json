@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.bank.internal/events/PolicyIssued.v1.json",
+  "title": "PolicyIssued v1 - data",
+  "description": "Insurer issued the policy. Producer: policy. Status: CONTRACTED. The `data` member of event-envelope/v1 (ADR-025): ids and states only, never customer PII.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "policyId",
+    "policyNumber",
+    "insurerCode",
+    "proposalId",
+    "journeyId",
+    "issuedAt"
+  ],
+  "properties": {
+    "policyId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "policyNumber": {
+      "type": "string",
+      "maxLength": 64,
+      "description": "Insurer policy number"
+    },
+    "insurerCode": {
+      "type": "string",
+      "pattern": "^[A-Z0-9_]{2,32}$",
+      "description": "Insurer code from product-catalogue"
+    },
+    "proposalId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "journeyId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "issuedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "RFC 3339 UTC"
+    },
+    "riskCommencementDate": {
+      "type": "string",
+      "format": "date"
+    },
+    "maturityDate": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date"
+    }
+  },
+  "$defs": {
+    "ulid": {
+      "type": "string",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+    }
+  }
+}

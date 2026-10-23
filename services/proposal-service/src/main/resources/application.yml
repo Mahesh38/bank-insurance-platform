@@ -15,11 +15,44 @@ spring:
     open-in-view: false
   flyway:
     enabled: true
-    locations: classpath:db/migration
+    # {vendor}: partial unique index on PostgreSQL, an H2 equivalent locally.
+    locations: classpath:db/migration,classpath:db/vendor/{vendor}
     validate-on-migrate: true
   threads:
     virtual:
       enabled: true
+
+# DB-DEC-0005 — working proposal in DynamoDB until payment (schemas/20-dynamodb-working-payload.md).
+proposal:
+  working-store:
+    table-name: ${PROPOSAL_WORKING_TABLE:local-proposal-working}
+    region: ${AWS_REGION:ap-south-1}
+    # Only honoured in the local / test profiles (schemas/20 §5).
+    endpoint-override: ${AWS_DYNAMODB_ENDPOINT:}
+    retention-working: ${PROPOSAL_RET_WORKING:90d}
+    retention-after-materialize: 30d
+    idempotency-ttl: 24h
+    # ADR-025 §3: an OUTBOX item has no ttl until published; then publish + outbox-ttl.
+    outbox-ttl: 7d
+    # Partitions of the sparse GSI_OUTBOX_PENDING index the sweeper queries (no Scan).
+    outbox-pending-shards: 4
+  # ADR-025 §3, §5 — publishing the DynamoDB OUTBOX items. none = items wait unpublished.
+  outbox:
+    publisher: ${PROPOSAL_EVENT_PUBLISHER:none}
+    sweeper:
+      enabled: ${PROPOSAL_OUTBOX_SWEEPER_ENABLED:false}
+      interval: 1m
+      min-age: 5m
+      batch-size: 100
+    kafka:
+      bootstrap-servers: ${PROPOSAL_KAFKA_BOOTSTRAP_SERVERS:}
+      env: ${PLATFORM_ENV:local}
+      ack-timeout: 10s
+  envelope:
+    # kms everywhere real; local (static key) only in the local / test profiles.
+    provider: ${PROPOSAL_ENVELOPE_PROVIDER:kms}
+    kms-key-id: ${PROPOSAL_ENVELOPE_KMS_KEY_ID:alias/local-proposal-working}
+    data-key-cache-ttl: 5m
 
 management:
   endpoints:

@@ -43,6 +43,14 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20261022-sse | 2026-10-22 | scan:trivy | Time-box `.trivyignore` for CVE-2026-47890 (SSE + view fragments unused; no OSS 6.2 patch) so SCA/image scans can merge on PR #150; not a T4 waiver | SF0 | SC1 | MUST | SEC | P1 / P1 | ADMIT-BYPASS | [.trivyignore](../../../.trivyignore) · [RISK-022](./RISK-REGISTER.md) · [detail](#sug-20261022-sse--time-box-cve-2026-47890) |
+| SUG-20261022-rdy | 2026-10-22 | human:repository-owner | Build readiness for all 21 services: payment after UW approval; ADR-026 + hub/notification/audit schemas accepted; admin-created partner users; bank-only exception approvals; every business value configurable per line of business; strict compliance posture; finish all remaining code; per-service build briefs so 21 agents can build in parallel | SF2 | SC0 | MUST | ARCH | P1 / P1 | ADMIT-BYPASS | [round 2 decisions](../../platform/architecture-review/DECISIONS-2026-10-22.md) · [detail](#sug-20261022-rdy--build-readiness-for-all-21-services) |
+| SUG-20261021-rul | 2026-10-21 | human:repository-owner | Close the design gaps behind the S11 gate: configuration-driven rule engine (precedence, reason codes, thresholds on the fly), decisions D1–D9, missing OpenAPI + LLD contracts, event specification, review fixes; prepare GAP-006/007 for Compliance signature | SF2 | SC0 | MUST | ARCH | P1 / P1 | ADMIT-BYPASS | [decisions](../../platform/architecture-review/DECISIONS-2026-10-21.md) · [ADR-024](../../platform/architecture-review/ADR-024-configuration-driven-rule-engine.md) · [sign-off packet](../../au-bank-insurance-platform/rule-packs/SIGNOFF-PACKET-GAP-006-007.md) · [detail](#sug-20261021-rul--configuration-driven-rule-engine-and-the-nine-open-decisions) |
+| SUG-20261021-lft | 2026-10-21 | human:repository-owner | Build the "code left for later": domain services re-check the PDP; BFF per-seam timeouts (2 s target); lead assignment history, meetings, follow-ups, idempotency and outbox tables; DynamoDB code in quotation and proposal services | SF2 | SC0 | MUST | BUG | P2 / P1 | ADMIT-BYPASS | [lead-service](../../platform/api-reference/services/lead-service.md) · [budgets](../../platform/api-reference/conventions/idempotency-timeouts-retries.md) · [detail](#sug-20261021-lft--build-the-code-left-for-later) |
+| SUG-20261021-ddb | 2026-10-21 | human:repository-owner | Override "no DynamoDB in R0": quote and proposal working state lives in DynamoDB until payment; after payment it moves to Postgres as structured rows, not JSON | SF2 | SC0 | MUST | ARCH | P2 / P1 | ADMIT-BYPASS | [DB-DEC-0005](../../platform/data-architecture/DB-DEC-0005-dynamodb-working-payload.md) · [table design](../../platform/data-architecture/schemas/20-dynamodb-working-payload.md) · [detail](#sug-20261021-ddb--dynamodb-for-quote-and-proposal-working-state) |
+| SUG-20261021-sui | 2026-10-21 | human:repository-owner | Different suitability question sets and matrices per product class — Term does not ask investment horizon or risk attitude | SF2 | SC0 | MUST | ARCH | P2 / P1 | ADMIT-BYPASS | [rule pack §2.3](../../au-bank-insurance-platform/rule-packs/suitability-rule-pack.md) · [D-022](../../au-bank-insurance-platform/DECISION-LOG.md) · [detail](#sug-20261021-sui--suitability-question-sets-by-product-class) |
+| SUG-20261021-gap | 2026-10-21 | human:repository-owner | "Work on the gaps identified": BFF calls the PDP before lead create/assign (300 ms, fail closed); lead persisted in `lead_lms.lead`; authz typed errors instead of 500; BFF transport failures → 503; 1SB proposal/payment request evidence required | SF2 | SC0 | MUST | BUG | P2 / P1 | ADMIT-BYPASS | [BFF to PDP](../../platform/api-reference/interactions/bff-to-identity-authorization.md) · [detail](#sug-20261021-gap--close-runtime-gaps-found-by-the-api-reference) |
+| SUG-20261021-apr | 2026-10-21 | human:repository-owner | Detailed, linked developer API documentation: every API, how services talk, which DB each uses, and scenario-by-scenario behind-the-scenes flows (login, customer search, lead create/assign, suitability, multi-quote, Integration Hub / 1SB, sync, events, payload storage and transactions) for the dev team | SF2 | SC0 | SHOULD | DOC | P3 / P2 | ADMIT-BYPASS | [portal](../../platform/api-reference/README.md) · [detail](#sug-20261021-apr--linked-developer-api-reference-portal) |
 | SUG-20261019-txn | 2026-10-19 | human:stakeholder | How transactions work on unstructured quote/proposal; Dynamo vs Postgres JSON; archive anything that did not reach payment — do not keep all leads/journeys 7–10 years | SF2 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [DATA-005](../../platform/data-architecture/DATA-005.work-item.yaml) · [06 §10](../../platform/data-architecture/06-journey-orchestrator-and-working-payload.md) · [detail](#sug-20261019-txn--postgres-transactions-not-dynamo-archive-unless-paid) |
 | SUG-20261019-pay | 2026-10-19 | human:stakeholder | Payment is also part of the journey though it is independent | SF2 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [DATA-005](../../platform/data-architecture/DATA-005.work-item.yaml) · [06 §6](../../platform/data-architecture/06-journey-orchestrator-and-working-payload.md) · [detail](#sug-20261019-pay--payment-on-the-journey-and-independent) |
 | SUG-20261019-jwp | 2026-10-19 | human:stakeholder | Journey orchestrator table contract; quotes/proposals stay JSON until payment, then structured | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [DATA-005](../../platform/data-architecture/DATA-005.work-item.yaml) · [PLAN-012](../plans/PLAN-012-journey-working-payload.md) · [pack](../../platform/data-architecture/06-journey-orchestrator-and-working-payload.md) · [detail](#sug-20261019-jwp--journey-orchestrator-and-json-until-payment) |
@@ -153,6 +161,528 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20261022-sse · Time-box CVE-2026-47890
+
+```yaml
+id: SUG-20261022-sse
+raised_at: "2026-10-22"
+raised_by: "scan:trivy"
+source: "PR #150 Security Scanning — SCA and container image jobs"
+input: >
+  CVE-2026-47890 on spring-webmvc 6.2.19 (SSE + view-fragment stream corruption). Trivy fails
+  CRITICAL because the only public OSS fix is 7.0.9 (Boot 4). Same fix-line as RISK-021 /
+  CVE-2026-47884. No service uses SseEmitter, TEXT_EVENT_STREAM or view fragments.
+stage_fit: { code: SF0, rationale: "GATE-S08 S08-G5 scan hygiene; same class as SUG-20261008-xsl" }
+scope: { code: SC1, serves: "S08-G5 dependency and image scanning" }
+necessity: { now: MUST, future_necessity: MUST, target_stage: "S08", evidence_tier: E2, confidence: C4 }
+action: ADMIT-BYPASS
+bypass_authorised_by: "Mahesh / repository_owner (explicit: complete PR #150)"
+reviewer_type: HUMAN
+authority: repository_owner
+action_rationale: >
+  Mirror RISK-021 pattern. Boot 4 stays parked (SUG-20261008-sb4). Time-boxed ignore until
+  2026-11-08; not a T4 Deepali signature. Reachability: rg finds no SSE usage in services.
+classification: { type: SEC, also: [INFRA], breakdown: TASK, risk_tier: T2 }
+priority: { now: P1, at_target: P1 }
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md · registers/RISK-REGISTER.md RISK-022 · .trivyignore"
+  work_item_id: SUG-20261022-sse
+  status: ADMIT-BYPASS
+resumed: "PR #150 completion — CodeQL, gitleaks, Knowledge Hub, review comments."
+```
+
+### SUG-20261022-rdy · Build readiness for all 21 services
+
+```yaml
+id: SUG-20261022-rdy
+raised_at: "2026-10-22"
+raised_by: "human:repository-owner"
+source: "Mahesh answers to SUG-20261021-rul open items"
+input: >
+  Payment only after insurer underwriting approval. ADR-026 yes; new schemas yes; new journey stage
+  yes. Partner users are created by the admin (no approver); exception approvals for partner-created
+  leads follow the bank SP hierarchy — only bank admins / approvers approve. Timeouts, lead expiry
+  (per line of business), exception thresholds, snapshot window — all configuration. Be strict on
+  compliance: take the decision, record it, cross nothing, and list what needs confirmation. Finish
+  everything not done so developers (or 21 AI agents) can build all services at once.
+stage_fit: { code: SF2, rationale: "S08 completion; no stage edit" }
+scope: { code: SC0, business_scope: "R0 assisted Life sale, all 21 services" }
+necessity: { now: MUST, future_necessity: MUST, target_stage: "S11 entry", evidence_tier: E2, confidence: C3 }
+action: ADMIT-BYPASS
+bypass_authorised_by: "Mahesh / repository_owner (explicit session instruction)"
+reviewer_type: HUMAN
+authority: repository_owner
+action_rationale: >
+  Owner-directed. Compliance-strict decisions (C1–C8 in DECISIONS-2026-10-22.md) are configuration
+  defaults Compliance may relax; GAP-006/007 stay OPEN until the human Compliance signature.
+classification: { type: ARCH, also: [SEC, DOC, BUG], breakdown: EPIC, risk_tier: T3 }
+priority: { now: P1, at_target: P1 }
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: SUG-20261022-rdy
+  status: ADMIT-BYPASS
+resumed: "SUG-20261021-rul follow-up."
+```
+
+### SUG-20261021-rul · Configuration-driven rule engine and the nine open decisions
+
+```yaml
+id: SUG-20261021-rul
+raised_at: "2026-10-21"
+raised_by: "human:repository-owner"
+source: "Mahesh session instruction after the readiness review"
+input: >
+  Close the governance gate first (GAP-006/007); make every rule decision configurable so a
+  compliance change is configuration, not code — including precedence and reason codes on the
+  fly; create the missing OpenAPI + LLD contracts; take the nine open design decisions (customer
+  id = our key + CIF; consent after suitability, before multi-quote, 90 days configurable; event
+  envelope/schema/topic/DLQ/publisher library; audit guidance; post-payment structured record and
+  status tracking with IRDAI TAT; OpenAPI authoritative); fix everything the review found.
+
+stage_fit:
+  code: SF2
+  rationale: "S08 design completion + fixes in existing modules; no stage edit"
+
+scope:
+  code: SC0
+  business_scope: "in scope — R0 assisted Life sale"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S08 → S11 entry"
+  evidence_tier: E2
+  confidence: C3
+
+action: ADMIT-BYPASS
+bypass_authorised_by: "Mahesh / repository_owner (explicit session instruction)"
+reviewer_type: HUMAN
+authority: repository_owner
+action_rationale: >
+  Owner-directed. What this record does NOT do: close GAP-006/007. Their closure is bound by
+  DEC-20260816-06 (non-waivable by any authority) to the human Risk & Compliance E2 signature;
+  no agent or owner instruction can substitute it. The work prepares a one-document sign-off
+  (SIGNOFF-PACKET-GAP-006-007.md) and makes every later compliance change a configuration
+  approval. ADR-026 (audit) is Proposed until the owner says yes.
+
+classification:
+  type: ARCH
+  also: [SEC, DOC, BUG]
+  breakdown: EPIC
+  risk_tier: T3
+
+priority:
+  now: P1
+  at_target: P1
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: SUG-20261021-rul
+  status: ADMIT-BYPASS
+  decisions: ["ADR-024", "ADR-025", "ADR-026 (Proposed)", "ADR-027", "D-023", "D-024", "D-025"]
+  delivered:
+    - "libs/bank-rule-engine: rule-set/v1 engine, schema, validator, 8 seed rule sets with test cases (47 tests)"
+    - "administration-config-service: versioned rule sets, maker-checker by classification, simulate, publish refused on failing test case, resolve, outbox (16 tests)"
+    - "libs/bank-common-events + event envelope, 36 schemas, catalogue (42 tests)"
+    - "OpenAPI 3.1 + LLD for all 21 services + rule engine under docs/platform/contracts/"
+    - "Design DDL for D-023/D-024/D-025, D4 outcome record, rule sets, audit (proposed); stale statements corrected"
+    - "Review fixes in identity, BFF, authz, lead, customer, bank-persistence, 1SB (check green)"
+  external_pending:
+    - "Risk & Compliance human E2 signature — GAP-006/007 (S02-G3/G4)"
+    - "Compliance: DPDP permissibility of consent after suitability (OPEN-CNS-DPDP)"
+    - "Compliance: TAT figure and start event (PROPOSAL.TAT)"
+    - "Exception BRD owner: EH-BR-RULE-001…015 threshold values"
+
+resumed: "SUG-20261021-apr follow-up."
+```
+
+### SUG-20261021-lft · Build the code left for later
+
+```yaml
+id: SUG-20261021-lft
+raised_at: "2026-10-21"
+raised_by: "human:repository-owner"
+source: "Mahesh session message quoting the 'Code left for later' list from SUG-20261021-gap"
+input: >
+  Code left for later: domain services don't yet repeat the permission check; the
+  other BFF calls use 3 s / 5 s instead of the 2 s target; lead assignment history,
+  meetings, follow-ups, idempotency and event-outbox tables aren't built; the
+  DynamoDB code belongs with the quotation and proposal services.
+
+stage_fit:
+  code: SF2
+  rationale: "Completes ratified seams (S-02, S-20, INV-ACT-01) and DB-DEC-0005 in existing modules"
+
+scope:
+  code: SC0
+  business_scope: "in scope — R0 lead module and quote / proposal working state"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S08 → S11"
+  evidence_tier: E3
+  confidence: C4
+
+action: ADMIT-BYPASS
+bypass_authorised_by: "Mahesh / repository_owner (explicit session instruction)"
+reviewer_type: HUMAN
+authority: repository_owner
+action_rationale: >
+  Owner-directed. Behaviour callers must know: lead-service now asks the PDP itself
+  and refuses with 403 when it cannot (lead-service needs a reachable PDP);
+  Idempotency-Key is honoured when present but stays optional until NIP-APP sends it.
+
+classification:
+  type: BUG
+  also: [SEC, ARCH]
+  breakdown: TASK
+  risk_tier: T2
+
+priority:
+  now: P2
+  at_target: P1
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: SUG-20261021-lft
+  status: ADMIT-BYPASS
+  done:
+    - "lead-service: PdpLeadAuthorizationAdapter re-checks lead.create / lead.assign (300 ms, fail closed, INV-ACT-01)"
+    - "lead-service: Flyway V3 lead_assignment, lead_meeting, lead_follow_up, idempotency_record, outbox_event; written in the lead transaction; note / meeting link AES-GCM"
+    - "BFF: per-downstream clients — lead 2 s, customer 4 s, resolve 2 s, IdP 6 s, PDP 300 ms; forwards Idempotency-Key, note and meeting"
+    - "quotation-service / proposal-service: DynamoDB working-state stores, AES-GCM envelope with KMS data key, materialiser into structured Aurora rows (idempotent, frozen item), 63 tests on embedded DynamoDB Local; deviations listed in schemas/20 §6"
+  remaining:
+    - "No outbox publisher (no MSK in R0 code); rows wait unpublished"
+    - "NIP-APP does not send Idempotency-Key yet"
+    - "proposal form_values_ref has no durable home after the frozen item expires (schemas/20 §6 #4) — decision needed"
+
+resumed: "SUG-20261021-apr follow-up."
+```
+
+### SUG-20261021-ddb · DynamoDB for quote and proposal working state
+
+```yaml
+id: SUG-20261021-ddb
+raised_at: "2026-10-21"
+raised_by: "human:repository-owner"
+source: "Mahesh session instruction (follow-up to SUG-20261021-apr K-1)"
+input: >
+  No DynamoDB in R0 — I want to override this decision and make use of DynamoDB
+  where it is required, specially in the quote and proposals before payment; once
+  payment is done all this are moved to Postgres in structured format rather than JSON.
+
+context:
+  workstream: WS-1 / WS-3
+  canonical_stage: "S08 — Engineering Foundation (design delta) → S09 provision → S11 runtime"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  freshness: "WARN — FreshnessCheck exit 1 at session start"
+  active_work_item: "SUG-20261021-apr — API reference; this item raised from its K-1"
+
+stage_fit:
+  code: SF2
+  rationale: >
+    Design-document change at S08 (DB decision, table design, DDL removal of the two
+    working tables). No runtime code: quotation-service and proposal-service are
+    skeletons, so the DynamoDB repositories are S11 work.
+
+scope:
+  code: SC0
+  business_scope: "in scope — pre-payment quote and proposal working state of the R0 sale"
+  authority: "Owner override of DB-DEC-0003 / DB-DEC-0004 store choice (governance §8)"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S09 — tables, IAM, KMS; S11 — repositories, materialise consumer"
+  evidence_tier: E2
+  confidence: C3
+
+action: ADMIT-BYPASS
+bypass_authorised_by: "Mahesh / repository_owner (explicit session instruction)"
+reviewer_type: HUMAN
+authority: repository_owner
+action_rationale: >
+  Explicit owner override recorded as DB-DEC-0005. AI-persona verdicts stay AGENT:
+  Aarti (DBA) APPROVED_WITH_OBSERVATIONS draft; Deepali (security) and Shailja
+  (compliance) outstanding. External approvals NOT created by this record: bank
+  InfoSec / landing-zone SCP permission for DynamoDB, IAM and KMS sign-off.
+conflicts:
+  - "Supersedes in part DB-DEC-0004 (store only) and the 04 §3.2 'R0 Dynamo access list is empty' ruling"
+  - "Resolves API-reference K-1"
+
+classification:
+  type: ARCH
+  breakdown: TASK
+  risk_tier: T2
+  destination: "docs/platform/data-architecture/DB-DEC-0005-dynamodb-working-payload.md"
+
+priority:
+  now: P2
+  at_target: P1
+  rationale: "Shapes quotation/proposal persistence before S11 code is written"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: SUG-20261021-ddb
+  status: ADMIT-BYPASS
+  closed_reason: >
+    DB-DEC-0005 + schemas/20-dynamodb-working-payload.md filed; quote_working /
+    proposal_working removed from the Aurora design DDL, routines and grants; DBA
+    pack and API reference updated (materialise on PaymentReconciled, ON CONFLICT
+    DO NOTHING, TTL removed while payment in flight).
+
+resumed: "SUG-20261021-apr follow-up — returned to it after recording."
+```
+
+### SUG-20261021-sui · Suitability question sets by product class
+
+```yaml
+id: SUG-20261021-sui
+raised_at: "2026-10-21"
+raised_by: "human:repository-owner"
+source: "Mahesh session instruction (follow-up to SUG-20261021-apr K-9)"
+input: >
+  There will be different suitability matrices and questions for different types
+  of products, so we might need different approaches for different suitability as
+  not all questions are relevant for suitability in savings products vs term. Like
+  investing horizon or risk level is not something you want to ask in term.
+
+context:
+  workstream: WS-2 / WS-3
+  canonical_stage: "S08 — Engineering Foundation (rule-pack amendment)"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  active_work_item: "SUG-20261021-apr — this item raised from its K-9"
+
+stage_fit:
+  code: SF2
+  rationale: >
+    Rule-pack and decision-log amendment; consistent with BRD BR-SUIT-002 ("a
+    separate Term question set will be documented later"). Term rules SUIT-R09–R12
+    already need only protection inputs.
+
+scope:
+  code: SC0
+  business_scope: "in scope — R0 Life suitability (Term, Savings, ULIP)"
+  authority: "Owner direction; Compliance content sign-off still required"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S11 — suitability-service question-set selection"
+  evidence_tier: E2
+  confidence: C3
+
+action: ADMIT-BYPASS
+bypass_authorised_by: "Mahesh / repository_owner (explicit session instruction)"
+reviewer_type: HUMAN
+authority: repository_owner
+action_rationale: >
+  Recorded as D-022 and rule pack v1.1 §2.3: question set chosen by product class
+  (TERM: SQ-01–04, 08–12; SAVINGS adds SQ-05/06; ULIP asks SQ-01, 05–12); C1 still
+  applies to every class. Rajal (product) and Shailja (compliance) persona verdicts
+  are AGENT and outstanding; bank Compliance sign-off of question wording is
+  external and NOT created here (OPEN-SUIT-06).
+conflicts:
+  - "Resolves API-reference K-9 (Term question set vs C1)"
+
+classification:
+  type: ARCH
+  breakdown: TASK
+  risk_tier: T2
+  destination: "docs/au-bank-insurance-platform/rule-packs/suitability-rule-pack.md"
+
+priority:
+  now: P2
+  at_target: P1
+  rationale: "Term journeys cannot be built without a defined question set"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: SUG-20261021-sui
+  status: ADMIT-BYPASS
+  closed_reason: "Rule pack §2.3, D-022, suitability DDL CHECK includes TERM, API reference pages updated"
+
+resumed: "SUG-20261021-apr follow-up — returned to it after recording."
+```
+
+### SUG-20261021-gap · Close runtime gaps found by the API reference
+
+```yaml
+id: SUG-20261021-gap
+raised_at: "2026-10-21"
+raised_by: "human:repository-owner"
+source: "Mahesh session instruction: 'Work on the gaps identified.'"
+input: >
+  Close the code gaps the API reference recorded: (1) BFF does not call the PDP
+  before lead create/assign; (2) lead data in memory only; (3) unapproved partner
+  login is an unmapped 500 in authz; (4) lead / customer service outage is a
+  generic error in the BFF instead of a typed 503; (5) 1SB raw payload storage is
+  best effort even for proposal and payment requests; plus the PDP 300 ms budget.
+
+context:
+  workstream: WS-3
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  active_work_item: "SUG-20261021-apr — gaps found while documenting"
+
+stage_fit:
+  code: SF2
+  rationale: >
+    Defect and conformance fixes in already-implemented services against ratified
+    seams (S-02 PDP 300 ms fail closed; S-20 typed upstream failure; COMP-003
+    evidence). No new service or dependency.
+
+scope:
+  code: SC0
+  business_scope: "in scope — R0 lead module and 1SB adapter"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S08"
+  evidence_tier: E3
+  confidence: C4
+  evidence:
+    - "./gradlew :services:{lead-service,identity-authorization-service,workforce-access-bff,1sb-integration-service}:check — green"
+
+action: ADMIT-BYPASS
+bypass_authorised_by: "Mahesh / repository_owner (explicit session instruction)"
+reviewer_type: HUMAN
+authority: repository_owner
+action_rationale: >
+  Owner-directed fixes, each with tests. Behaviour changes callers must know:
+  lead create/assign now return 403 when the PDP denies or is unreachable (a
+  just-in-time bank user has no role until granted — locally use
+  scripts/local/grant-local-rm.sql); proposal submit and payment-link creation
+  return 503 UPSTREAM_UNAVAILABLE when request evidence cannot be stored.
+
+classification:
+  type: BUG
+  also: [SEC]
+  breakdown: TASK
+  risk_tier: T2
+  destination: "services/{workforce-access-bff,lead-service,identity-authorization-service,1sb-integration-service}"
+
+priority:
+  now: P2
+  at_target: P1
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: SUG-20261021-gap
+  status: ADMIT-BYPASS
+  closed_reason: >
+    (1) PolicyDecisionClient (own 300 ms client, fail closed, reason → registry
+    code) gates lead.create / lead.assign; PDP denies unknown subjects
+    (UNKNOWN_SUBJECT) instead of 500. (2) JdbcLeadRepository on lead_lms.lead
+    (Flyway V2, optimistic version → 409 CONFLICT); lead.store=memory opt-out.
+    (3) authz IdentityResolutionService / PartnerUserAdministrationService throw
+    typed FORBIDDEN / CONFLICT / RESOURCE_NOT_FOUND / ILLEGAL_TRANSITION.
+    (4) HttpLeadGateway / HttpCustomerGateway map transport failure to 503
+    UPSTREAM_UNAVAILABLE. (5) RawPayloadStorePort.storeEvidence: proposal and
+    payment request stored first (one retry) or the call is not made; responses and
+    quotes stay best effort, logged at ERROR.
+  remaining:
+    - "Domain services do not yet re-check PDP decisions (INV-ACT-01)"
+    - "S-20 2 s budget not applied to IdP adapter / lead / customer clients (shared 3 s / 5 s)"
+    - "lead_assignment, meetings, follow-ups, idempotency and outbox tables still target"
+
+resumed: "SUG-20261021-apr follow-up — returned to it after recording."
+```
+
+### SUG-20261021-apr · Linked developer API reference portal
+
+```yaml
+id: SUG-20261021-apr
+raised_at: "2026-10-21"
+raised_by: "human:repository-owner"
+source: "Mahesh session request: detailed API documentation for the dev team"
+input: >
+  Create detailed documentation on each and every API in the application and how
+  APIs communicate with one another, scenario by scenario (e.g. /login through the
+  BFF, authentication service, AD or Keycloak, session in the key-value cache,
+  opaque string back to the user; then customer search, lead creation, lead
+  assignment, suitability, multi-quote, the Integration Hub over 1SB and direct
+  insurers, synchronisation, events, payload storage and transactions). Linked
+  Markdown pages, not one flat file; to be shared with the dev team.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  freshness: "WARN — state_as_of 21 days old; 04-STAGE_GATES.md 28d vs 14d limit"
+  active_work_item: "SUG-20261021-apr — this session's assigned work"
+
+stage_fit:
+  code: SF2
+  rationale: >
+    Documentation compiled from the code on main and ratified design documents.
+    No new service, dependency, ADR or stage change. Labels every API
+    IMPLEMENTED / IMPLEMENTED-PARTIAL / CONTRACTED / PROPOSED / DEFERRED so a
+    reader cannot mistake a design for running code.
+  absorption_test:
+    small: false
+    no_new_dependency: true
+    no_new_decision: true
+    gate_neutral: true
+
+scope:
+  code: SC0
+  business_scope: "in scope — R0 assisted Life sale developer enablement"
+  serves: ["R0-ASSISTED-LIFE-SALE", "GATE-P4 4.2 consumer collection (partial)"]
+  failure_without_it: "developers rediscover hop rules, gates and store ownership from 400+ documents"
+  minimal: false
+  authority: "Owner request; compilation only — code, ADRs, HLD and 03 win on conflict"
+
+necessity:
+  now: SHOULD
+  future_necessity: MUST
+  target_stage: "S11 — Vertical slice"
+  binds_when: "W1–W3 services are built against these contracts"
+  evidence_tier: E2
+  confidence: C4
+  evidence:
+    - "21 service modules; 5 implemented, 16 skeletons with contracts spread over HLD, LLDs and DBA packs"
+    - "Known source disagreements recorded as K-1…K-9 in the portal"
+
+action: ADMIT-BYPASS
+bypass_authorised_by: "Mahesh / repository_owner (explicit session instruction: do not stop until complete)"
+action_rationale: >
+  Owner-directed documentation work executed in the same turn (CLAUDE.md rule 1
+  exception). Bypass risk: a PROPOSED request/response shape drafted in the
+  portal is built as if ratified. Mitigation: status label on every API, PROPOSED
+  bodies marked as drafts needing owner confirmation, ai-drafted DOC-MAP routing,
+  and the K-list of open disagreements (owners named, nothing decided here).
+duplicate_of: null
+conflicts:
+  - "K-1 Dynamo in R0 (HLD) vs DB-DEC-0003 (none) — portal follows DB-DEC-0003"
+  - "K-9 Term suitability (BR-SUIT-002) vs C1 — left open for Rajal / Shailja"
+
+classification:
+  type: DOC
+  also: []
+  breakdown: TASK
+  risk_tier: T1
+  destination: "docs/platform/api-reference/"
+
+priority:
+  now: P3
+  at_target: P2
+  rationale: "Developer enablement; becomes P2 when S11 services are built against it"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: SUG-20261021-apr
+  status: ADMIT-BYPASS
+  closed_reason: "Portal filed at docs/platform/api-reference/ (README, 4 conventions, 2 data, 21 services, 13 interactions, 15 scenarios)"
+
+resumed: "SUG-20261021-apr — this session's assigned work; no prior item in flight."
+```
 
 ### SUG-20261006-apg · API Gateway vs Istio platform challenge
 

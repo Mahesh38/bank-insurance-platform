@@ -1,0 +1,371 @@
+openapi: 3.1.0
+info:
+  title: identity-provider-adapter-service — workforce authentication adapter
+  version: 1.0.0-r0
+  summary: One internal API in front of every identity provider (bank AD-verify, Keycloak).
+  description: |
+    **Status:** AI-DRAFTED from code (ADR-027), awaiting Deepali (security) and engineering review.
+
+    Authoritative wire contract for `services/identity-provider-adapter-service` (port 8082,
+    `service-id: idp-adapter`, layer L5, boundary INTERNAL). Derived from
+    `com.bank.identity.provider.api.IdentityProviderController`, `InternalServiceAuthFilter`,
+    `BankAdVerifyAdapter` and `KeycloakIdentityProviderAdapter`.
+    Companion design: `docs/platform/contracts/identity-provider-adapter-service/LLD.md`.
+
+    **Caller authentication (implemented).** Every `/internal/v1/**` request must carry
+    `X-Internal-Service-Key` equal to `identity.internal-auth.shared-secret` (≥ 16 chars,
+    constant-time compare; env `IDENTITY_ADAPTER_INTERNAL_SHARED_SECRET`, no default under the prod
+    profile). Missing or wrong → `401 UNAUTHORIZED`. Callers: `workforce-access-bff` (auth) and
+    `identity-authorization-service` (provisioning).
+
+    Responses carry provider secrets (access / refresh / id tokens) — this API must never be exposed
+    outside the cluster and its bodies are never logged.
+
+    Errors are platform problem+json, internal rendering. Codes per response are in `x-error-codes`.
+servers:
+  - url: http://identity-provider-adapter-service:8082/internal/v1
+    description: Cluster-private
+  - url: http://localhost:8082/internal/v1
+    description: Local
+tags:
+  - name: Authentication
+  - name: Provisioning
+security:
+  - internalServiceKey: []
+
+paths:
+  /auth/ad-verify:
+    post:
+      tags: [Authentication]
+      operationId: verifyAd
+      summary: Verify a bank employee id + password against the bank AD-verify API.
+      description: |
+        `mode=stub` (forbidden under the prod profile — startup fails) or `mode=http`:
+        `POST {identity.ad-verify.http.base-url}{path}` with the API-key header
+        (`X-API-Key` by default). Upstream `401`/`403` → **`200` with `authenticated:false`**
+        (a rejected password is data, not an error). Any body shape accepted: bare
+        `true`/`false`, JSON boolean or string, or an object with `authenticated|success|isAuthenticated`,
+        optional `accountActive|active`, `username|userId|employeeId`, `email`. Other upstream
+        statuses, transport failures and unparseable bodies → `503 IDENTITY_PROVIDER_UNAVAILABLE`.
+        The password is never logged (`toString` redacts).
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AdVerifyRequest' }
+      responses:
+        '200':
+          description: Verdict. The BFF accepts only `authenticated && accountActive`.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdVerifyResponse' }
+              examples:
+                accepted: { value: { authenticated: true, accountActive: true, employeeId: EMP001, username: EMP001, email: null } }
+                rejected: { value: { authenticated: false, accountActive: false, employeeId: EMP001, username: null, email: null } }
+        '400':
+          description: employeeId / password missing after binding (defensive check in `BankAdVerifyAdapter`; bean validation normally answers first).
+          x-error-codes: [SCHEMA_INVALID]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '401': { $ref: '#/components/responses/CallerUnauthenticated' }
+        '422': { $ref: '#/components/responses/BeanValidation' }
+        '503':
+          description: AD-verify unreachable, non-401/403 error status, or unparseable answer.
+          x-error-codes: [IDENTITY_PROVIDER_UNAVAILABLE]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+
+  /auth/authorization-uri:
+    post:
+      tags: [Authentication]
+      operationId: buildAuthorizationUri
+      summary: Build the Keycloak OIDC authorize URL (PKCE S256).
+      description: |
+        Pure URL construction, no network call: `client_id`, `redirect_uri`, `response_type=code`,
+        `scope=openid profile email`, `state`, `nonce`, `code_challenge`,
+        `code_challenge_method=S256`, optional `login_hint`; when `identitySource=BANK_AD` and a
+        bank IdP hint is configured, `kc_idp_hint`.
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AuthorizationUriRequest' }
+      responses:
+        '200':
+          description: The URL.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthorizationUriResponse' }
+        '401': { $ref: '#/components/responses/CallerUnauthenticated' }
+        '422': { $ref: '#/components/responses/BeanValidation' }
+
+  /auth/token-exchange:
+    post:
+      tags: [Authentication]
+      operationId: exchangeCode
+      summary: Exchange an authorization code for tokens and verified claims.
+      description: |
+        `grant_type=authorization_code` with `code_verifier` and `redirect_uri` against the Keycloak
+        token endpoint (client secret auth). The ID token's audience, nonce (= `expectedNonce`) and
+        subject are verified.
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TokenExchangeRequest' }
+      responses:
+        '200':
+          description: Provider session.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProviderSessionResponse' }
+        '401': { $ref: '#/components/responses/CallerUnauthenticated' }
+        '422': { $ref: '#/components/responses/BeanValidation' }
+        '500': { $ref: '#/components/responses/ProviderFailure' }
+
+  /auth/refresh:
+    post:
+      tags: [Authentication]
+      operationId: refreshTokens
+      summary: Refresh provider tokens (not yet wired in the BFF).
+      description: '`grant_type=refresh_token`; nonce is not re-checked.'
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RefreshRequest' }
+      responses:
+        '200':
+          description: New provider session.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProviderSessionResponse' }
+        '401': { $ref: '#/components/responses/CallerUnauthenticated' }
+        '422': { $ref: '#/components/responses/BeanValidation' }
+        '500': { $ref: '#/components/responses/ProviderFailure' }
+
+  /auth/revoke:
+    post:
+      tags: [Authentication]
+      operationId: revokeRefreshToken
+      summary: Revoke a refresh token at the provider (logout).
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RefreshRequest' }
+      responses:
+        '204':
+          description: Revoked.
+        '401': { $ref: '#/components/responses/CallerUnauthenticated' }
+        '422': { $ref: '#/components/responses/BeanValidation' }
+        '500': { $ref: '#/components/responses/ProviderFailure' }
+
+  /identities:
+    post:
+      tags: [Provisioning]
+      operationId: provisionIdentity
+      summary: Create a partner user in Keycloak (queued when a bank admin creates the partner — E5; after approval only if maker-checker is configured on).
+      description: |
+        Admin client-credentials token → search users by exact `username`.
+        - A user exists **with the same `business_user_id` attribute** → return its id (`201`,
+          idempotent retry).
+        - A user exists with a different `business_user_id` → failure ("Provider username is
+          already assigned", `500`).
+        - None → create with `enabled`, `requiredActions: [UPDATE_PASSWORD]`, attributes
+          `business_user_id`, `insurer_code`; return the new id.
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProvisionIdentityRequest' }
+      responses:
+        '201':
+          description: Provisioned (or found, for a retry).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProvisionedIdentityResponse' }
+        '401': { $ref: '#/components/responses/CallerUnauthenticated' }
+        '422': { $ref: '#/components/responses/BeanValidation' }
+        '500': { $ref: '#/components/responses/ProviderFailure' }
+
+  /identities/{providerSubjectId}/status:
+    patch:
+      tags: [Provisioning]
+      operationId: setIdentityEnabled
+      summary: Enable or disable a provider account.
+      parameters:
+        - name: providerSubjectId
+          in: path
+          required: true
+          description: Keycloak user id.
+          schema: { type: string }
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/IdentityStatusRequest' }
+      responses:
+        '204':
+          description: Updated.
+        '401': { $ref: '#/components/responses/CallerUnauthenticated' }
+        '422': { $ref: '#/components/responses/BeanValidation' }
+        '500': { $ref: '#/components/responses/ProviderFailure' }
+
+components:
+  securitySchemes:
+    internalServiceKey:
+      type: apiKey
+      in: header
+      name: X-Internal-Service-Key
+      description: Shared internal secret (`InternalServiceAuthFilter`). Missing or wrong → `401 UNAUTHORIZED`.
+
+  parameters:
+    CorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: false
+      schema: { type: string, format: uuid }
+
+  responses:
+    CallerUnauthenticated:
+      description: '`X-Internal-Service-Key` missing or wrong (`AdapterInternalAuthenticationEntryPoint`).'
+      x-error-codes: [UNAUTHORIZED]
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    BeanValidation:
+      description: Bean validation (`VALIDATION_ERROR`, per-field `MISSING_REQUIRED_FIELD`) or unparseable body (`INVALID_REQUEST`).
+      x-error-codes: [VALIDATION_ERROR, INVALID_REQUEST]
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    ProviderFailure:
+      description: |
+        Keycloak rejected or failed the call, or token verification failed (audience, nonce,
+        subject, missing claim), or a username clash on provisioning. Today these are
+        `IllegalStateException` / `RestClientResponseException` with no mapping, so Spring answers
+        a generic 500 (not the platform envelope). The BFF turns them into
+        `IDENTITY_PROVIDER_UNAVAILABLE` (transport) or propagates the status.
+      x-error-codes: [INTERNAL_ERROR]
+      x-implementation-note: Unmapped provider failures — see LLD open item 1.
+
+  schemas:
+    Problem:
+      type: object
+      description: Platform problem+json, internal rendering.
+      required: [type, title, status, code]
+      properties:
+        type: { type: string, default: about:blank }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        code: { type: string }
+        category: { type: string }
+        retryable: { type: boolean }
+        upstreamCode: { type: [string, 'null'] }
+        incidentId: { type: string }
+        correlationId: { type: [string, 'null'] }
+        service: { type: string, examples: [idp-adapter] }
+        timestamp: { type: string, format: date-time }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              code: { type: string }
+              message: { type: string }
+              field: { type: [string, 'null'] }
+              extensions: { type: [object, 'null'], additionalProperties: true }
+        origin: { type: [object, 'null'], additionalProperties: true }
+        diagnostic: { type: [object, 'null'], additionalProperties: true }
+
+    AdVerifyRequest:
+      type: object
+      required: [employeeId, password]
+      properties:
+        employeeId: { type: string, minLength: 1 }
+        password: { type: string, minLength: 1, format: password, writeOnly: true }
+    AdVerifyResponse:
+      type: object
+      required: [authenticated, accountActive]
+      properties:
+        authenticated: { type: boolean }
+        accountActive: { type: boolean }
+        employeeId: { type: [string, 'null'] }
+        username: { type: [string, 'null'], description: 'Defaults to employeeId when AD does not return one.' }
+        email: { type: [string, 'null'] }
+    AuthorizationUriRequest:
+      type: object
+      required: [state, nonce, codeChallenge, identitySource]
+      properties:
+        state: { type: string, minLength: 1 }
+        nonce: { type: string, minLength: 1 }
+        codeChallenge: { type: string, minLength: 1, description: 'base64url(SHA-256(code_verifier)).' }
+        loginHint: { type: [string, 'null'] }
+        identitySource: { type: string, minLength: 1, examples: [PARTNER, BANK_AD] }
+    AuthorizationUriResponse:
+      type: object
+      required: [authorizationUri]
+      properties:
+        authorizationUri: { type: string, format: uri }
+    TokenExchangeRequest:
+      type: object
+      required: [code, codeVerifier, expectedNonce]
+      properties:
+        code: { type: string, minLength: 1 }
+        codeVerifier: { type: string, minLength: 1 }
+        expectedNonce: { type: string, minLength: 1 }
+    RefreshRequest:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken: { type: string, minLength: 1, writeOnly: true }
+    ProviderSessionResponse:
+      type: object
+      description: Secrets — kept only in the BFF's encrypted vault.
+      properties:
+        providerSubjectId: { type: string }
+        username: { type: string }
+        email: { type: [string, 'null'] }
+        accessToken: { type: string }
+        refreshToken: { type: [string, 'null'] }
+        idToken: { type: [string, 'null'] }
+        accessTokenExpiresAt: { type: string, format: date-time }
+        claims: { type: object, additionalProperties: true }
+    ProvisionIdentityRequest:
+      type: object
+      required: [businessUserId, username, email]
+      properties:
+        businessUserId: { type: string, minLength: 1, description: 'identity.business_user.id; stored as Keycloak attribute business_user_id.' }
+        username: { type: string, minLength: 1 }
+        email: { type: string, format: email, minLength: 1 }
+        firstName: { type: [string, 'null'] }
+        lastName: { type: [string, 'null'] }
+        insurerCode: { type: [string, 'null'] }
+        enabled: { type: boolean, default: false, description: 'Primitive boolean — absent means false.' }
+    ProvisionedIdentityResponse:
+      type: object
+      required: [providerSubjectId]
+      properties:
+        providerSubjectId: { type: string }
+    IdentityStatusRequest:
+      type: object
+      required: [enabled]
+      properties:
+        enabled: { type: boolean }

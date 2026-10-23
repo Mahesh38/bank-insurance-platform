@@ -1,0 +1,376 @@
+openapi: 3.1.0
+info:
+  title: policy-issuance-service internal API
+  version: 1.0.0-draft
+  summary: Issuance tracking after PaymentReconciled (insurer-decision TAT), the distributor's policy record and status history.
+  description: |
+    **Status:** AI-DRAFTED 2026-10-21 (ADR-027), awaiting Amit (engineering), Mahesh (architecture)
+    and Shailja (PROPOSAL.TAT figure and start event — IRDAI Master Circular 2024, 7 days).
+
+    Skeleton service: every operation is `x-implementation-status: PLANNED`. Design: [LLD.md](./LLD.md).
+servers:
+  - url: http://policy-issuance-service:8099
+    description: In-cluster only.
+tags:
+  - name: policies
+  - name: tracking
+  - name: ingest
+paths:
+  /internal/v1/policies:
+    post:
+      tags: [tracking]
+      operationId: startIssuanceTracking
+      x-implementation-status: PLANNED
+      summary: Start issuance tracking for a reconciled payment (same handler as the PaymentReconciled consumer; used by repair and ops).
+      description: |
+        Idempotent per `paymentId` (UNIQUE `proposal_id`). Checks the payment is `RECONCILED`
+        (`INV-POL-01`), reads quote and proposal through their owners' APIs, inserts the policy in
+        `PENDING_ISSUANCE` with the TAT clock and the first history row `APPLICATION_RECEIVED`.
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [paymentId]
+              properties:
+                paymentId: { $ref: '#/components/schemas/Ulid' }
+      responses:
+        '201':
+          description: Tracking started (or replay — same policy returned).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Policy' }
+        '400': { $ref: '#/components/responses/MissingIdempotencyKey' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: '`PAYMENT_NOT_RECONCILED` (INV-POL-01) · `IDEMPOTENCY_CONFLICT`.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '503':
+          description: '`UPSTREAM_UNAVAILABLE` — payment, quotation or proposal unreachable; the consumer retries.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '422':
+          description: '`CONFIGURATION_UNRESOLVABLE` — `PROPOSAL.TAT` (or poll interval) not resolvable; fail closed, ops alert.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+    get:
+      tags: [policies]
+      operationId: findPolicies
+      x-implementation-status: PLANNED
+      summary: Find the policy for a proposal or journey.
+      parameters:
+        - { name: proposalId, in: query, schema: { $ref: '#/components/schemas/Ulid' } }
+        - { name: journeyId, in: query, schema: { $ref: '#/components/schemas/Ulid' } }
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Zero or one policy per proposal.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/Policy' }
+        '422':
+          description: '`VALIDATION_ERROR` — exactly one of `proposalId`, `journeyId`.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+  /internal/v1/policies/{policyId}:
+    get:
+      tags: [policies]
+      operationId: getPolicy
+      x-implementation-status: PLANNED
+      summary: Policy, TAT clock and document references.
+      parameters:
+        - $ref: '#/components/parameters/PolicyId'
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: The policy.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Policy' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /internal/v1/policies/{policyId}/status-history:
+    get:
+      tags: [policies]
+      operationId: getPolicyStatusHistory
+      x-implementation-status: PLANNED
+      summary: Append-only issuance status history, oldest first.
+      parameters:
+        - $ref: '#/components/parameters/PolicyId'
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: History.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [policyId, entries]
+                properties:
+                  policyId: { $ref: '#/components/schemas/Ulid' }
+                  entries:
+                    type: array
+                    items: { $ref: '#/components/schemas/StatusHistoryEntry' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /internal/v1/policies/status-callbacks:
+    post:
+      tags: [tracking]
+      operationId: receiveStatusCallback
+      x-implementation-status: PLANNED
+      summary: Insurer / 1SB application-status callback, already normalised by the Integration Hub / 1SB adapter. Replaces polling for that insurer when enabled.
+      description: |
+        Only the integration-hub (mesh identity) may call it. Dedupe on `(provider, providerEventId)`.
+        Applies the same transition logic as a poll result. If 1SB offers no callback, polling (S-16)
+        is the only path.
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/StatusCallback' }
+      responses:
+        '200':
+          description: Applied, duplicate, or no change.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [policyId, state, appended]
+                properties:
+                  policyId: { $ref: '#/components/schemas/Ulid' }
+                  state: { $ref: '#/components/schemas/PolicyState' }
+                  appended: { type: boolean, description: false for a duplicate or an unchanged status }
+        '404':
+          description: '`RESOURCE_NOT_FOUND` — no tracked policy for `applicationNumber` + `insurerCode`.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '409':
+          description: '`ILLEGAL_TRANSITION` — e.g. a status after a terminal `ISSUED`/`DECLINED` that is not `REFUNDED`; recorded for ops, not applied.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '422':
+          description: '`VALIDATION_ERROR` — `ISSUED` without `policyNumber` or `riskCommencementDate`.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+  /internal/v1/policies/{policyId}/documents/{documentId}:
+    get:
+      tags: [policies]
+      operationId: getPolicyDocument
+      x-implementation-status: PLANNED
+      summary: Short-lived signed URL to the policy PDF in S3 (Object Lock).
+      parameters:
+        - $ref: '#/components/parameters/PolicyId'
+        - { name: documentId, in: path, required: true, schema: { $ref: '#/components/schemas/Ulid' } }
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Signed URL valid for minutes (value is configuration).
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [documentId, url, expiresAt]
+                properties:
+                  documentId: { $ref: '#/components/schemas/Ulid' }
+                  url: { type: string, format: uri }
+                  expiresAt: { type: string, format: date-time }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /internal/v1/policies:ingest:
+    post:
+      tags: [ingest]
+      operationId: ingestOffPlatformPolicy
+      x-implementation-status: PLANNED
+      summary: CR-013 off-platform policy ingest (source OFF_PLATFORM, leadId null, INV-POL-05). Out of scope of D8; shape unchanged from the API reference.
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        '201':
+          description: Ingested.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Policy' }
+        '422':
+          description: '`VALIDATION_ERROR` — e.g. a `leadId` supplied.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+components:
+  parameters:
+    PolicyId:
+      name: policyId
+      in: path
+      required: true
+      schema: { $ref: '#/components/schemas/Ulid' }
+    ActorId:
+      name: X-Actor-Id
+      in: header
+      required: true
+      schema: { type: string, maxLength: 64 }
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema: { type: string, maxLength: 128 }
+    CorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: false
+      schema: { type: string, format: uuid }
+  responses:
+    NotFound:
+      description: '`RESOURCE_NOT_FOUND`.'
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    MissingIdempotencyKey:
+      description: '`MISSING_IDEMPOTENCY_KEY`.'
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+  schemas:
+    Ulid:
+      type: string
+      pattern: '^[0-9A-HJKMNP-TV-Z]{26}$'
+    Money:
+      type: string
+      pattern: '^[0-9]{1,13}(\.[0-9]{1,2})?$'
+      description: Exact decimal, INR, two places. Policy premium excludes tax (tax stays on payment).
+      examples: ['25000.00', '25600000.00']
+    PolicyState:
+      type: string
+      description: DDL `ck_policy_state`; `ISSUANCE_REJECTED` is the policy state for an insurer DECLINED.
+      enum: [PENDING_ISSUANCE, ISSUED, CONFIRMED, CONFIRMATION_OVERDUE, ACTIVE, ISSUANCE_REJECTED, ISSUANCE_DISPUTED, FREE_LOOK_CANCELLED, LAPSED, SURRENDERED, MATURED]
+    IssuanceStatus:
+      type: string
+      description: D8 history vocabulary.
+      enum: [APPLICATION_RECEIVED, UNDER_REVIEW, REQUIREMENT_RAISED, ISSUED, DECLINED, REFUNDED]
+    StatusHistoryEntry:
+      type: object
+      required: [historyId, status, source, occurredAt, recordedAt]
+      properties:
+        historyId: { $ref: '#/components/schemas/Ulid' }
+        status: { $ref: '#/components/schemas/IssuanceStatus' }
+        providerStatus: { type: [string, 'null'], description: 'Raw 1SB / insurer status (e.g. UNDERWRITING) kept for RM display and ops.' }
+        providerSubStatus: { type: [string, 'null'] }
+        source: { type: string, enum: [POLL, CALLBACK, EVENT, OPS] }
+        sourceRef: { type: [string, 'null'], description: providerEventId / eventId / Hub request id. }
+        occurredAt: { type: string, format: date-time }
+        recordedAt: { type: string, format: date-time }
+    Policy:
+      type: object
+      required: [policyId, proposalId, paymentId, quoteId, journeyId, applicationNumber, insurerCode, productCode, state, issuanceStatus, tat]
+      properties:
+        policyId: { $ref: '#/components/schemas/Ulid' }
+        leadId: { $ref: '#/components/schemas/Ulid' }
+        journeyId: { $ref: '#/components/schemas/Ulid' }
+        customerId: { $ref: '#/components/schemas/Ulid' }
+        proposalId: { $ref: '#/components/schemas/Ulid' }
+        paymentId: { $ref: '#/components/schemas/Ulid' }
+        quoteId: { $ref: '#/components/schemas/Ulid' }
+        applicationNumber: { type: string }
+        policyNumber: { type: [string, 'null'], description: Null until ISSUED; immutable after (INV-POL-02). }
+        insurerCode: { type: string }
+        productCode: { type: string }
+        lob: { type: string }
+        productClass: { type: string }
+        sumAssured: { $ref: '#/components/schemas/Money' }
+        premium: { $ref: '#/components/schemas/Money' }
+        frequency: { type: string }
+        state: { $ref: '#/components/schemas/PolicyState' }
+        issuanceStatus: { $ref: '#/components/schemas/IssuanceStatus' }
+        issuedAt: { type: [string, 'null'], format: date-time }
+        riskCommencementDate: { type: [string, 'null'], format: date }
+        maturityDate: { type: [string, 'null'], format: date }
+        closedAt: { type: [string, 'null'], format: date-time }
+        freeLookExpiresAt: { type: [string, 'null'], format: date-time }
+        tat:
+          type: object
+          required: [startedAt, dueAt]
+          properties:
+            ruleSetVersion: { type: string, description: 'PROPOSAL.TAT version applied.' }
+            startedAt: { type: string, format: date-time }
+            warnAt: { type: [string, 'null'], format: date-time }
+            dueAt: { type: string, format: date-time }
+            breachedAt: { type: [string, 'null'], format: date-time }
+            decidedAt: { type: [string, 'null'], format: date-time }
+        documents:
+          type: array
+          items:
+            type: object
+            properties:
+              documentId: { $ref: '#/components/schemas/Ulid' }
+              documentType: { type: string }
+        configVersionRef: { type: string }
+    StatusCallback:
+      type: object
+      additionalProperties: false
+      required: [provider, providerEventId, insurerCode, applicationNumber, bankStatus, occurredAt]
+      properties:
+        provider: { type: string, examples: [ONE_SB] }
+        providerEventId: { type: string, maxLength: 128 }
+        insurerCode: { type: string }
+        applicationNumber: { type: string, maxLength: 50 }
+        bankStatus: { $ref: '#/components/schemas/IssuanceStatus' }
+        providerStatus: { type: string, description: Raw 1SB applicationStatus. }
+        providerSubStatus: { type: string }
+        policyNumber: { type: string, maxLength: 50 }
+        issuedAt: { type: string, format: date-time }
+        riskCommencementDate: { type: string, format: date }
+        maturityDate: { type: string, format: date }
+        occurredAt: { type: string, format: date-time }
+    Problem:
+      type: object
+      description: Platform problem+json (conventions/error-model.md).
+      required: [type, title, status, code, category, retryable, incidentId, service, timestamp]
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        code: { type: string }
+        category: { type: string }
+        retryable: { type: boolean }
+        incidentId: { type: string }
+        correlationId: { type: string }
+        service: { type: string }
+        timestamp: { type: string, format: date-time }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              code: { type: string }
+              field: { type: string }
+              message: { type: string }

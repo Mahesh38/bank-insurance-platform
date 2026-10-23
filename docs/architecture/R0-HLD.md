@@ -8,6 +8,17 @@
 **Date:** 2026-08-20 · **revised** 2026-08-24 · **revised** 2026-08-31 (`ADR-018`, attach to existing TGW) · **revised** 2026-09-14 (`ADR-020` split API plane) · **revised** 2026-10-09 (`ADR-023` NLB + Istio)
 **Origin:** `SUG-20260820-hl1` · **revision** `SUG-20260824-gp1` … `gp5` ([`CR-012`](../governance/change-requests/CR-012-r0-platform-robustness.md))
 
+> **Data-store correction 2026-10-21** ([`DB-DEC-0005`](../platform/data-architecture/DB-DEC-0005-dynamodb-working-payload.md),
+> [`ADR-026`](../platform/architecture-review/ADR-026-audit-store-and-transport.md) **proposed**, readiness review
+> [§4](../platform/api-reference/READINESS-REVIEW.md#4-postgres-vs-dynamodb--yes-it-is-decided)). DynamoDB at R0 holds **only**
+> pre-payment quote and proposal working state (`{env}-quotation-working`, `{env}-proposal-working`), owned by
+> quotation-service and proposal-service. **Journey, audit, idempotency, integration jobs and sessions are not in
+> DynamoDB**: journey and every other context are Aurora schemas; sessions are Valkey (`ADR-011`); adapter jobs stay in
+> `bank_persistence`; the business audit record is `bank_persistence.audit_event` today and, if the owner accepts
+> ADR-026, Aurora schema `audit` (hash-chained, INSERT-only) + S3 Object Lock. Wherever this file says
+> "DynamoDB journey-state / integration-jobs / audit-events", read that. Physical design:
+> [`data-architecture/`](../platform/data-architecture/README.md).
+
 > **Revision 2026-08-24 — R0 robustness round.** Five deferred infrastructure layers move into R0
 > under `ADR-009` … `ADR-013`. In this document the changes are: boundary 6 and 7 (the bank path is
 > provisioned, not deferred), boundary 8 (three new tiers), **boundary 9 rewritten** (a broker
@@ -254,7 +265,7 @@ evidence, and that is the whole reason this layer moved into R0.
 **Invariant:** one owner per authoritative datum; no service reads another's tables; per-context credential with **no** cross-schema grant.
 **Decision (`ADR-008`):** R0 runs **one Aurora PostgreSQL cluster with a schema per bounded context**. A physical cluster per service is not a principle. The first physical split follows the **LOB-cell / shared-platform seam**, not the service boundary.
 
-Also in R0: DynamoDB (journey state, quote jobs, audit event store); S3 + Object Lock (raw payloads, policy docs, 7-year WORM, CRR to `ap-south-2`); Secrets Manager + KMS (India regions only).
+Also in R0: DynamoDB **only** for pre-payment quote and proposal working state (`DB-DEC-0005`; journey, audit and sessions are **not** in DynamoDB); S3 + Object Lock (raw payloads, policy docs, 7-year WORM, CRR to `ap-south-2`); Secrets Manager + KMS (India regions only).
 
 **Three tiers added on 2026-08-24, each with a boundary that is part of the decision:**
 
@@ -276,14 +287,14 @@ Aarti's Database approval and Deepali's Security review of this topology are **o
 business txn ─┬─► business tables      one local transaction
               └─► outbox row           ← the source of truth, and the replay log
                       │
-              outbox-publisher ──► MSK topic ─┬─► #16 Audit ─► DynamoDB + S3 WORM ← the record
+              outbox-publisher ──► MSK topic ─┬─► #16 Audit ─► Aurora audit + S3 WORM ← the record (ADR-026, proposed)
                                               ├─► #17 Notification
                                               └─► compensation / reconciliation signals
 ```
 
 Why both. The outbox solves the dual-write problem — a commit followed by a publish is two writes with no shared transaction, so a crash loses the event and a retry duplicates the business change. The broker solves fan-out — without it, every new consumer is a new poller against the producer's own database. R0 has three consumer classes already (audit, notification, compensation) and a fourth arrives with Reporting at S13, so the old revisit trigger was going to fire inside R0 rather than after it. Adopting the broker mid-slice, in the middle of evidencing the audit path, was the worst of the three available moments.
 
-**The rule that cannot be traded:** no regulatory evidence exists only in a topic. `#16` Audit consumes the topic and writes DynamoDB and the WORM archive; that write is what lets a journey reach `SOLD` (`INV-JRN-05`), and `FF-26` checks it. Consumers are idempotent on `eventId` and tolerate replay — which is also why the broker needs no DR copy (LLD `D14`).
+**The rule that cannot be traded:** no regulatory evidence exists only in a topic. `#16` Audit consumes the topic and writes the relational audit store (`bank_persistence.audit_event` today; Aurora schema `audit` if [`ADR-026`](../platform/architecture-review/ADR-026-audit-store-and-transport.md) — **proposed** — is accepted) and the WORM archive; that write is what lets a journey reach `SOLD` (`INV-JRN-05`), and `FF-26` checks it. Consumers are idempotent on `eventId` and tolerate replay — which is also why the broker needs no DR copy (LLD `D14`).
 
 Must be synchronous: authorization, configuration resolution, critical validation, payment session.
 May be asynchronous: audit ingestion, notification, quote/proposal polling.

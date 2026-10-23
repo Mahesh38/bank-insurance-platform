@@ -1,0 +1,203 @@
+{
+  "format": "rule-set/v1",
+  "ruleSetId": "CATALOGUE.ELIGIBILITY",
+  "domain": "CATALOGUE_ELIGIBILITY",
+  "scope": {
+    "lob": "LIFE",
+    "productClass": null
+  },
+  "version": "1.0.0",
+  "effectiveFrom": "2026-11-01T00:00:00+05:30",
+  "effectiveTo": null,
+  "classification": "PRODUCT",
+  "pinning": "NONE",
+  "description": "Bank product eligibility bands (ADR-024 FIRST). Band rows (minAge, maxAge, minSumAssured, maxSumAssured, allowedOccupationBands per productCode) ship UNSET: every product is NOT_ELIGIBLE / CAT-CONFIG-MISSING until Rajal publishes values (product-catalogue LLD §5.1). parameters.bandsPublished stays null until the first band table is loaded.",
+  "source": {
+    "document": "docs/platform/contracts/product-catalogue-service/LLD.md",
+    "sections": [
+      "5.1 Rule set CATALOGUE.ELIGIBILITY",
+      "5.2 POST /eligibility:check flow"
+    ],
+    "decisions": [
+      "ADR-024 section 4 (FIRST for eligibility bands)",
+      "DECISIONS-2026-10-22 E7, E9",
+      "MISSING-PRICES.md item 2"
+    ]
+  },
+  "governance": {
+    "status": "DRAFT-awaiting-approval",
+    "signatureStatus": "AI-DRAFTED - mandatory content-owner approval outstanding (ADR-024 section 7)",
+    "contentApprovers": [
+      "Rajal (product eligibility bands)"
+    ],
+    "approverRole": "PRODUCT_APPROVER",
+    "seededBy": "SUG-20261022-rdy / PR-150 missing-prices pass (owner-directed)",
+    "openItems": [
+      "Band table rows (minSumAssured, maxSumAssured, minAge, maxAge, allowedOccupationBands) per productCode — unset; none invented",
+      "When Rajal publishes bands: set parameters.bandsPublished = true, replace CAT-ELIG-000 with age/SA/occupation rules, keep CAT-ELIG-999 catch-all"
+    ]
+  },
+  "inputs": [
+    {
+      "name": "productCode",
+      "type": "STRING",
+      "required": true
+    },
+    {
+      "name": "insurerId",
+      "type": "STRING",
+      "required": false
+    },
+    {
+      "name": "ageNextBirthday",
+      "type": "INTEGER",
+      "required": true
+    },
+    {
+      "name": "sumAssured",
+      "type": "DECIMAL",
+      "required": true,
+      "description": "Requested sum assured in INR"
+    },
+    {
+      "name": "annualIncome",
+      "type": "DECIMAL",
+      "required": false
+    },
+    {
+      "name": "occupationBand",
+      "type": "STRING",
+      "required": false
+    },
+    {
+      "name": "policyTerm",
+      "type": "INTEGER",
+      "required": false
+    }
+  ],
+  "decision": {
+    "hitPolicy": "FIRST",
+    "noMatchOutcome": "NOT_ELIGIBLE",
+    "noMatchReasonCode": "CAT_CONFIG_MISSING",
+    "missingInputOutcome": "NOT_ELIGIBLE",
+    "missingConfigOutcome": "NOT_ELIGIBLE",
+    "missingConfigReasonCode": "CAT_CONFIG_MISSING",
+    "collectReasonCodes": "WINNING_ONLY"
+  },
+  "rules": [
+    {
+      "ruleId": "CAT-ELIG-000",
+      "priority": 1,
+      "description": "Fail closed while product band rows are unpublished (bandsPublished unset)",
+      "when": {
+        "op": "isNull",
+        "args": [
+          {
+            "param": "bandsPublished"
+          }
+        ]
+      },
+      "then": {
+        "outcome": "NOT_ELIGIBLE",
+        "reasonCode": "CAT_CONFIG_MISSING",
+        "params": {
+          "productCode": {
+            "var": "productCode"
+          }
+        }
+      }
+    },
+    {
+      "ruleId": "CAT-ELIG-999",
+      "priority": 999,
+      "description": "Catch-all ELIGIBLE — unreachable until CAT-ELIG-000 is retired by publishing bands",
+      "when": {
+        "op": "eq",
+        "args": [
+          {
+            "const": true
+          },
+          {
+            "const": true
+          }
+        ]
+      },
+      "then": {
+        "outcome": "ELIGIBLE",
+        "reasonCode": null
+      }
+    }
+  ],
+  "parameters": {
+    "bandsPublished": null
+  },
+  "reasonCodes": {
+    "RULE_INPUT_MISSING": {
+      "severity": "BLOCK",
+      "rmText": "Required inputs missing: @missing.",
+      "customerText": null
+    },
+    "RULE_INPUT_INVALID": {
+      "severity": "BLOCK",
+      "rmText": "Inputs not in the expected form: @missing.",
+      "customerText": null
+    },
+    "CAT_CONFIG_MISSING": {
+      "severity": "BLOCK",
+      "rmText": "Eligibility bands are not configured for @productCode (CAT-CONFIG-MISSING).",
+      "customerText": null
+    },
+    "AGE_OUT_OF_BAND": {
+      "severity": "BLOCK",
+      "rmText": "Age is outside the product eligibility band.",
+      "customerText": null
+    },
+    "SUM_ASSURED_OUT_OF_BAND": {
+      "severity": "BLOCK",
+      "rmText": "Sum assured is outside the product eligibility band.",
+      "customerText": null
+    },
+    "OCCUPATION_NOT_ALLOWED": {
+      "severity": "BLOCK",
+      "rmText": "Occupation band is not allowed for this product.",
+      "customerText": null
+    }
+  },
+  "testCases": [
+    {
+      "name": "unset-bands-refuse-every-product",
+      "description": "Strict default: no band rows → NOT_ELIGIBLE",
+      "inputs": {
+        "productCode": "TERM-BASIC-01",
+        "ageNextBirthday": 38,
+        "sumAssured": 25600000
+      },
+      "expect": {
+        "outcome": "NOT_ELIGIBLE",
+        "reasonCodes": [
+          "CAT_CONFIG_MISSING"
+        ],
+        "fired": [
+          "CAT-ELIG-000"
+        ]
+      }
+    },
+    {
+      "name": "unset-bands-refuse-even-with-income",
+      "inputs": {
+        "productCode": "SAVINGS-01",
+        "insurerId": "INS01",
+        "ageNextBirthday": 40,
+        "sumAssured": 1000000,
+        "annualIncome": 1200000,
+        "occupationBand": "SALARIED"
+      },
+      "expect": {
+        "outcome": "NOT_ELIGIBLE",
+        "fired": [
+          "CAT-ELIG-000"
+        ]
+      }
+    }
+  ]
+}

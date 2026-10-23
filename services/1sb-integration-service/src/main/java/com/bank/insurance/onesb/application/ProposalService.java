@@ -21,6 +21,7 @@ import com.bank.insurance.onesb.domain.port.inbound.ProposalUseCase;
 import com.bank.insurance.onesb.domain.port.outbound.JobPollSchedulerPort;
 import com.bank.insurance.onesb.domain.port.outbound.JobStorePort;
 import com.bank.insurance.onesb.domain.port.outbound.OneSbProposalPort;
+import com.bank.insurance.onesb.domain.port.outbound.RawPayloadCaptureException;
 import com.bank.insurance.onesb.lob.LobProposalHandler;
 import com.bank.insurance.onesb.lob.LobProposalHandlerRegistry;
 import com.bank.insurance.onesb.lob.life.LifeProposalSupport;
@@ -145,6 +146,10 @@ public class ProposalService implements ProposalUseCase {
     OneSbProposalSubmitResult upstream;
     try {
       upstream = proposalPort.submit(jobId, handler.submitPath(), payload);
+    } catch (RawPayloadCaptureException ex) {
+      // Nothing reached 1SB; the job ends here and a retry with a new key is safe.
+      jobStore.failJob(jobId, "RAW_PAYLOAD_CAPTURE_FAILED");
+      throw evidenceUnavailable("submit", ex);
     } catch (ServiceException ex) {
       if (ErrorCodes.PROPOSAL_REJECTED.equals(ex.getErrorResponse().getCode())) {
         publishProposalRejected(command, jobId, actorId, agentId, distributorId, ex);
@@ -166,6 +171,16 @@ public class ProposalService implements ProposalUseCase {
     publishProposalSubmitted(
         command, jobId, actorId, agentId, distributorId, upstream.applicationNumber(), status);
     return new ProposalSubmitResult(jobId, status);
+  }
+
+  private ServiceException evidenceUnavailable(String operation, RawPayloadCaptureException ex) {
+    return serviceErrors
+        .error(ErrorCodes.UPSTREAM_UNAVAILABLE)
+        .component("ProposalService")
+        .operation(operation)
+        .reason("Request evidence could not be stored; proposal was not sent to 1SB")
+        .cause(ex)
+        .build();
   }
 
   /**

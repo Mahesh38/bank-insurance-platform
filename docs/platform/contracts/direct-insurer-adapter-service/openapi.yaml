@@ -1,0 +1,288 @@
+openapi: 3.1.0
+info:
+  title: direct-insurer-adapter-service — provider adapter port (DEFERRED, out of R0)
+  version: 0.1.0-draft
+  summary: The Hub → adapter port, fixed so a second provider plugs in without changing the Hub's callers.
+  description: |
+    **Status:** AI-DRAFTED 2026-10-21 — **DEFERRED** (direct insurer APIs are R1+), awaiting Mahesh
+    (architecture) review. No implementation in R0.
+
+    This file pins the **shape of the adapter port** the Integration Hub calls. It mirrors the
+    bank-facing contract the 1SB adapter implements today (`/v1/*`, see
+    `services/1sb-integration-service`), restricted to the operations the Hub routes:
+    quote submit / poll, proposal submit / poll, application status, plus the job lookup by
+    idempotency key the Hub needs for `SUBMISSION_UNCERTAIN` reconciliation (also an open item for
+    the 1SB adapter). Adapter `lob` uses `bank-common-domain` `Lob` (`TERM`, `SAVING`, `ULIP`).
+
+    Rules carried over unchanged: no automatic retry on submit; `PARTIAL` is success; attribution is
+    sent by the Hub in `distribution` and `distributorId` is injected from secrets inside the adapter;
+    provider types stay inside `adapter.<insurer>.*`; every request / response stored encrypted
+    through bank-persistence; statuses normalised to `BankApplicationStatus`.
+servers:
+  - url: http://direct-insurer-adapter-service:8105
+    description: Cluster-private (layer L5, INTERNAL) — Integration Hub only
+paths:
+  /v1/quotes:
+    post:
+      operationId: createQuote
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateQuoteRequest' }
+      responses:
+        '202':
+          description: Job accepted
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/JobAccepted' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+        '422': { $ref: '#/components/responses/Problem' }
+        '503': { $ref: '#/components/responses/Problem' }
+  /v1/quotes/{jobId}:
+    get:
+      operationId: getQuote
+      parameters:
+        - $ref: '#/components/parameters/JobId'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Job status; offers only when COMPLETED / PARTIAL
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/JobStatusResponse' }
+        '404': { $ref: '#/components/responses/Problem' }
+  /v1/proposals:
+    post:
+      operationId: submitProposal
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SubmitProposalRequest' }
+      responses:
+        '202':
+          description: Job accepted
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/JobAccepted' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+        '422': { $ref: '#/components/responses/Problem' }
+        '503': { $ref: '#/components/responses/Problem' }
+  /v1/proposals/{jobId}:
+    get:
+      operationId: getProposal
+      parameters:
+        - $ref: '#/components/parameters/JobId'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Job status; applicationNumber when known
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/JobStatusResponse' }
+        '404': { $ref: '#/components/responses/Problem' }
+  /v1/status/{applicationNumber}:
+    get:
+      operationId: getApplicationStatus
+      parameters:
+        - { name: applicationNumber, in: path, required: true, schema: { type: string, maxLength: 50 } }
+        - { name: lob, in: query, required: true, schema: { $ref: '#/components/schemas/AdapterLob' } }
+        - { name: insurerCode, in: query, required: true, schema: { type: string } }
+        - { name: productCode, in: query, required: false, schema: { type: string } }
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Normalised status
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApplicationStatusResponse' }
+        '404': { $ref: '#/components/responses/Problem' }
+        '502': { $ref: '#/components/responses/Problem' }
+        '503': { $ref: '#/components/responses/Problem' }
+  /v1/jobs:
+    get:
+      operationId: findJobByIdempotencyKey
+      summary: Job lookup by idempotency key (Hub reconciliation of an uncertain submit)
+      parameters:
+        - { name: idempotencyKey, in: query, required: true, schema: { type: string, maxLength: 128 } }
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: The job created under that key
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/JobStatusResponse' }
+        '404': { $ref: '#/components/responses/Problem' }
+components:
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema: { type: string, minLength: 1, maxLength: 128 }
+    ActorId:
+      name: X-Actor-Id
+      in: header
+      required: false
+      schema: { type: string, maxLength: 100 }
+    CorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: false
+      schema: { type: string }
+    JobId:
+      name: jobId
+      in: path
+      required: true
+      schema: { type: string, maxLength: 36 }
+  responses:
+    Problem:
+      description: |
+        Platform problem+json. Codes as the 1SB adapter: `MISSING_IDEMPOTENCY_KEY` (400),
+        `IDEMPOTENCY_CONFLICT` (409), `VALIDATION_ERROR` / `UNSUPPORTED_LOB` / `AGENT_ATTRIBUTION_MISSING` /
+        `UPSTREAM_BUSINESS_ERROR` / `PROPOSAL_REJECTED` (422), `RESOURCE_NOT_FOUND` (404),
+        `UPSTREAM_BAD_RESPONSE` / `UPSTREAM_AUTH_FAILURE` (502), `UPSTREAM_UNAVAILABLE` (503).
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+  schemas:
+    AdapterLob:
+      type: string
+      enum: [TERM, SAVING, ULIP]
+    Distribution:
+      type: object
+      properties:
+        rmEmployeeId: { type: string }
+        agentId: { type: string }
+        channelType: { type: string, default: B2B }
+    CreateQuoteRequest:
+      type: object
+      required: [lob, sumAssured, members]
+      properties:
+        lob: { $ref: '#/components/schemas/AdapterLob' }
+        mode: { type: string, enum: [MULTI, SINGLE] }
+        category: { type: string }
+        sumAssured: { type: number }
+        premiumAmount: { type: number }
+        members:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required: [dob, gender]
+            properties:
+              role: { type: string }
+              sequenceNumber: { type: integer }
+              dob: { type: string }
+              gender: { type: string }
+              tobacco: { type: boolean }
+              annualIncome: { type: number }
+              pincode: { type: string }
+              relationship: { type: string }
+        preferences: { type: object, additionalProperties: true }
+        distribution: { $ref: '#/components/schemas/Distribution' }
+        journeyId: { type: string }
+        selection:
+          type: object
+          properties:
+            insurerCode: { type: string }
+            productCodes: { type: array, items: { type: string } }
+            planOption: { type: string }
+            coverOption: { type: string }
+            deathBenefitOption: { type: string }
+            policyTerm: { type: integer }
+            premiumPaymentTerm: { type: integer }
+            premiumFrequency: { type: string }
+            premiumPaymentOption: { type: string }
+    SubmitProposalRequest:
+      type: object
+      required: [lob]
+      properties:
+        lob: { $ref: '#/components/schemas/AdapterLob' }
+        schemaId: { type: string }
+        offerId: { type: string }
+        productCode: { type: string }
+        manufacturerId: { type: string }
+        version: { type: string }
+        values: { type: object, additionalProperties: true }
+        consentRef: { type: string }
+        agentId: { type: string }
+        distribution: { $ref: '#/components/schemas/Distribution' }
+        journeyId: { type: string }
+        quoteJobId: { type: string }
+    JobAccepted:
+      type: object
+      required: [jobId, status]
+      properties:
+        jobId: { type: string }
+        status: { type: string, enum: [PENDING, RUNNING] }
+    JobStatusResponse:
+      type: object
+      required: [jobId, status]
+      properties:
+        jobId: { type: string }
+        status: { type: string, enum: [PENDING, RUNNING, PARTIAL, COMPLETED, FAILED, TIMEOUT] }
+        applicationNumber: { type: string }
+        failureReason: { type: string }
+        offers:
+          type: array
+          items:
+            type: object
+            required: [offerId, insurerCode, outOfBound]
+            properties:
+              offerId: { type: string }
+              insurerCode: { type: string }
+              insurerName: { type: string }
+              productCode: { type: string }
+              productName: { type: string }
+              premiumAmount: { type: number }
+              premiumFrequency: { type: string }
+              sumAssured: { type: number }
+              outOfBound: { type: boolean }
+              offerStatus: { type: string }
+              errorSummary: { type: string }
+              funds:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    code: { type: string }
+                    name: { type: string }
+                    allocationPercent: { type: number }
+    ApplicationStatusResponse:
+      type: object
+      required: [applicationNumber, bankStatus]
+      properties:
+        applicationNumber: { type: string }
+        bankStatus:
+          type: string
+          enum: [QUOTING, PROPOSAL, UW_REQUIREMENTS, UW_IN_PROGRESS, CUSTOMER_DECISION, PAYMENT, ISSUED, CLOSED, UNKNOWN]
+        manufacturerSubStatus: { type: string }
+        policyNumber: { type: string }
+        lastUpdated: { type: string, format: date-time }
+    Problem:
+      type: object
+      required: [type, title, status, code]
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        code: { type: string }
+        category: { type: string }
+        retryable: { type: boolean }
+        incidentId: { type: string }
+        correlationId: { type: string }
+        timestamp: { type: string, format: date-time }

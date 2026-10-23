@@ -1,0 +1,1018 @@
+{
+  "format": "rule-set/v1",
+  "ruleSetId": "LEAD.EXCEPTION",
+  "domain": "LEAD_EXCEPTION",
+  "scope": {
+    "lob": "LIFE",
+    "productClass": null
+  },
+  "version": "1.1.0",
+  "effectiveFrom": "2026-11-01T00:00:00+05:30",
+  "effectiveTo": null,
+  "classification": "PRODUCT",
+  "pinning": "NONE",
+  "description": "Lead exception rules EH-BR-RULE-001..015 evaluated at Start Onboarding (and 012-013 at premium capture). Thresholds and per-rule action (parameters.actions.<ruleId>: BLOCK | APPROVAL_REQUIRED) are UNSET: every lead routes to BLOCK / EH-CONFIG-MISSING until the BRD owner configures them (DECISIONS D2, E7). Who may approve an APPROVAL_REQUIRED breach is parameters.approverRoles.<ruleId> - bank roles only (E6); strict seed [BANK_ADMIN] (E9).",
+  "source": {
+    "document": "docs/au-bank-insurance-platform/requirements/brd-detailed/Exception_Handling_BRD_V1.0_CONTEXT.md",
+    "sections": [
+      "24.3 rules and rule definitions (column I: block where required configuration is unavailable; column J: remarks mandatory)",
+      "24.5 error messages EH-ERR-RULE-001..015 (verbatim, including source spelling)",
+      "24.3 EH-BR-MULTI-002 (highest configured treatment wins)",
+      "12 approval hierarchy (bank employee hierarchy; block if approver unavailable)",
+      "5.2 / 5.3 roles: only the Exception Approver approves or rejects, with mandatory remarks"
+    ],
+    "decisions": [
+      "DECISIONS-2026-10-21 D2",
+      "DECISIONS-2026-10-22 E6, E7, E9",
+      "ADR-024"
+    ]
+  },
+  "governance": {
+    "status": "DRAFT-awaiting-approval",
+    "signatureStatus": "AI-DRAFTED - mandatory content-owner approval outstanding (ADR-024 section 7)",
+    "contentApprovers": [
+      "Exception Handling BRD owner"
+    ],
+    "approverRole": "PRODUCT_APPROVER",
+    "seededBy": "SUG-20261021-rul; approverRoles SUG-20261022-rdy (owner-directed build, ADMIT-BYPASS)",
+    "openItems": [
+      "D2 owner action: threshold values and per-rule action (BLOCK | APPROVAL_REQUIRED) - all unset, none invented",
+      "E6: approverRoles per rule is configuration. Strict seed [BANK_ADMIN] for every rule (E9); which hierarchy level (e.g. BRANCH_MANAGER, BRD section 12 Branch Banking / Banca / Persistency columns) approves which rule awaits the BRD owner. Insurer partner roles must never be listed",
+      "BRD section 12 multi-level (ordered) approval and hierarchy-workbook routing are not modelled: one decision by a holder of an approver role releases or rejects the hold",
+      "Data sources EH-INT-001..005 (CBS, Equifax, DWH, insurer policy data) behind the inputs",
+      "Classification PRODUCT is provisional; owner to confirm whether Compliance must also approve"
+    ]
+  },
+  "inputs": [
+    {
+      "name": "triggerPoint",
+      "type": "ENUM",
+      "required": true,
+      "values": [
+        "START_ONBOARDING",
+        "PREMIUM_CAPTURE"
+      ],
+      "description": "D2: Start Onboarding; rules 012-013 again after annual premium capture"
+    },
+    {
+      "name": "asOf",
+      "type": "DATE",
+      "required": true
+    },
+    {
+      "name": "proposerAge",
+      "type": "INTEGER",
+      "required": true,
+      "sourceRef": "EH-BR-RULE-001"
+    },
+    {
+      "name": "hasBsbdAccount",
+      "type": "BOOLEAN",
+      "required": true,
+      "sourceRef": "EH-BR-RULE-002 (CBS)"
+    },
+    {
+      "name": "equifaxScore",
+      "type": "INTEGER",
+      "required": true,
+      "sourceRef": "EH-BR-RULE-003 (Equifax)"
+    },
+    {
+      "name": "lastLapsedPolicyCategory",
+      "type": "STRING",
+      "required": false,
+      "sourceRef": "EH-BR-RULE-004; null = no lapse"
+    },
+    {
+      "name": "monthsSinceLastLapse",
+      "type": "INTEGER",
+      "required": false,
+      "sourceRef": "EH-BR-RULE-004"
+    },
+    {
+      "name": "monthsSinceLastTermination",
+      "type": "INTEGER",
+      "required": false,
+      "sourceRef": "EH-BR-RULE-005; surrender / free-look / cancellation"
+    },
+    {
+      "name": "activePolicyCount",
+      "type": "INTEGER",
+      "required": true,
+      "sourceRef": "EH-BR-RULE-006; counted over parameter activePolicyWindowDays"
+    },
+    {
+      "name": "casaOpenedOn",
+      "type": "DATE",
+      "required": false,
+      "sourceRef": "EH-BR-RULE-007"
+    },
+    {
+      "name": "lastAssetAccountOpenedOn",
+      "type": "DATE",
+      "required": false,
+      "sourceRef": "EH-BR-RULE-008 loan disbursement / card issuance"
+    },
+    {
+      "name": "hasActiveRelationship",
+      "type": "BOOLEAN",
+      "required": true,
+      "sourceRef": "EH-BR-RULE-009"
+    },
+    {
+      "name": "isAuEmployee",
+      "type": "BOOLEAN",
+      "required": true,
+      "sourceRef": "EH-BR-RULE-010"
+    },
+    {
+      "name": "nextRenewalDueOn",
+      "type": "DATE",
+      "required": false,
+      "sourceRef": "EH-BR-RULE-011"
+    },
+    {
+      "name": "oldestUnpaidRenewalDueOn",
+      "type": "DATE",
+      "required": false,
+      "sourceRef": "EH-BR-RULE-012"
+    },
+    {
+      "name": "annualPremium",
+      "type": "DECIMAL",
+      "required": false,
+      "sourceRef": "EH-BR-RULE-013; present at PREMIUM_CAPTURE"
+    },
+    {
+      "name": "sellerRestricted",
+      "type": "BOOLEAN",
+      "required": true,
+      "sourceRef": "EH-BR-RULE-014"
+    },
+    {
+      "name": "customerRestricted",
+      "type": "BOOLEAN",
+      "required": true,
+      "sourceRef": "EH-BR-RULE-015"
+    }
+  ],
+  "decision": {
+    "hitPolicy": "PRIORITY",
+    "outcomeRank": [
+      "BLOCK",
+      "APPROVAL_REQUIRED",
+      "PASS"
+    ],
+    "noMatchOutcome": "PASS",
+    "missingInputOutcome": "BLOCK",
+    "missingConfigOutcome": "BLOCK",
+    "missingConfigReasonCode": "EH-CONFIG-MISSING",
+    "collectReasonCodes": "ALL_FIRED"
+  },
+  "rules": [
+    {
+      "ruleId": "EH-BR-RULE-001",
+      "priority": 1,
+      "description": "Age Restriction",
+      "sourceRef": "docs/au-bank-insurance-platform/requirements/brd-detailed/Exception_Handling_BRD_V1.0_CONTEXT.md section 24.3 row EH-BR-RULE-001",
+      "when": {
+        "op": "gt",
+        "args": [
+          {
+            "var": "proposerAge"
+          },
+          {
+            "param": "maxProposerAge"
+          }
+        ]
+      },
+      "then": {
+        "outcome": {
+          "param": "actions.EH-BR-RULE-001"
+        },
+        "reasonCode": "EH-ERR-RULE-001",
+        "params": {
+          "AGE": {
+            "param": "maxProposerAge"
+          },
+          "approverRoles": {
+            "param": "approverRoles.EH-BR-RULE-001"
+          }
+        },
+        "actions": [
+          "REMARKS_MANDATORY_ON_DECISION"
+        ]
+      }
+    },
+    {
+      "ruleId": "EH-BR-RULE-002",
+      "priority": 2,
+      "description": "BSBD Account",
+      "sourceRef": "docs/au-bank-insurance-platform/requirements/brd-detailed/Exception_Handling_BRD_V1.0_CONTEXT.md section 24.3 row EH-BR-RULE-002",
+      "when": {
+        "op": "eq",
+        "args": [
+          {
+            "var": "hasBsbdAccount"
+          },
+          {
+            "const": true
+          }
+        ]
+      },
+      "then": {
+        "outcome": {
+          "param": "actions.EH-BR-RULE-002"
+        },
+        "reasonCode": "EH-ERR-RULE-002",
+        "params": {
+          "approverRoles": {
+            "param": "approverRoles.EH-BR-RULE-002"
+          }
+        },
+        "actions": [
+          "REMARKS_MANDATORY_ON_DECISION"
+        ]
+      }
+    },
+    {
+      "ruleId": "EH-BR-RULE-003",
+      "priority": 3,
+      "description": "Equifax Score",
+      "sourceRef": "docs/au-bank-insurance-platform/requirements/brd-detailed/Exception_Handling_BRD_V1.0_CONTEXT.md section 24.3 row EH-BR-RULE-003",
+      "when": {
+        "op": "lt",
+        "args": [
+          {
+            "var": "equifaxScore"
+          },
+          {
+            "param": "minEquifaxScore"
+          }
+        ]
+      },
+      "then": {
+        "outcome": {
+          "param": "actions.EH-BR-RULE-003"
+        },
+        "reasonCode": "EH-ERR-RULE-003",
+        "params": {
+          "Equifaxscore": {
+            "param": "minEquifaxScore"
+          },
+          "approverRoles": {
+            "param": "approverRoles.EH-BR-RULE-003"
+          }
+        },
+        "actions": [
+          "REMARKS_MANDATORY_ON_DECISION"
+        ]
+      }
+    },
+    {
+      "ruleId": "EH-BR-RULE-004",
+      "priority": 4,
+      "description": "Lapsed Policy",
+      "sourceRef": "docs/au-bank-insurance-platform/requirements/brd-detailed/Exception_Handling_BRD_V1.0_CONTEXT.md section 24.3 row EH-BR-RULE-004",
+      "when": {
+        "op": "all",
+        "args": [
+          {
+            "op": "in",
+            "args": [
+              {
+                "var": "lastLapsedPolicyCategory"
+              },
+              {
+                "param": "lapsedPolicyCategories"
+              }
+            ]
+          },
+          {
+            "op": "lte",
+            "args": [
+              {
+                "var": "monthsSinceLastLapse"
+              },
+              {
+                "param": "lapseWindowMonths"
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "outcome": {
+          "param": "actions.EH-BR-RULE-004"
+        },
+        "reasonCode": "EH-ERR-RULE-004",
+        "params": {
+          "selectedcategory": {
+            "var": "lastLapsedPolicyCategory"
+          },
+          "noofmonths": {
+            "param": "lapseWindowMonths"
+          },
+          "approverRoles": {
+            "param": "approverRoles.EH-BR-RULE-004"
+          }
+        },
+        "actions": [
+          "REMARKS_MANDATORY_ON_DECISION"
+        ]
+      }
+    },
+    {
+      "ruleId": "EH-BR-RULE-005",
+      "priority": 5,
+      "description": "Surrendered, Freelook, Cancelled Policy",
+      "sourceRef": "docs/au-bank-insurance-platform/requirements/brd-detailed/Exception_Handling_BRD_V1.0_CONTEXT.md section 24.3 row EH-BR-RULE-005",
+      "when": {
+        "op": "lte",
+        "args": [
+          {
+            "var": "monthsSinceLastTermination"
+          },
+          {
+            "param": "terminationCoolingMonths"
+          }
+        ]
+      },
+      "then": {
+        "outcome": {
+          "param": "actions.EH-BR-RULE-005"
+        },
+        "reasonCode": "EH-ERR-RULE-005",
+        "params": {
+          "surrendered_Time": {
+            "param": "terminationCoolingMonths"
+          },
+          "approverRoles": {
+            "param": "approverRoles.EH-BR-RULE-005"
+          }
+        },
+        "actions": [
+          "REMARKS_MANDATORY_ON_DECISION"
+        ]
+      }
+    },
+    {
+      "ruleId": "EH-BR-RULE-006",
+      "priority": 6,
+      "description": "Number Of Inforced Policies",
+      "sourceRef": "docs/au-bank-insurance-platform/requirements/brd-detailed/Exception_Handling_BRD_V1.0_CONTEXT.md section 24.3 row EH-BR-RULE-006",
+      "when": {
+        "op": "gt",
+        "args": [
+          {
+            "var": "activePolicyCount"
+          },
+          {
+            "param": "maxActivePolicies"
+          }
+        ]
+      },
+      "then": {
+        "outcome": {
+          "param": "actions.EH-BR-RULE-006"
+        },
+        "reasonCode": "EH-ERR-RULE-006",
+        "params": {
+          "inforcedpolyciNoofPolicy": {
+            "param": "maxActivePolicies"
+          },
+          "inforcedpolicy_time": {
+            "param": "activePolicyWindowDays"
+          },
+          "approverRoles": {
+            "param": "approverRoles.EH-BR-RULE-006"
+          }
+        },
+        "actions": [
+          "REMARKS_MANDATORY_ON_DECISION"
+        ]
+      }
+    },
+    {
+      "ruleId": "EH-BR-RULE-007",
+      "priority": 7,
+      "description": "CASA Account Age",
+      "sourceRef": "docs/au-bank-insurance-platform/requirements/brd-detailed/Exception_Handling_BRD_V1.0_CONTEXT.md section 24.3 row EH-BR-RULE-007",
+      "when": {
+        "op": "lt",
+        "args": [
+          {
+            "op": "daysBetween",
+            "args": [
+              {
+                "var": "casaOpenedOn"
+              },
+              {
+                "var": "asOf"
+              }
+            ]
+          },
+          {
+            "param": "minCasaAccountAgeDays"
+          }
+        ]
+      },
+      "then": {
+        "outcome": {
+          "param": "actions.EH-BR-RULE-007"
+        },
+        "reasonCode": "EH-ERR-RULE-007",
+        "params": {
+          "CASA_ACCOUNT_AGE": {
+            "param": "minCasaAccountAgeDays"
+          },
+          "approverRoles": {
+            "param": "approverRoles.EH-BR-RULE-007"
+          }
+        },
+        "actions": [
+          "REMARKS_MANDATORY_ON_DECISION"
+        ]
+      }
+    },
+    {
+      "ruleId": "EH-BR-RULE-008",
+      "priority": 8,
+      "description": "Asset/Credit card customer cooling period",
+      "sourceRef": "docs/au-bank-insurance-platform/requirements/brd-detailed/Exception_Handling_BRD_V1.0_CONTEXT.md section 24.3 row EH-BR-RULE-008",
+      "when": {
+        "op": "lt",
+        "args": [
+          {
+            "op": "daysBetween",
+            "args": [
+              {
+                "var": "lastAssetAccountOpenedOn"
+              },
+              {
+                "var": "asOf"
+              }
+            ]
+          },
+          {
+            "param": "assetCoolingDays"
+          }
+        ]
+      },
+      "then": {
+        "outcome": {
+          "param": "actions.EH-BR-RULE-008"
+        },
+        "reasonCode": "EH-ERR-RULE-008",
+        "params": {
+          "NoOfDays": {
+            "param": "assetCoolingDays"
+          },
+          "approverRoles": {
+            "param": "approverRoles.EH-BR-RULE-008"
+          }
+        },
+        "actions": [
+          "REMARKS_MANDATORY_ON_DECISION"
+        ]
+      }
+    },
+    {
+      "ruleId": "EH-BR-RULE-009",
+      "priority": 9,
+      "description": "CASA or Loan or CC Relationship",
+      "sourceRef": "docs/au-bank-insurance-platform/requirements/brd-detailed/Exception_Handling_BRD_V1.0_CONTEXT.md section 24.3 row EH-BR-RULE-009",
+      "when": {
+        "op": "eq",
+        "args": [
+          {
+            "var": "hasActiveRelationship"
+          },
+          {
+            "const": false
+          }
+        ]
+      },
+      "then": {
+        "outcome": {
+          "param": "actions.EH-BR-RULE-009"
+        },
+        "reasonCode": "EH-ERR-RULE-009",
+        "params": {
+          "approverRoles": {
+            "param": "approverRoles.EH-BR-RULE-009"
+          }
+        },
+        "actions": [
+          "REMARKS_MANDATORY_ON_DECISION"
+        ]
+      }
+    },
+    {
+      "ruleId": "EH-BR-RULE-010",
+      "priority": 10,
+      "description": "Employee Of AU",
+      "sourceRef": "docs/au-bank-insurance-platform/requirements/brd-detailed/Exception_Handling_BRD_V1.0_CONTEXT.md section 24.3 row EH-BR-RULE-010",
+      "when": {
+        "op": "eq",
+        "args": [
+          {
+            "var": "isAuEmployee"
+          },
+          {
+            "const": true
+          }
+        ]
+      },
+      "then": {
+        "outcome": {
+          "param": "actions.EH-BR-RULE-010"
+        },
+        "reasonCode": "EH-ERR-RULE-010",
+        "params": {
+          "approverRoles": {
+            "param": "approverRoles.EH-BR-RULE-010"
+          }
+        },
+        "actions": [
+          "REMARKS_MANDATORY_ON_DECISION"
+        ]
+      }
+    },
+    {
+      "ruleId": "EH-BR-RULE-011",
+      "priority": 11,
+      "description": "Renewal Pending",
+      "sourceRef": "docs/au-bank-insurance-platform/requirements/brd-detailed/Exception_Handling_BRD_V1.0_CONTEXT.md section 24.3 row EH-BR-RULE-011",
+      "when": {
+        "op": "all",
+        "args": [
+          {
+            "op": "gte",
+            "args": [
+              {
+                "op": "daysBetween",
+                "args": [
+                  {
+                    "var": "asOf"
+                  },
+                  {
+                    "var": "nextRenewalDueOn"
+                  }
+                ]
+              },
+              {
+                "const": 0
+              }
+            ]
+          },
+          {
+            "op": "lte",
+            "args": [
+              {
+                "op": "daysBetween",
+                "args": [
+                  {
+                    "var": "asOf"
+                  },
+                  {
+                    "var": "nextRenewalDueOn"
+                  }
+                ]
+              },
+              {
+                "param": "renewalLookaheadDays"
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "outcome": {
+          "param": "actions.EH-BR-RULE-011"
+        },
+        "reasonCode": "EH-ERR-RULE-011",
+        "params": {
+          "approverRoles": {
+            "param": "approverRoles.EH-BR-RULE-011"
+          }
+        },
+        "actions": [
+          "REMARKS_MANDATORY_ON_DECISION"
+        ]
+      }
+    },
+    {
+      "ruleId": "EH-BR-RULE-012",
+      "priority": 12,
+      "description": "Renewal Premium Due",
+      "sourceRef": "docs/au-bank-insurance-platform/requirements/brd-detailed/Exception_Handling_BRD_V1.0_CONTEXT.md section 24.3 row EH-BR-RULE-012",
+      "when": {
+        "op": "all",
+        "args": [
+          {
+            "op": "eq",
+            "args": [
+              {
+                "var": "triggerPoint"
+              },
+              {
+                "const": "PREMIUM_CAPTURE"
+              }
+            ]
+          },
+          {
+            "op": "lte",
+            "args": [
+              {
+                "op": "daysBetween",
+                "args": [
+                  {
+                    "var": "oldestUnpaidRenewalDueOn"
+                  },
+                  {
+                    "var": "asOf"
+                  }
+                ]
+              },
+              {
+                "op": "mul",
+                "args": [
+                  {
+                    "param": "unpaidRenewalWindowYears"
+                  },
+                  {
+                    "const": 365
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "outcome": {
+          "param": "actions.EH-BR-RULE-012"
+        },
+        "reasonCode": "EH-ERR-RULE-012",
+        "params": {
+          "PremiumdueRenewal": {
+            "param": "unpaidRenewalWindowYears"
+          },
+          "approverRoles": {
+            "param": "approverRoles.EH-BR-RULE-012"
+          }
+        },
+        "actions": [
+          "REMARKS_MANDATORY_ON_DECISION"
+        ]
+      }
+    },
+    {
+      "ruleId": "EH-BR-RULE-013",
+      "priority": 13,
+      "description": "High Premium",
+      "sourceRef": "docs/au-bank-insurance-platform/requirements/brd-detailed/Exception_Handling_BRD_V1.0_CONTEXT.md section 24.3 row EH-BR-RULE-013",
+      "when": {
+        "op": "all",
+        "args": [
+          {
+            "op": "eq",
+            "args": [
+              {
+                "var": "triggerPoint"
+              },
+              {
+                "const": "PREMIUM_CAPTURE"
+              }
+            ]
+          },
+          {
+            "op": "gt",
+            "args": [
+              {
+                "var": "annualPremium"
+              },
+              {
+                "param": "highPremiumThreshold"
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "outcome": {
+          "param": "actions.EH-BR-RULE-013"
+        },
+        "reasonCode": "EH-ERR-RULE-013",
+        "params": {
+          "PremiumAmount": {
+            "var": "annualPremium"
+          },
+          "approverRoles": {
+            "param": "approverRoles.EH-BR-RULE-013"
+          }
+        },
+        "actions": [
+          "REMARKS_MANDATORY_ON_DECISION"
+        ]
+      }
+    },
+    {
+      "ruleId": "EH-BR-RULE-014",
+      "priority": 14,
+      "description": "Blocked Employees",
+      "sourceRef": "docs/au-bank-insurance-platform/requirements/brd-detailed/Exception_Handling_BRD_V1.0_CONTEXT.md section 24.3 row EH-BR-RULE-014",
+      "when": {
+        "op": "eq",
+        "args": [
+          {
+            "var": "sellerRestricted"
+          },
+          {
+            "const": true
+          }
+        ]
+      },
+      "then": {
+        "outcome": {
+          "param": "actions.EH-BR-RULE-014"
+        },
+        "reasonCode": "EH-ERR-RULE-014",
+        "params": {
+          "approverRoles": {
+            "param": "approverRoles.EH-BR-RULE-014"
+          }
+        },
+        "actions": [
+          "REMARKS_MANDATORY_ON_DECISION"
+        ]
+      }
+    },
+    {
+      "ruleId": "EH-BR-RULE-015",
+      "priority": 15,
+      "description": "Blocked Customers",
+      "sourceRef": "docs/au-bank-insurance-platform/requirements/brd-detailed/Exception_Handling_BRD_V1.0_CONTEXT.md section 24.3 row EH-BR-RULE-015",
+      "when": {
+        "op": "eq",
+        "args": [
+          {
+            "var": "customerRestricted"
+          },
+          {
+            "const": true
+          }
+        ]
+      },
+      "then": {
+        "outcome": {
+          "param": "actions.EH-BR-RULE-015"
+        },
+        "reasonCode": "EH-ERR-RULE-015",
+        "params": {
+          "approverRoles": {
+            "param": "approverRoles.EH-BR-RULE-015"
+          }
+        },
+        "actions": [
+          "REMARKS_MANDATORY_ON_DECISION"
+        ]
+      }
+    }
+  ],
+  "parameters": {
+    "maxProposerAge": null,
+    "minEquifaxScore": null,
+    "lapsedPolicyCategories": null,
+    "lapseWindowMonths": null,
+    "terminationCoolingMonths": null,
+    "maxActivePolicies": null,
+    "activePolicyWindowDays": null,
+    "minCasaAccountAgeDays": null,
+    "assetCoolingDays": null,
+    "renewalLookaheadDays": null,
+    "unpaidRenewalWindowYears": null,
+    "highPremiumThreshold": null,
+    "actions": {
+      "EH-BR-RULE-001": null,
+      "EH-BR-RULE-002": null,
+      "EH-BR-RULE-003": null,
+      "EH-BR-RULE-004": null,
+      "EH-BR-RULE-005": null,
+      "EH-BR-RULE-006": null,
+      "EH-BR-RULE-007": null,
+      "EH-BR-RULE-008": null,
+      "EH-BR-RULE-009": null,
+      "EH-BR-RULE-010": null,
+      "EH-BR-RULE-011": null,
+      "EH-BR-RULE-012": null,
+      "EH-BR-RULE-013": null,
+      "EH-BR-RULE-014": null,
+      "EH-BR-RULE-015": null
+    },
+    "approverRoles": {
+      "EH-BR-RULE-001": [
+        "BANK_ADMIN"
+      ],
+      "EH-BR-RULE-002": [
+        "BANK_ADMIN"
+      ],
+      "EH-BR-RULE-003": [
+        "BANK_ADMIN"
+      ],
+      "EH-BR-RULE-004": [
+        "BANK_ADMIN"
+      ],
+      "EH-BR-RULE-005": [
+        "BANK_ADMIN"
+      ],
+      "EH-BR-RULE-006": [
+        "BANK_ADMIN"
+      ],
+      "EH-BR-RULE-007": [
+        "BANK_ADMIN"
+      ],
+      "EH-BR-RULE-008": [
+        "BANK_ADMIN"
+      ],
+      "EH-BR-RULE-009": [
+        "BANK_ADMIN"
+      ],
+      "EH-BR-RULE-010": [
+        "BANK_ADMIN"
+      ],
+      "EH-BR-RULE-011": [
+        "BANK_ADMIN"
+      ],
+      "EH-BR-RULE-012": [
+        "BANK_ADMIN"
+      ],
+      "EH-BR-RULE-013": [
+        "BANK_ADMIN"
+      ],
+      "EH-BR-RULE-014": [
+        "BANK_ADMIN"
+      ],
+      "EH-BR-RULE-015": [
+        "BANK_ADMIN"
+      ]
+    }
+  },
+  "reasonCodes": {
+    "EH-ERR-RULE-001": {
+      "severity": "BLOCK",
+      "rmText": "The Proposer's age exceeds the maximum limit of @AGE years.",
+      "customerText": null
+    },
+    "EH-ERR-RULE-002": {
+      "severity": "BLOCK",
+      "rmText": "The Customer holds BSBD Account",
+      "customerText": null
+    },
+    "EH-ERR-RULE-003": {
+      "severity": "BLOCK",
+      "rmText": "The customer's Equifax score is below minimum requirement of @Equifaxscore",
+      "customerText": null
+    },
+    "EH-ERR-RULE-004": {
+      "severity": "BLOCK",
+      "rmText": "A laped policy under the @selectedcategory category was found within the last @noofmonths months.",
+      "customerText": null
+    },
+    "EH-ERR-RULE-005": {
+      "severity": "BLOCK",
+      "rmText": "A surrendered, free look cancelled, and terminated policy has been identified within @surrendered_Time months",
+      "customerText": null
+    },
+    "EH-ERR-RULE-006": {
+      "severity": "BLOCK",
+      "rmText": "The customer already holds more than @inforcedpolyciNoofPolicy active policies withing @inforcedpolicy_time days.",
+      "customerText": null
+    },
+    "EH-ERR-RULE-007": {
+      "severity": "BLOCK",
+      "rmText": "The customer's CASA account was opened within the last @CASA_ACCOUNT_AGE days.",
+      "customerText": null
+    },
+    "EH-ERR-RULE-008": {
+      "severity": "BLOCK",
+      "rmText": "The customer's asset(Loan/CC) account was opened within last @NoOfDays days.",
+      "customerText": null
+    },
+    "EH-ERR-RULE-009": {
+      "severity": "BLOCK",
+      "rmText": "The customer does not have an active relationship(CASA, Loan or CC) with the bank.",
+      "customerText": null
+    },
+    "EH-ERR-RULE-010": {
+      "severity": "BLOCK",
+      "rmText": "The customer is an AU Bank employee.",
+      "customerText": null
+    },
+    "EH-ERR-RULE-011": {
+      "severity": "BLOCK",
+      "rmText": "A upcoming renewal premium is detected.",
+      "customerText": null
+    },
+    "EH-ERR-RULE-012": {
+      "severity": "BLOCK",
+      "rmText": "An unpaid renewal premium is detected within @PremiumdueRenewal Years.",
+      "customerText": null
+    },
+    "EH-ERR-RULE-013": {
+      "severity": "BLOCK",
+      "rmText": "The annual premium for this policy (₹@PremiumAmount) exceeds the threshold.",
+      "customerText": null
+    },
+    "EH-ERR-RULE-014": {
+      "severity": "BLOCK",
+      "rmText": "Your ID is currently restricted from selling Life Insurance policies.",
+      "customerText": null
+    },
+    "EH-ERR-RULE-015": {
+      "severity": "BLOCK",
+      "rmText": "The customer is currently restricted from purchasing Life Insurance policies.",
+      "customerText": null
+    },
+    "EH-CONFIG-MISSING": {
+      "severity": "BLOCK",
+      "rmText": "The lead is blocked because required configuration for @ruleId is unavailable (@missingParameters).",
+      "customerText": null
+    },
+    "RULE_INPUT_MISSING": {
+      "severity": "BLOCK",
+      "rmText": "Exception rule data unavailable: @missing.",
+      "customerText": null
+    },
+    "RULE_INPUT_INVALID": {
+      "severity": "BLOCK",
+      "rmText": "Exception rule data not in the expected form: @missing.",
+      "customerText": null
+    }
+  },
+  "testCases": [
+    {
+      "name": "D2-unset-config-blocks-every-lead",
+      "description": "Seed state: all thresholds/actions null -> every rule is a configuration gap -> BLOCK",
+      "inputs": {
+        "triggerPoint": "START_ONBOARDING",
+        "asOf": "2026-11-15",
+        "proposerAge": 40,
+        "hasBsbdAccount": false,
+        "equifaxScore": 760,
+        "activePolicyCount": 1,
+        "hasActiveRelationship": true,
+        "isAuEmployee": false,
+        "sellerRestricted": false,
+        "customerRestricted": false,
+        "casaOpenedOn": "2020-01-01"
+      },
+      "expect": {
+        "outcome": "BLOCK",
+        "reasonCodes": [
+          "EH-CONFIG-MISSING"
+        ],
+        "fired": [
+          "EH-BR-RULE-001",
+          "EH-BR-RULE-002",
+          "EH-BR-RULE-003",
+          "EH-BR-RULE-004",
+          "EH-BR-RULE-005",
+          "EH-BR-RULE-006",
+          "EH-BR-RULE-007",
+          "EH-BR-RULE-008",
+          "EH-BR-RULE-009",
+          "EH-BR-RULE-010",
+          "EH-BR-RULE-011",
+          "EH-BR-RULE-012",
+          "EH-BR-RULE-013",
+          "EH-BR-RULE-014",
+          "EH-BR-RULE-015"
+        ]
+      }
+    },
+    {
+      "name": "D2-missing-fact-blocks",
+      "inputs": {
+        "triggerPoint": "START_ONBOARDING",
+        "asOf": "2026-11-15",
+        "proposerAge": 40,
+        "hasBsbdAccount": false,
+        "activePolicyCount": 1,
+        "hasActiveRelationship": true,
+        "isAuEmployee": false,
+        "sellerRestricted": false,
+        "customerRestricted": false,
+        "casaOpenedOn": "2020-01-01"
+      },
+      "expect": {
+        "outcome": "BLOCK",
+        "reasonCodes": [
+          "RULE_INPUT_MISSING"
+        ],
+        "fired": []
+      }
+    }
+  ]
+}

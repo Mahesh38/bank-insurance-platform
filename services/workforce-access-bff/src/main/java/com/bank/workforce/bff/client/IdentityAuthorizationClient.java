@@ -9,6 +9,7 @@ import com.bank.workforce.bff.config.DownstreamProperties;
 import com.bank.workforce.bff.session.SessionModels.IdentitySource;
 import java.util.Map;
 import java.util.UUID;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
@@ -24,12 +25,18 @@ public class IdentityAuthorizationClient {
   private final ServiceErrors serviceErrors;
 
   public IdentityAuthorizationClient(
-      RestClient restClient,
+      @Qualifier("authorizationRestClient") RestClient restClient,
       DownstreamProperties properties,
       ProblemJsonReader problemJsonReader,
       ServiceErrors serviceErrors) {
     this.client =
-        restClient.mutate().baseUrl(properties.authorizationServiceBaseUrl().toString()).build();
+        restClient
+            .mutate()
+            .baseUrl(properties.authorizationServiceBaseUrl().toString())
+            .defaultHeader(
+                DownstreamProperties.AUTHORIZATION_INTERNAL_KEY_HEADER,
+                properties.authorizationServiceInternalKey())
+            .build();
     this.problemJsonReader = problemJsonReader;
     this.serviceErrors = serviceErrors;
   }

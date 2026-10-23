@@ -1,0 +1,15 @@
+proposal:
+  working-store:
+    table-name: test-proposal-working
+  outbox:
+    publisher: in-memory
+  envelope:
+    provider: local
+    # Fixed test-only AES-256 key — never reuse outside tests.
+    local-key: p7MSmdyOLeyBue5/ZJpPP3TE/ZQrLr4WSPjrhS0d0F8=
+    local-key-id: test
+
+logging:
+  level:
+    com.bank.platform.proposal: WARN
+    org.flywaydb: WARN

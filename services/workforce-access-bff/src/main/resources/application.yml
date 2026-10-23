@@ -21,6 +21,20 @@ workforce:
     customer-service-base-url: ${CUSTOMER_SERVICE_BASE_URL:http://localhost:8090}
     lead-mode: ${LEAD_DOWNSTREAM_MODE:stub}
     customer-mode: ${CUSTOMER_DOWNSTREAM_MODE:stub}
+    # Caller key for identity-authorization-service /internal/v1 (caller "workforce-access-bff").
+    authorization-service-internal-key: ${IDENTITY_AUTHZ_BFF_INTERNAL_KEY:local-authz-bff-internal-key}
+    # Seam budgets (03 §5). Defaults live in DownstreamTimeouts; listed here so they are visible.
+    timeouts:
+      lead: { connect: 500ms, read: 2s }              # S-20
+      customer: { connect: 500ms, read: 4s }          # CBS S-05 inside the S-01 edge budget
+      authorization: { connect: 500ms, read: 2s }     # identity resolve
+      # Login path, inside the 5 s edge (S-01). E8: stays above the adapter's AD-verify / Keycloak
+      # read timeout (3 s); the adapter's connect 2 s + read 3 s worst case is cut off here first.
+      identity-provider:
+        connect: ${WORKFORCE_IDP_CONNECT_TIMEOUT:1s}
+        read: ${WORKFORCE_IDP_READ_TIMEOUT:4500ms}
+  authorization:
+    decision-timeout: 300ms                           # S-02 PDP, fail closed
   session:
     store: ${WORKFORCE_SESSION_STORE:memory}
     cookie-name: WORKFORCE_SESSION

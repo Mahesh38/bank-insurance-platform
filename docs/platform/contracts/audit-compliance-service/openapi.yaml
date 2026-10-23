@@ -1,0 +1,341 @@
+openapi: 3.1.0
+info:
+  title: audit-compliance-service — business audit evidence (PROPOSED, ADR-026)
+  version: 1.0.0-draft
+  summary: Completeness, evidence queries and WORM export over the append-only, hash-chained audit store.
+  description: |
+    **Status:** AI-DRAFTED 2026-10-21 — **PROPOSED**. Designed to ADR-026, which is itself *Proposed*
+    and becomes binding only on Mahesh's explicit yes; Shailja (retention) and Deepali (tamper
+    evidence) review. Nothing here is buildable until then.
+
+    Ingest is **not** an HTTP API: the service consumes `AuditRecorded` events (envelope
+    `event-envelope/v1`, ADR-025) from MSK. See `LLD.md`.
+
+    Callers: journey-orchestration-service (completeness before `SOLD`, `INV-JRN-05`); the BFF's
+    compliance routes on behalf of compliance users (evidence queries — the BFF/PDP authorises
+    `audit.evidence.read`; every query is itself audited); operations (export).
+servers:
+  - url: http://audit-compliance-service:8101
+    description: Cluster-private (layer L5, INTERNAL)
+tags:
+  - name: completeness
+  - name: evidence
+  - name: export
+paths:
+  /internal/v1/audit/journeys/{journeyId}/completeness:
+    get:
+      tags: [completeness]
+      operationId: getJourneyCompleteness
+      summary: Is the mandatory audit sequence for SOLD present and the journey chain intact?
+      parameters:
+        - $ref: '#/components/parameters/JourneyIdPath'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/ActorId'
+      responses:
+        '200':
+          description: Completeness verdict (complete = false is a normal answer, not an error)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Completeness' }
+        '422':
+          description: '`CONFIGURATION_UNRESOLVABLE` — the required-sequence configuration cannot be resolved (fail closed: never complete by default)'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /internal/v1/audit/journeys/{journeyId}/events:
+    get:
+      tags: [evidence]
+      operationId: listJourneyEvents
+      summary: A journey's evidence timeline in chain order
+      parameters:
+        - $ref: '#/components/parameters/JourneyIdPath'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Page of events
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/EventPage' }
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /internal/v1/audit/events:
+    get:
+      tags: [evidence]
+      operationId: searchEvents
+      summary: Evidence search for compliance users
+      description: At least one of resourceType+resourceId, journeyId, actorId must be given; `from`–`to` span ≤ 31 days.
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/ActorId'
+        - { name: resourceType, in: query, required: false, schema: { type: string, maxLength: 50 } }
+        - { name: resourceId, in: query, required: false, schema: { type: string, maxLength: 100 } }
+        - { name: journeyId, in: query, required: false, schema: { $ref: '#/components/schemas/Ulid' } }
+        - { name: actorId, in: query, required: false, schema: { type: string, maxLength: 100 } }
+        - { name: action, in: query, required: false, schema: { type: string, maxLength: 100 } }
+        - { name: from, in: query, required: false, schema: { type: string, format: date-time } }
+        - { name: to, in: query, required: false, schema: { type: string, format: date-time } }
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Page of events
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/EventPage' }
+        '422':
+          description: '`VALIDATION_ERROR` (no selector, or range too wide)'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+  /internal/v1/audit/events/{eventId}:
+    get:
+      tags: [evidence]
+      operationId: getEvent
+      summary: One audit record with its chain proof
+      parameters:
+        - { name: eventId, in: path, required: true, schema: { $ref: '#/components/schemas/Ulid' } }
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/ActorId'
+      responses:
+        '200':
+          description: Record
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuditRecord' }
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /internal/v1/audit/exports:
+    post:
+      tags: [export]
+      operationId: triggerExport
+      summary: Run (or re-run) the WORM export for one business date — normally scheduled daily
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/ActorId'
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema: { type: string, minLength: 1, maxLength: 128 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [businessDate]
+              additionalProperties: false
+              properties:
+                businessDate: { type: string, format: date }
+      responses:
+        '202':
+          description: Export accepted (an already-completed date returns its existing export)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Export' }
+        '400':
+          description: '`MISSING_IDEMPOTENCY_KEY`'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '409':
+          description: '`IDEMPOTENCY_CONFLICT` / `REQUEST_IN_PROGRESS`'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '422':
+          description: '`VALIDATION_ERROR` — businessDate is today or in the future (rows must be older than one day)'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+  /internal/v1/audit/exports/{exportId}:
+    get:
+      tags: [export]
+      operationId: getExport
+      summary: Export status, object key and manifest (chain heads)
+      parameters:
+        - { name: exportId, in: path, required: true, schema: { $ref: '#/components/schemas/Ulid' } }
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/ActorId'
+      responses:
+        '200':
+          description: Export
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Export' }
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  parameters:
+    JourneyIdPath:
+      name: journeyId
+      in: path
+      required: true
+      schema: { $ref: '#/components/schemas/Ulid' }
+    CorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: true
+      schema: { type: string, format: uuid }
+    ActorId:
+      name: X-Actor-Id
+      in: header
+      required: true
+      description: The compliance user (via BFF) or the calling service's principal; recorded on the read-audit event.
+      schema: { type: string, minLength: 1, maxLength: 100 }
+    Cursor:
+      name: cursor
+      in: query
+      required: false
+      schema: { type: string, maxLength: 256 }
+    Limit:
+      name: limit
+      in: query
+      required: false
+      schema: { type: integer, minimum: 1, maximum: 200, default: 50 }
+  responses:
+    NotFound:
+      description: '`RESOURCE_NOT_FOUND`'
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Unavailable:
+      description: '`UPSTREAM_UNAVAILABLE` — audit store unreachable; the caller must treat the journey as not complete'
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+  schemas:
+    Ulid:
+      type: string
+      pattern: '^[0-9A-HJKMNP-TV-Z]{26}$'
+    Completeness:
+      type: object
+      required: [journeyId, complete, required, present, missing, chainVerified, configVersionRef, evaluatedAt]
+      properties:
+        journeyId: { $ref: '#/components/schemas/Ulid' }
+        complete:
+          type: boolean
+          description: true only when missing is empty AND chainVerified is true.
+        required:
+          type: array
+          items: { $ref: '#/components/schemas/RequiredStep' }
+        present:
+          type: array
+          items:
+            type: object
+            required: [step, eventId, sequenceNo]
+            properties:
+              step: { type: string }
+              eventId: { $ref: '#/components/schemas/Ulid' }
+              sequenceNo: { type: integer }
+        missing:
+          type: array
+          items: { type: string }
+        chainVerified: { type: boolean }
+        configVersionRef:
+          type: string
+          description: '`AUDIT.SOLD.COMPLETENESS@{version}` used for the required set.'
+        evaluatedAt: { type: string, format: date-time }
+    RequiredStep:
+      type: object
+      required: [step, action]
+      properties:
+        step: { type: string }
+        action: { type: string }
+        qualifier: { type: [string, 'null'] }
+    AuditRecord:
+      type: object
+      required: [eventId, chainId, sequenceNo, action, source, actor, resourceType, resourceId, outcome, occurredAt, recordedAt, rowHash, prevHash]
+      properties:
+        eventId: { $ref: '#/components/schemas/Ulid' }
+        chainId: { type: string }
+        sequenceNo: { type: integer, minimum: 1 }
+        action: { type: string }
+        source: { type: string }
+        aggregateType: { type: string }
+        aggregateId: { type: string }
+        journeyId: { type: [string, 'null'] }
+        leadId: { type: [string, 'null'] }
+        actor:
+          type: object
+          required: [id, type]
+          properties:
+            id: { type: string }
+            type: { type: string }
+            actingCapacity: { type: [string, 'null'], enum: [SP_ACCOUNTABLE, ASSIST_ONLY, null] }
+            actorInsurerId: { type: [string, 'null'] }
+            assistedActorId: { type: [string, 'null'] }
+        resourceType: { type: string }
+        resourceId: { type: string }
+        outcome: { type: string, enum: [SUCCESS, DENIED, FAILED] }
+        consentRef: { type: [string, 'null'] }
+        suitabilityRef: { type: [string, 'null'] }
+        reasonCodes:
+          type: array
+          items: { type: string }
+        priorState: { type: [string, 'null'] }
+        newState: { type: [string, 'null'] }
+        configVersionRef: { type: [string, 'null'] }
+        occurredAt: { type: string, format: date-time }
+        recordedAt: { type: string, format: date-time }
+        traceId: { type: [string, 'null'] }
+        correlationId: { type: [string, 'null'] }
+        data:
+          type: object
+          description: Ids and states only — never customer PII (ADR-025).
+          additionalProperties: true
+        prevHash: { type: string, pattern: '^[0-9a-f]{64}$' }
+        rowHash: { type: string, pattern: '^[0-9a-f]{64}$' }
+        retainUntil: { type: string, format: date-time }
+        exportId: { type: [string, 'null'] }
+    EventPage:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/AuditRecord' }
+        nextCursor: { type: [string, 'null'] }
+    Export:
+      type: object
+      required: [exportId, businessDate, status]
+      properties:
+        exportId: { $ref: '#/components/schemas/Ulid' }
+        businessDate: { type: string, format: date }
+        status: { type: string, enum: [RUNNING, COMPLETED, FAILED] }
+        rowCount: { type: [integer, 'null'] }
+        objectKey: { type: [string, 'null'] }
+        manifestSha256: { type: [string, 'null'], pattern: '^[0-9a-f]{64}$' }
+        objectLockMode: { type: string, enum: [COMPLIANCE] }
+        retainUntil: { type: [string, 'null'], format: date-time }
+        completedAt: { type: [string, 'null'], format: date-time }
+    Problem:
+      type: object
+      description: Platform problem+json (conventions/error-model.md).
+      required: [type, title, status, code, category, retryable, incidentId, timestamp]
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        code: { type: string }
+        category: { type: string }
+        retryable: { type: boolean }
+        incidentId: { type: string }
+        correlationId: { type: string }
+        service: { type: string }
+        timestamp: { type: string, format: date-time }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              code: { type: string }
+              field: { type: string }
+              message: { type: string }
+        origin: { type: object, additionalProperties: true }
+        diagnostic: { type: object, additionalProperties: true }

@@ -1,5 +1,14 @@
 # PLAN-012 — Journey orchestrator and JSON-until-payment
 
+> **Superseded in part (2026-10-21).** The store chosen here — Aurora `quotation.quote_working` /
+> `proposal.proposal_working` with `payload_enc BYTEA` — was replaced by DynamoDB tables
+> `{env}-quotation-working` / `{env}-proposal-working` under
+> [`DB-DEC-0005`](../../platform/data-architecture/DB-DEC-0005-dynamodb-working-payload.md) (owner HUMAN
+> ratification). JSON-until-payment, ownership, materialise on `RECONCILED` and the journey/payment
+> design are unchanged. After payment, proposal answers and status changes are structured rows
+> (`proposal.proposal_answer`, `proposal.proposal_status_history` — `D-025`). Read "DynamoDB working
+> item" wherever this plan says `quote_working` / `proposal_working`.
+
 ```yaml
 # schema: implementation-plan
 id: PLAN-012

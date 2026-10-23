@@ -39,7 +39,13 @@ class JdbcLeadActivityStoreTest {
   void clean() {
     for (String table :
         new String[] {
-          "lead_assignment", "lead_meeting", "lead_follow_up", "outbox_event", "idempotency_record"
+          "lead_exception_decision",
+          "lead_exception_evaluation",
+          "lead_assignment",
+          "lead_meeting",
+          "lead_follow_up",
+          "outbox_event",
+          "idempotency_record"
         }) {
       jdbc.update("DELETE FROM lead_lms." + table);
     }

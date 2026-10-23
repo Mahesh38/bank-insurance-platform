@@ -31,14 +31,16 @@ class WorkingProposalTest {
   @Test
   void answersMergeAndOnlyDraftsAcceptThem() {
     WorkingProposal p = WorkingProposal.draft("P1", ProposalFixtures.newProposal(), NOW);
-    p.saveAnswers(Map.of("a", "1"), null, NOW);
-    p.saveAnswers(Map.of("b", "2"), ProposalFixtures.nominee(), NOW);
+    p.saveAnswers(ProposalFixtures.answers(Map.of("a", "1")), null, NOW);
+    p.saveAnswers(ProposalFixtures.answers(Map.of("b", "2")), ProposalFixtures.nominee(), NOW);
 
-    assertThat(p.envelope().formValues()).containsEntry("a", "1").containsEntry("b", "2");
+    assertThat(ProposalFixtures.values(p.envelope()))
+        .containsEntry("a", "1")
+        .containsEntry("b", "2");
     assertThat(p.envelope().nominee().name()).isEqualTo(ProposalFixtures.NOMINEE_NAME);
 
     p.submit(NOW);
-    assertThatThrownBy(() -> p.saveAnswers(Map.of(), null, NOW))
+    assertThatThrownBy(() -> p.saveAnswers(ProposalFixtures.answers(Map.of()), null, NOW))
         .satisfies(e -> assertThat(code(e)).isEqualTo(ErrorCodes.ILLEGAL_TRANSITION));
   }
 
@@ -108,5 +110,103 @@ class WorkingProposalTest {
     assertThat(p.isMaterialized()).isTrue();
     assertThatThrownBy(() -> p.paymentEnded(NOW))
         .satisfies(e -> assertThat(code(e)).isEqualTo(ErrorCodes.ILLEGAL_TRANSITION));
+  }
+
+  @Test
+  void e1PaymentOnlyAfterUnderwritingApproval() {
+    for (ProposalState uw :
+        List.of(
+            ProposalState.UNDER_WRITING,
+            ProposalState.REQUIREMENTS_PENDING,
+            ProposalState.UW_COUNTER_OFFER)) {
+      WorkingProposal p = WorkingProposal.draft("P1", ProposalFixtures.newProposal(), NOW);
+      p.submit(NOW);
+      p.acknowledge("APP-" + uw, NOW);
+      if (uw != ProposalState.UNDER_WRITING) {
+        p.recordUnderwriting(uw, uw.name(), null, null, NOW);
+      }
+      assertThatThrownBy(() -> p.awaitPayment(NOW))
+          .satisfies(e -> assertThat(code(e)).isEqualTo(ErrorCodes.ILLEGAL_TRANSITION));
+      assertThatThrownBy(() -> p.holdForPayment("PAY1", NOW))
+          .satisfies(e -> assertThat(code(e)).isEqualTo(ErrorCodes.PROPOSAL_NOT_PAYABLE));
+    }
+  }
+
+  @Test
+  void counterOfferIsKeptAndAcceptedIntoApproval() {
+    WorkingProposal p = WorkingProposal.draft("P1", ProposalFixtures.newProposal(), NOW);
+    p.saveAnswers(ProposalFixtures.answers(), ProposalFixtures.nominee(), NOW);
+    p.submit(NOW);
+    p.acknowledge("APP-CO", NOW);
+    CounterOffer offer =
+        new CounterOffer("CO1", new java.math.BigDecimal("15000.00"), null, "LOADING", null);
+    p.recordUnderwriting(ProposalState.UW_COUNTER_OFFER, "COUNTER_OFFER", null, null, offer, NOW);
+
+    p.decideCounterOffer(true, NOW);
+
+    assertThat(p.state()).isEqualTo(ProposalState.UW_APPROVED);
+    assertThat(p.envelope().counterOffer()).isEqualTo(offer);
+    assertThatThrownBy(() -> p.decideCounterOffer(false, NOW))
+        .satisfies(e -> assertThat(code(e)).isEqualTo(ErrorCodes.ILLEGAL_TRANSITION));
+  }
+
+  @Test
+  void holdAndReleaseArePerPayment() {
+    WorkingProposal p = approved();
+    p.awaitPayment(NOW);
+
+    assertThat(p.holdForPayment("PAY1", NOW)).isTrue();
+    assertThat(p.holdForPayment("PAY1", NOW)).isFalse();
+    assertThatThrownBy(() -> p.holdForPayment("PAY2", NOW))
+        .satisfies(e -> assertThat(code(e)).isEqualTo(ErrorCodes.PAYMENT_ALREADY_IN_PROGRESS));
+    assertThat(p.releasePaymentHold("PAY2", NOW)).isFalse();
+    assertThat(p.releasePaymentHold("PAY1", NOW)).isTrue();
+    assertThat(p.releasePaymentHold("PAY1", NOW)).isFalse();
+    assertThat(p.state()).isEqualTo(ProposalState.AWAITING_PAYMENT);
+  }
+
+  @Test
+  void answersNeedTheQuestionAsShownAndV1AnswersCannotMaterialise() {
+    WorkingProposal p = WorkingProposal.draft("P1", ProposalFixtures.newProposal(), NOW);
+    assertThatThrownBy(
+            () ->
+                p.saveAnswers(
+                    List.of(new ProposalAnswer("q1", null, null, "3", "v", null, null)), null, NOW))
+        .satisfies(e -> assertThat(code(e)).isEqualTo(ErrorCodes.VALIDATION_ERROR));
+
+    WorkingProposal.Snapshot s = approved().snapshot();
+    WorkingProposal legacy =
+        WorkingProposal.restore(
+            new WorkingProposal.Snapshot(
+                s.proposalId(),
+                s.leadId(),
+                s.journeyId(),
+                s.customerId(),
+                s.quoteId(),
+                s.offerId(),
+                s.consentId(),
+                s.lob(),
+                s.applicationNumber(),
+                s.schemaId(),
+                s.schemaVersion(),
+                ProposalState.AWAITING_PAYMENT,
+                s.underwritingState(),
+                s.issuanceMode(),
+                s.configVersionRef(),
+                false,
+                null,
+                null,
+                1,
+                s.createdAt(),
+                s.updatedAt(),
+                new ProposalEnvelope(
+                    List.of(new ProposalAnswer("q1", null, null, "3", "v", null, null)),
+                    null,
+                    List.of(),
+                    List.of(),
+                    null),
+                "k"));
+    assertThatThrownBy(() -> legacy.materialize(NOW))
+        .satisfies(e -> assertThat(code(e)).isEqualTo(ErrorCodes.INVALID_STATE));
   }
 }

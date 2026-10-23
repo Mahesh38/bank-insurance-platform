@@ -48,10 +48,27 @@ lead:
     # Development-only default: 32 zero bytes. Shared environments inject a KMS-managed key.
     field-key: ${LEAD_FIELD_KEY:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=}
     key-id: ${LEAD_FIELD_KEY_ID:local-dev}
-  # Ageing horizon for expires_at, in days. Unset: no source states the value (OPEN-D4).
-  expiry-days: ${LEAD_EXPIRY_DAYS:}
-  # LEAD.EXCEPTION evaluator (D2). "stub" is temporary and refused under prod / uat.
-  exception-rules: ${LEAD_EXCEPTION_RULES:stub}
+  # LEAD.EXCEPTION evaluator (D2): the rule engine. Tests may select "stub" (test sources only);
+  # ProductionSafetyGuard refuses anything but "engine" under prod / uat.
+  exception-rules: ${LEAD_EXCEPTION_RULES:engine}
+  # Facts behind LEAD.EXCEPTION (EH-INT-001..005). "unknown" reports every fact unknown, so every
+  # lead blocks (BRD 24.3 column I) until the real source adapters exist.
+  exception-facts: ${LEAD_EXCEPTION_FACTS:unknown}
+  rule-sets:
+    # ADR-024: "http" = published versions from administration-config-service (required under
+    # prod / uat); "classpath" = the unapproved seeds in libs/bank-rule-engine, local and test only.
+    source: ${LEAD_RULE_SETS_SOURCE:classpath}
+    base-url: ${ADMINISTRATION_CONFIG_BASE_URL:http://localhost:8104}
+    timeout: 300ms
+    cache-ttl: 60s
+  # Ageing sweep (E7). The horizon itself is rule set LEAD.POLICY (expiryDays per lob); only the
+  # schedule is a property.
+  expiry:
+    enabled: ${LEAD_EXPIRY_ENABLED:true}
+    initial-delay: PT1M
+    interval: ${LEAD_EXPIRY_INTERVAL:PT15M}
+    batch-size: 200
+    max-batches-per-run: 50
 
 bank:
   error:

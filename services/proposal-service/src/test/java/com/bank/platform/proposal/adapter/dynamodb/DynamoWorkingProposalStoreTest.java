@@ -36,18 +36,24 @@ class DynamoWorkingProposalStoreTest {
   private static final Duration WORKING = Duration.ofDays(90);
 
   private final DynamoDbClient dynamo = LocalDynamoDb.client();
+  private final ProposalTableSettings settings =
+      new ProposalTableSettings(
+          LocalDynamoDb.TABLE,
+          new WorkingRetention(WORKING, Duration.ofDays(30)),
+          Duration.ofHours(24),
+          Duration.ofDays(7),
+          4);
+  private final AesGcmEnvelopeCipher cipher =
+      new AesGcmEnvelopeCipher(
+          new LocalDataKeyProvider("p7MSmdyOLeyBue5/ZJpPP3TE/ZQrLr4WSPjrhS0d0F8=", "test"));
   private final DynamoWorkingProposalStore store =
       new DynamoWorkingProposalStore(
           dynamo,
-          new ProposalTableSettings(
-              LocalDynamoDb.TABLE,
-              new WorkingRetention(WORKING, Duration.ofDays(30)),
-              Duration.ofHours(24),
-              Duration.ofDays(7)),
-          new AesGcmEnvelopeCipher(
-              new LocalDataKeyProvider("p7MSmdyOLeyBue5/ZJpPP3TE/ZQrLr4WSPjrhS0d0F8=", "test")),
+          settings,
+          cipher,
           new ProposalEnvelopeCodec(),
-          ServiceErrors.of("proposal", PlatformLayer.L5));
+          ServiceErrors.of("proposal", PlatformLayer.L5),
+          new DynamoOutbox(dynamo, settings));
 
   private WorkingProposal created(NewProposal request) {
     WorkingProposal p = WorkingProposal.draft(Ulid.mint(), request, NOW);
@@ -56,7 +62,16 @@ class DynamoWorkingProposalStoreTest {
   }
 
   private static OutboxEvent event(WorkingProposal p) {
-    return new OutboxEvent(Ulid.mint(), "ProposalCreated", p.proposalId(), NOW, Map.of());
+    return new OutboxEvent(
+        Ulid.mint(),
+        "ProposalCreated",
+        p.proposalId(),
+        NOW,
+        p.journeyId(),
+        p.leadId(),
+        p.configVersionRef(),
+        null,
+        Map.of("proposalId", p.proposalId(), "state", "DRAFT", "journeyId", p.journeyId()));
   }
 
   private Map<String, AttributeValue> item(String pk, String sk) {
@@ -142,14 +157,14 @@ class DynamoWorkingProposalStoreTest {
   void staleVersionIsConflict() {
     WorkingProposal p = created(ProposalFixtures.newProposal());
     WorkingProposal stale = store.find(p.proposalId()).orElseThrow();
-    p.saveAnswers(Map.of("a", "1"), null, NOW);
+    p.saveAnswers(ProposalFixtures.answers(Map.of("a", "1")), null, NOW);
     store.update(p, StoreGuard.NONE, null);
 
-    stale.saveAnswers(Map.of("a", "2"), null, NOW);
+    stale.saveAnswers(ProposalFixtures.answers(Map.of("a", "2")), null, NOW);
 
     assertThatThrownBy(() -> store.update(stale, StoreGuard.NONE, null))
         .satisfies(e -> assertThat(code(e)).isEqualTo(ErrorCodes.CONFLICT));
-    assertThat(store.find(p.proposalId()).orElseThrow().envelope().formValues())
+    assertThat(ProposalFixtures.values(store.find(p.proposalId()).orElseThrow().envelope()))
         .containsEntry("a", "1");
   }
 
@@ -169,7 +184,7 @@ class DynamoWorkingProposalStoreTest {
         .doesNotContain(ProposalFixtures.PAN);
     WorkingProposal read = store.find(p.proposalId()).orElseThrow();
     assertThat(read.envelope().nominee().name()).isEqualTo(ProposalFixtures.NOMINEE_NAME);
-    assertThat(read.envelope().formValues())
+    assertThat(ProposalFixtures.values(read.envelope()))
         .containsEntry("proposer.panNumber", ProposalFixtures.PAN);
   }
 
@@ -209,7 +224,7 @@ class DynamoWorkingProposalStoreTest {
   void guardFailureIsIllegalTransition() {
     WorkingProposal p = answered();
     // in memory the state is DRAFT, so the AWAITING_PAYMENT guard cannot hold in the table
-    p.saveAnswers(Map.of("x", "y"), null, NOW);
+    p.saveAnswers(ProposalFixtures.answers(Map.of("x", "y")), null, NOW);
 
     assertThatThrownBy(() -> store.update(p, StoreGuard.AWAITING_PAYMENT, null))
         .satisfies(e -> assertThat(code(e)).isEqualTo(ErrorCodes.ILLEGAL_TRANSITION));
@@ -221,8 +236,8 @@ class DynamoWorkingProposalStoreTest {
     WorkingProposal stale = store.find(p.proposalId()).orElseThrow();
     p.materialize(NOW);
 
-    assertThat(store.markMaterialized(p)).isTrue();
-    assertThat(store.markMaterialized(p)).isFalse();
+    assertThat(store.markMaterialized(p, event(p))).isTrue();
+    assertThat(store.markMaterialized(p, null)).isFalse();
     assertThat(item("PROPOSAL#" + p.proposalId(), "META").get("state").s()).isEqualTo("PAID");
     stale.paymentEnded(NOW);
     assertThatThrownBy(() -> store.update(stale, StoreGuard.NONE, null))
@@ -234,6 +249,67 @@ class DynamoWorkingProposalStoreTest {
     store.update(withdrawn, StoreGuard.NONE, null);
     assertThat(item("JOURNEY#" + journeyId, "OPEN_PROPOSAL")).isNullOrEmpty();
     store.releaseOpenMarker(journeyId, withdrawn.proposalId());
+  }
+
+  @Test
+  void holdRecordsThePaymentAndOnlyThatPaymentReleases() {
+    WorkingProposal p = awaitingPayment("APP-" + Ulid.mint());
+    String pk = "PROPOSAL#" + p.proposalId();
+
+    assertThat(p.holdForPayment("P1", NOW)).isTrue();
+    store.update(p, StoreGuard.AWAITING_PAYMENT, null);
+    assertThat(item(pk, "META").get("heldByPaymentId").s()).isEqualTo("P1");
+    assertThat(item(pk, "META")).doesNotContainKey("ttl");
+    WorkingProposal read = store.find(p.proposalId()).orElseThrow();
+    assertThat(read.heldByPaymentId()).isEqualTo("P1");
+    assertThat(read.holdForPayment("P1", NOW)).isFalse();
+
+    assertThat(read.releasePaymentHold("P2", NOW)).isFalse();
+    assertThat(read.releasePaymentHold("P1", NOW)).isTrue();
+    store.update(read, StoreGuard.AWAITING_PAYMENT, null);
+    assertThat(item(pk, "META")).doesNotContainKey("heldByPaymentId").containsKey("ttl");
+  }
+
+  @Test
+  void envelopeV1ItemsAreStillReadable() {
+    WorkingProposal p = answered();
+    String pk = "PROPOSAL#" + p.proposalId();
+    // Rewrite the item as a pre-D8 writer did: v1 envelope, payloadSchemaVersion 1.
+    byte[] v1 =
+        ("{\"formValues\":{\"q1\":\"yes\"},\"nominee\":null,\"requirements\":[],"
+                + "\"documents\":[]}")
+            .getBytes(StandardCharsets.UTF_8);
+    var sealed = cipher.seal(v1, DynamoWorkingProposalStore.envelopeContext(p.proposalId()));
+    dynamo.updateItem(
+        r ->
+            r.tableName(LocalDynamoDb.TABLE)
+                .key(DynamoWorkingProposalStore.key(pk, "META"))
+                .updateExpression("SET payloadEnc = :p, payloadSchemaVersion = :v")
+                .expressionAttributeValues(
+                    Map.of(
+                        ":p",
+                        AttributeValue.fromB(
+                            software.amazon.awssdk.core.SdkBytes.fromByteArray(
+                                sealed.ciphertext())),
+                        ":v",
+                        AttributeValue.fromN("1"))));
+
+    WorkingProposal read = store.find(p.proposalId()).orElseThrow();
+
+    assertThat(read.envelope().answers())
+        .singleElement()
+        .satisfies(
+            a -> {
+              assertThat(a.questionId()).isEqualTo("q1");
+              assertThat(a.value()).isEqualTo("yes");
+              assertThat(a.questionText()).isNull();
+              assertThat(a.schemaVersion()).isEqualTo(ProposalFixtures.SCHEMA_VERSION);
+              assertThat(a.isEvidenceComplete()).isFalse();
+            });
+    // the next write upgrades the item to envelope v2
+    read.saveAnswers(ProposalFixtures.answers(Map.of("q1", "no")), null, NOW);
+    store.update(read, StoreGuard.NONE, null);
+    assertThat(item(pk, "META").get("payloadSchemaVersion").n()).isEqualTo("2");
   }
 
   @Test

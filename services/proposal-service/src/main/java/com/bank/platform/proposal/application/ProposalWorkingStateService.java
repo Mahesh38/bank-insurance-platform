@@ -3,12 +3,14 @@ package com.bank.platform.proposal.application;
 import com.bank.common.error.ErrorCodes;
 import com.bank.common.error.ServiceErrors;
 import com.bank.common.error.ServiceException;
+import com.bank.platform.proposal.domain.CounterOffer;
 import com.bank.platform.proposal.domain.CreateOutcome;
 import com.bank.platform.proposal.domain.DocumentRef;
 import com.bank.platform.proposal.domain.IdempotencyClaim;
 import com.bank.platform.proposal.domain.NewProposal;
 import com.bank.platform.proposal.domain.Nominee;
 import com.bank.platform.proposal.domain.OutboxEvent;
+import com.bank.platform.proposal.domain.ProposalAnswer;
 import com.bank.platform.proposal.domain.ProposalRuleException;
 import com.bank.platform.proposal.domain.ProposalState;
 import com.bank.platform.proposal.domain.StoreGuard;
@@ -18,9 +20,11 @@ import com.bank.platform.proposal.domain.WorkingProposal;
 import com.bank.platform.proposal.domain.WorkingProposalStore;
 import java.time.Clock;
 import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.regex.Pattern;
 import org.springframework.stereotype.Service;
 
 /**
@@ -31,6 +35,7 @@ import org.springframework.stereotype.Service;
 public class ProposalWorkingStateService {
 
   private static final String COMPONENT = "ProposalWorkingStateService";
+  private static final Pattern UPPER_SNAKE = Pattern.compile("^[A-Z][A-Z_]*$");
 
   private final WorkingProposalStore store;
   private final ServiceErrors errors;
@@ -64,14 +69,15 @@ public class ProposalWorkingStateService {
     return load(proposalId, "get");
   }
 
+  /** Answers with the question text and schema version shown (D8, envelope v2). */
   public WorkingProposal saveAnswers(
-      String proposalId, Map<String, String> values, Nominee nominee) {
+      String proposalId, List<ProposalAnswer> answers, Nominee nominee) {
     return change(
         proposalId,
         "saveAnswers",
         StoreGuard.NONE,
         null,
-        p -> p.saveAnswers(values, nominee, clock.instant()));
+        p -> p.saveAnswers(answers, nominee, clock.instant()));
   }
 
   public WorkingProposal submit(String proposalId) {
@@ -95,6 +101,17 @@ public class ProposalWorkingStateService {
       String underwritingState,
       List<UwRequirement> requirements,
       List<DocumentRef> documents) {
+    return recordUnderwriting(proposalId, next, underwritingState, requirements, documents, null);
+  }
+
+  /** As above; {@code counterOffer} is kept for {@code UW_COUNTER_OFFER} (LLD §4.4). */
+  public WorkingProposal recordUnderwriting(
+      String proposalId,
+      ProposalState next,
+      String underwritingState,
+      List<UwRequirement> requirements,
+      List<DocumentRef> documents,
+      CounterOffer counterOffer) {
     return change(
         proposalId,
         "recordUnderwriting",
@@ -102,12 +119,70 @@ public class ProposalWorkingStateService {
         "UnderwritingDecision",
         p ->
             p.recordUnderwriting(
-                next, underwritingState, requirements, documents, clock.instant()));
+                next, underwritingState, requirements, documents, counterOffer, clock.instant()));
+  }
+
+  /**
+   * {@code decideCounterOffer}: accept → {@code UW_APPROVED}, decline → {@code CUSTOMER_DECLINED}.
+   */
+  public WorkingProposal decideCounterOffer(String proposalId, boolean accept) {
+    return change(
+        proposalId,
+        "decideCounterOffer",
+        StoreGuard.NONE,
+        "UnderwritingDecision",
+        p -> p.decideCounterOffer(accept, clock.instant()));
   }
 
   public WorkingProposal awaitPayment(String proposalId) {
     return change(
         proposalId, "awaitPayment", StoreGuard.NONE, null, p -> p.awaitPayment(clock.instant()));
+  }
+
+  /**
+   * {@code POST …/payment-hold} (LLD §4.5): {@code SET paymentInFlight, heldByPaymentId REMOVE
+   * ttl}, only in {@code AWAITING_PAYMENT} (E1: reachable only from {@code UW_APPROVED}). The same
+   * payment again returns the same proposal without a write.
+   */
+  public WorkingProposal holdForPayment(String proposalId, String paymentId) {
+    WorkingProposal proposal = load(proposalId, "holdForPayment");
+    boolean[] changed = new boolean[1];
+    rule("holdForPayment", () -> changed[0] = proposal.holdForPayment(paymentId, clock.instant()));
+    if (changed[0]) {
+      try {
+        store.update(proposal, StoreGuard.AWAITING_PAYMENT, null);
+      } catch (ServiceException e) {
+        // A concurrent hold won the optimistic lock: answer as if it had been read first.
+        if (!ErrorCodes.CONFLICT.equals(e.getErrorResponse().getCode())) {
+          throw e;
+        }
+        WorkingProposal current = load(proposalId, "holdForPayment");
+        rule(
+            "holdForPayment",
+            () -> changed[0] = current.holdForPayment(paymentId, clock.instant()));
+        if (changed[0]) {
+          throw e;
+        }
+        return current;
+      }
+    }
+    return proposal;
+  }
+
+  /** Result of {@code payment-release}. */
+  public record ReleaseResult(WorkingProposal proposal, boolean released) {}
+
+  /** {@code POST …/payment-release}: only the holding payment releases; otherwise a no-op. */
+  public ReleaseResult releasePaymentHold(String proposalId, String paymentId) {
+    WorkingProposal proposal = load(proposalId, "releasePaymentHold");
+    boolean[] released = new boolean[1];
+    rule(
+        "releasePaymentHold",
+        () -> released[0] = proposal.releasePaymentHold(paymentId, clock.instant()));
+    if (released[0]) {
+      store.update(proposal, StoreGuard.AWAITING_PAYMENT, null);
+    }
+    return new ReleaseResult(proposal, released[0]);
   }
 
   /** Payment started: {@code paymentInFlight = true}, {@code ttl} removed (schemas/20 §3.3). */
@@ -184,11 +259,40 @@ public class ProposalWorkingStateService {
   }
 
   private OutboxEvent event(WorkingProposal proposal, String type) {
+    // Monotonic ULID keeps two events of one proposal in write order (ADR-025 §6).
     return new OutboxEvent(
-        Ulid.mint(clock),
+        com.bank.common.events.Ulid.mint(clock),
         type,
         proposal.proposalId(),
         proposal.updatedAt(),
-        Map.of("state", proposal.state().name(), "journeyId", proposal.journeyId()));
+        proposal.journeyId(),
+        proposal.leadId(),
+        proposal.configVersionRef(),
+        null,
+        data(proposal, type));
+  }
+
+  /** {@code data} per contracts/events/schemas (closed schemas: only declared fields). */
+  static Map<String, Object> data(WorkingProposal proposal, String type) {
+    Map<String, Object> data = new LinkedHashMap<>();
+    data.put("proposalId", proposal.proposalId());
+    data.put("state", proposal.state().name());
+    data.put("journeyId", proposal.journeyId());
+    switch (type) {
+      case "ProposalCreated", "ProposalSubmitted" -> data.put("quoteId", proposal.quoteId());
+      case "ProposalAcknowledged" -> data.put("applicationNumber", proposal.applicationNumber());
+      case "UnderwritingDecision" -> {
+        String uw = proposal.underwritingState();
+        // The schema takes a normalised UPPER_SNAKE status only; a raw insurer text stays out.
+        if (uw != null && UPPER_SNAKE.matcher(uw).matches()) {
+          data.put("underwritingState", uw);
+        }
+        data.put("requirementCount", proposal.envelope().requirements().size());
+      }
+      default -> {
+        // ids and state only
+      }
+    }
+    return data;
   }
 }

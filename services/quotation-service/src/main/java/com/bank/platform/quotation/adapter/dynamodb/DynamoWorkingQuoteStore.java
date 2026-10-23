@@ -20,7 +20,6 @@ import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -66,6 +65,7 @@ public class DynamoWorkingQuoteStore implements WorkingQuoteStore {
           "selectedSumAssured",
           "selectedInsurerCode",
           "selectedProductCode",
+          "heldByPaymentId",
           "ttl");
 
   private final DynamoDbClient dynamo;
@@ -74,6 +74,7 @@ public class DynamoWorkingQuoteStore implements WorkingQuoteStore {
   private final QuoteEnvelopeCodec codec;
   private final ServiceErrors errors;
   private final Clock clock;
+  private final DynamoOutbox outbox;
 
   public DynamoWorkingQuoteStore(
       DynamoDbClient dynamo,
@@ -81,7 +82,9 @@ public class DynamoWorkingQuoteStore implements WorkingQuoteStore {
       EnvelopeCipher cipher,
       QuoteEnvelopeCodec codec,
       ServiceErrors errors,
-      Clock clock) {
+      Clock clock,
+      DynamoOutbox outbox) {
+    this.outbox = outbox;
     this.dynamo = dynamo;
     this.settings = settings;
     this.cipher = cipher;
@@ -112,7 +115,7 @@ public class DynamoWorkingQuoteStore implements WorkingQuoteStore {
             putIfAbsent(idem),
             putIfAbsent(marker),
             putIfAbsent(meta),
-            outboxPut(s.quoteId(), event));
+            outbox.put("QUOTE#" + s.quoteId(), event));
     try {
       dynamo.transactWriteItems(r -> r.transactItems(items));
     } catch (TransactionCanceledException e) {
@@ -186,6 +189,13 @@ public class DynamoWorkingQuoteStore implements WorkingQuoteStore {
         values.put(":selected", str(QuoteState.SELECTED.name()));
         condition.append(" AND #state = :selected");
       }
+      case HOLDABLE -> {
+        names.put("#state", "state");
+        names.put("#validUntil", "validUntil");
+        values.put(":selected", str(QuoteState.SELECTED.name()));
+        values.put(":now", str(DynamoTimes.format(clock.instant())));
+        condition.append(" AND #state = :selected AND #validUntil > :now");
+      }
       default -> {
         // optimistic lock and freeze only
       }
@@ -209,7 +219,7 @@ public class DynamoWorkingQuoteStore implements WorkingQuoteStore {
                     .build())
             .build());
     if (event != null) {
-      items.add(outboxPut(s.quoteId(), event));
+      items.add(outbox.put("QUOTE#" + s.quoteId(), event));
     }
     if (s.state().endsWithoutSale()) {
       items.add(markerDelete(s.journeyId(), s.quoteId()));
@@ -222,40 +232,69 @@ public class DynamoWorkingQuoteStore implements WorkingQuoteStore {
     quote.markPersisted(expected + 1, sealed.encryptionKeyId());
   }
 
-  /** schemas/20 §3.4 step 5. */
+  /** schemas/20 §3.4 step 5, plus OUTBOX {@code QuoteConverted} in the same transaction (D8). */
   @Override
-  public boolean markMaterialized(WorkingQuote quote) {
+  public boolean markMaterialized(WorkingQuote quote, OutboxEvent event) {
     WorkingQuote.Snapshot s = quote.snapshot();
     Instant expiry =
         settings.retention().expiryOf(false, s.materializedAt(), s.updatedAt()).orElseThrow();
-    try {
-      dynamo.updateItem(
-          r ->
-              r.tableName(settings.tableName())
-                  .key(key("QUOTE#" + s.quoteId(), META))
-                  .updateExpression(
-                      "SET #materializedAt = :at, #state = :state, #paymentInFlight = :false,"
-                          + " #updatedAt = :at, #ttl = :ttl, #version = #version + :one")
-                  .conditionExpression("attribute_not_exists(#materializedAt)")
-                  .expressionAttributeNames(
-                      Map.of(
-                          "#materializedAt", "materializedAt",
-                          "#state", "state",
-                          "#paymentInFlight", "paymentInFlight",
-                          "#updatedAt", "updatedAt",
-                          "#ttl", "ttl",
-                          "#version", "version"))
-                  .expressionAttributeValues(
-                      Map.of(
-                          ":at", str(DynamoTimes.format(s.materializedAt())),
-                          ":state", str(s.state().name()),
-                          ":false", AttributeValue.fromBool(false),
-                          ":ttl", epoch(expiry),
-                          ":one", num(1))));
-      return true;
-    } catch (ConditionalCheckFailedException e) {
-      return false;
+    Map<String, String> names = new HashMap<>();
+    names.put("#materializedAt", "materializedAt");
+    names.put("#state", "state");
+    names.put("#paymentInFlight", "paymentInFlight");
+    names.put("#heldByPaymentId", "heldByPaymentId");
+    names.put("#updatedAt", "updatedAt");
+    names.put("#ttl", "ttl");
+    names.put("#version", "version");
+    List<TransactWriteItem> items = new ArrayList<>();
+    items.add(
+        TransactWriteItem.builder()
+            .update(
+                Update.builder()
+                    .tableName(settings.tableName())
+                    .key(key("QUOTE#" + s.quoteId(), META))
+                    .updateExpression(
+                        "SET #materializedAt = :at, #state = :state, #paymentInFlight = :false,"
+                            + " #updatedAt = :at, #ttl = :ttl, #version = #version + :one"
+                            + " REMOVE #heldByPaymentId")
+                    .conditionExpression("attribute_not_exists(#materializedAt)")
+                    .expressionAttributeNames(names)
+                    .expressionAttributeValues(
+                        Map.of(
+                            ":at", str(DynamoTimes.format(s.materializedAt())),
+                            ":state", str(s.state().name()),
+                            ":false", AttributeValue.fromBool(false),
+                            ":ttl", epoch(expiry),
+                            ":one", num(1)))
+                    .build())
+            .build());
+    if (event != null) {
+      items.add(outbox.put("QUOTE#" + s.quoteId(), event));
     }
+    try {
+      dynamo.transactWriteItems(r -> r.transactItems(items));
+      return true;
+    } catch (TransactionCanceledException e) {
+      if (failed(e.hasCancellationReasons() ? e.cancellationReasons() : null, 0)) {
+        return false;
+      }
+      throw conflict(ErrorCodes.CONFLICT, "markMaterialized", "transaction cancelled", e);
+    }
+  }
+
+  @Override
+  public Optional<String> openQuoteId(String journeyId) {
+    Map<String, AttributeValue> marker =
+        dynamo
+            .getItem(
+                r ->
+                    r.tableName(settings.tableName())
+                        .key(key("JOURNEY#" + journeyId, OPEN_QUOTE))
+                        .consistentRead(true))
+            .item();
+    return marker == null || marker.isEmpty()
+        ? Optional.empty()
+        : Optional.of(marker.get("quoteId").s());
   }
 
   /** schemas/20 §3.4 step 6; a marker already gone or naming a newer quote is left alone. */
@@ -323,9 +362,10 @@ public class DynamoWorkingQuoteStore implements WorkingQuoteStore {
           e);
     }
     String state = current.get("state").s();
-    if (guard == StoreGuard.SELECTABLE
-        && (QuoteState.QUOTED.name().equals(state)
-            || QuoteState.PARTIALLY_QUOTED.name().equals(state))) {
+    if ((guard == StoreGuard.SELECTABLE
+            && (QuoteState.QUOTED.name().equals(state)
+                || QuoteState.PARTIALLY_QUOTED.name().equals(state)))
+        || (guard == StoreGuard.HOLDABLE && QuoteState.SELECTED.name().equals(state))) {
       return conflict(
           ErrorCodes.QUOTE_EXPIRED, "update", "quote " + s.quoteId() + " validity has passed", e);
     }
@@ -390,6 +430,7 @@ public class DynamoWorkingQuoteStore implements WorkingQuoteStore {
               item.put("selectedProductCode", str(o.productCode()));
             });
     item.put("paymentInFlight", AttributeValue.fromBool(s.paymentInFlight()));
+    putIfPresent(item, "heldByPaymentId", s.heldByPaymentId());
     item.put("payloadEnc", AttributeValue.fromB(SdkBytes.fromByteArray(sealed.ciphertext())));
     item.put("encryptionKeyId", str(sealed.encryptionKeyId()));
     item.put("payloadSchemaVersion", num(QuoteEnvelope.SCHEMA_VERSION));
@@ -429,28 +470,13 @@ public class DynamoWorkingQuoteStore implements WorkingQuoteStore {
             text(item, "providerJobId"),
             text(item, "configVersionRef"),
             item.containsKey("paymentInFlight") && item.get("paymentInFlight").bool(),
+            text(item, "heldByPaymentId"),
             DynamoTimes.parse(text(item, "materializedAt")),
             Long.parseLong(item.get("version").n()),
             DynamoTimes.parse(text(item, "createdAt")),
             DynamoTimes.parse(text(item, "updatedAt")),
             codec.decode(plaintext),
             keyId));
-  }
-
-  private TransactWriteItem outboxPut(String quoteId, OutboxEvent event) {
-    Map<String, AttributeValue> item = key("QUOTE#" + quoteId, "OUTBOX#" + event.eventId());
-    item.put("eventId", str(event.eventId()));
-    item.put("eventType", str(event.eventType()));
-    item.put("aggregateId", str(event.aggregateId()));
-    item.put("occurredAt", str(DynamoTimes.format(event.occurredAt())));
-    Map<String, AttributeValue> attributes = new LinkedHashMap<>();
-    event.attributes().forEach((k, v) -> attributes.put(k, str(v)));
-    item.put("attributes", AttributeValue.fromM(attributes));
-    // The stream publishes on write, so write time + 7 days is publish + 7 days (schemas/20 §1.1).
-    item.put("ttl", epoch(event.occurredAt().plus(settings.outboxTtl())));
-    return TransactWriteItem.builder()
-        .put(Put.builder().tableName(settings.tableName()).item(item).build())
-        .build();
   }
 
   private TransactWriteItem markerDelete(String journeyId, String quoteId) {

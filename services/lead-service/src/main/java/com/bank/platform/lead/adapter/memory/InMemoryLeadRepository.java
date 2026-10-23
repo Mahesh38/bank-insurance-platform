@@ -3,6 +3,7 @@ package com.bank.platform.lead.adapter.memory;
 import com.bank.platform.lead.domain.Lead;
 import com.bank.platform.lead.domain.LeadRepository;
 import com.bank.platform.lead.domain.ProductClass;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -49,5 +50,14 @@ public class InMemoryLeadRepository implements LeadRepository {
         .filter(lead -> productClass == lead.productClass())
         .filter(Lead::unfinished)
         .findFirst();
+  }
+
+  @Override
+  public List<Lead> lockOverdue(Instant now, int limit) {
+    return byId.values().stream()
+        .filter(lead -> lead.overdue(now))
+        .sorted((a, b) -> a.expiresAt().compareTo(b.expiresAt()))
+        .limit(limit)
+        .toList();
   }
 }

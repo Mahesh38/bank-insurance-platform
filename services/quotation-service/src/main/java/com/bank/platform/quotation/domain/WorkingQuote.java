@@ -32,6 +32,7 @@ public final class WorkingQuote {
       String providerJobId,
       String configVersionRef,
       boolean paymentInFlight,
+      String heldByPaymentId,
       Instant materializedAt,
       long version,
       Instant createdAt,
@@ -56,6 +57,7 @@ public final class WorkingQuote {
   private String provider;
   private String providerJobId;
   private boolean paymentInFlight;
+  private String heldByPaymentId;
   private Instant materializedAt;
   private long version;
   private Instant updatedAt;
@@ -80,6 +82,7 @@ public final class WorkingQuote {
     this.provider = s.provider();
     this.providerJobId = s.providerJobId();
     this.paymentInFlight = s.paymentInFlight();
+    this.heldByPaymentId = s.heldByPaymentId();
     this.materializedAt = s.materializedAt();
     this.version = s.version();
     this.updatedAt = s.updatedAt();
@@ -117,6 +120,7 @@ public final class WorkingQuote {
             null,
             request.configVersionRef(),
             false,
+            null,
             null,
             0,
             at,
@@ -231,7 +235,80 @@ public final class WorkingQuote {
     touch(now);
   }
 
-  /** Payment fetched the selected premium: the item must not expire while money moves (§3.3). */
+  /**
+   * Lazy expiry (quotation LLD §4.5): a quote in {@code QUOTED|PARTIALLY_QUOTED|SELECTED} whose
+   * {@code validUntil} has passed, not held by a payment and not materialised, becomes {@code
+   * EXPIRED}. No {@code Scan} exists to find it, so every touch point calls this first. Returns
+   * true when the state changed and must be written.
+   */
+  public boolean expireIfDue(Instant now) {
+    if (materializedAt != null || paymentInFlight || validUntil == null) {
+      return false;
+    }
+    if (!state.isExpirable() || now.isBefore(validUntil)) {
+      return false;
+    }
+    this.state = QuoteState.EXPIRED;
+    touch(now);
+    return true;
+  }
+
+  /**
+   * {@code POST …/payment-hold} (quotation LLD §4.4): the payment {@code paymentId} holds the
+   * selected offer. While held the quote cannot expire and has no {@code ttl}. A repeat by the same
+   * payment changes nothing; a hold by any other payment is refused.
+   *
+   * @return true when the hold is new and must be written
+   */
+  public boolean holdForPayment(String paymentId, String offerId, Instant now) {
+    requireOpen();
+    requireState(QuoteState.SELECTED);
+    if (offerId == null || !offerId.equals(envelope.selectedOfferId())) {
+      throw new QuoteRuleException(
+          ErrorCodes.INVALID_OFFER_REFERENCE,
+          "offer " + offerId + " is not the selected offer of quote " + quoteId);
+    }
+    if (paymentId.equals(heldByPaymentId)) {
+      return false;
+    }
+    if (paymentInFlight) {
+      throw new QuoteRuleException(
+          ErrorCodes.PAYMENT_ALREADY_IN_PROGRESS,
+          "quote " + quoteId + " is held by another payment");
+    }
+    if (validUntil == null || !now.isBefore(validUntil)) {
+      throw new QuoteRuleException(
+          ErrorCodes.QUOTE_EXPIRED, "quote " + quoteId + " was valid until " + validUntil);
+    }
+    this.paymentInFlight = true;
+    this.heldByPaymentId = paymentId;
+    touch(now);
+    return true;
+  }
+
+  /**
+   * {@code POST …/payment-release}: the payment ended without {@code RECONCILED}. Only the payment
+   * that holds the quote can release it; anything else (stale release, already released,
+   * materialised) is a no-op, so the call and the event consumer can both repeat it.
+   *
+   * @return true when the hold was released and must be written
+   */
+  public boolean releasePaymentHold(String paymentId, Instant now) {
+    if (materializedAt != null || paymentId == null || !paymentId.equals(heldByPaymentId)) {
+      return false;
+    }
+    requireState(QuoteState.SELECTED);
+    this.paymentInFlight = false;
+    this.heldByPaymentId = null;
+    touch(now);
+    return true;
+  }
+
+  /**
+   * Deprecated {@code GET …/selected}: sets {@code paymentInFlight} without a payment id
+   * (schemas/20 §3.3 as first built). Kept until payment-service calls {@code payment-hold}
+   * (ADR-027 §4).
+   */
   public SelectedPremium markPaymentInFlight(Instant now) {
     requireOpen();
     requireState(QuoteState.SELECTED);
@@ -242,21 +319,23 @@ public final class WorkingQuote {
     return selectedPremium().orElseThrow();
   }
 
-  /** A payment ended without {@code RECONCILED} (declined / expired): expiry applies again. */
+  /** Clears any hold, including a legacy one without a payment id: expiry applies again. */
   public void paymentEnded(Instant now) {
     requireOpen();
     requireState(QuoteState.SELECTED);
     this.paymentInFlight = false;
+    this.heldByPaymentId = null;
     touch(now);
   }
 
-  /** {@code SELECTED → CONVERTED} once the payment is reconciled; frozen from here on. */
+  /** {@code SELECTED → CONVERTED} once the payment is reconciled; frozen from here on (D8). */
   public void materialize(Instant now) {
     requireOpen();
     requireState(QuoteState.SELECTED);
     Instant at = truncate(now);
     this.state = QuoteState.CONVERTED;
     this.paymentInFlight = false;
+    this.heldByPaymentId = null;
     this.materializedAt = at;
     this.updatedAt = at;
   }
@@ -280,7 +359,9 @@ public final class WorkingQuote {
                     o.taxAmount(),
                     o.sumAssured(),
                     o.insurerCode(),
-                    o.productCode()));
+                    o.productCode(),
+                    o.frequency(),
+                    validUntil));
   }
 
   /** Called by the store after a successful write. */
@@ -311,6 +392,7 @@ public final class WorkingQuote {
         providerJobId,
         configVersionRef,
         paymentInFlight,
+        heldByPaymentId,
         materializedAt,
         version,
         createdAt,
@@ -337,6 +419,30 @@ public final class WorkingQuote {
 
   public boolean paymentInFlight() {
     return paymentInFlight;
+  }
+
+  public String heldByPaymentId() {
+    return heldByPaymentId;
+  }
+
+  public String leadId() {
+    return leadId;
+  }
+
+  public String customerId() {
+    return customerId;
+  }
+
+  public String productClass() {
+    return productClass;
+  }
+
+  public String configVersionRef() {
+    return configVersionRef;
+  }
+
+  public Instant validUntil() {
+    return validUntil;
   }
 
   public Instant materializedAt() {

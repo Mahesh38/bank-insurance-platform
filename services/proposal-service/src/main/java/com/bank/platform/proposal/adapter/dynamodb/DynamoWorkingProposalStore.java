@@ -17,7 +17,6 @@ import com.bank.platform.proposal.domain.WorkingProposalStore;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -53,20 +52,23 @@ public class DynamoWorkingProposalStore implements WorkingProposalStore {
   private static final String COMPONENT = "DynamoWorkingProposalStore";
 
   private static final List<String> REMOVABLE =
-      List.of("applicationNumber", "underwritingState", "issuanceMode", "ttl");
+      List.of("applicationNumber", "underwritingState", "issuanceMode", "heldByPaymentId", "ttl");
 
   private final DynamoDbClient dynamo;
   private final ProposalTableSettings settings;
   private final EnvelopeCipher cipher;
   private final ProposalEnvelopeCodec codec;
   private final ServiceErrors errors;
+  private final DynamoOutbox outbox;
 
   public DynamoWorkingProposalStore(
       DynamoDbClient dynamo,
       ProposalTableSettings settings,
       EnvelopeCipher cipher,
       ProposalEnvelopeCodec codec,
-      ServiceErrors errors) {
+      ServiceErrors errors,
+      DynamoOutbox outbox) {
+    this.outbox = outbox;
     this.dynamo = dynamo;
     this.settings = settings;
     this.cipher = cipher;
@@ -94,7 +96,7 @@ public class DynamoWorkingProposalStore implements WorkingProposalStore {
             putIfAbsent(idem),
             putIfAbsent(marker),
             putIfAbsent(metaItem(s, sealed, 1)),
-            outboxPut(s.proposalId(), event));
+            outbox.put("PROPOSAL#" + s.proposalId(), event));
     try {
       dynamo.transactWriteItems(r -> r.transactItems(items));
     } catch (TransactionCanceledException e) {
@@ -183,7 +185,7 @@ public class DynamoWorkingProposalStore implements WorkingProposalStore {
       items.add(putIfAbsent(marker));
     }
     if (event != null) {
-      items.add(outboxPut(s.proposalId(), event));
+      items.add(outbox.put("PROPOSAL#" + s.proposalId(), event));
     }
     if (s.state().endsWithoutSale()) {
       items.add(markerDelete(s.journeyId(), s.proposalId()));
@@ -207,39 +209,53 @@ public class DynamoWorkingProposalStore implements WorkingProposalStore {
     proposal.markPersisted(expected + 1, sealed.encryptionKeyId());
   }
 
-  /** schemas/20 §3.4 step 5. */
+  /** schemas/20 §3.4 step 5, plus OUTBOX {@code ProposalMaterialised} in the same transaction. */
   @Override
-  public boolean markMaterialized(WorkingProposal proposal) {
+  public boolean markMaterialized(WorkingProposal proposal, OutboxEvent event) {
     WorkingProposal.Snapshot s = proposal.snapshot();
     Instant expiry =
         settings.retention().expiryOf(false, s.materializedAt(), s.updatedAt()).orElseThrow();
+    Map<String, String> names = new HashMap<>();
+    names.put("#materializedAt", "materializedAt");
+    names.put("#state", "state");
+    names.put("#paymentInFlight", "paymentInFlight");
+    names.put("#heldByPaymentId", "heldByPaymentId");
+    names.put("#updatedAt", "updatedAt");
+    names.put("#ttl", "ttl");
+    names.put("#version", "version");
+    List<TransactWriteItem> items = new ArrayList<>();
+    items.add(
+        TransactWriteItem.builder()
+            .update(
+                Update.builder()
+                    .tableName(settings.tableName())
+                    .key(key("PROPOSAL#" + s.proposalId(), META))
+                    .updateExpression(
+                        "SET #materializedAt = :at, #state = :state, #paymentInFlight = :false,"
+                            + " #updatedAt = :at, #ttl = :ttl, #version = #version + :one"
+                            + " REMOVE #heldByPaymentId")
+                    .conditionExpression("attribute_not_exists(#materializedAt)")
+                    .expressionAttributeNames(names)
+                    .expressionAttributeValues(
+                        Map.of(
+                            ":at", str(DynamoTimes.format(s.materializedAt())),
+                            ":state", str(s.state().name()),
+                            ":false", AttributeValue.fromBool(false),
+                            ":ttl", epoch(expiry),
+                            ":one", num(1)))
+                    .build())
+            .build());
+    if (event != null) {
+      items.add(outbox.put("PROPOSAL#" + s.proposalId(), event));
+    }
     try {
-      dynamo.updateItem(
-          r ->
-              r.tableName(settings.tableName())
-                  .key(key("PROPOSAL#" + s.proposalId(), META))
-                  .updateExpression(
-                      "SET #materializedAt = :at, #state = :state, #paymentInFlight = :false,"
-                          + " #updatedAt = :at, #ttl = :ttl, #version = #version + :one")
-                  .conditionExpression("attribute_not_exists(#materializedAt)")
-                  .expressionAttributeNames(
-                      Map.of(
-                          "#materializedAt", "materializedAt",
-                          "#state", "state",
-                          "#paymentInFlight", "paymentInFlight",
-                          "#updatedAt", "updatedAt",
-                          "#ttl", "ttl",
-                          "#version", "version"))
-                  .expressionAttributeValues(
-                      Map.of(
-                          ":at", str(DynamoTimes.format(s.materializedAt())),
-                          ":state", str(s.state().name()),
-                          ":false", AttributeValue.fromBool(false),
-                          ":ttl", epoch(expiry),
-                          ":one", num(1))));
+      dynamo.transactWriteItems(r -> r.transactItems(items));
       return true;
-    } catch (ConditionalCheckFailedException e) {
-      return false;
+    } catch (TransactionCanceledException e) {
+      if (failed(reasons(e), 0)) {
+        return false;
+      }
+      throw error(ErrorCodes.CONFLICT, "markMaterialized", "transaction cancelled", e);
     }
   }
 
@@ -350,6 +366,7 @@ public class DynamoWorkingProposalStore implements WorkingProposalStore {
     putIfPresent(item, "underwritingState", s.underwritingState());
     putIfPresent(item, "issuanceMode", s.issuanceMode());
     item.put("paymentInFlight", AttributeValue.fromBool(s.paymentInFlight()));
+    putIfPresent(item, "heldByPaymentId", s.heldByPaymentId());
     item.put("payloadEnc", AttributeValue.fromB(SdkBytes.fromByteArray(sealed.ciphertext())));
     item.put("encryptionKeyId", str(sealed.encryptionKeyId()));
     item.put("payloadSchemaVersion", num(ProposalEnvelope.SCHEMA_VERSION));
@@ -389,28 +406,19 @@ public class DynamoWorkingProposalStore implements WorkingProposalStore {
             text(item, "issuanceMode"),
             text(item, "configVersionRef"),
             item.containsKey("paymentInFlight") && item.get("paymentInFlight").bool(),
+            text(item, "heldByPaymentId"),
             DynamoTimes.parse(text(item, "materializedAt")),
             Long.parseLong(item.get("version").n()),
             DynamoTimes.parse(text(item, "createdAt")),
             DynamoTimes.parse(text(item, "updatedAt")),
-            codec.decode(plaintext),
+            // Envelope v1 items (before D8) are still readable (schemas/20 §2).
+            codec.decode(
+                plaintext,
+                item.containsKey("payloadSchemaVersion")
+                    ? Integer.parseInt(item.get("payloadSchemaVersion").n())
+                    : 1,
+                text(item, "schemaVersion")),
             keyId));
-  }
-
-  private TransactWriteItem outboxPut(String proposalId, OutboxEvent event) {
-    Map<String, AttributeValue> item = key("PROPOSAL#" + proposalId, "OUTBOX#" + event.eventId());
-    item.put("eventId", str(event.eventId()));
-    item.put("eventType", str(event.eventType()));
-    item.put("aggregateId", str(event.aggregateId()));
-    item.put("occurredAt", str(DynamoTimes.format(event.occurredAt())));
-    Map<String, AttributeValue> attributes = new LinkedHashMap<>();
-    event.attributes().forEach((k, v) -> attributes.put(k, str(v)));
-    item.put("attributes", AttributeValue.fromM(attributes));
-    // The stream publishes on write, so write time + 7 days is publish + 7 days (schemas/20 §1.1).
-    item.put("ttl", epoch(event.occurredAt().plus(settings.outboxTtl())));
-    return TransactWriteItem.builder()
-        .put(Put.builder().tableName(settings.tableName()).item(item).build())
-        .build();
   }
 
   private TransactWriteItem markerDelete(String journeyId, String proposalId) {

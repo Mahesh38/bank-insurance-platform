@@ -18,6 +18,11 @@ public enum QuoteState {
     return this == QUOTED || this == PARTIALLY_QUOTED;
   }
 
+  /** States lazy expiry may move to {@code EXPIRED} once {@code validUntil} passed (LLD §4.5). */
+  public boolean isExpirable() {
+    return this == QUOTED || this == PARTIALLY_QUOTED || this == SELECTED;
+  }
+
   /**
    * States that close the quote without a sale. The journey's open-quote marker is released in the
    * same write so a re-quote can start (schemas/20 §1.1). {@code CONVERTED} releases it too, but

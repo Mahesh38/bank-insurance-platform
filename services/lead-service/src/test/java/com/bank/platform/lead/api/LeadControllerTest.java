@@ -22,7 +22,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-@SpringBootTest
+// The test-only stub passes "cust-ok"; the engine path is LeadExceptionApprovalFlowTest.
+@SpringBootTest(properties = "lead.exception-rules=stub")
 @AutoConfigureMockMvc
 @Tag("FUNC-030")
 class LeadControllerTest {
@@ -54,6 +55,7 @@ class LeadControllerTest {
             .andExpect(jsonPath("$.state").value("NEW"))
             .andExpect(jsonPath("$.dashboardStage").value("NEW"))
             .andExpect(jsonPath("$.exceptionOutcome").value("NOT_EVALUATED"))
+            .andExpect(jsonPath("$.expiresAt").isNotEmpty())
             .andReturn();
     String leadId =
         objectMapper.readTree(created.getResponse().getContentAsString()).get("leadId").asText();

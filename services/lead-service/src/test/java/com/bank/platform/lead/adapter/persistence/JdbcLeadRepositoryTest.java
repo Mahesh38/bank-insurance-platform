@@ -28,7 +28,14 @@ class JdbcLeadRepositoryTest {
   @BeforeEach
   void clean() {
     for (String table :
-        new String[] {"lead_assignment", "lead_meeting", "lead_follow_up", "outbox_event"}) {
+        new String[] {
+          "lead_exception_decision",
+          "lead_exception_evaluation",
+          "lead_assignment",
+          "lead_meeting",
+          "lead_follow_up",
+          "outbox_event"
+        }) {
       jdbc.update("DELETE FROM lead_lms." + table);
     }
     jdbc.update("DELETE FROM lead_lms.lead");
@@ -121,6 +128,46 @@ class JdbcLeadRepositoryTest {
     assertThat(repository.findUnfinished("rm-5", "cust-7", ProductClass.TERM))
         .map(Lead::leadId)
         .contains(afterClose.leadId());
+  }
+
+  @Test
+  void lockOverdueSelectsOnlyUnfinishedLeadsPastTheirHorizon() {
+    Lead due = newLead("01JQX4K7R8M2N3P4Q5S6T7V8Y1", "rm-6", "cust-8");
+    due.expireAt(T0.plus(1, ChronoUnit.DAYS));
+    repository.save(due);
+    Lead notYet = newLead("01JQX4K7R8M2N3P4Q5S6T7V8Y2", "rm-6", "cust-9");
+    notYet.expireAt(T0.plus(10, ChronoUnit.DAYS));
+    repository.save(notYet);
+    Lead closed = newLead("01JQX4K7R8M2N3P4Q5S6T7V8Y3", "rm-6", "cust-10");
+    closed.expireAt(T0.plus(1, ChronoUnit.DAYS));
+    repository.save(closed);
+    closed.close(T0.plusSeconds(1));
+    repository.save(closed);
+
+    Instant now = T0.plus(2, ChronoUnit.DAYS);
+    assertThat(repository.lockOverdue(now, 10))
+        .extracting(Lead::leadId)
+        .containsExactly(due.leadId());
+
+    Lead locked = repository.lockOverdue(now, 10).get(0);
+    locked.expire(now);
+    repository.save(locked);
+    assertThat(repository.findById(due.leadId()).orElseThrow().state())
+        .isEqualTo(LeadState.EXPIRED);
+    assertThat(repository.lockOverdue(now, 10)).isEmpty();
+  }
+
+  @Test
+  void exceptionEvaluationIdRoundTrips() {
+    Lead lead = newLead("01JQX4K7R8M2N3P4Q5S6T7V8Y4", "rm-7", "cust-11");
+    repository.save(lead);
+    lead.applyExceptionOutcome(
+        ExceptionOutcome.APPROVAL_REQUIRED, "01JQX4K7R8M2N3P4Q5S6T7V8Y5", T0.plusSeconds(1));
+    repository.save(lead);
+
+    Lead read = repository.findById(lead.leadId()).orElseThrow();
+    assertThat(read.exceptionEvaluationId()).isEqualTo("01JQX4K7R8M2N3P4Q5S6T7V8Y5");
+    assertThat(read.exceptionHold()).isTrue();
   }
 
   private static Lead newLead(String id, String creator, String customer) {

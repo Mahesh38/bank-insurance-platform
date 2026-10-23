@@ -41,19 +41,23 @@ class DynamoWorkingQuoteStoreTest {
 
   private final DynamoDbClient dynamo = LocalDynamoDb.client();
   private final Clock clock = Clock.fixed(NOW, ZoneOffset.UTC);
+  private final QuoteTableSettings settings =
+      new QuoteTableSettings(
+          LocalDynamoDb.TABLE,
+          new WorkingRetention(WORKING, Duration.ofDays(30)),
+          Duration.ofHours(24),
+          Duration.ofDays(7),
+          4);
   private final DynamoWorkingQuoteStore store =
       new DynamoWorkingQuoteStore(
           dynamo,
-          new QuoteTableSettings(
-              LocalDynamoDb.TABLE,
-              new WorkingRetention(WORKING, Duration.ofDays(30)),
-              Duration.ofHours(24),
-              Duration.ofDays(7)),
+          settings,
           new AesGcmEnvelopeCipher(
               new LocalDataKeyProvider("p7MSmdyOLeyBue5/ZJpPP3TE/ZQrLr4WSPjrhS0d0F8=", "test")),
           new QuoteEnvelopeCodec(),
           ServiceErrors.of("quotation", PlatformLayer.L5),
-          clock);
+          clock,
+          new DynamoOutbox(dynamo, settings));
 
   private WorkingQuote created(NewQuote request) {
     WorkingQuote quote = WorkingQuote.request(Ulid.mint(), request, NOW);
@@ -62,7 +66,16 @@ class DynamoWorkingQuoteStoreTest {
   }
 
   private static OutboxEvent event(WorkingQuote quote) {
-    return new OutboxEvent(Ulid.mint(), "QuoteRequested", quote.quoteId(), NOW, Map.of());
+    return new OutboxEvent(
+        Ulid.mint(),
+        "QuoteRequested",
+        quote.quoteId(),
+        NOW,
+        quote.journeyId(),
+        quote.leadId(),
+        quote.configVersionRef(),
+        null,
+        Map.of("quoteId", quote.quoteId(), "journeyId", quote.journeyId()));
   }
 
   private Map<String, AttributeValue> item(String pk, String sk) {
@@ -110,8 +123,15 @@ class DynamoWorkingQuoteStoreTest {
     assertThat(item("IDEM#" + idemKey, "IDEM").get("responseRef").s()).isEqualTo(quote.quoteId());
     assertThat(item("JOURNEY#" + request.journeyId(), "OPEN_QUOTE").get("quoteId").s())
         .isEqualTo(quote.quoteId());
-    assertThat(item("QUOTE#" + quote.quoteId(), "OUTBOX#" + event.eventId()).get("eventType").s())
-        .isEqualTo("QuoteRequested");
+    Map<String, AttributeValue> outbox =
+        item("QUOTE#" + quote.quoteId(), "OUTBOX#" + event.eventId());
+    assertThat(outbox.get("eventType").s()).isEqualTo("QuoteRequested");
+    // ADR-025 §3: unpublished, no ttl until published, visible to the sweeper's sparse index
+    assertThat(outbox.get("published").bool()).isFalse();
+    assertThat(outbox).doesNotContainKey("ttl").containsKey(DynamoOutbox.PENDING_PK);
+    assertThat(outbox.get("envelope").s())
+        .contains("\"source\":\"quotation\"")
+        .contains("\"aggregateType\":\"QUOTE\"");
   }
 
   @Test
@@ -215,8 +235,8 @@ class DynamoWorkingQuoteStoreTest {
     WorkingQuote stale = store.find(quote.quoteId()).orElseThrow();
     quote.materialize(NOW);
 
-    assertThat(store.markMaterialized(quote)).isTrue();
-    assertThat(store.markMaterialized(quote)).isFalse();
+    assertThat(store.markMaterialized(quote, event(quote))).isTrue();
+    assertThat(store.markMaterialized(quote, null)).isFalse();
 
     Map<String, AttributeValue> meta = item("QUOTE#" + quote.quoteId(), "META");
     assertThat(meta.get("state").s()).isEqualTo("CONVERTED");
@@ -226,6 +246,45 @@ class DynamoWorkingQuoteStoreTest {
     assertThatThrownBy(() -> store.update(stale, StoreGuard.NONE, null))
         .extracting(e -> ((ServiceException) e).getErrorResponse().getCode())
         .isEqualTo(ErrorCodes.ILLEGAL_TRANSITION);
+  }
+
+  @Test
+  void holdGuardRefusesALapsedQuoteAndRecordsTheHolder() {
+    WorkingQuote quote = selected();
+    String offerId = quote.envelope().selectedOfferId();
+    String paymentId = Ulid.mint();
+
+    assertThat(quote.holdForPayment(paymentId, offerId, NOW)).isTrue();
+    store.update(quote, StoreGuard.HOLDABLE, null);
+    Map<String, AttributeValue> meta = item("QUOTE#" + quote.quoteId(), "META");
+    assertThat(meta.get("heldByPaymentId").s()).isEqualTo(paymentId);
+    assertThat(meta).doesNotContainKey("ttl");
+    assertThat(store.find(quote.quoteId()).orElseThrow().heldByPaymentId()).isEqualTo(paymentId);
+
+    assertThat(quote.releasePaymentHold(paymentId, NOW)).isTrue();
+    store.update(quote, StoreGuard.SELECTED, null);
+    assertThat(item("QUOTE#" + quote.quoteId(), "META"))
+        .doesNotContainKey("heldByPaymentId")
+        .containsKey("ttl");
+
+    WorkingQuote lapsed = created(QuoteFixtures.newQuote());
+    QuoteOffer offer = QuoteFixtures.offer("INS01", "100");
+    lapsed.recordOffers(List.of(offer), List.of(), NOW.minusSeconds(1), NOW.minusSeconds(10));
+    store.update(lapsed, StoreGuard.NONE, null);
+    lapsed.select(offer.offerId(), NOW.minusSeconds(5));
+    store.update(lapsed, StoreGuard.NONE, null);
+    lapsed.holdForPayment(paymentId, offer.offerId(), NOW.minusSeconds(4));
+    assertThatThrownBy(() -> store.update(lapsed, StoreGuard.HOLDABLE, null))
+        .extracting(e -> ((ServiceException) e).getErrorResponse().getCode())
+        .isEqualTo(ErrorCodes.QUOTE_EXPIRED);
+  }
+
+  @Test
+  void openQuoteIdReadsTheMarker() {
+    String journeyId = Ulid.mint();
+    assertThat(store.openQuoteId(journeyId)).isEmpty();
+    WorkingQuote quote = created(QuoteFixtures.newQuote(journeyId));
+    assertThat(store.openQuoteId(journeyId)).contains(quote.quoteId());
   }
 
   @Test

@@ -21,10 +21,14 @@ public interface WorkingQuoteStore {
   void update(WorkingQuote quote, StoreGuard guard, OutboxEvent event);
 
   /**
-   * Freezes the item after the structured rows committed. Returns false when another consumer
-   * already did.
+   * Freezes the item after the structured rows committed and writes {@code event} ({@code
+   * QuoteConverted}) in the same transaction, so the event exists exactly when the freeze does.
+   * Returns false when another consumer already did.
    */
-  boolean markMaterialized(WorkingQuote quote);
+  boolean markMaterialized(WorkingQuote quote, OutboxEvent event);
+
+  /** The quote the journey's {@code OPEN_QUOTE} marker names, if any (strongly consistent). */
+  Optional<String> openQuoteId(String journeyId);
 
   /** Deletes the journey's open-quote marker if it still names this quote. */
   void releaseOpenMarker(String journeyId, String quoteId);

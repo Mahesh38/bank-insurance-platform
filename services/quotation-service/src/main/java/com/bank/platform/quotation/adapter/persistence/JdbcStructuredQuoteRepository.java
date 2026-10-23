@@ -18,7 +18,9 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
- * Structured quote on schema {@code quotation} (Flyway V1/V2), written once per sale.
+ * Structured quote on schema {@code quotation} (Flyway V1–V3, design DDL {@code 08-quotation.sql}),
+ * written once per sale. Every offer shown is kept: the selected one {@code SELECTED}, other priced
+ * ones {@code NOT_SELECTED}, {@code INVALID} ones with whatever the insurer returned (D8).
  *
  * <p>{@code ON CONFLICT DO NOTHING} without a target is the form PostgreSQL and H2 both accept; on
  * these tables the only unique keys are the primary keys and {@code ux_offer_selected}, which the
@@ -63,20 +65,28 @@ public class JdbcStructuredQuoteRepository implements StructuredQuoteRepository 
         status -> {
           jdbc.update(
               "INSERT INTO quotation.quote (quote_id, lead_id, journey_id, customer_id,"
-                  + " suitability_id, consent_id, lob, mode, category, requested_cover,"
-                  + " members_enc, encryption_key_id, state, valid_until, provider,"
-                  + " provider_job_id, config_version_ref, created_at, updated_at, version)"
-                  + " VALUES (:quoteId, :leadId, :journeyId, :customerId, :suitabilityId,"
-                  + " :consentId, :lob, :mode, :category, :requestedCover, :membersEnc,"
-                  + " :keyId, :state, :validUntil, :provider, :providerJobId,"
-                  + " :configVersionRef, :createdAt, :updatedAt, :version)"
-                  + " ON CONFLICT DO NOTHING",
+                  + " suitability_id, evaluation_id, consent_id, product_class, lob, mode,"
+                  + " category, requested_cover, members_enc, encryption_key_id, state,"
+                  + " selected_offer_id, valid_until, provider, provider_job_id,"
+                  + " config_version_ref, materialized_event_id, materialized_at, created_at,"
+                  + " updated_at, version) VALUES (:quoteId, :leadId, :journeyId, :customerId,"
+                  + " :suitabilityId, :evaluationId, :consentId, :productClass, :lob, :mode,"
+                  + " :category, :requestedCover, :membersEnc, :keyId, :state,"
+                  + " :selectedOfferId, :validUntil, :provider, :providerJobId,"
+                  + " :configVersionRef, :eventId, :materializedAt, :createdAt, :updatedAt,"
+                  + " :version) ON CONFLICT DO NOTHING",
               new MapSqlParameterSource()
                   .addValue("quoteId", s.quoteId())
                   .addValue("leadId", s.leadId())
                   .addValue("journeyId", s.journeyId())
                   .addValue("customerId", s.customerId())
                   .addValue("suitabilityId", s.suitabilityId())
+                  // Contract: suitabilityId carries the evaluation id the C1 gate used (D4).
+                  .addValue("evaluationId", s.suitabilityId())
+                  .addValue("productClass", s.productClass())
+                  .addValue("selectedOfferId", s.envelope().selectedOfferId())
+                  .addValue("eventId", receipt.eventId())
+                  .addValue("materializedAt", timestamp(s.materializedAt()))
                   .addValue("consentId", s.consentId())
                   .addValue("lob", s.lob())
                   .addValue("mode", s.mode())
@@ -93,10 +103,7 @@ public class JdbcStructuredQuoteRepository implements StructuredQuoteRepository 
                   .addValue("updatedAt", timestamp(s.updatedAt()))
                   .addValue("version", s.version()));
           for (QuoteOffer offer : s.envelope().offers()) {
-            // ck_offer_positive: an INV-QUO-03 offer with no price has no structured row.
-            if (offer.hasPositiveAmounts()) {
-              insertOffer(s, offer);
-            }
+            insertOffer(s, offer);
           }
           jdbc.update(
               "INSERT INTO quotation.idempotency_record (idempotency_key, request_hash,"

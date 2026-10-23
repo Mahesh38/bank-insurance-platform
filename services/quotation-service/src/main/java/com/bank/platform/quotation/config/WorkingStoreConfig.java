@@ -36,7 +36,8 @@ public class WorkingStoreConfig {
         p.tableName(),
         new WorkingRetention(p.retentionWorking(), p.retentionAfterMaterialize()),
         p.idempotencyTtl(),
-        p.outboxTtl());
+        p.outboxTtl(),
+        p.outboxPendingShards());
   }
 
   @Bean(destroyMethod = "close")

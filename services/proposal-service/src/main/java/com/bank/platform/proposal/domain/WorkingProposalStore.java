@@ -17,8 +17,11 @@ public interface WorkingProposalStore {
    */
   void update(WorkingProposal proposal, StoreGuard guard, OutboxEvent event);
 
-  /** Freezes the item; false when another consumer already did. */
-  boolean markMaterialized(WorkingProposal proposal);
+  /**
+   * Freezes the item and writes {@code event} ({@code ProposalMaterialised}) in the same
+   * transaction; false when another consumer already did.
+   */
+  boolean markMaterialized(WorkingProposal proposal, OutboxEvent event);
 
   void releaseOpenMarker(String journeyId, String proposalId);
 }

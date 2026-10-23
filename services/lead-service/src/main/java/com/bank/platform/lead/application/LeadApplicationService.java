@@ -5,9 +5,11 @@ import com.bank.common.error.ServiceError;
 import com.bank.common.error.ServiceErrors;
 import com.bank.common.error.ServiceException;
 import com.bank.platform.lead.domain.ConcurrentLeadUpdateException;
+import com.bank.platform.lead.domain.ExceptionCheckpoint;
 import com.bank.platform.lead.domain.ExceptionOutcome;
 import com.bank.platform.lead.domain.ExceptionRulesPort;
 import com.bank.platform.lead.domain.ExceptionRulesPort.Evaluation;
+import com.bank.platform.lead.domain.ExceptionRulesPort.FiredRule;
 import com.bank.platform.lead.domain.IllegalLeadTransitionException;
 import com.bank.platform.lead.domain.Lead;
 import com.bank.platform.lead.domain.LeadActivityPort;
@@ -19,11 +21,17 @@ import com.bank.platform.lead.domain.LeadActivityPort.Meeting;
 import com.bank.platform.lead.domain.LeadActivityPort.MeetingType;
 import com.bank.platform.lead.domain.LeadAuthorizationPort;
 import com.bank.platform.lead.domain.LeadAuthorizationPort.AuthorizationDecision;
+import com.bank.platform.lead.domain.LeadExceptionEvidencePort;
+import com.bank.platform.lead.domain.LeadExceptionEvidencePort.Decision;
+import com.bank.platform.lead.domain.LeadExceptionEvidencePort.DecisionKind;
+import com.bank.platform.lead.domain.LeadExceptionEvidencePort.StoredEvaluation;
 import com.bank.platform.lead.domain.LeadIdempotencyPort;
 import com.bank.platform.lead.domain.LeadIdempotencyPort.IdempotencyRecord;
+import com.bank.platform.lead.domain.LeadPolicyPort;
 import com.bank.platform.lead.domain.LeadRepository;
 import com.bank.platform.lead.domain.LeadState;
 import com.bank.platform.lead.domain.ProductClass;
+import com.bank.platform.lead.domain.RuleConfigurationException;
 import com.bank.platform.lead.domain.SpCertificationPort;
 import com.bank.platform.lead.domain.Ulid;
 import java.nio.charset.StandardCharsets;
@@ -38,9 +46,14 @@ import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
 import java.util.HexFormat;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.function.Supplier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,8 +65,11 @@ import org.springframework.transaction.annotation.Transactional;
  * meeting / note rows and its outbox event commit together; a concurrent change to the same lead is
  * a {@code 409 CONFLICT}, not a lost update.
  *
- * <p>Create and assign ask the PDP again ({@code INV-ACT-01}, {@code SUG-20261021-lft}); the BFF's
- * allow is not trusted across the hop. No answer is a deny.
+ * <p>Create, assign and the exception decision ask the PDP again ({@code INV-ACT-01}, {@code
+ * SUG-20261021-lft}); the BFF's allow is not trusted across the hop. No answer is a deny.
+ *
+ * <p>Business values are configuration (E7): the expiry horizon comes from rule set {@code
+ * LEAD.POLICY}, exception treatment and approver roles from {@code LEAD.EXCEPTION}.
  */
 @Service
 public class LeadApplicationService {
@@ -64,6 +80,14 @@ public class LeadApplicationService {
   private static final LocalTime MEETING_FROM = LocalTime.of(8, 0);
   private static final LocalTime MEETING_UNTIL = LocalTime.of(20, 0);
   private static final int NOTE_MAX = 250;
+  // Exception decision remarks: mandatory (BRD §24.3 column J); length is the API limit.
+  static final int REMARKS_MAX = 500;
+  static final int DECISION_REF_MAX = 64;
+  static final String APPROVE_ACTION = "lead.exception.approve";
+  // E6: an insurer partner representative can never decide an exception, whatever the PDP says.
+  // Both spellings: the event vocabulary (INV-ACT-04) and identity's UserType.
+  private static final Set<String> PARTNER_ACTOR_TYPES =
+      Set.of("INSURER_PARTNER_REP", "INSURER_REPRESENTATIVE");
 
   private final LeadRepository leads;
   private final ServiceErrors errors;
@@ -73,7 +97,8 @@ public class LeadApplicationService {
   private final LeadActivityPort activity;
   private final LeadIdempotencyPort idempotency;
   private final ExceptionRulesPort exceptionRules;
-  private final LeadSettings settings;
+  private final LeadExceptionEvidencePort evidence;
+  private final LeadPolicyPort policy;
 
   public LeadApplicationService(
       LeadRepository leads,
@@ -84,7 +109,8 @@ public class LeadApplicationService {
       LeadActivityPort activity,
       LeadIdempotencyPort idempotency,
       ExceptionRulesPort exceptionRules,
-      LeadSettings settings) {
+      LeadExceptionEvidencePort evidence,
+      LeadPolicyPort policy) {
     this.leads = leads;
     this.errors = errors;
     this.clock = clock;
@@ -93,7 +119,8 @@ public class LeadApplicationService {
     this.activity = activity;
     this.idempotency = idempotency;
     this.exceptionRules = exceptionRules;
-    this.settings = settings;
+    this.evidence = evidence;
+    this.policy = policy;
   }
 
   @Transactional
@@ -145,6 +172,8 @@ public class LeadApplicationService {
                   .build();
             });
     Instant now = clock.instant();
+    // LEAD.POLICY (E7): no usable expiry in force refuses the create — never a default horizon.
+    Duration expiry = configured("create", () -> policy.expiryFor(command.lob(), now));
     Lead lead =
         new Lead(
             Ulid.mint(clock),
@@ -154,9 +183,7 @@ public class LeadApplicationService {
             command.branchId(),
             command.createdByPrincipalId(),
             now);
-    if (settings.expiry() != null) {
-      lead.expireAt(now.plus(settings.expiry()));
-    }
+    lead.expireAt(now.plus(expiry));
     persist(lead);
     if (idempotencyKey != null && !idempotencyKey.isBlank()) {
       try {
@@ -206,13 +233,38 @@ public class LeadApplicationService {
     Instant now = clock.instant();
     transition("startOnboarding", lead::requireEvaluable);
     Evaluation evaluation =
-        exceptionRules.evaluate(
-            new ExceptionRulesPort.Subject(
-                lead.leadId(), lead.customerId(), lead.lob(), lead.productClass()));
+        configured(
+            "startOnboarding",
+            () ->
+                exceptionRules.evaluate(
+                    new ExceptionRulesPort.Subject(
+                        lead.leadId(),
+                        lead.customerId(),
+                        lead.lob(),
+                        lead.productClass(),
+                        lead.branchId(),
+                        principalId,
+                        ExceptionCheckpoint.START_ONBOARDING,
+                        now)));
     ExceptionOutcome outcome = evaluation.outcome();
-    transition("startOnboarding", () -> lead.applyExceptionOutcome(outcome, now));
+    String evaluationId = Ulid.mint(clock);
+    // ADR-024 §6: every evaluation is evidence, BLOCK included (it commits — noRollbackFor).
+    evidence.recordEvaluation(
+        new StoredEvaluation(
+            evaluationId,
+            lead.leadId(),
+            ExceptionCheckpoint.START_ONBOARDING,
+            evaluation,
+            principalId,
+            now));
+    transition("startOnboarding", () -> lead.applyExceptionOutcome(outcome, evaluationId, now));
     persist(lead);
-    event(lead, "LeadExceptionEvaluated", now, evaluation.reasonCodes());
+    Map<String, String> extra = new LinkedHashMap<>();
+    extra.put("evaluationId", evaluationId);
+    if (evaluation.ruleSetRef() != null) {
+      extra.put("ruleSetRef", evaluation.ruleSetRef());
+    }
+    event(lead, "LeadExceptionEvaluated", now, evaluation.reasonCodes(), extra);
     if (outcome == ExceptionOutcome.BLOCK) {
       throw errors
           .error(ErrorCodes.ILLEGAL_TRANSITION)
@@ -321,6 +373,165 @@ public class LeadApplicationService {
     return lead;
   }
 
+  /**
+   * E6 / Exception Handling BRD §8.7–§8.8, §12: a bank approver releases or rejects an {@code
+   * APPROVAL_REQUIRED} hold, with mandatory remarks. Guards, in order: remarks; the principal is
+   * not an insurer partner (defence in depth beside the PDP); the lead exists; PDP {@code
+   * lead.exception.approve} on the lead's branch; the lead is on hold; the approver holds a role
+   * the deciding evaluation's rules allow ({@code approverRoles}). The decision row is append-only.
+   */
+  @Transactional
+  public Lead decideException(ExceptionDecisionCommand command) {
+    String operation = command.kind() == DecisionKind.APPROVED ? "releaseHold" : "rejectHold";
+    if (command.remarks() == null || command.remarks().isBlank()) {
+      throw invalid(operation, "remarks are mandatory for an exception decision");
+    }
+    if (command.remarks().length() > REMARKS_MAX) {
+      throw invalid(operation, "remarks are longer than " + REMARKS_MAX + " characters");
+    }
+    if (command.decisionRef() != null && command.decisionRef().length() > DECISION_REF_MAX) {
+      throw invalid(operation, "decisionRef is longer than " + DECISION_REF_MAX + " characters");
+    }
+    require(command.actorPrincipalId(), "actorPrincipalId");
+    String actorType =
+        command.actorType() == null ? "" : command.actorType().strip().toUpperCase(Locale.ROOT);
+    if (actorType.isEmpty() || PARTNER_ACTOR_TYPES.contains(actorType)) {
+      throw forbidden(
+          operation,
+          actorType.isEmpty()
+              ? "actor type is required for an exception decision"
+              : "an insurer partner representative cannot decide a lead exception (E6)");
+    }
+    Lead lead = leads.findById(command.leadId()).orElseThrow(this::notFound);
+    authorize(
+        command.actorPrincipalId(), APPROVE_ACTION, lead.leadId(), lead.branchId(), operation);
+    transition(operation, lead::requireHeldForDecision);
+
+    StoredEvaluation deciding =
+        Optional.ofNullable(lead.exceptionEvaluationId())
+            .flatMap(evidence::findEvaluation)
+            .orElseThrow(() -> forbidden(operation, "no stored evaluation names an approver"));
+    Set<String> allowed = approverRoles(deciding.evaluation());
+    if (allowed.isEmpty()) {
+      // EH-ERR-HIER-002: no approver configured for the applicable rule — nobody may decide.
+      throw forbidden(operation, "no approver role is configured for the triggered rules");
+    }
+    String role =
+        command.actorRoles().stream()
+            .map(r -> r.strip().toUpperCase(Locale.ROOT))
+            .filter(allowed::contains)
+            .sorted()
+            .findFirst()
+            .orElseThrow(
+                () -> forbidden(operation, "approver role not in " + new TreeSet<>(allowed)));
+
+    Instant now = clock.instant();
+    if (command.kind() == DecisionKind.APPROVED) {
+      transition(operation, () -> lead.releaseExceptionHold(now));
+    } else {
+      transition(operation, () -> lead.rejectException(now));
+    }
+    persist(lead); // optimistic lock: of two concurrent decisions only one commits
+    String decisionId = Ulid.mint(clock);
+    evidence.recordDecision(
+        new Decision(
+            decisionId,
+            deciding.evaluationId(),
+            lead.leadId(),
+            command.kind(),
+            command.decisionRef(),
+            command.remarks(),
+            command.actorPrincipalId(),
+            role,
+            now));
+    Map<String, String> extra = new LinkedHashMap<>();
+    extra.put("decisionId", decisionId);
+    extra.put("evaluationId", deciding.evaluationId());
+    extra.put("decidedBy", command.actorPrincipalId());
+    extra.put("decidedByRole", role);
+    event(
+        lead,
+        command.kind() == DecisionKind.APPROVED ? "LeadExceptionApproved" : "LeadExceptionRejected",
+        now,
+        List.of(),
+        extra);
+    return lead;
+  }
+
+  /**
+   * BRD EH-BR-MULTI-002 ("highest configured hierarchy wins") without a modelled hierarchy level:
+   * the strict reading is that the approver must be allowed by <em>every</em> rule that asked for
+   * approval, so the intersection of their {@code approverRoles}.
+   */
+  private static Set<String> approverRoles(Evaluation evaluation) {
+    Set<String> allowed = null;
+    for (FiredRule rule : evaluation.fired()) {
+      if (!"APPROVAL_REQUIRED".equals(rule.outcome())) {
+        continue;
+      }
+      Set<String> roles = new LinkedHashSet<>();
+      rule.approverRoles().forEach(r -> roles.add(r.toUpperCase(Locale.ROOT)));
+      if (allowed == null) {
+        allowed = roles;
+      } else {
+        allowed.retainAll(roles);
+      }
+    }
+    return allowed == null ? Set.of() : allowed;
+  }
+
+  /**
+   * E7 ageing: moves up to {@code batchSize} overdue unfinished leads to {@code EXPIRED}, with
+   * outbox {@code LeadExpired}. Idempotent — an expired lead is terminal and no longer selected —
+   * and safe to run on every replica: rows are claimed {@code FOR UPDATE SKIP LOCKED}.
+   */
+  @Transactional
+  public int expireOverdue(int batchSize) {
+    Instant now = clock.instant();
+    int expired = 0;
+    for (Lead lead : leads.lockOverdue(now, batchSize)) {
+      if (!lead.overdue(now)) {
+        continue;
+      }
+      Instant horizon = lead.expiresAt();
+      lead.expire(now);
+      try {
+        leads.save(lead);
+      } catch (ConcurrentLeadUpdateException ex) {
+        continue; // changed since it was read; the next sweep sees its new state
+      }
+      event(lead, "LeadExpired", now, List.of(), Map.of("expiresAt", horizon.toString()));
+      expired++;
+    }
+    return expired;
+  }
+
+  private <T> T configured(String operation, Supplier<T> lookup) {
+    try {
+      return lookup.get();
+    } catch (RuleConfigurationException ex) {
+      throw errors
+          .error(
+              ex.upstreamUnavailable()
+                  ? ErrorCodes.UPSTREAM_UNAVAILABLE
+                  : ErrorCodes.CONFIGURATION_UNRESOLVABLE)
+          .component("LeadApplicationService")
+          .operation(operation)
+          .reason(ex.getMessage())
+          .cause(ex)
+          .build();
+    }
+  }
+
+  private ServiceException forbidden(String operation, String reason) {
+    return errors
+        .error(ErrorCodes.FORBIDDEN)
+        .component("LeadApplicationService")
+        .operation(operation)
+        .reason(reason)
+        .build();
+  }
+
   private ProductClass parseProductClass(String raw) {
     try {
       return ProductClass.valueOf(raw);
@@ -365,6 +576,7 @@ public class LeadApplicationService {
       case "BRANCH_OUT_OF_SCOPE" -> ErrorCodes.OUT_OF_BRANCH_SCOPE;
       case "RESOURCE_NOT_SHARED_WITH_PARTNER" -> ErrorCodes.RESOURCE_NOT_FOUND;
       case "MANDATORY_CERTIFICATION_INVALID" -> ErrorCodes.SP_CERTIFICATION_REQUIRED;
+      case "PARTNER_ACTION_PROHIBITED" -> ErrorCodes.FORBIDDEN;
       default -> ErrorCodes.DEFAULT_DENY;
     };
   }
@@ -405,10 +617,11 @@ public class LeadApplicationService {
   }
 
   private void event(Lead lead, String type, Instant at) {
-    event(lead, type, at, List.of());
+    event(lead, type, at, List.of(), Map.of());
   }
 
-  private void event(Lead lead, String type, Instant at, List<String> reasonCodes) {
+  private void event(
+      Lead lead, String type, Instant at, List<String> reasonCodes, Map<String, String> extra) {
     Map<String, String> attributes = new LinkedHashMap<>();
     attributes.put("state", lead.state().name());
     attributes.put("productClass", lead.productClass().name());
@@ -422,6 +635,7 @@ public class LeadApplicationService {
     if (!reasonCodes.isEmpty()) {
       attributes.put("exceptionReasonCodes", String.join(",", reasonCodes));
     }
+    attributes.putAll(extra);
     activity.append(new LeadEvent(Ulid.mint(clock), lead.leadId(), type, attributes, at));
   }
 
@@ -485,10 +699,14 @@ public class LeadApplicationService {
   }
 
   private ServiceException invalid(String reason) {
+    return invalid("assign", reason);
+  }
+
+  private ServiceException invalid(String operation, String reason) {
     return errors
         .error(ErrorCodes.VALIDATION_ERROR)
         .component("LeadApplicationService")
-        .operation("assign")
+        .operation(operation)
         .reason(reason)
         .build();
   }
@@ -545,6 +763,25 @@ public class LeadApplicationService {
     public AssignLeadCommand(
         String leadId, String assignedRmId, String assignedSpId, String actorPrincipalId) {
       this(leadId, assignedRmId, assignedSpId, actorPrincipalId, null, null);
+    }
+  }
+
+  /**
+   * An exception decision. {@code actorType} and {@code actorRoles} are asserted by the BFF from
+   * the session (headers {@code X-Actor-Type}, {@code X-Actor-Roles}); the PDP check is independent
+   * of both.
+   */
+  public record ExceptionDecisionCommand(
+      String leadId,
+      DecisionKind kind,
+      String actorPrincipalId,
+      String actorType,
+      Set<String> actorRoles,
+      String remarks,
+      String decisionRef) {
+
+    public ExceptionDecisionCommand {
+      actorRoles = actorRoles == null ? Set.of() : Set.copyOf(actorRoles);
     }
   }
 

@@ -2,8 +2,9 @@
 
 [← API reference home](../README.md) · Prev: [07](./07-journey-start-and-suitability.md) · Next: [09](./09-pre-quote-reference-data.md)
 
-**Status: CONTRACTED / PROPOSED** (consent-service is a skeleton). The customer is **not** a
+**Status: IMPLEMENTED** against the consent OpenAPI. The customer is **not** a
 platform user in R0: their phone appears only for this OTP and, later, for payment.
+`RM_RELAYED` is refused (C2). One challenge does not grant both `CNS-DP` and `CNS-SOL` (C3).
 
 ## 1. Sequence
 
@@ -16,29 +17,20 @@ sequenceDiagram
     participant CN as consent-service
     participant CFG as administration-config
     participant CS as customer-service
-    participant NT as notification / OTP gateway
     participant Phone as Customer phone
-    App->>BFF: POST /api/v1/journeys/{id}/consent/challenge {purposes}
+    JO->>CN: GET /internal/v1/consents:check
+    CN->>CFG: CONSENT.POLICY for the checkpoint
+    CN-->>JO: satisfied, valid[], missing[]
+    App->>BFF: challenge one missing purpose
     BFF->>JO: consent challenge
-    JO->>CN: POST /internal/v1/consents {leadId, journeyId, customerId, lob, purposes, channel}
-    CN->>CFG: statement text + version (fail closed)
-    CN->>CS: customer's registered contact (never from the request)
-    CN->>CN: INSERT consent REQUESTED (evidence columns)
-    CN->>NT: send OTP to the customer's contact
-    NT->>Phone: SMS "OTP 4xxxx2 for AU Bank insurance consent…"
-    CN->>CN: state OTP_PENDING
-    CN-->>JO: {consentId, OTP_PENDING, maskedContact}
-    JO-->>BFF: 201
-    BFF-->>App: 201 {consentId, maskedContact, otpExpiresAt}
-    Phone-->>App: customer reads the OTP to the RM (or confirms on device)
-    App->>BFF: POST /api/v1/journeys/{id}/consent/verify {consentId, otp}
-    BFF->>JO: verify
-    JO->>CN: POST /internal/v1/consents/{consentId}/verify
-    CN->>NT: verify OTP → otpTxnId
-    CN->>CN: write-once otp_txn_id, captured_at, source_ip · GRANTED · outbox ConsentGranted
-    CN-->>JO: {GRANTED, validUntil}
-    JO->>JO: stage CONSENT_CAPTURED · ref consentId
-    BFF-->>App: 200
+    JO->>CN: POST /internal/v1/consents
+    CN->>CFG: APPROVED statement (fail closed)
+    CN->>CS: registered contact (never from the body)
+    CN->>Phone: one OTP, 10 minutes
+    CN-->>JO: 201 challenge OTP_PENDING, masked contact
+    Phone->>CN: POST /consent-challenges/{id}/verify CUSTOMER_DEVICE
+    CN->>CN: INSERT GRANTED per purpose, outbox ConsentGranted (no otp txn id)
+    CN-->>JO: VERIFIED
 ```
 
 ## 2. Rules
@@ -46,19 +38,20 @@ sequenceDiagram
 | Rule | Enforced by | Error |
 |---|---|---|
 | OTP goes only to the customer's registered contact | Consent resolves it from Customer #4 | — (no API accepts a phone number) |
-| `GRANTED` only from `OTP_PENDING` with a verified txn id | Consent aggregate (`INV-CNS-02`) | `409 ILLEGAL_TRANSITION` |
-| Evidence is write-once | INSERT-only columns (`INV-CNS-01`) | Store rejects |
-| Wrong / expired OTP | Consent | `422 VALIDATION_ERROR`; attempts counted |
-| Re-consent | New consent row, new statement version | — |
-| Consent outlives an abandoned sale | Retained `RET-7Y-IMMUTABLE` (F-02) | — |
-| Proposal submit later re-checks C2 at the point of use | Proposal service | `403 CONSENT_REQUIRED` |
+| `RM_RELAYED` | Policy `verificationModes` (C2) | `403 FORBIDDEN` |
+| `CNS-DP` and `CNS-SOL` in one challenge | `separateActions` (C3) | `422 VALIDATION_ERROR` |
+| Statement not `APPROVED` | C7 | `403 CONSENT_STATEMENT_NOT_APPROVED` |
+| `GRANTED` only from `OTP_PENDING` with a verified code | Challenge (`INV-CNS-02`) | `409 ILLEGAL_TRANSITION` |
+| Evidence is append-only | New row per state (`INV-CNS-01`) | No update API on evidence |
+| Wrong / expired OTP | Consent | `422` with `attemptsRemaining`; `409 OTP_EXPIRED`; 4th call `429` |
+| Re-consent | New chain plus a `SUPERSEDED` row on the old one | — |
+| Proposal submit later re-checks at the point of use | Proposal service | `403 CONSENT_REQUIRED` |
 
 ## 3. Data written
 
-`consent.consent` (purposes, statement text + version, encrypted CIF and contact, OTP txn id,
-captured time, source IP, state, `valid_until`, `config_version_ref`), `idempotency_record`;
-journey stage + `journey_ref (consentId)`; audit event `ConsentGranted`. OTP values are never
-stored or logged.
+`consent.consent_record` (one purpose per row, statement text and hash, encrypted contact, no CIF),
+`consent.consent_challenge`, `idempotency_record`, `outbox_event`. OTP values are never stored or
+logged. The outbox event does not carry the OTP transaction id.
 
 ## 4. Pages
 

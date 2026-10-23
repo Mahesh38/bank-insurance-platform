@@ -165,7 +165,7 @@ data it owns.
 |---|---|---|---|---|
 | `customer-service` | #4 Customer | **Implemented-partial** (CBS search/get via Apigee; no snapshot store yet) | Aurora `customer` (target) | [Customer](./services/customer-service.md) |
 | `lead-service` | #5 Lead | **Implemented-partial** (create, list, get, onboarding, assign, close; `lead_lms.lead` persisted) | Aurora `lead_lms` | [Lead](./services/lead-service.md) |
-| `consent-service` | #6 Consent | Skeleton | Aurora `consent` | [Consent](./services/consent-service.md) |
+| `consent-service` | #6 Consent | Implemented | Aurora `consent` | [Consent](./services/consent-service.md) |
 | `suitability-service` | #7 Suitability | Skeleton | Aurora `suitability` | [Suitability](./services/suitability-service.md) |
 | `product-catalogue-service` | #8 Catalogue | Skeleton | Aurora `catalogue` + Valkey `catalogue:` | [Product catalogue](./services/product-catalogue-service.md) |
 | `journey-orchestration-service` | #9 Journey | Skeleton | Aurora `journey` | [Journey orchestration](./services/journey-orchestration-service.md) |

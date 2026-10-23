@@ -44,7 +44,7 @@ public class IdempotentExecutor {
     if (key == null || key.isBlank()) {
       throw errors.error(ErrorCodes.MISSING_IDEMPOTENCY_KEY).operation("idempotentWrite").build();
     }
-    if (key.length() > 200) {
+    if (key.length() > 128) {
       throw new ConsentRefusal(ConsentCodes.INVALID_REQUEST, "idempotency key is too long");
     }
     String hash = sha256(canonical(request));
@@ -82,7 +82,8 @@ public class IdempotentExecutor {
       return mapper.writeValueAsString(body);
     } catch (JsonProcessingException ex) {
       throw new ConsentRefusal(
-          ConsentCodes.CONSENT_EVIDENCE_WRITE_FAILED, "response could not be stored");
+          com.bank.platform.consent.config.ConsentErrorCatalogue.CONSENT_EVIDENCE_WRITE_FAILED,
+          "response could not be stored");
     }
   }
 

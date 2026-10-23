@@ -7,7 +7,8 @@ info:
     **Status:** AI-DRAFTED 2026-10-22 under owner decision D5 (`D-024`), D3, ADR-024/025/027 and the
     compliance-strict decisions C1–C3, C7 of DECISIONS-2026-10-22, awaiting Mahesh (architecture)
     and Shailja (Compliance — DPDP position, statement wording, validity windows, CNS-R13) review.
-    Code status: SKELETON (no business endpoint exists). GAP-006 stays OPEN (C8).
+    Code status: IMPLEMENTED for the eight operations below. Stubs stand in for
+    administration-config, customer-service and the OTP provider. GAP-006 stays OPEN (C8).
 
     * Which purposes a checkpoint needs, and how long each stays valid, come from rule set
       `CONSENT.POLICY` (ADR-024, `hitPolicy: COLLECT`). Strict seed (C1): `BEFORE_SUITABILITY` →

@@ -4,8 +4,6 @@ import com.bank.platform.consent.adapter.crypto.AesFieldCipher;
 import com.bank.platform.consent.adapter.crypto.HmacOtpHasher;
 import com.bank.platform.consent.adapter.otp.LoggingOtpDispatch;
 import com.bank.platform.consent.adapter.security.LoggingSecurityEventSink;
-import com.bank.platform.consent.domain.ConsentEvaluation;
-import com.bank.platform.consent.domain.ConsentPolicyRegistry;
 import com.bank.platform.consent.domain.FieldCipher;
 import com.bank.platform.consent.domain.OtpDispatch;
 import com.bank.platform.consent.domain.OtpHasher;
@@ -22,18 +20,8 @@ public class ConsentConfiguration {
 
   @Bean
   @ConditionalOnMissingBean(Clock.class)
-  Clock clock() {
+  Clock systemClock() {
     return Clock.systemUTC();
-  }
-
-  @Bean
-  ConsentPolicyRegistry consentPolicyRegistry() {
-    return ConsentPolicyRegistry.r0();
-  }
-
-  @Bean
-  ConsentEvaluation consentEvaluation(ConsentPolicyRegistry registry) {
-    return new ConsentEvaluation(registry);
   }
 
   @Bean

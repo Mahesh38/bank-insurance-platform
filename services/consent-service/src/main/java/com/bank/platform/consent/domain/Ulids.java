@@ -12,6 +12,18 @@ public final class Ulids {
 
   private Ulids() {}
 
+  public static boolean isValid(String value) {
+    if (value == null || value.length() != LENGTH) {
+      return false;
+    }
+    for (int i = 0; i < value.length(); i++) {
+      if (ALPHABET.indexOf(value.charAt(i)) < 0) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   public static String mint(Clock clock) {
     long timestamp = clock.instant().toEpochMilli();
     char[] buffer = new char[LENGTH];

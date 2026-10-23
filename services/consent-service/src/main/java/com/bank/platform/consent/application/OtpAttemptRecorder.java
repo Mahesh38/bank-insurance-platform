@@ -1,26 +1,43 @@
 package com.bank.platform.consent.application;
 
-import com.bank.platform.consent.domain.OtpChallenge;
-import com.bank.platform.consent.domain.OtpChallengeStore;
-import org.springframework.stereotype.Component;
+import com.bank.platform.consent.domain.ChallengeRow;
+import com.bank.platform.consent.domain.ConsentPorts;
+import com.bank.platform.consent.domain.ConsentRefusal;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Commits an OTP failure or expiry on its own. The verify use case then refuses, and that refusal
- * must not roll the attempt counter back.
- */
-@Component
+/** A failed attempt commits on its own, so the refusal does not roll the counter back. */
+@Service
 public class OtpAttemptRecorder {
 
-  private final OtpChallengeStore challenges;
+  private final ConsentPorts.ChallengeStore challenges;
 
-  public OtpAttemptRecorder(OtpChallengeStore challenges) {
+  public OtpAttemptRecorder(ConsentPorts.ChallengeStore challenges) {
     this.challenges = challenges;
   }
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)
-  public void commit(OtpChallenge challenge) {
-    challenges.save(challenge);
+  public ChallengeRow recordFailure(String challengeId, int maxAttempts) {
+    ChallengeRow row =
+        challenges
+            .find(challengeId)
+            .orElseThrow(() -> new ConsentRefusal("RESOURCE_NOT_FOUND", "challenge was not found"));
+    int attempts = row.attempts() + 1;
+    String state = attempts > maxAttempts ? "LOCKED" : row.state();
+    ChallengeRow updated = row.withVerification(state, attempts);
+    challenges.update(updated);
+    return updated;
+  }
+
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public void lock(String challengeId) {
+    ChallengeRow row =
+        challenges
+            .find(challengeId)
+            .orElseThrow(() -> new ConsentRefusal("RESOURCE_NOT_FOUND", "challenge was not found"));
+    if (!"LOCKED".equals(row.state())) {
+      challenges.update(row.withVerification("LOCKED", row.attempts()));
+    }
   }
 }

@@ -7,12 +7,12 @@ import jakarta.persistence.Table;
 import java.time.Instant;
 
 @Entity
-@Table(name = "idempotency_record")
+@Table(name = "idempotency_record", schema = "consent")
 public class IdempotencyEntity {
 
   @Id
-  @Column(name = "idempotency_key", nullable = false, length = 200)
-  private String idempotencyKey;
+  @Column(name = "idempotency_key", length = 128)
+  private String key;
 
   @Column(name = "request_hash", nullable = false, length = 64)
   private String requestHash;
@@ -23,44 +23,49 @@ public class IdempotencyEntity {
   @Column(name = "response_body", nullable = false, length = 8000)
   private String responseBody;
 
+  @Column(name = "created_at", nullable = false)
+  private Instant createdAt;
+
   @Column(name = "expires_at", nullable = false)
   private Instant expiresAt;
 
-  protected IdempotencyEntity() {}
-
-  public IdempotencyEntity(
-      String idempotencyKey,
-      String requestHash,
-      int httpStatus,
-      String responseBody,
-      Instant expiresAt) {
-    this.idempotencyKey = idempotencyKey;
-    this.requestHash = requestHash;
-    this.httpStatus = httpStatus;
-    this.responseBody = responseBody;
-    this.expiresAt = expiresAt;
+  public String getKey() {
+    return key;
   }
 
-  public void replace(String requestHash, int httpStatus, String responseBody, Instant expiresAt) {
-    this.requestHash = requestHash;
-    this.httpStatus = httpStatus;
-    this.responseBody = responseBody;
-    this.expiresAt = expiresAt;
+  public void setKey(String key) {
+    this.key = key;
   }
 
-  public String requestHash() {
+  public String getRequestHash() {
     return requestHash;
   }
 
-  public int httpStatus() {
+  public void setRequestHash(String requestHash) {
+    this.requestHash = requestHash;
+  }
+
+  public int getHttpStatus() {
     return httpStatus;
   }
 
-  public String responseBody() {
+  public void setHttpStatus(int httpStatus) {
+    this.httpStatus = httpStatus;
+  }
+
+  public String getResponseBody() {
     return responseBody;
   }
 
-  public Instant expiresAt() {
-    return expiresAt;
+  public void setResponseBody(String responseBody) {
+    this.responseBody = responseBody;
+  }
+
+  public void setCreatedAt(Instant createdAt) {
+    this.createdAt = createdAt;
+  }
+
+  public void setExpiresAt(Instant expiresAt) {
+    this.expiresAt = expiresAt;
   }
 }

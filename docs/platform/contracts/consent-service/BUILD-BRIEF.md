@@ -9,7 +9,7 @@ Snapshot of code at `d1f3dd7` with round-2 work in flight; where this brief and 
 
 ## 1. Status today
 
-**Skeleton** (6 main / 2 test classes, placeholder `V1`). 0 / 8 operations. Maturity ≈ 5 %.
+**Implemented** for the eight operations, on the service's own database (H2 in tests, PostgreSQL grants in `V3` when the engine is PostgreSQL). administration-config, customer-service and the OTP provider are stubs. GAP-006 stays open.
 
 ## 2. Scope for this build
 

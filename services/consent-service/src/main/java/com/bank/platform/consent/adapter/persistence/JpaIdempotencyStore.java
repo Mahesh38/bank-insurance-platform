@@ -1,42 +1,41 @@
 package com.bank.platform.consent.adapter.persistence;
 
 import com.bank.platform.consent.domain.IdempotencyStore;
-import jakarta.persistence.EntityManager;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Optional;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 
-@Repository
+@Component
 public class JpaIdempotencyStore implements IdempotencyStore {
 
-  private final EntityManager em;
+  private final IdempotencyRepository repository;
   private final Clock clock;
 
-  public JpaIdempotencyStore(EntityManager em, Clock clock) {
-    this.em = em;
+  public JpaIdempotencyStore(IdempotencyRepository repository, Clock clock) {
+    this.repository = repository;
     this.clock = clock;
   }
 
   @Override
   public Optional<StoredResponse> find(String key) {
-    IdempotencyEntity entity = em.find(IdempotencyEntity.class, key);
-    if (entity == null || !entity.expiresAt().isAfter(clock.instant())) {
-      return Optional.empty();
-    }
-    return Optional.of(
-        new StoredResponse(entity.requestHash(), entity.httpStatus(), entity.responseBody()));
+    return repository
+        .findById(key)
+        .map(
+            row ->
+                new StoredResponse(
+                    row.getRequestHash(), row.getHttpStatus(), row.getResponseBody()));
   }
 
   @Override
   public void save(String key, String requestHash, int status, String body, Instant expiresAt) {
-    IdempotencyEntity entity = em.find(IdempotencyEntity.class, key);
-    if (entity == null) {
-      em.persist(new IdempotencyEntity(key, requestHash, status, body, expiresAt));
-      return;
-    }
-    if (!entity.expiresAt().isAfter(clock.instant())) {
-      entity.replace(requestHash, status, body, expiresAt);
-    }
+    IdempotencyEntity entity = new IdempotencyEntity();
+    entity.setKey(key);
+    entity.setRequestHash(requestHash);
+    entity.setHttpStatus(status);
+    entity.setResponseBody(body);
+    entity.setCreatedAt(clock.instant());
+    entity.setExpiresAt(expiresAt);
+    repository.save(entity);
   }
 }

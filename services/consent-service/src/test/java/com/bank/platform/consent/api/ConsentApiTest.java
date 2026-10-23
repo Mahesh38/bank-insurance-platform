@@ -6,19 +6,23 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import ch.qos.logback.classic.Logger;
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.read.ListAppender;
-import com.bank.platform.consent.adapter.security.LoggingSecurityEventSink;
-import com.bank.platform.consent.domain.OtpDispatch;
+import com.bank.platform.consent.ConsentApplication;
+import com.bank.platform.consent.adapter.contact.StubRegisteredContact;
+import com.bank.platform.consent.adapter.persistence.JpaOutbox;
+import com.bank.platform.consent.adapter.policy.FixtureStatementSource;
+import com.bank.platform.consent.application.ConsentApplicationService;
+import com.bank.platform.consent.domain.ConsentPorts;
+import com.bank.platform.consent.domain.Ulids;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
-import javax.sql.DataSource;
-import org.junit.jupiter.api.Tag;
+import java.util.concurrent.atomic.AtomicReference;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -26,458 +30,367 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-@Tag("integration")
-@SpringBootTest(
-    properties =
-        "spring.datasource.url=jdbc:h2:mem:consent_api;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE")
+@SpringBootTest(classes = {ConsentApplication.class, ConsentApiTest.ClockConfig.class})
 @AutoConfigureMockMvc
 class ConsentApiTest {
 
-  private static final String CIF = "CIF9000111";
-  private static final String IP = "203.0.113.44";
-  private static final String CONTACT = "contact-ref-9001";
+  private static final AtomicReference<Instant> NOW =
+      new AtomicReference<>(Instant.parse("2026-11-01T00:00:00Z"));
 
-  @Autowired private MockMvc mvc;
-  @Autowired private CapturingOtpDispatch dispatch;
-  @Autowired private DataSource dataSource;
+  @Autowired MockMvc mvc;
+  @Autowired ObjectMapper json;
+  @Autowired FixtureStatementSource statements;
+  @Autowired StubRegisteredContact contacts;
+  @Autowired ConsentPorts.ChallengeStore challenges;
+  @Autowired ConsentPorts.ConsentStore consents;
+  @Autowired JpaOutbox outbox;
+  @Autowired ConsentApplicationService service;
 
-  @org.junit.jupiter.api.BeforeEach
-  void resetDispatch() {
-    dispatch.reset();
+  @BeforeEach
+  void reset() {
+    NOW.set(Instant.parse("2026-11-01T00:00:00Z"));
+    statements.setStatus("CNS-DP", "APPROVED");
+    statements.setStatus("CNS-SOL", "APPROVED");
+    statements.setStatus("CNS-QSH", "APPROVED");
+    statements.setStatus("CNS-SHR", "APPROVED");
+    statements.setStatus("CNS-COM", "APPROVED");
+    contacts.setUnavailable(false);
   }
 
   @Test
-  void smoke_requestVerifyEvaluateWithdrawReconsentAndReadTheChain() throws Exception {
-    ListAppender<ILoggingEvent> logs = attach(CapturingOtpDispatch.class);
-    publish("CNS-DP");
-    String grantBody = grantBody("cust-smoke", "CNS-DP", null);
-    MvcResult granted =
-        mvc.perform(
-                post("/internal/v1/consent/grants")
-                    .headers(headers("grant-1"))
-                    .content(grantBody)
-                    .with(this::ip))
-            .andExpect(status().isCreated())
-            .andExpect(jsonPath("$.challengeIssued").value(true))
-            .andExpect(jsonPath("$.challenge.challengeId").exists())
-            .andReturn();
-    String challengeId = json(granted, "$.challenge.challengeId");
-    String otp = dispatch.codes.get(challengeId);
-    MvcResult verified =
-        mvc.perform(
-                post("/internal/v1/consent/challenges/" + challengeId + "/verify")
-                    .headers(headers("verify-1"))
-                    .content("{\"otp\":\"" + otp + "\",\"actorRole\":\"CUSTOMER_DEVICE\"}"))
-            .andExpect(status().isCreated())
-            .andExpect(jsonPath("$.recordedState").value("GRANTED"))
-            .andExpect(jsonPath("$.acknowledgementMethod").value("OTP_SMS_CUSTOMER_DEVICE"))
-            .andExpect(jsonPath("$.recordVersion").value(1))
-            .andReturn();
-    String evidenceId = json(verified, "$.evidenceId");
-    String root = json(verified, "$.rootConsentId");
+  void atCns01_newCustomerMissesDataProcessingAndSolicitation() throws Exception {
+    String customer = ulid();
     mvc.perform(
-            post("/internal/v1/consent/grants")
-                .headers(headers("grant-reuse"))
-                .content(grantBody)
-                .with(this::ip))
+            get("/internal/v1/consents:check")
+                .param("customerId", customer)
+                .param("checkpoint", "BEFORE_SUITABILITY")
+                .param("lob", "LIFE"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.challengeIssued").value(false))
-        .andExpect(jsonPath("$.current.evidenceId").value(evidenceId));
-    assertThat(verified.getResponse().getContentAsString())
-        .doesNotContain(CIF, otp, IP, CONTACT, "dist-local");
-    byte[] stored =
-        new JdbcTemplate(dataSource)
-            .queryForObject(
-                "select cif_enc from consent_evidence where evidence_id = ?",
-                byte[].class,
-                evidenceId);
-    assertThat(new String(stored)).doesNotContain(CIF);
-    assertThat(
-            new JdbcTemplate(dataSource)
-                .queryForObject(
-                    "select source_ip from consent_evidence where evidence_id = ?",
-                    String.class,
-                    evidenceId))
-        .isEqualTo(IP);
-
-    mvc.perform(
-            post("/internal/v1/consent/challenges/" + challengeId + "/verify")
-                .headers(headers("verify-1"))
-                .content("{\"otp\":\"" + otp + "\",\"actorRole\":\"CUSTOMER_DEVICE\"}"))
-        .andExpect(status().isCreated())
-        .andExpect(jsonPath("$.evidenceId").value(evidenceId));
-
-    mvc.perform(
-            post("/internal/v1/consent/evaluations")
-                .header("X-Actor-Id", "rm-1")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(evaluateBody("cust-smoke", "CNS-DP", null, root)))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.allowed").value(true))
-        .andExpect(jsonPath("$.effect").value("PROCEED"));
-
-    MvcResult withdrawal =
-        mvc.perform(
-                post("/internal/v1/consent/grants/" + root + "/withdrawals")
-                    .headers(headers("withdraw-1"))
-                    .content(
-                        "{\"registeredContactRef\":\""
-                            + CONTACT
-                            + "\",\"reasonCode\":\"USER_REQUEST\",\"proposalAlreadySubmitted\":false}")
-                    .with(this::ip))
-            .andExpect(status().isCreated())
-            .andExpect(jsonPath("$.effect").value("HALT_JOURNEY"))
-            .andReturn();
-    String withdrawChallenge = json(withdrawal, "$.challenge.challengeId");
-    mvc.perform(
-            post("/internal/v1/consent/challenges/" + withdrawChallenge + "/verify")
-                .headers(headers("verify-2"))
-                .content(
-                    "{\"otp\":\""
-                        + dispatch.codes.get(withdrawChallenge)
-                        + "\",\"actorRole\":\"CUSTOMER_DEVICE\"}"))
-        .andExpect(status().isCreated())
-        .andExpect(jsonPath("$.recordedState").value("WITHDRAWN"))
-        .andExpect(jsonPath("$.recordVersion").value(2));
-
-    mvc.perform(get("/internal/v1/consent/grants/" + root).header("X-Actor-Id", "rm-1"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.records[0].recordedState").value("GRANTED"))
-        .andExpect(jsonPath("$.records[0].effectiveStatus").value("SUPERSEDED"))
-        .andExpect(jsonPath("$.records[1].recordedState").value("WITHDRAWN"))
-        .andExpect(jsonPath("$.records[1].effectiveStatus").value("WITHDRAWN"));
-
-    mvc.perform(
-            post("/internal/v1/consent/evaluations")
-                .header("X-Actor-Id", "rm-1")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(evaluateBody("cust-smoke", "CNS-DP", null, root)))
-        .andExpect(status().isForbidden())
-        .andExpect(jsonPath("$.code").value("JOURNEY_HALTED_CONSENT_WITHDRAWN"));
-
-    MvcResult regrant =
-        mvc.perform(
-                post("/internal/v1/consent/grants")
-                    .headers(headers("grant-2"))
-                    .content(grantBody)
-                    .with(this::ip))
-            .andExpect(status().isCreated())
-            .andReturn();
-    String reChallenge = json(regrant, "$.challenge.challengeId");
-    mvc.perform(
-            post("/internal/v1/consent/challenges/" + reChallenge + "/verify")
-                .headers(headers("verify-3"))
-                .content(
-                    "{\"otp\":\""
-                        + dispatch.codes.get(reChallenge)
-                        + "\",\"actorRole\":\"CUSTOMER_DEVICE\"}"))
-        .andExpect(status().isCreated())
-        .andExpect(jsonPath("$.recordVersion").value(3))
-        .andExpect(jsonPath("$.rootConsentId").value(root));
-
-    mvc.perform(
-            post("/internal/v1/consent/grants/" + root + "/retention")
-                .headers(headers("retain-1"))
-                .content("{\"terminalAt\":\"2024-02-29T00:00:00Z\"}"))
-        .andExpect(status().isCreated())
-        .andExpect(jsonPath("$.retainUntil").value("2031-02-28T00:00:00Z"));
-
-    assertThat(logs.list).isNotEmpty();
-    assertThat(logs.list)
-        .allSatisfy(
-            event -> {
-              assertThat(event.getFormattedMessage()).doesNotContain(CIF, IP, CONTACT);
-              assertThat(event.getFormattedMessage()).startsWith("otp dispatched challenge=");
-            });
+        .andExpect(jsonPath("$.satisfied").value(false))
+        .andExpect(jsonPath("$.captureBlocked").value(false))
+        .andExpect(jsonPath("$.missing[?(@.purpose=='CNS-DP')].reason").value("ABSENT"))
+        .andExpect(jsonPath("$.missing[?(@.purpose=='CNS-SOL')].reason").value("ABSENT"));
   }
 
   @Test
-  void refusals_coverBadInputIdempotencyDeviceIsolationAndTheIssueLock() throws Exception {
-    publish("CNS-DP");
-    String body = grantBody("cust-edge", "CNS-DP", null);
+  void atCns02_day90StillValidAndDay91Expired() throws Exception {
+    String customer = ulid();
+    grant(customer, "CNS-DP", "BEFORE_SUITABILITY", null);
+    grant(customer, "CNS-SOL", "BEFORE_SUITABILITY", null);
+    NOW.set(Instant.parse("2026-11-01T00:00:00Z").plus(90, ChronoUnit.DAYS));
+    mvc.perform(check(customer, "BEFORE_MULTI_QUOTE", null))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.valid[?(@.purpose=='CNS-DP')]").isNotEmpty())
+        .andExpect(jsonPath("$.valid[?(@.purpose=='CNS-SOL')]").isNotEmpty());
+    NOW.set(Instant.parse("2026-11-01T00:00:00Z").plus(91, ChronoUnit.DAYS));
+    mvc.perform(check(customer, "BEFORE_MULTI_QUOTE", null))
+        .andExpect(jsonPath("$.missing[?(@.purpose=='CNS-DP')].reason").value("EXPIRED"))
+        .andExpect(jsonPath("$.missing[?(@.purpose=='CNS-SOL')].reason").value("EXPIRED"));
+  }
+
+  @Test
+  void atCns03_combinedAcknowledgementIsRefused() throws Exception {
+    String customer = ulid();
     mvc.perform(
-            post("/internal/v1/consent/statements")
-                .header("X-Actor-Id", "rm-1")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(statement("CNS-DP", "Edge notice.")))
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.code").value("MISSING_IDEMPOTENCY_KEY"));
-    MvcResult created =
-        mvc.perform(
-                post("/internal/v1/consent/grants")
-                    .headers(headers("edge-grant"))
-                    .content(body)
-                    .with(this::ip))
-            .andExpect(status().isCreated())
-            .andReturn();
-    String challengeId = json(created, "$.challenge.challengeId");
-    mvc.perform(
-            post("/internal/v1/consent/grants")
-                .headers(headers("edge-grant"))
-                .content(body)
-                .with(this::ip))
-        .andExpect(status().isCreated())
-        .andExpect(jsonPath("$.challenge.challengeId").value(challengeId));
-    String conflict = body.replace("cust-edge", "cust-other");
-    mvc.perform(
-            post("/internal/v1/consent/grants")
-                .headers(headers("edge-grant"))
-                .content(conflict)
-                .with(this::ip))
+            capture(customer, java.util.List.of("CNS-DP", "CNS-SOL"), "BEFORE_SUITABILITY", null))
+        .andExpect(status().isUnprocessableEntity());
+    grant(customer, "CNS-DP", "BEFORE_SUITABILITY", null);
+    grant(customer, "CNS-SOL", "BEFORE_SUITABILITY", null);
+    mvc.perform(check(customer, "BEFORE_SUITABILITY", null))
+        .andExpect(jsonPath("$.satisfied").value(true));
+  }
+
+  @Test
+  void atCns04_relayedModeIsForbiddenAndCustomerDeviceGrants() throws Exception {
+    String customer = ulid();
+    MvcResult opened = open(customer, "CNS-DP", "BEFORE_SUITABILITY", null);
+    String challengeId =
+        json.readTree(opened.getResponse().getContentAsString()).path("challengeId").asText();
+    String txn = challenges.find(challengeId).orElseThrow().otpTxnId();
+    mvc.perform(verify(challengeId, txn, "000000", "RM_RELAYED")).andExpect(status().isForbidden());
+    mvc.perform(verify(challengeId, txn, readOtp(challengeId), "CUSTOMER_DEVICE"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.state").value("VERIFIED"));
+  }
+
+  @Test
+  void atCns05_draftStatementIsNotCaptured() throws Exception {
+    statements.setStatus("CNS-DP", "DRAFT");
+    String customer = ulid();
+    mvc.perform(check(customer, "BEFORE_SUITABILITY", null))
+        .andExpect(jsonPath("$.captureBlocked").value(true))
+        .andExpect(
+            jsonPath("$.missing[?(@.purpose=='CNS-DP')].reason").value("STATEMENT_NOT_APPROVED"));
+    mvc.perform(capture(customer, java.util.List.of("CNS-DP"), "BEFORE_SUITABILITY", null))
+        .andExpect(status().isForbidden());
+    assertThat(consents.chainIdsForCustomer(customer)).isEmpty();
+  }
+
+  @Test
+  void atCns06_attemptsLockAndExpiry() throws Exception {
+    String customer = ulid();
+    String challengeId = openId(customer, "CNS-COM", "BEFORE_FIRST_COMMUNICATION", null);
+    String txn = challenges.find(challengeId).orElseThrow().otpTxnId();
+    mvc.perform(verify(challengeId, txn, "000000", "CUSTOMER_DEVICE"))
+        .andExpect(status().isUnprocessableEntity())
+        .andExpect(jsonPath("$.errors[0].extensions.attemptsRemaining").value(2));
+    mvc.perform(verify(challengeId, txn, "000000", "CUSTOMER_DEVICE"));
+    mvc.perform(verify(challengeId, txn, "000000", "CUSTOMER_DEVICE"))
+        .andExpect(jsonPath("$.errors[0].extensions.attemptsRemaining").value(0));
+    mvc.perform(verify(challengeId, txn, "000000", "CUSTOMER_DEVICE"))
+        .andExpect(status().isTooManyRequests());
+    assertThat(challenges.find(challengeId).orElseThrow().state()).isEqualTo("LOCKED");
+
+    String expired = openId(customer, "CNS-DP", "BEFORE_SUITABILITY", null);
+    NOW.set(NOW.get().plus(11, ChronoUnit.MINUTES));
+    String expiredTxn = challenges.find(expired).orElseThrow().otpTxnId();
+    mvc.perform(verify(expired, expiredTxn, readOtp(expired), "CUSTOMER_DEVICE"))
         .andExpect(status().isConflict())
-        .andExpect(jsonPath("$.code").value("IDEMPOTENCY_CONFLICT"));
-    mvc.perform(
-            post("/internal/v1/consent/grants")
-                .headers(headers("edge-bad"))
-                .content(body.replace(CONTACT, "9876543210"))
-                .with(this::ip))
-        .andExpect(status().isUnprocessableEntity())
-        .andExpect(jsonPath("$.code").value("INVALID_REQUEST"));
-    mvc.perform(
-            post("/internal/v1/consent/grants")
-                .headers(headers("edge-diy"))
-                .content(body.replace("ASSISTED", "DIY"))
-                .with(this::ip))
-        .andExpect(status().isUnprocessableEntity());
-    mvc.perform(
-            post("/internal/v1/consent/grants")
-                .headers(headers("edge-rdr"))
-                .content(body.replace("CNS-DP", "CNS-RDR"))
-                .with(this::ip))
-        .andExpect(status().isUnprocessableEntity());
-    mvc.perform(
-            post("/internal/v1/consent/grants")
-                .headers(headers("edge-extra"))
-                .content(body.replace("}", ",\"extra\":\"no\"}"))
-                .with(this::ip))
-        .andExpect(status().isUnprocessableEntity());
-    mvc.perform(
-            post("/internal/v1/consent/grants")
-                .header("Idempotency-Key", "edge-rm")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(body))
-        .andExpect(status().isUnprocessableEntity())
-        .andExpect(jsonPath("$.code").value("INVALID_REQUEST"));
+        .andExpect(jsonPath("$.code").value("OTP_EXPIRED"));
+  }
 
-    mvc.perform(
-            post("/internal/v1/consent/challenges/" + challengeId + "/verify")
-                .headers(headers("edge-rm-verify"))
-                .content("{\"otp\":\"000000\",\"actorRole\":\"RM\"}"))
-        .andExpect(status().isForbidden())
-        .andExpect(jsonPath("$.code").value("CONSENT_DEVICE_ISOLATION"));
-    for (int attempt = 1; attempt <= 2; attempt++) {
-      mvc.perform(
-              post("/internal/v1/consent/challenges/" + challengeId + "/verify")
-                  .headers(headers("edge-miss-" + attempt))
-                  .content("{\"otp\":\"000000\",\"actorRole\":\"CUSTOMER_DEVICE\"}"))
-          .andExpect(status().isConflict())
-          .andExpect(jsonPath("$.code").value("CONSENT_OTP_NOT_VERIFIED"));
+  @Test
+  void atCns07_sixthIssueIsRefused() throws Exception {
+    String customer = ulid();
+    for (int i = 0; i < 5; i++) {
+      openId(customer, "CNS-DP", "BEFORE_SUITABILITY", null);
     }
-    mvc.perform(
-            post("/internal/v1/consent/challenges/" + challengeId + "/verify")
-                .headers(headers("edge-miss-3"))
-                .content("{\"otp\":\"000000\",\"actorRole\":\"CUSTOMER_DEVICE\"}"))
+    mvc.perform(capture(customer, java.util.List.of("CNS-DP"), "BEFORE_SUITABILITY", null))
         .andExpect(status().isTooManyRequests())
-        .andExpect(jsonPath("$.code").value("OTP_ATTEMPTS_EXCEEDED"));
-    mvc.perform(get("/internal/v1/consent/info"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.status").value("ACTIVE"));
+        .andExpect(jsonPath("$.code").value("OTP_ISSUE_RATE_EXCEEDED"));
   }
 
   @Test
-  void dispatchFailure_rollsTheChallengeBack() throws Exception {
-    publish("CNS-DP");
-    int before =
-        new JdbcTemplate(dataSource)
-            .queryForObject("select count(*) from otp_challenge", Integer.class);
-    dispatch.failNext();
-    mvc.perform(
-            post("/internal/v1/consent/grants")
-                .headers(headers("roll-1"))
-                .content(grantBody("cust-roll", "CNS-DP", null))
-                .with(this::ip))
-        .andExpect(status().isInternalServerError())
-        .andExpect(jsonPath("$.code").value("CONSENT_EVIDENCE_WRITE_FAILED"));
-    int after =
-        new JdbcTemplate(dataSource)
-            .queryForObject("select count(*) from otp_challenge", Integer.class);
-    assertThat(after).isEqualTo(before);
+  void atCns08_postgresRoleIsInsertSelectOnlyOnEvidence() {
+    assertThat(db.migration.V3__AppConsentGrants.EVIDENCE_GRANT)
+        .contains("INSERT, SELECT")
+        .doesNotContain("UPDATE")
+        .doesNotContain("DELETE");
+    assertThat(db.migration.V3__AppConsentGrants.CHALLENGE_GRANT).contains("UPDATE");
   }
 
   @Test
-  void communicationsAbsence_doesNotBlockAndAForeignCifIsASecurityEvent() throws Exception {
-    ListAppender<ILoggingEvent> security = attach(LoggingSecurityEventSink.class);
-    publish("CNS-COM");
+  void atCns09_newGrantSupersedesTheLiveChain() throws Exception {
+    String customer = ulid();
+    grant(customer, "CNS-DP", "BEFORE_SUITABILITY", null);
+    String first = consents.head(customer, "CNS-DP", null).orElseThrow().consentId();
+    grant(customer, "CNS-DP", "BEFORE_SUITABILITY", null);
+    var head = consents.head(customer, "CNS-DP", null).orElseThrow();
+    assertThat(head.consentId()).isNotEqualTo(first);
+    assertThat(head.supersedesConsentId()).isEqualTo(first);
+    assertThat(consents.headOf(first).orElseThrow().state()).isEqualTo("SUPERSEDED");
+  }
+
+  @Test
+  void atCns10_otherCustomerIsASecurityEvent() throws Exception {
+    String customer = ulid();
+    String consentId = grant(customer, "CNS-DP", "BEFORE_SUITABILITY", null);
     mvc.perform(
-            post("/internal/v1/consent/evaluations")
+            get("/internal/v1/consents/" + consentId)
                 .header("X-Actor-Id", "rm-1")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(evaluateBody("cust-com", "CNS-COM", null, null)))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.allowed").value(false))
-        .andExpect(jsonPath("$.journeyBlocked").value(false))
-        .andExpect(jsonPath("$.effect").value("SUPPRESS_OPTIONAL_COMMUNICATIONS"));
+                .param("customerId", ulid()))
+        .andExpect(status().isForbidden())
+        .andExpect(jsonPath("$.code").value("CONSENT_SUBJECT_MISMATCH"));
+  }
 
-    publish("CNS-SHR");
-    String shr = grantBody("cust-sec", "CNS-SHR", "ins-a");
-    MvcResult open =
+  @Test
+  void atCns11_withdrawalEventOmitsTheCodeReference() throws Exception {
+    String customer = ulid();
+    String consentId = grant(customer, "CNS-DP", "BEFORE_SUITABILITY", null);
+    MvcResult opened =
         mvc.perform(
-                post("/internal/v1/consent/grants")
-                    .headers(headers("sec-grant"))
-                    .content(shr)
-                    .with(this::ip))
-            .andExpect(status().isCreated())
-            .andReturn();
-    String challengeId = json(open, "$.challenge.challengeId");
-    MvcResult verified =
-        mvc.perform(
-                post("/internal/v1/consent/challenges/" + challengeId + "/verify")
-                    .headers(headers("sec-verify"))
-                    .content(
-                        "{\"otp\":\""
-                            + dispatch.codes.get(challengeId)
-                            + "\",\"actorRole\":\"CUSTOMER_DEVICE\"}"))
-            .andExpect(status().isCreated())
-            .andReturn();
-    String root = json(verified, "$.rootConsentId");
-    MvcResult mismatch =
-        mvc.perform(
-                post("/internal/v1/consent/evaluations")
-                    .header("X-Actor-Id", "rm-9")
+                post("/internal/v1/consents/" + consentId + "/withdrawals")
+                    .header("X-Actor-Id", "rm-1")
+                    .header("Idempotency-Key", "withdraw-" + consentId)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(
-                        evaluateBody("cust-other", "CNS-SHR", "ins-a", root)
-                            .replace(CIF, "CIF-OTHER")))
-            .andExpect(status().isForbidden())
-            .andExpect(jsonPath("$.code").value("CONSENT_SUBJECT_MISMATCH"))
+                    .content("{\"channel\":\"RM_ASSISTED\",\"reasonCode\":\"CUSTOMER_REQUEST\"}"))
+            .andExpect(status().isCreated())
             .andReturn();
-    assertThat(mismatch.getResponse().getContentAsString()).doesNotContain(CIF, "CIF-OTHER");
-    assertThat(security.list).isNotEmpty();
-    assertThat(security.list.get(0).getFormattedMessage())
-        .isEqualTo(
-            "security_event=CONSENT_SUBJECT_MISMATCH actor=rm-9 journey=journey-1 consent=" + root)
-        .doesNotContain(CIF);
-  }
-
-  private void publish(String id) throws Exception {
-    String text =
-        switch (id) {
-          case "CNS-COM" -> "Optional servicing messages.";
-          case "CNS-SHR" -> "Share data with one named insurer.";
-          default -> "We process data to prefill the proposal.";
-        };
+    String challengeId =
+        json.readTree(opened.getResponse().getContentAsString()).path("challengeId").asText();
     mvc.perform(
-            post("/internal/v1/consent/statements")
-                .headers(headers("pub-" + id))
-                .content(statement(id, text)))
+            verify(
+                challengeId,
+                challenges.find(challengeId).orElseThrow().otpTxnId(),
+                readOtp(challengeId),
+                "CUSTOMER_DEVICE"))
+        .andExpect(status().isOk());
+    String payload =
+        outbox.forAggregate(consentId).stream()
+            .filter(row -> "ConsentWithdrawn".equals(row.getEventType()))
+            .findFirst()
+            .orElseThrow()
+            .getPayload();
+    assertThat(payload).doesNotContain("otpTxnId").contains("CUSTOMER_REQUEST");
+  }
+
+  @Test
+  void atCns12_contactOutageWritesNothing() throws Exception {
+    contacts.setUnavailable(true);
+    String customer = ulid();
+    mvc.perform(capture(customer, java.util.List.of("CNS-DP"), "BEFORE_SUITABILITY", null))
+        .andExpect(status().isServiceUnavailable());
+    assertThat(consents.chainIdsForCustomer(customer)).isEmpty();
+  }
+
+  @Test
+  void atCns13_unknownCheckpointIsUnresolvable() throws Exception {
+    mvc.perform(check(ulid(), "NOT_A_CHECKPOINT", null))
+        .andExpect(status().isUnprocessableEntity())
+        .andExpect(jsonPath("$.code").value("CONFIGURATION_UNRESOLVABLE"));
+  }
+
+  @Test
+  void atCns14_sweepIsIdempotentAndCheckDoesNotNeedIt() throws Exception {
+    String customer = ulid();
+    grant(customer, "CNS-DP", "BEFORE_SUITABILITY", null);
+    NOW.set(Instant.parse("2026-11-01T00:00:00Z").plus(91, ChronoUnit.DAYS));
+    mvc.perform(check(customer, "BEFORE_SUITABILITY", null))
+        .andExpect(jsonPath("$.missing[?(@.purpose=='CNS-DP')].reason").value("EXPIRED"));
+    assertThat(service.sweep()).isPositive();
+    int second = service.sweep();
+    assertThat(second).isZero();
+  }
+
+  private String grant(String customer, String purpose, String checkpoint, String insurer)
+      throws Exception {
+    String challengeId = openId(customer, purpose, checkpoint, insurer);
+    String txn = challenges.find(challengeId).orElseThrow().otpTxnId();
+    MvcResult result =
+        mvc.perform(verify(challengeId, txn, readOtp(challengeId), "CUSTOMER_DEVICE"))
+            .andExpect(status().isOk())
+            .andReturn();
+    return json.readTree(result.getResponse().getContentAsString())
+        .path("consentIds")
+        .get(0)
+        .asText();
+  }
+
+  private String openId(String customer, String purpose, String checkpoint, String insurer)
+      throws Exception {
+    return json.readTree(
+            open(customer, purpose, checkpoint, insurer).getResponse().getContentAsString())
+        .path("challengeId")
+        .asText();
+  }
+
+  private MvcResult open(String customer, String purpose, String checkpoint, String insurer)
+      throws Exception {
+    return mvc.perform(capture(customer, java.util.List.of(purpose), checkpoint, insurer))
         .andExpect(status().isCreated())
-        .andExpect(jsonPath("$.textHash").exists());
+        .andReturn();
   }
 
-  private static String statement(String id, String text) {
-    return "{\"statementId\":\""
-        + id
-        + "\",\"version\":\"1.0\",\"text\":\""
-        + text
-        + "\",\"language\":\"en-IN\",\"changeClass\":\"MINOR\",\"classifiedBy\":\"legal\"}";
+  private org.springframework.test.web.servlet.RequestBuilder capture(
+      String customer, java.util.List<String> purposes, String checkpoint, String insurer)
+      throws Exception {
+    var body = new java.util.LinkedHashMap<String, Object>();
+    body.put("customerId", customer);
+    body.put("leadId", ulid());
+    body.put("journeyId", ulid());
+    body.put("lob", "LIFE");
+    body.put("checkpoint", checkpoint);
+    body.put("purposes", purposes);
+    body.put("channel", "RM_ASSISTED");
+    body.put("language", "en-IN");
+    if (insurer != null) {
+      body.put("insurerCode", insurer);
+    }
+    return post("/internal/v1/consents")
+        .header("X-Actor-Id", "rm-1")
+        .header("Idempotency-Key", "cap-" + ulid())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(json.writeValueAsString(body));
   }
 
-  private static String grantBody(String customerId, String code, String counterparty) {
-    String party = counterparty == null ? "" : ",\"counterpartyId\":\"" + counterparty + "\"";
-    return "{\"leadId\":\"lead-1\",\"journeyId\":\"journey-1\",\"customerId\":\""
-        + customerId
-        + "\",\"customerCif\":\""
-        + CIF
-        + "\",\"consentCode\":\""
-        + code
-        + "\",\"statementId\":\""
-        + code
-        + "\",\"statementVersion\":\"1.0\",\"language\":\"en-IN\",\"channel\":\"ASSISTED\","
-        + "\"registeredContactRef\":\""
-        + CONTACT
-        + "\",\"capturedByActorId\":\"rm-1\",\"capturedByAgentId\":\"agent-1\",\"lob\":\"LIFE\","
-        + "\"configVersionRef\":\"cfg-1\""
-        + party
-        + "}";
-  }
-
-  private static String evaluateBody(
-      String customerId, String code, String counterparty, String presented) {
-    String party = counterparty == null ? "" : ",\"counterpartyId\":\"" + counterparty + "\"";
-    String consent = presented == null ? "" : ",\"presentedConsentId\":\"" + presented + "\"";
-    return "{\"customerId\":\""
-        + customerId
-        + "\",\"consentCode\":\""
-        + code
-        + "\",\"currentStatementVersion\":\"1.0\",\"customerCif\":\""
-        + CIF
-        + "\",\"journeyId\":\"journey-1\""
-        + party
-        + consent
-        + "}";
-  }
-
-  private static org.springframework.http.HttpHeaders headers(String key) {
-    org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
-    headers.add("X-Actor-Id", "rm-1");
-    headers.add("Idempotency-Key", key);
-    headers.setContentType(MediaType.APPLICATION_JSON);
-    return headers;
-  }
-
-  private org.springframework.mock.web.MockHttpServletRequest ip(
-      org.springframework.mock.web.MockHttpServletRequest request) {
-    request.setRemoteAddr(IP);
+  private org.springframework.test.web.servlet.RequestBuilder check(
+      String customer, String checkpoint, String insurer) {
+    var request =
+        get("/internal/v1/consents:check")
+            .param("customerId", customer)
+            .param("checkpoint", checkpoint)
+            .param("lob", "LIFE");
+    if (insurer != null) {
+      request.param("insurerCode", insurer);
+    }
     return request;
   }
 
-  private static String json(MvcResult result, String path) throws Exception {
-    return com.jayway.jsonpath.JsonPath.read(result.getResponse().getContentAsString(), path);
+  private org.springframework.test.web.servlet.RequestBuilder verify(
+      String challengeId, String txn, String otp, String mode) throws Exception {
+    return post("/internal/v1/consent-challenges/" + challengeId + "/verify")
+        .header("X-Actor-Id", "rm-1")
+        .header("Idempotency-Key", "ver-" + ulid())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(
+            json.writeValueAsString(
+                Map.of(
+                    "otpTxnId",
+                    txn,
+                    "otp",
+                    otp,
+                    "verificationMode",
+                    mode,
+                    "sourceIp",
+                    "203.0.113.10",
+                    "affirmations",
+                    java.util.List.of(affirmation(challengeId)))));
   }
 
-  private static ListAppender<ILoggingEvent> attach(Class<?> type) {
-    Logger logger = (Logger) LoggerFactory.getLogger(type);
-    ListAppender<ILoggingEvent> appender = new ListAppender<>();
-    appender.start();
-    logger.addAppender(appender);
-    return appender;
+  private Map<String, String> affirmation(String challengeId) throws Exception {
+    var refs = json.readTree(challenges.find(challengeId).orElseThrow().statementRefs());
+    var first = refs.get(0);
+    return Map.of(
+        "purpose",
+        first.path("purpose").asText(),
+        "statementId",
+        first.path("statementId").asText(),
+        "statementVersion",
+        first.path("statementVersion").asText(),
+        "affirmedAt",
+        NOW.get().toString());
+  }
+
+  private String readOtp(String challengeId) {
+    String hash = challenges.find(challengeId).orElseThrow().otpHash();
+    for (int i = 0; i <= 999999; i++) {
+      String candidate = String.format("%06d", i);
+      if (new com.bank.platform.consent.adapter.crypto.HmacOtpHasher("local-otp-pepper")
+          .matches(candidate, hash)) {
+        return candidate;
+      }
+    }
+    throw new IllegalStateException("code not found");
+  }
+
+  private static String ulid() {
+    return Ulids.mint(Clock.fixed(NOW.get(), ZoneOffset.UTC));
   }
 
   @TestConfiguration
-  static class DispatchConfig {
+  static class ClockConfig {
     @Bean
     @Primary
-    CapturingOtpDispatch capturingOtpDispatch() {
-      return new CapturingOtpDispatch();
-    }
-  }
+    Clock clock() {
+      return new Clock() {
+        @Override
+        public ZoneId getZone() {
+          return ZoneOffset.UTC;
+        }
 
-  static final class CapturingOtpDispatch implements OtpDispatch {
-    private static final org.slf4j.Logger log = LoggerFactory.getLogger(CapturingOtpDispatch.class);
-    final Map<String, String> codes = new ConcurrentHashMap<>();
-    private final AtomicBoolean fail = new AtomicBoolean();
+        @Override
+        public Clock withZone(ZoneId zone) {
+          return this;
+        }
 
-    void failNext() {
-      fail.set(true);
-    }
-
-    void reset() {
-      fail.set(false);
-    }
-
-    @Override
-    public void send(String challengeId, byte[] registeredContactRefEnc, String otp) {
-      Objects.requireNonNull(registeredContactRefEnc, "contact reference");
-      Objects.requireNonNull(otp, "otp");
-      if (fail.compareAndSet(true, false)) {
-        throw new IllegalStateException("dispatch unavailable");
-      }
-      codes.put(challengeId, otp);
-      log.info("otp dispatched challenge={}", challengeId);
+        @Override
+        public Instant instant() {
+          return NOW.get();
+        }
+      };
     }
   }
 }

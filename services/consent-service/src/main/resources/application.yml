@@ -18,6 +18,7 @@ spring:
     open-in-view: false
     properties:
       hibernate:
+        default_schema: consent
         jdbc:
           time_zone: UTC
   flyway:

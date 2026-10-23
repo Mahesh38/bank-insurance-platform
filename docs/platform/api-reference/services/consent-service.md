@@ -10,19 +10,25 @@
 | **Callers** | Journey (S-06, 2 s, fail closed) via BFF `consent/challenge` and `consent/verify` · Proposal (gate read at submit) |
 | **Calls out** | administration-config (statement text + version per purpose, S-21) · notification-service (OTP to the **customer's** registered contact) or an OTP gateway |
 | **Owns data** | Aurora schema **`consent`** · role `app_consent` · INSERT-only evidence |
-| **Code status** | **SKELETON**. Endpoints CONTRACTED (HLD §5.3: `POST /consents`, `POST …/{id}/verify`, `GET …/{id}`); bodies **PROPOSED** from the domain model and DDL |
+| **Code status** | **IMPLEMENTED** for the eight OpenAPI operations. administration-config, customer-service and the OTP provider are stubs. GAP-006 stays open |
 | **Contract** | [`contracts/consent-service/openapi.yaml`](../../contracts/consent-service/openapi.yaml) + [LLD](../../contracts/consent-service/LLD.md) — authoritative (ADR-027), supersedes §1–§4 below. **D5 (2026-10-21):** consent is checked/captured **after suitability, before multi-quote** via `GET /internal/v1/consents:check?customerId&checkpoint`; purposes and validity (90 days default) come from rule set `CONSENT.POLICY`; one row per purpose, append-only (withdrawal = new row); bound to `customerId` (ULID), no CIF. Compliance (Shailja) must confirm the DPDP position and CNS-R13 (RM-relayed OTP) |
 
 ---
 
 ## 1. API index
 
-| Method | Path | Status | Caller | Purpose |
-|---|---|---|---|---|
-| `POST` | `/internal/v1/consents` | CONTRACTED · body PROPOSED | Journey | Create grant in `REQUESTED`, send OTP → `OTP_PENDING` |
-| `POST` | `/internal/v1/consents/{consentId}/verify` | CONTRACTED · body PROPOSED | Journey | Bind verified `otpTxnId` → `GRANTED` |
-| `GET` | `/internal/v1/consents/{consentId}` | CONTRACTED | Journey, Proposal | State, purposes, validity (no contact data) |
-| `POST` | `/internal/v1/consents/{consentId}/withdraw` | PROPOSED | BFF / ops | `GRANTED` → `WITHDRAWN` with actor + reason |
+The OpenAPI and the LLD supersede the shapes in §2–§4. The operations the service implements are:
+
+| Method | Path | Status | Purpose |
+|---|---|---|---|
+| `GET` | `/internal/v1/consents:check` | IMPLEMENTED | Purposes a checkpoint still needs |
+| `POST` | `/internal/v1/consents` | IMPLEMENTED | One challenge and one OTP for the missing purposes |
+| `GET` | `/internal/v1/consents` | IMPLEMENTED | Chains by customer or journey |
+| `GET` | `/internal/v1/consent-challenges/{challengeId}` | IMPLEMENTED | Pending or verified status |
+| `POST` | `/internal/v1/consent-challenges/{challengeId}/verify` | IMPLEMENTED | Customer-device OTP writes the evidence rows |
+| `POST` | `/internal/v1/consent-challenges/{challengeId}/otp:resend` | IMPLEMENTED | Fresh OTP inside the issue cap |
+| `GET` | `/internal/v1/consents/{consentId}` | IMPLEMENTED | Head of one chain |
+| `POST` | `/internal/v1/consents/{consentId}/withdrawals` | IMPLEMENTED | Withdrawal challenge |
 
 ---
 

@@ -1,110 +1,123 @@
--- Consent evidence, statements, OTP challenges, idempotency and retention.
--- This database is owned only by consent-service, so the tables are not schema-qualified.
--- Evidence is insert-only at the application boundary. OTP rows are operational and may advance.
--- BYTEA is used for ciphertext (H2 PostgreSQL mode and Aurora). VARCHAR lengths suit Hibernate validate.
+-- Physical model for the consent contract (LLD §6). VARCHAR stands in for CHAR/JSONB/INET
+-- so the same script runs on H2 (MODE=PostgreSQL) and PostgreSQL. Grants are V3, PostgreSQL only.
+-- Evidence rows are insert-only in the application. The challenge is the only updated table.
 
-CREATE TABLE published_statement (
-    statement_id    VARCHAR(64)  NOT NULL,
-    version         VARCHAR(16)  NOT NULL,
-    language        VARCHAR(8)   NOT NULL,
-    statement_text  VARCHAR(8000) NOT NULL,
-    text_hash       VARCHAR(64)  NOT NULL,
-    change_class    VARCHAR(8)   NOT NULL,
-    classified_by   VARCHAR(64)  NOT NULL,
-    published_at    TIMESTAMP WITH TIME ZONE NOT NULL,
-    PRIMARY KEY (statement_id, version, language)
-);
+CREATE SCHEMA IF NOT EXISTS consent;
 
-CREATE TABLE consent_evidence (
-    evidence_id              VARCHAR(26)  NOT NULL PRIMARY KEY,
-    root_consent_id          VARCHAR(26)  NOT NULL,
+CREATE TABLE consent.consent_record (
+    consent_id               VARCHAR(26)  NOT NULL,
     record_version           INTEGER      NOT NULL,
-    supersedes_evidence_id   VARCHAR(26),
-    customer_id              VARCHAR(64)  NOT NULL,
-    consent_code             VARCHAR(16)  NOT NULL,
-    recorded_state           VARCHAR(16)  NOT NULL,
+    customer_id              VARCHAR(26)  NOT NULL,
+    lead_id                  VARCHAR(26),
+    journey_id               VARCHAR(26),
+    lob                      VARCHAR(16)  NOT NULL,
+    purpose                  VARCHAR(16)  NOT NULL,
+    scope_insurer_code       VARCHAR(32),
+    statement_id             VARCHAR(64)  NOT NULL,
+    statement_version        VARCHAR(32)  NOT NULL,
+    statement_text           VARCHAR(4000) NOT NULL,
+    statement_text_hash      VARCHAR(64)  NOT NULL,
+    language                 VARCHAR(8)   NOT NULL,
+    channel                  VARCHAR(24)  NOT NULL,
+    acknowledgement_method   VARCHAR(40)  NOT NULL,
+    checkpoint               VARCHAR(48)  NOT NULL,
+    state                    VARCHAR(20)  NOT NULL,
+    captured_at              TIMESTAMP WITH TIME ZONE NOT NULL,
+    otp_verified_at          TIMESTAMP WITH TIME ZONE NOT NULL,
+    otp_txn_id               VARCHAR(64)  NOT NULL,
+    source_ip                VARCHAR(64)  NOT NULL,
+    contact_used_enc         BYTEA        NOT NULL,
+    encryption_key_id        VARCHAR(50)  NOT NULL,
+    captured_by_actor_id     VARCHAR(64)  NOT NULL,
     valid_from               TIMESTAMP WITH TIME ZONE NOT NULL,
     valid_until              TIMESTAMP WITH TIME ZONE,
-    counterparty_id          VARCHAR(64),
-    statement_id             VARCHAR(64)  NOT NULL,
-    statement_version        VARCHAR(16)  NOT NULL,
-    statement_text           VARCHAR(8000) NOT NULL,
-    statement_text_hash      VARCHAR(64)  NOT NULL,
-    language                 VARCHAR(8)   NOT NULL,
-    cif_enc                  BYTEA        NOT NULL,
-    encryption_key_id        VARCHAR(64)  NOT NULL,
-    contact_ref_enc          BYTEA        NOT NULL,
-    lead_id                  VARCHAR(64)  NOT NULL,
-    journey_id               VARCHAR(64)  NOT NULL,
-    channel                  VARCHAR(16)  NOT NULL,
-    otp_transaction_id       VARCHAR(26)  NOT NULL,
-    otp_verified_at          TIMESTAMP WITH TIME ZONE NOT NULL,
-    captured_at              TIMESTAMP WITH TIME ZONE NOT NULL,
-    source_ip                VARCHAR(64),
-    captured_by_actor_id     VARCHAR(64)  NOT NULL,
-    captured_by_agent_id     VARCHAR(64),
-    distributor_id           VARCHAR(64)  NOT NULL,
-    lob                      VARCHAR(16)  NOT NULL,
-    config_version_ref       VARCHAR(64)  NOT NULL,
-    withdrawal_reason_code   VARCHAR(64),
-    ops_task_hint            VARCHAR(80),
-    acknowledgement_method   VARCHAR(40)  NOT NULL,
-    CONSTRAINT uq_consent_chain UNIQUE (root_consent_id, record_version),
+    supersedes_consent_id    VARCHAR(26),
+    withdrawn_at             TIMESTAMP WITH TIME ZONE,
+    withdrawn_by             VARCHAR(64),
+    withdrawal_channel       VARCHAR(24),
+    withdrawal_reason_code   VARCHAR(40),
+    withdrawal_otp_txn_id    VARCHAR(64),
+    config_version_ref       VARCHAR(128) NOT NULL,
+    created_at               TIMESTAMP WITH TIME ZONE NOT NULL,
+    CONSTRAINT pk_consent_record PRIMARY KEY (consent_id, record_version),
+    CONSTRAINT ck_consent_state CHECK (state IN ('GRANTED', 'WITHDRAWN', 'EXPIRED', 'SUPERSEDED')),
+    CONSTRAINT ck_consent_purpose CHECK (purpose IN ('CNS-DP', 'CNS-SOL', 'CNS-QSH', 'CNS-SHR', 'CNS-COM')),
     CONSTRAINT ck_consent_lob CHECK (lob IN ('LIFE', 'HEALTH', 'GENERAL')),
-    CONSTRAINT ck_consent_recorded CHECK (recorded_state IN ('GRANTED', 'WITHDRAWN')),
-    CONSTRAINT ck_consent_id_len CHECK (CHAR_LENGTH(evidence_id) = 26 AND CHAR_LENGTH(root_consent_id) = 26)
+    CONSTRAINT ck_consent_channel CHECK (channel IN ('RM_ASSISTED', 'SELF_SERVICE', 'HYBRID')),
+    CONSTRAINT ck_consent_scope CHECK (
+        (purpose <> 'CNS-SHR' AND scope_insurer_code IS NULL)
+        OR (purpose = 'CNS-SHR' AND scope_insurer_code IS NOT NULL))
 );
 
-CREATE INDEX ix_consent_customer ON consent_evidence (customer_id, consent_code);
-CREATE INDEX ix_consent_journey ON consent_evidence (journey_id);
-CREATE INDEX ix_consent_root ON consent_evidence (root_consent_id, record_version);
+CREATE INDEX ix_consent_customer_purpose
+    ON consent.consent_record (customer_id, purpose, scope_insurer_code, record_version);
+CREATE INDEX ix_consent_journey ON consent.consent_record (journey_id);
 
-CREATE TABLE otp_challenge (
-    challenge_id             VARCHAR(26)  NOT NULL PRIMARY KEY,
-    purpose                  VARCHAR(16)  NOT NULL,
-    root_consent_id          VARCHAR(26)  NOT NULL,
-    customer_id              VARCHAR(64)  NOT NULL,
-    consent_code             VARCHAR(16)  NOT NULL,
-    otp_hash                 VARCHAR(64)  NOT NULL,
-    expires_at               TIMESTAMP WITH TIME ZONE NOT NULL,
-    attempts                 INTEGER      NOT NULL,
-    status                   VARCHAR(16)  NOT NULL,
-    cif_enc                  BYTEA        NOT NULL,
-    encryption_key_id        VARCHAR(64)  NOT NULL,
-    contact_ref_enc          BYTEA        NOT NULL,
-    lead_id                  VARCHAR(64),
-    journey_id               VARCHAR(64),
-    statement_id             VARCHAR(64)  NOT NULL,
-    statement_version        VARCHAR(16)  NOT NULL,
-    statement_text           VARCHAR(8000) NOT NULL,
-    statement_text_hash      VARCHAR(64)  NOT NULL,
-    language                 VARCHAR(8)   NOT NULL,
-    channel                  VARCHAR(16)  NOT NULL,
-    captured_by_actor_id     VARCHAR(64),
-    captured_by_agent_id     VARCHAR(64),
-    distributor_id           VARCHAR(64)  NOT NULL,
-    counterparty_id          VARCHAR(64),
-    lob                      VARCHAR(16)  NOT NULL,
-    config_version_ref       VARCHAR(64),
-    withdrawal_reason_code   VARCHAR(64),
-    proposal_submitted       BOOLEAN      NOT NULL,
-    source_ip                VARCHAR(64),
-    created_at               TIMESTAMP WITH TIME ZONE NOT NULL
+CREATE TABLE consent.consent_challenge (
+    challenge_id        VARCHAR(26)  NOT NULL PRIMARY KEY,
+    kind                VARCHAR(16)  NOT NULL,
+    state               VARCHAR(16)  NOT NULL,
+    attempts            INTEGER      NOT NULL,
+    otp_issue_count     INTEGER      NOT NULL,
+    otp_expires_at      TIMESTAMP WITH TIME ZONE NOT NULL,
+    otp_txn_id          VARCHAR(64)  NOT NULL,
+    otp_hash            VARCHAR(128) NOT NULL,
+    purposes            VARCHAR(80)  NOT NULL,
+    statement_refs      VARCHAR(4000) NOT NULL,
+    contact_used_enc    BYTEA        NOT NULL,
+    encryption_key_id   VARCHAR(50)  NOT NULL,
+    customer_id         VARCHAR(26)  NOT NULL,
+    journey_id          VARCHAR(26),
+    lead_id             VARCHAR(26),
+    lob                 VARCHAR(16)  NOT NULL,
+    checkpoint          VARCHAR(48)  NOT NULL,
+    insurer_code        VARCHAR(32),
+    channel             VARCHAR(24)  NOT NULL,
+    language            VARCHAR(8)   NOT NULL,
+    target_consent_id   VARCHAR(26),
+    actor_id            VARCHAR(64)  NOT NULL,
+    config_version_ref  VARCHAR(128) NOT NULL,
+    created_at          TIMESTAMP WITH TIME ZONE NOT NULL,
+    CONSTRAINT ck_challenge_kind CHECK (kind IN ('CAPTURE', 'WITHDRAWAL')),
+    CONSTRAINT ck_challenge_state CHECK (state IN ('OTP_PENDING', 'LOCKED', 'VERIFIED', 'ABANDONED'))
 );
 
-CREATE INDEX ix_otp_issue ON otp_challenge (customer_id, consent_code, created_at);
+CREATE INDEX ix_challenge_customer ON consent.consent_challenge (customer_id, created_at);
 
-CREATE TABLE idempotency_record (
-    idempotency_key VARCHAR(200) NOT NULL PRIMARY KEY,
-    request_hash    VARCHAR(64)  NOT NULL,
-    http_status     INTEGER      NOT NULL,
-    response_body   VARCHAR(8000) NOT NULL,
-    expires_at      TIMESTAMP WITH TIME ZONE NOT NULL
+CREATE TABLE consent.otp_issue (
+    issue_id      VARCHAR(26) NOT NULL PRIMARY KEY,
+    customer_id   VARCHAR(26) NOT NULL,
+    purpose       VARCHAR(16) NOT NULL,
+    issued_at     TIMESTAMP WITH TIME ZONE NOT NULL
 );
 
-CREATE TABLE retention_anchor (
-    root_consent_id VARCHAR(26) NOT NULL PRIMARY KEY,
-    terminal_at     TIMESTAMP WITH TIME ZONE NOT NULL,
-    retain_until    TIMESTAMP WITH TIME ZONE NOT NULL,
-    anchored_at     TIMESTAMP WITH TIME ZONE NOT NULL
+CREATE INDEX ix_otp_issue_window ON consent.otp_issue (customer_id, purpose, issued_at);
+
+CREATE TABLE consent.idempotency_record (
+    idempotency_key  VARCHAR(128) NOT NULL PRIMARY KEY,
+    request_hash     VARCHAR(64)  NOT NULL,
+    http_status      INTEGER      NOT NULL,
+    response_body    VARCHAR(8000) NOT NULL,
+    created_at       TIMESTAMP WITH TIME ZONE NOT NULL,
+    expires_at       TIMESTAMP WITH TIME ZONE NOT NULL
+);
+
+CREATE TABLE consent.outbox_event (
+    outbox_id        VARCHAR(26)  NOT NULL PRIMARY KEY,
+    aggregate_type   VARCHAR(64)  NOT NULL,
+    aggregate_id     VARCHAR(64)  NOT NULL,
+    event_type       VARCHAR(96)  NOT NULL,
+    schema_version   SMALLINT     NOT NULL DEFAULT 1,
+    payload          VARCHAR(8000) NOT NULL,
+    created_at       TIMESTAMP WITH TIME ZONE NOT NULL,
+    published_at     TIMESTAMP WITH TIME ZONE,
+    attempts         INTEGER      NOT NULL DEFAULT 0,
+    last_error       VARCHAR(1000),
+    parked_at        TIMESTAMP WITH TIME ZONE
+);
+
+CREATE TABLE consent.processed_event (
+    event_id     VARCHAR(26) NOT NULL PRIMARY KEY,
+    event_type   VARCHAR(96) NOT NULL,
+    processed_at TIMESTAMP WITH TIME ZONE NOT NULL
 );

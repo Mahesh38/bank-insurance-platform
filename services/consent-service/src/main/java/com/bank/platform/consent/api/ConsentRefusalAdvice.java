@@ -1,11 +1,14 @@
 package com.bank.platform.consent.api;
 
 import com.bank.common.error.PlatformErrorHandler;
+import com.bank.common.error.ServiceError;
 import com.bank.common.error.ServiceErrorResponse;
 import com.bank.common.error.ServiceErrors;
 import com.bank.common.error.ServiceException;
 import com.bank.platform.consent.domain.ConsentRefusal;
 import com.bank.platform.consent.domain.SensitiveText;
+import java.util.List;
+import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -24,12 +27,21 @@ public class ConsentRefusalAdvice {
 
   @ExceptionHandler(ConsentRefusal.class)
   public ResponseEntity<ServiceErrorResponse> handle(ConsentRefusal refusal) {
-    ServiceException mapped =
+    var builder =
         errors
             .error(refusal.code())
             .component("Consent")
-            .reason(SensitiveText.scrub(refusal.getMessage()))
-            .build();
+            .reason(SensitiveText.scrub(refusal.getMessage()));
+    if (refusal.attemptsRemaining() != null) {
+      builder.errors(
+          List.of(
+              new ServiceError(
+                  refusal.code(),
+                  "attempts remaining",
+                  "otp",
+                  Map.of("attemptsRemaining", refusal.attemptsRemaining()))));
+    }
+    ServiceException mapped = builder.build();
     return handler.handleServiceException(mapped);
   }
 }

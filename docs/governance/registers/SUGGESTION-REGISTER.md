@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20261022-sse | 2026-10-22 | scan:trivy | Time-box `.trivyignore` for CVE-2026-47890 (SSE + view fragments unused; no OSS 6.2 patch) so SCA/image scans can merge on PR #150; not a T4 waiver | SF0 | SC1 | MUST | SEC | P1 / P1 | ADMIT-BYPASS | [.trivyignore](../../../.trivyignore) · [RISK-022](./RISK-REGISTER.md) · [detail](#sug-20261022-sse--time-box-cve-2026-47890) |
 | SUG-20261022-rdy | 2026-10-22 | human:repository-owner | Build readiness for all 21 services: payment after UW approval; ADR-026 + hub/notification/audit schemas accepted; admin-created partner users; bank-only exception approvals; every business value configurable per line of business; strict compliance posture; finish all remaining code; per-service build briefs so 21 agents can build in parallel | SF2 | SC0 | MUST | ARCH | P1 / P1 | ADMIT-BYPASS | [round 2 decisions](../../platform/architecture-review/DECISIONS-2026-10-22.md) · [detail](#sug-20261022-rdy--build-readiness-for-all-21-services) |
 | SUG-20261021-rul | 2026-10-21 | human:repository-owner | Close the design gaps behind the S11 gate: configuration-driven rule engine (precedence, reason codes, thresholds on the fly), decisions D1–D9, missing OpenAPI + LLD contracts, event specification, review fixes; prepare GAP-006/007 for Compliance signature | SF2 | SC0 | MUST | ARCH | P1 / P1 | ADMIT-BYPASS | [decisions](../../platform/architecture-review/DECISIONS-2026-10-21.md) · [ADR-024](../../platform/architecture-review/ADR-024-configuration-driven-rule-engine.md) · [sign-off packet](../../au-bank-insurance-platform/rule-packs/SIGNOFF-PACKET-GAP-006-007.md) · [detail](#sug-20261021-rul--configuration-driven-rule-engine-and-the-nine-open-decisions) |
 | SUG-20261021-lft | 2026-10-21 | human:repository-owner | Build the "code left for later": domain services re-check the PDP; BFF per-seam timeouts (2 s target); lead assignment history, meetings, follow-ups, idempotency and outbox tables; DynamoDB code in quotation and proposal services | SF2 | SC0 | MUST | BUG | P2 / P1 | ADMIT-BYPASS | [lead-service](../../platform/api-reference/services/lead-service.md) · [budgets](../../platform/api-reference/conventions/idempotency-timeouts-retries.md) · [detail](#sug-20261021-lft--build-the-code-left-for-later) |
@@ -160,6 +161,36 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20261022-sse · Time-box CVE-2026-47890
+
+```yaml
+id: SUG-20261022-sse
+raised_at: "2026-10-22"
+raised_by: "scan:trivy"
+source: "PR #150 Security Scanning — SCA and container image jobs"
+input: >
+  CVE-2026-47890 on spring-webmvc 6.2.19 (SSE + view-fragment stream corruption). Trivy fails
+  CRITICAL because the only public OSS fix is 7.0.9 (Boot 4). Same fix-line as RISK-021 /
+  CVE-2026-47884. No service uses SseEmitter, TEXT_EVENT_STREAM or view fragments.
+stage_fit: { code: SF0, rationale: "GATE-S08 S08-G5 scan hygiene; same class as SUG-20261008-xsl" }
+scope: { code: SC1, serves: "S08-G5 dependency and image scanning" }
+necessity: { now: MUST, future_necessity: MUST, target_stage: "S08", evidence_tier: E2, confidence: C4 }
+action: ADMIT-BYPASS
+bypass_authorised_by: "Mahesh / repository_owner (explicit: complete PR #150)"
+reviewer_type: HUMAN
+authority: repository_owner
+action_rationale: >
+  Mirror RISK-021 pattern. Boot 4 stays parked (SUG-20261008-sb4). Time-boxed ignore until
+  2026-11-08; not a T4 Deepali signature. Reachability: rg finds no SSE usage in services.
+classification: { type: SEC, also: [INFRA], breakdown: TASK, risk_tier: T2 }
+priority: { now: P1, at_target: P1 }
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md · registers/RISK-REGISTER.md RISK-022 · .trivyignore"
+  work_item_id: SUG-20261022-sse
+  status: ADMIT-BYPASS
+resumed: "PR #150 completion — CodeQL, gitleaks, Knowledge Hub, review comments."
+```
 
 ### SUG-20261022-rdy · Build readiness for all 21 services
 

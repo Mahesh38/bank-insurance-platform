@@ -104,7 +104,7 @@ production); builders keep working around them with fail-closed behaviour and st
 | BFF has no routes for the sale journey | Contract | BFF, journey (RM app) | Mahesh |
 | Consent statements and notification templates: wording unapproved (C7) and storage not contracted | Content / contract | consent, notification | Shailja; Mahesh |
 | Customer-device OTP confirmation surface not designed (C2) | Design | consent, suitability acknowledgements | Mahesh + Rajal |
-| Rule-set seeds missing: `LEAD.POLICY`, `CUSTOMER.POLICY` (E7 values decided), `JOURNEY.POLICY` (values unset), `CATALOGUE.ELIGIBILITY`, `AUDIT.SOLD.COMPLETENESS`, `NOTIFICATION.TEMPLATES`, quote validity, proposal issuance mode | Configuration | lead, customer, journey, catalogue, audit, notification, quotation, proposal | Rule-engine owner; content approvers |
+| Rule-set seeds still missing: `JOURNEY.POLICY` (values unset), `CATALOGUE.ELIGIBILITY`, `AUDIT.SOLD.COMPLETENESS`, `NOTIFICATION.TEMPLATES`, quote validity, proposal issuance mode (`LEAD.POLICY` / `CUSTOMER.POLICY` / suitability / consent / hub / TAT / exception seeds are present under `libs/bank-rule-engine`) | Configuration | journey, catalogue, audit, notification, quotation, proposal | Rule-engine owner; content approvers |
 | Insurer-decision TAT owner under E1 + C4 (clock runs before payment) | Design | proposal, policy-issuance | Mahesh, Shailja |
 | 1SB status callback availability (else polling at 4 h) | External | policy-issuance | Mahesh, 1SB |
 | AU Bank PG contract (S10), CBS inquiry API, SMS / email gateway, AD-verify prod endpoint | External (bank) | payment, customer, notification, idp-adapter | Bank |
@@ -117,7 +117,7 @@ production); builders keep working around them with fail-closed behaviour and st
 | Gap | Where | Owner |
 |---|---|---|
 | Events named by LLDs but absent from the catalogue: `RuleSetPublished`, `CustomerSearched`/`Resolved`/`SnapshotTaken`, `ConsentExpired`, `SuitabilityGateRefused`/`DisclosureAcknowledged`/`Expired`/`Invalidated`/`Superseded`, `JourneyStarted`/`StageChanged`/`Halted`/`Abandoned`, `QuoteExpired`, `ProposalBlockedNoConsent`/`Expired`/`StatusChanged`, `PaymentUncertain`/`Rejected`/`RefundInitiated`/`Refunded`, `IssuanceTrackingStarted`, `PolicyClosed`, `ProductVersionPublished`, `NotificationSent`/`Failed` | Producer LLDs vs [catalogue](./events/CATALOGUE.md) | Events catalogue owner |
-| Error codes named by contracts that may not be registered yet: `SUITABILITY_INCOMPLETE`, `JOURNEY_HALTED_CONSENT_WITHDRAWN`, `ISSUANCE_MODE_INVALID`, `OTP_EXPIRED`, `OTP_ATTEMPTS_EXCEEDED`, `OTP_ISSUE_RATE_EXCEEDED`, `CONSENT_SUBJECT_MISMATCH` | consent, suitability, journey, proposal | bank-common-error owner |
+| Error codes named by contracts — **registered** in `bank-common-error` (`SUITABILITY_INCOMPLETE`, `JOURNEY_HALTED_CONSENT_WITHDRAWN`, `ISSUANCE_MODE_INVALID`, `OTP_*`, `CONSENT_SUBJECT_MISMATCH`); keep catalogue and OpenAPI in lockstep when adding more | consent, suitability, journey, proposal | bank-common-error owner |
 | LLDs still written to round 1 (D5 consent timing, ADR-026 "proposed", TAT start at payment) | consent, journey, suitability, audit, policy LLDs | Contract owners |
 | PDP action catalogue for the new services | identity-authorization | Deepali |
 | `OpenApiConformance` shared test helper (ADR-027 §3) | `libs/bank-common-test` | Amit |

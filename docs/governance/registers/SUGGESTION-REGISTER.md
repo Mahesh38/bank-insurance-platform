@@ -183,7 +183,6 @@ context:
   state_as_of: "2026-09-30"
   state_provisional: false
   active_work_item: SUG-20261023-l31
-  freshness: "FreshnessCheck exit 1. state_as_of is 23 days old. review_due 2026-10-28 still open. Disclosed. Work admitted."
 
 stage_fit:
   code: SF1
@@ -204,20 +203,28 @@ necessity:
   future_necessity: MUST
   target_stage: "WS-2 Phase 1"
   binds_when: "Any further login specification or BFF work"
+  failure_without_it: "The repository would keep telling builders that Forgot Password is forbidden and that passwords are 8 to 20 characters."
   evidence_tier: E2
   confidence: C4
-  assumptions:
+  evidence:
     - "The pasted v3.1 text, including its as-designed sentences, is the document the owner accepted."
+  assumptions: []
   anti_over_engineering:
     X1_named_consumer: true
     X3_cheap_later: true
     X5_stage_necessity: true
 
-action: ADMITTED
+action: ADMIT
 action_rationale: >
   On-stage documentation correction of the login behaviour source. The owner
   directed the update. Recommendation and execution are both ADMIT. Runtime
-  auth changes stay on SUG-20261008-otp.
+  auth changes stay on SUG-20261008-otp. FreshnessCheck exit 1: state_as_of
+  is 23 days old and review_due 2026-10-28 is still open. Disclosed. Work
+  admitted. No Security board reviewed this auth-behaviour text change. At
+  the time of this record the running BFF still implemented IAM-001 only, so
+  the new strings were not yet on a request path. Product behaviour is the
+  owner's accepted text. No T4 signature is claimed. The triage reviewer is
+  an agent.
 
 classification:
   type: DOC
@@ -239,9 +246,9 @@ priority:
 
 dependencies:
   edges:
-    - type: DOCUMENT
+    - type: DECISION
       target: SUG-20261008-otp
-      relation: informs
+      relation: related_to
       state: PARKED
   state: READY
   enablement_count: 0
@@ -266,10 +273,7 @@ outcome:
   status: ADMITTED
   closed_reason: null
 
-resumed: "SUG-20261008-otp remains parked."
-risk_retained: "No Security board reviewed this auth-behaviour text change. The running BFF still implements IAM-001 only, so the new strings are not yet on a request path."
-reviewer_type: AGENT
-boards: "Product behaviour recorded as the owner's accepted text. No T4 signature is claimed."
+resumed: "SUG-20261008-otp remains parked. No T4 signature is claimed."
 ```
 
 ### SUG-20261022-sse · Time-box CVE-2026-47890

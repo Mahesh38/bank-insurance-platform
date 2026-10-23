@@ -95,6 +95,11 @@ paths:
           `state`/`nonce`/PKCE verifier, store the pending login (TTL 5 min), return the Keycloak
           authorization URI.
 
+        Login BRD v3.1 is not this operation. The journey is `POST /auth/captcha`, `/auth/sign-in`,
+        `/auth/otp/verify`, `/auth/otp/resend`, `/auth/unlock`, `/auth/forgot-password`,
+        `/auth/password` and `/auth/password-expired/send-otp` (LLD §2). A session cookie is set
+        only after a successful login OTP. Design sentences are `outcome: MESSAGE`.
+
         `employeeId`, `password` (BANK_AD) and `returnUri` (PARTNER) are optional in the schema
         and enforced in the service; a violation is `400 SCHEMA_INVALID`, not `422`.
         The password is never logged and never stored (`toString` redacts).

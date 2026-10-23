@@ -35,7 +35,11 @@ public class ProductionSafetyGuard {
     if (!environment.matchesProfiles("prod", "uat")) {
       return;
     }
-    List<String> violations = violations(session, downstream);
+    List<String> violations = new ArrayList<>(violations(session, downstream));
+    String fixedOtp = environment.getProperty("workforce.login.otp-code");
+    if (fixedOtp != null && !fixedOtp.isBlank()) {
+      violations.add("workforce.login.otp-code is set (a fixed OTP must not be deployed)");
+    }
     if (!violations.isEmpty()) {
       throw new IllegalStateException(
           "workforce-access-bff refuses to start under the prod/uat profile: "

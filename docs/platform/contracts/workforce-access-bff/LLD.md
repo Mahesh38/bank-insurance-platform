@@ -30,7 +30,15 @@ All paths are under `/api/v1`. Full schemas, status and error codes: [openapi.ya
 | Method | Path | Session | PDP | Downstream | Notes |
 |---|---|---|---|---|---|
 | GET | `/auth/csrf` | no | – | – | Sets `WORKFORCE-XSRF` |
-| POST | `/auth/login` | no | – | idp-adapter `ad-verify` / `authorization-uri`; authz `identities/resolve` | BANK_AD or PARTNER |
+| POST | `/auth/login` | no | – | idp-adapter `ad-verify` / `authorization-uri`; authz `identities/resolve` | IAM-001. BANK_AD creates a session immediately. PARTNER returns an authorization URI |
+| POST | `/auth/captcha` | no | – | in-process | Single-use text captcha. The display is returned once |
+| POST | `/auth/sign-in` | no | – | authz `login/preview` then AD-verify or `verify-platform-password` | v3.1. No session cookie. `OTP_SENT` or a design-text `MESSAGE` |
+| POST | `/auth/otp/verify` | no | – | authz `login/complete` or `unlock/complete` | Session cookie / native handle only when `outcome` is `AUTHENTICATED` |
+| POST | `/auth/otp/resend` | no | – | in-process | New code invalidates the previous one. Attempts are not reset. Three resends |
+| POST | `/auth/unlock` | no | – | authz `login/unlock/assess` | `NOT_REQUIRED` has no message. Does not log the user in |
+| POST | `/auth/forgot-password` | no | – | authz `login/forgot/assess` | Insurance RM email + captcha. Values are not taken from sign-in |
+| POST | `/auth/password` | no | – | authz `login/password` | Continuation from unlock, forgot or expiry OTP. No session |
+| POST | `/auth/password-expired/send-otp` | no | – | in-process, then authz on verify | OTP is not sent until this call |
 | GET | `/auth/callback` | no | – | idp-adapter `token-exchange`; authz `identities/resolve` | `302` |
 | POST | `/auth/native-session` | no | – | – | completion code → handle |
 | GET | `/auth/session` | handle | – | – | missing/unknown → `400 SCHEMA_INVALID` |
@@ -78,6 +86,8 @@ All paths are under `/api/v1`. Full schemas, status and error codes: [openapi.ya
 6. Require `ACTIVE` + `BANK_EMPLOYEE` (else `401 AUTHENTICATION_FAILED`).
 7. Mint 32-byte handle; store encrypted `WorkforceSession` (no provider tokens), TTL 8 h.
 8. `WEB` → cookie; `NATIVE` → `sessionHandle` in the body.
+
+`POST /auth/login` is not the v3.1 journey. v3.1 sign-in stops on Captcha failure, unknown Login ID, inactive, first-time and lock before a password failure is counted. The workforce session is created only after the login OTP (`SEC-006`). Captcha and OTP hashes are in-process on one instance. No SMS or email gateway is called.
 
 ```mermaid
 sequenceDiagram

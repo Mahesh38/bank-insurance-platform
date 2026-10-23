@@ -60,7 +60,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 | SUG-20261009-lms | 2026-10-09 | human:stakeholder | Do not name the Lead store OPPORTUNITY — schema lead_lms, table lead | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [DATA-003](../../platform/data-architecture/DATA-003.work-item.yaml) · [ER](../../platform/data-architecture/03-lead-suitability-e2e.md) · [DDL](../../platform/data-architecture/schemas/04-lead_lms.sql) · [detail](#sug-20261009-lms--lead-lms-schema-and-lead-table) |
 | SUG-20261009-lss | 2026-10-09 | human:stakeholder | Generate ER diagram and table schema required for the Lead and Suitability module e2e | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMITTED | [DATA-003](../../platform/data-architecture/DATA-003.work-item.yaml) · [PLAN-010](../plans/PLAN-010-lead-suitability-e2e-schema.md) · [ER](../../platform/data-architecture/03-lead-suitability-e2e.md) · [detail](#sug-20261009-lss--lead-and-suitability-e2e-schema) |
 | SUG-20261008-bnk | 2026-10-08 | human:repository-owner | Complete bank-user login/auth e2e using the bank AD login API that hits AD internally and returns true/false for an active bank employee | SF1 | SC0 | MUST | FUNC | P2 / P1 | ADMITTED | [IAM-001](../../platform/authentication-authorization/IAM-001.work-item.yaml) · [detail](#sug-20261008-bnk--bank-rm-ad-verify-login-e2e) |
-| SUG-20261008-otp | 2026-10-08 | agent:cursor | Login BRD remainder after IAM-001: Captcha, mandatory OTP to mobile+email, lock after 3 password failures / 30-day inactivity, Unlock User | SF2 | SC0 | MUST | FUNC | P4 / P1 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [detail](#sug-20261008-otp--login-brd-captcha-otp-lock) |
+| SUG-20261008-otp | 2026-10-08 | agent:cursor | Login BRD remainder after IAM-001: Captcha, mandatory OTP to mobile+email, lock after 3 password failures / 30-day inactivity, Unlock User | SF2 | SC0 | MUST | FUNC | P4 / P1 | ADMIT-BYPASS | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [detail](#sug-20261008-otp--login-brd-captcha-otp-lock) · in-process journey; external gateway still parked |
 | SUG-20261008-sb4 | 2026-10-08 | scan:trivy | Upgrade Spring Boot 3.5.16 → Boot 4 / Framework 7.0.9 to close CVE-2026-47884 on spring-webmvc (only public OSS fix; 6.2.20 is enterprise-only) | SF3 | SC1 | MUST | SEC | P4 / P1 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [detail](#sug-20261008-sb4--spring-boot-4-for-cve-2026-47884) · RISK-021 |
 | SUG-20261008-xsl | 2026-10-08 | scan:trivy | Time-box `.trivyignore` for CVE-2026-47884 (XsltView unused; no OSS 6.2 patch) so SCA can merge; not a T4 waiver | SF0 | SC1 | MUST | SEC | P1 / P1 | ADMIT-BYPASS | [.trivyignore](../../../.trivyignore) · [RISK-021](./RISK-REGISTER.md) · [detail](#sug-20261008-xsl--time-box-cve-2026-47884) |
 | SUG-20261007-crs | 2026-10-07 | human:Mahesh | Standing code-review standard: coverage on the branch at push, review aspects/how/mandatory, logging and monitoring alignment; re-review EPIC-006 against it | SF1 | SC0 | MUST | GOV | P2 / P2 | ADMITTED | [CODE-REVIEW-STANDARD.md](../CODE-REVIEW-STANDARD.md) · [detail](#sug-20261007-crs--standing-code-review-coverage-and-logging-bar) · EPIC-006 lane |
@@ -1961,11 +1961,14 @@ necessity:
     X3_cheap_later: true
     X5_stage_necessity: false
 
-action: PARK
+action: ADMIT-BYPASS
+bypass_authorised_by: "Mahesh, repository owner, 2026-10-23: update identity-authorization-service and workforce-access-bff according to v3.1"
 action_rationale: >
-  IAM-001 delivers credential verify + session. Captcha, OTP and lock need
-  Infosec/OTP gateway decisions and would expand this increment past the
-  owner-stated AD true/false path.
+  The recorded recommendation was PARK until Infosec names a Captcha/OTP gateway.
+  Mahesh directed the v3.1 journey in these two services. That overrides the
+  schedule only. It does not name a provider, a Security board sign-off, or a
+  production SMS/email path. The in-process journey is the bypass. External
+  Captcha image and SMS/email delivery stay parked.
 
 classification:
   type: FUNC
@@ -1988,19 +1991,19 @@ priority:
 dependencies:
   edges: []
   state: PARKED-DEPENDENT
-  parked_because: "Captcha/OTP/lock wait on IAM-001 evidence and Infosec OTP/Captcha contract"
+  parked_because: "External Captcha image and SMS/email gateway still wait on an Infosec contract. The in-process journey is ADMIT-BYPASS."
   enablement_count: 0
-  earliest_start: "after IAM-001 evidence and Infosec OTP/Captcha contract"
+  earliest_start: "Infosec OTP/Captcha contract for the external remainder"
   cycles: none
 
 outcome:
   registered_in: "registers/PARKED-BACKLOG.md"
   work_item_id: null
   plan_id: null
-  status: PARKED
+  status: ADMIT-BYPASS
   closed_reason: null
 
-resumed: IAM-001
+resumed: "In-process v3.1 journey in identity-authorization-service and workforce-access-bff. External gateway remainder stays parked. IAM-001 POST /api/v1/auth/login is unchanged."
 ```
 
 ### SUG-20261008-xsl · Time-box CVE-2026-47884

@@ -128,6 +128,48 @@ public class LoginService {
         properties.sessionTtl().toSeconds());
   }
 
+  /**
+   * Session after a successful v3.1 login OTP. The password was already checked and is not
+   * presented again. Provider tokens are not stored.
+   */
+  public BankLoginResult establishSession(ClientType clientType, EstablishedIdentity identity) {
+    if (identity == null || !"ACTIVE".equals(identity.status())) {
+      throw new IllegalStateException("Business identity is not active");
+    }
+    String sessionId = randomToken();
+    Instant now = Instant.now();
+    String subject =
+        hasText(identity.username()) ? identity.username() : identity.businessUserId().toString();
+    var session =
+        new WorkforceSession(
+            sessionId,
+            identity.businessUserId(),
+            identity.userType(),
+            identity.status(),
+            identity.policyVersion(),
+            identity.insurerCode(),
+            subject,
+            subject,
+            null,
+            null,
+            null,
+            now.plus(properties.sessionTtl()),
+            now,
+            Map.of());
+    sessions.putSession(session, properties.sessionTtl());
+    log.info("Workforce session created after login OTP");
+    return new BankLoginResult(
+        clientType,
+        true,
+        identity.businessUserId(),
+        identity.userType(),
+        identity.status(),
+        identity.policyVersion(),
+        clientType == ClientType.WEB ? sessionId : null,
+        clientType == ClientType.NATIVE ? sessionId : null,
+        properties.sessionTtl().toSeconds());
+  }
+
   public CompletionResult complete(String state, String code) {
     PendingLogin pending =
         sessions
@@ -226,6 +268,14 @@ public class LoginService {
       String returnUri,
       String browserSessionId,
       String nativeCompletionCode) {}
+
+  public record EstablishedIdentity(
+      UUID businessUserId,
+      String userType,
+      String status,
+      long policyVersion,
+      String insurerCode,
+      String username) {}
 
   public record BankLoginCommand(ClientType clientType, String employeeId, String password) {
     @Override

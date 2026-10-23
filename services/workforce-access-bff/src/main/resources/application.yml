@@ -46,6 +46,15 @@ workforce:
     allowed-return-uris:
       - ${WORKFORCE_WEB_RETURN_URI:http://localhost:3000/auth/complete}
       - ${WORKFORCE_NATIVE_RETURN_URI:bankinsurance://auth-complete}
+  # Login BRD v3.1 journey. otp-code stays unset so a code is generated and never returned.
+  # WORKFORCE_LOGIN_OTP_CODE is a test pin; prod/uat refuse to start when it is set.
+  login:
+    captcha-ttl: 5m
+    otp-ttl: 10m
+    resend-delay: 2m
+    max-otp-attempts: 5
+    max-resends: 3
+    continuation-ttl: 10m
 
 management:
   endpoints:

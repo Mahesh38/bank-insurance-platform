@@ -3,6 +3,10 @@ package com.bank.identity.authz.api;
 import com.bank.identity.authz.application.AuthorizationDecisionService;
 import com.bank.identity.authz.application.IdentityResolutionService;
 import com.bank.identity.authz.application.PartnerUserAdministrationService;
+import com.bank.identity.authz.application.PlatformLoginService;
+import com.bank.identity.authz.application.PlatformLoginService.AccountView;
+import com.bank.identity.authz.application.PlatformLoginService.PasswordOutcome;
+import com.bank.identity.authz.application.PlatformLoginService.PasswordSetResult;
 import com.bank.identity.authz.domain.AuthorizationModels.Decision;
 import com.bank.identity.authz.domain.AuthorizationModels.DecisionRequest;
 import com.bank.identity.authz.domain.AuthorizationModels.Resource;
@@ -30,16 +34,19 @@ public class IdentityAuthorizationController {
   private final IdentityResolutionService identities;
   private final PartnerUserAdministrationService partnerUsers;
   private final ActorPrincipalResolver actors;
+  private final PlatformLoginService platformLogin;
 
   public IdentityAuthorizationController(
       AuthorizationDecisionService decisions,
       IdentityResolutionService identities,
       PartnerUserAdministrationService partnerUsers,
-      ActorPrincipalResolver actors) {
+      ActorPrincipalResolver actors,
+      PlatformLoginService platformLogin) {
     this.decisions = decisions;
     this.identities = identities;
     this.partnerUsers = partnerUsers;
     this.actors = actors;
+    this.platformLogin = platformLogin;
   }
 
   @PostMapping("/authorization/decisions")
@@ -124,4 +131,75 @@ public class IdentityAuthorizationController {
       @NotBlank String insurerCode) {}
 
   public record ApprovalResponse(UUID approvalId, String targetStatus) {}
+
+  @PostMapping("/login/preview")
+  public AccountView previewLogin(@Valid @RequestBody LoginIdRequest request) {
+    return platformLogin.preview(request.userType(), request.loginId());
+  }
+
+  @PostMapping("/login/bank-password-result")
+  public PasswordOutcome bankPasswordResult(@Valid @RequestBody BankPasswordResultRequest request) {
+    return platformLogin.recordBankPasswordResult(request.businessUserId(), request.accepted());
+  }
+
+  @PostMapping("/login/verify-platform-password")
+  public PasswordOutcome verifyPlatformPassword(
+      @Valid @RequestBody PlatformPasswordRequest request) {
+    return platformLogin.verifyPlatformPassword(request.businessUserId(), request.password());
+  }
+
+  @PostMapping("/login/complete")
+  public AccountView completeLogin(@Valid @RequestBody UserIdRequest request) {
+    return platformLogin.completeLogin(request.businessUserId());
+  }
+
+  @PostMapping("/login/unlock/assess")
+  public AccountView assessUnlock(@Valid @RequestBody LoginIdRequest request) {
+    return platformLogin.assessUnlock(request.userType(), request.loginId());
+  }
+
+  @PostMapping("/login/unlock/complete")
+  public AccountView completeUnlock(@Valid @RequestBody UserIdRequest request) {
+    return platformLogin.completeUnlock(request.businessUserId());
+  }
+
+  @PostMapping("/login/forgot/assess")
+  public AccountView assessForgot(@Valid @RequestBody ForgotRequest request) {
+    return platformLogin.assessForgotPassword(request.email());
+  }
+
+  @PostMapping("/login/password")
+  public PasswordSetResult setPassword(@Valid @RequestBody SetPasswordRequest request) {
+    return platformLogin.setPassword(
+        request.businessUserId(),
+        request.newPassword(),
+        request.confirmPassword(),
+        request.purpose());
+  }
+
+  public record LoginIdRequest(@NotNull UserType userType, @NotBlank String loginId) {}
+
+  public record UserIdRequest(@NotNull UUID businessUserId) {}
+
+  public record BankPasswordResultRequest(@NotNull UUID businessUserId, boolean accepted) {}
+
+  public record PlatformPasswordRequest(@NotNull UUID businessUserId, @NotBlank String password) {
+    @Override
+    public String toString() {
+      return "PlatformPasswordRequest[businessUserId=" + businessUserId + "]";
+    }
+  }
+
+  public record ForgotRequest(@NotBlank @Email String email) {}
+
+  public record SetPasswordRequest(
+      @NotNull UUID businessUserId,
+      @NotBlank String newPassword,
+      @NotBlank String confirmPassword,
+      @NotBlank String purpose) {
+    @Override
+    public String toString() {
+      return "SetPasswordRequest[businessUserId=" + businessUserId + ", purpose=" + purpose + "]";
+    }
+  }
 }

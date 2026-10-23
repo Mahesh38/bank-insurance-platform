@@ -59,6 +59,20 @@ class ProductionSafetyGuardTest {
   }
 
   @Test
+  void aFixedOtpCodeIsRefusedUnderProd() {
+    MockEnvironment environment = new MockEnvironment();
+    environment.setActiveProfiles("prod");
+    environment.setProperty("workforce.login.otp-code", "482913");
+    ProductionSafetyGuard guard =
+        new ProductionSafetyGuard(
+            environment, session("redis", REAL_KEY), downstream("http", "http"));
+
+    assertThatThrownBy(guard::refuseDevelopmentSettingsInDeployedProfiles)
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessageContaining("workforce.login.otp-code is set");
+  }
+
+  @Test
   void productionSettingsStartAndLocalDefaultsAreAllowedOutsideProd() {
     assertThatCode(
             guard("prod", session("redis", REAL_KEY), downstream("http", "http"))

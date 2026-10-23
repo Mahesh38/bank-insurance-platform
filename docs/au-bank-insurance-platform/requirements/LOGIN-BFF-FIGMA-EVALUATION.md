@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-28  
 **Work item:** `DOC-006` + Login first module (`Q7`)  
-**Status:** Working evaluation. No NIP-APP source in this repository. `IAM-001` (2026-10-08) added Bank RM password collection on the BFF for AD-verify. Captcha / OTP / Unlock User are still not in this change (`SUG-20261008-otp`).
+**Status:** Working evaluation. No NIP-APP source in this repository. `IAM-001` (2026-10-08) added Bank RM password collection on `POST /api/v1/auth/login`. Login BRD v3.1 sign-in, Captcha, OTP, Unlock User, Insurance RM Forgot Password and expiry are on the BFF journey endpoints. External Captcha image and SMS/email delivery remain unnamed (`SUG-20261008-otp` remainder).
 
 | Source | Role |
 |--------|------|
@@ -25,7 +25,7 @@ Do **not** implement from the filename:
 | Figma cue | Login BRD | Action for BFF / NIP-APP |
 |-----------|-----------|--------------------------|
 | Forgot Password link on Bank RM | **Not available.** Bank RM network-password reset stays with the bank. | No Bank RM forgot-password operation. |
-| Forgot Password link on Insurance RM | **Required.** Own Email ID and Captcha screen. Login values are not carried. Password reset does not unlock. | Not on the BFF yet. Build stays parked (`SUG-20261008-otp`). |
+| Forgot Password link on Insurance RM | **Required.** Own Email ID and Captcha screen. Login values are not carried. Password reset does not unlock. | `POST /api/v1/auth/forgot-password`. In-process Captcha. No SMS/email provider. |
 | Create Password on Bank RM screens | Bank RM password is the **bank system** password; not created here | No Bank RM password-create operation on this BFF. |
 | mPIN | Not in the Login BRD | Out of this module. Do not add an mPIN endpoint. |
 | OTP / 2FA after credentials | **Mandatory OTP on every login** to registered mobile **and** email | Required behaviour. Where it is enforced (IdP MFA vs platform OTP) is Mahesh + Deepali — see §4. |
@@ -88,10 +88,10 @@ Covered by Slice 1 / JES, **not** by the Login BRD catalogue: PKCE, return-URI a
 | BRD / Figma need | On BFF today | Why it is not implemented in this change |
 |------------------|--------------|------------------------------------------|
 | Identifier + password fields on the BFF | **Met for Bank RM** (`IAM-001`). Partner still OIDC | Owner selected option B for `BANK_AD` on 2026-10-08. Partner password collection is not in `IAM-001`. |
-| Captcha | No endpoint | Login BRD: Infosec owns Captcha admin (`SEC-009`). |
-| Platform OTP after credentials | No. UC-01 places MFA at the IdP | Whether OTP is IdP MFA or a platform resource is a trust-boundary decision. |
-| Lock after 3 password failures / 30-day inactivity | Not in BFF | Account state belongs with identity / IdP, not a client fake directory. |
-| Unlock User + Insurance RM password create, Forgot Password and 60-day expiry | No | Required by Login BRD v3.1. Still parked (`SUG-20261008-otp`). |
+| Captcha | `POST /api/v1/auth/captcha` returns a single-use text value | Image Captcha and provider admin remain with Infosec (`SEC-009`). |
+| Platform OTP after credentials | `POST /api/v1/auth/otp/verify`. Session only after login OTP | The code is generated in-process. It is not delivered by SMS or email. |
+| Lock after 3 password failures / 30-day inactivity | Account state is in identity-authorization. The BFF shows the design sentence | Password failures and inactivity are counted on the platform user, not in the BFF. |
+| Unlock User + Insurance RM password create, Forgot Password and 60-day expiry | `/auth/unlock`, `/auth/password`, `/auth/forgot-password`, `/auth/password-expired/send-otp` | These calls do not create a workforce session. |
 | mPIN | Must stay absent | Not in Login BRD v3.1. |
 
 ### Open architecture question (do not assume)
@@ -101,7 +101,9 @@ How should NIP-APP collect Employee ID / Corporate Email + password + Captcha **
 - **A — IdP chrome:** BFF returns an authorization URI; Fireframe/IdP hosts credential + MFA screens. **Still the partner path.**
 - **B — BFF collects credentials and calls AD-verify:** closer to the Login BRD field catalogue; passwords still must not be logged; tokens still must not return to the client.
 
-**Decision 2026-10-08 (`IAM-001`):** **B for Bank RM.** Partner remains A. Captcha / OTP / lock stay parked (`SUG-20261008-otp`).
+**Decision 2026-10-08 (`IAM-001`):** **B for Bank RM** on `POST /auth/login`. Partner OIDC remains A.
+
+**Decision 2026-10-23 (owner, `SUG-20261008-otp`):** the v3.1 journey is **B** as well, on `/auth/sign-in` and the recovery endpoints. `POST /auth/login` is unchanged. External Captcha and OTP delivery are still unnamed.
 
 ---
 
@@ -111,9 +113,9 @@ How should NIP-APP collect Employee ID / Corporate Email + password + Captcha **
 |---------|--------|
 | Token-hiding session | **Met** on current BFF |
 | Dual Bank RM / Partner identity source | **Partial** (`IdentitySource` on `POST /login`) |
-| BRD field catalogue (Captcha, OTP, lock, Unlock User) | **Not met** |
-| Insurance RM Forgot Password | **Required by v3.1, absent from the BFF** (parked, do not treat absence as correct) |
+| BRD field catalogue (Captcha, OTP, lock, Unlock User) | **Met in-process** on the v3.1 endpoints. Delivery to a handset or inbox is not met |
+| Insurance RM Forgot Password | **Met** on `POST /auth/forgot-password`. Password reset does not clear a lock |
 | mPIN | **Correctly absent** from BFF |
 | In-repo Flutter Login UI | **Removed** (`DOC-006`) |
 
-Next Login implementation increment (Java only): `SUG-20261008-otp` — Captcha, OTP, lock, Unlock User, Insurance RM Forgot Password and 60-day expiry reset, using the v3.1 design strings. Infosec still owns Captcha/OTP gateway and session timeout. mPIN stays out.
+Remaining Login increment: Infosec still has to name the Captcha image provider, the SMS/email gateway and the session-timeout numbers (`SUG-20261008-otp` remainder). The journey code must not be described as that approval. mPIN stays out. Challenge state is single-instance.

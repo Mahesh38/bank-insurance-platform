@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20261023-l31 | 2026-10-23 | human:repository-owner | Accept Login BRD v3.1 design text as the user-visible copy and replace the v1.0 login context everywhere it is still stated. Runtime Captcha/OTP/Forgot Password stays parked. | SF1 | SC0 | MUST | DOC | P2 / P1 | ADMITTED | [Login BRD v3.1](../../au-bank-insurance-platform/requirements/brd-detailed/Login_Module_BRD_Detailed_CONTEXT.md) · [detail](#sug-20261023-l31--login-brd-v31-design-text) |
 | SUG-20261022-sse | 2026-10-22 | scan:trivy | Time-box `.trivyignore` for CVE-2026-47890 (SSE + view fragments unused; no OSS 6.2 patch) so SCA/image scans can merge on PR #150; not a T4 waiver | SF0 | SC1 | MUST | SEC | P1 / P1 | ADMIT-BYPASS | [.trivyignore](../../../.trivyignore) · [RISK-022](./RISK-REGISTER.md) · [detail](#sug-20261022-sse--time-box-cve-2026-47890) |
 | SUG-20261022-rdy | 2026-10-22 | human:repository-owner | Build readiness for all 21 services: payment after UW approval; ADR-026 + hub/notification/audit schemas accepted; admin-created partner users; bank-only exception approvals; every business value configurable per line of business; strict compliance posture; finish all remaining code; per-service build briefs so 21 agents can build in parallel | SF2 | SC0 | MUST | ARCH | P1 / P1 | ADMIT-BYPASS | [round 2 decisions](../../platform/architecture-review/DECISIONS-2026-10-22.md) · [detail](#sug-20261022-rdy--build-readiness-for-all-21-services) |
 | SUG-20261021-rul | 2026-10-21 | human:repository-owner | Close the design gaps behind the S11 gate: configuration-driven rule engine (precedence, reason codes, thresholds on the fly), decisions D1–D9, missing OpenAPI + LLD contracts, event specification, review fixes; prepare GAP-006/007 for Compliance signature | SF2 | SC0 | MUST | ARCH | P1 / P1 | ADMIT-BYPASS | [decisions](../../platform/architecture-review/DECISIONS-2026-10-21.md) · [ADR-024](../../platform/architecture-review/ADR-024-configuration-driven-rule-engine.md) · [sign-off packet](../../au-bank-insurance-platform/rule-packs/SIGNOFF-PACKET-GAP-006-007.md) · [detail](#sug-20261021-rul--configuration-driven-rule-engine-and-the-nine-open-decisions) |
@@ -161,6 +162,115 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20261023-l31 · Login BRD v3.1 design text
+
+```yaml
+# schema: triage-record
+id: SUG-20261023-l31
+raised_at: "2026-10-23"
+raised_by: "human:repository-owner"
+source: "Mahesh Narkar — accept the v3.1 design text as the latest Login BRD and update every required file"
+input: >
+  Design text in v3.1 is the latest updated BRD. Accept that and make changes
+  in all the required files.
+
+context:
+  workstream: WS-2
+  current_phase: "Phase 1 — Foundation implementation"
+  canonical_stage: "L4/L6 — Foundation into first vertical slice"
+  current_objective: "IAM-P1"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: SUG-20261023-l31
+  freshness: "FreshnessCheck exit 1. state_as_of is 23 days old. review_due 2026-10-28 still open. Disclosed. Work admitted."
+
+stage_fit:
+  code: SF1
+  rationale: "Login behaviour SSOT is in scope for WS-2. This replaces a superseded v1.0 statement. It does not start the parked Captcha/OTP build."
+  target_stage: null
+  unpark_trigger: null
+
+scope:
+  code: SC0
+  business_scope: "Login, authentication and account recovery"
+  serves: ["DOC-005", "AC-014", "KBR-10", "KBR-15"]
+  failure_without_it: "The repository would keep telling builders that Forgot Password is forbidden and that passwords are 8 to 20 characters."
+  minimal: true
+  authority: "Login_Module_BRD_Detailed_CONTEXT.md"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "WS-2 Phase 1"
+  binds_when: "Any further login specification or BFF work"
+  evidence_tier: E2
+  confidence: C4
+  assumptions:
+    - "The pasted v3.1 text, including its as-designed sentences, is the document the owner accepted."
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: true
+    X5_stage_necessity: true
+
+action: ADMITTED
+action_rationale: >
+  On-stage documentation correction of the login behaviour source. The owner
+  directed the update. Recommendation and execution are both ADMIT. Runtime
+  auth changes stay on SUG-20261008-otp.
+
+classification:
+  type: DOC
+  also: []
+  breakdown: STORY
+  risk_tier: T2
+  destination: "Login BRD context and every document that still stated v1.0 login rules"
+
+priority:
+  now: P2
+  at_target: P1
+  factors: { N: 2, S: 2, B: 2, R: 1, D: 1, E: 1 }
+  score: 12
+  matrix_default: P2
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "Incorrect module behaviour in the SSOT blocks the next login increment. No production exposure until the parked build starts."
+
+dependencies:
+  edges:
+    - type: DOCUMENT
+      target: SUG-20261008-otp
+      relation: informs
+      state: PARKED
+  state: READY
+  enablement_count: 0
+  earliest_start: "2026-10-23"
+  cycles: none
+
+breakdown:
+  children: []
+  completion_definition: "Login context is v3.1 with design strings as the only user-visible copy. Overview, checklist, alignment, Figma note, BFF evaluation, BFF readme and the API-reference remainder notes agree. SUG-20261008-otp stays parked and now names Forgot Password and expiry."
+  not_included:
+    - "Implementing Captcha, OTP, lock, Unlock, Forgot Password or expiry on workforce-access-bff"
+    - "mPIN"
+    - "Bank RM network-password create, reset or change"
+    - "Inventing an already-active unlock screen or a service-error screen"
+    - "Information Security, Business, Technology or QA signatures. Those rows stay blank."
+    - "Editing current_phase or stage_status"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: SUG-20261023-l31
+  plan_id: null
+  status: ADMITTED
+  closed_reason: null
+
+resumed: "SUG-20261008-otp remains parked."
+risk_retained: "No Security board reviewed this auth-behaviour text change. The running BFF still implements IAM-001 only, so the new strings are not yet on a request path."
+reviewer_type: AGENT
+boards: "Product behaviour recorded as the owner's accepted text. No T4 signature is claimed."
+```
 
 ### SUG-20261022-sse · Time-box CVE-2026-47890
 
@@ -4202,7 +4312,7 @@ breakdown:
     - "Overturning ADR-015 or replacing Flutter as the NIP-APP stack"
     - "Creating the NIP-APP git repository"
     - "Implementing password / Captcha / platform-OTP APIs that change UC-01"
-    - "Implementing Figma Forgot Password or mPIN (Login BRD forbids Forgot Password; mPIN is not in the BRD)"
+    - "Implementing Figma Forgot Password or mPIN (as of 2026-09-28 the Login BRD forbade Forgot Password; mPIN is still not in the BRD). Superseded for Insurance RM Forgot Password by SUG-20261023-l31 / Login BRD v3.1. The build remains parked at SUG-20261008-otp."
 
 outcome:
   registered_in: "registers/SUGGESTION-REGISTER.md"

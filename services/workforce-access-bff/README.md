@@ -7,7 +7,7 @@ encrypted in the server-side session vault.
 
 Evaluate this contract against [`docs/figma/`](../../docs/figma/README.md) and the
 [Login BFF vs Figma evaluation](../../docs/au-bank-insurance-platform/requirements/LOGIN-BFF-FIGMA-EVALUATION.md).
-Behaviour SSOT is the [Login BRD](../../docs/au-bank-insurance-platform/requirements/brd-detailed/Login_Module_BRD_Detailed_CONTEXT.md).
+Behaviour SSOT is the [Login BRD v3.1](../../docs/au-bank-insurance-platform/requirements/brd-detailed/Login_Module_BRD_Detailed_CONTEXT.md). User-visible copy is the design text in that file. This service does not yet implement Captcha, OTP, lock, Unlock User, Insurance RM Forgot Password or 60-day expiry reset (`SUG-20261008-otp`, parked).
 
 See [`docs/platform/authentication-authorization/README.md`](../../docs/platform/authentication-authorization/README.md).
 

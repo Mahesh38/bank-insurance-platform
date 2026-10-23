@@ -6,7 +6,7 @@
 
 | Source | Role |
 |--------|------|
-| [Login BRD v1.0](./brd-detailed/Login_Module_BRD_Detailed_CONTEXT.md) | Behaviour SSOT (`DOC-005`) |
+| [Login BRD v3.1](./brd-detailed/Login_Module_BRD_Detailed_CONTEXT.md) | Behaviour SSOT (`DOC-005`). User-visible copy is the design text, accepted 23 October 2026. |
 | [`docs/figma/wireframe/auth-login-2fa-forgot-password-mpin.png`](../../figma/wireframe/auth-login-2fa-forgot-password-mpin.png) | Screen layout reference (`D-012`, `DOC-006`) |
 | [`workforce-access-bff`](../../../services/workforce-access-bff/README.md) `/api/v1/auth/*` | Java contract to evaluate |
 | [UC-01 RM login](../../journey-execution/flows/UC-01-rm-login.md) | Current architecture path (OIDC, token-hiding) |
@@ -24,7 +24,8 @@ Do **not** implement from the filename:
 
 | Figma cue | Login BRD | Action for BFF / NIP-APP |
 |-----------|-----------|--------------------------|
-| Forgot Password link on Bank RM and Partner | **Removed** for both modes. Recovery is Unlock User | No `/forgot-password` resource. Do not add a link on the contract. |
+| Forgot Password link on Bank RM | **Not available.** Bank RM network-password reset stays with the bank. | No Bank RM forgot-password operation. |
+| Forgot Password link on Insurance RM | **Required.** Own Email ID and Captcha screen. Login values are not carried. Password reset does not unlock. | Not on the BFF yet. Build stays parked (`SUG-20261008-otp`). |
 | Create Password on Bank RM screens | Bank RM password is the **bank system** password; not created here | No Bank RM password-create operation on this BFF. |
 | mPIN | Not in the Login BRD | Out of this module. Do not add an mPIN endpoint. |
 | OTP / 2FA after credentials | **Mandatory OTP on every login** to registered mobile **and** email | Required behaviour. Where it is enforced (IdP MFA vs platform OTP) is Mahesh + Deepali — see §4. |
@@ -47,17 +48,19 @@ Shared rules (BRD):
 - 3 consecutive failed **password** attempts → account locked → Unlock User.
 - 30 days inactivity → account locked → Unlock User.
 - 5 failed **OTP** attempts → terminate this login; **do not** lock the account.
-- Forgot Password is out of scope. Unlock User covers partner first-time password, forgotten/expired partner password, and unlock for both types.
+- Insurance RM Forgot Password is in scope and starts on its own Email ID and Captcha screen. Unlock User does not replace it. A locked Insurance RM still unlocks before the new password can be used to log in.
+- Insurance RM password expiry is 60 days and has its own OTP and Set New Password path.
+- Password rules are 8 to 16 characters, no spaces, not `123456`, must not contain the full email, and must differ from the previous password.
 - Session timeout, Captcha complexity, concurrent login: Information Security (`SEC-009`, `SEC-010`) — not invented here.
 
-Exact user-visible strings the contract should be able to return (Login BRD error catalogue):
+Exact user-visible strings the contract should be able to return (Login BRD v3.1 design text):
 
-- `Please enter Employee ID / Corporate Email ID.`
-- `Please enter your password.`
-- `Please enter the security Captcha.`
-- `Your account has been locked due to multiple incorrect password attempts. Please use Unlock User.`
-- `Please enter the six-digit OTP.`
-- `You have exceeded the maximum OTP verification attempts. Please log in again.`
+- `Wrong captcha. Try again.`
+- `We couldn't find a partner account with this email ID.`
+- `Incorrect password. You have 2 attempts remaining.`
+- `Your account has been locked. You entered an incorrect password 3 times. Please use Unlock User to verify with an OTP and continue.`
+- `Too many incorrect attempts. Maximum attempts exceeded. Please restart the journey. Your account has not been locked.`
+- Blank Login ID, Password, Captcha and incomplete OTP do not show a message. The action stays disabled.
 
 ---
 
@@ -88,8 +91,8 @@ Covered by Slice 1 / JES, **not** by the Login BRD catalogue: PKCE, return-URI a
 | Captcha | No endpoint | Login BRD: Infosec owns Captcha admin (`SEC-009`). |
 | Platform OTP after credentials | No. UC-01 places MFA at the IdP | Whether OTP is IdP MFA or a platform resource is a trust-boundary decision. |
 | Lock after 3 password failures / 30-day inactivity | Not in BFF | Account state belongs with identity / IdP, not a client fake directory. |
-| Unlock User + partner password create/expiry | No | Separate operations; partner password is platform-managed. Needs identity service design. |
-| Figma Forgot Password / mPIN | Must stay absent | BRD removed Forgot Password; mPIN is not in the Login BRD. |
+| Unlock User + Insurance RM password create, Forgot Password and 60-day expiry | No | Required by Login BRD v3.1. Still parked (`SUG-20261008-otp`). |
+| mPIN | Must stay absent | Not in Login BRD v3.1. |
 
 ### Open architecture question (do not assume)
 
@@ -109,7 +112,8 @@ How should NIP-APP collect Employee ID / Corporate Email + password + Captcha **
 | Token-hiding session | **Met** on current BFF |
 | Dual Bank RM / Partner identity source | **Partial** (`IdentitySource` on `POST /login`) |
 | BRD field catalogue (Captcha, OTP, lock, Unlock User) | **Not met** |
-| Figma Forgot Password / mPIN | **Correctly absent** from BFF (do not add) |
+| Insurance RM Forgot Password | **Required by v3.1, absent from the BFF** (parked, do not treat absence as correct) |
+| mPIN | **Correctly absent** from BFF |
 | In-repo Flutter Login UI | **Removed** (`DOC-006`) |
 
-Next Login implementation increment (Java only): `SUG-20261008-otp` — Captcha, OTP, lock, Unlock User. Infosec still owns Captcha/OTP gateway and session timeout.
+Next Login implementation increment (Java only): `SUG-20261008-otp` — Captcha, OTP, lock, Unlock User, Insurance RM Forgot Password and 60-day expiry reset, using the v3.1 design strings. Infosec still owns Captcha/OTP gateway and session timeout. mPIN stays out.

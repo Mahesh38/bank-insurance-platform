@@ -4,7 +4,7 @@
 **Bank:** AU Bank  
 **Owner:** Platform Product Owner  
 **Status:** Heading structure **approved by PO**. Detailed chapters for Login, Lead, Suitability (Savings/ULIP), Savings listing/details/quote, Pitch Deck, Customer buying, and Exception Handling are in [brd-detailed/](./brd-detailed/README.md) (`DOC-005`). Remaining chapters still need a detailed BRD.  
-**Version:** 1.1  
+**Version:** 1.2  
 **Related:** [brd-detailed/](./brd-detailed/README.md) · [alignment](./BRD-ALIGNMENT-2026-09-28.md) · [Working Decisions](../07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md) · [R0-SCOPE.md](./R0-SCOPE.md) · [knowledge-base/](../knowledge-base/README.md) · [po-drive/](../po-drive/00-PO-PROJECT-VIEW.md)
 
 ---
@@ -28,14 +28,14 @@
 ## Approved BRD overview (PO)
 
 ### 1. Login
-**Detailed BRD:** [Login_Module_BRD_Detailed_CONTEXT.md](./brd-detailed/Login_Module_BRD_Detailed_CONTEXT.md) (v1.0, 04-Sep-2026). That file **removes Forgot Password** from both login modes; partner recovery is Unlock User. Bank RM uses Employee ID + bank-system password + OTP.
+**Detailed BRD:** [Login_Module_BRD_Detailed_CONTEXT.md](./brd-detailed/Login_Module_BRD_Detailed_CONTEXT.md) (v3.1, design text accepted 23 October 2026). One page holds Login ID, Password and Captcha. Bank RM uses Employee ID and the bank network password. Insurance RM uses a corporate email and a platform password. Forgot Password is Insurance RM only, on its own Email ID and Captcha screen. Bank RM has no password reset here. User-visible strings are the design sentences in that file.
 
 | # | Sub-heading | Priority |
 |---|-------------|----------|
-| 1.1 | AD Integration | R0 |
-| 1.2 | Forgot Password | Removed in Login BRD v1.0 — Unlock User replaces it for partners; Bank RM password is out of platform scope |
+| 1.1 | AD Integration | R0 — Bank RM Employee ID and network password, then platform OTP |
+| 1.2 | Forgot Password | R0 for Insurance RM only. Separate Email ID and Captcha screen. Not available to Bank RM. |
 | 1.3 | Account Lock / Unlock | R0 |
-| 1.4 | SSO redirection | R0 — Login BRD describes bank-system password + OTP, not a named SSO redirect; confirm with Infosec / Mahesh |
+| 1.4 | SSO redirection | R0 — Login BRD v3.1 describes bank-network password + OTP, not a named SSO redirect; confirm with Infosec / Mahesh |
 
 ---
 
@@ -272,5 +272,6 @@ September 2026 pack covers §1, §3, §4 (inside Lead), §6 (Savings/ULIP), §7 
 |---------|------|--------|-------|
 | 1.0 | 2026-07-31 | PO-approved overview headings captured as BRD TOC | Platform PO |
 | 1.1 | 2026-09-28 | Linked September 2026 detailed BRDs; annotated Forgot Password removal and open conflicts | Platform PO (pack) / BA ingest |
+| 1.2 | 2026-10-23 | Login chapter follows BRD v3.1. Insurance RM Forgot Password is in scope. Design text is the user-visible copy. | Repository owner (`SUG-20261023-l31`) |
 
 Any addition, rename, or removal of a top-level section requires **PO approval** and an update to this table.

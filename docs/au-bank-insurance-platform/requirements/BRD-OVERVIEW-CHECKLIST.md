@@ -7,11 +7,11 @@ Use this list when reviewing scope completeness. Do not drop items without PO ap
 
 ---
 
-- [x] **Login** — detailed BRD v1.0 in [brd-detailed/](./brd-detailed/Login_Module_BRD_Detailed_CONTEXT.md) (Forgot Password removed)
-  - [x] AD Integration / bank-system password + OTP
-  - [x] Forgot Password — **removed**; Unlock User for partners
+- [x] **Login** — detailed BRD v3.1 in [brd-detailed/](./brd-detailed/Login_Module_BRD_Detailed_CONTEXT.md). Design text is the user-visible copy.
+  - [x] AD Integration / bank network password + OTP
+  - [x] Forgot Password — Insurance RM only, own Email ID and Captcha screen. Not shown for Bank RM.
   - [x] Account Lock / Unlock
-  - [ ] SSO redirection — confirm vs bank-system password wording
+  - [ ] SSO redirection — confirm vs bank-network password wording
 - [ ] **User Management Module**
   - [ ] Role Rights
   - [ ] User Access & Permission

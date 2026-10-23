@@ -2,7 +2,7 @@
 
 **Owner:** Platform Product Owner (Rajal)  
 **Status:** Ingested as **working module-behaviour SSOT** on 2026-09-28 (`SUG-20260928-brd`, `DOC-005`).  
-Each source file still says *Draft for Business and Technology Review* and has **blank sign-off rows**. Formal Business / Technology / Information Security / QA approval is outstanding.  
+Login is **v3.1**. Its user-visible copy is the design text, accepted by the repository owner on 23 October 2026 (`SUG-20261023-l31`). The other source files still say *Draft for Business and Technology Review* and have **blank sign-off rows**. Formal Business / Technology / Information Security / QA approval is outstanding on every module, including Login.  
 **Do not implement a TBD, TBC, assumption, indicative value, or unresolved cross-BRD conflict.** Raise it to Rajal.
 
 Related: [alignment and conflict report](../BRD-ALIGNMENT-2026-09-28.md) · [BRD overview](../BRD-OVERVIEW.md) · [Working Decisions](../../07-BUSINESS-CLARIFICATIONS-WORKING-DECISIONS.md)
@@ -26,7 +26,7 @@ Fidelity check on ingest: every source value in the nine context files plus Exce
 
 | Module | File | Version | Date | Journey label |
 |--------|------|---------|------|----------------|
-| Login, Authentication and Account Recovery | [Login_Module_BRD_Detailed_CONTEXT.md](./Login_Module_BRD_Detailed_CONTEXT.md) | 1.0 | 04-Sep-2026 | Assisted Journey |
+| Login, Authentication and Account Recovery | [Login_Module_BRD_Detailed_CONTEXT.md](./Login_Module_BRD_Detailed_CONTEXT.md) | 3.1 | 17-Oct-2026, design text accepted 23-Oct-2026 | Assisted Journey |
 | Lead Management | [Lead_Module_BRD_Detailed_CONTEXT.md](./Lead_Module_BRD_Detailed_CONTEXT.md) | 1.0 | 04-Sep-2026 | Assisted Journey |
 | Suitability (Savings / ULIP) | [Suitability_Module_BRD_Detailed_CONTEXT.md](./Suitability_Module_BRD_Detailed_CONTEXT.md) | 1.0 | 05-Sep-2026 | PWA Assisted |
 | Savings listing and compare | [Savings_Listing_and_Compare_Plans_BRD_Detailed_CONTEXT.md](./Savings_Listing_and_Compare_Plans_BRD_Detailed_CONTEXT.md) | 1.0 | 07-Sep-2026 | PWA Assisted |

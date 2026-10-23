@@ -145,8 +145,10 @@ response, or any internal error detail.
    BFF refuses to start under `prod` / `uat` with the in-memory session store, the all-zero
    session key or a stubbed lead / customer downstream (`ProductionSafetyGuard`). Local
    users: `EMP001` (active) and `EMP002` (inactive — use it to see the 401).
-5. **Not yet built from the Login BRD:** captcha, OTP to mobile + email, lockout after 3 failures
-   or 30 days inactivity, unlock (`SUG-20261008-otp`, parked).
+5. **Not yet built from Login BRD v3.1:** captcha, OTP to mobile + email, lockout after 3 failures
+   or 30 days inactivity, unlock, Insurance RM Forgot Password, and 60-day expiry reset
+   (`SUG-20261008-otp`, parked). User-visible copy is the design text in that BRD. Bank RM
+   still has no password reset on this platform.
 
 ## 9. Try it locally
 

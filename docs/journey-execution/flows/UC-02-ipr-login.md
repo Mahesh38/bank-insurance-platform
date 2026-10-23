@@ -3,6 +3,9 @@
 **Actor:** Insurance Partner Rep (`INSURER_PARTNER_REP`) · **Entry:** same endpoints as `UC-01`
 **Status:** `AI-DRAFTED` · Security review required · Slice 1
 
+> This file is the partner OIDC ceremony. It is not the Login BRD v3.1 Insurance RM, who signs in
+> with a platform password through [`LOGIN-BRD-V31-API-FLOWS.md`](./LOGIN-BRD-V31-API-FLOWS.md).
+
 The **authentication ceremony is identical to [`UC-01`](./UC-01-rm-login.md)** — *"the
 representative authenticates using the same authorization-code, PKCE, and token-hiding BFF flow"*
 ([auth SSOT §5.2.5](../../platform/authentication-authorization/README.md#52-insurer-representative)).

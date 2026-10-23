@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20261023-e2e | 2026-10-23 | human:repository-owner | Write the Login BRD v3.1 end-to-end API sequences: both user types, unlock, forgot and reset password, background calls, and validation. Confirm the APIs exist. | SF1 | SC0 | MUST | DOC | P2 / P2 | ADMITTED | [v3.1 API flows](../../journey-execution/flows/LOGIN-BRD-V31-API-FLOWS.md) · [detail](#sug-20261023-e2e--login-v31-api-flows) |
 | SUG-20261023-dev | 2026-10-23 | human:repository-owner | Dev profile can complete Bank RM and Insurance RM/FLS login, unlock and password reset. FLS is the Insurance RM login. | SF1 | SC0 | MUST | FUNC | P2 / P2 | ADMITTED | [identity-authorization](../../../services/identity-authorization-service/README.md) · [detail](#sug-20261023-dev--dev-login-accounts) |
 | SUG-20261023-l31 | 2026-10-23 | human:repository-owner | Accept Login BRD v3.1 design text as the user-visible copy and replace the v1.0 login context everywhere it is still stated. Runtime Captcha/OTP/Forgot Password stays parked. | SF1 | SC0 | MUST | DOC | P2 / P1 | ADMITTED | [Login BRD v3.1](../../au-bank-insurance-platform/requirements/brd-detailed/Login_Module_BRD_Detailed_CONTEXT.md) · [detail](#sug-20261023-l31--login-brd-v31-design-text) |
 | SUG-20261022-sse | 2026-10-22 | scan:trivy | Time-box `.trivyignore` for CVE-2026-47890 (SSE + view fragments unused; no OSS 6.2 patch) so SCA/image scans can merge on PR #150; not a T4 waiver | SF0 | SC1 | MUST | SEC | P1 / P1 | ADMIT-BYPASS | [.trivyignore](../../../.trivyignore) · [RISK-022](./RISK-REGISTER.md) · [detail](#sug-20261022-sse--time-box-cve-2026-47890) |
@@ -163,6 +164,125 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20261023-e2e · Login v3.1 API flows
+
+```yaml
+# schema: triage-record
+id: SUG-20261023-e2e
+raised_at: "2026-10-23"
+raised_by: "human:repository-owner"
+source: "Mahesh Narkar — write the login and authentication API sequence diagrams and confirm BRD coverage"
+input: >
+  Write the e2e sequence diagram and flow for all the login/authentication
+  APIs: how each user logs in, how password reset works, what happens in the
+  background, and which validations run. Write the use cases as diagrams and
+  show the API flows. Confirm whether every API required by the BRD exists,
+  including forgot and reset password.
+
+context:
+  workstream: WS-2
+  current_phase: "Phase 1 — Foundation implementation"
+  canonical_stage: "L4/L6 — Foundation into first vertical slice"
+  current_objective: "IAM-P1"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: SUG-20261023-e2e
+
+stage_fit:
+  code: SF1
+  rationale: "The v3.1 journey is already on this branch. The flow file describes that journey. It does not add a provider or a new login path."
+  target_stage: null
+  unpark_trigger: null
+
+scope:
+  code: SC0
+  business_scope: "Login, authentication and account recovery"
+  serves: ["DOC-005", "SUG-20261023-l31", "SUG-20261008-otp"]
+  failure_without_it: "UC-01 still describes IAM-001 as the only Bank RM login, so a reader cannot see captcha, OTP, unlock or Insurance RM password reset."
+  minimal: true
+  authority: "Login_Module_BRD_Detailed_CONTEXT.md and LoginJourneyController"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "WS-2 Phase 1"
+  binds_when: "Anyone tracing Login BRD v3.1 to an API"
+  failure_without_it: "The repository would keep UC-01 as the login story after the v3.1 journey was added."
+  evidence_tier: E2
+  confidence: C4
+  evidence:
+    - "LoginJourneyController and PlatformLoginService on cursor/login-v31-bff-authz-40e8"
+    - "Login_Module_BRD_Detailed_CONTEXT.md sections 5 to 16"
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: true
+    X5_stage_necessity: true
+
+action: ADMIT
+action_rationale: >
+  On-stage documentation of the admitted v3.1 journey. The owner asked for the
+  diagrams in this turn. FreshnessCheck exit 1: state_as_of is 23 days old and
+  review_due 2026-10-28 is still open. Disclosed. No T4 Security signature is
+  claimed. The security-review capsule does not answer this question; the
+  context index is not changed in this record.
+
+classification:
+  type: DOC
+  also: []
+  breakdown: STORY
+  risk_tier: T2
+  destination: "docs/journey-execution/flows/LOGIN-BRD-V31-API-FLOWS.md"
+
+priority:
+  now: P2
+  at_target: P2
+  factors: { N: 2, S: 2, B: 1, R: 1, D: 1, E: 1 }
+  score: 12
+  matrix_default: P2
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "Readers of the journey pack otherwise follow IAM-001. The diagrams do not change runtime behaviour."
+
+dependencies:
+  edges:
+    - type: DECISION
+      target: SUG-20261008-otp
+      relation: related_to
+      state: DONE
+    - type: DECISION
+      target: SUG-20261023-l31
+      relation: related_to
+      state: DONE
+  state: READY
+  enablement_count: 0
+  earliest_start: "2026-10-23"
+  cycles: none
+
+breakdown:
+  children: []
+  completion_definition: "One flow file states every v3.1 API, the background hop, the validation, and whether forgot and reset password exist. UC-01 and UC-02 point at it and keep their own ceremonies."
+  not_included:
+    - "SMS, email or image-Captcha provider"
+    - "Rewriting UC-01 or UC-02 into the v3.1 journey"
+    - "Publishing full OpenAPI schemas for the new paths"
+    - "A context-index change so login-flow questions stop resolving only to security-review"
+    - "mPIN, Bank RM password reset, or a change to POST /api/v1/auth/login"
+    - "Editing current_phase or stage_status"
+    - "A T4 Security signature"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: SUG-20261023-e2e
+  plan_id: null
+  status: ADMITTED
+  closed_reason: null
+
+resumed: "SUG-20261023-e2e is the work of this turn. No T4 signature is claimed."
+```
+
 
 ### SUG-20261023-dev · Dev login accounts
 

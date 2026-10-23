@@ -51,6 +51,10 @@ three ways. That is what this pack removes.
 | 6 | [`06-TRACEABILITY.md`](./06-TRACEABILITY.md) | `UC` → invariant → seam → error → test. The S03 RTM, per request |
 | 7 | [`flows/`](./flows/) | One file per use case: hops, per-layer validation, outcomes, audit events |
 
+Login BRD v3.1 (Bank RM and Insurance RM captcha, OTP, unlock, forgot password, expiry) is
+[`flows/LOGIN-BRD-V31-API-FLOWS.md`](./flows/LOGIN-BRD-V31-API-FLOWS.md). It does not renumber
+`UC-01` or `UC-02`. Those files remain the IAM-001 and partner OIDC ceremonies.
+
 **Building a story?** Open its `flows/UC-nn-*.md` and `03-VALIDATION-RULE-CATALOGUE.md`. Nothing else.
 **Writing tests?** The *Outcomes* section of a flow file is the test case list, by construction.
 

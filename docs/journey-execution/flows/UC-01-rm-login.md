@@ -4,6 +4,11 @@
 **Trust boundaries crossed:** `TB-1` Internet→Edge · `TB-2` Edge→Application · `TB-3` Application→Identity
 **Status:** `AI-DRAFTED` · Security review required · Slice 1 · **Delta 2026-10-08 `IAM-001`**
 
+> Login BRD v3.1 does not use this file. Bank RM and Insurance RM captcha, OTP, unlock, forgot
+> password and expiry are [`LOGIN-BRD-V31-API-FLOWS.md`](./LOGIN-BRD-V31-API-FLOWS.md). This file
+> remains `POST /api/v1/auth/login` (`IAM-001`), which still creates a session after AD-verify and
+> does not run captcha or OTP.
+
 > **`IAM-001` delta.** Bank RM login no longer starts the OIDC authorization-code ceremony.
 > NIP-APP posts Employee ID + password to the BFF. The BFF calls
 > `identity-provider-adapter-service` `POST /internal/v1/auth/ad-verify` with `X-Internal-Service-Key`. The adapter calls the

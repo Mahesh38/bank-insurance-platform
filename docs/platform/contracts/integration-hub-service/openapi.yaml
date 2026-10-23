@@ -1,0 +1,645 @@
+openapi: 3.1.0
+info:
+  title: integration-hub-service — canonical provider API
+  version: 1.0.0-draft
+  summary: Provider-neutral door from Quotation, Proposal and Policy to insurance provider adapters.
+  description: |
+    **Status:** AI-DRAFTED 2026-10-21, awaiting Mahesh (owner, architecture) review.
+    Authoritative wire contract per ADR-027. Behaviour, routing (rule set `HUB.ROUTING`, hit policy
+    `FIRST`, ADR-024), the canonical ↔ adapter mapping and the timeout budget are in `LLD.md` next
+    to this file.
+
+    * Callers: quotation-service, proposal-service, policy-issuance-service, product-catalogue-service
+      (eligibility criteria only). Never the BFF, never Flutter.
+    * Provider vocabulary (`manufacturerId`, `reqId`, 1SB `Lob` values) never appears on this API
+      (`INV-ACL-01`).
+    * Attribution (`distributorId`, `agentId`, `spLicenceId`, `distribution.*`) is injected by the Hub;
+      a caller that sends any of it gets `422 ATTRIBUTION_NOT_CALLER_SUPPLIED` (`INV-DIS-01`).
+    * Submits are never retried by the Hub. A submit whose adapter call timed out is accepted as
+      `SUBMISSION_UNCERTAIN`; the caller polls, it never resubmits.
+    * Payment-link creation is **not** a Hub operation in R0: premium collection is AU Bank PG via
+      payment-service (D8). The 1SB adapter's `POST /v1/payments` stays unrouted.
+servers:
+  - url: http://integration-hub-service:8100
+    description: Cluster-private (layer L5, INTERNAL)
+tags:
+  - name: provider-requests
+    description: Asynchronous provider operations (quote, proposal submit) — submit then poll
+  - name: provider-queries
+    description: Synchronous provider reads (status, criteria, schema, masters, content, ULIP funds)
+paths:
+  /internal/v1/provider-requests:
+    post:
+      tags: [provider-requests]
+      operationId: submitProviderRequest
+      summary: Submit an asynchronous canonical provider operation
+      description: |
+        Routes by `HUB.ROUTING` (FIRST hit), injects attribution, records
+        `hub.provider_request` (idempotency + correlation) and calls the routed adapter once.
+        Same `Idempotency-Key` + same body → the stored `202` is replayed and the adapter is **not**
+        called again, even if a newer `HUB.ROUTING` version is now in force.
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKeyRequired'
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/JourneyId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProviderRequest'
+            examples:
+              multiQuoteTerm:
+                value:
+                  operation: QUOTE
+                  lob: LIFE
+                  productClass: TERM
+                  callerRef: { context: quotation, aggregateId: 01JTQ7Z9X4N2B8C5D6E7F8G9H0 }
+                  journeyId: 01JQX4K8A1B2C3D4E5F6G7H8J9
+                  mode: MULTI
+                  body:
+                    category: SUM_ASSURED
+                    requestedCover: 10000000
+                    members:
+                      - { role: LIFE_ASSURED, sequence: 1, dob: '1990-04-12', gender: MALE,
+                          tobacco: false, annualIncome: 1500000, pincode: '400001' }
+                    preferences: { paymentFrequency: YEARLY }
+      responses:
+        '202':
+          description: Accepted (or replay of the original acceptance)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProviderRequestAccepted'
+        '400':
+          $ref: '#/components/responses/MissingIdempotencyKey'
+        '409':
+          $ref: '#/components/responses/IdempotencyConflict'
+        '422':
+          description: |
+            `VALIDATION_ERROR` (body invalid; field errors carry `MISSING_REQUIRED_FIELD`),
+            `UNSUPPORTED_LOB` (lob ≠ LIFE or productClass ∉ TERM|SAVINGS|ULIP),
+            `ATTRIBUTION_NOT_CALLER_SUPPLIED` (attribution in the body — security event),
+            `AGENT_ATTRIBUTION_MISSING` (PROPOSAL_SUBMIT without a resolvable agent code),
+            `CONFIGURATION_UNRESOLVABLE` (no route, or distributor id unresolvable — fail closed),
+            `UPSTREAM_BUSINESS_ERROR` / `PROPOSAL_REJECTED` (adapter refused synchronously)
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '502':
+          $ref: '#/components/responses/UpstreamBadResponse'
+        '503':
+          $ref: '#/components/responses/UpstreamUnavailable'
+  /internal/v1/provider-requests/{providerRequestId}:
+    get:
+      tags: [provider-requests]
+      operationId: getProviderRequest
+      summary: Current canonical state and result of a provider request
+      description: |
+        The Hub reads the adapter job (`GET /v1/quotes/{jobId}` or `/v1/proposals/{jobId}`) and maps
+        it to canonical form. A request owned by a different caller context is `404` (absent, not 403).
+      parameters:
+        - name: providerRequestId
+          in: path
+          required: true
+          schema: { $ref: '#/components/schemas/Ulid' }
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Current state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProviderRequestStatus'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '502':
+          $ref: '#/components/responses/UpstreamBadResponse'
+        '503':
+          $ref: '#/components/responses/UpstreamUnavailable'
+  /internal/v1/provider-queries:
+    post:
+      tags: [provider-queries]
+      operationId: runProviderQuery
+      summary: Synchronous canonical provider read
+      description: |
+        No Hub state is written. When the routed adapter treats the call as mutating
+        (`ELIGIBILITY_CRITERIA_SUBMIT`, `ULIP_FUNDS_LIST`, `ULIP_FUND_PERFORMANCE`) and the caller sent
+        no `Idempotency-Key`, the Hub derives `query:{operation}:{sha256(canonical body)}` so a retry
+        replays at the adapter.
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKeyOptional'
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/JourneyId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProviderQuery'
+      responses:
+        '200':
+          description: Canonical result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProviderQueryResult'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyConflict'
+        '422':
+          description: |
+            `VALIDATION_ERROR`, `UNSUPPORTED_LOB`, `ATTRIBUTION_NOT_CALLER_SUPPLIED`,
+            `CONFIGURATION_UNRESOLVABLE`, `UPSTREAM_BUSINESS_ERROR`
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '502':
+          $ref: '#/components/responses/UpstreamBadResponse'
+        '503':
+          $ref: '#/components/responses/UpstreamUnavailable'
+        '504':
+          $ref: '#/components/responses/UpstreamTimeout'
+components:
+  parameters:
+    IdempotencyKeyRequired:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: Server-derived by the caller from aggregate + operation, e.g. `quote:{quoteId}:submit`.
+      schema: { type: string, minLength: 1, maxLength: 128 }
+    IdempotencyKeyOptional:
+      name: Idempotency-Key
+      in: header
+      required: false
+      schema: { type: string, minLength: 1, maxLength: 128 }
+    ActorId:
+      name: X-Actor-Id
+      in: header
+      required: true
+      description: Business principal; used to resolve agent code and SP licence — never trusted as attribution itself.
+      schema: { type: string, minLength: 1, maxLength: 100 }
+    CorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: true
+      schema: { type: string, format: uuid }
+    JourneyId:
+      name: X-Journey-Id
+      in: header
+      required: false
+      schema: { $ref: '#/components/schemas/Ulid' }
+  responses:
+    MissingIdempotencyKey:
+      description: '`MISSING_IDEMPOTENCY_KEY`'
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    IdempotencyConflict:
+      description: '`IDEMPOTENCY_CONFLICT` (same key, different body) or `REQUEST_IN_PROGRESS` (same key, first still running)'
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    NotFound:
+      description: '`RESOURCE_NOT_FOUND`'
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    UpstreamBadResponse:
+      description: '`UPSTREAM_BAD_RESPONSE` or `UPSTREAM_AUTH_FAILURE`'
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    UpstreamUnavailable:
+      description: '`UPSTREAM_UNAVAILABLE` — adapter unreachable or its per-provider breaker is open'
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    UpstreamTimeout:
+      description: '`UPSTREAM_TIMEOUT` — a synchronous query exceeded its budget (queries only; submits never return this)'
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+  schemas:
+    Ulid:
+      type: string
+      pattern: '^[0-9A-HJKMNP-TV-Z]{26}$'
+    Lob:
+      type: string
+      enum: [LIFE]
+      description: Canonical line of business. R0 = LIFE only (HEALTH / GENERAL are later releases).
+    ProductClass:
+      type: string
+      enum: [TERM, SAVINGS, ULIP]
+    InsurerCode:
+      type: string
+      minLength: 1
+      maxLength: 64
+      description: Bank insurer code (catalogue `insurer_id`). Mapped to the provider's own id inside the Hub/adapter.
+    CallerRef:
+      type: object
+      required: [context, aggregateId]
+      additionalProperties: false
+      properties:
+        context: { type: string, enum: [quotation, proposal, policy] }
+        aggregateId: { $ref: '#/components/schemas/Ulid' }
+    ProviderRequest:
+      oneOf:
+        - $ref: '#/components/schemas/QuoteRequest'
+        - $ref: '#/components/schemas/ProposalSubmitRequest'
+      discriminator:
+        propertyName: operation
+        mapping:
+          QUOTE: '#/components/schemas/QuoteRequest'
+          PROPOSAL_SUBMIT: '#/components/schemas/ProposalSubmitRequest'
+    QuoteRequest:
+      type: object
+      required: [operation, lob, productClass, callerRef, journeyId, mode, body]
+      additionalProperties: false
+      properties:
+        operation: { type: string, const: QUOTE }
+        lob: { $ref: '#/components/schemas/Lob' }
+        productClass: { $ref: '#/components/schemas/ProductClass' }
+        callerRef: { $ref: '#/components/schemas/CallerRef' }
+        journeyId: { $ref: '#/components/schemas/Ulid' }
+        mode:
+          type: string
+          enum: [MULTI, SINGLE]
+        insurerCodes:
+          type: array
+          description: Optional restriction for MULTI; every code must route to the same provider in R0.
+          items: { $ref: '#/components/schemas/InsurerCode' }
+        body: { $ref: '#/components/schemas/QuoteBody' }
+        selection: { $ref: '#/components/schemas/ProductSelection' }
+    QuoteBody:
+      type: object
+      required: [category, requestedCover, members]
+      additionalProperties: false
+      properties:
+        category:
+          type: string
+          enum: [SUM_ASSURED, PREMIUM]
+        requestedCover:
+          type: number
+          exclusiveMinimum: 0
+          description: Sum assured requested (INR). Maps to adapter `sumAssured`.
+        premiumAmount:
+          type: number
+          exclusiveMinimum: 0
+          description: Required when category = PREMIUM.
+        members:
+          type: array
+          minItems: 1
+          items: { $ref: '#/components/schemas/Member' }
+        preferences:
+          type: object
+          additionalProperties: false
+          properties:
+            paymentFrequency: { type: string, enum: [YEARLY, HALF_YEARLY, QUARTERLY, MONTHLY, SINGLE] }
+            policyTerm: { type: integer, minimum: 1 }
+    Member:
+      type: object
+      required: [role, sequence, dob, gender]
+      additionalProperties: false
+      properties:
+        role: { type: string, enum: [LIFE_ASSURED, PROPOSER] }
+        sequence: { type: integer, minimum: 1 }
+        dob: { type: string, format: date }
+        gender: { type: string, enum: [MALE, FEMALE, TRANSGENDER, OTHER] }
+        tobacco: { type: boolean }
+        annualIncome: { type: number, minimum: 0 }
+        pincode: { type: string, pattern: '^[1-9][0-9]{5}$' }
+        relationship: { type: string, maxLength: 32 }
+    ProductSelection:
+      type: object
+      description: Required when mode = SINGLE (pinned product re-quote).
+      required: [insurerCode, productCodes]
+      additionalProperties: false
+      properties:
+        insurerCode: { $ref: '#/components/schemas/InsurerCode' }
+        productCodes:
+          type: array
+          minItems: 1
+          items: { type: string, maxLength: 100 }
+        planOption: { type: string }
+        coverOption: { type: string }
+        deathBenefitOption: { type: string }
+        policyTerm: { type: integer, minimum: 1 }
+        premiumPaymentTerm: { type: integer, minimum: 1 }
+        premiumFrequency: { type: string }
+        premiumPaymentOption: { type: string }
+    ProposalSubmitRequest:
+      type: object
+      required: [operation, lob, productClass, callerRef, journeyId, quoteProviderRequestId, insurerCode,
+                 productCode, providerOfferRef, schemaId, schemaVersion, answers, consentRef]
+      additionalProperties: false
+      properties:
+        operation: { type: string, const: PROPOSAL_SUBMIT }
+        lob: { $ref: '#/components/schemas/Lob' }
+        productClass: { $ref: '#/components/schemas/ProductClass' }
+        callerRef: { $ref: '#/components/schemas/CallerRef' }
+        journeyId: { $ref: '#/components/schemas/Ulid' }
+        quoteProviderRequestId:
+          $ref: '#/components/schemas/Ulid'
+          description: The QUOTE providerRequestId; the Hub resolves it to the adapter quote job (`quoteJobId`).
+        insurerCode: { $ref: '#/components/schemas/InsurerCode' }
+        productCode: { type: string, maxLength: 100 }
+        providerOfferRef:
+          type: string
+          maxLength: 64
+          description: Opaque `providerOfferRef` from the quote result. Maps to adapter `offerId`.
+        schemaId: { type: string, maxLength: 100 }
+        schemaVersion: { type: string, maxLength: 32 }
+        answers:
+          type: object
+          description: questionId → answer, exactly as shown to the customer (persisted by proposal-service in `proposal.proposal_answer`, D8).
+          additionalProperties: true
+        consentRef:
+          $ref: '#/components/schemas/Ulid'
+          description: Consent id covering `CNS-SHR` for this insurer (`CONSENT.POLICY` checkpoint BEFORE_PROPOSAL_SUBMIT).
+    ProviderRequestAccepted:
+      type: object
+      required: [providerRequestId, operation, state, provider]
+      properties:
+        providerRequestId: { $ref: '#/components/schemas/Ulid' }
+        operation: { type: string, enum: [QUOTE, PROPOSAL_SUBMIT] }
+        state: { type: string, enum: [IN_PROGRESS, SUBMISSION_UNCERTAIN] }
+        provider: { $ref: '#/components/schemas/ProviderId' }
+        routingVersion:
+          type: string
+          description: '`HUB.ROUTING@{version}` that chose the provider (also stored on hub.provider_request).'
+    ProviderId:
+      type: string
+      pattern: '^(ONE_SB|DIRECT_[A-Z0-9]{2,30})$'
+      description: Provider adapter id produced by `HUB.ROUTING`. R0 seed routes everything to ONE_SB.
+    CanonicalState:
+      type: string
+      enum: [IN_PROGRESS, SUBMISSION_UNCERTAIN, COMPLETED, PARTIALLY_COMPLETED, FAILED, TIMED_OUT]
+    ProviderRequestStatus:
+      type: object
+      required: [providerRequestId, operation, state, provider, callerRef, createdAt]
+      properties:
+        providerRequestId: { $ref: '#/components/schemas/Ulid' }
+        operation: { type: string, enum: [QUOTE, PROPOSAL_SUBMIT] }
+        state: { $ref: '#/components/schemas/CanonicalState' }
+        provider: { $ref: '#/components/schemas/ProviderId' }
+        callerRef: { $ref: '#/components/schemas/CallerRef' }
+        createdAt: { type: string, format: date-time }
+        result:
+          description: Present only when state is COMPLETED or PARTIALLY_COMPLETED.
+          oneOf:
+            - $ref: '#/components/schemas/QuoteResult'
+            - $ref: '#/components/schemas/ProposalSubmitResult'
+        failure: { $ref: '#/components/schemas/Failure' }
+    QuoteResult:
+      type: object
+      required: [offers, partialErrors]
+      properties:
+        offers:
+          type: array
+          items: { $ref: '#/components/schemas/Offer' }
+        partialErrors:
+          type: array
+          items: { $ref: '#/components/schemas/PartialError' }
+    Offer:
+      type: object
+      required: [providerOfferRef, insurerCode, productCode, premiumAmount, premiumFrequency, sumAssured, outOfBound]
+      properties:
+        providerOfferRef: { type: string, maxLength: 64 }
+        insurerCode: { $ref: '#/components/schemas/InsurerCode' }
+        insurerName: { type: [string, 'null'] }
+        productCode: { type: string }
+        productName: { type: [string, 'null'] }
+        premiumAmount: { type: number }
+        premiumFrequency: { type: string }
+        sumAssured: { type: number }
+        outOfBound: { type: boolean }
+        funds:
+          type: array
+          items:
+            type: object
+            required: [code, allocationPercent]
+            properties:
+              code: { type: string }
+              name: { type: [string, 'null'] }
+              allocationPercent: { type: number, minimum: 0, maximum: 100 }
+    PartialError:
+      type: object
+      required: [insurerCode, code]
+      properties:
+        insurerCode: { $ref: '#/components/schemas/InsurerCode' }
+        productCode: { type: [string, 'null'] }
+        code: { type: string, enum: [UPSTREAM_BUSINESS_ERROR] }
+        detail:
+          type: [string, 'null']
+          description: Adapter-normalised summary for the RM screen; never raw provider text, never shown to the customer.
+    ProposalSubmitResult:
+      type: object
+      required: [applicationNumber]
+      properties:
+        applicationNumber: { type: string, maxLength: 50 }
+    Failure:
+      type: object
+      required: [code]
+      properties:
+        code:
+          type: string
+          enum: [QUOTE_TIMEOUT, UPSTREAM_TIMEOUT, UPSTREAM_BAD_RESPONSE, UPSTREAM_BUSINESS_ERROR, PROPOSAL_REJECTED, UPSTREAM_UNAVAILABLE]
+        reason:
+          type: [string, 'null']
+          description: Adapter failure reason (`POLL_TIMEOUT`, `POLL_ERROR`, `UPSTREAM_BAD_RESPONSE`, …) — diagnostic only.
+    ProviderQuery:
+      oneOf:
+        - $ref: '#/components/schemas/ApplicationStatusQuery'
+        - $ref: '#/components/schemas/EligibilityCriteriaGetQuery'
+        - $ref: '#/components/schemas/EligibilityCriteriaSubmitQuery'
+        - $ref: '#/components/schemas/ProposalFormSchemaQuery'
+        - $ref: '#/components/schemas/MasterLookupQuery'
+        - $ref: '#/components/schemas/ProductContentQuery'
+        - $ref: '#/components/schemas/UlipFundsQuery'
+      discriminator:
+        propertyName: operation
+        mapping:
+          APPLICATION_STATUS: '#/components/schemas/ApplicationStatusQuery'
+          ELIGIBILITY_CRITERIA_GET: '#/components/schemas/EligibilityCriteriaGetQuery'
+          ELIGIBILITY_CRITERIA_SUBMIT: '#/components/schemas/EligibilityCriteriaSubmitQuery'
+          PROPOSAL_FORM_SCHEMA: '#/components/schemas/ProposalFormSchemaQuery'
+          MASTER_LOOKUP: '#/components/schemas/MasterLookupQuery'
+          PRODUCT_CONTENT: '#/components/schemas/ProductContentQuery'
+          ULIP_FUNDS_LIST: '#/components/schemas/UlipFundsQuery'
+          ULIP_FUND_PERFORMANCE: '#/components/schemas/UlipFundsQuery'
+    QueryBase:
+      type: object
+      required: [operation, lob, productClass]
+      properties:
+        operation:
+          type: string
+          enum: [APPLICATION_STATUS, ELIGIBILITY_CRITERIA_GET, ELIGIBILITY_CRITERIA_SUBMIT, PROPOSAL_FORM_SCHEMA,
+                 MASTER_LOOKUP, PRODUCT_CONTENT, ULIP_FUNDS_LIST, ULIP_FUND_PERFORMANCE]
+        lob: { $ref: '#/components/schemas/Lob' }
+        productClass: { $ref: '#/components/schemas/ProductClass' }
+        journeyId: { $ref: '#/components/schemas/Ulid' }
+    ApplicationStatusQuery:
+      allOf:
+        - $ref: '#/components/schemas/QueryBase'
+        - type: object
+          required: [applicationNumber, insurerCode]
+          properties:
+            applicationNumber: { type: string, maxLength: 50 }
+            insurerCode: { $ref: '#/components/schemas/InsurerCode' }
+            productCode: { type: string }
+    EligibilityCriteriaGetQuery:
+      allOf:
+        - $ref: '#/components/schemas/QueryBase'
+        - type: object
+          required: [insurerCode, productCode]
+          properties:
+            insurerCode: { $ref: '#/components/schemas/InsurerCode' }
+            productCode: { type: string }
+    EligibilityCriteriaSubmitQuery:
+      allOf:
+        - $ref: '#/components/schemas/QueryBase'
+        - type: object
+          required: [insurerCode, productCode, values]
+          properties:
+            insurerCode: { $ref: '#/components/schemas/InsurerCode' }
+            productCode: { type: string }
+            values: { type: object, additionalProperties: true }
+    ProposalFormSchemaQuery:
+      allOf:
+        - $ref: '#/components/schemas/QueryBase'
+        - type: object
+          required: [insurerCode, productCode]
+          properties:
+            insurerCode: { $ref: '#/components/schemas/InsurerCode' }
+            productCode: { type: string }
+            schemaVersion: { type: string }
+            quoteProviderRequestId: { $ref: '#/components/schemas/Ulid' }
+    MasterLookupQuery:
+      allOf:
+        - $ref: '#/components/schemas/QueryBase'
+        - type: object
+          required: [entities]
+          properties:
+            category: { type: string, default: quote }
+            entities:
+              type: array
+              minItems: 1
+              items: { type: string }
+            insurerCode: { $ref: '#/components/schemas/InsurerCode' }
+    ProductContentQuery:
+      allOf:
+        - $ref: '#/components/schemas/QueryBase'
+        - type: object
+          required: [insurerCode, productCode]
+          properties:
+            insurerCode: { $ref: '#/components/schemas/InsurerCode' }
+            productCode: { type: string }
+    UlipFundsQuery:
+      allOf:
+        - $ref: '#/components/schemas/QueryBase'
+        - type: object
+          required: [body]
+          properties:
+            body: { $ref: '#/components/schemas/QuoteBody' }
+            selection: { $ref: '#/components/schemas/ProductSelection' }
+    ProviderQueryResult:
+      type: object
+      required: [operation, provider, result]
+      properties:
+        operation: { type: string }
+        provider: { $ref: '#/components/schemas/ProviderId' }
+        result:
+          oneOf:
+            - $ref: '#/components/schemas/ApplicationStatusResult'
+            - $ref: '#/components/schemas/EligibilitySubmitResult'
+            - $ref: '#/components/schemas/FormSchemaResult'
+            - $ref: '#/components/schemas/MasterLookupResult'
+            - $ref: '#/components/schemas/ContentResult'
+    ApplicationStatusResult:
+      type: object
+      required: [applicationNumber, bankStatus]
+      properties:
+        applicationNumber: { type: string }
+        bankStatus:
+          type: string
+          enum: [QUOTING, PROPOSAL, UW_REQUIREMENTS, UW_IN_PROGRESS, CUSTOMER_DECISION, PAYMENT, ISSUED, CLOSED, UNKNOWN]
+        providerSubStatus: { type: [string, 'null'], description: Diagnostic only. }
+        policyNumber: { type: [string, 'null'] }
+        providerUpdatedAt: { type: [string, 'null'], format: date-time }
+    EligibilitySubmitResult:
+      type: object
+      required: [accepted]
+      properties:
+        accepted: { type: boolean }
+        status: { type: [string, 'null'] }
+    FormSchemaResult:
+      type: object
+      required: [productCode, fields]
+      description: Eligibility-criteria form or proposal form (pages → sections → fields).
+      properties:
+        productCode: { type: string }
+        insurerCode: { $ref: '#/components/schemas/InsurerCode' }
+        schemaVersion: { type: [string, 'null'] }
+        fields: { type: object, additionalProperties: true }
+    MasterLookupResult:
+      type: object
+      required: [lookups]
+      properties:
+        lookups:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: object
+              required: [code, label]
+              properties:
+                code: { type: string }
+                label: { type: string }
+        cache:
+          type: object
+          properties:
+            hit: { type: boolean }
+            stale: { type: boolean }
+    ContentResult:
+      type: object
+      required: [data]
+      description: Product UI content or ULIP fund list / performance. Provider request ids are stripped.
+      properties:
+        productCode: { type: [string, 'null'] }
+        insurerCode: { type: [string, 'null'] }
+        data: { type: object, additionalProperties: true }
+    Problem:
+      type: object
+      description: Platform problem+json (conventions/error-model.md). Internal hops also carry origin and diagnostic.
+      required: [type, title, status, code, category, retryable, incidentId, timestamp]
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        code: { type: string }
+        category:
+          type: string
+          enum: [VALIDATION, AUTHENTICATION, AUTHORIZATION, NOT_FOUND, CONFLICT, COMPLIANCE_GATE, UPSTREAM, CONFIG, RATE_LIMIT, INTERNAL]
+        retryable: { type: boolean }
+        incidentId: { type: string }
+        correlationId: { type: string }
+        service: { type: string }
+        timestamp: { type: string, format: date-time }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              code: { type: string }
+              field: { type: string }
+              message: { type: string }
+        origin: { type: object, additionalProperties: true }
+        diagnostic: { type: object, additionalProperties: true }

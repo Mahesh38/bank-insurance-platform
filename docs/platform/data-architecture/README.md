@@ -14,6 +14,16 @@ That document is explicit: it is **not** a physical schema
 ([`§1`](../ws3-platform/02-information-model.md#1-scope-and-honest-limits)).
 `OPEN-I1` and `OPEN-I6` named this pack.
 
+> **2026-10-21 update.** The DDL now implements the owner decisions in
+> [`DECISIONS-2026-10-21.md`](../architecture-review/DECISIONS-2026-10-21.md) — `customer_id` ULID
+> (D3), lead exception evidence (D2), per-class suitability evaluation record (D4), append-only consent
+> with `CNS-QSH` (D5), payment → structured record + status history + insurer TAT (D8) — plus
+> `rule_set_version` ([`ADR-024`](../architecture-review/ADR-024-configuration-driven-rule-engine.md)),
+> the outbox shape of [`ADR-025`](../architecture-review/ADR-025-event-specification-and-publisher.md),
+> and, **as a proposal only**, the audit store of
+> [`ADR-026`](../architecture-review/ADR-026-audit-store-and-transport.md). Lead design vs Flyway:
+> [`03` §4.6](./03-lead-suitability-e2e.md#46-design-ddl-vs-as-built-flyway-v2v3--reconciliation-2026-10-21).
+
 ---
 
 ## What this pack is
@@ -29,7 +39,8 @@ That document is explicit: it is **not** a physical schema
 | [`DB-DEC-0004-working-payload-until-payment.md`](./DB-DEC-0004-working-payload-until-payment.md) | Aarti verdict `APPROVED_WITH_OBSERVATIONS` (`D1`) — working JSON in owning schemas, not on journey |
 | [`02-operations-and-troubleshooting.md`](./02-operations-and-troubleshooting.md) | Migration, encryption/access implementation, backup/PITR/RPO/RTO, retention/purge, troubleshooting |
 | [`DB-DEC-0001-r0-physical-model.md`](./DB-DEC-0001-r0-physical-model.md) | Formal `database_decision` for `ADR-008` / `S07-G5` (draft, unsigned) |
-| [`DB-DEC-0003-store-segregation.md`](./DB-DEC-0003-store-segregation.md) | Formal overlay: Dynamo empty at R0, one role per schema |
+| [`DB-DEC-0003-store-segregation.md`](./DB-DEC-0003-store-segregation.md) | Formal overlay: one role per schema; Dynamo empty at R0 (amended by `DB-DEC-0005`) |
+| [`DB-DEC-0005-dynamodb-working-payload.md`](./DB-DEC-0005-dynamodb-working-payload.md) | **Owner decision 2026-10-21:** DynamoDB for pre-payment quote and proposal state; structured Aurora after `RECONCILED` |
 | [`DATA-002-cr013-alignment.md`](./DATA-002-cr013-alignment.md) | Check vs `CR-013` / `ADR-014` — what to keep, what to create, what not to invent |
 | [`DB-DEC-0002-cr013-alignment-review.md`](./DB-DEC-0002-cr013-alignment-review.md) | Aarti verdict `CHANGES_REQUIRED` (`D1`) |
 | [`schemas/`](./schemas/) | PostgreSQL design DDL — one script per schema, plus routines and grants |
@@ -45,7 +56,7 @@ That document is explicit: it is **not** a physical schema
   Catalogue / Quotation / Proposal / Payment / Policy / Journey
   ([`ARCH-004`](../architecture-review/08-architecture-decision-log.md),
   [`ADR-008`](../architecture-review/08-architecture-decision-log.md#adr-008--data-ownership-is-the-invariant-physical-cluster-topology-is-an-evidence-led-decision)).
-- A second audit database. Audit ingestion remains on the existing store.
+- A second audit database. Audit ingestion remains on the existing store (`bank_persistence.audit_event`) until the owner accepts [`ADR-026`](../architecture-review/ADR-026-audit-store-and-transport.md), which **proposes** moving it to Aurora schema `audit` owned by `audit-compliance-service` (same cluster, not DynamoDB).
 - A stored-procedure application layer. Transactional writes stay in the owning service.
 
 ## Schemas in the R0 cluster
@@ -56,17 +67,18 @@ One Aurora PostgreSQL cluster. One schema per bounded context. No cross-schema g
 |---|---|---|---|
 | `identity` | Identity & Access (WS-2) | [`01-identity.sql`](./schemas/01-identity.sql) | Flyway on `identity-authorization-service` |
 | `bank_persistence` | 1SB Adapter job store + audit ingest | [`02-bank_persistence.sql`](./schemas/02-bank_persistence.sql) | Flyway on `bank-persistence-service` |
-| `customer` | Customer snapshot | [`03-customer.sql`](./schemas/03-customer.sql) | Design only |
-| `lead_lms` | Lead LMS (`lead` table) | [`04-lead_lms.sql`](./schemas/04-lead_lms.sql) · [e2e](./03-lead-suitability-e2e.md) | Design only |
-| `consent` | Consent evidence | [`05-consent.sql`](./schemas/05-consent.sql) | Design only |
+| `customer` | Customer (`customer_id` ULID, CIF encrypted + HMAC) and snapshot | [`03-customer.sql`](./schemas/03-customer.sql) | Design only |
+| `lead_lms` | Lead LMS (`lead` table) | [`04-lead_lms.sql`](./schemas/04-lead_lms.sql) · [e2e](./03-lead-suitability-e2e.md) | Flyway V1–V3 on `lead-service` (subset; V4 listed in [`03` §4.6](./03-lead-suitability-e2e.md#46-design-ddl-vs-as-built-flyway-v2v3--reconciliation-2026-10-21)) |
+| `consent` | Consent evidence (append-only) | [`05-consent.sql`](./schemas/05-consent.sql) | Design only |
 | `suitability` | Suitability assessment | [`06-suitability.sql`](./schemas/06-suitability.sql) · [e2e](./03-lead-suitability-e2e.md) | Design only |
 | `catalogue` | Product catalogue | [`07-catalogue.sql`](./schemas/07-catalogue.sql) | Design only |
-| `quotation` | Quote and offer — `quote_working` until payment, then structured | [`08-quotation.sql`](./schemas/08-quotation.sql) · [orchestrator](./06-journey-orchestrator-and-working-payload.md) | Design only |
-| `proposal` | Proposal & UW — `proposal_working` until payment, then structured | [`09-proposal.sql`](./schemas/09-proposal.sql) · [orchestrator](./06-journey-orchestrator-and-working-payload.md) | Design only |
+| `quotation` | Quote and offer — DynamoDB working item until payment (`DB-DEC-0005`), then structured | [`08-quotation.sql`](./schemas/08-quotation.sql) · [orchestrator](./06-journey-orchestrator-and-working-payload.md) | Flyway V1–V2 on `quotation-service` |
+| `proposal` | Proposal & UW — DynamoDB working item until payment (`DB-DEC-0005`), then structured | [`09-proposal.sql`](./schemas/09-proposal.sql) · [orchestrator](./06-journey-orchestrator-and-working-payload.md) | Flyway V1–V2 on `proposal-service` (needs `proposal_answer`, drop `form_values_ref`) |
 | `payment` | Payment — always structured; on the journey, independent SoR | [`10-payment.sql`](./schemas/10-payment.sql) · [orchestrator §6](./06-journey-orchestrator-and-working-payload.md) | Design only |
 | `policy` | Policy & issuance | [`11-policy.sql`](./schemas/11-policy.sql) | Design only |
 | `journey` | Journey orchestration — stage + refs only | [`12-journey.sql`](./schemas/12-journey.sql) · [orchestrator](./06-journey-orchestrator-and-working-payload.md) | Design only |
-| `administration` | Versioned configuration | [`13-administration.sql`](./schemas/13-administration.sql) | Design only |
+| `administration` | Versioned configuration and rule sets (ADR-024) | [`13-administration.sql`](./schemas/13-administration.sql) | Design only |
+| `audit` — **PROPOSED** | Business audit (ADR-026, awaiting owner yes) | [`15-audit.sql`](./schemas/15-audit.sql) | Not applied |
 
 Shared cluster objects: [`00-cluster-bootstrap.sql`](./schemas/00-cluster-bootstrap.sql),
 audit column delta [`14-audit_event_delta.sql`](./schemas/14-audit_event_delta.sql)

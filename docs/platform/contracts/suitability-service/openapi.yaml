@@ -1,0 +1,756 @@
+openapi: 3.1.0
+info:
+  title: suitability-service internal API
+  version: 1.0.0-draft
+  summary: Suitability (#7) — per-class question sets, engine evaluation, per-class outcome record, C1 gate read.
+  description: |
+    **Status:** AI-DRAFTED 2026-10-22 under owner decisions D1 (ADR-024), D4, D-022 and ADR-027,
+    awaiting Mahesh (architecture), Rajal (behaviour) and Shailja (Compliance — rule content,
+    GAP-007) review. Code status: SKELETON.
+
+    * Question set and rules per product class come from rule sets
+      `SUITABILITY.LIFE.TERM | .SAVINGS | .ULIP` (D-022), evaluated by `libs/bank-rule-engine`
+      (`hitPolicy: PRIORITY`, `collectReasonCodes: ALL_FIRED`). Nothing is compiled in.
+    * The **per-class outcome record** is canonical (D4): one evaluation, one outcome row per
+      product class with every fired reason code in rule order, derived values, rule-set id+version.
+    * Gate policy (allowed outcomes, caution acknowledgement and its modes, validity days) is rule
+      set `SUITABILITY.GATE`. Strict seeds (DECISIONS-2026-10-22): C5 — `SUITABLE`, and
+      `SUITABLE_WITH_CAUTION` only with the customer's acknowledgement on their own device; C6 —
+      `INSUFFICIENT_DATA` (incl. the Savings/ULIP rule-pack gaps) never quotes. C1 — Journey has
+      checked `CNS-DP` + `CNS-SOL` before an assessment is created.
+    * A `COMPLETED` assessment is immutable (INV-SUI-01); a correction is a new assessment that
+      supersedes it.
+    * Gate refusal = `403 SUITABILITY_REQUIRED`. Service unavailable = `503` — the caller
+      (quotation) fails closed and produces no quote.
+servers:
+  - url: http://suitability-service:8093
+    description: Cluster-private (INTERNAL, layer L5).
+tags:
+  - name: assessment
+  - name: evaluation
+  - name: gate
+paths:
+  /internal/v1/assessments:
+    post:
+      tags: [assessment]
+      operationId: createAssessment
+      summary: Start an assessment for a lead's product class, or a correction superseding a completed one.
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAssessmentRequest'
+      responses:
+        '200':
+          description: An IN_PROGRESS assessment already exists for this lead and class — returned (resume).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Assessment'
+        '201':
+          description: Created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Assessment'
+        '400':
+          $ref: '#/components/responses/MissingIdempotencyKey'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Validation'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /internal/v1/assessments/{suitabilityId}:
+    get:
+      tags: [assessment]
+      operationId: getAssessment
+      summary: Assessment header and its current evaluation (no answers in plaintext).
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/SuitabilityId'
+      responses:
+        '200':
+          description: Assessment.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Assessment'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /internal/v1/assessments/{suitabilityId}/questions:
+    get:
+      tags: [assessment]
+      operationId: getQuestionSet
+      summary: The question set pinned to this assessment (from the class rule set's inputs).
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/SuitabilityId'
+      responses:
+        '200':
+          description: Question set.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuestionSet'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /internal/v1/assessments/{suitabilityId}/answers:
+    put:
+      tags: [assessment]
+      operationId: saveAnswers
+      summary: Save a screen of answers (new encrypted answer-set version). Only while IN_PROGRESS.
+      description: |
+        `COMPLETED`, `LOCKED`, `SUPERSEDED` → `409 ASSESSMENT_IMMUTABLE` (INV-SUI-01). This replaces
+        the earlier api-reference §2.2 behaviour ("editing a COMPLETED assessment re-opens it").
+        To correct, create a new assessment with `supersedesSuitabilityId`.
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/SuitabilityId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaveAnswersRequest'
+      responses:
+        '200':
+          description: Saved.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Assessment'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Validation'
+  /internal/v1/assessments/{suitabilityId}/evaluate:
+    post:
+      tags: [evaluation]
+      operationId: evaluate
+      summary: Run the engine for every LIFE product class and write the per-class outcome record.
+      description: |
+        The assessment's own class set must be complete (SUIT-R01a) else `422 SUITABILITY_INCOMPLETE`
+        listing missing question ids, and nothing is written. Classes whose set was not answered get
+        `INSUFFICIENT_DATA` (SUIT-R01c). Assessment → `COMPLETED` (immutable); a superseded
+        predecessor → `SUPERSEDED`; outbox `SuitabilityCompleted`.
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/SuitabilityId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvaluateRequest'
+      responses:
+        '200':
+          description: Evaluation written (or replayed).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Evaluation'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Validation'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /internal/v1/evaluations/{evaluationId}:
+    get:
+      tags: [evaluation]
+      operationId: getEvaluation
+      summary: The outcome record (per-class outcomes, reason codes, derived values, rule-set refs).
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/EvaluationId'
+      responses:
+        '200':
+          description: Evaluation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Evaluation'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /internal/v1/evaluations/{evaluationId}/acknowledgements:
+    post:
+      tags: [evaluation]
+      operationId: acknowledgeDisclosure
+      summary: Record the customer's OTP-verified acknowledgement of a caution (SUIT-R41–R43) or replacement disclosure (SUIT-R46).
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/EvaluationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcknowledgementRequest'
+      responses:
+        '201':
+          description: Acknowledgement recorded (append-only).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Acknowledgement'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Validation'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /internal/v1/evaluations/{evaluationId}/usages:
+    post:
+      tags: [evaluation]
+      operationId: recordUsage
+      summary: Record that a journey uses this evaluation (reuse, SUIT-R37). Idempotent per journey.
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/EvaluationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [journeyId, customerId]
+              properties:
+                journeyId:
+                  $ref: '#/components/schemas/Ulid'
+                customerId:
+                  $ref: '#/components/schemas/Ulid'
+      responses:
+        '201':
+          description: Usage recorded (or already present).
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /internal/v1/evaluations/{evaluationId}/lock:
+    post:
+      tags: [evaluation]
+      operationId: lockEvaluation
+      summary: Lock at final BI / proposal submit; a locked evaluation is not invalidated by expiry or model change (SUIT-R34).
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/EvaluationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [quoteId, productClass]
+              properties:
+                quoteId:
+                  $ref: '#/components/schemas/Ulid'
+                productClass:
+                  $ref: '#/components/schemas/ProductClass'
+      responses:
+        '200':
+          description: Locked (idempotent for the same quote).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Evaluation'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /internal/v1/evaluations:usable:
+    get:
+      tags: [gate]
+      operationId: getUsableEvaluation
+      summary: C1 gate read (S-08) — the usable evaluation for this customer, lob and class, or 403.
+      description: |
+        Caller contract: quotation, **500 ms, no retry**. `200` = quote permitted for this class.
+        Refused: `403 SUITABILITY_REQUIRED`, `422 SUITABILITY_INCOMPLETE` (insufficient data — C6 — or a
+        caution not acknowledged on the customer's own device — C5) or `403
+        REPLACEMENT_DISCLOSURE_REQUIRED`; the `refusalReason` extension names why (rule pack §6.2
+        vocabulary). Timeout / `5xx` / connection failure = the caller refuses with
+        `503 UPSTREAM_UNAVAILABLE`, records the quote `REJECTED`, and produces no quote (SUIT-R26).
+        A cache miss is a refusal, never an allow. The gate cannot be disabled (SUIT-R40).
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+        - name: customerId
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/Ulid'
+        - name: lob
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [LIFE]
+        - name: productClass
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/ProductClass'
+        - name: evaluationId
+          in: query
+          required: true
+          description: The evaluation the journey holds in `journey_ref` (SUIT-R20 "the request carries an evaluation id").
+          schema:
+            $ref: '#/components/schemas/Ulid'
+      responses:
+        '200':
+          description: Usable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GateDecision'
+        '403':
+          description: 'SUITABILITY_REQUIRED or REPLACEMENT_DISCLOSURE_REQUIRED, with extension `refusalReason` (see GateRefusal).'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/GateRefusal'
+        '422':
+          description: 'SUITABILITY_INCOMPLETE with `refusalReason` SUITABILITY_INSUFFICIENT_DATA or CAUTION_NOT_ACKNOWLEDGED (C5/C6); or VALIDATION_ERROR for malformed parameters.'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/GateRefusal'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+components:
+  parameters:
+    ActorId:
+      name: X-Actor-Id
+      in: header
+      required: true
+      schema:
+        type: string
+        maxLength: 64
+    CorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: false
+      schema:
+        type: string
+        maxLength: 64
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: 'Server-derived, e.g. `journey:{journeyId}:suitability:create`, `suitability:{id}:evaluate:{answerSetVersion}`.'
+      schema:
+        type: string
+        maxLength: 128
+    SuitabilityId:
+      name: suitabilityId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Ulid'
+    EvaluationId:
+      name: evaluationId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Ulid'
+  schemas:
+    Ulid:
+      type: string
+      pattern: '^[0-9A-HJKMNP-TV-Z]{26}$'
+    ProductClass:
+      type: string
+      enum: [TERM, SAVINGS, ULIP]
+    Outcome:
+      type: string
+      enum: [SUITABLE, SUITABLE_WITH_CAUTION, NOT_SUITABLE, INSUFFICIENT_DATA]
+    AssessmentState:
+      type: string
+      enum: [IN_PROGRESS, COMPLETED, LOCKED, SUPERSEDED, EXPIRED, ABANDONED]
+    RuleSetRef:
+      type: object
+      required: [ruleSetId, version]
+      properties:
+        ruleSetId:
+          type: string
+          examples: [SUITABILITY.LIFE.TERM]
+        version:
+          type: string
+          examples: [1.0.0]
+    CreateAssessmentRequest:
+      type: object
+      additionalProperties: false
+      required: [leadId, journeyId, customerId, lob, productClass, partySnapshotRef]
+      properties:
+        leadId:
+          $ref: '#/components/schemas/Ulid'
+        journeyId:
+          $ref: '#/components/schemas/Ulid'
+        customerId:
+          $ref: '#/components/schemas/Ulid'
+        lob:
+          type: string
+          enum: [LIFE]
+        productClass:
+          $ref: '#/components/schemas/ProductClass'
+          description: Taken by Journey from the lead, never from the client (SUIT-R01b).
+        partySnapshotRef:
+          $ref: '#/components/schemas/Ulid'
+          description: customer-service snapshot used for derived inputs SQ-D01…D04.
+        supersedesSuitabilityId:
+          $ref: '#/components/schemas/Ulid'
+          description: Correction of a COMPLETED assessment (INV-SUI-01). Answers are copied as answer set v1.
+    Assessment:
+      type: object
+      required: [suitabilityId, leadId, customerId, lob, productClass, state, questionSet, currentAnswerSetVersion]
+      properties:
+        suitabilityId:
+          $ref: '#/components/schemas/Ulid'
+        leadId:
+          $ref: '#/components/schemas/Ulid'
+        journeyId:
+          $ref: '#/components/schemas/Ulid'
+        customerId:
+          $ref: '#/components/schemas/Ulid'
+        lob:
+          type: string
+        productClass:
+          $ref: '#/components/schemas/ProductClass'
+        state:
+          $ref: '#/components/schemas/AssessmentState'
+        questionSet:
+          $ref: '#/components/schemas/RuleSetRef'
+        currentAnswerSetVersion:
+          type: integer
+          minimum: 0
+        lastScreenId:
+          type: ['string', 'null']
+        missingQuestionIds:
+          type: array
+          items:
+            type: string
+        editLockUntil:
+          type: ['string', 'null']
+          format: date-time
+        supersedesSuitabilityId:
+          type: ['string', 'null']
+        currentEvaluationId:
+          type: ['string', 'null']
+    QuestionSet:
+      type: object
+      required: [ruleSet, productClass, questions]
+      properties:
+        ruleSet:
+          $ref: '#/components/schemas/RuleSetRef'
+        productClass:
+          $ref: '#/components/schemas/ProductClass'
+        questions:
+          type: array
+          items:
+            type: object
+            required: [questionId, input, type, required]
+            properties:
+              questionId:
+                type: string
+                examples: [SQ-01]
+              input:
+                type: string
+                description: Rule-set input name, e.g. annualIncome.
+              type:
+                type: string
+                enum: [INTEGER, DECIMAL, BOOLEAN, ENUM]
+              allowedValues:
+                type: array
+                items:
+                  type: string
+              min:
+                type: number
+              max:
+                type: number
+              required:
+                type: boolean
+              textRef:
+                type: string
+                description: Copy-deck key for the question text (wording is Compliance-owned).
+    SaveAnswersRequest:
+      type: object
+      additionalProperties: false
+      required: [screenId, answers]
+      properties:
+        screenId:
+          type: string
+          maxLength: 40
+        answers:
+          type: object
+          description: 'Keys are question ids of this assessment''s set (SQ-01…SQ-12). An id outside the set → 422 VALIDATION_ERROR.'
+          propertyNames:
+            pattern: '^SQ-[0-9]{2}$'
+          additionalProperties:
+            type: [string, number, boolean]
+    EvaluateRequest:
+      type: object
+      additionalProperties: false
+      required: [answerSetVersion]
+      properties:
+        answerSetVersion:
+          type: integer
+          minimum: 1
+          description: Optimistic check — must equal the current answer-set version.
+    ClassOutcome:
+      type: object
+      required: [productClass, outcome, reasonCodes, ruleSet]
+      properties:
+        productClass:
+          $ref: '#/components/schemas/ProductClass'
+        outcome:
+          $ref: '#/components/schemas/Outcome'
+        reasonCodes:
+          type: array
+          description: Every fired reason code, in rule order (SUIT-R19a, ADR-024 collectReasonCodes ALL_FIRED).
+          items:
+            type: string
+        firedRuleIds:
+          type: array
+          items:
+            type: string
+        derived:
+          type: object
+          description: 'Optional per class (D4): recommendedCover, protectionGap (not derived for ULIP), affordabilityRatio, incomeMultiple, ageFactor.'
+          additionalProperties:
+            type: number
+        ruleSet:
+          $ref: '#/components/schemas/RuleSetRef'
+        acknowledgementRequired:
+          type: boolean
+          description: True for SUITABLE_WITH_CAUTION when SUITABILITY.GATE requires acknowledgement.
+        acknowledged:
+          type: boolean
+    Evaluation:
+      type: object
+      required: [evaluationId, suitabilityId, customerId, lob, status, evaluatedAt, validUntil, outcomes, gateRuleSet, engineVersion, inputsHash]
+      properties:
+        evaluationId:
+          $ref: '#/components/schemas/Ulid'
+        suitabilityId:
+          $ref: '#/components/schemas/Ulid'
+        customerId:
+          $ref: '#/components/schemas/Ulid'
+        lob:
+          type: string
+        status:
+          type: string
+          enum: [ACTIVE, LOCKED, EXPIRED, INVALIDATED, SUPERSEDED]
+        answerSetVersion:
+          type: integer
+        evaluatedAt:
+          type: string
+          format: date-time
+        validUntil:
+          type: string
+          format: date-time
+          description: evaluatedAt + SUITABILITY.GATE validityDays (seed 30, rule pack §5 #14).
+        outcomes:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClassOutcome'
+        underwritingRiskFlag:
+          type: boolean
+        dataInconsistencyFlags:
+          type: array
+          items:
+            type: string
+        replacementDisclosureRequired:
+          type: boolean
+        gateRuleSet:
+          $ref: '#/components/schemas/RuleSetRef'
+        engineVersion:
+          type: string
+        inputsHash:
+          type: string
+        pdfArtefactRef:
+          type: ['string', 'null']
+    AcknowledgementRequest:
+      type: object
+      additionalProperties: false
+      required: [kind, productClass, reasonCodes, disclosureId, disclosureVersion, otpTxnId, verificationMode]
+      properties:
+        kind:
+          type: string
+          enum: [CAUTION, REPLACEMENT]
+        productClass:
+          $ref: '#/components/schemas/ProductClass'
+        reasonCodes:
+          type: array
+          minItems: 1
+          items:
+            type: string
+        disclosureId:
+          type: string
+        disclosureVersion:
+          type: string
+        otpTxnId:
+          type: string
+          maxLength: 64
+        verificationMode:
+          type: string
+          enum: [CUSTOMER_DEVICE, RM_RELAYED]
+          description: 'Must be in SUITABILITY.GATE.cautionAcknowledgementModes — strict seed C5 is [CUSTOMER_DEVICE] (SUIT-R42); RM_RELAYED → 403 FORBIDDEN.'
+    Acknowledgement:
+      type: object
+      required: [acknowledgementId, evaluationId, kind, productClass, reasonCodes, acknowledgedAt]
+      properties:
+        acknowledgementId:
+          $ref: '#/components/schemas/Ulid'
+        evaluationId:
+          $ref: '#/components/schemas/Ulid'
+        kind:
+          type: string
+        productClass:
+          $ref: '#/components/schemas/ProductClass'
+        reasonCodes:
+          type: array
+          items:
+            type: string
+        acknowledgedAt:
+          type: string
+          format: date-time
+    GateDecision:
+      type: object
+      required: [usable, evaluationId, productClass, outcome, reasonCodes, validUntil, gateRuleSet]
+      properties:
+        usable:
+          type: boolean
+          const: true
+        evaluationId:
+          $ref: '#/components/schemas/Ulid'
+        productClass:
+          $ref: '#/components/schemas/ProductClass'
+        outcome:
+          $ref: '#/components/schemas/Outcome'
+        reasonCodes:
+          type: array
+          items:
+            type: string
+        validUntil:
+          type: string
+          format: date-time
+        gateRuleSet:
+          $ref: '#/components/schemas/RuleSetRef'
+    GateRefusal:
+      allOf:
+        - $ref: '#/components/schemas/Problem'
+        - type: object
+          required: [refusalReason]
+          properties:
+            refusalReason:
+              type: string
+              enum:
+                - SUITABILITY_EVALUATION_NOT_FOUND
+                - SUITABILITY_EVALUATION_EXPIRED
+                - SUITABILITY_SUBJECT_MISMATCH
+                - PRODUCT_CLASS_NOT_SUITABLE
+                - SUITABILITY_INSUFFICIENT_DATA
+                - SUITABILITY_EVALUATION_INVALID
+                - CAUTION_NOT_ACKNOWLEDGED
+                - REPLACEMENT_DISCLOSURE_REQUIRED
+              description: 'Rule-pack §6.2 vocabulary carried as a reason. The code is SUITABILITY_INCOMPLETE (422) for SUITABILITY_INSUFFICIENT_DATA and CAUTION_NOT_ACKNOWLEDGED, REPLACEMENT_DISCLOSURE_REQUIRED (403) for that reason, else SUITABILITY_REQUIRED (403).'
+    Problem:
+      type: object
+      description: Platform problem+json (conventions/error-model.md).
+      required: [title, status, code, category, retryable, incidentId, service, timestamp]
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        code:
+          type: string
+        category:
+          type: string
+        retryable:
+          type: [boolean, string]
+        incidentId:
+          type: string
+        correlationId:
+          type: string
+        service:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        errors:
+          type: array
+          items:
+            type: object
+        origin:
+          type: object
+        diagnostic:
+          type: object
+  responses:
+    Validation:
+      description: 'VALIDATION_ERROR, MISSING_REQUIRED_FIELD, UNSUPPORTED_LOB, SUITABILITY_INCOMPLETE (registered — lists missing question ids in errors[]), CONFIGURATION_UNRESOLVABLE (rule set cannot be resolved — fail closed).'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    MissingIdempotencyKey:
+      description: MISSING_IDEMPOTENCY_KEY.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Forbidden:
+      description: 'SP_CERTIFICATION_REQUIRED, DEFAULT_DENY (PDP suitability.perform), FORBIDDEN (verification mode not permitted).'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Conflict:
+      description: 'ASSESSMENT_IMMUTABLE (edit of a COMPLETED/LOCKED/SUPERSEDED assessment), CONFLICT (edit lock held by another actor; lead on exception hold; stale answerSetVersion), ILLEGAL_TRANSITION, IDEMPOTENCY_CONFLICT, REQUEST_IN_PROGRESS.'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    NotFound:
+      description: RESOURCE_NOT_FOUND.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Unavailable:
+      description: 'UPSTREAM_UNAVAILABLE — configuration, customer-service or OTP verification unreachable; fail closed.'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'

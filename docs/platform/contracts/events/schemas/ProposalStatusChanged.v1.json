@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.bank.internal/events/ProposalStatusChanged.v1.json",
+  "title": "ProposalStatusChanged v1 - data",
+  "description": "Any proposal state transition not covered by a more specific event (one per transition, ordered per proposal). Producer: proposal. Status: CONTRACTED. The `data` member of event-envelope/v1 (ADR-025): ids and states only, never customer PII.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "proposalId",
+    "fromState",
+    "toState"
+  ],
+  "properties": {
+    "proposalId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "fromState": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z_]*$"
+    },
+    "toState": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z_]*$"
+    },
+    "applicationNumber": {
+      "type": "string",
+      "maxLength": 64,
+      "description": "Insurer application number (insurer-issued reference, not customer data)"
+    },
+    "journeyId": {
+      "$ref": "#/$defs/ulid"
+    }
+  },
+  "$defs": {
+    "ulid": {
+      "type": "string",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+    }
+  }
+}

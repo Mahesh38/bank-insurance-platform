@@ -103,6 +103,11 @@ nav:
       - Request lifecycle: journey-execution/01-REQUEST-LIFECYCLE-STANDARD.md
       - Traceability: journey-execution/06-TRACEABILITY.md
       - API & service catalogue: knowledge-base/api-service-catalogue.md
+      - Platform API reference: platform/api-reference/README.md
+      - API scenario · Bank RM login: platform/api-reference/scenarios/01-bank-rm-login.md
+      - API scenario · Multi-quote: platform/api-reference/scenarios/10-multi-quote-and-selection.md
+      - API · Integration Hub: platform/api-reference/services/integration-hub-service.md
+      - API · Store ownership: platform/api-reference/data/store-ownership.md
       - Live module/service inventory: knowledge-base/generated/service-inventory.md
   - Workstreams:
       - WS-1 · 1SB integration: 1sb-insurance-integration/service-ssot/README.md

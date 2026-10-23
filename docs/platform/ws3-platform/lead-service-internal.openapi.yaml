@@ -1,3 +1,6 @@
+# SUPERSEDED by docs/platform/contracts/lead-service/openapi.yaml (ADR-027)
+# Kept for history only. Do not build against this file: paths (:start-onboarding), status codes
+# (422 VALIDATION_BLOCKED, 409 LEAD_DUPLICATE_UNFINISHED) and the close body differ from the code.
 openapi: 3.0.3
 info:
   title: Lead service — cluster-private API (R0)

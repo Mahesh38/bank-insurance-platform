@@ -111,6 +111,12 @@ class SharedHarnessProposalSmokeIT {
                         .withHeader("Content-Type", "application/json")
                         .withBody("{\"jobId\":\"%s\",\"status\":\"COMPLETED\"}".formatted(jobId))));
 
+    // Request evidence is stored before the proposal call (SUG-20261021-gap).
+    HARNESS
+        .persistence()
+        .stubFor(
+            post(urlEqualTo("/internal/v1/raw-payloads")).willReturn(aResponse().withStatus(201)));
+
     HARNESS
         .onesb()
         .stubFor(

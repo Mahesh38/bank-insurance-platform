@@ -1,0 +1,153 @@
+openapi: 3.1.0
+info:
+  title: reporting-mis-service — MIS reports (minimal R0 contract, NOT READY)
+  version: 0.1.0-draft
+  summary: Paths and parameters only; response shapes fixed after the read-model store decision.
+  description: |
+    **Status:** AI-DRAFTED 2026-10-21 — **NOT READY**, awaiting Mahesh (store decision) and Rajal
+    (report definitions) review. Paths, parameters and error codes are fixed so the BFF can route;
+    row schemas are deliberately open (`additionalProperties`) until the read model is decided
+    (see `LLD.md` §4). The service reads only its own event-fed read model — never an OLTP schema
+    and never a writer role (`CR-013` C-ISO-1).
+servers:
+  - url: http://reporting-mis-service:8103
+    description: Cluster-private (layer L5, INTERNAL)
+paths:
+  /internal/v1/reports/funnel:
+    get:
+      operationId: getFunnelReport
+      summary: Lead → quote → proposal → paid → issued counts
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/From'
+        - $ref: '#/components/parameters/To'
+        - { name: branch, in: query, required: false, schema: { type: string, maxLength: 32 } }
+        - { name: lob, in: query, required: false, schema: { type: string, enum: [LIFE] } }
+      responses:
+        '200': { $ref: '#/components/responses/Report' }
+        '422': { $ref: '#/components/responses/Validation' }
+        '503': { $ref: '#/components/responses/Unavailable' }
+  /internal/v1/reports/sold:
+    get:
+      operationId: getSoldReport
+      summary: Sold policies (journey SOLD), on- vs off-platform
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/From'
+        - $ref: '#/components/parameters/To'
+        - { name: insurer, in: query, required: false, schema: { type: string, maxLength: 64 } }
+      responses:
+        '200': { $ref: '#/components/responses/Report' }
+        '422': { $ref: '#/components/responses/Validation' }
+        '503': { $ref: '#/components/responses/Unavailable' }
+  /internal/v1/reports/attribution:
+    get:
+      operationId: getAttributionReport
+      summary: Accountable SP attribution (C-RET-1)
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/From'
+        - $ref: '#/components/parameters/To'
+        - { name: spId, in: query, required: false, schema: { type: string, maxLength: 100 } }
+      responses:
+        '200': { $ref: '#/components/responses/Report' }
+        '422': { $ref: '#/components/responses/Validation' }
+        '503': { $ref: '#/components/responses/Unavailable' }
+  /internal/v1/reports/freshness:
+    get:
+      operationId: getReadModelFreshness
+      summary: Last event applied per source topic (so a report can state "as of")
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Freshness
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [sources]
+                properties:
+                  sources:
+                    type: array
+                    items:
+                      type: object
+                      required: [topic, lastOccurredAt]
+                      properties:
+                        topic: { type: string }
+                        lastOccurredAt: { type: string, format: date-time }
+                        lagSeconds: { type: integer }
+components:
+  parameters:
+    CorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: true
+      schema: { type: string, format: uuid }
+    ActorId:
+      name: X-Actor-Id
+      in: header
+      required: true
+      description: Report viewer; scope (branch / insurer) is decided by the PDP at the BFF (`report.branch.read`, `report.insurer.read`) and passed as filters.
+      schema: { type: string, minLength: 1, maxLength: 100 }
+    From:
+      name: from
+      in: query
+      required: true
+      schema: { type: string, format: date }
+    To:
+      name: to
+      in: query
+      required: true
+      schema: { type: string, format: date }
+  responses:
+    Report:
+      description: Report rows (row schema NOT READY — fixed with the store decision)
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [asOf, rows]
+            properties:
+              asOf: { type: string, format: date-time }
+              rows:
+                type: array
+                items: { type: object, additionalProperties: true }
+    Validation:
+      description: '`VALIDATION_ERROR` (missing / inverted range, range > 366 days) or `UNSUPPORTED_LOB`'
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Unavailable:
+      description: '`UPSTREAM_UNAVAILABLE` — read model unavailable'
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+  schemas:
+    Problem:
+      type: object
+      description: Platform problem+json (conventions/error-model.md).
+      required: [type, title, status, code, category, retryable, incidentId, timestamp]
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        code: { type: string }
+        category: { type: string }
+        retryable: { type: boolean }
+        incidentId: { type: string }
+        correlationId: { type: string }
+        service: { type: string }
+        timestamp: { type: string, format: date-time }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              code: { type: string }
+              field: { type: string }
+              message: { type: string }

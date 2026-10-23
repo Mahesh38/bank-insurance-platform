@@ -63,7 +63,7 @@ public class BffSessionAuthenticationFilter extends OncePerRequestFilter {
       filterChain.doFilter(request, response);
       return;
     }
-    WorkforceSession session = sessions.getSession(handle).orElse(null);
+    WorkforceSession session = resolve(handle);
     if (session == null) {
       resolver.resolveException(
           request,
@@ -82,6 +82,20 @@ public class BffSessionAuthenticationFilter extends OncePerRequestFilter {
       filterChain.doFilter(request, response);
     } finally {
       SecurityContextHolder.clearContext();
+    }
+  }
+
+  /**
+   * An unreadable vault entry (TokenVaultCipher throws {@link IllegalStateException}: wrong or
+   * rotated key, tampered value) is an expired session — a typed 401 SESSION_EXPIRED — not a 500
+   * escaping the filter chain (READINESS-REVIEW §3.7). Store outages are other exception types and
+   * still fail as server errors.
+   */
+  private WorkforceSession resolve(String handle) {
+    try {
+      return sessions.getSession(handle).orElse(null);
+    } catch (IllegalStateException unreadable) {
+      return null;
     }
   }
 

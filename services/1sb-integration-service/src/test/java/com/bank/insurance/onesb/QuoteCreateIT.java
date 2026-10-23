@@ -357,6 +357,11 @@ class QuoteCreateIT {
                     .withHeader("Content-Type", "application/json")
                     .withBody("{\"jobId\":\"" + jobId + "\",\"status\":\"RUNNING\"}")));
 
+    // Request evidence is stored before any proposal/payment call (SUG-20261021-gap).
+
+    PERSISTENCE.stubFor(
+        post(urlEqualTo("/internal/v1/raw-payloads")).willReturn(aResponse().withStatus(201)));
+
     PERSISTENCE.stubFor(
         post(urlPathMatching("/internal/v1/jobs/.*/poll-attempts"))
             .willReturn(

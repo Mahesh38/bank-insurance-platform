@@ -19,6 +19,8 @@ dependencies {
     runtimeOnly("org.postgresql:postgresql")
     runtimeOnly("com.h2database:h2")
 
+    testImplementation("com.tngtech.archunit:archunit-junit5:1.3.0")
+
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 

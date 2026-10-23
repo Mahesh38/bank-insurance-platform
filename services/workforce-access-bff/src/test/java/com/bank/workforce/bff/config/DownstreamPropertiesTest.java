@@ -20,9 +20,12 @@ class DownstreamPropertiesTest {
             URI.create("http://lead.example.test"),
             URI.create("http://customer.example.test"),
             "stub",
-            "stub");
+            "stub",
+            "local-authz-bff-internal-key");
     assertThat(properties.toString())
         .contains("providerAdapterInternalKey=redacted")
-        .doesNotContain("local-idp-adapter-internal-key");
+        .contains("authorizationServiceInternalKey=redacted")
+        .doesNotContain("local-idp-adapter-internal-key")
+        .doesNotContain("local-authz-bff-internal-key");
   }
 }

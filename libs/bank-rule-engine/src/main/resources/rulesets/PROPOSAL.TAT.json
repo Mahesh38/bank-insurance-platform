@@ -1,0 +1,434 @@
+{
+  "format": "rule-set/v1",
+  "ruleSetId": "PROPOSAL.TAT",
+  "domain": "PROPOSAL_TAT",
+  "scope": {
+    "lob": "LIFE",
+    "productClass": null
+  },
+  "version": "1.0.0",
+  "effectiveFrom": "2026-11-01T00:00:00+05:30",
+  "effectiveTo": null,
+  "classification": "COMPLIANCE",
+  "pinning": "NONE",
+  "description": "Insurer decision turnaround: IRDAI requires the insurer's decision within 7 calendar days of proposal receipt (C4). The policy tracker polls every pollIntervalHours and escalates at warningAtDays.",
+  "source": {
+    "document": "docs/platform/architecture-review/DECISIONS-2026-10-22.md",
+    "sections": [
+      "C4 (7 calendar days from proposal receipt)",
+      "Engineering defaults (poll every 4 hours, warning at day 5)"
+    ],
+    "related": [
+      "docs/platform/architecture-review/DECISIONS-2026-10-21.md D8 (turnaround time)"
+    ],
+    "regulation": "IRDAI Master Circular on Protection of Policyholders' Interests, 5 Sep 2024 (7 days, previously 15)"
+  },
+  "governance": {
+    "status": "DRAFT-awaiting-approval",
+    "signatureStatus": "AI-DRAFTED - mandatory content-owner approval outstanding (ADR-024 section 7)",
+    "contentApprovers": [
+      "Shailja / bank Compliance"
+    ],
+    "approverRole": "COMPLIANCE_APPROVER",
+    "seededBy": "SUG-20261021-rul; strict defaults SUG-20261022-rdy (owner-directed build, ADMIT-BYPASS)",
+    "openItems": [
+      "C4: Shailja confirms decisionDays = 7, basis CALENDAR and startEvent PROPOSAL_RECEIVED",
+      "pollIntervalHours = 4 and warningAtDays = 5 are engineering defaults (DECISIONS-2026-10-22); Operations may tune them",
+      "basis is CALENDAR only: the engine counts calendar days; a BUSINESS basis needs an engine operator (release) and fails closed until then (TAT-BASIS)"
+    ]
+  },
+  "inputs": [
+    {
+      "name": "asOf",
+      "type": "DATE",
+      "required": true
+    },
+    {
+      "name": "clockStartedOn",
+      "type": "DATE",
+      "required": true,
+      "description": "Date of the configured startEvent"
+    },
+    {
+      "name": "decisionCommunicated",
+      "type": "BOOLEAN",
+      "required": true
+    }
+  ],
+  "derive": [
+    {
+      "name": "elapsedDays",
+      "expr": {
+        "op": "daysBetween",
+        "args": [
+          {
+            "var": "clockStartedOn"
+          },
+          {
+            "var": "asOf"
+          }
+        ]
+      }
+    }
+  ],
+  "decision": {
+    "hitPolicy": "PRIORITY",
+    "outcomeRank": [
+      "BREACHED",
+      "WARNING",
+      "WITHIN_TAT",
+      "DECIDED"
+    ],
+    "noMatchOutcome": "BREACHED",
+    "missingInputOutcome": "BREACHED",
+    "missingConfigOutcome": "BREACHED",
+    "missingConfigReasonCode": "PROPOSAL_TAT_CONFIG_MISSING",
+    "collectReasonCodes": "WINNING_ONLY"
+  },
+  "rules": [
+    {
+      "ruleId": "TAT-BASIS",
+      "priority": 0,
+      "sourceRef": "C4: calendar days; any other basis is unsupported and fails closed",
+      "when": {
+        "op": "not",
+        "args": [
+          {
+            "op": "eq",
+            "args": [
+              {
+                "param": "basis"
+              },
+              {
+                "const": "CALENDAR"
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "outcome": "BREACHED",
+        "reasonCode": "PROPOSAL_TAT_BASIS_UNSUPPORTED",
+        "params": {
+          "basis": {
+            "param": "basis"
+          }
+        }
+      }
+    },
+    {
+      "ruleId": "TAT-BREACH",
+      "priority": 1,
+      "when": {
+        "op": "all",
+        "args": [
+          {
+            "op": "eq",
+            "args": [
+              {
+                "var": "decisionCommunicated"
+              },
+              {
+                "const": false
+              }
+            ]
+          },
+          {
+            "op": "gt",
+            "args": [
+              {
+                "var": "elapsedDays"
+              },
+              {
+                "param": "decisionDays"
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "outcome": "BREACHED",
+        "reasonCode": "PROPOSAL_TAT_BREACHED",
+        "params": {
+          "decisionDays": {
+            "param": "decisionDays"
+          },
+          "elapsedDays": {
+            "var": "elapsedDays"
+          }
+        },
+        "actions": [
+          "ESCALATE",
+          "INFORM_CUSTOMER"
+        ]
+      }
+    },
+    {
+      "ruleId": "TAT-WARNING",
+      "priority": 2,
+      "when": {
+        "op": "all",
+        "args": [
+          {
+            "op": "eq",
+            "args": [
+              {
+                "var": "decisionCommunicated"
+              },
+              {
+                "const": false
+              }
+            ]
+          },
+          {
+            "op": "isPresent",
+            "args": [
+              {
+                "param": "warningAtDays"
+              }
+            ]
+          },
+          {
+            "op": "gte",
+            "args": [
+              {
+                "var": "elapsedDays"
+              },
+              {
+                "op": "coalesce",
+                "args": [
+                  {
+                    "param": "warningAtDays"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "lte",
+            "args": [
+              {
+                "var": "elapsedDays"
+              },
+              {
+                "param": "decisionDays"
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "outcome": "WARNING",
+        "reasonCode": "PROPOSAL_TAT_WARNING",
+        "params": {
+          "decisionDays": {
+            "param": "decisionDays"
+          },
+          "elapsedDays": {
+            "var": "elapsedDays"
+          }
+        },
+        "actions": [
+          "ESCALATE"
+        ]
+      }
+    },
+    {
+      "ruleId": "TAT-WITHIN",
+      "priority": 3,
+      "when": {
+        "op": "all",
+        "args": [
+          {
+            "op": "eq",
+            "args": [
+              {
+                "var": "decisionCommunicated"
+              },
+              {
+                "const": false
+              }
+            ]
+          },
+          {
+            "op": "lte",
+            "args": [
+              {
+                "var": "elapsedDays"
+              },
+              {
+                "param": "decisionDays"
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "outcome": "WITHIN_TAT",
+        "reasonCode": null
+      }
+    },
+    {
+      "ruleId": "TAT-DECIDED",
+      "priority": 4,
+      "when": {
+        "op": "eq",
+        "args": [
+          {
+            "var": "decisionCommunicated"
+          },
+          {
+            "const": true
+          }
+        ]
+      },
+      "then": {
+        "outcome": "DECIDED",
+        "reasonCode": null
+      }
+    }
+  ],
+  "parameters": {
+    "decisionDays": 7,
+    "basis": "CALENDAR",
+    "startEvent": "PROPOSAL_RECEIVED",
+    "pollIntervalHours": 4,
+    "warningAtDays": 5
+  },
+  "reasonCodes": {
+    "RULE_INPUT_MISSING": {
+      "severity": "BLOCK",
+      "rmText": "Required inputs missing: @missing.",
+      "customerText": null
+    },
+    "RULE_INPUT_INVALID": {
+      "severity": "BLOCK",
+      "rmText": "Inputs not in the expected form: @missing.",
+      "customerText": null
+    },
+    "PROPOSAL_TAT_BREACHED": {
+      "severity": "BLOCK",
+      "rmText": "Insurer decision overdue: @elapsedDays days elapsed, limit @decisionDays.",
+      "customerText": null
+    },
+    "PROPOSAL_TAT_WARNING": {
+      "severity": "CAUTION",
+      "rmText": "Insurer decision pending for @elapsedDays of @decisionDays days.",
+      "customerText": null
+    },
+    "PROPOSAL_TAT_CONFIG_MISSING": {
+      "severity": "BLOCK",
+      "rmText": "TAT configuration incomplete (@missingParameters).",
+      "customerText": null
+    },
+    "PROPOSAL_TAT_BASIS_UNSUPPORTED": {
+      "severity": "BLOCK",
+      "rmText": "TAT basis @basis is not supported by this engine version; treated as breached.",
+      "customerText": null
+    }
+  },
+  "testCases": [
+    {
+      "name": "C4-day-3-within",
+      "inputs": {
+        "asOf": "2026-11-04",
+        "clockStartedOn": "2026-11-01",
+        "decisionCommunicated": false
+      },
+      "expect": {
+        "outcome": "WITHIN_TAT",
+        "derived": {
+          "elapsedDays": 3
+        }
+      }
+    },
+    {
+      "name": "C4-day-7-warning-still-within-limit",
+      "inputs": {
+        "asOf": "2026-11-08",
+        "clockStartedOn": "2026-11-01",
+        "decisionCommunicated": false
+      },
+      "expect": {
+        "outcome": "WARNING",
+        "reasonCodes": [
+          "PROPOSAL_TAT_WARNING"
+        ]
+      }
+    },
+    {
+      "name": "C4-day-8-breached",
+      "inputs": {
+        "asOf": "2026-11-09",
+        "clockStartedOn": "2026-11-01",
+        "decisionCommunicated": false
+      },
+      "expect": {
+        "outcome": "BREACHED",
+        "reasonCodes": [
+          "PROPOSAL_TAT_BREACHED"
+        ],
+        "messages": [
+          "Insurer decision overdue: 8 days elapsed, limit 7."
+        ]
+      }
+    },
+    {
+      "name": "C4-decided",
+      "inputs": {
+        "asOf": "2026-11-21",
+        "clockStartedOn": "2026-11-01",
+        "decisionCommunicated": true
+      },
+      "expect": {
+        "outcome": "DECIDED"
+      }
+    },
+    {
+      "name": "C4-day-4-within-no-warning",
+      "inputs": {
+        "asOf": "2026-11-05",
+        "clockStartedOn": "2026-11-01",
+        "decisionCommunicated": false
+      },
+      "expect": {
+        "outcome": "WITHIN_TAT",
+        "fired": [
+          "TAT-WITHIN"
+        ]
+      }
+    },
+    {
+      "name": "C4-day-5-warning",
+      "inputs": {
+        "asOf": "2026-11-06",
+        "clockStartedOn": "2026-11-01",
+        "decisionCommunicated": false
+      },
+      "expect": {
+        "outcome": "WARNING",
+        "reasonCodes": [
+          "PROPOSAL_TAT_WARNING"
+        ],
+        "messages": [
+          "Insurer decision pending for 5 of 7 days."
+        ]
+      }
+    },
+    {
+      "name": "C4-calendar-days-span-weekend",
+      "description": "Calendar basis: Sat 2026-11-07 to Sun 2026-11-15 is 8 days -> breached",
+      "inputs": {
+        "asOf": "2026-11-15",
+        "clockStartedOn": "2026-11-07",
+        "decisionCommunicated": false
+      },
+      "expect": {
+        "outcome": "BREACHED",
+        "derived": {
+          "elapsedDays": 8
+        }
+      }
+    }
+  ]
+}

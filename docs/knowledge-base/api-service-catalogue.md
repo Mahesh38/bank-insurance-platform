@@ -1,5 +1,10 @@
 # API and service catalogue
 
+> **Looking for endpoint-level detail?** The [Platform API reference](../platform/api-reference/README.md)
+> documents every endpoint of every service (contract, validation, errors, behind the scenes),
+> every service-to-service hop, which database each service owns, and scenario walk-throughs from
+> login to policy issuance — each API labelled IMPLEMENTED / CONTRACTED / PROPOSED.
+
 This page answers two different questions:
 
 1. **What services/modules exist in the repository today?**

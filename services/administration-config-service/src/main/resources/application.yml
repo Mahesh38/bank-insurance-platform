@@ -15,7 +15,7 @@ spring:
     open-in-view: false
   flyway:
     enabled: true
-    locations: classpath:db/migration
+    locations: classpath:db/migration,classpath:db/vendor/{vendor}
     validate-on-migrate: true
   threads:
     virtual:
@@ -34,6 +34,11 @@ management:
 logging:
   level:
     com.bank.platform.adminconfig: INFO
+
+admin-config:
+  seed-import:
+    # Imports the engine's seed rule sets as DRAFT when absent (ADR-024 section 7). Never publishes.
+    enabled: ${ADMIN_CONFIG_SEED_IMPORT_ENABLED:true}
 
 bank:
   error:

@@ -8,6 +8,7 @@ insurance:
 bank:
   persistence:
     base-url: ${BANK_PERSISTENCE_BASE_URL}
+    internal-service-key: ${BANK_PERSISTENCE_INTERNAL_KEY}
 
 management:
   endpoint:

@@ -1,12 +1,19 @@
 package com.bank.workforce.bff.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.bank.common.error.ErrorCodes;
+import com.bank.common.error.ServiceErrors;
+import com.bank.workforce.bff.client.PolicyDecisionClient;
 import com.bank.workforce.bff.config.WorkforceSessionProperties;
 import com.bank.workforce.bff.session.SessionModels.WorkforceSession;
 import com.bank.workforce.bff.session.SessionStore;
@@ -23,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -40,6 +48,11 @@ class LeadModuleApiTest {
   @Autowired WorkforceSessionProperties sessionProperties;
 
   @Autowired ObjectMapper objectMapper;
+
+  @Autowired ServiceErrors serviceErrors;
+
+  // The PDP is a separate service; these tests pin its answer (allow by default).
+  @MockitoBean PolicyDecisionClient authorization;
 
   @BeforeEach
   void seedSession() {
@@ -214,6 +227,56 @@ class LeadModuleApiTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.exceptionRequired").value(true))
         .andExpect(jsonPath("$.exceptionOutcome").value("APPROVAL_REQUIRED"));
+  }
+
+  @Test
+  void leadCreateIsRefusedWhenThePolicyDecisionPointDenies() throws Exception {
+    doThrow(
+            serviceErrors
+                .error(ErrorCodes.OUT_OF_BRANCH_SCOPE)
+                .component("PolicyDecisionClient")
+                .operation("lead.create")
+                .reason("BRANCH_OUT_OF_SCOPE")
+                .build())
+        .when(authorization)
+        .require(any(), eq("lead.create"), eq("lead"), isNull(), eq("BR-DEL-009"), eq(false));
+
+    mockMvc
+        .perform(
+            post("/api/v1/leads")
+                .header("X-Session-Handle", SESSION)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    "{\"customerId\":\"cust-2\",\"lob\":\"LIFE\",\"productClass\":\"TERM\",\"branchId\":\"BR-DEL-009\"}"))
+        .andExpect(status().isForbidden())
+        .andExpect(jsonPath("$.code").value(ErrorCodes.OUT_OF_BRANCH_SCOPE));
+  }
+
+  @Test
+  void leadAssignAsksThePolicyDecisionPoint() throws Exception {
+    MvcResult created =
+        mockMvc
+            .perform(
+                post("/api/v1/leads")
+                    .header("X-Session-Handle", SESSION)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(
+                        "{\"customerId\":\"cust-3\",\"lob\":\"LIFE\",\"productClass\":\"TERM\",\"branchId\":\"BR-MUM-001\"}"))
+            .andExpect(status().isCreated())
+            .andReturn();
+    String leadId =
+        objectMapper.readTree(created.getResponse().getContentAsString()).get("leadId").asText();
+
+    mockMvc
+        .perform(
+            post("/api/v1/leads/" + leadId + "/assignment")
+                .header("X-Session-Handle", SESSION)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"assignedRmId\":\"SP-1001\"}"))
+        .andExpect(status().isOk());
+
+    verify(authorization)
+        .require(any(), eq("lead.assign"), eq("lead"), eq(leadId), isNull(), eq(false));
   }
 
   @Test

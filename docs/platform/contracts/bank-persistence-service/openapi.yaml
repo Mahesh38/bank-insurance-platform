@@ -1,0 +1,666 @@
+openapi: 3.1.0
+info:
+  title: bank-persistence-service — integration job store and audit ingest
+  version: 1.0.0-r0
+  summary: Durable store for provider integration state (jobs, offers, poll attempts, encrypted raw payloads, payment sessions) and audit events.
+  description: |
+    **Status:** AI-DRAFTED from code (ADR-027), awaiting engineering, DBA and Shailja (compliance — audit evidence) review.
+
+    Authoritative wire contract for `services/bank-persistence-service` (port 8081,
+    `service-id: persistence`, layer L7, boundary INTERNAL). Derived from
+    `com.bank.persistence.api.internal.v1.*Controller` and `dto.*`. Companion design:
+    `docs/platform/contracts/bank-persistence-service/LLD.md`.
+
+    **Validation status is 400** in this service (`bank.error.validation-status: 400`), not the
+    platform default 422: bean-validation failures are `400 VALIDATION_ERROR`, unparseable bodies
+    `400 INVALID_REQUEST`.
+
+    **Ids** are server-minted UUID strings (`VARCHAR(36)`), except where a caller may supply its
+    own (`offerId`, `sessionId`, `eventId`).
+
+    **Caller authentication (fix-pending).** Every `/internal/v1/**` call carries
+    `X-Internal-Service-Key` equal to `persistence.internal-auth.shared-secret`
+    (`PERSISTENCE_INTERNAL_SHARED_SECRET`, ≥ 16 chars, no default in uat / prod); missing or wrong →
+    `401 UNAUTHORIZED`. Being added alongside the audit fix; until it lands the service relies on
+    cluster-private exposure only. Callers: `1sb-integration-service` (all job / payload / session
+    writes — it must send the key), audit producers (target).
+
+    **Audit append is fix-pending** (READINESS-REVIEW §3.6): insert-only; a duplicate `eventId`
+    with the same content returns `200` with the stored row; with different content `409
+    IDEMPOTENCY_CONFLICT`; nothing is ever updated.
+security:
+  - internalServiceKey: []
+servers:
+  - url: http://bank-persistence-service:8081/internal/v1
+    description: Cluster-private
+  - url: http://localhost:8081/internal/v1
+    description: Local
+tags:
+  - name: Jobs
+  - name: Raw payloads
+  - name: Payment sessions
+  - name: Audit events
+
+paths:
+  /jobs:
+    post:
+      tags: [Jobs]
+      operationId: createJob
+      summary: Create an integration job in status PENDING.
+      description: |
+        Server sets `jobId` (UUID), `status=PENDING`, `externalProvider=ONE_SB`, `version=0`,
+        timestamps. `idempotencyKey` is UNIQUE in `integration_job`: a duplicate violates the
+        constraint and is today an unmapped `500` (open item).
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateJobRequest' }
+      responses:
+        '201':
+          description: Created.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/JobResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/CallerUnauthenticated' }
+        '500': { $ref: '#/components/responses/StoreFailure' }
+
+  /jobs/{jobId}:
+    get:
+      tags: [Jobs]
+      operationId: getJob
+      summary: Read a job.
+      parameters:
+        - $ref: '#/components/parameters/JobIdPath'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: The job.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/JobResponse' }
+        '401': { $ref: '#/components/responses/CallerUnauthenticated' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /jobs/{jobId}/status:
+    patch:
+      tags: [Jobs]
+      operationId: patchJobStatus
+      summary: Set status; optionally failure reason, external req id, completion time, application number.
+      description: |
+        `status` always replaces the current value (no transition check — the adapter owns the job
+        state machine). Other fields are written only when non-null. `updatedAt` = now.
+        `version` is not incremented by this path.
+      parameters:
+        - $ref: '#/components/parameters/JobIdPath'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PatchJobStatusRequest' }
+      responses:
+        '200':
+          description: Updated job.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/JobResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/CallerUnauthenticated' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /jobs/{jobId}/offers:
+    get:
+      tags: [Jobs]
+      operationId: listOffers
+      summary: Offers of a job.
+      parameters:
+        - $ref: '#/components/parameters/JobIdPath'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Offers (may be empty).
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/OfferResponse' }
+        '401': { $ref: '#/components/responses/CallerUnauthenticated' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    post:
+      tags: [Jobs]
+      operationId: addOffer
+      summary: Add one offer to a job. The body is not bean-validated.
+      parameters:
+        - $ref: '#/components/parameters/JobIdPath'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateOfferRequest' }
+      responses:
+        '201':
+          description: Created.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OfferResponse' }
+        '400':
+          description: Unparseable body.
+          x-error-codes: [INVALID_REQUEST]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '401': { $ref: '#/components/responses/CallerUnauthenticated' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/StoreFailure' }
+
+  /jobs/{jobId}/poll-attempts:
+    get:
+      tags: [Jobs]
+      operationId: listPollAttempts
+      summary: Poll attempts of a job, by attempt number.
+      parameters:
+        - $ref: '#/components/parameters/JobIdPath'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Attempts.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/PollAttemptResponse' }
+        '401': { $ref: '#/components/responses/CallerUnauthenticated' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    post:
+      tags: [Jobs]
+      operationId: addPollAttempt
+      summary: Record one poll attempt.
+      parameters:
+        - $ref: '#/components/parameters/JobIdPath'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreatePollAttemptRequest' }
+      responses:
+        '201':
+          description: Created.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PollAttemptResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/CallerUnauthenticated' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /raw-payloads:
+    post:
+      tags: [Raw payloads]
+      operationId: storeRawPayload
+      summary: Store a raw provider request / response body, encrypted (AES-256-GCM) before it is written.
+      description: |
+        Returns metadata only. `retainUntil` defaults to today (UTC) + the configured retention
+        (7 years). The plaintext is never logged. `jobId` is not checked against `integration_job`
+        (no FK).
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateRawPayloadRequest' }
+      responses:
+        '201':
+          description: Stored.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RawPayloadSummaryResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/CallerUnauthenticated' }
+        '500': { $ref: '#/components/responses/StoreFailure' }
+    get:
+      tags: [Raw payloads]
+      operationId: listRawPayloads
+      summary: Metadata of a job's payloads (never plaintext).
+      parameters:
+        - name: jobId
+          in: query
+          required: true
+          schema: { type: string }
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Summaries (empty when none).
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/RawPayloadSummaryResponse' }
+        '400': { $ref: '#/components/responses/SpringBadRequest' }
+        '401': { $ref: '#/components/responses/CallerUnauthenticated' }
+
+  /raw-payloads/{payloadId}:
+    get:
+      tags: [Raw payloads]
+      operationId: getRawPayload
+      summary: Decrypted payload — dispute / audit use only.
+      parameters:
+        - name: payloadId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Payload with plaintext.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RawPayloadResponse' }
+        '401': { $ref: '#/components/responses/CallerUnauthenticated' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /payment-sessions:
+    post:
+      tags: [Payment sessions]
+      operationId: createPaymentSession
+      summary: Record an adapter payment-URL session.
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreatePaymentSessionRequest' }
+      responses:
+        '201':
+          description: Created.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PaymentSessionResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/CallerUnauthenticated' }
+        '500': { $ref: '#/components/responses/StoreFailure' }
+
+  /payment-sessions/{sessionId}:
+    get:
+      tags: [Payment sessions]
+      operationId: getPaymentSession
+      summary: Read a payment session.
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema: { type: string, maxLength: 36 }
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: The session.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PaymentSessionResponse' }
+        '401': { $ref: '#/components/responses/CallerUnauthenticated' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /audit-events:
+    post:
+      tags: [Audit events]
+      operationId: appendAuditEvent
+      summary: Append one audit event — insert-only; a duplicate eventId is success with the stored row.
+      description: |
+        Decided behaviour (**fix-pending** — the change is in progress in `AuditEventController`):
+        - `eventId` absent → server mints a UUID; `eventTime` absent → now;
+          `eventSchemaVersion` absent → 1. Times are stored at microsecond precision.
+        - New `eventId` → INSERT, `201` with the stored row.
+        - Existing `eventId`, **same content** (every caller-supplied field equal; absent
+          `eventTime` / `eventSchemaVersion` match whatever was stored) → **no write**, `200` with
+          the stored row (a concurrent insert race resolves the same way).
+        - Existing `eventId`, different content → `409 IDEMPOTENCY_CONFLICT`, nothing written.
+        - `(journeyId, sequenceNo)` already used by another event, or another constraint violated
+          (e.g. `ck_audit_capacity`) → `409 CONFLICT`.
+        - Rows are never updated (role `app_bank_persistence`: INSERT/SELECT on `audit_event`;
+          immutability trigger on PostgreSQL).
+
+        Code before the fix: `repository.save()` on an assigned id turned a replay into an UPDATE of
+        the evidence row (H2) or a permission error / `500` in production.
+
+        The durable audit store and transport are `ADR-026` (**proposed**, awaiting owner yes).
+      x-status: fix-pending
+      x-review-finding: READINESS-REVIEW §3.6 — replayed eventId updates an evidence row instead of "duplicate = success".
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateAuditEventRequest' }
+      responses:
+        '201':
+          description: Appended.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuditEventResponse' }
+        '200':
+          description: Duplicate `eventId` with the same content — the stored row, unchanged (fix-pending).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuditEventResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/CallerUnauthenticated' }
+        '409':
+          description: '`IDEMPOTENCY_CONFLICT` — eventId already recorded with different content; `CONFLICT` — (journeyId, sequenceNo) taken or another constraint violated.'
+          x-error-codes: [IDEMPOTENCY_CONFLICT, CONFLICT]
+          x-status: fix-pending
+          x-review-finding: READINESS-REVIEW §3.6 — evidence rows are insert-only.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '500': { $ref: '#/components/responses/StoreFailure' }
+    get:
+      tags: [Audit events]
+      operationId: listAuditEventsByResource
+      summary: Audit events of a resource, oldest first.
+      parameters:
+        - name: resourceId
+          in: query
+          required: true
+          schema: { type: string, maxLength: 100 }
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Events (empty when none).
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/AuditEventResponse' }
+        '400': { $ref: '#/components/responses/SpringBadRequest' }
+        '401': { $ref: '#/components/responses/CallerUnauthenticated' }
+
+components:
+  securitySchemes:
+    internalServiceKey:
+      type: apiKey
+      in: header
+      name: X-Internal-Service-Key
+      description: Shared internal secret (constant-time compare). Missing or wrong → `401 UNAUTHORIZED`. Stop-gap until mesh mTLS (ADR-023).
+      x-status: fix-pending
+      x-review-finding: READINESS-REVIEW §3.7 — only the identity adapter checked its caller; persistence filter being added.
+
+  parameters:
+    CorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: false
+      schema: { type: string, format: uuid }
+    JobIdPath:
+      name: jobId
+      in: path
+      required: true
+      schema: { type: string, maxLength: 36 }
+
+  responses:
+    CallerUnauthenticated:
+      description: '`X-Internal-Service-Key` missing or wrong (fix-pending; applies to every operation).'
+      x-error-codes: [UNAUTHORIZED]
+      x-status: fix-pending
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    BadRequest:
+      description: Bean validation (`VALIDATION_ERROR`, per-field `MISSING_REQUIRED_FIELD`) or unparseable body (`INVALID_REQUEST`) — status 400 in this service.
+      x-error-codes: [VALIDATION_ERROR, INVALID_REQUEST]
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    NotFound:
+      description: Unknown job, raw payload or payment session.
+      x-error-codes: [RESOURCE_NOT_FOUND]
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    SpringBadRequest:
+      description: Missing required query parameter — Spring default 400 without the platform envelope.
+    StoreFailure:
+      description: Database constraint or permission failure (e.g. duplicate `idempotencyKey`, value too long, FK to a missing job). Unmapped today — Spring `500`.
+      x-error-codes: [INTERNAL_ERROR]
+
+  schemas:
+    Problem:
+      type: object
+      description: Platform problem+json, internal rendering.
+      required: [type, title, status, code]
+      properties:
+        type: { type: string, default: about:blank }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        code: { type: string }
+        category: { type: string }
+        retryable: { type: boolean }
+        incidentId: { type: string }
+        correlationId: { type: [string, 'null'] }
+        service: { type: string, examples: [persistence] }
+        timestamp: { type: string, format: date-time }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              code: { type: string }
+              message: { type: string }
+              field: { type: [string, 'null'] }
+              extensions: { type: [object, 'null'], additionalProperties: true }
+        origin: { type: [object, 'null'], additionalProperties: true }
+        diagnostic: { type: [object, 'null'], additionalProperties: true }
+
+    CreateJobRequest:
+      type: object
+      required: [lob, jobType, createdByActor]
+      properties:
+        lob: { type: string, minLength: 1, maxLength: 20 }
+        jobType: { type: string, minLength: 1, maxLength: 20, examples: [QUOTE, PROPOSAL] }
+        journeyId: { type: [string, 'null'], maxLength: 36 }
+        idempotencyKey: { type: [string, 'null'], maxLength: 128, description: 'UNIQUE.' }
+        createdByActor: { type: string, minLength: 1, maxLength: 100 }
+    PatchJobStatusRequest:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, minLength: 1, maxLength: 20, examples: [RUNNING, COMPLETED, PARTIAL, FAILED, TIMEOUT] }
+        failureReason: { type: [string, 'null'], maxLength: 100 }
+        externalReqId: { type: [string, 'null'], maxLength: 100 }
+        completedAt: { type: [string, 'null'], format: date-time }
+        applicationNumber: { type: [string, 'null'], maxLength: 50 }
+    JobResponse:
+      type: object
+      properties:
+        jobId: { type: string }
+        jobType: { type: string }
+        lob: { type: string }
+        status: { type: string }
+        failureReason: { type: [string, 'null'] }
+        journeyId: { type: [string, 'null'] }
+        applicationNumber: { type: [string, 'null'] }
+        policyNumber: { type: [string, 'null'] }
+        externalReqId: { type: [string, 'null'] }
+        externalProvider: { type: string, examples: [ONE_SB] }
+        idempotencyKey: { type: [string, 'null'] }
+        resultBlobId: { type: [string, 'null'] }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        completedAt: { type: [string, 'null'], format: date-time }
+        ownedByInstance: { type: [string, 'null'] }
+        version: { type: integer, format: int64 }
+        createdByActor: { type: string }
+    CreateOfferRequest:
+      type: object
+      properties:
+        offerId: { type: [string, 'null'], maxLength: 36, description: 'Server mints a UUID when absent.' }
+        insurerCode: { type: [string, 'null'], maxLength: 50 }
+        productCode: { type: [string, 'null'], maxLength: 100 }
+        productName: { type: [string, 'null'], maxLength: 200 }
+        premiumAmount: { type: [number, 'null'] }
+        premiumFrequency: { type: [string, 'null'], maxLength: 10 }
+        sumAssured: { type: [number, 'null'] }
+        outOfBound: { type: [boolean, 'null'], default: false }
+        offerStatus: { type: [string, 'null'], maxLength: 20 }
+        errorSummary: { type: [string, 'null'], maxLength: 500 }
+        rawOfferBlobId: { type: [string, 'null'], maxLength: 36 }
+        fundsJson: { type: [string, 'null'], description: 'ULIP fund allocation, serialised JSON.' }
+    OfferResponse:
+      type: object
+      properties:
+        offerId: { type: string }
+        jobId: { type: string }
+        insurerCode: { type: [string, 'null'] }
+        productCode: { type: [string, 'null'] }
+        productName: { type: [string, 'null'] }
+        premiumAmount: { type: [number, 'null'] }
+        premiumFrequency: { type: [string, 'null'] }
+        sumAssured: { type: [number, 'null'] }
+        outOfBound: { type: [boolean, 'null'] }
+        offerStatus: { type: [string, 'null'] }
+        errorSummary: { type: [string, 'null'] }
+        rawOfferBlobId: { type: [string, 'null'] }
+        createdAt: { type: string, format: date-time }
+        fundsJson: { type: [string, 'null'] }
+    CreatePollAttemptRequest:
+      type: object
+      required: [attemptNumber]
+      properties:
+        attemptNumber: { type: integer, minimum: -32768, maximum: 32767 }
+        attemptedAt: { type: [string, 'null'], format: date-time, description: 'Defaults to now.' }
+        httpStatus: { type: [integer, 'null'] }
+        isComplete: { type: [boolean, 'null'] }
+        durationMs: { type: [integer, 'null'] }
+        errorMessage: { type: [string, 'null'], maxLength: 500 }
+    PollAttemptResponse:
+      type: object
+      properties:
+        attemptId: { type: integer, format: int64 }
+        jobId: { type: string }
+        attemptNumber: { type: integer }
+        attemptedAt: { type: string, format: date-time }
+        httpStatus: { type: [integer, 'null'] }
+        isComplete: { type: [boolean, 'null'] }
+        durationMs: { type: [integer, 'null'] }
+        errorMessage: { type: [string, 'null'] }
+    CreateRawPayloadRequest:
+      type: object
+      required: [jobId, direction, operation, lob, payload]
+      properties:
+        jobId: { type: string, minLength: 1, maxLength: 36 }
+        direction: { type: string, enum: [REQ, RES] }
+        operation: { type: string, minLength: 1, maxLength: 100 }
+        lob: { type: string, minLength: 1, maxLength: 20 }
+        payload: { type: string, minLength: 1, writeOnly: true, description: 'Plaintext body; encrypted server-side; never logged.' }
+        httpStatus: { type: [integer, 'null'] }
+        retainUntil: { type: [string, 'null'], format: date }
+    RawPayloadSummaryResponse:
+      type: object
+      properties:
+        payloadId: { type: string }
+        jobId: { type: string }
+        direction: { type: string, enum: [REQ, RES] }
+        operation: { type: string }
+        lob: { type: string }
+        httpStatus: { type: [integer, 'null'] }
+        createdAt: { type: string, format: date-time }
+        retainUntil: { type: string, format: date }
+    RawPayloadResponse:
+      allOf:
+        - $ref: '#/components/schemas/RawPayloadSummaryResponse'
+        - type: object
+          properties:
+            payload: { type: string, description: 'Decrypted plaintext.' }
+    CreatePaymentSessionRequest:
+      type: object
+      required: [applicationNumber, lob, paymentUrl, redirectUrl, status, createdByActor]
+      properties:
+        sessionId: { type: [string, 'null'], maxLength: 36, description: 'Server mints a UUID when absent.' }
+        jobId: { type: [string, 'null'], maxLength: 36, description: 'FK to integration_job when present.' }
+        applicationNumber: { type: string, minLength: 1, maxLength: 50 }
+        lob: { type: string, minLength: 1, maxLength: 20 }
+        paymentUrl: { type: string, minLength: 1 }
+        redirectUrl: { type: string, minLength: 1 }
+        status: { type: string, minLength: 1, maxLength: 30, examples: [AWAITING_PAYMENT] }
+        externalTxnId: { type: [string, 'null'], maxLength: 100 }
+        expiresAt: { type: [string, 'null'], format: date-time }
+        createdByActor: { type: string, minLength: 1, maxLength: 100 }
+    PaymentSessionResponse:
+      type: object
+      properties:
+        sessionId: { type: string }
+        jobId: { type: [string, 'null'] }
+        applicationNumber: { type: string }
+        lob: { type: string }
+        paymentUrl: { type: string }
+        redirectUrl: { type: string }
+        status: { type: string }
+        externalTxnId: { type: [string, 'null'] }
+        createdAt: { type: string, format: date-time }
+        expiresAt: { type: [string, 'null'], format: date-time }
+        updatedAt: { type: string, format: date-time }
+        createdByActor: { type: string }
+    CreateAuditEventRequest:
+      type: object
+      required: [action, actorId, actorType, resourceType, resourceId, outcome]
+      properties:
+        eventId: { type: [string, 'null'], maxLength: 36, description: 'Dedupe key; server mints a UUID when absent.' }
+        eventTime: { type: [string, 'null'], format: date-time, description: 'Defaults to now.' }
+        action: { type: string, minLength: 1, maxLength: 100 }
+        actorId: { type: string, minLength: 1, maxLength: 100 }
+        actorType: { type: string, minLength: 1, maxLength: 20 }
+        resourceType: { type: string, minLength: 1, maxLength: 50 }
+        resourceId: { type: string, minLength: 1, maxLength: 100 }
+        outcome: { type: string, minLength: 1, maxLength: 20 }
+        lob: { type: [string, 'null'], maxLength: 20 }
+        journeyId: { type: [string, 'null'], maxLength: 36 }
+        distributorId: { type: [string, 'null'], maxLength: 50, description: 'Server-side attribution only (never from a human caller).' }
+        agentId: { type: [string, 'null'], maxLength: 50 }
+        metadata: { type: [string, 'null'], description: 'Serialised JSON; no PII.' }
+        traceId: { type: [string, 'null'], maxLength: 64 }
+        priorState: { type: [string, 'null'], description: 'Serialised prior state (reconstruction).' }
+        newState: { type: [string, 'null'] }
+        consentRef: { type: [string, 'null'], maxLength: 36 }
+        suitabilityRef: { type: [string, 'null'], maxLength: 36 }
+        eventSchemaVersion: { type: [integer, 'null'], minimum: 1, description: 'Defaults to 1.' }
+        retainUntil: { type: [string, 'null'], format: date-time }
+        sequenceNo: { type: [integer, 'null'], minimum: 0, description: 'Unique per journeyId.' }
+        actingCapacity: { type: [string, 'null'], enum: [SP_ACCOUNTABLE, ASSIST_ONLY, null], description: 'INV-ACT-04.' }
+        actorInsurerId: { type: [string, 'null'], maxLength: 64 }
+        assistedActorId: { type: [string, 'null'], maxLength: 64 }
+        configVersionRef: { type: [string, 'null'], maxLength: 64 }
+    AuditEventResponse:
+      type: object
+      properties:
+        eventId: { type: string }
+        eventTime: { type: string, format: date-time }
+        action: { type: string }
+        actorId: { type: string }
+        actorType: { type: string }
+        resourceType: { type: string }
+        resourceId: { type: string }
+        outcome: { type: string }
+        lob: { type: [string, 'null'] }
+        journeyId: { type: [string, 'null'] }
+        distributorId: { type: [string, 'null'] }
+        agentId: { type: [string, 'null'] }
+        metadata: { type: [string, 'null'] }
+        traceId: { type: [string, 'null'] }
+        priorState: { type: [string, 'null'] }
+        newState: { type: [string, 'null'] }
+        consentRef: { type: [string, 'null'] }
+        suitabilityRef: { type: [string, 'null'] }
+        eventSchemaVersion: { type: integer }
+        retainUntil: { type: [string, 'null'], format: date-time }
+        sequenceNo: { type: [integer, 'null'] }
+        actingCapacity: { type: [string, 'null'] }
+        actorInsurerId: { type: [string, 'null'] }
+        assistedActorId: { type: [string, 'null'] }
+        configVersionRef: { type: [string, 'null'] }

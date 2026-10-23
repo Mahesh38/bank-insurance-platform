@@ -16,7 +16,8 @@ BEGIN
 END;
 $$;
 
--- Use on raw_payload and audit_event (and any later archive table):
+-- Use on raw_payload and audit_event (and any later archive table). The PROPOSED audit schema
+-- (ADR-026) has its own copy with the hash chain in 15-audit.sql:
 -- CREATE TRIGGER trg_raw_payload_immutable
 --     BEFORE UPDATE OR DELETE ON bank_persistence.raw_payload
 --     FOR EACH ROW EXECUTE FUNCTION bank_persistence.fn_prevent_update_delete();
@@ -24,33 +25,63 @@ $$;
 --     BEFORE UPDATE OR DELETE ON bank_persistence.audit_event
 --     FOR EACH ROW EXECUTE FUNCTION bank_persistence.fn_prevent_update_delete();
 
-CREATE OR REPLACE FUNCTION consent.fn_protect_consent_evidence()
+-- D-024 / INV-CNS-01 (2026-10-21): consent_record is fully append-only — withdrawal is a new row,
+-- so no column may change and the old column-level guard on consent.consent is retired.
+CREATE OR REPLACE FUNCTION consent.fn_prevent_update_delete()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RAISE EXCEPTION 'IMMUTABLE_TABLE: consent.% does not permit %', TG_TABLE_NAME, TG_OP
+        USING ERRCODE = 'restrict_violation';
+END;
+$$;
+
+-- CREATE TRIGGER trg_consent_record_immutable
+--     BEFORE UPDATE OR DELETE ON consent.consent_record
+--     FOR EACH ROW EXECUTE FUNCTION consent.fn_prevent_update_delete();
+
+-- Append-only evidence added 2026-10-21 (D2, D4, D8). Each schema repeats the same body because
+-- cross-schema function use is avoided (DR-OWN-01); attach in the owning service's Flyway:
+--   lead_lms.lead_exception_evaluation, lead_lms.lead_exception_decision          (D2)
+--   suitability.evaluation, evaluation_outcome, evaluation_status_event,
+--   suitability.caution_ack, suitability.suitability_usage                       (D4, SUIT-R23/R37)
+--   proposal.proposal_answer, proposal.proposal_status_history                   (D8)
+--   policy.policy_status_history                                                 (D8)
+-- e.g.
+-- CREATE TRIGGER trg_suit_evaluation_immutable
+--     BEFORE UPDATE OR DELETE ON suitability.evaluation
+--     FOR EACH ROW EXECUTE FUNCTION suitability.fn_protect_answer_set();   -- same "refuse all" body
+
+-- ADR-024 §5.1: a PUBLISHED rule-set document is immutable. Only status (PUBLISHED → SUPERSEDED /
+-- WITHDRAWN) and effective_to (set once, by the newer version) may change after publish.
+CREATE OR REPLACE FUNCTION administration.fn_protect_rule_set_version()
 RETURNS trigger
 LANGUAGE plpgsql
 AS $$
 BEGIN
     IF TG_OP = 'DELETE' THEN
-        RAISE EXCEPTION 'IMMUTABLE_TABLE: consent evidence cannot be deleted'
+        RAISE EXCEPTION 'IMMUTABLE_TABLE: rule_set_version cannot be deleted'
             USING ERRCODE = 'restrict_violation';
     END IF;
-    IF NEW.statement_text IS DISTINCT FROM OLD.statement_text
-       OR NEW.statement_version IS DISTINCT FROM OLD.statement_version
-       OR NEW.otp_txn_id IS DISTINCT FROM OLD.otp_txn_id
-       OR NEW.captured_at IS DISTINCT FROM OLD.captured_at
-       OR NEW.source_ip IS DISTINCT FROM OLD.source_ip
-       OR NEW.contact_used_enc IS DISTINCT FROM OLD.contact_used_enc
-       OR NEW.cif_enc IS DISTINCT FROM OLD.cif_enc
-       OR NEW.purpose IS DISTINCT FROM OLD.purpose THEN
-        RAISE EXCEPTION 'IMMUTABLE_COLUMNS: consent evidence columns cannot change'
+    IF OLD.status IN ('PUBLISHED', 'SUPERSEDED', 'WITHDRAWN') AND (
+           NEW.document IS DISTINCT FROM OLD.document
+        OR NEW.checksum IS DISTINCT FROM OLD.checksum
+        OR NEW.version IS DISTINCT FROM OLD.version
+        OR NEW.rule_set_id IS DISTINCT FROM OLD.rule_set_id
+        OR NEW.effective_from IS DISTINCT FROM OLD.effective_from
+        OR NEW.checker_id IS DISTINCT FROM OLD.checker_id
+        OR (OLD.effective_to IS NOT NULL AND NEW.effective_to IS DISTINCT FROM OLD.effective_to)) THEN
+        RAISE EXCEPTION 'ADR-024: published rule-set version %/% is immutable', OLD.rule_set_id, OLD.version
             USING ERRCODE = 'restrict_violation';
     END IF;
     RETURN NEW;
 END;
 $$;
 
--- CREATE TRIGGER trg_consent_evidence
---     BEFORE UPDATE OR DELETE ON consent.consent
---     FOR EACH ROW EXECUTE FUNCTION consent.fn_protect_consent_evidence();
+-- CREATE TRIGGER trg_rule_set_version_protect
+--     BEFORE UPDATE OR DELETE ON administration.rule_set_version
+--     FOR EACH ROW EXECUTE FUNCTION administration.fn_protect_rule_set_version();
 
 CREATE OR REPLACE FUNCTION lead_lms.fn_accountable_sp_immutable()
 RETURNS trigger
@@ -137,83 +168,8 @@ $$;
 --     FOR EACH ROW EXECUTE FUNCTION suitability.fn_protect_mapping_run();
 -- run_state may move CURRENT → INVALID / SUPERSEDED on a saved edit (Suitability BRD §14.2).
 
--- DATA-005: working envelopes freeze after Payment RECONCILED materialize.
--- payload_enc and extracted control columns must not change once materialized_at is set.
-
-CREATE OR REPLACE FUNCTION quotation.fn_freeze_working_payload()
-RETURNS trigger
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    IF TG_OP = 'DELETE' THEN
-        IF OLD.materialized_at IS NOT NULL THEN
-            RAISE EXCEPTION 'IMMUTABLE_TABLE: quote_working is frozen after materialize'
-                USING ERRCODE = 'restrict_violation';
-        END IF;
-        RETURN OLD;
-    END IF;
-    IF TG_OP = 'UPDATE' AND OLD.materialized_at IS NOT NULL THEN
-        IF NEW.payload_enc IS DISTINCT FROM OLD.payload_enc
-           OR NEW.encryption_key_id IS DISTINCT FROM OLD.encryption_key_id
-           OR NEW.payload_schema_version IS DISTINCT FROM OLD.payload_schema_version
-           OR NEW.quote_id IS DISTINCT FROM OLD.quote_id
-           OR NEW.journey_id IS DISTINCT FROM OLD.journey_id
-           OR NEW.lead_id IS DISTINCT FROM OLD.lead_id
-           OR NEW.suitability_id IS DISTINCT FROM OLD.suitability_id
-           OR NEW.consent_id IS DISTINCT FROM OLD.consent_id
-           OR NEW.selected_offer_id IS DISTINCT FROM OLD.selected_offer_id
-           OR NEW.selected_premium_amount IS DISTINCT FROM OLD.selected_premium_amount
-           OR NEW.selected_tax_amount IS DISTINCT FROM OLD.selected_tax_amount
-           OR NEW.selected_sum_assured IS DISTINCT FROM OLD.selected_sum_assured
-           OR NEW.selected_insurer_code IS DISTINCT FROM OLD.selected_insurer_code
-           OR NEW.selected_product_code IS DISTINCT FROM OLD.selected_product_code
-           OR NEW.materialized_at IS DISTINCT FROM OLD.materialized_at THEN
-            RAISE EXCEPTION 'IMMUTABLE_COLUMNS: quote_working payload is frozen after materialize'
-                USING ERRCODE = 'restrict_violation';
-        END IF;
-    END IF;
-    RETURN NEW;
-END;
-$$;
-
--- CREATE TRIGGER trg_qwork_freeze
---     BEFORE UPDATE OR DELETE ON quotation.quote_working
---     FOR EACH ROW EXECUTE FUNCTION quotation.fn_freeze_working_payload();
-
-CREATE OR REPLACE FUNCTION proposal.fn_freeze_working_payload()
-RETURNS trigger
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    IF TG_OP = 'DELETE' THEN
-        IF OLD.materialized_at IS NOT NULL THEN
-            RAISE EXCEPTION 'IMMUTABLE_TABLE: proposal_working is frozen after materialize'
-                USING ERRCODE = 'restrict_violation';
-        END IF;
-        RETURN OLD;
-    END IF;
-    IF TG_OP = 'UPDATE' AND OLD.materialized_at IS NOT NULL THEN
-        IF NEW.payload_enc IS DISTINCT FROM OLD.payload_enc
-           OR NEW.encryption_key_id IS DISTINCT FROM OLD.encryption_key_id
-           OR NEW.payload_schema_version IS DISTINCT FROM OLD.payload_schema_version
-           OR NEW.proposal_id IS DISTINCT FROM OLD.proposal_id
-           OR NEW.journey_id IS DISTINCT FROM OLD.journey_id
-           OR NEW.quote_id IS DISTINCT FROM OLD.quote_id
-           OR NEW.offer_id IS DISTINCT FROM OLD.offer_id
-           OR NEW.consent_id IS DISTINCT FROM OLD.consent_id
-           OR NEW.application_number IS DISTINCT FROM OLD.application_number
-           OR NEW.materialized_at IS DISTINCT FROM OLD.materialized_at THEN
-            RAISE EXCEPTION 'IMMUTABLE_COLUMNS: proposal_working payload is frozen after materialize'
-                USING ERRCODE = 'restrict_violation';
-        END IF;
-    END IF;
-    RETURN NEW;
-END;
-$$;
-
--- CREATE TRIGGER trg_pwork_freeze
---     BEFORE UPDATE OR DELETE ON proposal.proposal_working
---     FOR EACH ROW EXECUTE FUNCTION proposal.fn_freeze_working_payload();
+-- DB-DEC-0005: working quote/proposal state moved to DynamoDB; the freeze rule is a
+-- ConditionExpression attribute_not_exists(materializedAt) on every update (see 20-dynamodb-working-payload.md).
 
 -- ---------------------------------------------------------------------------
 -- Audit sequence (OPEN-I3)
@@ -256,9 +212,14 @@ $$;
 -- ---------------------------------------------------------------------------
 -- S09 purge — designed, not scheduled
 -- ---------------------------------------------------------------------------
+-- 2026-10-22 (PG16 validation): procedures are SECURITY DEFINER with a pinned search_path. As
+-- SECURITY INVOKER (the default) job_retention, which holds EXECUTE only and never DELETE
+-- (91-grants.sql), failed with "permission denied". EXECUTE is revoked from PUBLIC in 91-grants.sql.
 
 CREATE OR REPLACE PROCEDURE lead_lms.sp_purge_operational()
 LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, pg_temp
 AS $$
 BEGIN
     DELETE FROM lead_lms.idempotency_record
@@ -268,6 +229,8 @@ $$;
 
 CREATE OR REPLACE PROCEDURE suitability.sp_purge_operational()
 LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, pg_temp
 AS $$
 BEGIN
     DELETE FROM suitability.idempotency_record
@@ -277,6 +240,8 @@ $$;
 
 CREATE OR REPLACE PROCEDURE bank_persistence.sp_retention_sweep()
 LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, pg_temp
 AS $$
 BEGIN
     -- Returns nothing and deletes nothing on evidence tables.
@@ -288,37 +253,35 @@ BEGIN
 END;
 $$;
 
--- DATA-005: working envelopes are not the sold-policy record. Age them out after
--- retain_until. Structured quote / offer / proposal / UW stay.
+-- DB-DEC-0005: never-paid working state ages out by DynamoDB TTL, not here.
+-- Structured quote / offer / proposal / UW stay.
 
 CREATE OR REPLACE PROCEDURE quotation.sp_purge_operational()
 LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, pg_temp
 AS $$
 BEGIN
     DELETE FROM quotation.idempotency_record
      WHERE expires_at < now();
-    -- Working envelopes only. Structured quote/offer (post-RECONCILED) stay.
-    DELETE FROM quotation.quote_working
-     WHERE retain_until IS NOT NULL
-       AND retain_until < CURRENT_DATE;
 END;
 $$;
 
 CREATE OR REPLACE PROCEDURE proposal.sp_purge_operational()
 LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, pg_temp
 AS $$
 BEGIN
     DELETE FROM proposal.idempotency_record
      WHERE expires_at < now();
-    -- Working envelopes only. Structured proposal/UW (post-RECONCILED) stay.
-    DELETE FROM proposal.proposal_working
-     WHERE retain_until IS NOT NULL
-       AND retain_until < CURRENT_DATE;
 END;
 $$;
 
 CREATE OR REPLACE PROCEDURE journey.sp_purge_operational()
 LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, pg_temp
 AS $$
 BEGIN
     DELETE FROM journey.idempotency_record
@@ -328,7 +291,7 @@ BEGIN
     -- RET-7Y and are not deleted here (SUG-20261019-txn).
     DELETE FROM journey.outbox_event o
      USING journey.journey j
-     WHERE o.journey_id = j.journey_id
+     WHERE o.aggregate_id = j.journey_id   -- ADR-025 outbox shape
        AND j.archived_at IS NOT NULL
        AND j.retain_until IS NOT NULL
        AND j.retain_until < CURRENT_DATE
@@ -366,8 +329,30 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE PROCEDURE consent.sp_purge_operational()
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, pg_temp
+AS $$
+BEGIN
+    DELETE FROM consent.idempotency_record WHERE expires_at < now();
+END;
+$$;
+
+CREATE OR REPLACE PROCEDURE policy.sp_purge_operational()
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, pg_temp
+AS $$
+BEGIN
+    DELETE FROM policy.idempotency_record WHERE expires_at < now();
+END;
+$$;
+
 CREATE OR REPLACE PROCEDURE payment.sp_purge_operational()
 LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, pg_temp
 AS $$
 BEGIN
     DELETE FROM payment.idempotency_record

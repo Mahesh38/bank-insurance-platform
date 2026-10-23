@@ -17,7 +17,9 @@ import com.bank.common.error.ServiceException;
 import com.bank.platform.customer.domain.CustomerInquiryPort.CustomerHit;
 import com.bank.platform.customer.domain.CustomerInquiryPort.SearchQuery;
 import com.bank.platform.customer.domain.CustomerInquiryUnauthorizedException;
+import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import java.net.http.HttpClient;
 import java.time.Duration;
 import java.util.List;
@@ -141,6 +143,92 @@ class HttpCustomerDirectoryTest {
 
     assertThat(directory.findById("CUST/3210", "live-token")).isPresent();
     wireMock.verify(getRequestedFor(urlEqualTo("/customers/CUST%2F3210")));
+  }
+
+  @Test
+  void oneRetryOnServerErrorThenSuccess() {
+    wireMock.stubFor(
+        get(urlPathEqualTo("/customers/search"))
+            .inScenario("retry")
+            .whenScenarioStateIs(Scenario.STARTED)
+            .willReturn(aResponse().withStatus(502))
+            .willSetStateTo("second"));
+    wireMock.stubFor(
+        get(urlPathEqualTo("/customers/search"))
+            .inScenario("retry")
+            .whenScenarioStateIs("second")
+            .willReturn(
+                aResponse()
+                    .withHeader("Content-Type", "application/json")
+                    .withBody("{\"items\":[]}")));
+
+    assertThat(directory.search(new SearchQuery("MOBILE", "9876543210", "IN"), "token")).isEmpty();
+    wireMock.verify(2, getRequestedFor(urlPathEqualTo("/customers/search")));
+  }
+
+  @Test
+  void serverErrorIsRetriedExactlyOnce() {
+    wireMock.stubFor(
+        get(urlPathEqualTo("/customers/search")).willReturn(aResponse().withStatus(500)));
+
+    assertThatThrownBy(
+            () -> directory.search(new SearchQuery("MOBILE", "9876543210", "IN"), "token"))
+        .isInstanceOf(ServiceException.class);
+    wireMock.verify(2, getRequestedFor(urlPathEqualTo("/customers/search")));
+  }
+
+  @Test
+  void clientErrorIsNotRetried() {
+    wireMock.stubFor(
+        get(urlPathEqualTo("/customers/search")).willReturn(aResponse().withStatus(400)));
+
+    assertThatThrownBy(
+            () -> directory.search(new SearchQuery("MOBILE", "9876543210", "IN"), "token"))
+        .isInstanceOf(ServiceException.class);
+    wireMock.verify(1, getRequestedFor(urlPathEqualTo("/customers/search")));
+  }
+
+  @Test
+  void transportFailureIsUpstreamUnavailableNot500() {
+    wireMock.stubFor(
+        get(urlPathEqualTo("/customers/search"))
+            .willReturn(aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER)));
+    String mobile = "9876543210";
+
+    assertThatThrownBy(() -> directory.search(new SearchQuery("MOBILE", mobile, "IN"), "token"))
+        .isInstanceOf(ServiceException.class)
+        .satisfies(
+            thrown -> {
+              ServiceException ex = (ServiceException) thrown;
+              assertThat(ex.getErrorResponse().getCode())
+                  .isEqualTo(ErrorCodes.UPSTREAM_UNAVAILABLE);
+              assertThat(ex.getErrorResponse().getStatus()).isEqualTo(503);
+              assertThat(ex.getDiagnostic().getReason()).doesNotContain(mobile);
+            });
+  }
+
+  @Test
+  void connectFailureIsRetriedOnceThenUpstreamUnavailable() {
+    HttpCustomerDirectory unreachable =
+        new HttpCustomerDirectory(
+            RestClient.builder().build(),
+            new CbsInquiryProperties(
+                "http", "http://127.0.0.1:1", "/customers/search", "/customers/{customerId}"),
+            ServiceErrors.of("customer", PlatformLayer.L5));
+
+    assertThatThrownBy(
+            () -> unreachable.search(new SearchQuery("MOBILE", "9876543210", "IN"), "token"))
+        .isInstanceOf(ServiceException.class)
+        .extracting(ex -> ((ServiceException) ex).getErrorResponse().getCode())
+        .isEqualTo(ErrorCodes.UPSTREAM_UNAVAILABLE);
+  }
+
+  @Test
+  void searchNotFoundIsAnEmptyPage() {
+    wireMock.stubFor(
+        get(urlPathEqualTo("/customers/search")).willReturn(aResponse().withStatus(404)));
+
+    assertThat(directory.search(new SearchQuery("PAN", "ABCDE1234F", "IN"), "token")).isEmpty();
   }
 
   @Test

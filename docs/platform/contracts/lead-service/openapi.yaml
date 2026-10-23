@@ -1,0 +1,468 @@
+openapi: 3.1.0
+info:
+  title: lead-service — Lead (#5) cluster-private API
+  version: 1.0.0-r0
+  summary: The single on-platform way in to a sale — create, read, onboard (exception rules), assign, close.
+  description: |
+    **Status:** AI-DRAFTED from code (ADR-027), awaiting Rajal (product), Deepali (security) and
+    engineering review. Exception-rule thresholds await the Exception Handling BRD owner (`D2`).
+
+    Authoritative wire contract for `services/lead-service` (port 8091, `service-id: lead`, layer L5,
+    boundary INTERNAL). Derived from `com.bank.platform.lead.api.LeadController` and
+    `application.LeadApplicationService`. Supersedes
+    `docs/platform/ws3-platform/lead-service-internal.openapi.yaml` (whose `:start-onboarding` path,
+    `422 VALIDATION_BLOCKED`, `409 LEAD_DUPLICATE_UNFINISHED` and close body are **not** the wire).
+    Companion design: `docs/platform/contracts/lead-service/LLD.md`.
+
+    **Actor.** Every endpoint requires `X-Actor-Id` (set by the BFF from the session). The actor's
+    **book** — leads where they are creator, assigned RM or assigned SP — is the visibility
+    boundary: a lead outside it is **absent** (`404`), never `403` (`INV-LED-07`).
+
+    **PDP re-check.** Create and assign ask identity-authorization
+    `POST /internal/v1/authorization/decisions` again (`INV-ACT-01`; 300 ms; fail closed). A
+    non-UUID actor is denied without a call (`UNKNOWN_SUBJECT` → `DEFAULT_DENY`).
+
+    **Markers.** `x-status: fix-pending` + `x-review-finding` = decided behaviour the code does not
+    yet have.
+servers:
+  - url: http://lead-service:8091/internal/v1
+    description: Cluster-private
+  - url: http://localhost:8091/internal/v1
+    description: Local
+tags:
+  - name: Leads
+  - name: Service info
+
+paths:
+  /leads:
+    post:
+      tags: [Leads]
+      operationId: createLead
+      summary: Create (Save) a Life lead. Does not run exception rules (`D-019`).
+      description: |
+        Order (one transaction):
+        1. Bean validation; `customerId` and actor non-blank.
+        2. PDP `lead.create` (resource `lead`, no id, `branchId`, `partnerVisible=true`).
+        3. If `Idempotency-Key` is present and known: same request hash → return the first lead
+           (`201`, replay); different hash → `409 IDEMPOTENCY_CONFLICT`. The hash covers
+           `customerId|lob|productClass|branchId|actor`, so another actor replaying a key conflicts.
+        4. `lob` must be `LIFE`; `productClass` ∈ TERM/SAVINGS/ULIP (`422 UNSUPPORTED_LOB`).
+        5. Dedupe: an **unfinished** lead (not BI-generated, not DISQUALIFIED/CONVERTED/ARCHIVED/EXPIRED)
+           for the same creator + customer + product class → `409 CONFLICT` whose `errors[0]` names
+           the existing lead (`field: leadId`, `message: <existing ULID>`).
+        6. Mint ULID; insert `lead_lms.lead` (`NEW`, `NOT_EVALUATED`, `DIARY`, `journeyId = leadId`,
+           `expires_at = now + lead.expiry-days` when configured — value open, `OPEN-D4`);
+           store the idempotency record (TTL 24 h); outbox `LeadCreated`.
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - name: Idempotency-Key
+          in: header
+          required: false
+          description: |
+            Honoured when present (≤ 128 chars, 24 h). Contract target: required (`INV-IDM-01`);
+            optional until NIP-APP sends it through the BFF.
+          schema: { type: string, maxLength: 128 }
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateLeadRequest' }
+      responses:
+        '201':
+          description: Created, or the replay of the first create for this key.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LeadResponse' }
+        '400': { $ref: '#/components/responses/MissingActor' }
+        '403': { $ref: '#/components/responses/PdpDenied' }
+        '404':
+          description: PDP reason `RESOURCE_NOT_SHARED_WITH_PARTNER`, rendered as absent.
+          x-error-codes: [RESOURCE_NOT_FOUND]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '409':
+          description: |
+            - `CONFLICT` — an unfinished lead exists for this creator + customer + product class.
+              **fix-pending:** `errors[0]` = `{code: CONFLICT, field: "leadId", message: "<existing
+              lead ULID>"}` — the message is the bare ULID so the app can offer Continue
+              (Lead BRD Table 18) without parsing prose.
+            - `CONFLICT` — the same key is being processed concurrently, or an optimistic-lock race.
+            - `IDEMPOTENCY_CONFLICT` — same key, different request.
+          x-error-codes: [CONFLICT, IDEMPOTENCY_CONFLICT]
+          x-status: fix-pending
+          x-review-finding: READINESS-REVIEW §3.2 — the duplicate response must name the existing lead; code today sends `CONFLICT` without `errors[]`.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+              example:
+                type: about:blank
+                title: Conflict
+                status: 409
+                code: CONFLICT
+                category: CONFLICT
+                retryable: false
+                service: lead
+                incidentId: 01JQ8F3K2M7Z9V4T6W8X0Y2Z4A
+                errors:
+                  - code: CONFLICT
+                    field: leadId
+                    message: 01JQX4K7R8M2N3P5Q6R7S8T9V1
+        '422':
+          description: Bean validation; `lob ≠ LIFE` or unknown product class; blank customer / actor.
+          x-error-codes: [VALIDATION_ERROR, INVALID_REQUEST, MISSING_REQUIRED_FIELD, UNSUPPORTED_LOB]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+    get:
+      tags: [Leads]
+      operationId: listLeads
+      summary: Leads in the actor's book, optionally filtered.
+      description: Pagination is not implemented; `nextCursor` is always `null`.
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - name: owner
+          in: query
+          required: false
+          description: Only `me` is supported; anything else → `422 INVALID_REQUEST`.
+          schema: { type: string, enum: [me], default: me }
+        - name: customerId
+          in: query
+          required: false
+          schema: { type: string }
+        - name: productClass
+          in: query
+          required: false
+          schema: { $ref: '#/components/schemas/ProductClass' }
+        - name: unfinished
+          in: query
+          required: false
+          description: When true, only leads that are not BI-generated and not DISQUALIFIED/CONVERTED/ARCHIVED/EXPIRED.
+          schema: { type: boolean, default: false }
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: The page.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LeadPageResponse' }
+        '400': { $ref: '#/components/responses/MissingActor' }
+        '422':
+          description: '`owner` other than `me`.'
+          x-error-codes: [INVALID_REQUEST]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+
+  /leads/{leadId}:
+    get:
+      tags: [Leads]
+      operationId: getLead
+      summary: Read a lead in the actor's book.
+      parameters:
+        - $ref: '#/components/parameters/LeadIdPath'
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: The lead.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LeadResponse' }
+        '400': { $ref: '#/components/responses/MissingActor' }
+        '404': { $ref: '#/components/responses/Absent' }
+
+  /leads/{leadId}/onboarding:
+    post:
+      tags: [Leads]
+      operationId: startOnboarding
+      summary: Start Onboarding — evaluate the lead exception rules (rule set `LEAD.EXCEPTION`).
+      description: |
+        Decided behaviour (`D2`, `ADR-024`) — **fix-pending, replaces the deterministic stub**:
+        lead-service evaluates rule set **`LEAD.EXCEPTION`** (`hitPolicy: PRIORITY`,
+        `outcomeRank: [BLOCK, APPROVAL_REQUIRED, PASS]`) through `ExceptionRulesPort` for subject
+        `{leadId, customerId, lob, productClass}`. A rule whose threshold is unset evaluates to
+        **`BLOCK` with reason `EH-CONFIG-MISSING`** (BRD §24.3 column I), so until the BRD owner
+        enters thresholds every lead is blocked. The outcome is persisted (`exception_outcome`,
+        `exception_hold = (outcome == APPROVAL_REQUIRED)`), and outbox `LeadExceptionEvaluated`
+        records outcome, reason codes and the evaluated rule-set version.
+
+        - `PASS` → `200`, lead ready to assign.
+        - `APPROVAL_REQUIRED` → `200` with `exceptionHold = true`, `exceptionRequired = true`.
+        - `BLOCK` → the outcome is **saved**, then `409 ILLEGAL_TRANSITION`.
+
+        **Guards (fix-pending), checked before any rule runs:** a terminal lead, a lead on an
+        `APPROVAL_REQUIRED` hold (only the AUBIMA approval path releases it — BRD §4.2) and an
+        already `BLOCK`ed lead are refused with `409 ILLEGAL_TRANSITION`; a later `PASS` can never
+        silently clear a hold or a block.
+
+        Default: `lead.exception-rules=engine` selects `EngineExceptionRules` over
+        `libs/bank-rule-engine` (rule set `LEAD.EXCEPTION`, D2). Seed thresholds/actions are
+        unset by owner default → `BLOCK` / `EH-CONFIG-MISSING` until the BRD owner sets values
+        (E9). `StubExceptionRules` (`lead.exception-rules=stub`) lives in test sources only —
+        `BLOCK` when the customer id contains "BLOCK", `APPROVAL_REQUIRED` when it contains
+        "HOLD", else `PASS`, reason code `STUB-NOT-A-RULE`, `ruleSetRef` null — and must not
+        run in production (`ProductionSafetyGuard` refuses anything but `engine` under prod/uat).
+      x-status: fix-pending
+      x-review-finding: READINESS-REVIEW §3.4 (BRD thresholds unset → Block / EH-CONFIG-MISSING) and §3.6 (re-run must not clear a hold). Decision D2 · E9.
+      parameters:
+        - $ref: '#/components/parameters/LeadIdPath'
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Evaluated; `PASS` or `APPROVAL_REQUIRED`.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LeadResponse' }
+        '400': { $ref: '#/components/responses/MissingActor' }
+        '404': { $ref: '#/components/responses/Absent' }
+        '409':
+          description: '`ILLEGAL_TRANSITION` — exception rules blocked onboarding (outcome saved as `BLOCK`), or the lead is terminal, on hold or already blocked. `CONFLICT` — concurrent update.'
+          x-error-codes: [ILLEGAL_TRANSITION, CONFLICT]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '422':
+          description: '`LEAD.EXCEPTION` cannot be resolved (no published rule-set version) — fail closed.'
+          x-error-codes: [CONFIGURATION_UNRESOLVABLE]
+          x-status: fix-pending
+          x-review-finding: Decision D2 / ADR-024 — the engine resolves the published rule set; an unresolvable configuration fails closed (S-21).
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+
+  /leads/{leadId}/assignments:
+    post:
+      tags: [Leads]
+      operationId: assignLead
+      summary: Assign the lead to a certified SP RM, with optional note and meeting.
+      description: |
+        Order (one transaction):
+        1. Visible to actor (`404`).
+        2. PDP `lead.assign` (resource `lead`, id, branch).
+        3. BI generated → `409 ILLEGAL_TRANSITION` (no reassignment after BI).
+        4. **fix-pending:** state `DISQUALIFIED`, `CONVERTED`, `EXPIRED` or `ARCHIVED` →
+           `409 ILLEGAL_TRANSITION` (code today has no state guard — a closed lead can be assigned).
+        5. `exceptionOutcome = NOT_EVALUATED` → `409 ILLEGAL_TRANSITION` ("start onboarding first").
+        6. `BLOCK` or hold active → `409 CONFLICT`.
+        7. `assignedRmId` non-blank; must hold a valid SP certification (`SpCertificationPort`,
+           fixture today) → else `403 SP_CERTIFICATION_REQUIRED`.
+        8. `note` ≤ 250; meeting rules (below) → `422 VALIDATION_ERROR`.
+        9. `lead.assign` → state `ASSIGNED`; `accountableSpId` set once (first assignee).
+           Rows: `lead_assignment` (`CREATE_ASSIGN` or `REASSIGN`), `lead_meeting` (link encrypted),
+           `lead_follow_up` (note encrypted); outbox `LeadAssigned`.
+      x-status: fix-pending
+      x-review-finding: READINESS-REVIEW §3.6 — `Lead.assign` has no state guard (breaks BR-CLOSE-001).
+      parameters:
+        - $ref: '#/components/parameters/LeadIdPath'
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AssignLeadRequest' }
+      responses:
+        '200':
+          description: Assigned.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LeadResponse' }
+        '400': { $ref: '#/components/responses/MissingActor' }
+        '403':
+          description: PDP deny / unavailable, or the assignee lacks SP certification.
+          x-error-codes: [DEFAULT_DENY, EXPLICIT_DENY, ACCOUNT_SUSPENDED, CROSS_INSURER_DENIED, OUT_OF_BRANCH_SCOPE, SP_CERTIFICATION_REQUIRED, AUTHORIZATION_UNAVAILABLE]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '404': { $ref: '#/components/responses/Absent' }
+        '409':
+          description: '`ILLEGAL_TRANSITION` — after BI, not onboarded, or terminal state (fix-pending). `CONFLICT` — exception hold / BLOCK, or concurrent update.'
+          x-error-codes: [ILLEGAL_TRANSITION, CONFLICT]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '422':
+          description: Bean validation; blank `assignedRmId`; `note` > 250; meeting rules.
+          x-error-codes: [VALIDATION_ERROR, INVALID_REQUEST, MISSING_REQUIRED_FIELD]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+
+  /leads/{leadId}/close:
+    post:
+      tags: [Leads]
+      operationId: closeLead
+      summary: Close a diary lead (→ `DISQUALIFIED`). No request body.
+      description: |
+        A `QUALIFIED` or BI-generated lead is not closed from the diary path, and a terminal lead
+        cannot be closed again → `409 ILLEGAL_TRANSITION`. Outbox `LeadClosed`. Close reason and remarks (VAL-017…019) are not
+        captured yet (open item).
+      parameters:
+        - $ref: '#/components/parameters/LeadIdPath'
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Closed.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LeadResponse' }
+        '400': { $ref: '#/components/responses/MissingActor' }
+        '404': { $ref: '#/components/responses/Absent' }
+        '409':
+          description: Qualified / BI-generated lead, or concurrent update.
+          x-error-codes: [ILLEGAL_TRANSITION, CONFLICT]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+
+  /lead/info:
+    get:
+      tags: [Service info]
+      operationId: serviceInfo
+      summary: Scaffold endpoint proving the service boots (no actor required).
+      responses:
+        '200':
+          description: Static info.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  service: { type: string, const: lead-service }
+                  boundedContext: { type: string, const: '5' }
+                  status: { type: string, const: LEAD_SLICE }
+
+components:
+  parameters:
+    ActorId:
+      name: X-Actor-Id
+      in: header
+      required: true
+      description: Business user id of the human, set by the BFF from the session. Defines the book; never taken from a body.
+      schema: { type: string, maxLength: 64 }
+    CorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: false
+      schema: { type: string, format: uuid }
+    LeadIdPath:
+      name: leadId
+      in: path
+      required: true
+      schema: { $ref: '#/components/schemas/Ulid' }
+
+  responses:
+    MissingActor:
+      description: '`X-Actor-Id` missing — Spring `MissingRequestHeaderException`, default 400 without the platform envelope.'
+    Absent:
+      description: Unknown, or outside the actor's book (`INV-LED-07`).
+      x-error-codes: [RESOURCE_NOT_FOUND]
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    PdpDenied:
+      description: PDP deny (mapped like the BFF's `PolicyDecisionClient`) or PDP unavailable (fail closed).
+      x-error-codes: [DEFAULT_DENY, EXPLICIT_DENY, ACCOUNT_SUSPENDED, CROSS_INSURER_DENIED, OUT_OF_BRANCH_SCOPE, SP_CERTIFICATION_REQUIRED, AUTHORIZATION_UNAVAILABLE]
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+
+  schemas:
+    Ulid:
+      type: string
+      pattern: '^[0-9A-HJKMNP-TV-Z]{26}$'
+    ProductClass:
+      type: string
+      enum: [TERM, SAVINGS, ULIP]
+    Problem:
+      type: object
+      description: Platform problem+json, internal rendering.
+      required: [type, title, status, code]
+      properties:
+        type: { type: string, default: about:blank }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        code: { type: string }
+        category: { type: string }
+        retryable: { type: boolean }
+        upstreamCode: { type: [string, 'null'] }
+        incidentId: { type: string }
+        correlationId: { type: [string, 'null'] }
+        service: { type: string, examples: [lead] }
+        timestamp: { type: string, format: date-time }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              code: { type: string }
+              message: { type: string }
+              field: { type: [string, 'null'] }
+              extensions: { type: [object, 'null'], additionalProperties: true }
+        origin: { type: [object, 'null'], additionalProperties: true }
+        diagnostic: { type: [object, 'null'], additionalProperties: true }
+
+    CreateLeadRequest:
+      type: object
+      required: [customerId, lob, productClass]
+      properties:
+        customerId: { type: string, minLength: 1, maxLength: 64, description: 'Platform customerId. D3 decides CHAR(26) ULID; the column is VARCHAR(64) today.' }
+        lob: { type: string, minLength: 1, description: 'Only `LIFE` is accepted.' }
+        productClass: { type: string, minLength: 1, description: 'TERM | SAVINGS | ULIP (else 422 UNSUPPORTED_LOB).' }
+        branchId: { type: [string, 'null'], maxLength: 64 }
+    Meeting:
+      type: object
+      description: Lead BRD Screen 7.
+      required: [type, date, time]
+      properties:
+        type: { type: string, enum: [ONLINE, IN_PERSON] }
+        date: { type: string, minLength: 1, description: 'yyyy-MM-dd (bank time Asia/Kolkata).' }
+        time: { type: string, minLength: 1, description: 'HH:mm, between 08:00 and 20:00; date+time not in the past.' }
+        link: { type: [string, 'null'], description: 'Required for ONLINE, must be absent for IN_PERSON. Stored AES-256-GCM encrypted.' }
+    AssignLeadRequest:
+      type: object
+      required: [assignedRmId]
+      properties:
+        assignedRmId: { type: string, minLength: 1, maxLength: 64 }
+        assignedSpId: { type: [string, 'null'], maxLength: 64 }
+        note: { type: [string, 'null'], maxLength: 250, description: 'Stored encrypted in lead_follow_up.' }
+        meeting:
+          oneOf:
+            - $ref: '#/components/schemas/Meeting'
+            - type: 'null'
+    LeadResponse:
+      type: object
+      required: [leadId, customerId, lob, productClass, state, dashboardStage, exceptionHold, exceptionOutcome, exceptionRequired, biGenerated, reportingClass, createdAt, updatedAt]
+      properties:
+        leadId: { $ref: '#/components/schemas/Ulid' }
+        customerId: { type: string }
+        lob: { type: string, enum: [LIFE] }
+        productClass: { $ref: '#/components/schemas/ProductClass' }
+        branchId: { type: [string, 'null'] }
+        state: { type: string, enum: [NEW, ASSIGNED, CONTACTED, QUALIFIED, CONVERTED, DISQUALIFIED, EXPIRED, ARCHIVED] }
+        dashboardStage:
+          type: string
+          description: 'Projection of state: NEW/ASSIGNED/CONTACTED→NEW, QUALIFIED→QUOTE_GENERATED, CONVERTED/ARCHIVED→POLICY_ISSUED, DISQUALIFIED/EXPIRED→CLOSED.'
+          enum: [NEW, QUOTE_GENERATED, PROPOSAL_FORM_PENDING, PROPOSAL_SUBMITTED, POLICY_PENDING, REQUIREMENTS_AWAITED, UNDERWRITING_QUEUE, POLICY_ISSUED, POLICY_DECLINED, CLOSED]
+        assignedRmId: { type: [string, 'null'] }
+        assignedSpId: { type: [string, 'null'] }
+        accountableSpId: { type: [string, 'null'], description: 'Set once, from the first assignee.' }
+        exceptionHold: { type: boolean }
+        exceptionOutcome: { type: string, enum: [NOT_EVALUATED, PASS, BLOCK, APPROVAL_REQUIRED] }
+        exceptionRequired: { type: boolean, description: 'APPROVAL_REQUIRED or BLOCK or hold active.' }
+        biGenerated: { type: boolean }
+        reportingClass: { type: string, enum: [DIARY, ELIGIBLE] }
+        journeyId: { type: [string, 'null'], description: 'Inert placeholder equal to leadId until Journey mints one.' }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    LeadPageResponse:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/LeadResponse' } }
+        nextCursor: { type: [string, 'null'] }

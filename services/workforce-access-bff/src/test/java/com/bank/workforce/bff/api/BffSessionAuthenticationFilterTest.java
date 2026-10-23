@@ -145,6 +145,29 @@ class BffSessionAuthenticationFilterTest {
     verify(resolver).resolveException(eq(request), any(), eq(null), any());
   }
 
+  @Test
+  void undecryptableSessionIsSessionExpiredNotAServerError() throws Exception {
+    // TokenVaultCipher normalises every decrypt failure (rotated key, tampering) to this type.
+    when(sessions.getSession(HANDLE))
+        .thenThrow(new IllegalStateException("Unable to decrypt workforce session"));
+    MockHttpServletRequest request = request("/api/v1/country-codes");
+    request.addHeader("X-Session-Handle", HANDLE);
+
+    filter.doFilter(request, new MockHttpServletResponse(), chain);
+
+    verify(chain, never()).doFilter(any(), any());
+    verify(resolver)
+        .resolveException(
+            eq(request),
+            any(),
+            eq(null),
+            org.mockito.ArgumentMatchers.argThat(
+                ex ->
+                    ex instanceof com.bank.common.error.ServiceException service
+                        && "SESSION_EXPIRED".equals(service.getErrorResponse().getCode())
+                        && service.getErrorResponse().getStatus() == 401));
+  }
+
   private static MockHttpServletRequest request(String path) {
     MockHttpServletRequest request = new MockHttpServletRequest("GET", path);
     request.setRequestURI(path);

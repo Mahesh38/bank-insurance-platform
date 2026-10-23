@@ -1,14 +1,18 @@
 package com.bank.workforce.bff.customer;
 
+import com.bank.common.error.ErrorCodes;
 import com.bank.common.error.ErrorPropagation;
 import com.bank.common.error.PlatformLayer;
 import com.bank.common.error.ProblemJsonReader;
 import com.bank.common.error.ServiceErrors;
+import com.bank.common.error.ServiceException;
 import com.bank.workforce.bff.config.DownstreamProperties;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -21,7 +25,7 @@ public class HttpCustomerGateway implements CustomerGateway {
   private final ServiceErrors serviceErrors;
 
   public HttpCustomerGateway(
-      RestClient restClient,
+      @Qualifier("customerRestClient") RestClient restClient,
       DownstreamProperties properties,
       ProblemJsonReader problemJsonReader,
       ServiceErrors serviceErrors) {
@@ -32,7 +36,7 @@ public class HttpCustomerGateway implements CustomerGateway {
   }
 
   @Override
-  public List<CustomerHit> search(String by, String query, String countryCode) {
+  public List<CustomerHit> search(String by, String query, String countryCode, String actorId) {
     try {
       String uri =
           UriComponentsBuilder.fromPath("/internal/v1/customers/search")
@@ -41,7 +45,8 @@ public class HttpCustomerGateway implements CustomerGateway {
               .queryParam("countryCode", countryCode)
               .build(true)
               .toUriString();
-      SearchPage page = client.get().uri(uri).retrieve().body(SearchPage.class);
+      SearchPage page =
+          client.get().uri(uri).header("X-Actor-Id", actorId).retrieve().body(SearchPage.class);
       return page == null || page.items() == null ? List.of() : page.items();
     } catch (RestClientResponseException ex) {
       throw ErrorPropagation.from(
@@ -50,15 +55,18 @@ public class HttpCustomerGateway implements CustomerGateway {
           .calling("customer", "search")
           .causedBy(ex)
           .toException();
+    } catch (RestClientException ex) {
+      throw unavailable(ex, "search");
     }
   }
 
   @Override
-  public CustomerHit get(String customerId) {
+  public CustomerHit get(String customerId, String actorId) {
     try {
       return client
           .get()
           .uri("/internal/v1/customers/{customerId}", customerId)
+          .header("X-Actor-Id", actorId)
           .retrieve()
           .body(CustomerHit.class);
     } catch (RestClientResponseException ex) {
@@ -68,7 +76,20 @@ public class HttpCustomerGateway implements CustomerGateway {
           .calling("customer", "get")
           .causedBy(ex)
           .toException();
+    } catch (RestClientException ex) {
+      throw unavailable(ex, "get");
     }
+  }
+
+  // No HTTP answer at all (refused, reset, timed out): a typed 503 the RM can retry, not a 500.
+  private ServiceException unavailable(RestClientException ex, String operation) {
+    return serviceErrors
+        .error(ErrorCodes.UPSTREAM_UNAVAILABLE)
+        .component("HttpCustomerGateway")
+        .operation(operation)
+        .reason("Customer service is unavailable")
+        .cause(ex)
+        .build();
   }
 
   public record SearchPage(List<CustomerHit> items) {}

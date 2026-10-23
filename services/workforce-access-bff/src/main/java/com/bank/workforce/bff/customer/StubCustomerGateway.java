@@ -24,7 +24,7 @@ public class StubCustomerGateway implements CustomerGateway {
   }
 
   @Override
-  public List<CustomerHit> search(String by, String query, String countryCode) {
+  public List<CustomerHit> search(String by, String query, String countryCode, String actorId) {
     if (by == null || !SEARCH_BY.contains(by)) {
       throw errors
           .error(ErrorCodes.INVALID_REQUEST)
@@ -50,7 +50,7 @@ public class StubCustomerGateway implements CustomerGateway {
   }
 
   @Override
-  public CustomerHit get(String customerId) {
+  public CustomerHit get(String customerId, String actorId) {
     if (customerId == null || !customerId.toUpperCase(Locale.ROOT).startsWith("CUST-")) {
       throw errors
           .error(ErrorCodes.RESOURCE_NOT_FOUND)
@@ -59,6 +59,6 @@ public class StubCustomerGateway implements CustomerGateway {
           .reason("customer is absent from this book")
           .build();
     }
-    return search("CUSTOMER_ID", customerId, null).getFirst();
+    return search("CUSTOMER_ID", customerId, null, actorId).getFirst();
   }
 }

@@ -7,6 +7,17 @@
 **Date:** 2026-08-20 · **revised** 2026-08-24 · **revised** 2026-08-25 (`ADR-014`, `ADR-015`) · **revised** 2026-08-31 (`ADR-018`, attach to existing `AU-CTO-NETWORK`) · **revised** 2026-09-14 (`ADR-020` split API plane) · **revised** 2026-10-09 (`ADR-023` NLB + Istio; API Gateway withdrawn)
 **Origin:** `SUG-20260820-hl1` · **revision** `SUG-20260824-gp1` … `gp5` ([`CR-012`](../governance/change-requests/CR-012-r0-platform-robustness.md)) · **revision** `SUG-20260825-ll1` · **revision** `ADR-015` (one NIP-APP; `ns:edge` is nip-web + #2 NIP BFF only) · **revision** `ADR-023` / `CR-017` Option B
 
+> **Data-store correction 2026-10-21** ([`DB-DEC-0005`](../platform/data-architecture/DB-DEC-0005-dynamodb-working-payload.md),
+> [`ADR-026`](../platform/architecture-review/ADR-026-audit-store-and-transport.md) **proposed**, readiness review
+> [§4](../platform/api-reference/READINESS-REVIEW.md#4-postgres-vs-dynamodb--yes-it-is-decided)). DynamoDB at R0 holds **only**
+> pre-payment quote and proposal working state (`{env}-quotation-working`, `{env}-proposal-working`), owned by
+> quotation-service and proposal-service. **Journey, audit, idempotency, integration jobs and sessions are not in
+> DynamoDB**: journey and every other context are Aurora schemas; sessions are Valkey (`ADR-011`); adapter jobs stay in
+> `bank_persistence`; the business audit record is `bank_persistence.audit_event` today and, if the owner accepts
+> ADR-026, Aurora schema `audit` (hash-chained, INSERT-only) + S3 Object Lock. Wherever this file says
+> "DynamoDB journey-state / integration-jobs / audit-events", read that. Physical design:
+> [`data-architecture/`](../platform/data-architecture/README.md).
+
 > **Revision 2026-08-24 — R0 robustness round.** Five layers that were deferred are now **in R0**,
 > under `ADR-009` … `ADR-013`: hybrid bank connectivity (**attach** to the existing `AU-CTO-NETWORK`
 > Transit Gateway + VPN now, Direct Connect via the **existing** DX Gateway), centralised egress inspection (AWS Network Firewall), a managed cache
@@ -92,7 +103,7 @@ Aurora connection budget).
 | 9 | **Amazon EKS** × environment | All microservices + Istio | Kubernetes 1.30+ (platform current). Private API endpoint. See §3 |
 | 10 | **Amazon ECR** | Images | Immutable tags; scan on push; replicate to `ap-south-2` for DR images |
 | 11 | **Amazon Aurora PostgreSQL** | **One** cluster, schema per bounded context | Multi-AZ writer + reader. See §5. **ADR-008** |
-| 12 | **Amazon DynamoDB** | Journey state, quote/proposal jobs, audit event store, BFF session option | PITR on; encryption with CMK |
+| 12 | **Amazon DynamoDB** | **Only** pre-payment quote and proposal working state: `{env}-quotation-working`, `{env}-proposal-working` (`DB-DEC-0005`). Not journey, not audit, not sessions | PITR on; CMK per table; TTL; streams; VPC gateway endpoint policy limited to the two tables |
 | 13 | **Amazon S3** + **Object Lock** (Compliance mode) | Raw payloads, policy documents, audit archive | 7-year WORM; CRR to `ap-south-2`; Block Public Access on |
 | 14 | **AWS KMS** | CMK hierarchy | Separate CMKs: data, logs, secrets, WORM. India only |
 | 15 | **AWS Secrets Manager** | DB creds, 1SB keys, PG keys, IdP secrets | Rotation exercised once (`NFR-SEC-07`) |
@@ -508,7 +519,7 @@ The three new tiers are **egress** rules on the app namespaces, not new namespac
 | `edge` | ElastiCache `:6379` | Session vault and rate-limit counters only (`ADR-011`) |
 | `shared-platform`, `life-cell` | ElastiCache `:6379` | L2 config and catalogue cache only. **Never** idempotency |
 | `jobs` | MSK `:9098` (SASL/IAM) | `outbox-publisher` produces; consumers consume their own topics |
-| `shared-platform` (`#16` Audit) | MSK `:9098` + DynamoDB + S3 | Consumes the audit topic and writes the evidence store. The topic is not the evidence (`ADR-012`) |
+| `shared-platform` (`#16` Audit) | MSK `:9098` + Aurora (audit) + S3 | Consumes the audit topic and writes the evidence store. The topic is not the evidence (`ADR-012`) |
 | `platform` (Fluent Bit) | Firehose endpoint | Log ship only. No app namespace talks to OpenSearch directly |
 | any app namespace | OpenSearch `:443` | **Denied.** Humans query the domain through the VPC, workloads do not write to it |
 
@@ -539,11 +550,13 @@ Aarti owns indexes, connection limits, parameter groups, and whether `journey` i
 
 | Table | PK | Purpose | PITR | TTL |
 |---|---|---|---|---|
-| `journey-state-{env}` | `journeyId` | Stage + externalRefs + party snapshot | Yes | No |
-| `integration-jobs-{env}` | `jobId` | Quote/proposal poll records (mirrors today's job entity) | Yes | 30 d after terminal |
-| `idempotency-{env}` | `owner#key` | Optional shared *implementation* of INV-IDM-01 if Aarti prefers DDB over Postgres. Still **per-service IAM**, not a shared access pattern. **Not** moved to the cache tier — `ADR-011` refuses it | Yes | 24 h |
+| ~~`journey-state-{env}`~~ | — | **WITHDRAWN** — journey is Aurora schema `journey` (`DB-DEC-0001`, `DB-DEC-0005`) | — | — |
+| ~~`integration-jobs-{env}`~~ | — | **WITHDRAWN** — adapter jobs stay in Aurora `bank_persistence` | — | — |
+| ~~`idempotency-{env}`~~ | — | **WITHDRAWN** — idempotency is a table in each owning schema (or the `IDEM#` item inside the two working tables) | — | — |
+| `{env}-quotation-working` | `PK`/`SK` (`QUOTE#id`/`META`, `OUTBOX#`, `IDEM#`, markers) | Pre-payment quote working state (`DB-DEC-0005`, [design](../platform/data-architecture/schemas/20-dynamodb-working-payload.md)) | Yes | `RET-WORKING` (removed while payment in flight) |
+| `{env}-proposal-working` | `PK`/`SK` (`PROPOSAL#id`/`META`, …) | Pre-payment proposal working state (`DB-DEC-0005`) | Yes | Same |
 | ~~`sessions-{env}`~~ | — | **WITHDRAWN 2026-08-24.** The session vault is ElastiCache for Valkey (`ADR-011`, BOM #30), which closes the open DynamoDB-versus-Redis question in favour of WS-2's accepted design | — | — |
-| `audit-events-{env}` | `journeyId` + `sequence_no` | Append-only event store. **This, plus the S3 archive, is the audit record** — the MSK topic feeding it is not (`ADR-012`) | Yes | No (archive to S3) |
+| ~~`audit-events-{env}`~~ | — | **WITHDRAWN** — the audit record is relational: `bank_persistence.audit_event` today; Aurora schema `audit` + S3 WORM if `ADR-026` (**proposed**) is accepted. The MSK topic is still not the record (`ADR-012`) | — | — |
 
 IAM: each service role can `PutItem`/`GetItem`/`Query` **only its** table. Audit role has **no `UpdateItem` / `DeleteItem`**. Verify with a failing IaC test (`FF-10`).
 
@@ -595,7 +608,7 @@ service txn ─┬─► business tables          (one local transaction)
                      │
              outbox-publisher (Deployment ×2, jobs ns)
                      │
-                   MSK topic ─┬─► #16 Audit consumer ─► DynamoDB + S3 WORM  ← THE RECORD
+                   MSK topic ─┬─► #16 Audit consumer ─► Aurora audit (ADR-026, proposed) + S3 WORM  ← THE RECORD
                               ├─► #17 Notification consumer
                               └─► compensation / reconciliation signals
 ```
@@ -734,7 +747,7 @@ Secrets: Secrets Manager → Secrets Store CSI → tmpfs. Rotation runbook exerc
 | Pipe | Contents | Store | Retention |
 |---|---|---|---|
 | **Operational** | RED metrics, traces, application logs (PII-masked), **firewall / VPC / TGW flow logs, MSK and consumer logs** | AMP / X-Ray / CloudWatch **+ OpenSearch** (`ADR-013`) | `RET-OPERATIONAL` (90 days) then dispose with an audit record |
-| **Regulatory audit** | Domain `AuditEvent`s, produced by the outbox and delivered over MSK (`S-17`, `S-23`, `S-24`) | DynamoDB + S3 Object Lock | `RET-7Y-IMMUTABLE` |
+| **Regulatory audit** | Domain `AuditEvent`s, produced by the outbox and delivered over MSK (`S-17`, `S-23`, `S-24`) | Aurora (`bank_persistence.audit_event` today; schema `audit` if ADR-026 is accepted) + S3 Object Lock | `RET-7Y-IMMUTABLE` |
 | **Cloud account audit** | CloudTrail, Config, GuardDuty | `security` account | Per bank policy; not the application audit store |
 
 A journey cannot reach `SOLD` until the regulatory pipe has acknowledged the four required events (`INV-JRN-05`). Operational log loss is an SRE incident; audit-pipe loss is a **compliance** incident.
@@ -742,7 +755,7 @@ A journey cannot reach `SOLD` until the regulatory pipe has acknowledged the fou
 **Two additions from the robustness round, and one boundary restated.** OpenSearch joins the
 operational pipe and makes it queryable — which is what the firewall, flow and broker logs are for
 (`ADR-013`). MSK joins the regulatory pipe as **transport**, not as a store: the audit consumer's
-write to DynamoDB and S3 is the record (`ADR-012`). The two pipes still never merge. A search
+write to the relational audit store (Aurora; ADR-026 proposed) and S3 is the record (`ADR-012`). The two pipes still never merge. A search
 index with a delete policy and a topic with a retention window are both disposable; the evidence
 store is not, and no gate is satisfied from either.
 
@@ -845,7 +858,7 @@ topics in its row, and **no** deployable with write access to the OpenSearch dom
 
 Two rows are worth reading twice. `nip-bff` no longer holds a DynamoDB table — the
 session vault moved to the cache tier (`ADR-011`), which is why `sessions-{env}` is withdrawn in
-§5.2. `audit` **consumes** its topic and writes DynamoDB and S3: the consumption is transport and
+§5.2. `audit` **consumes** its topic and writes the Aurora audit store and S3 (ADR-026, proposed): the consumption is transport and
 the write is the record (`ADR-012`).
 
 ### 12.1 When — the provisioning sequence
@@ -960,7 +973,7 @@ COMPUTE
 
 DATA · CACHE · MESSAGING · SEARCH
 - ONE Aurora PostgreSQL cluster, Multi-AZ, schema-per-bounded-context, no cross-schema grants
-- DynamoDB: journey-state, integration-jobs, audit-events (PITR, CMK). `sessions` WITHDRAWN
+- DynamoDB: `{env}-quotation-working`, `{env}-proposal-working` only (PITR, CMK, TTL; `DB-DEC-0005`). journey-state, integration-jobs, audit-events, `sessions` WITHDRAWN
 - S3 buckets with Object Lock Compliance 7y + CRR to ap-south-2 for raw, docs, audit-archive
 - ElastiCache for Valkey, cluster mode DISABLED, primary+replica across 2 AZs, failover ON,
   CMK + TLS, ONE ACL USER PER SERVICE with a key prefix.

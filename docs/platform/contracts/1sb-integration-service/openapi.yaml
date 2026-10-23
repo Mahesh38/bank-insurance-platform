@@ -1,0 +1,857 @@
+openapi: 3.1.0
+info:
+  title: 1sb-integration-service — 1SilverBullet provider adapter (bank-facing)
+  version: 1.0.0-r0
+  summary: Bank-canonical quote, eligibility, proposal, payment-link, status, master-data, product-UI and ULIP-fund API over 1SB, per LOB.
+  description: |
+    **Status:** AI-DRAFTED from code (ADR-027), awaiting engineering and Deepali (security) review.
+
+    Authoritative wire contract for `services/1sb-integration-service` (port 8080,
+    `service-id: onesb`, layer L5, boundary INTERNAL). Derived from
+    `com.bank.insurance.onesb.api.**`, `api.v1.**`, the application services, `LifeQuoteValidator`
+    and `adapter.idempotency.IdempotencyFilter`. Companion design:
+    `docs/platform/contracts/1sb-integration-service/LLD.md`.
+
+    **LOBs.** `lob` is the `bank-common-domain` enum `TERM | HEALTH | MOTOR | SAVING | ULIP |
+    ANNUITY | PENSION`. R0 registers handlers for **TERM, SAVING, ULIP** only; any other value →
+    `422 UNSUPPORTED_LOB`.
+
+    **Idempotency (`IdempotencyFilter`).** Every `POST`/`PUT`/`PATCH` under `/v1/**` **except
+    `/v1/master-data/**`** requires `Idempotency-Key`:
+    - missing → `400 MISSING_IDEMPOTENCY_KEY` (written by the filter before the controller);
+    - same key + same body (SHA-256 of the raw bytes) → the stored status, content type and body
+      are replayed verbatim (no second 1SB call);
+    - same key + different body → `409 IDEMPOTENCY_CONFLICT`;
+    - responses with status ≥ 500 are **not** stored, so a retry re-executes.
+    The store is in-process memory per pod (`InMemoryIdempotencyStore`) — a retry landing on another
+    replica is not deduplicated. Filter errors are written with `Content-Type: application/json`
+    (body is the platform envelope).
+
+    **Status codes — the truth.** `POST /v1/quotes` → `202` (async job, always `PENDING`).
+    `POST /v1/proposals` → **`201`** even when the job is still `PENDING` (asynchronous 1SB
+    processing); `status` says which. `POST /v1/payments` → `201`. Criteria, master data, ULIP
+    funds → `200`.
+
+    **Attribution.** `distributorId` is never a request field (`COMP-004`, `INV-DIS-01`); it is
+    injected from secrets on every 1SB call. `X-Actor-Id` is optional and defaults to `system`.
+
+    **Caller authentication.** None in code; cluster-private only. Target caller is the Integration
+    Hub (`IF-1`) over mesh mTLS.
+
+    Errors: platform problem+json (internal rendering). 1SB business errors are normalised
+    (`UPSTREAM_BUSINESS_ERROR`, `PROPOSAL_REJECTED`), never raw 1SB text.
+servers:
+  - url: http://1sb-integration-service:8080
+    description: Cluster-private
+  - url: http://localhost:8080
+    description: Local
+tags:
+  - name: Quotes
+  - name: Eligibility
+  - name: Proposals
+  - name: Payments
+  - name: Status
+  - name: Master data
+  - name: Products
+  - name: ULIP funds
+
+paths:
+  /v1/quotes:
+    post:
+      tags: [Quotes]
+      operationId: createQuote
+      summary: Create an asynchronous quote job (single or multi quote) for TERM, SAVING or ULIP.
+      description: |
+        1. Filter: `Idempotency-Key`.
+        2. Bean validation, then `LifeQuoteValidator` (all field errors collected; any
+           `UNSUPPORTED_LOB` makes the top code `UNSUPPORTED_LOB`, else `VALIDATION_ERROR`).
+        3. Create job (bank-persistence `POST /internal/v1/jobs`, type `QUOTE`).
+        4. Build the per-LOB 1SB payload; `POST` to 1SB (Term `/insurance/lifeterm/v1/quote`,
+           Saving/ULIP `/insurance/lifesave/v1/quote`) — **never retried automatically**.
+        5. Store 1SB `reqId`, schedule polling, emit audit `QUOTE_CREATED`, return `202`.
+        Poll results via `GET /v1/quotes/{jobId}`.
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKeyRequired'
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateQuoteRequest' }
+            example:
+              lob: TERM
+              mode: MULTI
+              category: SUM_ASSURED
+              sumAssured: 10000000
+              members:
+                - { role: LIFE_ASSURED, dob: '1990-04-12', gender: Male, tobacco: false, annualIncome: 1800000, pincode: '400001' }
+              distribution: { rmEmployeeId: EMP001, agentId: AG-001, channelType: B2B }
+              journeyId: 01JQX4K7R8M2N3P5Q6R7S8T9V2
+      responses:
+        '202':
+          description: Job accepted.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CreateQuoteResponse' }
+        '400': { $ref: '#/components/responses/MissingIdempotencyKey' }
+        '409': { $ref: '#/components/responses/IdempotencyConflict' }
+        '422':
+          description: Request validation (see `QuoteValidation` rules in the LLD) or 1SB business refusal.
+          x-error-codes: [VALIDATION_ERROR, INVALID_REQUEST, MISSING_REQUIRED_FIELD, UNSUPPORTED_LOB, UPSTREAM_BUSINESS_ERROR]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '502': { $ref: '#/components/responses/UpstreamBad' }
+        '503': { $ref: '#/components/responses/UpstreamUnavailable' }
+
+  /v1/quotes/{jobId}:
+    get:
+      tags: [Quotes]
+      operationId: getQuote
+      summary: Poll a quote job. Offers only when COMPLETED or PARTIAL.
+      description: |
+        `PENDING`, `RUNNING`, `TIMEOUT`, `FAILED` → `offers: []` (never fabricated). A poll budget
+        exhaustion shows as job status `TIMEOUT` (failureReason `POLL_TIMEOUT`) with `200` — the
+        endpoint never answers `QUOTE_TIMEOUT`.
+      parameters:
+        - $ref: '#/components/parameters/JobIdPath'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Job state.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/QuoteJobResponse' }
+        '404': { $ref: '#/components/responses/JobNotFound' }
+
+  /v1/quotes/criteria:
+    get:
+      tags: [Eligibility]
+      operationId: getEligibilityCriteria
+      summary: Gate-criteria (eligibility) form for a product.
+      parameters:
+        - name: lob
+          in: query
+          required: true
+          schema: { $ref: '#/components/schemas/Lob' }
+        - name: productCode
+          in: query
+          required: true
+          schema: { type: string }
+        - name: manufacturerId
+          in: query
+          required: true
+          schema: { type: string }
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: The form schema.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProposalSchema' }
+        '400': { $ref: '#/components/responses/SpringBadRequest' }
+        '422':
+          description: |
+            `UNSUPPORTED_LOB` — no gate criteria for this LOB; `SCHEMA_INVALID` — the form 1SB
+            returned is unusable; `VALIDATION_ERROR`; `UPSTREAM_BUSINESS_ERROR`.
+          x-error-codes: [UNSUPPORTED_LOB, SCHEMA_INVALID, VALIDATION_ERROR, MISSING_REQUIRED_FIELD, UPSTREAM_BUSINESS_ERROR]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '502': { $ref: '#/components/responses/UpstreamBad' }
+        '503': { $ref: '#/components/responses/UpstreamUnavailable' }
+    post:
+      tags: [Eligibility]
+      operationId: submitEligibilityCriteria
+      summary: Submit gate-criteria answers.
+      description: Answers are validated against the form first (visibility-aware); agent id from `agentId` else `distribution.agentId`.
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKeyRequired'
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EligibilitySubmitRequest' }
+      responses:
+        '200':
+          description: 1SB verdict.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/EligibilitySubmitResult' }
+        '400': { $ref: '#/components/responses/MissingIdempotencyKey' }
+        '409': { $ref: '#/components/responses/IdempotencyConflict' }
+        '422':
+          description: Validation, unusable form, unsupported LOB, or 1SB business refusal.
+          x-error-codes: [VALIDATION_ERROR, INVALID_REQUEST, MISSING_REQUIRED_FIELD, UNSUPPORTED_LOB, SCHEMA_INVALID, UPSTREAM_BUSINESS_ERROR]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '502': { $ref: '#/components/responses/UpstreamBad' }
+        '503': { $ref: '#/components/responses/UpstreamUnavailable' }
+
+  /v1/proposals/schema:
+    get:
+      tags: [Proposals]
+      operationId: getProposalSchema
+      summary: Dynamic proposal form schema for a product.
+      description: |
+        When `quoteJobId` is given the quote job must be usable: missing, `TIMEOUT`, `FAILED`, or
+        terminal with no offers → **`410 QUOTE_EXPIRED`** (catalogue status 409 overridden per
+        FUNC-004 AC-2). The form must be usable (`DynamicFormValidator`) else `422 SCHEMA_INVALID`.
+      parameters:
+        - name: lob
+          in: query
+          required: true
+          schema: { $ref: '#/components/schemas/Lob' }
+        - name: productCode
+          in: query
+          required: false
+          schema: { type: string }
+        - name: manufacturerId
+          in: query
+          required: false
+          schema: { type: string }
+        - name: version
+          in: query
+          required: false
+          schema: { type: string }
+        - name: quoteJobId
+          in: query
+          required: false
+          schema: { type: string }
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Form schema.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProposalSchema' }
+        '400': { $ref: '#/components/responses/SpringBadRequest' }
+        '410': { $ref: '#/components/responses/QuoteExpired' }
+        '422':
+          description: Unusable form, unsupported LOB, business refusal.
+          x-error-codes: [SCHEMA_INVALID, UNSUPPORTED_LOB, VALIDATION_ERROR, UPSTREAM_BUSINESS_ERROR]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '502': { $ref: '#/components/responses/UpstreamBad' }
+        '503': { $ref: '#/components/responses/UpstreamUnavailable' }
+
+  /v1/proposals:
+    post:
+      tags: [Proposals]
+      operationId: submitProposal
+      summary: Submit a proposal to 1SB. 201 with status COMPLETED (sync) or PENDING (async, poll).
+      description: |
+        Order:
+        1. Filter: `Idempotency-Key`.
+        2. `lob` required (`422 VALIDATION_ERROR`).
+        3. Agent attribution resolvable (`agentId`, `distribution.agentId` or mapping) else
+           `422 AGENT_ATTRIBUTION_MISSING`.
+        4. `consentRef` present else **`403 CONSENT_REQUIRED`** (audit `CONSENT_REF_MISSING`).
+        5. `values` non-empty; `productCode`, `manufacturerId` present; answers valid against the
+           schema (visibility-aware) → else `422 VALIDATION_ERROR` with field errors.
+        6. With `quoteJobId`: job usable (else `410 QUOTE_EXPIRED`), `COMPLETED`/`PARTIAL`, and
+           product + manufacturer match a selectable offer (else `422 VALIDATION_ERROR`).
+        7. Create job (`PROPOSAL`); store the REQUEST raw payload **before** the call (evidence;
+           retried once; failure → job `FAILED`, `503 UPSTREAM_UNAVAILABLE`, nothing sent).
+        8. `POST` to 1SB (Term `/insurance/lifeterm/v1/proposal`, Saving/ULIP
+           `/insurance/lifesave/v1/proposal`). Insurer business rejection → `422 PROPOSAL_REJECTED`.
+        9. Complete → job `COMPLETED` with `applicationNumber`; else store `reqId`, schedule poll,
+           `PENDING`. Audit `PROPOSAL_SUBMITTED`.
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKeyRequired'
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SubmitProposalRequest' }
+      responses:
+        '201':
+          description: Submitted. `status` is `COMPLETED` or `PENDING`.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SubmitProposalResponse' }
+        '400': { $ref: '#/components/responses/MissingIdempotencyKey' }
+        '403':
+          description: '`consentRef` missing (C2).'
+          x-error-codes: [CONSENT_REQUIRED]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '409': { $ref: '#/components/responses/IdempotencyConflict' }
+        '410': { $ref: '#/components/responses/QuoteExpired' }
+        '422':
+          description: Validation, attribution, unusable form, unsupported LOB, insurer rejection.
+          x-error-codes: [VALIDATION_ERROR, INVALID_REQUEST, MISSING_REQUIRED_FIELD, UNSUPPORTED_LOB, AGENT_ATTRIBUTION_MISSING, SCHEMA_INVALID, PROPOSAL_REJECTED, UPSTREAM_BUSINESS_ERROR]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '502': { $ref: '#/components/responses/UpstreamBad' }
+        '503': { $ref: '#/components/responses/UpstreamUnavailable' }
+
+  /v1/proposals/{jobId}:
+    get:
+      tags: [Proposals]
+      operationId: getProposal
+      summary: Poll a proposal job; `applicationNumber` once known (never while PENDING/RUNNING).
+      parameters:
+        - $ref: '#/components/parameters/JobIdPath'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Job state.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProposalJobResponse' }
+        '404': { $ref: '#/components/responses/JobNotFound' }
+
+  /v1/payments:
+    post:
+      tags: [Payments]
+      operationId: createPaymentSession
+      summary: Obtain a 1SB payment URL and record a payment session.
+      description: |
+        `lob` and `applicationNumber` required. With `jobId`, the proposal job must exist and be
+        `COMPLETED`/`PARTIAL` with an `applicationNumber` (else `409 PROPOSAL_NOT_PAYABLE`).
+        The request is stored as evidence before the 1SB call (failure → `503`, no link requested).
+        A non-HTTPS payment URL is refused (`502 UPSTREAM_BAD_RESPONSE`). Session stored with
+        status `AWAITING_PAYMENT`; audit `PAYMENT_URL_RETRIEVED`.
+        **The URL must never be delivered into an RM session (`INV-PAY-01`, C4)** — that is the
+        caller's (payment-service) responsibility.
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKeyRequired'
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreatePaymentRequest' }
+      responses:
+        '201':
+          description: Payment session created.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CreatePaymentResponse' }
+        '400': { $ref: '#/components/responses/MissingIdempotencyKey' }
+        '409':
+          description: '`PROPOSAL_NOT_PAYABLE` or `IDEMPOTENCY_CONFLICT`.'
+          x-error-codes: [PROPOSAL_NOT_PAYABLE, IDEMPOTENCY_CONFLICT]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '422':
+          description: Validation or 1SB business refusal.
+          x-error-codes: [VALIDATION_ERROR, INVALID_REQUEST, MISSING_REQUIRED_FIELD, UNSUPPORTED_LOB, UPSTREAM_BUSINESS_ERROR]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '502': { $ref: '#/components/responses/UpstreamBad' }
+        '503': { $ref: '#/components/responses/UpstreamUnavailable' }
+
+  /v1/status/{applicationNumber}:
+    get:
+      tags: [Status]
+      operationId: getApplicationStatus
+      summary: Insurer application status, normalised to bank vocabulary.
+      description: Raw 1SB status text is not returned (compliance §8.1). Audit `APPLICATION_STATUS_CHECKED`.
+      parameters:
+        - name: applicationNumber
+          in: path
+          required: true
+          schema: { type: string, maxLength: 50 }
+        - name: lob
+          in: query
+          required: true
+          schema: { $ref: '#/components/schemas/Lob' }
+        - name: insurerCode
+          in: query
+          required: true
+          schema: { type: string }
+        - name: productCode
+          in: query
+          required: false
+          schema: { type: string }
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Normalised status.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApplicationStatusResponse' }
+        '400': { $ref: '#/components/responses/SpringBadRequest' }
+        '404':
+          description: 1SB has no status for this application.
+          x-error-codes: [RESOURCE_NOT_FOUND]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '422':
+          description: Blank `insurerCode` / `applicationNumber`; business refusal.
+          x-error-codes: [VALIDATION_ERROR, UPSTREAM_BUSINESS_ERROR]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '502': { $ref: '#/components/responses/UpstreamBad' }
+        '503': { $ref: '#/components/responses/UpstreamUnavailable' }
+
+  /v1/master-data/lookup:
+    post:
+      tags: [Master data]
+      operationId: lookupMasterData
+      summary: Cached master / enum lookup (read-like POST; no Idempotency-Key).
+      description: |
+        Hub-internal; values are still provider-shaped (`{code, label}`). In-process cache with TTL
+        (`MastersCacheProperties`); on upstream failure a cached entry is served as `STALE`; with no
+        cache entry → `503 UPSTREAM_UNAVAILABLE`.
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/MasterLookupRequest' }
+      responses:
+        '200':
+          description: Lookups.
+          headers:
+            X-Master-Cache:
+              description: '`HIT` | `MISS` | `STALE`.'
+              schema: { type: string, enum: [HIT, MISS, STALE] }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MasterLookupResponse' }
+        '422':
+          description: Bean validation.
+          x-error-codes: [VALIDATION_ERROR, INVALID_REQUEST, UPSTREAM_BUSINESS_ERROR]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '502': { $ref: '#/components/responses/UpstreamBad' }
+        '503': { $ref: '#/components/responses/UpstreamUnavailable' }
+
+  /v1/products/ui-data:
+    get:
+      tags: [Products]
+      operationId: getProductUiData
+      summary: Product UI content (Term `getproductuidata`).
+      parameters:
+        - name: productId
+          in: query
+          required: true
+          schema: { type: string }
+        - name: manufacturerId
+          in: query
+          required: true
+          schema: { type: string }
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: UI data.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProductUiDataResponse' }
+        '400': { $ref: '#/components/responses/SpringBadRequest' }
+        '422':
+          description: Blank `productId` / `manufacturerId`; business refusal.
+          x-error-codes: [VALIDATION_ERROR, MISSING_REQUIRED_FIELD, UPSTREAM_BUSINESS_ERROR]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '502':
+          description: Empty UI data or bad 1SB response.
+          x-error-codes: [UPSTREAM_BAD_RESPONSE, UPSTREAM_AUTH_FAILURE]
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '503': { $ref: '#/components/responses/UpstreamUnavailable' }
+
+  /v1/ulip/funds/list:
+    post:
+      tags: [ULIP funds]
+      operationId: listUlipFunds
+      summary: ULIP fund list for a quote context (`lob` must be ULIP).
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKeyRequired'
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateQuoteRequest' }
+      responses:
+        '200':
+          description: Fund data (provider-shaped map).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UlipFundResponse' }
+        '400': { $ref: '#/components/responses/MissingIdempotencyKey' }
+        '409': { $ref: '#/components/responses/IdempotencyConflict' }
+        '422': { $ref: '#/components/responses/UlipValidation' }
+        '502': { $ref: '#/components/responses/UpstreamBad' }
+        '503': { $ref: '#/components/responses/UpstreamUnavailable' }
+
+  /v1/ulip/funds/performance:
+    post:
+      tags: [ULIP funds]
+      operationId: getUlipFundPerformance
+      summary: ULIP fund performance (`lob` ULIP; `selection.insurerCode` and `selection.productCodes` required).
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKeyRequired'
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateQuoteRequest' }
+      responses:
+        '200':
+          description: Performance data.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UlipFundResponse' }
+        '400': { $ref: '#/components/responses/MissingIdempotencyKey' }
+        '409': { $ref: '#/components/responses/IdempotencyConflict' }
+        '422': { $ref: '#/components/responses/UlipValidation' }
+        '502': { $ref: '#/components/responses/UpstreamBad' }
+        '503': { $ref: '#/components/responses/UpstreamUnavailable' }
+
+components:
+  parameters:
+    IdempotencyKeyRequired:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: Required by `IdempotencyFilter` (≤ 128 chars; stored on the job as `idempotency_key`).
+      schema: { type: string, maxLength: 128 }
+    ActorId:
+      name: X-Actor-Id
+      in: header
+      required: false
+      description: Human actor for jobs and audit; defaults to `system`.
+      schema: { type: string, maxLength: 100 }
+    CorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: false
+      schema: { type: string, format: uuid }
+    JobIdPath:
+      name: jobId
+      in: path
+      required: true
+      description: Bank job id (UUID minted by bank-persistence), never the 1SB reqId.
+      schema: { type: string, format: uuid }
+
+  responses:
+    MissingIdempotencyKey:
+      description: '`Idempotency-Key` missing on a mutating `/v1` call (filter; `Content-Type: application/json`).'
+      x-error-codes: [MISSING_IDEMPOTENCY_KEY]
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    IdempotencyConflict:
+      description: Same `Idempotency-Key`, different body.
+      x-error-codes: [IDEMPOTENCY_CONFLICT]
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    JobNotFound:
+      description: Unknown job id.
+      x-error-codes: [RESOURCE_NOT_FOUND]
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    QuoteExpired:
+      description: Quote job missing, TIMEOUT, FAILED or without offers (status override 410, FUNC-004 AC-2).
+      x-error-codes: [QUOTE_EXPIRED]
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    SpringBadRequest:
+      description: Missing required query parameter or unknown `lob` enum value — Spring default 400, not the platform envelope.
+    UlipValidation:
+      description: '`lob ≠ ULIP` (`UNSUPPORTED_LOB`), missing `sumAssured` / `members` / pin (`VALIDATION_ERROR`), business refusal.'
+      x-error-codes: [UNSUPPORTED_LOB, VALIDATION_ERROR, INVALID_REQUEST, MISSING_REQUIRED_FIELD, UPSTREAM_BUSINESS_ERROR]
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    UpstreamBad:
+      description: '1SB `401` (`UPSTREAM_AUTH_FAILURE`), unexpected status, empty / malformed body or non-HTTPS payment URL (`UPSTREAM_BAD_RESPONSE`).'
+      x-error-codes: [UPSTREAM_AUTH_FAILURE, UPSTREAM_BAD_RESPONSE]
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    UpstreamUnavailable:
+      description: '1SB 5xx, timeout, transport failure or circuit open; evidence (raw payload) could not be stored before a proposal / payment call. Retry is safe (nothing reached 1SB, or a ≥ 500 is not cached).'
+      x-error-codes: [UPSTREAM_UNAVAILABLE]
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+
+  schemas:
+    Lob:
+      type: string
+      enum: [TERM, HEALTH, MOTOR, SAVING, ULIP, ANNUITY, PENSION]
+      description: R0 handlers exist for TERM, SAVING, ULIP; others → 422 UNSUPPORTED_LOB.
+    JobStatus:
+      type: string
+      enum: [PENDING, RUNNING, PARTIAL, COMPLETED, FAILED, TIMEOUT]
+    Problem:
+      type: object
+      description: Platform problem+json, internal rendering.
+      required: [type, title, status, code]
+      properties:
+        type: { type: string, default: about:blank }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        code: { type: string }
+        category: { type: string }
+        retryable: { type: boolean }
+        upstreamCode: { type: [string, 'null'] }
+        incidentId: { type: string }
+        correlationId: { type: [string, 'null'] }
+        service: { type: string, examples: [onesb] }
+        timestamp: { type: string, format: date-time }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              code: { type: string }
+              message: { type: string }
+              field: { type: [string, 'null'], description: 'e.g. members[0].dob, selection.policyTerm' }
+              extensions: { type: [object, 'null'], additionalProperties: true }
+        origin: { type: [object, 'null'], additionalProperties: true }
+        diagnostic: { type: [object, 'null'], additionalProperties: true }
+
+    Member:
+      type: object
+      required: [dob, gender]
+      properties:
+        role: { type: [string, 'null'], description: 'LIFE_ASSURED (default) or PROPOSER.' }
+        sequenceNumber: { type: [integer, 'null'] }
+        dob: { type: string, description: 'YYYY-MM-DD, real date, not future; age 18–75.' }
+        gender: { type: string, description: 'Male | Female | Transgender | Others (or M / F).' }
+        tobacco: { type: [boolean, 'null'] }
+        annualIncome: { type: number, exclusiveMinimum: 0, description: 'Required by LifeQuoteValidator.' }
+        pincode: { type: string, pattern: '^[1-9][0-9]{5}$', description: 'Required by LifeQuoteValidator.' }
+        relationship: { type: [string, 'null'], description: 'Required on the PROPOSER for SINGLE mode.' }
+    ProductSelection:
+      type: object
+      description: Single-quote pin; required (insurerCode, productCodes) when mode is SINGLE.
+      properties:
+        insurerCode: { type: [string, 'null'] }
+        productCodes: { type: [array, 'null'], items: { type: string } }
+        planOption: { type: [string, 'null'] }
+        coverOption: { type: [string, 'null'] }
+        deathBenefitOption: { type: [string, 'null'] }
+        policyTerm: { type: [integer, 'null'], minimum: 1, maximum: 80 }
+        premiumPaymentTerm: { type: [integer, 'null'], minimum: 1, maximum: 80, description: '≤ policyTerm.' }
+        premiumFrequency: { type: [string, 'null'], description: 'M | Q | HY | Y | S.' }
+        premiumPaymentOption: { type: [string, 'null'] }
+    Distribution:
+      type: object
+      properties:
+        rmEmployeeId: { type: [string, 'null'] }
+        agentId: { type: [string, 'null'], description: 'agentId or rmEmployeeId is required for quotes.' }
+        channelType: { type: [string, 'null'], description: 'B2B | B2C.' }
+    CreateQuoteRequest:
+      type: object
+      required: [lob, sumAssured, members]
+      properties:
+        lob: { $ref: '#/components/schemas/Lob' }
+        mode: { type: [string, 'null'], description: 'SINGLE | MULTI (aliases SQ, MQ, SINGLE-QUOTE, MULTI-QUOTE).' }
+        category: { type: [string, 'null'], description: 'PREMIUM | SUM_ASSURED | INCOME.' }
+        sumAssured: { type: number, exclusiveMinimum: 0 }
+        premiumAmount: { type: [number, 'null'], description: '> 0; required when category is PREMIUM.' }
+        members: { type: array, minItems: 1, items: { $ref: '#/components/schemas/Member' }, description: 'At least one life assured.' }
+        preferences: { type: [object, 'null'], additionalProperties: true, description: 'SAVING requires savingsProductType = nonParticipating | Participating | ULIP.' }
+        distribution: { $ref: '#/components/schemas/Distribution' }
+        journeyId: { type: [string, 'null'] }
+        sessionId: { type: [string, 'null'] }
+        selection: { $ref: '#/components/schemas/ProductSelection' }
+    CreateQuoteResponse:
+      type: object
+      required: [jobId, status]
+      properties:
+        jobId: { type: string, format: uuid }
+        status: { type: string, const: PENDING }
+    FundAllocation:
+      type: object
+      properties:
+        code: { type: string }
+        name: { type: string }
+        allocationPercent: { type: [number, 'null'] }
+    QuoteOffer:
+      type: object
+      properties:
+        offerId: { type: string }
+        insurerCode: { type: string }
+        insurerName: { type: [string, 'null'] }
+        productCode: { type: string }
+        productName: { type: [string, 'null'] }
+        premiumAmount: { type: [number, 'null'] }
+        premiumFrequency: { type: [string, 'null'] }
+        sumAssured: { type: [number, 'null'] }
+        outOfBound: { type: boolean }
+        offerStatus: { type: [string, 'null'] }
+        errorSummary: { type: [string, 'null'], description: 'Non-blank means the offer is not selectable.' }
+        funds: { type: array, items: { $ref: '#/components/schemas/FundAllocation' } }
+    QuoteJobResponse:
+      type: object
+      description: Null fields are omitted (`NON_NULL`).
+      required: [jobId, status, offers]
+      properties:
+        jobId: { type: string }
+        status: { $ref: '#/components/schemas/JobStatus' }
+        failureReason: { type: string, description: 'e.g. POLL_TIMEOUT, POLL_ERROR.' }
+        offers: { type: array, items: { $ref: '#/components/schemas/QuoteOffer' } }
+    ProposalSchema:
+      type: object
+      properties:
+        lob: { $ref: '#/components/schemas/Lob' }
+        productCode: { type: [string, 'null'] }
+        manufacturerId: { type: [string, 'null'] }
+        version: { type: [string, 'null'] }
+        fields: { type: object, additionalProperties: true }
+    EligibilitySubmitRequest:
+      type: object
+      required: [lob, productCode, manufacturerId]
+      properties:
+        lob: { $ref: '#/components/schemas/Lob' }
+        productCode: { type: string, minLength: 1 }
+        manufacturerId: { type: string, minLength: 1 }
+        values: { type: [object, 'null'], additionalProperties: true }
+        agentId: { type: [string, 'null'] }
+        distribution: { $ref: '#/components/schemas/Distribution' }
+    EligibilitySubmitResult:
+      type: object
+      properties:
+        accepted: { type: boolean }
+        reqId: { type: [string, 'null'] }
+        status: { type: [string, 'null'] }
+    SubmitProposalRequest:
+      type: object
+      required: [lob]
+      description: No `distributorId` field (COMP-004).
+      properties:
+        lob: { $ref: '#/components/schemas/Lob' }
+        schemaId: { type: [string, 'null'] }
+        offerId: { type: [string, 'null'] }
+        productCode: { type: [string, 'null'], description: 'Required (service check).' }
+        manufacturerId: { type: [string, 'null'], description: 'Required (service check).' }
+        version: { type: [string, 'null'] }
+        values: { type: [object, 'null'], additionalProperties: true, description: 'Required, non-empty; answers to GET /v1/proposals/schema.' }
+        consentRef: { type: [string, 'null'], description: 'Required (403 CONSENT_REQUIRED when absent).' }
+        agentId: { type: [string, 'null'] }
+        distribution: { $ref: '#/components/schemas/Distribution' }
+        journeyId: { type: [string, 'null'] }
+        sessionId: { type: [string, 'null'] }
+        quoteJobId: { type: [string, 'null'] }
+    SubmitProposalResponse:
+      type: object
+      required: [proposalJobId, jobId, status]
+      properties:
+        proposalJobId: { type: string }
+        jobId: { type: string, description: 'Alias of proposalJobId.' }
+        status: { type: string, enum: [PENDING, COMPLETED] }
+    ProposalJobResponse:
+      type: object
+      description: Null fields omitted; offers always [].
+      required: [jobId, status, offers]
+      properties:
+        jobId: { type: string }
+        status: { $ref: '#/components/schemas/JobStatus' }
+        applicationNumber: { type: string, description: 'Absent while PENDING / RUNNING.' }
+        failureReason: { type: string }
+        offers: { type: array, maxItems: 0, items: { $ref: '#/components/schemas/QuoteOffer' } }
+    CreatePaymentRequest:
+      type: object
+      required: [lob, applicationNumber, insurerCode, productCode, redirectUrl, payer, amountToBePaid, premiumFrequency]
+      properties:
+        lob: { $ref: '#/components/schemas/Lob' }
+        applicationNumber: { type: string, minLength: 1 }
+        jobId: { type: [string, 'null'], description: 'When present, the proposal job must be payable.' }
+        insurerCode: { type: string, minLength: 1 }
+        productCode: { type: string, minLength: 1 }
+        redirectUrl: { type: string, minLength: 1 }
+        journeyId: { type: [string, 'null'] }
+        currency: { type: [string, 'null'] }
+        payer:
+          type: object
+          required: [firstName, lastName, mobileNumber, email]
+          properties:
+            firstName: { type: string, minLength: 1 }
+            lastName: { type: string, minLength: 1 }
+            mobileNumber: { type: string, minLength: 1 }
+            email: { type: string, minLength: 1 }
+        amountToBePaid: { type: number }
+        premiumFrequency: { type: string, minLength: 1 }
+        distribution:
+          type: [object, 'null']
+          properties:
+            rmEmployeeId: { type: [string, 'null'] }
+            agentId: { type: [string, 'null'] }
+    CreatePaymentResponse:
+      type: object
+      properties:
+        paymentSessionId: { type: string }
+        paymentUrl: { type: string, format: uri, description: 'HTTPS only.' }
+        expiresAt: { type: [string, 'null'], format: date-time }
+        status: { type: string, enum: [AWAITING_PAYMENT, INTIMATION_SENT, PAYMENT_SUCCESS, PAYMENT_FAILURE] }
+    ApplicationStatusResponse:
+      type: object
+      properties:
+        applicationNumber: { type: string }
+        bankStatus: { type: string, enum: [QUOTING, PROPOSAL, UW_REQUIREMENTS, UW_IN_PROGRESS, CUSTOMER_DECISION, PAYMENT, ISSUED, CLOSED, UNKNOWN] }
+        manufacturerSubStatus: { type: [string, 'null'] }
+        policyNumber: { type: [string, 'null'] }
+        lastUpdated: { type: [string, 'null'], format: date-time }
+    MasterLookupRequest:
+      type: object
+      required: [lob, entityIds]
+      properties:
+        lob: { type: string, minLength: 1 }
+        lookUpCategory: { type: [string, 'null'], default: quote }
+        entityIds: { type: array, minItems: 1, items: { type: string, minLength: 1 } }
+        manufacturerId: { type: [string, 'null'] }
+    MasterLookupResponse:
+      type: object
+      properties:
+        lob: { type: string }
+        lookups:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: object
+              properties:
+                code: { type: string }
+                label: { type: string }
+        cache:
+          type: object
+          properties:
+            hit: { type: boolean }
+            stale: { type: boolean }
+    ProductUiDataResponse:
+      type: object
+      properties:
+        productId: { type: string }
+        manufacturerId: { type: string }
+        reqId: { type: [string, 'null'] }
+        data: { type: object, additionalProperties: true }
+    UlipFundResponse:
+      type: object
+      properties:
+        reqId: { type: [string, 'null'] }
+        data: { type: object, additionalProperties: true }

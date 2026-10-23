@@ -1,0 +1,828 @@
+{
+  "format": "rule-set/v1",
+  "ruleSetId": "SUITABILITY.GATE",
+  "domain": "SUITABILITY_GATE",
+  "scope": {
+    "lob": "LIFE",
+    "productClass": null
+  },
+  "version": "1.0.0",
+  "effectiveFrom": "2026-11-01T00:00:00+05:30",
+  "effectiveTo": null,
+  "classification": "COMPLIANCE",
+  "pinning": "NONE",
+  "description": "SUIT-R20 quote gate policy: which per-class outcomes permit a quote, caution acknowledgement (on the customer's own device, C5), validity window. The gate itself is code and cannot be disabled (SUIT-R40).",
+  "source": {
+    "document": "docs/au-bank-insurance-platform/rule-packs/suitability-rule-pack.md",
+    "sections": [
+      "1 (SUIT-R20)",
+      "5 (validUntil = evaluatedAt + 30 days)",
+      "6.1-6.2 (gate and seven mandatory cases)",
+      "7.2 (SUIT-R41/R42 caution acknowledgement)"
+    ],
+    "decisions": [
+      "ADR-024 section 7",
+      "DECISIONS-2026-10-21 D3 (customerId replaces CIF)",
+      "D4 (allowedOutcomes)",
+      "DECISIONS-2026-10-22 C5 (SUITABLE; SUITABLE_WITH_CAUTION only with the customer's acknowledgement on their own device)",
+      "DECISIONS-2026-10-22 C6 (INSUFFICIENT_DATA never quotes)"
+    ]
+  },
+  "governance": {
+    "status": "DRAFT-awaiting-approval",
+    "signatureStatus": "AI-DRAFTED - mandatory content-owner approval outstanding (ADR-024 section 7)",
+    "contentApprovers": [
+      "Shailja / bank Compliance"
+    ],
+    "approverRole": "COMPLIANCE_APPROVER",
+    "seededBy": "SUG-20261021-rul; strict defaults SUG-20261022-rdy (owner-directed build, ADMIT-BYPASS)",
+    "openItems": [
+      "OPEN-SUIT-04 30-day validity regulator-acceptable",
+      "C5: adding an acknowledgement mode other than CUSTOMER_DEVICE to cautionAcknowledgementModes needs Compliance approval"
+    ]
+  },
+  "inputs": [
+    {
+      "name": "asOf",
+      "type": "DATE",
+      "required": true,
+      "description": "Date of the quote request (caller's clock)"
+    },
+    {
+      "name": "productClass",
+      "type": "ENUM",
+      "required": true,
+      "values": [
+        "TERM",
+        "SAVINGS",
+        "ULIP"
+      ]
+    },
+    {
+      "name": "requestCustomerId",
+      "type": "STRING",
+      "required": true
+    },
+    {
+      "name": "evaluationId",
+      "type": "STRING",
+      "required": false
+    },
+    {
+      "name": "evaluationFound",
+      "type": "BOOLEAN",
+      "required": false
+    },
+    {
+      "name": "evaluationStatus",
+      "type": "ENUM",
+      "required": false,
+      "values": [
+        "ACTIVE",
+        "EXPIRED",
+        "INVALIDATED",
+        "SUPERSEDED"
+      ]
+    },
+    {
+      "name": "evaluatedAt",
+      "type": "DATE",
+      "required": false
+    },
+    {
+      "name": "evaluationCustomerId",
+      "type": "STRING",
+      "required": false
+    },
+    {
+      "name": "outcomeForClass",
+      "type": "ENUM",
+      "required": false,
+      "values": [
+        "SUITABLE",
+        "SUITABLE_WITH_CAUTION",
+        "NOT_SUITABLE",
+        "INSUFFICIENT_DATA"
+      ]
+    },
+    {
+      "name": "cautionAcknowledged",
+      "type": "BOOLEAN",
+      "required": false
+    },
+    {
+      "name": "cautionAcknowledgedVia",
+      "type": "ENUM",
+      "required": false,
+      "values": [
+        "CUSTOMER_DEVICE",
+        "RM_ASSISTED"
+      ],
+      "description": "Channel the caution acknowledgement was captured on (C5); null is treated as not acknowledged"
+    }
+  ],
+  "decision": {
+    "hitPolicy": "PRIORITY",
+    "outcomeRank": [
+      "DENY",
+      "ALLOW"
+    ],
+    "noMatchOutcome": "DENY",
+    "noMatchReasonCode": "SUITABILITY_EVALUATION_INVALID",
+    "missingInputOutcome": "DENY",
+    "missingConfigOutcome": "DENY",
+    "missingConfigReasonCode": "SUITABILITY_GATE_CONFIG_MISSING",
+    "collectReasonCodes": "WINNING_ONLY"
+  },
+  "rules": [
+    {
+      "ruleId": "GATE-01",
+      "priority": 1,
+      "when": {
+        "op": "isNull",
+        "args": [
+          {
+            "var": "evaluationId"
+          }
+        ]
+      },
+      "then": {
+        "outcome": "DENY",
+        "reasonCode": "SUITABILITY_EVALUATION_REQUIRED"
+      },
+      "sourceRef": "section 6.2 case 1"
+    },
+    {
+      "ruleId": "GATE-02",
+      "priority": 2,
+      "when": {
+        "op": "all",
+        "args": [
+          {
+            "op": "isPresent",
+            "args": [
+              {
+                "var": "evaluationId"
+              }
+            ]
+          },
+          {
+            "op": "not",
+            "args": [
+              {
+                "op": "eq",
+                "args": [
+                  {
+                    "var": "evaluationFound"
+                  },
+                  {
+                    "const": true
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "outcome": "DENY",
+        "reasonCode": "SUITABILITY_EVALUATION_NOT_FOUND"
+      },
+      "sourceRef": "section 6.2 case 2"
+    },
+    {
+      "ruleId": "GATE-03",
+      "priority": 3,
+      "when": {
+        "op": "gt",
+        "args": [
+          {
+            "op": "daysBetween",
+            "args": [
+              {
+                "var": "evaluatedAt"
+              },
+              {
+                "var": "asOf"
+              }
+            ]
+          },
+          {
+            "param": "validityDays"
+          }
+        ]
+      },
+      "then": {
+        "outcome": "DENY",
+        "reasonCode": "SUITABILITY_EVALUATION_EXPIRED"
+      },
+      "sourceRef": "section 6.2 case 3"
+    },
+    {
+      "ruleId": "GATE-04",
+      "priority": 4,
+      "when": {
+        "op": "ne",
+        "args": [
+          {
+            "var": "evaluationCustomerId"
+          },
+          {
+            "var": "requestCustomerId"
+          }
+        ]
+      },
+      "then": {
+        "outcome": "DENY",
+        "reasonCode": "SUITABILITY_SUBJECT_MISMATCH",
+        "actions": [
+          "SECURITY_EVENT"
+        ]
+      },
+      "sourceRef": "section 6.2 case 4 (SUIT-R36)"
+    },
+    {
+      "ruleId": "GATE-05",
+      "priority": 5,
+      "when": {
+        "op": "eq",
+        "args": [
+          {
+            "var": "outcomeForClass"
+          },
+          {
+            "const": "NOT_SUITABLE"
+          }
+        ]
+      },
+      "then": {
+        "outcome": "DENY",
+        "reasonCode": "PRODUCT_CLASS_NOT_SUITABLE"
+      },
+      "sourceRef": "section 6.2 case 5 (SUIT-R38)"
+    },
+    {
+      "ruleId": "GATE-06",
+      "priority": 6,
+      "when": {
+        "op": "eq",
+        "args": [
+          {
+            "var": "outcomeForClass"
+          },
+          {
+            "const": "INSUFFICIENT_DATA"
+          }
+        ]
+      },
+      "then": {
+        "outcome": "DENY",
+        "reasonCode": "SUITABILITY_INSUFFICIENT_DATA"
+      },
+      "sourceRef": "section 6.2 case 6 (SUIT-R39)"
+    },
+    {
+      "ruleId": "GATE-07",
+      "priority": 7,
+      "when": {
+        "op": "in",
+        "args": [
+          {
+            "var": "evaluationStatus"
+          },
+          {
+            "const": [
+              "EXPIRED",
+              "INVALIDATED",
+              "SUPERSEDED"
+            ]
+          }
+        ]
+      },
+      "then": {
+        "outcome": "DENY",
+        "reasonCode": "SUITABILITY_EVALUATION_INVALID"
+      },
+      "sourceRef": "section 6.2 case 7"
+    },
+    {
+      "ruleId": "GATE-08",
+      "priority": 8,
+      "when": {
+        "op": "all",
+        "args": [
+          {
+            "op": "eq",
+            "args": [
+              {
+                "var": "outcomeForClass"
+              },
+              {
+                "const": "SUITABLE_WITH_CAUTION"
+              }
+            ]
+          },
+          {
+            "op": "eq",
+            "args": [
+              {
+                "param": "cautionAcknowledgementRequired"
+              },
+              {
+                "const": true
+              }
+            ]
+          },
+          {
+            "op": "not",
+            "args": [
+              {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "eq",
+                    "args": [
+                      {
+                        "var": "cautionAcknowledged"
+                      },
+                      {
+                        "const": true
+                      }
+                    ]
+                  },
+                  {
+                    "op": "in",
+                    "args": [
+                      {
+                        "var": "cautionAcknowledgedVia"
+                      },
+                      {
+                        "param": "cautionAcknowledgementModes"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "outcome": "DENY",
+        "reasonCode": "SUITABILITY_CAUTION_NOT_ACKNOWLEDGED"
+      },
+      "sourceRef": "section 7.2 SUIT-R41/R42; DECISIONS-2026-10-22 C5 (customer's own device only)"
+    },
+    {
+      "ruleId": "GATE-09",
+      "priority": 9,
+      "when": {
+        "op": "all",
+        "args": [
+          {
+            "op": "isPresent",
+            "args": [
+              {
+                "var": "outcomeForClass"
+              }
+            ]
+          },
+          {
+            "op": "notIn",
+            "args": [
+              {
+                "var": "outcomeForClass"
+              },
+              {
+                "param": "allowedOutcomes"
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "outcome": "DENY",
+        "reasonCode": "PRODUCT_CLASS_NOT_PERMITTED"
+      },
+      "sourceRef": "DECISIONS D4: allowedOutcomes is configuration"
+    },
+    {
+      "ruleId": "GATE-ALLOW",
+      "priority": 100,
+      "sourceRef": "SUIT-R20 all four conditions",
+      "when": {
+        "op": "all",
+        "args": [
+          {
+            "op": "eq",
+            "args": [
+              {
+                "var": "evaluationFound"
+              },
+              {
+                "const": true
+              }
+            ]
+          },
+          {
+            "op": "eq",
+            "args": [
+              {
+                "var": "evaluationStatus"
+              },
+              {
+                "const": "ACTIVE"
+              }
+            ]
+          },
+          {
+            "op": "lte",
+            "args": [
+              {
+                "op": "daysBetween",
+                "args": [
+                  {
+                    "var": "evaluatedAt"
+                  },
+                  {
+                    "var": "asOf"
+                  }
+                ]
+              },
+              {
+                "param": "validityDays"
+              }
+            ]
+          },
+          {
+            "op": "eq",
+            "args": [
+              {
+                "var": "evaluationCustomerId"
+              },
+              {
+                "var": "requestCustomerId"
+              }
+            ]
+          },
+          {
+            "op": "in",
+            "args": [
+              {
+                "var": "outcomeForClass"
+              },
+              {
+                "param": "allowedOutcomes"
+              }
+            ]
+          }
+        ]
+      },
+      "then": {
+        "outcome": "ALLOW",
+        "reasonCode": null
+      }
+    }
+  ],
+  "parameters": {
+    "allowedOutcomes": [
+      "SUITABLE",
+      "SUITABLE_WITH_CAUTION"
+    ],
+    "cautionAcknowledgementRequired": true,
+    "validityDays": 30,
+    "cautionAcknowledgementModes": [
+      "CUSTOMER_DEVICE"
+    ]
+  },
+  "reasonCodes": {
+    "RULE_INPUT_MISSING": {
+      "severity": "BLOCK",
+      "rmText": "Required inputs missing: @missing.",
+      "customerText": null
+    },
+    "RULE_INPUT_INVALID": {
+      "severity": "BLOCK",
+      "rmText": "Inputs not in the expected form: @missing.",
+      "customerText": null
+    },
+    "SUITABILITY_EVALUATION_REQUIRED": {
+      "severity": "BLOCK",
+      "rmText": "No suitability evaluation id on the request.",
+      "customerText": "A completed suitability assessment is needed before this quote can be produced."
+    },
+    "SUITABILITY_EVALUATION_NOT_FOUND": {
+      "severity": "BLOCK",
+      "rmText": "Suitability evaluation not found.",
+      "customerText": "A completed suitability assessment is needed before this quote can be produced."
+    },
+    "SUITABILITY_EVALUATION_EXPIRED": {
+      "severity": "BLOCK",
+      "rmText": "Suitability evaluation is older than the validity window.",
+      "customerText": "A completed suitability assessment is needed before this quote can be produced."
+    },
+    "SUITABILITY_SUBJECT_MISMATCH": {
+      "severity": "BLOCK",
+      "rmText": "Suitability evaluation belongs to a different customer (security event).",
+      "customerText": "A completed suitability assessment is needed before this quote can be produced."
+    },
+    "PRODUCT_CLASS_NOT_SUITABLE": {
+      "severity": "BLOCK",
+      "rmText": "Outcome for the requested product class is NOT_SUITABLE.",
+      "customerText": "This type of plan is not suitable for you."
+    },
+    "SUITABILITY_INSUFFICIENT_DATA": {
+      "severity": "BLOCK",
+      "rmText": "Outcome for the requested product class is INSUFFICIENT_DATA.",
+      "customerText": "A completed suitability assessment is needed before this quote can be produced."
+    },
+    "SUITABILITY_EVALUATION_INVALID": {
+      "severity": "BLOCK",
+      "rmText": "Suitability evaluation is not ACTIVE (expired, invalidated or superseded).",
+      "customerText": "A completed suitability assessment is needed before this quote can be produced."
+    },
+    "SUITABILITY_CAUTION_NOT_ACKNOWLEDGED": {
+      "severity": "BLOCK",
+      "rmText": "Caution disclosure not yet acknowledged by the customer on their own device (SUIT-R41/R42, C5).",
+      "customerText": "Please read and acknowledge the caution before continuing."
+    },
+    "PRODUCT_CLASS_NOT_PERMITTED": {
+      "severity": "BLOCK",
+      "rmText": "Outcome for the requested class is not in SUITABILITY.GATE allowedOutcomes.",
+      "customerText": "A completed suitability assessment is needed before this quote can be produced."
+    },
+    "SUITABILITY_GATE_CONFIG_MISSING": {
+      "severity": "BLOCK",
+      "rmText": "Gate configuration incomplete (@missingParameters).",
+      "customerText": "A completed suitability assessment is needed before this quote can be produced."
+    }
+  },
+  "testCases": [
+    {
+      "name": "GATE-allow",
+      "inputs": {
+        "asOf": "2026-11-20",
+        "productClass": "TERM",
+        "requestCustomerId": "01JCUST0000000000000000001",
+        "evaluationId": "01JEVAL0000000000000000001",
+        "evaluationFound": true,
+        "evaluationStatus": "ACTIVE",
+        "evaluatedAt": "2026-11-10T10:00:00+05:30",
+        "evaluationCustomerId": "01JCUST0000000000000000001",
+        "outcomeForClass": "SUITABLE"
+      },
+      "expect": {
+        "outcome": "ALLOW",
+        "reasonCodes": []
+      }
+    },
+    {
+      "name": "SUIT-6.2-case-1-no-evaluation-id",
+      "inputs": {
+        "asOf": "2026-11-20",
+        "productClass": "TERM",
+        "requestCustomerId": "01JCUST0000000000000000001"
+      },
+      "expect": {
+        "outcome": "DENY",
+        "reasonCodes": [
+          "SUITABILITY_EVALUATION_REQUIRED"
+        ]
+      }
+    },
+    {
+      "name": "SUIT-6.2-case-2-not-found",
+      "inputs": {
+        "asOf": "2026-11-20",
+        "productClass": "TERM",
+        "requestCustomerId": "01JCUST0000000000000000001",
+        "evaluationId": "01JEVAL0000000000000000001",
+        "evaluationFound": false
+      },
+      "expect": {
+        "outcome": "DENY",
+        "reasonCodes": [
+          "SUITABILITY_EVALUATION_NOT_FOUND"
+        ]
+      }
+    },
+    {
+      "name": "SUIT-6.2-case-3-older-than-30-days",
+      "inputs": {
+        "asOf": "2026-11-20",
+        "productClass": "TERM",
+        "requestCustomerId": "01JCUST0000000000000000001",
+        "evaluationId": "01JEVAL0000000000000000001",
+        "evaluationFound": true,
+        "evaluationStatus": "ACTIVE",
+        "evaluatedAt": "2026-10-20",
+        "evaluationCustomerId": "01JCUST0000000000000000001",
+        "outcomeForClass": "SUITABLE"
+      },
+      "expect": {
+        "outcome": "DENY",
+        "reasonCodes": [
+          "SUITABILITY_EVALUATION_EXPIRED"
+        ]
+      }
+    },
+    {
+      "name": "SUIT-6.2-case-3-boundary-day-30-allowed",
+      "inputs": {
+        "asOf": "2026-11-20",
+        "productClass": "TERM",
+        "requestCustomerId": "01JCUST0000000000000000001",
+        "evaluationId": "01JEVAL0000000000000000001",
+        "evaluationFound": true,
+        "evaluationStatus": "ACTIVE",
+        "evaluatedAt": "2026-10-21",
+        "evaluationCustomerId": "01JCUST0000000000000000001",
+        "outcomeForClass": "SUITABLE"
+      },
+      "expect": {
+        "outcome": "ALLOW"
+      }
+    },
+    {
+      "name": "SUIT-6.2-case-4-subject-mismatch",
+      "inputs": {
+        "asOf": "2026-11-20",
+        "productClass": "TERM",
+        "requestCustomerId": "01JCUST0000000000000000001",
+        "evaluationId": "01JEVAL0000000000000000001",
+        "evaluationFound": true,
+        "evaluationStatus": "ACTIVE",
+        "evaluatedAt": "2026-11-10T10:00:00+05:30",
+        "evaluationCustomerId": "01JCUST0000000000000000002",
+        "outcomeForClass": "SUITABLE"
+      },
+      "expect": {
+        "outcome": "DENY",
+        "reasonCodes": [
+          "SUITABILITY_SUBJECT_MISMATCH"
+        ]
+      }
+    },
+    {
+      "name": "SUIT-6.2-case-5-not-suitable",
+      "inputs": {
+        "asOf": "2026-11-20",
+        "productClass": "TERM",
+        "requestCustomerId": "01JCUST0000000000000000001",
+        "evaluationId": "01JEVAL0000000000000000001",
+        "evaluationFound": true,
+        "evaluationStatus": "ACTIVE",
+        "evaluatedAt": "2026-11-10T10:00:00+05:30",
+        "evaluationCustomerId": "01JCUST0000000000000000001",
+        "outcomeForClass": "NOT_SUITABLE"
+      },
+      "expect": {
+        "outcome": "DENY",
+        "reasonCodes": [
+          "PRODUCT_CLASS_NOT_SUITABLE"
+        ]
+      }
+    },
+    {
+      "name": "SUIT-6.2-case-6-insufficient-data",
+      "inputs": {
+        "asOf": "2026-11-20",
+        "productClass": "TERM",
+        "requestCustomerId": "01JCUST0000000000000000001",
+        "evaluationId": "01JEVAL0000000000000000001",
+        "evaluationFound": true,
+        "evaluationStatus": "ACTIVE",
+        "evaluatedAt": "2026-11-10T10:00:00+05:30",
+        "evaluationCustomerId": "01JCUST0000000000000000001",
+        "outcomeForClass": "INSUFFICIENT_DATA"
+      },
+      "expect": {
+        "outcome": "DENY",
+        "reasonCodes": [
+          "SUITABILITY_INSUFFICIENT_DATA"
+        ]
+      }
+    },
+    {
+      "name": "SUIT-6.2-case-7-superseded",
+      "inputs": {
+        "asOf": "2026-11-20",
+        "productClass": "TERM",
+        "requestCustomerId": "01JCUST0000000000000000001",
+        "evaluationId": "01JEVAL0000000000000000001",
+        "evaluationFound": true,
+        "evaluationStatus": "SUPERSEDED",
+        "evaluatedAt": "2026-11-10T10:00:00+05:30",
+        "evaluationCustomerId": "01JCUST0000000000000000001",
+        "outcomeForClass": "SUITABLE"
+      },
+      "expect": {
+        "outcome": "DENY",
+        "reasonCodes": [
+          "SUITABILITY_EVALUATION_INVALID"
+        ]
+      }
+    },
+    {
+      "name": "SUIT-R41-caution-not-acknowledged",
+      "inputs": {
+        "asOf": "2026-11-20",
+        "productClass": "TERM",
+        "requestCustomerId": "01JCUST0000000000000000001",
+        "evaluationId": "01JEVAL0000000000000000001",
+        "evaluationFound": true,
+        "evaluationStatus": "ACTIVE",
+        "evaluatedAt": "2026-11-10T10:00:00+05:30",
+        "evaluationCustomerId": "01JCUST0000000000000000001",
+        "outcomeForClass": "SUITABLE_WITH_CAUTION"
+      },
+      "expect": {
+        "outcome": "DENY",
+        "reasonCodes": [
+          "SUITABILITY_CAUTION_NOT_ACKNOWLEDGED"
+        ]
+      }
+    },
+    {
+      "name": "C5-caution-acknowledged-on-customer-device",
+      "inputs": {
+        "asOf": "2026-11-20",
+        "productClass": "TERM",
+        "requestCustomerId": "01JCUST0000000000000000001",
+        "evaluationId": "01JEVAL0000000000000000001",
+        "evaluationFound": true,
+        "evaluationStatus": "ACTIVE",
+        "evaluatedAt": "2026-11-10T10:00:00+05:30",
+        "evaluationCustomerId": "01JCUST0000000000000000001",
+        "outcomeForClass": "SUITABLE_WITH_CAUTION",
+        "cautionAcknowledged": true,
+        "cautionAcknowledgedVia": "CUSTOMER_DEVICE"
+      },
+      "expect": {
+        "outcome": "ALLOW"
+      }
+    },
+    {
+      "name": "fail-closed-missing-customer",
+      "inputs": {
+        "asOf": "2026-11-20",
+        "productClass": "TERM",
+        "evaluationId": "01JEVAL0000000000000000001",
+        "evaluationFound": true,
+        "evaluationStatus": "ACTIVE",
+        "evaluatedAt": "2026-11-10T10:00:00+05:30",
+        "evaluationCustomerId": "01JCUST0000000000000000001",
+        "outcomeForClass": "SUITABLE"
+      },
+      "expect": {
+        "outcome": "DENY",
+        "reasonCodes": [
+          "RULE_INPUT_MISSING"
+        ]
+      }
+    },
+    {
+      "name": "C5-caution-acknowledged-via-RM-denied",
+      "inputs": {
+        "asOf": "2026-11-20",
+        "productClass": "TERM",
+        "requestCustomerId": "01JCUST0000000000000000001",
+        "evaluationId": "01JEVAL0000000000000000001",
+        "evaluationFound": true,
+        "evaluationStatus": "ACTIVE",
+        "evaluatedAt": "2026-11-10T10:00:00+05:30",
+        "evaluationCustomerId": "01JCUST0000000000000000001",
+        "outcomeForClass": "SUITABLE_WITH_CAUTION",
+        "cautionAcknowledged": true,
+        "cautionAcknowledgedVia": "RM_ASSISTED"
+      },
+      "expect": {
+        "outcome": "DENY",
+        "reasonCodes": [
+          "SUITABILITY_CAUTION_NOT_ACKNOWLEDGED"
+        ]
+      }
+    },
+    {
+      "name": "C5-caution-acknowledged-channel-unknown-denied",
+      "inputs": {
+        "asOf": "2026-11-20",
+        "productClass": "TERM",
+        "requestCustomerId": "01JCUST0000000000000000001",
+        "evaluationId": "01JEVAL0000000000000000001",
+        "evaluationFound": true,
+        "evaluationStatus": "ACTIVE",
+        "evaluatedAt": "2026-11-10T10:00:00+05:30",
+        "evaluationCustomerId": "01JCUST0000000000000000001",
+        "outcomeForClass": "SUITABLE_WITH_CAUTION",
+        "cautionAcknowledged": true
+      },
+      "expect": {
+        "outcome": "DENY",
+        "reasonCodes": [
+          "SUITABILITY_CAUTION_NOT_ACKNOWLEDGED"
+        ]
+      }
+    }
+  ]
+}

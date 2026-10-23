@@ -2,6 +2,8 @@
 -- Runtime truth today (public schema, H2-compatible):
 --   services/bank-persistence-service/src/main/resources/db/migration/V1__init_schema.sql
 -- Do not replace that file. Audit reconstruction columns are in 14-audit_event_delta.sql.
+-- ADR-026 (PROPOSED, D7): audit_event below is kept until the owner accepts ADR-026 and the
+-- migration to schema audit (15-audit.sql) completes; adapter jobs and raw payloads stay here.
 
 CREATE TABLE IF NOT EXISTS bank_persistence.integration_job (
     job_id              VARCHAR(36)              PRIMARY KEY,

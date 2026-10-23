@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.bank.internal/events/LeadExceptionRejected.v1.json",
+  "title": "LeadExceptionRejected v1 - data",
+  "description": "A bank employee in the SP hierarchy rejected a lead exception (E6); the lead stays blocked. Producer: lead. Status: CONTRACTED. The `data` member of event-envelope/v1 (ADR-025): ids and states only, never customer PII.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "leadId",
+    "reasonCodes",
+    "approverRole",
+    "rejectionReasonCode"
+  ],
+  "properties": {
+    "leadId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "reasonCodes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Z0-9][A-Z0-9_.-]{0,63}$"
+      },
+      "minItems": 1
+    },
+    "approverRole": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z_]*$"
+    },
+    "rejectionReasonCode": {
+      "type": "string",
+      "pattern": "^[A-Z0-9][A-Z0-9_.-]{0,63}$"
+    }
+  },
+  "$defs": {
+    "ulid": {
+      "type": "string",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+    }
+  }
+}

@@ -15,6 +15,7 @@ import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,14 +29,17 @@ public class IdentityAuthorizationController {
   private final AuthorizationDecisionService decisions;
   private final IdentityResolutionService identities;
   private final PartnerUserAdministrationService partnerUsers;
+  private final ActorPrincipalResolver actors;
 
   public IdentityAuthorizationController(
       AuthorizationDecisionService decisions,
       IdentityResolutionService identities,
-      PartnerUserAdministrationService partnerUsers) {
+      PartnerUserAdministrationService partnerUsers,
+      ActorPrincipalResolver actors) {
     this.decisions = decisions;
     this.identities = identities;
     this.partnerUsers = partnerUsers;
+    this.actors = actors;
   }
 
   @PostMapping("/authorization/decisions")
@@ -63,24 +67,34 @@ public class IdentityAuthorizationController {
         user.getInsurerCode());
   }
 
+  /**
+   * E5: a bank admin creates the partner user; provisioning is queued in the same transaction, so
+   * the answer is {@code 202} with status {@code PENDING} until the provider account exists.
+   */
   @PostMapping("/partner-users")
   @ResponseStatus(HttpStatus.ACCEPTED)
-  public PartnerUserAdministrationService.SubmittedPartnerUser createPartnerUser(
+  public PartnerUserAdministrationService.CreatedPartnerUser createPartnerUser(
       @Valid @RequestBody CreatePartnerUserRequest request,
-      @RequestHeader("X-Actor-Id") String makerId) {
-    return partnerUsers.submit(
+      @RequestAttribute(InternalServiceAuthFilter.CALLER_ATTRIBUTE) String caller,
+      @RequestHeader(value = "X-Actor-Id", required = false) String actorHeader) {
+    UUID creatorId = actors.requireActor(caller, actorHeader, "createPartnerUser");
+    return partnerUsers.create(
         new PartnerUserAdministrationService.CreatePartnerUserCommand(
             request.username(),
             request.email(),
             request.firstName(),
             request.lastName(),
             request.insurerCode()),
-        makerId);
+        creatorId);
   }
 
+  /** Only when {@code identity.partner-onboarding.approval-required=true}; otherwise 409. */
   @PostMapping("/approval-requests/{approvalId}/approve")
   public ApprovalResponse approve(
-      @PathVariable UUID approvalId, @RequestHeader("X-Actor-Id") String checkerId) {
+      @PathVariable UUID approvalId,
+      @RequestAttribute(InternalServiceAuthFilter.CALLER_ATTRIBUTE) String caller,
+      @RequestHeader(value = "X-Actor-Id", required = false) String actorHeader) {
+    UUID checkerId = actors.requireActor(caller, actorHeader, "approvePartnerUser");
     return new ApprovalResponse(approvalId, partnerUsers.approve(approvalId, checkerId));
   }
 

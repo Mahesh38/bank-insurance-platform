@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.bank.internal/events/PaymentReconciliationBreak.v1.json",
+  "title": "PaymentReconciliationBreak v1 - data",
+  "description": "Settlement did not match the captured payment - operations task. Producer: payment. Status: CONTRACTED. The `data` member of event-envelope/v1 (ADR-025): ids and states only, never customer PII.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "paymentId",
+    "expectedAmount",
+    "observedAmount",
+    "currency",
+    "breakCode"
+  ],
+  "properties": {
+    "paymentId": {
+      "$ref": "#/$defs/ulid"
+    },
+    "expectedAmount": {
+      "type": "string",
+      "pattern": "^\\d{1,13}(\\.\\d{1,2})?$",
+      "description": "Decimal amount as a string (no float rounding), rupees"
+    },
+    "observedAmount": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^\\d{1,13}(\\.\\d{1,2})?$",
+      "description": "Decimal amount as a string (no float rounding), rupees"
+    },
+    "currency": {
+      "type": "string",
+      "pattern": "^[A-Z]{3}$",
+      "description": "ISO 4217"
+    },
+    "breakCode": {
+      "type": "string",
+      "pattern": "^[A-Z0-9][A-Z0-9_.-]{0,63}$"
+    },
+    "settlementRef": {
+      "type": "string",
+      "maxLength": 64
+    }
+  },
+  "$defs": {
+    "ulid": {
+      "type": "string",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+    }
+  }
+}

@@ -1,0 +1,273 @@
+{
+  "_SAMPLE": "SAMPLE VALUES FOR TESTS ONLY - invented to exercise configured behaviour; NOT the BRD owner's thresholds (DECISIONS D2). Never import into administration-config-service.",
+  "version": "0.0.1",
+  "parameters": {
+    "maxProposerAge": 60,
+    "minEquifaxScore": 650,
+    "lapsedPolicyCategories": [
+      "LIFE"
+    ],
+    "lapseWindowMonths": 12,
+    "terminationCoolingMonths": 6,
+    "maxActivePolicies": 3,
+    "activePolicyWindowDays": 365,
+    "minCasaAccountAgeDays": 90,
+    "assetCoolingDays": 30,
+    "renewalLookaheadDays": 30,
+    "unpaidRenewalWindowYears": 2,
+    "highPremiumThreshold": 500000,
+    "actions": {
+      "EH-BR-RULE-001": "APPROVAL_REQUIRED",
+      "EH-BR-RULE-002": "BLOCK",
+      "EH-BR-RULE-003": "APPROVAL_REQUIRED",
+      "EH-BR-RULE-004": "APPROVAL_REQUIRED",
+      "EH-BR-RULE-005": "APPROVAL_REQUIRED",
+      "EH-BR-RULE-006": "APPROVAL_REQUIRED",
+      "EH-BR-RULE-007": "APPROVAL_REQUIRED",
+      "EH-BR-RULE-008": "APPROVAL_REQUIRED",
+      "EH-BR-RULE-009": "APPROVAL_REQUIRED",
+      "EH-BR-RULE-010": "APPROVAL_REQUIRED",
+      "EH-BR-RULE-011": "APPROVAL_REQUIRED",
+      "EH-BR-RULE-012": "APPROVAL_REQUIRED",
+      "EH-BR-RULE-013": "APPROVAL_REQUIRED",
+      "EH-BR-RULE-014": "BLOCK",
+      "EH-BR-RULE-015": "BLOCK"
+    },
+    "approverRoles": {
+      "EH-BR-RULE-001": [
+        "BANK_ADMIN",
+        "BRANCH_MANAGER"
+      ],
+      "EH-BR-RULE-002": [
+        "BANK_ADMIN",
+        "BRANCH_MANAGER"
+      ],
+      "EH-BR-RULE-003": [
+        "BANK_ADMIN",
+        "BRANCH_MANAGER"
+      ],
+      "EH-BR-RULE-004": [
+        "BANK_ADMIN",
+        "BRANCH_MANAGER"
+      ],
+      "EH-BR-RULE-005": [
+        "BANK_ADMIN",
+        "BRANCH_MANAGER"
+      ],
+      "EH-BR-RULE-006": [
+        "BANK_ADMIN",
+        "BRANCH_MANAGER"
+      ],
+      "EH-BR-RULE-007": [
+        "BANK_ADMIN",
+        "BRANCH_MANAGER"
+      ],
+      "EH-BR-RULE-008": [
+        "BANK_ADMIN",
+        "BRANCH_MANAGER"
+      ],
+      "EH-BR-RULE-009": [
+        "BANK_ADMIN",
+        "BRANCH_MANAGER"
+      ],
+      "EH-BR-RULE-010": [
+        "BANK_ADMIN",
+        "BRANCH_MANAGER"
+      ],
+      "EH-BR-RULE-011": [
+        "BANK_ADMIN",
+        "BRANCH_MANAGER"
+      ],
+      "EH-BR-RULE-012": [
+        "BANK_ADMIN",
+        "BRANCH_MANAGER"
+      ],
+      "EH-BR-RULE-013": [
+        "BANK_ADMIN",
+        "BRANCH_MANAGER"
+      ],
+      "EH-BR-RULE-014": [
+        "BANK_ADMIN",
+        "BRANCH_MANAGER"
+      ],
+      "EH-BR-RULE-015": [
+        "BANK_ADMIN",
+        "BRANCH_MANAGER"
+      ]
+    }
+  },
+  "testCases": [
+    {
+      "name": "SAMPLE-clean-lead-passes",
+      "sample": true,
+      "inputs": {
+        "triggerPoint": "START_ONBOARDING",
+        "asOf": "2026-11-15",
+        "proposerAge": 40,
+        "hasBsbdAccount": false,
+        "equifaxScore": 760,
+        "activePolicyCount": 1,
+        "hasActiveRelationship": true,
+        "isAuEmployee": false,
+        "sellerRestricted": false,
+        "customerRestricted": false,
+        "casaOpenedOn": "2020-01-01"
+      },
+      "expect": {
+        "outcome": "PASS",
+        "reasonCodes": [],
+        "fired": []
+      }
+    },
+    {
+      "name": "SAMPLE-age-routes-to-approval",
+      "sample": true,
+      "inputs": {
+        "triggerPoint": "START_ONBOARDING",
+        "asOf": "2026-11-15",
+        "proposerAge": 61,
+        "hasBsbdAccount": false,
+        "equifaxScore": 760,
+        "activePolicyCount": 1,
+        "hasActiveRelationship": true,
+        "isAuEmployee": false,
+        "sellerRestricted": false,
+        "customerRestricted": false,
+        "casaOpenedOn": "2020-01-01"
+      },
+      "expect": {
+        "outcome": "APPROVAL_REQUIRED",
+        "reasonCodes": [
+          "EH-ERR-RULE-001"
+        ],
+        "messages": [
+          "The Proposer's age exceeds the maximum limit of 60 years."
+        ]
+      }
+    },
+    {
+      "name": "SAMPLE-multi-breach-highest-treatment",
+      "sample": true,
+      "description": "EH-BR-MULTI-002: all breaches shown, BLOCK wins",
+      "inputs": {
+        "triggerPoint": "START_ONBOARDING",
+        "asOf": "2026-11-15",
+        "proposerAge": 61,
+        "hasBsbdAccount": false,
+        "equifaxScore": 760,
+        "activePolicyCount": 1,
+        "hasActiveRelationship": true,
+        "isAuEmployee": false,
+        "sellerRestricted": false,
+        "customerRestricted": true,
+        "casaOpenedOn": "2020-01-01"
+      },
+      "expect": {
+        "outcome": "BLOCK",
+        "reasonCodes": [
+          "EH-ERR-RULE-001",
+          "EH-ERR-RULE-015"
+        ]
+      }
+    },
+    {
+      "name": "SAMPLE-casa-too-new",
+      "sample": true,
+      "inputs": {
+        "triggerPoint": "START_ONBOARDING",
+        "asOf": "2026-11-15",
+        "proposerAge": 40,
+        "hasBsbdAccount": false,
+        "equifaxScore": 760,
+        "activePolicyCount": 1,
+        "hasActiveRelationship": true,
+        "isAuEmployee": false,
+        "sellerRestricted": false,
+        "customerRestricted": false,
+        "casaOpenedOn": "2026-10-01"
+      },
+      "expect": {
+        "outcome": "APPROVAL_REQUIRED",
+        "reasonCodes": [
+          "EH-ERR-RULE-007"
+        ],
+        "messages": [
+          "The customer's CASA account was opened within the last 90 days."
+        ]
+      }
+    },
+    {
+      "name": "SAMPLE-high-premium-at-capture",
+      "sample": true,
+      "inputs": {
+        "triggerPoint": "PREMIUM_CAPTURE",
+        "asOf": "2026-11-15",
+        "proposerAge": 40,
+        "hasBsbdAccount": false,
+        "equifaxScore": 760,
+        "activePolicyCount": 1,
+        "hasActiveRelationship": true,
+        "isAuEmployee": false,
+        "sellerRestricted": false,
+        "customerRestricted": false,
+        "casaOpenedOn": "2020-01-01",
+        "annualPremium": 600000
+      },
+      "expect": {
+        "outcome": "APPROVAL_REQUIRED",
+        "reasonCodes": [
+          "EH-ERR-RULE-013"
+        ],
+        "messages": [
+          "The annual premium for this policy (₹600000) exceeds the threshold."
+        ]
+      }
+    },
+    {
+      "name": "SAMPLE-high-premium-ignored-at-onboarding",
+      "sample": true,
+      "inputs": {
+        "triggerPoint": "START_ONBOARDING",
+        "asOf": "2026-11-15",
+        "proposerAge": 40,
+        "hasBsbdAccount": false,
+        "equifaxScore": 760,
+        "activePolicyCount": 1,
+        "hasActiveRelationship": true,
+        "isAuEmployee": false,
+        "sellerRestricted": false,
+        "customerRestricted": false,
+        "casaOpenedOn": "2020-01-01",
+        "annualPremium": 600000
+      },
+      "expect": {
+        "outcome": "PASS"
+      }
+    },
+    {
+      "name": "SAMPLE-lapse-in-window",
+      "sample": true,
+      "inputs": {
+        "triggerPoint": "START_ONBOARDING",
+        "asOf": "2026-11-15",
+        "proposerAge": 40,
+        "hasBsbdAccount": false,
+        "equifaxScore": 760,
+        "activePolicyCount": 1,
+        "hasActiveRelationship": true,
+        "isAuEmployee": false,
+        "sellerRestricted": false,
+        "customerRestricted": false,
+        "casaOpenedOn": "2020-01-01",
+        "lastLapsedPolicyCategory": "LIFE",
+        "monthsSinceLastLapse": 5
+      },
+      "expect": {
+        "outcome": "APPROVAL_REQUIRED",
+        "messages": [
+          "A laped policy under the LIFE category was found within the last 12 months."
+        ]
+      }
+    }
+  ]
+}

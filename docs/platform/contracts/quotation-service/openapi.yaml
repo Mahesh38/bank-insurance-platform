@@ -1,0 +1,540 @@
+openapi: 3.1.0
+info:
+  title: quotation-service internal API
+  version: 1.0.0-draft
+  summary: Bank-minted quote, multi-insurer offers, selection, payment hold, materialise.
+  description: |
+    **Status:** AI-DRAFTED 2026-10-21 (ADR-027 contract authority), awaiting Amit (engineering) and
+    Mahesh (architecture) review.
+
+    Authoritative on the wire per ADR-027. Operations marked `x-implementation-status: BUILT`
+    exist in `services/quotation-service` today; `PLANNED` operations are contracted but not built
+    (the OpenAPI conformance test skips `PLANNED` operations until they land).
+    Design: [LLD.md](./LLD.md). Decisions: DECISIONS-2026-10-21 D4, D5, D8; DB-DEC-0005.
+  contact:
+    name: quotation-service owners (Amit, engineering)
+servers:
+  - url: http://quotation-service:8096
+    description: In-cluster (mesh mTLS target, ADR-023). Never exposed outside the cluster.
+tags:
+  - name: quotes
+  - name: payment-hold
+  - name: events
+paths:
+  /internal/v1/quotes:
+    post:
+      tags: [quotes]
+      operationId: createQuote
+      x-implementation-status: PLANNED
+      summary: Create a quote (gate C1 + consent checkpoint BEFORE_MULTI_QUOTE), dispatch to the Hub.
+      description: |
+        1. Gate C1: suitability outcome for `productClass` must be in `SUITABILITY.GATE.allowedOutcomes`
+           (D4). Refusal persists the quote in `REJECTED` and answers `403 SUITABILITY_REQUIRED`.
+        2. Consent checkpoint `BEFORE_MULTI_QUOTE` (`CONSENT.POLICY`, D5). Missing purposes answer
+           `403 CONSENT_REQUIRED` with `missingPurposes`; nothing is written; the journey captures
+           only those purposes and retries with the same `Idempotency-Key`.
+        3. One DynamoDB transaction (META + IDEM + OPEN_QUOTE marker + OUTBOX QuoteRequested), then
+           Hub `QUOTE` submit (no retry on submit). Answers `202`.
+      parameters:
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateQuoteRequest'
+      responses:
+        '202':
+          description: Quote accepted and dispatched (`IN_PROGRESS`) — or an idempotent replay.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuoteAccepted'
+        '400': { $ref: '#/components/responses/MissingIdempotencyKey' }
+        '403':
+          description: |
+            `SUITABILITY_REQUIRED` (C1; quote persisted as `REJECTED`) or `CONSENT_REQUIRED`
+            (checkpoint `BEFORE_MULTI_QUOTE`; body carries `missingPurposes`).
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ConsentRequiredProblem'
+        '409':
+          description: |
+            `IDEMPOTENCY_CONFLICT` (same key, different body) · `REQUEST_IN_PROGRESS` ·
+            `CONFLICT` (an open quote already exists for the journey and is not expirable).
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '422':
+          description: |
+            `VALIDATION_ERROR` · `UNSUPPORTED_LOB` · `ATTRIBUTION_NOT_CALLER_SUPPLIED` ·
+            `OPPORTUNITY_REQUIRED` · `CONFIGURATION_UNRESOLVABLE` · `CONFIG_VERSION_REQUIRED`.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '503':
+          description: '`UPSTREAM_UNAVAILABLE` — Hub, suitability or consent unreachable (fail closed; journey stage unchanged).'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+  /internal/v1/quotes/{quoteId}:
+    get:
+      tags: [quotes]
+      operationId: getQuote
+      x-implementation-status: PLANNED
+      summary: Quote status and offers (read-path switch — Aurora record if materialised, else DynamoDB).
+      description: |
+        Side-effect free except lazy expiry: a non-held quote in `QUOTED`, `PARTIALLY_QUOTED` or
+        `SELECTED` whose `validUntil` has passed is moved to `EXPIRED` by this read (conditional
+        write) before answering. While `IN_PROGRESS` the service advances the Hub poll (S-11).
+        No member PII is ever returned.
+      parameters:
+        - $ref: '#/components/parameters/QuoteId'
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: The quote.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Quote' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '504':
+          description: '`QUOTE_TIMEOUT` — poll budget exhausted; the quote is now `TIMED_OUT`.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+  /internal/v1/quotes/{quoteId}/selection:
+    post:
+      tags: [quotes]
+      operationId: selectOffer
+      x-implementation-status: PLANNED
+      summary: Select one offer atomically (INV-QUO-04, INV-QUO-05).
+      parameters:
+        - $ref: '#/components/parameters/QuoteId'
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [offerId]
+              properties:
+                offerId: { $ref: '#/components/schemas/Ulid' }
+      responses:
+        '200':
+          description: Selected.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [quoteId, state, selectedOfferId]
+                properties:
+                  quoteId: { $ref: '#/components/schemas/Ulid' }
+                  state: { type: string, const: SELECTED }
+                  selectedOfferId: { $ref: '#/components/schemas/Ulid' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: '`QUOTE_EXPIRED` (INV-QUO-04; quote moved to `EXPIRED`) · `ILLEGAL_TRANSITION` (not `QUOTED`/`PARTIALLY_QUOTED`, or frozen) · `IDEMPOTENCY_CONFLICT`.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '422':
+          description: '`INVALID_OFFER_REFERENCE` — offer not in this quote or not `QUOTED` (e.g. `INVALID`).'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+  /internal/v1/quotes/{quoteId}/payment-hold:
+    post:
+      tags: [payment-hold]
+      operationId: holdForPayment
+      x-implementation-status: PLANNED
+      summary: Payment-service only. Hold the selected quote for a payment and return the selected premium.
+      description: |
+        Replaces the side-effecting `GET …/selected`. Conditional write:
+        `SET paymentInFlight = true, heldByPaymentId = :paymentId REMOVE ttl`
+        with `state = SELECTED AND attribute_not_exists(materializedAt) AND
+        (validUntil > :now OR heldByPaymentId = :paymentId)`. Repeating the call with the same
+        `paymentId` returns the same body without a write. A hold by another live payment answers
+        `409 PAYMENT_ALREADY_IN_PROGRESS`. Payment never decrypts the envelope (INV-PAY-03).
+      parameters:
+        - $ref: '#/components/parameters/QuoteId'
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PaymentHoldRequest' }
+      responses:
+        '200':
+          description: Held. Amount payable = `premiumAmount + taxAmount`, to the paise.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SelectedPremium' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: '`QUOTE_EXPIRED` (validity passed before the first hold; quote → `EXPIRED`) · `ILLEGAL_TRANSITION` (not `SELECTED`, or frozen) · `PAYMENT_ALREADY_IN_PROGRESS` (held by another payment).'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '422':
+          description: '`INVALID_OFFER_REFERENCE` — `offerId` is not the selected offer.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+  /internal/v1/quotes/{quoteId}/payment-release:
+    post:
+      tags: [payment-hold]
+      operationId: releasePaymentHold
+      x-implementation-status: PLANNED
+      summary: Payment-service only. A payment ended without RECONCILED — release the hold, restore TTL.
+      description: |
+        Called for payment end states `DECLINED`, `EXPIRED`, `REJECTED`, and `REFUNDED` reached from
+        `RECONCILIATION_BREAK`. Never for `UNCERTAIN`, `CAPTURED` or `RECONCILIATION_BREAK` (money may
+        have moved). Conditional on `heldByPaymentId = :paymentId`: a stale release from an older
+        payment is a no-op `200`. Sets `paymentInFlight = false`, removes `heldByPaymentId`,
+        `ttl = now + RET-WORKING`. The quote stays `SELECTED`; past `validUntil` the next read expires it.
+        Also triggered by consuming `PaymentDeclined` / `PaymentExpired` / `PaymentRejected` events.
+      parameters:
+        - $ref: '#/components/parameters/QuoteId'
+        - $ref: '#/components/parameters/ActorId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PaymentReleaseRequest' }
+      responses:
+        '200':
+          description: Released, or nothing to release (stale / already released / materialised).
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [quoteId, state, paymentInFlight, released]
+                properties:
+                  quoteId: { $ref: '#/components/schemas/Ulid' }
+                  state: { $ref: '#/components/schemas/QuoteState' }
+                  paymentInFlight: { type: boolean }
+                  released: { type: boolean, description: false when the call was a no-op }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /internal/v1/quotes/{quoteId}/selected:
+    get:
+      tags: [payment-hold]
+      operationId: getSelectedLegacy
+      deprecated: true
+      x-implementation-status: BUILT
+      summary: DEPRECATED — side-effecting read (sets paymentInFlight, removes ttl). Use POST …/payment-hold.
+      description: |
+        As built (`QuoteInternalController`). A GET with a side effect breaks HTTP semantics (caches,
+        retries, prefetch) and has no payment id, so a release cannot be matched to its hold.
+        Kept until payment-service calls `payment-hold`; removal is a breaking change announced
+        with a deprecation window (ADR-027 §4). Errors as built: `404 RESOURCE_NOT_FOUND`,
+        `409 ILLEGAL_TRANSITION` (not `SELECTED` or frozen).
+      parameters:
+        - $ref: '#/components/parameters/QuoteId'
+      responses:
+        '200':
+          description: Selected premium (control attributes only).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SelectedPremium' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: '`ILLEGAL_TRANSITION`.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+  /internal/v1/events/payment-reconciled:
+    post:
+      tags: [events]
+      operationId: onPaymentReconciled
+      x-implementation-status: BUILT
+      summary: Internal delivery of PaymentReconciled until MSK exists — materialise quote + offers into Aurora.
+      description: |
+        Idempotent consumer (schemas/20 §3.4). Aurora commits first; then the DynamoDB item is
+        frozen (`materializedAt`, `state = CONVERTED`, `ttl = +30 d`) and the OPEN_QUOTE marker deleted.
+        Re-delivery answers `ALREADY_MATERIALIZED`. As built the body needs `eventId`, `quoteId`,
+        `paymentId`; the other event fields are accepted and ignored. When MSK lands this endpoint is
+        replaced by the topic consumer `{env}.payment.payment.v1` (ADR-025).
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PaymentReconciledData' }
+      responses:
+        '200':
+          description: Acknowledged.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [eventId, quoteId, outcome]
+                properties:
+                  eventId: { $ref: '#/components/schemas/Ulid' }
+                  quoteId: { $ref: '#/components/schemas/Ulid' }
+                  outcome: { type: string, enum: [MATERIALIZED, ALREADY_MATERIALIZED] }
+        '404':
+          description: '`RESOURCE_NOT_FOUND` — the working item is gone (TTL); the repair sweep alerts.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '409':
+          description: '`ILLEGAL_TRANSITION` — working quote is not `SELECTED`.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '422':
+          description: '`VALIDATION_ERROR` — missing `eventId` / `quoteId` / `paymentId`.'
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+components:
+  parameters:
+    QuoteId:
+      name: quoteId
+      in: path
+      required: true
+      schema: { $ref: '#/components/schemas/Ulid' }
+    ActorId:
+      name: X-Actor-Id
+      in: header
+      required: true
+      description: Acting business user, or `system:<service>` for service-initiated calls. Never taken from a body.
+      schema: { type: string, maxLength: 64 }
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: Server-derived on internal hops, e.g. `journey:{journeyId}:quote:{n}`, `payment:{paymentId}:quote-hold`.
+      schema: { type: string, maxLength: 128 }
+    CorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: false
+      schema: { type: string, format: uuid }
+  responses:
+    NotFound:
+      description: '`RESOURCE_NOT_FOUND`.'
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    MissingIdempotencyKey:
+      description: '`MISSING_IDEMPOTENCY_KEY`.'
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+  schemas:
+    Ulid:
+      type: string
+      pattern: '^[0-9A-HJKMNP-TV-Z]{26}$'
+    Money:
+      type: string
+      pattern: '^-?[0-9]{1,13}(\.[0-9]{1,2})?$'
+      description: Exact decimal, INR, two places. Strings avoid binary floating point.
+      examples: ['25000.00', '25600000.00', '1200000.00']
+    QuoteState:
+      type: string
+      enum: [REQUESTED, IN_PROGRESS, QUOTED, PARTIALLY_QUOTED, SELECTED, CONVERTED, EXPIRED, FAILED, TIMED_OUT, REJECTED]
+    OfferState:
+      type: string
+      description: Same vocabulary as DDL `ck_offer_state`. `AVAILABLE` is not a value.
+      enum: [QUOTED, SELECTED, NOT_SELECTED, INVALID]
+    ProductClass:
+      type: string
+      enum: [TERM, SAVINGS, ULIP]
+    Member:
+      type: object
+      additionalProperties: false
+      required: [role, sequence, dob, gender, tobacco]
+      properties:
+        role: { type: string, enum: [LIFE_ASSURED, PROPOSER] }
+        sequence: { type: integer, minimum: 1 }
+        dob: { type: string, format: date }
+        gender: { type: string, enum: [MALE, FEMALE, TRANSGENDER] }
+        tobacco: { type: boolean }
+        annualIncome: { $ref: '#/components/schemas/Money' }
+        pincode: { type: string, pattern: '^[1-9][0-9]{5}$' }
+    CreateQuoteRequest:
+      type: object
+      additionalProperties: false
+      required: [leadId, journeyId, customerId, suitabilityId, lob, productClass, mode, category, requestedCover, members]
+      properties:
+        leadId: { $ref: '#/components/schemas/Ulid' }
+        journeyId: { $ref: '#/components/schemas/Ulid' }
+        customerId:
+          allOf: [{ $ref: '#/components/schemas/Ulid' }]
+          description: Platform customer ULID (D3) — never a CIF.
+        suitabilityId:
+          allOf: [{ $ref: '#/components/schemas/Ulid' }]
+          description: The suitability evaluation id passed to suitability `evaluations:usable` as `evaluationId`; column `suitability_id`.
+        lob: { type: string, const: LIFE }
+        productClass: { $ref: '#/components/schemas/ProductClass' }
+        mode: { type: string, enum: [SINGLE, MULTI] }
+        category: { type: string, maxLength: 32, examples: [SUM_ASSURED] }
+        requestedCover: { $ref: '#/components/schemas/Money' }
+        members:
+          type: array
+          minItems: 1
+          items: { $ref: '#/components/schemas/Member' }
+        preferences:
+          type: object
+          additionalProperties: false
+          properties:
+            premiumFrequency: { type: string, enum: [YEARLY, HALF_YEARLY, QUARTERLY, MONTHLY, SINGLE] }
+      description: |
+        No `consentId` (resolved by the consent checkpoint) and no `distributorId` / agent fields
+        (`422 ATTRIBUTION_NOT_CALLER_SUPPLIED`, C3).
+    QuoteAccepted:
+      type: object
+      required: [quoteId, state]
+      properties:
+        quoteId: { $ref: '#/components/schemas/Ulid' }
+        state: { $ref: '#/components/schemas/QuoteState' }
+    Offer:
+      type: object
+      required: [offerId, insurerCode, productCode, productName, offerState, outOfBound]
+      properties:
+        offerId: { $ref: '#/components/schemas/Ulid' }
+        insurerCode: { type: string, maxLength: 50 }
+        productCode: { type: string, maxLength: 100 }
+        productName: { type: string, maxLength: 200 }
+        premiumAmount: { oneOf: [{ $ref: '#/components/schemas/Money' }, { type: 'null' }] }
+        taxAmount: { oneOf: [{ $ref: '#/components/schemas/Money' }, { type: 'null' }] }
+        premiumFrequency: { type: [string, 'null'], description: 'Envelope `frequency`; column `premium_frequency`.' }
+        sumAssured: { oneOf: [{ $ref: '#/components/schemas/Money' }, { type: 'null' }] }
+        coverTerm: { type: [integer, 'null'] }
+        premiumPayingTerm: { type: [integer, 'null'], description: 'Envelope `ppt`; column `premium_paying_term`.' }
+        outOfBound: { type: boolean }
+        offerState: { $ref: '#/components/schemas/OfferState' }
+        errorSummary: { type: [string, 'null'], maxLength: 500, description: 'Reason for `INVALID` (INV-QUO-03).' }
+    Quote:
+      type: object
+      required: [quoteId, journeyId, lob, productClass, state, offers, partialErrors, recordSource]
+      properties:
+        quoteId: { $ref: '#/components/schemas/Ulid' }
+        journeyId: { $ref: '#/components/schemas/Ulid' }
+        lob: { type: string }
+        productClass: { $ref: '#/components/schemas/ProductClass' }
+        state: { $ref: '#/components/schemas/QuoteState' }
+        validUntil: { type: [string, 'null'], format: date-time }
+        selectedOfferId: { oneOf: [{ $ref: '#/components/schemas/Ulid' }, { type: 'null' }] }
+        paymentInFlight: { type: boolean }
+        offers:
+          type: array
+          items: { $ref: '#/components/schemas/Offer' }
+        partialErrors:
+          type: array
+          items:
+            type: object
+            required: [insurerCode, code]
+            properties:
+              insurerCode: { type: string }
+              code: { type: string }
+        configVersionRef: { type: string }
+        recordSource:
+          type: string
+          enum: [WORKING, RECORD]
+          description: '`WORKING` = DynamoDB item (before materialise); `RECORD` = Aurora structured rows (after).'
+    PaymentHoldRequest:
+      type: object
+      additionalProperties: false
+      required: [paymentId, proposalId, offerId]
+      properties:
+        paymentId: { $ref: '#/components/schemas/Ulid' }
+        proposalId: { $ref: '#/components/schemas/Ulid' }
+        offerId:
+          allOf: [{ $ref: '#/components/schemas/Ulid' }]
+          description: The offer the proposal was created for (from proposal-service's hold); must equal `selectedOfferId`.
+    PaymentReleaseRequest:
+      type: object
+      additionalProperties: false
+      required: [paymentId, paymentState]
+      properties:
+        paymentId: { $ref: '#/components/schemas/Ulid' }
+        paymentState: { type: string, enum: [DECLINED, EXPIRED, REJECTED, REFUNDED] }
+    SelectedPremium:
+      type: object
+      required: [quoteId, offerId, premiumAmount, taxAmount, sumAssured, insurerCode, productCode, currency]
+      description: >
+        Amounts from the selected offer. Illustrative example uses SUIT-TC-REF-01 figures
+        (see contracts/MISSING-PRICES.md) — not bank pricing policy.
+      properties:
+        quoteId: { $ref: '#/components/schemas/Ulid' }
+        offerId: { $ref: '#/components/schemas/Ulid' }
+        premiumAmount: { $ref: '#/components/schemas/Money' }
+        taxAmount: { $ref: '#/components/schemas/Money' }
+        sumAssured: { $ref: '#/components/schemas/Money' }
+        insurerCode: { type: string }
+        productCode: { type: string }
+        premiumFrequency: { type: string, description: 'Added by payment-hold; the legacy GET does not return it.' }
+        currency: { type: string, const: INR }
+        validUntil: { type: string, format: date-time, description: 'Added by payment-hold.' }
+      example:
+        quoteId: 01HZXEXAMPLE00000000000001
+        offerId: 01HZXEXAMPLE00000000000002
+        premiumAmount: '25000.00'
+        taxAmount: '4500.00'
+        sumAssured: '25600000.00'
+        insurerCode: INS01
+        productCode: TERM-BASIC-01
+        premiumFrequency: YEARLY
+        currency: INR
+        validUntil: '2026-11-08T18:30:00+05:30'
+    PaymentReconciledData:
+      type: object
+      description: '`data` of the `PaymentReconciled` event (ADR-025 envelope; D8 ids).'
+      required: [eventId, paymentId, quoteId]
+      properties:
+        eventId: { $ref: '#/components/schemas/Ulid' }
+        paymentId: { $ref: '#/components/schemas/Ulid' }
+        quoteId: { $ref: '#/components/schemas/Ulid' }
+        proposalId: { $ref: '#/components/schemas/Ulid' }
+        journeyId: { $ref: '#/components/schemas/Ulid' }
+        applicationNumber: { type: string, maxLength: 50 }
+    Problem:
+      type: object
+      description: Platform problem+json (conventions/error-model.md). Internal hops also carry `origin` and `diagnostic`.
+      required: [type, title, status, code, category, retryable, incidentId, service, timestamp]
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        code: { type: string }
+        category: { type: string, enum: [VALIDATION, AUTHENTICATION, AUTHORIZATION, NOT_FOUND, CONFLICT, COMPLIANCE_GATE, UPSTREAM, CONFIG, RATE_LIMIT, INTERNAL] }
+        retryable: { type: boolean }
+        incidentId: { type: string }
+        correlationId: { type: string }
+        service: { type: string }
+        timestamp: { type: string, format: date-time }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              code: { type: string }
+              field: { type: string }
+              message: { type: string }
+    ConsentRequiredProblem:
+      allOf:
+        - $ref: '#/components/schemas/Problem'
+        - type: object
+          properties:
+            checkpoint: { type: string, const: BEFORE_MULTI_QUOTE }
+            missingPurposes:
+              type: array
+              items: { type: string, examples: [CNS-DP, CNS-SOL, CNS-QSH] }
+              description: Present when `code = CONSENT_REQUIRED`. Purposes the journey must capture.

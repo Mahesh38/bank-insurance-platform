@@ -16,6 +16,16 @@ public record BankAdVerifyProperties(
     @NotNull Duration readTimeout,
     Http http,
     Stub stub) {
+  // E8 (DECISIONS-2026-10-22): connect 2 s / read 3 s; env BANK_AD_VERIFY_CONNECT_TIMEOUT /
+  // BANK_AD_VERIFY_READ_TIMEOUT override them (application.yml).
+  public static final Duration DEFAULT_CONNECT_TIMEOUT = Duration.ofSeconds(1);
+  public static final Duration DEFAULT_READ_TIMEOUT = Duration.ofSeconds(3);
+
+  public BankAdVerifyProperties {
+    connectTimeout = connectTimeout != null ? connectTimeout : DEFAULT_CONNECT_TIMEOUT;
+    readTimeout = readTimeout != null ? readTimeout : DEFAULT_READ_TIMEOUT;
+  }
+
   public boolean stubMode() {
     return "stub".equalsIgnoreCase(mode);
   }

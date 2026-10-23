@@ -154,7 +154,7 @@ sequenceDiagram
     BFF->>L: GET /internal/v1/leads/{id}
     alt exceptionOutcome = NOT_EVALUATED
         BFF->>L: POST /internal/v1/leads/{id}/onboarding
-        Note over L: LEAD.EXCEPTION rule set (fix-pending; stub today). BLOCK → 409 ILLEGAL_TRANSITION
+        Note over L: LEAD.EXCEPTION via engine (thresholds unset → BLOCK / EH-CONFIG-MISSING). BLOCK → 409 ILLEGAL_TRANSITION
     end
     alt on hold (APPROVAL_REQUIRED / BLOCK / exceptionHold)
         BFF-->>App: 200 lead unchanged (exceptionRequired = true)

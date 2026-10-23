@@ -10,9 +10,9 @@
 | **Callers** | BFF (all RM actions) · target: Quotation (`bi-generated`), Journey (`convert` on `JourneySold`), AUBIMA exception engine (`exception-hold`) |
 | **Calls out** | **PDP** `POST /internal/v1/authorization/decisions` before create and assign (own re-check, `INV-ACT-01`; 300 ms, fail closed — `SUG-20261021-lft`) · `SpCertificationPort` (fixture today; IRDAI / bank SP register is parked, `SUG-20261007-ird`) · target: exception / validation engine |
 | **Owns data** | Target: Aurora schema **`lead_lms`** (`lead`, `lead_assignment`, `lead_meeting`, `lead_follow_up`, `idempotency_record`, `outbox_event`) · role `app_lead_lms`. **Implemented for `lead`:** `JdbcLeadRepository` on `lead_lms.lead` (Flyway `V2__lead_lms_lead.sql`, optimistic lock on `version`; a lost race is `409 CONFLICT`). `lead.store=memory` keeps the old in-memory repository for throw-away runs. Flyway `V3__lead_lms_activity.sql` adds `lead_assignment`, `lead_meeting`, `lead_follow_up`, `idempotency_record` and `outbox_event`, written in the same transaction as the lead row (`SUG-20261021-lft`). Meeting link and note are AES-256-GCM encrypted (`lead.crypto.*`). Nothing publishes the outbox yet (no MSK in R0 code). Flyway `V4__lead_lms_design_alignment.sql` adds the design columns `source`, `created_by_actor_type`, `lead_generator_principal_id`, `config_versions`, `expires_at`, `accountable_sp_cert_ref`, `exception_ref` (all NULLable for now) and `ix_lead_state_expires`; `V5` in `db/vendor/{postgresql,h2}` adds `ux_lead_dedupe_open` |
-| **Code status** | **IMPLEMENTED-PARTIAL** — create, list, get, onboarding, assign, close. Exception rules sit behind `ExceptionRulesPort` (rule set `LEAD.EXCEPTION`, D2); the only adapter today is the temporary `StubExceptionRules`, refused under `prod` / `uat`; BI, convert, archive, activity status, evaluate and exception-hold are CONTRACTED |
+| **Code status** | **IMPLEMENTED-PARTIAL** — create, list, get, onboarding, assign, close. Exception rules sit behind `ExceptionRulesPort` (rule set `LEAD.EXCEPTION`, D2) with default adapter `EngineExceptionRules` (`bank-rule-engine`); seed thresholds unset → `BLOCK` / `EH-CONFIG-MISSING`. `StubExceptionRules` is test-only; `ProductionSafetyGuard` refuses it under `prod` / `uat`. BI, convert, archive, activity status, evaluate and exception-hold are CONTRACTED |
 | **Contracts** | [Lead API LLD](../../ws3-platform/12-lead-module-api-lld.md) · [internal OpenAPI](../../ws3-platform/lead-service-internal.openapi.yaml) · [sequences](../../ws3-platform/11-lead-module-sequences.md) · [flows and algorithms](../../ws3-platform/13-lead-module-flows-and-algorithms.md) |
-| **Contract** | **Authoritative (ADR-027):** [`contracts/lead-service/openapi.yaml`](../../contracts/lead-service/openapi.yaml) · [LLD](../../contracts/lead-service/LLD.md). Where this page and the contract differ, the contract wins. Supersedes `ws3-platform/lead-service-internal.openapi.yaml`. Fix-pending: `LEAD.EXCEPTION` rule set (D2) replaces the stub; dedupe `409` names the existing lead in `errors[0]`; terminal / held leads refused |
+| **Contract** | **Authoritative (ADR-027):** [`contracts/lead-service/openapi.yaml`](../../contracts/lead-service/openapi.yaml) · [LLD](../../contracts/lead-service/LLD.md). Where this page and the contract differ, the contract wins. Supersedes `ws3-platform/lead-service-internal.openapi.yaml`. Fix-pending: BRD owner sets `LEAD.EXCEPTION` thresholds/actions (E9); dedupe `409` names the existing lead in `errors[0]`; terminal / held leads refused |
 
 Every endpoint requires header **`X-Actor-Id`** (set by the BFF from the session). The actor's
 **book** — leads where they are creator, assigned RM or assigned SP — is the visibility boundary.
@@ -177,12 +177,13 @@ Re-running Start Onboarding is guarded **before** any rule is evaluated (`Lead.r
 
 `LeadExceptionEvaluated` carries `exceptionReasonCodes` when the evaluator returns any.
 
-> **Stub today (temporary, D2):** `StubExceptionRules` (`lead.exception-rules=stub`, the default)
-> returns `BLOCK` if the customer id contains `BLOCK`, `APPROVAL_REQUIRED` if it contains `HOLD`,
-> else `PASS`. The target is rule set `LEAD.EXCEPTION` evaluated by `libs/bank-rule-engine`
+> **Engine today (D2):** `EngineExceptionRules` (`lead.exception-rules=engine`, the default)
+> evaluates rule set `LEAD.EXCEPTION` via `libs/bank-rule-engine`
 > (`hitPolicy: PRIORITY`, `outcomeRank: [BLOCK, APPROVAL_REQUIRED, PASS]`, a missing threshold →
-> `BLOCK` / `EH-CONFIG-MISSING`) as a second adapter behind the same port; thresholds are unset
-> until the BRD owner supplies them ([D2](../../architecture-review/DECISIONS-2026-10-21.md#d2--lead-exception-engine)).
+> `BLOCK` / `EH-CONFIG-MISSING`). Thresholds stay unset until the BRD owner supplies them
+> ([D2](../../architecture-review/DECISIONS-2026-10-21.md#d2--lead-exception-engine), E9).
+> `StubExceptionRules` (`stub`) remains in test sources for controller tests that need a
+> deterministic outcome without the seed; refused under `prod` / `uat`.
 
 ### 3.5 `POST /internal/v1/leads/{leadId}/assignments`
 

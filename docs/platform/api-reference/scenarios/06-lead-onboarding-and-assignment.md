@@ -21,7 +21,7 @@ sequenceDiagram
     participant BFF as BFF (LeadFacade)
     participant PDP as identity-authorization (PDP)
     participant LS as lead-service
-    participant EX as Exception engine (stub today; AUBIMA target)
+    participant EX as Exception engine (LEAD.EXCEPTION via bank-rule-engine; thresholds unset)
     participant SP as SP certification (fixture today; IRDAI / bank register target)
     App->>BFF: GET /api/v1/branches · /branches/{b}/specified-persons · /verticals/{v}/relationship-managers
     BFF-->>App: assignment pickers (fixture directory)

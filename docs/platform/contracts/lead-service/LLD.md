@@ -90,9 +90,11 @@ sequenceDiagram
    (outcome, reason codes, `ruleSetRef`).
 5. `BLOCK` → commit (`noRollbackFor`), then `409 ILLEGAL_TRANSITION`; else `200`.
 
-Transitional: `lead.exception-rules=stub` (default) wires `StubExceptionRules` (customer id
+Default: `lead.exception-rules=engine` wires `EngineExceptionRules` over `bank-rule-engine`
+(classpath seeds locally; HTTP resolve from administration-config under prod/uat).
+`StubExceptionRules` lives in **test sources** only (`lead.exception-rules=stub`; customer id
 contains "BLOCK" → `BLOCK`, "HOLD" → `APPROVAL_REQUIRED`, else `PASS`; reason `STUB-NOT-A-RULE`).
-`ProductionSafetyGuard` refuses it under prod.
+`ProductionSafetyGuard` refuses anything but `engine` under prod/uat.
 
 Rules `EH-BR-RULE-012…013` are re-evaluated at premium capture (owned by the premium-capture
 caller; not a lead endpoint yet). Remarks are mandatory on approval / rejection (BRD §24.3 col. J) —

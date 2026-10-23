@@ -11,21 +11,18 @@ Snapshot of code at `d1f3dd7` with round-2 work in flight; where this brief and 
 
 | Area | State |
 |---|---|
-| Code | **Partial-implemented** (38 main / 12 test classes): create (PDP, idempotency, dedupe), list, get, onboarding, assign, close, info |
+| Code | **Partial-implemented** (49 main / 18 test classes): create (PDP, idempotency, dedupe), list, get, onboarding, assign, close, info |
 | Contract operations | 7 / 7 coded |
 | Persistence | Flyway V1–V4 + vendor `V5__lead_dedupe_open` (partial unique on PostgreSQL) |
-| Rules | `LEAD.EXCEPTION` evaluated by **`StubExceptionRules`** (`lead.exception-rules=stub`, refused under prod/uat) — the engine adapter is not built; `bank-rule-engine` not a dependency |
+| Rules | `LEAD.EXCEPTION` via **`EngineExceptionRules`** (`lead.exception-rules=engine` default; `bank-rule-engine` dependency). Seed thresholds/actions **unset** → `BLOCK / EH-CONFIG-MISSING` until BRD owner sets values. `StubExceptionRules` is **test-sources only** (`stub`); `ProductionSafetyGuard` refuses anything but `engine` under prod/uat |
 | Events | `LeadCreated`, `LeadExceptionEvaluated`, `LeadAssigned`, `LeadClosed` written as attribute payloads; no relay; envelope pending |
-| Not built | Exception approval (E6), expiry sweep (E7 `LEAD.POLICY`), `LeadQualified`, BI-generated / convert / archive, `JourneySold` consumer |
+| Not built | Exception approval (E6), `LEAD.POLICY` seed + production expiry horizon (E7), `LeadQualified`, BI-generated / convert / archive, `JourneySold` consumer |
 
-Maturity estimate: ≈ 55 %.
+Maturity estimate: ≈ 70 %.
 
 ## 2. Scope for this build
 
-1. `ExceptionRulesPort` adapter over `bank-rule-engine`: resolve published `LEAD.EXCEPTION`,
-   `PRIORITY`, `BLOCK > APPROVAL_REQUIRED > PASS`; unset thresholds → `BLOCK / EH-CONFIG-MISSING`
-   (D2; thresholds are **unset** by owner default). Data sources for `EH-INT-001…005` behind ports
-   with stubs (LEAD-2). Keep the stub only under `local`.
+1. ~~`ExceptionRulesPort` adapter over `bank-rule-engine`~~ **done** (`EngineExceptionRules`, D2). Remaining: real `EH-INT-001…005` fact adapters (LEAD-2); today `UnknownLeadExceptionFacts` reports every fact unknown → fail closed.
 2. Guards (LLD fix-pendings): terminal / held / blocked lead cannot be re-onboarded; a hold is
    never cleared by re-running onboarding; terminal lead cannot be assigned.
 3. Expiry: `expires_at` from **`LEAD.POLICY.expiryDays` scoped by `lob`** (E7; LIFE 90 by

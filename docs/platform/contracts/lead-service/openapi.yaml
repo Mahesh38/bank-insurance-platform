@@ -197,12 +197,15 @@ paths:
         already `BLOCK`ed lead are refused with `409 ILLEGAL_TRANSITION`; a later `PASS` can never
         silently clear a hold or a block.
 
-        Transitional: until the engine adapter exists, `lead.exception-rules=stub` (default) selects
-        `StubExceptionRules` — `BLOCK` when the customer id contains "BLOCK", `APPROVAL_REQUIRED`
-        when it contains "HOLD", else `PASS`, reason code `STUB-NOT-A-RULE`, `ruleSetRef` null.
-        It must not run in production (`ProductionSafetyGuard`).
+        Default: `lead.exception-rules=engine` selects `EngineExceptionRules` over
+        `libs/bank-rule-engine` (rule set `LEAD.EXCEPTION`, D2). Seed thresholds/actions are
+        unset by owner default → `BLOCK` / `EH-CONFIG-MISSING` until the BRD owner sets values
+        (E9). `StubExceptionRules` (`lead.exception-rules=stub`) lives in test sources only —
+        `BLOCK` when the customer id contains "BLOCK", `APPROVAL_REQUIRED` when it contains
+        "HOLD", else `PASS`, reason code `STUB-NOT-A-RULE`, `ruleSetRef` null — and must not
+        run in production (`ProductionSafetyGuard` refuses anything but `engine` under prod/uat).
       x-status: fix-pending
-      x-review-finding: READINESS-REVIEW §3.4 (stub, default PASS vs BRD "missing configuration → Block") and §3.6 (re-run overwrites a hold). Decision D2.
+      x-review-finding: READINESS-REVIEW §3.4 (BRD thresholds unset → Block / EH-CONFIG-MISSING) and §3.6 (re-run must not clear a hold). Decision D2 · E9.
       parameters:
         - $ref: '#/components/parameters/LeadIdPath'
         - $ref: '#/components/parameters/ActorId'

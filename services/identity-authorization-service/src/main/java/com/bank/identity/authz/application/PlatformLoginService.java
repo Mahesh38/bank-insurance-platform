@@ -88,7 +88,7 @@ public class PlatformLoginService {
       return AccountView.unknown();
     }
     user = applyInactivity(user);
-    if (!isActive(user)) {
+    if (!isActive(user) && !(user.getStatus() == UserStatus.PENDING && user.isFirstLogin())) {
       return view(user, "INACTIVE");
     }
     if (!user.isFirstLogin() && user.getLockedReason() == null) {

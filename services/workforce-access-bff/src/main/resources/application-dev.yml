@@ -1,0 +1,4 @@
+# Dev profile only. prod and uat refuse to start when this pin is set.
+workforce:
+  login:
+    otp-code: "482913"

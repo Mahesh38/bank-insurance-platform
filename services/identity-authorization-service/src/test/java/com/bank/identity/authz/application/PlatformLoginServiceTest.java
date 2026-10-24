@@ -61,6 +61,8 @@ class PlatformLoginServiceTest {
     BusinessUserEntity partner = users.save(insurance("first@aubank.in"));
     assertThat(login.preview(UserType.INSURER_REPRESENTATIVE, "first@aubank.in").route())
         .isEqualTo("FIRST_TIME");
+    assertThat(login.assessUnlock(UserType.INSURER_REPRESENTATIVE, "first@aubank.in").route())
+        .isEqualTo("UNLOCK_OK");
     assertThat(login.completeUnlock(partner.getId()).route()).isEqualTo("SET_PASSWORD");
     assertThat(users.findById(partner.getId()).orElseThrow().isFirstLogin()).isTrue();
     assertThat(users.findById(partner.getId()).orElseThrow().getStatus().name())

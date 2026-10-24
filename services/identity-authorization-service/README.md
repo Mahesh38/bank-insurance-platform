@@ -7,6 +7,7 @@ See [`docs/platform/authentication-authorization/README.md`](../../docs/platform
 ```bash
 ./gradlew :services:identity-authorization-service:test
 ./gradlew :services:identity-authorization-service:bootRun
+./gradlew :services:identity-authorization-service:bootRun --args='--spring.profiles.active=dev'
 ```
 
 The service listens on port `8083` and uses H2 in PostgreSQL compatibility mode by default. Deployed profiles must supply a dedicated PostgreSQL datasource. Provider provisioning calls `identity-provider-adapter-service` with `X-Internal-Service-Key` (`IDENTITY_ADAPTER_INTERNAL_SHARED_SECRET`; production has no default).

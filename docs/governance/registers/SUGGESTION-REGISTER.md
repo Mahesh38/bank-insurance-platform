@@ -43,6 +43,8 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20261024-oat | 2026-10-24 | human:repository-owner | Give the workforce app the OAuth access token and refresh token instead of the BFF session. | SF4 | SC0 | REJECT | SEC | — / — | REJECTED | [detail](#sug-20261024-oat--keep-provider-tokens-inside-the-bff) |
+| SUG-20261024-kck | 2026-10-24 | human:repository-owner | Keep Bank RM password checks on the bank AD API and FLS passwords in Postgres. Do not send the user to Keycloak. Park an IDAM employee callback until the bank contract and an ADR exist. | SF3 | SC1 | NOT-NOW | ARCH | P4 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [detail](#sug-20261024-kck--keycloak-stays-behind-the-login-api) |
 | SUG-20261023-e2e | 2026-10-23 | human:repository-owner | Write the Login BRD v3.1 end-to-end API sequences: both user types, unlock, forgot and reset password, background calls, and validation. Confirm the APIs exist. | SF1 | SC0 | MUST | DOC | P2 / P2 | ADMITTED | [v3.1 API flows](../../journey-execution/flows/LOGIN-BRD-V31-API-FLOWS.md) · [detail](#sug-20261023-e2e--login-v31-api-flows) |
 | SUG-20261023-dev | 2026-10-23 | human:repository-owner | Dev profile can complete Bank RM and Insurance RM/FLS login, unlock and password reset. FLS is the Insurance RM login. | SF1 | SC0 | MUST | FUNC | P2 / P2 | ADMITTED | [identity-authorization](../../../services/identity-authorization-service/README.md) · [detail](#sug-20261023-dev--dev-login-accounts) |
 | SUG-20261023-l31 | 2026-10-23 | human:repository-owner | Accept Login BRD v3.1 design text as the user-visible copy and replace the v1.0 login context everywhere it is still stated. Runtime Captcha/OTP/Forgot Password stays parked. | SF1 | SC0 | MUST | DOC | P2 / P1 | ADMITTED | [Login BRD v3.1](../../au-bank-insurance-platform/requirements/brd-detailed/Login_Module_BRD_Detailed_CONTEXT.md) · [detail](#sug-20261023-l31--login-brd-v31-design-text) |
@@ -164,6 +166,208 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20261024-oat · Keep provider tokens inside the BFF
+
+```yaml
+# schema: triage-record
+id: SUG-20261024-oat
+raised_at: "2026-10-24"
+raised_by: "human:repository-owner"
+source: "Owner asked whether the workforce app should hold an OAuth access token and refresh token instead of a BFF session, expecting that to improve security"
+input: >
+  Make the application and the front end use an access token rather than a
+  session cookie. When the access token expires, the app uses a refresh token
+  kept inside the application. The app will use OAuth. The expectation is that
+  this helps security.
+
+context:
+  workstream: WS-2
+  current_phase: "Phase 1 — Foundation implementation"
+  canonical_stage: "L4/L6 — Foundation into first vertical slice"
+  current_objective: "IAM-P1"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: "Login BRD v3.1 journey"
+
+stage_fit:
+  code: SF4
+  rationale: >
+    The accepted workforce boundary is a token-hiding BFF. The app holds an
+    opaque session. Provider access and refresh tokens stay on the server.
+    Putting those tokens in the app reverses that control.
+
+scope:
+  code: SC0
+  business_scope: "WS-2 workforce login session"
+  failure_without_it: "N/A. The BFF session already lets the app call the platform after login."
+  minimal: true
+  authority: "docs/platform/authentication-authorization/README.md section 1"
+
+necessity:
+  now: REJECT
+  evidence_tier: E2
+  evidence:
+    - "Workforce auth SSOT: Flutter talks only to the BFF and never receives an OAuth access or refresh token"
+    - "v3.1 sign-in returns a WORKFORCE_SESSION cookie or a native sessionHandle after OTP"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: true
+    X5_stage_necessity: false
+    X9_problem_observed: false
+
+action: REJECT
+action_rationale: >
+  A refresh token in the app is a long-lived credential. Theft of the device
+  store, a backup, or a logged request lets the caller mint new access tokens.
+  The opaque session can be revoked on the BFF and is not a provider credential.
+  An access token also does not decide which customer or lead a user may open.
+  That remains the authorization service. FreshnessCheck exit 1 is disclosed.
+  This is not a T4 Security signature.
+reopen_if: "An ADR supersedes the token-hiding rule and names device storage, refresh rotation, reuse detection, and server revocation for a public OAuth client."
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: null
+  plan_id: null
+  status: REJECTED
+  closed_reason: "Provider tokens stay inside the BFF. The app keeps the opaque session."
+
+resumed: "Login BRD v3.1 session. SUG-20261024-kck remains parked. The bank wrong-password and reset-token defects remain open."
+```
+
+### SUG-20261024-kck · Keycloak stays behind the login API
+
+```yaml
+# schema: triage-record
+id: SUG-20261024-kck
+raised_at: "2026-10-24"
+raised_by: "human:repository-owner"
+source: "Owner asked whether Bank RM and FLS should both sign in through Keycloak, with Keycloak calling AD for a bank employee and Postgres for an insurance partner, after Bank IDAM pushes employee adds and updates into our database"
+input: >
+  Put Bank RM on Keycloak as well. Only for Bank RM call the AD API to confirm
+  the username and password. Bank IDAM will call an API we expose when an
+  employee is added or updated, so we know from our own database whether the
+  employee exists. Password verification for a bank employee stays at bank AD.
+  All users interact with Keycloak. Keycloak decides database verification for
+  an FLS insurance partner and AD verification for a bank RM.
+
+context:
+  workstream: WS-2
+  current_phase: "Phase 1 — Foundation implementation"
+  canonical_stage: "L4/L6 — Foundation into first vertical slice"
+  current_objective: "IAM-P1"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: "Login BRD v3.1 journey"
+
+stage_fit:
+  code: SF3
+  rationale: >
+    The password split is already the v3.1 runtime: the BFF checks our row
+    first, then calls AD-verify only for a Bank RM and Postgres only for an
+    Insurance RM / FLS. Sending the user to Keycloak replaces that screen,
+    the token-hiding BFF, and ADR-020. S08 is not a second login stack.
+  target_stage: "WS-2 login hardening, after an ADR supersedes ADR-020"
+  unpark_trigger: "The bank publishes the IDAM employee add/update callback contract, and an ADR records that this callback updates our business-user projection while AD remains the workforce source and the BFF remains the only login API."
+
+scope:
+  code: SC1
+  serves: ["ADR-020", "SUG-20260914-idp", "SUG-20261008-bnk"]
+  failure_without_it: "A real bank directory would have no supported way to project new and updated employees into our login table."
+  minimal: true
+  authority: "docs/platform/authentication-authorization/README.md sections 1 and 3 · TI-01"
+
+necessity:
+  now: NOT-NOW
+  future_necessity: SHOULD
+  target_stage: "WS-2 login hardening, after an ADR supersedes ADR-020"
+  binds_when: "Bank IDAM is ready to push employee creates and updates"
+  failure_without_it: "New bank employees are unknown to v3.1 sign-in until a row exists. The login screen does not need to move to Keycloak for that."
+  evidence_tier: E2
+  evidence:
+    - "authentication-authorization README: Flutter talks only to the BFF; AD-verify is the bank password API; partners stay in the private IdP; AD remains the workforce source"
+    - "Login BRD v3.1 sign-in already refuses an unknown login id before any password check"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: true
+    X5_stage_necessity: false
+    X9_problem_observed: false
+
+action: PARK
+action_rationale: >
+  Keep the current split. Do not build a Keycloak login UI or a Keycloak
+  user-storage switch in this turn. The IDAM callback is real later work and
+  has no payload yet. FreshnessCheck exit 1 is disclosed. No T4 Architecture
+  or Security signature is claimed. Our table must stay a projection; AD stays
+  the source of a bank employee.
+duplicate_of: null
+conflicts:
+  - "ADR-020: NIP-APP is the login chrome. Flutter never calls Keycloak."
+  - "TI-01: Bank AD stays the workforce identity source. Partners never enter AD."
+  - "Login BRD v3.1: captcha, OTP, lock and forgot-password are platform screens."
+
+classification:
+  type: ARCH
+  also: [SEC]
+  breakdown: ADR
+  epic: null
+  risk_tier: T3
+  destination: "registers/PARKED-BACKLOG.md"
+  rationale: "An identity-source change needs an ADR before code. T4 signatures are not claimed."
+
+priority:
+  now: P4
+  at_target: P2
+  factors: { N: 1, S: 2, B: 0, R: 1, D: 2, E: 2 }
+  score: 8
+  matrix_default: P4
+  consistency: OK
+  overrides_applied: []
+  caps_applied: ["SF3 park holds priority_now at P4"]
+  rationale: "The login APIs already branch AD versus Postgres. The missing IDAM feed waits on the bank."
+
+dependencies:
+  edges:
+    - type: EXTERNAL
+      target: "AU Bank IDAM employee add/update callback contract"
+      relation: external
+      state: MISSING
+      owner: "AU Bank IDAM"
+      follow_up: "2026-10-28"
+    - type: DECISION
+      target: ADR-020
+      relation: related_to
+      state: DONE
+  state: PARKED-DEPENDENT
+  enablement_count: 1
+  earliest_start: "IDAM callback contract published"
+  parked_because: "No IDAM payload, and a direct Keycloak login would replace the accepted BFF ceremony."
+  cycles: none
+
+breakdown:
+  children: []
+  completion_definition: null
+  not_included:
+    - "A Keycloak login screen for Bank RM or FLS"
+    - "Storing bank AD passwords in Postgres or in Keycloak"
+    - "Letting the client call Keycloak or receive an OAuth token"
+    - "Treating our business-user row as the source of a bank employee"
+    - "A T4 Architecture or Security signature"
+
+outcome:
+  registered_in: "registers/PARKED-BACKLOG.md"
+  work_item_id: null
+  plan_id: null
+  status: PARKED
+  closed_reason: null
+
+resumed: "Login BRD v3.1 stays the login API. Bank wrong-password handling and reset-token reuse from the 2026-10-24 review are separate defects and were not changed here."
+```
 
 ### SUG-20261023-e2e · Login v3.1 API flows
 

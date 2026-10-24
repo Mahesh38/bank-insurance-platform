@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20261024-oat | 2026-10-24 | human:repository-owner | Give the workforce app the OAuth access token and refresh token instead of the BFF session. | SF4 | SC0 | REJECT | SEC | — / — | REJECTED | [detail](#sug-20261024-oat--keep-provider-tokens-inside-the-bff) |
 | SUG-20261024-kck | 2026-10-24 | human:repository-owner | Keep Bank RM password checks on the bank AD API and FLS passwords in Postgres. Do not send the user to Keycloak. Park an IDAM employee callback until the bank contract and an ADR exist. | SF3 | SC1 | NOT-NOW | ARCH | P4 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [detail](#sug-20261024-kck--keycloak-stays-behind-the-login-api) |
 | SUG-20261023-e2e | 2026-10-23 | human:repository-owner | Write the Login BRD v3.1 end-to-end API sequences: both user types, unlock, forgot and reset password, background calls, and validation. Confirm the APIs exist. | SF1 | SC0 | MUST | DOC | P2 / P2 | ADMITTED | [v3.1 API flows](../../journey-execution/flows/LOGIN-BRD-V31-API-FLOWS.md) · [detail](#sug-20261023-e2e--login-v31-api-flows) |
 | SUG-20261023-dev | 2026-10-23 | human:repository-owner | Dev profile can complete Bank RM and Insurance RM/FLS login, unlock and password reset. FLS is the Insurance RM login. | SF1 | SC0 | MUST | FUNC | P2 / P2 | ADMITTED | [identity-authorization](../../../services/identity-authorization-service/README.md) · [detail](#sug-20261023-dev--dev-login-accounts) |
@@ -165,6 +166,77 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20261024-oat · Keep provider tokens inside the BFF
+
+```yaml
+# schema: triage-record
+id: SUG-20261024-oat
+raised_at: "2026-10-24"
+raised_by: "human:repository-owner"
+source: "Owner asked whether the workforce app should hold an OAuth access token and refresh token instead of a BFF session, expecting that to improve security"
+input: >
+  Make the application and the front end use an access token rather than a
+  session cookie. When the access token expires, the app uses a refresh token
+  kept inside the application. The app will use OAuth. The expectation is that
+  this helps security.
+
+context:
+  workstream: WS-2
+  current_phase: "Phase 1 — Foundation implementation"
+  canonical_stage: "L4/L6 — Foundation into first vertical slice"
+  current_objective: "IAM-P1"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: "Login BRD v3.1 journey"
+
+stage_fit:
+  code: SF4
+  rationale: >
+    The accepted workforce boundary is a token-hiding BFF. The app holds an
+    opaque session. Provider access and refresh tokens stay on the server.
+    Putting those tokens in the app reverses that control.
+
+scope:
+  code: SC0
+  business_scope: "WS-2 workforce login session"
+  failure_without_it: "N/A. The BFF session already lets the app call the platform after login."
+  minimal: true
+  authority: "docs/platform/authentication-authorization/README.md section 1"
+
+necessity:
+  now: REJECT
+  evidence_tier: E2
+  evidence:
+    - "Workforce auth SSOT: Flutter talks only to the BFF and never receives an OAuth access or refresh token"
+    - "v3.1 sign-in returns a WORKFORCE_SESSION cookie or a native sessionHandle after OTP"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: true
+    X5_stage_necessity: false
+    X9_problem_observed: false
+
+action: REJECT
+action_rationale: >
+  A refresh token in the app is a long-lived credential. Theft of the device
+  store, a backup, or a logged request lets the caller mint new access tokens.
+  The opaque session can be revoked on the BFF and is not a provider credential.
+  An access token also does not decide which customer or lead a user may open.
+  That remains the authorization service. FreshnessCheck exit 1 is disclosed.
+  This is not a T4 Security signature.
+reopen_if: "An ADR supersedes the token-hiding rule and names device storage, refresh rotation, reuse detection, and server revocation for a public OAuth client."
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: null
+  plan_id: null
+  status: REJECTED
+  closed_reason: "Provider tokens stay inside the BFF. The app keeps the opaque session."
+
+resumed: "Login BRD v3.1 session. SUG-20261024-kck remains parked. The bank wrong-password and reset-token defects remain open."
+```
 
 ### SUG-20261024-kck · Keycloak stays behind the login API
 

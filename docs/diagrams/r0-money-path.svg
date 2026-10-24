@@ -1,0 +1,269 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1900" height="1452" viewBox="0 0 1900 1452" font-family="Helvetica, Arial, sans-serif">
+<defs>
+<marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#334155"/></marker>
+<marker id="arrGray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/></marker>
+<marker id="arrRed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker>
+</defs>
+<rect width="1900" height="1452" fill="#ffffff"/>
+<text x="950.0" y="36" font-size="25" fill="#0f172a" text-anchor="middle" font-weight="bold">AU Bank Insurance Distribution Platform — R0 Money Path</text>
+<text x="950.0" y="60" font-size="12.5" fill="#475569" text-anchor="middle">proposal → underwriting → payment → reconciliation → issuance → SOLD · the twenty steps that move money and the five ways they fail · companion to docs/hdl.svg</text>
+<text x="52" y="88" font-size="10" fill="#64748b" font-weight="bold" letter-spacing="1">THE INVARIANT THIS ENTIRE FLOW EXISTS TO PROTECT</text>
+<rect x="52" y="96" width="1796" height="46" rx="7" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2"/>
+<text x="68" y="116" font-size="12" fill="#0f172a" font-weight="bold">INV-JRN-05 — a journey reaches SOLD only when policy issuance, payment reconciliation and audit completeness are ALL confirmed.</text>
+<text x="68" y="133" font-size="10" fill="#475569">Issued-but-unreconciled is not a sale. Paid-but-unissued is not a sale. Complete-but-unevidenced is not a sale. Every failure branch below is a way one of the three legs goes missing — and each is caught rather than assumed away.</text>
+<rect x="57.80000000000001" y="168" width="168" height="52" rx="6" fill="#eef2ff" stroke="#4f46e5" stroke-width="1.4"/>
+<text x="141.8" y="190" font-size="10.5" fill="#0f172a" text-anchor="middle" font-weight="bold">Customer Device</text>
+<text x="141.8" y="205" font-size="9" fill="#64748b" text-anchor="middle">own device only</text>
+<rect x="197.8" y="173" width="22" height="13" rx="6.5" fill="#dc2626"/>
+<text x="208.8" y="182.7" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">C4</text>
+<line x1="141.8" y1="220" x2="141.8" y2="1073" stroke="#cbd5e1" stroke-width="1.4" stroke-dasharray="3 4"/>
+<rect x="231.59999999999997" y="220" width="179.6" height="853" fill="#f8fafc"/>
+<rect x="237.39999999999998" y="168" width="168" height="52" rx="6" fill="#f3e8ff" stroke="#9333ea" stroke-width="1.4"/>
+<text x="321.4" y="190" font-size="10.5" fill="#0f172a" text-anchor="middle" font-weight="bold">RM · Flutter + #2 BFF</text>
+<text x="321.4" y="205" font-size="9" fill="#64748b" text-anchor="middle">token-hiding session</text>
+<rect x="243.39999999999998" y="173" width="19" height="13" rx="3" fill="#9333ea"/>
+<text x="252.89999999999998" y="182.7" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">W4</text>
+<line x1="321.4" y1="220" x2="321.4" y2="1073" stroke="#cbd5e1" stroke-width="1.4" stroke-dasharray="3 4"/>
+<rect x="417.0" y="168" width="168" height="52" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.4"/>
+<text x="501.0" y="190" font-size="10.5" fill="#0f172a" text-anchor="middle" font-weight="bold">#9 Journey Orchestration</text>
+<text x="501.0" y="205" font-size="9" fill="#64748b" text-anchor="middle">stage + references</text>
+<rect x="423.0" y="173" width="19" height="13" rx="3" fill="#2563eb"/>
+<text x="432.5" y="182.7" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">W1</text>
+<line x1="501.0" y1="220" x2="501.0" y2="1073" stroke="#cbd5e1" stroke-width="1.4" stroke-dasharray="3 4"/>
+<rect x="590.8000000000001" y="220" width="179.6" height="853" fill="#f8fafc"/>
+<rect x="596.6" y="168" width="168" height="52" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="1.4"/>
+<text x="680.6" y="190" font-size="10.5" fill="#0f172a" text-anchor="middle" font-weight="bold">#11 Proposal &amp; UW</text>
+<text x="680.6" y="205" font-size="9" fill="#64748b" text-anchor="middle">submit · poll</text>
+<rect x="602.6" y="173" width="19" height="13" rx="3" fill="#16a34a"/>
+<text x="612.1" y="182.7" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">W3</text>
+<line x1="680.6" y1="220" x2="680.6" y2="1073" stroke="#cbd5e1" stroke-width="1.4" stroke-dasharray="3 4"/>
+<rect x="776.1999999999999" y="168" width="168" height="52" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="1.4"/>
+<text x="860.1999999999999" y="190" font-size="10.5" fill="#0f172a" text-anchor="middle" font-weight="bold">#12 Payment</text>
+<text x="860.1999999999999" y="205" font-size="9" fill="#64748b" text-anchor="middle">session · recon</text>
+<rect x="782.1999999999999" y="173" width="19" height="13" rx="3" fill="#16a34a"/>
+<text x="791.6999999999999" y="182.7" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">W3</text>
+<line x1="860.1999999999999" y1="220" x2="860.1999999999999" y2="1073" stroke="#cbd5e1" stroke-width="1.4" stroke-dasharray="3 4"/>
+<rect x="950.0" y="220" width="179.6" height="853" fill="#f8fafc"/>
+<rect x="955.8" y="168" width="168" height="52" rx="6" fill="#ffffff" stroke="#94a3b8" stroke-width="1.4" stroke-dasharray="5 3"/>
+<text x="1039.8" y="190" font-size="10.5" fill="#0f172a" text-anchor="middle" font-weight="bold">AU Bank PG</text>
+<text x="1039.8" y="205" font-size="9" fill="#64748b" text-anchor="middle">external · 3-D Secure</text>
+<line x1="1039.8" y1="220" x2="1039.8" y2="1073" stroke="#cbd5e1" stroke-width="1.4" stroke-dasharray="3 4"/>
+<rect x="1135.3999999999999" y="168" width="168" height="52" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="1.4"/>
+<text x="1219.3999999999999" y="190" font-size="10.5" fill="#0f172a" text-anchor="middle" font-weight="bold">#14 Hub → #15 1SB</text>
+<text x="1219.3999999999999" y="205" font-size="9" fill="#64748b" text-anchor="middle">all provider traffic</text>
+<rect x="1141.3999999999999" y="173" width="19" height="13" rx="3" fill="#2563eb"/>
+<text x="1150.8999999999999" y="182.7" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">W1</text>
+<line x1="1219.3999999999999" y1="220" x2="1219.3999999999999" y2="1073" stroke="#cbd5e1" stroke-width="1.4" stroke-dasharray="3 4"/>
+<rect x="1309.2" y="220" width="179.6" height="853" fill="#f8fafc"/>
+<rect x="1315.0" y="168" width="168" height="52" rx="6" fill="#ffffff" stroke="#94a3b8" stroke-width="1.4" stroke-dasharray="5 3"/>
+<text x="1399.0" y="190" font-size="10.5" fill="#0f172a" text-anchor="middle" font-weight="bold">Group A Insurer</text>
+<text x="1399.0" y="205" font-size="9" fill="#64748b" text-anchor="middle">external</text>
+<line x1="1399.0" y1="220" x2="1399.0" y2="1073" stroke="#cbd5e1" stroke-width="1.4" stroke-dasharray="3 4"/>
+<rect x="1494.6" y="168" width="168" height="52" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="1.4"/>
+<text x="1578.6" y="190" font-size="10.5" fill="#0f172a" text-anchor="middle" font-weight="bold">#13 Policy &amp; Issuance</text>
+<text x="1578.6" y="205" font-size="9" fill="#64748b" text-anchor="middle">issues on RECONCILED</text>
+<rect x="1500.6" y="173" width="19" height="13" rx="3" fill="#16a34a"/>
+<text x="1510.1" y="182.7" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">W3</text>
+<line x1="1578.6" y1="220" x2="1578.6" y2="1073" stroke="#cbd5e1" stroke-width="1.4" stroke-dasharray="3 4"/>
+<rect x="1668.4" y="220" width="179.6" height="853" fill="#f8fafc"/>
+<rect x="1674.2" y="168" width="168" height="52" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="1.4"/>
+<text x="1758.2" y="190" font-size="10.5" fill="#0f172a" text-anchor="middle" font-weight="bold">#16 Audit · #17 Notify</text>
+<text x="1758.2" y="205" font-size="9" fill="#64748b" text-anchor="middle">WORM · outbox</text>
+<rect x="1680.2" y="173" width="19" height="13" rx="3" fill="#16a34a"/>
+<text x="1689.7" y="182.7" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">W3</text>
+<line x1="1758.2" y1="220" x2="1758.2" y2="1073" stroke="#cbd5e1" stroke-width="1.4" stroke-dasharray="3 4"/>
+<line x1="321.4" y1="268" x2="680.6" y2="268" stroke="#334155" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="321.4" cy="268" r="8.5" fill="#1f2937"/>
+<text x="321.4" y="271.2" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">1</text>
+<text x="337.4" y="260" font-size="9.5" fill="#0f172a" font-weight="bold">submit proposal (quoteRef, consentRef, suitabilityRef)</text>
+<text x="337.4" y="281" font-size="9" fill="#64748b">sync · idempotency key = proposalId</text>
+<path d="M680.6,301 h26 v16 h-26" fill="none" stroke="#334155" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="676.6" cy="289" r="8.5" fill="#dc2626"/>
+<text x="676.6" y="292.2" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">2</text>
+<text x="718.6" y="308" font-size="9.5" fill="#0f172a" font-weight="bold">hard gate — C1 suitability valid &amp; unexpired · C2 consent current</text>
+<text x="718.6" y="321" font-size="9" fill="#64748b">either missing or stale → 403, journey does not advance (FF-08 / FF-09)</text>
+<line x1="680.6" y1="350" x2="501.0" y2="350" stroke="#334155" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="680.6" cy="350" r="8.5" fill="#1f2937"/>
+<text x="680.6" y="353.2" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">3</text>
+<text x="525.0" y="342" font-size="9.5" fill="#0f172a" font-weight="bold">stage := PROPOSAL_SUBMITTING</text>
+<text x="525.0" y="363" font-size="9" fill="#64748b">references only — never another context's decision (SC-W3-6)</text>
+<line x1="680.6" y1="391" x2="1219.3999999999999" y2="391" stroke="#334155" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="680.6" cy="391" r="8.5" fill="#1f2937"/>
+<text x="680.6" y="394.2" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">4</text>
+<text x="696.6" y="383" font-size="9.5" fill="#0f172a" font-weight="bold">submit proposal</text>
+<text x="696.6" y="404" font-size="9" fill="#64748b">24 h idempotency contract (INV-ACL-01) · adapter.onesb.* only</text>
+<line x1="1219.3999999999999" y1="432" x2="1399.0" y2="432" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#arrGray)"/>
+<circle cx="1219.3999999999999" cy="432" r="8.5" fill="#1f2937"/>
+<text x="1219.3999999999999" y="435.2" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">5</text>
+<text x="1235.3999999999999" y="424" font-size="9.5" fill="#0f172a" font-weight="bold">provider submit</text>
+<text x="1235.3999999999999" y="445" font-size="9" fill="#64748b">per-provider bulkhead · one insurer cannot drain the pool</text>
+<line x1="1399.0" y1="473" x2="1219.3999999999999" y2="473" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#arrGray)"/>
+<circle cx="1399.0" cy="473" r="8.5" fill="#1f2937"/>
+<text x="1399.0" y="476.2" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">6</text>
+<text x="1243.3999999999999" y="465" font-size="9.5" fill="#0f172a" font-weight="bold">ack + insurerRef</text>
+<text x="1243.3999999999999" y="486" font-size="9" fill="#64748b">reference is the recovery handle — never a blind resubmit (S-12)</text>
+<line x1="680.6" y1="514" x2="1219.3999999999999" y2="514" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#arrGray)"/>
+<circle cx="680.6" cy="514" r="8.5" fill="#1f2937"/>
+<text x="680.6" y="517.2" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">7</text>
+<text x="696.6" y="506" font-size="9.5" fill="#0f172a" font-weight="bold">poll UW status → REQUIREMENTS | APPROVED</text>
+<text x="696.6" y="527" font-size="9" fill="#64748b">async-poll (S-09 / S-11); no user connection held open</text>
+<line x1="680.6" y1="555" x2="501.0" y2="555" stroke="#334155" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="680.6" cy="555" r="8.5" fill="#1f2937"/>
+<text x="680.6" y="558.2" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">8</text>
+<text x="525.0" y="547" font-size="9.5" fill="#0f172a" font-weight="bold">stage := UW_APPROVED — unlocks payment</text>
+<text x="525.0" y="568" font-size="9" fill="#64748b">payment is unreachable until this stage is recorded</text>
+<line x1="501.0" y1="596" x2="860.1999999999999" y2="596" stroke="#334155" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="501.0" cy="596" r="8.5" fill="#1f2937"/>
+<text x="501.0" y="599.2" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">9</text>
+<text x="517.0" y="588" font-size="9.5" fill="#0f172a" font-weight="bold">create payment session (amount = selected offer premium)</text>
+<text x="517.0" y="609" font-size="9" fill="#64748b">charged amount must equal the quoted premium — else reject (S-13)</text>
+<line x1="860.1999999999999" y1="637" x2="1039.8" y2="637" stroke="#334155" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="860.1999999999999" cy="637" r="8.5" fill="#1f2937"/>
+<text x="860.1999999999999" y="640.2" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">10</text>
+<text x="876.1999999999999" y="629" font-size="9.5" fill="#0f172a" font-weight="bold">create session</text>
+<text x="876.1999999999999" y="650" font-size="9" fill="#64748b">returns paymentSessionId + one-time customer link</text>
+<line x1="860.1999999999999" y1="678" x2="1758.2" y2="678" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#arrGray)"/>
+<circle cx="860.1999999999999" cy="678" r="8.5" fill="#1f2937"/>
+<text x="860.1999999999999" y="681.2" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">11</text>
+<text x="876.1999999999999" y="670" font-size="9.5" fill="#0f172a" font-weight="bold">dispatch payment link to the customer device</text>
+<text x="876.1999999999999" y="691" font-size="9" fill="#64748b">#17 SMS/email to the customer only — never to an RM or bank device (C4)</text>
+<line x1="1758.2" y1="719" x2="141.8" y2="719" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#arrGray)"/>
+<circle cx="1758.2" cy="719" r="8.5" fill="#1f2937"/>
+<text x="1758.2" y="722.2" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">12</text>
+<text x="165.8" y="711" font-size="9.5" fill="#0f172a" font-weight="bold">one-time link · short expiry · bound to the OTP-verified device</text>
+<text x="165.8" y="732" font-size="9" fill="#64748b">no RM-device payment route exists in the interface (DEC-20260816-12)</text>
+<line x1="141.8" y1="760" x2="1039.8" y2="760" stroke="#334155" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="141.8" cy="760" r="8.5" fill="#1f2937"/>
+<text x="141.8" y="763.2" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">13</text>
+<text x="157.8" y="752" font-size="9.5" fill="#0f172a" font-weight="bold">customer pays — 3-D Secure, on their own device</text>
+<text x="157.8" y="773" font-size="9" fill="#64748b">the bank never sees the instrument</text>
+<line x1="1039.8" y1="801" x2="860.1999999999999" y2="801" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#arrGray)"/>
+<circle cx="1039.8" cy="801" r="8.5" fill="#1f2937"/>
+<text x="1039.8" y="804.2" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">14</text>
+<text x="884.1999999999999" y="793" font-size="9.5" fill="#0f172a" font-weight="bold">authenticated callback</text>
+<text x="884.1999999999999" y="814" font-size="9" fill="#64748b">signature + txn match + replay window — a callback is a claim, not proof (S-14)</text>
+<path d="M860.1999999999999,834 h26 v16 h-26" fill="none" stroke="#334155" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="856.1999999999999" cy="822" r="8.5" fill="#1f2937"/>
+<text x="856.1999999999999" y="825.2" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">15</text>
+<text x="898.1999999999999" y="841" font-size="9.5" fill="#0f172a" font-weight="bold">reconcile callback against the settlement file (T+1)</text>
+<text x="898.1999999999999" y="854" font-size="9" fill="#64748b">reconciliation decides whether money moved — not the callback, not a DB restore (S-15)</text>
+<line x1="860.1999999999999" y1="883" x2="501.0" y2="883" stroke="#334155" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="860.1999999999999" cy="883" r="8.5" fill="#1f2937"/>
+<text x="860.1999999999999" y="886.2" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">16</text>
+<text x="525.0" y="875" font-size="9.5" fill="#0f172a" font-weight="bold">stage := PAYMENT_RECONCILED</text>
+<text x="525.0" y="896" font-size="9" fill="#64748b">UNCERTAIN never becomes success by timeout, retry or optimism</text>
+<line x1="501.0" y1="924" x2="1578.6" y2="924" stroke="#334155" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="501.0" cy="924" r="8.5" fill="#1f2937"/>
+<text x="501.0" y="927.2" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">17</text>
+<text x="517.0" y="916" font-size="9.5" fill="#0f172a" font-weight="bold">request issuance</text>
+<text x="517.0" y="937" font-size="9" fill="#64748b">issuance is attempted only against a RECONCILED payment (SC-W3-4)</text>
+<line x1="1578.6" y1="965" x2="1219.3999999999999" y2="965" stroke="#334155" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="1578.6" cy="965" r="8.5" fill="#1f2937"/>
+<text x="1578.6" y="968.2" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">18</text>
+<text x="1243.3999999999999" y="957" font-size="9.5" fill="#0f172a" font-weight="bold">issue policy → policyNo + document reference</text>
+<text x="1243.3999999999999" y="978" font-size="9" fill="#64748b">via the same provider seam; no direct insurer call exists</text>
+<line x1="1578.6" y1="1006" x2="501.0" y2="1006" stroke="#334155" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="1578.6" cy="1006" r="8.5" fill="#1f2937"/>
+<text x="1578.6" y="1009.2" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">19</text>
+<text x="525.0" y="998" font-size="9.5" fill="#0f172a" font-weight="bold">stage := POLICY_ISSUED</text>
+<text x="525.0" y="1019" font-size="9" fill="#64748b">issued is still not sold</text>
+<line x1="501.0" y1="1047" x2="1758.2" y2="1047" stroke="#334155" stroke-width="1.5" marker-end="url(#arr)"/>
+<circle cx="501.0" cy="1047" r="8.5" fill="#1f2937"/>
+<text x="501.0" y="1050.2" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">20</text>
+<text x="517.0" y="1039" font-size="9.5" fill="#0f172a" font-weight="bold">SOLD gate — issued ∧ reconciled ∧ audit complete (INV-JRN-05)</text>
+<text x="517.0" y="1060" font-size="9" fill="#64748b">audit completeness is a precondition, not a post-hoc report</text>
+<rect x="52" y="1087" width="1796" height="44" rx="7" fill="#ecfdf5" stroke="#059669" stroke-width="1.6"/>
+<text x="68" y="1106" font-size="12" fill="#065f46" font-weight="bold">SOLD — and only here</text>
+<text x="202" y="1106" font-size="11" fill="#065f46" font-weight="bold">POLICY_ISSUED  ∧  PAYMENT_RECONCILED  ∧  AUDIT_COMPLETE</text>
+<text x="68" y="1122" font-size="9.5" fill="#475569">Any one leg missing leaves the journey in a named non-terminal state with an owned operations task (S-19). There is no state transition that reaches SOLD by elapsed time, by retry count, or by an operator's judgement.</text>
+<text x="52" y="1149" font-size="10" fill="#64748b" font-weight="bold" letter-spacing="1">FAILURE BRANCHES — EACH ONE IS A WAY A LEG OF THE INVARIANT GOES MISSING</text>
+<rect x="52.0" y="1159" width="349.6" height="208" rx="7" fill="#fff7ed" stroke="#ea580c" stroke-width="1.4"/>
+<rect x="52.0" y="1159" width="349.6" height="27" rx="7" fill="#ea580c"/>
+<rect x="52.0" y="1177" width="349.6" height="9" fill="#ea580c"/>
+<text x="63.0" y="1177" font-size="10.5" fill="#ffffff" font-weight="bold">F1 · Callback never arrives</text>
+<text x="390.6" y="1177" font-size="8.5" fill="#ffedd5" text-anchor="end">after step 14</text>
+<text x="63.0" y="1205" font-size="8.5" fill="#9a3412" font-weight="bold">Detect</text>
+<text x="63.0" y="1217" font-size="9" fill="#334155">no authenticated callback inside the session window</text>
+<text x="63.0" y="1234" font-size="8.5" fill="#9a3412" font-weight="bold">State</text>
+<text x="63.0" y="1246" font-size="9" fill="#334155">payment := UNCERTAIN — never SUCCESS, never FAILED</text>
+<text x="63.0" y="1263" font-size="8.5" fill="#9a3412" font-weight="bold">Resolve</text>
+<text x="63.0" y="1275" font-size="9" fill="#334155">T+1 settlement file is the arbiter (S-15)</text>
+<text x="63.0" y="1292" font-size="8.5" fill="#9a3412" font-weight="bold">If unresolved</text>
+<text x="63.0" y="1304" font-size="9" fill="#334155">ops break task (S-19); journey blocked from SOLD</text>
+<text x="63.0" y="1321" font-size="8.5" fill="#9a3412" font-weight="bold">Never</text>
+<text x="63.0" y="1333" font-size="9" fill="#b91c1c">assume success · re-charge · let the RM 'confirm' it</text>
+<rect x="413.6" y="1159" width="349.6" height="208" rx="7" fill="#fff7ed" stroke="#ea580c" stroke-width="1.4"/>
+<rect x="413.6" y="1159" width="349.6" height="27" rx="7" fill="#ea580c"/>
+<rect x="413.6" y="1177" width="349.6" height="9" fill="#ea580c"/>
+<text x="424.6" y="1177" font-size="10.5" fill="#ffffff" font-weight="bold">F2 · Duplicate submission</text>
+<text x="752.2" y="1177" font-size="8.5" fill="#ffedd5" text-anchor="end">steps 1, 4, 9</text>
+<text x="424.6" y="1205" font-size="8.5" fill="#9a3412" font-weight="bold">Detect</text>
+<text x="424.6" y="1217" font-size="9" fill="#334155">same idempotency key seen inside the 24 h contract</text>
+<text x="424.6" y="1234" font-size="8.5" fill="#9a3412" font-weight="bold">State</text>
+<text x="424.6" y="1246" font-size="9" fill="#334155">unchanged — the first result is replayed verbatim</text>
+<text x="424.6" y="1263" font-size="8.5" fill="#9a3412" font-weight="bold">Resolve</text>
+<text x="424.6" y="1275" font-size="9" fill="#334155">identical body → original response (INV-ACL-01)</text>
+<text x="424.6" y="1292" font-size="8.5" fill="#9a3412" font-weight="bold">If changed</text>
+<text x="424.6" y="1304" font-size="9" fill="#334155">409 — a changed replay is a defect, not an update</text>
+<text x="424.6" y="1321" font-size="8.5" fill="#9a3412" font-weight="bold">Never</text>
+<text x="424.6" y="1333" font-size="9" fill="#b91c1c">create a second proposal or a second charge</text>
+<rect x="775.2" y="1159" width="349.6" height="208" rx="7" fill="#fff7ed" stroke="#ea580c" stroke-width="1.4"/>
+<rect x="775.2" y="1159" width="349.6" height="27" rx="7" fill="#ea580c"/>
+<rect x="775.2" y="1177" width="349.6" height="9" fill="#ea580c"/>
+<text x="786.2" y="1177" font-size="10.5" fill="#ffffff" font-weight="bold">F3 · Issued but unreconciled</text>
+<text x="1113.8000000000002" y="1177" font-size="8.5" fill="#ffedd5" text-anchor="end">after step 18</text>
+<text x="786.2" y="1205" font-size="8.5" fill="#9a3412" font-weight="bold">Detect</text>
+<text x="786.2" y="1217" font-size="9" fill="#334155">policy exists at the insurer; payment ≠ RECONCILED</text>
+<text x="786.2" y="1234" font-size="8.5" fill="#9a3412" font-weight="bold">State</text>
+<text x="786.2" y="1246" font-size="9" fill="#334155">journey stays NOT SOLD — visibly, in the RM workspace</text>
+<text x="786.2" y="1263" font-size="8.5" fill="#9a3412" font-weight="bold">Resolve</text>
+<text x="786.2" y="1275" font-size="9" fill="#334155">finance break queue; refund or recover to reconciled</text>
+<text x="786.2" y="1292" font-size="8.5" fill="#9a3412" font-weight="bold">If persists</text>
+<text x="786.2" y="1304" font-size="9" fill="#334155">escalates as a money-movement exception, not a bug</text>
+<text x="786.2" y="1321" font-size="8.5" fill="#9a3412" font-weight="bold">Never</text>
+<text x="786.2" y="1333" font-size="9" fill="#b91c1c">report the sale because the policy number exists</text>
+<rect x="1136.8000000000002" y="1159" width="349.6" height="208" rx="7" fill="#fff7ed" stroke="#ea580c" stroke-width="1.4"/>
+<rect x="1136.8000000000002" y="1159" width="349.6" height="27" rx="7" fill="#ea580c"/>
+<rect x="1136.8000000000002" y="1177" width="349.6" height="9" fill="#ea580c"/>
+<text x="1147.8000000000002" y="1177" font-size="10.5" fill="#ffffff" font-weight="bold">F4 · Insurer silent / timing out</text>
+<text x="1475.4" y="1177" font-size="8.5" fill="#ffedd5" text-anchor="end">steps 5–7, 18</text>
+<text x="1147.8000000000002" y="1205" font-size="8.5" fill="#9a3412" font-weight="bold">Detect</text>
+<text x="1147.8000000000002" y="1217" font-size="9" fill="#334155">no ack, or poll deadline exceeded on insurerRef</text>
+<text x="1147.8000000000002" y="1234" font-size="8.5" fill="#9a3412" font-weight="bold">State</text>
+<text x="1147.8000000000002" y="1246" font-size="9" fill="#334155">journey resumable at its recorded stage (S-12)</text>
+<text x="1147.8000000000002" y="1263" font-size="8.5" fill="#9a3412" font-weight="bold">Resolve</text>
+<text x="1147.8000000000002" y="1275" font-size="9" fill="#334155">status recovered by reference — submission is never repeated</text>
+<text x="1147.8000000000002" y="1292" font-size="8.5" fill="#9a3412" font-weight="bold">If degraded</text>
+<text x="1147.8000000000002" y="1304" font-size="9" fill="#334155">per-provider bulkhead contains it to one insurer</text>
+<text x="1147.8000000000002" y="1321" font-size="8.5" fill="#9a3412" font-weight="bold">Never</text>
+<text x="1147.8000000000002" y="1333" font-size="9" fill="#b91c1c">blind resubmit · hold a user connection open</text>
+<rect x="1498.4" y="1159" width="349.6" height="208" rx="7" fill="#fff7ed" stroke="#ea580c" stroke-width="1.4"/>
+<rect x="1498.4" y="1159" width="349.6" height="27" rx="7" fill="#ea580c"/>
+<rect x="1498.4" y="1177" width="349.6" height="9" fill="#ea580c"/>
+<text x="1509.4" y="1177" font-size="10.5" fill="#ffffff" font-weight="bold">F5 · Audit write fails</text>
+<text x="1837.0" y="1177" font-size="8.5" fill="#ffedd5" text-anchor="end">any step</text>
+<text x="1509.4" y="1205" font-size="8.5" fill="#9a3412" font-weight="bold">Detect</text>
+<text x="1509.4" y="1217" font-size="9" fill="#334155">outbox row unconsumed past its threshold (S-17)</text>
+<text x="1509.4" y="1234" font-size="8.5" fill="#9a3412" font-weight="bold">State</text>
+<text x="1509.4" y="1246" font-size="9" fill="#334155">business action retained and retried, at-least-once</text>
+<text x="1509.4" y="1263" font-size="8.5" fill="#9a3412" font-weight="bold">Resolve</text>
+<text x="1509.4" y="1275" font-size="9" fill="#334155">journey completion waits for required evidence</text>
+<text x="1509.4" y="1292" font-size="8.5" fill="#9a3412" font-weight="bold">If lost</text>
+<text x="1509.4" y="1304" font-size="9" fill="#334155">SOLD is unreachable — the third leg cannot be waived</text>
+<text x="1509.4" y="1321" font-size="8.5" fill="#9a3412" font-weight="bold">Never</text>
+<text x="1509.4" y="1333" font-size="9" fill="#b91c1c">complete a regulated journey on partial evidence</text>
+<line x1="52" y1="1375" x2="1848" y2="1375" stroke="#cbd5e1" stroke-width="1"/>
+<line x1="52" y1="1389" x2="86" y2="1389" stroke="#334155" stroke-width="1.5" marker-end="url(#arr)"/>
+<text x="94" y="1393" font-size="9.5" fill="#475569">synchronous call — caller waits, deadline enforced</text>
+<line x1="392" y1="1389" x2="426" y2="1389" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#arrGray)"/>
+<text x="434" y="1393" font-size="9.5" fill="#475569">asynchronous — outbox event, poll, or provider callback</text>
+<rect x="752" y="1381" width="22" height="13" rx="6.5" fill="#dc2626"/>
+<text x="763" y="1390.7" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="bold">C4</text>
+<text x="782" y="1393" font-size="9.5" fill="#475569">non-waivable control</text>
+<circle cx="914" cy="1388" r="8.5" fill="#dc2626"/>
+<text x="914" y="1391.2" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="bold">2</text>
+<text x="928" y="1393" font-size="9.5" fill="#475569">hard gate — fails closed</text>
+<text x="1092" y="1393" font-size="9.5" fill="#475569">#n bounded context (business-problem-statement §6) · S-nn / INV-* / FF-nn as used in docs/hdl.svg · W1–W4 build waves</text>
+<text x="52" y="1430" font-size="9.5" fill="#64748b" font-weight="bold">DRAFT FOR REVIEW · v0.1 · not approved, not authorised for development · AI-drafted companion to the hand-authored R0 HLD</text>
+<text x="1848" y="1430" font-size="9.5" fill="#64748b" text-anchor="end">WS-3 · S07 solution architecture · gate criteria S07-G1 / S07-G3</text>
+</svg>

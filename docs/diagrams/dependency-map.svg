@@ -1,0 +1,150 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1900" height="1000" viewBox="0 0 1900 1000" font-family="Helvetica, Arial, sans-serif">
+<defs>
+<marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#334155"/></marker>
+<marker id="arrGray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/></marker>
+<marker id="arrRed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker>
+<marker id="arrGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker>
+</defs>
+<rect width="1900" height="1000" fill="#ffffff"/>
+<text x="950.0" y="36.0" font-size="25" fill="#0f172a" text-anchor="middle" font-weight="bold">AU Bank Insurance Distribution Platform — Dependency Map &amp; Critical Path</text>
+<text x="950.0" y="60.0" font-size="12.5" fill="#475569" text-anchor="middle">a dependency without a required-by date and one named owner is not managed · dates below are PROPOSED and become real when Kalpana sets them at the review</text>
+<rect x="52.0" y="84.0" width="1796.0" height="50.0" rx="7" fill="#fff7ed" stroke="#ea580c" stroke-width="1.6"/>
+<text x="68.0" y="103.0" font-size="12" fill="#9a3412" font-weight="bold">Every date on this diagram is a proposal, and every one of them is empty in the v0.1 pack</text>
+<text x="68.0" y="119.0" font-size="9.5" fill="#475569">The v0.1 register listed fifteen dependencies with providers and no dates, and owners expressed as three-way groups. Both are corrected here: one name, one date, one escalation trigger. Delivery owns the dates — architecture owns only the shape.</text>
+<rect x="52.0" y="168.0" width="1796.0" height="26.0" rx="5" fill="#fff7ed" stroke="#ea580c" stroke-width="1.3"/>
+<text x="64.0" y="186.0" font-size="11" fill="#0f172a" font-weight="bold">Foundation — blocks everything</text>
+<rect x="52.0" y="400.0" width="1796.0" height="26.0" rx="5" fill="#ffffff" stroke="#94a3b8" stroke-width="1.3"/>
+<text x="64.0" y="418.0" font-size="11" fill="#0f172a" font-weight="bold">External access &amp; contracts</text>
+<rect x="52.0" y="632.0" width="1796.0" height="26.0" rx="5" fill="#fef3c7" stroke="#d97706" stroke-width="1.3"/>
+<text x="64.0" y="650.0" font-size="11" fill="#0f172a" font-weight="bold">Product &amp; compliance decisions</text>
+<rect x="52.0" y="200.0" width="349.6" height="108.0" rx="6" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.3"/>
+<text x="63.0" y="219.0" font-size="9.5" fill="#334155" font-weight="bold">D-01</text>
+<text x="390.6" y="219.0" font-size="8.8" fill="#0f172a" text-anchor="end" font-weight="bold">GATE-S08</text>
+<text x="63.0" y="234.0" font-size="9.5" fill="#0f172a" font-weight="bold">CI with enforced quality, security and architecture gates</text>
+<text x="63.0" y="247.0" font-size="8.8" fill="#475569">needed for every downstream E3/E4 evidence claim</text>
+<text x="63.0" y="286.0" font-size="9" fill="#334155" font-weight="bold">Amit</text>
+<text x="63.0" y="298.0" font-size="8.8" fill="#64748b">In progress</text>
+<rect x="413.6" y="200.0" width="349.6" height="108.0" rx="6" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.3"/>
+<text x="424.6" y="219.0" font-size="9.5" fill="#334155" font-weight="bold">D-02</text>
+<text x="752.2" y="219.0" font-size="8.8" fill="#0f172a" text-anchor="end" font-weight="bold">S09 critical path</text>
+<text x="424.6" y="234.0" font-size="9.5" fill="#0f172a" font-weight="bold">IaC, environments, secrets, KMS hierarchy</text>
+<text x="424.6" y="247.0" font-size="8.8" fill="#475569">needed for any deployable service</text>
+<text x="424.6" y="286.0" font-size="9" fill="#334155" font-weight="bold">Shivanshi</text>
+<text x="424.6" y="298.0" font-size="8.8" fill="#64748b">In progress</text>
+<rect x="775.2" y="200.0" width="349.6" height="108.0" rx="6" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.3"/>
+<text x="786.2" y="219.0" font-size="9.5" fill="#334155" font-weight="bold">D-03</text>
+<text x="1113.8" y="219.0" font-size="8.8" fill="#0f172a" text-anchor="end" font-weight="bold">S09</text>
+<text x="786.2" y="234.0" font-size="9.5" fill="#0f172a" font-weight="bold">Observability substrate + 7-year WORM retention in ap-south-1</text>
+<text x="786.2" y="247.0" font-size="8.8" fill="#475569">needed for audit evidence, SLO measurement</text>
+<text x="786.2" y="286.0" font-size="9" fill="#334155" font-weight="bold">Shivanshi</text>
+<text x="786.2" y="298.0" font-size="8.8" fill="#64748b">Not started</text>
+<rect x="1136.8" y="200.0" width="349.6" height="108.0" rx="6" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.3"/>
+<text x="1147.8" y="219.0" font-size="9.5" fill="#334155" font-weight="bold">D-04</text>
+<text x="1475.4" y="219.0" font-size="8.8" fill="#0f172a" text-anchor="end" font-weight="bold">S09</text>
+<text x="1147.8" y="234.0" font-size="9.5" fill="#0f172a" font-weight="bold">India-based dev / UAT / prod environments</text>
+<text x="1147.8" y="247.0" font-size="8.8" fill="#475569">needed for everything that must stay in-country</text>
+<text x="1147.8" y="286.0" font-size="9" fill="#334155" font-weight="bold">Shivanshi</text>
+<text x="1147.8" y="298.0" font-size="8.8" fill="#64748b">Not started</text>
+<rect x="52.0" y="432.0" width="349.6" height="108.0" rx="6" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.3"/>
+<text x="63.0" y="451.0" font-size="9.5" fill="#334155" font-weight="bold">D-05</text>
+<text x="390.6" y="451.0" font-size="8.8" fill="#0f172a" text-anchor="end" font-weight="bold">before W1 build</text>
+<text x="63.0" y="466.0" font-size="9.5" fill="#0f172a" font-weight="bold">Workforce identity + PDP interface and test realm (WS-2)</text>
+<text x="63.0" y="479.0" font-size="8.8" fill="#475569">needed for any authenticated journey step</text>
+<text x="63.0" y="518.0" font-size="9" fill="#334155" font-weight="bold">Deepali</text>
+<text x="63.0" y="530.0" font-size="8.8" fill="#64748b">Interface agreed</text>
+<rect x="413.6" y="432.0" width="349.6" height="108.0" rx="6" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.3"/>
+<text x="424.6" y="451.0" font-size="9.5" fill="#334155" font-weight="bold">D-06</text>
+<text x="752.2" y="451.0" font-size="8.8" fill="#0f172a" text-anchor="end" font-weight="bold">before W1 build</text>
+<text x="424.6" y="466.0" font-size="9.5" fill="#0f172a" font-weight="bold">Core banking customer lookup — interface, access, test data</text>
+<text x="424.6" y="479.0" font-size="8.8" fill="#475569">needed for step 2 of the quote path</text>
+<text x="424.6" y="518.0" font-size="9" fill="#334155" font-weight="bold">CBS owner</text>
+<text x="424.6" y="530.0" font-size="8.8" fill="#64748b">Not contracted</text>
+<rect x="775.2" y="432.0" width="349.6" height="108.0" rx="6" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.3"/>
+<text x="786.2" y="451.0" font-size="9.5" fill="#334155" font-weight="bold">D-07</text>
+<text x="1113.8" y="451.0" font-size="8.8" fill="#0f172a" text-anchor="end" font-weight="bold">before W2 build</text>
+<text x="786.2" y="466.0" font-size="9.5" fill="#0f172a" font-weight="bold">1SB / insurer access — contract, credentials, limits, sandbox</text>
+<text x="786.2" y="479.0" font-size="8.8" fill="#475569">needed for quote, proposal, issuance</text>
+<text x="786.2" y="518.0" font-size="9" fill="#334155" font-weight="bold">WS-1 owner</text>
+<text x="786.2" y="530.0" font-size="8.8" fill="#64748b">Adapter exists; limits unknown</text>
+<rect x="1136.8" y="432.0" width="349.6" height="108.0" rx="6" fill="#fff7ed" stroke="#ea580c" stroke-width="1.6"/>
+<text x="1147.8" y="451.0" font-size="9.5" fill="#9a3412" font-weight="bold">D-08</text>
+<text x="1475.4" y="451.0" font-size="8.8" fill="#0f172a" text-anchor="end" font-weight="bold">before W3 build</text>
+<text x="1147.8" y="466.0" font-size="9.5" fill="#0f172a" font-weight="bold">AU Bank PG — contract, callback signing, settlement format</text>
+<text x="1147.8" y="479.0" font-size="8.8" fill="#475569">needed for the entire money path</text>
+<text x="1147.8" y="518.0" font-size="9" fill="#334155" font-weight="bold">Finance</text>
+<text x="1147.8" y="530.0" font-size="8.8" fill="#b91c1c" font-weight="bold">BLOCKING — no Finance seat</text>
+<rect x="1498.4" y="432.0" width="349.6" height="108.0" rx="6" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.3"/>
+<text x="1509.4" y="451.0" font-size="9.5" fill="#334155" font-weight="bold">D-09</text>
+<text x="1837.0" y="451.0" font-size="8.8" fill="#0f172a" text-anchor="end" font-weight="bold">before W3 build</text>
+<text x="1509.4" y="466.0" font-size="9.5" fill="#0f172a" font-weight="bold">Messaging provider — sender approval, test account</text>
+<text x="1509.4" y="479.0" font-size="8.8" fill="#475569">needed for OTP and payment-link delivery</text>
+<text x="1509.4" y="518.0" font-size="9" fill="#334155" font-weight="bold">Ops</text>
+<text x="1509.4" y="530.0" font-size="8.8" fill="#64748b">Not started</text>
+<rect x="52.0" y="664.0" width="349.6" height="108.0" rx="6" fill="#fff7ed" stroke="#ea580c" stroke-width="1.6"/>
+<text x="63.0" y="683.0" font-size="9.5" fill="#9a3412" font-weight="bold">D-10</text>
+<text x="390.6" y="683.0" font-size="8.8" fill="#0f172a" text-anchor="end" font-weight="bold">before W2 build</text>
+<text x="63.0" y="698.0" font-size="9.5" fill="#0f172a" font-weight="bold">Consent rule pack — Compliance signature at E2</text>
+<text x="63.0" y="711.0" font-size="8.8" fill="#475569">needed for C2 gate; S11 entry (non-waivable)</text>
+<text x="63.0" y="750.0" font-size="9" fill="#334155" font-weight="bold">Shailja</text>
+<text x="63.0" y="762.0" font-size="8.8" fill="#b45309" font-weight="bold">Content ready, unsigned</text>
+<rect x="413.6" y="664.0" width="349.6" height="108.0" rx="6" fill="#fff7ed" stroke="#ea580c" stroke-width="1.6"/>
+<text x="424.6" y="683.0" font-size="9.5" fill="#9a3412" font-weight="bold">D-11</text>
+<text x="752.2" y="683.0" font-size="8.8" fill="#0f172a" text-anchor="end" font-weight="bold">before W2 build</text>
+<text x="424.6" y="698.0" font-size="9.5" fill="#0f172a" font-weight="bold">Suitability rule pack — Compliance signature at E2</text>
+<text x="424.6" y="711.0" font-size="8.8" fill="#475569">needed for C1 gate; S11 entry (non-waivable)</text>
+<text x="424.6" y="750.0" font-size="9" fill="#334155" font-weight="bold">Shailja</text>
+<text x="424.6" y="762.0" font-size="8.8" fill="#b45309" font-weight="bold">Content ready, unsigned</text>
+<rect x="775.2" y="664.0" width="349.6" height="108.0" rx="6" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.3"/>
+<text x="786.2" y="683.0" font-size="9.5" fill="#334155" font-weight="bold">D-12</text>
+<text x="1113.8" y="683.0" font-size="8.8" fill="#0f172a" text-anchor="end" font-weight="bold">before W1 build</text>
+<text x="786.2" y="698.0" font-size="9.5" fill="#0f172a" font-weight="bold">R0 product &amp; insurer matrix confirmed</text>
+<text x="786.2" y="711.0" font-size="8.8" fill="#475569">needed for catalogue, suitability, quote</text>
+<text x="786.2" y="750.0" font-size="9" fill="#334155" font-weight="bold">Rajal</text>
+<text x="786.2" y="762.0" font-size="8.8" fill="#64748b">Term/Group A stated, not signed</text>
+<rect x="1136.8" y="664.0" width="349.6" height="108.0" rx="6" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.3"/>
+<text x="1147.8" y="683.0" font-size="9.5" fill="#334155" font-weight="bold">D-13</text>
+<text x="1475.4" y="683.0" font-size="8.8" fill="#0f172a" text-anchor="end" font-weight="bold">before W3 build</text>
+<text x="1147.8" y="698.0" font-size="9.5" fill="#0f172a" font-weight="bold">Data classification &amp; retention schedule</text>
+<text x="1147.8" y="711.0" font-size="8.8" fill="#475569">needed for S07-G5 sign-off, storage design</text>
+<text x="1147.8" y="750.0" font-size="9" fill="#334155" font-weight="bold">Shailja + Aarti</text>
+<text x="1147.8" y="762.0" font-size="8.8" fill="#64748b">Not started</text>
+<rect x="1498.4" y="664.0" width="349.6" height="108.0" rx="6" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.3"/>
+<text x="1509.4" y="683.0" font-size="9.5" fill="#334155" font-weight="bold">D-14</text>
+<text x="1837.0" y="683.0" font-size="8.8" fill="#0f172a" text-anchor="end" font-weight="bold">before W2 build</text>
+<text x="1509.4" y="698.0" font-size="9.5" fill="#0f172a" font-weight="bold">R0 acceptance criteria and traceability</text>
+<text x="1509.4" y="711.0" font-size="8.8" fill="#475569">needed for QA scope, gate evidence</text>
+<text x="1509.4" y="750.0" font-size="9" fill="#334155" font-weight="bold">Rajal + R11 BA</text>
+<text x="1509.4" y="762.0" font-size="8.8" fill="#64748b">Partial</text>
+<rect x="1860.0" y="664.0" width="349.6" height="108.0" rx="6" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.3"/>
+<text x="1871.0" y="683.0" font-size="9.5" fill="#334155" font-weight="bold">D-15</text>
+<text x="2198.6" y="683.0" font-size="8.8" fill="#0f172a" text-anchor="end" font-weight="bold">before W3 build</text>
+<text x="1871.0" y="698.0" font-size="9.5" fill="#0f172a" font-weight="bold">Operations ownership, runbooks, response targets</text>
+<text x="1871.0" y="711.0" font-size="8.8" fill="#475569">needed for break handling, F1–F5</text>
+<text x="1871.0" y="750.0" font-size="9" fill="#334155" font-weight="bold">Shivanshi</text>
+<text x="1871.0" y="762.0" font-size="8.8" fill="#64748b">Not started</text>
+<text x="52.0" y="800.0" font-size="10" fill="#64748b" font-weight="bold" letter-spacing="1">CRITICAL PATH TO THE FIRST PROVEN JOURNEY — THE SHORTEST HONEST SEQUENCE</text>
+<polygon points="52.0,814 285.42857142857144,814 297.42857142857144,834.0 285.42857142857144,854 52.0,854 64.0,834.0" fill="#1f2937"/>
+<text x="174.7" y="837.6" font-size="10" fill="#ffffff" text-anchor="middle">GATE-S08 · CI enforced</text>
+<polygon points="310.42857142857144,814 543.8571428571429,814 555.8571428571429,834.0 543.8571428571429,854 310.42857142857144,854 322.42857142857144,834.0" fill="#1f2937"/>
+<text x="433.1" y="837.6" font-size="10" fill="#ffffff" text-anchor="middle">S09 · platform + retention</text>
+<polygon points="568.8571428571429,814 802.2857142857143,814 814.2857142857143,834.0 802.2857142857143,854 568.8571428571429,854 580.8571428571429,834.0" fill="#1f2937"/>
+<text x="691.6" y="837.6" font-size="10" fill="#ffffff" text-anchor="middle">W1 · journey spine + Hub</text>
+<polygon points="827.2857142857143,814 1060.7142857142858,814 1072.7142857142858,834.0 1060.7142857142858,854 827.2857142857143,854 839.2857142857143,834.0" fill="#1f2937"/>
+<text x="950.0" y="837.6" font-size="10" fill="#ffffff" text-anchor="middle">W2 · C1/C2 gates + quote</text>
+<polygon points="1085.7142857142858,814 1319.142857142857,814 1331.142857142857,834.0 1319.142857142857,854 1085.7142857142858,854 1097.7142857142858,834.0" fill="#1f2937"/>
+<text x="1208.4" y="837.6" font-size="10" fill="#ffffff" text-anchor="middle">W3 · money path + audit</text>
+<polygon points="1344.1428571428573,814 1577.5714285714287,814 1589.5714285714287,834.0 1577.5714285714287,854 1344.1428571428573,854 1356.1428571428573,834.0" fill="#1f2937"/>
+<text x="1466.9" y="837.6" font-size="10" fill="#ffffff" text-anchor="middle">W4 · Flutter + BFF</text>
+<polygon points="1602.5714285714287,814 1836.0,814 1848.0,834.0 1836.0,854 1602.5714285714287,854 1614.5714285714287,834.0" fill="#1f2937"/>
+<text x="1725.3" y="837.6" font-size="10" fill="#ffffff" text-anchor="middle">GATE-S11 · one proven journey</text>
+<text x="52.0" y="874.0" font-size="9.5" fill="#475569">Nothing in W1 or later starts before GATE-S08 passes and the S09 critical path lands (03-solution-architecture-r0.md §3). Two dependencies sit off this path and can still stop it: D-08 has no Finance owner seated, and D-10 / D-11 are non-waivable S11 entry conditions under DEC-20260816-06.</text>
+<line x1="52.0" y1="916.0" x2="1848.0" y2="916.0" stroke="#cbd5e1" stroke-width="1"/>
+<rect x="52.0" y="921.0" width="16.0" height="14.0" rx="3" fill="#fff7ed" stroke="#ea580c" stroke-width="1.3"/>
+<text x="76.0" y="934.0" font-size="9.5" fill="#475569">blocking or unowned — needs a decision at the review</text>
+<rect x="346.2" y="921.0" width="16.0" height="14.0" rx="3" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.3"/>
+<text x="370.2" y="934.0" font-size="9.5" fill="#475569">tracked, owner named</text>
+<text x="492.6" y="934.0" font-size="9.5" fill="#475569"></text>
+<text x="752.0" y="934.0" font-size="9.5" fill="#475569">Dates shown are PROPOSED. They become commitments only when Delivery sets them and the provider agrees — an architecture document cannot create a delivery date.</text>
+<text x="52.0" y="978.0" font-size="9.5" fill="#64748b" font-weight="bold">DRAFT FOR REVIEW · v0.2 · not approved, not authorised for development · AI-drafted; no human signature</text>
+<text x="1848.0" y="978.0" font-size="9.5" fill="#64748b" text-anchor="end">WS-3 · AU Bank Insurance Distribution Platform · R0</text>
+</svg>

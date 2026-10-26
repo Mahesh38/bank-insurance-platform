@@ -22,9 +22,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
  *
  * <p>The asymmetry this class used to encode — a validation failure explains itself, an
  * authentication failure deliberately does not — became a single rule covering both. The validation
- * path could not keep the promise: the {@link IllegalArgumentException}s reaching it include
- * {@code "workforce.session.encryption-key must decode to 32 bytes"}, an internal configuration
- * detail, and nothing in the type system stopped it reaching a device.
+ * path could not keep the promise: the {@link IllegalArgumentException}s reaching it include {@code
+ * "workforce.session.encryption-key must decode to 32 bytes"}, an internal configuration detail,
+ * and nothing in the type system stopped it reaching a device.
  *
  * <p>Nothing is lost for debugging. The message moves to the diagnostic, is logged with the
  * incident id, and the caller is handed that id.
@@ -32,33 +32,38 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class BffExceptionHandler extends PlatformErrorHandler {
 
-    public BffExceptionHandler(ErrorHandlingSettings settings, ErrorRecorder recorder) {
-        super(settings, recorder);
-    }
+  public BffExceptionHandler(ErrorHandlingSettings settings, ErrorRecorder recorder) {
+    super(settings, recorder);
+  }
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ServiceErrorResponse> invalidRequest(IllegalArgumentException exception) {
-        return emit(authFailure(ErrorCodes.SCHEMA_INVALID, "AuthenticationController", exception), exception);
-    }
+  @ExceptionHandler(IllegalArgumentException.class)
+  public ResponseEntity<ServiceErrorResponse> invalidRequest(IllegalArgumentException exception) {
+    return emit(
+        authFailure(ErrorCodes.SCHEMA_INVALID, "AuthenticationController", exception), exception);
+  }
 
-    @ExceptionHandler(SessionInvalidException.class)
-    public ResponseEntity<ServiceErrorResponse> sessionInvalid(SessionInvalidException exception) {
-        return emit(authFailure(ErrorCodes.SESSION_INVALID, "AuthenticationController", exception), exception);
-    }
+  @ExceptionHandler(SessionInvalidException.class)
+  public ResponseEntity<ServiceErrorResponse> sessionInvalid(SessionInvalidException exception) {
+    return emit(
+        authFailure(ErrorCodes.SESSION_INVALID, "AuthenticationController", exception), exception);
+  }
 
-    @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<ServiceErrorResponse> authenticationDenied(IllegalStateException exception) {
-        return emit(authFailure(ErrorCodes.AUTHENTICATION_FAILED, "LoginService", exception), exception);
-    }
+  @ExceptionHandler(IllegalStateException.class)
+  public ResponseEntity<ServiceErrorResponse> authenticationDenied(
+      IllegalStateException exception) {
+    return emit(
+        authFailure(ErrorCodes.AUTHENTICATION_FAILED, "LoginService", exception), exception);
+  }
 
-    private ServiceErrorResponse authFailure(String code, String component, RuntimeException exception) {
-        return ServiceException.of(code)
-            .service(settings().serviceId())
-            .layer(PlatformLayer.L4)
-            .component(component)
-            .reason(exception.getMessage())
-            .cause(exception)
-            .build()
-            .getErrorResponse();
-    }
+  private ServiceErrorResponse authFailure(
+      String code, String component, RuntimeException exception) {
+    return ServiceException.of(code)
+        .service(settings().serviceId())
+        .layer(PlatformLayer.L4)
+        .component(component)
+        .reason(exception.getMessage())
+        .cause(exception)
+        .build()
+        .getErrorResponse();
+  }
 }

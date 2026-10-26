@@ -1,6 +1,7 @@
 package com.bank.workforce.bff.api;
 
 import com.bank.workforce.bff.application.LoginService;
+import com.bank.workforce.bff.application.SessionInvalidException;
 import com.bank.workforce.bff.config.WorkforceSessionProperties;
 import com.bank.workforce.bff.session.SessionModels.ClientType;
 import com.bank.workforce.bff.session.SessionModels.IdentitySource;
@@ -128,7 +129,7 @@ public class AuthenticationController {
   private String requireHandle(String nativeHandle, String browserHandle) {
     String handle = nativeHandle != null && !nativeHandle.isBlank() ? nativeHandle : browserHandle;
     if (handle == null || handle.isBlank()) {
-      throw new IllegalArgumentException("Session handle is required");
+      throw new SessionInvalidException("Session handle is required");
     }
     return handle;
   }

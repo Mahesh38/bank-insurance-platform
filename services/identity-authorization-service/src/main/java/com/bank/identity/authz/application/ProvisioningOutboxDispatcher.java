@@ -2,6 +2,7 @@ package com.bank.identity.authz.application;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
@@ -87,7 +88,7 @@ public class ProvisioningOutboxDispatcher {
                            fetch first :limit rows only
                           """
                               + lockClause())
-                      .param("now", now)
+                      .param("now", Timestamp.from(now))
                       .param("limit", batchSize)
                       .query(
                           (rs, rowNum) ->
@@ -97,7 +98,7 @@ public class ProvisioningOutboxDispatcher {
                       .list();
               if (!items.isEmpty()) {
                 jdbc.sql("update outbox_event set claimed_until = :until where id in (:ids)")
-                    .param("until", now.plus(lease))
+                    .param("until", Timestamp.from(now.plus(lease)))
                     .param("ids", items.stream().map(OutboxItem::eventId).toList())
                     .update();
               }
@@ -132,7 +133,7 @@ public class ProvisioningOutboxDispatcher {
             .orElse(0);
     if (attempts >= maxAttempts) {
       jdbc.sql("update outbox_event set dead_lettered_at = :now where id = :id")
-          .param("now", Instant.now())
+          .param("now", Timestamp.from(Instant.now()))
           .param("id", item.eventId())
           .update();
       log.error(

@@ -45,7 +45,7 @@ class AdVerifyControllerTest {
   }
 
   @Test
-  void stubVerifyReturnsFalseForInactiveOrWrongPassword() throws Exception {
+  void stubVerifyReportsInactiveSeparatelyFromWrongPassword() throws Exception {
     mockMvc
         .perform(
             adVerify(
@@ -64,7 +64,8 @@ class AdVerifyControllerTest {
                 {"employeeId":"EMP001","password":"nope"}
                 """))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.authenticated").value(false));
+        .andExpect(jsonPath("$.authenticated").value(false))
+        .andExpect(jsonPath("$.accountActive").value(true));
   }
 
   @Test

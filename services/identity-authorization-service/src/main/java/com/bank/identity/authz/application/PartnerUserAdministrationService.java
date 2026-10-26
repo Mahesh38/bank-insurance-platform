@@ -10,6 +10,7 @@ import com.bank.identity.authz.persistence.BusinessUserEntity;
 import com.bank.identity.authz.persistence.BusinessUserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -100,7 +101,7 @@ public class PartnerUserAdministrationService {
           .param("id", approvalId)
           .param("targetId", user.getId())
           .param("makerId", creatorId.toString())
-          .param("now", Instant.now())
+          .param("now", Timestamp.from(Instant.now()))
           .update();
     } else {
       enqueueProvisioning(user, creatorId);
@@ -192,7 +193,7 @@ public class PartnerUserAdministrationService {
                  where id = :id
                 """)
         .param("checkerId", checkerId.toString())
-        .param("now", Instant.now())
+        .param("now", Timestamp.from(Instant.now()))
         .param("id", approvalId)
         .update();
     enqueueProvisioning(user, checkerId);
@@ -217,7 +218,7 @@ public class PartnerUserAdministrationService {
         .param("aggregateId", aggregateId)
         .param("eventType", eventType)
         .param("payload", payload)
-        .param("now", Instant.now())
+        .param("now", Timestamp.from(Instant.now()))
         .update();
   }
 

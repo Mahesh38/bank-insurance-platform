@@ -47,14 +47,21 @@ class BankAdVerifyAdapterTest {
   }
 
   @Test
-  void stubRejectsUnknownWrongPasswordAndInactiveTheSameWay() {
+  void stubRejectsWrongPasswordAndUnknownAsCountableAndInactiveAsInactive() {
     BankAdVerifyAdapter adapter = stubAdapter();
 
-    assertThat(adapter.verify(new AdVerifyCommand("EMP001", "wrong")).accepted()).isFalse();
-    assertThat(adapter.verify(new AdVerifyCommand("UNKNOWN", "local-stub-password")).accepted())
-        .isFalse();
-    assertThat(adapter.verify(new AdVerifyCommand("EMP002", "local-stub-password")).accepted())
-        .isFalse();
+    var wrongPassword = adapter.verify(new AdVerifyCommand("EMP001", "wrong"));
+    assertThat(wrongPassword.accepted()).isFalse();
+    assertThat(wrongPassword.authenticated()).isFalse();
+    assertThat(wrongPassword.accountActive()).isTrue();
+
+    var unknown = adapter.verify(new AdVerifyCommand("UNKNOWN", "local-stub-password"));
+    assertThat(unknown.accepted()).isFalse();
+    assertThat(unknown.accountActive()).isTrue();
+
+    var inactive = adapter.verify(new AdVerifyCommand("EMP002", "local-stub-password"));
+    assertThat(inactive.accepted()).isFalse();
+    assertThat(inactive.accountActive()).isFalse();
   }
 
   @Test
@@ -82,15 +89,33 @@ class BankAdVerifyAdapterTest {
         .expect(requestTo("http://ad.example.test/ad/authenticate"))
         .andRespond(withSuccess("{\"authenticated\":false}", MediaType.APPLICATION_JSON));
 
-    assertThat(http.adapter().verify(new AdVerifyCommand("EMP001", "secret")).accepted()).isFalse();
+    var rejected = http.adapter().verify(new AdVerifyCommand("EMP001", "secret"));
+    assertThat(rejected.accepted()).isFalse();
+    assertThat(rejected.accountActive()).isTrue();
 
     TestHttp unauthorized = httpAdapter();
     unauthorized
         .server()
         .expect(requestTo("http://ad.example.test/ad/authenticate"))
         .andRespond(withUnauthorizedRequest());
-    assertThat(unauthorized.adapter().verify(new AdVerifyCommand("EMP001", "secret")).accepted())
-        .isFalse();
+    var refused = unauthorized.adapter().verify(new AdVerifyCommand("EMP001", "secret"));
+    assertThat(refused.accepted()).isFalse();
+    assertThat(refused.accountActive()).isTrue();
+  }
+
+  @Test
+  void httpReportsInactiveOnlyWhenTheDirectorySaysSo() {
+    TestHttp http = httpAdapter();
+    http.server()
+        .expect(requestTo("http://ad.example.test/ad/authenticate"))
+        .andRespond(
+            withSuccess(
+                "{\"authenticated\":false,\"accountActive\":false}", MediaType.APPLICATION_JSON));
+
+    var result = http.adapter().verify(new AdVerifyCommand("EMP002", "secret"));
+
+    assertThat(result.accepted()).isFalse();
+    assertThat(result.accountActive()).isFalse();
   }
 
   @Test

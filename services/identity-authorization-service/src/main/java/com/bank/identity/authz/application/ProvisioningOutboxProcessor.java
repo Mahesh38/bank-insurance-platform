@@ -3,6 +3,7 @@ package com.bank.identity.authz.application;
 import com.bank.identity.authz.application.port.IdentityProvisioningPort;
 import com.bank.identity.authz.application.port.IdentityProvisioningPort.ProvisionRequest;
 import com.bank.identity.authz.persistence.BusinessUserRepository;
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.UUID;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -49,7 +50,7 @@ public class ProvisioningOutboxProcessor {
                    claimed_until = null
              where id = :id and published_at is null
             """)
-        .param("now", Instant.now())
+        .param("now", Timestamp.from(Instant.now()))
         .param("id", eventId)
         .update();
   }

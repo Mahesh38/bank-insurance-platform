@@ -219,7 +219,7 @@ public class LoginService {
   public WorkforceSession session(String sessionId) {
     return sessions
         .getSession(sessionId)
-        .orElseThrow(() -> new IllegalArgumentException("Session is invalid or expired"));
+        .orElseThrow(() -> new SessionInvalidException("Session is invalid or expired"));
   }
 
   public void logout(String sessionId) {

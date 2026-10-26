@@ -12,35 +12,37 @@ package com.bank.common.error;
  */
 public enum Retryability {
 
-    /** The same request will always fail. Do not repeat it. */
-    NO(false),
+  /** The same request will always fail. Do not repeat it. */
+  NO(false),
 
-    /** Repeating works only after the caller corrects the request. */
-    AFTER_FIX(false),
+  /** Repeating works only after the caller corrects the request. */
+  AFTER_FIX(false),
 
-    /** Repeating works only after a human completes a missing step (consent, suitability, MFA). */
-    AFTER_REMEDIATION(false),
+  /** Repeating works only after a human completes a missing step (consent, suitability, MFA). */
+  AFTER_REMEDIATION(false),
 
-    /** Repeating works only after the caller re-authenticates. */
-    AFTER_REAUTH(false),
+  /** Repeating works only after the caller re-authenticates. */
+  AFTER_REAUTH(false),
 
-    /** Transient. Repeating the identical request may succeed. Honour {@code Retry-After} if present. */
-    YES(true);
+  /**
+   * Transient. Repeating the identical request may succeed. Honour {@code Retry-After} if present.
+   */
+  YES(true);
 
-    private final boolean automaticallyRetryable;
+  private final boolean automaticallyRetryable;
 
-    Retryability(boolean automaticallyRetryable) {
-        this.automaticallyRetryable = automaticallyRetryable;
-    }
+  Retryability(boolean automaticallyRetryable) {
+    this.automaticallyRetryable = automaticallyRetryable;
+  }
 
-    /**
-     * The value carried in the {@code retryable} wire field.
-     *
-     * <p>True only for {@link #YES}: it means "a machine may repeat this unchanged". Every other
-     * value needs someone to change something first, and a client that auto-retries them creates
-     * duplicate submissions — the failure mode {@code 04 §7 SUBMISSION_FAILED} exists to prevent.
-     */
-    public boolean toBoolean() {
-        return automaticallyRetryable;
-    }
+  /**
+   * The value carried in the {@code retryable} wire field.
+   *
+   * <p>True only for {@link #YES}: it means "a machine may repeat this unchanged". Every other
+   * value needs someone to change something first, and a client that auto-retries them creates
+   * duplicate submissions — the failure mode {@code 04 §7 SUBMISSION_FAILED} exists to prevent.
+   */
+  public boolean toBoolean() {
+    return automaticallyRetryable;
+  }
 }

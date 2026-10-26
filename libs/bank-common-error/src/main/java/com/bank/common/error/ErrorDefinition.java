@@ -14,44 +14,43 @@ import java.util.Objects;
  * an end user. They are fixed strings, so they cannot accidentally carry an upstream body, an
  * internal route or a customer attribute.
  *
- * @param code          the stable wire code, matching {@link ErrorCodes}
- * @param category      how callers must treat it
- * @param httpStatus    the status this code always returns
- * @param retryability  whether and when a repeat can succeed
- * @param publicTitle   safe, end-user-facing summary
- * @param publicDetail  safe, end-user-facing explanation
- * @param audit         what evidence the refusal must leave
- * @param propagation   how a calling service re-presents it
- * @param runbook       the L1/L2 support page id, {@code RB-<CODE>}
- * @param catalogueRef  the section of catalogue 04 this came from
+ * @param code the stable wire code, matching {@link ErrorCodes}
+ * @param category how callers must treat it
+ * @param httpStatus the status this code always returns
+ * @param retryability whether and when a repeat can succeed
+ * @param publicTitle safe, end-user-facing summary
+ * @param publicDetail safe, end-user-facing explanation
+ * @param audit what evidence the refusal must leave
+ * @param propagation how a calling service re-presents it
+ * @param runbook the L1/L2 support page id, {@code RB-<CODE>}
+ * @param catalogueRef the section of catalogue 04 this came from
  */
 public record ErrorDefinition(
-        String code,
-        ErrorCategory category,
-        int httpStatus,
-        Retryability retryability,
-        String publicTitle,
-        String publicDetail,
-        AuditDisposition audit,
-        Propagation propagation,
-        String runbook,
-        String catalogueRef
-) {
+    String code,
+    ErrorCategory category,
+    int httpStatus,
+    Retryability retryability,
+    String publicTitle,
+    String publicDetail,
+    AuditDisposition audit,
+    Propagation propagation,
+    String runbook,
+    String catalogueRef) {
 
-    public ErrorDefinition {
-        Objects.requireNonNull(code, "code must not be null");
-        Objects.requireNonNull(category, "category must not be null");
-        Objects.requireNonNull(publicTitle, "publicTitle must not be null");
-        Objects.requireNonNull(publicDetail, "publicDetail must not be null");
-        retryability = retryability != null ? retryability : category.defaultRetryability();
-        audit = audit != null ? audit : category.defaultAudit();
-        propagation = propagation != null ? propagation : Propagation.PROPAGATE;
-        httpStatus = httpStatus > 0 ? httpStatus : category.defaultHttpStatus();
-        runbook = runbook != null ? runbook : "RB-" + code;
-    }
+  public ErrorDefinition {
+    Objects.requireNonNull(code, "code must not be null");
+    Objects.requireNonNull(category, "category must not be null");
+    Objects.requireNonNull(publicTitle, "publicTitle must not be null");
+    Objects.requireNonNull(publicDetail, "publicDetail must not be null");
+    retryability = retryability != null ? retryability : category.defaultRetryability();
+    audit = audit != null ? audit : category.defaultAudit();
+    propagation = propagation != null ? propagation : Propagation.PROPAGATE;
+    httpStatus = httpStatus > 0 ? httpStatus : category.defaultHttpStatus();
+    runbook = runbook != null ? runbook : "RB-" + code;
+  }
 
-    /** True when a sustained rate of this error is an operational signal. */
-    public boolean alertable() {
-        return category.alertable();
-    }
+  /** True when a sustained rate of this error is an operational signal. */
+  public boolean alertable() {
+    return category.alertable();
+  }
 }

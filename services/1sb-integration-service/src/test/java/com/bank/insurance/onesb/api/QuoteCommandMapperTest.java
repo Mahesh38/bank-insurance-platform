@@ -3,7 +3,6 @@ package com.bank.insurance.onesb.api;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.bank.common.domain.Lob;
-import com.bank.insurance.onesb.api.dto.CreateQuoteRequest;
 import com.bank.insurance.onesb.domain.command.CreateQuoteCommand;
 import java.math.BigDecimal;
 import java.util.List;

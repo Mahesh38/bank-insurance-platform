@@ -14,7 +14,7 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 @ConfigurationPropertiesScan
 public class ConsentApplication {
 
-    public static void main(String[] args) {
-        SpringApplication.run(ConsentApplication.class, args);
-    }
+  public static void main(String[] args) {
+    SpringApplication.run(ConsentApplication.class, args);
+  }
 }

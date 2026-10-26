@@ -14,7 +14,7 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 @ConfigurationPropertiesScan
 public class SuitabilityApplication {
 
-    public static void main(String[] args) {
-        SpringApplication.run(SuitabilityApplication.class, args);
-    }
+  public static void main(String[] args) {
+    SpringApplication.run(SuitabilityApplication.class, args);
+  }
 }

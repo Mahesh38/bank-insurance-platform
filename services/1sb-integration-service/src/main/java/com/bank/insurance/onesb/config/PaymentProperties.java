@@ -7,12 +7,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * expiry, so the bank computes one from this TTL.
  */
 @ConfigurationProperties(prefix = "insurance.payments")
-public record PaymentProperties(
-        long sessionTtlSeconds
-) {
-    public PaymentProperties {
-        if (sessionTtlSeconds <= 0) {
-            sessionTtlSeconds = 3600L;
-        }
+public record PaymentProperties(long sessionTtlSeconds) {
+  public PaymentProperties {
+    if (sessionTtlSeconds <= 0) {
+      sessionTtlSeconds = 3600L;
     }
+  }
 }

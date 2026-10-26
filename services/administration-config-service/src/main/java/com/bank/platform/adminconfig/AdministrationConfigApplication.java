@@ -14,7 +14,7 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 @ConfigurationPropertiesScan
 public class AdministrationConfigApplication {
 
-    public static void main(String[] args) {
-        SpringApplication.run(AdministrationConfigApplication.class, args);
-    }
+  public static void main(String[] args) {
+    SpringApplication.run(AdministrationConfigApplication.class, args);
+  }
 }

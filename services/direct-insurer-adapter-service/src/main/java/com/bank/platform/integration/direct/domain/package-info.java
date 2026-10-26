@@ -1,5 +1,6 @@
 /**
- * Domain model, invariants and outbound ports for bounded context #adapter-direct — Direct Insurer Adapter.
+ * Domain model, invariants and outbound ports for bounded context #adapter-direct — Direct Insurer
+ * Adapter.
  *
  * <p>Domain stays pure Java — no Spring, Jackson or Jakarta persistence annotations.
  */

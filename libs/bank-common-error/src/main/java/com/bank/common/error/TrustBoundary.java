@@ -8,9 +8,9 @@ package com.bank.common.error;
  */
 public enum TrustBoundary {
 
-    /** Faces a client. Diagnostics are stripped and wording comes from the catalogue. */
-    PUBLIC,
+  /** Faces a client. Diagnostics are stripped and wording comes from the catalogue. */
+  PUBLIC,
 
-    /** Cluster-private. Diagnostics travel to the calling service, which redacts in its turn. */
-    INTERNAL
+  /** Cluster-private. Diagnostics travel to the calling service, which redacts in its turn. */
+  INTERNAL
 }

@@ -142,7 +142,9 @@ Multi-module Gradle (Kotlin DSL) monorepo for the **1SB insurance platform** —
 **Spring Boot**, shared libs under `libs/`, services under `services/`.
 
 **Repository boundary (`DOC-006`):** this git repository holds Java services, shared libraries and
-docs only. Client application source (NIP-APP / Flutter) is **not** maintained here.
+docs only. Client application source (NIP-APP / Flutter) is **not** maintained here. Java that
+agents write follows [`docs/governance/CODING-STANDARD.md`](docs/governance/CODING-STANDARD.md).
+The Cursor rule `.cursor/rules/java-coding-standard.mdc` loads it on every session.
 [`ADR-015`](./docs/platform/architecture-review/08-architecture-decision-log.md) is not overturned —
 there is still one workforce client; it lives in a separate repository. Evaluate BFF contracts
 against [`docs/figma/`](./docs/figma/README.md) as the frontend reference. Behaviour SSOT remains

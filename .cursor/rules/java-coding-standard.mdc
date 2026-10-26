@@ -1,0 +1,23 @@
+---
+description: Mandatory Java coding standard for this platform. Apply before generating or changing Java, configuration, SQL, or tests.
+alwaysApply: true
+---
+
+# Bank insurance platform Java standard
+
+`docs/governance/CODING-STANDARD.md` is the only coding standard. Read it before generating or modifying code. If this rule and that file disagree, the file wins.
+
+Until the file is open, follow these constraints:
+
+- Java 21, Spring Boot 3.5.x, `spring-boot-starter-web`. Do not generate Boot 4 code. Boot 4 is parked (`SUG-20261008-sb4`).
+- A service is layered `api`, `application`, `domain`, `adapter`, `config`. Domain code imports neither Spring, nor JPA, nor Jackson, nor the Servlet API.
+- Controllers call application services only. 1SB types stay in `adapter.onesb`. `1sb-integration-service` has no Flyway and no JPA.
+- Records for requests, responses, commands, and value objects. Aggregates are classes. Constructor injection. No Lombok, no `dto` / `entity` / `repo` / `util` package, no `I` prefix, no `Impl` suffix, no `DTO` type name. `@MechanicallyGenerated` stays only on members already expanded from Lombok.
+- Errors go through `ServiceErrors` and `ErrorCodes`. A failure is never HTTP 200. Do not build a second problem body.
+- `X-Correlation-Id` and `correlationId` stay. `RequestDiagnosticFilter` sets `Cache-Control: no-store` when the handler did not.
+- Mapping is a hand-written `from` or `{Name}Mapper`. No BeanUtils, Guava, Commons Lang, ModelMapper, or MapStruct.
+- Flyway for schema. `ddl-auto: validate`. `open-in-view: false`. `@Transactional` on the application service.
+- Outbound HTTP is `RestClient` with timeouts. No new `RestTemplate`.
+- Logs never contain PAN, Aadhaar, phone, email, health data, tokens, or a URI with `q`.
+- Google Java Format 1.22 is the only layout. Run `./gradlew spotlessApply` on the modules you touch.
+- A behavior change ships with the test in section 19 of the standard. Coverage floors stay green.

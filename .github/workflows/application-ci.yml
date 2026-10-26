@@ -132,17 +132,8 @@ jobs:
             echo "${{ needs.classify.outputs.reason }}"
           } >> "${GITHUB_STEP_SUMMARY}"
 
-      # fetch-depth: 0 so Spotless ratchetFrom("origin/main") can resolve the baseline
-      # commit. A shallow clone makes spotlessCheck fail with "No such reference
-      # 'origin/main'" before any formatting rule runs (seen on run 34779413538).
       - uses: actions/checkout@v4
         if: needs.classify.result == 'success' && needs.classify.outputs.run_tests == 'true'
-        with:
-          fetch-depth: 0
-
-      - name: Ensure origin/main exists for Spotless ratchet
-        if: needs.classify.result == 'success' && needs.classify.outputs.run_tests == 'true'
-        run: git rev-parse --verify origin/main || git fetch --no-tags origin main:refs/remotes/origin/main
 
       - uses: actions/setup-java@v4
         if: needs.classify.result == 'success' && needs.classify.outputs.run_tests == 'true'

@@ -3,11 +3,10 @@ package com.bank.workforce.bff.config;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.validation.annotation.Validated;
-
 import java.time.Duration;
 import java.util.Set;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.validation.annotation.Validated;
 
 @Validated
 @ConfigurationProperties("workforce.session")
@@ -18,5 +17,4 @@ public record WorkforceSessionProperties(
     @NotNull Duration pendingLoginTtl,
     @NotNull Duration completionCodeTtl,
     @NotNull Duration sessionTtl,
-    @NotEmpty Set<String> allowedReturnUris
-) {}
+    @NotEmpty Set<String> allowedReturnUris) {}

@@ -2,9 +2,8 @@ package com.bank.persistence.api.internal.v1;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.bank.persistence.api.internal.v1.dto.CreateAuditEventRequest;
+import com.bank.persistence.adapter.persistence.AuditEventEntity;
 import com.bank.persistence.config.InternalAuthProperties;
-import com.bank.persistence.entity.AuditEventEntity;
 import java.lang.reflect.RecordComponent;
 import java.time.Instant;
 import org.junit.jupiter.api.Tag;

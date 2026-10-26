@@ -27,6 +27,7 @@ the logging/monitoring merge bar live in CODE-REVIEW-STANDARD.md — do not fork
 | ENG-8 | No floating versions for production dependencies; lockfiles / BOM where the build already uses them | Review checklist |
 | ENG-9 | Feature work does not weaken S08 gates (coverage, scanning, ArchUnit, Checkstyle/Spotless) | Review checklist |
 | ENG-10 | TODOs carry a work-item id; nothing is Done without evidence in GATE-EVIDENCE or the story | Review checklist |
+| ENG-11 | Java layout, naming, injection, packages, and errors follow [CODING-STANDARD.md](./CODING-STANDARD.md) | Cursor rule, `codingStandardPackages`, `spotlessCheck` |
 
 ## 2. Secure coding standards (SEC)
 

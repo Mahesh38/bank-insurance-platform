@@ -10,7 +10,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 public class IdentityAuthorizationApplication {
 
-    public static void main(String[] args) {
-        SpringApplication.run(IdentityAuthorizationApplication.class, args);
-    }
+  public static void main(String[] args) {
+    SpringApplication.run(IdentityAuthorizationApplication.class, args);
+  }
 }

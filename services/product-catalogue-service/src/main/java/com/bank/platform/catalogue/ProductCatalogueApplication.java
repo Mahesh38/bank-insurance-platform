@@ -14,7 +14,7 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 @ConfigurationPropertiesScan
 public class ProductCatalogueApplication {
 
-    public static void main(String[] args) {
-        SpringApplication.run(ProductCatalogueApplication.class, args);
-    }
+  public static void main(String[] args) {
+    SpringApplication.run(ProductCatalogueApplication.class, args);
+  }
 }

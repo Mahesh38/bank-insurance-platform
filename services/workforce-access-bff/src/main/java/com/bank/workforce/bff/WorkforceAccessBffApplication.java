@@ -8,7 +8,7 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 @ConfigurationPropertiesScan
 public class WorkforceAccessBffApplication {
 
-    public static void main(String[] args) {
-        SpringApplication.run(WorkforceAccessBffApplication.class, args);
-    }
+  public static void main(String[] args) {
+    SpringApplication.run(WorkforceAccessBffApplication.class, args);
+  }
 }

@@ -13,14 +13,14 @@ import com.bank.common.error.ServiceErrorResponse;
  */
 public final class HandBuiltEnvelopeFixture {
 
-    private HandBuiltEnvelopeFixture() {}
+  private HandBuiltEnvelopeFixture() {}
 
-    public static ServiceErrorResponse violate(String upstreamMessage) {
-        return ServiceErrorResponse.builder()
-                .title("Something Went Wrong")
-                .status(499)
-                .detail("1SB said: " + upstreamMessage)
-                .code(ErrorCodes.INTERNAL_ERROR)
-                .build();
-    }
+  public static ServiceErrorResponse violate(String upstreamMessage) {
+    return ServiceErrorResponse.builder()
+        .title("Something Went Wrong")
+        .status(499)
+        .detail("1SB said: " + upstreamMessage)
+        .code(ErrorCodes.INTERNAL_ERROR)
+        .build();
+  }
 }

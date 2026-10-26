@@ -1,7 +1,6 @@
 package com.bank.common.error;
 
 import java.util.List;
-import lombok.Getter;
 
 /**
  * Unchecked exception carrying a {@link ServiceErrorResponse} from service and domain layers up to
@@ -25,9 +24,7 @@ import lombok.Getter;
  * ServiceErrorResponse.builder()}; leaving these would have left the same door open one method
  * along.
  */
-@Getter
 public class ServiceException extends RuntimeException {
-
   private final ServiceErrorResponse errorResponse;
 
   public ServiceException(ServiceErrorResponse errorResponse) {
@@ -78,7 +75,6 @@ public class ServiceException extends RuntimeException {
    * chain, and because {@code reason} and {@code incidentId} need behaviour of their own.
    */
   public static final class Builder {
-
     private final String code;
     private final ErrorDefinition definition;
     private final ErrorDiagnostic.Builder diagnostic;
@@ -192,7 +188,6 @@ public class ServiceException extends RuntimeException {
 
     public ServiceException build() {
       ErrorDiagnostic d = diagnostic.reason(resolvedReason()).build();
-
       ServiceErrorResponse response =
           ServiceErrorResponse.builder()
               .title(definition.publicTitle())
@@ -206,7 +201,6 @@ public class ServiceException extends RuntimeException {
               .errors(errors)
               .diagnostic(d)
               .build();
-
       return cause != null ? new ServiceException(response, cause) : new ServiceException(response);
     }
 
@@ -217,5 +211,11 @@ public class ServiceException extends RuntimeException {
       String note = "status overridden to " + statusOverride + " per " + statusOverrideAuthority;
       return reason == null || reason.isBlank() ? note : reason + " (" + note + ")";
     }
+  }
+
+  @java.lang.SuppressWarnings("all")
+  @MechanicallyGenerated
+  public ServiceErrorResponse getErrorResponse() {
+    return this.errorResponse;
   }
 }

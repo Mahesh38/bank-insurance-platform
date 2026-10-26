@@ -8,7 +8,7 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 @ConfigurationPropertiesScan
 public class PersistenceApplication {
 
-    public static void main(String[] args) {
-        SpringApplication.run(PersistenceApplication.class, args);
-    }
+  public static void main(String[] args) {
+    SpringApplication.run(PersistenceApplication.class, args);
+  }
 }

@@ -54,7 +54,7 @@ Every applicable row is in play. “Not applicable” must be stated, not skippe
 | Aspect | Looks for | Binding ids |
 |---|---|---|
 | Purpose / scope | Work item id; change matches the admitted AC; no silent extra feature | ENG-10, AE-1 |
-| Structure / boundaries | Hex/ports; vendor types in adapters; shared behaviour in `libs/*`; Java 21 | ENG-1–ENG-3 |
+| Structure / boundaries | Hex/ports; vendor types in adapters; shared behaviour in `libs/*`; Java 21; [CODING-STANDARD.md](./CODING-STANDARD.md) packages, names, records, no Lombok | ENG-1–ENG-3, ENG-11 |
 | HTTP / API contract | OpenAPI when public; fail closed; encoded path segments | ENG-4, SEC-C3 |
 | Tests | Pyramid, assertions on **error codes**, no PII in log snapshots | ENG-5, R1–R10 |
 | Coverage | Floors in §1; numbers in the PR | ENG-5, ENG-9 |

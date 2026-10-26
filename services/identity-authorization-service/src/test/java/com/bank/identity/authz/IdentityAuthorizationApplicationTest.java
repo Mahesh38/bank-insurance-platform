@@ -6,7 +6,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest
 class IdentityAuthorizationApplicationTest {
 
-    @Test
-    void contextLoadsAndValidatesFlywaySchema() {
-    }
+  @Test
+  void contextLoadsAndValidatesFlywaySchema() {}
 }

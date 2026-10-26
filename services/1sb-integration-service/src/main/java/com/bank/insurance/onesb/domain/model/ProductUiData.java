@@ -9,12 +9,8 @@ import java.util.Map;
  * (insurer/product specific) — do not interpret it in the bank domain.
  */
 public record ProductUiData(
-        String productId,
-        String manufacturerId,
-        String reqId,
-        Map<String, Object> data
-) {
-    public ProductUiData {
-        data = data == null ? Map.of() : Collections.unmodifiableMap(new LinkedHashMap<>(data));
-    }
+    String productId, String manufacturerId, String reqId, Map<String, Object> data) {
+  public ProductUiData {
+    data = data == null ? Map.of() : Collections.unmodifiableMap(new LinkedHashMap<>(data));
+  }
 }

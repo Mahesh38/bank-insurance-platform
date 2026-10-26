@@ -29,36 +29,32 @@ package com.bank.common.error;
  */
 public class ServiceErrors {
 
-    private final ErrorHandlingSettings settings;
+  private final ErrorHandlingSettings settings;
 
-    public ServiceErrors(ErrorHandlingSettings settings) {
-        this.settings = settings;
-    }
+  public ServiceErrors(ErrorHandlingSettings settings) {
+    this.settings = settings;
+  }
 
-    /**
-     * A test double with a fixed identity, for unit tests that construct a service directly rather
-     * than through Spring.
-     */
-    public static ServiceErrors of(String serviceId, PlatformLayer layer) {
-        return new ServiceErrors(ErrorHandlingSettings.builder(serviceId).layer(layer).build());
-    }
+  /**
+   * A test double with a fixed identity, for unit tests that construct a service directly rather
+   * than through Spring.
+   */
+  public static ServiceErrors of(String serviceId, PlatformLayer layer) {
+    return new ServiceErrors(ErrorHandlingSettings.builder(serviceId).layer(layer).build());
+  }
 
-    /** An exception builder for {@code code}, already stamped with this service's identity. */
-    public ServiceException.Builder error(String code) {
-        return ServiceException.of(code)
-            .service(settings.serviceId())
-            .layer(settings.layer());
-    }
+  /** An exception builder for {@code code}, already stamped with this service's identity. */
+  public ServiceException.Builder error(String code) {
+    return ServiceException.of(code).service(settings.serviceId()).layer(settings.layer());
+  }
 
-    /** A diagnostic builder for {@code code}, for the few places that build one directly. */
-    public ErrorDiagnostic.Builder diagnostic(String code) {
-        return ErrorDiagnostic.builder(code)
-            .service(settings.serviceId())
-            .layer(settings.layer());
-    }
+  /** A diagnostic builder for {@code code}, for the few places that build one directly. */
+  public ErrorDiagnostic.Builder diagnostic(String code) {
+    return ErrorDiagnostic.builder(code).service(settings.serviceId()).layer(settings.layer());
+  }
 
-    /** This service's registered id. */
-    public String serviceId() {
-        return settings.serviceId();
-    }
+  /** This service's registered id. */
+  public String serviceId() {
+    return settings.serviceId();
+  }
 }

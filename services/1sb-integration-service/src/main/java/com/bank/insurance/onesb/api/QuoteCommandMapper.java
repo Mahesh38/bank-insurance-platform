@@ -1,6 +1,5 @@
 package com.bank.insurance.onesb.api;
 
-import com.bank.insurance.onesb.api.dto.CreateQuoteRequest;
 import com.bank.insurance.onesb.domain.command.CreateQuoteCommand;
 import java.util.List;
 import org.springframework.util.StringUtils;

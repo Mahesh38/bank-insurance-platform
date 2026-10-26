@@ -7,6 +7,7 @@ import com.bank.common.error.PlatformErrorHandler;
 import com.bank.common.error.PlatformLayer;
 import com.bank.common.error.ServiceErrorResponse;
 import com.bank.common.error.ServiceException;
+import com.bank.workforce.bff.application.SessionInvalidException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -38,6 +39,11 @@ public class BffExceptionHandler extends PlatformErrorHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ServiceErrorResponse> invalidRequest(IllegalArgumentException exception) {
         return emit(authFailure(ErrorCodes.SCHEMA_INVALID, "AuthenticationController", exception), exception);
+    }
+
+    @ExceptionHandler(SessionInvalidException.class)
+    public ResponseEntity<ServiceErrorResponse> sessionInvalid(SessionInvalidException exception) {
+        return emit(authFailure(ErrorCodes.SESSION_INVALID, "AuthenticationController", exception), exception);
     }
 
     @ExceptionHandler(IllegalStateException.class)

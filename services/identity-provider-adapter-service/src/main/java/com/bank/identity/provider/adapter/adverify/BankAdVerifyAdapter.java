@@ -26,6 +26,11 @@ import org.springframework.web.client.RestClientResponseException;
 /**
  * Calls the bank AD-verify API (true/false for an active bank employee) or a local stub. Passwords
  * are never logged or retained.
+ *
+ * <p>A rejected password is reported as {@code authenticated=false, accountActive=true} so the
+ * caller counts it toward the Login BRD v3.1 lockout. {@code accountActive=false} is returned only
+ * when the directory says the account is inactive; the caller then shows the inactive message and
+ * does not count the attempt.
  */
 @Component
 public class BankAdVerifyAdapter implements WorkforceCredentialVerifier {
@@ -85,7 +90,7 @@ public class BankAdVerifyAdapter implements WorkforceCredentialVerifier {
     }
     if (!match.active()) {
       log.info("AD-verify stub found an inactive directory account");
-      return new AdVerifyResult(false, false, command.employeeId(), null, null);
+      return inactive(command.employeeId());
     }
     log.info("AD-verify stub accepted an active directory account");
     return new AdVerifyResult(
@@ -157,7 +162,7 @@ public class BankAdVerifyAdapter implements WorkforceCredentialVerifier {
               ? node.get("accountActive").asBoolean()
               : (!node.has("active") || node.get("active").asBoolean(authenticated));
       if (!authenticated) {
-        return rejected(employeeId);
+        return explicitlyInactive(node) ? inactive(employeeId) : rejected(employeeId);
       }
       String username = textField(node, "username", "userId", "employeeId");
       String email = textField(node, "email");
@@ -187,8 +192,19 @@ public class BankAdVerifyAdapter implements WorkforceCredentialVerifier {
     return new AdVerifyResult(true, true, employeeId, username, email);
   }
 
+  /** Wrong password or unknown employee: counts toward lockout. */
   private static AdVerifyResult rejected(String employeeId) {
+    return new AdVerifyResult(false, true, employeeId, null, null);
+  }
+
+  /** The directory reports the account inactive: not counted toward lockout. */
+  private static AdVerifyResult inactive(String employeeId) {
     return new AdVerifyResult(false, false, employeeId, null, null);
+  }
+
+  private static boolean explicitlyInactive(JsonNode node) {
+    JsonNode flag = node.has("accountActive") ? node.get("accountActive") : node.get("active");
+    return flag != null && flag.isBoolean() && !flag.booleanValue();
   }
 
   private void requireIdentifier(AdVerifyCommand command) {

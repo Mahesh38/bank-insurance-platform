@@ -5,6 +5,7 @@ import com.bank.identity.authz.domain.AuthorizationModels.Facts;
 import com.bank.identity.authz.domain.AuthorizationModels.Subject;
 import com.bank.identity.authz.domain.IdentityTypes.EntitlementEffect;
 import com.bank.identity.authz.domain.IdentityTypes.ScopeType;
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -42,7 +43,7 @@ public class AuthorizationFactsRepository {
                    and (ur.valid_until is null or ur.valid_until > :now)
                 """)
                 .param("userId", userId)
-                .param("now", now)
+                .param("now", Timestamp.from(now))
                 .query(String.class)
                 .list());
     List<Entitlement> entitlements =
@@ -55,7 +56,7 @@ public class AuthorizationFactsRepository {
                    and (valid_until is null or valid_until > :now)
                 """)
             .param("userId", userId)
-            .param("now", now)
+            .param("now", Timestamp.from(now))
             .query(
                 (rs, rowNum) ->
                     new Entitlement(
@@ -75,7 +76,7 @@ public class AuthorizationFactsRepository {
                    and (valid_until is null or valid_until > :now)
                 """)
                 .param("userId", userId)
-                .param("now", now)
+                .param("now", Timestamp.from(now))
                 .query(String.class)
                 .list());
     boolean validCertification =
@@ -90,7 +91,7 @@ public class AuthorizationFactsRepository {
                    and (valid_until is null or valid_until > :now)
                 """)
                 .param("userId", userId)
-                .param("now", now)
+                .param("now", Timestamp.from(now))
                 .query(Long.class)
                 .single()
             > 0;

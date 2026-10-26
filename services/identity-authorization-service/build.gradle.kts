@@ -16,9 +16,11 @@ dependencies {
     implementation("org.flywaydb:flyway-core")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
 
+    runtimeOnly("org.flywaydb:flyway-database-postgresql")
     runtimeOnly("org.postgresql:postgresql")
     runtimeOnly("com.h2database:h2")
 
+    testImplementation(project(":libs:bank-common-test"))
     testImplementation("com.tngtech.archunit:archunit-junit5:1.3.0")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")

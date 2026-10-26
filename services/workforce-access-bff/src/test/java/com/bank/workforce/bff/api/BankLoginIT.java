@@ -179,6 +179,20 @@ class BankLoginIT {
   }
 
   @Test
+  void sessionEndpointWithoutOrWithUnknownHandleIsSessionInvalidNotValidation() throws Exception {
+    mockMvc
+        .perform(get("/api/v1/auth/session"))
+        .andExpect(status().isUnauthorized())
+        .andExpect(jsonPath("$.code").value("SESSION_INVALID"));
+    mockMvc
+        .perform(
+            get("/api/v1/auth/session")
+                .cookie(new jakarta.servlet.http.Cookie("WORKFORCE_SESSION", "logged-out-or-unknown")))
+        .andExpect(status().isUnauthorized())
+        .andExpect(jsonPath("$.code").value("SESSION_INVALID"));
+  }
+
+  @Test
   void missingEmployeeIdIsValidationNotAuthentication() throws Exception {
     mockMvc
         .perform(

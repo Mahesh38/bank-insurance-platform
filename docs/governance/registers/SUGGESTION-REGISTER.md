@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20261026-pgl | 2026-10-26 | human:repository-owner | Fix four login defects found by the local e2e run (Keycloak and Postgres in Docker): identity-authorization cannot migrate on Postgres (flyway-database-postgresql missing); raw Instant JDBC parameters fail on Postgres (outbox, partner admin, PDP facts); a Bank RM wrong password reads as an inactive account and never locks; GET /auth/session answers 400 instead of 401. | SF0 | SC0 | MUST | BUG | P1 / P1 | ADMIT-BYPASS | [detail](#sug-20261026-pgl--login-defects-on-postgres-from-the-local-e2e-run) |
 | SUG-20261024-oat | 2026-10-24 | human:repository-owner | Give the workforce app the OAuth access token and refresh token instead of the BFF session. | SF4 | SC0 | REJECT | SEC | — / — | REJECTED | [detail](#sug-20261024-oat--keep-provider-tokens-inside-the-bff) |
 | SUG-20261024-kck | 2026-10-24 | human:repository-owner | Keep Bank RM password checks on the bank AD API and FLS passwords in Postgres. Do not send the user to Keycloak. Park an IDAM employee callback until the bank contract and an ADR exist. | SF3 | SC1 | NOT-NOW | ARCH | P4 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [detail](#sug-20261024-kck--keycloak-stays-behind-the-login-api) |
 | SUG-20261023-e2e | 2026-10-23 | human:repository-owner | Write the Login BRD v3.1 end-to-end API sequences: both user types, unlock, forgot and reset password, background calls, and validation. Confirm the APIs exist. | SF1 | SC0 | MUST | DOC | P2 / P2 | ADMITTED | [v3.1 API flows](../../journey-execution/flows/LOGIN-BRD-V31-API-FLOWS.md) · [detail](#sug-20261023-e2e--login-v31-api-flows) |
@@ -166,6 +167,49 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20261026-pgl · Login defects on Postgres from the local e2e run
+
+```yaml
+id: SUG-20261026-pgl
+raised_at: "2026-10-26"
+raised_by: "human:repository-owner"
+source: "Local login e2e: Keycloak 26.7.0 and Postgres 16 in Docker, the three identity services run locally (47 checks)"
+input: >
+  1. identity-authorization-service fails to start on PostgreSQL: Flyway 11 reports
+     "Unsupported Database: PostgreSQL 16" because flyway-database-postgresql is not declared.
+     docker-compose.identity.yml fails the same way.
+  2. JdbcClient binds a raw java.time.Instant in ProvisioningOutboxDispatcher,
+     ProvisioningOutboxProcessor, PartnerUserAdministrationService and
+     AuthorizationFactsRepository. H2 accepts it; the PG driver refuses it. Outbox dispatch
+     errors every poll, and PDP facts loading would fail on Postgres.
+  3. The AD-verify adapter returns accountActive=false for a wrong password. The BFF shows
+     "Your account is not active" (VAL-007) and does not count the attempt, so a Bank RM is
+     never locked (four wrong passwords, then the right one still succeeded).
+  4. GET /api/v1/auth/session with no session, or a logged-out one, returns 400 SCHEMA_INVALID.
+     Protected routes return 401 SESSION_INVALID.
+stage_fit: { code: SF0, rationale: "Defects in shipped login code; hard P1 for 1 and 2 (blocks any Postgres environment)" }
+scope: { code: SC0, serves: "Login BRD v3.1 and IAM-001 on the identity services" }
+necessity: { now: MUST, future_necessity: MUST, target_stage: "current", evidence_tier: E1, confidence: C4 }
+action: ADMIT-BYPASS
+bypass_authorised_by: "Mahesh / repository_owner (explicit: \"fix this all\")"
+reviewer_type: HUMAN
+authority: repository_owner
+action_rationale: >
+  Owner-directed. 1: runtimeOnly flyway-database-postgresql, as lead-service does. 2: bind
+  Timestamp.from(instant), the lead-service idiom. 3: the adapter reports a rejected password as
+  authenticated=false / accountActive=true and reports inactive only when the directory says so;
+  the BFF already expected this (LoginJourneyServiceTest). 4: SessionInvalidException mapped to
+  SESSION_INVALID. Regression: IdentityAuthorizationPostgresIT (Testcontainers), adapter tests,
+  BankLoginIT.
+classification: { type: BUG, also: [SEC], breakdown: TASK, risk_tier: T2 }
+priority: { now: P1, at_target: P1 }
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: SUG-20261026-pgl
+  status: ADMIT-BYPASS
+resumed: "Local login e2e validation."
+```
 
 ### SUG-20261024-oat · Keep provider tokens inside the BFF
 

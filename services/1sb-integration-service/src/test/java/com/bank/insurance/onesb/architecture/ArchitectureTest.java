@@ -3,6 +3,7 @@ package com.bank.insurance.onesb.architecture;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.bank.common.architecture.HexagonalArchitecture;
 import com.bank.common.secrets.SecretProvider;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
@@ -63,6 +64,12 @@ class ArchitectureTest {
     return importedClasses.stream()
         .filter(c -> c.getPackageName().contains(fragment.substring(0, fragment.length() - 1)))
         .count();
+  }
+
+  @Test
+  void sharedHexagonalBaselineHolds() {
+    // EPIC-007 / ARCH-029 — estate baseline; 1SB-specific rules below remain authoritative here.
+    HexagonalArchitecture.checkBaseline(importedClasses);
   }
 
   /**

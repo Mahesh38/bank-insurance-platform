@@ -52,7 +52,7 @@ out_of_scope:
   - "Mass rename of existing types in one PR"
   - "Rewriting CODING-STANDARD §7"
 
-state: READY
+state: DONE
 priority_now: P3
 priority_at_target: P2
 target_stage: null
@@ -70,5 +70,10 @@ plan: null
 estimate: M
 assumptions: []
 risks: []
-evidence: []
+evidence:
+  - "config/checkstyle/checkstyle.xml Naming modules (PackageName, TypeName, MethodName, ConstantName, Member/Parameter/Local)"
+  - "config/checkstyle/suppressions.xml — MechanicallyGenerated $ identifiers + Flyway V{n}__* (QA-015)"
+  - "COVERAGE.md maturity ladder; CODE-REVIEW-STANDARD §1; CODING-STANDARD §20/§23 pointers"
+  - "Probe: bad_type_name_probe failed checkstyleMain with TypeName (AC-1); removed after"
+  - "./gradlew checkstyleMain checkstyleTest BUILD SUCCESSFUL"
 variance_log: []

@@ -19,7 +19,7 @@ schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
 document_count: 879
-total_bytes: 23600574
+total_bytes: 23604381
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -493,7 +493,7 @@ documents:
     persona: engineering
     title: "Coverage (JaCoCo) — QA-001"
     answers: "check also depends on jacocoTestCoverageVerification."
-    bytes: 4734
+    bytes: 6200
   - path: docs/1sb-insurance-integration/service-ssot/FUNCTIONAL-NFR-COMPLIANCE-MAP.md
     bucket: module-1sb
     authority: engineering-ssot
@@ -3645,7 +3645,7 @@ documents:
     persona: null
     title: "Code review standard — coverage, structure, logging"
     answers: "Adoption: PR-REVIEW-CHECKLIST.md · .github/pullrequesttemplate.md"
-    bytes: 9206
+    bytes: 9567
   - path: docs/governance/CODING-STANDARD.md
     bucket: governance
     authority: binding-process
@@ -3653,7 +3653,7 @@ documents:
     persona: null
     title: "Java coding standard — bank insurance platform"
     answers: "Status: mandatory for every person and every AI agent that writes Java in this repository."
-    bytes: 36537
+    bytes: 37271
   - path: docs/governance/DEC-20260825-01-lead-domain-decisions.md
     bucket: governance
     authority: binding-process
@@ -6941,7 +6941,7 @@ documents:
     persona: architecture
     title: "ARCH 029.work item"
     answers: "schema: work-item"
-    bytes: 2074
+    bytes: 2612
   - path: docs/platform/ws3-platform/DOC-021.work-item.yaml
     bucket: platform
     authority: approved-spec
@@ -7005,7 +7005,7 @@ documents:
     persona: architecture
     title: "EPIC 007.work item"
     answers: "schema: work-item"
-    bytes: 4093
+    bytes: 4320
   - path: docs/platform/ws3-platform/FUNC-029.work-item.yaml
     bucket: platform
     authority: approved-spec
@@ -7037,7 +7037,7 @@ documents:
     persona: architecture
     title: "QA 015.work item"
     answers: "schema: work-item"
-    bytes: 2309
+    bytes: 2790
   - path: docs/platform/ws3-platform/lead-service-internal.openapi.yaml
     bucket: platform
     authority: approved-spec

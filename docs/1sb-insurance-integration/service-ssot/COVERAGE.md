@@ -54,6 +54,22 @@ green module floor does not excuse an untested security or error branch on the d
 | `services:bank-persistence-service` | **≥ 90%** | **≥ 70%** | Raised 2026-09-13 (QA-001 close) — measured ~99.0% line / ~85.0% branch |
 | `services/*` (scaffold) | **≥ 50%** | *not gated* | **Ratified scaffold module floor** (Swapnali 2026-09-13) — no longer an open interim; package floors track as **QA-014** |
 
+## Module maturity ladder (EPIC-007 / QA-015)
+
+Coverage floors rise with the module's maturity. The same CODING-STANDARD and ArchUnit
+baseline apply at every rung; only the Jacoco numbers change.
+
+| Maturity | When a module is here | Line / branch floor | Graduation trigger |
+|----------|----------------------|---------------------|--------------------|
+| **H0 scaffold** | Generated skeleton: Application, `/info`, ArchUnit, no real domain APIs | **≥ 50%** line; branch ungated (publish measured %) | First story adds a domain type, application service, or public/internal API beyond `/info` |
+| **Implementing** | In-scope R0/R1 stories landing behaviour in that module | Keep **≥ 50%** line until Phase-1 hardened criteria apply; same-PR tests (R2) for every behaviour change | Module is named a Phase-1 deployable **or** TL + QA Lead raise its floor in this table |
+| **Phase-1 hardened** | Today: `1sb-integration-service`, `bank-persistence-service` | **≥ 90%** line / **≥ 70%** branch | New hardened module: TL + QA Lead + row in this table (do not silently raise scaffolds) |
+| **Library** | Any `libs/*` module from the first commit | **≥ 80%** line / **≥ 70%** branch | Always — no scaffold rung for shared libs |
+
+Do **not** demand Phase-1 90/70 on an empty H0 scaffold. Do **not** leave an implementing
+module without same-PR tests because the scaffold floor is still 50%. Package-level strategy
+§7 floors remain **QA-014** (separate).
+
 ### Planned service package gates (QA-014)
 
 Per strategy §7 (not yet enforced as package-level rules — follow-up **QA-014**):

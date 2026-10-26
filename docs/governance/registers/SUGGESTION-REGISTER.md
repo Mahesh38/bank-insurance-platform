@@ -43,7 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
-| SUG-20261026-ur9 | 2026-10-26 | human:repository-owner | Raise coding standards further throughout development for all modules — enforce CODING-STANDARD via Checkstyle Naming, shared ArchUnit, maturity ladder (residual after cds) | SF5 | SC0 | SHOULD | GOV | P3 / P2 | ADMITTED | [EPIC-007](../../platform/ws3-platform/EPIC-007.work-item.yaml) · [detail](#sug-20261026-ur9--enforce-coding-standard-estate-wide) · related [cds](#sug-20261026-cds--platform-java-coding-standard) |
+| SUG-20261026-ur9 | 2026-10-26 | human:repository-owner | Raise coding standards further throughout development for all modules — enforce CODING-STANDARD via Checkstyle Naming, shared ArchUnit, maturity ladder (residual after cds) | SF5 | SC0 | SHOULD | GOV | P3 / P2 | CLOSED-DELIVERED | [EPIC-007](../../platform/ws3-platform/EPIC-007.work-item.yaml) · [detail](#sug-20261026-ur9--enforce-coding-standard-estate-wide) · related [cds](#sug-20261026-cds--platform-java-coding-standard) |
 | SUG-20261026-cds | 2026-10-26 | human:repository-owner | Adopt the important rules from the Spring Boot coding standard as this platform's Java standard, and refactor the tree to match it. | SF2 | SC1 | SHOULD | REFACTOR | P3 / P2 | CLOSED-DELIVERED | [CODING-STANDARD.md](../CODING-STANDARD.md) · [PR #158](https://github.com/Mahesh38/bank-insurance-platform/pull/158) · [detail](#sug-20261026-cds--platform-java-coding-standard) · residual [ur9](#sug-20261026-ur9--enforce-coding-standard-estate-wide) |
 | SUG-20261026-pgl | 2026-10-26 | human:repository-owner | Fix four login defects found by the local e2e run (Keycloak and Postgres in Docker): identity-authorization cannot migrate on Postgres (flyway-database-postgresql missing); raw Instant JDBC parameters fail on Postgres (outbox, partner admin, PDP facts); a Bank RM wrong password reads as an inactive account and never locks; GET /auth/session answers 400 instead of 401. | SF0 | SC0 | MUST | BUG | P1 / P1 | ADMIT-BYPASS | [detail](#sug-20261026-pgl--login-defects-on-postgres-from-the-local-e2e-run) |
 | SUG-20261024-oat | 2026-10-24 | human:repository-owner | Give the workforce app the OAuth access token and refresh token instead of the BFF session. | SF4 | SC0 | REJECT | SEC | — / — | REJECTED | [detail](#sug-20261024-oat--keep-provider-tokens-inside-the-bff) |
@@ -301,10 +301,10 @@ outcome:
   registered_in: "registers/SUGGESTION-REGISTER.md"
   work_item_id: EPIC-007
   plan_id: null
-  status: ADMITTED
-  closed_reason: null
+  status: CLOSED-DELIVERED
+  closed_reason: "EPIC-007 QA-015 + ARCH-029 Done — Checkstyle Naming, maturity ladder, bank-common-architecture baseline"
 
-resumed: "EPIC-006 (IN-REVIEW) — EPIC-007 waits on Engineering SF5 lane start / owner go-ahead"
+resumed: "EPIC-006 (IN-REVIEW)"
 ```
 
 ### SUG-20261026-cds · Platform Java coding standard

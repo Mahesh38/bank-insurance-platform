@@ -4,10 +4,31 @@
     "https://checkstyle.org/dtds/suppressions_1_2.dtd">
 <!--
   S08-E02-S03 tracked baseline suppressions.
+  EPIC-007 / QA-015 — Naming suppressions for pre-existing shapes that CODING-STANDARD
+  deliberately keeps (MechanicallyGenerated Lombok expansions; Flyway Java migrations).
 
   Add a <suppress> only for a pre-existing violation that cannot be fixed in the
   same change as the check introduction. New code must not land suppressions
   without a TECH-DEBT / work-item id in the files or message attribute.
 -->
 <suppressions>
+    <!-- QA-015: @MechanicallyGenerated members keep Lombok-style $ identifiers. -->
+    <suppress checks="LocalFinalVariableNameCheck"
+              message="Name '[^']*\$[^']*'.*"/>
+    <suppress checks="LocalVariableNameCheck"
+              message="Name '[^']*\$[^']*'.*"/>
+    <suppress checks="MemberNameCheck"
+              message="Name '[^']*\$[^']*'.*"/>
+    <suppress checks="MethodNameCheck"
+              message="Name '[^']*\$[^']*'.*"/>
+    <suppress checks="ParameterNameCheck"
+              message="Name '[^']*\$[^']*'.*"/>
+    <suppress checks="StaticVariableNameCheck"
+              message="Name '[^']*\$[^']*'.*"/>
+    <suppress checks="ConstantNameCheck"
+              message="Name '[^']*\$[^']*'.*"/>
+
+    <!-- QA-015: Flyway Java migrations are named V{n}__{description}. -->
+    <suppress checks="TypeNameCheck"
+              files="[\\/]db[\\/]migration[\\/]V[0-9]+__.*\.java$"/>
 </suppressions>

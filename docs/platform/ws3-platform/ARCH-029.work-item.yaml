@@ -47,7 +47,7 @@ out_of_scope:
   - "Feature code in thin scaffolds"
   - "Changing G1–G10 trust boundaries"
 
-state: READY
+state: DONE
 priority_now: P3
 priority_at_target: P2
 target_stage: null
@@ -65,5 +65,10 @@ plan: null
 estimate: M
 assumptions: []
 risks: []
-evidence: []
+evidence:
+  - "libs/bank-common-architecture HexagonalArchitecture + HexagonalArchitectureBiteTest"
+  - "Root build.gradle.kts wires testImplementation for every :services:*"
+  - "ServiceArchitectureTest on all services + skeleton template; 1sb ArchitectureTest calls shared baseline and keeps onesb rules / ArchitectureRulesBiteTest"
+  - "bank-persistence uses application+domain baseline only (api→adapter.persistence intentional thin facade; noted in test)"
+  - "./gradlew :libs:bank-common-architecture:test jacocoTestCoverageVerification green"
 variance_log: []

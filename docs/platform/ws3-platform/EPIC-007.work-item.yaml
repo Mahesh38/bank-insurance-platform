@@ -8,7 +8,7 @@ workstream: WS-3
 origin: ["SUG-20261026-ur9"]
 owner: "Amit — Technical Head (R3); lane engineering-coding-standards"
 risk_tier: T2
-state: READY
+state: DONE
 priority_now: P3
 priority_at_target: P2
 target_stage: "S08 — Engineering Foundation (SF5 parallel)"
@@ -45,12 +45,12 @@ not_included:
 stories:
   - id: QA-015
     title: "Checkstyle Naming ratchet + module maturity coverage ladder"
-    state: READY
+    state: DONE
     priority_now: P3
     priority_at_target: P2
   - id: ARCH-029
     title: "Shared ArchUnit baseline for all service modules"
-    state: READY
+    state: DONE
     priority_now: P3
     priority_at_target: P2
 
@@ -107,10 +107,13 @@ plan: null
 estimate: M
 assumptions: []
 risks: []
-evidence: []
+evidence:
+  - "QA-015 and ARCH-029 Done with evidence on those work items"
+  - "Local checkstyleMain/Test + bank-common-architecture tests + per-service ArchitectureTest sweep"
+  - "python3 scripts/governance/ci-checks.py PASSED — 91 checks"
 variance_log: []
 
 progress:
   stories_total: 2
-  stories_done: 0
-  completion_definition_met: false
+  stories_done: 2
+  completion_definition_met: true

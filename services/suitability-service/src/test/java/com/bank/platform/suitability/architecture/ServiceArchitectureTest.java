@@ -1,21 +1,17 @@
 package com.bank.platform.suitability.architecture;
 
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.bank.common.architecture.HexagonalArchitecture;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
-import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-/**
- * Hexagonal skeleton fitness tests for bounded context #7 — Suitability & Recommendation.
- *
- * <p>Package selectors use {@code allowEmptyShould(true)} while the scaffold is empty. Remove that
- * flag once domain, application and api layers contain real classes (see TD-007 / S08-E02-S02).
- */
+/** Hexagonal boundaries for suitability. Uses the shared EPIC-007 / ARCH-029 baseline. */
+@Tag("unit")
 class ServiceArchitectureTest {
 
   private static final String BASE_PACKAGE = "com.bank.platform.suitability";
@@ -36,49 +32,7 @@ class ServiceArchitectureTest {
   }
 
   @Test
-  void applicationMustNotDependOnAdapters() {
-    ArchRule rule =
-        noClasses()
-            .that()
-            .resideInAPackage("..application..")
-            .should()
-            .dependOnClassesThat()
-            .resideInAPackage("..adapter..")
-            .allowEmptyShould(true)
-            .as("Application layer depends on domain ports, not adapters");
-
-    rule.check(importedClasses);
-  }
-
-  @Test
-  void domainMustNotDependOnSpring() {
-    ArchRule rule =
-        noClasses()
-            .that()
-            .resideInAPackage("..domain..")
-            .should()
-            .dependOnClassesThat()
-            .resideInAPackage("org.springframework..")
-            .allowEmptyShould(true)
-            .as("Domain layer is pure Java");
-
-    rule.check(importedClasses);
-  }
-
-  /**
-   * SUIT-R40 / CR-010 Q-C3. A type whose name advertises a suitability-gate bypass is a control
-   * defect, not a helper.
-   */
-  @Test
-  void noTypeMayBeNamedAsASuitabilityBypass() {
-    ArchRule rule =
-        noClasses()
-            .that()
-            .resideInAPackage(BASE_PACKAGE + "..")
-            .should()
-            .haveSimpleNameContaining("Bypass")
-            .as("SUIT-R40: no class may encode a suitability-gate bypass");
-
-    rule.check(importedClasses);
+  void sharedHexagonalBaselineHolds() {
+    HexagonalArchitecture.checkBaseline(importedClasses);
   }
 }

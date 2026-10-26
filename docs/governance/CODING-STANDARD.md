@@ -521,7 +521,7 @@ Test names follow section 7. Fixtures are synthetic. No real PII. No sleep over 
 - Comments explain a business or regulatory constraint. They do not narrate the next line.
 - Encoding is UTF-8. Line endings are LF. Files end with a newline.
 - The only formatter is Spotless with `googleJavaFormat("1.22.0")` on every `src/*/java/**/*.java` file. Google Java Format uses two-space indents. Palantir and a second formatter are not added. `spotlessCheck` does not use a ratchet: a file that is not formatted fails the build, whether or not this change touched it.
-- Checkstyle is the defect set in `config/checkstyle/checkstyle.xml` (`maxWarnings = 0`): star imports, `==` on strings, `equals` without `hashCode`, empty blocks, and the other rules in that file. Formatting belongs to Spotless.
+- Checkstyle is the defect and naming set in `config/checkstyle/checkstyle.xml` (`maxWarnings = 0`): star imports, `==` on strings, `equals` without `hashCode`, empty blocks, and the Naming modules that enforce section 7 (`PackageName`, `TypeName`, `MethodName`, `ConstantName`, member/parameter/local names). Formatting belongs to Spotless. Pre-existing MechanicallyGenerated `$` identifiers and Flyway `V{n}__*` types are listed in `config/checkstyle/suppressions.xml` (EPIC-007 / QA-015) — new code does not add suppressions without a work-item id.
 
 JDK first:
 
@@ -588,11 +588,12 @@ If a rule cannot be followed, say which rule and why. Do not quietly start a sec
 - [ ] Errors go through `ServiceErrors` and the catalogue. No failure is HTTP 200.
 - [ ] Paths, methods, and statuses match section 11. Mutating routes accept `Idempotency-Key`.
 - [ ] A schema change is a new Flyway migration, and `ddl-auto` remains `validate`.
-- [ ] Names match section 7. No `Impl`, no `I` prefix, no `DTO`, no `Dtos`.
+- [ ] Names match section 7. No `Impl`, no `I` prefix, no `DTO`, no `Dtos`. Checkstyle Naming enforces §7 on `./gradlew checkstyleMain` (EPIC-007 / QA-015).
 - [ ] Constructor injection. No Lombok. No new `@Autowired` field.
 - [ ] Null and collection code uses the JDK. No BeanUtils, Guava, or Commons Lang.
 - [ ] Money the platform calculates is `BigDecimal`. Time in a domain rule comes from `Clock`.
 - [ ] The required test from section 19 exists.
 - [ ] Logs and exceptions carry no PAN, Aadhaar, phone, email, token, or `q`.
 - [ ] `./gradlew spotlessCheck` passes with Google Java Format on the whole module.
-- [ ] Coverage for the touched module meets section 19.
+- [ ] Coverage for the touched module meets section 19 and the [maturity ladder](../1sb-insurance-integration/service-ssot/COVERAGE.md#module-maturity-ladder-epic-007--qa-015) (scaffold / implementing / Phase-1 hardened).
+- [ ] The module's ArchUnit test uses the shared `bank-common-architecture` baseline (EPIC-007 / ARCH-029); 1SB-specific rules stay in `1sb-integration-service`.

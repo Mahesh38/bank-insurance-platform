@@ -115,7 +115,7 @@ public class OneSbHttpClient {
           .reason("1SB circuit breaker open")
           .build();
     }
-    log.debug("1SB {} {}", method, path);
+    log.debug("1SB {} {}", logValue(method), logValue(path));
     long started = System.nanoTime();
     Integer upstreamStatus = null;
     String outcome = AuditOutcomes.FAILURE;
@@ -228,7 +228,10 @@ public class OneSbHttpClient {
       auditEventPublisher.publish(event);
     } catch (Exception e) {
       log.warn(
-          "Failed to publish outbound 1SB audit event for {} {}: {}", method, path, e.toString());
+          "Failed to publish outbound 1SB audit event for {} {}: {}",
+          logValue(method),
+          logValue(path),
+          logValue(e.toString()));
     }
   }
 
@@ -277,6 +280,14 @@ public class OneSbHttpClient {
       return 422;
     }
     return fallback;
+  }
+
+  /** Drops CR/LF so a caller-supplied path or exception text cannot forge a second log line. */
+  private static String logValue(Object value) {
+    if (value == null) {
+      return "";
+    }
+    return String.valueOf(value).replaceAll("\\R", "");
   }
 
   private static String readBody(org.springframework.http.client.ClientHttpResponse response) {

@@ -22,7 +22,7 @@ not implied.
 
 ## Reviewer — engineering (ENG)
 
-- [ ] Module and package boundaries respected; no vendor leak past adapters (ENG-2, ENG-3)
+- [ ] Module and package boundaries respected; no vendor leak past adapters; naming, records, and injection match CODING-STANDARD.md (ENG-2, ENG-3, ENG-11)
 - [ ] Coverage floors will remain green for **this branch's** touched modules (ENG-5, ENG-9, §1)
 - [ ] No unexplained floating dependency or scaffold bypass (ENG-8, ENG-9)
 - [ ] TODOs carry a work-item id (ENG-10)

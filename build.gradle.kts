@@ -106,12 +106,8 @@ subprojects {
     }
 
     dependencies {
-        // Lombok — version from Spring Boot BOM (TD-001)
-        val lombok = "org.projectlombok:lombok"
-        add("compileOnly", lombok)
-        add("annotationProcessor", lombok)
-        add("testCompileOnly", lombok)
-        add("testAnnotationProcessor", lombok)
+        // Lombok is banned. CODING-STANDARD.md section 21. Constructors and
+        // builders are written out. Checkstyle rejects a lombok import.
     }
 
     // QA-001 — JaCoCo coverage reports + verification (see docs/.../COVERAGE.md)
@@ -202,9 +198,8 @@ subprojects {
     // any finding fails the build. suppressions.xml is the tracked baseline for
     // pre-existing violations that cannot be fixed in the introducing change.
     //
-    // Spotless: google-java-format + unused-import cleanup. ratchetFrom(origin/main)
-    // means only files touched since main must be clean — existing formatting debt
-    // is the baseline; new violations fail spotlessCheck (and therefore `check`).
+    // Spotless: google-java-format on every Java source file. CODING-STANDARD.md
+    // section 20. There is no ratchet — a file that is not formatted fails the build.
     // ------------------------------------------------------------------
     configure<CheckstyleExtension> {
         toolVersion = "10.17.0"
@@ -221,8 +216,6 @@ subprojects {
     }
 
     configure<com.diffplug.gradle.spotless.SpotlessExtension> {
-        // S08-E02-S03: new violations fail; existing ones are a tracked baseline.
-        ratchetFrom("origin/main")
         java {
             target("src/*/java/**/*.java")
             googleJavaFormat("1.22.0")
@@ -232,10 +225,31 @@ subprojects {
         }
     }
 
+    // CODING-STANDARD.md section 5 — technical package names are rejected.
+    tasks.register("codingStandardPackages") {
+        group = "verification"
+        description = "Fail if a source tree contains a dto, entity, repo, util, or helper package."
+        doLast {
+            val banned = setOf("dto", "entity", "repo", "util", "utils", "helper", "helpers")
+            val offenders = projectDir.walkTopDown()
+                .filter { it.isDirectory && it.name in banned }
+                .filter { "src" in it.path.split(File.separator) }
+                .filter { "build" !in it.path.split(File.separator) }
+                .toList()
+            if (offenders.isNotEmpty()) {
+                throw GradleException(
+                    "Banned package directories (CODING-STANDARD.md section 5):\n" +
+                        offenders.joinToString("\n") { it.relativeTo(projectDir).path }
+                )
+            }
+        }
+    }
+
     // Make `check` (and typical CI `./gradlew test jacocoTestCoverageVerification`) enforce gates
     tasks.named("check") {
         dependsOn(tasks.named("jacocoTestCoverageVerification"))
         dependsOn(tasks.named("spotlessCheck"))
+        dependsOn(tasks.named("codingStandardPackages"))
         // checkstyleMain / checkstyleTest are already dependents of `check` via the plugin
     }
 

@@ -14,7 +14,7 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 @ConfigurationPropertiesScan
 public class IntegrationHubApplication {
 
-    public static void main(String[] args) {
-        SpringApplication.run(IntegrationHubApplication.class, args);
-    }
+  public static void main(String[] args) {
+    SpringApplication.run(IntegrationHubApplication.class, args);
+  }
 }

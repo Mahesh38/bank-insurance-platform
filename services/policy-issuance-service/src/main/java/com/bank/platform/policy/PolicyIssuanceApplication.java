@@ -14,7 +14,7 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 @ConfigurationPropertiesScan
 public class PolicyIssuanceApplication {
 
-    public static void main(String[] args) {
-        SpringApplication.run(PolicyIssuanceApplication.class, args);
-    }
+  public static void main(String[] args) {
+    SpringApplication.run(PolicyIssuanceApplication.class, args);
+  }
 }

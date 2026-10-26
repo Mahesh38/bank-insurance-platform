@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 875
-total_bytes: 23545566
+document_count: 876
+total_bytes: 23585656
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -2261,7 +2261,7 @@ documents:
     persona: null
     title: "AGENT CONTEXT INDEX"
     answers: "============================================================================="
-    bytes: 51694
+    bytes: 51836
   - path: docs/context/BOOT.md
     bucket: context
     authority: non-binding-context
@@ -2277,7 +2277,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 304590
+    bytes: 304940
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -2381,7 +2381,7 @@ documents:
     persona: null
     title: "Amit — Technical Head / Principal Engineering · Decision Card"
     answers: "Tier-1 card. Non-binding compression — canonical authority is"
-    bytes: 2843
+    bytes: 2957
   - path: docs/context/personas/ba-r11-business-analysis.card.md
     bucket: context
     authority: non-binding-context
@@ -3645,7 +3645,15 @@ documents:
     persona: null
     title: "Code review standard — coverage, structure, logging"
     answers: "Adoption: PR-REVIEW-CHECKLIST.md · .github/pullrequesttemplate.md"
-    bytes: 9118
+    bytes: 9206
+  - path: docs/governance/CODING-STANDARD.md
+    bucket: governance
+    authority: binding-process
+    capsules: [triage, plan-work, board-review]
+    persona: null
+    title: "Java coding standard — bank insurance platform"
+    answers: "Status: mandatory for every person and every AI agent that writes Java in this repository."
+    bytes: 36537
   - path: docs/governance/DEC-20260825-01-lead-domain-decisions.md
     bucket: governance
     authority: binding-process
@@ -3669,7 +3677,7 @@ documents:
     persona: null
     title: "Engineering and Secure Coding Standards"
     answers: "Adoption mechanism: PR-REVIEW-CHECKLIST.md,"
-    bytes: 5838
+    bytes: 6011
   - path: docs/governance/ORG-STANDARDS.md
     bucket: governance
     authority: binding-process
@@ -3693,7 +3701,7 @@ documents:
     persona: null
     title: "Pull request review checklist"
     answers: "Cites: ENGINEERING-AND-SECURE-CODING-STANDARDS.md"
-    bytes: 3014
+    bytes: 3079
   - path: docs/governance/README.md
     bucket: governance
     authority: binding-process
@@ -4269,7 +4277,7 @@ documents:
     persona: null
     title: "Suggestion Register"
     answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 453744
+    bytes: 456226
   - path: docs/governance/runbooks/AUTOPILOT-FAILURE-RUNBOOK.md
     bucket: governance
     authority: binding-process
@@ -6141,7 +6149,7 @@ documents:
     persona: architecture
     title: "integration-hub-service — Low-level design"
     answers: "(§7) is a PROPOSED store decision and needs the owner's yes plus a DDL addition before build."
-    bytes: 24858
+    bytes: 24997
   - path: docs/platform/contracts/integration-hub-service/openapi.yaml
     bucket: platform
     authority: approved-spec

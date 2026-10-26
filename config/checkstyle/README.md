@@ -7,7 +7,7 @@ Blocking quality rules for every Java subproject. Wired into Gradle `check`
 |---|---|
 | `checkstyle.xml` | The rule set. Failures are errors (`maxWarnings = 0`). |
 | `suppressions.xml` | Tracked baseline for pre-existing violations (S08-E02-S03). Empty at introduction. |
-| Spotless (root `build.gradle.kts`) | Formatting half; `ratchetFrom("origin/main")` so only touched files must be clean. |
+| Spotless (root `build.gradle.kts`) | Formatting half. Google Java Format on every Java file. No ratchet. |
 
 ```bash
 ./gradlew checkstyleMain checkstyleTest spotlessCheck

@@ -2,10 +2,8 @@ package com.bank.persistence.api.internal.v1;
 
 import com.bank.common.error.ErrorCodes;
 import com.bank.common.error.ServiceErrors;
-import com.bank.persistence.api.internal.v1.dto.AuditEventResponse;
-import com.bank.persistence.api.internal.v1.dto.CreateAuditEventRequest;
-import com.bank.persistence.entity.AuditEventEntity;
-import com.bank.persistence.repo.AuditEventRepository;
+import com.bank.persistence.adapter.persistence.AuditEventEntity;
+import com.bank.persistence.adapter.persistence.AuditEventRepository;
 import jakarta.validation.Valid;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;

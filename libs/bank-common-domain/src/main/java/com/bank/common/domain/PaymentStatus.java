@@ -1,11 +1,9 @@
 package com.bank.common.domain;
 
-/**
- * Payment session lifecycle states.
- */
+/** Payment session lifecycle states. */
 public enum PaymentStatus {
-    AWAITING_PAYMENT,
-    INTIMATION_SENT,
-    PAYMENT_SUCCESS,
-    PAYMENT_FAILURE
+  AWAITING_PAYMENT,
+  INTIMATION_SENT,
+  PAYMENT_SUCCESS,
+  PAYMENT_FAILURE
 }

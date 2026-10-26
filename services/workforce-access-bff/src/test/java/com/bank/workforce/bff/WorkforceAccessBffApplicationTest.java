@@ -6,7 +6,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest
 class WorkforceAccessBffApplicationTest {
 
-    @Test
-    void contextLoadsWithInMemorySessionStore() {
-    }
+  @Test
+  void contextLoadsWithInMemorySessionStore() {}
 }

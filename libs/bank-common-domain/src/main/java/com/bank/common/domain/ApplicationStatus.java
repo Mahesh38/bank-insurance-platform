@@ -7,10 +7,9 @@ import java.time.Instant;
  * never surfaced in the bank-facing API response (compliance §8.1).
  */
 public record ApplicationStatus(
-        String applicationNumber,
-        BankApplicationStatus bankStatus,
-        String rawStatus,
-        String manufacturerSubStatus,
-        String policyNumber,
-        Instant lastUpdated
-) {}
+    String applicationNumber,
+    BankApplicationStatus bankStatus,
+    String rawStatus,
+    String manufacturerSubStatus,
+    String policyNumber,
+    Instant lastUpdated) {}

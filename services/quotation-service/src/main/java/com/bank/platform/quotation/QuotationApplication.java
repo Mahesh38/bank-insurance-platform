@@ -14,7 +14,7 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 @ConfigurationPropertiesScan
 public class QuotationApplication {
 
-    public static void main(String[] args) {
-        SpringApplication.run(QuotationApplication.class, args);
-    }
+  public static void main(String[] args) {
+    SpringApplication.run(QuotationApplication.class, args);
+  }
 }

@@ -9,18 +9,18 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
 /**
- * Creates the appropriate {@link SecretProvider} bean based on
- * {@code insurance.secrets.source} configuration.
+ * Creates the appropriate {@link SecretProvider} bean based on {@code insurance.secrets.source}
+ * configuration.
  */
 @Configuration
 public class SecretProviderConfig {
 
-    @Bean
-    public SecretProvider secretProvider(SecretsProperties properties, Environment environment) {
-        return switch (properties.source()) {
-            case PROPERTIES -> new PropertiesSecretProvider(environment);
-            case ENV -> new EnvSecretProvider();
-            case AWS_SECRETS_MANAGER -> new AwsSecretsManagerSecretProvider();
-        };
-    }
+  @Bean
+  public SecretProvider secretProvider(SecretsProperties properties, Environment environment) {
+    return switch (properties.source()) {
+      case PROPERTIES -> new PropertiesSecretProvider(environment);
+      case ENV -> new EnvSecretProvider();
+      case AWS_SECRETS_MANAGER -> new AwsSecretsManagerSecretProvider();
+    };
+  }
 }

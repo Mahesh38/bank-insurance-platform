@@ -7,6 +7,7 @@ package com.bank.common.security;
  * {@code @ConfigurationProperties("bank.security.jwt")} in the consuming service.
  *
  * <p>Example {@code application.yml}:
+ *
  * <pre>
  * bank:
  *   security:
@@ -18,12 +19,12 @@ package com.bank.common.security;
  */
 public interface SecurityProperties {
 
-    /** JWT {@code iss} claim — must match exactly. */
-    String getIssuer();
+  /** JWT {@code iss} claim — must match exactly. */
+  String getIssuer();
 
-    /** JWT {@code aud} claim this service expects. */
-    String getAudience();
+  /** JWT {@code aud} claim this service expects. */
+  String getAudience();
 
-    /** JWKS endpoint URL used to verify JWT signatures. */
-    String getJwksUri();
+  /** JWKS endpoint URL used to verify JWT signatures. */
+  String getJwksUri();
 }

@@ -49,6 +49,7 @@ class RequestDiagnosticFilterTest {
     assertThat(inside).containsEntry(MdcKeys.CORRELATION_ID, "corr-from-caller");
     assertThat(inside).containsEntry(MdcKeys.SERVICE, "onesb");
     assertThat(response.getHeader(TraceHeaders.CORRELATION_ID)).isEqualTo("corr-from-caller");
+    assertThat(response.getHeader("Cache-Control")).isEqualTo("no-store");
   }
 
   @Test

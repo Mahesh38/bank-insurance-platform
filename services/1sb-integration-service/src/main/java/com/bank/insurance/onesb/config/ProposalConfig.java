@@ -5,5 +5,4 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @EnableConfigurationProperties(ProposalProperties.class)
-public class ProposalConfig {
-}
+public class ProposalConfig {}

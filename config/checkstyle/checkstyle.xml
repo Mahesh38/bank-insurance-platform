@@ -32,7 +32,7 @@
             <property name="processJavadoc" value="true"/>
         </module>
         <module name="IllegalImport">
-            <property name="illegalPkgs" value="sun, jdk.internal"/>
+            <property name="illegalPkgs" value="sun, jdk.internal, lombok, org.apache.commons.lang3, com.google.common, org.modelmapper, org.apache.commons.beanutils"/>
         </module>
 
         <!-- Defects / correctness -->

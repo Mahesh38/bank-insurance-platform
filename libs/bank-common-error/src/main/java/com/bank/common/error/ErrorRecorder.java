@@ -15,9 +15,9 @@ package com.bank.common.error;
 @FunctionalInterface
 public interface ErrorRecorder {
 
-    /** Records one failure. {@code cause} is null when there is no exception behind it. */
-    void record(ServiceErrorResponse response, Throwable cause);
+  /** Records one failure. {@code cause} is null when there is no exception behind it. */
+  void record(ServiceErrorResponse response, Throwable cause);
 
-    /** Records nothing. The default when a service has no logging or metrics wired yet. */
-    ErrorRecorder NONE = (response, cause) -> { };
+  /** Records nothing. The default when a service has no logging or metrics wired yet. */
+  ErrorRecorder NONE = (response, cause) -> {};
 }

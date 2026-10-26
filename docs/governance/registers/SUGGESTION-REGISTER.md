@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20261026-cds | 2026-10-26 | human:repository-owner | Adopt the important rules from the Spring Boot coding standard as this platform's Java standard, and refactor the tree to match it. | SF2 | SC1 | SHOULD | REFACTOR | P3 / P2 | ADMIT-BYPASS | [CODING-STANDARD.md](../CODING-STANDARD.md) · [detail](#sug-20261026-cds--platform-java-coding-standard) |
 | SUG-20261026-pgl | 2026-10-26 | human:repository-owner | Fix four login defects found by the local e2e run (Keycloak and Postgres in Docker): identity-authorization cannot migrate on Postgres (flyway-database-postgresql missing); raw Instant JDBC parameters fail on Postgres (outbox, partner admin, PDP facts); a Bank RM wrong password reads as an inactive account and never locks; GET /auth/session answers 400 instead of 401. | SF0 | SC0 | MUST | BUG | P1 / P1 | ADMIT-BYPASS | [detail](#sug-20261026-pgl--login-defects-on-postgres-from-the-local-e2e-run) |
 | SUG-20261024-oat | 2026-10-24 | human:repository-owner | Give the workforce app the OAuth access token and refresh token instead of the BFF session. | SF4 | SC0 | REJECT | SEC | — / — | REJECTED | [detail](#sug-20261024-oat--keep-provider-tokens-inside-the-bff) |
 | SUG-20261024-kck | 2026-10-24 | human:repository-owner | Keep Bank RM password checks on the bank AD API and FLS passwords in Postgres. Do not send the user to Keycloak. Park an IDAM employee callback until the bank contract and an ADR exist. | SF3 | SC1 | NOT-NOW | ARCH | P4 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [detail](#sug-20261024-kck--keycloak-stays-behind-the-login-api) |
@@ -167,6 +168,53 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20261026-cds · Platform Java coding standard
+
+```yaml
+id: SUG-20261026-cds
+raised_at: "2026-10-26"
+raised_by: "human:repository-owner"
+source: "Follow-up to the coding-standard comparison against ai-spring-boot-standard/CODING_STANDARD.md"
+input: >
+  Take all the important things from CODING_STANDARD.md and set a standard for
+  bank-insurance-platform so the agent-facing score is near 100%. Once that is
+  done, refactor all the code and the repository to match the standard defined.
+stage_fit:
+  code: SF2
+  rationale: >
+    L7 posture rejects an unbounded rewrite. A platform coding standard plus the
+    compliance refactor (packages, Lombok, one formatter, cache header) is adjacent
+    engineering-foundation work. Boot 4 stays parked (SUG-20261008-sb4).
+  absorption_test:
+    small: false
+    no_new_dependency: true
+    no_new_decision: false
+    gate_neutral: true
+scope:
+  code: SC1
+  serves: "S08-G8 engineering standard, and every later Java change an agent writes"
+necessity:
+  now: SHOULD
+  future_necessity: MUST
+  target_stage: "current"
+  evidence_tier: E2
+  confidence: C4
+action: ADMIT-BYPASS
+normal_recommendation: PARK
+bypass_authorised_by: "repository owner (explicit: set the standard, then refactor the repository to match)"
+reviewer_type: HUMAN
+authority: repository_owner
+action_rationale: >
+  Owner-directed. The normal L7 recommendation is to park a wholesale style rewrite.
+  The bypass adopts a platform standard (Java 21, Boot 3.5, catalogue errors,
+  correlation id) and refactors the tree onto it. Risk: no architecture or security
+  board ran; public HTTP paths and the error catalogue are unchanged, and Boot 4 is
+  not started.
+risk: "No architecture or security board ran on a repository-wide style refactor."
+```
+
+Normal recommendation was PARK (L7: do not start an unbounded rewrite; Boot 4 is already parked). The owner directed both the standard and the refactor, so the executable action is `ADMIT-BYPASS`. Freshness check on 2026-10-26 was WARN: `state_as_of` is 26 days old, and `04-STAGE_GATES.md` is past its review window. That warning does not block this bypass.
 
 ### SUG-20261026-pgl · Login defects on Postgres from the local e2e run
 

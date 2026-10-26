@@ -14,7 +14,7 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 @ConfigurationPropertiesScan
 public class JourneyOrchestrationApplication {
 
-    public static void main(String[] args) {
-        SpringApplication.run(JourneyOrchestrationApplication.class, args);
-    }
+  public static void main(String[] args) {
+    SpringApplication.run(JourneyOrchestrationApplication.class, args);
+  }
 }

@@ -12,12 +12,13 @@ import com.bank.common.error.ServiceException;
  */
 final class NotFound {
 
-    private NotFound() {}
+  private NotFound() {}
 
-    static ServiceException of(ServiceErrors errors, String resource, String id) {
-        return errors.error(ErrorCodes.RESOURCE_NOT_FOUND)
-                .component(resource)
-                .reason(resource + " not found: " + id)
-                .build();
-    }
+  static ServiceException of(ServiceErrors errors, String resource, String id) {
+    return errors
+        .error(ErrorCodes.RESOURCE_NOT_FOUND)
+        .component(resource)
+        .reason(resource + " not found: " + id)
+        .build();
+  }
 }

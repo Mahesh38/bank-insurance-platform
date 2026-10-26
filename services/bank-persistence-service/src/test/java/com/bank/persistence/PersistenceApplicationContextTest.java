@@ -8,8 +8,8 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("test")
 class PersistenceApplicationContextTest {
 
-    @Test
-    void contextLoads() {
-        // Verifies Flyway + JPA + web context start on H2
-    }
+  @Test
+  void contextLoads() {
+    // Verifies Flyway + JPA + web context start on H2
+  }
 }

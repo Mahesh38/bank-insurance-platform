@@ -851,8 +851,10 @@ capsules:
     intent: "Write or change Java/Spring code in this repository, or review a PR against the engineering bar."
     triggers: ["implement", "fix the bug", "write the code", "refactor", "add the endpoint", "failing test", "build failure", "compile error", "archunit", "code review", "review the PR", "review the changes"]
     persona: engineering
-    budget_bytes: 45000
+    budget_bytes: 80000
     load:
+      - path: "docs/governance/CODING-STANDARD.md"
+        why: "The only Java coding standard. Read it before generating or modifying code."
       - path: "docs/context/personas/amit-engineering.card.md"
         why: "Adopt Amit. The ArchUnit-enforced boundaries and the coverage gates."
       - path: "docs/governance/CODE-REVIEW-STANDARD.md"

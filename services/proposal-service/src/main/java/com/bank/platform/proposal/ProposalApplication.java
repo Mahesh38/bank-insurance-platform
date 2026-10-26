@@ -14,7 +14,7 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 @ConfigurationPropertiesScan
 public class ProposalApplication {
 
-    public static void main(String[] args) {
-        SpringApplication.run(ProposalApplication.class, args);
-    }
+  public static void main(String[] args) {
+    SpringApplication.run(ProposalApplication.class, args);
+  }
 }

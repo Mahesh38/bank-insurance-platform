@@ -9,9 +9,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "raw-payload.retention")
 public record RawPayloadRetentionProperties(Integer years) {
 
-    private static final int DEFAULT_YEARS = 7;
+  private static final int DEFAULT_YEARS = 7;
 
-    public int yearsOrDefault() {
-        return years != null && years > 0 ? years : DEFAULT_YEARS;
-    }
+  public int yearsOrDefault() {
+    return years != null && years > 0 ? years : DEFAULT_YEARS;
+  }
 }

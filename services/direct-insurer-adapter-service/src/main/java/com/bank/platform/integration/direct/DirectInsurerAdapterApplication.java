@@ -14,7 +14,7 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 @ConfigurationPropertiesScan
 public class DirectInsurerAdapterApplication {
 
-    public static void main(String[] args) {
-        SpringApplication.run(DirectInsurerAdapterApplication.class, args);
-    }
+  public static void main(String[] args) {
+    SpringApplication.run(DirectInsurerAdapterApplication.class, args);
+  }
 }

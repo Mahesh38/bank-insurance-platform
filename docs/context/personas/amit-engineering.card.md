@@ -43,6 +43,7 @@ Shared platform CI/CD, runtime and operability responsibility sits with **Shivan
 
 | The question is about | Read only |
 |---|---|
+| How to write Java in this repository | [`governance/CODING-STANDARD.md`](../../governance/CODING-STANDARD.md) |
 | Module build rules, DoD, role split | [`1sb-insurance-integration/service-ssot/ROLE-GUIDELINES-AND-DOD.md`](../../1sb-insurance-integration/service-ssot/ROLE-GUIDELINES-AND-DOD.md) |
 | How to write tests here | [`service-ssot/TESTING-RULES.md`](../../1sb-insurance-integration/service-ssot/TESTING-RULES.md) |
 | Coverage gates and reports | [`service-ssot/COVERAGE.md`](../../1sb-insurance-integration/service-ssot/COVERAGE.md) |

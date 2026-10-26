@@ -1,9 +1,4 @@
 package com.bank.common.domain;
 
-/**
- * Immediate result of {@code POST /v1/proposals} — bank job id + normalised status.
- */
-public record ProposalSubmitResult(
-        String proposalJobId,
-        JobStatus status
-) {}
+/** Immediate result of {@code POST /v1/proposals} — bank job id + normalised status. */
+public record ProposalSubmitResult(String proposalJobId, JobStatus status) {}

@@ -2,7 +2,7 @@ package com.bank.insurance.onesb.adapter.persistence;
 
 import com.bank.common.domain.Lob;
 import com.bank.common.domain.RawPayloadDirection;
-import com.bank.insurance.onesb.adapter.persistence.dto.PersistenceApiDtos.CreateRawPayloadRequest;
+import com.bank.insurance.onesb.adapter.persistence.PersistenceMessages.CreateRawPayloadRequest;
 import com.bank.insurance.onesb.domain.port.outbound.RawPayloadCaptureException;
 import com.bank.insurance.onesb.domain.port.outbound.RawPayloadStorePort;
 import org.slf4j.Logger;

@@ -3,6 +3,7 @@ package com.bank.common.error;
 import com.bank.common.observability.ErrorMetrics;
 import com.bank.common.observability.RequestDiagnosticFilter;
 import io.micrometer.core.instrument.MeterRegistry;
+import java.util.Arrays;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -12,8 +13,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.Ordered;
 import org.springframework.core.env.Environment;
 import org.springframework.util.StringUtils;
-
-import java.util.Arrays;
 
 /**
  * Wires the error contract into a service that does nothing but depend on this library.
@@ -30,92 +29,96 @@ import java.util.Arrays;
 @EnableConfigurationProperties(PlatformErrorProperties.class)
 public class PlatformErrorAutoConfiguration {
 
-    /**
-     * @throws IllegalStateException when diagnostics are exposed under a production profile. A
-     *         misconfigured switch here puts upstream prose and internal routes on a device, so it
-     *         fails at startup rather than at the first error — the difference between an incident
-     *         found by a deployment and one found by a customer.
-     */
-    @Bean
-    @ConditionalOnMissingBean
-    public ErrorHandlingSettings errorHandlingSettings(PlatformErrorProperties properties,
-                                                       Environment environment) {
-        boolean production = Arrays.stream(environment.getActiveProfiles())
+  /**
+   * @throws IllegalStateException when diagnostics are exposed under a production profile. A
+   *     misconfigured switch here puts upstream prose and internal routes on a device, so it fails
+   *     at startup rather than at the first error — the difference between an incident found by a
+   *     deployment and one found by a customer.
+   */
+  @Bean
+  @ConditionalOnMissingBean
+  public ErrorHandlingSettings errorHandlingSettings(
+      PlatformErrorProperties properties, Environment environment) {
+    boolean production =
+        Arrays.stream(environment.getActiveProfiles())
             .anyMatch(p -> p.equalsIgnoreCase("prod") || p.equalsIgnoreCase("production"));
 
-        if (properties.isExposeDiagnostics() && production) {
-            throw new IllegalStateException(
-                "bank.error.expose-diagnostics is true under a production profile. Diagnostics "
-                    + "carry upstream prose, internal routes and cause chains; they are for logs "
-                    + "and internal hops, never for a device. Use the incidentId to retrieve them.");
-        }
-
-        return ErrorHandlingSettings.builder(resolveServiceId(properties, environment))
-            .layer(properties.getLayer())
-            .boundary(properties.getBoundary())
-            .exposeDiagnostics(properties.isExposeDiagnostics())
-            .validationStatus(properties.getValidationStatus())
-            .malformedBodyStatusOverride(properties.getMalformedBodyStatus())
-            .build();
+    if (properties.isExposeDiagnostics() && production) {
+      throw new IllegalStateException(
+          "bank.error.expose-diagnostics is true under a production profile. Diagnostics "
+              + "carry upstream prose, internal routes and cause chains; they are for logs "
+              + "and internal hops, never for a device. Use the incidentId to retrieve them.");
     }
 
-    /** Injected wherever a service throws, so no throw site carries the service id as a literal. */
-    @Bean
-    @ConditionalOnMissingBean
-    public ServiceErrors serviceErrors(ErrorHandlingSettings settings) {
-        return new ServiceErrors(settings);
-    }
+    return ErrorHandlingSettings.builder(resolveServiceId(properties, environment))
+        .layer(properties.getLayer())
+        .boundary(properties.getBoundary())
+        .exposeDiagnostics(properties.isExposeDiagnostics())
+        .validationStatus(properties.getValidationStatus())
+        .malformedBodyStatusOverride(properties.getMalformedBodyStatus())
+        .build();
+  }
 
-    /** Reads a peer's error envelope so {@link ErrorPropagation} has something to propagate. */
-    @Bean
-    @ConditionalOnMissingBean
-    public ProblemJsonReader problemJsonReader(
-            ObjectProvider<com.fasterxml.jackson.databind.ObjectMapper> objectMapper) {
-        return new ProblemJsonReader(objectMapper.getIfAvailable(
-            com.fasterxml.jackson.databind.ObjectMapper::new));
-    }
+  /** Injected wherever a service throws, so no throw site carries the service id as a literal. */
+  @Bean
+  @ConditionalOnMissingBean
+  public ServiceErrors serviceErrors(ErrorHandlingSettings settings) {
+    return new ServiceErrors(settings);
+  }
 
-    @Bean
-    @ConditionalOnMissingBean
-    public ErrorRecorder errorRecorder(ErrorHandlingSettings settings,
-                                       PlatformErrorProperties properties,
-                                       ObjectProvider<MeterRegistry> meterRegistry) {
-        // A @WebMvcTest slice has no MeterRegistry, and a service must not lose its error
-        // responses because it cannot count them.
-        MeterRegistry registry = properties.isMetricsEnabled() ? meterRegistry.getIfAvailable() : null;
-        return new Slf4jErrorRecorder(settings.layer(), registry != null ? new ErrorMetrics(registry) : null);
-    }
+  /** Reads a peer's error envelope so {@link ErrorPropagation} has something to propagate. */
+  @Bean
+  @ConditionalOnMissingBean
+  public ProblemJsonReader problemJsonReader(
+      ObjectProvider<com.fasterxml.jackson.databind.ObjectMapper> objectMapper) {
+    return new ProblemJsonReader(
+        objectMapper.getIfAvailable(com.fasterxml.jackson.databind.ObjectMapper::new));
+  }
 
-    @Bean
-    @ConditionalOnMissingBean(PlatformErrorHandler.class)
-    public PlatformErrorAdvice platformErrorAdvice(ErrorHandlingSettings settings,
-                                                   ErrorRecorder recorder) {
-        return new PlatformErrorAdvice(settings, recorder);
-    }
+  @Bean
+  @ConditionalOnMissingBean
+  public ErrorRecorder errorRecorder(
+      ErrorHandlingSettings settings,
+      PlatformErrorProperties properties,
+      ObjectProvider<MeterRegistry> meterRegistry) {
+    // A @WebMvcTest slice has no MeterRegistry, and a service must not lose its error
+    // responses because it cannot count them.
+    MeterRegistry registry = properties.isMetricsEnabled() ? meterRegistry.getIfAvailable() : null;
+    return new Slf4jErrorRecorder(
+        settings.layer(), registry != null ? new ErrorMetrics(registry) : null);
+  }
 
-    /** Seeds correlation context at the edge, before any other filter can log or reject. */
-    @Bean
-    @ConditionalOnMissingBean
-    public FilterRegistrationBean<RequestDiagnosticFilter> requestDiagnosticFilter(
-            ErrorHandlingSettings settings) {
-        FilterRegistrationBean<RequestDiagnosticFilter> registration =
-            new FilterRegistrationBean<>(new RequestDiagnosticFilter(settings.serviceId()));
-        registration.setOrder(Ordered.HIGHEST_PRECEDENCE);
-        registration.addUrlPatterns("/*");
-        return registration;
-    }
+  @Bean
+  @ConditionalOnMissingBean(PlatformErrorHandler.class)
+  public PlatformErrorAdvice platformErrorAdvice(
+      ErrorHandlingSettings settings, ErrorRecorder recorder) {
+    return new PlatformErrorAdvice(settings, recorder);
+  }
 
-    private static String resolveServiceId(PlatformErrorProperties properties, Environment environment) {
-        if (StringUtils.hasText(properties.getServiceId())) {
-            return properties.getServiceId();
-        }
-        String applicationName = environment.getProperty("spring.application.name");
-        if (StringUtils.hasText(applicationName)) {
-            return applicationName;
-        }
-        throw new IllegalStateException(
-            "No service id: set bank.error.service-id or spring.application.name. Every error "
-                + "response, log line and metric tag names the service that produced it, and an "
-                + "unattributed error is the problem this contract exists to remove.");
+  /** Seeds correlation context at the edge, before any other filter can log or reject. */
+  @Bean
+  @ConditionalOnMissingBean
+  public FilterRegistrationBean<RequestDiagnosticFilter> requestDiagnosticFilter(
+      ErrorHandlingSettings settings) {
+    FilterRegistrationBean<RequestDiagnosticFilter> registration =
+        new FilterRegistrationBean<>(new RequestDiagnosticFilter(settings.serviceId()));
+    registration.setOrder(Ordered.HIGHEST_PRECEDENCE);
+    registration.addUrlPatterns("/*");
+    return registration;
+  }
+
+  private static String resolveServiceId(
+      PlatformErrorProperties properties, Environment environment) {
+    if (StringUtils.hasText(properties.getServiceId())) {
+      return properties.getServiceId();
     }
+    String applicationName = environment.getProperty("spring.application.name");
+    if (StringUtils.hasText(applicationName)) {
+      return applicationName;
+    }
+    throw new IllegalStateException(
+        "No service id: set bank.error.service-id or spring.application.name. Every error "
+            + "response, log line and metric tag names the service that produced it, and an "
+            + "unattributed error is the problem this contract exists to remove.");
+  }
 }

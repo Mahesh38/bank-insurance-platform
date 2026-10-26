@@ -8,9 +8,9 @@ package com.bank.common.error;
  *
  * <ol>
  *   <li>the <strong>incident id</strong>, so one failure keeps one identity end to end. Minting a
- *       fresh id per hop gives support three ids for one event and no way to join them;</li>
+ *       fresh id per hop gives support three ids for one event and no way to join them;
  *   <li>the <strong>first origin</strong>, so the RM's screen can be traced back to the service
- *       that actually refused rather than to the last one in the chain.</li>
+ *       that actually refused rather than to the last one in the chain.
  * </ol>
  *
  * <p>The third rule is {@link ErrorDefinition#propagation()}: a refusal the caller can act on keeps
@@ -29,92 +29,93 @@ package com.bank.common.error;
  */
 public final class ErrorPropagation {
 
-    private final ServiceErrorResponse upstream;
-    private String service;
-    private PlatformLayer layer;
-    private String calledService;
-    private String operation;
-    private Throwable cause;
+  private final ServiceErrorResponse upstream;
+  private String service;
+  private PlatformLayer layer;
+  private String calledService;
+  private String operation;
+  private Throwable cause;
 
-    private ErrorPropagation(ServiceErrorResponse upstream) {
-        this.upstream = upstream;
+  private ErrorPropagation(ServiceErrorResponse upstream) {
+    this.upstream = upstream;
+  }
+
+  /** Starts from the error another service returned. */
+  public static ErrorPropagation from(ServiceErrorResponse upstream) {
+    if (upstream == null) {
+      throw new IllegalArgumentException("upstream response must not be null");
     }
+    return new ErrorPropagation(upstream);
+  }
 
-    /** Starts from the error another service returned. */
-    public static ErrorPropagation from(ServiceErrorResponse upstream) {
-        if (upstream == null) {
-            throw new IllegalArgumentException("upstream response must not be null");
-        }
-        return new ErrorPropagation(upstream);
+  /** Starts from an upstream {@link ServiceException}. */
+  public static ErrorPropagation from(ServiceException upstream) {
+    return from(upstream.getErrorResponse()).causedBy(upstream);
+  }
+
+  /** The service doing the receiving, and where it sits. */
+  public ErrorPropagation receivedBy(String service, PlatformLayer layer) {
+    this.service = service;
+    this.layer = layer;
+    return this;
+  }
+
+  /** The service that was called and the operation attempted. */
+  public ErrorPropagation calling(String calledService, String operation) {
+    this.calledService = calledService;
+    this.operation = operation;
+    return this;
+  }
+
+  public ErrorPropagation causedBy(Throwable cause) {
+    this.cause = cause;
+    return this;
+  }
+
+  /**
+   * The code this service will emit: the upstream's own when the catalogue marks it {@link
+   * Propagation#PROPAGATE}, otherwise a wrapping {@code UPSTREAM_*} code.
+   */
+  public String resolvedCode() {
+    ErrorDefinition definition = ErrorCatalogue.find(upstream.getCode()).orElse(null);
+    if (definition == null) {
+      // An unregistered upstream code cannot be re-emitted as our own: we would be
+      // publishing a code with no declared status, wording or retryability.
+      return ErrorCodes.UPSTREAM_BAD_RESPONSE;
     }
-
-    /** Starts from an upstream {@link ServiceException}. */
-    public static ErrorPropagation from(ServiceException upstream) {
-        return from(upstream.getErrorResponse()).causedBy(upstream);
+    if (definition.propagation() == Propagation.PROPAGATE) {
+      return definition.code();
     }
+    return switch (definition.category()) {
+      case UPSTREAM, CONFIG, INTERNAL -> ErrorCodes.UPSTREAM_UNAVAILABLE;
+      default -> ErrorCodes.UPSTREAM_BUSINESS_ERROR;
+    };
+  }
 
-    /** The service doing the receiving, and where it sits. */
-    public ErrorPropagation receivedBy(String service, PlatformLayer layer) {
-        this.service = service;
-        this.layer = layer;
-        return this;
-    }
+  /** True when the upstream code reaches our caller unchanged. */
+  public boolean propagatesCode() {
+    return resolvedCode().equals(upstream.getCode());
+  }
 
-    /** The service that was called and the operation attempted. */
-    public ErrorPropagation calling(String calledService, String operation) {
-        this.calledService = calledService;
-        this.operation = operation;
-        return this;
-    }
+  /**
+   * The origin to carry forward — the upstream's own if it had one, otherwise the service we
+   * called. First origin wins, so the true source survives an arbitrary number of hops.
+   */
+  public ErrorOrigin resolvedOrigin() {
+    return ErrorOrigin.inherit(
+        upstream.getOrigin(),
+        calledService != null ? calledService : upstream.getService(),
+        upstream.getCode(),
+        upstream.getDiagnostic() != null ? upstream.getDiagnostic().getLayer() : null);
+  }
 
-    public ErrorPropagation causedBy(Throwable cause) {
-        this.cause = cause;
-        return this;
-    }
+  /** Builds this service's exception, carrying the upstream's incident id and origin. */
+  public ServiceException toException() {
+    String code = resolvedCode();
+    ErrorOrigin origin = resolvedOrigin();
 
-    /**
-     * The code this service will emit: the upstream's own when the catalogue marks it
-     * {@link Propagation#PROPAGATE}, otherwise a wrapping {@code UPSTREAM_*} code.
-     */
-    public String resolvedCode() {
-        ErrorDefinition definition = ErrorCatalogue.find(upstream.getCode()).orElse(null);
-        if (definition == null) {
-            // An unregistered upstream code cannot be re-emitted as our own: we would be
-            // publishing a code with no declared status, wording or retryability.
-            return ErrorCodes.UPSTREAM_BAD_RESPONSE;
-        }
-        if (definition.propagation() == Propagation.PROPAGATE) {
-            return definition.code();
-        }
-        return switch (definition.category()) {
-            case UPSTREAM, CONFIG, INTERNAL -> ErrorCodes.UPSTREAM_UNAVAILABLE;
-            default -> ErrorCodes.UPSTREAM_BUSINESS_ERROR;
-        };
-    }
-
-    /** True when the upstream code reaches our caller unchanged. */
-    public boolean propagatesCode() {
-        return resolvedCode().equals(upstream.getCode());
-    }
-
-    /**
-     * The origin to carry forward — the upstream's own if it had one, otherwise the service we
-     * called. First origin wins, so the true source survives an arbitrary number of hops.
-     */
-    public ErrorOrigin resolvedOrigin() {
-        return ErrorOrigin.inherit(
-            upstream.getOrigin(),
-            calledService != null ? calledService : upstream.getService(),
-            upstream.getCode(),
-            upstream.getDiagnostic() != null ? upstream.getDiagnostic().getLayer() : null);
-    }
-
-    /** Builds this service's exception, carrying the upstream's incident id and origin. */
-    public ServiceException toException() {
-        String code = resolvedCode();
-        ErrorOrigin origin = resolvedOrigin();
-
-        ServiceException.Builder builder = ServiceException.of(code)
+    ServiceException.Builder builder =
+        ServiceException.of(code)
             .service(service)
             .layer(layer)
             .operation(operation)
@@ -124,21 +125,20 @@ public final class ErrorPropagation {
             .reason(reason(origin))
             .upstream(origin.service(), upstream.getUpstreamCode(), upstream.getStatus());
 
-        if (cause != null) {
-            builder.cause(cause);
-        }
-        return builder.build();
+    if (cause != null) {
+      builder.cause(cause);
     }
+    return builder.build();
+  }
 
-    private String reason(ErrorOrigin origin) {
-        String upstreamReason = upstream.getDiagnostic() != null
-            ? upstream.getDiagnostic().getReason()
-            : null;
+  private String reason(ErrorOrigin origin) {
+    String upstreamReason =
+        upstream.getDiagnostic() != null ? upstream.getDiagnostic().getReason() : null;
 
-        String base = origin.service() + " answered " + upstream.getCode()
-            + " (" + upstream.getStatus() + ")";
-        return upstreamReason != null && !upstreamReason.isBlank()
-            ? base + ": " + upstreamReason
-            : base;
-    }
+    String base =
+        origin.service() + " answered " + upstream.getCode() + " (" + upstream.getStatus() + ")";
+    return upstreamReason != null && !upstreamReason.isBlank()
+        ? base + ": " + upstreamReason
+        : base;
+  }
 }

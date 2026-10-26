@@ -190,7 +190,6 @@ context:
   state_as_of: "2026-09-30"
   state_provisional: false
   active_work_item: null
-  freshness: "WARN — state_as_of 26d; 04-STAGE_GATES.md past refresh limit; agents may proceed"
 
 stage_fit:
   code: SF5
@@ -237,16 +236,15 @@ necessity:
     X3_cheap_later: false
     X5_stage_necessity: true
     X9_problem_observed: true
-  notes: >
-    Not a duplicate of cds (standard + rewrite already shipped). Not admitting
-    "implement production depth in every thin scaffold" — that fails KISS / AP-8.
 
 action: ADMIT
 action_rationale: >
   SF5 + SC0 + SHOULD → ADMIT · P3. Extends cds; does not re-open the rewrite.
   No ADMIT-BYPASS required — residual enforcement is on-stage Foundation work.
+  Not a duplicate of cds (standard + rewrite already shipped). Not admitting
+  feature depth in every thin scaffold — that fails KISS / AP-8.
+  Freshness on triage day was WARN (state_as_of aged; 04-STAGE_GATES.md past refresh).
 duplicate_of: null
-related_to: ["SUG-20261026-cds", "QA-014", "SUG-20261022-rdy"]
 conflicts: []
 
 classification:
@@ -270,7 +268,18 @@ priority:
 
 dependencies:
   edges:
-    - { from: SUG-20261026-ur9, to: SUG-20261026-cds, type: SOFT, note: "builds on shipped standard" }
+    - type: SOFT
+      target: SUG-20261026-cds
+      relation: related_to
+      state: DONE
+    - type: SOFT
+      target: QA-014
+      relation: related_to
+      state: PARKED
+    - type: SOFT
+      target: SUG-20261022-rdy
+      relation: related_to
+      state: DONE
   state: READY
   enablement_count: 1
   earliest_start: "Engineering SF5 lane — implement when lane WIP is free / owner says go"

@@ -43,7 +43,8 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
-| SUG-20261026-cds | 2026-10-26 | human:repository-owner | Adopt the important rules from the Spring Boot coding standard as this platform's Java standard, and refactor the tree to match it. | SF2 | SC1 | SHOULD | REFACTOR | P3 / P2 | ADMIT-BYPASS | [CODING-STANDARD.md](../CODING-STANDARD.md) · [detail](#sug-20261026-cds--platform-java-coding-standard) |
+| SUG-20261026-ur9 | 2026-10-26 | human:repository-owner | Raise coding standards further throughout development for all modules — enforce CODING-STANDARD via Checkstyle Naming, shared ArchUnit, maturity ladder (residual after cds) | SF5 | SC0 | SHOULD | GOV | P3 / P2 | ADMITTED | [EPIC-007](../../platform/ws3-platform/EPIC-007.work-item.yaml) · [detail](#sug-20261026-ur9--enforce-coding-standard-estate-wide) · related [cds](#sug-20261026-cds--platform-java-coding-standard) |
+| SUG-20261026-cds | 2026-10-26 | human:repository-owner | Adopt the important rules from the Spring Boot coding standard as this platform's Java standard, and refactor the tree to match it. | SF2 | SC1 | SHOULD | REFACTOR | P3 / P2 | CLOSED-DELIVERED | [CODING-STANDARD.md](../CODING-STANDARD.md) · [PR #158](https://github.com/Mahesh38/bank-insurance-platform/pull/158) · [detail](#sug-20261026-cds--platform-java-coding-standard) · residual [ur9](#sug-20261026-ur9--enforce-coding-standard-estate-wide) |
 | SUG-20261026-pgl | 2026-10-26 | human:repository-owner | Fix four login defects found by the local e2e run (Keycloak and Postgres in Docker): identity-authorization cannot migrate on Postgres (flyway-database-postgresql missing); raw Instant JDBC parameters fail on Postgres (outbox, partner admin, PDP facts); a Bank RM wrong password reads as an inactive account and never locks; GET /auth/session answers 400 instead of 401. | SF0 | SC0 | MUST | BUG | P1 / P1 | ADMIT-BYPASS | [detail](#sug-20261026-pgl--login-defects-on-postgres-from-the-local-e2e-run) |
 | SUG-20261024-oat | 2026-10-24 | human:repository-owner | Give the workforce app the OAuth access token and refresh token instead of the BFF session. | SF4 | SC0 | REJECT | SEC | — / — | REJECTED | [detail](#sug-20261024-oat--keep-provider-tokens-inside-the-bff) |
 | SUG-20261024-kck | 2026-10-24 | human:repository-owner | Keep Bank RM password checks on the bank AD API and FLS passwords in Postgres. Do not send the user to Keycloak. Park an IDAM employee callback until the bank contract and an ADR exist. | SF3 | SC1 | NOT-NOW | ARCH | P4 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [detail](#sug-20261024-kck--keycloak-stays-behind-the-login-api) |
@@ -169,6 +170,134 @@ Row format:
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
 
+### SUG-20261026-ur9 · Enforce CODING-STANDARD estate-wide
+
+```yaml
+# schema: triage-record
+id: SUG-20261026-ur9
+raised_at: "2026-10-26"
+raised_by: "human:repository-owner"
+source: "Follow-up after coding-standards assessment — owner wants the bar high throughout development for all services and modules"
+input: >
+  I want to improve this more and make the coding and development standard high
+  throughout the development, for all the services for all the modules.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: null
+  freshness: "WARN — state_as_of 26d; 04-STAGE_GATES.md past refresh limit; agents may proceed"
+
+stage_fit:
+  code: SF5
+  rationale: >
+    SUG-20261026-cds already delivered CODING-STANDARD.md and the tree alignment
+    (CLOSED-DELIVERED via PR #158). Remaining work is CI enforcement of §7 Naming,
+    a shared ArchUnit baseline, and an explicit module maturity ladder — Foundation
+    quality work that does not delay open GATE-S08 criteria and does not fill every
+    scaffold with feature code.
+  parallel_test:
+    off_critical_path: true
+    dependency_safe: true
+    in_scope: true
+    standing_constraint_clean: true
+    separate_lane: "Engineering / coding-standards"
+    no_silent_trust_boundary_change: true
+  lane: "Engineering / coding-standards"
+
+scope:
+  code: SC0
+  business_scope: "in scope — continuous S08-G8 / CODING-STANDARD enforcement"
+  serves: []
+  failure_without_it: >
+    Naming stays review-opinion; ArchUnit stays copy-paste; scaffold graduation floors
+    stay implicit while parallel builds proceed
+  minimal: true
+  authority: "CODING-STANDARD.md · ENGINEERING-AND-SECURE-CODING-STANDARDS.md · CODE-REVIEW-STANDARD.md"
+
+necessity:
+  now: SHOULD
+  future_necessity: MUST
+  target_stage: "S08 — before multi-agent parallel service implementation wave"
+  binds_when: "many modules leave H0 scaffold under parallel build"
+  failure_without_it: "CODING-STANDARD drifts from what CI can prove"
+  evidence_tier: E2
+  evidence:
+    - "CODING-STANDARD.md on main (PR #158 / SUG-20261026-cds)"
+    - "config/checkstyle/checkstyle.xml has no Naming modules"
+    - "No shared ArchUnit library under libs/; per-service ArchitectureTest copies"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+  notes: >
+    Not a duplicate of cds (standard + rewrite already shipped). Not admitting
+    "implement production depth in every thin scaffold" — that fails KISS / AP-8.
+
+action: ADMIT
+action_rationale: >
+  SF5 + SC0 + SHOULD → ADMIT · P3. Extends cds; does not re-open the rewrite.
+  No ADMIT-BYPASS required — residual enforcement is on-stage Foundation work.
+duplicate_of: null
+related_to: ["SUG-20261026-cds", "QA-014", "SUG-20261022-rdy"]
+conflicts: []
+
+classification:
+  type: GOV
+  also: [QA, ARCH, INFRA]
+  breakdown: EPIC
+  epic: EPIC-007
+  risk_tier: T2
+  destination: "docs/platform/ws3-platform/EPIC-007.work-item.yaml"
+
+priority:
+  now: P3
+  at_target: P2
+  factors: { N: 2, S: 2, B: 1, R: 2, D: 1, E: 1 }
+  score: 14
+  matrix_default: P3
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "SHOULD + SF5; M effort after cds; material drift risk without Naming/ArchUnit CI"
+
+dependencies:
+  edges:
+    - { from: SUG-20261026-ur9, to: SUG-20261026-cds, type: SOFT, note: "builds on shipped standard" }
+  state: READY
+  enablement_count: 1
+  earliest_start: "Engineering SF5 lane — implement when lane WIP is free / owner says go"
+  cycles: none
+
+breakdown:
+  children: [QA-015, ARCH-029]
+  completion_definition: >
+    Checkstyle Naming fails new §7 breaches; shared ArchUnit on skeleton + all services;
+    maturity ladder written. CI green. CODING-STANDARD not rewritten.
+  not_included:
+    - "Second coding-standard document"
+    - "cds tree rewrite again"
+    - "Feature depth in every empty scaffold"
+    - "QA-014"
+    - "Phase 6 dashboards/SLOs"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: EPIC-007
+  plan_id: null
+  status: ADMITTED
+  closed_reason: null
+
+resumed: "EPIC-006 (IN-REVIEW) — EPIC-007 waits on Engineering SF5 lane start / owner go-ahead"
+```
+
 ### SUG-20261026-cds · Platform Java coding standard
 
 ```yaml
@@ -212,9 +341,15 @@ action_rationale: >
   board ran; public HTTP paths and the error catalogue are unchanged, and Boot 4 is
   not started.
 risk: "No architecture or security board ran on a repository-wide style refactor."
+outcome:
+  status: CLOSED-DELIVERED
+  evidence: "PR #158 merged — CODING-STANDARD.md + tree alignment"
+  residual: "SUG-20261026-ur9 / EPIC-007 — Checkstyle Naming, shared ArchUnit, maturity ladder"
+recurrence_count: 1
+recurrence_note: "2026-10-26 owner asked to raise the bar further for all modules → ur9 residual enforcement, not a second rewrite"
 ```
 
-Normal recommendation was PARK (L7: do not start an unbounded rewrite; Boot 4 is already parked). The owner directed both the standard and the refactor, so the executable action is `ADMIT-BYPASS`. Freshness check on 2026-10-26 was WARN: `state_as_of` is 26 days old, and `04-STAGE_GATES.md` is past its review window. That warning does not block this bypass.
+Normal recommendation was PARK (L7: do not start an unbounded rewrite; Boot 4 is already parked). The owner directed both the standard and the refactor, so the executable action is `ADMIT-BYPASS`. Freshness check on 2026-10-26 was WARN: `state_as_of` is 26 days old, and `04-STAGE_GATES.md` is past its review window. That warning does not block this bypass. Shipped on PR #158; residual enforcement is `SUG-20261026-ur9`.
 
 ### SUG-20261026-pgl · Login defects on Postgres from the local e2e run
 

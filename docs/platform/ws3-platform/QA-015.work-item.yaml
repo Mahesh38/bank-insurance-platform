@@ -1,0 +1,74 @@
+# schema: work-item
+id: QA-015
+origin: ["SUG-20261026-ur9"]
+title: "Checkstyle Naming ratchet + module maturity coverage ladder"
+type: QA
+also: [GOV, INFRA]
+breakdown: STORY
+epic: EPIC-007
+workstream: WS-3
+owner: "Amit — Technical Head (R3); co-owner Swapnali (floors); lane engineering-coding-standards"
+risk_tier: T2
+
+serves:
+  - "EPIC-007"
+  - "CODING-STANDARD.md §7 Naming"
+  - "CODE-REVIEW-STANDARD §1"
+  - "COVERAGE.md"
+
+problem: >
+  CODING-STANDARD §7 defines naming. Checkstyle still only covers defect/hygiene
+  rules. Scaffold vs implementing vs Phase-1 coverage floors are not written as a
+  graduation ladder, so teams either under-enforce thin modules or demand Phase-1
+  floors on empty H0 skeletons.
+
+description: >
+  Extend config/checkstyle/checkstyle.xml with Naming modules matching
+  CODING-STANDARD §7 (PackageName, TypeName, MethodName, ConstantName, and agreed
+  locals). Use suppressions.xml for pre-existing debt only. Update COVERAGE.md,
+  CODE-REVIEW-STANDARD, and a short pointer in CODING-STANDARD §23 for the maturity
+  ladder: H0 scaffold → implementing → Phase-1 hardened. Do not close QA-014 here.
+
+acceptance_criteria:
+  - id: AC-1
+    given: "a new Java type that violates TypeName per CODING-STANDARD §7"
+    when: "./gradlew checkstyleMain"
+    then: "fails with maxWarnings=0"
+  - id: AC-2
+    given: "pre-existing naming debt"
+    when: "suppressions.xml is inspected"
+    then: "each suppression is scoped; new files are not blanket-suppressed"
+  - id: AC-3
+    given: "COVERAGE.md and CODE-REVIEW-STANDARD"
+    when: "maturity ladder is read"
+    then: "scaffold / implementing / hardened floors and graduation trigger are written"
+  - id: AC-4
+    given: "CODING-STANDARD.md"
+    when: "section 23 checklist is read"
+    then: "it points at Checkstyle Naming as the enforcement of §7"
+
+out_of_scope:
+  - "QA-014 package-level Jacoco floors"
+  - "Mass rename of existing types in one PR"
+  - "Rewriting CODING-STANDARD §7"
+
+state: READY
+priority_now: P3
+priority_at_target: P2
+target_stage: null
+unpark_trigger: null
+
+dependencies:
+  blocked_by: []
+  requires: ["SUG-20261026-cds"]
+  enables: []
+  related_to: ["QA-014", "EPIC-007"]
+  external: []
+  decision_dependency: []
+
+plan: null
+estimate: M
+assumptions: []
+risks: []
+evidence: []
+variance_log: []

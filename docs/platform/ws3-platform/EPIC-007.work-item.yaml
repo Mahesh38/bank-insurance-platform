@@ -1,0 +1,116 @@
+# schema: work-item
+id: EPIC-007
+title: "Enforce CODING-STANDARD estate-wide — Checkstyle Naming, shared ArchUnit, module maturity"
+type: GOV
+also: [QA, ARCH, INFRA]
+breakdown: EPIC
+workstream: WS-3
+origin: ["SUG-20261026-ur9"]
+owner: "Amit — Technical Head (R3); lane engineering-coding-standards"
+risk_tier: T2
+state: READY
+priority_now: P3
+priority_at_target: P2
+target_stage: "S08 — Engineering Foundation (SF5 parallel)"
+unpark_trigger: null
+
+outcome: >
+  `docs/governance/CODING-STANDARD.md` (SUG-20261026-cds) is machine-enforced for
+  identifier naming and architecture fitness across every service module, with an
+  explicit scaffold → implementing → hardened maturity ladder. Agents and humans
+  keep one standard; CI fails new Naming and shared ArchUnit breaches.
+
+epic_triggers_met:
+  - multiple_stories
+  - multiple_components
+  - multiple_acceptance_outcomes
+
+completion_definition: >
+  Checkstyle Naming rules (aligned to CODING-STANDARD §7) fail new violations on
+  `check`; a shared ArchUnit baseline is used by the microservice skeleton and every
+  `services/*` module; COVERAGE.md / CODE-REVIEW-STANDARD / CODING-STANDARD cite the
+  maturity ladder. CI green on the introducing PR. CODING-STANDARD.md is not rewritten.
+  QA-014 stays separate.
+
+not_included:
+  - "A second Java coding standard document (CODING-STANDARD.md is SSOT — SUG-20261026-cds)"
+  - "Re-running the cds Lombok/package/Spotless tree rewrite"
+  - "Implementing business logic in every thin scaffold to match 1sb-integration depth"
+  - "Raising empty H0 scaffolds to Phase-1 90% coverage"
+  - "Package-level Jacoco floors (QA-014)"
+  - "Phase 6 dashboards, alerts, SLOs"
+  - "Spring Boot 4 (SUG-20261008-sb4)"
+  - "Editing GATE-S08 stage_status / current_phase"
+
+stories:
+  - id: QA-015
+    title: "Checkstyle Naming ratchet + module maturity coverage ladder"
+    state: READY
+    priority_now: P3
+    priority_at_target: P2
+  - id: ARCH-029
+    title: "Shared ArchUnit baseline for all service modules"
+    state: READY
+    priority_now: P3
+    priority_at_target: P2
+
+story_order:
+  - QA-015
+  - ARCH-029
+
+serves:
+  - "SUG-20261026-cds / CODING-STANDARD.md enforcement residuals"
+  - "S08-G8 continuous adoption"
+  - "SUG-20261022-rdy parallel multi-service build quality"
+  - "ORG-STANDARDS AP-6"
+
+problem: >
+  SUG-20261026-cds published CODING-STANDARD.md and aligned the tree (no Lombok,
+  package layout, Spotless full-tree, banned imports). Identifier Naming is still
+  documentation-only (Checkstyle has no TypeName/MethodName rules). ArchUnit remains
+  per-service copies. Owner asked to raise the bar further throughout development
+  for all modules — that means enforce the existing standard, not rewrite it.
+
+description: >
+  SF5 Engineering lane. Wire Checkstyle Naming to CODING-STANDARD §7 with
+  suppressions for pre-existing debt; extract a shared ArchUnit baseline; document
+  the module maturity ladder. Do not gold-plate empty scaffolds.
+
+acceptance_criteria:
+  - id: AC-1
+    given: "CODING-STANDARD §7"
+    when: "a new type violates TypeName/MethodName/ConstantName"
+    then: "./gradlew checkstyleMain fails unless a dated suppression exists"
+  - id: AC-2
+    given: "templates/microservice-skeleton and every services/* module"
+    when: "architecture tests run"
+    then: "they depend on the shared ArchUnit baseline"
+  - id: AC-3
+    given: "COVERAGE.md and CODE-REVIEW-STANDARD"
+    when: "maturity ladder is read"
+    then: "scaffold / implementing / hardened floors and graduation triggers are explicit"
+
+out_of_scope:
+  - "Rewriting CODING-STANDARD.md"
+  - "Feature implementation across all 21 services"
+  - "QA-014"
+
+dependencies:
+  blocked_by: []
+  requires: ["SUG-20261026-cds CLOSED-DELIVERED / CODING-STANDARD.md on main"]
+  enables: ["consistent parallel service implementation"]
+  related_to: ["SUG-20261026-cds", "QA-014", "SUG-20261022-rdy"]
+  external: []
+  decision_dependency: []
+
+plan: null
+estimate: M
+assumptions: []
+risks: []
+evidence: []
+variance_log: []
+
+progress:
+  stories_total: 2
+  stories_done: 0
+  completion_definition_met: false

@@ -38,15 +38,17 @@ class HttpApigeeTokenClientTest {
   private RestClient restClient;
   private final Clock clock = Clock.fixed(Instant.parse("2026-10-07T12:00:00Z"), ZoneOffset.UTC);
 
+  // Generous timeouts: the first call pays WireMock/Jackson cold start, which can exceed 2 s on a
+  // busy CI runner and surface as a ResourceAccessException instead of the asserted failure.
   @BeforeEach
   void restClient() {
     HttpClient httpClient =
         HttpClient.newBuilder()
             .version(HttpClient.Version.HTTP_1_1)
-            .connectTimeout(Duration.ofSeconds(2))
+            .connectTimeout(Duration.ofSeconds(10))
             .build();
     JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(httpClient);
-    factory.setReadTimeout(Duration.ofSeconds(2));
+    factory.setReadTimeout(Duration.ofSeconds(10));
     restClient =
         RestClient.builder()
             .requestFactory(factory)

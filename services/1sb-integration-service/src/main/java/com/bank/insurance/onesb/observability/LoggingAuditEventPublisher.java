@@ -22,11 +22,19 @@ public class LoggingAuditEventPublisher implements AuditEventPublisher {
     }
     log.info(
         "audit eventId={} action={} outcome={} resourceType={} resourceId={} metadata={}",
-        event.getEventId(),
-        event.getAction(),
-        event.getOutcome(),
-        event.getResourceType(),
-        event.getResourceId(),
-        event.getMetadata());
+        logValue(event.getEventId()),
+        logValue(event.getAction()),
+        logValue(event.getOutcome()),
+        logValue(event.getResourceType()),
+        logValue(event.getResourceId()),
+        logValue(event.getMetadata()));
+  }
+
+  /** Drops CR/LF so a caller-supplied field cannot forge a second log line. */
+  private static String logValue(Object value) {
+    if (value == null) {
+      return "";
+    }
+    return String.valueOf(value).replaceAll("\\R", "");
   }
 }

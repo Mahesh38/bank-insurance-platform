@@ -39,10 +39,15 @@ public class TokenVaultCipher {
       Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
       cipher.init(Cipher.ENCRYPT_MODE, key, new GCMParameterSpec(TAG_BITS, iv));
       byte[] ciphertext = cipher.doFinal(objectMapper.writeValueAsBytes(value));
+      int ciphertextLength = ciphertext.length;
+      // Bound the caller-controlled length before adding the IV so the allocation cannot overflow.
+      if (ciphertextLength > Integer.MAX_VALUE - IV_LENGTH) {
+        throw new IllegalStateException("Unable to encrypt workforce session");
+      }
       return Base64.getUrlEncoder()
           .withoutPadding()
           .encodeToString(
-              ByteBuffer.allocate(iv.length + ciphertext.length).put(iv).put(ciphertext).array());
+              ByteBuffer.allocate(IV_LENGTH + ciphertextLength).put(iv).put(ciphertext).array());
     } catch (GeneralSecurityException | IOException exception) {
       throw new IllegalStateException("Unable to encrypt workforce session", exception);
     }

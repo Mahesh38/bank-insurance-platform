@@ -65,7 +65,15 @@ public class RawPayloadEncryptionService {
       Cipher cipher = Cipher.getInstance(TRANSFORMATION);
       cipher.init(Cipher.ENCRYPT_MODE, key, new GCMParameterSpec(GCM_TAG_LENGTH_BITS, iv));
       byte[] ciphertext = cipher.doFinal(plaintext.getBytes(StandardCharsets.UTF_8));
-      return ByteBuffer.allocate(iv.length + ciphertext.length).put(iv).put(ciphertext).array();
+      int ciphertextLength = ciphertext.length;
+      // Bound the caller-controlled length before adding the IV so the allocation cannot overflow.
+      if (ciphertextLength > Integer.MAX_VALUE - GCM_IV_LENGTH_BYTES) {
+        throw new IllegalStateException("Encrypted payload exceeds the maximum size");
+      }
+      return ByteBuffer.allocate(GCM_IV_LENGTH_BYTES + ciphertextLength)
+          .put(iv)
+          .put(ciphertext)
+          .array();
     } catch (GeneralSecurityException e) {
       throw new IllegalStateException("Failed to encrypt raw payload", e);
     }

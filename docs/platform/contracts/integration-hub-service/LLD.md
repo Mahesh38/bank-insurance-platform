@@ -179,9 +179,11 @@ sequenceDiagram
 ## 5. Canonical ↔ adapter mapping
 
 Source records: `CreateQuoteRequest`, `SubmitProposalRequest`, `EligibilitySubmitRequest`,
-`MasterLookupRequest`, `QuoteJobResponse`, `ProposalJobResponse`, `ApplicationStatusResponse`,
+`QuoteJobResponse`, `ProposalJobResponse`, `ApplicationStatusResponse`,
 `ProductUiDataResponse`, `UlipFundResponse` in
-[`services/1sb-integration-service/.../api/dto`](../../../../services/1sb-integration-service/src/main/java/com/bank/insurance/onesb/api/dto/)
+[`services/1sb-integration-service/.../api`](../../../../services/1sb-integration-service/src/main/java/com/bank/insurance/onesb/api/)
+and `MasterLookupRequest` in
+[`services/1sb-integration-service/.../api/v1`](../../../../services/1sb-integration-service/src/main/java/com/bank/insurance/onesb/api/v1/)
 and `QuoteOffer`, `FundAllocation`, `JobStatus`, `BankApplicationStatus`, `Lob` in
 [`libs/bank-common-domain`](../../../../libs/bank-common-domain/src/main/java/com/bank/common/domain/).
 

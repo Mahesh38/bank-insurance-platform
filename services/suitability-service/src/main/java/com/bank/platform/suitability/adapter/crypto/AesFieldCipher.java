@@ -52,7 +52,8 @@ public final class AesFieldCipher implements FieldCipher {
       cipher.init(
           Cipher.ENCRYPT_MODE, new SecretKeySpec(key, "AES"), new GCMParameterSpec(TAG_BITS, iv));
       byte[] body = cipher.doFinal(plaintext.getBytes(StandardCharsets.UTF_8));
-      byte[] out = new byte[iv.length + body.length];
+      int outLength = Math.addExact(iv.length, body.length);
+      byte[] out = new byte[outLength];
       System.arraycopy(iv, 0, out, 0, iv.length);
       System.arraycopy(body, 0, out, iv.length, body.length);
       return out;
